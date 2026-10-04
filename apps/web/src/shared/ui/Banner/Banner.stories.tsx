@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Banner } from '@/shared/ui/Banner/Banner';
 import { BannerTone } from '@/shared/ui/Banner/Banner.constants';
 import { IconName } from '@/shared/ui/Icon/Icon.constants';
+import { TextLink } from '@/shared/ui/TextLink/TextLink';
+import { withMemoryRouter } from '@test/support/helpers/storybook.helpers';
 import styles from '@/shared/ui/Banner/Banner.module.scss';
 
 const meta = {
@@ -26,11 +28,16 @@ export const Err: Story = {
 };
 export const WithoutIcon: Story = { args: { icon: null } };
 export const WithLink: Story = {
+  decorators: [withMemoryRouter],
   args: {
     tone: BannerTone.Warn,
     children: (
       <>
-        Publishing is paused. <a href="/">Review the changes</a> before you continue.
+        Publishing is paused.{' '}
+        <TextLink to="/" inline>
+          Review the changes
+        </TextLink>{' '}
+        before you continue.
       </>
     ),
   },

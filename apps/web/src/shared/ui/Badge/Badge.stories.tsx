@@ -18,6 +18,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 export const WithDot: Story = { args: { tone: BadgeTone.Ok, dot: true } };
 export const Mono: Story = { args: { mono: true, children: 'quality 8.4' } };
+export const NeutralCountPill: Story = { args: { tone: BadgeTone.Neutral, children: '12' } };
 export const AllTones: Story = {
   render: (args) => (
     <div className={styles.storyRow}>

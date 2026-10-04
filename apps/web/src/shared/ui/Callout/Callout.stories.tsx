@@ -1,7 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from '@/shared/ui/Button/Button';
+import { ButtonSize, ButtonVariant } from '@/shared/ui/Button/Button.constants';
 import { Callout } from '@/shared/ui/Callout/Callout';
 import { CalloutTone } from '@/shared/ui/Callout/Callout.constants';
 import { IconName } from '@/shared/ui/Icon/Icon.constants';
+import { TextLink } from '@/shared/ui/TextLink/TextLink';
+import { TextLinkTone } from '@/shared/ui/TextLink/TextLink.constants';
+import { withMemoryRouter } from '@test/support/helpers/storybook.helpers';
 import styles from '@/shared/ui/Callout/Callout.module.scss';
 
 const meta = {
@@ -32,13 +37,33 @@ export const WithoutIcon: Story = { args: { icon: null } };
 export const WithButtonAction: Story = {
   args: {
     tone: CalloutTone.Warn,
-    action: <button type="button">Publish anyway</button>,
+    action: (
+      <Button variant={ButtonVariant.Secondary} size={ButtonSize.Sm}>
+        Publish anyway
+      </Button>
+    ),
   },
 };
 export const WithLinkAction: Story = {
+  decorators: [withMemoryRouter],
   args: {
     tone: CalloutTone.Err,
-    action: <a href="/">View run trace</a>,
+    action: (
+      <TextLink to="/" tone={TextLinkTone.Error}>
+        View run trace
+      </TextLink>
+    ),
+  },
+};
+export const WithRetryAction: Story = {
+  args: {
+    tone: CalloutTone.Err,
+    children: 'The table could not be loaded.',
+    action: (
+      <Button variant={ButtonVariant.Secondary} size={ButtonSize.Sm} icon={IconName.Refresh}>
+        Retry
+      </Button>
+    ),
   },
 };
 export const MultiLine: Story = {
