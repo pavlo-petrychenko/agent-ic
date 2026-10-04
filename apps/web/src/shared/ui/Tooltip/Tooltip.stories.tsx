@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Icon } from '@/shared/ui/Icon/Icon';
+import { Button, ButtonVariant } from '@/shared/ui/Button';
 import { IconName } from '@/shared/ui/Icon/Icon.constants';
+import { IconButton } from '@/shared/ui/IconButton';
 import { Tooltip } from '@/shared/ui/Tooltip/Tooltip';
 import { TooltipSide } from '@/shared/ui/Tooltip/Tooltip.constants';
 
@@ -9,7 +10,7 @@ const meta = {
   args: {
     content: 'Knowledge base',
     side: TooltipSide.Top,
-    children: <button type="button">Hover or focus me</button>,
+    children: <Button variant={ButtonVariant.Secondary}>Hover or focus me</Button>,
   },
   argTypes: {
     side: { control: 'select', options: Object.values(TooltipSide) },
@@ -46,11 +47,7 @@ export const IconControl: Story = {
   args: {
     content: 'Settings',
     side: TooltipSide.Right,
-    children: (
-      <button type="button" aria-label="Settings">
-        <Icon name={IconName.Gear} size={16} />
-      </button>
-    ),
+    children: <IconButton icon={IconName.Gear} label="Settings" />,
   },
 };
 
@@ -58,9 +55,24 @@ export const DisabledReason: Story = {
   args: {
     content: 'Publish the agent first',
     children: (
-      <button type="button" aria-disabled="true">
-        Share
-      </button>
+      // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+      <span tabIndex={0} className="inline-flex">
+        <Button variant={ButtonVariant.Secondary} disabled>
+          Share
+        </Button>
+      </span>
     ),
+  },
+};
+
+export const WithoutArrow: Story = {
+  args: { content: 'Agents', side: TooltipSide.Right, arrow: false },
+};
+
+export const Multiline: Story = {
+  args: {
+    multiline: true,
+    content:
+      'The agent answers only from the knowledge you attach. Anything it cannot find is handed to a person.',
   },
 };

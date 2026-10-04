@@ -59,6 +59,11 @@
     font-weight: 600;
   }
 
+  &.multiline {
+    line-height: var(--leading-relaxed);
+    white-space: normal;
+  }
+
   &[data-side='top'] {
     --offset-y: var(--space-4);
   }
@@ -94,4 +99,13 @@
       animation: fade-out var(--duration-fast) var(--ease-exit);
     }
   }
+}
+
+.arrow {
+  display: block;
+  width: var(--space-8);
+  height: var(--space-8);
+  background: var(--color-tooltip-bg);
+  pointer-events: none;
+  transform: translateY(calc(-1 * var(--space-4))) rotate(45deg);
 }
