@@ -107,14 +107,16 @@ describe('Toast', () => {
     expect(screen.queryByText('Agent deleted')).not.toBeInTheDocument();
   });
 
-  it('dismisses an info toast on its own after the duration', async () => {
+  it('dismisses an info toast on its own after a custom duration', () => {
     const MESSAGE = 'Saved';
-    const SHORT_DURATION_MS = 20;
-    await notify({ message: MESSAGE, durationMs: SHORT_DURATION_MS });
+    const CUSTOM_DURATION_MS = 20;
+    notifyWithFakeTimers({ message: MESSAGE, durationMs: CUSTOM_DURATION_MS });
 
-    expect(await screen.findByText(MESSAGE)).toBeInTheDocument();
+    advance(CUSTOM_DURATION_MS - 1);
+    expect(screen.getByText(MESSAGE)).toBeInTheDocument();
 
-    await vi.waitFor(() => expect(screen.queryByText(MESSAGE)).not.toBeInTheDocument());
+    advance(1);
+    expect(screen.queryByText(MESSAGE)).not.toBeInTheDocument();
   });
 
   it('hides an info toast without an action after 4 seconds', () => {
