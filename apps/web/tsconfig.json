@@ -8,6 +8,8 @@
     "vite.resolve.ts",
     "vite.server.ts",
     "vite.server.test.ts",
+    "vite.theme.ts",
+    "vite.theme.test.ts",
     "vite.build.ts",
     "vite.constants.ts",
     "vitest.config.ts",

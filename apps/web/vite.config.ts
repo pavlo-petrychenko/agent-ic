@@ -5,9 +5,15 @@ import { defineConfig } from 'vite';
 import { buildOptions } from './vite.build.ts';
 import { resolveOptions } from './vite.resolve.ts';
 import { readServerOptions } from './vite.server.ts';
+import { themeBeforePaint } from './vite.theme.ts';
 
 export default defineConfig(({ command, mode }) => ({
-  plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react(), tailwindcss()],
+  plugins: [
+    tanstackRouter({ target: 'react', autoCodeSplitting: true }),
+    react(),
+    tailwindcss(),
+    themeBeforePaint(),
+  ],
   resolve: resolveOptions,
   build: buildOptions,
   server: command === 'serve' ? readServerOptions(mode) : undefined,
