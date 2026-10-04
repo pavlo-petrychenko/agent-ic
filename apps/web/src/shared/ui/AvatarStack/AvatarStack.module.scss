@@ -8,6 +8,7 @@ $overflow-font-size: 10px;
 }
 
 .item {
+  position: relative;
   box-shadow: 0 0 0 $ring var(--color-card);
 
   & + & {
