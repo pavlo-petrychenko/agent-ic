@@ -9,7 +9,19 @@
     "INVALID_CURSOR": "The page position is not valid.",
     "INVALID_PAGE_SIZE": "The page size is not allowed.",
     "RATE_LIMITED": "You are doing this too often. Try again in a moment.",
-    "PLATFORM_ADMIN_REQUIRED": "This action is available to platform administrators only."
+    "PLATFORM_ADMIN_REQUIRED": "This action is available to platform administrators only.",
+    "AUTHENTICATION_REQUIRED": "Sign in to continue.",
+    "SYSTEM_ACTOR_REQUIRED": "This action is not available.",
+    "INVALID_CREDENTIALS": "The email or the password is not correct.",
+    "EMAIL_NOT_CONFIRMED": "Confirm your email before you sign in.",
+    "EMAIL_TAKEN": "An account with this email already exists.",
+    "INVALID_EMAIL": "Enter a valid email address.",
+    "INVALID_NAME": "Enter your name.",
+    "PASSWORD_TOO_SHORT": "The password must have at least 10 characters.",
+    "PASSWORD_TOO_LONG": "The password is too long.",
+    "INVALID_REFRESH_TOKEN": "Your session has ended. Sign in again.",
+    "TOKEN_INVALID": "This link is not valid.",
+    "TOKEN_EXPIRED": "This link has expired."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",
