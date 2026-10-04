@@ -6,7 +6,11 @@ import {
   LOGIN_REASON_FIELDS,
   LoginField,
 } from '@/features/auth/constants/authForm.constants';
-import { FORGOT_PASSWORD_PATH, LoginNotice } from '@/features/auth/constants/authRoute.constants';
+import {
+  FORGOT_PASSWORD_PATH,
+  LoginNotice,
+  SIGN_UP_PATH,
+} from '@/features/auth/constants/authRoute.constants';
 import type { LoginPageProps } from '@/features/auth/containers/LoginPage/LoginPage.typedefs';
 import { useEnterApp } from '@/features/auth/logic/hooks/useEnterApp';
 import { useServerErrors } from '@/features/auth/logic/hooks/useServerErrors';
@@ -17,6 +21,7 @@ import { useAppForm } from '@/shared/forms/hooks/useAppForm';
 import { Namespace } from '@/shared/i18n/constants/namespace.constants';
 import { ButtonSize } from '@/shared/ui/Button';
 import { Callout, CalloutTone } from '@/shared/ui/Callout';
+import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/Text';
 import { TextLink } from '@/shared/ui/TextLink';
 import styles from '@/features/auth/containers/LoginPage/LoginPage.module.scss';
 
@@ -45,7 +50,18 @@ export function LoginPage({ redirect, notice }: LoginPageProps) {
   });
 
   return (
-    <AuthPanel title={t('login.title')} subtitle={t('login.subtitle')}>
+    <AuthPanel
+      title={t('login.title')}
+      subtitle={t('login.subtitle')}
+      footer={
+        <>
+          <Text as={TextElement.Span} kind={TextKind.BodySmall} color={TextColor.Mute}>
+            {t('login.newHere')}
+          </Text>
+          <TextLink to={SIGN_UP_PATH}>{t('login.createAccount')}</TextLink>
+        </>
+      }
+    >
       {notice === LoginNotice.PasswordChanged && (
         <Callout tone={CalloutTone.Ok}>{t('login.passwordChanged')}</Callout>
       )}

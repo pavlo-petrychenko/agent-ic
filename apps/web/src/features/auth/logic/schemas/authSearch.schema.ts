@@ -9,3 +9,7 @@ export const loginSearchSchema = z.object({
 export const tokenSearchSchema = z.object({
   token: z.string().min(1).nullable().catch(null).default(null),
 });
+
+export const checkEmailSearchSchema = z.object({
+  email: z.string().min(1).nullable().catch(null).default(null),
+});
