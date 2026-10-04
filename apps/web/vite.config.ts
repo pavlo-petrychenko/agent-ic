@@ -11,4 +11,10 @@ export default defineConfig({
     },
     conditions: ['source'],
   },
+  server: {
+    host: true,
+    port: 5173,
+    strictPort: true,
+    allowedHosts: ['.pavlop.dev'],
+  },
 });

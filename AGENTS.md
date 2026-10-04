@@ -4,7 +4,16 @@ agent-ic is an API-first chat-agent builder. A small business builds an AI chat 
 
 ## Commands
 
-Node 24 and pnpm 10 come from `mise.toml`. Run everything through mise: `mise exec -- pnpm <script>`.
+Node 24 and pnpm 10 come from `mise.toml`. The stack runs in Docker through `mise run <task>`; pnpm scripts run through mise: `mise exec -- pnpm <script>`.
+
+| Task                                                              | What it does                                |
+| ----------------------------------------------------------------- | ------------------------------------------- |
+| `mise run setup`                                                  | one-time setup, then the stack is running   |
+| `mise run start [svc...]` / `add <svc>`                           | start the stack or services / add one to it |
+| `mise run stop [svc]` / `restart <svc>` / `status` / `logs [svc]` | operate the stack                           |
+| `mise run shell <svc>`                                            | shell inside a service container            |
+| `mise run db:migrate` / `db:reset` / `db:seed` / `db:psql [role]` | database                                    |
+| `mise run codegen` / `check` / `test` / `e2e`                     | generated code, all guardrails, tests       |
 
 | Command                             | What it does                      |
 | ----------------------------------- | --------------------------------- |

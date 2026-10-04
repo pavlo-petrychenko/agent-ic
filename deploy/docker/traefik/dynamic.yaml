@@ -1,0 +1,80 @@
+tls:
+  certificates:
+    - certFile: /certs/local.agent-ic.pavlop.dev.pem
+      keyFile: /certs/local.agent-ic.pavlop.dev-key.pem
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certs/local.agent-ic.pavlop.dev.pem
+        keyFile: /certs/local.agent-ic.pavlop.dev-key.pem
+
+http:
+  routers:
+    web:
+      rule: Host(`local.agent-ic.pavlop.dev`)
+      entryPoints: [websecure]
+      service: web
+      priority: 1
+      tls: {}
+    api:
+      rule: Host(`local.agent-ic.pavlop.dev`) && PathPrefix(`/api`)
+      entryPoints: [websecure]
+      service: api
+      priority: 10
+      tls: {}
+    gateway:
+      rule: Host(`local.agent-ic.pavlop.dev`) && (PathPrefix(`/v1`) || PathPrefix(`/webhooks`))
+      entryPoints: [websecure]
+      service: gateway
+      priority: 10
+      tls: {}
+    mailpit:
+      rule: Host(`mail.local.agent-ic.pavlop.dev`)
+      entryPoints: [websecure]
+      service: mailpit
+      tls: {}
+    minio-console:
+      rule: Host(`s3.local.agent-ic.pavlop.dev`)
+      entryPoints: [websecure]
+      service: minio-console
+      tls: {}
+    grafana:
+      rule: Host(`grafana.local.agent-ic.pavlop.dev`)
+      entryPoints: [websecure]
+      service: grafana
+      tls: {}
+    langfuse:
+      rule: Host(`langfuse.local.agent-ic.pavlop.dev`)
+      entryPoints: [websecure]
+      service: langfuse
+      tls: {}
+
+  services:
+    web:
+      loadBalancer:
+        servers:
+          - url: http://web:5173
+    api:
+      loadBalancer:
+        servers:
+          - url: http://api:3000
+    gateway:
+      loadBalancer:
+        servers:
+          - url: http://gateway:3001
+    mailpit:
+      loadBalancer:
+        servers:
+          - url: http://mailpit:8025
+    minio-console:
+      loadBalancer:
+        servers:
+          - url: http://minio:9001
+    grafana:
+      loadBalancer:
+        servers:
+          - url: http://grafana:3000
+    langfuse:
+      loadBalancer:
+        servers:
+          - url: http://langfuse-web:3000

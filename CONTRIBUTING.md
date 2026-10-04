@@ -2,15 +2,16 @@
 
 ## Setup
 
-1. Install [mise](https://mise.jdx.dev). It provides Node 24 and pnpm 10 from `mise.toml`.
-2. Install dependencies and the git hooks:
+1. Install Docker Desktop (or OrbStack) and [mise](https://mise.jdx.dev). `README.md` has the exact steps.
+2. Run the one-time setup:
 
 ```sh
-mise exec -- pnpm install
-mise exec -- pnpm exec lefthook install
+mise run setup
 ```
 
-Run scripts through mise (`mise exec -- pnpm <script>`) or activate mise in your shell. The scripts are listed in [AGENTS.md](AGENTS.md).
+It installs the pinned tools, creates `.env` and a local certificate, adds the local hosts, builds the dev image, starts the stack, installs dependencies and the git hooks on the host, and runs migrations and seed.
+
+Run pnpm scripts through mise (`mise exec -- pnpm <script>`) or activate mise in your shell. The tasks and scripts are listed in [AGENTS.md](AGENTS.md).
 
 ## Branches and pull requests
 

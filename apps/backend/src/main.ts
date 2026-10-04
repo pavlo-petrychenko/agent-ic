@@ -6,9 +6,10 @@ import { FLOW_SCHEMA_VERSION } from '@agent-ic/flow';
 import { readRuntimeConfig } from './platform/config/runtime-config.ts';
 
 const { role, port } = readRuntimeConfig();
+const livePath = role === 'api' ? '/api/health/live' : '/health/live';
 
 const server = createServer((request, response) => {
-  if (request.method === 'GET' && request.url === '/health/live') {
+  if (request.method === 'GET' && request.url === livePath) {
     response.writeHead(200, { 'content-type': 'application/json' });
     response.end(
       JSON.stringify({

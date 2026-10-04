@@ -13,7 +13,12 @@
     "format": "oxfmt -c packages/oxc-config/oxfmt.json '!docs/**' '!**/AGENTS.md' '!**/CLAUDE.md' '!pnpm-lock.yaml'",
     "format:check": "oxfmt -c packages/oxc-config/oxfmt.json '!docs/**' '!**/AGENTS.md' '!**/CLAUDE.md' '!pnpm-lock.yaml' --check",
     "depcruise": "depcruise apps/backend/src --config .dependency-cruiser.cjs --ts-config \"$PWD/tools/depcruise/backend.tsconfig.json\" && depcruise apps/web/src --config .dependency-cruiser.cjs --ts-config \"$PWD/tools/depcruise/web.tsconfig.json\" && depcruise packages --config .dependency-cruiser.cjs",
-    "check:comments": "node tools/check-comments.ts"
+    "check:comments": "node tools/check-comments.ts",
+    "check": "pnpm lint && pnpm format:check && pnpm check:comments && pnpm depcruise && pnpm typecheck",
+    "db:migrate": "echo \"db:migrate: no migrations yet\"",
+    "db:seed": "echo \"db:seed: no seed data yet\"",
+    "codegen": "echo \"codegen: nothing to generate yet\"",
+    "e2e": "echo \"e2e: no end-to-end tests yet\""
   },
   "devDependencies": {
     "@agent-ic/oxc-config": "workspace:*",
