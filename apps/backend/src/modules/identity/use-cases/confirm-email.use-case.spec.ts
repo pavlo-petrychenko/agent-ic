@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { EMAIL_CONFIRMATION_TTL_SECONDS } from '@/modules/identity/constants/identity.constants';
 import { ConfirmationBrowserMismatchError } from '@/modules/identity/errors/confirmation-browser-mismatch.error';
+import { EmailAlreadyConfirmedError } from '@/modules/identity/errors/email-already-confirmed.error';
 import { TokenExpiredError } from '@/modules/identity/errors/token-expired.error';
 import { TokenInvalidError } from '@/modules/identity/errors/token-invalid.error';
 import { ConfirmEmailUseCase } from '@/modules/identity/use-cases/confirm-email.use-case';
@@ -52,7 +53,7 @@ describe('ConfirmEmailUseCase', () => {
     expect(stored.tokenHash).not.toBe(session.refreshToken);
   });
 
-  it('accepts a link only once', async () => {
+  it('tells a second click on the link that the email is already confirmed', async () => {
     const account = await signUpAccount(testbed);
     const token = await issueConfirmationToken(testbed, account.userId);
     const input = { token, browserBinding: account.browserBinding };
@@ -60,7 +61,34 @@ describe('ConfirmEmailUseCase', () => {
 
     const again = confirmEmail.execute(anonymousCtx(), input);
 
-    await expect(again).rejects.toBeInstanceOf(TokenInvalidError);
+    await expect(again).rejects.toBeInstanceOf(EmailAlreadyConfirmedError);
+  });
+
+  it('tells an older unused link that the email is already confirmed', async () => {
+    const account = await signUpAccount(testbed);
+    const older = await issueConfirmationToken(testbed, account.userId);
+    const newer = await issueConfirmationToken(testbed, account.userId);
+    await confirmEmail.execute(anonymousCtx(), {
+      token: newer,
+      browserBinding: account.browserBinding,
+    });
+
+    const attempt = confirmEmail.execute(anonymousCtx(), { token: older, browserBinding: null });
+
+    await expect(attempt).rejects.toBeInstanceOf(EmailAlreadyConfirmedError);
+  });
+
+  it('keeps a link voided by a newer sign-up invalid', async () => {
+    const account = await signUpAccount(testbed);
+    const voided = await issueConfirmationToken(testbed, account.userId);
+    const again = await signUpAccount(testbed, { email: account.email });
+
+    const attempt = confirmEmail.execute(anonymousCtx(), {
+      token: voided,
+      browserBinding: again.browserBinding,
+    });
+
+    await expect(attempt).rejects.toBeInstanceOf(TokenInvalidError);
   });
 
   it('rejects an expired link', async () => {

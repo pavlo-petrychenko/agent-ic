@@ -189,6 +189,21 @@ describe('accounts and sessions through the api', () => {
     expect(findCookie(response.headers[HttpHeader.SetCookie], REFRESH_COOKIE_NAME)).toBeNull();
   });
 
+  it('answers a second confirmation with EMAIL_ALREADY_CONFIRMED', async () => {
+    const email = uniqueEmail();
+    const browserCookie = await signUpInBrowser(email);
+    const token = await confirmationEmailTo(email);
+    await confirm(token, browserCookie);
+
+    const again = await confirm(token, browserCookie);
+
+    expect(again.status).toBe(409);
+    expect(again.body).toMatchObject({
+      code: ErrorCode.Conflict,
+      reason: ErrorReason.EmailAlreadyConfirmed,
+    });
+  });
+
   it('refuses a sign-up from another origin', async () => {
     const response = await http()
       .post(apiPath(AuthRoute.Base, AuthRoute.SignUp))
