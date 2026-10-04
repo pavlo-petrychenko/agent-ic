@@ -13,7 +13,9 @@ FROM dependencies AS build
 COPY . .
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --offline
+RUN pnpm --filter backend codegen
 RUN pnpm --filter backend... build
+RUN pnpm --filter backend schema:print
 RUN pnpm --filter backend deploy --prod /deployed
 
 FROM ${NODE_IMAGE} AS runtime
