@@ -1,6 +1,6 @@
 # 0015. Jobs and events after commit; a durable outbox for critical paths
 
-- **Status:** Accepted; amended 2026-10-04: internal events are named **domain events** (`domainEvents.emit`, `@OnDomainEvent`) to avoid a clash with the product's external events (architecture.md D80); amended 2026-10-04: a listener is declared as a `DomainEventSubscription` (event, queue, name) in the listening module's core module, and `@OnDomainEvent(subscription)` marks its handler (architecture.md D112)
+- **Status:** Accepted; amended 2026-10-04: internal events are named **domain events** (`domainEvents.emit`, `@OnDomainEvent`) to avoid a clash with the product's external events (architecture.md D80); amended 2026-10-04: a listener is declared as a `DomainEventSubscription` (event, queue, name) in the listening module's core module, and `@OnDomainEvent(subscription)` marks its handler (architecture.md D112); amended 2026-10-05: listeners are declared by `defineModule({ listeners })`, not by a core module, and subscriptions are made with `defineDomainEventSubscription` (architecture.md D143, D145)
 - **Date:** 2026-10-03
 
 ## Context
