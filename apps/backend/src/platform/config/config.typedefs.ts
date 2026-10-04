@@ -7,6 +7,17 @@ export interface HttpConfig {
   readonly port: number;
 }
 
+export interface DatabaseConfig {
+  readonly url: string;
+  readonly systemUrl: string;
+  readonly poolMax: number;
+}
+
+export interface MigrationConfig {
+  readonly logLevel: LogLevel;
+  readonly ownerUrl: string;
+}
+
 export interface TelemetryConfig {
   readonly enabled: boolean;
   readonly endpoint: string;
@@ -33,6 +44,7 @@ export interface BaseConfig {
   readonly nodeEnv: NodeEnvironment;
   readonly logLevel: LogLevel;
   readonly http: HttpConfig;
+  readonly database: DatabaseConfig;
   readonly telemetry: TelemetryConfig;
   readonly langfuse: LangfuseConfig;
 }
@@ -70,5 +82,6 @@ export interface CommonEnvironment {
   readonly nodeEnv: NodeEnvironment;
   readonly logLevel: LogLevel;
   readonly host: string;
+  readonly database: DatabaseConfig;
   readonly telemetry: TelemetryConfig;
 }

@@ -2,8 +2,14 @@ import { CLI_ARGUMENTS_LABEL, Role } from './config.constants';
 import { ConfigError } from './config.error';
 import { readCliOptions, toCliIssues, toConfigIssues } from './config.helpers';
 import type { RawCliOptions } from './config.helpers';
-import { cliSchema, commonEnvSchema, langfuseEnvSchema, roleEnvSchemas } from './config.schema';
-import type { AppConfig, BaseConfig, CliArguments } from './config.typedefs';
+import {
+  cliSchema,
+  commonEnvSchema,
+  langfuseEnvSchema,
+  migrationEnvSchema,
+  roleEnvSchemas,
+} from './config.schema';
+import type { AppConfig, BaseConfig, CliArguments, MigrationConfig } from './config.typedefs';
 
 export class ConfigLoader {
   constructor(private readonly env: NodeJS.ProcessEnv = process.env) {}
@@ -25,6 +31,7 @@ export class ConfigLoader {
       nodeEnv: common.data.nodeEnv,
       logLevel: common.data.logLevel,
       http: { host: common.data.host, port: roleEnvironment.data.port },
+      database: common.data.database,
       telemetry: common.data.telemetry,
       langfuse: langfuse.data,
     };
@@ -37,6 +44,14 @@ export class ConfigLoader {
       case Role.Worker:
         return { ...base, role: Role.Worker, queues: cli.queues };
     }
+  }
+
+  loadMigration(): MigrationConfig {
+    const migration = migrationEnvSchema.safeParse(this.env);
+    if (!migration.success) {
+      throw new ConfigError(toConfigIssues(migration.error));
+    }
+    return migration.data;
   }
 
   private loadCliArguments(argv: readonly string[]): CliArguments {

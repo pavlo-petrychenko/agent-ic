@@ -1,0 +1,14 @@
+export const ID_SEPARATOR = '_';
+export const ID_PREFIX_PATTERN = /^[a-z]{1,10}$/;
+export const ID_ALPHABET = '0123456789abcdefghjkmnpqrstvwxyz';
+export const ID_ENCODED_LENGTH = 26;
+export const ID_BITS_PER_CHARACTER = 5n;
+export const ID_CHARACTER_MASK = 31n;
+export const UUID_HEX_LENGTH = 32;
+export const UUID_GROUP_LENGTHS: readonly number[] = [8, 4, 4, 4, 12];
+export const UUID_GROUP_SEPARATOR = '-';
+export const HEX_RADIX = 16;
+export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+export const ID_ENCODED_PATTERN = /^[0-7][0-9a-hjkmnp-tv-z]{25}$/;
+export const INVALID_ID_MESSAGE = 'invalid id';
+export const INVALID_ID_PREFIX_MESSAGE = 'invalid id prefix';

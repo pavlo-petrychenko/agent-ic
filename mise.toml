@@ -74,7 +74,7 @@ run = "docker compose --profile '*' exec ${usage_svc} sh"
 
 [tasks."db:migrate"]
 description = "Apply database migrations"
-run = "docker compose run --rm --no-deps api sh -c 'DATABASE_URL=\"$DATABASE_OWNER_URL\" pnpm run db:migrate'"
+run = "docker compose run --rm --no-deps api pnpm run db:migrate"
 
 [tasks."db:reset"]
 description = "Recreate the database volume, then migrate and seed"

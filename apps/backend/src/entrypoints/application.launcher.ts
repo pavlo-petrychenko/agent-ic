@@ -1,30 +1,17 @@
-import { EOL } from 'node:os';
-
-import { ConfigError } from '@/platform/config/config.error';
 import { ConfigLoader } from '@/platform/config/config.loader';
 import { TracingService } from '@/platform/observability/tracing/tracing.service';
 
-import { ExitCode } from './launcher.constants';
+import { BaseLauncher } from './base.launcher';
 
-export class ApplicationLauncher {
+export class ApplicationLauncher extends BaseLauncher {
   constructor(
     private readonly argv: readonly string[],
     private readonly configLoader: ConfigLoader = new ConfigLoader(),
-  ) {}
-
-  async launch(): Promise<void> {
-    try {
-      await this.run();
-    } catch (error) {
-      if (!(error instanceof ConfigError)) {
-        throw error;
-      }
-      process.stderr.write(`${error.message}${EOL}`);
-      process.exitCode = ExitCode.InvalidConfig;
-    }
+  ) {
+    super();
   }
 
-  private async run(): Promise<void> {
+  protected async run(): Promise<void> {
     const config = this.configLoader.load(this.argv);
     const tracing = new TracingService(config.telemetry);
     tracing.start();

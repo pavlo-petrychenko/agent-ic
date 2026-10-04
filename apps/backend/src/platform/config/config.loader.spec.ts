@@ -168,4 +168,39 @@ describe('ConfigLoader', () => {
 
     expect(variablesOf(issues)).toEqual([EnvVar.LangfuseSampleRate]);
   });
+  it('reads the database section', () => {
+    const env = createTestEnv({ [EnvVar.DatabasePoolMax]: '7' });
+
+    const config = new ConfigLoader(env).load(roleArgv(Role.Api));
+
+    expect(config.database).toEqual({
+      url: env[EnvVar.DatabaseUrl],
+      systemUrl: env[EnvVar.DatabaseSystemUrl],
+      poolMax: 7,
+    });
+  });
+
+  it('rejects a database url that is not postgres', () => {
+    const env = createTestEnv({ [EnvVar.DatabaseUrl]: 'mysql://app:app@localhost/agent_ic' });
+
+    const issues = issuesOf(() => new ConfigLoader(env).load(roleArgv(Role.Api)));
+
+    expect(variablesOf(issues)).toEqual([EnvVar.DatabaseUrl]);
+  });
+
+  it('reads the migration config without role variables', () => {
+    const env = createTestEnv({ [EnvVar.ApiPort]: undefined, [EnvVar.DatabaseUrl]: undefined });
+
+    const config = new ConfigLoader(env).loadMigration();
+
+    expect(config.ownerUrl).toBe(env[EnvVar.DatabaseOwnerUrl]);
+  });
+
+  it('requires the owner url for migrations', () => {
+    const env = createTestEnv({ [EnvVar.DatabaseOwnerUrl]: undefined });
+
+    const issues = issuesOf(() => new ConfigLoader(env).loadMigration());
+
+    expect(variablesOf(issues)).toEqual([EnvVar.DatabaseOwnerUrl]);
+  });
 });

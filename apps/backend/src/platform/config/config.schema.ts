@@ -3,12 +3,14 @@ import { z } from 'zod';
 import { QueueName } from '@/platform/queues/queue.constants';
 
 import {
+  DATABASE_URL_PROTOCOL,
   EnvVar,
   LangfuseMode,
   LogLevel,
   NodeEnvironment,
   PORT_MAX,
   PORT_MIN,
+  POOL_SIZE_MIN,
   Role,
   SAMPLE_RATE_MAX,
   SAMPLE_RATE_MIN,
@@ -18,12 +20,15 @@ import type {
   CommonEnvironment,
   LangfuseActiveConfig,
   LangfuseConfig,
+  MigrationConfig,
   RoleEnvironment,
 } from './config.typedefs';
 
 const text = z.string().min(1);
 const port = z.coerce.number().int().min(PORT_MIN).max(PORT_MAX);
 const sampleRate = z.coerce.number().min(SAMPLE_RATE_MIN).max(SAMPLE_RATE_MAX);
+const databaseUrl = z.url({ protocol: DATABASE_URL_PROTOCOL });
+const poolSize = z.coerce.number().int().min(POOL_SIZE_MIN);
 
 export const cliSchema = z
   .object({
@@ -44,11 +49,19 @@ export const commonEnvSchema = z
     [EnvVar.OtelExporterEndpoint]: z.url(),
     [EnvVar.OtelServiceName]: text,
     [EnvVar.OtelServiceNamespace]: text,
+    [EnvVar.DatabaseUrl]: databaseUrl,
+    [EnvVar.DatabaseSystemUrl]: databaseUrl,
+    [EnvVar.DatabasePoolMax]: poolSize,
   })
   .transform((env): CommonEnvironment => ({
     nodeEnv: env[EnvVar.NodeEnv],
     logLevel: env[EnvVar.LogLevel],
     host: env[EnvVar.HttpHost],
+    database: {
+      url: env[EnvVar.DatabaseUrl],
+      systemUrl: env[EnvVar.DatabaseSystemUrl],
+      poolMax: env[EnvVar.DatabasePoolMax],
+    },
     telemetry: {
       enabled: !env[EnvVar.OtelSdkDisabled],
       endpoint: env[EnvVar.OtelExporterEndpoint],
@@ -97,3 +110,13 @@ export const roleEnvSchemas: Record<Role, z.ZodType<RoleEnvironment>> = {
     .object({ [EnvVar.WorkerPort]: port })
     .transform((env) => ({ port: env[EnvVar.WorkerPort] })),
 };
+
+export const migrationEnvSchema = z
+  .object({
+    [EnvVar.LogLevel]: z.enum(LogLevel),
+    [EnvVar.DatabaseOwnerUrl]: databaseUrl,
+  })
+  .transform((env): MigrationConfig => ({
+    logLevel: env[EnvVar.LogLevel],
+    ownerUrl: env[EnvVar.DatabaseOwnerUrl],
+  }));

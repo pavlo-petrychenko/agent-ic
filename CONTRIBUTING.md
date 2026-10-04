@@ -43,6 +43,8 @@ AI assistants read [AGENTS.md](AGENTS.md) in the repository root and the one ins
 | Web feature layers, Radix only in `shared/ui`                                         | `pnpm depcruise`      | no           | yes |
 | Types                                                                                 | `pnpm typecheck`      | no           | yes |
 | Build (SWC for the backend, tsup and Vite elsewhere)                                  | `pnpm build`          | no           | yes |
+| Tenant table without `workspace_id`, forced RLS or a policy (schema test)             | `pnpm test`           | no           | yes |
+| Migrations committed and consistent                                                   | `drizzle-kit check`   | no           | yes |
 
 ## How to review
 

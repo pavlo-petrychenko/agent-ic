@@ -34,7 +34,7 @@ Turborepo behaviour can differ from what you remember. Its docs ship with the in
 | Need                                      | Read                     |
 | ----------------------------------------- | ------------------------ |
 | What the product does and does not do     | `docs/mvp-scope.md`      |
-| Decisions D1 to D100, layout, data flow   | `docs/architecture.md`   |
+| Decisions D1 to D105, layout, data flow   | `docs/architecture.md`   |
 | Why a decision was made                   | `docs/adr/`              |
 | Code, architecture, testing and git rules | `docs/rules/`            |
 | Backend module anatomy                    | `apps/backend/AGENTS.md` |
@@ -70,28 +70,28 @@ Details and reasons are in `docs/rules/`. A tool enforces each rule marked with 
 
 ## Where does new code go
 
-| Change                                                    | Where                                                                                                                              |
-| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| New GraphQL field                                         | `modules/<m>/<m>.graphql` (SDL), a resolver in `graphql/`, a use case in `use-cases/`                                              |
-| New REST endpoint                                         | a controller in `modules/<m>/http/` calling one use case                                                                           |
-| New background job                                        | a processor in `modules/<m>/jobs/` calling one use case; payload holds IDs only                                                    |
-| New business operation                                    | `modules/<m>/use-cases/<name>.use-case.ts` with a `.spec.ts` beside it                                                             |
-| Logic shared by use cases                                 | `modules/<m>/services/`                                                                                                            |
-| New table                                                 | `modules/<m>/db/` in that module's Postgres schema, with `workspace_id` and an RLS policy; generate the migration with drizzle-kit |
-| New query                                                 | a method on a repository in `modules/<m>/repositories/`                                                                            |
-| New external service client                               | an abstract gateway plus an implementation and a fake in `modules/<m>/gateways/`                                                   |
-| Infrastructure used by 2+ modules, no business meaning    | `apps/backend/src/platform/`                                                                                                       |
-| New env variable                                          | `apps/backend/src/platform/config/` (zod schema)                                                                                   |
-| New domain error                                          | `modules/<m>/domain/`                                                                                                              |
-| Use another module's data                                 | import its service or repository from `modules/<other>` (its `index.ts`)                                                           |
-| New screen                                                | a container in `features/<f>/containers/`, wired by a route in `routes/`                                                           |
-| New GraphQL operation on the web                          | `features/<f>/communication/x.graphql` plus a data hook                                                                            |
-| New behaviour hook or pure helper                         | `features/<f>/logic/`                                                                                                              |
-| State shared across components                            | `features/<f>/storage/`                                                                                                            |
-| New presentational component                              | `features/<f>/view/<Name>/`                                                                                                        |
-| Reusable UI primitive                                     | `apps/web/src/shared/ui/` (the only place Radix may appear)                                                                        |
-| Types, limits, error codes, permissions used by both apps | `packages/contracts`                                                                                                               |
-| Flow-graph schema and validation                          | `packages/flow`                                                                                                                    |
+| Change                                                    | Where                                                                                                                                                                                            |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| New GraphQL field                                         | `modules/<m>/<m>.graphql` (SDL), a resolver in `graphql/`, a use case in `use-cases/`                                                                                                            |
+| New REST endpoint                                         | a controller in `modules/<m>/http/` calling one use case                                                                                                                                         |
+| New background job                                        | a processor in `modules/<m>/jobs/` calling one use case; payload holds IDs only                                                                                                                  |
+| New business operation                                    | `modules/<m>/use-cases/<name>.use-case.ts` with a `.spec.ts` beside it                                                                                                                           |
+| Logic shared by use cases                                 | `modules/<m>/services/`                                                                                                                                                                          |
+| New table                                                 | `modules/<m>/db/<name>.table.ts` in `moduleSchema('<m>')`, with `workspaceIdColumn()` and `tenantIsolationPolicy()`; `pnpm --filter backend db:generate`, then append `FORCE ROW LEVEL SECURITY` |
+| New query                                                 | a method on a repository in `modules/<m>/repositories/`                                                                                                                                          |
+| New external service client                               | an abstract gateway plus an implementation and a fake in `modules/<m>/gateways/`                                                                                                                 |
+| Infrastructure used by 2+ modules, no business meaning    | `apps/backend/src/platform/`                                                                                                                                                                     |
+| New env variable                                          | `apps/backend/src/platform/config/` (zod schema)                                                                                                                                                 |
+| New domain error                                          | `modules/<m>/domain/`                                                                                                                                                                            |
+| Use another module's data                                 | import its service or repository from `modules/<other>` (its `index.ts`)                                                                                                                         |
+| New screen                                                | a container in `features/<f>/containers/`, wired by a route in `routes/`                                                                                                                         |
+| New GraphQL operation on the web                          | `features/<f>/communication/x.graphql` plus a data hook                                                                                                                                          |
+| New behaviour hook or pure helper                         | `features/<f>/logic/`                                                                                                                                                                            |
+| State shared across components                            | `features/<f>/storage/`                                                                                                                                                                          |
+| New presentational component                              | `features/<f>/view/<Name>/`                                                                                                                                                                      |
+| Reusable UI primitive                                     | `apps/web/src/shared/ui/` (the only place Radix may appear)                                                                                                                                      |
+| Types, limits, error codes, permissions used by both apps | `packages/contracts`                                                                                                                                                                             |
+| Flow-graph schema and validation                          | `packages/flow`                                                                                                                                                                                  |
 
 ## Definition of done
 

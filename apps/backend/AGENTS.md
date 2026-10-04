@@ -7,10 +7,12 @@ NestJS modular monolith. One codebase and one image, started in a role (`gateway
 ```
 src/
 ├── main.ts              runs the ApplicationLauncher
+├── migrate.ts           runs the MigrationLauncher (applies migrations/ as app_owner)
 ├── entrypoints/         the launcher, the application factory and one Nest root module per role: gateway, api, worker
 ├── platform/            infrastructure with no business meaning, used by 2+ modules
 └── modules/<module>/    one domain module
 test/                    end-to-end tests through a booted app
+migrations/              SQL migrations written by drizzle-kit, committed, never edited after merge
 ```
 
 `platform/` holds db, redis, queues, pubsub, config, observability (logging, health, metrics, tracing), `UseCaseCtx`, base errors, abstract gateway tokens and test helpers. It never imports `modules/`. Env is read only in `platform/config`.
@@ -21,6 +23,14 @@ test/                    end-to-end tests through a booted app
 - `pnpm --filter backend build` then `pnpm --filter backend start --role=api` runs the compiled app.
 - The role is `--role=api|gateway|worker`. A worker also needs `--queues=…` (names from `QueueName`). Ports, host and everything else come from env (`.env.example`), validated by `platform/config`; invalid input prints every bad variable and exits with code 1.
 - Every role serves health and metrics: `/api/health/live`, `/api/health/ready` on `api`; `/health/live`, `/health/ready` on `gateway` and `worker`; `/metrics` on all three, outside the `/api` prefix.
+
+## Database
+
+- `platform/db` holds the `app` pool (behind `TransactionHost` from `@nestjs-cls/transactional`), `SystemDb` (the `app_system` role, allow-list only) and `TenantTransactionRunner`. Repositories read `txHost.tx`; outside a transaction that is the pool, where RLS shows no tenant rows.
+- `TenantTransactionRunner.run(workspaceId, work)` opens or joins the transaction and sets `app.workspace_id` for it. A transaction never switches workspace.
+- New table: `modules/<m>/db/<name>.table.ts` in `moduleSchema('<m>')`, with `workspaceIdColumn()` and `tenantIsolationPolicy('<table>')` from `platform/db/tenancy`, and `.enableRLS()`. Run `pnpm --filter backend db:generate`, then append `ALTER TABLE … FORCE ROW LEVEL SECURITY;` to the new migration (drizzle-kit does not write it). A table that is not per workspace goes on the exempt list in `platform/testing/tenant-schema.constants.ts`.
+- Apply migrations with `mise run db:migrate` (or `pnpm --filter backend db:migrate` with `DATABASE_OWNER_URL` set). `pnpm --filter backend db:check` checks the migration files.
+- Tests need Docker: Vitest starts Postgres and Redis with Testcontainers once per run and migrates them. A database spec builds its module with `createDatabaseTestingModule()` and wraps writes in `TestTransactionRunner.rollback(…)`, so nothing stays behind. The schema test fails when a tenant table lacks `workspace_id`, forced RLS or a policy.
 
 ## Module anatomy
 

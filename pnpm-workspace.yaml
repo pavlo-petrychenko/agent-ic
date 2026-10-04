@@ -3,9 +3,11 @@ packages:
   - packages/*
 allowBuilds:
   '@swc/core': false
+  cpu-features: false
   esbuild: true
   lefthook: false
   protobufjs: false
+  ssh2: false
 packageExtensions:
   dependency-cruiser:
     dependencies:

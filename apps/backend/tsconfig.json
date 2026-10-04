@@ -1,6 +1,6 @@
 {
   "extends": "@agent-ic/tsconfig/node.json",
-  "include": ["src", "test", "vitest.config.ts"],
+  "include": ["src", "test", "vitest.config.ts", "drizzle.config.ts"],
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "Bundler",

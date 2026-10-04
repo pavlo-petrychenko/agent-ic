@@ -12,5 +12,6 @@ export default defineConfig({
   },
   test: {
     include: ['src/**/*.spec.ts', 'test/**/*.spec.ts'],
+    globalSetup: ['src/platform/testing/test-infrastructure.global-setup.ts'],
   },
 });

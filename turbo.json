@@ -20,10 +20,18 @@
       "persistent": true
     },
     "typecheck": {
-      "inputs": ["src/**", "test/**", "tsconfig.json", "package.json"]
+      "inputs": ["src/**", "test/**", "drizzle.config.ts", "tsconfig.json", "package.json"]
     },
     "test": {
-      "inputs": ["src/**", "test/**", "vitest.config.ts", ".swcrc", "package.json"]
+      "inputs": [
+        "src/**",
+        "test/**",
+        "migrations/**",
+        "vitest.config.ts",
+        ".swcrc",
+        "package.json"
+      ],
+      "passThroughEnv": ["DOCKER_*", "TESTCONTAINERS_*"]
     },
     "lint": {
       "inputs": ["src/**", "package.json"]

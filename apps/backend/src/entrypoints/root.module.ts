@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
 import type { DynamicModule, Type } from '@nestjs/common';
 
+import { ClockModule } from '@/platform/clock/clock.module';
 import { ConfigModule } from '@/platform/config/config.module';
 import type { AppConfig } from '@/platform/config/config.typedefs';
+import { DatabaseModule } from '@/platform/db/database.module';
+import { IdsModule } from '@/platform/ids/ids.module';
 import { TracingModule } from '@/platform/observability/tracing/tracing.module';
 import type { TracingService } from '@/platform/observability/tracing/tracing.service';
 
@@ -15,7 +18,14 @@ export class RootModule {
   ): DynamicModule {
     return {
       module: RootModule,
-      imports: [ConfigModule.register(config), TracingModule.register(tracing), entrypoint],
+      imports: [
+        ConfigModule.register(config),
+        TracingModule.register(tracing),
+        DatabaseModule,
+        ClockModule,
+        IdsModule,
+        entrypoint,
+      ],
     };
   }
 }

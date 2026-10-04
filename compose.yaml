@@ -29,6 +29,7 @@ x-backend-environment: &backend-environment
   DATABASE_URL: postgres://app:${APP_PASSWORD}@postgres:5432/${DATABASE_NAME}
   DATABASE_SYSTEM_URL: postgres://app_system:${APP_SYSTEM_PASSWORD}@postgres:5432/${DATABASE_NAME}
   DATABASE_OWNER_URL: postgres://app_owner:${APP_OWNER_PASSWORD}@postgres:5432/${DATABASE_NAME}
+  DATABASE_POOL_MAX: ${DATABASE_POOL_MAX}
   REDIS_QUEUE_URL: redis://redis-queue:6379
   REDIS_CACHE_URL: redis://redis-cache:6379
   S3_ENDPOINT: http://minio:9000
