@@ -17,11 +17,13 @@ description = "One-time setup: tools, .env and ports, certificate, hosts, then t
 run = [
   "mise install",
   "mkcert -install",
+  "tools/dev/env.sh",
   "tools/dev/ports.sh",
   "tools/dev/certs.sh",
   "tools/dev/hosts.sh",
   "mise run setup:stack",
 ]
+run_windows = "echo agent-ic runs on Windows inside WSL2: see the Windows section of README.md && exit 1"
 
 [tasks."setup:stack"]
 description = "Install dependencies and hooks, build the images, start the stack, migrate and seed"
@@ -41,6 +43,7 @@ run = [
 description = "Start everything or the listed services and follow the logs"
 usage = 'arg "[svc]..." var=#true help="Services to start"'
 run = [
+  "tools/dev/env.sh",
   "docker compose up -d --wait ${usage_svc}",
   "docker compose --profile '*' logs -f --tail=50 ${usage_svc}",
 ]
