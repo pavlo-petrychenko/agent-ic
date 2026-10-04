@@ -26,4 +26,5 @@ export const Default: Story = {};
 export const Small: Story = { args: { size: SelectSize.Sm } };
 export const Preselected: Story = { args: { defaultValue: 'v4' } };
 export const Invalid: Story = { args: { invalid: true } };
+export const WithError: Story = { args: { error: 'Pick an agent' } };
 export const Disabled: Story = { args: { disabled: true } };

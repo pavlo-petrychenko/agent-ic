@@ -11,4 +11,5 @@ export interface SelectProps extends Omit<ComponentProps<'select'>, 'size' | 'ch
   options: readonly SelectOption[];
   size?: SelectSize;
   invalid?: boolean;
+  error?: string | null;
 }

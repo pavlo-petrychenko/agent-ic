@@ -50,6 +50,40 @@ describe('Select', () => {
     expect(screen.getByRole('combobox', { name: 'Version' })).toBeInvalid();
   });
 
+  it('shows the error under the control and links it with aria-describedby', () => {
+    render(<Select aria-label="Version" options={OPTIONS} error="Pick a version" />);
+
+    const select = screen.getByRole('combobox', { name: 'Version' });
+
+    expect(select).toBeInvalid();
+    expect(select).toHaveAccessibleDescription('Pick a version');
+  });
+
+  it('keeps a caller aria-describedby next to the error', () => {
+    render(
+      <>
+        <p id="outside-hint">Choose carefully</p>
+        <Select
+          aria-label="Version"
+          aria-describedby="outside-hint"
+          options={OPTIONS}
+          error="Pick a version"
+        />
+      </>,
+    );
+
+    expect(screen.getByRole('combobox', { name: 'Version' })).toHaveAccessibleDescription(
+      'Pick a version Choose carefully',
+    );
+  });
+
+  it('renders no error text when there is no error', () => {
+    render(<Select aria-label="Version" options={OPTIONS} error={null} />);
+
+    expect(screen.getByRole('combobox', { name: 'Version' })).toBeValid();
+    expect(screen.getByRole('combobox', { name: 'Version' })).not.toHaveAccessibleDescription();
+  });
+
   it('renders at the small size and stays usable', async () => {
     render(<Select aria-label="Version" options={OPTIONS} size={SelectSize.Sm} />);
 

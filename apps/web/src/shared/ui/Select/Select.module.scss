@@ -1,4 +1,11 @@
 .root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+}
+
+.select {
   width: 100%;
   padding: 0 var(--space-8);
   border: var(--border-width) solid var(--color-line);
@@ -10,8 +17,8 @@
     border-color var(--duration-fast),
     box-shadow var(--duration-fast);
 
-  &:hover:not(:disabled) {
-    border-color: var(--color-line-dash);
+  &:hover:not(:disabled):not(:focus-visible) {
+    border-color: var(--color-edge);
   }
 
   &:focus-visible {
@@ -20,10 +27,14 @@
   }
 
   &:disabled {
-    opacity: var(--opacity-disabled);
     cursor: not-allowed;
     pointer-events: none;
   }
+}
+
+.disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
 }
 
 .md {
@@ -39,7 +50,7 @@
 .invalid {
   border-color: var(--color-err);
 
-  &:hover:not(:disabled) {
+  &:hover:not(:disabled):not(:focus-visible) {
     border-color: var(--color-err);
   }
 
@@ -47,4 +58,9 @@
     border-color: var(--color-err);
     box-shadow: var(--shadow-focus-field-error);
   }
+}
+
+.error {
+  color: var(--color-err);
+  font: var(--type-small);
 }
