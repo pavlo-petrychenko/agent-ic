@@ -95,6 +95,10 @@ $reduced-motion-duration: 120ms;
   font: var(--type-body);
 }
 
+.error {
+  margin-bottom: var(--space-10);
+}
+
 .footer {
   display: flex;
   flex-shrink: 0;

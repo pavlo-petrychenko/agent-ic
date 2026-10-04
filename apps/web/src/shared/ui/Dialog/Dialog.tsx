@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { Dialog as DialogPrimitive } from 'radix-ui';
-import { DialogSize } from '@/shared/ui/Dialog/Dialog.constants';
+import { Callout, CalloutTone } from '@/shared/ui/Callout';
+import { DIALOG_ERROR_ICON, DialogSize } from '@/shared/ui/Dialog/Dialog.constants';
 import type { DialogProps } from '@/shared/ui/Dialog/Dialog.typedefs';
 import { IconName } from '@/shared/ui/Icon';
 import { IconButton } from '@/shared/ui/IconButton';
@@ -14,6 +15,7 @@ export function Dialog({
   open,
   onOpenChange,
   busy = false,
+  error = null,
   title,
   description = null,
   closeLabel,
@@ -49,7 +51,14 @@ export function Dialog({
               <IconButton icon={IconName.X} label={closeLabel} disabled={busy} />
             </DialogPrimitive.Close>
           </header>
-          <div className={styles.body}>{children}</div>
+          <div className={styles.body}>
+            {error === null ? null : (
+              <Callout tone={CalloutTone.Err} icon={DIALOG_ERROR_ICON} className={styles.error}>
+                {error}
+              </Callout>
+            )}
+            {children}
+          </div>
           {hasFooter ? (
             <footer className={styles.footer}>
               <div className={styles.footerLeft}>{footerLeft}</div>
