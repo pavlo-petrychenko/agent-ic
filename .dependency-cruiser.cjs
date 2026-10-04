@@ -12,6 +12,10 @@ const moduleRootTransport = `${modules}[^/]+/[^/]+\\.(graphql-module|http-module
 const moduleIndex = `${modules}[^/]+/index\\.ts$`;
 const featureIndex = `${features}[^/]+/index\\.ts$`;
 const testFile = '\\.test\\.tsx?$';
+const backendTestSupport = '^apps/backend/test/';
+const appTestSupport = '^apps/[^/]+/test/';
+const appSource = '^apps/[^/]+/src/';
+const testOrStoryFile = '\\.(spec|test|stories)\\.tsx?$';
 
 const systemDb = `${backend}platform/db/system-db\\.ts$`;
 const systemDbAllowList = [
@@ -30,8 +34,13 @@ const forbidden = (name, from, to) => ({
 module.exports = {
   forbidden: [
     forbidden(
+      'src-never-imports-test-support',
+      { path: appSource, pathNot: testOrStoryFile },
+      { path: appTestSupport },
+    ),
+    forbidden(
       'backend-transport-uses-use-case-only',
-      { path: transport, pathNot: `${backend}platform/` },
+      { path: transport, pathNot: [`${backend}platform/`, backendTestSupport] },
       {
         path: [service, repository],
       },
