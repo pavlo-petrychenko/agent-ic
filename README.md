@@ -6,7 +6,7 @@ Documentation lives in `docs/`: `architecture.md`, `mvp-scope.md`, `communicatio
 
 ## Prerequisites
 
-You install two things by hand. Everything else comes from `mise.toml`.
+You install two things by hand. Everything else comes from `mise.toml`. On Windows, first follow "Windows (WSL2)" below.
 
 ### Docker Desktop
 
@@ -26,6 +26,18 @@ exec zsh
 
 For bash use `mise activate bash` and `~/.bashrc`. Check it with `mise --version`.
 
+### Windows (WSL2)
+
+The project runs inside WSL2, not in native Windows. `mise run setup` in PowerShell stops with a message that points here.
+
+1. In PowerShell as administrator: `wsl --install -d Ubuntu`, then restart and create the Ubuntu user.
+2. Install Docker Desktop, then enable Settings, Resources, WSL integration, Ubuntu.
+3. Open the Ubuntu terminal and install mise there: `curl https://mise.run | sh`, then `echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc` and `exec bash`.
+4. Clone into the Ubuntu home folder (`~/agent-ic`), not under `/mnt/c`. Files under `/mnt/c` are slow and break hot reload.
+5. Run every command from the Ubuntu terminal. Open the URLs in your Windows browser.
+
+Inside WSL2, `mise run setup` also does the Windows part: it trusts the local certificate authority in your Windows user certificate store (Windows asks you to confirm) and adds the hostnames to the Windows hosts file (approve the administrator prompt). Chrome and Edge use the Windows store. In Firefox, set `security.enterprise_roots.enabled` to `true` in `about:config`.
+
 ## Quick start
 
 ```sh
@@ -38,9 +50,9 @@ mise run setup
 
 1. installs the pinned tools (Node 24, pnpm, mkcert, kubectl, helm, kubeseal, actionlint, kubeconform);
 2. runs `mkcert -install` so your browser trusts the local certificate authority (it may ask for your password);
-3. creates `.env` from `.env.example` if it is missing, then checks every host port and moves busy ones (see "Port conflicts");
+3. creates `.env` from `.env.example`, or adds the variables your `.env` is missing, then checks every host port and moves busy ones (see "Port conflicts");
 4. creates a wildcard certificate for `*.local.agent-ic.pavlop.dev` in `.certs/` with mkcert;
-5. adds the local hostnames to `/etc/hosts` (asks for your password, only if they are missing);
+5. adds the local hostnames to `/etc/hosts` (asks for your password, only if they are missing), and in WSL2 also to the Windows hosts file;
 6. installs dependencies on the host (for editor types) and the git hooks;
 7. builds the dev image and starts the stack;
 8. runs the migrations and the seed;
@@ -108,9 +120,9 @@ mise run add langfuse-web
 
 `.env.example` holds the default host ports, all bound to `127.0.0.1`: Traefik `TRAEFIK_HTTP_PORT=80` and `TRAEFIK_HTTPS_PORT=443`, `POSTGRES_PORT=5432`, `REDIS_PORT=6380`, `MINIO_API_PORT=9000`, `MAILPIT_SMTP_PORT=1025`. Compose reads them from `.env`.
 
-During `mise run setup`, `tools/dev/ports.sh` checks each port with `lsof`. For a busy port it prints the process that holds it, writes a free alternative into `.env` (`8080`, `8443`, `5433`, `6390`, `6391`, `9100`, `1026`, or the next free number) and prints the resulting URLs. When HTTPS is not on `443`, `PUBLIC_URL` gets the port too, so open `https://local.agent-ic.pavlop.dev:8443`.
+During `mise run setup`, `tools/dev/ports.sh` checks each port with `lsof` (or `ss` when `lsof` is missing; in WSL2 it also asks Windows). For a busy port it prints the process that holds it, writes a free alternative into `.env` (`8080`, `8443`, `5433`, `6390`, `6391`, `9100`, `1026`, or the next free number) and prints the resulting URLs. When HTTPS is not on `443`, `PUBLIC_URL` gets the port too, so open `https://local.agent-ic.pavlop.dev:8443`.
 
-`.env.example` also holds the container ports (`WEB_PORT`, `API_PORT`, `GATEWAY_PORT`, `WORKER_PORT`), the hosts the dev server accepts (`WEB_ALLOWED_HOSTS`, comma separated) and other backend settings. Compose and the backend read them from `.env`; when a pull adds variables to `.env.example`, copy them into your `.env`.
+`.env.example` also holds the container ports (`WEB_PORT`, `API_PORT`, `GATEWAY_PORT`, `WORKER_PORT`), the hosts the dev server accepts (`WEB_ALLOWED_HOSTS`, comma separated) and other backend settings. Compose and the backend read them from `.env`. When a pull adds variables to `.env.example`, `mise run start` appends them to your `.env` with their example values (`tools/dev/env.sh`); it never changes a variable you already have.
 
 To choose ports yourself, edit `.env`. Run `tools/dev/ports.sh` again after you stop the stack to re-check. `mise run setup` never overwrites an existing `.env` apart from those port lines and `PUBLIC_URL`.
 
