@@ -1,0 +1,18 @@
+.column {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: var(--space-14);
+  box-sizing: border-box;
+  width: var(--size-secondary-nav-width);
+  padding: var(--space-18) var(--space-12);
+  border-right: var(--border-width) solid var(--color-line);
+  background: var(--color-panel);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  min-height: var(--size-control-md);
+  padding: 0 var(--space-4);
+}

@@ -1,0 +1,8 @@
+query InviteLink {
+  inviteLink {
+    url
+    role
+    expiresAt
+    joinedCount
+  }
+}

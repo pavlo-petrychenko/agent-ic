@@ -8,7 +8,8 @@
     "sections": {
       "agents": "Agents",
       "inbox": "Inbox",
-      "settings": "Settings"
+      "settings": "Settings",
+      "team": "Team"
     }
   },
   "header": {

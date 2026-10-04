@@ -1,0 +1,26 @@
+{
+  "title": "Settings",
+  "breadcrumb": "Breadcrumb",
+  "breadcrumbMore": "More",
+  "nav": {
+    "workspace": "Workspace",
+    "team": "Team"
+  },
+  "team": {
+    "subtitle_one": "{{count}} member · each person has one role in this workspace",
+    "subtitle_other": "{{count}} members · each person has one role in this workspace",
+    "invite": {
+      "title": "Invite link",
+      "description": "Anyone with the link can join {{workspace}} with the role you pick. Only owners and admins see this.",
+      "role": "Role for new members",
+      "copy": "Copy link",
+      "reset": "Reset link",
+      "create": "Create an invite link",
+      "meta_one": "Link expires {{date}} · {{count}} person joined with it",
+      "meta_other": "Link expires {{date}} · {{count}} people joined with it",
+      "copied": "Invite link copied",
+      "resetDone": "The old link no longer works. Share the new one.",
+      "roleChanged": "New members will join as {{role}}"
+    }
+  }
+}

@@ -6,6 +6,9 @@ import { render } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import { routeTree } from '@/routeTree.gen';
 import { createI18n } from '@/shared/i18n/clients/i18n.client';
+import { ToastProvider } from '@/shared/ui/Toast';
+
+const TOAST_CLOSE_LABEL = 'Close';
 
 interface RenderRouteOptions {
   locale?: Locale;
@@ -25,7 +28,9 @@ export const renderRoute = (
   render(
     <I18nextProvider i18n={createI18n(locale)}>
       <MockedProvider mocks={mocks}>
-        <RouterProvider router={testRouter.router} />
+        <ToastProvider closeLabel={TOAST_CLOSE_LABEL}>
+          <RouterProvider router={testRouter.router} />
+        </ToastProvider>
       </MockedProvider>
     </I18nextProvider>,
   );

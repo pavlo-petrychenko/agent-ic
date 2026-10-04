@@ -9,7 +9,7 @@ export function WorkspaceLayout({ workspaceId, children }: WorkspaceLayoutProps)
       <aside className="shrink-0">
         <WorkspaceNavigation workspaceId={workspaceId} footerAction={<LocaleSwitcher compact />} />
       </aside>
-      <main className={`${styles.main} min-w-0 flex-1 overflow-auto pb-8`}>
+      <main className={`${styles.main} min-w-0 flex-1 overflow-auto`}>
         <WorkspaceAccess workspaceId={workspaceId}>{children}</WorkspaceAccess>
       </main>
     </div>

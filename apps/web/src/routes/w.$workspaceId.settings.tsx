@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { SectionPlaceholderPage, WorkspaceSection } from '@/features/workspace';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { SettingsShell } from '@/features/settings';
 
 export const Route = createFileRoute('/w/$workspaceId/settings')({
   component: SettingsRoute,
@@ -7,5 +7,9 @@ export const Route = createFileRoute('/w/$workspaceId/settings')({
 
 function SettingsRoute() {
   const { workspaceId } = Route.useParams();
-  return <SectionPlaceholderPage workspaceId={workspaceId} section={WorkspaceSection.Settings} />;
+  return (
+    <SettingsShell workspaceId={workspaceId}>
+      <Outlet />
+    </SettingsShell>
+  );
 }
