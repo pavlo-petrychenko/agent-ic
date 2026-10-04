@@ -29,12 +29,13 @@ import {
   ME_MEMBERSHIPS_QUERY,
   MEMBERS_QUERY,
   RESET_INVITE_LINK_MUTATION,
-  SIGN_UP_WITH_INVITE_MUTATION,
 } from '@test/support/constants/workspaces-flow.constants';
 import { randomIpAddress, uniqueEmail } from '@test/support/fixtures/identity.fixture';
 import {
   bootRoleWithEmails,
+  confirmationCookieOf,
   confirmationTokenIn,
+  cookiePair,
   fromApp,
 } from '@test/support/helpers/auth-flow.helpers';
 import {
@@ -69,25 +70,52 @@ describe('workspaces, roles and invites through the api', () => {
     return pending.send({ query: call.query, variables: call.variables ?? {} });
   };
 
+  const authPost = (route: AuthRoute): ReturnType<ReturnType<typeof request>['post']> =>
+    fromApp(request(api.getHttpServer()).post(apiPath(AuthRoute.Base, route))).set(
+      FORWARDED_FOR_HEADER,
+      randomIpAddress(),
+    );
+
+  const signUp = (email: string, inviteToken: string | null): Promise<Response> =>
+    authPost(AuthRoute.SignUp).send({
+      name: TEST_USER_NAME,
+      email,
+      password: TEST_PASSWORD,
+      locale: Locale.En,
+      inviteToken,
+    });
+
+  const confirm = async (email: string, browserCookie: string | null): Promise<Response> => {
+    await vi.waitFor(() => expect(emails.sentTo(email)).toHaveLength(1), WAIT_FOR_EMAIL);
+    const pending = authPost(AuthRoute.ConfirmEmail);
+    return (browserCookie === null ? pending : pending.set(HttpHeader.Cookie, browserCookie)).send({
+      token: confirmationTokenIn(emails.sentTo(email)[0]?.text ?? ''),
+    });
+  };
+
+  const browserCookieOf = (response: Response): string =>
+    cookiePair(confirmationCookieOf(response.headers[HttpHeader.SetCookie]));
+
   const signedInAccount = async (inviteToken: string | null = null): Promise<string> => {
     const email = uniqueEmail();
-    await graphql({
-      query: SIGN_UP_WITH_INVITE_MUTATION,
-      variables: {
-        input: {
-          name: TEST_USER_NAME,
-          email,
-          password: TEST_PASSWORD,
-          locale: Locale.En,
-          inviteToken,
-        },
-      },
-    });
-    await vi.waitFor(() => expect(emails.sentTo(email)).toHaveLength(1), WAIT_FOR_EMAIL);
-    const confirmed = await fromApp(
-      request(api.getHttpServer()).post(apiPath(AuthRoute.Base, AuthRoute.ConfirmEmail)),
-    ).send({ token: confirmationTokenIn(emails.sentTo(email)[0]?.text ?? '') });
+    const signedUp = await signUp(email, inviteToken);
+    const confirmed = await confirm(email, browserCookieOf(signedUp));
     return confirmed.body.accessToken;
+  };
+
+  const ownedWorkspaceInvite = async (): Promise<{ ownerToken: string; inviteToken: string }> => {
+    const ownerToken = await signedInAccount();
+    const created = await graphql({
+      query: CREATE_WORKSPACE_MUTATION,
+      variables: { input: { name: TEST_WORKSPACE_NAME, timeZone: TEST_TIME_ZONE } },
+      accessToken: ownerToken,
+    });
+    const link = await graphql({
+      query: INVITE_LINK_QUERY,
+      accessToken: ownerToken,
+      workspaceId: created.body.data.createWorkspace.workspace.id,
+    });
+    return { ownerToken, inviteToken: inviteTokenIn(link.body.data.inviteLink.url) };
   };
 
   const errorOf = (response: Response): unknown => response.body.errors?.[0]?.extensions;
@@ -193,5 +221,34 @@ describe('workspaces, roles and invites through the api', () => {
       role: WorkspaceRole.Operator,
     });
     expect(errorOf(after)).toMatchObject({ reason: ErrorReason.InviteInvalid });
+  });
+
+  it('confirms an invite sign-up only in the browser that signed up', async () => {
+    const { inviteToken } = await ownedWorkspaceInvite();
+    const email = uniqueEmail();
+    const signedUp = await signUp(email, inviteToken);
+
+    const elsewhere = await confirm(email, null);
+    const here = await confirm(email, browserCookieOf(signedUp));
+
+    expect(signedUp.status).toBe(200);
+    expect(elsewhere.status).toBe(403);
+    expect(elsewhere.body.reason).toBe(ErrorReason.ConfirmationBrowserMismatch);
+    expect(here.status).toBe(200);
+    const me = await graphql({ query: ME_MEMBERSHIPS_QUERY, accessToken: here.body.accessToken });
+    expect(me.body.data.me.memberships).toEqual([
+      { workspace: { id: expect.any(String) }, role: WorkspaceRole.Operator },
+    ]);
+  });
+
+  it('refuses a sign-up with an unknown invite over REST', async () => {
+    const response = await signUp(uniqueEmail(), 'not-an-invite');
+
+    expect(response.status).toBe(404);
+    expect(response.body).toMatchObject({
+      code: ErrorCode.NotFound,
+      reason: ErrorReason.InviteInvalid,
+    });
+    expect(response.headers[HttpHeader.SetCookie]).toBeUndefined();
   });
 });

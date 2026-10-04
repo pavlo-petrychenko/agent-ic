@@ -19,8 +19,15 @@
     {
       "idx": 2,
       "version": "7",
-      "when": 1791140756089,
-      "tag": "0002_identity-workspaces-invites",
+      "when": 1791144151065,
+      "tag": "0002_identity-confirmation-binding",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791145218327,
+      "tag": "0003_identity-workspaces-invites",
       "breakpoints": true
     }
   ]

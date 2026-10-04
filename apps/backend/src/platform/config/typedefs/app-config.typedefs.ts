@@ -55,9 +55,17 @@ export interface AuthConfig {
   readonly accessTokenSecret: string;
 }
 
+export interface SmtpCredentials {
+  readonly user: string;
+  readonly password: string;
+}
+
 export interface SmtpConfig {
   readonly host: string;
   readonly port: number;
+  readonly secure: boolean;
+  readonly requireTls: boolean;
+  readonly credentials: SmtpCredentials | null;
 }
 
 export interface ResendConfig {

@@ -28,7 +28,9 @@ describe('SendConfirmationEmailUseCase', () => {
   });
 
   it('sends a link that confirms the account', async () => {
-    const { userId, email } = await signUpAccount(testbed, { locale: Locale.En });
+    const { userId, email, browserBinding } = await signUpAccount(testbed, {
+      locale: Locale.En,
+    });
 
     await sendConfirmationEmail.execute(systemCtx(), { userId });
 
@@ -39,7 +41,7 @@ describe('SendConfirmationEmailUseCase', () => {
     expect(message?.text).toContain(copy.action);
     expect(message?.to).toBe(email);
     const token = confirmationTokenIn(message?.text ?? '');
-    const session = await confirmEmail(testbed, token);
+    const session = await confirmEmail(testbed, token, browserBinding);
     expect(session.userId).toBe(userId);
   });
 

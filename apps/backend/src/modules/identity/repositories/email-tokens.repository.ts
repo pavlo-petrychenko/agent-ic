@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull, lt, or } from 'drizzle-orm';
 import type { EmailTokenPurpose } from '@/modules/identity/constants/identity.constants';
 import { emailTokens } from '@/modules/identity/db/email-tokens.table';
 import type {
@@ -48,5 +48,11 @@ export class EmailTokensRepository {
       .where(and(eq(emailTokens.id, id), isNull(emailTokens.usedAt)))
       .returning({ id: emailTokens.id });
     return used.length > 0;
+  }
+
+  async deleteSpentBefore(cutoff: Date): Promise<void> {
+    await this.txHost.tx
+      .delete(emailTokens)
+      .where(or(lt(emailTokens.usedAt, cutoff), lt(emailTokens.expiresAt, cutoff)));
   }
 }

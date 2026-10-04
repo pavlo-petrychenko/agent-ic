@@ -10,6 +10,7 @@ import type {
   EmailTokenRecord,
   IssuedConfirmation,
 } from '@/modules/identity/typedefs/email-token.typedefs';
+import type { UserRecord } from '@/modules/identity/typedefs/user.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -54,6 +55,14 @@ export class EmailConfirmationsService {
     return this.emailTokens.findByTokenHash(
       this.secureTokens.hash(token),
       EmailTokenPurpose.EmailConfirmation,
+    );
+  }
+
+  isBoundBrowser(user: UserRecord, browserBinding: string | null): boolean {
+    return (
+      browserBinding !== null &&
+      user.confirmationBindingHash !== null &&
+      this.secureTokens.matches(browserBinding, user.confirmationBindingHash)
     );
   }
 }

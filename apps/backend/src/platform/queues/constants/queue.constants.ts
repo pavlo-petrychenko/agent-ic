@@ -22,6 +22,7 @@ export enum QueueLogMessage {
   JobFailed = 'job failed',
   WorkerStarted = 'worker started',
   WorkerStopped = 'worker stopped',
+  ScheduleRegistered = 'job schedule registered',
 }
 
 const SECONDS_PER_DAY = 86_400;

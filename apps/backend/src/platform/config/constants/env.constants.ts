@@ -35,5 +35,9 @@ export enum EnvVar {
   EmailFrom = 'EMAIL_FROM',
   SmtpHost = 'SMTP_HOST',
   SmtpPort = 'SMTP_PORT',
+  SmtpSecure = 'SMTP_SECURE',
+  SmtpRequireTls = 'SMTP_REQUIRE_TLS',
+  SmtpUser = 'SMTP_USER',
+  SmtpPassword = 'SMTP_PASSWORD',
   ResendApiKey = 'RESEND_API_KEY',
 }

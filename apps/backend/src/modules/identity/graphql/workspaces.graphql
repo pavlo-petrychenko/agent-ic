@@ -16,10 +16,6 @@ extend type User {
   memberships: [Membership!]!
 }
 
-extend input SignUpInput {
-  inviteToken: String
-}
-
 enum WorkspaceRole {
   owner
   admin

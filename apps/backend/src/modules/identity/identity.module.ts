@@ -1,4 +1,5 @@
 import { AuthController } from '@/modules/identity/controllers/auth.controller';
+import { CleanUpAuthRecordsProcessor } from '@/modules/identity/processors/clean-up-auth-records.processor';
 import { EmailTokensRepository } from '@/modules/identity/repositories/email-tokens.repository';
 import { InviteLinksRepository } from '@/modules/identity/repositories/invite-links.repository';
 import { MembershipDirectoryRepository } from '@/modules/identity/repositories/membership-directory.repository';
@@ -16,7 +17,6 @@ import { MembersResolver } from '@/modules/identity/resolvers/members.resolver';
 import { MyWorkspacesResolver } from '@/modules/identity/resolvers/my-workspaces.resolver';
 import { ResendConfirmationResolver } from '@/modules/identity/resolvers/resend-confirmation.resolver';
 import { ResetInviteLinkResolver } from '@/modules/identity/resolvers/reset-invite-link.resolver';
-import { SignUpResolver } from '@/modules/identity/resolvers/sign-up.resolver';
 import { UpdateInviteLinkRoleResolver } from '@/modules/identity/resolvers/update-invite-link-role.resolver';
 import { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
 import { InviteLinksService } from '@/modules/identity/services/invite-links.service';
@@ -26,6 +26,7 @@ import { PasswordResetsService } from '@/modules/identity/services/password-rese
 import { SessionsService } from '@/modules/identity/services/sessions.service';
 import { WorkspaceMembershipsService } from '@/modules/identity/services/workspace-memberships.service';
 import { AcceptInviteUseCase } from '@/modules/identity/use-cases/accept-invite.use-case';
+import { CleanUpAuthRecordsUseCase } from '@/modules/identity/use-cases/clean-up-auth-records.use-case';
 import { ConfirmEmailUseCase } from '@/modules/identity/use-cases/confirm-email.use-case';
 import { CreateWorkspaceUseCase } from '@/modules/identity/use-cases/create-workspace.use-case';
 import { ForgotPasswordUseCase } from '@/modules/identity/use-cases/forgot-password.use-case';
@@ -80,9 +81,9 @@ export class IdentityModule extends defineModule({
     GetInviteInfoUseCase,
     AcceptInviteUseCase,
     ListMembersUseCase,
+    CleanUpAuthRecordsUseCase,
   ],
   resolvers: [
-    SignUpResolver,
     ResendConfirmationResolver,
     MeResolver,
     ForgotPasswordResolver,
@@ -96,6 +97,7 @@ export class IdentityModule extends defineModule({
     MembersResolver,
   ],
   controllers: [AuthController],
+  processors: [CleanUpAuthRecordsProcessor],
   exports: [
     UsersRepository,
     SessionsService,

@@ -3,7 +3,6 @@ import { toGraphqlMembership } from '@/modules/identity/helpers/workspace-graphq
 import type {
   ForgotPasswordInput,
   ResendConfirmationInput,
-  SignUpResult,
 } from '@/modules/identity/typedefs/account.typedefs';
 import type { Me } from '@/modules/identity/typedefs/user.typedefs';
 import type {
@@ -11,7 +10,6 @@ import type {
   ForgotPasswordPayload,
   ResendConfirmationInput as ResendConfirmationArgs,
   ResendConfirmationPayload,
-  SignUpPayload,
   User,
 } from '@/platform/graphql-server/generated/schema.generated';
 import { Locale as GraphqlLocale } from '@/platform/graphql-server/generated/schema.generated';
@@ -28,8 +26,6 @@ export const toGraphqlUser = (me: Me): User => ({
   locale: GRAPHQL_LOCALE[me.locale],
   memberships: me.memberships.map(toGraphqlMembership),
 });
-
-export const toSignUpPayload = (result: SignUpResult): SignUpPayload => ({ email: result.email });
 
 export const toResendConfirmationInput = (
   args: ResendConfirmationArgs,

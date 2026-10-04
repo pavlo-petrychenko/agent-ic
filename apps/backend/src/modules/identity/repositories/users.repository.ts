@@ -20,6 +20,7 @@ export class UsersRepository {
           passwordHash: user.passwordHash,
           locale: user.locale,
           pendingInviteLinkId: user.pendingInviteLinkId ?? null,
+          confirmationBindingHash: user.confirmationBindingHash ?? null,
           updatedAt: user.updatedAt,
         },
         setWhere: isNull(users.emailConfirmedAt),
@@ -50,7 +51,7 @@ export class UsersRepository {
   async markEmailConfirmed(id: string, at: Date): Promise<void> {
     await this.txHost.tx
       .update(users)
-      .set({ emailConfirmedAt: at, updatedAt: at })
+      .set({ emailConfirmedAt: at, confirmationBindingHash: null, updatedAt: at })
       .where(and(eq(users.id, id), isNull(users.emailConfirmedAt)));
   }
 

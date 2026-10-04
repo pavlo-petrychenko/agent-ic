@@ -17,9 +17,3 @@ export const INVITE_INFO_QUERY = `
     inviteInfo(token: $token) { workspaceName memberCount role }
   }
 `;
-
-export const SIGN_UP_WITH_INVITE_MUTATION = `
-  mutation SignUp($input: SignUpInput!) {
-    signUp(input: $input) { email }
-  }
-`;

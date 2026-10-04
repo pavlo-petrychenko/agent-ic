@@ -1,5 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
+import { ConfirmationBrowserMismatchError } from '@/modules/identity/errors/confirmation-browser-mismatch.error';
+import { EmailAlreadyConfirmedError } from '@/modules/identity/errors/email-already-confirmed.error';
 import { TokenExpiredError } from '@/modules/identity/errors/token-expired.error';
 import { TokenInvalidError } from '@/modules/identity/errors/token-invalid.error';
 import { parseAccountInput } from '@/modules/identity/helpers/account-input.helpers';
@@ -33,19 +35,29 @@ export class ConfirmEmailUseCase {
     return this.txHost.withTransaction(async () => {
       const now = this.clock.now();
       const record = await this.confirmations.findToken(token);
-      if (record === null || record.usedAt !== null) {
+      const user = record === null ? null : await this.users.findById(record.userId);
+      if (record === null || user === null) {
+        throw new TokenInvalidError();
+      }
+      if (user.emailConfirmedAt !== null) {
+        throw new EmailAlreadyConfirmedError();
+      }
+      if (record.usedAt !== null) {
         throw new TokenInvalidError();
       }
       if (isPast(record.expiresAt, now)) {
         throw new TokenExpiredError();
       }
+      if (!this.confirmations.isBoundBrowser(user, input.browserBinding)) {
+        throw new ConfirmationBrowserMismatchError();
+      }
       if (!(await this.emailTokens.markUsed(record.id, now))) {
         throw new TokenInvalidError();
       }
-      await this.users.markEmailConfirmed(record.userId, now);
-      await this.users.touchLastActive(record.userId, now);
-      await this.invites.completePending(record.userId);
-      return this.sessions.start(record.userId);
+      await this.users.markEmailConfirmed(user.id, now);
+      await this.users.touchLastActive(user.id, now);
+      await this.invites.completePending(user.id);
+      return this.sessions.start(user.id);
     });
   }
 }

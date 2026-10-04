@@ -1,7 +1,13 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthRoute } from '@/modules/identity/constants/auth-http.constants';
+import { InvalidRefreshTokenError } from '@/modules/identity/errors/invalid-refresh-token.error';
 import { AuthRequestGuard } from '@/modules/identity/guards/auth-request.guard';
+import {
+  bindConfirmationBrowser,
+  readConfirmationCookie,
+  releaseConfirmationBrowser,
+} from '@/modules/identity/helpers/confirmation-cookie.helpers';
 import {
   endBrowserSession,
   readRefreshCookie,
@@ -9,15 +15,18 @@ import {
 } from '@/modules/identity/helpers/refresh-cookie.helpers';
 import type {
   AuthSessionResponse,
-  ConfirmEmailInput,
+  ConfirmEmailRequest,
   LoginInput,
   ResetPasswordInput,
+  SignUpInput,
+  SignUpResponse,
 } from '@/modules/identity/typedefs/account.typedefs';
 import { ConfirmEmailUseCase } from '@/modules/identity/use-cases/confirm-email.use-case';
 import { LoginUseCase } from '@/modules/identity/use-cases/login.use-case';
 import { LogoutUseCase } from '@/modules/identity/use-cases/logout.use-case';
 import { RefreshSessionUseCase } from '@/modules/identity/use-cases/refresh-session.use-case';
 import { ResetPasswordUseCase } from '@/modules/identity/use-cases/reset-password.use-case';
+import { SignUpUseCase } from '@/modules/identity/use-cases/sign-up.use-case';
 import { HttpCtx } from '@/platform/context/decorators/http-ctx.decorator';
 import { UseCaseCtxGuard } from '@/platform/context/guards/use-case-ctx.guard';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -26,12 +35,23 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 @UseGuards(AuthRequestGuard, UseCaseCtxGuard)
 export class AuthController {
   constructor(
+    private readonly signUpUseCase: SignUpUseCase,
     private readonly loginUseCase: LoginUseCase,
     private readonly refreshSessionUseCase: RefreshSessionUseCase,
     private readonly logoutUseCase: LogoutUseCase,
     private readonly confirmEmailUseCase: ConfirmEmailUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
   ) {}
+
+  @Post(AuthRoute.SignUp)
+  @HttpCode(HttpStatus.OK)
+  async signUp(
+    @HttpCtx() ctx: UseCaseCtx,
+    @Body() body: SignUpInput,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<SignUpResponse> {
+    return bindConfirmationBrowser(response, await this.signUpUseCase.execute(ctx, body));
+  }
 
   @Post(AuthRoute.Login)
   @HttpCode(HttpStatus.OK)
@@ -50,10 +70,17 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<AuthSessionResponse> {
-    const session = await this.refreshSessionUseCase.execute(ctx, {
-      refreshToken: readRefreshCookie(request),
-    });
-    return startBrowserSession(response, session);
+    try {
+      const session = await this.refreshSessionUseCase.execute(ctx, {
+        refreshToken: readRefreshCookie(request),
+      });
+      return startBrowserSession(response, session);
+    } catch (error) {
+      if (error instanceof InvalidRefreshTokenError) {
+        endBrowserSession(response);
+      }
+      throw error;
+    }
   }
 
   @Post(AuthRoute.Logout)
@@ -71,10 +98,16 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async confirmEmail(
     @HttpCtx() ctx: UseCaseCtx,
-    @Body() body: ConfirmEmailInput,
+    @Body() body: ConfirmEmailRequest,
+    @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<AuthSessionResponse> {
-    return startBrowserSession(response, await this.confirmEmailUseCase.execute(ctx, body));
+    const session = await this.confirmEmailUseCase.execute(ctx, {
+      token: body.token,
+      browserBinding: readConfirmationCookie(request),
+    });
+    releaseConfirmationBrowser(response);
+    return startBrowserSession(response, session);
   }
 
   @Post(AuthRoute.ResetPassword)

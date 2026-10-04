@@ -13,7 +13,6 @@ import { QueuesService } from '@/platform/queues/services/queues.service';
 import {
   EXPIRED_COOKIE_DATE,
   FORWARDED_FOR_HEADER,
-  SIGN_UP_MUTATION,
 } from '@test/support/constants/auth-flow.constants';
 import {
   SHORT_PASSWORD,
@@ -31,6 +30,7 @@ import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.c
 import { randomIpAddress, uniqueEmail } from '@test/support/fixtures/identity.fixture';
 import {
   bootRoleWithEmails,
+  confirmationCookieOf,
   confirmationTokenIn,
   cookiePair,
   fromApp,
@@ -60,19 +60,19 @@ describe('password reset through the api', () => {
 
   const signedInAccount = async (): Promise<{ email: string; refreshCookie: string }> => {
     const email = uniqueEmail();
-    await http()
-      .post(graphqlPath())
-      .set(FORWARDED_FOR_HEADER, randomIpAddress())
-      .send({
-        query: SIGN_UP_MUTATION,
-        variables: {
-          input: { name: TEST_USER_NAME, email, password: TEST_PASSWORD, locale: Locale.En },
-        },
-      });
-    await vi.waitFor(() => expect(emails.sentTo(email)).toHaveLength(1), WAIT_FOR_EMAIL);
-    const confirmed = await authPost(AuthRoute.ConfirmEmail).send({
-      token: confirmationTokenIn(emails.sentTo(email)[0]?.text ?? ''),
+    const signedUp = await authPost(AuthRoute.SignUp).send({
+      name: TEST_USER_NAME,
+      email,
+      password: TEST_PASSWORD,
+      locale: Locale.En,
     });
+    await vi.waitFor(() => expect(emails.sentTo(email)).toHaveLength(1), WAIT_FOR_EMAIL);
+    const confirmed = await authPost(AuthRoute.ConfirmEmail)
+      .set(
+        HttpHeader.Cookie,
+        cookiePair(confirmationCookieOf(signedUp.headers[HttpHeader.SetCookie])),
+      )
+      .send({ token: confirmationTokenIn(emails.sentTo(email)[0]?.text ?? '') });
     return {
       email,
       refreshCookie: cookiePair(refreshCookieOf(confirmed.headers[HttpHeader.SetCookie])),

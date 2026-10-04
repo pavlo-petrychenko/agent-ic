@@ -5,6 +5,7 @@ import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpe
 import { QueueBoardController } from '@/platform/queues/controllers/queue-board.controller';
 import { JobExecutionService } from '@/platform/queues/services/job-execution.service';
 import { JobHandlersService } from '@/platform/queues/services/job-handlers.service';
+import { JobSchedulesService } from '@/platform/queues/services/job-schedules.service';
 import { JobWorkersService } from '@/platform/queues/services/job-workers.service';
 import { JobsService } from '@/platform/queues/services/jobs.service';
 import { QueueBoardService } from '@/platform/queues/services/queue-board.service';
@@ -19,6 +20,11 @@ export class QueuesModule extends defineModule({
   controllers: [QueueBoardController],
   roleProviders: {
     [Role.Api]: [QueueBoardService, QueueMetricsService],
-    [Role.Worker]: [JobHandlersService, JobExecutionService, JobWorkersService],
+    [Role.Worker]: [
+      JobHandlersService,
+      JobExecutionService,
+      JobWorkersService,
+      JobSchedulesService,
+    ],
   },
 }) {}
