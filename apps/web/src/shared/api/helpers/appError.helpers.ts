@@ -49,6 +49,9 @@ const parseBodyText = (bodyText: string): ErrorPayload => {
   }
 };
 
+export const toAppErrorFromProblem = (bodyText: string, fallbackMessage: string): AppError =>
+  fromPayload(fallbackMessage, parseBodyText(bodyText), null);
+
 export function toAppError(error: unknown): AppError {
   if (error instanceof AppError) {
     return error;

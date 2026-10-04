@@ -3,10 +3,12 @@ import { HttpLink } from '@apollo/client/link/http';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { Kind, OperationTypeNode } from 'graphql';
-import { createClient } from 'graphql-ws';
-import { CONNECTION_AUTH_PARAM } from '@/shared/api/constants/request.constants';
+import { type Client, createClient } from 'graphql-ws';
+import { BEARER_SCHEME, ConnectionParam } from '@/shared/api/constants/request.constants';
 import { UrlScheme } from '@/shared/api/constants/url.constants';
 import { getRequestContext } from '@/shared/api/helpers/requestContext.helpers';
+import type { RequestContextState } from '@/shared/api/typedefs/requestContext.typedefs';
+import type { SessionClient, WsConnection } from '@/shared/api/typedefs/session.typedefs';
 import type { RuntimeConfig } from '@/shared/config/typedefs/runtimeConfig.typedefs';
 
 export const isSubscriptionOperation = (
@@ -27,21 +29,41 @@ export const buildWebSocketUrl = (
   return `${scheme}//${location.host}${path}`;
 };
 
-const createWsLink = (config: RuntimeConfig): GraphQLWsLink =>
-  new GraphQLWsLink(
-    createClient({
-      url: buildWebSocketUrl(config.graphqlPath, window.location),
-      lazy: true,
-      connectionParams: () => {
-        const { accessToken } = getRequestContext();
-        return accessToken === null ? {} : { [CONNECTION_AUTH_PARAM]: accessToken };
-      },
-    }),
-  );
+export const buildConnectionParams = ({
+  accessToken,
+  workspaceId,
+}: Readonly<RequestContextState>): Record<string, string> => ({
+  ...(accessToken === null
+    ? {}
+    : { [ConnectionParam.Authorization]: `${BEARER_SCHEME} ${accessToken}` }),
+  ...(workspaceId === null ? {} : { [ConnectionParam.WorkspaceId]: workspaceId }),
+});
 
-export const createSplitLink = (config: RuntimeConfig): ApolloLink =>
+export const createWsClient = (url: string, session: SessionClient): Client => {
+  let connection: WsConnection | null = null;
+  const client = createClient({
+    url,
+    lazy: true,
+    connectionParams: async () => {
+      await session.ensureFresh();
+      const context = getRequestContext();
+      connection = { accessToken: context.accessToken };
+      return buildConnectionParams(context);
+    },
+  });
+  session.subscribe(() => {
+    if (connection !== null && session.getAccessToken() !== connection.accessToken) {
+      client.terminate();
+    }
+  });
+  return client;
+};
+
+export const createSplitLink = (config: RuntimeConfig, session: SessionClient): ApolloLink =>
   ApolloLink.split(
     ({ query }) => isSubscriptionOperation(query),
-    createWsLink(config),
+    new GraphQLWsLink(
+      createWsClient(buildWebSocketUrl(config.graphqlPath, window.location), session),
+    ),
     new HttpLink({ uri: config.graphqlPath }),
   );
