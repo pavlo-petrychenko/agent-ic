@@ -13,6 +13,7 @@ import {
   PLATFORM_ADMIN_DEV_ACCESS_IN_PRODUCTION_MESSAGE,
   POOL_SIZE_MIN,
   REDIS_URL_PROTOCOL,
+  CliOption,
   Role,
   SAMPLE_RATE_MAX,
   SAMPLE_RATE_MIN,
@@ -44,7 +45,7 @@ export const cliSchema = z
     queues: z.array(z.enum(QueueName)),
   })
   .refine((cli) => cli.role !== Role.Worker || cli.queues.length > 0, {
-    path: ['queues'],
+    path: [CliOption.Queues],
     message: WORKER_QUEUES_REQUIRED_MESSAGE,
   });
 

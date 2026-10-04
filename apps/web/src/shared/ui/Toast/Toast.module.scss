@@ -6,7 +6,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
-  width: 360px;
+  width: var(--size-toast-width);
   max-width: calc(100vw - var(--space-32));
   margin: 0;
   padding: 0;
@@ -19,22 +19,22 @@
   justify-content: space-between;
   gap: var(--space-12);
   padding: var(--space-12) var(--space-14);
-  border: 1px solid var(--color-line);
+  border: var(--border-width) solid var(--color-line);
   border-radius: var(--radius-10);
   background: var(--color-card);
   box-shadow: var(--shadow-popover);
 }
 
 .neutral {
-  border-left: 3px solid var(--color-accent);
+  border-left: var(--border-width-accent) solid var(--color-accent);
 }
 
 .success {
-  border-left: 3px solid var(--color-ok);
+  border-left: var(--border-width-accent) solid var(--color-ok);
 }
 
 .error {
-  border-left: 3px solid var(--color-err);
+  border-left: var(--border-width-accent) solid var(--color-err);
 }
 
 .content {

@@ -5,6 +5,10 @@
     ".storybook",
     "vite.config.ts",
     "vite.resolve.ts",
+    "vite.server.ts",
+    "vite.server.test.ts",
+    "vite.build.ts",
+    "vite.constants.ts",
     "vitest.config.ts",
     "codegen.config.ts"
   ],

@@ -36,7 +36,7 @@
 |---|---|---|---|
 | Browser | `api` | S | GraphQL queries and mutations over HTTP |
 | Browser | `api` | A | GraphQL subscriptions over WebSocket (Inbox, simulator, KB progress) |
-| Browser | S3 / MinIO | S | Upload KB files directly with a presigned URL (up to 20 MB, never streamed through `api`) |
+| Browser | S3 / Silo | S | Upload KB files directly with a presigned URL (up to 20 MB, never streamed through `api`) |
 | Browser | Langfuse UI | S | "Open in Langfuse" links for platform admins only, when Langfuse is on (D47) |
 | Telegram | `gateway` | S | Bot webhooks (customer messages) |
 | Business systems | `gateway` | S | `POST /v1/channels/{id}/messages`, `/events`, KB refresh endpoint |
@@ -62,7 +62,7 @@
 | `worker-runs` | Business systems | S | API-channel webhooks (signed); API request steps |
 | `worker-runs` | Email provider, alerts bot | S | Operator alerts, system emails |
 | `worker-runs` | Langfuse | A | Traces via the OTel Collector, only when Langfuse is on (D47) |
-| `worker-ingest` | S3 / MinIO | S | Read uploaded files |
+| `worker-ingest` | S3 / Silo | S | Read uploaded files |
 | `worker-ingest` | Google / ClickUp APIs | S | Fetch documents |
 | `worker-ingest` | Embedding provider | S | Embed chunks |
 | `worker-ingest` | Postgres | S | Write chunks and swap them in one transaction; source status |
@@ -159,7 +159,7 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 
 ### H. Knowledge base: file upload
 1. Browser → `api` mutation `createUpload(kbId, filename, size)` → `api` checks permissions and limits → returns a **presigned PUT URL** (signed locally; no call to S3).
-2. Browser → S3 / MinIO: PUT the file directly.
+2. Browser → S3 / Silo: PUT the file directly.
 3. Browser → `api` mutation `confirmUpload` → Postgres: source row `pending` ⇢ queue `ingest`.
 4. `worker-ingest`:
    - → S3 read → parse → chunk;

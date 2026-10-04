@@ -3,15 +3,13 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
+import { buildOptions } from './vite.build.ts';
 import { resolveOptions } from './vite.resolve.ts';
+import { readServerOptions } from './vite.server.ts';
 
-export default defineConfig({
+export default defineConfig(({ command, mode }) => ({
   plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react(), tailwindcss()],
   resolve: resolveOptions,
-  server: {
-    host: true,
-    port: 5173,
-    strictPort: true,
-    allowedHosts: ['.pavlop.dev'],
-  },
-});
+  build: buildOptions,
+  server: command === 'serve' ? readServerOptions(mode) : undefined,
+}));

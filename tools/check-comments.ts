@@ -19,7 +19,7 @@ interface Comment {
 
 const scriptExtensions = new Set(['.ts', '.tsx', '.js', '.cjs', '.mjs']);
 const styleExtensions = new Set(['.scss']);
-const ignoredPrefixes = ['node_modules/', 'dist/', '.turbo/', 'coverage/'];
+const ignoredPrefixes = ['node_modules/', 'dist/', '.turbo/', 'coverage/', '.claude/'];
 
 const allowedDirectives = [
   /^oxlint-disable-next-line\s+\S+/,

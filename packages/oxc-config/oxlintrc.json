@@ -62,5 +62,11 @@
       }
     }
   ],
-  "ignorePatterns": ["**/dist/**", "**/node_modules/**", "**/.turbo/**", "**/coverage/**"]
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/.turbo/**",
+    "**/coverage/**",
+    "**/.claude/**"
+  ]
 }

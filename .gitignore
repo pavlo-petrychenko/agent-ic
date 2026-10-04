@@ -12,3 +12,4 @@ packages/api-schema/schema.graphql
 .dev/
 routeTree.gen.ts
 storybook-static/
+.claude/

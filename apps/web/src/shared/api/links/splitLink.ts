@@ -5,8 +5,8 @@ import { createClient } from 'graphql-ws';
 
 import type { RuntimeConfig } from '@/shared/config/runtimeConfig.typedefs';
 
-import { CONNECTION_AUTH_PARAM } from '../api.constants';
-import { getRequestContext } from '../requestContext';
+import { CONNECTION_AUTH_PARAM } from '@/shared/api/api.constants';
+import { getRequestContext } from '@/shared/api/requestContext';
 import { buildWebSocketUrl, isSubscriptionOperation } from './splitLink.helpers';
 
 const createWsLink = (config: RuntimeConfig): GraphQLWsLink =>

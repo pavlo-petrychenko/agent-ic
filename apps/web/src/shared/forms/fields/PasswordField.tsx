@@ -5,8 +5,8 @@ import { Field } from '@/shared/ui/Field';
 import type { InputProps } from '@/shared/ui/Input';
 import { PasswordInput } from '@/shared/ui/PasswordInput';
 
-import { useFieldContext } from '../formContext';
-import { firstErrorMessage } from '../forms.helpers';
+import { useFieldContext } from '@/shared/forms/formContext';
+import { firstErrorMessage } from '@/shared/forms/forms.helpers';
 
 interface PasswordFieldProps extends Omit<
   InputProps,

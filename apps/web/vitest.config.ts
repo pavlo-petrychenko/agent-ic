@@ -8,7 +8,7 @@ export default defineConfig({
   resolve: resolveOptions,
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'vite.*.test.ts'],
     setupFiles: ['./src/shared/testing/setup.ts'],
   },
 });

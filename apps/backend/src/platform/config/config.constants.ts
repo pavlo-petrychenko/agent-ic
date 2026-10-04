@@ -31,6 +31,8 @@ export enum CliOption {
   Queues = 'queues',
 }
 
+export const STRING_OPTION = { type: 'string' } as const;
+
 export enum SchemaPrintOption {
   Output = 'output',
 }

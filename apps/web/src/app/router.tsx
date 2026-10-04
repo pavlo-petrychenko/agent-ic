@@ -1,7 +1,7 @@
 import { createRouter } from '@tanstack/react-router';
 
-import { RouteErrorFallback } from './ErrorBoundary/RouteErrorFallback';
-import { NotFound } from './NotFound/NotFound';
+import { RouteErrorFallback } from '@/app/ErrorBoundary/RouteErrorFallback';
+import { NotFound } from '@/app/NotFound/NotFound';
 import { routeTree } from '@/routeTree.gen';
 
 export const router = createRouter({

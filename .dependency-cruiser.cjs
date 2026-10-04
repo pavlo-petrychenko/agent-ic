@@ -139,7 +139,7 @@ module.exports = {
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
-    exclude: { path: ['/dist/', '\\.generated\\.ts$'] },
+    exclude: { path: ['/dist/', '\\.generated\\.ts$', '(^|/)\\.claude/'] },
     tsPreCompilationDeps: true,
     enhancedResolveOptions: {
       exportsFields: ['exports'],

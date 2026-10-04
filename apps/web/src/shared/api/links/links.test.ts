@@ -4,9 +4,9 @@ import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { Observable, of } from 'rxjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { AppError } from '../AppError';
-import { BEARER_SCHEME, RequestHeader } from '../api.constants';
-import { setAccessToken, setWorkspaceId } from '../requestContext';
+import { AppError } from '@/shared/api/AppError';
+import { BEARER_SCHEME, RequestHeader } from '@/shared/api/api.constants';
+import { setAccessToken, setWorkspaceId } from '@/shared/api/requestContext';
 import { createAuthLink } from './authLink';
 import { createErrorLink } from './errorLink';
 

@@ -122,7 +122,7 @@ x-langfuse-depends-on: &langfuse-depends-on
 
 services:
   postgres:
-    image: pgvector/pgvector:0.8.7-pg17-trixie
+    image: pgvector/pgvector:0.8.7-pg18-trixie
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD}
@@ -136,7 +136,7 @@ services:
     ports:
       - 127.0.0.1:${POSTGRES_PORT:-5432}:5432
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
       - ./deploy/docker/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test:
@@ -186,11 +186,11 @@ services:
       retries: 10
 
   minio:
-    image: cgr.dev/chainguard/minio:latest@sha256:4cf4831a2bbcf13ddca09c1cbcc9faff716dd3c4247e0babc32864b8ee8e0034
+    image: pgsty/silo:RELEASE.2026-09-16T00-00-00Z@sha256:635197cb9f36d01bee221d34d1c7d7960f6a95c48b0b6c01d99cd13bdae51a46
     entrypoint: [sh]
     command:
       - -c
-      - mkdir -p "/data/$$S3_BUCKET" /data/langfuse && minio server --address ":9000" --console-address ":9001" /data
+      - mkdir -p "/data/$$S3_BUCKET" /data/langfuse && silo server --address ":9000" --console-address ":9001" /data
     environment:
       S3_BUCKET: ${S3_BUCKET}
       MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID}
@@ -200,7 +200,7 @@ services:
     volumes:
       - minio-data:/data
     healthcheck:
-      test: [CMD, mc, ready, local]
+      test: [CMD, mcli, ready, local]
       interval: 3s
       timeout: 5s
       retries: 10
@@ -226,6 +226,7 @@ services:
   traefik:
     image: traefik:v3.7
     environment:
+      WEB_PORT: ${WEB_PORT}
       API_PORT: ${API_PORT}
       GATEWAY_PORT: ${GATEWAY_PORT}
     command:
@@ -319,12 +320,14 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV}
       PUBLIC_URL: ${PUBLIC_URL}
+      WEB_PORT: ${WEB_PORT}
+      WEB_ALLOWED_HOSTS: ${WEB_ALLOWED_HOSTS}
     depends_on:
       deps:
         condition: service_completed_successfully
     healthcheck:
       <<: *node-healthcheck
-      test: [CMD, node, deploy/docker/healthcheck.mjs, 'http://localhost:5173/']
+      test: [CMD, node, deploy/docker/healthcheck.mjs, 'http://localhost:${WEB_PORT}/']
 
   tempo:
     profiles: [observability]

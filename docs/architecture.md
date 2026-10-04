@@ -66,8 +66,8 @@ Decision markers used below:
 | D42 | **Jobs and events after commit; durable outbox for critical paths** (ADR 0015). `jobs.enqueue` (command, one receiver) and `domainEvents.emit` (event, `@OnDomainEvent` listeners, one job per listener) wait for the commit. `{ durable: true }` adds an outbox row + sweeper for: message → run, external event / API message → run, escalation → notify, source sync / re-index. At-least-once; jobs safe to repeat | ✅ |
 | D43 | **Job conventions:** a job carries only IDs (+ workspaceId, traceId, initiatedBy); the worker reads current data. Permissions are checked when the job is added; the job runs as a `System` actor scoped to the workspace and keeps `initiatedBy` for audit. **Bull Board** in `api`, platform admins only; Grafana for queue metrics | ✅ |
 | D44 | **Pub/sub:** typed topic classes (`ConversationMessagesTopic(id)`), never raw strings; small events (what changed + id), the client refetches; a subscription authorizes through a use case; published after commit. In code, Redis pub/sub channels are called **topics** | ✅ |
-| D45 | **Distributed tracing: OpenTelemetry → Grafana Tempo.** One timeline per request across gateway → queue → worker → DB / Redis / LLM / Telegram; trace context travels in job payloads; logs carry `traceId` and link to Tempo. Langfuse keeps the LLM-level detail | ✅ |
-| D46 | **Remaining `platform/` defaults** (§11.3): env-only config validated by zod per role; `SecretBox` (AES-256-GCM, env key on the homeserver / KMS on AWS, key version per row; API keys hashed); `LlmGateway` + `EmbeddingGateway` with tracing (Langfuse when on), metrics, timeouts, retries; `FileStorage` (MinIO / S3); `Cache` + Redis token-bucket `RateLimiter`; workspace feature flags in Postgres, cached in Redis, admin-only; `IdService` + `Clock`; Testcontainers, rollback per test, shared fakes and factories | ✅ |
+| D45 | **Distributed tracing: OpenTelemetry → Grafana Tempo.** One timeline per request across gateway → queue → worker → DB / Redis / LLM / Telegram; the job envelope carries the `traceId` (full trace context propagation is deferred, D124); logs carry `traceId` and link to Tempo. Langfuse keeps the LLM-level detail | ✅ |
+| D46 | **Remaining `platform/` defaults** (§11.3): env-only config validated by zod per role; `SecretBox` (AES-256-GCM, env key on the homeserver / KMS on AWS, key version per row; API keys hashed); `LlmGateway` + `EmbeddingGateway` with tracing (Langfuse when on), metrics, timeouts, retries; `FileStorage` (Silo / S3); `Cache` + Redis token-bucket `RateLimiter`; workspace feature flags in Postgres, cached in Redis, admin-only; `IdService` + `Clock`; Testcontainers, rollback per test, shared fakes and factories | ✅ |
 | D47 | **LLM observability** (ADR 0016): **traces live in Langfuse in the MVP** (trace = run, session = conversation; spans via OpenTelemetry → OTel Collector; trace ID stored on the run). `LANGFUSE_MODE = off \| cloud \| self-hosted` + a sample rate; the product never needs it to run. MVP/demo: **self-hosted Langfuse on the homeserver** (needs the RAM upgrade to ≥ 32 GB); **Langfuse Cloud Hobby is the fallback** with no code change. Sampled or off during load tests. "Open in Langfuse" for platform admins only. **Customers' prompts in Postgres; internal platform prompts in code.** Every LLM call tagged with prompt id + version, agent version, workspace. No prompt mirror | ✅ |
 | D48 | **Our own run traces are an optional MVP item (only if time allows):** `run_steps` + `run_spans` (one table, `kind` = llm · tool · retrieval · http; parent, timing, tokens, cost, prompt version, JSONB payloads kept 30 days) powering the whole Traces page. **When it ships, Langfuse is removed as a dependency.** `LlmGateway` already reports each model round and tool call, so only storage and UI remain (ADR 0016) | ⏸ optional |
 | D49 | **Web app: Vite + React SPA**, TypeScript; static build served by nginx (homeserver) / CloudFront + S3 (AWS). No SSR: the app is behind login and needs no SEO | ✅ |
@@ -91,10 +91,10 @@ Decision markers used below:
 | D67 | **Homeserver secrets: Sealed Secrets.** Encrypted with `kubeseal`, committed to the private deploy repo, applied by Argo CD. The controller's key is backed up outside the cluster. The chart only references Secrets by name, so AWS can use External Secrets later without chart changes | ✅ |
 | D68 | **Homeserver bootstrap: Ansible playbook** in `agent-ic-deploy/bootstrap/`: k3s (`--disable traefik --disable servicelb`), storage paths (SSD vs `/mnt/data` HDD), sysctl, then Argo CD + the root app-of-apps; afterwards Argo CD manages everything, including itself | ✅ |
 | D69 | **No Terraform until the AWS move.** The Cloudflare tunnel and DNS records (a handful) are created by hand and documented in the deploy repo; `terraform/` is added with AWS | ✅ |
-| D70 | **Backups: on the HDD only, for the MVP.** CloudNativePG (Barman) writes WAL + nightly base backups to a `backups` bucket in MinIO on `/mnt/data`; a nightly CronJob copies the upload buckets. Protects against mistakes and SSD failure, **not against losing the machine**; moving offsite later (R2 / B2) is a config change | ✅ |
-| D71 | **App CI** (GitHub Actions): `ci.yml` on PRs + main: install (cached) → Turborepo affected tasks → oxlint (incl. type-aware) + oxfmt check → dependency-cruiser (boundaries) → typecheck → unit tests → backend integration tests (Testcontainers) → schema print + graphql-inspector vs main → codegen up to date → migrations committed (drizzle-kit check) → boot test (resolver bindings) → web + Storybook build → `helm lint` + kubeconform → Docker builds (no push on PRs). `release.yml` on main: push `backend` / `web` images (amd64) + OCI chart `X.Y.Z-main.<n>`, Trivy scan, bump `envs/homeserver` unless frozen; release-please for `vX.Y.Z`. **Playwright e2e only on the release PR** (docker compose stack with mock LLM / Telegram). No nightly e2e, no Renovate, no CodeQL for now | ✅ |
+| D70 | **Backups: on the HDD only, for the MVP.** CloudNativePG (Barman) writes WAL + nightly base backups to a `backups` bucket in Silo on `/mnt/data`; a nightly CronJob copies the upload buckets. Protects against mistakes and SSD failure, **not against losing the machine**; moving offsite later (R2 / B2) is a config change | ✅ |
+| D71 | **App CI** (GitHub Actions): `ci.yml` on PRs + main: install (cached) → Turborepo affected tasks → oxlint (incl. type-aware) + oxfmt check → dependency-cruiser (boundaries) → typecheck → unit tests → backend integration tests (Testcontainers) → schema print + graphql-inspector vs main (deferred, D126) → codegen up to date → migrations committed (drizzle-kit check) → boot test (resolver bindings) → web + Storybook build → `helm lint` + kubeconform → Docker builds (no push on PRs). `release.yml` on main: push `backend` / `web` images (amd64) + OCI chart `X.Y.Z-main.<n>`, Trivy scan, bump `envs/homeserver` unless frozen; release-please for `vX.Y.Z`. **Playwright e2e only on the release PR** (docker compose stack with mock LLM / Telegram). No nightly e2e, no Renovate, no CodeQL for now | ✅ |
 | D72 | **Argo CD:** app-of-apps in sync waves (operators → data → observability + Langfuse → app); automated sync with self-heal and prune. **Migrations run as a PreSync hook Job** (`backend migrate`, `app_owner` role); always expand-then-contract. Deploy repo CI: YAML lint + kubeconform | ✅ |
-| D73 | **Placement:** local-dev `compose.yaml` (Postgres + pgvector, Redis × 2, MinIO, mock LLM, mock Telegram; optional Langfuse / observability profile) and `e2e/` live in the **app repo**; our Grafana dashboards (ConfigMaps) and PrometheusRules ship **inside the Helm chart** | ✅ |
+| D73 | **Placement:** local-dev `compose.yaml` (PostgreSQL 18 + pgvector, Redis × 2, Silo, mock LLM, mock Telegram; optional Langfuse / observability profile) and `e2e/` live in the **app repo**; our Grafana dashboards (ConfigMaps) and PrometheusRules ship **inside the Helm chart** | ✅ |
 | D74 | **No cert-manager on the homeserver:** HTTPS ends at Cloudflare, and `cloudflared` → Traefik stays inside the cluster. Back with AWS (or ACM there) | ✅ |
 | D75 | **Shared packages are built with tsup** to `dist` (CJS + ESM; declarations by `tsc`, D94); Node (backend runtime, Docker image) uses `dist`. A custom **`source` export condition** points Vite, Vitest and `tsc` at `src/`, so package edits apply instantly in dev and tests. Turbo builds packages before apps | ✅ |
 | D76 | **Types that cross the API come from the GraphQL schema** (codegen on both sides). Shared packages hold only what both sides must execute or what GraphQL can't type: the role → permission matrix (UI gating), plan limits, error codes (ADR 0014 reasons → i18n), ID prefixes (D36), flow rules | ✅ |
@@ -145,6 +145,13 @@ Decision markers used below:
 | D121 | **Web runtime:** `public/config.json` (`{ graphqlPath }`) is fetched through `shared/api/fetchJson` and zod-validated before the first render; the path is relative, so the graphql-ws URL is derived from `window.location`. The Apollo link chain is error, auth, split. The error link throws `AppError` (code, reason, traceId, field issues; unknown codes become `UNKNOWN`) and retries once after `onUnauthenticated()` resolves true; until F1 binds a refresh it resolves false. The auth link reads the token and workspace id from `shared/api/requestContext` | ✅ |
 | D122 | **Web i18n refinement of D52:** English and Ukrainian resources are bundled statically (`common`, `errors`); plurals use i18next's native `_one/_few/_many/_other` keys on `Intl.PluralRules` (all four Ukrainian forms are tested) instead of ICU; keys are typed from the English resources; the locale is stored in `localStorage` and falls back to the browser language, then English | ✅ |
 | D123 | **Web tests and stories:** Vitest with jsdom and Testing Library; Storybook 10 (`@storybook/react-vite`, `addon-a11y`) lists only `shared/ui` stories and is built in CI; the `web-view-shared-ui-only` dependency rule skips `*.test.ts(x)` files so view tests may import the shared test helpers | ✅ |
+| D124 | **Job trace context is deferred** (refines D45 and D110): the job envelope carries only `traceId`, which the worker puts on its log lines and `UseCaseCtx`. W3C `traceparent` is not copied into job payloads yet, so worker spans start a new trace instead of joining the request that added the job. It is added with the OpenTelemetry job instrumentation in the observability wave | ✅ |
+| D125 | **ADR 0013 warning helper is not built:** the helper does not log a warning when a tenant table is queried without `app.workspace_id`. Fail-closed RLS, the schema test and one cross-tenant test per repository already catch a missing setting, so the warning waits until a real case shows it is needed (ADR 0013 Consequences records this) | ✅ |
+| D126 | **Two CI guardrails wait for their first input:** the `drizzle-kit generate` drift check (D102) until the first `*.table.ts`, and the graphql-inspector breaking-change check against `main` (D71, ADR 0007) until the schema has public fields worth protecting. Codegen outputs are gitignored (ADR 0007), so there is no codegen drift check by `git diff` | ✅ |
+| D127 | **PostgreSQL 18 with the CloudNativePG pgvector `ImageVolume`** (replaces PostgreSQL 17): production runs the CloudNativePG `system` operand image with the pgvector extension image mounted as an `ImageVolume`, which exists only for PostgreSQL 18 and later, so there is no custom image to build, scan and patch. Local `compose.yaml` and the Testcontainers setup use `pgvector/pgvector:0.8.7-pg18-trixie`; its data volume is mounted at `/var/lib/postgresql` as PostgreSQL 18 images require, so an old PostgreSQL 17 volume is recreated with `mise run db:reset`. Reasons and revisit triggers: `docs/decisions.md` in the deploy repo | ✅ |
+| D128 | **Silo, a MinIO fork, is the S3 store** (replaces MinIO): the upstream MinIO repository is archived and the official image is gone. `pgsty/silo` keeps the S3 API, the `MINIO_*` variables, the `minio_*` metrics and the on-disk format, so code, env names and the `minio` service name stay. Production pins `docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z`; local `compose.yaml` pins the same tag and its digest, starts it with `silo server` and checks readiness with the bundled `mcli ready local`. Any other S3 store replaces it by changing the image and the endpoint variables | ✅ |
+| D129 | **In-tree `barmanObjectStore` backups until the plugin migration** (refines D70): CloudNativePG writes backups through the in-tree `backup.barmanObjectStore`, deprecated since CloudNativePG 1.26 but working, because the Barman Cloud plugin needs cert-manager and D74 keeps cert-manager out of the homeserver. The migration to the plugin (an `ObjectStore` resource, then a full backup and a restore test) happens before the operator chart ships CloudNativePG 1.31 or later | ✅ |
+| D130 | **Web dev server settings and bundles** (refines D118 and D121): `WEB_PORT` and `WEB_ALLOWED_HOSTS` (comma separated) come from `.env` through compose and are validated by zod in `apps/web/vite.server.ts`; the web healthcheck and the Traefik route read the same `WEB_PORT`. The workspace id for the `x-workspace-id` header is set in the `/w/$workspaceId` route `beforeLoad`, before any child loads, and released in `onLeave` only if it still belongs to the leaving workspace. Raw pixel values in `.module.scss` are replaced by size and border tokens in `tokens.css`. Vendor chunks (React, Apollo, Radix, router, i18n, forms) are split in `vite.build.ts`, so no chunk passes the 500 kB warning | ✅ |
 
 ---
 
@@ -178,7 +185,7 @@ Most of the product is ordinary CRUD. These requirements shape the system:
           ┌──────────────┐◀────────────┘        │ SQL
           │ Redis        │                      ▼
           │ BullMQ +     │      ┌────────────────────┐   ┌──────────┐
-          │ pub/sub      │      │ Postgres + pgvector│   │ S3/MinIO │
+          │ pub/sub      │      │ Postgres + pgvector│   │ S3/Silo  │
           └──────┬───────┘      │ (via PgBouncer)    │   │ uploads  │
                  ▼              └────────────────────┘   └──────────┘
    ┌───────────────────────┐           ▲
@@ -262,7 +269,7 @@ apps/web/src/features/**/<name>.graphql       operations next to the feature
 ```
 
 - **Not committed.** Turbo builds `api-schema` from the backend's SDL before any consumer's codegen, so the web app depends on a package, never on server source. A root `graphql.config.ts` gives editors schema autocomplete without a build.
-- **Breaking-change check:** CI builds the schema for both the PR and `main` and diffs them with graphql-inspector.
+- **Breaking-change check:** CI builds the schema for both the PR and `main` and diffs them with graphql-inspector (deferred until the first public field, D126).
 - **Server rules:**
   - DataLoader per request for every relation (no N+1);
   - limits on query depth and complexity;
@@ -323,7 +330,7 @@ apps/web/src/features/**/<name>.graphql       operations next to the feature
 - **Postgres** with one schema per module, behind **PgBouncer** (transaction mode). The number of connections grows with the number of pods, so PgBouncer is needed from day one.
 - **pgvector** exact search scoped to the agent's KBs (no global HNSW; ADR 0011). A re-sync writes a new generation of chunks and flips it in one transaction, so agents never see a half-indexed source.
 - **Tenancy:** a `workspace_id` column on every tenant row, filtered in repositories **and** enforced by Postgres row-level security (D40, ADR 0013).
-- **Object storage:** the S3 API only (MinIO on the homeserver, S3 on AWS) for uploaded files.
+- **Object storage:** the S3 API only (Silo on the homeserver, S3 on AWS) for uploaded files.
 - **Analytics** read from our own tables; later from a read replica.
 - **Migrations:** run as a Kubernetes Job (Helm pre-upgrade hook), always as expand-then-contract steps for zero-downtime deploys.
 
@@ -361,27 +368,27 @@ The app reads only environment variables (`DATABASE_URL`, `REDIS_QUEUE_URL`, `RE
 | | Local | Homeserver (MVP) | AWS (later) |
 |---|---|---|---|
 | Orchestration | docker compose | **k3s** | **EKS + Karpenter** (Terraform) |
-| Postgres + pgvector | Container | CloudNativePG + PgBouncer, backups to MinIO on the HDD (D70) | RDS / Aurora Postgres + RDS Proxy |
+| Postgres + pgvector | Container | PostgreSQL 18 on CloudNativePG with the pgvector `ImageVolume` (D127) + PgBouncer, backups to Silo on the HDD (D70, D129) | RDS / Aurora Postgres + RDS Proxy |
 | Redis (queue + cache) | Container | In-cluster, two instances | ElastiCache (Valkey) |
-| Object storage | MinIO | MinIO | S3 |
+| Object storage | Silo | Silo | S3 |
 | Ingress / TLS | — | Traefik behind a **Cloudflare Tunnel** (TLS at Cloudflare; no cert-manager, D74) | Route 53 + ACM + WAF → ALB (AWS Load Balancer Controller) |
 | Web SPA | Vite dev server | nginx Deployment | CloudFront + S3 |
 | Node scaling | — | — (single node) | Karpenter (spot + on-demand) |
 | Secrets | `.env` | Sealed Secrets (D67) | External Secrets Operator + Secrets Manager; KMS for the master encryption key |
 | Delivery | — | GitHub Actions → image + Helm chart (OCI) on GHCR → **Argo CD** | GitHub Actions → ECR → Argo CD |
 | Metrics / logs / traces | Optional | kube-prometheus-stack (Prometheus, Grafana, Alertmanager) + Loki + Tempo + OTel Collector, KEDA | Same, or managed Prometheus / Grafana |
-| Langfuse (D47) | Off, or Langfuse Cloud | **Self-hosted Helm chart** (after the RAM upgrade): web + worker + one ClickHouse replica; its database in our CNPG cluster, a bucket in our MinIO, its own small Valkey (`noeviction`). Fallback: Langfuse Cloud (Hobby) | Langfuse Cloud or Helm on its own node group, until our own traces replace it (D48) |
+| Langfuse (D47) | Off, or Langfuse Cloud | **Self-hosted Helm chart** (after the RAM upgrade): web + worker + one ClickHouse replica; its database in our CNPG cluster, a bucket in our Silo, its own small Valkey (`noeviction`). Fallback: Langfuse Cloud (Hobby) | Langfuse Cloud or Helm on its own node group, until our own traces replace it (D48) |
 
 **Homeserver notes:**
 - Telegram webhooks need public HTTPS. A Cloudflare Tunnel provides it without exposing the home IP or opening ports.
 - A single node has no high availability. Backups go to the HDD for the MVP (D70); offsite backups are needed before real customers.
 - Upload bandwidth and power are the real limits on uptime; this is acceptable for the MVP.
-- **Capacity (checked 2026-10-03):** Ryzen 5 3600 (6C/12T), 16 GB RAM (2 of 4 slots free, up to 128 GB), 112 GB SATA SSD + 1 TB HDD, alongside existing Coolify apps (~3 GB). CPU and disk are enough; RAM is not enough for the full stack plus a scaling demo, so **the plan is to upgrade to ≥ 32 GB** (add 2 × 8 GB matching the installed sticks, or 2 × 16 GB). Until then, Langfuse runs in the cloud. Postgres, Prometheus and images on the SSD; MinIO (uploads, Loki / Tempo data) on the HDD.
+- **Capacity (checked 2026-10-03):** Ryzen 5 3600 (6C/12T), 16 GB RAM (2 of 4 slots free, up to 128 GB), 112 GB SATA SSD + 1 TB HDD, alongside existing Coolify apps (~3 GB). CPU and disk are enough; RAM is not enough for the full stack plus a scaling demo, so **the plan is to upgrade to ≥ 32 GB** (add 2 × 8 GB matching the installed sticks, or 2 × 16 GB). Until then, Langfuse runs in the cloud. Postgres, Prometheus and images on the SSD; Silo (uploads, Loki / Tempo data) on the HDD.
 - **Coexisting with Coolify:** Coolify's Traefik holds ports 80 / 443, so k3s is installed with `--disable traefik --disable servicelb`; our Traefik is ClusterIP-only and our `cloudflared` runs in the cluster.
 
 **Namespaces:**
 - `agent-ic`: gateway, api, web, workers (D80);
-- `data`: Postgres, PgBouncer, Redis, MinIO;
+- `data`: Postgres, PgBouncer, Redis, Silo;
 - `langfuse`: web, worker, ClickHouse, Valkey;
 - `observability`;
 - `platform`: Argo CD, KEDA, Traefik, Sealed Secrets, cloudflared.
@@ -402,7 +409,7 @@ The app reads only environment variables (`DATABASE_URL`, `REDIS_QUEUE_URL`, `RE
   - open WebSocket connections, subscription events published and delivered.
 - **Exporters:** postgres_exporter, redis_exporter, PgBouncer exporter, kube-state-metrics, node-exporter.
 - **Logs:** pino (JSON) → Loki. A `run_id` / `conversation_id` / `workspace_id` / `traceId` on every log line.
-- **Traces:** OpenTelemetry SDK (HTTP, GraphQL, pg, ioredis, BullMQ, outgoing fetch) → OTel Collector → **Grafana Tempo** (stored in MinIO / S3). The trace context is copied into each job payload, so a worker continues the trace of the request that added the job. Grafana links logs ↔ traces ↔ metrics (exemplars).
+- **Traces:** OpenTelemetry SDK (HTTP, GraphQL, pg, ioredis, BullMQ, outgoing fetch) → OTel Collector → **Grafana Tempo** (stored in Silo / S3). The job envelope carries the `traceId` so worker logs and spans carry the id of the request that added the job; copying the full W3C trace context (`traceparent`) into the envelope, so worker spans join the same trace, is deferred (D124). Grafana links logs ↔ traces ↔ metrics (exemplars).
 - **Grafana dashboards:** platform overview, queues and workers, conversation runtime, ingestion, infrastructure.
 - **Alertmanager:** reactive queue wait above the target, run failure rate, webhook error spikes, DB connection saturation.
 
@@ -537,7 +544,7 @@ modules/knowledge/
 | `cache/`, `rate-limit/` | Redis cache wrapper; token buckets (per bot, per provider, auth) |
 | `observability/` | Logger (pino), Prometheus metrics, health checks, trace-id propagation |
 | `llm/` | `LlmGateway` (AI SDK → LLMAPI / BYOK), embeddings, per-round call details (tokens, tool calls) for usage and tracing |
-| `storage/` | `FileStorage` (S3 / MinIO), presigned URLs |
+| `storage/` | `FileStorage` (S3 / Silo), presigned URLs |
 | `crypto/` | `SecretBox` (bot tokens, BYOK keys), key hashing |
 | `ids/`, `clock/` | Prefixed UUIDv7 ids (D36); a clock abstraction for tests |
 | `testing/` | Testcontainers (Postgres, Redis), base factories, fake gateways |
@@ -560,7 +567,7 @@ modules/knowledge/
 | config | Env variables only, validated by zod at startup; the process stops on an error. Each role validates only its section. Secrets from Kubernetes Secrets (homeserver) / External Secrets (AWS) |
 | crypto | `SecretBox`: AES-256-GCM for bot tokens and BYOK keys; key from an env secret (homeserver) or KMS (AWS); key version stored per row for rotation. API keys stored as hashes only |
 | llm | `LlmGateway`, `EmbeddingGateway` (AI SDK → LLMAPI or BYOK): every call is traced (Langfuse when on) and tagged (prompt id + version, agent version, workspace); each round's tokens and tool calls are reported for usage and future own traces; Prometheus metrics, timeouts and retries |
-| storage | `FileStorage`: upload, download, delete, presigned URL; MinIO / S3 |
+| storage | `FileStorage`: upload, download, delete, presigned URL; Silo / S3 |
 | cache, rate-limit | `Cache` (get / set / TTL / get-or-load) on the cache Redis; `RateLimiter` (Redis token bucket) per bot, per provider, per login |
 | feature flags | Workspace overrides (D33) in a Postgres table, cached in Redis; set by platform admins only |
 | ids, clock | `IdService` (prefixed UUIDv7, D36); `Clock.now()` for tests |

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { Button } from '../Button';
+import { Button } from '@/shared/ui/Button';
 import { ToastProvider } from './Toast';
 import { ToastTone } from './Toast.constants';
 import type { ToastOptions } from './Toast.typedefs';

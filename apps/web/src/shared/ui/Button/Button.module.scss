@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-8);
-  border: 1px solid transparent;
+  border: var(--border-width) solid transparent;
   border-radius: var(--radius-8);
   font: var(--type-title);
   cursor: pointer;
@@ -18,12 +18,12 @@
 }
 
 .sm {
-  min-height: 28px;
+  min-height: var(--size-control-sm);
   padding: 0 var(--space-10);
 }
 
 .md {
-  min-height: 34px;
+  min-height: var(--size-control-md);
   padding: 0 var(--space-14);
 }
 

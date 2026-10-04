@@ -1,9 +1,8 @@
-import { type ReactNode, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { setWorkspaceId } from '@/shared/api/requestContext';
+import { AppHeader } from '@/app/layouts/AppHeader/AppHeader';
 
-import { AppHeader } from '../AppHeader/AppHeader';
 import styles from './WorkspaceLayout.module.scss';
 
 interface WorkspaceLayoutProps {
@@ -13,11 +12,6 @@ interface WorkspaceLayoutProps {
 
 export function WorkspaceLayout({ workspaceId, children }: WorkspaceLayoutProps) {
   const { t } = useTranslation();
-
-  useEffect(() => {
-    setWorkspaceId(workspaceId);
-    return () => setWorkspaceId(null);
-  }, [workspaceId]);
 
   return (
     <div className="flex min-h-screen flex-col">

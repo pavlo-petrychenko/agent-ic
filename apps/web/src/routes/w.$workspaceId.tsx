@@ -2,6 +2,7 @@ import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { z } from 'zod';
 
 import { WorkspaceLayout } from '@/app/layouts/WorkspaceLayout/WorkspaceLayout';
+import { releaseWorkspaceId, setWorkspaceId } from '@/shared/api/requestContext';
 
 const workspaceParamsSchema = z.object({
   workspaceId: z.string().min(1),
@@ -9,6 +10,8 @@ const workspaceParamsSchema = z.object({
 
 export const Route = createFileRoute('/w/$workspaceId')({
   params: { parse: (params) => workspaceParamsSchema.parse(params) },
+  beforeLoad: ({ params }) => setWorkspaceId(params.workspaceId),
+  onLeave: (match) => releaseWorkspaceId(match.params.workspaceId),
   component: WorkspaceRoute,
 });
 

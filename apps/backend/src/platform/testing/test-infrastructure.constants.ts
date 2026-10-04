@@ -4,7 +4,7 @@ import { DatabaseRole } from '@/platform/db/database.constants';
 
 export const TEST_INFRASTRUCTURE_KEY = 'testInfrastructure';
 
-export const POSTGRES_IMAGE = 'pgvector/pgvector:0.8.7-pg17-trixie';
+export const POSTGRES_IMAGE = 'pgvector/pgvector:0.8.7-pg18-trixie';
 export const REDIS_IMAGE = 'redis:8.10-alpine';
 
 export const ROLES_INIT_SCRIPT = fileURLToPath(

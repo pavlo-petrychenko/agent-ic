@@ -1,8 +1,8 @@
 import clsx from 'clsx';
 import { useState } from 'react';
 
-import { Button, ButtonSize, ButtonVariant } from '../Button';
-import { Input } from '../Input';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/Button';
+import { Input } from '@/shared/ui/Input';
 import { PasswordInputType } from './PasswordInput.constants';
 import styles from './PasswordInput.module.scss';
 import type { PasswordInputProps } from './PasswordInput.typedefs';

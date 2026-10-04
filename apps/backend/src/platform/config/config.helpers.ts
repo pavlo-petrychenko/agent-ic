@@ -12,6 +12,7 @@ import {
   CliOption,
   QUEUE_LIST_SEPARATOR,
   SchemaPrintOption,
+  STRING_OPTION,
 } from './config.constants';
 import type { ConfigIssue, RawCliOptions, RawSchemaPrintOptions } from './config.typedefs';
 
@@ -19,8 +20,8 @@ export const readCliOptions = (argv: readonly string[]): RawCliOptions => {
   const { values } = parseArgs({
     args: argv.slice(ARGV_OFFSET),
     options: {
-      [CliOption.Role]: { type: 'string' },
-      [CliOption.Queues]: { type: 'string' },
+      [CliOption.Role]: STRING_OPTION,
+      [CliOption.Queues]: STRING_OPTION,
     },
     strict: true,
     allowPositionals: false,
@@ -35,7 +36,7 @@ export const readCliOptions = (argv: readonly string[]): RawCliOptions => {
 export const readSchemaPrintOptions = (argv: readonly string[]): RawSchemaPrintOptions => {
   const { values } = parseArgs({
     args: argv.slice(ARGV_OFFSET),
-    options: { [SchemaPrintOption.Output]: { type: 'string' } },
+    options: { [SchemaPrintOption.Output]: STRING_OPTION },
     strict: true,
     allowPositionals: false,
   });

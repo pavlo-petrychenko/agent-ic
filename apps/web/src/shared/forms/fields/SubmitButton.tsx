@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 import { Button } from '@/shared/ui/Button';
 
-import { useFormContext } from '../formContext';
+import { useFormContext } from '@/shared/forms/formContext';
 
 interface SubmitButtonProps {
   children: ReactNode;

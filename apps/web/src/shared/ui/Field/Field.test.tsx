@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { Input } from '../Input';
+import { Input } from '@/shared/ui/Input';
 import { Field } from './Field';
 
 const renderField = (props: { hint?: string | null; error?: string | null }) =>

@@ -14,3 +14,9 @@ export const setAccessToken = (accessToken: string | null): void => {
 export const setWorkspaceId = (workspaceId: string | null): void => {
   state.workspaceId = workspaceId;
 };
+
+export const releaseWorkspaceId = (workspaceId: string): void => {
+  if (state.workspaceId === workspaceId) {
+    state.workspaceId = null;
+  }
+};

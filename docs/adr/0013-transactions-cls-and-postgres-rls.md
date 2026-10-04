@@ -36,7 +36,7 @@
 ## Consequences
 - A forgotten filter returns nothing instead of another tenant's rows. Cross-tenant access is explicit (`SystemDb`) and easy to find in review.
 - Every tenant query runs in a transaction. The overhead is negligible for our query shapes.
-- A query that "returns nothing" may mean the setting wasn't applied. The helper logs a warning when a tenant table is queried without one, in dev and tests.
+- A query that "returns nothing" may mean the setting wasn't applied. A warning from the helper when a tenant table is queried without the setting is not built (D125); the schema test, fail-closed RLS and the cross-tenant tests catch the case instead.
 - **Tests:**
   - each test runs in a transaction that is rolled back;
   - RLS is active in tests (the `app` role), so leaks are caught there;

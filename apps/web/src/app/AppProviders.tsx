@@ -4,7 +4,7 @@ import { I18nextProvider } from 'react-i18next';
 
 import { createApolloClient } from '@/shared/api/apolloClient';
 
-import { ErrorBoundary } from './ErrorBoundary/ErrorBoundary';
+import { ErrorBoundary } from '@/app/ErrorBoundary/ErrorBoundary';
 import { LocalizedToastProvider } from './LocalizedToastProvider';
 import type { AppProvidersProps } from './app.typedefs';
 

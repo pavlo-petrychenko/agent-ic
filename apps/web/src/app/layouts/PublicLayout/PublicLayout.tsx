@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { AppHeader } from '../AppHeader/AppHeader';
+import { AppHeader } from '@/app/layouts/AppHeader/AppHeader';
 
 interface PublicLayoutProps {
   children: ReactNode;

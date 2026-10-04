@@ -71,7 +71,7 @@
         "public/**",
         "index.html",
         "vite.config.ts",
-        "vite.resolve.ts",
+        "vite.*.ts",
         "tsconfig.json",
         "package.json"
       ],
@@ -79,7 +79,7 @@
     },
     "web#test": {
       "dependsOn": ["codegen"],
-      "inputs": ["src/**", "vitest.config.ts", "vite.resolve.ts", "package.json"]
+      "inputs": ["src/**", "vitest.config.ts", "vite.*.ts", "package.json"]
     },
     "web#storybook:build": {
       "dependsOn": ["^build", "codegen"],
@@ -88,7 +88,7 @@
         ".storybook/**",
         "public/**",
         "vite.config.ts",
-        "vite.resolve.ts",
+        "vite.*.ts",
         "tsconfig.json",
         "package.json"
       ],

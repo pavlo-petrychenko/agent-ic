@@ -53,7 +53,7 @@ http:
     web:
       loadBalancer:
         servers:
-          - url: http://web:5173
+          - url: 'http://web:{{ env "WEB_PORT" }}'
     api:
       loadBalancer:
         servers:
