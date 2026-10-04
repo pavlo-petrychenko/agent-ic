@@ -1,0 +1,91 @@
+.root {
+  position: relative;
+  border: var(--border-width) solid transparent;
+}
+
+.light {
+  border-color: var(--color-line);
+  border-radius: var(--radius-8);
+  background: var(--color-card);
+  color: var(--color-ink-secondary);
+
+  .pre {
+    padding: var(--space-12);
+    font: var(--type-mono-sm);
+  }
+}
+
+.dark {
+  border-radius: var(--radius-12);
+  background: var(--color-code-bg);
+  color: var(--color-code-fg);
+
+  .pre {
+    padding: var(--space-14) var(--space-16);
+    font: var(--type-mono-lg);
+  }
+}
+
+.pre {
+  margin: 0;
+  border-radius: inherit;
+  line-height: var(--leading-relaxed);
+}
+
+.wrapped {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.scrolling {
+  overflow: auto;
+  white-space: pre;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.withCopy {
+  padding-right: var(--space-32);
+}
+
+.copy {
+  position: absolute;
+  top: var(--space-6);
+  right: var(--space-6);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-xs);
+  height: var(--size-control-xs);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-6);
+  background: transparent;
+  color: var(--color-mute);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+
+  &:hover {
+    background: var(--color-soft);
+    color: var(--color-ink);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.dark .copy {
+  color: var(--color-on-dark-secondary);
+
+  &:hover {
+    background: var(--color-dark);
+    color: var(--color-on-dark);
+  }
+}

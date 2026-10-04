@@ -1,0 +1,59 @@
+$ring-gap: var(--color-card);
+$ring-width: var(--border-width-strong);
+
+.root {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-swatch-inset);
+  cursor: pointer;
+  transition: box-shadow var(--duration-fast) var(--ease-standard);
+
+  &:hover:not(:disabled) {
+    box-shadow:
+      0 0 0 $ring-width $ring-gap,
+      0 0 0 calc($ring-width * 2) var(--color-line-dash);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: var(--opacity-disabled);
+    pointer-events: none;
+  }
+}
+
+.selected {
+  &,
+  &:hover:not(:disabled) {
+    box-shadow:
+      0 0 0 $ring-width $ring-gap,
+      0 0 0 calc($ring-width * 2) var(--color-ink);
+  }
+
+  &:focus-visible {
+    box-shadow:
+      0 0 0 $ring-width $ring-gap,
+      0 0 0 calc($ring-width * 2) var(--color-ink),
+      0 0 0 calc($ring-width * 3) $ring-gap,
+      0 0 0 calc($ring-width * 4) var(--color-accent);
+  }
+}
+
+.group {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  padding: var(--space-8);
+}
