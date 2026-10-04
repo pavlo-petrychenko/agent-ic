@@ -3,9 +3,8 @@ import { Test } from '@nestjs/testing';
 import type { TestingModule } from '@nestjs/testing';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { ClockModule } from '@/platform/clock/clock.module';
-import { CliOption } from '@/platform/config/config.constants';
-import { ConfigLoader } from '@/platform/config/config.loader';
 import { ConfigModule } from '@/platform/config/config.module';
+import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { ContextModule } from '@/platform/context/context.module';
 import { CLIENT_CLOSE_TIMEOUT_SECONDS } from '@/platform/db/database.constants';
 import { createSqlClient } from '@/platform/db/database.helpers';
@@ -20,7 +19,6 @@ import {
 } from '@test/support/constants/test-infrastructure.constants';
 import { TestRollbackError } from '@test/support/errors/test-rollback.error';
 import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
-import { cliArgument, createArgv } from '@test/support/fixtures/test-env.fixture';
 import { discardNotice } from '@test/support/helpers/test-infrastructure.helpers';
 import { TestTransactionService } from '@test/support/services/test-transaction.service';
 import type { ScratchDatabase } from '@test/support/typedefs/test-infrastructure.typedefs';
@@ -30,7 +28,7 @@ export const createPlatformTestingModule = async (
   imports: readonly (Type<unknown> | DynamicModule)[] = [],
 ): Promise<TestingModule> => {
   const env = createIntegrationTestEnv(redisDatabase);
-  const config = new ConfigLoader(env).load(createArgv(cliArgument(CliOption.Role, Role.Api)));
+  const config = loadAppConfig({ role: Role.Api, queues: [] }, env);
   const testingModule = await Test.createTestingModule({
     imports: [
       ConfigModule.register(config),

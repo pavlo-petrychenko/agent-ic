@@ -1,9 +1,9 @@
 import { Global, Module } from '@nestjs/common';
 import { ClsModule } from 'nestjs-cls';
-import { Authenticator } from '@/platform/context/authenticator';
-import { DenyAllAuthenticator } from '@/platform/context/deny-all.authenticator';
-import { TraceIdService } from '@/platform/context/trace-id.service';
-import { UseCaseCtxFactory } from '@/platform/context/use-case-ctx.factory';
+import { AuthenticatorService } from '@/platform/context/services/authenticator.service';
+import { DenyAllAuthenticatorService } from '@/platform/context/services/deny-all-authenticator.service';
+import { TraceIdService } from '@/platform/context/services/trace-id.service';
+import { UseCaseCtxService } from '@/platform/context/services/use-case-ctx.service';
 import { resolveTraceId } from '@/platform/observability/tracing/tracing.helpers';
 
 @Global()
@@ -15,10 +15,10 @@ import { resolveTraceId } from '@/platform/observability/tracing/tracing.helpers
     }),
   ],
   providers: [
-    { provide: Authenticator, useClass: DenyAllAuthenticator },
+    { provide: AuthenticatorService, useClass: DenyAllAuthenticatorService },
     TraceIdService,
-    UseCaseCtxFactory,
+    UseCaseCtxService,
   ],
-  exports: [TraceIdService, UseCaseCtxFactory],
+  exports: [TraceIdService, UseCaseCtxService],
 })
 export class ContextModule {}

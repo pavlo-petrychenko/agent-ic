@@ -74,7 +74,7 @@ module.exports = {
     forbidden(
       'backend-platform-never-imports-modules',
       { path: `${backend}platform/` },
-      { path: `${backend}(modules|entrypoints)/` },
+      { path: `${backend}(modules|app)/` },
     ),
     forbidden(
       'backend-system-db-allow-list',

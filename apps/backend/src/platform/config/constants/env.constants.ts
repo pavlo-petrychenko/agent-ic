@@ -1,0 +1,32 @@
+export enum NodeEnvironment {
+  Development = 'development',
+  Production = 'production',
+  Test = 'test',
+}
+
+export enum EnvVar {
+  NodeEnv = 'NODE_ENV',
+  AppVersion = 'APP_VERSION',
+  LogLevel = 'LOG_LEVEL',
+  HttpHost = 'HTTP_HOST',
+  ApiPort = 'API_PORT',
+  GatewayPort = 'GATEWAY_PORT',
+  WorkerPort = 'WORKER_PORT',
+  DatabaseUrl = 'DATABASE_URL',
+  DatabaseSystemUrl = 'DATABASE_SYSTEM_URL',
+  DatabaseOwnerUrl = 'DATABASE_OWNER_URL',
+  DatabasePoolMax = 'DATABASE_POOL_MAX',
+  RedisQueueUrl = 'REDIS_QUEUE_URL',
+  RedisCacheUrl = 'REDIS_CACHE_URL',
+  WorkerConcurrency = 'WORKER_CONCURRENCY',
+  PlatformAdminDevAccess = 'PLATFORM_ADMIN_DEV_ACCESS',
+  OtelSdkDisabled = 'OTEL_SDK_DISABLED',
+  OtelExporterEndpoint = 'OTEL_EXPORTER_OTLP_ENDPOINT',
+  OtelServiceName = 'OTEL_SERVICE_NAME',
+  OtelServiceNamespace = 'OTEL_SERVICE_NAMESPACE',
+  LangfuseMode = 'LANGFUSE_MODE',
+  LangfuseSampleRate = 'LANGFUSE_SAMPLE_RATE',
+  LangfuseHost = 'LANGFUSE_HOST',
+  LangfusePublicKey = 'LANGFUSE_PUBLIC_KEY',
+  LangfuseSecretKey = 'LANGFUSE_SECRET_KEY',
+}

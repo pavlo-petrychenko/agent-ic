@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { actorSchema } from '@/platform/context/context.schema';
+import { actorSchema } from '@/platform/context/schemas/actor.schema';
 import { ENVELOPE_VERSION } from '@/platform/queues/queue.constants';
 import type { JobEnvelope } from '@/platform/queues/queue.typedefs';
 

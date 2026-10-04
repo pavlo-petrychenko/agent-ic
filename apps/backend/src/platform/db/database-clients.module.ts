@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@/platform/config/config.service';
+import { ConfigService } from '@/platform/config/services/config.service';
 import { AppDatabaseClient } from '@/platform/db/app-database.client';
 import { APP_DATABASE } from '@/platform/db/database.constants';
 import type { AppDatabase } from '@/platform/db/database.typedefs';

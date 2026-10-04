@@ -1,5 +1,5 @@
 import { inject } from 'vitest';
-import { EnvVar } from '@/platform/config/config.constants';
+import { EnvVar } from '@/platform/config/constants/env.constants';
 import {
   TEST_INFRASTRUCTURE_KEY,
   TEST_POOL_SIZE,

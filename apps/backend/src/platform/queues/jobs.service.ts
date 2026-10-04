@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { UseCaseCtx } from '@/platform/context/use-case-ctx';
+import { getOriginator } from '@/platform/context/helpers/use-case-ctx.helpers';
+import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { AfterCommitScheduler } from '@/platform/db/after-commit/after-commit.scheduler';
 import type { JobDefinition } from '@/platform/queues/job.definition';
 import { ENVELOPE_VERSION } from '@/platform/queues/queue.constants';
@@ -23,7 +24,7 @@ export class JobsService {
       data: definition.schema.parse(data),
       workspaceId: ctx.workspaceId,
       traceId: ctx.traceId,
-      initiatedBy: ctx.originator(),
+      initiatedBy: getOriginator(ctx),
     };
     await this.afterCommit.schedule(async () => {
       await this.queues.get(definition.queue).add(definition.name, envelope);

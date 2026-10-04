@@ -1,9 +1,11 @@
+import { Locale } from '@agent-ic/contracts';
 import type { INestApplication } from '@nestjs/common';
-import { ApplicationFactory } from '@/entrypoints/application.factory';
-import { CliOption } from '@/platform/config/config.constants';
-import { ConfigLoader } from '@/platform/config/config.loader';
-import { ActorKind, Locale } from '@/platform/context/context.constants';
-import { UseCaseCtx } from '@/platform/context/use-case-ctx';
+import { AppModule } from '@/app/app.module';
+import { ROLE_MODULES } from '@/app/constants/app-modules.constants';
+import { createApplication } from '@/app/helpers/application.helpers';
+import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
+import { ActorKind } from '@/platform/context/constants/actor.constants';
+import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { TracingService } from '@/platform/observability/tracing/tracing.service';
 import { QueueName } from '@/platform/queues/queue.constants';
@@ -14,28 +16,25 @@ import {
 } from '@test/support/constants/async-jobs.constants';
 import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
 import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
-import { cliArgument, createArgv } from '@test/support/fixtures/test-env.fixture';
 import { ProbeWorkerModule } from '@test/support/modules/probe-worker.module';
 
 export const createProbeWorker = async (): Promise<INestApplication> => {
-  const config = new ConfigLoader(createIntegrationTestEnv(TestRedisDatabase.Jobs)).load(
-    createArgv(
-      cliArgument(CliOption.Role, Role.Worker),
-      cliArgument(CliOption.Queues, QueueName.Notify),
-    ),
+  const config = loadAppConfig(
+    { role: Role.Worker, queues: [QueueName.Notify] },
+    createIntegrationTestEnv(TestRedisDatabase.Jobs),
   );
-  const app = await new ApplicationFactory(config, new TracingService(config.telemetry), {
-    module: ProbeWorkerModule,
-    globalPrefix: null,
-  }).create();
+  const tracing = new TracingService(config.telemetry);
+  const app = await createApplication(
+    config,
+    AppModule.forRole(config, tracing, [...ROLE_MODULES[Role.Worker], ProbeWorkerModule]),
+  );
   return app.init();
 };
 
-export const userCtx = (): UseCaseCtx =>
-  new UseCaseCtx({
-    actor: { kind: ActorKind.User, userId: PROBE_USER_ID },
-    initiatedBy: null,
-    workspaceId: PROBE_WORKSPACE_ID,
-    traceId: PROBE_TRACE_ID,
-    locale: Locale.En,
-  });
+export const userCtx = (): UseCaseCtx => ({
+  actor: { kind: ActorKind.User, userId: PROBE_USER_ID },
+  initiatedBy: null,
+  workspaceId: PROBE_WORKSPACE_ID,
+  traceId: PROBE_TRACE_ID,
+  locale: Locale.En,
+});

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Registry, collectDefaultMetrics } from 'prom-client';
-import { ConfigService } from '@/platform/config/config.service';
+import { ConfigService } from '@/platform/config/services/config.service';
 import { MetricLabel } from '@/platform/observability/metrics/metrics.constants';
 
 @Injectable()

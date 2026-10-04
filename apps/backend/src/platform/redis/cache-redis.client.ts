@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { OnApplicationShutdown } from '@nestjs/common';
 import type { Redis } from 'ioredis';
-import { ConfigService } from '@/platform/config/config.service';
+import { ConfigService } from '@/platform/config/services/config.service';
 import { RedisConnectionName } from '@/platform/redis/redis.constants';
 import { closeRedisConnection, createRedisConnection } from '@/platform/redis/redis.helpers';
 

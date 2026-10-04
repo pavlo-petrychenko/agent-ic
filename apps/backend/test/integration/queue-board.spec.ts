@@ -2,10 +2,11 @@ import { ErrorReason } from '@agent-ic/contracts';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
-import { ApiAppModule } from '@/entrypoints/api.app-module';
-import { EnvVar } from '@/platform/config/config.constants';
-import { PROBLEM_CONTENT_TYPE } from '@/platform/errors/errors.constants';
-import { HttpHeader } from '@/platform/http/http.constants';
+import { ROLE_MODULES } from '@/app/constants/app-modules.constants';
+import { EnvVar } from '@/platform/config/constants/env.constants';
+import { PROBLEM_CONTENT_TYPE } from '@/platform/errors/constants/problem-details.constants';
+import { HttpHeader } from '@/platform/http/constants/http-header.constants';
+import { Role } from '@/platform/module-roles/constants/role.constants';
 import { MetricsRoute } from '@/platform/observability/metrics/metrics.constants';
 import { QueueBoardRoute } from '@/platform/queues/board/queue-board.constants';
 import { QueueMetricName } from '@/platform/queues/metrics/queue-metrics.constants';
@@ -26,7 +27,7 @@ describe('queue board', () => {
     const env = createIntegrationTestEnv(TestRedisDatabase.QueueBoard, {
       [EnvVar.PlatformAdminDevAccess]: String(devAccess),
     });
-    app = await createApi(ApiAppModule, env);
+    app = await createApi(ROLE_MODULES[Role.Api], env);
     await app.init();
     return request(app.getHttpServer());
   };

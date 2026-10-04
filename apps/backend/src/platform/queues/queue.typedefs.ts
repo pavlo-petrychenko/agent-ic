@@ -1,5 +1,5 @@
-import type { Actor } from '@/platform/context/context.typedefs';
-import type { UseCaseCtx } from '@/platform/context/use-case-ctx';
+import type { Actor } from '@/platform/context/typedefs/actor.typedefs';
+import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import type { JobDefinition } from '@/platform/queues/job.definition';
 import type { ENVELOPE_VERSION } from '@/platform/queues/queue.constants';
 

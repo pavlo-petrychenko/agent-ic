@@ -1,9 +1,6 @@
-import {
-  EnvVar,
-  LangfuseMode,
-  LogLevel,
-  NodeEnvironment,
-} from '@/platform/config/config.constants';
+import { EnvVar, NodeEnvironment } from '@/platform/config/constants/env.constants';
+import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
+import { LogLevel } from '@/platform/config/constants/log-level.constants';
 
 export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.NodeEnv]: NodeEnvironment.Test,
