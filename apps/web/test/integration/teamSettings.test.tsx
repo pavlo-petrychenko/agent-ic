@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   buildInviteLinkMock,
   buildResetInviteLinkMock,
+  buildTeamMembersMock,
   INVITE_URL,
   RESET_INVITE_URL,
 } from '@/features/settings/communication/fixtures/team.fixture';
@@ -30,7 +31,11 @@ describe('team settings', () => {
     const writeText = vi.fn<(text: string) => Promise<void>>(() => Promise.resolve());
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
     const { router } = renderRoute(settingsPath, {
-      mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE]), buildInviteLinkMock()],
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildInviteLinkMock(),
+        buildTeamMembersMock(),
+      ],
     });
 
     await waitFor(() => expect(router.state.location.pathname).toBe(`${settingsPath}/team`));
@@ -39,6 +44,10 @@ describe('team settings', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Copy link' }));
 
     expect(writeText).toHaveBeenCalledWith(INVITE_URL);
+    const yulia = await screen.findByRole('row', { name: /Yulia/ });
+    expect(yulia).toHaveTextContent('yulia@demo-salon.example');
+    expect(yulia).toHaveTextContent('Operator');
+    expect(yulia).toHaveTextContent('Not yet');
     expect(await screen.findByText('Invite link copied')).toBeInTheDocument();
   });
 
@@ -47,6 +56,7 @@ describe('team settings', () => {
       mocks: [
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildInviteLinkMock(),
+        buildTeamMembersMock(),
         buildResetInviteLinkMock(),
       ],
     });

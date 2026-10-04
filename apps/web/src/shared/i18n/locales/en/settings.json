@@ -21,6 +21,12 @@
       "copied": "Invite link copied",
       "resetDone": "The old link no longer works. Share the new one.",
       "roleChanged": "New members will join as {{role}}"
+    },
+    "members": {
+      "member": "Member",
+      "role": "Role",
+      "lastActive": "Last active",
+      "never": "Not yet"
     }
   }
 }

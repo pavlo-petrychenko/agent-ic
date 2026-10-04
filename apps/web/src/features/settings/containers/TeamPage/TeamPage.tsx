@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import { InviteLinkPanel } from '@/features/settings/containers/InviteLinkPanel';
+import { MembersPanel } from '@/features/settings/containers/MembersPanel';
 import type { TeamPageProps } from '@/features/settings/containers/TeamPage/TeamPage.typedefs';
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
 import { useActiveWorkspace } from '@/features/workspace';
@@ -26,6 +27,7 @@ export function TeamPage({ workspaceId }: TeamPageProps) {
       />
       <div className="flex flex-col gap-4 px-7">
         <InviteLinkPanel workspaceId={workspaceId} />
+        <MembersPanel />
       </div>
     </div>
   );
