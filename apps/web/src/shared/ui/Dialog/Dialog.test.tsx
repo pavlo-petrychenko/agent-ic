@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Dialog } from '@/shared/ui/Dialog/Dialog';
-import { DialogSize } from '@/shared/ui/Dialog/Dialog.constants';
+import { DIALOG_ERROR_ICON, DialogSize } from '@/shared/ui/Dialog/Dialog.constants';
 
 async function settleLayers() {
   await act(async () => {
@@ -95,6 +95,44 @@ describe('Dialog', () => {
     pressOutside();
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('shows an error callout above the body and stays open', async () => {
+    const onOpenChange = vi.fn<(open: boolean) => void>();
+    render(
+      <Dialog
+        open
+        onOpenChange={onOpenChange}
+        error="Could not pause the agent."
+        title="Pause agent"
+        closeLabel="Close"
+      >
+        <p>Chats already in progress finish normally.</p>
+      </Dialog>,
+    );
+
+    const dialog = screen.getByRole('dialog', { name: 'Pause agent' });
+    const alert = within(dialog).getByRole('alert');
+    expect(alert).toHaveTextContent('Could not pause the agent.');
+    expect(alert.querySelector(`[data-icon="${DIALOG_ERROR_ICON}"]`)).not.toBeNull();
+    expect(alert.nextElementSibling).toHaveTextContent(
+      'Chats already in progress finish normally.',
+    );
+    await settleLayers();
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('renders no callout without an error', () => {
+    render(
+      <Dialog
+        open
+        onOpenChange={vi.fn<(open: boolean) => void>()}
+        title="Pause agent"
+        closeLabel="Close"
+      />,
+    );
+
+    expect(within(screen.getByRole('dialog')).queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('renders the body and both footer slots', () => {

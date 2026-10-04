@@ -1,0 +1,90 @@
+$indeterminate-width: 35%;
+$indeterminate-duration: 1400ms;
+$sweep-travel: 286%;
+$story-width: 320px;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+}
+
+.track {
+  overflow: hidden;
+  width: 100%;
+  border-radius: var(--radius-4);
+  background: var(--color-soft);
+}
+
+.caption {
+  color: var(--color-mute);
+  font: var(--type-small);
+}
+
+.sm {
+  height: var(--size-bar-sm);
+}
+
+.md {
+  height: var(--size-bar-md);
+}
+
+.accent {
+  --progress-fill: var(--color-accent);
+}
+
+.neutral {
+  --progress-fill: var(--color-edge);
+}
+
+.ok {
+  --progress-fill: var(--color-ok);
+}
+
+.warn {
+  --progress-fill: var(--color-warn);
+}
+
+.err {
+  --progress-fill: var(--color-err);
+}
+
+.fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--progress-fill);
+  transition: width var(--duration-base) var(--ease-standard);
+}
+
+.indeterminate {
+  width: $indeterminate-width;
+  animation: sweep $indeterminate-duration linear infinite;
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX($sweep-travel);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transition: none;
+  }
+
+  .indeterminate {
+    animation: none;
+  }
+}
+
+.storyStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  width: $story-width;
+}

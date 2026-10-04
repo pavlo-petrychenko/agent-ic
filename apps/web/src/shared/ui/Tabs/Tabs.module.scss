@@ -7,6 +7,7 @@
 .tab {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-6);
   height: var(--size-control-lg);
   margin-bottom: calc(-1 * var(--border-width));
   padding: 0;

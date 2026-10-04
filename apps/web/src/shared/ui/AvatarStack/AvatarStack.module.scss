@@ -1,0 +1,38 @@
+$overlap: -6px;
+$ring: 2px;
+$overflow-font-size: 10px;
+
+.root {
+  display: inline-flex;
+  align-items: center;
+}
+
+.item {
+  position: relative;
+  box-shadow: 0 0 0 $ring var(--color-card);
+
+  & + & {
+    margin-left: $overlap;
+  }
+}
+
+.overflow {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-avatar-sm);
+  height: var(--size-avatar-sm);
+  border-radius: var(--radius-pill);
+  background: var(--color-soft);
+  color: var(--color-mute);
+  font: var(--type-caption-strong);
+  font-size: $overflow-font-size;
+  user-select: none;
+}
+
+.storyRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}

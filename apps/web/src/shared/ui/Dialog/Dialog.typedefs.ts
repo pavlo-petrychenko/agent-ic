@@ -5,6 +5,7 @@ export interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   busy?: boolean;
+  error?: string | null;
   title: string;
   description?: string | null;
   closeLabel: string;

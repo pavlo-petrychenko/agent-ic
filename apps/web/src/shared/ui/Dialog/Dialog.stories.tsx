@@ -69,6 +69,21 @@ export const Busy: Story = {
     children: 'Chats already in progress finish normally.',
   },
 };
+export const WithError: Story = {
+  args: {
+    title: 'Pause agent',
+    description: 'The agent stops answering new chats.',
+    error: 'Could not pause the agent. Check your connection and try again.',
+    footerLeft: null,
+    footerRight: (
+      <>
+        <Button variant={ButtonVariant.Secondary}>Cancel</Button>
+        <Button>Try again</Button>
+      </>
+    ),
+    children: 'Chats already in progress finish normally.',
+  },
+};
 export const DestructiveConfirm: Story = {
   args: {
     size: DialogSize.Sm,

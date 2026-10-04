@@ -1,0 +1,75 @@
+$icon-offset: 1px;
+
+.root {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+  padding: var(--space-9) var(--space-12);
+  border-radius: var(--radius-10);
+  background: var(--callout-bg);
+  color: var(--callout-fg);
+  font: var(--type-body-small);
+  line-height: var(--leading-relaxed);
+}
+
+.withAction {
+  align-items: center;
+}
+
+.neutral {
+  --callout-bg: var(--color-soft);
+  --callout-fg: var(--color-ink-secondary);
+}
+
+.info {
+  --callout-bg: var(--color-accent-light);
+  --callout-fg: var(--color-accent-dark);
+}
+
+.warn {
+  --callout-bg: var(--color-warn-light);
+  --callout-fg: var(--color-warn-ink);
+}
+
+.err {
+  --callout-bg: var(--color-err-light);
+  --callout-fg: var(--color-err-ink);
+}
+
+.ok {
+  --callout-bg: var(--color-ok-light);
+  --callout-fg: var(--color-ok);
+}
+
+.icon {
+  flex-shrink: 0;
+  margin-top: $icon-offset;
+}
+
+.withAction .icon {
+  margin-top: 0;
+}
+
+.message {
+  min-width: 0;
+
+  strong {
+    font-weight: 600;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+  }
+}
+
+.action {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.storyStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
