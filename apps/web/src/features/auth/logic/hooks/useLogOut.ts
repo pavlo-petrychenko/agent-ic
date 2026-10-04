@@ -10,15 +10,18 @@ export function useLogOut(): UseLogOutResult {
   const navigate = useNavigate();
   const [leaving, setLeaving] = useState(false);
 
-  const logOut = useCallback(async () => {
-    setLeaving(true);
-    try {
-      await getSessionClient().end();
-    } finally {
-      await client.clearStore();
-      await navigate({ to: LOGIN_PATH, search: { redirect: null } });
-    }
-  }, [client, navigate]);
+  const logOut = useCallback(
+    async (redirect: string | null = null) => {
+      setLeaving(true);
+      try {
+        await getSessionClient().end();
+      } finally {
+        await client.clearStore();
+        await navigate({ to: LOGIN_PATH, search: { redirect } });
+      }
+    },
+    [client, navigate],
+  );
 
   return { logOut, leaving };
 }

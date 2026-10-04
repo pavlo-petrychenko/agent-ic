@@ -1,0 +1,8 @@
+mutation AcceptInvite($token: String!) {
+  acceptInvite(token: $token) {
+    role
+    workspace {
+      id
+    }
+  }
+}

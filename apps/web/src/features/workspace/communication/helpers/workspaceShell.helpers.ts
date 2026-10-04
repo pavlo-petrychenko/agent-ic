@@ -1,9 +1,9 @@
 import type { WorkspaceShellQuery } from '@/features/workspace/communication/gql/query/workspaceShell.generated';
-import { ROLE_FROM_API } from '@/features/workspace/constants/workspaceRole.constants';
 import type {
   WorkspaceShellData,
   WorkspaceSummary,
 } from '@/features/workspace/typedefs/workspace.typedefs';
+import { ROLE_FROM_API } from '@/shared/api/constants/workspaceRole.constants';
 
 export const toWorkspaceShellData = (
   data: WorkspaceShellQuery,

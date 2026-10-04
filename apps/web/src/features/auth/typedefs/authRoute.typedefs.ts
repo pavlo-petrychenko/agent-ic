@@ -3,6 +3,6 @@ export interface GuardLocation {
 }
 
 export interface UseLogOutResult {
-  readonly logOut: () => Promise<void>;
+  readonly logOut: (redirect?: string | null) => Promise<void>;
   readonly leaving: boolean;
 }

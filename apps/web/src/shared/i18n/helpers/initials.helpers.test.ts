@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toInitials } from '@/features/workspace/logic/helpers/initials.helpers';
+import { toInitials } from '@/shared/i18n/helpers/initials.helpers';
 
 describe('toInitials', () => {
   it('takes the first letters of up to two words', () => {
