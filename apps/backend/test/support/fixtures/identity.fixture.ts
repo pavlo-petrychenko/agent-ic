@@ -42,6 +42,7 @@ export const anonymousCtx = (clientIp: string = uniqueIp()): UseCaseCtx => ({
   actor: { kind: ActorKind.Anonymous },
   initiatedBy: null,
   workspaceId: null,
+  workspaceRole: null,
   traceId: TEST_TRACE_ID,
   locale: Locale.En,
   clientIp,

@@ -20,6 +20,7 @@ const ANONYMOUS_CTX: UseCaseCtx = {
   actor: { kind: ActorKind.Anonymous },
   initiatedBy: null,
   workspaceId: null,
+  workspaceRole: null,
   traceId: 'trace',
   locale: Locale.En,
   clientIp: null,

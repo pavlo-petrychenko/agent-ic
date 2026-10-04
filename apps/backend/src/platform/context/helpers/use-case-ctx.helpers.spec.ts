@@ -12,6 +12,7 @@ const ctxOf = (actor: Actor, initiatedBy: Actor | null): UseCaseCtx => ({
   actor,
   initiatedBy,
   workspaceId: null,
+  workspaceRole: null,
   traceId: 'trace',
   locale: Locale.En,
   clientIp: null,

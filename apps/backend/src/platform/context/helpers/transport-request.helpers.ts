@@ -13,6 +13,7 @@ export const clientAddressOf = (request: IncomingMessage): string | null =>
 export const transportRequestFromHttp = (request: Request, traceId: string): TransportRequest => ({
   authorization: request.get(HttpHeader.Authorization) ?? null,
   acceptLanguage: request.get(HttpHeader.AcceptLanguage) ?? null,
+  workspaceId: request.get(HttpHeader.WorkspaceId) ?? null,
   traceId,
   clientIp: request.ip ?? null,
 });

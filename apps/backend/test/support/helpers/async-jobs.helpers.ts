@@ -35,6 +35,7 @@ export const userCtx = (): UseCaseCtx => ({
   actor: { kind: ActorKind.User, userId: PROBE_USER_ID },
   initiatedBy: null,
   workspaceId: PROBE_WORKSPACE_ID,
+  workspaceRole: null,
   traceId: PROBE_TRACE_ID,
   locale: Locale.En,
   clientIp: null,
