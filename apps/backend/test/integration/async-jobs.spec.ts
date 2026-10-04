@@ -4,10 +4,12 @@ import type { INestApplication } from '@nestjs/common';
 import type { Queue } from 'bullmq';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
+import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
 import { ActorKind, SystemReason } from '@/platform/context/constants/actor.constants';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 import { DomainEventsService } from '@/platform/domain-events/services/domain-events.service';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
+import { jobKey } from '@/platform/queues/helpers/job.helpers';
 import { JobsService } from '@/platform/queues/services/jobs.service';
 import { QueuesService } from '@/platform/queues/services/queues.service';
 import type { JobEnvelope } from '@/platform/queues/typedefs/job.typedefs';
@@ -18,11 +20,14 @@ import {
   PROBE_WAIT_TIMEOUT_MS,
   PROBE_WORKSPACE_ID,
   ProbeListener,
+  SCHEDULED_PROBE_EVERY_SECONDS,
+  SCHEDULED_PROBE_ID,
 } from '@test/support/constants/async-jobs.constants';
 import { createProbeWorker, userCtx } from '@test/support/helpers/async-jobs.helpers';
 import { probeSignedUpEvent } from '@test/support/jobs/probe-signed-up.job';
 import { recordProbeJob } from '@test/support/jobs/record-probe.job';
 import { rejectProbeJob } from '@test/support/jobs/reject-probe.job';
+import { scheduledProbeJob } from '@test/support/jobs/scheduled-probe.job';
 import { ProbeCallsRecorderService } from '@test/support/services/probe-calls-recorder.service';
 
 class ProbeRollback extends Error {}
@@ -63,6 +68,7 @@ describe('jobs and domain events', () => {
   });
 
   afterAll(async () => {
+    await app.get(QueuesService).get(QueueName.Timers).obliterate({ force: true });
     await queue.obliterate({ force: true });
     await app.close();
   });
@@ -181,5 +187,30 @@ describe('jobs and domain events', () => {
     await expect(jobs.enqueue(userCtx(), recordProbeJob, { probeId: '' })).rejects.toThrow(
       ZodError,
     );
+  });
+
+  it('runs a scheduled job of a queue it serves as the system actor of no workspace', async () => {
+    await vi.waitFor(() => expect(recorder.probeIds()).toContain(SCHEDULED_PROBE_ID), WAIT);
+
+    const call = recorder.calls.find((recorded) => recorded.listener === ProbeListener.Scheduled);
+    const schedulers = await queue.getJobSchedulers();
+    expect(call?.ctx.actor).toEqual({ kind: ActorKind.System, reason: SystemReason.Job });
+    expect(call?.ctx.initiatedBy).toEqual({
+      kind: ActorKind.System,
+      reason: SystemReason.Schedule,
+    });
+    expect(call?.ctx.workspaceId).toBeNull();
+    expect(schedulers).toEqual([
+      expect.objectContaining({
+        key: jobKey(scheduledProbeJob.queue, scheduledProbeJob.name),
+        every: SCHEDULED_PROBE_EVERY_SECONDS * MILLISECONDS_PER_SECOND,
+      }),
+    ]);
+  });
+
+  it('leaves the schedules of queues it does not serve to other workers', async () => {
+    const timers = app.get(QueuesService).get(QueueName.Timers);
+
+    expect(await timers.getJobSchedulers()).toEqual([]);
   });
 });

@@ -14,6 +14,12 @@ export interface JobDefinition<TData extends JobData> {
   readonly schema: z.ZodType<TData>;
 }
 
+export interface JobSchedule<TData extends JobData> {
+  readonly job: JobDefinition<TData>;
+  readonly everySeconds: number;
+  readonly data: TData;
+}
+
 export interface JobEnvelope {
   readonly version: typeof ENVELOPE_VERSION;
   readonly data: JobData;

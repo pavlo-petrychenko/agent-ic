@@ -1,10 +1,19 @@
 import { HANDLE_METHOD, JOB_KEY_SEPARATOR } from '@/platform/queues/constants/job.constants';
 import type { QueueName } from '@/platform/queues/constants/queue.constants';
-import type { JobData, JobDefinition, JobHandler } from '@/platform/queues/typedefs/job.typedefs';
+import type {
+  JobData,
+  JobDefinition,
+  JobHandler,
+  JobSchedule,
+} from '@/platform/queues/typedefs/job.typedefs';
 
 export const defineJob = <TData extends JobData>(
   definition: JobDefinition<TData>,
 ): JobDefinition<TData> => Object.freeze({ ...definition });
+
+export const defineJobSchedule = <TData extends JobData>(
+  schedule: JobSchedule<TData>,
+): JobSchedule<TData> => Object.freeze({ ...schedule });
 
 export const jobKey = (queue: QueueName, name: string): string =>
   `${queue}${JOB_KEY_SEPARATOR}${name}`;
