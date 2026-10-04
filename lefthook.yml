@@ -9,13 +9,13 @@ pre-commit:
         - '**/CLAUDE.md'
         - 'pnpm-lock.yaml'
         - 'deploy/helm/**/templates/**'
-      run: pnpm exec oxfmt -c packages/oxc-config/oxfmt.json {staged_files}
+      run: mise exec -- pnpm exec oxfmt -c packages/oxc-config/oxfmt.json {staged_files}
       stage_fixed: true
     - name: oxlint
       glob: '*.{ts,tsx,js,cjs,mjs}'
-      run: pnpm exec oxlint --type-aware {staged_files}
+      run: mise exec -- pnpm exec oxlint --type-aware {staged_files}
     - name: check-comments
       glob: '*.{ts,tsx,js,cjs,mjs,scss}'
-      run: pnpm check:comments {staged_files}
+      run: mise exec -- pnpm check:comments {staged_files}
     - name: check-structure
-      run: pnpm check:structure
+      run: mise exec -- pnpm check:structure
