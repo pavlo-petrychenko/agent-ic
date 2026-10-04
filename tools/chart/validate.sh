@@ -41,6 +41,19 @@ render optional-secrets \
   --set secrets.llm.enabled=true \
   --set secrets.llm.name=app-llm \
   --set secrets.llm.keys.LLM_API_KEY=apiKey
+render resend-email \
+  --set config.email.mode=resend \
+  --set secrets.email.enabled=true \
+  --set secrets.email.name=app-email \
+  --set secrets.email.keys.RESEND_API_KEY=apiKey
+render smtp-tls \
+  --set config.email.smtp.port=465 \
+  --set config.email.smtp.secure=true \
+  --set config.email.smtp.requireTls=true \
+  --set secrets.smtp.enabled=true \
+  --set secrets.smtp.name=app-smtp \
+  --set secrets.smtp.keys.SMTP_USER=user \
+  --set secrets.smtp.keys.SMTP_PASSWORD=password
 render langfuse \
   --set config.langfuse.mode=self-hosted \
   --set config.langfuse.host=http://langfuse-web.langfuse.svc.example.test:3000
@@ -92,6 +105,29 @@ if grep -qE 'RESEND_API_KEY|LLM_API_KEY' "$rendered/default.yaml"; then
 fi
 optional_refs="$(yq -N 'select(.kind == "Deployment" and .metadata.name == "agent-ic-api") | .spec.template.spec.containers[0].env[] | select(.name == "RESEND_API_KEY" or .name == "LLM_API_KEY") | .valueFrom.secretKeyRef.optional' "$rendered/optional-secrets.yaml" | sort -u)"
 test "$optional_refs" = "true"
+
+echo "== the e-mail mode reaches every backend workload"
+email_modes="$(yq -N 'select(.kind == "Deployment" and .metadata.name != "agent-ic-web") | .spec.template.spec.containers[0].env[] | select(.name == "EMAIL_MODE") | .value' "$rendered/default.yaml" | sort -u)"
+test "$email_modes" = "smtp"
+resend_mode="$(yq -N 'select(.kind == "Deployment" and .metadata.name == "agent-ic-worker-runs") | .spec.template.spec.containers[0].env[] | select(.name == "EMAIL_MODE") | .value' "$rendered/resend-email.yaml")"
+test "$resend_mode" = "resend"
+echo "$email_modes | $resend_mode"
+
+echo "== SMTP TLS defaults to off and takes TLS and credentials from values and a secret"
+smtp_env() {
+  yq -N "select(.kind == \"Deployment\" and .metadata.name == \"agent-ic-worker-runs\") | .spec.template.spec.containers[0].env[] | select(.name == \"$1\") | $2" "$rendered/$3.yaml"
+}
+test "$(smtp_env SMTP_SECURE .value default)" = "false"
+test "$(smtp_env SMTP_REQUIRE_TLS .value default)" = "false"
+if grep -qE 'SMTP_USER|SMTP_PASSWORD' "$rendered/default.yaml"; then
+  echo "SMTP credentials referenced while disabled" >&2
+  exit 1
+fi
+test "$(smtp_env SMTP_SECURE .value smtp-tls)" = "true"
+test "$(smtp_env SMTP_REQUIRE_TLS .value smtp-tls)" = "true"
+test "$(smtp_env SMTP_USER .valueFrom.secretKeyRef.name smtp-tls)" = "app-smtp"
+test "$(smtp_env SMTP_PASSWORD .valueFrom.secretKeyRef.key smtp-tls)" = "password"
+echo "smtp-tls: secure, requireTls and credentials from app-smtp"
 
 echo "== the admin header is added on the admin route and stripped on every public route"
 header_name="$(yq -r '.ingress.admin.requestHeader.name' "$chart/values.yaml")"
@@ -188,6 +224,16 @@ expect_failure "unknown environment" \
 expect_failure "enabled optional secret without a name" \
   'missing propert' \
   --set secrets.llm.enabled=true
+expect_failure "resend e-mail without the e-mail secret" \
+  'needs secrets.email.enabled' \
+  --set config.email.mode=resend
+expect_failure "enabled SMTP secret without keys" \
+  'missing propert' \
+  --set secrets.smtp.enabled=true \
+  --set secrets.smtp.name=app-smtp
+expect_failure "unknown e-mail mode" \
+  'mode' \
+  --set config.email.mode=sendmail
 expect_failure "migration without arguments" \
   'migration' \
   --set-json 'migration.args=[]'

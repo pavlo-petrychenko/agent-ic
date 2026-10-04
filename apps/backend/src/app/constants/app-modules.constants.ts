@@ -1,3 +1,5 @@
+import { IdentityModule } from '@/modules/identity';
+import { NotificationsModule } from '@/modules/notifications';
 import { SystemModule } from '@/modules/system';
 import { CacheModule } from '@/platform/cache/cache.module';
 import { ClockModule } from '@/platform/clock/clock.module';
@@ -32,6 +34,10 @@ export const PLATFORM_MODULES: readonly ModuleImport[] = [
   GraphqlServerModule,
 ];
 
-export const DOMAIN_MODULES: readonly ModuleImport[] = [SystemModule];
+export const DOMAIN_MODULES: readonly ModuleImport[] = [
+  SystemModule,
+  IdentityModule,
+  NotificationsModule,
+];
 
 export const APP_MODULES: readonly ModuleImport[] = [...PLATFORM_MODULES, ...DOMAIN_MODULES];

@@ -109,6 +109,8 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | replace 
   value: {{ $config.s3.bucket | quote }}
 - name: S3_FORCE_PATH_STYLE
   value: {{ $config.s3.forcePathStyle | quote }}
+- name: EMAIL_MODE
+  value: {{ $config.email.mode | quote }}
 - name: EMAIL_FROM
   value: {{ $config.email.from | quote }}
 {{- with $config.email.smtp }}
@@ -116,6 +118,10 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | replace 
   value: {{ .host | quote }}
 - name: SMTP_PORT
   value: {{ .port | quote }}
+- name: SMTP_SECURE
+  value: {{ .secure | default false | quote }}
+- name: SMTP_REQUIRE_TLS
+  value: {{ .requireTls | default false | quote }}
 {{- end }}
 - name: LLM_BASE_URL
   value: {{ $config.llm.baseUrl | quote }}
@@ -152,6 +158,9 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | replace 
 {{- if $secrets.email.enabled }}
 {{- include "agent-ic.secretKeysEnv" (dict "secret" $secrets.email "optional" true) }}
 {{- end }}
+{{- if $secrets.smtp.enabled }}
+{{- include "agent-ic.secretKeysEnv" (dict "secret" $secrets.smtp) }}
+{{- end }}
 {{- if $secrets.llm.enabled }}
 {{- include "agent-ic.secretKeysEnv" (dict "secret" $secrets.llm "optional" true) }}
 {{- end }}
@@ -179,6 +188,9 @@ failureThreshold: {{ .timing.failureThreshold }}
 {{- end -}}
 
 {{- define "agent-ic.validate" -}}
+{{- if and (eq .Values.config.email.mode "resend") (not .Values.secrets.email.enabled) -}}
+{{- fail "config.email.mode \"resend\" needs secrets.email.enabled with the RESEND_API_KEY key" -}}
+{{- end -}}
 {{- $admin := .Values.ingress.admin -}}
 {{- $metricsPath := .Values.metrics.path -}}
 {{- range $entryPoint := .Values.ingress.public.entryPoints -}}

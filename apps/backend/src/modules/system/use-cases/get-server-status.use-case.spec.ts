@@ -22,6 +22,7 @@ const ANONYMOUS_CTX: UseCaseCtx = {
   workspaceId: null,
   traceId: 'trace',
   locale: Locale.En,
+  clientIp: null,
 };
 
 const createUseCase = async (): Promise<{

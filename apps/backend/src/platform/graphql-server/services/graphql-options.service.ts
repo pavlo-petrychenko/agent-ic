@@ -4,6 +4,10 @@ import type { GqlOptionsFactory } from '@nestjs/graphql';
 import type { Request } from 'express';
 import { NodeEnvironment } from '@/platform/config/constants/env.constants';
 import { ConfigService } from '@/platform/config/services/config.service';
+import {
+  clientAddressOf,
+  transportRequestFromHttp,
+} from '@/platform/context/helpers/transport-request.helpers';
 import { TraceIdService } from '@/platform/context/services/trace-id.service';
 import { UseCaseCtxService } from '@/platform/context/services/use-case-ctx.service';
 import type { TransportRequest } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -76,11 +80,7 @@ export class GraphqlOptionsService implements GqlOptionsFactory<ApolloDriverConf
   }
 
   private fromHttp(request: Request): TransportRequest {
-    return {
-      authorization: request.get(HttpHeader.Authorization) ?? null,
-      acceptLanguage: request.get(HttpHeader.AcceptLanguage) ?? null,
-      traceId: this.traceIds.current(),
-    };
+    return transportRequestFromHttp(request, this.traceIds.current());
   }
 
   private fromWebSocket(context: WebSocketContextInput): TransportRequest {
@@ -88,6 +88,7 @@ export class GraphqlOptionsService implements GqlOptionsFactory<ApolloDriverConf
       authorization: readConnectionParam(context.connectionParams, ConnectionParam.Authorization),
       acceptLanguage: context.extra.request.headers[HttpHeader.AcceptLanguage] ?? null,
       traceId: this.traceIds.current(),
+      clientIp: clientAddressOf(context.extra.request),
     };
   }
 }

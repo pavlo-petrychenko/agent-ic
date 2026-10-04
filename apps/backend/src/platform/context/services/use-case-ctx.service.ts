@@ -22,6 +22,7 @@ export class UseCaseCtxService {
       workspaceId: null,
       traceId: request.traceId,
       locale: negotiateLocale(request.acceptLanguage),
+      clientIp: request.clientIp,
     };
   }
 
@@ -32,6 +33,7 @@ export class UseCaseCtxService {
       workspaceId: init.workspaceId,
       traceId: init.traceId,
       locale: DEFAULT_LOCALE,
+      clientIp: null,
     };
   }
 

@@ -6,5 +6,9 @@ export enum TenantSchemaProblem {
 }
 
 export const INSPECTED_TABLE_KINDS: readonly string[] = ['r', 'p'];
-export const TENANT_EXEMPT_TABLES: readonly string[] = [];
+export const TENANT_EXEMPT_TABLES: readonly string[] = [
+  'identity.users',
+  'identity.sessions',
+  'identity.email_tokens',
+];
 export const QUALIFIED_NAME_SEPARATOR = '.';

@@ -33,6 +33,7 @@ export interface CommonEnvironment {
   readonly version: string;
   readonly logLevel: LogLevel;
   readonly host: string;
+  readonly publicUrl: string;
   readonly database: DatabaseConfig;
   readonly redis: RedisConfig;
   readonly telemetry: TelemetryConfig;

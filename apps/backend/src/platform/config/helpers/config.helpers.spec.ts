@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { EmailMode } from '@/platform/config/constants/email.constants';
 import { EnvVar, NodeEnvironment } from '@/platform/config/constants/env.constants';
 import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
 import { loadAppConfig, loadMigrationConfig } from '@/platform/config/helpers/config.helpers';
@@ -183,6 +184,104 @@ describe('loadAppConfig', () => {
     const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
 
     expect(variablesOf(issues)).toEqual([EnvVar.DatabaseUrl]);
+  });
+
+  it('reads the public url and the access token secret', () => {
+    const env = createTestEnv();
+
+    const config = loadAppConfig(roleOf(Role.Worker), env);
+
+    expect(config.publicUrl).toBe(env[EnvVar.PublicUrl]);
+    expect(config.auth).toEqual({ accessTokenSecret: env[EnvVar.JwtAccessSecret] });
+  });
+
+  it('rejects an access token secret shorter than 32 characters', () => {
+    const env = createTestEnv({ [EnvVar.JwtAccessSecret]: 'short-secret' });
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+    expect(variablesOf(issues)).toEqual([EnvVar.JwtAccessSecret]);
+  });
+
+  it('reads the SMTP settings in smtp mode', () => {
+    const env = createTestEnv({ [EnvVar.EmailMode]: EmailMode.Smtp, [EnvVar.SmtpPort]: '2525' });
+
+    const config = loadAppConfig(roleOf(Role.Worker), env);
+
+    expect(config.email).toEqual({
+      mode: EmailMode.Smtp,
+      from: env[EnvVar.EmailFrom],
+      smtp: {
+        host: env[EnvVar.SmtpHost],
+        port: 2525,
+        secure: false,
+        requireTls: false,
+        credentials: null,
+      },
+    });
+  });
+
+  it('reads SMTP TLS and credentials', () => {
+    const env = createTestEnv({
+      [EnvVar.SmtpSecure]: 'true',
+      [EnvVar.SmtpRequireTls]: 'true',
+      [EnvVar.SmtpUser]: 'mailer',
+      [EnvVar.SmtpPassword]: 'mailer-password',
+    });
+
+    const config = loadAppConfig(roleOf(Role.Worker), env);
+
+    expect(config.email.mode === EmailMode.Smtp ? config.email.smtp : null).toMatchObject({
+      secure: true,
+      requireTls: true,
+      credentials: { user: 'mailer', password: 'mailer-password' },
+    });
+  });
+
+  it.each([
+    { [EnvVar.SmtpUser]: 'mailer', [EnvVar.SmtpPassword]: '' },
+    { [EnvVar.SmtpUser]: undefined, [EnvVar.SmtpPassword]: 'mailer-password' },
+  ])('requires both SMTP credentials or neither', (credentials) => {
+    const env = createTestEnv(credentials);
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Worker), env));
+
+    expect(variablesOf(issues)).toEqual([EnvVar.SmtpPassword]);
+  });
+
+  it('requires the SMTP TLS switches in smtp mode', () => {
+    const env = createTestEnv({ [EnvVar.SmtpSecure]: undefined, [EnvVar.SmtpRequireTls]: 'maybe' });
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Worker), env));
+
+    expect(variablesOf(issues)).toEqual([EnvVar.SmtpSecure, EnvVar.SmtpRequireTls]);
+  });
+
+  it('needs only the Resend key in resend mode', () => {
+    const env = createTestEnv({
+      [EnvVar.EmailMode]: EmailMode.Resend,
+      [EnvVar.SmtpHost]: undefined,
+      [EnvVar.SmtpPort]: undefined,
+    });
+
+    const config = loadAppConfig(roleOf(Role.Worker), env);
+
+    expect(config.email).toEqual({
+      mode: EmailMode.Resend,
+      from: env[EnvVar.EmailFrom],
+      resend: { apiKey: env[EnvVar.ResendApiKey] },
+    });
+  });
+
+  it('requires the Resend key in resend mode', () => {
+    const env = createTestEnv({
+      [EnvVar.EmailMode]: EmailMode.Resend,
+      [EnvVar.ResendApiKey]: undefined,
+    });
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+    expect(variablesOf(issues)).toEqual([EnvVar.ResendApiKey]);
   });
 });
 

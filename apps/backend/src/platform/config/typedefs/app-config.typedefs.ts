@@ -1,3 +1,4 @@
+import type { EmailMode } from '@/platform/config/constants/email.constants';
 import type { NodeEnvironment } from '@/platform/config/constants/env.constants';
 import type { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
 import type { LogLevel } from '@/platform/config/constants/log-level.constants';
@@ -50,15 +51,53 @@ export interface LangfuseActiveConfig {
 
 export type LangfuseConfig = LangfuseDisabledConfig | LangfuseActiveConfig;
 
+export interface AuthConfig {
+  readonly accessTokenSecret: string;
+}
+
+export interface SmtpCredentials {
+  readonly user: string;
+  readonly password: string;
+}
+
+export interface SmtpConfig {
+  readonly host: string;
+  readonly port: number;
+  readonly secure: boolean;
+  readonly requireTls: boolean;
+  readonly credentials: SmtpCredentials | null;
+}
+
+export interface ResendConfig {
+  readonly apiKey: string;
+}
+
+export interface SmtpEmailConfig {
+  readonly mode: EmailMode.Smtp;
+  readonly from: string;
+  readonly smtp: SmtpConfig;
+}
+
+export interface ResendEmailConfig {
+  readonly mode: EmailMode.Resend;
+  readonly from: string;
+  readonly resend: ResendConfig;
+}
+
+export type EmailConfig = SmtpEmailConfig | ResendEmailConfig;
+
 export interface BaseConfig {
   readonly nodeEnv: NodeEnvironment;
   readonly version: string;
   readonly logLevel: LogLevel;
+  readonly publicUrl: string;
   readonly http: HttpConfig;
   readonly database: DatabaseConfig;
   readonly redis: RedisConfig;
   readonly telemetry: TelemetryConfig;
   readonly langfuse: LangfuseConfig;
+  readonly auth: AuthConfig;
+  readonly email: EmailConfig;
 }
 
 export interface ApiConfig extends BaseConfig {

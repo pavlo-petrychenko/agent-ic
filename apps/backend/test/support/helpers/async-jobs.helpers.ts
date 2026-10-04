@@ -37,4 +37,5 @@ export const userCtx = (): UseCaseCtx => ({
   workspaceId: PROBE_WORKSPACE_ID,
   traceId: PROBE_TRACE_ID,
   locale: Locale.En,
+  clientIp: null,
 });

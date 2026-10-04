@@ -7,7 +7,7 @@ export class InvalidAccessTokenError extends DomainError {
   readonly kind = DomainErrorKind.Unauthenticated;
   readonly reason = ErrorReason.InvalidAccessToken;
 
-  constructor() {
-    super(INVALID_ACCESS_TOKEN_MESSAGE);
+  constructor(cause?: unknown) {
+    super(INVALID_ACCESS_TOKEN_MESSAGE, { cause });
   }
 }
