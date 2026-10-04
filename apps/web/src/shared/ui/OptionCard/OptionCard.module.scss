@@ -1,0 +1,64 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  padding: var(--space-16);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-card);
+}
+
+.checked {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  box-shadow: inset 0 0 0 var(--border-width) var(--color-accent);
+}
+
+.choice {
+  display: flex;
+  gap: var(--space-10);
+  cursor: pointer;
+}
+
+.control {
+  flex: none;
+  width: var(--size-checkbox);
+  height: var(--size-checkbox);
+  margin: var(--space-2) 0 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.title {
+  color: var(--color-ink);
+  font: var(--type-title);
+}
+
+.description {
+  color: var(--color-mute);
+  font: var(--type-body-small);
+  line-height: var(--leading-relaxed);
+}
+
+.body {
+  padding-left: calc(var(--size-checkbox) + var(--space-10));
+}
+
+.storyGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  max-width: var(--layout-auth-width);
+}

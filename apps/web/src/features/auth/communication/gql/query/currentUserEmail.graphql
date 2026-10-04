@@ -1,0 +1,6 @@
+query CurrentUserEmail {
+  me {
+    id
+    email
+  }
+}

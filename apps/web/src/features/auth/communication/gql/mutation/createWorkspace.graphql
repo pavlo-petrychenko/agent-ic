@@ -1,0 +1,9 @@
+mutation CreateWorkspace($input: CreateWorkspaceInput!) {
+  createWorkspace(input: $input) {
+    role
+    workspace {
+      id
+      name
+    }
+  }
+}
