@@ -14,6 +14,7 @@ const ctxOf = (actor: Actor, initiatedBy: Actor | null): UseCaseCtx => ({
   workspaceId: null,
   traceId: 'trace',
   locale: Locale.En,
+  clientIp: null,
 });
 
 describe('getOriginator', () => {

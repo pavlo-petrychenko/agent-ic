@@ -8,12 +8,14 @@ export interface UseCaseCtx {
   readonly workspaceId: string | null;
   readonly traceId: string;
   readonly locale: Locale;
+  readonly clientIp: string | null;
 }
 
 export interface TransportRequest {
   readonly authorization: string | null;
   readonly acceptLanguage: string | null;
   readonly traceId: string;
+  readonly clientIp: string | null;
 }
 
 export interface SystemCtxInit {
