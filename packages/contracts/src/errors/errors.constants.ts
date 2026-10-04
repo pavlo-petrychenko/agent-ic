@@ -33,6 +33,8 @@ export enum ErrorReason {
   InvalidRefreshToken = 'INVALID_REFRESH_TOKEN',
   TokenInvalid = 'TOKEN_INVALID',
   TokenExpired = 'TOKEN_EXPIRED',
+  EmailAlreadyConfirmed = 'EMAIL_ALREADY_CONFIRMED',
+  ConfirmationBrowserMismatch = 'CONFIRMATION_BROWSER_MISMATCH',
   CrossOriginRequest = 'CROSS_ORIGIN_REQUEST',
   UnsupportedContentType = 'UNSUPPORTED_CONTENT_TYPE',
 }

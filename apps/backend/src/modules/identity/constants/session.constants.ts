@@ -3,3 +3,5 @@ export enum RefreshOutcomeKind {
   Reused = 'reused',
   Invalid = 'invalid',
 }
+
+export const REPLACING_SESSION_ALIAS = 'replacing';

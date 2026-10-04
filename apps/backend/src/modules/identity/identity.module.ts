@@ -1,14 +1,15 @@
 import { AuthController } from '@/modules/identity/controllers/auth.controller';
+import { CleanUpAuthRecordsProcessor } from '@/modules/identity/processors/clean-up-auth-records.processor';
 import { EmailTokensRepository } from '@/modules/identity/repositories/email-tokens.repository';
 import { SessionsRepository } from '@/modules/identity/repositories/sessions.repository';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { ForgotPasswordResolver } from '@/modules/identity/resolvers/forgot-password.resolver';
 import { MeResolver } from '@/modules/identity/resolvers/me.resolver';
 import { ResendConfirmationResolver } from '@/modules/identity/resolvers/resend-confirmation.resolver';
-import { SignUpResolver } from '@/modules/identity/resolvers/sign-up.resolver';
 import { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
 import { PasswordResetsService } from '@/modules/identity/services/password-resets.service';
 import { SessionsService } from '@/modules/identity/services/sessions.service';
+import { CleanUpAuthRecordsUseCase } from '@/modules/identity/use-cases/clean-up-auth-records.use-case';
 import { ConfirmEmailUseCase } from '@/modules/identity/use-cases/confirm-email.use-case';
 import { ForgotPasswordUseCase } from '@/modules/identity/use-cases/forgot-password.use-case';
 import { GetMeUseCase } from '@/modules/identity/use-cases/get-me.use-case';
@@ -38,8 +39,10 @@ export class IdentityModule extends defineModule({
     GetMeUseCase,
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
+    CleanUpAuthRecordsUseCase,
   ],
-  resolvers: [SignUpResolver, ResendConfirmationResolver, MeResolver, ForgotPasswordResolver],
+  resolvers: [ResendConfirmationResolver, MeResolver, ForgotPasswordResolver],
   controllers: [AuthController],
+  processors: [CleanUpAuthRecordsProcessor],
   exports: [UsersRepository, SessionsService, EmailConfirmationsService, PasswordResetsService],
 }) {}

@@ -61,7 +61,11 @@ export const createConfirmedAccountIn = async (
   locale: Locale,
 ): Promise<TestAccount> => {
   const account = await signUpAccount(testbed, { locale });
-  await confirmEmail(testbed, await issueConfirmationToken(testbed, account.userId));
+  await confirmEmail(
+    testbed,
+    await issueConfirmationToken(testbed, account.userId),
+    account.browserBinding,
+  );
   return account;
 };
 

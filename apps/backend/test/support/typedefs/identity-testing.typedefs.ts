@@ -17,4 +17,5 @@ export interface TestAccount {
   readonly userId: string;
   readonly email: string;
   readonly password: string;
+  readonly browserBinding: string;
 }

@@ -11,7 +11,7 @@ describe('createEmailGateway', () => {
     const gateway = createEmailGateway({
       mode: EmailMode.Smtp,
       from: FROM,
-      smtp: { host: '127.0.0.1', port: 1025 },
+      smtp: { host: '127.0.0.1', port: 1025, secure: false, requireTls: false, credentials: null },
     });
 
     expect(gateway).toBeInstanceOf(SmtpEmailGateway);

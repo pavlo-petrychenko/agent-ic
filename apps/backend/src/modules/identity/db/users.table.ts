@@ -17,6 +17,7 @@ export const users = identitySchema.table(
     locale: localeEnum('locale').notNull(),
     emailConfirmedAt: timestamp('email_confirmed_at', { withTimezone: true }),
     pendingInviteLinkId: uuid('pending_invite_link_id'),
+    confirmationBindingHash: text('confirmation_binding_hash'),
     lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),

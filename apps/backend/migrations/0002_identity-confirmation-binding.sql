@@ -1,0 +1,1 @@
+ALTER TABLE "identity"."users" ADD COLUMN "confirmation_binding_hash" text;

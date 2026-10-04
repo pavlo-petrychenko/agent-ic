@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { REFRESH_COOKIE_NAME } from '@/modules/identity/constants/auth-http.constants';
-import { readCookie } from '@/modules/identity/helpers/refresh-cookie.helpers';
+import { readCookie } from '@/modules/identity/helpers/cookie.helpers';
 
 describe('readCookie', () => {
   it('finds the named cookie among others', () => {
