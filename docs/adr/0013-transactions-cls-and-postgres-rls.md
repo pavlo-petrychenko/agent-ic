@@ -31,10 +31,10 @@
 **Database roles:**
 - `app_owner` runs migrations.
 - `app` is used by all application code. It doesn't own the tables and has no `BYPASSRLS`.
-- `app_system` has `BYPASSRLS` and is reached only through an explicit `SystemDb` provider in `platform/`. Only cross-tenant system work uses it: the outbox relay, schedulers scanning all workspaces, analytics rollups, and pre-workspace identity lookups such as "which workspaces does this user belong to".
+- `app_system` has `BYPASSRLS` and is reached only through an explicit `SystemDatabaseService` provider in `platform/`. Only cross-tenant system work uses it: the outbox relay, schedulers scanning all workspaces, analytics rollups, and pre-workspace identity lookups such as "which workspaces does this user belong to".
 
 ## Consequences
-- A forgotten filter returns nothing instead of another tenant's rows. Cross-tenant access is explicit (`SystemDb`) and easy to find in review.
+- A forgotten filter returns nothing instead of another tenant's rows. Cross-tenant access is explicit (`SystemDatabaseService`) and easy to find in review.
 - Every tenant query runs in a transaction. The overhead is negligible for our query shapes.
 - A query that "returns nothing" may mean the setting wasn't applied. A warning from the helper when a tenant table is queried without the setting is not built (D125); the schema test, fail-closed RLS and the cross-tenant tests catch the case instead.
 - **Tests:**

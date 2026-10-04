@@ -1,13 +1,13 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { ClsService } from 'nestjs-cls';
-import type { AppTransactionAdapter } from '@/platform/db/database.typedefs';
-import { TENANT_WORKSPACE_CLS_KEY } from '@/platform/db/tenancy/tenancy.constants';
-import { setWorkspaceStatement } from '@/platform/db/tenancy/tenancy.helpers';
-import { TenantMismatchError } from '@/platform/db/tenancy/tenant-mismatch.error';
+import { TENANT_WORKSPACE_CLS_KEY } from '@/platform/database/constants/tenant.constants';
+import { TenantMismatchError } from '@/platform/database/errors/tenant-mismatch.error';
+import { setWorkspaceStatement } from '@/platform/database/helpers/tenant-sql.helpers';
+import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
-export class TenantTransactionRunner {
+export class TenantTransactionService {
   constructor(
     private readonly txHost: TransactionHost<AppTransactionAdapter>,
     private readonly cls: ClsService,

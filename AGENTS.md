@@ -55,7 +55,7 @@ Details and reasons are in `docs/rules/`. A tool enforces each rule marked with 
 7. Another backend module is used only through its `index.ts` (`depcruise`).
 8. `platform/` never imports `modules/` (`depcruise`).
 9. Drizzle and SQL only in repositories; every tenant table has `workspace_id` and RLS.
-10. `SystemDb` only from the allow-list in `.dependency-cruiser.cjs` (`depcruise`).
+10. `SystemDatabaseService` only from the allow-list in `.dependency-cruiser.cjs` (`depcruise`).
 11. A use case checks permissions first, and is one transaction. Side effects go through jobs or events after commit.
 12. Throw `DomainError` subclasses; never swallow errors.
 13. Use `Clock` and `IdService`, never `new Date()` or `randomUUID()` in domain code.

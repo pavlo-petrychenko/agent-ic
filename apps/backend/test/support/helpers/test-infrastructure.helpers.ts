@@ -1,6 +1,6 @@
 import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import type { StartedRedisContainer } from '@testcontainers/redis';
-import { DatabaseRole } from '@/platform/db/database.constants';
+import { DatabaseRole } from '@/platform/database/constants/database.constants';
 import {
   DATABASE_URL_PROTOCOL,
   TEST_DATABASE_NAME,

@@ -1,14 +1,16 @@
 import { TransactionalAdapterDrizzleOrm } from '@nestjs-cls/transactional-adapter-drizzle-orm';
 import type { DrizzleOrmTransactionalAdapterOptions } from '@nestjs-cls/transactional-adapter-drizzle-orm';
-import { AfterCommitBuffer } from '@/platform/db/after-commit/after-commit.buffer';
 import {
   bindAfterCommitBuffer,
+  createAfterCommitBuffer,
   currentAfterCommitBuffer,
+  flushAfterCommitBuffer,
+  moveAfterCommitBuffer,
   settleTransaction,
-} from '@/platform/db/after-commit/after-commit.helpers';
-import type { AppDatabase } from '@/platform/db/database.typedefs';
+} from '@/platform/database/helpers/after-commit.helpers';
+import type { AppDatabase } from '@/platform/database/typedefs/database.typedefs';
 
-export class AfterCommitTransactionalAdapter extends TransactionalAdapterDrizzleOrm<AppDatabase> {
+export class AfterCommitTransactionalAdapterService extends TransactionalAdapterDrizzleOrm<AppDatabase> {
   constructor(options: DrizzleOrmTransactionalAdapterOptions<AppDatabase>) {
     super(options);
     const createOptions = this.optionsFactory;
@@ -17,16 +19,16 @@ export class AfterCommitTransactionalAdapter extends TransactionalAdapterDrizzle
       return {
         getFallbackInstance: base.getFallbackInstance,
         wrapWithTransaction: (txOptions, fn, setClient) => {
-          const buffer = new AfterCommitBuffer();
+          const buffer = createAfterCommitBuffer();
           return settleTransaction(
             buffer,
             base.wrapWithTransaction(txOptions, bindAfterCommitBuffer(buffer, fn), setClient),
-            () => buffer.flush(),
+            () => flushAfterCommitBuffer(buffer),
           );
         },
         wrapWithNestedTransaction: (txOptions, fn, setClient, client) => {
           const parent = currentAfterCommitBuffer();
-          const buffer = new AfterCommitBuffer();
+          const buffer = createAfterCommitBuffer();
           return settleTransaction(
             buffer,
             base.wrapWithNestedTransaction(
@@ -37,10 +39,10 @@ export class AfterCommitTransactionalAdapter extends TransactionalAdapterDrizzle
             ),
             async () => {
               if (parent === undefined) {
-                await buffer.flush();
+                await flushAfterCommitBuffer(buffer);
                 return;
               }
-              buffer.moveInto(parent);
+              moveAfterCommitBuffer(buffer, parent);
             },
           );
         },

@@ -6,5 +6,3 @@ export const TENANT_POLICY_MODE = 'permissive';
 export const TENANT_POLICY_COMMAND = 'all';
 export const TENANT_WORKSPACE_CLS_KEY = 'tenantWorkspaceId';
 export const TENANT_MISMATCH_MESSAGE = 'a transaction cannot switch to another workspace';
-export const SQL_QUOTE = "'";
-export const SQL_ESCAPED_QUOTE = "''";

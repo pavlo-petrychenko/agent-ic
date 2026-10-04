@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AfterCommitScheduler } from '@/platform/db/after-commit/after-commit.scheduler';
+import { AfterCommitService } from '@/platform/database/services/after-commit.service';
 import type { TopicEvent } from '@/platform/pubsub/pubsub.typedefs';
 import type { Topic } from '@/platform/pubsub/topic';
 import { TopicIterator } from '@/platform/pubsub/topic.iterator';
@@ -11,7 +11,7 @@ export class PubSubService {
   constructor(
     private readonly publisher: TopicPublisher,
     private readonly subscriber: TopicSubscriber,
-    private readonly afterCommit: AfterCommitScheduler,
+    private readonly afterCommit: AfterCommitService,
   ) {}
 
   async publish<TEvent extends TopicEvent>(topic: Topic<TEvent>, event: TEvent): Promise<void> {

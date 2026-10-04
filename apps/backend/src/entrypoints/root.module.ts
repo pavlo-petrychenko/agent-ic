@@ -6,7 +6,7 @@ import { ConfigModule } from '@/platform/config/config.module';
 import type { AppConfig } from '@/platform/config/config.typedefs';
 import { ContextModule } from '@/platform/context/context.module';
 import { CryptoModule } from '@/platform/crypto/crypto.module';
-import { DatabaseModule } from '@/platform/db/database.module';
+import { DatabaseModule } from '@/platform/database/database.module';
 import { DomainEventsModule } from '@/platform/domain-events/domain-events.module';
 import { ErrorsModule } from '@/platform/errors/errors.module';
 import { IdsModule } from '@/platform/ids/ids.module';

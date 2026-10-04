@@ -2,11 +2,12 @@ import { TransactionHost, Transactional } from '@nestjs-cls/transactional';
 import type { TestingModule } from '@nestjs/testing';
 import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest';
-import { APP_DATABASE } from '@/platform/db/database.constants';
-import type { AppDatabase, AppTransactionAdapter } from '@/platform/db/database.typedefs';
-import { SystemDb } from '@/platform/db/system-db';
-import { TenantMismatchError } from '@/platform/db/tenancy/tenant-mismatch.error';
-import { TenantTransactionRunner } from '@/platform/db/tenancy/tenant-transaction.runner';
+import { APP_DATABASE } from '@/platform/database/constants/database-token.constants';
+import { TenantMismatchError } from '@/platform/database/errors/tenant-mismatch.error';
+import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
+import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import type { AppDatabase } from '@/platform/database/typedefs/database.typedefs';
+import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 import { IdService } from '@/platform/ids/id.service';
 import { TEST_INFRASTRUCTURE_KEY } from '@test/support/constants/test-infrastructure.constants';
 import { createProbeTable, probeTableStatements } from '@test/support/fixtures/rls-probe.fixture';
@@ -35,13 +36,13 @@ class ProbeItemsWriter {
   }
 }
 
-describe('TenantTransactionRunner', () => {
+describe('TenantTransactionService', () => {
   let superuser: ScratchDatabase;
   let testingModule: TestingModule;
-  let runner: TenantTransactionRunner;
+  let runner: TenantTransactionService;
   let txHost: TransactionHost<AppTransactionAdapter>;
   let appDb: AppDatabase;
-  let systemDb: SystemDb;
+  let systemDb: SystemDatabaseService;
   let ids: IdService;
   let writer: ProbeItemsWriter;
   let workspaceA: string;
@@ -64,10 +65,10 @@ describe('TenantTransactionRunner', () => {
     }
     testingModule = await createDatabaseTestingModule();
     testingModule.useLogger(false);
-    runner = testingModule.get(TenantTransactionRunner);
+    runner = testingModule.get(TenantTransactionService);
     txHost = testingModule.get(TransactionHost);
     appDb = testingModule.get<AppDatabase>(APP_DATABASE);
-    systemDb = testingModule.get(SystemDb);
+    systemDb = testingModule.get(SystemDatabaseService);
     ids = testingModule.get(IdService);
     writer = new ProbeItemsWriter(txHost);
     workspaceA = ids.generate();

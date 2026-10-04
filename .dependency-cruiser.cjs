@@ -17,9 +17,9 @@ const appTestSupport = '^apps/[^/]+/test/';
 const appSource = '^apps/[^/]+/src/';
 const testOrStoryFile = '\\.(spec|test|stories)\\.tsx?$';
 
-const systemDb = `${backend}platform/db/system-db\\.ts$`;
+const systemDb = `${backend}platform/database/services/system-database\\.service\\.ts$`;
 const systemDbAllowList = [
-  `${backend}platform/(db|outbox|queues)/`,
+  `${backend}platform/(database|outbox|queues)/`,
   `${modules}identity/repositories/`,
   `${modules}analytics/repositories/`,
 ];
@@ -78,7 +78,7 @@ module.exports = {
     ),
     forbidden(
       'backend-system-db-allow-list',
-      { path: backend, pathNot: [`${backend}platform/db/system-db\\.ts$`, ...systemDbAllowList] },
+      { path: backend, pathNot: [systemDb, ...systemDbAllowList] },
       { path: systemDb },
     ),
     forbidden(

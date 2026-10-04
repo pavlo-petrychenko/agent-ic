@@ -15,7 +15,7 @@ Enforced by dependency-cruiser (`pnpm depcruise`, CI) where a rule names a path 
 5. One use case is one transaction. No transaction is held across an external call. No fire-and-forget.
 6. Side effects go only through `jobs.enqueue` or `domainEvents.emit`, after the commit. Job payloads hold IDs only.
 7. Drizzle and SQL only in repositories.
-8. Every tenant table has `workspace_id` and an RLS policy. `SystemDb` is imported only from files on an allow-list in `.dependency-cruiser.cjs`.
+8. Every tenant table has `workspace_id` and an RLS policy. `SystemDatabaseService` is imported only from files on an allow-list in `.dependency-cruiser.cjs`.
 9. Each module owns its Postgres schema. No joins across schemas.
 
 Example: `identity` exposes `SessionsService` and `UsersRepository` through `modules/identity/index.ts`. `workspaces` imports them from `modules/identity`, never from `modules/identity/services/…`.

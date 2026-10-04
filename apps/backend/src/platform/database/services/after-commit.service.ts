@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { ClsService } from 'nestjs-cls';
 import { TraceIdService } from '@/platform/context/trace-id.service';
-import type { AfterCommitBuffer } from '@/platform/db/after-commit/after-commit.buffer';
-import { AFTER_COMMIT_CLS_KEY } from '@/platform/db/after-commit/after-commit.constants';
-import type { AfterCommitAction } from '@/platform/db/after-commit/after-commit.typedefs';
+import { AFTER_COMMIT_CLS_KEY } from '@/platform/database/constants/after-commit.constants';
+import { addToAfterCommitBuffer } from '@/platform/database/helpers/after-commit.helpers';
+import type {
+  AfterCommitAction,
+  AfterCommitBuffer,
+} from '@/platform/database/typedefs/after-commit.typedefs';
 import { ErrorReporter } from '@/platform/errors/error.reporter';
 
 @Injectable()
-export class AfterCommitScheduler {
+export class AfterCommitService {
   constructor(
     private readonly cls: ClsService,
     private readonly reporter: ErrorReporter,
@@ -21,7 +24,7 @@ export class AfterCommitScheduler {
       return;
     }
     const traceId = this.traceIds.current();
-    buffer.add(async () => {
+    addToAfterCommitBuffer(buffer, async () => {
       try {
         await action();
       } catch (error) {
@@ -35,6 +38,6 @@ export class AfterCommitScheduler {
       return null;
     }
     const buffer = this.cls.get<AfterCommitBuffer | undefined>(AFTER_COMMIT_CLS_KEY);
-    return buffer?.isOpen() === true ? buffer : null;
+    return buffer?.open === true ? buffer : null;
   }
 }

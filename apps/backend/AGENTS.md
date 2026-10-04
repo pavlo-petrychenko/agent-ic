@@ -27,9 +27,9 @@ migrations/              SQL migrations written by drizzle-kit, committed, never
 
 ## Database
 
-- `platform/db` holds the `app` pool (behind `TransactionHost` from `@nestjs-cls/transactional`), `SystemDb` (the `app_system` role, allow-list only) and `TenantTransactionRunner`. Repositories read `txHost.tx`; outside a transaction that is the pool, where RLS shows no tenant rows.
-- `TenantTransactionRunner.run(workspaceId, work)` opens or joins the transaction and sets `app.workspace_id` for it. A transaction never switches workspace.
-- New table: `modules/<m>/db/<name>.table.ts` in `moduleSchema('<m>')`, with `workspaceIdColumn()` and `tenantIsolationPolicy('<table>')` from `platform/db/tenancy`, and `.enableRLS()`. Run `pnpm --filter backend db:generate`, then append `ALTER TABLE … FORCE ROW LEVEL SECURITY;` to the new migration (drizzle-kit does not write it). A table that is not per workspace goes on the exempt list in `platform/testing/tenant-schema.constants.ts`.
+- `platform/database` holds the `app` pool (behind `TransactionHost` from `@nestjs-cls/transactional`), `SystemDatabaseService` (the `app_system` role, allow-list only) and `TenantTransactionService`. Repositories read `txHost.tx`; outside a transaction that is the pool, where RLS shows no tenant rows.
+- `TenantTransactionService.run(workspaceId, work)` opens or joins the transaction and sets `app.workspace_id` for it. A transaction never switches workspace.
+- New table: `modules/<m>/db/<name>.table.ts` in `moduleSchema('<m>')`, with `workspaceIdColumn()` and `tenantIsolationPolicy('<table>')` from `platform/database/helpers/tenant-table.helpers`, and `.enableRLS()`. Run `pnpm --filter backend db:generate`, then append `ALTER TABLE … FORCE ROW LEVEL SECURITY;` to the new migration (drizzle-kit does not write it). A table that is not per workspace goes on the exempt list in `platform/testing/tenant-schema.constants.ts`.
 - Apply migrations with `mise run db:migrate` (or `pnpm --filter backend db:migrate` with `DATABASE_OWNER_URL` set). `pnpm --filter backend db:check` checks the migration files.
 - Tests need Docker: Vitest starts Postgres and Redis with Testcontainers once per run and migrates them. A database spec builds its module with `createDatabaseTestingModule()` and wraps writes in `TestTransactionRunner.rollback(…)`, so nothing stays behind. The schema test fails when a tenant table lacks `workspace_id`, forced RLS or a policy.
 
@@ -102,6 +102,6 @@ repository                           the only place with Drizzle and SQL, filter
 - Errors: throw `DomainError` subclasses from `domain/`. Transports map them (GraphQL code, HTTP status, job retry or give-up).
 - Side effects: `jobs.enqueue` and `domainEvents.emit` after the commit. Job payloads hold IDs only.
 - Time and ids: inject `Clock` and `IdService`.
-- Database: each module owns its Postgres schema. Tenant tables have `workspace_id` and an RLS policy. `SystemDb` is used only from the allow-list in `.dependency-cruiser.cjs`.
+- Database: each module owns its Postgres schema. Tenant tables have `workspace_id` and an RLS policy. `SystemDatabaseService` is used only from the allow-list in `.dependency-cruiser.cjs`.
 - Tests: `*.spec.ts` runs against real Postgres with RLS. Fake only external gateways, using the fakes in `platform/testing`.
 - A new module needs: its core module, the transport modules it uses, `index.ts`, and a line in each root module in `entrypoints/`.

@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm';
-import { DatabaseRole } from '@/platform/db/database.constants';
-import type { SqlExecutor } from '@/platform/db/database.typedefs';
-import { MIGRATIONS_SCHEMA } from '@/platform/db/migrator/migrator.constants';
-import { WORKSPACE_ID_COLUMN } from '@/platform/db/tenancy/tenancy.constants';
+import { DatabaseRole } from '@/platform/database/constants/database.constants';
+import { MIGRATIONS_SCHEMA } from '@/platform/database/constants/migration.constants';
+import { WORKSPACE_ID_COLUMN } from '@/platform/database/constants/tenant.constants';
+import type { SqlExecutor } from '@/platform/database/typedefs/database.typedefs';
 import {
   INSPECTED_TABLE_KINDS,
   TENANT_EXEMPT_TABLES,

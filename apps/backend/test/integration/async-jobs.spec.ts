@@ -5,7 +5,7 @@ import type { Queue } from 'bullmq';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 import { ActorKind, SystemReason } from '@/platform/context/context.constants';
-import type { AppTransactionAdapter } from '@/platform/db/database.typedefs';
+import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 import { DomainEventsService } from '@/platform/domain-events/domain-events.service';
 import { JobsService } from '@/platform/queues/jobs.service';
 import { QueueName } from '@/platform/queues/queue.constants';

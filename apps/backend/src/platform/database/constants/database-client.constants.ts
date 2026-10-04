@@ -1,0 +1,2 @@
+export const PREPARED_STATEMENTS_ENABLED = false;
+export const CLIENT_CLOSE_TIMEOUT_SECONDS = 5;
