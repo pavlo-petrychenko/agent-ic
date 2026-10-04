@@ -1,6 +1,8 @@
 import type { MockLink } from '@apollo/client/testing';
+import { CreateWorkspaceDocument } from '@/features/auth/communication/gql/mutation/createWorkspace.generated';
 import { ForgotPasswordDocument } from '@/features/auth/communication/gql/mutation/forgotPassword.generated';
 import { ResendConfirmationDocument } from '@/features/auth/communication/gql/mutation/resendConfirmation.generated';
+import { CurrentUserEmailDocument } from '@/features/auth/communication/gql/query/currentUserEmail.generated';
 import { MyWorkspacesDocument } from '@/features/auth/communication/gql/query/myWorkspaces.generated';
 import type { SessionTokens } from '@/shared/api/typedefs/session.typedefs';
 
@@ -34,5 +36,26 @@ export const buildResendConfirmationMock = (
   request: { query: ResendConfirmationDocument, variables: { input } },
   result: {
     data: { resendConfirmation: { __typename: 'ResendConfirmationPayload', accepted: true } },
+  },
+});
+
+export const buildCurrentUserEmailMock = (email: string): MockLink.MockedResponse => ({
+  request: { query: CurrentUserEmailDocument },
+  result: { data: { me: { __typename: 'User', id: 'usr_1', email } } },
+});
+
+export const buildCreateWorkspaceMock = (
+  input: Readonly<{ name: string; timeZone: string }>,
+  workspaceId: string,
+): MockLink.MockedResponse => ({
+  request: { query: CreateWorkspaceDocument, variables: { input } },
+  result: {
+    data: {
+      createWorkspace: {
+        __typename: 'Membership',
+        role: 'owner',
+        workspace: { __typename: 'Workspace', id: workspaceId, name: input.name },
+      },
+    },
   },
 });
