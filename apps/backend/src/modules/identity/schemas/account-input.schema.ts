@@ -4,6 +4,7 @@ import {
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
   USER_NAME_MAX_LENGTH,
+  USER_NAME_PATTERN,
 } from '@agent-ic/contracts';
 import { z } from 'zod';
 import { AccountField } from '@/modules/identity/constants/account-input.constants';
@@ -12,7 +13,7 @@ const emailSchema = z.string().trim().toLowerCase().pipe(z.email().max(EMAIL_MAX
 const tokenSchema = z.string().min(1);
 
 export const signUpInputSchema = z.object({
-  [AccountField.Name]: z.string().trim().min(1).max(USER_NAME_MAX_LENGTH),
+  [AccountField.Name]: z.string().trim().min(1).max(USER_NAME_MAX_LENGTH).regex(USER_NAME_PATTERN),
   [AccountField.Email]: emailSchema,
   [AccountField.Password]: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
   [AccountField.Locale]: z.enum(Locale),

@@ -42,6 +42,14 @@ export class EmailConfirmationsService {
     return { token, email: user.email, name: user.name, locale: user.locale };
   }
 
+  async invalidateOpenTokens(userId: string): Promise<void> {
+    await this.emailTokens.invalidateOpen(
+      userId,
+      EmailTokenPurpose.EmailConfirmation,
+      this.clock.now(),
+    );
+  }
+
   findToken(token: string): Promise<EmailTokenRecord | null> {
     return this.emailTokens.findByTokenHash(
       this.secureTokens.hash(token),

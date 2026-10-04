@@ -8,6 +8,7 @@ import { hashPassword } from '@/modules/identity/helpers/password.helpers';
 import { clientSubject } from '@/modules/identity/helpers/rate-limit.helpers';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { signUpInputSchema } from '@/modules/identity/schemas/account-input.schema';
+import { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
 import type { SignUpInput, SignUpResult } from '@/modules/identity/typedefs/account.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -22,6 +23,7 @@ export class SignUpUseCase {
     private readonly txHost: TransactionHost<AppTransactionAdapter>,
     private readonly rateLimits: RateLimitService,
     private readonly users: UsersRepository,
+    private readonly confirmations: EmailConfirmationsService,
     private readonly domainEvents: DomainEventsService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
@@ -33,7 +35,7 @@ export class SignUpUseCase {
     const passwordHash = await hashPassword(data.password);
     return this.txHost.withTransaction(async () => {
       const now = this.clock.now();
-      const user = await this.users.insertIfEmailFree({
+      const user = await this.users.upsertUnconfirmed({
         id: this.ids.generate(),
         email: data.email,
         name: data.name,
@@ -45,6 +47,7 @@ export class SignUpUseCase {
       if (user === null) {
         throw new EmailTakenError();
       }
+      await this.confirmations.invalidateOpenTokens(user.id);
       await this.domainEvents.emit(ctx, emailConfirmationRequestedEvent, { userId: user.id });
       return { email: user.email };
     });

@@ -9,13 +9,23 @@ import type { AppTransactionAdapter } from '@/platform/database/typedefs/transac
 export class UsersRepository {
   constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
 
-  async insertIfEmailFree(user: NewUser): Promise<UserRecord | null> {
-    const [created] = await this.txHost.tx
+  async upsertUnconfirmed(user: NewUser): Promise<UserRecord | null> {
+    const [saved] = await this.txHost.tx
       .insert(users)
       .values(user)
-      .onConflictDoNothing({ target: users.email })
+      .onConflictDoUpdate({
+        target: users.email,
+        set: {
+          name: user.name,
+          passwordHash: user.passwordHash,
+          locale: user.locale,
+          pendingInviteLinkId: user.pendingInviteLinkId ?? null,
+          updatedAt: user.updatedAt,
+        },
+        setWhere: isNull(users.emailConfirmedAt),
+      })
       .returning();
-    return created ?? null;
+    return saved ?? null;
   }
 
   async findById(id: string): Promise<UserRecord | null> {

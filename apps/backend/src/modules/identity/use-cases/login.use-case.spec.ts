@@ -16,6 +16,7 @@ import {
 import type { IdentityTestbed } from '@test/support/typedefs/identity-testing.typedefs';
 
 const LOGIN_ATTEMPTS_PER_MINUTE = 5;
+const ACCOUNT_LOGIN_ATTEMPTS_PER_HOUR = 20;
 const WRONG_PASSWORD = 'wrong password value';
 
 describe('LoginUseCase', () => {
@@ -92,5 +93,27 @@ describe('LoginUseCase', () => {
 
     await expect(blocked).rejects.toBeInstanceOf(RateLimitedError);
     await expect(otherAddress).rejects.toBeInstanceOf(InvalidCredentialsError);
+  });
+
+  it('allows twenty attempts an hour for one email across all addresses', async () => {
+    const account = await createConfirmedAccount(testbed);
+    const otherAccount = await createConfirmedAccount(testbed);
+    for (let attempt = 0; attempt < ACCOUNT_LOGIN_ATTEMPTS_PER_HOUR; attempt += 1) {
+      await expect(
+        login.execute(anonymousCtx(), { email: account.email, password: WRONG_PASSWORD }),
+      ).rejects.toBeInstanceOf(InvalidCredentialsError);
+    }
+
+    const blocked = login.execute(anonymousCtx(), {
+      email: account.email,
+      password: account.password,
+    });
+    const allowed = login.execute(anonymousCtx(), {
+      email: otherAccount.email,
+      password: otherAccount.password,
+    });
+
+    await expect(blocked).rejects.toBeInstanceOf(RateLimitedError);
+    await expect(allowed).resolves.toMatchObject({ userId: otherAccount.userId });
   });
 });

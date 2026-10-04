@@ -28,6 +28,19 @@ export class EmailTokensRepository {
     return token ?? null;
   }
 
+  async invalidateOpen(userId: string, purpose: EmailTokenPurpose, at: Date): Promise<void> {
+    await this.txHost.tx
+      .update(emailTokens)
+      .set({ usedAt: at })
+      .where(
+        and(
+          eq(emailTokens.userId, userId),
+          eq(emailTokens.purpose, purpose),
+          isNull(emailTokens.usedAt),
+        ),
+      );
+  }
+
   async markUsed(id: string, at: Date): Promise<boolean> {
     const used = await this.txHost.tx
       .update(emailTokens)

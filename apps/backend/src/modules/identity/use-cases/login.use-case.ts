@@ -1,6 +1,9 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { LOGIN_RATE_LIMIT } from '@/modules/identity/constants/rate-limit.constants';
+import {
+  ACCOUNT_LOGIN_RATE_LIMIT,
+  LOGIN_RATE_LIMIT,
+} from '@/modules/identity/constants/rate-limit.constants';
 import { EmailNotConfirmedError } from '@/modules/identity/errors/email-not-confirmed.error';
 import { InvalidCredentialsError } from '@/modules/identity/errors/invalid-credentials.error';
 import { parseAccountInput } from '@/modules/identity/helpers/account-input.helpers';
@@ -29,6 +32,7 @@ export class LoginUseCase {
   async execute(ctx: UseCaseCtx, input: LoginInput): Promise<IssuedSession> {
     const data = parseAccountInput(loginInputSchema, input);
     await this.rateLimits.enforce(LOGIN_RATE_LIMIT, loginSubject(ctx, data.email));
+    await this.rateLimits.enforce(ACCOUNT_LOGIN_RATE_LIMIT, data.email);
     return this.txHost.withTransaction(async () => {
       const user = await this.users.findByEmail(data.email);
       const matches = await verifyPassword(user?.passwordHash ?? null, data.password);
