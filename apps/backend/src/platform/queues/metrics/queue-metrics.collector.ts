@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type { OnModuleInit } from '@nestjs/common';
 import { Gauge } from 'prom-client';
-import { Clock } from '@/platform/clock/clock';
+import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
+import { ClockService } from '@/platform/clock/services/clock.service';
 import { MetricsService } from '@/platform/observability/metrics/metrics.service';
 import {
-  MILLISECONDS_PER_SECOND,
   NO_WAIT_SECONDS,
   OLDEST_FIRST,
   OLDEST_JOB_INDEX,
@@ -21,7 +21,7 @@ export class QueueMetricsCollector implements OnModuleInit {
   constructor(
     private readonly metrics: MetricsService,
     private readonly queues: QueueRegistry,
-    private readonly clock: Clock,
+    private readonly clock: ClockService,
   ) {}
 
   onModuleInit(): void {

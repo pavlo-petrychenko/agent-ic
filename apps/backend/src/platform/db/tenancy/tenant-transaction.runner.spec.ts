@@ -7,7 +7,7 @@ import type { AppDatabase, AppTransactionAdapter } from '@/platform/db/database.
 import { SystemDb } from '@/platform/db/system-db';
 import { TenantMismatchError } from '@/platform/db/tenancy/tenant-mismatch.error';
 import { TenantTransactionRunner } from '@/platform/db/tenancy/tenant-transaction.runner';
-import { IdService } from '@/platform/ids/id.service';
+import { IdService } from '@/platform/ids/services/id.service';
 import { TEST_INFRASTRUCTURE_KEY } from '@test/support/constants/test-infrastructure.constants';
 import { createProbeTable, probeTableStatements } from '@test/support/fixtures/rls-probe.fixture';
 import {

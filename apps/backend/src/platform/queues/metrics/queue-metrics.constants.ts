@@ -16,4 +16,3 @@ export const WAITING_JOB_STATE = 'wait';
 export const OLDEST_JOB_INDEX = 0;
 export const OLDEST_FIRST = true;
 export const NO_WAIT_SECONDS = 0;
-export const MILLISECONDS_PER_SECOND = 1_000;

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { MILLISECONDS_PER_SECOND } from '@/modules/system/domain/server-status.constants';
-import { Clock } from '@/platform/clock/clock';
+import { ClockService } from '@/platform/clock/services/clock.service';
 
 @Injectable()
 export class ServerUptimeService {
   private readonly startedAt: Date;
 
-  constructor(private readonly clock: Clock) {
+  constructor(private readonly clock: ClockService) {
     this.startedAt = clock.now();
   }
 

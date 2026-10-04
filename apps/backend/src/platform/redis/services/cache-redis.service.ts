@@ -9,18 +9,14 @@ import {
 } from '@/platform/redis/helpers/redis.helpers';
 
 @Injectable()
-export class TopicPublisher implements OnApplicationShutdown {
-  private readonly connection: Redis;
+export class CacheRedisService implements OnApplicationShutdown {
+  readonly connection: Redis;
 
   constructor(config: ConfigService) {
     this.connection = createRedisConnection(
-      config.config.redis.queueUrl,
-      RedisConnectionName.Publisher,
+      config.config.redis.cacheUrl,
+      RedisConnectionName.Cache,
     );
-  }
-
-  async publish(channel: string, message: string): Promise<void> {
-    await this.connection.publish(channel, message);
   }
 
   async onApplicationShutdown(): Promise<void> {

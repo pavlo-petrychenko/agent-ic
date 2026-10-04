@@ -2,8 +2,8 @@ import { Test } from '@nestjs/testing';
 import { describe, expect, it } from 'vitest';
 import { SystemModule } from '@/modules/system/system.module';
 import { GetServerStatusUseCase } from '@/modules/system/use-cases/get-server-status.use-case';
-import { Clock } from '@/platform/clock/clock';
 import { ClockModule } from '@/platform/clock/clock.module';
+import { ClockService } from '@/platform/clock/services/clock.service';
 import { CliOption, EnvVar } from '@/platform/config/config.constants';
 import { ConfigLoader } from '@/platform/config/config.loader';
 import { ConfigModule } from '@/platform/config/config.module';
@@ -34,7 +34,7 @@ const createUseCase = async (): Promise<{
   const testingModule = await Test.createTestingModule({
     imports: [ConfigModule.register(config), ClockModule, SystemModule],
   })
-    .overrideProvider(Clock)
+    .overrideProvider(ClockService)
     .useValue(clock)
     .compile();
   return { useCase: testingModule.get(GetServerStatusUseCase), clock };
