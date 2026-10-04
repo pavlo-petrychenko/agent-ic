@@ -14,8 +14,8 @@
     color: var(--color-mute);
   }
 
-  &:hover:not(:disabled) {
-    border-color: var(--color-line-dash);
+  &:hover:not(:disabled):not(:focus-visible) {
+    border-color: var(--color-edge);
   }
 
   &:focus-visible {
@@ -46,7 +46,7 @@
 .invalid {
   border-color: var(--color-err);
 
-  &:hover:not(:disabled) {
+  &:hover:not(:disabled):not(:focus-visible) {
     border-color: var(--color-err);
   }
 
