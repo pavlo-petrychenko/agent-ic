@@ -1,36 +1,53 @@
 import { useId } from 'react';
 import {
-  DESCRIBED_BY_SEPARATOR,
   ERROR_ID_SUFFIX,
   HINT_ID_SUFFIX,
+  REQUIRED_MARKER,
 } from '@/shared/ui/Field/Field.constants';
 import type { FieldProps } from '@/shared/ui/Field/Field.typedefs';
 import styles from '@/shared/ui/Field/Field.module.scss';
 
-export function Field({ label, hint = null, error = null, children }: FieldProps) {
+export function Field({
+  label,
+  hint = null,
+  error = null,
+  required = false,
+  requiredLabel = null,
+  children,
+}: FieldProps) {
   const id = useId();
   const hintId = `${id}${HINT_ID_SUFFIX}`;
   const errorId = `${id}${ERROR_ID_SUFFIX}`;
-  const describedBy = [error === null ? null : errorId, hint === null ? null : hintId]
-    .filter((value) => value !== null)
-    .join(DESCRIBED_BY_SEPARATOR);
+  const describedById = error === null ? (hint === null ? null : hintId) : errorId;
 
   return (
     <div className={styles.root}>
       <label htmlFor={id} className={styles.label}>
         {label}
+        {required && (
+          <>
+            {' '}
+            <span aria-hidden="true" className={styles.required}>
+              {REQUIRED_MARKER}
+            </span>
+            {requiredLabel !== null && (
+              <span className={styles.visuallyHidden}>{requiredLabel}</span>
+            )}
+          </>
+        )}
       </label>
       {children({
         id,
-        'aria-describedby': describedBy.length > 0 ? describedBy : undefined,
+        'aria-describedby': describedById ?? undefined,
         invalid: error !== null,
+        required,
       })}
       {error === null ? null : (
         <p id={errorId} role="alert" className={styles.error}>
           {error}
         </p>
       )}
-      {hint === null ? null : (
+      {error === null && hint !== null && (
         <p id={hintId} className={styles.hint}>
           {hint}
         </p>

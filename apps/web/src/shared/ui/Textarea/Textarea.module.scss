@@ -1,11 +1,17 @@
+$min-height: 72px;
+
 .root {
+  display: block;
   width: 100%;
-  padding: 0 var(--space-12);
+  min-height: $min-height;
+  padding: var(--space-8) var(--space-12);
   border: var(--border-width) solid var(--color-line);
   border-radius: var(--radius-8);
   background: var(--color-card);
   color: var(--color-ink);
   font: var(--type-body);
+  line-height: var(--leading-relaxed);
+  resize: none;
   transition:
     border-color var(--duration-fast),
     box-shadow var(--duration-fast);
@@ -30,17 +36,9 @@
   }
 }
 
-.md {
-  height: var(--size-control-md);
-}
-
-.lg {
-  height: var(--size-control-lg);
-  border-radius: var(--radius-10);
-}
-
 .mono {
   font: var(--type-mono-lg);
+  line-height: var(--leading-relaxed);
 }
 
 .invalid {
