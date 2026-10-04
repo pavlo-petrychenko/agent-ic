@@ -624,8 +624,12 @@
         "email": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["from"],
+          "required": ["mode", "from"],
           "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["smtp", "resend"]
+            },
             "from": {
               "$ref": "#/definitions/nonEmptyString"
             },
@@ -642,6 +646,16 @@
                 }
               }
             }
+          },
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "smtp"
+              }
+            }
+          },
+          "then": {
+            "required": ["smtp"]
           }
         }
       }

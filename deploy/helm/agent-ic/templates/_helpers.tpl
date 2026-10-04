@@ -109,6 +109,8 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | replace 
   value: {{ $config.s3.bucket | quote }}
 - name: S3_FORCE_PATH_STYLE
   value: {{ $config.s3.forcePathStyle | quote }}
+- name: EMAIL_MODE
+  value: {{ $config.email.mode | quote }}
 - name: EMAIL_FROM
   value: {{ $config.email.from | quote }}
 {{- with $config.email.smtp }}
@@ -179,6 +181,9 @@ failureThreshold: {{ .timing.failureThreshold }}
 {{- end -}}
 
 {{- define "agent-ic.validate" -}}
+{{- if and (eq .Values.config.email.mode "resend") (not .Values.secrets.email.enabled) -}}
+{{- fail "config.email.mode \"resend\" needs secrets.email.enabled with the RESEND_API_KEY key" -}}
+{{- end -}}
 {{- $admin := .Values.ingress.admin -}}
 {{- $metricsPath := .Values.metrics.path -}}
 {{- range $entryPoint := .Values.ingress.public.entryPoints -}}

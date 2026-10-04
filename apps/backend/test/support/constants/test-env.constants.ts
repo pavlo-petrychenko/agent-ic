@@ -1,3 +1,4 @@
+import { EmailMode } from '@/platform/config/constants/email.constants';
 import { EnvVar, NodeEnvironment } from '@/platform/config/constants/env.constants';
 import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
 import { LogLevel } from '@/platform/config/constants/log-level.constants';
@@ -27,6 +28,13 @@ export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.LangfuseHost]: 'http://localhost:3000',
   [EnvVar.LangfusePublicKey]: 'test-public-key',
   [EnvVar.LangfuseSecretKey]: 'test-secret-key',
+  [EnvVar.PublicUrl]: 'https://app.agent-ic.test',
+  [EnvVar.JwtAccessSecret]: 'test-access-secret-0123456789abcdef0123456789',
+  [EnvVar.EmailMode]: EmailMode.Smtp,
+  [EnvVar.EmailFrom]: 'agent-ic <no-reply@agent-ic.test>',
+  [EnvVar.SmtpHost]: '127.0.0.1',
+  [EnvVar.SmtpPort]: '1025',
+  [EnvVar.ResendApiKey]: 'test-resend-key',
 };
 
 export const TEST_ARGV_PREFIX: readonly string[] = ['node', 'main'];

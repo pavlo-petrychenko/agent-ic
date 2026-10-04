@@ -4,6 +4,7 @@ import { LogLevel } from '@/platform/config/constants/log-level.constants';
 import {
   databaseUrlSchema,
   poolSizeSchema,
+  publicUrlSchema,
   redisUrlSchema,
   textSchema,
 } from '@/platform/config/schemas/env-value.schema';
@@ -15,6 +16,7 @@ export const commonEnvSchema = z
     [EnvVar.AppVersion]: textSchema,
     [EnvVar.LogLevel]: z.enum(LogLevel),
     [EnvVar.HttpHost]: textSchema,
+    [EnvVar.PublicUrl]: publicUrlSchema,
     [EnvVar.OtelSdkDisabled]: z.stringbool(),
     [EnvVar.OtelExporterEndpoint]: z.url(),
     [EnvVar.OtelServiceName]: textSchema,
@@ -30,6 +32,7 @@ export const commonEnvSchema = z
     version: env[EnvVar.AppVersion],
     logLevel: env[EnvVar.LogLevel],
     host: env[EnvVar.HttpHost],
+    publicUrl: env[EnvVar.PublicUrl],
     database: {
       url: env[EnvVar.DatabaseUrl],
       systemUrl: env[EnvVar.DatabaseSystemUrl],

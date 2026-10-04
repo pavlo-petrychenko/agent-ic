@@ -1,6 +1,8 @@
 import { ConfigError } from '@/platform/config/errors/config.error';
 import { toConfigIssues } from '@/platform/config/helpers/config-issue.helpers';
+import { authEnvSchema } from '@/platform/config/schemas/auth-env.schema';
 import { commonEnvSchema } from '@/platform/config/schemas/common-env.schema';
+import { emailEnvSchema } from '@/platform/config/schemas/email-env.schema';
 import { langfuseEnvSchema } from '@/platform/config/schemas/langfuse-env.schema';
 import { migrationEnvSchema } from '@/platform/config/schemas/migration-env.schema';
 import { roleEnvSchemas } from '@/platform/config/schemas/role-env.schema';
@@ -18,10 +20,18 @@ export const loadAppConfig = (
 ): AppConfig => {
   const common = commonEnvSchema.safeParse(env);
   const langfuse = langfuseEnvSchema.safeParse(env);
+  const auth = authEnvSchema.safeParse(env);
+  const email = emailEnvSchema.safeParse(env);
   const roleEnvironment = roleEnvSchemas[selection.role].safeParse(env);
 
-  if (!common.success || !langfuse.success || !roleEnvironment.success) {
-    const results = [common, langfuse, roleEnvironment];
+  if (
+    !common.success ||
+    !langfuse.success ||
+    !auth.success ||
+    !email.success ||
+    !roleEnvironment.success
+  ) {
+    const results = [common, langfuse, auth, email, roleEnvironment];
     throw new ConfigError(
       results.flatMap((result) => (result.success ? [] : toConfigIssues(result.error))),
     );
@@ -32,11 +42,14 @@ export const loadAppConfig = (
     nodeEnv: common.data.nodeEnv,
     version: common.data.version,
     logLevel: common.data.logLevel,
+    publicUrl: common.data.publicUrl,
     http: { host: common.data.host, port: environment.port },
     database: common.data.database,
     redis: common.data.redis,
     telemetry: common.data.telemetry,
     langfuse: langfuse.data,
+    auth: auth.data,
+    email: email.data,
   };
 
   switch (environment.role) {

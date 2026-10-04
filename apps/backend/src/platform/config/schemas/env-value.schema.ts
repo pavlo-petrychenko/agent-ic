@@ -4,6 +4,7 @@ import {
   POOL_SIZE_MIN,
   PORT_MAX,
   PORT_MIN,
+  PUBLIC_URL_PROTOCOL,
   REDIS_URL_PROTOCOL,
   WORKER_CONCURRENCY_MIN,
 } from '@/platform/config/constants/env-value.constants';
@@ -15,4 +16,5 @@ export const sampleRateSchema = z.coerce.number().min(SAMPLE_RATE_MIN).max(SAMPL
 export const databaseUrlSchema = z.url({ protocol: DATABASE_URL_PROTOCOL });
 export const poolSizeSchema = z.coerce.number().int().min(POOL_SIZE_MIN);
 export const redisUrlSchema = z.url({ protocol: REDIS_URL_PROTOCOL });
+export const publicUrlSchema = z.url({ protocol: PUBLIC_URL_PROTOCOL });
 export const concurrencySchema = z.coerce.number().int().min(WORKER_CONCURRENCY_MIN);

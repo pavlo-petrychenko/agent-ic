@@ -17,6 +17,7 @@ config:
     baseUrl: https://llm.example.test/v1
     embeddingModel: embedding-model
   email:
+    mode: smtp
     from: agent-ic <no-reply@app.example.test>
     smtp:
       host: smtp.example.test

@@ -29,4 +29,11 @@ export enum EnvVar {
   LangfuseHost = 'LANGFUSE_HOST',
   LangfusePublicKey = 'LANGFUSE_PUBLIC_KEY',
   LangfuseSecretKey = 'LANGFUSE_SECRET_KEY',
+  PublicUrl = 'PUBLIC_URL',
+  JwtAccessSecret = 'JWT_ACCESS_SECRET',
+  EmailMode = 'EMAIL_MODE',
+  EmailFrom = 'EMAIL_FROM',
+  SmtpHost = 'SMTP_HOST',
+  SmtpPort = 'SMTP_PORT',
+  ResendApiKey = 'RESEND_API_KEY',
 }

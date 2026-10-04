@@ -41,6 +41,11 @@ render optional-secrets \
   --set secrets.llm.enabled=true \
   --set secrets.llm.name=app-llm \
   --set secrets.llm.keys.LLM_API_KEY=apiKey
+render resend-email \
+  --set config.email.mode=resend \
+  --set secrets.email.enabled=true \
+  --set secrets.email.name=app-email \
+  --set secrets.email.keys.RESEND_API_KEY=apiKey
 render langfuse \
   --set config.langfuse.mode=self-hosted \
   --set config.langfuse.host=http://langfuse-web.langfuse.svc.example.test:3000
@@ -92,6 +97,13 @@ if grep -qE 'RESEND_API_KEY|LLM_API_KEY' "$rendered/default.yaml"; then
 fi
 optional_refs="$(yq -N 'select(.kind == "Deployment" and .metadata.name == "agent-ic-api") | .spec.template.spec.containers[0].env[] | select(.name == "RESEND_API_KEY" or .name == "LLM_API_KEY") | .valueFrom.secretKeyRef.optional' "$rendered/optional-secrets.yaml" | sort -u)"
 test "$optional_refs" = "true"
+
+echo "== the e-mail mode reaches every backend workload"
+email_modes="$(yq -N 'select(.kind == "Deployment" and .metadata.name != "agent-ic-web") | .spec.template.spec.containers[0].env[] | select(.name == "EMAIL_MODE") | .value' "$rendered/default.yaml" | sort -u)"
+test "$email_modes" = "smtp"
+resend_mode="$(yq -N 'select(.kind == "Deployment" and .metadata.name == "agent-ic-worker-runs") | .spec.template.spec.containers[0].env[] | select(.name == "EMAIL_MODE") | .value' "$rendered/resend-email.yaml")"
+test "$resend_mode" = "resend"
+echo "$email_modes | $resend_mode"
 
 echo "== the admin header is added on the admin route and stripped on every public route"
 header_name="$(yq -r '.ingress.admin.requestHeader.name' "$chart/values.yaml")"
@@ -188,6 +200,12 @@ expect_failure "unknown environment" \
 expect_failure "enabled optional secret without a name" \
   'missing propert' \
   --set secrets.llm.enabled=true
+expect_failure "resend e-mail without the e-mail secret" \
+  'needs secrets.email.enabled' \
+  --set config.email.mode=resend
+expect_failure "unknown e-mail mode" \
+  'mode' \
+  --set config.email.mode=sendmail
 expect_failure "migration without arguments" \
   'migration' \
   --set-json 'migration.args=[]'
