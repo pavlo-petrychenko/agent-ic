@@ -1,9 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { Locale } from '@/shared/i18n/constants/locale.constants';
+import { LOCALE_OPTIONS } from '@/app/layouts/AppHeader/LocaleSwitcher/LocaleSwitcher.constants';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/Button';
-
-const LOCALES: readonly Locale[] = Object.values(Locale);
 
 export function LocaleSwitcher() {
   const { t } = useTranslation();
@@ -11,7 +9,7 @@ export function LocaleSwitcher() {
 
   return (
     <fieldset aria-label={t('locale.label')} className="flex gap-1">
-      {LOCALES.map((option) => (
+      {LOCALE_OPTIONS.map((option) => (
         <Button
           key={option}
           size={ButtonSize.Sm}

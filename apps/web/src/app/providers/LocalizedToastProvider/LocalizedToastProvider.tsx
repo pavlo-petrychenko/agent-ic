@@ -1,10 +1,6 @@
-import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { LocalizedToastProviderProps } from '@/app/providers/LocalizedToastProvider/LocalizedToastProvider.typedefs';
 import { ToastProvider } from '@/shared/ui/Toast';
-
-interface LocalizedToastProviderProps {
-  children: ReactNode;
-}
 
 export function LocalizedToastProvider({ children }: LocalizedToastProviderProps) {
   const { t } = useTranslation();

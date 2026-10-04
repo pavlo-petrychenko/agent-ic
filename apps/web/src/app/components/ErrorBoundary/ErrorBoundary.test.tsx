@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { ErrorBoundary } from '@/app/ErrorBoundary/ErrorBoundary';
+import { ErrorBoundary } from '@/app/components/ErrorBoundary/ErrorBoundary';
 import { AppError } from '@/shared/api/errors/app.error';
 import { Locale } from '@/shared/i18n/constants/locale.constants';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';

@@ -1,5 +1,5 @@
 import { I18nextProvider, useTranslation } from 'react-i18next';
-import type { StartupFailureProps } from '@/app/app.typedefs';
+import type { StartupFailureProps } from '@/app/components/StartupFailure/StartupFailure.typedefs';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 

@@ -1,10 +1,6 @@
-import type { ReactNode } from 'react';
 import { ErrorBoundary as ReactErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { ErrorFallbackView } from '@/app/ErrorBoundary/ErrorFallbackView';
-
-interface ErrorBoundaryProps {
-  children: ReactNode;
-}
+import type { ErrorBoundaryProps } from '@/app/components/ErrorBoundary/ErrorBoundary.typedefs';
+import { ErrorFallbackView } from '@/app/components/ErrorFallbackView';
 
 function BoundaryFallback({ error, resetErrorBoundary }: FallbackProps) {
   return <ErrorFallbackView error={error} onReset={resetErrorBoundary} />;
