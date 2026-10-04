@@ -94,7 +94,6 @@ Every command is a subcommand of one Node script, `tools/dev.ts`, so it works th
 | `mise run chart:validate` | lint, render and kubeconform the Helm chart                        |
 | `mise run lint:workflows` | lint the GitHub Actions workflows                                  |
 | `mise run test`           | run the tests                                                      |
-| `mise run e2e`            | run the end-to-end tests                                           |
 | `mise run clean`          | remove containers, volumes and certificates                        |
 
 `mise tasks` lists them with descriptions.

@@ -12,7 +12,7 @@
 - `view` components with behaviour have a React Testing Library test, next to the component. Shared test support lives in `apps/web/test/support/` and is imported as `@test/support/…`.
 - Storybook stories only for reusable `shared/ui` components (Button, Input and similar).
 - `communication` hooks are tested with Apollo `MockedProvider`. `logic` hooks and helpers use plain Vitest.
-- Playwright end-to-end tests cover key user flows and run on the release pull request.
+- No end-to-end browser tests. Flows across modules are covered by backend integration specs in `apps/backend/test/integration/`.
 
 ## General
 
