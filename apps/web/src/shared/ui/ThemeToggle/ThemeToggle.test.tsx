@@ -1,75 +1,169 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ThemePreference } from '@/shared/theme/constants/theme.constants';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle/ThemeToggle';
+import { ThemeToggleVariant } from '@/shared/ui/ThemeToggle/ThemeToggle.constants';
 
-const OPTION_LABELS = {
+const LABELS = {
   [ThemePreference.Light]: 'Light',
   [ThemePreference.Dark]: 'Dark',
   [ThemePreference.System]: 'System',
 };
 
-const renderToggle = (props: { withLabels?: boolean; disabled?: boolean } = {}) => {
-  const onChange = vi.fn<(value: ThemePreference) => void>();
-  render(
+interface RenderOptions {
+  variant?: ThemeToggleVariant;
+  value?: ThemePreference;
+  disabled?: boolean;
+}
+
+const renderToggle = ({
+  variant = ThemeToggleVariant.Settings,
+  value = ThemePreference.System,
+  disabled,
+}: RenderOptions = {}) => {
+  const onChange = vi.fn<(next: ThemePreference) => void>();
+  const view = render(
     <ThemeToggle
-      value={ThemePreference.System}
+      value={value}
       onChange={onChange}
-      label="Theme"
-      optionLabels={OPTION_LABELS}
-      {...props}
+      variant={variant}
+      labels={LABELS}
+      ariaLabel="Theme"
+      disabled={disabled}
     />,
   );
-  return onChange;
+  return { onChange, ...view };
 };
 
 describe('ThemeToggle', () => {
-  it('renders a named radio group with the options in order and the value checked', () => {
+  it('renders a named group of pressed-state buttons in order', () => {
     renderToggle();
 
-    expect(screen.getByRole('radiogroup', { name: 'Theme' })).toBeInTheDocument();
-    expect(screen.getAllByRole('radio').map((radio) => radio.textContent)).toEqual([
+    expect(screen.getByRole('group', { name: 'Theme' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button').map((button) => button.textContent)).toEqual([
       'Light',
       'Dark',
       'System',
     ]);
-    expect(screen.getByRole('radio', { name: 'System' })).toBeChecked();
   });
 
-  it('reports the chosen preference', async () => {
-    const onChange = renderToggle();
+  it('presses only the button that matches the value', () => {
+    renderToggle({ value: ThemePreference.Dark });
 
-    await userEvent.click(screen.getByRole('radio', { name: 'Dark' }));
+    expect(screen.getByRole('button', { name: 'Dark' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Light' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: 'System' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('follows the value prop when it changes', () => {
+    const { rerender, onChange } = renderToggle({ value: ThemePreference.Light });
+
+    rerender(
+      <ThemeToggle
+        value={ThemePreference.System}
+        onChange={onChange}
+        variant={ThemeToggleVariant.Settings}
+        labels={LABELS}
+        ariaLabel="Theme"
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'System' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Light' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('reports the chosen preference on click', async () => {
+    const { onChange } = renderToggle();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Dark' }));
 
     expect(onChange).toHaveBeenCalledWith(ThemePreference.Dark);
   });
 
-  it('moves between options with arrow keys and selects with space', async () => {
-    const onChange = renderToggle();
+  it('does not report a click on the pressed button, which would clear the value', async () => {
+    const { onChange } = renderToggle({ value: ThemePreference.System });
+
+    await userEvent.click(screen.getByRole('button', { name: 'System' }));
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('moves between buttons with arrow keys and selects with space', async () => {
+    const { onChange } = renderToggle();
 
     await userEvent.tab();
-    expect(screen.getByRole('radio', { name: 'System' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'System' })).toHaveFocus();
 
     await userEvent.keyboard('{ArrowLeft}');
-    expect(screen.getByRole('radio', { name: 'Dark' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Dark' })).toHaveFocus();
 
     await userEvent.keyboard(' ');
     expect(onChange).toHaveBeenCalledWith(ThemePreference.Dark);
   });
 
-  it('names icon-only options through aria-label', () => {
-    renderToggle({ withLabels: false });
+  it('keeps horizontal arrow keys from reaching a surrounding menu', async () => {
+    const onMenuKeyDown = vi.fn<() => void>();
+    render(
+      <div role="presentation" onKeyDown={onMenuKeyDown}>
+        <ThemeToggle
+          value={ThemePreference.System}
+          onChange={() => undefined}
+          variant={ThemeToggleVariant.Menu}
+          labels={LABELS}
+          ariaLabel="Theme"
+        />
+      </div>,
+    );
 
-    expect(screen.getByRole('radio', { name: 'Light' })).toHaveTextContent('');
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowLeft}');
+    await userEvent.keyboard('{ArrowRight}');
+
+    expect(onMenuKeyDown).not.toHaveBeenCalled();
+  });
+
+  it('lets other keys reach a surrounding menu', () => {
+    const onMenuKeyDown = vi.fn<() => void>();
+    render(
+      <div role="presentation" onKeyDown={onMenuKeyDown}>
+        <ThemeToggle
+          value={ThemePreference.System}
+          onChange={() => undefined}
+          variant={ThemeToggleVariant.Menu}
+          labels={LABELS}
+          ariaLabel="Theme"
+        />
+      </div>,
+    );
+
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Light' }), { key: 'Escape' });
+
+    expect(onMenuKeyDown).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders icons named through aria-label in the menu variant', () => {
+    renderToggle({ variant: ThemeToggleVariant.Menu });
+
+    Object.values(LABELS).forEach((label) => {
+      expect(screen.getByRole('button', { name: label })).toHaveTextContent('');
+    });
+    expect(document.querySelectorAll('svg')).toHaveLength(Object.values(LABELS).length);
+  });
+
+  it('renders text without icons or aria-label in the settings variant', () => {
+    renderToggle({ variant: ThemeToggleVariant.Settings });
+
+    expect(document.querySelectorAll('svg')).toHaveLength(0);
+    expect(screen.getByRole('button', { name: 'Light' })).not.toHaveAttribute('aria-label');
   });
 
   it('ignores presses when disabled', async () => {
-    const onChange = renderToggle({ disabled: true });
+    const { onChange } = renderToggle({ disabled: true });
 
-    await userEvent.click(screen.getByRole('radio', { name: 'Light' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Light' }));
 
     expect(onChange).not.toHaveBeenCalled();
-    expect(screen.getByRole('radio', { name: 'Light' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Light' })).toBeDisabled();
   });
 });

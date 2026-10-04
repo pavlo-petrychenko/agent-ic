@@ -1,29 +1,18 @@
 .root {
   display: inline-flex;
-  align-items: stretch;
-  gap: var(--space-2);
-  padding: var(--space-2);
+  align-self: flex-start;
+  overflow: hidden;
   border: var(--border-width) solid var(--color-line);
   border-radius: var(--radius-8);
   background: var(--color-card);
-}
-
-.sm {
-  height: var(--size-control-sm);
-}
-
-.md {
-  height: var(--size-control-md);
 }
 
 .option {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-6);
-  padding: 0 var(--space-10);
   border: 0;
-  border-radius: var(--radius-6);
+  border-radius: 0;
   background: transparent;
   color: var(--color-mute);
   font: var(--type-caption);
@@ -38,18 +27,22 @@
   }
 
   &:focus-visible {
-    box-shadow: var(--shadow-focus-ring);
+    box-shadow: var(--shadow-focus-ring-inset);
   }
 
-  &[data-state='checked'] {
+  &[aria-pressed='true'] {
     background: var(--color-chip);
     color: var(--color-ink);
     font: var(--type-caption-strong);
   }
 }
 
-.sm .option {
-  padding: 0 var(--space-8);
+.menu .option {
+  padding: var(--space-4) var(--space-7);
+}
+
+.settings .option {
+  padding: var(--space-6) var(--space-11);
 }
 
 .disabled {

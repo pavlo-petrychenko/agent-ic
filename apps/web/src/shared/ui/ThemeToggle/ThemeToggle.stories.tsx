@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { ThemePreference } from '@/shared/theme/constants/theme.constants';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle/ThemeToggle';
-import { ThemeToggleSize } from '@/shared/ui/ThemeToggle/ThemeToggle.constants';
+import { ThemeToggleVariant } from '@/shared/ui/ThemeToggle/ThemeToggle.constants';
 import type { ThemeToggleProps } from '@/shared/ui/ThemeToggle/ThemeToggle.typedefs';
 
 function ControlledThemeToggle(props: ThemeToggleProps) {
@@ -25,8 +25,9 @@ const meta = {
   args: {
     value: ThemePreference.System,
     onChange: () => undefined,
-    label: 'Theme',
-    optionLabels: {
+    variant: ThemeToggleVariant.Settings,
+    ariaLabel: 'Theme',
+    labels: {
       [ThemePreference.Light]: 'Light',
       [ThemePreference.Dark]: 'Dark',
       [ThemePreference.System]: 'System',
@@ -34,7 +35,7 @@ const meta = {
   },
   argTypes: {
     value: { control: 'select', options: Object.values(ThemePreference) },
-    size: { control: 'select', options: Object.values(ThemeToggleSize) },
+    variant: { control: 'select', options: Object.values(ThemeToggleVariant) },
   },
 } satisfies Meta<typeof ThemeToggle>;
 
@@ -42,9 +43,14 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
-export const Light: Story = { args: { value: ThemePreference.Light } };
-export const Dark: Story = { args: { value: ThemePreference.Dark } };
-export const SmallInMenu: Story = { args: { size: ThemeToggleSize.Sm } };
-export const IconsOnly: Story = { args: { withLabels: false, size: ThemeToggleSize.Sm } };
+export const Settings: Story = {};
+export const SettingsLight: Story = { args: { value: ThemePreference.Light } };
+export const SettingsDark: Story = { args: { value: ThemePreference.Dark } };
+export const Menu: Story = { args: { variant: ThemeToggleVariant.Menu } };
+export const MenuLight: Story = {
+  args: { variant: ThemeToggleVariant.Menu, value: ThemePreference.Light },
+};
 export const Disabled: Story = { args: { disabled: true } };
+export const MenuDisabled: Story = {
+  args: { variant: ThemeToggleVariant.Menu, disabled: true },
+};

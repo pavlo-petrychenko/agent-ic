@@ -1,10 +1,14 @@
 import clsx from 'clsx';
-import { RadioGroup } from 'radix-ui';
+import { ToggleGroup } from 'radix-ui';
+import type { KeyboardEvent } from 'react';
 import { Icon } from '@/shared/ui/Icon/Icon';
 import {
-  THEME_TOGGLE_ICON_SIZE,
+  THEME_TOGGLE_HORIZONTAL_ARROW_KEYS,
+  THEME_TOGGLE_ITEM_ROLE_RESET,
+  THEME_TOGGLE_MENU_ICON_SIZE,
+  THEME_TOGGLE_MENU_ICON_STROKE_WIDTH,
   THEME_TOGGLE_OPTIONS,
-  ThemeToggleSize,
+  ThemeToggleVariant,
 } from '@/shared/ui/ThemeToggle/ThemeToggle.constants';
 import type { ThemeToggleProps } from '@/shared/ui/ThemeToggle/ThemeToggle.typedefs';
 import styles from '@/shared/ui/ThemeToggle/ThemeToggle.module.scss';
@@ -12,40 +16,59 @@ import styles from '@/shared/ui/ThemeToggle/ThemeToggle.module.scss';
 export function ThemeToggle({
   value,
   onChange,
-  label,
-  optionLabels,
-  withLabels = true,
-  size = ThemeToggleSize.Md,
+  variant,
+  labels,
+  ariaLabel,
   disabled = false,
   className,
 }: ThemeToggleProps) {
   const handleValueChange = (next: string) => {
     const option = THEME_TOGGLE_OPTIONS.find((candidate) => candidate.value === next);
-    if (option !== undefined) {
+    if (option !== undefined && option.value !== value) {
       onChange(option.value);
     }
   };
 
+  const keepArrowsInside = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (THEME_TOGGLE_HORIZONTAL_ARROW_KEYS.includes(event.key)) {
+      event.stopPropagation();
+    }
+  };
+
+  const iconOnly = variant === ThemeToggleVariant.Menu;
+
   return (
-    <RadioGroup.Root
+    <ToggleGroup.Root
+      type="single"
       value={value}
       onValueChange={handleValueChange}
-      aria-label={label}
-      orientation="horizontal"
+      onKeyDown={keepArrowsInside}
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+      role="group"
+      aria-label={ariaLabel}
       disabled={disabled}
-      className={clsx(styles.root, styles[size], disabled && styles.disabled, className)}
+      className={clsx(styles.root, styles[variant], disabled && styles.disabled, className)}
     >
       {THEME_TOGGLE_OPTIONS.map((option) => (
-        <RadioGroup.Item
+        <ToggleGroup.Item
           key={option.value}
           value={option.value}
-          aria-label={withLabels ? undefined : optionLabels[option.value]}
+          {...THEME_TOGGLE_ITEM_ROLE_RESET}
+          aria-pressed={option.value === value}
+          aria-label={iconOnly ? labels[option.value] : undefined}
           className={styles.option}
         >
-          <Icon name={option.icon} size={THEME_TOGGLE_ICON_SIZE} />
-          {withLabels && <span>{optionLabels[option.value]}</span>}
-        </RadioGroup.Item>
+          {iconOnly ? (
+            <Icon
+              name={option.icon}
+              size={THEME_TOGGLE_MENU_ICON_SIZE}
+              strokeWidth={THEME_TOGGLE_MENU_ICON_STROKE_WIDTH}
+            />
+          ) : (
+            labels[option.value]
+          )}
+        </ToggleGroup.Item>
       ))}
-    </RadioGroup.Root>
+    </ToggleGroup.Root>
   );
 }

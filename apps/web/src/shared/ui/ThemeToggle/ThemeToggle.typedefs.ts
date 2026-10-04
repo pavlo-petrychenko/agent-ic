@@ -1,6 +1,6 @@
 import type { ThemePreference } from '@/shared/theme/constants/theme.constants';
 import type { IconName } from '@/shared/ui/Icon/Icon.constants';
-import type { ThemeToggleSize } from '@/shared/ui/ThemeToggle/ThemeToggle.constants';
+import type { ThemeToggleVariant } from '@/shared/ui/ThemeToggle/ThemeToggle.constants';
 
 export interface ThemeToggleOption {
   readonly value: ThemePreference;
@@ -10,10 +10,9 @@ export interface ThemeToggleOption {
 export interface ThemeToggleProps {
   value: ThemePreference;
   onChange: (value: ThemePreference) => void;
-  label: string;
-  optionLabels: Readonly<Record<ThemePreference, string>>;
-  withLabels?: boolean;
-  size?: ThemeToggleSize;
+  variant: ThemeToggleVariant;
+  labels: Readonly<Record<ThemePreference, string>>;
+  ariaLabel: string;
   disabled?: boolean;
   className?: string;
 }
