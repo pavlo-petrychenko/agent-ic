@@ -41,5 +41,13 @@
       "title": "Nothing to set up here yet",
       "description": "Your profile and notification settings are coming soon."
     }
+  },
+  "switcher": {
+    "workspaces": "Workspaces",
+    "account": "Account",
+    "createWorkspace": "Create a workspace",
+    "logOut": "Log out",
+    "hint_one": "{{role}} · {{count}} member",
+    "hint_other": "{{role}} · {{count}} members"
   }
 }

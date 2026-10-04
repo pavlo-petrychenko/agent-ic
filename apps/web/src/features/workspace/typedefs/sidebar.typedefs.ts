@@ -21,3 +21,18 @@ export interface SidebarUser {
   readonly initials: string;
   readonly roleLabel: string | null;
 }
+
+export interface SwitcherWorkspace {
+  readonly id: string;
+  readonly name: string;
+  readonly initials: string;
+  readonly hint: string;
+}
+
+export interface SwitcherLabels {
+  readonly workspaces: string;
+  readonly account: string;
+  readonly caption: string;
+  readonly createWorkspace: string;
+  readonly logOut: string;
+}

@@ -41,5 +41,15 @@
       "title": "Тут поки нічого налаштовувати",
       "description": "Налаштування профілю та сповіщень з’являться згодом."
     }
+  },
+  "switcher": {
+    "workspaces": "Робочі простори",
+    "account": "Акаунт",
+    "createWorkspace": "Створити робочий простір",
+    "logOut": "Вийти",
+    "hint_one": "{{role}} · {{count}} учасник",
+    "hint_few": "{{role}} · {{count}} учасники",
+    "hint_many": "{{role}} · {{count}} учасників",
+    "hint_other": "{{role}} · {{count}} учасника"
   }
 }

@@ -12,3 +12,4 @@ export {
   loginSearchSchema,
   tokenSearchSchema,
 } from '@/features/auth/logic/schemas/authSearch.schema';
+export { useLogOut } from '@/features/auth/logic/hooks/useLogOut';
