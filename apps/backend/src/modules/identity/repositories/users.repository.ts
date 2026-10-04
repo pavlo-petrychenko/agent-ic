@@ -38,6 +38,15 @@ export class UsersRepository {
     return user ?? null;
   }
 
+  async findByEmailForShare(email: string): Promise<UserRecord | null> {
+    const [user] = await this.txHost.tx
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .for('share');
+    return user ?? null;
+  }
+
   async markEmailConfirmed(id: string, at: Date): Promise<void> {
     await this.txHost.tx
       .update(users)

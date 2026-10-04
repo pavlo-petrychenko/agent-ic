@@ -1,27 +1,33 @@
+import { setTimeout as delay } from 'node:timers/promises';
 import { ErrorReason } from '@agent-ic/contracts';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { PASSWORD_RESET_TTL_SECONDS } from '@/modules/identity/constants/identity.constants';
 import { InvalidAccountInputError } from '@/modules/identity/errors/invalid-account-input.error';
 import { InvalidCredentialsError } from '@/modules/identity/errors/invalid-credentials.error';
 import { TokenExpiredError } from '@/modules/identity/errors/token-expired.error';
 import { TokenInvalidError } from '@/modules/identity/errors/token-invalid.error';
+import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { LoginUseCase } from '@/modules/identity/use-cases/login.use-case';
 import { RefreshSessionUseCase } from '@/modules/identity/use-cases/refresh-session.use-case';
 import { ResetPasswordUseCase } from '@/modules/identity/use-cases/reset-password.use-case';
 import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
+import { EnvVar } from '@/platform/config/constants/env.constants';
 import {
   MILLISECONDS_PAST_EXPIRY,
   SHORT_PASSWORD,
 } from '@test/support/constants/identity-testing.constants';
 import {
   NEW_PASSWORD,
+  CONCURRENT_POOL_SIZE,
   OTHER_NEW_PASSWORD,
+  RESET_LOCK_WAIT_MS,
 } from '@test/support/constants/password-reset-testing.constants';
 import { anonymousCtx } from '@test/support/fixtures/identity.fixture';
 import {
   createConfirmedAccount,
   createIdentityTestbed,
   issueConfirmationToken,
+  readSession,
   readUser,
   signUpAccount,
 } from '@test/support/helpers/identity-testing.helpers';
@@ -37,7 +43,7 @@ describe('ResetPasswordUseCase', () => {
   let login: LoginUseCase;
 
   beforeAll(async () => {
-    testbed = await createIdentityTestbed();
+    testbed = await createIdentityTestbed({ [EnvVar.DatabasePoolMax]: CONCURRENT_POOL_SIZE });
     resetPassword = testbed.module.get(ResetPasswordUseCase);
     login = testbed.module.get(LoginUseCase);
   });
@@ -80,6 +86,30 @@ describe('ResetPasswordUseCase', () => {
           .execute(anonymousCtx(), { refreshToken: stale.refreshToken }),
       ).rejects.toBeDefined();
     }
+  });
+
+  it('ends a session whose login read the old password while the reset ran', async () => {
+    const account = await createConfirmedAccount(testbed);
+    const token = await issuePasswordResetToken(testbed, account.userId);
+    const users = testbed.module.get(UsersRepository);
+    const touchLastActive = users.touchLastActive.bind(users);
+    const loginRead = Promise.withResolvers<void>();
+    const loginResumes = Promise.withResolvers<void>();
+    vi.spyOn(users, 'touchLastActive').mockImplementationOnce(async (id, at) => {
+      loginRead.resolve();
+      await loginResumes.promise;
+      await touchLastActive(id, at);
+    });
+
+    const loggingIn = login.execute(anonymousCtx(), account);
+    await loginRead.promise;
+    const resetting = resetPassword.execute(anonymousCtx(), { token, password: NEW_PASSWORD });
+    await Promise.race([resetting, delay(RESET_LOCK_WAIT_MS)]);
+    loginResumes.resolve();
+    const session = await loggingIn;
+    await resetting;
+
+    expect((await readSession(testbed.db, session.refreshToken)).revokedAt).not.toBeNull();
   });
 
   it('works only once', async () => {
