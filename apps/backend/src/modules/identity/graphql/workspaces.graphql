@@ -1,0 +1,90 @@
+extend type Query {
+  myWorkspaces: [Membership!]!
+  inviteLink: InviteLink
+  inviteInfo(token: String!): InviteInfo!
+  members(first: Int, after: String): MemberConnection!
+}
+
+extend type Mutation {
+  createWorkspace(input: CreateWorkspaceInput!): Membership!
+  updateInviteLinkRole(input: UpdateInviteLinkRoleInput!): InviteLink!
+  resetInviteLink: InviteLink!
+  acceptInvite(token: String!): Membership!
+}
+
+extend type User {
+  memberships: [Membership!]!
+}
+
+extend input SignUpInput {
+  inviteToken: String
+}
+
+enum WorkspaceRole {
+  owner
+  admin
+  builder
+  operator
+}
+
+type Workspace {
+  id: ID!
+  name: String!
+  timeZone: String!
+  memberCount: Int!
+}
+
+type Membership {
+  workspace: Workspace!
+  role: WorkspaceRole!
+}
+
+input CreateWorkspaceInput {
+  name: String!
+  timeZone: String!
+}
+
+input UpdateInviteLinkRoleInput {
+  role: WorkspaceRole!
+}
+
+type InviteLink {
+  url: String!
+  role: WorkspaceRole!
+  expiresAt: String!
+  joinedCount: Int!
+}
+
+type InviteInfo {
+  workspaceName: String!
+  inviterName: String!
+  memberCount: Int!
+  role: WorkspaceRole!
+  expiresAt: String!
+}
+
+type Member {
+  id: ID!
+  userId: ID!
+  name: String!
+  email: String!
+  role: WorkspaceRole!
+  lastActiveAt: String
+  joinedAt: String!
+}
+
+type MemberEdge {
+  cursor: String!
+  node: Member!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+}
+
+type MemberConnection {
+  edges: [MemberEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}

@@ -4,6 +4,7 @@ import { EmailTakenError } from '@/modules/identity/errors/email-taken.error';
 import { InvalidAccountInputError } from '@/modules/identity/errors/invalid-account-input.error';
 import { TokenInvalidError } from '@/modules/identity/errors/token-invalid.error';
 import { verifyPassword } from '@/modules/identity/helpers/password.helpers';
+import { InviteInvalidError } from '@/modules/identity/errors/invite-invalid.error';
 import { SignUpUseCase } from '@/modules/identity/use-cases/sign-up.use-case';
 import { RateLimitedError } from '@/platform/rate-limit/errors/rate-limited.error';
 import {
@@ -11,6 +12,7 @@ import {
   SHORT_PASSWORD,
   TEST_PASSWORD,
 } from '@test/support/constants/identity-testing.constants';
+import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
 import { anonymousCtx, signUpInput, uniqueIp } from '@test/support/fixtures/identity.fixture';
 import {
   confirmationRequestsFor,
@@ -20,6 +22,11 @@ import {
   findUser,
   issueConfirmationToken,
 } from '@test/support/helpers/identity-testing.helpers';
+import {
+  activeInviteLinkOf,
+  createOwnedWorkspace,
+  inviteTokenOf,
+} from '@test/support/helpers/workspace-testing.helpers';
 import type { IdentityTestbed } from '@test/support/typedefs/identity-testing.typedefs';
 
 const SIGN_UPS_PER_HOUR = 5;
@@ -161,5 +168,24 @@ describe('SignUpUseCase', () => {
     const blocked = signUp.execute(anonymousCtx(ip), signUpInput());
 
     await expect(blocked).rejects.toBeInstanceOf(RateLimitedError);
+  });
+
+  it('remembers a valid invite to complete it after the confirmation', async () => {
+    const workspace = await createOwnedWorkspace(testbed);
+    const link = await activeInviteLinkOf(testbed, workspace.workspaceId);
+    const input = signUpInput({ inviteToken: await inviteTokenOf(testbed, workspace) });
+
+    await signUp.execute(anonymousCtx(), input);
+
+    expect((await findUser(testbed, input.email)).pendingInviteLinkId).toBe(link.id);
+  });
+
+  it('creates no account when the invite is not valid', async () => {
+    const input = signUpInput({ inviteToken: 'never-issued' });
+
+    const attempt = signUp.execute(anonymousCtx(), input);
+
+    await expect(attempt).rejects.toBeInstanceOf(InviteInvalidError);
+    await expect(findUser(testbed, input.email)).rejects.toBeInstanceOf(MissingTestDataError);
   });
 });

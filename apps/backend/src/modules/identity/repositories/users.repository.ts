@@ -61,4 +61,11 @@ export class UsersRepository {
   async touchLastActive(id: string, at: Date): Promise<void> {
     await this.txHost.tx.update(users).set({ lastActiveAt: at }).where(eq(users.id, id));
   }
+
+  async clearPendingInvite(id: string, at: Date): Promise<void> {
+    await this.txHost.tx
+      .update(users)
+      .set({ pendingInviteLinkId: null, updatedAt: at })
+      .where(eq(users.id, id));
+  }
 }

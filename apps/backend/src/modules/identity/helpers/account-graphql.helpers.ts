@@ -1,4 +1,5 @@
 import { Locale } from '@agent-ic/contracts';
+import { toGraphqlMembership } from '@/modules/identity/helpers/workspace-graphql.helpers';
 import type {
   ForgotPasswordInput,
   ResendConfirmationInput,
@@ -25,6 +26,7 @@ export const toGraphqlUser = (me: Me): User => ({
   email: me.email,
   name: me.name,
   locale: GRAPHQL_LOCALE[me.locale],
+  memberships: me.memberships.map(toGraphqlMembership),
 });
 
 export const toSignUpPayload = (result: SignUpResult): SignUpPayload => ({ email: result.email });

@@ -45,5 +45,6 @@ export enum TestRedisDatabase {
   RateLimit = 8,
   Identity = 9,
   AuthFlow = 10,
+  WorkspacesFlow = 11,
   PasswordResetFlow = 12,
 }
