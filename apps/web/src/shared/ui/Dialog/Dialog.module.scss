@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: var(--z-scrim);
   background: var(--overlay-backdrop);
 }
 
@@ -9,13 +9,14 @@
   position: fixed;
   top: 50%;
   left: 50%;
-  z-index: 51;
+  z-index: var(--z-dialog);
   display: flex;
   flex-direction: column;
   gap: var(--space-14);
-  width: var(--size-dialog-width);
+  width: var(--size-dialog-width-sm);
   max-width: calc(100vw - var(--space-32));
   padding: var(--space-20);
+  border: var(--border-width) solid var(--color-overlay-line);
   border-radius: var(--radius-16);
   background: var(--color-card);
   box-shadow: var(--shadow-dialog);
