@@ -31,6 +31,10 @@
     background: var(--color-accent);
   }
 
+  &[data-state='checked']:hover:not(:disabled) {
+    background: var(--color-accent-dark);
+  }
+
   &:focus-visible {
     box-shadow: var(--shadow-focus-ring);
   }
@@ -44,7 +48,7 @@
   width: var(--size-switch-thumb);
   height: var(--size-switch-thumb);
   border-radius: var(--radius-pill);
-  background: var(--color-on-dark);
+  background: var(--color-card);
   transform: translateX(var(--space-2));
   transition: transform var(--duration-fast) var(--ease-standard);
 
