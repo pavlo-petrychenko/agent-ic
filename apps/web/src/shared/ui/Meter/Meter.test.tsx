@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { Meter } from '@/shared/ui/Meter/Meter';
+import { ChartColor } from '@/shared/ui/Meter/Meter.constants';
 
 describe('Meter', () => {
   it('exposes a meter named by its visible label', () => {
@@ -25,4 +26,22 @@ describe('Meter', () => {
     const track = screen.getByRole('meter').lastElementChild;
     expect(track?.firstElementChild).toHaveStyle({ width: '25%' });
   });
+
+  it('draws the fill in the first chart colour by default', () => {
+    render(<Meter label="Cost" value={5} max={20} valueLabel="$5.00" />);
+
+    const fill = screen.getByRole('meter').lastElementChild?.firstElementChild;
+    expect(fill?.className).toMatch(ChartColor.Chart1);
+  });
+
+  it.each([ChartColor.Chart2, ChartColor.Chart3, ChartColor.Chart4])(
+    'draws the fill in %s',
+    (color) => {
+      render(<Meter label="Cost" value={5} max={20} valueLabel="$5.00" color={color} />);
+
+      const fill = screen.getByRole('meter').lastElementChild?.firstElementChild;
+      expect(fill?.className).toMatch(color);
+      expect(fill?.className).not.toMatch(ChartColor.Chart1);
+    },
+  );
 });

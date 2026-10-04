@@ -1,9 +1,8 @@
-export enum MeterTone {
+export enum ChartColor {
   Chart1 = 'chart1',
   Chart2 = 'chart2',
   Chart3 = 'chart3',
   Chart4 = 'chart4',
-  Chart5 = 'chart5',
 }
 
 export const METER_MIN = 0;

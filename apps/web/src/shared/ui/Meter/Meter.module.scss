@@ -31,7 +31,7 @@ $story-width: 320px;
 .fill {
   height: 100%;
   border-radius: inherit;
-  background: var(--color-accent);
+  background: var(--chart-1);
   transition: width var(--duration-base) var(--ease-standard);
 }
 
@@ -49,10 +49,6 @@ $story-width: 320px;
 
 .chart4 {
   background: var(--chart-4);
-}
-
-.chart5 {
-  background: var(--chart-5);
 }
 
 @media (prefers-reduced-motion: reduce) {

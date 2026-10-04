@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { useId } from 'react';
-import { METER_MIN, PERCENT_FULL } from '@/shared/ui/Meter/Meter.constants';
+import { ChartColor, METER_MIN, PERCENT_FULL } from '@/shared/ui/Meter/Meter.constants';
 import type { MeterProps } from '@/shared/ui/Meter/Meter.typedefs';
 import styles from '@/shared/ui/Meter/Meter.module.scss';
 
@@ -16,7 +16,7 @@ export function Meter({
   value,
   max,
   valueLabel,
-  tone = null,
+  color = ChartColor.Chart1,
   className,
   ...rest
 }: MeterProps) {
@@ -42,7 +42,7 @@ export function Meter({
       </div>
       <div className={styles.track}>
         <div
-          className={clsx(styles.fill, tone !== null && styles[tone])}
+          className={clsx(styles.fill, styles[color])}
           style={{ width: `${toPercent(value, max)}%` }}
         />
       </div>

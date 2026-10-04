@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Meter } from '@/shared/ui/Meter/Meter';
-import { MeterTone } from '@/shared/ui/Meter/Meter.constants';
+import { ChartColor } from '@/shared/ui/Meter/Meter.constants';
 import styles from '@/shared/ui/Meter/Meter.module.scss';
 
 const meta = {
   component: Meter,
   args: { label: 'Strong model', value: 39.1, max: 46.5, valueLabel: '$39.10' },
   argTypes: {
-    tone: { control: 'select', options: [null, ...Object.values(MeterTone)] },
+    color: { control: 'select', options: Object.values(ChartColor) },
   },
   decorators: [
     (Story) => (
@@ -31,11 +31,11 @@ export const Full: Story = { args: { value: 46.5, valueLabel: '$46.50' } };
 export const Stacked: Story = {
   render: (args) => (
     <>
-      {Object.values(MeterTone).map((tone, index) => (
+      {Object.values(ChartColor).map((color, index) => (
         <Meter
-          key={tone}
+          key={color}
           {...args}
-          tone={tone}
+          color={color}
           label={`Series ${index + 1}`}
           value={50 - index * 8}
           max={50}
