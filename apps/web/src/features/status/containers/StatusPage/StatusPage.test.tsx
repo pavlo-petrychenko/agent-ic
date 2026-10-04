@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildServerStatusFailureMock,
   buildServerStatusMock,
-} from '@/features/status/communication/serverStatus.mocks';
+} from '@/features/status/communication/fixtures/serverStatus.fixture';
 import { StatusPage } from '@/features/status/containers/StatusPage/StatusPage';
 import { Locale } from '@/shared/i18n/i18n.constants';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';

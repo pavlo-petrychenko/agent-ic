@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { UPTIME_UNIT_SEPARATOR } from '@/features/status/logic/uptime.constants';
-import { toUptimeUnits } from '@/features/status/logic/uptime.helpers';
+import { UPTIME_UNIT_SEPARATOR } from '@/features/status/constants/uptime.constants';
+import { toUptimeUnits } from '@/features/status/logic/helpers/uptime.helpers';
 
 export function useUptimeLabel(uptimeSeconds: number | null): string | null {
   const { t } = useTranslation();

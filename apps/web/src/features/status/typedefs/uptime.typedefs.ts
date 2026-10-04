@@ -1,4 +1,4 @@
-import type { UptimeUnit } from '@/features/status/logic/uptime.constants';
+import type { UptimeUnit } from '@/features/status/constants/uptime.constants';
 
 export interface UptimeUnitValue {
   readonly unit: UptimeUnit;

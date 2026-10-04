@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { UptimeUnit } from '@/features/status/logic/uptime.constants';
-import { toUptimeUnits } from '@/features/status/logic/uptime.helpers';
+import { UptimeUnit } from '@/features/status/constants/uptime.constants';
+import { toUptimeUnits } from '@/features/status/logic/helpers/uptime.helpers';
 
 describe('toUptimeUnits', () => {
   it('keeps the two largest non-zero units', () => {

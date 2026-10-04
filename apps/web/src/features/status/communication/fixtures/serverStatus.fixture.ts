@@ -1,5 +1,5 @@
 import type { MockLink } from '@apollo/client/testing';
-import { ServerStatusDocument } from '@/features/status/communication/serverStatus.generated';
+import { ServerStatusDocument } from '@/features/status/communication/gql/query/serverStatus.generated';
 
 const SERVER_STATUS_TYPENAME = 'ServerStatus';
 

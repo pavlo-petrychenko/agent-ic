@@ -2,8 +2,8 @@ import {
   UPTIME_MAX_UNITS,
   UPTIME_UNITS_DESCENDING,
   UptimeUnit,
-} from '@/features/status/logic/uptime.constants';
-import type { UptimeUnitValue } from '@/features/status/logic/uptime.typedefs';
+} from '@/features/status/constants/uptime.constants';
+import type { UptimeUnitValue } from '@/features/status/typedefs/uptime.typedefs';
 
 export function toUptimeUnits(totalSeconds: number): readonly UptimeUnitValue[] {
   let remaining = Math.max(0, Math.floor(totalSeconds));

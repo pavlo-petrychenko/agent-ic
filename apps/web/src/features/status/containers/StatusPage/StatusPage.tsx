@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { useServerStatus } from '@/features/status/communication/useServerStatus';
-import { useUptimeLabel } from '@/features/status/logic/useUptimeLabel';
+import { useServerStatus } from '@/features/status/communication/hooks/useServerStatus';
+import { useUptimeLabel } from '@/features/status/logic/hooks/useUptimeLabel';
 import { ServerStatus } from '@/features/status/view/ServerStatus';
 import { useErrorMessage } from '@/shared/i18n/useErrorMessage';
 import { Card } from '@/shared/ui/Card';
