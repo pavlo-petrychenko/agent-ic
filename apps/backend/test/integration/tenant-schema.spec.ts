@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest';
-import { DatabaseRole } from '@/platform/db/database.constants';
-import type { SqlExecutor } from '@/platform/db/database.typedefs';
+import { DatabaseRole } from '@/platform/database/constants/database.constants';
+import type { SqlExecutor } from '@/platform/database/typedefs/database.typedefs';
 import { PROBE_TABLE } from '@test/support/constants/rls-probe.constants';
 import {
   QUALIFIED_NAME_SEPARATOR,

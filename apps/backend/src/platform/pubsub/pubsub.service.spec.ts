@@ -3,7 +3,7 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import type { AppTransactionAdapter } from '@/platform/db/database.typedefs';
+import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 import { PubSubModule } from '@/platform/pubsub/pubsub.module';
 import { PubSubService } from '@/platform/pubsub/pubsub.service';
 import { Topic } from '@/platform/pubsub/topic';

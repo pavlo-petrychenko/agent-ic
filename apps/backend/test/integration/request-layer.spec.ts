@@ -6,8 +6,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { ROLE_MODULES } from '@/app/constants/app-modules.constants';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { PROBLEM_CONTENT_TYPE } from '@/platform/errors/constants/problem-details.constants';
-import { ConnectionParam } from '@/platform/graphql/graphql.constants';
-import { UnboundResolverError } from '@/platform/graphql/unbound-resolver.error';
+import { ConnectionParam } from '@/platform/graphql-server/constants/connection-param.constants';
+import { UnboundResolverError } from '@/platform/graphql-server/errors/unbound-resolver.error';
 import { HttpHeader } from '@/platform/http/constants/http-header.constants';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import {

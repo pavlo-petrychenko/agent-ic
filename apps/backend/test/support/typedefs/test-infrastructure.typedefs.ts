@@ -1,4 +1,4 @@
-import type { AppDatabase } from '@/platform/db/database.typedefs';
+import type { AppDatabase } from '@/platform/database/typedefs/database.typedefs';
 import type { TEST_INFRASTRUCTURE_KEY } from '@test/support/constants/test-infrastructure.constants';
 
 export interface TestInfrastructure {

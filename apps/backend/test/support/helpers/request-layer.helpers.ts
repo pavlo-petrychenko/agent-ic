@@ -7,7 +7,7 @@ import { AppModule } from '@/app/app.module';
 import { ROLE_MODULES } from '@/app/constants/app-modules.constants';
 import { createApplication } from '@/app/helpers/application.helpers';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
-import { GRAPHQL_PATH } from '@/platform/graphql/graphql.constants';
+import { GRAPHQL_PATH } from '@/platform/graphql-server/constants/graphql-server.constants';
 import { GlobalPrefix } from '@/platform/http/constants/global-prefix.constants';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import type { ModuleImport } from '@/platform/module-roles/typedefs/module-roles.typedefs';

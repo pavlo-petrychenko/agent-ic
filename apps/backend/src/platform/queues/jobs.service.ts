@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { getOriginator } from '@/platform/context/helpers/use-case-ctx.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
-import { AfterCommitScheduler } from '@/platform/db/after-commit/after-commit.scheduler';
+import { AfterCommitService } from '@/platform/database/services/after-commit.service';
 import type { JobDefinition } from '@/platform/queues/job.definition';
 import { ENVELOPE_VERSION } from '@/platform/queues/queue.constants';
 import { QueueRegistry } from '@/platform/queues/queue.registry';
@@ -11,7 +11,7 @@ import type { JobData, JobEnvelope } from '@/platform/queues/queue.typedefs';
 export class JobsService {
   constructor(
     private readonly queues: QueueRegistry,
-    private readonly afterCommit: AfterCommitScheduler,
+    private readonly afterCommit: AfterCommitService,
   ) {}
 
   async enqueue<TData extends JobData>(

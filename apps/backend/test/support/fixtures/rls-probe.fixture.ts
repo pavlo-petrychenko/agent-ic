@@ -2,12 +2,12 @@ import { generateDrizzleJson, generateMigration } from 'drizzle-kit/api';
 import { sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { text, uuid } from 'drizzle-orm/pg-core';
-import { DatabaseRole } from '@/platform/db/database.constants';
+import { DatabaseRole } from '@/platform/database/constants/database.constants';
 import {
   moduleSchema,
   tenantIsolationPolicy,
   workspaceIdColumn,
-} from '@/platform/db/tenancy/tenancy.helpers';
+} from '@/platform/database/helpers/tenant-table.helpers';
 import { PROBE_TABLE, ProbeColumn } from '@test/support/constants/rls-probe.constants';
 
 export const createProbeTable = (schemaName: string) => {

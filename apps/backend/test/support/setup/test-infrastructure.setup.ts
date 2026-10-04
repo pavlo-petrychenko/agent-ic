@@ -2,8 +2,8 @@ import { PostgreSqlContainer } from '@testcontainers/postgresql';
 import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { RedisContainer } from '@testcontainers/redis';
 import type { TestProject } from 'vitest/node';
-import { DatabaseRole } from '@/platform/db/database.constants';
-import { MigrationRunner } from '@/platform/db/migrator/migration.runner';
+import { DatabaseRole } from '@/platform/database/constants/database.constants';
+import { runMigrations } from '@/platform/database/helpers/migration.helpers';
 import {
   POSTGRES_IMAGE,
   REDIS_IMAGE,
@@ -42,7 +42,7 @@ export const setup = async (project: TestProject): Promise<() => Promise<void>> 
     new RedisContainer(REDIS_IMAGE).start(),
   ]);
   const infrastructure = describeInfrastructure(postgres, redis);
-  await new MigrationRunner(infrastructure.ownerUrl, discardNotice).run();
+  await runMigrations(infrastructure.ownerUrl, discardNotice);
   project.provide(TEST_INFRASTRUCTURE_KEY, infrastructure);
   return async () => {
     await Promise.all([postgres.stop(), redis.stop()]);

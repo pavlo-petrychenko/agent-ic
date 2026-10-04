@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MILLISECONDS_PER_SECOND } from '@/modules/system/domain/server-status.constants';
+import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
 import { ClockService } from '@/platform/clock/services/clock.service';
 
 @Injectable()

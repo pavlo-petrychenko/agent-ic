@@ -55,7 +55,7 @@ Details and reasons are in `docs/rules/`. A tool enforces each rule marked with 
 7. Another backend module is used only through its `index.ts` (`depcruise`).
 8. `platform/` never imports `modules/` (`depcruise`).
 9. Drizzle and SQL only in repositories; every tenant table has `workspace_id` and RLS.
-10. `SystemDb` only from the allow-list in `.dependency-cruiser.cjs` (`depcruise`).
+10. `SystemDatabaseService` only from the allow-list in `.dependency-cruiser.cjs` (`depcruise`).
 11. A use case checks permissions first, and is one transaction. Side effects go through jobs or events after commit.
 12. Throw `DomainError` subclasses; never swallow errors.
 13. Use `Clock` and `IdService`, never `new Date()` or `randomUUID()` in domain code.
@@ -72,7 +72,7 @@ Details and reasons are in `docs/rules/`. A tool enforces each rule marked with 
 
 | Change                                                    | Where                                                                                                                                                                                            |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| New GraphQL field                                         | `modules/<m>/<m>.graphql` (SDL), a resolver in `graphql/`, a use case in `use-cases/`                                                                                                            |
+| New GraphQL field                                         | `modules/<m>/graphql/<m>.graphql` (SDL), a resolver in `resolvers/`, a use case in `use-cases/`                                                                                                  |
 | New REST endpoint                                         | a controller in `modules/<m>/http/` calling one use case                                                                                                                                         |
 | New background job                                        | a processor in `modules/<m>/jobs/` calling one use case; payload holds IDs only                                                                                                                  |
 | New business operation                                    | `modules/<m>/use-cases/<name>.use-case.ts` with a `.spec.ts` beside it                                                                                                                           |

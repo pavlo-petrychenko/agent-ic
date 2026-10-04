@@ -31,7 +31,7 @@ const createUseCase = async (): Promise<{
   const clock = new ManualClock(START);
   const config = loadAppConfig({ role: Role.Api, queues: [] }, createTestEnv());
   const testingModule = await Test.createTestingModule({
-    imports: [ConfigModule.register(config), ClockModule, SystemModule],
+    imports: [ConfigModule.register(config), ClockModule, SystemModule.forRole(Role.Api)],
   })
     .overrideProvider(ClockService)
     .useValue(clock)

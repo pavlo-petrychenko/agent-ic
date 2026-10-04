@@ -8,7 +8,7 @@ import { PROBLEM_CONTENT_TYPE } from '@/platform/errors/constants/problem-detail
 import { toGraphqlError } from '@/platform/errors/helpers/graphql-error.helpers';
 import { toProblemDetails } from '@/platform/errors/helpers/problem-details.helpers';
 import { ErrorReporterService } from '@/platform/errors/services/error-reporter.service';
-import type { GraphqlContext } from '@/platform/graphql/graphql.typedefs';
+import type { GraphqlContext } from '@/platform/graphql-server/typedefs/graphql-context.typedefs';
 import { TransportType } from '@/platform/http/constants/transport.constants';
 
 @Catch()
