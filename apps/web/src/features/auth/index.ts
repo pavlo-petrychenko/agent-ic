@@ -1,4 +1,5 @@
 export { CheckEmailPage } from '@/features/auth/containers/CheckEmailPage';
+export { ConfirmEmailPage } from '@/features/auth/containers/ConfirmEmailPage';
 export { ForgotPasswordPage } from '@/features/auth/containers/ForgotPasswordPage';
 export { LoginPage } from '@/features/auth/containers/LoginPage';
 export { ResetPasswordPage } from '@/features/auth/containers/ResetPasswordPage';

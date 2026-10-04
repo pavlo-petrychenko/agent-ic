@@ -20,3 +20,7 @@ export async function resetPassword(token: string, password: string): Promise<vo
 export async function signUp(request: SignUpRequest): Promise<void> {
   await postAuthRequest(AuthEndpoint.SignUp, request);
 }
+
+export async function confirmEmail(token: string): Promise<void> {
+  startSession(await postAuthRequest(AuthEndpoint.ConfirmEmail, { token }));
+}
