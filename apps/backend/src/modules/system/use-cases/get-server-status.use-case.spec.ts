@@ -32,7 +32,7 @@ const createUseCase = async (): Promise<{
     createArgv(cliArgument(CliOption.Role, Role.Api)),
   );
   const testingModule = await Test.createTestingModule({
-    imports: [ConfigModule.register(config), ClockModule, SystemModule],
+    imports: [ConfigModule.register(config), ClockModule, SystemModule.forRole(Role.Api)],
   })
     .overrideProvider(Clock)
     .useValue(clock)
