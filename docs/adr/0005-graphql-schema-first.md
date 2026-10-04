@@ -1,6 +1,6 @@
 # 0005. GraphQL schema-first for the dashboard API; REST for the gateway
 
-- **Status:** Accepted
+- **Status:** Accepted; amended 2026-10-05: operations that issue or revoke a session (sign-up, login, refresh, logout, confirm email, reset password) are REST under `/api/auth`, because they set cookies; everything else in the dashboard stays GraphQL (architecture.md D92, D163)
 - **Date:** 2026-10-02
 
 ## Context
