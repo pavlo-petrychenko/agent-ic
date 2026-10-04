@@ -11,6 +11,7 @@ const repository = '\\.repository\\.ts$';
 const moduleRootTransport = `${modules}[^/]+/[^/]+\\.(graphql-module|http-module|jobs-module)\\.ts$`;
 const moduleIndex = `${modules}[^/]+/index\\.ts$`;
 const featureIndex = `${features}[^/]+/index\\.ts$`;
+const featureShared = 'constants|typedefs';
 const testFile = '\\.test\\.tsx?$';
 const backendTestSupport = '^apps/backend/test/';
 const appTestSupport = '^apps/[^/]+/test/';
@@ -84,22 +85,22 @@ module.exports = {
     forbidden(
       'web-communication-layer',
       { path: `${features}([^/]+)/communication/` },
-      { path: `${features}$1/`, pathNot: `${features}$1/communication/` },
+      { path: `${features}$1/`, pathNot: `${features}$1/(communication|${featureShared})/` },
     ),
     forbidden(
       'web-logic-layer',
       { path: `${features}([^/]+)/logic/` },
-      { path: `${features}$1/`, pathNot: `${features}$1/(logic|storage)/` },
+      { path: `${features}$1/`, pathNot: `${features}$1/(logic|storage|${featureShared})/` },
     ),
     forbidden(
       'web-storage-layer',
       { path: `${features}([^/]+)/storage/` },
-      { path: `${features}$1/`, pathNot: `${features}$1/storage/` },
+      { path: `${features}$1/`, pathNot: `${features}$1/(storage|${featureShared})/` },
     ),
     forbidden(
       'web-view-layer',
       { path: `${features}([^/]+)/view/` },
-      { path: `${features}$1/`, pathNot: `${features}$1/(view|storage)/` },
+      { path: `${features}$1/`, pathNot: `${features}$1/(view|storage|${featureShared})/` },
     ),
     forbidden(
       'web-view-shared-ui-only',
@@ -111,7 +112,7 @@ module.exports = {
       { path: `${features}([^/]+)/containers/` },
       {
         path: `${features}$1/`,
-        pathNot: `${features}$1/(communication|logic|storage|view|containers)/`,
+        pathNot: `${features}$1/(communication|logic|storage|view|containers|${featureShared})/`,
       },
     ),
     forbidden(

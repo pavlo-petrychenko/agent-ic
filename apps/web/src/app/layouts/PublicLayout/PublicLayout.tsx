@@ -1,9 +1,5 @@
-import type { ReactNode } from 'react';
-import { AppHeader } from '@/app/layouts/AppHeader/AppHeader';
-
-interface PublicLayoutProps {
-  children: ReactNode;
-}
+import { AppHeader } from '@/app/layouts/AppHeader';
+import type { PublicLayoutProps } from '@/app/layouts/PublicLayout/PublicLayout.typedefs';
 
 export function PublicLayout({ children }: PublicLayoutProps) {
   return (

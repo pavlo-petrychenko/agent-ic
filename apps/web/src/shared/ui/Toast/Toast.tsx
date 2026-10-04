@@ -7,8 +7,8 @@ import {
   TOAST_SWIPE_DIRECTION,
   ToastTone,
 } from '@/shared/ui/Toast/Toast.constants';
+import { ToastContext } from '@/shared/ui/Toast/toast.context';
 import type { ToastItem, ToastOptions, ToastProviderProps } from '@/shared/ui/Toast/Toast.typedefs';
-import { ToastContext } from '@/shared/ui/Toast/toastContext';
 import styles from '@/shared/ui/Toast/Toast.module.scss';
 
 export function ToastProvider({ closeLabel, children }: ToastProviderProps) {

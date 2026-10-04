@@ -1,10 +1,11 @@
 import { Locale } from '@agent-ic/contracts';
 import type { MockLink } from '@apollo/client/testing';
 import { MockedProvider } from '@apollo/client/testing/react';
-import { render, type RenderResult } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { I18nextProvider } from 'react-i18next';
-import { createI18n } from '@/shared/i18n/i18n';
+import { createI18n } from '@/shared/i18n/clients/i18n.client';
 
 interface RenderWithProvidersOptions {
   locale?: Locale;

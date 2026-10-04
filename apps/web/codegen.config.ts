@@ -3,8 +3,8 @@ import type { CodegenConfig } from '@graphql-codegen/cli';
 const SCHEMA_PATH = '../../packages/api-schema/schema.graphql';
 const DOCUMENTS_GLOB = 'src/**/*.graphql';
 const OPERATIONS_BASE_DIR = 'src/';
-const SCHEMA_TYPES_FILE = 'src/shared/api/schema.generated.ts';
-const SCHEMA_TYPES_FROM_BASE_DIR = 'shared/api/schema.generated.ts';
+const SCHEMA_TYPES_FILE = 'src/shared/api/generated/schema.generated.ts';
+const SCHEMA_TYPES_FROM_BASE_DIR = 'shared/api/generated/schema.generated.ts';
 const GENERATED_EXTENSION = '.generated.ts';
 const TYPED_DOCUMENT_IMPORT = '@apollo/client#TypedDocumentNode';
 

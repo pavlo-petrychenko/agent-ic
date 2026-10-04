@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: { ...resolveOptions, alias: testAliases },
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.test.{ts,tsx}', 'vite.*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}', 'test/integration/**/*.test.{ts,tsx}', 'vite.*.test.ts'],
     setupFiles: ['./test/support/setup/vitest.setup.ts'],
   },
 });
