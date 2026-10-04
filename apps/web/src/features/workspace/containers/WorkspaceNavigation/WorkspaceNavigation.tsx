@@ -10,10 +10,10 @@ import {
 } from '@/features/workspace/constants/route.constants';
 import { WORKSPACE_NAMESPACE } from '@/features/workspace/constants/workspaceI18n.constants';
 import type { WorkspaceNavigationProps } from '@/features/workspace/containers/WorkspaceNavigation/WorkspaceNavigation.typedefs';
-import { toInitials } from '@/features/workspace/logic/helpers/initials.helpers';
 import { visibleNavGroups } from '@/features/workspace/logic/helpers/navigation.helpers';
 import { WorkspaceSidebar } from '@/features/workspace/view/WorkspaceSidebar';
 import { WorkspaceSwitcher } from '@/features/workspace/view/WorkspaceSwitcher';
+import { toInitials } from '@/shared/i18n/helpers/initials.helpers';
 
 export function WorkspaceNavigation({ workspaceId, footerAction }: WorkspaceNavigationProps) {
   const { t } = useTranslation(WORKSPACE_NAMESPACE);

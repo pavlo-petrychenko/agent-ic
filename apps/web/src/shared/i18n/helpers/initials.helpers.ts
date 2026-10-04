@@ -1,7 +1,4 @@
-import {
-  INITIALS_LENGTH,
-  NAME_PART_SEPARATOR,
-} from '@/features/workspace/constants/initials.constants';
+import { INITIALS_LENGTH, NAME_PART_SEPARATOR } from '@/shared/i18n/constants/initials.constants';
 
 export const toInitials = (name: string): string =>
   name

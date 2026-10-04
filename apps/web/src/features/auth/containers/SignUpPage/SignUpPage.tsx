@@ -9,11 +9,14 @@ import {
   SIGN_UP_REASON_FIELDS,
   SignUpField,
 } from '@/features/auth/constants/confirmation.constants';
+import type { SignUpPageProps } from '@/features/auth/containers/SignUpPage/SignUpPage.typedefs';
+import { inviteHref } from '@/features/auth/logic/helpers/invite.helpers';
 import { useServerErrors } from '@/features/auth/logic/hooks/useServerErrors';
 import { createSignUpSchema } from '@/features/auth/logic/schemas/signUp.schema';
 import { AuthForm } from '@/features/auth/view/AuthForm';
 import { AuthPanel } from '@/features/auth/view/AuthPanel';
 import { EmailTakenError } from '@/features/auth/view/EmailTakenError';
+import { InviteRoleNote } from '@/features/auth/view/InviteRoleNote';
 import { useAppForm } from '@/shared/forms/hooks/useAppForm';
 import { Namespace } from '@/shared/i18n/constants/namespace.constants';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
@@ -22,7 +25,7 @@ import { Callout, CalloutTone } from '@/shared/ui/Callout';
 import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/Text';
 import { TextLink } from '@/shared/ui/TextLink';
 
-export function SignUpPage() {
+export function SignUpPage({ invite = null }: SignUpPageProps) {
   const { t } = useTranslation(Namespace.Auth);
   const { t: tError } = useTranslation(Namespace.Errors);
   const { locale } = useLocale();
@@ -41,7 +44,7 @@ export function SignUpPage() {
     listeners: { onChange: ({ fieldApi }) => serverErrors.clearField(fieldApi.name) },
     onSubmit: async ({ value }) => {
       try {
-        await signUp({ ...value, locale, inviteToken: NO_INVITE_TOKEN });
+        await signUp({ ...value, locale, inviteToken: invite?.token ?? NO_INVITE_TOKEN });
         await navigate({ to: CHECK_EMAIL_PATH, search: { email: value.email } });
       } catch (error) {
         serverErrors.report(error);
@@ -57,17 +60,29 @@ export function SignUpPage() {
 
   return (
     <AuthPanel
-      title={t('signUp.title')}
-      subtitle={t('signUp.subtitle')}
+      title={
+        invite === null ? t('signUp.title') : t('invite.title', { workspace: invite.workspaceName })
+      }
+      subtitle={
+        invite === null
+          ? t('signUp.subtitle')
+          : t('invite.signUpSubtitle', { inviter: invite.inviterName })
+      }
       footer={
         <>
           <Text as={TextElement.Span} kind={TextKind.BodySmall} color={TextColor.Mute}>
             {t('signUp.haveAccount')}
           </Text>
-          <TextLink to={LOGIN_PATH}>{t('signUp.logIn')}</TextLink>
+          <TextLink
+            to={LOGIN_PATH}
+            search={{ redirect: invite === null ? null : inviteHref(invite.token) }}
+          >
+            {invite === null ? t('signUp.logIn') : t('invite.logInToJoin')}
+          </TextLink>
         </>
       }
     >
+      {invite !== null && <InviteRoleNote role={invite.role} />}
       <AuthForm onSubmit={() => void form.handleSubmit()}>
         <form.AppField name={SignUpField.Name}>
           {(field) => (
@@ -81,7 +96,7 @@ export function SignUpPage() {
         <form.AppField name={SignUpField.Email}>
           {(field) => (
             <field.TextField
-              label={t('fields.workEmail')}
+              label={invite === null ? t('fields.workEmail') : t('fields.email')}
               type="email"
               autoComplete="email"
               error={emailError}
@@ -103,7 +118,7 @@ export function SignUpPage() {
         )}
         <form.AppForm>
           <form.SubmitButton size={ButtonSize.Lg} fullWidth>
-            {t('signUp.submit')}
+            {invite === null ? t('signUp.submit') : t('invite.signUpSubmit')}
           </form.SubmitButton>
         </form.AppForm>
       </AuthForm>

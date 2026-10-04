@@ -1,0 +1,8 @@
+query InviteInfo($token: String!) {
+  inviteInfo(token: $token) {
+    workspaceName
+    inviterName
+    memberCount
+    role
+  }
+}

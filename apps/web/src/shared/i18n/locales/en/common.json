@@ -63,6 +63,12 @@
       "admin": "you manage the team and everything in it",
       "builder": "you build, test and publish agents",
       "operator": "you work with chats in the Inbox"
+    },
+    "ability": {
+      "owner": "Change everything in the workspace",
+      "admin": "Manage the team and everything in the workspace",
+      "builder": "Build, test and publish agents",
+      "operator": "Reply to escalated chats in the Inbox"
     }
   }
 }

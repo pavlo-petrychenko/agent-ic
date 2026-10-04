@@ -18,3 +18,5 @@ export const EMPTY_WORKSPACE_STEP_VALUES: WorkspaceStepValues = { name: '' };
 export const WORKSPACE_STEP_REASON_FIELDS: ReasonFieldMap = {
   [ErrorReason.InvalidWorkspaceName]: WorkspaceStepField.Name,
 };
+
+export const MY_WORKSPACES_FIELD = 'myWorkspaces';
