@@ -24,7 +24,9 @@ describe('workspace route', () => {
     await router.load();
 
     expect(router.state.location.pathname).toBe(LOGIN_PATH);
-    expect(router.state.location.search).toEqual({ redirect: workspacePath(FIRST_WORKSPACE_ID) });
+    expect(router.state.location.search).toMatchObject({
+      redirect: workspacePath(FIRST_WORKSPACE_ID),
+    });
     expect(getRequestContext().workspaceId).toBeNull();
   });
 

@@ -5,6 +5,15 @@ export interface LoginValues {
   readonly password: string;
 }
 
+export interface ForgotPasswordValues {
+  readonly email: string;
+}
+
+export interface ResetPasswordValues {
+  readonly password: string;
+  readonly repeatPassword: string;
+}
+
 export type ReasonFieldMap = Partial<Record<ErrorReason, string>>;
 
 export interface ServerErrorPlan {

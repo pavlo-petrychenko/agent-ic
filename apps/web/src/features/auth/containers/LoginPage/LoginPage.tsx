@@ -6,18 +6,21 @@ import {
   LOGIN_REASON_FIELDS,
   LoginField,
 } from '@/features/auth/constants/authForm.constants';
+import { FORGOT_PASSWORD_PATH, LoginNotice } from '@/features/auth/constants/authRoute.constants';
 import type { LoginPageProps } from '@/features/auth/containers/LoginPage/LoginPage.typedefs';
 import { useEnterApp } from '@/features/auth/logic/hooks/useEnterApp';
 import { useServerErrors } from '@/features/auth/logic/hooks/useServerErrors';
 import { createLoginSchema } from '@/features/auth/logic/schemas/login.schema';
+import { AuthForm } from '@/features/auth/view/AuthForm';
 import { AuthPanel } from '@/features/auth/view/AuthPanel';
 import { useAppForm } from '@/shared/forms/hooks/useAppForm';
 import { Namespace } from '@/shared/i18n/constants/namespace.constants';
 import { ButtonSize } from '@/shared/ui/Button';
 import { Callout, CalloutTone } from '@/shared/ui/Callout';
+import { TextLink } from '@/shared/ui/TextLink';
 import styles from '@/features/auth/containers/LoginPage/LoginPage.module.scss';
 
-export function LoginPage({ redirect }: LoginPageProps) {
+export function LoginPage({ redirect, notice }: LoginPageProps) {
   const { t } = useTranslation(Namespace.Auth);
   const { t: tError } = useTranslation(Namespace.Errors);
   const enterApp = useEnterApp(useLandingWorkspace());
@@ -43,14 +46,10 @@ export function LoginPage({ redirect }: LoginPageProps) {
 
   return (
     <AuthPanel title={t('login.title')} subtitle={t('login.subtitle')}>
-      <form
-        noValidate
-        className={styles.form}
-        onSubmit={(event) => {
-          event.preventDefault();
-          void form.handleSubmit();
-        }}
-      >
+      {notice === LoginNotice.PasswordChanged && (
+        <Callout tone={CalloutTone.Ok}>{t('login.passwordChanged')}</Callout>
+      )}
+      <AuthForm onSubmit={() => void form.handleSubmit()}>
         <form.AppField name={LoginField.Email}>
           {(field) => (
             <field.TextField
@@ -70,6 +69,9 @@ export function LoginPage({ redirect }: LoginPageProps) {
             />
           )}
         </form.AppField>
+        <div className={styles.forgot}>
+          <TextLink to={FORGOT_PASSWORD_PATH}>{t('login.forgot')}</TextLink>
+        </div>
         {serverErrors.formError !== null && (
           <Callout tone={CalloutTone.Err}>{serverErrors.formError}</Callout>
         )}
@@ -78,7 +80,7 @@ export function LoginPage({ redirect }: LoginPageProps) {
             {t('login.submit')}
           </form.SubmitButton>
         </form.AppForm>
-      </form>
+      </AuthForm>
     </AuthPanel>
   );
 }
