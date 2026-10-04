@@ -4,6 +4,7 @@ import {
   SKELETON_FULL_WIDTH,
 } from '@/shared/ui/Skeleton/Skeleton.constants';
 import type { SkeletonProps } from '@/shared/ui/Skeleton/Skeleton.typedefs';
+import { useSkeletonDelay } from '@/shared/ui/Skeleton/useSkeletonDelay';
 import styles from '@/shared/ui/Skeleton/Skeleton.module.scss';
 
 export function Skeleton({
@@ -14,6 +15,12 @@ export function Skeleton({
   style,
   ...rest
 }: SkeletonProps) {
+  const visible = useSkeletonDelay();
+
+  if (!visible) {
+    return null;
+  }
+
   return (
     <output
       {...rest}
@@ -26,8 +33,8 @@ export function Skeleton({
         <span
           key={index}
           aria-hidden="true"
-          className={clsx(styles.bar, styles[line.size])}
-          style={{ width: line.width }}
+          className={clsx(styles.bar, styles[line.tone])}
+          style={{ width: line.width, height: line.height }}
         />
       ))}
     </output>

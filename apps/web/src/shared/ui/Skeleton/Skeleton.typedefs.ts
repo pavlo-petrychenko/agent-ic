@@ -1,9 +1,10 @@
 import type { ComponentProps } from 'react';
-import type { SkeletonBarSize } from '@/shared/ui/Skeleton/Skeleton.constants';
+import type { SkeletonBarHeight, SkeletonTone } from '@/shared/ui/Skeleton/Skeleton.constants';
 
 export interface SkeletonLine {
   width: string;
-  size: SkeletonBarSize;
+  height: SkeletonBarHeight;
+  tone: SkeletonTone;
 }
 
 export interface SkeletonProps extends Omit<ComponentProps<'output'>, 'children'> {
