@@ -1,31 +1,41 @@
-import { Locale } from '@agent-ic/contracts';
-import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/react-router';
-import { act, render, screen } from '@testing-library/react';
-import { I18nextProvider } from 'react-i18next';
-import { afterEach, describe, expect, it } from 'vitest';
-import { routeTree } from '@/routeTree.gen';
+import { act, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getRequestContext, setWorkspaceId } from '@/shared/api/helpers/requestContext.helpers';
-import { createI18n } from '@/shared/i18n/clients/i18n.client';
+import { createTestRouter, renderRoute } from '@test/support/helpers/router.helpers';
+import { signInForTest, signOutForTest } from '@test/support/helpers/session.helpers';
 
 const FIRST_WORKSPACE_ID = 'ws_first';
 const SECOND_WORKSPACE_ID = 'ws_second';
 const UNKNOWN_PATH = '/unknown';
+const LOGIN_PATH = '/auth/login';
 const workspacePath = (workspaceId: string) => `/w/${workspaceId}`;
 
-const createTestRouter = (initialPath: string) => {
-  const history = createMemoryHistory({ initialEntries: [initialPath] });
-  return { history, router: createRouter({ routeTree, history }) };
-};
-
-const renderRouter = (router: ReturnType<typeof createTestRouter>['router']) =>
-  render(
-    <I18nextProvider i18n={createI18n(Locale.En)}>
-      <RouterProvider router={router} />
-    </I18nextProvider>,
-  );
-
 describe('workspace route', () => {
-  afterEach(() => setWorkspaceId(null));
+  beforeEach(() => signInForTest());
+  afterEach(async () => {
+    setWorkspaceId(null);
+    await signOutForTest();
+  });
+
+  it('sends a visitor without a session to log in, keeping the address to come back to', async () => {
+    await signOutForTest();
+    const { router } = createTestRouter(workspacePath(FIRST_WORKSPACE_ID));
+
+    await router.load();
+
+    expect(router.state.location.pathname).toBe(LOGIN_PATH);
+    expect(router.state.location.search).toEqual({ redirect: workspacePath(FIRST_WORKSPACE_ID) });
+    expect(getRequestContext().workspaceId).toBeNull();
+  });
+
+  it('leaves the workspace for log in when the session ends while it is open', async () => {
+    const { router } = renderRoute(workspacePath(FIRST_WORKSPACE_ID));
+    await screen.findByText(FIRST_WORKSPACE_ID);
+
+    await act(signOutForTest);
+
+    expect(router.state.location.pathname).toBe(LOGIN_PATH);
+  });
 
   it('sets the workspace id while loading, before any child renders', async () => {
     const { router } = createTestRouter(workspacePath(FIRST_WORKSPACE_ID));
@@ -36,8 +46,7 @@ describe('workspace route', () => {
   });
 
   it('forgets the workspace id after leaving the workspace', async () => {
-    const { history, router } = createTestRouter(workspacePath(FIRST_WORKSPACE_ID));
-    renderRouter(router);
+    const { history } = renderRoute(workspacePath(FIRST_WORKSPACE_ID));
     await screen.findByText(FIRST_WORKSPACE_ID);
 
     await act(async () => history.push(UNKNOWN_PATH));
@@ -46,8 +55,7 @@ describe('workspace route', () => {
   });
 
   it('keeps the new workspace id when switching between workspaces', async () => {
-    const { history, router } = createTestRouter(workspacePath(FIRST_WORKSPACE_ID));
-    renderRouter(router);
+    const { history } = renderRoute(workspacePath(FIRST_WORKSPACE_ID));
     await screen.findByText(FIRST_WORKSPACE_ID);
 
     await act(async () => history.push(workspacePath(SECOND_WORKSPACE_ID)));

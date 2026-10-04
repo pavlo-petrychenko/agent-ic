@@ -671,7 +671,7 @@ The full web layout and file naming are in `docs/rules/structure.md` (D140). Tes
 - cache: prefixed ids are globally unique, so entities normalise by `id`; lists use `relayStylePagination` (D88);
 - live updates: a `useLiveRefetch(subscription, variables, queries)` hook refetches the listed queries when an event says what changed (ADR 0006).
 
-**Routes** follow the MVP screens under `/w/:workspaceId/` (D87): `agents`, `agents/:agentId` (flow builder), `prompts`, `knowledge`, `channels`, `inbox/:conversationId?`, `testing`, `analytics`, `settings/*`, `quick-start`; auth routes (`/login`, `/signup`, `/invite/:token`, `/reset`) sit outside it.
+**Routes** follow the MVP screens under `/w/:workspaceId/` (D87): `agents`, `agents/:agentId` (flow builder), `prompts`, `knowledge`, `channels`, `inbox/:conversationId?`, `testing`, `analytics`, `settings/*`, `quick-start`; auth routes sit outside it, under `/auth/` (`login`, `sign-up`, `check-email`, `confirm-email`, `forgot-password`, `reset-password`, and `workspace` for the first workspace), matching the links in the e-mails, plus `/invite/:token`. A guard sends a visitor without a session from `/w/*` and `/auth/workspace` to `/auth/login?redirect=…`.
 
 **Why containers instead of a Communication → Logic → View component chain:** screens like Traces, Inbox and the flow builder have several independent panels with their own data. A container per panel avoids long prop chains and keeps re-renders local.
 

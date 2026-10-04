@@ -1,5 +1,10 @@
 import type { ErrorReason } from '@agent-ic/contracts';
 
+export interface LoginValues {
+  readonly email: string;
+  readonly password: string;
+}
+
 export type ReasonFieldMap = Partial<Record<ErrorReason, string>>;
 
 export interface ServerErrorPlan {
