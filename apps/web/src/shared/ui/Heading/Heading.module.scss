@@ -1,0 +1,33 @@
+.root {
+  margin: 0;
+  color: var(--color-ink);
+}
+
+.display {
+  font: var(--type-display);
+  letter-spacing: var(--tracking-tight);
+}
+
+.h1 {
+  font: var(--type-h1);
+  letter-spacing: var(--tracking-tight);
+}
+
+.h2 {
+  font: var(--type-h2);
+  letter-spacing: var(--tracking-tight);
+}
+
+.h3 {
+  font: var(--type-h3);
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+}
