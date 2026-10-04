@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { SectionPlaceholderPage, WorkspaceSection } from '@/features/workspace';
+import { SectionGate, SectionPlaceholderPage, WorkspaceSection } from '@/features/workspace';
 
 export const Route = createFileRoute('/w/$workspaceId/inbox')({
   component: InboxRoute,
@@ -7,5 +7,9 @@ export const Route = createFileRoute('/w/$workspaceId/inbox')({
 
 function InboxRoute() {
   const { workspaceId } = Route.useParams();
-  return <SectionPlaceholderPage workspaceId={workspaceId} section={WorkspaceSection.Inbox} />;
+  return (
+    <SectionGate workspaceId={workspaceId} section={WorkspaceSection.Inbox}>
+      <SectionPlaceholderPage workspaceId={workspaceId} section={WorkspaceSection.Inbox} />
+    </SectionGate>
+  );
 }

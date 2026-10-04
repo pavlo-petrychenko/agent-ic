@@ -1,5 +1,6 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import { screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   buildWorkspaceShellMock,
@@ -44,5 +45,27 @@ describe('workspace shell', () => {
     expect(await nav.findByRole('link', { name: 'Inbox' })).toBeInTheDocument();
     expect(nav.getByRole('link', { name: 'Settings' })).toBeInTheDocument();
     expect(nav.queryByRole('link', { name: 'Agents' })).not.toBeInTheDocument();
+  });
+
+  it('shows NoAccess when an operator opens Agents directly, with a way to the Inbox', async () => {
+    const { router } = renderRoute(`${homePath}/agents`, {
+      mocks: [buildWorkspaceShellMock([OPERATOR_WORKSPACE])],
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: 'You don’t have access to Agents' }),
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Go to Inbox' }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe(`${homePath}/inbox`));
+  });
+
+  it('offers the way to a workspace the user belongs to when the address is not theirs', async () => {
+    renderRoute('/w/ws_other/agents', { mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE])] });
+
+    expect(
+      await screen.findByRole('heading', { name: 'This workspace isn’t available' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Go to my workspace' })).toBeInTheDocument();
   });
 });
