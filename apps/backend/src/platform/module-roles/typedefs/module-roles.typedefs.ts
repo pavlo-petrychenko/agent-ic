@@ -15,6 +15,7 @@ export interface ModuleDefinition {
   readonly gatewayControllers?: readonly Type<unknown>[];
   readonly processors?: readonly Type<unknown>[];
   readonly listeners?: readonly Type<unknown>[];
+  readonly roleImports?: Readonly<Partial<Record<Role, readonly ModuleImport[]>>>;
   readonly roleProviders?: Readonly<Partial<Record<Role, readonly Provider[]>>>;
   readonly roleControllers?: Readonly<Partial<Record<Role, readonly Type<unknown>[]>>>;
 }

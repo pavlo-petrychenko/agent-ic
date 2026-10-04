@@ -2,11 +2,10 @@ import { ErrorReason } from '@agent-ic/contracts';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
-import { ROLE_MODULES } from '@/app/constants/app-modules.constants';
+import { APP_MODULES } from '@/app/constants/app-modules.constants';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { PROBLEM_CONTENT_TYPE } from '@/platform/errors/constants/problem-details.constants';
 import { HttpHeader } from '@/platform/http/constants/http-header.constants';
-import { Role } from '@/platform/module-roles/constants/role.constants';
 import { MetricsRoute } from '@/platform/observability/constants/metrics.constants';
 import { QueueBoardRoute } from '@/platform/queues/constants/queue-board.constants';
 import { QueueMetricName } from '@/platform/queues/constants/queue-metrics.constants';
@@ -27,7 +26,7 @@ describe('queue board', () => {
     const env = createIntegrationTestEnv(TestRedisDatabase.QueueBoard, {
       [EnvVar.PlatformAdminDevAccess]: String(devAccess),
     });
-    app = await createApi(ROLE_MODULES[Role.Api], env);
+    app = await createApi(APP_MODULES, env);
     await app.init();
     return request(app.getHttpServer());
   };

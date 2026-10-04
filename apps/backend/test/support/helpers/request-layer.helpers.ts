@@ -4,7 +4,7 @@ import type { FormattedExecutionResult } from 'graphql';
 import { createClient } from 'graphql-ws';
 import WebSocket from 'ws';
 import { AppModule } from '@/app/app.module';
-import { ROLE_MODULES } from '@/app/constants/app-modules.constants';
+import { APP_MODULES } from '@/app/constants/app-modules.constants';
 import { createApplication } from '@/app/helpers/application.helpers';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { GRAPHQL_PATH } from '@/platform/graphql-server/constants/graphql-server.constants';
@@ -26,12 +26,12 @@ export const apiPath = (...segments: readonly string[]): string =>
 export const graphqlPath = (): string => `/${GlobalPrefix.Api}${GRAPHQL_PATH}`;
 
 export const createApi = async (
-  roleModules: readonly ModuleImport[] = ROLE_MODULES[Role.Api],
+  modules: readonly ModuleImport[] = APP_MODULES,
   env: NodeJS.ProcessEnv = createIntegrationTestEnv(TestRedisDatabase.RequestLayer),
 ): Promise<INestApplication> => {
   const config = loadAppConfig({ role: Role.Api, queues: [] }, env);
   const tracing = new TracingService(config.telemetry);
-  return createApplication(config, AppModule.forRole(config, tracing, roleModules));
+  return createApplication(config, AppModule.forRole(config, tracing, modules));
 };
 
 const websocketUrl = (app: INestApplication): string => {

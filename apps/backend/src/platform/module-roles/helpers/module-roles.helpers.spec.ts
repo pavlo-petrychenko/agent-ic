@@ -134,6 +134,19 @@ describe('defineModule', () => {
     expect(module.forRole(Role.Api).controllers).toEqual([]);
   });
 
+  it('adds role imports only to their role, resolved for that role', () => {
+    const module = defineModule({
+      imports: [DomainEventListenersProbeModule],
+      roleImports: { [Role.Api]: [RoleProbeDependencyModule] },
+    });
+
+    expect(module.forRole(Role.Api).imports).toEqual([
+      DomainEventListenersProbeModule,
+      RoleProbeDependencyModule.forRole(Role.Api),
+    ]);
+    expect(module.forRole(Role.Worker).imports).toEqual([DomainEventListenersProbeModule]);
+  });
+
   it('mounts controllers in every role with inEveryRole', () => {
     const module = defineModule({ roleControllers: inEveryRole([GatewayProbeController]) });
 

@@ -3,13 +3,12 @@ import type { INestApplication } from '@nestjs/common';
 import { CloseCode } from 'graphql-ws';
 import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
-import { ROLE_MODULES } from '@/app/constants/app-modules.constants';
+import { APP_MODULES, PLATFORM_MODULES } from '@/app/constants/app-modules.constants';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { PROBLEM_CONTENT_TYPE } from '@/platform/errors/constants/problem-details.constants';
 import { ConnectionParam } from '@/platform/graphql-server/constants/connection-param.constants';
 import { UnboundResolverError } from '@/platform/graphql-server/errors/unbound-resolver.error';
 import { HttpHeader } from '@/platform/http/constants/http-header.constants';
-import { Role } from '@/platform/module-roles/constants/role.constants';
 import {
   EPHEMERAL_PORT,
   FailingRoute,
@@ -27,13 +26,12 @@ import {
   queryOverWebSocket,
 } from '@test/support/helpers/request-layer.helpers';
 import { FailingApiModule } from '@test/support/modules/failing-api.module';
-import { UnboundResolverApiModule } from '@test/support/modules/unbound-resolver-api.module';
 
 describe('api request layer', () => {
   let app: INestApplication | null = null;
 
   const boot = async (): Promise<INestApplication> => {
-    app = await createApi([...ROLE_MODULES[Role.Api], FailingApiModule]);
+    app = await createApi([...APP_MODULES, FailingApiModule]);
     await app.init();
     return app;
   };
@@ -135,7 +133,7 @@ describe('api request layer', () => {
   });
 
   it('fails to boot when a root field has no resolver', async () => {
-    app = await createApi([UnboundResolverApiModule]);
+    app = await createApi(PLATFORM_MODULES);
 
     await expect(app.init()).rejects.toBeInstanceOf(UnboundResolverError);
   });

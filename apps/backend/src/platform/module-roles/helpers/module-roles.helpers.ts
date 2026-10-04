@@ -54,7 +54,9 @@ export const roleModule = (
   return {
     module,
     global: definition.global ?? false,
-    imports: (definition.imports ?? []).map((entry) => importForRole(entry, role)),
+    imports: [...(definition.imports ?? []), ...(definition.roleImports?.[role] ?? [])].map(
+      (entry) => importForRole(entry, role),
+    ),
     controllers: [...transports.controllers, ...(definition.roleControllers?.[role] ?? [])],
     providers: [
       ...(definition.providers ?? []),
