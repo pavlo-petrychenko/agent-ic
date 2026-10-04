@@ -15,7 +15,7 @@ const testFile = '\\.test\\.tsx?$';
 
 const systemDb = `${backend}platform/db/system-db\\.ts$`;
 const systemDbAllowList = [
-  `${backend}platform/(db|outbox|queues|testing)/`,
+  `${backend}platform/(db|outbox|queues)/`,
   `${modules}identity/repositories/`,
   `${modules}analytics/repositories/`,
 ];

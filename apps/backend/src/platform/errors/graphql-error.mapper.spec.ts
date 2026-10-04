@@ -10,11 +10,11 @@ import {
   SAMPLE_INTERNAL_DETAIL,
   SAMPLE_TRACE_ID,
   SAMPLE_UPSTREAM,
-} from '@/platform/testing/sample-errors.constants';
+} from '@test/support/constants/sample-errors.constants';
 import {
   SampleNotFoundError,
   SampleValidationError,
-} from '@/platform/testing/sample-errors.fixture';
+} from '@test/support/fixtures/sample-errors.fixture';
 
 const mapper = new GraphqlErrorMapper();
 

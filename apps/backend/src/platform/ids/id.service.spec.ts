@@ -3,7 +3,7 @@ import { IdService } from '@/platform/ids/id.service';
 import { ID_ENCODED_LENGTH, ID_SEPARATOR, UUID_PATTERN } from '@/platform/ids/ids.constants';
 import { InvalidIdPrefixError } from '@/platform/ids/invalid-id-prefix.error';
 import { InvalidIdError } from '@/platform/ids/invalid-id.error';
-import { ManualClock } from '@/platform/testing/manual.clock';
+import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 
 const PREFIX = 'agt';
 const OTHER_PREFIX = 'kb';

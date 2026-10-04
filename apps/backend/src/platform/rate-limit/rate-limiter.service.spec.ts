@@ -6,8 +6,8 @@ import { RateLimitPolicy } from '@/platform/rate-limit/rate-limit.policy';
 import { RateLimitedError } from '@/platform/rate-limit/rate-limited.error';
 import { RateLimiterService } from '@/platform/rate-limit/rate-limiter.service';
 import { RedisModule } from '@/platform/redis/redis.module';
-import { createPlatformTestingModule } from '@/platform/testing/database-testing.helpers';
-import { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
+import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 
 const CAPACITY = 3;
 const WAIT = { timeout: 2_000, interval: 10 };

@@ -7,8 +7,8 @@ import { CacheModule } from '@/platform/cache/cache.module';
 import { CacheService } from '@/platform/cache/cache.service';
 import { CacheRedisClient } from '@/platform/redis/cache-redis.client';
 import { RedisModule } from '@/platform/redis/redis.module';
-import { createPlatformTestingModule } from '@/platform/testing/database-testing.helpers';
-import { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
+import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 
 const TTL_SECONDS = 60;
 

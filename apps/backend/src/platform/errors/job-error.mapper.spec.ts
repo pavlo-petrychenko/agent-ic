@@ -3,12 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { JobFailureAction } from '@/platform/errors/errors.constants';
 import { JobErrorMapper } from '@/platform/errors/job-error.mapper';
 import { UpstreamError } from '@/platform/errors/upstream.error';
-import { SAMPLE_UPSTREAM } from '@/platform/testing/sample-errors.constants';
+import { SAMPLE_UPSTREAM } from '@test/support/constants/sample-errors.constants';
 import {
   SampleNotFoundError,
   SamplePlanLimitError,
   SampleRateLimitError,
-} from '@/platform/testing/sample-errors.fixture';
+} from '@test/support/fixtures/sample-errors.fixture';
 
 const mapper = new JobErrorMapper();
 

@@ -10,9 +10,9 @@ import { ConfigModule } from '@/platform/config/config.module';
 import { ActorKind, Locale } from '@/platform/context/context.constants';
 import { UseCaseCtx } from '@/platform/context/use-case-ctx';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { ManualClock } from '@/platform/testing/manual.clock';
-import { TEST_ENV } from '@/platform/testing/test-env.constants';
-import { cliArgument, createArgv, createTestEnv } from '@/platform/testing/test-env.fixture';
+import { TEST_ENV } from '@test/support/constants/test-env.constants';
+import { ManualClock } from '@test/support/fakes/manual-clock.fake';
+import { cliArgument, createArgv, createTestEnv } from '@test/support/fixtures/test-env.fixture';
 
 const START = new Date('2026-10-04T12:00:00.000Z');
 const ANONYMOUS_CTX = new UseCaseCtx({

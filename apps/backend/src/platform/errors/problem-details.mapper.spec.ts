@@ -8,12 +8,12 @@ import {
   SAMPLE_FIELD_PATH,
   SAMPLE_INTERNAL_DETAIL,
   SAMPLE_TRACE_ID,
-} from '@/platform/testing/sample-errors.constants';
+} from '@test/support/constants/sample-errors.constants';
 import {
   SamplePlanLimitError,
   SampleRateLimitError,
   SampleValidationError,
-} from '@/platform/testing/sample-errors.fixture';
+} from '@test/support/fixtures/sample-errors.fixture';
 
 const INSTANCE = '/api/things/1';
 const mapper = new ProblemDetailsMapper();

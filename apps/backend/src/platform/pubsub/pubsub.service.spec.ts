@@ -7,8 +7,8 @@ import type { AppTransactionAdapter } from '@/platform/db/database.typedefs';
 import { PubSubModule } from '@/platform/pubsub/pubsub.module';
 import { PubSubService } from '@/platform/pubsub/pubsub.service';
 import { Topic } from '@/platform/pubsub/topic';
-import { createPlatformTestingModule } from '@/platform/testing/database-testing.helpers';
-import { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
+import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 
 const messageSchema = z.object({ messageId: z.string() });
 

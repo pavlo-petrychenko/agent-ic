@@ -8,14 +8,14 @@ import { SystemDb } from '@/platform/db/system-db';
 import { TenantMismatchError } from '@/platform/db/tenancy/tenant-mismatch.error';
 import { TenantTransactionRunner } from '@/platform/db/tenancy/tenant-transaction.runner';
 import { IdService } from '@/platform/ids/id.service';
+import { TEST_INFRASTRUCTURE_KEY } from '@test/support/constants/test-infrastructure.constants';
+import { createProbeTable, probeTableStatements } from '@test/support/fixtures/rls-probe.fixture';
 import {
   createDatabaseTestingModule,
   openScratchDatabase,
-} from '@/platform/testing/database-testing.helpers';
-import { createProbeTable, probeTableStatements } from '@/platform/testing/rls-probe.fixture';
-import { TEST_INFRASTRUCTURE_KEY } from '@/platform/testing/test-infrastructure.constants';
-import type { ScratchDatabase } from '@/platform/testing/test-infrastructure.typedefs';
-import { TestTransactionRunner } from '@/platform/testing/test-transaction.runner';
+} from '@test/support/helpers/database-testing.helpers';
+import { TestTransactionService } from '@test/support/services/test-transaction.service';
+import type { ScratchDatabase } from '@test/support/typedefs/test-infrastructure.typedefs';
 
 const PROBE_SCHEMA = 'rls_probe_runner';
 const SEEDED_LABEL = 'seeded';
@@ -155,7 +155,7 @@ describe('TenantTransactionRunner', () => {
   });
 
   it('rolls back writes made inside a test transaction', async () => {
-    const rollback = testingModule.get(TestTransactionRunner);
+    const rollback = testingModule.get(TestTransactionService);
 
     await rollback.rollback(() =>
       runner.run(workspaceA, () => writer.insert(ids.generate(), workspaceA, ROLLED_BACK_LABEL)),
