@@ -1,13 +1,16 @@
+$exit-duration-ratio: 0.8;
+$reduced-motion-duration: 120ms;
+
 .viewport {
   position: fixed;
-  right: var(--space-16);
   bottom: var(--space-16);
-  z-index: 100;
+  left: var(--space-16);
+  z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
   width: var(--size-toast-width);
-  max-width: calc(100vw - var(--space-32));
+  max-width: calc(100vw - 2 * var(--space-16));
   margin: 0;
   padding: 0;
   list-style: none;
@@ -15,52 +18,112 @@
 
 .root {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-12);
-  padding: var(--space-12) var(--space-14);
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-10) var(--space-12);
   border: var(--border-width) solid var(--color-line);
   border-radius: var(--radius-10);
   background: var(--color-card);
   box-shadow: var(--shadow-popover);
+
+  &[data-state='open'] {
+    animation: enter var(--duration-slow) var(--ease-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: exit calc(var(--duration-slow) * #{$exit-duration-ratio}) var(--ease-exit);
+  }
+
+  &[data-swipe='move'] {
+    transform: translateY(var(--radix-toast-swipe-move-y));
+  }
+
+  &[data-swipe='cancel'] {
+    transform: translateY(0);
+    transition: transform var(--duration-base) var(--ease-standard);
+  }
+
+  &[data-swipe='end'] {
+    animation: swipe-out var(--duration-base) var(--ease-exit);
+  }
 }
 
-.neutral {
-  border-left: var(--border-width-accent) solid var(--color-accent);
+.icon {
+  flex-shrink: 0;
 }
 
-.success {
-  border-left: var(--border-width-accent) solid var(--color-ok);
+.info .icon {
+  color: var(--color-accent);
 }
 
-.error {
-  border-left: var(--border-width-accent) solid var(--color-err);
+.ok .icon {
+  color: var(--color-ok-dot);
 }
 
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+.err .icon {
+  color: var(--color-err);
 }
 
-.title {
-  font: var(--type-title);
+.message {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  color: var(--color-ink);
+  font: var(--type-body);
 }
 
-.description {
-  color: var(--color-mute);
-  font: var(--type-body-small);
+@keyframes enter {
+  from {
+    transform: translateY(var(--space-8));
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
-.close {
-  border: 0;
-  border-radius: var(--radius-4);
-  background: transparent;
-  color: var(--color-mute);
-  font: var(--type-h3);
-  cursor: pointer;
+@keyframes exit {
+  from {
+    opacity: 1;
+  }
 
-  &:hover {
-    color: var(--color-ink);
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes swipe-out {
+  from {
+    transform: translateY(var(--radix-toast-swipe-end-y));
+  }
+
+  to {
+    transform: translateY(calc(100% + var(--space-16)));
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root[data-state='open'] {
+    animation: fade-in $reduced-motion-duration var(--ease-enter);
+  }
+
+  .root[data-state='closed'] {
+    animation-duration: $reduced-motion-duration;
+  }
+
+  .root[data-swipe='end'] {
+    animation: exit $reduced-motion-duration var(--ease-exit);
   }
 }

@@ -3,10 +3,17 @@ import { describe, expect, it } from 'vitest';
 import { Field } from '@/shared/ui/Field/Field';
 import { Input } from '@/shared/ui/Input';
 
-const renderField = (props: { hint?: string | null; error?: string | null }) =>
+const renderField = (props: {
+  hint?: string | null;
+  error?: string | null;
+  required?: boolean;
+  requiredLabel?: string | null;
+}) =>
   render(
     <Field label="Email" {...props}>
-      {({ invalid, ...control }) => <Input {...control} invalid={invalid} />}
+      {({ invalid, required, ...control }) => (
+        <Input {...control} invalid={invalid} required={required} />
+      )}
     </Field>,
   );
 
@@ -33,5 +40,26 @@ describe('Field', () => {
     expect(screen.getByRole('textbox', { name: 'Email' })).toHaveAccessibleDescription(
       'Enter a valid email',
     );
+  });
+
+  it('replaces the hint with the error', () => {
+    renderField({ hint: 'Used to sign in', error: 'Enter a valid email' });
+
+    expect(screen.queryByText('Used to sign in')).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Email' })).toHaveAccessibleDescription(
+      'Enter a valid email',
+    );
+  });
+
+  it('marks a required control and names the requirement for assistive technology', () => {
+    renderField({ required: true, requiredLabel: 'required' });
+
+    expect(screen.getByRole('textbox', { name: 'Email required' })).toBeRequired();
+  });
+
+  it('does not mark the control required by default', () => {
+    renderField({});
+
+    expect(screen.getByRole('textbox', { name: 'Email' })).not.toBeRequired();
   });
 });

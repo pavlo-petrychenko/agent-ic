@@ -1,0 +1,103 @@
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translate(var(--offset-x), var(--offset-y));
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes exit {
+  from {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(var(--offset-x), var(--offset-y));
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.content {
+  --offset-x: 0;
+  --offset-y: 0;
+
+  z-index: var(--z-popover);
+  max-width: calc(100vw - var(--space-32));
+  color: var(--color-ink);
+  font: var(--type-body);
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &[data-side='top'] {
+    --offset-y: var(--space-4);
+  }
+
+  &[data-side='bottom'] {
+    --offset-y: calc(-1 * var(--space-4));
+  }
+
+  &[data-side='left'] {
+    --offset-x: var(--space-4);
+  }
+
+  &[data-side='right'] {
+    --offset-x: calc(-1 * var(--space-4));
+  }
+
+  &[data-state='open'] {
+    animation: enter var(--duration-base) var(--ease-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: exit calc(var(--duration-base) * 0.8) var(--ease-exit);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &[data-state='open'] {
+      animation: fade-in var(--duration-fast) var(--ease-enter);
+    }
+
+    &[data-state='closed'] {
+      animation: fade-out var(--duration-fast) var(--ease-exit);
+    }
+  }
+}
+
+.surface {
+  padding: var(--space-12);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-10);
+  background: var(--color-card);
+  box-shadow: var(--shadow-popover);
+}
+
+.bare {
+  padding: 0;
+}

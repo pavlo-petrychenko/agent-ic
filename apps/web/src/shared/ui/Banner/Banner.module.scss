@@ -1,0 +1,43 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-10) var(--space-18);
+  background: var(--banner-bg);
+  color: var(--banner-fg);
+  font: var(--type-body-small);
+}
+
+.info {
+  --banner-bg: var(--color-accent-light);
+  --banner-fg: var(--color-accent-dark);
+}
+
+.warn {
+  --banner-bg: var(--color-warn-light);
+  --banner-fg: var(--color-warn-ink);
+}
+
+.err {
+  --banner-bg: var(--color-err-light);
+  --banner-fg: var(--color-err-ink);
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.text {
+  min-width: 0;
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+  }
+}
+
+.storyStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}

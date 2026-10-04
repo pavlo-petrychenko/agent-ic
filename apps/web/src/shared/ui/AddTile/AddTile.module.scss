@@ -1,0 +1,71 @@
+$tile-min-height: 120px;
+
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: var(--border-width-dash) dashed var(--color-line-dash);
+  border-radius: var(--radius-12);
+  background: transparent;
+  color: var(--color-ink-secondary);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast),
+    border-color var(--duration-fast);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-edge);
+    background: var(--color-soft);
+    color: var(--color-ink);
+  }
+
+  &:active:not(:disabled) {
+    border-color: var(--color-edge);
+    background: var(--color-chip);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+
+  &:disabled {
+    opacity: var(--opacity-disabled);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+.row {
+  height: var(--size-control-lg);
+  gap: var(--space-6);
+  font: var(--type-body);
+}
+
+.tile {
+  flex-direction: column;
+  gap: var(--space-8);
+  min-height: $tile-min-height;
+  padding: var(--space-16);
+}
+
+.label {
+  font: inherit;
+}
+
+.tile .label {
+  color: var(--color-ink);
+  font: var(--type-title);
+}
+
+.sub {
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.storyGrid {
+  display: grid;
+  grid-template-columns: repeat(2, var(--size-menu-width));
+  gap: var(--space-12);
+}

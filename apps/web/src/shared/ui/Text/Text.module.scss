@@ -1,0 +1,93 @@
+.root {
+  margin: 0;
+
+  a {
+    text-decoration: underline;
+  }
+}
+
+.body {
+  color: var(--color-ink-secondary);
+  font: var(--type-body);
+}
+
+.title {
+  color: var(--color-ink);
+  font: var(--type-title);
+}
+
+.lead {
+  color: var(--color-ink-secondary);
+  font: var(--type-lead);
+}
+
+.small {
+  color: var(--color-mute);
+  font: var(--type-small);
+}
+
+.caption {
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.bodySmall {
+  color: var(--color-ink-secondary);
+  font: var(--type-body-small);
+}
+
+.mono {
+  color: var(--color-ink);
+  font: var(--type-mono);
+}
+
+.micro {
+  color: var(--color-mute);
+  font: var(--type-micro);
+  letter-spacing: var(--tracking-micro);
+}
+
+.overline {
+  color: var(--color-accent-dark);
+  font: var(--type-overline);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+}
+
+.ink {
+  color: var(--color-ink);
+}
+
+.ink2 {
+  color: var(--color-ink-secondary);
+}
+
+.mute {
+  color: var(--color-mute);
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+.ok {
+  color: var(--color-ok);
+}
+
+.warn {
+  color: var(--color-warn);
+}
+
+.err {
+  color: var(--color-err);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}

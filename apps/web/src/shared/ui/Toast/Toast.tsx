@@ -1,25 +1,58 @@
 import clsx from 'clsx';
 import { Toast } from 'radix-ui';
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { Button, ButtonVariant } from '@/shared/ui/Button';
+import { Icon, IconName } from '@/shared/ui/Icon';
+import { IconButton, IconButtonSize } from '@/shared/ui/IconButton';
 import {
-  TOAST_CLOSE_GLYPH,
   TOAST_DURATION_MS,
+  TOAST_ICON_SIZE,
+  TOAST_MAX_VISIBLE,
+  TOAST_PERSISTENT_DURATION_MS,
   TOAST_SWIPE_DIRECTION,
+  TOAST_TONE_ICONS,
+  TOAST_TONE_ROLES,
+  TOAST_WITH_ACTION_DURATION_MS,
   ToastTone,
 } from '@/shared/ui/Toast/Toast.constants';
 import { ToastContext } from '@/shared/ui/Toast/toast.context';
-import type { ToastItem, ToastOptions, ToastProviderProps } from '@/shared/ui/Toast/Toast.typedefs';
+import type {
+  ToastAction,
+  ToastItem,
+  ToastOptions,
+  ToastProviderProps,
+} from '@/shared/ui/Toast/Toast.typedefs';
 import styles from '@/shared/ui/Toast/Toast.module.scss';
+
+function resolveDuration(
+  tone: ToastTone,
+  action: ToastAction | null,
+  durationMs: number | null,
+): number {
+  if (durationMs !== null) {
+    return durationMs;
+  }
+  if (tone === ToastTone.Err) {
+    return TOAST_PERSISTENT_DURATION_MS;
+  }
+  return action === null ? TOAST_DURATION_MS : TOAST_WITH_ACTION_DURATION_MS;
+}
 
 export function ToastProvider({ closeLabel, children }: ToastProviderProps) {
   const [items, setItems] = useState<readonly ToastItem[]>([]);
   const nextId = useRef(0);
 
   const showToast = useCallback(
-    ({ title, description = null, tone = ToastTone.Neutral }: ToastOptions) => {
+    ({ message, tone = ToastTone.Info, action = null, durationMs = null }: ToastOptions) => {
       nextId.current += 1;
-      const item: ToastItem = { id: nextId.current, title, description, tone };
-      setItems((current) => [...current, item]);
+      const item: ToastItem = {
+        id: nextId.current,
+        message,
+        tone,
+        action,
+        durationMs: resolveDuration(tone, action, durationMs),
+      };
+      setItems((current) => [item, ...current].slice(0, TOAST_MAX_VISIBLE));
     },
     [],
   );
@@ -36,6 +69,9 @@ export function ToastProvider({ closeLabel, children }: ToastProviderProps) {
       {items.map((item) => (
         <Toast.Root
           key={item.id}
+          type={item.tone === ToastTone.Err ? 'foreground' : 'background'}
+          role={TOAST_TONE_ROLES[item.tone]}
+          duration={item.durationMs}
           className={clsx(styles.root, styles[item.tone])}
           onOpenChange={(open) => {
             if (!open) {
@@ -43,16 +79,17 @@ export function ToastProvider({ closeLabel, children }: ToastProviderProps) {
             }
           }}
         >
-          <div className={styles.content}>
-            <Toast.Title className={styles.title}>{item.title}</Toast.Title>
-            {item.description === null ? null : (
-              <Toast.Description className={styles.description}>
-                {item.description}
-              </Toast.Description>
-            )}
-          </div>
-          <Toast.Close aria-label={closeLabel} className={styles.close}>
-            {TOAST_CLOSE_GLYPH}
+          <Icon name={TOAST_TONE_ICONS[item.tone]} size={TOAST_ICON_SIZE} className={styles.icon} />
+          <Toast.Description className={styles.message}>{item.message}</Toast.Description>
+          {item.action === null ? null : (
+            <Toast.Action altText={item.action.label} asChild>
+              <Button variant={ButtonVariant.Ghost} onClick={item.action.onClick}>
+                {item.action.label}
+              </Button>
+            </Toast.Action>
+          )}
+          <Toast.Close asChild>
+            <IconButton icon={IconName.X} label={closeLabel} size={IconButtonSize.Sm} />
           </Toast.Close>
         </Toast.Root>
       ))}

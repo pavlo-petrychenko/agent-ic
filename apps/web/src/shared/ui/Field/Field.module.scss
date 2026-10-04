@@ -1,20 +1,33 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-5);
 }
 
 .label {
-  color: var(--color-ink);
-  font: var(--type-title);
-}
-
-.hint {
   color: var(--color-mute);
   font: var(--type-caption);
 }
 
+.required {
+  color: var(--color-err);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.hint {
+  color: var(--color-mute);
+  font: var(--type-small);
+}
+
 .error {
   color: var(--color-err);
-  font: var(--type-caption);
+  font: var(--type-small);
 }

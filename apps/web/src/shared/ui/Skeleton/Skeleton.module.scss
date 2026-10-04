@@ -1,0 +1,42 @@
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.bar {
+  display: block;
+  border-radius: var(--radius-4);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: pulse var(--duration-pulse) var(--ease-standard) infinite;
+  }
+}
+
+.strong {
+  background: var(--color-chip);
+}
+
+.soft {
+  background: var(--color-soft);
+}
+
+.demo {
+  width: var(--size-menu-width);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
