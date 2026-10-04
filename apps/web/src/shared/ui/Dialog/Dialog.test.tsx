@@ -1,8 +1,19 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Dialog } from '@/shared/ui/Dialog/Dialog';
 import { DialogSize } from '@/shared/ui/Dialog/Dialog.constants';
+
+async function settleLayers() {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
+function pressOutside() {
+  fireEvent.pointerDown(document.body, { pointerType: 'mouse' });
+  fireEvent.click(document.body);
+}
 
 describe('Dialog', () => {
   it('shows its title and description when open', () => {
@@ -57,6 +68,32 @@ describe('Dialog', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Close' }));
 
     expect(onOpenChange).toHaveBeenCalledTimes(2);
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('stays open and disables its close button while busy', async () => {
+    const onOpenChange = vi.fn<(open: boolean) => void>();
+    render(<Dialog open busy onOpenChange={onOpenChange} title="Pause agent" closeLabel="Close" />);
+
+    await settleLayers();
+    await userEvent.keyboard('{Escape}');
+    pressOutside();
+
+    expect(screen.getByRole('button', { name: 'Close' })).toBeDisabled();
+    expect(screen.getByRole('dialog', { name: 'Pause agent' })).toHaveAttribute(
+      'aria-busy',
+      'true',
+    );
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('closes on a press outside when not busy', async () => {
+    const onOpenChange = vi.fn<(open: boolean) => void>();
+    render(<Dialog open onOpenChange={onOpenChange} title="Pause agent" closeLabel="Close" />);
+
+    await settleLayers();
+    pressOutside();
+
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 

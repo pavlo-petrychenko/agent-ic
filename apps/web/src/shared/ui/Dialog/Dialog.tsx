@@ -6,9 +6,14 @@ import { IconName } from '@/shared/ui/Icon';
 import { IconButton } from '@/shared/ui/IconButton';
 import styles from '@/shared/ui/Dialog/Dialog.module.scss';
 
+function preventDismiss(event: Event) {
+  event.preventDefault();
+}
+
 export function Dialog({
   open,
   onOpenChange,
+  busy = false,
   title,
   description = null,
   closeLabel,
@@ -26,6 +31,9 @@ export function Dialog({
         <DialogPrimitive.Overlay className={styles.overlay} />
         <DialogPrimitive.Content
           className={clsx(styles.content, styles[size])}
+          aria-busy={busy || undefined}
+          onEscapeKeyDown={busy ? preventDismiss : undefined}
+          onPointerDownOutside={busy ? preventDismiss : undefined}
           {...describedByOverride}
         >
           <header className={styles.header}>
@@ -38,7 +46,7 @@ export function Dialog({
               )}
             </div>
             <DialogPrimitive.Close asChild>
-              <IconButton icon={IconName.X} label={closeLabel} />
+              <IconButton icon={IconName.X} label={closeLabel} disabled={busy} />
             </DialogPrimitive.Close>
           </header>
           <div className={styles.body}>{children}</div>

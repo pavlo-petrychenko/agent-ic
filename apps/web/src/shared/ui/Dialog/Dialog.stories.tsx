@@ -52,4 +52,36 @@ export const ScrollingBody: Story = {
     ),
   },
 };
+export const Busy: Story = {
+  args: {
+    busy: true,
+    title: 'Pause agent',
+    description: 'The agent stops answering new chats.',
+    footerLeft: null,
+    footerRight: (
+      <>
+        <Button variant={ButtonVariant.Secondary} disabled>
+          Cancel
+        </Button>
+        <Button loading>Pausing…</Button>
+      </>
+    ),
+    children: 'Chats already in progress finish normally.',
+  },
+};
+export const DestructiveConfirm: Story = {
+  args: {
+    size: DialogSize.Sm,
+    title: 'Delete Salon assistant?',
+    description: null,
+    footerLeft: null,
+    footerRight: (
+      <>
+        <Button variant={ButtonVariant.Secondary}>Cancel</Button>
+        <Button variant={ButtonVariant.Danger}>Delete agent</Button>
+      </>
+    ),
+    children: 'The agent and its published versions are removed for good.',
+  },
+};
 export const Closed: Story = { args: { open: false } };
