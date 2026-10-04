@@ -1,0 +1,111 @@
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translate(var(--offset-x), var(--offset-y));
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes exit {
+  from {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(var(--offset-x), var(--offset-y));
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.content {
+  --offset-x: 0;
+  --offset-y: 0;
+
+  z-index: var(--z-tooltip);
+  padding: var(--space-5) var(--space-9);
+  border-radius: var(--radius-8);
+  background: var(--color-tooltip-bg);
+  color: var(--color-tooltip-fg);
+  box-shadow: var(--shadow-tooltip);
+  font: var(--type-caption);
+  white-space: nowrap;
+
+  strong {
+    font-weight: 600;
+  }
+
+  &.multiline {
+    line-height: var(--leading-relaxed);
+    white-space: normal;
+  }
+
+  &[data-side='top'] {
+    --offset-y: var(--space-4);
+  }
+
+  &[data-side='bottom'] {
+    --offset-y: calc(-1 * var(--space-4));
+  }
+
+  &[data-side='left'] {
+    --offset-x: var(--space-4);
+  }
+
+  &[data-side='right'] {
+    --offset-x: calc(-1 * var(--space-4));
+  }
+
+  &[data-state='delayed-open'],
+  &[data-state='instant-open'] {
+    animation: enter var(--duration-base) var(--ease-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: exit calc(var(--duration-base) * 0.8) var(--ease-exit);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &[data-state='delayed-open'],
+    &[data-state='instant-open'] {
+      animation: fade-in var(--duration-fast) var(--ease-enter);
+    }
+
+    &[data-state='closed'] {
+      animation: fade-out var(--duration-fast) var(--ease-exit);
+    }
+  }
+}
+
+.arrow {
+  display: block;
+  width: var(--space-8);
+  height: var(--space-8);
+  background: var(--color-tooltip-bg);
+  pointer-events: none;
+  transform: translateY(calc(-1 * var(--space-4))) rotate(45deg);
+}

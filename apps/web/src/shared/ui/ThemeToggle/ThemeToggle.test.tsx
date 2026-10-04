@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ThemePreference } from '@/shared/theme/constants/theme.constants';
@@ -149,6 +149,27 @@ describe('ThemeToggle', () => {
       expect(screen.getByRole('button', { name: label })).toHaveTextContent('');
     });
     expect(document.querySelectorAll('svg')).toHaveLength(Object.values(LABELS).length);
+  });
+
+  it('shows each label as a tooltip on the icon buttons in the menu variant', async () => {
+    renderToggle({ variant: ThemeToggleVariant.Menu, value: ThemePreference.Light });
+
+    await userEvent.hover(screen.getByRole('button', { name: 'Dark' }));
+
+    expect(within(await screen.findByRole('tooltip')).getByText('Dark')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Dark' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('shows the tooltip on keyboard focus in the menu variant only', async () => {
+    const { unmount } = renderToggle({ variant: ThemeToggleVariant.Menu });
+    await userEvent.tab();
+    expect(within(await screen.findByRole('tooltip')).getByText('System')).toBeInTheDocument();
+    unmount();
+
+    renderToggle({ variant: ThemeToggleVariant.Settings });
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: 'System' })).toHaveFocus();
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 
   it('renders text without icons or aria-label in the settings variant', () => {
