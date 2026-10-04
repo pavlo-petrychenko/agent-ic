@@ -11,3 +11,7 @@ const startSession = (response: unknown): void => {
 export async function logIn(values: LoginValues): Promise<void> {
   startSession(await postAuthRequest(AuthEndpoint.Login, values));
 }
+
+export async function resetPassword(token: string, password: string): Promise<void> {
+  await postAuthRequest(AuthEndpoint.ResetPassword, { token, password });
+}
