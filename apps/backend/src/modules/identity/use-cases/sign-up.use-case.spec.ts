@@ -2,9 +2,9 @@ import { ErrorReason, Locale, USER_NAME_MAX_LENGTH } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { EmailTakenError } from '@/modules/identity/errors/email-taken.error';
 import { InvalidAccountInputError } from '@/modules/identity/errors/invalid-account-input.error';
+import { InviteInvalidError } from '@/modules/identity/errors/invite-invalid.error';
 import { TokenInvalidError } from '@/modules/identity/errors/token-invalid.error';
 import { verifyPassword } from '@/modules/identity/helpers/password.helpers';
-import { InviteInvalidError } from '@/modules/identity/errors/invite-invalid.error';
 import { SignUpUseCase } from '@/modules/identity/use-cases/sign-up.use-case';
 import { RateLimitedError } from '@/platform/rate-limit/errors/rate-limited.error';
 import {
@@ -188,4 +188,32 @@ describe('SignUpUseCase', () => {
     await expect(attempt).rejects.toBeInstanceOf(InviteInvalidError);
     await expect(findUser(testbed, input.email)).rejects.toBeInstanceOf(MissingTestDataError);
   });
+
+  it.each([
+    { name: 'drops', ownInvite: false },
+    { name: 'replaces', ownInvite: true },
+  ])(
+    '$name the invite of an unconfirmed sign-up when the owner of the email signs up',
+    async ({ ownInvite }) => {
+      const attackerWorkspace = await createOwnedWorkspace(testbed);
+      const ownWorkspace = await createOwnedWorkspace(testbed);
+      const victim = signUpInput({
+        inviteToken: ownInvite ? await inviteTokenOf(testbed, ownWorkspace) : null,
+      });
+      await signUp.execute(
+        anonymousCtx(),
+        signUpInput({
+          email: victim.email,
+          inviteToken: await inviteTokenOf(testbed, attackerWorkspace),
+        }),
+      );
+
+      await signUp.execute(anonymousCtx(), victim);
+
+      const ownLink = await activeInviteLinkOf(testbed, ownWorkspace.workspaceId);
+      expect((await findUser(testbed, victim.email)).pendingInviteLinkId).toBe(
+        ownInvite ? ownLink.id : null,
+      );
+    },
+  );
 });
