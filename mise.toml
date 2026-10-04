@@ -81,10 +81,6 @@ run = "actionlint"
 description = "Run the tests"
 run = "pnpm test"
 
-[tasks.e2e]
-description = "Run the end-to-end tests"
-run = "pnpm e2e"
-
 [tasks.clean]
 description = "Remove containers, volumes and certificates"
 run = "node tools/dev.ts clean"

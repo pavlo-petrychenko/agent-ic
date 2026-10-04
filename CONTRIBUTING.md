@@ -73,7 +73,7 @@ AI assistants read [AGENTS.md](AGENTS.md) in the repository root and the one ins
 ## How to review
 
 - Read the description first, then the tests, then the code.
-- Check that new behaviour is tested and that a bug fix has a test that fails without it.
+- Tests are optional during the MVP. When a pull request has tests, check that they describe behaviour and that a bug-fix test fails without the fix.
 - Check layer and module boundaries even when `depcruise` is green: a use case should read as a short sequence of calls, with logic in services.
 - Check that migrations are expand-only, or that the pull request says it is the contract step.
 - Check the pull request title is a conventional commit.
