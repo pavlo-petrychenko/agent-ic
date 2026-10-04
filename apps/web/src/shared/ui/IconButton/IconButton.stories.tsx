@@ -24,6 +24,9 @@ const SIZES = Object.values(IconButtonSize);
 export const Ghost: Story = { args: { variant: IconButtonVariant.Ghost } };
 export const Secondary: Story = { args: { variant: IconButtonVariant.Secondary } };
 export const Primary: Story = { args: { variant: IconButtonVariant.Primary, icon: IconName.Send } };
+export const ExtraSmall: Story = {
+  args: { size: IconButtonSize.Xs, icon: IconName.X, label: 'Clear' },
+};
 export const Small: Story = { args: { size: IconButtonSize.Sm } };
 export const Large: Story = { args: { size: IconButtonSize.Lg } };
 export const Loading: Story = { args: { loading: true } };
@@ -37,7 +40,9 @@ export const AllVariantsAndSizes: Story = {
     <div className={styles.storyStack}>
       {VARIANTS.map((variant) => (
         <div key={variant} className={styles.storyRow}>
-          {SIZES.map((size) => (
+          {SIZES.filter(
+            (size) => variant === IconButtonVariant.Ghost || size !== IconButtonSize.Xs,
+          ).map((size) => (
             <IconButton
               key={size}
               icon={IconName.Plus}

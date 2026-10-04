@@ -46,6 +46,14 @@ describe('IconButton', () => {
     expect(onClick).not.toHaveBeenCalled();
   });
 
+  it('draws the icon at 14px in the extra small size', () => {
+    render(<IconButton icon={IconName.X} label="Clear" size={IconButtonSize.Xs} />);
+
+    expect(
+      screen.getByRole('button', { name: 'Clear' }).querySelector('[data-icon="x"]'),
+    ).toHaveAttribute('width', '14');
+  });
+
   it('accepts every variant and size without changing its role', () => {
     render(
       <>

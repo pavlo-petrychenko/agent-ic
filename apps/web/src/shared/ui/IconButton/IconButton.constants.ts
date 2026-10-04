@@ -12,7 +12,7 @@ export enum IconButtonSize {
 }
 
 export const ICON_BUTTON_ICON_SIZES: Readonly<Record<IconButtonSize, number>> = {
-  [IconButtonSize.Xs]: 12,
+  [IconButtonSize.Xs]: 14,
   [IconButtonSize.Sm]: 14,
   [IconButtonSize.Md]: 15,
   [IconButtonSize.Lg]: 16,

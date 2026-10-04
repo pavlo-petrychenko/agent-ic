@@ -22,6 +22,11 @@
   &[aria-disabled='true'] {
     cursor: not-allowed;
   }
+
+  &.loading:disabled,
+  &.loading[aria-disabled='true'] {
+    cursor: progress;
+  }
 }
 
 .xs {
