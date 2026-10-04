@@ -242,10 +242,10 @@
   --breakpoint-unsupported-max: 1023px;
 
   --chart-1: var(--color-accent);
-  --chart-2: var(--color-violet);
-  --chart-3: var(--color-ok);
-  --chart-4: var(--color-warn);
-  --chart-5: var(--color-err);
+  --chart-2: var(--hue-compl-fg);
+  --chart-3: var(--hue-router-fg);
+  --chart-4: var(--color-violet);
+  --chart-muted: var(--color-line-dash);
 }
 
 :root[data-theme='dark'] {
