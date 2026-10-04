@@ -5,9 +5,10 @@ import { ErrorBoundary } from '@/app/components/ErrorBoundary';
 import type { AppProvidersProps } from '@/app/providers/AppProviders/AppProviders.typedefs';
 import { LocalizedToastProvider } from '@/app/providers/LocalizedToastProvider';
 import { createApolloClient } from '@/shared/api/clients/apollo.client';
+import { getSessionClient } from '@/shared/api/clients/session.client';
 
 export function AppProviders({ config, i18n, children }: AppProvidersProps) {
-  const [client] = useState(() => createApolloClient({ config }));
+  const [client] = useState(() => createApolloClient({ config, session: getSessionClient() }));
 
   return (
     <I18nextProvider i18n={i18n}>

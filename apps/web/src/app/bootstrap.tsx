@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from '@/app/components/App';
 import { StartupFailure } from '@/app/components/StartupFailure';
 import { ROOT_ELEMENT_ID, ROOT_ELEMENT_MISSING_MESSAGE } from '@/app/constants/app.constants';
+import { getSessionClient } from '@/shared/api/clients/session.client';
 import { loadRuntimeConfig } from '@/shared/config/helpers/runtimeConfig.helpers';
 import { createI18n } from '@/shared/i18n/clients/i18n.client';
 import { resolveInitialLocale } from '@/shared/i18n/helpers/locale.helpers';
@@ -17,7 +18,7 @@ export async function bootstrap(): Promise<void> {
   const i18n = createI18n(resolveInitialLocale(readStoredLocale(), navigator.languages));
 
   try {
-    const config = await loadRuntimeConfig();
+    const [config] = await Promise.all([loadRuntimeConfig(), getSessionClient().refresh()]);
     root.render(
       <StrictMode>
         <App config={config} i18n={i18n} />
