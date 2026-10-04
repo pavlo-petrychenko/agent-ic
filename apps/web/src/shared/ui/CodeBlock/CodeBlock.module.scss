@@ -55,36 +55,12 @@
   position: absolute;
   top: var(--space-6);
   right: var(--space-6);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--size-control-xs);
-  height: var(--size-control-xs);
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-6);
-  background: transparent;
-  color: var(--color-mute);
-  cursor: pointer;
-  transition:
-    background-color var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard);
-
-  &:hover {
-    background: var(--color-soft);
-    color: var(--color-ink);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: var(--shadow-focus-ring);
-  }
 }
 
 .dark .copy {
   color: var(--color-on-dark-secondary);
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: var(--color-dark);
     color: var(--color-on-dark);
   }
