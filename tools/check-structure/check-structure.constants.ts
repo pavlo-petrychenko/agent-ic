@@ -48,6 +48,7 @@ export const BackendTestRoot = {
 } as const;
 
 export const DATABASE_PLATFORM_MODULE = 'database';
+export const PLATFORM_KIND_NAME_EXCEPTIONS: readonly string[] = ['errors'];
 export const DATABASE_CLIENTS_MODULE_FILE = 'database-clients.module.ts';
 export const USE_CASES_FOLDER = 'use-cases';
 export const COMMANDS_FOLDER = 'commands';
@@ -133,6 +134,7 @@ export const COMPONENT_INDEX_FILE = 'index.ts';
 export const JSON_FILE = /\.json$/;
 export const WEB_FEATURE_ROOT_FILE = 'index.ts';
 export const STYLES_FILE = /\.s?css$/;
+export const STYLES_ENTRY_FILE = 'index.ts';
 
 export const WEB_APP_KINDS: readonly string[] = [
   'components',
@@ -215,6 +217,7 @@ export const WEB_TEST_SUPPORT_KINDS: readonly string[] = [
 ];
 
 export const WEB_TEST_SUPPORT_ROOT = 'support';
+export const WEB_TEST_INTEGRATION_ROOT = 'integration';
 
 export const COMPONENT_OWN_SUFFIXES: readonly string[] = [
   '.tsx',
@@ -245,6 +248,8 @@ export const MESSAGES = {
     `"${name}" sits in the platform root; put it in a platform folder`,
   integrationSpecOnly: (name: string): string =>
     `integration holds .spec.ts files only, found "${name}"`,
+  webIntegrationTestOnly: (name: string): string =>
+    `integration holds .test.ts and .test.tsx files only, found "${name}"`,
   componentFolder: (name: string): string => `"${name}" must be a PascalCase component folder`,
   componentFile: (name: string, folder: string): string =>
     `file "${name}" is not allowed in component folder "${folder}"; allowed: ${folder}.tsx, ${folder}.module.scss, ${folder}.test.tsx, ${folder}.typedefs.ts, ${folder}.constants.ts, index.ts, useX.ts, x.context.ts`,
@@ -254,6 +259,7 @@ export const MESSAGES = {
   localeFolder: (name: string): string => `locales holds one folder per language, found "${name}"`,
   localeFile: (name: string): string => `locale folders hold .json files only, found "${name}"`,
   routeFile: (name: string): string => `routes hold .ts and .tsx route files only, found "${name}"`,
-  stylesFile: (name: string): string => `styles holds .css and .scss files only, found "${name}"`,
+  stylesFile: (name: string): string =>
+    `styles holds .css and .scss files and the index.ts entry only, found "${name}"`,
   tooShort: (): string => 'a file must sit inside an area folder',
 } as const;

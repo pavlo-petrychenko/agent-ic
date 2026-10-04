@@ -13,6 +13,7 @@ import {
   MESSAGES,
   PATH_SEPARATOR,
   WEB_FEATURE_ROOT_FILE,
+  STYLES_ENTRY_FILE,
   STYLES_FILE,
   WEB_APP_KINDS,
   WEB_APP_ROOT_FILES,
@@ -34,6 +35,8 @@ import {
   WEB_SHARED_UI,
   WEB_SOURCE_ROOT_FILES,
   WEB_TEST_SUPPORT_KINDS,
+  WEB_TEST_INTEGRATION_ROOT,
+  WEB_TEST_SUFFIXES,
   WEB_TEST_SUPPORT_ROOT,
   WebRoot,
 } from './check-structure.constants.ts';
@@ -186,7 +189,9 @@ const checkShared = (segments: Segments): Verdict => {
   }
   if (name === WEB_SHARED_STYLES) {
     const [file] = inner;
-    return inner.length === 1 && file !== undefined && STYLES_FILE.test(file)
+    return inner.length === 1 &&
+      file !== undefined &&
+      (STYLES_FILE.test(file) || file === STYLES_ENTRY_FILE)
       ? null
       : MESSAGES.stylesFile(inner.join(PATH_SEPARATOR));
   }
@@ -224,8 +229,14 @@ export const checkWebTest = (segments: Segments): Verdict => {
   if (root === undefined) {
     return MESSAGES.tooShort();
   }
+  const last = segments[segments.length - 1] ?? root;
+  if (root === WEB_TEST_INTEGRATION_ROOT && rest.length > 0) {
+    return WEB_TEST_SUFFIXES.some((suffix) => last.endsWith(suffix))
+      ? null
+      : MESSAGES.webIntegrationTestOnly(last);
+  }
   if (root !== WEB_TEST_SUPPORT_ROOT || rest.length === 0) {
-    return MESSAGES.unknownFolder(root, [WEB_TEST_SUPPORT_ROOT]);
+    return MESSAGES.unknownFolder(root, [WEB_TEST_SUPPORT_ROOT, WEB_TEST_INTEGRATION_ROOT]);
   }
   return checkKinds(rest, WEB_TEST_SUPPORT_KINDS);
 };

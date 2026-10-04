@@ -11,6 +11,7 @@ import {
   BackendTestRoot,
   DATABASE_CLIENTS_MODULE_FILE,
   DATABASE_PLATFORM_MODULE,
+  PLATFORM_KIND_NAME_EXCEPTIONS,
   INDEX_FILE,
   KEBAB_TOPIC,
   MESSAGES,
@@ -80,7 +81,7 @@ const checkPlatform = (segments: Segments): Verdict => {
   if (inner.length === 0) {
     return MESSAGES.platformRootFile(name);
   }
-  if (BACKEND_KIND_FOLDERS.includes(name)) {
+  if (BACKEND_KIND_FOLDERS.includes(name) && !PLATFORM_KIND_NAME_EXCEPTIONS.includes(name)) {
     return MESSAGES.platformKindName(name);
   }
   return checkAreaFolder(

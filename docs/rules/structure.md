@@ -93,7 +93,7 @@ modules/identity/
 Infrastructure used by two or more modules, with no business meaning. Same kinds as modules, with two rules:
 
 - **No use cases.** Platform controllers (health, metrics, queue board) call platform services directly, because they have no actor, no permissions and no transaction.
-- **A platform folder never takes a kind-folder name.** Hence `database`, not `db`; `graphql-server`, not `graphql`; `live-updates`, not `channels`.
+- **A platform folder never takes a kind-folder name.** Hence `database`, not `db`; `graphql-server`, not `graphql`; `live-updates`, not `channels`. The one exception is `errors`: it was named in the approved module list, it holds the base error classes in its own `errors/` folder, and no module-level `errors/` folder can be confused with it because platform folders sit one level higher.
 
 | Module | Holds |
 |---|---|
@@ -195,10 +195,10 @@ shared/
 ├── forms/    hooks/ fields/ contexts/ helpers/ typedefs/
 ├── i18n/     clients/ hooks/ helpers/ locales/ constants/ typedefs/
 ├── ui/       component folders; the only place Radix may appear
-└── styles/   tokens.css · global.scss · tailwind.css
+└── styles/   tokens.css · global.scss · tailwind.css · index.ts (the one side-effect entry that imports fonts and the stylesheets in order)
 ```
 
-Test support lives in `apps/web/test/support/` (`setup/`, `components/`, `helpers/`, `constants/`, `typedefs/`, `fixtures/`), imported as `@test/…`.
+Test support lives in `apps/web/test/support/` (`setup/`, `components/`, `helpers/`, `constants/`, `typedefs/`, `fixtures/`), imported as `@test/…`. Tests that cross areas, such as a route rendered through the router, live in `apps/web/test/integration/` (`.test.ts`, `.test.tsx`).
 
 ## Pull requests
 

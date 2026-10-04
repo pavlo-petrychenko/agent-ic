@@ -16,7 +16,7 @@
     "depcruise": "depcruise apps/backend/src --config .dependency-cruiser.cjs --ts-config \"$PWD/tools/depcruise/backend.tsconfig.json\" && depcruise apps/web/src --config .dependency-cruiser.cjs --ts-config \"$PWD/tools/depcruise/web.tsconfig.json\" && depcruise packages --config .dependency-cruiser.cjs",
     "check:comments": "node tools/check-comments.ts",
     "check:structure": "node tools/check-structure.ts",
-    "check": "pnpm lint && pnpm format:check && pnpm check:comments && pnpm depcruise && pnpm typecheck",
+    "check": "pnpm lint && pnpm format:check && pnpm check:comments && pnpm check:structure && pnpm depcruise && pnpm typecheck",
     "db:migrate": "pnpm --filter backend db:migrate",
     "db:seed": "echo \"db:seed: no seed data yet\"",
     "codegen": "turbo run codegen backend#schema:print",

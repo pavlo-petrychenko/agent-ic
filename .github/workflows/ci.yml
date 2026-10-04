@@ -33,6 +33,8 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm check:comments
+      - run: pnpm check:structure
+      - run: pnpm test:tools
       - run: pnpm depcruise
       - run: pnpm exec turbo run typecheck --affected
       - run: pnpm typecheck:tools
