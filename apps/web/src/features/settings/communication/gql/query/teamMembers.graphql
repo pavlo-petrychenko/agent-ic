@@ -1,0 +1,14 @@
+query TeamMembers($first: Int) {
+  members(first: $first) {
+    totalCount
+    edges {
+      node {
+        id
+        name
+        email
+        role
+        lastActiveAt
+      }
+    }
+  }
+}
