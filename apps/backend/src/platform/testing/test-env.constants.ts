@@ -7,6 +7,7 @@ import {
 
 export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.NodeEnv]: NodeEnvironment.Test,
+  [EnvVar.AppVersion]: '0.0.0-test',
   [EnvVar.LogLevel]: LogLevel.Silent,
   [EnvVar.HttpHost]: '127.0.0.1',
   [EnvVar.ApiPort]: '3000',

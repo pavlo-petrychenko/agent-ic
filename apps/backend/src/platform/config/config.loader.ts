@@ -1,15 +1,28 @@
 import { CLI_ARGUMENTS_LABEL, Role } from './config.constants';
 import { ConfigError } from './config.error';
-import { readCliOptions, toCliIssues, toConfigIssues } from './config.helpers';
-import type { RawCliOptions } from './config.helpers';
+import {
+  readCliOptions,
+  readSchemaPrintOptions,
+  toCliIssues,
+  toConfigIssues,
+} from './config.helpers';
 import {
   cliSchema,
   commonEnvSchema,
   langfuseEnvSchema,
   migrationEnvSchema,
   roleEnvSchemas,
+  schemaPrintCliSchema,
 } from './config.schema';
-import type { AppConfig, BaseConfig, CliArguments, MigrationConfig } from './config.typedefs';
+import type {
+  AppConfig,
+  BaseConfig,
+  CliArguments,
+  MigrationConfig,
+  RawCliOptions,
+  RawSchemaPrintOptions,
+  SchemaPrintConfig,
+} from './config.typedefs';
 
 export class ConfigLoader {
   constructor(private readonly env: NodeJS.ProcessEnv = process.env) {}
@@ -29,6 +42,7 @@ export class ConfigLoader {
 
     const base: BaseConfig = {
       nodeEnv: common.data.nodeEnv,
+      version: common.data.version,
       logLevel: common.data.logLevel,
       http: { host: common.data.host, port: roleEnvironment.data.port },
       database: common.data.database,
@@ -54,17 +68,29 @@ export class ConfigLoader {
     return migration.data;
   }
 
-  private loadCliArguments(argv: readonly string[]): CliArguments {
-    const parsed = cliSchema.safeParse(this.readCliOptions(argv));
+  loadSchemaPrint(argv: readonly string[]): SchemaPrintConfig {
+    const parsed = schemaPrintCliSchema.safeParse(
+      this.parseArguments(() => readSchemaPrintOptions(argv)),
+    );
     if (!parsed.success) {
       throw new ConfigError(toCliIssues(parsed.error));
     }
     return parsed.data;
   }
 
-  private readCliOptions(argv: readonly string[]): RawCliOptions {
+  private loadCliArguments(argv: readonly string[]): CliArguments {
+    const parsed = cliSchema.safeParse(this.parseArguments(() => readCliOptions(argv)));
+    if (!parsed.success) {
+      throw new ConfigError(toCliIssues(parsed.error));
+    }
+    return parsed.data;
+  }
+
+  private parseArguments<TOptions extends RawCliOptions | RawSchemaPrintOptions>(
+    read: () => TOptions,
+  ): TOptions {
     try {
-      return readCliOptions(argv);
+      return read();
     } catch (error) {
       if (error instanceof TypeError) {
         throw new ConfigError([{ variable: CLI_ARGUMENTS_LABEL, message: error.message }]);

@@ -2,6 +2,7 @@ packages:
   - apps/*
   - packages/*
 allowBuilds:
+  '@apollo/protobufjs': false
   '@swc/core': false
   cpu-features: false
   esbuild: true

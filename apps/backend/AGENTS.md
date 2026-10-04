@@ -8,6 +8,7 @@ NestJS modular monolith. One codebase and one image, started in a role (`gateway
 src/
 ├── main.ts              runs the ApplicationLauncher
 ├── migrate.ts           runs the MigrationLauncher (applies migrations/ as app_owner)
+├── print-schema.ts      runs the SchemaPrintLauncher (merges module SDL into packages/api-schema)
 ├── entrypoints/         the launcher, the application factory and one Nest root module per role: gateway, api, worker
 ├── platform/            infrastructure with no business meaning, used by 2+ modules
 └── modules/<module>/    one domain module
@@ -19,7 +20,7 @@ migrations/              SQL migrations written by drizzle-kit, committed, never
 
 ## Running a role
 
-- `pnpm --filter backend dev:api`, `dev:gateway`, `dev:worker`: rebuild with SWC and restart on change. Extra arguments pass through: `dev:worker --queues=ingest`.
+- `pnpm --filter backend dev:api`, `dev:gateway`, `dev:worker`: rebuild with SWC into `.dev/dist` (one directory per container in compose) and restart on change. Extra arguments pass through: `dev:worker --queues=ingest`.
 - `pnpm --filter backend build` then `pnpm --filter backend start --role=api` runs the compiled app.
 - The role is `--role=api|gateway|worker`. A worker also needs `--queues=…` (names from `QueueName`). Ports, host and everything else come from env (`.env.example`), validated by `platform/config`; invalid input prints every bad variable and exits with code 1.
 - Every role serves health and metrics: `/api/health/live`, `/api/health/ready` on `api`; `/health/live`, `/health/ready` on `gateway` and `worker`; `/metrics` on all three, outside the `/api` prefix.
@@ -31,6 +32,15 @@ migrations/              SQL migrations written by drizzle-kit, committed, never
 - New table: `modules/<m>/db/<name>.table.ts` in `moduleSchema('<m>')`, with `workspaceIdColumn()` and `tenantIsolationPolicy('<table>')` from `platform/db/tenancy`, and `.enableRLS()`. Run `pnpm --filter backend db:generate`, then append `ALTER TABLE … FORCE ROW LEVEL SECURITY;` to the new migration (drizzle-kit does not write it). A table that is not per workspace goes on the exempt list in `platform/testing/tenant-schema.constants.ts`.
 - Apply migrations with `mise run db:migrate` (or `pnpm --filter backend db:migrate` with `DATABASE_OWNER_URL` set). `pnpm --filter backend db:check` checks the migration files.
 - Tests need Docker: Vitest starts Postgres and Redis with Testcontainers once per run and migrates them. A database spec builds its module with `createDatabaseTestingModule()` and wraps writes in `TestTransactionRunner.rollback(…)`, so nothing stays behind. The schema test fails when a tenant table lacks `workspace_id`, forced RLS or a policy.
+
+## Request layer
+
+- GraphQL is schema-first on `api` at `/api/graphql` (HTTP) and the same path over `graphql-ws`. Each module's SDL is `modules/<m>/<m>.graphql`; `platform/graphql` loads them all.
+- `pnpm codegen` (or `mise run codegen`) writes `src/platform/graphql/schema.generated.ts` (resolver types, gitignored) and `packages/api-schema/schema.graphql` (the merged schema, gitignored). `typecheck` runs codegen first.
+- A resolver takes `@GraphqlCtx() ctx: UseCaseCtx` and returns the generated type. The app refuses to boot when a root field has no resolver.
+- `UseCaseCtx` (`platform/context`) holds the actor (`user`, `api-channel`, `system`, `anonymous`), `workspaceId`, `traceId` and `locale`. HTTP reads `Authorization: Bearer …`; WebSocket reads `authorization` from `connection_init`, and an invalid token closes the socket with 4403. Until auth exists, `DenyAllAuthenticator` rejects every token.
+- Errors: a `DomainError` maps to GraphQL `extensions` (`code`, `reason`, `traceId`, `fields`), to RFC 9457 `application/problem+json` on REST under `/api/*`, and to retry or give-up in jobs (`JobErrorMapper`). `UpstreamError` is a failed external call. Anything else is `INTERNAL` with no detail.
+- Relay pagination: `platform/graphql/relay` (`toPageRequest`, `toConnection`, opaque cursors, page-size limits).
 
 ## Module anatomy
 

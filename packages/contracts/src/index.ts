@@ -1,1 +1,1 @@
-export const CONTRACTS_VERSION = 'contracts-1';
+export { ErrorCode, ErrorReason } from './errors/errors.constants';

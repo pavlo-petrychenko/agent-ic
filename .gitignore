@@ -7,3 +7,6 @@ coverage/
 .env
 .env.local
 .certs/
+*.generated.ts
+packages/api-schema/schema.graphql
+.dev/

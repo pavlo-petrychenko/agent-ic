@@ -11,18 +11,15 @@ import { TenantTransactionRunner } from './tenancy/tenant-transaction.runner';
 @Module({
   imports: [
     DatabaseClientsModule,
-    ClsModule.forRoot({
-      global: true,
-      plugins: [
-        new ClsPluginTransactional({
-          imports: [DatabaseClientsModule],
-          adapter: new TransactionalAdapterDrizzleOrm({
-            drizzleInstanceToken: APP_DATABASE,
-            defaultTxOptions: { isolationLevel: TRANSACTION_ISOLATION_LEVEL },
-          }),
+    ClsModule.registerPlugins([
+      new ClsPluginTransactional({
+        imports: [DatabaseClientsModule],
+        adapter: new TransactionalAdapterDrizzleOrm({
+          drizzleInstanceToken: APP_DATABASE,
+          defaultTxOptions: { isolationLevel: TRANSACTION_ISOLATION_LEVEL },
         }),
-      ],
-    }),
+      }),
+    ]),
   ],
   providers: [TenantTransactionRunner],
   exports: [DatabaseClientsModule, TenantTransactionRunner],

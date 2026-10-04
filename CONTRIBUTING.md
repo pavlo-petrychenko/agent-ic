@@ -45,6 +45,8 @@ AI assistants read [AGENTS.md](AGENTS.md) in the repository root and the one ins
 | Build (SWC for the backend, tsup and Vite elsewhere)                                  | `pnpm build`          | no           | yes |
 | Tenant table without `workspace_id`, forced RLS or a policy (schema test)             | `pnpm test`           | no           | yes |
 | Migrations committed and consistent                                                   | `drizzle-kit check`   | no           | yes |
+| Generated GraphQL types and `packages/api-schema` (gitignored, built first in CI)     | `pnpm codegen`        | no           | yes |
+| Every GraphQL root field has a resolver (boot test)                                   | `pnpm test`           | no           | yes |
 
 ## How to review
 

@@ -40,9 +40,12 @@ export const cliSchema = z
     message: WORKER_QUEUES_REQUIRED_MESSAGE,
   });
 
+export const schemaPrintCliSchema = z.object({ output: text });
+
 export const commonEnvSchema = z
   .object({
     [EnvVar.NodeEnv]: z.enum(NodeEnvironment),
+    [EnvVar.AppVersion]: text,
     [EnvVar.LogLevel]: z.enum(LogLevel),
     [EnvVar.HttpHost]: text,
     [EnvVar.OtelSdkDisabled]: z.stringbool(),
@@ -55,6 +58,7 @@ export const commonEnvSchema = z
   })
   .transform((env): CommonEnvironment => ({
     nodeEnv: env[EnvVar.NodeEnv],
+    version: env[EnvVar.AppVersion],
     logLevel: env[EnvVar.LogLevel],
     host: env[EnvVar.HttpHost],
     database: {

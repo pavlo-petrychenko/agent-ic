@@ -31,8 +31,13 @@ export enum CliOption {
   Queues = 'queues',
 }
 
+export enum SchemaPrintOption {
+  Output = 'output',
+}
+
 export enum EnvVar {
   NodeEnv = 'NODE_ENV',
+  AppVersion = 'APP_VERSION',
   LogLevel = 'LOG_LEVEL',
   HttpHost = 'HTTP_HOST',
   ApiPort = 'API_PORT',

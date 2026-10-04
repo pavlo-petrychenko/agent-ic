@@ -7,16 +7,18 @@ import type { TracingService } from '@/platform/observability/tracing/tracing.se
 
 import { ROLE_ENTRYPOINTS, UNPREFIXED_ROUTES } from './entrypoint.constants';
 import { LogMessage } from './launcher.constants';
+import type { RoleEntrypoint } from './entrypoint.typedefs';
 import { RootModule } from './root.module';
 
 export class ApplicationFactory {
   constructor(
     private readonly config: AppConfig,
     private readonly tracing: TracingService,
+    private readonly entrypoint: RoleEntrypoint = ROLE_ENTRYPOINTS[config.role],
   ) {}
 
   async create(): Promise<INestApplication> {
-    const entrypoint = ROLE_ENTRYPOINTS[this.config.role];
+    const { entrypoint } = this;
     const app = await NestFactory.create(
       RootModule.forRole(this.config, this.tracing, entrypoint.module),
       { bufferLogs: true },

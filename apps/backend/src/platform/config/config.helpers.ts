@@ -11,13 +11,9 @@ import {
   CONFIG_ISSUE_VALUE_SEPARATOR,
   CliOption,
   QUEUE_LIST_SEPARATOR,
+  SchemaPrintOption,
 } from './config.constants';
-import type { ConfigIssue } from './config.typedefs';
-
-export interface RawCliOptions {
-  readonly role: string | undefined;
-  readonly queues: readonly string[];
-}
+import type { ConfigIssue, RawCliOptions, RawSchemaPrintOptions } from './config.typedefs';
 
 export const readCliOptions = (argv: readonly string[]): RawCliOptions => {
   const { values } = parseArgs({
@@ -34,6 +30,16 @@ export const readCliOptions = (argv: readonly string[]): RawCliOptions => {
     role: values[CliOption.Role],
     queues: queues === undefined ? [] : queues.split(QUEUE_LIST_SEPARATOR),
   };
+};
+
+export const readSchemaPrintOptions = (argv: readonly string[]): RawSchemaPrintOptions => {
+  const { values } = parseArgs({
+    args: argv.slice(ARGV_OFFSET),
+    options: { [SchemaPrintOption.Output]: { type: 'string' } },
+    strict: true,
+    allowPositionals: false,
+  });
+  return { output: values[SchemaPrintOption.Output] };
 };
 
 export const toConfigIssues = (error: z.ZodError, prefix = ''): ConfigIssue[] =>

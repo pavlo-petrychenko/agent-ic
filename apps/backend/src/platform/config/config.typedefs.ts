@@ -42,6 +42,7 @@ export type LangfuseConfig = LangfuseDisabledConfig | LangfuseActiveConfig;
 
 export interface BaseConfig {
   readonly nodeEnv: NodeEnvironment;
+  readonly version: string;
   readonly logLevel: LogLevel;
   readonly http: HttpConfig;
   readonly database: DatabaseConfig;
@@ -69,6 +70,19 @@ export interface CliArguments {
   readonly queues: readonly QueueName[];
 }
 
+export interface RawCliOptions {
+  readonly role: string | undefined;
+  readonly queues: readonly string[];
+}
+
+export interface RawSchemaPrintOptions {
+  readonly output: string | undefined;
+}
+
+export interface SchemaPrintConfig {
+  readonly output: string;
+}
+
 export interface ConfigIssue {
   readonly variable: string;
   readonly message: string;
@@ -80,6 +94,7 @@ export interface RoleEnvironment {
 
 export interface CommonEnvironment {
   readonly nodeEnv: NodeEnvironment;
+  readonly version: string;
   readonly logLevel: LogLevel;
   readonly host: string;
   readonly database: DatabaseConfig;

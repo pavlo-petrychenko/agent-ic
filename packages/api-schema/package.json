@@ -1,0 +1,11 @@
+{
+  "name": "@agent-ic/api-schema",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "schema.graphql"
+  ],
+  "exports": {
+    "./schema.graphql": "./schema.graphql"
+  }
+}

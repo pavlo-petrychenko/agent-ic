@@ -1,0 +1,9 @@
+export const CURSOR_ENCODING = 'base64url';
+export const CURSOR_TEXT_ENCODING = 'utf8';
+export const CURSOR_PREFIX = 'cursor:';
+export const PAGE_SIZE_DEFAULT = 20;
+export const PAGE_SIZE_MIN = 1;
+export const PAGE_SIZE_MAX = 100;
+export const PAGE_LOOKAHEAD_ROWS = 1;
+export const INVALID_CURSOR_MESSAGE = 'The cursor is not valid.';
+export const INVALID_PAGE_SIZE_MESSAGE = 'The page size is out of range.';

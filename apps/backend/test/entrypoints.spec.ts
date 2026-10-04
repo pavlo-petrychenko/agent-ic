@@ -3,9 +3,9 @@ import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { ApplicationFactory } from '@/entrypoints/application.factory';
-import { GlobalPrefix } from '@/entrypoints/entrypoint.constants';
 import { CliOption, Role } from '@/platform/config/config.constants';
 import { ConfigLoader } from '@/platform/config/config.loader';
+import { GlobalPrefix } from '@/platform/http/http.constants';
 import { HealthRoute, HealthStatus } from '@/platform/observability/health/health.constants';
 import { MetricsRoute } from '@/platform/observability/metrics/metrics.constants';
 import { TracingService } from '@/platform/observability/tracing/tracing.service';

@@ -15,12 +15,29 @@
       ],
       "outputs": ["dist/**"]
     },
+    "codegen": {
+      "inputs": ["src/**/*.graphql", "codegen.config.ts", "package.json"],
+      "outputs": ["src/**/*.generated.ts"]
+    },
+    "backend#schema:print": {
+      "dependsOn": ["build"],
+      "inputs": ["src/**/*.graphql", "package.json"],
+      "outputs": ["$TURBO_ROOT$/packages/api-schema/schema.graphql"]
+    },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "typecheck": {
-      "inputs": ["src/**", "test/**", "drizzle.config.ts", "tsconfig.json", "package.json"]
+      "dependsOn": ["codegen"],
+      "inputs": [
+        "src/**",
+        "test/**",
+        "drizzle.config.ts",
+        "codegen.config.ts",
+        "tsconfig.json",
+        "package.json"
+      ]
     },
     "test": {
       "inputs": [

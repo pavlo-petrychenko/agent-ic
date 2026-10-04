@@ -10,6 +10,7 @@ x-dev-volumes: &dev-volumes
   - flow-node-modules:/workspace/packages/flow/node_modules
   - tsconfig-node-modules:/workspace/packages/tsconfig/node_modules
   - oxc-config-node-modules:/workspace/packages/oxc-config/node_modules
+  - /workspace/apps/backend/.dev
 
 x-dev: &dev
   image: agent-ic-dev
@@ -20,6 +21,7 @@ x-dev: &dev
 
 x-backend-environment: &backend-environment
   NODE_ENV: ${NODE_ENV}
+  APP_VERSION: ${APP_VERSION}
   PUBLIC_URL: ${PUBLIC_URL}
   LOG_LEVEL: ${LOG_LEVEL}
   HTTP_HOST: ${HTTP_HOST}

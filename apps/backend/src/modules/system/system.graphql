@@ -1,0 +1,8 @@
+type Query {
+  serverStatus: ServerStatus!
+}
+
+type ServerStatus {
+  version: String!
+  uptimeSeconds: Int!
+}

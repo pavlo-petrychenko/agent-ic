@@ -10,6 +10,7 @@ import { ConfigModule } from '@/platform/config/config.module';
 import { CLIENT_CLOSE_TIMEOUT_SECONDS } from '@/platform/db/database.constants';
 import { createSqlClient } from '@/platform/db/database.helpers';
 import { DatabaseModule } from '@/platform/db/database.module';
+import { ContextModule } from '@/platform/context/context.module';
 import type { AppDatabase, SqlExecutor } from '@/platform/db/database.typedefs';
 import { IdsModule } from '@/platform/ids/ids.module';
 
@@ -34,7 +35,7 @@ export const createDatabaseTestingModule = async (): Promise<TestingModule> => {
   });
   const config = new ConfigLoader(env).load(createArgv(cliArgument(CliOption.Role, Role.Api)));
   const testingModule = await Test.createTestingModule({
-    imports: [ConfigModule.register(config), DatabaseModule, ClockModule, IdsModule],
+    imports: [ConfigModule.register(config), ContextModule, DatabaseModule, ClockModule, IdsModule],
     providers: [TestTransactionRunner],
   }).compile();
   return testingModule.init();
