@@ -34,8 +34,8 @@ x-backend-environment: &backend-environment
   DATABASE_SYSTEM_URL: postgres://app_system:${APP_SYSTEM_PASSWORD}@postgres:5432/${DATABASE_NAME}
   DATABASE_OWNER_URL: postgres://app_owner:${APP_OWNER_PASSWORD}@postgres:5432/${DATABASE_NAME}
   DATABASE_POOL_MAX: ${DATABASE_POOL_MAX}
-  REDIS_QUEUE_URL: redis://redis-queue:6379
-  REDIS_CACHE_URL: redis://redis-cache:6379
+  REDIS_QUEUE_URL: redis://redis:6379
+  REDIS_CACHE_URL: redis://redis:6379
   S3_ENDPOINT: http://minio:9000
   S3_PUBLIC_ENDPOINT: http://localhost:${MINIO_API_PORT:-9000}
   S3_REGION: ${S3_REGION}
@@ -66,9 +66,7 @@ x-backend-depends-on: &backend-depends-on
     condition: service_completed_successfully
   postgres:
     condition: service_healthy
-  redis-queue:
-    condition: service_healthy
-  redis-cache:
+  redis:
     condition: service_healthy
   minio:
     condition: service_healthy
@@ -147,7 +145,7 @@ services:
       retries: 20
       start_period: 10s
 
-  redis-queue:
+  redis:
     image: redis:8.10-alpine
     command:
       - redis-server
@@ -156,29 +154,9 @@ services:
       - --appendonly
       - 'yes'
     ports:
-      - 127.0.0.1:${REDIS_QUEUE_PORT:-6380}:6379
+      - 127.0.0.1:${REDIS_PORT:-6380}:6379
     volumes:
-      - redis-queue-data:/data
-    healthcheck:
-      test: [CMD, redis-cli, ping]
-      interval: 3s
-      timeout: 3s
-      retries: 10
-
-  redis-cache:
-    image: redis:8.10-alpine
-    command:
-      - redis-server
-      - --maxmemory
-      - 256mb
-      - --maxmemory-policy
-      - allkeys-lru
-      - --save
-      - ''
-      - --appendonly
-      - 'no'
-    ports:
-      - 127.0.0.1:${REDIS_CACHE_PORT:-6381}:6379
+      - redis-data:/data
     healthcheck:
       test: [CMD, redis-cli, ping]
       interval: 3s
@@ -283,7 +261,7 @@ services:
       test:
         [CMD, node, deploy/docker/healthcheck.mjs, 'http://localhost:${GATEWAY_PORT}/health/live']
 
-  worker-runs:
+  worker:
     <<: *dev
     command:
       [
@@ -291,23 +269,11 @@ services:
         --filter,
         backend,
         dev:worker,
-        '--queues=runs-reactive,runs-proactive,outbound,notify,timers',
+        '--queues=runs-reactive,runs-proactive,outbound,notify,timers,ingest',
       ]
     environment:
       <<: *backend-environment
-      OTEL_SERVICE_NAME: worker-runs
-    depends_on: *backend-depends-on
-    healthcheck:
-      <<: *node-healthcheck
-      test:
-        [CMD, node, deploy/docker/healthcheck.mjs, 'http://localhost:${WORKER_PORT}/health/live']
-
-  worker-ingest:
-    <<: *dev
-    command: [pnpm, --filter, backend, dev:worker, --queues=ingest]
-    environment:
-      <<: *backend-environment
-      OTEL_SERVICE_NAME: worker-ingest
+      OTEL_SERVICE_NAME: worker
     depends_on: *backend-depends-on
     healthcheck:
       <<: *node-healthcheck
@@ -439,7 +405,7 @@ services:
 
 volumes:
   postgres-data:
-  redis-queue-data:
+  redis-data:
   minio-data:
   mailpit-data:
   pnpm-store:

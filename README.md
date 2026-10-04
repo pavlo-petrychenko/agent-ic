@@ -12,7 +12,7 @@ You install two things by hand. Everything else comes from `mise.toml`.
 
 1. Download Docker Desktop for your chip from https://www.docker.com/products/docker-desktop/ (or `brew install --cask docker`).
 2. Open it once and wait until the whale icon says "Docker Desktop is running".
-3. Give it at least 6 GB of memory (Settings, Resources). The observability and Langfuse profiles need more.
+3. Give it at least 4 GB of memory and 10 GB of free disk (Settings, Resources) for the minimal stack. The observability and Langfuse profiles need more.
 
 OrbStack also works.
 
@@ -52,7 +52,7 @@ mise run setup
 | ------------------------- | ------------------------------------------------------------------ |
 | `mise run setup`          | one-time setup, see above                                          |
 | `mise run start [svc...]` | start everything, or only the listed services, and follow the logs |
-| `mise run add <svc>`      | add one service to the running stack (for example `worker-ingest`) |
+| `mise run add <svc>`      | add one service to the running stack (for example `grafana`)       |
 | `mise run stop [svc]`     | stop everything or one service                                     |
 | `mise run restart <svc>`  | restart one service                                                |
 | `mise run status`         | show the state of every service                                    |
@@ -72,11 +72,20 @@ mise run setup
 
 `mise tasks` lists them with descriptions.
 
+The default stack is the minimum to run the app: Postgres, one Redis (queues and cache share it locally, production keeps two), Silo, Mailpit, Traefik, `api`, `gateway`, one `worker` (all queues) and `web`.
+
+| Mode               | Memory | Disk  |
+| ------------------ | ------ | ----- |
+| Minimal (default)  | 4 GB   | 10 GB |
+| Plus observability | 6 GB   | 15 GB |
+| Plus Langfuse      | 8 GB   | 20 GB |
+
 Optional stacks stay off until you ask for them:
 
 ```sh
 COMPOSE_PROFILES=observability mise run start
 COMPOSE_PROFILES=langfuse mise run start
+COMPOSE_PROFILES=observability,langfuse mise run start
 mise run add grafana
 mise run add langfuse-web
 ```
@@ -97,7 +106,7 @@ mise run add langfuse-web
 
 ## Port conflicts
 
-`.env.example` holds the default host ports, all bound to `127.0.0.1`: Traefik `TRAEFIK_HTTP_PORT=80` and `TRAEFIK_HTTPS_PORT=443`, `POSTGRES_PORT=5432`, `REDIS_QUEUE_PORT=6380`, `REDIS_CACHE_PORT=6381`, `MINIO_API_PORT=9000`, `MAILPIT_SMTP_PORT=1025`. Compose reads them from `.env`.
+`.env.example` holds the default host ports, all bound to `127.0.0.1`: Traefik `TRAEFIK_HTTP_PORT=80` and `TRAEFIK_HTTPS_PORT=443`, `POSTGRES_PORT=5432`, `REDIS_PORT=6380`, `MINIO_API_PORT=9000`, `MAILPIT_SMTP_PORT=1025`. Compose reads them from `.env`.
 
 During `mise run setup`, `tools/dev/ports.sh` checks each port with `lsof`. For a busy port it prints the process that holds it, writes a free alternative into `.env` (`8080`, `8443`, `5433`, `6390`, `6391`, `9100`, `1026`, or the next free number) and prints the resulting URLs. When HTTPS is not on `443`, `PUBLIC_URL` gets the port too, so open `https://local.agent-ic.pavlop.dev:8443`.
 
