@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { MemoryRouter } from '@/shared/testing/MemoryRouter';
 import { Link } from '@/shared/ui/Link/Link';
+import { MemoryRouter } from '@test/support/components/MemoryRouter';
 
 describe('Link', () => {
   it('renders an anchor that points at the route', async () => {

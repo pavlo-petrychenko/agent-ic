@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { AppHeader } from '@/app/layouts/AppHeader/AppHeader';
 import { createI18n } from '@/shared/i18n/i18n';
 import { LOCALE_STORAGE_KEY, Locale } from '@/shared/i18n/i18n.constants';
-import { MemoryRouter } from '@/shared/testing/MemoryRouter';
+import { MemoryRouter } from '@test/support/components/MemoryRouter';
 
 const renderHeader = () =>
   render(

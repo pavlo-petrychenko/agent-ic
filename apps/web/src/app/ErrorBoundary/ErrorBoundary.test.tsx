@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { ErrorBoundary } from '@/app/ErrorBoundary/ErrorBoundary';
 import { AppError } from '@/shared/api/AppError';
 import { Locale } from '@/shared/i18n/i18n.constants';
-import { renderWithProviders } from '@/shared/testing/renderWithProviders';
+import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
 const TRACE_ID = 'trace-123';
 

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { ServerStatus } from '@/features/status/view/ServerStatus/ServerStatus';
 import type { ServerStatusProps } from '@/features/status/view/ServerStatus/ServerStatus.typedefs';
 import { Locale } from '@/shared/i18n/i18n.constants';
-import { renderWithProviders } from '@/shared/testing/renderWithProviders';
+import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
 const baseProps: ServerStatusProps = {
   version: null,

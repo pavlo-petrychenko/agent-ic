@@ -6,7 +6,7 @@ import {
 } from '@/features/status/communication/serverStatus.mocks';
 import { StatusPage } from '@/features/status/containers/StatusPage/StatusPage';
 import { Locale } from '@/shared/i18n/i18n.constants';
-import { renderWithProviders } from '@/shared/testing/renderWithProviders';
+import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
 describe('StatusPage', () => {
   it('shows the backend version and uptime in English', async () => {

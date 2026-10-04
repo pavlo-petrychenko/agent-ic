@@ -5,7 +5,7 @@ import {
   RouterProvider,
 } from '@tanstack/react-router';
 import { type ReactNode, useState } from 'react';
-import { ROOT_PATH } from '@/shared/testing/testing.constants';
+import { ROOT_PATH } from '@test/support/constants/router.constants';
 
 interface MemoryRouterProps {
   children: ReactNode;

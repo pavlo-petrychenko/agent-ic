@@ -1,5 +1,5 @@
 import type { Decorator } from '@storybook/react-vite';
-import { MemoryRouter } from '@/shared/testing/MemoryRouter';
+import { MemoryRouter } from '@test/support/components/MemoryRouter';
 
 export const withMemoryRouter: Decorator = (Story) => (
   <MemoryRouter>

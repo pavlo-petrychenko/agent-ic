@@ -85,6 +85,7 @@
       "dependsOn": ["^build", "codegen"],
       "inputs": [
         "src/**",
+        "test/**",
         ".storybook/**",
         "public/**",
         "vite.config.ts",
