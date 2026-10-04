@@ -39,6 +39,35 @@ describe('Button', () => {
     expect(button.querySelector('[data-icon="spinner"]')).not.toBeNull();
   });
 
+  it('draws a 13px spinner with a 1.8 stroke before the label while loading', () => {
+    render(<Button loading>Save</Button>);
+
+    const button = screen.getByRole('button', { name: 'Save' });
+    const spinner = button.querySelector('[data-icon="spinner"]');
+
+    expect(spinner).toHaveAttribute('width', '13');
+    expect(spinner).toHaveAttribute('stroke-width', '1.8');
+    expect(button.firstElementChild?.contains(spinner)).toBe(true);
+    expect(button).toHaveTextContent('Save');
+  });
+
+  it('ignores loading on a ghost button', async () => {
+    const onClick = vi.fn<() => void>();
+    render(
+      <Button variant={ButtonVariant.Ghost} loading onClick={onClick}>
+        Edit
+      </Button>,
+    );
+
+    const button = screen.getByRole('button', { name: 'Edit' });
+    await userEvent.click(button);
+
+    expect(button).not.toHaveAttribute('aria-busy');
+    expect(button).toBeEnabled();
+    expect(button.querySelector('[data-icon="spinner"]')).toBeNull();
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
   it('replaces the leading icon with a spinner while loading', () => {
     const { rerender } = render(<Button icon={IconName.Plus}>Add</Button>);
 

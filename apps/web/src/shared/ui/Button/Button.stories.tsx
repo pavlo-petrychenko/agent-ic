@@ -38,6 +38,12 @@ export const FullWidth: Story = {
     ),
   ],
 };
+export const LoadingSecondary: Story = {
+  args: { variant: ButtonVariant.Secondary, loading: true, children: 'Saving…' },
+};
+export const LoadingDanger: Story = {
+  args: { variant: ButtonVariant.Danger, loading: true, children: 'Deleting…' },
+};
 export const Loading: Story = { args: { loading: true } };
 export const LoadingWithIcon: Story = { args: { loading: true, icon: IconName.Plus } };
 export const Disabled: Story = { args: { disabled: true } };
@@ -59,9 +65,11 @@ export const AllVariantsAndSizes: Story = {
           <Button variant={variant} disabled>
             Disabled
           </Button>
-          <Button variant={variant} loading>
-            Loading
-          </Button>
+          {variant === ButtonVariant.Ghost ? null : (
+            <Button variant={variant} loading>
+              Loading
+            </Button>
+          )}
         </div>
       ))}
     </div>

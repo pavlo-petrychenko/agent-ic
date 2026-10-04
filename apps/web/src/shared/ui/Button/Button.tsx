@@ -1,6 +1,12 @@
 import clsx from 'clsx';
 import type { MouseEvent, ReactNode } from 'react';
-import { BUTTON_ICON_SIZES, ButtonSize, ButtonVariant } from '@/shared/ui/Button/Button.constants';
+import {
+  BUTTON_ICON_SIZES,
+  BUTTON_SPINNER_SIZE,
+  BUTTON_SPINNER_STROKE_WIDTH,
+  ButtonSize,
+  ButtonVariant,
+} from '@/shared/ui/Button/Button.constants';
 import type {
   ButtonAnchorProps,
   ButtonOwnProps,
@@ -18,7 +24,7 @@ function splitProps<T extends SplitableProps>(props: T) {
   const {
     variant = ButtonVariant.Primary,
     size = ButtonSize.Md,
-    loading = false,
+    loading: loadingRequested = false,
     icon = null,
     fullWidth = false,
     disabled = false,
@@ -27,7 +33,7 @@ function splitProps<T extends SplitableProps>(props: T) {
     ...rest
   } = props;
   const iconSize = BUTTON_ICON_SIZES[size];
-  const hasLeadingIcon = icon !== null;
+  const loading = loadingRequested && variant !== ButtonVariant.Ghost;
 
   const classes = clsx(
     styles.root,
@@ -42,14 +48,16 @@ function splitProps<T extends SplitableProps>(props: T) {
   const content = (
     <>
       {loading ? (
-        <Icon
-          name={IconName.Spinner}
-          size={iconSize}
-          className={hasLeadingIcon ? undefined : styles.spinnerOverlay}
-        />
+        <span className={styles.spinner}>
+          <Icon
+            name={IconName.Spinner}
+            size={BUTTON_SPINNER_SIZE}
+            strokeWidth={BUTTON_SPINNER_STROKE_WIDTH}
+          />
+        </span>
       ) : null}
-      {!loading && hasLeadingIcon ? <Icon name={icon} size={iconSize} /> : null}
-      <span className={clsx(loading && !hasLeadingIcon && styles.labelHidden)}>{children}</span>
+      {!loading && icon !== null ? <Icon name={icon} size={iconSize} /> : null}
+      <span>{children}</span>
     </>
   );
 
