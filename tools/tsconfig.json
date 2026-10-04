@@ -1,9 +1,7 @@
 {
   "extends": "@agent-ic/tsconfig/node.json",
-  "include": ["src"],
   "compilerOptions": {
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
+    "erasableSyntaxOnly": true
+  },
+  "include": ["*.ts"]
 }

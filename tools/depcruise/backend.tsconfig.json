@@ -1,0 +1,9 @@
+{
+  "extends": "../../apps/backend/tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["apps/backend/src/*"]
+    }
+  },
+  "include": ["../../apps/backend/src"]
+}

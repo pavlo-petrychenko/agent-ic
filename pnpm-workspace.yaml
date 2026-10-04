@@ -4,3 +4,7 @@ packages:
 allowBuilds:
   esbuild: true
   lefthook: false
+packageExtensions:
+  dependency-cruiser:
+    dependencies:
+      typescript: ^6

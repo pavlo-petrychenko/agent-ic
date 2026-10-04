@@ -1,0 +1,18 @@
+pre-commit:
+  parallel: false
+  jobs:
+    - name: oxfmt
+      glob: '*.{ts,tsx,js,cjs,mjs,json,jsonc,scss,css,html,md,yml,yaml}'
+      exclude:
+        - 'docs/**'
+        - '**/AGENTS.md'
+        - '**/CLAUDE.md'
+        - 'pnpm-lock.yaml'
+      run: pnpm exec oxfmt -c packages/oxc-config/oxfmt.json {staged_files}
+      stage_fixed: true
+    - name: oxlint
+      glob: '*.{ts,tsx,js,cjs,mjs}'
+      run: pnpm exec oxlint --type-aware {staged_files}
+    - name: check-comments
+      glob: '*.{ts,tsx,js,cjs,mjs,scss}'
+      run: pnpm check:comments {staged_files}
