@@ -7,10 +7,10 @@ import { EnvVar } from '@/platform/config/constants/env.constants';
 import { PROBLEM_CONTENT_TYPE } from '@/platform/errors/constants/problem-details.constants';
 import { HttpHeader } from '@/platform/http/constants/http-header.constants';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { MetricsRoute } from '@/platform/observability/metrics/metrics.constants';
-import { QueueBoardRoute } from '@/platform/queues/board/queue-board.constants';
-import { QueueMetricName } from '@/platform/queues/metrics/queue-metrics.constants';
-import { QueueName } from '@/platform/queues/queue.constants';
+import { MetricsRoute } from '@/platform/observability/constants/metrics.constants';
+import { QueueBoardRoute } from '@/platform/queues/constants/queue-board.constants';
+import { QueueMetricName } from '@/platform/queues/constants/queue-metrics.constants';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 import {
   BOARD_QUEUES_API_SEGMENT,
   HTML_CONTENT_TYPE,

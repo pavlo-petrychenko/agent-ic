@@ -1,14 +1,13 @@
-import { Global, Module } from '@nestjs/common';
-import { NoPlatformAdminsAuthorizer } from '@/platform/admin/no-platform-admins.authorizer';
-import { PlatformAdminAuthorizer } from '@/platform/admin/platform-admin.authorizer';
-import { PlatformAdminGuard } from '@/platform/admin/platform-admin.guard';
+import { PlatformAdminGuard } from '@/platform/admin/guards/platform-admin.guard';
+import { NoPlatformAdminsAuthorizerService } from '@/platform/admin/services/no-platform-admins-authorizer.service';
+import { PlatformAdminAuthorizerService } from '@/platform/admin/services/platform-admin-authorizer.service';
+import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
-@Global()
-@Module({
+export class AdminModule extends defineModule({
+  global: true,
   providers: [
-    { provide: PlatformAdminAuthorizer, useClass: NoPlatformAdminsAuthorizer },
+    { provide: PlatformAdminAuthorizerService, useClass: NoPlatformAdminsAuthorizerService },
     PlatformAdminGuard,
   ],
-  exports: [PlatformAdminAuthorizer, PlatformAdminGuard],
-})
-export class AdminModule {}
+  exports: [PlatformAdminAuthorizerService, PlatformAdminGuard],
+}) {}

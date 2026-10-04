@@ -11,7 +11,7 @@ import { GRAPHQL_PATH } from '@/platform/graphql-server/constants/graphql-server
 import { GlobalPrefix } from '@/platform/http/constants/global-prefix.constants';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import type { ModuleImport } from '@/platform/module-roles/typedefs/module-roles.typedefs';
-import { TracingService } from '@/platform/observability/tracing/tracing.service';
+import { TracingService } from '@/platform/observability/services/tracing.service';
 import {
   LOOPBACK_HOST,
   WEBSOCKET_NO_RESULT_MESSAGE,

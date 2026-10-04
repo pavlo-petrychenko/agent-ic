@@ -7,8 +7,8 @@ import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { ActorKind } from '@/platform/context/constants/actor.constants';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { TracingService } from '@/platform/observability/tracing/tracing.service';
-import { QueueName } from '@/platform/queues/queue.constants';
+import { TracingService } from '@/platform/observability/services/tracing.service';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 import {
   PROBE_TRACE_ID,
   PROBE_USER_ID,

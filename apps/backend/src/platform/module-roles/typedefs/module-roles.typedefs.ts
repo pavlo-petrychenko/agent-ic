@@ -6,6 +6,7 @@ export type ModuleImport = NonNullable<ModuleMetadata['imports']>[number];
 export type ModuleExport = NonNullable<ModuleMetadata['exports']>[number];
 
 export interface ModuleDefinition {
+  readonly global?: boolean;
   readonly imports?: readonly ModuleImport[];
   readonly providers?: readonly Provider[];
   readonly exports?: readonly ModuleExport[];
@@ -15,6 +16,7 @@ export interface ModuleDefinition {
   readonly processors?: readonly Type<unknown>[];
   readonly listeners?: readonly Type<unknown>[];
   readonly roleProviders?: Readonly<Partial<Record<Role, readonly Provider[]>>>;
+  readonly roleControllers?: Readonly<Partial<Record<Role, readonly Type<unknown>[]>>>;
 }
 
 export interface RoleModule {

@@ -6,11 +6,11 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 import { ActorKind, SystemReason } from '@/platform/context/constants/actor.constants';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
-import { DomainEventsService } from '@/platform/domain-events/domain-events.service';
-import { JobsService } from '@/platform/queues/jobs.service';
-import { QueueName } from '@/platform/queues/queue.constants';
-import { QueueRegistry } from '@/platform/queues/queue.registry';
-import type { JobEnvelope } from '@/platform/queues/queue.typedefs';
+import { DomainEventsService } from '@/platform/domain-events/services/domain-events.service';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
+import { JobsService } from '@/platform/queues/services/jobs.service';
+import { QueuesService } from '@/platform/queues/services/queues.service';
+import type { JobEnvelope } from '@/platform/queues/typedefs/job.typedefs';
 import {
   PROBE_TRACE_ID,
   PROBE_USER_ID,
@@ -59,7 +59,7 @@ describe('jobs and domain events', () => {
     jobs = app.get(JobsService);
     domainEvents = app.get(DomainEventsService);
     recorder = app.get(ProbeCallsRecorderService);
-    queue = app.get(QueueRegistry).get(QueueName.Notify);
+    queue = app.get(QueuesService).get(QueueName.Notify);
   });
 
   afterAll(async () => {

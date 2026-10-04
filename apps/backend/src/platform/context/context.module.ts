@@ -4,7 +4,7 @@ import { AuthenticatorService } from '@/platform/context/services/authenticator.
 import { DenyAllAuthenticatorService } from '@/platform/context/services/deny-all-authenticator.service';
 import { TraceIdService } from '@/platform/context/services/trace-id.service';
 import { UseCaseCtxService } from '@/platform/context/services/use-case-ctx.service';
-import { resolveTraceId } from '@/platform/observability/tracing/tracing.helpers';
+import { resolveTraceId } from '@/platform/observability/helpers/tracing.helpers';
 
 @Global()
 @Module({

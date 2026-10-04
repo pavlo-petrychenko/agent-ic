@@ -4,7 +4,7 @@ import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
 import { loadAppConfig, loadMigrationConfig } from '@/platform/config/helpers/config.helpers';
 import type { RoleSelection } from '@/platform/config/typedefs/app-config.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { QueueName } from '@/platform/queues/queue.constants';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { createTestEnv } from '@test/support/fixtures/test-env.fixture';
 import { issuesOf, variablesOf } from '@test/support/helpers/config-issue.helpers';
 

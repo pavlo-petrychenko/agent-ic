@@ -1,9 +1,0 @@
-import type { z } from 'zod';
-import type { QueueName } from '@/platform/queues/queue.constants';
-import type { JobData } from '@/platform/queues/queue.typedefs';
-
-export abstract class JobDefinition<TData extends JobData> {
-  abstract readonly queue: QueueName;
-  abstract readonly name: string;
-  abstract readonly schema: z.ZodType<TData>;
-}

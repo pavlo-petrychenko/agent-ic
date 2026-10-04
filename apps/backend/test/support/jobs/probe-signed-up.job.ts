@@ -1,11 +1,8 @@
-import { DomainEventDefinition } from '@/platform/domain-events/domain-event.definition';
+import { defineDomainEvent } from '@/platform/domain-events/helpers/domain-event.helpers';
 import { ProbeEventName } from '@test/support/constants/async-jobs.constants';
 import { probeDataSchema } from '@test/support/schemas/async-jobs.schema';
-import type { ProbeData } from '@test/support/typedefs/async-jobs.typedefs';
 
-export class ProbeSignedUpEvent extends DomainEventDefinition<ProbeData> {
-  readonly name = ProbeEventName.SignedUp;
-  readonly schema = probeDataSchema;
-}
-
-export const probeSignedUpEvent = new ProbeSignedUpEvent();
+export const probeSignedUpEvent = defineDomainEvent({
+  name: ProbeEventName.SignedUp,
+  schema: probeDataSchema,
+});

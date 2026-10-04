@@ -6,10 +6,10 @@ import { createApplication } from '@/app/helpers/application.helpers';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { GlobalPrefix } from '@/platform/http/constants/global-prefix.constants';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { HealthRoute, HealthStatus } from '@/platform/observability/health/health.constants';
-import { MetricsRoute } from '@/platform/observability/metrics/metrics.constants';
-import { TracingService } from '@/platform/observability/tracing/tracing.service';
-import { QueueName } from '@/platform/queues/queue.constants';
+import { HealthRoute, HealthStatus } from '@/platform/observability/constants/health.constants';
+import { MetricsRoute } from '@/platform/observability/constants/metrics.constants';
+import { TracingService } from '@/platform/observability/services/tracing.service';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
 import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
 
