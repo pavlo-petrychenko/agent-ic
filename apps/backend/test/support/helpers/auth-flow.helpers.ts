@@ -25,8 +25,9 @@ const COOKIE_ATTRIBUTE_SEPARATOR = ';';
 export const bootRoleWithEmails = async (
   selection: RoleSelection,
   emails: FakeEmailGateway,
+  redisDatabase: TestRedisDatabase = TestRedisDatabase.AuthFlow,
 ): Promise<INestApplication> => {
-  const config = loadAppConfig(selection, createIntegrationTestEnv(TestRedisDatabase.AuthFlow));
+  const config = loadAppConfig(selection, createIntegrationTestEnv(redisDatabase));
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule.forRole(config, new TracingService(config.telemetry))],
   })

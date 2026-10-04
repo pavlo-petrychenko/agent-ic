@@ -28,6 +28,15 @@ export const confirmEmailInputSchema = z.object({
   [AccountField.Token]: tokenSchema,
 });
 
+export const forgotPasswordInputSchema = z.object({
+  [AccountField.Email]: emailSchema,
+});
+
+export const resetPasswordInputSchema = z.object({
+  [AccountField.Token]: tokenSchema,
+  [AccountField.Password]: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
+});
+
 export const resendConfirmationInputSchema = z.union([
   z.object({ [AccountField.Email]: emailSchema, [AccountField.Token]: z.null() }),
   z.object({ [AccountField.Email]: z.null(), [AccountField.Token]: tokenSchema }),

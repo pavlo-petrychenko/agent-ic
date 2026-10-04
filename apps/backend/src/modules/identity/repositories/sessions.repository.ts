@@ -37,6 +37,13 @@ export class SessionsRepository {
       .where(and(eq(sessions.familyId, familyId), isNull(sessions.revokedAt)));
   }
 
+  async revokeAllForUser(userId: string, at: Date): Promise<void> {
+    await this.txHost.tx
+      .update(sessions)
+      .set({ revokedAt: at })
+      .where(and(eq(sessions.userId, userId), isNull(sessions.revokedAt)));
+  }
+
   async deleteEnded(now: Date): Promise<void> {
     const replacing = alias(sessions, REPLACING_SESSION_ALIAS);
     await this.txHost.tx.delete(sessions).where(

@@ -33,6 +33,15 @@ export interface ResendConfirmationInput {
   readonly token: string | null;
 }
 
+export interface ForgotPasswordInput {
+  readonly email: string;
+}
+
+export interface ResetPasswordInput {
+  readonly token: string;
+  readonly password: string;
+}
+
 export interface RefreshTokenInput {
   readonly refreshToken: string | null;
 }

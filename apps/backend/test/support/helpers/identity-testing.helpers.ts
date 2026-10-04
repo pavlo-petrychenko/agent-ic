@@ -17,6 +17,7 @@ import { NotificationsModule } from '@/modules/notifications/notifications.modul
 import { ClockModule } from '@/platform/clock/clock.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { ConfigModule } from '@/platform/config/config.module';
+import type { EnvVar } from '@/platform/config/constants/env.constants';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { ContextModule } from '@/platform/context/context.module';
 import { CryptoModule } from '@/platform/crypto/crypto.module';
@@ -47,10 +48,12 @@ import type {
 
 const ROLE = Role.Gateway;
 
-export const createIdentityTestbed = async (): Promise<IdentityTestbed> => {
+export const createIdentityTestbed = async (
+  overrides: Partial<Record<EnvVar, string>> = {},
+): Promise<IdentityTestbed> => {
   const config = loadAppConfig(
     { role: ROLE, queues: [] },
-    createIntegrationTestEnv(TestRedisDatabase.Identity),
+    createIntegrationTestEnv(TestRedisDatabase.Identity, overrides),
   );
   const clock = new ManualClock(IDENTITY_TEST_START);
   const emails = new FakeEmailGateway();

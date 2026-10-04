@@ -11,6 +11,7 @@ export enum AuthRoute {
   Refresh = 'refresh',
   Logout = 'logout',
   ConfirmEmail = 'confirm-email',
+  ResetPassword = 'reset-password',
 }
 
 export const REFRESH_COOKIE_NAME = '__Secure-rt';

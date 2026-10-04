@@ -34,7 +34,7 @@ export class LoginUseCase {
     await this.rateLimits.enforce(LOGIN_RATE_LIMIT, loginSubject(ctx, data.email));
     await this.rateLimits.enforce(ACCOUNT_LOGIN_RATE_LIMIT, data.email);
     return this.txHost.withTransaction(async () => {
-      const user = await this.users.findByEmail(data.email);
+      const user = await this.users.findByEmailForShare(data.email);
       const matches = await verifyPassword(user?.passwordHash ?? null, data.password);
       if (user === null || !matches) {
         throw new InvalidCredentialsError();

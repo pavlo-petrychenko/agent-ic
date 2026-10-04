@@ -17,6 +17,7 @@ import type {
   AuthSessionResponse,
   ConfirmEmailRequest,
   LoginInput,
+  ResetPasswordInput,
   SignUpInput,
   SignUpResponse,
 } from '@/modules/identity/typedefs/account.typedefs';
@@ -24,6 +25,7 @@ import { ConfirmEmailUseCase } from '@/modules/identity/use-cases/confirm-email.
 import { LoginUseCase } from '@/modules/identity/use-cases/login.use-case';
 import { LogoutUseCase } from '@/modules/identity/use-cases/logout.use-case';
 import { RefreshSessionUseCase } from '@/modules/identity/use-cases/refresh-session.use-case';
+import { ResetPasswordUseCase } from '@/modules/identity/use-cases/reset-password.use-case';
 import { SignUpUseCase } from '@/modules/identity/use-cases/sign-up.use-case';
 import { HttpCtx } from '@/platform/context/decorators/http-ctx.decorator';
 import { UseCaseCtxGuard } from '@/platform/context/guards/use-case-ctx.guard';
@@ -38,6 +40,7 @@ export class AuthController {
     private readonly refreshSessionUseCase: RefreshSessionUseCase,
     private readonly logoutUseCase: LogoutUseCase,
     private readonly confirmEmailUseCase: ConfirmEmailUseCase,
+    private readonly resetPasswordUseCase: ResetPasswordUseCase,
   ) {}
 
   @Post(AuthRoute.SignUp)
@@ -105,5 +108,16 @@ export class AuthController {
     });
     releaseConfirmationBrowser(response);
     return startBrowserSession(response, session);
+  }
+
+  @Post(AuthRoute.ResetPassword)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async resetPassword(
+    @HttpCtx() ctx: UseCaseCtx,
+    @Body() body: ResetPasswordInput,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    await this.resetPasswordUseCase.execute(ctx, body);
+    endBrowserSession(response);
   }
 }

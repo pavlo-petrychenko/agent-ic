@@ -1,11 +1,10 @@
 import { Locale } from '@agent-ic/contracts';
-import type { ConfirmationEmailCopy } from '@/modules/notifications/typedefs/email.typedefs';
+import { NAME_PLACEHOLDER } from '@/modules/notifications/constants/action-email.constants';
+import type { ActionEmailCopy } from '@/modules/notifications/typedefs/email.typedefs';
 
 export const CONFIRM_EMAIL_LINK_PATH = '/auth/confirm-email';
-export const CONFIRM_EMAIL_TOKEN_PARAM = 'token';
-export const NAME_PLACEHOLDER = '{name}';
 
-export const CONFIRMATION_EMAIL_COPY: Readonly<Record<Locale, ConfirmationEmailCopy>> = {
+export const CONFIRMATION_EMAIL_COPY: Readonly<Record<Locale, ActionEmailCopy>> = {
   [Locale.En]: {
     subject: 'Confirm your email for agent-ic',
     greeting: `Hi ${NAME_PLACEHOLDER},`,

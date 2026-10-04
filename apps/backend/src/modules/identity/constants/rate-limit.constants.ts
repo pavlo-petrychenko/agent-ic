@@ -8,6 +8,7 @@ const LOGIN_ATTEMPTS_PER_MINUTE = 5;
 const ACCOUNT_LOGIN_ATTEMPTS_PER_HOUR = 20;
 const SIGN_UPS_PER_HOUR = 5;
 const CONFIRMATION_RESENDS_PER_HOUR = 3;
+const PASSWORD_RESETS_PER_HOUR = 3;
 
 export const LOGIN_RATE_LIMIT = defineRateLimitPolicy({
   name: 'identity-login',
@@ -31,6 +32,12 @@ export const RESEND_CONFIRMATION_RATE_LIMIT = defineRateLimitPolicy({
   name: 'identity-resend-confirmation',
   capacity: CONFIRMATION_RESENDS_PER_HOUR,
   refillPerSecond: CONFIRMATION_RESENDS_PER_HOUR / SECONDS_PER_HOUR,
+});
+
+export const PASSWORD_RESET_RATE_LIMIT = defineRateLimitPolicy({
+  name: 'identity-password-reset',
+  capacity: PASSWORD_RESETS_PER_HOUR,
+  refillPerSecond: PASSWORD_RESETS_PER_HOUR / SECONDS_PER_HOUR,
 });
 
 export const UNKNOWN_CLIENT_IP = 'unknown';

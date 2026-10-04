@@ -4,6 +4,7 @@ extend type Query {
 
 type Mutation {
   resendConfirmation(input: ResendConfirmationInput!): ResendConfirmationPayload!
+  forgotPassword(input: ForgotPasswordInput!): ForgotPasswordPayload!
 }
 
 enum Locale {
@@ -24,5 +25,13 @@ input ResendConfirmationInput {
 }
 
 type ResendConfirmationPayload {
+  accepted: Boolean!
+}
+
+input ForgotPasswordInput {
+  email: String!
+}
+
+type ForgotPasswordPayload {
   accepted: Boolean!
 }
