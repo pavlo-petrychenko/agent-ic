@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Avatar } from '@/shared/ui/Avatar/Avatar';
 import { AvatarSize, AvatarTone } from '@/shared/ui/Avatar/Avatar.constants';
+import { StatusKind } from '@/shared/ui/StatusDot/StatusDot.constants';
 import styles from '@/shared/ui/Avatar/Avatar.module.scss';
 
 const IMAGE_SRC =
@@ -27,6 +28,17 @@ export const BrokenImageFallsBackToInitials: Story = {
   args: { src: 'data:image/png;base64,broken' },
 };
 export const DecorativeBesideAName: Story = { args: { name: null } };
+export const WithStatus: Story = { args: { status: StatusKind.Ok } };
+export const ImageWithStatus: Story = { args: { src: IMAGE_SRC, status: StatusKind.Run } };
+export const AllStatuses: Story = {
+  render: (args) => (
+    <div className={styles.storyRow}>
+      {Object.values(StatusKind).map((status) => (
+        <Avatar key={status} {...args} status={status} />
+      ))}
+    </div>
+  ),
+};
 export const AllSizesAndTones: Story = {
   render: (args) => (
     <div className={styles.storyRow}>

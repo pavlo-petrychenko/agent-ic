@@ -1,11 +1,14 @@
 $font-size-sm: 9px;
+$status-size: 10px;
+$status-offset: -1px;
+$status-ring: 2px;
 
 .root {
+  position: relative;
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
   border-radius: var(--radius-pill);
   background: var(--avatar-bg);
   color: var(--avatar-fg);
@@ -46,9 +49,36 @@ $font-size-sm: 9px;
 }
 
 .image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  border-radius: inherit;
   object-fit: cover;
+}
+
+.loading {
+  opacity: 0;
+}
+
+.withImage::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: var(--shadow-swatch-inset);
+  content: '';
+  pointer-events: none;
+}
+
+.status {
+  --size-dot-md: #{$status-size};
+
+  position: absolute;
+  right: $status-offset;
+  bottom: $status-offset;
+  display: flex;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 0 $status-ring var(--color-card);
 }
 
 .storyRow {

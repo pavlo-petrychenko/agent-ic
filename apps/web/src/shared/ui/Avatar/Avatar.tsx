@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { useState } from 'react';
 import { AvatarSize, AvatarTone } from '@/shared/ui/Avatar/Avatar.constants';
 import type { AvatarProps } from '@/shared/ui/Avatar/Avatar.typedefs';
+import { StatusDot } from '@/shared/ui/StatusDot/StatusDot';
 import styles from '@/shared/ui/Avatar/Avatar.module.scss';
 
 export function Avatar({
@@ -10,12 +11,15 @@ export function Avatar({
   tone = AvatarTone.Neutral,
   src = null,
   name = null,
+  status = null,
   className,
   ...rest
 }: AvatarProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
   const named = name !== null;
   const showImage = src !== null && src !== failedSrc;
+  const imageReady = showImage && src === loadedSrc;
 
   return (
     <span
@@ -23,19 +27,32 @@ export function Avatar({
       role={named ? 'img' : undefined}
       aria-label={named ? name : undefined}
       aria-hidden={named ? undefined : true}
-      className={clsx(styles.root, styles[size], styles[tone], className)}
+      className={clsx(
+        styles.root,
+        styles[size],
+        styles[tone],
+        imageReady && styles.withImage,
+        className,
+      )}
     >
+      {imageReady ? null : initials}
       {showImage ? (
         <img
           src={src}
           alt=""
-          className={styles.image}
+          className={clsx(styles.image, !imageReady && styles.loading)}
+          onLoad={() => {
+            setLoadedSrc(src);
+          }}
           onError={() => {
             setFailedSrc(src);
           }}
         />
-      ) : (
-        initials
+      ) : null}
+      {status === null ? null : (
+        <span className={styles.status}>
+          <StatusDot kind={status} />
+        </span>
       )}
     </span>
   );
