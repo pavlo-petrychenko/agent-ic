@@ -4,6 +4,8 @@ Multi-tenant platform for building and running AI agents.
 
 Documentation lives in `docs/`: `architecture.md`, `mvp-scope.md`, `communication.md` and `adr/`.
 
+New to the project? Start with [How to build a feature](docs/guides/README.md): running the stack, a file-by-file walkthrough of the backend and the web app, checklists and a starter backlog.
+
 ## Prerequisites
 
 You install two things by hand. Everything else comes from `mise.toml`. On Windows, pick one of the two ways under "Windows" below.
