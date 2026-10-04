@@ -17,6 +17,12 @@ $tile-min-height: 120px;
   &:hover:not(:disabled) {
     border-color: var(--color-edge);
     background: var(--color-soft);
+    color: var(--color-ink);
+  }
+
+  &:active:not(:disabled) {
+    border-color: var(--color-edge);
+    background: var(--color-chip);
   }
 
   &:focus-visible {
