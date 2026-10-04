@@ -32,7 +32,11 @@ import {
   SIGN_UP_WITH_INVITE_MUTATION,
 } from '@test/support/constants/workspaces-flow.constants';
 import { randomIpAddress, uniqueEmail } from '@test/support/fixtures/identity.fixture';
-import { bootRoleWithEmails, confirmationTokenIn } from '@test/support/helpers/auth-flow.helpers';
+import {
+  bootRoleWithEmails,
+  confirmationTokenIn,
+  fromApp,
+} from '@test/support/helpers/auth-flow.helpers';
 import {
   apiPath,
   graphqlPath,
@@ -80,9 +84,9 @@ describe('workspaces, roles and invites through the api', () => {
       },
     });
     await vi.waitFor(() => expect(emails.sentTo(email)).toHaveLength(1), WAIT_FOR_EMAIL);
-    const confirmed = await request(api.getHttpServer())
-      .post(apiPath(AuthRoute.Base, AuthRoute.ConfirmEmail))
-      .send({ token: confirmationTokenIn(emails.sentTo(email)[0]?.text ?? '') });
+    const confirmed = await fromApp(
+      request(api.getHttpServer()).post(apiPath(AuthRoute.Base, AuthRoute.ConfirmEmail)),
+    ).send({ token: confirmationTokenIn(emails.sentTo(email)[0]?.text ?? '') });
     return confirmed.body.accessToken;
   };
 
