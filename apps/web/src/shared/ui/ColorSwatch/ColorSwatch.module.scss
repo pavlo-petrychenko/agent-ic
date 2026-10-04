@@ -19,7 +19,8 @@ $ring-width: var(--border-width-strong);
       0 0 0 calc($ring-width * 2) var(--color-line-dash);
   }
 
-  &:focus-visible {
+  &:focus-visible,
+  &:focus-visible:hover:not(:disabled) {
     outline: none;
     box-shadow: var(--shadow-focus-ring);
   }
@@ -39,7 +40,8 @@ $ring-width: var(--border-width-strong);
       0 0 0 calc($ring-width * 2) var(--color-ink);
   }
 
-  &:focus-visible {
+  &:focus-visible,
+  &:focus-visible:hover:not(:disabled) {
     box-shadow:
       0 0 0 $ring-width $ring-gap,
       0 0 0 calc($ring-width * 2) var(--color-ink),
