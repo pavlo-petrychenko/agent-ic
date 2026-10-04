@@ -14,7 +14,7 @@ import type {
   ConnectionArgs,
   PageRequest,
 } from '@/platform/graphql/relay/relay.typedefs';
-import { UUID_PATTERN } from '@/platform/ids/ids.constants';
+import { UUID_PATTERN } from '@/platform/ids/constants/ids.constants';
 
 export const encodeCursor = (id: string): string =>
   Buffer.from(`${CURSOR_PREFIX}${id}`, CURSOR_TEXT_ENCODING).toString(CURSOR_ENCODING);

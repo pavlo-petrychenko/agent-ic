@@ -1,6 +1,6 @@
-import { Clock } from '@/platform/clock/clock';
+import { ClockService } from '@/platform/clock/services/clock.service';
 
-export class ManualClock extends Clock {
+export class ManualClock extends ClockService {
   constructor(private current: Date) {
     super();
   }

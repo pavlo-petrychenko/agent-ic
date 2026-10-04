@@ -6,8 +6,11 @@ import { ConfigService } from '@/platform/config/config.service';
 import { QueueEvent, QueueLogMessage, QueueName } from '@/platform/queues/queue.constants';
 import { defaultJobOptions } from '@/platform/queues/queue.helpers';
 import type { JobEnvelope } from '@/platform/queues/queue.typedefs';
-import { RedisConnectionName } from '@/platform/redis/redis.constants';
-import { closeRedisConnection, createRedisConnection } from '@/platform/redis/redis.helpers';
+import { RedisConnectionName } from '@/platform/redis/constants/redis.constants';
+import {
+  closeRedisConnection,
+  createRedisConnection,
+} from '@/platform/redis/helpers/redis.helpers';
 
 @Injectable()
 export class QueueRegistry implements OnApplicationShutdown {

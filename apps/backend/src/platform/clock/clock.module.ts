@@ -1,10 +1,10 @@
 import { Global, Module } from '@nestjs/common';
-import { Clock } from '@/platform/clock/clock';
-import { SystemClock } from '@/platform/clock/system.clock';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { SystemClockService } from '@/platform/clock/services/system-clock.service';
 
 @Global()
 @Module({
-  providers: [{ provide: Clock, useClass: SystemClock }],
-  exports: [Clock],
+  providers: [{ provide: ClockService, useClass: SystemClockService }],
+  exports: [ClockService],
 })
 export class ClockModule {}
