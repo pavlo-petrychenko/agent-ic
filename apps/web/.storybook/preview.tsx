@@ -1,7 +1,7 @@
+import { Locale } from '@agent-ic/contracts';
 import type { Preview } from '@storybook/react-vite';
 import { I18nextProvider } from 'react-i18next';
 import { createI18n } from '@/shared/i18n/clients/i18n.client';
-import { Locale } from '@/shared/i18n/constants/locale.constants';
 import '@/shared/styles';
 
 const i18n = createI18n(Locale.En);
