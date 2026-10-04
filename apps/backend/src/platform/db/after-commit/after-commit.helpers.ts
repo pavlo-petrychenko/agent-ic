@@ -1,8 +1,7 @@
 import { ClsServiceManager } from 'nestjs-cls';
-
-import type { AfterCommitBuffer } from './after-commit.buffer';
-import { AFTER_COMMIT_CLS_KEY } from './after-commit.constants';
-import type { TransactionFn } from './after-commit.typedefs';
+import type { AfterCommitBuffer } from '@/platform/db/after-commit/after-commit.buffer';
+import { AFTER_COMMIT_CLS_KEY } from '@/platform/db/after-commit/after-commit.constants';
+import type { TransactionFn } from '@/platform/db/after-commit/after-commit.typedefs';
 
 export const currentAfterCommitBuffer = (): AfterCommitBuffer | undefined =>
   ClsServiceManager.getClsService().get<AfterCommitBuffer | undefined>(AFTER_COMMIT_CLS_KEY);

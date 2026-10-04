@@ -1,11 +1,11 @@
-import { CLI_ARGUMENTS_LABEL, Role } from './config.constants';
-import { ConfigError } from './config.error';
+import { CLI_ARGUMENTS_LABEL, Role } from '@/platform/config/config.constants';
+import { ConfigError } from '@/platform/config/config.error';
 import {
   readCliOptions,
   readSchemaPrintOptions,
   toCliIssues,
   toConfigIssues,
-} from './config.helpers';
+} from '@/platform/config/config.helpers';
 import {
   cliSchema,
   commonEnvSchema,
@@ -13,7 +13,7 @@ import {
   migrationEnvSchema,
   roleEnvSchemas,
   schemaPrintCliSchema,
-} from './config.schema';
+} from '@/platform/config/config.schema';
 import type {
   AppConfig,
   BaseConfig,
@@ -22,7 +22,7 @@ import type {
   RawCliOptions,
   RawSchemaPrintOptions,
   SchemaPrintConfig,
-} from './config.typedefs';
+} from '@/platform/config/config.typedefs';
 
 export class ConfigLoader {
   constructor(private readonly env: NodeJS.ProcessEnv = process.env) {}

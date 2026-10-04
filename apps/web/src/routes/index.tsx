@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router';
-
 import { PublicLayout } from '@/app/layouts/PublicLayout/PublicLayout';
 import { StatusPage } from '@/features/status';
 

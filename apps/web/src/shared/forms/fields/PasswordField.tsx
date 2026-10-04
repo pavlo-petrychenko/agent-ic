@@ -1,12 +1,10 @@
 import { useStore } from '@tanstack/react-form';
 import { useTranslation } from 'react-i18next';
-
+import { useFieldContext } from '@/shared/forms/formContext';
+import { firstErrorMessage } from '@/shared/forms/forms.helpers';
 import { Field } from '@/shared/ui/Field';
 import type { InputProps } from '@/shared/ui/Input';
 import { PasswordInput } from '@/shared/ui/PasswordInput';
-
-import { useFieldContext } from '@/shared/forms/formContext';
-import { firstErrorMessage } from '@/shared/forms/forms.helpers';
 
 interface PasswordFieldProps extends Omit<
   InputProps,

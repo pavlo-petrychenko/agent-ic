@@ -1,6 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-
-import { IdService } from './id.service';
+import { IdService } from '@/platform/ids/id.service';
 
 @Global()
 @Module({

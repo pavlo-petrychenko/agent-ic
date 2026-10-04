@@ -1,10 +1,8 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-
+import { LocaleSwitcher } from '@/app/layouts/AppHeader/LocaleSwitcher';
 import { Link } from '@/shared/ui/Link';
-
-import styles from './AppHeader.module.scss';
-import { LocaleSwitcher } from './LocaleSwitcher';
+import styles from '@/app/layouts/AppHeader/AppHeader.module.scss';
 
 interface AppHeaderProps {
   children?: ReactNode;

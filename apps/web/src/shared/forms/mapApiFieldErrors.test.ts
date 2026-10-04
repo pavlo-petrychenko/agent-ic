@@ -1,9 +1,7 @@
 import { ErrorCode, ErrorReason } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
-
 import { AppError } from '@/shared/api/AppError';
-
-import { mapApiFieldErrors } from './mapApiFieldErrors';
+import { mapApiFieldErrors } from '@/shared/forms/mapApiFieldErrors';
 
 const translate = (key: string): string => `translated:${key}`;
 

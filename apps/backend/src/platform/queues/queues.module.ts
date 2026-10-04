@@ -1,7 +1,6 @@
 import { Global, Module } from '@nestjs/common';
-
-import { JobsService } from './jobs.service';
-import { QueueRegistry } from './queue.registry';
+import { JobsService } from '@/platform/queues/jobs.service';
+import { QueueRegistry } from '@/platform/queues/queue.registry';
 
 @Global()
 @Module({

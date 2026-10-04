@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
-
 import { ApiAppModule } from '@/entrypoints/api.app-module';
 import { GraphqlServerModule } from '@/platform/graphql/graphql-server.module';
 import { ObservabilityModule } from '@/platform/observability/observability.module';
-
-import { FailingController } from './failing.controller';
+import { FailingController } from '@test/support/failing.controller';
 
 @Module({
   imports: [ApiAppModule],

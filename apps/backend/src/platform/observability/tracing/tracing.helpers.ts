@@ -1,10 +1,12 @@
 import { randomBytes } from 'node:crypto';
 import type { IncomingMessage } from 'node:http';
-
 import { trace } from '@opentelemetry/api';
-
-import { isOperationalUrl } from '../observability.helpers';
-import { OTLP_TRACES_PATH, TRACE_ID_BYTES, TRACE_ID_ENCODING } from './tracing.constants';
+import { isOperationalUrl } from '@/platform/observability/observability.helpers';
+import {
+  OTLP_TRACES_PATH,
+  TRACE_ID_BYTES,
+  TRACE_ID_ENCODING,
+} from '@/platform/observability/tracing/tracing.constants';
 
 export const tracesEndpoint = (endpoint: string): string =>
   new URL(OTLP_TRACES_PATH, endpoint).toString();

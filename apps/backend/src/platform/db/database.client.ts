@@ -2,10 +2,9 @@ import { Logger } from '@nestjs/common';
 import type { OnApplicationShutdown } from '@nestjs/common';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import type { Sql } from 'postgres';
-
-import { CLIENT_CLOSE_TIMEOUT_SECONDS } from './database.constants';
-import { createSqlClient } from './database.helpers';
-import type { AppDatabase, DatabaseClientOptions } from './database.typedefs';
+import { CLIENT_CLOSE_TIMEOUT_SECONDS } from '@/platform/db/database.constants';
+import { createSqlClient } from '@/platform/db/database.helpers';
+import type { AppDatabase, DatabaseClientOptions } from '@/platform/db/database.typedefs';
 
 export abstract class DatabaseClient implements OnApplicationShutdown {
   readonly db: AppDatabase;

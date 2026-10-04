@@ -1,7 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
-
 import { ApplicationFactory } from '@/entrypoints/application.factory';
 import { CliOption, Role } from '@/platform/config/config.constants';
 import { ConfigLoader } from '@/platform/config/config.loader';
@@ -11,8 +10,8 @@ import { MetricsRoute } from '@/platform/observability/metrics/metrics.constants
 import { TracingService } from '@/platform/observability/tracing/tracing.service';
 import { QueueName } from '@/platform/queues/queue.constants';
 import { createIntegrationTestEnv } from '@/platform/testing/integration-env.fixture';
-import { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
 import { cliArgument, createArgv } from '@/platform/testing/test-env.fixture';
+import { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
 
 const livePath = (prefix = ''): string => `${prefix}/${HealthRoute.Base}/${HealthRoute.Live}`;
 const readyPath = (prefix = ''): string => `${prefix}/${HealthRoute.Base}/${HealthRoute.Ready}`;

@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
-
+import { MILLISECONDS_PER_SECOND } from '@/modules/system/domain/server-status.constants';
 import { Clock } from '@/platform/clock/clock';
-
-import { MILLISECONDS_PER_SECOND } from '../domain/server-status.constants';
 
 @Injectable()
 export class ServerUptimeService {

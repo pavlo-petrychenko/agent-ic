@@ -1,10 +1,8 @@
 import { join } from 'node:path';
-
 import { parse } from 'graphql';
 import type { DocumentNode, GraphQLObjectType, GraphQLSchema } from 'graphql';
-
-import { FIELD_PATH_SEPARATOR, MODULE_SDL_GLOB } from './graphql.constants';
-import type { ConnectionParams } from './graphql.typedefs';
+import { FIELD_PATH_SEPARATOR, MODULE_SDL_GLOB } from '@/platform/graphql/graphql.constants';
+import type { ConnectionParams } from '@/platform/graphql/graphql.typedefs';
 
 export const moduleTypePaths = (): string[] => [join(import.meta.dirname, MODULE_SDL_GLOB)];
 

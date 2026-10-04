@@ -1,2 +1,2 @@
-export { PasswordInput } from './PasswordInput';
-export type { PasswordInputProps } from './PasswordInput.typedefs';
+export { PasswordInput } from '@/shared/ui/PasswordInput/PasswordInput';
+export type { PasswordInputProps } from '@/shared/ui/PasswordInput/PasswordInput.typedefs';

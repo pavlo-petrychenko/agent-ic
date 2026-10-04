@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-
 import { SystemGraphqlModule } from '@/modules/system/system.graphql-module';
 import { AdminModule } from '@/platform/admin/admin.module';
 import { GraphqlServerModule } from '@/platform/graphql/graphql-server.module';

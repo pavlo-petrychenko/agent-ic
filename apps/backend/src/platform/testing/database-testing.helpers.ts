@@ -1,27 +1,28 @@
-import { Test } from '@nestjs/testing';
-import { drizzle } from 'drizzle-orm/postgres-js';
 import type { DynamicModule, Type } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 import type { TestingModule } from '@nestjs/testing';
-
+import { drizzle } from 'drizzle-orm/postgres-js';
 import { ClockModule } from '@/platform/clock/clock.module';
 import { CliOption, Role } from '@/platform/config/config.constants';
 import { ConfigLoader } from '@/platform/config/config.loader';
 import { ConfigModule } from '@/platform/config/config.module';
+import { ContextModule } from '@/platform/context/context.module';
 import { CLIENT_CLOSE_TIMEOUT_SECONDS } from '@/platform/db/database.constants';
 import { createSqlClient } from '@/platform/db/database.helpers';
 import { DatabaseModule } from '@/platform/db/database.module';
-import { ContextModule } from '@/platform/context/context.module';
 import type { AppDatabase, SqlExecutor } from '@/platform/db/database.typedefs';
 import { ErrorsModule } from '@/platform/errors/errors.module';
 import { IdsModule } from '@/platform/ids/ids.module';
-
-import { createIntegrationTestEnv } from './integration-env.fixture';
-import { SCRATCH_POOL_SIZE, TestRedisDatabase } from './test-infrastructure.constants';
-import { discardNotice } from './test-infrastructure.helpers';
-import type { ScratchDatabase } from './test-infrastructure.typedefs';
-import { TestRollbackSignal } from './test-rollback.signal';
-import { cliArgument, createArgv } from './test-env.fixture';
-import { TestTransactionRunner } from './test-transaction.runner';
+import { createIntegrationTestEnv } from '@/platform/testing/integration-env.fixture';
+import { cliArgument, createArgv } from '@/platform/testing/test-env.fixture';
+import {
+  SCRATCH_POOL_SIZE,
+  TestRedisDatabase,
+} from '@/platform/testing/test-infrastructure.constants';
+import { discardNotice } from '@/platform/testing/test-infrastructure.helpers';
+import type { ScratchDatabase } from '@/platform/testing/test-infrastructure.typedefs';
+import { TestRollbackSignal } from '@/platform/testing/test-rollback.signal';
+import { TestTransactionRunner } from '@/platform/testing/test-transaction.runner';
 
 export const createPlatformTestingModule = async (
   redisDatabase: TestRedisDatabase,

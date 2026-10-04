@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-
-import type { ProbeCall } from './async-jobs.typedefs';
+import type { ProbeCall } from '@test/support/async-jobs.typedefs';
 
 @Injectable()
 export class ProbeCallsRecorder {

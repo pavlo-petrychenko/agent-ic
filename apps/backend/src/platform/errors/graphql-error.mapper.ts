@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { GraphQLError } from 'graphql';
-
-import { describeError } from './errors.helpers';
-import type { GraphqlErrorExtensions } from './errors.typedefs';
+import { describeError } from '@/platform/errors/errors.helpers';
+import type { GraphqlErrorExtensions } from '@/platform/errors/errors.typedefs';
 
 @Injectable()
 export class GraphqlErrorMapper {

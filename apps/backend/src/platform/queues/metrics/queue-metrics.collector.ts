@@ -1,12 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { OnModuleInit } from '@nestjs/common';
 import { Gauge } from 'prom-client';
-
 import { Clock } from '@/platform/clock/clock';
 import { MetricsService } from '@/platform/observability/metrics/metrics.service';
-
-import { QueueName } from '../queue.constants';
-import { QueueRegistry } from '../queue.registry';
 import {
   MILLISECONDS_PER_SECOND,
   NO_WAIT_SECONDS,
@@ -16,7 +12,9 @@ import {
   QueueMetricLabel,
   QueueMetricName,
   WAITING_JOB_STATE,
-} from './queue-metrics.constants';
+} from '@/platform/queues/metrics/queue-metrics.constants';
+import { QueueName } from '@/platform/queues/queue.constants';
+import { QueueRegistry } from '@/platform/queues/queue.registry';
 
 @Injectable()
 export class QueueMetricsCollector implements OnModuleInit {

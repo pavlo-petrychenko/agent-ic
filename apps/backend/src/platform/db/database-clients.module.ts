@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
-
 import { ConfigService } from '@/platform/config/config.service';
-
-import { AppDatabaseClient } from './app-database.client';
-import { APP_DATABASE } from './database.constants';
-import type { AppDatabase } from './database.typedefs';
-import { SystemDb } from './system-db';
+import { AppDatabaseClient } from '@/platform/db/app-database.client';
+import { APP_DATABASE } from '@/platform/db/database.constants';
+import type { AppDatabase } from '@/platform/db/database.typedefs';
+import { SystemDb } from '@/platform/db/system-db';
 
 @Module({
   providers: [

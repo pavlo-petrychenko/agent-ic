@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
-
+import type { ServerStatus } from '@/modules/system/domain/server-status.typedefs';
+import { ServerUptimeService } from '@/modules/system/services/server-uptime.service';
 import { ConfigService } from '@/platform/config/config.service';
 import type { UseCaseCtx } from '@/platform/context/use-case-ctx';
-
-import type { ServerStatus } from '../domain/server-status.typedefs';
-import { ServerUptimeService } from '../services/server-uptime.service';
 
 @Injectable()
 export class GetServerStatusUseCase {

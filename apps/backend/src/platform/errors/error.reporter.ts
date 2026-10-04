@@ -1,8 +1,7 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
-
-import { DomainError } from './domain.error';
-import { ErrorLogMessage, SERVER_ERROR_STATUS_MIN } from './errors.constants';
-import { UpstreamError } from './upstream.error';
+import { DomainError } from '@/platform/errors/domain.error';
+import { ErrorLogMessage, SERVER_ERROR_STATUS_MIN } from '@/platform/errors/errors.constants';
+import { UpstreamError } from '@/platform/errors/upstream.error';
 
 @Injectable()
 export class ErrorReporter {

@@ -1,4 +1,4 @@
-import { DUPLICATE_JOB_HANDLER_MESSAGE } from './queue.constants';
+import { DUPLICATE_JOB_HANDLER_MESSAGE } from '@/platform/queues/queue.constants';
 
 export class DuplicateJobHandlerError extends Error {
   constructor(readonly jobKey: string) {

@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
-
 import type { UseCaseCtx } from '@/platform/context/use-case-ctx';
+import { DomainEventSubscriptionRegistry } from '@/platform/domain-events/domain-event-subscription.registry';
+import type { DomainEventDefinition } from '@/platform/domain-events/domain-event.definition';
 import { JobsService } from '@/platform/queues/jobs.service';
 import type { JobData } from '@/platform/queues/queue.typedefs';
-
-import type { DomainEventDefinition } from './domain-event.definition';
-import { DomainEventSubscriptionRegistry } from './domain-event-subscription.registry';
 
 @Injectable()
 export class DomainEventsService {

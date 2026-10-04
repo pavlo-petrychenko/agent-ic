@@ -1,5 +1,4 @@
 import { fileURLToPath } from 'node:url';
-
 import { DatabaseRole } from '@/platform/db/database.constants';
 
 export const TEST_INFRASTRUCTURE_KEY = 'testInfrastructure';

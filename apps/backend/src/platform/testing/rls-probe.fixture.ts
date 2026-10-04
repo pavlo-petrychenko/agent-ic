@@ -1,16 +1,14 @@
+import { generateDrizzleJson, generateMigration } from 'drizzle-kit/api';
 import { sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { text, uuid } from 'drizzle-orm/pg-core';
-import { generateDrizzleJson, generateMigration } from 'drizzle-kit/api';
-
 import { DatabaseRole } from '@/platform/db/database.constants';
 import {
   moduleSchema,
   tenantIsolationPolicy,
   workspaceIdColumn,
 } from '@/platform/db/tenancy/tenancy.helpers';
-
-import { PROBE_TABLE, ProbeColumn } from './rls-probe.constants';
+import { PROBE_TABLE, ProbeColumn } from '@/platform/testing/rls-probe.constants';
 
 export const createProbeTable = (schemaName: string) => {
   const schema = moduleSchema(schemaName);

@@ -1,16 +1,13 @@
 import { randomUUID } from 'node:crypto';
-
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-
+import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
+import { RateLimitPolicy } from '@/platform/rate-limit/rate-limit.policy';
+import { RateLimitedError } from '@/platform/rate-limit/rate-limited.error';
+import { RateLimiterService } from '@/platform/rate-limit/rate-limiter.service';
 import { RedisModule } from '@/platform/redis/redis.module';
 import { createPlatformTestingModule } from '@/platform/testing/database-testing.helpers';
 import { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
-
-import { RateLimitPolicy } from './rate-limit.policy';
-import { RateLimitModule } from './rate-limit.module';
-import { RateLimitedError } from './rate-limited.error';
-import { RateLimiterService } from './rate-limiter.service';
 
 const CAPACITY = 3;
 const WAIT = { timeout: 2_000, interval: 10 };

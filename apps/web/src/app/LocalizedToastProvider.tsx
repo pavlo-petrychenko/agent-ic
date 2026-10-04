@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-
 import { ToastProvider } from '@/shared/ui/Toast';
 
 interface LocalizedToastProviderProps {

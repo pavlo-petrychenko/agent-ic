@@ -1,8 +1,10 @@
 import { Controller, Get, Header } from '@nestjs/common';
 import { Registry } from 'prom-client';
-
-import { CONTENT_TYPE_HEADER, MetricsRoute } from './metrics.constants';
-import { MetricsService } from './metrics.service';
+import {
+  CONTENT_TYPE_HEADER,
+  MetricsRoute,
+} from '@/platform/observability/metrics/metrics.constants';
+import { MetricsService } from '@/platform/observability/metrics/metrics.service';
 
 @Controller(MetricsRoute.Path)
 export class MetricsController {

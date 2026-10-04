@@ -1,6 +1,5 @@
 import type { UseCaseCtx } from '@/platform/context/use-case-ctx';
-
-import type { ProbeListener } from './async-jobs.constants';
+import type { ProbeListener } from '@test/support/async-jobs.constants';
 
 export interface ProbeCall {
   readonly listener: ProbeListener;

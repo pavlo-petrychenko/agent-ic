@@ -2,10 +2,8 @@ import { PostgreSqlContainer } from '@testcontainers/postgresql';
 import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { RedisContainer } from '@testcontainers/redis';
 import type { TestProject } from 'vitest/node';
-
 import { DatabaseRole } from '@/platform/db/database.constants';
 import { MigrationRunner } from '@/platform/db/migrator/migration.runner';
-
 import {
   POSTGRES_IMAGE,
   REDIS_IMAGE,
@@ -18,8 +16,11 @@ import {
   TEST_ROLE_PASSWORDS,
   TEST_SUPERUSER,
   TEST_SUPERUSER_PASSWORD,
-} from './test-infrastructure.constants';
-import { describeInfrastructure, discardNotice } from './test-infrastructure.helpers';
+} from '@/platform/testing/test-infrastructure.constants';
+import {
+  describeInfrastructure,
+  discardNotice,
+} from '@/platform/testing/test-infrastructure.helpers';
 
 const startPostgres = (): Promise<StartedPostgreSqlContainer> =>
   new PostgreSqlContainer(POSTGRES_IMAGE)

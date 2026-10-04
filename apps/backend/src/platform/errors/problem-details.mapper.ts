@@ -1,10 +1,8 @@
 import { STATUS_CODES } from 'node:http';
-
 import { Injectable } from '@nestjs/common';
-
-import { PROBLEM_TYPE_DEFAULT } from './errors.constants';
-import { describeError } from './errors.helpers';
-import type { ProblemDetails } from './errors.typedefs';
+import { PROBLEM_TYPE_DEFAULT } from '@/platform/errors/errors.constants';
+import { describeError } from '@/platform/errors/errors.helpers';
+import type { ProblemDetails } from '@/platform/errors/errors.typedefs';
 
 @Injectable()
 export class ProblemDetailsMapper {

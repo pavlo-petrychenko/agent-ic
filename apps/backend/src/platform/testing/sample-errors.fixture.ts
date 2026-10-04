@@ -1,10 +1,11 @@
 import { ErrorReason } from '@agent-ic/contracts';
-
 import { DomainError } from '@/platform/errors/domain.error';
 import { DomainErrorKind, LimitScope } from '@/platform/errors/errors.constants';
 import { LimitReachedError } from '@/platform/errors/limit-reached.error';
-
-import { SAMPLE_ERROR_MESSAGE, SAMPLE_FIELD_PATH } from './sample-errors.constants';
+import {
+  SAMPLE_ERROR_MESSAGE,
+  SAMPLE_FIELD_PATH,
+} from '@/platform/testing/sample-errors.constants';
 
 export class SampleValidationError extends DomainError {
   readonly kind = DomainErrorKind.ValidationFailed;

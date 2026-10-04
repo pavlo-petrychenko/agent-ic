@@ -1,10 +1,9 @@
 import { ErrorCode, ErrorReason } from '@agent-ic/contracts';
 import { CombinedGraphQLErrors, ServerError } from '@apollo/client/errors';
 import { describe, expect, it } from 'vitest';
-
-import { AppError } from './AppError';
-import { ClientErrorCode } from './api.constants';
-import { toAppError } from './appError.helpers';
+import { ClientErrorCode } from '@/shared/api/api.constants';
+import { AppError } from '@/shared/api/AppError';
+import { toAppError } from '@/shared/api/appError.helpers';
 
 const TRACE_ID = 'trace-1';
 

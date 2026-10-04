@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { describe, expect, it } from 'vitest';
-
+import { SystemModule } from '@/modules/system/system.module';
+import { GetServerStatusUseCase } from '@/modules/system/use-cases/get-server-status.use-case';
 import { Clock } from '@/platform/clock/clock';
 import { ClockModule } from '@/platform/clock/clock.module';
 import { CliOption, EnvVar, Role } from '@/platform/config/config.constants';
@@ -11,9 +12,6 @@ import { UseCaseCtx } from '@/platform/context/use-case-ctx';
 import { ManualClock } from '@/platform/testing/manual.clock';
 import { TEST_ENV } from '@/platform/testing/test-env.constants';
 import { cliArgument, createArgv, createTestEnv } from '@/platform/testing/test-env.fixture';
-
-import { SystemModule } from '../system.module';
-import { GetServerStatusUseCase } from './get-server-status.use-case';
 
 const START = new Date('2026-10-04T12:00:00.000Z');
 const ANONYMOUS_CTX = new UseCaseCtx({

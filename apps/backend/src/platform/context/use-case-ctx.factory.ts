@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-
-import { Authenticator } from './authenticator';
-import { ActorKind, DEFAULT_LOCALE } from './context.constants';
-import { negotiateLocale, readBearerToken } from './context.helpers';
-import type { Actor, SystemCtxInit, TransportRequest } from './context.typedefs';
-import { UseCaseCtx } from './use-case-ctx';
+import { Authenticator } from '@/platform/context/authenticator';
+import { ActorKind, DEFAULT_LOCALE } from '@/platform/context/context.constants';
+import { negotiateLocale, readBearerToken } from '@/platform/context/context.helpers';
+import type { Actor, SystemCtxInit, TransportRequest } from '@/platform/context/context.typedefs';
+import { UseCaseCtx } from '@/platform/context/use-case-ctx';
 
 @Injectable()
 export class UseCaseCtxFactory {

@@ -1,6 +1,5 @@
 import type { z } from 'zod';
-
-import type { TopicEvent } from './pubsub.typedefs';
+import type { TopicEvent } from '@/platform/pubsub/pubsub.typedefs';
 
 export class TopicIterator<TEvent extends TopicEvent> implements AsyncIterableIterator<TEvent> {
   private released = false;

@@ -1,4 +1,4 @@
-import { TENANT_MISMATCH_MESSAGE } from './tenancy.constants';
+import { TENANT_MISMATCH_MESSAGE } from '@/platform/db/tenancy/tenancy.constants';
 
 export class TenantMismatchError extends Error {
   constructor(

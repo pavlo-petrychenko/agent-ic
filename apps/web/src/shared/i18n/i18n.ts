@@ -1,7 +1,6 @@
 import { createInstance, type i18n as I18nInstance } from 'i18next';
-
-import { DEFAULT_LOCALE, type Locale, Namespace } from './i18n.constants';
-import { resources } from './i18n.resources';
+import { DEFAULT_LOCALE, type Locale, Namespace } from '@/shared/i18n/i18n.constants';
+import { resources } from '@/shared/i18n/i18n.resources';
 
 export function createI18n(locale: Locale): I18nInstance {
   const instance = createInstance();

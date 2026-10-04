@@ -1,5 +1,5 @@
-import type { ServerStatusQuery } from './serverStatus.generated';
-import type { ServerStatus } from './serverStatus.typedefs';
+import type { ServerStatusQuery } from '@/features/status/communication/serverStatus.generated';
+import type { ServerStatus } from '@/features/status/communication/serverStatus.typedefs';
 
 export const toServerStatus = ({ serverStatus }: ServerStatusQuery): ServerStatus => ({
   version: serverStatus.version,

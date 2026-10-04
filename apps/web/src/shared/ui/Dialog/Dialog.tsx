@@ -1,8 +1,7 @@
 import { Dialog as DialogPrimitive } from 'radix-ui';
-
-import { DIALOG_CLOSE_GLYPH } from './Dialog.constants';
-import styles from './Dialog.module.scss';
-import type { DialogProps } from './Dialog.typedefs';
+import { DIALOG_CLOSE_GLYPH } from '@/shared/ui/Dialog/Dialog.constants';
+import type { DialogProps } from '@/shared/ui/Dialog/Dialog.typedefs';
+import styles from '@/shared/ui/Dialog/Dialog.module.scss';
 
 export function Dialog({
   open,

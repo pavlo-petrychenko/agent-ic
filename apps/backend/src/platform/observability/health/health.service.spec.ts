@@ -1,8 +1,7 @@
 import { ServiceUnavailableException } from '@nestjs/common';
 import { describe, expect, it } from 'vitest';
-
-import { HealthStatus } from './health.constants';
-import { HealthService } from './health.service';
+import { HealthStatus } from '@/platform/observability/health/health.constants';
+import { HealthService } from '@/platform/observability/health/health.service';
 
 describe('HealthService', () => {
   it('reports live and ready while the application runs', () => {

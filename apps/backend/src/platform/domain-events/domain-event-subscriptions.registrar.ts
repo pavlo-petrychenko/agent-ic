@@ -1,9 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { OnModuleInit } from '@nestjs/common';
-
-import { DOMAIN_EVENT_SUBSCRIPTIONS } from './domain-events.constants';
-import { DomainEventSubscriptionRegistry } from './domain-event-subscription.registry';
-import type { AnyDomainEventSubscription } from './domain-events.typedefs';
+import { DomainEventSubscriptionRegistry } from '@/platform/domain-events/domain-event-subscription.registry';
+import { DOMAIN_EVENT_SUBSCRIPTIONS } from '@/platform/domain-events/domain-events.constants';
+import type { AnyDomainEventSubscription } from '@/platform/domain-events/domain-events.typedefs';
 
 @Injectable()
 export class DomainEventSubscriptionsRegistrar implements OnModuleInit {

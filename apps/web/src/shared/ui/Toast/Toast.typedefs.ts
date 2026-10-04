@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
-
-import type { ToastTone } from './Toast.constants';
+import type { ToastTone } from '@/shared/ui/Toast/Toast.constants';
 
 export interface ToastOptions {
   title: string;

@@ -1,5 +1,4 @@
 import type { DefaultJobOptions } from 'bullmq';
-
 import {
   COMPLETED_JOB_RETENTION_SECONDS,
   FAILED_JOB_RETENTION_SECONDS,
@@ -8,9 +7,9 @@ import {
   HANDLE_METHOD,
   JOB_KEY_SEPARATOR,
   JobBackoffType,
-} from './queue.constants';
-import type { QueueName } from './queue.constants';
-import type { JobData, JobHandler } from './queue.typedefs';
+} from '@/platform/queues/queue.constants';
+import type { QueueName } from '@/platform/queues/queue.constants';
+import type { JobData, JobHandler } from '@/platform/queues/queue.typedefs';
 
 export const defaultJobOptions = (): DefaultJobOptions => ({
   attempts: JOB_ATTEMPTS,

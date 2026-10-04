@@ -1,10 +1,8 @@
 import { pino, stdTimeFunctions } from 'pino';
-
+import { BaseLauncher } from '@/entrypoints/base.launcher';
 import { ConfigLoader } from '@/platform/config/config.loader';
 import { MigrationRunner } from '@/platform/db/migrator/migration.runner';
 import { MigrationLogMessage } from '@/platform/db/migrator/migrator.constants';
-
-import { BaseLauncher } from './base.launcher';
 
 export class MigrationLauncher extends BaseLauncher {
   constructor(private readonly configLoader: ConfigLoader = new ConfigLoader()) {

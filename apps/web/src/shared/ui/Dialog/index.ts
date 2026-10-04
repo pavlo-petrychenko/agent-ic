@@ -1,2 +1,2 @@
-export { Dialog } from './Dialog';
-export type { DialogProps } from './Dialog.typedefs';
+export { Dialog } from '@/shared/ui/Dialog/Dialog';
+export type { DialogProps } from '@/shared/ui/Dialog/Dialog.typedefs';

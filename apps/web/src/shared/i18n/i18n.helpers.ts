@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, LANGUAGE_TAG_SEPARATOR, Locale } from './i18n.constants';
+import { DEFAULT_LOCALE, LANGUAGE_TAG_SEPARATOR, Locale } from '@/shared/i18n/i18n.constants';
 
 const LOCALES: ReadonlySet<string> = new Set(Object.values(Locale));
 

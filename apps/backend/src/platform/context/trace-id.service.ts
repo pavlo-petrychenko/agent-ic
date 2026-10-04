@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { ClsService } from 'nestjs-cls';
-
 import { resolveTraceId } from '@/platform/observability/tracing/tracing.helpers';
 
 @Injectable()

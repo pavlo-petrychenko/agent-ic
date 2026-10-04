@@ -1,16 +1,14 @@
 import { HttpStatus } from '@nestjs/common';
 import { describe, expect, it } from 'vitest';
-
+import { JobFailureAction } from '@/platform/errors/errors.constants';
+import { JobErrorMapper } from '@/platform/errors/job-error.mapper';
+import { UpstreamError } from '@/platform/errors/upstream.error';
 import { SAMPLE_UPSTREAM } from '@/platform/testing/sample-errors.constants';
 import {
   SampleNotFoundError,
   SamplePlanLimitError,
   SampleRateLimitError,
 } from '@/platform/testing/sample-errors.fixture';
-
-import { JobFailureAction } from './errors.constants';
-import { JobErrorMapper } from './job-error.mapper';
-import { UpstreamError } from './upstream.error';
 
 const mapper = new JobErrorMapper();
 

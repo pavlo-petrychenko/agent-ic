@@ -7,7 +7,7 @@ import {
   UUID_GROUP_LENGTHS,
   UUID_GROUP_SEPARATOR,
   UUID_HEX_LENGTH,
-} from './ids.constants';
+} from '@/platform/ids/ids.constants';
 
 export const encodeUuid = (uuid: string): string => {
   let value = BigInt(`0x${uuid.replaceAll(UUID_GROUP_SEPARATOR, '')}`);

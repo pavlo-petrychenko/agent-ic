@@ -1,8 +1,6 @@
 import type { ErrorCode, ErrorReason } from '@agent-ic/contracts';
-
+import type { ClientErrorCode } from '@/shared/api/api.constants';
 import type { RuntimeConfig } from '@/shared/config/runtimeConfig.typedefs';
-
-import type { ClientErrorCode } from './api.constants';
 
 export type AppErrorCode = ErrorCode | ClientErrorCode;
 

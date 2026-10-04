@@ -2,12 +2,10 @@ import { ApolloLink } from '@apollo/client/link';
 import { HttpLink } from '@apollo/client/link/http';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
-
-import type { RuntimeConfig } from '@/shared/config/runtimeConfig.typedefs';
-
 import { CONNECTION_AUTH_PARAM } from '@/shared/api/api.constants';
+import { buildWebSocketUrl, isSubscriptionOperation } from '@/shared/api/links/splitLink.helpers';
 import { getRequestContext } from '@/shared/api/requestContext';
-import { buildWebSocketUrl, isSubscriptionOperation } from './splitLink.helpers';
+import type { RuntimeConfig } from '@/shared/config/runtimeConfig.typedefs';
 
 const createWsLink = (config: RuntimeConfig): GraphQLWsLink =>
   new GraphQLWsLink(

@@ -1,20 +1,18 @@
 import { sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest';
-
+import { DatabaseRole } from '@/platform/db/database.constants';
+import type { SqlExecutor } from '@/platform/db/database.typedefs';
 import { openScratchDatabase, rollbackAfter } from '@/platform/testing/database-testing.helpers';
 import { PROBE_TABLE } from '@/platform/testing/rls-probe.constants';
 import { createProbeTable, probeTableStatements } from '@/platform/testing/rls-probe.fixture';
-import { TEST_INFRASTRUCTURE_KEY } from '@/platform/testing/test-infrastructure.constants';
-import type { ScratchDatabase } from '@/platform/testing/test-infrastructure.typedefs';
 import {
   QUALIFIED_NAME_SEPARATOR,
   TenantSchemaProblem,
 } from '@/platform/testing/tenant-schema.constants';
 import { TenantSchemaInspector } from '@/platform/testing/tenant-schema.inspector';
 import type { TenantSchemaViolation } from '@/platform/testing/tenant-schema.typedefs';
-
-import { DatabaseRole } from '../database.constants';
-import type { SqlExecutor } from '../database.typedefs';
+import { TEST_INFRASTRUCTURE_KEY } from '@/platform/testing/test-infrastructure.constants';
+import type { ScratchDatabase } from '@/platform/testing/test-infrastructure.typedefs';
 
 const BROKEN_SCHEMA = 'schema_probe_broken';
 const COMPLIANT_SCHEMA = 'schema_probe_compliant';

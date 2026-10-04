@@ -1,7 +1,9 @@
-import { HttpStatus } from '@nestjs/common';
 import { ErrorCode, ErrorReason } from '@agent-ic/contracts';
+import { HttpStatus } from '@nestjs/common';
 import { describe, expect, it } from 'vitest';
-
+import { INTERNAL_ERROR_MESSAGE } from '@/platform/errors/errors.constants';
+import { GraphqlErrorMapper } from '@/platform/errors/graphql-error.mapper';
+import { UpstreamError } from '@/platform/errors/upstream.error';
 import {
   SAMPLE_ERROR_MESSAGE,
   SAMPLE_FIELD_PATH,
@@ -13,10 +15,6 @@ import {
   SampleNotFoundError,
   SampleValidationError,
 } from '@/platform/testing/sample-errors.fixture';
-
-import { INTERNAL_ERROR_MESSAGE } from './errors.constants';
-import { GraphqlErrorMapper } from './graphql-error.mapper';
-import { UpstreamError } from './upstream.error';
 
 const mapper = new GraphqlErrorMapper();
 

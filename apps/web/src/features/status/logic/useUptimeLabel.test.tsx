@@ -2,11 +2,9 @@ import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { describe, expect, it } from 'vitest';
-
+import { useUptimeLabel } from '@/features/status/logic/useUptimeLabel';
 import { createI18n } from '@/shared/i18n/i18n';
 import { Locale } from '@/shared/i18n/i18n.constants';
-
-import { useUptimeLabel } from './useUptimeLabel';
 
 const wrapperFor =
   (locale: Locale) =>

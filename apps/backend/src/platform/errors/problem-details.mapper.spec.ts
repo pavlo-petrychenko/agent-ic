@@ -1,7 +1,8 @@
-import { HttpStatus, NotFoundException } from '@nestjs/common';
 import { ErrorCode, ErrorReason } from '@agent-ic/contracts';
+import { HttpStatus, NotFoundException } from '@nestjs/common';
 import { describe, expect, it } from 'vitest';
-
+import { INTERNAL_ERROR_MESSAGE, PROBLEM_TYPE_DEFAULT } from '@/platform/errors/errors.constants';
+import { ProblemDetailsMapper } from '@/platform/errors/problem-details.mapper';
 import {
   SAMPLE_ERROR_MESSAGE,
   SAMPLE_FIELD_PATH,
@@ -13,9 +14,6 @@ import {
   SampleRateLimitError,
   SampleValidationError,
 } from '@/platform/testing/sample-errors.fixture';
-
-import { INTERNAL_ERROR_MESSAGE, PROBLEM_TYPE_DEFAULT } from './errors.constants';
-import { ProblemDetailsMapper } from './problem-details.mapper';
 
 const INSTANCE = '/api/things/1';
 const mapper = new ProblemDetailsMapper();

@@ -1,7 +1,6 @@
 import { gql } from '@apollo/client';
 import { describe, expect, it } from 'vitest';
-
-import { buildWebSocketUrl, isSubscriptionOperation } from './splitLink.helpers';
+import { buildWebSocketUrl, isSubscriptionOperation } from '@/shared/api/links/splitLink.helpers';
 
 const PATH = '/api/graphql';
 const HOST = 'app.example.com';

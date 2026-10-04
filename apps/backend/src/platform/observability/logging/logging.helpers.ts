@@ -1,13 +1,14 @@
-import { trace } from '@opentelemetry/api';
 import type { IncomingMessage } from 'node:http';
-import { stdTimeFunctions } from 'pino';
+import { trace } from '@opentelemetry/api';
 import type { Params } from 'nestjs-pino';
-
+import { stdTimeFunctions } from 'pino';
 import type { AppConfig } from '@/platform/config/config.typedefs';
-
-import { TRACE_ID_FIELD } from '../observability.constants';
-import { isOperationalUrl } from '../observability.helpers';
-import { LOG_FIELD_ROLE, LOG_FIELD_SERVICE } from './logging.constants';
+import {
+  LOG_FIELD_ROLE,
+  LOG_FIELD_SERVICE,
+} from '@/platform/observability/logging/logging.constants';
+import { TRACE_ID_FIELD } from '@/platform/observability/observability.constants';
+import { isOperationalUrl } from '@/platform/observability/observability.helpers';
 
 export const traceContextMixin = (): Record<string, string> => {
   const spanContext = trace.getActiveSpan()?.spanContext();

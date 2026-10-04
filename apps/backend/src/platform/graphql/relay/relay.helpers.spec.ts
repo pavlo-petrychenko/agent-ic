@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
-
-import { InvalidCursorError } from './invalid-cursor.error';
-import { InvalidPageSizeError } from './invalid-page-size.error';
-import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from './relay.constants';
-import { decodeCursor, encodeCursor, toConnection, toPageRequest } from './relay.helpers';
+import { InvalidCursorError } from '@/platform/graphql/relay/invalid-cursor.error';
+import { InvalidPageSizeError } from '@/platform/graphql/relay/invalid-page-size.error';
+import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '@/platform/graphql/relay/relay.constants';
+import {
+  decodeCursor,
+  encodeCursor,
+  toConnection,
+  toPageRequest,
+} from '@/platform/graphql/relay/relay.helpers';
 
 const IDS = [
   '0199b0a0-0000-7000-8000-000000000001',

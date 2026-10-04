@@ -2,14 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { BeforeApplicationShutdown, OnApplicationBootstrap } from '@nestjs/common';
 import { Worker } from 'bullmq';
 import type { Job } from 'bullmq';
-
 import { Role } from '@/platform/config/config.constants';
 import { ConfigService } from '@/platform/config/config.service';
-
-import { JobRunner } from './job.runner';
-import { QueueEvent, QueueLogMessage } from './queue.constants';
-import type { QueueName } from './queue.constants';
-import { QueueRegistry } from './queue.registry';
+import { JobRunner } from '@/platform/queues/job.runner';
+import { QueueEvent, QueueLogMessage } from '@/platform/queues/queue.constants';
+import type { QueueName } from '@/platform/queues/queue.constants';
+import { QueueRegistry } from '@/platform/queues/queue.registry';
 
 @Injectable()
 export class JobWorkerHost implements OnApplicationBootstrap, BeforeApplicationShutdown {

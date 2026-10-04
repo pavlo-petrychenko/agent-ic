@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-
 import { AppHeader } from '@/app/layouts/AppHeader/AppHeader';
 
 interface PublicLayoutProps {

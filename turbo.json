@@ -79,7 +79,7 @@
     },
     "web#test": {
       "dependsOn": ["codegen"],
-      "inputs": ["src/**", "vitest.config.ts", "vite.*.ts", "package.json"]
+      "inputs": ["src/**", "test/**", "vitest.config.ts", "vite.*.ts", "package.json"]
     },
     "web#storybook:build": {
       "dependsOn": ["^build", "codegen"],

@@ -1,8 +1,7 @@
 import { ErrorReason } from '@agent-ic/contracts';
-
-import { UPSTREAM_ERROR_MESSAGE } from './errors.constants';
-import type { UpstreamErrorOptions } from './errors.typedefs';
-import { isRetryableUpstreamStatus } from './upstream.helpers';
+import { UPSTREAM_ERROR_MESSAGE } from '@/platform/errors/errors.constants';
+import type { UpstreamErrorOptions } from '@/platform/errors/errors.typedefs';
+import { isRetryableUpstreamStatus } from '@/platform/errors/upstream.helpers';
 
 export class UpstreamError extends Error {
   readonly reason = ErrorReason.UpstreamFailed;

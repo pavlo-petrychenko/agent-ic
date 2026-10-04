@@ -1,10 +1,8 @@
 import { ErrorCode, ErrorReason } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
-
 import { ClientErrorCode } from '@/shared/api/api.constants';
-
-import { Locale, Namespace } from './i18n.constants';
-import { resources } from './i18n.resources';
+import { Locale, Namespace } from '@/shared/i18n/i18n.constants';
+import { resources } from '@/shared/i18n/i18n.resources';
 
 const PLURAL_SUFFIX = /_(zero|one|two|few|many|other)$/;
 

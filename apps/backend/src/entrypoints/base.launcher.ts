@@ -1,8 +1,6 @@
 import { EOL } from 'node:os';
-
+import { ExitCode } from '@/entrypoints/launcher.constants';
 import { ConfigError } from '@/platform/config/config.error';
-
-import { ExitCode } from './launcher.constants';
 
 export abstract class BaseLauncher {
   async launch(): Promise<void> {

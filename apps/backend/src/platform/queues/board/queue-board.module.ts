@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
-
-import { QueueBoardController } from './queue-board.controller';
-import { QueueBoardService } from './queue-board.service';
+import { QueueBoardController } from '@/platform/queues/board/queue-board.controller';
+import { QueueBoardService } from '@/platform/queues/board/queue-board.service';
 
 @Module({
   controllers: [QueueBoardController],

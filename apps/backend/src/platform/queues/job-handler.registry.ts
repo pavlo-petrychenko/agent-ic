@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import type { OnModuleInit } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
-
-import { DuplicateJobHandlerError } from './duplicate-job-handler.error';
-import { JobProcessor } from './job-processor.decorator';
-import type { QueueName } from './queue.constants';
-import { isJobHandler, jobKey } from './queue.helpers';
-import type { RegisteredJobHandler } from './queue.typedefs';
+import { DuplicateJobHandlerError } from '@/platform/queues/duplicate-job-handler.error';
+import { JobProcessor } from '@/platform/queues/job-processor.decorator';
+import type { QueueName } from '@/platform/queues/queue.constants';
+import { isJobHandler, jobKey } from '@/platform/queues/queue.helpers';
+import type { RegisteredJobHandler } from '@/platform/queues/queue.typedefs';
 
 @Injectable()
 export class JobHandlerRegistry implements OnModuleInit {

@@ -1,9 +1,7 @@
 import { ErrorReason } from '@agent-ic/contracts';
-
 import { DomainError } from '@/platform/errors/domain.error';
 import { DomainErrorKind } from '@/platform/errors/errors.constants';
-
-import { INVALID_ID_MESSAGE } from './ids.constants';
+import { INVALID_ID_MESSAGE } from '@/platform/ids/ids.constants';
 
 export class InvalidIdError extends DomainError {
   readonly kind = DomainErrorKind.ValidationFailed;

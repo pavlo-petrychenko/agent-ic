@@ -1,7 +1,6 @@
 import type { Request } from 'express';
 import type { Context } from 'graphql-ws';
 import type { Extra } from 'graphql-ws/use/ws';
-
 import type { UseCaseCtx } from '@/platform/context/use-case-ctx';
 
 export interface GraphqlContext {

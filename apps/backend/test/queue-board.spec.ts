@@ -1,22 +1,20 @@
-import type { INestApplication } from '@nestjs/common';
 import { ErrorReason } from '@agent-ic/contracts';
+import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
-
 import { ApiAppModule } from '@/entrypoints/api.app-module';
 import { EnvVar } from '@/platform/config/config.constants';
 import { PROBLEM_CONTENT_TYPE } from '@/platform/errors/errors.constants';
 import { HttpHeader } from '@/platform/http/http.constants';
 import { MetricsRoute } from '@/platform/observability/metrics/metrics.constants';
 import { QueueBoardRoute } from '@/platform/queues/board/queue-board.constants';
-import { QueueName } from '@/platform/queues/queue.constants';
 import { QueueMetricName } from '@/platform/queues/metrics/queue-metrics.constants';
+import { QueueName } from '@/platform/queues/queue.constants';
 import { createIntegrationTestEnv } from '@/platform/testing/integration-env.fixture';
 import { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
-
-import { BOARD_QUEUES_API_SEGMENT, HTML_CONTENT_TYPE } from './support/queue-board.constants';
-import { INVALID_BEARER } from './support/request-layer.constants';
-import { apiPath, createApi } from './support/request-layer.helpers';
+import { BOARD_QUEUES_API_SEGMENT, HTML_CONTENT_TYPE } from '@test/support/queue-board.constants';
+import { INVALID_BEARER } from '@test/support/request-layer.constants';
+import { apiPath, createApi } from '@test/support/request-layer.helpers';
 
 describe('queue board', () => {
   let app: INestApplication | null = null;

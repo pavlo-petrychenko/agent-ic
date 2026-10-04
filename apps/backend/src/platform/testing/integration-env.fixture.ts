@@ -1,11 +1,12 @@
 import { inject } from 'vitest';
-
 import { EnvVar } from '@/platform/config/config.constants';
-
-import { TEST_INFRASTRUCTURE_KEY, TEST_POOL_SIZE } from './test-infrastructure.constants';
-import type { TestRedisDatabase } from './test-infrastructure.constants';
-import { redisDatabaseUrl } from './test-infrastructure.helpers';
-import { createTestEnv } from './test-env.fixture';
+import { createTestEnv } from '@/platform/testing/test-env.fixture';
+import {
+  TEST_INFRASTRUCTURE_KEY,
+  TEST_POOL_SIZE,
+} from '@/platform/testing/test-infrastructure.constants';
+import type { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
+import { redisDatabaseUrl } from '@/platform/testing/test-infrastructure.helpers';
 
 export const createIntegrationTestEnv = (
   redisDatabase: TestRedisDatabase,

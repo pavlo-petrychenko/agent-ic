@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
-
 import { MetricsModule } from '@/platform/observability/metrics/metrics.module';
-
-import { QueueMetricsCollector } from './queue-metrics.collector';
+import { QueueMetricsCollector } from '@/platform/queues/metrics/queue-metrics.collector';
 
 @Module({
   imports: [MetricsModule],

@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest';
-
-import { createArgv, cliArgument, createTestEnv } from '@/platform/testing/test-env.fixture';
+import {
+  CliOption,
+  EnvVar,
+  LangfuseMode,
+  NodeEnvironment,
+  Role,
+} from '@/platform/config/config.constants';
+import { ConfigError } from '@/platform/config/config.error';
+import { ConfigLoader } from '@/platform/config/config.loader';
+import type { ConfigIssue } from '@/platform/config/config.typedefs';
 import { QueueName } from '@/platform/queues/queue.constants';
-
-import { CliOption, EnvVar, LangfuseMode, NodeEnvironment, Role } from './config.constants';
-import { ConfigError } from './config.error';
-import { ConfigLoader } from './config.loader';
-import type { ConfigIssue } from './config.typedefs';
+import { createArgv, cliArgument, createTestEnv } from '@/platform/testing/test-env.fixture';
 
 const roleArgv = (role: Role): string[] => createArgv(cliArgument(CliOption.Role, role));
 

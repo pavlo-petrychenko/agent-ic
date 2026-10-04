@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
-
 import type { TelemetryConfig } from '@/platform/config/config.typedefs';
-
-import { TracingService } from './tracing.service';
+import { TracingService } from '@/platform/observability/tracing/tracing.service';
 
 const disabledTelemetry: TelemetryConfig = {
   enabled: false,

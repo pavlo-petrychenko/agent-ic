@@ -5,10 +5,11 @@ import { resourceFromAttributes } from '@opentelemetry/resources';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { ATTR_SERVICE_NAMESPACE } from '@opentelemetry/semantic-conventions/incubating';
-
 import type { TelemetryConfig } from '@/platform/config/config.typedefs';
-
-import { ignoreOperationalRequest, tracesEndpoint } from './tracing.helpers';
+import {
+  ignoreOperationalRequest,
+  tracesEndpoint,
+} from '@/platform/observability/tracing/tracing.helpers';
 
 export class TracingService {
   private sdk: NodeSDK | null = null;

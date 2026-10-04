@@ -1,14 +1,12 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-
 import { Injectable } from '@nestjs/common';
-
 import {
   SECURE_TOKEN_BYTES,
   SECURE_TOKEN_ENCODING,
   TOKEN_HASH_ALGORITHM,
   TOKEN_HASH_ENCODING,
-} from './crypto.constants';
-import type { SecureToken } from './crypto.typedefs';
+} from '@/platform/crypto/crypto.constants';
+import type { SecureToken } from '@/platform/crypto/crypto.typedefs';
 
 @Injectable()
 export class SecureTokenService {

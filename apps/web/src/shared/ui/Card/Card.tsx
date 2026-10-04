@@ -1,7 +1,6 @@
 import { useId } from 'react';
-
-import styles from './Card.module.scss';
-import type { CardProps } from './Card.typedefs';
+import type { CardProps } from '@/shared/ui/Card/Card.typedefs';
+import styles from '@/shared/ui/Card/Card.module.scss';
 
 export function Card({ title = null, children }: CardProps) {
   const titleId = useId();

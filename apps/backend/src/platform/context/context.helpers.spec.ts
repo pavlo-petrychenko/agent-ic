@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-
-import { DEFAULT_LOCALE, Locale } from './context.constants';
-import { negotiateLocale, readBearerToken } from './context.helpers';
+import { DEFAULT_LOCALE, Locale } from '@/platform/context/context.constants';
+import { negotiateLocale, readBearerToken } from '@/platform/context/context.helpers';
 
 describe('readBearerToken', () => {
   it('reads the token of a bearer authorization', () => {

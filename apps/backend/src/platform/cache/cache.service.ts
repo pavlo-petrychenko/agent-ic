@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
-
+import { REDIS_EXPIRE_SECONDS_FLAG } from '@/platform/cache/cache.constants';
+import type { CacheEntry } from '@/platform/cache/cache.entry';
+import { parseCachedValue } from '@/platform/cache/cache.helpers';
 import { CacheRedisClient } from '@/platform/redis/cache-redis.client';
-
-import type { CacheEntry } from './cache.entry';
-import { REDIS_EXPIRE_SECONDS_FLAG } from './cache.constants';
-import { parseCachedValue } from './cache.helpers';
 
 @Injectable()
 export class CacheService {

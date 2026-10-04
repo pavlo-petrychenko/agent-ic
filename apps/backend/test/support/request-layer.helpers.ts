@@ -1,10 +1,8 @@
 import type { AddressInfo } from 'node:net';
-
 import type { INestApplication, Type } from '@nestjs/common';
-import { createClient } from 'graphql-ws';
 import type { FormattedExecutionResult } from 'graphql';
+import { createClient } from 'graphql-ws';
 import WebSocket from 'ws';
-
 import { ApplicationFactory } from '@/entrypoints/application.factory';
 import { CliOption, Role } from '@/platform/config/config.constants';
 import { ConfigLoader } from '@/platform/config/config.loader';
@@ -12,14 +10,13 @@ import { GRAPHQL_PATH } from '@/platform/graphql/graphql.constants';
 import { GlobalPrefix } from '@/platform/http/http.constants';
 import { TracingService } from '@/platform/observability/tracing/tracing.service';
 import { createIntegrationTestEnv } from '@/platform/testing/integration-env.fixture';
-import { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
 import { cliArgument, createArgv } from '@/platform/testing/test-env.fixture';
-
+import { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
 import {
   LOOPBACK_HOST,
   WEBSOCKET_NO_RESULT_MESSAGE,
   WEBSOCKET_PROTOCOL,
-} from './request-layer.constants';
+} from '@test/support/request-layer.constants';
 
 export const apiPath = (...segments: readonly string[]): string =>
   [``, GlobalPrefix.Api, ...segments].join('/');

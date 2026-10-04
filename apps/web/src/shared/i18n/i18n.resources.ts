@@ -1,8 +1,8 @@
-import enCommon from './locales/en/common.json';
-import enErrors from './locales/en/errors.json';
-import ukCommon from './locales/uk/common.json';
-import ukErrors from './locales/uk/errors.json';
-import { Locale, Namespace } from './i18n.constants';
+import { Locale, Namespace } from '@/shared/i18n/i18n.constants';
+import enCommon from '@/shared/i18n/locales/en/common.json';
+import enErrors from '@/shared/i18n/locales/en/errors.json';
+import ukCommon from '@/shared/i18n/locales/uk/common.json';
+import ukErrors from '@/shared/i18n/locales/uk/errors.json';
 
 export const resources = {
   [Locale.En]: { [Namespace.Common]: enCommon, [Namespace.Errors]: enErrors },

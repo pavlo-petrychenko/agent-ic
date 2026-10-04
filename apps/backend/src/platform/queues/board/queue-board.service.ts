@@ -3,13 +3,11 @@ import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { ExpressAdapter } from '@bull-board/express';
 import { Injectable } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
-
 import { GlobalPrefix } from '@/platform/http/http.constants';
-
-import { QueueRegistry } from '../queue.registry';
-import { QueueBoardRoute, URL_PATH_SEPARATOR } from './queue-board.constants';
-import { relativeToBase } from './queue-board.helpers';
-import type { QueueBoardHandler } from './queue-board.typedefs';
+import { QueueBoardRoute, URL_PATH_SEPARATOR } from '@/platform/queues/board/queue-board.constants';
+import { relativeToBase } from '@/platform/queues/board/queue-board.helpers';
+import type { QueueBoardHandler } from '@/platform/queues/board/queue-board.typedefs';
+import { QueueRegistry } from '@/platform/queues/queue.registry';
 
 @Injectable()
 export class QueueBoardService {

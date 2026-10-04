@@ -1,7 +1,6 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
 import { ErrorCode, ErrorReason } from '@agent-ic/contracts';
-
-import { DomainError } from './domain.error';
+import { HttpException, HttpStatus } from '@nestjs/common';
+import { DomainError } from '@/platform/errors/domain.error';
 import {
   ERROR_CODE_BY_HTTP_STATUS,
   ERROR_CODE_BY_KIND,
@@ -10,10 +9,10 @@ import {
   INTERNAL_ERROR_MESSAGE,
   REASON_BY_HTTP_STATUS,
   SERVER_ERROR_STATUS_MIN,
-} from './errors.constants';
-import type { ErrorDescription } from './errors.typedefs';
-import { LimitReachedError } from './limit-reached.error';
-import { UpstreamError } from './upstream.error';
+} from '@/platform/errors/errors.constants';
+import type { ErrorDescription } from '@/platform/errors/errors.typedefs';
+import { LimitReachedError } from '@/platform/errors/limit-reached.error';
+import { UpstreamError } from '@/platform/errors/upstream.error';
 
 const isServerErrorStatus = (status: number): boolean => status >= SERVER_ERROR_STATUS_MIN;
 

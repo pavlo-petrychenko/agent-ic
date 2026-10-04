@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-
 import { Card } from '@/shared/ui/Card';
 import { Link } from '@/shared/ui/Link';
 

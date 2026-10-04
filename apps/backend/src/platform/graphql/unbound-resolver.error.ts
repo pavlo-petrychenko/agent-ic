@@ -1,4 +1,7 @@
-import { UNBOUND_FIELDS_SEPARATOR, UNBOUND_RESOLVER_MESSAGE } from './graphql.constants';
+import {
+  UNBOUND_FIELDS_SEPARATOR,
+  UNBOUND_RESOLVER_MESSAGE,
+} from '@/platform/graphql/graphql.constants';
 
 export class UnboundResolverError extends Error {
   constructor(readonly fields: readonly string[]) {

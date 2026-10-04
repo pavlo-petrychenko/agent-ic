@@ -1,15 +1,14 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
-
-import { CLIENT_CLOSE_TIMEOUT_SECONDS } from '../database.constants';
-import { createSqlClient } from '../database.helpers';
-import type { NoticeHandler } from '../database.typedefs';
+import { CLIENT_CLOSE_TIMEOUT_SECONDS } from '@/platform/db/database.constants';
+import { createSqlClient } from '@/platform/db/database.helpers';
+import type { NoticeHandler } from '@/platform/db/database.typedefs';
 import {
   MIGRATION_POOL_SIZE,
   MIGRATIONS_FOLDER,
   MIGRATIONS_SCHEMA,
   MIGRATIONS_TABLE,
-} from './migrator.constants';
+} from '@/platform/db/migrator/migrator.constants';
 
 export class MigrationRunner {
   constructor(

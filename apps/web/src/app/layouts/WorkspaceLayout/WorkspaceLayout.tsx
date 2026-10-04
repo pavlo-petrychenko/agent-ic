@@ -1,9 +1,7 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-
 import { AppHeader } from '@/app/layouts/AppHeader/AppHeader';
-
-import styles from './WorkspaceLayout.module.scss';
+import styles from '@/app/layouts/WorkspaceLayout/WorkspaceLayout.module.scss';
 
 interface WorkspaceLayoutProps {
   workspaceId: string;

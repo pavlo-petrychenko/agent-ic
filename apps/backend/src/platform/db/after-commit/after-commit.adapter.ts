@@ -1,13 +1,12 @@
 import { TransactionalAdapterDrizzleOrm } from '@nestjs-cls/transactional-adapter-drizzle-orm';
 import type { DrizzleOrmTransactionalAdapterOptions } from '@nestjs-cls/transactional-adapter-drizzle-orm';
-
-import type { AppDatabase } from '../database.typedefs';
-import { AfterCommitBuffer } from './after-commit.buffer';
+import { AfterCommitBuffer } from '@/platform/db/after-commit/after-commit.buffer';
 import {
   bindAfterCommitBuffer,
   currentAfterCommitBuffer,
   settleTransaction,
-} from './after-commit.helpers';
+} from '@/platform/db/after-commit/after-commit.helpers';
+import type { AppDatabase } from '@/platform/db/database.typedefs';
 
 export class AfterCommitTransactionalAdapter extends TransactionalAdapterDrizzleOrm<AppDatabase> {
   constructor(options: DrizzleOrmTransactionalAdapterOptions<AppDatabase>) {

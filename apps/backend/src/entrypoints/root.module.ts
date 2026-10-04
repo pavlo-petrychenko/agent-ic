@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import type { DynamicModule, Type } from '@nestjs/common';
-
 import { CacheModule } from '@/platform/cache/cache.module';
 import { ClockModule } from '@/platform/clock/clock.module';
 import { ConfigModule } from '@/platform/config/config.module';
-import { ContextModule } from '@/platform/context/context.module';
 import type { AppConfig } from '@/platform/config/config.typedefs';
+import { ContextModule } from '@/platform/context/context.module';
 import { CryptoModule } from '@/platform/crypto/crypto.module';
 import { DatabaseModule } from '@/platform/db/database.module';
 import { DomainEventsModule } from '@/platform/domain-events/domain-events.module';

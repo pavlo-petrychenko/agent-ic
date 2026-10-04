@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
-
 import type { UseCaseCtx } from '@/platform/context/use-case-ctx';
 import { AfterCommitScheduler } from '@/platform/db/after-commit/after-commit.scheduler';
-
-import type { JobDefinition } from './job.definition';
-import { ENVELOPE_VERSION } from './queue.constants';
-import { QueueRegistry } from './queue.registry';
-import type { JobData, JobEnvelope } from './queue.typedefs';
+import type { JobDefinition } from '@/platform/queues/job.definition';
+import { ENVELOPE_VERSION } from '@/platform/queues/queue.constants';
+import { QueueRegistry } from '@/platform/queues/queue.registry';
+import type { JobData, JobEnvelope } from '@/platform/queues/queue.typedefs';
 
 @Injectable()
 export class JobsService {

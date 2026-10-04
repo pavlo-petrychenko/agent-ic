@@ -2,7 +2,6 @@ import type { ApolloDriverConfig } from '@nestjs/apollo';
 import { Injectable } from '@nestjs/common';
 import type { GqlOptionsFactory } from '@nestjs/graphql';
 import type { Request } from 'express';
-
 import { NodeEnvironment } from '@/platform/config/config.constants';
 import { ConfigService } from '@/platform/config/config.service';
 import type { TransportRequest } from '@/platform/context/context.typedefs';
@@ -11,16 +10,15 @@ import { UseCaseCtxFactory } from '@/platform/context/use-case-ctx.factory';
 import { DomainError } from '@/platform/errors/domain.error';
 import { ErrorReporter } from '@/platform/errors/error.reporter';
 import { GraphqlErrorMapper } from '@/platform/errors/graphql-error.mapper';
-import { HttpHeader } from '@/platform/http/http.constants';
-
-import { ConnectionParam, GRAPHQL_PATH } from './graphql.constants';
-import { moduleTypePaths, readConnectionParam } from './graphql.helpers';
+import { ConnectionParam, GRAPHQL_PATH } from '@/platform/graphql/graphql.constants';
+import { moduleTypePaths, readConnectionParam } from '@/platform/graphql/graphql.helpers';
 import type {
   GraphqlContext,
   GraphqlContextInput,
   WebSocketConnectionInput,
   WebSocketContextInput,
-} from './graphql.typedefs';
+} from '@/platform/graphql/graphql.typedefs';
+import { HttpHeader } from '@/platform/http/http.constants';
 
 @Injectable()
 export class GraphqlOptionsFactory implements GqlOptionsFactory<ApolloDriverConfig> {

@@ -1,6 +1,5 @@
 import { getMainDefinition } from '@apollo/client/utilities';
 import { Kind, OperationTypeNode } from 'graphql';
-
 import { UrlScheme } from '@/shared/api/api.constants';
 
 export const isSubscriptionOperation = (

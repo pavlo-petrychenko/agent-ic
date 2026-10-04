@@ -1,9 +1,7 @@
-import { Injectable } from '@nestjs/common';
 import { TransactionHost } from '@nestjs-cls/transactional';
-
+import { Injectable } from '@nestjs/common';
 import type { AppTransactionAdapter } from '@/platform/db/database.typedefs';
-
-import { TestRollbackSignal } from './test-rollback.signal';
+import { TestRollbackSignal } from '@/platform/testing/test-rollback.signal';
 
 @Injectable()
 export class TestTransactionRunner {

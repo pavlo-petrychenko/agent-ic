@@ -1,17 +1,14 @@
 import { randomUUID } from 'node:crypto';
-
 import type { TestingModule } from '@nestjs/testing';
-import { z } from 'zod';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-
+import { z } from 'zod';
+import { CacheEntry } from '@/platform/cache/cache.entry';
+import { CacheModule } from '@/platform/cache/cache.module';
+import { CacheService } from '@/platform/cache/cache.service';
 import { CacheRedisClient } from '@/platform/redis/cache-redis.client';
 import { RedisModule } from '@/platform/redis/redis.module';
 import { createPlatformTestingModule } from '@/platform/testing/database-testing.helpers';
 import { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
-
-import { CacheEntry } from './cache.entry';
-import { CacheModule } from './cache.module';
-import { CacheService } from './cache.service';
 
 const TTL_SECONDS = 60;
 

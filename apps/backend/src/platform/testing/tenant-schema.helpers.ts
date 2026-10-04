@@ -1,5 +1,11 @@
-import { QUALIFIED_NAME_SEPARATOR, TenantSchemaProblem } from './tenant-schema.constants';
-import type { TenantSchemaViolation, TenantTableRow } from './tenant-schema.typedefs';
+import {
+  QUALIFIED_NAME_SEPARATOR,
+  TenantSchemaProblem,
+} from '@/platform/testing/tenant-schema.constants';
+import type {
+  TenantSchemaViolation,
+  TenantTableRow,
+} from '@/platform/testing/tenant-schema.typedefs';
 
 export const qualifiedTableName = (row: TenantTableRow): string =>
   `${row.schemaName}${QUALIFIED_NAME_SEPARATOR}${row.tableName}`;

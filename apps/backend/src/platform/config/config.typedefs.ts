@@ -1,6 +1,10 @@
+import type {
+  LangfuseMode,
+  LogLevel,
+  NodeEnvironment,
+  Role,
+} from '@/platform/config/config.constants';
 import type { QueueName } from '@/platform/queues/queue.constants';
-
-import type { LangfuseMode, LogLevel, NodeEnvironment, Role } from './config.constants';
 
 export interface HttpConfig {
   readonly host: string;

@@ -1,7 +1,6 @@
 import { ErrorCode } from '@agent-ic/contracts';
 import { ErrorLink } from '@apollo/client/link/error';
 import { catchError, from, mergeMap, throwError } from 'rxjs';
-
 import { UNAUTHENTICATED_RETRIED_CONTEXT_KEY } from '@/shared/api/api.constants';
 import { toAppError } from '@/shared/api/appError.helpers';
 

@@ -1,4 +1,4 @@
-import type { AfterCommitAction } from './after-commit.typedefs';
+import type { AfterCommitAction } from '@/platform/db/after-commit/after-commit.typedefs';
 
 export class AfterCommitBuffer {
   private readonly actions: AfterCommitAction[] = [];

@@ -1,5 +1,5 @@
-import { formatConfigIssues } from './config.helpers';
-import type { ConfigIssue } from './config.typedefs';
+import { formatConfigIssues } from '@/platform/config/config.helpers';
+import type { ConfigIssue } from '@/platform/config/config.typedefs';
 
 export class ConfigError extends Error {
   constructor(readonly issues: readonly ConfigIssue[]) {

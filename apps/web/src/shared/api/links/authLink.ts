@@ -1,5 +1,4 @@
 import { SetContextLink } from '@apollo/client/link/context';
-
 import { BEARER_SCHEME, RequestHeader } from '@/shared/api/api.constants';
 import { getRequestContext } from '@/shared/api/requestContext';
 

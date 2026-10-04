@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-
-import { PlatformAdminAuthorizer } from './platform-admin.authorizer';
+import { PlatformAdminAuthorizer } from '@/platform/admin/platform-admin.authorizer';
 
 @Injectable()
 export class NoPlatformAdminsAuthorizer extends PlatformAdminAuthorizer {

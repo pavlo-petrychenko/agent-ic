@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-
-import { OTLP_TRACES_PATH } from './tracing.constants';
-import { tracesEndpoint } from './tracing.helpers';
+import { OTLP_TRACES_PATH } from '@/platform/observability/tracing/tracing.constants';
+import { tracesEndpoint } from '@/platform/observability/tracing/tracing.helpers';
 
 describe('tracesEndpoint', () => {
   it('appends the traces path to the collector endpoint', () => {

@@ -1,5 +1,5 @@
-import type { Locale } from './context.constants';
-import type { Actor, UseCaseCtxInit } from './context.typedefs';
+import type { Locale } from '@/platform/context/context.constants';
+import type { Actor, UseCaseCtxInit } from '@/platform/context/context.typedefs';
 
 export class UseCaseCtx {
   readonly actor: Actor;

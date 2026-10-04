@@ -1,4 +1,4 @@
-import { URL_PATH_SEPARATOR } from './queue-board.constants';
+import { URL_PATH_SEPARATOR } from '@/platform/queues/board/queue-board.constants';
 
 export const relativeToBase = (url: string, basePath: string): string => {
   const relative = url.startsWith(basePath) ? url.slice(basePath.length) : url;

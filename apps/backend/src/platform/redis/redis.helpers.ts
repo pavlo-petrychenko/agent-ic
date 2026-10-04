@@ -1,13 +1,12 @@
 import { Logger } from '@nestjs/common';
 import { Redis } from 'ioredis';
-
 import {
   BLOCKING_SAFE_MAX_RETRIES_PER_REQUEST,
   REDIS_ENDED_STATUS,
   REDIS_ERROR_EVENT,
   RedisLogMessage,
-} from './redis.constants';
-import type { RedisConnectionName } from './redis.constants';
+} from '@/platform/redis/redis.constants';
+import type { RedisConnectionName } from '@/platform/redis/redis.constants';
 
 export const createRedisConnection = (url: string, name: RedisConnectionName): Redis => {
   const logger = new Logger(name);

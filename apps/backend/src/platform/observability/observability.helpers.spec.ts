@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
-
-import { HealthRoute } from './health/health.constants';
-import { MetricsRoute } from './metrics/metrics.constants';
-import { isOperationalUrl } from './observability.helpers';
+import { HealthRoute } from '@/platform/observability/health/health.constants';
+import { MetricsRoute } from '@/platform/observability/metrics/metrics.constants';
+import { isOperationalUrl } from '@/platform/observability/observability.helpers';
 
 describe('isOperationalUrl', () => {
   it.each([

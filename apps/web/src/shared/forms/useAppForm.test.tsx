@@ -2,8 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-
-import { useAppForm } from './useAppForm';
+import { useAppForm } from '@/shared/forms/useAppForm';
 
 const schema = z.object({
   email: z.email('Enter a valid email'),

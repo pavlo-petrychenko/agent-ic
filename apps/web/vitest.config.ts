@@ -1,11 +1,10 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
-
-import { resolveOptions } from './vite.resolve.ts';
+import { resolveOptions, testAliases } from './vite.resolve.ts';
 
 export default defineConfig({
   plugins: [react()],
-  resolve: resolveOptions,
+  resolve: { ...resolveOptions, alias: testAliases },
   test: {
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}', 'vite.*.test.ts'],

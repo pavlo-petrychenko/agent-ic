@@ -1,9 +1,8 @@
 import { createFormHook } from '@tanstack/react-form';
-
-import { PasswordField } from './fields/PasswordField';
-import { SubmitButton } from './fields/SubmitButton';
-import { TextField } from './fields/TextField';
-import { fieldContext, formContext } from './formContext';
+import { PasswordField } from '@/shared/forms/fields/PasswordField';
+import { SubmitButton } from '@/shared/forms/fields/SubmitButton';
+import { TextField } from '@/shared/forms/fields/TextField';
+import { fieldContext, formContext } from '@/shared/forms/formContext';
 
 export const { useAppForm, withForm } = createFormHook({
   fieldContext,

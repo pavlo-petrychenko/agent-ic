@@ -1,8 +1,12 @@
-import type { TestingModule } from '@nestjs/testing';
 import { TransactionHost, Transactional } from '@nestjs-cls/transactional';
+import type { TestingModule } from '@nestjs/testing';
 import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest';
-
+import { APP_DATABASE } from '@/platform/db/database.constants';
+import type { AppDatabase, AppTransactionAdapter } from '@/platform/db/database.typedefs';
+import { SystemDb } from '@/platform/db/system-db';
+import { TenantMismatchError } from '@/platform/db/tenancy/tenant-mismatch.error';
+import { TenantTransactionRunner } from '@/platform/db/tenancy/tenant-transaction.runner';
 import { IdService } from '@/platform/ids/id.service';
 import {
   createDatabaseTestingModule,
@@ -12,12 +16,6 @@ import { createProbeTable, probeTableStatements } from '@/platform/testing/rls-p
 import { TEST_INFRASTRUCTURE_KEY } from '@/platform/testing/test-infrastructure.constants';
 import type { ScratchDatabase } from '@/platform/testing/test-infrastructure.typedefs';
 import { TestTransactionRunner } from '@/platform/testing/test-transaction.runner';
-
-import { APP_DATABASE } from '../database.constants';
-import type { AppDatabase, AppTransactionAdapter } from '../database.typedefs';
-import { SystemDb } from '../system-db';
-import { TenantMismatchError } from './tenant-mismatch.error';
-import { TenantTransactionRunner } from './tenant-transaction.runner';
 
 const PROBE_SCHEMA = 'rls_probe_runner';
 const SEEDED_LABEL = 'seeded';

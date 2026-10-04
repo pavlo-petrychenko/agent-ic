@@ -1,9 +1,7 @@
 import { useStore } from '@tanstack/react-form';
 import type { ReactNode } from 'react';
-
-import { Button } from '@/shared/ui/Button';
-
 import { useFormContext } from '@/shared/forms/formContext';
+import { Button } from '@/shared/ui/Button';
 
 interface SubmitButtonProps {
   children: ReactNode;

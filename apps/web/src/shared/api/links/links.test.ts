@@ -3,12 +3,11 @@ import { ApolloClient, ApolloLink, gql, InMemoryCache } from '@apollo/client';
 import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { Observable, of } from 'rxjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-
-import { AppError } from '@/shared/api/AppError';
 import { BEARER_SCHEME, RequestHeader } from '@/shared/api/api.constants';
+import { AppError } from '@/shared/api/AppError';
+import { createAuthLink } from '@/shared/api/links/authLink';
+import { createErrorLink } from '@/shared/api/links/errorLink';
 import { setAccessToken, setWorkspaceId } from '@/shared/api/requestContext';
-import { createAuthLink } from './authLink';
-import { createErrorLink } from './errorLink';
 
 const query = gql`
   query Ping {

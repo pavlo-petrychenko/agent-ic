@@ -1,7 +1,6 @@
 import { Global, Module } from '@nestjs/common';
-
-import { Clock } from './clock';
-import { SystemClock } from './system.clock';
+import { Clock } from '@/platform/clock/clock';
+import { SystemClock } from '@/platform/clock/system.clock';
 
 @Global()
 @Module({

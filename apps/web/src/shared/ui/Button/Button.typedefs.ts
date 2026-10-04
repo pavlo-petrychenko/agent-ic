@@ -1,6 +1,5 @@
 import type { ComponentProps } from 'react';
-
-import type { ButtonSize, ButtonVariant } from './Button.constants';
+import type { ButtonSize, ButtonVariant } from '@/shared/ui/Button/Button.constants';
 
 export interface ButtonProps extends ComponentProps<'button'> {
   variant?: ButtonVariant;

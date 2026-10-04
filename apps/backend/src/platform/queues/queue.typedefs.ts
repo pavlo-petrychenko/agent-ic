@@ -1,8 +1,7 @@
 import type { Actor } from '@/platform/context/context.typedefs';
 import type { UseCaseCtx } from '@/platform/context/use-case-ctx';
-
-import type { JobDefinition } from './job.definition';
-import type { ENVELOPE_VERSION } from './queue.constants';
+import type { JobDefinition } from '@/platform/queues/job.definition';
+import type { ENVELOPE_VERSION } from '@/platform/queues/queue.constants';
 
 export type JobDataValue = string | number | boolean | null | readonly string[];
 

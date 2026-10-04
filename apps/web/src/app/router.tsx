@@ -1,5 +1,4 @@
 import { createRouter } from '@tanstack/react-router';
-
 import { RouteErrorFallback } from '@/app/ErrorBoundary/RouteErrorFallback';
 import { NotFound } from '@/app/NotFound/NotFound';
 import { routeTree } from '@/routeTree.gen';

@@ -1,8 +1,7 @@
 import clsx from 'clsx';
-
-import { ButtonSize, ButtonVariant } from './Button.constants';
-import styles from './Button.module.scss';
-import type { ButtonProps } from './Button.typedefs';
+import { ButtonSize, ButtonVariant } from '@/shared/ui/Button/Button.constants';
+import type { ButtonProps } from '@/shared/ui/Button/Button.typedefs';
+import styles from '@/shared/ui/Button/Button.module.scss';
 
 export function Button({
   variant = ButtonVariant.Primary,

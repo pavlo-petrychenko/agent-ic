@@ -1,7 +1,4 @@
 import { z } from 'zod';
-
-import { QueueName } from '@/platform/queues/queue.constants';
-
 import {
   DATABASE_URL_PROTOCOL,
   EnvVar,
@@ -19,7 +16,7 @@ import {
   SAMPLE_RATE_MIN,
   WORKER_CONCURRENCY_MIN,
   WORKER_QUEUES_REQUIRED_MESSAGE,
-} from './config.constants';
+} from '@/platform/config/config.constants';
 import type {
   ApiEnvironment,
   CommonEnvironment,
@@ -29,7 +26,8 @@ import type {
   MigrationConfig,
   RoleEnvironment,
   WorkerEnvironment,
-} from './config.typedefs';
+} from '@/platform/config/config.typedefs';
+import { QueueName } from '@/platform/queues/queue.constants';
 
 const text = z.string().min(1);
 const port = z.coerce.number().int().min(PORT_MIN).max(PORT_MAX);

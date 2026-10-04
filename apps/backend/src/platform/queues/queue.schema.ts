@@ -1,9 +1,7 @@
 import { z } from 'zod';
-
 import { actorSchema } from '@/platform/context/context.schema';
-
-import { ENVELOPE_VERSION } from './queue.constants';
-import type { JobEnvelope } from './queue.typedefs';
+import { ENVELOPE_VERSION } from '@/platform/queues/queue.constants';
+import type { JobEnvelope } from '@/platform/queues/queue.typedefs';
 
 const jobDataValueSchema = z.union([
   z.string(),

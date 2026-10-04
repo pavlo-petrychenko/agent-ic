@@ -1,7 +1,6 @@
 import { sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { pgPolicy, pgSchema, uuid } from 'drizzle-orm/pg-core';
-
 import {
   SQL_ESCAPED_QUOTE,
   SQL_QUOTE,
@@ -11,7 +10,7 @@ import {
   WORKSPACE_ID_COLUMN,
   WORKSPACE_SETTING,
   WORKSPACE_SETTING_IS_LOCAL,
-} from './tenancy.constants';
+} from '@/platform/db/tenancy/tenancy.constants';
 
 const toSqlLiteral = (value: string): string =>
   `${SQL_QUOTE}${value.replaceAll(SQL_QUOTE, SQL_ESCAPED_QUOTE)}${SQL_QUOTE}`;

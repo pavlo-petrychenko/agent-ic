@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ClsService } from 'nestjs-cls';
-
-import { ErrorReporter } from '@/platform/errors/error.reporter';
 import { TraceIdService } from '@/platform/context/trace-id.service';
-
-import type { AfterCommitBuffer } from './after-commit.buffer';
-import { AFTER_COMMIT_CLS_KEY } from './after-commit.constants';
-import type { AfterCommitAction } from './after-commit.typedefs';
+import type { AfterCommitBuffer } from '@/platform/db/after-commit/after-commit.buffer';
+import { AFTER_COMMIT_CLS_KEY } from '@/platform/db/after-commit/after-commit.constants';
+import type { AfterCommitAction } from '@/platform/db/after-commit/after-commit.typedefs';
+import { ErrorReporter } from '@/platform/errors/error.reporter';
 
 @Injectable()
 export class AfterCommitScheduler {

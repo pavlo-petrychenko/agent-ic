@@ -1,10 +1,13 @@
 import { ErrorCode, ErrorReason } from '@agent-ic/contracts';
 import { CombinedGraphQLErrors, ServerError } from '@apollo/client/errors';
-
-import { AppError } from './AppError';
-import { type ErrorPayload, errorPayloadSchema } from './appError.schema';
-import { ClientErrorCode, NETWORK_ERROR_MESSAGE, UNKNOWN_ERROR_MESSAGE } from './api.constants';
-import type { ApiFieldError, AppErrorCode } from './api.typedefs';
+import {
+  ClientErrorCode,
+  NETWORK_ERROR_MESSAGE,
+  UNKNOWN_ERROR_MESSAGE,
+} from '@/shared/api/api.constants';
+import type { ApiFieldError, AppErrorCode } from '@/shared/api/api.typedefs';
+import { AppError } from '@/shared/api/AppError';
+import { type ErrorPayload, errorPayloadSchema } from '@/shared/api/appError.schema';
 
 const ERROR_CODES: ReadonlySet<string> = new Set(Object.values(ErrorCode));
 const ERROR_REASONS: ReadonlySet<string> = new Set(Object.values(ErrorReason));

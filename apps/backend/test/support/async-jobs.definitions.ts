@@ -2,10 +2,9 @@ import { DomainEventDefinition } from '@/platform/domain-events/domain-event.def
 import { DomainEventSubscription } from '@/platform/domain-events/domain-event.subscription';
 import { JobDefinition } from '@/platform/queues/job.definition';
 import { QueueName } from '@/platform/queues/queue.constants';
-
-import { ProbeEventName, ProbeJobName } from './async-jobs.constants';
-import { probeDataSchema } from './async-jobs.schema';
-import type { ProbeData } from './async-jobs.typedefs';
+import { ProbeEventName, ProbeJobName } from '@test/support/async-jobs.constants';
+import { probeDataSchema } from '@test/support/async-jobs.schema';
+import type { ProbeData } from '@test/support/async-jobs.typedefs';
 
 export class RecordProbeJob extends JobDefinition<ProbeData> {
   readonly queue = QueueName.Notify;

@@ -1,11 +1,9 @@
 import { ErrorCode } from '@agent-ic/contracts';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-
 import type { AppError } from '@/shared/api/AppError';
-
-import { toErrorMessageKey } from './errorMessage.helpers';
-import { Namespace } from './i18n.constants';
+import { toErrorMessageKey } from '@/shared/i18n/errorMessage.helpers';
+import { Namespace } from '@/shared/i18n/i18n.constants';
 
 export function useErrorMessage(): (error: AppError) => string {
   const { t } = useTranslation(Namespace.Errors);

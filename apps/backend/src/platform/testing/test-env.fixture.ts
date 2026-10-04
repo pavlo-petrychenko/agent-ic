@@ -1,7 +1,6 @@
 import { CLI_OPTION_PREFIX } from '@/platform/config/config.constants';
 import type { CliOption, EnvVar } from '@/platform/config/config.constants';
-
-import { TEST_ARGV_PREFIX, TEST_ENV } from './test-env.constants';
+import { TEST_ARGV_PREFIX, TEST_ENV } from '@/platform/testing/test-env.constants';
 
 export const createTestEnv = (
   overrides: Partial<Record<EnvVar, string | undefined>> = {},

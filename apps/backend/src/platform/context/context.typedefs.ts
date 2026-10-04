@@ -1,4 +1,4 @@
-import type { ActorKind, Locale, SystemReason } from './context.constants';
+import type { ActorKind, Locale, SystemReason } from '@/platform/context/context.constants';
 
 export interface UserActor {
   readonly kind: ActorKind.User;

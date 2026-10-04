@@ -1,9 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
-
 import { AppError } from '@/shared/api/AppError';
-
-import { loadRuntimeConfig } from './runtimeConfig';
+import { loadRuntimeConfig } from '@/shared/config/runtimeConfig';
 
 const respondWith = (body: unknown, status = 200) => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status })));

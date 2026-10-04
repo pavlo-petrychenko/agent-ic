@@ -1,8 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
-
-import { HealthRoute } from './health.constants';
-import { HealthService } from './health.service';
-import type { HealthReport } from './health.typedefs';
+import { HealthRoute } from '@/platform/observability/health/health.constants';
+import { HealthService } from '@/platform/observability/health/health.service';
+import type { HealthReport } from '@/platform/observability/health/health.typedefs';
 
 @Controller(HealthRoute.Base)
 export class HealthController {

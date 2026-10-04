@@ -1,7 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { extname } from 'node:path';
-
 import { parseSync } from 'oxc-parser';
 
 interface Violation {

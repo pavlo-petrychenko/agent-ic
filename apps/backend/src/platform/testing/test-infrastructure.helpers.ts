@@ -1,8 +1,6 @@
 import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import type { StartedRedisContainer } from '@testcontainers/redis';
-
 import { DatabaseRole } from '@/platform/db/database.constants';
-
 import {
   DATABASE_URL_PROTOCOL,
   TEST_DATABASE_NAME,
@@ -10,9 +8,12 @@ import {
   TEST_SUPERUSER,
   TEST_SUPERUSER_PASSWORD,
   URL_PATH_SEPARATOR,
-} from './test-infrastructure.constants';
-import type { TestRedisDatabase } from './test-infrastructure.constants';
-import type { DatabaseUrlParts, TestInfrastructure } from './test-infrastructure.typedefs';
+} from '@/platform/testing/test-infrastructure.constants';
+import type { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
+import type {
+  DatabaseUrlParts,
+  TestInfrastructure,
+} from '@/platform/testing/test-infrastructure.typedefs';
 
 export const buildDatabaseUrl = (parts: DatabaseUrlParts): string => {
   const url = new URL(`${DATABASE_URL_PROTOCOL}${URL_PATH_SEPARATOR}${URL_PATH_SEPARATOR}`);

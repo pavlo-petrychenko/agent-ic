@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-
-import { SECURE_TOKEN_BYTES } from './crypto.constants';
-import { SecureTokenService } from './secure-token.service';
+import { SECURE_TOKEN_BYTES } from '@/platform/crypto/crypto.constants';
+import { SecureTokenService } from '@/platform/crypto/secure-token.service';
 
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 const SHA256_HEX = /^[0-9a-f]{64}$/;

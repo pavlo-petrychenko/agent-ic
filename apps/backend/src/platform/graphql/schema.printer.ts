@@ -1,7 +1,6 @@
 import { GraphQLTypesLoader } from '@nestjs/graphql';
 import { buildASTSchema, printSchema } from 'graphql';
-
-import { moduleTypePaths, toTypeDefsDocument } from './graphql.helpers';
+import { moduleTypePaths, toTypeDefsDocument } from '@/platform/graphql/graphql.helpers';
 
 export class SchemaPrinter {
   constructor(private readonly typesLoader: GraphQLTypesLoader = new GraphQLTypesLoader()) {}

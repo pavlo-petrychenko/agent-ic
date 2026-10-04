@@ -1,7 +1,6 @@
 import type { ErrorReason } from '@agent-ic/contracts';
-
-import type { AppError } from '@/shared/api/AppError';
 import type { AppErrorCode } from '@/shared/api/api.typedefs';
+import type { AppError } from '@/shared/api/AppError';
 
 export type ErrorMessageKey = `reason.${ErrorReason}` | `code.${AppErrorCode}`;
 

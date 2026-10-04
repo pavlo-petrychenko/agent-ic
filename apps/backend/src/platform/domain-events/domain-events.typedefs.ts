@@ -1,5 +1,4 @@
+import type { DomainEventSubscription } from '@/platform/domain-events/domain-event.subscription';
 import type { JobData } from '@/platform/queues/queue.typedefs';
-
-import type { DomainEventSubscription } from './domain-event.subscription';
 
 export type AnyDomainEventSubscription = DomainEventSubscription<JobData>;

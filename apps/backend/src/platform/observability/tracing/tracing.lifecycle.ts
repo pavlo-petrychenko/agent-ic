@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { OnApplicationShutdown } from '@nestjs/common';
-
-import { TracingService } from './tracing.service';
+import { TracingService } from '@/platform/observability/tracing/tracing.service';
 
 @Injectable()
 export class TracingLifecycle implements OnApplicationShutdown {

@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
-
+import type { DomainEventDefinition } from '@/platform/domain-events/domain-event.definition';
+import type { AnyDomainEventSubscription } from '@/platform/domain-events/domain-events.typedefs';
 import type { JobData } from '@/platform/queues/queue.typedefs';
-
-import type { DomainEventDefinition } from './domain-event.definition';
-import type { AnyDomainEventSubscription } from './domain-events.typedefs';
 
 @Injectable()
 export class DomainEventSubscriptionRegistry {

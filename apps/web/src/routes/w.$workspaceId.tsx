@@ -1,6 +1,5 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { z } from 'zod';
-
 import { WorkspaceLayout } from '@/app/layouts/WorkspaceLayout/WorkspaceLayout';
 import { releaseWorkspaceId, setWorkspaceId } from '@/shared/api/requestContext';
 

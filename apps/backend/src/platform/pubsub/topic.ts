@@ -1,7 +1,6 @@
 import type { z } from 'zod';
-
-import { TOPIC_ROOT, TOPIC_SEGMENT_SEPARATOR } from './pubsub.constants';
-import type { TopicEvent } from './pubsub.typedefs';
+import { TOPIC_ROOT, TOPIC_SEGMENT_SEPARATOR } from '@/platform/pubsub/pubsub.constants';
+import type { TopicEvent } from '@/platform/pubsub/pubsub.typedefs';
 
 export abstract class Topic<TEvent extends TopicEvent> {
   protected abstract readonly name: string;

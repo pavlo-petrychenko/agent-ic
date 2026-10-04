@@ -1,8 +1,7 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import type { BeforeApplicationShutdown } from '@nestjs/common';
-
-import { HealthStatus } from './health.constants';
-import type { HealthReport } from './health.typedefs';
+import { HealthStatus } from '@/platform/observability/health/health.constants';
+import type { HealthReport } from '@/platform/observability/health/health.typedefs';
 
 @Injectable()
 export class HealthService implements BeforeApplicationShutdown {

@@ -1,12 +1,10 @@
 import { ApolloProvider } from '@apollo/client/react';
 import { useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
-
-import { createApolloClient } from '@/shared/api/apolloClient';
-
+import type { AppProvidersProps } from '@/app/app.typedefs';
 import { ErrorBoundary } from '@/app/ErrorBoundary/ErrorBoundary';
-import { LocalizedToastProvider } from './LocalizedToastProvider';
-import type { AppProvidersProps } from './app.typedefs';
+import { LocalizedToastProvider } from '@/app/LocalizedToastProvider';
+import { createApolloClient } from '@/shared/api/apolloClient';
 
 export function AppProviders({ config, i18n, children }: AppProvidersProps) {
   const [client] = useState(() => createApolloClient({ config }));

@@ -1,10 +1,8 @@
 import { writeFile } from 'node:fs/promises';
 import { EOL } from 'node:os';
-
+import { BaseLauncher } from '@/entrypoints/base.launcher';
 import { ConfigLoader } from '@/platform/config/config.loader';
 import { SchemaPrinter } from '@/platform/graphql/schema.printer';
-
-import { BaseLauncher } from './base.launcher';
 
 export class SchemaPrintLauncher extends BaseLauncher {
   constructor(

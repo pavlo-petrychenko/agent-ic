@@ -1,10 +1,8 @@
 import { useStore } from '@tanstack/react-form';
-
-import { Field } from '@/shared/ui/Field';
-import { Input, type InputProps } from '@/shared/ui/Input';
-
 import { useFieldContext } from '@/shared/forms/formContext';
 import { firstErrorMessage } from '@/shared/forms/forms.helpers';
+import { Field } from '@/shared/ui/Field';
+import { Input, type InputProps } from '@/shared/ui/Input';
 
 interface TextFieldProps extends Omit<InputProps, 'value' | 'onChange' | 'onBlur' | 'id' | 'name'> {
   label: string;

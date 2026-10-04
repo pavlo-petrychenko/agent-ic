@@ -1,5 +1,5 @@
-import { HttpStatus } from '@nestjs/common';
 import { ErrorCode, ErrorReason } from '@agent-ic/contracts';
+import { HttpStatus } from '@nestjs/common';
 
 export enum DomainErrorKind {
   NotFound = 'not-found',

@@ -1,14 +1,12 @@
-import { NestFactory } from '@nestjs/core';
 import type { INestApplication } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
-
+import { ROLE_ENTRYPOINTS, UNPREFIXED_ROUTES } from '@/entrypoints/entrypoint.constants';
+import type { RoleEntrypoint } from '@/entrypoints/entrypoint.typedefs';
+import { LogMessage } from '@/entrypoints/launcher.constants';
+import { RootModule } from '@/entrypoints/root.module';
 import type { AppConfig } from '@/platform/config/config.typedefs';
 import type { TracingService } from '@/platform/observability/tracing/tracing.service';
-
-import { ROLE_ENTRYPOINTS, UNPREFIXED_ROUTES } from './entrypoint.constants';
-import { LogMessage } from './launcher.constants';
-import type { RoleEntrypoint } from './entrypoint.typedefs';
-import { RootModule } from './root.module';
 
 export class ApplicationFactory {
   constructor(

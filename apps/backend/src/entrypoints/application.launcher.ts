@@ -1,7 +1,6 @@
+import { BaseLauncher } from '@/entrypoints/base.launcher';
 import { ConfigLoader } from '@/platform/config/config.loader';
 import { TracingService } from '@/platform/observability/tracing/tracing.service';
-
-import { BaseLauncher } from './base.launcher';
 
 export class ApplicationLauncher extends BaseLauncher {
   constructor(
@@ -16,7 +15,7 @@ export class ApplicationLauncher extends BaseLauncher {
     const tracing = new TracingService(config.telemetry);
     tracing.start();
 
-    const { ApplicationFactory } = await import('./application.factory');
+    const { ApplicationFactory } = await import('@/entrypoints/application.factory');
     await new ApplicationFactory(config, tracing).start();
   }
 }

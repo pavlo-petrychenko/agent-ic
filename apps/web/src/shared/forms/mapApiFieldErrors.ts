@@ -1,7 +1,6 @@
 import type { AppError } from '@/shared/api/AppError';
+import type { ApiFormErrors } from '@/shared/forms/forms.typedefs';
 import type { ErrorMessageKey } from '@/shared/i18n/errorMessage.helpers';
-
-import type { ApiFormErrors } from './forms.typedefs';
 
 export function mapApiFieldErrors(
   error: AppError,

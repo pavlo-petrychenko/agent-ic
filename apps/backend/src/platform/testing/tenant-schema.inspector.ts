@@ -1,13 +1,17 @@
 import { sql } from 'drizzle-orm';
-
 import { DatabaseRole } from '@/platform/db/database.constants';
 import type { SqlExecutor } from '@/platform/db/database.typedefs';
 import { MIGRATIONS_SCHEMA } from '@/platform/db/migrator/migrator.constants';
 import { WORKSPACE_ID_COLUMN } from '@/platform/db/tenancy/tenancy.constants';
-
-import { INSPECTED_TABLE_KINDS, TENANT_EXEMPT_TABLES } from './tenant-schema.constants';
-import { qualifiedTableName, toViolation } from './tenant-schema.helpers';
-import type { TenantSchemaViolation, TenantTableRow } from './tenant-schema.typedefs';
+import {
+  INSPECTED_TABLE_KINDS,
+  TENANT_EXEMPT_TABLES,
+} from '@/platform/testing/tenant-schema.constants';
+import { qualifiedTableName, toViolation } from '@/platform/testing/tenant-schema.helpers';
+import type {
+  TenantSchemaViolation,
+  TenantTableRow,
+} from '@/platform/testing/tenant-schema.typedefs';
 
 export class TenantSchemaInspector {
   constructor(private readonly db: SqlExecutor) {}

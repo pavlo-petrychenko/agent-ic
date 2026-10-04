@@ -2,7 +2,7 @@ import {
   OPERATIONAL_ROUTE_SEGMENTS,
   URL_PATH_SEPARATOR,
   URL_QUERY_SEPARATOR,
-} from './observability.constants';
+} from '@/platform/observability/observability.constants';
 
 export const isOperationalUrl = (url: string | undefined): boolean => {
   if (url === undefined) {

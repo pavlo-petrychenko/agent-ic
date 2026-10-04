@@ -1,6 +1,5 @@
 import type { AppDatabase } from '@/platform/db/database.typedefs';
-
-import type { TEST_INFRASTRUCTURE_KEY } from './test-infrastructure.constants';
+import type { TEST_INFRASTRUCTURE_KEY } from '@/platform/testing/test-infrastructure.constants';
 
 export interface TestInfrastructure {
   readonly superuserUrl: string;

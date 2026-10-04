@@ -1,7 +1,6 @@
 import { z } from 'zod';
-
-import { ACTOR_DISCRIMINATOR, ActorKind, SystemReason } from './context.constants';
-import type { Actor } from './context.typedefs';
+import { ACTOR_DISCRIMINATOR, ActorKind, SystemReason } from '@/platform/context/context.constants';
+import type { Actor } from '@/platform/context/context.typedefs';
 
 const identifier = z.string().min(1);
 

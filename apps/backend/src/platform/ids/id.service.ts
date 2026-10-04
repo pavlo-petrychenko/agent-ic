@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { v7 } from 'uuid';
-
 import { Clock } from '@/platform/clock/clock';
-
-import { ID_ENCODED_PATTERN, ID_PREFIX_PATTERN, ID_SEPARATOR, UUID_PATTERN } from './ids.constants';
-import { decodeUuid, encodeUuid } from './ids.helpers';
-import { InvalidIdPrefixError } from './invalid-id-prefix.error';
-import { InvalidIdError } from './invalid-id.error';
+import {
+  ID_ENCODED_PATTERN,
+  ID_PREFIX_PATTERN,
+  ID_SEPARATOR,
+  UUID_PATTERN,
+} from '@/platform/ids/ids.constants';
+import { decodeUuid, encodeUuid } from '@/platform/ids/ids.helpers';
+import { InvalidIdPrefixError } from '@/platform/ids/invalid-id-prefix.error';
+import { InvalidIdError } from '@/platform/ids/invalid-id.error';
 
 @Injectable()
 export class IdService {

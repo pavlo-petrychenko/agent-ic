@@ -1,11 +1,9 @@
 import { randomUUID } from 'node:crypto';
-
-import type { INestApplication } from '@nestjs/common';
 import { Propagation, TransactionHost } from '@nestjs-cls/transactional';
+import type { INestApplication } from '@nestjs/common';
 import type { Queue } from 'bullmq';
-import { ZodError } from 'zod';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-
+import { ZodError } from 'zod';
 import { ActorKind, SystemReason } from '@/platform/context/context.constants';
 import type { AppTransactionAdapter } from '@/platform/db/database.typedefs';
 import { DomainEventsService } from '@/platform/domain-events/domain-events.service';
@@ -13,7 +11,6 @@ import { JobsService } from '@/platform/queues/jobs.service';
 import { QueueName } from '@/platform/queues/queue.constants';
 import { QueueRegistry } from '@/platform/queues/queue.registry';
 import type { JobEnvelope } from '@/platform/queues/queue.typedefs';
-
 import {
   PROBE_TRACE_ID,
   PROBE_USER_ID,
@@ -21,14 +18,14 @@ import {
   PROBE_WAIT_TIMEOUT_MS,
   PROBE_WORKSPACE_ID,
   ProbeListener,
-} from './support/async-jobs.constants';
+} from '@test/support/async-jobs.constants';
 import {
   probeSignedUpEvent,
   recordProbeJob,
   rejectProbeJob,
-} from './support/async-jobs.definitions';
-import { createProbeWorker, userCtx } from './support/async-jobs.helpers';
-import { ProbeCallsRecorder } from './support/probe-calls.recorder';
+} from '@test/support/async-jobs.definitions';
+import { createProbeWorker, userCtx } from '@test/support/async-jobs.helpers';
+import { ProbeCallsRecorder } from '@test/support/probe-calls.recorder';
 
 class ProbeRollback extends Error {}
 

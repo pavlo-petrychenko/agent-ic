@@ -1,10 +1,8 @@
 import { All, Controller, Next, Req, Res, UseGuards } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
-
 import { PlatformAdminGuard } from '@/platform/admin/platform-admin.guard';
-
-import { QueueBoardRoute } from './queue-board.constants';
-import { QueueBoardService } from './queue-board.service';
+import { QueueBoardRoute } from '@/platform/queues/board/queue-board.constants';
+import { QueueBoardService } from '@/platform/queues/board/queue-board.service';
 
 @Controller(QueueBoardRoute.Base)
 @UseGuards(PlatformAdminGuard)

@@ -1,6 +1,5 @@
 import { parseArgs } from 'node:util';
 import type { z } from 'zod';
-
 import {
   ARGV_OFFSET,
   CLI_OPTION_PREFIX,
@@ -13,8 +12,12 @@ import {
   QUEUE_LIST_SEPARATOR,
   SchemaPrintOption,
   STRING_OPTION,
-} from './config.constants';
-import type { ConfigIssue, RawCliOptions, RawSchemaPrintOptions } from './config.typedefs';
+} from '@/platform/config/config.constants';
+import type {
+  ConfigIssue,
+  RawCliOptions,
+  RawSchemaPrintOptions,
+} from '@/platform/config/config.typedefs';
 
 export const readCliOptions = (argv: readonly string[]): RawCliOptions => {
   const { values } = parseArgs({

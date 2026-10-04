@@ -1,4 +1,4 @@
-import type { TenantSchemaProblem } from './tenant-schema.constants';
+import type { TenantSchemaProblem } from '@/platform/testing/tenant-schema.constants';
 
 export interface TenantTableRow extends Record<string, unknown> {
   readonly schemaName: string;

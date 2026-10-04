@@ -3,14 +3,12 @@ import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import { GqlArgumentsHost } from '@nestjs/graphql';
 import type { Request, Response } from 'express';
 import type { GraphQLError } from 'graphql';
-
 import { TraceIdService } from '@/platform/context/trace-id.service';
+import { ErrorReporter } from '@/platform/errors/error.reporter';
+import { PROBLEM_CONTENT_TYPE, TransportType } from '@/platform/errors/errors.constants';
+import { GraphqlErrorMapper } from '@/platform/errors/graphql-error.mapper';
+import { ProblemDetailsMapper } from '@/platform/errors/problem-details.mapper';
 import type { GraphqlContext } from '@/platform/graphql/graphql.typedefs';
-
-import { ErrorReporter } from './error.reporter';
-import { PROBLEM_CONTENT_TYPE, TransportType } from './errors.constants';
-import { GraphqlErrorMapper } from './graphql-error.mapper';
-import { ProblemDetailsMapper } from './problem-details.mapper';
 
 @Catch()
 export class TransportExceptionFilter implements ExceptionFilter {

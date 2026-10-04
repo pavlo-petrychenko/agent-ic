@@ -1,17 +1,15 @@
-import type { INestApplication } from '@nestjs/common';
 import { ErrorCode, ErrorReason } from '@agent-ic/contracts';
+import type { INestApplication } from '@nestjs/common';
 import { CloseCode } from 'graphql-ws';
 import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
-
 import { EnvVar } from '@/platform/config/config.constants';
+import { PROBLEM_CONTENT_TYPE } from '@/platform/errors/errors.constants';
 import { ConnectionParam } from '@/platform/graphql/graphql.constants';
 import { UnboundResolverError } from '@/platform/graphql/unbound-resolver.error';
 import { HttpHeader } from '@/platform/http/http.constants';
-import { PROBLEM_CONTENT_TYPE } from '@/platform/errors/errors.constants';
 import { SAMPLE_FIELD_PATH } from '@/platform/testing/sample-errors.constants';
 import { TEST_ENV } from '@/platform/testing/test-env.constants';
-
 import {
   EPHEMERAL_PORT,
   FailingRoute,
@@ -19,14 +17,14 @@ import {
   LOOPBACK_HOST,
   SERVER_STATUS_QUERY,
   UNKNOWN_ROUTE,
-} from './support/request-layer.constants';
+} from '@test/support/request-layer.constants';
 import {
   apiPath,
   createApi,
   graphqlPath,
   queryOverWebSocket,
-} from './support/request-layer.helpers';
-import { FailingApiModule, UnboundResolverApiModule } from './support/request-layer.modules';
+} from '@test/support/request-layer.helpers';
+import { FailingApiModule, UnboundResolverApiModule } from '@test/support/request-layer.modules';
 
 describe('api request layer', () => {
   let app: INestApplication | null = null;

@@ -2,21 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { UnrecoverableError } from 'bullmq';
 import type { Job } from 'bullmq';
 import { CLS_ID, ClsService } from 'nestjs-cls';
-
 import { SystemReason } from '@/platform/context/context.constants';
 import { UseCaseCtxFactory } from '@/platform/context/use-case-ctx.factory';
 import { ErrorReporter } from '@/platform/errors/error.reporter';
 import { JobFailureAction } from '@/platform/errors/errors.constants';
 import { JobErrorMapper } from '@/platform/errors/job-error.mapper';
-
-import { JobHandlerRegistry } from './job-handler.registry';
+import { JobHandlerRegistry } from '@/platform/queues/job-handler.registry';
 import {
   INVALID_JOB_PAYLOAD_MESSAGE,
   NON_ERROR_FAILURE_MESSAGE,
   UNKNOWN_JOB_MESSAGE,
-} from './queue.constants';
-import type { QueueName } from './queue.constants';
-import { jobEnvelopeSchema } from './queue.schema';
+} from '@/platform/queues/queue.constants';
+import type { QueueName } from '@/platform/queues/queue.constants';
+import { jobEnvelopeSchema } from '@/platform/queues/queue.schema';
 
 @Injectable()
 export class JobRunner {

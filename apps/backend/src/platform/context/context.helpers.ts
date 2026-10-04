@@ -8,8 +8,8 @@ import {
   LANGUAGE_QUALITY_PREFIX,
   LANGUAGE_SUBTAG_SEPARATOR,
   Locale,
-} from './context.constants';
-import type { LanguagePreference } from './context.typedefs';
+} from '@/platform/context/context.constants';
+import type { LanguagePreference } from '@/platform/context/context.typedefs';
 
 const SUPPORTED_LOCALES: ReadonlySet<string> = new Set(Object.values(Locale));
 

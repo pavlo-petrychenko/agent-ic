@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { OnApplicationBootstrap } from '@nestjs/common';
 import { GraphQLSchemaHost } from '@nestjs/graphql';
-
-import { findUnboundRootFields } from './graphql.helpers';
-import { UnboundResolverError } from './unbound-resolver.error';
+import { findUnboundRootFields } from '@/platform/graphql/graphql.helpers';
+import { UnboundResolverError } from '@/platform/graphql/unbound-resolver.error';
 
 @Injectable()
 export class ResolverBindingVerifier implements OnApplicationBootstrap {

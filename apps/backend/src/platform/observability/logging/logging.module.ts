@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
-
 import { ConfigService } from '@/platform/config/config.service';
-
-import { createLoggerParams } from './logging.helpers';
+import { createLoggerParams } from '@/platform/observability/logging/logging.helpers';
 
 @Module({
   imports: [

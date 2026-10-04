@@ -1,9 +1,11 @@
 import { ErrorReason } from '@agent-ic/contracts';
-
 import { DomainError } from '@/platform/errors/domain.error';
 import { DomainErrorKind } from '@/platform/errors/errors.constants';
-
-import { INVALID_PAGE_SIZE_MESSAGE, PAGE_SIZE_MAX, PAGE_SIZE_MIN } from './relay.constants';
+import {
+  INVALID_PAGE_SIZE_MESSAGE,
+  PAGE_SIZE_MAX,
+  PAGE_SIZE_MIN,
+} from '@/platform/graphql/relay/relay.constants';
 
 export class InvalidPageSizeError extends DomainError {
   readonly kind = DomainErrorKind.ValidationFailed;

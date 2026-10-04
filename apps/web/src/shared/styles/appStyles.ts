@@ -1,5 +1,5 @@
 import '@fontsource-variable/onest';
 import '@fontsource-variable/jetbrains-mono';
-import './tokens.css';
-import './tailwind.css';
-import './global.scss';
+import '@/shared/styles/tokens.css';
+import '@/shared/styles/tailwind.css';
+import '@/shared/styles/global.scss';

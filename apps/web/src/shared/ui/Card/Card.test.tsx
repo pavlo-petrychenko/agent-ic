@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-
-import { Card } from './Card';
+import { Card } from '@/shared/ui/Card/Card';
 
 describe('Card', () => {
   it('names its region after the title', () => {

@@ -1,4 +1,4 @@
-import type { RequestContextState } from './api.typedefs';
+import type { RequestContextState } from '@/shared/api/api.typedefs';
 
 const state: RequestContextState = {
   accessToken: null,

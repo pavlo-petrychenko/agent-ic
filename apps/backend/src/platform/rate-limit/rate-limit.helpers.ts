@@ -1,13 +1,12 @@
 import { z } from 'zod';
-
 import {
   MILLISECONDS_PER_SECOND,
   RATE_LIMIT_ALLOWED,
   RATE_LIMIT_KEY_SEPARATOR,
   RATE_LIMIT_ROOT,
-} from './rate-limit.constants';
-import type { RateLimitPolicy } from './rate-limit.policy';
-import type { RateLimitDecision } from './rate-limit.typedefs';
+} from '@/platform/rate-limit/rate-limit.constants';
+import type { RateLimitPolicy } from '@/platform/rate-limit/rate-limit.policy';
+import type { RateLimitDecision } from '@/platform/rate-limit/rate-limit.typedefs';
 
 const tokenBucketReplySchema = z.tuple([z.number(), z.number(), z.number()]);
 

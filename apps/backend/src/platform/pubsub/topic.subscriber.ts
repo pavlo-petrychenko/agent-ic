@@ -1,14 +1,11 @@
 import { EventEmitter, on } from 'node:events';
-
 import { Injectable } from '@nestjs/common';
 import type { OnApplicationShutdown } from '@nestjs/common';
 import type { Redis } from 'ioredis';
-
 import { ConfigService } from '@/platform/config/config.service';
+import { REDIS_MESSAGE_EVENT } from '@/platform/pubsub/pubsub.constants';
 import { RedisConnectionName } from '@/platform/redis/redis.constants';
 import { closeRedisConnection, createRedisConnection } from '@/platform/redis/redis.helpers';
-
-import { REDIS_MESSAGE_EVENT } from './pubsub.constants';
 
 @Injectable()
 export class TopicSubscriber implements OnApplicationShutdown {

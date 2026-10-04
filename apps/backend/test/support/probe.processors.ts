@@ -1,20 +1,18 @@
 import { Injectable } from '@nestjs/common';
-
 import type { UseCaseCtx } from '@/platform/context/use-case-ctx';
 import { OnDomainEvent } from '@/platform/domain-events/on-domain-event.decorator';
 import { JobProcessor } from '@/platform/queues/job-processor.decorator';
 import type { JobHandler } from '@/platform/queues/queue.typedefs';
 import { SampleNotFoundError } from '@/platform/testing/sample-errors.fixture';
-
-import { ProbeListener } from './async-jobs.constants';
+import { ProbeListener } from '@test/support/async-jobs.constants';
 import {
   auditOnProbeSignedUp,
   recordProbeJob,
   rejectProbeJob,
   welcomeOnProbeSignedUp,
-} from './async-jobs.definitions';
-import type { ProbeData } from './async-jobs.typedefs';
-import { ProbeCallsRecorder } from './probe-calls.recorder';
+} from '@test/support/async-jobs.definitions';
+import type { ProbeData } from '@test/support/async-jobs.typedefs';
+import { ProbeCallsRecorder } from '@test/support/probe-calls.recorder';
 
 @Injectable()
 @JobProcessor(recordProbeJob)

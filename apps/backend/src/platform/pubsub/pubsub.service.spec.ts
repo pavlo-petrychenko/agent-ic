@@ -1,17 +1,14 @@
 import { randomUUID } from 'node:crypto';
-
-import type { TestingModule } from '@nestjs/testing';
 import { TransactionHost } from '@nestjs-cls/transactional';
-import { z } from 'zod';
+import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-
+import { z } from 'zod';
 import type { AppTransactionAdapter } from '@/platform/db/database.typedefs';
+import { PubSubModule } from '@/platform/pubsub/pubsub.module';
+import { PubSubService } from '@/platform/pubsub/pubsub.service';
+import { Topic } from '@/platform/pubsub/topic';
 import { createPlatformTestingModule } from '@/platform/testing/database-testing.helpers';
 import { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
-
-import { PubSubModule } from './pubsub.module';
-import { PubSubService } from './pubsub.service';
-import { Topic } from './topic';
 
 const messageSchema = z.object({ messageId: z.string() });
 
