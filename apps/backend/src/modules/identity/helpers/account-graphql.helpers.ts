@@ -1,10 +1,13 @@
 import { Locale } from '@agent-ic/contracts';
 import type {
+  ForgotPasswordInput,
   ResendConfirmationInput,
   SignUpResult,
 } from '@/modules/identity/typedefs/account.typedefs';
 import type { Me } from '@/modules/identity/typedefs/user.typedefs';
 import type {
+  ForgotPasswordInput as ForgotPasswordArgs,
+  ForgotPasswordPayload,
   ResendConfirmationInput as ResendConfirmationArgs,
   ResendConfirmationPayload,
   SignUpPayload,
@@ -31,3 +34,9 @@ export const toResendConfirmationInput = (
 ): ResendConfirmationInput => ({ email: args.email ?? null, token: args.token ?? null });
 
 export const acceptedResendPayload = (): ResendConfirmationPayload => ({ accepted: true });
+
+export const toForgotPasswordInput = (args: ForgotPasswordArgs): ForgotPasswordInput => ({
+  email: args.email,
+});
+
+export const acceptedForgotPasswordPayload = (): ForgotPasswordPayload => ({ accepted: true });

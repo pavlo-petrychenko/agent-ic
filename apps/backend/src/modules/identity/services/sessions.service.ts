@@ -41,6 +41,10 @@ export class SessionsService {
     await this.sessions.revokeFamily(familyId, this.clock.now());
   }
 
+  async revokeAllForUser(userId: string): Promise<void> {
+    await this.sessions.revokeAllForUser(userId, this.clock.now());
+  }
+
   private async create(userId: string, familyId: string): Promise<CreatedSession> {
     const now = this.clock.now();
     const sessionId = this.ids.generate();

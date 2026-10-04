@@ -45,6 +45,10 @@ export class UsersRepository {
       .where(and(eq(users.id, id), isNull(users.emailConfirmedAt)));
   }
 
+  async updatePassword(id: string, passwordHash: string, at: Date): Promise<void> {
+    await this.txHost.tx.update(users).set({ passwordHash, updatedAt: at }).where(eq(users.id, id));
+  }
+
   async touchLastActive(id: string, at: Date): Promise<void> {
     await this.txHost.tx.update(users).set({ lastActiveAt: at }).where(eq(users.id, id));
   }

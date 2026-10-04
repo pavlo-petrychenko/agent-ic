@@ -32,4 +32,11 @@ export class SessionsRepository {
       .set({ revokedAt: at })
       .where(and(eq(sessions.familyId, familyId), isNull(sessions.revokedAt)));
   }
+
+  async revokeAllForUser(userId: string, at: Date): Promise<void> {
+    await this.txHost.tx
+      .update(sessions)
+      .set({ revokedAt: at })
+      .where(and(eq(sessions.userId, userId), isNull(sessions.revokedAt)));
+  }
 }

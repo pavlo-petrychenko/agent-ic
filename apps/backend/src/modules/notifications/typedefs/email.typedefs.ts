@@ -12,7 +12,7 @@ export interface RenderedEmail {
   readonly text: string;
 }
 
-export interface ConfirmationEmailCopy {
+export interface ActionEmailCopy {
   readonly subject: string;
   readonly greeting: string;
   readonly body: string;
@@ -21,7 +21,7 @@ export interface ConfirmationEmailCopy {
   readonly ignore: string;
 }
 
-export interface ConfirmationEmailProps {
+export interface ActionEmailProps {
   readonly locale: Locale;
   readonly name: string;
   readonly link: string;

@@ -11,3 +11,10 @@ export interface IssuedConfirmation {
   readonly name: string;
   readonly locale: Locale;
 }
+
+export interface IssuedPasswordReset {
+  readonly token: string;
+  readonly email: string;
+  readonly name: string;
+  readonly locale: Locale;
+}
