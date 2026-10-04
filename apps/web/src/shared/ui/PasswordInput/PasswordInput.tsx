@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { useState } from 'react';
-import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/Button';
+import { Button, ButtonVariant } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { PasswordInputType } from '@/shared/ui/PasswordInput/PasswordInput.constants';
 import type { PasswordInputProps } from '@/shared/ui/PasswordInput/PasswordInput.typedefs';
@@ -18,7 +18,6 @@ export function PasswordInput({ showLabel, hideLabel, className, ...rest }: Pass
       />
       <Button
         variant={ButtonVariant.Ghost}
-        size={ButtonSize.Sm}
         aria-pressed={visible}
         className={styles.toggle}
         onClick={() => setVisible((current) => !current)}

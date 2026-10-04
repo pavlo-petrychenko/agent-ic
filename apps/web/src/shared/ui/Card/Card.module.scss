@@ -1,15 +1,77 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: var(--space-14);
-  padding: var(--space-18);
+  gap: var(--card-gap);
+  box-sizing: border-box;
+  padding: var(--card-pad);
   border: var(--border-width) solid var(--color-line);
   border-radius: var(--radius-12);
   background: var(--color-card);
-  box-shadow: var(--shadow-node);
+  list-style: none;
 }
 
-.title {
-  color: var(--color-ink);
-  font: var(--type-h3);
+.default {
+  background: var(--color-card);
+}
+
+.panel {
+  background: var(--color-panel);
+}
+
+.sunken {
+  background: var(--color-bg);
+}
+
+.pad-sm {
+  --card-pad: var(--space-12);
+}
+
+.pad-md {
+  --card-pad: var(--space-14);
+}
+
+.pad-lg {
+  --card-pad: var(--space-16);
+}
+
+.gap-xs {
+  --card-gap: var(--space-6);
+}
+
+.gap-sm {
+  --card-gap: var(--space-8);
+}
+
+.gap-md {
+  --card-gap: var(--space-10);
+}
+
+.gap-lg {
+  --card-gap: var(--space-12);
+}
+
+.selected {
+  padding: max(0px, calc(var(--card-pad) - var(--border-width)));
+  border: var(--border-width-strong) solid var(--color-accent);
+  box-shadow: var(--shadow-selected);
+}
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin: 0;
+  padding: var(--space-8);
+  list-style: none;
+}
+
+.demoRow {
+  padding: var(--space-10) var(--space-14);
+  border-bottom: var(--border-width) solid var(--color-line-row);
+}
+
+.flush {
+  --card-pad: 0px;
+  --card-gap: 0px;
+  overflow: hidden;
 }

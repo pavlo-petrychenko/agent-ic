@@ -1,0 +1,14 @@
+$line-height: 18px;
+
+.root {
+  display: inline-block;
+  flex-shrink: 0;
+  padding: 0 var(--space-7);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font: var(--type-overline);
+  font-variant-numeric: tabular-nums;
+  line-height: $line-height;
+  text-align: center;
+}

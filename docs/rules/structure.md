@@ -194,6 +194,7 @@ shared/
 ├── config/   helpers/ schemas/ constants/ typedefs/
 ├── forms/    hooks/ fields/ contexts/ helpers/ typedefs/
 ├── i18n/     clients/ hooks/ helpers/ locales/ constants/ typedefs/
+├── theme/    clients/ hooks/ helpers/ constants/ typedefs/ (light, dark or system; applied as data-theme on <html>)
 ├── ui/       component folders; the only place Radix may appear
 └── styles/   tokens.css · global.scss · tailwind.css · index.ts (the one side-effect entry that imports fonts and the stylesheets in order)
 ```

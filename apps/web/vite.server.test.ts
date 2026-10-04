@@ -18,7 +18,16 @@ describe('readServerOptions', () => {
       port: PORT,
       strictPort: true,
       allowedHosts: [FIRST_HOST, SECOND_HOST],
+      watch: { usePolling: false },
     });
+  });
+
+  it('polls for file changes when the environment asks for it', () => {
+    vi.stubEnv('WEB_PORT', String(PORT));
+    vi.stubEnv('WEB_ALLOWED_HOSTS', FIRST_HOST);
+    vi.stubEnv('WEB_WATCH_POLLING', 'true');
+
+    expect(readServerOptions(TEST_MODE).watch).toEqual({ usePolling: true });
   });
 
   it('fails when the port is not configured', () => {

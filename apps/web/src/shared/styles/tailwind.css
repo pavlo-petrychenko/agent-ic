@@ -11,8 +11,7 @@
   --spacing: var(--space-4);
   --container-form: var(--layout-form-width);
   --container-page: var(--layout-page-width);
-  --breakpoint-sm: 40rem;
-  --breakpoint-md: 48rem;
-  --breakpoint-lg: 64rem;
-  --breakpoint-xl: 80rem;
+  --breakpoint-compact: 64rem;
+  --breakpoint-default: 80rem;
+  --breakpoint-wide: 90rem;
 }

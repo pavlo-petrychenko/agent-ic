@@ -1,0 +1,23 @@
+.root {
+  display: block;
+  flex-shrink: 0;
+  border-radius: var(--radius-4);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: pulse var(--duration-pulse) var(--ease-standard) infinite;
+  }
+}
+
+.strong {
+  background: var(--color-chip);
+}
+
+.soft {
+  background: var(--color-soft);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}

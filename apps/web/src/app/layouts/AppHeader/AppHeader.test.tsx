@@ -27,13 +27,10 @@ describe('AppHeader', () => {
   it('switches the interface language and remembers the choice', async () => {
     renderHeader();
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Українська' }));
+    await userEvent.click(await screen.findByRole('radio', { name: 'Українська' }));
 
-    expect(screen.getByRole('button', { name: 'Українська' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    expect(screen.getByRole('group', { name: 'Мова' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Українська' })).toBeChecked();
+    expect(screen.getByRole('radiogroup', { name: 'Мова' })).toBeInTheDocument();
     expect(document.documentElement.lang).toBe(Locale.Uk);
     expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe(Locale.Uk);
   });

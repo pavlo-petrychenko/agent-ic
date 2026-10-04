@@ -1,0 +1,53 @@
+.root {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-8);
+  padding: var(--space-4) 0;
+  font: var(--type-body-small);
+  list-style: none;
+}
+
+.sign {
+  flex-shrink: 0;
+  width: var(--space-12);
+  font: var(--type-mono);
+  text-align: center;
+}
+
+.added {
+  color: var(--color-ok);
+}
+
+.changed {
+  color: var(--color-warn);
+}
+
+.removed {
+  color: var(--color-err);
+}
+
+.label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.text {
+  color: var(--color-ink-secondary);
+
+  strong {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}

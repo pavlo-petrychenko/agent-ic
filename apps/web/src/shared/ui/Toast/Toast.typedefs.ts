@@ -1,17 +1,24 @@
 import type { ReactNode } from 'react';
 import type { ToastTone } from '@/shared/ui/Toast/Toast.constants';
 
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 export interface ToastOptions {
-  title: string;
-  description?: string | null;
+  message: string;
   tone?: ToastTone;
+  action?: ToastAction | null;
+  durationMs?: number | null;
 }
 
 export interface ToastItem {
   readonly id: number;
-  readonly title: string;
-  readonly description: string | null;
+  readonly message: string;
   readonly tone: ToastTone;
+  readonly action: ToastAction | null;
+  readonly durationMs: number;
 }
 
 export interface ToastContextValue {

@@ -1,0 +1,39 @@
+.root {
+  border-radius: var(--radius-4);
+  font: var(--type-caption-strong);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--duration-fast);
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+
+  &[aria-disabled='true'] {
+    opacity: var(--opacity-disabled);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+.accent {
+  color: var(--color-accent);
+
+  &:hover {
+    color: var(--color-accent-dark);
+  }
+}
+
+.error {
+  color: var(--color-err-ink);
+}
+
+.inline {
+  font: inherit;
+  text-decoration: underline;
+}

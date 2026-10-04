@@ -1,0 +1,45 @@
+$radius-5: 5px;
+
+.root {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-6);
+  border-radius: $radius-5;
+  font: var(--type-hint);
+  white-space: nowrap;
+}
+
+.mono {
+  font: var(--type-mono-xs);
+}
+
+.kb {
+  background: var(--hue-kb-bg);
+  color: var(--hue-kb-fg);
+}
+
+.tool {
+  background: var(--hue-tool-bg);
+  color: var(--hue-tool-fg);
+}
+
+.api {
+  background: var(--hue-api-bg);
+  color: var(--hue-api-fg);
+}
+
+.var {
+  background: var(--hue-var-bg);
+  color: var(--hue-var-fg);
+}
+
+.neutral {
+  background: var(--color-soft);
+  color: var(--color-ink-secondary);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
