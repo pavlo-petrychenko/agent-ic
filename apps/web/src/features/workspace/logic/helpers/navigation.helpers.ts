@@ -16,6 +16,11 @@ export const visibleNavGroups = (role: WorkspaceRole): readonly NavGroupEntry[] 
     entries: group.entries.filter((entry) => isVisible(role, entry)),
   })).filter((group) => group.entries.length > 0);
 
+export const canOpenSection = (role: WorkspaceRole, section: WorkspaceSection): boolean =>
+  NAV_GROUPS.flatMap((group) => group.entries)
+    .filter((entry) => entry.section === section)
+    .every((entry) => isVisible(role, entry));
+
 export const homeSection = (role: WorkspaceRole): WorkspaceSection =>
   (
     NAV_GROUPS.flatMap((group) => group.entries).find((entry) => isVisible(role, entry)) ??

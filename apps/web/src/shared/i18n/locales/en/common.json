@@ -57,6 +57,12 @@
       "admin": "Admin",
       "builder": "Builder",
       "operator": "Operator"
+    },
+    "summary": {
+      "owner": "you can change everything in it",
+      "admin": "you manage the team and everything in it",
+      "builder": "you build, test and publish agents",
+      "operator": "you work with chats in the Inbox"
     }
   }
 }

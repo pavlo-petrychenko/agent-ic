@@ -14,6 +14,17 @@
   "header": {
     "caption": "Workspace"
   },
+  "noAccess": {
+    "title": "You don’t have access to {{section}}",
+    "description": "Your role in {{workspace}} is {{role}} — {{summary}}. Ask an owner or admin if you need more.",
+    "action": "Go to {{section}}"
+  },
+  "notMember": {
+    "title": "This workspace isn’t available",
+    "description": "You’re not a member of it, or it no longer exists.",
+    "action": "Go to my workspace",
+    "create": "Create a workspace"
+  },
   "placeholders": {
     "agents": {
       "subtitle": "Build, test and publish chat agents for {{workspace}}",
