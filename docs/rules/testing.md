@@ -1,10 +1,12 @@
 # Testing rules
 
+**During the MVP, tests are optional.** Write them where they help. Existing tests must keep passing in CI. The rules below describe how a test looks when you write one.
+
 ## Backend
 
-- Every use case has a `*.spec.ts` next to it, running against **real Postgres** (Testcontainers) with RLS active.
+- A use case spec (`*.spec.ts` next to it) runs against **real Postgres** (Testcontainers) with RLS active.
 - Only external gateways are faked (email, LLM, Telegram), with the gateway's own `.fake.ts` or a fake from `apps/backend/test/support/fakes/`. Our own classes are never mocked. Time is replaced with `ManualClock`.
-- Every repository on a tenant table has one cross-tenant test: workspace B sees nothing of workspace A.
+- A repository test on a tenant table includes a cross-tenant case: workspace B sees nothing of workspace A.
 - Unit specs sit next to the file they test. Specs through a booted app (GraphQL or HTTP) live in `apps/backend/test/integration/`, for flows across modules. Shared test support lives in `apps/backend/test/support/` by kind (`setup/`, `fakes/`, `fixtures/`, `helpers/`, `modules/`, and more) and is imported as `@test/support/…`. `src/` holds production code only.
 
 ## Web
@@ -18,5 +20,5 @@
 
 - Tests describe behaviour ("rejects a reused refresh token"), not implementation.
 - No snapshot tests of whole components.
-- No coverage percentage gate. Reviewers check that new behaviour is tested.
-- A bug fix comes with a test that fails without it.
+- No coverage percentage gate.
+- A test for a bug fix fails without the fix.

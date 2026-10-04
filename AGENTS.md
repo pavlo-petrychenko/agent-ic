@@ -68,7 +68,7 @@ Details and reasons are in `docs/rules/`. A tool enforces each rule marked with 
 15. Radix only inside `apps/web/src/shared/ui` (`depcruise`).
 16. Web types use `null`, never `undefined`, for missing API data.
 17. `apps` import `packages`; apps never import each other (`depcruise`).
-18. Every new behaviour has a test; a bug fix has a test that fails without it.
+18. Tests are optional during the MVP: write them where they help. Existing tests keep passing, and a test you write follows `docs/rules/testing.md`.
 19. Conventional commits and pull request titles; squash merge; small pull requests.
 20. No hardcoded values: enums and named constants, config only from env through the zod config, no env values in scripts (review).
 21. Types, constants and helpers live in the `typedefs/`, `constants/` and `helpers/` kind folders, one file per topic: `<topic>.typedefs.ts`, `<topic>.constants.ts`, `<topic>.helpers.ts` (review).
@@ -139,7 +139,7 @@ A component folder is flat: `Name.tsx`, `Name.module.scss`, `Name.test.tsx`, `Na
 ## Definition of done
 
 1. `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, `pnpm depcruise`, `pnpm check:comments`, `pnpm check:structure` and `pnpm test` pass.
-2. New behaviour has tests; a bug fix has a test that fails without it.
+2. Tests are optional during the MVP (rule 18); the existing ones pass.
 3. Migrations are expand-only, or the pull request says it is the contract step.
 4. Docs, ADRs or `docs/architecture.md` are updated when a decision changes.
 5. No secrets, no comments, no leftover debug code.
