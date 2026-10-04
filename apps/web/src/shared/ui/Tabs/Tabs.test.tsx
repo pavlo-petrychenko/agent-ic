@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Tabs } from '@/shared/ui/Tabs/Tabs';
@@ -107,5 +107,26 @@ describe('Tabs', () => {
     const cost = screen.getByRole('tab', { name: 'LLM cost' });
     expect(cost).not.toHaveAttribute('href');
     expect(cost).toBeDisabled();
+  });
+
+  it('shows a count pill after the label and includes it in the accessible name', () => {
+    renderTabs([
+      { value: 'overview', label: 'Overview' },
+      { value: 'runs', label: 'Runs', count: 12 },
+      { value: 'cost', label: 'LLM cost', count: null },
+    ]);
+
+    const runs = screen.getByRole('tab', { name: 'Runs 12' });
+    expect(within(runs).getByText('12')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'LLM cost' })).toHaveTextContent(/^LLM cost$/);
+  });
+
+  it('keeps the count on a route-driven tab', () => {
+    renderTabs([
+      { value: 'overview', label: 'Overview', href: '/overview' },
+      { value: 'runs', label: 'Runs', href: '/runs', count: 0 },
+    ]);
+
+    expect(screen.getByRole('tab', { name: 'Runs 0' })).toHaveAttribute('href', '/runs');
   });
 });

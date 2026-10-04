@@ -27,6 +27,12 @@ const LINK_TABS: readonly TabItem<string>[] = [
   { value: 'charts', label: 'Custom charts', href: '#charts' },
 ];
 
+const COUNT_TABS: readonly TabItem<string>[] = [
+  { value: 'sources', label: 'Sources', count: 12 },
+  { value: 'faq', label: 'FAQ', count: 48 },
+  { value: 'gaps', label: 'Gaps', count: 3 },
+];
+
 const meta = {
   component: Tabs,
   render: (args) => <ControlledTabs {...args} />,
@@ -74,3 +80,4 @@ export const Panel: Story = {
 };
 export const WithDisabledTab: Story = { args: { tabs: DISABLED_TABS } };
 export const AsLinks: Story = { args: { tabs: LINK_TABS } };
+export const WithCounts: Story = { args: { tabs: COUNT_TABS, value: 'sources' } };

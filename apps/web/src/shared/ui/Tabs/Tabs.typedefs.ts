@@ -5,6 +5,7 @@ export interface TabItem<T extends string> {
   label: string;
   disabled?: boolean;
   href?: string | null;
+  count?: number | null;
 }
 
 export interface TabsProps<T extends string> {

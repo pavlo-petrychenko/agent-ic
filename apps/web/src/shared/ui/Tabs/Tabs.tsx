@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { Tabs as TabsPrimitive } from 'radix-ui';
+import { Badge, BadgeTone } from '@/shared/ui/Badge';
 import { TabsSize } from '@/shared/ui/Tabs/Tabs.constants';
 import type { TabsProps } from '@/shared/ui/Tabs/Tabs.typedefs';
 import styles from '@/shared/ui/Tabs/Tabs.module.scss';
@@ -28,11 +29,23 @@ export function Tabs<T extends string>({
         {tabs.map((tab) => {
           const disabled = tab.disabled ?? false;
           const href = tab.href ?? null;
+          const count = tab.count ?? null;
+          const content = (
+            <>
+              {tab.label}
+              {count !== null ? (
+                <>
+                  {' '}
+                  <Badge tone={BadgeTone.Neutral}>{count}</Badge>
+                </>
+              ) : null}
+            </>
+          );
 
           return href !== null && !disabled ? (
             <TabsPrimitive.Trigger key={tab.value} value={tab.value} asChild>
               <a href={href} className={styles.tab}>
-                {tab.label}
+                {content}
               </a>
             </TabsPrimitive.Trigger>
           ) : (
@@ -42,7 +55,7 @@ export function Tabs<T extends string>({
               disabled={disabled}
               className={styles.tab}
             >
-              {tab.label}
+              {content}
             </TabsPrimitive.Trigger>
           );
         })}
