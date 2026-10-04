@@ -3,7 +3,11 @@ import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import type { Response } from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { AuthRoute } from '@/modules/identity/constants/auth-http.constants';
+import {
+  AuthRoute,
+  CONFIRMATION_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
+} from '@/modules/identity/constants/auth-http.constants';
 import { FakeEmailGateway } from '@/modules/notifications/gateways/email.fake';
 import { ConnectionParam } from '@/platform/graphql-server/constants/connection-param.constants';
 import { HttpHeader } from '@/platform/http/constants/http-header.constants';
@@ -19,9 +23,9 @@ import {
   FORWARDED_FOR_HEADER,
   FORWARDED_FOR_SEPARATOR,
   ME_QUERY,
-  REFRESH_COOKIE_ATTRIBUTES,
+  AUTH_COOKIE_ATTRIBUTES,
+  CONFIRMATION_COOKIE_MAX_AGE,
   RESEND_CONFIRMATION_MUTATION,
-  SIGN_UP_MUTATION,
   TEXT_CONTENT_TYPE,
 } from '@test/support/constants/auth-flow.constants';
 import {
@@ -38,8 +42,10 @@ import {
 } from '@test/support/fixtures/identity.fixture';
 import {
   bootRoleWithEmails,
+  confirmationCookieOf,
   confirmationTokenIn,
   cookiePair,
+  findCookie,
   fromApp,
   refreshCookieOf,
 } from '@test/support/helpers/auth-flow.helpers';
@@ -50,6 +56,7 @@ import {
 } from '@test/support/helpers/request-layer.helpers';
 
 const SIGN_UPS_PER_HOUR = 5;
+const ATTACKER_PASSWORD = 'attacker chosen password';
 
 describe('accounts and sessions through the api', () => {
   const emails = new FakeEmailGateway();
@@ -58,21 +65,45 @@ describe('accounts and sessions through the api', () => {
 
   const http = (): ReturnType<typeof request> => request(api.getHttpServer());
 
-  const signUp = (email: string, clientIp: string = randomIpAddress()): Promise<Response> =>
+  const authPost = (route: AuthRoute): ReturnType<ReturnType<typeof request>['post']> =>
+    fromApp(http().post(apiPath(AuthRoute.Base, route)));
+
+  const signUp = (
+    email: string,
+    clientIp: string = randomIpAddress(),
+    password: string = TEST_PASSWORD,
+  ): Promise<Response> =>
+    authPost(AuthRoute.SignUp)
+      .set(FORWARDED_FOR_HEADER, clientIp)
+      .send({ name: TEST_USER_NAME, email, password, locale: Locale.En });
+
+  const signUpInBrowser = async (email: string, password?: string): Promise<string> => {
+    const response = await signUp(email, randomIpAddress(), password);
+    expect(response.status).toBe(200);
+    return cookiePair(confirmationCookieOf(response.headers[HttpHeader.SetCookie]));
+  };
+
+  const confirmationEmailsTo = async (email: string, count: number): Promise<string> => {
+    await vi.waitFor(() => expect(emails.sentTo(email)).toHaveLength(count), WAIT_FOR_EMAIL);
+    return confirmationTokenIn(emails.sentTo(email)[count - 1]?.text ?? '');
+  };
+
+  const confirmationEmailTo = (email: string): Promise<string> => confirmationEmailsTo(email, 1);
+
+  const confirm = (token: string, browserCookie: string | null): Promise<Response> => {
+    const pending = authPost(AuthRoute.ConfirmEmail);
+    return (browserCookie === null ? pending : pending.set(HttpHeader.Cookie, browserCookie)).send({
+      token,
+    });
+  };
+
+  const resendTo = (email: string): Promise<Response> =>
     http()
       .post(graphqlPath())
-      .set(FORWARDED_FOR_HEADER, clientIp)
-      .send({
-        query: SIGN_UP_MUTATION,
-        variables: {
-          input: { name: TEST_USER_NAME, email, password: TEST_PASSWORD, locale: Locale.En },
-        },
-      });
+      .send({ query: RESEND_CONFIRMATION_MUTATION, variables: { input: { email } } });
 
-  const confirmationEmailTo = async (email: string): Promise<string> => {
-    await vi.waitFor(() => expect(emails.sentTo(email)).toHaveLength(1), WAIT_FOR_EMAIL);
-    return confirmationTokenIn(emails.sentTo(email)[0]?.text ?? '');
-  };
+  const login = (email: string, password: string): Promise<Response> =>
+    authPost(AuthRoute.Login).send({ email, password });
 
   const me = (accessToken: string): Promise<Response> =>
     http()
@@ -80,17 +111,14 @@ describe('accounts and sessions through the api', () => {
       .set(HttpHeader.Authorization, `Bearer ${accessToken}`)
       .send({ query: ME_QUERY });
 
-  const authPost = (route: AuthRoute): ReturnType<ReturnType<typeof request>['post']> =>
-    fromApp(http().post(apiPath(AuthRoute.Base, route)));
-
   const refresh = (cookie: string): Promise<Response> =>
     authPost(AuthRoute.Refresh).set(HttpHeader.Cookie, cookie);
 
   const signedUpAndConfirmed = async (): Promise<{ email: string; response: Response }> => {
     const email = uniqueEmail();
-    await signUp(email);
+    const browserCookie = await signUpInBrowser(email);
     const token = await confirmationEmailTo(email);
-    const response = await authPost(AuthRoute.ConfirmEmail).send({ token });
+    const response = await confirm(token, browserCookie);
     return { email, response };
   };
 
@@ -111,9 +139,14 @@ describe('accounts and sessions through the api', () => {
 
     expect(confirmed.status).toBe(200);
     const firstCookie = refreshCookieOf(confirmed.headers[HttpHeader.SetCookie]);
-    for (const attribute of REFRESH_COOKIE_ATTRIBUTES) {
+    for (const attribute of AUTH_COOKIE_ATTRIBUTES) {
       expect(firstCookie).toContain(attribute);
     }
+    const releasedBinding = findCookie(
+      confirmed.headers[HttpHeader.SetCookie],
+      CONFIRMATION_COOKIE_NAME,
+    );
+    expect(releasedBinding).toContain(EXPIRED_COOKIE_DATE);
 
     const profile = await me(confirmed.body.accessToken);
     expect(profile.body.data.me).toEqual({
@@ -142,14 +175,82 @@ describe('accounts and sessions through the api', () => {
     expect(afterReuse.status).toBe(401);
   });
 
+  it('signs up over REST with a browser cookie and no session', async () => {
+    const email = uniqueEmail();
+
+    const response = await signUp(email);
+
+    const binding = confirmationCookieOf(response.headers[HttpHeader.SetCookie]);
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ email });
+    for (const attribute of [...AUTH_COOKIE_ATTRIBUTES, CONFIRMATION_COOKIE_MAX_AGE]) {
+      expect(binding).toContain(attribute);
+    }
+    expect(findCookie(response.headers[HttpHeader.SetCookie], REFRESH_COOKIE_NAME)).toBeNull();
+  });
+
+  it('refuses a sign-up from another origin', async () => {
+    const response = await http()
+      .post(apiPath(AuthRoute.Base, AuthRoute.SignUp))
+      .set(HttpHeader.Origin, CROSS_SITE_ORIGIN)
+      .send({ name: TEST_USER_NAME, email: uniqueEmail(), password: TEST_PASSWORD });
+
+    expect(response.status).toBe(403);
+    expect(response.body.reason).toBe(ErrorReason.CrossOriginRequest);
+  });
+
+  it.each([
+    { name: 'without the browser cookie', cookie: () => null },
+    { name: 'with a wrong browser cookie', cookie: () => `${CONFIRMATION_COOKIE_NAME}=forged` },
+  ])('refuses to confirm $name', async ({ cookie }) => {
+    const email = uniqueEmail();
+    await signUpInBrowser(email);
+    const token = await confirmationEmailTo(email);
+
+    const refused = await confirm(token, cookie());
+
+    expect(refused.status).toBe(403);
+    expect(refused.body.reason).toBe(ErrorReason.ConfirmationBrowserMismatch);
+    expect(refused.headers[HttpHeader.SetCookie]).toBeUndefined();
+  });
+
+  it('keeps an unconfirmed sign-up taken over by someone else from being confirmed', async () => {
+    const email = uniqueEmail();
+    const ownerBrowser = await signUpInBrowser(email);
+    const ownerToken = await confirmationEmailsTo(email, 1);
+
+    await signUpInBrowser(email, ATTACKER_PASSWORD);
+    const tokenFromAttackerSignUp = await confirmationEmailsTo(email, 2);
+
+    const firstLink = await confirm(ownerToken, ownerBrowser);
+    const latestLink = await confirm(tokenFromAttackerSignUp, ownerBrowser);
+    expect(firstLink.body.reason).toBe(ErrorReason.TokenInvalid);
+    expect(latestLink.status).toBe(403);
+    expect(latestLink.body.reason).toBe(ErrorReason.ConfirmationBrowserMismatch);
+
+    await resendTo(email);
+    const resentToken = await confirmationEmailsTo(email, 3);
+    const afterResend = await confirm(resentToken, ownerBrowser);
+    expect(afterResend.status).toBe(403);
+    expect(afterResend.body.reason).toBe(ErrorReason.ConfirmationBrowserMismatch);
+
+    const ownerBrowserAgain = await signUpInBrowser(email);
+    const ownerSignUpToken = await confirmationEmailsTo(email, 4);
+    const confirmed = await confirm(ownerSignUpToken, ownerBrowserAgain);
+    expect(confirmed.status).toBe(200);
+
+    expect((await login(email, TEST_PASSWORD)).status).toBe(200);
+    expect((await login(email, ATTACKER_PASSWORD)).status).toBe(401);
+  });
+
   it('logs in with a password and logs out', async () => {
     const { email } = await signedUpAndConfirmed();
 
-    const login = await authPost(AuthRoute.Login).send({ email, password: TEST_PASSWORD });
-    const cookie = refreshCookieOf(login.headers[HttpHeader.SetCookie]);
+    const signedIn = await login(email, TEST_PASSWORD);
+    const cookie = refreshCookieOf(signedIn.headers[HttpHeader.SetCookie]);
     const logout = await authPost(AuthRoute.Logout).set(HttpHeader.Cookie, cookiePair(cookie));
 
-    expect(login.status).toBe(200);
+    expect(signedIn.status).toBe(200);
     expect(logout.status).toBe(204);
     expect(refreshCookieOf(logout.headers[HttpHeader.SetCookie])).toContain(EXPIRED_COOKIE_DATE);
     expect((await refresh(cookiePair(cookie))).status).toBe(401);
@@ -158,10 +259,10 @@ describe('accounts and sessions through the api', () => {
   it('refuses a wrong password as problem+json', async () => {
     const { email } = await signedUpAndConfirmed();
 
-    const login = await authPost(AuthRoute.Login).send({ email, password: 'not the password' });
+    const refused = await login(email, 'not the password');
 
-    expect(login.status).toBe(401);
-    expect(login.body).toMatchObject({
+    expect(refused.status).toBe(401);
+    expect(refused.body).toMatchObject({
       code: ErrorCode.Unauthenticated,
       reason: ErrorReason.InvalidCredentials,
     });
@@ -181,15 +282,8 @@ describe('accounts and sessions through the api', () => {
     await signUp(email);
     await confirmationEmailTo(email);
 
-    const known = await http()
-      .post(graphqlPath())
-      .send({ query: RESEND_CONFIRMATION_MUTATION, variables: { input: { email } } });
-    const unknown = await http()
-      .post(graphqlPath())
-      .send({
-        query: RESEND_CONFIRMATION_MUTATION,
-        variables: { input: { email: uniqueEmail() } },
-      });
+    const known = await resendTo(email);
+    const unknown = await resendTo(uniqueEmail());
 
     expect(known.body.data).toEqual(unknown.body.data);
     await vi.waitFor(() => expect(emails.sentTo(email)).toHaveLength(2), WAIT_FOR_EMAIL);
@@ -209,8 +303,9 @@ describe('accounts and sessions through the api', () => {
       [publicIpAddress(), clusterPodAddress()].join(FORWARDED_FOR_SEPARATOR),
     );
 
-    expect(blocked.body.errors[0].extensions.code).toBe(ErrorCode.LimitReached);
-    expect(otherClient.body.errors).toBeUndefined();
+    expect(blocked.status).toBe(429);
+    expect(blocked.body.code).toBe(ErrorCode.LimitReached);
+    expect(otherClient.status).toBe(200);
   });
 
   it('refuses an auth request from another origin', async () => {

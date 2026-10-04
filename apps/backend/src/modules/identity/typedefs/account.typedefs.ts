@@ -7,6 +7,11 @@ export interface SignUpInput {
 
 export interface SignUpResult {
   readonly email: string;
+  readonly browserBinding: string;
+}
+
+export interface SignUpResponse {
+  readonly email: string;
 }
 
 export interface LoginInput {
@@ -14,8 +19,13 @@ export interface LoginInput {
   readonly password: string;
 }
 
+export interface ConfirmEmailRequest {
+  readonly token: string;
+}
+
 export interface ConfirmEmailInput {
   readonly token: string;
+  readonly browserBinding: string | null;
 }
 
 export interface ResendConfirmationInput {

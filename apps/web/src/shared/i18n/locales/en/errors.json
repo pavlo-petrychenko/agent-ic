@@ -22,6 +22,7 @@
     "INVALID_REFRESH_TOKEN": "Your session has ended. Sign in again.",
     "TOKEN_INVALID": "This link is not valid.",
     "TOKEN_EXPIRED": "This link has expired.",
+    "CONFIRMATION_BROWSER_MISMATCH": "Open the link in the browser where you signed up, or sign up again in this browser.",
     "CROSS_ORIGIN_REQUEST": "This request must come from the agent-ic app. Reload the page and try again.",
     "UNSUPPORTED_CONTENT_TYPE": "The request format is not supported."
   },

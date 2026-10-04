@@ -4,7 +4,6 @@ import { SessionsRepository } from '@/modules/identity/repositories/sessions.rep
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { MeResolver } from '@/modules/identity/resolvers/me.resolver';
 import { ResendConfirmationResolver } from '@/modules/identity/resolvers/resend-confirmation.resolver';
-import { SignUpResolver } from '@/modules/identity/resolvers/sign-up.resolver';
 import { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
 import { SessionsService } from '@/modules/identity/services/sessions.service';
 import { ConfirmEmailUseCase } from '@/modules/identity/use-cases/confirm-email.use-case';
@@ -32,7 +31,7 @@ export class IdentityModule extends defineModule({
     LogoutUseCase,
     GetMeUseCase,
   ],
-  resolvers: [SignUpResolver, ResendConfirmationResolver, MeResolver],
+  resolvers: [ResendConfirmationResolver, MeResolver],
   controllers: [AuthController],
   exports: [UsersRepository, SessionsService, EmailConfirmationsService],
 }) {}

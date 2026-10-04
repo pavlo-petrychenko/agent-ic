@@ -122,17 +122,25 @@ export const signUpAccount = async (
   overrides: Partial<SignUpInput> = {},
 ): Promise<TestAccount> => {
   const input = signUpInput(overrides);
-  await testbed.module.get(SignUpUseCase).execute(anonymousCtx(), input);
+  const { browserBinding } = await testbed.module.get(SignUpUseCase).execute(anonymousCtx(), input);
   const user = await findUser(testbed, input.email);
-  return { userId: user.id, email: input.email, password: input.password };
+  return { userId: user.id, email: input.email, password: input.password, browserBinding };
 };
 
-export const confirmEmail = (testbed: IdentityTestbed, token: string): Promise<IssuedSession> =>
-  testbed.module.get(ConfirmEmailUseCase).execute(anonymousCtx(), { token });
+export const confirmEmail = (
+  testbed: IdentityTestbed,
+  token: string,
+  browserBinding: string | null,
+): Promise<IssuedSession> =>
+  testbed.module.get(ConfirmEmailUseCase).execute(anonymousCtx(), { token, browserBinding });
 
 export const createConfirmedAccount = async (testbed: IdentityTestbed): Promise<TestAccount> => {
   const account = await signUpAccount(testbed);
-  await confirmEmail(testbed, await issueConfirmationToken(testbed, account.userId));
+  await confirmEmail(
+    testbed,
+    await issueConfirmationToken(testbed, account.userId),
+    account.browserBinding,
+  );
   return account;
 };
 

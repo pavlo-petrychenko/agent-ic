@@ -3,7 +3,6 @@ extend type Query {
 }
 
 type Mutation {
-  signUp(input: SignUpInput!): SignUpPayload!
   resendConfirmation(input: ResendConfirmationInput!): ResendConfirmationPayload!
 }
 
@@ -17,17 +16,6 @@ type User {
   email: String!
   name: String!
   locale: Locale!
-}
-
-input SignUpInput {
-  name: String!
-  email: String!
-  password: String!
-  locale: Locale!
-}
-
-type SignUpPayload {
-  email: String!
 }
 
 input ResendConfirmationInput {

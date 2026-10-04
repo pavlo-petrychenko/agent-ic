@@ -4,7 +4,10 @@ import { Test } from '@nestjs/testing';
 import type { Test as SupertestRequest } from 'supertest';
 import { AppModule } from '@/app/app.module';
 import { configureApplication } from '@/app/helpers/application.helpers';
-import { REFRESH_COOKIE_NAME } from '@/modules/identity/constants/auth-http.constants';
+import {
+  CONFIRMATION_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
+} from '@/modules/identity/constants/auth-http.constants';
 import type { FakeEmailGateway } from '@/modules/notifications/gateways/email.fake';
 import { EmailGateway } from '@/modules/notifications/gateways/email.gateway';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
@@ -37,14 +40,27 @@ export const bootRoleWithEmails = async (
   return app.init();
 };
 
-export const refreshCookieOf = (setCookie: string | string[] | undefined): string => {
+export const findCookie = (
+  setCookie: string | string[] | undefined,
+  name: string,
+): string | null => {
   const cookies = Array.isArray(setCookie) ? setCookie : [setCookie ?? ''];
-  const cookie = cookies.find((candidate) => candidate.startsWith(`${REFRESH_COOKIE_NAME}=`));
-  if (cookie === undefined) {
-    throw new MissingTestDataError(REFRESH_COOKIE_NAME);
+  return cookies.find((candidate) => candidate.startsWith(`${name}=`)) ?? null;
+};
+
+const requireCookie = (setCookie: string | string[] | undefined, name: string): string => {
+  const cookie = findCookie(setCookie, name);
+  if (cookie === null) {
+    throw new MissingTestDataError(name);
   }
   return cookie;
 };
+
+export const refreshCookieOf = (setCookie: string | string[] | undefined): string =>
+  requireCookie(setCookie, REFRESH_COOKIE_NAME);
+
+export const confirmationCookieOf = (setCookie: string | string[] | undefined): string =>
+  requireCookie(setCookie, CONFIRMATION_COOKIE_NAME);
 
 export const cookiePair = (cookie: string): string =>
   cookie.split(COOKIE_ATTRIBUTE_SEPARATOR)[0] ?? '';

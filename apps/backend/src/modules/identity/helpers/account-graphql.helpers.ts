@@ -1,13 +1,9 @@
 import { Locale } from '@agent-ic/contracts';
-import type {
-  ResendConfirmationInput,
-  SignUpResult,
-} from '@/modules/identity/typedefs/account.typedefs';
+import type { ResendConfirmationInput } from '@/modules/identity/typedefs/account.typedefs';
 import type { Me } from '@/modules/identity/typedefs/user.typedefs';
 import type {
   ResendConfirmationInput as ResendConfirmationArgs,
   ResendConfirmationPayload,
-  SignUpPayload,
   User,
 } from '@/platform/graphql-server/generated/schema.generated';
 import { Locale as GraphqlLocale } from '@/platform/graphql-server/generated/schema.generated';
@@ -23,8 +19,6 @@ export const toGraphqlUser = (me: Me): User => ({
   name: me.name,
   locale: GRAPHQL_LOCALE[me.locale],
 });
-
-export const toSignUpPayload = (result: SignUpResult): SignUpPayload => ({ email: result.email });
 
 export const toResendConfirmationInput = (
   args: ResendConfirmationArgs,

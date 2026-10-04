@@ -48,7 +48,9 @@ describe('SignUpUseCase', () => {
     });
 
     const user = await findUser(testbed, input.email);
-    expect(result).toEqual({ email: input.email });
+    expect(result).toEqual({ email: input.email, browserBinding: expect.any(String) });
+    expect(user.confirmationBindingHash).not.toBeNull();
+    expect(user.confirmationBindingHash).not.toBe(result.browserBinding);
     expect(user.emailConfirmedAt).toBeNull();
     expect(user.locale).toBe(Locale.Uk);
     expect(user.passwordHash.startsWith(ARGON2ID_PREFIX)).toBe(true);
@@ -78,7 +80,7 @@ describe('SignUpUseCase', () => {
 
   it('lets the owner of the email take over an unconfirmed sign-up made by someone else', async () => {
     const victim = signUpInput({ locale: Locale.En });
-    await signUp.execute(
+    const attackerSignUp = await signUp.execute(
       anonymousCtx(),
       signUpInput({
         email: victim.email,
@@ -93,14 +95,18 @@ describe('SignUpUseCase', () => {
     const result = await signUp.execute(anonymousCtx(), victim);
 
     const user = await findUser(testbed, victim.email);
-    expect(result).toEqual({ email: victim.email });
+    expect(result).toEqual({ email: victim.email, browserBinding: expect.any(String) });
+    expect(result.browserBinding).not.toBe(attackerSignUp.browserBinding);
+    expect(user.confirmationBindingHash).not.toBe(attacker.confirmationBindingHash);
     expect(user.id).toBe(attacker.id);
     expect(user.name).toBe(victim.name);
     expect(user.locale).toBe(Locale.En);
     expect(user.emailConfirmedAt).toBeNull();
     expect(await verifyPassword(user.passwordHash, victim.password)).toBe(true);
     expect(await verifyPassword(user.passwordHash, ATTACKER_PASSWORD)).toBe(false);
-    await expect(confirmEmail(testbed, attackerToken)).rejects.toBeInstanceOf(TokenInvalidError);
+    await expect(
+      confirmEmail(testbed, attackerToken, attackerSignUp.browserBinding),
+    ).rejects.toBeInstanceOf(TokenInvalidError);
     expect(await confirmationRequestsFor(testbed, user.id)).toHaveLength(2);
   });
 
