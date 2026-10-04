@@ -9,6 +9,7 @@ const serverEnvSchema = z.object({
     .string()
     .transform((value) => value.split(ALLOWED_HOSTS_SEPARATOR).map((host) => host.trim()))
     .pipe(z.array(z.string().min(1)).min(1)),
+  WEB_WATCH_POLLING: z.stringbool().default(false),
 });
 
 export const readServerOptions = (mode: string): ServerOptions => {
@@ -18,5 +19,6 @@ export const readServerOptions = (mode: string): ServerOptions => {
     port: env.WEB_PORT,
     strictPort: true,
     allowedHosts: env.WEB_ALLOWED_HOSTS,
+    watch: { usePolling: env.WEB_WATCH_POLLING },
   };
 };

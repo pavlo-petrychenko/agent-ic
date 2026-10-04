@@ -1,0 +1,28 @@
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-24);
+  margin: 0;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  color: var(--color-mute);
+  font: var(--type-hint);
+}
+
+.narrow {
+  max-width: var(--size-menu-width);
+}
+
+.value {
+  margin: 0;
+  color: var(--color-ink);
+  font: var(--type-mono);
+}

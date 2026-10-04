@@ -2,7 +2,7 @@
 
 ## Setup
 
-1. Install Docker Desktop (or OrbStack) and [mise](https://mise.jdx.dev). `README.md` has the exact steps.
+1. Install Docker Desktop (or OrbStack) and [mise](https://mise.jdx.dev). `README.md` has the exact steps. On Windows, see "Windows" in `README.md`: native with `tools\windows\setup.ps1`, or inside WSL2.
 2. Run the one-time setup:
 
 ```sh

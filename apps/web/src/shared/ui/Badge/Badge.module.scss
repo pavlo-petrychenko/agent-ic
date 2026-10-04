@@ -1,0 +1,82 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--space-5);
+  padding: var(--space-2) var(--space-8);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-pill);
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  font: var(--type-small);
+  white-space: nowrap;
+}
+
+.mono {
+  font: var(--type-mono-xs);
+}
+
+.dot {
+  flex-shrink: 0;
+  width: var(--size-dot-sm);
+  height: var(--size-dot-sm);
+  border-radius: var(--radius-pill);
+  background: var(--badge-dot);
+}
+
+.neutral {
+  --badge-bg: var(--color-soft);
+  --badge-fg: var(--color-ink-secondary);
+  --badge-dot: var(--color-line-dash);
+}
+
+.ok {
+  --badge-bg: var(--color-ok-light);
+  --badge-fg: var(--color-ok);
+  --badge-dot: var(--color-ok-dot);
+}
+
+.warn {
+  --badge-bg: var(--color-warn-light);
+  --badge-fg: var(--color-warn);
+  --badge-dot: var(--color-warn-dot);
+}
+
+.err {
+  --badge-bg: var(--color-err-light);
+  --badge-fg: var(--color-err);
+  --badge-dot: var(--color-err);
+}
+
+.violet {
+  --badge-bg: var(--color-violet-light);
+  --badge-fg: var(--color-violet);
+  --badge-dot: var(--color-violet);
+}
+
+.accent {
+  --badge-bg: var(--color-accent-light);
+  --badge-fg: var(--color-accent-dark);
+  --badge-dot: var(--color-accent);
+}
+
+.dark {
+  --badge-bg: var(--color-dark);
+  --badge-fg: var(--color-on-dark);
+  --badge-dot: var(--color-on-dark);
+}
+
+.outline {
+  --badge-bg: transparent;
+  --badge-fg: var(--color-ink-secondary);
+  --badge-dot: var(--color-line-dash);
+
+  border-color: var(--color-line);
+}
+
+.storyRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}

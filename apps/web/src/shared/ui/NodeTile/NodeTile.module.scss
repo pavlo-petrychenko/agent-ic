@@ -1,0 +1,72 @@
+$kinds:
+  trig, agent, compl, router, par, wait, send, api, kb, tool, var, esc, gen, neutral, info, ok,
+  warn, err;
+
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--color-ink);
+  font: var(--type-body-small);
+}
+
+.tile {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  background: var(--tile-bg);
+  color: var(--tile-fg);
+}
+
+.label {
+  min-width: 0;
+}
+
+@each $kind in $kinds {
+  .#{$kind} {
+    --tile-bg: var(--hue-#{$kind}-bg);
+    --tile-fg: var(--hue-#{$kind}-fg);
+  }
+}
+
+.accent {
+  --tile-bg: var(--color-accent);
+  --tile-fg: var(--color-on-accent);
+}
+
+.xs {
+  width: var(--size-tile-xs);
+  height: var(--size-tile-xs);
+  border-radius: var(--radius-6);
+}
+
+.sm {
+  width: var(--size-tile-sm);
+  height: var(--size-tile-sm);
+  border-radius: var(--radius-6);
+}
+
+.md {
+  width: var(--size-tile-md);
+  height: var(--size-tile-md);
+  border-radius: var(--radius-8);
+}
+
+.lg {
+  width: var(--size-tile-lg);
+  height: var(--size-tile-lg);
+  border-radius: var(--radius-8);
+}
+
+.storyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-12);
+}
+
+.storyRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}

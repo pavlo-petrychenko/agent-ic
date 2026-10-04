@@ -14,92 +14,55 @@ _.file = ".env"
 
 [tasks.setup]
 description = "One-time setup: tools, .env and ports, certificate, hosts, then the stack"
-run = [
-  "mise install",
-  "mkcert -install",
-  "tools/dev/ports.sh",
-  "tools/dev/certs.sh",
-  "tools/dev/hosts.sh",
-  "mise run setup:stack",
-]
-
-[tasks."setup:stack"]
-description = "Install dependencies and hooks, build the images, start the stack, migrate and seed"
-hide = true
-run = [
-  "pnpm install --frozen-lockfile",
-  "pnpm exec lefthook install",
-  "docker compose build",
-  "docker compose up -d --wait",
-  "mise run db:migrate",
-  "mise run db:seed",
-  "mise run status",
-  "tools/dev/urls.sh",
-]
+run = ["mise install", "node tools/dev.ts setup"]
 
 [tasks.start]
 description = "Start everything or the listed services and follow the logs"
-usage = 'arg "[svc]..." var=#true help="Services to start"'
-run = [
-  "docker compose up -d --wait ${usage_svc}",
-  "docker compose --profile '*' logs -f --tail=50 ${usage_svc}",
-]
+run = "node tools/dev.ts start"
 
 [tasks.add]
-description = "Add one service to the running stack"
-usage = 'arg "<svc>" help="Service to add"'
-run = "docker compose up -d --wait ${usage_svc}"
+description = "Add one service to the running stack: mise run add <svc>"
+run = "node tools/dev.ts add"
 
 [tasks.stop]
 description = "Stop everything or one service"
-usage = 'arg "[svc]" help="Service to stop"'
-run = "docker compose --profile '*' stop ${usage_svc}"
+run = "node tools/dev.ts stop"
 
 [tasks.restart]
-description = "Restart one service"
-usage = 'arg "<svc>" help="Service to restart"'
-run = "docker compose --profile '*' restart ${usage_svc}"
+description = "Restart one service: mise run restart <svc>"
+run = "node tools/dev.ts restart"
 
 [tasks.status]
 description = "Show the state of every service"
-run = "docker compose --profile '*' ps --all"
+run = "node tools/dev.ts status"
 
 [tasks.logs]
 description = "Follow the logs of everything or one service"
-usage = 'arg "[svc]" help="Service to follow"'
-run = "docker compose --profile '*' logs -f --tail=100 ${usage_svc}"
+run = "node tools/dev.ts logs"
 
 [tasks.shell]
-description = "Open a shell in a running service"
-usage = 'arg "<svc>" help="Service to enter"'
-run = "docker compose --profile '*' exec ${usage_svc} sh"
+description = "Open a shell in a running service: mise run shell <svc>"
+run = "node tools/dev.ts shell"
 
 [tasks."db:migrate"]
 description = "Apply database migrations"
-run = "docker compose run --rm --no-deps api pnpm run db:migrate"
+run = "node tools/dev.ts db:migrate"
 
 [tasks."db:reset"]
 description = "Recreate the database volume, then migrate and seed"
-run = [
-  "docker compose rm --stop --force postgres",
-  "docker volume rm agent-ic_postgres-data",
-  "docker compose up -d --wait postgres",
-  "mise run db:migrate",
-  "mise run db:seed",
-]
+run = "node tools/dev.ts db:reset"
 
 [tasks."db:seed"]
 description = "Load development seed data"
-run = "docker compose run --rm --no-deps api pnpm run db:seed"
+run = "node tools/dev.ts db:seed"
 
 [tasks."db:psql"]
-description = "Open psql as app_owner, app or app_system"
-usage = 'arg "[role]" default="app_owner" help="Database role"'
-run = "tools/dev/psql.sh ${usage_role}"
+description = "Open psql as app_owner (default), app or app_system"
+run = "node tools/dev.ts db:psql"
 
 [tasks.codegen]
 description = "Regenerate generated code"
-run = "docker compose run --rm --no-deps api pnpm run codegen"
+run = "node tools/dev.ts codegen"
 
 [tasks.check]
 description = "Run every guardrail"
@@ -124,4 +87,4 @@ run = "pnpm e2e"
 
 [tasks.clean]
 description = "Remove containers, volumes and certificates"
-run = ["docker compose --profile '*' down --volumes --remove-orphans", "rm -rf .certs"]
+run = "node tools/dev.ts clean"
