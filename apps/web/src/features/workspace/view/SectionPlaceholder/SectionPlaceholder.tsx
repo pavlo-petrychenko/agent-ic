@@ -11,7 +11,7 @@ export function SectionPlaceholder({
   emptyDescription,
 }: SectionPlaceholderProps) {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 pb-8">
       <PageHeader title={title} subtitle={subtitle} />
       <div className="px-7">
         <Card>

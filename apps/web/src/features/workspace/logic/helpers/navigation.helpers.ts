@@ -2,6 +2,7 @@ import { can, PermissionAction } from '@agent-ic/contracts';
 import type { WorkspaceRole } from '@agent-ic/contracts';
 import {
   NAV_GROUPS,
+  SECTION_RESOURCES,
   SETTINGS_NAV_ENTRY,
   type WorkspaceSection,
 } from '@/features/workspace/constants/navigation.constants';
@@ -16,10 +17,10 @@ export const visibleNavGroups = (role: WorkspaceRole): readonly NavGroupEntry[] 
     entries: group.entries.filter((entry) => isVisible(role, entry)),
   })).filter((group) => group.entries.length > 0);
 
-export const canOpenSection = (role: WorkspaceRole, section: WorkspaceSection): boolean =>
-  NAV_GROUPS.flatMap((group) => group.entries)
-    .filter((entry) => entry.section === section)
-    .every((entry) => isVisible(role, entry));
+export const canOpenSection = (role: WorkspaceRole, section: WorkspaceSection): boolean => {
+  const resource = SECTION_RESOURCES[section];
+  return resource === null || can(role, resource, PermissionAction.View);
+};
 
 export const homeSection = (role: WorkspaceRole): WorkspaceSection =>
   (

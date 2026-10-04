@@ -1,6 +1,6 @@
-import type { WorkspaceSection } from '@/features/workspace/constants/navigation.constants';
+import type { PlaceholderSection } from '@/features/workspace/typedefs/navigation.typedefs';
 
 export interface SectionPlaceholderPageProps {
   workspaceId: string;
-  section: WorkspaceSection;
+  section: PlaceholderSection;
 }

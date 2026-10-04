@@ -3,4 +3,5 @@ export enum Namespace {
   Errors = 'errors',
   Auth = 'auth',
   Workspace = 'workspace',
+  Settings = 'settings',
 }

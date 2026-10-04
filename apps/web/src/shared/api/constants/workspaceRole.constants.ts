@@ -7,3 +7,10 @@ export const ROLE_FROM_API: Readonly<Record<ApiWorkspaceRole, WorkspaceRole>> = 
   [ApiWorkspaceRole.Builder]: WorkspaceRole.Builder,
   [ApiWorkspaceRole.Operator]: WorkspaceRole.Operator,
 };
+
+export const ROLE_TO_API: Readonly<Record<WorkspaceRole, ApiWorkspaceRole>> = {
+  [WorkspaceRole.Owner]: ApiWorkspaceRole.Owner,
+  [WorkspaceRole.Admin]: ApiWorkspaceRole.Admin,
+  [WorkspaceRole.Builder]: ApiWorkspaceRole.Builder,
+  [WorkspaceRole.Operator]: ApiWorkspaceRole.Operator,
+};

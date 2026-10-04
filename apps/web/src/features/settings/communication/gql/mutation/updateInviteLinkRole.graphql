@@ -1,0 +1,8 @@
+mutation UpdateInviteLinkRole($input: UpdateInviteLinkRoleInput!) {
+  updateInviteLinkRole(input: $input) {
+    url
+    role
+    expiresAt
+    joinedCount
+  }
+}

@@ -1,0 +1,8 @@
+mutation ResetInviteLink {
+  resetInviteLink {
+    url
+    role
+    expiresAt
+    joinedCount
+  }
+}

@@ -1,0 +1,19 @@
+$role-column-width: 150px;
+
+.controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) $role-column-width auto auto;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.url {
+  padding: var(--space-8) var(--space-10);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-8);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: var(--type-mono);
+  line-height: var(--leading-relaxed);
+  overflow-wrap: anywhere;
+}
