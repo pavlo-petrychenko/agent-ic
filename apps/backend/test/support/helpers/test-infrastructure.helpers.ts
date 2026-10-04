@@ -1,13 +1,13 @@
 import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import type { StartedRedisContainer } from '@testcontainers/redis';
 import { DatabaseRole } from '@/platform/database/constants/database.constants';
+import { URL_PATH_SEPARATOR } from '@/platform/http/constants/url.constants';
 import {
   DATABASE_URL_PROTOCOL,
   TEST_DATABASE_NAME,
   TEST_ROLE_PASSWORDS,
   TEST_SUPERUSER,
   TEST_SUPERUSER_PASSWORD,
-  URL_PATH_SEPARATOR,
 } from '@test/support/constants/test-infrastructure.constants';
 import type { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
 import type {

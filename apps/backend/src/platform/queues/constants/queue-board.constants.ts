@@ -3,5 +3,3 @@ export enum QueueBoardRoute {
   Base = 'admin/queues',
   Nested = '*path',
 }
-
-export const URL_PATH_SEPARATOR = '/';

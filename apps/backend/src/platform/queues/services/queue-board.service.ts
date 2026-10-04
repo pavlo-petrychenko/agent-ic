@@ -4,10 +4,8 @@ import { ExpressAdapter } from '@bull-board/express';
 import { Injectable } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
 import { GlobalPrefix } from '@/platform/http/constants/global-prefix.constants';
-import {
-  QueueBoardRoute,
-  URL_PATH_SEPARATOR,
-} from '@/platform/queues/constants/queue-board.constants';
+import { URL_PATH_SEPARATOR } from '@/platform/http/constants/url.constants';
+import { QueueBoardRoute } from '@/platform/queues/constants/queue-board.constants';
 import { relativeToBase } from '@/platform/queues/helpers/queue-board.helpers';
 import { QueuesService } from '@/platform/queues/services/queues.service';
 import type { QueueBoardHandler } from '@/platform/queues/typedefs/queue-board.typedefs';

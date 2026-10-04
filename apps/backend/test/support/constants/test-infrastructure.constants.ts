@@ -16,7 +16,6 @@ export const TEST_SUPERUSER = 'postgres';
 export const TEST_SUPERUSER_PASSWORD = 'postgres-test';
 export const TEST_LANGFUSE_PASSWORD = 'langfuse-test';
 export const DATABASE_URL_PROTOCOL = 'postgres:';
-export const URL_PATH_SEPARATOR = '/';
 
 export const TEST_ROLE_PASSWORDS: Readonly<Record<DatabaseRole, string>> = {
   [DatabaseRole.Owner]: 'app-owner-test',

@@ -1,6 +1,6 @@
+import { URL_PATH_SEPARATOR } from '@/platform/http/constants/url.constants';
 import {
   OPERATIONAL_ROUTE_SEGMENTS,
-  URL_PATH_SEPARATOR,
   URL_QUERY_SEPARATOR,
 } from '@/platform/observability/constants/operational-url.constants';
 
