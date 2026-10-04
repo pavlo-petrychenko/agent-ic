@@ -33,6 +33,7 @@ import {
   bootRoleWithEmails,
   confirmationTokenIn,
   cookiePair,
+  fromApp,
   refreshCookieOf,
 } from '@test/support/helpers/auth-flow.helpers';
 import { passwordResetTokenIn } from '@test/support/helpers/password-reset-testing.helpers';
@@ -46,7 +47,10 @@ describe('password reset through the api', () => {
   const http = (): ReturnType<typeof request> => request(api.getHttpServer());
 
   const authPost = (route: AuthRoute): request.Test =>
-    http().post(apiPath(AuthRoute.Base, route)).set(FORWARDED_FOR_HEADER, randomIpAddress());
+    fromApp(http().post(apiPath(AuthRoute.Base, route))).set(
+      FORWARDED_FOR_HEADER,
+      randomIpAddress(),
+    );
 
   const forgotPassword = (email: string): Promise<Response> =>
     http()
