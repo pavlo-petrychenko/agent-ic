@@ -1,0 +1,22 @@
+{
+  "name": "backend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:api": "ROLE=api PORT=3000 node --conditions=source --watch src/main.ts",
+    "dev:gateway": "ROLE=gateway PORT=3001 node --conditions=source --watch src/main.ts",
+    "dev:worker": "ROLE=worker PORT=3002 node --conditions=source --watch src/main.ts",
+    "dev": "pnpm dev:api",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@agent-ic/contracts": "workspace:*",
+    "@agent-ic/flow": "workspace:*"
+  },
+  "devDependencies": {
+    "@agent-ic/tsconfig": "workspace:*",
+    "@types/node": "^24.19.1",
+    "typescript": "^7.0.2"
+  }
+}

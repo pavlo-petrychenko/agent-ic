@@ -1,0 +1,4 @@
+{
+  "extends": "@agent-ic/tsconfig/library.json",
+  "include": ["src", "tsup.config.ts"]
+}

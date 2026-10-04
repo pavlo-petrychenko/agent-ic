@@ -1,0 +1,27 @@
+{
+  "name": "agent-ic",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "lint": "oxlint --type-aware",
+    "format": "oxfmt -c packages/oxc-config/oxfmt.json '!docs/**' '!AGENTS.md' '!CLAUDE.md' '!pnpm-lock.yaml'",
+    "format:check": "oxfmt -c packages/oxc-config/oxfmt.json '!docs/**' '!AGENTS.md' '!CLAUDE.md' '!pnpm-lock.yaml' --check"
+  },
+  "devDependencies": {
+    "@agent-ic/oxc-config": "workspace:*",
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.86.0",
+    "oxlint-tsgolint": "^7.0.2003",
+    "turbo": "^2.11.7",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@12.9.1"
+}

@@ -1,0 +1,3 @@
+{
+  "extends": ["./packages/oxc-config/oxlintrc.json"]
+}
