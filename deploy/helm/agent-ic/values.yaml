@@ -38,6 +38,8 @@ connections:
 secrets:
   email:
     enabled: false
+  smtp:
+    enabled: false
   llm:
     enabled: false
 

@@ -401,6 +401,42 @@
         "required": ["name", "keys"]
       }
     },
+    "smtpSecret": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "keys": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["SMTP_USER", "SMTP_PASSWORD"],
+          "properties": {
+            "SMTP_USER": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "SMTP_PASSWORD": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "if": {
+        "properties": {
+          "enabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": ["name", "keys"]
+      }
+    },
     "llmSecret": {
       "type": "object",
       "additionalProperties": false,
@@ -643,6 +679,12 @@
                 },
                 "port": {
                   "$ref": "#/definitions/port"
+                },
+                "secure": {
+                  "type": "boolean"
+                },
+                "requireTls": {
+                  "type": "boolean"
                 }
               }
             }
@@ -711,6 +753,7 @@
         "s3",
         "auth",
         "email",
+        "smtp",
         "llm",
         "langfuse"
       ],
@@ -738,6 +781,9 @@
         },
         "email": {
           "$ref": "#/definitions/emailSecret"
+        },
+        "smtp": {
+          "$ref": "#/definitions/smtpSecret"
         },
         "llm": {
           "$ref": "#/definitions/llmSecret"

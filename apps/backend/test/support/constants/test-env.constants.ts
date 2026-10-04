@@ -34,6 +34,10 @@ export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.EmailFrom]: 'agent-ic <no-reply@agent-ic.test>',
   [EnvVar.SmtpHost]: '127.0.0.1',
   [EnvVar.SmtpPort]: '1025',
+  [EnvVar.SmtpSecure]: 'false',
+  [EnvVar.SmtpRequireTls]: 'false',
+  [EnvVar.SmtpUser]: '',
+  [EnvVar.SmtpPassword]: '',
   [EnvVar.ResendApiKey]: 'test-resend-key',
 };
 
