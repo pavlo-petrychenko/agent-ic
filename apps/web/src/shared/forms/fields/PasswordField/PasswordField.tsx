@@ -6,12 +6,17 @@ import { firstErrorMessage } from '@/shared/forms/helpers/fieldError.helpers';
 import { Field } from '@/shared/ui/Field';
 import { PasswordInput } from '@/shared/ui/PasswordInput';
 
-export function PasswordField({ label, hint = null, ...inputProps }: PasswordFieldProps) {
+export function PasswordField({
+  label,
+  hint = null,
+  error: serverError = null,
+  ...inputProps
+}: PasswordFieldProps) {
   const { t } = useTranslation();
   const field = useFieldContext<string>();
   const meta = useStore(field.store, (state) => state.meta);
   const value = useStore(field.store, (state) => state.value);
-  const error = meta.isTouched ? firstErrorMessage(meta.errors) : null;
+  const error = serverError ?? (meta.isTouched ? firstErrorMessage(meta.errors) : null);
 
   return (
     <Field label={label} hint={hint} error={error}>

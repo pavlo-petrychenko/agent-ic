@@ -50,5 +50,9 @@
     "close": "Закрити",
     "showPassword": "Показати",
     "hidePassword": "Сховати"
+  },
+  "legal": {
+    "terms": "Умови",
+    "privacy": "Конфіденційність"
   }
 }

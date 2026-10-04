@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { LOCALE_OPTIONS } from '@/app/layouts/AppHeader/LocaleSwitcher/LocaleSwitcher.constants';
+import { LOCALE_OPTIONS } from '@/app/components/LocaleSwitcher/LocaleSwitcher.constants';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { SegmentedControl, SegmentedControlSize } from '@/shared/ui/SegmentedControl';
 

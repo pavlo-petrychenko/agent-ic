@@ -48,14 +48,14 @@ describe('Card', () => {
 
   it('lets explicit padding and gap win over the tone defaults', () => {
     render(
-      <Card tone={CardTone.Sunken} pad={CardPad.Lg} gap={CardGap.Lg}>
+      <Card tone={CardTone.Sunken} pad={CardPad.Xl} gap={CardGap.Xl}>
         Body
       </Card>,
     );
 
     expect(screen.getByText('Body')).toHaveClass(
-      cssClass(styles['pad-lg']),
-      cssClass(styles['gap-lg']),
+      cssClass(styles['pad-xl']),
+      cssClass(styles['gap-xl']),
     );
   });
 

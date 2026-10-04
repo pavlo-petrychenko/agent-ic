@@ -8,6 +8,7 @@ export enum CardPad {
   Sm = 'sm',
   Md = 'md',
   Lg = 'lg',
+  Xl = 'xl',
 }
 
 export enum CardGap {
@@ -15,6 +16,7 @@ export enum CardGap {
   Sm = 'sm',
   Md = 'md',
   Lg = 'lg',
+  Xl = 'xl',
 }
 
 export enum CardElement {
