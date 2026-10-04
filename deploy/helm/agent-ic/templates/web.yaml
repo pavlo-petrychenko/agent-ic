@@ -1,0 +1,98 @@
+{{- $context := dict "root" . "component" "web" }}
+{{- $web := .Values.web }}
+{{- $configPath := printf "%s/%s" $web.runtimeConfig.mountPath $web.runtimeConfig.fileName }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "agent-ic.componentName" $context }}
+  labels:
+    {{- include "agent-ic.labels" $context | nindent 4 }}
+data:
+  {{ $web.runtimeConfig.fileName }}: {{ toJson $web.config | quote }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "agent-ic.componentName" $context }}
+  labels:
+    {{- include "agent-ic.labels" $context | nindent 4 }}
+spec:
+  replicas: {{ $web.replicas }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  strategy:
+    {{- toYaml .Values.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "agent-ic.selectorLabels" $context | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "agent-ic.labels" $context | nindent 8 }}
+      annotations:
+        checksum/config: {{ toJson $web.config | sha256sum }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: {{ $web.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- toYaml $web.podSecurityContext | nindent 8 }}
+      containers:
+        - name: web
+          image: {{ include "agent-ic.webImage" . | quote }}
+          imagePullPolicy: {{ .Values.image.web.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $web.port }}
+              protocol: TCP
+          env:
+            - name: WEB_PORT
+              value: {{ $web.port | quote }}
+            - name: WEB_HEALTH_PATH
+              value: {{ $web.healthPath | quote }}
+            - name: WEB_RUNTIME_CONFIG_PATH
+              value: {{ $configPath | quote }}
+          startupProbe:
+            {{- include "agent-ic.probe" (dict "path" $web.healthPath "timing" .Values.probes.startup) | nindent 12 }}
+          livenessProbe:
+            {{- include "agent-ic.probe" (dict "path" $web.healthPath "timing" .Values.probes.liveness) | nindent 12 }}
+          readinessProbe:
+            {{- include "agent-ic.probe" (dict "path" $web.healthPath "timing" .Values.probes.readiness) | nindent 12 }}
+          resources:
+            {{- toYaml $web.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          volumeMounts:
+            - name: runtime-config
+              mountPath: {{ $web.runtimeConfig.mountPath }}
+              readOnly: true
+            {{- range $index, $path := $web.writablePaths }}
+            - name: writable-{{ $index }}
+              mountPath: {{ $path }}
+            {{- end }}
+      volumes:
+        - name: runtime-config
+          configMap:
+            name: {{ include "agent-ic.componentName" $context }}
+        {{- range $index, $path := $web.writablePaths }}
+        - name: writable-{{ $index }}
+          emptyDir: {}
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "agent-ic.componentName" $context }}
+  labels:
+    {{- include "agent-ic.labels" $context | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "agent-ic.selectorLabels" $context | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ $web.port }}
+      targetPort: http
+      protocol: TCP

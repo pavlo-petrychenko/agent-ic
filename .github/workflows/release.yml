@@ -1,0 +1,189 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+  CHART_REPOSITORY: ghcr.io/${{ github.repository_owner }}/charts
+  DEPLOY_REPOSITORY: ${{ github.repository_owner }}/${{ github.event.repository.name }}-deploy
+  DEPLOY_VALUES_FILE: argocd/root/values.yaml
+  MISE_VERSION: 2026.9.1
+  TRIVY_SEVERITY: CRITICAL,HIGH
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      value: ${{ steps.version.outputs.value }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - id: version
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          base="$(jq -r '.["."]' .release-please-manifest.json)"
+          echo "value=${base}-main.${RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+  images:
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [backend, web]
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ matrix.image }}
+      VERSION: ${{ needs.version.outputs.value }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: .
+          file: deploy/docker/${{ matrix.image }}.Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: ${{ env.IMAGE }}:${{ env.VERSION }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: ${{ env.IMAGE }}:${{ env.VERSION }}
+          severity: ${{ env.TRIVY_SEVERITY }}
+          ignore-unfixed: true
+          exit-code: '1'
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: .
+          file: deploy/docker/${{ matrix.image }}.Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.IMAGE }}:${{ env.VERSION }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+
+  chart:
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+    env:
+      VERSION: ${{ needs.version.outputs.value }}
+      BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-backend
+      WEB_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca
+        with:
+          version: ${{ env.MISE_VERSION }}
+          install_args: helm yq
+      - env:
+          REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY_USER: ${{ github.actor }}
+        run: helm registry login "$REGISTRY" --username "$REGISTRY_USER" --password-stdin <<<"$REGISTRY_PASSWORD"
+      - run: yq -i '.image.backend.repository = strenv(BACKEND_IMAGE) | .image.web.repository = strenv(WEB_IMAGE)' deploy/helm/agent-ic/values.yaml
+      - run: helm package deploy/helm/agent-ic --version "$VERSION" --app-version "$VERSION" --destination dist
+      - run: helm push dist/*.tgz "oci://${CHART_REPOSITORY}"
+
+  bump:
+    needs: [version, images, chart]
+    if: vars.DEPLOY_FREEZE != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ needs.version.outputs.value }}
+      APPLICATION: ${{ github.event.repository.name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca
+        with:
+          version: ${{ env.MISE_VERSION }}
+          install_args: yq
+      - id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
+        with:
+          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}-deploy
+          permission-contents: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ${{ env.DEPLOY_REPOSITORY }}
+          token: ${{ steps.token.outputs.token }}
+          path: deploy-repository
+          persist-credentials: false
+      - working-directory: deploy-repository
+        env:
+          APP_SLUG: ${{ steps.token.outputs.app-slug }}
+          DEPLOY_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          authenticated_git() {
+            local header
+            header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$DEPLOY_TOKEN" | base64 --wrap=0)"
+            git -c "http.${GITHUB_SERVER_URL}/.extraheader=${header}" "$@"
+          }
+          rebase_in_progress() {
+            [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]
+          }
+          yq -i '.applications[strenv(APPLICATION)].chart.version = strenv(VERSION)' "$DEPLOY_VALUES_FILE"
+          git add "$DEPLOY_VALUES_FILE"
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${APP_SLUG}[bot]@users.noreply.github.com"
+          git commit -m "chore(homeserver): bump ${APPLICATION} to ${VERSION}"
+          for _ in 1 2 3; do
+            if authenticated_git pull --rebase; then
+              if authenticated_git push; then
+                exit 0
+              fi
+            elif rebase_in_progress; then
+              git rebase --abort
+            fi
+          done
+          exit 1

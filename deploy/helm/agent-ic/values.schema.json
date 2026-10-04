@@ -1,0 +1,1074 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "image",
+    "config",
+    "connections",
+    "secrets",
+    "workloads",
+    "web",
+    "migration",
+    "ingress",
+    "keda",
+    "metrics",
+    "probes"
+  ],
+  "definitions": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535
+    },
+    "urlPath": {
+      "type": "string",
+      "pattern": "^/"
+    },
+    "duration": {
+      "type": "string",
+      "pattern": "^[0-9]+(ms|s|m|h|d|w)$"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "warning", "critical"]
+    },
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "pathList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/urlPath"
+      }
+    },
+    "imageSettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "tag", "pullPolicy"],
+      "properties": {
+        "repository": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"]
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requests", "limits"],
+      "properties": {
+        "requests": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cpu", "memory"],
+          "properties": {
+            "cpu": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "memory": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["memory"],
+          "properties": {
+            "cpu": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "memory": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        }
+      }
+    },
+    "credentialsSecret": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "usernameKey", "passwordKey"],
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "usernameKey": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "passwordKey": {
+          "$ref": "#/definitions/nonEmptyString"
+        }
+      }
+    },
+    "passwordSecret": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "passwordKey"],
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "passwordKey": {
+          "$ref": "#/definitions/nonEmptyString"
+        }
+      }
+    },
+    "endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "port"],
+      "properties": {
+        "host": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "port": {
+          "$ref": "#/definitions/port"
+        }
+      }
+    },
+    "health": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["livePath", "readyPath"],
+      "properties": {
+        "livePath": {
+          "$ref": "#/definitions/urlPath"
+        },
+        "readyPath": {
+          "$ref": "#/definitions/urlPath"
+        }
+      }
+    },
+    "kedaWorker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minReplicaCount",
+        "maxReplicaCount",
+        "pollingInterval",
+        "cooldownPeriod",
+        "waitingJobsThreshold",
+        "oldestWaitSecondsThreshold"
+      ],
+      "properties": {
+        "minReplicaCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxReplicaCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pollingInterval": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cooldownPeriod": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "waitingJobsThreshold": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "oldestWaitSecondsThreshold": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "port",
+        "portEnv",
+        "env",
+        "health",
+        "terminationGracePeriodSeconds",
+        "resources"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": ["api", "gateway", "worker"]
+        },
+        "port": {
+          "$ref": "#/definitions/port"
+        },
+        "portEnv": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "replicas": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "queues": {
+          "$ref": "#/definitions/stringList"
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "health": {
+          "$ref": "#/definitions/health"
+        },
+        "terminationGracePeriodSeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resources": {
+          "$ref": "#/definitions/resources"
+        },
+        "keda": {
+          "$ref": "#/definitions/kedaWorker"
+        }
+      },
+      "if": {
+        "properties": {
+          "role": {
+            "const": "worker"
+          }
+        }
+      },
+      "then": {
+        "required": ["queues", "keda"]
+      },
+      "else": {
+        "required": ["replicas"],
+        "not": {
+          "anyOf": [
+            {
+              "required": ["queues"]
+            },
+            {
+              "required": ["keda"]
+            }
+          ]
+        }
+      }
+    },
+    "publicRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "service", "priority", "pathPrefixes", "excludePathPrefixes"],
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "service": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pathPrefixes": {
+          "$ref": "#/definitions/pathList"
+        },
+        "excludePathPrefixes": {
+          "$ref": "#/definitions/pathList"
+        }
+      }
+    },
+    "queueWaitAlert": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seconds", "for", "severity"],
+      "properties": {
+        "seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "for": {
+          "$ref": "#/definitions/duration"
+        },
+        "severity": {
+          "$ref": "#/definitions/severity"
+        }
+      }
+    },
+    "s3Secret": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "keys"],
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "keys": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"],
+          "properties": {
+            "S3_ACCESS_KEY_ID": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "S3_SECRET_ACCESS_KEY": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        }
+      }
+    },
+    "authSecret": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "keys"],
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "keys": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET", "SECRET_BOX_KEY"],
+          "properties": {
+            "JWT_ACCESS_SECRET": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "JWT_REFRESH_SECRET": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "SECRET_BOX_KEY": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        }
+      }
+    },
+    "emailSecret": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "keys": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["RESEND_API_KEY"],
+          "properties": {
+            "RESEND_API_KEY": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "if": {
+        "properties": {
+          "enabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": ["name", "keys"]
+      }
+    },
+    "llmSecret": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "keys": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["LLM_API_KEY"],
+          "properties": {
+            "LLM_API_KEY": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "if": {
+        "properties": {
+          "enabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": ["name", "keys"]
+      }
+    },
+    "langfuseSecret": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "keys"],
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "keys": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY"],
+          "properties": {
+            "LANGFUSE_PUBLIC_KEY": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "LANGFUSE_SECRET_KEY": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        }
+      }
+    }
+  },
+  "properties": {
+    "nameOverride": {
+      "type": "string"
+    },
+    "fullnameOverride": {
+      "type": "string"
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backend", "web"],
+      "properties": {
+        "backend": {
+          "$ref": "#/definitions/imageSettings"
+        },
+        "web": {
+          "$ref": "#/definitions/imageSettings"
+        }
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/nonEmptyString"
+          }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeEnv",
+        "logLevel",
+        "httpHost",
+        "databasePoolMax",
+        "publicUrl",
+        "telemetry",
+        "langfuse",
+        "s3",
+        "llm",
+        "email"
+      ],
+      "properties": {
+        "nodeEnv": {
+          "type": "string",
+          "enum": ["development", "production", "test"]
+        },
+        "logLevel": {
+          "type": "string",
+          "enum": ["fatal", "error", "warn", "info", "debug", "trace", "silent"]
+        },
+        "httpHost": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "databasePoolMax": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "telemetry": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "serviceNamespace"],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "endpoint": {
+              "type": "string",
+              "format": "uri"
+            },
+            "serviceNamespace": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          },
+          "if": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": ["endpoint"]
+          }
+        },
+        "langfuse": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "sampleRate", "host"],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["off", "cloud", "self-hosted"]
+            },
+            "sampleRate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "host": {
+              "type": "string"
+            }
+          },
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "off"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "host": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        },
+        "publicUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "s3": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["endpoint", "region", "bucket", "forcePathStyle"],
+          "properties": {
+            "endpoint": {
+              "type": "string",
+              "format": "uri"
+            },
+            "region": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "bucket": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "forcePathStyle": {
+              "type": "boolean"
+            }
+          }
+        },
+        "llm": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["baseUrl", "embeddingModel"],
+          "properties": {
+            "baseUrl": {
+              "type": "string",
+              "format": "uri"
+            },
+            "embeddingModel": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        },
+        "email": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["from"],
+          "properties": {
+            "from": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "smtp": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["host", "port"],
+              "properties": {
+                "host": {
+                  "$ref": "#/definitions/nonEmptyString"
+                },
+                "port": {
+                  "$ref": "#/definitions/port"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "connections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["database", "redis"],
+      "properties": {
+        "database": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["host", "ownerHost", "port", "name"],
+          "properties": {
+            "host": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "ownerHost": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "port": {
+              "$ref": "#/definitions/port"
+            },
+            "name": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        },
+        "redis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["queue", "cache"],
+          "properties": {
+            "queue": {
+              "$ref": "#/definitions/endpoint"
+            },
+            "cache": {
+              "$ref": "#/definitions/endpoint"
+            }
+          }
+        }
+      }
+    },
+    "secrets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "databaseApp",
+        "databaseSystem",
+        "databaseOwner",
+        "redisQueue",
+        "redisCache",
+        "s3",
+        "auth",
+        "email",
+        "llm",
+        "langfuse"
+      ],
+      "properties": {
+        "databaseApp": {
+          "$ref": "#/definitions/credentialsSecret"
+        },
+        "databaseSystem": {
+          "$ref": "#/definitions/credentialsSecret"
+        },
+        "databaseOwner": {
+          "$ref": "#/definitions/credentialsSecret"
+        },
+        "redisQueue": {
+          "$ref": "#/definitions/passwordSecret"
+        },
+        "redisCache": {
+          "$ref": "#/definitions/passwordSecret"
+        },
+        "s3": {
+          "$ref": "#/definitions/s3Secret"
+        },
+        "auth": {
+          "$ref": "#/definitions/authSecret"
+        },
+        "email": {
+          "$ref": "#/definitions/emailSecret"
+        },
+        "llm": {
+          "$ref": "#/definitions/llmSecret"
+        },
+        "langfuse": {
+          "$ref": "#/definitions/langfuseSecret"
+        }
+      }
+    },
+    "extraEnv": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/nonEmptyString"
+          }
+        }
+      }
+    },
+    "strategy": {
+      "type": "object"
+    },
+    "revisionHistoryLimit": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "podSecurityContext": {
+      "type": "object"
+    },
+    "containerSecurityContext": {
+      "type": "object"
+    },
+    "probes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["startup", "liveness", "readiness"],
+      "patternProperties": {
+        "^(startup|liveness|readiness)$": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["periodSeconds", "timeoutSeconds", "failureThreshold"],
+          "properties": {
+            "periodSeconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "failureThreshold": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    },
+    "podDisruptionBudget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxUnavailable"],
+      "properties": {
+        "maxUnavailable": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "interval", "scrapeTimeout", "queueRole"],
+      "properties": {
+        "path": {
+          "$ref": "#/definitions/urlPath"
+        },
+        "interval": {
+          "$ref": "#/definitions/duration"
+        },
+        "scrapeTimeout": {
+          "$ref": "#/definitions/duration"
+        },
+        "queueRole": {
+          "type": "string",
+          "enum": ["api", "gateway", "worker"]
+        }
+      }
+    },
+    "workloads": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/definitions/workload"
+      }
+    },
+    "web": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replicas",
+        "port",
+        "healthPath",
+        "config",
+        "runtimeConfig",
+        "podSecurityContext",
+        "writablePaths",
+        "terminationGracePeriodSeconds",
+        "resources"
+      ],
+      "properties": {
+        "replicas": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "port": {
+          "$ref": "#/definitions/port"
+        },
+        "healthPath": {
+          "$ref": "#/definitions/urlPath"
+        },
+        "config": {
+          "type": "object",
+          "required": ["graphqlPath"],
+          "properties": {
+            "graphqlPath": {
+              "$ref": "#/definitions/urlPath"
+            }
+          }
+        },
+        "runtimeConfig": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mountPath", "fileName"],
+          "properties": {
+            "mountPath": {
+              "$ref": "#/definitions/urlPath"
+            },
+            "fileName": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        },
+        "podSecurityContext": {
+          "type": "object"
+        },
+        "writablePaths": {
+          "$ref": "#/definitions/pathList"
+        },
+        "terminationGracePeriodSeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resources": {
+          "$ref": "#/definitions/resources"
+        }
+      }
+    },
+    "migration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "args", "backoffLimit", "activeDeadlineSeconds", "resources"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "backoffLimit": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "activeDeadlineSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "resources": {
+          "$ref": "#/definitions/resources"
+        },
+        "args": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/stringList"
+            },
+            {
+              "minItems": 1
+            }
+          ]
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["public", "admin"],
+      "properties": {
+        "public": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["host", "entryPoints", "routes"],
+          "properties": {
+            "host": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "entryPoints": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/stringList"
+                },
+                {
+                  "minItems": 1
+                }
+              ]
+            },
+            "routes": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/publicRoute"
+              }
+            }
+          }
+        },
+        "admin": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["host", "entryPoints", "service", "pathPrefix", "priority"],
+          "properties": {
+            "host": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "entryPoints": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/stringList"
+                },
+                {
+                  "minItems": 1
+                }
+              ]
+            },
+            "service": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "pathPrefix": {
+              "$ref": "#/definitions/urlPath"
+            },
+            "priority": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    },
+    "keda": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "prometheus": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["serverAddress"],
+          "properties": {
+            "serverAddress": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "enabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": ["prometheus"]
+      }
+    },
+    "serviceMonitor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "dashboards": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "labels"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "prometheusRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "labels", "backendDown", "queueWait"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "backendDown": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["for", "severity"],
+          "properties": {
+            "for": {
+              "$ref": "#/definitions/duration"
+            },
+            "severity": {
+              "$ref": "#/definitions/severity"
+            }
+          }
+        },
+        "queueWait": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["default", "overrides"],
+          "properties": {
+            "default": {
+              "$ref": "#/definitions/queueWaitAlert"
+            },
+            "overrides": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/queueWaitAlert"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

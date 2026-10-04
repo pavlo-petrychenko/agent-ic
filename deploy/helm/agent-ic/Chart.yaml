@@ -1,0 +1,7 @@
+apiVersion: v2
+name: agent-ic
+description: agent-ic API, gateway, workers and web app
+type: application
+version: 0.0.0
+appVersion: 0.0.0
+kubeVersion: '>=1.36.0-0'

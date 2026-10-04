@@ -1,0 +1,19 @@
+{{- range $name, $workload := .Values.workloads }}
+{{- $context := dict "root" $ "component" $name "workload" $workload }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "agent-ic.componentName" $context }}
+  labels:
+    {{- include "agent-ic.labels" $context | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "agent-ic.selectorLabels" $context | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ $workload.port }}
+      targetPort: http
+      protocol: TCP
+{{- end }}

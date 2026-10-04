@@ -1,0 +1,19 @@
+{{- $components := list "web" }}
+{{- range $name, $workload := .Values.workloads }}
+{{- $components = append $components $name }}
+{{- end }}
+{{- range $component := $components }}
+{{- $context := dict "root" $ "component" $component }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "agent-ic.componentName" $context }}
+  labels:
+    {{- include "agent-ic.labels" $context | nindent 4 }}
+spec:
+  maxUnavailable: {{ $.Values.podDisruptionBudget.maxUnavailable }}
+  selector:
+    matchLabels:
+      {{- include "agent-ic.selectorLabels" $context | nindent 6 }}
+{{- end }}

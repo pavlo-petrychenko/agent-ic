@@ -2,6 +2,10 @@
   "name": "backend",
   "version": "0.0.0",
   "private": true,
+  "files": [
+    "dist",
+    "migrations"
+  ],
   "type": "module",
   "scripts": {
     "build": "swc src -d dist --strip-leading-paths --delete-dir-on-start --copy-files --ignore \"**/*.spec.ts\"",

@@ -1,0 +1,49 @@
+{{- if .Values.prometheusRule.enabled }}
+{{- $context := dict "root" . "component" "alerts" }}
+{{- $queueWait := .Values.prometheusRule.queueWait }}
+{{- $scope := printf "namespace=%q, role=%q" .Release.Namespace .Values.metrics.queueRole }}
+{{- $jobs := list }}
+{{- range $name, $workload := .Values.workloads }}
+{{- $jobs = append $jobs $name }}
+{{- end }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "agent-ic.componentName" $context }}
+  labels:
+    {{- include "agent-ic.labels" $context | nindent 4 }}
+    {{- with .Values.prometheusRule.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  groups:
+    - name: {{ include "agent-ic.fullname" . }}.backend
+      rules:
+        - alert: AgentIcBackendDown
+          expr: {{ printf "up{namespace=%q, job=~%q} == 0" .Release.Namespace (join "|" $jobs) | quote }}
+          for: {{ .Values.prometheusRule.backendDown.for }}
+          labels:
+            severity: {{ .Values.prometheusRule.backendDown.severity }}
+          annotations:
+            summary: {{ "{{ $labels.job }} target {{ $labels.pod }} is down" | quote }}
+    - name: {{ include "agent-ic.fullname" . }}.queues
+      rules:
+        {{- $overrides := keys $queueWait.overrides | sortAlpha }}
+        - alert: AgentIcQueueWaitHigh
+          expr: {{ printf "max by (queue) (queue_oldest_waiting_job_age_seconds{%s%s}) > %v" $scope (ternary (printf ", queue!~%q" (join "|" $overrides)) "" (gt (len $overrides) 0)) $queueWait.default.seconds | quote }}
+          for: {{ $queueWait.default.for }}
+          labels:
+            severity: {{ $queueWait.default.severity }}
+          annotations:
+            summary: {{ "Queue {{ $labels.queue }} oldest waiting job is {{ $value | humanizeDuration }} old" | quote }}
+        {{- range $queue := $overrides }}
+        {{- $override := get $queueWait.overrides $queue }}
+        - alert: AgentIcQueueWaitHigh
+          expr: {{ printf "max by (queue) (queue_oldest_waiting_job_age_seconds{%s, queue=%q}) > %v" $scope $queue $override.seconds | quote }}
+          for: {{ $override.for }}
+          labels:
+            severity: {{ $override.severity }}
+          annotations:
+            summary: {{ "Queue {{ $labels.queue }} oldest waiting job is {{ $value | humanizeDuration }} old" | quote }}
+        {{- end }}
+{{- end }}

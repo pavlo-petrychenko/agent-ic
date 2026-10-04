@@ -14,6 +14,7 @@ Node 24 and pnpm 10 come from `mise.toml`. The stack runs in Docker through `mis
 | `mise run shell <svc>`                                            | shell inside a service container            |
 | `mise run db:migrate` / `db:reset` / `db:seed` / `db:psql [role]` | database                                    |
 | `mise run codegen` / `check` / `test` / `e2e`                     | generated code, all guardrails, tests       |
+| `mise run chart:validate` / `lint:workflows`                      | Helm chart checks, GitHub workflow lint     |
 
 | Command                             | What it does                                                             |
 | ----------------------------------- | ------------------------------------------------------------------------ |

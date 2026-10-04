@@ -1,0 +1,38 @@
+{{- if .Values.keda.enabled }}
+{{- range $name, $workload := .Values.workloads }}
+{{- if hasKey $workload "keda" }}
+{{- $context := dict "root" $ "component" $name "workload" $workload }}
+{{- $queueMatcher := printf "queue=~%q" (join "|" $workload.queues) }}
+{{- $selector := printf "namespace=%q, role=%q, %s" $.Release.Namespace $.Values.metrics.queueRole $queueMatcher }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "agent-ic.componentName" $context }}
+  labels:
+    {{- include "agent-ic.labels" $context | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "agent-ic.componentName" $context }}
+  minReplicaCount: {{ $workload.keda.minReplicaCount }}
+  maxReplicaCount: {{ $workload.keda.maxReplicaCount }}
+  pollingInterval: {{ $workload.keda.pollingInterval }}
+  cooldownPeriod: {{ $workload.keda.cooldownPeriod }}
+  triggers:
+    - type: prometheus
+      name: waiting-jobs
+      metadata:
+        serverAddress: {{ $.Values.keda.prometheus.serverAddress | quote }}
+        query: {{ printf "sum(max by (queue) (queue_waiting_jobs{%s}))" $selector | quote }}
+        threshold: {{ $workload.keda.waitingJobsThreshold | quote }}
+        activationThreshold: "0"
+    - type: prometheus
+      name: oldest-waiting-job-age
+      metadata:
+        serverAddress: {{ $.Values.keda.prometheus.serverAddress | quote }}
+        query: {{ printf "max(queue_oldest_waiting_job_age_seconds{%s})" $selector | quote }}
+        threshold: {{ $workload.keda.oldestWaitSecondsThreshold | quote }}
+        activationThreshold: "0"
+{{- end }}
+{{- end }}
+{{- end }}

@@ -6,6 +6,8 @@ kubectl = "1.37.1"
 helm = "4.3.0"
 kubeseal = "0.40.0"
 actionlint = "1.7.12"
+kubeconform = "0.8.0"
+yq = "4.54.1"
 
 [env]
 _.file = ".env"
@@ -102,6 +104,15 @@ run = "docker compose run --rm --no-deps api pnpm run codegen"
 [tasks.check]
 description = "Run every guardrail"
 run = "pnpm check"
+
+[tasks."chart:validate"]
+description = "Lint, render and validate the Helm chart with kubeconform"
+env = { KUBERNETES_VERSION = "1.36.0", CRD_CATALOG_REF = "4c8dc296d32b06d15ccde9668ff136c951f4d539" }
+run = "tools/chart/validate.sh"
+
+[tasks."lint:workflows"]
+description = "Lint the GitHub Actions workflows"
+run = "actionlint"
 
 [tasks.test]
 description = "Run the tests"
