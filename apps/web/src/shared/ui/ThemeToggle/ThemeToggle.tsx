@@ -10,7 +10,11 @@ import {
   THEME_TOGGLE_OPTIONS,
   ThemeToggleVariant,
 } from '@/shared/ui/ThemeToggle/ThemeToggle.constants';
-import type { ThemeToggleProps } from '@/shared/ui/ThemeToggle/ThemeToggle.typedefs';
+import type {
+  ThemeToggleOption,
+  ThemeToggleProps,
+} from '@/shared/ui/ThemeToggle/ThemeToggle.typedefs';
+import { Tooltip } from '@/shared/ui/Tooltip';
 import styles from '@/shared/ui/ThemeToggle/ThemeToggle.module.scss';
 
 export function ThemeToggle({
@@ -37,6 +41,27 @@ export function ThemeToggle({
 
   const iconOnly = variant === ThemeToggleVariant.Menu;
 
+  const renderItem = (option: ThemeToggleOption) => (
+    <ToggleGroup.Item
+      key={option.value}
+      value={option.value}
+      {...THEME_TOGGLE_ITEM_ROLE_RESET}
+      aria-pressed={option.value === value}
+      aria-label={iconOnly ? labels[option.value] : undefined}
+      className={styles.option}
+    >
+      {iconOnly ? (
+        <Icon
+          name={option.icon}
+          size={THEME_TOGGLE_MENU_ICON_SIZE}
+          strokeWidth={THEME_TOGGLE_MENU_ICON_STROKE_WIDTH}
+        />
+      ) : (
+        labels[option.value]
+      )}
+    </ToggleGroup.Item>
+  );
+
   return (
     <ToggleGroup.Root
       type="single"
@@ -49,26 +74,15 @@ export function ThemeToggle({
       disabled={disabled}
       className={clsx(styles.root, styles[variant], disabled && styles.disabled, className)}
     >
-      {THEME_TOGGLE_OPTIONS.map((option) => (
-        <ToggleGroup.Item
-          key={option.value}
-          value={option.value}
-          {...THEME_TOGGLE_ITEM_ROLE_RESET}
-          aria-pressed={option.value === value}
-          aria-label={iconOnly ? labels[option.value] : undefined}
-          className={styles.option}
-        >
-          {iconOnly ? (
-            <Icon
-              name={option.icon}
-              size={THEME_TOGGLE_MENU_ICON_SIZE}
-              strokeWidth={THEME_TOGGLE_MENU_ICON_STROKE_WIDTH}
-            />
-          ) : (
-            labels[option.value]
-          )}
-        </ToggleGroup.Item>
-      ))}
+      {THEME_TOGGLE_OPTIONS.map((option) =>
+        iconOnly ? (
+          <Tooltip key={option.value} content={labels[option.value]}>
+            {renderItem(option)}
+          </Tooltip>
+        ) : (
+          renderItem(option)
+        ),
+      )}
     </ToggleGroup.Root>
   );
 }
