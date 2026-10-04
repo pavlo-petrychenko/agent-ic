@@ -1,26 +1,27 @@
 const backend = '^apps/backend/src/';
 const modules = `${backend}modules/`;
+const platform = `${backend}platform/`;
 const web = '^apps/web/src/';
 const features = `${web}features/`;
 
-const transport = '\\.(resolver|controller|processor)\\.ts$';
+const inbound = '\\.(resolver|controller|processor|listener)\\.ts$';
 const useCase = '\\.use-case\\.ts$';
 const service = '\\.service\\.ts$';
 const repository = '\\.repository\\.ts$';
+const gateway = '\\.(gateway|fake)\\.ts$';
 
-const moduleRootTransport = `${modules}[^/]+/[^/]+\\.(graphql-module|http-module|jobs-module)\\.ts$`;
 const moduleIndex = `${modules}[^/]+/index\\.ts$`;
 const featureIndex = `${features}[^/]+/index\\.ts$`;
-const featureShared = 'constants|typedefs';
+const featureShared = `${features}$1/(constants|typedefs)/`;
 const testFile = '\\.test\\.tsx?$';
 const backendTestSupport = '^apps/backend/test/';
 const appTestSupport = '^apps/[^/]+/test/';
 const appSource = '^apps/[^/]+/src/';
 const testOrStoryFile = '\\.(spec|test|stories)\\.tsx?$';
 
-const systemDb = `${backend}platform/database/services/system-database\\.service\\.ts$`;
-const systemDbAllowList = [
-  `${backend}platform/(database|outbox|queues)/`,
+const systemDatabaseService = `${platform}database/services/system-database\\.service\\.ts$`;
+const systemDatabaseAllowList = [
+  `${platform}(database|outbox|queues)/`,
   `${modules}identity/repositories/`,
   `${modules}analytics/repositories/`,
 ];
@@ -40,67 +41,69 @@ module.exports = {
       { path: appTestSupport },
     ),
     forbidden(
-      'backend-transport-uses-use-case-only',
-      { path: transport, pathNot: [`${backend}platform/`, backendTestSupport] },
-      {
-        path: [service, repository],
-      },
+      'backend-inbound-uses-use-cases-only',
+      { path: inbound, pathNot: [platform, backendTestSupport] },
+      { path: [service, repository, gateway] },
     ),
-    forbidden('backend-no-use-case-to-use-case', { path: useCase }, { path: useCase }),
-    forbidden('backend-use-case-not-up', { path: useCase }, { path: transport }),
-    forbidden('backend-service-not-up', { path: service }, { path: [useCase, transport] }),
+    forbidden(
+      'backend-no-use-case-to-use-case',
+      { path: useCase, pathNot: backendTestSupport },
+      { path: useCase },
+    ),
+    forbidden(
+      'backend-use-case-not-up',
+      { path: useCase, pathNot: backendTestSupport },
+      { path: inbound },
+    ),
+    forbidden(
+      'backend-service-not-up',
+      { path: service, pathNot: backendTestSupport },
+      { path: [useCase, inbound] },
+    ),
     forbidden(
       'backend-repository-not-up',
-      { path: repository },
-      {
-        path: [service, useCase, transport],
-      },
+      { path: repository, pathNot: backendTestSupport },
+      { path: [service, useCase, inbound] },
     ),
     forbidden(
       'backend-cross-module-through-index',
       { path: `${modules}([^/]+)/` },
-      {
-        path: `${modules}[^/]+/`,
-        pathNot: [`${modules}$1/`, moduleIndex],
-      },
+      { path: `${modules}[^/]+/`, pathNot: [`${modules}$1/`, moduleIndex] },
     ),
     forbidden(
       'backend-module-internals-private',
-      { path: backend, pathNot: [modules, `${backend}platform/`] },
-      {
-        path: `${modules}[^/]+/`,
-        pathNot: [moduleIndex, moduleRootTransport],
-      },
+      { path: backend, pathNot: [modules, platform] },
+      { path: `${modules}[^/]+/`, pathNot: moduleIndex },
     ),
     forbidden(
       'backend-platform-never-imports-modules',
-      { path: `${backend}platform/` },
+      { path: platform },
       { path: `${backend}(modules|app)/` },
     ),
     forbidden(
-      'backend-system-db-allow-list',
-      { path: backend, pathNot: [systemDb, ...systemDbAllowList] },
-      { path: systemDb },
+      'backend-system-database-allow-list',
+      { path: backend, pathNot: [systemDatabaseService, ...systemDatabaseAllowList] },
+      { path: systemDatabaseService },
     ),
     forbidden(
       'web-communication-layer',
       { path: `${features}([^/]+)/communication/` },
-      { path: `${features}$1/`, pathNot: `${features}$1/(communication|${featureShared})/` },
+      { path: `${features}$1/`, pathNot: [`${features}$1/communication/`, featureShared] },
     ),
     forbidden(
       'web-logic-layer',
       { path: `${features}([^/]+)/logic/` },
-      { path: `${features}$1/`, pathNot: `${features}$1/(logic|storage|${featureShared})/` },
+      { path: `${features}$1/`, pathNot: [`${features}$1/(logic|storage)/`, featureShared] },
     ),
     forbidden(
       'web-storage-layer',
       { path: `${features}([^/]+)/storage/` },
-      { path: `${features}$1/`, pathNot: `${features}$1/(storage|${featureShared})/` },
+      { path: `${features}$1/`, pathNot: [`${features}$1/storage/`, featureShared] },
     ),
     forbidden(
       'web-view-layer',
       { path: `${features}([^/]+)/view/` },
-      { path: `${features}$1/`, pathNot: `${features}$1/(view|storage|${featureShared})/` },
+      { path: `${features}$1/`, pathNot: [`${features}$1/(view|storage)/`, featureShared] },
     ),
     forbidden(
       'web-view-shared-ui-only',
@@ -112,7 +115,7 @@ module.exports = {
       { path: `${features}([^/]+)/containers/` },
       {
         path: `${features}$1/`,
-        pathNot: `${features}$1/(communication|logic|storage|view|containers|${featureShared})/`,
+        pathNot: [`${features}$1/(communication|logic|storage|view|containers)/`, featureShared],
       },
     ),
     forbidden(
@@ -125,13 +128,7 @@ module.exports = {
       { path: web, pathNot: features },
       { path: `${features}[^/]+/`, pathNot: featureIndex },
     ),
-    forbidden(
-      'web-shared-never-imports-features',
-      { path: `${web}shared/` },
-      {
-        path: features,
-      },
-    ),
+    forbidden('web-shared-never-imports-features', { path: `${web}shared/` }, { path: features }),
     forbidden(
       'web-radix-only-in-shared-ui',
       { path: web, pathNot: `${web}shared/ui/` },
@@ -140,10 +137,7 @@ module.exports = {
     forbidden(
       'apps-never-import-each-other',
       { path: '^apps/([^/]+)/' },
-      {
-        path: '^apps/[^/]+/',
-        pathNot: '^apps/$1/',
-      },
+      { path: '^apps/[^/]+/', pathNot: '^apps/$1/' },
     ),
     forbidden('packages-never-import-apps', { path: '^packages/' }, { path: '^apps/' }),
   ],

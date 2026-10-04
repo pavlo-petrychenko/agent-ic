@@ -112,6 +112,33 @@ To choose ports yourself, edit `.env`. Run `tools/dev/ports.sh` again after you 
 - `packages/oxc-config` shared oxlint and oxfmt configs
 - `compose.yaml` and `deploy/docker` the local stack
 
+## Project structure
+
+Code is organised by kind: a file lives at `<area>/<kind folder>/<topic>.<kind>.ts`, and the root of a module or feature holds only its public surface.
+
+```
+apps/backend/src/
+├── main.ts                     resolveCommand(process.argv).execute()
+├── app/                        AppModule.forRole, commands (serve, migrate, print-schema)
+├── platform/<name>/            infrastructure used by 2+ modules (database, queues, config, ...)
+└── modules/system/
+    ├── system.module.ts        defineModule({ providers, resolvers, ... })
+    ├── index.ts                what other modules may use
+    ├── graphql/  resolvers/  use-cases/  services/  repositories/
+    └── jobs/  events/  errors/  typedefs/  constants/  helpers/
+
+apps/web/src/
+├── app/  routes/  shared/
+└── features/status/
+    ├── index.ts
+    ├── communication/          gql/, hooks/, helpers/, fixtures/
+    ├── logic/                  hooks/, helpers/
+    ├── view/  containers/      component folders
+    └── constants/  typedefs/
+```
+
+`pnpm check:structure` rejects a folder or file suffix that is not allowed. The full rules and the reason for every folder are in [docs/rules/structure.md](docs/rules/structure.md).
+
 ## Scripts
 
 ```
