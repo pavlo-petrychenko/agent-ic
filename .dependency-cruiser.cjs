@@ -22,7 +22,7 @@ const testOrStoryFile = '\\.(spec|test|stories)\\.tsx?$';
 const systemDatabaseService = `${platform}database/services/system-database\\.service\\.ts$`;
 const systemDatabaseAllowList = [
   `${platform}(database|outbox|queues)/`,
-  `${modules}identity/repositories/`,
+  `${modules}identity/repositories/membership-directory\\.repository\\.ts$`,
   `${modules}analytics/repositories/`,
 ];
 
@@ -63,7 +63,7 @@ module.exports = {
     forbidden(
       'backend-repository-not-up',
       { path: repository, pathNot: backendTestSupport },
-      { path: [service, useCase, inbound] },
+      { path: [service, useCase, inbound], pathNot: systemDatabaseService },
     ),
     forbidden(
       'backend-cross-module-through-index',

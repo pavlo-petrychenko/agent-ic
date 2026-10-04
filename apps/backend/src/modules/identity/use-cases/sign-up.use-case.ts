@@ -6,9 +6,12 @@ import { emailConfirmationRequestedEvent } from '@/modules/identity/events/email
 import { parseAccountInput } from '@/modules/identity/helpers/account-input.helpers';
 import { hashPassword } from '@/modules/identity/helpers/password.helpers';
 import { clientSubject } from '@/modules/identity/helpers/rate-limit.helpers';
+import { parseWorkspaceInput } from '@/modules/identity/helpers/workspace-input.helpers';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { signUpInputSchema } from '@/modules/identity/schemas/account-input.schema';
+import { optionalInviteTokenSchema } from '@/modules/identity/schemas/workspace-input.schema';
 import { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
+import { InviteLinksService } from '@/modules/identity/services/invite-links.service';
 import type { SignUpInput, SignUpResult } from '@/modules/identity/typedefs/account.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -25,6 +28,7 @@ export class SignUpUseCase {
     private readonly rateLimits: RateLimitService,
     private readonly users: UsersRepository,
     private readonly confirmations: EmailConfirmationsService,
+    private readonly invites: InviteLinksService,
     private readonly domainEvents: DomainEventsService,
     private readonly secureTokens: SecureTokenService,
     private readonly clock: ClockService,
@@ -34,6 +38,8 @@ export class SignUpUseCase {
   async execute(ctx: UseCaseCtx, input: SignUpInput): Promise<SignUpResult> {
     await this.rateLimits.enforce(SIGN_UP_RATE_LIMIT, clientSubject(ctx));
     const data = parseAccountInput(signUpInputSchema, input);
+    const inviteToken = parseWorkspaceInput(optionalInviteTokenSchema, input.inviteToken) ?? null;
+    const invite = inviteToken === null ? null : await this.invites.findUsable(inviteToken);
     const passwordHash = await hashPassword(data.password);
     const browserBinding = this.secureTokens.generate();
     return this.txHost.withTransaction(async () => {
@@ -44,6 +50,7 @@ export class SignUpUseCase {
         name: data.name,
         passwordHash,
         locale: data.locale,
+        pendingInviteLinkId: invite?.id ?? null,
         confirmationBindingHash: browserBinding.hash,
         createdAt: now,
         updatedAt: now,

@@ -53,6 +53,7 @@ export type LangfuseConfig = LangfuseDisabledConfig | LangfuseActiveConfig;
 
 export interface AuthConfig {
   readonly accessTokenSecret: string;
+  readonly inviteTokenSecret: string;
 }
 
 export interface SmtpCredentials {

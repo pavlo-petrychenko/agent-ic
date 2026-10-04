@@ -63,6 +63,7 @@ secrets:
     keys:
       JWT_ACCESS_SECRET: jwtAccessSecret
       JWT_REFRESH_SECRET: jwtRefreshSecret
+      INVITE_TOKEN_SECRET: inviteTokenSecret
       SECRET_BOX_KEY: secretBoxKey
   langfuse:
     name: app-langfuse

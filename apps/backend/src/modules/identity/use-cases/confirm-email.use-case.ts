@@ -10,6 +10,7 @@ import { EmailTokensRepository } from '@/modules/identity/repositories/email-tok
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { confirmEmailInputSchema } from '@/modules/identity/schemas/account-input.schema';
 import { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
+import { InviteLinksService } from '@/modules/identity/services/invite-links.service';
 import { SessionsService } from '@/modules/identity/services/sessions.service';
 import type { ConfirmEmailInput } from '@/modules/identity/typedefs/account.typedefs';
 import type { IssuedSession } from '@/modules/identity/typedefs/session.typedefs';
@@ -25,6 +26,7 @@ export class ConfirmEmailUseCase {
     private readonly emailTokens: EmailTokensRepository,
     private readonly users: UsersRepository,
     private readonly sessions: SessionsService,
+    private readonly invites: InviteLinksService,
     private readonly clock: ClockService,
   ) {}
 
@@ -54,6 +56,7 @@ export class ConfirmEmailUseCase {
       }
       await this.users.markEmailConfirmed(user.id, now);
       await this.users.touchLastActive(user.id, now);
+      await this.invites.completePending(user.id);
       return this.sessions.start(user.id);
     });
   }

@@ -353,12 +353,20 @@
         "keys": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET", "SECRET_BOX_KEY"],
+          "required": [
+            "JWT_ACCESS_SECRET",
+            "JWT_REFRESH_SECRET",
+            "INVITE_TOKEN_SECRET",
+            "SECRET_BOX_KEY"
+          ],
           "properties": {
             "JWT_ACCESS_SECRET": {
               "$ref": "#/definitions/nonEmptyString"
             },
             "JWT_REFRESH_SECRET": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "INVITE_TOKEN_SECRET": {
               "$ref": "#/definitions/nonEmptyString"
             },
             "SECRET_BOX_KEY": {

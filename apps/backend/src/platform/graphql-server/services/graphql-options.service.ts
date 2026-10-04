@@ -87,6 +87,7 @@ export class GraphqlOptionsService implements GqlOptionsFactory<ApolloDriverConf
     return {
       authorization: readConnectionParam(context.connectionParams, ConnectionParam.Authorization),
       acceptLanguage: context.extra.request.headers[HttpHeader.AcceptLanguage] ?? null,
+      workspaceId: readConnectionParam(context.connectionParams, ConnectionParam.WorkspaceId),
       traceId: this.traceIds.current(),
       clientIp: clientAddressOf(context.extra.request),
     };

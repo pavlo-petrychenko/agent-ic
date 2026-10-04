@@ -3,6 +3,7 @@ export interface SignUpInput {
   readonly email: string;
   readonly password: string;
   readonly locale: string;
+  readonly inviteToken?: string | null;
 }
 
 export interface SignUpResult {
