@@ -315,7 +315,7 @@ services:
 
   web:
     <<: *dev
-    command: [pnpm, --filter, web, dev]
+    command: [sh, -c, 'pnpm codegen && pnpm --filter web dev']
     environment:
       NODE_ENV: ${NODE_ENV}
       PUBLIC_URL: ${PUBLIC_URL}

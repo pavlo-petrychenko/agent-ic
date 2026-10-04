@@ -1,0 +1,20 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.label {
+  color: var(--color-ink);
+  font: var(--type-title);
+}
+
+.hint {
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.error {
+  color: var(--color-err);
+  font: var(--type-caption);
+}

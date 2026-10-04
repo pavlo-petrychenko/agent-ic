@@ -24,6 +24,17 @@
       "inputs": ["src/**/*.graphql", "package.json"],
       "outputs": ["$TURBO_ROOT$/packages/api-schema/schema.graphql"]
     },
+    "web#codegen": {
+      "dependsOn": ["backend#schema:print"],
+      "inputs": [
+        "src/**/*.graphql",
+        "src/routes/**",
+        "codegen.config.ts",
+        "package.json",
+        "$TURBO_ROOT$/packages/api-schema/schema.graphql"
+      ],
+      "outputs": ["src/**/*.generated.ts", "src/routeTree.gen.ts"]
+    },
     "dev": {
       "cache": false,
       "persistent": true
@@ -52,6 +63,36 @@
     },
     "lint": {
       "inputs": ["src/**", "package.json"]
+    },
+    "web#build": {
+      "dependsOn": ["^build", "codegen"],
+      "inputs": [
+        "src/**",
+        "public/**",
+        "index.html",
+        "vite.config.ts",
+        "vite.resolve.ts",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "outputs": ["dist/**"]
+    },
+    "web#test": {
+      "dependsOn": ["codegen"],
+      "inputs": ["src/**", "vitest.config.ts", "vite.resolve.ts", "package.json"]
+    },
+    "web#storybook:build": {
+      "dependsOn": ["^build", "codegen"],
+      "inputs": [
+        "src/**",
+        ".storybook/**",
+        "public/**",
+        "vite.config.ts",
+        "vite.resolve.ts",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "outputs": ["storybook-static/**"]
     }
   }
 }

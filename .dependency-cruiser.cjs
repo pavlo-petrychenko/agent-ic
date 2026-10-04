@@ -11,6 +11,7 @@ const repository = '\\.repository\\.ts$';
 const moduleRootTransport = `${modules}[^/]+/[^/]+\\.(graphql-module|http-module|jobs-module)\\.ts$`;
 const moduleIndex = `${modules}[^/]+/index\\.ts$`;
 const featureIndex = `${features}[^/]+/index\\.ts$`;
+const testFile = '\\.test\\.tsx?$';
 
 const systemDb = `${backend}platform/db/system-db\\.ts$`;
 const systemDbAllowList = [
@@ -93,7 +94,7 @@ module.exports = {
     ),
     forbidden(
       'web-view-shared-ui-only',
-      { path: `${features}[^/]+/view/` },
+      { path: `${features}[^/]+/view/`, pathNot: testFile },
       { path: `${web}shared/`, pathNot: `${web}shared/ui/` },
     ),
     forbidden(

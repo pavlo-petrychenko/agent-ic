@@ -27,7 +27,7 @@ Example: `identity` exposes `SessionsService` and `UsersRepository` through `mod
    - `containers` import their own feature's `communication`, `logic`, `storage` and `view`.
    - `communication` imports `shared` and its own `communication` files only.
    - `logic` imports `shared`, `logic` and `storage`.
-   - `view` imports `view`, `storage` and `shared/ui`.
+   - `view` imports `view`, `storage` and `shared/ui`. Test files are exempt, so view tests may use the shared test helpers.
    - `storage` imports nothing in the feature.
 2. **Another feature only through its `index.ts`.** `shared/` never imports a feature.
 3. **Radix only inside `shared/ui`.**

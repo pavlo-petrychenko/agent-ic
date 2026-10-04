@@ -1,0 +1,1 @@
+export const SERVER_STATUS_POLL_INTERVAL_MS = 15_000;

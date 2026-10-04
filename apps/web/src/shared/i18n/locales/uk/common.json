@@ -1,0 +1,54 @@
+{
+  "app": {
+    "name": "agent-ic"
+  },
+  "locale": {
+    "label": "Мова",
+    "en": "English",
+    "uk": "Українська"
+  },
+  "status": {
+    "title": "Стан системи",
+    "description": "Що бекенд повідомляє про себе.",
+    "version": "Версія бекенду",
+    "uptime": "Час роботи",
+    "loading": "Перевіряємо бекенд...",
+    "retry": "Спробувати знову",
+    "duration": {
+      "day_one": "{{count}} день",
+      "day_few": "{{count}} дні",
+      "day_many": "{{count}} днів",
+      "day_other": "{{count}} дня",
+      "hour_one": "{{count}} година",
+      "hour_few": "{{count}} години",
+      "hour_many": "{{count}} годин",
+      "hour_other": "{{count}} години",
+      "minute_one": "{{count}} хвилина",
+      "minute_few": "{{count}} хвилини",
+      "minute_many": "{{count}} хвилин",
+      "minute_other": "{{count}} хвилини",
+      "second_one": "{{count}} секунда",
+      "second_few": "{{count}} секунди",
+      "second_many": "{{count}} секунд",
+      "second_other": "{{count}} секунди"
+    }
+  },
+  "workspace": {
+    "label": "Робочий простір",
+    "home": "Стан"
+  },
+  "notFound": {
+    "title": "Сторінку не знайдено",
+    "action": "Назад до стану системи"
+  },
+  "startup": {
+    "title": "Застосунок не вдалося запустити",
+    "description": "Не вдалося завантажити конфігурацію. Оновіть сторінку або зверніться до підтримки, якщо це повторюється.",
+    "action": "Оновити"
+  },
+  "ui": {
+    "close": "Закрити",
+    "showPassword": "Показати",
+    "hidePassword": "Сховати"
+  }
+}

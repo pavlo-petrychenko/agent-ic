@@ -1,0 +1,32 @@
+{
+  "reason": {
+    "INTERNAL": "Something went wrong on our side.",
+    "UPSTREAM_FAILED": "An external service is not responding. Try again in a moment.",
+    "INVALID_REQUEST": "The request is not valid.",
+    "ROUTE_NOT_FOUND": "This address does not exist.",
+    "INVALID_ACCESS_TOKEN": "Your session is not valid. Sign in again.",
+    "INVALID_ID": "The identifier is not valid.",
+    "INVALID_CURSOR": "The page position is not valid.",
+    "INVALID_PAGE_SIZE": "The page size is not allowed.",
+    "RATE_LIMITED": "You are doing this too often. Try again in a moment.",
+    "PLATFORM_ADMIN_REQUIRED": "This action is available to platform administrators only."
+  },
+  "code": {
+    "NOT_FOUND": "We could not find what you asked for.",
+    "FORBIDDEN": "You do not have access to this.",
+    "UNAUTHENTICATED": "Sign in to continue.",
+    "CONFLICT": "This conflicts with the current state. Reload and try again.",
+    "PRECONDITION_FAILED": "The data changed in the meantime. Reload and try again.",
+    "BAD_USER_INPUT": "Check the highlighted fields.",
+    "LIMIT_REACHED": "You have reached a limit. Try again later.",
+    "UPSTREAM_ERROR": "An external service is not responding. Try again in a moment.",
+    "INTERNAL": "Something went wrong on our side.",
+    "NETWORK": "The server cannot be reached. Check your connection.",
+    "UNKNOWN": "Something went wrong."
+  },
+  "traceReference": "Reference: {{traceId}}",
+  "boundary": {
+    "title": "Something went wrong",
+    "action": "Try again"
+  }
+}

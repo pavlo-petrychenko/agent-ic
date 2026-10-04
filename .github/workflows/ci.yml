@@ -37,5 +37,7 @@ jobs:
       - run: pnpm exec turbo run typecheck --affected
       - run: pnpm typecheck:tools
       - run: pnpm exec turbo run build --affected
+      - run: pnpm exec turbo run build --filter=web
+      - run: pnpm exec turbo run storybook:build --filter=web
       - run: pnpm --filter backend db:check
       - run: pnpm exec turbo run test --affected

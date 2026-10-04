@@ -42,7 +42,8 @@
         "**/*.config.cjs",
         "**/*.config.mjs",
         "**/routes/**",
-        "**/*.stories.tsx"
+        "**/*.stories.tsx",
+        "**/.storybook/*"
       ],
       "rules": {
         "import/no-default-export": "off"

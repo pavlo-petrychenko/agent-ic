@@ -1,0 +1,46 @@
+{
+  "app": {
+    "name": "agent-ic"
+  },
+  "locale": {
+    "label": "Language",
+    "en": "English",
+    "uk": "Українська"
+  },
+  "status": {
+    "title": "System status",
+    "description": "What the backend reports about itself.",
+    "version": "Backend version",
+    "uptime": "Uptime",
+    "loading": "Checking the backend...",
+    "retry": "Try again",
+    "duration": {
+      "day_one": "{{count}} day",
+      "day_other": "{{count}} days",
+      "hour_one": "{{count}} hour",
+      "hour_other": "{{count}} hours",
+      "minute_one": "{{count}} minute",
+      "minute_other": "{{count}} minutes",
+      "second_one": "{{count}} second",
+      "second_other": "{{count}} seconds"
+    }
+  },
+  "workspace": {
+    "label": "Workspace",
+    "home": "Status"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "action": "Back to the status page"
+  },
+  "startup": {
+    "title": "The app could not start",
+    "description": "The configuration could not be loaded. Reload the page, or contact support if it keeps happening.",
+    "action": "Reload"
+  },
+  "ui": {
+    "close": "Close",
+    "showPassword": "Show",
+    "hidePassword": "Hide"
+  }
+}
