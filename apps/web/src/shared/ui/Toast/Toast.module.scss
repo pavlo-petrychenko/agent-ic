@@ -4,7 +4,7 @@ $reduced-motion-duration: 120ms;
 .viewport {
   position: fixed;
   bottom: var(--space-16);
-  left: 50%;
+  left: var(--space-16);
   z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
@@ -14,14 +14,13 @@ $reduced-motion-duration: 120ms;
   margin: 0;
   padding: 0;
   list-style: none;
-  transform: translateX(-50%);
 }
 
 .root {
   display: flex;
   align-items: center;
   gap: var(--space-10);
-  padding: var(--space-9) var(--space-12);
+  padding: var(--space-10) var(--space-12);
   border: var(--border-width) solid var(--color-line);
   border-radius: var(--radius-10);
   background: var(--color-card);
@@ -58,7 +57,7 @@ $reduced-motion-duration: 120ms;
 }
 
 .ok .icon {
-  color: var(--color-ok);
+  color: var(--color-ok-dot);
 }
 
 .err .icon {
@@ -70,7 +69,7 @@ $reduced-motion-duration: 120ms;
   min-width: 0;
   margin: 0;
   color: var(--color-ink);
-  font: var(--type-body-small);
+  font: var(--type-body);
 }
 
 @keyframes enter {

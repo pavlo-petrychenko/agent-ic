@@ -7,21 +7,35 @@ import { IconButton, IconButtonSize } from '@/shared/ui/IconButton';
 import {
   TOAST_DURATION_MS,
   TOAST_ICON_SIZE,
+  TOAST_MAX_VISIBLE,
   TOAST_PERSISTENT_DURATION_MS,
   TOAST_SWIPE_DIRECTION,
   TOAST_TONE_ICONS,
   TOAST_TONE_ROLES,
+  TOAST_WITH_ACTION_DURATION_MS,
   ToastTone,
 } from '@/shared/ui/Toast/Toast.constants';
 import { ToastContext } from '@/shared/ui/Toast/toast.context';
-import type { ToastItem, ToastOptions, ToastProviderProps } from '@/shared/ui/Toast/Toast.typedefs';
+import type {
+  ToastAction,
+  ToastItem,
+  ToastOptions,
+  ToastProviderProps,
+} from '@/shared/ui/Toast/Toast.typedefs';
 import styles from '@/shared/ui/Toast/Toast.module.scss';
 
-function resolveDuration(tone: ToastTone, durationMs: number | null): number {
+function resolveDuration(
+  tone: ToastTone,
+  action: ToastAction | null,
+  durationMs: number | null,
+): number {
   if (durationMs !== null) {
     return durationMs;
   }
-  return tone === ToastTone.Err ? TOAST_PERSISTENT_DURATION_MS : TOAST_DURATION_MS;
+  if (tone === ToastTone.Err) {
+    return TOAST_PERSISTENT_DURATION_MS;
+  }
+  return action === null ? TOAST_DURATION_MS : TOAST_WITH_ACTION_DURATION_MS;
 }
 
 export function ToastProvider({ closeLabel, children }: ToastProviderProps) {
@@ -36,9 +50,9 @@ export function ToastProvider({ closeLabel, children }: ToastProviderProps) {
         message,
         tone,
         action,
-        durationMs: resolveDuration(tone, durationMs),
+        durationMs: resolveDuration(tone, action, durationMs),
       };
-      setItems((current) => [...current, item]);
+      setItems((current) => [item, ...current].slice(0, TOAST_MAX_VISIBLE));
     },
     [],
   );
