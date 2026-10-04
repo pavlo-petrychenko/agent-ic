@@ -35,12 +35,12 @@ migrations/              SQL migrations written by drizzle-kit, committed, never
 
 ## Request layer
 
-- GraphQL is schema-first on `api` at `/api/graphql` (HTTP) and the same path over `graphql-ws`. Each module's SDL is `modules/<m>/<m>.graphql`; `platform/graphql` loads them all.
-- `pnpm codegen` (or `mise run codegen`) writes `src/platform/graphql/schema.generated.ts` (resolver types, gitignored) and `packages/api-schema/schema.graphql` (the merged schema, gitignored). `typecheck` runs codegen first.
+- GraphQL is schema-first on `api` at `/api/graphql` (HTTP) and the same path over `graphql-ws`. Each module's SDL is `modules/<m>/graphql/<m>.graphql`; `platform/graphql-server` loads them all.
+- `pnpm codegen` (or `mise run codegen`) writes `src/platform/graphql-server/generated/schema.generated.ts` (resolver types, gitignored) and `packages/api-schema/schema.graphql` (the merged schema, gitignored). `typecheck` runs codegen first.
 - A resolver takes `@GraphqlCtx() ctx: UseCaseCtx` and returns the generated type. The app refuses to boot when a root field has no resolver.
 - `UseCaseCtx` (`platform/context`) holds the actor (`user`, `api-channel`, `system`, `anonymous`), `workspaceId`, `traceId` and `locale`. HTTP reads `Authorization: Bearer …`; WebSocket reads `authorization` from `connection_init`, and an invalid token closes the socket with 4403. Until auth exists, `DenyAllAuthenticator` rejects every token.
 - Errors: a `DomainError` maps to GraphQL `extensions` (`code`, `reason`, `traceId`, `fields`), to RFC 9457 `application/problem+json` on REST under `/api/*`, and to retry or give-up in jobs (`JobErrorMapper`). `UpstreamError` is a failed external call. Anything else is `INTERNAL` with no detail.
-- Relay pagination: `platform/graphql/relay` (`toPageRequest`, `toConnection`, opaque cursors, page-size limits).
+- Relay pagination: `platform/graphql-server/helpers/relay.helpers.ts` (`toPageRequest`, `toConnection`, opaque cursors, page-size limits).
 
 ## Async, Redis and security helpers
 

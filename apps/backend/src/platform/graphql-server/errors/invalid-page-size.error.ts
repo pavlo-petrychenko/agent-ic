@@ -5,7 +5,7 @@ import {
   INVALID_PAGE_SIZE_MESSAGE,
   PAGE_SIZE_MAX,
   PAGE_SIZE_MIN,
-} from '@/platform/graphql/relay/relay.constants';
+} from '@/platform/graphql-server/constants/relay.constants';
 
 export class InvalidPageSizeError extends DomainError {
   readonly kind = DomainErrorKind.ValidationFailed;

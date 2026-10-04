@@ -2,12 +2,11 @@ import type { Request } from 'express';
 import type { Context } from 'graphql-ws';
 import type { Extra } from 'graphql-ws/use/ws';
 import type { UseCaseCtx } from '@/platform/context/use-case-ctx';
+import type { ConnectionParams } from '@/platform/graphql-server/typedefs/connection-param.typedefs';
 
 export interface GraphqlContext {
   readonly ctx: UseCaseCtx;
 }
-
-export type ConnectionParams = Readonly<Record<string, unknown>> | undefined;
 
 export interface HttpContextInput {
   readonly req: Request;

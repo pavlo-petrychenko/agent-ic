@@ -10,18 +10,20 @@ import { UseCaseCtxFactory } from '@/platform/context/use-case-ctx.factory';
 import { DomainError } from '@/platform/errors/domain.error';
 import { ErrorReporter } from '@/platform/errors/error.reporter';
 import { GraphqlErrorMapper } from '@/platform/errors/graphql-error.mapper';
-import { ConnectionParam, GRAPHQL_PATH } from '@/platform/graphql/graphql.constants';
-import { moduleTypePaths, readConnectionParam } from '@/platform/graphql/graphql.helpers';
+import { ConnectionParam } from '@/platform/graphql-server/constants/connection-param.constants';
+import { GRAPHQL_PATH } from '@/platform/graphql-server/constants/graphql-server.constants';
+import { readConnectionParam } from '@/platform/graphql-server/helpers/connection-param.helpers';
+import { moduleTypePaths } from '@/platform/graphql-server/helpers/module-sdl.helpers';
 import type {
   GraphqlContext,
   GraphqlContextInput,
   WebSocketConnectionInput,
   WebSocketContextInput,
-} from '@/platform/graphql/graphql.typedefs';
+} from '@/platform/graphql-server/typedefs/graphql-context.typedefs';
 import { HttpHeader } from '@/platform/http/http.constants';
 
 @Injectable()
-export class GraphqlOptionsFactory implements GqlOptionsFactory<ApolloDriverConfig> {
+export class GraphqlOptionsService implements GqlOptionsFactory<ApolloDriverConfig> {
   constructor(
     private readonly config: ConfigService,
     private readonly contexts: UseCaseCtxFactory,

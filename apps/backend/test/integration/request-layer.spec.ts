@@ -5,8 +5,8 @@ import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
 import { EnvVar } from '@/platform/config/config.constants';
 import { PROBLEM_CONTENT_TYPE } from '@/platform/errors/errors.constants';
-import { ConnectionParam } from '@/platform/graphql/graphql.constants';
-import { UnboundResolverError } from '@/platform/graphql/unbound-resolver.error';
+import { ConnectionParam } from '@/platform/graphql-server/constants/connection-param.constants';
+import { UnboundResolverError } from '@/platform/graphql-server/errors/unbound-resolver.error';
 import { HttpHeader } from '@/platform/http/http.constants';
 import {
   EPHEMERAL_PORT,

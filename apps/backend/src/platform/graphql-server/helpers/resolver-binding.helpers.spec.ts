@@ -1,6 +1,6 @@
 import { buildSchema } from 'graphql';
 import { describe, expect, it } from 'vitest';
-import { findUnboundRootFields } from '@/platform/graphql/graphql.helpers';
+import { findUnboundRootFields } from '@/platform/graphql-server/helpers/resolver-binding.helpers';
 
 const SDL = `
   type Query { bound: Int, unbound: Int }

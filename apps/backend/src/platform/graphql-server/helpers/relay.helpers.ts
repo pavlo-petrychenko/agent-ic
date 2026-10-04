@@ -1,5 +1,3 @@
-import { InvalidCursorError } from '@/platform/graphql/relay/invalid-cursor.error';
-import { InvalidPageSizeError } from '@/platform/graphql/relay/invalid-page-size.error';
 import {
   CURSOR_ENCODING,
   CURSOR_PREFIX,
@@ -8,12 +6,14 @@ import {
   PAGE_SIZE_DEFAULT,
   PAGE_SIZE_MAX,
   PAGE_SIZE_MIN,
-} from '@/platform/graphql/relay/relay.constants';
+} from '@/platform/graphql-server/constants/relay.constants';
+import { InvalidCursorError } from '@/platform/graphql-server/errors/invalid-cursor.error';
+import { InvalidPageSizeError } from '@/platform/graphql-server/errors/invalid-page-size.error';
 import type {
   Connection,
   ConnectionArgs,
   PageRequest,
-} from '@/platform/graphql/relay/relay.typedefs';
+} from '@/platform/graphql-server/typedefs/relay.typedefs';
 import { UUID_PATTERN } from '@/platform/ids/ids.constants';
 
 export const encodeCursor = (id: string): string =>

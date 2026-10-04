@@ -8,7 +8,7 @@ import { ErrorReporter } from '@/platform/errors/error.reporter';
 import { PROBLEM_CONTENT_TYPE, TransportType } from '@/platform/errors/errors.constants';
 import { GraphqlErrorMapper } from '@/platform/errors/graphql-error.mapper';
 import { ProblemDetailsMapper } from '@/platform/errors/problem-details.mapper';
-import type { GraphqlContext } from '@/platform/graphql/graphql.typedefs';
+import type { GraphqlContext } from '@/platform/graphql-server/typedefs/graphql-context.typedefs';
 
 @Catch()
 export class TransportExceptionFilter implements ExceptionFilter {

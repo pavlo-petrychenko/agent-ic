@@ -6,7 +6,7 @@ import WebSocket from 'ws';
 import { ApplicationFactory } from '@/entrypoints/application.factory';
 import { CliOption } from '@/platform/config/config.constants';
 import { ConfigLoader } from '@/platform/config/config.loader';
-import { GRAPHQL_PATH } from '@/platform/graphql/graphql.constants';
+import { GRAPHQL_PATH } from '@/platform/graphql-server/constants/graphql-server.constants';
 import { GlobalPrefix } from '@/platform/http/http.constants';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { TracingService } from '@/platform/observability/tracing/tracing.service';

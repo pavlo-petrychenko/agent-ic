@@ -1,7 +1,7 @@
 import {
   UNBOUND_FIELDS_SEPARATOR,
   UNBOUND_RESOLVER_MESSAGE,
-} from '@/platform/graphql/graphql.constants';
+} from '@/platform/graphql-server/constants/resolver-binding.constants';
 
 export class UnboundResolverError extends Error {
   constructor(readonly fields: readonly string[]) {
