@@ -4,5 +4,7 @@ export enum HttpHeader {
   ContentType = 'content-type',
   Cookie = 'cookie',
   SetCookie = 'set-cookie',
+  Origin = 'origin',
+  SecFetchSite = 'sec-fetch-site',
   PlatformAdminRoute = 'x-agent-ic-admin-route',
 }

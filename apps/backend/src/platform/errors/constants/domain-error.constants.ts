@@ -8,6 +8,7 @@ export enum DomainErrorKind {
   ValidationFailed = 'validation-failed',
   LimitReached = 'limit-reached',
   PreconditionFailed = 'precondition-failed',
+  UnsupportedMediaType = 'unsupported-media-type',
 }
 
 export enum LimitScope {
@@ -23,4 +24,5 @@ export const ERROR_CODE_BY_KIND: Readonly<Record<DomainErrorKind, ErrorCode>> = 
   [DomainErrorKind.ValidationFailed]: ErrorCode.BadUserInput,
   [DomainErrorKind.LimitReached]: ErrorCode.LimitReached,
   [DomainErrorKind.PreconditionFailed]: ErrorCode.PreconditionFailed,
+  [DomainErrorKind.UnsupportedMediaType]: ErrorCode.BadUserInput,
 };

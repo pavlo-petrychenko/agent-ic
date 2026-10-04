@@ -1,6 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthRoute } from '@/modules/identity/constants/auth-http.constants';
+import { AuthRequestGuard } from '@/modules/identity/guards/auth-request.guard';
 import {
   endBrowserSession,
   readRefreshCookie,
@@ -20,7 +21,7 @@ import { UseCaseCtxGuard } from '@/platform/context/guards/use-case-ctx.guard';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 
 @Controller(AuthRoute.Base)
-@UseGuards(UseCaseCtxGuard)
+@UseGuards(AuthRequestGuard, UseCaseCtxGuard)
 export class AuthController {
   constructor(
     private readonly loginUseCase: LoginUseCase,

@@ -4,3 +4,5 @@ export const EMAIL_NOT_CONFIRMED_MESSAGE = 'Confirm your email before you sign i
 export const INVALID_REFRESH_TOKEN_MESSAGE = 'The session has ended. Sign in again.';
 export const TOKEN_INVALID_MESSAGE = 'The link is not valid.';
 export const TOKEN_EXPIRED_MESSAGE = 'The link has expired.';
+export const CROSS_ORIGIN_REQUEST_MESSAGE = 'This request must come from the agent-ic app.';
+export const UNSUPPORTED_CONTENT_TYPE_MESSAGE = 'Send the request body as application/json.';

@@ -12,6 +12,7 @@ export const HTTP_STATUS_BY_KIND: Readonly<Record<DomainErrorKind, HttpStatus>> 
   [DomainErrorKind.ValidationFailed]: HttpStatus.UNPROCESSABLE_ENTITY,
   [DomainErrorKind.LimitReached]: HttpStatus.PAYMENT_REQUIRED,
   [DomainErrorKind.PreconditionFailed]: HttpStatus.PRECONDITION_FAILED,
+  [DomainErrorKind.UnsupportedMediaType]: HttpStatus.UNSUPPORTED_MEDIA_TYPE,
 };
 
 export const HTTP_STATUS_BY_LIMIT_SCOPE: Readonly<Record<LimitScope, HttpStatus>> = {

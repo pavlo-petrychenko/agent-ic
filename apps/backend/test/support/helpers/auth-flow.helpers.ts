@@ -1,6 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
+import type { Test as SupertestRequest } from 'supertest';
 import { AppModule } from '@/app/app.module';
 import { configureApplication } from '@/app/helpers/application.helpers';
 import { REFRESH_COOKIE_NAME } from '@/modules/identity/constants/auth-http.constants';
@@ -8,7 +9,9 @@ import type { FakeEmailGateway } from '@/modules/notifications/gateways/email.fa
 import { EmailGateway } from '@/modules/notifications/gateways/email.gateway';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import type { RoleSelection } from '@/platform/config/typedefs/app-config.typedefs';
+import { HttpHeader } from '@/platform/http/constants/http-header.constants';
 import { TracingService } from '@/platform/observability/services/tracing.service';
+import { APP_ORIGIN, JSON_CONTENT_TYPE } from '@test/support/constants/auth-flow.constants';
 import { CONFIRM_LINK_PATTERN } from '@test/support/constants/identity-testing.constants';
 import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
@@ -53,3 +56,6 @@ export const confirmationTokenIn = (text: string): string => {
   }
   return token;
 };
+
+export const fromApp = (pending: SupertestRequest): SupertestRequest =>
+  pending.set(HttpHeader.Origin, APP_ORIGIN).set(HttpHeader.ContentType, JSON_CONTENT_TYPE);

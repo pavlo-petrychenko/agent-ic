@@ -6,17 +6,17 @@ import {
   LogMessage,
   ROLE_GLOBAL_PREFIX,
   TRUST_PROXY_SETTING,
-  TRUSTED_PROXY_HOPS,
   UNPREFIXED_ROUTES,
 } from '@/app/constants/application.constants';
 import type { AppConfig } from '@/platform/config/typedefs/app-config.typedefs';
+import { TRUSTED_PROXY_RANGES } from '@/platform/http/constants/trusted-proxy.constants';
 
 export const configureApplication = (
   config: AppConfig,
   app: NestExpressApplication,
 ): NestExpressApplication => {
   app.useLogger(app.get(Logger));
-  app.set(TRUST_PROXY_SETTING, TRUSTED_PROXY_HOPS);
+  app.set(TRUST_PROXY_SETTING, [...TRUSTED_PROXY_RANGES]);
   const globalPrefix = ROLE_GLOBAL_PREFIX[config.role];
   if (globalPrefix !== null) {
     app.setGlobalPrefix(globalPrefix, { exclude: [...UNPREFIXED_ROUTES] });

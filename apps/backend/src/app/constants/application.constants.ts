@@ -15,4 +15,3 @@ export const ROLE_GLOBAL_PREFIX: Readonly<Record<Role, GlobalPrefix | null>> = {
 export const UNPREFIXED_ROUTES: readonly string[] = [MetricsRoute.Path];
 
 export const TRUST_PROXY_SETTING = 'trust proxy';
-export const TRUSTED_PROXY_HOPS = 1;

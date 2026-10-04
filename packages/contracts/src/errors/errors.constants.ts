@@ -33,4 +33,6 @@ export enum ErrorReason {
   InvalidRefreshToken = 'INVALID_REFRESH_TOKEN',
   TokenInvalid = 'TOKEN_INVALID',
   TokenExpired = 'TOKEN_EXPIRED',
+  CrossOriginRequest = 'CROSS_ORIGIN_REQUEST',
+  UnsupportedContentType = 'UNSUPPORTED_CONTENT_TYPE',
 }

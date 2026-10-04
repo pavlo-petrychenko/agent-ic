@@ -16,12 +16,14 @@
     "EMAIL_NOT_CONFIRMED": "Confirm your email before you sign in.",
     "EMAIL_TAKEN": "An account with this email already exists.",
     "INVALID_EMAIL": "Enter a valid email address.",
-    "INVALID_NAME": "Enter your name.",
+    "INVALID_NAME": "Enter your name using letters, spaces, apostrophes, hyphens or periods.",
     "PASSWORD_TOO_SHORT": "The password must have at least 10 characters.",
     "PASSWORD_TOO_LONG": "The password is too long.",
     "INVALID_REFRESH_TOKEN": "Your session has ended. Sign in again.",
     "TOKEN_INVALID": "This link is not valid.",
-    "TOKEN_EXPIRED": "This link has expired."
+    "TOKEN_EXPIRED": "This link has expired.",
+    "CROSS_ORIGIN_REQUEST": "This request must come from the agent-ic app. Reload the page and try again.",
+    "UNSUPPORTED_CONTENT_TYPE": "The request format is not supported."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",

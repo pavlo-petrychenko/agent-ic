@@ -1,8 +1,13 @@
-import { randomBytes, randomUUID } from 'node:crypto';
+import { randomBytes, randomInt, randomUUID } from 'node:crypto';
 import { Locale } from '@agent-ic/contracts';
 import type { SignUpInput } from '@/modules/identity/typedefs/account.typedefs';
 import { ActorKind, SystemReason } from '@/platform/context/constants/actor.constants';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
+import {
+  CLUSTER_POD_NETWORK,
+  IPV4_OCTET_MAX,
+  PUBLIC_CLIENT_NETWORK,
+} from '@test/support/constants/auth-flow.constants';
 import {
   IPV4_OCTETS,
   IPV4_SEPARATOR,
@@ -18,6 +23,12 @@ export const uniqueIp = (): string => `ip-${randomUUID()}`;
 
 export const randomIpAddress = (): string =>
   Array.from(randomBytes(IPV4_OCTETS)).join(IPV4_SEPARATOR);
+
+const lastOctet = (): number => randomInt(1, IPV4_OCTET_MAX + 1);
+
+export const publicIpAddress = (): string => `${PUBLIC_CLIENT_NETWORK}.${lastOctet()}`;
+
+export const clusterPodAddress = (): string => `${CLUSTER_POD_NETWORK}.${lastOctet()}`;
 
 export const signUpInput = (overrides: Partial<SignUpInput> = {}): SignUpInput => ({
   name: TEST_USER_NAME,

@@ -14,3 +14,6 @@ export const REFRESH_COOKIE_PATH = ['', GlobalPrefix.Api, AuthRoute.Base].join(U
 export const REFRESH_COOKIE_SAME_SITE = 'strict';
 export const COOKIE_PAIR_SEPARATOR = ';';
 export const COOKIE_VALUE_SEPARATOR = '=';
+export const AUTH_REQUEST_CONTENT_TYPE = 'application/json';
+export const MEDIA_TYPE_PARAMETER_SEPARATOR = ';';
+export const SAME_ORIGIN_FETCH_SITE = 'same-origin';
