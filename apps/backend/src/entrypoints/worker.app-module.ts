@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
+import { Role } from '@/platform/module-roles/constants/role.constants';
 import { ObservabilityModule } from '@/platform/observability/observability.module';
-import { JobWorkersModule } from '@/platform/queues/job-workers.module';
 
 @Module({
-  imports: [ObservabilityModule, JobWorkersModule],
+  imports: [ObservabilityModule.forRole(Role.Worker)],
 })
 export class WorkerAppModule {}

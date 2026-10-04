@@ -1,10 +1,14 @@
 import { Test } from '@nestjs/testing';
 import type { TestingModule } from '@nestjs/testing';
 import { describe, expect, it } from 'vitest';
-import { DomainEventSubscriptionRegistry } from '@/platform/domain-events/domain-event-subscription.registry';
-import { MissingDomainEventSubscriptionError } from '@/platform/domain-events/missing-domain-event-subscription.error';
+import { MissingDomainEventSubscriptionError } from '@/platform/domain-events/errors/missing-domain-event-subscription.error';
+import { DomainEventListenersService } from '@/platform/domain-events/services/domain-event-listeners.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { defineModule, isRoleModule } from '@/platform/module-roles/helpers/module-roles.helpers';
+import {
+  defineModule,
+  inEveryRole,
+  isRoleModule,
+} from '@/platform/module-roles/helpers/module-roles.helpers';
 import {
   ROLE_PROBE_DEPENDENCY_TOKEN,
   ROLE_PROBE_DEPENDENCY_VALUE,
@@ -14,7 +18,7 @@ import { FailingController } from '@test/support/controllers/failing.controller'
 import { GatewayProbeController } from '@test/support/controllers/gateway-probe.controller';
 import { probeSignedUpEvent } from '@test/support/jobs/probe-signed-up.job';
 import { welcomeOnProbeSignedUp } from '@test/support/jobs/welcome-on-probe-signed-up.job';
-import { DomainEventRegistryProbeModule } from '@test/support/modules/domain-event-registry-probe.module';
+import { DomainEventListenersProbeModule } from '@test/support/modules/domain-event-listeners-probe.module';
 import { RoleProbeDependencyModule } from '@test/support/modules/role-probe-dependency.module';
 import { RoleProbeModule } from '@test/support/modules/role-probe.module';
 import { RecordProbeProcessor } from '@test/support/processors/record-probe.processor';
@@ -84,21 +88,21 @@ describe('defineModule', () => {
     for (const role of roles) {
       expect(RoleProbeModule.forRole(role).imports).toEqual([
         RoleProbeDependencyModule.forRole(role),
-        DomainEventRegistryProbeModule,
+        DomainEventListenersProbeModule,
       ]);
     }
   });
 
   it('tells role modules from plain modules', () => {
     expect(isRoleModule(RoleProbeModule)).toBe(true);
-    expect(isRoleModule(DomainEventRegistryProbeModule)).toBe(false);
+    expect(isRoleModule(DomainEventListenersProbeModule)).toBe(false);
   });
 
   it.each(roles)('registers listener subscriptions in the %s role', async (role) => {
     const moduleRef = await bootForRole(role);
 
-    const registry = moduleRef.get(DomainEventSubscriptionRegistry, { strict: false });
-    expect(registry.subscriptionsFor(probeSignedUpEvent)).toEqual([welcomeOnProbeSignedUp]);
+    const listeners = moduleRef.get(DomainEventListenersService, { strict: false });
+    expect(listeners.subscriptionsFor(probeSignedUpEvent)).toEqual([welcomeOnProbeSignedUp]);
     expect(moduleRef.get(ROLE_PROBE_DEPENDENCY_TOKEN, { strict: false })).toBe(
       ROLE_PROBE_DEPENDENCY_VALUE,
     );
@@ -121,6 +125,28 @@ describe('defineModule', () => {
       WelcomeProbeListener,
     );
     await moduleRef.close();
+  });
+
+  it('adds role controllers only to their role', () => {
+    const module = defineModule({ roleControllers: { [Role.Worker]: [GatewayProbeController] } });
+
+    expect(module.forRole(Role.Worker).controllers).toEqual([GatewayProbeController]);
+    expect(module.forRole(Role.Api).controllers).toEqual([]);
+  });
+
+  it('mounts controllers in every role with inEveryRole', () => {
+    const module = defineModule({ roleControllers: inEveryRole([GatewayProbeController]) });
+
+    for (const role of roles) {
+      expect(module.forRole(role).controllers).toEqual([GatewayProbeController]);
+    }
+  });
+
+  it('makes the module global only when the definition asks for it', () => {
+    for (const role of roles) {
+      expect(defineModule({ global: true }).forRole(role).global).toBe(true);
+      expect(RoleProbeModule.forRole(role).global).toBe(false);
+    }
   });
 
   it('rejects a listener that is not marked with @OnDomainEvent', () => {

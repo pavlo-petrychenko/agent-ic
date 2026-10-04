@@ -6,7 +6,7 @@ import type { RoleEntrypoint } from '@/entrypoints/entrypoint.typedefs';
 import { LogMessage } from '@/entrypoints/launcher.constants';
 import { RootModule } from '@/entrypoints/root.module';
 import type { AppConfig } from '@/platform/config/config.typedefs';
-import type { TracingService } from '@/platform/observability/tracing/tracing.service';
+import type { TracingService } from '@/platform/observability/services/tracing.service';
 
 export class ApplicationFactory {
   constructor(

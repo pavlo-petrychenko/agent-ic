@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { UseCaseCtx } from '@/platform/context/use-case-ctx';
-import { OnDomainEvent } from '@/platform/domain-events/on-domain-event.decorator';
-import type { JobHandler } from '@/platform/queues/queue.typedefs';
+import { OnDomainEvent } from '@/platform/domain-events/decorators/on-domain-event.decorator';
+import type { JobHandler } from '@/platform/queues/typedefs/job.typedefs';
 import { ProbeListener } from '@test/support/constants/async-jobs.constants';
 import { welcomeOnProbeSignedUp } from '@test/support/jobs/welcome-on-probe-signed-up.job';
 import { ProbeCallsRecorderService } from '@test/support/services/probe-calls-recorder.service';

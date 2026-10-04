@@ -9,7 +9,7 @@ import { ConfigError } from '@/platform/config/config.error';
 import { ConfigLoader } from '@/platform/config/config.loader';
 import type { ConfigIssue } from '@/platform/config/config.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { QueueName } from '@/platform/queues/queue.constants';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { createArgv, cliArgument, createTestEnv } from '@test/support/fixtures/test-env.fixture';
 
 const roleArgv = (role: Role): string[] => createArgv(cliArgument(CliOption.Role, role));

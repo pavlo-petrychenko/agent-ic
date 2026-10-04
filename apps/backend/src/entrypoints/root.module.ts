@@ -10,9 +10,8 @@ import { DatabaseModule } from '@/platform/db/database.module';
 import { DomainEventsModule } from '@/platform/domain-events/domain-events.module';
 import { ErrorsModule } from '@/platform/errors/errors.module';
 import { IdsModule } from '@/platform/ids/ids.module';
-import { TracingModule } from '@/platform/observability/tracing/tracing.module';
-import type { TracingService } from '@/platform/observability/tracing/tracing.service';
-import { PubSubModule } from '@/platform/pubsub/pubsub.module';
+import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
+import { TracingService } from '@/platform/observability/services/tracing.service';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
@@ -28,21 +27,21 @@ export class RootModule {
       module: RootModule,
       imports: [
         ConfigModule.register(config),
-        TracingModule.register(tracing),
         ContextModule,
         ErrorsModule,
         DatabaseModule,
         ClockModule,
         IdsModule,
         RedisModule,
-        QueuesModule,
-        DomainEventsModule,
-        PubSubModule,
+        QueuesModule.forRole(config.role),
+        DomainEventsModule.forRole(config.role),
+        LiveUpdatesModule.forRole(config.role),
         CacheModule,
         RateLimitModule,
         CryptoModule,
         entrypoint,
       ],
+      providers: [{ provide: TracingService, useValue: tracing }],
     };
   }
 }

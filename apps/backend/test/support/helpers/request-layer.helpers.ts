@@ -9,7 +9,7 @@ import { ConfigLoader } from '@/platform/config/config.loader';
 import { GRAPHQL_PATH } from '@/platform/graphql/graphql.constants';
 import { GlobalPrefix } from '@/platform/http/http.constants';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { TracingService } from '@/platform/observability/tracing/tracing.service';
+import { TracingService } from '@/platform/observability/services/tracing.service';
 import {
   LOOPBACK_HOST,
   WEBSOCKET_NO_RESULT_MESSAGE,

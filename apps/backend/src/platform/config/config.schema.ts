@@ -27,7 +27,7 @@ import type {
   WorkerEnvironment,
 } from '@/platform/config/config.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { QueueName } from '@/platform/queues/queue.constants';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 
 const text = z.string().min(1);
 const port = z.coerce.number().int().min(PORT_MIN).max(PORT_MAX);

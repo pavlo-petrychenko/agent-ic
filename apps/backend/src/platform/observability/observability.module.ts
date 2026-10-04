@@ -1,9 +1,21 @@
-import { Module } from '@nestjs/common';
-import { HealthModule } from '@/platform/observability/health/health.module';
-import { LoggingModule } from '@/platform/observability/logging/logging.module';
-import { MetricsModule } from '@/platform/observability/metrics/metrics.module';
+import { LoggerModule } from 'nestjs-pino';
+import { ConfigService } from '@/platform/config/config.service';
+import { defineModule, inEveryRole } from '@/platform/module-roles/helpers/module-roles.helpers';
+import { HealthController } from '@/platform/observability/controllers/health.controller';
+import { MetricsController } from '@/platform/observability/controllers/metrics.controller';
+import { createLoggerParams } from '@/platform/observability/helpers/logger.helpers';
+import { HealthService } from '@/platform/observability/services/health.service';
+import { MetricsService } from '@/platform/observability/services/metrics.service';
 
-@Module({
-  imports: [LoggingModule, HealthModule, MetricsModule],
-})
-export class ObservabilityModule {}
+export class ObservabilityModule extends defineModule({
+  global: true,
+  imports: [
+    LoggerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => createLoggerParams(config.config),
+    }),
+  ],
+  providers: [HealthService, MetricsService],
+  exports: [HealthService, MetricsService],
+  roleControllers: inEveryRole([HealthController, MetricsController]),
+}) {}

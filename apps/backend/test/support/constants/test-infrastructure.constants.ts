@@ -41,7 +41,7 @@ export enum TestRedisDatabase {
   RequestLayer = 3,
   Jobs = 4,
   QueueBoard = 5,
-  PubSub = 6,
+  LiveUpdates = 6,
   Cache = 7,
   RateLimit = 8,
 }

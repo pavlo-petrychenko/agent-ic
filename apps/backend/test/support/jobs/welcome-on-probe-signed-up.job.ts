@@ -1,13 +1,10 @@
-import { DomainEventSubscription } from '@/platform/domain-events/domain-event.subscription';
-import { QueueName } from '@/platform/queues/queue.constants';
+import { defineDomainEventSubscription } from '@/platform/domain-events/helpers/domain-event.helpers';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { ProbeJobName } from '@test/support/constants/async-jobs.constants';
 import { probeSignedUpEvent } from '@test/support/jobs/probe-signed-up.job';
-import type { ProbeData } from '@test/support/typedefs/async-jobs.typedefs';
 
-export class WelcomeOnProbeSignedUp extends DomainEventSubscription<ProbeData> {
-  readonly event = probeSignedUpEvent;
-  readonly queue = QueueName.Notify;
-  readonly name = ProbeJobName.Welcome;
-}
-
-export const welcomeOnProbeSignedUp = new WelcomeOnProbeSignedUp();
+export const welcomeOnProbeSignedUp = defineDomainEventSubscription({
+  event: probeSignedUpEvent,
+  queue: QueueName.Notify,
+  name: ProbeJobName.Welcome,
+});

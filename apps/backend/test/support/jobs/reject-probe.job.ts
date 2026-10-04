@@ -1,13 +1,10 @@
-import { JobDefinition } from '@/platform/queues/job.definition';
-import { QueueName } from '@/platform/queues/queue.constants';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
+import { defineJob } from '@/platform/queues/helpers/job.helpers';
 import { ProbeJobName } from '@test/support/constants/async-jobs.constants';
 import { probeDataSchema } from '@test/support/schemas/async-jobs.schema';
-import type { ProbeData } from '@test/support/typedefs/async-jobs.typedefs';
 
-export class RejectProbeJob extends JobDefinition<ProbeData> {
-  readonly queue = QueueName.Notify;
-  readonly name = ProbeJobName.Reject;
-  readonly schema = probeDataSchema;
-}
-
-export const rejectProbeJob = new RejectProbeJob();
+export const rejectProbeJob = defineJob({
+  queue: QueueName.Notify,
+  name: ProbeJobName.Reject,
+  schema: probeDataSchema,
+});

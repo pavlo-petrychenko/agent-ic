@@ -1,6 +1,6 @@
 import { BaseLauncher } from '@/entrypoints/base.launcher';
 import { ConfigLoader } from '@/platform/config/config.loader';
-import { TracingService } from '@/platform/observability/tracing/tracing.service';
+import { TracingService } from '@/platform/observability/services/tracing.service';
 
 export class ApplicationLauncher extends BaseLauncher {
   constructor(

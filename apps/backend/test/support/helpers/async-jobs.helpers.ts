@@ -5,8 +5,8 @@ import { ConfigLoader } from '@/platform/config/config.loader';
 import { ActorKind, Locale } from '@/platform/context/context.constants';
 import { UseCaseCtx } from '@/platform/context/use-case-ctx';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { TracingService } from '@/platform/observability/tracing/tracing.service';
-import { QueueName } from '@/platform/queues/queue.constants';
+import { TracingService } from '@/platform/observability/services/tracing.service';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 import {
   PROBE_TRACE_ID,
   PROBE_USER_ID,

@@ -6,10 +6,10 @@ import { ApiAppModule } from '@/entrypoints/api.app-module';
 import { EnvVar } from '@/platform/config/config.constants';
 import { PROBLEM_CONTENT_TYPE } from '@/platform/errors/errors.constants';
 import { HttpHeader } from '@/platform/http/http.constants';
-import { MetricsRoute } from '@/platform/observability/metrics/metrics.constants';
-import { QueueBoardRoute } from '@/platform/queues/board/queue-board.constants';
-import { QueueMetricName } from '@/platform/queues/metrics/queue-metrics.constants';
-import { QueueName } from '@/platform/queues/queue.constants';
+import { MetricsRoute } from '@/platform/observability/constants/metrics.constants';
+import { QueueBoardRoute } from '@/platform/queues/constants/queue-board.constants';
+import { QueueMetricName } from '@/platform/queues/constants/queue-metrics.constants';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 import {
   BOARD_QUEUES_API_SEGMENT,
   HTML_CONTENT_TYPE,
