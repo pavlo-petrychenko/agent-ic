@@ -23,6 +23,7 @@ export type Actor = UserActor | ApiChannelActor | SystemActor | AnonymousActor;
 
 export interface UseCaseCtxInit {
   readonly actor: Actor;
+  readonly initiatedBy: Actor | null;
   readonly workspaceId: string | null;
   readonly traceId: string;
   readonly locale: Locale;
@@ -37,4 +38,11 @@ export interface TransportRequest {
 export interface LanguagePreference {
   readonly language: string;
   readonly quality: number;
+}
+
+export interface SystemCtxInit {
+  readonly reason: SystemReason;
+  readonly workspaceId: string | null;
+  readonly traceId: string;
+  readonly initiatedBy: Actor | null;
 }

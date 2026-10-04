@@ -18,6 +18,7 @@ import { GetServerStatusUseCase } from './get-server-status.use-case';
 const START = new Date('2026-10-04T12:00:00.000Z');
 const ANONYMOUS_CTX = new UseCaseCtx({
   actor: { kind: ActorKind.Anonymous },
+  initiatedBy: null,
   workspaceId: null,
   traceId: 'trace',
   locale: Locale.En,

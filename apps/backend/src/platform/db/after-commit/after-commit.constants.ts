@@ -1,0 +1,1 @@
+export const AFTER_COMMIT_CLS_KEY = Symbol('AFTER_COMMIT_BUFFER');

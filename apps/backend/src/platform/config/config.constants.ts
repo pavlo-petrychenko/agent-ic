@@ -47,6 +47,10 @@ export enum EnvVar {
   DatabaseSystemUrl = 'DATABASE_SYSTEM_URL',
   DatabaseOwnerUrl = 'DATABASE_OWNER_URL',
   DatabasePoolMax = 'DATABASE_POOL_MAX',
+  RedisQueueUrl = 'REDIS_QUEUE_URL',
+  RedisCacheUrl = 'REDIS_CACHE_URL',
+  WorkerConcurrency = 'WORKER_CONCURRENCY',
+  PlatformAdminDevAccess = 'PLATFORM_ADMIN_DEV_ACCESS',
   OtelSdkDisabled = 'OTEL_SDK_DISABLED',
   OtelExporterEndpoint = 'OTEL_EXPORTER_OTLP_ENDPOINT',
   OtelServiceName = 'OTEL_SERVICE_NAME',
@@ -64,6 +68,8 @@ export const PORT_MIN = 1;
 export const PORT_MAX = 65535;
 export const POOL_SIZE_MIN = 1;
 export const DATABASE_URL_PROTOCOL = /^postgres(ql)?$/;
+export const REDIS_URL_PROTOCOL = /^rediss?$/;
+export const WORKER_CONCURRENCY_MIN = 1;
 export const SAMPLE_RATE_MIN = 0;
 export const SAMPLE_RATE_MAX = 1;
 export const CONFIG_ERROR_HEADER = 'Invalid configuration:';
@@ -74,3 +80,5 @@ export const CONFIG_ISSUE_LINE_SEPARATOR = '\n';
 export const CLI_OPTION_PREFIX = '--';
 export const WORKER_QUEUES_REQUIRED_MESSAGE = 'at least one queue is required for the worker role';
 export const CLI_ARGUMENTS_LABEL = 'arguments';
+export const PLATFORM_ADMIN_DEV_ACCESS_IN_PRODUCTION_MESSAGE =
+  'platform admin dev access is not allowed in production';

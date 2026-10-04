@@ -40,23 +40,25 @@ export class ConfigLoader {
       );
     }
 
+    const environment = roleEnvironment.data;
     const base: BaseConfig = {
       nodeEnv: common.data.nodeEnv,
       version: common.data.version,
       logLevel: common.data.logLevel,
-      http: { host: common.data.host, port: roleEnvironment.data.port },
+      http: { host: common.data.host, port: environment.port },
       database: common.data.database,
+      redis: common.data.redis,
       telemetry: common.data.telemetry,
       langfuse: langfuse.data,
     };
 
-    switch (cli.role) {
+    switch (environment.role) {
       case Role.Api:
-        return { ...base, role: Role.Api };
+        return { ...base, role: Role.Api, platformAdmin: environment.platformAdmin };
       case Role.Gateway:
         return { ...base, role: Role.Gateway };
       case Role.Worker:
-        return { ...base, role: Role.Worker, queues: cli.queues };
+        return { ...base, role: Role.Worker, queues: cli.queues, worker: environment.worker };
     }
   }
 

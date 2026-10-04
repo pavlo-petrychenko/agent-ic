@@ -7,7 +7,7 @@ import { MetricLabel } from './metrics.constants';
 
 @Injectable()
 export class MetricsService {
-  private readonly registry = new Registry();
+  readonly registry = new Registry();
 
   constructor(config: ConfigService) {
     this.registry.setDefaultLabels({ [MetricLabel.Role]: config.config.role });

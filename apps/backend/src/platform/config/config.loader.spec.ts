@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createArgv, cliArgument, createTestEnv } from '@/platform/testing/test-env.fixture';
 import { QueueName } from '@/platform/queues/queue.constants';
 
-import { CliOption, EnvVar, LangfuseMode, Role } from './config.constants';
+import { CliOption, EnvVar, LangfuseMode, NodeEnvironment, Role } from './config.constants';
 import { ConfigError } from './config.error';
 import { ConfigLoader } from './config.loader';
 import type { ConfigIssue } from './config.typedefs';
@@ -55,6 +55,74 @@ describe('ConfigLoader', () => {
 
     expect(config.role).toBe(Role.Worker);
     expect(config.role === Role.Worker ? config.queues : []).toEqual(queues);
+  });
+
+  it('reads the worker concurrency', () => {
+    const config = new ConfigLoader(createTestEnv({ [EnvVar.WorkerConcurrency]: '8' })).load(
+      createArgv(
+        cliArgument(CliOption.Role, Role.Worker),
+        cliArgument(CliOption.Queues, QueueName.Ingest),
+      ),
+    );
+
+    expect(config.role === Role.Worker ? config.worker.concurrency : null).toBe(8);
+  });
+
+  it('requires the worker concurrency only for the worker role', () => {
+    const env = createTestEnv({ [EnvVar.WorkerConcurrency]: undefined });
+
+    const issues = issuesOf(() =>
+      new ConfigLoader(env).load(
+        createArgv(
+          cliArgument(CliOption.Role, Role.Worker),
+          cliArgument(CliOption.Queues, QueueName.Ingest),
+        ),
+      ),
+    );
+
+    expect(variablesOf(issues)).toEqual([EnvVar.WorkerConcurrency]);
+    expect(() => new ConfigLoader(env).load(roleArgv(Role.Api))).not.toThrow();
+  });
+
+  it('reads the redis urls', () => {
+    const env = createTestEnv({
+      [EnvVar.RedisQueueUrl]: 'redis://queue:6379',
+      [EnvVar.RedisCacheUrl]: 'rediss://cache:6380',
+    });
+
+    const config = new ConfigLoader(env).load(roleArgv(Role.Gateway));
+
+    expect(config.redis).toEqual({
+      queueUrl: 'redis://queue:6379',
+      cacheUrl: 'rediss://cache:6380',
+    });
+  });
+
+  it('rejects a redis url of another protocol', () => {
+    const env = createTestEnv({ [EnvVar.RedisCacheUrl]: 'http://cache:6379' });
+
+    const issues = issuesOf(() => new ConfigLoader(env).load(roleArgv(Role.Api)));
+
+    expect(variablesOf(issues)).toEqual([EnvVar.RedisCacheUrl]);
+  });
+
+  it('reads the platform admin dev access for the api', () => {
+    const env = createTestEnv({ [EnvVar.PlatformAdminDevAccess]: 'true' });
+
+    const config = new ConfigLoader(env).load(roleArgv(Role.Api));
+
+    expect(config.role === Role.Api ? config.platformAdmin.devAccess : null).toBe(true);
+  });
+
+  it('refuses the platform admin dev access in production', () => {
+    const env = createTestEnv({
+      [EnvVar.NodeEnv]: NodeEnvironment.Production,
+      [EnvVar.PlatformAdminDevAccess]: 'true',
+    });
+
+    const issues = issuesOf(() => new ConfigLoader(env).load(roleArgv(Role.Api)));
+
+    expect(variablesOf(issues)).toEqual([EnvVar.PlatformAdminDevAccess]);
   });
 
   it('does not require the ports of other roles', () => {

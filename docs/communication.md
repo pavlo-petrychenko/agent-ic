@@ -42,7 +42,7 @@
 | Business systems | `gateway` | S | `POST /v1/channels/{id}/messages`, `/events`, KB refresh endpoint |
 | Google / ClickUp | `gateway` | S | Change notifications for real-time KB sync |
 | `gateway` | Postgres | S | Save message + conversation + run in one transaction; de-duplicate; check channel key hash |
-| `gateway` | Redis queue | A | Enqueue `runs:reactive`, `ingest` (KB webhooks / refresh) |
+| `gateway` | Redis queue | A | Enqueue `runs-reactive`, `ingest` (KB webhooks / refresh) |
 | `gateway` | Redis pub/sub | A | Publish "new customer message"; subscribe to `run:{id}:done` for "wait for result" |
 | `gateway` | Redis cache | S | Channel config lookup, per-channel rate limits |
 | `api` | Postgres | S | Everything the dashboard reads and writes |
@@ -52,7 +52,7 @@
 | `api` | Telegram Bot API | S | `getMe` + `setWebhook` / `deleteWebhook` when connecting or disconnecting a bot |
 | `api` | LLM / embedding providers | S | BYOK key check on save; embedding the query in the retrieval playground |
 | `api` | Google / ClickUp OAuth | S | Exchange the OAuth code on callback |
-| Redis queue | `worker-runs` | A | `runs:reactive`, `runs:proactive`, `outbound`, `notify`, `timers` |
+| Redis queue | `worker-runs` | A | `runs-reactive`, `runs-proactive`, `outbound`, `notify`, `timers` |
 | Redis queue | `worker-ingest` | A | `ingest` |
 | `worker-runs` | Postgres | S | Load the flow version, prompts and history; save run steps, messages, escalations; vector search |
 | `worker-runs` | Redis queue | A | Enqueue follow-ups: outbound, notify, the next run, timers |
@@ -89,7 +89,7 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
    - insert the message (unique `update_id`, so duplicates are dropped);
    - upsert the conversation;
    - if the agent should answer and no run is active: insert a run, set `active_run_id`.
-3. `gateway` ⇢ queue `runs:reactive`.
+3. `gateway` ⇢ queue `runs-reactive`.
 4. `gateway` ⇢ pub/sub `conv:{id}:messages`.
 5. `gateway` → Telegram: `200 OK` in under 100 ms.
 6. Every `api` pod ⇢ its WebSocket clients watching that conversation or Inbox: "new message".
@@ -130,7 +130,7 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 ### E. Schedule trigger (follow-ups, digests)
 1. Publish (chain I) → `api` creates or updates a **BullMQ job scheduler** per Schedule trigger (cron + time zone) in Redis.
 2. On each tick, Redis queue ⇢ `worker-runs` (`timers`): query Postgres for conversations that match the conditions (e.g. silent > 24 h, not escalated), limited to N.
-3. For each one: Postgres (create the run, once per conversation) ⇢ queue `runs:proactive`. A per-workspace concurrency cap protects live chats.
+3. For each one: Postgres (create the run, once per conversation) ⇢ queue `runs-proactive`. A per-workspace concurrency cap protects live chats.
 4. Each run is then chain A steps 7–12. Delivery for Telegram is allowed only if the user wrote to the bot before.
 
 ### F. Escalation → operator → hand back
@@ -149,7 +149,7 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 
 ### G. Simulator (testing the draft)
 1. Browser → `api` mutation `simulateMessage(agentId, text)` → Postgres: test conversation + run pinned to the **draft** version, flagged `simulated`.
-2. `api` ⇢ queue `runs:reactive` (the builder is waiting, so it gets the same priority).
+2. `api` ⇢ queue `runs-reactive` (the builder is waiting, so it gets the same priority).
 3. Browser is already subscribed to `run:{id}:steps` through `api`.
 4. `worker-runs` runs the flow with the **simulated channel adapter**:
    - no real delivery and no notifications;

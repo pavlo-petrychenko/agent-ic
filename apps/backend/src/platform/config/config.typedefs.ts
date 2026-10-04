@@ -13,6 +13,19 @@ export interface DatabaseConfig {
   readonly poolMax: number;
 }
 
+export interface RedisConfig {
+  readonly queueUrl: string;
+  readonly cacheUrl: string;
+}
+
+export interface PlatformAdminConfig {
+  readonly devAccess: boolean;
+}
+
+export interface WorkerRuntimeConfig {
+  readonly concurrency: number;
+}
+
 export interface MigrationConfig {
   readonly logLevel: LogLevel;
   readonly ownerUrl: string;
@@ -46,12 +59,14 @@ export interface BaseConfig {
   readonly logLevel: LogLevel;
   readonly http: HttpConfig;
   readonly database: DatabaseConfig;
+  readonly redis: RedisConfig;
   readonly telemetry: TelemetryConfig;
   readonly langfuse: LangfuseConfig;
 }
 
 export interface ApiConfig extends BaseConfig {
   readonly role: Role.Api;
+  readonly platformAdmin: PlatformAdminConfig;
 }
 
 export interface GatewayConfig extends BaseConfig {
@@ -61,6 +76,7 @@ export interface GatewayConfig extends BaseConfig {
 export interface WorkerConfig extends BaseConfig {
   readonly role: Role.Worker;
   readonly queues: readonly QueueName[];
+  readonly worker: WorkerRuntimeConfig;
 }
 
 export type AppConfig = ApiConfig | GatewayConfig | WorkerConfig;
@@ -88,9 +104,24 @@ export interface ConfigIssue {
   readonly message: string;
 }
 
-export interface RoleEnvironment {
+export interface ApiEnvironment {
+  readonly role: Role.Api;
+  readonly port: number;
+  readonly platformAdmin: PlatformAdminConfig;
+}
+
+export interface GatewayEnvironment {
+  readonly role: Role.Gateway;
   readonly port: number;
 }
+
+export interface WorkerEnvironment {
+  readonly role: Role.Worker;
+  readonly port: number;
+  readonly worker: WorkerRuntimeConfig;
+}
+
+export type RoleEnvironment = ApiEnvironment | GatewayEnvironment | WorkerEnvironment;
 
 export interface CommonEnvironment {
   readonly nodeEnv: NodeEnvironment;
@@ -98,5 +129,6 @@ export interface CommonEnvironment {
   readonly logLevel: LogLevel;
   readonly host: string;
   readonly database: DatabaseConfig;
+  readonly redis: RedisConfig;
   readonly telemetry: TelemetryConfig;
 }

@@ -10,14 +10,16 @@ import { HealthRoute, HealthStatus } from '@/platform/observability/health/healt
 import { MetricsRoute } from '@/platform/observability/metrics/metrics.constants';
 import { TracingService } from '@/platform/observability/tracing/tracing.service';
 import { QueueName } from '@/platform/queues/queue.constants';
-import { cliArgument, createArgv, createTestEnv } from '@/platform/testing/test-env.fixture';
+import { createIntegrationTestEnv } from '@/platform/testing/integration-env.fixture';
+import { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
+import { cliArgument, createArgv } from '@/platform/testing/test-env.fixture';
 
 const livePath = (prefix = ''): string => `${prefix}/${HealthRoute.Base}/${HealthRoute.Live}`;
 const readyPath = (prefix = ''): string => `${prefix}/${HealthRoute.Base}/${HealthRoute.Ready}`;
 const metricsPath = (prefix = ''): string => `${prefix}/${MetricsRoute.Path}`;
 
 const bootRole = async (role: Role): Promise<INestApplication> => {
-  const config = new ConfigLoader(createTestEnv()).load(
+  const config = new ConfigLoader(createIntegrationTestEnv(TestRedisDatabase.Entrypoints)).load(
     createArgv(
       cliArgument(CliOption.Role, role),
       cliArgument(CliOption.Queues, QueueName.RunsReactive),

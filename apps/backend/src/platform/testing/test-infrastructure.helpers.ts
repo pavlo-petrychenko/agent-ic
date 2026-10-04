@@ -11,6 +11,7 @@ import {
   TEST_SUPERUSER_PASSWORD,
   URL_PATH_SEPARATOR,
 } from './test-infrastructure.constants';
+import type { TestRedisDatabase } from './test-infrastructure.constants';
 import type { DatabaseUrlParts, TestInfrastructure } from './test-infrastructure.typedefs';
 
 export const buildDatabaseUrl = (parts: DatabaseUrlParts): string => {
@@ -48,6 +49,12 @@ export const describeInfrastructure = (
     systemUrl: roleUrl(DatabaseRole.System),
     redisUrl: redis.getConnectionUrl(),
   };
+};
+
+export const redisDatabaseUrl = (url: string, database: TestRedisDatabase): string => {
+  const redisUrl = new URL(url);
+  redisUrl.pathname = `${URL_PATH_SEPARATOR}${database}`;
+  return redisUrl.toString();
 };
 
 export const discardNotice = (): void => undefined;

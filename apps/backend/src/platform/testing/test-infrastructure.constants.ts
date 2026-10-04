@@ -35,3 +35,14 @@ export enum RolesInitEnvVar {
 
 export const TEST_POOL_SIZE = '1';
 export const SCRATCH_POOL_SIZE = 1;
+
+export enum TestRedisDatabase {
+  Database = 1,
+  Entrypoints = 2,
+  RequestLayer = 3,
+  Jobs = 4,
+  QueueBoard = 5,
+  PubSub = 6,
+  Cache = 7,
+  RateLimit = 8,
+}

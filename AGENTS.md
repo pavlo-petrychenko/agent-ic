@@ -34,7 +34,7 @@ Turborepo behaviour can differ from what you remember. Its docs ship with the in
 | Need                                      | Read                     |
 | ----------------------------------------- | ------------------------ |
 | What the product does and does not do     | `docs/mvp-scope.md`      |
-| Decisions D1 to D105, layout, data flow   | `docs/architecture.md`   |
+| Decisions D1 to D117, layout, data flow   | `docs/architecture.md`   |
 | Why a decision was made                   | `docs/adr/`              |
 | Code, architecture, testing and git rules | `docs/rules/`            |
 | Backend module anatomy                    | `apps/backend/AGENTS.md` |

@@ -19,4 +19,6 @@ export enum ErrorReason {
   InvalidId = 'INVALID_ID',
   InvalidCursor = 'INVALID_CURSOR',
   InvalidPageSize = 'INVALID_PAGE_SIZE',
+  RateLimited = 'RATE_LIMITED',
+  PlatformAdminRequired = 'PLATFORM_ADMIN_REQUIRED',
 }

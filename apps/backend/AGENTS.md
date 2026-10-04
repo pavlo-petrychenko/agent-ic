@@ -42,6 +42,16 @@ migrations/              SQL migrations written by drizzle-kit, committed, never
 - Errors: a `DomainError` maps to GraphQL `extensions` (`code`, `reason`, `traceId`, `fields`), to RFC 9457 `application/problem+json` on REST under `/api/*`, and to retry or give-up in jobs (`JobErrorMapper`). `UpstreamError` is a failed external call. Anything else is `INTERNAL` with no detail.
 - Relay pagination: `platform/graphql/relay` (`toPageRequest`, `toConnection`, opaque cursors, page-size limits).
 
+## Async, Redis and security helpers
+
+- A job is a `JobDefinition` subclass (`queue`, `name`, zod `schema`; IDs only) in the owning module. Use cases call `jobs.enqueue(ctx, definition, data)` (`JobsService`); never `queue.add()`.
+- A processor in `modules/<m>/jobs/` is an `@Injectable()` class marked `@JobProcessor(definition)` with `handle(ctx, data)`, listed in the module's jobs module. It runs as the system actor of the job's workspace, with `ctx.initiatedBy` set to whoever enqueued it.
+- Domain events: a `DomainEventDefinition` (name, schema) is emitted with `domainEvents.emit(ctx, event, data)`. A listener is a `DomainEventSubscription` (event, queue, name) declared in the listening module's core module with `DomainEventsModule.forFeature([...])`, and a handler class marked `@OnDomainEvent(subscription)` in its jobs module.
+- Inside a transaction, enqueue, emit and publish wait for the commit and are dropped on rollback; outside one they run at once.
+- Live updates: a `Topic` subclass per channel (`PubSubService.publish` / `subscribe`). Cache: a `CacheEntry` subclass per key (`CacheService`). Rate limits: a `RateLimitPolicy` subclass with `RateLimiterService.enforce` (throws `RateLimitedError`). Random tokens: `SecureTokenService` (store only the hash).
+- Bull Board is at `/api/admin/queues` on `api`, for platform admins only; locally `PLATFORM_ADMIN_DEV_ACCESS=true` opens it. Queue depth and wait time are on `api`'s `/metrics`.
+- Tests that use Redis pick their own logical database from `TestRedisDatabase` (`createIntegrationTestEnv`, `createPlatformTestingModule`).
+
 ## Module anatomy
 
 Files are grouped by type and named `kebab-case.<type>.ts`. Types, constants and pure helpers sit in their own files beside the code (`<name>.typedefs.ts`, `<name>.constants.ts`, `<name>.helpers.ts`, `<name>.schema.ts`); a class file holds the class only. Classes are PascalCase and end with their type. Example, the `identity` module:

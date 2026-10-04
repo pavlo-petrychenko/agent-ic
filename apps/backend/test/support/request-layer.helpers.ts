@@ -11,7 +11,9 @@ import { ConfigLoader } from '@/platform/config/config.loader';
 import { GRAPHQL_PATH } from '@/platform/graphql/graphql.constants';
 import { GlobalPrefix } from '@/platform/http/http.constants';
 import { TracingService } from '@/platform/observability/tracing/tracing.service';
-import { cliArgument, createArgv, createTestEnv } from '@/platform/testing/test-env.fixture';
+import { createIntegrationTestEnv } from '@/platform/testing/integration-env.fixture';
+import { TestRedisDatabase } from '@/platform/testing/test-infrastructure.constants';
+import { cliArgument, createArgv } from '@/platform/testing/test-env.fixture';
 
 import {
   LOOPBACK_HOST,
@@ -24,10 +26,11 @@ export const apiPath = (...segments: readonly string[]): string =>
 
 export const graphqlPath = (): string => `/${GlobalPrefix.Api}${GRAPHQL_PATH}`;
 
-export const createApi = async (module: Type<unknown>): Promise<INestApplication> => {
-  const config = new ConfigLoader(createTestEnv()).load(
-    createArgv(cliArgument(CliOption.Role, Role.Api)),
-  );
+export const createApi = async (
+  module: Type<unknown>,
+  env: NodeJS.ProcessEnv = createIntegrationTestEnv(TestRedisDatabase.RequestLayer),
+): Promise<INestApplication> => {
+  const config = new ConfigLoader(env).load(createArgv(cliArgument(CliOption.Role, Role.Api)));
   return new ApplicationFactory(config, new TracingService(config.telemetry), {
     module,
     globalPrefix: GlobalPrefix.Api,

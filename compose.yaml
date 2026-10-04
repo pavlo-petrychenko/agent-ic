@@ -28,6 +28,8 @@ x-backend-environment: &backend-environment
   API_PORT: ${API_PORT}
   GATEWAY_PORT: ${GATEWAY_PORT}
   WORKER_PORT: ${WORKER_PORT}
+  WORKER_CONCURRENCY: ${WORKER_CONCURRENCY}
+  PLATFORM_ADMIN_DEV_ACCESS: ${PLATFORM_ADMIN_DEV_ACCESS}
   DATABASE_URL: postgres://app:${APP_PASSWORD}@postgres:5432/${DATABASE_NAME}
   DATABASE_SYSTEM_URL: postgres://app_system:${APP_SYSTEM_PASSWORD}@postgres:5432/${DATABASE_NAME}
   DATABASE_OWNER_URL: postgres://app_owner:${APP_OWNER_PASSWORD}@postgres:5432/${DATABASE_NAME}
@@ -288,7 +290,7 @@ services:
         --filter,
         backend,
         dev:worker,
-        '--queues=runs:reactive,runs:proactive,outbound,notify,timers',
+        '--queues=runs-reactive,runs-proactive,outbound,notify,timers',
       ]
     environment:
       <<: *backend-environment
