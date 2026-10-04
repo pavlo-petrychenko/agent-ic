@@ -1,0 +1,2 @@
+export const WORKSPACE_MARK_ICON_SIZE = 15;
+export const WORKSPACE_CHEVRON_SIZE = 14;

@@ -1,0 +1,34 @@
+{
+  "nav": {
+    "label": "Main",
+    "groups": {
+      "build": "Build",
+      "operate": "Operate"
+    },
+    "sections": {
+      "agents": "Agents",
+      "inbox": "Inbox",
+      "settings": "Settings"
+    }
+  },
+  "header": {
+    "caption": "Workspace"
+  },
+  "placeholders": {
+    "agents": {
+      "subtitle": "Build, test and publish chat agents for {{workspace}}",
+      "title": "No agents yet",
+      "description": "Building agents is coming in the next release."
+    },
+    "inbox": {
+      "subtitle": "Chats from {{workspace}} that need a person",
+      "title": "No chats need you right now",
+      "description": "Escalated chats will appear here."
+    },
+    "settings": {
+      "subtitle": "Settings of {{workspace}}",
+      "title": "Nothing to set up here yet",
+      "description": "Your profile and notification settings are coming soon."
+    }
+  }
+}

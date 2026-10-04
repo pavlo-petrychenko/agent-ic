@@ -1,19 +1,15 @@
-import { useTranslation } from 'react-i18next';
-import { AppHeader } from '@/app/layouts/AppHeader';
+import { LocaleSwitcher } from '@/app/components/LocaleSwitcher';
 import type { WorkspaceLayoutProps } from '@/app/layouts/WorkspaceLayout/WorkspaceLayout.typedefs';
+import { WorkspaceNavigation } from '@/features/workspace';
 import styles from '@/app/layouts/WorkspaceLayout/WorkspaceLayout.module.scss';
 
 export function WorkspaceLayout({ workspaceId, children }: WorkspaceLayoutProps) {
-  const { t } = useTranslation();
-
   return (
-    <div className="flex min-h-screen flex-col">
-      <AppHeader>
-        <span className={styles.workspace}>
-          {t('workspace.label')} <code>{workspaceId}</code>
-        </span>
-      </AppHeader>
-      <main className="mx-auto w-full max-w-page flex-1 px-4 py-8">{children}</main>
+    <div className="flex h-screen">
+      <aside className="shrink-0">
+        <WorkspaceNavigation workspaceId={workspaceId} footerAction={<LocaleSwitcher compact />} />
+      </aside>
+      <main className={`${styles.main} min-w-0 flex-1 overflow-auto pb-8`}>{children}</main>
     </div>
   );
 }

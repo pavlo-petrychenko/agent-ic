@@ -32,7 +32,7 @@ describe('workspace route', () => {
 
   it('leaves the workspace for log in when the session ends while it is open', async () => {
     const { router } = renderRoute(workspacePath(FIRST_WORKSPACE_ID));
-    await screen.findByText(FIRST_WORKSPACE_ID);
+    await screen.findByRole('navigation', { name: 'Main' });
 
     await act(signOutForTest);
 
@@ -49,7 +49,7 @@ describe('workspace route', () => {
 
   it('forgets the workspace id after leaving the workspace', async () => {
     const { history } = renderRoute(workspacePath(FIRST_WORKSPACE_ID));
-    await screen.findByText(FIRST_WORKSPACE_ID);
+    await screen.findByRole('navigation', { name: 'Main' });
 
     await act(async () => history.push(UNKNOWN_PATH));
 
@@ -58,10 +58,10 @@ describe('workspace route', () => {
 
   it('keeps the new workspace id when switching between workspaces', async () => {
     const { history } = renderRoute(workspacePath(FIRST_WORKSPACE_ID));
-    await screen.findByText(FIRST_WORKSPACE_ID);
+    await screen.findByRole('navigation', { name: 'Main' });
 
     await act(async () => history.push(workspacePath(SECOND_WORKSPACE_ID)));
-    await screen.findByText(SECOND_WORKSPACE_ID);
+    await screen.findByRole('navigation', { name: 'Main' });
 
     expect(getRequestContext().workspaceId).toBe(SECOND_WORKSPACE_ID);
   });
