@@ -1,0 +1,78 @@
+.root {
+  display: flex;
+}
+
+.horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-20);
+}
+
+.vertical {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-10);
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  cursor: pointer;
+}
+
+.circle {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--size-checkbox);
+  height: var(--size-checkbox);
+  padding: 0;
+  border: var(--border-width) solid var(--color-line-dash);
+  border-radius: var(--radius-pill);
+  background: var(--color-card);
+  cursor: pointer;
+  transition: border-color var(--duration-fast);
+
+  &[data-state='unchecked']:hover:not(:disabled) {
+    border-color: var(--color-edge);
+  }
+
+  &[data-state='checked'] {
+    border-color: var(--color-accent);
+  }
+
+  &:focus-visible {
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.dot {
+  position: absolute;
+  inset: var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+.text {
+  color: var(--color-ink-secondary);
+  font: var(--type-body-small);
+}
+
+.invalid .circle[data-state='unchecked'],
+.invalid .circle[data-state='unchecked']:hover:not(:disabled) {
+  border-color: var(--color-err);
+}
+
+.disabled,
+.optionDisabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.disabled .option,
+.disabled .circle,
+.optionDisabled .circle {
+  cursor: not-allowed;
+  pointer-events: none;
+}
