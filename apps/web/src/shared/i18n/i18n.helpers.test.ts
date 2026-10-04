@@ -1,5 +1,5 @@
+import { DEFAULT_LOCALE, Locale } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_LOCALE, Locale } from '@/shared/i18n/i18n.constants';
 import { resolveInitialLocale } from '@/shared/i18n/i18n.helpers';
 
 describe('resolveInitialLocale', () => {

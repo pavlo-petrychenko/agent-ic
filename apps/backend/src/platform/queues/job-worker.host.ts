@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { BeforeApplicationShutdown, OnApplicationBootstrap } from '@nestjs/common';
 import { Worker } from 'bullmq';
 import type { Job } from 'bullmq';
-import { ConfigService } from '@/platform/config/config.service';
+import { ConfigService } from '@/platform/config/services/config.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { JobRunner } from '@/platform/queues/job.runner';
 import { QueueEvent, QueueLogMessage } from '@/platform/queues/queue.constants';

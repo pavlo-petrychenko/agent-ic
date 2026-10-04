@@ -1,4 +1,5 @@
-import { LOCALE_STORAGE_KEY, type Locale } from '@/shared/i18n/i18n.constants';
+import type { Locale } from '@agent-ic/contracts';
+import { LOCALE_STORAGE_KEY } from '@/shared/i18n/i18n.constants';
 
 export const readStoredLocale = (): string | null => {
   try {

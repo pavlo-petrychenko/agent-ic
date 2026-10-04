@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { UseCaseCtx } from '@/platform/context/use-case-ctx';
+import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { OnDomainEvent } from '@/platform/domain-events/on-domain-event.decorator';
 import type { JobHandler } from '@/platform/queues/queue.typedefs';
 import { ProbeListener } from '@test/support/constants/async-jobs.constants';

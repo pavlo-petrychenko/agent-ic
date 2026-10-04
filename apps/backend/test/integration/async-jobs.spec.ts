@@ -4,7 +4,7 @@ import type { INestApplication } from '@nestjs/common';
 import type { Queue } from 'bullmq';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
-import { ActorKind, SystemReason } from '@/platform/context/context.constants';
+import { ActorKind, SystemReason } from '@/platform/context/constants/actor.constants';
 import type { AppTransactionAdapter } from '@/platform/db/database.typedefs';
 import { DomainEventsService } from '@/platform/domain-events/domain-events.service';
 import { JobsService } from '@/platform/queues/jobs.service';

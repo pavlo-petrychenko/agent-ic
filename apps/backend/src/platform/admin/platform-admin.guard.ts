@@ -3,16 +3,16 @@ import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import type { Request } from 'express';
 import { PlatformAdminRequiredError } from '@/platform/admin/platform-admin-required.error';
 import { PlatformAdminAuthorizer } from '@/platform/admin/platform-admin.authorizer';
-import { ConfigService } from '@/platform/config/config.service';
-import { UseCaseCtxFactory } from '@/platform/context/use-case-ctx.factory';
-import { HttpHeader } from '@/platform/http/http.constants';
+import { ConfigService } from '@/platform/config/services/config.service';
+import { UseCaseCtxService } from '@/platform/context/services/use-case-ctx.service';
+import { HttpHeader } from '@/platform/http/constants/http-header.constants';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 
 @Injectable()
 export class PlatformAdminGuard implements CanActivate {
   constructor(
     private readonly config: ConfigService,
-    private readonly contexts: UseCaseCtxFactory,
+    private readonly contexts: UseCaseCtxService,
     private readonly authorizer: PlatformAdminAuthorizer,
   ) {}
 

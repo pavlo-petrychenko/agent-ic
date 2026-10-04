@@ -1,7 +1,7 @@
 import { ErrorReason } from '@agent-ic/contracts';
-import { DomainError } from '@/platform/errors/domain.error';
-import { DomainErrorKind, LimitScope } from '@/platform/errors/errors.constants';
-import { LimitReachedError } from '@/platform/errors/limit-reached.error';
+import { DomainErrorKind, LimitScope } from '@/platform/errors/constants/domain-error.constants';
+import { DomainError } from '@/platform/errors/errors/domain.error';
+import { LimitReachedError } from '@/platform/errors/errors/limit-reached.error';
 import {
   SAMPLE_ERROR_MESSAGE,
   SAMPLE_FIELD_PATH,

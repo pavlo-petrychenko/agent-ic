@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { OnApplicationShutdown } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import type { Redis } from 'ioredis';
-import { ConfigService } from '@/platform/config/config.service';
+import { ConfigService } from '@/platform/config/services/config.service';
 import { QueueEvent, QueueLogMessage, QueueName } from '@/platform/queues/queue.constants';
 import { defaultJobOptions } from '@/platform/queues/queue.helpers';
 import type { JobEnvelope } from '@/platform/queues/queue.typedefs';

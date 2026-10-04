@@ -1,4 +1,4 @@
-import type { UseCaseCtx } from '@/platform/context/use-case-ctx';
+import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import type { ProbeListener } from '@test/support/constants/async-jobs.constants';
 
 export interface ProbeCall {

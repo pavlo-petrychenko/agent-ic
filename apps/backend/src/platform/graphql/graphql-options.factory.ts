@@ -2,14 +2,14 @@ import type { ApolloDriverConfig } from '@nestjs/apollo';
 import { Injectable } from '@nestjs/common';
 import type { GqlOptionsFactory } from '@nestjs/graphql';
 import type { Request } from 'express';
-import { NodeEnvironment } from '@/platform/config/config.constants';
-import { ConfigService } from '@/platform/config/config.service';
-import type { TransportRequest } from '@/platform/context/context.typedefs';
-import { TraceIdService } from '@/platform/context/trace-id.service';
-import { UseCaseCtxFactory } from '@/platform/context/use-case-ctx.factory';
-import { DomainError } from '@/platform/errors/domain.error';
-import { ErrorReporter } from '@/platform/errors/error.reporter';
-import { GraphqlErrorMapper } from '@/platform/errors/graphql-error.mapper';
+import { NodeEnvironment } from '@/platform/config/constants/env.constants';
+import { ConfigService } from '@/platform/config/services/config.service';
+import { TraceIdService } from '@/platform/context/services/trace-id.service';
+import { UseCaseCtxService } from '@/platform/context/services/use-case-ctx.service';
+import type { TransportRequest } from '@/platform/context/typedefs/use-case-ctx.typedefs';
+import { DomainError } from '@/platform/errors/errors/domain.error';
+import { toGraphqlError } from '@/platform/errors/helpers/graphql-error.helpers';
+import { ErrorReporterService } from '@/platform/errors/services/error-reporter.service';
 import { ConnectionParam, GRAPHQL_PATH } from '@/platform/graphql/graphql.constants';
 import { moduleTypePaths, readConnectionParam } from '@/platform/graphql/graphql.helpers';
 import type {
@@ -18,16 +18,15 @@ import type {
   WebSocketConnectionInput,
   WebSocketContextInput,
 } from '@/platform/graphql/graphql.typedefs';
-import { HttpHeader } from '@/platform/http/http.constants';
+import { HttpHeader } from '@/platform/http/constants/http-header.constants';
 
 @Injectable()
 export class GraphqlOptionsFactory implements GqlOptionsFactory<ApolloDriverConfig> {
   constructor(
     private readonly config: ConfigService,
-    private readonly contexts: UseCaseCtxFactory,
+    private readonly contexts: UseCaseCtxService,
     private readonly traceIds: TraceIdService,
-    private readonly errors: GraphqlErrorMapper,
-    private readonly reporter: ErrorReporter,
+    private readonly reporter: ErrorReporterService,
   ) {}
 
   createGqlOptions(): ApolloDriverConfig {
@@ -55,7 +54,7 @@ export class GraphqlOptionsFactory implements GqlOptionsFactory<ApolloDriverConf
       return { ctx: await this.contexts.create(request) };
     } catch (error) {
       this.reporter.report(error, request.traceId);
-      throw this.errors.toGraphqlError(error, request.traceId);
+      throw toGraphqlError(error, request.traceId);
     }
   }
 

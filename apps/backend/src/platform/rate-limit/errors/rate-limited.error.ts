@@ -1,6 +1,6 @@
 import { ErrorReason } from '@agent-ic/contracts';
-import { LimitScope } from '@/platform/errors/errors.constants';
-import { LimitReachedError } from '@/platform/errors/limit-reached.error';
+import { LimitScope } from '@/platform/errors/constants/domain-error.constants';
+import { LimitReachedError } from '@/platform/errors/errors/limit-reached.error';
 import { RATE_LIMITED_MESSAGE } from '@/platform/rate-limit/constants/rate-limit.constants';
 
 export class RateLimitedError extends LimitReachedError {

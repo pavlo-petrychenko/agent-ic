@@ -1,3 +1,3 @@
-import { ApplicationLauncher } from '@/entrypoints/application.launcher';
+import { resolveCommand } from '@/app/helpers/command.helpers';
 
-await new ApplicationLauncher(process.argv).launch();
+await resolveCommand(process.argv).execute();

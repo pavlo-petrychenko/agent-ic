@@ -1,0 +1,5 @@
+export const LANGUAGE_LIST_SEPARATOR = ',';
+export const LANGUAGE_PARAMETER_SEPARATOR = ';';
+export const LANGUAGE_SUBTAG_SEPARATOR = '-';
+export const LANGUAGE_QUALITY_PREFIX = 'q=';
+export const LANGUAGE_DEFAULT_QUALITY = 1;

@@ -1,36 +1,35 @@
+import { Locale } from '@agent-ic/contracts';
 import { Test } from '@nestjs/testing';
 import { describe, expect, it } from 'vitest';
 import { SystemModule } from '@/modules/system/system.module';
 import { GetServerStatusUseCase } from '@/modules/system/use-cases/get-server-status.use-case';
 import { ClockModule } from '@/platform/clock/clock.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
-import { CliOption, EnvVar } from '@/platform/config/config.constants';
-import { ConfigLoader } from '@/platform/config/config.loader';
 import { ConfigModule } from '@/platform/config/config.module';
-import { ActorKind, Locale } from '@/platform/context/context.constants';
-import { UseCaseCtx } from '@/platform/context/use-case-ctx';
+import { EnvVar } from '@/platform/config/constants/env.constants';
+import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
+import { ActorKind } from '@/platform/context/constants/actor.constants';
+import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { TEST_ENV } from '@test/support/constants/test-env.constants';
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
-import { cliArgument, createArgv, createTestEnv } from '@test/support/fixtures/test-env.fixture';
+import { createTestEnv } from '@test/support/fixtures/test-env.fixture';
 
 const START = new Date('2026-10-04T12:00:00.000Z');
-const ANONYMOUS_CTX = new UseCaseCtx({
+const ANONYMOUS_CTX: UseCaseCtx = {
   actor: { kind: ActorKind.Anonymous },
   initiatedBy: null,
   workspaceId: null,
   traceId: 'trace',
   locale: Locale.En,
-});
+};
 
 const createUseCase = async (): Promise<{
   useCase: GetServerStatusUseCase;
   clock: ManualClock;
 }> => {
   const clock = new ManualClock(START);
-  const config = new ConfigLoader(createTestEnv()).load(
-    createArgv(cliArgument(CliOption.Role, Role.Api)),
-  );
+  const config = loadAppConfig({ role: Role.Api, queues: [] }, createTestEnv());
   const testingModule = await Test.createTestingModule({
     imports: [ConfigModule.register(config), ClockModule, SystemModule],
   })

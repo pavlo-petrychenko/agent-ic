@@ -1,6 +1,6 @@
 import { ErrorReason } from '@agent-ic/contracts';
-import { DomainError } from '@/platform/errors/domain.error';
-import { DomainErrorKind } from '@/platform/errors/errors.constants';
+import { DomainErrorKind } from '@/platform/errors/constants/domain-error.constants';
+import { DomainError } from '@/platform/errors/errors/domain.error';
 import { INVALID_ID_MESSAGE } from '@/platform/ids/constants/ids.constants';
 
 export class InvalidIdError extends DomainError {

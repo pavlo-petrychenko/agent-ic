@@ -1,9 +1,9 @@
+import { Locale } from '@agent-ic/contracts';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ServerStatus } from '@/features/status/view/ServerStatus/ServerStatus';
 import type { ServerStatusProps } from '@/features/status/view/ServerStatus/ServerStatus.typedefs';
-import { Locale } from '@/shared/i18n/i18n.constants';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
 const baseProps: ServerStatusProps = {

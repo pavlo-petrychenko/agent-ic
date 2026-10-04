@@ -1,5 +1,5 @@
-import { CLI_OPTION_PREFIX } from '@/platform/config/config.constants';
-import type { CliOption, EnvVar } from '@/platform/config/config.constants';
+import { CLI_OPTION_PREFIX, type CliOption } from '@/app/constants/command-line.constants';
+import type { EnvVar } from '@/platform/config/constants/env.constants';
 import { TEST_ARGV_PREFIX, TEST_ENV } from '@test/support/constants/test-env.constants';
 
 export const createTestEnv = (

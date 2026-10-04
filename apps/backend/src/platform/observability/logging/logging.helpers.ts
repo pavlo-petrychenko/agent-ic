@@ -2,7 +2,7 @@ import type { IncomingMessage } from 'node:http';
 import { trace } from '@opentelemetry/api';
 import type { Params } from 'nestjs-pino';
 import { stdTimeFunctions } from 'pino';
-import type { AppConfig } from '@/platform/config/config.typedefs';
+import type { AppConfig } from '@/platform/config/typedefs/app-config.typedefs';
 import {
   LOG_FIELD_ROLE,
   LOG_FIELD_SERVICE,

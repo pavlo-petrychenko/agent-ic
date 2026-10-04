@@ -1,4 +1,5 @@
-import { Locale, Namespace } from '@/shared/i18n/i18n.constants';
+import { Locale } from '@agent-ic/contracts';
+import { Namespace } from '@/shared/i18n/i18n.constants';
 import enCommon from '@/shared/i18n/locales/en/common.json';
 import enErrors from '@/shared/i18n/locales/en/errors.json';
 import ukCommon from '@/shared/i18n/locales/uk/common.json';
