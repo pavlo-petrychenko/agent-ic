@@ -192,7 +192,10 @@ describe('loadAppConfig', () => {
     const config = loadAppConfig(roleOf(Role.Worker), env);
 
     expect(config.publicUrl).toBe(env[EnvVar.PublicUrl]);
-    expect(config.auth).toEqual({ accessTokenSecret: env[EnvVar.JwtAccessSecret] });
+    expect(config.auth).toEqual({
+      accessTokenSecret: env[EnvVar.JwtAccessSecret],
+      inviteTokenSecret: env[EnvVar.InviteTokenSecret],
+    });
   });
 
   it('rejects an access token secret shorter than 32 characters', () => {
@@ -201,6 +204,15 @@ describe('loadAppConfig', () => {
     const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
 
     expect(variablesOf(issues)).toEqual([EnvVar.JwtAccessSecret]);
+  });
+
+  it.each([
+    { [EnvVar.InviteTokenSecret]: undefined },
+    { [EnvVar.InviteTokenSecret]: 'short-secret' },
+  ])('requires an invite token secret of at least 32 characters', (override) => {
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), createTestEnv(override)));
+
+    expect(variablesOf(issues)).toEqual([EnvVar.InviteTokenSecret]);
   });
 
   it('reads the SMTP settings in smtp mode', () => {

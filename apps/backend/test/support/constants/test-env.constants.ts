@@ -30,6 +30,7 @@ export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.LangfuseSecretKey]: 'test-secret-key',
   [EnvVar.PublicUrl]: 'https://app.agent-ic.test',
   [EnvVar.JwtAccessSecret]: 'test-access-secret-0123456789abcdef0123456789',
+  [EnvVar.InviteTokenSecret]: 'test-invite-secret-0123456789abcdef0123456789',
   [EnvVar.EmailMode]: EmailMode.Smtp,
   [EnvVar.EmailFrom]: 'agent-ic <no-reply@agent-ic.test>',
   [EnvVar.SmtpHost]: '127.0.0.1',

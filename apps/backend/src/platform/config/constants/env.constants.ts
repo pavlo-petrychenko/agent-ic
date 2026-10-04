@@ -31,6 +31,7 @@ export enum EnvVar {
   LangfuseSecretKey = 'LANGFUSE_SECRET_KEY',
   PublicUrl = 'PUBLIC_URL',
   JwtAccessSecret = 'JWT_ACCESS_SECRET',
+  InviteTokenSecret = 'INVITE_TOKEN_SECRET',
   EmailMode = 'EMAIL_MODE',
   EmailFrom = 'EMAIL_FROM',
   SmtpHost = 'SMTP_HOST',

@@ -31,11 +31,7 @@ export enum JoinOutcomeKind {
   Expired = 'expired',
 }
 
-export enum InviteTokenKey {
+export enum InviteTokenHmac {
   Algorithm = 'sha256',
-  Salt = 'agent-ic/invite-links',
-  Info = 'invite-link-token',
   Encoding = 'base64url',
 }
-
-export const INVITE_TOKEN_KEY_BYTES = 32;

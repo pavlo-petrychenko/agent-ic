@@ -113,6 +113,14 @@ resend_mode="$(yq -N 'select(.kind == "Deployment" and .metadata.name == "agent-
 test "$resend_mode" = "resend"
 echo "$email_modes | $resend_mode"
 
+echo "== every backend workload reads INVITE_TOKEN_SECRET from the auth Secret"
+invite_refs="$(yq -N 'select(.kind == "Deployment" and .metadata.name != "agent-ic-web") | .spec.template.spec.containers[0].env[] | select(.name == "INVITE_TOKEN_SECRET") | .valueFrom.secretKeyRef.name + "/" + .valueFrom.secretKeyRef.key' "$rendered/default.yaml" | sort -u)"
+test "$invite_refs" = "app-auth/inviteTokenSecret"
+invite_count="$(yq -N 'select(.kind == "Deployment" and .metadata.name != "agent-ic-web") | .spec.template.spec.containers[0].env[] | select(.name == "INVITE_TOKEN_SECRET") | .name' "$rendered/default.yaml" | wc -l | tr -d ' ')"
+backend_count="$(yq -N 'select(.kind == "Deployment" and .metadata.name != "agent-ic-web") | .metadata.name' "$rendered/default.yaml" | wc -l | tr -d ' ')"
+test "$invite_count" = "$backend_count"
+echo "$invite_refs in $invite_count workloads"
+
 echo "== SMTP TLS defaults to off and takes TLS and credentials from values and a secret"
 smtp_env() {
   yq -N "select(.kind == \"Deployment\" and .metadata.name == \"agent-ic-worker-runs\") | .spec.template.spec.containers[0].env[] | select(.name == \"$1\") | $2" "$rendered/$3.yaml"
@@ -227,6 +235,9 @@ expect_failure "enabled optional secret without a name" \
 expect_failure "resend e-mail without the e-mail secret" \
   'needs secrets.email.enabled' \
   --set config.email.mode=resend
+expect_failure "auth Secret without the invite token key" \
+  'INVITE_TOKEN_SECRET' \
+  --set secrets.auth.keys.INVITE_TOKEN_SECRET=null
 expect_failure "enabled SMTP secret without keys" \
   'missing propert' \
   --set secrets.smtp.enabled=true \
