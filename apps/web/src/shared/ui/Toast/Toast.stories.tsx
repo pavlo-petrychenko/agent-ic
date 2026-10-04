@@ -23,15 +23,32 @@ const meta = {
       </ToastProvider>
     ),
   ],
-  args: { label: 'Show toast', title: 'Changes saved', description: 'The agent is up to date.' },
+  args: { label: 'Show toast', message: 'Changes saved.' },
+  argTypes: {
+    tone: { control: 'select', options: Object.values(ToastTone) },
+  },
 } satisfies Meta<typeof ToastDemo>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Neutral: Story = {};
-export const Success: Story = { args: { tone: ToastTone.Success } };
-export const Failure: Story = {
-  args: { tone: ToastTone.Error, title: 'Could not save', description: 'Try again in a moment.' },
+export const Info: Story = { args: { tone: ToastTone.Info, message: 'The agent is up to date.' } };
+export const Ok: Story = { args: { tone: ToastTone.Ok } };
+export const Err: Story = {
+  args: { tone: ToastTone.Err, message: 'Could not save. Try again in a moment.' },
+};
+export const WithAction: Story = {
+  args: {
+    tone: ToastTone.Ok,
+    message: 'Agent deleted.',
+    action: { label: 'Undo', onClick: () => undefined },
+  },
+};
+export const Persistent: Story = {
+  args: {
+    tone: ToastTone.Info,
+    message: 'Stays until closed.',
+    durationMs: Number.POSITIVE_INFINITY,
+  },
 };
