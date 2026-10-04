@@ -1,8 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { BulletList } from '@/shared/ui/BulletList/BulletList';
+import { TextLink } from '@/shared/ui/TextLink/TextLink';
+import { withMemoryRouter } from '@test/support/helpers/storybook.helpers';
 
 const meta = {
   component: BulletList,
+  decorators: [withMemoryRouter],
   args: {
     items: [
       'Greeting node now asks for the customer name first',
@@ -22,7 +25,11 @@ export const WithInlineLinks: Story = {
   args: {
     items: [
       <>
-        Connected the <a href="/knowledge">product catalogue</a> source
+        Connected the{' '}
+        <TextLink to="/" inline>
+          product catalogue
+        </TextLink>{' '}
+        source
       </>,
       'Plain text item next to a linked one',
     ],

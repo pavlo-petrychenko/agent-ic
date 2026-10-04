@@ -1,12 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Text } from '@/shared/ui/Text/Text';
 import { TextColor, TextElement, TextKind } from '@/shared/ui/Text/Text.constants';
+import { TextLink } from '@/shared/ui/TextLink/TextLink';
+import { withMemoryRouter } from '@test/support/helpers/storybook.helpers';
 import styles from '@/shared/ui/Text/Text.module.scss';
 
 const SAMPLE = 'Agents answer from your documents and hand over to a person when unsure.';
 
 const meta = {
   component: Text,
+  decorators: [withMemoryRouter],
   args: { children: SAMPLE },
   argTypes: {
     kind: { control: 'select', options: Object.values(TextKind) },
@@ -53,7 +56,11 @@ export const InlineLink: Story = {
   args: {
     children: (
       <>
-        Read the <a href="/docs">publishing guide</a> before going live.
+        Read the{' '}
+        <TextLink to="/" inline>
+          publishing guide
+        </TextLink>{' '}
+        before going live.
       </>
     ),
   },
