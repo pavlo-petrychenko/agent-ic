@@ -24,9 +24,15 @@
     color: var(--color-ink);
   }
 
+  &:hover:not([data-disabled], [data-state='active']) {
+    border-bottom-color: var(--color-line-dash);
+  }
+
   &:focus-visible {
     outline: none;
-    box-shadow: var(--shadow-focus-ring-inset);
+    border-radius: var(--radius-4);
+    box-shadow: var(--shadow-focus-ring);
+    color: var(--color-ink);
   }
 
   &[data-state='active'] {
@@ -35,6 +41,7 @@
   }
 
   &[data-disabled] {
+    color: var(--color-mute);
     cursor: not-allowed;
     opacity: var(--opacity-disabled);
     pointer-events: none;
