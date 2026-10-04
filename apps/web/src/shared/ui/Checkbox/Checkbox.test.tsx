@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Checkbox } from '@/shared/ui/Checkbox/Checkbox';
 import { CheckboxAlign } from '@/shared/ui/Checkbox/Checkbox.constants';
+import { IconName } from '@/shared/ui/Icon/Icon.constants';
 
 const NOOP = () => undefined;
 
@@ -56,6 +57,20 @@ describe('Checkbox', () => {
     await userEvent.click(screen.getByRole('checkbox', { name: 'All' }));
 
     expect(onCheckedChange).toHaveBeenCalledWith(true);
+  });
+
+  it.each([
+    { checked: true as const, icon: IconName.Check },
+    { checked: 'indeterminate' as const, icon: IconName.Minus },
+  ])('draws the $icon icon at 11px with a 2.2 stroke', ({ checked, icon }) => {
+    render(<Checkbox checked={checked} onCheckedChange={NOOP} label="Notify" />);
+
+    const svg = screen.getByRole('checkbox', { name: 'Notify' }).querySelector('svg');
+
+    expect(svg).toHaveAttribute('data-icon', icon);
+    expect(svg).toHaveAttribute('width', '11');
+    expect(svg).toHaveAttribute('height', '11');
+    expect(svg).toHaveAttribute('stroke-width', '2.2');
   });
 
   it('is named by aria-label when it has no visible label', () => {

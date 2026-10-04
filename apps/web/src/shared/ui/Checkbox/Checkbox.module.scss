@@ -24,7 +24,8 @@
   width: var(--size-checkbox);
   height: var(--size-checkbox);
   padding: 0;
-  border: var(--border-width) solid var(--color-line-dash);
+  box-sizing: border-box;
+  border: var(--border-width-dash) solid var(--color-line-dash);
   border-radius: var(--radius-4);
   background: var(--color-card);
   color: var(--color-on-accent);
