@@ -1,0 +1,5 @@
+mutation ResendConfirmation($input: ResendConfirmationInput!) {
+  resendConfirmation(input: $input) {
+    accepted
+  }
+}

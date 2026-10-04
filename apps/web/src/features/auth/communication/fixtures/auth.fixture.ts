@@ -1,5 +1,6 @@
 import type { MockLink } from '@apollo/client/testing';
 import { ForgotPasswordDocument } from '@/features/auth/communication/gql/mutation/forgotPassword.generated';
+import { ResendConfirmationDocument } from '@/features/auth/communication/gql/mutation/resendConfirmation.generated';
 import { MyWorkspacesDocument } from '@/features/auth/communication/gql/query/myWorkspaces.generated';
 import type { SessionTokens } from '@/shared/api/typedefs/session.typedefs';
 
@@ -25,4 +26,13 @@ export const buildMyWorkspacesMock = (
 export const buildForgotPasswordMock = (email: string): MockLink.MockedResponse => ({
   request: { query: ForgotPasswordDocument, variables: { input: { email } } },
   result: { data: { forgotPassword: { __typename: 'ForgotPasswordPayload', accepted: true } } },
+});
+
+export const buildResendConfirmationMock = (
+  input: Readonly<{ email: string | null; token: string | null }>,
+): MockLink.MockedResponse => ({
+  request: { query: ResendConfirmationDocument, variables: { input } },
+  result: {
+    data: { resendConfirmation: { __typename: 'ResendConfirmationPayload', accepted: true } },
+  },
 });
