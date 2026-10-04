@@ -1,6 +1,18 @@
-$pulse-low-opacity: 0.4;
+$halo-spread: 3px;
+$halo-spread-low: 1px;
 
 .root {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.label {
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.dot {
   display: inline-block;
   flex-shrink: 0;
   width: var(--size-dot-md);
@@ -28,17 +40,18 @@ $pulse-low-opacity: 0.4;
 .run {
   --status-dot-color: var(--color-accent);
 
+  box-shadow: 0 0 0 $halo-spread var(--color-accent-glow);
   animation: pulse var(--duration-pulse) var(--ease-standard) infinite;
 }
 
 @keyframes pulse {
   0%,
   100% {
-    opacity: 1;
+    box-shadow: 0 0 0 $halo-spread var(--color-accent-glow);
   }
 
   50% {
-    opacity: $pulse-low-opacity;
+    box-shadow: 0 0 0 $halo-spread-low var(--color-accent-glow);
   }
 }
 

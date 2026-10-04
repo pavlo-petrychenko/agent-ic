@@ -21,6 +21,16 @@ export const Err: Story = { args: { kind: StatusKind.Err } };
 export const Idle: Story = { args: { kind: StatusKind.Idle } };
 export const Running: Story = { args: { kind: StatusKind.Run } };
 export const Labelled: Story = { args: { label: 'Connected' } };
+export const RunningLabelled: Story = { args: { kind: StatusKind.Run, label: 'Indexing' } };
+export const AllKindsLabelled: Story = {
+  render: (args) => (
+    <div className={styles.storyRow}>
+      {Object.values(StatusKind).map((kind) => (
+        <StatusDot key={kind} {...args} kind={kind} label={kind} />
+      ))}
+    </div>
+  ),
+};
 export const AllKinds: Story = {
   render: (args) => (
     <div className={styles.storyRow}>
