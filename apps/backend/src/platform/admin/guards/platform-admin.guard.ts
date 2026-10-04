@@ -22,6 +22,9 @@ export class PlatformAdminGuard implements CanActivate {
       return true;
     }
     const request = context.switchToHttp().getRequest<Request>();
+    if (this.arrivedThroughAdminRoute(request)) {
+      return true;
+    }
     const actor = await this.contexts.resolveActor(
       request.header(HttpHeader.Authorization) ?? null,
     );
@@ -29,5 +32,9 @@ export class PlatformAdminGuard implements CanActivate {
       throw new PlatformAdminRequiredError();
     }
     return true;
+  }
+
+  private arrivedThroughAdminRoute(request: Request): boolean {
+    return (request.header(HttpHeader.PlatformAdminRoute) ?? '') !== '';
   }
 }

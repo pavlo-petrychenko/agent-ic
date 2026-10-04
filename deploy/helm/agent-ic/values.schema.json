@@ -11,6 +11,7 @@
     "web",
     "migration",
     "ingress",
+    "networkPolicy",
     "keda",
     "metrics",
     "probes"
@@ -271,7 +272,14 @@
     "publicRoute": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "service", "priority", "pathPrefixes", "excludePathPrefixes"],
+      "required": [
+        "name",
+        "service",
+        "priority",
+        "pathPrefixes",
+        "excludePathPrefixes",
+        "middlewares"
+      ],
       "properties": {
         "name": {
           "$ref": "#/definitions/nonEmptyString"
@@ -288,6 +296,9 @@
         },
         "excludePathPrefixes": {
           "$ref": "#/definitions/pathList"
+        },
+        "middlewares": {
+          "$ref": "#/definitions/stringList"
         }
       }
     },
@@ -912,7 +923,7 @@
         "public": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["host", "entryPoints", "routes"],
+          "required": ["host", "entryPoints", "routes", "stripMiddleware"],
           "properties": {
             "host": {
               "$ref": "#/definitions/nonEmptyString"
@@ -933,13 +944,16 @@
               "items": {
                 "$ref": "#/definitions/publicRoute"
               }
+            },
+            "stripMiddleware": {
+              "$ref": "#/definitions/nonEmptyString"
             }
           }
         },
         "admin": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["host", "entryPoints", "service", "pathPrefix", "priority"],
+          "required": ["host", "entryPoints", "service", "pathPrefix", "priority", "requestHeader"],
           "properties": {
             "host": {
               "$ref": "#/definitions/nonEmptyString"
@@ -963,8 +977,35 @@
             "priority": {
               "type": "integer",
               "minimum": 1
+            },
+            "requestHeader": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "value"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]*$"
+                },
+                "value": {
+                  "$ref": "#/definitions/nonEmptyString"
+                }
+              }
             }
           }
+        }
+      }
+    },
+    "networkPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["traefikNamespace", "prometheusNamespace"],
+      "properties": {
+        "traefikNamespace": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "prometheusNamespace": {
+          "$ref": "#/definitions/nonEmptyString"
         }
       }
     },

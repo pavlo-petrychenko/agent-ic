@@ -69,6 +69,10 @@ secrets:
       LANGFUSE_PUBLIC_KEY: publicKey
       LANGFUSE_SECRET_KEY: secretKey
 
+networkPolicy:
+  traefikNamespace: traefik
+  prometheusNamespace: observability
+
 ingress:
   public:
     host: app.example.test
