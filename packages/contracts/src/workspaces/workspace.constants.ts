@@ -1,0 +1,2 @@
+export const WORKSPACE_NAME_MAX_LENGTH = 100;
+export const INVITE_LINK_TTL_DAYS = 14;

@@ -23,7 +23,14 @@
     "TOKEN_INVALID": "This link is not valid.",
     "TOKEN_EXPIRED": "This link has expired.",
     "CROSS_ORIGIN_REQUEST": "This request must come from the agent-ic app. Reload the page and try again.",
-    "UNSUPPORTED_CONTENT_TYPE": "The request format is not supported."
+    "UNSUPPORTED_CONTENT_TYPE": "The request format is not supported.",
+    "WORKSPACE_ACCESS_DENIED": "You are not a member of this workspace.",
+    "PERMISSION_DENIED": "Your role does not allow this action.",
+    "INVITE_INVALID": "This invite is not valid or was reset.",
+    "INVITE_EXPIRED": "This invite has expired. Ask for a new link.",
+    "INVALID_WORKSPACE_NAME": "Enter a workspace name.",
+    "INVALID_TIME_ZONE": "Choose a valid time zone.",
+    "ROLE_NOT_INVITABLE": "This role cannot be given through an invite."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",

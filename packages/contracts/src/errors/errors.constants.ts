@@ -35,4 +35,11 @@ export enum ErrorReason {
   TokenExpired = 'TOKEN_EXPIRED',
   CrossOriginRequest = 'CROSS_ORIGIN_REQUEST',
   UnsupportedContentType = 'UNSUPPORTED_CONTENT_TYPE',
+  WorkspaceAccessDenied = 'WORKSPACE_ACCESS_DENIED',
+  PermissionDenied = 'PERMISSION_DENIED',
+  InviteInvalid = 'INVITE_INVALID',
+  InviteExpired = 'INVITE_EXPIRED',
+  InvalidWorkspaceName = 'INVALID_WORKSPACE_NAME',
+  InvalidTimeZone = 'INVALID_TIME_ZONE',
+  RoleNotInvitable = 'ROLE_NOT_INVITABLE',
 }
