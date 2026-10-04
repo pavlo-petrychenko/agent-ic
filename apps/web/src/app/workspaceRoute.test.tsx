@@ -4,8 +4,8 @@ import { I18nextProvider } from 'react-i18next';
 import { afterEach, describe, expect, it } from 'vitest';
 import { routeTree } from '@/routeTree.gen';
 import { getRequestContext, setWorkspaceId } from '@/shared/api/helpers/requestContext.helpers';
-import { createI18n } from '@/shared/i18n/i18n';
-import { Locale } from '@/shared/i18n/i18n.constants';
+import { createI18n } from '@/shared/i18n/clients/i18n.client';
+import { Locale } from '@/shared/i18n/constants/locale.constants';
 
 const FIRST_WORKSPACE_ID = 'ws_first';
 const SECOND_WORKSPACE_ID = 'ws_second';

@@ -1,11 +1,7 @@
 import { useStore } from '@tanstack/react-form';
-import type { ReactNode } from 'react';
-import { useFormContext } from '@/shared/forms/formContext';
+import { useFormContext } from '@/shared/forms/contexts/form.context';
+import type { SubmitButtonProps } from '@/shared/forms/fields/SubmitButton/SubmitButton.typedefs';
 import { Button } from '@/shared/ui/Button';
-
-interface SubmitButtonProps {
-  children: ReactNode;
-}
 
 export function SubmitButton({ children }: SubmitButtonProps) {
   const form = useFormContext();

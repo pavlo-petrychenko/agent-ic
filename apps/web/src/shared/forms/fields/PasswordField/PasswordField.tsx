@@ -1,15 +1,13 @@
 import { useStore } from '@tanstack/react-form';
-import { useFieldContext } from '@/shared/forms/formContext';
-import { firstErrorMessage } from '@/shared/forms/forms.helpers';
+import { useTranslation } from 'react-i18next';
+import { useFieldContext } from '@/shared/forms/contexts/form.context';
+import type { PasswordFieldProps } from '@/shared/forms/fields/PasswordField/PasswordField.typedefs';
+import { firstErrorMessage } from '@/shared/forms/helpers/fieldError.helpers';
 import { Field } from '@/shared/ui/Field';
-import { Input, type InputProps } from '@/shared/ui/Input';
+import { PasswordInput } from '@/shared/ui/PasswordInput';
 
-interface TextFieldProps extends Omit<InputProps, 'value' | 'onChange' | 'onBlur' | 'id' | 'name'> {
-  label: string;
-  hint?: string | null;
-}
-
-export function TextField({ label, hint = null, ...inputProps }: TextFieldProps) {
+export function PasswordField({ label, hint = null, ...inputProps }: PasswordFieldProps) {
+  const { t } = useTranslation();
   const field = useFieldContext<string>();
   const meta = useStore(field.store, (state) => state.meta);
   const value = useStore(field.store, (state) => state.value);
@@ -18,13 +16,15 @@ export function TextField({ label, hint = null, ...inputProps }: TextFieldProps)
   return (
     <Field label={label} hint={hint} error={error}>
       {(control) => (
-        <Input
+        <PasswordInput
           {...inputProps}
           id={control.id}
           aria-describedby={control['aria-describedby']}
           invalid={control.invalid}
           name={field.name}
           value={value}
+          showLabel={t('ui.showPassword')}
+          hideLabel={t('ui.hidePassword')}
           onBlur={field.handleBlur}
           onChange={(event) => field.handleChange(event.target.value)}
         />

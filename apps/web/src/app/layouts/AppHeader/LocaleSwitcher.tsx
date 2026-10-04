@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Locale } from '@/shared/i18n/i18n.constants';
-import { useLocale } from '@/shared/i18n/useLocale';
+import { Locale } from '@/shared/i18n/constants/locale.constants';
+import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/Button';
 
 const LOCALES: readonly Locale[] = Object.values(Locale);

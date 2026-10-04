@@ -3,8 +3,8 @@ import { MockedProvider } from '@apollo/client/testing/react';
 import { render, type RenderResult } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { I18nextProvider } from 'react-i18next';
-import { createI18n } from '@/shared/i18n/i18n';
-import { Locale } from '@/shared/i18n/i18n.constants';
+import { createI18n } from '@/shared/i18n/clients/i18n.client';
+import { Locale } from '@/shared/i18n/constants/locale.constants';
 
 interface RenderWithProvidersOptions {
   locale?: Locale;

@@ -3,8 +3,8 @@ import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { describe, expect, it } from 'vitest';
 import { useUptimeLabel } from '@/features/status/logic/hooks/useUptimeLabel';
-import { createI18n } from '@/shared/i18n/i18n';
-import { Locale } from '@/shared/i18n/i18n.constants';
+import { createI18n } from '@/shared/i18n/clients/i18n.client';
+import { Locale } from '@/shared/i18n/constants/locale.constants';
 
 const wrapperFor =
   (locale: Locale) =>

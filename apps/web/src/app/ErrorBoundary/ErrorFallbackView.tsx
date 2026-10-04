@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
-import { Namespace } from '@/shared/i18n/i18n.constants';
-import { useErrorMessage } from '@/shared/i18n/useErrorMessage';
+import { Namespace } from '@/shared/i18n/constants/namespace.constants';
+import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 

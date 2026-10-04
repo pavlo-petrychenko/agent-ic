@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
 import { describe, expect, it } from 'vitest';
 import { AppHeader } from '@/app/layouts/AppHeader/AppHeader';
-import { createI18n } from '@/shared/i18n/i18n';
-import { LOCALE_STORAGE_KEY, Locale } from '@/shared/i18n/i18n.constants';
+import { createI18n } from '@/shared/i18n/clients/i18n.client';
+import { LOCALE_STORAGE_KEY, Locale } from '@/shared/i18n/constants/locale.constants';
 import { MemoryRouter } from '@test/support/components/MemoryRouter';
 
 const renderHeader = () =>

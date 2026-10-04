@@ -5,7 +5,7 @@ import {
   buildServerStatusMock,
 } from '@/features/status/communication/fixtures/serverStatus.fixture';
 import { StatusPage } from '@/features/status/containers/StatusPage/StatusPage';
-import { Locale } from '@/shared/i18n/i18n.constants';
+import { Locale } from '@/shared/i18n/constants/locale.constants';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
 describe('StatusPage', () => {

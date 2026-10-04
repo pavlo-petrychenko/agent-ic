@@ -1,4 +1,5 @@
-import { Locale, Namespace } from '@/shared/i18n/i18n.constants';
+import { Locale } from '@/shared/i18n/constants/locale.constants';
+import { Namespace } from '@/shared/i18n/constants/namespace.constants';
 import enCommon from '@/shared/i18n/locales/en/common.json';
 import enErrors from '@/shared/i18n/locales/en/errors.json';
 import ukCommon from '@/shared/i18n/locales/uk/common.json';

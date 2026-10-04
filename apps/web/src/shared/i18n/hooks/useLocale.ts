@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DEFAULT_LOCALE, type Locale } from '@/shared/i18n/i18n.constants';
-import { isLocale } from '@/shared/i18n/i18n.helpers';
-import { storeLocale } from '@/shared/i18n/localeStorage';
+import { DEFAULT_LOCALE, type Locale } from '@/shared/i18n/constants/locale.constants';
+import { isLocale } from '@/shared/i18n/helpers/locale.helpers';
+import { storeLocale } from '@/shared/i18n/helpers/localeStorage.helpers';
 
 interface UseLocaleResult {
   readonly locale: Locale;
