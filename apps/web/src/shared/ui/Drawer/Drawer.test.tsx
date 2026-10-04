@@ -54,12 +54,12 @@ describe('Drawer', () => {
 
   it('applies the requested width', () => {
     render(
-      <Drawer open onOpenChange={vi.fn<(open: boolean) => void>()} ariaLabel="Preview" width={380}>
+      <Drawer open onOpenChange={vi.fn<(open: boolean) => void>()} ariaLabel="Preview" width={420}>
         <p>Content</p>
       </Drawer>,
     );
 
-    expect(screen.getByRole('complementary')).toHaveStyle({ width: '380px' });
+    expect(screen.getByRole('complementary')).toHaveStyle({ width: '420px' });
   });
 
   it('moves focus into the drawer on open and returns it to the opener on close', async () => {

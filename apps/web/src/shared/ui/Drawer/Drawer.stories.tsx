@@ -3,11 +3,10 @@ import { useState } from 'react';
 import { Button, ButtonVariant } from '@/shared/ui/Button';
 import { Drawer } from '@/shared/ui/Drawer/Drawer';
 import type { DrawerProps } from '@/shared/ui/Drawer/Drawer.typedefs';
-import { Icon } from '@/shared/ui/Icon/Icon';
 import { IconName } from '@/shared/ui/Icon/Icon.constants';
+import { IconButton, IconButtonSize } from '@/shared/ui/IconButton';
 
-const WIZARD_PREVIEW_WIDTH = 380;
-const STORY_ICON_SIZE = 14;
+const WIDE_WIDTH = 420;
 
 function DrawerDemo(props: DrawerProps) {
   const [open, setOpen] = useState(props.open);
@@ -25,9 +24,12 @@ function DrawerDemo(props: DrawerProps) {
         <div className="flex flex-col gap-3 p-4">
           <div className="flex items-center justify-between">
             <strong>Node settings</strong>
-            <button type="button" aria-label="Close" onClick={() => handleOpenChange(false)}>
-              <Icon name={IconName.X} size={STORY_ICON_SIZE} />
-            </button>
+            <IconButton
+              icon={IconName.X}
+              label="Close"
+              size={IconButtonSize.Sm}
+              onClick={() => handleOpenChange(false)}
+            />
           </div>
           <p>The same content is a docked panel at 1280 and wider.</p>
         </div>
@@ -54,6 +56,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Open: Story = {};
 export const Closed: Story = { args: { open: false } };
-export const WizardPreviewWidth: Story = {
-  args: { width: WIZARD_PREVIEW_WIDTH, ariaLabel: 'Preview' },
+export const Wide: Story = {
+  args: { width: WIDE_WIDTH, ariaLabel: 'Details' },
 };
