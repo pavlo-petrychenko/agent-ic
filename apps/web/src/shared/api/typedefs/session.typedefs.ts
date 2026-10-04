@@ -29,4 +29,5 @@ export interface SessionClient {
 
 export interface WsConnection {
   readonly accessToken: string | null;
+  readonly workspaceId: string | null;
 }

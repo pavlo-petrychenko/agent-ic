@@ -76,9 +76,9 @@ describe('buildConnectionParams', () => {
 
 describe('createWsClient', () => {
   afterEach(() => {
-    ws.terminate.mockClear();
     setAccessToken(null);
     setWorkspaceId(null);
+    ws.terminate.mockClear();
   });
 
   const setup = (post: AuthRequest) => {
@@ -105,5 +105,27 @@ describe('createWsClient', () => {
     session.start(tokens('expiring', 1_000));
 
     await expect(connect()).resolves.toEqual({ authorization: 'Bearer renewed' });
+  });
+
+  it('reconnects with the new workspace id after the active workspace changes', async () => {
+    const session = setup(() => Promise.resolve(null));
+    session.start(tokens('token'));
+    setWorkspaceId('ws_1');
+    await expect(connect()).resolves.toEqual({
+      authorization: 'Bearer token',
+      'x-workspace-id': 'ws_1',
+    });
+    ws.terminate.mockClear();
+
+    setWorkspaceId('ws_2');
+    expect(ws.terminate).toHaveBeenCalled();
+    await expect(connect()).resolves.toEqual({
+      authorization: 'Bearer token',
+      'x-workspace-id': 'ws_2',
+    });
+    ws.terminate.mockClear();
+
+    setWorkspaceId('ws_2');
+    expect(ws.terminate).not.toHaveBeenCalled();
   });
 });
