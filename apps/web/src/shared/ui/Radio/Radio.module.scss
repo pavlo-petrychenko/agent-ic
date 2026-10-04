@@ -27,8 +27,9 @@
   flex: none;
   width: var(--size-checkbox);
   height: var(--size-checkbox);
+  box-sizing: border-box;
   padding: 0;
-  border: var(--border-width) solid var(--color-line-dash);
+  border: var(--border-width-dash) solid var(--color-line-dash);
   border-radius: var(--radius-pill);
   background: var(--color-card);
   cursor: pointer;
@@ -39,7 +40,9 @@
   }
 
   &[data-state='checked'] {
+    border-width: var(--border-width-strong);
     border-color: var(--color-accent);
+    background: var(--color-card);
   }
 
   &:focus-visible {
@@ -49,7 +52,10 @@
 
 .dot {
   position: absolute;
-  inset: var(--space-3);
+  inset: 0;
+  width: var(--space-8);
+  height: var(--space-8);
+  margin: auto;
   border-radius: var(--radius-pill);
   background: var(--color-accent);
 }
