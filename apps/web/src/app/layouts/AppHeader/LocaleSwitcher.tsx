@@ -1,5 +1,5 @@
+import { Locale } from '@agent-ic/contracts';
 import { useTranslation } from 'react-i18next';
-import { Locale } from '@/shared/i18n/i18n.constants';
 import { useLocale } from '@/shared/i18n/useLocale';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/Button';
 

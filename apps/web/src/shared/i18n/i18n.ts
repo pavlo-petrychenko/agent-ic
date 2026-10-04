@@ -1,5 +1,6 @@
+import { DEFAULT_LOCALE, type Locale } from '@agent-ic/contracts';
 import { createInstance, type i18n as I18nInstance } from 'i18next';
-import { DEFAULT_LOCALE, type Locale, Namespace } from '@/shared/i18n/i18n.constants';
+import { Namespace } from '@/shared/i18n/i18n.constants';
 import { resources } from '@/shared/i18n/i18n.resources';
 
 export function createI18n(locale: Locale): I18nInstance {

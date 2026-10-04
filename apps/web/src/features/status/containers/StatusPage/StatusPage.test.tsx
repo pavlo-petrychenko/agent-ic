@@ -1,3 +1,4 @@
+import { Locale } from '@agent-ic/contracts';
 import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import {
@@ -5,7 +6,6 @@ import {
   buildServerStatusMock,
 } from '@/features/status/communication/serverStatus.mocks';
 import { StatusPage } from '@/features/status/containers/StatusPage/StatusPage';
-import { Locale } from '@/shared/i18n/i18n.constants';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
 describe('StatusPage', () => {
