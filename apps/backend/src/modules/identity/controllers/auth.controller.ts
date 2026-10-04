@@ -1,6 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthRoute } from '@/modules/identity/constants/auth-http.constants';
+import { InvalidRefreshTokenError } from '@/modules/identity/errors/invalid-refresh-token.error';
 import { AuthRequestGuard } from '@/modules/identity/guards/auth-request.guard';
 import {
   bindConfirmationBrowser,
@@ -66,10 +67,17 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<AuthSessionResponse> {
-    const session = await this.refreshSessionUseCase.execute(ctx, {
-      refreshToken: readRefreshCookie(request),
-    });
-    return startBrowserSession(response, session);
+    try {
+      const session = await this.refreshSessionUseCase.execute(ctx, {
+        refreshToken: readRefreshCookie(request),
+      });
+      return startBrowserSession(response, session);
+    } catch (error) {
+      if (error instanceof InvalidRefreshTokenError) {
+        endBrowserSession(response);
+      }
+      throw error;
+    }
   }
 
   @Post(AuthRoute.Logout)

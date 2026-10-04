@@ -170,6 +170,11 @@ describe('accounts and sessions through the api', () => {
     const reused = await refresh(cookiePair(firstCookie));
     expect(reused.status).toBe(401);
     expect(reused.body.reason).toBe(ErrorReason.InvalidRefreshToken);
+    const clearedOnReuse = refreshCookieOf(reused.headers[HttpHeader.SetCookie]);
+    expect(clearedOnReuse).toContain(EXPIRED_COOKIE_DATE);
+    for (const attribute of AUTH_COOKIE_ATTRIBUTES) {
+      expect(clearedOnReuse).toContain(attribute);
+    }
 
     const afterReuse = await refresh(cookiePair(secondCookie));
     expect(afterReuse.status).toBe(401);
@@ -256,6 +261,17 @@ describe('accounts and sessions through the api', () => {
 
     expect((await login(email, TEST_PASSWORD)).status).toBe(200);
     expect((await login(email, ATTACKER_PASSWORD)).status).toBe(401);
+  });
+
+  it('clears the refresh cookie when a refresh fails', async () => {
+    const unknown = await refresh(`${REFRESH_COOKIE_NAME}=never-issued`);
+    const missing = await authPost(AuthRoute.Refresh);
+
+    for (const failed of [unknown, missing]) {
+      expect(failed.status).toBe(401);
+      expect(failed.body.reason).toBe(ErrorReason.InvalidRefreshToken);
+      expect(refreshCookieOf(failed.headers[HttpHeader.SetCookie])).toContain(EXPIRED_COOKIE_DATE);
+    }
   });
 
   it('logs in with a password and logs out', async () => {
