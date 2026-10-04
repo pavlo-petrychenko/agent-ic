@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
-import { Link } from '@/shared/ui/Link';
+import { TextLink } from '@/shared/ui/TextLink';
 
 export function NotFound() {
   const { t } = useTranslation();
@@ -8,7 +8,7 @@ export function NotFound() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-form items-center px-4">
       <Card title={t('notFound.title')}>
-        <Link to="/">{t('notFound.action')}</Link>
+        <TextLink to="/">{t('notFound.action')}</TextLink>
       </Card>
     </main>
   );

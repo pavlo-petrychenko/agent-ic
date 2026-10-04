@@ -1,1 +1,6 @@
-export const DIALOG_CLOSE_GLYPH = '×';
+export enum DialogSize {
+  Sm = 'sm',
+  Md = 'md',
+  Lg = 'lg',
+  Xl = 'xl',
+}
