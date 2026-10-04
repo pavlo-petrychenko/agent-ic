@@ -1,0 +1,44 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-width: 0;
+  padding: 0 var(--space-8);
+}
+
+.mark {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  border-radius: var(--radius-8);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+}
+
+.name {
+  overflow: hidden;
+  color: var(--color-ink);
+  font: var(--type-title);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.caption {
+  color: var(--color-mute);
+  font: var(--type-small);
+}
+
+.chevron {
+  display: flex;
+  color: var(--color-mute);
+}

@@ -1,0 +1,15 @@
+query WorkspaceShell {
+  me {
+    id
+    name
+    email
+  }
+  myWorkspaces {
+    role
+    workspace {
+      id
+      name
+      memberCount
+    }
+  }
+}

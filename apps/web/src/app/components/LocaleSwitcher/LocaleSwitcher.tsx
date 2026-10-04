@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { LOCALE_OPTIONS } from '@/app/components/LocaleSwitcher/LocaleSwitcher.constants';
+import type { LocaleSwitcherProps } from '@/app/components/LocaleSwitcher/LocaleSwitcher.typedefs';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { SegmentedControl, SegmentedControlSize } from '@/shared/ui/SegmentedControl';
 
-export function LocaleSwitcher() {
+export function LocaleSwitcher({ compact = false }: LocaleSwitcherProps) {
   const { t } = useTranslation();
   const { locale, setLocale } = useLocale();
 
@@ -13,7 +14,10 @@ export function LocaleSwitcher() {
       size={SegmentedControlSize.Sm}
       value={locale}
       onValueChange={setLocale}
-      options={LOCALE_OPTIONS.map((option) => ({ value: option, label: t(`locale.${option}`) }))}
+      options={LOCALE_OPTIONS.map((option) => ({
+        value: option,
+        label: compact ? t(`locale.short.${option}`) : t(`locale.${option}`),
+      }))}
     />
   );
 }

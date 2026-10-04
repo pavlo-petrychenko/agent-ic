@@ -5,7 +5,11 @@
   "locale": {
     "label": "Language",
     "en": "English",
-    "uk": "Українська"
+    "uk": "Українська",
+    "short": {
+      "en": "EN",
+      "uk": "УКР"
+    }
   },
   "status": {
     "title": "System status",
@@ -46,5 +50,13 @@
   "legal": {
     "terms": "Terms",
     "privacy": "Privacy"
+  },
+  "roles": {
+    "name": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "builder": "Builder",
+      "operator": "Operator"
+    }
   }
 }
