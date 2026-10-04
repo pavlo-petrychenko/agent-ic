@@ -1,7 +1,7 @@
 import { BaseCommand } from '@/app/commands/base.command';
 import { parseServeArguments } from '@/app/helpers/command-line.helpers';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
-import { TracingService } from '@/platform/observability/tracing/tracing.service';
+import { TracingService } from '@/platform/observability/services/tracing.service';
 
 export class ServeCommand extends BaseCommand {
   constructor(private readonly args: readonly string[]) {

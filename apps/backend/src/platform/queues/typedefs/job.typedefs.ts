@@ -3,7 +3,6 @@ import type { Actor } from '@/platform/context/typedefs/actor.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import type { ENVELOPE_VERSION } from '@/platform/queues/constants/job.constants';
 import type { QueueName } from '@/platform/queues/constants/queue.constants';
-import type { JobDefinition } from '@/platform/queues/typedefs/job.typedefs';
 
 export type JobDataValue = string | number | boolean | null | readonly string[];
 

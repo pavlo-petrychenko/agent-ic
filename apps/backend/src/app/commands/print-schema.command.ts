@@ -10,8 +10,9 @@ export class PrintSchemaCommand extends BaseCommand {
 
   protected async run(): Promise<void> {
     const { output } = parsePrintSchemaArguments(this.args);
-    const { SchemaPrinter } = await import('@/platform/graphql/schema.printer');
-    const schema = await new SchemaPrinter().print();
+    const { printMergedSchema } =
+      await import('@/platform/graphql-server/helpers/schema-print.helpers');
+    const schema = await printMergedSchema();
     await writeFile(output, `${schema}${EOL}`);
   }
 }

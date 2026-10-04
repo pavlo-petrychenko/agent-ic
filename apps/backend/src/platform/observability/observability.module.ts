@@ -1,5 +1,5 @@
 import { LoggerModule } from 'nestjs-pino';
-import { ConfigService } from '@/platform/config/config.service';
+import { ConfigService } from '@/platform/config/services/config.service';
 import { defineModule, inEveryRole } from '@/platform/module-roles/helpers/module-roles.helpers';
 import { HealthController } from '@/platform/observability/controllers/health.controller';
 import { MetricsController } from '@/platform/observability/controllers/metrics.controller';

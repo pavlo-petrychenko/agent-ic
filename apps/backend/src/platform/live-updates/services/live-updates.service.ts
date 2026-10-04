@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AfterCommitScheduler } from '@/platform/db/after-commit/after-commit.scheduler';
+import { AfterCommitService } from '@/platform/database/services/after-commit.service';
 import { channelStream } from '@/platform/live-updates/helpers/channel-stream.helpers';
 import { ChannelPublisherService } from '@/platform/live-updates/services/channel-publisher.service';
 import { ChannelSubscriberService } from '@/platform/live-updates/services/channel-subscriber.service';
@@ -10,7 +10,7 @@ export class LiveUpdatesService {
   constructor(
     private readonly publisher: ChannelPublisherService,
     private readonly subscriber: ChannelSubscriberService,
-    private readonly afterCommit: AfterCommitScheduler,
+    private readonly afterCommit: AfterCommitService,
   ) {}
 
   async publish<TEvent extends ChannelEvent>(

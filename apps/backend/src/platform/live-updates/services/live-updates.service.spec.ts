@@ -3,7 +3,7 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import type { AppTransactionAdapter } from '@/platform/db/database.typedefs';
+import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 import { channelFor, defineChannel } from '@/platform/live-updates/helpers/channel.helpers';
 import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
 import { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';

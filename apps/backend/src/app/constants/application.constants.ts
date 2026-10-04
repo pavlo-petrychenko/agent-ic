@@ -1,6 +1,6 @@
 import { GlobalPrefix } from '@/platform/http/constants/global-prefix.constants';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { MetricsRoute } from '@/platform/observability/metrics/metrics.constants';
+import { MetricsRoute } from '@/platform/observability/constants/metrics.constants';
 
 export enum LogMessage {
   Listening = 'listening',

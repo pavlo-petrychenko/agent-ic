@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@/platform/config/config.service';
+import { ConfigService } from '@/platform/config/services/config.service';
 import { APP_DATABASE } from '@/platform/database/constants/database-token.constants';
 import { AppDatabaseService } from '@/platform/database/services/app-database.service';
 import { SystemDatabaseService } from '@/platform/database/services/system-database.service';

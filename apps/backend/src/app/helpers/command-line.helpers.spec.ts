@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CLI_ARGUMENTS_LABEL, CliOption } from '@/app/constants/command-line.constants';
 import { parsePrintSchemaArguments, parseServeArguments } from '@/app/helpers/command-line.helpers';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { QueueName } from '@/platform/queues/queue.constants';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { cliArgument } from '@test/support/fixtures/test-env.fixture';
 import { issuesOf, variablesOf } from '@test/support/helpers/config-issue.helpers';
 

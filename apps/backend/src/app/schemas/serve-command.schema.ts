@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { CliOption, WORKER_QUEUES_REQUIRED_MESSAGE } from '@/app/constants/command-line.constants';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { QueueName } from '@/platform/queues/queue.constants';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 
 export const serveCommandSchema = z
   .object({
