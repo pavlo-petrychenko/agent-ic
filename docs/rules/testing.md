@@ -3,13 +3,13 @@
 ## Backend
 
 - Every use case has a `*.spec.ts` next to it, running against **real Postgres** (Testcontainers) with RLS active.
-- Only external gateways are faked (email, LLM, Telegram), with shared fakes from `platform/testing`. Our own classes are never mocked.
+- Only external gateways are faked (email, LLM, Telegram), with the gateway's own `.fake.ts` or a fake from `apps/backend/test/support/fakes/`. Our own classes are never mocked. Time is replaced with `ManualClock`.
 - Every repository on a tenant table has one cross-tenant test: workspace B sees nothing of workspace A.
-- End-to-end tests through a booted app (GraphQL or HTTP) live in `apps/backend/test/`, for flows across modules.
+- Unit specs sit next to the file they test. Specs through a booted app (GraphQL or HTTP) live in `apps/backend/test/integration/`, for flows across modules. Shared test support lives in `apps/backend/test/support/` by kind (`setup/`, `fakes/`, `fixtures/`, `helpers/`, `modules/`, and more) and is imported as `@test/support/…`. `src/` holds production code only.
 
 ## Web
 
-- `view` components with behaviour have a React Testing Library test.
+- `view` components with behaviour have a React Testing Library test, next to the component. Shared test support lives in `apps/web/test/support/` and is imported as `@test/support/…`.
 - Storybook stories only for reusable `shared/ui` components (Button, Input and similar).
 - `communication` hooks are tested with Apollo `MockedProvider`. `logic` hooks and helpers use plain Vitest.
 - Playwright end-to-end tests cover key user flows and run on the release pull request.
