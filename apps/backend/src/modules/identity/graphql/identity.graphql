@@ -1,0 +1,40 @@
+extend type Query {
+  me: User!
+}
+
+type Mutation {
+  signUp(input: SignUpInput!): SignUpPayload!
+  resendConfirmation(input: ResendConfirmationInput!): ResendConfirmationPayload!
+}
+
+enum Locale {
+  en
+  uk
+}
+
+type User {
+  id: ID!
+  email: String!
+  name: String!
+  locale: Locale!
+}
+
+input SignUpInput {
+  name: String!
+  email: String!
+  password: String!
+  locale: Locale!
+}
+
+type SignUpPayload {
+  email: String!
+}
+
+input ResendConfirmationInput {
+  email: String
+  token: String
+}
+
+type ResendConfirmationPayload {
+  accepted: Boolean!
+}

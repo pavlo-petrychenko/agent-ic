@@ -43,4 +43,6 @@ export enum TestRedisDatabase {
   LiveUpdates = 6,
   Cache = 7,
   RateLimit = 8,
+  Identity = 9,
+  AuthFlow = 10,
 }

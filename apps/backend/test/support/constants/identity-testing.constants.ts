@@ -1,0 +1,12 @@
+export const IDENTITY_TEST_START = new Date('2026-10-04T09:00:00.000Z');
+export const TEST_PASSWORD = 'correct horse battery';
+export const TEST_USER_NAME = 'Olena Test';
+export const TEST_EMAIL_DOMAIN = 'agent-ic.test';
+export const TEST_TRACE_ID = 'identity-trace';
+export const SHORT_PASSWORD = 'too-short';
+export const ARGON2ID_PREFIX = '$argon2id$';
+export const MILLISECONDS_PAST_EXPIRY = 1;
+export const CONFIRM_LINK_PATTERN = /https:\/\/\S+confirm-email\?token=([A-Za-z0-9_-]+)/;
+export const WAIT_FOR_EMAIL = { timeout: 15_000, interval: 50 };
+export const IPV4_OCTETS = 4;
+export const IPV4_SEPARATOR = '.';

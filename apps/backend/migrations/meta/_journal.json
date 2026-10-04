@@ -8,6 +8,13 @@
       "when": 1791118754088,
       "tag": "0000_baseline-privileges",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791137541799,
+      "tag": "0001_identity-accounts-sessions",
+      "breakpoints": true
     }
   ]
 }
