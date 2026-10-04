@@ -1,0 +1,84 @@
+image:
+  backend:
+    repository: registry.example.test/agent-ic-backend
+  web:
+    repository: registry.example.test/agent-ic-web
+
+config:
+  publicUrl: https://app.example.test
+  telemetry:
+    endpoint: http://otel-collector.observability.svc.example.test:4318
+  s3:
+    endpoint: http://s3.data.svc.example.test:9000
+    region: us-east-1
+    bucket: uploads
+    forcePathStyle: true
+  llm:
+    baseUrl: https://llm.example.test/v1
+    embeddingModel: embedding-model
+  email:
+    from: agent-ic <no-reply@app.example.test>
+    smtp:
+      host: smtp.example.test
+      port: 1025
+
+connections:
+  database:
+    host: postgres-pooler.data.svc.example.test
+    ownerHost: postgres-direct.data.svc.example.test
+    name: agent_ic
+  redis:
+    queue:
+      host: redis-queue.data.svc.example.test
+    cache:
+      host: redis-cache.data.svc.example.test
+
+secrets:
+  databaseApp:
+    name: app-database-app
+    usernameKey: username
+    passwordKey: password
+  databaseSystem:
+    name: app-database-system
+    usernameKey: username
+    passwordKey: password
+  databaseOwner:
+    name: app-database-owner
+    usernameKey: username
+    passwordKey: password
+  redisQueue:
+    name: app-redis-queue
+    passwordKey: password
+  redisCache:
+    name: app-redis-cache
+    passwordKey: password
+  s3:
+    name: app-s3
+    keys:
+      S3_ACCESS_KEY_ID: accessKeyId
+      S3_SECRET_ACCESS_KEY: secretAccessKey
+  auth:
+    name: app-auth
+    keys:
+      JWT_ACCESS_SECRET: jwtAccessSecret
+      JWT_REFRESH_SECRET: jwtRefreshSecret
+      SECRET_BOX_KEY: secretBoxKey
+  langfuse:
+    name: app-langfuse
+    keys:
+      LANGFUSE_PUBLIC_KEY: publicKey
+      LANGFUSE_SECRET_KEY: secretKey
+
+ingress:
+  public:
+    host: app.example.test
+    entryPoints:
+      - web
+  admin:
+    host: queues.example.test
+    entryPoints:
+      - admin
+
+keda:
+  prometheus:
+    serverAddress: http://prometheus.observability.svc.example.test:9090

@@ -1,0 +1,22 @@
+{{- if .Values.serviceMonitor.enabled }}
+{{- range $name, $workload := .Values.workloads }}
+{{- $context := dict "root" $ "component" $name "workload" $workload }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "agent-ic.componentName" $context }}
+  labels:
+    {{- include "agent-ic.labels" $context | nindent 4 }}
+spec:
+  jobLabel: app.kubernetes.io/component
+  selector:
+    matchLabels:
+      {{- include "agent-ic.selectorLabels" $context | nindent 6 }}
+  endpoints:
+    - port: http
+      path: {{ $.Values.metrics.path }}
+      interval: {{ $.Values.metrics.interval }}
+      scrapeTimeout: {{ $.Values.metrics.scrapeTimeout }}
+{{- end }}
+{{- end }}

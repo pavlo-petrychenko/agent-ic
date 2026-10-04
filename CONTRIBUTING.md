@@ -36,21 +36,39 @@ AI assistants read [AGENTS.md](AGENTS.md) in the repository root and the one ins
 
 ## Guardrails
 
-| Rule                                                                                               | Tool                                                   | Pre-commit   | CI  |
-| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------ | --- |
-| Formatting                                                                                         | oxfmt                                                  | yes          | yes |
-| Lint, no `any`, no `console`, no `process.env` outside config, no relative imports                 | oxlint                                                 | staged files | yes |
-| No comments                                                                                        | `pnpm check:comments`                                  | yes          | yes |
-| Backend layers, module boundaries, `platform` to `modules` ban, `SystemDatabaseService` allow-list | `pnpm depcruise`                                       | no           | yes |
-| Folder by kind, file suffixes, module and feature roots (`docs/rules/structure.md`)                | `pnpm check:structure`                                 | no           | yes |
-| Web feature layers, Radix only in `shared/ui`                                                      | `pnpm depcruise`                                       | no           | yes |
-| Types                                                                                              | `pnpm typecheck`                                       | no           | yes |
-| Build (SWC for the backend, tsup and Vite elsewhere)                                               | `pnpm build`                                           | no           | yes |
-| Tenant table without `workspace_id`, forced RLS or a policy (schema test)                          | `pnpm test`                                            | no           | yes |
-| Migrations committed and consistent                                                                | `drizzle-kit check`                                    | no           | yes |
-| Generated GraphQL types and `packages/api-schema` (gitignored, built first in CI)                  | `pnpm codegen`                                         | no           | yes |
-| Every GraphQL root field has a resolver (boot test)                                                | `pnpm test`                                            | no           | yes |
-| Web build and Storybook build                                                                      | `pnpm build`, `turbo run storybook:build --filter=web` | no           | yes |
+| Rule                                                                                               | Tool                                                   | Pre-commit   | CI      |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------ | ------- |
+| Formatting                                                                                         | oxfmt                                                  | yes          | yes     |
+| Lint, no `any`, no `console`, no `process.env` outside config, no relative imports                 | oxlint                                                 | staged files | yes     |
+| No comments                                                                                        | `pnpm check:comments`                                  | yes          | yes     |
+| Backend layers, module boundaries, `platform` to `modules` ban, `SystemDatabaseService` allow-list | `pnpm depcruise`                                       | no           | yes     |
+| Folder by kind, file suffixes, module and feature roots (`docs/rules/structure.md`)                | `pnpm check:structure`                                 | no           | yes     |
+| Web feature layers, Radix only in `shared/ui`                                                      | `pnpm depcruise`                                       | no           | yes     |
+| Types                                                                                              | `pnpm typecheck`                                       | no           | yes     |
+| Build (SWC for the backend, tsup and Vite elsewhere)                                               | `pnpm build`                                           | no           | yes     |
+| Tenant table without `workspace_id`, forced RLS or a policy (schema test)                          | `pnpm test`                                            | no           | yes     |
+| Migrations committed and consistent                                                                | `drizzle-kit check`                                    | no           | yes     |
+| Generated GraphQL types and `packages/api-schema` (gitignored, built first in CI)                  | `pnpm codegen`                                         | no           | yes     |
+| Every GraphQL root field has a resolver (boot test)                                                | `pnpm test`                                            | no           | yes     |
+| Web build and Storybook build                                                                      | `pnpm build`, `turbo run storybook:build --filter=web` | no           | yes     |
+| Rule                                                                                               | Tool                                                   | Pre-commit   | CI      |
+| -------------------------------------------------------------------------------------              | ------------------------------------------------------ | ------------ | ------- |
+| Formatting                                                                                         | oxfmt                                                  | yes          | yes     |
+| Lint, no `any`, no `console`, no `process.env` outside config                                      | oxlint                                                 | staged files | yes     |
+| No comments                                                                                        | `pnpm check:comments`                                  | yes          | yes     |
+| Backend layers, module boundaries, `platform` to `modules` ban, `SystemDb` allow-list              | `pnpm depcruise`                                       | no           | yes     |
+| Web feature layers, Radix only in `shared/ui`                                                      | `pnpm depcruise`                                       | no           | yes     |
+| Types                                                                                              | `pnpm typecheck`                                       | no           | yes     |
+| Build (SWC for the backend, tsup and Vite elsewhere)                                               | `pnpm build`                                           | no           | yes     |
+| Tenant table without `workspace_id`, forced RLS or a policy (schema test)                          | `pnpm test`                                            | no           | yes     |
+| Migrations committed and consistent                                                                | `drizzle-kit check`                                    | no           | yes     |
+| Generated GraphQL types and `packages/api-schema` (gitignored, built first in CI)                  | `pnpm codegen`                                         | no           | yes     |
+| Every GraphQL root field has a resolver (boot test)                                                | `pnpm test`                                            | no           | yes     |
+| Web build and Storybook build                                                                      | `pnpm build`, `turbo run storybook:build --filter=web` | no           | yes     |
+| Chart valid, no unsafe route, kubeconform on the rendered chart                                    | `mise run chart:validate`                              | no           | yes     |
+| GitHub workflows valid                                                                             | `mise run lint:workflows`                              | no           | yes     |
+| Both images build                                                                                  | `docker build -f deploy/docker/<image>.Dockerfile .`   | no           | yes     |
+| Image vulnerabilities                                                                              | Trivy in `release.yml`                                 | no           | release |
 
 ## How to review
 
@@ -64,7 +82,7 @@ AI assistants read [AGENTS.md](AGENTS.md) in the repository root and the one ins
 
 ## How deploys work
 
-- Every merge to `main` runs CI, builds the image and the Helm chart, and publishes both to GHCR with the same version.
+- Every merge to `main` runs CI, builds the images and the Helm chart, scans the images with Trivy, and publishes all three to GHCR with the same version (`X.Y.Z-main.<run number>`).
 - A version bump in the `agent-ic-deploy` repository pins that version for an environment, and Argo CD syncs it.
 - release-please opens a release pull request that collects the changelog and version.
 - A freeze switch stops auto-deploys before a demo.

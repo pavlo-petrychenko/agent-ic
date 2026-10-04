@@ -1,0 +1,59 @@
+{{- range $name, $workload := .Values.workloads }}
+{{- $context := dict "root" $ "component" $name "workload" $workload }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "agent-ic.componentName" $context }}
+  labels:
+    {{- include "agent-ic.labels" $context | nindent 4 }}
+spec:
+  {{- if not (and $.Values.keda.enabled (hasKey $workload "keda")) }}
+  replicas: {{ if hasKey $workload "replicas" }}{{ $workload.replicas }}{{ else }}{{ $workload.keda.minReplicaCount }}{{ end }}
+  {{- end }}
+  revisionHistoryLimit: {{ $.Values.revisionHistoryLimit }}
+  strategy:
+    {{- toYaml $.Values.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "agent-ic.selectorLabels" $context | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "agent-ic.labels" $context | nindent 8 }}
+    spec:
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: {{ $workload.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- toYaml $.Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ $name }}
+          image: {{ include "agent-ic.backendImage" $ | quote }}
+          imagePullPolicy: {{ $.Values.image.backend.pullPolicy }}
+          args:
+            - serve
+            - {{ printf "--role=%s" $workload.role | quote }}
+            {{- if $workload.queues }}
+            - {{ printf "--queues=%s" (join "," $workload.queues) | quote }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ $workload.port }}
+              protocol: TCP
+          env:
+            {{- include "agent-ic.backendEnv" $context | nindent 12 }}
+          startupProbe:
+            {{- include "agent-ic.probe" (dict "path" $workload.health.livePath "timing" $.Values.probes.startup) | nindent 12 }}
+          livenessProbe:
+            {{- include "agent-ic.probe" (dict "path" $workload.health.livePath "timing" $.Values.probes.liveness) | nindent 12 }}
+          readinessProbe:
+            {{- include "agent-ic.probe" (dict "path" $workload.health.readyPath "timing" $.Values.probes.readiness) | nindent 12 }}
+          resources:
+            {{- toYaml $workload.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml $.Values.containerSecurityContext | nindent 12 }}
+{{- end }}

@@ -1,0 +1,48 @@
+{{- if .Values.migration.enabled }}
+{{- $context := dict "root" . "component" "migrate" }}
+{{- $database := .Values.connections.database }}
+{{- $owner := .Values.secrets.databaseOwner }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "agent-ic.componentName" $context }}
+  labels:
+    {{- include "agent-ic.labels" $context | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: {{ .Values.migration.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.migration.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "agent-ic.labels" $context | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: migrate
+          image: {{ include "agent-ic.backendImage" . | quote }}
+          imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
+          args:
+            {{- toYaml .Values.migration.args | nindent 12 }}
+          env:
+            - name: LOG_LEVEL
+              value: {{ .Values.config.logLevel | quote }}
+            {{- include "agent-ic.databaseCredentialsEnv" (dict "prefix" "DATABASE_OWNER" "secret" $owner) | nindent 12 }}
+            - name: DATABASE_OWNER_URL
+              value: {{ include "agent-ic.databaseUrl" (dict "username" "DATABASE_OWNER_USERNAME" "password" "DATABASE_OWNER_PASSWORD" "host" $database.ownerHost "port" $database.port "name" $database.name) | quote }}
+          resources:
+            {{- toYaml .Values.migration.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+{{- end }}

@@ -1,0 +1,275 @@
+nameOverride: ''
+fullnameOverride: ''
+
+image:
+  backend:
+    tag: ''
+    pullPolicy: IfNotPresent
+  web:
+    tag: ''
+    pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+config:
+  nodeEnv: production
+  logLevel: info
+  httpHost: 0.0.0.0
+  databasePoolMax: 10
+  telemetry:
+    enabled: true
+    serviceNamespace: agent-ic
+  langfuse:
+    mode: 'off'
+    sampleRate: 1
+    host: ''
+  s3:
+    forcePathStyle: false
+
+connections:
+  database:
+    port: 5432
+  redis:
+    queue:
+      port: 6379
+    cache:
+      port: 6379
+
+secrets:
+  email:
+    enabled: false
+  llm:
+    enabled: false
+
+extraEnv: []
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+revisionHistoryLimit: 3
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+probes:
+  startup:
+    periodSeconds: 2
+    timeoutSeconds: 3
+    failureThreshold: 30
+  liveness:
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  readiness:
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+podDisruptionBudget:
+  maxUnavailable: 1
+
+metrics:
+  path: /metrics
+  interval: 30s
+  scrapeTimeout: 10s
+  queueRole: api
+
+workloads:
+  api:
+    role: api
+    port: 3000
+    portEnv: API_PORT
+    replicas: 2
+    env:
+      PLATFORM_ADMIN_DEV_ACCESS: 'false'
+    health:
+      livePath: /api/health/live
+      readyPath: /api/health/ready
+    terminationGracePeriodSeconds: 30
+    resources:
+      requests:
+        cpu: 50m
+        memory: 160Mi
+      limits:
+        memory: 384Mi
+  gateway:
+    role: gateway
+    port: 3001
+    portEnv: GATEWAY_PORT
+    replicas: 2
+    env: {}
+    health:
+      livePath: /health/live
+      readyPath: /health/ready
+    terminationGracePeriodSeconds: 30
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+  worker-runs:
+    role: worker
+    port: 3002
+    portEnv: WORKER_PORT
+    queues:
+      - runs-reactive
+      - runs-proactive
+      - outbound
+      - notify
+      - timers
+    env:
+      WORKER_CONCURRENCY: '5'
+    health:
+      livePath: /health/live
+      readyPath: /health/ready
+    terminationGracePeriodSeconds: 90
+    resources:
+      requests:
+        cpu: 50m
+        memory: 160Mi
+      limits:
+        memory: 512Mi
+    keda:
+      minReplicaCount: 2
+      maxReplicaCount: 10
+      pollingInterval: 15
+      cooldownPeriod: 300
+      waitingJobsThreshold: 10
+      oldestWaitSecondsThreshold: 30
+  worker-ingest:
+    role: worker
+    port: 3002
+    portEnv: WORKER_PORT
+    queues:
+      - ingest
+    env:
+      WORKER_CONCURRENCY: '2'
+    health:
+      livePath: /health/live
+      readyPath: /health/ready
+    terminationGracePeriodSeconds: 90
+    resources:
+      requests:
+        cpu: 100m
+        memory: 192Mi
+      limits:
+        memory: 768Mi
+    keda:
+      minReplicaCount: 0
+      maxReplicaCount: 3
+      pollingInterval: 15
+      cooldownPeriod: 300
+      waitingJobsThreshold: 1
+      oldestWaitSecondsThreshold: 60
+
+web:
+  replicas: 2
+  port: 8080
+  healthPath: /healthz
+  config:
+    graphqlPath: /api/graphql
+  runtimeConfig:
+    mountPath: /etc/agent-ic
+    fileName: config.json
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 101
+    runAsGroup: 101
+    fsGroup: 101
+    seccompProfile:
+      type: RuntimeDefault
+  writablePaths:
+    - /tmp
+    - /var/cache/nginx
+    - /etc/nginx/conf.d
+  terminationGracePeriodSeconds: 30
+  resources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      memory: 64Mi
+
+migration:
+  enabled: true
+  args:
+    - migrate
+  backoffLimit: 2
+  activeDeadlineSeconds: 300
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+ingress:
+  public:
+    routes:
+      - name: api
+        service: api
+        priority: 10
+        pathPrefixes:
+          - /api
+        excludePathPrefixes:
+          - /api/admin
+      - name: gateway
+        service: gateway
+        priority: 10
+        pathPrefixes:
+          - /v1
+          - /webhooks
+        excludePathPrefixes: []
+      - name: web
+        service: web
+        priority: 1
+        pathPrefixes: []
+        excludePathPrefixes: []
+  admin:
+    service: api
+    pathPrefix: /api/admin/queues
+    priority: 10
+
+keda:
+  enabled: true
+
+serviceMonitor:
+  enabled: true
+
+dashboards:
+  enabled: true
+  labels:
+    grafana_dashboard: '1'
+
+prometheusRule:
+  enabled: true
+  labels: {}
+  backendDown:
+    for: 5m
+    severity: critical
+  queueWait:
+    default:
+      seconds: 300
+      for: 10m
+      severity: warning
+    overrides:
+      runs-reactive:
+        seconds: 30
+        for: 2m
+        severity: critical

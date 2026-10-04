@@ -1,0 +1,52 @@
+{{- $public := .Values.ingress.public }}
+{{- $admin := .Values.ingress.admin }}
+{{- $publicContext := dict "root" . "component" "public" }}
+{{- $adminContext := dict "root" . "component" "admin" }}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "agent-ic.componentName" $publicContext }}
+  labels:
+    {{- include "agent-ic.labels" $publicContext | nindent 4 }}
+spec:
+  entryPoints:
+    {{- toYaml $public.entryPoints | nindent 4 }}
+  routes:
+    {{- range $route := $public.routes }}
+    - kind: Rule
+      match: {{ include "agent-ic.routeRule" (dict "host" $public.host "pathPrefixes" $route.pathPrefixes "excludePathPrefixes" $route.excludePathPrefixes) | quote }}
+      priority: {{ $route.priority }}
+      services:
+        - name: {{ include "agent-ic.componentName" (dict "root" $ "component" $route.service) }}
+          port: http
+    {{- end }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "agent-ic.componentName" $adminContext }}-root
+  labels:
+    {{- include "agent-ic.labels" $adminContext | nindent 4 }}
+spec:
+  replacePathRegex:
+    regex: "^/$"
+    replacement: {{ $admin.pathPrefix | quote }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "agent-ic.componentName" $adminContext }}
+  labels:
+    {{- include "agent-ic.labels" $adminContext | nindent 4 }}
+spec:
+  entryPoints:
+    {{- toYaml $admin.entryPoints | nindent 4 }}
+  routes:
+    - kind: Rule
+      match: {{ printf "Host(`%s`) && (Path(`/`) || PathPrefix(`%s`))" $admin.host $admin.pathPrefix | quote }}
+      priority: {{ $admin.priority }}
+      middlewares:
+        - name: {{ include "agent-ic.componentName" $adminContext }}-root
+      services:
+        - name: {{ include "agent-ic.componentName" (dict "root" . "component" $admin.service) }}
+          port: http
