@@ -1,0 +1,77 @@
+$indeterminate-width: 40%;
+$sweep-travel: 250%;
+$story-width: 320px;
+
+.root {
+  overflow: hidden;
+  width: 100%;
+  border-radius: var(--radius-4);
+  background: var(--color-soft);
+}
+
+.sm {
+  height: var(--size-bar-sm);
+}
+
+.md {
+  height: var(--size-bar-md);
+}
+
+.accent {
+  --progress-fill: var(--color-accent);
+}
+
+.neutral {
+  --progress-fill: var(--color-edge);
+}
+
+.ok {
+  --progress-fill: var(--color-ok);
+}
+
+.warn {
+  --progress-fill: var(--color-warn);
+}
+
+.err {
+  --progress-fill: var(--color-err);
+}
+
+.fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--progress-fill);
+  transition: width var(--duration-base) var(--ease-standard);
+}
+
+.indeterminate {
+  width: $indeterminate-width;
+  animation: sweep var(--duration-pulse) var(--ease-standard) infinite;
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX($sweep-travel);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transition: none;
+  }
+
+  .indeterminate {
+    animation: none;
+  }
+}
+
+.storyStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  width: $story-width;
+}
