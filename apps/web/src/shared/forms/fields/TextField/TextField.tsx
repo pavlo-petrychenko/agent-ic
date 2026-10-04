@@ -5,11 +5,16 @@ import { firstErrorMessage } from '@/shared/forms/helpers/fieldError.helpers';
 import { Field } from '@/shared/ui/Field';
 import { Input } from '@/shared/ui/Input';
 
-export function TextField({ label, hint = null, ...inputProps }: TextFieldProps) {
+export function TextField({
+  label,
+  hint = null,
+  error: serverError = null,
+  ...inputProps
+}: TextFieldProps) {
   const field = useFieldContext<string>();
   const meta = useStore(field.store, (state) => state.meta);
   const value = useStore(field.store, (state) => state.value);
-  const error = meta.isTouched ? firstErrorMessage(meta.errors) : null;
+  const error = serverError ?? (meta.isTouched ? firstErrorMessage(meta.errors) : null);
 
   return (
     <Field label={label} hint={hint} error={error}>

@@ -10,9 +10,10 @@ const schema = z.object({
 
 interface SignInFormProps {
   onSubmit: (email: string) => void;
+  serverError?: string | null;
 }
 
-function SignInForm({ onSubmit }: SignInFormProps) {
+function SignInForm({ onSubmit, serverError = null }: SignInFormProps) {
   const form = useAppForm({
     defaultValues: { email: '' },
     validators: { onChange: schema },
@@ -26,7 +27,9 @@ function SignInForm({ onSubmit }: SignInFormProps) {
         void form.handleSubmit();
       }}
     >
-      <form.AppField name="email">{(field) => <field.TextField label="Email" />}</form.AppField>
+      <form.AppField name="email">
+        {(field) => <field.TextField label="Email" error={serverError} />}
+      </form.AppField>
       <form.AppForm>
         <form.SubmitButton>Continue</form.SubmitButton>
       </form.AppForm>
@@ -54,5 +57,12 @@ describe('useAppForm', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Continue' }));
 
     expect(onSubmit).toHaveBeenCalledWith('ada@example.com');
+  });
+
+  it('shows an error the screen passes in, even before the field is touched', () => {
+    render(<SignInForm onSubmit={vi.fn<(email: string) => void>()} serverError="Already taken" />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Already taken');
+    expect(screen.getByRole('textbox', { name: 'Email' })).toHaveAttribute('aria-invalid', 'true');
   });
 });

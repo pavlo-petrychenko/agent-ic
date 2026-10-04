@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
+import { LocaleSwitcher } from '@/app/components/LocaleSwitcher';
 import type { AppHeaderProps } from '@/app/layouts/AppHeader/AppHeader.typedefs';
-import { LocaleSwitcher } from '@/app/layouts/AppHeader/LocaleSwitcher';
 import { TextLink } from '@/shared/ui/TextLink';
 import styles from '@/app/layouts/AppHeader/AppHeader.module.scss';
 

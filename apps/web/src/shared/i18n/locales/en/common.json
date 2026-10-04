@@ -42,5 +42,9 @@
     "close": "Close",
     "showPassword": "Show",
     "hidePassword": "Hide"
+  },
+  "legal": {
+    "terms": "Terms",
+    "privacy": "Privacy"
   }
 }

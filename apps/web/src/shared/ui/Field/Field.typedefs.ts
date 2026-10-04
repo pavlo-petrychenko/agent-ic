@@ -10,7 +10,7 @@ export interface FieldControlProps {
 export interface FieldProps {
   label: string;
   hint?: string | null;
-  error?: string | null;
+  error?: ReactNode | null;
   required?: boolean;
   requiredLabel?: string | null;
   children: (control: FieldControlProps) => ReactNode;

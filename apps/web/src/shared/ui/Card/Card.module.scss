@@ -34,6 +34,10 @@
   --card-pad: var(--space-16);
 }
 
+.pad-xl {
+  --card-pad: var(--space-28);
+}
+
 .gap-xs {
   --card-gap: var(--space-6);
 }
@@ -48,6 +52,10 @@
 
 .gap-lg {
   --card-gap: var(--space-12);
+}
+
+.gap-xl {
+  --card-gap: var(--space-18);
 }
 
 .selected {

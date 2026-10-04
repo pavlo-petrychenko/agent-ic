@@ -215,6 +215,7 @@
 
   --layout-lead-width: 620px;
   --layout-form-width: 28rem;
+  --layout-auth-width: 400px;
   --layout-page-width: 72rem;
 
   --duration-fast: 120ms;

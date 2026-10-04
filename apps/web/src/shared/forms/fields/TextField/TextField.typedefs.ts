@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { InputProps } from '@/shared/ui/Input';
 
 export interface TextFieldProps extends Omit<
@@ -6,4 +7,5 @@ export interface TextFieldProps extends Omit<
 > {
   label: string;
   hint?: string | null;
+  error?: ReactNode | null;
 }
