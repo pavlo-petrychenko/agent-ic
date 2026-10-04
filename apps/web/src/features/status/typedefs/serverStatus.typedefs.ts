@@ -1,4 +1,4 @@
-import type { AppError } from '@/shared/api/AppError';
+import type { AppError } from '@/shared/api/errors/app.error';
 
 export interface ServerStatus {
   readonly version: string;

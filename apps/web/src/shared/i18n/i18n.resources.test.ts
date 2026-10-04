@@ -1,6 +1,6 @@
 import { ErrorCode, ErrorReason } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
-import { ClientErrorCode } from '@/shared/api/api.constants';
+import { ClientErrorCode } from '@/shared/api/constants/clientError.constants';
 import { Locale, Namespace } from '@/shared/i18n/i18n.constants';
 import { resources } from '@/shared/i18n/i18n.resources';
 

@@ -1,6 +1,6 @@
 import { SetContextLink } from '@apollo/client/link/context';
-import { BEARER_SCHEME, RequestHeader } from '@/shared/api/api.constants';
-import { getRequestContext } from '@/shared/api/requestContext';
+import { BEARER_SCHEME, RequestHeader } from '@/shared/api/constants/request.constants';
+import { getRequestContext } from '@/shared/api/helpers/requestContext.helpers';
 
 export const createAuthLink = (): SetContextLink =>
   new SetContextLink((previous) => {

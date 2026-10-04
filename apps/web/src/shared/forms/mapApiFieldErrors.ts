@@ -1,4 +1,4 @@
-import type { AppError } from '@/shared/api/AppError';
+import type { AppError } from '@/shared/api/errors/app.error';
 import type { ApiFormErrors } from '@/shared/forms/forms.typedefs';
 import type { ErrorMessageKey } from '@/shared/i18n/errorMessage.helpers';
 

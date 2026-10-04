@@ -1,5 +1,9 @@
 import type { ErrorReason } from '@agent-ic/contracts';
-import type { ApiFieldError, AppErrorCode, AppErrorOptions } from '@/shared/api/api.typedefs';
+import type {
+  ApiFieldError,
+  AppErrorCode,
+  AppErrorOptions,
+} from '@/shared/api/typedefs/appError.typedefs';
 
 export class AppError extends Error {
   readonly code: AppErrorCode;

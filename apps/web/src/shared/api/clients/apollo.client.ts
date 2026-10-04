@@ -1,8 +1,8 @@
 import { ApolloClient, ApolloLink, defaultDataIdFromObject, InMemoryCache } from '@apollo/client';
-import type { ApolloClientOptions } from '@/shared/api/api.typedefs';
-import { createAuthLink } from '@/shared/api/links/authLink';
-import { createErrorLink } from '@/shared/api/links/errorLink';
-import { createSplitLink } from '@/shared/api/links/splitLink';
+import { createAuthLink } from '@/shared/api/helpers/authLink.helpers';
+import { createErrorLink } from '@/shared/api/helpers/errorLink.helpers';
+import { createSplitLink } from '@/shared/api/helpers/splitLink.helpers';
+import type { ApolloClientOptions } from '@/shared/api/typedefs/apollo.typedefs';
 
 const resolveRefresh = (): Promise<boolean> => Promise.resolve(false);
 

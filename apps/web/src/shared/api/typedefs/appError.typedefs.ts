@@ -1,6 +1,5 @@
 import type { ErrorCode, ErrorReason } from '@agent-ic/contracts';
-import type { ClientErrorCode } from '@/shared/api/api.constants';
-import type { RuntimeConfig } from '@/shared/config/runtimeConfig.typedefs';
+import type { ClientErrorCode } from '@/shared/api/constants/clientError.constants';
 
 export type AppErrorCode = ErrorCode | ClientErrorCode;
 
@@ -15,14 +14,4 @@ export interface AppErrorOptions {
   readonly traceId?: string | null;
   readonly fields?: readonly ApiFieldError[];
   readonly cause?: unknown;
-}
-
-export interface RequestContextState {
-  accessToken: string | null;
-  workspaceId: string | null;
-}
-
-export interface ApolloClientOptions {
-  readonly config: RuntimeConfig;
-  readonly onUnauthenticated?: () => Promise<boolean>;
 }

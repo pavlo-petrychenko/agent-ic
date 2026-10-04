@@ -4,10 +4,10 @@ import {
   ClientErrorCode,
   NETWORK_ERROR_MESSAGE,
   UNKNOWN_ERROR_MESSAGE,
-} from '@/shared/api/api.constants';
-import type { ApiFieldError, AppErrorCode } from '@/shared/api/api.typedefs';
-import { AppError } from '@/shared/api/AppError';
-import { type ErrorPayload, errorPayloadSchema } from '@/shared/api/appError.schema';
+} from '@/shared/api/constants/clientError.constants';
+import { AppError } from '@/shared/api/errors/app.error';
+import { type ErrorPayload, errorPayloadSchema } from '@/shared/api/schemas/appError.schema';
+import type { ApiFieldError, AppErrorCode } from '@/shared/api/typedefs/appError.typedefs';
 
 const ERROR_CODES: ReadonlySet<string> = new Set(Object.values(ErrorCode));
 const ERROR_REASONS: ReadonlySet<string> = new Set(Object.values(ErrorReason));

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { ErrorBoundary } from '@/app/ErrorBoundary/ErrorBoundary';
-import { AppError } from '@/shared/api/AppError';
+import { AppError } from '@/shared/api/errors/app.error';
 import { Locale } from '@/shared/i18n/i18n.constants';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 

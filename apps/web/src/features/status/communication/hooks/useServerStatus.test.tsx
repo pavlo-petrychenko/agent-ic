@@ -8,7 +8,7 @@ import {
   buildServerStatusMock,
 } from '@/features/status/communication/fixtures/serverStatus.fixture';
 import { useServerStatus } from '@/features/status/communication/hooks/useServerStatus';
-import { ClientErrorCode } from '@/shared/api/api.constants';
+import { ClientErrorCode } from '@/shared/api/constants/clientError.constants';
 
 const wrapperFor =
   (mocks: readonly MockLink.MockedResponse[]) =>

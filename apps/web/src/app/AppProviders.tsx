@@ -4,7 +4,7 @@ import { I18nextProvider } from 'react-i18next';
 import type { AppProvidersProps } from '@/app/app.typedefs';
 import { ErrorBoundary } from '@/app/ErrorBoundary/ErrorBoundary';
 import { LocalizedToastProvider } from '@/app/LocalizedToastProvider';
-import { createApolloClient } from '@/shared/api/apolloClient';
+import { createApolloClient } from '@/shared/api/clients/apollo.client';
 
 export function AppProviders({ config, i18n, children }: AppProvidersProps) {
   const [client] = useState(() => createApolloClient({ config }));

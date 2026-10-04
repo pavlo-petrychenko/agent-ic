@@ -1,6 +1,6 @@
 import type { i18n as I18nInstance } from 'i18next';
 import type { ReactNode } from 'react';
-import type { RuntimeConfig } from '@/shared/config/runtimeConfig.typedefs';
+import type { RuntimeConfig } from '@/shared/config/typedefs/runtimeConfig.typedefs';
 
 export interface AppProps {
   config: RuntimeConfig;
