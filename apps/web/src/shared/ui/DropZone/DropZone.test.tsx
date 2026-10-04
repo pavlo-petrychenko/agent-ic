@@ -14,6 +14,7 @@ const renderZone = (props: Partial<Parameters<typeof DropZone>[0]> = {}) => {
   const view = render(
     <DropZone
       title="Drop files here or"
+      dragTitle={(count) => `Drop to upload ${count} files`}
       browseLabel="browse"
       hint="PDF and text"
       accept={['.pdf', 'text/plain']}
@@ -105,11 +106,54 @@ describe('DropZone', () => {
     renderZone();
     const zone = screen.getByRole('button').parentElement as HTMLElement;
 
-    fireEvent.dragOver(zone);
+    fireEvent.dragOver(zone, { dataTransfer: { items: [PDF] } });
     expect(zone).toHaveClass(cssClass(styles.dragging));
 
     fireEvent.dragLeave(zone);
     expect(zone).not.toHaveClass(cssClass(styles.dragging));
+  });
+
+  it('swaps the title for the drag title and hides the browse label while dragging', () => {
+    renderZone();
+    const zone = screen.getByRole('button').parentElement as HTMLElement;
+
+    fireEvent.dragOver(zone, { dataTransfer: { items: [PDF, TXT, PNG] } });
+
+    expect(screen.getByRole('button', { name: 'Drop to upload 3 files' })).toBeInTheDocument();
+    expect(screen.queryByText('browse')).not.toBeInTheDocument();
+
+    fireEvent.dragLeave(zone);
+
+    expect(screen.getByRole('button', { name: 'Drop files here or browse' })).toBeInTheDocument();
+  });
+
+  it('counts one file when the browser hides the dragged items', () => {
+    renderZone();
+
+    fireEvent.dragOver(screen.getByRole('button').parentElement as HTMLElement, {
+      dataTransfer: { items: [] },
+    });
+
+    expect(screen.getByRole('button', { name: 'Drop to upload 1 files' })).toBeInTheDocument();
+  });
+
+  it('shows the error instead of the hint and keeps the title and browse label', () => {
+    renderZone({ error: 'Price list.xlsx is not supported' });
+
+    expect(screen.queryByText('PDF and text')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Drop files here or browse' }),
+    ).toHaveAccessibleDescription('Price list.xlsx is not supported');
+    expect(screen.getByText('Price list.xlsx is not supported')).toHaveClass(
+      cssClass(styles.errorText),
+    );
+    expect(screen.getByRole('button').parentElement).toHaveClass(cssClass(styles.error));
+  });
+
+  it('shows the hint when there is no error', () => {
+    renderZone({ error: null });
+
+    expect(screen.getByText('PDF and text')).not.toHaveClass(cssClass(styles.errorText));
   });
 
   it('announces the drop result in a live region', () => {

@@ -5,8 +5,10 @@ export interface DropZoneProps extends Omit<
   'title' | 'onDrop' | 'children'
 > {
   title: string;
+  dragTitle: (count: number) => string;
   browseLabel: string;
   hint: string;
+  error?: string | null;
   accept?: readonly string[];
   multiple?: boolean;
   disabled?: boolean;
@@ -24,6 +26,7 @@ export interface UseDropZoneOptions {
 
 export interface DropZoneController {
   dragging: boolean;
+  dragCount: number;
   result: string | null;
   handleDragOver: (event: DragEvent<HTMLElement>) => void;
   handleDragLeave: (event: DragEvent<HTMLElement>) => void;

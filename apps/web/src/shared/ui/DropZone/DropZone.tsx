@@ -12,8 +12,10 @@ import styles from '@/shared/ui/DropZone/DropZone.module.scss';
 
 export function DropZone({
   title,
+  dragTitle,
   browseLabel,
   hint,
+  error = null,
   accept = [],
   multiple = true,
   disabled = false,
@@ -24,14 +26,23 @@ export function DropZone({
 }: DropZoneProps) {
   const hintId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { dragging, result, handleDragOver, handleDragLeave, handleDrop, handleInputChange } =
-    useDropZone({ accept, multiple, disabled, onFiles, formatResult });
+  const {
+    dragging,
+    dragCount,
+    result,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleInputChange,
+  } = useDropZone({ accept, multiple, disabled, onFiles, formatResult });
+  const failed = error !== null;
 
   return (
     <div
       {...rest}
       className={clsx(
         styles.root,
+        failed && styles.error,
         dragging && styles.dragging,
         disabled && styles.disabled,
         className,
@@ -60,11 +71,17 @@ export function DropZone({
       >
         <Icon name={IconName.Upload} size={DROP_ZONE_ICON_SIZE} className={styles.icon} />
         <span className={styles.title}>
-          {title} <span className={styles.browse}>{browseLabel}</span>
+          {dragging ? (
+            dragTitle(dragCount)
+          ) : (
+            <>
+              {title} <span className={styles.browse}>{browseLabel}</span>
+            </>
+          )}
         </span>
       </button>
-      <span id={hintId} className={styles.hint}>
-        {hint}
+      <span id={hintId} className={clsx(styles.hint, failed && styles.errorText)}>
+        {failed ? error : hint}
       </span>
       <output className={styles.live}>{result}</output>
     </div>

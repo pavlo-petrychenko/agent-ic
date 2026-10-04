@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { ChangeEvent, DragEvent } from 'react';
 import {
   DROP_ZONE_EXTENSION_PREFIX,
+  DROP_ZONE_MIN_DRAG_COUNT,
   DROP_ZONE_MIME_WILDCARD_SUFFIX,
 } from '@/shared/ui/DropZone/DropZone.constants';
 import type {
@@ -40,6 +41,7 @@ export function useDropZone({
   formatResult,
 }: UseDropZoneOptions): DropZoneController {
   const [dragging, setDragging] = useState(false);
+  const [dragCount, setDragCount] = useState(DROP_ZONE_MIN_DRAG_COUNT);
   const [result, setResult] = useState<string | null>(null);
 
   const deliver = (files: readonly File[]) => {
@@ -57,6 +59,7 @@ export function useDropZone({
     }
     event.preventDefault();
     setDragging(true);
+    setDragCount(Math.max(event.dataTransfer.items.length, DROP_ZONE_MIN_DRAG_COUNT));
   };
 
   const handleDragLeave = (event: DragEvent<HTMLElement>) => {
@@ -79,5 +82,13 @@ export function useDropZone({
     event.target.value = '';
   };
 
-  return { dragging, result, handleDragOver, handleDragLeave, handleDrop, handleInputChange };
+  return {
+    dragging,
+    dragCount,
+    result,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleInputChange,
+  };
 }

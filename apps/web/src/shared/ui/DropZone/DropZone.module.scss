@@ -13,14 +13,33 @@
     background-color var(--duration-fast) var(--ease-standard),
     border-color var(--duration-fast) var(--ease-standard);
 
+  &:hover {
+    border-color: var(--color-edge);
+  }
+
   &:has(.trigger:focus-visible) {
     box-shadow: var(--shadow-focus-ring);
   }
 }
 
+.error {
+  &,
+  &:hover {
+    border-color: var(--color-err);
+  }
+}
+
 .dragging {
-  border-color: var(--color-accent);
-  background: var(--color-accent-light);
+  &,
+  &:hover {
+    border-style: solid;
+    border-color: var(--color-accent);
+    background: var(--color-accent-light);
+  }
+
+  .title {
+    color: var(--color-accent-dark);
+  }
 }
 
 .disabled {
@@ -73,8 +92,9 @@
 
 .browse {
   color: var(--color-accent);
-  font: var(--type-caption-strong);
+  font: inherit;
   text-decoration: underline;
+  text-underline-offset: var(--space-2);
 }
 
 .trigger:hover .browse {
@@ -84,4 +104,8 @@
 .hint {
   color: var(--color-mute);
   font: var(--type-caption);
+}
+
+.errorText {
+  color: var(--color-err);
 }
