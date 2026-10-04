@@ -35,4 +35,5 @@ jobs:
       - run: pnpm depcruise
       - run: pnpm exec turbo run typecheck --affected
       - run: pnpm typecheck:tools
+      - run: pnpm exec turbo run build --affected
       - run: pnpm exec turbo run test --affected

@@ -30,7 +30,7 @@ module.exports = {
   forbidden: [
     forbidden(
       'backend-transport-uses-use-case-only',
-      { path: transport },
+      { path: transport, pathNot: `${backend}platform/` },
       {
         path: [service, repository],
       },

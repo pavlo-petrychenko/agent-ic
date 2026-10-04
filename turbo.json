@@ -9,6 +9,7 @@
         "index.html",
         "vite.config.ts",
         "tsup.config.ts",
+        ".swcrc",
         "tsconfig.json",
         "package.json"
       ],
@@ -19,10 +20,10 @@
       "persistent": true
     },
     "typecheck": {
-      "inputs": ["src/**", "tsconfig.json", "package.json"]
+      "inputs": ["src/**", "test/**", "tsconfig.json", "package.json"]
     },
     "test": {
-      "inputs": ["src/**", "test/**", "package.json"]
+      "inputs": ["src/**", "test/**", "vitest.config.ts", ".swcrc", "package.json"]
     },
     "lint": {
       "inputs": ["src/**", "package.json"]

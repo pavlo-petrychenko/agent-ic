@@ -1,23 +1,30 @@
 # apps/backend
 
-NestJS modular monolith. One codebase and one image, started in a role (`gateway`, `api` or `worker`) chosen by `ROLE`. Rules that apply everywhere are in the root `AGENTS.md` and `docs/rules/`. Layout reference: `docs/architecture.md` sections 11.1 to 11.3.
+NestJS modular monolith. One codebase and one image, started in a role (`gateway`, `api` or `worker`) chosen by the CLI argument `--role`. Rules that apply everywhere are in the root `AGENTS.md` and `docs/rules/`. Layout reference: `docs/architecture.md` sections 11.1 to 11.3.
 
 ## Source layout
 
 ```
 src/
-├── main.ts              reads the role, boots that root module
-├── entrypoints/         one Nest root module per role: gateway, api, worker
+├── main.ts              runs the ApplicationLauncher
+├── entrypoints/         the launcher, the application factory and one Nest root module per role: gateway, api, worker
 ├── platform/            infrastructure with no business meaning, used by 2+ modules
 └── modules/<module>/    one domain module
 test/                    end-to-end tests through a booted app
 ```
 
-`platform/` holds db, redis, queues, pubsub, config, logger, metrics, `UseCaseCtx`, base errors, abstract gateway tokens and test helpers. It never imports `modules/`. Env is read only in `platform/config`.
+`platform/` holds db, redis, queues, pubsub, config, observability (logging, health, metrics, tracing), `UseCaseCtx`, base errors, abstract gateway tokens and test helpers. It never imports `modules/`. Env is read only in `platform/config`.
+
+## Running a role
+
+- `pnpm --filter backend dev:api`, `dev:gateway`, `dev:worker`: rebuild with SWC and restart on change. Extra arguments pass through: `dev:worker --queues=ingest`.
+- `pnpm --filter backend build` then `pnpm --filter backend start --role=api` runs the compiled app.
+- The role is `--role=api|gateway|worker`. A worker also needs `--queues=…` (names from `QueueName`). Ports, host and everything else come from env (`.env.example`), validated by `platform/config`; invalid input prints every bad variable and exits with code 1.
+- Every role serves health and metrics: `/api/health/live`, `/api/health/ready` on `api`; `/health/live`, `/health/ready` on `gateway` and `worker`; `/metrics` on all three, outside the `/api` prefix.
 
 ## Module anatomy
 
-Files are grouped by type and named `kebab-case.<type>.ts`. Classes are PascalCase and end with their type. Example, the `identity` module:
+Files are grouped by type and named `kebab-case.<type>.ts`. Types, constants and pure helpers sit in their own files beside the code (`<name>.typedefs.ts`, `<name>.constants.ts`, `<name>.helpers.ts`, `<name>.schema.ts`); a class file holds the class only. Classes are PascalCase and end with their type. Example, the `identity` module:
 
 ```
 modules/identity/

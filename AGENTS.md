@@ -34,7 +34,7 @@ Turborepo behaviour can differ from what you remember. Its docs ship with the in
 | Need                                      | Read                     |
 | ----------------------------------------- | ------------------------ |
 | What the product does and does not do     | `docs/mvp-scope.md`      |
-| Decisions D1 to D93, layout, data flow    | `docs/architecture.md`   |
+| Decisions D1 to D100, layout, data flow   | `docs/architecture.md`   |
 | Why a decision was made                   | `docs/adr/`              |
 | Code, architecture, testing and git rules | `docs/rules/`            |
 | Backend module anatomy                    | `apps/backend/AGENTS.md` |
@@ -65,6 +65,8 @@ Details and reasons are in `docs/rules/`. A tool enforces each rule marked with 
 17. `apps` import `packages`; apps never import each other (`depcruise`).
 18. Every new behaviour has a test; a bug fix has a test that fails without it.
 19. Conventional commits and pull request titles; squash merge; small pull requests.
+20. No hardcoded values: enums and named constants, config only from env through the zod config, no env values in scripts (review).
+21. Types, constants and helpers live in `<name>.typedefs.ts`, `<name>.constants.ts` and `<name>.helpers.ts` beside the code (review).
 
 ## Where does new code go
 

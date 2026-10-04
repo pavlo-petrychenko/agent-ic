@@ -57,11 +57,11 @@ http:
     api:
       loadBalancer:
         servers:
-          - url: http://api:3000
+          - url: 'http://api:{{ env "API_PORT" }}'
     gateway:
       loadBalancer:
         servers:
-          - url: http://gateway:3001
+          - url: 'http://gateway:{{ env "GATEWAY_PORT" }}'
     mailpit:
       loadBalancer:
         servers:

@@ -1,0 +1,60 @@
+import { CLI_ARGUMENTS_LABEL, Role } from './config.constants';
+import { ConfigError } from './config.error';
+import { readCliOptions, toCliIssues, toConfigIssues } from './config.helpers';
+import type { RawCliOptions } from './config.helpers';
+import { cliSchema, commonEnvSchema, langfuseEnvSchema, roleEnvSchemas } from './config.schema';
+import type { AppConfig, BaseConfig, CliArguments } from './config.typedefs';
+
+export class ConfigLoader {
+  constructor(private readonly env: NodeJS.ProcessEnv = process.env) {}
+
+  load(argv: readonly string[]): AppConfig {
+    const cli = this.loadCliArguments(argv);
+    const common = commonEnvSchema.safeParse(this.env);
+    const langfuse = langfuseEnvSchema.safeParse(this.env);
+    const roleEnvironment = roleEnvSchemas[cli.role].safeParse(this.env);
+
+    if (!common.success || !langfuse.success || !roleEnvironment.success) {
+      const results = [common, langfuse, roleEnvironment];
+      throw new ConfigError(
+        results.flatMap((result) => (result.success ? [] : toConfigIssues(result.error))),
+      );
+    }
+
+    const base: BaseConfig = {
+      nodeEnv: common.data.nodeEnv,
+      logLevel: common.data.logLevel,
+      http: { host: common.data.host, port: roleEnvironment.data.port },
+      telemetry: common.data.telemetry,
+      langfuse: langfuse.data,
+    };
+
+    switch (cli.role) {
+      case Role.Api:
+        return { ...base, role: Role.Api };
+      case Role.Gateway:
+        return { ...base, role: Role.Gateway };
+      case Role.Worker:
+        return { ...base, role: Role.Worker, queues: cli.queues };
+    }
+  }
+
+  private loadCliArguments(argv: readonly string[]): CliArguments {
+    const parsed = cliSchema.safeParse(this.readCliOptions(argv));
+    if (!parsed.success) {
+      throw new ConfigError(toCliIssues(parsed.error));
+    }
+    return parsed.data;
+  }
+
+  private readCliOptions(argv: readonly string[]): RawCliOptions {
+    try {
+      return readCliOptions(argv);
+    } catch (error) {
+      if (error instanceof TypeError) {
+        throw new ConfigError([{ variable: CLI_ARGUMENTS_LABEL, message: error.message }]);
+      }
+      throw error;
+    }
+  }
+}

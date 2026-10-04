@@ -42,6 +42,7 @@ AI assistants read [AGENTS.md](AGENTS.md) in the repository root and the one ins
 | Backend layers, module boundaries, `platform` to `modules` ban, `SystemDb` allow-list | `pnpm depcruise`      | no           | yes |
 | Web feature layers, Radix only in `shared/ui`                                         | `pnpm depcruise`      | no           | yes |
 | Types                                                                                 | `pnpm typecheck`      | no           | yes |
+| Build (SWC for the backend, tsup and Vite elsewhere)                                  | `pnpm build`          | no           | yes |
 
 ## How to review
 

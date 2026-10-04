@@ -98,6 +98,8 @@ mise run add langfuse-web
 
 During `mise run setup`, `tools/dev/ports.sh` checks each port with `lsof`. For a busy port it prints the process that holds it, writes a free alternative into `.env` (`8080`, `8443`, `5433`, `6390`, `6391`, `9100`, `1026`, or the next free number) and prints the resulting URLs. When HTTPS is not on `443`, `PUBLIC_URL` gets the port too, so open `https://local.agent-ic.pavlop.dev:8443`.
 
+`.env.example` also holds the container ports (`API_PORT`, `GATEWAY_PORT`, `WORKER_PORT`) and other backend settings. Compose and the backend read them from `.env`; when a pull adds variables to `.env.example`, copy them into your `.env`.
+
 To choose ports yourself, edit `.env`. Run `tools/dev/ports.sh` again after you stop the stack to re-check. `mise run setup` never overwrites an existing `.env` apart from those port lines and `PUBLIC_URL`.
 
 ## Layout

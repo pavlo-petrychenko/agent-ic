@@ -117,6 +117,11 @@ Decision markers used below:
 | D93 | **Passwords: argon2id** (`@node-rs/argon2`), minimum 10 characters | ✅ |
 | D94 | **Shared package declarations come from `tsc`:** tsup builds the JS (CJS + ESM) and `tsc -p tsconfig.build.json --emitDeclarationOnly` emits the `.d.ts`, because tsup's dts bundler does not support TypeScript 7 (amends D75) | ✅ |
 | D95 | **Toolchain and local dev:** mise pins the tools (node 24, pnpm, mkcert, kubectl, helm, kubeseal, actionlint) and runs the tasks; the whole local stack runs in Docker with local HTTPS at `local.agent-ic.pavlop.dev` (mkcert + Traefik); the oxfmt config is passed with `-c` from `@agent-ic/oxc-config` because oxfmt has no `extends` | ✅ |
+| D96 | **Backend build and dev toolchain is SWC:** Nest DI needs `emitDecoratorMetadata`, and the Nest CLI needs the TypeScript compiler API, which TypeScript 7 does not ship. `swc` compiles `src` to `dist` (`.swcrc`: legacy decorators, decorator metadata, `@/` alias rewritten to relative paths, imports resolved fully); dev is `nodemon` (rebuild + restart); tests are Vitest with `unplugin-swc`; `tsc --noEmit` only type-checks. Imports are extensionless (`moduleResolution: Bundler`) | ✅ |
+| D97 | **The role and the ports are never hardcoded:** the role is the CLI argument `--role=api\|gateway\|worker`, a worker also takes `--queues=a,b` (validated against the `QueueName` enum); both are validated by zod in `platform/config` together with the env, in per-role sections (only the chosen role's variables are required: `API_PORT`, `GATEWAY_PORT`, `WORKER_PORT`, all from `.env` through compose). Invalid input lists every bad variable on stderr and exits with code 1 | ✅ |
+| D98 | **Every role is an HTTP process** (amends D22): a worker also listens, with health and metrics only and no business routes. `api` serves `/api/health/*` under the global prefix `/api`; `gateway` and `worker` serve `/health/*`; `/metrics` is outside the `/api` prefix, so Traefik, which routes only `/api`, `/v1` and `/webhooks`, never exposes it. Readiness turns 503 when shutdown begins; SIGTERM closes the server gracefully | ✅ |
+| D99 | **Observability start-up order:** the OpenTelemetry SDK (HTTP and Express instrumentation, OTLP traces only) starts before the Nest module graph is imported (dynamic import in `ApplicationLauncher`), so the instrumentation can patch; `OTEL_SDK_DISABLED` switches it off. Metrics are only Prometheus (`prom-client`, one registry per process, `role` label); logs are pino JSON with `traceId`; health and metrics requests are neither logged nor traced | ✅ |
+| D100 | **No hardcoding and one file per kind** (`docs/rules/code.md` 13 and 14): enums and named constants instead of magic values, config only from env through the zod config, no env values in scripts; types in `<name>.typedefs.ts`, constants and enums in `<name>.constants.ts`, pure helpers in `<name>.helpers.ts`, zod schemas in `<name>.schema.ts`. Platform operational controllers (health, metrics) may call platform services directly; the transport-to-use-case rule applies to `modules/` | ✅ |
 
 ---
 
@@ -441,11 +446,11 @@ agent-ic-deploy/                 GitOps + platform repo
 
 ```
 apps/backend/src/
-├── main.ts                  reads the role (gateway | api | worker) → bootstraps that root module
+├── main.ts                  starts the ApplicationLauncher: `--role=gateway|api|worker` → config → tracing → that role's root module
 ├── entrypoints/             one Nest root module per role
 │   ├── gateway.app-module.ts    HTTP server + every module's HTTP transport module
 │   ├── api.app-module.ts        GraphQL + WebSocket server + every module's GraphQL transport module
-│   └── worker.app-module.ts     createApplicationContext; the jobs transport modules for --queues=…
+│   └── worker.app-module.ts     health + metrics listener (D98); the jobs transport modules for --queues=…
 ├── platform/                shared infrastructure Nest modules, no business logic:
 │                            db, redis, queue factory + registry, pub/sub, config, logger, metrics,
 │                            UseCaseCtx, base errors, abstract gateway tokens

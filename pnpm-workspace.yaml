@@ -2,8 +2,10 @@ packages:
   - apps/*
   - packages/*
 allowBuilds:
+  '@swc/core': false
   esbuild: true
   lefthook: false
+  protobufjs: false
 packageExtensions:
   dependency-cruiser:
     dependencies:

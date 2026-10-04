@@ -6,6 +6,7 @@ Enforced by dependency-cruiser (`pnpm depcruise`, CI) where a rule names a path 
 
 1. **Layers:** transport, use case, service, repository.
    - A transport (`*.resolver.ts`, `*.controller.ts`, `*.processor.ts`) calls **one** use case and never touches services or repositories.
+   - The transport rule applies to `modules/`. Operational controllers in `platform/` (health, metrics) call platform services directly.
    - A use case (`*.use-case.ts`) never calls another use case.
    - Calls only go down: a repository never imports a service, a service never imports a use case.
 2. **Another module is used only through its `index.ts`** (services and repositories).
