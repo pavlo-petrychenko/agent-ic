@@ -1,9 +1,3 @@
-export enum Role {
-  Api = 'api',
-  Gateway = 'gateway',
-  Worker = 'worker',
-}
-
 export enum NodeEnvironment {
   Development = 'development',
   Production = 'production',

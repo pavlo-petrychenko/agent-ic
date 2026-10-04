@@ -4,11 +4,11 @@ import {
   EnvVar,
   LangfuseMode,
   NodeEnvironment,
-  Role,
 } from '@/platform/config/config.constants';
 import { ConfigError } from '@/platform/config/config.error';
 import { ConfigLoader } from '@/platform/config/config.loader';
 import type { ConfigIssue } from '@/platform/config/config.typedefs';
+import { Role } from '@/platform/module-roles/constants/role.constants';
 import { QueueName } from '@/platform/queues/queue.constants';
 import { createArgv, cliArgument, createTestEnv } from '@/platform/testing/test-env.fixture';
 

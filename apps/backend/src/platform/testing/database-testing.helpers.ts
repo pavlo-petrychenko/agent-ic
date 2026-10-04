@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import type { TestingModule } from '@nestjs/testing';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { ClockModule } from '@/platform/clock/clock.module';
-import { CliOption, Role } from '@/platform/config/config.constants';
+import { CliOption } from '@/platform/config/config.constants';
 import { ConfigLoader } from '@/platform/config/config.loader';
 import { ConfigModule } from '@/platform/config/config.module';
 import { ContextModule } from '@/platform/context/context.module';
@@ -13,6 +13,7 @@ import { DatabaseModule } from '@/platform/db/database.module';
 import type { AppDatabase, SqlExecutor } from '@/platform/db/database.typedefs';
 import { ErrorsModule } from '@/platform/errors/errors.module';
 import { IdsModule } from '@/platform/ids/ids.module';
+import { Role } from '@/platform/module-roles/constants/role.constants';
 import { createIntegrationTestEnv } from '@/platform/testing/integration-env.fixture';
 import { cliArgument, createArgv } from '@/platform/testing/test-env.fixture';
 import {

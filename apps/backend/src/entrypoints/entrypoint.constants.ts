@@ -2,8 +2,8 @@ import { ApiAppModule } from '@/entrypoints/api.app-module';
 import type { RoleEntrypoint } from '@/entrypoints/entrypoint.typedefs';
 import { GatewayAppModule } from '@/entrypoints/gateway.app-module';
 import { WorkerAppModule } from '@/entrypoints/worker.app-module';
-import { Role } from '@/platform/config/config.constants';
 import { GlobalPrefix } from '@/platform/http/http.constants';
+import { Role } from '@/platform/module-roles/constants/role.constants';
 import { MetricsRoute } from '@/platform/observability/metrics/metrics.constants';
 
 export const ROLE_ENTRYPOINTS: Record<Role, RoleEntrypoint> = {

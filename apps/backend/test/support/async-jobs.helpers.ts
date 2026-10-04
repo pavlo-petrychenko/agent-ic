@@ -1,9 +1,10 @@
 import type { INestApplication } from '@nestjs/common';
 import { ApplicationFactory } from '@/entrypoints/application.factory';
-import { CliOption, Role } from '@/platform/config/config.constants';
+import { CliOption } from '@/platform/config/config.constants';
 import { ConfigLoader } from '@/platform/config/config.loader';
 import { ActorKind, Locale } from '@/platform/context/context.constants';
 import { UseCaseCtx } from '@/platform/context/use-case-ctx';
+import { Role } from '@/platform/module-roles/constants/role.constants';
 import { TracingService } from '@/platform/observability/tracing/tracing.service';
 import { QueueName } from '@/platform/queues/queue.constants';
 import { createIntegrationTestEnv } from '@/platform/testing/integration-env.fixture';

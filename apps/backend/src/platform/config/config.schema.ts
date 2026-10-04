@@ -11,7 +11,6 @@ import {
   POOL_SIZE_MIN,
   REDIS_URL_PROTOCOL,
   CliOption,
-  Role,
   SAMPLE_RATE_MAX,
   SAMPLE_RATE_MIN,
   WORKER_CONCURRENCY_MIN,
@@ -27,6 +26,7 @@ import type {
   RoleEnvironment,
   WorkerEnvironment,
 } from '@/platform/config/config.typedefs';
+import { Role } from '@/platform/module-roles/constants/role.constants';
 import { QueueName } from '@/platform/queues/queue.constants';
 
 const text = z.string().min(1);

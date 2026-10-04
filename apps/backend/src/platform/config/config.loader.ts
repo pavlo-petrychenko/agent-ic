@@ -1,4 +1,4 @@
-import { CLI_ARGUMENTS_LABEL, Role } from '@/platform/config/config.constants';
+import { CLI_ARGUMENTS_LABEL } from '@/platform/config/config.constants';
 import { ConfigError } from '@/platform/config/config.error';
 import {
   readCliOptions,
@@ -23,6 +23,7 @@ import type {
   RawSchemaPrintOptions,
   SchemaPrintConfig,
 } from '@/platform/config/config.typedefs';
+import { Role } from '@/platform/module-roles/constants/role.constants';
 
 export class ConfigLoader {
   constructor(private readonly env: NodeJS.ProcessEnv = process.env) {}
