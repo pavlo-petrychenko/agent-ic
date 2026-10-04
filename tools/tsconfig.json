@@ -3,5 +3,5 @@
   "compilerOptions": {
     "erasableSyntaxOnly": true
   },
-  "include": ["*.ts"]
+  "include": ["*.ts", "dev/*.ts"]
 }
