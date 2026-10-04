@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-
-import { Button } from './Button';
-import { ButtonSize, ButtonVariant } from './Button.constants';
+import { Button } from '@/shared/ui/Button/Button';
+import { ButtonSize, ButtonVariant } from '@/shared/ui/Button/Button.constants';
 
 const meta = {
   component: Button,

@@ -1,8 +1,7 @@
 import { createLink, type LinkComponent } from '@tanstack/react-router';
 import clsx from 'clsx';
 import type { ComponentProps } from 'react';
-
-import styles from './Link.module.scss';
+import styles from '@/shared/ui/Link/Link.module.scss';
 
 function AnchorBase({ className, children, ...rest }: ComponentProps<'a'>) {
   return (

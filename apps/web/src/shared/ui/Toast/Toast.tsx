@@ -1,16 +1,15 @@
 import clsx from 'clsx';
 import { Toast } from 'radix-ui';
 import { useCallback, useMemo, useRef, useState } from 'react';
-
 import {
   TOAST_CLOSE_GLYPH,
   TOAST_DURATION_MS,
   TOAST_SWIPE_DIRECTION,
   ToastTone,
-} from './Toast.constants';
-import styles from './Toast.module.scss';
-import type { ToastItem, ToastOptions, ToastProviderProps } from './Toast.typedefs';
-import { ToastContext } from './toastContext';
+} from '@/shared/ui/Toast/Toast.constants';
+import { ToastContext } from '@/shared/ui/Toast/toast.context';
+import type { ToastItem, ToastOptions, ToastProviderProps } from '@/shared/ui/Toast/Toast.typedefs';
+import styles from '@/shared/ui/Toast/Toast.module.scss';
 
 export function ToastProvider({ closeLabel, children }: ToastProviderProps) {
   const [items, setItems] = useState<readonly ToastItem[]>([]);

@@ -1,10 +1,10 @@
-import { Module } from '@nestjs/common';
+import { ServerStatusResolver } from '@/modules/system/resolvers/server-status.resolver';
+import { ServerUptimeService } from '@/modules/system/services/server-uptime.service';
+import { GetServerStatusUseCase } from '@/modules/system/use-cases/get-server-status.use-case';
+import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
-import { ServerUptimeService } from './services/server-uptime.service';
-import { GetServerStatusUseCase } from './use-cases/get-server-status.use-case';
-
-@Module({
+export class SystemModule extends defineModule({
   providers: [ServerUptimeService, GetServerStatusUseCase],
-  exports: [ServerUptimeService, GetServerStatusUseCase],
-})
-export class SystemModule {}
+  resolvers: [ServerStatusResolver],
+  exports: [ServerUptimeService],
+}) {}

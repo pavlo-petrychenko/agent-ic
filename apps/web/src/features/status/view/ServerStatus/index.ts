@@ -1,1 +1,1 @@
-export { ServerStatus } from './ServerStatus';
+export { ServerStatus } from '@/features/status/view/ServerStatus/ServerStatus';

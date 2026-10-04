@@ -1,8 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-
-import { PasswordInput } from './PasswordInput';
+import { PasswordInput } from '@/shared/ui/PasswordInput/PasswordInput';
 
 describe('PasswordInput', () => {
   it('hides the password until the toggle is pressed', async () => {

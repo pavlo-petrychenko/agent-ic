@@ -1,14 +1,12 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-
-import { createI18n } from '@/shared/i18n/i18n';
-import { resolveInitialLocale } from '@/shared/i18n/i18n.helpers';
-import { readStoredLocale } from '@/shared/i18n/localeStorage';
-import { loadRuntimeConfig } from '@/shared/config/runtimeConfig';
-
-import { App } from './App';
-import { StartupFailure } from './StartupFailure';
-import { ROOT_ELEMENT_ID, ROOT_ELEMENT_MISSING_MESSAGE } from './app.constants';
+import { App } from '@/app/components/App';
+import { StartupFailure } from '@/app/components/StartupFailure';
+import { ROOT_ELEMENT_ID, ROOT_ELEMENT_MISSING_MESSAGE } from '@/app/constants/app.constants';
+import { loadRuntimeConfig } from '@/shared/config/helpers/runtimeConfig.helpers';
+import { createI18n } from '@/shared/i18n/clients/i18n.client';
+import { resolveInitialLocale } from '@/shared/i18n/helpers/locale.helpers';
+import { readStoredLocale } from '@/shared/i18n/helpers/localeStorage.helpers';
 
 export async function bootstrap(): Promise<void> {
   const container = document.getElementById(ROOT_ELEMENT_ID);

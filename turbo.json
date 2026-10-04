@@ -44,6 +44,7 @@
       "inputs": [
         "src/**",
         "test/**",
+        ".storybook/**",
         "drizzle.config.ts",
         "codegen.config.ts",
         "tsconfig.json",
@@ -79,12 +80,13 @@
     },
     "web#test": {
       "dependsOn": ["codegen"],
-      "inputs": ["src/**", "vitest.config.ts", "vite.*.ts", "package.json"]
+      "inputs": ["src/**", "test/**", "vitest.config.ts", "vite.*.ts", "package.json"]
     },
     "web#storybook:build": {
       "dependsOn": ["^build", "codegen"],
       "inputs": [
         "src/**",
+        "test/**",
         ".storybook/**",
         "public/**",
         "vite.config.ts",

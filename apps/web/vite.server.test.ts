@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-
 import { readServerOptions } from './vite.server.ts';
 
 const TEST_MODE = 'test';

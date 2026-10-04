@@ -1,14 +1,7 @@
-import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-
-import { AppHeader } from '@/app/layouts/AppHeader/AppHeader';
-
-import styles from './WorkspaceLayout.module.scss';
-
-interface WorkspaceLayoutProps {
-  workspaceId: string;
-  children: ReactNode;
-}
+import { AppHeader } from '@/app/layouts/AppHeader';
+import type { WorkspaceLayoutProps } from '@/app/layouts/WorkspaceLayout/WorkspaceLayout.typedefs';
+import styles from '@/app/layouts/WorkspaceLayout/WorkspaceLayout.module.scss';
 
 export function WorkspaceLayout({ workspaceId, children }: WorkspaceLayoutProps) {
   const { t } = useTranslation();

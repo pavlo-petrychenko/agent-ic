@@ -1,0 +1,13 @@
+import { ErrorReason } from '@agent-ic/contracts';
+import { LimitScope } from '@/platform/errors/constants/domain-error.constants';
+import { LimitReachedError } from '@/platform/errors/errors/limit-reached.error';
+import { RATE_LIMITED_MESSAGE } from '@/platform/rate-limit/constants/rate-limit.constants';
+
+export class RateLimitedError extends LimitReachedError {
+  readonly reason = ErrorReason.RateLimited;
+  readonly scope = LimitScope.Rate;
+
+  constructor(readonly retryAfterSeconds: number) {
+    super(RATE_LIMITED_MESSAGE, { details: { retryAfterSeconds } });
+  }
+}

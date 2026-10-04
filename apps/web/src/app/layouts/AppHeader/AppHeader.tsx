@@ -1,14 +1,8 @@
-import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-
+import type { AppHeaderProps } from '@/app/layouts/AppHeader/AppHeader.typedefs';
+import { LocaleSwitcher } from '@/app/layouts/AppHeader/LocaleSwitcher';
 import { Link } from '@/shared/ui/Link';
-
-import styles from './AppHeader.module.scss';
-import { LocaleSwitcher } from './LocaleSwitcher';
-
-interface AppHeaderProps {
-  children?: ReactNode;
-}
+import styles from '@/app/layouts/AppHeader/AppHeader.module.scss';
 
 export function AppHeader({ children = null }: AppHeaderProps) {
   const { t } = useTranslation();

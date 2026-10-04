@@ -4,5 +4,9 @@
   "semi": true,
   "trailingComma": "all",
   "tabWidth": 2,
+  "sortImports": {
+    "newlinesBetween": false,
+    "internalPattern": ["@/", "@test/"]
+  },
   "ignorePatterns": ["**/dist/**", "**/.claude/**"]
 }

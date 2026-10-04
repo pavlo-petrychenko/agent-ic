@@ -1,8 +1,11 @@
 import { useId } from 'react';
-
-import { DESCRIBED_BY_SEPARATOR, ERROR_ID_SUFFIX, HINT_ID_SUFFIX } from './Field.constants';
-import styles from './Field.module.scss';
-import type { FieldProps } from './Field.typedefs';
+import {
+  DESCRIBED_BY_SEPARATOR,
+  ERROR_ID_SUFFIX,
+  HINT_ID_SUFFIX,
+} from '@/shared/ui/Field/Field.constants';
+import type { FieldProps } from '@/shared/ui/Field/Field.typedefs';
+import styles from '@/shared/ui/Field/Field.module.scss';
 
 export function Field({ label, hint = null, error = null, children }: FieldProps) {
   const id = useId();

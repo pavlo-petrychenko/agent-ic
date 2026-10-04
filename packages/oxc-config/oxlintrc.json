@@ -60,6 +60,22 @@
       "rules": {
         "node/no-process-env": "off"
       }
+    },
+    {
+      "files": ["**/apps/*/src/**", "**/apps/*/test/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "^\\.{1,2}/",
+                "message": "Use an absolute import: @/… in src, @test/… in test support."
+              }
+            ]
+          }
+        ]
+      }
     }
   ],
   "ignorePatterns": [

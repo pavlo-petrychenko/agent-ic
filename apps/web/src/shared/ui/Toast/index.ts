@@ -1,4 +1,4 @@
-export { ToastProvider } from './Toast';
-export { ToastTone } from './Toast.constants';
-export type { ToastOptions } from './Toast.typedefs';
-export { useToast } from './useToast';
+export { ToastProvider } from '@/shared/ui/Toast/Toast';
+export { ToastTone } from '@/shared/ui/Toast/Toast.constants';
+export type { ToastOptions } from '@/shared/ui/Toast/Toast.typedefs';
+export { useToast } from '@/shared/ui/Toast/useToast';

@@ -1,8 +1,7 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { z } from 'zod';
-
-import { WorkspaceLayout } from '@/app/layouts/WorkspaceLayout/WorkspaceLayout';
-import { releaseWorkspaceId, setWorkspaceId } from '@/shared/api/requestContext';
+import { WorkspaceLayout } from '@/app/layouts/WorkspaceLayout';
+import { releaseWorkspaceId, setWorkspaceId } from '@/shared/api/helpers/requestContext.helpers';
 
 const workspaceParamsSchema = z.object({
   workspaceId: z.string().min(1),

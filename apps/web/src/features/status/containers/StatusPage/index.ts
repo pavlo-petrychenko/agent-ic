@@ -1,1 +1,1 @@
-export { StatusPage } from './StatusPage';
+export { StatusPage } from '@/features/status/containers/StatusPage/StatusPage';

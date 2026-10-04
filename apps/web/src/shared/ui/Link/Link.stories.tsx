@@ -1,8 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-
-import { withMemoryRouter } from '@/shared/testing/withMemoryRouter';
-
-import { Link } from './Link';
+import { Link } from '@/shared/ui/Link/Link';
+import { withMemoryRouter } from '@test/support/helpers/storybook.helpers';
 
 const meta = {
   component: Link,

@@ -1,2 +1,2 @@
-export { Card } from './Card';
-export type { CardProps } from './Card.typedefs';
+export { Card } from '@/shared/ui/Card/Card';
+export type { CardProps } from '@/shared/ui/Card/Card.typedefs';

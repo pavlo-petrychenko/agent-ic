@@ -1,8 +1,6 @@
 import { cwd } from 'node:process';
-
 import { loadEnv, type ServerOptions } from 'vite';
 import { z } from 'zod';
-
 import { ALLOWED_HOSTS_SEPARATOR, SERVER_ENV_PREFIX } from './vite.constants.ts';
 
 const serverEnvSchema = z.object({

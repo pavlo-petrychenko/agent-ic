@@ -1,10 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-
 import { Button } from '@/shared/ui/Button';
-import { ToastProvider } from './Toast';
-import { ToastTone } from './Toast.constants';
-import type { ToastOptions } from './Toast.typedefs';
-import { useToast } from './useToast';
+import { ToastProvider } from '@/shared/ui/Toast/Toast';
+import { ToastTone } from '@/shared/ui/Toast/Toast.constants';
+import type { ToastOptions } from '@/shared/ui/Toast/Toast.typedefs';
+import { useToast } from '@/shared/ui/Toast/useToast';
 
 interface ToastDemoProps extends ToastOptions {
   label: string;

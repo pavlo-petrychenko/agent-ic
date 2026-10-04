@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
 import type { DynamicModule } from '@nestjs/common';
-
-import { ConfigService } from './config.service';
-import type { AppConfig } from './config.typedefs';
+import { ConfigService } from '@/platform/config/services/config.service';
+import type { AppConfig } from '@/platform/config/typedefs/app-config.typedefs';
 
 @Module({})
 export class ConfigModule {

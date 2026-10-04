@@ -1,21 +1,11 @@
 import { Global, Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
-
-import { ErrorReporter } from './error.reporter';
-import { GraphqlErrorMapper } from './graphql-error.mapper';
-import { JobErrorMapper } from './job-error.mapper';
-import { ProblemDetailsMapper } from './problem-details.mapper';
-import { TransportExceptionFilter } from './transport-exception.filter';
+import { TransportExceptionFilter } from '@/platform/errors/filters/transport-exception.filter';
+import { ErrorReporterService } from '@/platform/errors/services/error-reporter.service';
 
 @Global()
 @Module({
-  providers: [
-    ErrorReporter,
-    GraphqlErrorMapper,
-    ProblemDetailsMapper,
-    JobErrorMapper,
-    { provide: APP_FILTER, useClass: TransportExceptionFilter },
-  ],
-  exports: [ErrorReporter, GraphqlErrorMapper, ProblemDetailsMapper, JobErrorMapper],
+  providers: [ErrorReporterService, { provide: APP_FILTER, useClass: TransportExceptionFilter }],
+  exports: [ErrorReporterService],
 })
 export class ErrorsModule {}

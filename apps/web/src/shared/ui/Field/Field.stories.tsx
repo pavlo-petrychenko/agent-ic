@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-
+import { Field } from '@/shared/ui/Field/Field';
 import { Input } from '@/shared/ui/Input';
-import { Field } from './Field';
 
 const meta = {
   component: Field,

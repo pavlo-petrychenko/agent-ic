@@ -1,13 +1,12 @@
+import { Locale } from '@agent-ic/contracts';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
 import { describe, expect, it } from 'vitest';
-
-import { createI18n } from '@/shared/i18n/i18n';
-import { LOCALE_STORAGE_KEY, Locale } from '@/shared/i18n/i18n.constants';
-import { MemoryRouter } from '@/shared/testing/MemoryRouter';
-
-import { AppHeader } from './AppHeader';
+import { AppHeader } from '@/app/layouts/AppHeader/AppHeader';
+import { createI18n } from '@/shared/i18n/clients/i18n.client';
+import { LOCALE_STORAGE_KEY } from '@/shared/i18n/constants/locale.constants';
+import { MemoryRouter } from '@test/support/components/MemoryRouter';
 
 const renderHeader = () =>
   render(

@@ -1,2 +1,2 @@
-export { Field } from './Field';
-export type { FieldControlProps, FieldProps } from './Field.typedefs';
+export { Field } from '@/shared/ui/Field/Field';
+export type { FieldControlProps, FieldProps } from '@/shared/ui/Field/Field.typedefs';

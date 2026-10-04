@@ -16,3 +16,5 @@ pre-commit:
     - name: check-comments
       glob: '*.{ts,tsx,js,cjs,mjs,scss}'
       run: pnpm check:comments {staged_files}
+    - name: check-structure
+      run: pnpm check:structure

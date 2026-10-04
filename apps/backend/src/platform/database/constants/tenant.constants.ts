@@ -1,0 +1,8 @@
+export const WORKSPACE_ID_COLUMN = 'workspace_id';
+export const WORKSPACE_SETTING = 'app.workspace_id';
+export const WORKSPACE_SETTING_IS_LOCAL = true;
+export const TENANT_POLICY_SUFFIX = '_tenant_isolation';
+export const TENANT_POLICY_MODE = 'permissive';
+export const TENANT_POLICY_COMMAND = 'all';
+export const TENANT_WORKSPACE_CLS_KEY = 'tenantWorkspaceId';
+export const TENANT_MISMATCH_MESSAGE = 'a transaction cannot switch to another workspace';

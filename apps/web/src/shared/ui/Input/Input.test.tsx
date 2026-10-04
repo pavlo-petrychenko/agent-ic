@@ -1,8 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-
-import { Input } from './Input';
+import { Input } from '@/shared/ui/Input/Input';
 
 describe('Input', () => {
   it('accepts typed text', async () => {

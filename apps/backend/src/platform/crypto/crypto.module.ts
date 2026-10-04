@@ -1,6 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-
-import { SecureTokenService } from './secure-token.service';
+import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
 
 @Global()
 @Module({
