@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import type { ProgressSize, ProgressTone } from '@/shared/ui/Progress/Progress.constants';
 
 export interface ProgressProps extends Omit<ComponentProps<'div'>, 'children'> {
@@ -7,4 +7,5 @@ export interface ProgressProps extends Omit<ComponentProps<'div'>, 'children'> {
   max?: number;
   size?: ProgressSize;
   tone?: ProgressTone;
+  caption?: ReactNode | null;
 }

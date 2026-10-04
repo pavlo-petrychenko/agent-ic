@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { Progress } from '@/shared/ui/Progress/Progress';
+import { ProgressTone } from '@/shared/ui/Progress/Progress.constants';
 
 describe('Progress', () => {
   it('exposes a named progressbar with its range', () => {
@@ -43,5 +44,39 @@ describe('Progress', () => {
     render(<Progress value={5} max={0} label="Usage" />);
 
     expect(screen.getByRole('progressbar').firstElementChild).toHaveStyle({ width: '0%' });
+  });
+
+  it('draws the failed state in the error tone at the reached value', () => {
+    render(<Progress value={40} label="Indexing" tone={ProgressTone.Err} />);
+
+    const bar = screen.getByRole('progressbar');
+    expect(bar.className).toMatch(ProgressTone.Err);
+    expect(bar.firstElementChild).toHaveStyle({ width: '40%' });
+  });
+
+  it('renders a caption below the bar', () => {
+    render(<Progress value={64} label="Indexing" caption="64%" />);
+
+    const caption = screen.getByText('64%');
+    expect(caption).toBeVisible();
+    expect(screen.getByRole('progressbar').nextElementSibling).toBe(caption);
+  });
+
+  it('renders a component as the caption', () => {
+    render(<Progress value={100} label="Indexing" caption={<span>Indexed</span>} />);
+
+    expect(screen.getByText('Indexed')).toBeVisible();
+  });
+
+  it('renders no caption slot without a caption', () => {
+    render(<Progress value={64} label="Indexing" />);
+
+    expect(screen.getByRole('progressbar').nextElementSibling).toBeNull();
+  });
+
+  it('keeps the caption outside the progressbar', () => {
+    render(<Progress value={null} label="Indexing" caption="Waiting" />);
+
+    expect(screen.getByRole('progressbar')).not.toHaveTextContent('Waiting');
   });
 });

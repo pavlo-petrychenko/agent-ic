@@ -22,24 +22,27 @@ export function Progress({
   max = PROGRESS_DEFAULT_MAX,
   size = ProgressSize.Md,
   tone = ProgressTone.Accent,
+  caption = null,
   className,
   ...rest
 }: ProgressProps) {
   return (
-    <div
-      {...rest}
-      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-      role="progressbar"
-      aria-label={label}
-      aria-valuemin={PROGRESS_MIN}
-      aria-valuemax={max}
-      aria-valuenow={value ?? undefined}
-      className={clsx(styles.root, styles[size], styles[tone], className)}
-    >
+    <div {...rest} className={clsx(styles.root, className)}>
       <div
-        className={clsx(styles.fill, value === null && styles.indeterminate)}
-        style={value === null ? undefined : { width: `${toPercent(value, max)}%` }}
-      />
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+        role="progressbar"
+        aria-label={label}
+        aria-valuemin={PROGRESS_MIN}
+        aria-valuemax={max}
+        aria-valuenow={value ?? undefined}
+        className={clsx(styles.track, styles[size], styles[tone])}
+      >
+        <div
+          className={clsx(styles.fill, value === null && styles.indeterminate)}
+          style={value === null ? undefined : { width: `${toPercent(value, max)}%` }}
+        />
+      </div>
+      {caption !== null && <div className={styles.caption}>{caption}</div>}
     </div>
   );
 }

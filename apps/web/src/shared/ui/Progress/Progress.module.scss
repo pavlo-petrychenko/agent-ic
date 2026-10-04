@@ -1,12 +1,25 @@
-$indeterminate-width: 40%;
-$sweep-travel: 250%;
+$indeterminate-width: 35%;
+$indeterminate-duration: 1400ms;
+$sweep-travel: 286%;
 $story-width: 320px;
 
 .root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+}
+
+.track {
   overflow: hidden;
   width: 100%;
   border-radius: var(--radius-4);
   background: var(--color-soft);
+}
+
+.caption {
+  color: var(--color-mute);
+  font: var(--type-small);
 }
 
 .sm {
@@ -46,7 +59,7 @@ $story-width: 320px;
 
 .indeterminate {
   width: $indeterminate-width;
-  animation: sweep var(--duration-pulse) var(--ease-standard) infinite;
+  animation: sweep $indeterminate-duration linear infinite;
 }
 
 @keyframes sweep {
