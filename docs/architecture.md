@@ -152,6 +152,17 @@ Decision markers used below:
 | D128 | **Silo, a MinIO fork, is the S3 store** (replaces MinIO): the upstream MinIO repository is archived and the official image is gone. `pgsty/silo` keeps the S3 API, the `MINIO_*` variables, the `minio_*` metrics and the on-disk format, so code, env names and the `minio` service name stay. Production pins `docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z`; local `compose.yaml` pins the same tag and its digest, starts it with `silo server` and checks readiness with the bundled `mcli ready local`. Any other S3 store replaces it by changing the image and the endpoint variables | ✅ |
 | D129 | **In-tree `barmanObjectStore` backups until the plugin migration** (refines D70): CloudNativePG writes backups through the in-tree `backup.barmanObjectStore`, deprecated since CloudNativePG 1.26 but working, because the Barman Cloud plugin needs cert-manager and D74 keeps cert-manager out of the homeserver. The migration to the plugin (an `ObjectStore` resource, then a full backup and a restore test) happens before the operator chart ships CloudNativePG 1.31 or later | ✅ |
 | D130 | **Web dev server settings and bundles** (refines D118 and D121): `WEB_PORT` and `WEB_ALLOWED_HOSTS` (comma separated) come from `.env` through compose and are validated by zod in `apps/web/vite.server.ts`; the web healthcheck and the Traefik route read the same `WEB_PORT`. The workspace id for the `x-workspace-id` header is set in the `/w/$workspaceId` route `beforeLoad`, before any child loads, and released in `onLeave` only if it still belongs to the leaving workspace. Raw pixel values in `.module.scss` are replaced by size and border tokens in `tokens.css`. Vendor chunks (React, Apollo, Radix, router, i18n, forms) are split in `vite.build.ts`, so no chunk passes the 500 kB warning | ✅ |
+| D140 | **Code structure: folder by kind, file by topic** (amends §11.1 to §11.4, D54): a file lives at `<area>/<kind folder>/<topic>.<kind>.ts`. A backend module root holds only `<name>.module.ts` and `index.ts`, and a web feature root holds only `index.ts`. A kind folder exists only when it has files. Data is an interface in `typedefs/`. Logic without state is a helper, and a class with state or dependencies is a service; time, randomness and ids stay services so tests can replace them. Class names end with their kind. Imports are absolute (`@/…`, `@test/…`, packages by name), with no blank lines between them. `docs/rules/structure.md` lists every kind and the reason for it. `tools/check-structure.ts` (`pnpm check:structure`) rejects any folder or suffix not listed there. It runs in `pnpm check`, the pre-commit hook and CI, and its own tests run as `pnpm test:tools` | ✅ |
+| D141 | **One backend binary with commands** (replaces the launchers of D97, D102 and D107): `src/main.ts` runs `resolveCommand(process.argv).execute()`. There are three commands. `node dist/main.js serve --role=api\|gateway\|worker [--queues=…]` starts a role. `migrate` applies the migrations as `app_owner` (`runMigrations`). `print-schema --output=…` writes the merged SDL (`printMergedSchema`). The commands live in `src/app/commands/` and their flags are zod schemas in `src/app/schemas/`. A missing or unknown command fails like a config error, with exit code 1. `serve` starts tracing before it lazily imports Nest, Express and `@nestjs/graphql`. `migrate.ts`, `print-schema.ts` and `entrypoints/` no longer exist | ✅ |
+| D142 | **One Nest module per module, mounted by role** (replaces the core plus `graphql-module`, `http-module` and `jobs-module` split of §11.1 and the per-role root modules): `defineModule({ imports, providers, exports, resolvers, controllers, gatewayControllers, processors, listeners, roleImports, roleProviders, roleControllers, global })` in `platform/module-roles/` returns a class. Its `forRole(role)` mounts resolvers and controllers in `api`, gateway controllers in `gateway`, and processors and listeners in `worker`. `AppModule.forRole(config, tracing)` imports each module in `APP_MODULES` once (`importForRole` calls `forRole` for defined modules) and provides the started `TracingService` as a value. Nest 12 keys dynamic modules by reference, so two `forRole` calls on one module create two instances. Each role module is therefore imported in exactly one place: `AdminModule` only by `QueuesModule`, and `ObservabilityModule`, `QueuesModule`, `DomainEventsModule` and `LiveUpdatesModule` are global. `GraphqlServerModule` mounts Apollo and the resolver binding check in `api` only, through `roleImports` and `roleProviders` | ✅ |
+| D143 | **Definitions are `defineX()` helpers, not classes** (amends D110, D112, D113, D114): `defineJob({ queue, name, schema })`, `defineDomainEvent({ name, schema })`, `defineDomainEventSubscription({ event, queue, name })`, `defineChannel({ name, schema })` with `channelFor(definition, ...segments)`, `defineCacheEntry(...)` and `defineRateLimitPolicy(...)` each return a typed plain object. `UseCaseCtx` is an interface, built as an object literal, and `getOriginator(ctx)` is a helper. The error mappers became pure helpers (`toGraphqlError`, `toProblemDetails`, `jobFailureActionFor`). `ConfigLoader` became `loadAppConfig(selection, env)` and `loadMigrationConfig(env)` | ✅ |
+| D144 | **Platform renames** (amends D101, D103, D107, D110, D111, D113, D114, D116):<br>• `platform/db` → `platform/database`: `SystemDb` → `SystemDatabaseService`, `TenantTransactionRunner` → `TenantTransactionService`, `AfterCommitScheduler` → `AfterCommitService`.<br>• `platform/graphql` → `platform/graphql-server`, with `GraphqlOptionsService` and `ResolverBindingCheckService`.<br>• `platform/pubsub` → `platform/live-updates`: `LiveUpdatesService.publish(channel, event)` and `subscribe(channel)`, which is an async generator. Redis keys keep the `topic:` prefix.<br>• Queues: `QueueRegistry` → `QueuesService`, `JobRunner` → `JobExecutionService`, `JobWorkerHost` → `JobWorkersService`, `@JobProcessor` → `@ProcessJob`.<br>• Services: `Clock` → `ClockService`, `RateLimiterService` → `RateLimitService`, `CacheRedisClient` → `CacheRedisService`, `ErrorReporter` → `ErrorReporterService`, `UseCaseCtxFactory` → `UseCaseCtxService`, `DenyAllAuthenticator` → `DenyAllAuthenticatorService`, `PlatformAdminAuthorizer` → `PlatformAdminAuthorizerService`.<br>A platform folder never takes a kind-folder name. The one exception is `platform/errors`, which the approved module list names. `platform/http` holds constants only. Platform controllers (health, metrics, queue board) call platform services directly; use cases exist only in `modules/` | ✅ |
+| D145 | **Domain event listeners are declared by `defineModule`** (replaces `DomainEventsModule.forFeature` of D112): `defineModule({ listeners })` registers each listener's subscription in every role, so `api` and `gateway` know where to fan out. The listener itself is instantiated only in `worker`. `DomainEventListenersService` collects the subscriptions through Nest discovery. Delivery is unchanged: one durable, retried job per listener | ✅ |
+| D146 | **Generated code and GraphQL types** (amends D107, D119): module SDL is `modules/<m>/graphql/<m>.graphql`. Backend codegen writes `src/platform/graphql-server/generated/schema.generated.ts`, and web schema types go to `src/shared/api/generated/schema.generated.ts`. Web operations live in `communication/gql/{query,mutation,subscription,fragment}/`, with `x.generated.ts` beside each file. Everything generated stays gitignored. Resolvers return generated GraphQL types and use cases return the module's typedefs; a mapping helper converts between them when the shapes differ | ✅ |
+| D147 | **Test layout** (amends the Tests list in §11.2): `src/` is production code only, and unit specs sit next to their file. `apps/backend/test/integration/` holds specs that run through a booted app, and the tenant schema check. `apps/backend/test/support/` holds test support by kind (`setup`, `fakes`, `fixtures`, `modules`, `helpers`, `services`, `controllers`, `processors`, `resolvers`, `jobs`, `errors`, `schemas`, `constants`, `typedefs`), imported as `@test/…`. The web mirrors this with `apps/web/test/integration/` and `apps/web/test/support/`. Tests build an app with `AppModule.forRole(config, tracing, modules)` and pass `APP_MODULES` plus their probe modules | ✅ |
+| D148 | **One home per constant:** a value used by two areas lives in the lower one. `Locale` and `DEFAULT_LOCALE` move to `@agent-ic/contracts`, `MILLISECONDS_PER_SECOND` to `platform/clock`, and `URL_PATH_SEPARATOR` to `platform/http` | ✅ |
+| D149 | **Dependency rules for the new layout** (amends D79, ADR 0012):<br>• Inbound files (`.resolver`, `.controller`, `.processor`, `.listener`) may not import services, repositories, gateways or fakes, and the layer rules now cover listeners.<br>• Another module is reachable only through `modules/<m>/index.ts`, including from `AppModule`.<br>• `platform/` never imports `modules/` or `app/`.<br>• `SystemDatabaseService` keeps its allow-list.<br>• Each web layer may import its feature's `constants/` and `typedefs/` | ✅ |
+| D150 | **Screenshots for UI changes:** a pull request that changes UI embeds a screenshot of every changed story or screen. The images are committed to the `pr-assets` branch and linked by raw URL | ✅ |
 
 ---
 
@@ -432,7 +443,7 @@ Two repositories (D18):
 ```
 agent-ic/                        app repo: pnpm workspaces + Turborepo
 ├── apps/
-│   ├── backend/                 Node backend; entrypoints gateway | api | worker
+│   ├── backend/                 Node backend; one binary, `serve --role=gateway|api|worker`
 │   └── web/                     React SPA
 ├── packages/
 │   ├── api-schema/              merged schema.graphql, GENERATED from backend SDL (gitignored)
@@ -472,93 +483,90 @@ agent-ic-deploy/                 GitOps + platform repo
 
 **Placement (D73):** local-dev `compose.yaml` and `e2e/` live in the app repo; our Grafana dashboards and alert rules ship inside the Helm chart.
 
-### 11.1 `apps/backend` (level 2, in progress)
+### 11.1 `apps/backend` (level 2)
+
+The full rules, with the reason for every folder, are in `docs/rules/structure.md` (D140).
 
 ```
-apps/backend/src/
-├── main.ts                  starts the ApplicationLauncher: `--role=gateway|api|worker` → config → tracing → that role's root module
-├── migrate.ts               starts the MigrationLauncher: applies `migrations/` as `app_owner` (D102)
-├── entrypoints/             one Nest root module per role
-│   ├── gateway.app-module.ts    HTTP server + every module's HTTP transport module
-│   ├── api.app-module.ts        GraphQL + WebSocket server + every module's GraphQL transport module
-│   └── worker.app-module.ts     health + metrics listener (D98); the jobs transport modules for --queues=…
-├── platform/                shared infrastructure Nest modules, no business logic:
-│                            db, redis, queue factory + registry, pub/sub, config, logger, metrics,
-│                            UseCaseCtx, base errors, abstract gateway tokens
-└── modules/<module>/        domain module = one core Nest module + thin transport modules
-    ├── <module>.module.ts           core: use cases, services, repositories, gateways; exports = services + repositories
-    ├── <module>.graphql-module.ts   resolvers         (imported by the api root module)
-    ├── <module>.http-module.ts      controllers       (imported by the gateway root module)
-    └── <module>.jobs-module.ts      BullMQ processors (imported by the worker root module)
+apps/backend/
+├── src/
+│   ├── main.ts              resolveCommand(process.argv).execute() (D141)
+│   ├── app/                 app.module.ts (AppModule.forRole), commands/ (serve, migrate, print-schema), schemas/, constants/, typedefs/, helpers/
+│   ├── platform/<name>/     infrastructure with no business meaning, used by 2+ modules
+│   └── modules/<name>/      one domain module
+├── test/
+│   ├── integration/         specs through a booted app, the tenant schema check
+│   └── support/             test support by kind, imported as @test/…
+└── migrations/              SQL migrations written by drizzle-kit
 ```
 
 - **Deployments are only config:**
-  - `worker-runs` = `worker --queues=runs-reactive,runs-proactive,outbound,notify,timers`;
-  - `worker-ingest` = `worker --queues=ingest`;
+  - `worker-runs` = `serve --role=worker --queues=runs-reactive,runs-proactive,outbound,notify,timers`;
+  - `worker-ingest` = `serve --role=worker --queues=ingest`;
   - splitting a worker later means a new Deployment with a different `--queues` list, not a code change.
-- **A queue is a scaling unit; a job handler belongs to a module.** One queue (e.g. `timers`) can carry jobs from several modules. The registry in `platform/` maps each job name to the module that registered its handler.
+- **A queue is a scaling unit; a job handler belongs to a module.** One queue (e.g. `timers`) can carry jobs from several modules. `JobHandlersService` maps each queue and job name to the processor that registered it.
+- **One Nest module per module** (D142): `AppModule.forRole(config)` lists every module once, and `forRole(role)` mounts only what that role runs.
 - Use cases are transport-agnostic `@Injectable()` classes: `execute(ctx, input)`, permissions checked inside, dependencies in the constructor (ADRs 0009, 0010).
-- **Layers:** transport → use case → service → repository. A use case never calls a use case; a transport never touches services or repositories (ADR 0012).
+- **Layers:** inbound (resolver, controller, processor, listener) → use case → service → repository. A use case never calls a use case; an inbound file never touches services or repositories (ADR 0012, D149).
 
 ### 11.2 Inside a module (level 3)
 
-Files are grouped **by type**. Names are `kebab-case.<type>.ts`; class names are PascalCase (`StartIngestionUseCase`). Tests sit next to the code.
+Folder by kind, file by topic (D140). Class names are PascalCase and end with their kind (`StartIngestionUseCase`). Tests sit next to the code.
 
 ```
 modules/knowledge/
-├── knowledge.module.ts            core Nest module: use cases, services, repositories, gateways
-│                                  exports = services + repositories (+ use cases for its own transports)
-├── knowledge.graphql-module.ts    resolvers          → imported by the api root module
-├── knowledge.http-module.ts       controllers        → imported by the gateway root module
-├── knowledge.jobs-module.ts       BullMQ processors  → imported by the worker root module
-├── knowledge.graphql              SDL for this module (merged into packages/api-schema)
-├── use-cases/                     start-ingestion.use-case.ts (+ .spec.ts), search-knowledge.use-case.ts …
-├── services/                      knowledge-search.service.ts, generation.service.ts (shared by use cases, also other modules')
+├── knowledge.module.ts            defineModule({ providers, resolvers, controllers, processors, listeners })
+├── index.ts                       the module class + services and repositories other modules may use
+├── graphql/knowledge.graphql      SDL for this module (merged into packages/api-schema)
+├── resolvers/                     knowledge-base.resolver.ts, source.resolver.ts
+├── controllers/                   provider-webhook.controller.ts
+├── processors/                    ingest-source.processor.ts, scheduled-sync.processor.ts
+├── listeners/                     reindex-on-agent-deleted.listener.ts
+├── use-cases/                     start-ingestion.use-case.ts (+ .spec.ts), search-knowledge.use-case.ts
+├── services/                      knowledge-search.service.ts (shared by use cases, also other modules')
 ├── repositories/                  sources.repository.ts, chunks.repository.ts
-├── gateways/                      google-docs.gateway.ts (abstract) + google-docs.http-gateway.ts, *.fake.ts
-├── graphql/                       knowledge-base.resolver.ts, source.resolver.ts
-├── http/                          refresh-source.controller.ts, provider-webhook.controller.ts
-├── jobs/                          ingest-source.processor.ts, scheduled-sync.processor.ts
-├── domain/                        entities, domain errors, constants, pure helpers
-├── db/                            table definitions for this module's Postgres schema
-└── index.ts                       re-exports exported services / repositories and their types
+├── gateways/                      google-docs.gateway.ts (abstract), google-docs-http.gateway.ts, google-docs.fake.ts
+├── db/                            sources.table.ts, chunks.table.ts
+├── jobs/  events/  channels/      defineJob, defineDomainEvent and defineChannel definitions
+└── errors/  schemas/  helpers/  constants/  typedefs/
 ```
 
 **Tests:**
 - `*.spec.ts` sits next to the file it covers; it runs against a real Postgres, with only external gateways faked;
-- end-to-end tests across modules (GraphQL or HTTP through a booted app) live in `apps/backend/test/`.
+- specs through a booted app live in `apps/backend/test/integration/`, shared support in `apps/backend/test/support/` (D147).
 
 ### 11.3 `platform/` (level 3)
 
-**Rule:** infrastructure with no business meaning, used by two or more modules. Business logic never goes here; a client used by one module lives in that module and is exported if another needs it.
+**Rule:** infrastructure with no business meaning, used by two or more modules. Business logic never goes here; a client used by one module lives in that module and is exported if another needs it. Platform has no use cases, and a platform folder never takes a kind-folder name, except `errors` (D144).
 
 | Area | What it holds |
 |---|---|
-| `config/` | Env config validated at startup (zod); per-role sections |
-| `db/` | Drizzle provider, pool (PgBouncer-safe), transaction helper, migrations runner |
-| `context/` | `UseCaseCtx` + actor union (D37), built by each transport |
-| `errors/` | Base domain errors + mapping to GraphQL codes, HTTP statuses, job retry / give-up |
-| `queues/` | BullMQ connection, job registry (job name → owning module's handler), producer, typed payloads, retry defaults, schedulers, graceful shutdown, admin UI |
-| `outbox/` | Outbox table + relay → BullMQ / pub/sub |
-| `pubsub/` | Redis pub/sub with typed topics; GraphQL subscription PubSub; "wait for run result" |
-| `cache/`, `rate-limit/` | Redis cache wrapper; token buckets (per bot, per provider, auth) |
-| `observability/` | Logger (pino), Prometheus metrics, health checks, trace-id propagation |
-| `llm/` | `LlmGateway` (AI SDK → LLMAPI / BYOK), embeddings, per-round call details (tokens, tool calls) for usage and tracing |
-| `storage/` | `FileStorage` (S3 / Silo), presigned URLs |
-| `crypto/` | `SecretBox` (bot tokens, BYOK keys), key hashing |
-| `ids/`, `clock/` | Prefixed UUIDv7 ids (D36); a clock abstraction for tests |
-| `testing/` | Testcontainers (Postgres, Redis), base factories, fake gateways |
+| `config/` | Env config validated at startup (zod), `ConfigService`; the only place that reads `process.env` |
+| `context/` | `UseCaseCtx` + actor union (D37), locale, trace id, the abstract `AuthenticatorService` |
+| `errors/` | `DomainError`, `UpstreamError`, mapping helpers to GraphQL codes, problem+json and job retry / give-up |
+| `database/` | clients per Postgres role, `TenantTransactionService`, after-commit, RLS table helpers, migrations |
+| `graphql-server/` | Apollo setup, `@GraphqlCtx()`, Relay pagination, resolver binding check, generated schema types |
+| `http/` | HTTP constants only |
+| `queues/` | BullMQ, `JobsService.enqueue`, `@ProcessJob`, workers, Bull Board, KEDA metrics |
+| `domain-events/` | `DomainEventsService.emit`, `@OnDomainEvent`, the listener registry |
+| `live-updates/` | Redis pub/sub channels for GraphQL subscriptions |
+| `outbox/` | Outbox table + relay → BullMQ / live updates (planned) |
+| `observability/` | logger (pino), health, Prometheus metrics, tracing |
+| `module-roles/` | `defineModule()`, `forRole()`, the `Role` enum |
+| `cache/`, `rate-limit/` | `CacheService` with `defineCacheEntry`; `RateLimitService` token buckets with `defineRateLimitPolicy` |
+| `admin/`, `crypto/`, `ids/`, `clock/`, `redis/` | platform admin guard; `SecureTokenService` and later `SecretBox`; `IdService` (D36); `ClockService`; Redis connections |
+| `llm/`, `storage/` | `LlmGateway`, embeddings; `FileStorage` (S3 / Silo), presigned URLs (planned) |
 
-**Not here:** the Telegram client (`channels`), email sending (`notifications`), auth and sessions (`identity`).
+**Not here:** the Telegram client (`channels`), email sending (`notifications`), auth and sessions (`identity`), test support (`apps/backend/test/support/`).
 
-**Jobs (D42, D43):**
-- A job is a class: queue, name, zod schema of the payload. The processor validates the payload before it calls the use case.
-- The payload holds IDs only, plus `workspaceId`, `traceId` and `initiatedBy`. The processor builds `UseCaseCtx.system(workspaceId, reason)`.
+**Jobs (D42, D43, D143):**
+- A job is `defineJob({ queue, name, schema })`. The processor validates the payload before it calls the use case.
+- The payload holds IDs only, plus `workspaceId`, `traceId` and `initiatedBy`. The processor runs as the system actor of the job's workspace.
 - Defaults: 5 attempts, exponential backoff from 2 s; failed jobs kept 7 days, completed jobs 1 day; `durable` paths per ADR 0015.
 - Graceful shutdown: on SIGTERM the worker stops taking jobs and waits for running jobs (`worker.close()`), within the pod's termination grace period.
 - Bull Board is mounted in `api` behind the platform-admin guard.
 
-**Pub/sub (D44):** typed topic classes, small "what changed" events and a client refetch, authorization through a use case on subscribe, publish after commit.
+**Live updates (D44):** channels made with `defineChannel`, small "what changed" events and a client refetch, authorization through a use case on subscribe, publish after commit.
 
 **Other areas (D46):**
 
@@ -568,32 +576,35 @@ modules/knowledge/
 | crypto | `SecretBox`: AES-256-GCM for bot tokens and BYOK keys; key from an env secret (homeserver) or KMS (AWS); key version stored per row for rotation. API keys stored as hashes only |
 | llm | `LlmGateway`, `EmbeddingGateway` (AI SDK → LLMAPI or BYOK): every call is traced (Langfuse when on) and tagged (prompt id + version, agent version, workspace); each round's tokens and tool calls are reported for usage and future own traces; Prometheus metrics, timeouts and retries |
 | storage | `FileStorage`: upload, download, delete, presigned URL; Silo / S3 |
-| cache, rate-limit | `Cache` (get / set / TTL / get-or-load) on the cache Redis; `RateLimiter` (Redis token bucket) per bot, per provider, per login |
+| cache, rate-limit | `CacheService` (get / set / TTL / get-or-load) on the cache Redis; `RateLimitService` (Redis token bucket) per bot, per provider, per login |
 | feature flags | Workspace overrides (D33) in a Postgres table, cached in Redis; set by platform admins only |
-| ids, clock | `IdService` (prefixed UUIDv7, D36); `Clock.now()` for tests |
-| testing | Testcontainers Postgres + Redis once per run; rollback per test; shared fake gateways and data factories |
+| ids, clock | `IdService` (prefixed UUIDv7, D36); `ClockService.now()`, replaced by `ManualClock` in tests |
+| testing | Testcontainers Postgres + Redis once per run; rollback per test; shared fakes and fixtures in `apps/backend/test/support/` |
 
 ### 11.4 `apps/web` (level 2–3)
 
 ```
 apps/web/src/
 ├── main.tsx                 mounts the app
-├── app/                     providers (Apollo, i18n, router, auth session), error boundary, layouts
+├── app/                     bootstrap.tsx, router.tsx; components/, providers/, layouts/ (component folders), constants/, typedefs/
 ├── routes/                  TanStack Router route files: validate params / search params (zod), pick a layout,
 │                            render a feature container. No logic
 ├── features/<feature>/      agents, flow-builder, prompts, knowledge, channels, inbox, testing, traces,
 │   │                        analytics, settings, auth, quick-start …
-│   ├── communication/       x.graphql + x.generated.ts; data hooks (useRuns, useRun, useRunUpdates);
-│   │                        API types → frontend types (null, never undefined); no JSX
-│   ├── logic/               behaviour hooks (useTraceFilters) and pure helpers (buildSpanTree); no data fetching
-│   ├── storage/             optional: zustand stores / context for state shared across components
-│   ├── view/                presentational components: props in, events out; may read storage selectors
-│   ├── containers/          one per screen or independent panel: calls communication + logic hooks,
+│   ├── communication/       gql/{query,mutation,subscription,fragment}/x.graphql + x.generated.ts; hooks/ (data hooks);
+│   │                        helpers/ (API types → frontend types, null never undefined); fixtures/; no JSX
+│   ├── logic/               hooks/ (behaviour hooks) and helpers/ (pure helpers); no data fetching
+│   ├── storage/             optional: contexts, hooks and helpers for state shared across components
+│   ├── view/<Name>/         presentational component folders: props in, events out; may read storage
+│   ├── containers/<Name>/   one per screen or independent panel: calls communication + logic hooks,
 │   │                        composes view components
+│   ├── constants/ typedefs/ shared by every layer of the feature
 │   └── index.ts             public API: what routes and other features may import
-└── shared/                  ui (design-system components), lib (helpers), api (Apollo client, links, error mapping),
-                             i18n, hooks; no feature knowledge
+└── shared/                  api, config, forms, i18n (each by kind folder), ui (design-system component folders,
+                             the only place Radix appears), styles; no feature knowledge
 ```
+
+The full web layout and file naming are in `docs/rules/structure.md` (D140). Tests that cross areas live in `apps/web/test/integration/`, and test support lives in `apps/web/test/support/`.
 
 **Import rules** (dependency-cruiser, CI; D79):
 - `routes` → feature `index.ts` and `shared`;
@@ -601,6 +612,7 @@ apps/web/src/
 - `communication`, `logic` → `shared` (and `logic` → `storage`);
 - `view` → `view`, `storage` (read), `shared/ui`;
 - `storage` → nothing in the feature;
+- every layer → the feature's `constants/` and `typedefs/`;
 - another feature → only its `index.ts`; `shared` → never a feature.
 
 **Apollo client (`shared/api`):**

@@ -16,7 +16,7 @@ test/
 migrations/              SQL migrations written by drizzle-kit, committed, never edited after merge
 ```
 
-`platform/` holds config, context, errors, database, graphql-server, http, queues, domain-events, live-updates, observability, module-roles, and one small module each for admin, cache, clock, crypto, ids, rate-limit and redis. It never imports `modules/`. It has no use cases: platform controllers (health, metrics, queue board) call platform services directly, because they have no actor, no permissions and no transaction. A platform folder is never named after a kind folder, so it is `database`, not `db`; `graphql-server`, not `graphql`; `live-updates`, not `channels`. Env is read only in `platform/config`.
+`platform/` holds config, context, errors, database, graphql-server, http, queues, domain-events, live-updates, observability, module-roles, and one small module each for admin, cache, clock, crypto, ids, rate-limit and redis. It never imports `modules/`. It has no use cases: platform controllers (health, metrics, queue board) call platform services directly, because they have no actor, no permissions and no transaction. A platform folder is never named after a kind folder, so it is `database`, not `db`; `graphql-server`, not `graphql`; `live-updates`, not `channels`. The one exception is `errors`. Env is read only in `platform/config`.
 
 ## Commands and roles
 
@@ -25,9 +25,9 @@ One binary, three commands, in `src/app/commands/`:
 - `node dist/main.js serve --role=api|gateway|worker`. A worker also needs `--queues=…` (names from `QueueName`). Ports, host and everything else come from env (`.env.example`), validated by `platform/config`; invalid input prints every bad variable and exits with code 1.
 - `node dist/main.js migrate` applies `migrations/` as `app_owner`.
 - `node dist/main.js print-schema --output=…` merges every module's SDL into `packages/api-schema`.
-- `pnpm --filter backend dev:api`, `dev:gateway`, `dev:worker` rebuild with SWC into `.dev/dist` and restart on change. Extra arguments pass through: `dev:worker --queues=ingest`. `pnpm --filter backend build` then `pnpm --filter backend start serve --role=api` runs the compiled app.
+- `pnpm --filter backend dev:api`, `dev:gateway`, `dev:worker` rebuild with SWC into `.dev/dist` and restart on change. Extra arguments pass through: `dev:worker --queues=ingest`. `pnpm --filter backend build` then `pnpm --filter backend start --role=api` (the `start` script already passes `serve`) runs the compiled app.
 - Every role serves health and metrics: `/api/health/live`, `/api/health/ready` on `api`; `/health/live`, `/health/ready` on `gateway` and `worker`; `/metrics` on all three, outside the `/api` prefix.
-- `AppModule.forRole(role)` lists every module once. Each module is one `defineModule({...})` that declares all its transports, and `forRole(role)` mounts only what that role runs: resolvers and controllers in `api`, gateway controllers in `gateway`, processors and listeners in `worker`. `Role` and `defineModule` live in `platform/module-roles/`.
+- `AppModule.forRole(config, tracing)` imports every module in `APP_MODULES` (`src/app/constants/app-modules.constants.ts`) once; a new module is one line there. Each module is one `defineModule({...})` that declares all its transports, and `forRole(role)` mounts only what that role runs: resolvers and controllers in `api`, gateway controllers in `gateway`, processors and listeners in `worker`. `Role` and `defineModule` live in `platform/module-roles/`.
 
 ## Database
 
@@ -52,7 +52,7 @@ One binary, three commands, in `src/app/commands/`:
 - A processor in `modules/<m>/processors/` is an `@Injectable()` class marked `@ProcessJob(job)` with `handle(ctx, data)`, listed under `processors` in the module's `defineModule`. It runs as the system actor of the job's workspace, with `ctx.initiatedBy` set to whoever enqueued it.
 - Domain events: an event is made with `defineDomainEvent({ name, schema })` in `events/` and emitted with `domainEvents.emit(ctx, event, data)`. A listener is a class in `listeners/` marked `@OnDomainEvent(subscription)` and listed under `listeners` in the listening module's `defineModule`. Each listener gets one job per event: delivery is durable and retried, and a failing listener never blocks the others. The subscription is registered in every role, so `api` knows where to fan out, and the listener is instantiated only in workers.
 - Inside a transaction, enqueue, emit and publish wait for the commit and are dropped on rollback; outside one they run at once.
-- Live updates: `defineChannel` per channel in `channels/`, published and subscribed through the live-updates services (Redis pub/sub, best effort). Cache: `defineCacheEntry` per key with the cache service. Rate limits: `defineRateLimitPolicy` with the rate-limit service (throws `RateLimitedError`). Random tokens: `SecureTokenService` (store only the hash).
+- Live updates: `defineChannel` per channel in `channels/`, published with `LiveUpdatesService.publish(channelFor(definition, ...segments), event)` and subscribed with `subscribe(channel)` (Redis pub/sub, best effort). Cache: `defineCacheEntry` per key with `CacheService`. Rate limits: `defineRateLimitPolicy` with `RateLimitService.enforce` (throws `RateLimitedError`). Random tokens: `SecureTokenService` (store only the hash).
 - Bull Board is at `/api/admin/queues` on `api`, for platform admins only; locally `PLATFORM_ADMIN_DEV_ACCESS=true` opens it. Queue depth and wait time are on `api`'s `/metrics`.
 - Tests that use Redis pick their own logical database from `TestRedisDatabase` (`createIntegrationTestEnv`, `createPlatformTestingModule`).
 
