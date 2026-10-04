@@ -32,7 +32,6 @@
 
   &:focus-visible {
     outline: none;
-    box-shadow: var(--shadow-focus-ring-inset);
   }
 
   &[aria-selected='true'] {
@@ -48,6 +47,43 @@
   cursor: not-allowed;
   opacity: var(--opacity-disabled);
   pointer-events: none;
+}
+
+.action {
+  &.disabled {
+    opacity: 1;
+
+    > :not(.hint) {
+      opacity: var(--opacity-disabled);
+    }
+  }
+
+  .label {
+    font: var(--type-body-small);
+  }
+}
+
+.danger {
+  color: var(--color-err);
+}
+
+.section {
+  padding: var(--space-8) var(--space-8) var(--space-4);
+  color: var(--color-mute);
+  font: var(--type-overline);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+}
+
+.separator {
+  height: var(--border-width);
+  background: var(--color-line);
+}
+
+.shortcut {
+  flex-shrink: 0;
+  color: var(--color-ink-secondary);
+  font: var(--type-mono-xs);
 }
 
 .label {

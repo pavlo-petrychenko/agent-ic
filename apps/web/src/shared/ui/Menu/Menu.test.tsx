@@ -2,8 +2,12 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Menu } from '@/shared/ui/Menu/Menu';
-import { MENU_TYPEAHEAD_RESET_MS } from '@/shared/ui/Menu/Menu.constants';
-import type { MenuItem } from '@/shared/ui/Menu/Menu.typedefs';
+import {
+  MENU_TYPEAHEAD_RESET_MS,
+  MenuEntryKind,
+  MenuVariant,
+} from '@/shared/ui/Menu/Menu.constants';
+import type { MenuEntry, MenuItem } from '@/shared/ui/Menu/Menu.typedefs';
 
 const ITEMS: readonly MenuItem[] = [
   { id: 'name', label: 'user.name', hint: 'string', mono: true },
@@ -18,13 +22,27 @@ const FRUIT_ITEMS: readonly MenuItem[] = [
   { id: 'blueberry', label: 'Blueberry' },
 ];
 
+const ACTION_ITEMS: readonly MenuEntry[] = [
+  { kind: MenuEntryKind.Section, id: 'agent', label: 'Agent' },
+  { id: 'open', label: 'Open', shortcut: '⌘O' },
+  { id: 'share', label: 'Share', disabled: true, hint: 'not published' },
+  { kind: MenuEntryKind.Separator, id: 'divider' },
+  { id: 'delete', label: 'Delete', danger: true },
+];
+
 interface RenderMenuOptions {
-  items?: readonly MenuItem[];
+  items?: readonly MenuEntry[];
   selectedId?: string | null;
   width?: number | null;
+  variant?: MenuVariant;
 }
 
-const renderMenu = ({ items = ITEMS, selectedId = null, width = null }: RenderMenuOptions = {}) => {
+const renderMenu = ({
+  items = ITEMS,
+  selectedId = null,
+  width = null,
+  variant = MenuVariant.Listbox,
+}: RenderMenuOptions = {}) => {
   const onSelect = vi.fn<(id: string) => void>();
   render(
     <Menu
@@ -32,6 +50,7 @@ const renderMenu = ({ items = ITEMS, selectedId = null, width = null }: RenderMe
       selectedId={selectedId}
       onSelect={onSelect}
       width={width}
+      variant={variant}
       ariaLabel="Variables"
     />,
   );
@@ -189,5 +208,78 @@ describe('Menu', () => {
     renderMenu({ width: 320 });
 
     expect(screen.getByRole('listbox')).toHaveStyle({ width: '320px' });
+  });
+  it('renders section labels and separators outside the options', () => {
+    renderMenu({ items: ACTION_ITEMS, variant: MenuVariant.Action });
+
+    expect(screen.getByText('Agent')).toBeInTheDocument();
+    expect(screen.getAllByRole('option')).toHaveLength(3);
+    expect(screen.queryByRole('separator')).not.toBeInTheDocument();
+  });
+
+  it('moves over section labels and separators with the arrow keys', async () => {
+    renderMenu({ items: ACTION_ITEMS, variant: MenuVariant.Action });
+
+    await userEvent.tab();
+    expect(screen.getByRole('option', { name: /Open/ })).toHaveFocus();
+
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByRole('option', { name: /Delete/ })).toHaveFocus();
+
+    await userEvent.keyboard('{ArrowUp}');
+    expect(screen.getByRole('option', { name: /Open/ })).toHaveFocus();
+  });
+
+  it('selects the option behind a section label', async () => {
+    const onSelect = renderMenu({ items: ACTION_ITEMS, variant: MenuVariant.Action });
+
+    await userEvent.click(screen.getByRole('option', { name: /Delete/ }));
+
+    expect(onSelect).toHaveBeenCalledWith('delete');
+  });
+
+  it('shows the shortcut and the reason of a disabled action', () => {
+    renderMenu({ items: ACTION_ITEMS, variant: MenuVariant.Action });
+
+    expect(screen.getByRole('option', { name: /Open/ })).toHaveTextContent('Open⌘O');
+    const disabled = screen.getByRole('option', { name: /Share/ });
+    expect(disabled).toHaveAttribute('aria-disabled', 'true');
+    expect(disabled).toHaveTextContent('Sharenot published');
+  });
+
+  it('marks a danger action', () => {
+    renderMenu({ items: ACTION_ITEMS, variant: MenuVariant.Action });
+
+    expect(screen.getByRole('option', { name: /Delete/ }).className).toMatch(/danger/);
+    expect(screen.getByRole('option', { name: /Open/ }).className).not.toMatch(/danger/);
+  });
+
+  it('puts the check before the label for a selected action and after it in a listbox', () => {
+    const first = render(
+      <Menu
+        items={[{ id: 'a', label: 'Alpha', leading: <span>glyph</span> }]}
+        selectedId="a"
+        onSelect={vi.fn<(id: string) => void>()}
+        variant={MenuVariant.Action}
+        ariaLabel="Sort"
+      />,
+    );
+    const action = screen.getByRole('option', { name: /Alpha/ });
+    expect(action.firstElementChild?.querySelector('[data-icon="check"]')).not.toBeNull();
+    expect(action).not.toHaveTextContent('glyph');
+    first.unmount();
+
+    render(
+      <Menu
+        items={[{ id: 'a', label: 'Alpha', leading: <span>glyph</span> }]}
+        selectedId="a"
+        onSelect={vi.fn<(id: string) => void>()}
+        ariaLabel="Sort"
+      />,
+    );
+    expect(screen.getByRole('option', { name: /Alpha/ }).lastElementChild).toHaveAttribute(
+      'data-icon',
+      'check',
+    );
   });
 });

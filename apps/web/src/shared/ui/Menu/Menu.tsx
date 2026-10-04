@@ -1,12 +1,15 @@
 import clsx from 'clsx';
 import { Icon } from '@/shared/ui/Icon/Icon';
 import { IconName } from '@/shared/ui/Icon/Icon.constants';
-import { MENU_CHECK_ICON_SIZE } from '@/shared/ui/Menu/Menu.constants';
-import type { MenuItem, MenuProps } from '@/shared/ui/Menu/Menu.typedefs';
+import { MENU_CHECK_ICON_SIZE, MenuEntryKind, MenuVariant } from '@/shared/ui/Menu/Menu.constants';
+import type { MenuEntry, MenuItem, MenuProps } from '@/shared/ui/Menu/Menu.typedefs';
 import { useMenuNavigation } from '@/shared/ui/Menu/useMenuNavigation';
 import styles from '@/shared/ui/Menu/Menu.module.scss';
 
-function renderRow(item: MenuItem, selected: boolean) {
+const isMenuItem = (entry: MenuEntry): entry is MenuItem =>
+  entry.kind === undefined || entry.kind === MenuEntryKind.Option;
+
+function renderListboxRow(item: MenuItem, selected: boolean) {
   const leading = item.leading ?? null;
   const hint = item.hint ?? null;
   const trailing = item.trailing ?? null;
@@ -34,19 +37,44 @@ function renderRow(item: MenuItem, selected: boolean) {
   );
 }
 
+function renderActionRow(item: MenuItem, selected: boolean) {
+  const leading = selected ? (
+    <Icon name={IconName.Check} size={MENU_CHECK_ICON_SIZE} />
+  ) : (
+    (item.leading ?? null)
+  );
+  const hint = item.hint ?? null;
+  const shortcut = item.shortcut ?? null;
+  const trailing = item.trailing ?? null;
+  const labelClass = clsx(styles.label, item.mono === true && styles.mono);
+
+  return (
+    <>
+      {leading === null ? null : <span className={styles.leading}>{leading}</span>}
+      <span className={labelClass}>{item.label}</span>
+      {hint === null ? null : <span className={styles.hint}>{hint}</span>}
+      {shortcut === null ? null : <span className={styles.shortcut}>{shortcut}</span>}
+      {trailing}
+    </>
+  );
+}
+
 export function Menu({
   items,
   selectedId = null,
   onSelect,
+  variant = MenuVariant.Listbox,
   width = null,
   ariaLabel,
   className,
 }: MenuProps) {
+  const options = items.filter(isMenuItem);
   const { tabStopId, registerOption, handleKeyDown, handleFocus, selectItem } = useMenuNavigation({
-    items,
+    items: options,
     selectedId,
     onSelect,
   });
+  const isAction = variant === MenuVariant.Action;
 
   return (
     <div
@@ -56,29 +84,41 @@ export function Menu({
       className={clsx(styles.root, className)}
       style={width === null ? undefined : { width }}
     >
-      {items.map((item, index) => {
-        const selected = item.id === selectedId;
-        const disabled = item.disabled === true;
+      {items.map((entry) => {
+        if (entry.kind === MenuEntryKind.Section) {
+          return (
+            <div key={entry.id} role="presentation" className={styles.section}>
+              {entry.label}
+            </div>
+          );
+        }
+        if (entry.kind === MenuEntryKind.Separator) {
+          return <div key={entry.id} aria-hidden="true" className={styles.separator} />;
+        }
+
+        const selected = entry.id === selectedId;
+        const disabled = entry.disabled === true;
 
         return (
           <div
-            key={item.id}
-            ref={registerOption(item.id)}
+            key={entry.id}
+            ref={registerOption(entry.id)}
             // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
             role="option"
             aria-selected={selected}
             aria-disabled={disabled ? true : undefined}
-            tabIndex={item.id === tabStopId ? 0 : -1}
+            tabIndex={entry.id === tabStopId ? 0 : -1}
             className={clsx(
               styles.option,
-              (item.leading ?? null) !== null && styles.rich,
+              isAction ? styles.action : (entry.leading ?? null) !== null && styles.rich,
+              entry.danger === true && styles.danger,
               disabled && styles.disabled,
             )}
-            onClick={() => selectItem(item)}
-            onFocus={() => handleFocus(item.id)}
-            onKeyDown={(event) => handleKeyDown(event, index)}
+            onClick={() => selectItem(entry)}
+            onFocus={() => handleFocus(entry.id)}
+            onKeyDown={(event) => handleKeyDown(event, options.indexOf(entry))}
           >
-            {renderRow(item, selected)}
+            {isAction ? renderActionRow(entry, selected) : renderListboxRow(entry, selected)}
           </div>
         );
       })}
