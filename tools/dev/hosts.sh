@@ -9,7 +9,8 @@ for host in \
   mail.local.agent-ic.pavlop.dev \
   s3.local.agent-ic.pavlop.dev \
   grafana.local.agent-ic.pavlop.dev \
-  langfuse.local.agent-ic.pavlop.dev; do
+  langfuse.local.agent-ic.pavlop.dev \
+  queues.local.agent-ic.pavlop.dev; do
   if ! grep -Eq "^[^#]*[[:space:]]${host}([[:space:]]|\$)" "$hosts_file"; then
     missing="${missing} ${host}"
   fi

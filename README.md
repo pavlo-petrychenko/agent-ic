@@ -93,6 +93,7 @@ mise run add langfuse-web
 | https://s3.local.agent-ic.pavlop.dev       | Silo (S3) console                         |
 | https://grafana.local.agent-ic.pavlop.dev  | Grafana (observability profile)           |
 | https://langfuse.local.agent-ic.pavlop.dev | Langfuse (langfuse profile)               |
+| https://queues.local.agent-ic.pavlop.dev   | Bull Board, opened by the admin route     |
 
 ## Port conflicts
 

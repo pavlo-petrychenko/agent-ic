@@ -93,6 +93,29 @@ fi
 optional_refs="$(yq -N 'select(.kind == "Deployment" and .metadata.name == "agent-ic-api") | .spec.template.spec.containers[0].env[] | select(.name == "RESEND_API_KEY" or .name == "LLM_API_KEY") | .valueFrom.secretKeyRef.optional' "$rendered/optional-secrets.yaml" | sort -u)"
 test "$optional_refs" = "true"
 
+echo "== the admin header is added on the admin route and stripped on every public route"
+header_name="$(yq -r '.ingress.admin.requestHeader.name' "$chart/values.yaml")"
+backend_header="$(sed -nE "s/^[[:space:]]*PlatformAdminRoute = '([^']+)',?$/\\1/p" apps/backend/src/platform/http/constants/http-header.constants.ts)"
+test "$header_name" = "$backend_header"
+local_header="$(yq -r '.http.middlewares."admin-header".headers.customRequestHeaders | keys | .[0]' deploy/docker/traefik/dynamic.yaml)"
+test "$header_name" = "$local_header"
+admin_value="$(HEADER="$header_name" yq -N 'select(.kind == "Middleware" and .metadata.name == "agent-ic-admin-header") | .spec.headers.customRequestHeaders[strenv(HEADER)]' "$rendered/default.yaml")"
+strip_removes_header="$(HEADER="$header_name" yq -N 'select(.kind == "Middleware" and .metadata.name == "agent-ic-public-strip-admin-header") | .spec.headers.customRequestHeaders[strenv(HEADER)] == ""' "$rendered/default.yaml")"
+test -n "$admin_value" && test "$admin_value" != "null"
+test "$strip_removes_header" = "true"
+admin_middlewares="$(yq -N 'select(.kind == "IngressRoute" and .metadata.name == "agent-ic-admin") | .spec.routes[0].middlewares[].name' "$rendered/default.yaml" | paste -sd, -)"
+test "$admin_middlewares" = "agent-ic-admin-root,agent-ic-admin-header"
+unstripped="$(yq -N 'select(.kind == "IngressRoute" and .metadata.name == "agent-ic-public") | .spec.routes[] | select(([.middlewares[].name] | contains(["agent-ic-public-strip-admin-header"])) | not) | .match' "$rendered/default.yaml")"
+test -z "$unstripped"
+echo "$header_name | $admin_middlewares"
+
+echo "== the api pods accept traffic only from the Traefik, own and Prometheus namespaces"
+policy_peers="$(yq -N 'select(.kind == "NetworkPolicy" and .metadata.name == "agent-ic-api") | .spec.ingress[0].from[] | (.namespaceSelector.matchLabels."kubernetes.io/metadata.name" // "own")' "$rendered/default.yaml" | paste -sd, -)"
+test "$policy_peers" = "traefik,own,observability"
+policy_count="$(yq -N 'select(.kind == "NetworkPolicy") | .metadata.name' "$rendered/default.yaml" | wc -l | tr -d ' ')"
+test "$policy_count" = "1"
+echo "$policy_peers"
+
 echo "== guardrails reject unsafe values"
 expect_failure() {
   local name="$1" pattern="$2" output
@@ -138,6 +161,24 @@ expect_failure "public route covering metrics" \
 expect_failure "admin entry point on the public route" \
   'is both public and admin' \
   --set 'ingress.public.entryPoints[0]=admin'
+expect_failure "public route without the strip middleware" \
+  'does not use the middleware "strip-admin-header"' \
+  --set-json "ingress.public.routes=$(routes_with '.ingress.public.routes[2].middlewares = []')"
+expect_failure "public route with the strip middleware removed from the gateway route" \
+  'does not use the middleware "strip-admin-header"' \
+  --set-json "ingress.public.routes=$(routes_with '.ingress.public.routes[1].middlewares = []')"
+expect_failure "public route with an unknown middleware" \
+  'unknown middleware' \
+  --set-json "ingress.public.routes=$(routes_with '.ingress.public.routes[0].middlewares += ["other"]')"
+expect_failure "admin header without a value" \
+  'requestHeader' \
+  --set ingress.admin.requestHeader.value=
+expect_failure "network policy without the Traefik namespace" \
+  'traefikNamespace' \
+  --set networkPolicy.traefikNamespace=
+expect_failure "network policy without the Prometheus namespace" \
+  'prometheusNamespace' \
+  --set networkPolicy.prometheusNamespace=
 expect_failure "unknown role" \
   'role' \
   --set workloads.api.role=other

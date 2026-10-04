@@ -13,19 +13,29 @@ http:
     web:
       rule: Host(`local.agent-ic.pavlop.dev`)
       entryPoints: [websecure]
+      middlewares: [strip-admin-header]
       service: web
       priority: 1
       tls: {}
     api:
       rule: Host(`local.agent-ic.pavlop.dev`) && PathPrefix(`/api`)
       entryPoints: [websecure]
+      middlewares: [strip-admin-header]
       service: api
       priority: 10
       tls: {}
     gateway:
       rule: Host(`local.agent-ic.pavlop.dev`) && (PathPrefix(`/v1`) || PathPrefix(`/webhooks`))
       entryPoints: [websecure]
+      middlewares: [strip-admin-header]
       service: gateway
+      priority: 10
+      tls: {}
+    queues:
+      rule: Host(`queues.local.agent-ic.pavlop.dev`) && (Path(`/`) || PathPrefix(`/api/admin/queues`))
+      entryPoints: [websecure]
+      middlewares: [admin-root, admin-header]
+      service: api
       priority: 10
       tls: {}
     mailpit:
@@ -48,6 +58,20 @@ http:
       entryPoints: [websecure]
       service: langfuse
       tls: {}
+
+  middlewares:
+    strip-admin-header:
+      headers:
+        customRequestHeaders:
+          x-agent-ic-admin-route: ''
+    admin-header:
+      headers:
+        customRequestHeaders:
+          x-agent-ic-admin-route: 'true'
+    admin-root:
+      replacePathRegex:
+        regex: ^/$
+        replacement: /api/admin/queues
 
   services:
     web:

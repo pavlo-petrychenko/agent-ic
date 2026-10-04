@@ -229,6 +229,8 @@ ingress:
           - /api
         excludePathPrefixes:
           - /api/admin
+        middlewares:
+          - strip-admin-header
       - name: gateway
         service: gateway
         priority: 10
@@ -236,15 +238,23 @@ ingress:
           - /v1
           - /webhooks
         excludePathPrefixes: []
+        middlewares:
+          - strip-admin-header
       - name: web
         service: web
         priority: 1
         pathPrefixes: []
         excludePathPrefixes: []
+        middlewares:
+          - strip-admin-header
+    stripMiddleware: strip-admin-header
   admin:
     service: api
     pathPrefix: /api/admin/queues
     priority: 10
+    requestHeader:
+      name: x-agent-ic-admin-route
+      value: 'true'
 
 keda:
   enabled: true

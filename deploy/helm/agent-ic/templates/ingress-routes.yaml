@@ -2,10 +2,24 @@
 {{- $admin := .Values.ingress.admin }}
 {{- $publicContext := dict "root" . "component" "public" }}
 {{- $adminContext := dict "root" . "component" "admin" }}
+{{- $publicName := include "agent-ic.componentName" $publicContext }}
+{{- $adminName := include "agent-ic.componentName" $adminContext }}
+{{- $adminHeader := $admin.requestHeader }}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $publicName }}-{{ $public.stripMiddleware }}
+  labels:
+    {{- include "agent-ic.labels" $publicContext | nindent 4 }}
+spec:
+  headers:
+    customRequestHeaders:
+      {{ $adminHeader.name }}: ""
+---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: {{ include "agent-ic.componentName" $publicContext }}
+  name: {{ $publicName }}
   labels:
     {{- include "agent-ic.labels" $publicContext | nindent 4 }}
 spec:
@@ -16,6 +30,12 @@ spec:
     - kind: Rule
       match: {{ include "agent-ic.routeRule" (dict "host" $public.host "pathPrefixes" $route.pathPrefixes "excludePathPrefixes" $route.excludePathPrefixes) | quote }}
       priority: {{ $route.priority }}
+      {{- with $route.middlewares }}
+      middlewares:
+        {{- range $middleware := . }}
+        - name: {{ $publicName }}-{{ $middleware }}
+        {{- end }}
+      {{- end }}
       services:
         - name: {{ include "agent-ic.componentName" (dict "root" $ "component" $route.service) }}
           port: http
@@ -24,7 +44,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: {{ include "agent-ic.componentName" $adminContext }}-root
+  name: {{ $adminName }}-root
   labels:
     {{- include "agent-ic.labels" $adminContext | nindent 4 }}
 spec:
@@ -33,9 +53,20 @@ spec:
     replacement: {{ $admin.pathPrefix | quote }}
 ---
 apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $adminName }}-header
+  labels:
+    {{- include "agent-ic.labels" $adminContext | nindent 4 }}
+spec:
+  headers:
+    customRequestHeaders:
+      {{ $adminHeader.name }}: {{ $adminHeader.value | quote }}
+---
+apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: {{ include "agent-ic.componentName" $adminContext }}
+  name: {{ $adminName }}
   labels:
     {{- include "agent-ic.labels" $adminContext | nindent 4 }}
 spec:
@@ -46,7 +77,8 @@ spec:
       match: {{ printf "Host(`%s`) && (Path(`/`) || PathPrefix(`%s`))" $admin.host $admin.pathPrefix | quote }}
       priority: {{ $admin.priority }}
       middlewares:
-        - name: {{ include "agent-ic.componentName" $adminContext }}-root
+        - name: {{ $adminName }}-root
+        - name: {{ $adminName }}-header
       services:
         - name: {{ include "agent-ic.componentName" (dict "root" . "component" $admin.service) }}
           port: http

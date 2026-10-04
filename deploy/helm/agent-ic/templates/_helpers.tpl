@@ -196,6 +196,14 @@ failureThreshold: {{ .timing.failureThreshold }}
 {{- if and (eq $route.service $admin.service) (not $excludesAdmin) -}}
 {{- fail (printf "public route %q targets the service %q without excluding the admin path %q" $route.name $admin.service $admin.pathPrefix) -}}
 {{- end -}}
+{{- if not (has $.Values.ingress.public.stripMiddleware $route.middlewares) -}}
+{{- fail (printf "public route %q does not use the middleware %q that strips the admin header" $route.name $.Values.ingress.public.stripMiddleware) -}}
+{{- end -}}
+{{- range $middleware := $route.middlewares -}}
+{{- if ne $middleware $.Values.ingress.public.stripMiddleware -}}
+{{- fail (printf "public route %q uses the unknown middleware %q" $route.name $middleware) -}}
+{{- end -}}
+{{- end -}}
 {{- if and (hasKey $.Values.workloads $route.service) (not $route.pathPrefixes) -}}
 {{- fail (printf "public route %q is a host-only catch-all to the backend service %q" $route.name $route.service) -}}
 {{- end -}}

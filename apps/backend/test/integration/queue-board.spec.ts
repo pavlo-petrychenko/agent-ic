@@ -11,7 +11,9 @@ import { QueueBoardRoute } from '@/platform/queues/constants/queue-board.constan
 import { QueueMetricName } from '@/platform/queues/constants/queue-metrics.constants';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
 import {
+  ADMIN_ROUTE_HEADER_VALUE,
   BOARD_QUEUES_API_SEGMENT,
+  EMPTY_HEADER_VALUE,
   HTML_CONTENT_TYPE,
 } from '@test/support/constants/queue-board.constants';
 import { INVALID_BEARER } from '@test/support/constants/request-layer.constants';
@@ -76,6 +78,32 @@ describe('queue board', () => {
     expect(queues.body.queues.map((queue: { name: string }) => queue.name).toSorted()).toEqual(
       Object.values(QueueName).toSorted(),
     );
+  });
+
+  it('serves the board and its api to a request that carries the admin route header', async () => {
+    const http = await boot(false);
+
+    const page = await http
+      .get(apiPath(QueueBoardRoute.Base))
+      .set(HttpHeader.PlatformAdminRoute, ADMIN_ROUTE_HEADER_VALUE);
+    const queues = await http
+      .get(apiPath(QueueBoardRoute.Base, BOARD_QUEUES_API_SEGMENT))
+      .set(HttpHeader.PlatformAdminRoute, ADMIN_ROUTE_HEADER_VALUE);
+
+    expect(page.status).toBe(200);
+    expect(page.headers['content-type']).toMatch(HTML_CONTENT_TYPE);
+    expect(queues.status).toBe(200);
+  });
+
+  it('refuses a request whose admin route header is empty', async () => {
+    const http = await boot(false);
+
+    const response = await http
+      .get(apiPath(QueueBoardRoute.Base))
+      .set(HttpHeader.PlatformAdminRoute, EMPTY_HEADER_VALUE);
+
+    expect(response.status).toBe(403);
+    expect(response.body.reason).toBe(ErrorReason.PlatformAdminRequired);
   });
 
   it('reports waiting jobs per queue on the metrics endpoint', async () => {
