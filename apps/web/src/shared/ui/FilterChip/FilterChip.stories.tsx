@@ -27,6 +27,15 @@ export const Applied: Story = {
     clearLabel: 'Clear Agent filter',
   },
 };
+export const AppliedSeveralValues: Story = {
+  args: {
+    label: 'Channel',
+    value: 'Telegram',
+    extraCount: 1,
+    applied: true,
+    clearLabel: 'Clear Channel filter',
+  },
+};
 export const Open: Story = { args: { open: true } };
 export const AppliedOpen: Story = {
   args: {

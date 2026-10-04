@@ -5,6 +5,7 @@ export interface FilterChipProps {
   onOpen: () => void;
   onClear: () => void;
   clearLabel: string;
+  extraCount?: number;
   open?: boolean;
   disabled?: boolean;
   className?: string;

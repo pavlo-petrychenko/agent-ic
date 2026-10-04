@@ -8,6 +8,7 @@ const renderChip = (
     value?: string | null;
     applied?: boolean;
     open?: boolean;
+    extraCount?: number;
     disabled?: boolean;
   } = {},
 ) => {
@@ -51,6 +52,28 @@ describe('FilterChip', () => {
       'dialog',
     );
     expect(screen.getByRole('button', { name: 'Agent' })).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('adds the number of further values to the bold value of an applied chip', () => {
+    renderChip({ applied: true, value: 'Telegram', extraCount: 1 });
+
+    expect(screen.getByRole('button', { name: 'Agent: Telegram +1' })).toBeInTheDocument();
+    expect(screen.getByText('Telegram +1').tagName).toBe('STRONG');
+  });
+
+  it('shows only the value when there are no further values', () => {
+    renderChip({ applied: true, value: 'Telegram', extraCount: 0 });
+
+    expect(screen.getByRole('button', { name: 'Agent: Telegram' })).toBeInTheDocument();
+  });
+
+  it('marks the applied label target as expanded while the picker is open', () => {
+    renderChip({ applied: true, value: 'Telegram', open: true });
+
+    expect(screen.getByRole('button', { name: 'Agent: Telegram' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
   });
 
   it('splits an applied chip into a label target and a clear target', () => {
