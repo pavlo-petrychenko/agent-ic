@@ -1,0 +1,47 @@
+.root {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--space-8) var(--space-10);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-8);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: var(--type-body-small);
+  line-height: var(--leading-relaxed);
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font: var(--type-mono);
+  line-height: var(--leading-relaxed);
+}
+
+.copyable {
+  padding-right: var(--space-32);
+}
+
+.copy {
+  position: absolute;
+  top: var(--space-6);
+  right: var(--space-6);
+  opacity: 0;
+  transition: opacity var(--duration-fast);
+}
+
+.root:hover .copy,
+.root:focus-within .copy {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .copy {
+    opacity: 1;
+  }
+}
+
+.storyStack {
+  display: grid;
+  gap: var(--space-12);
+  width: 100%;
+}
