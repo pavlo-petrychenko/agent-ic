@@ -1,0 +1,11 @@
+$underline-offset: 3px;
+
+.root {
+  display: inline;
+  border-radius: var(--radius-4);
+}
+
+.unknown {
+  text-decoration: underline wavy var(--color-err);
+  text-underline-offset: $underline-offset;
+}

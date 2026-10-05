@@ -15,6 +15,10 @@ class ResizeObserverStub implements ResizeObserver {
 
 globalThis.ResizeObserver ??= ResizeObserverStub;
 
+Range.prototype.getClientRects = () => document.createElement('div').getClientRects();
+Range.prototype.getBoundingClientRect = () => new DOMRect();
+document.elementFromPoint = () => null;
+
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
