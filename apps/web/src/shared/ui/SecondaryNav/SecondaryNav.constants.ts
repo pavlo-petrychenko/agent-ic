@@ -1,0 +1,1 @@
+export const SECONDARY_NAV_GROUP_ID_SEPARATOR = '-';
