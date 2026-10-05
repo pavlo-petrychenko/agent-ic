@@ -24,13 +24,19 @@
     }
   },
   "scripts": {
-    "build": "tsup && tsc -p tsconfig.build.json && cp dist/index.d.ts dist/index.d.cts",
+    "build": "tsup && tsc -p tsconfig.build.json && node ../../tools/declaration-aliases.ts && cp dist/index.d.ts dist/index.d.cts",
     "dev": "tsup --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@agent-ic/contracts": "workspace:*",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@agent-ic/tsconfig": "workspace:*",
     "tsup": "^8.5.1",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
   }
 }
