@@ -18,10 +18,12 @@ import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.c
 import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
 import { ProbeJobsModule } from '@test/support/modules/probe-jobs.module';
 
-export const createProbeWorker = async (): Promise<INestApplication> => {
+export const createProbeWorker = async (
+  redisDatabase: TestRedisDatabase = TestRedisDatabase.Jobs,
+): Promise<INestApplication> => {
   const config = loadAppConfig(
     { role: Role.Worker, queues: [QueueName.Notify] },
-    createIntegrationTestEnv(TestRedisDatabase.Jobs),
+    createIntegrationTestEnv(redisDatabase),
   );
   const tracing = new TracingService(config.telemetry);
   const app = await createApplication(

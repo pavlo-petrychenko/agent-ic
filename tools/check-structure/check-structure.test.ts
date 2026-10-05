@@ -35,6 +35,7 @@ const validFiles = [
   `${BACKEND_SRC}/platform/database/database.module.ts`,
   `${BACKEND_SRC}/platform/database/database-clients.module.ts`,
   `${BACKEND_SRC}/platform/database/index.ts`,
+  `${BACKEND_SRC}/platform/queues/db/outbox-message.table.ts`,
   `${BACKEND_SRC}/platform/graphql-server/decorators/graphql-ctx.decorator.ts`,
   `${BACKEND_SRC}/platform/http/constants/http-header.constants.ts`,
   `${BACKEND_SRC}/platform/errors/errors.module.ts`,

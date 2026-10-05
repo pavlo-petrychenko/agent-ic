@@ -90,9 +90,10 @@ modules/identity/
 
 ### Platform (`src/platform/<name>/`)
 
-Infrastructure used by two or more modules, with no business meaning. Same kinds as modules, with two rules:
+Infrastructure used by two or more modules, with no business meaning. Same kinds as modules, with three rules:
 
 - **No use cases.** Platform controllers (health, metrics, queue board) call platform services directly, because they have no actor, no permissions and no transaction.
+- **A platform folder may own tables.** A platform folder that needs its own table puts it in `db/` (`<name>.table.ts`) in its own Postgres schema, the same way a module does; `drizzle.config.ts` reads `src/platform/*/db/*.table.ts` as well as the modules. Example: `queues/db/outbox-message.table.ts`.
 - **A platform folder never takes a kind-folder name.** Hence `database`, not `db`; `graphql-server`, not `graphql`; `live-updates`, not `channels`. The one exception is `errors`: it was named in the approved module list, it holds the base error classes in its own `errors/` folder, and no module-level `errors/` folder can be confused with it because platform folders sit one level higher.
 
 | Module | Holds |
@@ -103,7 +104,7 @@ Infrastructure used by two or more modules, with no business meaning. Same kinds
 | `database` | clients per Postgres role, tenant transactions, after-commit, RLS table helpers, migrations |
 | `graphql-server` | Apollo setup, `@GraphqlCtx()`, Relay pagination, resolver binding check |
 | `http` | HTTP constants only |
-| `queues` | BullMQ, `JobsService.enqueue`, workers, Bull Board, KEDA metrics |
+| `queues` | BullMQ, `JobsService.enqueue`, workers, Bull Board, KEDA metrics, the durable outbox (`outbox.messages` table and its sweeper) |
 | `domain-events` | `emit()`, `@OnDomainEvent`, listener registry |
 | `live-updates` | Redis pub/sub channels for GraphQL subscriptions |
 | `observability` | logger, health, metrics, tracing |

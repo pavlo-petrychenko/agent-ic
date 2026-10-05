@@ -36,3 +36,7 @@ export interface RegisteredJobHandler {
   readonly definition: JobDefinition<JobData>;
   readonly handler: JobHandler<JobData>;
 }
+
+export interface EnqueueOptions {
+  readonly durable: boolean;
+}

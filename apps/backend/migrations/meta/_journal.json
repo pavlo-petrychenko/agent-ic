@@ -29,6 +29,13 @@
       "when": 1791145218327,
       "tag": "0003_identity-workspaces-invites",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791187163943,
+      "tag": "0004_queues-outbox",
+      "breakpoints": true
     }
   ]
 }
