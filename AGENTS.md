@@ -35,19 +35,20 @@ Turborepo behaviour can differ from what you remember. Its docs ship with the in
 
 ## Docs map
 
-| Need                                                      | Read                          |
-| --------------------------------------------------------- | ----------------------------- |
-| Where to start: the product, a repo map, the reading path | `docs/README.md`              |
-| One concept per page, read in order                       | `docs/learn/`                 |
-| What the product does and does not do                     | `docs/design/mvp-scope.md`    |
-| Decisions D1 to D191, layout, data flow                   | `docs/design/architecture.md` |
-| Why a decision was made                                   | `docs/design/adr/`            |
-| Code, architecture, testing and git rules                 | `docs/rules/`                 |
-| Where every file goes and why                             | `docs/rules/structure.md`     |
-| Backend module anatomy                                    | `apps/backend/AGENTS.md`      |
-| Web feature anatomy                                       | `apps/web/AGENTS.md`          |
-| How people contribute and review                          | `CONTRIBUTING.md`             |
-| What each shared package holds                            | `packages/*/README.md`        |
+| Need                                                      | Read                             |
+| --------------------------------------------------------- | -------------------------------- |
+| Where to start: the product, a repo map, the reading path | `docs/README.md`                 |
+| One concept per page, read in order                       | `docs/learn/`                    |
+| What the product does and does not do                     | `docs/design/mvp-scope.md`       |
+| Decisions D1 to D191, layout, data flow                   | `docs/design/architecture.md`    |
+| Why a decision was made                                   | `docs/design/adr/`               |
+| Design-system names: design pages vs `shared/ui`          | `docs/design/ui/name-mapping.md` |
+| Code, architecture, testing and git rules                 | `docs/rules/`                    |
+| Where every file goes and why                             | `docs/rules/structure.md`        |
+| Backend module anatomy                                    | `apps/backend/AGENTS.md`         |
+| Web feature anatomy                                       | `apps/web/AGENTS.md`             |
+| How people contribute and review                          | `CONTRIBUTING.md`                |
+| What each shared package holds                            | `packages/*/README.md`           |
 
 ## Hard rules
 
