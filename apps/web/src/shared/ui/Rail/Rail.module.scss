@@ -1,0 +1,77 @@
+$divider-width: 24px;
+$story-height: 420px;
+
+.root {
+  position: relative;
+  z-index: var(--z-nav);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  box-sizing: border-box;
+  width: var(--size-rail-width);
+  height: 100%;
+  padding: var(--space-12) 0;
+  border-right: var(--border-width) solid var(--color-line);
+  background: var(--color-panel);
+}
+
+.logo {
+  display: flex;
+  margin-bottom: var(--space-10);
+}
+
+.group,
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.footer {
+  margin-top: auto;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.divider {
+  width: $divider-width;
+  margin: var(--space-6) 0;
+}
+
+.account {
+  display: flex;
+  margin-top: var(--space-4);
+}
+
+.unread {
+  display: block;
+  width: var(--size-dot-md);
+  height: var(--size-dot-md);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+.storyFrame {
+  height: $story-height;
+}
+
+.storyLogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-tile-md);
+  height: var(--size-tile-md);
+  border-radius: var(--radius-8);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}

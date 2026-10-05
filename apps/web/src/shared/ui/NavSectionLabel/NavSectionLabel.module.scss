@@ -1,0 +1,22 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--size-control-xs);
+  padding: 0 var(--space-10) var(--space-4);
+}
+
+.withAction {
+  padding-bottom: 0;
+}
+
+.label {
+  color: var(--color-mute);
+  font: var(--type-overline);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+}
+
+.storyFrame {
+  width: var(--size-secondary-nav-width);
+}

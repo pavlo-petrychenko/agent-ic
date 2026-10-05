@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 import { IconName } from '@/shared/ui/Icon/Icon.constants';
 import { NavItem } from '@/shared/ui/NavItem/NavItem';
+import { NavItemLayout } from '@/shared/ui/NavItem/NavItem.constants';
 import { MemoryRouter } from '@test/support/components/MemoryRouter';
 
 describe('NavItem', () => {
@@ -31,5 +33,44 @@ describe('NavItem', () => {
       'data-status',
       'active',
     );
+  });
+
+  it('keeps its name and shows a tooltip in the rail layout', async () => {
+    render(
+      <MemoryRouter>
+        <NavItem
+          to="/auth/sign-up"
+          icon={IconName.Inbox}
+          layout={NavItemLayout.Rail}
+          tooltip="Inbox · 3"
+        >
+          Inbox
+        </NavItem>
+      </MemoryRouter>,
+    );
+
+    const link = await screen.findByRole('link', { name: 'Inbox' });
+    await userEvent.tab();
+
+    expect(link).toHaveFocus();
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Inbox · 3');
+  });
+
+  it('ignores clicks and leaves the tab order when disabled', async () => {
+    const onClick = vi.fn<() => void>();
+    render(
+      <MemoryRouter>
+        <NavItem to="/auth/sign-up" disabled onClick={onClick}>
+          Inbox
+        </NavItem>
+      </MemoryRouter>,
+    );
+
+    const link = await screen.findByRole('link', { name: 'Inbox' });
+    await userEvent.click(link, { pointerEventsCheck: 0 });
+
+    expect(onClick).not.toHaveBeenCalled();
+    expect(link).toHaveAttribute('aria-disabled', 'true');
+    expect(link).toHaveAttribute('tabindex', '-1');
   });
 });
