@@ -35,18 +35,18 @@ Turborepo behaviour can differ from what you remember. Its docs ship with the in
 
 ## Docs map
 
-| Need                                      | Read                      |
-| ----------------------------------------- | ------------------------- |
-| How to build a feature, step by step      | `docs/guides/README.md`   |
-| What the product does and does not do     | `docs/mvp-scope.md`       |
-| Decisions D1 to D190, layout, data flow   | `docs/architecture.md`    |
-| Why a decision was made                   | `docs/adr/`               |
-| Code, architecture, testing and git rules | `docs/rules/`             |
-| Where every file goes and why             | `docs/rules/structure.md` |
-| Backend module anatomy                    | `apps/backend/AGENTS.md`  |
-| Web feature anatomy                       | `apps/web/AGENTS.md`      |
-| How people contribute and review          | `CONTRIBUTING.md`         |
-| What each shared package holds            | `packages/*/README.md`    |
+| Need                                      | Read                          |
+| ----------------------------------------- | ----------------------------- |
+| How to build a feature, step by step      | `docs/guides/README.md`       |
+| What the product does and does not do     | `docs/design/mvp-scope.md`    |
+| Decisions D1 to D190, layout, data flow   | `docs/design/architecture.md` |
+| Why a decision was made                   | `docs/design/adr/`            |
+| Code, architecture, testing and git rules | `docs/rules/`                 |
+| Where every file goes and why             | `docs/rules/structure.md`     |
+| Backend module anatomy                    | `apps/backend/AGENTS.md`      |
+| Web feature anatomy                       | `apps/web/AGENTS.md`          |
+| How people contribute and review          | `CONTRIBUTING.md`             |
+| What each shared package holds            | `packages/*/README.md`        |
 
 ## Hard rules
 
@@ -142,6 +142,6 @@ A component folder is flat: `Name.tsx`, `Name.module.scss`, `Name.test.tsx`, `Na
 1. `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, `pnpm depcruise`, `pnpm check:comments`, `pnpm check:structure` and `pnpm test` pass.
 2. Tests are optional during the MVP (rule 18); the existing ones pass.
 3. Migrations are expand-only, or the pull request says it is the contract step.
-4. Docs, ADRs or `docs/architecture.md` are updated when a decision changes.
+4. Docs, ADRs or `docs/design/architecture.md` are updated when a decision changes.
 5. No secrets, no comments, no leftover debug code.
 6. The pull request title is a conventional commit and the diff is small enough to review. A pull request that changes UI carries screenshots, stored on the `pr-assets` branch.

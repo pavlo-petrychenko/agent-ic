@@ -2,7 +2,7 @@
 
 [Back to the guide](README.md)
 
-This page lists every step to add one small feature: an owner or admin renames the workspace in Settings, General. It is not built yet, so you can use it as your first task. The screen is `Settings-General` in [docs/mvp-scope.md](../mvp-scope.md) (UC-14).
+This page lists every step to add one small feature: an owner or admin renames the workspace in Settings, General. It is not built yet, so you can use it as your first task. The screen is `Settings-General` in [docs/design/mvp-scope.md](../design/mvp-scope.md) (UC-14).
 
 The code below is a sketch that follows the real patterns. Copy the shape, then check names against the files it points to. Read the [backend walkthrough](backend-walkthrough.md) and the [web walkthrough](web-walkthrough.md) first.
 
