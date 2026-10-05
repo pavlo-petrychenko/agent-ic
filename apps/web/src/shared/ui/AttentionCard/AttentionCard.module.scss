@@ -1,0 +1,22 @@
+.title {
+  padding: var(--space-14) var(--space-16) var(--space-4);
+}
+
+.rows {
+  margin: 0;
+  padding: 0 var(--space-16) var(--space-4);
+  list-style: none;
+}
+
+.row + .row {
+  border-top: var(--border-width) solid var(--color-line-row);
+}
+
+.loading {
+  box-sizing: border-box;
+  padding: var(--space-14) var(--space-16);
+}
+
+.storyItem {
+  width: var(--size-inspector-width);
+}
