@@ -1,0 +1,39 @@
+$story-width: 720px;
+
+.root {
+  position: relative;
+  z-index: var(--z-nav);
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-14);
+  height: var(--size-topbar-height);
+  padding: 0 var(--space-16) 0 var(--space-20);
+  border-bottom: var(--border-width) solid var(--color-line);
+  background: var(--color-panel);
+}
+
+.lead {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--space-14);
+  min-width: 0;
+}
+
+.crumbs {
+  flex: 0 1 auto;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-10);
+}
+
+.storyFrame {
+  width: $story-width;
+  max-width: 100%;
+}

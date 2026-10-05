@@ -1,0 +1,9 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.subtitle {
+  max-width: var(--layout-lead-width);
+}
