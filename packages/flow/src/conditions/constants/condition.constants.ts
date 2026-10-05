@@ -1,3 +1,5 @@
+import { VariableType } from '@flow/scope/constants/scope.constants';
+
 export enum ConditionOperator {
   Eq = 'eq',
   Neq = 'neq',
@@ -19,3 +21,32 @@ export enum RuleMatch {
   All = 'all',
   Any = 'any',
 }
+
+export const OPERATORS_BY_TYPE: Readonly<Record<VariableType, readonly ConditionOperator[]>> = {
+  [VariableType.String]: [
+    ConditionOperator.Eq,
+    ConditionOperator.Neq,
+    ConditionOperator.Contains,
+    ConditionOperator.NotContains,
+    ConditionOperator.StartsWith,
+    ConditionOperator.IsEmpty,
+    ConditionOperator.IsNotEmpty,
+  ],
+  [VariableType.Number]: [
+    ConditionOperator.Eq,
+    ConditionOperator.Neq,
+    ConditionOperator.Gt,
+    ConditionOperator.Gte,
+    ConditionOperator.Lt,
+    ConditionOperator.Lte,
+  ],
+  [VariableType.Boolean]: [ConditionOperator.IsTrue, ConditionOperator.IsFalse],
+  [VariableType.Enum]: [ConditionOperator.Eq, ConditionOperator.Neq, ConditionOperator.In],
+  [VariableType.StringList]: [
+    ConditionOperator.Contains,
+    ConditionOperator.IsEmpty,
+    ConditionOperator.IsNotEmpty,
+  ],
+  [VariableType.List]: [ConditionOperator.IsEmpty, ConditionOperator.IsNotEmpty],
+  [VariableType.Unknown]: Object.values(ConditionOperator),
+};
