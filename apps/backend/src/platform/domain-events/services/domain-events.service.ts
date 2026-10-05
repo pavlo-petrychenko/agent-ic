@@ -3,7 +3,7 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 import { DomainEventListenersService } from '@/platform/domain-events/services/domain-event-listeners.service';
 import type { DomainEventDefinition } from '@/platform/domain-events/typedefs/domain-event.typedefs';
 import { JobsService } from '@/platform/queues/services/jobs.service';
-import type { JobData } from '@/platform/queues/typedefs/job.typedefs';
+import type { EnqueueOptions, JobData } from '@/platform/queues/typedefs/job.typedefs';
 
 @Injectable()
 export class DomainEventsService {
@@ -16,10 +16,11 @@ export class DomainEventsService {
     ctx: UseCaseCtx,
     event: DomainEventDefinition<TData>,
     data: TData,
+    options?: EnqueueOptions,
   ): Promise<void> {
     const payload = event.schema.parse(data);
     for (const subscription of this.listeners.subscriptionsFor(event)) {
-      await this.jobs.enqueue(ctx, subscription, payload);
+      await this.jobs.enqueue(ctx, subscription, payload, options);
     }
   }
 }
