@@ -1,0 +1,89 @@
+$width-default: 1.5px;
+$width-active: 2px;
+$width-selected: 2.5px;
+$width-hit: 12px;
+$dash: 5 4;
+$delete-size: 24px;
+$story-width: 360px;
+$story-height: 200px;
+
+.root {
+  color: var(--color-edge);
+  pointer-events: visibleStroke;
+
+  &:hover:not(.active, .selected, .drawing, .inserting) {
+    color: var(--color-ink);
+  }
+}
+
+.line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: $width-default;
+  transition:
+    stroke var(--duration-fast) var(--ease-standard),
+    stroke-width var(--duration-fast) var(--ease-standard);
+}
+
+.hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: $width-hit;
+  cursor: pointer;
+}
+
+.arrow {
+  fill: currentColor;
+}
+
+.active,
+.inserting {
+  color: var(--color-accent);
+
+  .line {
+    stroke-width: $width-active;
+  }
+}
+
+.selected {
+  color: var(--color-accent);
+
+  .line {
+    stroke-width: $width-selected;
+  }
+}
+
+.drawing {
+  color: var(--color-accent);
+  pointer-events: none;
+
+  .line {
+    stroke-width: $width-active;
+    stroke-dasharray: $dash;
+  }
+}
+
+.deleteHost {
+  overflow: visible;
+  pointer-events: all;
+}
+
+.delete {
+  box-sizing: border-box;
+  width: $delete-size;
+  height: $delete-size;
+  color: var(--color-ink);
+}
+
+.storySvg {
+  display: block;
+  width: $story-width;
+  height: $story-height;
+  overflow: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line {
+    transition: none;
+  }
+}

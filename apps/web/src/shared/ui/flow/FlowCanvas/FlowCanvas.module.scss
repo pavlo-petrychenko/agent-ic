@@ -1,0 +1,82 @@
+$story-height: 640px;
+
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-bg);
+  color: var(--color-ink);
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring-inset);
+  }
+
+  :global(.react-flow__selection) {
+    border: var(--border-width) dashed var(--color-accent);
+    border-radius: var(--radius-4);
+    background: var(--color-accent-glow);
+  }
+
+  :global(.react-flow__nodesselection-rect) {
+    display: none;
+  }
+
+  :global(.react-flow__node) {
+    cursor: default;
+  }
+}
+
+.zoom {
+  position: absolute;
+  bottom: var(--space-12);
+  left: var(--space-16);
+  z-index: var(--z-raised);
+}
+
+.selectionBar {
+  position: absolute;
+  top: var(--space-12);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.empty {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
+.addStep {
+  position: absolute;
+  z-index: var(--z-dropdown);
+}
+
+.visuallyHidden {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.storyFrame {
+  box-sizing: border-box;
+  height: $story-height;
+  border: var(--border-width) dashed var(--color-line-dash);
+  border-radius: var(--radius-8);
+  overflow: hidden;
+}
