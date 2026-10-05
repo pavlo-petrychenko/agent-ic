@@ -33,12 +33,15 @@ web container -> data hook -> GraphQL operation
 
 Read the pages in order. Each page ends with a link to the next.
 
-| #   | Page                                                | What you learn                                                        |
-| --- | --------------------------------------------------- | --------------------------------------------------------------------- |
-| 001 | [Run and debug](learn/001-run-and-debug.md)         | start the stack, read logs and traces, find emails, open the database |
-| 002 | [The big picture](learn/002-the-big-picture.md)     | the two apps, the three backend roles, Postgres and the two Redis     |
-| 003 | [Code layout](learn/003-code-layout.md)             | where every file goes, modules and platform, how to add a module      |
-| 004 | [Request lifecycle](learn/004-request-lifecycle.md) | one request from the screen to Postgres, and the layer rules          |
+| #   | Page                                                      | What you learn                                                        |
+| --- | --------------------------------------------------------- | --------------------------------------------------------------------- |
+| 001 | [Run and debug](learn/001-run-and-debug.md)               | start the stack, read logs and traces, find emails, open the database |
+| 002 | [The big picture](learn/002-the-big-picture.md)           | the two apps, the three backend roles, Postgres and the two Redis     |
+| 003 | [Code layout](learn/003-code-layout.md)                   | where every file goes, modules and platform, how to add a module      |
+| 004 | [Request lifecycle](learn/004-request-lifecycle.md)       | one request from the screen to Postgres, and the layer rules          |
+| 005 | [Request context](learn/005-request-context.md)           | who is calling: the actor, the workspace, the trace id                |
+| 006 | [Transactions and RLS](learn/006-transactions-and-rls.md) | tenant transactions, row-level security, how to add a table           |
+| 007 | [Errors](learn/007-errors.md)                             | domain errors and how they reach GraphQL, REST and jobs               |
 
 ## Guides being moved
 
@@ -47,7 +50,7 @@ These pages from the old guide are still being moved into the learning path and 
 - [Backend walkthrough](guides/backend-walkthrough.md): the `identity` module file by file.
 - [Web walkthrough](guides/web-walkthrough.md): the `auth` and `settings` features file by file.
 - [Worked example: rename a workspace](guides/rename-workspace.md): every step for a small resolver plus a screen, in order.
-- [Checklists](guides/checklists.md): a new table, a new background job, a new screen.
+- [Checklists](guides/checklists.md): a new background job, a new screen.
 - [From pull request to production](guides/shipping.md): checks, review, merge, deploy, new environment variables.
 - [Starter backlog](guides/backlog.md): work that is left in the MVP scope for team management and settings.
 

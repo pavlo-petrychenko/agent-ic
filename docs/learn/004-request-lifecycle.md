@@ -70,4 +70,4 @@ A use case without a workspace, such as login, has no `authorize` call. It valid
 - Returning a generated GraphQL type from a use case. The use case returns the module's typedefs.
 - Holding a transaction open across an external call, such as an HTTP request.
 
-Next: back to [the docs](../README.md). More pages are coming.
+Next: [005 Request context](005-request-context.md)
