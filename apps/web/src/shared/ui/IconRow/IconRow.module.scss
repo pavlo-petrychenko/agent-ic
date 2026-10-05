@@ -1,0 +1,26 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+  color: var(--color-ink);
+  font: var(--type-body-small);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trailing {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--color-ink-secondary);
+  font: var(--type-mono-xs);
+}
+
+.storyColumn {
+  width: var(--size-menu-width);
+}
