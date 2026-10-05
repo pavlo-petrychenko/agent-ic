@@ -5,8 +5,8 @@ import {
   MAX_LABEL_LENGTH,
   MAX_OUTPUT_FIELDS,
   OUTPUT_FIELD_NAME_PATTERN,
-} from '../../limits/constants/limit.constants';
-import { OutputFieldType } from '../constants/output.constants';
+} from '@flow/limits/constants/limit.constants';
+import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 
 const fieldShape = {
   name: z.string().regex(OUTPUT_FIELD_NAME_PATTERN),

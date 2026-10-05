@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { NodeType } from '../../document/constants/flow.constants';
-import { nodeBaseShape } from '../../document/schemas/node-base.schema';
-import { EVENT_NAME_PATTERN } from '../../limits/constants/limit.constants';
-import { recordIdSchema } from '../../references/schemas/record-id.schema';
-import { ReplyMode } from '../constants/trigger.constants';
+import { NodeType } from '@flow/document/constants/flow.constants';
+import { nodeBaseShape } from '@flow/document/schemas/node-base.schema';
+import { EVENT_NAME_PATTERN } from '@flow/limits/constants/limit.constants';
+import { ReplyMode } from '@flow/nodes/constants/trigger.constants';
+import { recordIdSchema } from '@flow/references/schemas/record-id.schema';
 
 export const triggerExternalEventConfigSchema = z.object({
   eventName: z.string().regex(EVENT_NAME_PATTERN).nullable(),

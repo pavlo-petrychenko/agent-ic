@@ -3,23 +3,23 @@ import type {
   conditionSchema,
   conditionValueSchema,
   routerRuleSchema,
-} from '../../conditions/schemas/condition.schema';
-import type { agentNodeSchema } from '../../nodes/schemas/agent.schema';
-import type { apiRequestNodeSchema } from '../../nodes/schemas/api-request.schema';
-import type { completionNodeSchema } from '../../nodes/schemas/completion.schema';
-import type { escalationNodeSchema } from '../../nodes/schemas/escalation.schema';
-import type { parallelNodeSchema } from '../../nodes/schemas/parallel.schema';
-import type { routerNodeSchema } from '../../nodes/schemas/router.schema';
-import type { sendMessageNodeSchema } from '../../nodes/schemas/send-message.schema';
-import type { triggerExternalEventNodeSchema } from '../../nodes/schemas/trigger-external-event.schema';
-import type { triggerMessageNodeSchema } from '../../nodes/schemas/trigger-message.schema';
-import type { triggerScheduleNodeSchema } from '../../nodes/schemas/trigger-schedule.schema';
-import type { outputFieldSchema } from '../../outputs/schemas/output-field.schema';
-import type { modelRefSchema } from '../../references/schemas/model-ref.schema';
-import type { promptRefSchema } from '../../references/schemas/prompt-ref.schema';
-import type { flowEdgeSchema } from '../schemas/edge.schema';
-import type { flowDocumentSchema } from '../schemas/flow.schema';
-import type { flowNodeSchema } from '../schemas/node.schema';
+} from '@flow/conditions/schemas/condition.schema';
+import type { flowEdgeSchema } from '@flow/document/schemas/edge.schema';
+import type { flowDocumentSchema } from '@flow/document/schemas/flow.schema';
+import type { flowNodeSchema } from '@flow/document/schemas/node.schema';
+import type { agentNodeSchema } from '@flow/nodes/schemas/agent.schema';
+import type { apiRequestNodeSchema } from '@flow/nodes/schemas/api-request.schema';
+import type { completionNodeSchema } from '@flow/nodes/schemas/completion.schema';
+import type { escalationNodeSchema } from '@flow/nodes/schemas/escalation.schema';
+import type { parallelNodeSchema } from '@flow/nodes/schemas/parallel.schema';
+import type { routerNodeSchema } from '@flow/nodes/schemas/router.schema';
+import type { sendMessageNodeSchema } from '@flow/nodes/schemas/send-message.schema';
+import type { triggerExternalEventNodeSchema } from '@flow/nodes/schemas/trigger-external-event.schema';
+import type { triggerMessageNodeSchema } from '@flow/nodes/schemas/trigger-message.schema';
+import type { triggerScheduleNodeSchema } from '@flow/nodes/schemas/trigger-schedule.schema';
+import type { outputFieldSchema } from '@flow/outputs/schemas/output-field.schema';
+import type { modelRefSchema } from '@flow/references/schemas/model-ref.schema';
+import type { promptRefSchema } from '@flow/references/schemas/prompt-ref.schema';
 
 export type FlowDocument = z.infer<typeof flowDocumentSchema>;
 export type FlowNode = z.infer<typeof flowNodeSchema>;

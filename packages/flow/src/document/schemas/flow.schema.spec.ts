@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest';
+import { ConditionOperator, RuleMatch } from '@flow/conditions/constants/condition.constants';
+import { NodeType } from '@flow/document/constants/flow.constants';
+import { flowDocumentSchema } from '@flow/document/schemas/flow.schema';
+import type { FlowDocument, FlowNode } from '@flow/document/typedefs/flow.typedefs';
+import { MAX_NODES, MAX_RETRIES } from '@flow/limits/constants/limit.constants';
+import { CompletionRole, EscalationMode } from '@flow/nodes/constants/step.constants';
+import { ScheduleKind } from '@flow/nodes/constants/trigger.constants';
+import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 import {
   eventNotificationFlow,
   exampleFlows,
   faqWithHandOffFlow,
   scheduledFollowUpFlow,
-} from '../../../test/support/fixtures/example-flow.fixture';
-import { ConditionOperator, RuleMatch } from '../../conditions/constants/condition.constants';
-import { MAX_NODES, MAX_RETRIES } from '../../limits/constants/limit.constants';
-import { CompletionRole, EscalationMode } from '../../nodes/constants/step.constants';
-import { ScheduleKind } from '../../nodes/constants/trigger.constants';
-import { OutputFieldType } from '../../outputs/constants/output.constants';
-import { NodeType } from '../constants/flow.constants';
-import type { FlowDocument, FlowNode } from '../typedefs/flow.typedefs';
-import { flowDocumentSchema } from './flow.schema';
+} from '@test/support/fixtures/example-flow.fixture';
 
 const withNode = (flow: FlowDocument, node: unknown): unknown => ({
   ...flow,

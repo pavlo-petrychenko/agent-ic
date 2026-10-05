@@ -1,11 +1,11 @@
 import { z } from 'zod';
+import { ConditionOperator, RuleMatch } from '@flow/conditions/constants/condition.constants';
 import {
   MAX_LABEL_LENGTH,
   MAX_ROUTER_RULES,
   MAX_RULE_CONDITIONS,
   MAX_TEMPLATE_LENGTH,
-} from '../../limits/constants/limit.constants';
-import { ConditionOperator, RuleMatch } from '../constants/condition.constants';
+} from '@flow/limits/constants/limit.constants';
 
 export const conditionValueSchema = z.union([
   z.string().max(MAX_TEMPLATE_LENGTH),

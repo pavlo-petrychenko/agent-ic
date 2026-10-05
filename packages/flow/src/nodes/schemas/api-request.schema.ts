@@ -1,18 +1,18 @@
 import { z } from 'zod';
-import { NodeType } from '../../document/constants/flow.constants';
-import { nodeBaseShape, templateSchema } from '../../document/schemas/node-base.schema';
+import { NodeType } from '@flow/document/constants/flow.constants';
+import { nodeBaseShape, templateSchema } from '@flow/document/schemas/node-base.schema';
 import {
   API_REQUEST_MAX_TIMEOUT_SECONDS,
   HEADER_NAME_PATTERN,
   MAX_RETRIES,
-} from '../../limits/constants/limit.constants';
-import { recordIdSchema } from '../../references/schemas/record-id.schema';
+} from '@flow/limits/constants/limit.constants';
 import {
   FailureMode,
   HttpMethod,
   RequestAuthKind,
   RequestBodyKind,
-} from '../constants/step.constants';
+} from '@flow/nodes/constants/step.constants';
+import { recordIdSchema } from '@flow/references/schemas/record-id.schema';
 
 export const requestHeaderSchema = z.object({
   name: z.string().regex(HEADER_NAME_PATTERN),

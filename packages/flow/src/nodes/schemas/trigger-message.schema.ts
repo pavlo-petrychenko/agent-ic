@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { NodeType } from '../../document/constants/flow.constants';
-import { nodeBaseShape } from '../../document/schemas/node-base.schema';
-import { recordIdSchema } from '../../references/schemas/record-id.schema';
-import { ChannelSelectionMode } from '../constants/trigger.constants';
+import { NodeType } from '@flow/document/constants/flow.constants';
+import { nodeBaseShape } from '@flow/document/schemas/node-base.schema';
+import { ChannelSelectionMode } from '@flow/nodes/constants/trigger.constants';
+import { recordIdSchema } from '@flow/references/schemas/record-id.schema';
 
 export const channelSelectionSchema = z.discriminatedUnion('mode', [
   z.object({ mode: z.literal(ChannelSelectionMode.All) }),

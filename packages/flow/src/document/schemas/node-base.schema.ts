@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { MAX_LABEL_LENGTH, MAX_TEMPLATE_LENGTH } from '../../limits/constants/limit.constants';
+import { MAX_LABEL_LENGTH, MAX_TEMPLATE_LENGTH } from '@flow/limits/constants/limit.constants';
 
 export const positionSchema = z.object({
   x: z.number(),

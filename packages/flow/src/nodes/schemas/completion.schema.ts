@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { NodeType } from '../../document/constants/flow.constants';
-import { nodeBaseShape } from '../../document/schemas/node-base.schema';
-import { outputFieldsSchema } from '../../outputs/schemas/output-field.schema';
-import { modelRefSchema } from '../../references/schemas/model-ref.schema';
-import { promptRefSchema } from '../../references/schemas/prompt-ref.schema';
-import { CompletionRole } from '../constants/step.constants';
+import { NodeType } from '@flow/document/constants/flow.constants';
+import { nodeBaseShape } from '@flow/document/schemas/node-base.schema';
+import { CompletionRole } from '@flow/nodes/constants/step.constants';
+import { outputFieldsSchema } from '@flow/outputs/schemas/output-field.schema';
+import { modelRefSchema } from '@flow/references/schemas/model-ref.schema';
+import { promptRefSchema } from '@flow/references/schemas/prompt-ref.schema';
 
 export const completionConfigSchema = z.object({
   role: z.enum(CompletionRole),

@@ -1,25 +1,14 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
-import {
-  ConditionOperator,
-  RuleMatch,
-} from '../../../src/conditions/constants/condition.constants';
-import {
-  FLOW_SCHEMA_VERSION,
-  NodeType,
-  PortName,
-} from '../../../src/document/constants/flow.constants';
-import type {
-  FlowDocument,
-  ModelRef,
-  PromptRef,
-} from '../../../src/document/typedefs/flow.typedefs';
+import { ConditionOperator, RuleMatch } from '@flow/conditions/constants/condition.constants';
+import { FLOW_SCHEMA_VERSION, NodeType, PortName } from '@flow/document/constants/flow.constants';
+import type { FlowDocument, ModelRef, PromptRef } from '@flow/document/typedefs/flow.typedefs';
 import {
   AGENT_DEFAULT_RETRIES,
   API_REQUEST_DEFAULT_RETRIES,
   API_REQUEST_DEFAULT_TIMEOUT_SECONDS,
   ESCALATION_DEFAULT_FALLBACK_MINUTES,
   ESCALATION_DEFAULT_REMINDER_MINUTES,
-} from '../../../src/limits/constants/limit.constants';
+} from '@flow/limits/constants/limit.constants';
 import {
   CompletionRole,
   EscalationMode,
@@ -33,18 +22,18 @@ import {
   RequestBodyKind,
   RetrievalMode,
   WaitFor,
-} from '../../../src/nodes/constants/step.constants';
+} from '@flow/nodes/constants/step.constants';
 import {
   ChannelSelectionMode,
   ChannelType,
   ReplyMode,
   ScheduleKind,
-} from '../../../src/nodes/constants/trigger.constants';
-import { OutputFieldType } from '../../../src/outputs/constants/output.constants';
+} from '@flow/nodes/constants/trigger.constants';
+import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 import {
   ModelProviderKind,
   PromptVersionKind,
-} from '../../../src/references/constants/reference.constants';
+} from '@flow/references/constants/reference.constants';
 
 const at = { x: 0, y: 0 };
 

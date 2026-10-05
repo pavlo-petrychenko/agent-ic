@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import { NodeType } from '../../document/constants/flow.constants';
-import { nodeBaseShape } from '../../document/schemas/node-base.schema';
-import { MAX_RETRIES } from '../../limits/constants/limit.constants';
-import { outputFieldsSchema } from '../../outputs/schemas/output-field.schema';
-import { modelRefSchema } from '../../references/schemas/model-ref.schema';
-import { promptRefSchema } from '../../references/schemas/prompt-ref.schema';
-import { recordIdSchema } from '../../references/schemas/record-id.schema';
-import { RetrievalMode } from '../constants/step.constants';
+import { NodeType } from '@flow/document/constants/flow.constants';
+import { nodeBaseShape } from '@flow/document/schemas/node-base.schema';
+import { MAX_RETRIES } from '@flow/limits/constants/limit.constants';
+import { RetrievalMode } from '@flow/nodes/constants/step.constants';
+import { outputFieldsSchema } from '@flow/outputs/schemas/output-field.schema';
+import { modelRefSchema } from '@flow/references/schemas/model-ref.schema';
+import { promptRefSchema } from '@flow/references/schemas/prompt-ref.schema';
+import { recordIdSchema } from '@flow/references/schemas/record-id.schema';
 
 export const agentConfigSchema = z.object({
   prompt: promptRefSchema.nullable(),

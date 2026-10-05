@@ -1,5 +1,5 @@
-import type { FlowDocument } from '../../document/typedefs/flow.typedefs';
-import type { ParseFlowFailureKind } from '../constants/version.constants';
+import type { FlowDocument } from '@flow/document/typedefs/flow.typedefs';
+import type { ParseFlowFailureKind } from '@flow/versions/constants/version.constants';
 
 export interface FlowSchemaIssue {
   readonly path: readonly (string | number)[];

@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { NodeType } from '../../document/constants/flow.constants';
-import { nodeBaseShape } from '../../document/schemas/node-base.schema';
-import { MAX_LABEL_LENGTH, TIME_OF_DAY_PATTERN } from '../../limits/constants/limit.constants';
-import { ChannelType, ScheduleKind } from '../constants/trigger.constants';
+import { NodeType } from '@flow/document/constants/flow.constants';
+import { nodeBaseShape } from '@flow/document/schemas/node-base.schema';
+import { MAX_LABEL_LENGTH, TIME_OF_DAY_PATTERN } from '@flow/limits/constants/limit.constants';
+import { ChannelType, ScheduleKind } from '@flow/nodes/constants/trigger.constants';
 
 const timeZoneSchema = z.string().min(1).max(MAX_LABEL_LENGTH);
 const timeOfDaySchema = z.string().regex(TIME_OF_DAY_PATTERN);

@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { MAX_EDGES, MAX_NODES } from '../../limits/constants/limit.constants';
-import { FLOW_SCHEMA_VERSION } from '../constants/flow.constants';
-import { flowEdgeSchema } from './edge.schema';
-import { flowNodeSchema } from './node.schema';
+import { FLOW_SCHEMA_VERSION } from '@flow/document/constants/flow.constants';
+import { flowEdgeSchema } from '@flow/document/schemas/edge.schema';
+import { flowNodeSchema } from '@flow/document/schemas/node.schema';
+import { MAX_EDGES, MAX_NODES } from '@flow/limits/constants/limit.constants';
 
 export const flowDocumentSchema = z.object({
   schemaVersion: z.literal(FLOW_SCHEMA_VERSION),

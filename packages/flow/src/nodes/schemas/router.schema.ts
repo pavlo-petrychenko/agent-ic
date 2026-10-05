@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { routerRulesSchema } from '../../conditions/schemas/condition.schema';
-import { NodeType } from '../../document/constants/flow.constants';
-import { nodeBaseShape } from '../../document/schemas/node-base.schema';
+import { routerRulesSchema } from '@flow/conditions/schemas/condition.schema';
+import { NodeType } from '@flow/document/constants/flow.constants';
+import { nodeBaseShape } from '@flow/document/schemas/node-base.schema';
 
 export const routerConfigSchema = z.object({
   rules: routerRulesSchema,

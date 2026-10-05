@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import { NodeType } from '../../document/constants/flow.constants';
+import { NodeType } from '@flow/document/constants/flow.constants';
 import {
   nodeBaseShape,
   templateSchema,
   variablePathSchema,
-} from '../../document/schemas/node-base.schema';
-import { MAX_LABEL_LENGTH } from '../../limits/constants/limit.constants';
-import { MessageContentKind, QuickRepliesKind } from '../constants/step.constants';
+} from '@flow/document/schemas/node-base.schema';
+import { MAX_LABEL_LENGTH } from '@flow/limits/constants/limit.constants';
+import { MessageContentKind, QuickRepliesKind } from '@flow/nodes/constants/step.constants';
 
 export const messageContentSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal(MessageContentKind.List), variable: variablePathSchema }),

@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import {
-  exampleFlows,
-  faqWithHandOffFlow,
-} from '../../../test/support/fixtures/example-flow.fixture';
-import { ParseFlowFailureKind } from '../constants/version.constants';
-import { parseFlow } from './version.helpers';
+import { ParseFlowFailureKind } from '@flow/versions/constants/version.constants';
+import { parseFlow } from '@flow/versions/helpers/version.helpers';
+import { exampleFlows, faqWithHandOffFlow } from '@test/support/fixtures/example-flow.fixture';
 
 const roundTrip = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
 

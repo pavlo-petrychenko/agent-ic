@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import { NodeType, PortName } from '@flow/document/constants/flow.constants';
+import { nodePorts } from '@flow/document/helpers/port.helpers';
+import type { FlowDocument, FlowNode } from '@flow/document/typedefs/flow.typedefs';
+import { CompletionRole, FailureMode } from '@flow/nodes/constants/step.constants';
 import {
   eventNotificationFlow,
   faqWithHandOffFlow,
   scheduledFollowUpFlow,
-} from '../../../test/support/fixtures/example-flow.fixture';
-import { CompletionRole, FailureMode } from '../../nodes/constants/step.constants';
-import { NodeType, PortName } from '../constants/flow.constants';
-import type { FlowDocument, FlowNode } from '../typedefs/flow.typedefs';
-import { nodePorts } from './port.helpers';
+} from '@test/support/fixtures/example-flow.fixture';
 
 const nodeByKey = (flow: FlowDocument, key: string): FlowNode => {
   const node = flow.nodes.find((candidate) => candidate.key === key);

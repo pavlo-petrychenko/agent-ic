@@ -1,7 +1,10 @@
-import { FLOW_SCHEMA_VERSION } from '../../document/constants/flow.constants';
-import { flowDocumentSchema } from '../../document/schemas/flow.schema';
-import { ParseFlowFailureKind, SCHEMA_VERSION_FIELD } from '../constants/version.constants';
-import type { FlowSchemaIssue, ParseFlowResult } from '../typedefs/version.typedefs';
+import { FLOW_SCHEMA_VERSION } from '@flow/document/constants/flow.constants';
+import { flowDocumentSchema } from '@flow/document/schemas/flow.schema';
+import {
+  ParseFlowFailureKind,
+  SCHEMA_VERSION_FIELD,
+} from '@flow/versions/constants/version.constants';
+import type { FlowSchemaIssue, ParseFlowResult } from '@flow/versions/typedefs/version.typedefs';
 
 const readVersion = (json: unknown): unknown =>
   typeof json === 'object' && json !== null && SCHEMA_VERSION_FIELD in json

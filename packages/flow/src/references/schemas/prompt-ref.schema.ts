@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { PromptVersionKind } from '../constants/reference.constants';
-import { recordIdSchema } from './record-id.schema';
+import { PromptVersionKind } from '@flow/references/constants/reference.constants';
+import { recordIdSchema } from '@flow/references/schemas/record-id.schema';
 
 export const promptVersionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal(PromptVersionKind.Pinned), number: z.int().positive() }),

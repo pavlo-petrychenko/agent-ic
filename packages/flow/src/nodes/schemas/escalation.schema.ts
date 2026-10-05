@@ -1,9 +1,13 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import { z } from 'zod';
-import { NodeType } from '../../document/constants/flow.constants';
-import { nodeBaseShape, templateSchema } from '../../document/schemas/node-base.schema';
-import { recordIdSchema } from '../../references/schemas/record-id.schema';
-import { EscalationMode, NotifyChannel, RecipientsKind } from '../constants/step.constants';
+import { NodeType } from '@flow/document/constants/flow.constants';
+import { nodeBaseShape, templateSchema } from '@flow/document/schemas/node-base.schema';
+import {
+  EscalationMode,
+  NotifyChannel,
+  RecipientsKind,
+} from '@flow/nodes/constants/step.constants';
+import { recordIdSchema } from '@flow/references/schemas/record-id.schema';
 
 export const recipientsSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal(RecipientsKind.Operators) }),
