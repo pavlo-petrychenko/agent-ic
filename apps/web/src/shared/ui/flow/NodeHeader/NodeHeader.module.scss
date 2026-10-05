@@ -1,0 +1,61 @@
+$story-width: 220px;
+$kinds:
+  trig, agent, compl, router, par, wait, send, api, kb, tool, var, esc, gen, neutral, info, ok,
+  warn, err;
+
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.overline {
+  overflow: hidden;
+  color: var(--node-header-overline);
+  font: var(--type-micro);
+  letter-spacing: var(--tracking-micro);
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.name {
+  overflow: hidden;
+  color: var(--color-ink);
+  font: var(--type-title);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.invalid {
+  color: var(--color-err);
+}
+
+@each $kind in $kinds {
+  .#{$kind} {
+    --node-header-overline: var(--hue-#{$kind}-fg);
+  }
+}
+
+.trig {
+  --node-header-overline: var(--color-ink-secondary);
+}
+
+.accent {
+  --node-header-overline: var(--color-accent);
+}
+
+.storyStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  width: $story-width;
+}

@@ -1,0 +1,109 @@
+$port-size: 8px;
+$port-size-active: 12px;
+
+.root {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: $port-size-active;
+  height: $port-size-active;
+}
+
+.dot {
+  box-sizing: border-box;
+  width: $port-size;
+  height: $port-size;
+  margin: 0;
+  padding: 0;
+  border: var(--border-width-strong) solid var(--color-edge);
+  border-radius: var(--radius-pill);
+  background: var(--color-card);
+  transition:
+    width var(--duration-fast) var(--ease-standard),
+    height var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
+}
+
+.hidden {
+  opacity: var(--flow-port-reveal, 0);
+}
+
+.connected {
+  background: var(--color-edge);
+}
+
+@mixin active-size {
+  width: $port-size-active;
+  height: $port-size-active;
+  border-color: var(--color-accent);
+}
+
+.hover {
+  @include active-size;
+  box-shadow: var(--shadow-selected);
+}
+
+.source {
+  @include active-size;
+  background: var(--color-card);
+}
+
+.target {
+  @include active-size;
+  background: var(--color-accent);
+  box-shadow: var(--shadow-selected);
+}
+
+.interactive {
+  cursor: crosshair;
+
+  &.hidden:hover,
+  &.idle:hover {
+    @include active-size;
+    opacity: 1;
+    box-shadow: var(--shadow-selected);
+  }
+
+  &:focus-visible {
+    outline: none;
+    opacity: 1;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.label {
+  position: absolute;
+  top: calc(100% + var(--space-4));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.storyRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-32);
+  padding-bottom: var(--space-28);
+}
+
+.storyItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--color-mute);
+  font: var(--type-mono-xs);
+}
+
+.storyReveal {
+  --flow-port-reveal: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    transition: none;
+  }
+}

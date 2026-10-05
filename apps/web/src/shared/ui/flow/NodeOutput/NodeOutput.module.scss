@@ -1,0 +1,20 @@
+$radius-5: 5px;
+
+.root {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--space-4);
+  max-width: 100%;
+  padding: var(--space-3) var(--space-6);
+  border-radius: $radius-5;
+  background: var(--color-soft);
+  color: var(--color-ink-secondary);
+  font: var(--type-mono-xs);
+}
+
+.text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

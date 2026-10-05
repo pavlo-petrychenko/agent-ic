@@ -1,0 +1,124 @@
+$width-full: 248px;
+$width-condition: 200px;
+$height-condition: 48px;
+$faded-opacity: 0.4;
+
+.root {
+  --node-pad-y: var(--space-12);
+  --node-pad-x: var(--space-14);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  padding: var(--node-pad-y) var(--node-pad-x);
+  border: var(--border-width) solid var(--color-line-node);
+  border-radius: var(--radius-12);
+  background: var(--color-card);
+  box-shadow: var(--shadow-node);
+  color: var(--color-ink);
+  font: var(--type-title);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-base) var(--ease-standard);
+
+  &:hover,
+  &:focus-within {
+    --flow-port-reveal: 1;
+  }
+
+  &:hover:not(.selected, .disabled, .invalid) {
+    border-color: var(--color-edge);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring), var(--shadow-node);
+  }
+}
+
+.full {
+  width: $width-full;
+}
+
+.condition {
+  justify-content: center;
+  width: $width-condition;
+  height: $height-condition;
+}
+
+.invalid {
+  border-color: var(--color-err);
+}
+
+.selected {
+  --flow-port-reveal: 1;
+
+  padding: calc(var(--node-pad-y) - var(--border-width))
+    calc(var(--node-pad-x) - var(--border-width));
+  border: var(--border-width-strong) solid var(--color-accent);
+  box-shadow: var(--shadow-selected), var(--shadow-node);
+
+  &:focus-visible {
+    box-shadow: var(--shadow-focus-ring), var(--shadow-selected);
+  }
+}
+
+.faded {
+  opacity: $faded-opacity;
+}
+
+.disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.meta {
+  margin: 0;
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.inPort {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: flex;
+  transform: translate(-50%, -50%);
+}
+
+.outPorts {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-evenly;
+  transform: translateY(50%);
+}
+
+.storyRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-32);
+  padding: var(--space-16);
+}
+
+.storyPad {
+  padding: var(--space-16) var(--space-16) var(--space-32);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    transition: none;
+  }
+}
