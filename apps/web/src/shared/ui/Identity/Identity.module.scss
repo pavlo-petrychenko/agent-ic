@@ -1,0 +1,45 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-width: 0;
+}
+
+.lead {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name,
+.sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name {
+  color: var(--color-ink);
+}
+
+.sub {
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.md .name {
+  font: var(--type-lead-strong);
+}
+
+.sm .name {
+  font: var(--type-title);
+}
+
+.storyColumn {
+  width: var(--size-menu-width);
+}
