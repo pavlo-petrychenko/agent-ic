@@ -1,0 +1,87 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-7) var(--space-10);
+  border-radius: var(--radius-8);
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: background-color var(--duration-fast);
+
+  &:hover {
+    background: var(--color-soft);
+  }
+
+  &:active {
+    background: var(--color-chip);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring-inset);
+  }
+
+  &[aria-current='page'] {
+    background: var(--color-chip);
+  }
+}
+
+.disabled {
+  cursor: not-allowed;
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  overflow: hidden;
+  font: var(--type-body);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  .root[aria-current='page'] & {
+    font-weight: 600;
+  }
+}
+
+.mono {
+  font: var(--type-mono);
+
+  .root[aria-current='page'] & {
+    font-weight: 500;
+  }
+}
+
+.subtitle {
+  overflow: hidden;
+  color: var(--color-mute);
+  font: var(--type-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trailing {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  margin-left: auto;
+}
+
+.storyList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  width: var(--size-secondary-nav-width);
+  padding: var(--space-8);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-card);
+}
