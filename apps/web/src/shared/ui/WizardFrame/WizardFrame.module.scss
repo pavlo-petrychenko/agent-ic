@@ -1,0 +1,123 @@
+$slot-min-width: 180px;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+.header {
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: minmax($slot-min-width, 1fr) auto minmax($slot-min-width, 1fr);
+  align-items: center;
+  gap: var(--space-16);
+  box-sizing: border-box;
+  height: var(--size-wizard-header-height);
+  padding: 0 var(--space-page-gutter);
+  border-bottom: var(--border-width) solid var(--color-line);
+  background: var(--color-panel);
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  overflow: hidden;
+  margin: 0;
+  color: var(--color-ink);
+  font: var(--type-title);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-8);
+}
+
+.body {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+}
+
+.split {
+  grid-template-columns: minmax(0, 1fr) var(--size-wizard-side-width);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-22);
+  min-width: 0;
+  overflow-y: auto;
+  padding: var(--space-32) var(--space-48);
+}
+
+.side {
+  overflow-y: auto;
+}
+
+.sideBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-24);
+}
+
+.drawer {
+  --drawer-top: var(--size-wizard-header-height);
+}
+
+.footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  box-sizing: border-box;
+  height: var(--size-wizard-footer-height);
+  padding: 0 var(--space-page-gutter);
+  border-top: var(--border-width) solid var(--color-line);
+  background: var(--color-panel);
+}
+
+.footerLeft,
+.footerRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  min-width: $slot-min-width;
+}
+
+.footerRight {
+  justify-content: flex-end;
+}
+
+.storySideTitle {
+  margin: 0;
+  color: var(--color-ink);
+  font: var(--type-h3);
+}
+
+.storySideText {
+  margin: 0;
+  color: var(--color-mute);
+  font: var(--type-caption);
+}

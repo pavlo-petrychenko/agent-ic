@@ -78,6 +78,7 @@ shared/
 ├── forms/    hooks/ fields/ contexts/ helpers/ typedefs/
 ├── i18n/     clients/ hooks/ helpers/ locales/ constants/ typedefs/
 ├── theme/    clients/ hooks/ helpers/ constants/ typedefs/
+├── viewport/ hooks/ helpers/ constants/ typedefs/
 ├── ui/       component folders; the only place Radix may appear
 └── styles/   tokens.css · global.scss · tailwind.css
 ```
