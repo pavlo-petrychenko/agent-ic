@@ -196,6 +196,7 @@ shared/
 ├── forms/    hooks/ fields/ contexts/ helpers/ typedefs/
 ├── i18n/     clients/ hooks/ helpers/ locales/ constants/ typedefs/
 ├── theme/    clients/ hooks/ helpers/ constants/ typedefs/ (light, dark or system; applied as data-theme on <html>)
+├── viewport/ hooks/ helpers/ constants/ typedefs/ (the wide, default, compact or unsupported breakpoint, from media queries)
 ├── ui/       component folders; the only place Radix may appear
 └── styles/   tokens.css · global.scss · tailwind.css · index.ts (the one side-effect entry that imports fonts and the stylesheets in order)
 ```
