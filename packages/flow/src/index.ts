@@ -1,4 +1,13 @@
-export { ConditionOperator, RuleMatch } from '@flow/conditions/constants/condition.constants';
+export {
+  ConditionOperator,
+  OPERATORS_BY_TYPE,
+  RuleMatch,
+} from '@flow/conditions/constants/condition.constants';
+export {
+  evaluateCondition,
+  operatorsForType,
+  pickRoute,
+} from '@flow/conditions/helpers/condition.helpers';
 export {
   FIXED_PORT_NAMES,
   FLOW_SCHEMA_VERSION,
@@ -31,6 +40,7 @@ export type {
 } from '@flow/document/typedefs/flow.typedefs';
 export { isTriggerNode } from '@flow/document/helpers/node.helpers';
 export { nodePorts } from '@flow/document/helpers/port.helpers';
+export { renameNodeKey } from '@flow/document/helpers/rename.helpers';
 export {
   AGENT_DEFAULT_RETRIES,
   API_REQUEST_DEFAULT_RETRIES,
@@ -83,9 +93,51 @@ export {
   OutputFieldType,
 } from '@flow/outputs/constants/output.constants';
 export {
+  nodeOutputFields,
+  outputFieldTypes,
+  outputToZod,
+} from '@flow/outputs/helpers/output.helpers';
+export {
   ModelProviderKind,
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
+export {
+  RESERVED_ROOTS,
+  VariableSourceKind,
+  VariableType,
+} from '@flow/scope/constants/scope.constants';
+export {
+  createScopeLookup,
+  resolveVariable,
+  visibleVariables,
+} from '@flow/scope/helpers/scope.helpers';
+export type {
+  ResolvedVariable,
+  ScopeLookup,
+  VisibleVariable,
+} from '@flow/scope/typedefs/scope.typedefs';
+export { nodeTextFields } from '@flow/templates/helpers/node-text.helpers';
+export { parseVariablePath, resolvePath } from '@flow/templates/helpers/path.helpers';
+export {
+  NodeTextKind,
+  PathSegmentKind,
+  TemplateErrorReason,
+  TemplateSegmentKind,
+} from '@flow/templates/constants/template.constants';
+export {
+  parseTemplate,
+  renderTemplate,
+  templateReferences,
+} from '@flow/templates/helpers/template.helpers';
+export type {
+  NodeTextField,
+  PathSegment,
+  TemplateInvalid,
+  TemplateReference,
+  TemplateSegment,
+  TemplateText,
+  VariableResolver,
+} from '@flow/templates/typedefs/template.typedefs';
 export { ParseFlowFailureKind } from '@flow/versions/constants/version.constants';
 export { parseFlow } from '@flow/versions/helpers/version.helpers';
 export type {
