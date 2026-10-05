@@ -1,0 +1,67 @@
+$story-width: 460px;
+
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-7) var(--space-10);
+  transition: background-color var(--duration-fast) var(--ease-standard);
+
+  &:hover {
+    background: var(--color-soft);
+  }
+
+  & + & {
+    border-top: var(--border-width) solid var(--color-line-row);
+  }
+}
+
+.disabled {
+  cursor: not-allowed;
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+
+  &:hover {
+    background: transparent;
+  }
+}
+
+.icon {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  color: var(--color-ink);
+  font: var(--type-body-small);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitle {
+  overflow: hidden;
+  color: var(--color-mute);
+  font: var(--type-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trailing {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.storyList {
+  width: $story-width;
+}
