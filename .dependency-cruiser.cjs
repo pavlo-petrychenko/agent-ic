@@ -140,6 +140,16 @@ module.exports = {
       { path: '^apps/[^/]+/', pathNot: '^apps/$1/' },
     ),
     forbidden('packages-never-import-apps', { path: '^packages/' }, { path: '^apps/' }),
+    forbidden(
+      'flow-imports-no-node-builtins',
+      { path: '^packages/flow/src/' },
+      { dependencyTypes: ['core'] },
+    ),
+    forbidden(
+      'flow-imports-only-zod',
+      { path: '^packages/flow/src/', pathNot: '\\.spec\\.ts$' },
+      { path: 'node_modules/', pathNot: 'node_modules/zod/' },
+    ),
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
