@@ -1,0 +1,78 @@
+$story-height: 560px;
+
+$kinds:
+  trig, agent, compl, router, par, wait, send, api, kb, tool, var, esc, gen, neutral, info, ok,
+  warn, err;
+
+.root {
+  width: var(--size-inspector-width);
+  max-width: 100%;
+}
+
+.head {
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-14) var(--space-20) var(--space-12);
+  border-bottom: var(--border-width) solid var(--color-line);
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-5);
+  color: var(--kicker-color);
+  font: var(--type-overline);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+}
+
+@each $kind in $kinds {
+  .#{$kind} {
+    --kicker-color: var(--hue-#{$kind}-fg);
+  }
+}
+
+.accent {
+  --kicker-color: var(--color-accent);
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-14);
+  min-height: 0;
+  padding: var(--space-14) var(--space-20);
+  color: var(--color-ink);
+  font: var(--type-body);
+}
+
+.storyFrame {
+  display: flex;
+  height: $story-height;
+  background: var(--color-bg);
+}
+
+.storyValue {
+  padding: var(--space-8) var(--space-10);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-8);
+  background: var(--color-card);
+  font: var(--type-body-small);
+}

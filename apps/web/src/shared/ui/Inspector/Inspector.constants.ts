@@ -1,0 +1,1 @@
+export const INSPECTOR_KICKER_ICON_SIZE = 12;
