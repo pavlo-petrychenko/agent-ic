@@ -10,8 +10,9 @@ Not drawn, decided as proposed: focus = no field ring inside the row, the row's 
 
 ## Props
 ```ts
-type WidgetComposerProps = { value: string; onChange: (value: string) => void; onSend: () => void; onAttach: (() => void) | null; placeholder: string; messageLabel: string; sendLabel: string; attachLabel: string; accent: string }
+type WidgetComposerProps = { value: string; onChange: (value: string) => void; onSend: () => void; attach: { label: string; onAttach: () => void } | null; placeholder: string; messageLabel: string; sendLabel: string; accent: string; sending?: boolean; disabled?: boolean }
 ```
+`attach` (decided) groups the attach handler with its label so a missing handler never leaves an orphan label. The field is a borderless `textarea` that grows up to 4 lines; Enter sends, Shift+Enter adds a line. While sending the field is read-only and the send button shows `spinner`; disabled dims the field and both buttons (45%) and the row keeps its border.
 
 ## Tokens
 `--color-line`, `--color-mute`, `--color-ink`, `--radius-8`, `--space-6`, `--space-10`; accent from `--widget-accent` (customer value), not `--color-accent`.
