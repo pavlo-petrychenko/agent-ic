@@ -38,5 +38,5 @@ Before you start an item, read its part of the scope, find the design for its sc
 
 - **Scope:** UC-14, Notifications: per-person toggles for in-platform, email and Telegram; Telegram linking with a one-time code. Screens `Settings-Notifications`, `Settings-Notifications-Link`. UC-3 step 4: an operator links Telegram after joining.
 - **Today:** not built. The `notifications` module sends emails only (confirmation and password reset).
-- **Builds on:** the `notifications` module; a new table for per-person settings (see the [new table checklist](checklists.md#a-new-table)); jobs for sending (see the [new job checklist](checklists.md#a-new-background-job)).
+- **Builds on:** the `notifications` module; a new table for per-person settings (see the ["Add one" on page 006](../learn/006-transactions-and-rls.md#add-one)); jobs for sending (see the [new job checklist](checklists.md#a-new-background-job)).
 - **Questions to settle:** where the Telegram alerts bot lives, and which events send a notification (scope §12.11).

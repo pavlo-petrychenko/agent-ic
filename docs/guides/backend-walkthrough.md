@@ -139,7 +139,7 @@ export class WorkspacesRepository {
 
 - Always filter by `workspaceId` too, even though RLS also protects you. Two locks are better than one.
 - Return `null` when nothing is found, never `undefined`.
-- The table is in `db/workspaces.table.ts`. See the [new table checklist](checklists.md#a-new-table) for how a table is made.
+- The table is in `db/workspaces.table.ts`. See ["Add one" on page 006](../learn/006-transactions-and-rls.md#add-one) for how a table is made.
 
 ## 5. Resolver
 

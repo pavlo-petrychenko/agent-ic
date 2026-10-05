@@ -6,26 +6,7 @@ Tick every box before you open the pull request. Each list ends with the same st
 
 A new backend module: see "Add one" in [003 Code layout](../learn/003-code-layout.md#add-one-a-new-backend-module).
 
-## A new table
-
-Every table that belongs to a workspace must have `workspace_id` and row-level security (RLS). A test fails without them.
-
-- [ ] File `modules/<m>/db/<name>.table.ts`. The table is in the module's own Postgres schema, made with `moduleSchema('<m>')` from `@/platform/database/helpers/tenant-table.helpers`. `identity` makes it once, as `identitySchema` in `db/users.table.ts`, and every table file imports it.
-- [ ] Column `workspaceId: workspaceIdColumn()`.
-- [ ] `tenantIsolationPolicy('<table name>')` in the table's extra config.
-- [ ] `.enableRLS()` on the table.
-- [ ] Example to copy: `modules/identity/db/workspaces.table.ts`.
-- [ ] Types for rows in `typedefs/`: `typeof table.$inferSelect` and `typeof table.$inferInsert`.
-- [ ] Generate the migration: `mise exec -- pnpm --filter backend db:generate`. It writes a new SQL file in `apps/backend/migrations/`.
-- [ ] Open the new SQL file and add at the end, one line per new table: `ALTER TABLE "<schema>"."<table>" FORCE ROW LEVEL SECURITY;`. drizzle-kit does not write it. See the end of `migrations/0003_identity-workspaces-invites.sql`.
-- [ ] A new Postgres schema needs no grants: `0000_baseline-privileges.sql` gives the app roles access to every new schema and table.
-- [ ] Apply it locally: `mise run db:migrate`.
-- [ ] The migration only adds things (expand). Dropping or renaming a column is a separate, later pull request (contract), and its description says so.
-- [ ] Never edit a migration after it is merged. Write a new one.
-- [ ] A table that is not per workspace (rare: users, sessions) goes on `TENANT_EXEMPT_TABLES` in `apps/backend/test/support/constants/tenant-schema.constants.ts`. Ask in review first.
-- [ ] Repository queries filter by `workspaceId` and run inside `TenantTransactionService.run(workspaceId, …)`.
-- [ ] Optional test: a repository spec with a cross-tenant case, like `repositories/workspaces.repository.spec.ts`.
-- [ ] `mise run check` and `mise exec -- pnpm test` pass. The tenant schema test (`test/integration/tenant-schema.spec.ts`) checks every table.
+A new table: see "Add one" in [006 Transactions and row-level security](../learn/006-transactions-and-rls.md#add-one).
 
 ## A new background job
 
