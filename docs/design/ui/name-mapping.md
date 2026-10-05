@@ -4,6 +4,8 @@ Every component in `apps/web/src/shared/ui/` has one name, the folder name. Some
 
 The design pages are DS-Foundations, DS-Actions, DS-Inputs, DS-Navigation, DS-Display, DS-Data, DS-Flow-Chat, DS-States and DS-Patterns, each with a DS-Dark-\* twin.
 
+The spec of every component, the tokens and the open design questions are in [spec/INDEX.md](spec/INDEX.md).
+
 ## Design name → component
 
 | Name on the design pages                                                                        | Page                       | Component in `shared/ui`       |

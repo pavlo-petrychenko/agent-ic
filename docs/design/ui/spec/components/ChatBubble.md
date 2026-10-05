@@ -1,0 +1,12 @@
+# ChatBubble
+Purpose: one chat message with sender/time meta line, for customer, agent and operator messages.
+Pages: DS-Foundations (dark panel: "Marta - 14:17" customer, "Salon assistant - 14:17" agent); owner is DS-Flow-Chat (first seen here).
+Anatomy: column (max-width 380 on the page, 280 in the Foundations dark panel; decided: max-width 380 in the inbox thread, 230 inside the widget; gap 4) > meta line (Caption) > bubble.
+Variants: `from: 'customer' | 'agent' | 'operator'`. Operator (human taking over; page "Pavlo (you) · 14:06"): align end, bg --color-accent-light, no border, radius 14/14/4/14, meta plain text (no icon) with "(you)" for the current user. Customer: align start, bg card, 1px line border, radius 14/14/14/4 (tail bottom-left). Agent: align end, bg violet-light, no border, radius 14/14/4/14 (tail bottom-right), meta prefixed with 12px icon (agent icon, margin-right 4, vertical-align -1).
+Sizes: one: padding 8px 12px, text 13/400.
+States: static. Typing indicator and system messages are drawn on DS-Patterns > Chat extras and are separate components: TypingIndicator (agent-style bubble with three violet dots, replaces the customer-style mute-dots proposal) and ChatSystemMessage (centred pill: hand-off, closed, delivery failure; replaces the ChatDivider / ChatStatus proposal). A delivery failure is shown as an error ChatSystemMessage after the message, not as a failed bubble. pending / delivered (decided): no marker on the bubble; only a failure shows, as the error ChatSystemMessage pill. Bubble text is selectable and not interactive, so no focus/disabled states.
+Props: `{ from: 'customer'|'agent'|'operator'; author: string; time: string; children }`.
+Tokens: bubble bg `--color-card` / `--color-violet-light` / `--color-accent-light`; border `--color-line`; text `--color-ink`; meta `--type-small` `--color-mute`; radius `--radius-14` and `--radius-4`; padding `--space-8` `--space-12`; gap `--space-4`.
+Accessibility: render in a `role="log"` list (`aria-live="polite"`); meta text is part of the message for AT. No Radix.
+Light/dark: token-driven; dark values for card, line, violet-light, accent-light and mute are in tokens.md (dark card #211F1C, border #34312C, agent #2A2340, meta #A29C92 from the earlier dark sample; defer to tokens.md).
+Repo diff: none exists.
