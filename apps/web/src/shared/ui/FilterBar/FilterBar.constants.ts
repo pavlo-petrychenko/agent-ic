@@ -1,0 +1,1 @@
+export const FILTER_BAR_CLEAR_ALL_MIN_APPLIED = 2;

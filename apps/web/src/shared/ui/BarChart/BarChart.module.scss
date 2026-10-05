@@ -1,0 +1,46 @@
+.root {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  border-radius: var(--radius-8);
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.plot {
+  position: relative;
+  width: 100%;
+  font-family: var(--font-sans);
+
+  :global(.recharts-cartesian-grid-horizontal line) {
+    stroke: var(--color-line-row);
+  }
+
+  :global(.recharts-cartesian-axis-tick-value) {
+    fill: var(--color-mute);
+    font: var(--type-hint);
+  }
+
+  :global(.recharts-surface) {
+    overflow: visible;
+  }
+}
+
+.visuallyHidden {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.storyFrame {
+  width: calc(var(--space-48) * 11);
+}

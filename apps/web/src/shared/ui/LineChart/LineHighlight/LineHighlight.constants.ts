@@ -1,0 +1,1 @@
+export const LINE_HIGHLIGHT_CROSSHAIR_DASH = '3 3';

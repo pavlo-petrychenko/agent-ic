@@ -24,6 +24,7 @@ Smaller decisions, and amendments to these ADRs, are rows D1 to D190 in section 
 | [0016](0016-run-traces-in-postgres-langfuse-optional.md) | LLM traces in Langfuse for the MVP; our own run traces later | Accepted; amended: self-hosted Langfuse after the RAM upgrade, Langfuse Cloud as fallback (D47) |
 | [0017](0017-prompt-editor-tiptap.md) | Prompt editor on Tiptap | Accepted |
 | [0018](0018-code-editor-codemirror.md) | CodeMirror 6 for the code editor | Accepted |
+| [0019](0019-charts-recharts.md) | Recharts for the chart components | Accepted |
 
 ## Template
 

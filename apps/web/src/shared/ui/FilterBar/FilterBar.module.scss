@@ -1,0 +1,35 @@
+$search-width: 250px;
+
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.root .search {
+  width: $search-width;
+  max-width: 100%;
+}
+
+.clearAll {
+  flex-shrink: 0;
+}
+
+.trailing {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  margin-left: auto;
+}
+
+.storyFrame {
+  width: calc(var(--space-48) * 22);
+  min-height: calc(var(--space-48) * 6);
+}
+
+.storyNarrow {
+  width: calc(var(--space-48) * 10);
+  min-height: calc(var(--space-48) * 6);
+}
