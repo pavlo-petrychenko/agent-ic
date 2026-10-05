@@ -8,20 +8,7 @@ A new backend module: see "Add one" in [003 Code layout](../learn/003-code-layou
 
 A new table: see "Add one" in [006 Transactions and row-level security](../learn/006-transactions-and-rls.md#add-one).
 
-## A new background job
-
-Use a job for slow work or for work after the commit, such as sending an email. A use case never does it inline.
-
-- [ ] Job name in an enum in `constants/<m>-job.constants.ts`, for example `IdentityJobName.CleanUpAuthRecords = 'identity.clean-up-auth-records'`.
-- [ ] File `jobs/<topic>.job.ts` with `defineJob({ queue, name, schema })`. Pick the queue from `QueueName` in `platform/queues/constants/queue.constants.ts`. The zod schema holds IDs only, never whole records.
-- [ ] Enqueue from a use case: inject `JobsService` and call `this.jobs.enqueue(ctx, job, data)`. Inside a transaction, the job waits for the commit and is dropped on rollback. Never call `queue.add()`.
-- [ ] A processor in `processors/<topic>.processor.ts`: an `@Injectable()` class with `@ProcessJob(job)` and `handle(ctx, data)`, which calls one use case. Example: `modules/identity/processors/clean-up-auth-records.processor.ts`.
-- [ ] The use case it calls runs as the system actor of the job's workspace. Check that with `requireSystemActor(ctx)`.
-- [ ] A recurring job adds `@ScheduleJob(defineJobSchedule({ job, everySeconds, data }))` to the processor.
-- [ ] Register the processor under `processors` in the module's `defineModule`, and its use case under `providers`.
-- [ ] Reacting to another module's event? Use a listener instead: see `modules/notifications/listeners/` and `jobs/send-confirmation-email.job.ts` (`defineDomainEventSubscription`).
-- [ ] Watch it run: open the queue board at `https://queues.local.agent-ic.pavlop.dev` and read `mise run logs worker`.
-- [ ] `mise run check` and `mise exec -- pnpm test` pass.
+A new background job: see "Add one" in [008 Jobs](../learn/008-jobs.md#add-one).
 
 ## A new screen
 

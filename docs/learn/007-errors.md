@@ -92,4 +92,4 @@ A new business error. Use [email-taken.error.ts](../../apps/backend/src/modules/
 - A new `ErrorReason` without text in both languages fails a web test.
 - Do not rename a reason. The web app and clients match on it.
 
-Next: back to [the docs](../README.md). More pages are coming.
+Next: [008 Jobs](008-jobs.md)
