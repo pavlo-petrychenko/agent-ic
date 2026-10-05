@@ -1,0 +1,48 @@
+$size-select-width: 64px;
+$story-width: 520px;
+
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--space-8) var(--space-14);
+  border-top: var(--border-width) solid var(--color-line);
+}
+
+.loadMore {
+  flex-direction: column;
+  justify-content: center;
+}
+
+.range {
+  margin: 0;
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.rows {
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.size {
+  width: $size-select-width;
+}
+
+.previous svg {
+  transform: rotate(180deg);
+}
+
+.storyCard {
+  width: $story-width;
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-card);
+}
