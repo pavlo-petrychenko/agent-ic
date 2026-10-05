@@ -11,7 +11,29 @@ Where every file goes and why. `pnpm check:structure` (`tools/check-structure.ts
 5. **No value classes.** Data is an interface in `typedefs/`; logic on data is a helper. Definitions of jobs, events, channels, cache entries and rate-limit policies are made with `defineX({...})` helpers, not abstract classes.
 6. **Class names end with their kind:** `SignUpUseCase`, `UsersRepository`, `ClockService`, `PlatformAdminGuard`.
 7. **One home per constant.** A value used by two areas lives in the lower one (for example `MILLISECONDS_PER_SECOND` in `platform/clock`).
-8. **Imports are absolute:** `@/…` in source, `@test/…` in test support, packages by name. Relative paths are never used, not even within one folder. Imports have no blank lines between them.
+8. **Imports are absolute:** `@/…` in app source, `@test/…` in app test support, `@<package>/…` (`@contracts/…`, `@flow/…`) and `@test/…` inside a package, other packages by name. Relative paths and Node subpath imports (`#…`) are never used, not even within one folder. Imports have no blank lines between them. Why: a file reads the same wherever it sits, and moving it never rewrites its imports.
+
+   A package declares its aliases as `paths` in its `tsconfig.json`:
+
+   ```json
+   "paths": {
+     "@flow/*": ["./src/*"],
+     "@test/*": ["./test/*"],
+     "@contracts/*": ["../contracts/src/*"]
+   }
+   ```
+
+   The alias is named after the package. A bare `@/…` would clash: an app reads package source through the `source` condition (D75), and there `@/…` already means the app's own `src`.
+
+   Who resolves the aliases (D193):
+
+   - `tsc` uses one `paths` map for the whole program, so every tsconfig that reads package source lists the package aliases it meets: `apps/web`, `apps/backend`, and `packages/flow` for `@contracts/*`.
+   - Vite, Vitest and Storybook set `resolve.tsconfigPaths`, so each file resolves through its own package's `tsconfig.json`.
+   - tsup bundles the JavaScript, and esbuild reads `paths`, so `dist` holds no alias.
+   - `tsc` keeps the aliases in the emitted `.d.ts`. The package build then runs `tools/declaration-aliases.ts`, which rewrites them to relative paths in `dist` and fails if one is left.
+   - A package that depends on another package emits its declarations without the `source` condition (`"customConditions": []` in `tsconfig.build.json`), so they name that package `@agent-ic/<name>` instead of its alias.
+   - dependency-cruiser reads `tools/depcruise/*.tsconfig.json`; `packages.tsconfig.json` holds the package aliases.
+   - The backend runtime, its image and its Vitest run read the built `dist`, so they need no alias.
 9. **Generated code** lives in `generated/` (`.generated.ts`, gitignored) or next to its source when the generator requires it (`*.graphql` → `*.generated.ts` on the web).
 10. **`src/` is production code only.** Unit specs sit next to the file they test; shared test support lives in `test/support/`.
 

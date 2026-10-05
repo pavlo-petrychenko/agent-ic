@@ -11,7 +11,9 @@
         "tsup.config.ts",
         ".swcrc",
         "tsconfig.json",
-        "package.json"
+        "package.json",
+        "$TURBO_ROOT$/tools/declaration-aliases.ts",
+        "$TURBO_ROOT$/tools/declaration-aliases/**"
       ],
       "outputs": ["dist/**"]
     },

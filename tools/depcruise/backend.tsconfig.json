@@ -3,7 +3,9 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["apps/backend/src/*"],
-      "@test/*": ["apps/backend/test/*"]
+      "@test/*": ["apps/backend/test/*"],
+      "@contracts/*": ["packages/contracts/src/*"],
+      "@flow/*": ["packages/flow/src/*"]
     }
   },
   "include": ["../../apps/backend/src"]

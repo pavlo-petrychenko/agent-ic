@@ -75,6 +75,6 @@ Create a module only for a new business area. Workspaces, members and invites be
 - A processor or listener missing from its `defineModule` field is never mounted in the worker, so it never runs.
 - A resolver listed under `providers` instead of `resolvers` is mounted in every role, not only `api`.
 - Do not import `@/modules/identity/services/...` from another module. Use `@/modules/identity`. The `pnpm depcruise` check fails on it.
-- Imports are always absolute (`@/...`), never relative, even inside one folder.
+- Imports are always absolute (`@/...` in apps, `@<package>/...` in packages), never relative, even inside one folder.
 
 Next: [004 Request lifecycle](004-request-lifecycle.md)
