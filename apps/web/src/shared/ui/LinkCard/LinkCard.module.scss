@@ -1,0 +1,51 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  padding: var(--space-14);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-card);
+  color: var(--color-ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--duration-fast);
+
+  &:hover {
+    border-color: var(--color-line-node);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+
+  &:hover {
+    border-color: var(--color-line);
+  }
+}
+
+.title {
+  font: var(--type-title);
+}
+
+.description {
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.storyGrid {
+  display: flex;
+  gap: var(--space-12);
+}
+
+.storyItem {
+  width: var(--size-menu-width);
+}
