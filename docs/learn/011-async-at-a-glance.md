@@ -58,4 +58,4 @@ A durable job and a live update often go together. After a message is saved, a d
 - To see a stuck durable job, read the outbox as `app_system` with `mise run db:psql app_system`. Rows older than about 30 seconds mean the add keeps failing, or no worker serves `timers`.
 - A live update is not a place to keep data. If the tab misses it, nothing replays it.
 
-Next: back to [the docs](../README.md). More pages are coming.
+Next: [012 Cache and rate limits](012-cache-and-rate-limits.md)

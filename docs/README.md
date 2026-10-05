@@ -12,15 +12,16 @@ Start here. This page tells you what agent-ic is, where things are, and which pa
 
 ## Repo map
 
-| Folder         | What is in it                                                                                                                                                                  |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `apps/backend` | the NestJS app. [Module anatomy](../apps/backend/AGENTS.md)                                                                                                                    |
-| `apps/web`     | the React app. [Feature anatomy](../apps/web/AGENTS.md)                                                                                                                        |
-| `packages/`    | code both apps share: `contracts`, `flow`, `api-schema`, and the lint and TypeScript configs                                                                                   |
-| `deploy/`      | the Dockerfiles for local use and production, and the Helm chart                                                                                                               |
-| `tools/`       | the code behind the `mise run` commands, the structure and comment checks, the commit hooks                                                                                    |
-| `docs/learn/`  | the numbered pages below: one idea per page, read in order                                                                                                                     |
-| `docs/rules/`  | the rules, one page per topic: [code](rules/code.md), [architecture](rules/architecture.md), [structure](rules/structure.md), [testing](rules/testing.md), [git](rules/git.md) |
+| Folder           | What is in it                                                                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `apps/backend`   | the NestJS app. [Module anatomy](../apps/backend/AGENTS.md)                                                                                                                    |
+| `apps/web`       | the React app. [Feature anatomy](../apps/web/AGENTS.md)                                                                                                                        |
+| `packages/`      | code both apps share: `contracts`, `flow`, `api-schema`, and the lint and TypeScript configs                                                                                   |
+| `deploy/`        | the Dockerfiles for local use and production, and the Helm chart                                                                                                               |
+| `tools/`         | the code behind the `mise run` commands, the structure and comment checks, the commit hooks                                                                                    |
+| `docs/learn/`    | the numbered pages below: one idea per page, read in order                                                                                                                     |
+| `docs/examples/` | real code, read after the learning path                                                                                                                                        |
+| `docs/rules/`    | the rules, one page per topic: [code](rules/code.md), [architecture](rules/architecture.md), [structure](rules/structure.md), [testing](rules/testing.md), [git](rules/git.md) |
 
 A request goes through the same layers every time. Page 004 shows it in full.
 
@@ -33,30 +34,30 @@ web container -> data hook -> GraphQL operation
 
 Read the pages in order. Each page ends with a link to the next.
 
-| #   | Page                                                      | What you learn                                                        |
-| --- | --------------------------------------------------------- | --------------------------------------------------------------------- |
-| 001 | [Run and debug](learn/001-run-and-debug.md)               | start the stack, read logs and traces, find emails, open the database |
-| 002 | [The big picture](learn/002-the-big-picture.md)           | the two apps, the three backend roles, Postgres and the two Redis     |
-| 003 | [Code layout](learn/003-code-layout.md)                   | where every file goes, modules and platform, how to add a module      |
-| 004 | [Request lifecycle](learn/004-request-lifecycle.md)       | one request from the screen to Postgres, and the layer rules          |
-| 005 | [Request context](learn/005-request-context.md)           | who is calling: the actor, the workspace, the trace id                |
-| 006 | [Transactions and RLS](learn/006-transactions-and-rls.md) | tenant transactions, row-level security, how to add a table           |
-| 007 | [Errors](learn/007-errors.md)                             | domain errors and how they reach GraphQL, REST and jobs               |
-| 008 | [Jobs](learn/008-jobs.md)                                 | work that runs later in the worker, with retries and a durable option |
-| 009 | [Domain events](learn/009-domain-events.md)               | a fact one module announces and other modules react to                |
-| 010 | [Live updates](learn/010-live-updates.md)                 | best-effort pushes to open browser tabs                               |
-| 011 | [Async at a glance](learn/011-async-at-a-glance.md)       | job, durable job, event, live update: which one to use                |
+| #   | Page                                                        | What you learn                                                        |
+| --- | ----------------------------------------------------------- | --------------------------------------------------------------------- |
+| 001 | [Run and debug](learn/001-run-and-debug.md)                 | start the stack, read logs and traces, find emails, open the database |
+| 002 | [The big picture](learn/002-the-big-picture.md)             | the two apps, the three backend roles, Postgres and the two Redis     |
+| 003 | [Code layout](learn/003-code-layout.md)                     | where every file goes, modules and platform, how to add a module      |
+| 004 | [Request lifecycle](learn/004-request-lifecycle.md)         | one request from the screen to Postgres, and the layer rules          |
+| 005 | [Request context](learn/005-request-context.md)             | who is calling: the actor, the workspace, the trace id                |
+| 006 | [Transactions and RLS](learn/006-transactions-and-rls.md)   | tenant transactions, row-level security, how to add a table           |
+| 007 | [Errors](learn/007-errors.md)                               | domain errors and how they reach GraphQL, REST and jobs               |
+| 008 | [Jobs](learn/008-jobs.md)                                   | work that runs later in the worker, with retries and a durable option |
+| 009 | [Domain events](learn/009-domain-events.md)                 | a fact one module announces and other modules react to                |
+| 010 | [Live updates](learn/010-live-updates.md)                   | best-effort pushes to open browser tabs                               |
+| 011 | [Async at a glance](learn/011-async-at-a-glance.md)         | job, durable job, event, live update: which one to use                |
+| 012 | [Cache and rate limits](learn/012-cache-and-rate-limits.md) | the Redis cache and the token-bucket limiter                          |
+| 013 | [The web app](learn/013-web-app.md)                         | startup, router, Apollo, i18n, feature layers, how to add a screen    |
+| 014 | [Shipping](learn/014-shipping.md)                           | checks, review, merge, deploy, new environment variables              |
 
-## Guides being moved
+## Examples
 
-These pages from the old guide are still being moved into the learning path and the examples. Until then, read them here.
+Read these after 014. They link real files instead of pasting code, so they stay true.
 
-- [Backend walkthrough](guides/backend-walkthrough.md): the `identity` module file by file.
-- [Web walkthrough](guides/web-walkthrough.md): the `auth` and `settings` features file by file.
-- [Worked example: rename a workspace](guides/rename-workspace.md): every step for a small resolver plus a screen, in order.
-- [Checklists](guides/checklists.md): a new screen.
-- [From pull request to production](guides/shipping.md): checks, review, merge, deploy, new environment variables.
-- [Starter backlog](guides/backlog.md): work that is left in the MVP scope for team management and settings.
+- [The identity module](examples/identity-module.md): the backend, file by file. SDL, schema, use case, repository, resolver, module, spec.
+- [Auth and settings](examples/auth-and-settings.md): the web, file by file. Operation, hook, mapping helper, view, container, route, test.
+- [Worked example: rename a workspace](examples/rename-workspace.md): a feature that is not built yet. Every step for a small resolver plus a screen, in order.
 
 ## Rules you will meet on day one
 
@@ -74,7 +75,7 @@ Tools check these rules. `mise run check` fails when a file is in the wrong fold
 
 ## Tests
 
-Tests are optional during the MVP. Write them where they help. Existing tests must keep passing. When you write one, follow [testing.md](rules/testing.md). The walkthroughs point to real tests you can copy.
+Tests are optional during the MVP. Write them where they help. Existing tests must keep passing. When you write one, follow [testing.md](rules/testing.md). The examples point to real tests you can copy.
 
 ## More
 
