@@ -1,0 +1,52 @@
+$inset: 30px;
+$story-width: 220px;
+
+.root {
+  position: relative;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.root .field {
+  padding: 0 $inset 0 $inset;
+  font: var(--type-body-small);
+
+  &::-webkit-search-cancel-button,
+  &::-webkit-search-decoration {
+    appearance: none;
+  }
+}
+
+.icon,
+.spinner {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  color: var(--color-mute);
+  pointer-events: none;
+}
+
+.icon {
+  left: var(--space-10);
+}
+
+.spinner {
+  right: var(--space-10);
+}
+
+.clear {
+  position: absolute;
+  top: 50%;
+  right: var(--space-6);
+  transform: translateY(-50%);
+}
+
+.disabled .icon {
+  opacity: var(--opacity-disabled);
+}
+
+.storyColumn {
+  width: $story-width;
+}

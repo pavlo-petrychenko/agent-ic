@@ -22,6 +22,7 @@ Smaller decisions, and amendments to these ADRs, are rows D1 to D190 in section 
 | [0014](0014-domain-errors-and-transport-mapping.md) | Domain errors and their mapping per transport | Accepted |
 | [0015](0015-jobs-after-commit-and-durable-outbox.md) | Jobs and events after commit; a durable outbox for critical paths | Accepted; amended: domain events, listeners declared by `defineModule` (D80, D112, D143, D145) |
 | [0016](0016-run-traces-in-postgres-langfuse-optional.md) | LLM traces in Langfuse for the MVP; our own run traces later | Accepted; amended: self-hosted Langfuse after the RAM upgrade, Langfuse Cloud as fallback (D47) |
+| [0017](0017-prompt-editor-tiptap.md) | Prompt editor on Tiptap | Accepted |
 
 ## Template
 

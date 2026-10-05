@@ -1,0 +1,1 @@
+export const READONLY_VALUE_COPIED_RESET_MS = 1500;
