@@ -1,12 +1,12 @@
-export { ConditionOperator, RuleMatch } from './conditions/condition.constants';
+export { ConditionOperator, RuleMatch } from './conditions/constants/condition.constants';
 export {
   FIXED_PORT_NAMES,
   FLOW_SCHEMA_VERSION,
   NodeType,
   PortName,
   TRIGGER_NODE_TYPES,
-} from './document/flow.constants';
-export { flowDocumentSchema } from './document/flow.schema';
+} from './document/constants/flow.constants';
+export { flowDocumentSchema } from './document/schemas/flow.schema';
 export type {
   AgentNode,
   ApiRequestNode,
@@ -28,9 +28,9 @@ export type {
   TriggerMessageNode,
   TriggerNode,
   TriggerScheduleNode,
-} from './document/flow.typedefs';
-export { isTriggerNode } from './document/node.helpers';
-export { nodePorts } from './document/port.helpers';
+} from './document/typedefs/flow.typedefs';
+export { isTriggerNode } from './document/helpers/node.helpers';
+export { nodePorts } from './document/helpers/port.helpers';
 export {
   AGENT_DEFAULT_RETRIES,
   API_REQUEST_DEFAULT_RETRIES,
@@ -56,7 +56,7 @@ export {
   OUTPUT_FIELD_NAME_PATTERN,
   TIME_OF_DAY_PATTERN,
   WAIT_FOR_RESULT_SECONDS,
-} from './limits/limit.constants';
+} from './limits/constants/limit.constants';
 export {
   CompletionRole,
   DEFAULT_RETRIEVAL_MODE,
@@ -71,19 +71,19 @@ export {
   RequestBodyKind,
   RetrievalMode,
   WaitFor,
-} from './nodes/step.constants';
+} from './nodes/constants/step.constants';
 export {
   ChannelSelectionMode,
   ChannelType,
   ReplyMode,
   ScheduleKind,
-} from './nodes/trigger.constants';
-export { AGENT_MESSAGES_FIELD_NAME, OutputFieldType } from './outputs/output.constants';
-export { ModelProviderKind, PromptVersionKind } from './references/reference.constants';
-export { ParseFlowFailureKind } from './versions/version.constants';
-export { parseFlow } from './versions/version.helpers';
+} from './nodes/constants/trigger.constants';
+export { AGENT_MESSAGES_FIELD_NAME, OutputFieldType } from './outputs/constants/output.constants';
+export { ModelProviderKind, PromptVersionKind } from './references/constants/reference.constants';
+export { ParseFlowFailureKind } from './versions/constants/version.constants';
+export { parseFlow } from './versions/helpers/version.helpers';
 export type {
   FlowSchemaIssue,
   ParseFlowFailure,
   ParseFlowResult,
-} from './versions/version.typedefs';
+} from './versions/typedefs/version.typedefs';

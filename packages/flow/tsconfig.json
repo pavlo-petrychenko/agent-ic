@@ -1,4 +1,4 @@
 {
   "extends": "@agent-ic/tsconfig/library.json",
-  "include": ["src", "tsup.config.ts", "vitest.config.ts"]
+  "include": ["src", "test", "tsup.config.ts", "vitest.config.ts"]
 }
