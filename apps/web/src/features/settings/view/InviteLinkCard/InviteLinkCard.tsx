@@ -2,12 +2,12 @@ import { useTranslation } from 'react-i18next';
 import { INVITABLE_ROLE_SET } from '@/features/settings/constants/inviteLink.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { InviteLinkCardProps } from '@/features/settings/view/InviteLinkCard/InviteLinkCard.typedefs';
-import { Button, ButtonVariant } from '@/shared/ui/Button';
-import { Card } from '@/shared/ui/Card';
-import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/Heading';
-import { IconName } from '@/shared/ui/Icon';
-import { Select } from '@/shared/ui/Select';
-import { Text, TextColor, TextKind } from '@/shared/ui/Text';
+import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { Card } from '@/shared/ui/display/Card';
+import { IconName } from '@/shared/ui/foundations/Icon';
+import { Select } from '@/shared/ui/inputs/Select';
+import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/typography/Heading';
+import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/settings/view/InviteLinkCard/InviteLinkCard.module.scss';
 
 export function InviteLinkCard({

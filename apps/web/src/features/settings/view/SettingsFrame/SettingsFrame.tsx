@@ -1,5 +1,5 @@
 import type { SettingsFrameProps } from '@/features/settings/view/SettingsFrame/SettingsFrame.typedefs';
-import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/Heading';
+import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/typography/Heading';
 import styles from '@/features/settings/view/SettingsFrame/SettingsFrame.module.scss';
 
 export function SettingsFrame({ title, nav, children }: SettingsFrameProps) {

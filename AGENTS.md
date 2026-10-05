@@ -97,7 +97,7 @@ A file is named `<topic>.<kind>.ts` and lives in the folder of its kind, inside 
 - Use another module's data: import its service or repository from `@/modules/<other>` (its `index.ts`).
 - Infrastructure used by two or more modules, with no business meaning: `apps/backend/src/platform/<name>/`. A platform folder is never named after a kind folder (`database`, not `db`).
 - Types, limits, error codes and permissions used by both apps: `packages/contracts`. Flow-graph schema and validation: `packages/flow`.
-- New web screen: a container in `features/<f>/containers/<Name>/`, wired by a route in `routes/`. A reusable UI primitive goes in `apps/web/src/shared/ui/`, the only place Radix may appear.
+- New web screen: a container in `features/<f>/containers/<Name>/`, wired by a route in `routes/`. A reusable UI primitive goes in `apps/web/src/shared/ui/<group>/`, the only place Radix may appear.
 
 ## Definition of done
 

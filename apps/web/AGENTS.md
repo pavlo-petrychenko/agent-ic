@@ -33,7 +33,7 @@ Two levels. Kind folders inside each area, and component folders `<Name>/`.
 | Fixture | `fixtures/` | `x.fixture.ts` | Apollo mocks and test data |
 | Translations | `locales/{en,uk}/` | `*.json` | user-facing text |
 
-A component folder is flat: `Name.tsx`, `Name.module.scss`, `Name.test.tsx`, `Name.typedefs.ts`, `Name.constants.ts`, `index.ts`, and when the component owns them, `useX.ts` and `x.context.ts`. Stories (`Name.stories.tsx`) exist only in `shared/ui`. A private sub-component is a nested folder.
+A component folder is flat: `Name.tsx`, `Name.module.scss`, `Name.test.tsx`, `Name.typedefs.ts`, `Name.constants.ts`, `index.ts`, and when the component owns them, `useX.ts` and `x.context.ts`. Stories (`Name.stories.tsx`) exist only in `shared/ui`. A private sub-component is a nested folder. In `shared/ui` every component folder sits in one group folder, `shared/ui/<group>/<Name>/` (`actions`, `inputs`, `display`, `overlays` and so on); the groups and the rule are in `docs/rules/structure.md`.
 
 ## Feature anatomy
 

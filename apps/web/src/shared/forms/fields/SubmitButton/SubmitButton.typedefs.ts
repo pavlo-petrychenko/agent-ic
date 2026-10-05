@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { ButtonSize } from '@/shared/ui/Button';
+import type { ButtonSize } from '@/shared/ui/actions/Button';
 
 export interface SubmitButtonProps {
   size?: ButtonSize;

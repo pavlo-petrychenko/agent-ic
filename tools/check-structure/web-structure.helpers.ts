@@ -33,6 +33,7 @@ import {
   WEB_SHARED_KINDS,
   WEB_SHARED_STYLES,
   WEB_SHARED_UI,
+  WEB_UI_GROUPS,
   WEB_SOURCE_ROOT_FILES,
   WEB_TEST_SUPPORT_KINDS,
   WEB_TEST_INTEGRATION_ROOT,
@@ -81,6 +82,17 @@ const checkComponentTree = (segments: Segments, stories: boolean): Verdict => {
     return MESSAGES.componentFolder(head);
   }
   return checkComponentFolder(head, tail, stories);
+};
+
+const checkUiGroup = (segments: Segments): Verdict => {
+  const [group, ...rest] = segments;
+  if (group === undefined) {
+    return null;
+  }
+  if (rest.length === 0 || !WEB_UI_GROUPS.includes(group)) {
+    return MESSAGES.uiGroup(group, WEB_UI_GROUPS);
+  }
+  return checkComponentTree(rest, true);
 };
 
 const checkGql = (rest: Segments): Verdict => {
@@ -185,7 +197,7 @@ const checkShared = (segments: Segments): Verdict => {
     return MESSAGES.tooShort();
   }
   if (name === WEB_SHARED_UI) {
-    return checkComponentTree(inner, true);
+    return checkUiGroup(inner);
   }
   if (name === WEB_SHARED_STYLES) {
     const [file] = inner;

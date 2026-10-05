@@ -15,9 +15,9 @@ import { InviteSummary } from '@/features/auth/view/InviteSummary';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { toInitials } from '@/shared/i18n/helpers/initials.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
-import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/Button';
-import { Callout, CalloutTone } from '@/shared/ui/Callout';
-import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/Text';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
+import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
+import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/Text';
 
 export function InviteAcceptPanel({ invite }: InviteAcceptPanelProps) {
   const { t } = useTranslation(AUTH_NAMESPACE);

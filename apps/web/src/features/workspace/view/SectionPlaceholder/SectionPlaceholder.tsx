@@ -1,7 +1,7 @@
 import type { SectionPlaceholderProps } from '@/features/workspace/view/SectionPlaceholder/SectionPlaceholder.typedefs';
-import { Card } from '@/shared/ui/Card';
-import { EmptyState } from '@/shared/ui/EmptyState';
-import { PageHeader } from '@/shared/ui/PageHeader';
+import { Card } from '@/shared/ui/display/Card';
+import { EmptyState } from '@/shared/ui/display/EmptyState';
+import { PageHeader } from '@/shared/ui/layout/PageHeader';
 
 export function SectionPlaceholder({
   title,

@@ -4,7 +4,7 @@ import type {
   NavGroupEntry,
   PlaceholderSection,
 } from '@/features/workspace/typedefs/navigation.typedefs';
-import { IconName } from '@/shared/ui/Icon';
+import { IconName } from '@/shared/ui/foundations/Icon';
 
 export enum WorkspaceSection {
   Agents = 'agents',

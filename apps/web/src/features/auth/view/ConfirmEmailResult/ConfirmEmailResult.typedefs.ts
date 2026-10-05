@@ -1,7 +1,7 @@
 import type { ConfirmEmailState } from '@/features/auth/constants/confirmation.constants';
 import type { ConfirmEmailAction } from '@/features/auth/view/ConfirmEmailResult/ConfirmEmailResult.constants';
-import type { EmptyStateTone } from '@/shared/ui/EmptyState';
-import type { IconName } from '@/shared/ui/Icon';
+import type { EmptyStateTone } from '@/shared/ui/display/EmptyState';
+import type { IconName } from '@/shared/ui/foundations/Icon';
 
 export interface ConfirmEmailResultProps {
   state: ConfirmEmailState;

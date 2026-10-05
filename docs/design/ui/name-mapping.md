@@ -1,6 +1,6 @@
 # Design system: names in the design and in the code
 
-Every component in `apps/web/src/shared/ui/` has one name, the folder name. Some design pages draw the same component under another name. This page maps them, so a designer and a developer can find the same thing.
+Every component in `apps/web/src/shared/ui/<group>/` has one name, the folder name. Some design pages draw the same component under another name. This page maps them, so a designer and a developer can find the same thing.
 
 The design pages are DS-Foundations, DS-Actions, DS-Inputs, DS-Navigation, DS-Display, DS-Data, DS-Flow-Chat, DS-States and DS-Patterns, each with a DS-Dark-\* twin.
 
@@ -35,7 +35,7 @@ These have their own folder in the code, but the design draws them inside anothe
 | AvatarStack  | Avatar                |
 | SkeletonBox  | Skeleton              |
 | NavGroup     | Sidebar               |
-| FilterPicker | FilterBar, FilterChip |
+| FilterPicker | FilterBar, FilterChip (a private folder: `data/FilterBar/FilterPicker`) |
 
 ## In the code only
 

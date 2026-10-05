@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Card } from '@/shared/ui/Card';
-import { TextLink } from '@/shared/ui/TextLink';
+import { TextLink } from '@/shared/ui/actions/TextLink';
+import { Card } from '@/shared/ui/display/Card';
 
 export function NotFound() {
   const { t } = useTranslation();

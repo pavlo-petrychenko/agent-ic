@@ -219,9 +219,29 @@ shared/
 ├── i18n/     clients/ hooks/ helpers/ locales/ constants/ typedefs/
 ├── theme/    clients/ hooks/ helpers/ constants/ typedefs/ (light, dark or system; applied as data-theme on <html>)
 ├── viewport/ hooks/ helpers/ constants/ typedefs/ (the wide, default, compact or unsupported breakpoint, from media queries)
-├── ui/       component folders; the only place Radix may appear
+├── ui/       group folders, then component folders: ui/<group>/<Name>/; the only place Radix may appear
 └── styles/   tokens.css · global.scss · tailwind.css · index.ts (the one side-effect entry that imports fonts and the stylesheets in order)
 ```
+
+`shared/ui/` has exactly one group level, then component folders as anywhere else (nested private folders included): `shared/ui/<group>/<Name>/`, imported as `@/shared/ui/<group>/<Name>`. The groups are listed in `WEB_UI_GROUPS` in `tools/check-structure/check-structure.constants.ts`:
+
+| Group | What |
+|---|---|
+| `foundations` | Icon, ThemeToggle |
+| `typography` | Heading, Text |
+| `actions` | buttons, links, chips that act |
+| `inputs` | fields and form controls |
+| `navigation` | sidebar, rail, tabs, breadcrumbs, steppers |
+| `overlays` | dialog, drawer, menu, popover, toast, tooltip |
+| `display` | read-only content: cards, badges, callouts, skeletons |
+| `data` | tables, lists, filters, pagination |
+| `charts` | charts and their parts |
+| `layout` | shells, frames, panes, page headers |
+| `flow` | flow canvas and nodes |
+| `chat` | chat thread and web widget |
+| `runs` | conversation, run and trace rows |
+
+A component directly under `shared/ui/`, or in a group that is not listed, fails `check:structure`. A new group needs a new entry in `WEB_UI_GROUPS` and in this table.
 
 Test support lives in `apps/web/test/support/` (`setup/`, `components/`, `helpers/`, `constants/`, `typedefs/`, `fixtures/`), imported as `@test/…`. Tests that cross areas, such as a route rendered through the router, live in `apps/web/test/integration/` (`.test.ts`, `.test.tsx`).
 

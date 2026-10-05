@@ -9,8 +9,8 @@ import { SignUpPage } from '@/features/auth/containers/SignUpPage';
 import { useSessionStatus } from '@/features/auth/logic/hooks/useSessionStatus';
 import { AuthPanel } from '@/features/auth/view/AuthPanel';
 import { SessionStatus } from '@/shared/api/constants/session.constants';
-import { Callout, CalloutTone } from '@/shared/ui/Callout';
-import { Skeleton } from '@/shared/ui/Skeleton';
+import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
+import { Skeleton } from '@/shared/ui/display/Skeleton';
 
 export function InvitePage({ token }: InvitePageProps) {
   const { t } = useTranslation(AUTH_NAMESPACE);

@@ -19,10 +19,10 @@ import { AuthForm } from '@/features/auth/view/AuthForm';
 import { AuthPanel } from '@/features/auth/view/AuthPanel';
 import { useAppForm } from '@/shared/forms/hooks/useAppForm';
 import { Namespace } from '@/shared/i18n/constants/namespace.constants';
-import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/Button';
-import { Callout, CalloutTone } from '@/shared/ui/Callout';
-import { OptionCard } from '@/shared/ui/OptionCard';
-import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/Text';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
+import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
+import { OptionCard } from '@/shared/ui/inputs/OptionCard';
+import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/Text';
 
 export function WorkspaceStepPage() {
   const { t } = useTranslation(Namespace.Auth);

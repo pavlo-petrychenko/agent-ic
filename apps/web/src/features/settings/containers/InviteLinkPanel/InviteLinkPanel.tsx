@@ -13,7 +13,7 @@ import { useActiveWorkspace } from '@/features/workspace';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
-import { ToastTone, useToast } from '@/shared/ui/Toast';
+import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
 export function InviteLinkPanel({ workspaceId }: InviteLinkPanelProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);

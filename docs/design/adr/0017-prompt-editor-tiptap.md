@@ -4,7 +4,7 @@
 - **Date:** 2026-10-05
 
 ## Context
-- The design system has a `PromptEditor` (`apps/web/src/shared/ui/PromptEditor`): a multi-line editor for agent prompts with inline variable chips. Typing `{{` opens a variable menu at the caret; the menu inserts a chip such as `{{contact.name}}`. The chip is the same `VariableChip` the rest of the UI uses.
+- The design system has a `PromptEditor` (`apps/web/src/shared/ui/inputs/PromptEditor`): a multi-line editor for agent prompts with inline variable chips. Typing `{{` opens a variable menu at the caret; the menu inserts a chip such as `{{contact.name}}`. The chip is the same `VariableChip` the rest of the UI uses.
 - A `<textarea>` cannot draw a chip inside the text, and a `<textarea>` with an overlay breaks on wrapping, selection and IME input. The component needs a real rich-text surface.
 - The design asks for: a textbox with `aria-multiline`, a listbox driven by `aria-activedescendant` (focus stays in the editor), a focus, error and read-only look, and unknown variables drawn as plain text with a wavy underline.
 - The value the rest of the app stores is plain text with `{{path}}` tokens and `\n` between lines. The editor must not leak its own document format.

@@ -25,7 +25,7 @@
 
 ## Decision
 1. **`CodeEditor` uses CodeMirror 6**, from `@codemirror/state`, `view`, `commands`, `language`, `lang-json` and `lang-javascript`.
-2. CodeMirror is used **only inside `shared/ui/CodeEditor`**, like Radix. Features use the `CodeEditor` component, never CodeMirror.
+2. CodeMirror is used **only inside `shared/ui/display/CodeEditor`**, like Radix. Features use the `CodeEditor` component, never CodeMirror.
 3. **Read-only mode does not load an editor.** It renders `CodeBlock` in its dark tone. An editor is created only when `readOnly` is false and an `onChange` handler is given.
 4. **The theme is built from our CSS variables** (`--color-code-bg`, `--color-code-fg`, `--type-mono-lg`, and others), so no colour is written twice.
 5. **Keyboard:** Tab indents (`indentWithTab`); Esc switches on tab-focus mode for a moment, so Esc then Tab leaves the editor. A `hint` prop carries a text for screen readers that explains this, because strings arrive as props.

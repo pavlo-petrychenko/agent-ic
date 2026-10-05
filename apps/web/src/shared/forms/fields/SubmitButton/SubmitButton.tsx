@@ -1,7 +1,7 @@
 import { useStore } from '@tanstack/react-form';
 import { useFormContext } from '@/shared/forms/contexts/form.context';
 import type { SubmitButtonProps } from '@/shared/forms/fields/SubmitButton/SubmitButton.typedefs';
-import { Button, ButtonSize } from '@/shared/ui/Button';
+import { Button, ButtonSize } from '@/shared/ui/actions/Button';
 
 export function SubmitButton({
   size = ButtonSize.Md,

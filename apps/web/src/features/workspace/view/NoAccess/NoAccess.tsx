@@ -1,7 +1,7 @@
 import type { NoAccessProps } from '@/features/workspace/view/NoAccess/NoAccess.typedefs';
-import { Button } from '@/shared/ui/Button';
-import { EmptyState, EmptyStateTone } from '@/shared/ui/EmptyState';
-import { IconName } from '@/shared/ui/Icon';
+import { Button } from '@/shared/ui/actions/Button';
+import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
+import { IconName } from '@/shared/ui/foundations/Icon';
 
 export function NoAccess({ title, description, actionLabel, onAction }: NoAccessProps) {
   return (

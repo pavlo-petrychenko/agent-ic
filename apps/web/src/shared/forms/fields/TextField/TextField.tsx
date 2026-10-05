@@ -2,8 +2,8 @@ import { useStore } from '@tanstack/react-form';
 import { useFieldContext } from '@/shared/forms/contexts/form.context';
 import type { TextFieldProps } from '@/shared/forms/fields/TextField/TextField.typedefs';
 import { firstErrorMessage } from '@/shared/forms/helpers/fieldError.helpers';
-import { Field } from '@/shared/ui/Field';
-import { Input } from '@/shared/ui/Input';
+import { Field } from '@/shared/ui/inputs/Field';
+import { Input } from '@/shared/ui/inputs/Input';
 
 export function TextField({
   label,

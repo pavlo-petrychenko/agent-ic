@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { ServerStatusProps } from '@/features/status/view/ServerStatus/ServerStatus.typedefs';
-import { Button, ButtonVariant } from '@/shared/ui/Button';
+import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import styles from '@/features/status/view/ServerStatus/ServerStatus.module.scss';
 
 export function ServerStatus({

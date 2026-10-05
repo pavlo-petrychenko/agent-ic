@@ -7,9 +7,9 @@ import {
 } from '@/features/workspace/constants/route.constants';
 import { WORKSPACE_NAMESPACE } from '@/features/workspace/constants/workspaceI18n.constants';
 import type { WorkspaceAccessProps } from '@/features/workspace/containers/WorkspaceAccess/WorkspaceAccess.typedefs';
-import { Button } from '@/shared/ui/Button';
-import { EmptyState } from '@/shared/ui/EmptyState';
-import { IconName } from '@/shared/ui/Icon';
+import { Button } from '@/shared/ui/actions/Button';
+import { EmptyState } from '@/shared/ui/display/EmptyState';
+import { IconName } from '@/shared/ui/foundations/Icon';
 
 export function WorkspaceAccess({ workspaceId, children }: WorkspaceAccessProps) {
   const { t } = useTranslation(WORKSPACE_NAMESPACE);

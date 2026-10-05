@@ -29,4 +29,4 @@ Token-driven. Sunken stays darker than default in both themes.
 Everywhere; page DS-Display (Containers).
 
 ## Differs from existing
-`shared/ui/Card` exists (props `title`, children). Add `tone`, `pad`, `gap`, `selected` (2px accent border + 4px halo, selection not focus), `as`; keep `title`; zero-padding/overflow hidden for tables.
+`shared/ui/display/Card` exists (props `title`, children). Add `tone`, `pad`, `gap`, `selected` (2px accent border + 4px halo, selection not focus), `as`; keep `title`; zero-padding/overflow hidden for tables.

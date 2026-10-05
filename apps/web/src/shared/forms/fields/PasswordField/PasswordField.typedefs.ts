@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { InputProps } from '@/shared/ui/Input';
+import type { InputProps } from '@/shared/ui/inputs/Input';
 
 export interface PasswordFieldProps extends Omit<
   InputProps,

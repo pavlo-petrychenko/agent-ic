@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { LocaleSwitcher } from '@/app/components/LocaleSwitcher';
 import type { AppHeaderProps } from '@/app/layouts/AppHeader/AppHeader.typedefs';
-import { TextLink } from '@/shared/ui/TextLink';
+import { TextLink } from '@/shared/ui/actions/TextLink';
 import styles from '@/app/layouts/AppHeader/AppHeader.module.scss';
 
 export function AppHeader({ children = null }: AppHeaderProps) {

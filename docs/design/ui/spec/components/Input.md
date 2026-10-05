@@ -36,5 +36,5 @@ Token-driven; dark halo value is the dark `--shadow-focus-field`.
 ## Used by
 Field, Composer (lg), AuthFrame, wizard steps, SearchInput base, Inspector.
 
-## Differs from existing `shared/ui/Input`
+## Differs from existing `shared/ui/inputs/Input`
 Existing: border-colour-only focus, `min-height`, no size/mono. Design: size, mono, 3px halo, fixed heights, 0.45 disabled.

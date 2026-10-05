@@ -1,7 +1,7 @@
 import {
   VARIABLE_CHIP_CLOSE,
   VARIABLE_CHIP_OPEN,
-} from '@/shared/ui/VariableChip/VariableChip.constants';
+} from '@/shared/ui/inputs/VariableChip/VariableChip.constants';
 
 export enum PromptNodeName {
   Doc = 'doc',

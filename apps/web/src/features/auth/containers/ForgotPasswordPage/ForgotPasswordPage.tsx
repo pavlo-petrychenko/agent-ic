@@ -14,9 +14,9 @@ import { AuthLinks } from '@/features/auth/view/AuthLinks';
 import { AuthPanel } from '@/features/auth/view/AuthPanel';
 import { useAppForm } from '@/shared/forms/hooks/useAppForm';
 import { Namespace } from '@/shared/i18n/constants/namespace.constants';
-import { ButtonSize } from '@/shared/ui/Button';
-import { Callout, CalloutTone } from '@/shared/ui/Callout';
-import { TextLink } from '@/shared/ui/TextLink';
+import { ButtonSize } from '@/shared/ui/actions/Button';
+import { TextLink } from '@/shared/ui/actions/TextLink';
+import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 
 export function ForgotPasswordPage() {
   const { t } = useTranslation(Namespace.Auth);

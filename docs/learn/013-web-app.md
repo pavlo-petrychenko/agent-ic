@@ -60,7 +60,7 @@ A new screen. Tick every box before the pull request.
 - [ ] API to UI mapping in `communication/helpers/<topic>.helpers.ts`; UI types in `typedefs/<topic>.typedefs.ts`.
 - [ ] Workspace data that must never leak between workspaces uses `fetchPolicy: 'network-only'`.
 - [ ] Views in `view/<Name>/`: props in, events out, components from `shared/ui` only. No fetching.
-- [ ] A missing UI primitive goes into `apps/web/src/shared/ui/<Name>/` with a story and a test. Radix may appear only there.
+- [ ] A missing UI primitive goes into `apps/web/src/shared/ui/<group>/<Name>/` with a story and a test. The groups are listed in [structure.md](../rules/structure.md). Radix may appear only there.
 - [ ] Container in `containers/<Name>/`: calls the hooks, passes data to views.
 - [ ] Hide actions the role may not use with `can(role, resource, action)` from `@agent-ic/contracts`. The backend checks again.
 - [ ] Export the container from the feature's `index.ts`.
