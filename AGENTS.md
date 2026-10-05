@@ -35,18 +35,19 @@ Turborepo behaviour can differ from what you remember. Its docs ship with the in
 
 ## Docs map
 
-| Need                                      | Read                          |
-| ----------------------------------------- | ----------------------------- |
-| How to build a feature, step by step      | `docs/guides/README.md`       |
-| What the product does and does not do     | `docs/design/mvp-scope.md`    |
-| Decisions D1 to D190, layout, data flow   | `docs/design/architecture.md` |
-| Why a decision was made                   | `docs/design/adr/`            |
-| Code, architecture, testing and git rules | `docs/rules/`                 |
-| Where every file goes and why             | `docs/rules/structure.md`     |
-| Backend module anatomy                    | `apps/backend/AGENTS.md`      |
-| Web feature anatomy                       | `apps/web/AGENTS.md`          |
-| How people contribute and review          | `CONTRIBUTING.md`             |
-| What each shared package holds            | `packages/*/README.md`        |
+| Need                                                      | Read                          |
+| --------------------------------------------------------- | ----------------------------- |
+| Where to start: the product, a repo map, the reading path | `docs/README.md`              |
+| One concept per page, read in order                       | `docs/learn/`                 |
+| What the product does and does not do                     | `docs/design/mvp-scope.md`    |
+| Decisions D1 to D190, layout, data flow                   | `docs/design/architecture.md` |
+| Why a decision was made                                   | `docs/design/adr/`            |
+| Code, architecture, testing and git rules                 | `docs/rules/`                 |
+| Where every file goes and why                             | `docs/rules/structure.md`     |
+| Backend module anatomy                                    | `apps/backend/AGENTS.md`      |
+| Web feature anatomy                                       | `apps/web/AGENTS.md`          |
+| How people contribute and review                          | `CONTRIBUTING.md`             |
+| What each shared package holds                            | `packages/*/README.md`        |
 
 ## Hard rules
 
@@ -79,52 +80,11 @@ Details and reasons are in `docs/rules/`. A tool enforces each rule marked with 
 
 ## What lives where and why
 
-The full spec, with the reasons, is in [docs/rules/structure.md](docs/rules/structure.md). A file is named `<topic>.<kind>.ts` and lives in the folder of its kind, inside a backend module (`src/modules/<m>/`), a platform module (`src/platform/<p>/`) or a web feature (`src/features/<f>/`). Folders appear only when they have files.
+A file is named `<topic>.<kind>.ts` and lives in the folder of its kind, inside a backend module (`src/modules/<m>/`), a platform module (`src/platform/<p>/`) or a web feature (`src/features/<f>/`). Folders appear only when they have files.
 
-### Backend
-
-| Kind                 | Folder                                                | Holds                                                                                                   | Why                                                                                                |
-| -------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Resolver             | `resolvers/` `.resolver.ts`                           | a GraphQL query, mutation or subscription; calls one use case                                           | every entry point looks the same, so permissions, transactions and errors are handled in one place |
-| Controller           | `controllers/` `.controller.ts`                       | a REST endpoint (cookies, the gateway); calls one use case                                              | same as above                                                                                      |
-| Processor            | `processors/` `.processor.ts`                         | a job taken from a queue; calls one use case                                                            | same as above                                                                                      |
-| Listener             | `listeners/` `.listener.ts`                           | a domain event from another module; calls one use case                                                  | same as above                                                                                      |
-| GraphQL SDL          | `graphql/` `<m>.graphql`                              | the module's schema                                                                                     | schema first, one file per module                                                                  |
-| Job                  | `jobs/` `.job.ts`                                     | background work this module accepts: queue, name, payload schema (IDs only), made with `defineJob`      | sender and receiver share one typed shape                                                          |
-| Event                | `events/` `.event.ts`                                 | a fact this module announces: name, payload schema, made with `defineDomainEvent`                       | other modules react without the sender knowing them                                                |
-| Channel              | `channels/` `.channel.ts`                             | a live-update channel behind a subscription, made with `defineChannel`                                  | best-effort fan-out to open browser tabs                                                           |
-| Use case             | `use-cases/` `.use-case.ts`                           | one business operation: authorize first, one transaction                                                | the one place that reads as the business flow                                                      |
-| Service              | `services/` `.service.ts`                             | logic with state or dependencies, shared by use cases or platform; abstract services for internal ports | reuse without calling another use case                                                             |
-| Repository           | `repositories/` `.repository.ts`                      | Drizzle and SQL                                                                                         | one place to audit tenant filtering                                                                |
-| Gateway              | `gateways/` `.gateway.ts`, `.fake.ts`                 | an external system: abstract class, implementations, a fake                                             | external calls are replaceable in tests                                                            |
-| Table                | `db/` `.table.ts`                                     | Drizzle tables in the module's Postgres schema                                                          | one schema per module                                                                              |
-| Error                | `errors/` `.error.ts`                                 | `DomainError` subclasses                                                                                | one place for what can go wrong                                                                    |
-| Schema               | `schemas/` `.schema.ts`                               | zod schemas                                                                                             | validation is data                                                                                 |
-| Types, values, logic | `typedefs/`, `constants/`, `helpers/`                 | `.typedefs.ts`, `.constants.ts`, `.helpers.ts` (pure functions, mappers)                                | a class file holds the class only                                                                  |
-| Nest plumbing        | `guards/`, `decorators/`, `filters/`, `interceptors/` | `.guard.ts`, `.decorator.ts`, `.filter.ts`, `.interceptor.ts`                                           | mostly in `platform/`                                                                              |
-| Commands             | `app/commands/` `.command.ts`                         | `serve`, `migrate`, `print-schema`; only in `app/`                                                      | one binary, one entry                                                                              |
-| Generated            | `generated/` `.generated.ts`                          | codegen output, gitignored                                                                              | never edited by hand                                                                               |
-
-A spec sits next to its file (`.spec.ts`). Shared test support is in `apps/backend/test/support/` (`setup/`, `fakes/`, `fixtures/`, `helpers/`, `modules/`, and more), imported as `@test/support/…`. Specs through a booted app are in `apps/backend/test/integration/`.
-
-### Web
-
-| Kind                        | Folder                                                                  | Holds                                                | Why                                |
-| --------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------- |
-| Operation                   | `communication/gql/{query,mutation,subscription,fragment}/` `x.graphql` | a GraphQL operation; `x.generated.ts` beside it      | the API contract in one place      |
-| Data hook                   | `communication/hooks/` `useX.ts`                                        | a hook that talks to the API                         | components never fetch             |
-| API mapping                 | `communication/helpers/` `x.helpers.ts`                                 | API shape to UI shape                                | the UI never sees API types        |
-| Behaviour                   | `logic/hooks/`, `logic/helpers/`                                        | behaviour hooks and pure functions, no data fetching | testable without a network         |
-| Shared state                | `storage/`                                                              | state shared across components                       | server data stays in Apollo        |
-| Presentational              | `view/<Name>/`                                                          | props in, events out                                 | reusable and cheap to test         |
-| Screen                      | `containers/<Name>/`                                                    | wires communication, logic and view                  | one place per screen or panel      |
-| Feature constants and types | `constants/`, `typedefs/` at the feature root                           | shared by every layer of the feature                 | one home, importable by all layers |
-| Outside features            | `components/`, `layouts/`, `providers/`, `fields/` `<Name>/`            | components of `app/` and `shared/`                   | same folder shape as in features   |
-| Context, client, error      | `contexts/`, `clients/`, `errors/`                                      | `x.context.ts`, `x.client.ts`, `x.error.ts`          | one kind per folder                |
-| Fixture                     | `fixtures/` `x.fixture.ts`                                              | Apollo mocks and test data                           | tests share data                   |
-| Translations                | `locales/{en,uk}/` `*.json`                                             | user-facing text                                     | no text in code                    |
-
-A component folder is flat: `Name.tsx`, `Name.module.scss`, `Name.test.tsx`, `Name.typedefs.ts`, `Name.constants.ts`, `index.ts`. Stories exist only in `shared/ui`. Test support is in `apps/web/test/support/`, imported as `@test/support/…`.
+- Every kind folder and suffix, with the reason for each: [docs/rules/structure.md](docs/rules/structure.md).
+- Backend module anatomy, kind by kind: [apps/backend/AGENTS.md](apps/backend/AGENTS.md).
+- Web feature anatomy, layer by layer: [apps/web/AGENTS.md](apps/web/AGENTS.md).
 
 ### Common changes
 

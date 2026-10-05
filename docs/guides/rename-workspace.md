@@ -1,6 +1,6 @@
 # Worked example: rename a workspace
 
-[Back to the guide](README.md)
+[Back to the docs](../README.md)
 
 This page lists every step to add one small feature: an owner or admin renames the workspace in Settings, General. It is not built yet, so you can use it as your first task. The screen is `Settings-General` in [docs/design/mvp-scope.md](../design/mvp-scope.md) (UC-14).
 
@@ -9,7 +9,7 @@ The code below is a sketch that follows the real patterns. Copy the shape, then 
 ## Before you start
 
 - Branch from `main`: `git switch -c feat/rename-workspace`.
-- Start the stack: `mise run start`. See [Run and debug locally](run-and-debug.md).
+- Start the stack: `mise run start`. See [Run and debug locally](../learn/001-run-and-debug.md).
 - Who may rename? `PERMISSION_MATRIX` in `packages/contracts/src/permissions/permission.constants.ts` gives `workspace_settings: edit` to owners and admins only. We use `PermissionResource.WorkspaceSettings` with `PermissionAction.Edit`. Nothing changes in contracts.
 
 ## Backend

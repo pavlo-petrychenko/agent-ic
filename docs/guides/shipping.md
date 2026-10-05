@@ -1,6 +1,6 @@
 # From pull request to production
 
-[Back to the guide](README.md)
+[Back to the docs](../README.md)
 
 ## Before you open the pull request
 

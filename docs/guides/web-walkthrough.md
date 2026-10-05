@@ -1,6 +1,6 @@
 # Web walkthrough: the auth and settings features
 
-[Back to the guide](README.md)
+[Back to the docs](../README.md)
 
 The web app lives in `apps/web/src/`. Each product area is a feature folder in `features/`. We follow two real screens in the order you would write them:
 

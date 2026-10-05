@@ -1,6 +1,6 @@
 # Starter backlog
 
-[Back to the guide](README.md)
+[Back to the docs](../README.md)
 
 This is what is left of team management and personal settings in the MVP scope: UC-3 and UC-14 in [docs/design/mvp-scope.md](../design/mvp-scope.md). The list has no order and no owners. Each item names the scope text and the code it builds on.
 
