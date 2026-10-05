@@ -1,0 +1,15 @@
+.row {
+  display: block;
+}
+
+.cell {
+  display: block;
+}
+
+.empty {
+  padding: calc(var(--space-20) * 2) var(--space-24);
+}
+
+.error {
+  padding: var(--space-16);
+}

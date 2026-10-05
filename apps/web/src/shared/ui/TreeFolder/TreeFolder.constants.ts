@@ -1,0 +1,2 @@
+export const TREE_FOLDER_CHEVRON_SIZE = 11;
+export const TREE_FOLDER_CHEVRON_STROKE_WIDTH = 1.8;

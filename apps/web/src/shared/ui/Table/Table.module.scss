@@ -1,0 +1,260 @@
+$control-column-width: 36px;
+$story-width: 760px;
+
+.root {
+  --table-control-width: #{$control-column-width};
+  --table-gap: var(--space-10);
+  --table-pad-x: var(--space-16);
+  --table-head-pad-y: var(--space-9);
+  --table-row-pad-y: var(--space-10);
+
+  min-width: 0;
+}
+
+.toolbar {
+  box-sizing: border-box;
+  padding: var(--space-12) var(--space-16);
+  border-bottom: var(--border-width) solid var(--color-line);
+}
+
+.scroll {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.table {
+  display: block;
+  min-width: 100%;
+  border-collapse: collapse;
+
+  thead,
+  tbody {
+    display: block;
+  }
+}
+
+.compact {
+  --table-row-pad-y: var(--space-10);
+}
+
+.comfortable {
+  --table-row-pad-y: var(--space-12);
+}
+
+.withSelection {
+  --table-pad-x: var(--space-14);
+  --table-head-pad-y: var(--space-8);
+}
+
+.head {
+  display: grid;
+  align-items: center;
+  gap: var(--table-gap);
+  padding: var(--table-head-pad-y) var(--table-pad-x);
+  border-bottom: var(--border-width) solid var(--color-line);
+}
+
+.default {
+  background: var(--color-card);
+}
+
+.panel {
+  background: var(--color-panel);
+}
+
+.row {
+  display: grid;
+  align-items: center;
+  gap: var(--table-gap);
+  padding: var(--table-row-pad-y) var(--table-pad-x);
+  border-bottom: var(--border-width) solid var(--color-line-row);
+  background: var(--color-card);
+  transition: background-color var(--duration-fast);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &:hover {
+    background: var(--color-soft);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring-inset);
+  }
+}
+
+.interactive {
+  cursor: pointer;
+}
+
+.row.checked,
+.row.current {
+  background: var(--color-accent-light);
+}
+
+.row.current {
+  box-shadow: inset var(--border-width-strong) 0 0 var(--color-accent);
+
+  &:focus-visible {
+    box-shadow:
+      var(--shadow-focus-ring-inset),
+      inset var(--border-width-strong) 0 0 var(--color-accent);
+  }
+}
+
+.disabled {
+  cursor: not-allowed;
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+}
+
+.cell {
+  display: block;
+  min-width: 0;
+}
+
+.start {
+  text-align: start;
+}
+
+.end {
+  text-align: end;
+}
+
+.select {
+  display: flex;
+  align-items: center;
+}
+
+.menu {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.menuTrigger {
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast),
+    background-color var(--duration-fast);
+
+  .row:hover &,
+  .row:focus-within &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  &:hover {
+    color: var(--color-ink);
+  }
+
+  &[data-state='open'] {
+    background: var(--color-chip);
+    color: var(--color-ink);
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+.leadContent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.leadValue {
+  flex: 1;
+  min-width: 0;
+}
+
+.expand {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-4);
+  background: transparent;
+  color: var(--color-mute);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-ink);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.detail {
+  display: block;
+  border-bottom: var(--border-width) solid var(--color-line-row);
+  background: var(--color-panel);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &.current {
+    background: var(--color-accent-light);
+  }
+}
+
+.detailCell {
+  display: block;
+  padding: var(--space-12) var(--space-14) var(--space-14)
+    calc(var(--table-pad-x) + var(--table-control-width) + var(--table-gap) + var(--space-16));
+  color: var(--color-ink-secondary);
+  font: var(--type-caption);
+}
+
+.narrow .select,
+.narrow .lead {
+  position: sticky;
+  left: 0;
+  z-index: var(--z-raised);
+  background: inherit;
+}
+
+.narrow .withSelection .lead {
+  left: calc(var(--table-control-width) + var(--table-gap));
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--space-10) var(--space-16);
+  border-top: var(--border-width) solid var(--color-line);
+  background: var(--color-panel);
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.storyFrame {
+  width: $story-width;
+}
+
+.storyDetail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-12);
+}

@@ -1,0 +1,20 @@
+.row {
+  display: grid;
+  align-items: center;
+  gap: var(--table-gap);
+  padding: var(--space-14) var(--table-pad-x);
+  border-bottom: var(--border-width) solid var(--color-line-row);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.cell {
+  display: block;
+  min-width: 0;
+}
+
+.afterControl {
+  grid-column-start: 2;
+}
