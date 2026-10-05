@@ -1,22 +1,10 @@
 # Checklists
 
-[Back to the guide](README.md)
+[Back to the docs](../README.md)
 
 Tick every box before you open the pull request. Each list ends with the same step: `mise run check` and `mise exec -- pnpm test` pass.
 
-## A new backend module
-
-Create a module only for a new business area. Workspaces, members and invites are part of `identity`, not their own module. Ask in review when unsure.
-
-- [ ] Folder `apps/backend/src/modules/<name>/`. Its root holds only `<name>.module.ts` and `index.ts`.
-- [ ] `<name>.module.ts` exports `class <Name>Module extends defineModule({ providers, resolvers, controllers, processors, listeners, exports })`. Leave out the keys you do not need. See `modules/system/system.module.ts` for the smallest one.
-- [ ] `index.ts` exports the module class and only what other modules may use (services, repositories, events). Never use cases or resolvers.
-- [ ] One line in `DOMAIN_MODULES` in `apps/backend/src/app/constants/app-modules.constants.ts`.
-- [ ] Every other file goes into a kind folder: `graphql/`, `resolvers/`, `use-cases/`, `services/`, `repositories/`, `db/`, `errors/`, `typedefs/`, `constants/`, `helpers/` and the others in [docs/rules/structure.md](../rules/structure.md). Create a folder only when it has a file.
-- [ ] GraphQL SDL in `graphql/<name>.graphql`, using `extend type Query` and `extend type Mutation`. Then `mise run codegen`.
-- [ ] Another module is used only through its `index.ts`: `import { X } from '@/modules/identity'`.
-- [ ] If the module owns tables, follow the next list.
-- [ ] `mise run check` and `mise exec -- pnpm test` pass.
+A new backend module: see "Add one" in [003 Code layout](../learn/003-code-layout.md#add-one-a-new-backend-module).
 
 ## A new table
 

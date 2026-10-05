@@ -1,6 +1,6 @@
 # Backend walkthrough: the identity module
 
-[Back to the guide](README.md)
+[Back to the docs](../README.md)
 
 The `identity` module owns users, sessions, workspaces, memberships and invite links. It lives in `apps/backend/src/modules/identity/`. There is no separate `workspaces` module: workspaces are part of `identity` (architecture.md D175).
 

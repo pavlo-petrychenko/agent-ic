@@ -2,9 +2,9 @@
 
 Multi-tenant platform for building and running AI agents.
 
-Documentation lives in `docs/`. The design documents are in `docs/design/`: `architecture.md`, `mvp-scope.md`, `communication.md` and `adr/`.
+Documentation starts at [docs/README.md](docs/README.md). The design documents are in `docs/design/`: `architecture.md`, `mvp-scope.md`, `communication.md` and `adr/`.
 
-New to the project? Start with [How to build a feature](docs/guides/README.md): running the stack, a file-by-file walkthrough of the backend and the web app, checklists and a starter backlog.
+New to the project? Start with [docs/README.md](docs/README.md): what agent-ic is, a map of the repository and a numbered reading path from running the stack to shipping.
 
 ## Prerequisites
 
