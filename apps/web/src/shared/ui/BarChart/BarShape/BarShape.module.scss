@@ -1,0 +1,16 @@
+$dimmed-opacity: 0.82;
+
+.bar {
+  fill: var(--chart-1);
+  transition: fill-opacity var(--duration-fast) var(--ease-standard);
+}
+
+.dimmed {
+  fill-opacity: $dimmed-opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    transition: none;
+  }
+}
