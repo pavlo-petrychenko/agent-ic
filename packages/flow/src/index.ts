@@ -1,9 +1,12 @@
 export {
   ConditionOperator,
+  OperandKind,
+  OPERATOR_OPERANDS,
   OPERATORS_BY_TYPE,
   RuleMatch,
 } from '@flow/conditions/constants/condition.constants';
 export {
+  conditionValueFits,
   evaluateCondition,
   operatorsForType,
   pickRoute,
@@ -138,6 +141,9 @@ export type {
   TemplateText,
   VariableResolver,
 } from '@flow/templates/typedefs/template.typedefs';
+export { FlowIssueCode, FlowIssueSeverity } from '@flow/validation/constants/issue.constants';
+export { hasBlockingIssues, validateFlow } from '@flow/validation/helpers/validation.helpers';
+export type { FlowIssue, FlowIssueParams } from '@flow/validation/typedefs/validation.typedefs';
 export { ParseFlowFailureKind } from '@flow/versions/constants/version.constants';
 export { parseFlow } from '@flow/versions/helpers/version.helpers';
 export type {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ConditionOperator, RuleMatch } from '@flow/conditions/constants/condition.constants';
 import {
+  conditionValueFits,
   evaluateCondition,
   operatorsForType,
   pickRoute,
@@ -174,5 +175,34 @@ describe('operatorsForType', () => {
 
   it('allows every operator on an untyped value', () => {
     expect(operatorsForType(VariableType.Unknown)).toEqual(Object.values(ConditionOperator));
+  });
+});
+
+describe('conditionValueFits', () => {
+  const text = { type: VariableType.String, nullable: false, values: null };
+  const amount = { type: VariableType.Number, nullable: false, values: null };
+  const intent = { type: VariableType.Enum, nullable: false, values: ['booking', 'pricing'] };
+  const untyped = { type: VariableType.Unknown, nullable: true, values: null };
+
+  it('wants no value for operators without an operand', () => {
+    expect(conditionValueFits(ConditionOperator.IsEmpty, text, null)).toBe(true);
+    expect(conditionValueFits(ConditionOperator.IsTrue, untyped, 'x')).toBe(false);
+  });
+
+  it('matches the value to the variable type for eq and neq', () => {
+    expect(conditionValueFits(ConditionOperator.Eq, text, 'a')).toBe(true);
+    expect(conditionValueFits(ConditionOperator.Eq, text, 1)).toBe(false);
+    expect(conditionValueFits(ConditionOperator.Neq, amount, 1)).toBe(true);
+    expect(conditionValueFits(ConditionOperator.Eq, intent, 'booking')).toBe(true);
+    expect(conditionValueFits(ConditionOperator.Eq, intent, 'other')).toBe(false);
+    expect(conditionValueFits(ConditionOperator.Eq, untyped, true)).toBe(true);
+  });
+
+  it('wants text, a number or a list of allowed values', () => {
+    expect(conditionValueFits(ConditionOperator.Contains, text, 'a')).toBe(true);
+    expect(conditionValueFits(ConditionOperator.Gt, amount, '3')).toBe(false);
+    expect(conditionValueFits(ConditionOperator.In, intent, ['pricing'])).toBe(true);
+    expect(conditionValueFits(ConditionOperator.In, intent, ['other'])).toBe(false);
+    expect(conditionValueFits(ConditionOperator.In, intent, [])).toBe(false);
   });
 });

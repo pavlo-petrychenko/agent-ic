@@ -1,11 +1,14 @@
 import {
   ConditionOperator,
+  OperandKind,
+  OPERATOR_OPERANDS,
   OPERATORS_BY_TYPE,
   RuleMatch,
 } from '@flow/conditions/constants/condition.constants';
 import { PortName } from '@flow/document/constants/flow.constants';
 import type { Condition, ConditionValue, RouterRule } from '@flow/document/typedefs/flow.typedefs';
-import type { VariableType } from '@flow/scope/constants/scope.constants';
+import { VariableType } from '@flow/scope/constants/scope.constants';
+import type { ResolvedVariable } from '@flow/scope/typedefs/scope.typedefs';
 import type { VariableResolver } from '@flow/templates/typedefs/template.typedefs';
 
 const isMissing = (value: unknown): value is null | undefined =>
@@ -88,3 +91,45 @@ export const pickRoute = (rules: readonly RouterRule[], resolve: VariableResolve
 
 export const operatorsForType = (type: VariableType): readonly ConditionOperator[] =>
   OPERATORS_BY_TYPE[type];
+
+const allowedValue = (variable: ResolvedVariable, value: string): boolean =>
+  variable.values === null || variable.values.includes(value);
+
+const scalarFits = (variable: ResolvedVariable, value: ConditionValue): boolean => {
+  switch (variable.type) {
+    case VariableType.Number:
+      return typeof value === 'number';
+    case VariableType.Enum:
+      return typeof value === 'string' && allowedValue(variable, value);
+    case VariableType.Unknown:
+      return isScalar(value);
+    case VariableType.String:
+    case VariableType.Boolean:
+    case VariableType.StringList:
+    case VariableType.List:
+      return typeof value === 'string';
+  }
+};
+
+export const conditionValueFits = (
+  operator: ConditionOperator,
+  variable: ResolvedVariable,
+  value: ConditionValue,
+): boolean => {
+  switch (OPERATOR_OPERANDS[operator]) {
+    case OperandKind.None:
+      return value === null;
+    case OperandKind.Scalar:
+      return scalarFits(variable, value);
+    case OperandKind.Text:
+      return typeof value === 'string';
+    case OperandKind.Number:
+      return typeof value === 'number';
+    case OperandKind.TextList:
+      return (
+        Array.isArray(value) &&
+        value.length > 0 &&
+        value.every((item) => allowedValue(variable, item))
+      );
+  }
+};
