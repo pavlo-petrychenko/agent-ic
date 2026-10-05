@@ -1,0 +1,26 @@
+$story-width: 420px;
+
+.root {
+  display: inline-flex;
+  align-self: flex-end;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-6) var(--space-12);
+  border: var(--border-width) dashed var(--color-line);
+  border-radius: var(--radius-pill);
+  background: var(--color-card);
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.storyFrame {
+  display: flex;
+  flex-direction: column;
+  width: $story-width;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root .icon {
+    animation: none;
+  }
+}
