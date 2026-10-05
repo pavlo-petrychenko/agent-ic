@@ -57,11 +57,10 @@ export const Empty: Story = {
   args: { value: '', placeholder: 'Describe how the agent should behave' },
 };
 export const MenuOpen: Story = {
-  args: { value: 'Call the customer ' },
+  args: { value: '' },
   play: async ({ canvasElement }) => {
     const editor = await within(canvasElement).findByRole('textbox');
     await userEvent.click(editor);
-    await userEvent.keyboard('{End}');
     await userEvent.keyboard(TYPED_OPEN);
   },
 };
