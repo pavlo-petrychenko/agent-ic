@@ -1,0 +1,31 @@
+.crosshair {
+  stroke: var(--color-edge);
+  stroke-width: var(--border-width);
+  pointer-events: none;
+}
+
+.marker {
+  fill: var(--marker-color);
+  stroke: var(--color-card);
+  pointer-events: none;
+}
+
+.chart-1 {
+  --marker-color: var(--chart-1);
+}
+
+.chart-2 {
+  --marker-color: var(--chart-2);
+}
+
+.chart-3 {
+  --marker-color: var(--chart-3);
+}
+
+.chart-4 {
+  --marker-color: var(--chart-4);
+}
+
+.chart-muted {
+  --marker-color: var(--chart-muted);
+}

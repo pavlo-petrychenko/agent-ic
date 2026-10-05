@@ -1,0 +1,85 @@
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  width: 100%;
+  min-width: 0;
+}
+
+.frame {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-8);
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.plot {
+  position: relative;
+  width: 100%;
+  font-family: var(--font-sans);
+
+  :global(.recharts-cartesian-grid-horizontal line) {
+    stroke: var(--color-line-row);
+  }
+
+  :global(.recharts-cartesian-axis-tick-value) {
+    fill: var(--color-mute);
+    font: var(--type-hint);
+  }
+
+  :global(.recharts-surface) {
+    overflow: visible;
+  }
+}
+
+.line :global(.recharts-line-curve) {
+  fill: none;
+  stroke: var(--line-color);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-1 {
+  --line-color: var(--chart-1);
+}
+
+.chart-2 {
+  --line-color: var(--chart-2);
+}
+
+.chart-3 {
+  --line-color: var(--chart-3);
+}
+
+.chart-4 {
+  --line-color: var(--chart-4);
+}
+
+.chart-muted {
+  --line-color: var(--chart-muted);
+}
+
+.visuallyHidden {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.storyFrame {
+  width: calc(var(--space-48) * 11);
+}
+
+.storyFrameNarrow {
+  width: calc(var(--space-48) * 7);
+}
