@@ -1,0 +1,44 @@
+$story-width: 160px;
+
+.root {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  font: var(--type-body-small);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ink {
+  color: var(--color-ink);
+}
+
+.secondary {
+  color: var(--color-ink-secondary);
+}
+
+.mute {
+  color: var(--color-mute);
+}
+
+.start {
+  text-align: start;
+}
+
+.end {
+  text-align: end;
+}
+
+.mono {
+  font: var(--type-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.storyFrame {
+  width: $story-width;
+  padding: var(--space-10) var(--space-16);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-card);
+}
