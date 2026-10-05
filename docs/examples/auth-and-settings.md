@@ -106,4 +106,4 @@ The file name is the URL. After you add a route file, run `mise run codegen` to 
 - `renderRoute`, `signInForTest` and `signOutForTest` are in [test/support/helpers](../../apps/web/test/support/helpers/).
 - Run the web tests with `mise exec -- pnpm --filter web test`. Rules for tests: [docs/rules/testing.md](../rules/testing.md).
 
-Next: put both halves together in [rename a workspace](rename-workspace.md).
+Next: put both halves together in [rename a workspace](rename-workspace.md) or [save the language to the account](save-language.md).

@@ -58,6 +58,7 @@ Read these after 014. They link real files instead of pasting code, so they stay
 - [The identity module](examples/identity-module.md): the backend, file by file. SDL, schema, use case, repository, resolver, module, spec.
 - [Auth and settings](examples/auth-and-settings.md): the web, file by file. Operation, hook, mapping helper, view, container, route, test.
 - [Worked example: rename a workspace](examples/rename-workspace.md): a feature that is not built yet. Every step for a small resolver plus a screen, in order.
+- [Worked example: save the language to the account](examples/save-language.md): a second feature that is not built yet. A user-level mutation, the Apollo cache and the language switch. It touches different files from rename a workspace, so both can be built at once.
 
 ## Rules you will meet on day one
 
