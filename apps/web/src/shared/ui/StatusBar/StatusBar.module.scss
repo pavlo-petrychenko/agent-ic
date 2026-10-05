@@ -1,0 +1,41 @@
+.root {
+  position: relative;
+  z-index: var(--z-raised);
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  height: var(--size-statusbar-height);
+  padding: 0 var(--space-16);
+  border-top: var(--border-width) solid var(--color-line);
+  background: var(--color-panel);
+}
+
+$story-width: 560px;
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.label {
+  flex-shrink: 0;
+  color: var(--color-ink);
+  font: var(--type-title);
+}
+
+.storyFrame {
+  width: $story-width;
+  max-width: 100%;
+}
+
+.detail {
+  overflow: hidden;
+  color: var(--color-mute);
+  font: var(--type-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
