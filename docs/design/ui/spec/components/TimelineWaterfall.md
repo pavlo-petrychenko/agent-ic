@@ -20,13 +20,13 @@ selected row: bg --color-accent-light (page shows no inset bar on the waterfall;
 type TimelineRowData = { id: string; label: string; depth: number; startMs: number; durationMs: number; kind: TraceStepKind };
 type TimelineProps = { rows: TimelineRowData[]; totalMs: number; ticks: number[]; selectedId: string | null; onSelect: (id: string) => void; labelWidth: number };
 ```
-Bars: left = startMs/totalMs * trackWidth, width = max(durationMs/totalMs * trackWidth, min 2px); label flips side when no room.
+Bars: left = startMs/totalMs * trackWidth, width = max(durationMs/totalMs * trackWidth, min 2px); label flips side when no room. Built as hand-rolled SVG (no chart library): the track width is measured (fallback 210) so the scale follows the container, `labelWidth` defaults to 150, ticks are positioned in percent. Each row is a list item with an overlay button named by `description` ("<name>, starts at X, lasts Y"), `aria-current` when selected; the drawing is `aria-hidden`. The ChartTooltip (step name and duration) shows on pointer hover and on keyboard focus of the row. The Legend lists the step kinds that appear in `rows`, using the Legend `hue` marker (the `--hue-<kind>-fg` colour of each bar). `caption` is the SectionLabel.
 
 ## Tokens
 axis/tick text --color-mute; section label --type-small --color-mute padding 8px 16px 4px; bar radius 3px (local chart constant).
 
 ## Accessibility
-Use `role="table"` or a list with `aria-label="Run timeline"`; bars decorative with text alternative: "<name>, starts at X, lasts Y". Colour not sole carrier: label has the duration.
+A list with `aria-label` ("Run timeline"); bars decorative with the text alternative "<name>, starts at X, lasts Y" on the row button. Colour not sole carrier: label has the duration.
 
 ## Light/dark
 Bars use the step hue fg tokens, whose dark values are in tokens.md. Bar fills are solid hue fg; the duration label carries the value so colour is not the only carrier.

@@ -1,4 +1,5 @@
 import type { ChartColor, LegendMarkerKind } from '@/shared/ui/display/Legend/Legend.constants';
+import type { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
 import type { StatusKind } from '@/shared/ui/display/StatusDot';
 
 export interface LegendStatusMarker {
@@ -11,7 +12,12 @@ export interface LegendSeriesMarker {
   color: ChartColor;
 }
 
-export type LegendMarker = LegendStatusMarker | LegendSeriesMarker;
+export interface LegendHueMarker {
+  kind: LegendMarkerKind.Hue;
+  hue: NodeKind;
+}
+
+export type LegendMarker = LegendStatusMarker | LegendSeriesMarker | LegendHueMarker;
 
 export interface LegendItem {
   id: string;

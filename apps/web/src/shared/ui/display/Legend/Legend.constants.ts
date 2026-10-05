@@ -9,6 +9,7 @@ export enum ChartColor {
 export enum LegendMarkerKind {
   Status = 'status',
   Series = 'series',
+  Hue = 'hue',
 }
 
 export enum LegendVariant {

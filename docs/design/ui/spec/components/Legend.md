@@ -5,6 +5,7 @@ Purpose: row of marker + label items explaining a diagram, timeline or chart ser
 Root flex, gap 12 (--space-12) > item (flex, gap 5/6, items center) > marker + label. Marker is a StatusDot (6px, status legends: ran / running / not reached) or a series swatch (chart legends; drawn on DS-Patterns > Charts "legend · two series · hover crosshair").
 
 ## Variants
+- `kind: 'hue'` (added for the TimelineWaterfall): a series-style swatch in the `--hue-<kind>-fg` colour of a NodeKind, so a legend can match step bars and tiles; hidden items fall back to the muted swatch like series.
 - `kind: 'status'`: StatusDot marker, items `{ kind: StatusKind; label }`.
 - `kind: 'series'` (drawn on DS-Patterns): a line swatch 12x3, radius 2, in the series colour (`--chart-1..4`), items `{ color: ChartColor; label }`; item inline-flex gap `--space-6`, label `--type-caption` 12 `--color-ink-secondary`; items gap `--space-16`. Sits above the plot, left-aligned, under the ChartCard header. (Replaces the 8px-square proposal.)
 - Interactive series toggle (drawn on DS-Patterns): clicking an item hides that series; the hidden item shows a `--chart-muted` swatch and a `--color-mute` label struck through (`text-decoration: line-through`) (replaces the 45%-opacity proposal). Items are buttons with `aria-pressed` (pressed = visible).
@@ -17,7 +18,7 @@ Status legend: static. Series legend: toggle as above; focus-visible = outside r
 
 ## Props
 ```ts
-type LegendItem = { id: string; label: string; marker: { kind: 'status'; status: StatusKind } | { kind: 'series'; color: ChartColor } };
+type LegendItem = { id: string; label: string; marker: { kind: 'status'; status: StatusKind } | { kind: 'series'; color: ChartColor } | { kind: 'hue'; hue: NodeKind } };
 type LegendProps = { items: LegendItem[]; hiddenIds: string[] | null; onToggle: ((id: string) => void) | null };
 enum ChartColor { Chart1 = 'chart-1', Chart2 = 'chart-2', Chart3 = 'chart-3', Chart4 = 'chart-4', Muted = 'chart-muted' }
 ```

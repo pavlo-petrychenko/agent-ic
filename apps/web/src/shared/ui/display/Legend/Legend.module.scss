@@ -1,3 +1,6 @@
+$hue-kinds:
+  trig, agent, compl, router, par, wait, send, api, kb, tool, var, esc, gen, neutral, info, ok,
+  warn, err;
 $swatch-width: 12px;
 $swatch-height: 3px;
 $swatch-radius: 2px;
@@ -72,6 +75,12 @@ $swatch-radius: 2px;
 
 .chart-muted {
   --swatch-color: var(--chart-muted);
+}
+
+@each $kind in $hue-kinds {
+  .hue-#{$kind} {
+    --swatch-color: var(--hue-#{$kind}-fg);
+  }
 }
 
 .root .hiddenLabel {

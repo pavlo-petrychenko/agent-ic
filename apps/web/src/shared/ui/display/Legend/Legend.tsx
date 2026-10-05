@@ -17,7 +17,13 @@ function renderMarker(item: LegendItem, hidden: boolean) {
       </span>
     );
   }
-  const color = hidden ? ChartColor.Muted : item.marker.color;
+  if (item.marker.kind === LegendMarkerKind.Hue && !hidden) {
+    return (
+      <span aria-hidden="true" className={clsx(styles.swatch, styles[`hue-${item.marker.hue}`])} />
+    );
+  }
+  const color =
+    item.marker.kind === LegendMarkerKind.Series && !hidden ? item.marker.color : ChartColor.Muted;
   return <span aria-hidden="true" className={clsx(styles.swatch, styles[color])} />;
 }
 

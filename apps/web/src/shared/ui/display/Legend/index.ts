@@ -1,6 +1,7 @@
 export { Legend } from '@/shared/ui/display/Legend/Legend';
 export { ChartColor, LegendMarkerKind } from '@/shared/ui/display/Legend/Legend.constants';
 export type {
+  LegendHueMarker,
   LegendItem,
   LegendMarker,
   LegendProps,

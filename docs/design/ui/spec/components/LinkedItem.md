@@ -11,11 +11,11 @@ Purpose: dashed, row-shaped link to a related record, e.g. "Started linked run c
 
 ## Props
 ```ts
-type LinkedItemProps = { href: string; icon: IconName; kind: NodeKind; children: ReactNode }
+type LinkedItemProps = { to: string; children: ReactNode; icon?: IconName; kind?: NodeKind; disabled?: boolean };
 ```
 
 ## Accessibility
-Single link whose name is the sentence; chevron `aria-hidden`. Router `Link`. No Radix.
+Single link whose name is the sentence; chevron `aria-hidden`. Built with TanStack Router `createLink` (`to`), tile defaults to the dark `trig` kind with the `tool-event` icon. No Radix.
 
 ## Light/dark
 Token-driven.
