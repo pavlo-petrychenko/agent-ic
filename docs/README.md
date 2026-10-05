@@ -42,6 +42,10 @@ Read the pages in order. Each page ends with a link to the next.
 | 005 | [Request context](learn/005-request-context.md)           | who is calling: the actor, the workspace, the trace id                |
 | 006 | [Transactions and RLS](learn/006-transactions-and-rls.md) | tenant transactions, row-level security, how to add a table           |
 | 007 | [Errors](learn/007-errors.md)                             | domain errors and how they reach GraphQL, REST and jobs               |
+| 008 | [Jobs](learn/008-jobs.md)                                 | work that runs later in the worker, with retries and a durable option |
+| 009 | [Domain events](learn/009-domain-events.md)               | a fact one module announces and other modules react to                |
+| 010 | [Live updates](learn/010-live-updates.md)                 | best-effort pushes to open browser tabs                               |
+| 011 | [Async at a glance](learn/011-async-at-a-glance.md)       | job, durable job, event, live update: which one to use                |
 
 ## Guides being moved
 
@@ -50,7 +54,7 @@ These pages from the old guide are still being moved into the learning path and 
 - [Backend walkthrough](guides/backend-walkthrough.md): the `identity` module file by file.
 - [Web walkthrough](guides/web-walkthrough.md): the `auth` and `settings` features file by file.
 - [Worked example: rename a workspace](guides/rename-workspace.md): every step for a small resolver plus a screen, in order.
-- [Checklists](guides/checklists.md): a new background job, a new screen.
+- [Checklists](guides/checklists.md): a new screen.
 - [From pull request to production](guides/shipping.md): checks, review, merge, deploy, new environment variables.
 - [Starter backlog](guides/backlog.md): work that is left in the MVP scope for team management and settings.
 
