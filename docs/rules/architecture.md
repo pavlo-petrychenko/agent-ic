@@ -1,6 +1,6 @@
 # Architecture rules
 
-Enforced by dependency-cruiser (`pnpm depcruise`, CI) where a rule names a path or a file suffix, by `pnpm check:structure` for folder and suffix layout, and by review otherwise. Background: ADRs 0009 to 0015 and [architecture.md](../architecture.md) section 11. Folder and file layout: [structure.md](structure.md).
+Enforced by dependency-cruiser (`pnpm depcruise`, CI) where a rule names a path or a file suffix, by `pnpm check:structure` for folder and suffix layout, and by review otherwise. Background: ADRs 0009 to 0015 and [architecture.md](../design/architecture.md) section 11. Folder and file layout: [structure.md](structure.md).
 
 ## Backend
 

@@ -56,7 +56,7 @@ Use a job for slow work or for work after the commit, such as sending an email. 
 
 ## A new screen
 
-- [ ] Find the design for the screen. The screen names (`Settings-Team`, `Inbox-Operator`) are in [docs/mvp-scope.md](../mvp-scope.md).
+- [ ] Find the design for the screen. The screen names (`Settings-Team`, `Inbox-Operator`) are in [docs/design/mvp-scope.md](../design/mvp-scope.md).
 - [ ] Pick the feature folder in `apps/web/src/features/`. Create a new feature only for a new product area.
 - [ ] GraphQL operation in `communication/gql/{query,mutation}/<name>.graphql`, then `mise run codegen`.
 - [ ] Data hook in `communication/hooks/use<Name>.ts`. It returns UI types, with `null` for missing data.

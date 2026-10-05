@@ -4,15 +4,15 @@ This guide is for developers who are new to agent-ic. It shows how one feature g
 
 Read the pages in this order:
 
-| #   | Page                                                       | What you learn                                                                   |
-| --- | ---------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| 1   | [Run and debug locally](run-and-debug.md)                  | start the stack, read logs and traces, find emails, open the database            |
-| 2   | [Backend walkthrough](backend-walkthrough.md)              | the `identity` module file by file: SDL, use case, repository, resolver, test     |
-| 3   | [Web walkthrough](web-walkthrough.md)                      | the `auth` and `settings` features file by file: operation, hook, view, container, route |
-| 4   | [Worked example: rename a workspace](rename-workspace.md)  | every step for a small resolver plus a screen, in order                          |
-| 5   | [Checklists](checklists.md)                                | a new module, a new table, a new background job, a new screen                    |
-| 6   | [From pull request to production](shipping.md)             | checks, review, merge, deploy, new environment variables                         |
-| 7   | [Starter backlog](backlog.md)                              | work that is left in the MVP scope for team management and settings              |
+| #   | Page                                                      | What you learn                                                                           |
+| --- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 1   | [Run and debug locally](run-and-debug.md)                 | start the stack, read logs and traces, find emails, open the database                    |
+| 2   | [Backend walkthrough](backend-walkthrough.md)             | the `identity` module file by file: SDL, use case, repository, resolver, test            |
+| 3   | [Web walkthrough](web-walkthrough.md)                     | the `auth` and `settings` features file by file: operation, hook, view, container, route |
+| 4   | [Worked example: rename a workspace](rename-workspace.md) | every step for a small resolver plus a screen, in order                                  |
+| 5   | [Checklists](checklists.md)                               | a new module, a new table, a new background job, a new screen                            |
+| 6   | [From pull request to production](shipping.md)            | checks, review, merge, deploy, new environment variables                                 |
+| 7   | [Starter backlog](backlog.md)                             | work that is left in the MVP scope for team management and settings                      |
 
 ## The big picture
 
@@ -64,11 +64,11 @@ Tests are optional during the MVP. Write them where they help. Existing tests mu
 
 ## Where else to look
 
-| Need                                   | Read                                                   |
-| -------------------------------------- | ------------------------------------------------------ |
-| What the product does                  | [docs/mvp-scope.md](../mvp-scope.md)                    |
-| Why the code looks like this           | [docs/architecture.md](../architecture.md), [docs/adr/](../adr/) |
-| Where every file goes                  | [docs/rules/structure.md](../rules/structure.md)        |
-| Backend module anatomy                 | [apps/backend/AGENTS.md](../../apps/backend/AGENTS.md)  |
-| Web feature anatomy                    | [apps/web/AGENTS.md](../../apps/web/AGENTS.md)          |
-| How we review pull requests            | [CONTRIBUTING.md](../../CONTRIBUTING.md)                |
+| Need                         | Read                                                                                         |
+| ---------------------------- | -------------------------------------------------------------------------------------------- |
+| What the product does        | [docs/design/mvp-scope.md](../design/mvp-scope.md)                                           |
+| Why the code looks like this | [docs/design/architecture.md](../design/architecture.md), [docs/design/adr/](../design/adr/) |
+| Where every file goes        | [docs/rules/structure.md](../rules/structure.md)                                             |
+| Backend module anatomy       | [apps/backend/AGENTS.md](../../apps/backend/AGENTS.md)                                       |
+| Web feature anatomy          | [apps/web/AGENTS.md](../../apps/web/AGENTS.md)                                               |
+| How we review pull requests  | [CONTRIBUTING.md](../../CONTRIBUTING.md)                                                     |

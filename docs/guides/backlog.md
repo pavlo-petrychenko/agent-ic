@@ -2,7 +2,7 @@
 
 [Back to the guide](README.md)
 
-This is what is left of team management and personal settings in the MVP scope: UC-3 and UC-14 in [docs/mvp-scope.md](../mvp-scope.md). The list has no order and no owners. Each item names the scope text and the code it builds on.
+This is what is left of team management and personal settings in the MVP scope: UC-3 and UC-14 in [docs/design/mvp-scope.md](../design/mvp-scope.md). The list has no order and no owners. Each item names the scope text and the code it builds on.
 
 Before you start an item, read its part of the scope, find the design for its screens, and agree on the GraphQL shape in a short pull request or issue.
 
