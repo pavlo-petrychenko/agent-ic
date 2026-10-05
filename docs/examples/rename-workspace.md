@@ -2,14 +2,14 @@
 
 [Back to the docs](../README.md)
 
-This page lists every step to add one small feature: an owner or admin renames the workspace in Settings, General. It is not built yet, so you can use it as your first task. The screen is `Settings-General` in [docs/design/mvp-scope.md](../design/mvp-scope.md) (UC-14).
+This page lists every step to add one small feature: an owner or admin renames the workspace in Settings, General. It is not built yet, so you can use it as your first task.
 
-The code below is a sketch that follows the real patterns. Copy the shape, then check names against the files it points to. Read the [backend walkthrough](backend-walkthrough.md) and the [web walkthrough](web-walkthrough.md) first.
+The code below is a sketch that follows the real patterns. Copy the shape, then check names against the files it points to. Read the [identity module tour](identity-module.md) and the [auth and settings tour](auth-and-settings.md) first.
 
 ## Before you start
 
 - Branch from `main`: `git switch -c feat/rename-workspace`.
-- Start the stack: `mise run start`. See [Run and debug locally](../learn/001-run-and-debug.md).
+- Start the stack: `mise run start`. See [001 Run and debug](../learn/001-run-and-debug.md).
 - Who may rename? `PERMISSION_MATRIX` in `packages/contracts/src/permissions/permission.constants.ts` gives `workspace_settings: edit` to owners and admins only. We use `PermissionResource.WorkspaceSettings` with `PermissionAction.Edit`. Nothing changes in contracts.
 
 ## Backend
@@ -219,5 +219,5 @@ Copy `apps/web/test/integration/teamSettings.test.tsx`. Add `buildRenameWorkspac
 
 1. `mise run check` and `mise exec -- pnpm test` pass.
 2. Open the screen as an owner, rename, and check that the sidebar shows the new name. Switch to Ukrainian with the EN/UK switch in the sidebar, set your system to dark mode (the app follows it), and look again.
-3. Take screenshots (EN and UK, light and dark) for the pull request. See [From pull request to production](shipping.md).
+3. Take screenshots (EN and UK, light and dark) for the pull request. See [014 Shipping](../learn/014-shipping.md).
 4. The change is about 300 lines, so one pull request is fine. Title: `feat(settings): rename the workspace`.
