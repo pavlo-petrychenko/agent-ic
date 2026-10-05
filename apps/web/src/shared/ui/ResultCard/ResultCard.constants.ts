@@ -1,0 +1,1 @@
+export const RESULT_CARD_SCORE_DIGITS = 2;
