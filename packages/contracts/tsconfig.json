@@ -1,4 +1,9 @@
 {
   "extends": "@agent-ic/tsconfig/library.json",
-  "include": ["src", "tsup.config.ts"]
+  "include": ["src", "tsup.config.ts"],
+  "compilerOptions": {
+    "paths": {
+      "@contracts/*": ["./src/*"]
+    }
+  }
 }

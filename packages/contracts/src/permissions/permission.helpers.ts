@@ -1,5 +1,9 @@
-import { INVITABLE_ROLES, PERMISSION_MATRIX } from './permission.constants';
-import type { PermissionAction, PermissionResource, WorkspaceRole } from './permission.constants';
+import { INVITABLE_ROLES, PERMISSION_MATRIX } from '@contracts/permissions/permission.constants';
+import type {
+  PermissionAction,
+  PermissionResource,
+  WorkspaceRole,
+} from '@contracts/permissions/permission.constants';
 
 export const can = (
   role: WorkspaceRole,

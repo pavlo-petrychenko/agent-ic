@@ -24,7 +24,7 @@
     }
   },
   "scripts": {
-    "build": "tsup && tsc -p tsconfig.build.json && cp dist/index.d.ts dist/index.d.cts",
+    "build": "tsup && tsc -p tsconfig.build.json && node ../../tools/declaration-aliases.ts && cp dist/index.d.ts dist/index.d.cts",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit"
   },

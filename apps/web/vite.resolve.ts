@@ -13,4 +13,5 @@ export const testAliases: Readonly<Record<string, string>> = {
 export const resolveOptions: NonNullable<UserConfig['resolve']> = {
   alias: sourceAliases,
   conditions: ['source'],
+  tsconfigPaths: true,
 };

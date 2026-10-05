@@ -1,0 +1,11 @@
+{
+  "extends": "../../packages/tsconfig/library.json",
+  "compilerOptions": {
+    "paths": {
+      "@contracts/*": ["packages/contracts/src/*"],
+      "@flow/*": ["packages/flow/src/*"],
+      "@test/*": ["packages/flow/test/*"]
+    }
+  },
+  "include": ["../../packages"]
+}

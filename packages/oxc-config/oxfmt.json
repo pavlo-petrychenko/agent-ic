@@ -6,7 +6,7 @@
   "tabWidth": 2,
   "sortImports": {
     "newlinesBetween": false,
-    "internalPattern": ["@/", "@test/"]
+    "internalPattern": ["@/", "@test/", "@contracts/", "@flow/"]
   },
   "ignorePatterns": ["**/dist/**", "**/.claude/**"]
 }

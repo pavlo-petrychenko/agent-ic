@@ -18,7 +18,9 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@test/*": ["./test/*"]
+      "@test/*": ["./test/*"],
+      "@contracts/*": ["../../packages/contracts/src/*"],
+      "@flow/*": ["../../packages/flow/src/*"]
     }
   }
 }

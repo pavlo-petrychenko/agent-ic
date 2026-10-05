@@ -62,19 +62,34 @@
       }
     },
     {
-      "files": ["**/apps/*/src/**", "**/apps/*/test/**"],
+      "files": [
+        "**/apps/*/src/**",
+        "**/apps/*/test/**",
+        "**/packages/*/src/**",
+        "**/packages/*/test/**"
+      ],
       "rules": {
         "no-restricted-imports": [
           "error",
           {
             "patterns": [
               {
-                "regex": "^\\.{1,2}/",
-                "message": "Use an absolute import: @/… in src, @test/… in test support."
+                "regex": "^\\.{1,2}(/|$)",
+                "message": "Use an absolute import: @/… or @test/… in apps, @<package>/… or @test/… in packages."
+              },
+              {
+                "regex": "^#",
+                "message": "Use a path alias, not a Node subpath import: @/… in apps, @<package>/… in packages."
               }
             ]
           }
         ]
+      }
+    },
+    {
+      "files": ["**/*.generated.ts", "**/*.gen.ts"],
+      "rules": {
+        "no-restricted-imports": "off"
       }
     }
   ],
