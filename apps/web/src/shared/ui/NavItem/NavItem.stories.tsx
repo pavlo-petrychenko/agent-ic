@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { CountBadge } from '@/shared/ui/CountBadge/CountBadge';
 import { IconName } from '@/shared/ui/Icon/Icon.constants';
 import { NavItem } from '@/shared/ui/NavItem/NavItem';
+import { NavItemLayout } from '@/shared/ui/NavItem/NavItem.constants';
 import { withMemoryRouter } from '@test/support/helpers/storybook.helpers';
 import styles from '@/shared/ui/NavItem/NavItem.module.scss';
 
@@ -26,6 +27,43 @@ export const WithCount: Story = {
   },
 };
 export const WithoutIcon: Story = { args: { icon: null, children: 'Team', meta: '5' } };
+export const Disabled: Story = { args: { disabled: true } };
+export const RailItem: Story = {
+  args: { layout: NavItemLayout.Rail, tooltip: 'Agents' },
+};
+export const RailActive: Story = {
+  args: { layout: NavItemLayout.Rail, to: '/', tooltip: 'Agents' },
+};
+export const RailWithUnreadDot: Story = {
+  args: {
+    layout: NavItemLayout.Rail,
+    to: '/auth/sign-up',
+    icon: IconName.Inbox,
+    children: 'Inbox',
+    tooltip: 'Inbox · 3',
+    meta: <span className={styles.storyUnreadDot} />,
+  },
+};
+export const Rail: Story = {
+  render: () => (
+    <nav aria-label="Main (collapsed)" className={styles.storyRail}>
+      <NavItem to="/" icon={IconName.Agent} layout={NavItemLayout.Rail}>
+        Agents
+      </NavItem>
+      <NavItem
+        to="/auth/sign-up"
+        icon={IconName.Inbox}
+        layout={NavItemLayout.Rail}
+        tooltip="Inbox · 3"
+      >
+        Inbox
+      </NavItem>
+      <NavItem to="/auth/login" icon={IconName.Gear} layout={NavItemLayout.Rail}>
+        Settings
+      </NavItem>
+    </nav>
+  ),
+};
 export const Sidebar: Story = {
   render: () => (
     <nav aria-label="Main" className={styles.storyNav}>
