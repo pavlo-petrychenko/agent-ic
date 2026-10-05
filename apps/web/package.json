@@ -16,6 +16,12 @@
   "dependencies": {
     "@agent-ic/contracts": "workspace:*",
     "@apollo/client": "^4.3.1",
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/language": "^6.12.4",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.13",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@fontsource-variable/onest": "^5.3.1",
     "@tanstack/react-form": "^1.33.5",

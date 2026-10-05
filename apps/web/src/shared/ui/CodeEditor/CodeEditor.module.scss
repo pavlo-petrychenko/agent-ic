@@ -1,0 +1,65 @@
+.root {
+  position: relative;
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-card);
+  transition:
+    border-color var(--duration-fast),
+    box-shadow var(--duration-fast);
+}
+
+.editable:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-focus-field);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  height: var(--size-control-md);
+  padding: 0 var(--space-14);
+  background: var(--color-dark);
+}
+
+.file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-code-fg);
+  font: var(--type-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.language {
+  flex-shrink: 0;
+  color: var(--color-on-dark-secondary);
+  font: var(--type-caption);
+}
+
+.root .body {
+  border: 0;
+  border-radius: 0;
+}
+
+.editor {
+  background: var(--color-code-bg);
+}
+
+.hint {
+  position: absolute;
+  width: var(--border-width);
+  height: var(--border-width);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.storyItem {
+  width: var(--size-dialog-width-md);
+}
