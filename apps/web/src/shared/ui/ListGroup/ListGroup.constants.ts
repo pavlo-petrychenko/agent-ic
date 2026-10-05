@@ -1,0 +1,3 @@
+export const LIST_GROUP_COUNT_SEPARATOR = ' · ';
+export const LIST_GROUP_CHEVRON_SIZE = 11;
+export const LIST_GROUP_CHEVRON_STROKE_WIDTH = 1.8;
