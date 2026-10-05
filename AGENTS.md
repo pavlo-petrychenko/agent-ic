@@ -75,7 +75,7 @@ Details and reasons are in `docs/rules/`. A tool enforces each rule marked with 
 20. No hardcoded values: enums and named constants, config only from env through the zod config, no env values in scripts (review).
 21. Types, constants and helpers live in the `typedefs/`, `constants/` and `helpers/` kind folders, one file per topic: `<topic>.typedefs.ts`, `<topic>.constants.ts`, `<topic>.helpers.ts` (review).
 22. A file lives at `<area>/<kind folder>/<topic>.<kind>.ts`. A backend module root holds only `<name>.module.ts` and `index.ts`; a web feature root holds only `index.ts`. An unknown folder or suffix fails the check (`check:structure`).
-23. Imports are absolute: `@/…` in `src`, `@test/…` in test support, packages by name. Never relative, not even in the same folder. No blank lines between imports (oxlint, oxfmt).
+23. Imports are absolute: `@/…` in app `src`, `@test/…` in app test support, `@<package>/…` and `@test/…` inside a package (`paths` in its `tsconfig.json`), other packages by name. Never relative, never `#`, not even in the same folder. No blank lines between imports (oxlint, oxfmt).
 24. No value classes. Data is an interface in `typedefs/`, logic on it is a helper. Jobs, events, channels, cache entries and rate-limit policies are made with `defineX({...})` helpers, not abstract definition classes (review).
 
 ## What lives where and why

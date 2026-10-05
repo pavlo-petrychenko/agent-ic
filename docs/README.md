@@ -67,7 +67,7 @@ The full list is in [AGENTS.md](../AGENTS.md) and [docs/rules/](rules/code.md). 
 1. No comments in code. Name things well instead.
 2. No hardcoded values. Put names in enums and constants files.
 3. Every file lives at `<area>/<kind folder>/<topic>.<kind>.ts`, for example `use-cases/create-workspace.use-case.ts`.
-4. Imports are absolute: `@/modules/identity/...`, never `../`.
+4. Imports are absolute: `@/modules/identity/...` in apps, `@contracts/...` inside a package, never `../`.
 5. User-facing text goes into the EN and UK translation files. Never put text in a component.
 6. On the web, screens use components from `apps/web/src/shared/ui`. Radix is allowed only there.
 7. Missing API data on the web is `null`, never `undefined`.

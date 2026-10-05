@@ -19,7 +19,7 @@ Enforced by oxlint, oxfmt, `tools/check-comments.ts`, `tools/check-structure.ts`
 9. **No `process.env`** outside `apps/backend/src/platform/config`.
 10. **Time, randomness and ids are services.** Use `ClockService`, `IdService` and `SecureTokenService`, never `new Date()`, `randomUUID()` or `Math.random()` in domain code. They are services even though they hold no state, so tests can replace them.
 11. **Frontend types use `null`, never `undefined`,** for missing API data.
-12. **Imports are absolute.** `@/…` in source, `@test/…` in test support, packages by name (`@agent-ic/contracts`). Relative paths are never used, not even within one folder. Imports have no blank lines between them; the formatter sorts them. Root config files that Vite or Storybook load before any alias exists are the only exception.
+12. **Imports are absolute.** In apps, `@/…` in source and `@test/…` in test support. In a package, `@<package>/…` in source (`@contracts/permissions/permission.constants`) and `@test/…` in test support, declared as `paths` in the package's `tsconfig.json`. Other packages by name (`@agent-ic/contracts`). Relative paths and Node subpath imports (`#…`) are never used, not even within one folder. Imports have no blank lines between them; the formatter sorts them. Root config files that Vite or Storybook load before any alias exists are the only exception. Why the aliases look this way: `docs/rules/structure.md` rule 8.
 13. **No hardcoding, not even in placeholder code.**
     - No magic strings or numbers: paths, prefixes, ports, hosts, header names, status values, log messages, exit codes.
     - A fixed set of values is an `enum`. Any other value is a named constant.
@@ -44,6 +44,6 @@ Enforced by oxlint, oxfmt, `tools/check-comments.ts`, `tools/check-structure.ts`
 | 8, 9 | oxlint `no-console`, `node/no-process-env` |
 | 5 (file layout), 6, 14 (folders and suffixes) | `tools/check-structure.ts` |
 | 6, 12 (boundaries) | dependency-cruiser |
-| 12 (relative imports) | oxlint `no-restricted-imports`; oxfmt sorts imports |
+| 12 (relative and `#` imports) | oxlint `no-restricted-imports` in `apps/*/src`, `apps/*/test`, `packages/*/src` and `packages/*/test` (generated files are exempt); oxfmt sorts imports |
 | 13, 15, 16 | review |
 | Everything else | review |
