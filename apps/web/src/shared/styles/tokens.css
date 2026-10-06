@@ -247,6 +247,9 @@
   --chart-3: var(--hue-router-fg);
   --chart-4: var(--color-violet);
   --chart-muted: var(--color-line-dash);
+
+  --widget-accent: #0f6b6b;
+  --widget-on-accent: #ffffff;
 }
 
 :root[data-theme='dark'] {

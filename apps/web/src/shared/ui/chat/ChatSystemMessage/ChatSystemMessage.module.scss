@@ -1,0 +1,28 @@
+$story-width: 420px;
+
+.root {
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-10);
+  border-radius: var(--radius-pill);
+  background: var(--color-soft);
+  color: var(--system-message-fg);
+  font: var(--type-small);
+}
+
+.neutral {
+  --system-message-fg: var(--color-mute);
+}
+
+.err {
+  --system-message-fg: var(--color-err);
+}
+
+.storyStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: $story-width;
+}

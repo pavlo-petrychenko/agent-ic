@@ -1,0 +1,57 @@
+$max-lines: 6;
+$story-width: 420px;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-8);
+}
+
+.row .field {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--size-control-lg);
+  max-height: calc(#{$max-lines} * 1lh + 2 * var(--space-10) + 2 * var(--border-width));
+  padding: var(--space-10) var(--space-12);
+  overflow-y: auto;
+  border-radius: var(--radius-10);
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin: 0;
+  color: var(--color-mute);
+  font: var(--type-small);
+}
+
+.error {
+  color: var(--color-err);
+}
+
+.storyFrame {
+  width: $story-width;
+}
+
+.retry {
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-4);
+  background: transparent;
+  color: var(--color-err-ink);
+  font: var(--type-caption-strong);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}

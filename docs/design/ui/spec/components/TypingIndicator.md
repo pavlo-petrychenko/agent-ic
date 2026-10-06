@@ -9,8 +9,9 @@ Shows while a run is producing messages for this chat, for at most 30s, then hid
 
 ## Props
 ```ts
-type TypingIndicatorProps = { label: string }
+type TypingIndicatorProps = { label: string; view?: ChatBubbleView }
 ```
+`view` (decided): `thread` is the drawn end-aligned violet bubble; `widget` is the start-aligned card bubble with a border and the bottom-left tail, matching the widget's bot bubbles (WidgetPreview).
 
 ## Tokens
 `--color-violet-light`, `--color-violet`, `--color-mute`, `--radius-14`, `--radius-4`, `--size-dot-sm`, `--space-4`, `--space-12`, `--space-14`, `--type-small`.

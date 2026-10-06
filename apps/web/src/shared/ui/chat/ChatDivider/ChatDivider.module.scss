@@ -1,0 +1,21 @@
+$story-width: 420px;
+
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.rule {
+  flex-grow: 1;
+  height: var(--border-width);
+  background: var(--color-line);
+}
+
+.storyFrame {
+  display: flex;
+  flex-direction: column;
+  width: $story-width;
+}

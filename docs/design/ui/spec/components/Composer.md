@@ -21,6 +21,8 @@ Keys (page): Enter sends, Shift+Enter adds a line; the field grows to 6 lines, t
 interface ComposerProps { value: string; onChange: (v: string) => void; onSend: () => void; onRetry: (() => void) | null; placeholder: string; label: string; sendLabel: string; sending: boolean; error: string | null; retryLabel: string; disabled: boolean; disabledReason: string | null }
 ```
 
+Implementation notes (decided): the field is a `Textarea` that grows with its content (JS measures `scrollHeight`, CSS caps it at 6 lines); "Retry" is a text-styled `button` (a TextLink is a router anchor and needs a route); the failure line is `role="alert"`; the field is read-only while sending; the failure line is hidden while the composer is disabled.
+
 ## Accessibility
 Enter submits; button `aria-label` from `sendLabel`. No Radix.
 

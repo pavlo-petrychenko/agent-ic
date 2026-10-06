@@ -1,0 +1,111 @@
+$thread-max-width: 380px;
+$widget-max-width: 230px;
+$icon-offset: -1px;
+$story-thread-width: 520px;
+$story-widget-width: 300px;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 100%;
+}
+
+.thread {
+  width: fit-content;
+  max-width: $thread-max-width;
+}
+
+.widget {
+  width: fit-content;
+  max-width: $widget-max-width;
+}
+
+.start {
+  align-self: flex-start;
+  align-items: flex-start;
+
+  .bubble {
+    border-radius: var(--radius-14) var(--radius-14) var(--radius-14) var(--radius-4);
+  }
+}
+
+.end {
+  align-self: flex-end;
+  align-items: flex-end;
+
+  .bubble {
+    border-radius: var(--radius-14) var(--radius-14) var(--radius-4) var(--radius-14);
+  }
+}
+
+.meta {
+  color: var(--color-mute);
+  font: var(--type-small);
+}
+
+.icon {
+  margin-right: var(--space-4);
+  vertical-align: $icon-offset;
+}
+
+.bubble {
+  box-sizing: border-box;
+  padding: var(--space-8) var(--space-12);
+  border: var(--border-width) solid transparent;
+  background: var(--bubble-bg);
+  color: var(--bubble-fg);
+  font: var(--type-body);
+  line-height: var(--leading-relaxed);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.widget .bubble {
+  font: var(--type-body-small);
+  line-height: var(--leading-relaxed);
+}
+
+.card {
+  --bubble-bg: var(--color-card);
+  --bubble-fg: var(--color-ink);
+
+  border-color: var(--color-line);
+}
+
+.violet {
+  --bubble-bg: var(--color-violet-light);
+  --bubble-fg: var(--color-ink);
+}
+
+.accentLight {
+  --bubble-bg: var(--color-accent-light);
+  --bubble-fg: var(--color-ink);
+}
+
+.widgetAccent {
+  --bubble-bg: var(--widget-accent);
+  --bubble-fg: var(--widget-on-accent);
+}
+
+.storyThread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  box-sizing: border-box;
+  width: $story-thread-width;
+  padding: var(--space-16);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-bg);
+}
+
+.storyWidget {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  width: $story-widget-width;
+  padding: var(--space-14);
+  background: var(--color-bg);
+}
