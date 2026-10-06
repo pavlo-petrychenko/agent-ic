@@ -135,6 +135,11 @@ module.exports = {
       { path: '(^|node_modules/)(@radix-ui/|radix-ui(/|$))' },
     ),
     forbidden(
+      'web-react-flow-only-in-shared-ui-flow',
+      { path: web, pathNot: `${web}shared/ui/flow/` },
+      { path: '(^|node_modules/)@xyflow/' },
+    ),
+    forbidden(
       'apps-never-import-each-other',
       { path: '^apps/([^/]+)/' },
       { path: '^apps/[^/]+/', pathNot: '^apps/$1/' },
@@ -153,7 +158,7 @@ module.exports = {
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
-    exclude: { path: ['/dist/', '\\.generated\\.ts$', '(^|/)\\.claude/'] },
+    exclude: { path: ['^(apps|packages)/[^/]+/dist/', '\\.generated\\.ts$', '(^|/)\\.claude/'] },
     tsPreCompilationDeps: true,
     enhancedResolveOptions: {
       exportsFields: ['exports'],
