@@ -5,8 +5,8 @@ import { MembersPanel } from '@/features/settings/containers/MembersPanel';
 import type { TeamPageProps } from '@/features/settings/containers/TeamPage/TeamPage.typedefs';
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
 import { useActiveWorkspace } from '@/features/workspace';
-import { Breadcrumb } from '@/shared/ui/Breadcrumb';
-import { PageHeader } from '@/shared/ui/PageHeader';
+import { PageHeader } from '@/shared/ui/layout/PageHeader';
+import { Breadcrumb } from '@/shared/ui/navigation/Breadcrumb';
 
 export function TeamPage({ workspaceId }: TeamPageProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);

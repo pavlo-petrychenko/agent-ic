@@ -51,5 +51,5 @@ Token-driven; every colour above has a dark value in tokens.md (primary text tur
 ## Used by
 Topbar, WizardFrame footer, AuthFrame CTA (lg, full), PaneBar, Callout action, CardHeader, Dialog footer, field actions, Inspector.
 
-## Differs from existing `shared/ui/Button`
+## Differs from existing `shared/ui/actions/Button`
 Existing: sm 28 / md 34, padded ghost, solid danger, opacity .55 disabled. Design: add lg and 22px text ghost, outlined danger, 0.45 disabled, `--shadow-focus-ring`, loading (spinner before label, width kept, `cursor: progress`), active colours (primary/danger = hover, secondary = chip), `href`.

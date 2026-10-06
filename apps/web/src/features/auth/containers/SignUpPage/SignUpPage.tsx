@@ -20,10 +20,10 @@ import { InviteRoleNote } from '@/features/auth/view/InviteRoleNote';
 import { useAppForm } from '@/shared/forms/hooks/useAppForm';
 import { Namespace } from '@/shared/i18n/constants/namespace.constants';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
-import { ButtonSize } from '@/shared/ui/Button';
-import { Callout, CalloutTone } from '@/shared/ui/Callout';
-import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/Text';
-import { TextLink } from '@/shared/ui/TextLink';
+import { ButtonSize } from '@/shared/ui/actions/Button';
+import { TextLink } from '@/shared/ui/actions/TextLink';
+import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
+import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/Text';
 
 export function SignUpPage({ invite = null }: SignUpPageProps) {
   const { t } = useTranslation(Namespace.Auth);

@@ -1,7 +1,7 @@
 import { ConfirmEmailState } from '@/features/auth/constants/confirmation.constants';
 import type { ConfirmEmailLook } from '@/features/auth/view/ConfirmEmailResult/ConfirmEmailResult.typedefs';
-import { EmptyStateTone } from '@/shared/ui/EmptyState';
-import { IconName } from '@/shared/ui/Icon';
+import { EmptyStateTone } from '@/shared/ui/display/EmptyState';
+import { IconName } from '@/shared/ui/foundations/Icon';
 
 export enum ConfirmEmailAction {
   Resend = 'resend',

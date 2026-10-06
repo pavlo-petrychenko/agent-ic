@@ -3,7 +3,7 @@ import type {
   NavGroupKey,
   WorkspaceSection,
 } from '@/features/workspace/constants/navigation.constants';
-import type { IconName } from '@/shared/ui/Icon';
+import type { IconName } from '@/shared/ui/foundations/Icon';
 
 export interface NavEntry {
   readonly section: WorkspaceSection;

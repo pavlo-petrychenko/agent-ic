@@ -3,7 +3,7 @@ import { useServerStatus } from '@/features/status/communication/hooks/useServer
 import { useUptimeLabel } from '@/features/status/logic/hooks/useUptimeLabel';
 import { ServerStatus } from '@/features/status/view/ServerStatus';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
-import { Card } from '@/shared/ui/Card';
+import { Card } from '@/shared/ui/display/Card';
 import styles from '@/features/status/containers/StatusPage/StatusPage.module.scss';
 
 export function StatusPage() {

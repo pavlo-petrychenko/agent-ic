@@ -25,10 +25,10 @@ import { AuthPanel } from '@/features/auth/view/AuthPanel';
 import { UnconfirmedNotice } from '@/features/auth/view/UnconfirmedNotice';
 import { useAppForm } from '@/shared/forms/hooks/useAppForm';
 import { Namespace } from '@/shared/i18n/constants/namespace.constants';
-import { ButtonSize } from '@/shared/ui/Button';
-import { Callout, CalloutTone } from '@/shared/ui/Callout';
-import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/Text';
-import { TextLink } from '@/shared/ui/TextLink';
+import { ButtonSize } from '@/shared/ui/actions/Button';
+import { TextLink } from '@/shared/ui/actions/TextLink';
+import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
+import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/auth/containers/LoginPage/LoginPage.module.scss';
 
 export function LoginPage({ redirect, notice }: LoginPageProps) {

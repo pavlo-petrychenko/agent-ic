@@ -4,9 +4,9 @@ import {
   WORKSPACE_SECTION_PATHS,
 } from '@/features/workspace/constants/navigation.constants';
 import type { WorkspaceSidebarProps } from '@/features/workspace/view/WorkspaceSidebar/WorkspaceSidebar.typedefs';
-import { Avatar, AvatarSize, AvatarTone } from '@/shared/ui/Avatar';
-import { NavGroup } from '@/shared/ui/NavGroup';
-import { NavItem } from '@/shared/ui/NavItem';
+import { Avatar, AvatarSize, AvatarTone } from '@/shared/ui/display/Avatar';
+import { NavGroup } from '@/shared/ui/navigation/NavGroup';
+import { NavItem } from '@/shared/ui/navigation/NavItem';
 import styles from '@/features/workspace/view/WorkspaceSidebar/WorkspaceSidebar.module.scss';
 
 export function WorkspaceSidebar({

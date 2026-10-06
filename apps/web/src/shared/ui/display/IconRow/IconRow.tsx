@@ -1,0 +1,22 @@
+import clsx from 'clsx';
+import type { IconRowProps } from '@/shared/ui/display/IconRow/IconRow.typedefs';
+import { NodeTile } from '@/shared/ui/display/NodeTile/NodeTile';
+import { NodeKind, TileSize } from '@/shared/ui/display/NodeTile/NodeTile.constants';
+import styles from '@/shared/ui/display/IconRow/IconRow.module.scss';
+
+export function IconRow({
+  icon,
+  label,
+  tone = NodeKind.Neutral,
+  trailing = null,
+  className,
+  ...rest
+}: IconRowProps) {
+  return (
+    <div {...rest} className={clsx(styles.root, className)}>
+      <NodeTile kind={tone} size={TileSize.Sm} icon={icon} />
+      <span className={styles.label}>{label}</span>
+      {trailing !== null && <span className={styles.trailing}>{trailing}</span>}
+    </div>
+  );
+}

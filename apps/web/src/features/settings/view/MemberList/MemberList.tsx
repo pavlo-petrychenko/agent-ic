@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { MemberListProps } from '@/features/settings/view/MemberList/MemberList.typedefs';
-import { Avatar } from '@/shared/ui/Avatar';
-import { Badge, BadgeTone } from '@/shared/ui/Badge';
-import { Card } from '@/shared/ui/Card';
+import { Avatar } from '@/shared/ui/display/Avatar';
+import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
+import { Card } from '@/shared/ui/display/Card';
 import styles from '@/features/settings/view/MemberList/MemberList.module.scss';
 
 export function MemberList({ rows }: MemberListProps) {

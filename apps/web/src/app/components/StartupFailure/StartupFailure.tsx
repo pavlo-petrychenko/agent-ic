@@ -1,7 +1,7 @@
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import type { StartupFailureProps } from '@/app/components/StartupFailure/StartupFailure.typedefs';
-import { Button } from '@/shared/ui/Button';
-import { Card } from '@/shared/ui/Card';
+import { Button } from '@/shared/ui/actions/Button';
+import { Card } from '@/shared/ui/display/Card';
 
 function StartupFailureContent() {
   const { t } = useTranslation();

@@ -2,8 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { LocaleSwitcher } from '@/app/components/LocaleSwitcher';
 import { AUTH_BRAND_ICON_SIZE } from '@/app/layouts/AuthLayout/AuthLayout.constants';
 import type { AuthLayoutProps } from '@/app/layouts/AuthLayout/AuthLayout.typedefs';
-import { Icon, IconName } from '@/shared/ui/Icon';
-import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/Text';
+import { Icon, IconName } from '@/shared/ui/foundations/Icon';
+import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/app/layouts/AuthLayout/AuthLayout.module.scss';
 
 export function AuthLayout({ children }: AuthLayoutProps) {

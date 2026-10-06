@@ -6,7 +6,7 @@ Anatomy: inline svg, `viewBox="0 0 16 16"`, `fill="none"`, `stroke="currentColor
 ## Variants
 `name` enum of 61 (kebab-case, exactly as on the page): agent, alert, api, arrow-down, arrow-up, bolt, box, cal, channels, chart, check, chevron-down, chevron-right, code, compl, copy, drag, esc, filter, flask, gear, hand, home, hour, image, inbox, info, kb, key, keyboard, link, lock, logo, minus, monitor, moon, more, msg, note, panel, par, pause, play, plus, refresh, router, search, send, sort, sparkle, spinner, star, sun, tool, tool-event, traces, upload, user, var, wait, x.
 Renamed: toolev -> tool-event, chev -> chevron-down, chevr -> chevron-right, kbd -> keyboard. New: moon, monitor, spinner, sort, arrow-up, arrow-down, image, copy.
-`data-icon` is how an icon is identified once SVG paths are stripped (exports, tooling, tests: `[data-icon="moon"]`). The component always renders it; the name enum is the single list, kept in `shared/ui/Icon/icon.constants.ts` with path data per name.
+`data-icon` is how an icon is identified once SVG paths are stripped (exports, tooling, tests: `[data-icon="moon"]`). The component always renders it; the name enum is the single list, kept in `shared/ui/foundations/Icon/icon.constants.ts` with path data per name.
 
 ## Sizes
 `size` number 11-18 px (hue tiles 14-15 inside 28, Callout 14, icon grid 18, mini 11 in chat meta). Stroke 1.5 default; the header logo tile uses 1.8 at 15.

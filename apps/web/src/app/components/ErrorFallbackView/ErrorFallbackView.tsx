@@ -3,8 +3,8 @@ import type { ErrorFallbackViewProps } from '@/app/components/ErrorFallbackView/
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { Namespace } from '@/shared/i18n/constants/namespace.constants';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
-import { Button } from '@/shared/ui/Button';
-import { Card } from '@/shared/ui/Card';
+import { Button } from '@/shared/ui/actions/Button';
+import { Card } from '@/shared/ui/display/Card';
 
 export function ErrorFallbackView({ error, onReset }: ErrorFallbackViewProps) {
   const { t } = useTranslation(Namespace.Errors);

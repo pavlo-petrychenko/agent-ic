@@ -6,7 +6,7 @@ import { render } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import { routeTree } from '@/routeTree.gen';
 import { createI18n } from '@/shared/i18n/clients/i18n.client';
-import { ToastProvider } from '@/shared/ui/Toast';
+import { ToastProvider } from '@/shared/ui/overlays/Toast';
 
 const TOAST_CLOSE_LABEL = 'Close';
 

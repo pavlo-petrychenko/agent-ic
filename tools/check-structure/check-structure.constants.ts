@@ -187,6 +187,21 @@ export const WEB_HOOK_TEST_SUFFIXES: readonly string[] = ['.test.ts', '.test.tsx
 export const WEB_TEST_SUFFIXES: readonly string[] = ['.test.ts', '.test.tsx'];
 
 export const WEB_SHARED_UI = 'ui';
+export const WEB_UI_GROUPS: readonly string[] = [
+  'foundations',
+  'typography',
+  'actions',
+  'inputs',
+  'navigation',
+  'overlays',
+  'display',
+  'data',
+  'charts',
+  'layout',
+  'flow',
+  'chat',
+  'runs',
+];
 export const WEB_SHARED_STYLES = 'styles';
 export const WEB_SHARED_GENERIC_KINDS: readonly string[] = [
   'hooks',
@@ -251,6 +266,8 @@ export const MESSAGES = {
   webIntegrationTestOnly: (name: string): string =>
     `integration holds .test.ts and .test.tsx files only, found "${name}"`,
   componentFolder: (name: string): string => `"${name}" must be a PascalCase component folder`,
+  uiGroup: (name: string, groups: readonly string[]): string =>
+    `"${name}" must be a shared/ui group folder; allowed: ${groups.join(', ')}`,
   componentFile: (name: string, folder: string): string =>
     `file "${name}" is not allowed in component folder "${folder}"; allowed: ${folder}.tsx, ${folder}.module.scss, ${folder}.test.tsx, ${folder}.typedefs.ts, ${folder}.constants.ts, index.ts, useX.ts, x.context.ts`,
   gqlFolder: (name: string): string =>

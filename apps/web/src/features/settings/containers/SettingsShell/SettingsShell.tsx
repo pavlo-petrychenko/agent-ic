@@ -4,8 +4,8 @@ import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.c
 import type { SettingsShellProps } from '@/features/settings/containers/SettingsShell/SettingsShell.typedefs';
 import { SettingsFrame } from '@/features/settings/view/SettingsFrame';
 import { canOpenSection, useActiveWorkspace, WorkspaceSection } from '@/features/workspace';
-import { NavGroup } from '@/shared/ui/NavGroup';
-import { NavItem } from '@/shared/ui/NavItem';
+import { NavGroup } from '@/shared/ui/navigation/NavGroup';
+import { NavItem } from '@/shared/ui/navigation/NavItem';
 
 export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);

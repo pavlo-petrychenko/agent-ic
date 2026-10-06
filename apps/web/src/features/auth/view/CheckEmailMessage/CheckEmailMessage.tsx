@@ -4,11 +4,11 @@ import { SIGN_UP_PATH } from '@/features/auth/constants/authRoute.constants';
 import { CheckEmailNotice } from '@/features/auth/constants/confirmation.constants';
 import { AuthLinks } from '@/features/auth/view/AuthLinks';
 import type { CheckEmailMessageProps } from '@/features/auth/view/CheckEmailMessage/CheckEmailMessage.typedefs';
-import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/Button';
-import { Callout, CalloutTone } from '@/shared/ui/Callout';
-import { EmptyState, EmptyStateTone } from '@/shared/ui/EmptyState';
-import { IconName } from '@/shared/ui/Icon';
-import { TextLink } from '@/shared/ui/TextLink';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
+import { TextLink } from '@/shared/ui/actions/TextLink';
+import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
+import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
+import { IconName } from '@/shared/ui/foundations/Icon';
 
 export function CheckEmailMessage({
   email,

@@ -5,10 +5,10 @@ import {
 } from '@/features/workspace/constants/accountMenu.constants';
 import { WorkspaceIdentity } from '@/features/workspace/view/WorkspaceIdentity';
 import type { WorkspaceSwitcherProps } from '@/features/workspace/view/WorkspaceSwitcher/WorkspaceSwitcher.typedefs';
-import { Avatar, AvatarSize, AvatarTone } from '@/shared/ui/Avatar';
-import { Icon, IconName } from '@/shared/ui/Icon';
-import { Menu, MenuVariant } from '@/shared/ui/Menu';
-import { Popover } from '@/shared/ui/Popover';
+import { Avatar, AvatarSize, AvatarTone } from '@/shared/ui/display/Avatar';
+import { Icon, IconName } from '@/shared/ui/foundations/Icon';
+import { Menu, MenuVariant } from '@/shared/ui/overlays/Menu';
+import { Popover } from '@/shared/ui/overlays/Popover';
 import styles from '@/features/workspace/view/WorkspaceSwitcher/WorkspaceSwitcher.module.scss';
 
 export function WorkspaceSwitcher({

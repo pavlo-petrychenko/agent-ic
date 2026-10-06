@@ -1,4 +1,4 @@
-import type { IconName } from '@/shared/ui/Icon';
+import type { IconName } from '@/shared/ui/foundations/Icon';
 
 export interface SectionPlaceholderProps {
   title: string;

@@ -80,7 +80,7 @@ The settings container [InviteLinkPanel.tsx](../../apps/web/src/features/setting
 
 - `useActiveWorkspace(workspaceId)` comes from `@/features/workspace` (its `index.ts`). It gives the current workspace's name, role and member count.
 - `can(role, resource, action)` from contracts hides what the role may not do. The backend checks again, so hiding a button is for comfort, not for security.
-- A success or failure shows a toast with `useToast()` from `shared/ui/Toast`. `useErrorMessage()` turns an API error into translated text.
+- A success or failure shows a toast with `useToast()` from `shared/ui/overlays/Toast`. `useErrorMessage()` turns an API error into translated text.
 - [TeamPage.tsx](../../apps/web/src/features/settings/containers/TeamPage/TeamPage.tsx) puts two independent panels on one page. Each panel fetches its own data.
 
 ## 6. The route

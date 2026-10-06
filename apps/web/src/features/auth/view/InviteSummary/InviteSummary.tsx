@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { AUTH_NAMESPACE } from '@/features/auth/constants/authI18n.constants';
 import type { InviteSummaryProps } from '@/features/auth/view/InviteSummary/InviteSummary.typedefs';
-import { Avatar, AvatarSize, AvatarTone } from '@/shared/ui/Avatar';
-import { Badge, BadgeTone } from '@/shared/ui/Badge';
-import { Card, CardGap, CardPad, CardTone } from '@/shared/ui/Card';
+import { Avatar, AvatarSize, AvatarTone } from '@/shared/ui/display/Avatar';
+import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
+import { Card, CardGap, CardPad, CardTone } from '@/shared/ui/display/Card';
 import styles from '@/features/auth/view/InviteSummary/InviteSummary.module.scss';
 
 export function InviteSummary({ invite, initials }: InviteSummaryProps) {

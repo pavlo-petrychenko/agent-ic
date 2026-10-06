@@ -3,7 +3,7 @@ import {
   WORKSPACE_MARK_ICON_SIZE,
 } from '@/features/workspace/view/WorkspaceIdentity/WorkspaceIdentity.constants';
 import type { WorkspaceIdentityProps } from '@/features/workspace/view/WorkspaceIdentity/WorkspaceIdentity.typedefs';
-import { Icon, IconName } from '@/shared/ui/Icon';
+import { Icon, IconName } from '@/shared/ui/foundations/Icon';
 import styles from '@/features/workspace/view/WorkspaceIdentity/WorkspaceIdentity.module.scss';
 
 export function WorkspaceIdentity({ name, caption, expandable = false }: WorkspaceIdentityProps) {

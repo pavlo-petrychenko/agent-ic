@@ -7,9 +7,9 @@ import {
   ConfirmEmailAction,
 } from '@/features/auth/view/ConfirmEmailResult/ConfirmEmailResult.constants';
 import type { ConfirmEmailResultProps } from '@/features/auth/view/ConfirmEmailResult/ConfirmEmailResult.typedefs';
-import { Button } from '@/shared/ui/Button';
-import { EmptyState } from '@/shared/ui/EmptyState';
-import { TextLink } from '@/shared/ui/TextLink';
+import { Button } from '@/shared/ui/actions/Button';
+import { TextLink } from '@/shared/ui/actions/TextLink';
+import { EmptyState } from '@/shared/ui/display/EmptyState';
 
 export function ConfirmEmailResult({
   state,

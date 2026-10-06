@@ -262,7 +262,7 @@ Effort units are rough: 1 trivial, 2 small, 3 medium, 4 to 5 large. With domain-
 Layer 0 is a separate single-owner task (effort 7), done before any lane starts. Lane totals: 55, 56, 57, 55, 58, a maximum spread of 3 (5% of the mean). Without domain-bound components: 52, 51, 38, 40, 41.
 
 Lane rules (apply to every lane):
-- Write only into `apps/web/src/shared/ui/<Name>/` (folder, `index.ts`, `<Name>.tsx`, `.module.scss`, `.typedefs.ts`, `.constants.ts`, `.helpers.ts`, `.test.tsx`, `.stories.tsx`). No comments in code, no `any`, no default exports, no raw colours or pixel values in scss outside the token file, and Radix only here. AppShell's `useBreakpoint` hook goes in `shared` (logic), beside the theme store.
+- Write only into `apps/web/src/shared/ui/<group>/<Name>/` (folder, `index.ts`, `<Name>.tsx`, `.module.scss`, `.typedefs.ts`, `.constants.ts`, `.helpers.ts`, `.test.tsx`, `.stories.tsx`). No comments in code, no `any`, no default exports, no raw colours or pixel values in scss outside the token file, and Radix only here. AppShell's `useBreakpoint` hook goes in `shared` (logic), beside the theme store.
 - Disabled, focus, hover and selection use the global rules in tokens.md (v3 adds the drawn hover and pressed rules); no component invents its own.
 - Do not edit `tokens.css` or the theme store from a lane. A missing token goes back to layer 0 as a request.
 - Existing components (Button, Card, Dialog, Field, Input, Link, Toast) keep their current exports and defaults. Visual changes are in section 6 and DELTAS.md. Land them as separate small pull requests.

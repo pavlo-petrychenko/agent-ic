@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useFieldContext } from '@/shared/forms/contexts/form.context';
 import type { PasswordFieldProps } from '@/shared/forms/fields/PasswordField/PasswordField.typedefs';
 import { firstErrorMessage } from '@/shared/forms/helpers/fieldError.helpers';
-import { Field } from '@/shared/ui/Field';
-import { PasswordInput } from '@/shared/ui/PasswordInput';
+import { Field } from '@/shared/ui/inputs/Field';
+import { PasswordInput } from '@/shared/ui/inputs/PasswordInput';
 
 export function PasswordField({
   label,
