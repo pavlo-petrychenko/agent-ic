@@ -20,4 +20,11 @@ export class WorkspacesRepository {
       .where(and(eq(workspaces.workspaceId, workspaceId), eq(workspaces.id, workspaceId)));
     return workspace ?? null;
   }
+
+  async rename(workspaceId: string, name: string, updatedAt: Date): Promise<void> {
+    await this.txHost.tx
+      .update(workspaces)
+      .set({ name, updatedAt })
+      .where(and(eq(workspaces.workspaceId, workspaceId), eq(workspaces.id, workspaceId)));
+  }
 }

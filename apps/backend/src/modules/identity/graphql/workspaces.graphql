@@ -10,6 +10,7 @@ extend type Mutation {
   updateInviteLinkRole(input: UpdateInviteLinkRoleInput!): InviteLink!
   resetInviteLink: InviteLink!
   acceptInvite(token: String!): Membership!
+  renameWorkspace(input: RenameWorkspaceInput!): Membership!
 }
 
 extend type User {
@@ -83,4 +84,8 @@ type MemberConnection {
   edges: [MemberEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+input RenameWorkspaceInput {
+  name: String!
 }

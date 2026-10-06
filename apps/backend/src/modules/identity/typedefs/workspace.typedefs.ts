@@ -29,3 +29,7 @@ export interface DirectoryMembership {
   readonly role: WorkspaceRole;
   readonly memberCount: number;
 }
+
+export interface RenameWorkspaceInput {
+  readonly name: string;
+}
