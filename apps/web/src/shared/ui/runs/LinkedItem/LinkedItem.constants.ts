@@ -1,0 +1,1 @@
+export const LINKED_ITEM_CHEVRON_SIZE = 12;

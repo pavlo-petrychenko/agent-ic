@@ -20,19 +20,21 @@ Height 36px, padding 0 16px 0 10px, gap --space-8, tile 22 radius --radius-6. Na
 - focus-visible: inset 2px accent ring (`--shadow-focus-ring-inset`).
 - collapsed parent: a `chevron-right` 11 (`--color-mute`) takes the place of the indent guide before the tile (expanded parent, decided: `chevron-down`).
 - error step: the duration is replaced by the error word in mono 11.5 `--color-err` ("timeout"); no `alert` icon and no row tint.
-- running (decided): `spinner` beside the duration text "running…".
+- running (decided and built): `spinner` beside the duration text "running…" (`durationLabel`, with `running` set).
 - disabled: 45%, no hover/focus (not drawn).
 
 ## Props
 ```ts
-type TraceRowProps = { depth: number; kind: TraceStepKind; icon: ReactNode; name: string; durationLabel: string | null; errorLabel: string | null; running: boolean; expanded: boolean | null; selected: boolean; onSelect: () => void };
+type TraceStepKind = 'agent' | 'model' | 'tool' | 'completion' | 'knowledge';
+type TraceRowProps = { depth: number; kind: TraceStepKind; name: string; icon?: IconName | null; durationLabel?: string | null; errorLabel?: string | null; running?: boolean; expanded?: boolean | null; selected?: boolean; onSelect: () => void; onToggleExpanded?: (() => void) | null; tabIndex?: number };
 ```
 
 ## Tokens
 guide border --color-line; duration --type-mono-sm color --color-mute.
 
 ## Accessibility
-Tree: `role="tree"`/`treeitem`, `aria-level={depth+1}`, `aria-selected`; Arrow keys; roving tabindex.
+Tree: the consumer renders `role="tree"`; the row is `role="treeitem"`, `aria-level={depth+1}`, `aria-selected`, `aria-expanded` on parents. Enter and Space select, ArrowDown/Up/Home/End move focus between the items of the nearest tree, ArrowRight expands and ArrowLeft collapses a parent through `onToggleExpanded`. The row is a tab stop (`tabIndex` 0); the tree gives the others `tabIndex={-1}` for the roving tabindex. The chevron button is mouse only (`tabIndex -1`, hidden from assistive technology).
+Kinds map to NodeTile hues: agent, model (`gen` hue, sparkle icon), tool, completion (`compl`), knowledge (`kb`). A parent at depth 0 gets a chevron cell too, so leaf rows at depth 0 sit one cell to the left of it.
 
 ## Light/dark
 All 18 step hues have dark values (tokens.md); no extra work.

@@ -17,21 +17,25 @@ Padding 10px 16px, row gap --space-4, line gap --space-8/--space-10. Title --typ
 - default: transparent.
 - hover: bg `--color-soft`.
 - selected: bg `--color-accent-light` + inset 2px `--color-accent` bar.
-- error: only the status dot changes, to `--color-err` (row bg and text unchanged).
+- error (`failed`): only the status dot changes, to `--color-err` (row bg and text unchanged).
+- running (decided): the status dot is the pulsing accent `run` dot; the detail line carries the "running…" text.
 - focus-visible: inset 2px accent ring (`--shadow-focus-ring-inset`).
 - disabled: 45% opacity, no hover/focus, not-allowed (not drawn).
-- loading/empty (decided): Skeleton rows while loading; EmptyState when the list is empty.
+- loading/empty (decided and built): `RunRowsSkeleton` draws 3 placeholder rows after the Skeleton delay; EmptyState when the list is empty (the filtered variant after filtering).
+Built as a TanStack Router link (`to`). The status dot is an `img` named by `statusLabel`; `quality` arrives already formatted.
 
 ## Props
 ```ts
-type RunRowProps = { href: string; title: string; time: string; status: 'ok'|'escalated'|'error'; kindIcon: ReactNode; detail: string[]; quality: number | null; selected: boolean };
+type RunStatus = 'running' | 'ok' | 'escalated' | 'failed';
+type RunRowProps = { to: string; title: string; time: string; dateTime: string; status: RunStatus; statusLabel: string; detail: readonly string[]; triggerIcon?: IconName | null; quality?: string | null; selected?: boolean };
+type RunRowsSkeletonProps = { label: string; count?: number };
 ```
 
 ## Tokens
 mono line --type-mono-sm; border-bottom --color-line-row; time --color-mute --type-small; kind tile bg --color-dark (`trig`-style dark tile) radius --radius-6.
 
 ## Accessibility
-Link with `aria-current`; status dot carries visually hidden text ("Succeeded"/"Escalated"/"Failed").
+Link with `aria-current="page"`; status dot is named by `statusLabel` ("Succeeded"/"Escalated"/"Failed").
 
 ## Light/dark
 Drawn on DS-Dark-Data: kind tile #3A3631 / glyph #F2EEE7; dots ok #4CB884, warn #D9963A, err #F08A7C (all tokens.md dark values).

@@ -19,19 +19,22 @@ Padding 12px 14px, gap --space-10, Avatar md 32 (--size-avatar-md), separator bo
 - unread: a 7px `--color-accent` dot before the name (gap `--space-6`, inside the name span); preview turns weight 600 and `--color-ink` (was `--color-ink-secondary`); name stays 600; row height unchanged.
 - focus-visible: inset 2px accent ring (`--shadow-focus-ring-inset`) on the row.
 - disabled: normal colours at 45% opacity, no hover/focus, not-allowed (not drawn).
-- loading/empty: not drawn for lists; DS-Patterns draws them for tables only (3 Skeleton rows, filtered EmptyState with "Clear filters", err Callout with Retry) and states that live lists (runs, inbox) end with "Load more" instead of pages. Decided: Skeleton rows while loading (3 rows with a 32 avatar placeholder) and EmptyState when the list is empty (the filtered variant after filtering); the list ends with Load more.
+- loading/empty: not drawn for lists; DS-Patterns draws them for tables only (3 Skeleton rows, filtered EmptyState with "Clear filters", err Callout with Retry) and states that live lists (runs, inbox) end with "Load more" instead of pages. Decided and built: `ConversationRowsSkeleton` draws 3 placeholder rows with a 32 avatar (after the Skeleton delay, one busy status for the whole list) and the list uses EmptyState when it is empty (the filtered variant after filtering); the list ends with Load more.
+Built as a TanStack Router link (`to`, like SubnavItem); the row is the `a`, the list and `li` wrap it, and the last `li` drops the separator. `unreadLabel` is the visually hidden word for the unread dot.
 The Waiting badge dot is drawn in the badge text colour `--color-warn` here too (see Badge dot rule).
 
 ## Props
 ```ts
-type ConversationRowProps = { href: string; name: string; initials: string; time: string; preview: string; channel: string; agent: string; badge: 'none'|'you'|'waiting'; selected: boolean; unread: boolean };
+type ConversationBadge = { kind: 'you' | 'waiting'; label: string };
+type ConversationRowProps = { to: string; name: string; initials: string; time: string; dateTime: string; preview: string; channel: string; agent: string; badge?: ConversationBadge | null; selected?: boolean; unread?: boolean; unreadLabel?: string | null };
+type ConversationRowsSkeletonProps = { label: string; count?: number };
 ```
 
 ## Tokens
 name --type-title; time --type-small --color-mute nowrap; preview --type-caption --color-ink-secondary; meta --type-small --color-mute; Avatar md (neutral: --color-avatar-bg), fg --color-ink-secondary, 12px/600. The accent tint avatar variant uses --color-accent-light (not #D4E6E4).
 
 ## Accessibility
-`<a aria-current>` in `ul`; time as `<time>`; badge text conveys state not colour alone.
+`<a aria-current="page">` in `ul`; time as `<time dateTime>`; badge text conveys state not colour alone.
 
 ## Light/dark
 Token-driven; Avatar bg, badge tints and warn dot have dark values (tokens.md).

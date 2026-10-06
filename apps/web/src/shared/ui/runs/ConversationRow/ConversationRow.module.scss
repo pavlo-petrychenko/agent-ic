@@ -1,0 +1,137 @@
+$unread-dot-size: 7px;
+
+.root {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-10);
+  box-sizing: border-box;
+  padding: var(--space-12) var(--space-14);
+  border-bottom: var(--border-width) solid var(--color-line-row);
+  background: transparent;
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: background-color var(--duration-fast);
+
+  li:last-child > & {
+    border-bottom: 0;
+  }
+
+  &:hover {
+    background: var(--color-soft);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring-inset);
+  }
+}
+
+.selected {
+  background: var(--color-accent-light);
+  box-shadow: inset var(--border-width-strong) 0 0 var(--color-accent);
+
+  &:hover {
+    background: var(--color-accent-light);
+  }
+
+  &:focus-visible {
+    box-shadow:
+      var(--shadow-focus-ring-inset),
+      inset var(--border-width-strong) 0 0 var(--color-accent);
+  }
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-8);
+}
+
+.name {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-6);
+  min-width: 0;
+  font: var(--type-title);
+}
+
+.nameText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unreadDot {
+  flex-shrink: 0;
+  width: $unread-dot-size;
+  height: $unread-dot-size;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.time {
+  flex-shrink: 0;
+  color: var(--color-mute);
+  font: var(--type-small);
+  white-space: nowrap;
+}
+
+.preview {
+  overflow: hidden;
+  color: var(--color-ink-secondary);
+  font: var(--type-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.previewUnread {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  color: var(--color-mute);
+  font: var(--type-small);
+}
+
+.channel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.storyList {
+  width: var(--size-inspector-width);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-card);
+  list-style: none;
+}

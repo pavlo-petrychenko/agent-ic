@@ -1,0 +1,58 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--color-card);
+}
+
+.caption {
+  margin: 0;
+  padding: var(--space-8) var(--space-16) var(--space-4);
+  color: var(--color-mute);
+  font: var(--type-small);
+}
+
+.axis {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  padding: var(--space-8) var(--space-16) var(--space-4) var(--space-12);
+}
+
+.axisLabel {
+  flex-shrink: 0;
+}
+
+.axisTrack {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: var(--space-16);
+}
+
+.tick {
+  position: absolute;
+  top: 0;
+  color: var(--color-mute);
+  font: var(--type-mono-xs);
+  white-space: nowrap;
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend {
+  padding: var(--space-8) var(--space-16) var(--space-12) var(--space-12);
+}
+
+.storyFrame {
+  width: var(--size-dialog-width-sm);
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-card);
+}

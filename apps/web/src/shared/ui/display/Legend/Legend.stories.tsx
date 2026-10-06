@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Legend } from '@/shared/ui/display/Legend/Legend';
 import { ChartColor, LegendMarkerKind } from '@/shared/ui/display/Legend/Legend.constants';
 import type { LegendItem } from '@/shared/ui/display/Legend/Legend.typedefs';
+import { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
 import { StatusKind } from '@/shared/ui/display/StatusDot';
 
 const STATUS_ITEMS: LegendItem[] = [
@@ -47,6 +48,13 @@ const SERIES_ITEMS: LegendItem[] = [
   },
 ];
 
+const HUE_ITEMS: LegendItem[] = [
+  { id: 'agent', label: 'Agent', marker: { kind: LegendMarkerKind.Hue, hue: NodeKind.Agent } },
+  { id: 'model', label: 'Model', marker: { kind: LegendMarkerKind.Hue, hue: NodeKind.Gen } },
+  { id: 'tool', label: 'Tool', marker: { kind: LegendMarkerKind.Hue, hue: NodeKind.Tool } },
+  { id: 'kb', label: 'Knowledge', marker: { kind: LegendMarkerKind.Hue, hue: NodeKind.Kb } },
+];
+
 const meta = {
   component: Legend,
   args: { items: SERIES_ITEMS },
@@ -59,6 +67,7 @@ type Story = StoryObj<typeof meta>;
 export const Status: Story = { args: { items: STATUS_ITEMS } };
 export const TwoSeries: Story = { args: { items: SERIES_ITEMS.slice(0, 2) } };
 export const FourSeries: Story = {};
+export const StepHues: Story = { args: { items: HUE_ITEMS } };
 export const HiddenSeries: Story = {
   args: { items: SERIES_ITEMS.slice(0, 2), hiddenIds: ['escalated'], onToggle: () => undefined },
 };

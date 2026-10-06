@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Legend } from '@/shared/ui/display/Legend/Legend';
 import { ChartColor, LegendMarkerKind } from '@/shared/ui/display/Legend/Legend.constants';
 import type { LegendItem } from '@/shared/ui/display/Legend/Legend.typedefs';
+import { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
 import { StatusKind } from '@/shared/ui/display/StatusDot';
 import { cssClass } from '@test/support/helpers/cssModuleClass.helpers';
 import styles from '@/shared/ui/display/Legend/Legend.module.scss';
@@ -28,6 +29,11 @@ const STATUSES: LegendItem[] = [
     label: 'Running',
     marker: { kind: LegendMarkerKind.Status, status: StatusKind.Run },
   },
+];
+
+const HUES: LegendItem[] = [
+  { id: 'agent', label: 'Agent', marker: { kind: LegendMarkerKind.Hue, hue: NodeKind.Agent } },
+  { id: 'tool', label: 'Tool', marker: { kind: LegendMarkerKind.Hue, hue: NodeKind.Tool } },
 ];
 
 describe('Legend', () => {
@@ -76,5 +82,22 @@ describe('Legend', () => {
 
     expect(onToggle).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: 'Sent' })).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('colours a hue swatch from the node hue of its kind', () => {
+    const { container } = render(<Legend items={HUES} />);
+
+    const swatches = container.querySelectorAll(`.${cssClass(styles.swatch)}`);
+    expect(swatches[0]).toHaveClass(cssClass(styles[`hue-${NodeKind.Agent}`]));
+    expect(swatches[1]).toHaveClass(cssClass(styles[`hue-${NodeKind.Tool}`]));
+  });
+
+  it('shows a hidden hue with the muted swatch', () => {
+    const { container } = render(
+      <Legend items={HUES} hiddenIds={['tool']} onToggle={vi.fn<(id: string) => void>()} />,
+    );
+
+    const swatches = container.querySelectorAll(`.${cssClass(styles.swatch)}`);
+    expect(swatches[1]).toHaveClass(cssClass(styles[ChartColor.Muted]));
   });
 });
