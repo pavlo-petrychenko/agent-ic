@@ -1,0 +1,1 @@
+export const WIDGET_LAUNCHER_ICON_SIZE = 22;
