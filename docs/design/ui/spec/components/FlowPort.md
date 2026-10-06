@@ -14,6 +14,7 @@ span (absolute, round, centred on the node edge: in-port on the top edge centre,
 - source (dragging from this out-port): 12px, bg `--color-card`, border 2px `--color-accent`, no halo.
 - valid target (while an edge is being drawn): 12px, fill `--color-accent`, border 2px `--color-accent`, halo `0 0 0 4px var(--color-accent-glow)`.
 - invalid target: no port; the whole node fades to 40% (trigger, the source itself, a cycle).
+- connected (UNDESIGNED, proposal used by the build): when revealed, a port with an edge attached is filled `--color-edge` (same 8px size and border), so a hovered node shows which ports are wired.
 
 ## Props
 ```ts

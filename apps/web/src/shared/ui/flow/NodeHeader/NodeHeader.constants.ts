@@ -1,0 +1,1 @@
+export const NODE_HEADER_INVALID_ICON_SIZE = 14;

@@ -1,0 +1,109 @@
+$pill-width: 120px;
+$pill-height: 36px;
+$card-width: 200px;
+$card-height: 48px;
+$faded-opacity: 0.4;
+
+.root {
+  --compact-pad-x: var(--space-12);
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  padding: 0 var(--compact-pad-x);
+  border: var(--border-width) solid var(--color-line-node);
+  background: var(--color-card);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-base) var(--ease-standard);
+
+  &:hover,
+  &:focus-within {
+    --flow-port-reveal: 1;
+  }
+
+  &:hover:not(.selected, .disabled) {
+    border-color: var(--color-edge);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.pill {
+  min-width: $pill-width;
+  height: $pill-height;
+  border-radius: var(--radius-pill);
+}
+
+.card {
+  width: $card-width;
+  height: $card-height;
+  border-radius: var(--radius-12);
+}
+
+.selected {
+  --flow-port-reveal: 1;
+
+  padding: 0 calc(var(--compact-pad-x) - var(--border-width));
+  border: var(--border-width-strong) solid var(--color-accent);
+  box-shadow: var(--shadow-selected);
+
+  &:focus-visible {
+    box-shadow: var(--shadow-focus-ring), var(--shadow-selected);
+  }
+}
+
+.faded {
+  opacity: $faded-opacity;
+}
+
+.disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.label {
+  overflow: hidden;
+  font: var(--type-title);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inPort {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: flex;
+  transform: translate(-50%, -50%);
+}
+
+.outPorts {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-evenly;
+  transform: translateY(50%);
+}
+
+.storyRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-24);
+  padding: var(--space-16) var(--space-16) var(--space-32);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    transition: none;
+  }
+}

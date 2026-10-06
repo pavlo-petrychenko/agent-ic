@@ -1,0 +1,38 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: var(--space-2) var(--space-7);
+  border: var(--border-width) solid var(--color-line-node);
+  border-radius: var(--radius-6);
+  background: var(--color-card);
+  color: var(--color-ink-secondary);
+  font: var(--type-mono-xs);
+  white-space: nowrap;
+}
+
+.active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
+}
+
+.interactive {
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-standard);
+
+  &:hover:not(.active) {
+    border-color: var(--color-edge);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.storyRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
