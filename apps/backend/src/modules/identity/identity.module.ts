@@ -19,6 +19,7 @@ import { RenameWorkspaceResolver } from '@/modules/identity/resolvers/rename-wor
 import { ResendConfirmationResolver } from '@/modules/identity/resolvers/resend-confirmation.resolver';
 import { ResetInviteLinkResolver } from '@/modules/identity/resolvers/reset-invite-link.resolver';
 import { UpdateInviteLinkRoleResolver } from '@/modules/identity/resolvers/update-invite-link-role.resolver';
+import { UpdateMyLocaleResolver } from '@/modules/identity/resolvers/update-my-locale.resolver';
 import { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
 import { InviteLinksService } from '@/modules/identity/services/invite-links.service';
 import { InviteTokensService } from '@/modules/identity/services/invite-tokens.service';
@@ -45,6 +46,7 @@ import { ResetInviteLinkUseCase } from '@/modules/identity/use-cases/reset-invit
 import { ResetPasswordUseCase } from '@/modules/identity/use-cases/reset-password.use-case';
 import { SignUpUseCase } from '@/modules/identity/use-cases/sign-up.use-case';
 import { UpdateInviteLinkRoleUseCase } from '@/modules/identity/use-cases/update-invite-link-role.use-case';
+import { UpdateMyLocaleUseCase } from '@/modules/identity/use-cases/update-my-locale.use-case';
 import { WorkspaceAccessService } from '@/platform/context/services/workspace-access.service';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
@@ -85,6 +87,7 @@ export class IdentityModule extends defineModule({
     ListMembersUseCase,
     CleanUpAuthRecordsUseCase,
     RenameWorkspaceUseCase,
+    UpdateMyLocaleUseCase,
   ],
   resolvers: [
     ResendConfirmationResolver,
@@ -99,6 +102,7 @@ export class IdentityModule extends defineModule({
     AcceptInviteResolver,
     MembersResolver,
     RenameWorkspaceResolver,
+    UpdateMyLocaleResolver,
   ],
   controllers: [AuthController],
   processors: [CleanUpAuthRecordsProcessor],

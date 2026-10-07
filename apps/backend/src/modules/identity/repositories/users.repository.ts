@@ -4,6 +4,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 import { users } from '@/modules/identity/db/users.table';
 import type { NewUser, UserRecord } from '@/modules/identity/typedefs/user.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
+import type { Locale } from '@contracts/index';
 
 @Injectable()
 export class UsersRepository {
@@ -57,6 +58,15 @@ export class UsersRepository {
 
   async updatePassword(id: string, passwordHash: string, at: Date): Promise<void> {
     await this.txHost.tx.update(users).set({ passwordHash, updatedAt: at }).where(eq(users.id, id));
+  }
+
+  async updateLocale(id: string, locale: Locale, at: Date): Promise<UserRecord | null> {
+    const [user] = await this.txHost.tx
+      .update(users)
+      .set({ locale, updatedAt: at })
+      .where(eq(users.id, id))
+      .returning();
+    return user ?? null;
   }
 
   async touchLastActive(id: string, at: Date): Promise<void> {

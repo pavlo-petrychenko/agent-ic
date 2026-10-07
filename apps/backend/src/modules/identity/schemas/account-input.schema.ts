@@ -41,3 +41,7 @@ export const resendConfirmationInputSchema = z.union([
   z.object({ [AccountField.Email]: emailSchema, [AccountField.Token]: z.null() }),
   z.object({ [AccountField.Email]: z.null(), [AccountField.Token]: tokenSchema }),
 ]);
+
+export const updateMyLocaleInputSchema = z.object({
+  [AccountField.Locale]: z.enum(Locale),
+});
