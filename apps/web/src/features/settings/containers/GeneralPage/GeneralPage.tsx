@@ -10,10 +10,10 @@ import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useAppForm } from '@/shared/forms/hooks/useAppForm';
 import { Namespace } from '@/shared/i18n/constants/namespace.constants';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
-import { Breadcrumb } from '@/shared/ui/Breadcrumb';
-import { ButtonSize } from '@/shared/ui/Button';
-import { PageHeader } from '@/shared/ui/PageHeader';
-import { ToastTone, useToast } from '@/shared/ui/Toast';
+import { ButtonSize } from '@/shared/ui/actions/Button';
+import { PageHeader } from '@/shared/ui/layout/PageHeader';
+import { Breadcrumb } from '@/shared/ui/navigation/Breadcrumb';
+import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
 export function GeneralPage({ workspaceId }: GeneralPageProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
