@@ -14,12 +14,10 @@ export const buildRenameWorkspaceMock = (): MockLink.MockedResponse => ({
     data: {
       renameWorkspace: {
         __typename: 'RenameWorkspacePayload',
-        role: 'owner',
         workspace: {
           __typename: 'Workspace',
           id: 'ws_demo',
           name: 'Renamed workspace',
-          memberCount: 1,
         },
       },
     },

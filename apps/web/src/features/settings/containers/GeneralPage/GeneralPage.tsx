@@ -16,8 +16,7 @@ import { Breadcrumb } from '@/shared/ui/navigation/Breadcrumb';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
 export function GeneralPage({ workspaceId }: GeneralPageProps) {
-  const { t } = useTranslation(SETTINGS_NAMESPACE);
-  const { t: tError } = useTranslation(Namespace.Errors);
+  const { t } = useTranslation([SETTINGS_NAMESPACE, Namespace.Errors]);
   const workspace = useActiveWorkspace(workspaceId);
   const renameWorkspace = useRenameWorkspace();
   const { showToast } = useToast();
@@ -28,7 +27,9 @@ export function GeneralPage({ workspaceId }: GeneralPageProps) {
       name: workspace?.name ?? '',
     },
     validators: {
-      onSubmit: createWorkspaceNameSchema({ name: tError('reason.INVALID_WORKSPACE_NAME') }),
+      onSubmit: createWorkspaceNameSchema({
+        name: t(`${Namespace.Errors}:reason.INVALID_WORKSPACE_NAME`),
+      }),
     },
     onSubmit: async ({ value }) => {
       try {

@@ -1,10 +1,8 @@
 mutation RenameWorkspace($input: RenameWorkspaceInput!) {
   renameWorkspace(input: $input) {
-    role
     workspace {
       id
       name
-      memberCount
     }
   }
 }

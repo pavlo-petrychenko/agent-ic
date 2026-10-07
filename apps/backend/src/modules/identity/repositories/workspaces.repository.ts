@@ -21,10 +21,10 @@ export class WorkspacesRepository {
     return workspace ?? null;
   }
 
-  async rename(workspaceId: string, name: string, updatedAt: Date): Promise<void> {
+  async rename(workspaceId: string, name: string): Promise<void> {
     await this.txHost.tx
       .update(workspaces)
-      .set({ name, updatedAt })
+      .set({ name })
       .where(and(eq(workspaces.workspaceId, workspaceId), eq(workspaces.id, workspaceId)));
   }
 }
