@@ -3,7 +3,6 @@ import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.c
 import type { WorkspaceNameCardProps } from '@/features/settings/view/WorkspaceNameCard/WorkspaceNameCard.typedefs';
 import { Card } from '@/shared/ui/Card';
 import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/Heading';
-import { Text, TextColor, TextKind } from '@/shared/ui/Text';
 
 export function WorkspaceNameCard({ onSubmit, children }: WorkspaceNameCardProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
@@ -14,9 +13,6 @@ export function WorkspaceNameCard({ onSubmit, children }: WorkspaceNameCardProps
         <Heading size={HeadingSize.H3} as={HeadingElement.H3}>
           {t('general.workspace.title')}
         </Heading>
-        <Text kind={TextKind.Caption} color={TextColor.Mute}>
-          {t('general.subtitle')}
-        </Text>
       </div>
       <form
         noValidate
