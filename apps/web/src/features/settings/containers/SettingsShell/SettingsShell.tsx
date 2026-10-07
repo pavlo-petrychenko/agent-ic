@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { TEAM_PATH } from '@/features/settings/constants/route.constants';
+import { TEAM_PATH, GENERAL_PATH } from '@/features/settings/constants/route.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { SettingsShellProps } from '@/features/settings/containers/SettingsShell/SettingsShell.typedefs';
 import { SettingsFrame } from '@/features/settings/view/SettingsFrame';
@@ -11,16 +11,27 @@ export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
   const active = useActiveWorkspace(workspaceId);
   const showTeam = active !== null && canOpenSection(active.role, WorkspaceSection.Team);
+  const showGeneral = active !== null && canOpenSection(active.role, WorkspaceSection.General);
+
+  const hasWorkspaceNav = showGeneral || showTeam;
 
   return (
     <SettingsFrame
       title={t('title')}
       nav={
-        showTeam && (
+        hasWorkspaceNav && (
           <NavGroup label={t('nav.workspace')}>
-            <NavItem to={TEAM_PATH} params={{ workspaceId }} meta={active.memberCount}>
-              {t('nav.team')}
-            </NavItem>
+            {showTeam && (
+              <NavItem to={TEAM_PATH} params={{ workspaceId }} meta={active.memberCount}>
+                {t('nav.team')}
+              </NavItem>
+            )}
+
+            {showGeneral && (
+              <NavItem to={GENERAL_PATH} params={{ workspaceId }}>
+                {t('nav.general')}
+              </NavItem>
+            )}
           </NavGroup>
         )
       }
