@@ -4,7 +4,8 @@
   "breadcrumbMore": "More",
   "nav": {
     "workspace": "Workspace",
-    "team": "Team"
+    "team": "Team",
+    "general": "General"
   },
   "team": {
     "subtitle_one": "{{count}} member · each person has one role in this workspace",
@@ -27,6 +28,15 @@
       "role": "Role",
       "lastActive": "Last active",
       "never": "Not yet"
+    }
+  },
+  "general": {
+    "subtitle": "Workspace name",
+    "workspace": {
+      "title": "Workspace",
+      "renameSuccess": "Workspace renamed successfully",
+      "nameLabel": "Name",
+      "save": "Save"
     }
   }
 }

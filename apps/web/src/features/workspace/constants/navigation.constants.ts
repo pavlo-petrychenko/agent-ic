@@ -11,6 +11,7 @@ export enum WorkspaceSection {
   Inbox = 'inbox',
   Settings = 'settings',
   Team = 'team',
+  General = 'general',
 }
 
 export enum NavGroupKey {
@@ -24,6 +25,7 @@ export const WORKSPACE_SECTION_PATHS = {
   [WorkspaceSection.Inbox]: '/w/$workspaceId/inbox',
   [WorkspaceSection.Settings]: '/w/$workspaceId/settings',
   [WorkspaceSection.Team]: '/w/$workspaceId/settings/team',
+  [WorkspaceSection.General]: '/w/$workspaceId/settings/general',
 } as const;
 
 export const SECTION_RESOURCES: Readonly<Record<WorkspaceSection, PermissionResource | null>> = {
@@ -31,6 +33,7 @@ export const SECTION_RESOURCES: Readonly<Record<WorkspaceSection, PermissionReso
   [WorkspaceSection.Inbox]: PermissionResource.Inbox,
   [WorkspaceSection.Settings]: null,
   [WorkspaceSection.Team]: PermissionResource.Team,
+  [WorkspaceSection.General]: PermissionResource.WorkspaceSettings,
 };
 
 export const SETTINGS_NAV_ENTRY: NavEntry = {

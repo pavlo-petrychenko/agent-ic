@@ -27,7 +27,9 @@ export const workspaces = identitySchema
         .notNull()
         .references((): AnyPgColumn => users.id),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
-      updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+      updatedAt: timestamp('updated_at', { withTimezone: true })
+        .notNull()
+        .$onUpdateFn(() => new Date()),
     },
     (table) => [
       check('workspaces_workspace_id_is_id', sql`${table.workspaceId} = ${table.id}`),

@@ -15,6 +15,7 @@ import { InviteLinkResolver } from '@/modules/identity/resolvers/invite-link.res
 import { MeResolver } from '@/modules/identity/resolvers/me.resolver';
 import { MembersResolver } from '@/modules/identity/resolvers/members.resolver';
 import { MyWorkspacesResolver } from '@/modules/identity/resolvers/my-workspaces.resolver';
+import { RenameWorkspaceResolver } from '@/modules/identity/resolvers/rename-workspace.resolver';
 import { ResendConfirmationResolver } from '@/modules/identity/resolvers/resend-confirmation.resolver';
 import { ResetInviteLinkResolver } from '@/modules/identity/resolvers/reset-invite-link.resolver';
 import { UpdateInviteLinkRoleResolver } from '@/modules/identity/resolvers/update-invite-link-role.resolver';
@@ -38,6 +39,7 @@ import { ListMyWorkspacesUseCase } from '@/modules/identity/use-cases/list-my-wo
 import { LoginUseCase } from '@/modules/identity/use-cases/login.use-case';
 import { LogoutUseCase } from '@/modules/identity/use-cases/logout.use-case';
 import { RefreshSessionUseCase } from '@/modules/identity/use-cases/refresh-session.use-case';
+import { RenameWorkspaceUseCase } from '@/modules/identity/use-cases/rename-workspace.use-case';
 import { ResendConfirmationUseCase } from '@/modules/identity/use-cases/resend-confirmation.use-case';
 import { ResetInviteLinkUseCase } from '@/modules/identity/use-cases/reset-invite-link.use-case';
 import { ResetPasswordUseCase } from '@/modules/identity/use-cases/reset-password.use-case';
@@ -82,6 +84,7 @@ export class IdentityModule extends defineModule({
     AcceptInviteUseCase,
     ListMembersUseCase,
     CleanUpAuthRecordsUseCase,
+    RenameWorkspaceUseCase,
   ],
   resolvers: [
     ResendConfirmationResolver,
@@ -95,6 +98,7 @@ export class IdentityModule extends defineModule({
     InviteInfoResolver,
     AcceptInviteResolver,
     MembersResolver,
+    RenameWorkspaceResolver,
   ],
   controllers: [AuthController],
   processors: [CleanUpAuthRecordsProcessor],

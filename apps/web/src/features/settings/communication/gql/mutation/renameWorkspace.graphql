@@ -1,0 +1,8 @@
+mutation RenameWorkspace($input: RenameWorkspaceInput!) {
+  renameWorkspace(input: $input) {
+    workspace {
+      id
+      name
+    }
+  }
+}
