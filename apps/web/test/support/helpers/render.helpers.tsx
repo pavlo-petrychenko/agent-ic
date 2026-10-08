@@ -5,6 +5,7 @@ import { render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { I18nextProvider } from 'react-i18next';
+import { LocalizedToastProvider } from '@/app/providers/LocalizedToastProvider';
 import { createI18n } from '@/shared/i18n/clients/i18n.client';
 
 interface RenderWithProvidersOptions {
@@ -18,7 +19,9 @@ export function renderWithProviders(
 ): RenderResult {
   return render(
     <I18nextProvider i18n={createI18n(locale)}>
-      <MockedProvider mocks={mocks}>{ui}</MockedProvider>
+      <MockedProvider mocks={mocks}>
+        <LocalizedToastProvider>{ui}</LocalizedToastProvider>
+      </MockedProvider>
     </I18nextProvider>,
   );
 }

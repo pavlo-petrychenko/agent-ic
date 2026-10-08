@@ -4,11 +4,9 @@ import { MockedProvider } from '@apollo/client/testing/react';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { render } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
+import { LocalizedToastProvider } from '@/app/providers/LocalizedToastProvider';
 import { routeTree } from '@/routeTree.gen';
 import { createI18n } from '@/shared/i18n/clients/i18n.client';
-import { ToastProvider } from '@/shared/ui/overlays/Toast';
-
-const TOAST_CLOSE_LABEL = 'Close';
 
 interface RenderRouteOptions {
   locale?: Locale;
@@ -28,9 +26,9 @@ export const renderRoute = (
   render(
     <I18nextProvider i18n={createI18n(locale)}>
       <MockedProvider mocks={mocks}>
-        <ToastProvider closeLabel={TOAST_CLOSE_LABEL}>
+        <LocalizedToastProvider>
           <RouterProvider router={testRouter.router} />
-        </ToastProvider>
+        </LocalizedToastProvider>
       </MockedProvider>
     </I18nextProvider>,
   );
