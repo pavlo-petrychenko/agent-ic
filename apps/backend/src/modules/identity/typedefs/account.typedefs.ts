@@ -1,4 +1,4 @@
-import type { Locale } from '@contracts/index';
+import type { Locale } from '@agent-ic/contracts';
 
 export interface SignUpInput {
   readonly name: string;

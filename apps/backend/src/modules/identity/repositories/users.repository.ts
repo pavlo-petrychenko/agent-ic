@@ -1,10 +1,10 @@
+import type { Locale } from '@agent-ic/contracts';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, eq, isNull } from 'drizzle-orm';
 import { users } from '@/modules/identity/db/users.table';
 import type { NewUser, UserRecord } from '@/modules/identity/typedefs/user.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
-import type { Locale } from '@contracts/index';
 
 @Injectable()
 export class UsersRepository {

@@ -4,7 +4,7 @@ import {
   toGraphqlUser,
   toUpdateMyLocaleInput,
 } from '@/modules/identity/helpers/account-graphql.helpers';
-import type { UpdateMyLocaleUseCase } from '@/modules/identity/use-cases/update-my-locale.use-case';
+import { UpdateMyLocaleUseCase } from '@/modules/identity/use-cases/update-my-locale.use-case';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { GraphqlCtx } from '@/platform/graphql-server/decorators/graphql-ctx.decorator';
 import type {
