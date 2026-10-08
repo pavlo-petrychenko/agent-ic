@@ -1,4 +1,4 @@
-import { WorkspaceRole } from '@agent-ic/contracts';
+import { Locale, WorkspaceRole } from '@agent-ic/contracts';
 import type { MockLink } from '@apollo/client/testing';
 import { WorkspaceShellDocument } from '@/features/workspace/communication/gql/query/workspaceShell.generated';
 
@@ -18,9 +18,10 @@ export const DEMO_WORKSPACE: ShellMembershipFixture = {
 
 export const buildWorkspaceShellMock = (
   memberships: readonly ShellMembershipFixture[],
-  user: Readonly<{ name: string; email: string }> = {
+  user: Readonly<{ name: string; email: string; locale: Locale }> = {
     name: 'Pavlo',
     email: 'owner@demo-salon.example',
+    locale: Locale.En,
   },
 ): MockLink.MockedResponse => ({
   request: { query: WorkspaceShellDocument },

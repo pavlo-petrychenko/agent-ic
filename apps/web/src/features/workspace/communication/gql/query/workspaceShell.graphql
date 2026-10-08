@@ -3,6 +3,7 @@ query WorkspaceShell {
     id
     name
     email
+    locale
   }
   myWorkspaces {
     role

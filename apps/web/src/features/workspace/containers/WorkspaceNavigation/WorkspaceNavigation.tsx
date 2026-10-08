@@ -2,6 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLogOut } from '@/features/auth';
+import { useApplyAccountLocale } from '@/features/auth/logic/hooks/useApplyAccountLocale';
 import { useWorkspaceShell } from '@/features/workspace/communication/hooks/useWorkspaceShell';
 import { NavGroupKey } from '@/features/workspace/constants/navigation.constants';
 import {
@@ -40,6 +41,8 @@ export function WorkspaceNavigation({ workspaceId, footerAction }: WorkspaceNavi
     setMenuOpen(false);
     void action();
   };
+
+  useApplyAccountLocale(data?.user.locale ?? null);
 
   return (
     <WorkspaceSidebar
