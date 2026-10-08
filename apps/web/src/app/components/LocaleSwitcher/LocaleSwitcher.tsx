@@ -6,7 +6,7 @@ import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { SegmentedControl, SegmentedControlSize } from '@/shared/ui/actions/SegmentedControl';
-import { ToastTone, useToast } from '@/shared/ui/Toast';
+import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
 export function LocaleSwitcher({ compact = false, onLocaleChange }: LocaleSwitcherProps) {
   const { showToast } = useToast();
