@@ -13,6 +13,7 @@ extend type Mutation {
   acceptInvite(token: String!): Membership!
   renameWorkspace(input: RenameWorkspaceInput!): Membership!
   rememberWorkspace(workspaceId: ID!): User!
+  updateTimeZone(input: UpdateTimeZoneInput!): Membership!
 }
 
 extend type User {
@@ -96,4 +97,8 @@ type MemberConnection {
 
 input RenameWorkspaceInput {
   name: String!
+}
+
+input UpdateTimeZoneInput {
+  timeZone: String!
 }

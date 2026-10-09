@@ -27,4 +27,11 @@ export class WorkspacesRepository {
       .set({ name })
       .where(and(eq(workspaces.workspaceId, workspaceId), eq(workspaces.id, workspaceId)));
   }
+
+  async updateTimeZone(workspaceId: string, timeZone: string): Promise<void> {
+    await this.txHost.tx
+      .update(workspaces)
+      .set({ timeZone })
+      .where(and(eq(workspaces.workspaceId, workspaceId), eq(workspaces.id, workspaceId)));
+  }
 }
