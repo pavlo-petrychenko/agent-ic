@@ -1,4 +1,4 @@
-import type { WorkspaceRole } from '@agent-ic/contracts';
+import type { Locale, WorkspaceRole } from '@agent-ic/contracts';
 
 export interface WorkspaceSummary {
   readonly id: string;
@@ -10,6 +10,7 @@ export interface WorkspaceSummary {
 export interface ShellUser {
   readonly name: string;
   readonly email: string;
+  readonly locale: Locale;
 }
 
 export interface WorkspaceShellData {

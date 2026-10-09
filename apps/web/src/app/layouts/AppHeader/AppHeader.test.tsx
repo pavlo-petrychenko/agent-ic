@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
 import { describe, expect, it } from 'vitest';
 import { AppHeader } from '@/app/layouts/AppHeader/AppHeader';
+import { LocalizedToastProvider } from '@/app/providers/LocalizedToastProvider';
 import { createI18n } from '@/shared/i18n/clients/i18n.client';
 import { LOCALE_STORAGE_KEY } from '@/shared/i18n/constants/locale.constants';
 import { MemoryRouter } from '@test/support/components/MemoryRouter';
@@ -11,9 +12,11 @@ import { MemoryRouter } from '@test/support/components/MemoryRouter';
 const renderHeader = () =>
   render(
     <I18nextProvider i18n={createI18n(Locale.En)}>
-      <MemoryRouter>
-        <AppHeader />
-      </MemoryRouter>
+      <LocalizedToastProvider>
+        <MemoryRouter>
+          <AppHeader />
+        </MemoryRouter>
+      </LocalizedToastProvider>
     </I18nextProvider>,
   );
 

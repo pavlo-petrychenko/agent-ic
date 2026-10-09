@@ -20,7 +20,9 @@ export const users = identitySchema.table(
     confirmationBindingHash: text('confirmation_binding_hash'),
     lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .$onUpdateFn(() => new Date()),
   },
   (table) => [uniqueIndex('users_email_key').on(table.email)],
 );

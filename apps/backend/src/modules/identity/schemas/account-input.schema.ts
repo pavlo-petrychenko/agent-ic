@@ -11,12 +11,14 @@ import { AccountField } from '@/modules/identity/constants/account-input.constan
 
 const emailSchema = z.string().trim().toLowerCase().pipe(z.email().max(EMAIL_MAX_LENGTH));
 const tokenSchema = z.string().min(1);
+const passwordSchema = z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH);
+const localeSchema = z.enum(Locale);
 
 export const signUpInputSchema = z.object({
   [AccountField.Name]: z.string().trim().min(1).max(USER_NAME_MAX_LENGTH).regex(USER_NAME_PATTERN),
   [AccountField.Email]: emailSchema,
-  [AccountField.Password]: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
-  [AccountField.Locale]: z.enum(Locale),
+  [AccountField.Password]: passwordSchema,
+  [AccountField.Locale]: localeSchema,
 });
 
 export const loginInputSchema = z.object({
@@ -34,10 +36,14 @@ export const forgotPasswordInputSchema = z.object({
 
 export const resetPasswordInputSchema = z.object({
   [AccountField.Token]: tokenSchema,
-  [AccountField.Password]: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
+  [AccountField.Password]: passwordSchema,
 });
 
 export const resendConfirmationInputSchema = z.union([
   z.object({ [AccountField.Email]: emailSchema, [AccountField.Token]: z.null() }),
   z.object({ [AccountField.Email]: z.null(), [AccountField.Token]: tokenSchema }),
 ]);
+
+export const updateMyLocaleInputSchema = z.object({
+  [AccountField.Locale]: localeSchema,
+});

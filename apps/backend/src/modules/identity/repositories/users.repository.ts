@@ -1,3 +1,4 @@
+import type { Locale } from '@agent-ic/contracts';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, eq, isNull } from 'drizzle-orm';
@@ -51,22 +52,28 @@ export class UsersRepository {
   async markEmailConfirmed(id: string, at: Date): Promise<void> {
     await this.txHost.tx
       .update(users)
-      .set({ emailConfirmedAt: at, confirmationBindingHash: null, updatedAt: at })
+      .set({ emailConfirmedAt: at, confirmationBindingHash: null })
       .where(and(eq(users.id, id), isNull(users.emailConfirmedAt)));
   }
 
-  async updatePassword(id: string, passwordHash: string, at: Date): Promise<void> {
-    await this.txHost.tx.update(users).set({ passwordHash, updatedAt: at }).where(eq(users.id, id));
+  async updatePassword(id: string, passwordHash: string): Promise<void> {
+    await this.txHost.tx.update(users).set({ passwordHash }).where(eq(users.id, id));
+  }
+
+  async updateLocale(id: string, locale: Locale): Promise<UserRecord | null> {
+    const [user] = await this.txHost.tx
+      .update(users)
+      .set({ locale })
+      .where(eq(users.id, id))
+      .returning();
+    return user ?? null;
   }
 
   async touchLastActive(id: string, at: Date): Promise<void> {
     await this.txHost.tx.update(users).set({ lastActiveAt: at }).where(eq(users.id, id));
   }
 
-  async clearPendingInvite(id: string, at: Date): Promise<void> {
-    await this.txHost.tx
-      .update(users)
-      .set({ pendingInviteLinkId: null, updatedAt: at })
-      .where(eq(users.id, id));
+  async clearPendingInvite(id: string): Promise<void> {
+    await this.txHost.tx.update(users).set({ pendingInviteLinkId: null }).where(eq(users.id, id));
   }
 }

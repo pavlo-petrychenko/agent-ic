@@ -6,6 +6,7 @@ import { InvalidAccountInputError } from '@/modules/identity/errors/invalid-acco
 import { InvalidCredentialsError } from '@/modules/identity/errors/invalid-credentials.error';
 import { TokenExpiredError } from '@/modules/identity/errors/token-expired.error';
 import { TokenInvalidError } from '@/modules/identity/errors/token-invalid.error';
+import { verifyPassword } from '@/modules/identity/helpers/password.helpers';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { LoginUseCase } from '@/modules/identity/use-cases/login.use-case';
 import { RefreshSessionUseCase } from '@/modules/identity/use-cases/refresh-session.use-case';
@@ -186,7 +187,7 @@ describe('ResetPasswordUseCase', () => {
 
     await resetPassword.execute(anonymousCtx(), { token: newer, password: NEW_PASSWORD });
     const user = await readUser(testbed.db, account.userId);
-    expect(user.updatedAt).toEqual(testbed.clock.now());
+    expect(await verifyPassword(user.passwordHash, NEW_PASSWORD)).toBe(true);
   });
 
   it('rejects a short password and leaves the link usable', async () => {

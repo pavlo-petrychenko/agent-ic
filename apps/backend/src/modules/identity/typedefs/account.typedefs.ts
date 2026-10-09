@@ -1,3 +1,5 @@
+import type { Locale } from '@agent-ic/contracts';
+
 export interface SignUpInput {
   readonly name: string;
   readonly email: string;
@@ -50,4 +52,8 @@ export interface RefreshTokenInput {
 export interface AuthSessionResponse {
   readonly accessToken: string;
   readonly accessTokenExpiresAt: string;
+}
+
+export interface UpdateMyLocaleInput {
+  readonly locale: Locale;
 }

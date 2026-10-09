@@ -109,7 +109,7 @@ export class InviteLinksService {
     if (user === null || user.pendingInviteLinkId === null) {
       return;
     }
-    await this.users.clearPendingInvite(userId, this.clock.now());
+    await this.users.clearPendingInvite(userId);
     const invite = await this.directory.findInviteById(user.pendingInviteLinkId);
     if (invite !== null) {
       await this.tryJoin(userId, invite.workspaceId, invite.id);
