@@ -5,7 +5,7 @@
 - **Small pull requests:** aim under about 600 changed lines, not counting generated files and lockfiles. Bigger work is split into stacked pull requests.
 - **`main` is protected for the team:**
   - CI must be green;
-  - 1 approval;
+  - 1 approval, kept when more commits are pushed;
   - no direct pushes;
   - linear history;
   - the repo admin bypasses the rules: pushes directly and merges without an approval.

@@ -78,7 +78,7 @@ AI assistants read [AGENTS.md](AGENTS.md) in the repository root and the one ins
 - Check that migrations are expand-only, or that the pull request says it is the contract step.
 - Check the pull request title is a conventional commit.
 - Ask for a split when the diff is too big to review in one sitting.
-- One approval is required on `main`. The repo admin may merge without one.
+- One approval is required on `main`, and it stays when more commits are pushed. The repo admin may merge without one.
 
 ## How deploys work
 

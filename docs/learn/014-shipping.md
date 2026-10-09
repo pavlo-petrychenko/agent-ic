@@ -52,7 +52,7 @@ mise exec -- pnpm test
 
 **Review and merge**
 
-- [CODEOWNERS](../../.github/CODEOWNERS) names the repository owner for every file, so GitHub asks for that review.
+- [CODEOWNERS](../../.github/CODEOWNERS) names the three developers for every file, so GitHub asks the two who did not open the pull request for a review.
 - CI ([ci.yml](../../.github/workflows/ci.yml)) runs the same checks as `mise run check`, plus the tests, the builds and the chart checks.
 - How to review a teammate's pull request: "How to review" in [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
