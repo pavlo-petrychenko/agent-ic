@@ -5,10 +5,11 @@ import { isSupportedTimeZone } from '@/modules/identity/helpers/workspace-input.
 
 const inviteTokenSchema = z.string().min(1);
 const workspaceNameSchema = z.string().trim().min(1).max(WORKSPACE_NAME_MAX_LENGTH);
+const timeZoneSchema = z.string().refine(isSupportedTimeZone);
 
 export const createWorkspaceInputSchema = z.object({
   [WorkspaceField.Name]: workspaceNameSchema,
-  [WorkspaceField.TimeZone]: z.string().refine(isSupportedTimeZone),
+  [WorkspaceField.TimeZone]: timeZoneSchema,
 });
 
 export const inviteTokenInputSchema = z.object({
@@ -23,4 +24,8 @@ export const inviteRoleInputSchema = z.object({
 
 export const renameWorkspaceInputSchema = z.object({
   [WorkspaceField.Name]: workspaceNameSchema,
+});
+
+export const updateTimeZoneInputSchema = z.object({
+  [WorkspaceField.TimeZone]: timeZoneSchema,
 });

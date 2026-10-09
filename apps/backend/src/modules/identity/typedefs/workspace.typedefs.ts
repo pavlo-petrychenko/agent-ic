@@ -33,3 +33,7 @@ export interface DirectoryMembership {
 export interface RenameWorkspaceInput {
   readonly name: string;
 }
+
+export interface UpdateTimeZoneInput {
+  readonly timeZone: string;
+}
