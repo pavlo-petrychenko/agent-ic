@@ -11,6 +11,7 @@ import { AccountField } from '@/modules/identity/constants/account-input.constan
 
 const emailSchema = z.string().trim().toLowerCase().pipe(z.email().max(EMAIL_MAX_LENGTH));
 const tokenSchema = z.string().min(1);
+const localeSchema = z.enum(Locale);
 
 export const signUpInputSchema = z.object({
   [AccountField.Name]: z.string().trim().min(1).max(USER_NAME_MAX_LENGTH).regex(USER_NAME_PATTERN),
@@ -43,5 +44,5 @@ export const resendConfirmationInputSchema = z.union([
 ]);
 
 export const updateMyLocaleInputSchema = z.object({
-  [AccountField.Locale]: z.enum(Locale),
+  [AccountField.Locale]: localeSchema,
 });

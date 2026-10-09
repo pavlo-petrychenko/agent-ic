@@ -8,5 +8,5 @@ export const LOCALE_FROM_API: Readonly<Record<ApiLocale, Locale>> = {
 
 export const LOCALE_TO_API: Readonly<Record<Locale, ApiLocale>> = {
   [Locale.En]: ApiLocale.En,
-  [Locale.Uk]: Locale.Uk,
+  [Locale.Uk]: ApiLocale.Uk,
 };
