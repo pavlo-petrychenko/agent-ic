@@ -7,7 +7,6 @@ import { updateMyLocaleInputSchema } from '@/modules/identity/schemas/account-in
 import { WorkspaceMembershipsService } from '@/modules/identity/services/workspace-memberships.service';
 import type { UpdateMyLocaleInput } from '@/modules/identity/typedefs/account.typedefs';
 import type { Me } from '@/modules/identity/typedefs/user.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { AuthenticationRequiredError } from '@/platform/context/errors/authentication-required.error';
 import { requireUserActor } from '@/platform/context/helpers/use-case-ctx.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -21,7 +20,6 @@ export class UpdateMyLocaleUseCase {
     private readonly users: UsersRepository,
     private readonly workspaceMemberships: WorkspaceMembershipsService,
     private readonly ids: IdService,
-    private readonly clock: ClockService,
   ) {}
 
   async execute(ctx: UseCaseCtx, input: UpdateMyLocaleInput): Promise<Me> {
@@ -29,7 +27,7 @@ export class UpdateMyLocaleUseCase {
     const { locale } = parseAccountInput(updateMyLocaleInputSchema, input);
 
     return this.txHost.withTransaction(async () => {
-      const user = await this.users.updateLocale(actor.userId, locale, this.clock.now());
+      const user = await this.users.updateLocale(actor.userId, locale);
       if (user === null) {
         throw new AuthenticationRequiredError();
       }

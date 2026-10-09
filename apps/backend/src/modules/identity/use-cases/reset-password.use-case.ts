@@ -7,7 +7,6 @@ import { resetPasswordInputSchema } from '@/modules/identity/schemas/account-inp
 import { PasswordResetsService } from '@/modules/identity/services/password-resets.service';
 import { SessionsService } from '@/modules/identity/services/sessions.service';
 import type { ResetPasswordInput } from '@/modules/identity/typedefs/account.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
@@ -18,7 +17,6 @@ export class ResetPasswordUseCase {
     private readonly resets: PasswordResetsService,
     private readonly users: UsersRepository,
     private readonly sessions: SessionsService,
-    private readonly clock: ClockService,
   ) {}
 
   async execute(_ctx: UseCaseCtx, input: ResetPasswordInput): Promise<void> {
@@ -27,7 +25,7 @@ export class ResetPasswordUseCase {
     const passwordHash = await hashPassword(password);
     await this.txHost.withTransaction(async () => {
       const record = await this.resets.consume(token);
-      await this.users.updatePassword(record.userId, passwordHash, this.clock.now());
+      await this.users.updatePassword(record.userId, passwordHash);
       await this.sessions.revokeAllForUser(record.userId);
     });
   }
