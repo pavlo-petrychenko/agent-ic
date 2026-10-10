@@ -30,6 +30,7 @@ export type {
 } from '@/modules/conversations/typedefs/conversation.typedefs';
 export type {
   Message,
+  OutboundDelivery,
   OutboundMessageInput,
 } from '@/modules/conversations/typedefs/message.typedefs';
 export type {

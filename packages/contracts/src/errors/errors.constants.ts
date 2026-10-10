@@ -63,4 +63,5 @@ export enum ErrorReason {
   ConversationNotFound = 'CONVERSATION_NOT_FOUND',
   ConversationClosed = 'CONVERSATION_CLOSED',
   MessageNotFound = 'MESSAGE_NOT_FOUND',
+  ChannelAdapterNotFound = 'CHANNEL_ADAPTER_NOT_FOUND',
 }
