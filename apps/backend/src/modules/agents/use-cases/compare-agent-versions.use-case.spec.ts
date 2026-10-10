@@ -94,6 +94,20 @@ describe('CompareAgentVersionsUseCase', () => {
     await expect(attempt).rejects.toBeInstanceOf(AgentVersionNotFoundError);
   });
 
+  it('does not find a version of another workspace', async () => {
+    const workspaceId = ids.generate();
+    const seeded = await seedAgentWithDraft(testingModule, workspaceId);
+    const draftId = ids.toPublic(IdPrefix.AgentVersion, seeded.draftId);
+
+    const attempt = compareVersions.execute(agentsCtx(testingModule, ids.generate()), {
+      agentId: publicAgentId(testingModule, seeded.agentId),
+      fromId: draftId,
+      toId: draftId,
+    });
+
+    await expect(attempt).rejects.toBeInstanceOf(AgentVersionNotFoundError);
+  });
+
   it('refuses an operator', async () => {
     const workspaceId = ids.generate();
     const seeded = await seedAgentWithDraft(testingModule, workspaceId);

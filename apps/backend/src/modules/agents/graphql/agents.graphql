@@ -45,7 +45,7 @@ type Agent {
   draftNumber: Int!
   draftBaseVersionNumber: Int
   hasUnpublishedChanges: Boolean!
-  draftChangeCount: Int!
+  draftChangeCount: Int
   versionCount: Int!
   pausedAt: String
   pauseMode: PauseMode

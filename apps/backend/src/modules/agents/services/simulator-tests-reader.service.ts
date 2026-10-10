@@ -1,7 +1,7 @@
 export abstract class SimulatorTestsReader {
   abstract lastTestedAt(
     workspaceId: string,
-    draftVersionId: string,
-    revision: number,
+    agentId: string,
+    draftRevision: number,
   ): Promise<Date | null>;
 }

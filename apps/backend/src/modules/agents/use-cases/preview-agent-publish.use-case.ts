@@ -68,6 +68,6 @@ export class PreviewAgentPublishUseCase {
     if (this.simulatorTests === undefined) {
       return null;
     }
-    return this.simulatorTests.lastTestedAt(workspaceId, draft.id, draft.revision);
+    return this.simulatorTests.lastTestedAt(workspaceId, draft.agentId, draft.revision);
   }
 }
