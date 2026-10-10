@@ -4,6 +4,7 @@ import type { INestApplicationContext } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '@/app/app.module';
+import { SEED_ROLE_SELECTION } from '@/app/constants/seed.constants';
 import { seedSampleData } from '@/app/helpers/seed.helpers';
 import { SAMPLE_AGENT_NAME } from '@/modules/agents/constants/sample-agent.constants';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
@@ -13,7 +14,6 @@ import { MembershipsRepository } from '@/modules/identity/repositories/membershi
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
-import { Role } from '@/platform/module-roles/constants/role.constants';
 import { TracingService } from '@/platform/observability/services/tracing.service';
 import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
 import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
@@ -26,7 +26,7 @@ describe('seedSampleData', () => {
 
   beforeAll(async () => {
     const config = loadAppConfig(
-      { role: Role.Gateway, queues: [] },
+      SEED_ROLE_SELECTION,
       createIntegrationTestEnv(TestRedisDatabase.Entrypoints),
     );
     app = await NestFactory.createApplicationContext(
@@ -69,6 +69,20 @@ describe('seedSampleData', () => {
 
     const second = await seedSampleData(app);
 
+    const stored = await app.get(TenantTransactionService).run(first.workspaceId, async () => {
+      const agents = await app
+        .get(AgentsRepository)
+        .listPage(first.workspaceId, null, AGENT_PAGE_SIZE);
+      const [agent] = agents;
+      const published =
+        agent === undefined
+          ? []
+          : await app.get(AgentVersionsRepository).listPublished(first.workspaceId, agent.id);
+      return { agents, published };
+    });
     expect(second).toEqual({ ...first, agentCreated: false });
+    expect(stored.agents).toHaveLength(1);
+    expect(stored.published).toHaveLength(1);
+    expect(stored.published[0]?.number).toBe(FIRST_VERSION_NUMBER);
   });
 });

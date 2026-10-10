@@ -18,6 +18,7 @@ import {
   PORT_VARIABLES,
   POSTGRES_SERVICE,
   POSTGRES_VOLUME,
+  REDIS_SERVICE,
   START_LOG_TAIL,
   Tool,
   URL_LABEL_WIDTH,
@@ -200,7 +201,7 @@ export const COMMANDS: Readonly<Record<string, CommandHandler>> = {
     sequence([
       step(compose('rm', '--stop', '--force', POSTGRES_SERVICE)),
       step({ command: Tool.Docker, args: ['volume', 'rm', POSTGRES_VOLUME] }),
-      step(compose('up', '-d', '--wait', POSTGRES_SERVICE)),
+      step(compose('up', '-d', '--wait', POSTGRES_SERVICE, REDIS_SERVICE)),
       migrate,
       seed,
     ]),
