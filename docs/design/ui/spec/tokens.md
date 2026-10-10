@@ -176,6 +176,7 @@ Not drawn on this page (values kept from component pages, unchanged; names added
 | --size-statusbar-height | 44 | StatusBar |
 | --size-wizard-header-height / -footer-height / -side-width | 72 / 68 / 380 | WizardFrame (docked preview at >= 1280; the DS-Patterns board draws about 360: OPEN). The compact wizard preview Drawer is 320 (`--size-inspector-width`), not this token |
 | --size-menu-width | 280 | Menu, PromptEditor variable menu |
+| --size-menu-max-height | 320 | Combobox option list |
 | --size-rail-item-width / -height | 40 / 36 | Rail, NavItem (rail layout) |
 | --size-row-sm | 30 | PaletteItem, TreeFolder rows (list rows, not controls) |
 | --size-dot-sm / -md | 6 / 8 | Badge dot, Legend, StatusDot, StatusBar |
