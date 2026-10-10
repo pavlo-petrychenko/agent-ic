@@ -11,8 +11,12 @@ import {
   SECOND_STEP_KEY,
 } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
-import { triggerFlow } from '@test/support/fixtures/agents.fixture';
-import { agentNode, flowEdge, stepFlow } from '@test/support/fixtures/runs.fixture';
+import {
+  agentNode,
+  flowEdge,
+  stepFlow,
+  triggerOnlyFlow,
+} from '@test/support/fixtures/runs.fixture';
 import {
   changeAgent,
   createRunLifecycleTestbed,
@@ -38,7 +42,7 @@ describe('ExecuteRunUseCase', () => {
   });
 
   it('runs three quick messages as one run, then one run for the two that came during it', async () => {
-    const seeded = await seedLiveConversation(testbed, triggerFlow());
+    const seeded = await seedLiveConversation(testbed, triggerOnlyFlow());
     const first = await receiveMessage(testbed, seeded);
     const second = await receiveMessage(testbed, seeded);
     const third = await receiveMessage(testbed, seeded);
@@ -59,7 +63,7 @@ describe('ExecuteRunUseCase', () => {
   });
 
   it('fails the run and releases the conversation when the run cannot load', async () => {
-    const seeded = await seedLiveConversation(testbed, triggerFlow());
+    const seeded = await seedLiveConversation(testbed, triggerOnlyFlow());
     const { run } = await receiveMessage(testbed, seeded, { versionId: testbed.ids.generate() });
 
     const execution = testbed.executeRun.execute(seeded.ctx, { runId: String(run?.id) });
@@ -88,7 +92,7 @@ describe('ExecuteRunUseCase', () => {
   it.each(Object.values(AgentChange))(
     'ends the run without a follow-up after the agent changes mid-run: %s',
     async (change) => {
-      const seeded = await seedLiveConversation(testbed, triggerFlow());
+      const seeded = await seedLiveConversation(testbed, triggerOnlyFlow());
       const { workspaceId } = seeded.conversation;
       const runId = String((await receiveMessage(testbed, seeded)).run?.id);
       await receiveMessage(testbed, seeded);

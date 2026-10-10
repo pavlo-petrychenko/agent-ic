@@ -95,8 +95,17 @@ export const flowEdge = (
   target,
 });
 
-export const stepFlow = (nodes: readonly FlowNode[], edges: readonly FlowEdge[]): FlowDocument => {
+export const triggerOnlyFlow = (): FlowDocument => {
   const trigger = triggerFlow();
+  return {
+    ...trigger,
+    nodes: trigger.nodes.filter((node) => node.type === NodeType.TriggerMessage),
+    edges: [],
+  };
+};
+
+export const stepFlow = (nodes: readonly FlowNode[], edges: readonly FlowEdge[]): FlowDocument => {
+  const trigger = triggerOnlyFlow();
   return { ...trigger, nodes: [...trigger.nodes, ...nodes], edges: [...edges] };
 };
 
