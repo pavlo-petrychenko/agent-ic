@@ -108,18 +108,15 @@ export function Combobox({
       aria-describedby={describedBy === '' ? undefined : describedBy}
       className={clsx(styles.trigger, (invalid || hasError) && styles.invalid)}
     >
-           {' '}
       <span className={clsx(styles.value, value === '' && styles.placeholder)}>
-                {value === '' ? (placeholder ?? '') : value}     {' '}
+        {value === '' ? (placeholder ?? '') : value}
       </span>
-           {' '}
-      <Icon name={IconName.ChevronDown} size={COMBOBOX_CHEVRON_SIZE} className={styles.chevron} /> 
-       {' '}
+
+      <Icon name={IconName.ChevronDown} size={COMBOBOX_CHEVRON_SIZE} className={styles.chevron} />
     </button>
   );
   return (
     <div className={clsx(styles.root, disabled && styles.disabled, className)}>
-           {' '}
       <Popover
         open={open && !disabled}
         onOpenChange={changeOpen}
@@ -127,9 +124,7 @@ export function Combobox({
         bare
         ariaLabel={searchLabel}
       >
-               {' '}
         <div ref={panelRef} className={styles.panel}>
-                   {' '}
           <SearchInput
             value={query}
             label={searchLabel}
@@ -142,15 +137,13 @@ export function Combobox({
             }}
             onKeyDown={handleKeyDown}
           />
-                   {' '}
+
           {visible.length === 0 ? (
             <p className={styles.empty}>{emptyLabel}</p>
           ) : (
             <ul ref={optionsRef} className={styles.options}>
-                           {' '}
               {visible.map((option, index) => (
                 <li key={option.value}>
-                                   {' '}
                   <button
                     type="button"
                     aria-current={option.value === value ? 'true' : undefined}
@@ -164,30 +157,24 @@ export function Combobox({
                     onFocus={() => setActiveIndex(index)}
                     onClick={() => select(option)}
                   >
-                                        <span className={styles.optionLabel}>{option.label}</span> 
-                                     {' '}
+                    <span className={styles.optionLabel}>{option.label}</span>
+
                     {option.value === value && (
                       <Icon name={IconName.Check} size={COMBOBOX_CHECK_SIZE} />
                     )}
-                                     {' '}
                   </button>
-                                 {' '}
                 </li>
               ))}
-                         {' '}
             </ul>
           )}
-                 {' '}
         </div>
-             {' '}
       </Popover>
-           {' '}
+
       {hasError && (
         <p id={errorId} className={styles.error}>
-                    {error}       {' '}
+          {error}
         </p>
       )}
-         {' '}
     </div>
   );
 }
