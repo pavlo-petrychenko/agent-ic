@@ -3,6 +3,7 @@ import type {
   ConversationMode,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
+import type { conversations } from '@/modules/conversations/db/conversations.table';
 
 export interface Conversation {
   readonly id: string;
@@ -21,3 +22,5 @@ export interface Conversation {
   readonly closedAt: Date | null;
   readonly createdAt: Date;
 }
+
+export type NewConversation = typeof conversations.$inferInsert;

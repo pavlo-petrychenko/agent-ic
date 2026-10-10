@@ -20,3 +20,5 @@ export enum WaitingReason {
   AgentPaused = 'agent_paused',
   Escalated = 'escalated',
 }
+
+export const CONVERSATIONS_SCHEMA = 'conversations';
