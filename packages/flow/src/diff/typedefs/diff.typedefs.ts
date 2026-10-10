@@ -1,5 +1,7 @@
 import type { FlowEdge, FlowNode } from '@flow/document/typedefs/flow.typedefs';
 
+export type Fields = Readonly<Record<string, unknown>>;
+
 export interface FieldChange {
   readonly path: readonly string[];
   readonly before: unknown;

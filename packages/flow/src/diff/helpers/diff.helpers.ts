@@ -1,6 +1,7 @@
 import { NODE_IDENTITY_FIELDS } from '@flow/diff/constants/diff.constants';
 import type {
   FieldChange,
+  Fields,
   FlowDiff,
   KeyRename,
   NodeChange,
@@ -8,12 +9,13 @@ import type {
 import { renameKeyReferences } from '@flow/document/helpers/rename.helpers';
 import type { FlowDocument, FlowEdge, FlowNode } from '@flow/document/typedefs/flow.typedefs';
 
-type Fields = Readonly<Record<string, unknown>>;
-
 const isFields = (value: unknown): value is Fields =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const sameValue = (a: unknown, b: unknown): boolean => {
+  if ((a ?? null) === null && (b ?? null) === null) {
+    return true;
+  }
   if (Array.isArray(a) && Array.isArray(b)) {
     return a.length === b.length && a.every((item, index) => sameValue(item, b[index]));
   }

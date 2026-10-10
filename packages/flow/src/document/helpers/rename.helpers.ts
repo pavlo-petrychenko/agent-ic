@@ -1,5 +1,6 @@
 import { RenameError } from '@flow/document/constants/rename.constants';
 import type { FlowDocument, FlowNode } from '@flow/document/typedefs/flow.typedefs';
+import type { KeyRenames } from '@flow/document/typedefs/rename.typedefs';
 import { NODE_KEY_PATTERN } from '@flow/limits/constants/limit.constants';
 import { RESERVED_ROOTS } from '@flow/scope/constants/scope.constants';
 import {
@@ -11,8 +12,6 @@ import {
 import { mapNodeText } from '@flow/templates/helpers/node-text.helpers';
 import { parseVariablePath } from '@flow/templates/helpers/path.helpers';
 import { parseTemplate } from '@flow/templates/helpers/template.helpers';
-
-type KeyRenames = ReadonlyMap<string, string>;
 
 const rootKey = (path: string): string | null => {
   const first = parseVariablePath(path)?.[0];

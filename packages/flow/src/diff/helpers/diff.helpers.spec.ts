@@ -37,6 +37,15 @@ describe('diffFlows', () => {
     }
   });
 
+  it('sees a missing field and a null field as the same', () => {
+    const legacy = { ...helper, config: { ...helper.config } };
+    Reflect.deleteProperty(legacy.config, 'reasoning');
+
+    const diff = diffFlows(flowOf([trigger, legacy, reply], flow.edges), flow);
+
+    expect(diff).toEqual(emptyDiff);
+  });
+
   it('lists added and removed nodes', () => {
     const extra = sendText('bye', 'Bye');
     const next = flowOf([trigger, reply, extra], []);
