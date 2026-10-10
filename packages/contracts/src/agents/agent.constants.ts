@@ -1,0 +1,1 @@
+export const AGENT_AWAY_MESSAGE_MAX_LENGTH = 500;
