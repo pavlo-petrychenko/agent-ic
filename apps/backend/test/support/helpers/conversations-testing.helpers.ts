@@ -1,9 +1,12 @@
 import { Test } from '@nestjs/testing';
+import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
+import type { PauseSettings } from '@/modules/agents/typedefs/pause-settings.typedefs';
 import { ConversationsModule } from '@/modules/conversations/conversations.module';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
 import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
+import { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type { Message, NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
 import { ClockModule } from '@/platform/clock/clock.module';
@@ -31,11 +34,13 @@ import {
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
+import { newAgent } from '@test/support/fixtures/agents.fixture';
 import { newConversation, newMessage } from '@test/support/fixtures/conversation.fixture';
 import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 import {
   deliverOnOutboundQueued,
   notifyOnNeedsOperator,
+  runOnMessageReceived,
 } from '@test/support/jobs/conversation-probe.job';
 import type {
   ConversationsTestbed,
@@ -68,7 +73,7 @@ export const createConversationsTestbed = async (): Promise<ConversationsTestbed
     providers: [
       {
         provide: DOMAIN_EVENT_SUBSCRIPTIONS,
-        useValue: [deliverOnOutboundQueued, notifyOnNeedsOperator],
+        useValue: [deliverOnOutboundQueued, notifyOnNeedsOperator, runOnMessageReceived],
       },
     ],
   })
@@ -86,6 +91,8 @@ export const createConversationsTestbed = async (): Promise<ConversationsTestbed
     messages: module.get(MessagesRepository),
     history: module.get(ConversationHistoryService),
     runs: module.get(ConversationRunsService),
+    incoming: module.get(IncomingMessagesService),
+    agents: module.get(AgentsRepository),
     queues: module.get(QueuesService),
   };
 };
@@ -99,6 +106,19 @@ export const seedConversation = async (
     testbed.conversations.insert(conversation),
   );
   return conversation;
+};
+
+export const seedAgent = async (
+  testbed: ConversationsTestbed,
+  workspaceId: string,
+  pause: PauseSettings | null = null,
+): Promise<string> => {
+  const agentId = testbed.ids.generate();
+  await testbed.tenants.run(workspaceId, async () => {
+    await testbed.agents.insert(newAgent(agentId, workspaceId));
+    await testbed.agents.setPause(workspaceId, agentId, pause, testbed.clock.now());
+  });
+  return agentId;
 };
 
 export const seedMessage = async (
