@@ -5,7 +5,9 @@ import type {
   StepExecutor,
   StepOutcome,
 } from '@/modules/runs/typedefs/step-executor.typedefs';
+import { UpstreamError } from '@/platform/errors/errors/upstream.error';
 import { StepScript } from '@test/support/constants/runs-testing.constants';
+import { SAMPLE_UPSTREAM } from '@test/support/constants/sample-errors.constants';
 import { WorkerKilledError } from '@test/support/errors/worker-killed.error';
 import { SampleNotFoundError } from '@test/support/fixtures/sample-errors.fixture';
 
@@ -33,6 +35,8 @@ export class ScriptedStepExecutor implements StepExecutor {
         return Promise.resolve({ port: PortName.Next, output: { answer: node.key } });
       case StepScript.Fail:
         return Promise.reject(new SampleNotFoundError());
+      case StepScript.RejectUpstream:
+        return Promise.reject(new UpstreamError(SAMPLE_UPSTREAM, { retryable: false }));
       case StepScript.Crash:
         return Promise.reject(new WorkerKilledError(node.id));
     }

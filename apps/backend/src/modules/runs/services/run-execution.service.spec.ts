@@ -57,7 +57,7 @@ describe('RunExecutionService', () => {
     await testbed.module.close();
   });
 
-  it('walks the ports, passes earlier outputs on and publishes every step', async () => {
+  it('walks the ports, passes earlier outputs on, saves inputs and publishes every step', async () => {
     const seeded = await seedExecutableRun(testbed, threeSteps);
     const events = await testbed.liveUpdates.subscribe(channelFor(runStepsChannel, seeded.run.id));
 
@@ -70,6 +70,7 @@ describe('RunExecutionService', () => {
       (call) => call.run.id === seeded.run.id && call.node.id === THIRD_STEP_ID,
     );
     expect(run).toMatchObject({ status: RunStatus.Succeeded, error: null });
+    expect(steps.every((step) => !('history' in step.input))).toBe(true);
     expect(Object.fromEntries(steps.map((step) => [step.nodeId, step.status]))).toEqual({
       [TEST_NODE_ID]: RunStepStatus.Succeeded,
       [FIRST_STEP_ID]: RunStepStatus.Succeeded,
@@ -144,6 +145,24 @@ describe('RunExecutionService', () => {
 
     const { run } = await stored(seeded);
     expect(run?.error).toMatchObject({ reason: ErrorReason.InvalidId, nodeId: FIRST_STEP_ID });
+  });
+
+  it('fails the step and the run on an upstream error that jobs would not retry', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      stepFlow([agentNode(FIRST_STEP_ID, FIRST_STEP_KEY)], [flowEdge(TEST_NODE_ID, FIRST_STEP_ID)]),
+    );
+    testbed.executor.script(FIRST_STEP_ID, StepScript.RejectUpstream);
+
+    expect(await execute(seeded)).toBe(RunStatus.Failed);
+
+    const { run, steps } = await stored(seeded);
+    const failure = { reason: ErrorReason.UpstreamFailed, nodeId: FIRST_STEP_ID };
+    expect(run?.error).toMatchObject(failure);
+    expect(steps.find((step) => step.nodeId === FIRST_STEP_ID)).toMatchObject({
+      status: RunStepStatus.Failed,
+      error: failure,
+    });
   });
 
   it('fails the run clearly on a node type no executor handles', async () => {

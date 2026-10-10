@@ -15,7 +15,11 @@ import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { UnsupportedNodeTypeError } from '@/modules/runs/errors/unsupported-node-type.error';
 import { runFailureOf } from '@/modules/runs/helpers/run-failure.helpers';
 import { messageTriggerOf, nextNode } from '@/modules/runs/helpers/run-flow.helpers';
-import { messageTriggerVariables, stepVariables } from '@/modules/runs/helpers/run-scope.helpers';
+import {
+  messageTriggerVariables,
+  stepInput,
+  stepVariables,
+} from '@/modules/runs/helpers/run-scope.helpers';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
@@ -123,7 +127,7 @@ export class RunExecutionService {
         nodeId: node.id,
         nodeKey: node.key,
         branchKey: ROOT_BRANCH_KEY,
-        input: variables,
+        input: stepInput(variables),
         startedAt: this.clock.now(),
       }),
     );
@@ -170,10 +174,7 @@ export class RunExecutionService {
         finishedAt: this.clock.now(),
       };
     } catch (error) {
-      if (
-        !(error instanceof DomainError) ||
-        jobFailureActionFor(error) === JobFailureAction.Retry
-      ) {
+      if (jobFailureActionFor(error) === JobFailureAction.Retry) {
         throw error;
       }
       const errorPort =
