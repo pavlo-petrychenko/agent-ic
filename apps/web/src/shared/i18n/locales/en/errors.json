@@ -38,7 +38,8 @@
     "LLM_NOT_CONFIGURED": "The AI model is not set up yet. Contact support.",
     "LLM_OUTPUT_INVALID": "The AI model gave an answer we could not use. Try again.",
     "LLM_REPLY_MISSING": "The AI model did not give an answer. Try again.",
-    "LLM_TOOL_ROUNDS_EXCEEDED": "The AI model took too many steps to answer. Try again."
+    "LLM_TOOL_ROUNDS_EXCEEDED": "The AI model took too many steps to answer. Try again.",
+    "LLM_UNAVAILABLE": "The AI model is busy right now. Try again in a minute."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",

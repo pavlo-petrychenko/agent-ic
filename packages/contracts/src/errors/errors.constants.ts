@@ -50,4 +50,5 @@ export enum ErrorReason {
   LlmOutputInvalid = 'LLM_OUTPUT_INVALID',
   LlmReplyMissing = 'LLM_REPLY_MISSING',
   LlmToolRoundsExceeded = 'LLM_TOOL_ROUNDS_EXCEEDED',
+  LlmUnavailable = 'LLM_UNAVAILABLE',
 }

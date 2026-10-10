@@ -40,7 +40,7 @@ Turborepo behaviour can differ from what you remember. Its docs ship with the in
 | Where to start: the product, a repo map, the reading path | `docs/README.md`                 |
 | One concept per page, read in order                       | `docs/learn/`                    |
 | What the product does and does not do                     | `docs/design/mvp-scope.md`       |
-| Decisions D1 to D194, layout, data flow                   | `docs/design/architecture.md`    |
+| Decisions D1 to D195, layout, data flow                   | `docs/design/architecture.md`    |
 | Why a decision was made                                   | `docs/design/adr/`               |
 | Design-system names: design pages vs `shared/ui`          | `docs/design/ui/name-mapping.md` |
 | Design-system specs: tokens, components, open questions   | `docs/design/ui/spec/INDEX.md`   |

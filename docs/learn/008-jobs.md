@@ -31,7 +31,7 @@ use case --enqueue--> after-commit buffer --(commit)--> Redis queue --> worker
 4. A worker that serves that queue takes it. `JobExecutionService` checks the envelope and the payload, then builds a system ctx with the same workspace id, trace id and original initiator.
 5. The processor marked `@ProcessJob(job)` runs `handle(ctx, data)`. It calls one use case.
 
-**Retries.** A failure is reported with the trace id, then `jobFailureActionFor` decides. A `DomainError` gives up at once. An `UpstreamError` retries only when `retryable` is true. A rate limit retries and a plan limit gives up. Anything else retries. Giving up means BullMQ's `UnrecoverableError`. Completed jobs are kept 1 day and failed jobs 7 days.
+**Retries.** A failure is reported with the trace id, then `jobFailureActionFor` decides. A `DomainError` gives up at once, except one of kind `Unavailable`, which retries. An `UpstreamError` retries only when `retryable` is true. A rate limit retries and a plan limit gives up. Anything else retries. Giving up means BullMQ's `UnrecoverableError`. Completed jobs are kept 1 day and failed jobs 7 days.
 
 **Queues.** `QueueName` has six. Today `notify` carries the two email jobs and `timers` carries the auth cleanup and the outbox sweeper. `runs-reactive`, `runs-proactive`, `outbound` and `ingest` exist, but no job uses them yet. A worker serves only the queues in its `--queues` list. Locally one worker serves all six. The Helm chart has `worker-runs` (all but `ingest`) and `worker-ingest`.
 

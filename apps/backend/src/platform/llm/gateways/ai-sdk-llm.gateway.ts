@@ -1,30 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { generateText, hasToolCall, stepCountIs, zodSchema } from 'ai';
 import { LLM_CATALOG } from '@/platform/llm/constants/llm-catalog.constants';
 import {
   LLM_COMPLETE_ROUNDS,
   LLM_REPLY_TOOL_NAME,
-  LLM_SDK_MAX_RETRIES,
+  LLM_STEP_TIMEOUTS,
   LLM_TOOL_CALLS_FINISH_REASON,
 } from '@/platform/llm/constants/llm-gateway.constants';
 import { LlmAgentFinish } from '@/platform/llm/constants/llm-model.constants';
+import type { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
 import { LlmOutputInvalidError } from '@/platform/llm/errors/llm-output-invalid.error';
 import { LlmReplyMissingError } from '@/platform/llm/errors/llm-reply-missing.error';
 import { LlmToolRoundsExceededError } from '@/platform/llm/errors/llm-tool-rounds-exceeded.error';
+import { LlmUnavailableError } from '@/platform/llm/errors/llm-unavailable.error';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import {
   afterSteps,
   checkOutput,
   initialRunState,
   invalidReplyMessage,
-  modelCallSettings,
+  isModelUnavailable,
+  modelsToTry,
   outputFeedbackMessage,
   outputInstructions,
   reasoningFor,
   replyNudgeMessage,
   replyTool,
+  runCallSettings,
   structuredOutput,
   toToolSet,
+  toUpstreamFailure,
   withMessage,
 } from '@/platform/llm/helpers/llm-gateway.helpers';
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
@@ -35,37 +40,66 @@ import type {
   LlmCompletion,
   LlmModelRun,
   LlmRunState,
+  LlmStepTimeouts,
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 
 @Injectable()
 export class AiSdkLlmGateway extends LlmGateway {
-  constructor(private readonly providers: ProviderResolverService) {
+  constructor(
+    private readonly providers: ProviderResolverService,
+    @Inject(LLM_STEP_TIMEOUTS) private readonly timeouts: LlmStepTimeouts,
+  ) {
     super();
   }
 
   async complete<T>(request: LlmCompleteRequest<T>): Promise<LlmCompletion<T>> {
-    const run = await this.modelRun(request);
-    const result = await this.finalMessageAttempt(
-      { ...request, tools: {}, maxToolRounds: LLM_COMPLETE_ROUNDS },
-      run,
-      initialRunState(request.messages, LLM_COMPLETE_ROUNDS),
-    );
-    return { output: result.output, model: result.model, usage: result.usage };
+    return this.withFallback(request, async (run) => {
+      const result = await this.finalMessageAttempt(
+        { ...request, tools: {}, maxToolRounds: LLM_COMPLETE_ROUNDS },
+        run,
+        initialRunState(request.messages, LLM_COMPLETE_ROUNDS),
+      );
+      return { output: result.output, model: result.model, usage: result.usage };
+    });
   }
 
   async runAgent<T>(request: LlmAgentRequest<T>): Promise<LlmAgentResult<T>> {
-    const run = await this.modelRun(request);
-    const state = initialRunState(request.messages, request.maxToolRounds);
-    return run.model.agentFinish === LlmAgentFinish.ReplyTool
-      ? this.replyToolAttempt(request, run, state)
-      : this.finalMessageAttempt(request, run, state);
+    return this.withFallback(request, async (run) => {
+      const state = initialRunState(request.messages, request.maxToolRounds);
+      return run.model.agentFinish === LlmAgentFinish.ReplyTool
+        ? this.replyToolAttempt(request, run, state)
+        : this.finalMessageAttempt(request, run, state);
+    });
   }
 
-  private async modelRun<T>(request: LlmCompleteRequest<T>): Promise<LlmModelRun> {
+  private async withFallback<T, R>(
+    request: LlmCompleteRequest<T>,
+    attempt: (run: LlmModelRun) => Promise<R>,
+  ): Promise<R> {
+    const models = modelsToTry(request);
+    const failures: unknown[] = [];
+    for (const model of models) {
+      try {
+        return await attempt(await this.modelRun(request, model));
+      } catch (error) {
+        if (!isModelUnavailable(error)) {
+          throw toUpstreamFailure(error);
+        }
+        failures.push(error);
+      }
+    }
+    throw new LlmUnavailableError(models, failures);
+  }
+
+  private async modelRun<T>(
+    request: LlmCompleteRequest<T>,
+    model: LlmModelId,
+  ): Promise<LlmModelRun> {
     return {
-      model: LLM_CATALOG[request.model],
-      languageModel: this.providers.languageModel(request.provider, request.model),
+      model: LLM_CATALOG[model],
+      languageModel: this.providers.languageModel(request.provider, model),
       jsonSchema: await zodSchema(request.output).jsonSchema,
+      stepTimeoutMs: this.timeouts[request.purpose],
     };
   }
 
@@ -81,8 +115,7 @@ export class AiSdkLlmGateway extends LlmGateway {
       tools: toToolSet(request.tools),
       output: structuredOutput(run.model, run.jsonSchema),
       stopWhen: stepCountIs(state.roundsLeft),
-      maxRetries: LLM_SDK_MAX_RETRIES,
-      ...modelCallSettings(run.model, reasoningFor(run.model, request.reasoning)),
+      ...runCallSettings(run, reasoningFor(run.model, request.reasoning)),
     });
     const next = afterSteps(state, result);
     if (result.finishReason === LLM_TOOL_CALLS_FINISH_REASON) {
@@ -117,8 +150,7 @@ export class AiSdkLlmGateway extends LlmGateway {
       messages: [...state.messages],
       tools: { ...toToolSet(request.tools), [LLM_REPLY_TOOL_NAME]: replyTool(run.jsonSchema) },
       stopWhen: [stepCountIs(state.roundsLeft), hasToolCall(LLM_REPLY_TOOL_NAME)],
-      maxRetries: LLM_SDK_MAX_RETRIES,
-      ...modelCallSettings(run.model, reasoningFor(run.model, request.reasoning)),
+      ...runCallSettings(run, reasoningFor(run.model, request.reasoning)),
     });
     const next = afterSteps(state, result);
     const replyCall = result.toolCalls.find(({ toolName }) => toolName === LLM_REPLY_TOOL_NAME);
