@@ -47,7 +47,10 @@
     "AGENT_VERSION_IMMUTABLE": "Опубліковану версію не можна змінити.",
     "AGENT_FLOW_HAS_BLOCKING_ISSUES": "Виправте помилки в схемі перед публікацією.",
     "AWAY_MESSAGE_REQUIRED": "Напишіть повідомлення, яке отримає клієнт.",
-    "AWAY_MESSAGE_TOO_LONG": "Повідомлення про відсутність задовге."
+    "AWAY_MESSAGE_TOO_LONG": "Повідомлення про відсутність задовге.",
+    "CONVERSATION_NOT_FOUND": "Цю розмову не знайдено.",
+    "CONVERSATION_CLOSED": "Цю розмову закрито.",
+    "MESSAGE_NOT_FOUND": "Це повідомлення не знайдено."
   },
   "code": {
     "NOT_FOUND": "Не вдалося знайти те, що ви шукаєте.",

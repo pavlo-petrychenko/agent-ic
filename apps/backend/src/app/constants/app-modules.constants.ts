@@ -1,4 +1,5 @@
 import { AgentsModule } from '@/modules/agents';
+import { ConversationsModule } from '@/modules/conversations';
 import { IdentityModule } from '@/modules/identity';
 import { NotificationsModule } from '@/modules/notifications';
 import { SystemModule } from '@/modules/system';
@@ -44,6 +45,7 @@ export const DOMAIN_MODULES: readonly ModuleImport[] = [
   IdentityModule,
   NotificationsModule,
   AgentsModule,
+  ConversationsModule,
 ];
 
 export const APP_MODULES: readonly ModuleImport[] = [...PLATFORM_MODULES, ...DOMAIN_MODULES];

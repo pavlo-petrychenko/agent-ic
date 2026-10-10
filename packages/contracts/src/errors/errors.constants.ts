@@ -59,4 +59,7 @@ export enum ErrorReason {
   AgentFlowHasBlockingIssues = 'AGENT_FLOW_HAS_BLOCKING_ISSUES',
   AwayMessageRequired = 'AWAY_MESSAGE_REQUIRED',
   AwayMessageTooLong = 'AWAY_MESSAGE_TOO_LONG',
+  ConversationNotFound = 'CONVERSATION_NOT_FOUND',
+  ConversationClosed = 'CONVERSATION_CLOSED',
+  MessageNotFound = 'MESSAGE_NOT_FOUND',
 }
