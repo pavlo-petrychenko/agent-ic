@@ -1,10 +1,6 @@
 import { screen } from '@testing-library/react';
 import type userEvent from '@testing-library/user-event';
-
-interface OpenAgentMenuLabels {
-  trigger?: string;
-  menu?: string;
-}
+import type { OpenAgentMenuLabels } from '@test/support/typedefs/agentMenu.typedefs';
 
 export const openAgentMenu = async (
   user: ReturnType<typeof userEvent.setup>,

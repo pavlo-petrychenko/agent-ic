@@ -4,7 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   buildAgentsMock,
+  buildDuplicateAgentFailureMock,
   buildDuplicateAgentMock,
+  buildResumeAgentFailureMock,
   buildResumeAgentMock,
   GIFT_CARD_FAQ,
   REVIEW_COLLECTOR,
@@ -123,6 +125,46 @@ describe('agent row actions', () => {
     expect(
       await within(screen.getByRole('table')).findByText('Salon assistant (copy)'),
     ).toBeInTheDocument();
+  });
+
+  it('keeps the agent paused and shows a toast when resume fails', async () => {
+    const user = userEvent.setup();
+    renderRoute(agentsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildAgentsMock(ALL_AGENTS),
+        buildResumeAgentFailureMock(GIFT_CARD_FAQ.id, new Error('offline')),
+      ],
+    });
+
+    await user.click(
+      within(await openAgentMenu(user, 'Gift card FAQ')).getByRole('option', {
+        name: 'Resume agent',
+      }),
+    );
+
+    expect(await screen.findByText(/The server cannot be reached/)).toBeInTheDocument();
+    expect(within(screen.getByRole('table')).getByText('Paused')).toBeInTheDocument();
+  });
+
+  it('adds no copy and shows a toast when duplicate fails', async () => {
+    const user = userEvent.setup();
+    renderRoute(agentsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildAgentsMock(ALL_AGENTS),
+        buildDuplicateAgentFailureMock(SALON_ASSISTANT.id, new Error('offline')),
+      ],
+    });
+
+    await user.click(
+      within(await openAgentMenu(user, 'Salon assistant')).getByRole('option', {
+        name: 'Duplicate',
+      }),
+    );
+
+    expect(await screen.findByText(/The server cannot be reached/)).toBeInTheDocument();
+    expect(within(screen.getByRole('table')).queryByText(/\(copy\)/)).not.toBeInTheDocument();
   });
 
   it('shows the Ukrainian strings', async () => {

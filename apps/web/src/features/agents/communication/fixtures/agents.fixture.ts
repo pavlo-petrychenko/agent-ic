@@ -110,3 +110,16 @@ export const buildDuplicateAgentMock = (id: string, name: string): MockLink.Mock
   request: { query: DuplicateAgentDocument, variables: { input: { id } } },
   result: { data: { duplicateAgent: { __typename: 'Agent', id: `${id}_copy`, name } } },
 });
+
+export const buildResumeAgentFailureMock = (id: string, error: Error): MockLink.MockedResponse => ({
+  request: { query: ResumeAgentDocument, variables: { input: { id } } },
+  error,
+});
+
+export const buildDuplicateAgentFailureMock = (
+  id: string,
+  error: Error,
+): MockLink.MockedResponse => ({
+  request: { query: DuplicateAgentDocument, variables: { input: { id } } },
+  error,
+});
