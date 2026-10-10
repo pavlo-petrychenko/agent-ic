@@ -56,11 +56,11 @@ export function FilterChip({
         {valueText === null ? (
           label
         ) : (
-          <>
+          <span>
             {label}
             {FILTER_CHIP_SEPARATOR}
             <strong className={styles.value}>{valueText}</strong>
-          </>
+          </span>
         )}
       </button>
       <button

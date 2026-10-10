@@ -67,6 +67,16 @@ describe('FilterChip', () => {
     expect(screen.getByRole('button', { name: 'Agent: Telegram' })).toBeInTheDocument();
   });
 
+  it('keeps the label, separator and value in one inline run so the space after the colon renders', () => {
+    renderChip({ applied: true, value: 'Telegram' });
+
+    const target = screen.getByRole('button', { name: 'Agent: Telegram' });
+    expect(target.childElementCount).toBe(1);
+    expect(target.firstElementChild).toHaveTextContent('Agent: Telegram', {
+      normalizeWhitespace: false,
+    });
+  });
+
   it('marks the applied label target as expanded while the picker is open', () => {
     renderChip({ applied: true, value: 'Telegram', open: true });
 

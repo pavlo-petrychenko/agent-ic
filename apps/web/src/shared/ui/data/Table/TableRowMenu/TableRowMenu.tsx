@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { IconButton } from '@/shared/ui/actions/IconButton/IconButton';
 import { IconButtonSize } from '@/shared/ui/actions/IconButton/IconButton.constants';
-import { TABLE_ROW_MENU_WIDTH } from '@/shared/ui/data/Table/Table.constants';
+import { TABLE_ROW_MENU_MIN_WIDTH } from '@/shared/ui/data/Table/Table.constants';
 import type { TableRowMenuProps } from '@/shared/ui/data/Table/TableRowMenu/TableRowMenu.typedefs';
 import { IconName } from '@/shared/ui/foundations/Icon/Icon.constants';
 import { Menu } from '@/shared/ui/overlays/Menu/Menu';
@@ -39,7 +39,7 @@ export function TableRowMenu({
       <Menu
         items={items}
         variant={MenuVariant.Action}
-        width={TABLE_ROW_MENU_WIDTH}
+        minWidth={TABLE_ROW_MENU_MIN_WIDTH}
         ariaLabel={menuLabel}
         onSelect={(id) => {
           setOpen(false);

@@ -247,6 +247,22 @@ describe('Menu', () => {
     expect(disabled).toHaveTextContent('Sharenot published');
   });
 
+  it('grows past a minimum width to fit its content', () => {
+    render(
+      <Menu
+        items={ACTION_ITEMS}
+        onSelect={vi.fn<(id: string) => void>()}
+        variant={MenuVariant.Action}
+        minWidth={240}
+        ariaLabel="Actions"
+      />,
+    );
+
+    const menu = screen.getByRole('listbox', { name: 'Actions' });
+    expect(menu).toHaveStyle({ minWidth: '240px' });
+    expect(menu.className).toMatch(/fit/);
+  });
+
   it('marks a danger action', () => {
     renderMenu({ items: ACTION_ITEMS, variant: MenuVariant.Action });
 

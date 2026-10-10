@@ -1,11 +1,11 @@
 import { useId } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { AGENTS_NAMESPACE } from '@/features/agents/constants/agentsI18n.constants';
-import { DELETE_SUMMARY_LABEL_WIDTH } from '@/features/agents/view/DeleteAgentModal/DeleteAgentModal.constants';
+import { DeleteImpactRow } from '@/features/agents/view/DeleteAgentModal/DeleteAgentModal.constants';
 import type { DeleteAgentModalProps } from '@/features/agents/view/DeleteAgentModal/DeleteAgentModal.typedefs';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
-import { KeyValue, KeyValueLayout } from '@/shared/ui/display/KeyValue';
+import { RowList } from '@/shared/ui/display/RowList';
 import { Input } from '@/shared/ui/inputs/Input';
 import { Dialog } from '@/shared/ui/overlays/Dialog';
 import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/Text';
@@ -55,19 +55,21 @@ export function DeleteAgentModal({
       }
     >
       <div className="flex flex-col gap-4">
-        <KeyValue
-          layout={KeyValueLayout.Props}
-          labelWidth={DELETE_SUMMARY_LABEL_WIDTH}
-          items={[
+        <RowList
+          mono={false}
+          rows={[
             {
-              label: t('delete.versions', { count: versionCount }),
-              value: null,
-              trailing: <Badge tone={BadgeTone.Err}>{t('delete.versionsValue')}</Badge>,
+              id: DeleteImpactRow.Flow,
+              name:
+                versionCount === 0
+                  ? t('delete.flowNeverPublished')
+                  : t('delete.versions', { count: versionCount }),
+              meta: <Badge tone={BadgeTone.Err}>{t('delete.versionsValue')}</Badge>,
             },
             {
-              label: t('delete.conversations'),
-              value: null,
-              trailing: <Badge tone={BadgeTone.Neutral}>{t('delete.conversationsValue')}</Badge>,
+              id: DeleteImpactRow.Conversations,
+              name: t('delete.conversations'),
+              meta: <Badge tone={BadgeTone.Neutral}>{t('delete.conversationsValue')}</Badge>,
             },
           ]}
         />

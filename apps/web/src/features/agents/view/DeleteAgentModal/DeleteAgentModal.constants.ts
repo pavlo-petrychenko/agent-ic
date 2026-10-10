@@ -1,1 +1,4 @@
-export const DELETE_SUMMARY_LABEL_WIDTH = 230;
+export enum DeleteImpactRow {
+  Flow = 'flow',
+  Conversations = 'conversations',
+}
