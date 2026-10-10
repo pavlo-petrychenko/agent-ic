@@ -1,5 +1,6 @@
 import { IdPrefix } from '@agent-ic/contracts';
 import { countFlowChanges, diffFlows } from '@agent-ic/flow';
+import type { FlowDiff } from '@agent-ic/flow';
 import { Injectable } from '@nestjs/common';
 import { EMPTY_FLOW } from '@/modules/agents/constants/agent.constants';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
@@ -52,12 +53,15 @@ export class AgentViewsService {
   async agentDetailView(workspaceId: string, agent: Agent): Promise<AgentView> {
     const view = await this.agentView(workspaceId, agent);
     const draft = await this.versions.findDraft(workspaceId, agent.id);
+    return { ...view, draftChangeCount: countFlowChanges(await this.draftDiff(agent, draft)) };
+  }
+
+  async draftDiff(agent: Agent, draft: AgentVersion | null): Promise<FlowDiff> {
     const live =
       agent.liveVersionId === null
         ? null
-        : await this.versions.findById(workspaceId, agent.liveVersionId);
-    const diff = diffFlows(live?.flow ?? EMPTY_FLOW, draft?.flow ?? EMPTY_FLOW);
-    return { ...view, draftChangeCount: countFlowChanges(diff) };
+        : await this.versions.findById(agent.workspaceId, agent.liveVersionId);
+    return diffFlows(live?.flow ?? EMPTY_FLOW, draft?.flow ?? EMPTY_FLOW);
   }
 
   async versionViews(agent: Agent, versions: readonly AgentVersion[]): Promise<AgentVersionView[]> {

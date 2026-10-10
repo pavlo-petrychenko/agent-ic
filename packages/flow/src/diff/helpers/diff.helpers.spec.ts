@@ -174,14 +174,17 @@ describe('countFlowChanges', () => {
   const helper = agent('helper');
   const reply = sendText('reply', 'Hi');
   const flow = flowOf(
-    [trigger, helper, reply],
+    [trigger, helper, reply, sendText('later', 'Later')],
     [link(trigger, PortName.Next, helper), link(helper, PortName.Next, reply)],
   );
 
   it('counts each added, removed, changed and renamed item once', () => {
-    const next = flowOf([trigger, reply, sendText('bye', 'Bye')], []);
+    const bye = sendText('bye', 'Bye');
+    const edges = [link(trigger, PortName.Next, helper), link(reply, PortName.Next, bye)];
+    const edited = flowOf([trigger, helper, sendText('reply', 'Hello'), bye], edges);
+    const next = renameNodeKey(edited, 'helper', 'assistant');
 
-    expect(countFlowChanges(diffFlows(flow, next))).toBe(4);
+    expect(countFlowChanges(diffFlows(flow, next))).toBe(6);
   });
 
   it('counts nothing for identical flows', () => {
