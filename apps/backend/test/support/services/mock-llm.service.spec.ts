@@ -1,5 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   MOCK_EMBEDDING_DIMENSIONS,
   MOCK_LLM_ASSISTANT_ROLE,
@@ -117,6 +117,27 @@ describe('MockLlmService', () => {
     await expect(chat(AbortSignal.timeout(HANG_TIMEOUT_MS))).rejects.toMatchObject({
       name: TIMEOUT_ERROR,
     });
+  });
+
+  it('releases a hung request on reset', async () => {
+    mock.hang();
+    const pending = chat();
+    await vi.waitFor(() => expect(mock.requests).toHaveLength(1));
+
+    mock.reset();
+
+    await expect(pending).rejects.toBeInstanceOf(TypeError);
+  });
+
+  it('keeps idle connections usable across a reset', async () => {
+    mock.text('first').text('second');
+    await completion();
+    await completion();
+
+    mock.reset();
+    mock.text('after reset');
+
+    expect((await completion()).choices[0]?.message.content).toBe('after reset');
   });
 
   it('embeds every input with the default dimensions', async () => {

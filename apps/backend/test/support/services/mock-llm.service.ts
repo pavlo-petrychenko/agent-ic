@@ -35,6 +35,7 @@ import type {
 export class MockLlmService {
   readonly requests: MockLlmRequest[] = [];
   private readonly steps: MockLlmStep[] = [];
+  private readonly hung = new Set<ServerResponse>();
   private readonly server: Server;
 
   constructor() {
@@ -64,7 +65,10 @@ export class MockLlmService {
   reset(): void {
     this.requests.length = 0;
     this.steps.length = 0;
-    this.server.closeAllConnections();
+    for (const response of this.hung) {
+      response.destroy();
+    }
+    this.hung.clear();
   }
 
   reply(args: unknown, usage: MockLlmUsage = MOCK_LLM_DEFAULT_USAGE): this {
@@ -123,6 +127,7 @@ export class MockLlmService {
 
   private send(response: ServerResponse, answer: MockLlmResponse | null): void {
     if (!answer) {
+      this.hung.add(response);
       return;
     }
     response.writeHead(answer.status, {
