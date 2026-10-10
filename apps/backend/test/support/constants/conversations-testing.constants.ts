@@ -1,3 +1,5 @@
+import { Role } from '@/platform/module-roles/constants/role.constants';
+
 export const CONVERSATIONS_TEST_START = new Date('2026-10-10T09:00:00.000Z');
 export const CONCURRENT_POOL_SIZE = '2';
 export const TEST_END_USER_EXTERNAL_ID = 'end-user-1';
@@ -17,3 +19,5 @@ export enum ConversationProbeJobName {
   NotifyOperator = 'probe-notify-on-needs-operator',
   RequestRun = 'probe-run-on-message-received',
 }
+
+export const CONVERSATIONS_TESTBED_ROLE = Role.Gateway;

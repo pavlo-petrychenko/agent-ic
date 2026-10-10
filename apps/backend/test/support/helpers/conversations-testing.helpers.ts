@@ -1,3 +1,4 @@
+import type { DynamicModule } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import type { PauseSettings } from '@/modules/agents/typedefs/pause-settings.typedefs';
@@ -22,13 +23,13 @@ import type { AnyDomainEventSubscription } from '@/platform/domain-events/typede
 import { ErrorsModule } from '@/platform/errors/errors.module';
 import { IdsModule } from '@/platform/ids/ids.module';
 import { IdService } from '@/platform/ids/services/id.service';
-import { Role } from '@/platform/module-roles/constants/role.constants';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { QueuesService } from '@/platform/queues/services/queues.service';
 import type { JobData } from '@/platform/queues/typedefs/job.typedefs';
 import {
   CONCURRENT_POOL_SIZE,
   CONVERSATIONS_TEST_START,
+  CONVERSATIONS_TESTBED_ROLE,
   MESSAGE_SPACING_MS,
 } from '@test/support/constants/conversations-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
@@ -47,12 +48,13 @@ import type {
   TiedMessages,
 } from '@test/support/typedefs/conversations-testing.typedefs';
 
-const ROLE = Role.Gateway;
-
-export const createConversationsTestbed = async (): Promise<ConversationsTestbed> => {
+export const createConversationsTestbed = async (
+  domainModule: DynamicModule = ConversationsModule.forRole(CONVERSATIONS_TESTBED_ROLE),
+  redisPrefix: TestRedisPrefix = TestRedisPrefix.Conversations,
+): Promise<ConversationsTestbed> => {
   const config = createIntegrationConfig(
-    { role: ROLE, queues: [] },
-    TestRedisPrefix.Conversations,
+    { role: CONVERSATIONS_TESTBED_ROLE, queues: [] },
+    redisPrefix,
     {
       [EnvVar.DatabasePoolMax]: CONCURRENT_POOL_SIZE,
     },
@@ -66,9 +68,9 @@ export const createConversationsTestbed = async (): Promise<ConversationsTestbed
       DatabaseModule,
       ClockModule,
       IdsModule,
-      QueuesModule.forRole(ROLE),
-      DomainEventsModule.forRole(ROLE),
-      ConversationsModule.forRole(ROLE),
+      QueuesModule.forRole(CONVERSATIONS_TESTBED_ROLE),
+      DomainEventsModule.forRole(CONVERSATIONS_TESTBED_ROLE),
+      domainModule,
     ],
     providers: [
       {
