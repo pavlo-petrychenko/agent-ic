@@ -1,3 +1,6 @@
+import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
-export class AgentsModule extends defineModule({}) {}
+export class AgentsModule extends defineModule({
+  providers: [AgentsRepository],
+}) {}

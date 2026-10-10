@@ -1,3 +1,5 @@
+export const AGENTS_SCHEMA = 'agents';
+
 export enum PauseMode {
   Inbox = 'inbox',
   AwayMessage = 'away_message',

@@ -7,7 +7,7 @@ import {
   WORKSPACE_SETTING_IS_LOCAL,
 } from '@/platform/database/constants/tenant.constants';
 
-const toSqlLiteral = (value: string): string =>
+export const toSqlLiteral = (value: string): string =>
   `${SQL_QUOTE}${value.replaceAll(SQL_QUOTE, SQL_ESCAPED_QUOTE)}${SQL_QUOTE}`;
 
 export const currentWorkspaceId = (): SQL =>
