@@ -28,6 +28,9 @@ export const langfuseTraceAttributes = (tags: LlmTags): Attributes => ({
 
 export const llmCallAttributes = (tags: LlmTags, call: LlmCallTrace): Attributes => ({
   ...langfuseTraceAttributes(tags),
+  [observationMetadata(LlmTraceMetadata.AgentVersionId)]: tags.agentVersionId,
+  [observationMetadata(LlmTraceMetadata.PromptId)]: tags.promptId,
+  [observationMetadata(LlmTraceMetadata.PromptVersion)]: tags.promptVersion,
   [observationMetadata(LlmTraceMetadata.Model)]: call.model,
   [observationMetadata(LlmTraceMetadata.FallbackHop)]: call.fallbackHop,
   [observationMetadata(LlmTraceMetadata.Reasoning)]: call.reasoning ?? undefined,

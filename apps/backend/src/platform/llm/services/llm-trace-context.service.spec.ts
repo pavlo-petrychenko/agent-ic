@@ -148,6 +148,8 @@ describe('LLM tracing', () => {
     expect(taggedSpans()[0]?.attributes).toMatchObject({
       ...TRACE_ATTRIBUTES,
       [MODEL_ATTRIBUTE]: PRIMARY,
+      'langfuse.observation.metadata.prompt_id': TAGS.promptId,
+      'langfuse.observation.metadata.prompt_version': TAGS.promptVersion,
       'langfuse.observation.metadata.fallback_hop': 0,
       'langfuse.observation.metadata.reasoning': LlmReasoningEffort.Medium,
     });
