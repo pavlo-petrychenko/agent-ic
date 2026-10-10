@@ -12,11 +12,10 @@ import { AgentsRepository } from '@/modules/agents/repositories/agents.repositor
 import { SAMPLE_USER_EMAIL } from '@/modules/identity/constants/sample-workspace.constants';
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
-import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { TracingService } from '@/platform/observability/services/tracing.service';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
-import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 
 const FIRST_VERSION_NUMBER = 1;
 const AGENT_PAGE_SIZE = 10;
@@ -25,10 +24,7 @@ describe('seedSampleData', () => {
   let app: INestApplicationContext;
 
   beforeAll(async () => {
-    const config = loadAppConfig(
-      SEED_ROLE_SELECTION,
-      createIntegrationTestEnv(TestRedisDatabase.Entrypoints),
-    );
+    const config = createIntegrationConfig(SEED_ROLE_SELECTION, TestRedisPrefix.Seed);
     app = await NestFactory.createApplicationContext(
       AppModule.forRole(config, new TracingService(config.telemetry)),
       { logger: false },
