@@ -1,0 +1,10 @@
+{
+  "page": {
+    "title": "Agents",
+    "subtitle": "Build, test and publish chat agents for {{workspace}}"
+  },
+  "empty": {
+    "title": "No agents yet",
+    "description": "Building agents is coming in the next release."
+  }
+}
