@@ -43,6 +43,13 @@
       "when": 1791650284311,
       "tag": "0005_agents-tables",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791653766713,
+      "tag": "0006_conversations-messages",
+      "breakpoints": true
     }
   ]
 }

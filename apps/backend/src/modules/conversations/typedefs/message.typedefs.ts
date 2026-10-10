@@ -2,6 +2,7 @@ import type {
   MessageAuthor,
   MessageDelivery,
 } from '@/modules/conversations/constants/message.constants';
+import type { messages } from '@/modules/conversations/db/messages.table';
 
 export interface Message {
   readonly id: string;
@@ -16,3 +17,5 @@ export interface Message {
   readonly runId: string | null;
   readonly createdAt: Date;
 }
+
+export type NewMessage = typeof messages.$inferInsert;
