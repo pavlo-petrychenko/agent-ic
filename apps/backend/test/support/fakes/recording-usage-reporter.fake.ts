@@ -7,8 +7,4 @@ export class RecordingUsageReporter extends UsageReporter {
   async report(usage: LlmUsageReport): Promise<void> {
     this.reports.push(usage);
   }
-
-  reset(): void {
-    this.reports.length = 0;
-  }
 }
