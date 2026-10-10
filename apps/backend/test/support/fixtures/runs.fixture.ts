@@ -71,6 +71,7 @@ export const agentNode = (id: string, key: string): AgentNode => ({
     retrievalMode: DEFAULT_RETRIEVAL_MODE,
     output: [],
     retries: 0,
+    reasoning: null,
   },
 });
 
@@ -94,8 +95,17 @@ export const flowEdge = (
   target,
 });
 
-export const stepFlow = (nodes: readonly FlowNode[], edges: readonly FlowEdge[]): FlowDocument => {
+export const triggerOnlyFlow = (): FlowDocument => {
   const trigger = triggerFlow();
+  return {
+    ...trigger,
+    nodes: trigger.nodes.filter((node) => node.type === NodeType.TriggerMessage),
+    edges: [],
+  };
+};
+
+export const stepFlow = (nodes: readonly FlowNode[], edges: readonly FlowEdge[]): FlowDocument => {
+  const trigger = triggerOnlyFlow();
   return { ...trigger, nodes: [...trigger.nodes, ...nodes], edges: [...edges] };
 };
 

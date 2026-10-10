@@ -11,6 +11,7 @@ import type {
   FlowNode,
   OutputField,
   ParallelNode,
+  PromptSource,
   RouterNode,
   RouterRule,
   SendMessageNode,
@@ -92,12 +93,17 @@ export const scheduleTrigger = (key: string, cron: string | null = null): Trigge
   },
 });
 
-export const agent = (key: string, output: OutputField[] = []): AgentNode => ({
+export const agent = (
+  key: string,
+  output: OutputField[] = [],
+  prompt: PromptSource | null = examplePrompt(`Answer as ${key}.`),
+): AgentNode => ({
   ...base(key),
   type: NodeType.Agent,
   config: {
-    prompt: examplePrompt(`prm_${key}`),
+    prompt,
     model: exampleModel,
+    reasoning: null,
     knowledgeBaseIds: [],
     retrievalMode: RetrievalMode.Tools,
     output,
@@ -114,8 +120,9 @@ export const completion = (
   type: NodeType.Completion,
   config: {
     role,
-    prompt: examplePrompt(`prm_${key}`),
+    prompt: examplePrompt(`Answer as ${key}.`),
     model: exampleModel,
+    reasoning: null,
     input: { includeCurrentMessage: true },
     output,
   },

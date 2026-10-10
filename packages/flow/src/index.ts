@@ -32,7 +32,7 @@ export type {
   ModelRef,
   OutputField,
   ParallelNode,
-  PromptRef,
+  PromptSource,
   RouterNode,
   RouterRule,
   SendMessageNode,
@@ -102,6 +102,7 @@ export {
 } from '@flow/outputs/helpers/output.helpers';
 export {
   ModelProviderKind,
+  PromptSourceKind,
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
 export {

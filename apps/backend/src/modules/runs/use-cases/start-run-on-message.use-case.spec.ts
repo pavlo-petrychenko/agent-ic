@@ -4,7 +4,7 @@ import { executeRunJob } from '@/modules/runs/jobs/execute-run.job';
 import { StartRunOnMessageUseCase } from '@/modules/runs/use-cases/start-run-on-message.use-case';
 import { JobHandlersService } from '@/platform/queues/services/job-handlers.service';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
-import { triggerFlow } from '@test/support/fixtures/agents.fixture';
+import { triggerOnlyFlow } from '@test/support/fixtures/runs.fixture';
 import {
   createRunLifecycleTestbed,
   readLifecycle,
@@ -25,7 +25,7 @@ describe('StartRunOnMessageUseCase', () => {
   });
 
   it('claims the conversation, pins the live version and enqueues the run by its id', async () => {
-    const seeded = await seedLiveConversation(testbed, triggerFlow());
+    const seeded = await seedLiveConversation(testbed, triggerOnlyFlow());
 
     const { message } = await receiveMessage(testbed, seeded);
 
@@ -43,7 +43,7 @@ describe('StartRunOnMessageUseCase', () => {
   });
 
   it('starts nothing for a message that an earlier run already covered', async () => {
-    const seeded = await seedLiveConversation(testbed, triggerFlow());
+    const seeded = await seedLiveConversation(testbed, triggerOnlyFlow());
     const { message, run } = await receiveMessage(testbed, seeded);
     await testbed.executeRun.execute(seeded.ctx, { runId: String(run?.id) });
 

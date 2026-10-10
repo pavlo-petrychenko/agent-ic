@@ -1,3 +1,4 @@
+import type { ReasoningLevel } from '@agent-ic/contracts';
 import type {
   JSONSchema7,
   LanguageModel,
@@ -7,11 +8,7 @@ import type {
 } from 'ai';
 import type { z } from 'zod';
 import type { LlmMessageRole } from '@/platform/llm/constants/llm-gateway.constants';
-import type {
-  LlmModelId,
-  LlmPurpose,
-  LlmReasoningEffort,
-} from '@/platform/llm/constants/llm-model.constants';
+import type { LlmModelId, LlmPurpose } from '@/platform/llm/constants/llm-model.constants';
 import type { LlmModel } from '@/platform/llm/typedefs/llm-model.typedefs';
 import type { LlmProviderSource } from '@/platform/llm/typedefs/llm-provider.typedefs';
 import type { LlmTags } from '@/platform/llm/typedefs/llm-tracing.typedefs';
@@ -28,7 +25,7 @@ export interface LlmCompleteRequest<T> {
   readonly system: string;
   readonly messages: readonly LlmMessage[];
   readonly output: z.ZodType<T>;
-  readonly reasoning?: LlmReasoningEffort;
+  readonly reasoning?: ReasoningLevel;
   readonly tags: LlmTags;
 }
 
@@ -66,7 +63,7 @@ export interface LlmModelRun {
   readonly languageModel: LanguageModel;
   readonly jsonSchema: JSONSchema7;
   readonly stepTimeoutMs: number;
-  readonly reasoning: LlmReasoningEffort | null;
+  readonly reasoning: ReasoningLevel | null;
   readonly telemetry: TelemetryOptions;
 }
 
