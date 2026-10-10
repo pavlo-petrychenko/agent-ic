@@ -16,3 +16,5 @@ export const AGENT_COLUMN_WIDTHS: Readonly<Record<AgentColumn, string>> = {
   [AgentColumn.Name]: 'minmax(0, 2fr)',
   [AgentColumn.Status]: 'minmax(0, 1fr)',
 };
+
+export const STATUS_FILTER_ID = 'status';

@@ -1,10 +1,12 @@
-import { Locale } from '@agent-ic/contracts';
+import { Locale, WorkspaceRole } from '@agent-ic/contracts';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   buildAgentsFailureMock,
   buildAgentsMock,
+  buildCreateAgentFailureMock,
+  buildCreateAgentMock,
   GIFT_CARD_FAQ,
   REVIEW_COLLECTOR,
   SALON_ASSISTANT,
@@ -18,6 +20,7 @@ import { renderRoute } from '@test/support/helpers/router.helpers';
 import { signInForTest, signOutForTest } from '@test/support/helpers/session.helpers';
 
 const agentsPath = `/w/${DEMO_WORKSPACE.id}/agents`;
+const BUILDER_WORKSPACE = { ...DEMO_WORKSPACE, role: WorkspaceRole.Builder };
 const ALL_AGENTS = [SALON_ASSISTANT, GIFT_CARD_FAQ, REVIEW_COLLECTOR];
 
 describe('agents list', () => {
@@ -45,6 +48,47 @@ describe('agents list', () => {
     expect(within(table).getByText('Never published')).toBeInTheDocument();
   });
 
+  it('filters by the search text and offers to clear it', async () => {
+    const user = userEvent.setup();
+    renderRoute(agentsPath, {
+      mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE]), buildAgentsMock(ALL_AGENTS)],
+    });
+
+    await screen.findByText('Salon assistant');
+    await user.type(screen.getByRole('searchbox', { name: 'Search agents' }), 'gift');
+
+    expect(screen.getByText('Gift card FAQ')).toBeInTheDocument();
+    expect(screen.queryByText('Salon assistant')).not.toBeInTheDocument();
+
+    await user.clear(screen.getByRole('searchbox', { name: 'Search agents' }));
+    await user.type(screen.getByRole('searchbox', { name: 'Search agents' }), 'zzz');
+
+    expect(await screen.findByText('No agents match')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }));
+
+    expect(await screen.findByText('Salon assistant')).toBeInTheDocument();
+  });
+
+  it('filters by status', async () => {
+    const user = userEvent.setup();
+    renderRoute(agentsPath, {
+      mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE]), buildAgentsMock(ALL_AGENTS)],
+    });
+
+    await screen.findByText('Salon assistant');
+    await user.click(screen.getByRole('button', { name: 'Status' }));
+    await user.click(
+      within(screen.getByRole('dialog', { name: 'Status' })).getByRole('checkbox', {
+        name: 'Paused',
+      }),
+    );
+
+    expect(screen.getByText('Gift card FAQ')).toBeInTheDocument();
+    expect(screen.queryByText('Salon assistant')).not.toBeInTheDocument();
+    expect(screen.queryByText('Review collector')).not.toBeInTheDocument();
+  });
+
   it('opens the builder from a row', async () => {
     const user = userEvent.setup();
     renderRoute(agentsPath, {
@@ -56,12 +100,91 @@ describe('agents list', () => {
     expect(await screen.findByRole('heading', { name: 'Flow builder' })).toBeInTheDocument();
   });
 
-  it('shows the empty state when there are no agents', async () => {
+  it('shows the empty state with the setup checklist to an owner', async () => {
     renderRoute(agentsPath, {
       mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE]), buildAgentsMock([])],
     });
 
-    expect(await screen.findByText('No agents yet')).toBeInTheDocument();
+    expect(await screen.findByText('No assistants yet')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Blank flow' })).toBeInTheDocument();
+    expect(screen.getByText('Get set up')).toBeInTheDocument();
+    expect(screen.getByText('3 steps')).toBeInTheDocument();
+    expect(screen.getByText('Create the workspace')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Copy invite link' })).toHaveAttribute(
+      'href',
+      `/w/${DEMO_WORKSPACE.id}/settings/team`,
+    );
+  });
+
+  it('leaves the invite step out for a builder', async () => {
+    renderRoute(agentsPath, {
+      mocks: [buildWorkspaceShellMock([BUILDER_WORKSPACE]), buildAgentsMock([])],
+    });
+
+    expect(await screen.findByText('Get set up')).toBeInTheDocument();
+    expect(screen.getByText('2 steps')).toBeInTheDocument();
+    expect(screen.queryByText('Invite your team')).not.toBeInTheDocument();
+  });
+
+  it('creates a blank agent and opens the builder', async () => {
+    const user = userEvent.setup();
+    renderRoute(agentsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildAgentsMock([]),
+        buildCreateAgentMock('New agent'),
+      ],
+    });
+
+    await user.click(await screen.findByRole('button', { name: 'Blank flow' }));
+
+    expect(await screen.findByRole('heading', { name: 'Flow builder' })).toBeInTheDocument();
+  });
+
+  it('starts the first agent from the checklist', async () => {
+    const user = userEvent.setup();
+    renderRoute(agentsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildAgentsMock([]),
+        buildCreateAgentMock('New agent'),
+      ],
+    });
+
+    await user.click(await screen.findByRole('button', { name: 'Start' }));
+
+    expect(await screen.findByRole('heading', { name: 'Flow builder' })).toBeInTheDocument();
+  });
+
+  it('creates another agent from the header', async () => {
+    const user = userEvent.setup();
+    renderRoute(agentsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildAgentsMock(ALL_AGENTS),
+        buildCreateAgentMock('New agent'),
+      ],
+    });
+
+    await user.click(await screen.findByRole('button', { name: 'New agent' }));
+
+    expect(await screen.findByRole('heading', { name: 'Flow builder' })).toBeInTheDocument();
+  });
+
+  it('tells the user when the agent could not be created', async () => {
+    const user = userEvent.setup();
+    renderRoute(agentsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildAgentsMock([]),
+        buildCreateAgentFailureMock('New agent', new Error('offline')),
+      ],
+    });
+
+    await user.click(await screen.findByRole('button', { name: 'Blank flow' }));
+
+    expect(await screen.findByText(/The server cannot be reached/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Blank flow' })).toBeInTheDocument();
   });
 
   it('explains a failed load and loads again on retry', async () => {
@@ -129,5 +252,6 @@ describe('agents list', () => {
     expect(await screen.findByText('Працює · v3')).toBeInTheDocument();
     expect(screen.getByText('Чернетка v4 у роботі')).toBeInTheDocument();
     expect(screen.getByText('Ще не опубліковано')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Новий агент' })).toBeInTheDocument();
   });
 });
