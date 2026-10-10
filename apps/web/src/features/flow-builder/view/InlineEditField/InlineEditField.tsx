@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { NameFieldKey } from '@/features/flow-builder/constants/nameField.constants';
 import type { InlineEditFieldProps } from '@/features/flow-builder/view/InlineEditField/InlineEditField.typedefs';
-import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Input } from '@/shared/ui/inputs/Input';
+import styles from '@/features/flow-builder/view/InlineEditField/InlineEditField.module.scss';
 
 export function InlineEditField({
   value,
@@ -37,14 +37,15 @@ export function InlineEditField({
   };
 
   return draft === null ? (
-    <Button
-      variant={ButtonVariant.Ghost}
+    <button
+      type="button"
       title={editLabel}
       aria-current={current ? 'page' : undefined}
+      className={styles.value}
       onClick={start}
     >
       {value ?? placeholder}
-    </Button>
+    </button>
   ) : (
     <Input
       aria-label={inputLabel}

@@ -6,7 +6,6 @@ import {
   DEMO_AGENT_ID,
   TRIGGER_ONLY_FLOW,
   buildFlowBuilderDraftFailureMock,
-  buildDescribeAgentMock,
   buildFlowBuilderDraftMock,
   buildRenameAgentMock,
 } from '@/features/flow-builder/communication/fixtures/flowBuilderDraft.fixture';
@@ -108,25 +107,6 @@ describe('flow builder canvas', () => {
     expect(screen.getByRole('button', { name: 'Front desk' })).toBeInTheDocument();
     expect(within(canvas).getByLabelText('Send message')).toBeInTheDocument();
     expect(useFlowBuilderStore.getState().history.past).toHaveLength(1);
-  });
-
-  it('describes the agent in the header', async () => {
-    renderRoute(builderPath, {
-      mocks: [
-        shell,
-        buildFlowBuilderDraftMock(TRIGGER_ONLY_FLOW),
-        buildDescribeAgentMock('Books salon visits'),
-      ],
-    });
-
-    await userEvent.click(await screen.findByRole('button', { name: 'Add a description' }));
-    await userEvent.type(
-      screen.getByRole('textbox', { name: 'Agent description' }),
-      'Books salon visits{Enter}',
-    );
-
-    expect(await screen.findByText('Description saved')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Books salon visits' })).toBeInTheDocument();
   });
 
   it('deletes and duplicates a step from its right-click menu', async () => {

@@ -117,11 +117,7 @@
     "nameLabel": "Agent name",
     "renamed": "Agent renamed",
     "neverPublished": "Draft · never published",
-    "editedFrom": "Draft · edited from v{{version}}",
-    "describe": "Edit description",
-    "descriptionLabel": "Agent description",
-    "addDescription": "Add a description",
-    "described": "Description saved"
+    "editedFrom": "Draft · edited from v{{version}}"
   },
   "autosave": {
     "saved": "Saved",
