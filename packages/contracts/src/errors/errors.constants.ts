@@ -44,4 +44,6 @@ export enum ErrorReason {
   InvalidWorkspaceName = 'INVALID_WORKSPACE_NAME',
   InvalidTimeZone = 'INVALID_TIME_ZONE',
   RoleNotInvitable = 'ROLE_NOT_INVITABLE',
+  SecretKeyVersionUnknown = 'SECRET_KEY_VERSION_UNKNOWN',
+  SecretTampered = 'SECRET_TAMPERED',
 }

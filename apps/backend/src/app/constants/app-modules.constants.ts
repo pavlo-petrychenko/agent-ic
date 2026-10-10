@@ -16,6 +16,7 @@ import { ObservabilityModule } from '@/platform/observability/observability.modu
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
+import { SecretsModule } from '@/platform/secrets/secrets.module';
 
 export const PLATFORM_MODULES: readonly ModuleImport[] = [
   ContextModule,
@@ -30,6 +31,7 @@ export const PLATFORM_MODULES: readonly ModuleImport[] = [
   CacheModule,
   RateLimitModule,
   CryptoModule,
+  SecretsModule,
   ObservabilityModule,
   GraphqlServerModule,
 ];
