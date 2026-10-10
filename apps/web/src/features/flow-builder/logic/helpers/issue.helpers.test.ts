@@ -24,6 +24,12 @@ describe('currentIssues', () => {
       validateFlow(TRIGGER_ONLY_FLOW),
     );
   });
+
+  it('validates each document once, so every caller shares the same issues', () => {
+    const first = currentIssues(TRIGGER_ONLY_FLOW, SaveState.Pending, []);
+
+    expect(currentIssues(TRIGGER_ONLY_FLOW, SaveState.Saving, [])).toBe(first);
+  });
 });
 
 describe('overviewIssues', () => {

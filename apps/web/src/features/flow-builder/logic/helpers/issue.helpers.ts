@@ -3,11 +3,23 @@ import type { FlowDocument, FlowIssue } from '@agent-ic/flow';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import type { IssueOverview } from '@/features/flow-builder/typedefs/issue.typedefs';
 
+const localIssues = new WeakMap<FlowDocument, readonly FlowIssue[]>();
+
+const validateOnce = (document: FlowDocument): readonly FlowIssue[] => {
+  const cached = localIssues.get(document);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const issues = validateFlow(document);
+  localIssues.set(document, issues);
+  return issues;
+};
+
 export const currentIssues = (
   document: FlowDocument,
   saveState: SaveState,
   savedIssues: readonly FlowIssue[],
-): readonly FlowIssue[] => (saveState === SaveState.Idle ? savedIssues : validateFlow(document));
+): readonly FlowIssue[] => (saveState === SaveState.Idle ? savedIssues : validateOnce(document));
 
 export const isBlocking = (issue: FlowIssue): boolean => issue.severity === FlowIssueSeverity.Error;
 
