@@ -43,4 +43,5 @@ export const MOCK_EMBEDDING_STEP = 0.001;
 export const MOCK_LLM_UNSCRIPTED_MESSAGE = 'mock llm has no scripted step for this request';
 export const MOCK_LLM_WRONG_STEP_MESSAGE = 'mock llm scripted step does not fit this request';
 export const MOCK_LLM_FAILURE_MESSAGE = 'mock llm scripted failure';
+export const MOCK_LLM_BAD_REQUEST_MESSAGE = 'mock llm could not read the request body';
 export const MOCK_LLM_CONTENT_TYPE_HEADER = 'content-type';

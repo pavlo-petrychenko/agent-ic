@@ -18,6 +18,7 @@ import {
   MockLlmStepKind,
 } from '@test/support/constants/mock-llm.constants';
 import {
+  badRequestResponse,
   embeddingsResponse,
   errorResponse,
   replyCompletion,
@@ -92,15 +93,35 @@ export class MockLlmService {
   }
 
   private async handle(request: IncomingMessage, response: ServerResponse): Promise<void> {
+    const route = request.url ?? '';
+    const authorization = request.headers.authorization ?? null;
+    let text = '';
+    let body: Readonly<Record<string, unknown>>;
+    try {
+      text = await this.readBody(request);
+      body = mockLlmBodySchema.parse(text ? JSON.parse(text) : {});
+    } catch (error) {
+      this.requests.push({ route, authorization, body: text });
+      this.send(response, badRequestResponse(error));
+      return;
+    }
+    this.requests.push({ route, authorization, body });
+    try {
+      this.send(response, this.answer(route, body));
+    } catch (error) {
+      this.send(response, badRequestResponse(error));
+    }
+  }
+
+  private async readBody(request: IncomingMessage): Promise<string> {
     const chunks: Buffer[] = [];
     for await (const chunk of request) {
       chunks.push(Buffer.from(chunk));
     }
-    const text = Buffer.concat(chunks).toString();
-    const body = mockLlmBodySchema.parse(text ? JSON.parse(text) : {});
-    const route = request.url ?? '';
-    this.requests.push({ route, authorization: request.headers.authorization ?? null, body });
-    const answer = this.answer(route, body);
+    return Buffer.concat(chunks).toString();
+  }
+
+  private send(response: ServerResponse, answer: MockLlmResponse | null): void {
     if (!answer) {
       return;
     }

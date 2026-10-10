@@ -3,6 +3,7 @@ import {
   MOCK_EMBEDDING_STEP,
   MOCK_EMBEDDING_TOKENS_PER_INPUT,
   MOCK_LLM_ASSISTANT_ROLE,
+  MOCK_LLM_BAD_REQUEST_MESSAGE,
   MOCK_LLM_COMPLETION_ID,
   MOCK_LLM_CREATED_AT,
   MOCK_LLM_REPLY_TOOL,
@@ -98,3 +99,9 @@ export const errorResponse = (status: number, message: string): MockLlmResponse 
   status,
   body: { error: { message, type: String(status) } },
 });
+
+export const badRequestResponse = (error: unknown): MockLlmResponse =>
+  errorResponse(
+    HttpStatus.BAD_REQUEST,
+    error instanceof Error ? error.message : MOCK_LLM_BAD_REQUEST_MESSAGE,
+  );

@@ -2,6 +2,9 @@ import { HttpStatus } from '@nestjs/common';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   MOCK_EMBEDDING_DIMENSIONS,
+  MOCK_LLM_ASSISTANT_ROLE,
+  MOCK_LLM_CONTENT_TYPE_HEADER,
+  MOCK_LLM_JSON_CONTENT_TYPE,
   MOCK_LLM_REPLY_TOOL,
   MockLlmFinishReason,
   MockLlmRoute,
@@ -22,17 +25,24 @@ const TIMEOUT_ERROR = 'TimeoutError';
 const SMALL_DIMENSIONS = 3;
 const USAGE = { promptTokens: 120, completionTokens: 30 };
 const REPLY_ARGS = { text: 'Hello', quickReplies: ['Yes'] };
+const MALFORMED_BODY = '{not json';
 
 describe('MockLlmService', () => {
   let mock: MockLlmService;
 
-  const post = (path: string, body: Record<string, unknown>, signal: AbortSignal | null = null) =>
+  const send = (path: string, body: string, signal: AbortSignal | null = null) =>
     fetch(`${mock.url}${path}`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: AUTHORIZATION },
-      body: JSON.stringify(body),
+      headers: {
+        [MOCK_LLM_CONTENT_TYPE_HEADER]: MOCK_LLM_JSON_CONTENT_TYPE,
+        authorization: AUTHORIZATION,
+      },
+      body,
       signal,
     });
+
+  const post = (path: string, body: Record<string, unknown>, signal: AbortSignal | null = null) =>
+    send(path, JSON.stringify(body), signal);
 
   const chat = (signal: AbortSignal | null = null) =>
     post(CHAT_PATH, { model: MODEL, messages: MESSAGES }, signal);
@@ -73,7 +83,11 @@ describe('MockLlmService', () => {
           },
         },
       ],
-      usage: { prompt_tokens: 120, completion_tokens: 30, total_tokens: 150 },
+      usage: {
+        prompt_tokens: USAGE.promptTokens,
+        completion_tokens: USAGE.completionTokens,
+        total_tokens: USAGE.promptTokens + USAGE.completionTokens,
+      },
     });
   });
 
@@ -85,7 +99,7 @@ describe('MockLlmService', () => {
     expect(body.choices).toEqual([
       expect.objectContaining({
         finish_reason: MockLlmFinishReason.Stop,
-        message: { role: 'assistant', content: 'just words' },
+        message: { role: MOCK_LLM_ASSISTANT_ROLE, content: 'just words' },
       }),
     ]);
   });
@@ -155,5 +169,20 @@ describe('MockLlmService', () => {
 
     mock.embed();
     expect((await chat()).status).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+  });
+
+  it('answers a malformed body with a bad request and records it raw', async () => {
+    const response = await send(CHAT_PATH, MALFORMED_BODY);
+
+    expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+    expect(mock.requests).toEqual([
+      { route: MockLlmRoute.ChatCompletions, authorization: AUTHORIZATION, body: MALFORMED_BODY },
+    ]);
+  });
+
+  it('answers an embeddings body without input with a bad request', async () => {
+    mock.embed();
+
+    expect((await post(EMBEDDINGS_PATH, { model: MODEL })).status).toBe(HttpStatus.BAD_REQUEST);
   });
 });

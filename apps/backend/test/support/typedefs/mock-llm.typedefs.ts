@@ -15,7 +15,7 @@ export type MockLlmStep =
 export interface MockLlmRequest {
   readonly route: string;
   readonly authorization: string | null;
-  readonly body: Readonly<Record<string, unknown>>;
+  readonly body: Readonly<Record<string, unknown>> | string;
 }
 
 export interface MockLlmResponse {
