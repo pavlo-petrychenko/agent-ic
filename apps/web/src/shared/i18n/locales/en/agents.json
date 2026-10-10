@@ -90,7 +90,7 @@
     "versions_other": "Flow and {{count}} versions",
     "versionsValue": "deleted",
     "conversations": "Past conversations",
-    "conversationsValue": "kept in Inbox and Langfuse",
+    "conversationsValue": "kept",
     "confirm": "Type <strong>{{name}}</strong> to confirm",
     "nameLabel": "Agent name",
     "submit": "Delete agent",

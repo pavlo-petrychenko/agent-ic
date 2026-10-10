@@ -94,7 +94,7 @@
     "versions_other": "Сценарій і {{count}} версії",
     "versionsValue": "буде видалено",
     "conversations": "Попередні розмови",
-    "conversationsValue": "залишаться у Вхідних і Langfuse",
+    "conversationsValue": "залишаться",
     "confirm": "Введіть <strong>{{name}}</strong> для підтвердження",
     "nameLabel": "Назва агента",
     "submit": "Видалити агента",

@@ -1,12 +1,14 @@
+import { useId } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { AGENTS_NAMESPACE } from '@/features/agents/constants/agentsI18n.constants';
+import { DELETE_SUMMARY_LABEL_WIDTH } from '@/features/agents/view/DeleteAgentModal/DeleteAgentModal.constants';
 import type { DeleteAgentModalProps } from '@/features/agents/view/DeleteAgentModal/DeleteAgentModal.typedefs';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { KeyValue, KeyValueLayout } from '@/shared/ui/display/KeyValue';
-import { Field } from '@/shared/ui/inputs/Field';
 import { Input } from '@/shared/ui/inputs/Input';
 import { Dialog } from '@/shared/ui/overlays/Dialog';
-import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
+import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/Text';
 
 export function DeleteAgentModal({
   agentName,
@@ -20,6 +22,8 @@ export function DeleteAgentModal({
   onClose,
 }: DeleteAgentModalProps) {
   const { t } = useTranslation(AGENTS_NAMESPACE);
+  const inputId = useId();
+  const promptId = `${inputId}-prompt`;
 
   return (
     <Dialog
@@ -53,33 +57,40 @@ export function DeleteAgentModal({
       <div className="flex flex-col gap-4">
         <KeyValue
           layout={KeyValueLayout.Props}
+          labelWidth={DELETE_SUMMARY_LABEL_WIDTH}
           items={[
             {
               label: t('delete.versions', { count: versionCount }),
-              value: t('delete.versionsValue'),
+              value: null,
+              trailing: <Badge tone={BadgeTone.Err}>{t('delete.versionsValue')}</Badge>,
             },
-            { label: t('delete.conversations'), value: t('delete.conversationsValue') },
+            {
+              label: t('delete.conversations'),
+              value: null,
+              trailing: <Badge tone={BadgeTone.Neutral}>{t('delete.conversationsValue')}</Badge>,
+            },
           ]}
         />
-        <Text kind={TextKind.BodySmall} color={TextColor.Ink2}>
-          <Trans
-            t={t}
-            i18nKey="delete.confirm"
-            values={{ name: agentName }}
-            components={{ strong: <strong /> }}
-          />
-        </Text>
-        <Field label={t('delete.nameLabel')}>
-          {(control) => (
-            <Input
-              id={control.id}
-              aria-describedby={control['aria-describedby']}
-              autoComplete="off"
-              value={typedName}
-              onChange={(event) => onTypedNameChange(event.target.value)}
+        <div className="flex flex-col gap-1.5">
+          <Text id={promptId} as={TextElement.Span} kind={TextKind.Caption} color={TextColor.Ink2}>
+            <Trans
+              t={t}
+              i18nKey="delete.confirm"
+              values={{ name: agentName }}
+              components={{ strong: <strong /> }}
             />
-          )}
-        </Field>
+          </Text>
+          <label htmlFor={inputId} className="sr-only">
+            {t('delete.nameLabel')}
+          </label>
+          <Input
+            id={inputId}
+            aria-describedby={promptId}
+            autoComplete="off"
+            value={typedName}
+            onChange={(event) => onTypedNameChange(event.target.value)}
+          />
+        </div>
       </div>
     </Dialog>
   );

@@ -1,0 +1,1 @@
+export const DELETE_SUMMARY_LABEL_WIDTH = 230;
