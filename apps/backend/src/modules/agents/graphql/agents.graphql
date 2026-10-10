@@ -29,7 +29,13 @@ enum PauseMode {
 type Agent {
   id: ID!
   name: String!
+  description: String
   status: AgentStatus!
+  liveVersionNumber: Int
+  draftNumber: Int!
+  draftBaseVersionNumber: Int
+  hasUnpublishedChanges: Boolean!
+  versionCount: Int!
   pausedAt: String
   pauseMode: PauseMode
   awayMessage: String

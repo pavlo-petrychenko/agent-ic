@@ -12,6 +12,7 @@ import { TenantTransactionService } from '@/platform/database/services/tenant-tr
 import { IdService } from '@/platform/ids/services/id.service';
 import {
   AGENTS_TEST_LATER,
+  TEST_AGENT_DESCRIPTION,
   TEST_AGENT_NAME,
   TEST_NODE_NEW_LABEL,
   TEST_VERSION_NOTE,
@@ -46,18 +47,19 @@ describe('DuplicateAgentUseCase', () => {
     const workspaceId = ids.generate();
     const seeded = await seedAgentWithDraft(testingModule, workspaceId);
     await makeAgentLive(testingModule, workspaceId, seeded);
-    await testingModule
-      .get(TenantTransactionService)
-      .run(workspaceId, () =>
-        testingModule
-          .get(AgentVersionsRepository)
-          .updateDraft(
-            workspaceId,
-            seeded.draftId,
-            { flow: triggerFlow(TEST_NODE_NEW_LABEL), note: TEST_VERSION_NOTE },
-            AGENTS_TEST_LATER,
-          ),
-      );
+    await testingModule.get(TenantTransactionService).run(workspaceId, async () => {
+      await testingModule
+        .get(AgentVersionsRepository)
+        .updateDraft(
+          workspaceId,
+          seeded.draftId,
+          { flow: triggerFlow(TEST_NODE_NEW_LABEL), note: TEST_VERSION_NOTE },
+          AGENTS_TEST_LATER,
+        );
+      await testingModule
+        .get(AgentsRepository)
+        .setDescription(workspaceId, seeded.agentId, TEST_AGENT_DESCRIPTION, AGENTS_TEST_LATER);
+    });
 
     const copy = await duplicateAgent.execute(agentsCtx(testingModule, workspaceId), {
       id: publicAgentId(testingModule, seeded.agentId),
@@ -68,7 +70,9 @@ describe('DuplicateAgentUseCase', () => {
     const versions = await readVersions(testingModule, workspaceId, copyId);
     expect(copy).toMatchObject({
       name: `${TEST_AGENT_NAME}${DUPLICATE_AGENT_NAME_SUFFIX}`,
+      description: TEST_AGENT_DESCRIPTION,
       status: AgentStatus.Draft,
+      versionCount: 0,
     });
     expect(stored).toMatchObject({ liveVersionId: null, draftVersionId: versions[0]?.id });
     expect(versions).toHaveLength(1);

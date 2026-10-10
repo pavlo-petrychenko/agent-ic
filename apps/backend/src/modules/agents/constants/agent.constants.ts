@@ -11,6 +11,20 @@ export enum AgentVersionKind {
   Snapshot = 'snapshot',
 }
 
+export enum AgentVersionAlias {
+  Draft = 'draft_version',
+  Live = 'live_version',
+  Base = 'base_version',
+  Published = 'published_versions',
+}
+
+export enum AgentVersionAggregate {
+  Count = 'version_count',
+  LastNumber = 'last_number',
+}
+
+export const NO_PUBLISHED_VERSIONS = 0;
+
 export enum AgentStatus {
   Draft = 'draft',
   Live = 'live',

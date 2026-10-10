@@ -6,6 +6,7 @@ export interface Agent {
   readonly id: string;
   readonly workspaceId: string;
   readonly name: string;
+  readonly description: string | null;
   readonly liveVersionId: string | null;
   readonly draftVersionId: string | null;
   readonly pausedAt: Date | null;
@@ -17,10 +18,25 @@ export interface Agent {
 
 export type NewAgent = typeof agents.$inferInsert;
 
+export interface AgentVersionSummary {
+  readonly agentId: string;
+  readonly liveVersionNumber: number | null;
+  readonly lastVersionNumber: number;
+  readonly versionCount: number;
+  readonly draftBaseVersionNumber: number | null;
+  readonly hasUnpublishedChanges: boolean;
+}
+
 export interface AgentView {
   readonly id: string;
   readonly name: string;
+  readonly description: string | null;
   readonly status: AgentStatus;
+  readonly liveVersionNumber: number | null;
+  readonly draftNumber: number;
+  readonly draftBaseVersionNumber: number | null;
+  readonly hasUnpublishedChanges: boolean;
+  readonly versionCount: number;
   readonly pausedAt: Date | null;
   readonly pauseMode: PauseMode | null;
   readonly awayMessage: string | null;

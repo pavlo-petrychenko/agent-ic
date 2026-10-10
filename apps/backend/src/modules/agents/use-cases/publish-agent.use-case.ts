@@ -3,10 +3,10 @@ import { Injectable } from '@nestjs/common';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { parseAgentInput } from '@/modules/agents/helpers/agent-input.helpers';
 import { toAgentVersionView } from '@/modules/agents/helpers/agent-version.helpers';
-import { toAgentView } from '@/modules/agents/helpers/agent-view.helpers';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { agentIdInputSchema } from '@/modules/agents/schemas/agent-input.schema';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
+import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import type { PublishedAgent } from '@/modules/agents/typedefs/agent-version.typedefs';
 import type { AgentIdInput } from '@/modules/agents/typedefs/agent.typedefs';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
@@ -20,6 +20,7 @@ export class PublishAgentUseCase {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly agents: AgentsRepository,
     private readonly publishing: AgentPublishingService,
+    private readonly views: AgentViewsService,
     private readonly ids: IdService,
   ) {}
 
@@ -38,7 +39,7 @@ export class PublishAgentUseCase {
         throw new AgentNotFoundError();
       }
       return {
-        agent: toAgentView(agent, id),
+        agent: await this.views.agentView(workspaceId, agent),
         version: toAgentVersionView(version, this.ids.toPublic(IdPrefix.AgentVersion, version.id)),
       };
     });

@@ -20,6 +20,7 @@ export const agents = agentsSchema
       id: uuid('id').primaryKey(),
       workspaceId: workspaceIdColumn(),
       name: text('name').notNull(),
+      description: text('description'),
       liveVersionId: uuid('live_version_id'),
       draftVersionId: uuid('draft_version_id'),
       pausedAt: timestamp('paused_at', { withTimezone: true }),
