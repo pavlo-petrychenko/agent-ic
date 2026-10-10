@@ -17,6 +17,7 @@ extend type Mutation {
   publishAgent(input: PublishAgentInput!): PublishAgentPayload!
   pauseAgent(input: PauseAgentInput!): Agent!
   resumeAgent(input: ResumeAgentInput!): Agent!
+  restoreAgentVersion(input: RestoreAgentVersionInput!): AgentDraft!
 }
 
 enum AgentStatus {
@@ -110,6 +111,11 @@ input PauseAgentInput {
 
 input ResumeAgentInput {
   id: ID!
+}
+
+input RestoreAgentVersionInput {
+  versionId: ID!
+  revision: Int!
 }
 
 enum FlowIssueSeverity {
