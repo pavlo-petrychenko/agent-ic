@@ -19,3 +19,5 @@ export interface Message {
 }
 
 export type NewMessage = typeof messages.$inferInsert;
+
+export type MessagePosition = Pick<Message, 'id' | 'createdAt'>;
