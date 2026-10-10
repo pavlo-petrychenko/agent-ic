@@ -17,3 +17,7 @@ export enum RunTrigger {
 }
 
 export const ROOT_BRANCH_KEY = 'root';
+
+export const RUNS_SCHEMA = 'runs';
+
+export const UNFINISHED_RUN_STATUSES: readonly RunStatus[] = [RunStatus.Queued, RunStatus.Running];
