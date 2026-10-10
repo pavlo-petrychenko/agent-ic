@@ -162,6 +162,8 @@ export class AgentVersionsRepository {
             Number,
           ),
         draftBaseVersionNumber: base.number,
+        draftFlow: draft.flow,
+        liveFlow: live.flow,
         hasUnpublishedChanges: sql<boolean>`${live.id} is null or ${draft.flow} is distinct from ${live.flow}`,
       })
       .from(agents)

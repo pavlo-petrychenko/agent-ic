@@ -1,3 +1,4 @@
+import type { FlowDocument } from '@agent-ic/flow';
 import type { AgentStatus, PauseMode } from '@/modules/agents/constants/agent.constants';
 import type { agents } from '@/modules/agents/db/agents.table';
 import type { Connection, ConnectionArgs } from '@/platform/graphql-server/typedefs/relay.typedefs';
@@ -25,6 +26,8 @@ export interface AgentVersionSummary {
   readonly versionCount: number;
   readonly draftBaseVersionNumber: number | null;
   readonly hasUnpublishedChanges: boolean;
+  readonly draftFlow: FlowDocument | null;
+  readonly liveFlow: FlowDocument | null;
 }
 
 export interface AgentView {
@@ -36,6 +39,7 @@ export interface AgentView {
   readonly draftNumber: number;
   readonly draftBaseVersionNumber: number | null;
   readonly hasUnpublishedChanges: boolean;
+  readonly draftChangeCount: number;
   readonly versionCount: number;
   readonly pausedAt: Date | null;
   readonly pauseMode: PauseMode | null;

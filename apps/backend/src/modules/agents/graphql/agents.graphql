@@ -3,6 +3,8 @@ extend type Query {
   agent(id: ID!): Agent!
   agentVersions(agentId: ID!): [AgentVersion!]!
   agentDraft(agentId: ID!): AgentDraft!
+  agentVersionDiff(agentId: ID!, fromId: ID!, toId: ID!): FlowDiff!
+  publishPreview(agentId: ID!): PublishPreview!
 }
 
 extend type Mutation {
@@ -43,6 +45,7 @@ type Agent {
   draftNumber: Int!
   draftBaseVersionNumber: Int
   hasUnpublishedChanges: Boolean!
+  draftChangeCount: Int!
   versionCount: Int!
   pausedAt: String
   pauseMode: PauseMode
@@ -148,4 +151,50 @@ type AgentDraft {
 type PublishAgentPayload {
   agent: Agent!
   version: AgentVersion!
+}
+
+type FlowFieldChange {
+  path: [String!]!
+  before: JSON
+  after: JSON
+}
+
+type FlowNodeChange {
+  nodeId: String!
+  key: String!
+  type: String!
+  fields: [FlowFieldChange!]!
+}
+
+type FlowKeyRename {
+  nodeId: String!
+  from: String!
+  to: String!
+}
+
+type FlowDiff {
+  addedNodes: [JSON!]!
+  removedNodes: [JSON!]!
+  changedNodes: [FlowNodeChange!]!
+  renamedKeys: [FlowKeyRename!]!
+  addedEdges: [JSON!]!
+  removedEdges: [JSON!]!
+  changeCount: Int!
+}
+
+enum SimulatorCheckStatus {
+  tested
+  not_tested
+}
+
+type SimulatorCheck {
+  status: SimulatorCheckStatus!
+  testedAt: String
+}
+
+type PublishPreview {
+  diff: FlowDiff!
+  errors: [FlowIssue!]!
+  warnings: [FlowIssue!]!
+  simulator: SimulatorCheck!
 }

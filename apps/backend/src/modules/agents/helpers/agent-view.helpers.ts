@@ -1,4 +1,5 @@
-import { AgentStatus } from '@/modules/agents/constants/agent.constants';
+import { countFlowChanges, diffFlows } from '@agent-ic/flow';
+import { AgentStatus, EMPTY_FLOW } from '@/modules/agents/constants/agent.constants';
 import type {
   Agent,
   AgentVersionSummary,
@@ -25,6 +26,9 @@ export const toAgentView = (
   draftNumber: summary.lastVersionNumber + 1,
   draftBaseVersionNumber: summary.draftBaseVersionNumber,
   hasUnpublishedChanges: summary.hasUnpublishedChanges,
+  draftChangeCount: countFlowChanges(
+    diffFlows(summary.liveFlow ?? EMPTY_FLOW, summary.draftFlow ?? EMPTY_FLOW),
+  ),
   versionCount: summary.versionCount,
   pausedAt: agent.pausedAt,
   pauseMode: agent.pauseMode,
