@@ -22,6 +22,15 @@ export class AgentsRepository {
     return agent ?? null;
   }
 
+  async findByIdForUpdate(workspaceId: string, agentId: string): Promise<Agent | null> {
+    const [agent] = await this.txHost.tx
+      .select()
+      .from(agents)
+      .where(and(eq(agents.workspaceId, workspaceId), eq(agents.id, agentId)))
+      .for('update');
+    return agent ?? null;
+  }
+
   listPage(workspaceId: string, afterId: string | null, limit: number): Promise<Agent[]> {
     const inWorkspace = eq(agents.workspaceId, workspaceId);
     return this.txHost.tx

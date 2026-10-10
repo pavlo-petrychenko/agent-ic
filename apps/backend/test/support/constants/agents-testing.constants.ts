@@ -5,6 +5,7 @@ export const TEST_VERSION_NOTE = 'Initial version';
 export const TEST_NODE_ID = 'node-trigger';
 export const TEST_NODE_KEY = 'trigger';
 export const TEST_NODE_LABEL = 'Customer message';
+export const TEST_NODE_NEW_LABEL = 'Renamed customer message';
 export const TEST_AGENT_PAGE_LIMIT = 2;
 export const AGENTS_TEST_START = new Date('2026-02-03T10:00:00.000Z');
 export const AGENTS_TEST_LATER = new Date('2026-02-03T11:30:00.000Z');
