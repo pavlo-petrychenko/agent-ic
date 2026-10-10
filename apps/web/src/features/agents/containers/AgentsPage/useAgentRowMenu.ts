@@ -19,6 +19,7 @@ export function useAgentRowMenu(workspaceId: string): UseAgentRowMenuResult {
   const errorMessage = useErrorMessage();
   const { resumeAgent } = useResumeAgent();
   const { duplicateAgent } = useDuplicateAgent();
+  const [pauseRow, setPauseRow] = useState<AgentRow | null>(null);
   const [deleteRow, setDeleteRow] = useState<AgentRow | null>(null);
 
   const guarded = useCallback(
@@ -43,6 +44,8 @@ export function useAgentRowMenu(workspaceId: string): UseAgentRowMenuResult {
             params: { workspaceId },
             search: { agent: row.id },
           });
+        case AgentMenuAction.Pause:
+          return setPauseRow(row);
         case AgentMenuAction.Delete:
           return setDeleteRow(row);
         case AgentMenuAction.Resume:
@@ -63,5 +66,11 @@ export function useAgentRowMenu(workspaceId: string): UseAgentRowMenuResult {
     [duplicateAgent, guarded, navigate, resumeAgent, showToast, t, workspaceId],
   );
 
-  return { onAction, deleteRow, closeDelete: () => setDeleteRow(null) };
+  return {
+    onAction,
+    pauseRow,
+    deleteRow,
+    closePause: () => setPauseRow(null),
+    closeDelete: () => setDeleteRow(null),
+  };
 }
