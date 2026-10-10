@@ -1,6 +1,7 @@
 import { ChannelSelectionMode, FLOW_SCHEMA_VERSION, NodeType } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import type { MockLink } from '@apollo/client/testing';
+import { RenameAgentDocument } from '@/features/flow-builder/communication/gql/mutation/renameAgent.generated';
 import { FlowBuilderDraftDocument } from '@/features/flow-builder/communication/gql/query/flowBuilderDraft.generated';
 
 export const DEMO_AGENT_ID = 'agt_demo';
@@ -24,7 +25,12 @@ export const buildFlowBuilderDraftMock = (flow: unknown): MockLink.MockedRespons
   request: { query: FlowBuilderDraftDocument, variables: { agentId: DEMO_AGENT_ID } },
   result: {
     data: {
-      agent: { __typename: 'Agent', id: DEMO_AGENT_ID, name: 'Salon assistant' },
+      agent: {
+        __typename: 'Agent',
+        id: DEMO_AGENT_ID,
+        name: 'Salon assistant',
+        draftBaseVersionNumber: 3,
+      },
       agentDraft: {
         __typename: 'AgentDraft',
         revision: 4,
@@ -37,4 +43,9 @@ export const buildFlowBuilderDraftMock = (flow: unknown): MockLink.MockedRespons
 export const buildFlowBuilderDraftFailureMock = (): MockLink.MockedResponse => ({
   request: { query: FlowBuilderDraftDocument, variables: { agentId: DEMO_AGENT_ID } },
   error: new Error('offline'),
+});
+
+export const buildRenameAgentMock = (name: string): MockLink.MockedResponse => ({
+  request: { query: RenameAgentDocument, variables: { input: { id: DEMO_AGENT_ID, name } } },
+  result: { data: { renameAgent: { __typename: 'Agent', id: DEMO_AGENT_ID, name } } },
 });

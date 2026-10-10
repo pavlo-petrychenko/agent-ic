@@ -1,0 +1,6 @@
+mutation RenameAgent($input: RenameAgentInput!) {
+  renameAgent(input: $input) {
+    id
+    name
+  }
+}
