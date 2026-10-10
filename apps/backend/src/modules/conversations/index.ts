@@ -15,6 +15,7 @@ export { MessageNotFoundError } from '@/modules/conversations/errors/message-not
 export { messageReceivedEvent } from '@/modules/conversations/events/message-received.event';
 export { needsOperatorEvent } from '@/modules/conversations/events/needs-operator.event';
 export { outboundQueuedEvent } from '@/modules/conversations/events/outbound-queued.event';
+export { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
 export type {
   MessageReceivedPayload,
   NeedsOperatorPayload,

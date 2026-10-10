@@ -2,7 +2,9 @@ import { Test } from '@nestjs/testing';
 import { ConversationsModule } from '@/modules/conversations/conversations.module';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
+import { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
+import type { Message, NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
 import { ClockModule } from '@/platform/clock/clock.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { ConfigModule } from '@/platform/config/config.module';
@@ -18,10 +20,12 @@ import { Role } from '@/platform/module-roles/constants/role.constants';
 import {
   CONCURRENT_POOL_SIZE,
   CONVERSATIONS_TEST_START,
+  MESSAGE_SPACING_MS,
 } from '@test/support/constants/conversations-testing.constants';
 import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
-import { newConversation } from '@test/support/fixtures/conversation.fixture';
+import { newConversation, newMessage } from '@test/support/fixtures/conversation.fixture';
 import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
 import type { ConversationsTestbed } from '@test/support/typedefs/conversations-testing.typedefs';
 
@@ -58,13 +62,32 @@ export const createConversationsTestbed = async (): Promise<ConversationsTestbed
     tenants: module.get(TenantTransactionService),
     conversations: module.get(ConversationsRepository),
     messages: module.get(MessagesRepository),
+    history: module.get(ConversationHistoryService),
   };
 };
 
-export const seedConversation = async (testbed: ConversationsTestbed): Promise<NewConversation> => {
-  const conversation = newConversation(testbed, testbed.ids.generate());
+export const seedConversation = async (
+  testbed: ConversationsTestbed,
+  workspaceId: string = testbed.ids.generate(),
+): Promise<NewConversation> => {
+  const conversation = newConversation(testbed, workspaceId);
   await testbed.tenants.run(conversation.workspaceId, () =>
     testbed.conversations.insert(conversation),
   );
   return conversation;
+};
+
+export const seedMessage = async (
+  testbed: ConversationsTestbed,
+  conversation: NewConversation,
+  draft: Partial<NewMessage> = {},
+): Promise<Message> => {
+  testbed.clock.advanceBy(MESSAGE_SPACING_MS);
+  const message = await testbed.tenants.run(conversation.workspaceId, () =>
+    testbed.messages.insertIfAbsent(newMessage(testbed, conversation, draft)),
+  );
+  if (message === null) {
+    throw new MissingTestDataError(conversation.id);
+  }
+  return message;
 };
