@@ -4,6 +4,8 @@ import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deli
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type { Message } from '@/modules/conversations/typedefs/message.typedefs';
+import { Role } from '@/platform/module-roles/constants/role.constants';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 import {
   AGENT_REPLY_TEXT,
   CONVERSATIONS_TESTBED_ROLE,
@@ -19,6 +21,19 @@ export const createChannelsTestbed = async (): Promise<ChannelsTestbed> => {
   const testbed = await createConversationsTestbed(
     ChannelsModule.forRole(CONVERSATIONS_TESTBED_ROLE),
     TestRedisPrefix.Channels,
+  );
+  return {
+    ...testbed,
+    deliver: testbed.module.get(DeliverOutboundMessageUseCase),
+    simulated: testbed.module.get(SimulatedChannelAdapter),
+  };
+};
+
+export const createChannelsWorkerTestbed = async (): Promise<ChannelsTestbed> => {
+  const testbed = await createConversationsTestbed(
+    ChannelsModule.forRole(Role.Worker),
+    TestRedisPrefix.ChannelsWorker,
+    { role: Role.Worker, queues: [QueueName.Outbound] },
   );
   return {
     ...testbed,

@@ -14,6 +14,7 @@ import { ClockModule } from '@/platform/clock/clock.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { ConfigModule } from '@/platform/config/config.module';
 import { EnvVar } from '@/platform/config/constants/env.constants';
+import type { RoleSelection } from '@/platform/config/typedefs/app-config.typedefs';
 import { ContextModule } from '@/platform/context/context.module';
 import { DatabaseModule } from '@/platform/database/database.module';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -51,14 +52,11 @@ import type {
 export const createConversationsTestbed = async (
   domainModule: DynamicModule = ConversationsModule.forRole(CONVERSATIONS_TESTBED_ROLE),
   redisPrefix: TestRedisPrefix = TestRedisPrefix.Conversations,
+  selection: RoleSelection = { role: CONVERSATIONS_TESTBED_ROLE, queues: [] },
 ): Promise<ConversationsTestbed> => {
-  const config = createIntegrationConfig(
-    { role: CONVERSATIONS_TESTBED_ROLE, queues: [] },
-    redisPrefix,
-    {
-      [EnvVar.DatabasePoolMax]: CONCURRENT_POOL_SIZE,
-    },
-  );
+  const config = createIntegrationConfig(selection, redisPrefix, {
+    [EnvVar.DatabasePoolMax]: CONCURRENT_POOL_SIZE,
+  });
   const clock = new ManualClock(CONVERSATIONS_TEST_START);
   const module = await Test.createTestingModule({
     imports: [
@@ -68,8 +66,8 @@ export const createConversationsTestbed = async (
       DatabaseModule,
       ClockModule,
       IdsModule,
-      QueuesModule.forRole(CONVERSATIONS_TESTBED_ROLE),
-      DomainEventsModule.forRole(CONVERSATIONS_TESTBED_ROLE),
+      QueuesModule.forRole(selection.role),
+      DomainEventsModule.forRole(selection.role),
       domainModule,
     ],
     providers: [

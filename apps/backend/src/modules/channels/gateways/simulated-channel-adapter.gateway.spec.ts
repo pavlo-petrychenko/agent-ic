@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  SIMULATED_TRANSCRIPT_MAX_CONVERSATIONS,
-  SIMULATED_TRANSCRIPT_MAX_MESSAGES,
-} from '@/modules/channels/constants/simulated-channel.constants';
+import { SIMULATED_TRANSCRIPT_MAX_CONVERSATIONS } from '@/modules/channels/constants/simulated-channel.constants';
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
 import type { ChannelOutboundMessage } from '@/modules/channels/typedefs/channel-message.typedefs';
 import {
@@ -29,17 +26,6 @@ const sendMany = async (
 };
 
 describe('SimulatedChannelAdapter', () => {
-  it('keeps only the latest messages of a conversation', async () => {
-    const adapter = new SimulatedChannelAdapter();
-    const messages = Array.from({ length: SIMULATED_TRANSCRIPT_MAX_MESSAGES + 1 }, (_, index) =>
-      outbound('conversation', index),
-    );
-
-    await sendMany(adapter, messages);
-
-    expect(adapter.transcript('conversation')).toEqual(messages.slice(1));
-  });
-
   it('forgets the conversation that was sent to least recently', async () => {
     const adapter = new SimulatedChannelAdapter();
     const conversationIds = Array.from(

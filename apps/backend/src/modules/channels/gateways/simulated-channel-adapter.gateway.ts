@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  SIMULATED_TRANSCRIPT_MAX_CONVERSATIONS,
-  SIMULATED_TRANSCRIPT_MAX_MESSAGES,
-} from '@/modules/channels/constants/simulated-channel.constants';
+import { SIMULATED_TRANSCRIPT_MAX_CONVERSATIONS } from '@/modules/channels/constants/simulated-channel.constants';
 import { ChannelAdapter } from '@/modules/channels/gateways/channel-adapter.gateway';
 import type { ChannelOutboundMessage } from '@/modules/channels/typedefs/channel-message.typedefs';
 import { ChannelKind } from '@/modules/conversations';
@@ -15,10 +12,7 @@ export class SimulatedChannelAdapter extends ChannelAdapter {
   send(message: ChannelOutboundMessage): Promise<void> {
     const transcript = this.transcripts.get(message.conversationId) ?? [];
     this.transcripts.delete(message.conversationId);
-    this.transcripts.set(
-      message.conversationId,
-      [...transcript, message].slice(-SIMULATED_TRANSCRIPT_MAX_MESSAGES),
-    );
+    this.transcripts.set(message.conversationId, [...transcript, message]);
     this.evictOldest();
     return Promise.resolve();
   }
