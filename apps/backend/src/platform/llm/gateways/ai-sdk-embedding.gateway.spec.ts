@@ -115,6 +115,16 @@ describe('AiSdkEmbeddingGateway', () => {
     ]);
   });
 
+  it('reports no tokens and no credits when the provider sends no usage', async () => {
+    startGateway();
+    mock.embedWithoutUsage();
+
+    const result = await gateway.embed(textsOf(EXTRA_TEXTS), OPTIONS);
+
+    expect(result.tokens).toBe(0);
+    expect(usage.reports).toEqual([meteredReport(0, 0)]);
+  });
+
   it('calls nothing for no texts', async () => {
     startGateway();
 

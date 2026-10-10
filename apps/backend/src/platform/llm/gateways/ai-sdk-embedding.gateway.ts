@@ -13,7 +13,7 @@ import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants
 import { EmbeddingDimensionMismatchError } from '@/platform/llm/errors/embedding-dimension-mismatch.error';
 import { LlmUnavailableError } from '@/platform/llm/errors/llm-unavailable.error';
 import { EmbeddingGateway } from '@/platform/llm/gateways/embedding.gateway';
-import { toBatches } from '@/platform/llm/helpers/embedding-gateway.helpers';
+import { reportedTokens, toBatches } from '@/platform/llm/helpers/embedding-gateway.helpers';
 import { isModelUnavailable, toUpstreamFailure } from '@/platform/llm/helpers/llm-gateway.helpers';
 import { usageReport } from '@/platform/llm/helpers/llm-usage.helpers';
 import { LlmMetricsService } from '@/platform/llm/services/llm-metrics.service';
@@ -21,6 +21,7 @@ import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-contex
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
 import { UsageReporter } from '@/platform/llm/services/usage-reporter.service';
 import type {
+  EmbeddingBatch,
   EmbeddingResult,
   EmbedOptions,
 } from '@/platform/llm/typedefs/embedding-gateway.typedefs';
@@ -44,12 +45,12 @@ export class AiSdkEmbeddingGateway extends EmbeddingGateway {
     return this.traces.forCall(() =>
       this.metrics.measure(LlmOperation.Embed, model, async () => {
         const embeddingModel = this.providers.embeddingModel(model);
-        const vectors: number[][] = [];
+        const vectors: (readonly number[])[] = [];
         let tokens = 0;
         for (const batch of toBatches(texts, entry.batchSize)) {
-          const result = await this.embedBatch(entry, embeddingModel, batch, tags);
-          vectors.push(...result.embeddings);
-          tokens += result.usage.tokens;
+          const batchResult = await this.embedBatch(entry, embeddingModel, batch, tags);
+          vectors.push(...batchResult.embeddings);
+          tokens += batchResult.tokens;
         }
         return { vectors, model, dimensions: entry.dimensions, tokens };
       }),
@@ -61,11 +62,12 @@ export class AiSdkEmbeddingGateway extends EmbeddingGateway {
     embeddingModel: EmbeddingModel,
     values: string[],
     tags: LlmTags,
-  ): Promise<EmbedManyResult> {
+  ): Promise<EmbeddingBatch> {
     const result = await this.callModel(entry, embeddingModel, values, tags);
+    const tokens = reportedTokens(result.usage.tokens);
     await this.usage.report(
       usageReport({ kind: LlmProviderKind.Platform }, tags, entry, {
-        inputTokens: result.usage.tokens,
+        inputTokens: tokens,
         outputTokens: EMBEDDING_OUTPUT_TOKENS,
       }),
     );
@@ -73,7 +75,7 @@ export class AiSdkEmbeddingGateway extends EmbeddingGateway {
     if (wrong !== undefined) {
       throw new EmbeddingDimensionMismatchError(entry.id, entry.dimensions, wrong.length);
     }
-    return result;
+    return { embeddings: result.embeddings, tokens };
   }
 
   private async callModel(

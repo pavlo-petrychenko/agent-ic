@@ -15,7 +15,11 @@ export type MockLlmStep =
   | { readonly kind: MockLlmStepKind.Text; readonly text: string; readonly usage: MockLlmUsage }
   | { readonly kind: MockLlmStepKind.Fail; readonly status: number }
   | { readonly kind: MockLlmStepKind.Hang }
-  | { readonly kind: MockLlmStepKind.Embed; readonly dimensions: number };
+  | {
+      readonly kind: MockLlmStepKind.Embed;
+      readonly dimensions: number;
+      readonly withUsage: boolean;
+    };
 
 export interface MockLlmRequest {
   readonly route: string;

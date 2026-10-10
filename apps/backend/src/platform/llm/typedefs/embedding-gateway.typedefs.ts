@@ -12,3 +12,8 @@ export interface EmbeddingResult {
   readonly dimensions: number;
   readonly tokens: number;
 }
+
+export interface EmbeddingBatch {
+  readonly embeddings: readonly (readonly number[])[];
+  readonly tokens: number;
+}
