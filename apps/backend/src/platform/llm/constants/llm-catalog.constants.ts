@@ -19,7 +19,15 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
     api: LlmApi.ChatCompletions,
     structuredOutput: LlmStructuredOutput.JsonSchema,
     agentFinish: LlmAgentFinish.FinalMessage,
+    reasoningLevels: [
+      LlmReasoningEffort.None,
+      LlmReasoningEffort.Low,
+      LlmReasoningEffort.Medium,
+      LlmReasoningEffort.High,
+      LlmReasoningEffort.XHigh,
+    ],
     reasoningEffort: LlmReasoningEffort.None,
+    reasoningWithTools: LlmReasoningEffort.None,
   },
   [LlmModelId.Ministral14b]: {
     id: LlmModelId.Ministral14b,
@@ -30,7 +38,9 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
     api: LlmApi.ChatCompletions,
     structuredOutput: LlmStructuredOutput.JsonSchema,
     agentFinish: LlmAgentFinish.FinalMessage,
+    reasoningLevels: [],
     reasoningEffort: null,
+    reasoningWithTools: null,
   },
   [LlmModelId.ClaudeHaiku55]: {
     id: LlmModelId.ClaudeHaiku55,
@@ -41,7 +51,15 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
     api: LlmApi.AnthropicMessages,
     structuredOutput: LlmStructuredOutput.JsonSchema,
     agentFinish: LlmAgentFinish.FinalMessage,
+    reasoningLevels: [
+      LlmReasoningEffort.Low,
+      LlmReasoningEffort.Medium,
+      LlmReasoningEffort.High,
+      LlmReasoningEffort.XHigh,
+      LlmReasoningEffort.Max,
+    ],
     reasoningEffort: LlmReasoningEffort.Low,
+    reasoningWithTools: null,
   },
   [LlmModelId.MimoV26Flash]: {
     id: LlmModelId.MimoV26Flash,
@@ -52,7 +70,9 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
     api: LlmApi.ChatCompletions,
     structuredOutput: LlmStructuredOutput.JsonSchema,
     agentFinish: LlmAgentFinish.ReplyTool,
+    reasoningLevels: [LlmReasoningEffort.Low, LlmReasoningEffort.Medium, LlmReasoningEffort.High],
     reasoningEffort: LlmReasoningEffort.Low,
+    reasoningWithTools: null,
   },
   [LlmModelId.Gemma4]: {
     id: LlmModelId.Gemma4,
@@ -63,7 +83,9 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
     api: LlmApi.ChatCompletions,
     structuredOutput: LlmStructuredOutput.JsonSchema,
     agentFinish: LlmAgentFinish.ReplyTool,
+    reasoningLevels: [],
     reasoningEffort: null,
+    reasoningWithTools: null,
   },
   [LlmModelId.Glm53Flash]: {
     id: LlmModelId.Glm53Flash,
@@ -74,7 +96,9 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
     api: LlmApi.ChatCompletions,
     structuredOutput: LlmStructuredOutput.JsonObject,
     agentFinish: LlmAgentFinish.ReplyTool,
+    reasoningLevels: [LlmReasoningEffort.Low, LlmReasoningEffort.High, LlmReasoningEffort.Max],
     reasoningEffort: LlmReasoningEffort.Low,
+    reasoningWithTools: null,
   },
   [LlmModelId.DeepSeekV41Flash]: {
     id: LlmModelId.DeepSeekV41Flash,
@@ -85,7 +109,15 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
     api: LlmApi.ChatCompletions,
     structuredOutput: LlmStructuredOutput.JsonObject,
     agentFinish: LlmAgentFinish.ReplyTool,
+    reasoningLevels: [
+      LlmReasoningEffort.Low,
+      LlmReasoningEffort.Medium,
+      LlmReasoningEffort.High,
+      LlmReasoningEffort.XHigh,
+      LlmReasoningEffort.Max,
+    ],
     reasoningEffort: null,
+    reasoningWithTools: null,
   },
 };
 

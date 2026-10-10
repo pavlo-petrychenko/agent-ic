@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LLM_CATALOG, LLM_DEFAULT_MODEL } from '@/platform/llm/constants/llm-catalog.constants';
 import {
+  LLM_REASONING_ORDER,
   LlmApi,
   LlmModelId,
   LlmPurpose,
@@ -35,6 +36,21 @@ describe('LLM_CATALOG', () => {
       expect(structuredOutput).toBe(LlmStructuredOutput.JsonSchema);
     },
   );
+
+  it.each(models)('lists the reasoning levels of $id from lowest to highest', (model) => {
+    const ranks = model.reasoningLevels.map((level) => LLM_REASONING_ORDER.indexOf(level));
+
+    expect(ranks).toEqual(ranks.toSorted((left, right) => left - right));
+    expect(new Set(ranks).size).toBe(ranks.length);
+  });
+
+  it.each(models)('picks the default and tool reasoning of $id from its levels', (model) => {
+    const chosen = [model.reasoningEffort, model.reasoningWithTools].filter(
+      (level) => level !== null,
+    );
+
+    expect(model.reasoningLevels).toEqual(expect.arrayContaining(chosen));
+  });
 
   it.each(Object.values(LlmPurpose))('defaults %s to a catalog model that serves it', (purpose) => {
     expect(LLM_CATALOG[LLM_DEFAULT_MODEL[purpose]].purposes).toContain(purpose);

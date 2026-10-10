@@ -22,5 +22,7 @@ export interface LlmModel {
   readonly api: LlmApi;
   readonly structuredOutput: LlmStructuredOutput;
   readonly agentFinish: LlmAgentFinish;
+  readonly reasoningLevels: readonly LlmReasoningEffort[];
   readonly reasoningEffort: LlmReasoningEffort | null;
+  readonly reasoningWithTools: LlmReasoningEffort | null;
 }
