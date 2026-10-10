@@ -26,7 +26,13 @@ export class AiSdkLlmGateway extends LlmGateway {
 
   async generateReply<T>(request: LlmReplyRequest<T>): Promise<LlmReply<T>> {
     const model = this.providers.languageModel(request.provider, request.model);
-    return this.attempt(request, model, toModelMessages(request.messages), LLM_REPLY_ATTEMPTS);
+    return this.attempt(
+      request,
+      model,
+      toModelMessages(request.messages),
+      LLM_REPLY_ATTEMPTS,
+      LLM_MAX_TOOL_ROUNDS,
+    );
   }
 
   private async attempt<T>(
@@ -34,13 +40,14 @@ export class AiSdkLlmGateway extends LlmGateway {
     model: LanguageModel,
     messages: readonly ModelMessage[],
     attemptsLeft: number,
+    roundsLeft: number,
   ): Promise<LlmReply<T>> {
     const result = await generateText({
       model,
       instructions: request.system,
       messages: [...messages],
       tools: toToolSet(request.tools, request.schema),
-      stopWhen: stepCountIs(LLM_MAX_TOOL_ROUNDS),
+      stopWhen: stepCountIs(roundsLeft),
       maxRetries: LLM_SDK_MAX_RETRIES,
     });
     const replyCall = result.toolCalls.find(({ toolName }) => toolName === LLM_REPLY_TOOL_NAME);
@@ -51,7 +58,8 @@ export class AiSdkLlmGateway extends LlmGateway {
     if (parsed.success) {
       return { value: parsed.data };
     }
-    if (attemptsLeft <= 1) {
+    const roundsAfter = roundsLeft - result.steps.length;
+    if (attemptsLeft <= 1 || roundsAfter <= 0) {
       throw new LlmReplyInvalidError(request.model, parsed.error);
     }
     return this.attempt(
@@ -63,6 +71,7 @@ export class AiSdkLlmGateway extends LlmGateway {
         invalidReplyMessage(replyCall.toolCallId, parsed.error),
       ],
       attemptsLeft - 1,
+      roundsAfter,
     );
   }
 }

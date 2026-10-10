@@ -1,11 +1,13 @@
 import { Test } from '@nestjs/testing';
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { MockLanguageModelV4 } from 'ai/test';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { ConfigModule } from '@/platform/config/config.module';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { ConfigService } from '@/platform/config/services/config.service';
 import {
+  LLM_MAX_TOOL_ROUNDS,
   LLM_REPLY_INVALID_FEEDBACK,
   LLM_REPLY_TOOL_NAME,
   LlmMessageRole,
@@ -32,6 +34,8 @@ const SYSTEM = 'You route customer messages.';
 const QUESTION = 'Do you deliver on Sundays?';
 const PLATFORM: LlmProviderSource = { kind: LlmProviderKind.Platform };
 
+const LOOKUP_TOOL = 'lookup';
+
 const routeSchema = z.object({ intent: z.enum(['delivery', 'other']), confidence: z.number() });
 
 const replyRequest = (
@@ -47,12 +51,28 @@ const replyRequest = (
   ...overrides,
 });
 
-const createGateway = (env: Partial<Record<EnvVar, string>>): AiSdkLlmGateway =>
-  new AiSdkLlmGateway(
-    new ProviderResolverService(
-      new ConfigService(loadAppConfig({ role: Role.Api, queues: [] }, createTestEnv(env))),
-    ),
+const createResolver = (env: Partial<Record<EnvVar, string>>): ProviderResolverService =>
+  new ProviderResolverService(
+    new ConfigService(loadAppConfig({ role: Role.Api, queues: [] }, createTestEnv(env))),
   );
+
+const createGateway = (env: Partial<Record<EnvVar, string>>): AiSdkLlmGateway =>
+  new AiSdkLlmGateway(createResolver(env));
+
+const toolCallStep = (
+  toolName: string,
+  input: unknown,
+): Awaited<ReturnType<MockLanguageModelV4['doGenerate']>> => ({
+  content: [
+    { type: 'tool-call', toolCallId: `call_${toolName}`, toolName, input: JSON.stringify(input) },
+  ],
+  finishReason: { unified: 'tool-calls', raw: undefined },
+  usage: {
+    inputTokens: { total: 1, noCache: 1, cacheRead: undefined, cacheWrite: undefined },
+    outputTokens: { total: 1, text: 1, reasoning: undefined },
+  },
+  warnings: [],
+});
 
 const requestBody = (mock: MockLlmService, index: number): Readonly<Record<string, unknown>> => {
   const body = mock.requests[index]?.body;
@@ -117,6 +137,31 @@ describe('AiSdkLlmGateway', () => {
       LlmReplyInvalidError,
     );
     expect(mock.requests).toHaveLength(2);
+  });
+
+  it('spends one round budget across the retry', async () => {
+    const lookupRounds = LLM_MAX_TOOL_ROUNDS - 1;
+    const model = new MockLanguageModelV4({
+      doGenerate: [
+        ...Array.from({ length: lookupRounds }, () => toolCallStep(LOOKUP_TOOL, {})),
+        toolCallStep(LLM_REPLY_TOOL_NAME, { intent: 'weather' }),
+        toolCallStep(LLM_REPLY_TOOL_NAME, { intent: 'other', confidence: 0.4 }),
+      ],
+    });
+    const resolver = createResolver({});
+    vi.spyOn(resolver, 'languageModel').mockReturnValue(model);
+    const lookup = {
+      description: LOOKUP_TOOL,
+      inputSchema: z.object({}),
+      execute: async () => ({}),
+    };
+
+    await expect(
+      new AiSdkLlmGateway(resolver).generateReply(
+        replyRequest({ tools: { [LOOKUP_TOOL]: lookup } }),
+      ),
+    ).rejects.toBeInstanceOf(LlmReplyInvalidError);
+    expect(model.doGenerateCalls).toHaveLength(LLM_MAX_TOOL_ROUNDS);
   });
 
   it('fails without a retry when the model answers with plain text', async () => {
