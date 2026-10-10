@@ -1,6 +1,7 @@
 export const MAX_NODES = 100;
 export const MAX_EDGES = 200;
-export const NODE_KEY_PATTERN = /^[a-z][a-z0-9_]{0,39}$/;
+export const NODE_KEY_MAX_LENGTH = 40;
+export const NODE_KEY_PATTERN = new RegExp(`^[a-z][a-z0-9_]{0,${NODE_KEY_MAX_LENGTH - 1}}$`);
 export const OUTPUT_FIELD_NAME_PATTERN = /^[a-z][a-z0-9_]{0,39}$/;
 export const EVENT_NAME_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 export const HEADER_NAME_PATTERN = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;

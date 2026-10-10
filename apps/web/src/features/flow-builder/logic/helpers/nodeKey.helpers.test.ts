@@ -1,7 +1,6 @@
-import { NodeType } from '@agent-ic/flow';
+import { NODE_KEY_MAX_LENGTH, NodeType } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.constants';
-import { NODE_KEY_MAX_LENGTH } from '@/features/flow-builder/constants/graphEdit.constants';
 import { addNode } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import { uniqueNodeKey } from '@/features/flow-builder/logic/helpers/nodeKey.helpers';
 

@@ -63,17 +63,25 @@ export const duplicateNodes = (
   createId: () => string,
 ): FlowDuplicate => {
   const copies = new Map<string, string>();
-  let nodes = document.nodes;
+  const keys = new Map<string, string>();
+  let taken = document;
+  let copied: FlowDocument = { ...document, nodes: [], edges: [] };
   for (const node of document.nodes.filter((candidate) => nodeIds.includes(candidate.id))) {
     const id = createId();
     copies.set(node.id, id);
-    const key = uniqueNodeKey({ ...document, nodes }, node.key);
+    const key = uniqueNodeKey(taken, node.key);
+    keys.set(node.key, key);
+    taken = { ...taken, nodes: [...taken.nodes, { ...node, key }] };
     const position = {
       x: node.position.x + DUPLICATE_OFFSET.x,
       y: node.position.y + DUPLICATE_OFFSET.y,
     };
-    nodes = [...nodes, { ...structuredClone(node), id, key, position }];
+    copied = { ...copied, nodes: [...copied.nodes, { ...structuredClone(node), id, position }] };
   }
+  for (const [from, to] of keys) {
+    copied = renameNodeKey(copied, from, to);
+  }
+  const nodes = [...document.nodes, ...copied.nodes];
   const edges = document.edges.flatMap((edge) => {
     const source = copies.get(edge.source);
     const target = copies.get(edge.target);

@@ -101,6 +101,25 @@ describe('graph edits', () => {
     expect(document.edges.at(-1)).toMatchObject({ source: 'copy-1', target: 'copy-2' });
   });
 
+  it('points the copied steps at each other, not at the originals', () => {
+    const { document } = duplicateNodes(chain(), ['a', 's'], counter());
+
+    expect(document.nodes.map((node) => node.config)).toMatchObject([
+      {},
+      { content: { text: 'Hi {{agent.messages}}' } },
+      {},
+      { content: { text: 'Hi {{agent_2.messages}}' } },
+    ]);
+  });
+
+  it('keeps references to steps that were not copied', () => {
+    const { document } = duplicateNodes(chain(), ['s'], counter());
+
+    expect(document.nodes.at(-1)?.config).toMatchObject({
+      content: { text: 'Hi {{agent.messages}}' },
+    });
+  });
+
   it('renames a key and rewrites the references to it', () => {
     const document = renameKey(chain(), 'a', 'helper');
 

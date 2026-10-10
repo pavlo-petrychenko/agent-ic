@@ -1,7 +1,7 @@
+import { NODE_KEY_MAX_LENGTH } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import {
   FIRST_KEY_SUFFIX,
-  NODE_KEY_MAX_LENGTH,
   NODE_KEY_SEPARATOR,
   NODE_KEY_SUFFIX_PATTERN,
 } from '@/features/flow-builder/constants/graphEdit.constants';
