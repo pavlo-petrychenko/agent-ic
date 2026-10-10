@@ -21,6 +21,9 @@ export interface AgentView {
   readonly id: string;
   readonly name: string;
   readonly status: AgentStatus;
+  readonly pausedAt: Date | null;
+  readonly pauseMode: PauseMode | null;
+  readonly awayMessage: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -36,6 +39,12 @@ export interface RenameAgentInput {
 
 export interface AgentIdInput {
   readonly id: string;
+}
+
+export interface PauseAgentInput {
+  readonly id: string;
+  readonly mode: PauseMode;
+  readonly awayMessage?: string | null;
 }
 
 export type ListAgentsInput = ConnectionArgs;

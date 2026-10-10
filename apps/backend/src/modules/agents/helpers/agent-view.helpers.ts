@@ -12,6 +12,9 @@ export const toAgentView = (agent: Agent, publicId: string): AgentView => ({
   id: publicId,
   name: agent.name,
   status: agentStatusOf(agent),
+  pausedAt: agent.pausedAt,
+  pauseMode: agent.pauseMode,
+  awayMessage: agent.awayMessage,
   createdAt: agent.createdAt,
   updatedAt: agent.updatedAt,
 });
