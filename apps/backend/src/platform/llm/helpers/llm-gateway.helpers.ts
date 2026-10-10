@@ -1,21 +1,37 @@
-import { Output } from 'ai';
+import { jsonSchema, Output, tool } from 'ai';
 import type {
   JSONSchema7,
   LanguageModelUsage,
   ModelMessage,
   OutputInterface,
+  Tool,
+  ToolModelMessage,
+  ToolSet,
   UserModelMessage,
 } from 'ai';
 import { z } from 'zod';
 import {
   LLM_JSON_OBJECT_INSTRUCTION,
+  LLM_NO_USAGE,
   LLM_OUTPUT_INVALID_FEEDBACK,
+  LLM_OUTPUT_RETRIES,
+  LLM_REPLY_INVALID_FEEDBACK,
+  LLM_REPLY_NUDGE,
+  LLM_REPLY_NUDGES,
+  LLM_REPLY_TOOL_DESCRIPTION,
+  LLM_REPLY_TOOL_NAME,
   LlmMessageRole,
 } from '@/platform/llm/constants/llm-gateway.constants';
 import { LlmStructuredOutput } from '@/platform/llm/constants/llm-model.constants';
 import { LLM_PROVIDER_OPTIONS } from '@/platform/llm/constants/llm-provider.constants';
 import { jsonTextSchema } from '@/platform/llm/schemas/llm-output.schema';
-import type { LlmMessage, LlmUsage } from '@/platform/llm/typedefs/llm-gateway.typedefs';
+import type {
+  LlmMessage,
+  LlmRunState,
+  LlmStepsResult,
+  LlmTools,
+  LlmUsage,
+} from '@/platform/llm/typedefs/llm-gateway.typedefs';
 import type { LlmModel } from '@/platform/llm/typedefs/llm-model.typedefs';
 
 export const toModelMessages = (messages: readonly LlmMessage[]): ModelMessage[] =>
@@ -54,4 +70,64 @@ export const outputFeedbackMessage = (error: z.ZodError): UserModelMessage => ({
 export const addUsage = (usage: LlmUsage, step: LanguageModelUsage): LlmUsage => ({
   inputTokens: usage.inputTokens + (step.inputTokens ?? 0),
   outputTokens: usage.outputTokens + (step.outputTokens ?? 0),
+});
+
+export const toToolSet = (tools: LlmTools): ToolSet =>
+  Object.fromEntries(
+    Object.entries(tools).map(([name, { description, inputSchema, execute }]) => [
+      name,
+      tool({ description, inputSchema, execute }),
+    ]),
+  );
+
+export const replyTool = (schema: JSONSchema7): Tool =>
+  tool({ description: LLM_REPLY_TOOL_DESCRIPTION, inputSchema: jsonSchema(schema) });
+
+export const replyNudgeMessage = (): UserModelMessage => ({
+  role: LlmMessageRole.User,
+  content: LLM_REPLY_NUDGE,
+});
+
+export const invalidReplyMessage = (toolCallId: string, error: z.ZodError): ToolModelMessage => ({
+  role: 'tool',
+  content: [
+    {
+      type: 'tool-result',
+      toolCallId,
+      toolName: LLM_REPLY_TOOL_NAME,
+      output: {
+        type: 'error-text',
+        value: `${LLM_REPLY_INVALID_FEEDBACK}\n${z.prettifyError(error)}`,
+      },
+    },
+  ],
+});
+
+export const initialRunState = (messages: readonly LlmMessage[], rounds: number): LlmRunState => ({
+  messages: toModelMessages(messages),
+  roundsLeft: rounds,
+  retriesLeft: LLM_OUTPUT_RETRIES,
+  nudgesLeft: LLM_REPLY_NUDGES,
+  usage: LLM_NO_USAGE,
+  toolCalls: [],
+});
+
+export const afterSteps = (state: LlmRunState, result: LlmStepsResult): LlmRunState => ({
+  ...state,
+  messages: [...state.messages, ...result.response.messages],
+  roundsLeft: state.roundsLeft - result.steps.length,
+  usage: addUsage(state.usage, result.totalUsage),
+  toolCalls: [
+    ...state.toolCalls,
+    ...result.steps.flatMap(({ toolCalls }) =>
+      toolCalls
+        .filter(({ toolName }) => toolName !== LLM_REPLY_TOOL_NAME)
+        .map(({ toolName, input }) => ({ name: toolName, input })),
+    ),
+  ],
+});
+
+export const withMessage = (state: LlmRunState, message: ModelMessage): LlmRunState => ({
+  ...state,
+  messages: [...state.messages, message],
 });
