@@ -5,12 +5,15 @@ import { HttpStatus } from '@nestjs/common';
 import {
   MOCK_EMBEDDING_DIMENSIONS,
   MOCK_LLM_ANY_PORT,
+  MOCK_LLM_API_KEY_HEADER,
   MOCK_LLM_BASE_PATH,
   MOCK_LLM_CONTENT_TYPE_HEADER,
   MOCK_LLM_DEFAULT_USAGE,
   MOCK_LLM_FAILURE_MESSAGE,
   MOCK_LLM_HOST,
   MOCK_LLM_JSON_CONTENT_TYPE,
+  MOCK_LLM_NO_BODY_MESSAGE,
+  MOCK_LLM_REPLY_TOOL,
   MOCK_LLM_UNSCRIPTED_MESSAGE,
   MOCK_LLM_URL_PROTOCOL,
   MOCK_LLM_WRONG_STEP_MESSAGE,
@@ -18,11 +21,17 @@ import {
   MockLlmStepKind,
 } from '@test/support/constants/mock-llm.constants';
 import {
+  anthropicErrorResponse,
   badRequestResponse,
   embeddingsResponse,
   errorResponse,
-  replyCompletion,
+  headerValue,
+  isMockLlmRoute,
+  sentToolNames,
   textCompletion,
+  textMessage,
+  toolCallCompletion,
+  toolUseMessage,
 } from '@test/support/helpers/mock-llm.helpers';
 import { mockEmbeddingsBodySchema, mockLlmBodySchema } from '@test/support/schemas/mock-llm.schema';
 import type {
@@ -71,12 +80,20 @@ export class MockLlmService {
     this.hung.clear();
   }
 
+  toolCall(name: string, args: unknown, usage: MockLlmUsage = MOCK_LLM_DEFAULT_USAGE): this {
+    return this.script({ kind: MockLlmStepKind.ToolCall, name, args, usage });
+  }
+
   reply(args: unknown, usage: MockLlmUsage = MOCK_LLM_DEFAULT_USAGE): this {
-    return this.script({ kind: MockLlmStepKind.Reply, args, usage });
+    return this.toolCall(MOCK_LLM_REPLY_TOOL, args, usage);
   }
 
   text(text: string, usage: MockLlmUsage = MOCK_LLM_DEFAULT_USAGE): this {
     return this.script({ kind: MockLlmStepKind.Text, text, usage });
+  }
+
+  json(value: unknown, usage: MockLlmUsage = MOCK_LLM_DEFAULT_USAGE): this {
+    return this.text(JSON.stringify(value), usage);
   }
 
   fail(status: number): this {
@@ -91,6 +108,18 @@ export class MockLlmService {
     return this.script({ kind: MockLlmStepKind.Embed, dimensions });
   }
 
+  body(index: number): Readonly<Record<string, unknown>> {
+    const body = this.requests[index]?.body;
+    if (typeof body !== 'object') {
+      throw new TypeError(`${MOCK_LLM_NO_BODY_MESSAGE} ${index}`);
+    }
+    return body;
+  }
+
+  toolNames(index: number): string[] {
+    return sentToolNames(this.body(index));
+  }
+
   private script(step: MockLlmStep): this {
     this.steps.push(step);
     return this;
@@ -99,17 +128,18 @@ export class MockLlmService {
   private async handle(request: IncomingMessage, response: ServerResponse): Promise<void> {
     const route = request.url ?? '';
     const authorization = request.headers.authorization ?? null;
+    const apiKey = headerValue(request.headers[MOCK_LLM_API_KEY_HEADER]);
     let text = '';
     let body: Readonly<Record<string, unknown>>;
     try {
       text = await this.readBody(request);
       body = mockLlmBodySchema.parse(text ? JSON.parse(text) : {});
     } catch (error) {
-      this.requests.push({ route, authorization, body: text });
+      this.requests.push({ route, authorization, apiKey, body: text });
       this.send(response, badRequestResponse(error));
       return;
     }
-    this.requests.push({ route, authorization, body });
+    this.requests.push({ route, authorization, apiKey, body });
     try {
       this.send(response, this.answer(route, body));
     } catch (error) {
@@ -137,30 +167,48 @@ export class MockLlmService {
   }
 
   private answer(route: string, body: Readonly<Record<string, unknown>>): MockLlmResponse | null {
-    if (route !== MockLlmRoute.ChatCompletions && route !== MockLlmRoute.Embeddings) {
+    if (!isMockLlmRoute(route)) {
       return errorResponse(HttpStatus.NOT_FOUND, route);
     }
+    const fail = route === MockLlmRoute.Messages ? anthropicErrorResponse : errorResponse;
     const step = this.steps.shift();
     if (!step) {
-      return errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, MOCK_LLM_UNSCRIPTED_MESSAGE);
+      return fail(HttpStatus.INTERNAL_SERVER_ERROR, MOCK_LLM_UNSCRIPTED_MESSAGE);
     }
     if (step.kind === MockLlmStepKind.Fail) {
-      return errorResponse(step.status, MOCK_LLM_FAILURE_MESSAGE);
+      return fail(step.status, MOCK_LLM_FAILURE_MESSAGE);
     }
     if (step.kind === MockLlmStepKind.Hang) {
       return null;
     }
-    if (route === MockLlmRoute.ChatCompletions && step.kind === MockLlmStepKind.Reply) {
-      return replyCompletion(body.model, step.args, step.usage);
+    return (
+      this.scripted(route, body, step) ??
+      fail(HttpStatus.INTERNAL_SERVER_ERROR, MOCK_LLM_WRONG_STEP_MESSAGE)
+    );
+  }
+
+  private scripted(
+    route: MockLlmRoute,
+    body: Readonly<Record<string, unknown>>,
+    step: MockLlmStep,
+  ): MockLlmResponse | null {
+    if (step.kind === MockLlmStepKind.ToolCall && route === MockLlmRoute.ChatCompletions) {
+      return toolCallCompletion(body.model, step.name, step.args, step.usage);
     }
-    if (route === MockLlmRoute.ChatCompletions && step.kind === MockLlmStepKind.Text) {
+    if (step.kind === MockLlmStepKind.ToolCall && route === MockLlmRoute.Messages) {
+      return toolUseMessage(body.model, step.name, step.args, step.usage);
+    }
+    if (step.kind === MockLlmStepKind.Text && route === MockLlmRoute.ChatCompletions) {
       return textCompletion(body.model, step.text, step.usage);
     }
-    if (route === MockLlmRoute.Embeddings && step.kind === MockLlmStepKind.Embed) {
+    if (step.kind === MockLlmStepKind.Text && route === MockLlmRoute.Messages) {
+      return textMessage(body.model, step.text, step.usage);
+    }
+    if (step.kind === MockLlmStepKind.Embed && route === MockLlmRoute.Embeddings) {
       const { input } = mockEmbeddingsBodySchema.parse(body);
       return embeddingsResponse(body.model, [input].flat(), step.dimensions);
     }
-    return errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, MOCK_LLM_WRONG_STEP_MESSAGE);
+    return null;
   }
 }
 

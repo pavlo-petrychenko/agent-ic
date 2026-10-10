@@ -2,24 +2,37 @@ import { HttpStatus } from '@nestjs/common';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   MOCK_EMBEDDING_DIMENSIONS,
+  MOCK_LLM_API_KEY_HEADER,
   MOCK_LLM_ASSISTANT_ROLE,
   MOCK_LLM_CONTENT_TYPE_HEADER,
   MOCK_LLM_JSON_CONTENT_TYPE,
   MOCK_LLM_REPLY_TOOL,
+  MockAnthropicStopReason,
+  MockAnthropicType,
   MockLlmFinishReason,
   MockLlmRoute,
 } from '@test/support/constants/mock-llm.constants';
 import { MockLlmService, startMockLlm } from '@test/support/services/mock-llm.service';
 import type {
+  MockAnthropicMessageBody,
   MockChatCompletionBody,
   MockEmbeddingsBody,
 } from '@test/support/typedefs/mock-llm.typedefs';
 
-const MODEL = 'gpt-5.4-mini';
+const MODEL = 'ministral-14b-2512';
 const AUTHORIZATION = 'Bearer test-key';
+const API_KEY = 'test-key';
 const MESSAGES = [{ role: 'user', content: 'hi' }];
 const CHAT_PATH = '/chat/completions';
+const MESSAGES_PATH = '/messages';
 const EMBEDDINGS_PATH = '/embeddings';
+const LOOKUP_TOOL = 'lookup';
+const LOOKUP_ARGS = { city: 'Kyiv' };
+const ANSWER = { intent: 'delivery' };
+const SENT_TOOLS = [
+  { type: 'function', function: { name: LOOKUP_TOOL } },
+  { type: 'function', function: { name: MOCK_LLM_REPLY_TOOL } },
+];
 const HANG_TIMEOUT_MS = 200;
 const TIMEOUT_ERROR = 'TimeoutError';
 const SMALL_DIMENSIONS = 3;
@@ -49,6 +62,18 @@ describe('MockLlmService', () => {
 
   const completion = async (): Promise<MockChatCompletionBody> =>
     (await (await chat()).json()) as MockChatCompletionBody;
+
+  const message = async (): Promise<MockAnthropicMessageBody> =>
+    (await (
+      await fetch(`${mock.url}${MESSAGES_PATH}`, {
+        method: 'POST',
+        headers: {
+          [MOCK_LLM_CONTENT_TYPE_HEADER]: MOCK_LLM_JSON_CONTENT_TYPE,
+          [MOCK_LLM_API_KEY_HEADER]: API_KEY,
+        },
+        body: JSON.stringify({ model: MODEL, messages: MESSAGES, tools: [{ name: LOOKUP_TOOL }] }),
+      })
+    ).json()) as MockAnthropicMessageBody;
 
   const embeddings = async (input: string | string[]): Promise<MockEmbeddingsBody> =>
     (await (await post(EMBEDDINGS_PATH, { model: MODEL, input })).json()) as MockEmbeddingsBody;
@@ -89,6 +114,65 @@ describe('MockLlmService', () => {
         total_tokens: USAGE.promptTokens + USAGE.completionTokens,
       },
     });
+  });
+
+  it('answers with a call to any scripted tool', async () => {
+    mock.toolCall(LOOKUP_TOOL, LOOKUP_ARGS);
+
+    const body = await completion();
+
+    expect(body.choices[0]?.message.tool_calls).toEqual([
+      expect.objectContaining({
+        function: { name: LOOKUP_TOOL, arguments: JSON.stringify(LOOKUP_ARGS) },
+      }),
+    ]);
+  });
+
+  it('answers with a JSON value as the message text', async () => {
+    mock.json(ANSWER);
+
+    const body = await completion();
+
+    expect(body.choices[0]?.message.content).toBe(JSON.stringify(ANSWER));
+  });
+
+  it('answers the messages route in the Anthropic shape', async () => {
+    mock.toolCall(LOOKUP_TOOL, LOOKUP_ARGS, USAGE).json(ANSWER);
+
+    const toolUse = await message();
+    const text = await message();
+
+    expect(toolUse).toMatchObject({
+      type: MockAnthropicType.Message,
+      model: MODEL,
+      content: [{ type: MockAnthropicType.ToolUse, name: LOOKUP_TOOL, input: LOOKUP_ARGS }],
+      stop_reason: MockAnthropicStopReason.ToolUse,
+      usage: { input_tokens: USAGE.promptTokens, output_tokens: USAGE.completionTokens },
+    });
+    expect(text).toMatchObject({
+      content: [{ type: MockAnthropicType.Text, text: JSON.stringify(ANSWER) }],
+      stop_reason: MockAnthropicStopReason.EndTurn,
+    });
+    expect(mock.requests[0]).toMatchObject({ route: MockLlmRoute.Messages, apiKey: API_KEY });
+    expect(mock.toolNames(0)).toEqual([LOOKUP_TOOL]);
+  });
+
+  it('fails the messages route with an Anthropic error body', async () => {
+    mock.fail(HttpStatus.SERVICE_UNAVAILABLE);
+
+    const body = await message();
+
+    expect(body).toMatchObject({ type: MockAnthropicType.Error });
+  });
+
+  it('reads back the body and the tool names a request sent', async () => {
+    mock.text('ok');
+
+    await post(CHAT_PATH, { model: MODEL, messages: MESSAGES, tools: SENT_TOOLS });
+
+    expect(mock.body(0)).toMatchObject({ model: MODEL });
+    expect(mock.toolNames(0)).toEqual([LOOKUP_TOOL, MOCK_LLM_REPLY_TOOL]);
+    expect(() => mock.body(1)).toThrow(TypeError);
   });
 
   it('answers with plain text', async () => {
@@ -175,11 +259,13 @@ describe('MockLlmService', () => {
       {
         route: MockLlmRoute.ChatCompletions,
         authorization: AUTHORIZATION,
+        apiKey: null,
         body: { model: MODEL, messages: MESSAGES },
       },
       {
         route: MockLlmRoute.ChatCompletions,
         authorization: AUTHORIZATION,
+        apiKey: null,
         body: { model: MODEL, messages: MESSAGES },
       },
     ]);
@@ -197,7 +283,12 @@ describe('MockLlmService', () => {
 
     expect(response.status).toBe(HttpStatus.BAD_REQUEST);
     expect(mock.requests).toEqual([
-      { route: MockLlmRoute.ChatCompletions, authorization: AUTHORIZATION, body: MALFORMED_BODY },
+      {
+        route: MockLlmRoute.ChatCompletions,
+        authorization: AUTHORIZATION,
+        apiKey: null,
+        body: MALFORMED_BODY,
+      },
     ]);
   });
 
