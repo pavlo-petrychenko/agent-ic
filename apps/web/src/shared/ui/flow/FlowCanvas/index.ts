@@ -9,6 +9,7 @@ export type {
   FlowCanvasNodeMove,
   FlowCanvasNodeSlots,
   FlowCanvasPaletteDrop,
+  FlowCanvasPlaceholder,
   FlowCanvasPoint,
   FlowCanvasPort,
   FlowCanvasProps,

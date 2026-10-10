@@ -8,13 +8,17 @@ $story-width: 220px;
 }
 
 .root .field {
-  padding: 0 $inset 0 $inset;
+  padding: 0 var(--space-10) 0 $inset;
   font: var(--type-body-small);
 
   &::-webkit-search-cancel-button,
   &::-webkit-search-decoration {
     appearance: none;
   }
+}
+
+.trailing .field {
+  padding-right: $inset;
 }
 
 .icon,
