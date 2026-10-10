@@ -1,0 +1,51 @@
+extend type Query {
+  agents(first: Int, after: String): AgentConnection!
+  agent(id: ID!): Agent!
+}
+
+extend type Mutation {
+  createAgent(input: CreateAgentInput!): Agent!
+  renameAgent(input: RenameAgentInput!): Agent!
+  deleteAgent(input: DeleteAgentInput!): DeleteAgentPayload!
+}
+
+enum AgentStatus {
+  draft
+  live
+  paused
+}
+
+type Agent {
+  id: ID!
+  name: String!
+  status: AgentStatus!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type AgentEdge {
+  cursor: String!
+  node: Agent!
+}
+
+type AgentConnection {
+  edges: [AgentEdge!]!
+  pageInfo: PageInfo!
+}
+
+input CreateAgentInput {
+  name: String!
+}
+
+input RenameAgentInput {
+  id: ID!
+  name: String!
+}
+
+input DeleteAgentInput {
+  id: ID!
+}
+
+type DeleteAgentPayload {
+  id: ID!
+}

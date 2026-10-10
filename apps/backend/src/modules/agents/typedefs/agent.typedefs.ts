@@ -1,5 +1,6 @@
 import type { AgentStatus, PauseMode } from '@/modules/agents/constants/agent.constants';
 import type { agents } from '@/modules/agents/db/agents.table';
+import type { Connection, ConnectionArgs } from '@/platform/graphql-server/typedefs/relay.typedefs';
 
 export interface Agent {
   readonly id: string;
@@ -32,3 +33,11 @@ export interface RenameAgentInput {
   readonly id: string;
   readonly name: string;
 }
+
+export interface AgentIdInput {
+  readonly id: string;
+}
+
+export type ListAgentsInput = ConnectionArgs;
+
+export type AgentsPage = Connection<AgentView>;
