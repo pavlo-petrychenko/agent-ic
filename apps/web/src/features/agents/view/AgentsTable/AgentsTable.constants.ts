@@ -1,5 +1,7 @@
+import { AgentMenuAction } from '@/features/agents/constants/agentMenu.constants';
 import { AgentStatus } from '@/features/agents/constants/agentStatus.constants';
 import { BadgeTone } from '@/shared/ui/display/Badge';
+import { IconName } from '@/shared/ui/foundations/Icon';
 
 export const AGENT_STATUS_TONES: Readonly<Record<AgentStatus, BadgeTone>> = {
   [AgentStatus.Live]: BadgeTone.Ok,
@@ -18,3 +20,12 @@ export const AGENT_COLUMN_WIDTHS: Readonly<Record<AgentColumn, string>> = {
 };
 
 export const STATUS_FILTER_ID = 'status';
+
+export const AGENT_MENU_ICON_SIZE = 14;
+
+export const AGENT_MENU_ICONS: Readonly<Record<AgentMenuAction, IconName>> = {
+  [AgentMenuAction.Open]: IconName.ChevronRight,
+  [AgentMenuAction.Test]: IconName.Play,
+  [AgentMenuAction.Resume]: IconName.Play,
+  [AgentMenuAction.Duplicate]: IconName.Plus,
+};

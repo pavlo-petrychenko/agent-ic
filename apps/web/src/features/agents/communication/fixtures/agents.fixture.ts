@@ -1,5 +1,7 @@
 import type { MockLink } from '@apollo/client/testing';
 import { CreateAgentDocument } from '@/features/agents/communication/gql/mutation/createAgent.generated';
+import { DuplicateAgentDocument } from '@/features/agents/communication/gql/mutation/duplicateAgent.generated';
+import { ResumeAgentDocument } from '@/features/agents/communication/gql/mutation/resumeAgent.generated';
 import {
   AgentsDocument,
   type AgentsQuery,
@@ -85,5 +87,39 @@ export const buildCreateAgentFailureMock = (
   error: Error,
 ): MockLink.MockedResponse => ({
   request: { query: CreateAgentDocument, variables: { input: { name } } },
+  error,
+});
+
+export const buildResumeAgentMock = (id: string): MockLink.MockedResponse => ({
+  request: { query: ResumeAgentDocument, variables: { input: { id } } },
+  result: {
+    data: {
+      resumeAgent: {
+        __typename: 'Agent',
+        id,
+        status: AgentStatus.Live,
+        pausedAt: null,
+        pauseMode: null,
+        awayMessage: null,
+      },
+    },
+  },
+});
+
+export const buildDuplicateAgentMock = (id: string, name: string): MockLink.MockedResponse => ({
+  request: { query: DuplicateAgentDocument, variables: { input: { id } } },
+  result: { data: { duplicateAgent: { __typename: 'Agent', id: `${id}_copy`, name } } },
+});
+
+export const buildResumeAgentFailureMock = (id: string, error: Error): MockLink.MockedResponse => ({
+  request: { query: ResumeAgentDocument, variables: { input: { id } } },
+  error,
+});
+
+export const buildDuplicateAgentFailureMock = (
+  id: string,
+  error: Error,
+): MockLink.MockedResponse => ({
+  request: { query: DuplicateAgentDocument, variables: { input: { id } } },
   error,
 });

@@ -61,5 +61,21 @@
     "start": "Start",
     "invite": "Invite your team",
     "copyInvite": "Copy invite link"
+  },
+  "menu": {
+    "label": "Agent actions",
+    "column": "Actions",
+    "trigger": "More actions for {{name}}",
+    "open": "Open flow builder",
+    "test": "Test in simulator",
+    "resume": "Resume agent",
+    "duplicate": "Duplicate"
+  },
+  "resume": {
+    "success": "{{name}} is live again"
+  },
+  "duplicate": {
+    "success": "Created “{{name}}”",
+    "done": "The agent was duplicated"
   }
 }
