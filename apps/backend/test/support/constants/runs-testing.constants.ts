@@ -27,6 +27,7 @@ export const SECOND_STEP_KEY = 'second';
 export const THIRD_STEP_ID = 'node-third';
 export const THIRD_STEP_KEY = 'third';
 export const TEST_PUBLISHED_NUMBER = 1;
+export const TEST_REPUBLISHED_NUMBER = 2;
 
 export enum StepScript {
   Succeed = 'succeed',
