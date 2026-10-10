@@ -1,0 +1,9 @@
+mutation ResumeAgent($input: ResumeAgentInput!) {
+  resumeAgent(input: $input) {
+    id
+    status
+    pausedAt
+    pauseMode
+    awayMessage
+  }
+}
