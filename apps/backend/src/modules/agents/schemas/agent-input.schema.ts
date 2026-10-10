@@ -74,3 +74,12 @@ export const agentVersionDiffInputSchema = z.object({
   [AgentField.FromId]: agentIdSchema,
   [AgentField.ToId]: agentIdSchema,
 });
+
+export const testApiRequestInputSchema = z.object({
+  [AgentField.AgentId]: agentIdSchema,
+  [AgentField.NodeId]: z.string().min(1),
+  [AgentField.Variables]: z
+    .record(z.string(), z.unknown())
+    .nullish()
+    .transform((variables) => variables ?? {}),
+});

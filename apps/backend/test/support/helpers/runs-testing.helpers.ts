@@ -24,9 +24,12 @@ import { IdService } from '@/platform/ids/services/id.service';
 import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
 import { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { JobHandlersService } from '@/platform/queues/services/job-handlers.service';
 import { QueuesService } from '@/platform/queues/services/queues.service';
+import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
+import { RedisModule } from '@/platform/redis/redis.module';
 import { TEST_AWAY_MESSAGE } from '@test/support/constants/agents-testing.constants';
 import { MESSAGE_SPACING_MS } from '@test/support/constants/conversations-testing.constants';
 import {
@@ -71,6 +74,9 @@ export const createRunsTestbed = async (
       QueuesModule.forRole(ROLE),
       DomainEventsModule.forRole(ROLE),
       LiveUpdatesModule.forRole(ROLE),
+      RedisModule,
+      RateLimitModule,
+      OutboundHttpModule,
       AgentsNeighboursModule.forRole(ROLE),
       RunsModule.forRole(ROLE),
     ],

@@ -13,6 +13,7 @@ import { RenameAgentResolver } from '@/modules/agents/resolvers/rename-agent.res
 import { RestoreAgentVersionResolver } from '@/modules/agents/resolvers/restore-agent-version.resolver';
 import { ResumeAgentResolver } from '@/modules/agents/resolvers/resume-agent.resolver';
 import { SaveAgentDraftResolver } from '@/modules/agents/resolvers/save-agent-draft.resolver';
+import { TestApiRequestResolver } from '@/modules/agents/resolvers/test-api-request.resolver';
 import { AgentDraftsService } from '@/modules/agents/services/agent-drafts.service';
 import { AgentFlowService } from '@/modules/agents/services/agent-flow.service';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
@@ -36,6 +37,7 @@ import { RenameAgentUseCase } from '@/modules/agents/use-cases/rename-agent.use-
 import { RestoreAgentVersionUseCase } from '@/modules/agents/use-cases/restore-agent-version.use-case';
 import { ResumeAgentUseCase } from '@/modules/agents/use-cases/resume-agent.use-case';
 import { SaveAgentDraftUseCase } from '@/modules/agents/use-cases/save-agent-draft.use-case';
+import { TestApiRequestUseCase } from '@/modules/agents/use-cases/test-api-request.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class AgentsModule extends defineModule({
@@ -66,6 +68,7 @@ export class AgentsModule extends defineModule({
     PreviewAgentPublishUseCase,
     RestoreAgentVersionUseCase,
     ListModelOptionsUseCase,
+    TestApiRequestUseCase,
   ],
   resolvers: [
     CreateAgentResolver,
@@ -80,6 +83,7 @@ export class AgentsModule extends defineModule({
     ResumeAgentResolver,
     RestoreAgentVersionResolver,
     ModelOptionsResolver,
+    TestApiRequestResolver,
   ],
   exports: [AgentRuntimeReader],
 }) {}

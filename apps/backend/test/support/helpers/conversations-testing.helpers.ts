@@ -24,9 +24,12 @@ import type { AnyDomainEventSubscription } from '@/platform/domain-events/typede
 import { ErrorsModule } from '@/platform/errors/errors.module';
 import { IdsModule } from '@/platform/ids/ids.module';
 import { IdService } from '@/platform/ids/services/id.service';
+import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { QueuesService } from '@/platform/queues/services/queues.service';
 import type { JobData } from '@/platform/queues/typedefs/job.typedefs';
+import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
+import { RedisModule } from '@/platform/redis/redis.module';
 import {
   CONCURRENT_POOL_SIZE,
   CONVERSATIONS_TEST_START,
@@ -69,6 +72,9 @@ export const createConversationsTestbed = async (
       IdsModule,
       QueuesModule.forRole(selection.role),
       DomainEventsModule.forRole(selection.role),
+      RedisModule,
+      RateLimitModule,
+      OutboundHttpModule,
       AgentsNeighboursModule.forRole(selection.role),
       domainModule,
     ],
