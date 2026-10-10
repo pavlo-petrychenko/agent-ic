@@ -19,8 +19,9 @@ export class StartRunOnMessageUseCase {
     const workspaceId = runWorkspaceOf(ctx);
     return this.tenants.run(workspaceId, async () => {
       const versionId =
-        message.versionId ?? (await this.agents.getLiveVersion(workspaceId, message.agentId))?.id;
-      if (versionId === undefined) {
+        message.versionId ??
+        (await this.agents.findAnsweringVersionId(workspaceId, message.agentId));
+      if (versionId === null) {
         return null;
       }
       return this.lifecycle.startRun(ctx, {

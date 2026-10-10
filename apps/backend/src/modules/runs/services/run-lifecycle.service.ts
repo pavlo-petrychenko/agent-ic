@@ -7,10 +7,11 @@ import {
 } from '@/modules/conversations';
 import { RunStatus, RunTrigger } from '@/modules/runs/constants/run.constants';
 import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
+import { runFailureOf } from '@/modules/runs/helpers/run-failure.helpers';
 import { executeRunJob } from '@/modules/runs/jobs/execute-run.job';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import type { RunStart, RunTarget } from '@/modules/runs/typedefs/run-start.typedefs';
-import type { NewRun, Run } from '@/modules/runs/typedefs/run.typedefs';
+import type { NewRun, Run, RunEnd } from '@/modules/runs/typedefs/run.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -78,6 +79,12 @@ export class RunLifecycleService {
     }
     const target = { ...run, triggerMessageId: run.lastCoveredMessageId };
     return this.startCovering(ctx, target, () => this.followUpVersionId(run));
+  }
+
+  async failRun(workspaceId: string, runId: string, error: unknown): Promise<void> {
+    const failure = runFailureOf(error, null);
+    const end: RunEnd = { status: RunStatus.Failed, error: failure, finishedAt: this.clock.now() };
+    await this.runs.finish(workspaceId, runId, end);
   }
 
   private async lastUncoveredMessageId(target: RunTarget): Promise<string | null> {

@@ -1,5 +1,7 @@
+import { ErrorReason } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { RunStatus } from '@/modules/runs/constants/run.constants';
+import { RunLifecycleService } from '@/modules/runs/services/run-lifecycle.service';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
 import {
   AgentChange,
@@ -56,6 +58,19 @@ describe('ExecuteRunUseCase', () => {
     expect(after.latest).toMatchObject({ id: followUp?.id, status: RunStatus.Succeeded });
   });
 
+  it('fails the run and releases the conversation when the run cannot load', async () => {
+    const seeded = await seedLiveConversation(testbed, triggerFlow());
+    const { run } = await receiveMessage(testbed, seeded, { versionId: testbed.ids.generate() });
+
+    const execution = testbed.executeRun.execute(seeded.ctx, { runId: String(run?.id) });
+
+    await expect(execution).rejects.toMatchObject({ reason: ErrorReason.AgentVersionNotFound });
+    const after = await readLifecycle(testbed, seeded);
+    expect(after.latest?.status).toBe(RunStatus.Failed);
+    expect(after.latest?.error?.reason).toBe(ErrorReason.AgentVersionNotFound);
+    expect(after.conversation?.activeRunId).toBeNull();
+  });
+
   it('keeps the pinned version when the agent is published mid-run', async () => {
     const seeded = await seedLiveConversation(testbed, oneStep(FIRST_STEP_ID, FIRST_STEP_KEY));
     const { run } = await receiveMessage(testbed, seeded);
@@ -81,7 +96,7 @@ describe('ExecuteRunUseCase', () => {
       await changeAgent(testbed, seeded, change);
 
       const followUp = await testbed.tenants.run(workspaceId, () =>
-        testbed.lifecycle.endRun(seeded.ctx, workspaceId, runId),
+        testbed.module.get(RunLifecycleService).endRun(seeded.ctx, workspaceId, runId),
       );
 
       const after = await readLifecycle(testbed, seeded);

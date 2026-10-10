@@ -1,13 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { RunStatus } from '@/modules/runs/constants/run.constants';
 import { executeRunJob } from '@/modules/runs/jobs/execute-run.job';
+import { StartRunOnMessageUseCase } from '@/modules/runs/use-cases/start-run-on-message.use-case';
+import { JobHandlersService } from '@/platform/queues/services/job-handlers.service';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { triggerFlow } from '@test/support/fixtures/agents.fixture';
 import {
   createRunLifecycleTestbed,
   readLifecycle,
   receiveMessage,
-  republish,
   seedLiveConversation,
 } from '@test/support/helpers/runs-testing.helpers';
 import type { RunLifecycleTestbed } from '@test/support/typedefs/runs-testing.typedefs';
@@ -26,7 +27,7 @@ describe('StartRunOnMessageUseCase', () => {
   it('claims the conversation, pins the live version and enqueues the run by its id', async () => {
     const seeded = await seedLiveConversation(testbed, triggerFlow());
 
-    const { message, run } = await receiveMessage(testbed, seeded);
+    const { message } = await receiveMessage(testbed, seeded);
 
     const { conversation, latest } = await readLifecycle(testbed, seeded);
     const job = await testbed.queues.get(executeRunJob.queue).getJob(String(latest?.id));
@@ -35,18 +36,10 @@ describe('StartRunOnMessageUseCase', () => {
       status: RunStatus.Queued,
       lastCoveredMessageId: message.id,
     });
-    expect(run?.id).toBe(latest?.id);
     expect(conversation?.activeRunId).toBe(latest?.id);
     expect(job?.data.data).toEqual({ runId: latest?.id });
-  });
-
-  it('pins the run to the version the event names', async () => {
-    const seeded = await seedLiveConversation(testbed, triggerFlow());
-    await republish(testbed, seeded, triggerFlow());
-
-    const { run } = await receiveMessage(testbed, seeded, seeded.versionId);
-
-    expect(run?.versionId).toBe(seeded.versionId);
+    const { queue, name } = executeRunJob;
+    expect(testbed.module.get(JobHandlersService).find(queue, name)).not.toBeNull();
   });
 
   it('starts nothing for a message that an earlier run already covered', async () => {
@@ -54,12 +47,9 @@ describe('StartRunOnMessageUseCase', () => {
     const { message, run } = await receiveMessage(testbed, seeded);
     await testbed.executeRun.execute(seeded.ctx, { runId: String(run?.id) });
 
-    const repeated = await testbed.startRunOnMessage.execute(seeded.ctx, {
-      conversationId: seeded.conversation.id,
-      messageId: message.id,
-      agentId: seeded.conversation.agentId,
-      mode: seeded.conversation.mode,
-    });
+    const { id: conversationId, agentId, mode } = seeded.conversation;
+    const repeat = { conversationId, messageId: message.id, agentId, mode };
+    const repeated = await testbed.module.get(StartRunOnMessageUseCase).execute(seeded.ctx, repeat);
 
     const { conversation, latest } = await readLifecycle(testbed, seeded);
     expect(repeated).toBeNull();

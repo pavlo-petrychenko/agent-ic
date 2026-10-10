@@ -7,10 +7,8 @@ import type { NewMessage } from '@/modules/conversations/typedefs/message.typede
 import type { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import type { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import type { RunExecutionService } from '@/modules/runs/services/run-execution.service';
-import type { RunLifecycleService } from '@/modules/runs/services/run-lifecycle.service';
 import type { NewRun, Run } from '@/modules/runs/typedefs/run.typedefs';
 import type { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
-import type { StartRunOnMessageUseCase } from '@/modules/runs/use-cases/start-run-on-message.use-case';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import type { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import type { IdService } from '@/platform/ids/services/id.service';
@@ -40,9 +38,7 @@ export interface ExecutableRun {
 }
 
 export interface RunLifecycleTestbed extends RunExecutionTestbed {
-  readonly startRunOnMessage: StartRunOnMessageUseCase;
   readonly executeRun: ExecuteRunUseCase;
-  readonly lifecycle: RunLifecycleService;
   readonly queues: QueuesService;
 }
 
