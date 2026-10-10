@@ -3,7 +3,9 @@ import { AgentsRepository } from '@/modules/agents/repositories/agents.repositor
 import { AgentsResolver } from '@/modules/agents/resolvers/agents.resolver';
 import { CreateAgentResolver } from '@/modules/agents/resolvers/create-agent.resolver';
 import { DeleteAgentResolver } from '@/modules/agents/resolvers/delete-agent.resolver';
+import { PublishAgentResolver } from '@/modules/agents/resolvers/publish-agent.resolver';
 import { RenameAgentResolver } from '@/modules/agents/resolvers/rename-agent.resolver';
+import { SaveAgentDraftResolver } from '@/modules/agents/resolvers/save-agent-draft.resolver';
 import { AgentFlowService } from '@/modules/agents/services/agent-flow.service';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
 import { AgentRuntimeReader } from '@/modules/agents/services/agent-runtime-reader.service';
@@ -11,7 +13,9 @@ import { CreateAgentUseCase } from '@/modules/agents/use-cases/create-agent.use-
 import { DeleteAgentUseCase } from '@/modules/agents/use-cases/delete-agent.use-case';
 import { GetAgentUseCase } from '@/modules/agents/use-cases/get-agent.use-case';
 import { ListAgentsUseCase } from '@/modules/agents/use-cases/list-agents.use-case';
+import { PublishAgentUseCase } from '@/modules/agents/use-cases/publish-agent.use-case';
 import { RenameAgentUseCase } from '@/modules/agents/use-cases/rename-agent.use-case';
+import { SaveAgentDraftUseCase } from '@/modules/agents/use-cases/save-agent-draft.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class AgentsModule extends defineModule({
@@ -26,7 +30,16 @@ export class AgentsModule extends defineModule({
     DeleteAgentUseCase,
     ListAgentsUseCase,
     GetAgentUseCase,
+    SaveAgentDraftUseCase,
+    PublishAgentUseCase,
   ],
-  resolvers: [CreateAgentResolver, RenameAgentResolver, DeleteAgentResolver, AgentsResolver],
+  resolvers: [
+    CreateAgentResolver,
+    RenameAgentResolver,
+    DeleteAgentResolver,
+    AgentsResolver,
+    SaveAgentDraftResolver,
+    PublishAgentResolver,
+  ],
   exports: [AgentRuntimeReader],
 }) {}

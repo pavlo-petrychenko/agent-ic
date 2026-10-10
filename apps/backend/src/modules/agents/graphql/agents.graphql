@@ -7,6 +7,8 @@ extend type Mutation {
   createAgent(input: CreateAgentInput!): Agent!
   renameAgent(input: RenameAgentInput!): Agent!
   deleteAgent(input: DeleteAgentInput!): DeleteAgentPayload!
+  saveAgentDraft(input: SaveAgentDraftInput!): SaveAgentDraftPayload!
+  publishAgent(input: PublishAgentInput!): PublishAgentPayload!
 }
 
 enum AgentStatus {
@@ -48,4 +50,47 @@ input DeleteAgentInput {
 
 type DeleteAgentPayload {
   id: ID!
+}
+
+input SaveAgentDraftInput {
+  id: ID!
+  flow: JSON!
+  note: String
+}
+
+input PublishAgentInput {
+  id: ID!
+}
+
+enum FlowIssueSeverity {
+  error
+  warning
+}
+
+type AgentVersion {
+  id: ID!
+  number: Int
+  flow: JSON!
+  note: String
+  publishedAt: String
+  createdAt: String!
+}
+
+type FlowIssue {
+  code: String!
+  severity: FlowIssueSeverity!
+  nodeId: String
+  edgeId: String
+  path: [String!]!
+  params: JSON!
+}
+
+type SaveAgentDraftPayload {
+  version: AgentVersion!
+  issues: [FlowIssue!]!
+}
+
+type PublishAgentPayload {
+  agent: Agent!
+  version: AgentVersion!
 }

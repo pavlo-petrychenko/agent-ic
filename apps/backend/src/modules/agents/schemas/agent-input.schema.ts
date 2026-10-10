@@ -1,9 +1,10 @@
-import { AGENT_NAME_MAX_LENGTH } from '@agent-ic/contracts';
+import { AGENT_NAME_MAX_LENGTH, AGENT_VERSION_NOTE_MAX_LENGTH } from '@agent-ic/contracts';
 import { z } from 'zod';
 import { AgentField } from '@/modules/agents/constants/agent-input.constants';
 
 const agentNameSchema = z.string().trim().min(1).max(AGENT_NAME_MAX_LENGTH);
 const agentIdSchema = z.string().min(1);
+const versionNoteSchema = z.string().trim().max(AGENT_VERSION_NOTE_MAX_LENGTH).nullish();
 
 export const createAgentInputSchema = z.object({
   [AgentField.Name]: agentNameSchema,
@@ -16,4 +17,10 @@ export const renameAgentInputSchema = z.object({
 
 export const agentIdInputSchema = z.object({
   [AgentField.Id]: agentIdSchema,
+});
+
+export const saveAgentDraftInputSchema = z.object({
+  [AgentField.Id]: agentIdSchema,
+  [AgentField.Flow]: z.looseObject({}),
+  [AgentField.Note]: versionNoteSchema,
 });

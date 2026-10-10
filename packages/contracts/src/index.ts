@@ -1,6 +1,7 @@
 export {
   AGENT_AWAY_MESSAGE_MAX_LENGTH,
   AGENT_NAME_MAX_LENGTH,
+  AGENT_VERSION_NOTE_MAX_LENGTH,
 } from '@contracts/agents/agent.constants';
 export {
   EMAIL_MAX_LENGTH,
