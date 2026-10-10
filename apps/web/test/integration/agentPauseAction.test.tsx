@@ -1,10 +1,11 @@
-import { AGENT_AWAY_MESSAGE_MAX_LENGTH, Locale } from '@agent-ic/contracts';
+import { AGENT_AWAY_MESSAGE_MAX_LENGTH, ErrorReason, Locale } from '@agent-ic/contracts';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   buildAgentsMock,
   buildPauseAgentFailureMock,
+  buildPauseAgentReasonFailureMock,
   buildPauseAgentMock,
   GIFT_CARD_FAQ,
   REVIEW_COLLECTOR,
@@ -130,6 +131,30 @@ describe('pause an agent from the row menu', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Pause agent' }));
 
     expect(await within(dialog).findByText(/The server cannot be reached/)).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Pause Salon assistant?' })).toBeInTheDocument();
+  });
+
+  it('shows the translated text of a reason the server rejects the pause with', async () => {
+    const user = userEvent.setup();
+    renderRoute(agentsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildAgentsMock(ALL_AGENTS),
+        buildPauseAgentReasonFailureMock(
+          SALON_ASSISTANT.id,
+          PauseMode.AwayMessage,
+          AWAY_TEXT,
+          ErrorReason.AwayMessageTooLong,
+        ),
+      ],
+    });
+
+    const dialog = await openPauseDialog(user);
+    await user.click(within(dialog).getByRole('radio', { name: /Get an away message/ }));
+    await user.type(within(dialog).getByLabelText('Away message'), AWAY_TEXT);
+    await user.click(within(dialog).getByRole('button', { name: 'Pause agent' }));
+
+    expect(await within(dialog).findByText('The away message is too long.')).toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: 'Pause Salon assistant?' })).toBeInTheDocument();
   });
 

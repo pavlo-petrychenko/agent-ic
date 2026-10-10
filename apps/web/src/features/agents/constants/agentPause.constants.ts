@@ -13,3 +13,5 @@ export const PAUSE_MODE_LABEL_KEYS = {
 } as const satisfies Readonly<Record<PauseMode, string>>;
 
 export const AWAY_MESSAGE_ROWS = 3;
+
+export const PAUSE_MODE_FIELD_NAME = 'pause-mode';

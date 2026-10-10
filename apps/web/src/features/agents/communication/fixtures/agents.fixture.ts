@@ -1,4 +1,6 @@
+import { ErrorCode, type ErrorReason } from '@agent-ic/contracts';
 import type { MockLink } from '@apollo/client/testing';
+import { GraphQLError } from 'graphql';
 import { CreateAgentDocument } from '@/features/agents/communication/gql/mutation/createAgent.generated';
 import { DeleteAgentDocument } from '@/features/agents/communication/gql/mutation/deleteAgent.generated';
 import { DuplicateAgentDocument } from '@/features/agents/communication/gql/mutation/duplicateAgent.generated';
@@ -125,6 +127,20 @@ export const buildPauseAgentFailureMock = (
 ): MockLink.MockedResponse => ({
   request: { query: PauseAgentDocument, variables: { input: { id, mode, awayMessage } } },
   error,
+});
+
+export const buildPauseAgentReasonFailureMock = (
+  id: string,
+  mode: PauseMode,
+  awayMessage: string | null,
+  reason: ErrorReason,
+): MockLink.MockedResponse => ({
+  request: { query: PauseAgentDocument, variables: { input: { id, mode, awayMessage } } },
+  result: {
+    errors: [
+      new GraphQLError('rejected', { extensions: { code: ErrorCode.BadUserInput, reason } }),
+    ],
+  },
 });
 
 export const buildResumeAgentMock = (id: string): MockLink.MockedResponse => ({

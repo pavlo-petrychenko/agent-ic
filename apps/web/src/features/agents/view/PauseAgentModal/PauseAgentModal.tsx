@@ -2,6 +2,7 @@ import { AGENT_AWAY_MESSAGE_MAX_LENGTH } from '@agent-ic/contracts';
 import { useTranslation } from 'react-i18next';
 import {
   AWAY_MESSAGE_ROWS,
+  PAUSE_MODE_FIELD_NAME,
   PAUSE_MODE_LABEL_KEYS,
   PAUSE_MODES,
 } from '@/features/agents/constants/agentPause.constants';
@@ -64,7 +65,7 @@ export function PauseAgentModal({
             {t('pause.modeLabel')}
           </Text>
           <Radio
-            name="pause-mode"
+            name={PAUSE_MODE_FIELD_NAME}
             ariaLabel={t('pause.modeLabel')}
             orientation={RadioOrientation.Vertical}
             value={mode}
