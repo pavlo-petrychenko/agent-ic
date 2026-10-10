@@ -11,10 +11,9 @@ import {
   TEST_AGENT_PAGE_LIMIT,
   TEST_AWAY_MESSAGE,
 } from '@test/support/constants/agents-testing.constants';
+import { ROW_LEVEL_SECURITY_VIOLATION } from '@test/support/constants/postgres-errors.constants';
 import { newAgent } from '@test/support/fixtures/agents.fixture';
 import { createAgentsTestingModule } from '@test/support/helpers/agents-testing.helpers';
-
-const ROW_LEVEL_SECURITY_VIOLATION = { cause: { code: '42501' } };
 
 describe('AgentsRepository', () => {
   let testingModule: TestingModule;
