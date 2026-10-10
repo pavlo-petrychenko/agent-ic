@@ -17,13 +17,13 @@ export const emptyFlow = (): FlowDocument => ({
   edges: [],
 });
 
-export const triggerFlow = (): FlowDocument => ({
+export const triggerFlow = (label: string = TEST_NODE_LABEL): FlowDocument => ({
   schemaVersion: FLOW_SCHEMA_VERSION,
   nodes: [
     {
       id: TEST_NODE_ID,
       key: TEST_NODE_KEY,
-      label: TEST_NODE_LABEL,
+      label,
       position: { x: 0, y: 0 },
       type: NodeType.TriggerMessage,
       config: { channels: { mode: ChannelSelectionMode.All } },

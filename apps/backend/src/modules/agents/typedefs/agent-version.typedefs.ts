@@ -18,6 +18,15 @@ export interface AgentVersion {
 
 export type NewAgentVersion = typeof agentVersions.$inferInsert;
 
+export interface VersionCopy {
+  readonly id: string;
+  readonly kind: AgentVersionKind;
+  readonly number: number | null;
+  readonly authorId: string | null;
+  readonly publishedAt: Date | null;
+  readonly at: Date;
+}
+
 export interface DraftChanges {
   readonly flow: FlowDocument;
   readonly note: string | null;
