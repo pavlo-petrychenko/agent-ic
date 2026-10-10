@@ -1,0 +1,9 @@
+.root {
+  position: absolute;
+  bottom: var(--space-12);
+  right: var(--space-16);
+  z-index: var(--z-raised);
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}

@@ -7,7 +7,9 @@ import {
   TRIGGER_ONLY_FLOW,
   buildFlowBuilderDraftFailureMock,
   buildFlowBuilderDraftMock,
+  buildRenameAgentMock,
 } from '@/features/flow-builder/communication/fixtures/flowBuilderDraft.fixture';
+import { Density } from '@/features/flow-builder/constants/density.constants';
 import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.constants';
 import { addNode } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
@@ -32,18 +34,18 @@ describe('flow builder canvas', () => {
   beforeEach(() => signInForTest());
 
   afterEach(async () => {
+    useFlowBuilderStore.getState().setDensity(Density.Comfortable);
     setWorkspaceId(null);
     await signOutForTest();
   });
 
-  it('opens the draft under the agent breadcrumb and connects two steps by keyboard', async () => {
+  it('opens the draft under the agent name and connects two steps by keyboard', async () => {
     const canvas = await openBuilder(
       addNode(TRIGGER_ONLY_FLOW, NodeType.SendMessage, { x: 0, y: 200 }, 'reply'),
     );
 
-    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent(
-      'Salon assistant',
-    );
+    expect(screen.getByRole('button', { name: 'Salon assistant' })).toBeInTheDocument();
+    expect(screen.getByText('Draft · edited from v3')).toBeInTheDocument();
     screen.getByLabelText('Connect from Customer message · next').focus();
     await userEvent.keyboard('{Enter}{Enter}');
 
@@ -76,6 +78,35 @@ describe('flow builder canvas', () => {
     );
     expect(screen.getByRole('button', { name: 'API request' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Agent' })).toBeNull();
+  });
+
+  it('renames the agent in the header', async () => {
+    renderRoute(builderPath, {
+      mocks: [
+        shell,
+        buildFlowBuilderDraftMock(TRIGGER_ONLY_FLOW),
+        buildRenameAgentMock('Front desk'),
+      ],
+    });
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Salon assistant' }));
+    const name = screen.getByRole('textbox', { name: 'Agent name' });
+    await userEvent.clear(name);
+    await userEvent.type(name, 'Front desk{Enter}');
+
+    expect(await screen.findByText('Agent renamed')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Front desk' })).toBeInTheDocument();
+  });
+
+  it('switches density and lists the keyboard shortcuts', async () => {
+    await openBuilder();
+    expect(screen.getByText('All channels')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Compact' }));
+    expect(screen.queryByText('All channels')).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Keyboard shortcuts' }));
+    expect(screen.getByText('⌘ D')).toBeInTheDocument();
   });
 
   it('deletes the selected step and brings it back with undo', async () => {

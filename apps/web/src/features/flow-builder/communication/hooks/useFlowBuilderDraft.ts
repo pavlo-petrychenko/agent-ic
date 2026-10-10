@@ -14,6 +14,7 @@ export function useFlowBuilderDraft(agentId: string): FlowBuilderDraftResult {
   const draft = useMemo(() => (agentDraft === null ? null : toFlowDraft(agentDraft)), [agentDraft]);
   return {
     agentName: data?.agent.name ?? null,
+    baseVersion: data?.agent.draftBaseVersionNumber ?? null,
     draft,
     loading,
     failed: !loading && draft === null,

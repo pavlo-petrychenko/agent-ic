@@ -26,14 +26,16 @@ import {
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { StepPlacement } from '@/features/flow-builder/typedefs/palette.typedefs';
 import { BlankFlowHint } from '@/features/flow-builder/view/BlankFlowHint';
+import { CanvasToolbar } from '@/features/flow-builder/view/CanvasToolbar';
 import { StepNode } from '@/features/flow-builder/view/StepNode';
 import { FlowCanvas } from '@/shared/ui/flow/FlowCanvas';
 import type { FlowCanvasLabels, FlowCanvasNode } from '@/shared/ui/flow/FlowCanvas';
 
 export function FlowEditor() {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
-  const { document, issues, selection, viewport, apply, preview, undo, redo, select, setViewport } =
+  const { document, issues, selection, viewport, density, apply, preview, undo, redo } =
     useFlowBuilderStore();
+  const { select, setViewport, setDensity } = useFlowBuilderStore();
 
   const model = useMemo(() => documentToCanvas(document, issues), [document, issues]);
   const nodes: FlowCanvasNode[] = model.nodes.map((node) => ({
@@ -41,11 +43,15 @@ export function FlowEditor() {
     label: node.label,
     position: node.position,
     hasInPort: node.hasInPort,
-    outPorts: node.outPorts.map((port) => ({
-      id: port,
-      ariaLabel: t('canvas.connectFrom', { name: node.label, port }),
-    })),
-    render: (slots) => <StepNode node={node} slots={slots} />,
+    outPorts: node.outPorts.map((port, index) => {
+      const label = node.portLabels[index] ?? null;
+      return {
+        id: port,
+        ariaLabel: t('canvas.connectFrom', { name: node.label, port }),
+        label: label === null ? null : 'rule' in label ? label.rule : t(`port.${label.port}`),
+      };
+    }),
+    render: (slots) => <StepNode node={node} slots={slots} density={density} />,
   }));
   const stepItems = PALETTE_SECTIONS.filter((section) => section.group !== PaletteGroup.Triggers)
     .flatMap((section) => section.types)
@@ -123,6 +129,7 @@ export function FlowEditor() {
           apply(addNode(document, NodeType.TriggerMessage, FIRST_STEP_POSITION, newElementId()))
         }
       />
+      <CanvasToolbar density={density} onDensityChange={setDensity} />
       {blank && (
         <BlankFlowHint
           items={stepItems.map((item) => ({ id: item.id, label: item.label }))}
