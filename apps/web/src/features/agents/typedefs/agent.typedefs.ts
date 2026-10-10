@@ -24,3 +24,8 @@ export interface AgentListPage {
   readonly endCursor: string | null;
   readonly hasNextPage: boolean;
 }
+
+export interface UseCreateAgentResult {
+  readonly createAgent: (name: string) => Promise<string | null>;
+  readonly creating: boolean;
+}

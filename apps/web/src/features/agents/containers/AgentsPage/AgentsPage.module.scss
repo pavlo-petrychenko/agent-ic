@@ -1,0 +1,21 @@
+$search-width: 220px;
+$setup-column-width: 360px;
+$compact-max-width: 1279px;
+
+.onboarding {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) $setup-column-width;
+  gap: var(--space-20);
+  align-items: start;
+}
+
+@media (max-width: $compact-max-width) {
+  .onboarding {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.search {
+  width: $search-width;
+  max-width: 100%;
+}

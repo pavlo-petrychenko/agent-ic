@@ -6,6 +6,12 @@ export enum AgentStatus {
   Paused = 'paused',
 }
 
+export const AGENT_STATUSES: readonly AgentStatus[] = [
+  AgentStatus.Live,
+  AgentStatus.Draft,
+  AgentStatus.Paused,
+];
+
 export const AGENT_STATUS_FROM_API: Readonly<Record<ApiAgentStatus, AgentStatus>> = {
   [ApiAgentStatus.Draft]: AgentStatus.Draft,
   [ApiAgentStatus.Live]: AgentStatus.Live,
