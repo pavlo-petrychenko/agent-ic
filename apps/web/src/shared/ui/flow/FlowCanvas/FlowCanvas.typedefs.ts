@@ -105,6 +105,11 @@ export interface FlowCanvasLabels {
   emptyAction: string;
 }
 
+export interface FlowCanvasPlaceholder {
+  anchorId: string;
+  content: ReactNode;
+}
+
 export interface FlowCanvasProps {
   nodes: readonly FlowCanvasNode[];
   edges: readonly FlowCanvasEdge[];
@@ -125,6 +130,7 @@ export interface FlowCanvasProps {
   onPaletteDrop: (drop: FlowCanvasPaletteDrop) => void;
   onAddStep: (step: FlowCanvasAddStep) => void;
   onAddTrigger: () => void;
+  placeholder?: FlowCanvasPlaceholder | null;
   className?: string;
 }
 

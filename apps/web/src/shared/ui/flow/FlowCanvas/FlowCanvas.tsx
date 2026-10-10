@@ -31,6 +31,7 @@ import { CanvasEdge as CanvasEdgeView } from '@/shared/ui/flow/FlowCanvas/Canvas
 import { CanvasNode as CanvasNodeView } from '@/shared/ui/flow/FlowCanvas/CanvasNode';
 import {
   FLOW_CANVAS_EDGE_TYPE,
+  FLOW_CANVAS_FIT_MAX_ZOOM,
   FLOW_CANVAS_FIT_PADDING,
   FLOW_CANVAS_GRID_COLOR,
   FLOW_CANVAS_GRID_DOT_SIZE,
@@ -42,6 +43,7 @@ import {
   FLOW_CANVAS_MULTI_SELECT_KEYS,
   FLOW_CANVAS_NODE_TYPE,
   FLOW_CANVAS_PAN_KEY,
+  FLOW_CANVAS_PLACEHOLDER_ID,
   FLOW_CANVAS_ZOOM_KEYS,
   FlowCanvasContextAction,
 } from '@/shared/ui/flow/FlowCanvas/FlowCanvas.constants';
@@ -50,7 +52,9 @@ import type {
   CanvasEdge,
   ContextMenuState,
   CanvasNode,
+  FlowCanvasNode,
   FlowCanvasNodeMove,
+  FlowCanvasPlaceholder,
   FlowCanvasProps,
   FlowCanvasSelection,
 } from '@/shared/ui/flow/FlowCanvas/FlowCanvas.typedefs';
@@ -69,6 +73,34 @@ const EDGE_TYPES: EdgeTypes = { [FLOW_CANVAS_EDGE_TYPE]: CanvasEdgeView };
 const PAN_BUTTONS = [FLOW_CANVAS_MIDDLE_MOUSE_BUTTON];
 const PRO_OPTIONS = { hideAttribution: true };
 const NO_PORTS: ReadonlySet<string> = new Set();
+const NO_SIZE = { width: 0, height: 0 };
+const PLACEHOLDER_FLAGS = {
+  selectable: false,
+  draggable: false,
+  connectable: false,
+  focusable: false,
+  style: { pointerEvents: 'all' },
+} as const;
+
+const placeholderBelow = (
+  placeholder: FlowCanvasPlaceholder,
+  anchor: FlowCanvasNode,
+  measured: ReadonlyMap<string, { width: number; height: number }>,
+): FlowCanvasNode => {
+  const anchorSize = measured.get(anchor.id) ?? NO_SIZE;
+  const ownSize = measured.get(FLOW_CANVAS_PLACEHOLDER_ID) ?? NO_SIZE;
+  return {
+    id: FLOW_CANVAS_PLACEHOLDER_ID,
+    label: '',
+    position: {
+      x: anchor.position.x + (anchorSize.width - ownSize.width) / 2,
+      y: anchor.position.y + anchorSize.height,
+    },
+    hasInPort: false,
+    outPorts: [],
+    render: () => placeholder.content,
+  };
+};
 
 const applySelection = (
   current: readonly string[],
@@ -113,6 +145,7 @@ function FlowCanvasSurface({
   onPaletteDrop,
   onAddStep,
   onAddTrigger,
+  placeholder = null,
   className,
 }: FlowCanvasProps) {
   const { zoomIn, zoomOut, fitView, screenToFlowPosition } = useReactFlow();
@@ -120,6 +153,7 @@ function FlowCanvasSurface({
   const rootRef = useRef<HTMLElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const selectionRef = useRef(selection);
+  const fittedRef = useRef(false);
   const [measured, setMeasured] = useState<ReadonlyMap<string, { width: number; height: number }>>(
     new Map(),
   );
@@ -163,13 +197,21 @@ function FlowCanvasSurface({
     return ports;
   }, [edges]);
 
-  const rfNodes: CanvasNode[] = nodes.map((node) => {
+  const anchor =
+    placeholder === null ? undefined : nodes.find((node) => node.id === placeholder.anchorId);
+  const canvasNodes =
+    placeholder === null || anchor === undefined
+      ? nodes
+      : [...nodes, placeholderBelow(placeholder, anchor, measured)];
+
+  const rfNodes: CanvasNode[] = canvasNodes.map((node) => {
     const size = measured.get(node.id);
     return {
       id: node.id,
       type: FLOW_CANVAS_NODE_TYPE,
       position: node.position,
       selected: selection.nodeIds.includes(node.id),
+      ...(node.id === FLOW_CANVAS_PLACEHOLDER_ID ? PLACEHOLDER_FLAGS : {}),
       ...(size === undefined ? {} : { measured: size }),
       data: {
         node,
@@ -180,6 +222,15 @@ function FlowCanvasSurface({
       },
     };
   });
+
+  const everyNodeMeasured = rfNodes.length > 0 && rfNodes.every((node) => measured.has(node.id));
+
+  useEffect(() => {
+    if (everyNodeMeasured && !fittedRef.current) {
+      fittedRef.current = true;
+      void fitView({ padding: FLOW_CANVAS_FIT_PADDING, maxZoom: FLOW_CANVAS_FIT_MAX_ZOOM });
+    }
+  }, [everyNodeMeasured, fitView]);
 
   const rfEdges: CanvasEdge[] = edges.map((edge) => ({
     id: edge.id,

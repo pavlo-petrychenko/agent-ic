@@ -1,7 +1,7 @@
 import { NodeType } from '@agent-ic/flow';
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   DEMO_AGENT_ID,
   TRIGGER_ONLY_FLOW,
@@ -19,6 +19,7 @@ import {
   DEMO_WORKSPACE,
 } from '@/features/workspace/communication/fixtures/workspaceShell.fixture';
 import { setWorkspaceId } from '@/shared/api/helpers/requestContext.helpers';
+import { measureFlowNodes } from '@test/support/helpers/flowMeasure.helpers';
 import { renderRoute } from '@test/support/helpers/router.helpers';
 import { signInForTest, signOutForTest } from '@test/support/helpers/session.helpers';
 
@@ -37,6 +38,8 @@ describe('flow builder canvas', () => {
   afterEach(async () => {
     useFlowBuilderStore.getState().setDensity(Density.Comfortable);
     setWorkspaceId(null);
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     await signOutForTest();
   });
 
@@ -58,9 +61,10 @@ describe('flow builder canvas', () => {
   });
 
   it('asks a new agent for its first step and adds it after the trigger', async () => {
+    measureFlowNodes({ width: 248, height: 72 });
     const canvas = await openBuilder();
     const hint = { name: 'Start with a trigger and a few steps' };
-    expect(screen.getByRole('heading', hint)).toBeVisible();
+    expect(await within(canvas).findByRole('heading', hint)).toBeVisible();
 
     await userEvent.click(screen.getByRole('button', { name: /Add a step/ }));
     await userEvent.click(await screen.findByRole('option', { name: 'Agent' }));

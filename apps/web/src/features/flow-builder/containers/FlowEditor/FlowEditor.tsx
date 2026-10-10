@@ -59,6 +59,7 @@ export function FlowEditor() {
     .flatMap((section) => section.types)
     .map((type) => ({ id: type, label: t(`step.${type}`), ...NODE_PRESENTATION[type] }));
   const blank = document.nodes.length > 0 && document.nodes.every((node) => isTriggerNode(node));
+  const blankAnchor = blank ? firstTriggerAnchor(document) : null;
   const place = (value: string, placement: Omit<StepPlacement, 'type'>) => {
     const type = toAddableType(PALETTE_SECTIONS, value);
     if (type !== null) {
@@ -96,6 +97,25 @@ export function FlowEditor() {
     <div className="relative min-h-0 min-w-0 flex-1">
       <FlowCanvas
         nodes={nodes}
+        placeholder={
+          blankAnchor === null
+            ? null
+            : {
+                anchorId: blankAnchor.source,
+                content: (
+                  <BlankFlowHint
+                    items={stepItems.map((item) => ({ id: item.id, label: item.label }))}
+                    onAdd={(itemId) =>
+                      place(itemId, {
+                        position: belowLowestNode(document),
+                        after: blankAnchor,
+                        splitEdgeId: null,
+                      })
+                    }
+                  />
+                ),
+              }
+        }
         edges={model.edges}
         selection={selection}
         viewport={viewport}
@@ -133,18 +153,6 @@ export function FlowEditor() {
         }
       />
       <CanvasToolbar density={density} onDensityChange={setDensity} />
-      {blank && (
-        <BlankFlowHint
-          items={stepItems.map((item) => ({ id: item.id, label: item.label }))}
-          onAdd={(itemId) =>
-            place(itemId, {
-              position: belowLowestNode(document),
-              after: firstTriggerAnchor(document),
-              splitEdgeId: null,
-            })
-          }
-        />
-      )}
     </div>
   );
 }

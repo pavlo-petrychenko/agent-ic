@@ -1,6 +1,6 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
 import { FlowCanvas } from '@/shared/ui/flow/FlowCanvas/FlowCanvas';
 import type {
@@ -13,6 +13,8 @@ import type {
 import { FlowNode } from '@/shared/ui/flow/FlowNode/FlowNode';
 import { TriggerNode } from '@/shared/ui/flow/TriggerNode/TriggerNode';
 import { ToastProvider } from '@/shared/ui/overlays/Toast';
+import { FLOW_NODE_SELECTOR } from '@test/support/constants/flowMeasure.constants';
+import { measureFlowNodes } from '@test/support/helpers/flowMeasure.helpers';
 
 const OUT = 'out';
 
@@ -199,5 +201,39 @@ describe('FlowCanvas', () => {
 
     expect(screen.queryByText('Connect to Receptionist')).toBeNull();
     expect(props.onConnect).not.toHaveBeenCalled();
+  });
+});
+
+describe('FlowCanvas first layout', () => {
+  const NODE_SIZE = { width: 200, height: 80 };
+
+  beforeEach(() => measureFlowNodes(NODE_SIZE));
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('fits the view once every node is measured, never above 100%', async () => {
+    const props = createProps();
+    renderCanvas(props);
+
+    await waitFor(() => expect(props.onViewportChange).toHaveBeenCalled());
+    expect(vi.mocked(props.onViewportChange).mock.lastCall?.[0].zoom).toBeLessThanOrEqual(1);
+  });
+
+  it('places the placeholder right under its anchor', async () => {
+    renderCanvas(
+      createProps({
+        nodes: [triggerNode],
+        placeholder: { anchorId: 'trigger', content: <p>Add a step</p> },
+      }),
+    );
+
+    const node = (await screen.findByText('Add a step')).closest(FLOW_NODE_SELECTOR);
+    await waitFor(() =>
+      expect(node).toHaveStyle({ transform: `translate(0px,${NODE_SIZE.height}px)` }),
+    );
+    expect(node).toBeVisible();
   });
 });
