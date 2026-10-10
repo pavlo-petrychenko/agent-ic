@@ -82,6 +82,18 @@ describe('graph edits', () => {
     expect(document.edges).toEqual([]);
   });
 
+  it('returns the same flow when nothing is removed', () => {
+    const document = chain();
+
+    expect(removeElements(document, { nodeIds: ['missing'], edgeIds: [] })).toBe(document);
+  });
+
+  it('returns the same flow when no step changes position', () => {
+    const document = chain();
+
+    expect(moveNodes(document, [{ id: 's', position: ORIGIN }])).toBe(document);
+  });
+
   it('moves only the given steps', () => {
     const document = moveNodes(chain(), [{ id: 's', position: { x: 5, y: 6 } }]);
 
@@ -99,6 +111,13 @@ describe('graph edits', () => {
       'send_message_2',
     ]);
     expect(document.edges.at(-1)).toMatchObject({ source: 'copy-1', target: 'copy-2' });
+  });
+
+  it('returns the same flow when no step is duplicated', () => {
+    const document = chain();
+
+    expect(duplicateNodes(document, ['missing'], counter())).toEqual({ document, nodeIds: [] });
+    expect(duplicateNodes(document, [], counter()).document).toBe(document);
   });
 
   it('points the copied steps at each other, not at the originals', () => {

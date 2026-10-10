@@ -32,24 +32,27 @@ export const addNode = (
 export const removeElements = (document: FlowDocument, selection: FlowSelection): FlowDocument => {
   const nodeIds = new Set(selection.nodeIds);
   const edgeIds = new Set(selection.edgeIds);
-  return {
-    ...document,
-    nodes: document.nodes.filter((node) => !nodeIds.has(node.id)),
-    edges: document.edges.filter(
-      (edge) => !edgeIds.has(edge.id) && !nodeIds.has(edge.source) && !nodeIds.has(edge.target),
-    ),
-  };
+  const nodes = document.nodes.filter((node) => !nodeIds.has(node.id));
+  const edges = document.edges.filter(
+    (edge) => !edgeIds.has(edge.id) && !nodeIds.has(edge.source) && !nodeIds.has(edge.target),
+  );
+  return nodes.length === document.nodes.length && edges.length === document.edges.length
+    ? document
+    : { ...document, nodes, edges };
 };
 
 export const moveNodes = (document: FlowDocument, moves: readonly FlowNodeMove[]): FlowDocument => {
   const positions = new Map(moves.map((move) => [move.id, move.position]));
-  return {
-    ...document,
-    nodes: document.nodes.map((node) => ({
-      ...node,
-      position: positions.get(node.id) ?? node.position,
-    })),
-  };
+  const nodes = document.nodes.map((node) => {
+    const position = positions.get(node.id);
+    return position === undefined ||
+      (position.x === node.position.x && position.y === node.position.y)
+      ? node
+      : { ...node, position };
+  });
+  return nodes.every((node, index) => node === document.nodes[index])
+    ? document
+    : { ...document, nodes };
 };
 
 export const renameKey = (document: FlowDocument, nodeId: string, key: string): FlowDocument => {
@@ -62,6 +65,9 @@ export const duplicateNodes = (
   nodeIds: readonly string[],
   createId: () => string,
 ): FlowDuplicate => {
+  if (!document.nodes.some((node) => nodeIds.includes(node.id))) {
+    return { document, nodeIds: [] };
+  }
   const copies = new Map<string, string>();
   const keys = new Map<string, string>();
   let taken = document;
