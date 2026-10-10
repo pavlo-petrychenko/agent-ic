@@ -89,13 +89,11 @@ export const reasoningFor = (
   return wanted === null ? null : nearestReasoning(model.reasoningLevels, wanted);
 };
 
-export const runCallSettings = (
-  { model, stepTimeoutMs }: LlmModelRun,
-  reasoning: LlmReasoningEffort | null,
-) => ({
+export const runCallSettings = ({ model, stepTimeoutMs, reasoning, telemetry }: LlmModelRun) => ({
   maxRetries: LLM_SDK_MAX_RETRIES,
   timeout: { stepMs: stepTimeoutMs },
   providerOptions: LLM_PROVIDER_OPTIONS[model.api],
+  telemetry,
   ...(reasoning === null ? {} : { reasoning }),
 });
 

@@ -216,6 +216,9 @@ importers:
       '@ai-sdk/openai-compatible':
         specifier: ^3.0.67
         version: 3.0.67(zod@4.6.5)
+      '@ai-sdk/otel':
+        specifier: ^1.0.137
+        version: 1.0.137(zod@4.6.5)
       '@apollo/server':
         specifier: ^5.5.1
         version: 5.5.1(graphql@16.14.2)(supports-color@5.5.0)
@@ -650,6 +653,10 @@ packages:
     engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/otel@1.0.137':
+    resolution: {integrity: sha512-CXpSaJpzcc3l8ZN/4OHLtW+tSjJBs4iAMeJhS7L0BofkVM7qKsv8dK9XhpOsuo8Jvd5ZGmXSgo1gL/3RWtKpHw==}
+    engines: {node: '>=22'}
 
   '@ai-sdk/provider-utils@5.0.58':
     resolution: {integrity: sha512-iXSwKR/7LpHzAlyrUl+bTinwzmZ3Nmup1viwPisM5Gn5cogRdIG4rV9w1ZDuKFcrXyu/AeVs42E1CX/0aNwrfQ==}
@@ -9137,6 +9144,14 @@ snapshots:
       '@ai-sdk/provider': 4.0.26
       '@ai-sdk/provider-utils': 5.0.58(zod@4.6.5)
       zod: 4.6.5
+
+  '@ai-sdk/otel@1.0.137(zod@4.6.5)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.26
+      '@opentelemetry/api': 1.9.1
+      ai: 7.0.137(zod@4.6.5)
+    transitivePeerDependencies:
+      - zod
 
   '@ai-sdk/provider-utils@5.0.58(zod@4.6.5)':
     dependencies:
