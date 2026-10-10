@@ -3,6 +3,7 @@ extend type Query {
   inviteLink: InviteLink
   inviteInfo(token: String!): InviteInfo!
   members(first: Int, after: String): MemberConnection!
+  membersByRole: [RoleMemberCount!]!
 }
 
 extend type Mutation {
@@ -68,6 +69,11 @@ type Member {
   role: WorkspaceRole!
   lastActiveAt: String
   joinedAt: String!
+}
+
+type RoleMemberCount {
+  role: WorkspaceRole!
+  count: Int!
 }
 
 type MemberEdge {

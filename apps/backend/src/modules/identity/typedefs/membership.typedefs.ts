@@ -27,6 +27,11 @@ export interface Member {
   readonly joinedAt: Date;
 }
 
+export interface RoleMemberCount {
+  readonly role: WorkspaceRole;
+  readonly count: number;
+}
+
 export interface MembersPage {
   readonly members: Connection<Member>;
   readonly totalCount: number;

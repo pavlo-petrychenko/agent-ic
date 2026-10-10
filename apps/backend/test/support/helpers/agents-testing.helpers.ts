@@ -1,5 +1,6 @@
 import { IdPrefix, Locale, WorkspaceRole } from '@agent-ic/contracts';
 import type { FlowDocument } from '@agent-ic/flow';
+import type { DynamicModule } from '@nestjs/common';
 import type { TestingModule } from '@nestjs/testing';
 import { AgentsModule } from '@/modules/agents/agents.module';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
@@ -40,10 +41,13 @@ import type {
   StoredConversation,
 } from '@test/support/typedefs/agents-testing.typedefs';
 
-export const createAgentsTestingModule = (): Promise<TestingModule> =>
+export const createAgentsTestingModule = (
+  imports: readonly DynamicModule[] = [],
+): Promise<TestingModule> =>
   createPlatformTestingModule(TestRedisPrefix.Agents, [
     AgentsNeighboursModule.forRole(Role.Gateway),
     AgentsModule.forRole(Role.Gateway),
+    ...imports,
   ]);
 
 export const seedAgentWithDraft = async (

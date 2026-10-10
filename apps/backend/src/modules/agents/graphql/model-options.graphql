@@ -1,0 +1,49 @@
+extend type Query {
+  modelOptions: [ModelOption!]!
+}
+
+enum ModelSource {
+  platform
+  workspace
+}
+
+enum ModelVendor {
+  openai
+  anthropic
+  mistral
+  xiaomi
+  google
+  zhipu
+  deepseek
+}
+
+enum ModelPurpose {
+  conversation
+  light
+}
+
+enum ReasoningLevel {
+  none
+  low
+  medium
+  high
+  xhigh
+  max
+}
+
+type ModelPrice {
+  inputUsdPerMillionTokens: Float!
+  outputUsdPerMillionTokens: Float!
+}
+
+type ModelOption {
+  id: ID!
+  label: String!
+  vendor: ModelVendor!
+  source: ModelSource!
+  purposes: [ModelPurpose!]!
+  defaultFor: [ModelPurpose!]!
+  price: ModelPrice!
+  reasoningLevels: [ReasoningLevel!]!
+  defaultReasoningLevel: ReasoningLevel
+}
