@@ -7,6 +7,7 @@ import {
   TRIGGER_ONLY_FLOW,
   buildFlowBuilderDraftMock,
 } from '@/features/flow-builder/communication/fixtures/flowBuilderDraft.fixture';
+import { Density } from '@/features/flow-builder/constants/density.constants';
 import { addNode } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import {
@@ -20,11 +21,13 @@ import { signInForTest, signOutForTest } from '@test/support/helpers/session.hel
 const builderPath = `/w/${DEMO_WORKSPACE.id}/agents/${DEMO_AGENT_ID}`;
 const shell = buildWorkspaceShellMock([DEMO_WORKSPACE]);
 const store = () => useFlowBuilderStore.getState();
+const NO_REPLY = 'Add at least one step that sends a message';
 
 describe('flow builder issues', () => {
   beforeEach(() => signInForTest());
 
   afterEach(async () => {
+    store().setDensity(Density.Comfortable);
     setWorkspaceId(null);
     await signOutForTest();
   });
@@ -33,7 +36,9 @@ describe('flow builder issues', () => {
     renderRoute(builderPath, { mocks: [shell, buildFlowBuilderDraftMock(TRIGGER_ONLY_FLOW)] });
 
     expect(await screen.findByText('Not ready to publish')).toBeInTheDocument();
-    expect(screen.getByText('Add at least one step that sends a message')).toBeInTheDocument();
+    const canvas = screen.getByRole('region', { name: 'Flow canvas' });
+    expect(within(canvas).getByTitle(NO_REPLY)).toBeInTheDocument();
+    expect(screen.getAllByText(NO_REPLY)).toHaveLength(2);
 
     await userEvent.click(screen.getByRole('button', { name: 'Show 2 issues' }));
     const list = screen.getByRole('list', { name: 'Issues in this flow' });
@@ -47,6 +52,10 @@ describe('flow builder issues', () => {
     renderRoute(builderPath, { mocks: [shell, buildFlowBuilderDraftMock(flow)] });
 
     const canvas = await screen.findByRole('region', { name: 'Flow canvas' });
+
+    expect(within(canvas).getByTitle('No trigger leads to this step')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Compact' }));
 
     expect(within(canvas).getByTitle('No trigger leads to this step')).toBeInTheDocument();
   });

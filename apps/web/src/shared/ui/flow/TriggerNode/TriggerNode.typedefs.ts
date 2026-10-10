@@ -8,5 +8,6 @@ export interface TriggerNodeProps extends Omit<ComponentProps<'div'>, 'children'
   selected?: boolean;
   faded?: boolean;
   disabled?: boolean;
+  invalidLabel?: string | null;
   outPort?: ReactNode | null;
 }

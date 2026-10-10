@@ -27,7 +27,7 @@ $faded-opacity: 0.4;
     --flow-port-reveal: 1;
   }
 
-  &:hover:not(.disabled) {
+  &:hover:not(.disabled, .invalid) {
     border-color: var(--color-edge);
   }
 
@@ -35,6 +35,15 @@ $faded-opacity: 0.4;
     outline: none;
     box-shadow: var(--shadow-focus-ring);
   }
+}
+
+.invalid {
+  border-color: var(--color-err);
+}
+
+.invalidIcon {
+  flex-shrink: 0;
+  color: var(--color-err);
 }
 
 .selected {

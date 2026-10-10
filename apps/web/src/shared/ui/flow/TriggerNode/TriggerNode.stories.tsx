@@ -30,6 +30,7 @@ export const Default: Story = {};
 export const Selected: Story = { args: { selected: true } };
 export const Faded: Story = { args: { faded: true } };
 export const Disabled: Story = { args: { disabled: true } };
+export const Invalid: Story = { args: { invalidLabel: 'Connect the trigger to a step' } };
 export const Schedule: Story = {
   args: { title: 'Schedule', subtitle: 'Daily 18:00', icon: IconName.Cal },
 };

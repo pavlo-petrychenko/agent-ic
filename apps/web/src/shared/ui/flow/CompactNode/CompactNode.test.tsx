@@ -36,6 +36,15 @@ describe('CompactNode', () => {
     expect(node).toHaveClass(cssClass(styles.selected));
   });
 
+  it('marks an invalid node with the reason', () => {
+    render(
+      <CompactNode label="Parallel" kind={NodeKind.Par} invalidLabel="This step has no text" />,
+    );
+
+    expect(screen.getByRole('group')).toHaveClass(cssClass(styles.invalid));
+    expect(screen.getByTitle('This step has no text')).toBeInTheDocument();
+  });
+
   it('fades and disables', async () => {
     render(<CompactNode label="Parallel" kind={NodeKind.Par} faded disabled />);
 
