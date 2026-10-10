@@ -2,6 +2,7 @@ import { EmailMode } from '@/platform/config/constants/email.constants';
 import { EnvVar, NodeEnvironment } from '@/platform/config/constants/env.constants';
 import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
 import { LogLevel } from '@/platform/config/constants/log-level.constants';
+import { EmbeddingModelId } from '@/platform/llm/constants/llm-model.constants';
 
 export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.NodeEnv]: NodeEnvironment.Test,
@@ -36,7 +37,7 @@ export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.SecretBoxPreviousKeys]: '',
   [EnvVar.LlmBaseUrl]: 'http://127.0.0.1:4010/v1',
   [EnvVar.LlmApiKey]: '',
-  [EnvVar.EmbeddingModel]: 'test-embedding-model',
+  [EnvVar.EmbeddingModel]: EmbeddingModelId.JinaEmbeddingsV5TextSmall,
   [EnvVar.EmailMode]: EmailMode.Smtp,
   [EnvVar.EmailFrom]: 'agent-ic <no-reply@agent-ic.test>',
   [EnvVar.SmtpHost]: '127.0.0.1',

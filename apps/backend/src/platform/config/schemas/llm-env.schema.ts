@@ -1,17 +1,14 @@
 import { z } from 'zod';
 import { EnvVar } from '@/platform/config/constants/env.constants';
-import {
-  optionalTextSchema,
-  publicUrlSchema,
-  textSchema,
-} from '@/platform/config/schemas/env-value.schema';
+import { optionalTextSchema, publicUrlSchema } from '@/platform/config/schemas/env-value.schema';
 import type { LlmConfig } from '@/platform/config/typedefs/app-config.typedefs';
+import { EmbeddingModelId } from '@/platform/llm/constants/llm-model.constants';
 
 export const llmEnvSchema = z
   .object({
     [EnvVar.LlmBaseUrl]: publicUrlSchema,
     [EnvVar.LlmApiKey]: optionalTextSchema,
-    [EnvVar.EmbeddingModel]: textSchema,
+    [EnvVar.EmbeddingModel]: z.enum(EmbeddingModelId),
   })
   .transform((env): LlmConfig => ({
     baseUrl: env[EnvVar.LlmBaseUrl],

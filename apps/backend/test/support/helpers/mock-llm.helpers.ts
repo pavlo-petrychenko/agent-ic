@@ -123,6 +123,7 @@ export const embeddingsResponse = (
   model: unknown,
   inputs: readonly string[],
   dimensions: number,
+  withUsage: boolean,
 ): MockLlmResponse => {
   const tokens = inputs.length * MOCK_EMBEDDING_TOKENS_PER_INPUT;
   return {
@@ -135,7 +136,7 @@ export const embeddingsResponse = (
         embedding: mockEmbedding(index, dimensions),
       })),
       model,
-      usage: { prompt_tokens: tokens, total_tokens: tokens },
+      ...(withUsage ? { usage: { prompt_tokens: tokens, total_tokens: tokens } } : {}),
     },
   };
 };

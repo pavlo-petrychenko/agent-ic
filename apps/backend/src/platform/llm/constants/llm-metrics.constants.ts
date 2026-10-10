@@ -24,6 +24,7 @@ export enum LlmMetricLabel {
 export enum LlmOperation {
   Complete = 'complete',
   Agent = 'agent',
+  Embed = 'embed',
 }
 
 export enum LlmCallOutcome {

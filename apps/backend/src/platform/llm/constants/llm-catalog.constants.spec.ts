@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { LLM_CATALOG, LLM_DEFAULT_MODEL } from '@/platform/llm/constants/llm-catalog.constants';
 import {
+  EMBEDDING_CATALOG,
+  LLM_CATALOG,
+  LLM_DEFAULT_MODEL,
+} from '@/platform/llm/constants/llm-catalog.constants';
+import {
+  EmbeddingModelId,
   LLM_REASONING_ORDER,
   LlmApi,
   LlmModelId,
@@ -53,5 +58,17 @@ describe('LLM_CATALOG', () => {
 
   it.each(Object.values(LlmPurpose))('defaults %s to a catalog model that serves it', (purpose) => {
     expect(LLM_CATALOG[LLM_DEFAULT_MODEL[purpose]].purposes).toContain(purpose);
+  });
+});
+
+describe('EMBEDDING_CATALOG', () => {
+  it('lists every embedding model under its own id, priced per input token', () => {
+    expect(Object.entries(EMBEDDING_CATALOG).map(([id, model]) => [id, model.id])).toEqual(
+      Object.values(EmbeddingModelId).map((id) => [id, id]),
+    );
+    for (const { price, batchSize } of Object.values(EMBEDDING_CATALOG)) {
+      expect(price.inputUsdPerMillionTokens).toBeGreaterThan(0);
+      expect(batchSize).toBeGreaterThan(0);
+    }
   });
 });
