@@ -10,7 +10,8 @@ export function useFlowBuilderDraft(agentId: string): FlowBuilderDraftResult {
     fetchPolicy: 'network-only',
     notifyOnNetworkStatusChange: true,
   });
-  const draft = useMemo(() => (data === undefined ? null : toFlowDraft(data)), [data]);
+  const agentDraft = data?.agentDraft ?? null;
+  const draft = useMemo(() => (agentDraft === null ? null : toFlowDraft(agentDraft)), [agentDraft]);
   return {
     agentName: data?.agent.name ?? null,
     draft,
