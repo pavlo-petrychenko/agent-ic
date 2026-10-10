@@ -53,11 +53,11 @@ Read the pages in order. Each page ends with a link to the next.
 | 014 | [Shipping](learn/014-shipping.md)                           | checks, review, merge, deploy, new environment variables              |
 | 015 | [Calling the LLM](learn/015-calling-the-llm.md)             | `LlmGateway`, per-model paths, timeouts and the fallback model        |
 | 016 | [PR media](learn/016-pr-media.md)                           | the demo seed, and screenshots and recordings with the Playwright MCP |
-| 016 | [Flow builder state](learn/016-flow-builder-state.md)       | the builder store, undo and redo, pure graph edits, the canvas model  |
+| 017 | [Flow builder state](learn/017-flow-builder-state.md)       | the builder store, undo and redo, pure graph edits, the canvas model  |
 
 ## Examples
 
-Read these after 016. They link real files instead of pasting code, so they stay true.
+Read these after 017. They link real files instead of pasting code, so they stay true.
 
 - [The identity module](examples/identity-module.md): the backend, file by file. SDL, schema, use case, repository, resolver, module, spec.
 - [Auth and settings](examples/auth-and-settings.md): the web, file by file. Operation, hook, mapping helper, view, container, route, test.
