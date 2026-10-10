@@ -21,6 +21,7 @@ export function WorkspaceSwitcher({
   onSelectWorkspace,
   onCreateWorkspace,
   onLogOut,
+  compact = false,
 }: WorkspaceSwitcherProps) {
   return (
     <Popover
@@ -28,9 +29,19 @@ export function WorkspaceSwitcher({
       onOpenChange={onOpenChange}
       bare
       trigger={
-        <button type="button" className={styles.trigger}>
-          <WorkspaceIdentity name={activeName} caption={labels.caption} expandable />
-        </button>
+        compact ? (
+          <button
+            type="button"
+            aria-label={activeName ?? labels.caption}
+            className={styles.markTrigger}
+          >
+            <WorkspaceIdentity name={activeName} caption={labels.caption} markOnly />
+          </button>
+        ) : (
+          <button type="button" className={styles.trigger}>
+            <WorkspaceIdentity name={activeName} caption={labels.caption} expandable />
+          </button>
+        )
       }
     >
       <div className={styles.menus}>

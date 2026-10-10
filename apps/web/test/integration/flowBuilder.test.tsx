@@ -171,6 +171,18 @@ describe('flow builder canvas', () => {
     expect(within(canvas).getByLabelText('trigger_message')).toBeInTheDocument();
   });
 
+  it('shows the collapsed rail instead of the workspace sidebar', async () => {
+    await openBuilder();
+    const rail = screen.getByRole('navigation', { name: 'Main' });
+
+    expect(within(rail).getByRole('link', { name: 'Agents' })).toHaveAttribute(
+      'href',
+      `/w/${DEMO_WORKSPACE.id}/agents`,
+    );
+    expect(within(rail).getByRole('button', { name: DEMO_WORKSPACE.name })).toBeInTheDocument();
+    expect(within(rail).queryByText('Build')).toBeNull();
+  });
+
   it('explains a draft that cannot be loaded and offers a retry', async () => {
     renderRoute(builderPath, { mocks: [shell, buildFlowBuilderDraftFailureMock()] });
 

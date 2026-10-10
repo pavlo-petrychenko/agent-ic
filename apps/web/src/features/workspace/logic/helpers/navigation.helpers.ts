@@ -4,8 +4,10 @@ import {
   NAV_GROUPS,
   SECTION_RESOURCES,
   SETTINGS_NAV_ENTRY,
+  WORKSPACE_SECTION_PATHS,
   type WorkspaceSection,
 } from '@/features/workspace/constants/navigation.constants';
+import { WORKSPACE_ID_PARAM } from '@/features/workspace/constants/route.constants';
 import type { NavEntry, NavGroupEntry } from '@/features/workspace/typedefs/navigation.typedefs';
 
 const isVisible = (role: WorkspaceRole, entry: NavEntry): boolean =>
@@ -27,3 +29,6 @@ export const homeSection = (role: WorkspaceRole): WorkspaceSection =>
     NAV_GROUPS.flatMap((group) => group.entries).find((entry) => isVisible(role, entry)) ??
     SETTINGS_NAV_ENTRY
   ).section;
+
+export const sectionHref = (section: WorkspaceSection, workspaceId: string): string =>
+  WORKSPACE_SECTION_PATHS[section].replace(WORKSPACE_ID_PARAM, encodeURIComponent(workspaceId));
