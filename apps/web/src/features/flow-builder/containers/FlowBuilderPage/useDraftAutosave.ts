@@ -1,3 +1,4 @@
+import type { FlowDocument } from '@agent-ic/flow';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toDraftConflict } from '@/features/flow-builder/communication/helpers/draft.helpers';
 import { useSaveAgentDraft } from '@/features/flow-builder/communication/hooks/useSaveAgentDraft';
@@ -19,6 +20,7 @@ export function useDraftAutosave(agentId: string): DraftAutosave {
   const [conflict, setConflict] = useState<DraftConflict | null>(null);
   const saving = useRef(false);
   const mounted = useRef(true);
+  const leftWith = useRef<FlowDocument | null>(null);
 
   const flush = useCallback(async () => {
     const state = useFlowBuilderStore.getState();
@@ -30,6 +32,11 @@ export function useDraftAutosave(agentId: string): DraftAutosave {
     state.setSaveState(SaveState.Saving);
     try {
       const saved = await saveDraft(sent, state.revision);
+      const queued = leftWith.current;
+      if (!mounted.current && saved !== null && queued !== null && queued !== sent) {
+        leftWith.current = null;
+        await saveDraft(queued, saved.revision);
+      }
       if (mounted.current) {
         const store = useFlowBuilderStore.getState();
         if (saved === null) {
@@ -59,11 +66,13 @@ export function useDraftAutosave(agentId: string): DraftAutosave {
 
   useEffect(() => {
     mounted.current = true;
+    leftWith.current = null;
     const flushNow = () => void flush();
     window.addEventListener('beforeunload', flushNow);
     return () => {
       window.removeEventListener('beforeunload', flushNow);
       mounted.current = false;
+      leftWith.current = useFlowBuilderStore.getState().document;
       flushNow();
     };
   }, [flush]);
