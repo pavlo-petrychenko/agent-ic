@@ -292,6 +292,40 @@ describe('loadAppConfig', () => {
     },
   );
 
+  it('reads the LLM base url, key and embedding model', () => {
+    const env = createTestEnv({ [EnvVar.LlmApiKey]: 'llm-key' });
+
+    const config = loadAppConfig(roleOf(Role.Worker), env);
+
+    expect(config.llm).toEqual({
+      baseUrl: env[EnvVar.LlmBaseUrl],
+      apiKey: 'llm-key',
+      embeddingModel: env[EnvVar.EmbeddingModel],
+    });
+  });
+
+  it.each([undefined, ''])('boots without an LLM key: %s', (apiKey) => {
+    const env = createTestEnv({ [EnvVar.LlmApiKey]: apiKey });
+
+    const config = loadAppConfig(roleOf(Role.Api), env);
+
+    expect(config.llm.apiKey).toBeNull();
+  });
+
+  it.each([
+    [EnvVar.LlmBaseUrl, undefined],
+    [EnvVar.LlmBaseUrl, 'ftp://llm.example.test/v1'],
+    [EnvVar.LlmBaseUrl, 'not a url'],
+    [EnvVar.EmbeddingModel, undefined],
+    [EnvVar.EmbeddingModel, ''],
+  ])('stops boot on a bad %s: %s', (variable, value) => {
+    const env = createTestEnv({ [variable]: value });
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+    expect(variablesOf(issues)).toEqual([variable]);
+  });
+
   it('reads the SMTP settings in smtp mode', () => {
     const env = createTestEnv({ [EnvVar.EmailMode]: EmailMode.Smtp, [EnvVar.SmtpPort]: '2525' });
 
