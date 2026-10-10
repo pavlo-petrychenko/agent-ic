@@ -22,6 +22,7 @@ Start here. This page tells you what agent-ic is, where things are, and which pa
 | `docs/learn/`    | the numbered pages below: one idea per page, read in order                                                                                                                     |
 | `docs/examples/` | real code, read after the learning path                                                                                                                                        |
 | `docs/rules/`    | the rules, one page per topic: [code](rules/code.md), [architecture](rules/architecture.md), [structure](rules/structure.md), [testing](rules/testing.md), [git](rules/git.md) |
+| `docs/backlog/`  | planned work that waits on something else, one file per item                                                                                                                   |
 
 A request goes through the same layers every time. Page 004 shows it in full.
 
