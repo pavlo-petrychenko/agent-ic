@@ -25,7 +25,13 @@ export function StepPalettePanel() {
         apply(
           placeStep(
             document,
-            { type, position: belowLowestNode(document), after: null, splitEdgeId: null },
+            {
+              type,
+              label: t(`step.${type}`),
+              position: belowLowestNode(document),
+              after: null,
+              splitEdgeId: null,
+            },
             newElementId,
           ),
         )

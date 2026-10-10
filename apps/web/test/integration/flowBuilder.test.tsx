@@ -69,7 +69,7 @@ describe('flow builder canvas', () => {
     await userEvent.click(screen.getByRole('button', { name: /Add a step/ }));
     await userEvent.click(await screen.findByRole('option', { name: 'Agent' }));
 
-    expect(within(canvas).getByLabelText('agent')).toBeInTheDocument();
+    expect(within(canvas).getByLabelText('Agent')).toBeInTheDocument();
     expect(edges()).toMatchObject([{ source: 'trigger', sourcePort: 'next' }]);
     expect(screen.queryByRole('heading', hint)).toBeNull();
   });
@@ -78,7 +78,7 @@ describe('flow builder canvas', () => {
     const canvas = await openBuilder();
 
     await userEvent.click(screen.getByRole('button', { name: 'Send message' }));
-    expect(within(canvas).getByLabelText('send_message')).toBeInTheDocument();
+    expect(within(canvas).getByLabelText('Send message')).toBeInTheDocument();
 
     await userEvent.type(
       screen.getByRole('searchbox', { name: 'Search steps and triggers' }),
@@ -106,7 +106,7 @@ describe('flow builder canvas', () => {
 
     expect(await screen.findByText('Agent renamed')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Front desk' })).toBeInTheDocument();
-    expect(within(canvas).getByLabelText('send_message')).toBeInTheDocument();
+    expect(within(canvas).getByLabelText('Send message')).toBeInTheDocument();
     expect(useFlowBuilderStore.getState().history.past).toHaveLength(1);
   });
 
@@ -184,7 +184,7 @@ describe('flow builder canvas', () => {
 
     await userEvent.click(within(canvas).getByRole('button', { name: 'Add a trigger' }));
 
-    expect(within(canvas).getByLabelText('trigger_message')).toBeInTheDocument();
+    expect(within(canvas).getByLabelText('Incoming message')).toBeInTheDocument();
   });
 
   it('shows the collapsed rail instead of the workspace sidebar', async () => {

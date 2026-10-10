@@ -7,6 +7,11 @@ import { addNode, removeElements } from '@/features/flow-builder/logic/helpers/g
 import type { FlowPoint } from '@/features/flow-builder/typedefs/flowBuilder.typedefs';
 import type { StepAnchor, StepPlacement } from '@/features/flow-builder/typedefs/palette.typedefs';
 
+const withLabel = (document: FlowDocument, nodeId: string, label: string): FlowDocument => ({
+  ...document,
+  nodes: document.nodes.map((node) => (node.id === nodeId ? { ...node, label } : node)),
+});
+
 const splitEdge = (
   document: FlowDocument,
   nodeId: string,
@@ -34,7 +39,11 @@ export const placeStep = (
   createId: () => string,
 ): FlowDocument => {
   const nodeId = createId();
-  const added = addNode(document, placement.type, placement.position, nodeId);
+  const added = withLabel(
+    addNode(document, placement.type, placement.position, nodeId),
+    nodeId,
+    placement.label,
+  );
   if (placement.splitEdgeId !== null) {
     return splitEdge(added, nodeId, placement.splitEdgeId, createId);
   }
