@@ -29,7 +29,9 @@ import { startMockLlm } from '@test/support/services/mock-llm.service';
 import type { MockLlmService } from '@test/support/services/mock-llm.service';
 
 const WORKSPACE_ID = 'ws_embed';
-const BATCH_TIMEOUT_MS = 200;
+const API_KEY = 'test-llmapi-key';
+const BATCH_TIMEOUT_MS = 2_000;
+const HANG_TIMEOUT_MS = 200;
 const MODEL = EmbeddingModelId.JinaEmbeddingsV5TextSmall;
 const { batchSize: BATCH_SIZE, dimensions: DIMENSIONS } = EMBEDDING_CATALOG[MODEL];
 const EXTRA_TEXTS = 2;
@@ -69,12 +71,12 @@ describe('AiSdkEmbeddingGateway', () => {
     await mock.stop();
   });
 
-  const startGateway = (apiKey = 'test-llmapi-key') => {
+  const startGateway = (apiKey = API_KEY, batchTimeoutMs = BATCH_TIMEOUT_MS) => {
     usage = new RecordingUsageReporter();
     metrics = createMetricsService();
     gateway = createEmbeddingGateway(
       { [EnvVar.LlmBaseUrl]: mock.url, [EnvVar.LlmApiKey]: apiKey },
-      BATCH_TIMEOUT_MS,
+      batchTimeoutMs,
       { usage, metrics: createLlmMetricsService(metrics) },
     );
   };
@@ -152,7 +154,7 @@ describe('AiSdkEmbeddingGateway', () => {
     ['a rate limit', (mock: MockLlmService) => mock.fail(HttpStatus.TOO_MANY_REQUESTS)],
     ['a timeout', (mock: MockLlmService) => mock.hang()],
   ])('reports the model unavailable on %s', async (_name, script) => {
-    startGateway();
+    startGateway(API_KEY, HANG_TIMEOUT_MS);
     script(mock);
 
     await expect(gateway.embed(textsOf(EXTRA_TEXTS), OPTIONS)).rejects.toBeInstanceOf(
