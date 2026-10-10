@@ -33,6 +33,7 @@ import { ProbeCallsRecorderService } from '@test/support/services/probe-calls-re
 class ProbeRollback extends Error {}
 
 const WAIT = { timeout: PROBE_WAIT_TIMEOUT_MS, interval: PROBE_WAIT_INTERVAL_MS };
+const COMPLETED_STATE = 'completed';
 
 const probeIdOf = (envelope: JobEnvelope): unknown => envelope.data['probeId'];
 
@@ -152,8 +153,12 @@ describe('jobs and domain events', () => {
       await jobs.enqueue(userCtx(), recordProbeJob, { probeId }, options);
     });
     await jobs.enqueue(userCtx(), recordProbeJob, { probeId }, options);
-    await waitUntilHandled(probeId);
+    await vi.waitFor(
+      async () => expect(await queue.getJobState(options.jobId)).toBe(COMPLETED_STATE),
+      WAIT,
+    );
 
+    expect((await queuedProbeIds()).filter((queued) => queued === probeId)).toHaveLength(1);
     expect(recorder.calls.filter((call) => call.probeId === probeId)).toHaveLength(1);
   });
 

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { z } from 'zod';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { getOriginator } from '@/platform/context/helpers/use-case-ctx.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -40,7 +41,8 @@ export class JobsService {
     };
     const jobId = options?.jobId;
     if (options?.durable === true) {
-      await this.enqueueDurable(definition, envelope, jobId ?? this.ids.generate());
+      const id = jobId === undefined ? this.ids.generate() : z.uuid().parse(jobId);
+      await this.enqueueDurable(definition, envelope, id);
       return;
     }
     await this.afterCommit.schedule(async () => {
