@@ -1,4 +1,4 @@
-import type { PauseMode } from '@/modules/agents/constants/agent.constants';
+import type { AgentStatus, PauseMode } from '@/modules/agents/constants/agent.constants';
 import type { agents } from '@/modules/agents/db/agents.table';
 
 export interface Agent {
@@ -15,3 +15,20 @@ export interface Agent {
 }
 
 export type NewAgent = typeof agents.$inferInsert;
+
+export interface AgentView {
+  readonly id: string;
+  readonly name: string;
+  readonly status: AgentStatus;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+export interface CreateAgentInput {
+  readonly name: string;
+}
+
+export interface RenameAgentInput {
+  readonly id: string;
+  readonly name: string;
+}
