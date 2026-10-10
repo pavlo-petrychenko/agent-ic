@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { ConfigModule } from '@/platform/config/config.module';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
-import { ConfigService } from '@/platform/config/services/config.service';
 import { UpstreamError } from '@/platform/errors/errors/upstream.error';
 import { LLM_CATALOG } from '@/platform/llm/constants/llm-catalog.constants';
 import {
@@ -30,7 +29,6 @@ import { LlmUnavailableError } from '@/platform/llm/errors/llm-unavailable.error
 import { AiSdkLlmGateway } from '@/platform/llm/gateways/ai-sdk-llm.gateway';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import { LlmModule } from '@/platform/llm/llm.module';
-import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
 import type {
   LlmAgentRequest,
   LlmCompleteRequest,
@@ -39,6 +37,7 @@ import type {
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { MockLlmRoute } from '@test/support/constants/mock-llm.constants';
 import { createTestEnv } from '@test/support/fixtures/test-env.fixture';
+import { createLlmGateway } from '@test/support/helpers/llm-testing.helpers';
 import { startMockLlm } from '@test/support/services/mock-llm.service';
 import type { MockLlmService } from '@test/support/services/mock-llm.service';
 
@@ -60,7 +59,7 @@ const completeRequest = (overrides: Partial<LlmCompleteRequest<Route>> = {}) => 
   system: SYSTEM,
   messages: [{ role: LlmMessageRole.User, content: QUESTION }],
   output: routeSchema,
-  tags: {},
+  tags: { traceName: 'route', workspaceId: 'ws_test' },
   ...overrides,
 });
 
@@ -89,12 +88,7 @@ const agentRequest = (overrides: Partial<LlmAgentRequest<Route>> = {}) => ({
 });
 
 const createGateway = (env: Partial<Record<EnvVar, string>>): AiSdkLlmGateway =>
-  new AiSdkLlmGateway(
-    new ProviderResolverService(
-      new ConfigService(loadAppConfig({ role: Role.Api, queues: [] }, createTestEnv(env))),
-    ),
-    TEST_TIMEOUTS,
-  );
+  createLlmGateway(env, TEST_TIMEOUTS);
 
 describe('AiSdkLlmGateway.complete', () => {
   let mock: MockLlmService;

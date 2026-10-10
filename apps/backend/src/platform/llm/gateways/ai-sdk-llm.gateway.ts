@@ -32,6 +32,7 @@ import {
   toUpstreamFailure,
   withMessage,
 } from '@/platform/llm/helpers/llm-gateway.helpers';
+import { LlmTraceContext } from '@/platform/llm/services/llm-trace-context.service';
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
 import type {
   LlmAgentRequest,
@@ -47,6 +48,7 @@ import type {
 export class AiSdkLlmGateway extends LlmGateway {
   constructor(
     private readonly providers: ProviderResolverService,
+    private readonly traces: LlmTraceContext,
     @Inject(LLM_STEP_TIMEOUTS) private readonly timeouts: LlmStepTimeouts,
   ) {
     super();
@@ -78,9 +80,9 @@ export class AiSdkLlmGateway extends LlmGateway {
   ): Promise<R> {
     const models = modelsToTry(request);
     const failures: unknown[] = [];
-    for (const model of models) {
+    for (const [fallbackHop, model] of models.entries()) {
       try {
-        return await attempt(await this.modelRun(request, model));
+        return await attempt(await this.modelRun(request, model, fallbackHop));
       } catch (error) {
         if (!isModelUnavailable(error)) {
           throw toUpstreamFailure(error);
@@ -94,12 +96,17 @@ export class AiSdkLlmGateway extends LlmGateway {
   private async modelRun<T>(
     request: LlmCompleteRequest<T>,
     model: LlmModelId,
+    fallbackHop: number,
   ): Promise<LlmModelRun> {
+    const entry = LLM_CATALOG[model];
+    const reasoning = reasoningFor(entry, request.reasoning);
     return {
-      model: LLM_CATALOG[model],
+      model: entry,
       languageModel: this.providers.languageModel(request.provider, model),
       jsonSchema: await zodSchema(request.output).jsonSchema,
       stepTimeoutMs: this.timeouts[request.purpose],
+      reasoning,
+      telemetry: this.traces.callTelemetry(request.tags, { model, fallbackHop, reasoning }),
     };
   }
 
@@ -115,7 +122,7 @@ export class AiSdkLlmGateway extends LlmGateway {
       tools: toToolSet(request.tools),
       output: structuredOutput(run.model, run.jsonSchema),
       stopWhen: stepCountIs(state.roundsLeft),
-      ...runCallSettings(run, reasoningFor(run.model, request.reasoning)),
+      ...runCallSettings(run),
     });
     const next = afterSteps(state, result);
     if (result.finishReason === LLM_TOOL_CALLS_FINISH_REASON) {
@@ -150,7 +157,7 @@ export class AiSdkLlmGateway extends LlmGateway {
       messages: [...state.messages],
       tools: { ...toToolSet(request.tools), [LLM_REPLY_TOOL_NAME]: replyTool(run.jsonSchema) },
       stopWhen: [stepCountIs(state.roundsLeft), hasToolCall(LLM_REPLY_TOOL_NAME)],
-      ...runCallSettings(run, reasoningFor(run.model, request.reasoning)),
+      ...runCallSettings(run),
     });
     const next = afterSteps(state, result);
     const replyCall = result.toolCalls.find(({ toolName }) => toolName === LLM_REPLY_TOOL_NAME);
