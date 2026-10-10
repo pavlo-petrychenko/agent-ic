@@ -1,8 +1,13 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { CheckEmailPage, checkEmailSearchSchema } from '@/features/auth';
+import { createFileRoute, stripSearchParams } from '@tanstack/react-router';
+import {
+  CHECK_EMAIL_SEARCH_DEFAULTS,
+  CheckEmailPage,
+  checkEmailSearchSchema,
+} from '@/features/auth';
 
 export const Route = createFileRoute('/auth/check-email')({
   validateSearch: checkEmailSearchSchema,
+  search: { middlewares: [stripSearchParams(CHECK_EMAIL_SEARCH_DEFAULTS)] },
   component: CheckEmailRoute,
 });
 
