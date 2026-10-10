@@ -11,6 +11,7 @@ const buildAgent = (overrides: Partial<AgentListItem>): AgentListItem => ({
   liveVersionNumber: null,
   draftNumber: 1,
   hasUnpublishedChanges: true,
+  versionCount: 1,
   ...overrides,
 });
 

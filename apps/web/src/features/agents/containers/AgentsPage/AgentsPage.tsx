@@ -9,6 +9,7 @@ import { AGENTS_NAMESPACE } from '@/features/agents/constants/agentsI18n.constan
 import type { AgentStatus } from '@/features/agents/constants/agentStatus.constants';
 import type { AgentsPageProps } from '@/features/agents/containers/AgentsPage/AgentsPage.typedefs';
 import { useAgentRowMenu } from '@/features/agents/containers/AgentsPage/useAgentRowMenu';
+import { DeleteAgentDialog } from '@/features/agents/containers/DeleteAgentDialog';
 import { filterAgents, toStatuses } from '@/features/agents/logic/helpers/agentFilter.helpers';
 import { toTableStatus } from '@/features/agents/logic/helpers/agentList.helpers';
 import { agentStatusNote } from '@/features/agents/logic/helpers/agentStatus.helpers';
@@ -66,6 +67,7 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
       name: agent.name,
       description: agent.description,
       status: agent.status,
+      versionCount: agent.versionCount,
       statusLabel: t(`status.${agent.status}`, { version: agent.liveVersionNumber }),
       note: note === null ? null : t(`statusNote.${note}`, { number: agent.draftNumber }),
     };
@@ -130,6 +132,13 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
           />
         )}
       </div>
+      {rowMenu.deleteRow !== null && (
+        <DeleteAgentDialog
+          key={rowMenu.deleteRow.id}
+          agent={rowMenu.deleteRow}
+          onClose={rowMenu.closeDelete}
+        />
+      )}
     </div>
   );
 }

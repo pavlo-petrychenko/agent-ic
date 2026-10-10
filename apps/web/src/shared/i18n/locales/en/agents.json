@@ -69,7 +69,8 @@
     "open": "Open flow builder",
     "test": "Test in simulator",
     "resume": "Resume agent",
-    "duplicate": "Duplicate"
+    "duplicate": "Duplicate",
+    "delete": "Delete agent"
   },
   "resume": {
     "success": "{{name}} is live again"
@@ -77,5 +78,22 @@
   "duplicate": {
     "success": "Created “{{name}}”",
     "done": "The agent was duplicated"
+  },
+  "dialog": {
+    "cancel": "Cancel",
+    "close": "Close"
+  },
+  "delete": {
+    "title": "Delete {{name}}?",
+    "subtitle": "This can’t be undone",
+    "versions_one": "Flow and {{count}} version",
+    "versions_other": "Flow and {{count}} versions",
+    "versionsValue": "deleted",
+    "conversations": "Past conversations",
+    "conversationsValue": "kept",
+    "confirm": "Type <strong>{{name}}</strong> to confirm",
+    "nameLabel": "Agent name",
+    "submit": "Delete agent",
+    "success": "{{name}} was deleted"
   }
 }
