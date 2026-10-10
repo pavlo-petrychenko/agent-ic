@@ -13,7 +13,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   [LlmModelId.Gpt6Luna]: {
     id: LlmModelId.Gpt6Luna,
     vendor: LlmVendor.OpenAi,
-    purpose: LlmPurpose.Conversation,
+    purposes: [LlmPurpose.Conversation, LlmPurpose.Light],
     price: { inputUsdPerMillionTokens: 0.1, outputUsdPerMillionTokens: 0.5 },
     fallback: LlmModelId.ClaudeHaiku55,
     api: LlmApi.ChatCompletions,
@@ -24,7 +24,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   [LlmModelId.Ministral14b]: {
     id: LlmModelId.Ministral14b,
     vendor: LlmVendor.Mistral,
-    purpose: LlmPurpose.Light,
+    purposes: [LlmPurpose.Conversation, LlmPurpose.Light],
     price: { inputUsdPerMillionTokens: 0.2, outputUsdPerMillionTokens: 0.2 },
     fallback: LlmModelId.Gemma4,
     api: LlmApi.ChatCompletions,
@@ -35,7 +35,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   [LlmModelId.ClaudeHaiku55]: {
     id: LlmModelId.ClaudeHaiku55,
     vendor: LlmVendor.Anthropic,
-    purpose: LlmPurpose.Conversation,
+    purposes: [LlmPurpose.Conversation, LlmPurpose.Light],
     price: { inputUsdPerMillionTokens: 0.1, outputUsdPerMillionTokens: 0.5 },
     fallback: LlmModelId.Gpt6Luna,
     api: LlmApi.AnthropicMessages,
@@ -46,7 +46,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   [LlmModelId.MimoV26Flash]: {
     id: LlmModelId.MimoV26Flash,
     vendor: LlmVendor.Xiaomi,
-    purpose: LlmPurpose.Conversation,
+    purposes: [LlmPurpose.Conversation],
     price: { inputUsdPerMillionTokens: 0.14, outputUsdPerMillionTokens: 0.28 },
     fallback: LlmModelId.Ministral14b,
     api: LlmApi.ChatCompletions,
@@ -57,7 +57,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   [LlmModelId.Gemma4]: {
     id: LlmModelId.Gemma4,
     vendor: LlmVendor.Google,
-    purpose: LlmPurpose.Light,
+    purposes: [LlmPurpose.Conversation, LlmPurpose.Light],
     price: { inputUsdPerMillionTokens: 0.13, outputUsdPerMillionTokens: 0.4 },
     fallback: LlmModelId.Ministral14b,
     api: LlmApi.ChatCompletions,
@@ -68,7 +68,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   [LlmModelId.Glm53Flash]: {
     id: LlmModelId.Glm53Flash,
     vendor: LlmVendor.Zhipu,
-    purpose: LlmPurpose.Conversation,
+    purposes: [LlmPurpose.Conversation],
     price: { inputUsdPerMillionTokens: 0.15, outputUsdPerMillionTokens: 0.5 },
     fallback: LlmModelId.Ministral14b,
     api: LlmApi.ChatCompletions,
@@ -79,19 +79,8 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   [LlmModelId.DeepSeekV41Flash]: {
     id: LlmModelId.DeepSeekV41Flash,
     vendor: LlmVendor.DeepSeek,
-    purpose: LlmPurpose.Conversation,
+    purposes: [LlmPurpose.Conversation],
     price: { inputUsdPerMillionTokens: 0.3, outputUsdPerMillionTokens: 1.2 },
-    fallback: LlmModelId.Ministral14b,
-    api: LlmApi.ChatCompletions,
-    structuredOutput: LlmStructuredOutput.JsonObject,
-    agentFinish: LlmAgentFinish.ReplyTool,
-    reasoningEffort: null,
-  },
-  [LlmModelId.Qwen35_9b]: {
-    id: LlmModelId.Qwen35_9b,
-    vendor: LlmVendor.Alibaba,
-    purpose: LlmPurpose.Light,
-    price: { inputUsdPerMillionTokens: 0.1, outputUsdPerMillionTokens: 0.15 },
     fallback: LlmModelId.Ministral14b,
     api: LlmApi.ChatCompletions,
     structuredOutput: LlmStructuredOutput.JsonObject,
@@ -101,6 +90,6 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
 };
 
 export const LLM_DEFAULT_MODEL: Readonly<Record<LlmPurpose, LlmModelId>> = {
-  [LlmPurpose.Conversation]: LlmModelId.MimoV26Flash,
-  [LlmPurpose.Light]: LlmModelId.Ministral14b,
+  [LlmPurpose.Conversation]: LlmModelId.Gpt6Luna,
+  [LlmPurpose.Light]: LlmModelId.Gpt6Luna,
 };

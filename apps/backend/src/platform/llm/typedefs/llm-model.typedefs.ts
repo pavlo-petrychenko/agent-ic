@@ -16,7 +16,7 @@ export interface LlmPrice {
 export interface LlmModel {
   readonly id: LlmModelId;
   readonly vendor: LlmVendor;
-  readonly purpose: LlmPurpose;
+  readonly purposes: readonly LlmPurpose[];
   readonly price: LlmPrice;
   readonly fallback: LlmModelId;
   readonly api: LlmApi;

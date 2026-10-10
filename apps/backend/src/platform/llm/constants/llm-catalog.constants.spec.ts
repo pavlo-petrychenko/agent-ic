@@ -16,11 +16,12 @@ describe('LLM_CATALOG', () => {
     );
   });
 
-  it.each(models)('gives $id a fallback by another vendor', (model) => {
+  it.each(models)('gives $id a fallback by another vendor for each of its purposes', (model) => {
     const fallback = LLM_CATALOG[model.fallback];
 
     expect(fallback).toBeDefined();
     expect(fallback.vendor).not.toBe(model.vendor);
+    expect(fallback.purposes).toEqual(expect.arrayContaining([...model.purposes]));
   });
 
   it.each(models)('prices $id per million tokens above zero', ({ price }) => {
@@ -35,10 +36,7 @@ describe('LLM_CATALOG', () => {
     },
   );
 
-  it.each(Object.values(LlmPurpose))(
-    'defaults %s to a catalog model of that purpose',
-    (purpose) => {
-      expect(LLM_CATALOG[LLM_DEFAULT_MODEL[purpose]].purpose).toBe(purpose);
-    },
-  );
+  it.each(Object.values(LlmPurpose))('defaults %s to a catalog model that serves it', (purpose) => {
+    expect(LLM_CATALOG[LLM_DEFAULT_MODEL[purpose]].purposes).toContain(purpose);
+  });
 });
