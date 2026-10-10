@@ -11,8 +11,6 @@ extend type Mutation {
   publishAgent(input: PublishAgentInput!): PublishAgentPayload!
 }
 
-scalar JSON
-
 enum AgentStatus {
   draft
   live

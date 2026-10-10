@@ -55,7 +55,7 @@ export class SaveAgentDraftUseCase {
       if (draft === null) {
         throw new AgentVersionNotFoundError();
       }
-      const changes = { flow: parsed.flow, note: note ?? null };
+      const changes = { flow: parsed.flow, note: note === undefined ? draft.note : note };
       if (!(await this.versions.updateDraft(workspaceId, draft.id, changes, now))) {
         throw new AgentVersionImmutableError();
       }
