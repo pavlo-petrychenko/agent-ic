@@ -10,7 +10,7 @@ import {
 } from '@/platform/graphql-server/generated/schema.generated';
 import { LlmPurpose, LlmVendor } from '@/platform/llm/constants/llm-model.constants';
 
-const GRAPHQL_MODEL_VENDOR: Readonly<Record<LlmVendor, GraphqlModelVendor>> = {
+const GRAPHQL_MODEL_VENDOR: Readonly<Record<ModelOption['vendor'], GraphqlModelVendor>> = {
   [LlmVendor.OpenAi]: GraphqlModelVendor.Openai,
   [LlmVendor.Anthropic]: GraphqlModelVendor.Anthropic,
   [LlmVendor.Mistral]: GraphqlModelVendor.Mistral,

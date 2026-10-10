@@ -32,7 +32,6 @@ export class MembersResolver {
 
   @Query()
   async membersByRole(@GraphqlCtx() ctx: UseCaseCtx): Promise<RoleMemberCount[]> {
-    const counts = await this.countMembersByRoleUseCase.execute(ctx);
-    return counts.map(toGraphqlRoleMemberCount);
+    return (await this.countMembersByRoleUseCase.execute(ctx)).map(toGraphqlRoleMemberCount);
   }
 }

@@ -100,10 +100,7 @@ describe('FlowReferenceChecksService', () => {
     it('merges its issues into the publish preview', async () => {
       const workspaceId = testingModule.get(IdService).generate();
       const { agentId } = await seedAgentWithDraft(testingModule, workspaceId);
-      checker.issues = [
-        referenceIssue(FlowIssueSeverity.Error),
-        referenceIssue(FlowIssueSeverity.Warning),
-      ];
+      checker.issues = [FlowIssueSeverity.Error, FlowIssueSeverity.Warning].map(referenceIssue);
 
       const preview = await testingModule
         .get(PreviewAgentPublishUseCase)

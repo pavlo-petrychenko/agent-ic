@@ -13,6 +13,7 @@ const models = Object.values(LLM_CATALOG);
 describe('ListModelOptionsUseCase', () => {
   const listModelOptions = new ListModelOptionsUseCase();
   const builderCtx = workspaceCtx(TEST_EDITOR_ID, TEST_EDITOR_ID, WorkspaceRole.Builder);
+  const operatorCtx = workspaceCtx(TEST_EDITOR_ID, TEST_EDITOR_ID, WorkspaceRole.Operator);
 
   it('lists every catalog model once', () => {
     const options = listModelOptions.execute(builderCtx);
@@ -45,10 +46,7 @@ describe('ListModelOptionsUseCase', () => {
   });
 
   it('refuses an operator', () => {
-    const attempt = () =>
-      listModelOptions.execute(
-        workspaceCtx(TEST_EDITOR_ID, TEST_EDITOR_ID, WorkspaceRole.Operator),
-      );
+    const attempt = () => listModelOptions.execute(operatorCtx);
 
     expect(attempt).toThrow(PermissionDeniedError);
   });
