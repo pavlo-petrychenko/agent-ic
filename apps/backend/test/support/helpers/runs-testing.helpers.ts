@@ -1,3 +1,4 @@
+import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { RunsModule } from '@/modules/runs/runs.module';
 import type { NewRun } from '@/modules/runs/typedefs/run.typedefs';
@@ -18,6 +19,7 @@ export const createRunsTestbed = async (): Promise<RunsTestbed> => {
     ids: module.get(IdService),
     tenants: module.get(TenantTransactionService),
     runs: module.get(RunsRepository),
+    steps: module.get(RunStepsRepository),
   };
 };
 
