@@ -24,5 +24,4 @@ export interface LlmModel {
   readonly agentFinish: LlmAgentFinish;
   readonly reasoningLevels: readonly LlmReasoningEffort[];
   readonly reasoningEffort: LlmReasoningEffort | null;
-  readonly reasoningWithTools: LlmReasoningEffort | null;
 }

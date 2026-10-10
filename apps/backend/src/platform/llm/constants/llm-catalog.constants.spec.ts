@@ -44,13 +44,12 @@ describe('LLM_CATALOG', () => {
     expect(new Set(ranks).size).toBe(ranks.length);
   });
 
-  it.each(models)('picks the default and tool reasoning of $id from its levels', (model) => {
-    const chosen = [model.reasoningEffort, model.reasoningWithTools].filter(
-      (level) => level !== null,
-    );
-
-    expect(model.reasoningLevels).toEqual(expect.arrayContaining(chosen));
-  });
+  it.each(models.filter(({ reasoningEffort }) => reasoningEffort !== null))(
+    'picks the default reasoning of $id from its levels',
+    ({ reasoningEffort, reasoningLevels }) => {
+      expect(reasoningLevels).toContain(reasoningEffort);
+    },
+  );
 
   it.each(Object.values(LlmPurpose))('defaults %s to a catalog model that serves it', (purpose) => {
     expect(LLM_CATALOG[LLM_DEFAULT_MODEL[purpose]].purposes).toContain(purpose);
