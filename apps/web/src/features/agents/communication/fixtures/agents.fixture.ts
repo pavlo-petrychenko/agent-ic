@@ -47,7 +47,7 @@ export const REVIEW_COLLECTOR: AgentFixture = {
   liveVersionNumber: null,
   draftNumber: 1,
   hasUnpublishedChanges: true,
-  versionCount: 1,
+  versionCount: 0,
 };
 
 const toEdge = (agent: AgentFixture) => ({
