@@ -11,6 +11,7 @@ import { ErrorsModule } from '@/platform/errors/errors.module';
 import { GraphqlServerModule } from '@/platform/graphql-server/graphql-server.module';
 import { IdsModule } from '@/platform/ids/ids.module';
 import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
+import { LlmModule } from '@/platform/llm/llm.module';
 import type { ModuleImport } from '@/platform/module-roles/typedefs/module-roles.typedefs';
 import { ObservabilityModule } from '@/platform/observability/observability.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
@@ -32,6 +33,7 @@ export const PLATFORM_MODULES: readonly ModuleImport[] = [
   RateLimitModule,
   CryptoModule,
   SecretsModule,
+  LlmModule,
   ObservabilityModule,
   GraphqlServerModule,
 ];

@@ -131,6 +131,7 @@ Infrastructure used by two or more modules, with no business meaning. Same kinds
 | `live-updates` | Redis pub/sub channels for GraphQL subscriptions |
 | `observability` | logger, health, metrics, tracing |
 | `module-roles` | `defineModule()`, `forRole()`, the `Role` enum |
+| `llm` | the LLM and embedding gateways, the curated model catalog (models, vendors, prices, defaults, fallbacks) |
 | `admin` · `cache` · `clock` · `crypto` · `ids` · `rate-limit` · `redis` · `secrets` | one service each, plus their helpers |
 
 A library may force a second Nest module in one folder (`database-clients.module.ts` for `nestjs-cls`). That is the only allowed case.
