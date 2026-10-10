@@ -18,6 +18,7 @@ import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
 import { LlmModule } from '@/platform/llm/llm.module';
 import type { ModuleImport } from '@/platform/module-roles/typedefs/module-roles.typedefs';
 import { ObservabilityModule } from '@/platform/observability/observability.module';
+import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
@@ -38,6 +39,7 @@ export const PLATFORM_MODULES: readonly ModuleImport[] = [
   CryptoModule,
   SecretsModule,
   LlmModule,
+  OutboundHttpModule,
   ObservabilityModule,
   GraphqlServerModule,
 ];
