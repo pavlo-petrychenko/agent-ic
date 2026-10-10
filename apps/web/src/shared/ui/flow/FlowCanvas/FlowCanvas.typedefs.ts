@@ -98,6 +98,7 @@ export interface FlowCanvasLabels {
   deleted: string;
   undo: string;
   addStep: string;
+  stepActions: string;
   connectingTo: (name: string) => string;
   emptyTitle: string;
   emptyDescription: string | null;
@@ -158,4 +159,10 @@ export interface AddStepMenuState {
   position: FlowCanvasPoint;
   source: string;
   sourcePort: string;
+}
+
+export interface ContextMenuState {
+  left: number;
+  top: number;
+  target: FlowCanvasSelection;
 }

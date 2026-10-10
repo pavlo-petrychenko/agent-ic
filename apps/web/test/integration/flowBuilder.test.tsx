@@ -1,11 +1,12 @@
 import { NodeType } from '@agent-ic/flow';
-import { act, screen, within } from '@testing-library/react';
+import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   DEMO_AGENT_ID,
   TRIGGER_ONLY_FLOW,
   buildFlowBuilderDraftFailureMock,
+  buildDescribeAgentMock,
   buildFlowBuilderDraftMock,
   buildRenameAgentMock,
 } from '@/features/flow-builder/communication/fixtures/flowBuilderDraft.fixture';
@@ -44,7 +45,10 @@ describe('flow builder canvas', () => {
       addNode(TRIGGER_ONLY_FLOW, NodeType.SendMessage, { x: 0, y: 200 }, 'reply'),
     );
 
-    expect(screen.getByRole('button', { name: 'Salon assistant' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Salon assistant' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
     expect(screen.getByText('Draft · edited from v3')).toBeInTheDocument();
     screen.getByLabelText('Connect from Customer message · next').focus();
     await userEvent.keyboard('{Enter}{Enter}');
@@ -100,6 +104,40 @@ describe('flow builder canvas', () => {
     expect(screen.getByRole('button', { name: 'Front desk' })).toBeInTheDocument();
     expect(within(canvas).getByLabelText('send_message')).toBeInTheDocument();
     expect(useFlowBuilderStore.getState().history.past).toHaveLength(1);
+  });
+
+  it('describes the agent in the header', async () => {
+    renderRoute(builderPath, {
+      mocks: [
+        shell,
+        buildFlowBuilderDraftMock(TRIGGER_ONLY_FLOW),
+        buildDescribeAgentMock('Books salon visits'),
+      ],
+    });
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Add a description' }));
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'Agent description' }),
+      'Books salon visits{Enter}',
+    );
+
+    expect(await screen.findByText('Description saved')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Books salon visits' })).toBeInTheDocument();
+  });
+
+  it('deletes and duplicates a step from its right-click menu', async () => {
+    const canvas = await openBuilder();
+    const step = () => within(canvas).getByLabelText('Customer message');
+
+    fireEvent.contextMenu(step());
+    await userEvent.click(screen.getByRole('option', { name: 'Delete' }));
+    expect(within(canvas).queryByLabelText('Customer message')).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
+
+    fireEvent.contextMenu(step());
+    await userEvent.click(screen.getByRole('option', { name: 'Duplicate' }));
+    expect(within(canvas).getAllByLabelText('Customer message')).toHaveLength(2);
+    expect(screen.queryByRole('listbox', { name: 'Step actions' })).toBeNull();
   });
 
   it('switches density and lists the keyboard shortcuts', async () => {
