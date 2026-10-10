@@ -9,6 +9,7 @@ export enum OutboundHttpOutcome {
   Unreachable = 'unreachable',
   BlockedAddress = 'blocked_address',
   InvalidUrl = 'invalid_url',
+  InvalidRequest = 'invalid_request',
 }
 
 export enum OutboundProtocol {

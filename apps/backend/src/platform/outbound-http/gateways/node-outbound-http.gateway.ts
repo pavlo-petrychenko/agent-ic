@@ -1,7 +1,7 @@
 import { lookup } from 'node:dns';
 import type { LookupAddress, LookupOptions } from 'node:dns';
 import { request as httpRequest } from 'node:http';
-import type { IncomingMessage } from 'node:http';
+import type { ClientRequest, IncomingMessage } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import type { BlockList } from 'node:net';
 import { Inject, Injectable } from '@nestjs/common';
@@ -68,21 +68,30 @@ export class NodeOutboundHttpGateway extends OutboundHttpGateway {
     const signal = AbortSignal.timeout(request.timeoutMs);
     return new Promise((resolve) => {
       const send = url.protocol === OutboundProtocol.Https ? httpsRequest : httpRequest;
-      const outgoing = send(
-        url,
-        {
-          method: request.method,
-          headers: request.headers,
-          signal,
-          lookup: (hostname, options, callback) => this.lookup(hostname, options, callback),
-        },
-        (response) => {
-          void this.readBody(response).then(
-            (body) => resolve(finish(OutboundHttpOutcome.Responded, body)),
-            () => resolve(finish(this.failureOutcome(signal, null))),
-          );
-        },
-      );
+      let outgoing: ClientRequest;
+      try {
+        outgoing = send(
+          url,
+          {
+            method: request.method,
+            headers: request.headers,
+            signal,
+            lookup: (hostname, options, callback) => this.lookup(hostname, options, callback),
+          },
+          (response) => {
+            void this.readBody(response).then(
+              (body) => resolve(finish(OutboundHttpOutcome.Responded, body)),
+              () => resolve(finish(this.failureOutcome(signal, null))),
+            );
+          },
+        );
+      } catch (error) {
+        if (!(error instanceof TypeError)) {
+          throw error;
+        }
+        resolve(finish(OutboundHttpOutcome.InvalidRequest));
+        return;
+      }
       outgoing.on('error', (error) => resolve(finish(this.failureOutcome(signal, error))));
       outgoing.end(request.body ?? undefined);
     });
@@ -115,9 +124,10 @@ export class NodeOutboundHttpGateway extends OutboundHttpGateway {
     let bodyTruncated = false;
     for await (const chunk of response) {
       const buffer = Buffer.from(chunk);
-      chunks.push(buffer.subarray(0, OUTBOUND_RESPONSE_MAX_BYTES - size));
-      size = Math.min(size + buffer.length, OUTBOUND_RESPONSE_MAX_BYTES);
-      if (size >= OUTBOUND_RESPONSE_MAX_BYTES) {
+      const room = OUTBOUND_RESPONSE_MAX_BYTES - size;
+      chunks.push(buffer.subarray(0, room));
+      size += Math.min(buffer.length, room);
+      if (buffer.length > room) {
         bodyTruncated = true;
         response.destroy();
         break;

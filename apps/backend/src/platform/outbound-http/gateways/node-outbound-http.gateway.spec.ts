@@ -13,6 +13,7 @@ import {
   OUTBOUND_TEST_BODY,
   OUTBOUND_TEST_HEADER,
   OUTBOUND_TEST_HEADER_VALUE,
+  OUTBOUND_TEST_INVALID_HEADER_VALUES,
   OUTBOUND_TEST_INVALID_URLS,
   OUTBOUND_TEST_SHORT_TIMEOUT_MS,
   OUTBOUND_TEST_STATUS,
@@ -74,6 +75,25 @@ describe('NodeOutboundHttpGateway', () => {
     expect(result.bodyTruncated).toBe(true);
     expect(result.body).toHaveLength(OUTBOUND_RESPONSE_MAX_BYTES);
   });
+
+  it('keeps a body of exactly the limit whole', async () => {
+    const result = await open.send(get(`${server.origin}${OutboundTestPath.Exact}`));
+
+    expect(result.bodyTruncated).toBe(false);
+    expect(result.body).toHaveLength(OUTBOUND_RESPONSE_MAX_BYTES);
+  });
+
+  it.each(OUTBOUND_TEST_INVALID_HEADER_VALUES)(
+    'refuses the header value %j as an invalid request',
+    async (value) => {
+      const result = await open.send({
+        ...get(`${server.origin}${OutboundTestPath.Echo}`),
+        headers: { [OUTBOUND_TEST_HEADER]: value },
+      });
+
+      expect(result).toMatchObject({ outcome: OutboundHttpOutcome.InvalidRequest, status: null });
+    },
+  );
 
   it('gives up after the timeout', async () => {
     const result = await open.send(

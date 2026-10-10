@@ -28,8 +28,9 @@ const respond = async (request: IncomingMessage, response: ServerResponse): Prom
     response.end();
     return;
   }
-  if (request.url === OutboundTestPath.Large) {
-    response.end('x'.repeat(OUTBOUND_RESPONSE_MAX_BYTES * 2));
+  if (request.url === OutboundTestPath.Large || request.url === OutboundTestPath.Exact) {
+    const factor = request.url === OutboundTestPath.Large ? 2 : 1;
+    response.end('x'.repeat(OUTBOUND_RESPONSE_MAX_BYTES * factor));
     return;
   }
   const header = request.headers[OUTBOUND_TEST_HEADER];
