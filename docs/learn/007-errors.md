@@ -49,7 +49,7 @@ A limit error extends `LimitReachedError` and picks a scope. A `rate` limit answ
 
 There is no client in a job, so `jobFailureActionFor` decides retry or give up:
 
-- A domain error: give up. Trying again gives the same answer.
+- A domain error: give up. Trying again gives the same answer. The one exception is the `Unavailable` kind (`LlmUnavailableError`): the service may answer later, so the job retries.
 - A rate limit: retry later. A plan limit: give up.
 - An upstream error: retry only when `retryable` is true. `UpstreamError.fromStatus` sets it for 5xx, 408 and 429.
 - Any other error: retry.
@@ -63,7 +63,7 @@ A new business error. Use [email-taken.error.ts](../../apps/backend/src/modules/
 - [ ] Reuse an existing `ErrorReason` if one fits. Otherwise add a new value to `ErrorReason` in [errors.constants.ts](../../packages/contracts/src/errors/errors.constants.ts).
 - [ ] The message goes in a constant in the module's `constants/<m>-error.constants.ts`, for example `EMAIL_TAKEN_MESSAGE`. No literal in the class.
 - [ ] File `modules/<m>/errors/<name>.error.ts`: a class that extends `DomainError`, with `readonly kind = DomainErrorKind.<Kind>` and `readonly reason = ErrorReason.<Reason>`.
-- [ ] Pick the kind by meaning: `NotFound`, `Forbidden`, `Unauthenticated`, `Conflict`, `ValidationFailed`, `LimitReached`, `PreconditionFailed` or `UnsupportedMediaType`.
+- [ ] Pick the kind by meaning: `NotFound`, `Forbidden`, `Unauthenticated`, `Conflict`, `ValidationFailed`, `LimitReached`, `PreconditionFailed`, `UnsupportedMediaType` or `Unavailable` (an outside service is down for now; HTTP 503, and a job retries).
 - [ ] A validation error passes `fields`: `super(MESSAGE, { fields })`. See [invalid-workspace-input.error.ts](../../apps/backend/src/modules/identity/errors/invalid-workspace-input.error.ts).
 - [ ] A limit error extends `LimitReachedError` and sets `scope` (`LimitScope.Rate` or `LimitScope.Plan`). See [rate-limited.error.ts](../../apps/backend/src/platform/rate-limit/errors/rate-limited.error.ts).
 - [ ] Throw it from a use case or service. Never catch it only to hide it.

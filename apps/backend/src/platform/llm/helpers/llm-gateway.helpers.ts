@@ -1,4 +1,4 @@
-import { jsonSchema, Output, tool } from 'ai';
+import { APICallError, jsonSchema, Output, tool } from 'ai';
 import type {
   JSONSchema7,
   LanguageModelUsage,
@@ -10,6 +10,9 @@ import type {
   UserModelMessage,
 } from 'ai';
 import { z } from 'zod';
+import { UpstreamError } from '@/platform/errors/errors/upstream.error';
+import { isRetryableUpstreamStatus } from '@/platform/errors/helpers/upstream.helpers';
+import { LLM_CATALOG } from '@/platform/llm/constants/llm-catalog.constants';
 import {
   LLM_JSON_OBJECT_INSTRUCTION,
   LLM_NO_USAGE,
@@ -20,17 +23,25 @@ import {
   LLM_REPLY_NUDGES,
   LLM_REPLY_TOOL_DESCRIPTION,
   LLM_REPLY_TOOL_NAME,
+  LLM_SDK_MAX_RETRIES,
+  LLM_TIMEOUT_ERROR_NAME,
+  LLM_UPSTREAM,
   LlmMessageRole,
 } from '@/platform/llm/constants/llm-gateway.constants';
 import {
   LLM_REASONING_ORDER,
   LlmStructuredOutput,
 } from '@/platform/llm/constants/llm-model.constants';
-import type { LlmReasoningEffort } from '@/platform/llm/constants/llm-model.constants';
-import { LLM_PROVIDER_OPTIONS } from '@/platform/llm/constants/llm-provider.constants';
+import type { LlmModelId, LlmReasoningEffort } from '@/platform/llm/constants/llm-model.constants';
+import {
+  LLM_PROVIDER_OPTIONS,
+  LlmProviderKind,
+} from '@/platform/llm/constants/llm-provider.constants';
 import { jsonTextSchema } from '@/platform/llm/schemas/llm-output.schema';
 import type {
+  LlmCompleteRequest,
   LlmMessage,
+  LlmModelRun,
   LlmRunState,
   LlmStepsResult,
   LlmTools,
@@ -78,7 +89,12 @@ export const reasoningFor = (
   return wanted === null ? null : nearestReasoning(model.reasoningLevels, wanted);
 };
 
-export const modelCallSettings = (model: LlmModel, reasoning: LlmReasoningEffort | null) => ({
+export const runCallSettings = (
+  { model, stepTimeoutMs }: LlmModelRun,
+  reasoning: LlmReasoningEffort | null,
+) => ({
+  maxRetries: LLM_SDK_MAX_RETRIES,
+  timeout: { stepMs: stepTimeoutMs },
   providerOptions: LLM_PROVIDER_OPTIONS[model.api],
   ...(reasoning === null ? {} : { reasoning }),
 });
@@ -155,3 +171,24 @@ export const withMessage = (state: LlmRunState, message: ModelMessage): LlmRunSt
   ...state,
   messages: [...state.messages, message],
 });
+
+export const modelsToTry = <T>(request: LlmCompleteRequest<T>): readonly LlmModelId[] =>
+  request.provider.kind === LlmProviderKind.Platform
+    ? [request.model, LLM_CATALOG[request.model].fallback]
+    : [request.model];
+
+export const isModelUnavailable = (error: unknown): boolean => {
+  if (APICallError.isInstance(error)) {
+    return error.statusCode !== undefined && isRetryableUpstreamStatus(error.statusCode);
+  }
+  return error instanceof Error && error.name === LLM_TIMEOUT_ERROR_NAME;
+};
+
+export const toUpstreamFailure = (error: unknown): unknown => {
+  if (!APICallError.isInstance(error)) {
+    return error;
+  }
+  return error.statusCode === undefined
+    ? new UpstreamError(LLM_UPSTREAM, { retryable: false, cause: error })
+    : UpstreamError.fromStatus(LLM_UPSTREAM, error.statusCode, error);
+};

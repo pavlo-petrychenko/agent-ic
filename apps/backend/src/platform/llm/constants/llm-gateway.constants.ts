@@ -1,3 +1,4 @@
+import { LlmPurpose } from '@/platform/llm/constants/llm-model.constants';
 import type { LlmUsage } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 
 export enum LlmMessageRole {
@@ -9,6 +10,13 @@ export const LLM_OUTPUT_RETRIES = 1;
 export const LLM_REPLY_NUDGES = 1;
 export const LLM_COMPLETE_ROUNDS = LLM_OUTPUT_RETRIES + 1;
 export const LLM_SDK_MAX_RETRIES = 0;
+export const LLM_TIMEOUT_ERROR_NAME = 'TimeoutError';
+export const LLM_UPSTREAM = 'llm';
+export const LLM_STEP_TIMEOUTS = 'LLM_STEP_TIMEOUTS';
+export const LLM_STEP_TIMEOUT_MS: Readonly<Record<LlmPurpose, number>> = {
+  [LlmPurpose.Conversation]: 30_000,
+  [LlmPurpose.Light]: 15_000,
+};
 export const LLM_NO_USAGE: LlmUsage = { inputTokens: 0, outputTokens: 0 };
 export const LLM_JSON_OBJECT_INSTRUCTION =
   'Answer with one JSON object and nothing else. It must match this JSON Schema:';
@@ -27,3 +35,4 @@ export const LLM_NOT_CONFIGURED_MESSAGE = 'The LLM provider is not configured';
 export const LLM_OUTPUT_INVALID_MESSAGE = 'The LLM answer does not match the schema';
 export const LLM_REPLY_MISSING_MESSAGE = 'The LLM ended without calling the reply tool';
 export const LLM_TOOL_ROUNDS_EXCEEDED_MESSAGE = 'The LLM kept calling tools past the round limit';
+export const LLM_UNAVAILABLE_MESSAGE = 'No LLM model could answer right now';

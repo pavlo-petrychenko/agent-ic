@@ -44,3 +44,12 @@ export class SamplePlanLimitError extends LimitReachedError {
     super(SAMPLE_ERROR_MESSAGE);
   }
 }
+
+export class SampleUnavailableError extends DomainError {
+  readonly kind = DomainErrorKind.Unavailable;
+  readonly reason = ErrorReason.UpstreamFailed;
+
+  constructor() {
+    super(SAMPLE_ERROR_MESSAGE);
+  }
+}

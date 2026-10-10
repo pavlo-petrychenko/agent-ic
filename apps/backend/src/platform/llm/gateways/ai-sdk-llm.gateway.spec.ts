@@ -1,3 +1,4 @@
+import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
@@ -5,6 +6,8 @@ import { ConfigModule } from '@/platform/config/config.module';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { ConfigService } from '@/platform/config/services/config.service';
+import { UpstreamError } from '@/platform/errors/errors/upstream.error';
+import { LLM_CATALOG } from '@/platform/llm/constants/llm-catalog.constants';
 import {
   LLM_JSON_OBJECT_INSTRUCTION,
   LLM_OUTPUT_INVALID_FEEDBACK,
@@ -13,12 +16,17 @@ import {
   LLM_REPLY_TOOL_NAME,
   LlmMessageRole,
 } from '@/platform/llm/constants/llm-gateway.constants';
-import { LlmModelId, LlmReasoningEffort } from '@/platform/llm/constants/llm-model.constants';
+import {
+  LlmModelId,
+  LlmPurpose,
+  LlmReasoningEffort,
+} from '@/platform/llm/constants/llm-model.constants';
 import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants';
 import { LlmNotConfiguredError } from '@/platform/llm/errors/llm-not-configured.error';
 import { LlmOutputInvalidError } from '@/platform/llm/errors/llm-output-invalid.error';
 import { LlmReplyMissingError } from '@/platform/llm/errors/llm-reply-missing.error';
 import { LlmToolRoundsExceededError } from '@/platform/llm/errors/llm-tool-rounds-exceeded.error';
+import { LlmUnavailableError } from '@/platform/llm/errors/llm-unavailable.error';
 import { AiSdkLlmGateway } from '@/platform/llm/gateways/ai-sdk-llm.gateway';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import { LlmModule } from '@/platform/llm/llm.module';
@@ -26,6 +34,7 @@ import { ProviderResolverService } from '@/platform/llm/services/provider-resolv
 import type {
   LlmAgentRequest,
   LlmCompleteRequest,
+  LlmStepTimeouts,
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { MockLlmRoute } from '@test/support/constants/mock-llm.constants';
@@ -47,6 +56,7 @@ type Route = z.infer<typeof routeSchema>;
 const completeRequest = (overrides: Partial<LlmCompleteRequest<Route>> = {}) => ({
   provider: { kind: LlmProviderKind.Platform } as const,
   model: LlmModelId.Ministral14b,
+  purpose: LlmPurpose.Conversation,
   system: SYSTEM,
   messages: [{ role: LlmMessageRole.User, content: QUESTION }],
   output: routeSchema,
@@ -54,6 +64,13 @@ const completeRequest = (overrides: Partial<LlmCompleteRequest<Route>> = {}) => 
   ...overrides,
 });
 
+const TEST_STEP_TIMEOUT_MS = 200;
+const TEST_TIMEOUTS: LlmStepTimeouts = {
+  [LlmPurpose.Conversation]: TEST_STEP_TIMEOUT_MS,
+  [LlmPurpose.Light]: TEST_STEP_TIMEOUT_MS,
+};
+const PRIMARY = LlmModelId.Ministral14b;
+const FALLBACK = LLM_CATALOG[PRIMARY].fallback;
 const LOOKUP_TOOL = 'lookup';
 const LOOKUP_INPUT = { day: 'sunday' };
 const MAX_TOOL_ROUNDS = 4;
@@ -76,6 +93,7 @@ const createGateway = (env: Partial<Record<EnvVar, string>>): AiSdkLlmGateway =>
     new ProviderResolverService(
       new ConfigService(loadAppConfig({ role: Role.Api, queues: [] }, createTestEnv(env))),
     ),
+    TEST_TIMEOUTS,
   );
 
 describe('AiSdkLlmGateway.complete', () => {
@@ -330,6 +348,90 @@ describe('AiSdkLlmGateway.runAgent', () => {
       expect(mock.requests).toHaveLength(MAX_TOOL_ROUNDS);
     },
   );
+});
+
+describe('AiSdkLlmGateway fallback', () => {
+  let mock: MockLlmService;
+  let gateway: AiSdkLlmGateway;
+
+  beforeAll(async () => {
+    mock = await startMockLlm();
+    gateway = createGateway({ [EnvVar.LlmBaseUrl]: mock.url, [EnvVar.LlmApiKey]: API_KEY });
+  });
+
+  afterEach(() => {
+    mock.reset();
+  });
+
+  afterAll(async () => {
+    await mock.stop();
+  });
+
+  it.each([HttpStatus.INTERNAL_SERVER_ERROR, HttpStatus.TOO_MANY_REQUESTS])(
+    'answers with the fallback model when the primary fails with %i',
+    async (status) => {
+      mock.fail(status).json(DELIVERY);
+
+      const completion = await gateway.complete(completeRequest());
+
+      expect(completion).toMatchObject({ output: DELIVERY, model: FALLBACK });
+      expect(mock.body(0).model).toBe(PRIMARY);
+      expect(mock.body(1).model).toBe(FALLBACK);
+    },
+  );
+
+  it('answers with the fallback model when the primary hangs past the timeout', async () => {
+    mock.hang().json(DELIVERY);
+
+    const completion = await gateway.complete(completeRequest());
+
+    expect(completion).toMatchObject({ output: DELIVERY, model: FALLBACK });
+    expect(mock.requests).toHaveLength(2);
+  });
+
+  it('runs the fallback model with its own strategy', async () => {
+    const primary = LlmModelId.MimoV26Flash;
+    mock.fail(HttpStatus.SERVICE_UNAVAILABLE).json(DELIVERY);
+
+    const result = await gateway.runAgent(agentRequest({ model: primary }));
+
+    expect(result).toMatchObject({ output: DELIVERY, model: LLM_CATALOG[primary].fallback });
+    expect(mock.toolNames(0)).toEqual([LOOKUP_TOOL, LLM_REPLY_TOOL_NAME]);
+    expect(mock.toolNames(1)).toEqual([LOOKUP_TOOL]);
+    expect(mock.body(1)).toMatchObject({ response_format: { type: 'json_schema' } });
+  });
+
+  it('gives the fallback model its own nearest reasoning level', async () => {
+    mock.fail(HttpStatus.SERVICE_UNAVAILABLE).json(DELIVERY);
+
+    await gateway.complete(
+      completeRequest({ model: LlmModelId.Gpt6Luna, reasoning: LlmReasoningEffort.Max }),
+    );
+
+    expect(mock.body(0).reasoning_effort).toBe(LlmReasoningEffort.XHigh);
+    expect(mock.requests[1]?.route).toBe(MockLlmRoute.Messages);
+    expect(mock.body(1)).toMatchObject({ output_config: { effort: LlmReasoningEffort.Max } });
+  });
+
+  it('fails with a typed error when the fallback fails too', async () => {
+    mock.fail(HttpStatus.SERVICE_UNAVAILABLE).hang();
+
+    const failure = gateway.complete(completeRequest());
+
+    await expect(failure).rejects.toBeInstanceOf(LlmUnavailableError);
+    await expect(failure).rejects.toMatchObject({ details: { models: [PRIMARY, FALLBACK] } });
+    expect(mock.requests).toHaveLength(2);
+  });
+
+  it('does not fall back when the provider rejects the request', async () => {
+    mock.fail(HttpStatus.BAD_REQUEST);
+
+    const failure = gateway.runAgent(agentRequest());
+
+    await expect(failure).rejects.toBeInstanceOf(UpstreamError);
+    await expect(failure).rejects.toMatchObject({ retryable: false });
+    expect(mock.requests).toHaveLength(1);
+  });
 });
 
 describe('AiSdkLlmGateway reasoning', () => {

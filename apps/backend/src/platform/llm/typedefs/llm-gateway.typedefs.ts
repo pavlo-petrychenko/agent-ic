@@ -1,7 +1,11 @@
 import type { JSONSchema7, LanguageModel, LanguageModelUsage, ModelMessage } from 'ai';
 import type { z } from 'zod';
 import type { LlmMessageRole } from '@/platform/llm/constants/llm-gateway.constants';
-import type { LlmModelId, LlmReasoningEffort } from '@/platform/llm/constants/llm-model.constants';
+import type {
+  LlmModelId,
+  LlmPurpose,
+  LlmReasoningEffort,
+} from '@/platform/llm/constants/llm-model.constants';
 import type { LlmModel } from '@/platform/llm/typedefs/llm-model.typedefs';
 import type { LlmProviderSource } from '@/platform/llm/typedefs/llm-provider.typedefs';
 
@@ -15,6 +19,7 @@ export type LlmTags = Readonly<Record<string, string>>;
 export interface LlmCompleteRequest<T> {
   readonly provider: LlmProviderSource;
   readonly model: LlmModelId;
+  readonly purpose: LlmPurpose;
   readonly system: string;
   readonly messages: readonly LlmMessage[];
   readonly output: z.ZodType<T>;
@@ -55,7 +60,10 @@ export interface LlmModelRun {
   readonly model: LlmModel;
   readonly languageModel: LanguageModel;
   readonly jsonSchema: JSONSchema7;
+  readonly stepTimeoutMs: number;
 }
+
+export type LlmStepTimeouts = Readonly<Record<LlmPurpose, number>>;
 
 export interface LlmAgentResult<T> extends LlmCompletion<T> {
   readonly toolCalls: readonly LlmToolCall[];

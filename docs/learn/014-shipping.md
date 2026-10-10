@@ -90,4 +90,4 @@ The web app has no environment variables. Its runtime settings are in `apps/web/
 - **A UI pull request without screenshots.** The checklist asks for them in all four combinations.
 - **A non-conventional title.** It becomes the commit on `main`, and the changelog reads it.
 
-Next: look at real code in the examples, starting with [the identity module](../examples/identity-module.md). The list is in [the examples section](../README.md#examples) of the docs entry page.
+Next: [015 Calling the LLM](015-calling-the-llm.md)
