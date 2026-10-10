@@ -23,7 +23,6 @@ import { IconName } from '@/shared/ui/foundations/Icon';
 import { SearchInput } from '@/shared/ui/inputs/SearchInput';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
-import styles from '@/features/agents/containers/AgentsPage/AgentsPage.module.scss';
 
 export function AgentsPage({ workspaceId }: AgentsPageProps) {
   const { t } = useTranslation(AGENTS_NAMESPACE);
@@ -83,7 +82,7 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
         actions={
           isEmpty ? null : (
             <>
-              <div className={styles.search}>
+              <div className="w-(--size-agents-search-width) max-w-full">
                 <SearchInput
                   value={query}
                   label={t('filters.search')}
@@ -102,7 +101,7 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
       />
       <div className="flex flex-col gap-4 px-7">
         {isEmpty ? (
-          <div className={styles.onboarding}>
+          <div className="grid grid-cols-1 items-start gap-5 default:grid-cols-[minmax(0,1fr)_var(--size-agents-setup-width)]">
             <AgentsEmpty creating={creating} onCreate={() => void onCreate()} />
             <SetupChecklist
               creating={creating}
