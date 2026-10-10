@@ -8,6 +8,7 @@
     "sections": {
       "agents": "Agents",
       "inbox": "Inbox",
+      "testing": "Testing",
       "settings": "Settings",
       "team": "Team",
       "general": "General"
@@ -28,11 +29,6 @@
     "create": "Create a workspace"
   },
   "placeholders": {
-    "agents": {
-      "subtitle": "Build, test and publish chat agents for {{workspace}}",
-      "title": "No agents yet",
-      "description": "Building agents is coming in the next release."
-    },
     "inbox": {
       "subtitle": "Chats from {{workspace}} that need a person",
       "title": "No chats need you right now",
