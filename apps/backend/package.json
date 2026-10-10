@@ -27,6 +27,8 @@
   "dependencies": {
     "@agent-ic/contracts": "workspace:*",
     "@agent-ic/flow": "workspace:*",
+    "@ai-sdk/anthropic": "^4.0.78",
+    "@ai-sdk/openai-compatible": "^3.0.67",
     "@apollo/server": "^5.5.1",
     "@as-integrations/express5": "^1.1.2",
     "@bull-board/api": "9.10.2",
@@ -47,6 +49,7 @@
     "@opentelemetry/sdk-node": "^0.222.0",
     "@opentelemetry/semantic-conventions": "^1.43.0",
     "@react-email/render": "^2.1.0",
+    "ai": "^7.0.137",
     "bullmq": "6.3.11",
     "drizzle-orm": "^0.45.3",
     "graphql": "^16.14.2",

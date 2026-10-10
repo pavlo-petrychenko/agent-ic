@@ -73,6 +73,8 @@ mise run setup
 8. runs the migrations and the seed;
 9. prints the URLs, with the port when it is not the default.
 
+To let agents answer in local dev, put your LLMAPI key in `.env` as `LLM_API_KEY` and restart the backend (`mise run restart api` and `mise run restart worker`). Without a key the app still boots, and every LLM call fails with `LLM_NOT_CONFIGURED`. Tests never need a key: they run against an in-process mock LLM.
+
 Every command is a subcommand of one Node script, `tools/dev.ts`, so it works the same on macOS, Linux and Windows. `mise run <command>` and `pnpm stack <command>` both run it.
 
 ## Commands

@@ -34,7 +34,9 @@
     "INVALID_TIME_ZONE": "Choose a valid time zone.",
     "ROLE_NOT_INVITABLE": "This role cannot be given through an invite.",
     "SECRET_KEY_VERSION_UNKNOWN": "A stored secret cannot be read. Contact support.",
-    "SECRET_TAMPERED": "A stored secret is damaged. Enter it again."
+    "SECRET_TAMPERED": "A stored secret is damaged. Enter it again.",
+    "LLM_NOT_CONFIGURED": "The AI model is not set up yet. Contact support.",
+    "LLM_OUTPUT_INVALID": "The AI model gave an answer we could not use. Try again."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",
