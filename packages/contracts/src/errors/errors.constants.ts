@@ -51,4 +51,11 @@ export enum ErrorReason {
   LlmReplyMissing = 'LLM_REPLY_MISSING',
   LlmToolRoundsExceeded = 'LLM_TOOL_ROUNDS_EXCEEDED',
   LlmUnavailable = 'LLM_UNAVAILABLE',
+  AgentNotFound = 'AGENT_NOT_FOUND',
+  AgentVersionNotFound = 'AGENT_VERSION_NOT_FOUND',
+  AgentIsLive = 'AGENT_IS_LIVE',
+  AgentVersionImmutable = 'AGENT_VERSION_IMMUTABLE',
+  AgentFlowHasBlockingIssues = 'AGENT_FLOW_HAS_BLOCKING_ISSUES',
+  AwayMessageRequired = 'AWAY_MESSAGE_REQUIRED',
+  AwayMessageTooLong = 'AWAY_MESSAGE_TOO_LONG',
 }
