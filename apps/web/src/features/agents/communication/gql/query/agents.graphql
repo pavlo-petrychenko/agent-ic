@@ -10,6 +10,7 @@ query Agents($first: Int, $after: String) {
         liveVersionNumber
         draftNumber
         hasUnpublishedChanges
+        versionCount
       }
     }
     pageInfo {

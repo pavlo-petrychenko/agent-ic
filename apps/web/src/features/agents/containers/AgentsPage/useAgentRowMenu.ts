@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDuplicateAgent } from '@/features/agents/communication/hooks/useDuplicateAgent';
 import { useResumeAgent } from '@/features/agents/communication/hooks/useResumeAgent';
@@ -19,6 +19,7 @@ export function useAgentRowMenu(workspaceId: string): UseAgentRowMenuResult {
   const errorMessage = useErrorMessage();
   const { resumeAgent } = useResumeAgent();
   const { duplicateAgent } = useDuplicateAgent();
+  const [deleteRow, setDeleteRow] = useState<AgentRow | null>(null);
 
   const guarded = useCallback(
     async (action: () => Promise<void>) => {
@@ -42,6 +43,8 @@ export function useAgentRowMenu(workspaceId: string): UseAgentRowMenuResult {
             params: { workspaceId },
             search: { agent: row.id },
           });
+        case AgentMenuAction.Delete:
+          return setDeleteRow(row);
         case AgentMenuAction.Resume:
           return void guarded(async () => {
             await resumeAgent(row.id);
@@ -60,5 +63,5 @@ export function useAgentRowMenu(workspaceId: string): UseAgentRowMenuResult {
     [duplicateAgent, guarded, navigate, resumeAgent, showToast, t, workspaceId],
   );
 
-  return { onAction };
+  return { onAction, deleteRow, closeDelete: () => setDeleteRow(null) };
 }

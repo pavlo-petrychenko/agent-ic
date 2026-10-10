@@ -28,4 +28,5 @@ export const AGENT_MENU_ICONS: Readonly<Record<AgentMenuAction, IconName>> = {
   [AgentMenuAction.Test]: IconName.Play,
   [AgentMenuAction.Resume]: IconName.Play,
   [AgentMenuAction.Duplicate]: IconName.Plus,
+  [AgentMenuAction.Delete]: IconName.X,
 };
