@@ -11,7 +11,6 @@ import {
 import { documentToCanvas } from '@/features/flow-builder/logic/helpers/canvas.helpers';
 import { canConnect, connect } from '@/features/flow-builder/logic/helpers/connection.helpers';
 import {
-  addNode,
   duplicateNodes,
   moveNodes,
   removeElements,
@@ -60,10 +59,10 @@ export function FlowEditor() {
     .map((type) => ({ id: type, label: t(`step.${type}`), ...NODE_PRESENTATION[type] }));
   const blank = document.nodes.length > 0 && document.nodes.every((node) => isTriggerNode(node));
   const blankAnchor = blank ? firstTriggerAnchor(document) : null;
-  const place = (value: string, placement: Omit<StepPlacement, 'type'>) => {
+  const place = (value: string, placement: Omit<StepPlacement, 'type' | 'label'>) => {
     const type = toAddableType(PALETTE_SECTIONS, value);
     if (type !== null) {
-      apply(placeStep(document, { type, ...placement }, newElementId));
+      apply(placeStep(document, { type, label: t(`step.${type}`), ...placement }, newElementId));
     }
   };
 
@@ -149,7 +148,19 @@ export function FlowEditor() {
           place(itemId, { position, after: { source, sourcePort }, splitEdgeId: null })
         }
         onAddTrigger={() =>
-          apply(addNode(document, NodeType.TriggerMessage, FIRST_STEP_POSITION, newElementId()))
+          apply(
+            placeStep(
+              document,
+              {
+                type: NodeType.TriggerMessage,
+                label: t(`step.${NodeType.TriggerMessage}`),
+                position: FIRST_STEP_POSITION,
+                after: null,
+                splitEdgeId: null,
+              },
+              newElementId,
+            ),
+          )
         }
       />
       <CanvasToolbar density={density} onDensityChange={setDensity} />

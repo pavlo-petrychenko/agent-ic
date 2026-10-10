@@ -20,6 +20,11 @@ export function SaveStatus({ saveState, onRetry }: SaveStatusProps) {
           {t('autosave.saving')}
         </Text>
       )}
+      {saveState === SaveState.Conflict && (
+        <Text kind={TextKind.Small} color={TextColor.Err}>
+          {t('autosave.notSaved')}
+        </Text>
+      )}
       {saveState === SaveState.Error && (
         <>
           <Text kind={TextKind.Small} color={TextColor.Err}>

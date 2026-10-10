@@ -1,0 +1,24 @@
+.value {
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-4);
+  background: transparent;
+  color: var(--color-ink);
+  font: var(--type-h3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: text;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+
+  &:hover {
+    background: var(--color-soft);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}

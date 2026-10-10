@@ -3,7 +3,9 @@ import { Icon } from '@/shared/ui/foundations/Icon/Icon';
 import { IconName } from '@/shared/ui/foundations/Icon/Icon.constants';
 import {
   MENU_CHECK_ICON_SIZE,
+  MENU_ITEM_ROLES,
   MenuEntryKind,
+  MenuRole,
   MenuVariant,
 } from '@/shared/ui/overlays/Menu/Menu.constants';
 import type { MenuEntry, MenuItem, MenuProps } from '@/shared/ui/overlays/Menu/Menu.typedefs';
@@ -68,6 +70,7 @@ export function Menu({
   selectedId = null,
   onSelect,
   variant = MenuVariant.Listbox,
+  role = MenuRole.Listbox,
   width = null,
   minWidth = null,
   ariaLabel,
@@ -80,11 +83,12 @@ export function Menu({
     onSelect,
   });
   const isAction = variant === MenuVariant.Action;
+  const isListbox = role === MenuRole.Listbox;
 
   return (
     <div
       // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-      role="listbox"
+      role={role}
       aria-label={ariaLabel}
       className={clsx(styles.root, minWidth !== null && styles.fit, className)}
       style={{ width: width ?? undefined, minWidth: minWidth ?? undefined }}
@@ -105,12 +109,13 @@ export function Menu({
         const disabled = entry.disabled === true;
 
         return (
+          // oxlint-disable-next-line jsx-a11y/no-static-element-interactions
           <div
             key={entry.id}
             ref={registerOption(entry.id)}
             // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-            role="option"
-            aria-selected={selected}
+            role={MENU_ITEM_ROLES[role]}
+            aria-selected={isListbox ? selected : undefined}
             aria-disabled={disabled ? true : undefined}
             tabIndex={entry.id === tabStopId ? 0 : -1}
             className={clsx(

@@ -8,6 +8,7 @@ import {
   firstTriggerAnchor,
   placeStep,
 } from '@/features/flow-builder/logic/helpers/placement.helpers';
+import type { StepPlacement } from '@/features/flow-builder/typedefs/palette.typedefs';
 
 const ids = () => {
   let next = 0;
@@ -34,7 +35,13 @@ describe('placeStep', () => {
   it('adds a step on its own', () => {
     const placed = placeStep(
       EMPTY_FLOW,
-      { type: NodeType.Agent, position: { x: 5, y: 6 }, after: null, splitEdgeId: null },
+      {
+        type: NodeType.Agent,
+        label: 'Agent',
+        position: { x: 5, y: 6 },
+        after: null,
+        splitEdgeId: null,
+      },
       ids(),
     );
 
@@ -44,11 +51,29 @@ describe('placeStep', () => {
     expect(placed.edges).toEqual([]);
   });
 
+  it('titles each new step by its type and keeps the keys unique', () => {
+    const placement: StepPlacement = {
+      type: NodeType.Agent,
+      label: 'Agent',
+      position: { x: 0, y: 0 },
+      after: null,
+      splitEdgeId: null,
+    };
+    const createId = ids();
+    const twice = placeStep(placeStep(EMPTY_FLOW, placement, createId), placement, createId);
+
+    expect(twice.nodes.map((node) => [node.key, node.label])).toEqual([
+      ['agent', 'Agent'],
+      ['agent_2', 'Agent'],
+    ]);
+  });
+
   it('connects the new step after an anchor', () => {
     const placed = placeStep(
       triggerAndReply(),
       {
         type: NodeType.Agent,
+        label: 'Agent',
         position: { x: 0, y: 150 },
         after: { source: 's', sourcePort: PortName.Next },
         splitEdgeId: null,
@@ -62,7 +87,13 @@ describe('placeStep', () => {
   it('splits an edge around the dropped step', () => {
     const placed = placeStep(
       triggerAndReply(),
-      { type: NodeType.Agent, position: { x: 0, y: 150 }, after: null, splitEdgeId: 'e' },
+      {
+        type: NodeType.Agent,
+        label: 'Agent',
+        position: { x: 0, y: 150 },
+        after: null,
+        splitEdgeId: 'e',
+      },
       ids(),
     );
 
@@ -72,7 +103,13 @@ describe('placeStep', () => {
   it('keeps the edge when the dropped step cannot sit inside it', () => {
     const placed = placeStep(
       triggerAndReply(),
-      { type: NodeType.Escalation, position: { x: 0, y: 150 }, after: null, splitEdgeId: 'e' },
+      {
+        type: NodeType.Escalation,
+        label: 'Escalation / exit',
+        position: { x: 0, y: 150 },
+        after: null,
+        splitEdgeId: 'e',
+      },
       ids(),
     );
 

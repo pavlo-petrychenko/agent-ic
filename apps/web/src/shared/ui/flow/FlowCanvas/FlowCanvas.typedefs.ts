@@ -160,15 +160,13 @@ export type CanvasNode = Node<CanvasNodeData>;
 export type CanvasEdge = Edge<CanvasEdgeData>;
 
 export interface AddStepMenuState {
-  left: number;
-  top: number;
+  anchor: FlowCanvasPoint;
   position: FlowCanvasPoint;
   source: string;
   sourcePort: string;
 }
 
 export interface ContextMenuState {
-  left: number;
-  top: number;
+  anchor: FlowCanvasPoint;
   target: FlowCanvasSelection;
 }

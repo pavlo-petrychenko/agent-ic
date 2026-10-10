@@ -6,7 +6,6 @@ import {
   DEMO_AGENT_ID,
   TRIGGER_ONLY_FLOW,
   buildFlowBuilderDraftFailureMock,
-  buildDescribeAgentMock,
   buildFlowBuilderDraftMock,
   buildRenameAgentMock,
 } from '@/features/flow-builder/communication/fixtures/flowBuilderDraft.fixture';
@@ -69,7 +68,7 @@ describe('flow builder canvas', () => {
     await userEvent.click(screen.getByRole('button', { name: /Add a step/ }));
     await userEvent.click(await screen.findByRole('option', { name: 'Agent' }));
 
-    expect(within(canvas).getByLabelText('agent')).toBeInTheDocument();
+    expect(within(canvas).getByLabelText('Agent')).toBeInTheDocument();
     expect(edges()).toMatchObject([{ source: 'trigger', sourcePort: 'next' }]);
     expect(screen.queryByRole('heading', hint)).toBeNull();
   });
@@ -78,7 +77,7 @@ describe('flow builder canvas', () => {
     const canvas = await openBuilder();
 
     await userEvent.click(screen.getByRole('button', { name: 'Send message' }));
-    expect(within(canvas).getByLabelText('send_message')).toBeInTheDocument();
+    expect(within(canvas).getByLabelText('Send message')).toBeInTheDocument();
 
     await userEvent.type(
       screen.getByRole('searchbox', { name: 'Search steps and triggers' }),
@@ -106,27 +105,8 @@ describe('flow builder canvas', () => {
 
     expect(await screen.findByText('Agent renamed')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Front desk' })).toBeInTheDocument();
-    expect(within(canvas).getByLabelText('send_message')).toBeInTheDocument();
+    expect(within(canvas).getByLabelText('Send message')).toBeInTheDocument();
     expect(useFlowBuilderStore.getState().history.past).toHaveLength(1);
-  });
-
-  it('describes the agent in the header', async () => {
-    renderRoute(builderPath, {
-      mocks: [
-        shell,
-        buildFlowBuilderDraftMock(TRIGGER_ONLY_FLOW),
-        buildDescribeAgentMock('Books salon visits'),
-      ],
-    });
-
-    await userEvent.click(await screen.findByRole('button', { name: 'Add a description' }));
-    await userEvent.type(
-      screen.getByRole('textbox', { name: 'Agent description' }),
-      'Books salon visits{Enter}',
-    );
-
-    expect(await screen.findByText('Description saved')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Books salon visits' })).toBeInTheDocument();
   });
 
   it('deletes and duplicates a step from its right-click menu', async () => {
@@ -134,14 +114,30 @@ describe('flow builder canvas', () => {
     const step = () => within(canvas).getByLabelText('Customer message');
 
     fireEvent.contextMenu(step());
-    await userEvent.click(screen.getByRole('option', { name: 'Delete' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
     expect(within(canvas).queryByLabelText('Customer message')).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
 
     fireEvent.contextMenu(step());
-    await userEvent.click(screen.getByRole('option', { name: 'Duplicate' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Duplicate' }));
     expect(within(canvas).getAllByLabelText('Customer message')).toHaveLength(2);
-    expect(screen.queryByRole('listbox', { name: 'Step actions' })).toBeNull();
+    expect(screen.queryByRole('menu', { name: 'Step actions' })).toBeNull();
+  });
+
+  it('moves through the step menu with the arrow keys and closes it with Escape', async () => {
+    const canvas = await openBuilder();
+
+    fireEvent.contextMenu(within(canvas).getByLabelText('Customer message'));
+    const menu = screen.getByRole('menu', { name: 'Step actions' });
+    expect(canvas).not.toContainElement(menu);
+    expect(within(menu).getByRole('menuitem', { name: 'Duplicate' })).toHaveFocus();
+
+    await userEvent.keyboard('{ArrowDown}');
+    expect(within(menu).getByRole('menuitem', { name: 'Delete' })).toHaveFocus();
+
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('menu', { name: 'Step actions' })).toBeNull();
+    expect(canvas).toHaveFocus();
   });
 
   it('switches density and lists the keyboard shortcuts', async () => {
@@ -184,7 +180,7 @@ describe('flow builder canvas', () => {
 
     await userEvent.click(within(canvas).getByRole('button', { name: 'Add a trigger' }));
 
-    expect(within(canvas).getByLabelText('trigger_message')).toBeInTheDocument();
+    expect(within(canvas).getByLabelText('Incoming message')).toBeInTheDocument();
   });
 
   it('shows the collapsed rail instead of the workspace sidebar', async () => {

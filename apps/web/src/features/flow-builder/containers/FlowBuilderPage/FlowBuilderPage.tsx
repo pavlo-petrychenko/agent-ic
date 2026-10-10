@@ -1,7 +1,6 @@
-import { AGENT_DESCRIPTION_MAX_LENGTH, AGENT_NAME_MAX_LENGTH } from '@agent-ic/contracts';
+import { AGENT_NAME_MAX_LENGTH } from '@agent-ic/contracts';
 import { useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDescribeAgent } from '@/features/flow-builder/communication/hooks/useDescribeAgent';
 import { useFlowBuilderDraft } from '@/features/flow-builder/communication/hooks/useFlowBuilderDraft';
 import { useRenameAgent } from '@/features/flow-builder/communication/hooks/useRenameAgent';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
@@ -21,6 +20,7 @@ import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
+import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { Banner, BannerTone } from '@/shared/ui/display/Banner';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { Skeleton } from '@/shared/ui/display/Skeleton';
@@ -33,10 +33,8 @@ import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 export function FlowBuilderPage({ workspaceId, agentId }: FlowBuilderPageProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const workspace = useActiveWorkspace(workspaceId);
-  const { agentName, agentDescription, baseVersion, draft, loading, failed, retry } =
-    useFlowBuilderDraft(agentId);
+  const { agentName, baseVersion, draft, loading, failed, retry } = useFlowBuilderDraft(agentId);
   const renameAgent = useRenameAgent(agentId);
-  const describeAgent = useDescribeAgent(agentId);
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
   const { locale } = useLocale();
@@ -70,8 +68,8 @@ export function FlowBuilderPage({ workspaceId, agentId }: FlowBuilderPageProps) 
         }}
         status={
           agentName === null ? null : (
-            <div className="flex items-center gap-3">
-              <Text kind={TextKind.Small} color={TextColor.Mute} aria-hidden="true">
+            <div className="flex min-w-0 items-center gap-3">
+              <Text kind={TextKind.Body} color={TextColor.Mute} aria-hidden="true">
                 {BREADCRUMB_SEPARATOR}
               </Text>
               <InlineEditField
@@ -84,26 +82,11 @@ export function FlowBuilderPage({ workspaceId, agentId }: FlowBuilderPageProps) 
                 current
                 onCommit={(name) => save(renameAgent(name), t('header.renamed'))}
               />
-              <InlineEditField
-                value={agentDescription}
-                placeholder={t('header.addDescription')}
-                editLabel={t('header.describe')}
-                inputLabel={t('header.descriptionLabel')}
-                maxLength={AGENT_DESCRIPTION_MAX_LENGTH}
-                required={false}
-                current={false}
-                onCommit={(description) =>
-                  save(
-                    describeAgent(description === '' ? null : description),
-                    t('header.described'),
-                  )
-                }
-              />
-              <Text kind={TextKind.Small} color={TextColor.Mute}>
+              <Badge tone={baseVersion === null ? BadgeTone.Neutral : BadgeTone.Warn} dot>
                 {baseVersion === null
                   ? t('header.neverPublished')
                   : t('header.editedFrom', { version: baseVersion })}
-              </Text>
+              </Badge>
             </div>
           )
         }

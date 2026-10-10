@@ -14,6 +14,7 @@ export interface StepAnchor {
 
 export interface StepPlacement {
   type: AddableNodeType;
+  label: string;
   position: FlowPoint;
   after: StepAnchor | null;
   splitEdgeId: string | null;
