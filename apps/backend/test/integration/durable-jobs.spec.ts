@@ -26,7 +26,7 @@ import {
   ProbeJobName,
   ProbeListener,
 } from '@test/support/constants/async-jobs.constants';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
 import { createProbeWorker, userCtx } from '@test/support/helpers/async-jobs.helpers';
 import { probeSignedUpEvent } from '@test/support/jobs/probe-signed-up.job';
@@ -86,7 +86,7 @@ describe('durable jobs', () => {
   };
 
   beforeAll(async () => {
-    app = await createProbeWorker(TestRedisDatabase.DurableJobs);
+    app = await createProbeWorker(TestRedisPrefix.DurableJobs);
     txHost = app.get(TransactionHost);
     jobs = app.get(JobsService);
     domainEvents = app.get(DomainEventsService);

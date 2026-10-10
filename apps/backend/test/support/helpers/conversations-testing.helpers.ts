@@ -10,7 +10,6 @@ import { ClockModule } from '@/platform/clock/clock.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { ConfigModule } from '@/platform/config/config.module';
 import { EnvVar } from '@/platform/config/constants/env.constants';
-import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { ContextModule } from '@/platform/context/context.module';
 import { DatabaseModule } from '@/platform/database/database.module';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -29,11 +28,11 @@ import {
   CONVERSATIONS_TEST_START,
   MESSAGE_SPACING_MS,
 } from '@test/support/constants/conversations-testing.constants';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { newConversation, newMessage } from '@test/support/fixtures/conversation.fixture';
-import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
+import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 import {
   deliverOnOutboundQueued,
   notifyOnNeedsOperator,
@@ -46,11 +45,12 @@ import type {
 const ROLE = Role.Gateway;
 
 export const createConversationsTestbed = async (): Promise<ConversationsTestbed> => {
-  const config = loadAppConfig(
+  const config = createIntegrationConfig(
     { role: ROLE, queues: [] },
-    createIntegrationTestEnv(TestRedisDatabase.Conversations, {
+    TestRedisPrefix.Conversations,
+    {
       [EnvVar.DatabasePoolMax]: CONCURRENT_POOL_SIZE,
-    }),
+    },
   );
   const clock = new ManualClock(CONVERSATIONS_TEST_START);
   const module = await Test.createTestingModule({

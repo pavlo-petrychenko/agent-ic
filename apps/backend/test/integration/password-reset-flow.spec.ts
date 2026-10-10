@@ -26,7 +26,7 @@ import {
   PASSWORD_RESETS_PER_HOUR,
 } from '@test/support/constants/password-reset-testing.constants';
 import { EPHEMERAL_PORT, LOOPBACK_HOST } from '@test/support/constants/request-layer.constants';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { randomIpAddress, uniqueEmail } from '@test/support/fixtures/identity.fixture';
 import {
   bootRoleWithEmails,
@@ -91,12 +91,12 @@ describe('password reset through the api', () => {
     api = await bootRoleWithEmails(
       { role: Role.Api, queues: [] },
       emails,
-      TestRedisDatabase.PasswordResetFlow,
+      TestRedisPrefix.PasswordResetFlow,
     );
     worker = await bootRoleWithEmails(
       { role: Role.Worker, queues: [QueueName.Notify] },
       emails,
-      TestRedisDatabase.PasswordResetFlow,
+      TestRedisPrefix.PasswordResetFlow,
     );
     await api.listen(EPHEMERAL_PORT, LOOPBACK_HOST);
   });

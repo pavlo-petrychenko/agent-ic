@@ -10,24 +10,23 @@ import {
 } from '@/modules/identity/constants/auth-http.constants';
 import type { FakeEmailGateway } from '@/modules/notifications/gateways/email.fake';
 import { EmailGateway } from '@/modules/notifications/gateways/email.gateway';
-import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import type { RoleSelection } from '@/platform/config/typedefs/app-config.typedefs';
 import { HttpHeader } from '@/platform/http/constants/http-header.constants';
 import { TracingService } from '@/platform/observability/services/tracing.service';
 import { APP_ORIGIN, JSON_CONTENT_TYPE } from '@test/support/constants/auth-flow.constants';
 import { CONFIRM_LINK_PATTERN } from '@test/support/constants/identity-testing.constants';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
-import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
+import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 
 const COOKIE_ATTRIBUTE_SEPARATOR = ';';
 
 export const bootRoleWithEmails = async (
   selection: RoleSelection,
   emails: FakeEmailGateway,
-  redisDatabase: TestRedisDatabase = TestRedisDatabase.AuthFlow,
+  redisPrefix: TestRedisPrefix = TestRedisPrefix.AuthFlow,
 ): Promise<INestApplication> => {
-  const config = loadAppConfig(selection, createIntegrationTestEnv(redisDatabase));
+  const config = createIntegrationConfig(selection, redisPrefix);
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule.forRole(config, new TracingService(config.telemetry))],
   })
