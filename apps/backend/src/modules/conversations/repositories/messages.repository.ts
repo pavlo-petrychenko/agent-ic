@@ -1,7 +1,9 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, lt, lte, or } from 'drizzle-orm';
+import { and, asc, eq, gt, lt, lte, or } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
+import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
+import type { MessageDelivery } from '@/modules/conversations/constants/message.constants';
 import { messages } from '@/modules/conversations/db/messages.table';
 import type {
   Message,
@@ -70,6 +72,37 @@ export class MessagesRepository {
         and(eq(messages.createdAt, last.createdAt), lte(messages.id, last.id)),
       ),
     );
+  }
+
+  listCustomerAfter(
+    workspaceId: string,
+    conversationId: string,
+    first: MessagePosition,
+  ): Promise<Message[]> {
+    return this.listWhere(
+      workspaceId,
+      conversationId,
+      and(
+        eq(messages.author, MessageAuthor.Customer),
+        or(
+          gt(messages.createdAt, first.createdAt),
+          and(eq(messages.createdAt, first.createdAt), gt(messages.id, first.id)),
+        ),
+      ),
+    );
+  }
+
+  async updateDelivery(
+    workspaceId: string,
+    id: string,
+    delivery: MessageDelivery,
+  ): Promise<boolean> {
+    const updated = await this.txHost.tx
+      .update(messages)
+      .set({ delivery })
+      .where(and(eq(messages.workspaceId, workspaceId), eq(messages.id, id)))
+      .returning({ id: messages.id });
+    return updated.length > 0;
   }
 
   private listWhere(

@@ -49,4 +49,5 @@ export enum TestRedisDatabase {
   PasswordResetFlow = 12,
   DurableJobs = 13,
   Agents = 14,
+  Conversations = 15,
 }

@@ -21,3 +21,13 @@ export interface Message {
 export type NewMessage = typeof messages.$inferInsert;
 
 export type MessagePosition = Pick<Message, 'id' | 'createdAt'>;
+
+export interface OutboundMessageInput {
+  readonly workspaceId: string;
+  readonly conversationId: string;
+  readonly key: string;
+  readonly author: MessageAuthor;
+  readonly text: string;
+  readonly quickReplies: readonly string[];
+  readonly runId: string | null;
+}
