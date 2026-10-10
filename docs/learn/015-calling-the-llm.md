@@ -75,4 +75,4 @@ complete(request) / runAgent(request)
 - **Do not send sampling params.** The gateway sends no `temperature`, `top_p` or `top_k`; Claude Haiku rejects them.
 - **Do not wrap the gateway in your own retry.** A job already retries `LlmUnavailableError`; a second loop multiplies the wait and the cost.
 
-Next: look at real code in the examples, starting with [the identity module](../examples/identity-module.md). The list is in [the examples section](../README.md#examples) of the docs entry page.
+Next: [016 PR media](016-pr-media.md)

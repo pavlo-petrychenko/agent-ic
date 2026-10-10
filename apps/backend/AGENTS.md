@@ -20,11 +20,12 @@ migrations/              SQL migrations written by drizzle-kit, committed, never
 
 ## Commands and roles
 
-One binary, three commands, in `src/app/commands/`:
+One binary, four commands, in `src/app/commands/`:
 
 - `node dist/main.js serve --role=api|gateway|worker`. A worker also needs `--queues=…` (names from `QueueName`). Ports, host and everything else come from env (`.env.example`), validated by `platform/config`; invalid input prints every bad variable and exits with code 1.
 - `node dist/main.js migrate` applies `migrations/` as `app_owner`.
 - `node dist/main.js print-schema --output=…` merges every module's SDL into `packages/api-schema`.
+- `node dist/main.js seed` (`mise run db:seed`) boots the app without listening and loads the demo owner, workspace and one live agent through `SampleWorkspaceService` and `SampleAgentService`. It repeats safely and refuses production (D240).
 - `pnpm --filter backend dev:api`, `dev:gateway`, `dev:worker` rebuild with SWC into `.dev/dist` and restart on change. Extra arguments pass through: `dev:worker --queues=ingest`. `pnpm --filter backend build` then `pnpm --filter backend start --role=api` (the `start` script already passes `serve`) runs the compiled app.
 - Every role serves health and metrics: `/api/health/live`, `/api/health/ready` on `api`; `/health/live`, `/health/ready` on `gateway` and `worker`; `/metrics` on all three, outside the `/api` prefix.
 - `AppModule.forRole(config, tracing)` imports every module in `APP_MODULES` (`src/app/constants/app-modules.constants.ts`) once; a new module is one line there. Each module is one `defineModule({...})` that declares all its transports, and `forRole(role)` mounts only what that role runs: resolvers and controllers in `api`, gateway controllers in `gateway`, processors and listeners in `worker`. `Role` and `defineModule` live in `platform/module-roles/`.
