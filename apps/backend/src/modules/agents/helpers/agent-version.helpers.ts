@@ -1,4 +1,8 @@
-import type { AgentVersion, VersionCopy } from '@/modules/agents/typedefs/agent-version.typedefs';
+import type {
+  AgentVersion,
+  AgentVersionView,
+  VersionCopy,
+} from '@/modules/agents/typedefs/agent-version.typedefs';
 
 export const copyDraftToVersion = (draft: AgentVersion, copy: VersionCopy): AgentVersion => ({
   id: copy.id,
@@ -12,4 +16,14 @@ export const copyDraftToVersion = (draft: AgentVersion, copy: VersionCopy): Agen
   publishedAt: copy.publishedAt,
   createdAt: copy.at,
   updatedAt: copy.at,
+});
+
+export const toAgentVersionView = (version: AgentVersion, publicId: string): AgentVersionView => ({
+  id: publicId,
+  kind: version.kind,
+  number: version.number,
+  flow: version.flow,
+  note: version.note,
+  publishedAt: version.publishedAt,
+  createdAt: version.createdAt,
 });

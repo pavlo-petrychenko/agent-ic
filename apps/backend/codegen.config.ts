@@ -5,7 +5,12 @@ const config: CodegenConfig = {
   generates: {
     'src/platform/graphql-server/generated/schema.generated.ts': {
       plugins: ['typescript'],
-      config: { useTypeImports: true, immutableTypes: true, avoidOptionals: true },
+      config: {
+        scalars: { JSON: 'unknown' },
+        useTypeImports: true,
+        immutableTypes: true,
+        avoidOptionals: true,
+      },
     },
   },
 };

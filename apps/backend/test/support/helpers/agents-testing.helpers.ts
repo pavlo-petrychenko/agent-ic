@@ -4,6 +4,8 @@ import type { TestingModule } from '@nestjs/testing';
 import { AgentsModule } from '@/modules/agents/agents.module';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
+import type { AgentVersion } from '@/modules/agents/typedefs/agent-version.typedefs';
+import type { Agent } from '@/modules/agents/typedefs/agent.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -59,3 +61,23 @@ export const makeAgentLive = async (
         .setLiveVersion(workspaceId, seeded.agentId, seeded.draftId, AGENTS_TEST_START),
     );
 };
+
+export const readAgent = (
+  testingModule: TestingModule,
+  workspaceId: string,
+  agentId: string,
+): Promise<Agent | null> =>
+  testingModule
+    .get(TenantTransactionService)
+    .run(workspaceId, () => testingModule.get(AgentsRepository).findById(workspaceId, agentId));
+
+export const readVersions = (
+  testingModule: TestingModule,
+  workspaceId: string,
+  agentId: string,
+): Promise<AgentVersion[]> =>
+  testingModule
+    .get(TenantTransactionService)
+    .run(workspaceId, () =>
+      testingModule.get(AgentVersionsRepository).listByAgent(workspaceId, agentId),
+    );

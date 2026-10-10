@@ -16,7 +16,9 @@ import { toGraphqlError } from '@/platform/errors/helpers/graphql-error.helpers'
 import { ErrorReporterService } from '@/platform/errors/services/error-reporter.service';
 import { ConnectionParam } from '@/platform/graphql-server/constants/connection-param.constants';
 import { GRAPHQL_PATH } from '@/platform/graphql-server/constants/graphql-server.constants';
+import { GraphqlScalar } from '@/platform/graphql-server/constants/scalar.constants';
 import { readConnectionParam } from '@/platform/graphql-server/helpers/connection-param.helpers';
+import { jsonScalar } from '@/platform/graphql-server/helpers/json-scalar.helpers';
 import { moduleTypePaths } from '@/platform/graphql-server/helpers/module-sdl.helpers';
 import type {
   GraphqlContext,
@@ -39,6 +41,7 @@ export class GraphqlOptionsService implements GqlOptionsFactory<ApolloDriverConf
     const { nodeEnv } = this.config.config;
     return {
       typePaths: moduleTypePaths(),
+      resolvers: { [GraphqlScalar.Json]: jsonScalar },
       path: GRAPHQL_PATH,
       useGlobalPrefix: true,
       graphiql: nodeEnv === NodeEnvironment.Development,
