@@ -163,6 +163,18 @@ describe('flow builder canvas', () => {
     expect(within(canvas).getByLabelText('Customer message')).toBeInTheDocument();
   });
 
+  it('keeps the keyboard on the canvas after deleting the focused step', async () => {
+    const canvas = await openBuilder();
+    act(() => useFlowBuilderStore.getState().select({ nodeIds: ['trigger'], edgeIds: [] }));
+
+    within(canvas).getByLabelText('Customer message').focus();
+    await userEvent.keyboard('{Delete}');
+    expect(canvas).toHaveFocus();
+
+    await userEvent.keyboard('{Control>}z{/Control}');
+    expect(within(canvas).getByLabelText('Customer message')).toBeInTheDocument();
+  });
+
   it('offers a trigger on an empty flow', async () => {
     const canvas = await openBuilder(EMPTY_FLOW);
 

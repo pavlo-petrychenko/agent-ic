@@ -144,6 +144,7 @@ function FlowCanvasSurface({
   };
 
   const deleteSelection = (target: FlowCanvasSelection) => {
+    rootRef.current?.focus();
     onDelete(target);
     showToast({ message: labels.deleted, action: { label: labels.undo, onClick: onUndo } });
   };
