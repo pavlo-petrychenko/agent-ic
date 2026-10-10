@@ -371,6 +371,9 @@
             },
             "SECRET_BOX_KEY": {
               "$ref": "#/definitions/nonEmptyString"
+            },
+            "SECRET_BOX_PREVIOUS_KEYS": {
+              "$ref": "#/definitions/nonEmptyString"
             }
           }
         }
@@ -548,6 +551,7 @@
         "langfuse",
         "s3",
         "llm",
+        "secretBox",
         "email"
       ],
       "properties": {
@@ -565,6 +569,17 @@
         "databasePoolMax": {
           "type": "integer",
           "minimum": 1
+        },
+        "secretBox": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["keyVersion"],
+          "properties": {
+            "keyVersion": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
         },
         "telemetry": {
           "type": "object",

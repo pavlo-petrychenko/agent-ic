@@ -123,6 +123,8 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | replace 
 - name: SMTP_REQUIRE_TLS
   value: {{ .requireTls | default false | quote }}
 {{- end }}
+- name: SECRET_BOX_KEY_VERSION
+  value: {{ $config.secretBox.keyVersion | quote }}
 - name: LLM_BASE_URL
   value: {{ $config.llm.baseUrl | quote }}
 - name: EMBEDDING_MODEL

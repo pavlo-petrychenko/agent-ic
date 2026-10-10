@@ -121,6 +121,12 @@ backend_count="$(yq -N 'select(.kind == "Deployment" and .metadata.name != "agen
 test "$invite_count" = "$backend_count"
 echo "$invite_refs in $invite_count workloads"
 
+echo "== every backend workload gets the secret box key version"
+key_versions="$(yq -N 'select(.kind == "Deployment" and .metadata.name != "agent-ic-web") | .spec.template.spec.containers[0].env[] | select(.name == "SECRET_BOX_KEY_VERSION") | .value' "$rendered/default.yaml")"
+test "$(echo "$key_versions" | sort -u)" = "1"
+test "$(echo "$key_versions" | wc -l | tr -d ' ')" = "$backend_count"
+echo "SECRET_BOX_KEY_VERSION=1 in $backend_count workloads"
+
 echo "== SMTP TLS defaults to off and takes TLS and credentials from values and a secret"
 smtp_env() {
   yq -N "select(.kind == \"Deployment\" and .metadata.name == \"agent-ic-worker-runs\") | .spec.template.spec.containers[0].env[] | select(.name == \"$1\") | $2" "$rendered/$3.yaml"
@@ -238,6 +244,9 @@ expect_failure "resend e-mail without the e-mail secret" \
 expect_failure "auth Secret without the invite token key" \
   'INVITE_TOKEN_SECRET' \
   --set secrets.auth.keys.INVITE_TOKEN_SECRET=null
+expect_failure "secret box key version below one" \
+  'keyVersion' \
+  --set config.secretBox.keyVersion=0
 expect_failure "enabled SMTP secret without keys" \
   'missing propert' \
   --set secrets.smtp.enabled=true \

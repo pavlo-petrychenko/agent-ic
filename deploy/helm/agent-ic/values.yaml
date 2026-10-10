@@ -25,6 +25,8 @@ config:
     host: ''
   s3:
     forcePathStyle: false
+  secretBox:
+    keyVersion: 1
 
 connections:
   database:
