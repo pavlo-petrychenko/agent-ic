@@ -44,3 +44,5 @@ export const stepVariables = (
   });
   return { ...walk.trigger, ...Object.fromEntries(outputs) };
 };
+
+export const stepInput = ({ history: _history, ...input }: StepData): StepData => input;

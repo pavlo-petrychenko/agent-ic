@@ -2,7 +2,11 @@ import { PortName, createScopeLookup } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { ChannelKind, MessageAuthor } from '@/modules/conversations';
 import { CURRENT_MESSAGE_SEPARATOR, RunStepStatus } from '@/modules/runs/constants/run.constants';
-import { messageTriggerVariables, stepVariables } from '@/modules/runs/helpers/run-scope.helpers';
+import {
+  messageTriggerVariables,
+  stepInput,
+  stepVariables,
+} from '@/modules/runs/helpers/run-scope.helpers';
 import { IdService } from '@/platform/ids/services/id.service';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
@@ -76,5 +80,16 @@ describe('stepVariables', () => {
 
   it('leaves out a step that failed into its error port', () => {
     expect(variablesAtSecond(PortName.Error, RunStepStatus.Failed)).toEqual(trigger);
+  });
+});
+
+describe('stepInput', () => {
+  it('saves the variables without the history', () => {
+    const { history: _history, ...saved } = trigger;
+
+    expect(stepInput(variablesAtSecond(PortName.Next, RunStepStatus.Succeeded))).toEqual({
+      ...saved,
+      [FIRST_STEP_KEY]: { answer: FIRST_STEP_KEY },
+    });
   });
 });

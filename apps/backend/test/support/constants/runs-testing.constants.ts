@@ -31,6 +31,7 @@ export const TEST_PUBLISHED_NUMBER = 1;
 export enum StepScript {
   Succeed = 'succeed',
   Fail = 'fail',
+  RejectUpstream = 'reject-upstream',
   Crash = 'crash',
 }
 export const TEST_END_USER_NAME = 'Olena';
