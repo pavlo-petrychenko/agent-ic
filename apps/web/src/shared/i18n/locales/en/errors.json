@@ -36,8 +36,7 @@
     "SECRET_KEY_VERSION_UNKNOWN": "A stored secret cannot be read. Contact support.",
     "SECRET_TAMPERED": "A stored secret is damaged. Enter it again.",
     "LLM_NOT_CONFIGURED": "The AI model is not set up yet. Contact support.",
-    "LLM_REPLY_INVALID": "The AI model gave an answer we could not use. Try again.",
-    "LLM_REPLY_MISSING": "The AI model did not give an answer. Try again."
+    "LLM_OUTPUT_INVALID": "The AI model gave an answer we could not use. Try again."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",

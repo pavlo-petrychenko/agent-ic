@@ -1,5 +1,8 @@
-import type { LlmReply, LlmReplyRequest } from '@/platform/llm/typedefs/llm-gateway.typedefs';
+import type {
+  LlmCompleteRequest,
+  LlmCompletion,
+} from '@/platform/llm/typedefs/llm-gateway.typedefs';
 
 export abstract class LlmGateway {
-  abstract generateReply<T>(request: LlmReplyRequest<T>): Promise<LlmReply<T>>;
+  abstract complete<T>(request: LlmCompleteRequest<T>): Promise<LlmCompletion<T>>;
 }

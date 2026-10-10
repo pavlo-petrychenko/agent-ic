@@ -1,28 +1,24 @@
 import { Test } from '@nestjs/testing';
-import { MockLanguageModelV4 } from 'ai/test';
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { ConfigModule } from '@/platform/config/config.module';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { ConfigService } from '@/platform/config/services/config.service';
 import {
-  LLM_MAX_TOOL_ROUNDS,
-  LLM_REPLY_INVALID_FEEDBACK,
-  LLM_REPLY_TOOL_NAME,
+  LLM_JSON_OBJECT_INSTRUCTION,
+  LLM_OUTPUT_INVALID_FEEDBACK,
   LlmMessageRole,
 } from '@/platform/llm/constants/llm-gateway.constants';
 import { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
 import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants';
 import { LlmNotConfiguredError } from '@/platform/llm/errors/llm-not-configured.error';
-import { LlmReplyInvalidError } from '@/platform/llm/errors/llm-reply-invalid.error';
-import { LlmReplyMissingError } from '@/platform/llm/errors/llm-reply-missing.error';
+import { LlmOutputInvalidError } from '@/platform/llm/errors/llm-output-invalid.error';
 import { AiSdkLlmGateway } from '@/platform/llm/gateways/ai-sdk-llm.gateway';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import { LlmModule } from '@/platform/llm/llm.module';
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
-import type { LlmReplyRequest } from '@/platform/llm/typedefs/llm-gateway.typedefs';
-import type { LlmProviderSource } from '@/platform/llm/typedefs/llm-provider.typedefs';
+import type { LlmCompleteRequest } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { MockLlmRoute } from '@test/support/constants/mock-llm.constants';
 import { createTestEnv } from '@test/support/fixtures/test-env.fixture';
@@ -32,57 +28,32 @@ import type { MockLlmService } from '@test/support/services/mock-llm.service';
 const API_KEY = 'test-llmapi-key';
 const SYSTEM = 'You route customer messages.';
 const QUESTION = 'Do you deliver on Sundays?';
-const PLATFORM: LlmProviderSource = { kind: LlmProviderKind.Platform };
-
-const LOOKUP_TOOL = 'lookup';
+const DELIVERY = { intent: 'delivery', confidence: 0.9 };
+const OTHER = { intent: 'other', confidence: 0.4 };
+const USAGE = { promptTokens: 10, completionTokens: 5 };
+const SAMPLING_PARAMS = ['temperature', 'top_p', 'top_k'];
 
 const routeSchema = z.object({ intent: z.enum(['delivery', 'other']), confidence: z.number() });
+type Route = z.infer<typeof routeSchema>;
 
-const replyRequest = (
-  overrides: Partial<LlmReplyRequest<z.infer<typeof routeSchema>>> = {},
-): LlmReplyRequest<z.infer<typeof routeSchema>> => ({
-  provider: PLATFORM,
-  model: LlmModelId.Gpt54Mini,
+const completeRequest = (overrides: Partial<LlmCompleteRequest<Route>> = {}) => ({
+  provider: { kind: LlmProviderKind.Platform } as const,
+  model: LlmModelId.Ministral14b,
   system: SYSTEM,
   messages: [{ role: LlmMessageRole.User, content: QUESTION }],
-  schema: routeSchema,
-  tools: {},
+  output: routeSchema,
   tags: {},
   ...overrides,
 });
 
-const createResolver = (env: Partial<Record<EnvVar, string>>): ProviderResolverService =>
-  new ProviderResolverService(
-    new ConfigService(loadAppConfig({ role: Role.Api, queues: [] }, createTestEnv(env))),
+const createGateway = (env: Partial<Record<EnvVar, string>>): AiSdkLlmGateway =>
+  new AiSdkLlmGateway(
+    new ProviderResolverService(
+      new ConfigService(loadAppConfig({ role: Role.Api, queues: [] }, createTestEnv(env))),
+    ),
   );
 
-const createGateway = (env: Partial<Record<EnvVar, string>>): AiSdkLlmGateway =>
-  new AiSdkLlmGateway(createResolver(env));
-
-const toolCallStep = (
-  toolName: string,
-  input: unknown,
-): Awaited<ReturnType<MockLanguageModelV4['doGenerate']>> => ({
-  content: [
-    { type: 'tool-call', toolCallId: `call_${toolName}`, toolName, input: JSON.stringify(input) },
-  ],
-  finishReason: { unified: 'tool-calls', raw: undefined },
-  usage: {
-    inputTokens: { total: 1, noCache: 1, cacheRead: undefined, cacheWrite: undefined },
-    outputTokens: { total: 1, text: 1, reasoning: undefined },
-  },
-  warnings: [],
-});
-
-const requestBody = (mock: MockLlmService, index: number): Readonly<Record<string, unknown>> => {
-  const body = mock.requests[index]?.body;
-  if (typeof body !== 'object') {
-    throw new TypeError(`request ${index} has no JSON body`);
-  }
-  return body;
-};
-
-describe('AiSdkLlmGateway', () => {
+describe('AiSdkLlmGateway.complete', () => {
   let mock: MockLlmService;
   let gateway: AiSdkLlmGateway;
 
@@ -99,93 +70,110 @@ describe('AiSdkLlmGateway', () => {
     await mock.stop();
   });
 
-  it('parses a valid reply from the reply tool', async () => {
-    mock.reply({ intent: 'delivery', confidence: 0.9 });
+  it('asks a json-schema model for native structured output and checks the answer', async () => {
+    mock.json(DELIVERY, USAGE);
 
-    const reply = await gateway.generateReply(replyRequest());
+    const completion = await gateway.complete(completeRequest());
 
-    expect(reply).toEqual({ value: { intent: 'delivery', confidence: 0.9 } });
-    expect(mock.requests).toHaveLength(1);
+    expect(completion).toEqual({
+      output: DELIVERY,
+      model: LlmModelId.Ministral14b,
+      usage: { inputTokens: USAGE.promptTokens, outputTokens: USAGE.completionTokens },
+    });
     expect(mock.requests[0]).toMatchObject({
       route: MockLlmRoute.ChatCompletions,
       authorization: `Bearer ${API_KEY}`,
     });
-    expect(requestBody(mock, 0)).toMatchObject({
-      model: LlmModelId.Gpt54Mini,
+    expect(mock.body(0)).toMatchObject({
+      model: LlmModelId.Ministral14b,
       messages: [
         { role: 'system', content: SYSTEM },
         { role: 'user', content: QUESTION },
       ],
-      tools: [{ type: 'function', function: { name: LLM_REPLY_TOOL_NAME } }],
+      response_format: { type: 'json_schema', json_schema: { schema: { type: 'object' } } },
     });
+    expect(mock.body(0)).not.toHaveProperty('tools');
+    expect(mock.body(0)).not.toHaveProperty('reasoning_effort');
   });
 
-  it('retries once with the validation error and returns the fixed reply', async () => {
-    mock.reply({ intent: 'weather', confidence: 0.9 }).reply({ intent: 'other', confidence: 0.4 });
+  it('retries once with the validation error and returns the fixed answer', async () => {
+    mock.json({ intent: 'weather', confidence: 0.9 }).json(OTHER);
 
-    const reply = await gateway.generateReply(replyRequest());
+    const completion = await gateway.complete(completeRequest());
 
-    expect(reply.value).toEqual({ intent: 'other', confidence: 0.4 });
+    expect(completion.output).toEqual(OTHER);
+    expect(completion.usage).toEqual({
+      inputTokens: 2 * USAGE.promptTokens,
+      outputTokens: 2 * USAGE.completionTokens,
+    });
+    expect(JSON.stringify(mock.body(1).messages)).toContain(LLM_OUTPUT_INVALID_FEEDBACK);
+  });
+
+  it('counts an answer that is not JSON as invalid', async () => {
+    mock.text('We deliver every day.').json(DELIVERY);
+
+    const completion = await gateway.complete(completeRequest());
+
+    expect(completion.output).toEqual(DELIVERY);
     expect(mock.requests).toHaveLength(2);
-    expect(JSON.stringify(requestBody(mock, 1).messages)).toContain(LLM_REPLY_INVALID_FEEDBACK);
   });
 
   it('fails with a typed error when the retry is invalid too', async () => {
-    mock.reply({ intent: 'weather' }).reply({ intent: 'weather' });
+    mock.json({ intent: 'weather' }).json({ intent: 'weather' });
 
-    await expect(gateway.generateReply(replyRequest())).rejects.toBeInstanceOf(
-      LlmReplyInvalidError,
-    );
+    await expect(gateway.complete(completeRequest())).rejects.toBeInstanceOf(LlmOutputInvalidError);
     expect(mock.requests).toHaveLength(2);
   });
 
-  it('spends one round budget across the retry', async () => {
-    const lookupRounds = LLM_MAX_TOOL_ROUNDS - 1;
-    const model = new MockLanguageModelV4({
-      doGenerate: [
-        ...Array.from({ length: lookupRounds }, () => toolCallStep(LOOKUP_TOOL, {})),
-        toolCallStep(LLM_REPLY_TOOL_NAME, { intent: 'weather' }),
-        toolCallStep(LLM_REPLY_TOOL_NAME, { intent: 'other', confidence: 0.4 }),
-      ],
-    });
-    const resolver = createResolver({});
-    vi.spyOn(resolver, 'languageModel').mockReturnValue(model);
-    const lookup = {
-      description: LOOKUP_TOOL,
-      inputSchema: z.object({}),
-      execute: async () => ({}),
-    };
+  it('asks a json-object model for a JSON object and puts the schema in the prompt', async () => {
+    mock.json(DELIVERY);
 
-    await expect(
-      new AiSdkLlmGateway(resolver).generateReply(
-        replyRequest({ tools: { [LOOKUP_TOOL]: lookup } }),
-      ),
-    ).rejects.toBeInstanceOf(LlmReplyInvalidError);
-    expect(model.doGenerateCalls).toHaveLength(LLM_MAX_TOOL_ROUNDS);
+    await gateway.complete(completeRequest({ model: LlmModelId.Glm53Flash }));
+
+    const body = mock.body(0);
+    expect(body).toMatchObject({
+      response_format: { type: 'json_object' },
+      reasoning_effort: 'low',
+    });
+    expect(JSON.stringify(body.messages)).toContain(LLM_JSON_OBJECT_INSTRUCTION);
   });
 
-  it('fails without a retry when the model answers with plain text', async () => {
-    mock.text('We deliver every day.');
+  it('sends the reasoning effort the catalog sets for the model', async () => {
+    mock.json(DELIVERY);
 
-    await expect(gateway.generateReply(replyRequest())).rejects.toBeInstanceOf(
-      LlmReplyMissingError,
-    );
-    expect(mock.requests).toHaveLength(1);
+    await gateway.complete(completeRequest({ model: LlmModelId.Gpt6Luna }));
+
+    expect(mock.body(0)).toMatchObject({ reasoning_effort: 'none' });
+  });
+
+  it('calls Claude through the messages API with its native output format', async () => {
+    mock.json(DELIVERY);
+
+    const completion = await gateway.complete(completeRequest({ model: LlmModelId.ClaudeHaiku55 }));
+
+    expect(completion.output).toEqual(DELIVERY);
+    expect(mock.requests[0]).toMatchObject({ route: MockLlmRoute.Messages, apiKey: API_KEY });
+    expect(mock.body(0)).toMatchObject({
+      model: LlmModelId.ClaudeHaiku55,
+      output_config: { effort: 'low', format: { type: 'json_schema', schema: { type: 'object' } } },
+    });
+    expect(mock.toolNames(0)).toEqual([]);
+    expect(Object.keys(mock.body(0)).filter((key) => SAMPLING_PARAMS.includes(key))).toEqual([]);
   });
 
   it('refuses a workspace provider until workspaces can bring their own keys', async () => {
-    const request = replyRequest({
+    const request = completeRequest({
       provider: { kind: LlmProviderKind.Workspace, workspaceId: 'wsp_1' },
     });
 
-    await expect(gateway.generateReply(request)).rejects.toBeInstanceOf(LlmNotConfiguredError);
+    await expect(gateway.complete(request)).rejects.toBeInstanceOf(LlmNotConfiguredError);
     expect(mock.requests).toHaveLength(0);
   });
 
   it('fails with a typed error when no LLM key is set', async () => {
     const unconfigured = createGateway({ [EnvVar.LlmBaseUrl]: mock.url, [EnvVar.LlmApiKey]: '' });
 
-    await expect(unconfigured.generateReply(replyRequest())).rejects.toBeInstanceOf(
+    await expect(unconfigured.complete(completeRequest())).rejects.toBeInstanceOf(
       LlmNotConfiguredError,
     );
     expect(mock.requests).toHaveLength(0);
@@ -200,9 +188,7 @@ describe('AiSdkLlmGateway', () => {
     const booted = testingModule.get(LlmGateway);
 
     expect(booted).toBeInstanceOf(AiSdkLlmGateway);
-    await expect(booted.generateReply(replyRequest())).rejects.toBeInstanceOf(
-      LlmNotConfiguredError,
-    );
+    await expect(booted.complete(completeRequest())).rejects.toBeInstanceOf(LlmNotConfiguredError);
     await testingModule.close();
   });
 });

@@ -1,22 +1,30 @@
 import { Injectable } from '@nestjs/common';
-import { generateText, stepCountIs } from 'ai';
-import type { LanguageModel, ModelMessage } from 'ai';
+import { generateText, zodSchema } from 'ai';
+import type { ModelMessage } from 'ai';
+import { LLM_CATALOG } from '@/platform/llm/constants/llm-catalog.constants';
 import {
-  LLM_MAX_TOOL_ROUNDS,
-  LLM_REPLY_ATTEMPTS,
-  LLM_REPLY_TOOL_NAME,
+  LLM_NO_USAGE,
+  LLM_OUTPUT_ATTEMPTS,
   LLM_SDK_MAX_RETRIES,
 } from '@/platform/llm/constants/llm-gateway.constants';
-import { LlmReplyInvalidError } from '@/platform/llm/errors/llm-reply-invalid.error';
-import { LlmReplyMissingError } from '@/platform/llm/errors/llm-reply-missing.error';
+import { LlmOutputInvalidError } from '@/platform/llm/errors/llm-output-invalid.error';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import {
-  invalidReplyMessage,
+  addUsage,
+  checkOutput,
+  modelCallSettings,
+  outputFeedbackMessage,
+  outputInstructions,
+  structuredOutput,
   toModelMessages,
-  toToolSet,
 } from '@/platform/llm/helpers/llm-gateway.helpers';
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
-import type { LlmReply, LlmReplyRequest } from '@/platform/llm/typedefs/llm-gateway.typedefs';
+import type {
+  LlmCompleteRequest,
+  LlmCompletion,
+  LlmModelRun,
+  LlmUsage,
+} from '@/platform/llm/typedefs/llm-gateway.typedefs';
 
 @Injectable()
 export class AiSdkLlmGateway extends LlmGateway {
@@ -24,54 +32,50 @@ export class AiSdkLlmGateway extends LlmGateway {
     super();
   }
 
-  async generateReply<T>(request: LlmReplyRequest<T>): Promise<LlmReply<T>> {
-    const model = this.providers.languageModel(request.provider, request.model);
-    return this.attempt(
+  async complete<T>(request: LlmCompleteRequest<T>): Promise<LlmCompletion<T>> {
+    const run: LlmModelRun = {
+      model: LLM_CATALOG[request.model],
+      languageModel: this.providers.languageModel(request.provider, request.model),
+      jsonSchema: await zodSchema(request.output).jsonSchema,
+    };
+    return this.completeAttempt(
       request,
-      model,
+      run,
       toModelMessages(request.messages),
-      LLM_REPLY_ATTEMPTS,
-      LLM_MAX_TOOL_ROUNDS,
+      LLM_OUTPUT_ATTEMPTS,
+      LLM_NO_USAGE,
     );
   }
 
-  private async attempt<T>(
-    request: LlmReplyRequest<T>,
-    model: LanguageModel,
+  private async completeAttempt<T>(
+    request: LlmCompleteRequest<T>,
+    run: LlmModelRun,
     messages: readonly ModelMessage[],
     attemptsLeft: number,
-    roundsLeft: number,
-  ): Promise<LlmReply<T>> {
+    usage: LlmUsage,
+  ): Promise<LlmCompletion<T>> {
     const result = await generateText({
-      model,
-      instructions: request.system,
+      model: run.languageModel,
+      instructions: outputInstructions(request.system, run.model, run.jsonSchema),
       messages: [...messages],
-      tools: toToolSet(request.tools, request.schema),
-      stopWhen: stepCountIs(roundsLeft),
+      output: structuredOutput(run.model, run.jsonSchema),
       maxRetries: LLM_SDK_MAX_RETRIES,
+      ...modelCallSettings(run.model),
     });
-    const replyCall = result.toolCalls.find(({ toolName }) => toolName === LLM_REPLY_TOOL_NAME);
-    if (replyCall === undefined) {
-      throw new LlmReplyMissingError(request.model);
+    const spent = addUsage(usage, result.totalUsage);
+    const checked = checkOutput(result.text, request.output);
+    if (checked.success) {
+      return { output: checked.data, model: run.model.id, usage: spent };
     }
-    const parsed = request.schema.safeParse(replyCall.input);
-    if (parsed.success) {
-      return { value: parsed.data };
+    if (attemptsLeft <= 1) {
+      throw new LlmOutputInvalidError(run.model.id, checked.error);
     }
-    const roundsAfter = roundsLeft - result.steps.length;
-    if (attemptsLeft <= 1 || roundsAfter <= 0) {
-      throw new LlmReplyInvalidError(request.model, parsed.error);
-    }
-    return this.attempt(
+    return this.completeAttempt(
       request,
-      model,
-      [
-        ...messages,
-        ...result.response.messages,
-        invalidReplyMessage(replyCall.toolCallId, parsed.error),
-      ],
+      run,
+      [...messages, ...result.response.messages, outputFeedbackMessage(checked.error)],
       attemptsLeft - 1,
-      roundsAfter,
+      spent,
     );
   }
 }

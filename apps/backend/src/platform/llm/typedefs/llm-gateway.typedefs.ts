@@ -1,6 +1,8 @@
+import type { JSONSchema7, LanguageModel } from 'ai';
 import type { z } from 'zod';
 import type { LlmMessageRole } from '@/platform/llm/constants/llm-gateway.constants';
 import type { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
+import type { LlmModel } from '@/platform/llm/typedefs/llm-model.typedefs';
 import type { LlmProviderSource } from '@/platform/llm/typedefs/llm-provider.typedefs';
 
 export interface LlmMessage {
@@ -8,26 +10,30 @@ export interface LlmMessage {
   readonly content: string;
 }
 
-export interface LlmTool {
-  readonly description: string;
-  readonly inputSchema: z.ZodType;
-  readonly execute: (input: unknown) => Promise<unknown>;
-}
-
-export type LlmTools = Readonly<Record<string, LlmTool>>;
-
 export type LlmTags = Readonly<Record<string, string>>;
 
-export interface LlmReplyRequest<T> {
+export interface LlmCompleteRequest<T> {
   readonly provider: LlmProviderSource;
   readonly model: LlmModelId;
   readonly system: string;
   readonly messages: readonly LlmMessage[];
-  readonly schema: z.ZodType<T>;
-  readonly tools: LlmTools;
+  readonly output: z.ZodType<T>;
   readonly tags: LlmTags;
 }
 
-export interface LlmReply<T> {
-  readonly value: T;
+export interface LlmUsage {
+  readonly inputTokens: number;
+  readonly outputTokens: number;
+}
+
+export interface LlmCompletion<T> {
+  readonly output: T;
+  readonly model: LlmModelId;
+  readonly usage: LlmUsage;
+}
+
+export interface LlmModelRun {
+  readonly model: LlmModel;
+  readonly languageModel: LanguageModel;
+  readonly jsonSchema: JSONSchema7;
 }

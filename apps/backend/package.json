@@ -27,6 +27,7 @@
   "dependencies": {
     "@agent-ic/contracts": "workspace:*",
     "@agent-ic/flow": "workspace:*",
+    "@ai-sdk/anthropic": "^4.0.78",
     "@ai-sdk/openai-compatible": "^3.0.67",
     "@apollo/server": "^5.5.1",
     "@as-integrations/express5": "^1.1.2",
