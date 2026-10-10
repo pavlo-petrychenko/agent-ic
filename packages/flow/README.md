@@ -59,6 +59,7 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 - `changedNodes` lists `{ nodeId, key, type, fields }` for each kept node that changed. Each field is `{ path, before, after }`, with the path under the node (`['config', 'schedule', 'time']`) and the old and new values; a missing value is `null`. Objects are compared field by field, a list is one value. `id` and `key` are never fields.
 - Edges are matched by their ends (`source`, `sourcePort`, `target`), not their `id`. `addedEdges` and `removedEdges` hold the whole edges.
 - Identical flows give a diff whose six lists are empty.
+- `countFlowChanges(diff)` adds up the six lists: the number of changes the publish and restore dialogs show.
 - The web writes each change in plain words ("Schedule trigger: 18:00 instead of 09:30") from these values.
 
 ## Change the format

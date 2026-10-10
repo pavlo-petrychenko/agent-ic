@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { diffFlows } from '@flow/diff/helpers/diff.helpers';
+import { countFlowChanges, diffFlows } from '@flow/diff/helpers/diff.helpers';
 import type { FlowDiff } from '@flow/diff/typedefs/diff.typedefs';
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
 import { renameNodeKey } from '@flow/document/helpers/rename.helpers';
@@ -166,5 +166,28 @@ describe('diffFlows', () => {
         ],
       },
     ]);
+  });
+});
+
+describe('countFlowChanges', () => {
+  const trigger = scheduleTrigger('daily');
+  const helper = agent('helper');
+  const reply = sendText('reply', 'Hi');
+  const flow = flowOf(
+    [trigger, helper, reply, sendText('later', 'Later')],
+    [link(trigger, PortName.Next, helper), link(helper, PortName.Next, reply)],
+  );
+
+  it('counts each added, removed, changed and renamed item once', () => {
+    const bye = sendText('bye', 'Bye');
+    const edges = [link(trigger, PortName.Next, helper), link(reply, PortName.Next, bye)];
+    const edited = flowOf([trigger, helper, sendText('reply', 'Hello'), bye], edges);
+    const next = renameNodeKey(edited, 'helper', 'assistant');
+
+    expect(countFlowChanges(diffFlows(flow, next))).toBe(6);
+  });
+
+  it('counts nothing for identical flows', () => {
+    expect(countFlowChanges(diffFlows(flow, structuredClone(flow)))).toBe(0);
   });
 });

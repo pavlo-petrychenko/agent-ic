@@ -5,11 +5,15 @@ import {
   toGraphqlAgentConnection,
   toGraphqlAgentDraft,
   toGraphqlAgentVersion,
+  toGraphqlFlowDiff,
+  toGraphqlPublishPreview,
 } from '@/modules/agents/helpers/agent-graphql.helpers';
+import { CompareAgentVersionsUseCase } from '@/modules/agents/use-cases/compare-agent-versions.use-case';
 import { GetAgentDraftUseCase } from '@/modules/agents/use-cases/get-agent-draft.use-case';
 import { GetAgentUseCase } from '@/modules/agents/use-cases/get-agent.use-case';
 import { ListAgentVersionsUseCase } from '@/modules/agents/use-cases/list-agent-versions.use-case';
 import { ListAgentsUseCase } from '@/modules/agents/use-cases/list-agents.use-case';
+import { PreviewAgentPublishUseCase } from '@/modules/agents/use-cases/preview-agent-publish.use-case';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { GraphqlCtx } from '@/platform/graphql-server/decorators/graphql-ctx.decorator';
 import type {
@@ -17,10 +21,14 @@ import type {
   AgentConnection,
   AgentDraft,
   AgentVersion,
+  FlowDiff,
+  PublishPreview,
   QueryAgentArgs,
   QueryAgentDraftArgs,
+  QueryAgentVersionDiffArgs,
   QueryAgentVersionsArgs,
   QueryAgentsArgs,
+  QueryPublishPreviewArgs,
 } from '@/platform/graphql-server/generated/schema.generated';
 
 @Resolver()
@@ -30,6 +38,8 @@ export class AgentsResolver {
     private readonly getAgentUseCase: GetAgentUseCase,
     private readonly listAgentVersionsUseCase: ListAgentVersionsUseCase,
     private readonly getAgentDraftUseCase: GetAgentDraftUseCase,
+    private readonly compareAgentVersionsUseCase: CompareAgentVersionsUseCase,
+    private readonly previewAgentPublishUseCase: PreviewAgentPublishUseCase,
   ) {}
 
   @Query()
@@ -64,5 +74,25 @@ export class AgentsResolver {
     @Args(AgentGraphqlArgument.AgentId) agentId: QueryAgentDraftArgs['agentId'],
   ): Promise<AgentDraft> {
     return toGraphqlAgentDraft(await this.getAgentDraftUseCase.execute(ctx, { agentId }));
+  }
+
+  @Query()
+  async agentVersionDiff(
+    @GraphqlCtx() ctx: UseCaseCtx,
+    @Args(AgentGraphqlArgument.AgentId) agentId: QueryAgentVersionDiffArgs['agentId'],
+    @Args(AgentGraphqlArgument.FromId) fromId: QueryAgentVersionDiffArgs['fromId'],
+    @Args(AgentGraphqlArgument.ToId) toId: QueryAgentVersionDiffArgs['toId'],
+  ): Promise<FlowDiff> {
+    return toGraphqlFlowDiff(
+      await this.compareAgentVersionsUseCase.execute(ctx, { agentId, fromId, toId }),
+    );
+  }
+
+  @Query()
+  async publishPreview(
+    @GraphqlCtx() ctx: UseCaseCtx,
+    @Args(AgentGraphqlArgument.AgentId) agentId: QueryPublishPreviewArgs['agentId'],
+  ): Promise<PublishPreview> {
+    return toGraphqlPublishPreview(await this.previewAgentPublishUseCase.execute(ctx, { agentId }));
   }
 }

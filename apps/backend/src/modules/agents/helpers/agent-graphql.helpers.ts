@@ -1,13 +1,15 @@
-import { FlowIssueSeverity } from '@agent-ic/flow';
-import type { FlowIssue as DomainFlowIssue } from '@agent-ic/flow';
+import { countFlowChanges, FlowIssueSeverity } from '@agent-ic/flow';
+import type { FlowIssue as DomainFlowIssue, FlowDiff as DomainFlowDiff } from '@agent-ic/flow';
 import {
   AgentStatus,
   AgentVersionStatus,
   PauseMode,
+  SimulatorCheckStatus,
 } from '@/modules/agents/constants/agent.constants';
 import type {
   AgentDraftView,
   AgentVersionView,
+  PublishPreview as DomainPublishPreview,
   PublishedAgent,
 } from '@/modules/agents/typedefs/agent-version.typedefs';
 import type {
@@ -20,15 +22,18 @@ import type {
   AgentConnection,
   AgentDraft,
   AgentVersion,
+  FlowDiff,
   FlowIssue,
   PauseAgentInput as GraphqlPauseAgentInput,
   PublishAgentPayload,
+  PublishPreview,
 } from '@/platform/graphql-server/generated/schema.generated';
 import {
   AgentStatus as GraphqlAgentStatus,
   AgentVersionStatus as GraphqlAgentVersionStatus,
   FlowIssueSeverity as GraphqlFlowIssueSeverity,
   PauseMode as GraphqlPauseMode,
+  SimulatorCheckStatus as GraphqlSimulatorCheckStatus,
 } from '@/platform/graphql-server/generated/schema.generated';
 
 const GRAPHQL_AGENT_STATUS: Readonly<Record<AgentStatus, GraphqlAgentStatus>> = {
@@ -58,6 +63,12 @@ const GRAPHQL_ISSUE_SEVERITY: Readonly<Record<FlowIssueSeverity, GraphqlFlowIssu
   [FlowIssueSeverity.Warning]: GraphqlFlowIssueSeverity.Warning,
 };
 
+const GRAPHQL_SIMULATOR_CHECK: Readonly<Record<SimulatorCheckStatus, GraphqlSimulatorCheckStatus>> =
+  {
+    [SimulatorCheckStatus.Tested]: GraphqlSimulatorCheckStatus.Tested,
+    [SimulatorCheckStatus.NotTested]: GraphqlSimulatorCheckStatus.NotTested,
+  };
+
 export const toGraphqlAgent = (agent: AgentView): Agent => ({
   id: agent.id,
   name: agent.name,
@@ -67,6 +78,7 @@ export const toGraphqlAgent = (agent: AgentView): Agent => ({
   draftNumber: agent.draftNumber,
   draftBaseVersionNumber: agent.draftBaseVersionNumber,
   hasUnpublishedChanges: agent.hasUnpublishedChanges,
+  draftChangeCount: agent.draftChangeCount,
   versionCount: agent.versionCount,
   pausedAt: agent.pausedAt?.toISOString() ?? null,
   pauseMode: agent.pauseMode === null ? null : GRAPHQL_PAUSE_MODE[agent.pauseMode],
@@ -116,4 +128,33 @@ export const toPauseAgentInput = (input: GraphqlPauseAgentInput): PauseAgentInpu
   id: input.id,
   mode: PAUSE_MODE_FROM_GRAPHQL[input.mode],
   awayMessage: input.awayMessage,
+});
+
+export const toGraphqlFlowDiff = (diff: DomainFlowDiff): FlowDiff => ({
+  addedNodes: [...diff.addedNodes],
+  removedNodes: [...diff.removedNodes],
+  changedNodes: diff.changedNodes.map((change) => ({
+    nodeId: change.nodeId,
+    key: change.key,
+    type: change.type,
+    fields: change.fields.map((field) => ({
+      path: [...field.path],
+      before: field.before,
+      after: field.after,
+    })),
+  })),
+  renamedKeys: [...diff.renamedKeys],
+  addedEdges: [...diff.addedEdges],
+  removedEdges: [...diff.removedEdges],
+  changeCount: countFlowChanges(diff),
+});
+
+export const toGraphqlPublishPreview = (preview: DomainPublishPreview): PublishPreview => ({
+  diff: toGraphqlFlowDiff(preview.diff),
+  errors: preview.errors.map(toGraphqlFlowIssue),
+  warnings: preview.warnings.map(toGraphqlFlowIssue),
+  simulator: {
+    status: GRAPHQL_SIMULATOR_CHECK[preview.simulator.status],
+    testedAt: preview.simulator.testedAt?.toISOString() ?? null,
+  },
 });

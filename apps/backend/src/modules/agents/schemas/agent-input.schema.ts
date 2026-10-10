@@ -63,3 +63,9 @@ export const pauseAgentInputSchema = z.object({
   [AgentField.Mode]: z.enum(PauseMode),
   [AgentField.AwayMessage]: z.string().nullish(),
 });
+
+export const agentVersionDiffInputSchema = z.object({
+  [AgentField.AgentId]: agentIdSchema,
+  [AgentField.FromId]: agentIdSchema,
+  [AgentField.ToId]: agentIdSchema,
+});
