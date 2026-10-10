@@ -82,6 +82,7 @@ jobs:
           tags: ${{ env.IMAGE }}:${{ env.VERSION }}
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+          no-cache-filters: runtime
       - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
           image-ref: ${{ env.IMAGE }}:${{ env.VERSION }}
