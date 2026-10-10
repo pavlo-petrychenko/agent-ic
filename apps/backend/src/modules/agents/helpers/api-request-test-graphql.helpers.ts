@@ -9,6 +9,7 @@ const GRAPHQL_TEST_OUTCOME: Readonly<Record<OutboundHttpOutcome, ApiRequestTestO
   [OutboundHttpOutcome.Unreachable]: ApiRequestTestOutcome.Unreachable,
   [OutboundHttpOutcome.BlockedAddress]: ApiRequestTestOutcome.BlockedAddress,
   [OutboundHttpOutcome.InvalidUrl]: ApiRequestTestOutcome.InvalidUrl,
+  [OutboundHttpOutcome.InvalidRequest]: ApiRequestTestOutcome.InvalidRequest,
 };
 
 export const toGraphqlApiRequestTestResult = (

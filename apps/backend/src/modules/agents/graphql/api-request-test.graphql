@@ -14,6 +14,7 @@ enum ApiRequestTestOutcome {
   unreachable
   blocked_address
   invalid_url
+  invalid_request
 }
 
 type ApiRequestTestResult {

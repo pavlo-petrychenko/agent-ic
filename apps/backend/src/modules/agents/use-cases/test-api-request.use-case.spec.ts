@@ -27,6 +27,7 @@ import {
 import {
   OUTBOUND_TEST_BODY,
   OUTBOUND_TEST_HOST,
+  OUTBOUND_TEST_INVALID_HEADER_VALUES,
   OUTBOUND_TEST_STATUS,
 } from '@test/support/constants/outbound-http-testing.constants';
 import { apiRequestFlow } from '@test/support/fixtures/agents.fixture';
@@ -103,6 +104,21 @@ describe('TestApiRequestUseCase', () => {
 
     expect(result.outcome).toBe(OutboundHttpOutcome.BlockedAddress);
   });
+
+  it.each(OUTBOUND_TEST_INVALID_HEADER_VALUES)(
+    'answers invalid_request when the header renders %j',
+    async (text) => {
+      const { workspaceId, agentId } = await seed(TEST_API_URL_TEMPLATE);
+
+      const result = await testApiRequest.execute(agentsCtx(testingModule, workspaceId), {
+        agentId,
+        nodeId: TEST_API_NODE_ID,
+        variables: { message: { text } },
+      });
+
+      expect(result).toMatchObject({ outcome: OutboundHttpOutcome.InvalidRequest, status: null });
+    },
+  );
 
   it('refuses a node that is not an API request step', async () => {
     const { workspaceId, agentId } = await seed(TEST_API_URL_TEMPLATE);
