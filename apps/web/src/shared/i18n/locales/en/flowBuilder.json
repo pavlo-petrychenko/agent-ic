@@ -123,6 +123,7 @@
     "saved": "Saved",
     "saving": "Saving…",
     "failed": "Couldn’t save",
+    "notSaved": "Not saved",
     "retry": "Retry"
   },
   "conflict": {

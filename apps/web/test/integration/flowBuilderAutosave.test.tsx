@@ -124,6 +124,7 @@ describe('flow builder autosave', () => {
     expect(
       screen.getByText(`Changed by ${CONFLICT_SAVED_BY} at ${time}. Reload to continue.`),
     ).toBeInTheDocument();
+    expect(screen.getByText('Not saved')).toBeInTheDocument();
 
     vi.useRealTimers();
     await userEvent.click(screen.getByRole('button', { name: 'Reload' }));
