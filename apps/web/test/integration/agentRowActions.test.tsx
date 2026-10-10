@@ -81,6 +81,22 @@ describe('agent row actions', () => {
     expect(history.location.search).toContain(SALON_ASSISTANT.id);
   });
 
+  it('opens the simulator from the navigation with no agent in the address', async () => {
+    const user = userEvent.setup();
+    const { history } = renderRoute(agentsPath, {
+      mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE]), buildAgentsMock(ALL_AGENTS)],
+    });
+
+    const navigation = await screen.findByRole('navigation', { name: 'Main' });
+    const link = await within(navigation).findByRole('link', { name: 'Testing' });
+    expect(link).toHaveAttribute('href', `/w/${DEMO_WORKSPACE.id}/testing`);
+
+    await user.click(link);
+
+    await waitFor(() => expect(history.location.pathname).toBe(`/w/${DEMO_WORKSPACE.id}/testing`));
+    expect(history.location.search).toBe('');
+  });
+
   it('resumes a paused agent', async () => {
     const user = userEvent.setup();
     renderRoute(agentsPath, {
