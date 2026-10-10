@@ -154,7 +154,7 @@ export const seedTiedMessages = async (
 };
 
 export const queuedEventsFor = async (
-  testbed: ConversationsTestbed,
+  testbed: Pick<ConversationsTestbed, 'queues'>,
   subscription: AnyDomainEventSubscription,
   conversationId: string,
 ): Promise<JobData[]> => {

@@ -1,0 +1,1 @@
+CREATE INDEX "runs_conversation_latest_idx" ON "runs"."runs" USING btree ("conversation_id","created_at","id");

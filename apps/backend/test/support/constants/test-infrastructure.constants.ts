@@ -54,6 +54,8 @@ export enum TestRedisPrefix {
   ChannelsWorker = 'channels-worker:',
   Runs = 'runs:',
   RunExecution = 'run-execution:',
+  RunStart = 'run-start:',
+  RunEnd = 'run-end:',
   IsolationFirst = 'isolation-first:',
   IsolationSecond = 'isolation-second:',
 }

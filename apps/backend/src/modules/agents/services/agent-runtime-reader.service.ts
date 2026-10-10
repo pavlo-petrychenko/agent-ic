@@ -38,6 +38,11 @@ export class AgentRuntimeReader {
     return pauseSettingsOf(await this.requireAgent(workspaceId, agentId));
   }
 
+  async findAnsweringVersionId(workspaceId: string, agentId: string): Promise<string | null> {
+    const agent = await this.agents.findById(workspaceId, agentId);
+    return agent === null || pauseSettingsOf(agent) !== null ? null : agent.liveVersionId;
+  }
+
   async snapshotDraft(workspaceId: string, agentId: string): Promise<AgentVersion> {
     const draft = await this.versions.findDraft(workspaceId, agentId);
     if (draft === null) {
