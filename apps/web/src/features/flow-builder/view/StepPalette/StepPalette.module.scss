@@ -1,0 +1,10 @@
+.root {
+  flex-shrink: 0;
+  width: var(--size-palette-width);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

@@ -4,6 +4,7 @@ import { useFlowBuilderDraft } from '@/features/flow-builder/communication/hooks
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import type { FlowBuilderPageProps } from '@/features/flow-builder/containers/FlowBuilderPage/FlowBuilderPage.typedefs';
 import { FlowEditor } from '@/features/flow-builder/containers/FlowEditor';
+import { StepPalettePanel } from '@/features/flow-builder/containers/StepPalettePanel';
 import { agentsHref, workspaceHref } from '@/features/flow-builder/logic/helpers/route.helpers';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import { useActiveWorkspace } from '@/features/workspace';
@@ -38,7 +39,12 @@ export function FlowBuilderPage({ workspaceId, agentId }: FlowBuilderPageProps) 
           ],
         }}
       />
-      {draft !== null && <FlowEditor />}
+      {draft !== null && (
+        <div className="flex min-h-0 flex-1">
+          <StepPalettePanel />
+          <FlowEditor />
+        </div>
+      )}
       {draft === null && loading && (
         <div className="p-7">
           <Skeleton label={t('loading')} />
