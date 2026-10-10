@@ -1,5 +1,6 @@
 import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import type { StartedRedisContainer } from '@testcontainers/redis';
+import type { AppConfig } from '@/platform/config/typedefs/app-config.typedefs';
 import { DatabaseRole } from '@/platform/database/constants/database.constants';
 import { URL_PATH_SEPARATOR } from '@/platform/http/constants/url.constants';
 import {
@@ -9,7 +10,7 @@ import {
   TEST_SUPERUSER,
   TEST_SUPERUSER_PASSWORD,
 } from '@test/support/constants/test-infrastructure.constants';
-import type { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import type { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import type {
   DatabaseUrlParts,
   TestInfrastructure,
@@ -52,10 +53,12 @@ export const describeInfrastructure = (
   };
 };
 
-export const redisDatabaseUrl = (url: string, database: TestRedisDatabase): string => {
-  const redisUrl = new URL(url);
-  redisUrl.pathname = `${URL_PATH_SEPARATOR}${database}`;
-  return redisUrl.toString();
-};
+export const withTestRedisPrefix = <TConfig extends AppConfig>(
+  config: TConfig,
+  keyPrefix: TestRedisPrefix,
+): TConfig => ({
+  ...config,
+  redis: { ...config.redis, keyPrefix },
+});
 
 export const discardNotice = (): void => undefined;

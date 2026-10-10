@@ -17,7 +17,7 @@ import {
   WAIT_FOR_EMAIL,
 } from '@test/support/constants/identity-testing.constants';
 import { EPHEMERAL_PORT, LOOPBACK_HOST } from '@test/support/constants/request-layer.constants';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import {
   TEST_TIME_ZONE,
   TEST_WORKSPACE_NAME,
@@ -124,12 +124,12 @@ describe('workspaces, roles and invites through the api', () => {
     api = await bootRoleWithEmails(
       { role: Role.Api, queues: [] },
       emails,
-      TestRedisDatabase.WorkspacesFlow,
+      TestRedisPrefix.WorkspacesFlow,
     );
     worker = await bootRoleWithEmails(
       { role: Role.Worker, queues: [QueueName.Notify] },
       emails,
-      TestRedisDatabase.WorkspacesFlow,
+      TestRedisPrefix.WorkspacesFlow,
     );
     await api.listen(EPHEMERAL_PORT, LOOPBACK_HOST);
   });

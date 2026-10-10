@@ -8,11 +8,13 @@ import { RedisConnectionName } from '@/platform/redis/constants/redis.constants'
 import {
   closeRedisConnection,
   createRedisConnection,
+  withRedisKeyPrefix,
 } from '@/platform/redis/helpers/redis.helpers';
 
 @Injectable()
 export class ChannelSubscriberService implements OnApplicationShutdown {
   private readonly connection: Redis;
+  private readonly keyPrefix: string;
   private readonly messages = new EventEmitter();
   private readonly listeners = new Map<string, number>();
 
@@ -21,6 +23,7 @@ export class ChannelSubscriberService implements OnApplicationShutdown {
       config.config.redis.queueUrl,
       RedisConnectionName.Subscriber,
     );
+    this.keyPrefix = config.config.redis.keyPrefix;
     this.messages.setMaxListeners(0);
     this.connection.on(REDIS_MESSAGE_EVENT, (channel: string, message: string) =>
       this.messages.emit(channel, message),
@@ -28,23 +31,25 @@ export class ChannelSubscriberService implements OnApplicationShutdown {
   }
 
   async listen(channel: string): Promise<AsyncIterator<unknown[]>> {
-    const messages = on(this.messages, channel);
-    const count = this.listeners.get(channel) ?? 0;
-    this.listeners.set(channel, count + 1);
+    const redisChannel = withRedisKeyPrefix(this.keyPrefix, channel);
+    const messages = on(this.messages, redisChannel);
+    const count = this.listeners.get(redisChannel) ?? 0;
+    this.listeners.set(redisChannel, count + 1);
     if (count === 0) {
-      await this.connection.subscribe(channel);
+      await this.connection.subscribe(redisChannel);
     }
     return messages;
   }
 
   async release(channel: string): Promise<void> {
-    const count = (this.listeners.get(channel) ?? 0) - 1;
+    const redisChannel = withRedisKeyPrefix(this.keyPrefix, channel);
+    const count = (this.listeners.get(redisChannel) ?? 0) - 1;
     if (count > 0) {
-      this.listeners.set(channel, count);
+      this.listeners.set(redisChannel, count);
       return;
     }
-    this.listeners.delete(channel);
-    await this.connection.unsubscribe(channel);
+    this.listeners.delete(redisChannel);
+    await this.connection.unsubscribe(redisChannel);
   }
 
   async onApplicationShutdown(): Promise<void> {

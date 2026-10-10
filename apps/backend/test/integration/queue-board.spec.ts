@@ -16,19 +16,22 @@ import {
   EMPTY_HEADER_VALUE,
   HTML_CONTENT_TYPE,
 } from '@test/support/constants/queue-board.constants';
-import { INVALID_BEARER } from '@test/support/constants/request-layer.constants';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
-import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
+import {
+  API_ROLE_SELECTION,
+  INVALID_BEARER,
+} from '@test/support/constants/request-layer.constants';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 import { apiPath, createApi } from '@test/support/helpers/request-layer.helpers';
 
 describe('queue board', () => {
   let app: INestApplication | null = null;
 
   const boot = async (devAccess: boolean): Promise<ReturnType<typeof request>> => {
-    const env = createIntegrationTestEnv(TestRedisDatabase.QueueBoard, {
+    const config = createIntegrationConfig(API_ROLE_SELECTION, TestRedisPrefix.QueueBoard, {
       [EnvVar.PlatformAdminDevAccess]: String(devAccess),
     });
-    app = await createApi(APP_MODULES, env);
+    app = await createApi(APP_MODULES, config);
     await app.init();
     return request(app.getHttpServer());
   };

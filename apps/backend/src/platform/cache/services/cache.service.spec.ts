@@ -7,7 +7,7 @@ import { defineCacheEntry } from '@/platform/cache/helpers/cache.helpers';
 import { CacheService } from '@/platform/cache/services/cache.service';
 import { RedisModule } from '@/platform/redis/redis.module';
 import { CacheRedisService } from '@/platform/redis/services/cache-redis.service';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 
 const TTL_SECONDS = 60;
@@ -30,7 +30,7 @@ describe('CacheService', () => {
   let redis: CacheRedisService;
 
   beforeAll(async () => {
-    testingModule = await createPlatformTestingModule(TestRedisDatabase.Cache, [
+    testingModule = await createPlatformTestingModule(TestRedisPrefix.Cache, [
       RedisModule,
       CacheModule,
     ]);

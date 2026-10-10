@@ -16,6 +16,7 @@ export class CacheRedisService implements OnApplicationShutdown {
     this.connection = createRedisConnection(
       config.config.redis.cacheUrl,
       RedisConnectionName.Cache,
+      config.config.redis.keyPrefix,
     );
   }
 

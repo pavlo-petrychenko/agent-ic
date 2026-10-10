@@ -34,20 +34,22 @@ export enum RolesInitEnvVar {
 export const TEST_POOL_SIZE = '1';
 export const SCRATCH_POOL_SIZE = 1;
 
-export enum TestRedisDatabase {
-  Database = 1,
-  Entrypoints = 2,
-  RequestLayer = 3,
-  Jobs = 4,
-  QueueBoard = 5,
-  LiveUpdates = 6,
-  Cache = 7,
-  RateLimit = 8,
-  Identity = 9,
-  AuthFlow = 10,
-  WorkspacesFlow = 11,
-  PasswordResetFlow = 12,
-  DurableJobs = 13,
-  Agents = 14,
-  Conversations = 15,
+export enum TestRedisPrefix {
+  Database = 'database:',
+  Entrypoints = 'entrypoints:',
+  RequestLayer = 'request-layer:',
+  Jobs = 'jobs:',
+  QueueBoard = 'queue-board:',
+  LiveUpdates = 'live-updates:',
+  Cache = 'cache:',
+  RateLimit = 'rate-limit:',
+  Identity = 'identity:',
+  AuthFlow = 'auth-flow:',
+  WorkspacesFlow = 'workspaces-flow:',
+  PasswordResetFlow = 'password-reset-flow:',
+  DurableJobs = 'durable-jobs:',
+  Agents = 'agents:',
+  Conversations = 'conversations:',
+  IsolationFirst = 'isolation-first:',
+  IsolationSecond = 'isolation-second:',
 }
