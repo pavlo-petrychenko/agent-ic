@@ -22,7 +22,11 @@ import {
   LLM_REPLY_TOOL_NAME,
   LlmMessageRole,
 } from '@/platform/llm/constants/llm-gateway.constants';
-import { LlmStructuredOutput } from '@/platform/llm/constants/llm-model.constants';
+import {
+  LLM_REASONING_ORDER,
+  LlmStructuredOutput,
+} from '@/platform/llm/constants/llm-model.constants';
+import type { LlmReasoningEffort } from '@/platform/llm/constants/llm-model.constants';
 import { LLM_PROVIDER_OPTIONS } from '@/platform/llm/constants/llm-provider.constants';
 import { jsonTextSchema } from '@/platform/llm/schemas/llm-output.schema';
 import type {
@@ -54,9 +58,31 @@ export const outputInstructions = (system: string, model: LlmModel, schema: JSON
     ? `${system}\n\n${LLM_JSON_OBJECT_INSTRUCTION}\n${JSON.stringify(schema)}`
     : system;
 
-export const modelCallSettings = (model: LlmModel) => ({
+export const nearestReasoning = (
+  levels: readonly LlmReasoningEffort[],
+  wanted: LlmReasoningEffort,
+): LlmReasoningEffort | null => {
+  const distance = (level: LlmReasoningEffort) =>
+    Math.abs(LLM_REASONING_ORDER.indexOf(level) - LLM_REASONING_ORDER.indexOf(wanted));
+  return levels.reduce<LlmReasoningEffort | null>(
+    (best, level) => (best === null || distance(level) < distance(best) ? level : best),
+    null,
+  );
+};
+
+export const reasoningFor = (
+  model: LlmModel,
+  requested: LlmReasoningEffort | undefined,
+  withTools: boolean,
+): LlmReasoningEffort | null => {
+  const wanted =
+    (withTools ? model.reasoningWithTools : null) ?? requested ?? model.reasoningEffort;
+  return wanted === null ? null : nearestReasoning(model.reasoningLevels, wanted);
+};
+
+export const modelCallSettings = (model: LlmModel, reasoning: LlmReasoningEffort | null) => ({
   providerOptions: LLM_PROVIDER_OPTIONS[model.api],
-  ...(model.reasoningEffort === null ? {} : { reasoning: model.reasoningEffort }),
+  ...(reasoning === null ? {} : { reasoning }),
 });
 
 export const checkOutput = <T>(text: string, schema: z.ZodType<T>) =>

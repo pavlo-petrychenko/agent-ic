@@ -1,7 +1,7 @@
 import type { JSONSchema7, LanguageModel, LanguageModelUsage, ModelMessage } from 'ai';
 import type { z } from 'zod';
 import type { LlmMessageRole } from '@/platform/llm/constants/llm-gateway.constants';
-import type { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
+import type { LlmModelId, LlmReasoningEffort } from '@/platform/llm/constants/llm-model.constants';
 import type { LlmModel } from '@/platform/llm/typedefs/llm-model.typedefs';
 import type { LlmProviderSource } from '@/platform/llm/typedefs/llm-provider.typedefs';
 
@@ -18,6 +18,7 @@ export interface LlmCompleteRequest<T> {
   readonly system: string;
   readonly messages: readonly LlmMessage[];
   readonly output: z.ZodType<T>;
+  readonly reasoning?: LlmReasoningEffort;
   readonly tags: LlmTags;
 }
 

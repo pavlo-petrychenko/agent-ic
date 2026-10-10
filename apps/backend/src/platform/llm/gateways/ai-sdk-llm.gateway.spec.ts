@@ -13,7 +13,7 @@ import {
   LLM_REPLY_TOOL_NAME,
   LlmMessageRole,
 } from '@/platform/llm/constants/llm-gateway.constants';
-import { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
+import { LlmModelId, LlmReasoningEffort } from '@/platform/llm/constants/llm-model.constants';
 import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants';
 import { LlmNotConfiguredError } from '@/platform/llm/errors/llm-not-configured.error';
 import { LlmOutputInvalidError } from '@/platform/llm/errors/llm-output-invalid.error';
@@ -330,4 +330,83 @@ describe('AiSdkLlmGateway.runAgent', () => {
       expect(mock.requests).toHaveLength(MAX_TOOL_ROUNDS);
     },
   );
+});
+
+describe('AiSdkLlmGateway reasoning', () => {
+  let mock: MockLlmService;
+  let gateway: AiSdkLlmGateway;
+
+  beforeAll(async () => {
+    mock = await startMockLlm();
+    gateway = createGateway({ [EnvVar.LlmBaseUrl]: mock.url, [EnvVar.LlmApiKey]: API_KEY });
+  });
+
+  afterEach(() => {
+    mock.reset();
+  });
+
+  afterAll(async () => {
+    await mock.stop();
+  });
+
+  it.each([
+    { model: LlmModelId.Gpt6Luna, reasoning: undefined, sent: LlmReasoningEffort.None },
+    {
+      model: LlmModelId.Gpt6Luna,
+      reasoning: LlmReasoningEffort.High,
+      sent: LlmReasoningEffort.High,
+    },
+    {
+      model: LlmModelId.Glm53Flash,
+      reasoning: LlmReasoningEffort.Medium,
+      sent: LlmReasoningEffort.Low,
+    },
+    {
+      model: LlmModelId.MimoV26Flash,
+      reasoning: LlmReasoningEffort.Max,
+      sent: LlmReasoningEffort.High,
+    },
+    { model: LlmModelId.Ministral14b, reasoning: LlmReasoningEffort.High, sent: undefined },
+    { model: LlmModelId.DeepSeekV41Flash, reasoning: undefined, sent: undefined },
+  ])(
+    'sends $model the nearest level it supports to $reasoning',
+    async ({ model, reasoning, sent }) => {
+      mock.json(DELIVERY);
+
+      await gateway.complete({ ...completeRequest({ model }), reasoning });
+
+      expect(mock.body(0).reasoning_effort).toBe(sent);
+    },
+  );
+
+  it('sends Claude the level as its effort with adaptive thinking', async () => {
+    mock.json(DELIVERY).json(DELIVERY);
+
+    await gateway.complete(
+      completeRequest({ model: LlmModelId.ClaudeHaiku55, reasoning: LlmReasoningEffort.XHigh }),
+    );
+    await gateway.complete(
+      completeRequest({ model: LlmModelId.ClaudeHaiku55, reasoning: LlmReasoningEffort.None }),
+    );
+
+    expect(mock.body(0)).toMatchObject({
+      thinking: { type: 'adaptive' },
+      output_config: { effort: LlmReasoningEffort.XHigh },
+    });
+    expect(mock.body(1)).toMatchObject({ output_config: { effort: LlmReasoningEffort.Low } });
+  });
+
+  it('forces the tool level on a model that needs it when tools are sent', async () => {
+    mock.json(DELIVERY).json(DELIVERY);
+
+    await gateway.runAgent(
+      agentRequest({ model: LlmModelId.Gpt6Luna, reasoning: LlmReasoningEffort.High }),
+    );
+    await gateway.runAgent(
+      agentRequest({ model: LlmModelId.Gpt6Luna, reasoning: LlmReasoningEffort.High, tools: {} }),
+    );
+
+    expect(mock.body(0).reasoning_effort).toBe(LlmReasoningEffort.None);
+    expect(mock.body(1).reasoning_effort).toBe(LlmReasoningEffort.High);
+  });
 });
