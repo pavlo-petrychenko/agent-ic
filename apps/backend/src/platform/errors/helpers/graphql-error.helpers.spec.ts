@@ -5,6 +5,7 @@ import { INTERNAL_ERROR_MESSAGE } from '@/platform/errors/constants/error-descri
 import { UpstreamError } from '@/platform/errors/errors/upstream.error';
 import { toGraphqlError } from '@/platform/errors/helpers/graphql-error.helpers';
 import {
+  SAMPLE_CLIENT_DETAILS,
   SAMPLE_ERROR_MESSAGE,
   SAMPLE_FIELD_PATH,
   SAMPLE_INTERNAL_DETAIL,
@@ -12,6 +13,7 @@ import {
   SAMPLE_UPSTREAM,
 } from '@test/support/constants/sample-errors.constants';
 import {
+  SampleConflictError,
   SampleNotFoundError,
   SampleValidationError,
 } from '@test/support/fixtures/sample-errors.fixture';
@@ -27,6 +29,14 @@ describe('toGraphqlError', () => {
       traceId: SAMPLE_TRACE_ID,
     });
     expect(error.extensions).not.toHaveProperty('fields');
+    expect(error.extensions).not.toHaveProperty('details');
+  });
+
+  it('shows the client details of a domain error and keeps its internal details back', () => {
+    const error = toGraphqlError(new SampleConflictError(), SAMPLE_TRACE_ID);
+
+    expect(error.extensions).toMatchObject({ code: ErrorCode.Conflict });
+    expect(error.extensions['details']).toStrictEqual(SAMPLE_CLIENT_DETAILS);
   });
 
   it('lists the field problems of a validation error', () => {

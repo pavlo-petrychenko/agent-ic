@@ -9,6 +9,7 @@ export const toGraphqlError = (error: unknown, traceId: string): GraphQLError =>
     reason: description.reason,
     traceId,
     ...(description.fields.length > 0 && { fields: description.fields }),
+    ...(Object.keys(description.details).length > 0 && { details: description.details }),
     http: { status: description.status },
   };
   return new GraphQLError(description.message, { extensions: { ...extensions } });

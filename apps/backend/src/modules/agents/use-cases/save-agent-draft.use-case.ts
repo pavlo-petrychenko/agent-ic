@@ -4,6 +4,7 @@ import { AgentField } from '@/modules/agents/constants/agent-input.constants';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { AgentVersionImmutableError } from '@/modules/agents/errors/agent-version-immutable.error';
 import { AgentVersionNotFoundError } from '@/modules/agents/errors/agent-version-not-found.error';
+import { DraftConflictError } from '@/modules/agents/errors/draft-conflict.error';
 import { InvalidAgentInputError } from '@/modules/agents/errors/invalid-agent-input.error';
 import { parseAgentInput } from '@/modules/agents/helpers/agent-input.helpers';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
@@ -12,8 +13,8 @@ import { saveAgentDraftInputSchema } from '@/modules/agents/schemas/agent-input.
 import { AgentFlowService } from '@/modules/agents/services/agent-flow.service';
 import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import type {
+  AgentDraftView,
   SaveAgentDraftInput,
-  SavedAgentDraft,
 } from '@/modules/agents/typedefs/agent-version.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
@@ -33,9 +34,18 @@ export class SaveAgentDraftUseCase {
     private readonly ids: IdService,
   ) {}
 
-  async execute(ctx: UseCaseCtx, input: SaveAgentDraftInput): Promise<SavedAgentDraft> {
-    const { workspaceId } = authorize(ctx, PermissionResource.Agents, PermissionAction.Edit);
-    const { id, flow: flowJson, note } = parseAgentInput(saveAgentDraftInputSchema, input);
+  async execute(ctx: UseCaseCtx, input: SaveAgentDraftInput): Promise<AgentDraftView> {
+    const { userId, workspaceId } = authorize(
+      ctx,
+      PermissionResource.Agents,
+      PermissionAction.Edit,
+    );
+    const {
+      id,
+      flow: flowJson,
+      note,
+      revision,
+    } = parseAgentInput(saveAgentDraftInputSchema, input);
     const parsed = this.flows.parse(flowJson);
     if (!parsed.ok) {
       throw new InvalidAgentInputError([
@@ -56,12 +66,28 @@ export class SaveAgentDraftUseCase {
       if (draft === null) {
         throw new AgentVersionNotFoundError();
       }
-      const changes = { flow: parsed.flow, note: note === undefined ? draft.note : note };
-      if (!(await this.versions.updateDraft(workspaceId, draft.id, changes, now))) {
+      if (draft.revision !== revision) {
+        const current = await this.views.versionView(agent, draft);
+        throw new DraftConflictError(current.author?.name ?? null, draft.updatedAt);
+      }
+      const changes = {
+        flow: parsed.flow,
+        note: note === undefined ? draft.note : note,
+        authorId: userId,
+      };
+      const saved = await this.versions.updateDraft(workspaceId, draft.id, revision, changes, now);
+      if (saved === null) {
         throw new AgentVersionImmutableError();
       }
       return {
-        version: await this.views.versionView(agent, { ...draft, ...changes, updatedAt: now }),
+        version: await this.views.versionView(agent, {
+          ...draft,
+          ...changes,
+          revision: saved,
+          updatedAt: now,
+        }),
+        revision: saved,
+        savedAt: now,
         issues: this.flows.validate(parsed.flow),
       };
     });

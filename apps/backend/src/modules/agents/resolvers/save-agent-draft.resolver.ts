@@ -1,12 +1,12 @@
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { AgentGraphqlArgument } from '@/modules/agents/constants/agent-input.constants';
-import { toGraphqlSavedDraft } from '@/modules/agents/helpers/agent-graphql.helpers';
+import { toGraphqlAgentDraft } from '@/modules/agents/helpers/agent-graphql.helpers';
 import { SaveAgentDraftUseCase } from '@/modules/agents/use-cases/save-agent-draft.use-case';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { GraphqlCtx } from '@/platform/graphql-server/decorators/graphql-ctx.decorator';
 import type {
+  AgentDraft,
   SaveAgentDraftInput,
-  SaveAgentDraftPayload,
 } from '@/platform/graphql-server/generated/schema.generated';
 
 @Resolver()
@@ -17,7 +17,7 @@ export class SaveAgentDraftResolver {
   async saveAgentDraft(
     @GraphqlCtx() ctx: UseCaseCtx,
     @Args(AgentGraphqlArgument.Input) input: SaveAgentDraftInput,
-  ): Promise<SaveAgentDraftPayload> {
-    return toGraphqlSavedDraft(await this.saveAgentDraftUseCase.execute(ctx, input));
+  ): Promise<AgentDraft> {
+    return toGraphqlAgentDraft(await this.saveAgentDraftUseCase.execute(ctx, input));
   }
 }

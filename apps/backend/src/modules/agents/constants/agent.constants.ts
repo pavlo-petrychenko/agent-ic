@@ -31,6 +31,8 @@ export enum AgentVersionAggregate {
 
 export const NO_PUBLISHED_VERSIONS = 0;
 
+export const DRAFT_INITIAL_REVISION = 0;
+
 export enum AgentStatus {
   Draft = 'draft',
   Live = 'live',

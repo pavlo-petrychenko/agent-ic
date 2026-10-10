@@ -1,4 +1,8 @@
-import { AgentVersionKind, AgentVersionStatus } from '@/modules/agents/constants/agent.constants';
+import {
+  AgentVersionKind,
+  AgentVersionStatus,
+  DRAFT_INITIAL_REVISION,
+} from '@/modules/agents/constants/agent.constants';
 import type {
   AgentVersion,
   AgentVersionLabels,
@@ -16,6 +20,7 @@ export const copyDraftToVersion = (draft: AgentVersion, copy: VersionCopy): Agen
   note: draft.note,
   authorId: copy.authorId,
   baseVersionId: draft.baseVersionId,
+  revision: DRAFT_INITIAL_REVISION,
   publishedAt: copy.publishedAt,
   createdAt: copy.at,
   updatedAt: copy.at,

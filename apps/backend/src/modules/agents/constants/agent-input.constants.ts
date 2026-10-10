@@ -6,6 +6,7 @@ export enum AgentField {
   Name = 'name',
   Description = 'description',
   Flow = 'flow',
+  Revision = 'revision',
   Note = 'note',
   Mode = 'mode',
   AwayMessage = 'awayMessage',

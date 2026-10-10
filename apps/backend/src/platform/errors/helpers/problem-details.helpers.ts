@@ -19,5 +19,6 @@ export const toProblemDetails = (
     reason: description.reason,
     traceId,
     ...(description.fields.length > 0 && { errors: description.fields }),
+    ...(Object.keys(description.details).length > 0 && { details: description.details }),
   };
 };

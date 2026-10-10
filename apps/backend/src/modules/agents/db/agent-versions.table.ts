@@ -11,7 +11,10 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
-import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
+import {
+  AgentVersionKind,
+  DRAFT_INITIAL_REVISION,
+} from '@/modules/agents/constants/agent.constants';
 import { agents, agentsSchema } from '@/modules/agents/db/agents.table';
 import { toSqlLiteral } from '@/platform/database/helpers/tenant-sql.helpers';
 import {
@@ -39,6 +42,7 @@ export const agentVersions = agentsSchema
       flow: jsonb('flow').$type<FlowDocument>().notNull(),
       note: text('note'),
       authorId: uuid('author_id'),
+      revision: integer('revision').notNull().default(DRAFT_INITIAL_REVISION),
       baseVersionId: uuid('base_version_id').references((): AnyPgColumn => agentVersions.id, {
         onDelete: 'set null',
       }),
