@@ -27,7 +27,10 @@ import { MissingTestDataError } from '@test/support/errors/missing-test-data.err
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { newConversation, newMessage } from '@test/support/fixtures/conversation.fixture';
 import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
-import type { ConversationsTestbed } from '@test/support/typedefs/conversations-testing.typedefs';
+import type {
+  ConversationsTestbed,
+  TiedMessages,
+} from '@test/support/typedefs/conversations-testing.typedefs';
 
 const ROLE = Role.Api;
 
@@ -90,4 +93,21 @@ export const seedMessage = async (
     throw new MissingTestDataError(conversation.id);
   }
   return message;
+};
+
+export const seedTiedMessages = async (
+  testbed: ConversationsTestbed,
+  conversation: NewConversation,
+): Promise<TiedMessages> => {
+  const tie = { createdAt: testbed.clock.now() };
+  const seeded = [
+    await seedMessage(testbed, conversation, tie),
+    await seedMessage(testbed, conversation, tie),
+    await seedMessage(testbed, conversation, tie),
+  ];
+  const [earlier, middle, later] = seeded.sort((left, right) => (left.id < right.id ? -1 : 1));
+  if (earlier === undefined || middle === undefined || later === undefined) {
+    throw new MissingTestDataError(conversation.id);
+  }
+  return { earlier, middle, later };
 };

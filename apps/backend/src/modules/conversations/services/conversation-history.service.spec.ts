@@ -7,6 +7,7 @@ import {
   createConversationsTestbed,
   seedConversation,
   seedMessage,
+  seedTiedMessages,
 } from '@test/support/helpers/conversations-testing.helpers';
 import type { ConversationsTestbed } from '@test/support/typedefs/conversations-testing.typedefs';
 
@@ -57,6 +58,16 @@ describe('ConversationHistoryService', () => {
     const history = await historyIds(conversation.workspaceId, conversation.id, second);
 
     expect(history).toEqual([first.id, second.id]);
+  });
+
+  it('breaks a tie on the creation time by id', async () => {
+    const conversation = await seedConversation(testbed);
+    const first = await seedMessage(testbed, conversation);
+    const { earlier, middle } = await seedTiedMessages(testbed, conversation);
+
+    const history = await historyIds(conversation.workspaceId, conversation.id, middle);
+
+    expect(history).toEqual([first.id, earlier.id, middle.id]);
   });
 
   it('refuses a message from another conversation', async () => {
