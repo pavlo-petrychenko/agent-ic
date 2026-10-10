@@ -1,0 +1,9 @@
+mutation PauseAgent($input: PauseAgentInput!) {
+  pauseAgent(input: $input) {
+    id
+    status
+    pausedAt
+    pauseMode
+    awayMessage
+  }
+}

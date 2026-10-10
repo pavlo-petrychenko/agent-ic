@@ -68,9 +68,31 @@
     "trigger": "More actions for {{name}}",
     "open": "Open flow builder",
     "test": "Test in simulator",
+    "pause": "Pause agent",
+    "pauseHint": "stops answering",
     "resume": "Resume agent",
     "duplicate": "Duplicate",
     "delete": "Delete agent"
+  },
+  "dialog": {
+    "cancel": "Cancel",
+    "close": "Close"
+  },
+  "pause": {
+    "title": "Pause {{name}}?",
+    "intro": "The agent stops running its flow. Scheduled follow-ups and external events are skipped while it is paused.",
+    "modeLabel": "While paused, new messages",
+    "modeInbox": "Go to the Inbox as “Needs you”",
+    "modeAway": "Get an away message, nobody is notified",
+    "awayLabel": "Away message",
+    "awayHint": "Up to {{max}} characters",
+    "issue": {
+      "required": "Write the away message the customer will receive.",
+      "tooLong": "The away message is too long. Use up to {{max}} characters."
+    },
+    "resumeNote": "Resume any time from the same menu. The live version (v{{version}}) stays as it is.",
+    "submit": "Pause agent",
+    "success": "{{name}} is paused"
   },
   "resume": {
     "success": "{{name}} is live again"
@@ -78,10 +100,6 @@
   "duplicate": {
     "success": "Created “{{name}}”",
     "done": "The agent was duplicated"
-  },
-  "dialog": {
-    "cancel": "Cancel",
-    "close": "Close"
   },
   "delete": {
     "title": "Delete {{name}}?",
