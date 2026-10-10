@@ -1,6 +1,6 @@
 import type { Attributes } from '@opentelemetry/api';
 import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
-import type { LangfuseConfig } from '@/platform/config/typedefs/app-config.typedefs';
+import type { AppConfig } from '@/platform/config/typedefs/app-config.typedefs';
 import {
   LANGFUSE_OBSERVATION_METADATA,
   LANGFUSE_TRACE_METADATA,
@@ -14,8 +14,8 @@ const traceMetadata = (key: LlmTraceMetadata): string => `${LANGFUSE_TRACE_METAD
 const observationMetadata = (key: LlmTraceMetadata): string =>
   `${LANGFUSE_OBSERVATION_METADATA}.${key}`;
 
-export const traceSampleRate = (langfuse: LangfuseConfig): number | null =>
-  langfuse.mode === LangfuseMode.Off ? null : langfuse.sampleRate;
+export const traceSampleRate = ({ telemetry, langfuse }: AppConfig): number | null =>
+  telemetry.enabled && langfuse.mode !== LangfuseMode.Off ? langfuse.sampleRate : null;
 
 export const langfuseTraceAttributes = (tags: LlmTags): Attributes => ({
   [LangfuseAttribute.TraceName]: tags.traceName,

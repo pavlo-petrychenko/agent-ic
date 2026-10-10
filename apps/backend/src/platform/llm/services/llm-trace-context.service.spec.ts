@@ -1,7 +1,13 @@
 import { HttpStatus } from '@nestjs/common';
-import { context, propagation, SpanStatusCode, trace } from '@opentelemetry/api';
+import {
+  context,
+  propagation,
+  ProxyTracerProvider,
+  SpanStatusCode,
+  trace,
+} from '@opentelemetry/api';
 import { node, tracing } from '@opentelemetry/sdk-node';
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
@@ -15,13 +21,17 @@ import {
 import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants';
 import { LLM_TRACER_NAME } from '@/platform/llm/constants/llm-tracing.constants';
 import type { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
-import type { LlmTraceContext } from '@/platform/llm/services/llm-trace-context.service';
+import { LlmSamplerService } from '@/platform/llm/services/llm-sampler.service';
+import type { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
 import type {
   LlmAgentRequest,
   LlmStepTimeouts,
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 import type { LlmTags } from '@/platform/llm/typedefs/llm-tracing.typedefs';
-import { createLlmGateway, createLlmTraceContext } from '@test/support/helpers/llm-testing.helpers';
+import {
+  createLlmGateway,
+  createLlmTraceContextService,
+} from '@test/support/helpers/llm-testing.helpers';
 import { startMockLlm } from '@test/support/services/mock-llm.service';
 import type { MockLlmService } from '@test/support/services/mock-llm.service';
 
@@ -29,6 +39,9 @@ const API_KEY = 'test-llmapi-key';
 const DELIVERY = { intent: 'delivery' };
 const ALWAYS = '1';
 const NEVER = '0';
+const HALF = '0.5';
+const SDK_RUNNING = 'false';
+const SDK_DISABLED = 'true';
 const STEP_TIMEOUT_MS = 2_000;
 const TIMEOUTS: LlmStepTimeouts = {
   [LlmPurpose.Conversation]: STEP_TIMEOUT_MS,
@@ -76,14 +89,19 @@ describe('LLM tracing', () => {
   const tracer = provider.getTracer(LLM_TRACER_NAME);
   let mock: MockLlmService;
 
-  const setUp = (mode: LangfuseMode, sampleRate: string) => {
+  const setUp = (
+    mode: LangfuseMode,
+    sampleRate: string,
+    { sdkDisabled = SDK_RUNNING, using = tracer, sampler = new LlmSamplerService() } = {},
+  ) => {
     const env = {
       [EnvVar.LlmBaseUrl]: mock.url,
       [EnvVar.LlmApiKey]: API_KEY,
       [EnvVar.LangfuseMode]: mode,
       [EnvVar.LangfuseSampleRate]: sampleRate,
+      [EnvVar.OtelSdkDisabled]: sdkDisabled,
     };
-    const traces = createLlmTraceContext(env, tracer);
+    const traces = createLlmTraceContextService(env, using, sampler);
     return { traces, gateway: createLlmGateway(env, TIMEOUTS, traces) };
   };
 
@@ -160,6 +178,48 @@ describe('LLM tracing', () => {
     expect(exporter.getFinishedSpans()).toEqual([]);
   });
 
+  it.each([true, false])(
+    'records both attempts of a fallback call or neither when the first pick is %s',
+    async (pick) => {
+      mock.fail(HttpStatus.SERVICE_UNAVAILABLE).json(DELIVERY);
+      const sampler = new LlmSamplerService();
+      vi.spyOn(sampler, 'sample').mockReturnValueOnce(pick).mockReturnValue(!pick);
+
+      await setUp(LangfuseMode.Cloud, HALF, { sampler }).gateway.complete(request);
+
+      expect(taggedSpans()).toHaveLength(pick ? 2 : 0);
+    },
+  );
+
+  it('passes no trace id when the OTel SDK is off', async () => {
+    const { traces } = setUp(LangfuseMode.SelfHosted, ALWAYS, { sdkDisabled: SDK_DISABLED });
+
+    expect(await runTraced(traces, () => Promise.resolve())).toBeNull();
+    expect(exporter.getFinishedSpans()).toEqual([]);
+  });
+
+  it('passes no trace id when the tracer is a no-op', async () => {
+    const noop = new ProxyTracerProvider().getTracer(LLM_TRACER_NAME);
+    const { traces } = setUp(LangfuseMode.SelfHosted, ALWAYS, { using: noop });
+
+    expect(await runTraced(traces, () => Promise.resolve())).toBeNull();
+  });
+
+  it('starts a separate trace for each run inside an active span', async () => {
+    const { traces } = setUp(LangfuseMode.SelfHosted, ALWAYS);
+
+    const [outer, first, second] = await tracer.startActiveSpan('request', async (span) => {
+      const ids = await Promise.all([
+        runTraced(traces, () => Promise.resolve()),
+        runTraced(traces, () => Promise.resolve()),
+      ]);
+      span.end();
+      return [span.spanContext().traceId, ...ids];
+    });
+
+    expect(new Set([outer, first, second]).size).toBe(3);
+  });
+
   it('starts a tagged parent span whose trace the calls inside join', async () => {
     mock.json(DELIVERY);
     const { traces, gateway } = setUp(LangfuseMode.SelfHosted, ALWAYS);
@@ -194,7 +254,10 @@ describe('LLM tracing', () => {
   });
 });
 
-const runTraced = (traces: LlmTraceContext, work: () => Promise<unknown>): Promise<string | null> =>
+const runTraced = (
+  traces: LlmTraceContextService,
+  work: () => Promise<unknown>,
+): Promise<string | null> =>
   traces.run(TAGS, async (traceId) => {
     await work();
     return traceId;

@@ -32,7 +32,7 @@ import {
   toUpstreamFailure,
   withMessage,
 } from '@/platform/llm/helpers/llm-gateway.helpers';
-import { LlmTraceContext } from '@/platform/llm/services/llm-trace-context.service';
+import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
 import type {
   LlmAgentRequest,
@@ -48,7 +48,7 @@ import type {
 export class AiSdkLlmGateway extends LlmGateway {
   constructor(
     private readonly providers: ProviderResolverService,
-    private readonly traces: LlmTraceContext,
+    private readonly traces: LlmTraceContextService,
     @Inject(LLM_STEP_TIMEOUTS) private readonly timeouts: LlmStepTimeouts,
   ) {
     super();
@@ -75,6 +75,13 @@ export class AiSdkLlmGateway extends LlmGateway {
   }
 
   private async withFallback<T, R>(
+    request: LlmCompleteRequest<T>,
+    attempt: (run: LlmModelRun) => Promise<R>,
+  ): Promise<R> {
+    return this.traces.forCall(() => this.tryModels(request, attempt));
+  }
+
+  private async tryModels<T, R>(
     request: LlmCompleteRequest<T>,
     attempt: (run: LlmModelRun) => Promise<R>,
   ): Promise<R> {

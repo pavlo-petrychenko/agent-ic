@@ -46,9 +46,9 @@ complete(request) / runAgent(request)
 
 ## Tracing
 
-- When `LANGFUSE_MODE` is not `off`, each call is traced at the `LANGFUSE_SAMPLE_RATE`, and the spans go through the OTel Collector to Langfuse (D47, D201). Off, nothing is traced.
+- When `LANGFUSE_MODE` is not `off` and the OTel SDK runs (`OTEL_SDK_DISABLED` is not `true`), each call is traced at the `LANGFUSE_SAMPLE_RATE`, and the spans go through the OTel Collector to Langfuse (D47, D201). The decision is made once per call, so a call that falls back records every model attempt or none. Otherwise nothing is traced.
 - `tags` name the trace: `traceName` and `workspaceId`, and when known `sessionId` (the conversation), `agentVersionId`, `promptId` and `promptVersion`. Each model attempt's span also says which model it was, its `fallback_hop` and the `reasoning` level it got.
-- To group several calls into one trace, wrap them in `LlmTraceContext.run(tags, async (traceId) => …)`. It samples once for the whole trace and gives you the trace id to store, or `null` when the trace is not recorded.
+- To group several calls into one trace, wrap them in `LlmTraceContextService.run(tags, async (traceId) => …)`. It samples once for the whole trace, starts a new trace even inside a traced HTTP request, and gives you the trace id to store, or `null` when the trace is not recorded.
 
 ## Add a call
 
