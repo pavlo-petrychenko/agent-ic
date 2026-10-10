@@ -1,1 +1,2 @@
 export const AGENT_AWAY_MESSAGE_MAX_LENGTH = 500;
+export const AGENT_NAME_MAX_LENGTH = 100;
