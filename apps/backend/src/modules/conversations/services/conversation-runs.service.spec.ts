@@ -23,6 +23,7 @@ import {
   queuedEventsFor,
   seedConversation,
   seedMessage,
+  seedTiedMessages,
 } from '@test/support/helpers/conversations-testing.helpers';
 import {
   deliverOnOutboundQueued,
@@ -123,6 +124,17 @@ describe('ConversationRunsService', () => {
     );
 
     expect(after.map((message) => message.id)).toEqual([newer.id]);
+  });
+
+  it('lists only the later of the messages that share a creation time', async () => {
+    const conversation = await seedConversation(testbed);
+    const { middle, later } = await seedTiedMessages(testbed, conversation);
+
+    const after = await inTenant(conversation, () =>
+      testbed.runs.messagesAfter(conversation.workspaceId, conversation.id, middle.id),
+    );
+
+    expect(after.map((message) => message.id)).toEqual([later.id]);
   });
 
   it('marks the conversation waiting and asks for an operator once', async () => {
