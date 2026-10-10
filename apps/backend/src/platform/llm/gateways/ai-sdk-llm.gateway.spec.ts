@@ -1,3 +1,4 @@
+import { ReasoningLevel } from '@agent-ic/contracts';
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -16,11 +17,7 @@ import {
   LLM_REPLY_TOOL_NAME,
   LlmMessageRole,
 } from '@/platform/llm/constants/llm-gateway.constants';
-import {
-  LlmModelId,
-  LlmPurpose,
-  LlmReasoningEffort,
-} from '@/platform/llm/constants/llm-model.constants';
+import { LlmModelId, LlmPurpose } from '@/platform/llm/constants/llm-model.constants';
 import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants';
 import { LlmNotConfiguredError } from '@/platform/llm/errors/llm-not-configured.error';
 import { LlmOutputInvalidError } from '@/platform/llm/errors/llm-output-invalid.error';
@@ -406,12 +403,12 @@ describe('AiSdkLlmGateway fallback', () => {
     mock.fail(HttpStatus.SERVICE_UNAVAILABLE).json(DELIVERY);
 
     await gateway.complete(
-      completeRequest({ model: LlmModelId.Gpt6Luna, reasoning: LlmReasoningEffort.Max }),
+      completeRequest({ model: LlmModelId.Gpt6Luna, reasoning: ReasoningLevel.Max }),
     );
 
-    expect(mock.body(0).reasoning_effort).toBe(LlmReasoningEffort.XHigh);
+    expect(mock.body(0).reasoning_effort).toBe(ReasoningLevel.XHigh);
     expect(mock.requests[1]?.route).toBe(MockLlmRoute.Messages);
-    expect(mock.body(1)).toMatchObject({ output_config: { effort: LlmReasoningEffort.Max } });
+    expect(mock.body(1)).toMatchObject({ output_config: { effort: ReasoningLevel.Max } });
   });
 
   it('fails with a typed error when the fallback fails too', async () => {
@@ -453,23 +450,23 @@ describe('AiSdkLlmGateway reasoning', () => {
   });
 
   it.each([
-    { model: LlmModelId.Gpt6Luna, reasoning: undefined, sent: LlmReasoningEffort.None },
+    { model: LlmModelId.Gpt6Luna, reasoning: undefined, sent: ReasoningLevel.None },
     {
       model: LlmModelId.Gpt6Luna,
-      reasoning: LlmReasoningEffort.High,
-      sent: LlmReasoningEffort.High,
+      reasoning: ReasoningLevel.High,
+      sent: ReasoningLevel.High,
     },
     {
       model: LlmModelId.Glm53Flash,
-      reasoning: LlmReasoningEffort.Medium,
-      sent: LlmReasoningEffort.Low,
+      reasoning: ReasoningLevel.Medium,
+      sent: ReasoningLevel.Low,
     },
     {
       model: LlmModelId.MimoV26Flash,
-      reasoning: LlmReasoningEffort.Max,
-      sent: LlmReasoningEffort.High,
+      reasoning: ReasoningLevel.Max,
+      sent: ReasoningLevel.High,
     },
-    { model: LlmModelId.Ministral14b, reasoning: LlmReasoningEffort.High, sent: undefined },
+    { model: LlmModelId.Ministral14b, reasoning: ReasoningLevel.High, sent: undefined },
     { model: LlmModelId.DeepSeekV41Flash, reasoning: undefined, sent: undefined },
   ])(
     'sends $model the nearest level it supports to $reasoning',
@@ -486,27 +483,27 @@ describe('AiSdkLlmGateway reasoning', () => {
     mock.json(DELIVERY).json(DELIVERY);
 
     await gateway.complete(
-      completeRequest({ model: LlmModelId.ClaudeHaiku55, reasoning: LlmReasoningEffort.XHigh }),
+      completeRequest({ model: LlmModelId.ClaudeHaiku55, reasoning: ReasoningLevel.XHigh }),
     );
     await gateway.complete(
-      completeRequest({ model: LlmModelId.ClaudeHaiku55, reasoning: LlmReasoningEffort.None }),
+      completeRequest({ model: LlmModelId.ClaudeHaiku55, reasoning: ReasoningLevel.None }),
     );
 
     expect(mock.body(0)).toMatchObject({
       thinking: { type: 'adaptive' },
-      output_config: { effort: LlmReasoningEffort.XHigh },
+      output_config: { effort: ReasoningLevel.XHigh },
     });
-    expect(mock.body(1)).toMatchObject({ output_config: { effort: LlmReasoningEffort.Low } });
+    expect(mock.body(1)).toMatchObject({ output_config: { effort: ReasoningLevel.Low } });
   });
 
   it('sends a level asked for alongside tools', async () => {
     mock.json(DELIVERY);
 
     await gateway.runAgent(
-      agentRequest({ model: LlmModelId.Gpt6Luna, reasoning: LlmReasoningEffort.High }),
+      agentRequest({ model: LlmModelId.Gpt6Luna, reasoning: ReasoningLevel.High }),
     );
 
     expect(mock.toolNames(0)).toEqual([LOOKUP_TOOL]);
-    expect(mock.body(0).reasoning_effort).toBe(LlmReasoningEffort.High);
+    expect(mock.body(0).reasoning_effort).toBe(ReasoningLevel.High);
   });
 });

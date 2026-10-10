@@ -27,6 +27,7 @@ export enum FlowIssueCode {
   MissingModel = 'MISSING_MODEL',
   MissingEventName = 'MISSING_EVENT_NAME',
   MissingChannel = 'MISSING_CHANNEL',
+  NoReplyStep = 'NO_REPLY_STEP',
   RuleWithoutConditions = 'RULE_WITHOUT_CONDITIONS',
   DuplicateRuleId = 'DUPLICATE_RULE_ID',
   InvalidRuleId = 'INVALID_RULE_ID',

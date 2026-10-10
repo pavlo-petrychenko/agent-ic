@@ -14,7 +14,7 @@ Each folder under `src/` is a topic, and inside it files sit in a folder per kin
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `document/`   | `flowDocumentSchema`, the inferred types (`FlowDocument`, `FlowNode`, a type per node, `FlowEdge`), `NodeType`, `PortName`, `nodePorts`, `renameNodeKey` |
 | `nodes/`      | one schema per node type and the enums of their configs                                                                                                  |
-| `references/` | prompt and model references; other records are public prefixed ids (D36), never secrets                                                                  |
+| `references/` | the prompt source (`library` or `inline`) and model references; other records are public prefixed ids (D36), never secrets                               |
 | `outputs/`    | output fields of Agent and Completion steps, `outputToZod` for the `reply` tool (D91), `outputFieldTypes`                                                |
 | `conditions/` | router rules, the operator table per type, `evaluateCondition`, `pickRoute`                                                                              |
 | `templates/`  | `parseTemplate`, `templateReferences`, `renderTemplate`, `resolvePath`                                                                                   |
@@ -38,7 +38,16 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 - Publish refuses a flow with any `error` issue. The builder shows every issue live, and the web turns each `FlowIssueCode` into text through i18n.
 - The engine and the simulator both route with `pickRoute(rules, resolve)`, so they agree.
 - A missing value renders as empty text, and every condition except `is_empty` fails on it.
+- A message-triggered flow must reach a Send message step from each message trigger, or it gets the blocking `NO_REPLY_STEP` issue on that trigger.
 - Validation does not check the database: whether a referenced prompt, knowledge base or channel exists is checked by the backend publish use case.
+
+## Prompts and reasoning in Agent and Completion steps
+
+- `prompt` is a prompt source, or `null` while the step is a draft:
+  - `{ kind: 'inline', text }`: a template, checked like every other template and rewritten by `renameNodeKey`. A blank text counts as missing (`MISSING_PROMPT`).
+  - `{ kind: 'library', promptRef, pin }`: a prompt of the library, `pin` is `{ kind: 'pinned', number }` or `{ kind: 'latest' }`. Whether it exists is the backend's check.
+- Only `inline` is used until the prompt library lands (`docs/backlog/library-prompts-in-steps.md`).
+- `reasoning` is a `ReasoningLevel` from `@agent-ic/contracts`, or `null` for the model's default. A stored flow without the field parses as `null`.
 
 ## Change the format
 

@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
+import type { PromptSource } from '@flow/document/typedefs/flow.typedefs';
+import { CompletionRole } from '@flow/nodes/constants/step.constants';
+import {
+  PromptSourceKind,
+  PromptVersionKind,
+} from '@flow/references/constants/reference.constants';
 import { NodeTextKind } from '@flow/templates/constants/template.constants';
 import { mapNodeText, nodeTextFields } from '@flow/templates/helpers/node-text.helpers';
 import {
   agent,
   apiRequest,
+  completion,
   escalation,
   rule,
   router,
@@ -59,8 +66,25 @@ describe('nodeTextFields', () => {
     ).toEqual([['reason'], ['fallbackMessage']]);
   });
 
-  it('lists nothing for an agent', () => {
-    expect(nodeTextFields(agent('answer'))).toEqual([]);
+  it('lists the inline prompt of an agent and a completion', () => {
+    const prompt: PromptSource = {
+      kind: PromptSourceKind.Inline,
+      text: 'Reply to {{message.text}}',
+    };
+    expect(nodeTextFields(agent('answer', [], prompt))).toEqual([
+      { kind: NodeTextKind.Template, path: ['prompt', 'text'], value: 'Reply to {{message.text}}' },
+    ]);
+    expect(nodeTextFields(completion('guard', CompletionRole.Guard))).toHaveLength(1);
+  });
+
+  it('lists nothing for a library prompt or no prompt', () => {
+    const library: PromptSource = {
+      kind: PromptSourceKind.Library,
+      promptRef: 'prm_answer',
+      pin: { kind: PromptVersionKind.Latest },
+    };
+    expect(nodeTextFields(agent('answer', [], library))).toEqual([]);
+    expect(nodeTextFields(agent('answer', [], null))).toEqual([]);
   });
 });
 
@@ -75,6 +99,7 @@ describe('mapNodeText', () => {
       sendList('reply', 'agent.messages'),
       escalation('handoff', 'why', 'later'),
       router('route', [rule('first', 'guard.ok')]),
+      agent('answer'),
     ].flatMap((node) =>
       nodeTextFields(mapNodeText(node, upper)).map((textField) => textField.value),
     );
@@ -87,6 +112,7 @@ describe('mapNodeText', () => {
       'WHY',
       'LATER',
       'x.guard.ok',
+      'ANSWER AS ANSWER.',
     ]);
   });
 });

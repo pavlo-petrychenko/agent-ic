@@ -1,12 +1,21 @@
+import { ReasoningLevel } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
 import { ConditionOperator, RuleMatch } from '@flow/conditions/constants/condition.constants';
 import { NodeType } from '@flow/document/constants/flow.constants';
 import { flowDocumentSchema } from '@flow/document/schemas/flow.schema';
 import type { FlowDocument, FlowNode } from '@flow/document/typedefs/flow.typedefs';
-import { MAX_NODES, MAX_RETRIES } from '@flow/limits/constants/limit.constants';
+import {
+  MAX_NODES,
+  MAX_RETRIES,
+  MAX_TEMPLATE_LENGTH,
+} from '@flow/limits/constants/limit.constants';
 import { CompletionRole, EscalationMode } from '@flow/nodes/constants/step.constants';
 import { ScheduleKind } from '@flow/nodes/constants/trigger.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
+import {
+  PromptSourceKind,
+  PromptVersionKind,
+} from '@flow/references/constants/reference.constants';
 import {
   eventNotificationFlow,
   exampleFlows,
@@ -190,5 +199,71 @@ describe('flowDocumentSchema', () => {
       customerMessage: null,
     });
     expect(flowDocumentSchema.safeParse(flow).success).toBe(false);
+  });
+});
+
+describe('prompt source and reasoning', () => {
+  const agent = nodeOf(faqWithHandOffFlow, NodeType.Agent);
+  const withAgentConfig = (changes: Record<string, unknown>) =>
+    replaceConfig(faqWithHandOffFlow, NodeType.Agent, { ...agent.config, ...changes });
+
+  it('accepts a library prompt pinned to a version or following the latest', () => {
+    const pins = [
+      { kind: PromptVersionKind.Pinned, number: 4 },
+      { kind: PromptVersionKind.Latest },
+    ];
+    for (const pin of pins) {
+      const prompt = { kind: PromptSourceKind.Library, promptRef: 'prm_answer', pin };
+      expect(flowDocumentSchema.safeParse(withAgentConfig({ prompt })).success).toBe(true);
+    }
+  });
+
+  it.each([
+    [
+      'a library prompt without a prompt',
+      { kind: PromptSourceKind.Library, pin: { kind: 'latest' } },
+    ],
+    [
+      'a library prompt pinned to version 0',
+      { kind: PromptSourceKind.Library, promptRef: 'prm_a', pin: { kind: 'pinned', number: 0 } },
+    ],
+    ['an inline prompt without text', { kind: PromptSourceKind.Inline }],
+    [
+      'an inline prompt over the template limit',
+      { kind: PromptSourceKind.Inline, text: 'x'.repeat(MAX_TEMPLATE_LENGTH + 1) },
+    ],
+    ['an unknown prompt source', { kind: 'file', text: 'hi' }],
+  ])('rejects %s', (_name, prompt) => {
+    expect(flowDocumentSchema.safeParse(withAgentConfig({ prompt })).success).toBe(false);
+  });
+
+  it('parses a step without reasoning as the model default', () => {
+    const config = Object.fromEntries(
+      Object.entries(agent.config).filter(([name]) => name !== 'reasoning'),
+    );
+    const flow = replaceConfig(faqWithHandOffFlow, NodeType.Agent, config);
+    expect(nodeOf(flowDocumentSchema.parse(flow), NodeType.Agent).config).toMatchObject({
+      reasoning: null,
+    });
+  });
+
+  it.each([NodeType.Agent, NodeType.Completion])(
+    'keeps a reasoning level on the %s step',
+    (type) => {
+      const step = nodeOf(faqWithHandOffFlow, type);
+      const flow = replaceConfig(faqWithHandOffFlow, type, {
+        ...step.config,
+        reasoning: ReasoningLevel.High,
+      });
+      expect(nodeOf(flowDocumentSchema.parse(flow), type).config).toMatchObject({
+        reasoning: ReasoningLevel.High,
+      });
+    },
+  );
+
+  it('rejects an unknown reasoning level', () => {
+    expect(flowDocumentSchema.safeParse(withAgentConfig({ reasoning: 'extreme' })).success).toBe(
+      false,
+    );
   });
 });

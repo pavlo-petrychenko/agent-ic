@@ -1,3 +1,5 @@
+import { REASONING_LEVEL_ORDER } from '@agent-ic/contracts';
+import type { ReasoningLevel } from '@agent-ic/contracts';
 import { APICallError, jsonSchema, Output, tool } from 'ai';
 import type {
   JSONSchema7,
@@ -28,11 +30,8 @@ import {
   LLM_UPSTREAM,
   LlmMessageRole,
 } from '@/platform/llm/constants/llm-gateway.constants';
-import {
-  LLM_REASONING_ORDER,
-  LlmStructuredOutput,
-} from '@/platform/llm/constants/llm-model.constants';
-import type { LlmModelId, LlmReasoningEffort } from '@/platform/llm/constants/llm-model.constants';
+import { LlmStructuredOutput } from '@/platform/llm/constants/llm-model.constants';
+import type { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
 import {
   LLM_PROVIDER_OPTIONS,
   LlmProviderKind,
@@ -70,12 +69,12 @@ export const outputInstructions = (system: string, model: LlmModel, schema: JSON
     : system;
 
 export const nearestReasoning = (
-  levels: readonly LlmReasoningEffort[],
-  wanted: LlmReasoningEffort,
-): LlmReasoningEffort | null => {
-  const distance = (level: LlmReasoningEffort) =>
-    Math.abs(LLM_REASONING_ORDER.indexOf(level) - LLM_REASONING_ORDER.indexOf(wanted));
-  return levels.reduce<LlmReasoningEffort | null>(
+  levels: readonly ReasoningLevel[],
+  wanted: ReasoningLevel,
+): ReasoningLevel | null => {
+  const distance = (level: ReasoningLevel) =>
+    Math.abs(REASONING_LEVEL_ORDER.indexOf(level) - REASONING_LEVEL_ORDER.indexOf(wanted));
+  return levels.reduce<ReasoningLevel | null>(
     (best, level) => (best === null || distance(level) < distance(best) ? level : best),
     null,
   );
@@ -83,8 +82,8 @@ export const nearestReasoning = (
 
 export const reasoningFor = (
   model: LlmModel,
-  requested: LlmReasoningEffort | undefined,
-): LlmReasoningEffort | null => {
+  requested: ReasoningLevel | undefined,
+): ReasoningLevel | null => {
   const wanted = requested ?? model.reasoningEffort;
   return wanted === null ? null : nearestReasoning(model.reasoningLevels, wanted);
 };

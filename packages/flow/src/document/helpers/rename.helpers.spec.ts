@@ -4,7 +4,7 @@ import { RenameError } from '@flow/document/constants/rename.constants';
 import { renameNodeKey } from '@flow/document/helpers/rename.helpers';
 import type { FlowDocument } from '@flow/document/typedefs/flow.typedefs';
 import { nodeTextFields } from '@flow/templates/helpers/node-text.helpers';
-import { faqWithHandOffFlow } from '@test/support/fixtures/example-flow.fixture';
+import { examplePrompt, faqWithHandOffFlow } from '@test/support/fixtures/example-flow.fixture';
 import {
   agent,
   escalation,
@@ -23,7 +23,7 @@ const texts = (flow: FlowDocument): string[] =>
 describe('renameNodeKey', () => {
   const trigger = messageTrigger('incoming');
   const guard = agent('guard');
-  const guardian = agent('guardian');
+  const guardian = agent('guardian', [], examplePrompt('Check {{guard.reason}}'));
   const route = router('route', [rule('human', 'guard.needs_human')]);
   const reply = sendText('reply', 'Hi {{ guard.messages[0] }} {{guardian.messages}} {{guard}}');
   const list = sendList('list', ' guard.messages');
@@ -52,6 +52,8 @@ describe('renameNodeKey', () => {
       'handoff',
     ]);
     expect(texts(renamed)).toEqual([
+      'Answer as guard.',
+      'Check {{gate.reason}}',
       'gate.needs_human',
       'Hi {{ gate.messages[0] }} {{guardian.messages}} {{gate}}',
       ' gate.messages',

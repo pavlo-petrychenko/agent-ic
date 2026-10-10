@@ -1,10 +1,10 @@
+import type { ReasoningLevel } from '@agent-ic/contracts';
 import type {
   EmbeddingModelId,
   LlmAgentFinish,
   LlmApi,
   LlmModelId,
   LlmPurpose,
-  LlmReasoningEffort,
   LlmStructuredOutput,
   LlmVendor,
 } from '@/platform/llm/constants/llm-model.constants';
@@ -23,8 +23,8 @@ export interface LlmModel {
   readonly api: LlmApi;
   readonly structuredOutput: LlmStructuredOutput;
   readonly agentFinish: LlmAgentFinish;
-  readonly reasoningLevels: readonly LlmReasoningEffort[];
-  readonly reasoningEffort: LlmReasoningEffort | null;
+  readonly reasoningLevels: readonly ReasoningLevel[];
+  readonly reasoningEffort: ReasoningLevel | null;
 }
 
 export interface LlmEmbeddingModel {

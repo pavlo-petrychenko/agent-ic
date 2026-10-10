@@ -71,6 +71,7 @@ export const agentNode = (id: string, key: string): AgentNode => ({
     retrievalMode: DEFAULT_RETRIEVAL_MODE,
     output: [],
     retries: 0,
+    reasoning: null,
   },
 });
 
