@@ -1,5 +1,9 @@
 import { AgentStatus } from '@/modules/agents/constants/agent.constants';
-import type { Agent, AgentView } from '@/modules/agents/typedefs/agent.typedefs';
+import type {
+  Agent,
+  AgentVersionSummary,
+  AgentView,
+} from '@/modules/agents/typedefs/agent.typedefs';
 
 export const agentStatusOf = (agent: Agent): AgentStatus => {
   if (agent.pausedAt !== null) {
@@ -8,10 +12,20 @@ export const agentStatusOf = (agent: Agent): AgentStatus => {
   return agent.liveVersionId === null ? AgentStatus.Draft : AgentStatus.Live;
 };
 
-export const toAgentView = (agent: Agent, publicId: string): AgentView => ({
+export const toAgentView = (
+  agent: Agent,
+  publicId: string,
+  summary: AgentVersionSummary,
+): AgentView => ({
   id: publicId,
   name: agent.name,
+  description: agent.description,
   status: agentStatusOf(agent),
+  liveVersionNumber: summary.liveVersionNumber,
+  draftNumber: summary.lastVersionNumber + 1,
+  draftBaseVersionNumber: summary.draftBaseVersionNumber,
+  hasUnpublishedChanges: summary.hasUnpublishedChanges,
+  versionCount: summary.versionCount,
   pausedAt: agent.pausedAt,
   pauseMode: agent.pauseMode,
   awayMessage: agent.awayMessage,

@@ -47,6 +47,7 @@ export class AgentPublishingService {
       at: now,
     });
     await this.versions.insert(published);
+    await this.versions.setBaseVersion(workspaceId, draft.id, published.id);
     await this.agents.setLiveVersion(workspaceId, agentId, published.id, now);
     return published;
   }

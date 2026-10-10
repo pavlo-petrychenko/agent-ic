@@ -45,6 +45,15 @@ export class AgentsRepository {
     return this.update(workspaceId, agentId, { name, updatedAt });
   }
 
+  setDescription(
+    workspaceId: string,
+    agentId: string,
+    description: string | null,
+    updatedAt: Date,
+  ): Promise<boolean> {
+    return this.update(workspaceId, agentId, { description, updatedAt });
+  }
+
   setDraftVersion(
     workspaceId: string,
     agentId: string,

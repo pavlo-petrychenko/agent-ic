@@ -1,0 +1,3 @@
+ALTER TABLE "agents"."agent_versions" ADD COLUMN "base_version_id" uuid;--> statement-breakpoint
+ALTER TABLE "agents"."agents" ADD COLUMN "description" text;--> statement-breakpoint
+ALTER TABLE "agents"."agent_versions" ADD CONSTRAINT "agent_versions_base_version_id_agent_versions_id_fk" FOREIGN KEY ("base_version_id") REFERENCES "agents"."agent_versions"("id") ON DELETE set null ON UPDATE no action;
