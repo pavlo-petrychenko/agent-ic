@@ -10,6 +10,11 @@ import {
   TEST_VERSION_NOTE,
 } from '@test/support/constants/agents-testing.constants';
 import {
+  CHECK_VIOLATION,
+  ROW_LEVEL_SECURITY_VIOLATION,
+  UNIQUE_VIOLATION,
+} from '@test/support/constants/postgres-errors.constants';
+import {
   emptyFlow,
   newAgent,
   newVersion,
@@ -17,9 +22,6 @@ import {
 } from '@test/support/fixtures/agents.fixture';
 import { createAgentsTestingModule } from '@test/support/helpers/agents-testing.helpers';
 
-const ROW_LEVEL_SECURITY_VIOLATION = { cause: { code: '42501' } };
-const UNIQUE_VIOLATION = { cause: { code: '23505' } };
-const CHECK_VIOLATION = { cause: { code: '23514' } };
 const FIRST_NUMBER = 1;
 const SECOND_NUMBER = 2;
 
