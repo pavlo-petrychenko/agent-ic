@@ -6,7 +6,12 @@ export interface MockLlmUsage {
 }
 
 export type MockLlmStep =
-  | { readonly kind: MockLlmStepKind.Reply; readonly args: unknown; readonly usage: MockLlmUsage }
+  | {
+      readonly kind: MockLlmStepKind.ToolCall;
+      readonly name: string;
+      readonly args: unknown;
+      readonly usage: MockLlmUsage;
+    }
   | { readonly kind: MockLlmStepKind.Text; readonly text: string; readonly usage: MockLlmUsage }
   | { readonly kind: MockLlmStepKind.Fail; readonly status: number }
   | { readonly kind: MockLlmStepKind.Hang }
@@ -15,6 +20,7 @@ export type MockLlmStep =
 export interface MockLlmRequest {
   readonly route: string;
   readonly authorization: string | null;
+  readonly apiKey: string | null;
   readonly body: Readonly<Record<string, unknown>> | string;
 }
 
@@ -40,6 +46,18 @@ export interface MockChatCompletionBody {
       readonly tool_calls?: readonly MockToolCallBody[];
     };
   }[];
+  readonly usage: Readonly<Record<string, number>>;
+}
+
+export type MockAnthropicContentBody =
+  | { readonly type: string; readonly text: string }
+  | { readonly type: string; readonly id: string; readonly name: string; readonly input: unknown };
+
+export interface MockAnthropicMessageBody {
+  readonly type: string;
+  readonly model: unknown;
+  readonly content: readonly MockAnthropicContentBody[];
+  readonly stop_reason: string;
   readonly usage: Readonly<Record<string, number>>;
 }
 
