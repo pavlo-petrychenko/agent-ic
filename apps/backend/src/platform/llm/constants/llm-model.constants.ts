@@ -1,8 +1,12 @@
 export enum LlmVendor {
   OpenAi = 'openai',
   Anthropic = 'anthropic',
+  Mistral = 'mistral',
+  Xiaomi = 'xiaomi',
   Google = 'google',
+  Zhipu = 'zhipu',
   DeepSeek = 'deepseek',
+  Alibaba = 'alibaba',
 }
 
 export enum LlmPurpose {
@@ -11,12 +15,32 @@ export enum LlmPurpose {
 }
 
 export enum LlmModelId {
-  Gpt54Mini = 'gpt-5.4-mini',
-  ClaudeSonnet55 = 'claude-sonnet-5-5',
-  Gpt61Sol = 'gpt-6.1-sol',
-  Gemini38Flash = 'gemini-3.8-flash',
+  Gpt6Luna = 'gpt-6-luna',
+  Ministral14b = 'ministral-14b-2512',
+  ClaudeHaiku55 = 'claude-haiku-5-5',
+  MimoV26Flash = 'mimo-v2.6-flash',
+  Gemma4 = 'gemma-4-26b-a4b-it',
+  Glm53Flash = 'glm-5.3-flash',
   DeepSeekV41Flash = 'deepseek/deepseek-v4.1-flash',
-  Gemini35FlashLite = 'gemini-3.5-flash-lite',
-  Gpt56Luna = 'gpt-5.6-luna',
-  Gpt54Nano = 'gpt-5.4-nano',
+  Qwen35_9b = 'qwen3.5-9b',
+}
+
+export enum LlmApi {
+  ChatCompletions = 'chat-completions',
+  AnthropicMessages = 'anthropic-messages',
+}
+
+export enum LlmStructuredOutput {
+  JsonSchema = 'json-schema',
+  JsonObject = 'json-object',
+}
+
+export enum LlmAgentFinish {
+  FinalMessage = 'final-message',
+  ReplyTool = 'reply-tool',
+}
+
+export enum LlmReasoningEffort {
+  None = 'none',
+  Low = 'low',
 }

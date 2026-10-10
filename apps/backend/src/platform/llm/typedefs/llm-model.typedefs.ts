@@ -1,6 +1,10 @@
 import type {
+  LlmAgentFinish,
+  LlmApi,
   LlmModelId,
   LlmPurpose,
+  LlmReasoningEffort,
+  LlmStructuredOutput,
   LlmVendor,
 } from '@/platform/llm/constants/llm-model.constants';
 
@@ -15,4 +19,8 @@ export interface LlmModel {
   readonly purpose: LlmPurpose;
   readonly price: LlmPrice;
   readonly fallback: LlmModelId;
+  readonly api: LlmApi;
+  readonly structuredOutput: LlmStructuredOutput;
+  readonly agentFinish: LlmAgentFinish;
+  readonly reasoningEffort: LlmReasoningEffort | null;
 }
