@@ -48,6 +48,20 @@ export class AgentVersionsRepository {
       .orderBy(desc(agentVersions.id));
   }
 
+  listPublished(workspaceId: string, agentId: string): Promise<AgentVersion[]> {
+    return this.txHost.tx
+      .select()
+      .from(agentVersions)
+      .where(
+        and(
+          eq(agentVersions.workspaceId, workspaceId),
+          eq(agentVersions.agentId, agentId),
+          eq(agentVersions.kind, AgentVersionKind.Published),
+        ),
+      )
+      .orderBy(desc(agentVersions.number));
+  }
+
   async lastPublishedNumber(workspaceId: string, agentId: string): Promise<number> {
     const [row] = await this.txHost.tx
       .select({ last: max(agentVersions.number) })
