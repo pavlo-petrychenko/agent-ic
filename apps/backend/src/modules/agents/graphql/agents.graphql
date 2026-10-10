@@ -11,6 +11,8 @@ extend type Mutation {
   duplicateAgent(input: DuplicateAgentInput!): Agent!
   saveAgentDraft(input: SaveAgentDraftInput!): SaveAgentDraftPayload!
   publishAgent(input: PublishAgentInput!): PublishAgentPayload!
+  pauseAgent(input: PauseAgentInput!): Agent!
+  resumeAgent(input: ResumeAgentInput!): Agent!
 }
 
 enum AgentStatus {
@@ -19,10 +21,18 @@ enum AgentStatus {
   paused
 }
 
+enum PauseMode {
+  inbox
+  away_message
+}
+
 type Agent {
   id: ID!
   name: String!
   status: AgentStatus!
+  pausedAt: String
+  pauseMode: PauseMode
+  awayMessage: String
   createdAt: String!
   updatedAt: String!
 }
@@ -65,6 +75,16 @@ input SaveAgentDraftInput {
 }
 
 input PublishAgentInput {
+  id: ID!
+}
+
+input PauseAgentInput {
+  id: ID!
+  mode: PauseMode!
+  awayMessage: String
+}
+
+input ResumeAgentInput {
   id: ID!
 }
 

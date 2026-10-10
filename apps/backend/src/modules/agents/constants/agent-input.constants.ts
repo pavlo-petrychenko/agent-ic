@@ -6,6 +6,8 @@ export enum AgentField {
   Name = 'name',
   Flow = 'flow',
   Note = 'note',
+  Mode = 'mode',
+  AwayMessage = 'awayMessage',
 }
 
 export enum AgentGraphqlArgument {
