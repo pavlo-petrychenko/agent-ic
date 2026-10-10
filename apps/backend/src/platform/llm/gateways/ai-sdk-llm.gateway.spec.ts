@@ -396,17 +396,14 @@ describe('AiSdkLlmGateway reasoning', () => {
     expect(mock.body(1)).toMatchObject({ output_config: { effort: LlmReasoningEffort.Low } });
   });
 
-  it('forces the tool level on a model that needs it when tools are sent', async () => {
-    mock.json(DELIVERY).json(DELIVERY);
+  it('sends a level asked for alongside tools', async () => {
+    mock.json(DELIVERY);
 
     await gateway.runAgent(
       agentRequest({ model: LlmModelId.Gpt6Luna, reasoning: LlmReasoningEffort.High }),
     );
-    await gateway.runAgent(
-      agentRequest({ model: LlmModelId.Gpt6Luna, reasoning: LlmReasoningEffort.High, tools: {} }),
-    );
 
-    expect(mock.body(0).reasoning_effort).toBe(LlmReasoningEffort.None);
-    expect(mock.body(1).reasoning_effort).toBe(LlmReasoningEffort.High);
+    expect(mock.toolNames(0)).toEqual([LOOKUP_TOOL]);
+    expect(mock.body(0).reasoning_effort).toBe(LlmReasoningEffort.High);
   });
 });

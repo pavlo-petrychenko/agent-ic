@@ -74,19 +74,15 @@ export class AiSdkLlmGateway extends LlmGateway {
     run: LlmModelRun,
     state: LlmRunState,
   ): Promise<LlmAgentResult<T>> {
-    const tools = toToolSet(request.tools);
     const result = await generateText({
       model: run.languageModel,
       instructions: outputInstructions(request.system, run.model, run.jsonSchema),
       messages: [...state.messages],
-      tools,
+      tools: toToolSet(request.tools),
       output: structuredOutput(run.model, run.jsonSchema),
       stopWhen: stepCountIs(state.roundsLeft),
       maxRetries: LLM_SDK_MAX_RETRIES,
-      ...modelCallSettings(
-        run.model,
-        reasoningFor(run.model, request.reasoning, Object.keys(tools).length > 0),
-      ),
+      ...modelCallSettings(run.model, reasoningFor(run.model, request.reasoning)),
     });
     const next = afterSteps(state, result);
     if (result.finishReason === LLM_TOOL_CALLS_FINISH_REASON) {
@@ -122,7 +118,7 @@ export class AiSdkLlmGateway extends LlmGateway {
       tools: { ...toToolSet(request.tools), [LLM_REPLY_TOOL_NAME]: replyTool(run.jsonSchema) },
       stopWhen: [stepCountIs(state.roundsLeft), hasToolCall(LLM_REPLY_TOOL_NAME)],
       maxRetries: LLM_SDK_MAX_RETRIES,
-      ...modelCallSettings(run.model, reasoningFor(run.model, request.reasoning, true)),
+      ...modelCallSettings(run.model, reasoningFor(run.model, request.reasoning)),
     });
     const next = afterSteps(state, result);
     const replyCall = result.toolCalls.find(({ toolName }) => toolName === LLM_REPLY_TOOL_NAME);

@@ -73,10 +73,8 @@ export const nearestReasoning = (
 export const reasoningFor = (
   model: LlmModel,
   requested: LlmReasoningEffort | undefined,
-  withTools: boolean,
 ): LlmReasoningEffort | null => {
-  const wanted =
-    (withTools ? model.reasoningWithTools : null) ?? requested ?? model.reasoningEffort;
+  const wanted = requested ?? model.reasoningEffort;
   return wanted === null ? null : nearestReasoning(model.reasoningLevels, wanted);
 };
 
