@@ -19,6 +19,7 @@ Each folder under `src/` is a topic, and inside it files sit in a folder per kin
 | `conditions/` | router rules, the operator table per type, `evaluateCondition`, `pickRoute`                                                                              |
 | `templates/`  | `parseTemplate`, `templateReferences`, `renderTemplate`, `resolvePath`                                                                                   |
 | `scope/`      | `visibleVariables` and `createScopeLookup`: every variable a node may use, with its type and whether it can be missing                                   |
+| `diff/`       | `diffFlows`: what changed between two flows, for comparing versions and the publish dialog                                                               |
 | `validation/` | `validateFlow`, `FlowIssueCode`, `hasBlockingIssues`                                                                                                     |
 | `versions/`   | `parseFlow`: reads a stored flow and refuses a schema version it does not know (D77)                                                                     |
 | `limits/`     | node, edge, rule, branch, output and template limits                                                                                                     |
@@ -48,6 +49,17 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
   - `{ kind: 'library', promptRef, pin }`: a prompt of the library, `pin` is `{ kind: 'pinned', number }` or `{ kind: 'latest' }`. Whether it exists is the backend's check.
 - Only `inline` is used until the prompt library lands (`docs/backlog/library-prompts-in-steps.md`).
 - `reasoning` is a `ReasoningLevel` from `@agent-ic/contracts`, or `null` for the model's default. A stored flow without the field parses as `null`.
+
+## Compare two flows
+
+`diffFlows(a, b)` returns a `FlowDiff`: what changed from `a` (the older flow) to `b`.
+
+- Nodes are matched by `id`, which never changes. `addedNodes` and `removedNodes` hold the whole nodes.
+- `renamedKeys` lists `{ nodeId, from, to }` for each node whose key changed. A rename is not also reported as a change to the templates that refer to the key, so a flow passed through `renameNodeKey` differs only by the rename, and swapped keys are two renames.
+- `changedNodes` lists `{ nodeId, key, type, fields }` for each kept node that changed. Each field is `{ path, before, after }`, with the path under the node (`['config', 'schedule', 'time']`) and the old and new values; a missing value is `null`. Objects are compared field by field, a list is one value. `id` and `key` are never fields.
+- Edges are matched by their ends (`source`, `sourcePort`, `target`), not their `id`. `addedEdges` and `removedEdges` hold the whole edges.
+- Identical flows give a diff whose six lists are empty.
+- The web writes each change in plain words ("Schedule trigger: 18:00 instead of 09:30") from these values.
 
 ## Change the format
 
