@@ -6,10 +6,12 @@ import {
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type { NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
+import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import {
   TEST_END_USER_EXTERNAL_ID,
   TEST_MESSAGE_TEXT,
 } from '@test/support/constants/conversations-testing.constants';
+import { systemCtx } from '@test/support/fixtures/identity.fixture';
 import type { ConversationsTestbed } from '@test/support/typedefs/conversations-testing.typedefs';
 
 export const newConversation = (
@@ -40,4 +42,9 @@ export const newMessage = (
   quickReplies: [],
   createdAt: testbed.clock.now(),
   ...overrides,
+});
+
+export const workspaceSystemCtx = (workspaceId: string): UseCaseCtx => ({
+  ...systemCtx(),
+  workspaceId,
 });

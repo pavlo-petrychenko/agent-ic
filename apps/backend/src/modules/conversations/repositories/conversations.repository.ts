@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull, ne } from 'drizzle-orm';
+import { ConversationState } from '@/modules/conversations/constants/conversation.constants';
 import { conversations } from '@/modules/conversations/db/conversations.table';
 import type {
   Conversation,
@@ -52,5 +53,40 @@ export class ConversationsRepository {
       )
       .returning({ id: conversations.id });
     return released.length > 0;
+  }
+
+  async markWaiting(workspaceId: string, id: string): Promise<boolean> {
+    const updated = await this.txHost.tx
+      .update(conversations)
+      .set({ state: ConversationState.Waiting })
+      .where(
+        and(
+          eq(conversations.workspaceId, workspaceId),
+          eq(conversations.id, id),
+          eq(conversations.state, ConversationState.AgentActive),
+        ),
+      )
+      .returning({ id: conversations.id });
+    return updated.length > 0;
+  }
+
+  async close(workspaceId: string, id: string, closedAt: Date): Promise<void> {
+    await this.txHost.tx
+      .update(conversations)
+      .set({ state: ConversationState.Closed, closedAt })
+      .where(
+        and(
+          eq(conversations.workspaceId, workspaceId),
+          eq(conversations.id, id),
+          ne(conversations.state, ConversationState.Closed),
+        ),
+      );
+  }
+
+  async touch(workspaceId: string, id: string, lastMessageAt: Date): Promise<void> {
+    await this.txHost.tx
+      .update(conversations)
+      .set({ lastMessageAt })
+      .where(and(eq(conversations.workspaceId, workspaceId), eq(conversations.id, id)));
   }
 }

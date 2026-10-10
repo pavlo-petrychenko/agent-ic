@@ -3,6 +3,7 @@ import { ConversationsModule } from '@/modules/conversations/conversations.modul
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
+import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type { Message, NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
 import { ClockModule } from '@/platform/clock/clock.module';
@@ -13,10 +14,16 @@ import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { ContextModule } from '@/platform/context/context.module';
 import { DatabaseModule } from '@/platform/database/database.module';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import { DOMAIN_EVENT_SUBSCRIPTIONS } from '@/platform/domain-events/constants/domain-event.constants';
+import { DomainEventsModule } from '@/platform/domain-events/domain-events.module';
+import type { AnyDomainEventSubscription } from '@/platform/domain-events/typedefs/domain-event.typedefs';
 import { ErrorsModule } from '@/platform/errors/errors.module';
 import { IdsModule } from '@/platform/ids/ids.module';
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { QueuesModule } from '@/platform/queues/queues.module';
+import { QueuesService } from '@/platform/queues/services/queues.service';
+import type { JobData } from '@/platform/queues/typedefs/job.typedefs';
 import {
   CONCURRENT_POOL_SIZE,
   CONVERSATIONS_TEST_START,
@@ -27,17 +34,21 @@ import { MissingTestDataError } from '@test/support/errors/missing-test-data.err
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { newConversation, newMessage } from '@test/support/fixtures/conversation.fixture';
 import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
+import {
+  deliverOnOutboundQueued,
+  notifyOnNeedsOperator,
+} from '@test/support/jobs/conversation-probe.job';
 import type {
   ConversationsTestbed,
   TiedMessages,
 } from '@test/support/typedefs/conversations-testing.typedefs';
 
-const ROLE = Role.Api;
+const ROLE = Role.Gateway;
 
 export const createConversationsTestbed = async (): Promise<ConversationsTestbed> => {
   const config = loadAppConfig(
     { role: ROLE, queues: [] },
-    createIntegrationTestEnv(TestRedisDatabase.Database, {
+    createIntegrationTestEnv(TestRedisDatabase.Conversations, {
       [EnvVar.DatabasePoolMax]: CONCURRENT_POOL_SIZE,
     }),
   );
@@ -50,7 +61,15 @@ export const createConversationsTestbed = async (): Promise<ConversationsTestbed
       DatabaseModule,
       ClockModule,
       IdsModule,
+      QueuesModule.forRole(ROLE),
+      DomainEventsModule.forRole(ROLE),
       ConversationsModule.forRole(ROLE),
+    ],
+    providers: [
+      {
+        provide: DOMAIN_EVENT_SUBSCRIPTIONS,
+        useValue: [deliverOnOutboundQueued, notifyOnNeedsOperator],
+      },
     ],
   })
     .overrideProvider(ClockService)
@@ -66,6 +85,8 @@ export const createConversationsTestbed = async (): Promise<ConversationsTestbed
     conversations: module.get(ConversationsRepository),
     messages: module.get(MessagesRepository),
     history: module.get(ConversationHistoryService),
+    runs: module.get(ConversationRunsService),
+    queues: module.get(QueuesService),
   };
 };
 
@@ -110,4 +131,16 @@ export const seedTiedMessages = async (
     throw new MissingTestDataError(conversation.id);
   }
   return { earlier, middle, later };
+};
+
+export const queuedEventsFor = async (
+  testbed: ConversationsTestbed,
+  subscription: AnyDomainEventSubscription,
+  conversationId: string,
+): Promise<JobData[]> => {
+  const jobs = await testbed.queues.get(subscription.queue).getJobs();
+  return jobs
+    .filter((job) => job.name === subscription.name)
+    .map((job) => job.data.data)
+    .filter((data) => data['conversationId'] === conversationId);
 };

@@ -2,6 +2,7 @@ import type {
   ChannelKind,
   ConversationMode,
   ConversationState,
+  WaitingReason,
 } from '@/modules/conversations/constants/conversation.constants';
 import type { conversations } from '@/modules/conversations/db/conversations.table';
 
@@ -24,3 +25,9 @@ export interface Conversation {
 }
 
 export type NewConversation = typeof conversations.$inferInsert;
+
+export interface WaitingRequest {
+  readonly workspaceId: string;
+  readonly conversationId: string;
+  readonly reason: WaitingReason;
+}
