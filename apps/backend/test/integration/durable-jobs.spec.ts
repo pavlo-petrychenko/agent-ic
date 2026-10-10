@@ -3,6 +3,7 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import type { INestApplication } from '@nestjs/common';
 import type { Queue } from 'bullmq';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { ZodError } from 'zod';
 import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -41,6 +42,7 @@ const WAIT = { timeout: PROBE_WAIT_TIMEOUT_MS, interval: PROBE_WAIT_INTERVAL_MS 
 const DURABLE = { durable: true };
 const PERMISSION_DENIED = { cause: { code: '42501' } };
 const COMPLETED_STATE = 'completed';
+const NOT_A_UUID = 'run:not-a-uuid';
 const PAST_GRACE_MS = (OUTBOX_GRACE_PERIOD_SECONDS + 1) * MILLISECONDS_PER_SECOND;
 
 const probeIdOf = (envelope: JobEnvelope): unknown => envelope.data['probeId'];
@@ -172,6 +174,37 @@ describe('durable jobs', () => {
     expect(await rowsFor(probeId)).toEqual([]);
     expect(await queue.getJobState(row.id)).toBe(COMPLETED_STATE);
     expect(callsFor(probeId)).toBe(1);
+  });
+
+  it('runs a durable job once when the same job id is enqueued twice', async () => {
+    const probeId = randomUUID();
+    const options = { ...DURABLE, jobId: randomUUID() };
+
+    await txHost.withTransaction(async () => {
+      await jobs.enqueue(workspaceCtx(), recordProbeJob, { probeId }, options);
+      await jobs.enqueue(workspaceCtx(), recordProbeJob, { probeId }, options);
+    });
+    await waitUntilHandled(probeId);
+    await txHost.withTransaction(() =>
+      jobs.enqueue(workspaceCtx(), recordProbeJob, { probeId }, options),
+    );
+
+    expect(await queue.getJobState(options.jobId)).toBe(COMPLETED_STATE);
+    expect(await rowsFor(probeId)).toEqual([]);
+    expect(callsFor(probeId)).toBe(1);
+  });
+
+  it('rejects a durable job id that is not a uuid and writes nothing', async () => {
+    const probeId = randomUUID();
+    const options = { ...DURABLE, jobId: NOT_A_UUID };
+
+    await expect(
+      txHost.withTransaction(() =>
+        jobs.enqueue(workspaceCtx(), recordProbeJob, { probeId }, options),
+      ),
+    ).rejects.toThrow(ZodError);
+
+    expect(await rowsFor(probeId)).toEqual([]);
   });
 
   it('writes one outbox row per listener for a durable domain event', async () => {
