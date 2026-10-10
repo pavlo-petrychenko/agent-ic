@@ -1,5 +1,5 @@
 import { AGENT_NAME_MAX_LENGTH } from '@agent-ic/contracts';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import { NameFieldKey } from '@/features/flow-builder/constants/nameField.constants';
@@ -10,17 +10,28 @@ import { Input } from '@/shared/ui/inputs/Input';
 export function AgentNameField({ name, onRename }: AgentNameFieldProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const [draft, setDraft] = useState<string | null>(null);
+  const editing = useRef(false);
+
+  const start = () => {
+    editing.current = true;
+    setDraft(name);
+  };
+
+  const finish = () => {
+    editing.current = false;
+    setDraft(null);
+  };
 
   const commit = () => {
-    const next = draft?.trim() ?? '';
-    setDraft(null);
+    const next = editing.current ? (draft?.trim() ?? '') : '';
+    finish();
     if (next !== '' && next !== name) {
       onRename(next);
     }
   };
 
   return draft === null ? (
-    <Button variant={ButtonVariant.Ghost} title={t('header.rename')} onClick={() => setDraft(name)}>
+    <Button variant={ButtonVariant.Ghost} title={t('header.rename')} onClick={start}>
       {name}
     </Button>
   ) : (
@@ -36,7 +47,7 @@ export function AgentNameField({ name, onRename }: AgentNameFieldProps) {
           commit();
         }
         if (event.key === NameFieldKey.Cancel) {
-          setDraft(null);
+          finish();
         }
       }}
     />
