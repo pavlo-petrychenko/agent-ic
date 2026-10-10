@@ -143,6 +143,20 @@ describe('jobs and domain events', () => {
     expect(recorder.probeIds()).toContain(probeId);
   });
 
+  it('runs a job once when the same job id is enqueued twice', async () => {
+    const probeId = randomUUID();
+    const options = { jobId: randomUUID() };
+
+    await txHost.withTransaction(async () => {
+      await jobs.enqueue(userCtx(), recordProbeJob, { probeId }, options);
+      await jobs.enqueue(userCtx(), recordProbeJob, { probeId }, options);
+    });
+    await jobs.enqueue(userCtx(), recordProbeJob, { probeId }, options);
+    await waitUntilHandled(probeId);
+
+    expect(recorder.calls.filter((call) => call.probeId === probeId)).toHaveLength(1);
+  });
+
   it('runs one job per domain event listener after the commit', async () => {
     const probeId = randomUUID();
 

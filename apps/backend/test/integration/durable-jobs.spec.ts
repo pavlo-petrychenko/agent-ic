@@ -174,6 +174,24 @@ describe('durable jobs', () => {
     expect(callsFor(probeId)).toBe(1);
   });
 
+  it('runs a durable job once when the same job id is enqueued twice', async () => {
+    const probeId = randomUUID();
+    const options = { ...DURABLE, jobId: randomUUID() };
+
+    await txHost.withTransaction(async () => {
+      await jobs.enqueue(workspaceCtx(), recordProbeJob, { probeId }, options);
+      await jobs.enqueue(workspaceCtx(), recordProbeJob, { probeId }, options);
+    });
+    await waitUntilHandled(probeId);
+    await txHost.withTransaction(() =>
+      jobs.enqueue(workspaceCtx(), recordProbeJob, { probeId }, options),
+    );
+
+    expect(await queue.getJobState(options.jobId)).toBe(COMPLETED_STATE);
+    expect(await rowsFor(probeId)).toEqual([]);
+    expect(callsFor(probeId)).toBe(1);
+  });
+
   it('writes one outbox row per listener for a durable domain event', async () => {
     const probeId = randomUUID();
     vi.spyOn(queue, 'add').mockRejectedValue(new ProbeOutage());

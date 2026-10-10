@@ -38,7 +38,7 @@
 ## Consequences
 - One use case means one permission check and one transaction. A transport's behaviour can be read from a single use case.
 - Every GraphQL field that needs data, DataLoader batches included, goes through a use case. That means more small "query" use cases, but no unchecked read path.
-- **Writes into another module's tables skip that module's services.** For example, `runtime` writing messages straight into `conversations` would bypass the escalation state machine or the unread counters. Code review must catch writes that need the owning module's rules and route them through its service instead.
+- **Writes into another module's tables skip that module's services.** For example, `runs` writing messages straight into `conversations` would bypass the escalation state machine or the unread counters. Code review must catch writes that need the owning module's rules and route them through its service instead.
 - Nest cannot restrict an export to "my own transport modules". The use-case rule relies on dependency-cruiser, not on the container.
 
 ## Alternatives considered

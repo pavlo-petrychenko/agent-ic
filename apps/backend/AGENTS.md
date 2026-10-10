@@ -49,7 +49,7 @@ One binary, three commands, in `src/app/commands/`:
 
 ## Async, Redis and security
 
-- A job is made with `defineJob({ queue, name, schema })` in `modules/<m>/jobs/`; the payload holds IDs only. Use cases call `jobs.enqueue(ctx, job, data)` (`JobsService`); never `queue.add()`.
+- A job is made with `defineJob({ queue, name, schema })` in `modules/<m>/jobs/`; the payload holds IDs only. Use cases call `jobs.enqueue(ctx, job, data)` (`JobsService`); never `queue.add()`. Passing `{ jobId }` makes the job run once per id, durable or not (D220).
 - A processor in `modules/<m>/processors/` is an `@Injectable()` class marked `@ProcessJob(job)` with `handle(ctx, data)`, listed under `processors` in the module's `defineModule`. It runs as the system actor of the job's workspace, with `ctx.initiatedBy` set to whoever enqueued it.
 - A recurring job: add `@ScheduleJob(defineJobSchedule({ job, everySeconds, data }))` to its processor. Every worker that serves the job's queue upserts one BullMQ job scheduler for it on boot; the job runs as the system actor with no workspace and `ctx.initiatedBy` `{ system, schedule }`.
 - Domain events: an event is made with `defineDomainEvent({ name, schema })` in `events/` and emitted with `domainEvents.emit(ctx, event, data)`. A listener is a class in `listeners/` marked `@OnDomainEvent(subscription)` and listed under `listeners` in the listening module's `defineModule`. Each listener gets one job per event: delivery is durable and retried, and a failing listener never blocks the others. The subscription is registered in every role, so `api` knows where to fan out, and the listener is instantiated only in workers.
