@@ -64,7 +64,7 @@ import { usePaletteDrop } from '@/shared/ui/flow/FlowCanvas/usePaletteDrop';
 import { ZoomControl } from '@/shared/ui/flow/ZoomControl/ZoomControl';
 import { ZOOM_MAX, ZOOM_MIN } from '@/shared/ui/flow/ZoomControl/ZoomControl.constants';
 import { IconName } from '@/shared/ui/foundations/Icon/Icon.constants';
-import { Menu, MenuVariant } from '@/shared/ui/overlays/Menu';
+import { Menu, MenuRole, MenuVariant } from '@/shared/ui/overlays/Menu';
 import { useToast } from '@/shared/ui/overlays/Toast';
 import styles from '@/shared/ui/flow/FlowCanvas/FlowCanvas.module.scss';
 
@@ -345,6 +345,9 @@ function FlowCanvasSurface({
   };
 
   const handleNodeContextMenu: NodeMouseHandler<CanvasNode> = (event, node) => {
+    if (node.id === FLOW_CANVAS_PLACEHOLDER_ID) {
+      return;
+    }
     const current = selectionRef.current;
     if (current.nodeIds.includes(node.id)) {
       openContextMenu(event, current);
@@ -363,6 +366,7 @@ function FlowCanvasSurface({
       deleteSelection(contextMenu.target);
     }
     setContextMenu(null);
+    rootRef.current?.focus();
   };
 
   const handleKeyDown = useCanvasShortcuts({
@@ -373,6 +377,9 @@ function FlowCanvasSurface({
     onDuplicate,
     onOpenNode,
     onEscape: () => {
+      if (contextMenu !== null) {
+        rootRef.current?.focus();
+      }
       setAddStep(null);
       setContextMenu(null);
       keyboard.cancel();
@@ -505,6 +512,7 @@ function FlowCanvasSurface({
           <Menu
             ariaLabel={labels.stepActions}
             variant={MenuVariant.Action}
+            role={MenuRole.Menu}
             onSelect={handleContextAction}
             items={[
               { id: FlowCanvasContextAction.Duplicate, label: labels.duplicate },

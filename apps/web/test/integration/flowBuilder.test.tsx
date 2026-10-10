@@ -114,14 +114,29 @@ describe('flow builder canvas', () => {
     const step = () => within(canvas).getByLabelText('Customer message');
 
     fireEvent.contextMenu(step());
-    await userEvent.click(screen.getByRole('option', { name: 'Delete' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
     expect(within(canvas).queryByLabelText('Customer message')).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
 
     fireEvent.contextMenu(step());
-    await userEvent.click(screen.getByRole('option', { name: 'Duplicate' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Duplicate' }));
     expect(within(canvas).getAllByLabelText('Customer message')).toHaveLength(2);
-    expect(screen.queryByRole('listbox', { name: 'Step actions' })).toBeNull();
+    expect(screen.queryByRole('menu', { name: 'Step actions' })).toBeNull();
+  });
+
+  it('moves through the step menu with the arrow keys and closes it with Escape', async () => {
+    const canvas = await openBuilder();
+
+    fireEvent.contextMenu(within(canvas).getByLabelText('Customer message'));
+    const menu = screen.getByRole('menu', { name: 'Step actions' });
+    expect(within(menu).getByRole('menuitem', { name: 'Duplicate' })).toHaveFocus();
+
+    await userEvent.keyboard('{ArrowDown}');
+    expect(within(menu).getByRole('menuitem', { name: 'Delete' })).toHaveFocus();
+
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('menu', { name: 'Step actions' })).toBeNull();
+    expect(canvas).toHaveFocus();
   });
 
   it('switches density and lists the keyboard shortcuts', async () => {
