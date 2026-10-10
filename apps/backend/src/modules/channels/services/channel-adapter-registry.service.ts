@@ -5,7 +5,7 @@ import type { ChannelAdapter } from '@/modules/channels/gateways/channel-adapter
 import type { ChannelKind } from '@/modules/conversations';
 
 @Injectable()
-export class ChannelAdapterRegistry {
+export class ChannelAdapterRegistryService {
   private readonly byKind: ReadonlyMap<ChannelKind, ChannelAdapter>;
 
   constructor(@Inject(CHANNEL_ADAPTERS) adapters: readonly ChannelAdapter[]) {

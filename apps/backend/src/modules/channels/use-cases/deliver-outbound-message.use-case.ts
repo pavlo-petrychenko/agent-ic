@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ChannelLogMessage } from '@/modules/channels/constants/channel-delivery.constants';
 import {
   deliveryChannelKind,
   toChannelOutboundMessage,
 } from '@/modules/channels/helpers/channel-delivery.helpers';
-import { ChannelAdapterRegistry } from '@/modules/channels/services/channel-adapter-registry.service';
+import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
 import { ConversationRunsService, MessageDelivery } from '@/modules/conversations';
 import type { OutboundQueuedPayload } from '@/modules/conversations';
 import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
@@ -13,10 +14,12 @@ import { TenantTransactionService } from '@/platform/database/services/tenant-tr
 
 @Injectable()
 export class DeliverOutboundMessageUseCase {
+  private readonly logger = new Logger(DeliverOutboundMessageUseCase.name);
+
   constructor(
     private readonly tenantTransactions: TenantTransactionService,
     private readonly conversationRuns: ConversationRunsService,
-    private readonly adapters: ChannelAdapterRegistry,
+    private readonly adapters: ChannelAdapterRegistryService,
   ) {}
 
   async execute(ctx: UseCaseCtx, input: OutboundQueuedPayload): Promise<void> {
@@ -36,7 +39,15 @@ export class DeliverOutboundMessageUseCase {
         .adapterFor(deliveryChannelKind(delivery.conversation))
         .send(toChannelOutboundMessage(delivery));
     } catch (error) {
-      await this.markDelivery(workspaceId, input.messageId, MessageDelivery.Failed);
+      await this.markDelivery(workspaceId, input.messageId, MessageDelivery.Failed).catch(
+        (markError: unknown) => {
+          this.logger.error({
+            msg: ChannelLogMessage.MarkFailedError,
+            messageId: input.messageId,
+            err: markError,
+          });
+        },
+      );
       throw error;
     }
     await this.markDelivery(workspaceId, input.messageId, MessageDelivery.Delivered);
