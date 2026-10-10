@@ -15,10 +15,13 @@ import {
   buildSaveAgentDraftConflictMock,
   buildSaveAgentDraftFailureMock,
   buildSaveAgentDraftMock,
+  buildSavedDraftResult,
 } from '@/features/flow-builder/communication/fixtures/saveAgentDraft.fixture';
 import { AUTOSAVE_DEBOUNCE_MS } from '@/features/flow-builder/constants/autosave.constants';
+import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import { formatSavedAt } from '@/features/flow-builder/logic/helpers/autosave.helpers';
 import { addNode } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
+import { workspaceHref } from '@/features/flow-builder/logic/helpers/route.helpers';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import {
   buildWorkspaceShellMock,
@@ -33,10 +36,12 @@ const shell = buildWorkspaceShellMock([DEMO_WORKSPACE]);
 const store = () => useFlowBuilderStore.getState();
 
 const openBuilder = async (mocks: readonly MockLink.MockedResponse[], flow: unknown) => {
-  renderRoute(builderPath, { mocks: [shell, buildFlowBuilderDraftMock(flow), ...mocks] });
+  const { history } = renderRoute(builderPath, {
+    mocks: [shell, buildFlowBuilderDraftMock(flow), ...mocks],
+  });
   const canvas = await screen.findByRole('region', { name: 'Flow canvas' });
   vi.useFakeTimers();
-  return canvas;
+  return { canvas, history };
 };
 
 const addReply = () =>
@@ -78,6 +83,32 @@ describe('flow builder autosave', () => {
     expect(store().revision).toBe(DRAFT_REVISION + 1);
   });
 
+  it('sends the edits made during a save when the user leaves', async () => {
+    const sendQueued = vi.fn<
+      (variables: Record<string, unknown>) => ReturnType<typeof buildSavedDraftResult>
+    >(() => buildSavedDraftResult(DRAFT_REVISION + 1));
+    const { history } = await openBuilder(
+      [
+        { ...buildSaveAgentDraftMock(DRAFT_REVISION), delay: AUTOSAVE_DEBOUNCE_MS },
+        { ...buildSaveAgentDraftMock(DRAFT_REVISION + 1), result: sendQueued },
+      ],
+      TRIGGER_ONLY_FLOW,
+    );
+
+    addReply();
+    await wait(AUTOSAVE_DEBOUNCE_MS);
+    expect(store().saveState).toBe(SaveState.Saving);
+    addReply();
+    act(() => history.push(workspaceHref(DEMO_WORKSPACE.id)));
+    await act(() => vi.runAllTimersAsync());
+
+    expect(screen.queryByRole('region', { name: 'Flow canvas' })).toBeNull();
+    expect(sendQueued).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ revision: DRAFT_REVISION + 1, flow: store().document }),
+    );
+    expect(store().document.nodes).toHaveLength(3);
+  });
+
   it('shows who changed the draft and reloads it on a conflict', async () => {
     await openBuilder(
       [
@@ -103,7 +134,7 @@ describe('flow builder autosave', () => {
   });
 
   it('keeps the edits when a save fails and saves them on retry', async () => {
-    const canvas = await openBuilder(
+    const { canvas } = await openBuilder(
       [buildSaveAgentDraftFailureMock(DRAFT_REVISION), buildSaveAgentDraftMock(DRAFT_REVISION)],
       TRIGGER_ONLY_FLOW,
     );
