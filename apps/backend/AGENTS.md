@@ -16,7 +16,7 @@ test/
 migrations/              SQL migrations written by drizzle-kit, committed, never edited after merge
 ```
 
-`platform/` holds config, context, errors, database, graphql-server, http, queues, domain-events, live-updates, observability, module-roles, llm (the LLM gateways and the curated model catalog), and one small module each for admin, cache, clock, crypto, ids, rate-limit, redis and secrets. It never imports `modules/`. It has no use cases: platform controllers (health, metrics, queue board) call platform services directly, because they have no actor, no permissions and no transaction. A platform folder is never named after a kind folder, so it is `database`, not `db`; `graphql-server`, not `graphql`; `live-updates`, not `channels`. The one exception is `errors`. Env is read only in `platform/config`.
+`platform/` holds config, context, errors, database, graphql-server, http, queues, domain-events, live-updates, observability, module-roles, llm (the LLM gateways and the curated model catalog), outbound-http (HTTP calls to customer-chosen URLs, private networks refused), and one small module each for admin, cache, clock, crypto, ids, rate-limit, redis and secrets. It never imports `modules/`. It has no use cases: platform controllers (health, metrics, queue board) call platform services directly, because they have no actor, no permissions and no transaction. A platform folder is never named after a kind folder, so it is `database`, not `db`; `graphql-server`, not `graphql`; `live-updates`, not `channels`. The one exception is `errors`. Env is read only in `platform/config`.
 
 ## Commands and roles
 
