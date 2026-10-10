@@ -1,6 +1,7 @@
 import type { BaseCommand } from '@/app/commands/base.command';
 import { MigrateCommand } from '@/app/commands/migrate.command';
 import { PrintSchemaCommand } from '@/app/commands/print-schema.command';
+import { SeedCommand } from '@/app/commands/seed.command';
 import { ServeCommand } from '@/app/commands/serve.command';
 import { UnknownCommand } from '@/app/commands/unknown.command';
 import { ARGV_OFFSET, COMMAND_LABEL, CommandName } from '@/app/constants/command.constants';
@@ -20,5 +21,7 @@ export const resolveCommand = (argv: readonly string[]): BaseCommand => {
       return new MigrateCommand();
     case CommandName.PrintSchema:
       return new PrintSchemaCommand(args);
+    case CommandName.Seed:
+      return new SeedCommand();
   }
 };

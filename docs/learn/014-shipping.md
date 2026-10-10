@@ -50,6 +50,8 @@ mise exec -- pnpm test
 3. Commit and push `pr-assets`.
 4. Link each image in the description by its raw URL: `https://github.com/pavlo-petrychenko/agent-ic/blob/pr-assets/rename-workspace/general-en-light.png?raw=true`.
 
+How to take the screenshots and recordings, and the seeded demo data to take them from: [016 PR media](016-pr-media.md).
+
 **Review and merge**
 
 - [CODEOWNERS](../../.github/CODEOWNERS) names the three developers for every file, so GitHub asks the two who did not open the pull request for a review.
