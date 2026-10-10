@@ -18,6 +18,7 @@ describe('toAppError', () => {
         reason: ErrorReason.InvalidRequest,
         traceId: TRACE_ID,
         fields: [{ path: 'email', reason: ErrorReason.InvalidId }],
+        details: { savedBy: 'Oksana' },
       }),
     );
 
@@ -26,6 +27,7 @@ describe('toAppError', () => {
     expect(error.reason).toBe(ErrorReason.InvalidRequest);
     expect(error.traceId).toBe(TRACE_ID);
     expect(error.fields).toEqual([{ path: 'email', reason: ErrorReason.InvalidId }]);
+    expect(error.details).toEqual({ savedBy: 'Oksana' });
   });
 
   it('does not trust a code or reason this client does not know', () => {
@@ -35,6 +37,7 @@ describe('toAppError', () => {
     expect(error.reason).toBeNull();
     expect(error.traceId).toBeNull();
     expect(error.fields).toEqual([]);
+    expect(error.details).toEqual({});
   });
 
   it('reads problem+json from a failed HTTP response', () => {

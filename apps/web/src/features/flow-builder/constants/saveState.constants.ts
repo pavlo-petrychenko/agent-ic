@@ -5,3 +5,5 @@ export enum SaveState {
   Conflict = 'conflict',
   Error = 'error',
 }
+
+export const UNSAVED_STATES = new Set([SaveState.Pending, SaveState.Saving, SaveState.Error]);

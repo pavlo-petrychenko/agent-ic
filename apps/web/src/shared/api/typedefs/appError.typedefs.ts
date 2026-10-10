@@ -13,5 +13,6 @@ export interface AppErrorOptions {
   readonly reason?: ErrorReason | null;
   readonly traceId?: string | null;
   readonly fields?: readonly ApiFieldError[];
+  readonly details?: Readonly<Record<string, unknown>>;
   readonly cause?: unknown;
 }

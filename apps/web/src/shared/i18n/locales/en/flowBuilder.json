@@ -122,5 +122,22 @@
     "descriptionLabel": "Agent description",
     "addDescription": "Add a description",
     "described": "Description saved"
+  },
+  "autosave": {
+    "saved": "Saved",
+    "saving": "Saving…",
+    "failed": "Couldn’t save",
+    "retry": "Retry"
+  },
+  "conflict": {
+    "changedBy": "Changed by {{name}} at {{time}}. Reload to continue.",
+    "changed": "This draft was changed somewhere else. Reload to continue.",
+    "reload": "Reload"
+  },
+  "leave": {
+    "title": "Leave without saving?",
+    "description": "Your latest changes couldn’t be saved. If you leave now, they’re lost.",
+    "stay": "Stay",
+    "leave": "Leave"
   }
 }
