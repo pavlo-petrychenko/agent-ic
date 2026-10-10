@@ -47,7 +47,10 @@
     "AGENT_VERSION_IMMUTABLE": "A published version cannot be changed.",
     "AGENT_FLOW_HAS_BLOCKING_ISSUES": "Fix the flow errors before publishing.",
     "AWAY_MESSAGE_REQUIRED": "Write the away message the customer will receive.",
-    "AWAY_MESSAGE_TOO_LONG": "The away message is too long."
+    "AWAY_MESSAGE_TOO_LONG": "The away message is too long.",
+    "CONVERSATION_NOT_FOUND": "This conversation was not found.",
+    "CONVERSATION_CLOSED": "This conversation is closed.",
+    "MESSAGE_NOT_FOUND": "This message was not found."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",
