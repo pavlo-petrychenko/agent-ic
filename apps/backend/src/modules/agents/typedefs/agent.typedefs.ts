@@ -53,6 +53,16 @@ export interface RenameAgentInput {
   readonly name: string;
 }
 
+export interface DescribeAgentInput {
+  readonly id: string;
+  readonly description?: string | null;
+}
+
+export interface PublishAgentInput {
+  readonly id: string;
+  readonly note?: string | null;
+}
+
 export interface AgentIdInput {
   readonly id: string;
 }

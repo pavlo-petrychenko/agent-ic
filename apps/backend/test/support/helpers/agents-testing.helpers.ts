@@ -1,4 +1,4 @@
-import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
+import { IdPrefix, Locale, WorkspaceRole } from '@agent-ic/contracts';
 import type { FlowDocument } from '@agent-ic/flow';
 import type { TestingModule } from '@nestjs/testing';
 import { AgentsModule } from '@/modules/agents/agents.module';
@@ -14,17 +14,23 @@ import {
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
+import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { AGENTS_TEST_START } from '@test/support/constants/agents-testing.constants';
+import {
+  AGENTS_TEST_START,
+  TEST_AUTHOR_NAME,
+  TEST_AUTHOR_PASSWORD_HASH,
+} from '@test/support/constants/agents-testing.constants';
 import {
   TEST_END_USER_EXTERNAL_ID,
   TEST_MESSAGE_TEXT,
 } from '@test/support/constants/conversations-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { newAgent, newVersion, triggerFlow } from '@test/support/fixtures/agents.fixture';
+import { uniqueEmail } from '@test/support/fixtures/identity.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.module';
@@ -101,6 +107,20 @@ export const readVersions = (
     .run(workspaceId, () =>
       testingModule.get(AgentVersionsRepository).listByAgent(workspaceId, agentId),
     );
+
+export const seedAuthor = async (testingModule: TestingModule): Promise<string> => {
+  const userId = testingModule.get(IdService).generate();
+  await testingModule.get(UsersRepository).upsertUnconfirmed({
+    id: userId,
+    email: uniqueEmail(),
+    name: TEST_AUTHOR_NAME,
+    passwordHash: TEST_AUTHOR_PASSWORD_HASH,
+    locale: Locale.En,
+    createdAt: AGENTS_TEST_START,
+    updatedAt: AGENTS_TEST_START,
+  });
+  return userId;
+};
 
 export const seedAgentConversation = async (
   testingModule: TestingModule,

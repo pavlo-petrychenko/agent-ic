@@ -57,7 +57,7 @@ describe('AgentRuntimeReader', () => {
     const workspaceId = ids.generate();
     const { agentId, draftId } = await seedAgentWithDraft(testingModule, workspaceId);
     const first = await tenants.run(workspaceId, () =>
-      publishing.publish(workspaceId, agentId, ids.generate()),
+      publishing.publish(workspaceId, agentId, { authorId: ids.generate() }),
     );
     const edited = await tenants.run(workspaceId, () =>
       versions.updateDraft(
@@ -68,7 +68,7 @@ describe('AgentRuntimeReader', () => {
       ),
     );
     const second = await tenants.run(workspaceId, () =>
-      publishing.publish(workspaceId, agentId, ids.generate()),
+      publishing.publish(workspaceId, agentId, { authorId: ids.generate() }),
     );
 
     const pinned = await tenants.run(workspaceId, () => reader.getVersion(workspaceId, first.id));

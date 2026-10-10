@@ -1,6 +1,10 @@
 import { FlowIssueSeverity } from '@agent-ic/flow';
 import type { FlowIssue as DomainFlowIssue } from '@agent-ic/flow';
-import { AgentStatus, PauseMode } from '@/modules/agents/constants/agent.constants';
+import {
+  AgentStatus,
+  AgentVersionStatus,
+  PauseMode,
+} from '@/modules/agents/constants/agent.constants';
 import type {
   AgentVersionView,
   PublishedAgent,
@@ -22,6 +26,7 @@ import type {
 } from '@/platform/graphql-server/generated/schema.generated';
 import {
   AgentStatus as GraphqlAgentStatus,
+  AgentVersionStatus as GraphqlAgentVersionStatus,
   FlowIssueSeverity as GraphqlFlowIssueSeverity,
   PauseMode as GraphqlPauseMode,
 } from '@/platform/graphql-server/generated/schema.generated';
@@ -30,6 +35,12 @@ const GRAPHQL_AGENT_STATUS: Readonly<Record<AgentStatus, GraphqlAgentStatus>> = 
   [AgentStatus.Draft]: GraphqlAgentStatus.Draft,
   [AgentStatus.Live]: GraphqlAgentStatus.Live,
   [AgentStatus.Paused]: GraphqlAgentStatus.Paused,
+};
+
+const GRAPHQL_VERSION_STATUS: Readonly<Record<AgentVersionStatus, GraphqlAgentVersionStatus>> = {
+  [AgentVersionStatus.Draft]: GraphqlAgentVersionStatus.Draft,
+  [AgentVersionStatus.Live]: GraphqlAgentVersionStatus.Live,
+  [AgentVersionStatus.Archived]: GraphqlAgentVersionStatus.Archived,
 };
 
 const GRAPHQL_PAUSE_MODE: Readonly<Record<PauseMode, GraphqlPauseMode>> = {
@@ -71,9 +82,11 @@ export const toGraphqlAgentConnection = (page: AgentsPage): AgentConnection => (
 
 export const toGraphqlAgentVersion = (version: AgentVersionView): AgentVersion => ({
   id: version.id,
+  status: GRAPHQL_VERSION_STATUS[version.status],
   number: version.number,
   flow: version.flow,
   note: version.note,
+  author: version.author,
   publishedAt: version.publishedAt?.toISOString() ?? null,
   createdAt: version.createdAt.toISOString(),
 });

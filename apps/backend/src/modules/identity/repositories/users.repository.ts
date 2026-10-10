@@ -1,9 +1,9 @@
 import type { Locale } from '@agent-ic/contracts';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { users } from '@/modules/identity/db/users.table';
-import type { NewUser, UserRecord } from '@/modules/identity/typedefs/user.typedefs';
+import type { NewUser, UserName, UserRecord } from '@/modules/identity/typedefs/user.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
@@ -33,6 +33,16 @@ export class UsersRepository {
   async findById(id: string): Promise<UserRecord | null> {
     const [user] = await this.txHost.tx.select().from(users).where(eq(users.id, id));
     return user ?? null;
+  }
+
+  async findNames(ids: readonly string[]): Promise<UserName[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    return this.txHost.tx
+      .select({ id: users.id, name: users.name })
+      .from(users)
+      .where(inArray(users.id, [...ids]));
   }
 
   async findByEmail(email: string): Promise<UserRecord | null> {
