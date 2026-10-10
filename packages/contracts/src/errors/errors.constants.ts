@@ -48,4 +48,6 @@ export enum ErrorReason {
   SecretTampered = 'SECRET_TAMPERED',
   LlmNotConfigured = 'LLM_NOT_CONFIGURED',
   LlmOutputInvalid = 'LLM_OUTPUT_INVALID',
+  LlmReplyMissing = 'LLM_REPLY_MISSING',
+  LlmToolRoundsExceeded = 'LLM_TOOL_ROUNDS_EXCEEDED',
 }
