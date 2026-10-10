@@ -1,10 +1,15 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import { FlowIssueCode, FlowIssueSeverity } from '@agent-ic/flow';
 import type { FlowIssue } from '@agent-ic/flow';
+import { DiscoveryModule } from '@nestjs/core';
+import { Test } from '@nestjs/testing';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { AgentStatus, AgentVersionKind } from '@/modules/agents/constants/agent.constants';
+import { FLOW_REFERENCE_CHECKER } from '@/modules/agents/constants/flow-reference.constants';
 import { AgentFlowHasBlockingIssuesError } from '@/modules/agents/errors/agent-flow-has-blocking-issues.error';
+import { InvalidFlowReferenceCheckerError } from '@/modules/agents/errors/invalid-flow-reference-checker.error';
+import { FlowReferenceChecksService } from '@/modules/agents/services/flow-reference-checks.service';
 import { PreviewAgentPublishUseCase } from '@/modules/agents/use-cases/preview-agent-publish.use-case';
 import { PublishAgentUseCase } from '@/modules/agents/use-cases/publish-agent.use-case';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -30,29 +35,16 @@ const referenceIssue = (severity: FlowIssueSeverity): FlowIssue => ({
 });
 
 describe('FlowReferenceChecksService', () => {
-  describe('with no checker registered', () => {
-    let testingModule: TestingModule;
+  it('fails startup on a provider that does not extend FlowReferenceChecker', async () => {
+    const compiled = await Test.createTestingModule({
+      imports: [DiscoveryModule],
+      providers: [
+        FlowReferenceChecksService,
+        { provide: FLOW_REFERENCE_CHECKER, useValue: { check: () => Promise.resolve([]) } },
+      ],
+    }).compile();
 
-    beforeAll(async () => {
-      testingModule = await createAgentsTestingModule();
-    });
-
-    afterAll(async () => {
-      await testingModule.close();
-    });
-
-    it('publishes the draft', async () => {
-      const workspaceId = testingModule.get(IdService).generate();
-      const { agentId } = await seedAgentWithDraft(testingModule, workspaceId);
-
-      const published = await testingModule
-        .get(PublishAgentUseCase)
-        .execute(agentsCtx(testingModule, workspaceId), {
-          id: publicAgentId(testingModule, agentId),
-        });
-
-      expect(published.agent.status).toBe(AgentStatus.Live);
-    });
+    await expect(compiled.init()).rejects.toBeInstanceOf(InvalidFlowReferenceCheckerError);
   });
 
   describe('with a checker registered by another module', () => {

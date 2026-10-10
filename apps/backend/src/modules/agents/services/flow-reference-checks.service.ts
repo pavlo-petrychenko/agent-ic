@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import type { OnModuleInit } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
 import { FLOW_REFERENCE_CHECKER } from '@/modules/agents/constants/flow-reference.constants';
+import { InvalidFlowReferenceCheckerError } from '@/modules/agents/errors/invalid-flow-reference-checker.error';
 import { FlowReferenceChecker } from '@/modules/agents/services/flow-reference-checker.service';
 
 @Injectable()
@@ -15,8 +16,12 @@ export class FlowReferenceChecksService implements OnModuleInit {
     this.checkers = this.discovery
       .getProviders()
       .filter((wrapper) => wrapper.token === FLOW_REFERENCE_CHECKER)
-      .map((wrapper): unknown => wrapper.instance)
-      .filter((instance) => instance instanceof FlowReferenceChecker);
+      .map(({ instance }: { instance: unknown }) => {
+        if (instance instanceof FlowReferenceChecker) {
+          return instance;
+        }
+        throw new InvalidFlowReferenceCheckerError();
+      });
   }
 
   async check(workspaceId: string, flow: FlowDocument): Promise<FlowIssue[]> {
