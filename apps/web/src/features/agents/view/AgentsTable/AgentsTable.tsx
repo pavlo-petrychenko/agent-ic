@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { AGENTS_NAMESPACE } from '@/features/agents/constants/agentsI18n.constants';
 import {
   AGENT_COLUMN_WIDTHS,
-  AGENT_STATUS_DOTS,
+  AGENT_STATUS_TONES,
   AgentColumn,
 } from '@/features/agents/view/AgentsTable/AgentsTable.constants';
 import type { AgentsTableProps } from '@/features/agents/view/AgentsTable/AgentsTable.typedefs';
@@ -10,8 +10,8 @@ import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Table } from '@/shared/ui/data/Table';
 import { TableCell, TableCellTone } from '@/shared/ui/data/TableCell';
 import { TableCellLead, TableCellLeadKind } from '@/shared/ui/data/TableCellLead';
+import { Badge } from '@/shared/ui/display/Badge';
 import { NodeKind } from '@/shared/ui/display/NodeTile';
-import { StatusDot } from '@/shared/ui/display/StatusDot';
 
 export function AgentsTable({
   rows,
@@ -52,8 +52,10 @@ export function AgentsTable({
             header: t('list.columns.status'),
             width: AGENT_COLUMN_WIDTHS[AgentColumn.Status],
             render: (row) => (
-              <span className="flex flex-col gap-0.5">
-                <StatusDot kind={AGENT_STATUS_DOTS[row.status]} label={row.statusLabel} />
+              <span className="flex flex-col items-start gap-0.5">
+                <Badge tone={AGENT_STATUS_TONES[row.status]} dot>
+                  {row.statusLabel}
+                </Badge>
                 {row.note !== null && <TableCell tone={TableCellTone.Mute}>{row.note}</TableCell>}
               </span>
             ),

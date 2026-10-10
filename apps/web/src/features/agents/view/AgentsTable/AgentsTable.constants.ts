@@ -1,10 +1,10 @@
 import { AgentStatus } from '@/features/agents/constants/agentStatus.constants';
-import { StatusKind } from '@/shared/ui/display/StatusDot';
+import { BadgeTone } from '@/shared/ui/display/Badge';
 
-export const AGENT_STATUS_DOTS: Readonly<Record<AgentStatus, StatusKind>> = {
-  [AgentStatus.Live]: StatusKind.Ok,
-  [AgentStatus.Draft]: StatusKind.Idle,
-  [AgentStatus.Paused]: StatusKind.Warn,
+export const AGENT_STATUS_TONES: Readonly<Record<AgentStatus, BadgeTone>> = {
+  [AgentStatus.Live]: BadgeTone.Ok,
+  [AgentStatus.Draft]: BadgeTone.Neutral,
+  [AgentStatus.Paused]: BadgeTone.Warn,
 };
 
 export enum AgentColumn {
