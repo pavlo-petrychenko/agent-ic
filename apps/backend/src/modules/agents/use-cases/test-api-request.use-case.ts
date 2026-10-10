@@ -1,5 +1,6 @@
 import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
+import { API_REQUEST_TEST_RATE_LIMIT } from '@/modules/agents/constants/api-request-test.constants';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { ApiRequestStepNotFoundError } from '@/modules/agents/errors/api-request-step-not-found.error';
 import { parseAgentInput } from '@/modules/agents/helpers/agent-input.helpers';
@@ -18,6 +19,7 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { OutboundHttpGateway } from '@/platform/outbound-http/gateways/outbound-http.gateway';
+import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.service';
 
 @Injectable()
 export class TestApiRequestUseCase {
@@ -26,10 +28,12 @@ export class TestApiRequestUseCase {
     private readonly versions: AgentVersionsRepository,
     private readonly http: OutboundHttpGateway,
     private readonly ids: IdService,
+    private readonly rateLimits: RateLimitService,
   ) {}
 
   async execute(ctx: UseCaseCtx, input: TestApiRequestInput): Promise<ApiRequestTestResult> {
     const { workspaceId } = authorize(ctx, PermissionResource.Agents, PermissionAction.Edit);
+    await this.rateLimits.enforce(API_REQUEST_TEST_RATE_LIMIT, workspaceId);
     const {
       agentId: publicId,
       nodeId,

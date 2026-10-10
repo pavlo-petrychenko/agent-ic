@@ -4,6 +4,7 @@ import type { TestingModule } from '@nestjs/testing';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   API_REQUEST_CONTENT_TYPE,
+  API_REQUEST_TEST_RATE_LIMIT,
   CONTENT_TYPE_HEADER,
 } from '@/modules/agents/constants/api-request-test.constants';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
@@ -15,6 +16,8 @@ import { IdService } from '@/platform/ids/services/id.service';
 import { OutboundHttpOutcome } from '@/platform/outbound-http/constants/outbound-http.constants';
 import { OutboundHttpGateway } from '@/platform/outbound-http/gateways/outbound-http.gateway';
 import type { OutboundHttpResult } from '@/platform/outbound-http/typedefs/outbound-http.typedefs';
+import { RateLimitedError } from '@/platform/rate-limit/errors/rate-limited.error';
+import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.service';
 import {
   TEST_API_HEADER_NAME,
   TEST_API_HEADER_TEMPLATE,
@@ -140,6 +143,22 @@ describe('TestApiRequestUseCase', () => {
     });
 
     await expect(attempt).rejects.toBeInstanceOf(AgentNotFoundError);
+  });
+
+  it('refuses a workspace that has used up its test requests', async () => {
+    const { workspaceId, agentId } = await seed(TEST_API_URL_TEMPLATE);
+    const send = vi.spyOn(testingModule.get(OutboundHttpGateway), 'send');
+    await testingModule
+      .get(RateLimitService)
+      .consume(API_REQUEST_TEST_RATE_LIMIT, workspaceId, API_REQUEST_TEST_RATE_LIMIT.capacity);
+
+    const attempt = testApiRequest.execute(agentsCtx(testingModule, workspaceId), {
+      agentId,
+      nodeId: TEST_API_NODE_ID,
+    });
+
+    await expect(attempt).rejects.toBeInstanceOf(RateLimitedError);
+    expect(send).not.toHaveBeenCalled();
   });
 
   it('refuses an operator', async () => {

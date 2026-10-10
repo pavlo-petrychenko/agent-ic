@@ -21,6 +21,8 @@ import { TenantTransactionService } from '@/platform/database/services/tenant-tr
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
+import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
+import { RedisModule } from '@/platform/redis/redis.module';
 import {
   AGENTS_TEST_START,
   TEST_AUTHOR_NAME,
@@ -46,6 +48,8 @@ export const createAgentsTestingModule = (
   imports: readonly DynamicModule[] = [],
 ): Promise<TestingModule> =>
   createPlatformTestingModule(TestRedisPrefix.Agents, [
+    RedisModule,
+    RateLimitModule,
     OutboundHttpModule,
     AgentsNeighboursModule.forRole(Role.Gateway),
     AgentsModule.forRole(Role.Gateway),
