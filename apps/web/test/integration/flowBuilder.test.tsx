@@ -129,6 +129,7 @@ describe('flow builder canvas', () => {
 
     fireEvent.contextMenu(within(canvas).getByLabelText('Customer message'));
     const menu = screen.getByRole('menu', { name: 'Step actions' });
+    expect(canvas).not.toContainElement(menu);
     expect(within(menu).getByRole('menuitem', { name: 'Duplicate' })).toHaveFocus();
 
     await userEvent.keyboard('{ArrowDown}');
