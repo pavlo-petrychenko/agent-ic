@@ -46,6 +46,18 @@ describe('useFlowBuilderStore', () => {
     expect(store().document.nodes.map((node) => node.id)).toEqual(['a', 'b']);
   });
 
+  it('records a previewed drag as one step from where it started', () => {
+    const start = withStep('a');
+    store().apply(start);
+    store().preview(withStep('b', start));
+    store().preview(withStep('c', start));
+    store().apply(withStep('d', start));
+
+    expect(store().document.nodes.map((node) => node.id)).toEqual(['a', 'd']);
+    store().undo();
+    expect(store().document).toBe(start);
+  });
+
   it('drops the redo steps after a new edit', () => {
     store().apply(withStep('a'));
     store().undo();

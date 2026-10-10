@@ -21,18 +21,32 @@ const BUILDER_WORKSPACE = { ...DEMO_WORKSPACE, role: WorkspaceRole.Builder };
 const OPERATOR_WORKSPACE = { ...DEMO_WORKSPACE, role: WorkspaceRole.Operator };
 
 const SCREENS = [
-  { name: 'agents list', path: `${workspacePath}/agents`, heading: 'Agents', section: 'Agents' },
+  {
+    name: 'agents list',
+    path: `${workspacePath}/agents`,
+    role: 'heading',
+    label: 'Agents',
+    section: 'Agents',
+  },
   {
     name: 'flow builder',
     path: `${workspacePath}/agents/${AGENT_ID}`,
-    heading: 'Flow builder',
+    role: 'navigation',
+    label: 'Breadcrumb',
     section: 'Agents',
   },
-  { name: 'simulator', path: `${workspacePath}/testing`, heading: 'Testing', section: 'Testing' },
+  {
+    name: 'simulator',
+    path: `${workspacePath}/testing`,
+    role: 'heading',
+    label: 'Testing',
+    section: 'Testing',
+  },
   {
     name: 'versions',
     path: `${workspacePath}/testing/versions`,
-    heading: 'Testing',
+    role: 'heading',
+    label: 'Testing',
     section: 'Testing',
   },
 ] as const;
@@ -45,10 +59,10 @@ describe('agents, builder and testing routes', () => {
     await signOutForTest();
   });
 
-  it.each(SCREENS)('opens the $name for an owner', async ({ path, heading }) => {
+  it.each(SCREENS)('opens the $name for an owner', async ({ path, role, label }) => {
     renderRoute(path, { mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE], OWNER_USER)] });
 
-    expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument();
+    expect(await screen.findByRole(role, { name: label })).toBeInTheDocument();
   });
 
   it.each(SCREENS)('shows NoAccess on the $name for an operator', async ({ path, section }) => {
