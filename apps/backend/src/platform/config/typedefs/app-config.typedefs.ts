@@ -56,6 +56,16 @@ export interface AuthConfig {
   readonly inviteTokenSecret: string;
 }
 
+export interface SecretBoxKey {
+  readonly version: number;
+  readonly key: string;
+}
+
+export interface SecretBoxConfig {
+  readonly current: SecretBoxKey;
+  readonly previous: readonly SecretBoxKey[];
+}
+
 export interface SmtpCredentials {
   readonly user: string;
   readonly password: string;
@@ -98,6 +108,7 @@ export interface BaseConfig {
   readonly telemetry: TelemetryConfig;
   readonly langfuse: LangfuseConfig;
   readonly auth: AuthConfig;
+  readonly secretBox: SecretBoxConfig;
   readonly email: EmailConfig;
 }
 
