@@ -1,0 +1,9 @@
+$visible-rows: 6;
+
+.list {
+  flex-shrink: 0;
+  max-height: calc(var(--size-control-lg) * $visible-rows);
+  overflow-y: auto;
+  border-top: var(--border-width) solid var(--color-line);
+  background: var(--color-panel);
+}

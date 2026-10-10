@@ -15,6 +15,7 @@ export function StepNode({ node, slots, density }: StepNodeProps) {
   const summary = node.summary
     .map((part) => t(`summary.${part.key}`, { ...part.params }))
     .join(SUMMARY_SEPARATOR);
+  const { blocking } = node;
 
   if (density === Density.Compact) {
     return (
@@ -38,6 +39,7 @@ export function StepNode({ node, slots, density }: StepNodeProps) {
       overline={t(`step.${node.type}`)}
       name={node.label}
       meta={summary === '' ? null : summary}
+      invalidLabel={blocking === null ? null : t(`issue.${blocking.code}`, { ...blocking.params })}
       selected={slots.selected}
       faded={slots.faded}
       inPort={slots.inPort}
