@@ -13,6 +13,8 @@ export enum AgentField {
   Note = 'note',
   Mode = 'mode',
   AwayMessage = 'awayMessage',
+  NodeId = 'nodeId',
+  Variables = 'variables',
 }
 
 export enum AgentGraphqlArgument {

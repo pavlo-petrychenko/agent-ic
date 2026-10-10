@@ -7,3 +7,4 @@ export const AGENT_FLOW_HAS_BLOCKING_ISSUES_MESSAGE =
 export const AWAY_MESSAGE_REQUIRED_MESSAGE = 'An away message needs text.';
 export const AWAY_MESSAGE_TOO_LONG_MESSAGE = 'The away message is too long.';
 export const INVALID_AGENT_INPUT_MESSAGE = 'Some agent fields are not valid.';
+export const API_REQUEST_STEP_NOT_FOUND_MESSAGE = 'The draft has no API request step with this id.';

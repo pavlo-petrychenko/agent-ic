@@ -20,6 +20,7 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import {
   AGENTS_TEST_START,
   TEST_AUTHOR_NAME,
@@ -45,6 +46,7 @@ export const createAgentsTestingModule = (
   imports: readonly DynamicModule[] = [],
 ): Promise<TestingModule> =>
   createPlatformTestingModule(TestRedisPrefix.Agents, [
+    OutboundHttpModule,
     AgentsNeighboursModule.forRole(Role.Gateway),
     AgentsModule.forRole(Role.Gateway),
     ...imports,

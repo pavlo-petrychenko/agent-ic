@@ -1,0 +1,25 @@
+extend type Mutation {
+  testApiRequest(input: TestApiRequestInput!): ApiRequestTestResult!
+}
+
+input TestApiRequestInput {
+  agentId: ID!
+  nodeId: String!
+  variables: JSON
+}
+
+enum ApiRequestTestOutcome {
+  responded
+  timed_out
+  unreachable
+  blocked_address
+  invalid_url
+}
+
+type ApiRequestTestResult {
+  outcome: ApiRequestTestOutcome!
+  status: Int
+  body: String
+  bodyTruncated: Boolean!
+  durationMs: Int!
+}
