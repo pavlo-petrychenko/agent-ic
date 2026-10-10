@@ -22,3 +22,7 @@ export enum WaitingReason {
 }
 
 export const CONVERSATIONS_SCHEMA = 'conversations';
+
+export const END_USER_LOCK_KEY_SEPARATOR = ':';
+
+export const END_USER_LOCK_HASH_SEED = 0;
