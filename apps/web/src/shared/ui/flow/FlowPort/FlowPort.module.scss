@@ -3,12 +3,16 @@ $port-size-active: 12px;
 
 .root {
   position: relative;
-  display: inline-flex;
+  display: inline-grid;
   flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: $port-size-active;
+  grid-template-rows: $port-size-active;
+  grid-template-columns: minmax($port-size-active, auto);
+  place-items: center;
   height: $port-size-active;
+
+  > * {
+    grid-area: 1 / 1;
+  }
 }
 
 .dot {
@@ -76,10 +80,8 @@ $port-size-active: 12px;
 }
 
 .label {
-  position: absolute;
-  top: calc(100% + var(--space-4));
-  left: 50%;
-  transform: translateX(-50%);
+  align-self: start;
+  margin: calc(#{$port-size-active} + var(--space-4)) var(--space-4) 0;
 }
 
 .storyRow {
