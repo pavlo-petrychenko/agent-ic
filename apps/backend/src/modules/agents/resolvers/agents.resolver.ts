@@ -3,8 +3,10 @@ import { AgentGraphqlArgument } from '@/modules/agents/constants/agent-input.con
 import {
   toGraphqlAgent,
   toGraphqlAgentConnection,
+  toGraphqlAgentDraft,
   toGraphqlAgentVersion,
 } from '@/modules/agents/helpers/agent-graphql.helpers';
+import { GetAgentDraftUseCase } from '@/modules/agents/use-cases/get-agent-draft.use-case';
 import { GetAgentUseCase } from '@/modules/agents/use-cases/get-agent.use-case';
 import { ListAgentVersionsUseCase } from '@/modules/agents/use-cases/list-agent-versions.use-case';
 import { ListAgentsUseCase } from '@/modules/agents/use-cases/list-agents.use-case';
@@ -13,8 +15,10 @@ import { GraphqlCtx } from '@/platform/graphql-server/decorators/graphql-ctx.dec
 import type {
   Agent,
   AgentConnection,
+  AgentDraft,
   AgentVersion,
   QueryAgentArgs,
+  QueryAgentDraftArgs,
   QueryAgentVersionsArgs,
   QueryAgentsArgs,
 } from '@/platform/graphql-server/generated/schema.generated';
@@ -25,6 +29,7 @@ export class AgentsResolver {
     private readonly listAgentsUseCase: ListAgentsUseCase,
     private readonly getAgentUseCase: GetAgentUseCase,
     private readonly listAgentVersionsUseCase: ListAgentVersionsUseCase,
+    private readonly getAgentDraftUseCase: GetAgentDraftUseCase,
   ) {}
 
   @Query()
@@ -51,5 +56,13 @@ export class AgentsResolver {
   ): Promise<AgentVersion[]> {
     const versions = await this.listAgentVersionsUseCase.execute(ctx, { agentId });
     return versions.map(toGraphqlAgentVersion);
+  }
+
+  @Query()
+  async agentDraft(
+    @GraphqlCtx() ctx: UseCaseCtx,
+    @Args(AgentGraphqlArgument.AgentId) agentId: QueryAgentDraftArgs['agentId'],
+  ): Promise<AgentDraft> {
+    return toGraphqlAgentDraft(await this.getAgentDraftUseCase.execute(ctx, { agentId }));
   }
 }

@@ -1,7 +1,7 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { AgentStatus } from '@/modules/agents/constants/agent.constants';
+import { AgentStatus, DRAFT_INITIAL_REVISION } from '@/modules/agents/constants/agent.constants';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
@@ -12,6 +12,7 @@ import { IdService } from '@/platform/ids/services/id.service';
 import {
   AGENTS_TEST_LATER,
   TEST_AGENT_NAME,
+  TEST_EDITOR_ID,
   TEST_NODE_NEW_LABEL,
 } from '@test/support/constants/agents-testing.constants';
 import { triggerFlow } from '@test/support/fixtures/agents.fixture';
@@ -75,7 +76,8 @@ describe('GetAgentUseCase', () => {
         .updateDraft(
           workspaceId,
           draftId,
-          { flow: triggerFlow(TEST_NODE_NEW_LABEL), note: null },
+          DRAFT_INITIAL_REVISION,
+          { flow: triggerFlow(TEST_NODE_NEW_LABEL), note: null, authorId: TEST_EDITOR_ID },
           AGENTS_TEST_LATER,
         ),
     );

@@ -18,6 +18,7 @@ import { CreateAgentUseCase } from '@/modules/agents/use-cases/create-agent.use-
 import { DeleteAgentUseCase } from '@/modules/agents/use-cases/delete-agent.use-case';
 import { DescribeAgentUseCase } from '@/modules/agents/use-cases/describe-agent.use-case';
 import { DuplicateAgentUseCase } from '@/modules/agents/use-cases/duplicate-agent.use-case';
+import { GetAgentDraftUseCase } from '@/modules/agents/use-cases/get-agent-draft.use-case';
 import { GetAgentUseCase } from '@/modules/agents/use-cases/get-agent.use-case';
 import { ListAgentVersionsUseCase } from '@/modules/agents/use-cases/list-agent-versions.use-case';
 import { ListAgentsUseCase } from '@/modules/agents/use-cases/list-agents.use-case';
@@ -42,6 +43,7 @@ export class AgentsModule extends defineModule({
     DeleteAgentUseCase,
     ListAgentsUseCase,
     GetAgentUseCase,
+    GetAgentDraftUseCase,
     SaveAgentDraftUseCase,
     PublishAgentUseCase,
     DuplicateAgentUseCase,

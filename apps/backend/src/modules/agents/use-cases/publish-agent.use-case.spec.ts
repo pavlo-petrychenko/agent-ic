@@ -5,6 +5,7 @@ import {
   AgentStatus,
   AgentVersionKind,
   AgentVersionStatus,
+  DRAFT_INITIAL_REVISION,
 } from '@/modules/agents/constants/agent.constants';
 import { AgentFlowHasBlockingIssuesError } from '@/modules/agents/errors/agent-flow-has-blocking-issues.error';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
@@ -16,6 +17,7 @@ import { IdService } from '@/platform/ids/services/id.service';
 import {
   AGENTS_TEST_LATER,
   TEST_AUTHOR_NAME,
+  TEST_EDITOR_ID,
   TEST_RELEASE_NOTE,
   TEST_ROLLBACK_MESSAGE,
   TEST_VERSION_NOTE,
@@ -105,7 +107,8 @@ describe('PublishAgentUseCase', () => {
           .updateDraft(
             workspaceId,
             draftId,
-            { flow: triggerFlow(), note: TEST_VERSION_NOTE },
+            DRAFT_INITIAL_REVISION,
+            { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID },
             AGENTS_TEST_LATER,
           ),
       );

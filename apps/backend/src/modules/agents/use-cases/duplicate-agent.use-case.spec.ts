@@ -2,7 +2,11 @@ import { AGENT_NAME_MAX_LENGTH, IdPrefix, WorkspaceRole } from '@agent-ic/contra
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DUPLICATE_AGENT_NAME_SUFFIX } from '@/modules/agents/constants/agent-input.constants';
-import { AgentStatus, AgentVersionKind } from '@/modules/agents/constants/agent.constants';
+import {
+  AgentStatus,
+  AgentVersionKind,
+  DRAFT_INITIAL_REVISION,
+} from '@/modules/agents/constants/agent.constants';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
@@ -14,6 +18,7 @@ import {
   AGENTS_TEST_LATER,
   TEST_AGENT_DESCRIPTION,
   TEST_AGENT_NAME,
+  TEST_EDITOR_ID,
   TEST_NODE_NEW_LABEL,
   TEST_VERSION_NOTE,
 } from '@test/support/constants/agents-testing.constants';
@@ -48,14 +53,17 @@ describe('DuplicateAgentUseCase', () => {
     const seeded = await seedAgentWithDraft(testingModule, workspaceId);
     await makeAgentLive(testingModule, workspaceId, seeded);
     await testingModule.get(TenantTransactionService).run(workspaceId, async () => {
-      await testingModule
-        .get(AgentVersionsRepository)
-        .updateDraft(
-          workspaceId,
-          seeded.draftId,
-          { flow: triggerFlow(TEST_NODE_NEW_LABEL), note: TEST_VERSION_NOTE },
-          AGENTS_TEST_LATER,
-        );
+      await testingModule.get(AgentVersionsRepository).updateDraft(
+        workspaceId,
+        seeded.draftId,
+        DRAFT_INITIAL_REVISION,
+        {
+          flow: triggerFlow(TEST_NODE_NEW_LABEL),
+          note: TEST_VERSION_NOTE,
+          authorId: TEST_EDITOR_ID,
+        },
+        AGENTS_TEST_LATER,
+      );
       await testingModule
         .get(AgentsRepository)
         .setDescription(workspaceId, seeded.agentId, TEST_AGENT_DESCRIPTION, AGENTS_TEST_LATER);

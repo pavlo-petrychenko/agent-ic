@@ -16,6 +16,7 @@ export interface AgentVersion {
   readonly note: string | null;
   readonly authorId: string | null;
   readonly baseVersionId: string | null;
+  readonly revision: number;
   readonly publishedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -46,6 +47,7 @@ export interface PublishRequest {
 export interface DraftChanges {
   readonly flow: FlowDocument;
   readonly note: string | null;
+  readonly authorId: string;
 }
 
 export interface AgentVersionAuthor {
@@ -67,15 +69,22 @@ export interface AgentVersionView {
 export interface SaveAgentDraftInput {
   readonly id: string;
   readonly flow: unknown;
+  readonly revision: number;
   readonly note?: string | null;
+}
+
+export interface GetAgentDraftInput {
+  readonly agentId: string;
 }
 
 export interface ListAgentVersionsInput {
   readonly agentId: string;
 }
 
-export interface SavedAgentDraft {
+export interface AgentDraftView {
   readonly version: AgentVersionView;
+  readonly revision: number;
+  readonly savedAt: Date;
   readonly issues: readonly FlowIssue[];
 }
 
