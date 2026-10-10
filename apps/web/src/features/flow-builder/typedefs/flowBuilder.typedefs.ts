@@ -20,6 +20,11 @@ export interface FlowHistory {
   future: readonly FlowDocument[];
 }
 
+export interface HistoryStep {
+  document: FlowDocument;
+  history: FlowHistory;
+}
+
 export interface CanvasNodeModel {
   id: string;
   key: string;
@@ -60,7 +65,7 @@ export interface FlowBuilderActions {
   select: (selection: FlowSelection) => void;
   setViewport: (viewport: FlowViewport) => void;
   setSaveState: (saveState: SaveState) => void;
-  markSaved: (revision: number, issues: readonly FlowIssue[]) => void;
+  markSaved: (revision: number, issues: readonly FlowIssue[], savedDocument: FlowDocument) => void;
 }
 
 export type FlowBuilderStore = FlowBuilderState & FlowBuilderActions;

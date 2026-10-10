@@ -11,10 +11,10 @@ import {
   stepBack,
   stepForward,
 } from '@/features/flow-builder/storage/helpers/history.helpers';
-import type { HistoryStep } from '@/features/flow-builder/storage/helpers/history.helpers';
 import type {
   FlowBuilderState,
   FlowBuilderStore,
+  HistoryStep,
 } from '@/features/flow-builder/typedefs/flowBuilder.typedefs';
 
 const INITIAL_STATE: FlowBuilderState = {
@@ -33,7 +33,7 @@ const afterStep = (state: FlowBuilderState, step: HistoryStep | null): Partial<F
     : {
         ...step,
         selection: keepExisting(state.selection, step.document),
-        saveState: SaveState.Pending,
+        saveState: state.saveState === SaveState.Conflict ? SaveState.Conflict : SaveState.Pending,
       };
 
 export const useFlowBuilderStore = create<FlowBuilderStore>()((set) => ({
@@ -50,5 +50,10 @@ export const useFlowBuilderStore = create<FlowBuilderStore>()((set) => ({
   select: (selection) => set({ selection }),
   setViewport: (viewport) => set({ viewport }),
   setSaveState: (saveState) => set({ saveState }),
-  markSaved: (revision, issues) => set({ revision, issues, saveState: SaveState.Idle }),
+  markSaved: (revision, issues, savedDocument) =>
+    set((state) => ({
+      revision,
+      issues,
+      saveState: state.document === savedDocument ? SaveState.Idle : SaveState.Pending,
+    })),
 }));

@@ -3,12 +3,8 @@ import { HISTORY_LIMIT } from '@/features/flow-builder/constants/flowBuilder.con
 import type {
   FlowHistory,
   FlowSelection,
+  HistoryStep,
 } from '@/features/flow-builder/typedefs/flowBuilder.typedefs';
-
-export interface HistoryStep {
-  document: FlowDocument;
-  history: FlowHistory;
-}
 
 export const recordEdit = (
   history: FlowHistory,

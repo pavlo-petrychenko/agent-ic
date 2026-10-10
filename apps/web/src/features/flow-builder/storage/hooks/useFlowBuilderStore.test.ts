@@ -90,8 +90,27 @@ describe('useFlowBuilderStore', () => {
 
   it('takes the saved revision and the server issues', () => {
     store().apply(withStep('a'));
-    store().markSaved(4, []);
+    store().markSaved(4, [], store().document);
 
     expect(store()).toMatchObject({ revision: 4, saveState: SaveState.Idle, issues: [] });
+  });
+
+  it('stays waiting to be saved when an edit came in during the save', () => {
+    store().apply(withStep('a'));
+    const saved = store().document;
+    store().setSaveState(SaveState.Saving);
+    store().apply(withStep('b'));
+    store().markSaved(4, [], saved);
+
+    expect(store()).toMatchObject({ revision: 4, saveState: SaveState.Pending });
+  });
+
+  it('keeps the conflict until the draft is reloaded', () => {
+    store().apply(withStep('a'));
+    store().setSaveState(SaveState.Conflict);
+    store().apply(withStep('b'));
+    store().undo();
+
+    expect(store().saveState).toBe(SaveState.Conflict);
   });
 });
