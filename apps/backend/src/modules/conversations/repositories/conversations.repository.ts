@@ -1,12 +1,9 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, desc, eq, isNull, lt, ne, or, sql } from 'drizzle-orm';
-import {
-  ConversationState,
-  END_USER_LOCK_HASH_SEED,
-  END_USER_LOCK_KEY_SEPARATOR,
-} from '@/modules/conversations/constants/conversation.constants';
+import { ConversationState } from '@/modules/conversations/constants/conversation.constants';
 import { conversations } from '@/modules/conversations/db/conversations.table';
+import { endUserLockKey } from '@/modules/conversations/helpers/incoming-message.helpers';
 import type {
   Conversation,
   EndUserConversationKey,
@@ -31,15 +28,8 @@ export class ConversationsRepository {
   }
 
   async findOpenForUpdate(key: EndUserConversationKey): Promise<Conversation | null> {
-    const lockKey = [
-      key.workspaceId,
-      key.agentId,
-      key.mode,
-      key.channelKind,
-      key.endUserExternalId,
-    ].join(END_USER_LOCK_KEY_SEPARATOR);
     await this.txHost.tx.execute(
-      sql`select pg_advisory_xact_lock(hashtextextended(${lockKey}, ${END_USER_LOCK_HASH_SEED}))`,
+      sql`select pg_advisory_xact_lock(hashtext(${endUserLockKey(key)}))`,
     );
     const [conversation] = await this.txHost.tx
       .select()

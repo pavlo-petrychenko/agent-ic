@@ -16,3 +16,5 @@ export const STORE_ONLY_STATES: ReadonlySet<ConversationState> = new Set([
 export const AWAY_MESSAGE_KEY_PREFIX = 'away';
 
 export const AWAY_MESSAGE_KEY_SEPARATOR = ':';
+
+export const END_USER_LOCK_KEY_SEPARATOR = ':';

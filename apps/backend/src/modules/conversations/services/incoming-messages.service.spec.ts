@@ -104,17 +104,12 @@ describe('IncomingMessagesService', () => {
   it('keeps one conversation when the same first message arrives twice at once', async () => {
     const input = { ...(await startedBy()), externalId: TEST_EXTERNAL_MESSAGE_ID };
 
-    const results = await Promise.all([receive(input), receive(input)]);
+    const [first, second] = await Promise.all([receive(input), receive(input)]);
 
-    const conversationIds = new Set(results.map((result) => result.conversationId));
-    expect(conversationIds.size).toBe(1);
-    expect(
-      results.filter((result) => result.outcome === IncomingMessageOutcome.Duplicate),
-    ).toHaveLength(1);
-    const [conversationId] = conversationIds;
-    expect(await queuedEventsFor(testbed, runOnMessageReceived, conversationId ?? '')).toHaveLength(
-      1,
-    );
+    expect(second.conversationId).toBe(first.conversationId);
+    expect([first.outcome, second.outcome]).toContain(IncomingMessageOutcome.Duplicate);
+    const runs = await queuedEventsFor(testbed, runOnMessageReceived, first.conversationId);
+    expect(runs).toHaveLength(1);
   });
 
   it('starts a new conversation after the last one was closed', async () => {
