@@ -69,6 +69,7 @@ export function Menu({
   onSelect,
   variant = MenuVariant.Listbox,
   width = null,
+  minWidth = null,
   ariaLabel,
   className,
 }: MenuProps) {
@@ -85,8 +86,8 @@ export function Menu({
       // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
       role="listbox"
       aria-label={ariaLabel}
-      className={clsx(styles.root, className)}
-      style={width === null ? undefined : { width }}
+      className={clsx(styles.root, minWidth !== null && styles.fit, className)}
+      style={{ width: width ?? undefined, minWidth: minWidth ?? undefined }}
     >
       {items.map((entry) => {
         if (entry.kind === MenuEntryKind.Section) {
