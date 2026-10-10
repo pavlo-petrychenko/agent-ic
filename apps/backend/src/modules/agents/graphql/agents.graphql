@@ -1,12 +1,14 @@
 extend type Query {
   agents(first: Int, after: String): AgentConnection!
   agent(id: ID!): Agent!
+  agentVersions(agentId: ID!): [AgentVersion!]!
 }
 
 extend type Mutation {
   createAgent(input: CreateAgentInput!): Agent!
   renameAgent(input: RenameAgentInput!): Agent!
   deleteAgent(input: DeleteAgentInput!): DeleteAgentPayload!
+  duplicateAgent(input: DuplicateAgentInput!): Agent!
   saveAgentDraft(input: SaveAgentDraftInput!): SaveAgentDraftPayload!
   publishAgent(input: PublishAgentInput!): PublishAgentPayload!
 }
@@ -49,6 +51,10 @@ input DeleteAgentInput {
 }
 
 type DeleteAgentPayload {
+  id: ID!
+}
+
+input DuplicateAgentInput {
   id: ID!
 }
 

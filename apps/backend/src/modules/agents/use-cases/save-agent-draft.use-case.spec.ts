@@ -3,6 +3,7 @@ import { FlowIssueCode, hasBlockingIssues } from '@agent-ic/flow';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
+import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { InvalidAgentInputError } from '@/modules/agents/errors/invalid-agent-input.error';
 import { SaveAgentDraftUseCase } from '@/modules/agents/use-cases/save-agent-draft.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
@@ -70,6 +71,24 @@ describe('SaveAgentDraftUseCase', () => {
     expect(draft).toMatchObject({ id: draftId, flow: emptyFlow(), note: null });
   });
 
+  it('keeps the note when the client leaves it out and clears it on an explicit null', async () => {
+    const workspaceId = ids.generate();
+    const { agentId } = await seedAgentWithDraft(testingModule, workspaceId);
+    const ctx = agentsCtx(testingModule, workspaceId);
+    const id = publicAgentId(testingModule, agentId);
+    await saveDraft.execute(ctx, { id, flow: triggerFlow(), note: TEST_VERSION_NOTE });
+
+    const autosaved = await saveDraft.execute(ctx, { id, flow: triggerFlow(TEST_NODE_NEW_LABEL) });
+    const [kept] = await readVersions(testingModule, workspaceId, agentId);
+    const cleared = await saveDraft.execute(ctx, { id, flow: triggerFlow(), note: null });
+    const [removed] = await readVersions(testingModule, workspaceId, agentId);
+
+    expect(autosaved.version.note).toBe(TEST_VERSION_NOTE);
+    expect(kept).toMatchObject({ note: TEST_VERSION_NOTE });
+    expect(cleared.version.note).toBeNull();
+    expect(removed).toMatchObject({ note: null });
+  });
+
   it('rejects a document that is not a flow', async () => {
     const workspaceId = ids.generate();
     const { agentId } = await seedAgentWithDraft(testingModule, workspaceId);
@@ -80,6 +99,17 @@ describe('SaveAgentDraftUseCase', () => {
     });
 
     await expect(attempt).rejects.toBeInstanceOf(InvalidAgentInputError);
+  });
+
+  it('does not find an agent of another workspace', async () => {
+    const { agentId } = await seedAgentWithDraft(testingModule, ids.generate());
+
+    const attempt = saveDraft.execute(agentsCtx(testingModule, ids.generate()), {
+      id: publicAgentId(testingModule, agentId),
+      flow: triggerFlow(),
+    });
+
+    await expect(attempt).rejects.toBeInstanceOf(AgentNotFoundError);
   });
 
   it('refuses an operator', async () => {

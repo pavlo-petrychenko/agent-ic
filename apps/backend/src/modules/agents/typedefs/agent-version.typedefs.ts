@@ -49,6 +49,10 @@ export interface SaveAgentDraftInput {
   readonly note?: string | null;
 }
 
+export interface ListAgentVersionsInput {
+  readonly agentId: string;
+}
+
 export interface SavedAgentDraft {
   readonly version: AgentVersionView;
   readonly issues: readonly FlowIssue[];

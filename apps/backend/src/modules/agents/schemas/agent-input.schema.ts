@@ -24,3 +24,7 @@ export const saveAgentDraftInputSchema = z.object({
   [AgentField.Flow]: z.looseObject({}),
   [AgentField.Note]: versionNoteSchema,
 });
+
+export const listAgentVersionsInputSchema = z.object({
+  [AgentField.AgentId]: agentIdSchema,
+});
