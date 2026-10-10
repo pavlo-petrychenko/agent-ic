@@ -61,12 +61,15 @@ describe('ResumeAgentUseCase', () => {
   it('leaves an agent that is not paused as it is', async () => {
     const workspaceId = ids.generate();
     const { agentId } = await seedAgentWithDraft(testingModule, workspaceId);
+    const before = await readAgent(testingModule, workspaceId, agentId);
 
     const view = await resumeAgent.execute(agentsCtx(testingModule, workspaceId), {
       id: publicAgentId(testingModule, agentId),
     });
 
+    const after = await readAgent(testingModule, workspaceId, agentId);
     expect(view.status).toBe(AgentStatus.Draft);
+    expect(after).toEqual(before);
   });
 
   it('does not find an agent of another workspace', async () => {

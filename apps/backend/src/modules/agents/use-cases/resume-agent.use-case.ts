@@ -31,6 +31,9 @@ export class ResumeAgentUseCase {
       if (agent === null) {
         throw new AgentNotFoundError();
       }
+      if (agent.pausedAt === null) {
+        return toAgentView(agent, id);
+      }
       await this.agents.setPause(workspaceId, agentId, null, now);
       return toAgentView(
         { ...agent, pausedAt: null, pauseMode: null, awayMessage: null, updatedAt: now },
