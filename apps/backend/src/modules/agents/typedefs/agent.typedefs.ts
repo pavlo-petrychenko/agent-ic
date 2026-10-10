@@ -1,4 +1,5 @@
 import type { PauseMode } from '@/modules/agents/constants/agent.constants';
+import type { agents } from '@/modules/agents/db/agents.table';
 
 export interface Agent {
   readonly id: string;
@@ -12,3 +13,5 @@ export interface Agent {
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
+
+export type NewAgent = typeof agents.$inferInsert;
