@@ -53,6 +53,7 @@ export enum ErrorReason {
   LlmUnavailable = 'LLM_UNAVAILABLE',
   EmbeddingDimensionMismatch = 'EMBEDDING_DIMENSION_MISMATCH',
   InvalidAgentName = 'INVALID_AGENT_NAME',
+  InvalidAgentDescription = 'INVALID_AGENT_DESCRIPTION',
   AgentNotFound = 'AGENT_NOT_FOUND',
   AgentVersionNotFound = 'AGENT_VERSION_NOT_FOUND',
   AgentVersionImmutable = 'AGENT_VERSION_IMMUTABLE',

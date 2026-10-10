@@ -1,5 +1,8 @@
 import type { FlowDocument, FlowIssue } from '@agent-ic/flow';
-import type { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
+import type {
+  AgentVersionKind,
+  AgentVersionStatus,
+} from '@/modules/agents/constants/agent.constants';
 import type { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import type { AgentView } from '@/modules/agents/typedefs/agent.typedefs';
 
@@ -29,17 +32,34 @@ export interface VersionCopy {
   readonly at: Date;
 }
 
+export interface AgentVersionLabels {
+  readonly id: string;
+  readonly status: AgentVersionStatus;
+  readonly author: AgentVersionAuthor | null;
+}
+
+export interface PublishRequest {
+  readonly authorId: string;
+  readonly note?: string | null;
+}
+
 export interface DraftChanges {
   readonly flow: FlowDocument;
   readonly note: string | null;
 }
 
+export interface AgentVersionAuthor {
+  readonly name: string;
+}
+
 export interface AgentVersionView {
   readonly id: string;
   readonly kind: AgentVersionKind;
+  readonly status: AgentVersionStatus;
   readonly number: number | null;
   readonly flow: FlowDocument;
   readonly note: string | null;
+  readonly author: AgentVersionAuthor | null;
   readonly publishedAt: Date | null;
   readonly createdAt: Date;
 }

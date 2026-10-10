@@ -6,11 +6,11 @@ import { AgentVersionImmutableError } from '@/modules/agents/errors/agent-versio
 import { AgentVersionNotFoundError } from '@/modules/agents/errors/agent-version-not-found.error';
 import { InvalidAgentInputError } from '@/modules/agents/errors/invalid-agent-input.error';
 import { parseAgentInput } from '@/modules/agents/helpers/agent-input.helpers';
-import { toAgentVersionView } from '@/modules/agents/helpers/agent-version.helpers';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { saveAgentDraftInputSchema } from '@/modules/agents/schemas/agent-input.schema';
 import { AgentFlowService } from '@/modules/agents/services/agent-flow.service';
+import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import type {
   SaveAgentDraftInput,
   SavedAgentDraft,
@@ -29,6 +29,7 @@ export class SaveAgentDraftUseCase {
     private readonly versions: AgentVersionsRepository,
     private readonly flows: AgentFlowService,
     private readonly clock: ClockService,
+    private readonly views: AgentViewsService,
     private readonly ids: IdService,
   ) {}
 
@@ -60,10 +61,7 @@ export class SaveAgentDraftUseCase {
         throw new AgentVersionImmutableError();
       }
       return {
-        version: toAgentVersionView(
-          { ...draft, ...changes, updatedAt: now },
-          this.ids.toPublic(IdPrefix.AgentVersion, draft.id),
-        ),
+        version: await this.views.versionView(agent, { ...draft, ...changes, updatedAt: now }),
         issues: this.flows.validate(parsed.flow),
       };
     });
