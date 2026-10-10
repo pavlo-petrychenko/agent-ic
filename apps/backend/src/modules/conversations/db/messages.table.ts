@@ -50,7 +50,7 @@ export const messages = conversationsSchema
         table.workspaceId,
         table.idempotencyKey,
       ),
-      index('messages_conversation_id_id_idx').on(table.conversationId, table.id),
+      index('messages_history_idx').on(table.conversationId, table.createdAt, table.id),
       tenantIsolationPolicy('messages'),
     ],
   )

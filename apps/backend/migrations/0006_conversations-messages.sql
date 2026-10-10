@@ -43,7 +43,7 @@ ALTER TABLE "conversations"."messages" ADD CONSTRAINT "messages_conversation_id_
 CREATE INDEX "conversations_end_user_idx" ON "conversations"."conversations" USING btree ("workspace_id","agent_id","channel_kind","end_user_external_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "messages_conversation_id_external_id_key" ON "conversations"."messages" USING btree ("conversation_id","external_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "messages_workspace_id_idempotency_key_key" ON "conversations"."messages" USING btree ("workspace_id","idempotency_key");--> statement-breakpoint
-CREATE INDEX "messages_conversation_id_id_idx" ON "conversations"."messages" USING btree ("conversation_id","id");--> statement-breakpoint
+CREATE INDEX "messages_history_idx" ON "conversations"."messages" USING btree ("conversation_id","created_at","id");--> statement-breakpoint
 CREATE POLICY "conversations_tenant_isolation" ON "conversations"."conversations" AS PERMISSIVE FOR ALL TO public USING ("workspace_id" = nullif(current_setting('app.workspace_id', true), '')::uuid) WITH CHECK ("workspace_id" = nullif(current_setting('app.workspace_id', true), '')::uuid);--> statement-breakpoint
 CREATE POLICY "messages_tenant_isolation" ON "conversations"."messages" AS PERMISSIVE FOR ALL TO public USING ("workspace_id" = nullif(current_setting('app.workspace_id', true), '')::uuid) WITH CHECK ("workspace_id" = nullif(current_setting('app.workspace_id', true), '')::uuid);--> statement-breakpoint
 ALTER TABLE "conversations"."conversations" FORCE ROW LEVEL SECURITY;--> statement-breakpoint

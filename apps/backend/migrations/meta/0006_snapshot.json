@@ -538,11 +538,17 @@
           "method": "btree",
           "with": {}
         },
-        "messages_conversation_id_id_idx": {
-          "name": "messages_conversation_id_id_idx",
+        "messages_history_idx": {
+          "name": "messages_history_idx",
           "columns": [
             {
               "expression": "conversation_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
