@@ -1,4 +1,5 @@
-import type { LlmModelId, LlmReasoningEffort } from '@/platform/llm/constants/llm-model.constants';
+import type { LlmReasoningEffort } from '@/platform/llm/constants/llm-model.constants';
+import type { LlmAnyModelId } from '@/platform/llm/typedefs/llm-model.typedefs';
 
 export interface LlmTags {
   readonly traceName: string;
@@ -10,7 +11,7 @@ export interface LlmTags {
 }
 
 export interface LlmCallTrace {
-  readonly model: LlmModelId;
+  readonly model: LlmAnyModelId;
   readonly fallbackHop: number;
   readonly reasoning: LlmReasoningEffort | null;
 }

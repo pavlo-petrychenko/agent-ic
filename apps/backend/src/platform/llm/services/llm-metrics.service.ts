@@ -11,6 +11,7 @@ import {
 } from '@/platform/llm/constants/llm-metrics.constants';
 import type { LlmOperation } from '@/platform/llm/constants/llm-metrics.constants';
 import type { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
+import type { LlmAnyModelId } from '@/platform/llm/typedefs/llm-model.typedefs';
 import { MetricsService } from '@/platform/observability/services/metrics.service';
 
 @Injectable()
@@ -60,7 +61,11 @@ export class LlmMetricsService {
     });
   }
 
-  async measure<R>(operation: LlmOperation, model: LlmModelId, call: () => Promise<R>): Promise<R> {
+  async measure<R>(
+    operation: LlmOperation,
+    model: LlmAnyModelId,
+    call: () => Promise<R>,
+  ): Promise<R> {
     const startedAt = this.clock.now().getTime();
     let outcome = LlmCallOutcome.Failed;
     try {

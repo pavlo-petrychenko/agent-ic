@@ -40,6 +40,7 @@
     "LLM_REPLY_MISSING": "The AI model did not give an answer. Try again.",
     "LLM_TOOL_ROUNDS_EXCEEDED": "The AI model took too many steps to answer. Try again.",
     "LLM_UNAVAILABLE": "The AI model is busy right now. Try again in a minute.",
+    "EMBEDDING_DIMENSION_MISMATCH": "The search model gave an answer we could not use. Contact support.",
     "INVALID_AGENT_NAME": "Enter an agent name.",
     "AGENT_NOT_FOUND": "This agent does not exist.",
     "AGENT_VERSION_NOT_FOUND": "This agent version does not exist.",

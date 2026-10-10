@@ -2,6 +2,7 @@ import type { EmailMode } from '@/platform/config/constants/email.constants';
 import type { NodeEnvironment } from '@/platform/config/constants/env.constants';
 import type { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
 import type { LogLevel } from '@/platform/config/constants/log-level.constants';
+import type { EmbeddingModelId } from '@/platform/llm/constants/llm-model.constants';
 import type { Role } from '@/platform/module-roles/constants/role.constants';
 import type { QueueName } from '@/platform/queues/constants/queue.constants';
 
@@ -70,7 +71,7 @@ export interface SecretBoxConfig {
 export interface LlmConfig {
   readonly baseUrl: string;
   readonly apiKey: string | null;
-  readonly embeddingModel: string;
+  readonly embeddingModel: EmbeddingModelId;
 }
 
 export interface SmtpCredentials {

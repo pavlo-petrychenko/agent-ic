@@ -6,6 +6,7 @@ export enum LlmVendor {
   Google = 'google',
   Zhipu = 'zhipu',
   DeepSeek = 'deepseek',
+  Jina = 'jina',
 }
 
 export enum LlmPurpose {
@@ -21,6 +22,10 @@ export enum LlmModelId {
   Gemma4 = 'gemma-4-26b-a4b-it',
   Glm53Flash = 'glm-5.3-flash',
   DeepSeekV41Flash = 'deepseek/deepseek-v4.1-flash',
+}
+
+export enum EmbeddingModelId {
+  JinaEmbeddingsV5TextSmall = 'jina-embeddings-v5-text-small',
 }
 
 export enum LlmApi {

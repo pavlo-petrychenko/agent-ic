@@ -21,6 +21,7 @@ import {
   createLlmGateway,
   createLlmMetricsService,
   createMetricsService,
+  metricValue,
 } from '@test/support/helpers/llm-testing.helpers';
 import { startMockLlm } from '@test/support/services/mock-llm.service';
 import type { MockLlmService } from '@test/support/services/mock-llm.service';
@@ -76,18 +77,6 @@ const meteredReport = (model: LlmModelId, round: typeof FIRST_ROUND, credits: nu
   credits: expect.closeTo(credits),
   metered: true,
 });
-
-const metricValue = async (
-  metrics: MetricsService,
-  name: LlmMetricName,
-  labels: Readonly<Record<string, string>>,
-): Promise<number | null> => {
-  const metric = await metrics.registry.getSingleMetric(name)?.get();
-  const sample = metric?.values.find((value) =>
-    Object.entries(labels).every(([label, wanted]) => value.labels[label] === wanted),
-  );
-  return sample?.value ?? null;
-};
 
 describe('AiSdkLlmGateway usage and metrics', () => {
   let mock: MockLlmService;
