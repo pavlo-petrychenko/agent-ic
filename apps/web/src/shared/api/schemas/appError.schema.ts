@@ -12,6 +12,7 @@ export const errorPayloadSchema = z.object({
   fields: z.array(fieldIssueSchema).nullish(),
   errors: z.array(fieldIssueSchema).nullish(),
   detail: z.string().nullish(),
+  details: z.record(z.string(), z.unknown()).nullish(),
 });
 
 export type ErrorPayload = z.infer<typeof errorPayloadSchema>;

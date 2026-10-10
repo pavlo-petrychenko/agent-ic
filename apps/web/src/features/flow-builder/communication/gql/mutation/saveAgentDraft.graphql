@@ -1,0 +1,13 @@
+mutation SaveAgentDraft($id: ID!, $flow: JSON!, $revision: Int!) {
+  saveAgentDraft(input: { id: $id, flow: $flow, revision: $revision }) {
+    revision
+    issues {
+      code
+      severity
+      nodeId
+      edgeId
+      path
+      params
+    }
+  }
+}
