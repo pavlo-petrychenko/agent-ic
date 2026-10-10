@@ -93,7 +93,7 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 4. `gateway` ⇢ pub/sub `conv:{id}:messages`.
 5. `gateway` → Telegram: `200 OK` in under 100 ms.
 6. Every `api` pod ⇢ its WebSocket clients watching that conversation or Inbox: "new message".
-7. `worker-runs` ⇢ takes the job, then → Postgres: loads the run, the flow version, prompts and the last N messages.
+7. `worker-runs` ⇢ takes the job, then → Postgres: loads the run, the flow version, prompts and the conversation's messages.
 8. `worker-runs` runs the steps:
    - Parallel: guard + observer → LLM;
    - Router;
