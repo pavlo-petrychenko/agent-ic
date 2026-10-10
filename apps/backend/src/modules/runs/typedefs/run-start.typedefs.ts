@@ -7,3 +7,5 @@ export interface RunStart {
   readonly mode: RunMode;
   readonly triggerMessageId: string;
 }
+
+export type RunTarget = Omit<RunStart, 'versionId'>;

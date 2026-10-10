@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { RunStatus } from '@/modules/runs/constants/run.constants';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
 import {
+  AgentChange,
   FIRST_STEP_ID,
   FIRST_STEP_KEY,
   SECOND_STEP_ID,
@@ -11,6 +12,7 @@ import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.con
 import { triggerFlow } from '@test/support/fixtures/agents.fixture';
 import { agentNode, flowEdge, stepFlow } from '@test/support/fixtures/runs.fixture';
 import {
+  changeAgent,
   createRunLifecycleTestbed,
   readLifecycle,
   receiveMessage,
@@ -67,4 +69,24 @@ describe('ExecuteRunUseCase', () => {
     expect(testbed.executor.callsFor(runId, SECOND_STEP_ID)).toBe(0);
     expect(followUp?.versionId).toBe(published);
   });
+
+  it.each(Object.values(AgentChange))(
+    'ends the run without a follow-up after the agent changes mid-run: %s',
+    async (change) => {
+      const seeded = await seedLiveConversation(testbed, triggerFlow());
+      const { workspaceId } = seeded.conversation;
+      const runId = String((await receiveMessage(testbed, seeded)).run?.id);
+      await receiveMessage(testbed, seeded);
+      await testbed.execution.execute(seeded.ctx, workspaceId, runId);
+      await changeAgent(testbed, seeded, change);
+
+      const followUp = await testbed.tenants.run(workspaceId, () =>
+        testbed.lifecycle.endRun(seeded.ctx, workspaceId, runId),
+      );
+
+      const after = await readLifecycle(testbed, seeded);
+      expect(followUp).toBeNull();
+      expect(after.conversation?.activeRunId).toBeNull();
+    },
+  );
 });

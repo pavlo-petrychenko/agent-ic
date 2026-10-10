@@ -39,3 +39,9 @@ export const TEST_END_USER_NAME = 'Olena';
 export const TEST_AGENT_REPLY = 'We open at nine.';
 export const TEST_FOLLOW_UP = 'And on Sunday?';
 export const TEST_TODAY = '2026-10-10';
+
+export enum AgentChange {
+  PauseWithAwayMessage = 'pause-with-away-message',
+  Unpublish = 'unpublish',
+  Delete = 'delete',
+}

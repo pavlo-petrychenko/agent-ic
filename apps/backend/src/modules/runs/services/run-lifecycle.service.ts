@@ -9,7 +9,7 @@ import { RunStatus, RunTrigger } from '@/modules/runs/constants/run.constants';
 import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { executeRunJob } from '@/modules/runs/jobs/execute-run.job';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
-import type { RunStart } from '@/modules/runs/typedefs/run-start.typedefs';
+import type { RunStart, RunTarget } from '@/modules/runs/typedefs/run-start.typedefs';
 import type { NewRun, Run } from '@/modules/runs/typedefs/run.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -27,8 +27,16 @@ export class RunLifecycleService {
     private readonly ids: IdService,
   ) {}
 
-  async startRun(ctx: UseCaseCtx, start: RunStart): Promise<NewRun | null> {
-    const { workspaceId, conversationId } = start;
+  startRun(ctx: UseCaseCtx, start: RunStart): Promise<NewRun | null> {
+    return this.startCovering(ctx, start, () => Promise.resolve(start.versionId));
+  }
+
+  private async startCovering(
+    ctx: UseCaseCtx,
+    target: RunTarget,
+    resolveVersion: () => Promise<string | null>,
+  ): Promise<NewRun | null> {
+    const { workspaceId, conversationId } = target;
     const conversation = await this.conversations.getConversation(workspaceId, conversationId);
     if (conversation.state !== ConversationState.AgentActive) {
       return null;
@@ -37,8 +45,9 @@ export class RunLifecycleService {
     if (!(await this.conversations.claimRun(workspaceId, conversationId, runId))) {
       return null;
     }
-    const lastCoveredMessageId = await this.lastUncoveredMessageId(start);
-    if (lastCoveredMessageId === null) {
+    const lastCoveredMessageId = await this.lastUncoveredMessageId(target);
+    const versionId = lastCoveredMessageId === null ? null : await resolveVersion();
+    if (lastCoveredMessageId === null || versionId === null) {
       await this.conversations.releaseRun(workspaceId, conversationId, runId);
       return null;
     }
@@ -47,8 +56,8 @@ export class RunLifecycleService {
       workspaceId,
       conversationId,
       agentId: conversation.agentId,
-      versionId: start.versionId,
-      mode: start.mode,
+      versionId,
+      mode: target.mode,
       trigger: RunTrigger.Message,
       status: RunStatus.Queued,
       lastCoveredMessageId,
@@ -67,17 +76,12 @@ export class RunLifecycleService {
     if (!(await this.conversations.releaseRun(workspaceId, run.conversationId, run.id))) {
       return null;
     }
-    return this.startRun(ctx, {
-      workspaceId,
-      conversationId: run.conversationId,
-      versionId: await this.followUpVersionId(run),
-      mode: run.mode,
-      triggerMessageId: run.lastCoveredMessageId,
-    });
+    const target = { ...run, triggerMessageId: run.lastCoveredMessageId };
+    return this.startCovering(ctx, target, () => this.followUpVersionId(run));
   }
 
-  private async lastUncoveredMessageId(start: RunStart): Promise<string | null> {
-    const { workspaceId, conversationId, triggerMessageId } = start;
+  private async lastUncoveredMessageId(target: RunTarget): Promise<string | null> {
+    const { workspaceId, conversationId, triggerMessageId } = target;
     const latest = await this.runs.findLatestByConversation(workspaceId, conversationId);
     const newer = await this.conversations.messagesAfter(
       workspaceId,
@@ -87,11 +91,10 @@ export class RunLifecycleService {
     return newer.at(-1)?.id ?? (latest === null ? triggerMessageId : null);
   }
 
-  private async followUpVersionId(run: Run): Promise<string> {
+  private async followUpVersionId(run: Run): Promise<string | null> {
     if (run.mode !== ConversationMode.Live) {
       return run.versionId;
     }
-    const live = await this.agents.getLiveVersion(run.workspaceId, run.agentId);
-    return live?.id ?? run.versionId;
+    return this.agents.findAnsweringVersionId(run.workspaceId, run.agentId);
   }
 }

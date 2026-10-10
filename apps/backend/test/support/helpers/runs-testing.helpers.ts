@@ -1,6 +1,6 @@
 import { NodeType } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
-import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
+import { AgentVersionKind, PauseMode } from '@/modules/agents/constants/agent.constants';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
@@ -11,6 +11,7 @@ import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { RunsModule } from '@/modules/runs/runs.module';
 import { MessageTriggerExecutor } from '@/modules/runs/services/message-trigger-executor.service';
 import { RunExecutionService } from '@/modules/runs/services/run-execution.service';
+import { RunLifecycleService } from '@/modules/runs/services/run-lifecycle.service';
 import type { NewRun } from '@/modules/runs/typedefs/run.typedefs';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
 import { StartRunOnMessageUseCase } from '@/modules/runs/use-cases/start-run-on-message.use-case';
@@ -23,8 +24,10 @@ import { LiveUpdatesService } from '@/platform/live-updates/services/live-update
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { QueuesService } from '@/platform/queues/services/queues.service';
+import { TEST_AWAY_MESSAGE } from '@test/support/constants/agents-testing.constants';
 import { MESSAGE_SPACING_MS } from '@test/support/constants/conversations-testing.constants';
 import {
+  AgentChange,
   RUNS_TEST_START,
   TEST_PUBLISHED_NUMBER,
   TEST_REPUBLISHED_NUMBER,
@@ -130,6 +133,7 @@ export const createRunLifecycleTestbed = async (
     ...testbed,
     startRunOnMessage: testbed.module.get(StartRunOnMessageUseCase),
     executeRun: testbed.module.get(ExecuteRunUseCase),
+    lifecycle: testbed.module.get(RunLifecycleService),
     queues: testbed.module.get(QueuesService),
   };
 };
@@ -183,6 +187,28 @@ export const republish = async (
       .setLiveVersion(workspaceId, agentId, versionId, testbed.clock.now());
   });
   return versionId;
+};
+
+export const changeAgent = async (
+  testbed: RunExecutionTestbed,
+  { conversation }: LiveConversation,
+  change: AgentChange,
+): Promise<void> => {
+  const { workspaceId, agentId } = conversation;
+  const agents = testbed.module.get(AgentsRepository);
+  const at = testbed.clock.now();
+  await testbed.tenants.run(workspaceId, async () => {
+    if (change === AgentChange.PauseWithAwayMessage) {
+      const pause = { mode: PauseMode.AwayMessage, awayMessage: TEST_AWAY_MESSAGE, pausedAt: at };
+      await agents.setPause(workspaceId, agentId, pause, at);
+    }
+    if (change === AgentChange.Unpublish) {
+      await agents.setLiveVersion(workspaceId, agentId, null, at);
+    }
+    if (change === AgentChange.Delete) {
+      await agents.delete(workspaceId, agentId);
+    }
+  });
 };
 
 export const receiveMessage = async (
