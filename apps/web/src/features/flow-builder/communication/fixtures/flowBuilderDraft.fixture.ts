@@ -1,6 +1,7 @@
 import { ChannelSelectionMode, FLOW_SCHEMA_VERSION, NodeType } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import type { MockLink } from '@apollo/client/testing';
+import { DescribeAgentDocument } from '@/features/flow-builder/communication/gql/mutation/describeAgent.generated';
 import { RenameAgentDocument } from '@/features/flow-builder/communication/gql/mutation/renameAgent.generated';
 import { FlowBuilderDraftDocument } from '@/features/flow-builder/communication/gql/query/flowBuilderDraft.generated';
 
@@ -29,6 +30,7 @@ export const buildFlowBuilderDraftMock = (flow: unknown): MockLink.MockedRespons
         __typename: 'Agent',
         id: DEMO_AGENT_ID,
         name: 'Salon assistant',
+        description: null,
         draftBaseVersionNumber: 3,
       },
       agentDraft: {
@@ -48,4 +50,12 @@ export const buildFlowBuilderDraftFailureMock = (): MockLink.MockedResponse => (
 export const buildRenameAgentMock = (name: string): MockLink.MockedResponse => ({
   request: { query: RenameAgentDocument, variables: { input: { id: DEMO_AGENT_ID, name } } },
   result: { data: { renameAgent: { __typename: 'Agent', id: DEMO_AGENT_ID, name } } },
+});
+
+export const buildDescribeAgentMock = (description: string | null): MockLink.MockedResponse => ({
+  request: {
+    query: DescribeAgentDocument,
+    variables: { input: { id: DEMO_AGENT_ID, description } },
+  },
+  result: { data: { describeAgent: { __typename: 'Agent', id: DEMO_AGENT_ID, description } } },
 });

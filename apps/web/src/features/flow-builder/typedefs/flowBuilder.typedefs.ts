@@ -80,6 +80,7 @@ export type FlowBuilderStore = FlowBuilderState & FlowBuilderActions;
 
 export interface FlowBuilderDraftResult {
   agentName: string | null;
+  agentDescription: string | null;
   baseVersion: number | null;
   draft: FlowDraft | null;
   loading: boolean;

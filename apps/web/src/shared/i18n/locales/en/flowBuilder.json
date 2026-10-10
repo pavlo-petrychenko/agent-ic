@@ -56,6 +56,7 @@
     "deleted": "Deleted",
     "undo": "Undo",
     "addStep": "Add step",
+    "stepActions": "Step actions",
     "connectingTo": "Connect to {{name}}",
     "emptyTitle": "Start with a trigger",
     "emptyDescription": "A trigger decides when this agent runs.",
@@ -116,6 +117,10 @@
     "nameLabel": "Agent name",
     "renamed": "Agent renamed",
     "neverPublished": "Draft · never published",
-    "editedFrom": "Draft · edited from v{{version}}"
+    "editedFrom": "Draft · edited from v{{version}}",
+    "describe": "Edit description",
+    "descriptionLabel": "Agent description",
+    "addDescription": "Add a description",
+    "described": "Description saved"
   }
 }

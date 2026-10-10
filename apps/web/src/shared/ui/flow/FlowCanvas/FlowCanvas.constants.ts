@@ -28,3 +28,8 @@ export const FLOW_CANVAS_NODE_ID_ATTRIBUTE = 'data-id';
 export const FLOW_CANVAS_EDGE_SELECTOR = '[data-edge-id]';
 export const FLOW_CANVAS_EDGE_ID_ATTRIBUTE = 'data-edge-id';
 export const FLOW_CANVAS_MENU_FOCUS_SELECTOR = '[tabindex="0"]';
+
+export enum FlowCanvasContextAction {
+  Duplicate = 'duplicate',
+  Delete = 'delete',
+}
