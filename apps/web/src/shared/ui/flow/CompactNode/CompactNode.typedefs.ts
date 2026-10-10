@@ -11,6 +11,7 @@ export interface CompactNodeProps extends Omit<ComponentProps<'div'>, 'children'
   selected?: boolean;
   faded?: boolean;
   disabled?: boolean;
+  invalidLabel?: string | null;
   inPort?: ReactNode | null;
   outPorts?: ReactNode | null;
 }

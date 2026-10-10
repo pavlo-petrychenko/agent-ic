@@ -38,6 +38,7 @@ export interface CanvasNodeModel {
   portLabels: readonly (PortLabel | null)[];
   summary: readonly SummaryPart[];
   issues: readonly FlowIssue[];
+  blocking: FlowIssue | null;
 }
 
 export interface CanvasModel {

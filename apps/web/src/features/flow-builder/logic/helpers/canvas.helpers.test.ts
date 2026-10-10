@@ -54,12 +54,14 @@ describe('documentToCanvas', () => {
         hasInPort: false,
         outPorts: [PortName.Next],
         issues: [],
+        blocking: null,
       }),
       expect.objectContaining({
         label: 'Checks',
         hasInPort: true,
         outPorts: [PortName.Branches, PortName.Next],
         issues: [ISSUE],
+        blocking: ISSUE,
       }),
     ]);
     expect(canvas.edges).toEqual([EDGE]);

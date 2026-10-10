@@ -1,1 +1,2 @@
 export const TRIGGER_NODE_ICON_SIZE = 14;
+export const TRIGGER_NODE_INVALID_ICON_SIZE = 14;
