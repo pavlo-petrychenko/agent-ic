@@ -585,7 +585,7 @@ The run is marked failed, and Agents shows "N runs failed today".
   - Draft (never published)
   - Live vN (+ optional unpublished draft)
   - Paused
-- **Pause options:** route new messages to the Inbox, or reply with an away message. Schedules and events are skipped while paused.
+- **Pause options:** the user picks one in the pause dialog: route new messages to the Inbox, or reply with an away message they write, sent once per conversation per pause. Schedules and events are skipped while paused.
 - **Duplicate** copies the draft flow (not channels).
 - **Delete** removes the flow and versions and leaves conversations readable.
 
@@ -593,7 +593,7 @@ The run is marked failed, and Agents shows "N runs failed today".
 
 | Trigger | Configuration | Variables provided |
 |---|---|---|
-| **Incoming message** | Which channels (of those connected to this agent) | `message.text`, `message.attachments`, `user.name`, `user.language`, `channel`, `history` (last 20) |
+| **Incoming message** | Which channels (of those connected to this agent) | `message.text`, `message.attachments`, `user.name`, `user.language`, `channel`, `history` (the whole conversation) |
 | **External event** | Event name; source API channel; example payload; caller mode "don't wait" / "wait for result" (≤30 s) | `event.*`, `user_id` → conversation |
 | **Schedule / cron** | Every day / weekdays / custom cron; time; time zone; conditions on conversations; max per run; once per conversation | conversation context, `history` |
 
@@ -605,7 +605,7 @@ The run is marked failed, and Agents shows "N runs failed today".
 | Step | Purpose | Configuration |
 |---|---|---|
 | **Agent** | LLM with the KB-search tool; runs once per customer message; **never messages the customer itself** | Prompt (library, pin vN or follow latest); model; attached KBs; structured output with built-in `messages[]` (list of text) + custom fields; **if the model fails:** retry 2× then escalate |
-| **Completion** | One LLM call, no tools, structured output | Prompt; model; input (history last N, current message); output fields; **role: Guard** (in sequence, can stop the flow) or **Observer** (in parallel, output goes to analytics/Langfuse, can't stop the flow) |
+| **Completion** | One LLM call, no tools, structured output | Prompt; model; input (the whole history, current message); output fields; **role: Guard** (in sequence, can stop the flow) or **Observer** (in parallel, output goes to analytics/Langfuse, can't stop the flow) |
 | **Parallel / join** | Run branches at the same time | Continue when: guard branches finish (observers keep running) / all finish / the first finishes |
 | **Router** | Branch on conditions | Ordered rules `field op value → target`, first match wins; `else` target; fields from triggers and earlier steps (observers excluded) |
 | **API request** | Call the business's systems (no LLM) | Method, URL with variables, headers/body, auth (Bearer token stored encrypted); output `status`, `body`; timeout (default 5 s); retries (default 2 with backoff); **on failure:** continue without data or escalate |
@@ -809,11 +809,11 @@ Workspace ─ UsageCounter (month, credits, conversations, chunks)
 
 ## 17. Open questions
 
-1. **Paused agent default:** new messages go to the Inbox, with an away message as the alternative. Confirm.
-2. **Closing a chat:** the customer's next message starts a fresh conversation with the agent. Confirm.
+1. ~~**Paused agent default**~~ — resolved: the user chooses in the pause dialog: new messages go to the Inbox, or get an away message written by the user, sent once per conversation per pause.
+2. ~~**Closing a chat**~~ — resolved: the customer's next message starts a fresh conversation with the agent.
 3. **API channel without a webhook:** block publishing an agent that can escalate or message proactively, or only warn?
 4. **Real-time sync:** feasibility for Google Docs (Drive change notifications) and ClickUp (webhooks); fall back to frequent scheduled sync if limited.
 5. **Limit values:** the design uses placeholders (e.g. 10,000 conversations, 5,000 chunks per month). Set the real numbers.
 6. ~~**Platform models**~~ — resolved: no tiers; a curated model list (`architecture.md` D81–D84, D90).
-7. **Conversation history window** passed to steps (design: last 20 for triggers, last 10 for the guard). Make it configurable or fixed?
+7. ~~**Conversation history window**~~ — resolved: no limit; steps get the whole conversation (`architecture.md` D192). Compaction can be added later in one place if it is ever needed.
 8. **Escalation auto-resume** (open in the vision too): should the agent also resume automatically after the operator goes quiet? The MVP resumes only on an explicit hand-back.
