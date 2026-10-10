@@ -1,0 +1,13 @@
+query FlowBuilderDraft($agentId: ID!) {
+  agent(id: $agentId) {
+    id
+    name
+  }
+  agentDraft(agentId: $agentId) {
+    revision
+    version {
+      id
+      flow
+    }
+  }
+}

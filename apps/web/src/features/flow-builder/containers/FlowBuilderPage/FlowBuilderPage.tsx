@@ -1,25 +1,63 @@
+import { useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useFlowBuilderDraft } from '@/features/flow-builder/communication/hooks/useFlowBuilderDraft';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
-import { Card } from '@/shared/ui/display/Card';
-import { EmptyState } from '@/shared/ui/display/EmptyState';
+import type { FlowBuilderPageProps } from '@/features/flow-builder/containers/FlowBuilderPage/FlowBuilderPage.typedefs';
+import { FlowEditor } from '@/features/flow-builder/containers/FlowEditor';
+import { agentsHref, workspaceHref } from '@/features/flow-builder/logic/helpers/route.helpers';
+import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
+import { useActiveWorkspace } from '@/features/workspace';
+import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
+import { Skeleton } from '@/shared/ui/display/Skeleton';
 import { IconName } from '@/shared/ui/foundations/Icon';
-import { PageHeader } from '@/shared/ui/layout/PageHeader';
+import { Topbar } from '@/shared/ui/layout/Topbar';
 
-export function FlowBuilderPage() {
+export function FlowBuilderPage({ workspaceId, agentId }: FlowBuilderPageProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
+  const workspace = useActiveWorkspace(workspaceId);
+  const { agentName, draft, loading, failed, retry } = useFlowBuilderDraft(agentId);
+  const load = useFlowBuilderStore((state) => state.load);
+
+  useLayoutEffect(() => {
+    if (draft !== null) {
+      load(draft);
+    }
+  }, [draft, load]);
 
   return (
-    <div className="flex flex-col gap-5 pb-8">
-      <PageHeader title={t('page.title')} subtitle={t('page.subtitle')} />
-      <div className="px-7">
-        <Card>
+    <div className="flex h-full flex-col">
+      <Topbar
+        breadcrumbs={{
+          ariaLabel: t('breadcrumb'),
+          moreLabel: t('breadcrumbMore'),
+          items: [
+            { label: workspace?.name ?? '', to: workspaceHref(workspaceId) },
+            { label: t('agents'), to: agentsHref(workspaceId) },
+            { label: agentName ?? '', to: null },
+          ],
+        }}
+      />
+      {draft !== null && <FlowEditor />}
+      {draft === null && loading && (
+        <div className="p-7">
+          <Skeleton label={t('loading')} />
+        </div>
+      )}
+      {failed && (
+        <div role="alert" className="p-7">
           <EmptyState
-            icon={IconName.Agent}
-            title={t('empty.title')}
-            description={t('empty.description')}
+            icon={IconName.Alert}
+            tone={EmptyStateTone.Err}
+            title={t('loadError')}
+            actions={
+              <Button variant={ButtonVariant.Secondary} onClick={retry}>
+                {t('retry')}
+              </Button>
+            }
           />
-        </Card>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -61,6 +61,7 @@ export interface FlowCanvasSelection {
 export interface FlowCanvasNodeMove {
   id: string;
   position: FlowCanvasPoint;
+  dragging: boolean;
 }
 
 export interface FlowCanvasPaletteDrop {

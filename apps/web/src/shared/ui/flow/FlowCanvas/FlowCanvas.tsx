@@ -202,7 +202,11 @@ function FlowCanvasSurface({
         resized = true;
       }
       if (change.type === 'position' && change.position !== undefined) {
-        moves.push({ id: change.id, position: change.position });
+        moves.push({
+          id: change.id,
+          position: change.position,
+          dragging: change.dragging ?? false,
+        });
       }
       if (change.type === 'select') {
         selects.push(change);
