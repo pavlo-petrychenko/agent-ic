@@ -32,7 +32,9 @@
     "INVITE_EXPIRED": "This invite has expired. Ask for a new link.",
     "INVALID_WORKSPACE_NAME": "Enter a workspace name.",
     "INVALID_TIME_ZONE": "Choose a valid time zone.",
-    "ROLE_NOT_INVITABLE": "This role cannot be given through an invite."
+    "ROLE_NOT_INVITABLE": "This role cannot be given through an invite.",
+    "SECRET_KEY_VERSION_UNKNOWN": "A stored secret cannot be read. Contact support.",
+    "SECRET_TAMPERED": "A stored secret is damaged. Enter it again."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",
