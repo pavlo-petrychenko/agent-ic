@@ -1,10 +1,11 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, eq, isNull, ne } from 'drizzle-orm';
+import { and, desc, eq, isNull, lt, ne, or } from 'drizzle-orm';
 import { ConversationState } from '@/modules/conversations/constants/conversation.constants';
 import { conversations } from '@/modules/conversations/db/conversations.table';
 import type {
   Conversation,
+  EndUserConversationKey,
   NewConversation,
 } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
@@ -23,6 +24,45 @@ export class ConversationsRepository {
       .from(conversations)
       .where(and(eq(conversations.workspaceId, workspaceId), eq(conversations.id, id)));
     return conversation ?? null;
+  }
+
+  async findOpenForUpdate(key: EndUserConversationKey): Promise<Conversation | null> {
+    const [conversation] = await this.txHost.tx
+      .select()
+      .from(conversations)
+      .where(
+        and(
+          eq(conversations.workspaceId, key.workspaceId),
+          eq(conversations.agentId, key.agentId),
+          eq(conversations.channelKind, key.channelKind),
+          eq(conversations.endUserExternalId, key.endUserExternalId),
+          eq(conversations.mode, key.mode),
+          ne(conversations.state, ConversationState.Closed),
+        ),
+      )
+      .orderBy(desc(conversations.createdAt))
+      .for('update');
+    return conversation ?? null;
+  }
+
+  async claimAwayMessage(
+    workspaceId: string,
+    id: string,
+    pausedAt: Date,
+    sentAt: Date,
+  ): Promise<boolean> {
+    const claimed = await this.txHost.tx
+      .update(conversations)
+      .set({ awaySentAt: sentAt })
+      .where(
+        and(
+          eq(conversations.workspaceId, workspaceId),
+          eq(conversations.id, id),
+          or(isNull(conversations.awaySentAt), lt(conversations.awaySentAt, pausedAt)),
+        ),
+      )
+      .returning({ id: conversations.id });
+    return claimed.length > 0;
   }
 
   async claim(workspaceId: string, id: string, runId: string): Promise<boolean> {
