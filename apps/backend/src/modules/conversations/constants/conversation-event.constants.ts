@@ -6,4 +6,10 @@ export enum ConversationEventName {
   NeedsOperator = 'conversations.needs-operator',
 }
 
-export const DURABLE_EVENT_OPTIONS: EnqueueOptions = { durable: true };
+export const CONVERSATION_EVENT_EMIT_OPTIONS: Readonly<
+  Record<ConversationEventName, EnqueueOptions>
+> = {
+  [ConversationEventName.MessageReceived]: { durable: true },
+  [ConversationEventName.OutboundQueued]: { durable: true },
+  [ConversationEventName.NeedsOperator]: { durable: false },
+};
