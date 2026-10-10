@@ -45,3 +45,17 @@ export const agentsCtx = (
 
 export const publicAgentId = (testingModule: TestingModule, agentId: string): string =>
   testingModule.get(IdService).toPublic(IdPrefix.Agent, agentId);
+
+export const makeAgentLive = async (
+  testingModule: TestingModule,
+  workspaceId: string,
+  seeded: SeededAgent,
+): Promise<void> => {
+  await testingModule
+    .get(TenantTransactionService)
+    .run(workspaceId, () =>
+      testingModule
+        .get(AgentsRepository)
+        .setLiveVersion(workspaceId, seeded.agentId, seeded.draftId, AGENTS_TEST_START),
+    );
+};

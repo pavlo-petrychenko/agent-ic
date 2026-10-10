@@ -13,3 +13,7 @@ export const renameAgentInputSchema = z.object({
   [AgentField.Id]: agentIdSchema,
   [AgentField.Name]: agentNameSchema,
 });
+
+export const agentIdInputSchema = z.object({
+  [AgentField.Id]: agentIdSchema,
+});
