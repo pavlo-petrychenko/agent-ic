@@ -46,4 +46,7 @@ export enum ErrorReason {
   RoleNotInvitable = 'ROLE_NOT_INVITABLE',
   SecretKeyVersionUnknown = 'SECRET_KEY_VERSION_UNKNOWN',
   SecretTampered = 'SECRET_TAMPERED',
+  LlmNotConfigured = 'LLM_NOT_CONFIGURED',
+  LlmReplyInvalid = 'LLM_REPLY_INVALID',
+  LlmReplyMissing = 'LLM_REPLY_MISSING',
 }
