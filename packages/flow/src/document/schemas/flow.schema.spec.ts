@@ -16,6 +16,7 @@ import {
   PromptSourceKind,
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
+import { FIRST_SCHEMA_VERSION } from '@flow/versions/constants/version.constants';
 import {
   eventNotificationFlow,
   exampleFlows,
@@ -67,9 +68,10 @@ describe('flowDocumentSchema', () => {
   });
 
   it('rejects another schema version', () => {
-    expect(flowDocumentSchema.safeParse({ ...faqWithHandOffFlow, schemaVersion: 1 }).success).toBe(
-      false,
-    );
+    expect(
+      flowDocumentSchema.safeParse({ ...faqWithHandOffFlow, schemaVersion: FIRST_SCHEMA_VERSION })
+        .success,
+    ).toBe(false);
   });
 
   it('rejects an unknown node type', () => {

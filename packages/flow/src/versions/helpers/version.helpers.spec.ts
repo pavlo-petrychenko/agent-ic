@@ -39,13 +39,15 @@ describe('parseFlow', () => {
     expect(parseFlow(roundTrip({ ...v1, edges }))).toEqual({ ok: true, flow: faqWithHandOffFlow });
   });
 
-  it('refuses a version it does not know', () => {
-    const version = FLOW_SCHEMA_VERSION + 1;
-    expect(parseFlow({ ...faqWithHandOffFlow, schemaVersion: version })).toEqual({
-      ok: false,
-      failure: { kind: ParseFlowFailureKind.UnsupportedVersion, version },
-    });
-  });
+  it.each([0, FLOW_SCHEMA_VERSION + 1, String(FLOW_SCHEMA_VERSION), null])(
+    'refuses the version %s',
+    (version) => {
+      expect(parseFlow({ ...faqWithHandOffFlow, schemaVersion: version })).toEqual({
+        ok: false,
+        failure: { kind: ParseFlowFailureKind.UnsupportedVersion, version },
+      });
+    },
+  );
 
   it('refuses a document without a version', () => {
     expect(parseFlow({ nodes: [], edges: [] })).toEqual({
