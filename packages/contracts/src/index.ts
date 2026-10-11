@@ -13,6 +13,7 @@ export {
 } from '@contracts/auth/auth.constants';
 export { ErrorCode, ErrorReason } from '@contracts/errors/errors.constants';
 export { IdPrefix } from '@contracts/ids/id-prefix.constants';
+export { REASONING_LEVEL_ORDER, ReasoningLevel } from '@contracts/llm/reasoning.constants';
 export { DEFAULT_LOCALE, Locale } from '@contracts/locales/locale.constants';
 export {
   DEFAULT_INVITE_ROLE,

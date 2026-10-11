@@ -42,21 +42,3 @@ export enum LlmAgentFinish {
   FinalMessage = 'final-message',
   ReplyTool = 'reply-tool',
 }
-
-export enum LlmReasoningEffort {
-  None = 'none',
-  Low = 'low',
-  Medium = 'medium',
-  High = 'high',
-  XHigh = 'xhigh',
-  Max = 'max',
-}
-
-export const LLM_REASONING_ORDER: readonly LlmReasoningEffort[] = [
-  LlmReasoningEffort.None,
-  LlmReasoningEffort.Low,
-  LlmReasoningEffort.Medium,
-  LlmReasoningEffort.High,
-  LlmReasoningEffort.XHigh,
-  LlmReasoningEffort.Max,
-];

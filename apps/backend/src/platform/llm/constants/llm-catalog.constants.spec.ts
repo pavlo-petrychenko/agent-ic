@@ -1,3 +1,4 @@
+import { REASONING_LEVEL_ORDER } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
 import {
   EMBEDDING_CATALOG,
@@ -6,7 +7,6 @@ import {
 } from '@/platform/llm/constants/llm-catalog.constants';
 import {
   EmbeddingModelId,
-  LLM_REASONING_ORDER,
   LlmApi,
   LlmModelId,
   LlmPurpose,
@@ -43,7 +43,7 @@ describe('LLM_CATALOG', () => {
   );
 
   it.each(models)('lists the reasoning levels of $id from lowest to highest', (model) => {
-    const ranks = model.reasoningLevels.map((level) => LLM_REASONING_ORDER.indexOf(level));
+    const ranks = model.reasoningLevels.map((level) => REASONING_LEVEL_ORDER.indexOf(level));
 
     expect(ranks).toEqual(ranks.toSorted((left, right) => left - right));
     expect(new Set(ranks).size).toBe(ranks.length);

@@ -1,3 +1,4 @@
+import { ReasoningLevel } from '@agent-ic/contracts';
 import { HttpStatus } from '@nestjs/common';
 import {
   context,
@@ -17,7 +18,6 @@ import {
   EmbeddingModelId,
   LlmModelId,
   LlmPurpose,
-  LlmReasoningEffort,
 } from '@/platform/llm/constants/llm-model.constants';
 import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants';
 import { LLM_TRACER_NAME } from '@/platform/llm/constants/llm-tracing.constants';
@@ -77,7 +77,7 @@ const request: LlmAgentRequest<z.infer<typeof routeSchema>> = {
   system: 'You route customer messages.',
   messages: [{ role: LlmMessageRole.User, content: 'Do you deliver on Sundays?' }],
   output: routeSchema,
-  reasoning: LlmReasoningEffort.Medium,
+  reasoning: ReasoningLevel.Medium,
   tags: TAGS,
   tools: {},
   maxToolRounds: 2,
@@ -157,7 +157,7 @@ describe('LLM tracing', () => {
       'langfuse.observation.metadata.prompt_id': TAGS.promptId,
       'langfuse.observation.metadata.prompt_version': TAGS.promptVersion,
       'langfuse.observation.metadata.fallback_hop': 0,
-      'langfuse.observation.metadata.reasoning': LlmReasoningEffort.Medium,
+      'langfuse.observation.metadata.reasoning': ReasoningLevel.Medium,
     });
   });
 

@@ -1,4 +1,4 @@
-import type { LlmReasoningEffort } from '@/platform/llm/constants/llm-model.constants';
+import type { ReasoningLevel } from '@agent-ic/contracts';
 import type { LlmAnyModelId } from '@/platform/llm/typedefs/llm-model.typedefs';
 
 export interface LlmTags {
@@ -13,5 +13,5 @@ export interface LlmTags {
 export interface LlmCallTrace {
   readonly model: LlmAnyModelId;
   readonly fallbackHop: number;
-  readonly reasoning: LlmReasoningEffort | null;
+  readonly reasoning: ReasoningLevel | null;
 }

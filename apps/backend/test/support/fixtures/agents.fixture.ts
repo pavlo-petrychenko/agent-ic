@@ -1,4 +1,11 @@
-import { ChannelSelectionMode, FLOW_SCHEMA_VERSION, NodeType } from '@agent-ic/flow';
+import {
+  ChannelSelectionMode,
+  FLOW_SCHEMA_VERSION,
+  MessageContentKind,
+  NodeType,
+  PortName,
+  QuickRepliesKind,
+} from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
 import type { NewAgentVersion } from '@/modules/agents/typedefs/agent-version.typedefs';
@@ -9,6 +16,10 @@ import {
   TEST_NODE_ID,
   TEST_NODE_KEY,
   TEST_NODE_LABEL,
+  TEST_REPLY_EDGE_ID,
+  TEST_REPLY_NODE_ID,
+  TEST_REPLY_NODE_KEY,
+  TEST_REPLY_TEXT,
 } from '@test/support/constants/agents-testing.constants';
 
 export const emptyFlow = (): FlowDocument => ({
@@ -28,8 +39,28 @@ export const triggerFlow = (label: string = TEST_NODE_LABEL): FlowDocument => ({
       type: NodeType.TriggerMessage,
       config: { channels: { mode: ChannelSelectionMode.All } },
     },
+    {
+      id: TEST_REPLY_NODE_ID,
+      key: TEST_REPLY_NODE_KEY,
+      label: TEST_REPLY_NODE_KEY,
+      position: { x: 0, y: 0 },
+      type: NodeType.SendMessage,
+      config: {
+        content: { kind: MessageContentKind.Text, text: TEST_REPLY_TEXT },
+        typing: true,
+        waitForDelivery: false,
+        quickReplies: { kind: QuickRepliesKind.None },
+      },
+    },
   ],
-  edges: [],
+  edges: [
+    {
+      id: TEST_REPLY_EDGE_ID,
+      source: TEST_NODE_ID,
+      sourcePort: PortName.Next,
+      target: TEST_REPLY_NODE_ID,
+    },
+  ],
 });
 
 export const newAgent = (
