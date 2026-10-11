@@ -34,12 +34,12 @@ describe('VersionsPage', () => {
     ).toBeInTheDocument();
     const live = screen.getByRole('listitem', { name: 'v3' });
     expect(within(live).getByText('Live')).toBeInTheDocument();
-    expect(within(live).getByText('published by Pavlo · Sep 26')).toBeInTheDocument();
+    expect(within(live).getByText('Pavlo · published Sep 26')).toBeInTheDocument();
     expect(within(live).getByText('Added a conversation guard')).toBeInTheDocument();
     expect(within(live).getByText('Replies come as short messages')).toBeInTheDocument();
     const archived = screen.getByRole('listitem', { name: 'v2' });
     expect(within(archived).getByText('Archived')).toBeInTheDocument();
-    expect(within(archived).getByText('published by Pavlo · Sep 18')).toBeInTheDocument();
+    expect(within(archived).getByText('Pavlo · published Sep 18')).toBeInTheDocument();
   });
 
   it('says the agent was never published', async () => {

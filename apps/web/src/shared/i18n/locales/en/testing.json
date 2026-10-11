@@ -129,7 +129,7 @@
     "edited": "edited {{ago}}",
     "changes_one": "{{count}} unpublished change",
     "changes_other": "{{count}} unpublished changes",
-    "publishedBy": "published by {{name}} · {{date}}",
+    "publishedBy": "{{name}} · published {{date}}",
     "publishedOn": "published {{date}}",
     "publish": "Publish",
     "footnote": "Published versions can't be edited. Restoring an old version copies it into a new draft; nothing changes for customers until you publish.",
