@@ -121,4 +121,8 @@ export class AgentsRepository {
       .returning({ id: agents.id });
     return updated.length > 0;
   }
+
+  async deleteByWorkspace(workspaceId: string): Promise<void> {
+    await this.txHost.tx.delete(agents).where(eq(agents.workspaceId, workspaceId));
+  }
 }
