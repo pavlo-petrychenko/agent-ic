@@ -1,8 +1,9 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PublishDialog, SaveState, formatTimeAgo } from '@/features/flow-builder';
+import { PublishDialog, SaveState, formatTimeAgo, useChangeTexts } from '@/features/flow-builder';
 import { useTestingAgents } from '@/features/testing/communication/hooks/useTestingAgents';
+import { useVersionDiff } from '@/features/testing/communication/hooks/useVersionDiff';
 import { useVersionHistory } from '@/features/testing/communication/hooks/useVersionHistory';
 import {
   AGENTS_PATH,
@@ -13,6 +14,7 @@ import {
 } from '@/features/testing/constants/testing.constants';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
 import {
+  EMPTY_DOCUMENT,
   VERSION_META_SEPARATOR,
   VersionKind,
 } from '@/features/testing/constants/versions.constants';
@@ -52,6 +54,13 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
   const [publishing, setPublishing] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [now] = useState(Date.now);
+  const latest = history === null ? null : previousVersion(history.published, null);
+  const draftDiff = useVersionDiff(
+    agent?.id ?? null,
+    latest?.id ?? null,
+    latest === null ? null : (history?.draft.id ?? null),
+  );
+  const draftChanges = useChangeTexts(draftDiff.diff, history?.draft.flow ?? EMPTY_DOCUMENT);
 
   const openBuilder = (nodeId: string | null) =>
     agent !== null &&
@@ -103,7 +112,6 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
 
   const body = (current: TestingAgent, { draft, published, liveNumber }: VersionHistory) => {
     const unchanged = liveNumber !== null && draft.changeCount === 0;
-    const latest = previousVersion(published, null);
     const selectedId = [draft, ...published].some((version) => version.id === selected)
       ? selected
       : ((published.find((version) => version.live) ?? latest)?.id ?? null);
@@ -121,7 +129,7 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
             number={draft.number}
             kind={VersionKind.Draft}
             meta={draftMeta}
-            lines={[]}
+            lines={draftChanges.map((change) => change.text)}
             selected={selectedId === draft.id}
             onSelect={latest === null ? null : () => setSelected(draft.id)}
             actions={

@@ -5,15 +5,19 @@ import { VersionDiffDocument } from '@/features/testing/communication/gql/query/
 import type { VersionDiffResult } from '@/features/testing/typedefs/versions.typedefs';
 
 export function useVersionDiff(
-  agentId: string,
+  agentId: string | null,
   fromId: string | null,
   toId: string | null,
 ): VersionDiffResult {
   const { data, loading, error, refetch } = useQuery(
     VersionDiffDocument,
-    fromId === null || toId === null
+    agentId === null || fromId === null || toId === null
       ? skipToken
-      : { variables: { agentId, fromId, toId }, notifyOnNetworkStatusChange: true },
+      : {
+          variables: { agentId, fromId, toId },
+          fetchPolicy: 'cache-and-network',
+          notifyOnNetworkStatusChange: true,
+        },
   );
   const diff = useMemo(
     () => (data === undefined ? null : toFlowDiff(data.agentVersionDiff)),

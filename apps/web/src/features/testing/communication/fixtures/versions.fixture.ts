@@ -14,6 +14,7 @@ export const ARCHIVED_VERSION_ID = 'ver_2';
 export const AUTHOR_NAME = 'Pavlo';
 export const LIVE_NOTE = 'Added a conversation guard\nReplies come as short messages';
 export const MINUTE_MS = 60_000;
+export const GUARD_STEP_LABEL = 'Conversation guard';
 
 const version = (
   id: string,
@@ -70,13 +71,17 @@ export const failedVersionHistoryMock: MockLink.MockedResponse = {
   error: new Error('offline'),
 };
 
-export const versionDiffMock = (fromId: string, toId: string): MockLink.MockedResponse => ({
+export const versionDiffMock = (
+  fromId: string,
+  toId: string,
+  addedLabel = GUARD_STEP_LABEL,
+): MockLink.MockedResponse => ({
   request: { query: VersionDiffDocument, variables: { agentId: TEST_AGENT_ID, fromId, toId } },
   result: {
     data: {
       agentVersionDiff: {
         __typename: 'FlowDiff',
-        addedNodes: [{ id: 'node_guard', key: 'guard', label: 'Conversation guard' }],
+        addedNodes: [{ id: 'node_guard', key: 'guard', label: addedLabel }],
         removedNodes: [],
         changedNodes: [
           {
