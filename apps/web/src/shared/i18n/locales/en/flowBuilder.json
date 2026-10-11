@@ -452,6 +452,7 @@
       "fallbackAfter": "If nobody replies in",
       "never": "Never",
       "fallbackMessage": "Then tell the customer",
+      "fallbackPlaceholder": "We’re still finding someone to help. Thanks for waiting!",
       "minutes": "{{count}} min"
     },
     "api": {

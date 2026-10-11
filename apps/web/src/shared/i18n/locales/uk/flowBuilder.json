@@ -464,6 +464,7 @@
       "fallbackAfter": "Якщо ніхто не відповість за",
       "never": "Ніколи",
       "fallbackMessage": "Тоді сказати клієнту",
+      "fallbackPlaceholder": "Ми ще шукаємо, хто вам допоможе. Дякуємо, що чекаєте!",
       "minutes": "{{count}} хв"
     },
     "api": {

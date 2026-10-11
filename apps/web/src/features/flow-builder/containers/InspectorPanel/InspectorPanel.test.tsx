@@ -573,6 +573,10 @@ describe('InspectorPanel escalation', () => {
       },
     });
     expect(screen.getByText('Add a message for the customer while they wait')).toBeVisible();
+    expect(screen.getByText('Then tell the customer')).toBeVisible();
+    expect(
+      screen.getByText('We’re still finding someone to help. Thanks for waiting!'),
+    ).toBeInTheDocument();
     expect(
       within(screen.getByRole('list', { name: 'Until someone takes it' })).getByText('30 min'),
     ).toBeVisible();
