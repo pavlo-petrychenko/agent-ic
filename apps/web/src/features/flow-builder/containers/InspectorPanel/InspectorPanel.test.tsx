@@ -577,6 +577,10 @@ describe('InspectorPanel escalation', () => {
     });
     expect(screen.getByText('Add a message for the customer while they wait')).toBeVisible();
     expect(screen.getByText('Then tell the customer')).toBeVisible();
+    expect(screen.getByRole('textbox', { name: 'Then tell the customer' })).toHaveAttribute(
+      'aria-invalid',
+      'false',
+    );
     expect(
       screen.getByText('We’re still finding someone to help. Thanks for waiting!'),
     ).toBeInTheDocument();

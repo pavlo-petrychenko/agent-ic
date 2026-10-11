@@ -94,7 +94,7 @@ export function ApiRequestInspector({
           value={config.url}
           variables={variables}
           hint={t('inspector.api.urlHint')}
-          error={message(issue(IssuePathSegment.Url))}
+          issue={issue(IssuePathSegment.Url)}
           placeholder={t('inspector.api.urlPlaceholder')}
           onChange={(url) => onTemplateChange({ url })}
           onCommit={onCommit}
@@ -168,9 +168,7 @@ export function ApiRequestInspector({
             value={body.content}
             variables={variables}
             hint={null}
-            error={message(
-              issue([IssuePathSegment.Body, IssuePathSegment.Content].join(PATH_JOINER)),
-            )}
+            issue={issue([IssuePathSegment.Body, IssuePathSegment.Content].join(PATH_JOINER))}
             placeholder={null}
             onChange={(content) => onTemplateChange({ body: { kind: body.kind, content } })}
             onCommit={onCommit}
