@@ -17,6 +17,7 @@ export const toVersionHistory = ({
     revision: agentDraft.revision,
     savedAt: agentDraft.savedAt,
     changeCount: agent.draftChangeCount,
+    authorName: agentDraft.version.author?.name ?? null,
     flow: toFlow(agentDraft.version.flow),
   },
   published: agentVersions.filter(isPublishedVersion).map((version) => ({

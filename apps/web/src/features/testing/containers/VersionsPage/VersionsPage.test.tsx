@@ -47,7 +47,7 @@ describe('VersionsPage', () => {
     const draft = await screen.findByRole('listitem', { name: 'v4' });
     expect(within(draft).getByText('Draft')).toBeInTheDocument();
     expect(
-      within(draft).getByText('edited 5 minutes ago · 3 unpublished changes'),
+      within(draft).getByText('Pavlo · edited 5 minutes ago · 3 unpublished changes'),
     ).toBeInTheDocument();
     expect(await within(draft).findByText('New step: Conversation guard')).toBeInTheDocument();
     expect(within(draft).getByText('Send replies: “typing…” indicator on')).toBeInTheDocument();
@@ -59,6 +59,20 @@ describe('VersionsPage', () => {
     const archived = screen.getByRole('listitem', { name: 'v2' });
     expect(within(archived).getByText('Archived')).toBeInTheDocument();
     expect(within(archived).getByText('Pavlo · published Sep 18')).toBeInTheDocument();
+  });
+
+  it('says when the draft was edited when its editor is unknown', async () => {
+    renderPage([
+      testingAgentsMock(),
+      versionHistoryMock({ draftAuthor: null }),
+      DRAFT_DIFF,
+      LIVE_DIFF,
+    ]);
+
+    const draft = await screen.findByRole('listitem', { name: 'v4' });
+    expect(
+      within(draft).getByText('edited 5 minutes ago · 3 unpublished changes'),
+    ).toBeInTheDocument();
   });
 
   it('says the agent was never published', async () => {

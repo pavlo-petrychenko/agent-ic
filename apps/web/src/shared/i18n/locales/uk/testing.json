@@ -138,6 +138,7 @@
       "archived": "В архіві"
     },
     "edited": "змінено {{ago}}",
+    "editedBy": "{{name}} · змінено {{ago}}",
     "changes_one": "{{count}} неопублікована зміна",
     "changes_few": "{{count}} неопубліковані зміни",
     "changes_many": "{{count}} неопублікованих змін",

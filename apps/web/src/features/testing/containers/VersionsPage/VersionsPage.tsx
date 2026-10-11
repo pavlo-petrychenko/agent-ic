@@ -117,8 +117,11 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
     const selectedId = [draft, ...published].some((version) => version.id === selected)
       ? selected
       : ((published.find((version) => version.live) ?? latest)?.id ?? null);
+    const ago = formatTimeAgo(draft.savedAt, now, locale);
     const draftMeta = [
-      t('versions.edited', { ago: formatTimeAgo(draft.savedAt, now, locale) }),
+      draft.authorName === null
+        ? t('versions.edited', { ago })
+        : t('versions.editedBy', { name: draft.authorName, ago }),
       ...(draft.changeCount === null || draft.changeCount === 0
         ? []
         : [t('versions.changes', { count: draft.changeCount })]),

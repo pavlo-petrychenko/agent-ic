@@ -42,9 +42,11 @@ export const PUBLISHED_VERSIONS = [
 export const versionHistoryMock = ({
   published = PUBLISHED_VERSIONS,
   changeCount = 3,
+  draftAuthor = AUTHOR_NAME,
 }: {
   published?: typeof PUBLISHED_VERSIONS;
   changeCount?: number | null;
+  draftAuthor?: string | null;
 } = {}): MockLink.MockedResponse => ({
   request: { query: VersionHistoryDocument, variables: { agentId: TEST_AGENT_ID } },
   result: {
@@ -61,7 +63,13 @@ export const versionHistoryMock = ({
         __typename: 'AgentDraft',
         revision: 7,
         savedAt: new Date(Date.now() - 5 * MINUTE_MS).toISOString(),
-        version: { __typename: 'AgentVersion', id: DRAFT_VERSION_ID, flow: TRACE_FLOW },
+        version: {
+          __typename: 'AgentVersion',
+          id: DRAFT_VERSION_ID,
+          flow: TRACE_FLOW,
+          author:
+            draftAuthor === null ? null : { __typename: 'AgentVersionAuthor', name: draftAuthor },
+        },
       },
     },
   },

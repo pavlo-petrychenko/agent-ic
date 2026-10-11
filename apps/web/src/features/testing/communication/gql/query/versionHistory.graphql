@@ -22,6 +22,9 @@ query VersionHistory($agentId: ID!) {
     version {
       id
       flow
+      author {
+        name
+      }
     }
   }
 }

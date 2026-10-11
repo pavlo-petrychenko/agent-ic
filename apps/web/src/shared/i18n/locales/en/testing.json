@@ -136,6 +136,7 @@
       "archived": "Archived"
     },
     "edited": "edited {{ago}}",
+    "editedBy": "{{name}} · edited {{ago}}",
     "changes_one": "{{count}} unpublished change",
     "changes_other": "{{count}} unpublished changes",
     "publishedBy": "{{name}} · published {{date}}",

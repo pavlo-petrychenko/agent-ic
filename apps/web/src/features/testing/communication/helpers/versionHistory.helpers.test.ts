@@ -22,7 +22,11 @@ const QUERY: VersionHistoryQuery = {
     row('ver_3', 3, AgentVersionStatus.Live),
     row('ver_x', null, AgentVersionStatus.Archived),
   ],
-  agentDraft: { revision: 7, savedAt: PUBLISHED_AT, version: { id: 'ver_4', flow: null } },
+  agentDraft: {
+    revision: 7,
+    savedAt: PUBLISHED_AT,
+    version: { id: 'ver_4', flow: null, author: { name: 'Pavlo' } },
+  },
 };
 
 describe('toVersionHistory', () => {
@@ -40,13 +44,14 @@ describe('toVersionHistory', () => {
     ]);
   });
 
-  it('describes the draft with its revision and unpublished change count', () => {
+  it('describes the draft with its revision, last editor and unpublished change count', () => {
     expect(toVersionHistory(QUERY).draft).toEqual({
       id: 'ver_4',
       number: 4,
       revision: 7,
       savedAt: PUBLISHED_AT,
       changeCount: 2,
+      authorName: 'Pavlo',
       flow: null,
     });
   });

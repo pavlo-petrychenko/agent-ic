@@ -17,6 +17,7 @@ export interface DraftVersion {
   revision: number;
   savedAt: string;
   changeCount: number | null;
+  authorName: string | null;
   flow: FlowDocument | null;
 }
 
