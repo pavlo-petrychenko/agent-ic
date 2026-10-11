@@ -17,11 +17,8 @@ const config = (document: ReturnType<typeof flow>) =>
 
 describe('escalation helpers', () => {
   it('ends the conversation and escalates again with defaults, keeping the message', () => {
-    const ended = setEscalationMode(
-      setCustomerMessage(flow(), 'e', 'Bye'),
-      'e',
-      EscalationMode.End,
-    );
+    const bye = setCustomerMessage(flow(), 'e', 'Bye');
+    const ended = setEscalationMode(bye, 'e', EscalationMode.End);
 
     expect(config(ended)).toEqual({ mode: EscalationMode.End, customerMessage: 'Bye' });
     expect(config(setEscalationMode(ended, 'e', EscalationMode.Escalate))).toMatchObject({
@@ -46,6 +43,8 @@ describe('escalation helpers', () => {
     const document = flow();
 
     expect(setChannel(document, 'e', NotifyChannel.InPlatform, false)).toEqual(document);
+    const hidden = setChannel(document, 'e', NotifyChannel.Telegram, true);
+    expect(setChannel(hidden, 'e', NotifyChannel.InPlatform, false)).toEqual(hidden);
     expect(config(setChannel(document, 'e', NotifyChannel.Email, true))).toMatchObject({
       notify: { channels: [NotifyChannel.InPlatform, NotifyChannel.Email] },
     });

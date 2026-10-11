@@ -1,6 +1,9 @@
 import { EscalationMode, NodeType, RecipientsKind } from '@agent-ic/flow';
 import type { EscalationNode, FlowDocument, NotifyChannel } from '@agent-ic/flow';
-import { RECIPIENT_ROLES } from '@/features/flow-builder/constants/escalation.constants';
+import {
+  OFFERED_NOTIFY_CHANNELS,
+  RECIPIENT_ROLES,
+} from '@/features/flow-builder/constants/escalation.constants';
 import { NODE_TEMPLATES } from '@/features/flow-builder/constants/nodeTemplate.constants';
 import { updateNode } from '@/features/flow-builder/logic/helpers/inspector.helpers';
 import type {
@@ -94,5 +97,7 @@ export const setChannel = (
     }
     const others = config.notify.channels.filter((current) => current !== channel);
     const channels = on ? [...others, channel] : others;
-    return channels.length === 0 ? config : { ...config, notify: { ...config.notify, channels } };
+    return OFFERED_NOTIFY_CHANNELS.some((offered) => channels.includes(offered))
+      ? { ...config, notify: { ...config.notify, channels } }
+      : config;
   });

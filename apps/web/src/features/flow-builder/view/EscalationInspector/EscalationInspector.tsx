@@ -10,7 +10,7 @@ import {
 } from '@/features/flow-builder/constants/escalation.constants';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import { IssuePathSegment } from '@/features/flow-builder/constants/inspector.constants';
-import type { RecipientRole } from '@/features/flow-builder/typedefs/escalation.typedefs';
+import type { RecipientValue } from '@/features/flow-builder/typedefs/escalation.typedefs';
 import type { EscalationInspectorProps } from '@/features/flow-builder/view/EscalationInspector/EscalationInspector.typedefs';
 import { TemplateField } from '@/features/flow-builder/view/TemplateField';
 import { SegmentedControl } from '@/shared/ui/actions/SegmentedControl';
@@ -36,10 +36,7 @@ export function EscalationInspector({
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const message = (found: FlowIssue | null) =>
     found === null ? null : t(`issue.${found.code}`, { ...found.params });
-  const recipientOption = (
-    value: RecipientsKind.Operators | RecipientsKind.Users | RecipientRole,
-    role: WorkspaceRole | null,
-  ) => {
+  const recipientOption = (value: RecipientValue, role: WorkspaceRole | null) => {
     const name = t(`inspector.escalation.recipient.${value}`);
     const count = role === null ? undefined : counts?.get(role);
     return {
@@ -95,12 +92,15 @@ export function EscalationInspector({
             <div className="flex flex-wrap gap-3">
               {OFFERED_NOTIFY_CHANNELS.map((channel) => {
                 const checked = config.notify.channels.includes(channel);
+                const last = OFFERED_NOTIFY_CHANNELS.every(
+                  (other) => other === channel || !config.notify.channels.includes(other),
+                );
                 return (
                   <Checkbox
                     key={channel}
                     label={t(`inspector.escalation.channel.${channel}`)}
                     checked={checked}
-                    disabled={checked && config.notify.channels.length === 1}
+                    disabled={checked && last}
                     onCheckedChange={(on) => onChannelChange(channel, on)}
                   />
                 );

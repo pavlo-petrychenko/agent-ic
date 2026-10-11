@@ -579,9 +579,7 @@ describe('InspectorPanel escalation', () => {
     await user.tab();
     await user.click(screen.getByRole('radio', { name: 'End conversation' }));
 
-    expect(node('handoff')).toEqual(
-      expect.objectContaining({ config: { mode: EscalationMode.End, customerMessage: 'Bye' } }),
-    );
+    expect(node('handoff')?.config).toEqual({ mode: EscalationMode.End, customerMessage: 'Bye' });
     expect(screen.queryByRole('combobox', { name: 'Who to notify' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('radio', { name: 'Escalate to a person' }));
     expect(node('handoff')).toMatchObject({
