@@ -6,6 +6,7 @@ import {
   FLOW_SCHEMA_VERSION,
   NodeType,
   PortName,
+  PromptSourceKind,
   RuleMatch,
   OutputFieldType,
   WaitFor,
@@ -285,6 +286,25 @@ describe('InspectorPanel', () => {
     expect(options.some((option) => option?.startsWith('agent.'))).toBe(false);
   });
 
+  it('shows a variable the prompt can not use under the prompt', () => {
+    open('agent', {
+      ...AI_FLOW,
+      nodes: AI_FLOW.nodes.map((candidate) =>
+        candidate.type === NodeType.Agent
+          ? {
+              ...candidate,
+              config: {
+                ...candidate.config,
+                prompt: { kind: PromptSourceKind.Inline, text: 'Hi {{missing.field}}' },
+              },
+            }
+          : candidate,
+      ),
+    });
+
+    expect(screen.getByText('missing.field isn’t available here')).toBeVisible();
+  });
+
   it('picks a model, then a reasoning level that model offers', async () => {
     const user = userEvent.setup();
     open('agent', AI_FLOW);
@@ -292,6 +312,11 @@ describe('InspectorPanel', () => {
     const model = screen.getByRole('combobox', { name: 'Model' });
     expect(model).toHaveAccessibleDescription('Pick a model');
     await waitFor(() => expect(within(model).getAllByRole('option')).toHaveLength(3));
+    expect(
+      within(model).getByRole('option', {
+        name: 'GPT-6 Luna · OpenAI · $0.20 / $1.60 per 1M tokens',
+      }),
+    ).toBeInTheDocument();
     await user.selectOptions(model, LUNA_MODEL.id);
     const reasoning = screen.getByRole('combobox', { name: 'Reasoning' });
     expect(

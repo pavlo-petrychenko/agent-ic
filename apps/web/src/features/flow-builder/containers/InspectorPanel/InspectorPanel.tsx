@@ -16,6 +16,7 @@ import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBu
 import {
   DESCRIBED_NODE_TYPES,
   IssuePathSegment,
+  PATH_JOINER,
 } from '@/features/flow-builder/constants/inspector.constants';
 import { LLM_STEP_TYPES } from '@/features/flow-builder/constants/llmStep.constants';
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
@@ -100,7 +101,10 @@ export function InspectorPanel() {
           models: modelsForStep(models, current.type),
           model: model?.model ?? null,
           reasoning,
-          promptIssue: errors.get(IssuePathSegment.Prompt) ?? null,
+          promptIssue:
+            errors.get(IssuePathSegment.Prompt) ??
+            errors.get([IssuePathSegment.Prompt, IssuePathSegment.Text].join(PATH_JOINER)) ??
+            null,
           modelIssue: errors.get(IssuePathSegment.Model) ?? null,
         }}
         onPromptChange={(next) =>

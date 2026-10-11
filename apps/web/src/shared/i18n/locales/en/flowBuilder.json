@@ -270,7 +270,7 @@
       "model": "Model",
       "platform": "Platform-provided",
       "pickModel": "Pick a model",
-      "modelOption": "{{label}} · {{vendor}} · ${{input}} / ${{output}} per 1M tokens",
+      "modelOption": "{{label}} · {{vendor}} · {{input, currency(USD)}} / {{output, currency(USD)}} per 1M tokens",
       "vendor": {
         "openai": "OpenAI",
         "anthropic": "Anthropic",

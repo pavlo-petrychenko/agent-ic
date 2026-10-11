@@ -99,6 +99,7 @@ export enum IssuePathSegment {
   Operator = 'operator',
   Value = 'value',
   Prompt = 'prompt',
+  Text = 'text',
   Model = 'model',
 }
 

@@ -276,7 +276,7 @@
       "model": "Модель",
       "platform": "Від платформи",
       "pickModel": "Виберіть модель",
-      "modelOption": "{{label}} · {{vendor}} · ${{input}} / ${{output}} за 1M токенів",
+      "modelOption": "{{label}} · {{vendor}} · {{input, currency(USD)}} / {{output, currency(USD)}} за 1M токенів",
       "vendor": {
         "openai": "OpenAI",
         "anthropic": "Anthropic",
