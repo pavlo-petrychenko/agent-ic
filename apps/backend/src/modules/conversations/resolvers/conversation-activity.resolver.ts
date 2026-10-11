@@ -2,7 +2,7 @@ import { Args, Resolver, Subscription } from '@nestjs/graphql';
 import {
   ConversationGraphqlArgument,
   ConversationGraphqlField,
-} from '@/modules/conversations/constants/conversation-activity.constants';
+} from '@/modules/conversations/constants/conversation-graphql.constants';
 import { toGraphqlConversationActivity } from '@/modules/conversations/helpers/conversation-activity-graphql.helpers';
 import type { ConversationActivity } from '@/modules/conversations/typedefs/conversation-activity.typedefs';
 import { SubscribeToConversationActivityUseCase } from '@/modules/conversations/use-cases/subscribe-to-conversation-activity.use-case';

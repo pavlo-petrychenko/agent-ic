@@ -48,7 +48,7 @@ If losing the message would break something, it is not a live update. Use a dura
 
 ## Example use (hypothetical)
 
-The real flows today are `runSteps(runId)` and `conversationActivity(conversationId)` (D253). `SubscribeToRunStepsUseCase` authorizes, checks in a tenant transaction that the run exists and is a simulation, then returns `subscribe(channel)` mapped to public ids with `mapChannelStream`. `RunStepsResolver` exposes it with `@Subscription(name, { resolve })`. The Inbox example below is hypothetical, and its names are invented.
+The real flows today are `runSteps(runId)` and `conversationActivity(conversationId)` (D252, D254). `SubscribeToRunStepsUseCase` authorizes, checks in a tenant transaction that the run exists and is a simulation, then returns `subscribe(channel)` mapped to public ids with `mapChannelStream`. `RunStepsResolver` exposes it with `@Subscription(name, { resolve })`. The Inbox example below is hypothetical, and its names are invented.
 
 A customer writes. An operator has the Inbox open and should see the message without reloading.
 
