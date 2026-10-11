@@ -21,4 +21,6 @@ export interface TestingVersionsResult {
   versions: readonly TestingVersion[];
   draftBroken: boolean;
   loading: boolean;
+  failed: boolean;
+  retry: () => void;
 }

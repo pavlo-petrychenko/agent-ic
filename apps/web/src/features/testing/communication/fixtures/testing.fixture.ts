@@ -45,3 +45,8 @@ export const testingVersionsMock = (draftBroken = false): MockLink.MockedRespons
     },
   },
 });
+
+export const failedTestingVersionsMock: MockLink.MockedResponse = {
+  request: { query: TestingVersionsDocument, variables: { agentId: TEST_AGENT_ID } },
+  error: new Error('offline'),
+};

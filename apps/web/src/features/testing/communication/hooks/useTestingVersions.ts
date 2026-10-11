@@ -8,9 +8,11 @@ import {
 import type { TestingVersionsResult } from '@/features/testing/typedefs/testing.typedefs';
 
 export function useTestingVersions(agentId: string | null): TestingVersionsResult {
-  const { data, loading } = useQuery(
+  const { data, loading, error, refetch } = useQuery(
     TestingVersionsDocument,
-    agentId === null ? skipToken : { variables: { agentId }, fetchPolicy: 'network-only' },
+    agentId === null
+      ? skipToken
+      : { variables: { agentId }, fetchPolicy: 'network-only', notifyOnNetworkStatusChange: true },
   );
   const versions = useMemo(
     () => (data === undefined ? [] : toTestingVersions(data.agentVersions)),
@@ -19,6 +21,8 @@ export function useTestingVersions(agentId: string | null): TestingVersionsResul
   return {
     versions,
     draftBroken: data !== undefined && hasBlockingIssues(data.agentDraft),
-    loading: loading || (agentId !== null && data === undefined),
+    loading: loading || (agentId !== null && data === undefined && error === undefined),
+    failed: !loading && error !== undefined && data === undefined,
+    retry: () => void refetch(),
   };
 }

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import {
   TEST_AGENT_ID,
   TEST_WORKSPACE_ID,
+  failedTestingVersionsMock,
   testingAgentsMock,
   testingVersionsMock,
 } from '@/features/testing/communication/fixtures/testing.fixture';
@@ -36,6 +37,16 @@ describe('TestingPage', () => {
 
     expect(await screen.findByText('Nothing to simulate yet')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create an agent' })).toBeInTheDocument();
+  });
+
+  it('offers a retry when the versions fail to load', async () => {
+    const user = userEvent.setup();
+    renderPage([testingAgentsMock(), failedTestingVersionsMock, testingVersionsMock()]);
+
+    expect(await screen.findByText("Couldn't load the simulator")).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
+
+    expect(await screen.findByRole('button', { name: /Version\s+Draft v4/ })).toBeInTheDocument();
   });
 
   it('asks to fix a broken draft before simulating it', async () => {

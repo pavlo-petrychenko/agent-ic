@@ -31,7 +31,8 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
   const [choice, setChoice] = useState({ agentId: '', versionId: DRAFT_VERSION_OPTION });
   const versionChoice = choice.agentId === agent?.id ? choice.versionId : DRAFT_VERSION_OPTION;
   const versionId = versionChoice === DRAFT_VERSION_OPTION ? null : versionChoice;
-  const { versions, draftBroken, loading: versionsLoading } = useTestingVersions(agent?.id ?? null);
+  const versionsResult = useTestingVersions(agent?.id ?? null);
+  const { versions, draftBroken, loading: versionsLoading } = versionsResult;
   const blocked = versionId === null && draftBroken;
 
   const draftOption = {
@@ -51,14 +52,15 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
     versionOptions.find((option) => option.id === versionChoice) ?? draftOption;
 
   const state = () => {
-    if (agentsResult.failed) {
+    const failure = [agentsResult, versionsResult].find((result) => result.failed);
+    if (failure !== undefined) {
       return (
         <EmptyState
           icon={IconName.Alert}
           tone={EmptyStateTone.Err}
           title={t('loadError')}
           actions={
-            <Button variant={ButtonVariant.Secondary} onClick={agentsResult.retry}>
+            <Button variant={ButtonVariant.Secondary} onClick={failure.retry}>
               {t('retry')}
             </Button>
           }
