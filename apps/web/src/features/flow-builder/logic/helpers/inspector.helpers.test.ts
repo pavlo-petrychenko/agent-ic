@@ -76,7 +76,7 @@ describe('parallel branches', () => {
   const branches = (waitFor: WaitFor) => {
     const [parallel] = observed.nodes;
     return parallel?.type === NodeType.Parallel
-      ? branchRows(observed, { ...parallel, config: { waitFor } }, PortName.Branches, String)
+      ? branchRows(observed, { ...parallel, config: { waitFor } }, PortName.Branches)
       : [];
   };
 

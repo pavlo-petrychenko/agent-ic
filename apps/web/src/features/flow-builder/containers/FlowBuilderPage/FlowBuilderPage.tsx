@@ -35,7 +35,7 @@ import { BREADCRUMB_SEPARATOR } from '@/shared/ui/navigation/Breadcrumb';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
-export function FlowBuilderPage({ workspaceId, agentId }: FlowBuilderPageProps) {
+export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPageProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const workspace = useActiveWorkspace(workspaceId);
   const { agentName, agentDescription, baseVersion, draft, loading, failed, retry } =
@@ -66,13 +66,18 @@ export function FlowBuilderPage({ workspaceId, agentId }: FlowBuilderPageProps) 
     }
   };
   const load = useFlowBuilderStore((state) => state.load);
+  const select = useFlowBuilderStore((state) => state.select);
   const saveState = useFlowBuilderStore((state) => state.saveState);
 
   useLayoutEffect(() => {
     if (draft !== null) {
       load(draft);
+      const linked = draft.document.nodes.find((node) => node.id === nodeId);
+      if (linked !== undefined) {
+        select({ nodeIds: [linked.id], edgeIds: [] });
+      }
     }
-  }, [draft, load]);
+  }, [draft, load, nodeId, select]);
 
   return (
     <div className="flex h-full flex-col">

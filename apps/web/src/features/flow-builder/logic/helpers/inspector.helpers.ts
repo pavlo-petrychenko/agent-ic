@@ -63,20 +63,14 @@ export const fieldRows = (variables: readonly Omit<FieldRow, 'hint'>[]): FieldRo
     hint: FIELD_HINTS[path] ?? null,
   }));
 
-export const nodeName = (node: FlowNode, fallback: (type: NodeType) => string): string =>
-  node.label === '' ? fallback(node.type) : node.label;
+export const nodeName = (node: FlowNode): string => (node.label === '' ? node.key : node.label);
 
-export const portTargets = (
-  document: FlowDocument,
-  nodeId: string,
-  port: string,
-  fallback: (type: NodeType) => string,
-): PortTarget[] =>
+export const portTargets = (document: FlowDocument, nodeId: string, port: string): PortTarget[] =>
   document.edges
     .filter((edge) => edge.source === nodeId && edge.sourcePort === port)
     .flatMap((edge) => {
       const target = document.nodes.find((node) => node.id === edge.target);
-      return target === undefined ? [] : [{ nodeId: target.id, label: nodeName(target, fallback) }];
+      return target === undefined ? [] : [{ nodeId: target.id, label: nodeName(target) }];
     });
 
 const isObserver = (node: FlowNode): boolean =>
@@ -89,13 +83,8 @@ const branchRole = (waitFor: WaitFor, observer: boolean): BranchRole => {
   return waitFor === WaitFor.Guards && observer ? BranchRole.Observer : BranchRole.Waited;
 };
 
-export const branchRows = (
-  document: FlowDocument,
-  node: ParallelNode,
-  port: string,
-  fallback: (type: NodeType) => string,
-): BranchRow[] =>
-  portTargets(document, node.id, port, fallback).flatMap((target) => {
+export const branchRows = (document: FlowDocument, node: ParallelNode, port: string): BranchRow[] =>
+  portTargets(document, node.id, port).flatMap((target) => {
     const step = document.nodes.find((candidate) => candidate.id === target.nodeId);
     return step === undefined
       ? []

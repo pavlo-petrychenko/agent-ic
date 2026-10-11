@@ -1,14 +1,16 @@
 import {
   ChannelSelectionMode,
+  CompletionRole,
   ConditionOperator,
   FLOW_SCHEMA_VERSION,
   NodeType,
   PortName,
   RuleMatch,
+  WaitFor,
   validateFlow,
 } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
-import { screen, within } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { NODE_TEMPLATES } from '@/features/flow-builder/constants/nodeTemplate.constants';
@@ -82,6 +84,23 @@ describe('InspectorPanel', () => {
     expect(node('route')).toMatchObject({ label: 'Refund check', key: 'refund_check' });
   });
 
+  it('keeps the key prompt with its step when the selection is cleared', async () => {
+    const user = userEvent.setup();
+    open('route');
+
+    await user.click(screen.getByRole('button', { name: 'Needs a person?' }));
+    await user.clear(screen.getByRole('textbox', { name: 'Step name' }));
+    await user.type(screen.getByRole('textbox', { name: 'Step name' }), 'Refund check{Enter}');
+    act(() => store().select({ nodeIds: [], edgeIds: [] }));
+
+    expect(screen.getByRole('dialog', { name: 'Rename the key too?' })).toBeVisible();
+    await user.keyboard('{Escape}');
+    act(() => store().select({ nodeIds: ['trigger'], edgeIds: [] }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(node('route')).toMatchObject({ label: 'Refund check', key: 'route' });
+  });
+
   it('closes by clearing the selection', async () => {
     const user = userEvent.setup();
     open('trigger');
@@ -90,5 +109,30 @@ describe('InspectorPanel', () => {
 
     expect(store().selection.nodeIds).toEqual([]);
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+  });
+
+  it('changes when a parallel step continues', async () => {
+    const user = userEvent.setup();
+    const document: FlowDocument = {
+      ...FLOW,
+      nodes: [
+        ...FLOW.nodes,
+        step('split', '', { type: NodeType.Parallel, config: { waitFor: WaitFor.Guards } }),
+        step('tagger', 'Topic tagger', {
+          ...NODE_TEMPLATES[NodeType.Completion],
+          config: { ...NODE_TEMPLATES[NodeType.Completion].config, role: CompletionRole.Observer },
+        }),
+      ],
+      edges: [{ id: 'b1', source: 'split', sourcePort: PortName.Branches, target: 'tagger' }],
+    };
+    open('split', document);
+
+    const inspector = screen.getByRole('complementary', { name: 'split' });
+    expect(within(inspector).getByText('Parallel / join')).toBeVisible();
+    expect(screen.getByText('observer')).toBeVisible();
+    expect(screen.getByText('Observer branches can’t stop the flow.')).toBeVisible();
+    await user.click(screen.getByRole('radio', { name: 'All branches finish' }));
+
+    expect(node('split')).toMatchObject({ config: { waitFor: WaitFor.All } });
   });
 });

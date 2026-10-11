@@ -201,6 +201,18 @@
     "close": "Close inspector",
     "rename": "Rename step",
     "nameLabel": "Step name",
+    "kind": {
+      "trigger_message": "Trigger",
+      "trigger_external_event": "Trigger",
+      "trigger_schedule": "Trigger",
+      "agent": "Agent step",
+      "completion": "Completion step",
+      "router": "Router",
+      "parallel": "Parallel / join",
+      "api_request": "API request step",
+      "send_message": "Send message step",
+      "escalation": "Escalation / exit"
+    },
     "description": {
       "trigger_message": "Starts a run for every customer message",
       "router": "Checked top to bottom · first match wins",
@@ -227,7 +239,6 @@
       "unknown": "any"
     },
     "trigger": {
-      "kind": "Trigger",
       "channels": "Channels",
       "noChannels": "No channels connected yet. Connect a Telegram bot or create an API channel, then pick it here.",
       "handover": "While a person handles the chat",

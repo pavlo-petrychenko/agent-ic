@@ -1,10 +1,4 @@
-import {
-  MAX_LABEL_LENGTH,
-  NodeType,
-  PortName,
-  isTriggerNode,
-  triggerVariables,
-} from '@agent-ic/flow';
+import { MAX_LABEL_LENGTH, NodeType, PortName, triggerVariables } from '@agent-ic/flow';
 import type { FlowNode } from '@agent-ic/flow';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -38,7 +32,6 @@ export function InspectorPanel() {
   const [keyRename, setKeyRename] = useState<KeyRename | null>(null);
   const [nodeId] = selection.nodeIds.length === 1 ? selection.nodeIds : [null];
   const node = document.nodes.find((candidate) => candidate.id === nodeId) ?? null;
-  const stepName = (type: NodeType) => t(`step.${type}`);
 
   const body = (current: FlowNode) => {
     switch (current.type) {
@@ -53,7 +46,7 @@ export function InspectorPanel() {
       case NodeType.Parallel:
         return (
           <ParallelInspector
-            branches={branchRows(document, current, PortName.Branches, stepName)}
+            branches={branchRows(document, current, PortName.Branches)}
             waitFor={current.config.waitFor}
             onWaitForChange={(waitFor) =>
               apply(
@@ -71,27 +64,18 @@ export function InspectorPanel() {
     }
   };
 
-  if (node === null) {
-    return null;
-  }
-
-  const name = nodeName(node, stepName);
-  const described = DESCRIBED_NODE_TYPES.find((type) => type === node.type) ?? null;
-  const presentation = NODE_PRESENTATION[node.type];
-
-  return (
-    <>
+  const inspector = (current: FlowNode) => {
+    const name = nodeName(current);
+    const described = DESCRIBED_NODE_TYPES.find((type) => type === current.type) ?? null;
+    return (
       <Inspector
-        kind={{
-          label: isTriggerNode(node) ? t('inspector.trigger.kind') : stepName(node.type),
-          ...presentation,
-        }}
+        kind={{ label: t(`inspector.kind.${current.type}`), ...NODE_PRESENTATION[current.type] }}
         title={name}
         subtitle={described === null ? null : t(`inspector.description.${described}`)}
         heading={
           <InlineEditField
-            key={node.id}
-            value={node.label === '' ? null : node.label}
+            key={current.id}
+            value={current.label === '' ? null : current.label}
             placeholder={name}
             editLabel={t('inspector.rename')}
             inputLabel={t('inspector.nameLabel')}
@@ -100,17 +84,23 @@ export function InspectorPanel() {
             current={false}
             inheritFont
             onCommit={(label) => {
-              const renamed = updateNode(document, node.id, (step) => ({ ...step, label }));
+              const renamed = updateNode(document, current.id, (step) => ({ ...step, label }));
               apply(renamed);
-              setKeyRename(proposeKeyRename(renamed, node.id, label));
+              setKeyRename(proposeKeyRename(renamed, current.id, label));
             }}
           />
         }
         closeLabel={t('inspector.close')}
         onClose={() => select(EMPTY_SELECTION)}
       >
-        {body(node)}
+        {body(current)}
       </Inspector>
+    );
+  };
+
+  return (
+    <>
+      {node !== null && inspector(node)}
       <Dialog
         open={keyRename !== null}
         onOpenChange={() => setKeyRename(null)}
