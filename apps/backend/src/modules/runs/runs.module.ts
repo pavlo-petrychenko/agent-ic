@@ -1,4 +1,4 @@
-import { AgentsModule } from '@/modules/agents';
+import { AgentsModule, SimulatorTestsReader } from '@/modules/agents';
 import { ConversationsModule } from '@/modules/conversations';
 import { STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import { StartRunOnMessageListener } from '@/modules/runs/listeners/start-run-on-message.listener';
@@ -22,6 +22,7 @@ import { RunLifecycleService } from '@/modules/runs/services/run-lifecycle.servi
 import { RunMessagesService } from '@/modules/runs/services/run-messages.service';
 import { RunViewsService } from '@/modules/runs/services/run-views.service';
 import { SendMessageExecutor } from '@/modules/runs/services/send-message-executor.service';
+import { SimulationTestsReaderService } from '@/modules/runs/services/simulation-tests-reader.service';
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
 import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedefs';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
@@ -65,6 +66,7 @@ export class RunsModule extends defineModule({
     RunLifecycleService,
     RunViewsService,
     RunDetailsService,
+    { provide: SimulatorTestsReader, useClass: SimulationTestsReaderService },
     StartRunOnMessageUseCase,
     ExecuteRunUseCase,
     SubscribeToRunStepsUseCase,

@@ -56,6 +56,21 @@ export class AgentVersionsRepository {
       .orderBy(desc(agentVersions.id));
   }
 
+  async listSnapshotIds(workspaceId: string, agentId: string, revision: number): Promise<string[]> {
+    const rows = await this.txHost.tx
+      .select({ id: agentVersions.id })
+      .from(agentVersions)
+      .where(
+        and(
+          eq(agentVersions.workspaceId, workspaceId),
+          eq(agentVersions.agentId, agentId),
+          eq(agentVersions.kind, AgentVersionKind.Snapshot),
+          eq(agentVersions.revision, revision),
+        ),
+      );
+    return rows.map(({ id }) => id);
+  }
+
   listPublished(workspaceId: string, agentId: string): Promise<AgentVersion[]> {
     return this.txHost.tx
       .select()

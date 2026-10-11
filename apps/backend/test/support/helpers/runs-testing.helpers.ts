@@ -1,3 +1,4 @@
+import { Locale } from '@agent-ic/contracts';
 import { NodeType } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import { AgentVersionKind, PauseMode } from '@/modules/agents/constants/agent.constants';
@@ -8,6 +9,9 @@ import type { MessageReceivedPayload } from '@/modules/conversations';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import type { NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
+import { memberships } from '@/modules/identity/db/memberships.table';
+import { users } from '@/modules/identity/db/users.table';
+import { workspaces } from '@/modules/identity/db/workspaces.table';
 import { ROOT_BRANCH_KEY, STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import { startRunOnMessageJob } from '@/modules/runs/jobs/start-run-on-message.job';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
@@ -24,6 +28,7 @@ import type { NewRun, Run } from '@/modules/runs/typedefs/run.typedefs';
 import type { StepExecution } from '@/modules/runs/typedefs/step-executor.typedefs';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
 import { ClockService } from '@/platform/clock/services/clock.service';
+import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { DomainEventsModule } from '@/platform/domain-events/domain-events.module';
 import { DomainEventsService } from '@/platform/domain-events/services/domain-events.service';
@@ -45,10 +50,13 @@ import { MESSAGE_SPACING_MS } from '@test/support/constants/conversations-testin
 import {
   AgentChange,
   RUNS_TEST_START,
+  TEST_MEMBER_EMAIL_DOMAIN,
+  TEST_MEMBER_PASSWORD_HASH,
   TEST_PUBLISHED_NUMBER,
   TEST_REPUBLISHED_NUMBER,
 } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { TEST_TIME_ZONE } from '@test/support/constants/workspace-testing.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { ScriptedStepExecutor } from '@test/support/fakes/scripted-step-executor.fake';
@@ -76,6 +84,7 @@ import type {
   RunChat,
   RunLifecycleTestbed,
   RunsTestbed,
+  SeededMember,
 } from '@test/support/typedefs/runs-testing.typedefs';
 
 const ROLE = Role.Worker;
@@ -189,6 +198,50 @@ export const seedExecutableRun = async (
 
 export const seedSimulationRun = (testbed: RunExecutionTestbed): Promise<ExecutableRun> =>
   seedExecutableRun(testbed, triggerOnlyFlow(), [], ConversationMode.Simulation);
+
+export const seedWorkspaceMembers = async (
+  testbed: RunExecutionTestbed,
+  workspaceId: string,
+  members: readonly SeededMember[],
+): Promise<string[]> => {
+  const { db } = testbed.module.get(SystemDatabaseService);
+  const now = testbed.clock.now();
+  const rows = members.map((member) => ({ ...member, userId: testbed.ids.generate() }));
+  await db.insert(users).values(
+    rows.map(({ userId, name }) => ({
+      id: userId,
+      email: `${userId}@${TEST_MEMBER_EMAIL_DOMAIN}`,
+      name,
+      passwordHash: TEST_MEMBER_PASSWORD_HASH,
+      locale: Locale.En,
+      createdAt: now,
+      updatedAt: now,
+    })),
+  );
+  const [creator] = rows;
+  if (creator === undefined) {
+    throw new MissingTestDataError(workspaceId);
+  }
+  await db.insert(workspaces).values({
+    id: workspaceId,
+    workspaceId,
+    name: workspaceId,
+    timeZone: TEST_TIME_ZONE,
+    createdByUserId: creator.userId,
+    createdAt: now,
+    updatedAt: now,
+  });
+  await db.insert(memberships).values(
+    rows.map(({ userId, role }) => ({
+      id: testbed.ids.generate(),
+      workspaceId,
+      userId,
+      role,
+      createdAt: now,
+    })),
+  );
+  return rows.map(({ userId }) => userId);
+};
 
 export const createRunLifecycleTestbed = async (
   redisPrefix: TestRedisPrefix,

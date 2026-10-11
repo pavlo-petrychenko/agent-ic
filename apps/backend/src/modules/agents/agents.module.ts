@@ -21,6 +21,7 @@ import { AgentRuntimeReader } from '@/modules/agents/services/agent-runtime-read
 import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import { FlowReferenceChecksService } from '@/modules/agents/services/flow-reference-checks.service';
 import { SampleAgentService } from '@/modules/agents/services/sample-agent.service';
+import { SimulatorTestsService } from '@/modules/agents/services/simulator-tests.service';
 import { CompareAgentVersionsUseCase } from '@/modules/agents/use-cases/compare-agent-versions.use-case';
 import { CreateAgentUseCase } from '@/modules/agents/use-cases/create-agent.use-case';
 import { DeleteAgentUseCase } from '@/modules/agents/use-cases/delete-agent.use-case';
@@ -52,6 +53,7 @@ export class AgentsModule extends defineModule({
     AgentRuntimeReader,
     AgentViewsService,
     FlowReferenceChecksService,
+    SimulatorTestsService,
     SampleAgentService,
     CreateAgentUseCase,
     RenameAgentUseCase,

@@ -25,12 +25,11 @@ describe('ListSimulationRunsUseCase', () => {
     { run }: ExecutableRun,
     userId = TEST_END_USER_EXTERNAL_ID,
     role = WorkspaceRole.Builder,
+    workspaceId = run.workspaceId,
   ) =>
-    testbed.module
-      .get(ListSimulationRunsUseCase)
-      .execute(workspaceCtx(userId, run.workspaceId, role), {
-        conversationId: testbed.ids.toPublic(IdPrefix.Conversation, run.conversationId),
-      });
+    testbed.module.get(ListSimulationRunsUseCase).execute(workspaceCtx(userId, workspaceId, role), {
+      conversationId: testbed.ids.toPublic(IdPrefix.Conversation, run.conversationId),
+    });
 
   beforeAll(async () => {
     testbed = await createRunsTestbed(TestRedisPrefix.SimulationRuns);
@@ -51,7 +50,7 @@ describe('ListSimulationRunsUseCase', () => {
     expect(listed).toMatchObject({ status: RunStatus.Succeeded, totals: { stepsRun: 1 } });
   });
 
-  it("refuses a live chat, another user's simulation and an operator", async () => {
+  it("refuses a live chat, another user's or workspace's simulation and an operator", async () => {
     const live = await seedExecutableRun(testbed, triggerOnlyFlow());
     const simulation = await seedSimulationRun(testbed);
 
@@ -62,5 +61,8 @@ describe('ListSimulationRunsUseCase', () => {
     await expect(
       list(simulation, TEST_END_USER_EXTERNAL_ID, WorkspaceRole.Operator),
     ).rejects.toBeInstanceOf(PermissionDeniedError);
+    await expect(
+      list(simulation, TEST_END_USER_EXTERNAL_ID, WorkspaceRole.Builder, testbed.ids.generate()),
+    ).rejects.toBeInstanceOf(ConversationNotFoundError);
   });
 });

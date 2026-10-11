@@ -28,11 +28,19 @@ export class IdService {
   }
 
   fromPublic(prefix: string, publicId: string): string {
+    const id = this.tryFromPublic(prefix, publicId);
+    if (id === null) {
+      throw new InvalidIdError(prefix, publicId);
+    }
+    return id;
+  }
+
+  tryFromPublic(prefix: string, publicId: string): string | null {
     this.assertPrefix(prefix);
     const expectedStart = `${prefix}${ID_SEPARATOR}`;
     const encoded = publicId.slice(expectedStart.length);
     if (!publicId.startsWith(expectedStart) || !ID_ENCODED_PATTERN.test(encoded)) {
-      throw new InvalidIdError(prefix, publicId);
+      return null;
     }
     return decodeUuid(encoded);
   }

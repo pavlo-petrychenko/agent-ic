@@ -40,6 +40,7 @@ import {
   RunStepStatus,
   RunTrigger,
 } from '@/modules/runs/constants/run.constants';
+import type { EscalationRecipients } from '@/modules/runs/typedefs/escalation.typedefs';
 import type {
   FinishedRunStepStatus,
   NewRunStep,
@@ -297,7 +298,9 @@ export const sendMessageNode = (): SendMessageNode => ({
   },
 });
 
-export const escalateNode = (): EscalationNode => ({
+export const escalateNode = (
+  recipients: EscalationRecipients = { kind: RecipientsKind.Operators },
+): EscalationNode => ({
   id: ESCALATION_NODE_ID,
   key: ESCALATION_NODE_KEY,
   label: ESCALATION_NODE_KEY,
@@ -308,7 +311,7 @@ export const escalateNode = (): EscalationNode => ({
     customerMessage: TEST_CUSTOMER_NOTICE,
     reason: TEST_ESCALATION_REASON,
     notify: {
-      recipients: { kind: RecipientsKind.Operators },
+      recipients,
       channels: [NotifyChannel.InPlatform],
     },
     reminderAfterMinutes: null,

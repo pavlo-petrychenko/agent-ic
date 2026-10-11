@@ -6,3 +6,17 @@ export const startSimulationMutation = (agentId: string): string =>
 
 export const simulatorQuery = (agentId: string): string =>
   `{ simulation(agentId: "${agentId}") { messages { id } runs { id } } agent(id: "${agentId}") { lastSimulationRun { id } } }`;
+
+export const SIMULATOR_TEST_TEXT = 'Do you deliver on Sundays?';
+
+export const sendSimulatorMessageMutation = (conversationId: string): string =>
+  `mutation { sendSimulatorMessage(input: { conversationId: "${conversationId}", text: "${SIMULATOR_TEST_TEXT}" }) { author runId } }`;
+
+export const replyAsOperatorMutation = (conversationId: string): string =>
+  `mutation { replyAsOperator(input: { conversationId: "${conversationId}", text: "${SIMULATOR_TEST_TEXT}" }) { author runId } }`;
+
+export const handBackMutation = (conversationId: string): string =>
+  `mutation { handBack(input: { conversationId: "${conversationId}" }) { state } }`;
+
+export const restartSimulationMutation = (agentId: string): string =>
+  `mutation { restartSimulation(input: { agentId: "${agentId}" }) { conversation { id state } } }`;

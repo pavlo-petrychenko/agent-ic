@@ -1,8 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { ConversationState } from '@/modules/conversations';
+import { ConversationState, MessageAuthor } from '@/modules/conversations';
 import { ConnectionParam } from '@/platform/graphql-server/constants/connection-param.constants';
 import {
   CREATE_AGENT_MUTATION,
+  handBackMutation,
+  replyAsOperatorMutation,
+  restartSimulationMutation,
+  sendSimulatorMessageMutation,
   simulatorQuery,
   startSimulationMutation,
 } from '@test/support/constants/simulator-testing.constants';
@@ -29,6 +33,14 @@ describe('the simulator through graphql', () => {
       })
     ).data;
 
+  const startSimulation = async () => {
+    const created = await graphql(CREATE_AGENT_MUTATION);
+    const agentId = String(Object(created?.['createAgent'])['id']);
+    const started = await graphql(startSimulationMutation(agentId));
+    const { conversation } = Object(started?.['startSimulation']);
+    return { agentId, started, conversationId: String(Object(conversation)['id']) };
+  };
+
   beforeAll(async () => {
     api = await startSubscriptionsApi();
     owner = await seedOwner(api);
@@ -39,10 +51,7 @@ describe('the simulator through graphql', () => {
   });
 
   it('starts a simulation and reads it back with its runs and the last test run', async () => {
-    const created = await graphql(CREATE_AGENT_MUTATION);
-    const agentId = String(Object(created?.['createAgent'])['id']);
-
-    const started = await graphql(startSimulationMutation(agentId));
+    const { agentId, started } = await startSimulation();
     const read = await graphql(simulatorQuery(agentId));
 
     expect(started).toEqual({
@@ -53,6 +62,27 @@ describe('the simulator through graphql', () => {
     expect(read).toEqual({
       simulation: { messages: [], runs: [] },
       agent: { lastSimulationRun: null },
+    });
+  });
+
+  it('sends a message, replies as an operator, hands back and restarts', async () => {
+    const { agentId, conversationId } = await startSimulation();
+
+    const sent = await graphql(sendSimulatorMessageMutation(conversationId));
+    const replied = await graphql(replyAsOperatorMutation(conversationId));
+    const handedBack = await graphql(handBackMutation(conversationId));
+    const restarted = await graphql(restartSimulationMutation(agentId));
+
+    expect(sent).toEqual({ sendSimulatorMessage: { author: MessageAuthor.Customer, runId: null } });
+    expect(replied).toEqual({ replyAsOperator: { author: MessageAuthor.Operator, runId: null } });
+    expect(handedBack).toEqual({ handBack: { state: ConversationState.AgentActive } });
+    expect(restarted).toEqual({
+      restartSimulation: {
+        conversation: {
+          id: expect.not.stringMatching(conversationId),
+          state: ConversationState.AgentActive,
+        },
+      },
     });
   });
 });

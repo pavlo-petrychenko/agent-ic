@@ -62,13 +62,17 @@ describe('ReplyAsOperatorUseCase', () => {
   });
 
   it("keeps an Operator out of a simulation, and a Builder out of another's", async () => {
-    const { workspaceId, conversationId } = await startTestSimulation(testbed);
+    const { workspaceId, conversationId, ctx } = await startTestSimulation(testbed);
     const as = (role: WorkspaceRole) => workspaceCtx(testbed.ids.generate(), workspaceId, role);
+    const elsewhere = { ...ctx, workspaceId: testbed.ids.generate() };
 
     await expect(reply(as(WorkspaceRole.Operator), conversationId)).rejects.toBeInstanceOf(
       PermissionDeniedError,
     );
     await expect(reply(as(WorkspaceRole.Builder), conversationId)).rejects.toBeInstanceOf(
+      ConversationNotFoundError,
+    );
+    await expect(reply(elsewhere, conversationId)).rejects.toBeInstanceOf(
       ConversationNotFoundError,
     );
   });
