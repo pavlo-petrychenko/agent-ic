@@ -33,6 +33,7 @@
     "error": "The agents could not be loaded.",
     "retry": "Try again",
     "loadMore": "Load more",
+    "open": "Open {{name}}",
     "columns": {
       "agent": "Agent",
       "status": "Status"
@@ -60,7 +61,9 @@
     "agent": "Build your first assistant",
     "start": "Start",
     "invite": "Invite your team",
-    "copyInvite": "Copy invite link"
+    "copyInvite": "Copy invite link",
+    "inviteTeammates": "Invite teammates",
+    "inviteCopied": "Invite link copied"
   },
   "menu": {
     "label": "Agent actions",

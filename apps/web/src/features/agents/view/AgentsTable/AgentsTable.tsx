@@ -77,6 +77,7 @@ export function AgentsTable({
         rows={rows}
         getRowId={(row) => row.id}
         onRowOpen={onOpen}
+        getOpenLabel={(row) => t('list.open', { name: row.name })}
         rowActions={{
           columnLabel: t('menu.column'),
           menuLabel: t('menu.label'),
@@ -88,6 +89,7 @@ export function AgentsTable({
               onAction(row, action);
             }
           },
+          persistent: true,
         }}
         status={status}
         error={{ message: t('list.error'), retryLabel: t('list.retry'), onRetry }}

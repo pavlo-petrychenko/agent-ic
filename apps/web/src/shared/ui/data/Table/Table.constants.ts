@@ -34,6 +34,7 @@ export enum TableKey {
 }
 
 export const TABLE_CONTROL_COLUMN_WIDTH = 'var(--table-control-width)';
+export const TABLE_CONTROL_PAIR_COLUMN_WIDTH = 'calc(var(--table-control-width) * 2)';
 export const TABLE_LOADING_ROW_COUNT = 3;
 export const TABLE_LOADING_ROWS: readonly number[] = Array.from(
   { length: TABLE_LOADING_ROW_COUNT },

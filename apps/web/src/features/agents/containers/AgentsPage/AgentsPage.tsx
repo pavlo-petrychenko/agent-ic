@@ -17,7 +17,9 @@ import { agentStatusNote } from '@/features/agents/logic/helpers/agentStatus.hel
 import type { AgentListItem, AgentRow } from '@/features/agents/typedefs/agent.typedefs';
 import { AgentsEmpty } from '@/features/agents/view/AgentsEmpty';
 import { AgentsTable } from '@/features/agents/view/AgentsTable';
-import { SetupChecklist } from '@/features/agents/view/SetupChecklist';
+import { SetupChecklist, SetupInviteAction } from '@/features/agents/view/SetupChecklist';
+import type { SetupInvite } from '@/features/agents/view/SetupChecklist';
+import { copyText, useInviteLink } from '@/features/settings';
 import { useActiveWorkspace } from '@/features/workspace';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
@@ -78,7 +80,29 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
   const isEmpty = !loading && !failed && agents.length === 0;
   const canInvite =
     active !== null && can(active.role, PermissionResource.Team, PermissionAction.Edit);
+  const { link: inviteLink, loading: inviteLoading } = useInviteLink({
+    skip: !isEmpty || !canInvite,
+  });
   const teamLocation = { to: SETTINGS_TEAM_PATH, params: { workspaceId } };
+  const invite: SetupInvite | null = canInvite
+    ? {
+        action:
+          inviteLink === null && !inviteLoading
+            ? SetupInviteAction.OpenTeam
+            : SetupInviteAction.Copy,
+        teamHref: router.buildLocation(teamLocation).href,
+        loading: inviteLoading,
+      }
+    : null;
+
+  const onCopyInvite = () => {
+    if (inviteLink !== null) {
+      void runGuarded(async () => {
+        await copyText(inviteLink.url);
+        showToast({ message: t('setup.inviteCopied'), tone: ToastTone.Ok });
+      });
+    }
+  };
 
   return (
     <div className="flex flex-col gap-5 pb-8">
@@ -111,9 +135,10 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
             <AgentsEmpty creating={creating} onCreate={() => void onCreate()} />
             <SetupChecklist
               creating={creating}
-              inviteHref={canInvite ? router.buildLocation(teamLocation).href : null}
+              invite={invite}
               onStart={() => void onCreate()}
-              onInvite={() => void navigate(teamLocation)}
+              onCopyInvite={onCopyInvite}
+              onOpenTeam={() => void navigate(teamLocation)}
             />
           </div>
         ) : (

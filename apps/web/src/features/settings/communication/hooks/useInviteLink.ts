@@ -5,11 +5,16 @@ import { ResetInviteLinkDocument } from '@/features/settings/communication/gql/m
 import { UpdateInviteLinkRoleDocument } from '@/features/settings/communication/gql/mutation/updateInviteLinkRole.generated';
 import { InviteLinkDocument } from '@/features/settings/communication/gql/query/inviteLink.generated';
 import { toInviteLinkView } from '@/features/settings/communication/helpers/inviteLink.helpers';
-import type { UseInviteLinkResult } from '@/features/settings/typedefs/inviteLink.typedefs';
+import type {
+  UseInviteLinkOptions,
+  UseInviteLinkResult,
+} from '@/features/settings/typedefs/inviteLink.typedefs';
 import { ROLE_TO_API } from '@/shared/api/constants/workspaceRole.constants';
 
-export function useInviteLink(): UseInviteLinkResult {
-  const { data, loading } = useQuery(InviteLinkDocument, { fetchPolicy: 'network-only' });
+export function useInviteLink(
+  { skip }: UseInviteLinkOptions = { skip: false },
+): UseInviteLinkResult {
+  const { data, loading } = useQuery(InviteLinkDocument, { fetchPolicy: 'network-only', skip });
   const [updateRole] = useMutation(UpdateInviteLinkRoleDocument, {
     update: (cache, { data: result }) => {
       if (result !== undefined && result !== null) {

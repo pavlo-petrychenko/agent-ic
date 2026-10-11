@@ -1,7 +1,8 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, gt } from 'drizzle-orm';
+import { and, asc, eq, gt, sql } from 'drizzle-orm';
 import { agents } from '@/modules/agents/db/agents.table';
+import { agentNamesLockKey } from '@/modules/agents/helpers/agent-name.helpers';
 import type { Agent, NewAgent } from '@/modules/agents/typedefs/agent.typedefs';
 import type { PauseSettings } from '@/modules/agents/typedefs/pause-settings.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
@@ -29,6 +30,20 @@ export class AgentsRepository {
       .where(and(eq(agents.workspaceId, workspaceId), eq(agents.id, agentId)))
       .for('update');
     return agent ?? null;
+  }
+
+  async lockNames(workspaceId: string): Promise<void> {
+    await this.txHost.tx.execute(
+      sql`select pg_advisory_xact_lock(hashtext(${agentNamesLockKey(workspaceId)}))`,
+    );
+  }
+
+  async findNamesStartingWith(workspaceId: string, prefix: string): Promise<string[]> {
+    const rows = await this.txHost.tx
+      .select({ name: agents.name })
+      .from(agents)
+      .where(and(eq(agents.workspaceId, workspaceId), sql`starts_with(${agents.name}, ${prefix})`));
+    return rows.map((row) => row.name);
   }
 
   listPage(workspaceId: string, afterId: string | null, limit: number): Promise<Agent[]> {

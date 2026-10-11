@@ -35,3 +35,8 @@ export const AGENT_FIELD_REASON: Readonly<Record<string, ErrorReason>> = {
 };
 
 export const DUPLICATE_AGENT_NAME_SUFFIX = ' (copy)';
+
+export const NUMBERED_AGENT_NAME_SEPARATOR = ' ';
+export const FIRST_AGENT_NAME_NUMBER = 2;
+export const AGENT_NAMES_LOCK_PREFIX = 'agents.names';
+export const AGENT_NAMES_LOCK_SEPARATOR = ':';

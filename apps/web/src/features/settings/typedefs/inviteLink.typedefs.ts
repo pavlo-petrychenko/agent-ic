@@ -7,6 +7,10 @@ export interface InviteLinkView {
   readonly joinedCount: number;
 }
 
+export interface UseInviteLinkOptions {
+  readonly skip: boolean;
+}
+
 export interface UseInviteLinkResult {
   readonly link: InviteLinkView | null;
   readonly loading: boolean;

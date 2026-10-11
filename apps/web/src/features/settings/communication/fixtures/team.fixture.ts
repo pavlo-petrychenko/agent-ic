@@ -20,6 +20,11 @@ export const buildInviteLinkMock = (url = INVITE_URL): MockLink.MockedResponse =
   result: { data: { inviteLink: inviteLink(url) } },
 });
 
+export const buildNoInviteLinkMock = (): MockLink.MockedResponse => ({
+  request: { query: InviteLinkDocument },
+  result: { data: { inviteLink: null } },
+});
+
 export const buildResetInviteLinkMock = (url = RESET_INVITE_URL): MockLink.MockedResponse => ({
   request: { query: ResetInviteLinkDocument },
   result: { data: { resetInviteLink: inviteLink(url) } },

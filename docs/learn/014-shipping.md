@@ -43,12 +43,12 @@ mise exec -- pnpm test
 - The git hooks (lefthook) format, lint and check the staged files on every commit. If a hook cannot find a tool, commit through mise: `mise exec -- git commit`.
 - Fill in the pull request template, [.github/pull_request_template.md](../../.github/pull_request_template.md).
 
-**Screenshots for UI changes.** Show every changed screen or story: EN and UK, light and dark. The images never go into your branch. They go on the `pr-assets` branch:
+**Screenshots for UI changes.** Show every changed screen or story in English and the dark theme. The images never go into your branch. They go on the `pr-assets` branch:
 
 1. `git worktree add ../agent-ic-assets pr-assets` to check it out in a second worktree.
-2. Put the images in a folder named after your work, for example `rename-workspace/general-en-light.png`.
+2. Put the images in a folder named after your work, for example `rename-workspace/general-en-dark.png`.
 3. Commit and push `pr-assets`.
-4. Link each image in the description by its raw URL: `https://github.com/pavlo-petrychenko/agent-ic/blob/pr-assets/rename-workspace/general-en-light.png?raw=true`.
+4. Link each image in the description by its raw URL: `https://github.com/pavlo-petrychenko/agent-ic/blob/pr-assets/rename-workspace/general-en-dark.png?raw=true`.
 
 How to take the screenshots and recordings, and the seeded demo data to take them from: [016 PR media](016-pr-media.md).
 
@@ -89,7 +89,7 @@ The web app has no environment variables. Its runtime settings are in `apps/web/
 - **Editing a merged migration.** Never. Write a new one.
 - **A variable added in only one place.** The app fails at startup on the server, not in your tests. Walk the six steps above.
 - **A real secret in a file.** `.env.example` and `test-values.yaml` hold examples only.
-- **A UI pull request without screenshots.** The checklist asks for them in all four combinations.
+- **A UI pull request without screenshots.** The checklist asks for them, in English and the dark theme.
 - **A non-conventional title.** It becomes the commit on `main`, and the changelog reads it.
 
 Next: [015 Calling the LLM](015-calling-the-llm.md)

@@ -6,13 +6,13 @@ How the screenshots and recordings of a pull request are made, with the seeded d
 
 ## What it is
 
-- A pull request that changes UI carries screenshots of every changed screen: EN and UK, light and dark. A flow that moves (drag and connect, autosave, a conflict) also gets a short recording.
+- A pull request that changes UI carries screenshots of every changed screen, in English and the dark theme only. A flow that moves (drag and connect, autosave, a conflict) also gets a short recording.
 - You make them in a browser that you drive against your local stack. The browser is the Playwright MCP, an MCP server that gives Claude Code tools such as `browser_navigate`, `browser_evaluate` and `browser_take_screenshot`.
 - The images and videos never enter your branch. They go on the `pr-assets` branch and are linked by raw URL ([014 Shipping](014-shipping.md)).
 
 ## Why we have it
 
-- Reviewers see the change without running it, in all four combinations that can break a layout.
+- Reviewers see the change without running it. One language and one theme keep the set small.
 - One recipe means the same size, the same data and the same file names in every pull request.
 - The seeded demo data means nobody signs up by hand or invents sample content for each screenshot.
 
@@ -50,13 +50,13 @@ claude mcp add playwright --scope local -- npx -y @playwright/mcp@latest --confi
 
 `ignoreHTTPSErrors` is there because the local certificate comes from mkcert. Restart the Claude Code session: a server added in a session is loaded by the next one.
 
-**3. The four variants.** The app keeps the language in `localStorage` under `agent-ic.locale` (`en` or `uk`) and the theme under `agent-ic.theme` (`light` or `dark`). For each screen:
+**3. English, dark theme.** The app keeps the language in `localStorage` under `agent-ic.locale` (`en` or `uk`) and the theme under `agent-ic.theme` (`light` or `dark`). Shoot every screen with `en` and `dark`:
 
 1. `browser_navigate` to the route.
-2. `browser_evaluate` to set both keys, then `browser_navigate` to the same route again.
+2. `browser_evaluate` to set both keys to `en` and `dark`, then `browser_navigate` to the same route again.
 3. `browser_take_screenshot` with a file name. Take the screenshot after the data has loaded, not while a skeleton shows.
 
-Name the files `<screen>-<locale>-<theme>.png`, for example `agents-list-uk-dark.png`. Look at every image before you commit it: wrong language, a leftover toast or a skeleton are the usual faults.
+Name the files `<screen>-en-dark.png`, for example `agents-list-en-dark.png`. Look at every image before you commit it: wrong language, a leftover toast or a skeleton are the usual faults.
 
 **4. A recording.** The browser records the page while it is open. Do the steps slowly, then `browser_close`: the `.webm` file appears in the `videos` folder when the page closes. Keep a recording under about 20 seconds and name it after the flow, for example `drag-and-connect.webm`.
 
@@ -74,7 +74,7 @@ When a stack of pull requests opens before its media exists, write `Screenshots:
 
 - **The seed on a used database.** It creates nothing when the demo user, the workspace and an agent exist. If you changed the sample agent and want it back, run `mise run db:reset`.
 - **The seed in production.** The command refuses `NODE_ENV=production`. The demo password is public.
-- **Mixed variants.** Setting the theme but not reloading shows the old theme. Navigate again after you write the keys.
+- **The wrong variant.** Setting the theme but not reloading shows the old theme. Navigate again after you write the keys.
 - **Images in the branch.** `git status` must not list any `.png` or `.webm`. They belong on `pr-assets`.
 - **The server is not loaded.** `claude mcp list` shows `playwright`, but its tools appear only in a session started after you added it.
 

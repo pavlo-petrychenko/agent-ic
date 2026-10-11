@@ -131,6 +131,7 @@ $story-width: 760px;
 .menu {
   display: flex;
   justify-content: flex-end;
+  gap: var(--space-4);
 }
 
 .menuTrigger {
@@ -158,6 +159,14 @@ $story-width: 760px;
   @media (hover: none) {
     opacity: 1;
   }
+
+  &.persistent {
+    opacity: 1;
+  }
+}
+
+.openTrigger:hover {
+  color: var(--color-ink);
 }
 
 .leadContent {
