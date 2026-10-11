@@ -50,6 +50,7 @@
       "transfer": {
         "title": "Transfer ownership",
         "description": "Make another member the owner. You become Admin.",
+        "noAccessDescription": "You need to be an owner to transfer ownership",
         "action": "Transfer",
         "dialog": {
           "title": "Transfer ownership of {{workspace}}",
@@ -61,6 +62,19 @@
           "confirm": "Transfer ownership",
           "cancel": "Cancel",
           "success": "Ownership transferred"
+        }
+      },
+      "leave": {
+        "title": "Leave {{workspace}}",
+        "noAccessDescription": "Owners must hand ownership to someone else first",
+        "description": "You can return to the workspace with invite link again in the future",
+        "action": "Leave",
+        "dialog": {
+          "title": "Leave workspace - {{workspace}}",
+          "description": "Are you sure that you want to leave?",
+          "confirm": "Leave workspace",
+          "cancel": "Cancel",
+          "success": "You left workspace"
         }
       }
     }
