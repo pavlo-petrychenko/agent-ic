@@ -476,6 +476,7 @@
       },
       "inBackground": "In background",
       "inBackgroundFor": "Run {{name}} in the background",
+      "lastWaitedHint": "The reply needs to wait for at least one branch.",
       "backgroundNote": "The reply doesn’t wait for a branch in the background, and steps after the join can’t use its results."
     },
     "send": {

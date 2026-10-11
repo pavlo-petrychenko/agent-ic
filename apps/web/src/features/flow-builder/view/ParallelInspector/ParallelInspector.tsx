@@ -50,6 +50,11 @@ export function ParallelInspector({
             }))}
           />
         )}
+        {branches.some((branch) => branch.lastWaited) && (
+          <Text kind={TextKind.Caption} color={TextColor.Mute}>
+            {t('inspector.parallel.lastWaitedHint')}
+          </Text>
+        )}
         <Text kind={TextKind.Caption} color={TextColor.Mute}>
           {t('inspector.parallel.backgroundNote')}
         </Text>

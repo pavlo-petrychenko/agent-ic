@@ -320,11 +320,13 @@ describe('InspectorPanel', () => {
     ]);
     expect(tagger).toBeChecked();
     expect(drafter).toBeDisabled();
+    expect(screen.getByText('The reply needs to wait for at least one branch.')).toBeVisible();
 
     await user.click(tagger);
 
     expect(store().document.edges[0]).toMatchObject({ background: false });
     expect(drafter).toBeEnabled();
+    expect(screen.queryByText('The reply needs to wait for at least one branch.')).toBeNull();
   });
 
   it('offers only the fields visible to the step in the prompt autocomplete', async () => {
