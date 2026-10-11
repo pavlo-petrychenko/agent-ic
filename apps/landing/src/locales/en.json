@@ -5,7 +5,13 @@
   },
   "nav": {
     "skip": "Skip to content",
-    "home": "agent-ic, home"
+    "home": "agent-ic, home",
+    "sections": "Sections",
+    "how": "How it works",
+    "features": "Features",
+    "language": "Language",
+    "menu": "Menu",
+    "logIn": "Log in"
   },
   "actions": {
     "createBot": "Create your bot",
