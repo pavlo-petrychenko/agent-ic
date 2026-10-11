@@ -55,11 +55,13 @@ export interface FlowBuilderState {
   history: FlowHistory;
   saveState: SaveState;
   issues: readonly FlowIssue[];
+  previewOrigin: FlowDocument | null;
 }
 
 export interface FlowBuilderActions {
   load: (draft: FlowDraft) => void;
   apply: (document: FlowDocument) => void;
+  preview: (document: FlowDocument) => void;
   undo: () => void;
   redo: () => void;
   select: (selection: FlowSelection) => void;
@@ -69,3 +71,11 @@ export interface FlowBuilderActions {
 }
 
 export type FlowBuilderStore = FlowBuilderState & FlowBuilderActions;
+
+export interface FlowBuilderDraftResult {
+  agentName: string | null;
+  draft: FlowDraft | null;
+  loading: boolean;
+  failed: boolean;
+  retry: () => void;
+}

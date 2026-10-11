@@ -25,6 +25,7 @@ const INITIAL_STATE: FlowBuilderState = {
   history: { past: [], future: [] },
   saveState: SaveState.Idle,
   issues: [],
+  previewOrigin: null,
 };
 
 const afterStep = (state: FlowBuilderState, step: HistoryStep | null): Partial<FlowBuilderState> =>
@@ -40,11 +41,17 @@ export const useFlowBuilderStore = create<FlowBuilderStore>()((set) => ({
   ...INITIAL_STATE,
   load: ({ document, revision, issues }) => set({ ...INITIAL_STATE, document, revision, issues }),
   apply: (document) =>
-    set((state) =>
-      document === state.document
-        ? {}
-        : afterStep(state, recordEdit(state.history, state.document, document)),
-    ),
+    set((state) => {
+      const origin = state.previewOrigin ?? state.document;
+      return document === origin
+        ? { document, previewOrigin: null }
+        : {
+            ...afterStep(state, recordEdit(state.history, origin, document)),
+            previewOrigin: null,
+          };
+    }),
+  preview: (document) =>
+    set((state) => ({ document, previewOrigin: state.previewOrigin ?? state.document })),
   undo: () => set((state) => afterStep(state, stepBack(state.history, state.document))),
   redo: () => set((state) => afterStep(state, stepForward(state.history, state.document))),
   select: (selection) => set({ selection }),

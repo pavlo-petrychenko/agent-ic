@@ -1,10 +1,40 @@
 {
-  "page": {
-    "title": "Flow builder",
-    "subtitle": "Design how the agent handles a chat, step by step"
+  "breadcrumb": "Breadcrumb",
+  "breadcrumbMore": "More",
+  "agents": "Agents",
+  "loading": "Loading the flow",
+  "loadError": "The flow couldn’t be opened.",
+  "retry": "Try again",
+  "step": {
+    "trigger_message": "Incoming message",
+    "trigger_external_event": "External event",
+    "trigger_schedule": "Schedule / cron",
+    "agent": "Agent",
+    "completion": "Completion",
+    "router": "Router / condition",
+    "parallel": "Parallel / join",
+    "api_request": "API request",
+    "send_message": "Send message",
+    "escalation": "Escalation / exit"
   },
-  "empty": {
-    "title": "The canvas is on its way",
-    "description": "Editing a flow is coming in the next release."
+  "canvas": {
+    "label": "Flow canvas",
+    "keyboardHelp": "Tab moves between steps, Enter opens a step, Delete removes the selection.",
+    "port": "Port",
+    "connectFrom": "Connect from {{name}} · {{port}}",
+    "zoom": { "toolbar": "Zoom", "zoomIn": "Zoom in", "zoomOut": "Zoom out", "fit": "Fit" },
+    "deleteConnection": "Delete connection",
+    "selectionToolbar": "Selected steps",
+    "selectionCount": "{{count}} selected",
+    "duplicate": "Duplicate",
+    "delete": "Delete",
+    "clearSelection": "Clear selection",
+    "deleted": "Deleted",
+    "undo": "Undo",
+    "addStep": "Add step",
+    "connectingTo": "Connect to {{name}}",
+    "emptyTitle": "Start with a trigger",
+    "emptyDescription": "A trigger decides when this agent runs.",
+    "emptyAction": "Add a trigger"
   }
 }

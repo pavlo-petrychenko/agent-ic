@@ -6,5 +6,6 @@ export const Route = createFileRoute('/w/$workspaceId/agents/$agentId')({
 });
 
 function FlowBuilderRoute() {
-  return <FlowBuilderPage />;
+  const { workspaceId, agentId } = Route.useParams();
+  return <FlowBuilderPage workspaceId={workspaceId} agentId={agentId} />;
 }

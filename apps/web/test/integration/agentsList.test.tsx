@@ -97,7 +97,7 @@ describe('agents list', () => {
 
     await user.click(await screen.findByText('Gift card FAQ'));
 
-    expect(await screen.findByRole('heading', { name: 'Flow builder' })).toBeInTheDocument();
+    expect(await screen.findByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument();
   });
 
   it('shows the empty state with the setup checklist to an owner', async () => {
@@ -140,7 +140,7 @@ describe('agents list', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Blank flow' }));
 
-    expect(await screen.findByRole('heading', { name: 'Flow builder' })).toBeInTheDocument();
+    expect(await screen.findByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument();
   });
 
   it('starts the first agent from the checklist', async () => {
@@ -155,7 +155,7 @@ describe('agents list', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Start' }));
 
-    expect(await screen.findByRole('heading', { name: 'Flow builder' })).toBeInTheDocument();
+    expect(await screen.findByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument();
   });
 
   it('creates another agent from the header', async () => {
@@ -170,7 +170,7 @@ describe('agents list', () => {
 
     await user.click(await screen.findByRole('button', { name: 'New agent' }));
 
-    expect(await screen.findByRole('heading', { name: 'Flow builder' })).toBeInTheDocument();
+    expect(await screen.findByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument();
   });
 
   it('tells the user when the agent could not be created', async () => {

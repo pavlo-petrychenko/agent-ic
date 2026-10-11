@@ -30,6 +30,8 @@ apply(next)
     saveState <- pending (conflict stays conflict)
 ```
 
+**A drag.** While a step is dragged, the editor calls `preview`: the document moves but no history step is recorded, and the store keeps the document from before the drag in `previewOrigin`. The drop calls `apply`, which records one step from that origin, so one undo takes the whole drag back (D247).
+
 **Undo and redo.** `undo` moves the current document onto `future` and takes the last one from `past`; `redo` does the opposite. Both clean the selection and mark the draft `pending`, like an edit. With nothing to undo or redo, nothing changes. The helpers are in [history.helpers.ts](../../apps/web/src/features/flow-builder/storage/helpers/history.helpers.ts).
 
 **Saving.** Autosave sets `saving`, sends the document with its revision, then calls `markSaved(revision, issues, savedDocument)`. The store takes the new revision and the issues. It goes back to `idle` only when the current document is the one that was saved; when the owner edited during the save, it stays `pending`, so the next save sends the newer edit.

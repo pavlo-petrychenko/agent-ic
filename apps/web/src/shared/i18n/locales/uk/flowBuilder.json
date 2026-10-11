@@ -1,10 +1,45 @@
 {
-  "page": {
-    "title": "Конструктор сценарію",
-    "subtitle": "Крок за кроком опишіть, як агент веде чат"
+  "breadcrumb": "Навігаційний ланцюжок",
+  "breadcrumbMore": "Більше",
+  "agents": "Агенти",
+  "loading": "Завантажуємо сценарій",
+  "loadError": "Не вдалося відкрити сценарій.",
+  "retry": "Спробувати ще раз",
+  "step": {
+    "trigger_message": "Вхідне повідомлення",
+    "trigger_external_event": "Зовнішня подія",
+    "trigger_schedule": "Розклад / cron",
+    "agent": "Агент",
+    "completion": "Генерація",
+    "router": "Маршрутизатор / умова",
+    "parallel": "Паралельно / об’єднання",
+    "api_request": "API-запит",
+    "send_message": "Надіслати повідомлення",
+    "escalation": "Ескалація / вихід"
   },
-  "empty": {
-    "title": "Полотно вже в дорозі",
-    "description": "Редагування сценарію з’явиться в наступному релізі."
+  "canvas": {
+    "label": "Полотно сценарію",
+    "keyboardHelp": "Tab переходить між кроками, Enter відкриває крок, Delete видаляє виділене.",
+    "port": "Порт",
+    "connectFrom": "З’єднати від {{name}} · {{port}}",
+    "zoom": {
+      "toolbar": "Масштаб",
+      "zoomIn": "Збільшити",
+      "zoomOut": "Зменшити",
+      "fit": "Умістити"
+    },
+    "deleteConnection": "Видалити з’єднання",
+    "selectionToolbar": "Виділені кроки",
+    "selectionCount": "Виділено {{count}}",
+    "duplicate": "Дублювати",
+    "delete": "Видалити",
+    "clearSelection": "Зняти виділення",
+    "deleted": "Видалено",
+    "undo": "Скасувати",
+    "addStep": "Додати крок",
+    "connectingTo": "З’єднати з {{name}}",
+    "emptyTitle": "Почніть із тригера",
+    "emptyDescription": "Тригер визначає, коли запускається цей агент.",
+    "emptyAction": "Додати тригер"
   }
 }
