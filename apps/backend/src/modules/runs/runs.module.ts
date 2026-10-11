@@ -5,6 +5,7 @@ import { StartRunOnMessageListener } from '@/modules/runs/listeners/start-run-on
 import { ExecuteRunProcessor } from '@/modules/runs/processors/execute-run.processor';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
+import { AgentExecutor } from '@/modules/runs/services/agent-executor.service';
 import { ApiRequestExecutor } from '@/modules/runs/services/api-request-executor.service';
 import { CompletionExecutor } from '@/modules/runs/services/completion-executor.service';
 import { EscalationExecutor } from '@/modules/runs/services/escalation-executor.service';
@@ -34,6 +35,7 @@ export class RunsModule extends defineModule({
     SendMessageExecutor,
     EscalationExecutor,
     CompletionExecutor,
+    AgentExecutor,
     {
       provide: STEP_EXECUTORS,
       useFactory: (...executors: readonly StepExecutor[]) => executors,
@@ -45,6 +47,7 @@ export class RunsModule extends defineModule({
         SendMessageExecutor,
         EscalationExecutor,
         CompletionExecutor,
+        AgentExecutor,
       ],
     },
     StepExecutorRegistry,
