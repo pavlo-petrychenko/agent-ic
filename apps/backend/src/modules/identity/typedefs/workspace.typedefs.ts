@@ -41,3 +41,8 @@ export interface RenameWorkspaceInput {
 export interface UpdateTimeZoneInput {
   readonly timeZone: string;
 }
+
+export interface TransferOwnershipInput {
+  readonly membershipId: string;
+  readonly password: string;
+}

@@ -22,6 +22,7 @@ export enum PermissionAction {
   Edit = 'edit',
   Publish = 'publish',
   Delete = 'delete',
+  Transfer = 'transfer',
 }
 
 export type ResourcePermissions = Readonly<Record<PermissionResource, readonly PermissionAction[]>>;
@@ -48,8 +49,13 @@ const FULL_ACCESS: ResourcePermissions = {
   [PermissionResource.WorkspaceSettings]: MANAGE,
 };
 
+const OWNER_ACCESS: ResourcePermissions = {
+  ...FULL_ACCESS,
+  [PermissionResource.WorkspaceSettings]: [...MANAGE, PermissionAction.Transfer],
+};
+
 export const PERMISSION_MATRIX: Readonly<Record<WorkspaceRole, ResourcePermissions>> = {
-  [WorkspaceRole.Owner]: FULL_ACCESS,
+  [WorkspaceRole.Owner]: OWNER_ACCESS,
   [WorkspaceRole.Admin]: FULL_ACCESS,
   [WorkspaceRole.Builder]: {
     [PermissionResource.Agents]: MANAGE_AND_PUBLISH,

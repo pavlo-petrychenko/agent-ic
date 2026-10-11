@@ -19,6 +19,7 @@ import { RememberWorkspaceResolver } from '@/modules/identity/resolvers/remember
 import { RenameWorkspaceResolver } from '@/modules/identity/resolvers/rename-workspace.resolver';
 import { ResendConfirmationResolver } from '@/modules/identity/resolvers/resend-confirmation.resolver';
 import { ResetInviteLinkResolver } from '@/modules/identity/resolvers/reset-invite-link.resolver';
+import { TransferOwnershipResolver } from '@/modules/identity/resolvers/transfer-ownership.resolver';
 import { UpdateInviteLinkRoleResolver } from '@/modules/identity/resolvers/update-invite-link-role.resolver';
 import { UpdateMyLocaleResolver } from '@/modules/identity/resolvers/update-my-locale.resolver';
 import { UpdateTimeZoneResolver } from '@/modules/identity/resolvers/update-time-zone.resolver';
@@ -51,6 +52,7 @@ import { ResendConfirmationUseCase } from '@/modules/identity/use-cases/resend-c
 import { ResetInviteLinkUseCase } from '@/modules/identity/use-cases/reset-invite-link.use-case';
 import { ResetPasswordUseCase } from '@/modules/identity/use-cases/reset-password.use-case';
 import { SignUpUseCase } from '@/modules/identity/use-cases/sign-up.use-case';
+import { TransferOwnershipUseCase } from '@/modules/identity/use-cases/transfer-ownership.use-case';
 import { UpdateInviteLinkRoleUseCase } from '@/modules/identity/use-cases/update-invite-link-role.use-case';
 import { UpdateMyLocaleUseCase } from '@/modules/identity/use-cases/update-my-locale.use-case';
 import { UpdateTimeZoneUseCase } from '@/modules/identity/use-cases/update-time-zone.use-case';
@@ -98,6 +100,7 @@ export class IdentityModule extends defineModule({
     CleanUpAuthRecordsUseCase,
     RenameWorkspaceUseCase,
     RememberWorkspaceUseCase,
+    TransferOwnershipUseCase,
     UpdateMyLocaleUseCase,
     UpdateTimeZoneUseCase,
   ],
@@ -115,6 +118,7 @@ export class IdentityModule extends defineModule({
     MembersResolver,
     RenameWorkspaceResolver,
     RememberWorkspaceResolver,
+    TransferOwnershipResolver,
     UpdateMyLocaleResolver,
     UpdateTimeZoneResolver,
   ],
