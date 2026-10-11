@@ -1,0 +1,76 @@
+@use 'scale' as *;
+
+.hero {
+  @include fluid(
+    padding,
+    (
+      mobile: $space-40 0 $space-56,
+      tablet: $space-56 0 $space-72,
+      desktop: $space-64 0 $space-80,
+      wide: $space-72 0 $space-96,
+    )
+  );
+
+  &__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-28);
+
+    @include from($tablet) {
+      gap: $space-40;
+    }
+  }
+
+  &__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-16);
+
+    @include from($tablet) {
+      align-items: center;
+      gap: var(--space-20);
+      text-align: center;
+    }
+  }
+
+  &__title {
+    @include fluid(font-size, $title-hero);
+
+    color: var(--color-ink);
+    font-weight: 600;
+    line-height: $leading-hero;
+    letter-spacing: $tracking-hero;
+
+    span {
+      @include from($tablet) {
+        display: block;
+      }
+    }
+  }
+
+  &__lead {
+    @include fluid(font-size, $lead);
+
+    max-width: $lead-max-width;
+    color: var(--color-ink-secondary);
+    line-height: $leading-text;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    gap: var(--space-10);
+
+    @include from($tablet) {
+      flex-direction: row;
+      align-self: center;
+    }
+  }
+
+  &__note {
+    color: var(--color-mute);
+    font-size: $text-note;
+  }
+}

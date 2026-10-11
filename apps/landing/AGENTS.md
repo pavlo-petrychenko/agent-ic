@@ -32,6 +32,8 @@ src/
 - `src/` imports only its own files and `@agent-ic/design-tokens` (dependency-cruiser).
 - Colours, type and spacing come from the design tokens; light theme only (`data-theme="light"` on `<html>`).
 - The page works without JavaScript; scripts only add behaviour.
+- Icons are symbols in `public/icons.svg`, used as `<svg class="icon"><use href="/icons.svg#name" /></svg>`; the parent sets the size, `.icon` the stroke.
+- Design sizes that have no token (marketing type scale, section spacing, breakpoints) are SCSS variables in `src/styles/_scale.scss`.
 
 ## Deploy
 

@@ -24,7 +24,7 @@ import {
 const toUrlPath = (root: string, file: string): string =>
   `${URL_SEPARATOR}${relative(root, file).split(sep).join(URL_SEPARATOR)}`;
 
-export const landingPages = (root: string, env: LandingEnv): Plugin => {
+export const landingPages = (root: string, env: LandingEnv, year: number): Plugin => {
   const templatePath = join(root, TEMPLATE_FILE);
   const generatedEntries = new Set(
     Object.values(pageEntries(root)).filter((entry) => entry !== templatePath),
@@ -38,7 +38,10 @@ export const landingPages = (root: string, env: LandingEnv): Plugin => {
     transformIndexHtml: {
       order: 'pre',
       handler: (html, context) =>
-        renderTemplate(html, pageValues(localeOfEntry(toUrlPath(root, context.filename)), env)),
+        renderTemplate(
+          html,
+          pageValues(localeOfEntry(toUrlPath(root, context.filename)), env, year),
+        ),
     },
     configureServer: (server) => {
       server.middlewares.use((request, response, next) => {

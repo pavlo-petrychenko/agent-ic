@@ -1,9 +1,10 @@
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadEnv } from 'vite';
 import { z } from 'zod';
 import { ENV_PREFIX, TRAILING_SLASHES } from './vite.constants.ts';
 
-const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
 const originSchema = z
   .url({ protocol: /^https?$/ })
