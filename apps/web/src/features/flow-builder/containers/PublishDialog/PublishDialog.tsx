@@ -9,9 +9,11 @@ import {
   CHANGE_SIGN,
   ISSUE_STEP_SEPARATOR,
   SIMULATOR_CHECK_ID,
+  UNKNOWN_CHECK_ID,
   VALID_CHECK_ID,
 } from '@/features/flow-builder/containers/PublishDialog/PublishDialog.constants';
 import type { PublishDialogProps } from '@/features/flow-builder/containers/PublishDialog/PublishDialog.typedefs';
+import { stepNameOf } from '@/features/flow-builder/logic/helpers/issue.helpers';
 import {
   formatTimeAgo,
   publishBlockOf,
@@ -44,8 +46,9 @@ export function PublishDialog({ agentId, agentName, onPublished, onClose }: Publ
     [document, preview],
   );
 
-  const steps = new Map(
-    document.nodes.map((node) => [node.id, node.label === '' ? node.key : node.label]),
+  const steps = useMemo(
+    () => new Map(document.nodes.map((node) => [node.id, stepNameOf(node)])),
+    [document],
   );
   const issueCheck =
     (tone: CheckTone) =>
@@ -67,6 +70,13 @@ export function PublishDialog({ agentId, agentName, onPublished, onClose }: Publ
     meta: testedAt === null ? null : formatTimeAgo(testedAt, openedAt, locale),
     nodeId: null,
   });
+  const unknownCheck = (index: number): PublishCheck => ({
+    id: `${UNKNOWN_CHECK_ID}-${String(index)}`,
+    tone: CheckTone.Err,
+    label: t('issue.unknown'),
+    meta: null,
+    nodeId: null,
+  });
   const validCheck: PublishCheck = {
     id: VALID_CHECK_ID,
     tone: CheckTone.Ok,
@@ -78,9 +88,14 @@ export function PublishDialog({ agentId, agentName, onPublished, onClose }: Publ
     preview === null
       ? []
       : [
-          ...(preview.errors.length === 0
+          ...(preview.errorCount === 0
             ? [validCheck]
-            : preview.errors.map(issueCheck(CheckTone.Err))),
+            : [
+                ...preview.errors.map(issueCheck(CheckTone.Err)),
+                ...Array.from({ length: preview.errorCount - preview.errors.length }, (_, index) =>
+                  unknownCheck(index),
+                ),
+              ]),
           simulatorCheck(preview.testedAt),
           ...preview.warnings.map(issueCheck(CheckTone.Warn)),
         ];
@@ -92,7 +107,7 @@ export function PublishDialog({ agentId, agentName, onPublished, onClose }: Publ
       ? null
       : block !== null
         ? t(`publish.blocked.${block}`, {
-            count: preview.errors.length,
+            count: preview.errorCount,
             version: preview.liveVersion,
           })
         : warnings > 0
@@ -121,6 +136,8 @@ export function PublishDialog({ agentId, agentName, onPublished, onClose }: Publ
           ? t('publish.titleNoVersion', { name: agentName })
           : t('publish.title', { version, name: agentName })
       }
+      version={version}
+      liveVersion={preview?.liveVersion ?? null}
       changesTitle={
         preview === null || preview.liveVersion === null
           ? t('publish.changesFirst')

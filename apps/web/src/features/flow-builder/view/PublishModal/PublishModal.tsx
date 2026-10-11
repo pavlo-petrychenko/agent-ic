@@ -17,6 +17,8 @@ import styles from '@/features/flow-builder/view/PublishModal/PublishModal.modul
 
 export function PublishModal({
   title,
+  version,
+  liveVersion,
   changesTitle,
   changes,
   checks,
@@ -141,7 +143,11 @@ export function PublishModal({
               />
             )}
           </Field>
-          <Callout tone={CalloutTone.Info}>{t('publish.goesLive')}</Callout>
+          <Callout tone={CalloutTone.Info}>
+            {liveVersion === null
+              ? t('publish.goesLiveFirst', { version })
+              : t('publish.goesLive', { version, live: liveVersion })}
+          </Callout>
         </div>
       )}
     </Dialog>

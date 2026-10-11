@@ -9,6 +9,8 @@ export interface PublishModalChange {
 
 export interface PublishModalProps {
   title: string;
+  version: number | null;
+  liveVersion: number | null;
   changesTitle: string;
   changes: readonly PublishModalChange[];
   checks: readonly PublishCheck[];

@@ -155,7 +155,6 @@
     "hide": "Hide issues"
   },
   "publish": {
-    "open": "Publish",
     "title": "Publish v{{version}} of {{name}}",
     "titleNoVersion": "Publish {{name}}",
     "close": "Close",
@@ -174,10 +173,12 @@
     "fix": "Fix",
     "note": "Release note",
     "notePlaceholder": "What’s new in this version",
-    "goesLive": "Customers switch to the new version right away. Conversations that are mid-run finish on the version they started with.",
+    "goesLive": "Customers switch to v{{version}} right away. Conversations that are mid-run finish on v{{live}}.",
+    "goesLiveFirst": "Customers switch to v{{version}} right away.",
     "success": "v{{version}} is live",
     "blocked": {
       "conflict": "The draft changed elsewhere. Reload it before publishing.",
+      "saveFailed": "Your latest changes weren’t saved. Retry saving, then publish.",
       "unsaved": "Saving your latest changes…",
       "errors_one": "Fix {{count}} error to publish",
       "errors_other": "Fix {{count}} errors to publish",
@@ -241,6 +242,7 @@
     }
   },
   "issue": {
+    "unknown": "Something in the flow needs fixing",
     "UNSUPPORTED_VERSION": "This flow was saved by a newer version (v{{version}})",
     "INVALID_DOCUMENT": "The flow can’t be read: {{message}}",
     "DUPLICATE_NODE_ID": "Two steps share one id",

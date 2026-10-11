@@ -5,6 +5,7 @@ import { useFlowBuilderDraft } from '@/features/flow-builder/communication/hooks
 import { useSaveAgentDetails } from '@/features/flow-builder/communication/hooks/useSaveAgentDetails';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import { VERSIONS_PATH } from '@/features/flow-builder/constants/publish.constants';
+import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import type { FlowBuilderPageProps } from '@/features/flow-builder/containers/FlowBuilderPage/FlowBuilderPage.typedefs';
 import { useDraftAutosave } from '@/features/flow-builder/containers/FlowBuilderPage/useDraftAutosave';
 import { FlowEditor } from '@/features/flow-builder/containers/FlowEditor';
@@ -43,8 +44,18 @@ import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPageProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const workspace = useActiveWorkspace(workspaceId);
-  const { agentName, agentDescription, baseVersion, draft, loading, failed, retry } =
-    useFlowBuilderDraft(agentId);
+  const {
+    agentName,
+    agentDescription,
+    baseVersion,
+    draftNumber,
+    liveVersion,
+    hasUnpublishedChanges,
+    draft,
+    loading,
+    failed,
+    retry,
+  } = useFlowBuilderDraft(agentId);
   const saveAgentDetails = useSaveAgentDetails(agentId);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [savingDetails, setSavingDetails] = useState(false);
@@ -76,6 +87,8 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
   const load = useFlowBuilderStore((state) => state.load);
   const select = useFlowBuilderStore((state) => state.select);
   const saveState = useFlowBuilderStore((state) => state.saveState);
+  const unchanged =
+    saveState === SaveState.Idle && hasUnpublishedChanges === false && liveVersion !== null;
 
   useLayoutEffect(() => {
     if (draft !== null) {
@@ -125,8 +138,14 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
           draft === null ? null : (
             <div className="flex items-center gap-3">
               <SaveStatus saveState={saveState} onRetry={retrySave} />
-              <Button size={ButtonSize.Sm} disabled={blocked} onClick={() => setPublishing(true)}>
-                {t('publish.open')}
+              <Button
+                size={ButtonSize.Sm}
+                disabled={blocked || unchanged}
+                onClick={() => setPublishing(true)}
+              >
+                {draftNumber === null
+                  ? t('publish.submitNoVersion')
+                  : t('publish.submit', { version: draftNumber })}
               </Button>
             </div>
           )
