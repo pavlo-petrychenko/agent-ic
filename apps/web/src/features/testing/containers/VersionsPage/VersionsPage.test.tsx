@@ -137,6 +137,25 @@ describe('VersionsPage', () => {
     ).toBeInTheDocument();
   });
 
+  it('selects a version from anywhere on its card', async () => {
+    const user = userEvent.setup();
+    renderPage([testingAgentsMock(), versionHistoryMock(), DRAFT_DIFF, LIVE_DIFF]);
+
+    await screen.findByText('Send replies: “typing…” indicator on', { selector: 'span' });
+    await user.click(
+      within(screen.getByRole('listitem', { name: 'v2' })).getByRole('button', { name: 'v2' }),
+    );
+    await screen.findByRole('region', { name: 'What changed in v2' });
+    const live = screen.getByRole('listitem', { name: 'v3' });
+    await user.click(within(live).getByText('Added a conversation guard'));
+
+    expect(await screen.findByRole('region', { name: 'What changed in v3' })).toBeInTheDocument();
+    expect(within(live).getByRole('button', { name: 'v3' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
   it('asks to create an agent when there is none', async () => {
     renderPage([testingAgentsMock([])]);
 

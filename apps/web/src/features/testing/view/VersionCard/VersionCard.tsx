@@ -1,6 +1,9 @@
+import clsx from 'clsx';
+import type { MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
 import { VERSION_BADGE_TONE, VersionKind } from '@/features/testing/constants/versions.constants';
+import { CARD_CONTROL_SELECTOR } from '@/features/testing/view/VersionCard/VersionCard.constants';
 import type { VersionCardProps } from '@/features/testing/view/VersionCard/VersionCard.typedefs';
 import { Badge } from '@/shared/ui/display/Badge';
 import { BulletList } from '@/shared/ui/display/BulletList';
@@ -25,8 +28,23 @@ export function VersionCard({
     </Text>
   );
 
+  const selectFromCard = (event: MouseEvent<HTMLElement>) => {
+    const fromControl =
+      event.target instanceof Element && event.target.closest(CARD_CONTROL_SELECTOR) !== null;
+    if (onSelect !== null && !fromControl) {
+      onSelect();
+    }
+  };
+
   return (
-    <Card as={CardElement.Li} gap={CardGap.Sm} selected={selected} aria-label={name}>
+    <Card
+      as={CardElement.Li}
+      gap={CardGap.Sm}
+      selected={selected}
+      aria-label={name}
+      className={clsx(onSelect !== null && styles.selectable)}
+      onClick={selectFromCard}
+    >
       <div className={styles.head}>
         {onSelect === null ? (
           label
