@@ -15,6 +15,9 @@ export enum AppPath {
   Login = '/auth/login',
 }
 
+export const CONTACT_EMAIL = 'pavlo@pavlop.dev';
+export const MAILTO = 'mailto:';
+
 export const APP_REDIRECT_PREFIXES: readonly string[] = ['/auth', '/w', '/invite'];
 export const REDIRECT_STATUS = 301;
 export const REDIRECTS_FILE = '_redirects';

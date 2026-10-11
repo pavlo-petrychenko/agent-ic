@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{t.meta.title}}</title>
     <meta name="description" content="{{t.meta.description}}" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="canonical" href="{{page.url}}" />
     <link rel="alternate" hreflang="en" href="{{alternate.en}}" />
     <link rel="alternate" hreflang="uk" href="{{alternate.uk}}" />
@@ -12,18 +13,47 @@
     <script type="module" src="/src/main.ts"></script>
   </head>
   <body>
-    <header class="header">
-      <a class="logo" href="{{page.path}}">agent-ic</a>
-      <nav class="language" aria-label="{{t.nav.language}}">
-        <a href="{{path.uk}}" hreflang="uk" lang="uk" aria-current="{{current.uk}}">УКР</a>
-        <a href="{{path.en}}" hreflang="en" lang="en" aria-current="{{current.en}}">EN</a>
-      </nav>
-      <a href="{{link.login}}">{{t.nav.logIn}}</a>
-    </header>
-    <main>
-      <h1>{{t.hero.titleStart}} {{t.hero.titleEnd}}</h1>
-      <p>{{t.hero.lead}}</p>
-      <a href="{{link.signUp}}">{{t.actions.createBot}}</a>
+    <a class="skip-link" href="#content">{{t.nav.skip}}</a>
+    <main id="content">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero__inner container">
+          <div class="hero__copy">
+            <span class="pill">{{t.hero.badge}}</span>
+            <h1 id="hero-title" class="hero__title">
+              <span>{{t.hero.titleStart}}</span>
+              <span>{{t.hero.titleEnd}}</span>
+            </h1>
+            <p class="hero__lead">{{t.hero.lead}}</p>
+            <div class="hero__actions">
+              <a class="button button--primary button--lg" href="{{link.signUp}}"
+                >{{t.actions.createBot}}</a
+              >
+              <a class="button button--secondary button--lg" href="#how-it-works"
+                >{{t.actions.seeHow}}</a
+              >
+            </div>
+            <p class="hero__note">{{t.hero.note}}</p>
+          </div>
+        </div>
+      </section>
     </main>
+    <footer class="footer">
+      <div class="footer__bar container">
+        <div class="footer__brand">
+          <a class="logo logo--small" href="{{page.path}}" aria-label="{{t.nav.home}}">
+            <span class="logo__mark" aria-hidden="true">
+              <svg class="icon"><use href="/icons.svg#logo" /></svg>
+            </span>
+            <span class="logo__name">agent-ic</span>
+          </a>
+          <p class="footer__copyright">
+            © {{page.year}} <span class="footer__owner">agent-ic</span>
+          </p>
+        </div>
+        <nav class="footer__links" aria-label="{{t.footer.label}}">
+          <a href="{{link.contact}}">{{t.footer.contact}}</a>
+        </nav>
+      </div>
+    </footer>
   </body>
 </html>

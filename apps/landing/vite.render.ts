@@ -4,12 +4,14 @@ import uk from './src/locales/uk.json' with { type: 'json' };
 import {
   APP_REDIRECT_PREFIXES,
   AppPath,
+  CONTACT_EMAIL,
   DEFAULT_LOCALE,
   HTML_ESCAPE_PATTERN,
   HTML_ESCAPES,
   LINE_BREAK,
   Locale,
   LOCALE_PATHS,
+  MAILTO,
   PATH_SEPARATOR,
   PLACEHOLDER_PATTERN,
   QUERY_SEPARATOR,
@@ -58,15 +60,21 @@ export const renderTemplate = (template: string, values: TemplateValue): string 
 export const pageUrl = (env: LandingEnv, locale: Locale): string =>
   `${env.LANDING_SITE_URL}${LOCALE_PATHS[locale]}`;
 
-export const pageValues = (locale: Locale, env: LandingEnv): TemplateValue => ({
+export const pageValues = (locale: Locale, env: LandingEnv, year: number): TemplateValue => ({
   t: MESSAGES[locale],
-  page: { lang: locale, url: pageUrl(env, locale), path: LOCALE_PATHS[locale] },
+  page: {
+    lang: locale,
+    url: pageUrl(env, locale),
+    path: LOCALE_PATHS[locale],
+    year: String(year),
+  },
   alternate: perLocale((other) => pageUrl(env, other)),
   path: perLocale((other) => LOCALE_PATHS[other]),
   current: perLocale((other) => (other === locale ? AriaCurrent.Page : AriaCurrent.None)),
   link: {
     signUp: `${env.LANDING_APP_URL}${AppPath.SignUp}`,
     login: `${env.LANDING_APP_URL}${AppPath.Login}`,
+    contact: `${MAILTO}${CONTACT_EMAIL}`,
   },
 });
 

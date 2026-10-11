@@ -14,6 +14,7 @@ import {
 const APP_URL = 'https://app.example';
 const SITE_URL = 'https://site.example';
 const ENV: LandingEnv = { LANDING_APP_URL: APP_URL, LANDING_SITE_URL: SITE_URL };
+const YEAR = 2026;
 
 const keysOf = (value: unknown, prefix = ''): string[] =>
   typeof value === 'object' && value !== null
@@ -40,8 +41,8 @@ describe('renderTemplate', () => {
 });
 
 describe('pageValues', () => {
-  it('links the page to its alternates and the app', () => {
-    const values = pageValues(Locale.Uk, ENV);
+  it('links the page to its alternates, the app and the contact address', () => {
+    const values = pageValues(Locale.Uk, ENV, YEAR);
     const render = (path: string): string => renderTemplate(`{{${path}}}`, values);
 
     expect(render('page.url')).toBe(`${SITE_URL}/uk/`);
@@ -51,6 +52,8 @@ describe('pageValues', () => {
     expect(render('current.en')).toBe('false');
     expect(render('link.signUp')).toBe(`${APP_URL}/auth/sign-up`);
     expect(render('link.login')).toBe(`${APP_URL}/auth/login`);
+    expect(render('link.contact')).toBe('mailto:pavlo@pavlop.dev');
+    expect(render('page.year')).toBe(String(YEAR));
   });
 });
 

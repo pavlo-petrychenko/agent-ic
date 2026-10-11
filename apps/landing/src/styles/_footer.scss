@@ -1,0 +1,62 @@
+@use 'scale' as *;
+
+.footer {
+  border-top: var(--border-width) solid var(--color-line);
+
+  &__bar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    padding: var(--space-28) 0 $space-36;
+
+    @include from($tablet) {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      height: $footer-height;
+      padding: 0;
+    }
+  }
+
+  &__brand {
+    display: contents;
+
+    @include from($tablet) {
+      display: flex;
+      align-items: center;
+      gap: var(--space-20);
+    }
+  }
+
+  &__copyright {
+    order: 1;
+    color: var(--color-mute);
+    font-size: $text-note;
+
+    @include from($tablet) {
+      order: 0;
+    }
+  }
+
+  &__owner {
+    @include from($tablet) {
+      display: none;
+    }
+  }
+
+  &__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-16);
+    color: var(--color-mute);
+    font-size: $text-footer;
+
+    @include from($tablet) {
+      gap: var(--space-24);
+    }
+
+    a:hover {
+      color: var(--color-ink);
+    }
+  }
+}

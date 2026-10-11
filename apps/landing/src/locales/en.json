@@ -4,15 +4,22 @@
     "description": "Build a Telegram bot for your salon, clinic, shop or service. Add your price list and FAQ, connect Telegram and go live in about 10 minutes. No code."
   },
   "nav": {
-    "language": "Language",
-    "logIn": "Log in"
+    "skip": "Skip to content",
+    "home": "agent-ic, home"
   },
   "actions": {
-    "createBot": "Create your bot"
+    "createBot": "Create your bot",
+    "seeHow": "See how it works"
   },
   "hero": {
+    "badge": "For salons, clinics, shops and services",
     "titleStart": "A Telegram bot that answers",
     "titleEnd": "from your own documents",
-    "lead": "Pick a template, add your price list and FAQ, connect Telegram. Your bot is live in about 10 minutes — and hands the chat to your team when it can’t help."
+    "lead": "Pick a template, add your price list and FAQ, connect Telegram. Your bot is live in about 10 minutes — and hands the chat to your team when it can’t help.",
+    "note": "No code · Ukrainian and English · a person can always step in"
+  },
+  "footer": {
+    "label": "Footer",
+    "contact": "Contact"
   }
 }

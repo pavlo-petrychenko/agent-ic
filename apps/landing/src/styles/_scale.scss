@@ -1,0 +1,108 @@
+@use 'sass:map';
+
+$tablet: 600px;
+$desktop: 900px;
+$wide: 1280px;
+
+$container-max: 1120px;
+$gutter-mobile: var(--space-20);
+$space-36: 36px;
+$space-40: 40px;
+$space-56: 56px;
+$space-64: 64px;
+$space-72: 72px;
+$space-80: 80px;
+$space-96: 96px;
+$gutter: $space-40;
+
+$header-height-mobile: 60px;
+$header-height: 72px;
+$header-gap: $space-40;
+$footer-height: 88px;
+$touch-target: 44px;
+
+$tile-size: var(--size-tile-lg);
+$tile-icon: 17px;
+$logo-icon: 15px;
+$menu-icon: 15px;
+
+$title-hero: (
+  mobile: 34px,
+  tablet: 40px,
+  desktop: 46px,
+  wide: 52px,
+);
+$title-section: (
+  mobile: 24px,
+  tablet: 28px,
+  desktop: 30px,
+  wide: 32px,
+);
+$title-cta: (
+  mobile: 26px,
+  tablet: 32px,
+  desktop: 36px,
+);
+$lead: (
+  mobile: 16px,
+  tablet: 17px,
+  wide: 18px,
+);
+
+$text-item-title: 16px;
+$text-item: 14px;
+$text-nav: 14px;
+$text-logo: 18px;
+$text-logo-mobile: 17px;
+$text-logo-small: 16px;
+$text-step-number: 28px;
+$text-note: 12.5px;
+$text-pill: 11.5px;
+$text-lang: 11px;
+$text-login: 12px;
+$text-footer: 13px;
+$text-menu: 15px;
+
+$leading-title: 1.15;
+$leading-hero: 1.08;
+$leading-text: 1.55;
+$tracking-hero: -0.025em;
+$tracking-title: -0.02em;
+$lead-max-width: 620px;
+$radius-band: 24px;
+$step-number-width: 40px;
+$muted-opacity: 0.75;
+
+@mixin from($breakpoint) {
+  @media (min-width: $breakpoint) {
+    @content;
+  }
+}
+
+@mixin below($breakpoint) {
+  @media (max-width: ($breakpoint - 0.02px)) {
+    @content;
+  }
+}
+
+@mixin fluid($property, $sizes) {
+  #{$property}: map.get($sizes, mobile);
+
+  @if map.has-key($sizes, tablet) {
+    @include from($tablet) {
+      #{$property}: map.get($sizes, tablet);
+    }
+  }
+
+  @if map.has-key($sizes, desktop) {
+    @include from($desktop) {
+      #{$property}: map.get($sizes, desktop);
+    }
+  }
+
+  @if map.has-key($sizes, wide) {
+    @include from($wide) {
+      #{$property}: map.get($sizes, wide);
+    }
+  }
+}
