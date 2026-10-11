@@ -39,6 +39,7 @@ import { IconName } from '@/shared/ui/foundations/Icon';
 import { Topbar } from '@/shared/ui/layout/Topbar';
 import { BREADCRUMB_SEPARATOR } from '@/shared/ui/navigation/Breadcrumb';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
+import { Tooltip } from '@/shared/ui/overlays/Tooltip';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
 export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPageProps) {
@@ -65,7 +66,7 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
   const { conflict, retry: retrySave } = useDraftAutosave(agentId);
   const navigate = useNavigate();
   const [publishing, setPublishing] = useState(false);
-  const blocked = useFlowIssues().some(isBlocking);
+  const errorCount = useFlowIssues().filter(isBlocking).length;
 
   const saveDetails = async (current: AgentDetails, edited: AgentDetails) => {
     const next = normalizeAgentDetails(edited);
@@ -89,6 +90,23 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
   const saveState = useFlowBuilderStore((state) => state.saveState);
   const unchanged =
     saveState === SaveState.Idle && hasUnpublishedChanges === false && liveVersion !== null;
+  const publishBlocked =
+    unchanged && liveVersion !== null
+      ? t('publish.blocked.noChanges', { version: liveVersion })
+      : errorCount > 0
+        ? t('publish.blocked.errors', { count: errorCount })
+        : null;
+  const publishButton = (
+    <Button
+      size={ButtonSize.Sm}
+      disabled={publishBlocked !== null}
+      onClick={() => setPublishing(true)}
+    >
+      {draftNumber === null
+        ? t('publish.submitNoVersion')
+        : t('publish.submit', { version: draftNumber })}
+    </Button>
+  );
 
   useLayoutEffect(() => {
     if (draft !== null) {
@@ -138,15 +156,16 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
           draft === null ? null : (
             <div className="flex items-center gap-3">
               <SaveStatus saveState={saveState} onRetry={retrySave} />
-              <Button
-                size={ButtonSize.Sm}
-                disabled={blocked || unchanged}
-                onClick={() => setPublishing(true)}
-              >
-                {draftNumber === null
-                  ? t('publish.submitNoVersion')
-                  : t('publish.submit', { version: draftNumber })}
-              </Button>
+              {publishBlocked === null ? (
+                publishButton
+              ) : (
+                <Tooltip content={publishBlocked}>
+                  {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}
+                  <span tabIndex={0} className="inline-flex">
+                    {publishButton}
+                  </span>
+                </Tooltip>
+              )}
             </div>
           )
         }
