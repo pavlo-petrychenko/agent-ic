@@ -1,5 +1,12 @@
-import { NODE_KEY_MAX_LENGTH, NODE_KEY_PATTERN, PortName, RESERVED_ROOTS } from '@agent-ic/flow';
-import type { FlowDocument, FlowEdge, FlowIssue, FlowNode, ParallelNode } from '@agent-ic/flow';
+import {
+  NODE_KEY_MAX_LENGTH,
+  NODE_KEY_PATTERN,
+  PortName,
+  RESERVED_ROOTS,
+  buildFlowGraph,
+  isBackgroundBranch,
+} from '@agent-ic/flow';
+import type { FlowDocument, FlowIssue, FlowNode, ParallelNode } from '@agent-ic/flow';
 import { NODE_KEY_SEPARATOR } from '@/features/flow-builder/constants/graphEdit.constants';
 import {
   FIELD_HINTS,
@@ -92,12 +99,10 @@ export const portTargets = (document: FlowDocument, nodeId: string, port: string
       return target === undefined ? [] : [{ nodeId: target.id, label: nodeName(target) }];
     });
 
-const isBackground = (edge: FlowEdge): boolean =>
-  edge.sourcePort === PortName.Branches && edge.background === true;
-
 export const backgroundStepNames = (document: FlowDocument, nodeId: string): string[] => {
+  const graph = buildFlowGraph(document);
   const branches = document.edges.filter(
-    (edge) => isBackground(edge) && reaches(document, edge.source, nodeId),
+    (edge) => isBackgroundBranch(graph, edge) && reaches(document, edge.source, nodeId),
   );
   return document.nodes
     .filter(
@@ -110,13 +115,14 @@ export const backgroundStepNames = (document: FlowDocument, nodeId: string): str
 };
 
 export const branchRows = (document: FlowDocument, node: ParallelNode): BranchRow[] => {
+  const graph = buildFlowGraph(document);
   const starts = document.edges.filter(
     (edge) => edge.source === node.id && edge.sourcePort === PortName.Branches,
   );
-  const waited = starts.filter((edge) => !isBackground(edge)).length;
+  const waited = starts.filter((edge) => !isBackgroundBranch(graph, edge)).length;
   return starts.flatMap((edge) => {
     const step = document.nodes.find((candidate) => candidate.id === edge.target);
-    const background = isBackground(edge);
+    const background = isBackgroundBranch(graph, edge);
     return step === undefined
       ? []
       : [
