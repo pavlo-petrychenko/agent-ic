@@ -73,7 +73,7 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 
 `schemaVersion` is the literal `2`. A change to the format bumps it and adds an upgrade from the previous version in `versions/`, so `parseFlow` keeps reading every stored flow.
 
-- Version 1 had a `role` on each Completion (`guard` or `observer`) and a `guards` value of `waitFor`. `parseFlow` checks a version 1 flow against its own schema and upgrades it with `upgradeFlowV1`: a branch that holds an observer becomes a background branch, `role` is dropped and `guards` becomes `all`.
+- Version 1 had a `role` on each Completion (`guard` or `observer`) and a `guards` value of `waitFor`. `parseFlow` checks a version 1 flow against its own schema and upgrades it with `upgradeFlowV1`: a branch that starts with an observer becomes a background branch, except the first branch of a Parallel whose branches all start with one, which stays waited so the flow keeps a waited branch; `role` is dropped and `guards` becomes `all`.
 - Stored rows are not rewritten. The engine and the builder work on the upgraded flow, and the next draft save stores version 2.
 
 ## Tests

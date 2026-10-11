@@ -1,6 +1,6 @@
 import { FLOW_SCHEMA_VERSION, NodeType, PortName } from '@flow/document/constants/flow.constants';
 import type { FlowDocument, FlowEdge, FlowNode } from '@flow/document/typedefs/flow.typedefs';
-import { buildFlowGraph } from '@flow/scope/helpers/graph.helpers';
+import { branchStarts, buildFlowGraph } from '@flow/scope/helpers/graph.helpers';
 import type { FlowGraph } from '@flow/scope/typedefs/scope.typedefs';
 import {
   FlowV1CompletionRole,
@@ -24,16 +24,29 @@ const upgradeNode = (node: FlowV1Node): FlowNode => {
 const isObserver = (node: FlowV1Node): boolean =>
   node.type === NodeType.Completion && node.config.role === FlowV1CompletionRole.Observer;
 
-const upgradeEdge = (
+const startsObservedBranch = (
   graph: FlowGraph,
   observerIds: ReadonlySet<string>,
   edge: FlowEdge,
-): FlowEdge => {
-  const startsBranch =
-    edge.sourcePort === PortName.Branches &&
-    graph.nodes.get(edge.source)?.type === NodeType.Parallel;
-  const observed = startsBranch && observerIds.has(edge.target);
-  return observed ? { ...edge, background: true } : edge;
+): boolean =>
+  edge.sourcePort === PortName.Branches &&
+  graph.nodes.get(edge.source)?.type === NodeType.Parallel &&
+  observerIds.has(edge.target);
+
+const backgroundEdgeIds = (
+  graph: FlowGraph,
+  observerIds: ReadonlySet<string>,
+): ReadonlySet<string> => {
+  const ids = new Set<string>();
+  for (const node of graph.nodes.values()) {
+    const starts = branchStarts(graph, node.id);
+    const observed = starts.filter((edge) => startsObservedBranch(graph, observerIds, edge));
+    const background = observed.length === starts.length ? observed.slice(1) : observed;
+    for (const edge of background) {
+      ids.add(edge.id);
+    }
+  }
+  return ids;
 };
 
 export const upgradeFlowV1 = (flow: FlowV1Document): FlowDocument => {
@@ -43,9 +56,11 @@ export const upgradeFlowV1 = (flow: FlowV1Document): FlowDocument => {
     nodes: flow.nodes.map(upgradeNode),
     edges: flow.edges,
   };
-  const graph = buildFlowGraph(upgraded);
+  const background = backgroundEdgeIds(buildFlowGraph(upgraded), observerIds);
   return {
     ...upgraded,
-    edges: upgraded.edges.map((edge) => upgradeEdge(graph, observerIds, edge)),
+    edges: upgraded.edges.map((edge) =>
+      background.has(edge.id) ? { ...edge, background: true } : edge,
+    ),
   };
 };
