@@ -1,0 +1,14 @@
+query ModelOptions {
+  modelOptions {
+    id
+    label
+    vendor
+    purposes
+    reasoningLevels
+    defaultReasoningLevel
+    price {
+      inputUsdPerMillionTokens
+      outputUsdPerMillionTokens
+    }
+  }
+}

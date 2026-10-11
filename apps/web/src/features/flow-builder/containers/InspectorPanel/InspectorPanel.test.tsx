@@ -1,3 +1,4 @@
+import { ReasoningLevel } from '@agent-ic/contracts';
 import {
   ChannelSelectionMode,
   CompletionRole,
@@ -11,9 +12,14 @@ import {
   validateFlow,
 } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
-import { act, screen, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
+import {
+  FLASH_MODEL,
+  LUNA_MODEL,
+  modelOptionsMock,
+} from '@/features/flow-builder/communication/fixtures/modelOptions.fixture';
 import { NODE_TEMPLATES } from '@/features/flow-builder/constants/nodeTemplate.constants';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import { InspectorPanel } from '@/features/flow-builder/containers/InspectorPanel/InspectorPanel';
@@ -49,11 +55,27 @@ const FLOW: FlowDocument = {
   ],
 };
 
+const AI_FLOW: FlowDocument = {
+  ...FLOW,
+  nodes: [
+    ...FLOW.nodes,
+    step('guard', 'Guard', NODE_TEMPLATES[NodeType.Completion]),
+    step('agent', 'Receptionist', NODE_TEMPLATES[NodeType.Agent]),
+    step('tagger', 'Tagger', NODE_TEMPLATES[NodeType.Completion]),
+  ],
+  edges: [
+    { id: 'e1', source: 'trigger', sourcePort: PortName.Next, target: 'guard' },
+    { id: 'e2', source: 'guard', sourcePort: PortName.Next, target: 'agent' },
+    { id: 'e3', source: 'agent', sourcePort: PortName.Next, target: 'route' },
+    { id: 'e4', source: 'route', sourcePort: 'refund', target: 'tagger' },
+  ],
+};
+
 const store = useFlowBuilderStore.getState;
 const open = (nodeId: string, document: FlowDocument = FLOW) => {
   store().load({ document, revision: 1, issues: validateFlow(document) });
   store().select({ nodeIds: [nodeId], edgeIds: [] });
-  return renderWithProviders(<InspectorPanel />);
+  return renderWithProviders(<InspectorPanel />, { mocks: [modelOptionsMock()] });
 };
 const node = (id: string) => store().document.nodes.find((candidate) => candidate.id === id);
 
@@ -246,5 +268,43 @@ describe('InspectorPanel', () => {
     await user.click(screen.getByRole('radio', { name: 'All branches finish' }));
 
     expect(node('split')).toMatchObject({ config: { waitFor: WaitFor.All } });
+  });
+
+  it('offers only the fields visible to the step in the prompt autocomplete', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW);
+
+    await user.type(screen.getByRole('textbox', { name: 'Prompt' }), '{{{{');
+    const options = within(await screen.findByRole('listbox', { name: 'Fields' }))
+      .getAllByRole('option')
+      .map((option) => option.textContent);
+
+    expect(options).toContain('message.textTrigger');
+    expect(options).toContain('guard.resultGuard');
+    expect(options.some((option) => option?.startsWith('tagger.'))).toBe(false);
+    expect(options.some((option) => option?.startsWith('agent.'))).toBe(false);
+  });
+
+  it('picks a model, then a reasoning level that model offers', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW);
+
+    const model = screen.getByRole('combobox', { name: 'Model' });
+    expect(model).toHaveAccessibleDescription('Pick a model');
+    await waitFor(() => expect(within(model).getAllByRole('option')).toHaveLength(3));
+    await user.selectOptions(model, LUNA_MODEL.id);
+    const reasoning = screen.getByRole('combobox', { name: 'Reasoning' });
+    expect(
+      within(reasoning)
+        .getAllByRole('option')
+        .map((option) => option.textContent),
+    ).toEqual(['Default (Low)', 'Low', 'High']);
+    await user.selectOptions(reasoning, ReasoningLevel.High);
+    await user.selectOptions(model, FLASH_MODEL.id);
+
+    expect(node('agent')).toMatchObject({
+      config: { model: { model: FLASH_MODEL.id }, reasoning: null },
+    });
+    expect(screen.queryByRole('combobox', { name: 'Reasoning' })).not.toBeInTheDocument();
   });
 });

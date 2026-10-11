@@ -4,6 +4,8 @@ import { BadgeTone } from '@/shared/ui/display/Badge/Badge.constants';
 
 export const DESCRIBED_NODE_TYPES: readonly DescribedNodeType[] = [
   NodeType.TriggerMessage,
+  NodeType.Agent,
+  NodeType.Completion,
   NodeType.Router,
   NodeType.Parallel,
 ];
@@ -96,6 +98,8 @@ export enum IssuePathSegment {
   Variable = 'variable',
   Operator = 'operator',
   Value = 'value',
+  Prompt = 'prompt',
+  Model = 'model',
 }
 
 export enum InputType {

@@ -57,4 +57,9 @@ export interface RouteView {
   conditions: readonly ConditionView[];
 }
 
-export type DescribedNodeType = NodeType.TriggerMessage | NodeType.Router | NodeType.Parallel;
+export type DescribedNodeType =
+  | NodeType.TriggerMessage
+  | NodeType.Agent
+  | NodeType.Completion
+  | NodeType.Router
+  | NodeType.Parallel;
