@@ -4,6 +4,8 @@ import {
   CompletionRole,
   ConditionOperator,
   EscalationMode,
+  FailureMode,
+  HttpMethod,
   FLOW_SCHEMA_VERSION,
   MAX_LABEL_LENGTH,
   MAX_OUTPUT_FIELDS,
@@ -23,6 +25,7 @@ import type { AgentNode, FlowDocument, FlowNode } from '@agent-ic/flow';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { DEMO_AGENT_ID } from '@/features/flow-builder/communication/fixtures/flowBuilderDraft.fixture';
 import { membersByRoleMock } from '@/features/flow-builder/communication/fixtures/membersByRole.fixture';
 import {
   FLASH_MODEL,
@@ -30,6 +33,10 @@ import {
   modelOptionsFailedMock,
   modelOptionsMock,
 } from '@/features/flow-builder/communication/fixtures/modelOptions.fixture';
+import {
+  TEST_RESPONSE_BODY,
+  testApiRequestMock,
+} from '@/features/flow-builder/communication/fixtures/testApiRequest.fixture';
 import { NODE_TEMPLATES } from '@/features/flow-builder/constants/nodeTemplate.constants';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import { InspectorPanel } from '@/features/flow-builder/containers/InspectorPanel/InspectorPanel';
@@ -95,7 +102,7 @@ const store = useFlowBuilderStore.getState;
 const open = (nodeId: string, document: FlowDocument = FLOW, mocks = [modelOptionsMock()]) => {
   store().load({ document, revision: 1, issues: validateFlow(document) });
   store().select({ nodeIds: [nodeId], edgeIds: [] });
-  return renderWithProviders(<InspectorPanel />, { mocks });
+  return renderWithProviders(<InspectorPanel agentId={DEMO_AGENT_ID} />, { mocks });
 };
 const node = (id: string) => store().document.nodes.find((candidate) => candidate.id === id);
 
@@ -585,5 +592,56 @@ describe('InspectorPanel escalation', () => {
     expect(node('handoff')).toMatchObject({
       config: { mode: EscalationMode.Escalate, customerMessage: 'Bye', reason: '' },
     });
+  });
+});
+
+describe('InspectorPanel api request', () => {
+  const API_FLOW: FlowDocument = {
+    ...FLOW,
+    nodes: [...FLOW.nodes, step('lookup', 'Load booking', NODE_TEMPLATES[NodeType.ApiRequest])],
+    edges: [
+      ...FLOW.edges,
+      { id: 'e3', source: 'route', sourcePort: PortName.Else, target: 'lookup' },
+    ],
+  };
+
+  it('edits the request and its failure path', async () => {
+    const user = userEvent.setup();
+    open('lookup', API_FLOW, []);
+
+    expect(screen.getByRole('list', { name: 'Output' })).toHaveTextContent(
+      'statusnumber · HTTP status',
+    );
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Method' }), HttpMethod.Post);
+    await user.type(screen.getByRole('textbox', { name: 'URL' }), 'https://crm.example/bookings');
+    await user.tab();
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Retries' }), '0');
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'If the request fails' }),
+      FailureMode.ErrorPort,
+    );
+
+    expect(node('lookup')).toMatchObject({
+      config: {
+        method: HttpMethod.Post,
+        url: 'https://crm.example/bookings',
+        retries: 0,
+        onFailure: FailureMode.ErrorPort,
+      },
+    });
+    expect(screen.getByText('Connect the “on error” port')).toBeVisible();
+  });
+
+  it('tests the saved request and shows the answer', async () => {
+    const user = userEvent.setup();
+    open('lookup', API_FLOW, [testApiRequestMock('lookup')]);
+
+    act(() => store().setSaveState(SaveState.Pending));
+    expect(screen.getByRole('button', { name: 'Test request' })).toBeDisabled();
+    act(() => store().setSaveState(SaveState.Idle));
+    await user.click(screen.getByRole('button', { name: 'Test request' }));
+
+    expect(await screen.findByText('Status 200 · 120 ms')).toBeVisible();
+    expect(screen.getByText(TEST_RESPONSE_BODY)).toBeVisible();
   });
 });

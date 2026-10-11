@@ -220,7 +220,8 @@
       "agent": "Runs once per customer message · never messages the customer itself",
       "completion": "One LLM call · no tools · structured output",
       "send_message": "Sends chat messages to the customer",
-      "escalation": "Hands the chat to a person or ends it"
+      "escalation": "Hands the chat to a person or ends it",
+      "api_request": "Calls an external API · no LLM involved"
     },
     "renameKey": {
       "title": "Rename the key too?",
@@ -452,6 +453,50 @@
       "never": "Never",
       "fallbackMessage": "Then tell the customer",
       "minutes": "{{count}} min"
+    },
+    "api": {
+      "request": "Request",
+      "method": "Method",
+      "url": "URL",
+      "urlHint": "Type {{ to insert a field from earlier steps",
+      "urlPlaceholder": "https://api.example.com/v1/orders",
+      "output": "Output",
+      "outputNote": "saved as variables",
+      "outputs": {
+        "ok": "the request succeeded",
+        "status": "HTTP status",
+        "body": "response body"
+      },
+      "onFailure": "If the request fails",
+      "timeout": "Timeout",
+      "seconds_one": "{{count}} s",
+      "seconds_other": "{{count}} s",
+      "retries": "Retries",
+      "retryCount_one": "{{count}} · backoff",
+      "retryCount_other": "{{count}} · backoff",
+      "retryCount_zero": "No retries",
+      "failure": {
+        "continue": "Continue without data",
+        "error_port": "Go to the on error path"
+      },
+      "failureNote": {
+        "continue": "Later steps get ok = false and no body.",
+        "error_port": "After the retries, the run follows the on error connection."
+      },
+      "test": "Test request",
+      "saveFirst": "Wait until the draft is saved to test it.",
+      "testFailed": "The test couldn’t run. Try again.",
+      "outcome": {
+        "responded": "The server answered.",
+        "timed_out": "The server didn’t answer in time.",
+        "unreachable": "The server couldn’t be reached.",
+        "blocked_address": "This address isn’t allowed.",
+        "invalid_url": "The URL isn’t valid.",
+        "invalid_request": "The request isn’t valid."
+      },
+      "responded": "Status {{status}} · {{ms}} ms",
+      "responseBody": "Response body",
+      "truncated": "The response is cut short."
     }
   }
 }

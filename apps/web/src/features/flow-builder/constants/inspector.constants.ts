@@ -10,6 +10,7 @@ export const DESCRIBED_NODE_TYPES: readonly DescribedNodeType[] = [
   NodeType.Parallel,
   NodeType.SendMessage,
   NodeType.Escalation,
+  NodeType.ApiRequest,
 ];
 
 export enum FieldHint {
@@ -112,6 +113,8 @@ export enum IssuePathSegment {
   FallbackMessage = 'fallbackMessage',
   Reminder = 'reminderAfterMinutes',
   Fallback = 'fallbackAfterMinutes',
+  Url = 'url',
+  OnFailure = 'onFailure',
 }
 
 export enum InputType {

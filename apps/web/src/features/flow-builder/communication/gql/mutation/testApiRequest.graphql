@@ -1,0 +1,9 @@
+mutation TestApiRequest($input: TestApiRequestInput!) {
+  testApiRequest(input: $input) {
+    outcome
+    status
+    body
+    bodyTruncated
+    durationMs
+  }
+}
