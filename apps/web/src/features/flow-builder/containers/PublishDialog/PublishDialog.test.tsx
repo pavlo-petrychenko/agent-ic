@@ -15,11 +15,13 @@ import {
   publishPreviewMock,
 } from '@/features/flow-builder/communication/fixtures/publish.fixture';
 import { NODE_TEMPLATES } from '@/features/flow-builder/constants/nodeTemplate.constants';
+import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import { PublishDialog } from '@/features/flow-builder/containers/PublishDialog/PublishDialog';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
 const ORIGIN = { x: 0, y: 0 };
+const UNKNOWN_CODE = 'FUTURE_CHECK';
 
 const FLOW: FlowDocument = {
   schemaVersion: FLOW_SCHEMA_VERSION,
@@ -77,7 +79,33 @@ describe('PublishDialog', () => {
     expect(screen.getByText('Every step is connected')).toBeInTheDocument();
     expect(screen.getByText('Not tested in the simulator yet')).toBeInTheDocument();
     expect(screen.getByText('2 warnings · you can still publish')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Customers switch to v4 right away. Conversations that are mid-run finish on v3.',
+      ),
+    ).toBeInTheDocument();
     expect(publishButton()).toBeEnabled();
+  });
+
+  it('counts a server error it cannot read and keeps Publish off', async () => {
+    renderDialog([
+      publishPreviewMock({ errors: [{ ...MISSING_PROMPT_ERROR, code: UNKNOWN_CODE }] }),
+    ]);
+
+    expect(await screen.findByText('Something in the flow needs fixing')).toBeInTheDocument();
+    expect(screen.queryByText('Every step is connected')).not.toBeInTheDocument();
+    expect(screen.getByText('Fix 1 error to publish')).toBeInTheDocument();
+    expect(publishButton()).toBeDisabled();
+  });
+
+  it('says the last save failed instead of saving', async () => {
+    useFlowBuilderStore.getState().setSaveState(SaveState.Error);
+    renderDialog([publishPreviewMock()]);
+
+    expect(
+      await screen.findByText('Your latest changes weren’t saved. Retry saving, then publish.'),
+    ).toBeInTheDocument();
+    expect(publishButton()).toBeDisabled();
   });
 
   it('blocks publishing while the draft has errors and jumps to the step on Fix', async () => {

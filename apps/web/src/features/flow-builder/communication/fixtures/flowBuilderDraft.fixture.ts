@@ -27,6 +27,7 @@ export const DRAFT_REVISION = 4;
 export const buildFlowBuilderDraftMock = (
   flow: unknown,
   revision = DRAFT_REVISION,
+  hasUnpublishedChanges = true,
 ): MockLink.MockedResponse => ({
   request: { query: FlowBuilderDraftDocument, variables: { agentId: DEMO_AGENT_ID } },
   result: {
@@ -39,7 +40,7 @@ export const buildFlowBuilderDraftMock = (
         draftBaseVersionNumber: 3,
         draftNumber: 4,
         liveVersionNumber: 3,
-        hasUnpublishedChanges: true,
+        hasUnpublishedChanges,
       },
       agentDraft: {
         __typename: 'AgentDraft',
