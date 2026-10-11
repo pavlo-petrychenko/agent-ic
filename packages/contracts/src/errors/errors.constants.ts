@@ -62,4 +62,6 @@ export enum ErrorReason {
   ConversationNotFound = 'CONVERSATION_NOT_FOUND',
   ConversationClosed = 'CONVERSATION_CLOSED',
   MessageNotFound = 'MESSAGE_NOT_FOUND',
+  CannotTransferToYourself = 'CANNOT_TRANSFER_TO_YOURSELF',
+  TeamMemberNotFound = 'TEAM_MEMBER_NOT_FOUND',
 }

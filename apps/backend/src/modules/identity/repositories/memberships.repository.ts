@@ -1,4 +1,4 @@
-import type { WorkspaceRole } from '@agent-ic/contracts';
+import { WorkspaceRole } from '@agent-ic/contracts';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, asc, count, eq, gt } from 'drizzle-orm';
@@ -72,5 +72,35 @@ export class MembershipsRepository {
       .where(afterId === null ? inWorkspace : and(inWorkspace, gt(memberships.id, afterId)))
       .orderBy(asc(memberships.id))
       .limit(limit);
+  }
+
+  async findOwnerForUpdate(workspaceId: string): Promise<MembershipRecord | null> {
+    const [membership] = await this.txHost.tx
+      .select()
+      .from(memberships)
+      .where(
+        and(eq(memberships.workspaceId, workspaceId), eq(memberships.role, WorkspaceRole.Owner)),
+      )
+      .for('update');
+    return membership ?? null;
+  }
+
+  async findByIdForUpdate(
+    workspaceId: string,
+    membershipId: string,
+  ): Promise<MembershipRecord | null> {
+    const [membership] = await this.txHost.tx
+      .select()
+      .from(memberships)
+      .where(and(eq(memberships.workspaceId, workspaceId), eq(memberships.id, membershipId)))
+      .for('update');
+    return membership ?? null;
+  }
+
+  async updateRole(workspaceId: string, membershipId: string, role: WorkspaceRole): Promise<void> {
+    await this.txHost.tx
+      .update(memberships)
+      .set({ role })
+      .where(and(eq(memberships.workspaceId, workspaceId), eq(memberships.id, membershipId)));
   }
 }

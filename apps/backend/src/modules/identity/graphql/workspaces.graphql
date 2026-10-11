@@ -11,6 +11,7 @@ extend type Mutation {
   resetInviteLink: InviteLink!
   acceptInvite(token: String!): Membership!
   renameWorkspace(input: RenameWorkspaceInput!): Membership!
+  transferOwnership(input: TransferOwnershipInput!): Membership!
 }
 
 extend type User {
@@ -88,4 +89,9 @@ type MemberConnection {
 
 input RenameWorkspaceInput {
   name: String!
+}
+
+input TransferOwnershipInput {
+  membershipId: ID!
+  password: String!
 }

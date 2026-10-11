@@ -50,7 +50,9 @@
     "AWAY_MESSAGE_TOO_LONG": "Повідомлення про відсутність задовге.",
     "CONVERSATION_NOT_FOUND": "Цю розмову не знайдено.",
     "CONVERSATION_CLOSED": "Цю розмову закрито.",
-    "MESSAGE_NOT_FOUND": "Це повідомлення не знайдено."
+    "MESSAGE_NOT_FOUND": "Це повідомлення не знайдено.",
+    "CANNOT_TRANSFER_TO_YOURSELF": "Не можна передати володіння самому собі.",
+    "TEAM_MEMBER_NOT_FOUND": "Ця людина не є учасником цього робочого простору."
   },
   "code": {
     "NOT_FOUND": "Не вдалося знайти те, що ви шукаєте.",

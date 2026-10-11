@@ -33,3 +33,8 @@ export interface DirectoryMembership {
 export interface RenameWorkspaceInput {
   readonly name: string;
 }
+
+export interface TransferOwnershipInput {
+  readonly membershipId: string;
+  readonly password: string;
+}

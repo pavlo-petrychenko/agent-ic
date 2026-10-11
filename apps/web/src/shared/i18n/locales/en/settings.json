@@ -37,6 +37,25 @@
       "renameSuccess": "Workspace renamed successfully",
       "nameLabel": "Name",
       "save": "Save"
+    },
+    "danger": {
+      "title": "Danger zone",
+      "transfer": {
+        "title": "Transfer ownership",
+        "description": "Make another member the owner. You become Admin.",
+        "action": "Transfer",
+        "dialog": {
+          "title": "Transfer ownership of {{workspace}}",
+          "description": "You're the owner now.",
+          "memberLabel": "New owner",
+          "notice": "{{candidateName}} becomes the Owner. You become an Admin. Only the owner can delete the workspace or transfer it again.",
+          "placeholder": "Select a member",
+          "passwordLabel": "Your password",
+          "confirm": "Transfer ownership",
+          "cancel": "Cancel",
+          "success": "Ownership transferred"
+        }
+      }
     }
   }
 }
