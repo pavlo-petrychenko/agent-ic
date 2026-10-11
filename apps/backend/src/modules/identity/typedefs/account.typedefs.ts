@@ -57,3 +57,7 @@ export interface AuthSessionResponse {
 export interface UpdateMyLocaleInput {
   readonly locale: Locale;
 }
+
+export interface UpdateMyNameInput {
+  readonly name: string;
+}

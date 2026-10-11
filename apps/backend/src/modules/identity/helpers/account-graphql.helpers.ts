@@ -4,6 +4,7 @@ import type {
   ForgotPasswordInput,
   ResendConfirmationInput,
   UpdateMyLocaleInput,
+  UpdateMyNameInput,
 } from '@/modules/identity/typedefs/account.typedefs';
 import type { Me } from '@/modules/identity/typedefs/user.typedefs';
 import type {
@@ -12,6 +13,7 @@ import type {
   ResendConfirmationInput as ResendConfirmationArgs,
   ResendConfirmationPayload,
   UpdateMyLocaleInput as UpdateMyLocaleArgs,
+  UpdateMyNameInput as UpdateMyNameArgs,
   User,
 } from '@/platform/graphql-server/generated/schema.generated';
 import { Locale as GraphqlLocale } from '@/platform/graphql-server/generated/schema.generated';
@@ -50,3 +52,7 @@ export const toForgotPasswordInput = (args: ForgotPasswordArgs): ForgotPasswordI
 });
 
 export const acceptedForgotPasswordPayload = (): ForgotPasswordPayload => ({ accepted: true });
+
+export const toUpdateMyNameInput = (args: UpdateMyNameArgs): UpdateMyNameInput => ({
+  name: args.name,
+});

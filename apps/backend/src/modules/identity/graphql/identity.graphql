@@ -6,6 +6,7 @@ type Mutation {
   resendConfirmation(input: ResendConfirmationInput!): ResendConfirmationPayload!
   forgotPassword(input: ForgotPasswordInput!): ForgotPasswordPayload!
   updateMyLocale(input: UpdateMyLocaleInput!): User!
+  updateMyName(input: UpdateMyNameInput!): User!
 }
 
 enum Locale {
@@ -39,4 +40,8 @@ type ForgotPasswordPayload {
 
 input UpdateMyLocaleInput {
   locale: Locale!
+}
+
+input UpdateMyNameInput {
+  name: String!
 }

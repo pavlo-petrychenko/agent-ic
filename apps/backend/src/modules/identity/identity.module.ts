@@ -24,6 +24,7 @@ import { ResetInviteLinkResolver } from '@/modules/identity/resolvers/reset-invi
 import { TransferOwnershipResolver } from '@/modules/identity/resolvers/transfer-ownership.resolver';
 import { UpdateInviteLinkRoleResolver } from '@/modules/identity/resolvers/update-invite-link-role.resolver';
 import { UpdateMyLocaleResolver } from '@/modules/identity/resolvers/update-my-locale.resolver';
+import { UpdateMyNameResolver } from '@/modules/identity/resolvers/update-my-name.resolver';
 import { UpdateTimeZoneResolver } from '@/modules/identity/resolvers/update-time-zone.resolver';
 import { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
 import { InviteLinksService } from '@/modules/identity/services/invite-links.service';
@@ -59,6 +60,7 @@ import { SignUpUseCase } from '@/modules/identity/use-cases/sign-up.use-case';
 import { TransferOwnershipUseCase } from '@/modules/identity/use-cases/transfer-ownership.use-case';
 import { UpdateInviteLinkRoleUseCase } from '@/modules/identity/use-cases/update-invite-link-role.use-case';
 import { UpdateMyLocaleUseCase } from '@/modules/identity/use-cases/update-my-locale.use-case';
+import { UpdateMyNameUseCase } from '@/modules/identity/use-cases/update-my-name.use-case';
 import { UpdateTimeZoneUseCase } from '@/modules/identity/use-cases/update-time-zone.use-case';
 import { WorkspaceAccessService } from '@/platform/context/services/workspace-access.service';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
@@ -109,6 +111,7 @@ export class IdentityModule extends defineModule({
     TransferOwnershipUseCase,
     UpdateMyLocaleUseCase,
     UpdateTimeZoneUseCase,
+    UpdateMyNameUseCase,
   ],
   resolvers: [
     ResendConfirmationResolver,
@@ -129,6 +132,7 @@ export class IdentityModule extends defineModule({
     TransferOwnershipResolver,
     UpdateMyLocaleResolver,
     UpdateTimeZoneResolver,
+    UpdateMyNameResolver,
   ],
   controllers: [AuthController],
   processors: [CleanUpAuthRecordsProcessor],

@@ -13,9 +13,10 @@ const emailSchema = z.string().trim().toLowerCase().pipe(z.email().max(EMAIL_MAX
 const tokenSchema = z.string().min(1);
 const passwordSchema = z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH);
 const localeSchema = z.enum(Locale);
+const nameSchema = z.string().trim().min(1).max(USER_NAME_MAX_LENGTH).regex(USER_NAME_PATTERN);
 
 export const signUpInputSchema = z.object({
-  [AccountField.Name]: z.string().trim().min(1).max(USER_NAME_MAX_LENGTH).regex(USER_NAME_PATTERN),
+  [AccountField.Name]: nameSchema,
   [AccountField.Email]: emailSchema,
   [AccountField.Password]: passwordSchema,
   [AccountField.Locale]: localeSchema,
@@ -46,4 +47,8 @@ export const resendConfirmationInputSchema = z.union([
 
 export const updateMyLocaleInputSchema = z.object({
   [AccountField.Locale]: localeSchema,
+});
+
+export const updateMyNameInputSchema = z.object({
+  [AccountField.Name]: nameSchema,
 });
