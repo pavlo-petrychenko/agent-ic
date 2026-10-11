@@ -19,3 +19,7 @@ export const startSimulationSchema = z.object({
   channelKind: z.enum(ChannelKind),
   language: z.string().trim().min(1).max(END_USER_LANGUAGE_MAX_LENGTH).nullish().transform(orNull),
 });
+
+export const operatorReplySchema = simulatorMessageSchema;
+
+export const operatorConversationSchema = z.object({ conversationId: publicIdSchema });

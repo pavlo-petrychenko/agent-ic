@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, isNull, lt, ne, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, lt, ne, or, sql } from 'drizzle-orm';
 import {
   ConversationMode,
   ConversationState,
@@ -133,6 +133,34 @@ export class ConversationsRepository {
       )
       .returning({ id: conversations.id });
     return updated.length > 0;
+  }
+
+  async takeOver(workspaceId: string, id: string, userId: string): Promise<void> {
+    await this.txHost.tx
+      .update(conversations)
+      .set({ state: ConversationState.Handled, handledBy: userId })
+      .where(
+        and(
+          eq(conversations.workspaceId, workspaceId),
+          eq(conversations.id, id),
+          ne(conversations.state, ConversationState.Closed),
+        ),
+      );
+  }
+
+  async handBack(workspaceId: string, id: string): Promise<Conversation | null> {
+    const [conversation] = await this.txHost.tx
+      .update(conversations)
+      .set({ state: ConversationState.AgentActive, handledBy: null })
+      .where(
+        and(
+          eq(conversations.workspaceId, workspaceId),
+          eq(conversations.id, id),
+          inArray(conversations.state, [ConversationState.Waiting, ConversationState.Handled]),
+        ),
+      )
+      .returning();
+    return conversation ?? null;
   }
 
   async close(workspaceId: string, id: string, closedAt: Date): Promise<void> {

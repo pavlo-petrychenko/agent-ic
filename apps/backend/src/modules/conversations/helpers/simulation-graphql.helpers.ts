@@ -39,7 +39,7 @@ const GRAPHQL_MESSAGE_AUTHOR: Readonly<Record<MessageAuthor, GraphqlMessageAutho
   [MessageAuthor.System]: GraphqlMessageAuthor.System,
 };
 
-const toGraphqlConversation = (conversation: ConversationView): Conversation => ({
+export const toGraphqlConversation = (conversation: ConversationView): Conversation => ({
   ...conversation,
   state: GRAPHQL_CONVERSATION_STATE[conversation.state],
   channelKind: GRAPHQL_CHANNEL_KIND[conversation.channelKind],

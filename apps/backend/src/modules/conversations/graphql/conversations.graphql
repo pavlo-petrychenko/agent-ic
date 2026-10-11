@@ -23,6 +23,8 @@ extend type Mutation {
   startSimulation(input: StartSimulationInput!): Simulation!
   restartSimulation(input: RestartSimulationInput!): Simulation!
   sendSimulatorMessage(input: SendSimulatorMessageInput!): Message!
+  replyAsOperator(input: ReplyAsOperatorInput!): Message!
+  handBack(input: HandBackInput!): Conversation!
 }
 
 enum ConversationState {
@@ -59,6 +61,15 @@ input RestartSimulationInput {
 input SendSimulatorMessageInput {
   conversationId: ID!
   text: String!
+}
+
+input ReplyAsOperatorInput {
+  conversationId: ID!
+  text: String!
+}
+
+input HandBackInput {
+  conversationId: ID!
 }
 
 type Conversation {
