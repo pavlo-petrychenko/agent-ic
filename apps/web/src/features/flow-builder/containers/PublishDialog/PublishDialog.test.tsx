@@ -3,7 +3,7 @@ import type { FlowDocument } from '@agent-ic/flow';
 import type { MockLink } from '@apollo/client/testing';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DEMO_AGENT_ID } from '@/features/flow-builder/communication/fixtures/flowBuilderDraft.fixture';
 import {
   MISSING_PROMPT_ERROR,
@@ -17,7 +17,6 @@ import {
 import { NODE_TEMPLATES } from '@/features/flow-builder/constants/nodeTemplate.constants';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import { PublishDialog } from '@/features/flow-builder/containers/PublishDialog/PublishDialog';
-import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
 const ORIGIN = { x: 0, y: 0 };
@@ -45,28 +44,32 @@ const FLOW: FlowDocument = {
   edges: [{ id: 'e1', source: 'trigger', sourcePort: PortName.Next, target: REPLY_NODE_ID }],
 };
 
-const renderDialog = (mocks: readonly MockLink.MockedResponse[]) => {
+const renderDialog = (
+  mocks: readonly MockLink.MockedResponse[],
+  saveState: SaveState = SaveState.Idle,
+) => {
   const onPublished = vi.fn<() => void>();
   const onClose = vi.fn<() => void>();
+  const onFix = vi.fn<(nodeId: string) => void>();
   renderWithProviders(
     <PublishDialog
       agentId={DEMO_AGENT_ID}
       agentName="Salon assistant"
+      document={FLOW}
+      revision={4}
+      saveState={saveState}
+      onFix={onFix}
       onPublished={onPublished}
       onClose={onClose}
     />,
     { mocks },
   );
-  return { onPublished, onClose };
+  return { onPublished, onClose, onFix };
 };
 
 const publishButton = () => screen.getByRole('button', { name: 'Publish v4' });
 
 describe('PublishDialog', () => {
-  beforeEach(() => {
-    useFlowBuilderStore.getState().load({ document: FLOW, revision: 4, issues: [] });
-  });
-
   it('lists the changes in plain words and the checks', async () => {
     renderDialog([publishPreviewMock({ warnings: [NO_ERROR_PATH_WARNING] })]);
 
@@ -99,8 +102,7 @@ describe('PublishDialog', () => {
   });
 
   it('says the last save failed instead of saving', async () => {
-    useFlowBuilderStore.getState().setSaveState(SaveState.Error);
-    renderDialog([publishPreviewMock()]);
+    renderDialog([publishPreviewMock()], SaveState.Error);
 
     expect(
       await screen.findByText('Your latest changes weren’t saved. Retry saving, then publish.'),
@@ -109,7 +111,9 @@ describe('PublishDialog', () => {
   });
 
   it('blocks publishing while the draft has errors and jumps to the step on Fix', async () => {
-    const { onClose } = renderDialog([publishPreviewMock({ errors: [MISSING_PROMPT_ERROR] })]);
+    const { onClose, onFix } = renderDialog([
+      publishPreviewMock({ errors: [MISSING_PROMPT_ERROR] }),
+    ]);
 
     expect(await screen.findByText('Send replies · Write a prompt')).toBeInTheDocument();
     expect(screen.getByText('Fix 1 error to publish')).toBeInTheDocument();
@@ -117,7 +121,7 @@ describe('PublishDialog', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Fix' }));
 
-    expect(useFlowBuilderStore.getState().selection.nodeIds).toEqual([REPLY_NODE_ID]);
+    expect(onFix).toHaveBeenCalledWith(REPLY_NODE_ID);
     expect(onClose).toHaveBeenCalled();
   });
 

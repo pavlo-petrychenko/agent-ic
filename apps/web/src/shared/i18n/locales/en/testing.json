@@ -33,24 +33,88 @@
     "label": "Test conversation",
     "you": "You",
     "operator": "Operator",
+    "turn_zero": "{{name}} · no reply",
     "turn_one": "{{name}} · {{count}} message",
     "turn_other": "{{name}} · {{count}} messages",
     "typing": "{{name}} is typing…",
     "failed": "This turn failed",
     "emptyTitle": "Say hi to your agent",
-    "emptyDescription": "Messages you send here run the selected version. Customers never see them."
+    "emptyDescription": "Messages you send here run the selected version. Customers never see them.",
+    "escalationTurn": "{{name}} · Escalation message",
+    "divider": {
+      "escalated": "Escalated · in live chats operators would be notified",
+      "handedBack": "Handed back to the agent"
+    }
   },
   "composer": {
     "label": "Message as the test user",
     "placeholder": "Write as the test user…",
     "send": "Send"
   },
+  "operator": {
+    "reply": "Reply as operator",
+    "hint": "Simulates taking over and handing back. Nobody is notified.",
+    "placeholder": "Write as the operator…",
+    "handBack": "Hand back"
+  },
+  "trace": {
+    "label": "Flow trace",
+    "steps": "Steps of the flow",
+    "idle": "Live flow",
+    "title": "Live flow · turn {{number}}",
+    "legend": "Step states",
+    "openInBuilder": "Open in flow builder",
+    "noFlow": "This version's flow can't be shown",
+    "loadError": "Couldn't load this turn",
+    "state": {
+      "done": "ran",
+      "running": "running",
+      "waiting": "waiting",
+      "skipped": "not reached",
+      "failed": "failed"
+    }
+  },
+  "details": {
+    "label": "Turn details",
+    "empty": "Send a message to see what ran",
+    "title": "Turn {{number}}",
+    "duration": "Duration",
+    "seconds": "{{value}} s",
+    "stepsRun": "Steps run",
+    "stepsValue": "{{run}} of {{total}}",
+    "messagesSent": "Messages sent",
+    "wouldNotify": "Would notify",
+    "nobody": "Nobody",
+    "flow": "Flow",
+    "paused": "Paused",
+    "stepFailed": "This step failed",
+    "status": {
+      "queued": "Queued",
+      "running": "Running",
+      "succeeded": "Completed",
+      "escalated": "Escalated",
+      "failed": "Failed"
+    },
+    "back": "All steps of turn {{number}}",
+    "input": "Input",
+    "output": "Output",
+    "error": "Error",
+    "stepStatus": {
+      "running": "Running",
+      "succeeded": "Ran",
+      "failed": "Failed"
+    }
+  },
   "reset": "Reset conversation",
   "loading": "Loading the simulator…",
   "loadError": "Couldn't load the simulator",
   "startError": "Couldn't start the simulation",
+  "conversationError": "Couldn't load the conversation",
   "retry": "Retry",
-  "note": "Draft runs here only — customers keep talking to the live version until you publish.",
+  "note": {
+    "live": "Draft runs here only — customers keep talking to v{{number}} until you publish.",
+    "noLive": "Draft runs here only — customers don't see it until you publish."
+  },
   "noAgents": {
     "title": "Nothing to simulate yet",
     "description": "Create an agent first, then test it here before customers see it.",
@@ -62,7 +126,48 @@
     "action": "Open in flow builder"
   },
   "versions": {
-    "title": "No versions to show yet",
-    "description": "The draft and the published versions will be listed here."
+    "label": "Versions",
+    "loading": "Loading the versions…",
+    "loadError": "Couldn't load the versions",
+    "number": "v{{number}}",
+    "kind": {
+      "draft": "Draft",
+      "live": "Live",
+      "archived": "Archived"
+    },
+    "edited": "edited {{ago}}",
+    "editedBy": "{{name}} · edited {{ago}}",
+    "changes_one": "{{count}} unpublished change",
+    "changes_other": "{{count}} unpublished changes",
+    "publishedBy": "{{name}} · published {{date}}",
+    "publishedOn": "published {{date}}",
+    "publish": "Publish",
+    "footnote": "Published versions can't be edited. Restoring an old version copies it into a new draft; nothing changes for customers until you publish.",
+    "never": {
+      "title": "Not published yet",
+      "description": "Publish the draft to make it live. Every published version stays here, and you can restore it later."
+    },
+    "compare": {
+      "action": "Compare with v{{number}}",
+      "title": "What changed in v{{number}}",
+      "draftTitle": "What changed in draft v{{number}}",
+      "subtitle": "compared with v{{number}}",
+      "noChanges": "Nothing changed in the flow.",
+      "first": "v{{number}} is the first version, so there's nothing to compare it with.",
+      "loading": "Comparing the versions…",
+      "loadError": "Couldn't compare the versions"
+    },
+    "restore": {
+      "action": "Restore",
+      "title": "Restore v{{number}} as the draft?",
+      "subtitle": "{{name}} · published {{date}}",
+      "close": "Close",
+      "cancel": "Cancel",
+      "submit": "Restore v{{number}}",
+      "intro": "We copy v{{number}} into a new draft. Nothing changes for customers until you publish.",
+      "introLive": "We copy v{{number}} into a new draft. Customers stay on v{{live}} until you publish.",
+      "warning_one": "Your current draft v{{draft}} has {{count}} unpublished change. It'll be replaced.",
+      "warning_other": "Your current draft v{{draft}} has {{count}} unpublished changes. They'll be replaced."
+    }
   }
 }

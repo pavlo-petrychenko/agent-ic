@@ -1,0 +1,23 @@
+query VersionDiff($agentId: ID!, $fromId: ID!, $toId: ID!) {
+  agentVersionDiff(agentId: $agentId, fromId: $fromId, toId: $toId) {
+    addedNodes
+    removedNodes
+    changedNodes {
+      nodeId
+      key
+      fields {
+        path
+        before
+        after
+      }
+    }
+    renamedKeys {
+      nodeId
+      from
+      to
+    }
+    addedEdges
+    removedEdges
+    changeCount
+  }
+}

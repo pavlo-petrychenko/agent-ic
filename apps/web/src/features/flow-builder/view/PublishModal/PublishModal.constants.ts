@@ -7,3 +7,5 @@ export const CHECK_TILE: Readonly<Record<CheckTone, { kind: NodeKind; icon: Icon
   [CheckTone.Warn]: { kind: NodeKind.Warn, icon: IconName.Alert },
   [CheckTone.Err]: { kind: NodeKind.Err, icon: IconName.Alert },
 };
+
+export const NOTE_ROWS = 3;

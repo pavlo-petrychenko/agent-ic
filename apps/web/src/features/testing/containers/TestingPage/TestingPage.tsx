@@ -15,12 +15,15 @@ import {
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
 import { ChatPanel } from '@/features/testing/containers/ChatPanel';
 import type { TestingPageProps } from '@/features/testing/containers/TestingPage/TestingPage.typedefs';
+import { TracePanel } from '@/features/testing/containers/TracePanel';
 import { pickAgent } from '@/features/testing/logic/helpers/agent.helpers';
-import { latestRunId } from '@/features/testing/logic/helpers/chat.helpers';
+import { latestRunId, turnNumber } from '@/features/testing/logic/helpers/chat.helpers';
 import {
   isSimulatorChannel,
   isSimulatorLanguage,
 } from '@/features/testing/logic/helpers/setup.helpers';
+import { useDraftRefresh } from '@/features/testing/logic/hooks/useDraftRefresh';
+import { useNodeInspection } from '@/features/testing/logic/hooks/useNodeInspection';
 import { ChannelKind } from '@/shared/api/generated/schema.generated';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
@@ -44,7 +47,7 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
   const versionChoice = choice.agentId === agent?.id ? choice.versionId : DRAFT_VERSION_OPTION;
   const versionId = versionChoice === DRAFT_VERSION_OPTION ? null : versionChoice;
   const versionsResult = useTestingVersions(agent?.id ?? null);
-  const { versions, draftBroken, loading: versionsLoading } = versionsResult;
+  const { versions, draftBroken, draftFlow, loading: versionsLoading } = versionsResult;
   const blocked = versionId === null && draftBroken;
   const { locale } = useLocale();
   const [channelKind, setChannelKind] = useState(ChannelKind.Simulated);
@@ -56,7 +59,23 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
   });
   const [selected, setSelected] = useState<string | null>(null);
   const runs = simulator.conversation?.runs ?? [];
-  const selectedRunId = runs.some((run) => run.id === selected) ? selected : latestRunId(runs);
+  const newestRunId = latestRunId(runs);
+  const selectedRunId = runs.some((run) => run.id === selected) ? selected : newestRunId;
+  const { selectedNodeId, selectNode } = useNodeInspection(selectedRunId);
+  const selectRun = (runId: string) => {
+    setSelected(runId);
+    selectNode(null);
+  };
+  useDraftRefresh(
+    newestRunId,
+    versionId === null && simulator.conversation !== null,
+    versionsResult.retry,
+  );
+  const flow =
+    versionId === null
+      ? draftFlow
+      : (versions.find((version) => version.id === versionId)?.flow ?? null);
+  const liveNumber = versions.find((version) => version.live)?.number ?? null;
   const errorMessage = useErrorMessage();
   const { showToast } = useToast();
 
@@ -197,7 +216,11 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
           ]}
           onValueChange={(tab) =>
             tab === TestingTab.Versions &&
-            void navigate({ to: VERSIONS_PATH, params: { workspaceId } })
+            void navigate({
+              to: VERSIONS_PATH,
+              params: { workspaceId },
+              search: { agent: agent?.id ?? null },
+            })
           }
         />
       </div>
@@ -211,9 +234,19 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
             onChannelKindChange={(value) => isSimulatorChannel(value) && setChannelKind(value)}
             onLanguageChange={(value) => isSimulatorLanguage(value) && setLanguage(value)}
             selectedRunId={selectedRunId}
-            onSelectRun={setSelected}
+            onSelectRun={selectRun}
           />
-          <p className={styles.note}>{t('note')}</p>
+          <TracePanel
+            workspaceId={workspaceId}
+            agentId={agent.id}
+            flow={flow}
+            run={runs.find((run) => run.id === selectedRunId) ?? null}
+            turnNumber={turnNumber(runs, selectedRunId)}
+            draft={versionId === null}
+            liveNumber={liveNumber}
+            selectedNodeId={selectedNodeId}
+            onSelectNode={selectNode}
+          />
         </div>
       ) : (
         <div className="p-7">{notReady}</div>

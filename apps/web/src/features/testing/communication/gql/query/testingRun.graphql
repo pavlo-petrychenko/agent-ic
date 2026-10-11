@@ -1,0 +1,25 @@
+query TestingRun($id: ID!) {
+  run(id: $id) {
+    id
+    status
+    durationMs
+    error {
+      nodeId
+    }
+    totals {
+      stepsRun
+      stepsInFlow
+      messagesSent
+    }
+    steps {
+      id
+      nodeId
+      status
+      input
+      output
+      error {
+        message
+      }
+    }
+  }
+}

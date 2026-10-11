@@ -6,7 +6,21 @@ export const SETUP_KEY_SEPARATOR = '|';
 export enum ChatItemKind {
   Message = 'message',
   Turn = 'turn',
+  Divider = 'divider',
 }
+
+export enum ChatDividerKind {
+  Escalated = 'escalated',
+  HandedBack = 'handedBack',
+}
+
+export enum ComposerMode {
+  User = 'user',
+  Escalated = 'escalated',
+  Operator = 'operator',
+}
+
+export const DIVIDER_ID_SEPARATOR = ':';
 
 export enum ChatSpeaker {
   User = 'user',

@@ -1,0 +1,21 @@
+.root {
+  position: relative;
+}
+
+.edges {
+  position: absolute;
+  inset: 0;
+  fill: none;
+  stroke: var(--color-edge);
+  stroke-width: var(--border-width-dash);
+}
+
+.nodes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.node {
+  position: absolute;
+}

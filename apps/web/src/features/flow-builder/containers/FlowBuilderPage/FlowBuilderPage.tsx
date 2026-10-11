@@ -6,13 +6,14 @@ import { useSaveAgentDetails } from '@/features/flow-builder/communication/hooks
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import { VERSIONS_PATH } from '@/features/flow-builder/constants/publish.constants';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
+import { BuilderPublishDialog } from '@/features/flow-builder/containers/BuilderPublishDialog';
 import type { FlowBuilderPageProps } from '@/features/flow-builder/containers/FlowBuilderPage/FlowBuilderPage.typedefs';
 import { useDraftAutosave } from '@/features/flow-builder/containers/FlowBuilderPage/useDraftAutosave';
 import { FlowEditor } from '@/features/flow-builder/containers/FlowEditor';
 import { InspectorPanel } from '@/features/flow-builder/containers/InspectorPanel';
 import { IssuesPanel } from '@/features/flow-builder/containers/IssuesPanel';
+import { LastRunBar } from '@/features/flow-builder/containers/LastRunBar';
 import { LeaveGuard } from '@/features/flow-builder/containers/LeaveGuard';
-import { PublishDialog } from '@/features/flow-builder/containers/PublishDialog';
 import { StepPalettePanel } from '@/features/flow-builder/containers/StepPalettePanel';
 import {
   normalizeAgentDetails,
@@ -191,14 +192,21 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
             )}
             <FlowEditor />
             <IssuesPanel />
+            <LastRunBar workspaceId={workspaceId} agentId={agentId} />
           </div>
           <InspectorPanel agentId={agentId} />
           <LeaveGuard />
           {publishing && (
-            <PublishDialog
+            <BuilderPublishDialog
               agentId={agentId}
               agentName={agentName ?? ''}
-              onPublished={() => void navigate({ to: VERSIONS_PATH, params: { workspaceId } })}
+              onPublished={() =>
+                void navigate({
+                  to: VERSIONS_PATH,
+                  params: { workspaceId },
+                  search: { agent: agentId },
+                })
+              }
               onClose={() => setPublishing(false)}
             />
           )}

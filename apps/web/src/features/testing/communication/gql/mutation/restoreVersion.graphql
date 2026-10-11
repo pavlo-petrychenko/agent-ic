@@ -1,0 +1,8 @@
+mutation RestoreVersion($input: RestoreAgentVersionInput!) {
+  restoreAgentVersion(input: $input) {
+    revision
+    version {
+      id
+    }
+  }
+}

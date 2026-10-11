@@ -1,7 +1,12 @@
 import type { Locale } from '@agent-ic/contracts';
-import type { ChatItemKind, ChatSpeaker } from '@/features/testing/constants/simulator.constants';
+import type {
+  ChatDividerKind,
+  ChatItemKind,
+  ChatSpeaker,
+} from '@/features/testing/constants/simulator.constants';
 import type {
   ChannelKind,
+  ConversationState,
   MessageAuthor,
   RunStatus,
 } from '@/shared/api/generated/schema.generated';
@@ -29,6 +34,7 @@ export interface SimulatorRun {
 
 export interface SimulatorConversation {
   conversationId: string;
+  state: ConversationState;
   messages: readonly SimulatorMessage[];
   runs: readonly SimulatorRun[];
 }
@@ -47,18 +53,31 @@ export interface ChatTurnItem {
   at: string;
   messages: readonly SimulatorMessage[];
   failed: boolean;
+  escalated: boolean;
   errorMessage: string | null;
 }
 
-export type ChatItem = ChatMessageItem | ChatTurnItem;
+export interface ChatDividerItem {
+  kind: ChatItemKind.Divider;
+  id: string;
+  at: string;
+  divider: ChatDividerKind;
+}
+
+export type ChatItem = ChatMessageItem | ChatTurnItem | ChatDividerItem;
 
 export interface SimulatorResult {
   conversation: SimulatorConversation | null;
   starting: boolean;
   failed: boolean;
+  loadFailed: boolean;
   sending: boolean;
   restarting: boolean;
+  replying: boolean;
+  handingBack: boolean;
   retry: () => void;
   send: (text: string) => Promise<void>;
   restart: () => Promise<void>;
+  reply: (text: string) => Promise<void>;
+  handBack: () => Promise<void>;
 }

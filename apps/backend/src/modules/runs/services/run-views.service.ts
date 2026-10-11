@@ -35,6 +35,7 @@ export class RunViewsService {
       branchKey: step.branchKey,
       status: step.status,
       attempt: step.attempt,
+      input: step.input,
       output: step.output,
       port: step.port,
       error: step.error,

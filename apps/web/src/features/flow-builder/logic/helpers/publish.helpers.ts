@@ -128,7 +128,7 @@ export const toChangeLines = (
 export const publishBlockOf = (
   saveState: SaveState,
   preview: PublishPreview,
-  lines: readonly ChangeLine[],
+  lines: readonly unknown[],
 ): PublishBlock | null => {
   if (saveState === SaveState.Conflict) {
     return PublishBlock.Conflict;

@@ -1,13 +1,21 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ComposerMode } from '@/features/testing/constants/simulator.constants';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
-import type { ChatPanelProps } from '@/features/testing/containers/ChatPanel/ChatPanel.typedefs';
-import { isActiveRun, toChatItems } from '@/features/testing/logic/helpers/chat.helpers';
+import type {
+  ChatFailure,
+  ChatPanelProps,
+} from '@/features/testing/containers/ChatPanel/ChatPanel.typedefs';
+import {
+  composerMode,
+  isActiveRun,
+  toChatItems,
+} from '@/features/testing/logic/helpers/chat.helpers';
 import { SimulatorChat } from '@/features/testing/view/SimulatorChat';
 import { SimulatorSetup } from '@/features/testing/view/SimulatorSetup';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
-import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Composer } from '@/shared/ui/chat/Composer';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { Skeleton } from '@/shared/ui/display/Skeleton';
@@ -24,22 +32,45 @@ export function ChatPanel({
   const { t } = useTranslation(TESTING_NAMESPACE);
   const errorMessage = useErrorMessage();
   const [text, setText] = useState('');
-  const [sendError, setSendError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<ChatFailure | null>(null);
+  const [takenOver, setTakenOver] = useState<string | null>(null);
   const { conversation } = simulator;
   const items = useMemo(
-    () => (conversation === null ? [] : toChatItems(conversation.messages, conversation.runs)),
+    () =>
+      conversation === null
+        ? []
+        : toChatItems(conversation.messages, conversation.runs, conversation.state),
     [conversation],
   );
+  const mode =
+    conversation === null
+      ? ComposerMode.User
+      : composerMode(conversation.state, takenOver === conversation.conversationId);
+  const operator = mode === ComposerMode.Operator;
+  const failed = failure?.mode === mode ? failure : null;
 
-  const send = async () => {
-    setSendError(null);
+  const attempt = async (action: () => Promise<void>): Promise<void> => {
+    setFailure(null);
     try {
-      await simulator.send(text.trim());
-      setText('');
+      await action();
     } catch (error) {
-      setSendError(errorMessage(toAppError(error)));
+      setFailure({ mode, message: errorMessage(toAppError(error)), retry: action });
     }
   };
+
+  const send = () => {
+    const message = text.trim();
+    return attempt(async () => {
+      await (operator ? simulator.reply(message) : simulator.send(message));
+      setText('');
+    });
+  };
+
+  const handBack = () =>
+    attempt(async () => {
+      await simulator.handBack();
+      setTakenOver(null);
+    });
 
   const state = () => {
     if (simulator.failed) {
@@ -47,7 +78,7 @@ export function ChatPanel({
         <EmptyState
           icon={IconName.Alert}
           tone={EmptyStateTone.Err}
-          title={t('startError')}
+          title={t(simulator.loadFailed ? 'conversationError' : 'startError')}
           actions={
             <Button variant={ButtonVariant.Secondary} onClick={simulator.retry}>
               {t('retry')}
@@ -89,20 +120,50 @@ export function ChatPanel({
       ) : (
         <div className={styles.state}>{notReady}</div>
       )}
-      <Composer
-        className={styles.composer}
-        value={text}
-        onChange={setText}
-        onSend={() => void send()}
-        onRetry={sendError === null ? null : () => void send()}
-        placeholder={t('composer.placeholder')}
-        label={t('composer.label')}
-        sendLabel={t('composer.send')}
-        retryLabel={t('retry')}
-        sending={simulator.sending}
-        error={sendError}
-        disabled={conversation === null}
-      />
+      {mode === ComposerMode.Escalated ? (
+        <div className={styles.footer}>
+          <Button
+            className={styles.takeOver}
+            variant={ButtonVariant.Secondary}
+            icon={IconName.Hand}
+            onClick={() => setTakenOver(conversation?.conversationId ?? null)}
+          >
+            {t('operator.reply')}
+          </Button>
+          <p className={styles.hint}>{t('operator.hint')}</p>
+        </div>
+      ) : (
+        <div className={styles.footer}>
+          {operator && (
+            <div className={styles.operator}>
+              <span className={styles.mode}>{t('operator.reply')}</span>
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Sm}
+                icon={IconName.Agent}
+                loading={simulator.handingBack}
+                disabled={simulator.replying}
+                onClick={() => void handBack()}
+              >
+                {t('operator.handBack')}
+              </Button>
+            </div>
+          )}
+          <Composer
+            value={text}
+            onChange={setText}
+            onSend={() => void send()}
+            onRetry={failed === null ? null : () => void attempt(failed.retry)}
+            placeholder={t(operator ? 'operator.placeholder' : 'composer.placeholder')}
+            label={t(operator ? 'operator.reply' : 'composer.label')}
+            sendLabel={t('composer.send')}
+            retryLabel={t('retry')}
+            sending={operator ? simulator.replying : simulator.sending}
+            error={failed?.message ?? null}
+            disabled={conversation === null}
+          />
+        </div>
+      )}
     </section>
   );
 }

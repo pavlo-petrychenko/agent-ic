@@ -1,8 +1,9 @@
 import { skipToken, useQuery } from '@apollo/client/react';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { TestingVersionsDocument } from '@/features/testing/communication/gql/query/testingVersions.generated';
 import {
   hasBlockingIssues,
+  toFlow,
   toTestingVersions,
 } from '@/features/testing/communication/helpers/version.helpers';
 import type { TestingVersionsResult } from '@/features/testing/typedefs/testing.typedefs';
@@ -18,11 +19,17 @@ export function useTestingVersions(agentId: string | null): TestingVersionsResul
     () => (data === undefined ? [] : toTestingVersions(data.agentVersions)),
     [data],
   );
+  const draftFlow = useMemo(
+    () => (data === undefined ? null : toFlow(data.agentDraft.version.flow)),
+    [data],
+  );
+  const retry = useCallback(() => void refetch(), [refetch]);
   return {
     versions,
+    draftFlow,
     draftBroken: data !== undefined && hasBlockingIssues(data.agentDraft),
-    loading: loading || (agentId !== null && data === undefined && error === undefined),
+    loading: agentId !== null && data === undefined && (loading || error === undefined),
     failed: !loading && error !== undefined && data === undefined,
-    retry: () => void refetch(),
+    retry,
   };
 }

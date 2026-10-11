@@ -1,0 +1,11 @@
+query LastSimulationRun($agentId: ID!) {
+  agent(id: $agentId) {
+    id
+    lastSimulationRun {
+      id
+      status
+      finishedAt
+      draftRevision
+    }
+  }
+}

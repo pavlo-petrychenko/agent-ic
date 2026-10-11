@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 import { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
 import { RunNode } from '@/shared/ui/flow/RunNode/RunNode';
 import { RunNodeState } from '@/shared/ui/flow/RunNode/RunNode.constants';
@@ -17,7 +18,7 @@ describe('RunNode', () => {
   it('is a list item that reads the name and the state', () => {
     renderNode(RunNodeState.Done, 'done');
 
-    expect(screen.getByRole('listitem')).toHaveTextContent('Receptionistdone');
+    expect(screen.getByRole('listitem')).toHaveTextContent('Receptionist done');
   });
 
   it('is busy and shows the spinner while running', () => {
@@ -45,5 +46,27 @@ describe('RunNode', () => {
     renderNode(state, state);
 
     expect(screen.getByRole('listitem')).toHaveClass(cssClass(styles[state]));
+  });
+
+  it('is a toggle button inside the list item when it can be selected', async () => {
+    const onSelect = vi.fn<() => void>();
+    render(
+      <ul>
+        <RunNode
+          name="Receptionist"
+          kind={NodeKind.Agent}
+          state={RunNodeState.Done}
+          stateLabel="done"
+          selected
+          onSelect={onSelect}
+        />
+      </ul>,
+    );
+
+    const button = screen.getByRole('button', { name: 'Receptionist done' });
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+    button.focus();
+    await userEvent.keyboard('{Enter}');
+    expect(onSelect).toHaveBeenCalledOnce();
   });
 });

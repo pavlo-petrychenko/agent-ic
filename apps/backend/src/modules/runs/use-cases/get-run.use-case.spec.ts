@@ -6,6 +6,7 @@ import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { GetRunUseCase } from '@/modules/runs/use-cases/get-run.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
+import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
 import {
   FIRST_STEP_ID,
   FIRST_STEP_KEY,
@@ -48,7 +49,7 @@ describe('GetRunUseCase', () => {
     await testbed.module.close();
   });
 
-  it('returns the steps with status, output and duration, and the run totals', async () => {
+  it('returns the steps with status, input, output and duration, and the run totals', async () => {
     const seeded = await seedSimulation();
     const { run, ctx } = seeded;
     await testbed.execution.execute(ctx, run.workspaceId, run.id);
@@ -81,10 +82,14 @@ describe('GetRunUseCase', () => {
           ...succeeded,
           nodeId: FIRST_STEP_ID,
           nodeKey: FIRST_STEP_KEY,
+          input: expect.objectContaining({
+            message: { text: TEST_MESSAGE_TEXT, attachments: [] },
+          }),
           output: { answer: FIRST_STEP_KEY },
         }),
       ]),
     );
+    expect(details.steps.every((step) => !('history' in step.input))).toBe(true);
   });
 
   it('does not find a run of another workspace', async () => {

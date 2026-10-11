@@ -60,6 +60,7 @@ describe('useSimulator', () => {
     ]);
 
     await waitFor(() => expect(result.current.failed).toBe(true));
+    expect(result.current.loadFailed).toBe(false);
   });
 
   it('reports a failed conversation load and retries it', async () => {
@@ -69,6 +70,7 @@ describe('useSimulator', () => {
       simulationMock([QUESTION]),
     ]);
     await waitFor(() => expect(result.current.failed).toBe(true));
+    expect(result.current.loadFailed).toBe(true);
     expect(result.current.starting).toBe(false);
 
     act(() => result.current.retry());

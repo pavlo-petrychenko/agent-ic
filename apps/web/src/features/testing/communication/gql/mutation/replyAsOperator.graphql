@@ -1,0 +1,5 @@
+mutation ReplyAsOperator($input: ReplyAsOperatorInput!) {
+  replyAsOperator(input: $input) {
+    id
+  }
+}

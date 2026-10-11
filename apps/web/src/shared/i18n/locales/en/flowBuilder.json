@@ -241,6 +241,21 @@
       "schedule": "schedule"
     }
   },
+  "lastRun": {
+    "label": "Last test run",
+    "never": "Not tested yet",
+    "neverDetail": "Run the draft in the simulator before you publish",
+    "open": "Test in simulator",
+    "stale": "{{outcome}} · on an earlier draft",
+    "published": "{{outcome}} · on a published version",
+    "status": {
+      "queued": "Simulator · running now",
+      "running": "Simulator · running now",
+      "succeeded": "Simulator · no errors · {{time}}",
+      "escalated": "Simulator · handed to a person · {{time}}",
+      "failed": "Simulator · failed · {{time}}"
+    }
+  },
   "issue": {
     "unknown": "Something in the flow needs fixing",
     "UNSUPPORTED_VERSION": "This flow was saved by a newer version (v{{version}})",

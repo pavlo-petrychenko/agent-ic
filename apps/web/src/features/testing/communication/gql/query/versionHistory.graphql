@@ -1,0 +1,30 @@
+query VersionHistory($agentId: ID!) {
+  agent(id: $agentId) {
+    id
+    draftNumber
+    liveVersionNumber
+    draftChangeCount
+  }
+  agentVersions(agentId: $agentId) {
+    id
+    number
+    status
+    note
+    publishedAt
+    flow
+    author {
+      name
+    }
+  }
+  agentDraft(agentId: $agentId) {
+    revision
+    savedAt
+    version {
+      id
+      flow
+      author {
+        name
+      }
+    }
+  }
+}

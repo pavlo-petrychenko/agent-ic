@@ -1,6 +1,8 @@
 import { Locale } from '@agent-ic/contracts';
 import type { MockLink } from '@apollo/client/testing';
 import { TEST_AGENT_ID } from '@/features/testing/communication/fixtures/testing.fixture';
+import { HandBackDocument } from '@/features/testing/communication/gql/mutation/handBack.generated';
+import { ReplyAsOperatorDocument } from '@/features/testing/communication/gql/mutation/replyAsOperator.generated';
 import { RestartSimulationDocument } from '@/features/testing/communication/gql/mutation/restartSimulation.generated';
 import { SendSimulatorMessageDocument } from '@/features/testing/communication/gql/mutation/sendSimulatorMessage.generated';
 import { StartSimulationDocument } from '@/features/testing/communication/gql/mutation/startSimulation.generated';
@@ -53,10 +55,20 @@ export const ANSWERS = [
   message('msg_a2', MessageAuthor.Agent, 'Anything else?', 3),
 ];
 
+export const ESCALATION_QUESTION = message('msg_e', MessageAuthor.Customer, 'I want a manager.', 0);
+export const ESCALATION_MESSAGE = message(
+  'msg_e1',
+  MessageAuthor.Agent,
+  'Bringing in our manager.',
+  2,
+);
+export const OPERATOR_REPLY = message('msg_o', MessageAuthor.Operator, 'Hi, I am the manager.', 4);
+
 export const simulationMock = (
   messages: readonly ReturnType<typeof message>[],
   runStatus: RunStatus | null = RunStatus.Succeeded,
   errorMessage: string | null = null,
+  state: ConversationState = ConversationState.AgentActive,
 ): MockLink.MockedResponse => ({
   request: { query: SimulationDocument, variables: { agentId: TEST_AGENT_ID } },
   result: {
@@ -66,7 +78,7 @@ export const simulationMock = (
         conversation: {
           __typename: 'Conversation',
           id: TEST_CONVERSATION_ID,
-          state: ConversationState.AgentActive,
+          state,
         },
         messages,
         runs:
@@ -96,3 +108,34 @@ export const sendSimulatorMessageMock = (text: string): MockLink.MockedResponse 
   },
   result: { data: { sendSimulatorMessage: { __typename: 'Message', id: QUESTION.id } } },
 });
+
+export const replyAsOperatorMock = (text: string): MockLink.MockedResponse => ({
+  request: {
+    query: ReplyAsOperatorDocument,
+    variables: { input: { conversationId: TEST_CONVERSATION_ID, text } },
+  },
+  result: { data: { replyAsOperator: { __typename: 'Message', id: OPERATOR_REPLY.id } } },
+});
+
+const handBackRequest = {
+  query: HandBackDocument,
+  variables: { input: { conversationId: TEST_CONVERSATION_ID } },
+};
+
+export const failedHandBackMock: MockLink.MockedResponse = {
+  request: handBackRequest,
+  error: new Error('offline'),
+};
+
+export const handBackMock: MockLink.MockedResponse = {
+  request: handBackRequest,
+  result: {
+    data: {
+      handBack: {
+        __typename: 'Conversation',
+        id: TEST_CONVERSATION_ID,
+        state: ConversationState.AgentActive,
+      },
+    },
+  },
+};

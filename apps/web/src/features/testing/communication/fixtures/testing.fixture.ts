@@ -1,8 +1,79 @@
+import {
+  ChannelSelectionMode,
+  EscalationMode,
+  FLOW_SCHEMA_VERSION,
+  MessageContentKind,
+  NodeType,
+  NotifyChannel,
+  PortName,
+  QuickRepliesKind,
+  RecipientsKind,
+} from '@agent-ic/flow';
+import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import type { MockLink } from '@apollo/client/testing';
 import { TestingAgentsDocument } from '@/features/testing/communication/gql/query/testingAgents.generated';
 import { TestingVersionsDocument } from '@/features/testing/communication/gql/query/testingVersions.generated';
 import { TESTING_AGENTS_PAGE_SIZE } from '@/features/testing/constants/testing.constants';
 import { AgentVersionStatus, FlowIssueSeverity } from '@/shared/api/generated/schema.generated';
+
+export const TRIGGER_NODE_ID = 'node_trigger';
+export const REPLY_NODE_ID = 'node_reply';
+
+const TRACE_TRIGGER: FlowNode = {
+  id: TRIGGER_NODE_ID,
+  key: 'incoming',
+  label: 'Incoming message',
+  position: { x: 0, y: 0 },
+  type: NodeType.TriggerMessage,
+  config: { channels: { mode: ChannelSelectionMode.All } },
+};
+
+const TRACE_REPLY: FlowNode = {
+  id: REPLY_NODE_ID,
+  key: 'reply',
+  label: 'Send replies',
+  position: { x: 0, y: 0 },
+  type: NodeType.SendMessage,
+  config: {
+    content: { kind: MessageContentKind.Text, text: 'Hi' },
+    typing: true,
+    waitForDelivery: false,
+    quickReplies: { kind: QuickRepliesKind.None },
+  },
+};
+
+export const TRACE_FLOW: FlowDocument = {
+  schemaVersion: FLOW_SCHEMA_VERSION,
+  nodes: [TRACE_TRIGGER, TRACE_REPLY],
+  edges: [
+    { id: 'edge_1', source: TRIGGER_NODE_ID, sourcePort: PortName.Next, target: REPLY_NODE_ID },
+  ],
+};
+
+const TRACE_ESCALATION: FlowNode = {
+  id: REPLY_NODE_ID,
+  key: 'escalate',
+  label: 'Hand off to a person',
+  position: { x: 0, y: 0 },
+  type: NodeType.Escalation,
+  config: {
+    mode: EscalationMode.Escalate,
+    customerMessage: null,
+    reason: 'Asks for a manager',
+    notify: {
+      recipients: { kind: RecipientsKind.Operators },
+      channels: [NotifyChannel.InPlatform],
+    },
+    reminderAfterMinutes: null,
+    fallbackAfterMinutes: null,
+    fallbackMessage: '',
+  },
+};
+
+export const ESCALATION_TRACE_FLOW: FlowDocument = {
+  ...TRACE_FLOW,
+  nodes: [TRACE_TRIGGER, TRACE_ESCALATION],
+};
 
 export const TEST_AGENT_ID = 'agt_salon';
 export const TEST_AGENT_NAME = 'Salon assistant';
@@ -36,11 +107,13 @@ export const testingVersionsMock = (draftBroken = false): MockLink.MockedRespons
           id: LIVE_VERSION_ID,
           number: 3,
           status: AgentVersionStatus.Live,
+          flow: TRACE_FLOW,
         },
       ],
       agentDraft: {
         __typename: 'AgentDraft',
         issues: draftBroken ? [{ __typename: 'FlowIssue', severity: FlowIssueSeverity.Error }] : [],
+        version: { __typename: 'AgentVersion', flow: TRACE_FLOW },
       },
     },
   },

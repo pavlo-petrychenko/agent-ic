@@ -1,0 +1,6 @@
+mutation HandBack($input: HandBackInput!) {
+  handBack(input: $input) {
+    id
+    state
+  }
+}

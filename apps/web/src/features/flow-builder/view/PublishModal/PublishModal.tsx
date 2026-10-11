@@ -1,7 +1,10 @@
 import { AGENT_VERSION_NOTE_MAX_LENGTH } from '@agent-ic/contracts';
 import { useTranslation } from 'react-i18next';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
-import { CHECK_TILE } from '@/features/flow-builder/view/PublishModal/PublishModal.constants';
+import {
+  CHECK_TILE,
+  NOTE_ROWS,
+} from '@/features/flow-builder/view/PublishModal/PublishModal.constants';
 import type { PublishModalProps } from '@/features/flow-builder/view/PublishModal/PublishModal.typedefs';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
@@ -10,7 +13,7 @@ import { NodeTile, TileSize } from '@/shared/ui/display/NodeTile';
 import { RowList } from '@/shared/ui/display/RowList';
 import { Skeleton } from '@/shared/ui/display/Skeleton';
 import { Field } from '@/shared/ui/inputs/Field';
-import { Input } from '@/shared/ui/inputs/Input';
+import { Textarea } from '@/shared/ui/inputs/Textarea';
 import { Dialog, DialogSize } from '@/shared/ui/overlays/Dialog';
 import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/flow-builder/view/PublishModal/PublishModal.module.scss';
@@ -92,11 +95,7 @@ export function PublishModal({
             ) : (
               <ul className={styles.changes}>
                 {changes.map((change) => (
-                  <DiffLine
-                    key={change.id}
-                    sign={change.sign}
-                    signLabel={t(`publish.sign.${change.sign}`)}
-                  >
+                  <DiffLine key={change.id} sign={change.sign} signLabel={change.signLabel}>
                     {change.text}
                   </DiffLine>
                 ))}
@@ -134,8 +133,9 @@ export function PublishModal({
           </section>
           <Field label={t('publish.note')}>
             {(control) => (
-              <Input
+              <Textarea
                 {...control}
+                rows={NOTE_ROWS}
                 value={note}
                 maxLength={AGENT_VERSION_NOTE_MAX_LENGTH}
                 placeholder={t('publish.notePlaceholder')}
