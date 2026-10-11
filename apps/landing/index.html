@@ -14,6 +14,50 @@
   </head>
   <body>
     <a class="skip-link" href="#content">{{t.nav.skip}}</a>
+    <header class="header">
+      <div class="header__bar container">
+        <div class="header__start">
+          <a class="logo" href="{{page.path}}" aria-label="{{t.nav.home}}">
+            <span class="logo__mark" aria-hidden="true">
+              <svg class="icon"><use href="/icons.svg#logo" /></svg>
+            </span>
+            <span class="logo__name">agent-ic</span>
+          </a>
+          <nav class="header__nav" aria-label="{{t.nav.sections}}">
+            <a href="#how-it-works">{{t.nav.how}}</a>
+            <a href="#features">{{t.nav.features}}</a>
+          </nav>
+        </div>
+        <div class="header__end">
+          <nav class="language" aria-label="{{t.nav.language}}">
+            <a href="{{path.uk}}" hreflang="uk" lang="uk" aria-current="{{current.uk}}">УКР</a>
+            <a href="{{path.en}}" hreflang="en" lang="en" aria-current="{{current.en}}">EN</a>
+          </nav>
+          <a class="header__login" href="{{link.login}}">{{t.nav.logIn}}</a>
+          <a class="button button--primary button--md header__cta" href="{{link.signUp}}"
+            >{{t.actions.createBot}}</a
+          >
+          <button
+            class="menu-button"
+            type="button"
+            aria-expanded="false"
+            aria-controls="menu"
+            aria-label="{{t.nav.menu}}"
+            hidden
+          >
+            <svg class="icon" aria-hidden="true"><use href="/icons.svg#panel" /></svg>
+          </button>
+        </div>
+      </div>
+      <nav id="menu" class="menu" aria-label="{{t.nav.menu}}">
+        <a href="#how-it-works">{{t.nav.how}}</a>
+        <a href="#features">{{t.nav.features}}</a>
+        <a href="{{link.login}}">{{t.nav.logIn}}</a>
+        <a class="button button--primary button--lg" href="{{link.signUp}}"
+          >{{t.actions.createBot}}</a
+        >
+      </nav>
+    </header>
     <main id="content">
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero__inner container">

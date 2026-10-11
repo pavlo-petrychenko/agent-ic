@@ -1,0 +1,182 @@
+@use 'scale' as *;
+
+.header {
+  border-bottom: var(--border-width) solid var(--color-line);
+  background: var(--color-bg);
+
+  &__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: $header-height-mobile;
+
+    @include from($tablet) {
+      height: $header-height;
+    }
+  }
+
+  &__start {
+    display: flex;
+    align-items: center;
+    gap: $header-gap;
+  }
+
+  &__nav {
+    display: none;
+    gap: var(--space-28);
+    color: var(--color-ink-secondary);
+    font-size: $text-nav;
+
+    @include from($desktop) {
+      display: flex;
+    }
+  }
+
+  &__nav a:hover {
+    color: var(--color-ink);
+  }
+
+  &__end {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+
+    @include from($tablet) {
+      gap: var(--space-12);
+    }
+  }
+
+  &__login {
+    display: none;
+    color: var(--color-accent);
+    font-size: $text-login;
+    font-weight: 600;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--color-accent-dark);
+    }
+
+    @include from($desktop) {
+      display: inline;
+    }
+  }
+
+  &__cta {
+    display: none;
+
+    @include from($tablet) {
+      display: inline-flex;
+    }
+  }
+}
+
+.language {
+  display: inline-flex;
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-8);
+  background: var(--color-card);
+
+  a {
+    padding: var(--space-4) var(--space-7);
+    border-radius: var(--radius-8);
+    color: var(--color-mute);
+    font-size: $text-lang;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--color-ink);
+    }
+
+    &:focus-visible {
+      outline-offset: calc(-1 * var(--border-width-strong));
+    }
+  }
+
+  [aria-current='page'] {
+    background: var(--color-chip);
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+}
+
+.menu-button {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-md);
+  height: var(--size-control-md);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-8);
+  background: var(--color-card);
+  cursor: pointer;
+
+  &[hidden] {
+    display: none;
+  }
+
+  &[aria-expanded='true'] {
+    background: var(--color-chip);
+  }
+
+  svg {
+    width: $menu-icon;
+    height: $menu-icon;
+  }
+
+  @include from($desktop) {
+    display: none;
+  }
+}
+
+.menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-20);
+  padding: 0 $gutter-mobile var(--space-12);
+  font-size: $text-menu;
+
+  a:not(.button) {
+    display: flex;
+    align-items: center;
+    min-height: $touch-target;
+  }
+
+  .button {
+    display: none;
+  }
+
+  .has-menu & {
+    display: none;
+    flex-direction: column;
+    padding-top: var(--space-8);
+    border-top: var(--border-width) solid var(--color-line);
+    background: var(--color-panel);
+
+    @include from($tablet) {
+      padding-inline: $gutter;
+    }
+  }
+
+  .has-menu &.is-open {
+    display: flex;
+
+    .button {
+      display: inline-flex;
+      margin-top: var(--space-8);
+
+      @include from($tablet) {
+        display: none;
+      }
+    }
+  }
+
+  @include from($desktop) {
+    display: none;
+
+    .has-menu &.is-open {
+      display: none;
+    }
+  }
+}

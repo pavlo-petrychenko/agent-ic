@@ -422,6 +422,9 @@ importers:
       '@agent-ic/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
+      jsdom:
+        specifier: ^30.1.1
+        version: 30.1.1(@noble/hashes@1.8.0)
       sass-embedded:
         specifier: ^1.105.1
         version: 1.105.1

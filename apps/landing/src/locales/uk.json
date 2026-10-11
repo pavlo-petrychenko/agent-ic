@@ -5,7 +5,13 @@
   },
   "nav": {
     "skip": "Перейти до змісту",
-    "home": "agent-ic, головна"
+    "home": "agent-ic, головна",
+    "sections": "Розділи",
+    "how": "Як це працює",
+    "features": "Можливості",
+    "language": "Мова",
+    "menu": "Меню",
+    "logIn": "Увійти"
   },
   "actions": {
     "createBot": "Створити бота",
