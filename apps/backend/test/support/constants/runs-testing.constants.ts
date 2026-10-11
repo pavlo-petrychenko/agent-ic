@@ -1,6 +1,7 @@
 import { ErrorReason } from '@agent-ic/contracts';
 import { PortName } from '@agent-ic/flow';
 import { UNSUPPORTED_NODE_TYPE_MESSAGE } from '@/modules/runs/constants/run-error.constants';
+import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
 
 export const RUNS_TEST_START = new Date('2026-10-10T12:00:00.000Z');
 export const RUNS_TEST_LATER = new Date('2026-10-10T12:00:05.000Z');
@@ -67,3 +68,16 @@ export const TEST_SENT_REPLIES = ['We open at nine.', 'See you soon.'];
 export const TEST_QUICK_REPLIES = ['Book a table', 'Call us'];
 export const TEST_CUSTOMER_NOTICE = 'A person will answer "{{message.text}}" soon.';
 export const TEST_ESCALATION_REASON = 'Asked: {{message.text}}';
+export const OBSERVER_STEP_ID = 'node-observer';
+export const OBSERVER_STEP_KEY = 'tagger';
+export const PARALLEL_STEP_ID = 'node-parallel';
+export const PARALLEL_STEP_KEY = 'checks';
+export const TEST_COMPLETION_PROMPT = 'Classify this message: {{message.text}}';
+export const TEST_RENDERED_PROMPT = `Classify this message: ${TEST_MESSAGE_TEXT}`;
+export const TEST_PROMPT_REF = 'prompt-triage';
+export const TEST_UNKNOWN_MODEL = 'model-retired';
+export const TEST_INTENT_FIELD = 'intent';
+export const TEST_ORDER_INTENT = 'order';
+export const TEST_QUESTION_INTENT = 'question';
+export const TEST_ORDER_RULE_ID = 'rule-order';
+export const TEST_LLM_API_KEY = 'test-llmapi-key';

@@ -7,11 +7,13 @@ import { messageReceivedEvent } from '@/modules/conversations';
 import type { MessageReceivedPayload } from '@/modules/conversations';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
+import type { NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
 import { ROOT_BRANCH_KEY, STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import { startRunOnMessageJob } from '@/modules/runs/jobs/start-run-on-message.job';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { RunsModule } from '@/modules/runs/runs.module';
+import { CompletionExecutor } from '@/modules/runs/services/completion-executor.service';
 import { MessageTriggerExecutor } from '@/modules/runs/services/message-trigger-executor.service';
 import { ParallelExecutor } from '@/modules/runs/services/parallel-executor.service';
 import { RouterExecutor } from '@/modules/runs/services/router-executor.service';
@@ -27,6 +29,8 @@ import { DomainEventsService } from '@/platform/domain-events/services/domain-ev
 import { IdService } from '@/platform/ids/services/id.service';
 import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
 import { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';
+import { LLM_STEP_TIMEOUT_MS } from '@/platform/llm/constants/llm-gateway.constants';
+import type { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
@@ -55,6 +59,7 @@ import {
 import { newRun } from '@test/support/fixtures/runs.fixture';
 import { queuedEventsFor } from '@test/support/helpers/conversations-testing.helpers';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
+import { createLlmGateway } from '@test/support/helpers/llm-testing.helpers';
 import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.module';
 import type {
   ExecutableRun,
@@ -71,10 +76,13 @@ const ROLE = Role.Worker;
 
 export const createRunsTestbed = async (
   redisPrefix: TestRedisPrefix = TestRedisPrefix.Runs,
+  llm: LlmGateway | null = null,
 ): Promise<RunExecutionTestbed> => {
   const clock = new ManualClock(RUNS_TEST_START);
   const executor = new ScriptedStepExecutor(NodeType.Agent);
   const observer = new ScriptedStepExecutor(NodeType.Completion);
+  const completion = new CompletionExecutor(llm ?? createLlmGateway({}, LLM_STEP_TIMEOUT_MS));
+  const llmSteps = llm === null ? [observer] : [completion];
   const module = await createPlatformTestingModule(
     redisPrefix,
     [
@@ -89,14 +97,15 @@ export const createRunsTestbed = async (
     ],
     [
       { token: ClockService, value: clock },
+      { token: CompletionExecutor, value: completion },
       {
         token: STEP_EXECUTORS,
         value: [
           new MessageTriggerExecutor(),
           new RouterExecutor(),
           new ParallelExecutor(),
+          ...llmSteps,
           executor,
-          observer,
           new ScriptedStepExecutor(NodeType.Escalation),
         ],
       },
@@ -128,9 +137,15 @@ export const seedRun = async (
 export const seedExecutableRun = async (
   testbed: RunExecutionTestbed,
   flow: FlowDocument,
+  earlier: readonly Pick<NewMessage, 'author' | 'text'>[] = [],
 ): Promise<ExecutableRun> => {
   const workspaceId = testbed.ids.generate();
   const conversation = newConversation(testbed, workspaceId);
+  const history = earlier.map((overrides) => {
+    const seededMessage = newMessage(testbed, conversation, overrides);
+    testbed.clock.advanceBy(MESSAGE_SPACING_MS);
+    return seededMessage;
+  });
   const message = newMessage(testbed, conversation);
   const { agentId } = conversation;
   const run: NewRun = {
@@ -149,7 +164,9 @@ export const seedExecutableRun = async (
     await testbed.module.get(AgentsRepository).insert(newAgent(agentId, workspaceId));
     await testbed.module.get(AgentVersionsRepository).insert(version);
     await testbed.module.get(ConversationsRepository).insert(conversation);
-    await testbed.module.get(MessagesRepository).insertIfAbsent(message);
+    for (const seededMessage of [...history, message]) {
+      await testbed.module.get(MessagesRepository).insertIfAbsent(seededMessage);
+    }
     await testbed.runs.insert(run);
   });
   return { run, ctx: workspaceSystemCtx(workspaceId) };

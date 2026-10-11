@@ -8,13 +8,14 @@ import type {
 } from '@/modules/runs/typedefs/run-execution.typedefs';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 
-export const currentMessageText = (history: readonly Message[]): string => {
-  const lastOther = history.findLastIndex((message) => message.author !== MessageAuthor.Customer);
-  return history
-    .slice(lastOther + 1)
+export const currentMessageStart = (history: readonly Message[]): number =>
+  history.findLastIndex((message) => message.author !== MessageAuthor.Customer) + 1;
+
+export const currentMessageText = (history: readonly Message[]): string =>
+  history
+    .slice(currentMessageStart(history))
     .map((message) => message.text)
     .join(CURRENT_MESSAGE_SEPARATOR);
-};
 
 export const messageTriggerVariables = (
   conversation: Conversation,
