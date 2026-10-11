@@ -13,6 +13,7 @@ import type { LlmEmbeddingModel, LlmModel } from '@/platform/llm/typedefs/llm-mo
 export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   [LlmModelId.Gpt6Luna]: {
     id: LlmModelId.Gpt6Luna,
+    label: 'GPT-6 Luna',
     vendor: LlmVendor.OpenAi,
     purposes: [LlmPurpose.Conversation, LlmPurpose.Light],
     price: { inputUsdPerMillionTokens: 0.1, outputUsdPerMillionTokens: 0.5 },
@@ -31,6 +32,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   },
   [LlmModelId.Ministral14b]: {
     id: LlmModelId.Ministral14b,
+    label: 'Ministral 14B',
     vendor: LlmVendor.Mistral,
     purposes: [LlmPurpose.Conversation, LlmPurpose.Light],
     price: { inputUsdPerMillionTokens: 0.2, outputUsdPerMillionTokens: 0.2 },
@@ -43,6 +45,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   },
   [LlmModelId.ClaudeHaiku55]: {
     id: LlmModelId.ClaudeHaiku55,
+    label: 'Claude Haiku 5.5',
     vendor: LlmVendor.Anthropic,
     purposes: [LlmPurpose.Conversation, LlmPurpose.Light],
     price: { inputUsdPerMillionTokens: 0.1, outputUsdPerMillionTokens: 0.5 },
@@ -61,6 +64,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   },
   [LlmModelId.MimoV26Flash]: {
     id: LlmModelId.MimoV26Flash,
+    label: 'MiMo V2.6 Flash',
     vendor: LlmVendor.Xiaomi,
     purposes: [LlmPurpose.Conversation],
     price: { inputUsdPerMillionTokens: 0.14, outputUsdPerMillionTokens: 0.28 },
@@ -73,6 +77,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   },
   [LlmModelId.Gemma4]: {
     id: LlmModelId.Gemma4,
+    label: 'Gemma 4 26B',
     vendor: LlmVendor.Google,
     purposes: [LlmPurpose.Conversation, LlmPurpose.Light],
     price: { inputUsdPerMillionTokens: 0.13, outputUsdPerMillionTokens: 0.4 },
@@ -85,6 +90,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   },
   [LlmModelId.Glm53Flash]: {
     id: LlmModelId.Glm53Flash,
+    label: 'GLM-5.3 Flash',
     vendor: LlmVendor.Zhipu,
     purposes: [LlmPurpose.Conversation],
     price: { inputUsdPerMillionTokens: 0.15, outputUsdPerMillionTokens: 0.5 },
@@ -97,6 +103,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   },
   [LlmModelId.DeepSeekV41Flash]: {
     id: LlmModelId.DeepSeekV41Flash,
+    label: 'DeepSeek V4.1 Flash',
     vendor: LlmVendor.DeepSeek,
     purposes: [LlmPurpose.Conversation],
     price: { inputUsdPerMillionTokens: 0.3, outputUsdPerMillionTokens: 1.2 },

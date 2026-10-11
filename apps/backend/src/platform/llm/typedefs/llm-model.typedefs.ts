@@ -9,6 +9,15 @@ import type {
   LlmVendor,
 } from '@/platform/llm/constants/llm-model.constants';
 
+export type LlmChatVendor =
+  | LlmVendor.OpenAi
+  | LlmVendor.Anthropic
+  | LlmVendor.Mistral
+  | LlmVendor.Xiaomi
+  | LlmVendor.Google
+  | LlmVendor.Zhipu
+  | LlmVendor.DeepSeek;
+
 export interface LlmPrice {
   readonly inputUsdPerMillionTokens: number;
   readonly outputUsdPerMillionTokens: number;
@@ -16,7 +25,8 @@ export interface LlmPrice {
 
 export interface LlmModel {
   readonly id: LlmModelId;
-  readonly vendor: LlmVendor;
+  readonly label: string;
+  readonly vendor: LlmChatVendor;
   readonly purposes: readonly LlmPurpose[];
   readonly price: LlmPrice;
   readonly fallback: LlmModelId;

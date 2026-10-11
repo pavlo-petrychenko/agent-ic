@@ -10,6 +10,7 @@ import { AgentsRepository } from '@/modules/agents/repositories/agents.repositor
 import { agentDraftInputSchema } from '@/modules/agents/schemas/agent-input.schema';
 import { AgentFlowService } from '@/modules/agents/services/agent-flow.service';
 import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
+import { FlowReferenceChecksService } from '@/modules/agents/services/flow-reference-checks.service';
 import { SimulatorTestsReader } from '@/modules/agents/services/simulator-tests-reader.service';
 import type {
   PublishPreview,
@@ -27,6 +28,7 @@ export class PreviewAgentPublishUseCase {
     private readonly agents: AgentsRepository,
     private readonly versions: AgentVersionsRepository,
     private readonly flows: AgentFlowService,
+    private readonly references: FlowReferenceChecksService,
     private readonly views: AgentViewsService,
     private readonly ids: IdService,
     @Optional()
@@ -47,7 +49,10 @@ export class PreviewAgentPublishUseCase {
       if (draft === null) {
         throw new AgentVersionNotFoundError();
       }
-      const issues = this.flows.validate(draft.flow);
+      const issues = [
+        ...this.flows.validate(draft.flow),
+        ...(await this.references.check(workspaceId, draft.flow)),
+      ];
       const testedAt =
         (await this.simulatorTests?.lastTestedAt(workspaceId, agentId, draft.revision)) ?? null;
       return {

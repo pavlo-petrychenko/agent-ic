@@ -7,6 +7,7 @@ import { copyDraftToVersion } from '@/modules/agents/helpers/agent-version.helpe
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { AgentFlowService } from '@/modules/agents/services/agent-flow.service';
+import { FlowReferenceChecksService } from '@/modules/agents/services/flow-reference-checks.service';
 import type {
   AgentVersion,
   PublishRequest,
@@ -20,6 +21,7 @@ export class AgentPublishingService {
     private readonly agents: AgentsRepository,
     private readonly versions: AgentVersionsRepository,
     private readonly flows: AgentFlowService,
+    private readonly references: FlowReferenceChecksService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
@@ -40,7 +42,10 @@ export class AgentPublishingService {
     if (draft === null) {
       throw new AgentVersionNotFoundError();
     }
-    if (this.flows.hasBlockingIssues(this.flows.validate(draft.flow))) {
+    if (
+      this.flows.hasBlockingIssues(this.flows.validate(draft.flow)) ||
+      this.flows.hasBlockingIssues(await this.references.check(workspaceId, draft.flow))
+    ) {
       throw new AgentFlowHasBlockingIssuesError();
     }
     const now = this.clock.now();

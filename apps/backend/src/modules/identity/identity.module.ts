@@ -30,6 +30,7 @@ import { WorkspaceMembershipsService } from '@/modules/identity/services/workspa
 import { AcceptInviteUseCase } from '@/modules/identity/use-cases/accept-invite.use-case';
 import { CleanUpAuthRecordsUseCase } from '@/modules/identity/use-cases/clean-up-auth-records.use-case';
 import { ConfirmEmailUseCase } from '@/modules/identity/use-cases/confirm-email.use-case';
+import { CountMembersByRoleUseCase } from '@/modules/identity/use-cases/count-members-by-role.use-case';
 import { CreateWorkspaceUseCase } from '@/modules/identity/use-cases/create-workspace.use-case';
 import { ForgotPasswordUseCase } from '@/modules/identity/use-cases/forgot-password.use-case';
 import { GetInviteInfoUseCase } from '@/modules/identity/use-cases/get-invite-info.use-case';
@@ -85,6 +86,7 @@ export class IdentityModule extends defineModule({
     GetInviteInfoUseCase,
     AcceptInviteUseCase,
     ListMembersUseCase,
+    CountMembersByRoleUseCase,
     CleanUpAuthRecordsUseCase,
     RenameWorkspaceUseCase,
     UpdateMyLocaleUseCase,
