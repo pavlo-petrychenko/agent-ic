@@ -12,10 +12,7 @@ const streamOf = <TValue>(
 ): ChannelStream<TValue> => {
   const stream: ChannelStream<TValue> = {
     next,
-    return: async () => {
-      await stop();
-      return finished();
-    },
+    return: () => stop().then(finished),
     [Symbol.asyncIterator]: () => stream,
   };
   return stream;

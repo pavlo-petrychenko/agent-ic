@@ -11,8 +11,6 @@ const SDL = `
 
 const resolveNothing = (): null => null;
 
-async function* streamNothing(): AsyncGenerator<never, void, undefined> {}
-
 describe('findUnboundRootFields', () => {
   it('lists root fields without a resolver or a subscribe function and ignores other types', () => {
     const schema = buildSchema(SDL);
@@ -22,7 +20,7 @@ describe('findUnboundRootFields', () => {
     }
     const watched = schema.getSubscriptionType()?.getFields()['watched'];
     if (watched !== undefined) {
-      watched.subscribe = streamNothing;
+      watched.subscribe = resolveNothing;
     }
 
     expect(findUnboundRootFields(schema)).toEqual([

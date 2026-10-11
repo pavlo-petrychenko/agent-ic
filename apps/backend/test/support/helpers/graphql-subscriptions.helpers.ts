@@ -77,8 +77,7 @@ const seedUser = async (api: SubscriptionsApi): Promise<string> => {
 
 const accessTokenFor = async (api: SubscriptionsApi, userId: string): Promise<string> => {
   const sessionId = api.app.get(IdService).generate();
-  const { token } = await api.app.get(AccessTokenService).issue({ userId, sessionId });
-  return token;
+  return (await api.app.get(AccessTokenService).issue({ userId, sessionId })).token;
 };
 
 export const seedOwner = async (api: SubscriptionsApi): Promise<TestMember> => {
@@ -144,19 +143,17 @@ export const subscribeToRunSteps = (
       [ConnectionParam.WorkspaceId]: member.publicWorkspaceId,
     },
     retryAttempts: 0,
-    lazy: true,
   });
   const results = client.iterate({ query: RUN_STEPS_SUBSCRIPTION, variables: { runId } });
-  const close = async (): Promise<void> => {
-    await client.dispose();
-  };
-  return { next: () => results.next(), close };
+  return { next: () => results.next(), close: async () => client.dispose() };
 };
 
 export const waitForListener = (api: SubscriptionsApi, runId: string): Promise<void> =>
   vi.waitFor(async () => {
-    const { key } = channelFor(runStepsChannel, runId);
-    const channel = withRedisKeyPrefix(api.config.redis.keyPrefix, key);
+    const channel = withRedisKeyPrefix(
+      api.config.redis.keyPrefix,
+      channelFor(runStepsChannel, runId).key,
+    );
     const reply = await api.redis.pubsub('NUMSUB', channel);
     expect(Number(reply[SUBSCRIBERS_REPLY_COUNT_INDEX])).toBeGreaterThan(0);
   });

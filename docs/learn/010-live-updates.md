@@ -25,7 +25,7 @@ after-commit buffer --(commit)--> Redis PUBLISH
                        api process: one shared SUBSCRIBE connection
                                       |  fan out in memory
                                       v
-                       subscription resolver --> ChannelStream --> tab
+                       subscription resolver --> async generator --> tab
 ```
 
 1. **Define the channel.** `defineChannel({ name, schema })` names it and says what an event looks like. The schema holds flat values only: strings, numbers, booleans and null.
