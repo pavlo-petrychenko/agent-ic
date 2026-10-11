@@ -11,6 +11,13 @@ export {
   operatorsForType,
   pickRoute,
 } from '@flow/conditions/helpers/condition.helpers';
+export { diffFlows } from '@flow/diff/helpers/diff.helpers';
+export type {
+  FieldChange,
+  FlowDiff,
+  KeyRename,
+  NodeChange,
+} from '@flow/diff/typedefs/diff.typedefs';
 export {
   FIXED_PORT_NAMES,
   FLOW_SCHEMA_VERSION,
