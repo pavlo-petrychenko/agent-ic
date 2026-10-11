@@ -11,6 +11,7 @@ import { useDraftAutosave } from '@/features/flow-builder/containers/FlowBuilder
 import { FlowEditor } from '@/features/flow-builder/containers/FlowEditor';
 import { InspectorPanel } from '@/features/flow-builder/containers/InspectorPanel';
 import { IssuesPanel } from '@/features/flow-builder/containers/IssuesPanel';
+import { LastRunBar } from '@/features/flow-builder/containers/LastRunBar';
 import { LeaveGuard } from '@/features/flow-builder/containers/LeaveGuard';
 import { PublishDialog } from '@/features/flow-builder/containers/PublishDialog';
 import { StepPalettePanel } from '@/features/flow-builder/containers/StepPalettePanel';
@@ -191,6 +192,7 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
             )}
             <FlowEditor />
             <IssuesPanel />
+            <LastRunBar workspaceId={workspaceId} agentId={agentId} />
           </div>
           <InspectorPanel agentId={agentId} />
           <LeaveGuard />
