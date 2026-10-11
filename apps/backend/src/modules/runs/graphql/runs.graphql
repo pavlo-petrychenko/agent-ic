@@ -1,5 +1,17 @@
+extend type Query {
+  run(id: ID!): Run!
+}
+
 type Subscription {
   runSteps(runId: ID!): RunStepEvent!
+}
+
+enum RunStatus {
+  queued
+  running
+  succeeded
+  failed
+  escalated
 }
 
 enum RunStepStatus {
@@ -13,4 +25,46 @@ type RunStepEvent {
   stepId: ID!
   nodeId: String!
   status: RunStepStatus!
+}
+
+type RunFailure {
+  reason: String!
+  message: String!
+  nodeId: String
+}
+
+type RunTotals {
+  stepsRun: Int!
+  stepsInFlow: Int!
+  messagesSent: Int!
+}
+
+type RunStep {
+  id: ID!
+  nodeId: String!
+  nodeKey: String!
+  branchKey: String!
+  status: RunStepStatus!
+  attempt: Int!
+  output: JSON
+  port: String
+  error: RunFailure
+  startedAt: String!
+  finishedAt: String
+  durationMs: Int
+}
+
+type Run {
+  id: ID!
+  conversationId: ID!
+  agentId: ID!
+  versionId: ID!
+  status: RunStatus!
+  error: RunFailure
+  createdAt: String!
+  startedAt: String
+  finishedAt: String
+  durationMs: Int
+  totals: RunTotals!
+  steps: [RunStep!]!
 }

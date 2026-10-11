@@ -6,6 +6,7 @@ import { ExecuteRunProcessor } from '@/modules/runs/processors/execute-run.proce
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { RunStepsResolver } from '@/modules/runs/resolvers/run-steps.resolver';
+import { RunResolver } from '@/modules/runs/resolvers/run.resolver';
 import { AgentExecutor } from '@/modules/runs/services/agent-executor.service';
 import { ApiRequestExecutor } from '@/modules/runs/services/api-request-executor.service';
 import { CompletionExecutor } from '@/modules/runs/services/completion-executor.service';
@@ -16,10 +17,12 @@ import { RouterExecutor } from '@/modules/runs/services/router-executor.service'
 import { RunExecutionService } from '@/modules/runs/services/run-execution.service';
 import { RunLifecycleService } from '@/modules/runs/services/run-lifecycle.service';
 import { RunMessagesService } from '@/modules/runs/services/run-messages.service';
+import { RunViewsService } from '@/modules/runs/services/run-views.service';
 import { SendMessageExecutor } from '@/modules/runs/services/send-message-executor.service';
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
 import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedefs';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
+import { GetRunUseCase } from '@/modules/runs/use-cases/get-run.use-case';
 import { StartRunOnMessageUseCase } from '@/modules/runs/use-cases/start-run-on-message.use-case';
 import { SubscribeToRunStepsUseCase } from '@/modules/runs/use-cases/subscribe-to-run-steps.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
@@ -55,11 +58,13 @@ export class RunsModule extends defineModule({
     StepExecutorRegistry,
     RunExecutionService,
     RunLifecycleService,
+    RunViewsService,
     StartRunOnMessageUseCase,
     ExecuteRunUseCase,
     SubscribeToRunStepsUseCase,
+    GetRunUseCase,
   ],
-  resolvers: [RunStepsResolver],
+  resolvers: [RunStepsResolver, RunResolver],
   processors: [ExecuteRunProcessor],
   listeners: [StartRunOnMessageListener],
 }) {}

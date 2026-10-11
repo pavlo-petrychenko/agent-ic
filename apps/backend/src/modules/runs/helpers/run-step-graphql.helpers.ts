@@ -9,9 +9,12 @@ const GRAPHQL_RUN_STEP_STATUS: Readonly<Record<RunStepStatus, GraphqlRunStepStat
   [RunStepStatus.Failed]: GraphqlRunStepStatus.Failed,
 };
 
+export const toGraphqlRunStepStatus = (status: RunStepStatus): GraphqlRunStepStatus =>
+  GRAPHQL_RUN_STEP_STATUS[status];
+
 export const toGraphqlRunStepEvent = (update: RunStepUpdate): RunStepEvent => ({
   runId: update.runId,
   stepId: update.stepId,
   nodeId: update.nodeId,
-  status: GRAPHQL_RUN_STEP_STATUS[update.status],
+  status: toGraphqlRunStepStatus(update.status),
 });

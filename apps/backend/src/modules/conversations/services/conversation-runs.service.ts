@@ -60,6 +60,10 @@ export class ConversationRunsService {
     return this.messages.listCustomerAfter(workspaceId, conversationId, first);
   }
 
+  countRunMessages(workspaceId: string, runId: string): Promise<number> {
+    return this.messages.countByRun(workspaceId, runId);
+  }
+
   async recordOutbound(ctx: UseCaseCtx, input: OutboundMessageInput): Promise<Message> {
     const recorded = await this.messages.findByIdempotencyKey(input.workspaceId, input.key);
     if (recorded !== null) {
