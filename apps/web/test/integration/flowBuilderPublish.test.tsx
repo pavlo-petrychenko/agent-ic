@@ -1,6 +1,7 @@
 import { MessageContentKind, NodeType, PortName } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   DEMO_AGENT_ID,
@@ -56,11 +57,19 @@ describe('flow builder publish button', () => {
     expect(await publishButton(READY_FLOW, true)).toBeEnabled();
   });
 
-  it('is off when nothing changed since the live version', async () => {
-    expect(await publishButton(READY_FLOW, false)).toBeDisabled();
+  it('is off when nothing changed since the live version and says why', async () => {
+    const button = await publishButton(READY_FLOW, false);
+
+    expect(button).toBeDisabled();
+    await userEvent.hover(button);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Nothing changed since v3');
   });
 
-  it('is off while the flow has errors', async () => {
-    expect(await publishButton(TRIGGER_ONLY_FLOW, true)).toBeDisabled();
+  it('is off while the flow has errors and counts them', async () => {
+    const button = await publishButton(TRIGGER_ONLY_FLOW, true);
+
+    expect(button).toBeDisabled();
+    await userEvent.hover(button);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Fix 1 error to publish');
   });
 });
