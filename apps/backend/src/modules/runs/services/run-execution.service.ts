@@ -67,11 +67,7 @@ export class RunExecutionService {
       return walk.run.status;
     }
     return this.traces.run(runTraceTags(walk.run), async (traceId) => {
-      if (traceId !== null) {
-        await this.tenants.run(workspaceId, () =>
-          this.runs.setTraceId(workspaceId, runId, traceId),
-        );
-      }
+      await this.tenants.run(workspaceId, () => this.runs.setTraceId(workspaceId, runId, traceId));
       const walked = await this.walk(walk);
       const end = walked.status === RunStatus.Failed ? walked : (walk.ending ?? walked);
       await this.tenants.run(workspaceId, () => this.runs.finish(workspaceId, runId, end));

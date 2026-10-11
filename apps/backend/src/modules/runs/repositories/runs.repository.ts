@@ -43,7 +43,7 @@ export class RunsRepository {
     return started.length > 0;
   }
 
-  async setTraceId(workspaceId: string, id: string, traceId: string): Promise<void> {
+  async setTraceId(workspaceId: string, id: string, traceId: string | null): Promise<void> {
     await this.txHost.tx
       .update(runs)
       .set({ traceId })

@@ -84,6 +84,21 @@ describe('RunsRepository', () => {
     });
   });
 
+  it('replaces the trace id of a run, clearing it for an attempt without a trace', async () => {
+    const { id, workspaceId } = await seedRun(testbed);
+    const sampled = testbed.ids.generate();
+
+    const outcome = await testbed.tenants.run(workspaceId, async () => {
+      await testbed.runs.setTraceId(workspaceId, id, sampled);
+      const traced = await testbed.runs.findById(workspaceId, id);
+      await testbed.runs.setTraceId(workspaceId, id, null);
+      const untraced = await testbed.runs.findById(workspaceId, id);
+      return { traced: traced?.traceId, untraced: untraced?.traceId };
+    });
+
+    expect(outcome).toEqual({ traced: sampled, untraced: null });
+  });
+
   describe('across tenants', () => {
     it('never shows, starts or ends the run of another workspace', async () => {
       const { id, workspaceId } = await seedRun(testbed);
