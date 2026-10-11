@@ -6,6 +6,7 @@ export interface StartedSimulation {
   readonly agentId: string;
   readonly draftId: string;
   readonly versionId: string | null;
+  readonly conversationId: string;
   readonly publicAgentId: string;
   readonly ctx: UseCaseCtx;
   readonly simulation: SimulationView;

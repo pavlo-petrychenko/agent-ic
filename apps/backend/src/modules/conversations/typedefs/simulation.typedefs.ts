@@ -5,6 +5,8 @@ import type {
 } from '@/modules/conversations/constants/conversation.constants';
 import type { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import type {
+  operatorConversationSchema,
+  operatorReplySchema,
   simulationAgentSchema,
   simulatorMessageSchema,
   startSimulationSchema,
@@ -13,6 +15,10 @@ import type {
 export type SimulationAgentInput = z.input<typeof simulationAgentSchema>;
 
 export type SimulatorMessageInput = z.input<typeof simulatorMessageSchema>;
+
+export type OperatorReplyInput = z.input<typeof operatorReplySchema>;
+
+export type OperatorConversationInput = z.input<typeof operatorConversationSchema>;
 
 export type StartSimulationInput = z.input<typeof startSimulationSchema>;
 

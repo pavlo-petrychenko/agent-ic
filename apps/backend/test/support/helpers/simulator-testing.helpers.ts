@@ -22,5 +22,15 @@ export const startTestSimulation = async (
     channelKind: ChannelKind.Simulated,
     language: null,
   });
-  return { workspaceId, agentId, draftId, versionId, publicAgentId, ctx, simulation };
+  const conversationId = testbed.ids.fromPublic(IdPrefix.Conversation, simulation.conversation.id);
+  return {
+    workspaceId,
+    agentId,
+    draftId,
+    versionId,
+    conversationId,
+    publicAgentId,
+    ctx,
+    simulation,
+  };
 };

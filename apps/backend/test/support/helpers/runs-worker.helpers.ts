@@ -41,10 +41,13 @@ import type {
   WorkerAgent,
 } from '@test/support/typedefs/runs-testing.typedefs';
 
-export const createRunsWorker = async (llmBaseUrl: string): Promise<RunsWorker> => {
+export const createRunsWorker = async (
+  llmBaseUrl: string,
+  redisPrefix: TestRedisPrefix = TestRedisPrefix.RunsWorker,
+): Promise<RunsWorker> => {
   const config = createIntegrationConfig(
     { role: Role.Worker, queues: Object.values(QueueName) },
-    TestRedisPrefix.RunsWorker,
+    redisPrefix,
     { [EnvVar.LlmBaseUrl]: llmBaseUrl, [EnvVar.LlmApiKey]: TEST_LLM_API_KEY },
   );
   const tracing = new TracingService(config.telemetry);

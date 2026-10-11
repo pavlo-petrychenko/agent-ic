@@ -113,7 +113,7 @@ export class SimulationsService {
     return this.messageView(message);
   }
 
-  private conversationView(conversation: Conversation): ConversationView {
+  conversationView(conversation: Conversation): ConversationView {
     const { simulationVersionId } = conversation;
     return {
       id: this.ids.toPublic(IdPrefix.Conversation, conversation.id),
@@ -128,7 +128,7 @@ export class SimulationsService {
     };
   }
 
-  private messageView(message: Message): MessageView {
+  messageView(message: Message): MessageView {
     return {
       id: this.ids.toPublic(IdPrefix.Message, message.id),
       author: message.author,
