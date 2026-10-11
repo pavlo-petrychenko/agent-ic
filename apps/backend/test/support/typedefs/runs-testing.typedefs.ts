@@ -1,4 +1,11 @@
+import type { INestApplication } from '@nestjs/common';
 import type { TestingModule } from '@nestjs/testing';
+import type { AgentRuntimeReader } from '@/modules/agents';
+import type { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
+import type { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
+import type { SimulatedChannelAdapter } from '@/modules/channels';
+import type { IncomingMessagesService } from '@/modules/conversations';
+import type { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import type {
   Conversation,
   NewConversation,
@@ -9,6 +16,7 @@ import type { RunsRepository } from '@/modules/runs/repositories/runs.repository
 import type { RunExecutionService } from '@/modules/runs/services/run-execution.service';
 import type { NewRun, Run } from '@/modules/runs/typedefs/run.typedefs';
 import type { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
+import type { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import type { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import type { IdService } from '@/platform/ids/services/id.service';
@@ -62,4 +70,32 @@ export interface LifecycleState {
 export interface RunChat {
   readonly conversation: Conversation | null;
   readonly messages: readonly (Message | null)[];
+}
+
+export interface RunsWorker {
+  readonly app: INestApplication;
+  readonly ids: IdService;
+  readonly clock: ClockService;
+  readonly tenants: TenantTransactionService;
+  readonly agents: AgentsRepository;
+  readonly versions: AgentVersionsRepository;
+  readonly reader: AgentRuntimeReader;
+  readonly incoming: IncomingMessagesService;
+  readonly conversations: ConversationsRepository;
+  readonly runs: RunsRepository;
+  readonly steps: RunStepsRepository;
+  readonly simulated: SimulatedChannelAdapter;
+  readonly queues: QueuesService;
+}
+
+export interface WorkerAgent {
+  readonly workspaceId: string;
+  readonly agentId: string;
+  readonly versionId: string | null;
+}
+
+export interface SettledConversation {
+  readonly conversation: Conversation;
+  readonly run: Run | null;
+  readonly sent: readonly string[];
 }
