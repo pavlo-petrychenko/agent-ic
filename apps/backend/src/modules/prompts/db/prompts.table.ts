@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { index, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { index, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { promptFolders, promptsSchema } from '@/modules/prompts/db/prompt-folders.table';
 import {
@@ -23,7 +23,7 @@ export const prompts = promptsSchema
       deletedAt: timestamp('deleted_at', { withTimezone: true }),
     },
     (table) => [
-      uniqueIndex('prompts_workspace_id_id_key').on(table.workspaceId, table.id),
+      unique('prompts_workspace_id_id_key').on(table.workspaceId, table.id),
       uniqueIndex('prompts_workspace_id_lower_name_key')
         .on(table.workspaceId, sql`lower(${table.name})`)
         .where(sql`${table.deletedAt} is null`),
