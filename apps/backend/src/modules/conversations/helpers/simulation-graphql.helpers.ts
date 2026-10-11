@@ -55,4 +55,5 @@ export const toGraphqlMessage = (message: MessageView): Message => ({
 export const toGraphqlSimulation = (simulation: SimulationView): Simulation => ({
   conversation: toGraphqlConversation(simulation.conversation),
   messages: simulation.messages.map(toGraphqlMessage),
+  runs: [],
 });

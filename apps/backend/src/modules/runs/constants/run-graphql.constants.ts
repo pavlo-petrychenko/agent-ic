@@ -6,3 +6,8 @@ export enum RunGraphqlArgument {
   RunId = 'runId',
   Id = 'id',
 }
+
+export enum RunGraphqlParent {
+  Agent = 'Agent',
+  Simulation = 'Simulation',
+}

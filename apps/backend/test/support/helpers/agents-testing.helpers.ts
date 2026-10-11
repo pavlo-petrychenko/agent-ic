@@ -6,7 +6,10 @@ import { AgentsModule } from '@/modules/agents/agents.module';
 import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
-import type { AgentVersion } from '@/modules/agents/typedefs/agent-version.typedefs';
+import type {
+  AgentVersion,
+  NewAgentVersion,
+} from '@/modules/agents/typedefs/agent-version.typedefs';
 import type { Agent } from '@/modules/agents/typedefs/agent.typedefs';
 import {
   ChannelKind,
@@ -81,9 +84,10 @@ export const seedPublishedVersion = async (
   testingModule: TestingModule,
   workspaceId: string,
   agentId: string,
+  version: Partial<NewAgentVersion> = {},
 ): Promise<string> => {
   const versionId = testingModule.get(IdService).generate();
-  const published = { kind: AgentVersionKind.Published, number: TEST_PUBLISHED_NUMBER };
+  const published = { kind: AgentVersionKind.Published, number: TEST_PUBLISHED_NUMBER, ...version };
   await testingModule
     .get(TenantTransactionService)
     .run(workspaceId, () =>

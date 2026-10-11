@@ -1,7 +1,15 @@
 import { RunStatus } from '@/modules/runs/constants/run.constants';
 import { toGraphqlRunStepStatus } from '@/modules/runs/helpers/run-step-graphql.helpers';
-import type { RunStepView, RunView } from '@/modules/runs/typedefs/run-details.typedefs';
-import type { Run, RunStep } from '@/platform/graphql-server/generated/schema.generated';
+import type {
+  RunStepView,
+  RunView,
+  SimulationRunSummary,
+} from '@/modules/runs/typedefs/run-details.typedefs';
+import type {
+  Run,
+  RunStep,
+  SimulationRunSummary as GraphqlSimulationRunSummary,
+} from '@/platform/graphql-server/generated/schema.generated';
 import { RunStatus as GraphqlRunStatus } from '@/platform/graphql-server/generated/schema.generated';
 
 const GRAPHQL_RUN_STATUS: Readonly<Record<RunStatus, GraphqlRunStatus>> = {
@@ -26,4 +34,12 @@ export const toGraphqlRun = (run: RunView): Run => ({
   startedAt: run.startedAt?.toISOString() ?? null,
   finishedAt: run.finishedAt?.toISOString() ?? null,
   steps: run.steps.map(toGraphqlRunStep),
+});
+
+export const toGraphqlSimulationRunSummary = (
+  summary: SimulationRunSummary,
+): GraphqlSimulationRunSummary => ({
+  ...summary,
+  status: GRAPHQL_RUN_STATUS[summary.status],
+  finishedAt: summary.finishedAt?.toISOString() ?? null,
 });

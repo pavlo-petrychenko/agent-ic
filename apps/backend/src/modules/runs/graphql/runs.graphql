@@ -68,3 +68,18 @@ type Run {
   totals: RunTotals!
   steps: [RunStep!]!
 }
+
+extend type Agent {
+  lastSimulationRun: SimulationRunSummary
+}
+
+extend type Simulation {
+  runs: [Run!]!
+}
+
+type SimulationRunSummary {
+  id: ID!
+  status: RunStatus!
+  finishedAt: String
+  draftRevision: Int
+}

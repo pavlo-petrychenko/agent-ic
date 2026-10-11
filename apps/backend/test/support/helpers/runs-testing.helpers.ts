@@ -58,7 +58,7 @@ import {
   newMessage,
   workspaceSystemCtx,
 } from '@test/support/fixtures/conversation.fixture';
-import { newRun } from '@test/support/fixtures/runs.fixture';
+import { newRun, triggerOnlyFlow } from '@test/support/fixtures/runs.fixture';
 import { queuedEventsFor } from '@test/support/helpers/conversations-testing.helpers';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 import {
@@ -154,7 +154,7 @@ export const seedExecutableRun = async (
   mode: ConversationMode = ConversationMode.Live,
 ): Promise<ExecutableRun> => {
   const workspaceId = testbed.ids.generate();
-  const conversation = newConversation(testbed, workspaceId);
+  const conversation = { ...newConversation(testbed, workspaceId), mode };
   const history = earlier.map((overrides) => {
     const seededMessage = newMessage(testbed, conversation, overrides);
     testbed.clock.advanceBy(MESSAGE_SPACING_MS);
@@ -186,6 +186,9 @@ export const seedExecutableRun = async (
   });
   return { run, ctx: workspaceSystemCtx(workspaceId) };
 };
+
+export const seedSimulationRun = (testbed: RunExecutionTestbed): Promise<ExecutableRun> =>
+  seedExecutableRun(testbed, triggerOnlyFlow(), [], ConversationMode.Simulation);
 
 export const createRunLifecycleTestbed = async (
   redisPrefix: TestRedisPrefix,

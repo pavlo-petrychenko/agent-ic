@@ -85,6 +85,7 @@ export const toGraphqlAgent = (agent: AgentView): Agent => ({
   awayMessage: agent.awayMessage,
   createdAt: agent.createdAt.toISOString(),
   updatedAt: agent.updatedAt.toISOString(),
+  lastSimulationRun: null,
 });
 
 export const toGraphqlAgentConnection = (page: AgentsPage): AgentConnection => ({

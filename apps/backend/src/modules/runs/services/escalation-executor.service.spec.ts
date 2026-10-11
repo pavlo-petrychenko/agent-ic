@@ -24,6 +24,7 @@ import {
   createRunsTestbed,
   readRunChat,
   seedExecutableRun,
+  seedSimulationRun,
   stepExecutionOf,
 } from '@test/support/helpers/runs-testing.helpers';
 import type { RunExecutionTestbed } from '@test/support/typedefs/runs-testing.typedefs';
@@ -90,6 +91,17 @@ describe('EscalationExecutor', () => {
     expect(emitted(outboundQueuedEvent)).toHaveLength(1);
     expect(emitted(needsOperatorEvent)).toHaveLength(1);
     expect(emitted(runEscalatedEvent)).toHaveLength(1);
+  });
+
+  it('names who would be notified in a simulation, without notifying anyone', async () => {
+    const seeded = await seedSimulationRun(testbed);
+    const execution = await stepExecutionOf(testbed, seeded, escalateNode(), {});
+
+    const outcome = await executor.execute(execution);
+
+    expect(outcome.output['wouldNotify']).toEqual([]);
+    expect(emitted(needsOperatorEvent)).toEqual([]);
+    expect(emitted(runEscalatedEvent)).toMatchObject([{ mode: ConversationMode.Simulation }]);
   });
 
   it('sends the text and closes the conversation when the step ends the chat', async () => {

@@ -23,3 +23,18 @@ export interface RunView extends Omit<
   readonly totals: RunTotals;
   readonly steps: readonly RunStepView[];
 }
+
+export interface SimulationRunsInput {
+  readonly conversationId: string;
+}
+
+export interface LastSimulationRunInput {
+  readonly agentId: string;
+}
+
+export interface SimulationRunSummary {
+  readonly id: string;
+  readonly status: Run['status'];
+  readonly finishedAt: Date | null;
+  readonly draftRevision: number | null;
+}
