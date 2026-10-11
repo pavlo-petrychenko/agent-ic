@@ -8,7 +8,9 @@ import {
   MAX_OUTPUT_FIELDS,
   NodeType,
   PortName,
+  MessageContentKind,
   PromptSourceKind,
+  QuickRepliesKind,
   RuleMatch,
   OutputFieldType,
   WaitFor,
@@ -452,5 +454,71 @@ describe('InspectorPanel', () => {
     });
     expect(store().document.edges.map((edge) => edge.id)).not.toContain('e5');
     expect(screen.getByRole('button', { name: 'Remove result' })).toBeDisabled();
+  });
+
+  it('sends an agent list one item at a time with buttons under it', async () => {
+    const user = userEvent.setup();
+    open('reply', AI_FLOW);
+
+    await user.click(screen.getByRole('radio', { name: 'From a list' }));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'List to send' }),
+      'agent.messages',
+    );
+    await user.click(screen.getByRole('switch', { name: 'Show “typing…” before each message' }));
+    expect(screen.getByText(/No quick replies/)).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Add buttons' }));
+    await user.click(screen.getByRole('button', { name: 'Add button' }));
+    await user.clear(screen.getByRole('textbox', { name: 'Button 2' }));
+    await user.type(screen.getByRole('textbox', { name: 'Button 2' }), 'No');
+    await user.tab();
+
+    expect(node('reply')).toMatchObject({
+      config: {
+        content: { kind: MessageContentKind.List, variable: 'agent.messages' },
+        typing: false,
+        quickReplies: { kind: QuickRepliesKind.Static, buttons: ['Yes', 'No'] },
+      },
+    });
+    const preview = screen.getByRole('region', { name: 'Preview' });
+    expect(within(preview).getByText('One message per item of agent.messages')).toBeVisible();
+    expect(within(preview).getByRole('button', { name: 'No' })).toBeDisabled();
+  });
+
+  it('cuts a quick-reply label to the longest label the flow allows', async () => {
+    const user = userEvent.setup();
+    const longest = 'x'.repeat(MAX_LABEL_LENGTH);
+    open('reply', AI_FLOW);
+
+    await user.click(screen.getByRole('button', { name: 'Add buttons' }));
+    const label = screen.getByRole('textbox', { name: 'Button 1' });
+    await user.clear(label);
+    await user.type(label, `${longest}x`);
+    await user.tab();
+
+    expect(node('reply')).toMatchObject({ config: { quickReplies: { buttons: [longest] } } });
+  });
+
+  it('writes the message text and takes buttons from a field', async () => {
+    const user = userEvent.setup();
+    open('reply', AI_FLOW);
+
+    await user.type(screen.getByRole('textbox', { name: 'Message text' }), 'Hello there');
+    await user.tab();
+    await user.click(screen.getByRole('button', { name: 'Add buttons' }));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Where the buttons come from' }),
+      'From a field',
+    );
+
+    expect(node('reply')).toMatchObject({
+      config: {
+        content: { kind: MessageContentKind.Text, text: 'Hello there' },
+        quickReplies: { kind: QuickRepliesKind.Variable, variable: 'agent.messages' },
+      },
+    });
+    expect(
+      within(screen.getByRole('region', { name: 'Preview' })).getByText('Hello there'),
+    ).toBeVisible();
   });
 });

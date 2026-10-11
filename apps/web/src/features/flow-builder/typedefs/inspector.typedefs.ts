@@ -62,4 +62,5 @@ export type DescribedNodeType =
   | NodeType.Agent
   | NodeType.Completion
   | NodeType.Router
-  | NodeType.Parallel;
+  | NodeType.Parallel
+  | NodeType.SendMessage;
