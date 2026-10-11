@@ -7,6 +7,7 @@ import {
   DRAFT_INITIAL_REVISION,
 } from '@/modules/agents/constants/agent.constants';
 import { agentVersions } from '@/modules/agents/db/agent-versions.table';
+import { StoredFlowUnreadableError } from '@/modules/agents/errors/stored-flow-unreadable.error';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -172,6 +173,24 @@ describe('AgentVersionsRepository', () => {
     });
 
     expect(draft?.flow).toEqual(triggerFlow());
+  });
+
+  it('refuses a stored flow it cannot read', async () => {
+    const workspaceId = ids.generate();
+    const agentId = await insertAgent(workspaceId);
+    const versionId = await insertVersion(workspaceId, agentId, AgentVersionKind.Draft);
+    const storedFlow = JSON.stringify({ ...triggerFlow(), nodes: TEST_VERSION_NOTE });
+    const txHost = testingModule.get<TransactionHost<AppTransactionAdapter>>(TransactionHost);
+
+    const read = tenants.run(workspaceId, async () => {
+      await txHost.tx
+        .update(agentVersions)
+        .set({ flow: sql`${storedFlow}::jsonb` })
+        .where(eq(agentVersions.id, versionId));
+      return repository.findById(workspaceId, versionId);
+    });
+
+    await expect(read).rejects.toBeInstanceOf(StoredFlowUnreadableError);
   });
 
   it('lists the versions of one agent, newest first', async () => {
