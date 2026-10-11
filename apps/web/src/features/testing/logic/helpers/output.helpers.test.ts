@@ -22,6 +22,7 @@ describe('toOutputView', () => {
 
   it('shows nothing for a step without output', () => {
     expect(toOutputView(null)).toBeNull();
+    expect(toOutputView({})).toBeNull();
   });
 });
 

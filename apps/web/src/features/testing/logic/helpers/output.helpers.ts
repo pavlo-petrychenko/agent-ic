@@ -14,7 +14,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 export const toOutputView = (output: unknown): OutputView | null => {
-  if (output === null) {
+  if (output === null || (isRecord(output) && Object.keys(output).length === 0)) {
     return null;
   }
   if (isRecord(output) && Object.values(output).every(isPlainValue)) {
