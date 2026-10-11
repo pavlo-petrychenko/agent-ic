@@ -47,7 +47,7 @@ describe('toChatItems', () => {
       [ChatItemKind.Message, 'm4'],
       [ChatItemKind.Turn, 'r2'],
     ]);
-    expect(items[1]).toMatchObject({ messages: [{ id: 'm2' }, { id: 'm3' }], run: { id: 'r1' } });
+    expect(items[1]).toMatchObject({ messages: [{ id: 'm2' }, { id: 'm3' }], failed: false });
   });
 
   it('places a finished turn without messages after the message that started it', () => {
@@ -63,6 +63,7 @@ describe('toChatItems', () => {
     );
 
     expect(items.map((item) => item.id)).toEqual(['m1', 'r1', 'm2']);
+    expect(items[1]).toMatchObject({ messages: [], failed: true });
   });
 });
 

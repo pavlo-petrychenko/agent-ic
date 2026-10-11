@@ -16,8 +16,39 @@
     "unpublished": "unpublished",
     "live": "live"
   },
+  "setup": {
+    "channel": "Simulated channel",
+    "language": "User language"
+  },
+  "channels": {
+    "simulated": "Simulated",
+    "telegram": "Telegram",
+    "api": "API"
+  },
+  "languages": {
+    "uk": "Ukrainian",
+    "en": "English"
+  },
+  "chat": {
+    "label": "Test conversation",
+    "you": "You",
+    "operator": "Operator",
+    "turn_one": "{{name}} · {{count}} message",
+    "turn_other": "{{name}} · {{count}} messages",
+    "typing": "{{name}} is typing…",
+    "failed": "This turn failed",
+    "emptyTitle": "Say hi to your agent",
+    "emptyDescription": "Messages you send here run the selected version. Customers never see them."
+  },
+  "composer": {
+    "label": "Message as the test user",
+    "placeholder": "Write as the test user…",
+    "send": "Send"
+  },
+  "reset": "Reset conversation",
   "loading": "Loading the simulator…",
   "loadError": "Couldn't load the simulator",
+  "startError": "Couldn't start the simulation",
   "retry": "Retry",
   "note": "Draft runs here only — customers keep talking to the live version until you publish.",
   "noAgents": {

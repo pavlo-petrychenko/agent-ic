@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSimulator } from '@/features/testing/communication/hooks/useSimulator';
 import { useTestingAgents } from '@/features/testing/communication/hooks/useTestingAgents';
 import { useTestingVersions } from '@/features/testing/communication/hooks/useTestingVersions';
 import {
@@ -12,15 +13,26 @@ import {
   VERSIONS_PATH,
 } from '@/features/testing/constants/testing.constants';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
+import { ChatPanel } from '@/features/testing/containers/ChatPanel';
 import type { TestingPageProps } from '@/features/testing/containers/TestingPage/TestingPage.typedefs';
 import { pickAgent } from '@/features/testing/logic/helpers/agent.helpers';
-import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { latestRunId } from '@/features/testing/logic/helpers/chat.helpers';
+import {
+  isSimulatorChannel,
+  isSimulatorLanguage,
+} from '@/features/testing/logic/helpers/setup.helpers';
+import { ChannelKind } from '@/shared/api/generated/schema.generated';
+import { toAppError } from '@/shared/api/helpers/appError.helpers';
+import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
+import { useLocale } from '@/shared/i18n/hooks/useLocale';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { Skeleton } from '@/shared/ui/display/Skeleton';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { SelectButton } from '@/shared/ui/inputs/SelectButton';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
 import { Tabs } from '@/shared/ui/navigation/Tabs';
+import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 import styles from '@/features/testing/containers/TestingPage/TestingPage.module.scss';
 
 export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
@@ -34,6 +46,28 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
   const versionsResult = useTestingVersions(agent?.id ?? null);
   const { versions, draftBroken, loading: versionsLoading } = versionsResult;
   const blocked = versionId === null && draftBroken;
+  const { locale } = useLocale();
+  const [channelKind, setChannelKind] = useState(ChannelKind.Simulated);
+  const [language, setLanguage] = useState(locale);
+  const simulator = useSimulator(agent === null || versionsLoading || blocked ? null : agent.id, {
+    versionId,
+    channelKind,
+    language,
+  });
+  const [selected, setSelected] = useState<string | null>(null);
+  const runs = simulator.conversation?.runs ?? [];
+  const selectedRunId = runs.some((run) => run.id === selected) ? selected : latestRunId(runs);
+  const errorMessage = useErrorMessage();
+  const { showToast } = useToast();
+
+  const reset = async () => {
+    try {
+      await simulator.restart();
+      setSelected(null);
+    } catch (error) {
+      showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
+    }
+  };
 
   const draftOption = {
     id: DRAFT_VERSION_OPTION,
@@ -139,6 +173,16 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
                 selectedId={versionChoice}
                 onSelect={(id) => setChoice({ agentId: agent.id, versionId: id })}
               />
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Sm}
+                icon={IconName.Refresh}
+                loading={simulator.restarting}
+                disabled={simulator.conversation === null}
+                onClick={() => void reset()}
+              >
+                {t('reset')}
+              </Button>
             </div>
           )
         }
@@ -157,8 +201,18 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
           }
         />
       </div>
-      {notReady === null ? (
+      {notReady === null && agent !== null ? (
         <div className={styles.body}>
+          <ChatPanel
+            agentName={agent.name}
+            simulator={simulator}
+            channelKind={channelKind}
+            language={language}
+            onChannelKindChange={(value) => isSimulatorChannel(value) && setChannelKind(value)}
+            onLanguageChange={(value) => isSimulatorLanguage(value) && setLanguage(value)}
+            selectedRunId={selectedRunId}
+            onSelectRun={setSelected}
+          />
           <p className={styles.note}>{t('note')}</p>
         </div>
       ) : (

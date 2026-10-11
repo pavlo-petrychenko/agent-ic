@@ -1,5 +1,5 @@
 import type { Locale } from '@agent-ic/contracts';
-import type { ChatItemKind } from '@/features/testing/constants/simulator.constants';
+import type { ChatItemKind, ChatSpeaker } from '@/features/testing/constants/simulator.constants';
 import type {
   ChannelKind,
   MessageAuthor,
@@ -37,15 +37,17 @@ export interface ChatMessageItem {
   kind: ChatItemKind.Message;
   id: string;
   at: string;
-  message: SimulatorMessage;
+  speaker: ChatSpeaker;
+  text: string;
 }
 
 export interface ChatTurnItem {
   kind: ChatItemKind.Turn;
   id: string;
   at: string;
-  run: SimulatorRun | null;
   messages: readonly SimulatorMessage[];
+  failed: boolean;
+  errorMessage: string | null;
 }
 
 export type ChatItem = ChatMessageItem | ChatTurnItem;
