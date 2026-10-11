@@ -40,7 +40,7 @@ export function FlowEditor() {
   const issues = useFlowIssues();
   const { select, setViewport, setDensity } = useFlowBuilderStore();
 
-  const models = useModelOptions(
+  const { models } = useModelOptions(
     !document.nodes.some((node) => LLM_STEP_TYPES.some((type) => type === node.type)),
   );
 

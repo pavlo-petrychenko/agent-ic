@@ -7,7 +7,7 @@ import { addNode } from '@/features/flow-builder/logic/helpers/graphEdit.helpers
 import { nodeSummary, portLabel } from '@/features/flow-builder/logic/helpers/nodeSummary.helpers';
 import type { AddableNodeType } from '@/features/flow-builder/typedefs/graphEdit.typedefs';
 import type { ModelChoice } from '@/features/flow-builder/typedefs/llmStep.typedefs';
-import { ModelVendor } from '@/shared/api/generated/schema.generated';
+import { ModelSource, ModelVendor } from '@/shared/api/generated/schema.generated';
 
 const stepOf = (type: AddableNodeType): FlowNode => {
   const [node] = addNode(EMPTY_FLOW, type, { x: 0, y: 0 }, 'n').nodes;
@@ -23,6 +23,7 @@ const HAIKU: ModelChoice = {
   id: 'claude-haiku-5-5',
   label: 'Claude Haiku 5.5',
   vendor: ModelVendor.Anthropic,
+  source: ModelSource.Platform,
   purposes: [],
   reasoningLevels: [],
   defaultReasoningLevel: null,
