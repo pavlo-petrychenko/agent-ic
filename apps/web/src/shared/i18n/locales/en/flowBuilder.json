@@ -244,6 +244,22 @@
         "ignored": "ignored"
       },
       "available": "Available in the flow"
+    },
+    "parallel": {
+      "branches": "Branches",
+      "noBranches": "No branches yet. Connect steps to the branches port.",
+      "continueWhen": "Continue when",
+      "waitFor": {
+        "guards": "Guard branches finish (observers keep running)",
+        "all": "All branches finish",
+        "first": "The first branch finishes"
+      },
+      "role": {
+        "waited": "waited for",
+        "observer": "observer",
+        "racing": "first one wins"
+      },
+      "observerNote": "Observer branches can’t stop the flow."
     }
   }
 }

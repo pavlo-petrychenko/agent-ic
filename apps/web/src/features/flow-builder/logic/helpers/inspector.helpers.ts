@@ -1,13 +1,27 @@
-import { NODE_KEY_MAX_LENGTH, NODE_KEY_PATTERN, RESERVED_ROOTS } from '@agent-ic/flow';
-import type { FlowDocument, FlowNode, NodeType } from '@agent-ic/flow';
+import {
+  CompletionRole,
+  NODE_KEY_MAX_LENGTH,
+  NODE_KEY_PATTERN,
+  NodeType,
+  RESERVED_ROOTS,
+  WaitFor,
+} from '@agent-ic/flow';
+import type { FlowDocument, FlowNode, ParallelNode } from '@agent-ic/flow';
 import { NODE_KEY_SEPARATOR } from '@/features/flow-builder/constants/graphEdit.constants';
 import {
+  BranchRole,
   FIELD_HINTS,
   KEY_EDGE_SEPARATORS,
   KEY_INVALID_CHARACTERS,
 } from '@/features/flow-builder/constants/inspector.constants';
+import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
 import { uniqueNodeKey } from '@/features/flow-builder/logic/helpers/nodeKey.helpers';
-import type { FieldRow, KeyRename } from '@/features/flow-builder/typedefs/inspector.typedefs';
+import type {
+  BranchRow,
+  FieldRow,
+  KeyRename,
+  PortTarget,
+} from '@/features/flow-builder/typedefs/inspector.typedefs';
 
 export const nodeKeyFromLabel = (label: string): string | null => {
   const key = label
@@ -51,3 +65,45 @@ export const fieldRows = (variables: readonly Omit<FieldRow, 'hint'>[]): FieldRo
 
 export const nodeName = (node: FlowNode, fallback: (type: NodeType) => string): string =>
   node.label === '' ? fallback(node.type) : node.label;
+
+export const portTargets = (
+  document: FlowDocument,
+  nodeId: string,
+  port: string,
+  fallback: (type: NodeType) => string,
+): PortTarget[] =>
+  document.edges
+    .filter((edge) => edge.source === nodeId && edge.sourcePort === port)
+    .flatMap((edge) => {
+      const target = document.nodes.find((node) => node.id === edge.target);
+      return target === undefined ? [] : [{ nodeId: target.id, label: nodeName(target, fallback) }];
+    });
+
+const isObserver = (node: FlowNode): boolean =>
+  node.type === NodeType.Completion && node.config.role === CompletionRole.Observer;
+
+const branchRole = (waitFor: WaitFor, observer: boolean): BranchRole => {
+  if (waitFor === WaitFor.First) {
+    return BranchRole.Racing;
+  }
+  return waitFor === WaitFor.Guards && observer ? BranchRole.Observer : BranchRole.Waited;
+};
+
+export const branchRows = (
+  document: FlowDocument,
+  node: ParallelNode,
+  port: string,
+  fallback: (type: NodeType) => string,
+): BranchRow[] =>
+  portTargets(document, node.id, port, fallback).flatMap((target) => {
+    const step = document.nodes.find((candidate) => candidate.id === target.nodeId);
+    return step === undefined
+      ? []
+      : [
+          {
+            ...target,
+            ...NODE_PRESENTATION[step.type],
+            role: branchRole(node.config.waitFor, isObserver(step)),
+          },
+        ];
+  });

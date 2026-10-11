@@ -1,4 +1,10 @@
-import { MAX_LABEL_LENGTH, NodeType, isTriggerNode, triggerVariables } from '@agent-ic/flow';
+import {
+  MAX_LABEL_LENGTH,
+  NodeType,
+  PortName,
+  isTriggerNode,
+  triggerVariables,
+} from '@agent-ic/flow';
 import type { FlowNode } from '@agent-ic/flow';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +14,7 @@ import { DESCRIBED_NODE_TYPES } from '@/features/flow-builder/constants/inspecto
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
 import { renameKey } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import {
+  branchRows,
   fieldRows,
   nodeName,
   proposeKeyRename,
@@ -16,6 +23,7 @@ import {
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { KeyRename } from '@/features/flow-builder/typedefs/inspector.typedefs';
 import { InlineEditField } from '@/features/flow-builder/view/InlineEditField';
+import { ParallelInspector } from '@/features/flow-builder/view/ParallelInspector';
 import { TriggerInspector } from '@/features/flow-builder/view/TriggerInspector';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Inspector } from '@/shared/ui/layout/Inspector';
@@ -40,6 +48,22 @@ export function InspectorPanel() {
             fields={fieldRows(
               triggerVariables(current).map((field) => ({ ...field, values: null })),
             )}
+          />
+        );
+      case NodeType.Parallel:
+        return (
+          <ParallelInspector
+            branches={branchRows(document, current, PortName.Branches, stepName)}
+            waitFor={current.config.waitFor}
+            onWaitForChange={(waitFor) =>
+              apply(
+                updateNode(document, current.id, (step) =>
+                  step.type === NodeType.Parallel
+                    ? { ...step, config: { ...step.config, waitFor } }
+                    : step,
+                ),
+              )
+            }
           />
         );
       default:
