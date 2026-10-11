@@ -27,8 +27,8 @@ export function useTestingRun(runId: string | null, status: RunStatus | null): T
   }, [refetch, runId, status]);
 
   const run = useMemo(
-    () => (dataState === 'complete' ? toRunDetails(data.run) : null),
-    [data, dataState],
+    () => (runId !== null && dataState === 'complete' ? toRunDetails(data.run) : null),
+    [runId, data, dataState],
   );
   return { run, failed: error !== undefined && run === null };
 }
