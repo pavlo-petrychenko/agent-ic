@@ -4,6 +4,7 @@ import type {
   ChangeSentence,
   CheckTone,
 } from '@/features/flow-builder/constants/publish.constants';
+import type { DiffSign } from '@/shared/ui/display/DiffLine';
 
 export interface DiffNode {
   id: string;
@@ -50,6 +51,13 @@ export interface ChangeLine {
   field: string | null;
   before: string | null;
   after: string | null;
+}
+
+export interface ChangeText {
+  id: string;
+  sign: DiffSign;
+  signLabel: string;
+  text: string;
 }
 
 export interface PublishCheck {

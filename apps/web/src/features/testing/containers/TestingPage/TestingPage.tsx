@@ -210,7 +210,11 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
           ]}
           onValueChange={(tab) =>
             tab === TestingTab.Versions &&
-            void navigate({ to: VERSIONS_PATH, params: { workspaceId } })
+            void navigate({
+              to: VERSIONS_PATH,
+              params: { workspaceId },
+              search: { agent: agent?.id ?? null },
+            })
           }
         />
       </div>

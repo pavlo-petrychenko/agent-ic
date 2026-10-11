@@ -1,3 +1,5 @@
+import { DiffSign } from '@/shared/ui/display/DiffLine';
+
 export enum ChangeKind {
   Added = 'added',
   Changed = 'changed',
@@ -25,6 +27,12 @@ export enum PublishBlock {
   Errors = 'errors',
   NoChanges = 'noChanges',
 }
+
+export const CHANGE_SIGN: Readonly<Record<ChangeKind, DiffSign>> = {
+  [ChangeKind.Added]: DiffSign.Added,
+  [ChangeKind.Changed]: DiffSign.Changed,
+  [ChangeKind.Removed]: DiffSign.Removed,
+};
 
 export enum CheckTone {
   Ok = 'ok',

@@ -6,7 +6,6 @@ import { usePublishPreview } from '@/features/flow-builder/communication/hooks/u
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import { CheckTone } from '@/features/flow-builder/constants/publish.constants';
 import {
-  CHANGE_SIGN,
   ISSUE_STEP_SEPARATOR,
   SIMULATOR_CHECK_ID,
   UNKNOWN_CHECK_ID,
@@ -17,9 +16,8 @@ import { stepNameOf } from '@/features/flow-builder/logic/helpers/issue.helpers'
 import {
   formatTimeAgo,
   publishBlockOf,
-  toChangeLines,
 } from '@/features/flow-builder/logic/helpers/publish.helpers';
-import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
+import { useChangeTexts } from '@/features/flow-builder/logic/hooks/useChangeTexts';
 import type { PublishCheck } from '@/features/flow-builder/typedefs/publish.typedefs';
 import { PublishModal } from '@/features/flow-builder/view/PublishModal';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
@@ -27,24 +25,26 @@ import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
-export function PublishDialog({ agentId, agentName, onPublished, onClose }: PublishDialogProps) {
+export function PublishDialog({
+  agentId,
+  agentName,
+  document,
+  revision,
+  saveState,
+  onFix,
+  onPublished,
+  onClose,
+}: PublishDialogProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const { locale } = useLocale();
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
-  const document = useFlowBuilderStore((state) => state.document);
-  const revision = useFlowBuilderStore((state) => state.revision);
-  const saveState = useFlowBuilderStore((state) => state.saveState);
-  const select = useFlowBuilderStore((state) => state.select);
   const { preview, loading, failed, retry } = usePublishPreview(agentId, revision);
   const { publish, publishing } = usePublishAgent(agentId);
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [openedAt] = useState(Date.now);
-  const lines = useMemo(
-    () => (preview === null ? [] : toChangeLines(preview.diff, document)),
-    [document, preview],
-  );
+  const lines = useChangeTexts(preview?.diff ?? null, document);
 
   const steps = useMemo(
     () => new Map(document.nodes.map((node) => [node.id, stepNameOf(node)])),
@@ -143,19 +143,7 @@ export function PublishDialog({ agentId, agentName, onPublished, onClose }: Publ
           ? t('publish.changesFirst')
           : t('publish.changesSince', { version: preview.liveVersion })
       }
-      changes={lines.map((line) => ({
-        id: line.id,
-        sign: CHANGE_SIGN[line.kind],
-        text: t(`publish.change.${line.sentence}`, {
-          step: line.step,
-          field:
-            line.field === null
-              ? ''
-              : t(`publish.field.${line.field}`, { defaultValue: t('publish.field.other') }),
-          before: line.before,
-          after: line.after,
-        }),
-      }))}
+      changes={lines}
       checks={checks}
       note={note}
       summary={summary}
@@ -170,7 +158,7 @@ export function PublishDialog({ agentId, agentName, onPublished, onClose }: Publ
       onNoteChange={setNote}
       onRetry={retry}
       onFix={(nodeId) => {
-        select({ nodeIds: [nodeId], edgeIds: [] });
+        onFix(nodeId);
         onClose();
       }}
       onPublish={() => void onPublish()}

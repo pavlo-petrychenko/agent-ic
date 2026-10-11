@@ -1,18 +1,11 @@
-import type { PublishCheck } from '@/features/flow-builder/typedefs/publish.typedefs';
-import type { DiffSign } from '@/shared/ui/display/DiffLine';
-
-export interface PublishModalChange {
-  id: string;
-  sign: DiffSign;
-  text: string;
-}
+import type { ChangeText, PublishCheck } from '@/features/flow-builder/typedefs/publish.typedefs';
 
 export interface PublishModalProps {
   title: string;
   version: number | null;
   liveVersion: number | null;
   changesTitle: string;
-  changes: readonly PublishModalChange[];
+  changes: readonly ChangeText[];
   checks: readonly PublishCheck[];
   note: string;
   summary: string | null;
