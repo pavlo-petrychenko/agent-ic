@@ -31,11 +31,18 @@
     }
   },
   "general": {
-    "subtitle": "Workspace name",
+    "subtitle": "Workspace name and time zone",
     "workspace": {
       "title": "Workspace",
       "renameSuccess": "Workspace renamed successfully",
+      "updateSuccess": "All fields updated successfully",
       "nameLabel": "Name",
+      "timeZoneLabel": "Time zone",
+      "timeZoneHint": "Used by schedule triggers and analytics",
+      "timeZoneSearchPlaceholder": "Search time zones",
+      "timeZoneSearchClear": "Clear time zone search",
+      "timeZoneEmpty": "No time zone found",
+      "timeZoneSuccess": "Time zone updated",
       "save": "Save"
     }
   }
