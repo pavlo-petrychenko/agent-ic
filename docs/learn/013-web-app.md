@@ -89,6 +89,6 @@ A new screen. Tick every box before the pull request.
 - **A stale workspace in the cache.** Without `network-only`, a workspace-scoped query can show the previous workspace's data for a moment.
 - **Hiding a button is not security.** `can(...)` is for comfort. The backend checks the role again.
 - **English only.** A key in `en/` but not in `uk/` shows English in the Ukrainian UI. Plurals need `_one`, `_few`, `_many` and `_other` in Ukrainian.
-- **Raw colours.** Use the tokens in `shared/styles/tokens.css`, not hex values or pixel sizes.
+- **Raw colours.** Use the tokens in `packages/design-tokens/tokens.css`, not hex values or pixel sizes.
 
 Next: [014 Shipping](014-shipping.md)

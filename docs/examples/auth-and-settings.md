@@ -62,7 +62,7 @@ A view draws props and calls callbacks. It does not fetch.
 
 - A component folder is flat: the component, [InviteLinkCard.typedefs.ts](../../apps/web/src/features/settings/view/InviteLinkCard/InviteLinkCard.typedefs.ts) (the props), a `.module.scss` and `index.ts`.
 - `Card`, `Heading`, `Select` and `Button` come from [shared/ui](../../apps/web/src/shared/ui/). Look there first. Each component has a story.
-- Tailwind classes are for layout only. Colours, spacing and type go in the `.module.scss` with the tokens from [tokens.css](../../apps/web/src/shared/styles/tokens.css).
+- Tailwind classes are for layout only. Colours, spacing and type go in the `.module.scss` with the tokens from [tokens.css](../../packages/design-tokens/tokens.css).
 - Every string comes from `t('...')`. The text is in `shared/i18n/locales/en/settings.json` and `uk/settings.json`. Plurals use `_one`, `_few`, `_many` and `_other` keys.
 - The auth view [AuthForm.tsx](../../apps/web/src/features/auth/view/AuthForm/AuthForm.tsx) is even smaller: a `<form>` that calls `onSubmit` and renders its children. The container passes the fields in, because form hooks live in `shared/forms`, which a view may not import.
 

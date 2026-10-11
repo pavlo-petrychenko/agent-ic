@@ -80,7 +80,7 @@ const validFiles = [
   `${WEB_SRC}/shared/ui/actions/Button/index.ts`,
   `${WEB_SRC}/shared/ui/data/FilterBar/FilterPicker/FilterPicker.tsx`,
   `${WEB_SRC}/shared/ui/data/FilterBar/FilterPicker/FilterPicker.stories.tsx`,
-  `${WEB_SRC}/shared/styles/tokens.css`,
+  `${WEB_SRC}/shared/styles/tailwind.css`,
   `${WEB_SRC}/shared/styles/global.scss`,
   `${WEB_SRC}/shared/styles/index.ts`,
   `${WEB_TEST}/integration/workspaceRoute.test.tsx`,

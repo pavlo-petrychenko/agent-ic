@@ -80,7 +80,7 @@ shared/
 ├── theme/    clients/ hooks/ helpers/ constants/ typedefs/
 ├── viewport/ hooks/ helpers/ constants/ typedefs/
 ├── ui/       component folders; the only place Radix may appear
-└── styles/   tokens.css · global.scss · tailwind.css
+└── styles/   global.scss · tailwind.css · index.ts (fonts and tokens come from @agent-ic/design-tokens)
 ```
 
 ## Conventions
@@ -94,6 +94,6 @@ shared/
 - Generated files (`*.generated.ts`, `routeTree.gen.ts`) are gitignored. After changing a `.graphql` file or a route, run `pnpm codegen` (or `mise run codegen`).
 - Runtime config lives in `public/config.json` and is validated by `shared/config` before the first render. Never read `import.meta.env` for values that differ per environment.
 - User-facing text goes through `react-i18next` keys in `shared/i18n/locales/{en,uk}`; plural forms use the `_one/_few/_many/_other` suffixes.
-- Design tokens are CSS variables in `shared/styles/tokens.css`. Use them in `.module.scss`; do not write raw colours or pixel values there.
+- Design tokens are CSS variables in `packages/design-tokens/tokens.css`. Use them in `.module.scss`; do not write raw colours or pixel values there.
 - Tests sit next to the file (`Name.test.tsx`). `view` components with behaviour use React Testing Library. `communication` hooks use Apollo `MockedProvider`. `logic` hooks and helpers use plain Vitest. Stories exist only for reusable `shared/ui` components.
 - A pull request that changes UI includes screenshots of every changed story or screen, stored on the `pr-assets` branch.

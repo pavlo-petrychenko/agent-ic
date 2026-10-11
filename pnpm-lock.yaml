@@ -418,6 +418,9 @@ importers:
       '@agent-ic/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@agent-ic/design-tokens':
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
       '@agent-ic/flow':
         specifier: workspace:*
         version: link:../../packages/flow
@@ -442,12 +445,6 @@ importers:
       '@codemirror/view':
         specifier: ^6.43.13
         version: 6.43.13
-      '@fontsource-variable/jetbrains-mono':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@fontsource-variable/onest':
-        specifier: ^5.3.1
-        version: 5.3.1
       '@tanstack/react-form':
         specifier: ^1.33.5
         version: 1.33.5(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -610,6 +607,15 @@ importers:
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
+
+  packages/design-tokens:
+    dependencies:
+      '@fontsource-variable/jetbrains-mono':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource-variable/onest':
+        specifier: ^5.3.1
+        version: 5.3.1
 
   packages/flow:
     dependencies:
