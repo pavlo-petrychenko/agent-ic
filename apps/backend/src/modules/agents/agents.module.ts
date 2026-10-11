@@ -25,6 +25,7 @@ import { SampleAgentService } from '@/modules/agents/services/sample-agent.servi
 import { SimulatorTestsService } from '@/modules/agents/services/simulator-tests.service';
 import { CleanUpWorkspaceUseCase } from '@/modules/agents/use-cases/clean-up-workspace.use-case';
 import { CompareAgentVersionsUseCase } from '@/modules/agents/use-cases/compare-agent-versions.use-case';
+import { CountAgentsUseCase } from '@/modules/agents/use-cases/count-agents.use-case';
 import { CreateAgentUseCase } from '@/modules/agents/use-cases/create-agent.use-case';
 import { DeleteAgentUseCase } from '@/modules/agents/use-cases/delete-agent.use-case';
 import { DescribeAgentUseCase } from '@/modules/agents/use-cases/describe-agent.use-case';
@@ -75,6 +76,7 @@ export class AgentsModule extends defineModule({
     RestoreAgentVersionUseCase,
     ListModelOptionsUseCase,
     TestApiRequestUseCase,
+    CountAgentsUseCase,
     CleanUpWorkspaceUseCase,
   ],
   resolvers: [

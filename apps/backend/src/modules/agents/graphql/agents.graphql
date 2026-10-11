@@ -1,5 +1,6 @@
 extend type Query {
   agents(first: Int, after: String): AgentConnection!
+  agentCount: Int!
   agent(id: ID!): Agent!
   agentVersions(agentId: ID!): [AgentVersion!]!
   agentDraft(agentId: ID!): AgentDraft!
