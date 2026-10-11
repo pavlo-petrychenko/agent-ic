@@ -16,7 +16,7 @@ export function ProfilePreferencesFields({
   const { t: tCommon } = useTranslation();
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-6 md:grid-cols-2">
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-6 md:grid-cols-2">
       <Field
         label={t('profile.details.language.title')}
         hint={t('profile.details.language.description')}

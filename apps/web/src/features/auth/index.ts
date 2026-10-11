@@ -4,6 +4,7 @@ export {
   TOKEN_SEARCH_DEFAULTS,
 } from '@/features/auth/constants/authSearch.constants';
 export { CheckEmailPage } from '@/features/auth/containers/CheckEmailPage';
+export { ConfirmEmailChangePage } from '@/features/auth/containers/ConfirmEmailChangePage';
 export { ConfirmEmailPage } from '@/features/auth/containers/ConfirmEmailPage';
 export { ForgotPasswordPage } from '@/features/auth/containers/ForgotPasswordPage';
 export { LandingRedirect } from '@/features/auth/containers/LandingRedirect';

@@ -10,11 +10,17 @@ import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/typography/Hea
 export function ProfileDetailsCard({
   name,
   email,
+  emailDraft,
+  emailEditing,
+  emailSending,
   locale,
   theme,
   saving,
   onNameChange,
-  onEmailChange,
+  onEmailDraftChange,
+  onEmailEdit,
+  onEmailCancel,
+  onEmailSubmit,
   onLocaleChange,
   onThemeChange,
   onSave,
@@ -39,7 +45,13 @@ export function ProfileDetailsCard({
             name={name}
             email={email}
             onNameChange={onNameChange}
-            onEmailChange={onEmailChange}
+            emailDraft={emailDraft}
+            emailEditing={emailEditing}
+            emailSending={emailSending}
+            onEmailDraftChange={onEmailDraftChange}
+            onEmailEdit={onEmailEdit}
+            onEmailCancel={onEmailCancel}
+            onEmailSubmit={onEmailSubmit}
           />
           <ProfilePreferencesFields
             locale={locale}

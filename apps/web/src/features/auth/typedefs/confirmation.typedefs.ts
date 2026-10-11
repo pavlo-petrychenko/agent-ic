@@ -1,5 +1,6 @@
 import type { Locale } from '@agent-ic/contracts';
 import type { ConfirmEmailState } from '@/features/auth/constants/confirmation.constants';
+import type { EmailChangeState } from '@/features/auth/constants/emailChange.constants';
 
 export interface SignUpValues {
   readonly name: string;
@@ -21,5 +22,10 @@ export interface ResendInput {
 
 export interface UseConfirmEmailResult {
   readonly state: ConfirmEmailState;
+  readonly retry: () => Promise<void>;
+}
+
+export interface UseEmailChangeResult {
+  readonly state: EmailChangeState;
   readonly retry: () => Promise<void>;
 }

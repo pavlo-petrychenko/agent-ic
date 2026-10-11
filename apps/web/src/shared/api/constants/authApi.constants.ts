@@ -3,6 +3,7 @@ export const AUTH_API_PATH = '/api/auth';
 export enum AuthEndpoint {
   SignUp = '/sign-up',
   ConfirmEmail = '/confirm-email',
+  ConfirmEmailChange = '/confirm-email-change',
   Login = '/login',
   Refresh = '/refresh',
   Logout = '/logout',

@@ -8,13 +8,20 @@ import { Input } from '@/shared/ui/inputs/Input';
 export function ProfileIdentityFields({
   name,
   email,
+  emailDraft,
+  emailEditing,
+  emailSending,
   onNameChange,
-  onEmailChange,
+  onEmailDraftChange,
+  onEmailEdit,
+  onEmailCancel,
+  onEmailSubmit,
 }: ProfileIdentityFieldsProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
+  const shownEmail = emailEditing ? emailDraft : email;
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-6 md:grid-cols-2">
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-6 md:grid-cols-2">
       <Field label={t('profile.details.name.title')}>
         {(control) => (
           <Input
@@ -31,14 +38,28 @@ export function ProfileIdentityFields({
             <Input
               {...control}
               className="min-w-72 max-w-full"
-              value={email}
-              style={{ width: `calc(${email.length}ch + var(--space-24))` }}
+              type="email"
+              autoComplete="email"
+              value={shownEmail}
+              style={{ width: `calc(${shownEmail.length}ch + var(--space-24))` }}
               placeholder={t('profile.details.email.placeholder')}
-              readOnly
+              readOnly={!emailEditing}
+              onChange={(event) => onEmailDraftChange(event.target.value)}
             />
-            <Button type="button" variant={ButtonVariant.Secondary} onClick={onEmailChange}>
-              {t('profile.details.email.action')}
-            </Button>
+            {emailEditing ? (
+              <>
+                <Button type="button" variant={ButtonVariant.Secondary} onClick={onEmailCancel}>
+                  {t('profile.details.email.cancel')}
+                </Button>
+                <Button type="button" loading={emailSending} onClick={onEmailSubmit}>
+                  {t('profile.details.email.send')}
+                </Button>
+              </>
+            ) : (
+              <Button type="button" variant={ButtonVariant.Secondary} onClick={onEmailEdit}>
+                {t('profile.details.email.action')}
+              </Button>
+            )}
           </div>
         )}
       </Field>

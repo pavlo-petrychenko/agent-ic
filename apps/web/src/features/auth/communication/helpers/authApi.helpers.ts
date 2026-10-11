@@ -24,3 +24,7 @@ export async function signUp(request: SignUpRequest): Promise<void> {
 export async function confirmEmail(token: string): Promise<void> {
   startSession(await postAuthRequest(AuthEndpoint.ConfirmEmail, { token }));
 }
+
+export async function confirmEmailChange(token: string): Promise<void> {
+  await postAuthRequest(AuthEndpoint.ConfirmEmailChange, { token });
+}

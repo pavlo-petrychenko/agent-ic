@@ -1,0 +1,5 @@
+mutation RequestMyEmailChange($input: RequestMyEmailChangeInput!) {
+  requestMyEmailChange(input: $input) {
+    accepted
+  }
+}
