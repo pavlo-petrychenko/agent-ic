@@ -7,6 +7,7 @@ import { messageReceivedEvent } from '@/modules/conversations';
 import type { MessageReceivedPayload } from '@/modules/conversations';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
+import type { NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
 import { ROOT_BRANCH_KEY, STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import { startRunOnMessageJob } from '@/modules/runs/jobs/start-run-on-message.job';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
@@ -136,9 +137,15 @@ export const seedRun = async (
 export const seedExecutableRun = async (
   testbed: RunExecutionTestbed,
   flow: FlowDocument,
+  earlier: readonly Pick<NewMessage, 'author' | 'text'>[] = [],
 ): Promise<ExecutableRun> => {
   const workspaceId = testbed.ids.generate();
   const conversation = newConversation(testbed, workspaceId);
+  const history = earlier.map((overrides) => {
+    const seededMessage = newMessage(testbed, conversation, overrides);
+    testbed.clock.advanceBy(MESSAGE_SPACING_MS);
+    return seededMessage;
+  });
   const message = newMessage(testbed, conversation);
   const { agentId } = conversation;
   const run: NewRun = {
@@ -157,7 +164,9 @@ export const seedExecutableRun = async (
     await testbed.module.get(AgentsRepository).insert(newAgent(agentId, workspaceId));
     await testbed.module.get(AgentVersionsRepository).insert(version);
     await testbed.module.get(ConversationsRepository).insert(conversation);
-    await testbed.module.get(MessagesRepository).insertIfAbsent(message);
+    for (const seededMessage of [...history, message]) {
+      await testbed.module.get(MessagesRepository).insertIfAbsent(seededMessage);
+    }
     await testbed.runs.insert(run);
   });
   return { run, ctx: workspaceSystemCtx(workspaceId) };

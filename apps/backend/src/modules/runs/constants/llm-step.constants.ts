@@ -6,4 +6,5 @@ export enum LlmStepTraceName {
 
 export const COMPLETION_PURPOSE = LlmPurpose.Light;
 
-export const NO_HISTORY_MESSAGE = 'There are no earlier messages in this conversation.';
+export const ANSWER_FROM_CONVERSATION_MESSAGE =
+  'This note is from the system, not from the customer. Answer from the conversation so far.';

@@ -2,7 +2,7 @@ import { ModelProviderKind, PromptSourceKind, renderTemplate, resolvePath } from
 import type { ModelRef, PromptSource } from '@agent-ic/flow';
 import { MessageAuthor } from '@/modules/conversations';
 import type { Message } from '@/modules/conversations';
-import { NO_HISTORY_MESSAGE } from '@/modules/runs/constants/llm-step.constants';
+import { ANSWER_FROM_CONVERSATION_MESSAGE } from '@/modules/runs/constants/llm-step.constants';
 import { StepModelUnknownError } from '@/modules/runs/errors/step-model-unknown.error';
 import { StepPromptUnavailableError } from '@/modules/runs/errors/step-prompt-unavailable.error';
 import { currentMessageStart } from '@/modules/runs/helpers/run-scope.helpers';
@@ -69,7 +69,9 @@ export const stepConversation = (
   return {
     system,
     messages:
-      messages.length > 0 ? messages : [{ role: LlmMessageRole.User, content: NO_HISTORY_MESSAGE }],
+      messages.at(-1)?.role === LlmMessageRole.User
+        ? messages
+        : [...messages, { role: LlmMessageRole.User, content: ANSWER_FROM_CONVERSATION_MESSAGE }],
   };
 };
 

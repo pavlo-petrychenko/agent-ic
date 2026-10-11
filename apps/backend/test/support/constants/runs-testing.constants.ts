@@ -75,6 +75,7 @@ export const PARALLEL_STEP_KEY = 'checks';
 export const TEST_COMPLETION_PROMPT = 'Classify this message: {{message.text}}';
 export const TEST_RENDERED_PROMPT = `Classify this message: ${TEST_MESSAGE_TEXT}`;
 export const TEST_PROMPT_REF = 'prompt-triage';
+export const TEST_UNKNOWN_MODEL = 'model-retired';
 export const TEST_INTENT_FIELD = 'intent';
 export const TEST_ORDER_INTENT = 'order';
 export const TEST_QUESTION_INTENT = 'question';

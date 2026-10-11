@@ -1,6 +1,7 @@
 import { ErrorReason } from '@agent-ic/contracts';
 import {
   CompletionRole,
+  ModelProviderKind,
   PortName,
   PromptSourceKind,
   PromptVersionKind,
@@ -10,7 +11,8 @@ import {
   WaitFor,
 } from '@agent-ic/flow';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { NO_HISTORY_MESSAGE } from '@/modules/runs/constants/llm-step.constants';
+import { MessageAuthor } from '@/modules/conversations';
+import { ANSWER_FROM_CONVERSATION_MESSAGE } from '@/modules/runs/constants/llm-step.constants';
 import { RunStatus, RunStepStatus } from '@/modules/runs/constants/run.constants';
 import { messageTriggerVariables, stepVariables } from '@/modules/runs/helpers/run-scope.helpers';
 import { EnvVar } from '@/platform/config/constants/env.constants';
@@ -26,6 +28,8 @@ import {
   RUNS_TEST_START,
   SECOND_STEP_ID,
   SECOND_STEP_KEY,
+  TEST_AGENT_REPLY,
+  TEST_FOLLOW_UP,
   TEST_LLM_API_KEY,
   TEST_ORDER_INTENT,
   TEST_ORDER_RULE_ID,
@@ -36,6 +40,7 @@ import {
   TEST_RENDERED_PROMPT,
   TEST_STEP_NODE_ID,
   TEST_STEP_NODE_KEY,
+  TEST_UNKNOWN_MODEL,
 } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import {
@@ -136,7 +141,27 @@ describe('CompletionExecutor', () => {
 
     expect(mock.body(0)['messages']).toEqual([
       { role: 'system', content: TEST_RENDERED_PROMPT },
-      { role: 'user', content: NO_HISTORY_MESSAGE },
+      { role: 'user', content: ANSWER_FROM_CONVERSATION_MESSAGE },
+    ]);
+  });
+
+  it('ends the request with a user turn when the history before the current message ends with a reply', async () => {
+    const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, CompletionRole.Guard, {
+      input: { includeCurrentMessage: false },
+    });
+    const seeded = await seedExecutableRun(testbed, guardThenAgent(node), [
+      { author: MessageAuthor.Customer, text: TEST_FOLLOW_UP },
+      { author: MessageAuthor.Agent, text: TEST_AGENT_REPLY },
+    ]);
+    mock.json({ intent: TEST_QUESTION_INTENT });
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    expect(mock.body(0)['messages']).toEqual([
+      { role: 'system', content: TEST_RENDERED_PROMPT },
+      { role: 'user', content: TEST_FOLLOW_UP },
+      { role: 'assistant', content: TEST_AGENT_REPLY },
+      { role: 'user', content: ANSWER_FROM_CONVERSATION_MESSAGE },
     ]);
   });
 
@@ -158,6 +183,31 @@ describe('CompletionExecutor', () => {
       reason: ErrorReason.StepPromptUnavailable,
       nodeId: TEST_STEP_NODE_ID,
     });
+  });
+
+  it('follows the error port of a guard whose model is unknown', async () => {
+    const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, CompletionRole.Guard, {
+      model: { provider: { kind: ModelProviderKind.Platform }, model: TEST_UNKNOWN_MODEL },
+    });
+    const seeded = await seedExecutableRun(
+      testbed,
+      stepFlow(
+        [node, agentNode(SECOND_STEP_ID, SECOND_STEP_KEY)],
+        [flowEdge(TEST_NODE_ID, node.id), flowEdge(node.id, SECOND_STEP_ID, PortName.Error)],
+      ),
+    );
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    const { steps } = await stored(seeded);
+    const stepOf = (nodeId: string) => steps.find((step) => step.nodeId === nodeId);
+    expect(mock.requests).toHaveLength(0);
+    expect(stepOf(TEST_STEP_NODE_ID)).toMatchObject({
+      status: RunStepStatus.Failed,
+      port: PortName.Error,
+      error: { reason: ErrorReason.StepModelUnknown, nodeId: TEST_STEP_NODE_ID },
+    });
+    expect(stepOf(SECOND_STEP_ID)).toMatchObject({ status: RunStepStatus.Succeeded });
   });
 
   it('ends an observer without a port and hides its output from the router', async () => {
