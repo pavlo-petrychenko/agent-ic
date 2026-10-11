@@ -14,5 +14,20 @@ export const seedSampleData = async (app: INestApplicationContext): Promise<Seed
     msg: agentCreated ? SeedLogMessage.SampleAgentCreated : SeedLogMessage.SampleAgentExists,
     workspaceId,
   });
-  return { userId, workspaceId, agentCreated };
+  const examples = await app.get(SampleWorkspaceService).ensureFlowExamples(userId);
+  logger.log({ msg: SeedLogMessage.FlowExamplesWorkspaceReady, workspaceId: examples.workspaceId });
+  const examplesCreated = await app
+    .get(SampleAgentService)
+    .ensureFlowExamples(examples.workspaceId, userId);
+  logger.log({
+    msg: examplesCreated ? SeedLogMessage.FlowExamplesCreated : SeedLogMessage.FlowExamplesExist,
+    workspaceId: examples.workspaceId,
+  });
+  return {
+    userId,
+    workspaceId,
+    agentCreated,
+    examplesWorkspaceId: examples.workspaceId,
+    examplesCreated,
+  };
 };

@@ -2,6 +2,9 @@ import { DEFAULT_INVITE_ROLE, WorkspaceRole } from '@agent-ic/contracts';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import {
+  FLOW_EXAMPLES_WORKSPACE_NAME,
+  SAMPLE_OPERATOR_EMAIL,
+  SAMPLE_OPERATOR_NAME,
   SAMPLE_USER_EMAIL,
   SAMPLE_USER_LOCALE,
   SAMPLE_USER_NAME,
@@ -15,7 +18,10 @@ import { MembershipsRepository } from '@/modules/identity/repositories/membershi
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { WorkspacesRepository } from '@/modules/identity/repositories/workspaces.repository';
 import { InviteLinksService } from '@/modules/identity/services/invite-links.service';
-import type { SampleWorkspace } from '@/modules/identity/typedefs/sample-workspace.typedefs';
+import type {
+  SampleFlowExamplesWorkspace,
+  SampleWorkspace,
+} from '@/modules/identity/typedefs/sample-workspace.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
@@ -36,22 +42,50 @@ export class SampleWorkspaceService {
   ) {}
 
   async ensure(): Promise<SampleWorkspace> {
-    const existingUser = await this.users.findByEmail(SAMPLE_USER_EMAIL);
-    const userId = existingUser?.id ?? (await this.createUser());
+    const userId = await this.ensureUser(SAMPLE_USER_EMAIL, SAMPLE_USER_NAME);
     const [existing] = await this.directory.listForUser(userId);
-    const workspaceId = existing?.workspaceId ?? (await this.createWorkspace(userId));
+    const workspaceId =
+      existing?.workspaceId ?? (await this.createWorkspace(userId, SAMPLE_WORKSPACE_NAME));
     return { userId, workspaceId };
   }
 
-  private async createUser(): Promise<string> {
+  async ensureFlowExamples(ownerId: string): Promise<SampleFlowExamplesWorkspace> {
+    const memberships = await this.directory.listForUser(ownerId);
+    const existing = memberships.find(
+      (membership) => membership.name === FLOW_EXAMPLES_WORKSPACE_NAME,
+    );
+    if (existing !== undefined) {
+      return { workspaceId: existing.workspaceId, created: false };
+    }
+    const operatorId = await this.ensureUser(SAMPLE_OPERATOR_EMAIL, SAMPLE_OPERATOR_NAME);
+    const workspaceId = await this.createWorkspace(ownerId, FLOW_EXAMPLES_WORKSPACE_NAME);
+    await this.tenantTransactions.run(workspaceId, () =>
+      this.memberships.insertIfAbsent({
+        id: this.ids.generate(),
+        workspaceId,
+        userId: operatorId,
+        role: WorkspaceRole.Operator,
+        inviteLinkId: null,
+        createdAt: this.clock.now(),
+      }),
+    );
+    return { workspaceId, created: true };
+  }
+
+  private async ensureUser(email: string, name: string): Promise<string> {
+    const existing = await this.users.findByEmail(email);
+    return existing?.id ?? (await this.createUser(email, name));
+  }
+
+  private async createUser(email: string, name: string): Promise<string> {
     const userId = this.ids.generate();
     const now = this.clock.now();
     const passwordHash = await hashPassword(SAMPLE_USER_PASSWORD);
     return this.txHost.withTransaction(async () => {
       await this.users.upsertUnconfirmed({
         id: userId,
-        email: SAMPLE_USER_EMAIL,
-        name: SAMPLE_USER_NAME,
+        email,
+        name,
         passwordHash,
         locale: SAMPLE_USER_LOCALE,
         createdAt: now,
@@ -62,14 +96,14 @@ export class SampleWorkspaceService {
     });
   }
 
-  private createWorkspace(userId: string): Promise<string> {
+  private createWorkspace(userId: string, name: string): Promise<string> {
     const workspaceId = this.ids.generate();
     return this.tenantTransactions.run(workspaceId, async () => {
       const now = this.clock.now();
       await this.workspaces.insert({
         id: workspaceId,
         workspaceId,
-        name: SAMPLE_WORKSPACE_NAME,
+        name,
         timeZone: SAMPLE_WORKSPACE_TIME_ZONE,
         createdByUserId: userId,
         createdAt: now,
