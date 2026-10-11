@@ -18,6 +18,7 @@ export const LANGFUSE_OBSERVATION_METADATA = 'langfuse.observation.metadata';
 export enum LlmTraceMetadata {
   WorkspaceId = 'workspace_id',
   AgentVersionId = 'agent_version_id',
+  RunId = 'run_id',
   PromptId = 'prompt_id',
   PromptVersion = 'prompt_version',
   Model = 'model',

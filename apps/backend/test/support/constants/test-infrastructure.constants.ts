@@ -54,6 +54,7 @@ export enum TestRedisPrefix {
   ChannelsWorker = 'channels-worker:',
   Runs = 'runs:',
   RunExecution = 'run-execution:',
+  RunTracing = 'run-tracing:',
   CompletionStep = 'completion-step:',
   AgentStep = 'agent-step:',
   RunStart = 'run-start:',

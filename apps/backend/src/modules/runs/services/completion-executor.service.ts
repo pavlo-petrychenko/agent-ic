@@ -1,13 +1,13 @@
 import { CompletionRole, NodeType, PortName, outputToZod } from '@agent-ic/flow';
 import type { CompletionNode } from '@agent-ic/flow';
 import { Injectable } from '@nestjs/common';
-import { COMPLETION_PURPOSE, LlmStepTraceName } from '@/modules/runs/constants/llm-step.constants';
+import { COMPLETION_PURPOSE } from '@/modules/runs/constants/llm-step.constants';
 import {
   stepConversation,
   stepModel,
   stepSystemPrompt,
-  stepTags,
 } from '@/modules/runs/helpers/llm-step.helpers';
+import { runTraceTags } from '@/modules/runs/helpers/run-tracing.helpers';
 import type {
   StepExecution,
   StepExecutor,
@@ -33,7 +33,7 @@ export class CompletionExecutor implements StepExecutor<CompletionNode> {
       ),
       output: outputToZod(config.output),
       ...(config.reasoning === null ? {} : { reasoning: config.reasoning }),
-      tags: stepTags(run, LlmStepTraceName.Completion),
+      tags: runTraceTags(run),
     });
     return { port: config.role === CompletionRole.Guard ? PortName.Next : null, output };
   }

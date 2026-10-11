@@ -11,8 +11,7 @@ import type { LlmCallTrace, LlmTags } from '@/platform/llm/typedefs/llm-tracing.
 
 const traceMetadata = (key: LlmTraceMetadata): string => `${LANGFUSE_TRACE_METADATA}.${key}`;
 
-const observationMetadata = (key: LlmTraceMetadata): string =>
-  `${LANGFUSE_OBSERVATION_METADATA}.${key}`;
+const observationMetadata = (key: string): string => `${LANGFUSE_OBSERVATION_METADATA}.${key}`;
 
 export const traceSampleRate = ({ telemetry, langfuse }: AppConfig): number | null =>
   telemetry.enabled && langfuse.mode !== LangfuseMode.Off ? langfuse.sampleRate : null;
@@ -22,6 +21,7 @@ export const langfuseTraceAttributes = (tags: LlmTags): Attributes => ({
   [LangfuseAttribute.SessionId]: tags.sessionId,
   [traceMetadata(LlmTraceMetadata.WorkspaceId)]: tags.workspaceId,
   [traceMetadata(LlmTraceMetadata.AgentVersionId)]: tags.agentVersionId,
+  [traceMetadata(LlmTraceMetadata.RunId)]: tags.runId,
   [traceMetadata(LlmTraceMetadata.PromptId)]: tags.promptId,
   [traceMetadata(LlmTraceMetadata.PromptVersion)]: tags.promptVersion,
 });
@@ -35,3 +35,10 @@ export const llmCallAttributes = (tags: LlmTags, call: LlmCallTrace): Attributes
   [observationMetadata(LlmTraceMetadata.FallbackHop)]: call.fallbackHop,
   [observationMetadata(LlmTraceMetadata.Reasoning)]: call.reasoning ?? undefined,
 });
+
+export const langfuseObservationAttributes = (
+  metadata: Readonly<Record<string, string>>,
+): Attributes =>
+  Object.fromEntries(
+    Object.entries(metadata).map(([key, value]) => [observationMetadata(key), value]),
+  );
