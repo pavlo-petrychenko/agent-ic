@@ -6,5 +6,25 @@
   "empty": {
     "title": "No agents yet",
     "description": "Building agents is coming in the next release."
+  },
+  "list": {
+    "label": "Agents",
+    "loading": "Loading agents",
+    "error": "The agents could not be loaded.",
+    "retry": "Try again",
+    "loadMore": "Load more",
+    "columns": {
+      "agent": "Agent",
+      "status": "Status"
+    }
+  },
+  "status": {
+    "live": "Live · v{{version}}",
+    "draft": "Draft",
+    "paused": "Paused"
+  },
+  "statusNote": {
+    "draftInProgress": "Draft v{{number}} in progress",
+    "neverPublished": "Never published"
   }
 }

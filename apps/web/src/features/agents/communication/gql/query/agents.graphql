@@ -1,0 +1,20 @@
+query Agents($first: Int, $after: String) {
+  agents(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        name
+        description
+        status
+        liveVersionNumber
+        draftNumber
+        hasUnpublishedChanges
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
