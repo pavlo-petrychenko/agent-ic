@@ -1,0 +1,5 @@
+mutation SendSimulatorMessage($input: SendSimulatorMessageInput!) {
+  sendSimulatorMessage(input: $input) {
+    id
+  }
+}
