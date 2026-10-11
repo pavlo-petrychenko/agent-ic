@@ -101,6 +101,8 @@ export enum IssuePathSegment {
   Prompt = 'prompt',
   Text = 'text',
   Model = 'model',
+  Output = 'output',
+  Name = 'name',
 }
 
 export enum InputType {

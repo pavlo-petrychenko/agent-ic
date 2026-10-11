@@ -23,3 +23,6 @@ export const STEP_MODEL_PURPOSE: Readonly<Record<LlmStepType, ModelPurpose>> = {
 };
 
 export const UNSET_OPTION = '';
+export const NEW_OUTPUT_FIELD_PREFIX = 'field';
+export const NEW_OUTPUT_FIELD_SEPARATOR = '_';
+export const NEW_ENUM_VALUE = 'option_1';
