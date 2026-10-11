@@ -1,7 +1,9 @@
 import type { MockLink } from '@apollo/client/testing';
+import { createMemoryHistory } from '@tanstack/react-router';
+import type { RouterHistory } from '@tanstack/react-router';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   ANSWERS,
   ESCALATION_MESSAGE,
@@ -29,9 +31,12 @@ import { ConversationState, RunStatus } from '@/shared/api/generated/schema.gene
 import { MemoryRouter } from '@test/support/components/MemoryRouter';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
-const renderPage = (mocks: readonly MockLink.MockedResponse[]) =>
+const renderPage = (
+  mocks: readonly MockLink.MockedResponse[],
+  history: RouterHistory | null = null,
+) =>
   renderWithProviders(
-    <MemoryRouter>
+    <MemoryRouter history={history}>
       <TestingPage workspaceId={TEST_WORKSPACE_ID} agentId={TEST_AGENT_ID} />
     </MemoryRouter>,
     { mocks },
@@ -51,6 +56,24 @@ describe('TestingPage', () => {
 
     expect(screen.getByRole('button', { name: /Agent\s+Salon assistant/ })).toBeInTheDocument();
     expect(await screen.findByRole('option', { name: /v3/ })).toBeInTheDocument();
+  });
+
+  it('keeps the agent when switching to the Versions tab', async () => {
+    const user = userEvent.setup();
+    const history = createMemoryHistory();
+    renderPage(
+      [testingAgentsMock(), testingVersionsMock(), startSimulationMock(), simulationMock([], null)],
+      history,
+    );
+
+    await screen.findByRole('button', { name: /Agent\s+Salon assistant/ });
+    await user.click(screen.getByRole('tab', { name: 'Versions' }));
+
+    await vi.waitFor(() =>
+      expect(history.location.href).toBe(
+        `/w/${TEST_WORKSPACE_ID}/testing/versions?agent=${TEST_AGENT_ID}`,
+      ),
+    );
   });
 
   it('asks to create an agent when there is nothing to simulate', async () => {
