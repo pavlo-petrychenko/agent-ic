@@ -42,6 +42,7 @@
     "LLM_UNAVAILABLE": "Модель ШІ зараз перевантажена. Спробуйте ще раз за хвилину.",
     "EMBEDDING_DIMENSION_MISMATCH": "Модель пошуку дала відповідь, яку не вдалося використати. Зверніться до підтримки.",
     "INVALID_AGENT_NAME": "Введіть назву агента.",
+    "INVALID_AGENT_DESCRIPTION": "Опис задовгий.",
     "AGENT_NOT_FOUND": "Цього агента не існує.",
     "AGENT_VERSION_NOT_FOUND": "Цієї версії агента не існує.",
     "AGENT_VERSION_IMMUTABLE": "Опубліковану версію не можна змінити.",

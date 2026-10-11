@@ -7,6 +7,7 @@ extend type Query {
 extend type Mutation {
   createAgent(input: CreateAgentInput!): Agent!
   renameAgent(input: RenameAgentInput!): Agent!
+  describeAgent(input: DescribeAgentInput!): Agent!
   deleteAgent(input: DeleteAgentInput!): DeleteAgentPayload!
   duplicateAgent(input: DuplicateAgentInput!): Agent!
   saveAgentDraft(input: SaveAgentDraftInput!): SaveAgentDraftPayload!
@@ -24,6 +25,12 @@ enum AgentStatus {
 enum PauseMode {
   inbox
   away_message
+}
+
+enum AgentVersionStatus {
+  draft
+  live
+  archived
 }
 
 type Agent {
@@ -62,6 +69,11 @@ input RenameAgentInput {
   name: String!
 }
 
+input DescribeAgentInput {
+  id: ID!
+  description: String
+}
+
 input DeleteAgentInput {
   id: ID!
 }
@@ -82,6 +94,7 @@ input SaveAgentDraftInput {
 
 input PublishAgentInput {
   id: ID!
+  note: String
 }
 
 input PauseAgentInput {
@@ -99,11 +112,17 @@ enum FlowIssueSeverity {
   warning
 }
 
+type AgentVersionAuthor {
+  name: String!
+}
+
 type AgentVersion {
   id: ID!
+  status: AgentVersionStatus!
   number: Int
   flow: JSON!
   note: String
+  author: AgentVersionAuthor
   publishedAt: String
   createdAt: String!
 }

@@ -2,13 +2,12 @@ import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contra
 import { Injectable } from '@nestjs/common';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { parseAgentInput } from '@/modules/agents/helpers/agent-input.helpers';
-import { toAgentVersionView } from '@/modules/agents/helpers/agent-version.helpers';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
-import { agentIdInputSchema } from '@/modules/agents/schemas/agent-input.schema';
+import { publishAgentInputSchema } from '@/modules/agents/schemas/agent-input.schema';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
 import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import type { PublishedAgent } from '@/modules/agents/typedefs/agent-version.typedefs';
-import type { AgentIdInput } from '@/modules/agents/typedefs/agent.typedefs';
+import type { PublishAgentInput } from '@/modules/agents/typedefs/agent.typedefs';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -24,23 +23,26 @@ export class PublishAgentUseCase {
     private readonly ids: IdService,
   ) {}
 
-  async execute(ctx: UseCaseCtx, input: AgentIdInput): Promise<PublishedAgent> {
+  async execute(ctx: UseCaseCtx, input: PublishAgentInput): Promise<PublishedAgent> {
     const { userId, workspaceId } = authorize(
       ctx,
       PermissionResource.Agents,
       PermissionAction.Publish,
     );
-    const { id } = parseAgentInput(agentIdInputSchema, input);
+    const { id, note } = parseAgentInput(publishAgentInputSchema, input);
     const agentId = this.ids.fromPublic(IdPrefix.Agent, id);
     return this.tenantTransactions.run(workspaceId, async () => {
-      const version = await this.publishing.publish(workspaceId, agentId, userId);
+      const version = await this.publishing.publish(workspaceId, agentId, {
+        authorId: userId,
+        note,
+      });
       const agent = await this.agents.findById(workspaceId, agentId);
       if (agent === null) {
         throw new AgentNotFoundError();
       }
       return {
         agent: await this.views.agentView(workspaceId, agent),
-        version: toAgentVersionView(version, this.ids.toPublic(IdPrefix.AgentVersion, version.id)),
+        version: await this.views.versionView(agent, version),
       };
     });
   }

@@ -47,6 +47,7 @@ import {
 import { newRun } from '@test/support/fixtures/runs.fixture';
 import { queuedEventsFor } from '@test/support/helpers/conversations-testing.helpers';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
+import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.module';
 import type {
   ExecutableRun,
   LifecycleState,
@@ -70,6 +71,7 @@ export const createRunsTestbed = async (
       QueuesModule.forRole(ROLE),
       DomainEventsModule.forRole(ROLE),
       LiveUpdatesModule.forRole(ROLE),
+      AgentsNeighboursModule.forRole(ROLE),
       RunsModule.forRole(ROLE),
     ],
     [

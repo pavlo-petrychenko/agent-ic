@@ -11,6 +11,12 @@ export enum AgentVersionKind {
   Snapshot = 'snapshot',
 }
 
+export enum AgentVersionStatus {
+  Draft = 'draft',
+  Live = 'live',
+  Archived = 'archived',
+}
+
 export enum AgentVersionAlias {
   Draft = 'draft_version',
   Live = 'live_version',

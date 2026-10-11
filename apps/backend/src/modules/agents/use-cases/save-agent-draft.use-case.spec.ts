@@ -2,7 +2,7 @@ import { WorkspaceRole } from '@agent-ic/contracts';
 import { FlowIssueCode, hasBlockingIssues } from '@agent-ic/flow';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
+import { AgentVersionKind, AgentVersionStatus } from '@/modules/agents/constants/agent.constants';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { InvalidAgentInputError } from '@/modules/agents/errors/invalid-agent-input.error';
 import { SaveAgentDraftUseCase } from '@/modules/agents/use-cases/save-agent-draft.use-case';
@@ -48,7 +48,11 @@ describe('SaveAgentDraftUseCase', () => {
     });
 
     const [draft] = await readVersions(testingModule, workspaceId, agentId);
-    expect(saved.version).toMatchObject({ kind: AgentVersionKind.Draft, note: TEST_VERSION_NOTE });
+    expect(saved.version).toMatchObject({
+      kind: AgentVersionKind.Draft,
+      status: AgentVersionStatus.Draft,
+      note: TEST_VERSION_NOTE,
+    });
     expect(hasBlockingIssues(saved.issues)).toBe(false);
     expect(draft).toMatchObject({
       id: draftId,

@@ -4,6 +4,7 @@ export enum AgentField {
   Id = 'id',
   AgentId = 'agentId',
   Name = 'name',
+  Description = 'description',
   Flow = 'flow',
   Note = 'note',
   Mode = 'mode',
@@ -22,6 +23,7 @@ export const AGENT_FIELD_PATH_SEPARATOR = '.';
 
 export const AGENT_FIELD_REASON: Readonly<Record<string, ErrorReason>> = {
   [AgentField.Name]: ErrorReason.InvalidAgentName,
+  [AgentField.Description]: ErrorReason.InvalidAgentDescription,
 };
 
 export const DUPLICATE_AGENT_NAME_SUFFIX = ' (copy)';

@@ -42,6 +42,7 @@
     "LLM_UNAVAILABLE": "The AI model is busy right now. Try again in a minute.",
     "EMBEDDING_DIMENSION_MISMATCH": "The search model gave an answer we could not use. Contact support.",
     "INVALID_AGENT_NAME": "Enter an agent name.",
+    "INVALID_AGENT_DESCRIPTION": "The description is too long.",
     "AGENT_NOT_FOUND": "This agent does not exist.",
     "AGENT_VERSION_NOT_FOUND": "This agent version does not exist.",
     "AGENT_VERSION_IMMUTABLE": "A published version cannot be changed.",

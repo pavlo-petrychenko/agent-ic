@@ -6,6 +6,11 @@ export type UserRecord = typeof users.$inferSelect;
 
 export type NewUser = typeof users.$inferInsert;
 
+export interface UserName {
+  readonly id: string;
+  readonly name: string;
+}
+
 export interface Me {
   readonly id: string;
   readonly email: string;

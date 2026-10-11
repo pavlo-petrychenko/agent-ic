@@ -44,6 +44,7 @@ import {
   notifyOnNeedsOperator,
   runOnMessageReceived,
 } from '@test/support/jobs/conversation-probe.job';
+import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.module';
 import type {
   ConversationsTestbed,
   TiedMessages,
@@ -68,6 +69,7 @@ export const createConversationsTestbed = async (
       IdsModule,
       QueuesModule.forRole(selection.role),
       DomainEventsModule.forRole(selection.role),
+      AgentsNeighboursModule.forRole(selection.role),
       domainModule,
     ],
     providers: [
