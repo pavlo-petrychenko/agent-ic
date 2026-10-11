@@ -6,6 +6,7 @@ import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBu
 import type { FlowBuilderPageProps } from '@/features/flow-builder/containers/FlowBuilderPage/FlowBuilderPage.typedefs';
 import { useDraftAutosave } from '@/features/flow-builder/containers/FlowBuilderPage/useDraftAutosave';
 import { FlowEditor } from '@/features/flow-builder/containers/FlowEditor';
+import { InspectorPanel } from '@/features/flow-builder/containers/InspectorPanel';
 import { IssuesPanel } from '@/features/flow-builder/containers/IssuesPanel';
 import { LeaveGuard } from '@/features/flow-builder/containers/LeaveGuard';
 import { StepPalettePanel } from '@/features/flow-builder/containers/StepPalettePanel';
@@ -131,6 +132,7 @@ export function FlowBuilderPage({ workspaceId, agentId }: FlowBuilderPageProps) 
             <FlowEditor />
             <IssuesPanel />
           </div>
+          <InspectorPanel />
           <LeaveGuard />
         </div>
       )}

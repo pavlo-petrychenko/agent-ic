@@ -5,6 +5,7 @@ $kinds:
   warn, err;
 
 .root {
+  flex-shrink: 0;
   width: var(--size-inspector-width);
   max-width: 100%;
 }
@@ -59,6 +60,7 @@ $kinds:
   gap: var(--space-14);
   min-height: 0;
   padding: var(--space-14) var(--space-20);
+  overflow-y: auto;
   color: var(--color-ink);
   font: var(--type-body);
 }

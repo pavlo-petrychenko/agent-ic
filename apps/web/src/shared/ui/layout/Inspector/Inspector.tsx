@@ -12,6 +12,7 @@ export function Inspector({
   kind,
   title,
   subtitle = null,
+  heading = null,
   closeLabel,
   onClose,
   className,
@@ -23,7 +24,7 @@ export function Inspector({
       {...rest}
       ariaLabel={title}
       tone={PanelTone.Panel}
-      side={PanelSide.None}
+      side={PanelSide.Left}
       flush
       className={clsx(styles.root, className)}
     >
@@ -37,7 +38,7 @@ export function Inspector({
             {kind.label}
           </span>
           <Heading size={HeadingSize.H2} as={HeadingElement.H2}>
-            {title}
+            {heading ?? title}
           </Heading>
           {subtitle !== null && <p className={styles.subtitle}>{subtitle}</p>}
         </div>

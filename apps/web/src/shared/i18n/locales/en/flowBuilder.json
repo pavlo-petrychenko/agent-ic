@@ -196,5 +196,54 @@
     "NO_ERROR_PATH": "Nothing handles a failure of this step",
     "WAIT_FOR_RESULT_WITHOUT_REPLY": "The caller waits for a reply, but no step sends one",
     "NO_FALLBACK_MESSAGE": "Add a message for the customer while they wait"
+  },
+  "inspector": {
+    "close": "Close inspector",
+    "rename": "Rename step",
+    "nameLabel": "Step name",
+    "description": {
+      "trigger_message": "Starts a run for every customer message",
+      "router": "Checked top to bottom · first match wins",
+      "parallel": "Runs branches at the same time"
+    },
+    "renameKey": {
+      "title": "Rename the key too?",
+      "description": "Steps that use {{from}} will use {{to}} instead.",
+      "keep": "Keep {{key}}",
+      "confirm": "Rename key"
+    },
+    "hint": {
+      "fromChannel": "from the channel",
+      "channelKinds": "telegram | api",
+      "wholeConversation": "whole conversation"
+    },
+    "type": {
+      "string": "string",
+      "number": "number",
+      "boolean": "boolean",
+      "enum": "one of a list",
+      "string_list": "list of strings",
+      "list": "list",
+      "unknown": "any"
+    },
+    "trigger": {
+      "kind": "Trigger",
+      "channels": "Channels",
+      "noChannels": "No channels connected yet. Connect a Telegram bot or create an API channel, then pick it here.",
+      "handover": "While a person handles the chat",
+      "handoverNote": "The flow doesn’t run. Messages go to the operator in the Inbox until the chat is handed back.",
+      "messageTypes": "Message types",
+      "messageType": {
+        "text": "Text",
+        "files": "Photos, files",
+        "voice": "Voice"
+      },
+      "treatment": {
+        "runs": "runs the flow",
+        "attachments": "passed as attachments",
+        "ignored": "ignored"
+      },
+      "available": "Available in the flow"
+    }
   }
 }

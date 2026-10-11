@@ -184,7 +184,7 @@ const exampleVariables = (prefix: string, value: unknown): TriggerVariable[] =>
       })
     : [];
 
-const triggerVariables = (trigger: TriggerNode): readonly TriggerVariable[] =>
+export const triggerVariables = (trigger: TriggerNode): readonly TriggerVariable[] =>
   trigger.type === NodeType.TriggerExternalEvent
     ? [
         ...TRIGGER_VARIABLES[trigger.type],
