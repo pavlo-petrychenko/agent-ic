@@ -1,4 +1,6 @@
 import type { MockLink } from '@apollo/client/testing';
+import { createMemoryHistory } from '@tanstack/react-router';
+import type { RouterHistory } from '@tanstack/react-router';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -13,6 +15,7 @@ import {
   DRAFT_VERSION_ID,
   RESTORED_DRAFT,
   failedRestoreVersionMock,
+  failedVersionDiffMock,
   failedVersionHistoryMock,
   restoreVersionMock,
   versionDiffMock,
@@ -26,9 +29,12 @@ const LIVE_DIFF = versionDiffMock(ARCHIVED_VERSION_ID, LIVE_VERSION_ID);
 const DRAFT_DIFF = versionDiffMock(LIVE_VERSION_ID, DRAFT_VERSION_ID);
 const EDITED_STEP_LABEL = 'Order lookup';
 
-const renderPage = (mocks: readonly MockLink.MockedResponse[]) =>
+const renderPage = (
+  mocks: readonly MockLink.MockedResponse[],
+  history: RouterHistory | null = null,
+) =>
   renderWithProviders(
-    <MemoryRouter>
+    <MemoryRouter history={history}>
       <VersionsPage workspaceId={TEST_WORKSPACE_ID} agentId={TEST_AGENT_ID} />
     </MemoryRouter>,
     { mocks },
@@ -162,12 +168,17 @@ describe('VersionsPage', () => {
   it('warns about the unpublished changes and restores an archived version', async () => {
     const user = userEvent.setup();
     const restored = vi.fn<() => typeof RESTORED_DRAFT>(() => RESTORED_DRAFT);
-    renderPage([
-      testingAgentsMock(),
-      versionHistoryMock(),
-      LIVE_DIFF,
-      restoreVersionMock(restored),
-    ]);
+    const history = createMemoryHistory();
+    renderPage(
+      [
+        testingAgentsMock(),
+        versionHistoryMock(),
+        DRAFT_DIFF,
+        LIVE_DIFF,
+        restoreVersionMock(restored),
+      ],
+      history,
+    );
 
     await user.click(await screen.findByRole('button', { name: 'Restore' }));
 
@@ -180,17 +191,43 @@ describe('VersionsPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Restore v2' }));
 
     await vi.waitFor(() => expect(restored).toHaveBeenCalled());
+    await vi.waitFor(() =>
+      expect(history.location.pathname).toBe(`/w/${TEST_WORKSPACE_ID}/agents/${TEST_AGENT_ID}`),
+    );
   });
 
   it('keeps the restore dialog open with the error when restoring fails', async () => {
     const user = userEvent.setup();
-    renderPage([testingAgentsMock(), versionHistoryMock(), LIVE_DIFF, failedRestoreVersionMock]);
+    renderPage([
+      testingAgentsMock(),
+      versionHistoryMock(),
+      DRAFT_DIFF,
+      LIVE_DIFF,
+      failedRestoreVersionMock,
+    ]);
 
     await user.click(await screen.findByRole('button', { name: 'Restore' }));
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('button', { name: 'Restore v2' }));
 
     expect(await within(dialog).findByRole('alert')).toBeInTheDocument();
+  });
+
+  it('offers a retry when the comparison fails to load', async () => {
+    const user = userEvent.setup();
+    renderPage([
+      testingAgentsMock(),
+      versionHistoryMock(),
+      DRAFT_DIFF,
+      failedVersionDiffMock(ARCHIVED_VERSION_ID, LIVE_VERSION_ID),
+      LIVE_DIFF,
+    ]);
+
+    const panel = await screen.findByRole('region', { name: 'What changed in v3' });
+    expect(await within(panel).findByText("Couldn't compare the versions")).toBeInTheDocument();
+    await user.click(within(panel).getByRole('button', { name: 'Retry' }));
+
+    expect(await within(panel).findByText('New step: Conversation guard')).toBeInTheDocument();
   });
 
   it('asks to create an agent when there is none', async () => {

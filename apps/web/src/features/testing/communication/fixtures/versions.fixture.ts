@@ -135,3 +135,8 @@ export const failedRestoreVersionMock: MockLink.MockedResponse = {
   },
   error: new Error('offline'),
 };
+
+export const failedVersionDiffMock = (fromId: string, toId: string): MockLink.MockedResponse => ({
+  request: { query: VersionDiffDocument, variables: { agentId: TEST_AGENT_ID, fromId, toId } },
+  error: new Error('offline'),
+});
