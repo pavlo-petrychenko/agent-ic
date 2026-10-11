@@ -3,7 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createSessionClient } from '@/shared/api/clients/session.client';
 import { AuthEndpoint } from '@/shared/api/constants/authApi.constants';
 import { ClientErrorCode } from '@/shared/api/constants/clientError.constants';
-import { SessionStatus } from '@/shared/api/constants/session.constants';
+import {
+  SessionStatus,
+  STARTUP_REFRESH_RETRY_DELAYS_MS,
+} from '@/shared/api/constants/session.constants';
 import { AppError } from '@/shared/api/errors/app.error';
 import { getRequestContext, setAccessToken } from '@/shared/api/helpers/requestContext.helpers';
 import type { AuthRequest, SessionLocks } from '@/shared/api/typedefs/session.typedefs';
@@ -16,10 +19,19 @@ const tokens = (accessToken: string, expiresInMs = 15 * 60_000) => ({
 const rejected = (reason: ErrorReason | null, code: AppError['code'] = ErrorCode.Unauthenticated) =>
   new AppError('Rejected', { code, reason });
 
+const badGateway = () => rejected(null, ClientErrorCode.Unknown);
+const recordingLocks = (held: string[]): SessionLocks => ({
+  request: async (name, callback) => {
+    held.push(name);
+    return callback();
+  },
+});
+
 const setup = (post: AuthRequest, locks: SessionLocks | null = null) => {
   const postMock = vi.fn<AuthRequest>(post);
-  const client = createSessionClient({ post: postMock, locks, now: () => NOW });
-  return { client, postMock };
+  const waitMock = vi.fn<(delayMs: number) => Promise<void>>(() => Promise.resolve());
+  const client = createSessionClient({ post: postMock, locks, now: () => NOW, wait: waitMock });
+  return { client, postMock, waitMock };
 };
 
 describe('sessionClient', () => {
@@ -43,6 +55,58 @@ describe('sessionClient', () => {
     expect(client.getStatus()).toBe(SessionStatus.Anonymous);
   });
 
+  it('restores the session on page load once the API answers again', async () => {
+    const held: string[] = [];
+    const { client, postMock, waitMock } = setup(
+      () => Promise.resolve(tokens('fresh')),
+      recordingLocks(held),
+    );
+    postMock.mockRejectedValueOnce(badGateway());
+
+    await expect(client.refresh()).resolves.toBe(true);
+
+    expect(client.getStatus()).toBe(SessionStatus.Authenticated);
+    expect(postMock).toHaveBeenCalledTimes(2);
+    expect(waitMock).toHaveBeenCalledTimes(1);
+    expect(held).toEqual(['agent-ic.session-refresh']);
+  });
+
+  it('reports a startup failure instead of signing out when the API stays unreachable', async () => {
+    const { client, postMock, waitMock } = setup(() => Promise.reject(badGateway()));
+
+    await expect(client.refresh()).rejects.toBeInstanceOf(AppError);
+
+    expect(client.getStatus()).toBe(SessionStatus.Unknown);
+    expect(postMock).toHaveBeenCalledTimes(STARTUP_REFRESH_RETRY_DELAYS_MS.length + 1);
+    expect(waitMock.mock.calls.map(([delayMs]) => delayMs)).toEqual(
+      STARTUP_REFRESH_RETRY_DELAYS_MS,
+    );
+  });
+
+  it('signs out on page load without retrying when the refresh token is rejected', async () => {
+    const { client, postMock, waitMock } = setup(() =>
+      Promise.reject(rejected(ErrorReason.InvalidRefreshToken)),
+    );
+
+    await expect(client.refresh()).resolves.toBe(false);
+
+    expect(client.getStatus()).toBe(SessionStatus.Anonymous);
+    expect(postMock).toHaveBeenCalledTimes(1);
+    expect(waitMock).not.toHaveBeenCalled();
+  });
+
+  it('signs out on page load without retrying when the refresh fails for another reason', async () => {
+    const { client, postMock, waitMock } = setup(() =>
+      Promise.reject(rejected(null, ErrorCode.Forbidden)),
+    );
+
+    await expect(client.refresh()).resolves.toBe(false);
+
+    expect(client.getStatus()).toBe(SessionStatus.Anonymous);
+    expect(postMock).toHaveBeenCalledTimes(1);
+    expect(waitMock).not.toHaveBeenCalled();
+  });
+
   it('sends one refresh for many callers at the same time', async () => {
     const { client, postMock } = setup(() => Promise.resolve(tokens('fresh')));
 
@@ -54,13 +118,7 @@ describe('sessionClient', () => {
 
   it('holds the cross-tab lock while it refreshes', async () => {
     const held: string[] = [];
-    const locks: SessionLocks = {
-      request: async (name, callback) => {
-        held.push(name);
-        return callback();
-      },
-    };
-    const { client } = setup(() => Promise.resolve(tokens('fresh')), locks);
+    const { client } = setup(() => Promise.resolve(tokens('fresh')), recordingLocks(held));
 
     await client.refresh();
 
@@ -75,6 +133,7 @@ describe('sessionClient', () => {
 
     await expect(client.refresh()).resolves.toBe(false);
     expect(client.getStatus()).toBe(SessionStatus.Authenticated);
+    expect(postMock).toHaveBeenCalledTimes(1);
 
     postMock.mockRejectedValueOnce(rejected(ErrorReason.InvalidRefreshToken));
     await expect(client.refresh()).resolves.toBe(false);

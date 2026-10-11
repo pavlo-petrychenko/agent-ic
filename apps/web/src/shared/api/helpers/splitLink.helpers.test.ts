@@ -82,7 +82,12 @@ describe('createWsClient', () => {
   });
 
   const setup = (post: AuthRequest) => {
-    const session = createSessionClient({ post, locks: null, now: () => NOW });
+    const session = createSessionClient({
+      post,
+      locks: null,
+      now: () => NOW,
+      wait: () => Promise.resolve(),
+    });
     createWsClient(URL, session);
     return session;
   };

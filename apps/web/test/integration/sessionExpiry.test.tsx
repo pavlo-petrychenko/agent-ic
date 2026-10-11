@@ -46,7 +46,12 @@ describe('an access token that expires mid-session', () => {
     const post = vi.fn<AuthRequest>(() =>
       Promise.resolve({ accessToken: 'fresh', accessTokenExpiresAt: EXPIRES_AT }),
     );
-    const session = createSessionClient({ post, locks: null, now: () => Date.now() });
+    const session = createSessionClient({
+      post,
+      locks: null,
+      now: () => Date.now(),
+      wait: () => Promise.resolve(),
+    });
     session.start({ accessToken: 'expired', accessTokenExpiresAt: EXPIRES_AT });
     const client = createApolloClient({ config: { graphqlPath: GRAPHQL_PATH }, session });
 
