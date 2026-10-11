@@ -9,7 +9,7 @@ export function ChatDivider({ text, icon = null, className, ...rest }: ChatDivid
     <div {...rest} className={clsx(styles.root, className)}>
       <span aria-hidden="true" className={styles.rule} />
       {icon !== null && <Icon name={icon} size={CHAT_DIVIDER_ICON_SIZE} />}
-      <span>{text}</span>
+      <span className={styles.text}>{text}</span>
       <span aria-hidden="true" className={styles.rule} />
     </div>
   );

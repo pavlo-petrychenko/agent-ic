@@ -9,9 +9,14 @@ $story-width: 420px;
 }
 
 .rule {
-  flex-grow: 1;
+  flex: 1 0 var(--space-16);
   height: var(--border-width);
   background: var(--color-line);
+}
+
+.text {
+  min-width: 0;
+  text-align: center;
 }
 
 .storyFrame {
