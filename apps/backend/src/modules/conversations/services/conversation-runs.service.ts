@@ -36,6 +36,10 @@ export class ConversationRunsService {
     private readonly ids: IdService,
   ) {}
 
+  getConversation(workspaceId: string, conversationId: string): Promise<Conversation> {
+    return this.requireConversation(workspaceId, conversationId);
+  }
+
   claimRun(workspaceId: string, conversationId: string, runId: string): Promise<boolean> {
     return this.conversations.claim(workspaceId, conversationId, runId);
   }

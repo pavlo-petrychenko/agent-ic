@@ -17,6 +17,11 @@ export interface DatabaseUrlParts {
   readonly database: string;
 }
 
+export interface ProviderOverride {
+  readonly token: unknown;
+  readonly value: unknown;
+}
+
 export interface ScratchDatabase {
   readonly db: AppDatabase;
   readonly close: () => Promise<void>;

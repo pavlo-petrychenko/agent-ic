@@ -16,7 +16,7 @@ import { systemCtx } from '@test/support/fixtures/identity.fixture';
 import type { ConversationsTestbed } from '@test/support/typedefs/conversations-testing.typedefs';
 
 export const newConversation = (
-  testbed: ConversationsTestbed,
+  testbed: Pick<ConversationsTestbed, 'ids' | 'clock'>,
   workspaceId: string,
 ): NewConversation => ({
   id: testbed.ids.generate(),
@@ -31,7 +31,7 @@ export const newConversation = (
 });
 
 export const newMessage = (
-  testbed: ConversationsTestbed,
+  testbed: Pick<ConversationsTestbed, 'ids' | 'clock'>,
   conversation: NewConversation,
   overrides: Partial<NewMessage> = {},
 ): NewMessage => ({

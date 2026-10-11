@@ -20,14 +20,18 @@ import { TestRollbackError } from '@test/support/errors/test-rollback.error';
 import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 import { discardNotice } from '@test/support/helpers/test-infrastructure.helpers';
 import { TestTransactionService } from '@test/support/services/test-transaction.service';
-import type { ScratchDatabase } from '@test/support/typedefs/test-infrastructure.typedefs';
+import type {
+  ProviderOverride,
+  ScratchDatabase,
+} from '@test/support/typedefs/test-infrastructure.typedefs';
 
 export const createPlatformTestingModule = async (
   redisPrefix: TestRedisPrefix,
   imports: readonly (Type<unknown> | DynamicModule)[] = [],
+  overrides: readonly ProviderOverride[] = [],
 ): Promise<TestingModule> => {
   const config = createIntegrationConfig({ role: Role.Api, queues: [] }, redisPrefix);
-  const testingModule = await Test.createTestingModule({
+  const builder = Test.createTestingModule({
     imports: [
       ConfigModule.register(config),
       ContextModule,
@@ -38,7 +42,11 @@ export const createPlatformTestingModule = async (
       ...imports,
     ],
     providers: [TestTransactionService],
-  }).compile();
+  });
+  for (const { token, value } of overrides) {
+    builder.overrideProvider(token).useValue(value);
+  }
+  const testingModule = await builder.compile();
   testingModule.useLogger(false);
   return testingModule.init();
 };
