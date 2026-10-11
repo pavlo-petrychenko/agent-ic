@@ -256,6 +256,13 @@ export const Selection: Story = {
   args: { selection: selectionFor(['a1', 'a3']), rowActions: ROW_ACTIONS },
 };
 export const RowMenu: Story = { args: { rowActions: ROW_ACTIONS, onRowOpen: () => undefined } };
+export const RowOpen: Story = {
+  args: {
+    rowActions: { ...ROW_ACTIONS, persistent: true },
+    onRowOpen: () => undefined,
+    getOpenLabel: (agent) => `Open ${agent.name}`,
+  },
+};
 export const DisabledRow: Story = {
   args: {
     selection: selectionFor([]),

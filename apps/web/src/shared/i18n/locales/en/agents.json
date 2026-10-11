@@ -33,6 +33,7 @@
     "error": "The agents could not be loaded.",
     "retry": "Try again",
     "loadMore": "Load more",
+    "open": "Open {{name}}",
     "columns": {
       "agent": "Agent",
       "status": "Status"

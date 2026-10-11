@@ -42,6 +42,7 @@ export interface TableRowActions<T> {
   getLabel: (row: T) => string;
   getItems: (row: T) => readonly MenuEntry[];
   onSelect: (row: T, itemId: string) => void;
+  persistent?: boolean;
 }
 
 export interface TableExpansion<T> {
@@ -68,6 +69,7 @@ export interface TableProps<T> {
   headTone?: TableHeadTone;
   currentRowId?: string | null;
   onRowOpen?: ((row: T) => void) | null;
+  getOpenLabel?: ((row: T) => string) | null;
   isRowDisabled?: ((row: T) => boolean) | null;
   sort?: TableSort | null;
   onSortChange?: ((sort: TableSort | null) => void) | null;

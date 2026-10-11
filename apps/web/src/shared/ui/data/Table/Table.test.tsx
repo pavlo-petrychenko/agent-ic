@@ -8,6 +8,8 @@ import type { TableColumn, TableProps, TableSort } from '@/shared/ui/data/Table/
 import { TableCell } from '@/shared/ui/data/TableCell/TableCell';
 import { TableCellAlign } from '@/shared/ui/data/TableCell/TableCell.constants';
 import { ViewportStub } from '@test/support/components/ViewportStub';
+import { cssClass } from '@test/support/helpers/cssModuleClass.helpers';
+import styles from '@/shared/ui/data/Table/Table.module.scss';
 
 interface Agent {
   id: string;
@@ -217,6 +219,30 @@ describe('Table', () => {
     expect(onSelect).toHaveBeenCalledWith(AGENTS[2], 'delete');
     expect(onRowOpen).not.toHaveBeenCalled();
     expect(screen.getByRole('columnheader', { name: 'Actions' })).toBeInTheDocument();
+  });
+
+  it('opens a row from its chevron and keeps a persistent menu visible', async () => {
+    const onRowOpen = vi.fn<(agent: Agent) => void>();
+    renderTable({
+      onRowOpen,
+      getOpenLabel: (agent) => `Open ${agent.name}`,
+      rowActions: {
+        columnLabel: 'Actions',
+        menuLabel: 'Agent actions',
+        getLabel: (agent) => `Actions for ${agent.name}`,
+        getItems: () => [{ id: 'open', label: 'Open' }],
+        onSelect: vi.fn<(agent: Agent, itemId: string) => void>(),
+        persistent: true,
+      },
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Open Gift card helper' }));
+
+    expect(onRowOpen).toHaveBeenCalledTimes(1);
+    expect(onRowOpen).toHaveBeenCalledWith(AGENTS[1]);
+    expect(screen.getByRole('button', { name: 'Actions for Gift card helper' })).toHaveClass(
+      cssClass(styles.persistent),
+    );
   });
 
   it('expands a row into a detail strip', async () => {

@@ -2,12 +2,15 @@ import clsx from 'clsx';
 import { Fragment, type KeyboardEvent, type MouseEvent } from 'react';
 import { Button } from '@/shared/ui/actions/Button/Button';
 import { ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button/Button.constants';
+import { IconButton } from '@/shared/ui/actions/IconButton/IconButton';
+import { IconButtonSize } from '@/shared/ui/actions/IconButton/IconButton.constants';
 import { SortDirection } from '@/shared/ui/data/ListHead/ListHead.constants';
 import { Pagination } from '@/shared/ui/data/Pagination/Pagination';
 import { SelectionBar } from '@/shared/ui/data/SelectionBar/SelectionBar';
 import { SelectionBarVariant } from '@/shared/ui/data/SelectionBar/SelectionBar.constants';
 import {
   TABLE_CONTROL_COLUMN_WIDTH,
+  TABLE_CONTROL_PAIR_COLUMN_WIDTH,
   TABLE_CONTROL_SELECTOR,
   TABLE_EXPAND_ICON_SIZE,
   TABLE_EXPAND_ICON_STROKE_WIDTH,
@@ -49,13 +52,20 @@ const getVisibleColumns = <T,>(
 const getGridTemplate = <T,>(
   columns: readonly TableColumn<T>[],
   leadingControl: boolean,
-  trailingControl: boolean,
+  trailingWidth: string | null,
 ): string =>
   [
     ...(leadingControl ? [TABLE_CONTROL_COLUMN_WIDTH] : []),
     ...columns.map((column) => column.width),
-    ...(trailingControl ? [TABLE_CONTROL_COLUMN_WIDTH] : []),
+    ...(trailingWidth === null ? [] : [trailingWidth]),
   ].join(' ');
+
+const getTrailingWidth = (menuControl: boolean, openControl: boolean): string | null => {
+  if (menuControl && openControl) {
+    return TABLE_CONTROL_PAIR_COLUMN_WIDTH;
+  }
+  return menuControl || openControl ? TABLE_CONTROL_COLUMN_WIDTH : null;
+};
 
 const getNextSort = (current: TableSort | null, columnId: string): TableSort | null => {
   if (current === null || current.columnId !== columnId) {
@@ -100,6 +110,7 @@ export function Table<T>({
   headTone = TableHeadTone.Default,
   currentRowId = null,
   onRowOpen = null,
+  getOpenLabel = null,
   isRowDisabled = null,
   sort = null,
   onSortChange = null,
@@ -117,8 +128,10 @@ export function Table<T>({
   const compact = isCompactBreakpoint(useBreakpoint());
   const visibleColumns = getVisibleColumns(columns, compact);
   const leadingControl = selection !== null;
-  const trailingControl = rowActions !== null;
-  const template = getGridTemplate(visibleColumns, leadingControl, trailingControl);
+  const openControl = onRowOpen !== null && getOpenLabel !== null;
+  const trailingWidth = getTrailingWidth(rowActions !== null, openControl);
+  const trailingControl = trailingWidth !== null;
+  const template = getGridTemplate(visibleColumns, leadingControl, trailingWidth);
   const columnCount = visibleColumns.length + Number(leadingControl) + Number(trailingControl);
   const ready = status === TableStatus.Ready;
   const isDisabled = (row: T): boolean => isRowDisabled?.(row) ?? false;
@@ -306,16 +319,31 @@ export function Table<T>({
                 )}
               </td>
             ))}
-            {rowActions !== null && (
+            {trailingControl && (
               <td className={clsx(styles.cell, styles.menu)}>
-                <TableRowMenu
-                  label={rowActions.getLabel(row)}
-                  menuLabel={rowActions.menuLabel}
-                  items={rowActions.getItems(row)}
-                  disabled={disabled}
-                  triggerClassName={styles.menuTrigger}
-                  onSelect={(itemId) => rowActions.onSelect(row, itemId)}
-                />
+                {rowActions !== null && (
+                  <TableRowMenu
+                    label={rowActions.getLabel(row)}
+                    menuLabel={rowActions.menuLabel}
+                    items={rowActions.getItems(row)}
+                    disabled={disabled}
+                    triggerClassName={clsx(
+                      styles.menuTrigger,
+                      rowActions.persistent === true && styles.persistent,
+                    )}
+                    onSelect={(itemId) => rowActions.onSelect(row, itemId)}
+                  />
+                )}
+                {openControl && (
+                  <IconButton
+                    icon={IconName.ChevronRight}
+                    label={getOpenLabel(row)}
+                    size={IconButtonSize.Sm}
+                    disabled={disabled}
+                    className={styles.openTrigger}
+                    onClick={() => onRowOpen(row)}
+                  />
+                )}
               </td>
             )}
           </tr>
@@ -369,9 +397,11 @@ export function Table<T>({
                   className={clsx(styles.cell, index === 0 && styles.lead)}
                 />
               ))}
-              {rowActions !== null && (
+              {trailingControl && (
                 <th scope="col" className={clsx(styles.cell, styles.menu)}>
-                  <span className={styles.visuallyHidden}>{rowActions.columnLabel}</span>
+                  {rowActions !== null && (
+                    <span className={styles.visuallyHidden}>{rowActions.columnLabel}</span>
+                  )}
                 </th>
               )}
             </tr>
