@@ -188,23 +188,25 @@ export function LlmStepInspector({
       {extra.type === NodeType.Agent && (
         <>
           <InspectorSection title={t('inspector.agent.onFailure')}>
-            <div className="flex items-center justify-between gap-2">
-              <Text kind={TextKind.Small}>
+            <div className="flex items-center gap-2">
+              <Text kind={TextKind.Small} className="min-w-0 flex-1">
                 {extra.onFailure.length === 0
                   ? t('inspector.agent.runFails')
                   : t('inspector.agent.goesTo', {
                       name: extra.onFailure.map((target) => target.label).join(LIST_VALUE_JOINER),
                     })}
               </Text>
-              <Select
-                aria-label={t('inspector.agent.retriesLabel')}
-                value={String(extra.retries)}
-                options={Array.from({ length: MAX_RETRIES + 1 }, (_, count) => ({
-                  value: String(count),
-                  label: t('inspector.agent.retries', { count }),
-                }))}
-                onChange={(event) => extra.onRetriesChange(Number(event.target.value))}
-              />
+              <div className="shrink-0">
+                <Select
+                  aria-label={t('inspector.agent.retriesLabel')}
+                  value={String(extra.retries)}
+                  options={Array.from({ length: MAX_RETRIES + 1 }, (_, count) => ({
+                    value: String(count),
+                    label: t('inspector.agent.retries', { count }),
+                  }))}
+                  onChange={(event) => extra.onRetriesChange(Number(event.target.value))}
+                />
+              </div>
             </div>
             <Text kind={TextKind.Caption} color={TextColor.Mute}>
               {t('inspector.agent.failureNote')}
