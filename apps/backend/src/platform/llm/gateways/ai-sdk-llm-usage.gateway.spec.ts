@@ -156,6 +156,22 @@ describe('AiSdkLlmGateway usage and metrics', () => {
     ).toBe(1);
   });
 
+  it('reports the round the main model finished before the fallback continues', async () => {
+    startGateway();
+    mock
+      .toolCall('lookup', { day: 'sunday' }, FIRST_ROUND)
+      .fail(HttpStatus.INTERNAL_SERVER_ERROR)
+      .reply(DELIVERY, FALLBACK_ROUND);
+
+    const result = await gateway.runAgent(agentRequest());
+
+    expect(result.model).toBe(FALLBACK);
+    expect(usage.reports).toEqual([
+      meteredReport(PRIMARY, FIRST_ROUND, MINISTRAL_FIRST_ROUND_CREDITS),
+      meteredReport(FALLBACK, FALLBACK_ROUND, GEMMA_FALLBACK_ROUND_CREDITS),
+    ]);
+  });
+
   it('counts a reply-tool nudge', async () => {
     startGateway();
     mock.text('We deliver on Sundays.').reply(DELIVERY);

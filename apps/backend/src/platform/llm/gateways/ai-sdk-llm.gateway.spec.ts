@@ -28,6 +28,7 @@ import { AiSdkLlmGateway } from '@/platform/llm/gateways/ai-sdk-llm.gateway';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import { LlmModule } from '@/platform/llm/llm.module';
 import type {
+  LlmAgentProgress,
   LlmAgentRequest,
   LlmCompleteRequest,
   LlmStepTimeouts,
@@ -72,6 +73,12 @@ const FALLBACK = LLM_CATALOG[PRIMARY].fallback;
 const LOOKUP_TOOL = 'lookup';
 const LOOKUP_INPUT = { day: 'sunday' };
 const MAX_TOOL_ROUNDS = 4;
+const WEATHER = { intent: 'weather' };
+const TOOL_RESULT_ROLE = '"role":"tool"';
+const FEEDBACK_ROUNDS = 2;
+
+const timesSent = (messages: unknown, text: string): number =>
+  JSON.stringify(messages).split(text).length - 1;
 
 const lookup = {
   description: 'Look up the delivery days',
@@ -333,6 +340,40 @@ describe('AiSdkLlmGateway.runAgent', () => {
     expect(JSON.stringify(mock.body(1).messages)).toContain(LLM_REPLY_INVALID_FEEDBACK);
   });
 
+  it('resumes a turn from its progress without running its finished tools again', async () => {
+    const progress: LlmAgentProgress[] = [];
+    mock.toolCall(LOOKUP_TOOL, LOOKUP_INPUT).json(WEATHER).json(WEATHER).json(DELIVERY);
+
+    await expect(
+      gateway.runAgent(agentRequest({ onProgress: (next) => progress.push(next) })),
+    ).rejects.toBeInstanceOf(LlmOutputInvalidError);
+    const result = await gateway.runAgent(agentRequest({ resumeFrom: progress.at(-1) }));
+
+    expect(result).toMatchObject({
+      output: DELIVERY,
+      toolCalls: [{ name: LOOKUP_TOOL, input: LOOKUP_INPUT }],
+    });
+    expect(lookup.execute).toHaveBeenCalledOnce();
+    expect(mock.requests).toHaveLength(4);
+    expect(timesSent(mock.body(3).messages, TOOL_RESULT_ROLE)).toBe(1);
+    expect(timesSent(mock.body(3).messages, LLM_OUTPUT_INVALID_FEEDBACK)).toBe(FEEDBACK_ROUNDS);
+  });
+
+  it('gives a resumed turn only the rounds its progress has left', async () => {
+    const progress: LlmAgentProgress[] = [];
+    mock.toolCall(LOOKUP_TOOL, LOOKUP_INPUT).json(WEATHER).json(WEATHER);
+    mock.toolCall(LOOKUP_TOOL, LOOKUP_INPUT);
+
+    await expect(
+      gateway.runAgent(agentRequest({ onProgress: (next) => progress.push(next) })),
+    ).rejects.toBeInstanceOf(LlmOutputInvalidError);
+    await expect(
+      gateway.runAgent(agentRequest({ resumeFrom: progress.at(-1) })),
+    ).rejects.toBeInstanceOf(LlmToolRoundsExceededError);
+
+    expect(mock.requests).toHaveLength(MAX_TOOL_ROUNDS);
+  });
+
   it.each([LlmModelId.Ministral14b, LlmModelId.MimoV26Flash])(
     'fails %s with a typed error when tool rounds run out',
     async (model) => {
@@ -359,6 +400,7 @@ describe('AiSdkLlmGateway fallback', () => {
 
   afterEach(() => {
     mock.reset();
+    lookup.execute.mockClear();
   });
 
   afterAll(async () => {
@@ -397,6 +439,35 @@ describe('AiSdkLlmGateway fallback', () => {
     expect(mock.toolNames(0)).toEqual([LOOKUP_TOOL, LLM_REPLY_TOOL_NAME]);
     expect(mock.toolNames(1)).toEqual([LOOKUP_TOOL]);
     expect(mock.body(1)).toMatchObject({ response_format: { type: 'json_schema' } });
+  });
+
+  it('continues on the fallback from the finished tool round without running it again', async () => {
+    const primary = LlmModelId.MimoV26Flash;
+    mock.toolCall(LOOKUP_TOOL, LOOKUP_INPUT).fail(HttpStatus.SERVICE_UNAVAILABLE).json(DELIVERY);
+
+    const result = await gateway.runAgent(agentRequest({ model: primary }));
+
+    expect(result).toMatchObject({
+      output: DELIVERY,
+      model: LLM_CATALOG[primary].fallback,
+      toolCalls: [{ name: LOOKUP_TOOL, input: LOOKUP_INPUT }],
+    });
+    expect(lookup.execute).toHaveBeenCalledOnce();
+    expect(mock.requests).toHaveLength(3);
+    expect(JSON.stringify(mock.body(2).messages)).toContain(TOOL_RESULT_ROLE);
+  });
+
+  it('shares the tool round budget with the fallback', async () => {
+    mock.toolCall(LOOKUP_TOOL, LOOKUP_INPUT).fail(HttpStatus.SERVICE_UNAVAILABLE);
+    for (let round = 1; round < MAX_TOOL_ROUNDS; round += 1) {
+      mock.toolCall(LOOKUP_TOOL, LOOKUP_INPUT);
+    }
+
+    await expect(
+      gateway.runAgent(agentRequest({ model: LlmModelId.MimoV26Flash })),
+    ).rejects.toBeInstanceOf(LlmToolRoundsExceededError);
+    expect(lookup.execute).toHaveBeenCalledTimes(MAX_TOOL_ROUNDS);
+    expect(mock.requests).toHaveLength(MAX_TOOL_ROUNDS + 1);
   });
 
   it('gives the fallback model its own nearest reasoning level', async () => {

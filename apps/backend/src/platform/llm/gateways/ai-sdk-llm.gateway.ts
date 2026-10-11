@@ -1,10 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { generateText, hasToolCall, stepCountIs, zodSchema } from 'ai';
-import type { LanguageModelUsage } from 'ai';
 import { LLM_CATALOG } from '@/platform/llm/constants/llm-catalog.constants';
 import {
   LLM_COMPLETE_ROUNDS,
-  LLM_NO_USAGE,
   LLM_REPLY_TOOL_NAME,
   LLM_STEP_TIMEOUTS,
   LLM_TOOL_CALLS_FINISH_REASON,
@@ -18,9 +16,11 @@ import { LlmToolRoundsExceededError } from '@/platform/llm/errors/llm-tool-round
 import { LlmUnavailableError } from '@/platform/llm/errors/llm-unavailable.error';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import {
-  addUsage,
-  afterSteps,
+  afterStep,
+  agentProgress,
+  agentRunState,
   checkOutput,
+  continuedRunState,
   initialRunState,
   invalidReplyMessage,
   isModelUnavailable,
@@ -34,6 +34,8 @@ import {
   structuredOutput,
   toToolSet,
   toUpstreamFailure,
+  untrackedRunState,
+  usageBetween,
   withMessage,
 } from '@/platform/llm/helpers/llm-gateway.helpers';
 import { usageReport } from '@/platform/llm/helpers/llm-usage.helpers';
@@ -47,8 +49,12 @@ import type {
   LlmCompleteRequest,
   LlmCompletion,
   LlmModelRun,
+  LlmRounds,
   LlmRunState,
+  LlmRunTracker,
+  LlmStep,
   LlmStepTimeouts,
+  LlmUsage,
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 
 @Injectable()
@@ -69,17 +75,27 @@ export class AiSdkLlmGateway extends LlmGateway {
         { ...request, tools: {}, maxToolRounds: LLM_COMPLETE_ROUNDS },
         run,
         initialRunState(request.messages, LLM_COMPLETE_ROUNDS),
+        untrackedRunState,
       );
       return { output: result.output, model: result.model, usage: result.usage };
     });
   }
 
   async runAgent<T>(request: LlmAgentRequest<T>): Promise<LlmAgentResult<T>> {
+    let latest = agentRunState(request);
+    const track: LlmRunTracker = (state) => {
+      latest = state;
+      request.onProgress?.(agentProgress(request.maxToolRounds, state));
+      return state;
+    };
     return this.withFallback(LlmOperation.Agent, request, async (run) => {
-      const state = initialRunState(request.messages, request.maxToolRounds);
+      const state = continuedRunState(latest);
+      if (state.roundsLeft <= 0) {
+        throw new LlmToolRoundsExceededError(run.model.id, request.maxToolRounds);
+      }
       return run.model.agentFinish === LlmAgentFinish.ReplyTool
-        ? this.replyToolAttempt(request, run, state)
-        : this.finalMessageAttempt(request, run, state);
+        ? this.replyToolAttempt(request, run, state, track)
+        : this.finalMessageAttempt(request, run, state, track);
     });
   }
 
@@ -137,18 +153,20 @@ export class AiSdkLlmGateway extends LlmGateway {
     request: LlmAgentRequest<T>,
     run: LlmModelRun,
     state: LlmRunState,
+    track: LlmRunTracker,
   ): Promise<LlmAgentResult<T>> {
-    const result = await generateText({
-      model: run.languageModel,
-      instructions: outputInstructions(request.system, run.model, run.jsonSchema),
-      messages: [...state.messages],
-      tools: toToolSet(request.tools),
-      output: structuredOutput(run.model, run.jsonSchema),
-      stopWhen: stepCountIs(state.roundsLeft),
-      ...runCallSettings(run),
-    });
-    await this.report(request, run, result.totalUsage);
-    const next = afterSteps(state, result);
+    const { result, next } = await this.rounds(request, run, state, track, (onStepEnd) =>
+      generateText({
+        model: run.languageModel,
+        instructions: outputInstructions(request.system, run.model, run.jsonSchema),
+        messages: [...state.messages],
+        tools: toToolSet(request.tools),
+        output: structuredOutput(run.model, run.jsonSchema),
+        stopWhen: stepCountIs(state.roundsLeft),
+        onStepEnd,
+        ...runCallSettings(run),
+      }),
+    );
     if (result.finishReason === LLM_TOOL_CALLS_FINISH_REASON) {
       throw new LlmToolRoundsExceededError(run.model.id, request.maxToolRounds);
     }
@@ -161,44 +179,52 @@ export class AiSdkLlmGateway extends LlmGateway {
         toolCalls: next.toolCalls,
       };
     }
+    const corrected = track(withMessage(next, outputFeedbackMessage(checked.error)));
     if (next.retriesLeft <= 0 || next.roundsLeft <= 0) {
       throw new LlmOutputInvalidError(run.model.id, checked.error);
     }
     this.metrics.outputRetry(run.model.id);
-    return this.finalMessageAttempt(request, run, {
-      ...withMessage(next, outputFeedbackMessage(checked.error)),
-      retriesLeft: next.retriesLeft - 1,
-    });
+    return this.finalMessageAttempt(
+      request,
+      run,
+      { ...corrected, retriesLeft: next.retriesLeft - 1 },
+      track,
+    );
   }
 
   private async replyToolAttempt<T>(
     request: LlmAgentRequest<T>,
     run: LlmModelRun,
     state: LlmRunState,
+    track: LlmRunTracker,
   ): Promise<LlmAgentResult<T>> {
-    const result = await generateText({
-      model: run.languageModel,
-      instructions: request.system,
-      messages: [...state.messages],
-      tools: { ...toToolSet(request.tools), [LLM_REPLY_TOOL_NAME]: replyTool(run.jsonSchema) },
-      stopWhen: [stepCountIs(state.roundsLeft), hasToolCall(LLM_REPLY_TOOL_NAME)],
-      ...runCallSettings(run),
-    });
-    await this.report(request, run, result.totalUsage);
-    const next = afterSteps(state, result);
+    const { result, next } = await this.rounds(request, run, state, track, (onStepEnd) =>
+      generateText({
+        model: run.languageModel,
+        instructions: request.system,
+        messages: [...state.messages],
+        tools: { ...toToolSet(request.tools), [LLM_REPLY_TOOL_NAME]: replyTool(run.jsonSchema) },
+        stopWhen: [stepCountIs(state.roundsLeft), hasToolCall(LLM_REPLY_TOOL_NAME)],
+        onStepEnd,
+        ...runCallSettings(run),
+      }),
+    );
     const replyCall = result.toolCalls.find(({ toolName }) => toolName === LLM_REPLY_TOOL_NAME);
     if (replyCall === undefined && result.finishReason === LLM_TOOL_CALLS_FINISH_REASON) {
       throw new LlmToolRoundsExceededError(run.model.id, request.maxToolRounds);
     }
     if (replyCall === undefined) {
+      const nudged = track(withMessage(next, replyNudgeMessage()));
       if (next.nudgesLeft <= 0 || next.roundsLeft <= 0) {
         throw new LlmReplyMissingError(run.model.id);
       }
       this.metrics.replyNudge(run.model.id);
-      return this.replyToolAttempt(request, run, {
-        ...withMessage(next, replyNudgeMessage()),
-        nudgesLeft: next.nudgesLeft - 1,
-      });
+      return this.replyToolAttempt(
+        request,
+        run,
+        { ...nudged, nudgesLeft: next.nudgesLeft - 1 },
+        track,
+      );
     }
     const checked = request.output.safeParse(replyCall.input);
     if (checked.success) {
@@ -209,23 +235,46 @@ export class AiSdkLlmGateway extends LlmGateway {
         toolCalls: next.toolCalls,
       };
     }
+    const corrected = track(
+      withMessage(next, invalidReplyMessage(replyCall.toolCallId, checked.error)),
+    );
     if (next.retriesLeft <= 0 || next.roundsLeft <= 0) {
       throw new LlmOutputInvalidError(run.model.id, checked.error);
     }
     this.metrics.outputRetry(run.model.id);
-    return this.replyToolAttempt(request, run, {
-      ...withMessage(next, invalidReplyMessage(replyCall.toolCallId, checked.error)),
-      retriesLeft: next.retriesLeft - 1,
-    });
+    return this.replyToolAttempt(
+      request,
+      run,
+      { ...corrected, retriesLeft: next.retriesLeft - 1 },
+      track,
+    );
+  }
+
+  private async rounds<T, R>(
+    request: LlmCompleteRequest<T>,
+    run: LlmModelRun,
+    state: LlmRunState,
+    track: LlmRunTracker,
+    call: (onStepEnd: (step: LlmStep) => void) => Promise<R>,
+  ): Promise<LlmRounds<R>> {
+    let next = state;
+    try {
+      const result = await call((step) => {
+        next = track(afterStep(next, step));
+      });
+      return { result, next };
+    } finally {
+      if (next !== state) {
+        await this.report(request, run, usageBetween(state.usage, next.usage));
+      }
+    }
   }
 
   private async report<T>(
     request: LlmCompleteRequest<T>,
     run: LlmModelRun,
-    usage: LanguageModelUsage,
+    usage: LlmUsage,
   ): Promise<void> {
-    await this.usage.report(
-      usageReport(request.provider, request.tags, run.model, addUsage(LLM_NO_USAGE, usage)),
-    );
+    await this.usage.report(usageReport(request.provider, request.tags, run.model, usage));
   }
 }

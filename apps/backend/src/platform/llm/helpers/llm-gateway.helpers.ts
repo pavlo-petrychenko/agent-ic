@@ -38,11 +38,14 @@ import {
 } from '@/platform/llm/constants/llm-provider.constants';
 import { jsonTextSchema } from '@/platform/llm/schemas/llm-output.schema';
 import type {
+  LlmAgentProgress,
+  LlmAgentRequest,
   LlmCompleteRequest,
   LlmMessage,
   LlmModelRun,
   LlmRunState,
-  LlmStepsResult,
+  LlmRunTracker,
+  LlmStep,
   LlmTools,
   LlmUsage,
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
@@ -149,19 +152,49 @@ export const initialRunState = (messages: readonly LlmMessage[], rounds: number)
   toolCalls: [],
 });
 
-export const afterSteps = (state: LlmRunState, result: LlmStepsResult): LlmRunState => ({
+export const agentRunState = <T>({
+  messages,
+  maxToolRounds,
+  resumeFrom,
+}: LlmAgentRequest<T>): LlmRunState =>
+  resumeFrom === undefined
+    ? initialRunState(messages, maxToolRounds)
+    : {
+        ...initialRunState([], maxToolRounds - resumeFrom.roundsUsed),
+        messages: resumeFrom.messages,
+        toolCalls: resumeFrom.toolCalls,
+      };
+
+export const continuedRunState = (state: LlmRunState): LlmRunState => ({
   ...state,
-  messages: [...state.messages, ...result.response.messages],
-  roundsLeft: state.roundsLeft - result.steps.length,
-  usage: addUsage(state.usage, result.totalUsage),
+  retriesLeft: LLM_OUTPUT_RETRIES,
+  nudgesLeft: LLM_REPLY_NUDGES,
+});
+
+export const agentProgress = (maxToolRounds: number, state: LlmRunState): LlmAgentProgress => ({
+  messages: state.messages,
+  roundsUsed: maxToolRounds - state.roundsLeft,
+  toolCalls: state.toolCalls,
+});
+
+export const untrackedRunState: LlmRunTracker = (state) => state;
+
+export const afterStep = (state: LlmRunState, step: LlmStep): LlmRunState => ({
+  ...state,
+  messages: [...state.messages, ...step.response.messages],
+  roundsLeft: state.roundsLeft - 1,
+  usage: addUsage(state.usage, step.usage),
   toolCalls: [
     ...state.toolCalls,
-    ...result.steps.flatMap(({ toolCalls }) =>
-      toolCalls
-        .filter(({ toolName }) => toolName !== LLM_REPLY_TOOL_NAME)
-        .map(({ toolName, input }) => ({ name: toolName, input })),
-    ),
+    ...step.toolCalls
+      .filter(({ toolName }) => toolName !== LLM_REPLY_TOOL_NAME)
+      .map(({ toolName, input }) => ({ name: toolName, input })),
   ],
+});
+
+export const usageBetween = (before: LlmUsage, after: LlmUsage): LlmUsage => ({
+  inputTokens: after.inputTokens - before.inputTokens,
+  outputTokens: after.outputTokens - before.outputTokens,
 });
 
 export const withMessage = (state: LlmRunState, message: ModelMessage): LlmRunState => ({

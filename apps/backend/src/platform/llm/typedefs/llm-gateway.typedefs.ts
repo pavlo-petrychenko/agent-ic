@@ -37,9 +37,17 @@ export interface LlmTool {
 
 export type LlmTools = Readonly<Record<string, LlmTool>>;
 
+export interface LlmAgentProgress {
+  readonly messages: readonly ModelMessage[];
+  readonly roundsUsed: number;
+  readonly toolCalls: readonly LlmToolCall[];
+}
+
 export interface LlmAgentRequest<T> extends LlmCompleteRequest<T> {
   readonly tools: LlmTools;
   readonly maxToolRounds: number;
+  readonly resumeFrom?: LlmAgentProgress;
+  readonly onProgress?: (progress: LlmAgentProgress) => void;
 }
 
 export interface LlmToolCall {
@@ -82,10 +90,15 @@ export interface LlmRunState {
   readonly toolCalls: readonly LlmToolCall[];
 }
 
-export interface LlmStepsResult {
+export type LlmRunTracker = (state: LlmRunState) => LlmRunState;
+
+export interface LlmStep {
   readonly response: { readonly messages: readonly ModelMessage[] };
-  readonly steps: readonly {
-    readonly toolCalls: readonly { readonly toolName: string; readonly input: unknown }[];
-  }[];
-  readonly totalUsage: LanguageModelUsage;
+  readonly toolCalls: readonly { readonly toolName: string; readonly input: unknown }[];
+  readonly usage: LanguageModelUsage;
+}
+
+export interface LlmRounds<R> {
+  readonly result: R;
+  readonly next: LlmRunState;
 }
