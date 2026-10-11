@@ -1,0 +1,23 @@
+query Simulation($agentId: ID!) {
+  simulation(agentId: $agentId) {
+    conversation {
+      id
+      state
+    }
+    messages {
+      id
+      author
+      text
+      runId
+      createdAt
+    }
+    runs {
+      id
+      status
+      createdAt
+      error {
+        message
+      }
+    }
+  }
+}

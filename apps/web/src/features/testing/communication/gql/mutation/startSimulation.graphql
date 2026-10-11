@@ -1,0 +1,7 @@
+mutation StartSimulation($input: StartSimulationInput!) {
+  startSimulation(input: $input) {
+    conversation {
+      id
+    }
+  }
+}
