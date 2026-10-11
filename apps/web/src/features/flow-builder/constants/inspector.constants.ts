@@ -9,6 +9,7 @@ export const DESCRIBED_NODE_TYPES: readonly DescribedNodeType[] = [
   NodeType.Router,
   NodeType.Parallel,
   NodeType.SendMessage,
+  NodeType.Escalation,
 ];
 
 export enum FieldHint {
@@ -106,6 +107,11 @@ export enum IssuePathSegment {
   Name = 'name',
   Content = 'content',
   QuickReplies = 'quickReplies',
+  CustomerMessage = 'customerMessage',
+  Reason = 'reason',
+  FallbackMessage = 'fallbackMessage',
+  Reminder = 'reminderAfterMinutes',
+  Fallback = 'fallbackAfterMinutes',
 }
 
 export enum InputType {

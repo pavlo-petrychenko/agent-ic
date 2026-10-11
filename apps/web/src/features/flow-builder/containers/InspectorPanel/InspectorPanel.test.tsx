@@ -3,14 +3,17 @@ import {
   ChannelSelectionMode,
   CompletionRole,
   ConditionOperator,
+  EscalationMode,
   FLOW_SCHEMA_VERSION,
   MAX_LABEL_LENGTH,
   MAX_OUTPUT_FIELDS,
   NodeType,
   PortName,
   MessageContentKind,
+  NotifyChannel,
   PromptSourceKind,
   QuickRepliesKind,
+  RecipientsKind,
   RuleMatch,
   OutputFieldType,
   WaitFor,
@@ -20,6 +23,7 @@ import type { AgentNode, FlowDocument, FlowNode } from '@agent-ic/flow';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { membersByRoleMock } from '@/features/flow-builder/communication/fixtures/membersByRole.fixture';
 import {
   FLASH_MODEL,
   LUNA_MODEL,
@@ -520,5 +524,68 @@ describe('InspectorPanel', () => {
     expect(
       within(screen.getByRole('region', { name: 'Preview' })).getByText('Hello there'),
     ).toBeVisible();
+  });
+});
+
+describe('InspectorPanel escalation', () => {
+  const ESCALATION_FLOW: FlowDocument = {
+    ...FLOW,
+    nodes: [...FLOW.nodes, step('handoff', 'Notify operator', NODE_TEMPLATES[NodeType.Escalation])],
+    edges: [
+      ...FLOW.edges,
+      { id: 'e3', source: 'route', sourcePort: PortName.Else, target: 'handoff' },
+    ],
+  };
+  const openEscalation = () => open('handoff', ESCALATION_FLOW, [membersByRoleMock()]);
+
+  it('notifies a role with its member count on the chosen channels', async () => {
+    const user = userEvent.setup();
+    openEscalation();
+
+    const recipients = screen.getByRole('combobox', { name: 'Who to notify' });
+    expect(
+      await within(recipients).findByRole('option', { name: 'Operators · 2 people' }),
+    ).toBeInTheDocument();
+    await user.selectOptions(
+      recipients,
+      within(recipients).getByRole('option', { name: 'Owners · 1 person' }),
+    );
+    expect(screen.getByRole('checkbox', { name: 'In the platform' })).toBeDisabled();
+    expect(screen.queryByRole('checkbox', { name: 'Telegram' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('checkbox', { name: 'Email' }));
+    await user.type(screen.getByRole('textbox', { name: 'Reason shown in the Inbox' }), 'Refund');
+    await user.tab();
+
+    expect(node('handoff')).toMatchObject({
+      config: {
+        reason: 'Refund',
+        notify: {
+          recipients: { kind: RecipientsKind.Role, role: 'owner' },
+          channels: [NotifyChannel.InPlatform, NotifyChannel.Email],
+        },
+      },
+    });
+    expect(screen.getByText('Add a message for the customer while they wait')).toBeVisible();
+    expect(
+      within(screen.getByRole('list', { name: 'Until someone takes it' })).getByText('30 min'),
+    ).toBeVisible();
+  });
+
+  it('ends the conversation with a message and keeps it when escalating again', async () => {
+    const user = userEvent.setup();
+    openEscalation();
+
+    await user.type(screen.getByRole('textbox', { name: 'Message to the customer' }), 'Bye');
+    await user.tab();
+    await user.click(screen.getByRole('radio', { name: 'End conversation' }));
+
+    expect(node('handoff')).toEqual(
+      expect.objectContaining({ config: { mode: EscalationMode.End, customerMessage: 'Bye' } }),
+    );
+    expect(screen.queryByRole('combobox', { name: 'Who to notify' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('radio', { name: 'Escalate to a person' }));
+    expect(node('handoff')).toMatchObject({
+      config: { mode: EscalationMode.Escalate, customerMessage: 'Bye', reason: '' },
+    });
   });
 });

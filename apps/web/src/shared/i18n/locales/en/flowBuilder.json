@@ -219,7 +219,8 @@
       "parallel": "Runs branches at the same time",
       "agent": "Runs once per customer message · never messages the customer itself",
       "completion": "One LLM call · no tools · structured output",
-      "send_message": "Sends chat messages to the customer"
+      "send_message": "Sends chat messages to the customer",
+      "escalation": "Hands the chat to a person or ends it"
     },
     "renameKey": {
       "title": "Rename the key too?",
@@ -416,6 +417,41 @@
         "none": "Add buttons",
         "static": "Add button"
       }
+    },
+    "escalation": {
+      "what": "What happens",
+      "mode": {
+        "escalate": "Escalate to a person",
+        "end": "End conversation"
+      },
+      "message": "Message to the customer",
+      "messageHint": {
+        "escalate": "Sent before the flow pauses. Leave empty to say nothing.",
+        "end": "Sent before the conversation ends. Leave empty to say nothing."
+      },
+      "notify": "Notify",
+      "recipients": "Who to notify",
+      "recipient": {
+        "operators": "Operators",
+        "owner": "Owners",
+        "admin": "Admins",
+        "builder": "Builders",
+        "users": "Chosen people"
+      },
+      "people_one": "{{name}} · {{count}} person",
+      "people_other": "{{name}} · {{count}} people",
+      "channel": {
+        "in_platform": "In the platform",
+        "email": "Email"
+      },
+      "notifyHint": "Each person can turn channels off in their notification settings.",
+      "reason": "Reason shown in the Inbox",
+      "until": "Until someone takes it",
+      "remindAfter": "Remind after",
+      "fallbackAfter": "If nobody replies in",
+      "never": "Never",
+      "fallbackMessage": "Then tell the customer",
+      "minutes": "{{count}} min"
     }
   }
 }

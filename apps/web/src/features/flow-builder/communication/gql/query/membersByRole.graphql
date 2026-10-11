@@ -1,0 +1,6 @@
+query MembersByRole {
+  membersByRole {
+    role
+    count
+  }
+}

@@ -14,6 +14,7 @@ import {
 import type { AgentNode, CompletionNode, FlowNode } from '@agent-ic/flow';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useMembersByRole } from '@/features/flow-builder/communication/hooks/useMembersByRole';
 import { useModelOptions } from '@/features/flow-builder/communication/hooks/useModelOptions';
 import { EMPTY_SELECTION } from '@/features/flow-builder/constants/flowBuilder.constants';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
@@ -24,6 +25,14 @@ import {
 } from '@/features/flow-builder/constants/inspector.constants';
 import { LLM_STEP_TYPES } from '@/features/flow-builder/constants/llmStep.constants';
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
+import {
+  recipientsValue,
+  setChannel,
+  setCustomerMessage,
+  setEscalationMode,
+  setRecipients,
+  updateEscalate,
+} from '@/features/flow-builder/logic/helpers/escalation.helpers';
 import { renameKey } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import { newElementId } from '@/features/flow-builder/logic/helpers/id.helpers';
 import {
@@ -68,6 +77,7 @@ import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { KeyRename } from '@/features/flow-builder/typedefs/inspector.typedefs';
 import type { LlmStepExtra } from '@/features/flow-builder/typedefs/llmStep.typedefs';
+import { EscalationInspector } from '@/features/flow-builder/view/EscalationInspector';
 import { InlineEditField } from '@/features/flow-builder/view/InlineEditField';
 import { LlmStepInspector } from '@/features/flow-builder/view/LlmStepInspector';
 import { ParallelInspector } from '@/features/flow-builder/view/ParallelInspector';
@@ -94,6 +104,7 @@ export function InspectorPanel() {
     [document, node],
   );
   const modelOptions = useModelOptions(!LLM_STEP_TYPES.some((type) => type === node?.type));
+  const memberCounts = useMembersByRole(node?.type !== NodeType.Escalation);
   const variableOptions = useMemo(
     () =>
       variables.map((variable) => {
@@ -290,6 +301,25 @@ export function InspectorPanel() {
                 },
               })
             }
+          />
+        );
+      }
+      case NodeType.Escalation: {
+        const errors = fieldErrors(issues, current.id);
+        return (
+          <EscalationInspector
+            key={current.id}
+            config={current.config}
+            variables={variableOptions}
+            recipients={recipientsValue(current.config)}
+            counts={memberCounts}
+            issue={(path) => errors.get(path) ?? null}
+            onModeChange={(mode) => apply(setEscalationMode(document, current.id, mode))}
+            onMessageChange={(text) => previewEdit(setCustomerMessage(document, current.id, text))}
+            onTemplateChange={(patch) => previewEdit(updateEscalate(document, current.id, patch))}
+            onCommit={commitPreview}
+            onRecipientsChange={(value) => apply(setRecipients(document, current.id, value))}
+            onChannelChange={(channel, on) => apply(setChannel(document, current.id, channel, on))}
           />
         );
       }

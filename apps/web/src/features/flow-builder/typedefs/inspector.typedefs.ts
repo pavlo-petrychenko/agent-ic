@@ -63,4 +63,5 @@ export type DescribedNodeType =
   | NodeType.Completion
   | NodeType.Router
   | NodeType.Parallel
-  | NodeType.SendMessage;
+  | NodeType.SendMessage
+  | NodeType.Escalation;
