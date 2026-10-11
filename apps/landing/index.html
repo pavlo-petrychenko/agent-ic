@@ -434,7 +434,99 @@
                   >
                   <span class="fb__link">{{t.mock.openRun}}</span>
                 </div>
-                <div class="fb__inspector"></div>
+                <div class="fb__inspector">
+                  <div class="fb__inspector-head">
+                    <span class="fb__overline hue-agent-text"
+                      ><svg class="icon"><use href="/icons.svg#agent" /></svg
+                      >{{t.mock.agentStepTitle}}</span
+                    >
+                    <strong class="fb__inspector-title">{{t.mock.receptionist}}</strong>
+                    <span class="fb__muted">{{t.mock.receptionistHint}}</span>
+                    <svg class="icon fb__close"><use href="/icons.svg#close" /></svg>
+                  </div>
+                  <div class="fb__inspector-body">
+                    <div class="fb__field">
+                      <span class="fb__field-label">{{t.mock.prompt}}</span>
+                      <span class="fb__select"
+                        >{{t.mock.receptionist}}<span
+                          >{{t.mock.library}}<svg class="icon">
+                            <use href="/icons.svg#chevron" /></svg></span
+                      ></span>
+                      <span class="fb__link">{{t.mock.openLibrary}}</span>
+                      <span class="fb__radios"
+                        ><span class="fb__radio is-checked">{{t.mock.pin}}</span
+                        ><span class="fb__radio">{{t.mock.followLatest}}</span></span
+                      >
+                    </div>
+                    <div class="fb__field">
+                      <span class="fb__field-label">{{t.mock.model}}</span>
+                      <span class="fb__select"
+                        >{{t.mock.strongModel}}<span
+                          >{{t.mock.platform}}<svg class="icon">
+                            <use href="/icons.svg#chevron" /></svg></span
+                      ></span>
+                    </div>
+                    <div class="fb__field">
+                      <span class="fb__field-label"
+                        >{{t.mock.knowledge}}<small>{{t.mock.knowledgeHint}}</small></span
+                      >
+                      <span class="fb__list">
+                        <span
+                          ><span class="fb__with-icon"
+                            ><span class="fb__tile hue-kb"
+                              ><svg class="icon"><use href="/icons.svg#kb" /></svg></span
+                            >{{t.mock.services}}</span
+                          ><svg class="icon"><use href="/icons.svg#close" /></svg
+                        ></span>
+                        <span
+                          ><span class="fb__with-icon"
+                            ><span class="fb__tile hue-kb"
+                              ><svg class="icon"><use href="/icons.svg#kb" /></svg></span
+                            >{{t.mock.hours}}</span
+                          ><svg class="icon"><use href="/icons.svg#close" /></svg
+                        ></span>
+                      </span>
+                      <span class="fb__add"
+                        ><svg class="icon"><use href="/icons.svg#plus" /></svg
+                        >{{t.mock.attach}}</span
+                      >
+                    </div>
+                    <div class="fb__field">
+                      <span class="fb__field-label"
+                        >{{t.mock.output}}<small>{{t.mock.outputHint}}</small></span
+                      >
+                      <span class="fb__list"
+                        ><span
+                          ><span class="fb__with-icon"
+                            ><code>messages</code
+                            ><svg class="icon"><use href="/icons.svg#lock" /></svg></span
+                          ><span>{{t.mock.outputType}}</span></span
+                        ></span
+                      >
+                      <span class="fb__add"
+                        ><svg class="icon"><use href="/icons.svg#plus" /></svg
+                        >{{t.mock.addField}}</span
+                      >
+                    </div>
+                    <div class="fb__field">
+                      <span class="fb__field-label">{{t.mock.fails}}</span>
+                      <span class="fb__select"
+                        >{{t.mock.escalate}}<span
+                          >{{t.mock.retries}}<svg class="icon">
+                            <use href="/icons.svg#chevron" /></svg></span
+                      ></span>
+                      <span class="fb__muted fb__small">{{t.mock.failsHint}}</span>
+                    </div>
+                    <span class="fb__callout"
+                      ><svg class="icon"><use href="/icons.svg#info" /></svg
+                      ><span
+                        >{{t.mock.calloutStart}}
+                        <strong>{{t.mock.sendMessage}}</strong>{{t.mock.calloutMiddle}}
+                        <code>messages</code> {{t.mock.calloutEnd}}</span
+                      ></span
+                    >
+                  </div>
+                </div>
               </div>
             </div>
             <div class="chat">
