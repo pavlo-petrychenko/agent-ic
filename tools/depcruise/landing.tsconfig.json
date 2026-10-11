@@ -1,0 +1,9 @@
+{
+  "extends": "../../apps/landing/tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["apps/landing/src/*"]
+    }
+  },
+  "include": ["../../apps/landing/src"]
+}

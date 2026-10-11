@@ -14,6 +14,7 @@ It is one pnpm and Turborepo monorepo with two apps and a few shared packages.
 | ------------------------------------------ | ------------------------------------------------------------------------------- |
 | `apps/backend`                             | NestJS modular monolith. GraphQL for the dashboard, REST for login and sign-up  |
 | `apps/web`                                 | React single-page app. Apollo Client for GraphQL, TanStack Router for pages     |
+| `apps/landing`                             | static marketing site, English and Ukrainian, deployed to Cloudflare Pages      |
 | `packages/contracts`                       | what both apps share: roles, permissions, error codes, ID prefixes              |
 | `packages/flow`                            | the home of the flow graph schema and validation; today only a version constant |
 | `packages/api-schema`                      | the merged GraphQL schema, generated, not committed                             |
