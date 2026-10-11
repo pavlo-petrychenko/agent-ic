@@ -18,7 +18,7 @@ const step = {
 
 describe('toOutputView', () => {
   it('shows a flat object as fields, with a dash for empty values', () => {
-    expect(toOutputView({ needs_human: false, reason: null })).toEqual({
+    expect(toOutputView({ needs_human: false, reason: null }, 'en', NodeType.Completion)).toEqual({
       kind: OutputViewKind.Fields,
       fields: [
         { label: 'needs_human', value: 'false' },
@@ -28,28 +28,51 @@ describe('toOutputView', () => {
   });
 
   it('shows nested output as JSON', () => {
-    expect(toOutputView({ messages: ['Hi'] })).toEqual({
+    expect(toOutputView({ messages: ['Hi'] }, 'en', NodeType.Agent)).toEqual({
       kind: OutputViewKind.Json,
       code: '{\n  "messages": [\n    "Hi"\n  ]\n}',
     });
   });
 
   it('shows nothing for a step without output', () => {
-    expect(toOutputView(null)).toBeNull();
-    expect(toOutputView({})).toBeNull();
+    expect(toOutputView(null, 'en', null)).toBeNull();
+    expect(toOutputView({}, 'en', null)).toBeNull();
+  });
+
+  it('lists who an escalation would notify', () => {
+    const escalation = { mode: 'escalate', messageIds: ['m1'], reason: 'Complaint' };
+
+    expect(
+      toOutputView({ ...escalation, wouldNotify: ['Pavlo', 'Oksana'] }, 'en', NodeType.Escalation),
+    ).toEqual({
+      kind: OutputViewKind.Escalation,
+      recipients: 'Pavlo, Oksana',
+    });
+    expect(toOutputView({ ...escalation, wouldNotify: [] }, 'uk', NodeType.Escalation)).toEqual({
+      kind: OutputViewKind.Escalation,
+      recipients: null,
+    });
+  });
+
+  it('shows another node output with wouldNotify as JSON, not as an escalation', () => {
+    expect(toOutputView({ wouldNotify: ['Pavlo'] }, 'en', NodeType.ApiRequest)).toEqual({
+      kind: OutputViewKind.Json,
+      code: '{\n  "wouldNotify": [\n    "Pavlo"\n  ]\n}',
+    });
   });
 });
 
 describe('toStepView', () => {
   it('leaves out what a send message step did inside', () => {
-    expect(toStepView(step, NodeType.SendMessage)).toBeNull();
-    expect(toStepView(step, NodeType.Agent)).toMatchObject({ kind: OutputViewKind.Fields });
+    expect(toStepView(step, 'en', NodeType.SendMessage)).toBeNull();
+    expect(toStepView(step, 'en', NodeType.Agent)).toMatchObject({ kind: OutputViewKind.Fields });
   });
 
   it('shows the error of a failed step', () => {
     expect(
       toStepView(
         { ...step, status: RunStepStatus.Failed, output: null, errorMessage: 'Timed out' },
+        'en',
         NodeType.Agent,
       ),
     ).toEqual({ kind: OutputViewKind.Error, message: 'Timed out' });

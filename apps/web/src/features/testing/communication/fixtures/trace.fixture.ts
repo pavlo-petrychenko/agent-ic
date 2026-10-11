@@ -13,9 +13,17 @@ export const STEP_ERROR = 'The model did not answer in time';
 
 export const GUARD_OUTPUT = { needs_human: false, reason: null };
 
+export const ESCALATION_OUTPUT = {
+  mode: 'escalate',
+  messageIds: ['msg_escalation'],
+  reason: 'Asks for a manager',
+  wouldNotify: ['Pavlo', 'Oksana'],
+};
+
 export const testingRunMock = (
   status: RunStatus,
   replyStatus: RunStepStatus | null,
+  replyOutput: unknown = { messages: ['Hi'] },
 ): MockLink.MockedResponse => ({
   request: { query: TestingRunDocument, variables: { id: TRACE_RUN_ID } },
   result: {
@@ -45,7 +53,7 @@ export const testingRunMock = (
                   id: 'step_2',
                   nodeId: REPLY_NODE_ID,
                   status: replyStatus,
-                  output: { messages: ['Hi'] },
+                  output: replyOutput,
                   error:
                     replyStatus === RunStepStatus.Failed
                       ? { __typename: 'RunFailure', message: STEP_ERROR }

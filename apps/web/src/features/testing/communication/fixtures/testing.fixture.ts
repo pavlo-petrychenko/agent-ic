@@ -1,10 +1,13 @@
 import {
   ChannelSelectionMode,
+  EscalationMode,
   FLOW_SCHEMA_VERSION,
   MessageContentKind,
   NodeType,
+  NotifyChannel,
   PortName,
   QuickRepliesKind,
+  RecipientsKind,
 } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import type { MockLink } from '@apollo/client/testing';
@@ -45,6 +48,31 @@ export const TRACE_FLOW: FlowDocument = {
   edges: [
     { id: 'edge_1', source: TRIGGER_NODE_ID, sourcePort: PortName.Next, target: REPLY_NODE_ID },
   ],
+};
+
+const TRACE_ESCALATION: FlowNode = {
+  id: REPLY_NODE_ID,
+  key: 'escalate',
+  label: 'Hand off to a person',
+  position: { x: 0, y: 0 },
+  type: NodeType.Escalation,
+  config: {
+    mode: EscalationMode.Escalate,
+    customerMessage: null,
+    reason: 'Asks for a manager',
+    notify: {
+      recipients: { kind: RecipientsKind.Operators },
+      channels: [NotifyChannel.InPlatform],
+    },
+    reminderAfterMinutes: null,
+    fallbackAfterMinutes: null,
+    fallbackMessage: '',
+  },
+};
+
+export const ESCALATION_TRACE_FLOW: FlowDocument = {
+  ...TRACE_FLOW,
+  nodes: [TRACE_TRIGGER, TRACE_ESCALATION],
 };
 
 export const TEST_AGENT_ID = 'agt_salon';

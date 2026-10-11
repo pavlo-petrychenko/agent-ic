@@ -82,7 +82,8 @@ export interface OutputField {
 export type OutputView =
   | { kind: OutputViewKind.Fields; fields: readonly OutputField[] }
   | { kind: OutputViewKind.Json; code: string }
-  | { kind: OutputViewKind.Error; message: string | null };
+  | { kind: OutputViewKind.Error; message: string | null }
+  | { kind: OutputViewKind.Escalation; recipients: string | null };
 
 export interface StepOutput {
   id: string;

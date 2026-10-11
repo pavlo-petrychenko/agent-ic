@@ -24,7 +24,10 @@ export enum OutputViewKind {
   Fields = 'fields',
   Json = 'json',
   Error = 'error',
+  Escalation = 'escalation',
 }
+
+export const RECIPIENT_LIST_FORMAT: Intl.ListFormatOptions = { type: 'unit', style: 'short' };
 
 export const JSON_INDENT = 2;
 export const MS_PER_SECOND = 1000;
@@ -35,7 +38,7 @@ export const RUN_STATUS_TONES: Readonly<Record<RunStatus, BadgeTone>> = {
   [RunStatus.Queued]: BadgeTone.Neutral,
   [RunStatus.Running]: BadgeTone.Accent,
   [RunStatus.Succeeded]: BadgeTone.Ok,
-  [RunStatus.Escalated]: BadgeTone.Warn,
+  [RunStatus.Escalated]: BadgeTone.Err,
   [RunStatus.Failed]: BadgeTone.Err,
 };
 

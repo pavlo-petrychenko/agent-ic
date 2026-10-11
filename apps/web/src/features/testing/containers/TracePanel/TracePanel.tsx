@@ -110,7 +110,7 @@ export function TracePanel({
             ]}
             outputs={turn.steps.flatMap((step) => {
               const slot = slotById.get(step.nodeId) ?? null;
-              const view = toStepView(step, slot?.type ?? null);
+              const view = toStepView(step, locale, slot?.type ?? null);
               return view === null
                 ? []
                 : [{ id: step.id, title: slot?.label ?? step.nodeId, view }];

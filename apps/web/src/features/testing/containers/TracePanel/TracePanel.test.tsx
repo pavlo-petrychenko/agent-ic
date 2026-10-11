@@ -2,12 +2,14 @@ import type { MockLink } from '@apollo/client/testing';
 import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import {
+  ESCALATION_TRACE_FLOW,
   REPLY_NODE_ID,
   TEST_AGENT_ID,
   TEST_WORKSPACE_ID,
   TRACE_FLOW,
 } from '@/features/testing/communication/fixtures/testing.fixture';
 import {
+  ESCALATION_OUTPUT,
   STEP_ERROR,
   TRACE_RUN_ID,
   testingRunMock,
@@ -17,13 +19,18 @@ import { RunStatus, RunStepStatus } from '@/shared/api/generated/schema.generate
 import { MemoryRouter } from '@test/support/components/MemoryRouter';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
-const renderPanel = (status: RunStatus, mocks: readonly MockLink.MockedResponse[], draft = true) =>
+const renderPanel = (
+  status: RunStatus,
+  mocks: readonly MockLink.MockedResponse[],
+  draft = true,
+  flow = TRACE_FLOW,
+) =>
   renderWithProviders(
     <MemoryRouter>
       <TracePanel
         workspaceId={TEST_WORKSPACE_ID}
         agentId={TEST_AGENT_ID}
-        flow={TRACE_FLOW}
+        flow={flow}
         run={{ id: TRACE_RUN_ID, status, createdAt: '2026-10-11T10:00:00Z', errorMessage: null }}
         turnNumber={2}
         draft={draft}
@@ -81,6 +88,20 @@ describe('TracePanel', () => {
     expect(screen.getByText('2.1 s')).toBeInTheDocument();
     expect(screen.getByText('2 of 2')).toBeInTheDocument();
     expect(screen.getByText('needs_human')).toBeInTheDocument();
+  });
+
+  it('shows who an escalation would notify and that the flow paused', async () => {
+    renderPanel(
+      RunStatus.Escalated,
+      [testingRunMock(RunStatus.Escalated, RunStepStatus.Succeeded, ESCALATION_OUTPUT)],
+      true,
+      ESCALATION_TRACE_FLOW,
+    );
+
+    expect(await screen.findByText('Pavlo, Oksana')).toBeInTheDocument();
+    expect(screen.getByText('Escalated')).toBeInTheDocument();
+    expect(screen.getByText('Would notify')).toBeInTheDocument();
+    expect(screen.getByText('Paused')).toBeInTheDocument();
   });
 
   it('names the live version under a draft run only', async () => {

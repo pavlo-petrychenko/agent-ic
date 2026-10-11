@@ -3,7 +3,7 @@ import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.cons
 import { OutputViewKind } from '@/features/testing/constants/trace.constants';
 import type { OutputView } from '@/features/testing/typedefs/trace.typedefs';
 import type { TurnDetailsProps } from '@/features/testing/view/TurnDetails/TurnDetails.typedefs';
-import { Badge } from '@/shared/ui/display/Badge';
+import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { CodeBlock } from '@/shared/ui/display/CodeBlock';
 import { KeyValue, KeyValueLayout } from '@/shared/ui/display/KeyValue';
@@ -33,10 +33,24 @@ export function TurnDetails({
     if (view.kind === OutputViewKind.Json) {
       return <CodeBlock code={view.code} />;
     }
+    if (view.kind === OutputViewKind.Error) {
+      return (
+        <Callout tone={CalloutTone.Err} icon={IconName.Alert}>
+          {view.message ?? t('details.stepFailed')}
+        </Callout>
+      );
+    }
     return (
-      <Callout tone={CalloutTone.Err} icon={IconName.Alert}>
-        {view.message ?? t('details.stepFailed')}
-      </Callout>
+      <KeyValue
+        layout={KeyValueLayout.Props}
+        items={[
+          { label: t('details.wouldNotify'), value: view.recipients ?? t('details.nobody') },
+          {
+            label: t('details.flow'),
+            value: <Badge tone={BadgeTone.Warn}>{t('details.paused')}</Badge>,
+          },
+        ]}
+      />
     );
   };
 

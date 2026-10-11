@@ -85,6 +85,10 @@
     "stepsRun": "Виконано кроків",
     "stepsValue": "{{run}} з {{total}}",
     "messagesSent": "Надіслано повідомлень",
+    "wouldNotify": "Сповістило б",
+    "nobody": "Нікого",
+    "flow": "Сценарій",
+    "paused": "Призупинено",
     "stepFailed": "Цей крок завершився помилкою",
     "status": {
       "queued": "У черзі",
