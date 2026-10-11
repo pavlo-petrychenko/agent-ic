@@ -55,6 +55,7 @@ export enum TestRedisPrefix {
   Runs = 'runs:',
   RunExecution = 'run-execution:',
   CompletionStep = 'completion-step:',
+  AgentStep = 'agent-step:',
   RunStart = 'run-start:',
   RunEnd = 'run-end:',
   RunMessages = 'run-messages:',

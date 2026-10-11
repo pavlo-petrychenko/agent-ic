@@ -13,6 +13,7 @@ import { startRunOnMessageJob } from '@/modules/runs/jobs/start-run-on-message.j
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { RunsModule } from '@/modules/runs/runs.module';
+import { AgentExecutor } from '@/modules/runs/services/agent-executor.service';
 import { CompletionExecutor } from '@/modules/runs/services/completion-executor.service';
 import { MessageTriggerExecutor } from '@/modules/runs/services/message-trigger-executor.service';
 import { ParallelExecutor } from '@/modules/runs/services/parallel-executor.service';
@@ -77,12 +78,15 @@ const ROLE = Role.Worker;
 export const createRunsTestbed = async (
   redisPrefix: TestRedisPrefix = TestRedisPrefix.Runs,
   llm: LlmGateway | null = null,
+  scriptedNodeType: NodeType = NodeType.Agent,
 ): Promise<RunExecutionTestbed> => {
   const clock = new ManualClock(RUNS_TEST_START);
-  const executor = new ScriptedStepExecutor(NodeType.Agent);
+  const executor = new ScriptedStepExecutor(scriptedNodeType);
   const observer = new ScriptedStepExecutor(NodeType.Completion);
-  const completion = new CompletionExecutor(llm ?? createLlmGateway({}, LLM_STEP_TIMEOUT_MS));
-  const llmSteps = llm === null ? [observer] : [completion];
+  const gateway = llm ?? createLlmGateway({}, LLM_STEP_TIMEOUT_MS);
+  const completion = new CompletionExecutor(gateway);
+  const agent = new AgentExecutor(gateway);
+  const llmSteps = llm === null ? [observer] : [completion, agent];
   const module = await createPlatformTestingModule(
     redisPrefix,
     [
@@ -98,6 +102,7 @@ export const createRunsTestbed = async (
     [
       { token: ClockService, value: clock },
       { token: CompletionExecutor, value: completion },
+      { token: AgentExecutor, value: agent },
       {
         token: STEP_EXECUTORS,
         value: [

@@ -113,7 +113,11 @@ export const newRunStep = (
 
 const NODE_POSITION = { x: 0, y: 0 };
 
-export const agentNode = (id: string, key: string): AgentNode => ({
+export const agentNode = (
+  id: string,
+  key: string,
+  config: Partial<AgentNode['config']> = {},
+): AgentNode => ({
   id,
   key,
   label: key,
@@ -127,6 +131,21 @@ export const agentNode = (id: string, key: string): AgentNode => ({
     output: [],
     retries: 0,
     reasoning: null,
+    ...config,
+  },
+});
+
+export const sendListNode = (id: string, key: string, variable: string): SendMessageNode => ({
+  id,
+  key,
+  label: key,
+  position: NODE_POSITION,
+  type: NodeType.SendMessage,
+  config: {
+    content: { kind: MessageContentKind.List, variable },
+    typing: false,
+    waitForDelivery: false,
+    quickReplies: { kind: QuickRepliesKind.None },
   },
 });
 
