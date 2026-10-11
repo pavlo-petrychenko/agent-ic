@@ -1,7 +1,10 @@
 import type { VersionHistoryQuery } from '@/features/testing/communication/gql/query/versionHistory.generated';
-import { toFlow } from '@/features/testing/communication/helpers/version.helpers';
+import {
+  isPublishedVersion,
+  toFlow,
+  toTestingVersion,
+} from '@/features/testing/communication/helpers/version.helpers';
 import type { VersionHistory } from '@/features/testing/typedefs/versions.typedefs';
-import { AgentVersionStatus } from '@/shared/api/generated/schema.generated';
 
 export const toVersionHistory = ({
   agent,
@@ -16,20 +19,11 @@ export const toVersionHistory = ({
     changeCount: agent.draftChangeCount,
     flow: toFlow(agentDraft.version.flow),
   },
-  published: agentVersions.flatMap((version) =>
-    version.number === null || version.status === AgentVersionStatus.Draft
-      ? []
-      : [
-          {
-            id: version.id,
-            number: version.number,
-            live: version.status === AgentVersionStatus.Live,
-            note: version.note,
-            authorName: version.author?.name ?? null,
-            publishedAt: version.publishedAt,
-            flow: toFlow(version.flow),
-          },
-        ],
-  ),
+  published: agentVersions.filter(isPublishedVersion).map((version) => ({
+    ...toTestingVersion(version),
+    note: version.note,
+    authorName: version.author?.name ?? null,
+    publishedAt: version.publishedAt,
+  })),
   liveNumber: agent.liveVersionNumber,
 });
