@@ -50,6 +50,8 @@ export enum TestRedisPrefix {
   DurableJobs = 'durable-jobs:',
   Agents = 'agents:',
   Conversations = 'conversations:',
+  Channels = 'channels:',
+  ChannelsWorker = 'channels-worker:',
   IsolationFirst = 'isolation-first:',
   IsolationSecond = 'isolation-second:',
 }

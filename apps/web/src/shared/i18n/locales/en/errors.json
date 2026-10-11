@@ -51,7 +51,8 @@
     "AWAY_MESSAGE_TOO_LONG": "The away message is too long.",
     "CONVERSATION_NOT_FOUND": "This conversation was not found.",
     "CONVERSATION_CLOSED": "This conversation is closed.",
-    "MESSAGE_NOT_FOUND": "This message was not found."
+    "MESSAGE_NOT_FOUND": "This message was not found.",
+    "CHANNEL_ADAPTER_NOT_FOUND": "This channel cannot send messages yet."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",

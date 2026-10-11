@@ -51,7 +51,8 @@
     "AWAY_MESSAGE_TOO_LONG": "Повідомлення про відсутність задовге.",
     "CONVERSATION_NOT_FOUND": "Цю розмову не знайдено.",
     "CONVERSATION_CLOSED": "Цю розмову закрито.",
-    "MESSAGE_NOT_FOUND": "Це повідомлення не знайдено."
+    "MESSAGE_NOT_FOUND": "Це повідомлення не знайдено.",
+    "CHANNEL_ADAPTER_NOT_FOUND": "Цей канал поки не може надсилати повідомлення."
   },
   "code": {
     "NOT_FOUND": "Не вдалося знайти те, що ви шукаєте.",
