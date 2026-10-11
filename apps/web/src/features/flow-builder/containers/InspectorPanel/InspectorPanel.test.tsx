@@ -4,6 +4,8 @@ import {
   CompletionRole,
   ConditionOperator,
   FLOW_SCHEMA_VERSION,
+  MAX_LABEL_LENGTH,
+  MAX_OUTPUT_FIELDS,
   NodeType,
   PortName,
   PromptSourceKind,
@@ -12,7 +14,7 @@ import {
   WaitFor,
   validateFlow,
 } from '@agent-ic/flow';
-import type { FlowDocument, FlowNode } from '@agent-ic/flow';
+import type { AgentNode, FlowDocument, FlowNode } from '@agent-ic/flow';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -71,6 +73,15 @@ const AI_FLOW: FlowDocument = {
     { id: 'e4', source: 'route', sourcePort: 'refund', target: 'tagger' },
   ],
 };
+
+const withAgent = (config: Partial<AgentNode['config']>): FlowDocument => ({
+  ...AI_FLOW,
+  nodes: AI_FLOW.nodes.map((candidate) =>
+    candidate.type === NodeType.Agent
+      ? { ...candidate, config: { ...candidate.config, ...config } }
+      : candidate,
+  ),
+});
 
 const store = useFlowBuilderStore.getState;
 const open = (nodeId: string, document: FlowDocument = FLOW) => {
@@ -287,20 +298,10 @@ describe('InspectorPanel', () => {
   });
 
   it('shows a variable the prompt can not use under the prompt', () => {
-    open('agent', {
-      ...AI_FLOW,
-      nodes: AI_FLOW.nodes.map((candidate) =>
-        candidate.type === NodeType.Agent
-          ? {
-              ...candidate,
-              config: {
-                ...candidate.config,
-                prompt: { kind: PromptSourceKind.Inline, text: 'Hi {{missing.field}}' },
-              },
-            }
-          : candidate,
-      ),
-    });
+    open(
+      'agent',
+      withAgent({ prompt: { kind: PromptSourceKind.Inline, text: 'Hi {{missing.field}}' } }),
+    );
 
     expect(screen.getByText('missing.field isn’t available here')).toBeVisible();
   });
@@ -322,6 +323,43 @@ describe('InspectorPanel', () => {
     expect(
       within(screen.getByRole('list', { name: 'Fields you can use' })).getByText('agent.topic'),
     ).toBeVisible();
+  });
+
+  it('keeps enum values within the limits and shows them again after an undo', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW);
+
+    await user.click(screen.getByRole('button', { name: 'Add field' }));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Type of field_1' }),
+      OutputFieldType.Enum,
+    );
+    const values = () => screen.getByRole('textbox', { name: 'Values of field_1' });
+    await user.clear(values());
+    await user.type(values(), 'yes, no{Enter}');
+    await user.clear(values());
+    await user.type(values(), `${'x'.repeat(MAX_LABEL_LENGTH + 1)}{Enter}`);
+
+    expect(screen.getByText('Up to 30 values, each up to 60 characters')).toBeVisible();
+    expect(node('agent')).toMatchObject({ config: { output: [{ values: ['yes', 'no'] }] } });
+    act(() => store().undo());
+    expect(values()).toHaveValue('option_1');
+  });
+
+  it('lets an agent have the full number of custom output fields', () => {
+    open(
+      'agent',
+      withAgent({
+        output: Array.from({ length: MAX_OUTPUT_FIELDS - 1 }, (_, index) => ({
+          name: `field_${index}`,
+          type: OutputFieldType.String,
+          description: '',
+          required: true,
+        })),
+      }),
+    );
+
+    expect(screen.getByRole('button', { name: 'Add field' })).toBeEnabled();
   });
 
   it('picks a model, then a reasoning level that model offers', async () => {

@@ -120,7 +120,7 @@ export function InspectorPanel() {
                 [IssuePathSegment.Output, index, IssuePathSegment.Name].join(PATH_JOINER),
               ) ?? null,
           ),
-          canAddField: builtIn.length + output.length < MAX_OUTPUT_FIELDS,
+          canAddField: output.length < MAX_OUTPUT_FIELDS,
           canRemoveField: current.type === NodeType.Agent || output.length > 1,
         }}
         onPromptChange={(next) =>

@@ -299,6 +299,7 @@
       "fieldType": "Type of {{name}}",
       "fieldValues": "Values of {{name}}",
       "removeField": "Remove {{name}}",
+      "fieldValuesHint": "Up to {{count}} values, each up to {{length}} characters",
       "fieldNameHint": "Use lowercase letters, digits and _, starting with a letter",
       "addField": "Add field"
     },

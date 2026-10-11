@@ -1,6 +1,8 @@
+import { OutputFieldType } from '@agent-ic/flow';
 import type { FlowIssue } from '@agent-ic/flow';
 import { useTranslation } from 'react-i18next';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
+import { LIST_VALUE_SEPARATOR } from '@/features/flow-builder/constants/inspector.constants';
 import { UNSET_OPTION } from '@/features/flow-builder/constants/llmStep.constants';
 import type { LlmStepInspectorProps } from '@/features/flow-builder/view/LlmStepInspector/LlmStepInspector.typedefs';
 import { OutputFieldRow } from '@/features/flow-builder/view/LlmStepInspector/OutputFieldRow';
@@ -107,7 +109,12 @@ export function LlmStepInspector({
         )}
         {step.output.map((field, index) => (
           <OutputFieldRow
-            key={`${index}:${field.name}:${field.type}`}
+            key={[
+              index,
+              field.name,
+              field.type,
+              ...(field.type === OutputFieldType.Enum ? field.values : []),
+            ].join(LIST_VALUE_SEPARATOR)}
             field={field}
             issue={step.fieldIssues[index] ?? null}
             canRemove={step.canRemoveField}

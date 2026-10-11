@@ -305,6 +305,7 @@
       "fieldType": "Тип поля {{name}}",
       "fieldValues": "Значення поля {{name}}",
       "removeField": "Видалити {{name}}",
+      "fieldValuesHint": "До {{count}} значень, кожне до {{length}} символів",
       "fieldNameHint": "Малі латинські літери, цифри та _, на початку літера",
       "addField": "Додати поле"
     },

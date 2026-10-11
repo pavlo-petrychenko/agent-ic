@@ -1,4 +1,9 @@
-import { OUTPUT_FIELD_NAME_PATTERN, OutputFieldType } from '@agent-ic/flow';
+import {
+  MAX_ENUM_VALUES,
+  MAX_LABEL_LENGTH,
+  OUTPUT_FIELD_NAME_PATTERN,
+  OutputFieldType,
+} from '@agent-ic/flow';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
@@ -27,11 +32,18 @@ export function OutputFieldRow({
   const [name, setName] = useState(field.name);
   const [valuesText, setValuesText] = useState(values);
   const nameValid = OUTPUT_FIELD_NAME_PATTERN.test(name);
-  const message = nameValid
-    ? issue === null
-      ? null
-      : t(`issue.${issue.code}`, { ...issue.params })
-    : t('inspector.llm.fieldNameHint');
+  const parsedValues = valuesText
+    .split(LIST_VALUE_SEPARATOR)
+    .map((value) => value.trim())
+    .filter((value) => value !== '');
+  const valuesValid =
+    parsedValues.length <= MAX_ENUM_VALUES &&
+    parsedValues.every((value) => value.length <= MAX_LABEL_LENGTH);
+  const issueMessage = issue === null ? null : t(`issue.${issue.code}`, { ...issue.params });
+  const valuesMessage = valuesValid
+    ? issueMessage
+    : t('inspector.llm.fieldValuesHint', { count: MAX_ENUM_VALUES, length: MAX_LABEL_LENGTH });
+  const message = nameValid ? valuesMessage : t('inspector.llm.fieldNameHint');
 
   const commitName = () => {
     if (nameValid && name !== field.name) {
@@ -39,12 +51,11 @@ export function OutputFieldRow({
     }
   };
   const commitValues = () => {
-    const next = valuesText
-      .split(LIST_VALUE_SEPARATOR)
-      .map((value) => value.trim())
-      .filter((value) => value !== '');
-    if (next.length > 0) {
-      onChange({ values: next });
+    if (!valuesValid) {
+      return;
+    }
+    if (parsedValues.length > 0) {
+      onChange({ values: parsedValues });
     } else {
       setValuesText(values);
     }
@@ -92,6 +103,8 @@ export function OutputFieldRow({
         <Input
           aria-label={t('inspector.llm.fieldValues', { name: field.name })}
           placeholder={t('inspector.router.listHint')}
+          aria-describedby={valuesValid ? undefined : errorId}
+          invalid={!valuesValid}
           value={valuesText}
           onChange={(event) => setValuesText(event.target.value)}
           onBlur={commitValues}
