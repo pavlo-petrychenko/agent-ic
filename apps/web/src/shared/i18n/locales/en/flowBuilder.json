@@ -461,6 +461,21 @@
       "url": "URL",
       "urlHint": "Type {{ to insert a field from earlier steps",
       "urlPlaceholder": "https://api.example.com/v1/orders",
+      "headers": "Headers",
+      "header": {
+        "name": "Header {{number}} name",
+        "value": "Header {{number}} value"
+      },
+      "removeHeader": "Remove {{name}}",
+      "addHeader": "Add header",
+      "body": "Body",
+      "bodyKind": "Body type",
+      "bodyKinds": {
+        "none": "No body",
+        "json": "JSON",
+        "text": "Plain text"
+      },
+      "content": "Body content",
       "output": "Output",
       "outputNote": "saved as variables",
       "outputs": {

@@ -114,6 +114,8 @@ export enum IssuePathSegment {
   Reminder = 'reminderAfterMinutes',
   Fallback = 'fallbackAfterMinutes',
   Url = 'url',
+  Headers = 'headers',
+  Body = 'body',
   OnFailure = 'onFailure',
 }
 

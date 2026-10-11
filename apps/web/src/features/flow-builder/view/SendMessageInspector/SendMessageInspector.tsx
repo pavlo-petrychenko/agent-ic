@@ -92,7 +92,7 @@ export function SendMessageInspector({
             value={content.text}
             variables={variables}
             hint={null}
-            error={message(contentIssue)}
+            issue={contentIssue}
             placeholder={t('inspector.send.textPlaceholder')}
             onChange={onTextChange}
             onCommit={onCommit}

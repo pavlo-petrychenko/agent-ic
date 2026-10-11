@@ -16,6 +16,7 @@ import {
   PromptSourceKind,
   QuickRepliesKind,
   RecipientsKind,
+  RequestBodyKind,
   RuleMatch,
   OutputFieldType,
   WaitFor,
@@ -477,6 +478,7 @@ describe('InspectorPanel', () => {
       'agent.messages',
     );
     await user.click(screen.getByRole('switch', { name: 'Show “typing…” before each message' }));
+    await user.click(screen.getByRole('switch', { name: 'Wait for delivery before the next one' }));
     expect(screen.getByText(/No quick replies/)).toBeVisible();
     await user.click(screen.getByRole('button', { name: 'Add buttons' }));
     await user.click(screen.getByRole('button', { name: 'Add button' }));
@@ -488,6 +490,7 @@ describe('InspectorPanel', () => {
       config: {
         content: { kind: MessageContentKind.List, variable: 'agent.messages' },
         typing: false,
+        waitForDelivery: true,
         quickReplies: { kind: QuickRepliesKind.Static, buttons: ['Yes', 'No'] },
       },
     });
@@ -574,12 +577,20 @@ describe('InspectorPanel escalation', () => {
     });
     expect(screen.getByText('Add a message for the customer while they wait')).toBeVisible();
     expect(screen.getByText('Then tell the customer')).toBeVisible();
+    expect(screen.getByRole('textbox', { name: 'Then tell the customer' })).toHaveAttribute(
+      'aria-invalid',
+      'false',
+    );
     expect(
       screen.getByText('We’re still finding someone to help. Thanks for waiting!'),
     ).toBeInTheDocument();
     expect(
       within(screen.getByRole('list', { name: 'Until someone takes it' })).getByText('30 min'),
     ).toBeVisible();
+    await user.type(screen.getByRole('textbox', { name: 'Then tell the customer' }), 'Back soon');
+    await user.tab();
+    expect(node('handoff')).toMatchObject({ config: { fallbackMessage: 'Back soon' } });
+    expect(screen.queryByText('Add a message for the customer while they wait')).toBeNull();
   });
 
   it('ends the conversation with a message and keeps it when escalating again', async () => {
@@ -609,7 +620,7 @@ describe('InspectorPanel api request', () => {
     ],
   };
 
-  it('edits the request and its failure path', async () => {
+  it('edits the request, its headers, body and failure path', async () => {
     const user = userEvent.setup();
     open('lookup', API_FLOW, []);
 
@@ -618,6 +629,16 @@ describe('InspectorPanel api request', () => {
     );
     await user.selectOptions(screen.getByRole('combobox', { name: 'Method' }), HttpMethod.Post);
     await user.type(screen.getByRole('textbox', { name: 'URL' }), 'https://crm.example/bookings');
+    await user.tab();
+    await user.click(screen.getByRole('button', { name: 'Add header' }));
+    await user.clear(screen.getByRole('textbox', { name: 'Header 1 value' }));
+    await user.type(screen.getByRole('textbox', { name: 'Header 1 value' }), 'text/plain');
+    await user.tab();
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Body type' }),
+      RequestBodyKind.Json,
+    );
+    await user.type(screen.getByRole('textbox', { name: 'Body content' }), '[[1, 2]');
     await user.tab();
     await user.selectOptions(screen.getByRole('combobox', { name: 'Retries' }), '0');
     await user.selectOptions(screen.getByRole('combobox', { name: 'Timeout' }), '15');
@@ -630,6 +651,8 @@ describe('InspectorPanel api request', () => {
       config: {
         method: HttpMethod.Post,
         url: 'https://crm.example/bookings',
+        headers: [{ name: 'Accept', value: 'text/plain' }],
+        body: { kind: RequestBodyKind.Json, content: '[1, 2]' },
         retries: 0,
         timeoutSeconds: 15,
         onFailure: FailureMode.ErrorPort,
@@ -649,6 +672,26 @@ describe('InspectorPanel api request', () => {
     });
 
     expect(screen.getByRole('combobox', { name: 'Timeout' })).toHaveValue('7');
+  });
+
+  it('explains a header problem and keeps focus after a name change', async () => {
+    const user = userEvent.setup();
+    const headers = [{ name: 'X-Id', value: '{{missing.field}}' }];
+    open('lookup', {
+      ...API_FLOW,
+      nodes: API_FLOW.nodes.map((candidate) =>
+        candidate.type === NodeType.ApiRequest
+          ? { ...candidate, config: { ...candidate.config, headers } }
+          : candidate,
+      ),
+    });
+
+    expect(screen.getByText('missing.field isn’t available here')).toBeVisible();
+    await user.type(screen.getByRole('textbox', { name: 'Header 1 name' }), '-Ref');
+    await user.tab();
+
+    expect(screen.getByRole('textbox', { name: 'Header 1 value' })).toHaveFocus();
+    expect(node('lookup')).toMatchObject({ config: { headers: [{ name: 'X-Id-Ref' }] } });
   });
 
   it('tests the saved request and shows the answer', async () => {

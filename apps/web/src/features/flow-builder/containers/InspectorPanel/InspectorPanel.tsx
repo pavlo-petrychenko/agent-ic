@@ -29,7 +29,11 @@ import { LLM_STEP_TYPES } from '@/features/flow-builder/constants/llmStep.consta
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import type { InspectorPanelProps } from '@/features/flow-builder/containers/InspectorPanel/InspectorPanel.typedefs';
-import { updateApiRequest } from '@/features/flow-builder/logic/helpers/apiRequest.helpers';
+import {
+  bodyOfKind,
+  replaceHeader,
+  updateApiRequest,
+} from '@/features/flow-builder/logic/helpers/apiRequest.helpers';
 import {
   recipientsValue,
   setChannel,
@@ -348,6 +352,10 @@ export function InspectorPanel({ agentId }: InspectorPanelProps) {
             onChange={update}
             onTemplateChange={(patch) => previewEdit(updateApiRequest(document, current.id, patch))}
             onCommit={commitPreview}
+            onHeaderChange={(index, header) =>
+              update({ headers: replaceHeader(config.headers, index, header) })
+            }
+            onBodyKindChange={(kind) => update({ body: bodyOfKind(kind, config.body) })}
             onTest={() => apiTest.run(current)}
           />
         );

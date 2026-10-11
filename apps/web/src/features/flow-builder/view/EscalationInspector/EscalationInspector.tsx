@@ -1,6 +1,5 @@
 import type { WorkspaceRole } from '@agent-ic/contracts';
 import { EscalationMode, RecipientsKind } from '@agent-ic/flow';
-import type { FlowIssue } from '@agent-ic/flow';
 import { useTranslation } from 'react-i18next';
 import {
   ESCALATION_MODES,
@@ -34,8 +33,6 @@ export function EscalationInspector({
   onChannelChange,
 }: EscalationInspectorProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
-  const message = (found: FlowIssue | null) =>
-    found === null ? null : t(`issue.${found.code}`, { ...found.params });
   const recipientOption = (value: RecipientValue, role: WorkspaceRole | null) => {
     const name = t(`inspector.escalation.recipient.${value}`);
     const count = role === null ? undefined : counts?.get(role);
@@ -68,7 +65,7 @@ export function EscalationInspector({
           value={config.customerMessage ?? ''}
           variables={variables}
           hint={t(`inspector.escalation.messageHint.${config.mode}`)}
-          error={message(issue(IssuePathSegment.CustomerMessage))}
+          issue={issue(IssuePathSegment.CustomerMessage)}
           placeholder={null}
           onChange={onMessageChange}
           onCommit={onCommit}
@@ -116,7 +113,7 @@ export function EscalationInspector({
               value={config.reason}
               variables={variables}
               hint={null}
-              error={message(issue(IssuePathSegment.Reason))}
+              issue={issue(IssuePathSegment.Reason)}
               placeholder={null}
               onChange={(reason) => onTemplateChange({ reason })}
               onCommit={onCommit}
@@ -147,7 +144,7 @@ export function EscalationInspector({
               value={config.fallbackMessage}
               variables={variables}
               hint={null}
-              error={message(issue(IssuePathSegment.FallbackMessage))}
+              issue={issue(IssuePathSegment.FallbackMessage)}
               placeholder={t('inspector.escalation.fallbackPlaceholder')}
               onChange={(fallbackMessage) => onTemplateChange({ fallbackMessage })}
               onCommit={onCommit}
