@@ -478,6 +478,7 @@ describe('InspectorPanel', () => {
       'agent.messages',
     );
     await user.click(screen.getByRole('switch', { name: 'Show “typing…” before each message' }));
+    await user.click(screen.getByRole('switch', { name: 'Wait for delivery before the next one' }));
     expect(screen.getByText(/No quick replies/)).toBeVisible();
     await user.click(screen.getByRole('button', { name: 'Add buttons' }));
     await user.click(screen.getByRole('button', { name: 'Add button' }));
@@ -489,6 +490,7 @@ describe('InspectorPanel', () => {
       config: {
         content: { kind: MessageContentKind.List, variable: 'agent.messages' },
         typing: false,
+        waitForDelivery: true,
         quickReplies: { kind: QuickRepliesKind.Static, buttons: ['Yes', 'No'] },
       },
     });
@@ -581,6 +583,10 @@ describe('InspectorPanel escalation', () => {
     expect(
       within(screen.getByRole('list', { name: 'Until someone takes it' })).getByText('30 min'),
     ).toBeVisible();
+    await user.type(screen.getByRole('textbox', { name: 'Then tell the customer' }), 'Back soon');
+    await user.tab();
+    expect(node('handoff')).toMatchObject({ config: { fallbackMessage: 'Back soon' } });
+    expect(screen.queryByText('Add a message for the customer while they wait')).toBeNull();
   });
 
   it('ends the conversation with a message and keeps it when escalating again', async () => {
@@ -628,6 +634,8 @@ describe('InspectorPanel api request', () => {
       screen.getByRole('combobox', { name: 'Body type' }),
       RequestBodyKind.Json,
     );
+    await user.type(screen.getByRole('textbox', { name: 'Body content' }), '[[1, 2]');
+    await user.tab();
     await user.selectOptions(screen.getByRole('combobox', { name: 'Retries' }), '0');
     await user.selectOptions(screen.getByRole('combobox', { name: 'Timeout' }), '15');
     await user.selectOptions(
@@ -640,7 +648,7 @@ describe('InspectorPanel api request', () => {
         method: HttpMethod.Post,
         url: 'https://crm.example/bookings',
         headers: [{ name: 'Accept', value: 'text/plain' }],
-        body: { kind: RequestBodyKind.Json, content: '' },
+        body: { kind: RequestBodyKind.Json, content: '[1, 2]' },
         retries: 0,
         timeoutSeconds: 15,
         onFailure: FailureMode.ErrorPort,
