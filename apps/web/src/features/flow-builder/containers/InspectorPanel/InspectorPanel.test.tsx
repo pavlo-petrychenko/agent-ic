@@ -71,6 +71,7 @@ const AI_FLOW: FlowDocument = {
     { id: 'e2', source: 'guard', sourcePort: PortName.Next, target: 'agent' },
     { id: 'e3', source: 'agent', sourcePort: PortName.Next, target: 'route' },
     { id: 'e4', source: 'route', sourcePort: 'refund', target: 'tagger' },
+    { id: 'e5', source: 'tagger', sourcePort: PortName.Error, target: 'reply' },
   ],
 };
 
@@ -388,5 +389,31 @@ describe('InspectorPanel', () => {
       config: { model: { model: FLASH_MODEL.id }, reasoning: null },
     });
     expect(screen.queryByRole('combobox', { name: 'Reasoning' })).not.toBeInTheDocument();
+  });
+
+  it('shows the failure path and changes the retries', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW);
+
+    expect(screen.getByText('The run fails')).toBeVisible();
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Retries' }), '0');
+
+    expect(node('agent')).toMatchObject({ config: { retries: 0 } });
+  });
+
+  it('turns a guard into an observer and drops its outgoing connections', async () => {
+    const user = userEvent.setup();
+    open('tagger', AI_FLOW);
+
+    const model = screen.getByRole('combobox', { name: 'Model' });
+    await waitFor(() => expect(within(model).getAllByRole('option')).toHaveLength(2));
+    await user.click(screen.getByRole('switch', { name: 'Include the current message' }));
+    await user.click(screen.getByRole('radio', { name: 'Observer' }));
+
+    expect(node('tagger')).toMatchObject({
+      config: { role: CompletionRole.Observer, input: { includeCurrentMessage: false } },
+    });
+    expect(store().document.edges.map((edge) => edge.id)).not.toContain('e5');
+    expect(screen.getByRole('button', { name: 'Remove result' })).toBeDisabled();
   });
 });

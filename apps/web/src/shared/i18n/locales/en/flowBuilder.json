@@ -303,6 +303,32 @@
       "fieldNameHint": "Use lowercase letters, digits and _, starting with a letter",
       "addField": "Add field"
     },
+    "agent": {
+      "onFailure": "If the model fails",
+      "runFails": "The run fails",
+      "goesTo": "Goes to {{name}}",
+      "retriesLabel": "Retries",
+      "retries_zero": "no retries",
+      "retries_one": "after {{count}} retry",
+      "retries_other": "after {{count}} retries",
+      "failureNote": "Timeouts, provider errors or the usage limit.",
+      "repliesNote": "Replies go out only through a Send message step. Each item in messages becomes its own chat message."
+    },
+    "completion": {
+      "input": "Input",
+      "conversation": "Conversation",
+      "currentMessage": "Include the current message",
+      "role": "Role in the flow",
+      "roleNote": {
+        "guard": "guard = in sequence",
+        "observer": "observer = in parallel"
+      },
+      "roles": {
+        "guard": "Guard",
+        "observer": "Observer"
+      },
+      "roleHint": "A guard runs before the next step and can stop it. An observer runs in parallel and never interrupts."
+    },
     "router": {
       "routes": "Routes",
       "route": "Route {{number}}",

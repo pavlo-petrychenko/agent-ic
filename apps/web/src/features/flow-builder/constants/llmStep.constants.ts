@@ -1,5 +1,5 @@
 import { ReasoningLevel } from '@agent-ic/contracts';
-import { NodeType } from '@agent-ic/flow';
+import { CompletionRole, NodeType } from '@agent-ic/flow';
 import type { LlmStepType } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 import {
   ModelPurpose,
@@ -26,3 +26,8 @@ export const UNSET_OPTION = '';
 export const NEW_OUTPUT_FIELD_PREFIX = 'field';
 export const NEW_OUTPUT_FIELD_SEPARATOR = '_';
 export const NEW_ENUM_VALUE = 'option_1';
+export const COMPLETION_ROLES: readonly CompletionRole[] = [
+  CompletionRole.Guard,
+  CompletionRole.Observer,
+];
+export const CONVERSATION_ROW_ID = 'history';

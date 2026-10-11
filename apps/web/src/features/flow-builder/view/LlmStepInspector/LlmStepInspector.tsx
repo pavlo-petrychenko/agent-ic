@@ -1,21 +1,33 @@
-import { OutputFieldType } from '@agent-ic/flow';
+import { MAX_RETRIES, NodeType, OutputFieldType } from '@agent-ic/flow';
 import type { FlowIssue } from '@agent-ic/flow';
 import { useTranslation } from 'react-i18next';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
-import { LIST_VALUE_SEPARATOR } from '@/features/flow-builder/constants/inspector.constants';
-import { UNSET_OPTION } from '@/features/flow-builder/constants/llmStep.constants';
+import {
+  LIST_VALUE_JOINER,
+  LIST_VALUE_SEPARATOR,
+} from '@/features/flow-builder/constants/inspector.constants';
+import {
+  COMPLETION_ROLES,
+  CONVERSATION_ROW_ID,
+  UNSET_OPTION,
+} from '@/features/flow-builder/constants/llmStep.constants';
 import type { LlmStepInspectorProps } from '@/features/flow-builder/view/LlmStepInspector/LlmStepInspector.typedefs';
 import { OutputFieldRow } from '@/features/flow-builder/view/LlmStepInspector/OutputFieldRow';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
+import { SegmentedControl } from '@/shared/ui/actions/SegmentedControl';
+import { Callout } from '@/shared/ui/display/Callout';
 import { RowList } from '@/shared/ui/display/RowList';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { Field } from '@/shared/ui/inputs/Field';
 import { PromptEditor } from '@/shared/ui/inputs/PromptEditor';
 import { Select } from '@/shared/ui/inputs/Select';
+import { Switch } from '@/shared/ui/inputs/Switch';
 import { InspectorSection } from '@/shared/ui/layout/Inspector';
+import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
 export function LlmStepInspector({
   step,
+  extra,
   onPromptChange,
   onModelChange,
   onReasoningChange,
@@ -96,6 +108,26 @@ export function LlmStepInspector({
           </Field>
         )}
       </InspectorSection>
+      {extra.type === NodeType.Completion && (
+        <InspectorSection title={t('inspector.completion.input')}>
+          <RowList
+            aria-label={t('inspector.completion.input')}
+            mono={false}
+            rows={[
+              {
+                id: CONVERSATION_ROW_ID,
+                name: t('inspector.completion.conversation'),
+                meta: t('inspector.hint.wholeConversation'),
+              },
+            ]}
+          />
+          <Switch
+            label={t('inspector.completion.currentMessage')}
+            checked={extra.includeCurrentMessage}
+            onCheckedChange={extra.onIncludeCurrentMessageChange}
+          />
+        </InspectorSection>
+      )}
       <InspectorSection title={t('inspector.llm.output')} note={t('inspector.llm.structured')}>
         {step.builtIn.length > 0 && (
           <RowList
@@ -133,6 +165,53 @@ export function LlmStepInspector({
           {t('inspector.llm.addField')}
         </Button>
       </InspectorSection>
+      {extra.type === NodeType.Agent && (
+        <>
+          <InspectorSection title={t('inspector.agent.onFailure')}>
+            <div className="flex items-center justify-between gap-2">
+              <Text kind={TextKind.Small}>
+                {extra.onFailure.length === 0
+                  ? t('inspector.agent.runFails')
+                  : t('inspector.agent.goesTo', {
+                      name: extra.onFailure.map((target) => target.label).join(LIST_VALUE_JOINER),
+                    })}
+              </Text>
+              <Select
+                aria-label={t('inspector.agent.retriesLabel')}
+                value={String(extra.retries)}
+                options={Array.from({ length: MAX_RETRIES + 1 }, (_, count) => ({
+                  value: String(count),
+                  label: t('inspector.agent.retries', { count }),
+                }))}
+                onChange={(event) => extra.onRetriesChange(Number(event.target.value))}
+              />
+            </div>
+            <Text kind={TextKind.Caption} color={TextColor.Mute}>
+              {t('inspector.agent.failureNote')}
+            </Text>
+          </InspectorSection>
+          <Callout icon={IconName.Info}>{t('inspector.agent.repliesNote')}</Callout>
+        </>
+      )}
+      {extra.type === NodeType.Completion && (
+        <InspectorSection
+          title={t('inspector.completion.role')}
+          note={t(`inspector.completion.roleNote.${extra.role}`)}
+        >
+          <SegmentedControl
+            ariaLabel={t('inspector.completion.role')}
+            value={extra.role}
+            options={COMPLETION_ROLES.map((role) => ({
+              value: role,
+              label: t(`inspector.completion.roles.${role}`),
+            }))}
+            onValueChange={extra.onRoleChange}
+          />
+          <Text kind={TextKind.Caption} color={TextColor.Mute}>
+            {t('inspector.completion.roleHint')}
+          </Text>
+        </InspectorSection>
+      )}
     </>
   );
 }

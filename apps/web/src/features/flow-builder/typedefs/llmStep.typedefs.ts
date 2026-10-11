@@ -2,11 +2,13 @@ import type { ReasoningLevel } from '@agent-ic/contracts';
 import type {
   AgentNode,
   CompletionNode,
+  CompletionRole,
   FlowIssue,
   NodeType,
   OutputField,
   OutputFieldType,
 } from '@agent-ic/flow';
+import type { PortTarget } from '@/features/flow-builder/typedefs/inspector.typedefs';
 import type { ModelPurpose, ModelVendor } from '@/shared/api/generated/schema.generated';
 import type { VariableOption } from '@/shared/ui/inputs/PromptEditor';
 
@@ -32,6 +34,21 @@ export interface OutputFieldPatch {
   type?: OutputFieldType;
   values?: readonly string[];
 }
+
+export type LlmStepExtra =
+  | {
+      type: NodeType.Agent;
+      retries: number;
+      onFailure: readonly PortTarget[];
+      onRetriesChange: (retries: number) => void;
+    }
+  | {
+      type: NodeType.Completion;
+      role: CompletionRole;
+      includeCurrentMessage: boolean;
+      onRoleChange: (role: CompletionRole) => void;
+      onIncludeCurrentMessageChange: (include: boolean) => void;
+    };
 
 export interface LlmStepView {
   prompt: string;

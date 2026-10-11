@@ -41,6 +41,9 @@ import {
   modelsForStep,
   removeOutputField,
   selectModel,
+  setCompletionRole,
+  setIncludeCurrentMessage,
+  setRetries,
   updateLlmStep,
   updateOutputField,
 } from '@/features/flow-builder/logic/helpers/llmStep.helpers';
@@ -55,6 +58,7 @@ import {
 import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { KeyRename } from '@/features/flow-builder/typedefs/inspector.typedefs';
+import type { LlmStepExtra } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 import { InlineEditField } from '@/features/flow-builder/view/InlineEditField';
 import { LlmStepInspector } from '@/features/flow-builder/view/LlmStepInspector';
 import { ParallelInspector } from '@/features/flow-builder/view/ParallelInspector';
@@ -93,7 +97,7 @@ export function InspectorPanel() {
     [document, variables, t],
   );
 
-  const llmStep = (current: AgentNode | CompletionNode) => {
+  const llmStep = (current: AgentNode | CompletionNode, extra: LlmStepExtra) => {
     const errors = fieldErrors(issues, current.id);
     const { prompt, model, reasoning, output } = current.config;
     const text = prompt?.kind === PromptSourceKind.Inline ? prompt.text : '';
@@ -123,6 +127,7 @@ export function InspectorPanel() {
           canAddField: output.length < MAX_OUTPUT_FIELDS,
           canRemoveField: current.type === NodeType.Agent || output.length > 1,
         }}
+        extra={extra}
         onPromptChange={(next) =>
           next !== text &&
           apply(
@@ -155,8 +160,21 @@ export function InspectorPanel() {
           />
         );
       case NodeType.Agent:
+        return llmStep(current, {
+          type: NodeType.Agent,
+          retries: current.config.retries,
+          onFailure: portTargets(document, current.id, PortName.Error),
+          onRetriesChange: (retries) => apply(setRetries(document, current.id, retries)),
+        });
       case NodeType.Completion:
-        return llmStep(current);
+        return llmStep(current, {
+          type: NodeType.Completion,
+          role: current.config.role,
+          includeCurrentMessage: current.config.input.includeCurrentMessage,
+          onRoleChange: (role) => apply(setCompletionRole(document, current.id, role)),
+          onIncludeCurrentMessageChange: (include) =>
+            apply(setIncludeCurrentMessage(document, current.id, include)),
+        });
       case NodeType.Parallel:
         return (
           <ParallelInspector
