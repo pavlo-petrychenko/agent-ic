@@ -78,4 +78,4 @@ When a stack of pull requests opens before its media exists, write `Screenshots:
 - **Images in the branch.** `git status` must not list any `.png` or `.webm`. They belong on `pr-assets`.
 - **The server is not loaded.** `claude mcp list` shows `playwright`, but its tools appear only in a session started after you added it.
 
-Next: look at real code in the examples, starting with [the identity module](../examples/identity-module.md). The list is in [the examples section](../README.md#examples) of the docs entry page.
+Next: [017 Flow builder state](017-flow-builder-state.md)
