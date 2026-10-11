@@ -1,0 +1,21 @@
+.root {
+  display: grid;
+  grid-auto-columns: max-content;
+  gap: var(--space-8) var(--space-12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.linked {
+  position: relative;
+
+  &::before {
+    position: absolute;
+    bottom: 100%;
+    left: var(--space-16);
+    height: var(--space-8);
+    border-left: var(--border-width) solid var(--color-edge);
+    content: '';
+  }
+}

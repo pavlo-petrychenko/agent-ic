@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
 import type { RunNodeState } from '@/shared/ui/flow/RunNode/RunNode.constants';
 import type { IconName } from '@/shared/ui/foundations/Icon/Icon.constants';
@@ -9,4 +10,5 @@ export interface RunNodeProps {
   stateLabel: string;
   icon?: IconName | null;
   className?: string;
+  style?: CSSProperties;
 }

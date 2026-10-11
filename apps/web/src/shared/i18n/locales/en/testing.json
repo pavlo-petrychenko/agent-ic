@@ -45,6 +45,16 @@
     "placeholder": "Write as the test user…",
     "send": "Send"
   },
+  "trace": {
+    "steps": "Steps of the flow",
+    "state": {
+      "done": "ran",
+      "running": "running",
+      "waiting": "waiting",
+      "skipped": "not reached",
+      "failed": "failed"
+    }
+  },
   "reset": "Reset conversation",
   "loading": "Loading the simulator…",
   "loadError": "Couldn't load the simulator",

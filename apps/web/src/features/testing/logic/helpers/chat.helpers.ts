@@ -60,3 +60,10 @@ export const toChatItems = (
 
 export const latestRunId = (runs: readonly SimulatorRun[]): string | null =>
   runs.toSorted((a, b) => a.createdAt.localeCompare(b.createdAt)).at(-1)?.id ?? null;
+
+export const turnNumber = (runs: readonly SimulatorRun[], runId: string | null): number | null => {
+  const index = runs
+    .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .findIndex((run) => run.id === runId);
+  return index === -1 ? null : index + 1;
+};

@@ -3,10 +3,14 @@ query TestingVersions($agentId: ID!) {
     id
     number
     status
+    flow
   }
   agentDraft(agentId: $agentId) {
     issues {
       severity
+    }
+    version {
+      flow
     }
   }
 }

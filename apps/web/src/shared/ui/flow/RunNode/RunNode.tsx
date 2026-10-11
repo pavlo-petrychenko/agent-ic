@@ -11,13 +11,22 @@ import type { RunNodeProps } from '@/shared/ui/flow/RunNode/RunNode.typedefs';
 import { Icon } from '@/shared/ui/foundations/Icon/Icon';
 import styles from '@/shared/ui/flow/RunNode/RunNode.module.scss';
 
-export function RunNode({ name, kind, state, stateLabel, icon = null, className }: RunNodeProps) {
+export function RunNode({
+  name,
+  kind,
+  state,
+  stateLabel,
+  icon = null,
+  className,
+  style,
+}: RunNodeProps) {
   const statusIcon = RUN_NODE_STATUS_ICONS[state];
   const labelVisible = RUN_NODE_VISIBLE_LABEL_STATES.has(state);
 
   return (
     <li
       data-state={state}
+      style={style}
       aria-busy={state === RunNodeState.Running || undefined}
       className={clsx(styles.root, styles[state], className)}
     >

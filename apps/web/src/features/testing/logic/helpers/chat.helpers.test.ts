@@ -4,6 +4,7 @@ import {
   isActiveRun,
   latestRunId,
   toChatItems,
+  turnNumber,
 } from '@/features/testing/logic/helpers/chat.helpers';
 import type {
   SimulatorMessage,
@@ -78,6 +79,18 @@ describe('isActiveRun', () => {
     expect(isActiveRun(run('r', RunStatus.Queued, ''))).toBe(true);
     expect(isActiveRun(run('r', RunStatus.Running, ''))).toBe(true);
     expect(isActiveRun(run('r', RunStatus.Escalated, ''))).toBe(false);
+  });
+});
+
+describe('turnNumber', () => {
+  it('counts the turns in the order they started', () => {
+    const runs = [
+      run('r2', RunStatus.Succeeded, '2026-10-11T10:01:00Z'),
+      run('r1', RunStatus.Succeeded, '2026-10-11T10:00:00Z'),
+    ];
+
+    expect(turnNumber(runs, 'r2')).toBe(2);
+    expect(turnNumber(runs, 'gone')).toBeNull();
   });
 });
 
