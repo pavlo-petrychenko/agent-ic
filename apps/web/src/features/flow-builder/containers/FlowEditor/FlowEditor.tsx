@@ -23,6 +23,7 @@ import {
   firstTriggerAnchor,
   placeStep,
 } from '@/features/flow-builder/logic/helpers/placement.helpers';
+import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { StepPlacement } from '@/features/flow-builder/typedefs/palette.typedefs';
 import { BlankFlowHint } from '@/features/flow-builder/view/BlankFlowHint';
@@ -33,8 +34,9 @@ import type { FlowCanvasLabels, FlowCanvasNode } from '@/shared/ui/flow/FlowCanv
 
 export function FlowEditor() {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
-  const { document, issues, selection, viewport, density, apply, preview, undo, redo } =
+  const { document, selection, viewport, density, apply, preview, undo, redo } =
     useFlowBuilderStore();
+  const issues = useFlowIssues();
   const { select, setViewport, setDensity } = useFlowBuilderStore();
 
   const model = useMemo(() => documentToCanvas(document, issues), [document, issues]);

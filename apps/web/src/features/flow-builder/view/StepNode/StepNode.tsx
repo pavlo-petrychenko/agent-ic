@@ -15,6 +15,9 @@ export function StepNode({ node, slots, density }: StepNodeProps) {
   const summary = node.summary
     .map((part) => t(`summary.${part.key}`, { ...part.params }))
     .join(SUMMARY_SEPARATOR);
+  const { blocking } = node;
+  const invalidLabel =
+    blocking === null ? null : t(`issue.${blocking.code}`, { ...blocking.params });
 
   if (density === Density.Compact) {
     return (
@@ -25,6 +28,7 @@ export function StepNode({ node, slots, density }: StepNodeProps) {
         shape={node.hasInPort ? CompactNodeShape.Pill : CompactNodeShape.Card}
         selected={slots.selected}
         faded={slots.faded}
+        invalidLabel={invalidLabel}
         inPort={slots.inPort}
         outPorts={outPorts}
       />
@@ -38,6 +42,7 @@ export function StepNode({ node, slots, density }: StepNodeProps) {
       overline={t(`step.${node.type}`)}
       name={node.label}
       meta={summary === '' ? null : summary}
+      invalidLabel={invalidLabel}
       selected={slots.selected}
       faded={slots.faded}
       inPort={slots.inPort}
@@ -50,6 +55,7 @@ export function StepNode({ node, slots, density }: StepNodeProps) {
       icon={presentation.icon}
       selected={slots.selected}
       faded={slots.faded}
+      invalidLabel={invalidLabel}
       outPort={slots.outPorts}
     />
   );

@@ -12,20 +12,22 @@ const saveRequest = (revision: number): MockLink.MockedRequest => ({
   variables: (variables) => variables.id === DEMO_AGENT_ID && variables.revision === revision,
 });
 
+export const buildSavedDraftResult = (revision: number, issues: readonly FlowIssue[] = []) => ({
+  data: {
+    saveAgentDraft: {
+      __typename: 'AgentDraft',
+      revision: revision + 1,
+      issues: issues.map((issue) => ({ __typename: 'FlowIssue', ...issue })),
+    },
+  },
+});
+
 export const buildSaveAgentDraftMock = (
   revision: number,
   issues: readonly FlowIssue[] = [],
 ): MockLink.MockedResponse => ({
   request: saveRequest(revision),
-  result: {
-    data: {
-      saveAgentDraft: {
-        __typename: 'AgentDraft',
-        revision: revision + 1,
-        issues: issues.map((issue) => ({ __typename: 'FlowIssue', ...issue })),
-      },
-    },
-  },
+  result: buildSavedDraftResult(revision, issues),
 });
 
 export const buildSaveAgentDraftConflictMock = (revision: number): MockLink.MockedResponse => ({
