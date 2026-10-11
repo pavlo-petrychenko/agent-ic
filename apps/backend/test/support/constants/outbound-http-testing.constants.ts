@@ -15,5 +15,8 @@ export enum OutboundTestPath {
   Slow = '/slow',
   Large = '/large',
   Exact = '/exact',
+  Ok = '/ok',
+  Unavailable = '/unavailable',
+  Flaky = '/flaky',
 }
 export const PROBE_SERVER_ADDRESS = 'probe server address';

@@ -3,13 +3,18 @@ import {
   ConditionOperator,
   DEFAULT_RETRIEVAL_MODE,
   EscalationMode,
+  FailureMode,
+  HttpMethod,
   NodeType,
   OutputFieldType,
   PortName,
+  RequestAuthKind,
+  RequestBodyKind,
   RuleMatch,
 } from '@agent-ic/flow';
 import type {
   AgentNode,
+  ApiRequestNode,
   CompletionNode,
   EscalationNode,
   FlowDocument,
@@ -35,7 +40,15 @@ import type {
 } from '@/modules/runs/typedefs/run-step.typedefs';
 import type { NewRun } from '@/modules/runs/typedefs/run.typedefs';
 import type { IdService } from '@/platform/ids/services/id.service';
+import {
+  TEST_API_BODY_TEMPLATE,
+  TEST_API_HEADER_TEMPLATE,
+  TEST_API_NODE_ID,
+  TEST_API_NODE_KEY,
+  TEST_API_TIMEOUT_SECONDS,
+} from '@test/support/constants/agents-testing.constants';
 import { TEST_END_USER_EXTERNAL_ID } from '@test/support/constants/conversations-testing.constants';
+import { OUTBOUND_TEST_HEADER } from '@test/support/constants/outbound-http-testing.constants';
 import {
   FIRST_STEP_KEY,
   RUNS_TEST_START,
@@ -143,6 +156,28 @@ export const parallelNode = (id: string, key: string, waitFor: WaitFor): Paralle
   position: NODE_POSITION,
   type: NodeType.Parallel,
   config: { waitFor },
+});
+
+export const apiRequestNode = (
+  url: string,
+  config: Partial<ApiRequestNode['config']> = {},
+): ApiRequestNode => ({
+  id: TEST_API_NODE_ID,
+  key: TEST_API_NODE_KEY,
+  label: TEST_API_NODE_KEY,
+  position: NODE_POSITION,
+  type: NodeType.ApiRequest,
+  config: {
+    method: HttpMethod.Post,
+    url,
+    headers: [{ name: OUTBOUND_TEST_HEADER, value: TEST_API_HEADER_TEMPLATE }],
+    body: { kind: RequestBodyKind.Json, content: TEST_API_BODY_TEMPLATE },
+    auth: { kind: RequestAuthKind.None },
+    timeoutSeconds: TEST_API_TIMEOUT_SECONDS,
+    retries: 0,
+    onFailure: FailureMode.Continue,
+    ...config,
+  },
 });
 
 export const endNode = (id: string, key: string): EscalationNode => ({

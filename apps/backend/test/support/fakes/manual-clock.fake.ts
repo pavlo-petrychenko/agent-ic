@@ -9,6 +9,11 @@ export class ManualClock extends ClockService {
     return this.current;
   }
 
+  sleep(milliseconds: number): Promise<void> {
+    this.advanceBy(milliseconds);
+    return Promise.resolve();
+  }
+
   advanceBy(milliseconds: number): void {
     this.current = new Date(this.current.getTime() + milliseconds);
   }
