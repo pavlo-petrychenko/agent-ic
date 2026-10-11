@@ -1,9 +1,8 @@
 import { MessageContentKind, NodeType, QuickRepliesKind } from '@agent-ic/flow';
-import type { FlowDocument, SendMessageNode, VisibleVariable } from '@agent-ic/flow';
+import type { FlowDocument, VisibleVariable } from '@agent-ic/flow';
 import { MESSAGE_LIST_TYPES } from '@/features/flow-builder/constants/sendMessage.constants';
 import { updateNode } from '@/features/flow-builder/logic/helpers/inspector.helpers';
-
-type SendMessageConfig = SendMessageNode['config'];
+import type { SendMessageConfig } from '@/features/flow-builder/typedefs/sendMessage.typedefs';
 
 export const listVariables = (variables: readonly VisibleVariable[]): string[] =>
   variables
