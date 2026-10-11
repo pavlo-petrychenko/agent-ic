@@ -33,3 +33,6 @@ src/
 - Colours, type and spacing come from the design tokens; light theme only (`data-theme="light"` on `<html>`).
 - The page works without JavaScript; scripts only add behaviour.
 
+## Deploy
+
+`.github/workflows/landing.yml` builds and deploys `dist/` to the Cloudflare Pages project `agent-ic-landing`: production on a push to `main`, a preview per pull request with a comment that links it. It needs the secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` and the repository variables `LANDING_APP_URL` and `LANDING_SITE_URL`; without the token the deploy is skipped.
