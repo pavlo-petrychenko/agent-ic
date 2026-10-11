@@ -10,6 +10,7 @@ import {
 } from '@/modules/agents/constants/agent.constants';
 import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { agents } from '@/modules/agents/db/agents.table';
+import { withCurrentFlow } from '@/modules/agents/helpers/agent-version.helpers';
 import type {
   AgentVersion,
   DraftChanges,
@@ -31,7 +32,7 @@ export class AgentVersionsRepository {
       .select()
       .from(agentVersions)
       .where(and(eq(agentVersions.workspaceId, workspaceId), eq(agentVersions.id, versionId)));
-    return version ?? null;
+    return version === undefined ? null : withCurrentFlow(version);
   }
 
   async findDraft(workspaceId: string, agentId: string): Promise<AgentVersion | null> {
@@ -45,15 +46,16 @@ export class AgentVersionsRepository {
           eq(agentVersions.kind, AgentVersionKind.Draft),
         ),
       );
-    return draft ?? null;
+    return draft === undefined ? null : withCurrentFlow(draft);
   }
 
-  listByAgent(workspaceId: string, agentId: string): Promise<AgentVersion[]> {
-    return this.txHost.tx
+  async listByAgent(workspaceId: string, agentId: string): Promise<AgentVersion[]> {
+    const versions = await this.txHost.tx
       .select()
       .from(agentVersions)
       .where(and(eq(agentVersions.workspaceId, workspaceId), eq(agentVersions.agentId, agentId)))
       .orderBy(desc(agentVersions.id));
+    return versions.map(withCurrentFlow);
   }
 
   async listSnapshotIds(workspaceId: string, agentId: string, revision: number): Promise<string[]> {
@@ -71,8 +73,8 @@ export class AgentVersionsRepository {
     return rows.map(({ id }) => id);
   }
 
-  listPublished(workspaceId: string, agentId: string): Promise<AgentVersion[]> {
-    return this.txHost.tx
+  async listPublished(workspaceId: string, agentId: string): Promise<AgentVersion[]> {
+    const versions = await this.txHost.tx
       .select()
       .from(agentVersions)
       .where(
@@ -83,6 +85,7 @@ export class AgentVersionsRepository {
         ),
       )
       .orderBy(desc(agentVersions.number));
+    return versions.map(withCurrentFlow);
   }
 
   async lastPublishedNumber(workspaceId: string, agentId: string): Promise<number> {

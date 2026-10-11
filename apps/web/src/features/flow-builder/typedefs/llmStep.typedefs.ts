@@ -2,7 +2,6 @@ import type { ReasoningLevel } from '@agent-ic/contracts';
 import type {
   AgentNode,
   CompletionNode,
-  CompletionRole,
   FlowIssue,
   NodeType,
   OutputField,
@@ -57,9 +56,7 @@ export type LlmStepExtra =
     }
   | {
       type: NodeType.Completion;
-      role: CompletionRole;
       includeCurrentMessage: boolean;
-      onRoleChange: (role: CompletionRole) => void;
       onIncludeCurrentMessageChange: (include: boolean) => void;
     };
 

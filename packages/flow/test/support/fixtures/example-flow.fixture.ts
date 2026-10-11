@@ -189,7 +189,13 @@ export const faqWithHandOffFlow: FlowDocument = {
   edges: [
     { id: 'e1', source: 'n_trigger', sourcePort: PortName.Next, target: 'n_checks' },
     { id: 'e2', source: 'n_checks', sourcePort: PortName.Branches, target: 'n_guard' },
-    { id: 'e3', source: 'n_checks', sourcePort: PortName.Branches, target: 'n_topic' },
+    {
+      id: 'e3',
+      source: 'n_checks',
+      sourcePort: PortName.Branches,
+      target: 'n_topic',
+      background: true,
+    },
     { id: 'e4', source: 'n_checks', sourcePort: PortName.Next, target: 'n_route' },
     { id: 'e5', source: 'n_route', sourcePort: 'rule_human', target: 'n_handoff' },
     { id: 'e6', source: 'n_route', sourcePort: PortName.Else, target: 'n_answer' },

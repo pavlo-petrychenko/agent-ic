@@ -1,3 +1,4 @@
+import { parseFlow } from '@agent-ic/flow';
 import {
   AgentVersionKind,
   AgentVersionStatus,
@@ -54,3 +55,8 @@ export const toAgentVersionView = (
   publishedAt: version.publishedAt,
   createdAt: version.createdAt,
 });
+
+export const withCurrentFlow = (version: AgentVersion): AgentVersion => {
+  const parsed = parseFlow(version.flow);
+  return parsed.ok ? { ...version, flow: parsed.flow } : version;
+};

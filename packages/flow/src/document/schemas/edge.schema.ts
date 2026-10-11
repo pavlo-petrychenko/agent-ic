@@ -5,4 +5,5 @@ export const flowEdgeSchema = z.object({
   source: z.string().min(1),
   sourcePort: z.string().min(1),
   target: z.string().min(1),
+  background: z.boolean().optional(),
 });

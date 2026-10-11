@@ -134,6 +134,50 @@ describe('parallel branches', () => {
     expect(branches(waitFor)).toMatchObject([{ nodeId: 'o', label: 'Tagger', role }]);
   });
 
+  it.each([WaitFor.Guards, WaitFor.All, WaitFor.First])(
+    'marks a background branch for %s',
+    (waitFor) => {
+      const background = {
+        ...observed,
+        edges: observed.edges.map((edge) => ({ ...edge, background: true })),
+      };
+      const [parallel] = background.nodes;
+      const rows =
+        parallel?.type === NodeType.Parallel
+          ? branchRows(background, { ...parallel, config: { waitFor } }, PortName.Branches)
+          : [];
+      expect(rows).toMatchObject([{ nodeId: 'o', role: BranchRole.Background }]);
+    },
+  );
+
+  it('names the steps of a background branch that runs in parallel with the router', () => {
+    const document = addNode(
+      addNode(EMPTY_FLOW, NodeType.Parallel, ORIGIN, 'p'),
+      NodeType.Agent,
+      ORIGIN,
+      'scorer',
+    );
+    const linked = addNode(
+      {
+        ...updateNode(document, 'scorer', (node) => ({ ...node, label: 'Scorer' })),
+        edges: [
+          {
+            id: 'b',
+            source: 'p',
+            sourcePort: PortName.Branches,
+            target: 'scorer',
+            background: true,
+          },
+          { id: 'n', source: 'p', sourcePort: PortName.Next, target: 'r' },
+        ],
+      },
+      NodeType.Router,
+      ORIGIN,
+      'r',
+    );
+    expect(observerNames(linked, 'r')).toEqual(['Scorer']);
+  });
+
   it('names only the observers that run in parallel with the router', () => {
     const steps: [AddableNodeType, string][] = [
       [NodeType.Router, 'r'],

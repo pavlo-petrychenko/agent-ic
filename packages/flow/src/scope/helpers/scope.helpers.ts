@@ -27,6 +27,7 @@ import {
   branchStarts,
   buildFlowGraph,
   incomingEdges,
+  isBackgroundBranch,
   outgoingEdges,
 } from '@flow/scope/helpers/graph.helpers';
 import type {
@@ -100,7 +101,7 @@ const createPresenceAnalysis = (graph: FlowGraph): ((nodeId: string) => StepPres
     const joined = new Map(withStep(stateBefore(parallel.id), parallel.id));
     for (const start of branchStarts(graph, parallel.id)) {
       const nodeIds = branchNodes(graph, start);
-      if (nodeIds.has(parallel.id)) {
+      if (nodeIds.has(parallel.id) || isBackgroundBranch(graph, start)) {
         continue;
       }
       const end = mergePresence(exitStates(nodeIds, nestedBranchNodes(nodeIds)));

@@ -1,6 +1,6 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import { ConditionOperator, RuleMatch } from '@flow/conditions/constants/condition.constants';
-import { FLOW_SCHEMA_VERSION, NodeType } from '@flow/document/constants/flow.constants';
+import { FLOW_SCHEMA_VERSION, NodeType, PortName } from '@flow/document/constants/flow.constants';
 import type {
   AgentNode,
   ApiRequestNode,
@@ -219,6 +219,11 @@ export const link = (source: FlowNode, port: string, target: FlowNode): FlowEdge
   source: source.id,
   sourcePort: port,
   target: target.id,
+});
+
+export const backgroundLink = (source: FlowNode, target: FlowNode): FlowEdge => ({
+  ...link(source, PortName.Branches, target),
+  background: true,
 });
 
 export const flowOf = (nodes: FlowNode[], edges: FlowEdge[]): FlowDocument => ({

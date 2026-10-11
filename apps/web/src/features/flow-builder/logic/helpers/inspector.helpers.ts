@@ -7,7 +7,7 @@ import {
   RESERVED_ROOTS,
   WaitFor,
 } from '@agent-ic/flow';
-import type { FlowDocument, FlowIssue, FlowNode, ParallelNode } from '@agent-ic/flow';
+import type { FlowDocument, FlowEdge, FlowIssue, FlowNode, ParallelNode } from '@agent-ic/flow';
 import { NODE_KEY_SEPARATOR } from '@/features/flow-builder/constants/graphEdit.constants';
 import {
   BranchRole,
@@ -104,6 +104,9 @@ export const portTargets = (document: FlowDocument, nodeId: string, port: string
 const isObserver = (node: FlowNode): boolean =>
   node.type === NodeType.Completion && node.config.role === CompletionRole.Observer;
 
+const isBackground = (edge: FlowEdge): boolean =>
+  edge.sourcePort === PortName.Branches && edge.background === true;
+
 export const observerNames = (document: FlowDocument, nodeId: string): string[] => {
   const branches = document.edges.filter(
     (edge) => edge.sourcePort === PortName.Branches && reaches(document, edge.source, nodeId),
@@ -111,15 +114,20 @@ export const observerNames = (document: FlowDocument, nodeId: string): string[] 
   return document.nodes
     .filter(
       (node) =>
-        isObserver(node) &&
         !reaches(document, node.id, nodeId) &&
         !reaches(document, nodeId, node.id) &&
-        branches.some((edge) => reaches(document, edge.target, node.id)),
+        branches.some(
+          (edge) =>
+            (isObserver(node) || isBackground(edge)) && reaches(document, edge.target, node.id),
+        ),
     )
     .map(nodeName);
 };
 
-const branchRole = (waitFor: WaitFor, observer: boolean): BranchRole => {
+const branchRole = (waitFor: WaitFor, observer: boolean, background: boolean): BranchRole => {
+  if (background) {
+    return BranchRole.Background;
+  }
   if (waitFor === WaitFor.First) {
     return BranchRole.Racing;
   }
@@ -135,7 +143,13 @@ export const branchRows = (document: FlowDocument, node: ParallelNode, port: str
           {
             ...target,
             ...NODE_PRESENTATION[step.type],
-            role: branchRole(node.config.waitFor, isObserver(step)),
+            role: branchRole(
+              node.config.waitFor,
+              isObserver(step),
+              document.edges.some(
+                (edge) => edge.source === node.id && edge.target === step.id && isBackground(edge),
+              ),
+            ),
           },
         ];
   });

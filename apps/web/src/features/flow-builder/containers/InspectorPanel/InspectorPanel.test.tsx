@@ -1,7 +1,6 @@
 import { ReasoningLevel } from '@agent-ic/contracts';
 import {
   ChannelSelectionMode,
-  CompletionRole,
   ConditionOperator,
   EscalationMode,
   FailureMode,
@@ -279,20 +278,25 @@ describe('InspectorPanel', () => {
       ...FLOW,
       nodes: [
         ...FLOW.nodes,
-        step('split', '', { type: NodeType.Parallel, config: { waitFor: WaitFor.Guards } }),
-        step('tagger', 'Topic tagger', {
-          ...NODE_TEMPLATES[NodeType.Completion],
-          config: { ...NODE_TEMPLATES[NodeType.Completion].config, role: CompletionRole.Observer },
-        }),
+        step('split', '', { type: NodeType.Parallel, config: { waitFor: WaitFor.First } }),
+        step('tagger', 'Topic tagger', NODE_TEMPLATES[NodeType.Completion]),
       ],
-      edges: [{ id: 'b1', source: 'split', sourcePort: PortName.Branches, target: 'tagger' }],
+      edges: [
+        {
+          id: 'b1',
+          source: 'split',
+          sourcePort: PortName.Branches,
+          target: 'tagger',
+          background: true,
+        },
+      ],
     };
     open('split', document);
 
     const inspector = screen.getByRole('complementary', { name: 'split' });
     expect(within(inspector).getByText('Parallel / join')).toBeVisible();
-    expect(screen.getByText('observer')).toBeVisible();
-    expect(screen.getByText('Observer branches can’t stop the flow.')).toBeVisible();
+    expect(screen.getByText('in background')).toBeVisible();
+    expect(screen.getByText('Background branches don’t hold up the reply.')).toBeVisible();
     await user.click(screen.getByRole('radio', { name: 'All branches finish' }));
 
     expect(node('split')).toMatchObject({ config: { waitFor: WaitFor.All } });
@@ -452,19 +456,15 @@ describe('InspectorPanel', () => {
     expect(node('agent')).toMatchObject({ config: { retries: 0 } });
   });
 
-  it('turns a guard into an observer and drops its outgoing connections', async () => {
+  it('leaves the current message out of a completion', async () => {
     const user = userEvent.setup();
     open('tagger', AI_FLOW);
 
     const model = screen.getByRole('combobox', { name: 'Model' });
     await waitFor(() => expect(within(model).getAllByRole('option')).toHaveLength(2));
     await user.click(screen.getByRole('switch', { name: 'Include the current message' }));
-    await user.click(screen.getByRole('radio', { name: 'Observer' }));
 
-    expect(node('tagger')).toMatchObject({
-      config: { role: CompletionRole.Observer, input: { includeCurrentMessage: false } },
-    });
-    expect(store().document.edges.map((edge) => edge.id)).not.toContain('e5');
+    expect(node('tagger')).toMatchObject({ config: { input: { includeCurrentMessage: false } } });
     expect(screen.getByRole('button', { name: 'Remove result' })).toBeDisabled();
   });
 

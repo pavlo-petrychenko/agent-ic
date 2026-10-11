@@ -61,7 +61,6 @@ import {
   modelsForStep,
   removeOutputField,
   selectModel,
-  setCompletionRole,
   setIncludeCurrentMessage,
   setRetries,
   updateLlmStep,
@@ -211,9 +210,7 @@ export function InspectorPanel({ agentId }: InspectorPanelProps) {
       case NodeType.Completion:
         return llmStep(current, {
           type: NodeType.Completion,
-          role: current.config.role,
           includeCurrentMessage: current.config.input.includeCurrentMessage,
-          onRoleChange: (role) => apply(setCompletionRole(document, current.id, role)),
           onIncludeCurrentMessageChange: (include) =>
             apply(setIncludeCurrentMessage(document, current.id, include)),
         });
