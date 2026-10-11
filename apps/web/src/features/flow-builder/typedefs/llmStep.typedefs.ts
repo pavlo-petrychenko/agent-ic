@@ -10,7 +10,11 @@ import type {
 } from '@agent-ic/flow';
 import type { PortTarget } from '@/features/flow-builder/typedefs/inspector.typedefs';
 import type { AppError } from '@/shared/api/errors/app.error';
-import type { ModelPurpose, ModelVendor } from '@/shared/api/generated/schema.generated';
+import type {
+  ModelPurpose,
+  ModelSource,
+  ModelVendor,
+} from '@/shared/api/generated/schema.generated';
 import type { VariableOption } from '@/shared/ui/inputs/PromptEditor';
 
 export type LlmStepType = NodeType.Agent | NodeType.Completion;
@@ -19,6 +23,7 @@ export interface ModelChoice {
   readonly id: string;
   readonly label: string;
   readonly vendor: ModelVendor;
+  readonly source: ModelSource;
   readonly purposes: readonly ModelPurpose[];
   readonly reasoningLevels: readonly ReasoningLevel[];
   readonly defaultReasoningLevel: ReasoningLevel | null;

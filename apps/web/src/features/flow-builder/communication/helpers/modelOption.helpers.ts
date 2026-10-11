@@ -7,6 +7,7 @@ export const toModelChoices = (data: ModelOptionsQuery): ModelChoice[] =>
     id: option.id,
     label: option.label,
     vendor: option.vendor,
+    source: option.source,
     purposes: option.purposes,
     reasoningLevels: option.reasoningLevels.map((level) => REASONING_FROM_API[level]),
     defaultReasoningLevel:

@@ -17,13 +17,14 @@ import {
   updateOutputField,
 } from '@/features/flow-builder/logic/helpers/llmStep.helpers';
 import type { ModelChoice } from '@/features/flow-builder/typedefs/llmStep.typedefs';
-import { ModelPurpose, ModelVendor } from '@/shared/api/generated/schema.generated';
+import { ModelPurpose, ModelSource, ModelVendor } from '@/shared/api/generated/schema.generated';
 
 const ORIGIN = { x: 0, y: 0 };
 const model = (id: string, purposes: ModelPurpose[], levels: ReasoningLevel[]): ModelChoice => ({
   id,
   label: id,
   vendor: ModelVendor.Openai,
+  source: ModelSource.Platform,
   purposes,
   reasoningLevels: levels,
   defaultReasoningLevel: null,
@@ -56,6 +57,12 @@ describe('llm step helpers', () => {
   it('offers the models made for the step type', () => {
     expect(modelsForStep(MODELS, NodeType.Agent)).toEqual([STRONG]);
     expect(modelsForStep(MODELS, NodeType.Completion)).toEqual([FAST]);
+  });
+
+  it('does not offer a model from a workspace provider', () => {
+    const own = { ...STRONG, id: 'own', source: ModelSource.Workspace };
+
+    expect(modelsForStep([own, STRONG], NodeType.Agent)).toEqual([STRONG]);
   });
 
   it('keeps the reasoning level only while the new model supports it', () => {

@@ -7,6 +7,7 @@ import {
 } from '@agent-ic/flow';
 import type { CompletionRole, FlowDocument, ModelRef, OutputField } from '@agent-ic/flow';
 import {
+  CHOOSABLE_MODEL_SOURCE,
   NEW_ENUM_VALUE,
   NEW_OUTPUT_FIELD_PREFIX,
   NEW_OUTPUT_FIELD_SEPARATOR,
@@ -70,7 +71,10 @@ export const modelsForStep = (
   models: readonly ModelChoice[],
   type: LlmStepType,
 ): readonly ModelChoice[] =>
-  models.filter((model) => model.purposes.includes(STEP_MODEL_PURPOSE[type]));
+  models.filter(
+    (model) =>
+      model.source === CHOOSABLE_MODEL_SOURCE && model.purposes.includes(STEP_MODEL_PURPOSE[type]),
+  );
 
 export const selectModel = (
   document: FlowDocument,
