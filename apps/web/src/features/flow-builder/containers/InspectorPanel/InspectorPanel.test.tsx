@@ -6,6 +6,7 @@ import {
   NodeType,
   PortName,
   RuleMatch,
+  OutputFieldType,
   WaitFor,
   validateFlow,
 } from '@agent-ic/flow';
@@ -14,6 +15,7 @@ import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { NODE_TEMPLATES } from '@/features/flow-builder/constants/nodeTemplate.constants';
+import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import { InspectorPanel } from '@/features/flow-builder/containers/InspectorPanel/InspectorPanel';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
@@ -109,6 +111,116 @@ describe('InspectorPanel', () => {
 
     expect(store().selection.nodeIds).toEqual([]);
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+  });
+
+  it('edits a router rule in the document', async () => {
+    const user = userEvent.setup();
+    open('route');
+
+    const route = screen.getByRole('region', { name: 'Route 1' });
+    expect(within(route).getByText('→ Reply')).toBeVisible();
+    await user.selectOptions(
+      within(route).getByRole('combobox', { name: 'Operator' }),
+      'starts_with',
+    );
+    await user.clear(within(route).getByRole('textbox', { name: 'Value' }));
+    await user.type(within(route).getByRole('textbox', { name: 'Value' }), 'hi{Enter}');
+    await user.click(screen.getByRole('button', { name: 'Add route' }));
+
+    expect(node('route')).toMatchObject({
+      config: {
+        rules: [
+          { conditions: [{ operator: ConditionOperator.StartsWith, value: 'hi' }] },
+          { conditions: [{ variable: 'message.text' }] },
+        ],
+      },
+    });
+  });
+
+  it('commits typed list and number values and shows the invalid value', async () => {
+    const user = userEvent.setup();
+    const output = { description: '', required: true };
+    const guard = step('guard', 'Guard', {
+      ...NODE_TEMPLATES[NodeType.Completion],
+      config: {
+        ...NODE_TEMPLATES[NodeType.Completion].config,
+        output: [
+          { ...output, name: 'priority', type: OutputFieldType.Enum, values: ['low', 'high'] },
+          { ...output, name: 'score', type: OutputFieldType.Number },
+        ],
+      },
+    });
+    const conditions = [
+      { variable: 'guard.priority', operator: ConditionOperator.In, value: ['low'] },
+      { variable: 'guard.score', operator: ConditionOperator.Gt, value: 1 },
+      { variable: 'guard.score', operator: ConditionOperator.IsEmpty, value: '' },
+    ];
+    open('route', {
+      ...FLOW,
+      nodes: [
+        ...FLOW.nodes.map((candidate) =>
+          candidate.id === 'route'
+            ? step('route', '', {
+                type: NodeType.Router,
+                config: { rules: [{ ...RULE, conditions }] },
+              })
+            : candidate,
+        ),
+        guard,
+      ],
+      edges: [
+        { id: 'e0', source: 'trigger', sourcePort: PortName.Next, target: 'guard' },
+        { id: 'e1', source: 'guard', sourcePort: PortName.Next, target: 'route' },
+      ],
+    });
+
+    const list = screen.getByRole('textbox', { name: 'Value' });
+    const number = screen.getByRole('spinbutton', { name: 'Value' });
+    await user.clear(list);
+    await user.type(list, 'low, high');
+    await user.tab();
+    await user.clear(number);
+    await user.tab();
+    act(() => store().setSaveState(SaveState.Pending));
+
+    expect(node('route')).toMatchObject({
+      config: { rules: [{ conditions: [{ value: ['low', 'high'] }, { value: '' }, {}] }] },
+    });
+    expect(screen.getByText(/The value doesn’t fit .* on a number field/)).toBeVisible();
+    expect(number).toHaveAttribute('aria-invalid', 'true');
+    const operator = screen.getAllByRole('combobox', { name: 'Operator' })[2];
+    expect(operator).toHaveValue(ConditionOperator.IsEmpty);
+    expect(operator).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByText(/doesn’t work on a number field/)).toBeVisible();
+  });
+
+  it('shows the field error for a field the router can not use', () => {
+    open('route', {
+      ...FLOW,
+      nodes: FLOW.nodes.map((candidate) =>
+        candidate.type === NodeType.Router
+          ? step('route', 'Needs a person?', {
+              type: NodeType.Router,
+              config: {
+                rules: [{ ...RULE, conditions: [{ ...CONDITION, variable: 'reply.gone' }] }],
+              },
+            })
+          : candidate,
+      ),
+    });
+
+    expect(screen.getByText('reply.gone isn’t available here')).toBeVisible();
+    expect(screen.getByRole('combobox', { name: 'Field' })).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('removes a route with its connection', async () => {
+    const user = userEvent.setup();
+    open('route');
+
+    await user.click(screen.getByRole('button', { name: 'Remove Route 1' }));
+
+    expect(node('route')).toMatchObject({ config: { rules: [] } });
+    expect(store().document.edges.map((edge) => edge.id)).toEqual(['e1']);
   });
 
   it('changes when a parallel step continues', async () => {
