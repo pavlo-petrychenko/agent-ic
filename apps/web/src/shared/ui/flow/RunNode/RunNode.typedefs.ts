@@ -11,4 +11,6 @@ export interface RunNodeProps {
   icon?: IconName | null;
   className?: string;
   style?: CSSProperties;
+  selected?: boolean;
+  onSelect?: (() => void) | null;
 }

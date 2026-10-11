@@ -5,7 +5,7 @@ import type { RunTraceProps } from '@/features/testing/view/RunTrace/RunTrace.ty
 import { RunNode } from '@/shared/ui/flow/RunNode';
 import styles from '@/features/testing/view/RunTrace/RunTrace.module.scss';
 
-export function RunTrace({ drawing }: RunTraceProps) {
+export function RunTrace({ drawing, onSelectNode }: RunTraceProps) {
   const { t } = useTranslation(TESTING_NAMESPACE);
   const { size, nodes, paths } = drawing;
 
@@ -33,6 +33,8 @@ export function RunTrace({ drawing }: RunTraceProps) {
             stateLabel={t(`trace.state.${node.state}`)}
             className={styles.node}
             style={{ left: node.x, top: node.y, width: TRACE_NODE.width }}
+            selected={node.selected}
+            onSelect={node.selectable ? () => onSelectNode(node.id) : null}
           />
         ))}
       </ol>

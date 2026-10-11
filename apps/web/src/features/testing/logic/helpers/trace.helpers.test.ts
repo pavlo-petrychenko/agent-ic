@@ -69,6 +69,7 @@ const step = (nodeId: string, status: RunStepStatus) => ({
   id: nodeId,
   nodeId,
   status,
+  input: {},
   output: null,
   errorMessage: null,
 });
@@ -126,6 +127,8 @@ describe('drawTrace', () => {
     kind: NodeKind.Agent,
     icon: IconName.Msg,
     state: RunNodeState.Done,
+    selectable: true,
+    selected: false,
   }));
   const drawing = drawTrace(cells, traceEdges(flow.edges, cells));
 

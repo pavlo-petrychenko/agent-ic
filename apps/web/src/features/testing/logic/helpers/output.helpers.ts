@@ -7,8 +7,13 @@ import {
   OutputViewKind,
   QUIET_OUTPUT_NODE_TYPES,
   RECIPIENT_LIST_FORMAT,
+  StepSection,
 } from '@/features/testing/constants/trace.constants';
-import type { OutputView, RunStepView } from '@/features/testing/typedefs/trace.typedefs';
+import type {
+  OutputView,
+  RunStepView,
+  StepSectionView,
+} from '@/features/testing/typedefs/trace.typedefs';
 import { RunStepStatus } from '@/shared/api/generated/schema.generated';
 
 const isPlainValue = (value: unknown): value is string | number | boolean | null =>
@@ -68,6 +73,23 @@ export const toStepView = (
   return nodeType !== null && QUIET_OUTPUT_NODE_TYPES.has(nodeType)
     ? null
     : toOutputView(step.output, locale, nodeType);
+};
+
+export const inspectStep = (
+  step: RunStepView,
+  locale: string,
+  nodeType: NodeType | null,
+): StepSectionView[] => {
+  const failed = step.status === RunStepStatus.Failed;
+  const views = {
+    [StepSection.Input]: toOutputView(step.input, locale, null),
+    [StepSection.Output]: failed ? null : toOutputView(step.output, locale, nodeType),
+    [StepSection.Error]: failed ? { kind: OutputViewKind.Error, message: step.errorMessage } : null,
+  } satisfies Record<StepSection, OutputView | null>;
+  return Object.values(StepSection).flatMap((section) => {
+    const view = views[section];
+    return view === null ? [] : [{ section, view }];
+  });
 };
 
 export const formatSeconds = (durationMs: number, locale: string): string =>

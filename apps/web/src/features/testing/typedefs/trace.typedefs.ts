@@ -1,5 +1,5 @@
 import type { NodeType } from '@agent-ic/flow';
-import type { OutputViewKind } from '@/features/testing/constants/trace.constants';
+import type { OutputViewKind, StepSection } from '@/features/testing/constants/trace.constants';
 import type { RunStatus, RunStepStatus } from '@/shared/api/generated/schema.generated';
 import type { NodeKind } from '@/shared/ui/display/NodeTile';
 import type { RunNodeState } from '@/shared/ui/flow/RunNode';
@@ -9,6 +9,7 @@ export interface RunStepView {
   id: string;
   nodeId: string;
   status: RunStepStatus;
+  input: unknown;
   output: unknown;
   errorMessage: string | null;
 }
@@ -59,6 +60,8 @@ export interface TraceCell extends TraceSlot {
   kind: NodeKind;
   icon: IconName;
   state: RunNodeState;
+  selectable: boolean;
+  selected: boolean;
 }
 
 export interface PlacedTraceCell extends TraceCell, TracePoint {}
@@ -85,8 +88,23 @@ export type OutputView =
   | { kind: OutputViewKind.Error; message: string | null }
   | { kind: OutputViewKind.Escalation; recipients: string | null };
 
+export interface StepSectionView {
+  section: StepSection;
+  view: OutputView;
+}
+
 export interface StepOutput {
   id: string;
   title: string;
   view: OutputView;
+}
+
+export interface InspectedNode {
+  runId: string;
+  nodeId: string;
+}
+
+export interface NodeInspection {
+  selectedNodeId: string | null;
+  selectNode: (nodeId: string | null) => void;
 }

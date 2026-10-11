@@ -11,6 +11,8 @@ export const TRACE_RUN_ID = 'run_trace';
 
 export const STEP_ERROR = 'The model did not answer in time';
 
+export const STEP_INPUT = { channel: 'simulated', today: '2026-10-11' };
+
 export const GUARD_OUTPUT = { needs_human: false, reason: null };
 
 export const ESCALATION_OUTPUT = {
@@ -24,13 +26,14 @@ export const testingRunMock = (
   status: RunStatus,
   replyStatus: RunStepStatus | null,
   replyOutput: unknown = { messages: ['Hi'] },
+  runId = TRACE_RUN_ID,
 ): MockLink.MockedResponse => ({
-  request: { query: TestingRunDocument, variables: { id: TRACE_RUN_ID } },
+  request: { query: TestingRunDocument, variables: { id: runId } },
   result: {
     data: {
       run: {
         __typename: 'Run',
-        id: TRACE_RUN_ID,
+        id: runId,
         status,
         durationMs: 2100,
         error:
@@ -60,7 +63,7 @@ export const testingRunMock = (
                       : null,
                 },
               ]),
-        ].map((step) => ({ __typename: 'RunStep', ...step })),
+        ].map((step) => ({ __typename: 'RunStep', input: STEP_INPUT, ...step })),
       },
     },
   },

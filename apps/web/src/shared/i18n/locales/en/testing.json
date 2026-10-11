@@ -94,6 +94,15 @@
       "succeeded": "Completed",
       "escalated": "Escalated",
       "failed": "Failed"
+    },
+    "back": "All steps of turn {{number}}",
+    "input": "Input",
+    "output": "Output",
+    "error": "Error",
+    "stepStatus": {
+      "running": "Running",
+      "succeeded": "Ran",
+      "failed": "Failed"
     }
   },
   "reset": "Reset conversation",

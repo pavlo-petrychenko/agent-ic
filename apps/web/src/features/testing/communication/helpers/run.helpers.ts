@@ -14,10 +14,11 @@ export const toRunDetails = ({
   durationMs,
   failedNodeId: error?.nodeId ?? null,
   totals,
-  steps: steps.map(({ id: stepId, nodeId, status: stepStatus, output, error: failure }) => ({
+  steps: steps.map(({ id: stepId, nodeId, status: stepStatus, input, output, error: failure }) => ({
     id: stepId,
     nodeId,
     status: stepStatus,
+    input,
     output: output ?? null,
     errorMessage: failure?.message ?? null,
   })),

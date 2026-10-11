@@ -39,6 +39,18 @@ export const MS_PER_SECOND = 1000;
 export const DURATION_FRACTION_DIGITS = 1;
 export const EMPTY_FIELD_VALUE = '—';
 
+export const STEP_STATUS_TONES: Readonly<Record<RunStepStatus, BadgeTone>> = {
+  [RunStepStatus.Running]: BadgeTone.Accent,
+  [RunStepStatus.Succeeded]: BadgeTone.Ok,
+  [RunStepStatus.Failed]: BadgeTone.Err,
+};
+
+export enum StepSection {
+  Input = 'input',
+  Output = 'output',
+  Error = 'error',
+}
+
 export const RUN_STATUS_TONES: Readonly<Record<RunStatus, BadgeTone>> = {
   [RunStatus.Queued]: BadgeTone.Neutral,
   [RunStatus.Running]: BadgeTone.Accent,

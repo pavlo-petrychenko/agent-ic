@@ -4,11 +4,19 @@ import { NODE_PRESENTATION } from '@/features/flow-builder';
 import { useTestingRun } from '@/features/testing/communication/hooks/useTestingRun';
 import { BUILDER_PATH } from '@/features/testing/constants/testing.constants';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
-import { EMPTY_FIELD_VALUE, RUN_STATUS_TONES } from '@/features/testing/constants/trace.constants';
+import {
+  EMPTY_FIELD_VALUE,
+  RUN_STATUS_TONES,
+  STEP_STATUS_TONES,
+} from '@/features/testing/constants/trace.constants';
 import { TRACE_LEGEND } from '@/features/testing/containers/TracePanel/TracePanel.constants';
 import type { TracePanelProps } from '@/features/testing/containers/TracePanel/TracePanel.typedefs';
 import { isActiveRun } from '@/features/testing/logic/helpers/chat.helpers';
-import { formatSeconds, toStepView } from '@/features/testing/logic/helpers/output.helpers';
+import {
+  formatSeconds,
+  inspectStep,
+  toStepView,
+} from '@/features/testing/logic/helpers/output.helpers';
 import {
   drawTrace,
   focusNodeId,
@@ -33,6 +41,8 @@ export function TracePanel({
   turnNumber,
   draft,
   liveNumber,
+  selectedNodeId,
+  onSelectNode,
 }: TracePanelProps) {
   const { t } = useTranslation(TESTING_NAMESPACE);
   const { locale } = useLocale();
@@ -41,14 +51,40 @@ export function TracePanel({
   const edges = useMemo(() => (flow === null ? [] : traceEdges(flow.edges, slots)), [flow, slots]);
   const active = run !== null && isActiveRun(run);
   const steps = details.run?.steps ?? [];
+  const inspected = steps.findLast((step) => step.nodeId === selectedNodeId) ?? null;
   const cells = slots.map((slot) => ({
     ...slot,
     ...NODE_PRESENTATION[slot.type],
     state: nodeState(steps, slot.id, active),
+    selectable: steps.some((step) => step.nodeId === slot.id),
+    selected: slot.id === inspected?.nodeId,
   }));
-  const node = focusNodeId(details.run);
+  const node = inspected?.nodeId ?? focusNodeId(details.run);
   const slotById = new Map(slots.map((slot) => [slot.id, slot]));
   const turn = details.run;
+  const inspectedSlot = inspected === null ? null : (slotById.get(inspected.nodeId) ?? null);
+  const builderLink = (
+    <TextLink to={BUILDER_PATH} params={{ workspaceId, agentId }} search={{ node }}>
+      {t('trace.openInBuilder')}
+    </TextLink>
+  );
+  const stepDetails =
+    inspected === null || turnNumber === null ? null : (
+      <TurnDetails
+        back={{
+          label: t('details.back', { number: turnNumber }),
+          onBack: () => onSelectNode(null),
+        }}
+        title={inspectedSlot?.label ?? inspected.nodeId}
+        statusLabel={t(`details.stepStatus.${inspected.status}`)}
+        statusTone={STEP_STATUS_TONES[inspected.status]}
+        metrics={[]}
+        outputs={inspectStep(inspected, locale, inspectedSlot?.type ?? null).map(
+          ({ section, view }) => ({ id: section, title: t(`details.${section}`), view }),
+        )}
+        action={builderLink}
+      />
+    );
 
   return (
     <>
@@ -64,7 +100,10 @@ export function TracePanel({
               title={details.failed ? t('trace.loadError') : t('trace.noFlow')}
             />
           ) : (
-            <RunTrace drawing={drawTrace(cells, edges)} />
+            <RunTrace
+              drawing={drawTrace(cells, edges)}
+              onSelectNode={(id) => onSelectNode(id === selectedNodeId ? null : id)}
+            />
           )}
         </div>
         <div className={styles.footer}>
@@ -76,13 +115,13 @@ export function TracePanel({
               marker: { kind: LegendMarkerKind.Status, status },
             }))}
           />
-          <TextLink to={BUILDER_PATH} params={{ workspaceId, agentId }} search={{ node }}>
-            {t('trace.openInBuilder')}
-          </TextLink>
+          {builderLink}
         </div>
       </section>
       <aside className={styles.details} aria-label={t('details.label')}>
-        {turn === null || turnNumber === null ? (
+        {stepDetails !== null ? (
+          stepDetails
+        ) : turn === null || turnNumber === null ? (
           <div className={styles.empty}>
             <EmptyState icon={IconName.Flask} title={t('details.empty')} />
           </div>

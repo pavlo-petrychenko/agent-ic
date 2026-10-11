@@ -1,8 +1,9 @@
 import { NodeType } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
-import { OutputViewKind } from '@/features/testing/constants/trace.constants';
+import { OutputViewKind, StepSection } from '@/features/testing/constants/trace.constants';
 import {
   formatSeconds,
+  inspectStep,
   toOutputView,
   toStepView,
 } from '@/features/testing/logic/helpers/output.helpers';
@@ -12,6 +13,7 @@ const step = {
   id: 'step_1',
   nodeId: 'node_1',
   status: RunStepStatus.Succeeded,
+  input: { message: { text: 'Hi' } },
   output: { ok: true },
   errorMessage: null,
 };
@@ -76,6 +78,30 @@ describe('toStepView', () => {
         NodeType.Agent,
       ),
     ).toEqual({ kind: OutputViewKind.Error, message: 'Timed out' });
+  });
+});
+
+describe('inspectStep', () => {
+  it('shows the input and the output of a step, even a quiet one', () => {
+    expect(inspectStep(step, 'en', NodeType.SendMessage)).toEqual([
+      {
+        section: StepSection.Input,
+        view: { kind: OutputViewKind.Json, code: expect.stringContaining('"text": "Hi"') },
+      },
+      {
+        section: StepSection.Output,
+        view: { kind: OutputViewKind.Fields, fields: [{ label: 'ok', value: 'true' }] },
+      },
+    ]);
+  });
+
+  it('shows the error of a failed step instead of its output', () => {
+    const failed = { ...step, status: RunStepStatus.Failed, errorMessage: 'Timed out' };
+
+    expect(inspectStep(failed, 'en', NodeType.Agent).map(({ section }) => section)).toEqual([
+      StepSection.Input,
+      StepSection.Error,
+    ]);
   });
 });
 

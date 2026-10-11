@@ -1,15 +1,8 @@
-import { useTranslation } from 'react-i18next';
-import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
-import { EscalationRow, OutputViewKind } from '@/features/testing/constants/trace.constants';
-import type { OutputView } from '@/features/testing/typedefs/trace.typedefs';
+import { OutputBody } from '@/features/testing/view/OutputBody';
 import type { TurnDetailsProps } from '@/features/testing/view/TurnDetails/TurnDetails.typedefs';
-import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
-import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
-import { CodeBlock } from '@/shared/ui/display/CodeBlock';
-import { KeyValue, KeyValueLayout } from '@/shared/ui/display/KeyValue';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
+import { Badge } from '@/shared/ui/display/Badge';
 import { Metric } from '@/shared/ui/display/Metric';
-import { RowList } from '@/shared/ui/display/RowList';
-import { IconName } from '@/shared/ui/foundations/Icon';
 import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/typography/Heading';
 import styles from '@/features/testing/view/TurnDetails/TurnDetails.module.scss';
 
@@ -19,49 +12,21 @@ export function TurnDetails({
   statusTone,
   metrics,
   outputs,
+  back = null,
+  action = null,
 }: TurnDetailsProps) {
-  const { t } = useTranslation(TESTING_NAMESPACE);
-
-  const body = (view: OutputView) => {
-    if (view.kind === OutputViewKind.Fields) {
-      return (
-        <KeyValue
-          layout={KeyValueLayout.Props}
-          items={view.fields.map((field) => ({ ...field, mono: true }))}
-        />
-      );
-    }
-    if (view.kind === OutputViewKind.Json) {
-      return <CodeBlock code={view.code} />;
-    }
-    if (view.kind === OutputViewKind.Error) {
-      return (
-        <Callout tone={CalloutTone.Err} icon={IconName.Alert}>
-          {view.message ?? t('details.stepFailed')}
-        </Callout>
-      );
-    }
-    return (
-      <RowList
-        mono={false}
-        rows={[
-          {
-            id: EscalationRow.Recipients,
-            name: t('details.wouldNotify'),
-            meta: view.recipients ?? t('details.nobody'),
-          },
-          {
-            id: EscalationRow.Flow,
-            name: t('details.flow'),
-            meta: <Badge tone={BadgeTone.Warn}>{t('details.paused')}</Badge>,
-          },
-        ]}
-      />
-    );
-  };
-
   return (
     <div className={styles.root}>
+      {back !== null && (
+        <Button
+          className={styles.back}
+          variant={ButtonVariant.Ghost}
+          size={ButtonSize.Sm}
+          onClick={back.onBack}
+        >
+          {back.label}
+        </Button>
+      )}
       <div className={styles.head}>
         <Heading size={HeadingSize.H3} as={HeadingElement.H2}>
           {title}
@@ -70,15 +35,16 @@ export function TurnDetails({
           {statusLabel}
         </Badge>
       </div>
-      <Metric items={metrics} />
+      {metrics.length > 0 && <Metric items={metrics} />}
       {outputs.map((output) => (
         <section key={output.id} className={styles.output}>
           <Heading size={HeadingSize.H3} as={HeadingElement.H3}>
             {output.title}
           </Heading>
-          {body(output.view)}
+          <OutputBody view={output.view} />
         </section>
       ))}
+      {action}
     </div>
   );
 }

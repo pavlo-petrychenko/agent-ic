@@ -19,19 +19,17 @@ export function RunNode({
   icon = null,
   className,
   style,
+  selected = false,
+  onSelect = null,
 }: RunNodeProps) {
   const statusIcon = RUN_NODE_STATUS_ICONS[state];
   const labelVisible = RUN_NODE_VISIBLE_LABEL_STATES.has(state);
-
-  return (
-    <li
-      data-state={state}
-      style={style}
-      aria-busy={state === RunNodeState.Running || undefined}
-      className={clsx(styles.root, styles[state], className)}
-    >
+  const busy = state === RunNodeState.Running || undefined;
+  const node = clsx(styles.root, styles[state]);
+  const content = (
+    <>
       <NodeTile kind={kind} icon={icon} size={TileSize.Xs} />
-      <span className={styles.name}>{name}</span>
+      <span className={styles.name}>{name}</span>{' '}
       <span className={styles.status}>
         {statusIcon !== null && (
           <Icon name={statusIcon} size={RUN_NODE_STATUS_ICON_SIZE} className={styles.statusIcon} />
@@ -40,6 +38,27 @@ export function RunNode({
           {stateLabel}
         </span>
       </span>
+    </>
+  );
+
+  if (onSelect === null) {
+    return (
+      <li data-state={state} style={style} aria-busy={busy} className={clsx(node, className)}>
+        {content}
+      </li>
+    );
+  }
+
+  return (
+    <li data-state={state} style={style} aria-busy={busy} className={clsx(styles.slot, className)}>
+      <button
+        type="button"
+        aria-pressed={selected}
+        className={clsx(node, styles.interactive, selected && styles.selected)}
+        onClick={onSelect}
+      >
+        {content}
+      </button>
     </li>
   );
 }

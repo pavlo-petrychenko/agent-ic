@@ -9,4 +9,6 @@ export interface TracePanelProps {
   turnNumber: number | null;
   draft: boolean;
   liveNumber: number | null;
+  selectedNodeId: string | null;
+  onSelectNode: (nodeId: string | null) => void;
 }

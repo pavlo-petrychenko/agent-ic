@@ -23,6 +23,7 @@ import {
   isSimulatorLanguage,
 } from '@/features/testing/logic/helpers/setup.helpers';
 import { useDraftRefresh } from '@/features/testing/logic/hooks/useDraftRefresh';
+import { useNodeInspection } from '@/features/testing/logic/hooks/useNodeInspection';
 import { ChannelKind } from '@/shared/api/generated/schema.generated';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
@@ -60,6 +61,11 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
   const runs = simulator.conversation?.runs ?? [];
   const newestRunId = latestRunId(runs);
   const selectedRunId = runs.some((run) => run.id === selected) ? selected : newestRunId;
+  const { selectedNodeId, selectNode } = useNodeInspection(selectedRunId);
+  const selectRun = (runId: string) => {
+    setSelected(runId);
+    selectNode(null);
+  };
   useDraftRefresh(
     newestRunId,
     versionId === null && simulator.conversation !== null,
@@ -228,7 +234,7 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
             onChannelKindChange={(value) => isSimulatorChannel(value) && setChannelKind(value)}
             onLanguageChange={(value) => isSimulatorLanguage(value) && setLanguage(value)}
             selectedRunId={selectedRunId}
-            onSelectRun={setSelected}
+            onSelectRun={selectRun}
           />
           <TracePanel
             workspaceId={workspaceId}
@@ -238,6 +244,8 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
             turnNumber={turnNumber(runs, selectedRunId)}
             draft={versionId === null}
             liveNumber={liveNumber}
+            selectedNodeId={selectedNodeId}
+            onSelectNode={selectNode}
           />
         </div>
       ) : (

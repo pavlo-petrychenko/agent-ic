@@ -1,7 +1,7 @@
 import type { MockLink } from '@apollo/client/testing';
 import { createMemoryHistory } from '@tanstack/react-router';
 import type { RouterHistory } from '@tanstack/react-router';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import {
@@ -17,6 +17,7 @@ import {
   sendSimulatorMessageMock,
   simulationMock,
   startSimulationMock,
+  TEST_RUN_ID,
 } from '@/features/testing/communication/fixtures/simulator.fixture';
 import {
   TEST_AGENT_ID,
@@ -26,8 +27,13 @@ import {
   testingAgentsMock,
   testingVersionsMock,
 } from '@/features/testing/communication/fixtures/testing.fixture';
+import { testingRunMock } from '@/features/testing/communication/fixtures/trace.fixture';
 import { TestingPage } from '@/features/testing/containers/TestingPage/TestingPage';
-import { ConversationState, RunStatus } from '@/shared/api/generated/schema.generated';
+import {
+  ConversationState,
+  RunStatus,
+  RunStepStatus,
+} from '@/shared/api/generated/schema.generated';
 import { MemoryRouter } from '@test/support/components/MemoryRouter';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
@@ -113,6 +119,26 @@ describe('TestingPage', () => {
     expect(turn).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByText(QUESTION.text)).toBeInTheDocument();
     expect(screen.getByText('Anything else?')).toBeInTheDocument();
+  });
+
+  it('goes back to the whole turn when its header in the chat is clicked', async () => {
+    const user = userEvent.setup();
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(),
+      startSimulationMock(),
+      simulationMock([QUESTION, ...ANSWERS]),
+      testingRunMock(RunStatus.Succeeded, RunStepStatus.Succeeded, undefined, TEST_RUN_ID),
+    ]);
+    const details = await screen.findByRole('complementary', { name: 'Turn details' });
+
+    await user.click(await screen.findByRole('button', { name: 'Send replies ran' }));
+    expect(within(details).getByRole('heading', { name: 'Input' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: `${TEST_AGENT_NAME} · 2 messages` }));
+
+    expect(within(details).getByRole('heading', { name: 'Turn 1' })).toBeInTheDocument();
+    expect(within(details).queryByRole('heading', { name: 'Input' })).not.toBeInTheDocument();
   });
 
   it('shows the typing indicator while a turn runs', async () => {
