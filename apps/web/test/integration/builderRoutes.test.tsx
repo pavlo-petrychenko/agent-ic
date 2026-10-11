@@ -1,6 +1,7 @@
 import { Locale, WorkspaceRole } from '@agent-ic/contracts';
 import { screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { testingAgentsMock } from '@/features/testing/communication/fixtures/testing.fixture';
 import {
   buildWorkspaceShellMock,
   DEMO_WORKSPACE,
@@ -73,10 +74,10 @@ describe('agents, builder and testing routes', () => {
 
   it('opens the simulator for a builder', async () => {
     renderRoute(`${workspacePath}/testing`, {
-      mocks: [buildWorkspaceShellMock([BUILDER_WORKSPACE], OWNER_USER)],
+      mocks: [buildWorkspaceShellMock([BUILDER_WORKSPACE], OWNER_USER), testingAgentsMock([])],
     });
 
-    expect(await screen.findByText('Nothing to test yet')).toBeInTheDocument();
+    expect(await screen.findByText('Nothing to simulate yet')).toBeInTheDocument();
   });
 
   it('lists Testing under Operate for an owner', async () => {
@@ -103,9 +104,12 @@ describe('agents, builder and testing routes', () => {
   it('shows the Ukrainian strings', async () => {
     renderRoute(`${workspacePath}/testing`, {
       locale: Locale.Uk,
-      mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE], { ...OWNER_USER, locale: Locale.Uk })],
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE], { ...OWNER_USER, locale: Locale.Uk }),
+        testingAgentsMock([]),
+      ],
     });
 
-    expect(await screen.findByText('Поки нічого тестувати')).toBeInTheDocument();
+    expect(await screen.findByText('Поки нічого симулювати')).toBeInTheDocument();
   });
 });

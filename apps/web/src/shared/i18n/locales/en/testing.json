@@ -3,9 +3,32 @@
     "title": "Testing",
     "subtitle": "Drafts run here only"
   },
-  "simulator": {
-    "title": "Nothing to test yet",
-    "description": "The simulator is coming in the next release."
+  "tabs": {
+    "label": "Testing sections",
+    "simulator": "Simulator",
+    "versions": "Versions"
+  },
+  "picker": {
+    "agent": "Agent",
+    "version": "Version",
+    "draft": "Draft v{{number}}",
+    "published": "v{{number}}",
+    "unpublished": "unpublished",
+    "live": "live"
+  },
+  "loading": "Loading the simulator…",
+  "loadError": "Couldn't load the simulator",
+  "retry": "Retry",
+  "note": "Draft runs here only — customers keep talking to the live version until you publish.",
+  "noAgents": {
+    "title": "Nothing to simulate yet",
+    "description": "Create an agent first, then test it here before customers see it.",
+    "action": "Create an agent"
+  },
+  "brokenDraft": {
+    "title": "Fix the flow first",
+    "description": "The draft is empty or has errors, so it can't run. Fix it in the flow builder or pick a published version.",
+    "action": "Open in flow builder"
   },
   "versions": {
     "title": "No versions to show yet",
