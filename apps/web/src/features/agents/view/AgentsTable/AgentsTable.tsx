@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import {
   AGENT_MENU_ACTIONS,
-  type AgentMenuAction,
+  AgentMenuAction,
 } from '@/features/agents/constants/agentMenu.constants';
 import { AGENTS_NAMESPACE } from '@/features/agents/constants/agentsI18n.constants';
 import { AGENT_STATUSES } from '@/features/agents/constants/agentStatus.constants';
@@ -44,6 +44,7 @@ export function AgentsTable({
     id: action,
     label: t(`menu.${action}`),
     leading: <Icon name={AGENT_MENU_ICONS[action]} size={AGENT_MENU_ICON_SIZE} />,
+    danger: action === AgentMenuAction.Delete,
   });
 
   return (

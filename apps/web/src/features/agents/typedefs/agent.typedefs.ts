@@ -8,6 +8,7 @@ export interface AgentListItem {
   readonly liveVersionNumber: number | null;
   readonly draftNumber: number;
   readonly hasUnpublishedChanges: boolean;
+  readonly versionCount: number;
 }
 
 export interface AgentRow {
@@ -15,6 +16,7 @@ export interface AgentRow {
   readonly name: string;
   readonly description: string | null;
   readonly status: AgentStatus;
+  readonly versionCount: number;
   readonly statusLabel: string;
   readonly note: string | null;
 }

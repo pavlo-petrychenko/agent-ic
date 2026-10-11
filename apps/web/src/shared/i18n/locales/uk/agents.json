@@ -71,7 +71,8 @@
     "open": "Відкрити сценарій",
     "test": "Перевірити в симуляторі",
     "resume": "Відновити агента",
-    "duplicate": "Дублювати"
+    "duplicate": "Дублювати",
+    "delete": "Видалити агента"
   },
   "resume": {
     "success": "{{name}} знову працює"
@@ -79,5 +80,24 @@
   "duplicate": {
     "success": "Створено «{{name}}»",
     "done": "Агента продубльовано"
+  },
+  "dialog": {
+    "cancel": "Скасувати",
+    "close": "Закрити"
+  },
+  "delete": {
+    "title": "Видалити {{name}}?",
+    "subtitle": "Цю дію не можна скасувати",
+    "versions_one": "Сценарій і {{count}} версія",
+    "versions_few": "Сценарій і {{count}} версії",
+    "versions_many": "Сценарій і {{count}} версій",
+    "versions_other": "Сценарій і {{count}} версії",
+    "versionsValue": "буде видалено",
+    "conversations": "Попередні розмови",
+    "conversationsValue": "залишаться",
+    "confirm": "Введіть <strong>{{name}}</strong> для підтвердження",
+    "nameLabel": "Назва агента",
+    "submit": "Видалити агента",
+    "success": "{{name}} видалено"
   }
 }

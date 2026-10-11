@@ -11,6 +11,7 @@ const AGENT: AgentListItem = {
   liveVersionNumber: 3,
   draftNumber: 4,
   hasUnpublishedChanges: false,
+  versionCount: 3,
 };
 
 describe('agentStatusNote', () => {

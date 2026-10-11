@@ -1,5 +1,6 @@
 import type { MockLink } from '@apollo/client/testing';
 import { CreateAgentDocument } from '@/features/agents/communication/gql/mutation/createAgent.generated';
+import { DeleteAgentDocument } from '@/features/agents/communication/gql/mutation/deleteAgent.generated';
 import { DuplicateAgentDocument } from '@/features/agents/communication/gql/mutation/duplicateAgent.generated';
 import { ResumeAgentDocument } from '@/features/agents/communication/gql/mutation/resumeAgent.generated';
 import {
@@ -21,6 +22,7 @@ export const SALON_ASSISTANT: AgentFixture = {
   liveVersionNumber: 3,
   draftNumber: 4,
   hasUnpublishedChanges: true,
+  versionCount: 4,
 };
 
 export const GIFT_CARD_FAQ: AgentFixture = {
@@ -31,6 +33,7 @@ export const GIFT_CARD_FAQ: AgentFixture = {
   liveVersionNumber: 5,
   draftNumber: 6,
   hasUnpublishedChanges: false,
+  versionCount: 5,
 };
 
 export const REVIEW_COLLECTOR: AgentFixture = {
@@ -41,6 +44,7 @@ export const REVIEW_COLLECTOR: AgentFixture = {
   liveVersionNumber: null,
   draftNumber: 1,
   hasUnpublishedChanges: true,
+  versionCount: 1,
 };
 
 const toEdge = (agent: AgentFixture) => ({
@@ -104,6 +108,16 @@ export const buildResumeAgentMock = (id: string): MockLink.MockedResponse => ({
       },
     },
   },
+});
+
+export const buildDeleteAgentMock = (id: string): MockLink.MockedResponse => ({
+  request: { query: DeleteAgentDocument, variables: { input: { id } } },
+  result: { data: { deleteAgent: { __typename: 'DeleteAgentPayload', id } } },
+});
+
+export const buildDeleteAgentFailureMock = (id: string, error: Error): MockLink.MockedResponse => ({
+  request: { query: DeleteAgentDocument, variables: { input: { id } } },
+  error,
 });
 
 export const buildDuplicateAgentMock = (id: string, name: string): MockLink.MockedResponse => ({

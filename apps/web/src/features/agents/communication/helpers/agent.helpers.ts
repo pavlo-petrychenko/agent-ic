@@ -11,6 +11,7 @@ export const toAgentListPage = (data: AgentsQuery): AgentListPage => ({
     liveVersionNumber: node.liveVersionNumber,
     draftNumber: node.draftNumber,
     hasUnpublishedChanges: node.hasUnpublishedChanges,
+    versionCount: node.versionCount,
   })),
   endCursor: data.agents.pageInfo.endCursor,
   hasNextPage: data.agents.pageInfo.hasNextPage,
