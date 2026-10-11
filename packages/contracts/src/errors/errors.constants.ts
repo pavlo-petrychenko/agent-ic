@@ -64,4 +64,6 @@ export enum ErrorReason {
   ConversationClosed = 'CONVERSATION_CLOSED',
   MessageNotFound = 'MESSAGE_NOT_FOUND',
   ChannelAdapterNotFound = 'CHANNEL_ADAPTER_NOT_FOUND',
+  RunNotFound = 'RUN_NOT_FOUND',
+  UnsupportedNodeType = 'UNSUPPORTED_NODE_TYPE',
 }

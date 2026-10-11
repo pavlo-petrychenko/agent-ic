@@ -52,7 +52,9 @@
     "CONVERSATION_NOT_FOUND": "This conversation was not found.",
     "CONVERSATION_CLOSED": "This conversation is closed.",
     "MESSAGE_NOT_FOUND": "This message was not found.",
-    "CHANNEL_ADAPTER_NOT_FOUND": "This channel cannot send messages yet."
+    "CHANNEL_ADAPTER_NOT_FOUND": "This channel cannot send messages yet.",
+    "RUN_NOT_FOUND": "This run was not found.",
+    "UNSUPPORTED_NODE_TYPE": "This flow has a step the agent cannot run yet."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",

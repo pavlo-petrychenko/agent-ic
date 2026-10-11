@@ -3,6 +3,7 @@ import { ChannelsModule } from '@/modules/channels';
 import { ConversationsModule } from '@/modules/conversations';
 import { IdentityModule } from '@/modules/identity';
 import { NotificationsModule } from '@/modules/notifications';
+import { RunsModule } from '@/modules/runs';
 import { SystemModule } from '@/modules/system';
 import { CacheModule } from '@/platform/cache/cache.module';
 import { ClockModule } from '@/platform/clock/clock.module';
@@ -48,6 +49,7 @@ export const DOMAIN_MODULES: readonly ModuleImport[] = [
   AgentsModule,
   ConversationsModule,
   ChannelsModule,
+  RunsModule,
 ];
 
 export const APP_MODULES: readonly ModuleImport[] = [...PLATFORM_MODULES, ...DOMAIN_MODULES];
