@@ -26,7 +26,6 @@ export function RouterInspector({
   onConditionChange,
 }: RouterInspectorProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
-  const fieldOptions = fields.map((field) => field.path);
 
   return (
     <>
@@ -37,7 +36,7 @@ export function RouterInspector({
             index={index}
             total={routes.length}
             route={route}
-            fieldOptions={fieldOptions}
+            fieldOptions={fields.map((field) => field.path)}
             ruleError={(segment) => ruleError(index, segment)}
             conditionError={(position, segment) => conditionError(index, position, segment)}
             onRename={(label) => onRenameRoute(route.rule.id, label)}
@@ -48,17 +47,16 @@ export function RouterInspector({
             }
           />
         ))}
-        <div>
-          <Button
-            variant={ButtonVariant.Ghost}
-            size={ButtonSize.Sm}
-            icon={IconName.Plus}
-            disabled={!canAddRoute}
-            onClick={onAddRoute}
-          >
-            {t('inspector.router.addRoute')}
-          </Button>
-        </div>
+        <Button
+          className="self-start"
+          variant={ButtonVariant.Ghost}
+          size={ButtonSize.Sm}
+          icon={IconName.Plus}
+          disabled={!canAddRoute}
+          onClick={onAddRoute}
+        >
+          {t('inspector.router.addRoute')}
+        </Button>
       </InspectorSection>
       <InspectorSection title={t('inspector.router.otherwise')}>
         <RowList

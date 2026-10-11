@@ -86,6 +86,9 @@ export function RouteCard({
         const fieldChoices = fieldOptions.includes(condition.variable)
           ? fieldOptions
           : [condition.variable, ...fieldOptions];
+        const operatorChoices = operators.includes(condition.operator)
+          ? operators
+          : [condition.operator, ...operators];
         return (
           <div key={position} className="flex flex-col gap-1.5">
             <Select
@@ -104,7 +107,7 @@ export function RouteCard({
                 aria-describedby={describedBy}
                 invalid={at(IssuePathSegment.Operator) !== null}
                 value={condition.operator}
-                options={operators.map((operator) => ({
+                options={operatorChoices.map((operator) => ({
                   value: operator,
                   label: t(`inspector.operator.${operator}`),
                 }))}
@@ -167,29 +170,27 @@ export function RouteCard({
           {message(routeError)}
         </Text>
       )}
-      <div className="flex items-center justify-between gap-2">
-        <div className="ml-auto flex items-center gap-1">
-          <IconButton
-            icon={IconName.ArrowUp}
-            size={IconButtonSize.Xs}
-            label={t('inspector.router.moveUp', { name })}
-            disabled={index === 0}
-            onClick={() => onMove(MOVE_UP)}
-          />
-          <IconButton
-            icon={IconName.ArrowDown}
-            size={IconButtonSize.Xs}
-            label={t('inspector.router.moveDown', { name })}
-            disabled={index === total - 1}
-            onClick={() => onMove(MOVE_DOWN)}
-          />
-          <IconButton
-            icon={IconName.X}
-            size={IconButtonSize.Xs}
-            label={t('inspector.router.remove', { name })}
-            onClick={onRemove}
-          />
-        </div>
+      <div className="flex items-center justify-end gap-1">
+        <IconButton
+          icon={IconName.ArrowUp}
+          size={IconButtonSize.Xs}
+          label={t('inspector.router.moveUp', { name })}
+          disabled={index === 0}
+          onClick={() => onMove(MOVE_UP)}
+        />
+        <IconButton
+          icon={IconName.ArrowDown}
+          size={IconButtonSize.Xs}
+          label={t('inspector.router.moveDown', { name })}
+          disabled={index === total - 1}
+          onClick={() => onMove(MOVE_DOWN)}
+        />
+        <IconButton
+          icon={IconName.X}
+          size={IconButtonSize.Xs}
+          label={t('inspector.router.remove', { name })}
+          onClick={onRemove}
+        />
       </div>
     </section>
   );

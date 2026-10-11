@@ -153,6 +153,7 @@ describe('InspectorPanel', () => {
     const conditions = [
       { variable: 'guard.priority', operator: ConditionOperator.In, value: ['low'] },
       { variable: 'guard.score', operator: ConditionOperator.Gt, value: 1 },
+      { variable: 'guard.score', operator: ConditionOperator.IsEmpty, value: '' },
     ];
     open('route', {
       ...FLOW,
@@ -183,10 +184,14 @@ describe('InspectorPanel', () => {
     act(() => store().setSaveState(SaveState.Pending));
 
     expect(node('route')).toMatchObject({
-      config: { rules: [{ conditions: [{ value: ['low', 'high'] }, { value: '' }] }] },
+      config: { rules: [{ conditions: [{ value: ['low', 'high'] }, { value: '' }, {}] }] },
     });
     expect(screen.getByText(/The value doesn’t fit .* on a number field/)).toBeVisible();
     expect(number).toHaveAttribute('aria-invalid', 'true');
+    const operator = screen.getAllByRole('combobox', { name: 'Operator' })[2];
+    expect(operator).toHaveValue(ConditionOperator.IsEmpty);
+    expect(operator).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByText(/doesn’t work on a number field/)).toBeVisible();
   });
 
   it('shows the field error for a field the router can not use', () => {
