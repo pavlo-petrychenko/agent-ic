@@ -33,6 +33,7 @@
     "label": "Test conversation",
     "you": "You",
     "operator": "Operator",
+    "turn_zero": "{{name}} · no reply",
     "turn_one": "{{name}} · {{count}} message",
     "turn_other": "{{name}} · {{count}} messages",
     "typing": "{{name}} is typing…",

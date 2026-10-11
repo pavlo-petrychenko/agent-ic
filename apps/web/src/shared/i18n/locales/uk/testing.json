@@ -33,6 +33,7 @@
     "label": "Тестова розмова",
     "you": "Ви",
     "operator": "Оператор",
+    "turn_zero": "{{name}} · без відповіді",
     "turn_one": "{{name}} · {{count}} повідомлення",
     "turn_few": "{{name}} · {{count}} повідомлення",
     "turn_many": "{{name}} · {{count}} повідомлень",
