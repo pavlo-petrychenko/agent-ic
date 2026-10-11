@@ -485,6 +485,20 @@ describe('InspectorPanel', () => {
     expect(within(preview).getByRole('button', { name: 'No' })).toBeDisabled();
   });
 
+  it('cuts a quick-reply label to the longest label the flow allows', async () => {
+    const user = userEvent.setup();
+    const longest = 'x'.repeat(MAX_LABEL_LENGTH);
+    open('reply', AI_FLOW);
+
+    await user.click(screen.getByRole('button', { name: 'Add buttons' }));
+    const label = screen.getByRole('textbox', { name: 'Button 1' });
+    await user.clear(label);
+    await user.type(label, `${longest}x`);
+    await user.tab();
+
+    expect(node('reply')).toMatchObject({ config: { quickReplies: { buttons: [longest] } } });
+  });
+
   it('writes the message text and takes buttons from a field', async () => {
     const user = userEvent.setup();
     open('reply', AI_FLOW);

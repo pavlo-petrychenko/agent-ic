@@ -1,8 +1,7 @@
-import { MessageContentKind, QuickRepliesKind } from '@agent-ic/flow';
+import { MAX_LABEL_LENGTH, MessageContentKind, QuickRepliesKind } from '@agent-ic/flow';
 import type { FlowIssue } from '@agent-ic/flow';
 import { useTranslation } from 'react-i18next';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
-import { LIST_VALUE_SEPARATOR } from '@/features/flow-builder/constants/inspector.constants';
 import {
   BUTTON_SOURCES,
   MESSAGE_CONTENT_KINDS,
@@ -132,13 +131,12 @@ export function SendMessageInspector({
         )}
         {quickReplies.kind === QuickRepliesKind.Static &&
           quickReplies.buttons.map((button, index) => (
-            <div
-              key={[index, button].join(LIST_VALUE_SEPARATOR)}
-              className="flex items-center gap-1.5"
-            >
+            <div key={index} className="flex items-center gap-1.5">
               <Input
+                key={button}
                 aria-label={t('inspector.send.button', { number: index + 1 })}
                 defaultValue={button}
+                maxLength={MAX_LABEL_LENGTH}
                 onBlur={(event) => {
                   const label = event.target.value.trim();
                   if (label === '') {
