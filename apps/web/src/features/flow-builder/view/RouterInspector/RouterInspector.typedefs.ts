@@ -11,7 +11,7 @@ export interface RouterInspectorProps {
   routes: readonly RouteView[];
   fields: readonly FieldRow[];
   otherwise: readonly PortTarget[];
-  observers: readonly string[];
+  backgroundSteps: readonly string[];
   ruleError: (ruleIndex: number, segment: IssuePathSegment) => FlowIssue | null;
   conditionError: (
     ruleIndex: number,

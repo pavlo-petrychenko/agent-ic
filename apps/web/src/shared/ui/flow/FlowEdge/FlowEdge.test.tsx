@@ -29,6 +29,13 @@ describe('FlowEdge', () => {
     expect(container.querySelector(`.${cssClass(styles.hit)}`)).toBeNull();
   });
 
+  it('draws a dashed edge with its arrowhead', () => {
+    const { container } = renderInSvg(<FlowEdge path={PATH} dashed />);
+
+    expect(container.querySelector('g')).toHaveClass(cssClass(styles.dashed));
+    expect(container.querySelector('marker')).toBeInTheDocument();
+  });
+
   it('marks active and insertion-target edges', () => {
     const { container, rerender } = renderInSvg(<FlowEdge path={PATH} active />);
     expect(container.querySelector('g')).toHaveClass(cssClass(styles.active));

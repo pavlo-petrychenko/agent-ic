@@ -236,6 +236,7 @@ function FlowCanvasSurface({
     data: {
       active: edge.active ?? false,
       inserting: edge.id === insertEdgeId,
+      dashed: edge.dashed ?? false,
       deleteLabel: labels.deleteConnection,
       onDelete: () => deleteSelection({ nodeIds: [], edgeIds: [edge.id] }),
     },

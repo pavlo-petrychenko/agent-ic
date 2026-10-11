@@ -6,11 +6,7 @@ import type {
   RouterRule,
   VariableType,
 } from '@agent-ic/flow';
-import type {
-  BranchRole,
-  FieldHint,
-  ValueInput,
-} from '@/features/flow-builder/constants/inspector.constants';
+import type { FieldHint, ValueInput } from '@/features/flow-builder/constants/inspector.constants';
 import type { NodePresentation } from '@/features/flow-builder/typedefs/nodePresentation.typedefs';
 
 export interface FieldRow {
@@ -28,7 +24,9 @@ export interface PortTarget {
 }
 
 export interface BranchRow extends PortTarget, NodePresentation {
-  role: BranchRole;
+  edgeId: string;
+  background: boolean;
+  lastWaited: boolean;
 }
 
 export interface KeyRename {

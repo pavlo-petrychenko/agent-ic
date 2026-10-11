@@ -279,27 +279,52 @@ describe('InspectorPanel', () => {
       nodes: [
         ...FLOW.nodes,
         step('split', '', { type: NodeType.Parallel, config: { waitFor: WaitFor.First } }),
-        step('tagger', 'Topic tagger', NODE_TEMPLATES[NodeType.Completion]),
-      ],
-      edges: [
-        {
-          id: 'b1',
-          source: 'split',
-          sourcePort: PortName.Branches,
-          target: 'tagger',
-          background: true,
-        },
       ],
     };
     open('split', document);
 
     const inspector = screen.getByRole('complementary', { name: 'split' });
     expect(within(inspector).getByText('Parallel / join')).toBeVisible();
-    expect(screen.getByText('in background')).toBeVisible();
-    expect(screen.getByText('Background branches don’t hold up the reply.')).toBeVisible();
     await user.click(screen.getByRole('radio', { name: 'All branches finish' }));
 
     expect(node('split')).toMatchObject({ config: { waitFor: WaitFor.All } });
+  });
+
+  it('moves a parallel branch to the background and back', async () => {
+    const user = userEvent.setup();
+    const branch = (id: string, target: string) => ({
+      id,
+      source: 'split',
+      sourcePort: PortName.Branches,
+      target,
+    });
+    const document: FlowDocument = {
+      ...FLOW,
+      nodes: [
+        ...FLOW.nodes,
+        step('split', '', { type: NodeType.Parallel, config: { waitFor: WaitFor.All } }),
+        step('tagger', 'Topic tagger', NODE_TEMPLATES[NodeType.Completion]),
+        step('drafter', 'Drafter', NODE_TEMPLATES[NodeType.Agent]),
+      ],
+      edges: [branch('b1', 'tagger'), branch('b2', 'drafter')],
+    };
+    open('split', document);
+
+    const tagger = screen.getByRole('switch', { name: 'Run Topic tagger in the background' });
+    const drafter = screen.getByRole('switch', { name: 'Run Drafter in the background' });
+    await user.click(tagger);
+
+    expect(store().document.edges).toEqual([
+      { ...branch('b1', 'tagger'), background: true },
+      branch('b2', 'drafter'),
+    ]);
+    expect(tagger).toBeChecked();
+    expect(drafter).toBeDisabled();
+
+    await user.click(tagger);
+
+    expect(store().document.edges[0]).toMatchObject({ background: false });
+    expect(drafter).toBeEnabled();
   });
 
   it('offers only the fields visible to the step in the prompt autocomplete', async () => {

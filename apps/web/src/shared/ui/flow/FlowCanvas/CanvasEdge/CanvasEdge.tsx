@@ -32,6 +32,7 @@ export function CanvasEdge({
       midpoint={{ x: midX, y: midY }}
       active={data?.active ?? false}
       inserting={data?.inserting ?? false}
+      dashed={data?.dashed ?? false}
       selected={selected}
       deleteLabel={data?.deleteLabel ?? null}
       onDelete={data?.onDelete ?? null}

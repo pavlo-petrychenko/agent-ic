@@ -1,21 +1,21 @@
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
-import {
-  BRANCH_ROLE_TONES,
-  BranchRole,
-  WAIT_FOR_OPTIONS,
-} from '@/features/flow-builder/constants/inspector.constants';
+import { WAIT_FOR_OPTIONS } from '@/features/flow-builder/constants/inspector.constants';
 import type { ParallelInspectorProps } from '@/features/flow-builder/view/ParallelInspector/ParallelInspector.typedefs';
-import { Badge } from '@/shared/ui/display/Badge';
-import { Callout } from '@/shared/ui/display/Callout';
 import { NodeTile, TileSize } from '@/shared/ui/display/NodeTile';
 import { RowList } from '@/shared/ui/display/RowList';
 import { Radio, RadioOrientation } from '@/shared/ui/inputs/Radio';
+import { Switch } from '@/shared/ui/inputs/Switch';
 import { InspectorSection } from '@/shared/ui/layout/Inspector';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
-export function ParallelInspector({ branches, waitFor, onWaitForChange }: ParallelInspectorProps) {
+export function ParallelInspector({
+  branches,
+  waitFor,
+  onWaitForChange,
+  onBackgroundChange,
+}: ParallelInspectorProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const radioName = useId();
   const options = WAIT_FOR_OPTIONS.map((value) => ({
@@ -39,13 +39,20 @@ export function ParallelInspector({ branches, waitFor, onWaitForChange }: Parall
               name: branch.label,
               leading: <NodeTile kind={branch.kind} icon={branch.icon} size={TileSize.Sm} />,
               meta: (
-                <Badge tone={BRANCH_ROLE_TONES[branch.role]}>
-                  {t(`inspector.parallel.role.${branch.role}`)}
-                </Badge>
+                <Switch
+                  label={t('inspector.parallel.inBackground')}
+                  aria-label={t('inspector.parallel.inBackgroundFor', { name: branch.label })}
+                  checked={branch.background}
+                  disabled={branch.lastWaited}
+                  onCheckedChange={(background) => onBackgroundChange(branch.edgeId, background)}
+                />
               ),
             }))}
           />
         )}
+        <Text kind={TextKind.Caption} color={TextColor.Mute}>
+          {t('inspector.parallel.backgroundNote')}
+        </Text>
       </InspectorSection>
       <InspectorSection title={t('inspector.parallel.continueWhen')}>
         <Radio
@@ -62,9 +69,6 @@ export function ParallelInspector({ branches, waitFor, onWaitForChange }: Parall
           }}
         />
       </InspectorSection>
-      {branches.some((branch) => branch.role === BranchRole.Background) && (
-        <Callout>{t('inspector.parallel.backgroundNote')}</Callout>
-      )}
     </>
   );
 }

@@ -1,29 +1,19 @@
-import {
-  FlowIssueCode,
-  FlowIssueSeverity,
-  NodeType,
-  PortName,
-  VariableType,
-  WaitFor,
-} from '@agent-ic/flow';
+import { FlowIssueCode, FlowIssueSeverity, NodeType, PortName, VariableType } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.constants';
-import {
-  BranchRole,
-  FieldHint,
-  IssuePathSegment,
-} from '@/features/flow-builder/constants/inspector.constants';
+import { FieldHint, IssuePathSegment } from '@/features/flow-builder/constants/inspector.constants';
 import { addNode } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import {
+  backgroundStepNames,
   branchRows,
   conditionPath,
   fieldErrors,
   fieldRows,
   nodeKeyFromLabel,
-  observerNames,
   proposeKeyRename,
   rulePath,
+  setBranchBackground,
   updateNode,
 } from '@/features/flow-builder/logic/helpers/inspector.helpers';
 import type { AddableNodeType } from '@/features/flow-builder/typedefs/graphEdit.typedefs';
@@ -115,31 +105,36 @@ describe('parallel branches', () => {
     ),
     edges: [{ id: 'e', source: 'p', sourcePort: PortName.Branches, target: 'o' }],
   };
-  const branches = (waitFor: WaitFor) => {
-    const [parallel] = observed.nodes;
-    return parallel?.type === NodeType.Parallel
-      ? branchRows(observed, { ...parallel, config: { waitFor } }, PortName.Branches)
-      : [];
+  const forked: FlowDocument = {
+    ...addNode(observed, NodeType.Agent, ORIGIN, 'a'),
+    edges: [
+      ...observed.edges,
+      { id: 'f', source: 'p', sourcePort: PortName.Branches, target: 'a' },
+    ],
+  };
+  const rows = (document: FlowDocument) => {
+    const [parallel] = document.nodes;
+    return parallel?.type === NodeType.Parallel ? branchRows(document, parallel) : [];
   };
 
-  it.each([
-    [WaitFor.All, BranchRole.Waited],
-    [WaitFor.First, BranchRole.Racing],
-  ])('marks a waited branch for %s', (waitFor, role) => {
-    expect(branches(waitFor)).toMatchObject([{ nodeId: 'o', label: 'Tagger', role }]);
+  it('lists each branch with its connection and whether the reply waits for it', () => {
+    expect(rows(setBranchBackground(forked, 'f', true))).toMatchObject([
+      { nodeId: 'o', label: 'Tagger', edgeId: 'e', background: false, lastWaited: true },
+      { nodeId: 'a', edgeId: 'f', background: true, lastWaited: false },
+    ]);
   });
 
-  it.each([WaitFor.All, WaitFor.First])('marks a background branch for %s', (waitFor) => {
-    const background = {
-      ...observed,
-      edges: observed.edges.map((edge) => ({ ...edge, background: true })),
-    };
-    const [parallel] = background.nodes;
-    const rows =
-      parallel?.type === NodeType.Parallel
-        ? branchRows(background, { ...parallel, config: { waitFor } }, PortName.Branches)
-        : [];
-    expect(rows).toMatchObject([{ nodeId: 'o', role: BranchRole.Background }]);
+  it('lets any branch move to the background while two are waited for', () => {
+    expect(rows(forked).map((row) => row.lastWaited)).toEqual([false, false]);
+  });
+
+  it('switches only the chosen branch between waited and background', () => {
+    const background = setBranchBackground(forked, 'e', true);
+
+    expect(background.edges).toEqual([{ ...forked.edges[0], background: true }, forked.edges[1]]);
+    expect(setBranchBackground(background, 'e', false).edges[0]).toMatchObject({
+      background: false,
+    });
   });
 
   it('names the steps of a background branch that runs in parallel with the router', () => {
@@ -167,7 +162,7 @@ describe('parallel branches', () => {
       ORIGIN,
       'r',
     );
-    expect(observerNames(linked, 'r')).toEqual(['Scorer']);
+    expect(backgroundStepNames(linked, 'r')).toEqual(['Scorer']);
   });
 
   it('names only the background steps that run in parallel with the router', () => {
@@ -189,7 +184,7 @@ describe('parallel branches', () => {
       ],
     };
 
-    expect(observerNames(linked, 'r')).toEqual(['Tagger']);
-    expect(observerNames(linked, 'before')).toEqual([]);
+    expect(backgroundStepNames(linked, 'r')).toEqual(['Tagger']);
+    expect(backgroundStepNames(linked, 'before')).toEqual([]);
   });
 });

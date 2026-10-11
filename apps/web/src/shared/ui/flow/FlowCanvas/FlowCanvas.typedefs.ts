@@ -45,6 +45,7 @@ export interface FlowCanvasEdge {
   sourcePort: string;
   target: string;
   active?: boolean;
+  dashed?: boolean;
 }
 
 export interface FlowCanvasConnection {
@@ -152,6 +153,7 @@ export interface CanvasNodeData extends Record<string, unknown> {
 export interface CanvasEdgeData extends Record<string, unknown> {
   active: boolean;
   inserting: boolean;
+  dashed: boolean;
   deleteLabel: string;
   onDelete: () => void;
 }

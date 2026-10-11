@@ -41,9 +41,13 @@ export interface CanvasNodeModel {
   blocking: FlowIssue | null;
 }
 
+export interface CanvasEdgeModel extends FlowEdge {
+  dashed: boolean;
+}
+
 export interface CanvasModel {
   nodes: readonly CanvasNodeModel[];
-  edges: readonly FlowEdge[];
+  edges: readonly CanvasEdgeModel[];
 }
 
 export interface FlowDraft {

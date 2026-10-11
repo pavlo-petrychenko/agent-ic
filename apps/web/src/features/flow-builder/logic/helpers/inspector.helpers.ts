@@ -1,14 +1,7 @@
-import {
-  NODE_KEY_MAX_LENGTH,
-  NODE_KEY_PATTERN,
-  PortName,
-  RESERVED_ROOTS,
-  WaitFor,
-} from '@agent-ic/flow';
+import { NODE_KEY_MAX_LENGTH, NODE_KEY_PATTERN, PortName, RESERVED_ROOTS } from '@agent-ic/flow';
 import type { FlowDocument, FlowEdge, FlowIssue, FlowNode, ParallelNode } from '@agent-ic/flow';
 import { NODE_KEY_SEPARATOR } from '@/features/flow-builder/constants/graphEdit.constants';
 import {
-  BranchRole,
   FIELD_HINTS,
   IssuePathSegment,
   KEY_EDGE_SEPARATORS,
@@ -102,42 +95,48 @@ export const portTargets = (document: FlowDocument, nodeId: string, port: string
 const isBackground = (edge: FlowEdge): boolean =>
   edge.sourcePort === PortName.Branches && edge.background === true;
 
-export const observerNames = (document: FlowDocument, nodeId: string): string[] => {
+export const backgroundStepNames = (document: FlowDocument, nodeId: string): string[] => {
   const branches = document.edges.filter(
-    (edge) => edge.sourcePort === PortName.Branches && reaches(document, edge.source, nodeId),
+    (edge) => isBackground(edge) && reaches(document, edge.source, nodeId),
   );
   return document.nodes
     .filter(
       (node) =>
         !reaches(document, node.id, nodeId) &&
         !reaches(document, nodeId, node.id) &&
-        branches.some((edge) => isBackground(edge) && reaches(document, edge.target, node.id)),
+        branches.some((edge) => reaches(document, edge.target, node.id)),
     )
     .map(nodeName);
 };
 
-const branchRole = (waitFor: WaitFor, background: boolean): BranchRole => {
-  if (background) {
-    return BranchRole.Background;
-  }
-  return waitFor === WaitFor.First ? BranchRole.Racing : BranchRole.Waited;
-};
-
-export const branchRows = (document: FlowDocument, node: ParallelNode, port: string): BranchRow[] =>
-  portTargets(document, node.id, port).flatMap((target) => {
-    const step = document.nodes.find((candidate) => candidate.id === target.nodeId);
+export const branchRows = (document: FlowDocument, node: ParallelNode): BranchRow[] => {
+  const starts = document.edges.filter(
+    (edge) => edge.source === node.id && edge.sourcePort === PortName.Branches,
+  );
+  const waited = starts.filter((edge) => !isBackground(edge)).length;
+  return starts.flatMap((edge) => {
+    const step = document.nodes.find((candidate) => candidate.id === edge.target);
+    const background = isBackground(edge);
     return step === undefined
       ? []
       : [
           {
-            ...target,
+            nodeId: step.id,
+            label: nodeName(step),
             ...NODE_PRESENTATION[step.type],
-            role: branchRole(
-              node.config.waitFor,
-              document.edges.some(
-                (edge) => edge.source === node.id && edge.target === step.id && isBackground(edge),
-              ),
-            ),
+            edgeId: edge.id,
+            background,
+            lastWaited: !background && waited === 1,
           },
         ];
   });
+};
+
+export const setBranchBackground = (
+  document: FlowDocument,
+  edgeId: string,
+  background: boolean,
+): FlowDocument => ({
+  ...document,
+  edges: document.edges.map((edge) => (edge.id === edgeId ? { ...edge, background } : edge)),
+});
