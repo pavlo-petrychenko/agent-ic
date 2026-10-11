@@ -46,7 +46,14 @@
     "send": "Send"
   },
   "trace": {
+    "label": "Flow trace",
     "steps": "Steps of the flow",
+    "idle": "Live flow",
+    "title": "Live flow · turn {{number}}",
+    "legend": "Step states",
+    "openInBuilder": "Open in flow builder",
+    "noFlow": "This version's flow can't be shown",
+    "loadError": "Couldn't load this turn",
     "state": {
       "done": "ran",
       "running": "running",
@@ -54,6 +61,9 @@
       "skipped": "not reached",
       "failed": "failed"
     }
+  },
+  "details": {
+    "label": "Turn details"
   },
   "reset": "Reset conversation",
   "loading": "Loading the simulator…",

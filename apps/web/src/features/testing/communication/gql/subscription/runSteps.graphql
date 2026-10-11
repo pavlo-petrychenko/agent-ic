@@ -1,0 +1,6 @@
+subscription RunSteps($runId: ID!) {
+  runSteps(runId: $runId) {
+    runId
+    stepId
+  }
+}
