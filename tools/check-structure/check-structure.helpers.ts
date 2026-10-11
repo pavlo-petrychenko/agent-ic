@@ -8,6 +8,7 @@ import {
   STRUCTURE_AREAS,
 } from './check-structure.constants.ts';
 import type { Segments, StructureAreas, Verdict, Violation } from './check-structure.typedefs.ts';
+import { checkLandingSource } from './landing-structure.helpers.ts';
 import { checkWebSource, checkWebTest } from './web-structure.helpers.ts';
 
 type AreaChecker = (segments: Segments) => Verdict;
@@ -43,6 +44,7 @@ export const checkStructure = (
   ...checkArea(root, areas.backendTest, checkBackendTest),
   ...checkArea(root, areas.webSource, checkWebSource),
   ...checkArea(root, areas.webTest, checkWebTest),
+  ...checkArea(root, areas.landingSource, checkLandingSource),
 ];
 
 export const formatViolation = (violation: Violation): string =>

@@ -5,6 +5,7 @@ export const STRUCTURE_AREAS: StructureAreas = {
   backendTest: 'apps/backend/test',
   webSource: 'apps/web/src',
   webTest: 'apps/web/test',
+  landingSource: 'apps/landing/src',
 };
 
 export const PATH_SEPARATOR = '/';
@@ -245,6 +246,19 @@ export const COMPONENT_STORY_SUFFIX = '.stories.tsx';
 export const COMPONENT_HOOK_SUFFIXES: readonly string[] = ['.ts'];
 export const COMPONENT_CONTEXT_SUFFIXES: readonly string[] = ['.context.ts', '.context.tsx'];
 
+export const LandingRoot = {
+  Locales: 'locales',
+  Styles: 'styles',
+} as const;
+
+export const LANDING_SOURCE_ROOT_FILES: readonly string[] = ['main.ts', 'vite-env.d.ts'];
+export const LANDING_LOCALE_FILE = /^[a-z]{2}\.json$/;
+export const LANDING_KIND_SUFFIXES: Readonly<Record<string, readonly string[]>> = {
+  helpers: ['.helpers.ts'],
+  constants: ['.constants.ts'],
+  typedefs: ['.typedefs.ts'],
+};
+
 export const MESSAGES = {
   unknownFolder: (name: string, allowed: readonly string[]): string =>
     `unknown folder "${name}"; allowed: ${allowed.join(', ')}`,
@@ -278,5 +292,9 @@ export const MESSAGES = {
   routeFile: (name: string): string => `routes hold .ts and .tsx route files only, found "${name}"`,
   stylesFile: (name: string): string =>
     `styles holds .css and .scss files and the index.ts entry only, found "${name}"`,
+  landingLocaleFile: (name: string): string =>
+    `locales holds one <language>.json file per language, found "${name}"`,
+  landingStylesFile: (name: string): string =>
+    `styles holds .css and .scss files only, found "${name}"`,
   tooShort: (): string => 'a file must sit inside an area folder',
 } as const;

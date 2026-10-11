@@ -3,6 +3,7 @@ const modules = `${backend}modules/`;
 const platform = `${backend}platform/`;
 const web = '^apps/web/src/';
 const features = `${web}features/`;
+const landing = '^apps/landing/src/';
 
 const inbound = '\\.(resolver|controller|processor|listener)\\.ts$';
 const useCase = '\\.use-case\\.ts$';
@@ -143,6 +144,11 @@ module.exports = {
       'apps-never-import-each-other',
       { path: '^apps/([^/]+)/' },
       { path: '^apps/[^/]+/', pathNot: '^apps/$1/' },
+    ),
+    forbidden(
+      'landing-imports-only-own-source-and-design-tokens',
+      { path: landing, pathNot: testFile },
+      { pathNot: [landing, '^packages/design-tokens/'] },
     ),
     forbidden('packages-never-import-apps', { path: '^packages/' }, { path: '^apps/' }),
     forbidden(
