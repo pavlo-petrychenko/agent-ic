@@ -34,6 +34,20 @@ describe('RowList', () => {
     expect(screen.getByText('order_id')).not.toHaveClass(cssClass(styles.mono));
   });
 
+  it('puts a leading element before the name', () => {
+    render(
+      <RowList
+        mono={false}
+        rows={[{ id: 'a', name: 'Invite your team', leading: <i>icon</i>, meta: 'later' }]}
+      />,
+    );
+
+    const lead = screen.getByText('icon').parentElement;
+    expect(lead).toHaveClass(cssClass(styles.lead));
+    expect(lead).toHaveTextContent('iconInvite your team');
+    expect(screen.getByText('later')).not.toHaveClass(cssClass(styles.lead));
+  });
+
   it('renders rich meta such as a badge', () => {
     render(<RowList rows={[{ id: 'a', name: 'a', meta: <b>required</b> }]} />);
 

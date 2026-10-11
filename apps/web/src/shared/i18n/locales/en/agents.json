@@ -106,6 +106,7 @@
     "subtitle": "This can’t be undone",
     "versions_one": "Flow and {{count}} version",
     "versions_other": "Flow and {{count}} versions",
+    "flowNeverPublished": "Flow, never published",
     "versionsValue": "deleted",
     "conversations": "Past conversations",
     "conversationsValue": "kept",

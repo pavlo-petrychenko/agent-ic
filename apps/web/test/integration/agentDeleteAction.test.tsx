@@ -47,7 +47,11 @@ describe('delete an agent from the row menu', () => {
       }),
     );
     const dialog = await screen.findByRole('dialog', { name: 'Delete Salon assistant?' });
-    expect(within(dialog).getByText('Flow and 4 versions')).toBeInTheDocument();
+    const impact = within(within(dialog).getByRole('list')).getAllByRole('listitem');
+    expect(impact.map((row) => row.textContent)).toEqual([
+      'Flow and 4 versionsdeleted',
+      'Past conversationskept',
+    ]);
     const submit = within(dialog).getByRole('button', { name: 'Delete agent' });
     expect(submit).toBeDisabled();
 
@@ -104,7 +108,7 @@ describe('delete an agent from the row menu', () => {
       }),
     );
     const dialog = await screen.findByRole('dialog', { name: 'Delete Review collector?' });
-    expect(within(dialog).getByText('Flow and 1 version')).toBeInTheDocument();
+    expect(within(dialog).getByText('Flow, never published')).toBeInTheDocument();
     await user.type(within(dialog).getByLabelText('Agent name'), 'Review collector');
     await user.click(within(dialog).getByRole('button', { name: 'Delete agent' }));
 

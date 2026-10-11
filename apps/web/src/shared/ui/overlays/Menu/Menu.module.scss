@@ -15,6 +15,10 @@
   color: var(--color-ink);
 }
 
+.fit {
+  width: max-content;
+}
+
 .option {
   display: flex;
   align-items: center;

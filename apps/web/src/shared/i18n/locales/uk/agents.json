@@ -110,6 +110,7 @@
     "versions_few": "Сценарій і {{count}} версії",
     "versions_many": "Сценарій і {{count}} версій",
     "versions_other": "Сценарій і {{count}} версії",
+    "flowNeverPublished": "Сценарій, ще не опублікований",
     "versionsValue": "буде видалено",
     "conversations": "Попередні розмови",
     "conversationsValue": "залишаться",

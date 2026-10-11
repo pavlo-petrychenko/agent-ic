@@ -117,6 +117,28 @@ describe('pause an agent from the row menu', () => {
     expect(await screen.findByText('Salon assistant is paused')).toBeInTheDocument();
   });
 
+  it('clears the away message error as soon as the text is valid', async () => {
+    const user = userEvent.setup();
+    renderRoute(agentsPath, {
+      mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE]), buildAgentsMock(ALL_AGENTS)],
+    });
+
+    const dialog = await openPauseDialog(user);
+    await user.click(within(dialog).getByRole('radio', { name: /Get an away message/ }));
+    await user.click(within(dialog).getByRole('button', { name: 'Pause agent' }));
+
+    const field = within(dialog).getByLabelText('Away message');
+    expect(field).toHaveAttribute('aria-invalid', 'true');
+
+    await user.type(field, AWAY_TEXT);
+
+    expect(field).toHaveAttribute('aria-invalid', 'false');
+    expect(field.className).not.toMatch(/invalid/);
+    expect(
+      within(dialog).queryByText('Write the away message the customer will receive.'),
+    ).not.toBeInTheDocument();
+  });
+
   it('keeps the dialog open and explains a failed pause', async () => {
     const user = userEvent.setup();
     renderRoute(agentsPath, {

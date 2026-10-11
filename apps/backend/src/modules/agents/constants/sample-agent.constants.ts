@@ -18,10 +18,10 @@ export const SAMPLE_NODE_LABELS: Readonly<Record<SampleNodeKey, string>> = {
 };
 
 export const SAMPLE_NODE_POSITIONS: Readonly<Record<SampleNodeKey, { x: number; y: number }>> = {
-  [SampleNodeKey.Trigger]: { x: 0, y: 120 },
-  [SampleNodeKey.Route]: { x: 280, y: 120 },
-  [SampleNodeKey.Greeting]: { x: 560, y: 0 },
-  [SampleNodeKey.HandOff]: { x: 560, y: 240 },
+  [SampleNodeKey.Trigger]: { x: 140, y: 0 },
+  [SampleNodeKey.Route]: { x: 140, y: 140 },
+  [SampleNodeKey.HandOff]: { x: 0, y: 300 },
+  [SampleNodeKey.Greeting]: { x: 280, y: 300 },
 };
 
 export const SAMPLE_RULE_LABEL = 'Asks for a person';

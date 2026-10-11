@@ -33,6 +33,7 @@ export interface MenuProps {
   onSelect: (id: string) => void;
   variant?: MenuVariant;
   width?: number | null;
+  minWidth?: number | null;
   ariaLabel: string;
   className?: string;
 }

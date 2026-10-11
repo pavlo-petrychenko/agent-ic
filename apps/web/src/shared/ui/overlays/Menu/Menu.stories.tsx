@@ -117,6 +117,15 @@ export const Actions: Story = {
     ariaLabel: 'Agent actions',
   },
 };
+export const ActionsFitContent: Story = {
+  args: {
+    items: ACTION_ITEMS,
+    selectedId: null,
+    variant: MenuVariant.Action,
+    minWidth: 160,
+    ariaLabel: 'Agent actions',
+  },
+};
 export const ActionsWithSelection: Story = {
   args: {
     items: SORT_ITEMS,

@@ -109,7 +109,9 @@ describe('agents list', () => {
     expect(screen.getByRole('button', { name: 'Blank flow' })).toBeInTheDocument();
     expect(screen.getByText('Get set up')).toBeInTheDocument();
     expect(screen.getByText('3 steps')).toBeInTheDocument();
-    expect(screen.getByText('Create the workspace')).toBeInTheDocument();
+    const steps = screen.getByText('Create the workspace').closest('ul');
+    expect(steps).not.toBeNull();
+    expect(within(steps as HTMLElement).getAllByRole('listitem')).toHaveLength(3);
     expect(screen.getByRole('link', { name: 'Copy invite link' })).toHaveAttribute(
       'href',
       `/w/${DEMO_WORKSPACE.id}/settings/team`,
