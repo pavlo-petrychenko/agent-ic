@@ -1,0 +1,23 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: var(--size-inspector-width);
+  min-height: 0;
+  border-right: var(--border-width) solid var(--color-line);
+  background: var(--color-panel);
+}
+
+.setup {
+  padding: var(--space-16);
+  border-bottom: var(--border-width) solid var(--color-line);
+}
+
+.state {
+  flex: 1;
+  padding: var(--space-16);
+}
+
+.composer {
+  padding: var(--space-12) var(--space-16);
+  border-top: var(--border-width) solid var(--color-line);
+}

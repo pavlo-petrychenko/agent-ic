@@ -1,5 +1,5 @@
 import { Locale } from '@agent-ic/contracts';
-import { ChannelKind, RunStatus } from '@/shared/api/generated/schema.generated';
+import { ChannelKind, MessageAuthor, RunStatus } from '@/shared/api/generated/schema.generated';
 
 export const SETUP_KEY_SEPARATOR = '|';
 
@@ -7,6 +7,20 @@ export enum ChatItemKind {
   Message = 'message',
   Turn = 'turn',
 }
+
+export enum ChatSpeaker {
+  User = 'user',
+  Agent = 'agent',
+  Operator = 'operator',
+  System = 'system',
+}
+
+export const MESSAGE_SPEAKERS: Readonly<Record<MessageAuthor, ChatSpeaker>> = {
+  [MessageAuthor.Customer]: ChatSpeaker.User,
+  [MessageAuthor.Agent]: ChatSpeaker.Agent,
+  [MessageAuthor.Operator]: ChatSpeaker.Operator,
+  [MessageAuthor.System]: ChatSpeaker.System,
+};
 
 export const ACTIVE_RUN_STATUSES: ReadonlySet<RunStatus> = new Set([
   RunStatus.Queued,
