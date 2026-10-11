@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { AGENTS_NAMESPACE } from '@/features/agents/constants/agentsI18n.constants';
-import { SetupStep } from '@/features/agents/view/SetupChecklist/SetupChecklist.constants';
+import {
+  SetupInviteAction,
+  SetupStep,
+} from '@/features/agents/view/SetupChecklist/SetupChecklist.constants';
 import type { SetupChecklistProps } from '@/features/agents/view/SetupChecklist/SetupChecklist.typedefs';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
@@ -10,7 +13,13 @@ import { NodeKind, NodeTile, TileSize } from '@/shared/ui/display/NodeTile';
 import { RowList, type RowListRow } from '@/shared/ui/display/RowList';
 import { IconName } from '@/shared/ui/foundations/Icon';
 
-export function SetupChecklist({ creating, inviteHref, onStart, onInvite }: SetupChecklistProps) {
+export function SetupChecklist({
+  creating,
+  invite,
+  onStart,
+  onCopyInvite,
+  onOpenTeam,
+}: SetupChecklistProps) {
   const { t } = useTranslation(AGENTS_NAMESPACE);
   const steps: RowListRow[] = [
     {
@@ -30,24 +39,34 @@ export function SetupChecklist({ creating, inviteHref, onStart, onInvite }: Setu
       ),
     },
   ];
-  if (inviteHref !== null) {
+  if (invite !== null) {
     steps.push({
       id: SetupStep.Invite,
       name: t('setup.invite'),
       leading: <NodeTile kind={NodeKind.Neutral} size={TileSize.Sm} icon={IconName.User} />,
-      meta: (
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Sm}
-          href={inviteHref}
-          onClick={(event) => {
-            event.preventDefault();
-            onInvite();
-          }}
-        >
-          {t('setup.copyInvite')}
-        </Button>
-      ),
+      meta:
+        invite.action === SetupInviteAction.Copy ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            loading={invite.loading}
+            onClick={onCopyInvite}
+          >
+            {t('setup.copyInvite')}
+          </Button>
+        ) : (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            href={invite.teamHref}
+            onClick={(event) => {
+              event.preventDefault();
+              onOpenTeam();
+            }}
+          >
+            {t('setup.inviteTeammates')}
+          </Button>
+        ),
     });
   }
 

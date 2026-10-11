@@ -61,7 +61,9 @@
     "agent": "Build your first assistant",
     "start": "Start",
     "invite": "Invite your team",
-    "copyInvite": "Copy invite link"
+    "copyInvite": "Copy invite link",
+    "inviteTeammates": "Invite teammates",
+    "inviteCopied": "Invite link copied"
   },
   "menu": {
     "label": "Agent actions",

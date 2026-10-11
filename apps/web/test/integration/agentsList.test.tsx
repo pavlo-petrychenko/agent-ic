@@ -1,7 +1,7 @@
 import { Locale, WorkspaceRole } from '@agent-ic/contracts';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   buildAgentsFailureMock,
   buildAgentsMock,
@@ -11,6 +11,11 @@ import {
   REVIEW_COLLECTOR,
   SALON_ASSISTANT,
 } from '@/features/agents/communication/fixtures/agents.fixture';
+import {
+  buildInviteLinkMock,
+  buildNoInviteLinkMock,
+  INVITE_URL,
+} from '@/features/settings/communication/fixtures/team.fixture';
 import {
   buildWorkspaceShellMock,
   DEMO_WORKSPACE,
@@ -101,8 +106,14 @@ describe('agents list', () => {
   });
 
   it('shows the empty state with the setup checklist to an owner', async () => {
+    const writeText = vi.fn<(text: string) => Promise<void>>(() => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
     renderRoute(agentsPath, {
-      mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE]), buildAgentsMock([])],
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildAgentsMock([]),
+        buildInviteLinkMock(),
+      ],
     });
 
     expect(await screen.findByText('No assistants yet')).toBeInTheDocument();
@@ -112,7 +123,24 @@ describe('agents list', () => {
     const steps = screen.getByText('Create the workspace').closest('ul');
     expect(steps).not.toBeNull();
     expect(within(steps as HTMLElement).getAllByRole('listitem')).toHaveLength(3);
-    expect(screen.getByRole('link', { name: 'Copy invite link' })).toHaveAttribute(
+    const copy = await screen.findByRole('button', { name: 'Copy invite link' });
+    await waitFor(() => expect(copy).toBeEnabled());
+    await userEvent.click(copy);
+
+    expect(writeText).toHaveBeenCalledWith(INVITE_URL);
+    expect(await screen.findByText('Invite link copied')).toBeInTheDocument();
+  });
+
+  it('sends an owner without an invite link to the team settings', async () => {
+    renderRoute(agentsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildAgentsMock([]),
+        buildNoInviteLinkMock(),
+      ],
+    });
+
+    expect(await screen.findByRole('link', { name: 'Invite teammates' })).toHaveAttribute(
       'href',
       `/w/${DEMO_WORKSPACE.id}/settings/team`,
     );

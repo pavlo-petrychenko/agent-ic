@@ -1,6 +1,15 @@
+import type { SetupInviteAction } from '@/features/agents/view/SetupChecklist/SetupChecklist.constants';
+
+export interface SetupInvite {
+  action: SetupInviteAction;
+  teamHref: string;
+  loading: boolean;
+}
+
 export interface SetupChecklistProps {
   creating: boolean;
-  inviteHref: string | null;
+  invite: SetupInvite | null;
   onStart: () => void;
-  onInvite: () => void;
+  onCopyInvite: () => void;
+  onOpenTeam: () => void;
 }
