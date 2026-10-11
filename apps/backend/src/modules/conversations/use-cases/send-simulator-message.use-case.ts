@@ -1,7 +1,6 @@
 import { PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
-import { ConversationState } from '@/modules/conversations/constants/conversation.constants';
 import { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 import { parseConversationInput } from '@/modules/conversations/helpers/conversation-input.helpers';
 import { simulatorMessageSchema } from '@/modules/conversations/schemas/simulation.schema';
@@ -32,8 +31,13 @@ export class SendSimulatorMessageUseCase {
     );
     const { conversationId, text } = parseConversationInput(simulatorMessageSchema, input);
     return this.tenants.run(workspaceId, async () => {
-      const conversation = await this.simulations.requireOwn(workspaceId, userId, conversationId);
-      if (conversation.state === ConversationState.Closed) {
+      const own = await this.simulations.requireOwn(workspaceId, userId, conversationId);
+      const conversation = await this.simulations.findOpen({
+        workspaceId,
+        agentId: own.agentId,
+        endUserExternalId: userId,
+      });
+      if (conversation?.id !== own.id) {
         throw new ConversationClosedError(conversationId);
       }
       const versionId =

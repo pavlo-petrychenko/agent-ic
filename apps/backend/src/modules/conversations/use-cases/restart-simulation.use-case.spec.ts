@@ -42,7 +42,7 @@ describe('RestartSimulationUseCase', () => {
     });
   });
 
-  it('refuses an agent without an open simulation, and an operator', async () => {
+  it('refuses an agent without an open simulation, another workspace and an operator', async () => {
     const { ctx, publicAgentId } = await startTestSimulation(testbed);
     const restart = testbed.module.get(RestartSimulationUseCase);
     const other = testbed.ids.toPublic(IdPrefix.Agent, testbed.ids.generate());
@@ -50,6 +50,9 @@ describe('RestartSimulationUseCase', () => {
     await expect(restart.execute(ctx, { agentId: other })).rejects.toBeInstanceOf(
       ConversationNotFoundError,
     );
+    await expect(
+      restart.execute({ ...ctx, workspaceId: testbed.ids.generate() }, { agentId: publicAgentId }),
+    ).rejects.toBeInstanceOf(ConversationNotFoundError);
     await expect(
       restart.execute(
         { ...ctx, workspaceRole: WorkspaceRole.Operator },

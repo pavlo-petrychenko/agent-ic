@@ -69,7 +69,7 @@ describe('SendSimulatorMessageUseCase', () => {
     expect(await pinnedVersions(started)).toEqual([started.versionId]);
   });
 
-  it("refuses a closed simulation, another user's simulation and an operator", async () => {
+  it("refuses a closed simulation, another user's or workspace's simulation and an operator", async () => {
     const started = await startTestSimulation(testbed);
     const stranger = workspaceCtx(
       testbed.ids.generate(),
@@ -79,6 +79,9 @@ describe('SendSimulatorMessageUseCase', () => {
     const operator = { ...started.ctx, workspaceRole: WorkspaceRole.Operator };
 
     await expect(send(started, stranger)).rejects.toBeInstanceOf(ConversationNotFoundError);
+    await expect(
+      send(started, { ...started.ctx, workspaceId: testbed.ids.generate() }),
+    ).rejects.toBeInstanceOf(ConversationNotFoundError);
     await expect(send(started, operator)).rejects.toBeInstanceOf(PermissionDeniedError);
     await testbed.module
       .get(RestartSimulationUseCase)
