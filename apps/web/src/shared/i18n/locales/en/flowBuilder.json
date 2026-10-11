@@ -155,6 +155,40 @@
     "hide": "Hide issues"
   },
   "publish": {
+    "title": "Publish v{{version}} of {{name}}",
+    "titleNoVersion": "Publish {{name}}",
+    "close": "Close",
+    "cancel": "Cancel",
+    "submit": "Publish v{{version}}",
+    "submitNoVersion": "Publish",
+    "loading": "Checking the draft",
+    "loadError": "The changes couldn’t be loaded.",
+    "changesSince": "What changed since v{{version}}",
+    "changesFirst": "What goes live in the first version",
+    "noChanges": "Nothing changed in the flow.",
+    "checks": "Checks",
+    "valid": "Every step is connected",
+    "tested": "Tested in the simulator",
+    "notTested": "Not tested in the simulator yet",
+    "fix": "Fix",
+    "note": "Release note",
+    "notePlaceholder": "What’s new in this version",
+    "goesLive": "Customers switch to v{{version}} right away. Conversations that are mid-run finish on v{{live}}.",
+    "goesLiveFirst": "Customers switch to v{{version}} right away.",
+    "success": "v{{version}} is live",
+    "blocked": {
+      "conflict": "The draft changed elsewhere. Reload it before publishing.",
+      "saveFailed": "Your latest changes weren’t saved. Retry saving, then publish.",
+      "unsaved": "Saving your latest changes…",
+      "errors_one": "Fix {{count}} error to publish",
+      "errors_other": "Fix {{count}} errors to publish",
+      "noChanges": "Nothing changed since v{{version}}"
+    },
+    "sign": {
+      "added": "Added",
+      "changed": "Changed",
+      "removed": "Removed"
+    },
     "change": {
       "stepAdded": "New step: {{step}}",
       "stepRemoved": "Removed step: {{step}}",
@@ -208,6 +242,7 @@
     }
   },
   "issue": {
+    "unknown": "Something in the flow needs fixing",
     "UNSUPPORTED_VERSION": "This flow was saved by a newer version (v{{version}})",
     "INVALID_DOCUMENT": "The flow can’t be read: {{message}}",
     "DUPLICATE_NODE_ID": "Two steps share one id",
