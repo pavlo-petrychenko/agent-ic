@@ -15,6 +15,7 @@ import { InviteLinkResolver } from '@/modules/identity/resolvers/invite-link.res
 import { MeResolver } from '@/modules/identity/resolvers/me.resolver';
 import { MembersResolver } from '@/modules/identity/resolvers/members.resolver';
 import { MyWorkspacesResolver } from '@/modules/identity/resolvers/my-workspaces.resolver';
+import { RememberWorkspaceResolver } from '@/modules/identity/resolvers/remember-workspace.resolver';
 import { RenameWorkspaceResolver } from '@/modules/identity/resolvers/rename-workspace.resolver';
 import { ResendConfirmationResolver } from '@/modules/identity/resolvers/resend-confirmation.resolver';
 import { ResetInviteLinkResolver } from '@/modules/identity/resolvers/reset-invite-link.resolver';
@@ -23,6 +24,7 @@ import { UpdateMyLocaleResolver } from '@/modules/identity/resolvers/update-my-l
 import { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
 import { InviteLinksService } from '@/modules/identity/services/invite-links.service';
 import { InviteTokensService } from '@/modules/identity/services/invite-tokens.service';
+import { MeService } from '@/modules/identity/services/me.service';
 import { MembershipWorkspaceAccessService } from '@/modules/identity/services/membership-workspace-access.service';
 import { PasswordResetsService } from '@/modules/identity/services/password-resets.service';
 import { SampleWorkspaceService } from '@/modules/identity/services/sample-workspace.service';
@@ -42,6 +44,7 @@ import { ListMyWorkspacesUseCase } from '@/modules/identity/use-cases/list-my-wo
 import { LoginUseCase } from '@/modules/identity/use-cases/login.use-case';
 import { LogoutUseCase } from '@/modules/identity/use-cases/logout.use-case';
 import { RefreshSessionUseCase } from '@/modules/identity/use-cases/refresh-session.use-case';
+import { RememberWorkspaceUseCase } from '@/modules/identity/use-cases/remember-workspace.use-case';
 import { RenameWorkspaceUseCase } from '@/modules/identity/use-cases/rename-workspace.use-case';
 import { ResendConfirmationUseCase } from '@/modules/identity/use-cases/resend-confirmation.use-case';
 import { ResetInviteLinkUseCase } from '@/modules/identity/use-cases/reset-invite-link.use-case';
@@ -68,6 +71,7 @@ export class IdentityModule extends defineModule({
     InviteTokensService,
     InviteLinksService,
     WorkspaceMembershipsService,
+    MeService,
     SampleWorkspaceService,
     MembershipWorkspaceAccessService,
     { provide: WorkspaceAccessService, useExisting: MembershipWorkspaceAccessService },
@@ -91,6 +95,7 @@ export class IdentityModule extends defineModule({
     CountMembersByRoleUseCase,
     CleanUpAuthRecordsUseCase,
     RenameWorkspaceUseCase,
+    RememberWorkspaceUseCase,
     UpdateMyLocaleUseCase,
   ],
   resolvers: [
@@ -106,6 +111,7 @@ export class IdentityModule extends defineModule({
     AcceptInviteResolver,
     MembersResolver,
     RenameWorkspaceResolver,
+    RememberWorkspaceResolver,
     UpdateMyLocaleResolver,
   ],
   controllers: [AuthController],

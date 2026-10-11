@@ -30,6 +30,10 @@ export interface DirectoryMembership {
   readonly memberCount: number;
 }
 
+export interface RememberWorkspaceInput {
+  readonly workspaceId: string;
+}
+
 export interface RenameWorkspaceInput {
   readonly name: string;
 }

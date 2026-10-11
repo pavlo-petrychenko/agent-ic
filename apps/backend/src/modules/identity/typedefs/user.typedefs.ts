@@ -17,4 +17,5 @@ export interface Me {
   readonly name: string;
   readonly locale: Locale;
   readonly memberships: readonly WorkspaceMembership[];
+  readonly lastWorkspaceId: string | null;
 }
