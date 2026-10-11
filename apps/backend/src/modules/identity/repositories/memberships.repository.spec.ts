@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { TEST_USER_NAME } from '@test/support/constants/identity-testing.constants';
 import { createIdentityTestbed } from '@test/support/helpers/identity-testing.helpers';
 import {
   addMember,
@@ -41,15 +42,26 @@ describe('MembershipsRepository across tenants', () => {
       page: await repository.listPage(workspaceA.workspaceId, null, PAGE_LIMIT),
       count: await repository.countByWorkspace(workspaceA.workspaceId),
       member: await repository.findByUser(workspaceA.workspaceId, memberOfA),
+      names: await repository.listNames(workspaceA.workspaceId, { userIds: [memberOfA] }),
     }));
     const ownFromA = await tenants.run(workspaceA.workspaceId, () =>
       repository.listPage(workspaceA.workspaceId, null, PAGE_LIMIT),
     );
 
-    expect(seenFromB).toEqual({ page: [], count: 0, member: null });
+    expect(seenFromB).toEqual({ page: [], count: 0, member: null, names: [] });
     expect(ownFromA.map((row) => row.userId).sort()).toEqual(
       [workspaceA.ownerId, memberOfA].sort(),
     );
+  });
+
+  it('names the members of a role or a list of users', async () => {
+    const names = await tenants.run(workspaceA.workspaceId, async () => [
+      await repository.listNames(workspaceA.workspaceId, { role: WorkspaceRole.Owner }),
+      await repository.listNames(workspaceA.workspaceId, { userIds: [memberOfA] }),
+      await repository.listNames(workspaceA.workspaceId, { role: WorkspaceRole.Admin }),
+    ]);
+
+    expect(names).toEqual([[TEST_USER_NAME], [TEST_USER_NAME], []]);
   });
 
   it('shows nothing without a tenant', async () => {

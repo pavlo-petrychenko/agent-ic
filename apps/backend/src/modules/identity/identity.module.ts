@@ -112,6 +112,7 @@ export class IdentityModule extends defineModule({
   processors: [CleanUpAuthRecordsProcessor],
   exports: [
     UsersRepository,
+    MembershipsRepository,
     SessionsService,
     EmailConfirmationsService,
     PasswordResetsService,

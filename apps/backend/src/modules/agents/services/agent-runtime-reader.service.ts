@@ -60,14 +60,17 @@ export class AgentRuntimeReader {
     if (draft === null) {
       throw new AgentVersionNotFoundError();
     }
-    const snapshot = copyDraftToVersion(draft, {
-      id: this.ids.generate(),
-      kind: AgentVersionKind.Snapshot,
-      number: null,
-      authorId: null,
-      publishedAt: null,
-      at: this.clock.now(),
-    });
+    const snapshot = {
+      ...copyDraftToVersion(draft, {
+        id: this.ids.generate(),
+        kind: AgentVersionKind.Snapshot,
+        number: null,
+        authorId: null,
+        publishedAt: null,
+        at: this.clock.now(),
+      }),
+      revision: draft.revision,
+    };
     await this.versions.insert(snapshot);
     return snapshot;
   }

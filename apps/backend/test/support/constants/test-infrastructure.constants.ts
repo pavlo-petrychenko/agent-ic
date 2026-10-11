@@ -56,6 +56,8 @@ export enum TestRedisPrefix {
   Runs = 'runs:',
   RunExecution = 'run-execution:',
   RunDetails = 'run-details:',
+  SimulationRuns = 'simulation-runs:',
+  LastSimulationRun = 'last-simulation-run:',
   RunTracing = 'run-tracing:',
   CompletionStep = 'completion-step:',
   AgentStep = 'agent-step:',

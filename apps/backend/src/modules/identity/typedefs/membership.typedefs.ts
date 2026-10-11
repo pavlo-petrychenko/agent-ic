@@ -7,6 +7,10 @@ export type MembershipRecord = typeof memberships.$inferSelect;
 
 export type NewMembership = typeof memberships.$inferInsert;
 
+export type MemberSelection =
+  | { readonly role: WorkspaceRole }
+  | { readonly userIds: readonly string[] };
+
 export interface MemberRow {
   readonly membershipId: string;
   readonly userId: string;

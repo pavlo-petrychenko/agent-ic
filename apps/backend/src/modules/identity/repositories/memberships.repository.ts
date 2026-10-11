@@ -1,11 +1,12 @@
 import type { WorkspaceRole } from '@agent-ic/contracts';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, eq, gt } from 'drizzle-orm';
+import { and, asc, count, eq, gt, inArray } from 'drizzle-orm';
 import { memberships } from '@/modules/identity/db/memberships.table';
 import { users } from '@/modules/identity/db/users.table';
 import type {
   MemberRow,
+  MemberSelection,
   MembershipRecord,
   NewMembership,
   RoleMemberCount,
@@ -62,6 +63,23 @@ export class MembershipsRepository {
         and(eq(memberships.workspaceId, workspaceId), eq(memberships.inviteLinkId, inviteLinkId)),
       );
     return row?.total ?? 0;
+  }
+
+  async listNames(workspaceId: string, selection: MemberSelection): Promise<string[]> {
+    const rows = await this.txHost.tx
+      .select({ name: users.name })
+      .from(memberships)
+      .innerJoin(users, eq(users.id, memberships.userId))
+      .where(
+        and(
+          eq(memberships.workspaceId, workspaceId),
+          'role' in selection
+            ? eq(memberships.role, selection.role)
+            : inArray(memberships.userId, [...selection.userIds]),
+        ),
+      )
+      .orderBy(asc(users.name));
+    return rows.map(({ name }) => name);
   }
 
   listPage(workspaceId: string, afterId: string | null, limit: number): Promise<MemberRow[]> {

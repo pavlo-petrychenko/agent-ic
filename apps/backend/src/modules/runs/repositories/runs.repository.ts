@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import { ConversationMode } from '@/modules/conversations';
 import { RunStatus, UNFINISHED_RUN_STATUSES } from '@/modules/runs/constants/run.constants';
 import { runs } from '@/modules/runs/db/runs.table';
 import type { NewRun, Run, RunEnd } from '@/modules/runs/typedefs/run.typedefs';
@@ -27,6 +28,30 @@ export class RunsRepository {
       .select()
       .from(runs)
       .where(and(eq(runs.workspaceId, workspaceId), eq(runs.conversationId, conversationId)))
+      .orderBy(desc(runs.createdAt), desc(runs.id))
+      .limit(1);
+    return run ?? null;
+  }
+
+  listByConversation(workspaceId: string, conversationId: string): Promise<Run[]> {
+    return this.txHost.tx
+      .select()
+      .from(runs)
+      .where(and(eq(runs.workspaceId, workspaceId), eq(runs.conversationId, conversationId)))
+      .orderBy(asc(runs.createdAt), asc(runs.id));
+  }
+
+  async findLatestSimulation(workspaceId: string, agentId: string): Promise<Run | null> {
+    const [run] = await this.txHost.tx
+      .select()
+      .from(runs)
+      .where(
+        and(
+          eq(runs.workspaceId, workspaceId),
+          eq(runs.agentId, agentId),
+          eq(runs.mode, ConversationMode.Simulation),
+        ),
+      )
       .orderBy(desc(runs.createdAt), desc(runs.id))
       .limit(1);
     return run ?? null;
