@@ -2,7 +2,6 @@ query FlowBuilderDraft($agentId: ID!) {
   agent(id: $agentId) {
     id
     name
-    description
     draftBaseVersionNumber
   }
   agentDraft(agentId: $agentId) {

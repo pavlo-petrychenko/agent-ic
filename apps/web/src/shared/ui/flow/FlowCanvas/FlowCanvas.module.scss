@@ -56,11 +56,6 @@ $story-height: 640px;
   }
 }
 
-.floatingMenu {
-  position: absolute;
-  z-index: var(--z-dropdown);
-}
-
 .visuallyHidden {
   position: absolute;
   overflow: hidden;

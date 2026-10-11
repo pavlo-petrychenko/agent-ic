@@ -125,4 +125,28 @@ describe('Popover', () => {
 
     expect(onSelect).toHaveBeenCalledWith('b');
   });
+
+  it('opens at a point without a trigger and reports Escape', async () => {
+    const onEscapeKeyDown = vi.fn<() => void>();
+    const onOpenChange = vi.fn<(open: boolean) => void>();
+    render(
+      <Popover
+        open
+        anchor={{ x: 120, y: 480 }}
+        onOpenChange={onOpenChange}
+        onEscapeKeyDown={onEscapeKeyDown}
+        ariaLabel="Panel"
+      >
+        <button type="button">Inside</button>
+      </Popover>,
+    );
+
+    expect(await screen.findByRole('button', { name: 'Inside' })).toHaveFocus();
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+
+    await userEvent.keyboard('{Escape}');
+
+    expect(onEscapeKeyDown).toHaveBeenCalledOnce();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
 });

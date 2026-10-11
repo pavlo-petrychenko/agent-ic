@@ -119,16 +119,13 @@
     "nameLabel": "Назва агента",
     "renamed": "Агента перейменовано",
     "neverPublished": "Чернетка · ще не опублікована",
-    "editedFrom": "Чернетка · змінена з v{{version}}",
-    "describe": "Змінити опис",
-    "descriptionLabel": "Опис агента",
-    "addDescription": "Додати опис",
-    "described": "Опис збережено"
+    "editedFrom": "Чернетка · змінена з v{{version}}"
   },
   "autosave": {
     "saved": "Збережено",
     "saving": "Зберігаємо…",
     "failed": "Не вдалося зберегти",
+    "notSaved": "Не збережено",
     "retry": "Повторити"
   },
   "conflict": {

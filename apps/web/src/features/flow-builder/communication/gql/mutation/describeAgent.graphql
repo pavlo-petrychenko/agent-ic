@@ -1,6 +1,0 @@
-mutation DescribeAgent($input: DescribeAgentInput!) {
-  describeAgent(input: $input) {
-    id
-    description
-  }
-}
