@@ -1,0 +1,16 @@
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 636px) minmax(0, 496px);
+  gap: var(--space-20);
+  align-items: start;
+  padding: var(--space-20) var(--space-page-gutter) var(--space-32);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

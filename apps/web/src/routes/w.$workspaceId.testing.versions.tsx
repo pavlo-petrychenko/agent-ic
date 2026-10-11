@@ -8,5 +8,7 @@ export const Route = createFileRoute('/w/$workspaceId/testing/versions')({
 });
 
 function VersionsRoute() {
-  return <VersionsPage />;
+  const { workspaceId } = Route.useParams();
+  const { agent } = Route.useSearch();
+  return <VersionsPage workspaceId={workspaceId} agentId={agent} />;
 }

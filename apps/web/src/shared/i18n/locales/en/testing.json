@@ -117,7 +117,25 @@
     "action": "Open in flow builder"
   },
   "versions": {
-    "title": "No versions to show yet",
-    "description": "The draft and the published versions will be listed here."
+    "label": "Versions",
+    "loading": "Loading the versions…",
+    "loadError": "Couldn't load the versions",
+    "number": "v{{number}}",
+    "kind": {
+      "draft": "Draft",
+      "live": "Live",
+      "archived": "Archived"
+    },
+    "edited": "edited {{ago}}",
+    "changes_one": "{{count}} unpublished change",
+    "changes_other": "{{count}} unpublished changes",
+    "publishedBy": "published by {{name}} · {{date}}",
+    "publishedOn": "published {{date}}",
+    "publish": "Publish",
+    "footnote": "Published versions can't be edited. Restoring an old version copies it into a new draft; nothing changes for customers until you publish.",
+    "never": {
+      "title": "Not published yet",
+      "description": "Publish the draft to make it live. Every published version stays here, and you can restore it later."
+    }
   }
 }
