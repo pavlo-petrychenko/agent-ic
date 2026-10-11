@@ -3,6 +3,7 @@ import type { FlowDocument } from '@agent-ic/flow';
 import type { DynamicModule } from '@nestjs/common';
 import type { TestingModule } from '@nestjs/testing';
 import { AgentsModule } from '@/modules/agents/agents.module';
+import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import type { AgentVersion } from '@/modules/agents/typedefs/agent-version.typedefs';
@@ -32,6 +33,7 @@ import {
   TEST_END_USER_EXTERNAL_ID,
   TEST_MESSAGE_TEXT,
 } from '@test/support/constants/conversations-testing.constants';
+import { TEST_PUBLISHED_NUMBER } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { newAgent, newVersion, triggerFlow } from '@test/support/fixtures/agents.fixture';
 import { uniqueEmail } from '@test/support/fixtures/identity.fixture';
@@ -73,6 +75,23 @@ export const seedAgentWithDraft = async (
     await agents.setDraftVersion(workspaceId, agentId, draftId, AGENTS_TEST_START);
   });
   return { agentId, draftId };
+};
+
+export const seedPublishedVersion = async (
+  testingModule: TestingModule,
+  workspaceId: string,
+  agentId: string,
+): Promise<string> => {
+  const versionId = testingModule.get(IdService).generate();
+  const published = { kind: AgentVersionKind.Published, number: TEST_PUBLISHED_NUMBER };
+  await testingModule
+    .get(TenantTransactionService)
+    .run(workspaceId, () =>
+      testingModule
+        .get(AgentVersionsRepository)
+        .insert(newVersion(versionId, workspaceId, agentId, published)),
+    );
+  return versionId;
 };
 
 export const agentsCtx = (

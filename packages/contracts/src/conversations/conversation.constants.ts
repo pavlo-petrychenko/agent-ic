@@ -1,0 +1,1 @@
+export const END_USER_LANGUAGE_MAX_LENGTH = 35;

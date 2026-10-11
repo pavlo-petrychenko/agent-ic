@@ -1,0 +1,1 @@
+export const SIMULATION_FIELD_PATH_SEPARATOR = '.';

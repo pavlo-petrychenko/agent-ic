@@ -21,3 +21,4 @@ export enum ConversationProbeJobName {
 }
 
 export const CONVERSATIONS_TESTBED_ROLE = Role.Gateway;
+export const TEST_END_USER_LANGUAGE = 'uk';

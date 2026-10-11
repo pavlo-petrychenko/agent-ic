@@ -14,3 +14,57 @@ type ConversationActivityEvent {
   messageId: ID
   runId: ID
 }
+
+extend type Mutation {
+  startSimulation(input: StartSimulationInput!): Simulation!
+}
+
+enum ConversationState {
+  agent_active
+  waiting
+  handled
+  closed
+}
+
+enum ChannelKind {
+  simulated
+  telegram
+  api
+}
+
+enum MessageAuthor {
+  customer
+  agent
+  operator
+  system
+}
+
+input StartSimulationInput {
+  agentId: ID!
+  versionId: ID
+  channelKind: ChannelKind!
+  language: String
+}
+
+type Conversation {
+  id: ID!
+  state: ConversationState!
+  channelKind: ChannelKind!
+  language: String
+  versionId: ID
+  createdAt: String!
+}
+
+type Message {
+  id: ID!
+  author: MessageAuthor!
+  text: String!
+  quickReplies: [String!]!
+  runId: ID
+  createdAt: String!
+}
+
+type Simulation {
+  conversation: Conversation!
+  messages: [Message!]!
+}

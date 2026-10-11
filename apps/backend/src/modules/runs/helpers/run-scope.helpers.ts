@@ -23,7 +23,7 @@ export const messageTriggerVariables = (
   today: Date,
 ): MessageTriggerVariables => ({
   message: { text: currentMessageText(history), attachments: [] },
-  user: { name: conversation.endUserName, language: null },
+  user: { name: conversation.endUserName, language: conversation.endUserLanguage },
   channel: conversation.channelKind,
   history: history.map(({ author, text }) => ({ author, text })),
   today: today.toISOString().slice(0, ISO_DATE_LENGTH),

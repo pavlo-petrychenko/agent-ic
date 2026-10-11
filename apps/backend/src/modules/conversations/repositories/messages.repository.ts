@@ -67,6 +67,10 @@ export class MessagesRepository {
     return counted?.total ?? 0;
   }
 
+  listByConversation(workspaceId: string, conversationId: string): Promise<Message[]> {
+    return this.listWhere(workspaceId, conversationId, undefined);
+  }
+
   listThrough(
     workspaceId: string,
     conversationId: string,

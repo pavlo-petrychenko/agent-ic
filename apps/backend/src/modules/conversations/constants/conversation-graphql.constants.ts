@@ -4,4 +4,5 @@ export enum ConversationGraphqlField {
 
 export enum ConversationGraphqlArgument {
   ConversationId = 'conversationId',
+  Input = 'input',
 }
