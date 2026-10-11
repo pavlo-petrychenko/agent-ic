@@ -4,8 +4,10 @@ import {
   ACCESS_TOKEN_REFRESH_MARGIN_MS,
   SESSION_REFRESH_LOCK,
   SessionStatus,
+  STARTUP_REFRESH_RETRY_DELAYS_MS,
 } from '@/shared/api/constants/session.constants';
 import { AppError } from '@/shared/api/errors/app.error';
+import { isTransientError } from '@/shared/api/helpers/appError.helpers';
 import { postAuthRequest } from '@/shared/api/helpers/authRequest.helpers';
 import { getRequestContext, setAccessToken } from '@/shared/api/helpers/requestContext.helpers';
 import { sessionTokensSchema } from '@/shared/api/schemas/session.schema';
@@ -36,17 +38,35 @@ export const createSessionClient = (environment: SessionEnvironment): SessionCli
       apply(sessionTokensSchema.parse(await environment.post(AuthEndpoint.Refresh)));
       return true;
     } catch (error) {
-      if (status === SessionStatus.Unknown || isRefreshRejected(error)) {
+      if (isRefreshRejected(error)) {
         apply(null);
+        return false;
+      }
+      if (status === SessionStatus.Unknown) {
+        throw error;
       }
       return false;
     }
   };
 
+  const requestTokensWithRetry = async (): Promise<boolean> => {
+    for (const delayMs of STARTUP_REFRESH_RETRY_DELAYS_MS) {
+      try {
+        return await requestTokens();
+      } catch (error) {
+        if (!isTransientError(error)) {
+          throw error;
+        }
+        await environment.wait(delayMs);
+      }
+    }
+    return requestTokens();
+  };
+
   const refreshAcrossTabs = (): Promise<boolean> =>
     environment.locks === null
-      ? requestTokens()
-      : environment.locks.request(SESSION_REFRESH_LOCK, requestTokens);
+      ? requestTokensWithRetry()
+      : environment.locks.request(SESSION_REFRESH_LOCK, requestTokensWithRetry);
 
   const refresh = (): Promise<boolean> => {
     pending ??= refreshAcrossTabs().finally(() => {
@@ -88,6 +108,10 @@ export const getSessionClient = (): SessionClient => {
     post: postAuthRequest,
     locks: 'locks' in navigator ? navigator.locks : null,
     now: () => Date.now(),
+    wait: (delayMs) =>
+      new Promise((resolve) => {
+        setTimeout(resolve, delayMs);
+      }),
   });
   return browserSessionClient;
 };

@@ -39,7 +39,7 @@
   },
   "startup": {
     "title": "The app could not start",
-    "description": "The configuration could not be loaded. Reload the page, or contact support if it keeps happening.",
+    "description": "The server could not be reached. Reload the page in a moment, or contact support if it keeps happening.",
     "action": "Reload"
   },
   "ui": {

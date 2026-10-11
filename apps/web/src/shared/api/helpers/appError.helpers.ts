@@ -3,6 +3,7 @@ import { CombinedGraphQLErrors, ServerError } from '@apollo/client/errors';
 import {
   ClientErrorCode,
   NETWORK_ERROR_MESSAGE,
+  TRANSIENT_ERROR_CODES,
   UNKNOWN_ERROR_MESSAGE,
 } from '@/shared/api/constants/clientError.constants';
 import { AppError } from '@/shared/api/errors/app.error';
@@ -69,3 +70,7 @@ export function toAppError(error: unknown): AppError {
   }
   return new AppError(UNKNOWN_ERROR_MESSAGE, { code: ClientErrorCode.Unknown, cause: error });
 }
+
+export const isTransientError = (error: unknown): boolean =>
+  error instanceof AppError &&
+  (TRANSIENT_ERROR_CODES.has(error.code) || error.reason === ErrorReason.RateLimited);

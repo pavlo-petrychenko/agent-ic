@@ -15,6 +15,7 @@ export interface SessionEnvironment {
   readonly post: AuthRequest;
   readonly locks: SessionLocks | null;
   readonly now: () => number;
+  readonly wait: (delayMs: number) => Promise<void>;
 }
 
 export interface SessionClient {

@@ -3,7 +3,11 @@ import { CombinedGraphQLErrors, ServerError } from '@apollo/client/errors';
 import { describe, expect, it } from 'vitest';
 import { ClientErrorCode } from '@/shared/api/constants/clientError.constants';
 import { AppError } from '@/shared/api/errors/app.error';
-import { toAppError } from '@/shared/api/helpers/appError.helpers';
+import {
+  isTransientError,
+  toAppError,
+  toAppErrorFromProblem,
+} from '@/shared/api/helpers/appError.helpers';
 
 const TRACE_ID = 'trace-1';
 
@@ -87,5 +91,35 @@ describe('toAppError', () => {
 
   it('describes a non-error throw as unknown', () => {
     expect(toAppError('boom').code).toBe(ClientErrorCode.Unknown);
+  });
+});
+
+describe('isTransientError', () => {
+  it('treats an unreachable or failing API as worth retrying', () => {
+    expect(isTransientError(toAppError(new TypeError('Failed to fetch')))).toBe(true);
+    expect(isTransientError(toAppErrorFromProblem('<html>Bad Gateway</html>', 'Bad Gateway'))).toBe(
+      true,
+    );
+    expect(isTransientError(new AppError('Down', { code: ErrorCode.Internal }))).toBe(true);
+    expect(
+      isTransientError(
+        new AppError('Slow down', {
+          code: ErrorCode.LimitReached,
+          reason: ErrorReason.RateLimited,
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('treats a rejection by the API as final', () => {
+    expect(
+      isTransientError(
+        new AppError('Rejected', {
+          code: ErrorCode.Unauthenticated,
+          reason: ErrorReason.InvalidRefreshToken,
+        }),
+      ),
+    ).toBe(false);
+    expect(isTransientError(new Error('Not an app error'))).toBe(false);
   });
 });
