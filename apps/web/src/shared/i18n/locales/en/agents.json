@@ -3,9 +3,29 @@
     "title": "Agents",
     "subtitle": "Build, test and publish chat agents for {{workspace}}"
   },
+  "actions": {
+    "newAgent": "New agent",
+    "blankFlow": "Blank flow"
+  },
+  "create": {
+    "defaultName": "New agent"
+  },
   "empty": {
-    "title": "No agents yet",
-    "description": "Building agents is coming in the next release."
+    "title": "No assistants yet",
+    "description": "Build your first assistant as a flow: add steps, test it in the simulator and publish."
+  },
+  "filters": {
+    "label": "Filter agents",
+    "search": "Search agents",
+    "clearSearch": "Clear search",
+    "status": "Status",
+    "clear": "Clear",
+    "clearAll": "Clear filters",
+    "statuses": {
+      "live": "Live",
+      "draft": "Draft",
+      "paused": "Paused"
+    }
   },
   "list": {
     "label": "Agents",
@@ -16,6 +36,10 @@
     "columns": {
       "agent": "Agent",
       "status": "Status"
+    },
+    "noMatch": {
+      "title": "No agents match",
+      "description": "Try another search or clear the filters."
     }
   },
   "status": {
@@ -26,5 +50,16 @@
   "statusNote": {
     "draftInProgress": "Draft v{{number}} in progress",
     "neverPublished": "Never published"
+  },
+  "setup": {
+    "title": "Get set up",
+    "subtitle_one": "{{count}} step",
+    "subtitle_other": "{{count}} steps",
+    "workspace": "Create the workspace",
+    "done": "Done",
+    "agent": "Build your first assistant",
+    "start": "Start",
+    "invite": "Invite your team",
+    "copyInvite": "Copy invite link"
   }
 }

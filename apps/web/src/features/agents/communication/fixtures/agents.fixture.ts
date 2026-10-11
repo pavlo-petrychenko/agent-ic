@@ -1,4 +1,5 @@
 import type { MockLink } from '@apollo/client/testing';
+import { CreateAgentDocument } from '@/features/agents/communication/gql/mutation/createAgent.generated';
 import {
   AgentsDocument,
   type AgentsQuery,
@@ -7,6 +8,8 @@ import { AGENTS_PAGE_SIZE } from '@/features/agents/constants/agentList.constant
 import { AgentStatus } from '@/shared/api/generated/schema.generated';
 
 type AgentFixture = AgentsQuery['agents']['edges'][number]['node'];
+
+export const NEW_AGENT_ID = 'agt_new';
 
 export const SALON_ASSISTANT: AgentFixture = {
   id: 'agt_1',
@@ -69,5 +72,18 @@ export const buildAgentsFailureMock = (
   after: string | null = null,
 ): MockLink.MockedResponse => ({
   request: { query: AgentsDocument, variables: { first: AGENTS_PAGE_SIZE, after } },
+  error,
+});
+
+export const buildCreateAgentMock = (name: string): MockLink.MockedResponse => ({
+  request: { query: CreateAgentDocument, variables: { input: { name } } },
+  result: { data: { createAgent: { __typename: 'Agent', id: NEW_AGENT_ID } } },
+});
+
+export const buildCreateAgentFailureMock = (
+  name: string,
+  error: Error,
+): MockLink.MockedResponse => ({
+  request: { query: CreateAgentDocument, variables: { input: { name } } },
   error,
 });
