@@ -1,0 +1,13 @@
+.body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  border-top: var(--border-width) solid var(--color-line);
+}
+
+.note {
+  margin-top: auto;
+  padding: var(--space-16);
+  color: var(--color-mute);
+  font: var(--type-small);
+}

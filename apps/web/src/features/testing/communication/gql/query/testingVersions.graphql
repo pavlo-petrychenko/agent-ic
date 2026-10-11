@@ -1,0 +1,12 @@
+query TestingVersions($agentId: ID!) {
+  agentVersions(agentId: $agentId) {
+    id
+    number
+    status
+  }
+  agentDraft(agentId: $agentId) {
+    issues {
+      severity
+    }
+  }
+}

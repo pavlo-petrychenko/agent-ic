@@ -1,0 +1,11 @@
+query TestingAgents($first: Int) {
+  agents(first: $first) {
+    edges {
+      node {
+        id
+        name
+        draftNumber
+      }
+    }
+  }
+}
