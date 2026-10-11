@@ -7,4 +7,6 @@ export interface TracePanelProps {
   flow: FlowDocument | null;
   run: SimulatorRun | null;
   turnNumber: number | null;
+  draft: boolean;
+  liveNumber: number | null;
 }

@@ -22,6 +22,7 @@ import {
   isSimulatorChannel,
   isSimulatorLanguage,
 } from '@/features/testing/logic/helpers/setup.helpers';
+import { useDraftRefresh } from '@/features/testing/logic/hooks/useDraftRefresh';
 import { ChannelKind } from '@/shared/api/generated/schema.generated';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
@@ -57,11 +58,18 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
   });
   const [selected, setSelected] = useState<string | null>(null);
   const runs = simulator.conversation?.runs ?? [];
-  const selectedRunId = runs.some((run) => run.id === selected) ? selected : latestRunId(runs);
+  const newestRunId = latestRunId(runs);
+  const selectedRunId = runs.some((run) => run.id === selected) ? selected : newestRunId;
+  useDraftRefresh(
+    newestRunId,
+    versionId === null && simulator.conversation !== null,
+    versionsResult.retry,
+  );
   const flow =
     versionId === null
       ? draftFlow
       : (versions.find((version) => version.id === versionId)?.flow ?? null);
+  const liveNumber = versions.find((version) => version.live)?.number ?? null;
   const errorMessage = useErrorMessage();
   const { showToast } = useToast();
 
@@ -224,6 +232,8 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
             flow={flow}
             run={runs.find((run) => run.id === selectedRunId) ?? null}
             turnNumber={turnNumber(runs, selectedRunId)}
+            draft={versionId === null}
+            liveNumber={liveNumber}
           />
         </div>
       ) : (

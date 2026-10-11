@@ -97,6 +97,28 @@ describe('TestingPage', () => {
     expect(await screen.findByText(`${TEST_AGENT_NAME} is typing…`)).toBeInTheDocument();
   });
 
+  it('reloads the draft when a new turn starts', async () => {
+    const user = userEvent.setup();
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(),
+      startSimulationMock(),
+      simulationMock([], null),
+      sendSimulatorMessageMock(QUESTION.text),
+      simulationMock([QUESTION], RunStatus.Running),
+      testingVersionsMock(true),
+    ]);
+
+    await screen.findByText('Say hi to your agent');
+    await user.type(
+      screen.getByRole('textbox', { name: 'Message as the test user' }),
+      QUESTION.text,
+    );
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(await screen.findByText('Fix the flow first')).toBeInTheDocument();
+  });
+
   it('sends a message as the test user and resets the conversation', async () => {
     const user = userEvent.setup();
     renderPage([

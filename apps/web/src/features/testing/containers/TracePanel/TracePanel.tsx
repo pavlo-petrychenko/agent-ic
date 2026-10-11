@@ -8,9 +8,11 @@ import { TRACE_LEGEND } from '@/features/testing/containers/TracePanel/TracePane
 import type { TracePanelProps } from '@/features/testing/containers/TracePanel/TracePanel.typedefs';
 import { isActiveRun } from '@/features/testing/logic/helpers/chat.helpers';
 import {
+  drawTrace,
   focusNodeId,
   layoutTrace,
   nodeState,
+  traceEdges,
 } from '@/features/testing/logic/helpers/trace.helpers';
 import { RunTrace } from '@/features/testing/view/RunTrace';
 import { TextLink } from '@/shared/ui/actions/TextLink';
@@ -19,10 +21,19 @@ import { Legend, LegendMarkerKind } from '@/shared/ui/display/Legend';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import styles from '@/features/testing/containers/TracePanel/TracePanel.module.scss';
 
-export function TracePanel({ workspaceId, agentId, flow, run, turnNumber }: TracePanelProps) {
+export function TracePanel({
+  workspaceId,
+  agentId,
+  flow,
+  run,
+  turnNumber,
+  draft,
+  liveNumber,
+}: TracePanelProps) {
   const { t } = useTranslation(TESTING_NAMESPACE);
   const details = useTestingRun(run?.id ?? null, run?.status ?? null);
   const slots = useMemo(() => (flow === null ? [] : layoutTrace(flow)), [flow]);
+  const edges = useMemo(() => (flow === null ? [] : traceEdges(flow.edges, slots)), [flow, slots]);
   const active = run !== null && isActiveRun(run);
   const steps = details.run?.steps ?? [];
   const cells = slots.map((slot) => ({
@@ -46,7 +57,7 @@ export function TracePanel({ workspaceId, agentId, flow, run, turnNumber }: Trac
               title={details.failed ? t('trace.loadError') : t('trace.noFlow')}
             />
           ) : (
-            <RunTrace cells={cells} />
+            <RunTrace drawing={drawTrace(cells, edges)} />
           )}
         </div>
         <div className={styles.footer}>
@@ -64,7 +75,11 @@ export function TracePanel({ workspaceId, agentId, flow, run, turnNumber }: Trac
         </div>
       </section>
       <aside className={styles.details} aria-label={t('details.label')}>
-        <p className={styles.note}>{t('note')}</p>
+        {draft && (
+          <p className={styles.note}>
+            {liveNumber === null ? t('note.noLive') : t('note.live', { number: liveNumber })}
+          </p>
+        )}
       </aside>
     </>
   );

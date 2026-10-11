@@ -1,5 +1,5 @@
 import { skipToken, useQuery } from '@apollo/client/react';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { TestingVersionsDocument } from '@/features/testing/communication/gql/query/testingVersions.generated';
 import {
   hasBlockingIssues,
@@ -23,12 +23,13 @@ export function useTestingVersions(agentId: string | null): TestingVersionsResul
     () => (data === undefined ? null : toFlow(data.agentDraft.version.flow)),
     [data],
   );
+  const retry = useCallback(() => void refetch(), [refetch]);
   return {
     versions,
     draftFlow,
     draftBroken: data !== undefined && hasBlockingIssues(data.agentDraft),
-    loading: loading || (agentId !== null && data === undefined && error === undefined),
+    loading: agentId !== null && data === undefined && (loading || error === undefined),
     failed: !loading && error !== undefined && data === undefined,
-    retry: () => void refetch(),
+    retry,
   };
 }

@@ -16,7 +16,7 @@ import { RunStatus, RunStepStatus } from '@/shared/api/generated/schema.generate
 import { MemoryRouter } from '@test/support/components/MemoryRouter';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
-const renderPanel = (status: RunStatus, mocks: readonly MockLink.MockedResponse[]) =>
+const renderPanel = (status: RunStatus, mocks: readonly MockLink.MockedResponse[], draft = true) =>
   renderWithProviders(
     <MemoryRouter>
       <TracePanel
@@ -25,6 +25,8 @@ const renderPanel = (status: RunStatus, mocks: readonly MockLink.MockedResponse[
         flow={TRACE_FLOW}
         run={{ id: TRACE_RUN_ID, status, createdAt: '2026-10-11T10:00:00Z', errorMessage: null }}
         turnNumber={2}
+        draft={draft}
+        liveNumber={3}
       />
     </MemoryRouter>,
     { mocks },
@@ -64,5 +66,17 @@ describe('TracePanel', () => {
 
     await waitFor(async () => expect(await stepState('Incoming message')).toBe('done'));
     expect(await stepState('Send replies')).toBe('skipped');
+  });
+
+  it('names the live version under a draft run only', async () => {
+    const { unmount } = renderPanel(RunStatus.Succeeded, [
+      testingRunMock(RunStatus.Succeeded, null),
+    ]);
+    expect(await screen.findByText(/customers keep talking to v3/)).toBeInTheDocument();
+    unmount();
+
+    renderPanel(RunStatus.Succeeded, [testingRunMock(RunStatus.Succeeded, null)], false);
+
+    expect(screen.queryByText(/customers keep talking/)).not.toBeInTheDocument();
   });
 });

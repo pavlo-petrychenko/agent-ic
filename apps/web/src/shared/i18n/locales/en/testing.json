@@ -71,7 +71,10 @@
   "startError": "Couldn't start the simulation",
   "conversationError": "Couldn't load the conversation",
   "retry": "Retry",
-  "note": "Draft runs here only — customers keep talking to the live version until you publish.",
+  "note": {
+    "live": "Draft runs here only — customers keep talking to v{{number}} until you publish.",
+    "noLive": "Draft runs here only — customers don't see it until you publish."
+  },
   "noAgents": {
     "title": "Nothing to simulate yet",
     "description": "Create an agent first, then test it here before customers see it.",
