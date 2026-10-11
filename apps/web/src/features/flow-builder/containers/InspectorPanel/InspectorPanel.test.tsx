@@ -16,6 +16,7 @@ import {
   PromptSourceKind,
   QuickRepliesKind,
   RecipientsKind,
+  RequestBodyKind,
   RuleMatch,
   OutputFieldType,
   WaitFor,
@@ -609,7 +610,7 @@ describe('InspectorPanel api request', () => {
     ],
   };
 
-  it('edits the request and its failure path', async () => {
+  it('edits the request, its headers, body and failure path', async () => {
     const user = userEvent.setup();
     open('lookup', API_FLOW, []);
 
@@ -619,6 +620,14 @@ describe('InspectorPanel api request', () => {
     await user.selectOptions(screen.getByRole('combobox', { name: 'Method' }), HttpMethod.Post);
     await user.type(screen.getByRole('textbox', { name: 'URL' }), 'https://crm.example/bookings');
     await user.tab();
+    await user.click(screen.getByRole('button', { name: 'Add header' }));
+    await user.clear(screen.getByRole('textbox', { name: 'Header 1 value' }));
+    await user.type(screen.getByRole('textbox', { name: 'Header 1 value' }), 'text/plain');
+    await user.tab();
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Body type' }),
+      RequestBodyKind.Json,
+    );
     await user.selectOptions(screen.getByRole('combobox', { name: 'Retries' }), '0');
     await user.selectOptions(screen.getByRole('combobox', { name: 'Timeout' }), '15');
     await user.selectOptions(
@@ -630,6 +639,8 @@ describe('InspectorPanel api request', () => {
       config: {
         method: HttpMethod.Post,
         url: 'https://crm.example/bookings',
+        headers: [{ name: 'Accept', value: 'text/plain' }],
+        body: { kind: RequestBodyKind.Json, content: '' },
         retries: 0,
         timeoutSeconds: 15,
         onFailure: FailureMode.ErrorPort,

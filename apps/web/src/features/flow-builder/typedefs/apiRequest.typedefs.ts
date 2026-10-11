@@ -3,6 +3,8 @@ import type { ApiRequestTestOutcome } from '@/shared/api/generated/schema.genera
 
 export type ApiRequestConfig = ApiRequestNode['config'];
 
+export type RequestHeader = ApiRequestConfig['headers'][number];
+
 export interface ApiTestResult {
   readonly outcome: ApiRequestTestOutcome;
   readonly status: number | null;

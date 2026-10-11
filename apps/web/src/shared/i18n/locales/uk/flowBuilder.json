@@ -473,6 +473,21 @@
       "url": "URL",
       "urlHint": "Введіть {{, щоб вставити поле з попередніх кроків",
       "urlPlaceholder": "https://api.example.com/v1/orders",
+      "headers": "Заголовки",
+      "header": {
+        "name": "Назва заголовка {{number}}",
+        "value": "Значення заголовка {{number}}"
+      },
+      "removeHeader": "Видалити {{name}}",
+      "addHeader": "Додати заголовок",
+      "body": "Тіло",
+      "bodyKind": "Тип тіла",
+      "bodyKinds": {
+        "none": "Без тіла",
+        "json": "JSON",
+        "text": "Простий текст"
+      },
+      "content": "Вміст тіла",
       "output": "Результат",
       "outputNote": "зберігається як змінні",
       "outputs": {
