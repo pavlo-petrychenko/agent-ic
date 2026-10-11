@@ -35,11 +35,17 @@
     }
   },
   "general": {
-    "subtitle": "Назва робочого простору",
+    "subtitle": "Назва робочого простору та часовий пояс",
     "workspace": {
       "title": "Робочий простір",
       "renameSuccess": "Назву робочого простору оновлено",
       "nameLabel": "Назва",
+      "timeZoneLabel": "Часовий пояс",
+      "timeZoneHint": "Використовується для розкладів і аналітики",
+      "timeZoneSearchPlaceholder": "Пошук часових поясів",
+      "timeZoneSearchClear": "Очистити пошук часового поясу",
+      "timeZoneEmpty": "Часовий пояс не знайдено",
+      "timeZoneSuccess": "Часовий пояс оновлено",
       "save": "Зберегти"
     }
   }

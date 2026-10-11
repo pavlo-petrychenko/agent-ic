@@ -1,0 +1,8 @@
+mutation UpdateTimeZone($input: UpdateTimeZoneInput!) {
+  updateTimeZone(input: $input) {
+    workspace {
+      id
+      timeZone
+    }
+  }
+}
