@@ -5,7 +5,7 @@ import type {
   SimulatorCheckStatus,
 } from '@/modules/agents/constants/agent.constants';
 import type { agentVersions } from '@/modules/agents/db/agent-versions.table';
-import type { AgentView } from '@/modules/agents/typedefs/agent.typedefs';
+import type { Agent, AgentView } from '@/modules/agents/typedefs/agent.typedefs';
 
 export interface AgentVersion {
   readonly id: string;
@@ -92,6 +92,16 @@ export interface AgentDraftView {
 export interface PublishedAgent {
   readonly agent: AgentView;
   readonly version: AgentVersionView;
+}
+
+export interface LockedDraft {
+  readonly agent: Agent;
+  readonly draft: AgentVersion;
+}
+
+export interface RestoreAgentVersionInput {
+  readonly versionId: string;
+  readonly revision: number;
 }
 
 export interface AgentVersionDiffInput {

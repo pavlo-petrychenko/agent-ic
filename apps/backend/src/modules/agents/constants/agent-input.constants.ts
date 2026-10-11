@@ -3,6 +3,7 @@ import { ErrorReason } from '@agent-ic/contracts';
 export enum AgentField {
   Id = 'id',
   AgentId = 'agentId',
+  VersionId = 'versionId',
   FromId = 'fromId',
   ToId = 'toId',
   Name = 'name',

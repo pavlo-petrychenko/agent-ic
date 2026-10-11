@@ -8,8 +8,10 @@ import { DuplicateAgentResolver } from '@/modules/agents/resolvers/duplicate-age
 import { PauseAgentResolver } from '@/modules/agents/resolvers/pause-agent.resolver';
 import { PublishAgentResolver } from '@/modules/agents/resolvers/publish-agent.resolver';
 import { RenameAgentResolver } from '@/modules/agents/resolvers/rename-agent.resolver';
+import { RestoreAgentVersionResolver } from '@/modules/agents/resolvers/restore-agent-version.resolver';
 import { ResumeAgentResolver } from '@/modules/agents/resolvers/resume-agent.resolver';
 import { SaveAgentDraftResolver } from '@/modules/agents/resolvers/save-agent-draft.resolver';
+import { AgentDraftsService } from '@/modules/agents/services/agent-drafts.service';
 import { AgentFlowService } from '@/modules/agents/services/agent-flow.service';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
 import { AgentRuntimeReader } from '@/modules/agents/services/agent-runtime-reader.service';
@@ -27,6 +29,7 @@ import { PauseAgentUseCase } from '@/modules/agents/use-cases/pause-agent.use-ca
 import { PreviewAgentPublishUseCase } from '@/modules/agents/use-cases/preview-agent-publish.use-case';
 import { PublishAgentUseCase } from '@/modules/agents/use-cases/publish-agent.use-case';
 import { RenameAgentUseCase } from '@/modules/agents/use-cases/rename-agent.use-case';
+import { RestoreAgentVersionUseCase } from '@/modules/agents/use-cases/restore-agent-version.use-case';
 import { ResumeAgentUseCase } from '@/modules/agents/use-cases/resume-agent.use-case';
 import { SaveAgentDraftUseCase } from '@/modules/agents/use-cases/save-agent-draft.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
@@ -35,6 +38,7 @@ export class AgentsModule extends defineModule({
   providers: [
     AgentsRepository,
     AgentVersionsRepository,
+    AgentDraftsService,
     AgentFlowService,
     AgentPublishingService,
     AgentRuntimeReader,
@@ -54,6 +58,7 @@ export class AgentsModule extends defineModule({
     ResumeAgentUseCase,
     CompareAgentVersionsUseCase,
     PreviewAgentPublishUseCase,
+    RestoreAgentVersionUseCase,
   ],
   resolvers: [
     CreateAgentResolver,
@@ -66,6 +71,7 @@ export class AgentsModule extends defineModule({
     DuplicateAgentResolver,
     PauseAgentResolver,
     ResumeAgentResolver,
+    RestoreAgentVersionResolver,
   ],
   exports: [AgentRuntimeReader],
 }) {}
