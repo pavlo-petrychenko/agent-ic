@@ -1,0 +1,8 @@
+mutation TransferOwnership($input: TransferOwnershipInput!) {
+  transferOwnership(input: $input) {
+    role
+    workspace {
+      id
+    }
+  }
+}

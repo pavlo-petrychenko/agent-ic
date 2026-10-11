@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useRenameWorkspace } from '@/features/settings/communication/hooks/useRenameWorkspace';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
+import { DangerZonePanel } from '@/features/settings/containers/DangerZonePanel';
 import type { GeneralPageProps } from '@/features/settings/containers/GeneralPage/GeneralPage.typedefs';
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
 import { createWorkspaceNameSchema } from '@/features/settings/logic/schemas/workspaceName.schema';
@@ -67,6 +68,7 @@ export function GeneralPage({ workspaceId }: GeneralPageProps) {
             </form.AppForm>
           </div>
         </WorkspaceNameCard>
+        <DangerZonePanel workspaceId={workspaceId} />
       </div>
     </div>
   );
