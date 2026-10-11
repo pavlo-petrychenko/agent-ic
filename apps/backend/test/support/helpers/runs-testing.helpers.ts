@@ -32,6 +32,7 @@ import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
 import { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';
 import { LLM_STEP_TIMEOUT_MS } from '@/platform/llm/constants/llm-gateway.constants';
 import type { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
+import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
@@ -60,8 +61,12 @@ import {
 import { newRun } from '@test/support/fixtures/runs.fixture';
 import { queuedEventsFor } from '@test/support/helpers/conversations-testing.helpers';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
-import { createLlmGateway } from '@test/support/helpers/llm-testing.helpers';
+import {
+  createLlmGateway,
+  createLlmTraceContextService,
+} from '@test/support/helpers/llm-testing.helpers';
 import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.module';
+import { LlmTracesProbeModule } from '@test/support/modules/llm-traces-probe.module';
 import type {
   ExecutableRun,
   LifecycleState,
@@ -79,6 +84,7 @@ export const createRunsTestbed = async (
   redisPrefix: TestRedisPrefix = TestRedisPrefix.Runs,
   llm: LlmGateway | null = null,
   scriptedNodeType: NodeType = NodeType.Agent,
+  traces: LlmTraceContextService = createLlmTraceContextService({}),
 ): Promise<RunExecutionTestbed> => {
   const clock = new ManualClock(RUNS_TEST_START);
   const executor = new ScriptedStepExecutor(scriptedNodeType);
@@ -95,12 +101,14 @@ export const createRunsTestbed = async (
       LiveUpdatesModule.forRole(ROLE),
       RedisModule,
       RateLimitModule,
+      LlmTracesProbeModule.forRole(ROLE),
       OutboundHttpModule,
       AgentsNeighboursModule.forRole(ROLE),
       RunsModule.forRole(ROLE),
     ],
     [
       { token: ClockService, value: clock },
+      { token: LlmTraceContextService, value: traces },
       { token: CompletionExecutor, value: completion },
       { token: AgentExecutor, value: agent },
       {

@@ -7,13 +7,11 @@ import { StepModelUnknownError } from '@/modules/runs/errors/step-model-unknown.
 import { StepPromptUnavailableError } from '@/modules/runs/errors/step-prompt-unavailable.error';
 import { currentMessageStart } from '@/modules/runs/helpers/run-scope.helpers';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
-import type { Run } from '@/modules/runs/typedefs/run.typedefs';
 import { LLM_CATALOG, LLM_DEFAULT_MODEL } from '@/platform/llm/constants/llm-catalog.constants';
 import { LlmMessageRole } from '@/platform/llm/constants/llm-gateway.constants';
 import type { LlmModelId, LlmPurpose } from '@/platform/llm/constants/llm-model.constants';
 import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants';
 import type { LlmCompleteRequest, LlmMessage } from '@/platform/llm/typedefs/llm-gateway.typedefs';
-import type { LlmTags } from '@/platform/llm/typedefs/llm-tracing.typedefs';
 
 const isLlmModelId = (model: string): model is LlmModelId => Object.hasOwn(LLM_CATALOG, model);
 
@@ -74,10 +72,3 @@ export const stepConversation = (
         : [...messages, { role: LlmMessageRole.User, content: ANSWER_FROM_CONVERSATION_MESSAGE }],
   };
 };
-
-export const stepTags = (run: Run, traceName: string): LlmTags => ({
-  traceName,
-  workspaceId: run.workspaceId,
-  sessionId: run.conversationId,
-  agentVersionId: run.versionId,
-});

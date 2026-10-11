@@ -21,9 +21,9 @@ import { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
 import {
-  OBSERVER_STEP_ID,
+  OBSERVER_NODE_ID,
   OBSERVER_STEP_KEY,
-  PARALLEL_STEP_ID,
+  PARALLEL_NODE_ID,
   PARALLEL_STEP_KEY,
   RUNS_TEST_START,
   SECOND_STEP_ID,
@@ -64,7 +64,7 @@ import type {
 } from '@test/support/typedefs/runs-testing.typedefs';
 
 const guard = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, CompletionRole.Guard);
-const observer = completionNode(OBSERVER_STEP_ID, OBSERVER_STEP_KEY, CompletionRole.Observer);
+const observer = completionNode(OBSERVER_NODE_ID, OBSERVER_STEP_KEY, CompletionRole.Observer);
 const router = intentRouterNode(TEST_OTHER_NODE_ID, TEST_OTHER_NODE_KEY, TEST_STEP_NODE_KEY);
 
 const guardThenAgent = (node = guard) =>
@@ -213,26 +213,26 @@ describe('CompletionExecutor', () => {
   it('ends an observer without a port and hides its output from the router', async () => {
     const seeded = await seedExecutableRun(
       testbed,
-      stepFlow([observer], [flowEdge(TEST_NODE_ID, OBSERVER_STEP_ID)]),
+      stepFlow([observer], [flowEdge(TEST_NODE_ID, OBSERVER_NODE_ID)]),
     );
     mock.json({ intent: TEST_QUESTION_INTENT });
 
     expect(await execute(seeded)).toBe(RunStatus.Succeeded);
 
-    const observed = (await stored(seeded)).steps.find((step) => step.nodeId === OBSERVER_STEP_ID);
+    const observed = (await stored(seeded)).steps.find((step) => step.nodeId === OBSERVER_NODE_ID);
     const checks = stepFlow(
-      [parallelNode(PARALLEL_STEP_ID, PARALLEL_STEP_KEY, WaitFor.Guards), guard, observer, router],
+      [parallelNode(PARALLEL_NODE_ID, PARALLEL_STEP_KEY, WaitFor.Guards), guard, observer, router],
       [
-        flowEdge(TEST_NODE_ID, PARALLEL_STEP_ID),
-        branchEdge(PARALLEL_STEP_ID, TEST_STEP_NODE_ID),
-        branchEdge(PARALLEL_STEP_ID, OBSERVER_STEP_ID),
-        flowEdge(PARALLEL_STEP_ID, TEST_OTHER_NODE_ID),
+        flowEdge(TEST_NODE_ID, PARALLEL_NODE_ID),
+        branchEdge(PARALLEL_NODE_ID, TEST_STEP_NODE_ID),
+        branchEdge(PARALLEL_NODE_ID, OBSERVER_NODE_ID),
+        flowEdge(PARALLEL_NODE_ID, TEST_OTHER_NODE_ID),
       ],
     );
     const { ids } = testbed;
     const steps = new Map([
       [TEST_STEP_NODE_ID, finishedStep(ids, guard, RunStepStatus.Succeeded, PortName.Next)],
-      [OBSERVER_STEP_ID, finishedStep(ids, observer, RunStepStatus.Succeeded, null)],
+      [OBSERVER_NODE_ID, finishedStep(ids, observer, RunStepStatus.Succeeded, null)],
     ]);
     const trigger = messageTriggerVariables(runConversation(ids), [], RUNS_TEST_START);
     const lookup = createScopeLookup(checks);

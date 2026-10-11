@@ -16,8 +16,8 @@ import { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
 import {
-  SEND_STEP_ID,
-  SEND_STEP_KEY,
+  SEND_NODE_ID,
+  SEND_NODE_KEY,
   TEST_AGENT_PROMPT,
   TEST_AGENT_REPLY,
   TEST_AGENT_RETRIES,
@@ -48,11 +48,11 @@ const agent = agentNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
   ],
   retries: TEST_AGENT_RETRIES,
 });
-const send = sendListNode(SEND_STEP_ID, SEND_STEP_KEY, `${TEST_STEP_NODE_KEY}.messages`);
+const send = sendListNode(SEND_NODE_ID, SEND_NODE_KEY, `${TEST_STEP_NODE_KEY}.messages`);
 const answer = { messages: [TEST_AGENT_REPLY], [TEST_MOOD_FIELD]: TEST_MOOD };
 
 const agentThenSend = (port: string = PortName.Next, node: AgentNode = agent) =>
-  stepFlow([node, send], [flowEdge(TEST_NODE_ID, node.id), flowEdge(node.id, SEND_STEP_ID, port)]);
+  stepFlow([node, send], [flowEdge(TEST_NODE_ID, node.id), flowEdge(node.id, SEND_NODE_ID, port)]);
 
 describe('AgentExecutor', () => {
   let mock: MockLlmService;
@@ -131,6 +131,6 @@ describe('AgentExecutor', () => {
       port: PortName.Error,
       output: null,
     });
-    expect(await stepOf(seeded, SEND_STEP_ID)).toMatchObject({ status: RunStepStatus.Succeeded });
+    expect(await stepOf(seeded, SEND_NODE_ID)).toMatchObject({ status: RunStepStatus.Succeeded });
   });
 });

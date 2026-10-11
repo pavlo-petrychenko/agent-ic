@@ -11,6 +11,7 @@ import {
   LLM_TRACER,
 } from '@/platform/llm/constants/llm-tracing.constants';
 import {
+  langfuseObservationAttributes,
   langfuseTraceAttributes,
   llmCallAttributes,
   traceSampleRate,
@@ -47,6 +48,21 @@ export class LlmTraceContextService {
       return work();
     }
     return context.with(context.active().setValue(LLM_TRACE_SAMPLED, this.decide()), work);
+  }
+
+  async span<R>(
+    name: string,
+    metadata: Readonly<Record<string, string>>,
+    work: () => Promise<R>,
+  ): Promise<R> {
+    if (context.active().getValue(LLM_TRACE_SAMPLED) !== true) {
+      return work();
+    }
+    return this.tracer.startActiveSpan(
+      name,
+      { attributes: langfuseObservationAttributes(metadata) },
+      (span) => this.inSpan(span, work),
+    );
   }
 
   callTelemetry(tags: LlmTags, call: LlmCallTrace): TelemetryOptions {

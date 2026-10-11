@@ -25,6 +25,7 @@ import {
   stepInput,
   stepVariables,
 } from '@/modules/runs/helpers/run-scope.helpers';
+import { runTraceTags, stepTraceMetadata } from '@/modules/runs/helpers/run-tracing.helpers';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
@@ -42,6 +43,7 @@ import { jobFailureActionFor } from '@/platform/errors/helpers/job-failure.helpe
 import { IdService } from '@/platform/ids/services/id.service';
 import { channelFor } from '@/platform/live-updates/helpers/channel.helpers';
 import { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';
+import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
 
 @Injectable()
 export class RunExecutionService {
@@ -54,6 +56,7 @@ export class RunExecutionService {
     private readonly conversationHistory: ConversationHistoryService,
     private readonly tenants: TenantTransactionService,
     private readonly liveUpdates: LiveUpdatesService,
+    private readonly traces: LlmTraceContextService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
@@ -63,10 +66,13 @@ export class RunExecutionService {
     if (!UNFINISHED_RUN_STATUSES.includes(walk.run.status)) {
       return walk.run.status;
     }
-    const walked = await this.walk(walk);
-    const end = walked.status === RunStatus.Failed ? walked : (walk.ending ?? walked);
-    await this.tenants.run(workspaceId, () => this.runs.finish(workspaceId, runId, end));
-    return end.status;
+    return this.traces.run(runTraceTags(walk.run), async (traceId) => {
+      await this.tenants.run(workspaceId, () => this.runs.setTraceId(workspaceId, runId, traceId));
+      const walked = await this.walk(walk);
+      const end = walked.status === RunStatus.Failed ? walked : (walk.ending ?? walked);
+      await this.tenants.run(workspaceId, () => this.runs.finish(workspaceId, runId, end));
+      return end.status;
+    });
   }
 
   private async load(ctx: UseCaseCtx, workspaceId: string, runId: string): Promise<RunWalk> {
@@ -221,13 +227,18 @@ export class RunExecutionService {
     branchKey: string,
   ): Promise<RunStepResult> {
     try {
-      const { port, output } = await executor.execute({
-        ctx: walk.ctx,
-        run: walk.run,
-        node,
-        branchKey,
-        scope: { variables, history: walk.history, today: walk.today },
-      });
+      const { port, output } = await this.traces.span(
+        node.key,
+        stepTraceMetadata(node, branchKey),
+        () =>
+          executor.execute({
+            ctx: walk.ctx,
+            run: walk.run,
+            node,
+            branchKey: branchKey,
+            scope: { variables, history: walk.history, today: walk.today },
+          }),
+      );
       return {
         status: RunStepStatus.Succeeded,
         output,

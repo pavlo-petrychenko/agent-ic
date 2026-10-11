@@ -6,14 +6,13 @@ import {
   AGENT_MAX_TOOL_ROUNDS,
   AGENT_PURPOSE,
   AGENT_TOOLS,
-  LlmStepTraceName,
 } from '@/modules/runs/constants/llm-step.constants';
 import {
   stepConversation,
   stepModel,
   stepSystemPrompt,
-  stepTags,
 } from '@/modules/runs/helpers/llm-step.helpers';
+import { runTraceTags } from '@/modules/runs/helpers/run-tracing.helpers';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 import type {
   StepExecution,
@@ -45,7 +44,7 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
       ...(config.reasoning === null ? {} : { reasoning: config.reasoning }),
       tools: AGENT_TOOLS,
       maxToolRounds: AGENT_MAX_TOOL_ROUNDS,
-      tags: stepTags(run, LlmStepTraceName.Agent),
+      tags: runTraceTags(run),
     };
     const { output } = await this.answer(request, config.retries);
     return { port: PortName.Next, output };
