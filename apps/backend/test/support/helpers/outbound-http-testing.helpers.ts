@@ -28,7 +28,11 @@ const respond = async (
   request: IncomingMessage,
   response: ServerResponse,
   hits: number,
+  released: () => Promise<void>,
 ): Promise<void> => {
+  if (request.url === OutboundTestPath.Held) {
+    await released();
+  }
   if (request.url === OutboundTestPath.Slow) {
     await delay(OUTBOUND_TEST_SLOW_RESPONSE_MS);
     response.end();
@@ -53,18 +57,22 @@ const respond = async (
     header: typeof header === 'string' ? header : null,
     body: await readText(request),
   };
-  const succeeds = request.url === OutboundTestPath.Ok || request.url === OutboundTestPath.Flaky;
+  const succeeds = [OutboundTestPath.Ok, OutboundTestPath.Flaky, OutboundTestPath.Held].some(
+    (path) => request.url === path,
+  );
   response.statusCode = succeeds ? HttpStatus.OK : OUTBOUND_TEST_STATUS;
   response.end(JSON.stringify(echo));
 };
 
 export const startProbeServer = async (): Promise<ProbeServer> => {
   const hits = new Map<string, number>();
+  const held: (() => void)[] = [];
+  const released = () => new Promise<void>((resolve) => held.push(resolve));
   const server = createServer((request, response) => {
     const path = request.url ?? '';
     const count = (hits.get(path) ?? 0) + 1;
     hits.set(path, count);
-    void respond(request, response, count);
+    void respond(request, response, count, released);
   });
   server.listen(0, OUTBOUND_TEST_HOST);
   await once(server, 'listening');
@@ -77,6 +85,9 @@ export const startProbeServer = async (): Promise<ProbeServer> => {
     origin: `http://${OUTBOUND_TEST_HOST}:${port}`,
     port,
     hits: (path) => hits.get(path) ?? 0,
+    release: () => {
+      held.splice(0).forEach((resolve) => resolve());
+    },
     close: async () => {
       server.closeAllConnections();
       server.close();

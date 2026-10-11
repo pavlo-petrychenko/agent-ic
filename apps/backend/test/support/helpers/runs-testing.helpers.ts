@@ -1,7 +1,10 @@
 import { Locale } from '@agent-ic/contracts';
 import { NodeType } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { eq, sql } from 'drizzle-orm';
 import { AgentVersionKind, PauseMode } from '@/modules/agents/constants/agent.constants';
+import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { ConversationMode, messageReceivedEvent } from '@/modules/conversations';
@@ -18,6 +21,7 @@ import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.reposi
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { RunsModule } from '@/modules/runs/runs.module';
 import { AgentExecutor } from '@/modules/runs/services/agent-executor.service';
+import { ApiRequestExecutor } from '@/modules/runs/services/api-request-executor.service';
 import { CompletionExecutor } from '@/modules/runs/services/completion-executor.service';
 import { MessageTriggerExecutor } from '@/modules/runs/services/message-trigger-executor.service';
 import { ParallelExecutor } from '@/modules/runs/services/parallel-executor.service';
@@ -30,6 +34,7 @@ import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 import { DomainEventsModule } from '@/platform/domain-events/domain-events.module';
 import { DomainEventsService } from '@/platform/domain-events/services/domain-events.service';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -39,6 +44,7 @@ import { LLM_STEP_TIMEOUT_MS } from '@/platform/llm/constants/llm-gateway.consta
 import type { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { NodeOutboundHttpGateway } from '@/platform/outbound-http/gateways/node-outbound-http.gateway';
 import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { JobHandlersService } from '@/platform/queues/services/job-handlers.service';
@@ -126,6 +132,7 @@ export const createRunsTestbed = async (
           new MessageTriggerExecutor(),
           new RouterExecutor(),
           new ParallelExecutor(),
+          new ApiRequestExecutor(new NodeOutboundHttpGateway(clock, []), clock),
           ...llmSteps,
           executor,
           new ScriptedStepExecutor(NodeType.Escalation),
@@ -194,6 +201,20 @@ export const seedExecutableRun = async (
     await testbed.runs.insert(run);
   });
   return { run, ctx: workspaceSystemCtx(workspaceId) };
+};
+
+export const storeFlowJson = async (
+  testbed: RunExecutionTestbed,
+  { run }: ExecutableRun,
+  flow: unknown,
+): Promise<void> => {
+  const txHost = testbed.module.get<TransactionHost<AppTransactionAdapter>>(TransactionHost);
+  await testbed.tenants.run(run.workspaceId, async () => {
+    await txHost.tx
+      .update(agentVersions)
+      .set({ flow: sql`${JSON.stringify(flow)}::jsonb` })
+      .where(eq(agentVersions.id, run.versionId));
+  });
 };
 
 export const seedSimulationRun = (testbed: RunExecutionTestbed): Promise<ExecutableRun> =>

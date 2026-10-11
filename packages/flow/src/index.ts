@@ -162,7 +162,12 @@ export type {
 export { FlowIssueCode, FlowIssueSeverity } from '@flow/validation/constants/issue.constants';
 export { hasBlockingIssues, validateFlow } from '@flow/validation/helpers/validation.helpers';
 export type { FlowIssue, FlowIssueParams } from '@flow/validation/typedefs/validation.typedefs';
-export { ParseFlowFailureKind } from '@flow/versions/constants/version.constants';
+export {
+  FIRST_SCHEMA_VERSION,
+  FlowV1CompletionRole,
+  FlowV1WaitFor,
+  ParseFlowFailureKind,
+} from '@flow/versions/constants/version.constants';
 export { parseFlow } from '@flow/versions/helpers/version.helpers';
 export type {
   FlowSchemaIssue,
