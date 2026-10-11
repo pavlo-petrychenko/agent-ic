@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import type { INestApplication } from '@nestjs/common';
 import type { Queue } from 'bullmq';
+import { inArray } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
@@ -81,9 +82,13 @@ describe('durable jobs', () => {
   const waitUntilHandled = (probeId: string): Promise<void> =>
     vi.waitFor(() => expect(recorder.probeIds()).toContain(probeId), WAIT);
 
-  const sweepAfterGrace = (): Promise<number> => {
-    const later = new Date(clock.now().getTime() + PAST_GRACE_MS);
-    vi.spyOn(clock, 'now').mockReturnValue(later);
+  const sweepAfterGrace = async (probeId: string): Promise<number> => {
+    const ids = (await rowsFor(probeId)).map((row) => row.id);
+    const earlier = new Date(clock.now().getTime() - PAST_GRACE_MS);
+    await systemDb.db
+      .update(outboxMessages)
+      .set({ createdAt: earlier })
+      .where(inArray(outboxMessages.id, ids));
     return sweeper.sweep();
   };
 
@@ -150,8 +155,9 @@ describe('durable jobs', () => {
     );
 
     expect(await rowsFor(probeId)).toHaveLength(1);
-    expect(await sweeper.sweep()).toBe(0);
-    expect(await sweepAfterGrace()).toBe(1);
+    await sweeper.sweep();
+    expect(await rowsFor(probeId)).toHaveLength(1);
+    expect(await sweepAfterGrace(probeId)).toBe(1);
     await waitUntilHandled(probeId);
     expect(await rowsFor(probeId)).toEqual([]);
     expect(callsFor(probeId)).toBe(1);
@@ -170,7 +176,7 @@ describe('durable jobs', () => {
       expect(await queue.getJobState(row.id)).toBe(COMPLETED_STATE);
     }, WAIT);
 
-    expect(await sweepAfterGrace()).toBe(1);
+    expect(await sweepAfterGrace(probeId)).toBe(1);
     expect(await rowsFor(probeId)).toEqual([]);
     expect(await queue.getJobState(row.id)).toBe(COMPLETED_STATE);
     expect(callsFor(probeId)).toBe(1);
@@ -220,7 +226,7 @@ describe('durable jobs', () => {
     expect(rows.map((row) => row.name).toSorted()).toEqual(
       [ProbeJobName.Audit, ProbeJobName.Welcome].toSorted(),
     );
-    expect(await sweepAfterGrace()).toBe(2);
+    expect(await sweepAfterGrace(probeId)).toBe(2);
     await vi.waitFor(() => {
       const listeners = recorder.calls
         .filter((call) => call.probeId === probeId)
