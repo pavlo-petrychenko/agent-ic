@@ -59,6 +59,9 @@ describe('TracePanel', () => {
       ),
     );
     expect(await stepState('Send replies')).toBe('failed');
+    expect(
+      within(screen.getByRole('list', { name: 'Step states' })).getByText('failed'),
+    ).toBeInTheDocument();
   });
 
   it('shows the steps a finished turn never reached', async () => {
