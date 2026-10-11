@@ -24,12 +24,13 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
       ? null
       : [agentId, versionId, channelKind, language, attempt].join(SETUP_KEY_SEPARATOR);
   const started = key !== null && settled?.key === key && settled.ok;
-  const { data, dataState, refetch } = useQuery(
+  const { data, dataState, error, refetch } = useQuery(
     SimulationDocument,
     started && agentId !== null
-      ? { variables: { agentId }, fetchPolicy: 'network-only' }
+      ? { variables: { agentId }, fetchPolicy: 'network-only', notifyOnNetworkStatusChange: true }
       : skipToken,
   );
+  const loadFailed = started && error !== undefined && dataState !== 'complete';
   const conversation = useMemo(
     () => (dataState === 'complete' ? toSimulatorConversation(data.simulation) : null),
     [data, dataState],
@@ -76,11 +77,13 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
 
   return {
     conversation,
-    starting: key !== null && (settled?.key !== key || (started && dataState !== 'complete')),
-    failed: key !== null && settled?.key === key && !settled.ok,
+    starting:
+      key !== null &&
+      (settled?.key !== key || (started && dataState !== 'complete' && !loadFailed)),
+    failed: loadFailed || (key !== null && settled?.key === key && !settled.ok),
     sending,
     restarting,
-    retry: () => setAttempt((value) => value + 1),
+    retry: () => (loadFailed ? void refetch() : setAttempt((value) => value + 1)),
     send,
     restart,
   };

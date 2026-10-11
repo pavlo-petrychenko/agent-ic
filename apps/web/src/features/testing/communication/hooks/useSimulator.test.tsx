@@ -62,6 +62,21 @@ describe('useSimulator', () => {
     await waitFor(() => expect(result.current.failed).toBe(true));
   });
 
+  it('reports a failed conversation load and retries it', async () => {
+    const { result } = renderSimulator(TEST_AGENT_ID, [
+      startSimulationMock(),
+      { ...simulationMock([]), result: undefined, error: new Error('down') },
+      simulationMock([QUESTION]),
+    ]);
+    await waitFor(() => expect(result.current.failed).toBe(true));
+    expect(result.current.starting).toBe(false);
+
+    act(() => result.current.retry());
+
+    await waitFor(() => expect(result.current.conversation?.messages).toHaveLength(1));
+    expect(result.current.failed).toBe(false);
+  });
+
   it('stays idle without an agent', () => {
     const { result } = renderSimulator(null, []);
 
