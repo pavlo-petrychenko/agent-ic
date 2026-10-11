@@ -60,5 +60,64 @@
     "emptyTitle": "Почніть із тригера",
     "emptyDescription": "Тригер визначає, коли запускається цей агент.",
     "emptyAction": "Додати тригер"
+  },
+  "summary": {
+    "allChannels": "Усі канали",
+    "someChannels_one": "{{count}} канал",
+    "someChannels_few": "{{count}} канали",
+    "someChannels_many": "{{count}} каналів",
+    "someChannels_other": "{{count}} каналу",
+    "model": "{{model}}",
+    "noModel": "Модель ще не вибрано",
+    "inlinePrompt": "власний промпт",
+    "libraryPrompt": "промпт із бібліотеки",
+    "outputs": "→ {{fields}}",
+    "eachItem": "{{variable}} · окреме повідомлення на кожен елемент",
+    "text": "{{text}}",
+    "request": "{{method}} {{url}}",
+    "notifyTeam": "Сповіщає команду, сценарій на паузі до повернення",
+    "endChat": "Завершує розмову"
+  },
+  "port": {
+    "else": "інакше",
+    "error": "у разі помилки",
+    "branches": "гілки"
+  },
+  "density": {
+    "label": "Щільність кроків",
+    "comfortable": "Просторо",
+    "compact": "Компактно"
+  },
+  "shortcuts": {
+    "title": "Клавіатурні скорочення",
+    "action": {
+      "delete": "Видалити виділене",
+      "undo": "Скасувати",
+      "redo": "Повторити",
+      "duplicate": "Дублювати",
+      "open": "Відкрити крок у фокусі",
+      "multiSelect": "Додати до виділення",
+      "pan": "Рухати полотно",
+      "zoom": "Масштаб",
+      "cancel": "Скасувати з’єднання"
+    },
+    "keys": {
+      "delete": "Delete",
+      "undo": "⌘ Z",
+      "redo": "⇧ ⌘ Z",
+      "duplicate": "⌘ D",
+      "open": "Enter",
+      "multiSelect": "⇧ клік",
+      "pan": "Пробіл і тягнути",
+      "zoom": "⌘ прокрутка",
+      "cancel": "Esc"
+    }
+  },
+  "header": {
+    "rename": "Перейменувати агента",
+    "nameLabel": "Назва агента",
+    "renamed": "Агента перейменовано",
+    "neverPublished": "Чернетка · ще не опублікована",
+    "editedFrom": "Чернетка · змінена з v{{version}}"
   }
 }

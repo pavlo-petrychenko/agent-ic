@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { Density } from '@/features/flow-builder/constants/density.constants';
 import {
   EMPTY_FLOW,
   EMPTY_SELECTION,
@@ -26,6 +27,7 @@ const INITIAL_STATE: FlowBuilderState = {
   saveState: SaveState.Idle,
   issues: [],
   previewOrigin: null,
+  density: Density.Comfortable,
 };
 
 const afterStep = (state: FlowBuilderState, step: HistoryStep | null): Partial<FlowBuilderState> =>
@@ -39,7 +41,8 @@ const afterStep = (state: FlowBuilderState, step: HistoryStep | null): Partial<F
 
 export const useFlowBuilderStore = create<FlowBuilderStore>()((set) => ({
   ...INITIAL_STATE,
-  load: ({ document, revision, issues }) => set({ ...INITIAL_STATE, document, revision, issues }),
+  load: ({ document, revision, issues }) =>
+    set((state) => ({ ...INITIAL_STATE, density: state.density, document, revision, issues })),
   apply: (document) =>
     set((state) => {
       const origin = state.previewOrigin ?? state.document;
@@ -56,6 +59,7 @@ export const useFlowBuilderStore = create<FlowBuilderStore>()((set) => ({
   redo: () => set((state) => afterStep(state, stepForward(state.history, state.document))),
   select: (selection) => set({ selection }),
   setViewport: (viewport) => set({ viewport }),
+  setDensity: (density) => set({ density }),
   setSaveState: (saveState) => set({ saveState }),
   markSaved: (revision, issues, savedDocument) =>
     set((state) => ({

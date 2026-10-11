@@ -60,5 +60,62 @@
     "emptyTitle": "Start with a trigger",
     "emptyDescription": "A trigger decides when this agent runs.",
     "emptyAction": "Add a trigger"
+  },
+  "summary": {
+    "allChannels": "All channels",
+    "someChannels_one": "{{count}} channel",
+    "someChannels_other": "{{count}} channels",
+    "model": "{{model}}",
+    "noModel": "No model yet",
+    "inlinePrompt": "inline prompt",
+    "libraryPrompt": "library prompt",
+    "outputs": "→ {{fields}}",
+    "eachItem": "{{variable}} · one message per item",
+    "text": "{{text}}",
+    "request": "{{method}} {{url}}",
+    "notifyTeam": "Notifies the team, flow paused until hand-back",
+    "endChat": "Ends the conversation"
+  },
+  "port": {
+    "else": "else",
+    "error": "on error",
+    "branches": "branches"
+  },
+  "density": {
+    "label": "Node density",
+    "comfortable": "Comfortable",
+    "compact": "Compact"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "action": {
+      "delete": "Delete the selection",
+      "undo": "Undo",
+      "redo": "Redo",
+      "duplicate": "Duplicate",
+      "open": "Open the focused step",
+      "multiSelect": "Add to the selection",
+      "pan": "Move the canvas",
+      "zoom": "Zoom",
+      "cancel": "Cancel connecting"
+    },
+    "keys": {
+      "delete": "Delete",
+      "undo": "⌘ Z",
+      "redo": "⇧ ⌘ Z",
+      "duplicate": "⌘ D",
+      "open": "Enter",
+      "multiSelect": "⇧ click",
+      "pan": "Space drag",
+      "zoom": "⌘ scroll",
+      "cancel": "Esc"
+    }
+  },
+  "header": {
+    "rename": "Rename agent",
+    "nameLabel": "Agent name",
+    "renamed": "Agent renamed",
+    "neverPublished": "Draft · never published",
+    "editedFrom": "Draft · edited from v{{version}}"
   }
 }
