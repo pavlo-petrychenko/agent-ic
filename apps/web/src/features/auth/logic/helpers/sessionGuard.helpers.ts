@@ -15,8 +15,16 @@ export const toSafeRedirect = (target: string | null): string | null =>
     ? target
     : null;
 
+const hasSession = (): boolean => getSessionClient().getStatus() === SessionStatus.Authenticated;
+
 export const requireSession = (location: GuardLocation): void => {
-  if (getSessionClient().getStatus() !== SessionStatus.Authenticated) {
+  if (!hasSession()) {
     throw redirect({ to: LOGIN_PATH, search: { redirect: location.href } });
+  }
+};
+
+export const requireLandingSession = (): void => {
+  if (!hasSession()) {
+    throw redirect({ to: LOGIN_PATH });
   }
 };

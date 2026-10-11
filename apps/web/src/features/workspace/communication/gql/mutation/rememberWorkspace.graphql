@@ -1,0 +1,6 @@
+mutation RememberWorkspace($workspaceId: ID!) {
+  rememberWorkspace(workspaceId: $workspaceId) {
+    id
+    lastWorkspaceId
+  }
+}

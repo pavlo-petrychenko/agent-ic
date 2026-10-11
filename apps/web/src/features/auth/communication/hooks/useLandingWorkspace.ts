@@ -1,7 +1,7 @@
 import { useApolloClient } from '@apollo/client/react';
 import { useCallback } from 'react';
 import { MyWorkspacesDocument } from '@/features/auth/communication/gql/query/myWorkspaces.generated';
-import { firstWorkspaceId } from '@/features/auth/communication/helpers/workspaces.helpers';
+import { landingWorkspaceId } from '@/features/auth/communication/helpers/workspaces.helpers';
 
 export function useLandingWorkspace(): () => Promise<string | null> {
   const client = useApolloClient();
@@ -11,6 +11,6 @@ export function useLandingWorkspace(): () => Promise<string | null> {
       query: MyWorkspacesDocument,
       fetchPolicy: 'network-only',
     });
-    return firstWorkspaceId(data ?? null);
+    return landingWorkspaceId(data ?? null);
   }, [client]);
 }

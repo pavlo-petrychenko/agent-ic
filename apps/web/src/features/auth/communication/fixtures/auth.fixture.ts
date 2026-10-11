@@ -18,10 +18,12 @@ export const buildSessionTokens = (accessToken = 'access-token'): SessionTokens 
 
 export const buildMyWorkspacesMock = (
   workspaceIds: readonly string[],
+  lastWorkspaceId: string | null = null,
 ): MockLink.MockedResponse => ({
   request: { query: MyWorkspacesDocument },
   result: {
     data: {
+      me: { __typename: 'User', id: 'usr_1', lastWorkspaceId },
       myWorkspaces: workspaceIds.map((id) => ({
         __typename: 'Membership',
         workspace: { __typename: 'Workspace', id },
