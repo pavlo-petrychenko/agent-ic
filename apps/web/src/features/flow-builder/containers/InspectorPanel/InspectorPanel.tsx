@@ -83,6 +83,7 @@ export function InspectorPanel() {
             required={false}
             current={false}
             inheritFont
+            flush
             onCommit={(label) => {
               const renamed = updateNode(document, current.id, (step) => ({ ...step, label }));
               apply(renamed);

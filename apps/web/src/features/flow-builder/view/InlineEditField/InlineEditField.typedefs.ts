@@ -7,5 +7,6 @@ export interface InlineEditFieldProps {
   required: boolean;
   current: boolean;
   inheritFont?: boolean;
+  flush?: boolean;
   onCommit: (value: string) => void;
 }

@@ -14,6 +14,7 @@ export function InlineEditField({
   required,
   current,
   inheritFont = false,
+  flush = false,
   onCommit,
 }: InlineEditFieldProps) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -43,7 +44,7 @@ export function InlineEditField({
       type="button"
       title={editLabel}
       aria-current={current ? 'page' : undefined}
-      className={clsx(styles.value, inheritFont && styles.inheritFont)}
+      className={clsx(styles.value, inheritFont && styles.inheritFont, flush && styles.flush)}
       onClick={start}
     >
       {value ?? placeholder}
