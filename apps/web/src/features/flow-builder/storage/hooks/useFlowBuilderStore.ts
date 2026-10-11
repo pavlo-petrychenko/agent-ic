@@ -30,13 +30,16 @@ const INITIAL_STATE: FlowBuilderState = {
   density: Density.Comfortable,
 };
 
+const keepConflict = (saveState: SaveState): SaveState =>
+  saveState === SaveState.Conflict ? SaveState.Conflict : SaveState.Pending;
+
 const afterStep = (state: FlowBuilderState, step: HistoryStep | null): Partial<FlowBuilderState> =>
   step === null
     ? {}
     : {
         ...step,
         selection: keepExisting(state.selection, step.document),
-        saveState: state.saveState === SaveState.Conflict ? SaveState.Conflict : SaveState.Pending,
+        saveState: keepConflict(state.saveState),
       };
 
 export const useFlowBuilderStore = create<FlowBuilderStore>()((set) => ({
@@ -55,6 +58,12 @@ export const useFlowBuilderStore = create<FlowBuilderStore>()((set) => ({
     }),
   preview: (document) =>
     set((state) => ({ document, previewOrigin: state.previewOrigin ?? state.document })),
+  previewEdit: (document) =>
+    set((state) => ({
+      document,
+      previewOrigin: state.previewOrigin ?? state.document,
+      saveState: keepConflict(state.saveState),
+    })),
   undo: () => set((state) => afterStep(state, stepBack(state.history, state.document))),
   redo: () => set((state) => afterStep(state, stepForward(state.history, state.document))),
   select: (selection) => set({ selection }),

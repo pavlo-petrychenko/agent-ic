@@ -73,7 +73,7 @@ export function InspectorPanel() {
   const document = useFlowBuilderStore((state) => state.document);
   const selection = useFlowBuilderStore((state) => state.selection);
   const apply = useFlowBuilderStore((state) => state.apply);
-  const preview = useFlowBuilderStore((state) => state.preview);
+  const previewEdit = useFlowBuilderStore((state) => state.previewEdit);
   const select = useFlowBuilderStore((state) => state.select);
   const issues = useFlowIssues();
   const [keyRename, setKeyRename] = useState<KeyRename | null>(null);
@@ -135,7 +135,7 @@ export function InspectorPanel() {
         extra={extra}
         onPromptChange={(next) =>
           next !== text &&
-          preview(
+          previewEdit(
             updateLlmStep(document, current.id, {
               prompt: { kind: PromptSourceKind.Inline, text: next },
             }),

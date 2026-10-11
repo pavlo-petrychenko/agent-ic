@@ -58,6 +58,15 @@ describe('useFlowBuilderStore', () => {
     expect(store().document).toBe(start);
   });
 
+  it('marks a previewed edit as unsaved but keeps a conflict', () => {
+    store().previewEdit(withStep('a'));
+    expect(store().saveState).toBe(SaveState.Pending);
+
+    store().setSaveState(SaveState.Conflict);
+    store().previewEdit(withStep('b'));
+    expect(store().saveState).toBe(SaveState.Conflict);
+  });
+
   it('drops the redo steps after a new edit', () => {
     store().apply(withStep('a'));
     store().undo();

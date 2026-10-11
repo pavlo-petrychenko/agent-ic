@@ -377,6 +377,17 @@ describe('InspectorPanel', () => {
     expect(node('agent')).toEqual(before);
   });
 
+  it('checks a typed prompt and marks it unsaved before the field loses focus', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW);
+    expect(screen.getByText('Write a prompt')).toBeVisible();
+
+    await user.type(screen.getByRole('textbox', { name: 'Prompt' }), 'Hi');
+
+    expect(screen.queryByText('Write a prompt')).not.toBeInTheDocument();
+    expect(store().saveState).toBe(SaveState.Pending);
+  });
+
   it('explains a failed model list and loads it again', async () => {
     const user = userEvent.setup();
     open('agent', AI_FLOW, [modelOptionsFailedMock(), modelOptionsMock()]);
