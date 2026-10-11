@@ -38,12 +38,11 @@ export const createSessionClient = (environment: SessionEnvironment): SessionCli
       apply(sessionTokensSchema.parse(await environment.post(AuthEndpoint.Refresh)));
       return true;
     } catch (error) {
-      if (isRefreshRejected(error)) {
-        apply(null);
-        return false;
-      }
-      if (status === SessionStatus.Unknown) {
+      if (status === SessionStatus.Unknown && isTransientError(error)) {
         throw error;
+      }
+      if (status === SessionStatus.Unknown || isRefreshRejected(error)) {
+        apply(null);
       }
       return false;
     }
@@ -53,10 +52,7 @@ export const createSessionClient = (environment: SessionEnvironment): SessionCli
     for (const delayMs of STARTUP_REFRESH_RETRY_DELAYS_MS) {
       try {
         return await requestTokens();
-      } catch (error) {
-        if (!isTransientError(error)) {
-          throw error;
-        }
+      } catch {
         await environment.wait(delayMs);
       }
     }

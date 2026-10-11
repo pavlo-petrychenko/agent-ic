@@ -95,6 +95,18 @@ describe('sessionClient', () => {
     expect(waitMock).not.toHaveBeenCalled();
   });
 
+  it('signs out on page load without retrying when the refresh fails for another reason', async () => {
+    const { client, postMock, waitMock } = setup(() =>
+      Promise.reject(rejected(null, ErrorCode.Forbidden)),
+    );
+
+    await expect(client.refresh()).resolves.toBe(false);
+
+    expect(client.getStatus()).toBe(SessionStatus.Anonymous);
+    expect(postMock).toHaveBeenCalledTimes(1);
+    expect(waitMock).not.toHaveBeenCalled();
+  });
+
   it('sends one refresh for many callers at the same time', async () => {
     const { client, postMock } = setup(() => Promise.resolve(tokens('fresh')));
 
