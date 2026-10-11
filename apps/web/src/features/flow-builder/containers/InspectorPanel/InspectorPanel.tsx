@@ -2,9 +2,11 @@ import {
   MAX_LABEL_LENGTH,
   MAX_OUTPUT_FIELDS,
   MAX_ROUTER_RULES,
+  MessageContentKind,
   NodeType,
   PortName,
   PromptSourceKind,
+  QuickRepliesKind,
   nodeOutputFields,
   triggerVariables,
   visibleVariables,
@@ -55,6 +57,13 @@ import {
   removeRule,
   updateCondition,
 } from '@/features/flow-builder/logic/helpers/router.helpers';
+import {
+  contentOfKind,
+  listVariables,
+  quickRepliesOfKind,
+  replaceButton,
+  updateSendMessage,
+} from '@/features/flow-builder/logic/helpers/sendMessage.helpers';
 import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { KeyRename } from '@/features/flow-builder/typedefs/inspector.typedefs';
@@ -63,6 +72,7 @@ import { InlineEditField } from '@/features/flow-builder/view/InlineEditField';
 import { LlmStepInspector } from '@/features/flow-builder/view/LlmStepInspector';
 import { ParallelInspector } from '@/features/flow-builder/view/ParallelInspector';
 import { RouterInspector } from '@/features/flow-builder/view/RouterInspector';
+import { SendMessageInspector } from '@/features/flow-builder/view/SendMessageInspector';
 import { TriggerInspector } from '@/features/flow-builder/view/TriggerInspector';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Inspector } from '@/shared/ui/layout/Inspector';
@@ -225,6 +235,60 @@ export function InspectorPanel() {
             onRemoveRoute={(ruleId) => apply(removeRule(document, current.id, ruleId))}
             onConditionChange={(ruleId, index, patch) =>
               apply(updateCondition(document, current.id, ruleId, index, patch, variables))
+            }
+          />
+        );
+      }
+      case NodeType.SendMessage: {
+        const errors = fieldErrors(issues, current.id);
+        const lists = listVariables(variables);
+        const { content, quickReplies } = current.config;
+        const contentPath = (segment: IssuePathSegment) =>
+          [IssuePathSegment.Content, segment].join(PATH_JOINER);
+        const update = (patch: Parameters<typeof updateSendMessage>[2]) =>
+          apply(updateSendMessage(document, current.id, patch));
+        return (
+          <SendMessageInspector
+            key={current.id}
+            config={current.config}
+            variables={variableOptions}
+            lists={lists}
+            contentIssue={
+              errors.get(contentPath(IssuePathSegment.Text)) ??
+              errors.get(contentPath(IssuePathSegment.Variable)) ??
+              null
+            }
+            buttonsIssue={
+              errors.get(
+                [IssuePathSegment.QuickReplies, IssuePathSegment.Variable].join(PATH_JOINER),
+              ) ?? null
+            }
+            onChange={update}
+            onTextChange={(text) =>
+              previewEdit(
+                updateSendMessage(document, current.id, {
+                  content: { kind: MessageContentKind.Text, text },
+                }),
+              )
+            }
+            onCommit={commitPreview}
+            onContentKindChange={(kind) =>
+              kind !== content.kind && update({ content: contentOfKind(kind, lists) })
+            }
+            onButtonsKindChange={(kind) =>
+              kind !== quickReplies.kind &&
+              update({
+                quickReplies: quickRepliesOfKind(kind, lists, t('inspector.send.newButton')),
+              })
+            }
+            onButtonChange={(index, label) =>
+              quickReplies.kind === QuickRepliesKind.Static &&
+              update({
+                quickReplies: {
+                  ...quickReplies,
+                  buttons: replaceButton(quickReplies.buttons, index, label),
+                },
+              })
             }
           />
         );

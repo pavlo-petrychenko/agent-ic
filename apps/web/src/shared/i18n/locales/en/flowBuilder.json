@@ -218,7 +218,8 @@
       "router": "Checked top to bottom · first match wins",
       "parallel": "Runs branches at the same time",
       "agent": "Runs once per customer message · never messages the customer itself",
-      "completion": "One LLM call · no tools · structured output"
+      "completion": "One LLM call · no tools · structured output",
+      "send_message": "Sends chat messages to the customer"
     },
     "renameKey": {
       "title": "Rename the key too?",
@@ -381,6 +382,40 @@
         "racing": "first one wins"
       },
       "observerNote": "Observer branches can’t stop the flow."
+    },
+    "send": {
+      "messages": "Messages",
+      "content": {
+        "list": "From a list",
+        "text": "Write text"
+      },
+      "list": "List to send",
+      "pickList": "Pick a list",
+      "listHint": "Each item is sent as its own chat message, in order",
+      "text": "Message text",
+      "textPlaceholder": "Write the message. Type {{ to insert a field.",
+      "between": "Between messages",
+      "typing": "Show “typing…” before each message",
+      "waitForDelivery": "Wait for delivery before the next one",
+      "buttons": "Buttons",
+      "noButtons": "No quick replies. Add them as static buttons or from an agent output field.",
+      "buttonSource": "Where the buttons come from",
+      "source": {
+        "none": "No buttons",
+        "static": "Static buttons",
+        "variable": "From a field"
+      },
+      "button": "Button {{number}}",
+      "removeButton": "Remove {{name}}",
+      "newButton": "Yes",
+      "buttonList": "Field with the button labels",
+      "preview": "Preview",
+      "previewList": "One message per item of {{variable}}",
+      "previewEmpty": "The message appears here",
+      "add": {
+        "none": "Add buttons",
+        "static": "Add button"
+      }
     }
   }
 }
