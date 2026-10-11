@@ -3,21 +3,26 @@ import {
   NODE_KEY_MAX_LENGTH,
   NODE_KEY_PATTERN,
   NodeType,
+  PortName,
   RESERVED_ROOTS,
   WaitFor,
 } from '@agent-ic/flow';
-import type { FlowDocument, FlowNode, ParallelNode } from '@agent-ic/flow';
+import type { FlowDocument, FlowIssue, FlowNode, ParallelNode } from '@agent-ic/flow';
 import { NODE_KEY_SEPARATOR } from '@/features/flow-builder/constants/graphEdit.constants';
 import {
   BranchRole,
   FIELD_HINTS,
+  IssuePathSegment,
   KEY_EDGE_SEPARATORS,
   KEY_INVALID_CHARACTERS,
+  PATH_JOINER,
 } from '@/features/flow-builder/constants/inspector.constants';
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
+import { reaches } from '@/features/flow-builder/logic/helpers/connection.helpers';
 import { uniqueNodeKey } from '@/features/flow-builder/logic/helpers/nodeKey.helpers';
 import type {
   BranchRow,
+  FieldErrors,
   FieldRow,
   KeyRename,
   PortTarget,
@@ -55,6 +60,29 @@ export const updateNode = (
   nodes: document.nodes.map((node) => (node.id === nodeId ? update(node) : node)),
 });
 
+export const fieldErrors = (issues: readonly FlowIssue[], nodeId: string): FieldErrors => {
+  const errors = new Map<string, FlowIssue>();
+  for (const issue of issues) {
+    const path = issue.path.join(PATH_JOINER);
+    if (issue.nodeId === nodeId && !errors.has(path)) {
+      errors.set(path, issue);
+    }
+  }
+  return errors;
+};
+
+export const rulePath = (ruleIndex: number, segment: IssuePathSegment): string =>
+  [IssuePathSegment.Rules, ruleIndex, segment].join(PATH_JOINER);
+
+export const conditionPath = (
+  ruleIndex: number,
+  conditionIndex: number,
+  segment: IssuePathSegment,
+): string =>
+  [IssuePathSegment.Rules, ruleIndex, IssuePathSegment.Conditions, conditionIndex, segment].join(
+    PATH_JOINER,
+  );
+
 export const fieldRows = (variables: readonly Omit<FieldRow, 'hint'>[]): FieldRow[] =>
   variables.map(({ path, type, values }) => ({
     path,
@@ -75,6 +103,21 @@ export const portTargets = (document: FlowDocument, nodeId: string, port: string
 
 const isObserver = (node: FlowNode): boolean =>
   node.type === NodeType.Completion && node.config.role === CompletionRole.Observer;
+
+export const observerNames = (document: FlowDocument, nodeId: string): string[] => {
+  const branches = document.edges.filter(
+    (edge) => edge.sourcePort === PortName.Branches && reaches(document, edge.source, nodeId),
+  );
+  return document.nodes
+    .filter(
+      (node) =>
+        isObserver(node) &&
+        !reaches(document, node.id, nodeId) &&
+        !reaches(document, nodeId, node.id) &&
+        branches.some((edge) => reaches(document, edge.target, node.id)),
+    )
+    .map(nodeName);
+};
 
 const branchRole = (waitFor: WaitFor, observer: boolean): BranchRole => {
   if (waitFor === WaitFor.First) {

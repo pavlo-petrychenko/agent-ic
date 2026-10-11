@@ -1,4 +1,11 @@
-import type { Condition, ConditionOperator, NodeType, VariableType } from '@agent-ic/flow';
+import type {
+  Condition,
+  ConditionOperator,
+  FlowIssue,
+  NodeType,
+  RouterRule,
+  VariableType,
+} from '@agent-ic/flow';
 import type {
   BranchRole,
   FieldHint,
@@ -12,6 +19,8 @@ export interface FieldRow {
   hint: FieldHint | null;
   values: readonly string[] | null;
 }
+
+export type FieldErrors = ReadonlyMap<string, FlowIssue>;
 
 export interface PortTarget {
   nodeId: string;
@@ -40,6 +49,12 @@ export interface ConditionView {
   input: ValueInput;
   values: readonly string[] | null;
   text: string;
+}
+
+export interface RouteView {
+  rule: RouterRule;
+  targets: readonly PortTarget[];
+  conditions: readonly ConditionView[];
 }
 
 export type DescribedNodeType = NodeType.TriggerMessage | NodeType.Router | NodeType.Parallel;

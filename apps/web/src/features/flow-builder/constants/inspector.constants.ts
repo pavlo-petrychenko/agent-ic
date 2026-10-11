@@ -74,6 +74,9 @@ export const OPERAND_INPUTS: Readonly<Record<OperandKind, ValueInput>> = {
   [OperandKind.TextList]: ValueInput.List,
 };
 
+export const MOVE_UP = -1;
+export const MOVE_DOWN = 1;
+
 export const INPUT_DEFAULTS: Readonly<Record<ValueInput, string | number | string[] | null>> = {
   [ValueInput.None]: null,
   [ValueInput.Text]: '',
@@ -84,3 +87,18 @@ export const INPUT_DEFAULTS: Readonly<Record<ValueInput, string | number | strin
 
 export const KEY_INVALID_CHARACTERS = /[^a-z0-9]+/g;
 export const KEY_EDGE_SEPARATORS = /^_+|_+$/g;
+export const PATH_JOINER = '.';
+
+export enum IssuePathSegment {
+  Rules = 'rules',
+  Conditions = 'conditions',
+  Id = 'id',
+  Variable = 'variable',
+  Operator = 'operator',
+  Value = 'value',
+}
+
+export enum InputType {
+  Text = 'text',
+  Number = 'number',
+}
