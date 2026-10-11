@@ -1,0 +1,50 @@
+query PublishPreview($agentId: ID!) {
+  agent(id: $agentId) {
+    id
+    draftNumber
+    liveVersionNumber
+  }
+  publishPreview(agentId: $agentId) {
+    diff {
+      addedNodes
+      removedNodes
+      changedNodes {
+        nodeId
+        key
+        fields {
+          path
+          before
+          after
+        }
+      }
+      renamedKeys {
+        nodeId
+        from
+        to
+      }
+      addedEdges
+      removedEdges
+      changeCount
+    }
+    errors {
+      code
+      severity
+      nodeId
+      edgeId
+      path
+      params
+    }
+    warnings {
+      code
+      severity
+      nodeId
+      edgeId
+      path
+      params
+    }
+    simulator {
+      status
+      testedAt
+    }
+  }
+}

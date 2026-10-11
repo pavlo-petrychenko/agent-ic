@@ -1,0 +1,17 @@
+mutation PublishAgent($input: PublishAgentInput!) {
+  publishAgent(input: $input) {
+    agent {
+      id
+      status
+      liveVersionNumber
+      draftNumber
+      draftBaseVersionNumber
+      hasUnpublishedChanges
+      versionCount
+    }
+    version {
+      id
+      number
+    }
+  }
+}
