@@ -5,6 +5,7 @@ import {
   TEST_AGENT_ID,
   TRACE_FLOW,
 } from '@/features/testing/communication/fixtures/testing.fixture';
+import { RestoreVersionDocument } from '@/features/testing/communication/gql/mutation/restoreVersion.generated';
 import { VersionDiffDocument } from '@/features/testing/communication/gql/query/versionDiff.generated';
 import { VersionHistoryDocument } from '@/features/testing/communication/gql/query/versionHistory.generated';
 import { AgentVersionStatus } from '@/shared/api/generated/schema.generated';
@@ -106,3 +107,31 @@ export const versionDiffMock = (
     },
   },
 });
+
+export const restoreVersionMock = (
+  result: MockLink.MockedResponse['result'],
+): MockLink.MockedResponse => ({
+  request: {
+    query: RestoreVersionDocument,
+    variables: { input: { versionId: ARCHIVED_VERSION_ID, revision: 7 } },
+  },
+  result,
+});
+
+export const RESTORED_DRAFT = {
+  data: {
+    restoreAgentVersion: {
+      __typename: 'AgentDraft',
+      revision: 8,
+      version: { __typename: 'AgentVersion', id: DRAFT_VERSION_ID },
+    },
+  },
+};
+
+export const failedRestoreVersionMock: MockLink.MockedResponse = {
+  request: {
+    query: RestoreVersionDocument,
+    variables: { input: { versionId: ARCHIVED_VERSION_ID, revision: 7 } },
+  },
+  error: new Error('offline'),
+};

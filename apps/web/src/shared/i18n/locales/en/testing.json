@@ -146,6 +146,18 @@
       "first": "v{{number}} is the first version, so there's nothing to compare it with.",
       "loading": "Comparing the versions…",
       "loadError": "Couldn't compare the versions"
+    },
+    "restore": {
+      "action": "Restore",
+      "title": "Restore v{{number}} as the draft?",
+      "subtitle": "{{name}} · published {{date}}",
+      "close": "Close",
+      "cancel": "Cancel",
+      "submit": "Restore v{{number}}",
+      "intro": "We copy v{{number}} into a new draft. Nothing changes for customers until you publish.",
+      "introLive": "We copy v{{number}} into a new draft. Customers stay on v{{live}} until you publish.",
+      "warning_one": "Your current draft v{{draft}} has {{count}} unpublished change. It'll be replaced.",
+      "warning_other": "Your current draft v{{draft}} has {{count}} unpublished changes. They'll be replaced."
     }
   }
 }

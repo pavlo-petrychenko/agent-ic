@@ -18,6 +18,7 @@ import {
   VERSION_META_SEPARATOR,
   VersionKind,
 } from '@/features/testing/constants/versions.constants';
+import { RestoreVersionDialog } from '@/features/testing/containers/RestoreVersionDialog';
 import { VersionComparePanel } from '@/features/testing/containers/VersionComparePanel';
 import type { VersionsPageProps } from '@/features/testing/containers/VersionsPage/VersionsPage.typedefs';
 import { pickAgent } from '@/features/testing/logic/helpers/agent.helpers';
@@ -53,6 +54,7 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
   const { history } = historyResult;
   const [publishing, setPublishing] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState<PublishedVersion | null>(null);
   const [now] = useState(Date.now);
   const latest = history === null ? null : previousVersion(history.published, null);
   const draftDiff = useVersionDiff(
@@ -162,7 +164,17 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
               lines={noteLines(version.note)}
               selected={selectedId === version.id}
               onSelect={() => setSelected(version.id)}
-              actions={null}
+              actions={
+                version.live ? null : (
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Sm}
+                    onClick={() => setRestoring(version)}
+                  >
+                    {t('versions.restore.action')}
+                  </Button>
+                )
+              }
             />
           ))}
         </ul>
@@ -180,6 +192,16 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
             draft={draft}
             published={published}
             selectedId={selectedId}
+          />
+        )}
+        {restoring !== null && (
+          <RestoreVersionDialog
+            agentName={current.name}
+            version={restoring}
+            draft={draft}
+            liveNumber={liveNumber}
+            onRestored={() => openBuilder(null)}
+            onClose={() => setRestoring(null)}
           />
         )}
         {publishing && draft.flow !== null && (

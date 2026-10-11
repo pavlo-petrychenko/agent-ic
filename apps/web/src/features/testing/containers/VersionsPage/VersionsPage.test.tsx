@@ -1,7 +1,7 @@
 import type { MockLink } from '@apollo/client/testing';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   LIVE_VERSION_ID,
   TEST_AGENT_ID,
@@ -11,7 +11,10 @@ import {
 import {
   ARCHIVED_VERSION_ID,
   DRAFT_VERSION_ID,
+  RESTORED_DRAFT,
+  failedRestoreVersionMock,
   failedVersionHistoryMock,
+  restoreVersionMock,
   versionDiffMock,
   versionHistoryMock,
 } from '@/features/testing/communication/fixtures/versions.fixture';
@@ -154,6 +157,40 @@ describe('VersionsPage', () => {
       'aria-pressed',
       'true',
     );
+  });
+
+  it('warns about the unpublished changes and restores an archived version', async () => {
+    const user = userEvent.setup();
+    const restored = vi.fn<() => typeof RESTORED_DRAFT>(() => RESTORED_DRAFT);
+    renderPage([
+      testingAgentsMock(),
+      versionHistoryMock(),
+      LIVE_DIFF,
+      restoreVersionMock(restored),
+    ]);
+
+    await user.click(await screen.findByRole('button', { name: 'Restore' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Restore v2 as the draft?' });
+    expect(
+      within(dialog).getByText(
+        "Your current draft v4 has 3 unpublished changes. They'll be replaced.",
+      ),
+    ).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Restore v2' }));
+
+    await vi.waitFor(() => expect(restored).toHaveBeenCalled());
+  });
+
+  it('keeps the restore dialog open with the error when restoring fails', async () => {
+    const user = userEvent.setup();
+    renderPage([testingAgentsMock(), versionHistoryMock(), LIVE_DIFF, failedRestoreVersionMock]);
+
+    await user.click(await screen.findByRole('button', { name: 'Restore' }));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Restore v2' }));
+
+    expect(await within(dialog).findByRole('alert')).toBeInTheDocument();
   });
 
   it('asks to create an agent when there is none', async () => {

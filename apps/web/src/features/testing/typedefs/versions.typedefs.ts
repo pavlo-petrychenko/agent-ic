@@ -39,3 +39,8 @@ export interface VersionDiffResult {
   failed: boolean;
   retry: () => void;
 }
+
+export interface RestoreVersionResult {
+  restore: (versionId: string, revision: number) => Promise<void>;
+  restoring: boolean;
+}
