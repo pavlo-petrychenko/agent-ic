@@ -46,6 +46,7 @@ type RunStep {
   branchKey: String!
   status: RunStepStatus!
   attempt: Int!
+  input: JSON!
   output: JSON
   port: String
   error: RunFailure

@@ -11,7 +11,7 @@ export interface RunTotals {
   readonly messagesSent: number;
 }
 
-export interface RunStepView extends Omit<RunStep, 'workspaceId' | 'runId' | 'input'> {
+export interface RunStepView extends Omit<RunStep, 'workspaceId' | 'runId'> {
   readonly durationMs: number | null;
 }
 
