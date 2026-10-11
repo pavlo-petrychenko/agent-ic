@@ -2,7 +2,10 @@ import { WorkspaceRole } from '@agent-ic/contracts';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { buildRenameWorkspaceMock } from '@/features/settings/communication/fixtures/general.fixture';
+import {
+  buildRenameWorkspaceMock,
+  buildUpdateTimeZoneMock,
+} from '@/features/settings/communication/fixtures/general.fixture';
 import {
   buildWorkspaceShellMock,
   DEMO_WORKSPACE,
@@ -18,7 +21,7 @@ const BUILDER_WORKSPACE = {
   role: WorkspaceRole.Builder,
 };
 
-describe('workspace rename settings', () => {
+describe('workspace general settings', () => {
   beforeEach(() => signInForTest());
 
   afterEach(async () => {
@@ -62,5 +65,20 @@ describe('workspace rename settings', () => {
     await user.click(screen.getByRole('button', { name: /Save/i }));
 
     expect(await screen.findByText('Workspace renamed successfully')).toBeInTheDocument();
+  });
+
+  it('updates the workspace time zone', async () => {
+    const user = userEvent.setup();
+
+    renderRoute(`${settingsPath}/general`, {
+      mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE]), buildUpdateTimeZoneMock()],
+    });
+
+    await user.click(await screen.findByRole('button', { name: 'Time zone' }));
+    await user.type(screen.getByRole('searchbox', { name: 'Search time zones' }), 'london');
+    await user.click(screen.getByRole('button', { name: 'Europe/London' }));
+    await user.click(screen.getByRole('button', { name: /Save/i }));
+
+    expect(await screen.findByText('Time zone updated')).toBeInTheDocument();
   });
 });

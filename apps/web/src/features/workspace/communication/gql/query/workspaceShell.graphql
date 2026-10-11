@@ -10,6 +10,7 @@ query WorkspaceShell {
     workspace {
       id
       name
+      timeZone
       memberCount
     }
   }

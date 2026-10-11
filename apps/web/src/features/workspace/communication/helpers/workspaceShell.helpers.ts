@@ -13,6 +13,7 @@ export const toWorkspaceShellData = (
   const workspaces: readonly WorkspaceSummary[] = data.myWorkspaces.map((membership) => ({
     id: membership.workspace.id,
     name: membership.workspace.name,
+    timeZone: membership.workspace.timeZone,
     memberCount: membership.workspace.memberCount,
     role: ROLE_FROM_API[membership.role],
   }));
