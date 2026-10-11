@@ -1,6 +1,6 @@
 import { FLOW_SCHEMA_VERSION, NodeType, PortName } from '@flow/document/constants/flow.constants';
 import type { FlowDocument, FlowEdge, FlowNode } from '@flow/document/typedefs/flow.typedefs';
-import { branchNodes, buildFlowGraph } from '@flow/scope/helpers/graph.helpers';
+import { buildFlowGraph } from '@flow/scope/helpers/graph.helpers';
 import type { FlowGraph } from '@flow/scope/typedefs/scope.typedefs';
 import {
   FlowV1CompletionRole,
@@ -32,7 +32,7 @@ const upgradeEdge = (
   const startsBranch =
     edge.sourcePort === PortName.Branches &&
     graph.nodes.get(edge.source)?.type === NodeType.Parallel;
-  const observed = startsBranch && [...branchNodes(graph, edge)].some((id) => observerIds.has(id));
+  const observed = startsBranch && observerIds.has(edge.target);
   return observed ? { ...edge, background: true } : edge;
 };
 

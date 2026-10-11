@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { PortName } from '@flow/document/constants/flow.constants';
+import type { FlowDocument } from '@flow/document/typedefs/flow.typedefs';
 import { WaitFor } from '@flow/nodes/constants/step.constants';
+import { hasBlockingIssues, validateFlow } from '@flow/validation/helpers/validation.helpers';
 import { FlowV1WaitFor } from '@flow/versions/constants/version.constants';
 import { upgradeFlowV1 } from '@flow/versions/helpers/upgrade.helpers';
 import { faqWithHandOffFlow } from '@test/support/fixtures/example-flow.fixture';
 import {
   agent,
+  apiRequest,
   completion,
   flowOf,
   link,
@@ -13,9 +16,30 @@ import {
   parallel,
   sendText,
 } from '@test/support/fixtures/flow-builder.fixture';
-import { toFlowV1 } from '@test/support/fixtures/flow-v1.fixture';
+import { toFlowV1, toFlowV1Json } from '@test/support/fixtures/flow-v1.fixture';
 
 const OBSERVERS = { observerKeys: ['topic'] };
+
+const LOOKUP_THEN_TAG = { observerKeys: ['tagger'], waitFor: FlowV1WaitFor.Guards };
+
+const lookupThenTagFlow = (): FlowDocument => {
+  const trigger = messageTrigger('incoming');
+  const fork = parallel('fork', WaitFor.All);
+  const writer = agent('writer');
+  const lookup = apiRequest('lookup');
+  const tagger = completion('tagger');
+  const reply = sendText('reply', '{{lookup.body}}');
+  return flowOf(
+    [trigger, fork, writer, lookup, tagger, reply],
+    [
+      link(trigger, PortName.Next, fork),
+      link(fork, PortName.Branches, writer),
+      link(fork, PortName.Branches, lookup),
+      link(lookup, PortName.Next, tagger),
+      link(fork, PortName.Next, reply),
+    ],
+  );
+};
 
 describe('upgradeFlowV1', () => {
   it('turns the observer branch of the FAQ into a background branch', () => {
@@ -34,29 +58,52 @@ describe('upgradeFlowV1', () => {
     });
   });
 
-  it('marks a branch background when its observer comes after another step', () => {
+  it('keeps a branch waited when its observer comes after another step', () => {
+    const upgraded = upgradeFlowV1(toFlowV1(lookupThenTagFlow(), LOOKUP_THEN_TAG));
+    expect(upgraded.edges.some((edge) => edge.background === true)).toBe(false);
+  });
+
+  it('accepts a reference to a step before the observer after the join', () => {
+    const issues = validateFlow(toFlowV1Json(lookupThenTagFlow(), LOOKUP_THEN_TAG));
+    expect(hasBlockingIssues(issues)).toBe(false);
+  });
+
+  it('upgrades an observer outside any parallel to a plain completion', () => {
     const trigger = messageTrigger('incoming');
-    const fork = parallel('fork', WaitFor.All);
-    const writer = agent('writer');
-    const lookup = agent('lookup');
     const tagger = completion('tagger');
     const reply = sendText('reply', 'hi');
-    const branchToLookup = link(fork, PortName.Branches, lookup);
     const flow = flowOf(
-      [trigger, fork, writer, lookup, tagger, reply],
+      [trigger, tagger, reply],
+      [link(trigger, PortName.Next, tagger), link(tagger, PortName.Next, reply)],
+    );
+    expect(
+      upgradeFlowV1(toFlowV1(flow, { ...LOOKUP_THEN_TAG, waitFor: FlowV1WaitFor.All })),
+    ).toEqual(flow);
+  });
+
+  it('marks only the inner branch background when a nested branch starts with the observer', () => {
+    const trigger = messageTrigger('incoming');
+    const outer = parallel('outer', WaitFor.All);
+    const inner = parallel('inner', WaitFor.All);
+    const writer = agent('writer');
+    const helper = agent('helper');
+    const tagger = completion('tagger');
+    const reply = sendText('reply', 'hi');
+    const innerToTagger = link(inner, PortName.Branches, tagger);
+    const flow = flowOf(
+      [trigger, outer, inner, writer, helper, tagger, reply],
       [
-        link(trigger, PortName.Next, fork),
-        link(fork, PortName.Branches, writer),
-        branchToLookup,
-        link(lookup, PortName.Next, tagger),
-        link(fork, PortName.Next, reply),
+        link(trigger, PortName.Next, outer),
+        link(outer, PortName.Branches, writer),
+        link(outer, PortName.Branches, inner),
+        link(inner, PortName.Branches, helper),
+        innerToTagger,
+        link(outer, PortName.Next, reply),
       ],
     );
-    const upgraded = upgradeFlowV1(
-      toFlowV1(flow, { observerKeys: ['tagger'], waitFor: FlowV1WaitFor.Guards }),
-    );
+    const upgraded = upgradeFlowV1(toFlowV1(flow, LOOKUP_THEN_TAG));
     expect(upgraded.edges.filter((edge) => edge.background === true)).toEqual([
-      { ...branchToLookup, background: true },
+      { ...innerToTagger, background: true },
     ]);
   });
 });
