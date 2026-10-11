@@ -51,6 +51,33 @@ describe('flow builder canvas', () => {
     expect(edges()).toMatchObject([{ source: 'trigger', sourcePort: 'next', target: 'reply' }]);
   });
 
+  it('asks a new agent for its first step and adds it after the trigger', async () => {
+    const canvas = await openBuilder();
+    const hint = { name: 'Start with a trigger and a few steps' };
+    expect(screen.getByRole('heading', hint)).toBeVisible();
+
+    await userEvent.click(screen.getByRole('button', { name: /Add a step/ }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Agent' }));
+
+    expect(within(canvas).getByLabelText('agent')).toBeInTheDocument();
+    expect(edges()).toMatchObject([{ source: 'trigger', sourcePort: 'next' }]);
+    expect(screen.queryByRole('heading', hint)).toBeNull();
+  });
+
+  it('adds a step from the palette and filters the palette by search', async () => {
+    const canvas = await openBuilder();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Send message' }));
+    expect(within(canvas).getByLabelText('send_message')).toBeInTheDocument();
+
+    await userEvent.type(
+      screen.getByRole('searchbox', { name: 'Search steps and triggers' }),
+      'api',
+    );
+    expect(screen.getByRole('button', { name: 'API request' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Agent' })).toBeNull();
+  });
+
   it('deletes the selected step and brings it back with undo', async () => {
     const canvas = await openBuilder();
     act(() => useFlowBuilderStore.getState().select({ nodeIds: ['trigger'], edgeIds: [] }));

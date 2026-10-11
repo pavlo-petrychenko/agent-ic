@@ -5,6 +5,19 @@
   "loading": "Loading the flow",
   "loadError": "The flow couldn’t be opened.",
   "retry": "Try again",
+  "palette": {
+    "title": "Add to flow",
+    "search": "Search steps and triggers",
+    "clearSearch": "Clear search",
+    "nothingFound": "No steps match your search",
+    "knowledgeNote": "Knowledge bases are attached to an agent in its settings, not placed on the canvas.",
+    "group": {
+      "triggers": "Triggers",
+      "ai": "AI",
+      "flow": "Flow",
+      "actions": "Actions"
+    }
+  },
   "step": {
     "trigger_message": "Incoming message",
     "trigger_external_event": "External event",
@@ -17,12 +30,23 @@
     "send_message": "Send message",
     "escalation": "Escalation / exit"
   },
+  "blank": {
+    "addStep": "Add a step",
+    "addStepHint": "Agent, Completion, Router, Send message…",
+    "title": "Start with a trigger and a few steps",
+    "description": "Drag steps from the left or click “Add a step”. A typical Q&A flow: Agent → Send message."
+  },
   "canvas": {
     "label": "Flow canvas",
     "keyboardHelp": "Tab moves between steps, Enter opens a step, Delete removes the selection.",
     "port": "Port",
     "connectFrom": "Connect from {{name}} · {{port}}",
-    "zoom": { "toolbar": "Zoom", "zoomIn": "Zoom in", "zoomOut": "Zoom out", "fit": "Fit" },
+    "zoom": {
+      "toolbar": "Zoom",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "fit": "Fit"
+    },
     "deleteConnection": "Delete connection",
     "selectionToolbar": "Selected steps",
     "selectionCount": "{{count}} selected",
