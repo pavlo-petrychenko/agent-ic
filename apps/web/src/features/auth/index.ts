@@ -1,3 +1,8 @@
+export {
+  CHECK_EMAIL_SEARCH_DEFAULTS,
+  LOGIN_SEARCH_DEFAULTS,
+  TOKEN_SEARCH_DEFAULTS,
+} from '@/features/auth/constants/authSearch.constants';
 export { CheckEmailPage } from '@/features/auth/containers/CheckEmailPage';
 export { ConfirmEmailPage } from '@/features/auth/containers/ConfirmEmailPage';
 export { ForgotPasswordPage } from '@/features/auth/containers/ForgotPasswordPage';
