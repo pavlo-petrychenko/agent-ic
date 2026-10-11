@@ -1,0 +1,40 @@
+import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
+import { Injectable } from '@nestjs/common';
+import { parseConversationInput } from '@/modules/conversations/helpers/conversation-input.helpers';
+import { simulationAgentSchema } from '@/modules/conversations/schemas/simulation.schema';
+import { SimulationsService } from '@/modules/conversations/services/simulations.service';
+import type {
+  SimulationAgentInput,
+  SimulationView,
+} from '@/modules/conversations/typedefs/simulation.typedefs';
+import { authorize } from '@/platform/context/helpers/authorize.helpers';
+import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
+import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import { IdService } from '@/platform/ids/services/id.service';
+
+@Injectable()
+export class GetSimulationUseCase {
+  constructor(
+    private readonly tenants: TenantTransactionService,
+    private readonly simulations: SimulationsService,
+    private readonly ids: IdService,
+  ) {}
+
+  async execute(ctx: UseCaseCtx, input: SimulationAgentInput): Promise<SimulationView | null> {
+    const { userId, workspaceId } = authorize(
+      ctx,
+      PermissionResource.Testing,
+      PermissionAction.View,
+    );
+    const { agentId } = parseConversationInput(simulationAgentSchema, input);
+    const key = {
+      workspaceId,
+      agentId: this.ids.fromPublic(IdPrefix.Agent, agentId),
+      endUserExternalId: userId,
+    };
+    return this.tenants.run(workspaceId, async () => {
+      const open = await this.simulations.findOpenForRead(key);
+      return open === null ? null : this.simulations.view(open);
+    });
+  }
+}

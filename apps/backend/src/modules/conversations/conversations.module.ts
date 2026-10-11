@@ -8,6 +8,9 @@ import { ConversationHistoryService } from '@/modules/conversations/services/con
 import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
 import { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
 import { SimulationsService } from '@/modules/conversations/services/simulations.service';
+import { GetSimulationUseCase } from '@/modules/conversations/use-cases/get-simulation.use-case';
+import { RestartSimulationUseCase } from '@/modules/conversations/use-cases/restart-simulation.use-case';
+import { SendSimulatorMessageUseCase } from '@/modules/conversations/use-cases/send-simulator-message.use-case';
 import { StartSimulationUseCase } from '@/modules/conversations/use-cases/start-simulation.use-case';
 import { SubscribeToConversationActivityUseCase } from '@/modules/conversations/use-cases/subscribe-to-conversation-activity.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
@@ -24,6 +27,9 @@ export class ConversationsModule extends defineModule({
     SimulationsService,
     SubscribeToConversationActivityUseCase,
     StartSimulationUseCase,
+    GetSimulationUseCase,
+    RestartSimulationUseCase,
+    SendSimulatorMessageUseCase,
   ],
   resolvers: [ConversationActivityResolver, SimulationResolver],
   exports: [

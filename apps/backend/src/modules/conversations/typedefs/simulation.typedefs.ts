@@ -4,7 +4,15 @@ import type {
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
 import type { MessageAuthor } from '@/modules/conversations/constants/message.constants';
-import type { startSimulationSchema } from '@/modules/conversations/schemas/simulation.schema';
+import type {
+  simulationAgentSchema,
+  simulatorMessageSchema,
+  startSimulationSchema,
+} from '@/modules/conversations/schemas/simulation.schema';
+
+export type SimulationAgentInput = z.input<typeof simulationAgentSchema>;
+
+export type SimulatorMessageInput = z.input<typeof simulatorMessageSchema>;
 
 export type StartSimulationInput = z.input<typeof startSimulationSchema>;
 
