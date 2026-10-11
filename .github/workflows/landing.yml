@@ -24,6 +24,7 @@ env:
   PAGES_PROJECT: agent-ic-landing
   PRODUCTION_BRANCH: main
   PREVIEW_COMMENT_TITLE: '**Landing preview**'
+  WRANGLER_VERSION: 4.149.0
 
 jobs:
   credentials:
@@ -78,14 +79,16 @@ jobs:
           fi
           echo "name=${name}" >> "$GITHUB_OUTPUT"
       - id: deploy
-        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: 4.149.0
-          packageManager: pnpm
-          workingDirectory: apps/landing
-          command: pages deploy dist --project-name=${{ env.PAGES_PROJECT }} --branch=${{ steps.branch.outputs.name }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.json
+          BRANCH: ${{ steps.branch.outputs.name }}
+        run: |
+          npx --yes "wrangler@${WRANGLER_VERSION}" pages deploy apps/landing/dist \
+            --project-name="$PAGES_PROJECT" --branch="$BRANCH" --commit-dirty=true
+          jq -r 'select(.type == "pages-deploy-detailed") | "deployment-url=\(.url)\npages-deployment-alias-url=\(.alias // "")"' \
+            "$WRANGLER_OUTPUT_FILE_PATH" >> "$GITHUB_OUTPUT"
       - if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
