@@ -1,6 +1,19 @@
+import { NodeType } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { OutputViewKind } from '@/features/testing/constants/trace.constants';
-import { formatSeconds, toOutputView } from '@/features/testing/logic/helpers/output.helpers';
+import {
+  formatSeconds,
+  toOutputView,
+  toStepView,
+} from '@/features/testing/logic/helpers/output.helpers';
+import { RunStepStatus } from '@/shared/api/generated/schema.generated';
+
+const step = {
+  id: 'step_1',
+  nodeId: 'node_1',
+  status: RunStepStatus.Succeeded,
+  output: { ok: true },
+};
 
 describe('toOutputView', () => {
   it('shows a flat object as fields, with a dash for empty values', () => {
@@ -23,6 +36,13 @@ describe('toOutputView', () => {
   it('shows nothing for a step without output', () => {
     expect(toOutputView(null)).toBeNull();
     expect(toOutputView({})).toBeNull();
+  });
+});
+
+describe('toStepView', () => {
+  it('leaves out what a send message step did inside', () => {
+    expect(toStepView(step, NodeType.SendMessage)).toBeNull();
+    expect(toStepView(step, NodeType.Agent)).toMatchObject({ kind: OutputViewKind.Fields });
   });
 });
 

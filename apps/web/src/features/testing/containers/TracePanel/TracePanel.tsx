@@ -8,7 +8,7 @@ import { EMPTY_FIELD_VALUE, RUN_STATUS_TONES } from '@/features/testing/constant
 import { TRACE_LEGEND } from '@/features/testing/containers/TracePanel/TracePanel.constants';
 import type { TracePanelProps } from '@/features/testing/containers/TracePanel/TracePanel.typedefs';
 import { isActiveRun } from '@/features/testing/logic/helpers/chat.helpers';
-import { formatSeconds, toOutputView } from '@/features/testing/logic/helpers/output.helpers';
+import { formatSeconds, toStepView } from '@/features/testing/logic/helpers/output.helpers';
 import {
   drawTrace,
   focusNodeId,
@@ -47,7 +47,7 @@ export function TracePanel({
     state: nodeState(steps, slot.id, active),
   }));
   const node = focusNodeId(details.run);
-  const labels = new Map(slots.map((slot) => [slot.id, slot.label]));
+  const slotById = new Map(slots.map((slot) => [slot.id, slot]));
   const turn = details.run;
 
   return (
@@ -109,10 +109,11 @@ export function TracePanel({
               { label: t('details.messagesSent'), value: String(turn.totals.messagesSent) },
             ]}
             outputs={turn.steps.flatMap((step) => {
-              const view = toOutputView(step.output);
+              const slot = slotById.get(step.nodeId) ?? null;
+              const view = toStepView(step, slot?.type ?? null);
               return view === null
                 ? []
-                : [{ id: step.id, title: labels.get(step.nodeId) ?? step.nodeId, view }];
+                : [{ id: step.id, title: slot?.label ?? step.nodeId, view }];
             })}
           />
         )}

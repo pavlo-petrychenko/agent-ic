@@ -1,3 +1,4 @@
+import { NodeType } from '@agent-ic/flow';
 import { RunStatus, RunStepStatus } from '@/shared/api/generated/schema.generated';
 import { BadgeTone } from '@/shared/ui/display/Badge';
 import { RunNodeState } from '@/shared/ui/flow/RunNode';
@@ -36,3 +37,5 @@ export const RUN_STATUS_TONES: Readonly<Record<RunStatus, BadgeTone>> = {
   [RunStatus.Escalated]: BadgeTone.Warn,
   [RunStatus.Failed]: BadgeTone.Err,
 };
+
+export const QUIET_OUTPUT_NODE_TYPES: ReadonlySet<NodeType> = new Set([NodeType.SendMessage]);
