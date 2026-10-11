@@ -477,7 +477,9 @@ describe('RunExecutionService', () => {
     const running = execute(seeded);
     await vi.waitFor(async () => {
       const { steps } = await stored(seeded);
-      expect(steps.map((step) => step.nodeId)).toContain(ESCALATION_NODE_ID);
+      expect(steps.find((step) => step.nodeId === ESCALATION_NODE_ID)?.status).toBe(
+        RunStepStatus.Succeeded,
+      );
     });
     testbed.executor.release(SECOND_STEP_ID);
 
