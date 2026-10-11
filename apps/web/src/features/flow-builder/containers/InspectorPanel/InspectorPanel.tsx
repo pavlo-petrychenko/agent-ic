@@ -1,4 +1,4 @@
-import { MAX_LABEL_LENGTH, NodeType, isTriggerNode, triggerVariables } from '@agent-ic/flow';
+import { MAX_LABEL_LENGTH, NodeType, PortName, triggerVariables } from '@agent-ic/flow';
 import type { FlowNode } from '@agent-ic/flow';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { DESCRIBED_NODE_TYPES } from '@/features/flow-builder/constants/inspecto
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
 import { renameKey } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import {
+  branchRows,
   fieldRows,
   nodeName,
   proposeKeyRename,
@@ -16,6 +17,7 @@ import {
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { KeyRename } from '@/features/flow-builder/typedefs/inspector.typedefs';
 import { InlineEditField } from '@/features/flow-builder/view/InlineEditField';
+import { ParallelInspector } from '@/features/flow-builder/view/ParallelInspector';
 import { TriggerInspector } from '@/features/flow-builder/view/TriggerInspector';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Inspector } from '@/shared/ui/layout/Inspector';
@@ -30,7 +32,6 @@ export function InspectorPanel() {
   const [keyRename, setKeyRename] = useState<KeyRename | null>(null);
   const [nodeId] = selection.nodeIds.length === 1 ? selection.nodeIds : [null];
   const node = document.nodes.find((candidate) => candidate.id === nodeId) ?? null;
-  const stepName = (type: NodeType) => t(`step.${type}`);
 
   const body = (current: FlowNode) => {
     switch (current.type) {
@@ -42,32 +43,39 @@ export function InspectorPanel() {
             )}
           />
         );
+      case NodeType.Parallel:
+        return (
+          <ParallelInspector
+            branches={branchRows(document, current, PortName.Branches)}
+            waitFor={current.config.waitFor}
+            onWaitForChange={(waitFor) =>
+              apply(
+                updateNode(document, current.id, (step) =>
+                  step.type === NodeType.Parallel
+                    ? { ...step, config: { ...step.config, waitFor } }
+                    : step,
+                ),
+              )
+            }
+          />
+        );
       default:
         return null;
     }
   };
 
-  if (node === null) {
-    return null;
-  }
-
-  const name = nodeName(node, stepName);
-  const described = DESCRIBED_NODE_TYPES.find((type) => type === node.type) ?? null;
-  const presentation = NODE_PRESENTATION[node.type];
-
-  return (
-    <>
+  const inspector = (current: FlowNode) => {
+    const name = nodeName(current);
+    const described = DESCRIBED_NODE_TYPES.find((type) => type === current.type) ?? null;
+    return (
       <Inspector
-        kind={{
-          label: isTriggerNode(node) ? t('inspector.trigger.kind') : stepName(node.type),
-          ...presentation,
-        }}
+        kind={{ label: t(`inspector.kind.${current.type}`), ...NODE_PRESENTATION[current.type] }}
         title={name}
         subtitle={described === null ? null : t(`inspector.description.${described}`)}
         heading={
           <InlineEditField
-            key={node.id}
-            value={node.label === '' ? null : node.label}
+            key={current.id}
+            value={current.label === '' ? null : current.label}
             placeholder={name}
             editLabel={t('inspector.rename')}
             inputLabel={t('inspector.nameLabel')}
@@ -75,18 +83,25 @@ export function InspectorPanel() {
             required={false}
             current={false}
             inheritFont
+            flush
             onCommit={(label) => {
-              const renamed = updateNode(document, node.id, (step) => ({ ...step, label }));
+              const renamed = updateNode(document, current.id, (step) => ({ ...step, label }));
               apply(renamed);
-              setKeyRename(proposeKeyRename(renamed, node.id, label));
+              setKeyRename(proposeKeyRename(renamed, current.id, label));
             }}
           />
         }
         closeLabel={t('inspector.close')}
         onClose={() => select(EMPTY_SELECTION)}
       >
-        {body(node)}
+        {body(current)}
       </Inspector>
+    );
+  };
+
+  return (
+    <>
+      {node !== null && inspector(node)}
       <Dialog
         open={keyRename !== null}
         onOpenChange={() => setKeyRename(null)}

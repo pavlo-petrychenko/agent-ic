@@ -1,5 +1,6 @@
-import { NodeType } from '@agent-ic/flow';
+import { NodeType, WaitFor } from '@agent-ic/flow';
 import type { DescribedNodeType } from '@/features/flow-builder/typedefs/inspector.typedefs';
+import { BadgeTone } from '@/shared/ui/display/Badge/Badge.constants';
 
 export const DESCRIBED_NODE_TYPES: readonly DescribedNodeType[] = [
   NodeType.TriggerMessage,
@@ -38,6 +39,20 @@ export const MESSAGE_TYPES: Readonly<Record<MessageType, MessageTreatment>> = {
   [MessageType.Text]: MessageTreatment.Runs,
   [MessageType.Files]: MessageTreatment.Attachments,
   [MessageType.Voice]: MessageTreatment.Ignored,
+};
+
+export const WAIT_FOR_OPTIONS: readonly WaitFor[] = [WaitFor.Guards, WaitFor.All, WaitFor.First];
+
+export enum BranchRole {
+  Waited = 'waited',
+  Observer = 'observer',
+  Racing = 'racing',
+}
+
+export const BRANCH_ROLE_TONES: Readonly<Record<BranchRole, BadgeTone>> = {
+  [BranchRole.Waited]: BadgeTone.Accent,
+  [BranchRole.Observer]: BadgeTone.Neutral,
+  [BranchRole.Racing]: BadgeTone.Warn,
 };
 
 export const KEY_INVALID_CHARACTERS = /[^a-z0-9]+/g;

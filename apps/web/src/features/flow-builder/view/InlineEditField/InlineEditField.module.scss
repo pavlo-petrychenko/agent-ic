@@ -26,3 +26,7 @@
 .inheritFont {
   font: inherit;
 }
+
+.flush {
+  margin-inline-start: calc(-1 * var(--space-4));
+}
