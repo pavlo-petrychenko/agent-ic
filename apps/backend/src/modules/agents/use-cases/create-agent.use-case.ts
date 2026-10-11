@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
 import { initialAgentFlow } from '@/modules/agents/helpers/agent-flow.helpers';
 import { parseAgentInput } from '@/modules/agents/helpers/agent-input.helpers';
+import { uniqueAgentName } from '@/modules/agents/helpers/agent-name.helpers';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { createAgentInputSchema } from '@/modules/agents/schemas/agent-input.schema';
@@ -37,10 +38,12 @@ export class CreateAgentUseCase {
     const draftId = this.ids.generate();
     const triggerNodeId = this.ids.generate();
     return this.tenantTransactions.run(workspaceId, async () => {
+      await this.agents.lockNames(workspaceId);
+      const takenNames = await this.agents.findNamesStartingWith(workspaceId, name);
       const agent = {
         id: agentId,
         workspaceId,
-        name,
+        name: uniqueAgentName(name, takenNames),
         description: null,
         draftVersionId: draftId,
         liveVersionId: null,

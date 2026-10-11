@@ -14,6 +14,7 @@ import { TEST_AGENT_NAME } from '@test/support/constants/agents-testing.constant
 import { agentsCtx, createAgentsTestingModule } from '@test/support/helpers/agents-testing.helpers';
 
 const PADDED_NAME = `  ${TEST_AGENT_NAME}  `;
+const CONCURRENT_CREATES = 3;
 
 describe('CreateAgentUseCase', () => {
   let testingModule: TestingModule;
@@ -51,6 +52,36 @@ describe('CreateAgentUseCase', () => {
     expect(flowDocumentSchema.safeParse(draft?.flow).success).toBe(true);
     expect(draft?.flow.nodes.map((node) => node.type)).toEqual([NodeType.TriggerMessage]);
     expect(draft?.flow.edges).toEqual([]);
+  });
+
+  it('numbers a name already used in the workspace', async () => {
+    const ctx = agentsCtx(testingModule, ids.generate());
+
+    const first = await createAgent.execute(ctx, { name: TEST_AGENT_NAME });
+    const second = await createAgent.execute(ctx, { name: TEST_AGENT_NAME });
+    const third = await createAgent.execute(ctx, { name: TEST_AGENT_NAME });
+    const elsewhere = await createAgent.execute(agentsCtx(testingModule, ids.generate()), {
+      name: TEST_AGENT_NAME,
+    });
+
+    expect([first.name, second.name, third.name]).toEqual([
+      TEST_AGENT_NAME,
+      `${TEST_AGENT_NAME} 2`,
+      `${TEST_AGENT_NAME} 3`,
+    ]);
+    expect(elsewhere.name).toBe(TEST_AGENT_NAME);
+  });
+
+  it('gives agents created at the same time different names', async () => {
+    const ctx = agentsCtx(testingModule, ids.generate());
+
+    const views = await Promise.all(
+      Array.from({ length: CONCURRENT_CREATES }, () =>
+        createAgent.execute(ctx, { name: TEST_AGENT_NAME }),
+      ),
+    );
+
+    expect(new Set(views.map((view) => view.name)).size).toBe(views.length);
   });
 
   it.each(['', '   '])('rejects the name %j', async (name) => {
