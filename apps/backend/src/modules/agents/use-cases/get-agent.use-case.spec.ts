@@ -26,6 +26,7 @@ import {
 
 const FIRST_DRAFT_NUMBER = 1;
 const PUBLISH_COUNT = 2;
+const TRIGGER_FLOW_ITEMS = 3;
 
 describe('GetAgentUseCase', () => {
   let testingModule: TestingModule;
@@ -89,6 +90,7 @@ describe('GetAgentUseCase', () => {
       draftNumber: FIRST_DRAFT_NUMBER,
       draftBaseVersionNumber: null,
       hasUnpublishedChanges: true,
+      draftChangeCount: TRIGGER_FLOW_ITEMS,
       versionCount: 0,
     });
     expect(published).toMatchObject({
@@ -96,9 +98,14 @@ describe('GetAgentUseCase', () => {
       draftNumber: PUBLISH_COUNT + 1,
       draftBaseVersionNumber: PUBLISH_COUNT,
       hasUnpublishedChanges: false,
+      draftChangeCount: 0,
       versionCount: PUBLISH_COUNT,
     });
-    expect(edited).toMatchObject({ liveVersionNumber: PUBLISH_COUNT, hasUnpublishedChanges: true });
+    expect(edited).toMatchObject({
+      liveVersionNumber: PUBLISH_COUNT,
+      hasUnpublishedChanges: true,
+      draftChangeCount: 1,
+    });
   });
 
   it('does not find an agent of another workspace', async () => {

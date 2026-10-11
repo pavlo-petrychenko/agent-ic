@@ -1,3 +1,6 @@
+import { FLOW_SCHEMA_VERSION } from '@agent-ic/flow';
+import type { FlowDocument } from '@agent-ic/flow';
+
 export const AGENTS_SCHEMA = 'agents';
 
 export enum PauseMode {
@@ -42,3 +45,14 @@ export enum AgentStatus {
 export const INITIAL_TRIGGER_KEY = 'trigger';
 export const INITIAL_TRIGGER_LABEL = 'Customer message';
 export const INITIAL_TRIGGER_POSITION = { x: 0, y: 0 } as const;
+
+export const EMPTY_FLOW: FlowDocument = {
+  schemaVersion: FLOW_SCHEMA_VERSION,
+  nodes: [],
+  edges: [],
+};
+
+export enum SimulatorCheckStatus {
+  Tested = 'tested',
+  NotTested = 'not_tested',
+}

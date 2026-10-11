@@ -3,6 +3,8 @@ import { ErrorReason } from '@agent-ic/contracts';
 export enum AgentField {
   Id = 'id',
   AgentId = 'agentId',
+  FromId = 'fromId',
+  ToId = 'toId',
   Name = 'name',
   Description = 'description',
   Flow = 'flow',
@@ -16,6 +18,8 @@ export enum AgentGraphqlArgument {
   Input = 'input',
   Id = 'id',
   AgentId = 'agentId',
+  FromId = 'fromId',
+  ToId = 'toId',
   First = 'first',
   After = 'after',
 }

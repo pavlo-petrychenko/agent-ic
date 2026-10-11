@@ -25,6 +25,7 @@ export const toAgentView = (
   draftNumber: summary.lastVersionNumber + 1,
   draftBaseVersionNumber: summary.draftBaseVersionNumber,
   hasUnpublishedChanges: summary.hasUnpublishedChanges,
+  draftChangeCount: null,
   versionCount: summary.versionCount,
   pausedAt: agent.pausedAt,
   pauseMode: agent.pauseMode,

@@ -29,7 +29,7 @@ export class GetAgentUseCase {
       if (agent === null) {
         throw new AgentNotFoundError();
       }
-      return this.views.agentView(workspaceId, agent);
+      return this.views.agentDetailView(workspaceId, agent);
     });
   }
 }

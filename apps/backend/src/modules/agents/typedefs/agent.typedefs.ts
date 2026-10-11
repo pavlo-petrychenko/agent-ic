@@ -36,6 +36,7 @@ export interface AgentView {
   readonly draftNumber: number;
   readonly draftBaseVersionNumber: number | null;
   readonly hasUnpublishedChanges: boolean;
+  readonly draftChangeCount: number | null;
   readonly versionCount: number;
   readonly pausedAt: Date | null;
   readonly pauseMode: PauseMode | null;

@@ -14,6 +14,7 @@ import { AgentFlowService } from '@/modules/agents/services/agent-flow.service';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
 import { AgentRuntimeReader } from '@/modules/agents/services/agent-runtime-reader.service';
 import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
+import { CompareAgentVersionsUseCase } from '@/modules/agents/use-cases/compare-agent-versions.use-case';
 import { CreateAgentUseCase } from '@/modules/agents/use-cases/create-agent.use-case';
 import { DeleteAgentUseCase } from '@/modules/agents/use-cases/delete-agent.use-case';
 import { DescribeAgentUseCase } from '@/modules/agents/use-cases/describe-agent.use-case';
@@ -23,6 +24,7 @@ import { GetAgentUseCase } from '@/modules/agents/use-cases/get-agent.use-case';
 import { ListAgentVersionsUseCase } from '@/modules/agents/use-cases/list-agent-versions.use-case';
 import { ListAgentsUseCase } from '@/modules/agents/use-cases/list-agents.use-case';
 import { PauseAgentUseCase } from '@/modules/agents/use-cases/pause-agent.use-case';
+import { PreviewAgentPublishUseCase } from '@/modules/agents/use-cases/preview-agent-publish.use-case';
 import { PublishAgentUseCase } from '@/modules/agents/use-cases/publish-agent.use-case';
 import { RenameAgentUseCase } from '@/modules/agents/use-cases/rename-agent.use-case';
 import { ResumeAgentUseCase } from '@/modules/agents/use-cases/resume-agent.use-case';
@@ -50,6 +52,8 @@ export class AgentsModule extends defineModule({
     ListAgentVersionsUseCase,
     PauseAgentUseCase,
     ResumeAgentUseCase,
+    CompareAgentVersionsUseCase,
+    PreviewAgentPublishUseCase,
   ],
   resolvers: [
     CreateAgentResolver,

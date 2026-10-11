@@ -81,3 +81,11 @@ export const diffFlows = (a: FlowDocument, b: FlowDocument): FlowDiff => {
     removedEdges: edgesMissingFrom(a.edges, b.edges),
   };
 };
+
+export const countFlowChanges = (diff: FlowDiff): number =>
+  diff.addedNodes.length +
+  diff.removedNodes.length +
+  diff.changedNodes.length +
+  diff.renamedKeys.length +
+  diff.addedEdges.length +
+  diff.removedEdges.length;

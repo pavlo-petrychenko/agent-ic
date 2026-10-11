@@ -11,7 +11,7 @@ export {
   operatorsForType,
   pickRoute,
 } from '@flow/conditions/helpers/condition.helpers';
-export { diffFlows } from '@flow/diff/helpers/diff.helpers';
+export { countFlowChanges, diffFlows } from '@flow/diff/helpers/diff.helpers';
 export type {
   FieldChange,
   FlowDiff,

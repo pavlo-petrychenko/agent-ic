@@ -1,7 +1,8 @@
-import type { FlowDocument, FlowIssue } from '@agent-ic/flow';
+import type { FlowDiff, FlowDocument, FlowIssue } from '@agent-ic/flow';
 import type {
   AgentVersionKind,
   AgentVersionStatus,
+  SimulatorCheckStatus,
 } from '@/modules/agents/constants/agent.constants';
 import type { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import type { AgentView } from '@/modules/agents/typedefs/agent.typedefs';
@@ -91,4 +92,26 @@ export interface AgentDraftView {
 export interface PublishedAgent {
   readonly agent: AgentView;
   readonly version: AgentVersionView;
+}
+
+export interface AgentVersionDiffInput {
+  readonly agentId: string;
+  readonly fromId: string;
+  readonly toId: string;
+}
+
+export interface PublishPreviewInput {
+  readonly agentId: string;
+}
+
+export interface SimulatorCheck {
+  readonly status: SimulatorCheckStatus;
+  readonly testedAt: Date | null;
+}
+
+export interface PublishPreview {
+  readonly diff: FlowDiff;
+  readonly errors: readonly FlowIssue[];
+  readonly warnings: readonly FlowIssue[];
+  readonly simulator: SimulatorCheck;
 }
