@@ -123,6 +123,20 @@ describe('VersionsPage', () => {
     expect(within(draft).getByText(`New step: ${EDITED_STEP_LABEL}`)).toBeInTheDocument();
   });
 
+  it('says the first published version has nothing to compare with', async () => {
+    const user = userEvent.setup();
+    renderPage([testingAgentsMock(), versionHistoryMock(), DRAFT_DIFF, LIVE_DIFF]);
+
+    await screen.findByText('Send replies: “typing…” indicator on', { selector: 'span' });
+    const archived = screen.getByRole('listitem', { name: 'v2' });
+    await user.click(within(archived).getByRole('button', { name: 'v2' }));
+
+    const panel = await screen.findByRole('region', { name: 'What changed in v2' });
+    expect(
+      within(panel).getByText("v2 is the first version, so there's nothing to compare it with."),
+    ).toBeInTheDocument();
+  });
+
   it('asks to create an agent when there is none', async () => {
     renderPage([testingAgentsMock([])]);
 

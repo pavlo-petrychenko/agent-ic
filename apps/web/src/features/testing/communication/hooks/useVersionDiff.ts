@@ -9,9 +9,10 @@ export function useVersionDiff(
   fromId: string | null,
   toId: string | null,
 ): VersionDiffResult {
+  const skipped = agentId === null || fromId === null || toId === null;
   const { data, loading, error, refetch } = useQuery(
     VersionDiffDocument,
-    agentId === null || fromId === null || toId === null
+    skipped
       ? skipToken
       : {
           variables: { agentId, fromId, toId },
@@ -20,8 +21,8 @@ export function useVersionDiff(
         },
   );
   const diff = useMemo(
-    () => (data === undefined ? null : toFlowDiff(data.agentVersionDiff)),
-    [data],
+    () => (skipped || data === undefined ? null : toFlowDiff(data.agentVersionDiff)),
+    [skipped, data],
   );
   return {
     diff,
