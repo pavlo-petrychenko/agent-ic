@@ -1,5 +1,6 @@
 export { emailConfirmationRequestedEvent } from '@/modules/identity/events/email-confirmation-requested.event';
 export { passwordResetRequestedEvent } from '@/modules/identity/events/password-reset-requested.event';
+export { workspaceDeletedEvent } from '@/modules/identity/events/workspace-deleted.event';
 export { IdentityModule } from '@/modules/identity/identity.module';
 export { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 export { UsersRepository } from '@/modules/identity/repositories/users.repository';
@@ -15,3 +16,7 @@ export type {
   SampleFlowExamplesWorkspace,
   SampleWorkspace,
 } from '@/modules/identity/typedefs/sample-workspace.typedefs';
+export type {
+  DeleteWorkspaceInput,
+  WorkspaceDeletedInput,
+} from '@/modules/identity/typedefs/workspace.typedefs';

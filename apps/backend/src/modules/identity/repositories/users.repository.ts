@@ -95,4 +95,11 @@ export class UsersRepository {
   async clearPendingInvite(id: string): Promise<void> {
     await this.txHost.tx.update(users).set({ pendingInviteLinkId: null }).where(eq(users.id, id));
   }
+
+  async clearLastWorkspace(workspaceId: string): Promise<void> {
+    await this.txHost.tx
+      .update(users)
+      .set({ lastWorkspaceId: null })
+      .where(eq(users.lastWorkspaceId, workspaceId));
+  }
 }

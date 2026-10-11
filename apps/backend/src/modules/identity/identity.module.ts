@@ -9,6 +9,7 @@ import { UsersRepository } from '@/modules/identity/repositories/users.repositor
 import { WorkspacesRepository } from '@/modules/identity/repositories/workspaces.repository';
 import { AcceptInviteResolver } from '@/modules/identity/resolvers/accept-invite.resolver';
 import { CreateWorkspaceResolver } from '@/modules/identity/resolvers/create-workspace.resolver';
+import { DeleteWorkspaceResolver } from '@/modules/identity/resolvers/delete-workspace.resolver';
 import { ForgotPasswordResolver } from '@/modules/identity/resolvers/forgot-password.resolver';
 import { InviteInfoResolver } from '@/modules/identity/resolvers/invite-info.resolver';
 import { InviteLinkResolver } from '@/modules/identity/resolvers/invite-link.resolver';
@@ -38,6 +39,7 @@ import { CleanUpAuthRecordsUseCase } from '@/modules/identity/use-cases/clean-up
 import { ConfirmEmailUseCase } from '@/modules/identity/use-cases/confirm-email.use-case';
 import { CountMembersByRoleUseCase } from '@/modules/identity/use-cases/count-members-by-role.use-case';
 import { CreateWorkspaceUseCase } from '@/modules/identity/use-cases/create-workspace.use-case';
+import { DeleteWorkspaceUseCase } from '@/modules/identity/use-cases/delete-workspace.use-case';
 import { ForgotPasswordUseCase } from '@/modules/identity/use-cases/forgot-password.use-case';
 import { GetInviteInfoUseCase } from '@/modules/identity/use-cases/get-invite-info.use-case';
 import { GetInviteLinkUseCase } from '@/modules/identity/use-cases/get-invite-link.use-case';
@@ -92,6 +94,7 @@ export class IdentityModule extends defineModule({
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
     CreateWorkspaceUseCase,
+    DeleteWorkspaceUseCase,
     ListMyWorkspacesUseCase,
     GetInviteLinkUseCase,
     UpdateInviteLinkRoleUseCase,
@@ -112,6 +115,7 @@ export class IdentityModule extends defineModule({
     MeResolver,
     ForgotPasswordResolver,
     CreateWorkspaceResolver,
+    DeleteWorkspaceResolver,
     MyWorkspacesResolver,
     InviteLinkResolver,
     LeaveWorkspaceResolver,
