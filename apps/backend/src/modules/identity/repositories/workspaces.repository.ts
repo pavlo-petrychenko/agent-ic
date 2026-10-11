@@ -34,4 +34,10 @@ export class WorkspacesRepository {
       .set({ timeZone })
       .where(and(eq(workspaces.workspaceId, workspaceId), eq(workspaces.id, workspaceId)));
   }
+
+  async delete(workspaceId: string): Promise<void> {
+    await this.txHost.tx
+      .delete(workspaces)
+      .where(and(eq(workspaces.workspaceId, workspaceId), eq(workspaces.id, workspaceId)));
+  }
 }

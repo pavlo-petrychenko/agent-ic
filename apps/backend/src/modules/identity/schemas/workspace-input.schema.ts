@@ -6,6 +6,7 @@ import { isSupportedTimeZone } from '@/modules/identity/helpers/workspace-input.
 const tokenSchema = z.string().min(1);
 const workspaceNameSchema = z.string().trim().min(1).max(WORKSPACE_NAME_MAX_LENGTH);
 const timeZoneSchema = z.string().refine(isSupportedTimeZone);
+const passwordSchema = z.string().min(1).max(PASSWORD_MAX_LENGTH);
 
 export const createWorkspaceInputSchema = z.object({
   [WorkspaceField.Name]: workspaceNameSchema,
@@ -32,5 +33,10 @@ export const updateTimeZoneInputSchema = z.object({
 
 export const transferOwnershipInputSchema = z.object({
   [WorkspaceField.MembershipId]: tokenSchema,
-  [WorkspaceField.Password]: z.string().min(1).max(PASSWORD_MAX_LENGTH),
+  [WorkspaceField.Password]: passwordSchema,
+});
+
+export const deleteWorkspaceInputSchema = z.object({
+  [WorkspaceField.Name]: workspaceNameSchema,
+  [WorkspaceField.Password]: passwordSchema,
 });

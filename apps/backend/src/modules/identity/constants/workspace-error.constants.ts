@@ -4,3 +4,4 @@ export const ROLE_NOT_INVITABLE_MESSAGE = 'This role cannot be given through an 
 export const INVALID_WORKSPACE_INPUT_MESSAGE = 'Some workspace fields are not valid.';
 export const CANNOT_TRANSFER_TO_YOURSELF_MESSAGE = 'Ownership cannot be transferred to yourself.';
 export const TEAM_MEMBER_NOT_FOUND_MESSAGE = 'That person is not part of this workspace.';
+export const WORKSPACE_NAME_MISMATCH_MESSAGE = 'The name does not match the workspace name.';

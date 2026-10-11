@@ -58,7 +58,11 @@ const OWNER_ACCESS: ResourcePermissions = {
 
 const ADMIN_ACCESS: ResourcePermissions = {
   ...FULL_ACCESS,
-  [PermissionResource.WorkspaceSettings]: [...MANAGE, PermissionAction.Leave],
+  [PermissionResource.WorkspaceSettings]: [
+    PermissionAction.View,
+    PermissionAction.Edit,
+    PermissionAction.Leave,
+  ],
 };
 
 export const PERMISSION_MATRIX: Readonly<Record<WorkspaceRole, ResourcePermissions>> = {

@@ -65,7 +65,8 @@
     "STEP_PROMPT_UNAVAILABLE": "This step has no inline prompt, and prompts from the library cannot run yet.",
     "STEP_MODEL_UNKNOWN": "This step uses a model that is not in the model list.",
     "CANNOT_TRANSFER_TO_YOURSELF": "Ownership cannot be transferred to yourself.",
-    "TEAM_MEMBER_NOT_FOUND": "This person is not part of this workspace."
+    "TEAM_MEMBER_NOT_FOUND": "This person is not part of this workspace.",
+    "WORKSPACE_NAME_MISMATCH": "The name does not match the workspace name."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",

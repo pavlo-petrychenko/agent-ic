@@ -77,4 +77,5 @@ export enum ErrorReason {
   StepModelUnknown = 'STEP_MODEL_UNKNOWN',
   CannotTransferToYourself = 'CANNOT_TRANSFER_TO_YOURSELF',
   TeamMemberNotFound = 'TEAM_MEMBER_NOT_FOUND',
+  WorkspaceNameMismatch = 'WORKSPACE_NAME_MISMATCH',
 }
