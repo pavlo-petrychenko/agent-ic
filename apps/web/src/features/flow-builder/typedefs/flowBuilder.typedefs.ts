@@ -79,8 +79,14 @@ export interface FlowBuilderActions {
 
 export type FlowBuilderStore = FlowBuilderState & FlowBuilderActions;
 
+export interface AgentDetails {
+  name: string;
+  description: string | null;
+}
+
 export interface FlowBuilderDraftResult {
   agentName: string | null;
+  agentDescription: string | null;
   baseVersion: number | null;
   draft: FlowDraft | null;
   loading: boolean;

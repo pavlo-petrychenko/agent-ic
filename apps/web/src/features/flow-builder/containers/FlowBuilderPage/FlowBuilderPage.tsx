@@ -1,8 +1,7 @@
-import { AGENT_NAME_MAX_LENGTH } from '@agent-ic/contracts';
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFlowBuilderDraft } from '@/features/flow-builder/communication/hooks/useFlowBuilderDraft';
-import { useRenameAgent } from '@/features/flow-builder/communication/hooks/useRenameAgent';
+import { useSaveAgentDetails } from '@/features/flow-builder/communication/hooks/useSaveAgentDetails';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import type { FlowBuilderPageProps } from '@/features/flow-builder/containers/FlowBuilderPage/FlowBuilderPage.typedefs';
 import { useDraftAutosave } from '@/features/flow-builder/containers/FlowBuilderPage/useDraftAutosave';
@@ -10,10 +9,15 @@ import { FlowEditor } from '@/features/flow-builder/containers/FlowEditor';
 import { IssuesPanel } from '@/features/flow-builder/containers/IssuesPanel';
 import { LeaveGuard } from '@/features/flow-builder/containers/LeaveGuard';
 import { StepPalettePanel } from '@/features/flow-builder/containers/StepPalettePanel';
+import {
+  normalizeAgentDetails,
+  sameAgentDetails,
+} from '@/features/flow-builder/logic/helpers/agentDetails.helpers';
 import { formatSavedAt } from '@/features/flow-builder/logic/helpers/autosave.helpers';
 import { agentsHref, workspaceHref } from '@/features/flow-builder/logic/helpers/route.helpers';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
-import { InlineEditField } from '@/features/flow-builder/view/InlineEditField';
+import type { AgentDetails } from '@/features/flow-builder/typedefs/flowBuilder.typedefs';
+import { AgentDetailsPopover } from '@/features/flow-builder/view/AgentDetailsPopover';
 import { SaveStatus } from '@/features/flow-builder/view/SaveStatus';
 import { useActiveWorkspace } from '@/features/workspace';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
@@ -33,19 +37,33 @@ import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 export function FlowBuilderPage({ workspaceId, agentId }: FlowBuilderPageProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const workspace = useActiveWorkspace(workspaceId);
-  const { agentName, baseVersion, draft, loading, failed, retry } = useFlowBuilderDraft(agentId);
-  const renameAgent = useRenameAgent(agentId);
+  const { agentName, agentDescription, baseVersion, draft, loading, failed, retry } =
+    useFlowBuilderDraft(agentId);
+  const saveAgentDetails = useSaveAgentDetails(agentId);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [savingDetails, setSavingDetails] = useState(false);
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
   const { locale } = useLocale();
   const { conflict, retry: retrySave } = useDraftAutosave(agentId);
 
-  const save = (request: Promise<void>, message: string) =>
-    void request.then(
-      () => showToast({ message, tone: ToastTone.Ok }),
-      (error: unknown) =>
-        showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err }),
-    );
+  const saveDetails = async (current: AgentDetails, edited: AgentDetails) => {
+    const next = normalizeAgentDetails(edited);
+    if (sameAgentDetails(current, next)) {
+      setDetailsOpen(false);
+      return;
+    }
+    setSavingDetails(true);
+    try {
+      await saveAgentDetails(current, next);
+      setDetailsOpen(false);
+      showToast({ message: t('details.saved'), tone: ToastTone.Ok });
+    } catch (error) {
+      showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
+    } finally {
+      setSavingDetails(false);
+    }
+  };
   const load = useFlowBuilderStore((state) => state.load);
   const saveState = useFlowBuilderStore((state) => state.saveState);
 
@@ -72,15 +90,14 @@ export function FlowBuilderPage({ workspaceId, agentId }: FlowBuilderPageProps) 
               <Text kind={TextKind.Body} color={TextColor.Mute} aria-hidden="true">
                 {BREADCRUMB_SEPARATOR}
               </Text>
-              <InlineEditField
-                value={agentName}
-                placeholder={agentName}
-                editLabel={t('header.rename')}
-                inputLabel={t('header.nameLabel')}
-                maxLength={AGENT_NAME_MAX_LENGTH}
-                required
-                current
-                onCommit={(name) => save(renameAgent(name), t('header.renamed'))}
+              <AgentDetailsPopover
+                details={{ name: agentName, description: agentDescription }}
+                open={detailsOpen}
+                saving={savingDetails}
+                onOpenChange={setDetailsOpen}
+                onSave={(edited) =>
+                  void saveDetails({ name: agentName, description: agentDescription }, edited)
+                }
               />
               <Badge tone={baseVersion === null ? BadgeTone.Neutral : BadgeTone.Warn} dot>
                 {baseVersion === null

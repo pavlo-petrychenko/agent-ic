@@ -7,6 +7,7 @@ import {
   TRIGGER_ONLY_FLOW,
   buildFlowBuilderDraftFailureMock,
   buildFlowBuilderDraftMock,
+  buildDescribeAgentMock,
   buildRenameAgentMock,
 } from '@/features/flow-builder/communication/fixtures/flowBuilderDraft.fixture';
 import { Density } from '@/features/flow-builder/constants/density.constants';
@@ -87,23 +88,26 @@ describe('flow builder canvas', () => {
     expect(screen.queryByRole('button', { name: 'Agent' })).toBeNull();
   });
 
-  it('renames the agent in the header and keeps the unsaved edits', async () => {
+  it('edits the agent details from the header and keeps the unsaved edits', async () => {
     renderRoute(builderPath, {
       mocks: [
         shell,
         buildFlowBuilderDraftMock(TRIGGER_ONLY_FLOW),
         buildRenameAgentMock('Front desk'),
+        buildDescribeAgentMock('Books visits'),
       ],
     });
     const canvas = await screen.findByRole('region', { name: 'Flow canvas' });
     await userEvent.click(screen.getByRole('button', { name: 'Send message' }));
 
     await userEvent.click(screen.getByRole('button', { name: 'Salon assistant' }));
-    const name = screen.getByRole('textbox', { name: 'Agent name' });
+    await userEvent.type(screen.getByRole('textbox', { name: 'Description' }), ' Books visits ');
+    const name = screen.getByRole('textbox', { name: /Name/ });
     await userEvent.clear(name);
     await userEvent.type(name, 'Front desk{Enter}');
 
-    expect(await screen.findByText('Agent renamed')).toBeInTheDocument();
+    expect(await screen.findByText('Agent details saved')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Agent details' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Front desk' })).toBeInTheDocument();
     expect(within(canvas).getByLabelText('Send message')).toBeInTheDocument();
     expect(useFlowBuilderStore.getState().history.past).toHaveLength(1);

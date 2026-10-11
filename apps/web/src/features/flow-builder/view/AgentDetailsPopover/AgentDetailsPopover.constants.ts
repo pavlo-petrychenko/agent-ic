@@ -1,0 +1,1 @@
+export const AGENT_DESCRIPTION_ROWS = 3;

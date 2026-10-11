@@ -112,10 +112,17 @@
       "cancel": "Esc"
     }
   },
+  "details": {
+    "title": "Agent details",
+    "edit": "Edit agent details",
+    "name": "Name",
+    "description": "Description",
+    "descriptionHint": "Optional, up to {{max}} characters. Shown in the agents list.",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saved": "Agent details saved"
+  },
   "header": {
-    "rename": "Rename agent",
-    "nameLabel": "Agent name",
-    "renamed": "Agent renamed",
     "neverPublished": "Draft · never published",
     "editedFrom": "Draft · edited from v{{version}}"
   },
