@@ -2,12 +2,14 @@ import type { DynamicModule } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import type { PauseSettings } from '@/modules/agents/typedefs/pause-settings.typedefs';
+import { conversationActivityChannel } from '@/modules/conversations/channels/conversation-activity.channel';
 import { ConversationsModule } from '@/modules/conversations/conversations.module';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
 import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
 import { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
+import type { ConversationActivity } from '@/modules/conversations/typedefs/conversation-activity.typedefs';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type { Message, NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
 import { ClockModule } from '@/platform/clock/clock.module';
@@ -24,6 +26,10 @@ import type { AnyDomainEventSubscription } from '@/platform/domain-events/typede
 import { ErrorsModule } from '@/platform/errors/errors.module';
 import { IdsModule } from '@/platform/ids/ids.module';
 import { IdService } from '@/platform/ids/services/id.service';
+import { channelFor } from '@/platform/live-updates/helpers/channel.helpers';
+import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
+import { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';
+import type { ChannelStream } from '@/platform/live-updates/typedefs/channel.typedefs';
 import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { QueuesService } from '@/platform/queues/services/queues.service';
@@ -72,6 +78,7 @@ export const createConversationsTestbed = async (
       IdsModule,
       QueuesModule.forRole(selection.role),
       DomainEventsModule.forRole(selection.role),
+      LiveUpdatesModule.forRole(selection.role),
       RedisModule,
       RateLimitModule,
       OutboundHttpModule,
@@ -102,8 +109,15 @@ export const createConversationsTestbed = async (
     incoming: module.get(IncomingMessagesService),
     agents: module.get(AgentsRepository),
     queues: module.get(QueuesService),
+    liveUpdates: module.get(LiveUpdatesService),
   };
 };
+
+export const conversationActivity = (
+  testbed: ConversationsTestbed,
+  conversationId: string,
+): Promise<ChannelStream<ConversationActivity>> =>
+  testbed.liveUpdates.subscribe(channelFor(conversationActivityChannel, conversationId));
 
 export const seedConversation = async (
   testbed: ConversationsTestbed,

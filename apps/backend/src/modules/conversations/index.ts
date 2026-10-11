@@ -1,3 +1,5 @@
+export { conversationActivityChannel } from '@/modules/conversations/channels/conversation-activity.channel';
+export { ConversationActivityKind } from '@/modules/conversations/constants/conversation-activity.constants';
 export {
   ChannelKind,
   ConversationMode,
@@ -16,6 +18,7 @@ export { MessageNotFoundError } from '@/modules/conversations/errors/message-not
 export { messageReceivedEvent } from '@/modules/conversations/events/message-received.event';
 export { needsOperatorEvent } from '@/modules/conversations/events/needs-operator.event';
 export { outboundQueuedEvent } from '@/modules/conversations/events/outbound-queued.event';
+export { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
 export { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
 export { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
 export { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';

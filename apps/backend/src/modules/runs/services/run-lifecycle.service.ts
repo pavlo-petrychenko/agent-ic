@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
 import {
+  ConversationActivityService,
   ConversationMode,
   ConversationRunsService,
   ConversationState,
@@ -22,6 +23,7 @@ export class RunLifecycleService {
   constructor(
     private readonly runs: RunsRepository,
     private readonly conversations: ConversationRunsService,
+    private readonly activity: ConversationActivityService,
     private readonly agents: AgentRuntimeReader,
     private readonly jobs: JobsService,
     private readonly clock: ClockService,
@@ -84,7 +86,10 @@ export class RunLifecycleService {
   async failRun(workspaceId: string, runId: string, error: unknown): Promise<void> {
     const failure = runFailureOf(error, null);
     const end: RunEnd = { status: RunStatus.Failed, error: failure, finishedAt: this.clock.now() };
-    await this.runs.finish(workspaceId, runId, end);
+    const run = await this.runs.findById(workspaceId, runId);
+    if (run !== null && (await this.runs.finish(workspaceId, runId, end))) {
+      await this.activity.runFinished(run.conversationId, runId);
+    }
   }
 
   private async lastUncoveredMessageId(target: RunTarget): Promise<string | null> {

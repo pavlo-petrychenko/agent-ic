@@ -2,7 +2,11 @@ import { NodeType, PortName, buildFlowGraph, createScopeLookup, nodePorts } from
 import type { FlowNode, ParallelNode } from '@agent-ic/flow';
 import { Injectable } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
-import { ConversationHistoryService, ConversationRunsService } from '@/modules/conversations';
+import {
+  ConversationActivityService,
+  ConversationHistoryService,
+  ConversationRunsService,
+} from '@/modules/conversations';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
 import {
   ROOT_BRANCH_KEY,
@@ -54,6 +58,7 @@ export class RunExecutionService {
     private readonly agents: AgentRuntimeReader,
     private readonly conversations: ConversationRunsService,
     private readonly conversationHistory: ConversationHistoryService,
+    private readonly activity: ConversationActivityService,
     private readonly tenants: TenantTransactionService,
     private readonly liveUpdates: LiveUpdatesService,
     private readonly traces: LlmTraceContextService,
@@ -70,7 +75,11 @@ export class RunExecutionService {
       await this.tenants.run(workspaceId, () => this.runs.setTraceId(workspaceId, runId, traceId));
       const walked = await this.walk(walk);
       const end = walked.status === RunStatus.Failed ? walked : (walk.ending ?? walked);
-      await this.tenants.run(workspaceId, () => this.runs.finish(workspaceId, runId, end));
+      await this.tenants.run(workspaceId, async () => {
+        if (await this.runs.finish(workspaceId, runId, end)) {
+          await this.activity.runFinished(walk.run.conversationId, runId);
+        }
+      });
       return end.status;
     });
   }
@@ -81,7 +90,9 @@ export class RunExecutionService {
       throw new RunNotFoundError(runId);
     }
     const today = this.clock.now();
-    await this.runs.markRunning(workspaceId, runId, today);
+    if (await this.runs.markRunning(workspaceId, runId, today)) {
+      await this.activity.runStarted(run.conversationId, runId);
+    }
     const version = await this.agents.getVersion(workspaceId, run.versionId);
     const conversation = await this.conversations.getConversation(workspaceId, run.conversationId);
     const history = await this.conversationHistory.forRun(
