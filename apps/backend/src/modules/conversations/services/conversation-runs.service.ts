@@ -18,6 +18,7 @@ import type {
 } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type {
   Message,
+  OutboundDelivery,
   OutboundMessageInput,
 } from '@/modules/conversations/typedefs/message.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
@@ -34,6 +35,10 @@ export class ConversationRunsService {
     private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
+
+  getConversation(workspaceId: string, conversationId: string): Promise<Conversation> {
+    return this.requireConversation(workspaceId, conversationId);
+  }
 
   claimRun(workspaceId: string, conversationId: string, runId: string): Promise<boolean> {
     return this.conversations.claim(workspaceId, conversationId, runId);
@@ -132,6 +137,15 @@ export class ConversationRunsService {
     if (!(await this.messages.updateDelivery(workspaceId, messageId, delivery))) {
       throw new MessageNotFoundError(messageId);
     }
+  }
+
+  async outboundDelivery(workspaceId: string, messageId: string): Promise<OutboundDelivery> {
+    const message = await this.messages.findById(workspaceId, messageId);
+    if (message === null) {
+      throw new MessageNotFoundError(messageId);
+    }
+    const conversation = await this.requireConversation(workspaceId, message.conversationId);
+    return { message, conversation };
   }
 
   private async requireConversation(workspaceId: string, id: string): Promise<Conversation> {

@@ -1,0 +1,23 @@
+$hint-width: 440px;
+$tile-width: 248px;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: $hint-width;
+}
+
+.connector {
+  height: var(--space-48);
+  border-left: var(--border-width-dash) dashed var(--color-line-dash);
+}
+
+.tile {
+  width: $tile-width;
+}
+
+.card {
+  align-self: stretch;
+  margin-top: calc(var(--space-32) + var(--space-28));
+}

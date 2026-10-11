@@ -23,6 +23,7 @@ export function SearchInput({
   ...rest
 }: SearchInputProps) {
   const filled = value !== '';
+  const trailing = loading || (filled && !disabled);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     onKeyDown?.(event);
@@ -34,7 +35,14 @@ export function SearchInput({
   };
 
   return (
-    <div className={clsx(styles.root, disabled && styles.disabled, className)}>
+    <div
+      className={clsx(
+        styles.root,
+        disabled && styles.disabled,
+        trailing && styles.trailing,
+        className,
+      )}
+    >
       <span className={styles.icon}>
         <Icon name={IconName.Search} size={SEARCH_INPUT_ICON_SIZE} />
       </span>
@@ -53,7 +61,7 @@ export function SearchInput({
           <Icon name={IconName.Spinner} size={SEARCH_INPUT_ICON_SIZE} />
         </span>
       )}
-      {!loading && filled && !disabled && (
+      {!loading && trailing && (
         <IconButton
           icon={IconName.X}
           label={clearLabel}

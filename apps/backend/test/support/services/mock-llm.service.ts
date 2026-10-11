@@ -105,7 +105,11 @@ export class MockLlmService {
   }
 
   embed(dimensions: number = MOCK_EMBEDDING_DIMENSIONS): this {
-    return this.script({ kind: MockLlmStepKind.Embed, dimensions });
+    return this.script({ kind: MockLlmStepKind.Embed, dimensions, withUsage: true });
+  }
+
+  embedWithoutUsage(dimensions: number = MOCK_EMBEDDING_DIMENSIONS): this {
+    return this.script({ kind: MockLlmStepKind.Embed, dimensions, withUsage: false });
   }
 
   body(index: number): Readonly<Record<string, unknown>> {
@@ -206,7 +210,7 @@ export class MockLlmService {
     }
     if (step.kind === MockLlmStepKind.Embed && route === MockLlmRoute.Embeddings) {
       const { input } = mockEmbeddingsBodySchema.parse(body);
-      return embeddingsResponse(body.model, [input].flat(), step.dimensions);
+      return embeddingsResponse(body.model, [input].flat(), step.dimensions, step.withUsage);
     }
     return null;
   }

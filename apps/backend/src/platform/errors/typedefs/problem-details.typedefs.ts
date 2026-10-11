@@ -11,4 +11,5 @@ export interface ProblemDetails {
   readonly reason: ErrorReason;
   readonly traceId: string;
   readonly errors?: readonly FieldIssue[];
+  readonly details?: Readonly<Record<string, unknown>>;
 }

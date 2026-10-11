@@ -2,17 +2,22 @@ extend type Query {
   agents(first: Int, after: String): AgentConnection!
   agent(id: ID!): Agent!
   agentVersions(agentId: ID!): [AgentVersion!]!
+  agentDraft(agentId: ID!): AgentDraft!
+  agentVersionDiff(agentId: ID!, fromId: ID!, toId: ID!): FlowDiff!
+  publishPreview(agentId: ID!): PublishPreview!
 }
 
 extend type Mutation {
   createAgent(input: CreateAgentInput!): Agent!
   renameAgent(input: RenameAgentInput!): Agent!
+  describeAgent(input: DescribeAgentInput!): Agent!
   deleteAgent(input: DeleteAgentInput!): DeleteAgentPayload!
   duplicateAgent(input: DuplicateAgentInput!): Agent!
-  saveAgentDraft(input: SaveAgentDraftInput!): SaveAgentDraftPayload!
+  saveAgentDraft(input: SaveAgentDraftInput!): AgentDraft!
   publishAgent(input: PublishAgentInput!): PublishAgentPayload!
   pauseAgent(input: PauseAgentInput!): Agent!
   resumeAgent(input: ResumeAgentInput!): Agent!
+  restoreAgentVersion(input: RestoreAgentVersionInput!): AgentDraft!
 }
 
 enum AgentStatus {
@@ -26,10 +31,23 @@ enum PauseMode {
   away_message
 }
 
+enum AgentVersionStatus {
+  draft
+  live
+  archived
+}
+
 type Agent {
   id: ID!
   name: String!
+  description: String
   status: AgentStatus!
+  liveVersionNumber: Int
+  draftNumber: Int!
+  draftBaseVersionNumber: Int
+  hasUnpublishedChanges: Boolean!
+  draftChangeCount: Int
+  versionCount: Int!
   pausedAt: String
   pauseMode: PauseMode
   awayMessage: String
@@ -56,6 +74,11 @@ input RenameAgentInput {
   name: String!
 }
 
+input DescribeAgentInput {
+  id: ID!
+  description: String
+}
+
 input DeleteAgentInput {
   id: ID!
 }
@@ -71,11 +94,13 @@ input DuplicateAgentInput {
 input SaveAgentDraftInput {
   id: ID!
   flow: JSON!
+  revision: Int!
   note: String
 }
 
 input PublishAgentInput {
   id: ID!
+  note: String
 }
 
 input PauseAgentInput {
@@ -88,16 +113,27 @@ input ResumeAgentInput {
   id: ID!
 }
 
+input RestoreAgentVersionInput {
+  versionId: ID!
+  revision: Int!
+}
+
 enum FlowIssueSeverity {
   error
   warning
 }
 
+type AgentVersionAuthor {
+  name: String!
+}
+
 type AgentVersion {
   id: ID!
+  status: AgentVersionStatus!
   number: Int
   flow: JSON!
   note: String
+  author: AgentVersionAuthor
   publishedAt: String
   createdAt: String!
 }
@@ -111,12 +147,60 @@ type FlowIssue {
   params: JSON!
 }
 
-type SaveAgentDraftPayload {
+type AgentDraft {
   version: AgentVersion!
+  revision: Int!
+  savedAt: String!
   issues: [FlowIssue!]!
 }
 
 type PublishAgentPayload {
   agent: Agent!
   version: AgentVersion!
+}
+
+type FlowFieldChange {
+  path: [String!]!
+  before: JSON
+  after: JSON
+}
+
+type FlowNodeChange {
+  nodeId: String!
+  key: String!
+  type: String!
+  fields: [FlowFieldChange!]!
+}
+
+type FlowKeyRename {
+  nodeId: String!
+  from: String!
+  to: String!
+}
+
+type FlowDiff {
+  addedNodes: [JSON!]!
+  removedNodes: [JSON!]!
+  changedNodes: [FlowNodeChange!]!
+  renamedKeys: [FlowKeyRename!]!
+  addedEdges: [JSON!]!
+  removedEdges: [JSON!]!
+  changeCount: Int!
+}
+
+enum SimulatorCheckStatus {
+  tested
+  not_tested
+}
+
+type SimulatorCheck {
+  status: SimulatorCheckStatus!
+  testedAt: String
+}
+
+type PublishPreview {
+  diff: FlowDiff!
+  errors: [FlowIssue!]!
+  warnings: [FlowIssue!]!
+  simulator: SimulatorCheck!
 }

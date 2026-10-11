@@ -19,7 +19,7 @@ import type { triggerMessageNodeSchema } from '@flow/nodes/schemas/trigger-messa
 import type { triggerScheduleNodeSchema } from '@flow/nodes/schemas/trigger-schedule.schema';
 import type { outputFieldSchema } from '@flow/outputs/schemas/output-field.schema';
 import type { modelRefSchema } from '@flow/references/schemas/model-ref.schema';
-import type { promptRefSchema } from '@flow/references/schemas/prompt-ref.schema';
+import type { promptSourceSchema } from '@flow/references/schemas/prompt-source.schema';
 
 export type FlowDocument = z.infer<typeof flowDocumentSchema>;
 export type FlowNode = z.infer<typeof flowNodeSchema>;
@@ -38,7 +38,7 @@ export type EscalationNode = z.infer<typeof escalationNodeSchema>;
 export type TriggerNode = TriggerMessageNode | TriggerExternalEventNode | TriggerScheduleNode;
 
 export type OutputField = z.infer<typeof outputFieldSchema>;
-export type PromptRef = z.infer<typeof promptRefSchema>;
+export type PromptSource = z.infer<typeof promptSourceSchema>;
 export type ModelRef = z.infer<typeof modelRefSchema>;
 export type Condition = z.infer<typeof conditionSchema>;
 export type ConditionValue = z.infer<typeof conditionValueSchema>;

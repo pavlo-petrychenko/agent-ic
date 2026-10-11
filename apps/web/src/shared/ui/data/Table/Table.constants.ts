@@ -44,7 +44,7 @@ export const TABLE_SORT_HINT_STROKE_WIDTH = 1.5;
 export const TABLE_SORT_ACTIVE_STROKE_WIDTH = 1.8;
 export const TABLE_EXPAND_ICON_SIZE = 11;
 export const TABLE_EXPAND_ICON_STROKE_WIDTH = 1.8;
-export const TABLE_ROW_MENU_WIDTH = 180;
+export const TABLE_ROW_MENU_MIN_WIDTH = 240;
 export const TABLE_CONTROL_SELECTOR =
   'a, button, input, label, select, textarea, [role="checkbox"]';
 

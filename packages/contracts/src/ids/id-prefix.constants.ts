@@ -8,4 +8,6 @@ export enum IdPrefix {
   AgentVersion = 'agv',
   Conversation = 'cnv',
   Message = 'msg',
+  Run = 'run',
+  RunStep = 'rst',
 }

@@ -40,3 +40,7 @@ export interface RegisteredJobHandler {
 export interface EnqueueOptions {
   readonly durable: boolean;
 }
+
+export interface JobEnqueueOptions extends Partial<EnqueueOptions> {
+  readonly jobId?: string;
+}

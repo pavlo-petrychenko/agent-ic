@@ -1,11 +1,12 @@
+import { ReasoningLevel } from '@agent-ic/contracts';
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
+import { ClockModule } from '@/platform/clock/clock.module';
 import { ConfigModule } from '@/platform/config/config.module';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
-import { ConfigService } from '@/platform/config/services/config.service';
 import { UpstreamError } from '@/platform/errors/errors/upstream.error';
 import { LLM_CATALOG } from '@/platform/llm/constants/llm-catalog.constants';
 import {
@@ -16,11 +17,7 @@ import {
   LLM_REPLY_TOOL_NAME,
   LlmMessageRole,
 } from '@/platform/llm/constants/llm-gateway.constants';
-import {
-  LlmModelId,
-  LlmPurpose,
-  LlmReasoningEffort,
-} from '@/platform/llm/constants/llm-model.constants';
+import { LlmModelId, LlmPurpose } from '@/platform/llm/constants/llm-model.constants';
 import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants';
 import { LlmNotConfiguredError } from '@/platform/llm/errors/llm-not-configured.error';
 import { LlmOutputInvalidError } from '@/platform/llm/errors/llm-output-invalid.error';
@@ -30,15 +27,16 @@ import { LlmUnavailableError } from '@/platform/llm/errors/llm-unavailable.error
 import { AiSdkLlmGateway } from '@/platform/llm/gateways/ai-sdk-llm.gateway';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import { LlmModule } from '@/platform/llm/llm.module';
-import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
 import type {
   LlmAgentRequest,
   LlmCompleteRequest,
   LlmStepTimeouts,
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { ObservabilityModule } from '@/platform/observability/observability.module';
 import { MockLlmRoute } from '@test/support/constants/mock-llm.constants';
 import { createTestEnv } from '@test/support/fixtures/test-env.fixture';
+import { createLlmGateway } from '@test/support/helpers/llm-testing.helpers';
 import { startMockLlm } from '@test/support/services/mock-llm.service';
 import type { MockLlmService } from '@test/support/services/mock-llm.service';
 
@@ -60,7 +58,7 @@ const completeRequest = (overrides: Partial<LlmCompleteRequest<Route>> = {}) => 
   system: SYSTEM,
   messages: [{ role: LlmMessageRole.User, content: QUESTION }],
   output: routeSchema,
-  tags: {},
+  tags: { traceName: 'route', workspaceId: 'ws_test' },
   ...overrides,
 });
 
@@ -89,12 +87,7 @@ const agentRequest = (overrides: Partial<LlmAgentRequest<Route>> = {}) => ({
 });
 
 const createGateway = (env: Partial<Record<EnvVar, string>>): AiSdkLlmGateway =>
-  new AiSdkLlmGateway(
-    new ProviderResolverService(
-      new ConfigService(loadAppConfig({ role: Role.Api, queues: [] }, createTestEnv(env))),
-    ),
-    TEST_TIMEOUTS,
-  );
+  createLlmGateway(env, TEST_TIMEOUTS);
 
 describe('AiSdkLlmGateway.complete', () => {
   let mock: MockLlmService;
@@ -225,7 +218,12 @@ describe('AiSdkLlmGateway.complete', () => {
   it('boots the module without an LLM key', async () => {
     const config = loadAppConfig({ role: Role.Api, queues: [] }, createTestEnv());
     const testingModule = await Test.createTestingModule({
-      imports: [ConfigModule.register(config), LlmModule],
+      imports: [
+        ConfigModule.register(config),
+        ClockModule,
+        ObservabilityModule.forRole(Role.Api),
+        LlmModule,
+      ],
     }).compile();
 
     const booted = testingModule.get(LlmGateway);
@@ -405,12 +403,12 @@ describe('AiSdkLlmGateway fallback', () => {
     mock.fail(HttpStatus.SERVICE_UNAVAILABLE).json(DELIVERY);
 
     await gateway.complete(
-      completeRequest({ model: LlmModelId.Gpt6Luna, reasoning: LlmReasoningEffort.Max }),
+      completeRequest({ model: LlmModelId.Gpt6Luna, reasoning: ReasoningLevel.Max }),
     );
 
-    expect(mock.body(0).reasoning_effort).toBe(LlmReasoningEffort.XHigh);
+    expect(mock.body(0).reasoning_effort).toBe(ReasoningLevel.XHigh);
     expect(mock.requests[1]?.route).toBe(MockLlmRoute.Messages);
-    expect(mock.body(1)).toMatchObject({ output_config: { effort: LlmReasoningEffort.Max } });
+    expect(mock.body(1)).toMatchObject({ output_config: { effort: ReasoningLevel.Max } });
   });
 
   it('fails with a typed error when the fallback fails too', async () => {
@@ -452,23 +450,23 @@ describe('AiSdkLlmGateway reasoning', () => {
   });
 
   it.each([
-    { model: LlmModelId.Gpt6Luna, reasoning: undefined, sent: LlmReasoningEffort.None },
+    { model: LlmModelId.Gpt6Luna, reasoning: undefined, sent: ReasoningLevel.None },
     {
       model: LlmModelId.Gpt6Luna,
-      reasoning: LlmReasoningEffort.High,
-      sent: LlmReasoningEffort.High,
+      reasoning: ReasoningLevel.High,
+      sent: ReasoningLevel.High,
     },
     {
       model: LlmModelId.Glm53Flash,
-      reasoning: LlmReasoningEffort.Medium,
-      sent: LlmReasoningEffort.Low,
+      reasoning: ReasoningLevel.Medium,
+      sent: ReasoningLevel.Low,
     },
     {
       model: LlmModelId.MimoV26Flash,
-      reasoning: LlmReasoningEffort.Max,
-      sent: LlmReasoningEffort.High,
+      reasoning: ReasoningLevel.Max,
+      sent: ReasoningLevel.High,
     },
-    { model: LlmModelId.Ministral14b, reasoning: LlmReasoningEffort.High, sent: undefined },
+    { model: LlmModelId.Ministral14b, reasoning: ReasoningLevel.High, sent: undefined },
     { model: LlmModelId.DeepSeekV41Flash, reasoning: undefined, sent: undefined },
   ])(
     'sends $model the nearest level it supports to $reasoning',
@@ -485,27 +483,27 @@ describe('AiSdkLlmGateway reasoning', () => {
     mock.json(DELIVERY).json(DELIVERY);
 
     await gateway.complete(
-      completeRequest({ model: LlmModelId.ClaudeHaiku55, reasoning: LlmReasoningEffort.XHigh }),
+      completeRequest({ model: LlmModelId.ClaudeHaiku55, reasoning: ReasoningLevel.XHigh }),
     );
     await gateway.complete(
-      completeRequest({ model: LlmModelId.ClaudeHaiku55, reasoning: LlmReasoningEffort.None }),
+      completeRequest({ model: LlmModelId.ClaudeHaiku55, reasoning: ReasoningLevel.None }),
     );
 
     expect(mock.body(0)).toMatchObject({
       thinking: { type: 'adaptive' },
-      output_config: { effort: LlmReasoningEffort.XHigh },
+      output_config: { effort: ReasoningLevel.XHigh },
     });
-    expect(mock.body(1)).toMatchObject({ output_config: { effort: LlmReasoningEffort.Low } });
+    expect(mock.body(1)).toMatchObject({ output_config: { effort: ReasoningLevel.Low } });
   });
 
   it('sends a level asked for alongside tools', async () => {
     mock.json(DELIVERY);
 
     await gateway.runAgent(
-      agentRequest({ model: LlmModelId.Gpt6Luna, reasoning: LlmReasoningEffort.High }),
+      agentRequest({ model: LlmModelId.Gpt6Luna, reasoning: ReasoningLevel.High }),
     );
 
     expect(mock.toolNames(0)).toEqual([LOOKUP_TOOL]);
-    expect(mock.body(0).reasoning_effort).toBe(LlmReasoningEffort.High);
+    expect(mock.body(0).reasoning_effort).toBe(ReasoningLevel.High);
   });
 });

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { z } from 'zod';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { getOriginator } from '@/platform/context/helpers/use-case-ctx.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -9,9 +10,9 @@ import { outboxJobOptions } from '@/platform/queues/helpers/outbox.helpers';
 import { OutboxRepository } from '@/platform/queues/repositories/outbox.repository';
 import { QueuesService } from '@/platform/queues/services/queues.service';
 import type {
-  EnqueueOptions,
   JobData,
   JobDefinition,
+  JobEnqueueOptions,
   JobEnvelope,
 } from '@/platform/queues/typedefs/job.typedefs';
 
@@ -29,7 +30,7 @@ export class JobsService {
     ctx: UseCaseCtx,
     definition: JobDefinition<TData>,
     data: TData,
-    options?: EnqueueOptions,
+    options?: JobEnqueueOptions,
   ): Promise<void> {
     const envelope: JobEnvelope = {
       version: ENVELOPE_VERSION,
@@ -38,20 +39,22 @@ export class JobsService {
       traceId: ctx.traceId,
       initiatedBy: getOriginator(ctx),
     };
+    const jobId = options?.jobId;
     if (options?.durable === true) {
-      await this.enqueueDurable(definition, envelope);
+      const id = jobId === undefined ? this.ids.generate() : z.uuid().parse(jobId);
+      await this.enqueueDurable(definition, envelope, id);
       return;
     }
     await this.afterCommit.schedule(async () => {
-      await this.queues.get(definition.queue).add(definition.name, envelope);
+      await this.queues.get(definition.queue).add(definition.name, envelope, { jobId });
     });
   }
 
   private async enqueueDurable<TData extends JobData>(
     definition: JobDefinition<TData>,
     envelope: JobEnvelope,
+    id: string,
   ): Promise<void> {
-    const id = this.ids.generate();
     await this.outbox.insert({
       id,
       queue: definition.queue,

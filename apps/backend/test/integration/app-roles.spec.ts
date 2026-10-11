@@ -3,24 +3,23 @@ import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
 import { AppModule } from '@/app/app.module';
 import { createApplication } from '@/app/helpers/application.helpers';
-import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { GlobalPrefix } from '@/platform/http/constants/global-prefix.constants';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { HealthRoute, HealthStatus } from '@/platform/observability/constants/health.constants';
 import { MetricsRoute } from '@/platform/observability/constants/metrics.constants';
 import { TracingService } from '@/platform/observability/services/tracing.service';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
-import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 
 const livePath = (prefix = ''): string => `${prefix}/${HealthRoute.Base}/${HealthRoute.Live}`;
 const readyPath = (prefix = ''): string => `${prefix}/${HealthRoute.Base}/${HealthRoute.Ready}`;
 const metricsPath = (prefix = ''): string => `${prefix}/${MetricsRoute.Path}`;
 
 const bootRole = async (role: Role): Promise<INestApplication> => {
-  const config = loadAppConfig(
+  const config = createIntegrationConfig(
     { role, queues: [QueueName.RunsReactive] },
-    createIntegrationTestEnv(TestRedisDatabase.Entrypoints),
+    TestRedisPrefix.Entrypoints,
   );
   const tracing = new TracingService(config.telemetry);
   const app = await createApplication(config, AppModule.forRole(config, tracing));

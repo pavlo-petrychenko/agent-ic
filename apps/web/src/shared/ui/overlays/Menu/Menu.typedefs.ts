@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react';
-import type { MenuEntryKind, MenuVariant } from '@/shared/ui/overlays/Menu/Menu.constants';
+import type {
+  MenuEntryKind,
+  MenuRole,
+  MenuVariant,
+} from '@/shared/ui/overlays/Menu/Menu.constants';
 
 export interface MenuItem {
   kind?: MenuEntryKind.Option;
@@ -32,7 +36,9 @@ export interface MenuProps {
   selectedId?: string | null;
   onSelect: (id: string) => void;
   variant?: MenuVariant;
+  role?: MenuRole;
   width?: number | null;
+  minWidth?: number | null;
   ariaLabel: string;
   className?: string;
 }

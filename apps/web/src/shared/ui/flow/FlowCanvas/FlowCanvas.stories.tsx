@@ -52,6 +52,7 @@ const labels: FlowCanvasLabels = {
   deleted: 'Deleted',
   undo: 'Undo',
   addStep: 'Add step',
+  stepActions: 'Step actions',
   connectingTo: (name) => `Connect to ${name}`,
   emptyTitle: 'Start with a trigger',
   emptyDescription: 'A trigger decides when this agent runs.',

@@ -8,6 +8,7 @@ import type {
   MemberRow,
   MembershipRecord,
   NewMembership,
+  RoleMemberCount,
 } from '@/modules/identity/typedefs/membership.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
@@ -43,6 +44,14 @@ export class MembershipsRepository {
       .from(memberships)
       .where(eq(memberships.workspaceId, workspaceId));
     return row?.total ?? 0;
+  }
+
+  countByRole(workspaceId: string): Promise<RoleMemberCount[]> {
+    return this.txHost.tx
+      .select({ role: memberships.role, count: count() })
+      .from(memberships)
+      .where(eq(memberships.workspaceId, workspaceId))
+      .groupBy(memberships.role);
   }
 
   async countByInviteLink(workspaceId: string, inviteLinkId: string): Promise<number> {

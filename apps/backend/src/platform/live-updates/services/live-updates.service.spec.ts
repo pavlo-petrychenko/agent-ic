@@ -8,7 +8,7 @@ import { channelFor, defineChannel } from '@/platform/live-updates/helpers/chann
 import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
 import { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 
 const messageSchema = z.object({ messageId: z.string() });
@@ -26,7 +26,7 @@ describe('LiveUpdatesService', () => {
   let txHost: TransactionHost<AppTransactionAdapter>;
 
   beforeAll(async () => {
-    testingModule = await createPlatformTestingModule(TestRedisDatabase.LiveUpdates, [
+    testingModule = await createPlatformTestingModule(TestRedisPrefix.LiveUpdates, [
       LiveUpdatesModule.forRole(Role.Api),
     ]);
     liveUpdates = testingModule.get(LiveUpdatesService);

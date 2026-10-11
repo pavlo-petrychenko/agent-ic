@@ -20,6 +20,20 @@
   }
 }
 
+.markTrigger {
+  display: flex;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-8);
+  background: transparent;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
 .menus {
   display: flex;
   flex-direction: column;

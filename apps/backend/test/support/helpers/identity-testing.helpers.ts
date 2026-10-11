@@ -18,7 +18,6 @@ import { ClockModule } from '@/platform/clock/clock.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { ConfigModule } from '@/platform/config/config.module';
 import type { EnvVar } from '@/platform/config/constants/env.constants';
-import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { ContextModule } from '@/platform/context/context.module';
 import { CryptoModule } from '@/platform/crypto/crypto.module';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
@@ -36,11 +35,11 @@ import type { JobEnvelope } from '@/platform/queues/typedefs/job.typedefs';
 import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
 import { IDENTITY_TEST_START } from '@test/support/constants/identity-testing.constants';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { anonymousCtx, signUpInput } from '@test/support/fixtures/identity.fixture';
-import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
+import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 import type {
   IdentityTestbed,
   TestAccount,
@@ -51,9 +50,10 @@ const ROLE = Role.Gateway;
 export const createIdentityTestbed = async (
   overrides: Partial<Record<EnvVar, string>> = {},
 ): Promise<IdentityTestbed> => {
-  const config = loadAppConfig(
+  const config = createIntegrationConfig(
     { role: ROLE, queues: [] },
-    createIntegrationTestEnv(TestRedisDatabase.Identity, overrides),
+    TestRedisPrefix.Identity,
+    overrides,
   );
   const clock = new ManualClock(IDENTITY_TEST_START);
   const emails = new FakeEmailGateway();

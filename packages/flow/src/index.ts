@@ -11,6 +11,13 @@ export {
   operatorsForType,
   pickRoute,
 } from '@flow/conditions/helpers/condition.helpers';
+export { countFlowChanges, diffFlows } from '@flow/diff/helpers/diff.helpers';
+export type {
+  FieldChange,
+  FlowDiff,
+  KeyRename,
+  NodeChange,
+} from '@flow/diff/typedefs/diff.typedefs';
 export {
   FIXED_PORT_NAMES,
   FLOW_SCHEMA_VERSION,
@@ -32,7 +39,7 @@ export type {
   ModelRef,
   OutputField,
   ParallelNode,
-  PromptRef,
+  PromptSource,
   RouterNode,
   RouterRule,
   SendMessageNode,
@@ -65,6 +72,7 @@ export {
   MAX_RULE_CONDITIONS,
   MAX_TEMPLATE_LENGTH,
   MIN_PARALLEL_BRANCHES,
+  NODE_KEY_MAX_LENGTH,
   NODE_KEY_PATTERN,
   OUTPUT_FIELD_NAME_PATTERN,
   TIME_OF_DAY_PATTERN,
@@ -102,6 +110,7 @@ export {
 } from '@flow/outputs/helpers/output.helpers';
 export {
   ModelProviderKind,
+  PromptSourceKind,
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
 export {

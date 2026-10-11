@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { NO_REDIS_KEY_PREFIX } from '@/platform/config/constants/env-value.constants';
 import { EnvVar, NodeEnvironment } from '@/platform/config/constants/env.constants';
 import { LogLevel } from '@/platform/config/constants/log-level.constants';
 import {
@@ -41,6 +42,7 @@ export const commonEnvSchema = z
     redis: {
       queueUrl: env[EnvVar.RedisQueueUrl],
       cacheUrl: env[EnvVar.RedisCacheUrl],
+      keyPrefix: NO_REDIS_KEY_PREFIX,
     },
     telemetry: {
       enabled: !env[EnvVar.OtelSdkDisabled],

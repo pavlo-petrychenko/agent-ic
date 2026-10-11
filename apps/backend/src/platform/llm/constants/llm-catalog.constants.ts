@@ -1,17 +1,19 @@
+import { ReasoningLevel } from '@agent-ic/contracts';
 import {
+  EmbeddingModelId,
   LlmAgentFinish,
   LlmApi,
   LlmModelId,
   LlmPurpose,
-  LlmReasoningEffort,
   LlmStructuredOutput,
   LlmVendor,
 } from '@/platform/llm/constants/llm-model.constants';
-import type { LlmModel } from '@/platform/llm/typedefs/llm-model.typedefs';
+import type { LlmEmbeddingModel, LlmModel } from '@/platform/llm/typedefs/llm-model.typedefs';
 
 export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   [LlmModelId.Gpt6Luna]: {
     id: LlmModelId.Gpt6Luna,
+    label: 'GPT-6 Luna',
     vendor: LlmVendor.OpenAi,
     purposes: [LlmPurpose.Conversation, LlmPurpose.Light],
     price: { inputUsdPerMillionTokens: 0.1, outputUsdPerMillionTokens: 0.5 },
@@ -20,16 +22,17 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
     structuredOutput: LlmStructuredOutput.JsonSchema,
     agentFinish: LlmAgentFinish.FinalMessage,
     reasoningLevels: [
-      LlmReasoningEffort.None,
-      LlmReasoningEffort.Low,
-      LlmReasoningEffort.Medium,
-      LlmReasoningEffort.High,
-      LlmReasoningEffort.XHigh,
+      ReasoningLevel.None,
+      ReasoningLevel.Low,
+      ReasoningLevel.Medium,
+      ReasoningLevel.High,
+      ReasoningLevel.XHigh,
     ],
-    reasoningEffort: LlmReasoningEffort.None,
+    reasoningEffort: ReasoningLevel.None,
   },
   [LlmModelId.Ministral14b]: {
     id: LlmModelId.Ministral14b,
+    label: 'Ministral 14B',
     vendor: LlmVendor.Mistral,
     purposes: [LlmPurpose.Conversation, LlmPurpose.Light],
     price: { inputUsdPerMillionTokens: 0.2, outputUsdPerMillionTokens: 0.2 },
@@ -42,6 +45,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   },
   [LlmModelId.ClaudeHaiku55]: {
     id: LlmModelId.ClaudeHaiku55,
+    label: 'Claude Haiku 5.5',
     vendor: LlmVendor.Anthropic,
     purposes: [LlmPurpose.Conversation, LlmPurpose.Light],
     price: { inputUsdPerMillionTokens: 0.1, outputUsdPerMillionTokens: 0.5 },
@@ -50,16 +54,17 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
     structuredOutput: LlmStructuredOutput.JsonSchema,
     agentFinish: LlmAgentFinish.FinalMessage,
     reasoningLevels: [
-      LlmReasoningEffort.Low,
-      LlmReasoningEffort.Medium,
-      LlmReasoningEffort.High,
-      LlmReasoningEffort.XHigh,
-      LlmReasoningEffort.Max,
+      ReasoningLevel.Low,
+      ReasoningLevel.Medium,
+      ReasoningLevel.High,
+      ReasoningLevel.XHigh,
+      ReasoningLevel.Max,
     ],
-    reasoningEffort: LlmReasoningEffort.Low,
+    reasoningEffort: ReasoningLevel.Low,
   },
   [LlmModelId.MimoV26Flash]: {
     id: LlmModelId.MimoV26Flash,
+    label: 'MiMo V2.6 Flash',
     vendor: LlmVendor.Xiaomi,
     purposes: [LlmPurpose.Conversation],
     price: { inputUsdPerMillionTokens: 0.14, outputUsdPerMillionTokens: 0.28 },
@@ -67,11 +72,12 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
     api: LlmApi.ChatCompletions,
     structuredOutput: LlmStructuredOutput.JsonSchema,
     agentFinish: LlmAgentFinish.ReplyTool,
-    reasoningLevels: [LlmReasoningEffort.Low, LlmReasoningEffort.Medium, LlmReasoningEffort.High],
-    reasoningEffort: LlmReasoningEffort.Low,
+    reasoningLevels: [ReasoningLevel.Low, ReasoningLevel.Medium, ReasoningLevel.High],
+    reasoningEffort: ReasoningLevel.Low,
   },
   [LlmModelId.Gemma4]: {
     id: LlmModelId.Gemma4,
+    label: 'Gemma 4 26B',
     vendor: LlmVendor.Google,
     purposes: [LlmPurpose.Conversation, LlmPurpose.Light],
     price: { inputUsdPerMillionTokens: 0.13, outputUsdPerMillionTokens: 0.4 },
@@ -84,6 +90,7 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   },
   [LlmModelId.Glm53Flash]: {
     id: LlmModelId.Glm53Flash,
+    label: 'GLM-5.3 Flash',
     vendor: LlmVendor.Zhipu,
     purposes: [LlmPurpose.Conversation],
     price: { inputUsdPerMillionTokens: 0.15, outputUsdPerMillionTokens: 0.5 },
@@ -91,11 +98,12 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
     api: LlmApi.ChatCompletions,
     structuredOutput: LlmStructuredOutput.JsonObject,
     agentFinish: LlmAgentFinish.ReplyTool,
-    reasoningLevels: [LlmReasoningEffort.Low, LlmReasoningEffort.High, LlmReasoningEffort.Max],
-    reasoningEffort: LlmReasoningEffort.Low,
+    reasoningLevels: [ReasoningLevel.Low, ReasoningLevel.High, ReasoningLevel.Max],
+    reasoningEffort: ReasoningLevel.Low,
   },
   [LlmModelId.DeepSeekV41Flash]: {
     id: LlmModelId.DeepSeekV41Flash,
+    label: 'DeepSeek V4.1 Flash',
     vendor: LlmVendor.DeepSeek,
     purposes: [LlmPurpose.Conversation],
     price: { inputUsdPerMillionTokens: 0.3, outputUsdPerMillionTokens: 1.2 },
@@ -104,11 +112,11 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
     structuredOutput: LlmStructuredOutput.JsonObject,
     agentFinish: LlmAgentFinish.ReplyTool,
     reasoningLevels: [
-      LlmReasoningEffort.Low,
-      LlmReasoningEffort.Medium,
-      LlmReasoningEffort.High,
-      LlmReasoningEffort.XHigh,
-      LlmReasoningEffort.Max,
+      ReasoningLevel.Low,
+      ReasoningLevel.Medium,
+      ReasoningLevel.High,
+      ReasoningLevel.XHigh,
+      ReasoningLevel.Max,
     ],
     reasoningEffort: null,
   },
@@ -117,4 +125,14 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
 export const LLM_DEFAULT_MODEL: Readonly<Record<LlmPurpose, LlmModelId>> = {
   [LlmPurpose.Conversation]: LlmModelId.Gpt6Luna,
   [LlmPurpose.Light]: LlmModelId.Gpt6Luna,
+};
+
+export const EMBEDDING_CATALOG: Readonly<Record<EmbeddingModelId, LlmEmbeddingModel>> = {
+  [EmbeddingModelId.JinaEmbeddingsV5TextSmall]: {
+    id: EmbeddingModelId.JinaEmbeddingsV5TextSmall,
+    vendor: LlmVendor.Jina,
+    price: { inputUsdPerMillionTokens: 0.02, outputUsdPerMillionTokens: 0 },
+    dimensions: 1024,
+    batchSize: 128,
+  },
 };

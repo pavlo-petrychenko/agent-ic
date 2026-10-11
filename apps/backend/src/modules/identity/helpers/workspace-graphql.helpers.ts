@@ -4,13 +4,14 @@ import type {
   InviteLinkView,
   UpdateInviteLinkRoleInput,
 } from '@/modules/identity/typedefs/invite-link.typedefs';
-import type { MembersPage } from '@/modules/identity/typedefs/membership.typedefs';
+import type { MembersPage, RoleMemberCount } from '@/modules/identity/typedefs/membership.typedefs';
 import type { WorkspaceMembership } from '@/modules/identity/typedefs/workspace.typedefs';
 import type {
   InviteInfo as GraphqlInviteInfo,
   InviteLink as GraphqlInviteLink,
   MemberConnection,
   Membership,
+  RoleMemberCount as GraphqlRoleMemberCount,
   UpdateInviteLinkRoleInput as UpdateInviteLinkRoleArgs,
 } from '@/platform/graphql-server/generated/schema.generated';
 import { WorkspaceRole as GraphqlWorkspaceRole } from '@/platform/graphql-server/generated/schema.generated';
@@ -47,6 +48,11 @@ export const toGraphqlInviteInfo = (info: InviteInfo): GraphqlInviteInfo => ({
   memberCount: info.memberCount,
   role: GRAPHQL_WORKSPACE_ROLE[info.role],
   expiresAt: info.expiresAt.toISOString(),
+});
+
+export const toGraphqlRoleMemberCount = (entry: RoleMemberCount): GraphqlRoleMemberCount => ({
+  role: GRAPHQL_WORKSPACE_ROLE[entry.role],
+  count: entry.count,
 });
 
 export const toGraphqlMemberConnection = (page: MembersPage): MemberConnection => ({

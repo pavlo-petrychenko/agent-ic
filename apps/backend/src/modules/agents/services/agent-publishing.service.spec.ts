@@ -1,6 +1,9 @@
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
+import {
+  AgentVersionKind,
+  DRAFT_INITIAL_REVISION,
+} from '@/modules/agents/constants/agent.constants';
 import { AgentFlowHasBlockingIssuesError } from '@/modules/agents/errors/agent-flow-has-blocking-issues.error';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
@@ -10,6 +13,7 @@ import { TenantTransactionService } from '@/platform/database/services/tenant-tr
 import { IdService } from '@/platform/ids/services/id.service';
 import {
   AGENTS_TEST_LATER,
+  TEST_EDITOR_ID,
   TEST_VERSION_NOTE,
 } from '@test/support/constants/agents-testing.constants';
 import { emptyFlow, triggerFlow } from '@test/support/fixtures/agents.fixture';
@@ -48,7 +52,7 @@ describe('AgentPublishingService', () => {
     const { agentId, draftId } = await seedAgentWithDraft(testingModule, workspaceId);
 
     const published = await tenants.run(workspaceId, () =>
-      service.publish(workspaceId, agentId, authorId),
+      service.publish(workspaceId, agentId, { authorId }),
     );
 
     const agent = await tenants.run(workspaceId, () => agents.findById(workspaceId, agentId));
@@ -72,10 +76,10 @@ describe('AgentPublishingService', () => {
     const { agentId, draftId } = await seedAgentWithDraft(testingModule, workspaceId);
 
     const first = await tenants.run(workspaceId, () =>
-      service.publish(workspaceId, agentId, authorId),
+      service.publish(workspaceId, agentId, { authorId }),
     );
     const second = await tenants.run(workspaceId, () =>
-      service.publish(workspaceId, agentId, authorId),
+      service.publish(workspaceId, agentId, { authorId }),
     );
 
     const draft = await tenants.run(workspaceId, () => versions.findDraft(workspaceId, agentId));
@@ -89,20 +93,22 @@ describe('AgentPublishingService', () => {
     const workspaceId = ids.generate();
     const { agentId, draftId } = await seedAgentWithDraft(testingModule, workspaceId);
     const published = await tenants.run(workspaceId, () =>
-      service.publish(workspaceId, agentId, ids.generate()),
+      service.publish(workspaceId, agentId, { authorId: ids.generate() }),
     );
 
     const changed = await tenants.run(workspaceId, async () => ({
       draft: await versions.updateDraft(
         workspaceId,
         draftId,
-        { flow: emptyFlow(), note: TEST_VERSION_NOTE },
+        DRAFT_INITIAL_REVISION,
+        { flow: emptyFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID },
         AGENTS_TEST_LATER,
       ),
       published: await versions.updateDraft(
         workspaceId,
         published.id,
-        { flow: emptyFlow(), note: TEST_VERSION_NOTE },
+        DRAFT_INITIAL_REVISION,
+        { flow: emptyFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID },
         AGENTS_TEST_LATER,
       ),
     }));
@@ -110,7 +116,7 @@ describe('AgentPublishingService', () => {
     const stored = await tenants.run(workspaceId, () =>
       versions.findById(workspaceId, published.id),
     );
-    expect(changed).toEqual({ draft: true, published: false });
+    expect(changed).toEqual({ draft: DRAFT_INITIAL_REVISION + 1, published: null });
     expect(stored).toEqual(published);
   });
 
@@ -119,7 +125,7 @@ describe('AgentPublishingService', () => {
     const { agentId } = await seedAgentWithDraft(testingModule, workspaceId, emptyFlow());
 
     const publish = tenants.run(workspaceId, () =>
-      service.publish(workspaceId, agentId, ids.generate()),
+      service.publish(workspaceId, agentId, { authorId: ids.generate() }),
     );
 
     await expect(publish).rejects.toBeInstanceOf(AgentFlowHasBlockingIssuesError);
@@ -135,7 +141,7 @@ describe('AgentPublishingService', () => {
     const { agentId } = await seedAgentWithDraft(testingModule, workspaceA);
 
     const publish = tenants.run(workspaceB, () =>
-      service.publish(workspaceB, agentId, ids.generate()),
+      service.publish(workspaceB, agentId, { authorId: ids.generate() }),
     );
 
     await expect(publish).rejects.toBeInstanceOf(AgentNotFoundError);
