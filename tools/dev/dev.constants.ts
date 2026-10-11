@@ -67,6 +67,7 @@ export const Tool = {
   Pnpm: 'pnpm',
   Mkcert: 'mkcert',
   Sudo: 'sudo',
+  Git: 'git',
 } as const;
 
 export const ALL_PROFILES = '*';
@@ -74,6 +75,31 @@ export const POSTGRES_SERVICE = 'postgres';
 export const REDIS_SERVICE = 'redis';
 export const POSTGRES_VOLUME = 'agent-ic_postgres-data';
 export const API_SERVICE = 'api';
+export const DEPS_SERVICE = 'deps';
+export const NODE_SERVICES: readonly string[] = ['web', API_SERVICE, 'worker', 'gateway'];
+export const RUNNING_STATE = 'running';
+export const UNHEALTHY = 'unhealthy';
+export const WORKING_DIR_LABEL = 'com.docker.compose.project.working_dir';
+export const LABEL_SEPARATOR = ',';
+export const VOLUME_NAME_SEPARATOR = '_';
+export const NUL = '\0';
+
+export const FINGERPRINT_FILE = '.dev/start.fingerprint';
+export const FINGERPRINT_HASH = 'sha256';
+export const FINGERPRINT_PATHSPECS: readonly string[] = [
+  'pnpm-lock.yaml',
+  'compose.yaml',
+  'deploy/docker/dev.Dockerfile',
+  'turbo.json',
+  'package.json',
+  'apps/*/package.json',
+  'apps/*/codegen.config.ts',
+  'apps/*/src/*.graphql',
+  'apps/backend/migrations',
+  'apps/web/src/routes',
+  'packages',
+];
+export const FINGERPRINT_VOLUMES: readonly string[] = ['postgres-data', 'root-node-modules'];
 export const START_LOG_TAIL = '50';
 export const LOG_TAIL = '100';
 export const URL_LABEL_WIDTH = 8;

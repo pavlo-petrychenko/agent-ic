@@ -27,7 +27,9 @@ Backend and web reload when you save a file. After you add files, the web app ma
 
 ## Start
 
-Once, after cloning: `mise run setup`. Every day: `mise run start`. It starts every service and follows the logs. Press Ctrl+C to stop following; the stack keeps running.
+Once, after cloning: `mise run setup`. Every day, after `git checkout` of any branch and after `mise run clean`: `mise run start`. It recreates a missing certificate, then compares a fingerprint of the commit, the lockfile, the GraphQL files, the routes, the migrations and the volumes with the last start. When something changed, it installs dependencies, regenerates code, applies migrations and restarts `web`, `api`, `worker` and `gateway`. When nothing changed, it only restarts a node service that is unhealthy. Then it starts every service and follows the logs. Press Ctrl+C to stop following; the stack keeps running.
+
+`start` never seeds. After `mise run clean` the database is empty: run `mise run db:seed` for the seed data. `setup` is still needed once per machine: it trusts the certificate authority, edits the hosts file, chooses free ports and installs the git hooks.
 
 | Command                  | What it does                                                 |
 | ------------------------ | ------------------------------------------------------------ |
@@ -54,7 +56,7 @@ pnpm scripts run through mise, so the right Node and pnpm are used: `mise exec -
 | https://queues.local.agent-ic.pavlop.dev      | the queue board (Bull Board)                  |
 | https://grafana.local.agent-ic.pavlop.dev     | Grafana, only with the observability profile  |
 
-If a port was busy during setup, the URL has a port, for example `:8443`. `mise run setup` prints the real URLs.
+The URLs need a port only when `TRAEFIK_HTTPS_PORT` in `.env` is not `443`, for example `https://local.agent-ic.pavlop.dev:8443`. Setup moves it when `443` is busy and prints the real URLs; `mise run urls` prints them again.
 
 ## Emails
 
@@ -110,7 +112,7 @@ SET app.workspace_id = '<workspace uuid>';
 ## Pitfalls
 
 - An empty table in psql is usually RLS, not missing data. Set `app.workspace_id`.
-- A second checkout of the repo uses the same Compose project (`name: agent-ic` in [compose.yaml](../../compose.yaml)). Starting the stack there replaces the containers of the first checkout; it does not start a second stack.
+- A second checkout of the repo uses the same Compose project (`name: agent-ic` in [compose.yaml](../../compose.yaml)). Starting the stack there replaces the containers of the first checkout; it does not start a second stack. `start` says so, and reinstalls, regenerates and migrates for the new checkout.
 - A new env value needs `mise run start <svc>`, not `restart`.
 
 Next: [002 The big picture](002-the-big-picture.md)

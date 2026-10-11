@@ -1,4 +1,5 @@
 import { rmSync } from 'node:fs';
+import { cwd } from 'node:process';
 import { ensureCertificate } from './certs.helpers.ts';
 import {
   ALL_PROFILES,
@@ -8,10 +9,12 @@ import {
   DATABASE_ROLE_PASSWORDS,
   DEFAULT_DATABASE_ROLE,
   DEFAULT_HTTPS_PORT,
+  DEPS_SERVICE,
   ENV_FILE,
   EnvVariable,
   EXIT_FAILURE,
   EXIT_SUCCESS,
+  FINGERPRINT_FILE,
   LOCAL_SUBDOMAINS,
   LOG_TAIL,
   LOOPBACK_ADDRESS,
@@ -29,6 +32,14 @@ import { readEnvFile, syncEnvFile, writeEnvValue } from './env.helpers.ts';
 import { ensureHosts } from './hosts.helpers.ts';
 import { capture, isWindows, log, logError, runStep, sequence } from './platform.helpers.ts';
 import { choosePorts, isPortBusy, publicUrl } from './ports.helpers.ts';
+import {
+  otherCheckouts,
+  readFingerprint,
+  servicesToRestart,
+  stackContainers,
+  stackFingerprint,
+  writeFingerprint,
+} from './start.helpers.ts';
 
 const compose = (...args: CommandArgs): CommandStep => ({
   command: Tool.Docker,
@@ -116,6 +127,57 @@ const enableWatchPolling = (): number => {
 
 const migrate = step(compose('run', '--rm', '--no-deps', API_SERVICE, 'pnpm', 'run', 'db:migrate'));
 const seed = step(compose('run', '--rm', '--no-deps', API_SERVICE, 'pnpm', 'run', 'db:seed'));
+const codegen = step(compose('run', '--rm', '--no-deps', API_SERVICE, 'pnpm', 'run', 'codegen'));
+
+const rebuild = [
+  step(compose('build', DEPS_SERVICE)),
+  step(compose('run', '--rm', DEPS_SERVICE)),
+  codegen,
+  step(compose('up', '-d', '--wait', POSTGRES_SERVICE)),
+  migrate,
+];
+
+const refreshStack = (): Promise<number> => {
+  const containers = stackContainers();
+  const others = otherCheckouts(containers, cwd());
+  for (const checkout of others) {
+    log(`start: the stack runs from ${checkout}, moving it to this checkout`);
+  }
+  const fingerprint = stackFingerprint();
+  const changed = others.length > 0 || fingerprint === null || fingerprint !== readFingerprint();
+  const restarts = others.length > 0 ? [] : servicesToRestart(changed, containers);
+  log(
+    changed
+      ? 'start: something changed, installing dependencies, generating code and migrating'
+      : 'start: nothing changed since the last start',
+  );
+  if (restarts.length > 0) {
+    log(`start: restarting ${restarts.join(' ')}`);
+  }
+  return sequence([
+    ...(changed ? rebuild : []),
+    ...(restarts.length > 0 ? [step(compose('restart', ...restarts))] : []),
+  ]);
+};
+
+const saveFingerprint = (): number => {
+  const fingerprint = stackFingerprint();
+  if (fingerprint !== null) {
+    writeFingerprint(fingerprint);
+  }
+  log('start: the stack is up, following the logs (Ctrl+C stops following)');
+  return EXIT_SUCCESS;
+};
+
+const start = (args: CommandArgs): Promise<number> =>
+  sequence([
+    syncEnv,
+    ensureCertificate,
+    refreshStack,
+    step(compose('up', '-d', '--wait', ...args)),
+    saveFingerprint,
+    step(composeAllProfiles('logs', '-f', `--tail=${START_LOG_TAIL}`, ...args)),
+  ]);
 const status = step(composeAllProfiles('ps', '--all'));
 
 const setup = (): Promise<number> =>
@@ -173,18 +235,15 @@ const clean = (): Promise<number> =>
     step(composeAllProfiles('down', '--volumes', '--remove-orphans')),
     () => {
       rmSync(CERTS_DIRECTORY, { recursive: true, force: true });
+      rmSync(FINGERPRINT_FILE, { force: true });
+      log('clean: done, `mise run start` rebuilds everything, `mise run db:seed` adds seed data');
       return EXIT_SUCCESS;
     },
   ]);
 
 export const COMMANDS: Readonly<Record<string, CommandHandler>> = {
   [Command.Setup]: setup,
-  [Command.Start]: (args) =>
-    sequence([
-      syncEnv,
-      step(compose('up', '-d', '--wait', ...args)),
-      step(composeAllProfiles('logs', '-f', `--tail=${START_LOG_TAIL}`, ...args)),
-    ]),
+  [Command.Start]: start,
   [Command.Add]: withService(Command.Add, (service) => compose('up', '-d', '--wait', service)),
   [Command.Stop]: (args) => runStep(composeAllProfiles('stop', ...args)),
   [Command.Restart]: withService(Command.Restart, (service) =>
@@ -207,9 +266,7 @@ export const COMMANDS: Readonly<Record<string, CommandHandler>> = {
     ]),
   [Command.DbSeed]: seed,
   [Command.DbPsql]: psql,
-  [Command.Codegen]: step(
-    compose('run', '--rm', '--no-deps', API_SERVICE, 'pnpm', 'run', 'codegen'),
-  ),
+  [Command.Codegen]: codegen,
   [Command.Clean]: clean,
   [Command.Env]: syncEnv,
   [Command.Ports]: checkPorts,

@@ -9,7 +9,7 @@ Node 24 and pnpm 10 come from `mise.toml`. The stack runs in Docker through `mis
 | Task                                                              | What it does                                |
 | ----------------------------------------------------------------- | ------------------------------------------- |
 | `mise run setup`                                                  | one-time setup, then the stack is running   |
-| `mise run start [svc...]` / `add <svc>`                           | start the stack or services / add one to it |
+| `mise run start [svc...]` / `add <svc>`                           | rebuild changes and start / add one service |
 | `mise run stop [svc]` / `restart <svc>` / `status` / `logs [svc]` | operate the stack                           |
 | `mise run shell <svc>`                                            | shell inside a service container            |
 | `mise run db:migrate` / `db:reset` / `db:seed` / `db:psql [role]` | database                                    |
