@@ -52,10 +52,11 @@ Read the pages in order. Each page ends with a link to the next.
 | 013 | [The web app](learn/013-web-app.md)                         | startup, router, Apollo, i18n, feature layers, how to add a screen    |
 | 014 | [Shipping](learn/014-shipping.md)                           | checks, review, merge, deploy, new environment variables              |
 | 015 | [Calling the LLM](learn/015-calling-the-llm.md)             | `LlmGateway`, per-model paths, timeouts and the fallback model        |
+| 016 | [PR media](learn/016-pr-media.md)                           | the demo seed, and screenshots and recordings with the Playwright MCP |
 
 ## Examples
 
-Read these after 015. They link real files instead of pasting code, so they stay true.
+Read these after 016. They link real files instead of pasting code, so they stay true.
 
 - [The identity module](examples/identity-module.md): the backend, file by file. SDL, schema, use case, repository, resolver, module, spec.
 - [Auth and settings](examples/auth-and-settings.md): the web, file by file. Operation, hook, mapping helper, view, container, route, test.

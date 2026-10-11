@@ -2,6 +2,7 @@ export enum CommandName {
   Serve = 'serve',
   Migrate = 'migrate',
   PrintSchema = 'print-schema',
+  Seed = 'seed',
 }
 
 export enum ExitCode {

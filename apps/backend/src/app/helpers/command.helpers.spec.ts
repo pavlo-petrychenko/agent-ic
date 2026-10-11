@@ -2,6 +2,7 @@ import { EOL } from 'node:os';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MigrateCommand } from '@/app/commands/migrate.command';
 import { PrintSchemaCommand } from '@/app/commands/print-schema.command';
+import { SeedCommand } from '@/app/commands/seed.command';
 import { ServeCommand } from '@/app/commands/serve.command';
 import { UnknownCommand } from '@/app/commands/unknown.command';
 import { CliOption } from '@/app/constants/command-line.constants';
@@ -22,6 +23,7 @@ describe('resolveCommand', () => {
     expect(resolveCommand(createArgv(CommandName.Serve))).toBeInstanceOf(ServeCommand);
     expect(resolveCommand(createArgv(CommandName.Migrate))).toBeInstanceOf(MigrateCommand);
     expect(resolveCommand(createArgv(CommandName.PrintSchema))).toBeInstanceOf(PrintSchemaCommand);
+    expect(resolveCommand(createArgv(CommandName.Seed))).toBeInstanceOf(SeedCommand);
   });
 
   it('answers a missing or unknown command with a config error', () => {

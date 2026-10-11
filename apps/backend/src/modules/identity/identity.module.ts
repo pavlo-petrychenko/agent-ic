@@ -25,6 +25,7 @@ import { InviteLinksService } from '@/modules/identity/services/invite-links.ser
 import { InviteTokensService } from '@/modules/identity/services/invite-tokens.service';
 import { MembershipWorkspaceAccessService } from '@/modules/identity/services/membership-workspace-access.service';
 import { PasswordResetsService } from '@/modules/identity/services/password-resets.service';
+import { SampleWorkspaceService } from '@/modules/identity/services/sample-workspace.service';
 import { SessionsService } from '@/modules/identity/services/sessions.service';
 import { WorkspaceMembershipsService } from '@/modules/identity/services/workspace-memberships.service';
 import { AcceptInviteUseCase } from '@/modules/identity/use-cases/accept-invite.use-case';
@@ -67,6 +68,7 @@ export class IdentityModule extends defineModule({
     InviteTokensService,
     InviteLinksService,
     WorkspaceMembershipsService,
+    SampleWorkspaceService,
     MembershipWorkspaceAccessService,
     { provide: WorkspaceAccessService, useExisting: MembershipWorkspaceAccessService },
     SignUpUseCase,
@@ -113,6 +115,7 @@ export class IdentityModule extends defineModule({
     SessionsService,
     EmailConfirmationsService,
     PasswordResetsService,
+    SampleWorkspaceService,
     WorkspaceAccessService,
   ],
 }) {}
