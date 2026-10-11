@@ -3,6 +3,8 @@ import { Locale } from './vite.constants.ts';
 import type { LandingEnv } from './vite.env.ts';
 import {
   buildRedirects,
+  buildRobots,
+  buildSitemap,
   escapeHtml,
   localeOfEntry,
   localeOfPath,
@@ -54,6 +56,7 @@ describe('pageValues', () => {
     expect(render('link.login')).toBe(`${APP_URL}/auth/login`);
     expect(render('link.contact')).toBe('mailto:pavlo@pavlop.dev');
     expect(render('page.year')).toBe(String(YEAR));
+    expect(render('page.ogImage')).toBe(`${SITE_URL}/og/uk.png`);
   });
 });
 
@@ -80,5 +83,21 @@ describe('buildRedirects', () => {
       `/invite/* ${APP_URL}/invite/:splat 301`,
       '',
     ]);
+  });
+});
+
+describe('search engine files', () => {
+  it('point robots at the sitemap', () => {
+    expect(buildRobots(SITE_URL)).toBe(
+      `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`,
+    );
+  });
+
+  it('list both pages with their language alternates', () => {
+    const sitemap = buildSitemap(ENV);
+
+    expect(sitemap).toContain(`<url><loc>${SITE_URL}/</loc>`);
+    expect(sitemap).toContain(`<url><loc>${SITE_URL}/uk/</loc>`);
+    expect(sitemap.match(/hreflang="uk" href="https:\/\/site\.example\/uk\/"/g)).toHaveLength(2);
   });
 });

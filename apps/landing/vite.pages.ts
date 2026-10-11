@@ -7,12 +7,16 @@ import {
   HTML_CONTENT_TYPE,
   PLUGIN_NAME,
   REDIRECTS_FILE,
+  ROBOTS_FILE,
+  SITEMAP_FILE,
   TEMPLATE_FILE,
   URL_SEPARATOR,
 } from './vite.constants.ts';
 import type { LandingEnv } from './vite.env.ts';
 import {
   buildRedirects,
+  buildRobots,
+  buildSitemap,
   localeOfEntry,
   localeOfPath,
   pageEntries,
@@ -60,11 +64,14 @@ export const landingPages = (root: string, env: LandingEnv, year: number): Plugi
       });
     },
     generateBundle() {
-      this.emitFile({
-        type: 'asset',
-        fileName: REDIRECTS_FILE,
-        source: buildRedirects(env.LANDING_APP_URL),
-      });
+      const files: Record<string, string> = {
+        [REDIRECTS_FILE]: buildRedirects(env.LANDING_APP_URL),
+        [ROBOTS_FILE]: buildRobots(env.LANDING_SITE_URL),
+        [SITEMAP_FILE]: buildSitemap(env),
+      };
+      for (const [fileName, source] of Object.entries(files)) {
+        this.emitFile({ type: 'asset', fileName, source });
+      }
     },
   };
 };
