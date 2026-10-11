@@ -20,6 +20,7 @@ import {
   branchNodes,
   branchStarts,
   incomingEdges,
+  isBackgroundBranch,
   outgoingEdges,
   reachableFrom,
 } from '@flow/scope/helpers/graph.helpers';
@@ -207,6 +208,9 @@ const parallelBranchIssues = (context: ValidationContext, node: ParallelNode): F
       }),
     );
   }
+  if (starts.length > 0 && starts.every((start) => isBackgroundBranch(context.graph, start))) {
+    issues.push(createIssue(FlowIssueCode.NoWaitedBranch, { nodeId: node.id }));
+  }
   const leaks = new Set<string>();
   for (const start of starts) {
     const inside = branchNodes(context.graph, start);
@@ -229,15 +233,19 @@ const parallelBranchIssues = (context: ValidationContext, node: ParallelNode): F
   ];
 };
 
+const branchStepIssue = (context: ValidationContext, node: FlowNode): FlowIssue[] => {
+  if (node.type === NodeType.SendMessage && context.inBranches.has(node.id)) {
+    return [createIssue(FlowIssueCode.SendInParallelBranch, { nodeId: node.id })];
+  }
+  if (node.type === NodeType.Escalation && context.inBackground.has(node.id)) {
+    return [createIssue(FlowIssueCode.EscalationInBackgroundBranch, { nodeId: node.id })];
+  }
+  return [];
+};
+
 export const parallelIssues = (context: ValidationContext): FlowIssue[] => [
   ...context.flow.nodes.flatMap((node) =>
     node.type === NodeType.Parallel ? parallelBranchIssues(context, node) : [],
   ),
-  ...context.flow.nodes
-    .filter(
-      (node) =>
-        context.inBranches.has(node.id) &&
-        (node.type === NodeType.SendMessage || node.type === NodeType.Escalation),
-    )
-    .map((node) => createIssue(FlowIssueCode.SendInParallelBranch, { nodeId: node.id })),
+  ...context.flow.nodes.flatMap((node) => branchStepIssue(context, node)),
 ];

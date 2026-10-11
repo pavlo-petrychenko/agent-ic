@@ -30,7 +30,7 @@ import {
   RequestAuthKind,
   RequestBodyKind,
   RetrievalMode,
-  type WaitFor,
+  WaitFor,
 } from '@flow/nodes/constants/step.constants';
 import {
   ChannelSelectionMode,
@@ -228,3 +228,25 @@ export const flowOf = (nodes: FlowNode[], edges: FlowEdge[]): FlowDocument => ({
   nodes,
   edges,
 });
+
+export const replyAndScoreFlow = () => {
+  const incoming = messageTrigger('incoming');
+  const fork = parallel('fork', WaitFor.All);
+  const writer = agent('writer');
+  const handoff = escalation('handoff');
+  const scorer = completion('scorer', [field('mood', OutputFieldType.Number)]);
+  const save = apiRequest('save_score');
+  const reply = sendList('reply', 'writer.messages');
+  const flow = flowOf(
+    [incoming, fork, writer, handoff, scorer, save, reply],
+    [
+      link(incoming, PortName.Next, fork),
+      link(fork, PortName.Branches, writer),
+      link(writer, PortName.Error, handoff),
+      backgroundLink(fork, scorer),
+      link(scorer, PortName.Next, save),
+      link(fork, PortName.Next, reply),
+    ],
+  );
+  return { flow, fork, writer, handoff, scorer, save, reply };
+};

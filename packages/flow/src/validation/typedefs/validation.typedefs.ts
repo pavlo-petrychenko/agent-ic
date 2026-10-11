@@ -7,6 +7,7 @@ export interface ValidationContext {
   readonly graph: FlowGraph;
   readonly reachable: ReadonlySet<string>;
   readonly inBranches: ReadonlySet<string>;
+  readonly inBackground: ReadonlySet<string>;
   readonly scope: ScopeLookup;
 }
 

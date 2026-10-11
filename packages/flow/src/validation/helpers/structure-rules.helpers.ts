@@ -52,6 +52,15 @@ const edgeIssue = (context: ValidationContext, edge: FlowEdge): FlowIssue[] => {
       }),
     );
   }
+  if (edge.background === true && edge.sourcePort !== PortName.Branches) {
+    issues.push(
+      createIssue(FlowIssueCode.BackgroundOutsideBranches, {
+        nodeId: source.id,
+        edgeId: edge.id,
+        params: { port: edge.sourcePort },
+      }),
+    );
+  }
   if (isTriggerNode(target)) {
     issues.push(createIssue(FlowIssueCode.EdgeIntoTrigger, { nodeId: target.id, edgeId: edge.id }));
   }

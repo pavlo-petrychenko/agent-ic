@@ -15,6 +15,7 @@ import { exampleFlows, faqWithHandOffFlow } from '@test/support/fixtures/example
 import {
   agent,
   apiRequest,
+  backgroundLink,
   completion,
   escalation,
   eventTrigger,
@@ -23,6 +24,7 @@ import {
   link,
   messageTrigger,
   parallel,
+  replyAndScoreFlow,
   rule,
   router,
   scheduleTrigger,
@@ -145,6 +147,22 @@ const failingFlows: Record<FlowIssueCode, () => unknown> = {
     );
   },
   [FlowIssueCode.SendInParallelBranch]: () => branchFlow([guard('left'), sendText('right', 'hi')]),
+  [FlowIssueCode.EscalationInBackgroundBranch]: () => {
+    const { flow, scorer } = replyAndScoreFlow();
+    const stop = escalation('stop');
+    return flowOf([...flow.nodes, stop], [...flow.edges, link(scorer, PortName.Error, stop)]);
+  },
+  [FlowIssueCode.BackgroundOutsideBranches]: () =>
+    cleanFlow([], [{ ...link(reply, PortName.Next, handoff), background: true }]),
+  [FlowIssueCode.NoWaitedBranch]: () => {
+    const { flow, fork, writer } = replyAndScoreFlow();
+    return flowOf(
+      flow.nodes,
+      flow.edges.map((edge) =>
+        edge.source === fork.id && edge.target === writer.id ? backgroundLink(fork, writer) : edge,
+      ),
+    );
+  },
   [FlowIssueCode.TooFewBranches]: () => branchFlow([guard('left')]),
   [FlowIssueCode.TooManyBranches]: () =>
     branchFlow(['a', 'b', 'c', 'd', 'e', 'f'].map((key) => guard(key))),
@@ -274,6 +292,38 @@ describe('validateFlow', () => {
     expect(codes(cleanFlow([sendText('orphan', '{{missing}}')]))).toEqual([
       FlowIssueCode.UnreachableNode,
     ]);
+  });
+});
+
+describe('background branches', () => {
+  it('accepts a waited reply branch with an escalation beside a background scorer', () => {
+    expect(hasBlockingIssues(validateFlow(replyAndScoreFlow().flow))).toBe(false);
+  });
+
+  it('points the escalation refused in a background branch at its step', () => {
+    expect(validateFlow(failingFlows[FlowIssueCode.EscalationInBackgroundBranch]())).toContainEqual(
+      expect.objectContaining({
+        code: FlowIssueCode.EscalationInBackgroundBranch,
+        severity: FlowIssueSeverity.Error,
+        nodeId: 'n_stop',
+      }),
+    );
+  });
+
+  it('refuses a send message step in a waited branch', () => {
+    const { flow, writer } = replyAndScoreFlow();
+    const early = sendText('early', 'One moment');
+    expect(
+      codes(flowOf([...flow.nodes, early], [...flow.edges, link(writer, PortName.Next, early)])),
+    ).toContain(FlowIssueCode.SendInParallelBranch);
+  });
+
+  it('refuses a send message step in a background branch', () => {
+    const { flow, save } = replyAndScoreFlow();
+    const late = sendText('late', 'Thanks');
+    expect(
+      codes(flowOf([...flow.nodes, late], [...flow.edges, link(save, PortName.Next, late)])),
+    ).toContain(FlowIssueCode.SendInParallelBranch);
   });
 });
 
