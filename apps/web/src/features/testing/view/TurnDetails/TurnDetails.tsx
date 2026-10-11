@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
-import { OutputViewKind } from '@/features/testing/constants/trace.constants';
+import { EscalationRow, OutputViewKind } from '@/features/testing/constants/trace.constants';
 import type { OutputView } from '@/features/testing/typedefs/trace.typedefs';
 import type { TurnDetailsProps } from '@/features/testing/view/TurnDetails/TurnDetails.typedefs';
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
@@ -8,6 +8,7 @@ import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { CodeBlock } from '@/shared/ui/display/CodeBlock';
 import { KeyValue, KeyValueLayout } from '@/shared/ui/display/KeyValue';
 import { Metric } from '@/shared/ui/display/Metric';
+import { RowList } from '@/shared/ui/display/RowList';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/typography/Heading';
 import styles from '@/features/testing/view/TurnDetails/TurnDetails.module.scss';
@@ -41,13 +42,18 @@ export function TurnDetails({
       );
     }
     return (
-      <KeyValue
-        layout={KeyValueLayout.Props}
-        items={[
-          { label: t('details.wouldNotify'), value: view.recipients ?? t('details.nobody') },
+      <RowList
+        mono={false}
+        rows={[
           {
-            label: t('details.flow'),
-            value: <Badge tone={BadgeTone.Warn}>{t('details.paused')}</Badge>,
+            id: EscalationRow.Recipients,
+            name: t('details.wouldNotify'),
+            meta: view.recipients ?? t('details.nobody'),
+          },
+          {
+            id: EscalationRow.Flow,
+            name: t('details.flow'),
+            meta: <Badge tone={BadgeTone.Warn}>{t('details.paused')}</Badge>,
           },
         ]}
       />

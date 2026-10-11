@@ -27,6 +27,11 @@ export enum OutputViewKind {
   Escalation = 'escalation',
 }
 
+export enum EscalationRow {
+  Recipients = 'recipients',
+  Flow = 'flow',
+}
+
 export const RECIPIENT_LIST_FORMAT: Intl.ListFormatOptions = { type: 'unit', style: 'short' };
 
 export const JSON_INDENT = 2;
