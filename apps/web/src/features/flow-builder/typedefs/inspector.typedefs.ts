@@ -64,4 +64,5 @@ export type DescribedNodeType =
   | NodeType.Router
   | NodeType.Parallel
   | NodeType.SendMessage
-  | NodeType.Escalation;
+  | NodeType.Escalation
+  | NodeType.ApiRequest;

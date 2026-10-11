@@ -114,6 +114,7 @@ export {
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
 export {
+  API_REQUEST_OUTPUTS,
   RESERVED_ROOTS,
   VariableSourceKind,
   VariableType,

@@ -1,4 +1,5 @@
 import {
+  API_REQUEST_OUTPUTS,
   MAX_LABEL_LENGTH,
   MAX_OUTPUT_FIELDS,
   MAX_ROUTER_RULES,
@@ -16,6 +17,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMembersByRole } from '@/features/flow-builder/communication/hooks/useMembersByRole';
 import { useModelOptions } from '@/features/flow-builder/communication/hooks/useModelOptions';
+import { useTestApiRequest } from '@/features/flow-builder/communication/hooks/useTestApiRequest';
 import { EMPTY_SELECTION } from '@/features/flow-builder/constants/flowBuilder.constants';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import {
@@ -25,6 +27,9 @@ import {
 } from '@/features/flow-builder/constants/inspector.constants';
 import { LLM_STEP_TYPES } from '@/features/flow-builder/constants/llmStep.constants';
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
+import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
+import type { InspectorPanelProps } from '@/features/flow-builder/containers/InspectorPanel/InspectorPanel.typedefs';
+import { updateApiRequest } from '@/features/flow-builder/logic/helpers/apiRequest.helpers';
 import {
   recipientsValue,
   setChannel,
@@ -77,6 +82,7 @@ import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { KeyRename } from '@/features/flow-builder/typedefs/inspector.typedefs';
 import type { LlmStepExtra } from '@/features/flow-builder/typedefs/llmStep.typedefs';
+import { ApiRequestInspector } from '@/features/flow-builder/view/ApiRequestInspector';
 import { EscalationInspector } from '@/features/flow-builder/view/EscalationInspector';
 import { InlineEditField } from '@/features/flow-builder/view/InlineEditField';
 import { LlmStepInspector } from '@/features/flow-builder/view/LlmStepInspector';
@@ -88,7 +94,7 @@ import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Inspector } from '@/shared/ui/layout/Inspector';
 import { Dialog } from '@/shared/ui/overlays/Dialog';
 
-export function InspectorPanel() {
+export function InspectorPanel({ agentId }: InspectorPanelProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const document = useFlowBuilderStore((state) => state.document);
   const selection = useFlowBuilderStore((state) => state.selection);
@@ -104,6 +110,8 @@ export function InspectorPanel() {
     [document, node],
   );
   const modelOptions = useModelOptions(!LLM_STEP_TYPES.some((type) => type === node?.type));
+  const saveState = useFlowBuilderStore((state) => state.saveState);
+  const apiTest = useTestApiRequest(agentId);
   const memberCounts = useMembersByRole(node?.type !== NodeType.Escalation);
   const variableOptions = useMemo(
     () =>
@@ -320,6 +328,27 @@ export function InspectorPanel() {
             onCommit={commitPreview}
             onRecipientsChange={(value) => apply(setRecipients(document, current.id, value))}
             onChannelChange={(channel, on) => apply(setChannel(document, current.id, channel, on))}
+          />
+        );
+      }
+      case NodeType.ApiRequest: {
+        const errors = fieldErrors(issues, current.id);
+        const { config } = current;
+        const update = (patch: Parameters<typeof updateApiRequest>[2]) =>
+          apply(updateApiRequest(document, current.id, patch));
+        return (
+          <ApiRequestInspector
+            key={current.id}
+            config={config}
+            outputs={API_REQUEST_OUTPUTS}
+            variables={variableOptions}
+            issue={(path) => errors.get(path) ?? null}
+            test={apiTest.stateOf(current)}
+            canTest={saveState === SaveState.Idle}
+            onChange={update}
+            onTemplateChange={(patch) => previewEdit(updateApiRequest(document, current.id, patch))}
+            onCommit={commitPreview}
+            onTest={() => apiTest.run(current)}
           />
         );
       }

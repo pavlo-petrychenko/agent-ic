@@ -226,7 +226,8 @@
       "agent": "Запускається на кожне повідомлення клієнта · сам клієнту не пише",
       "completion": "Один виклик LLM · без інструментів · структурована відповідь",
       "send_message": "Надсилає повідомлення клієнту в чат",
-      "escalation": "Передає чат людині або завершує його"
+      "escalation": "Передає чат людині або завершує його",
+      "api_request": "Викликає зовнішній API · без LLM"
     },
     "renameKey": {
       "title": "Перейменувати й ключ?",
@@ -463,7 +464,56 @@
       "fallbackAfter": "Якщо ніхто не відповість за",
       "never": "Ніколи",
       "fallbackMessage": "Тоді сказати клієнту",
+      "fallbackPlaceholder": "Ми ще шукаємо, хто вам допоможе. Дякуємо, що чекаєте!",
       "minutes": "{{count}} хв"
+    },
+    "api": {
+      "request": "Запит",
+      "method": "Метод",
+      "url": "URL",
+      "urlHint": "Введіть {{, щоб вставити поле з попередніх кроків",
+      "urlPlaceholder": "https://api.example.com/v1/orders",
+      "output": "Результат",
+      "outputNote": "зберігається як змінні",
+      "outputs": {
+        "ok": "запит успішний",
+        "status": "HTTP-статус",
+        "body": "тіло відповіді"
+      },
+      "onFailure": "Якщо запит не вдався",
+      "timeout": "Тайм-аут",
+      "seconds_one": "{{count}} с",
+      "seconds_few": "{{count}} с",
+      "seconds_many": "{{count}} с",
+      "seconds_other": "{{count}} с",
+      "retries": "Повтори",
+      "retryCount_one": "{{count}} · з паузою",
+      "retryCount_few": "{{count}} · з паузою",
+      "retryCount_many": "{{count}} · з паузою",
+      "retryCount_other": "{{count}} · з паузою",
+      "retryCount_zero": "Без повторів",
+      "failure": {
+        "continue": "Продовжити без даних",
+        "error_port": "Перейти гілкою «помилка»"
+      },
+      "failureNote": {
+        "continue": "Наступні кроки отримають ok = false і без тіла.",
+        "error_port": "Після повторів запуск іде з’єднанням «помилка»."
+      },
+      "test": "Перевірити запит",
+      "saveFirst": "Зачекайте, доки чернетка збережеться, щоб перевірити.",
+      "testFailed": "Перевірку не вдалося запустити. Спробуйте ще раз.",
+      "outcome": {
+        "responded": "Сервер відповів.",
+        "timed_out": "Сервер не відповів вчасно.",
+        "unreachable": "Не вдалося з’єднатися із сервером.",
+        "blocked_address": "Ця адреса заборонена.",
+        "invalid_url": "URL недійсний.",
+        "invalid_request": "Запит недійсний."
+      },
+      "responded": "Статус {{status}} · {{ms}} мс",
+      "responseBody": "Тіло відповіді",
+      "truncated": "Відповідь обрізано."
     }
   }
 }

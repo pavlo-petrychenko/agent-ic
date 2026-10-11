@@ -137,7 +137,7 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
             <FlowEditor />
             <IssuesPanel />
           </div>
-          <InspectorPanel />
+          <InspectorPanel agentId={agentId} />
           <LeaveGuard />
         </div>
       )}

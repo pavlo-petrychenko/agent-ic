@@ -139,13 +139,16 @@ export function EscalationInspector({
                 },
               ]}
             />
+            <Text kind={TextKind.Caption} color={TextColor.Mute} aria-hidden="true">
+              {t('inspector.escalation.fallbackMessage')}
+            </Text>
             <TemplateField
               label={t('inspector.escalation.fallbackMessage')}
               value={config.fallbackMessage}
               variables={variables}
               hint={null}
               error={message(issue(IssuePathSegment.FallbackMessage))}
-              placeholder={null}
+              placeholder={t('inspector.escalation.fallbackPlaceholder')}
               onChange={(fallbackMessage) => onTemplateChange({ fallbackMessage })}
               onCommit={onCommit}
             />
