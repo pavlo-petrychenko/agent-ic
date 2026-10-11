@@ -139,7 +139,7 @@ repository                                      the only place with Drizzle and 
 - Permissions: first line of a use case is `authorize(ctx, …)`.
 - Errors: throw `DomainError` subclasses from the module's `errors/`. Inbound adapters map them (GraphQL code, HTTP status, job retry or give-up).
 - Side effects: `jobs.enqueue` and `domainEvents.emit` after the commit. Job payloads hold IDs only.
-- Time and ids: inject `ClockService` and `IdService`.
+- Time and ids: inject `ClockService` and `IdService`. Waiting goes through `ClockService.sleep`, so `ManualClock` skips it in tests.
 - Imports: always absolute (`@/…` in `src`, `@test/…` in test support), even inside one folder. No blank lines between imports.
 - Database: each module owns its Postgres schema. Tenant tables have `workspace_id` and an RLS policy. `SystemDatabaseService` is used only from the allow-list in `.dependency-cruiser.cjs`.
 - Tests: `*.spec.ts` runs against real Postgres with RLS. Fake only external gateways, using the fakes in `test/support/fakes/` and the gateways' own `.fake.ts`. Specs that boot the app are in `test/integration/`.

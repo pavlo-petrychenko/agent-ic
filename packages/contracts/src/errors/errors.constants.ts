@@ -69,5 +69,7 @@ export enum ErrorReason {
   UnsupportedNodeType = 'UNSUPPORTED_NODE_TYPE',
   RunFlowInvalid = 'RUN_FLOW_INVALID',
   ApiRequestStepNotFound = 'API_REQUEST_STEP_NOT_FOUND',
+  ApiRequestAuthUnsupported = 'API_REQUEST_AUTH_UNSUPPORTED',
+  ApiRequestFailed = 'API_REQUEST_FAILED',
   OutboundAddressBlocked = 'OUTBOUND_ADDRESS_BLOCKED',
 }

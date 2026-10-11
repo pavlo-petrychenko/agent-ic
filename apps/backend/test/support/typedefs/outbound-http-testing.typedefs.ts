@@ -1,6 +1,7 @@
 export interface ProbeServer {
   readonly origin: string;
   readonly port: number;
+  hits(path: string): number;
   close(): Promise<void>;
 }
 

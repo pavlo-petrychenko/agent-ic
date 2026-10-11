@@ -5,6 +5,7 @@ import { StartRunOnMessageListener } from '@/modules/runs/listeners/start-run-on
 import { ExecuteRunProcessor } from '@/modules/runs/processors/execute-run.processor';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
+import { ApiRequestExecutor } from '@/modules/runs/services/api-request-executor.service';
 import { MessageTriggerExecutor } from '@/modules/runs/services/message-trigger-executor.service';
 import { ParallelExecutor } from '@/modules/runs/services/parallel-executor.service';
 import { RouterExecutor } from '@/modules/runs/services/router-executor.service';
@@ -24,10 +25,11 @@ export class RunsModule extends defineModule({
     MessageTriggerExecutor,
     RouterExecutor,
     ParallelExecutor,
+    ApiRequestExecutor,
     {
       provide: STEP_EXECUTORS,
       useFactory: (...executors: readonly StepExecutor[]) => executors,
-      inject: [MessageTriggerExecutor, RouterExecutor, ParallelExecutor],
+      inject: [MessageTriggerExecutor, RouterExecutor, ParallelExecutor, ApiRequestExecutor],
     },
     StepExecutorRegistry,
     RunExecutionService,

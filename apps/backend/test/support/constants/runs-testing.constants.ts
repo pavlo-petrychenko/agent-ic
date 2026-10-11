@@ -55,3 +55,5 @@ export enum AgentChange {
   Unpublish = 'unpublish',
   Delete = 'delete',
 }
+export const TEST_CREDENTIAL_ID = 'credential-orders';
+export const TEST_API_RETRIES = 2;
