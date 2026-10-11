@@ -1,4 +1,5 @@
-import { IdPrefix, Locale, WorkspaceRole } from '@agent-ic/contracts';
+import { IdPrefix, Locale } from '@agent-ic/contracts';
+import type { WorkspaceRole } from '@agent-ic/contracts';
 import { createClient } from 'graphql-ws';
 import { expect, vi } from 'vitest';
 import WebSocket from 'ws';
@@ -42,7 +43,6 @@ import { createWorkspaceInput } from '@test/support/fixtures/workspace.fixture';
 import { createApi, websocketUrl } from '@test/support/helpers/request-layer.helpers';
 import type {
   LiveSubscription,
-  PublishedStep,
   SubscriptionsApi,
   TestMember,
 } from '@test/support/typedefs/graphql-subscriptions.typedefs';
@@ -90,7 +90,6 @@ export const seedOwner = async (api: SubscriptionsApi): Promise<TestMember> => {
   return {
     workspaceId: api.app.get(IdService).fromPublic(IdPrefix.Workspace, publicWorkspaceId),
     publicWorkspaceId,
-    role: WorkspaceRole.Owner,
     accessToken: await accessTokenFor(api, userId),
   };
 };
@@ -111,7 +110,7 @@ export const seedMember = async (
       createdAt: SUBSCRIPTIONS_TEST_START,
     }),
   );
-  return { ...owner, role, accessToken: await accessTokenFor(api, userId) };
+  return { ...owner, accessToken: await accessTokenFor(api, userId) };
 };
 
 export const seedRun = async (
@@ -154,18 +153,12 @@ export const subscribeToRunSteps = (
   return { next: () => results.next(), close };
 };
 
-const listenersOf = async (api: SubscriptionsApi, runId: string): Promise<number> => {
-  const { key } = channelFor(runStepsChannel, runId);
-  const reply = await api.redis.pubsub(
-    'NUMSUB',
-    withRedisKeyPrefix(api.config.redis.keyPrefix, key),
-  );
-  return Number(reply[SUBSCRIBERS_REPLY_COUNT_INDEX]);
-};
-
 export const waitForListener = (api: SubscriptionsApi, runId: string): Promise<void> =>
   vi.waitFor(async () => {
-    expect(await listenersOf(api, runId)).toBeGreaterThan(0);
+    const { key } = channelFor(runStepsChannel, runId);
+    const channel = withRedisKeyPrefix(api.config.redis.keyPrefix, key);
+    const reply = await api.redis.pubsub('NUMSUB', channel);
+    expect(Number(reply[SUBSCRIBERS_REPLY_COUNT_INDEX])).toBeGreaterThan(0);
   });
 
 export const publishStep = async (
@@ -173,11 +166,13 @@ export const publishStep = async (
   workspaceId: string,
   runId: string,
   commit: boolean,
-): Promise<PublishedStep> => {
-  const step = { runId, stepId: api.app.get(IdService).generate(), status: RunStepStatus.Running };
+): Promise<string> => {
+  const stepId = api.app.get(IdService).generate();
   const work = api.app.get(TenantTransactionService).run(workspaceId, async () => {
     await api.app.get(LiveUpdatesService).publish(channelFor(runStepsChannel, runId), {
-      ...step,
+      runId,
+      stepId,
+      status: RunStepStatus.Running,
       nodeId: ROOT_BRANCH_KEY,
       branchKey: ROOT_BRANCH_KEY,
       port: null,
@@ -191,5 +186,5 @@ export const publishStep = async (
   } else {
     await expect(work).rejects.toBeInstanceOf(TestRollbackError);
   }
-  return step;
+  return stepId;
 };

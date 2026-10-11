@@ -57,7 +57,7 @@ describe('graphql subscriptions over graphql-ws', () => {
     const received = subscription.next();
     await waitForListener(api, runId);
 
-    const step = await publishStep(api, owner.workspaceId, runId, true);
+    const stepId = await publishStep(api, owner.workspaceId, runId, true);
 
     await expect(received).resolves.toEqual({
       done: false,
@@ -65,7 +65,7 @@ describe('graphql subscriptions over graphql-ws', () => {
         data: {
           runSteps: {
             runId: publicRunId(api, runId),
-            stepId: publicStepId(api, step.stepId),
+            stepId: publicStepId(api, stepId),
             nodeId: ROOT_BRANCH_KEY,
             status: RunStepStatus.Running,
           },
@@ -81,10 +81,10 @@ describe('graphql subscriptions over graphql-ws', () => {
     await waitForListener(api, runId);
 
     await publishStep(api, owner.workspaceId, runId, false);
-    const committed = await publishStep(api, owner.workspaceId, runId, true);
+    const committedStepId = await publishStep(api, owner.workspaceId, runId, true);
 
     await expect(received).resolves.toMatchObject({
-      value: { data: { runSteps: { stepId: publicStepId(api, committed.stepId) } } },
+      value: { data: { runSteps: { stepId: publicStepId(api, committedStepId) } } },
     });
   });
 

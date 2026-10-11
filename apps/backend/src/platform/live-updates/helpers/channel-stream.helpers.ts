@@ -6,74 +6,57 @@ import type {
 
 const finished = (): IteratorReturnResult<void> => ({ done: true, value: undefined });
 
+const streamOf = <TValue>(
+  next: () => Promise<IteratorResult<TValue, void>>,
+  stop: () => Promise<unknown>,
+): ChannelStream<TValue> => {
+  const stream: ChannelStream<TValue> = {
+    next,
+    return: async () => {
+      await stop();
+      return finished();
+    },
+    [Symbol.asyncIterator]: () => stream,
+  };
+  return stream;
+};
+
 export function channelStream<TEvent extends ChannelEvent>(
   messages: AsyncIterator<unknown[]>,
   schema: z.ZodType<TEvent>,
   release: () => Promise<void>,
 ): ChannelStream<TEvent> {
-  let closed = false;
+  let open = true;
   const close = async (): Promise<void> => {
-    if (closed) {
-      return;
-    }
-    closed = true;
-    try {
+    if (open) {
+      open = false;
       await messages.return?.();
-    } finally {
       await release();
     }
   };
-  const read = async (): Promise<IteratorResult<TEvent, void>> => {
-    const result = await messages.next();
-    if (result.done === true) {
-      return finished();
-    }
-    const [message] = result.value;
-    return { done: false, value: schema.parse(JSON.parse(String(message))) };
-  };
-  const stream: ChannelStream<TEvent> = {
-    async next() {
-      if (closed) {
-        return finished();
+  const next = async (): Promise<IteratorResult<TEvent, void>> => {
+    try {
+      const result = await messages.next();
+      if (result.done !== true) {
+        return { done: false, value: schema.parse(JSON.parse(String(result.value[0]))) };
       }
-      try {
-        const result = await read();
-        if (result.done === true) {
-          await close();
-        }
-        return result;
-      } catch (error) {
-        await close();
-        throw error;
-      }
-    },
-    async return() {
+    } catch (error) {
       await close();
-      return finished();
-    },
-    [Symbol.asyncIterator]() {
-      return stream;
-    },
+      throw error;
+    }
+    await close();
+    return finished();
   };
-  return stream;
+  return streamOf(next, close);
 }
 
 export function mapChannelStream<TEvent extends ChannelEvent, TView>(
   events: ChannelStream<TEvent>,
   toView: (event: TEvent) => TView,
 ): ChannelStream<TView> {
-  const stream: ChannelStream<TView> = {
-    async next() {
-      const result = await events.next();
-      return result.done === true ? finished() : { done: false, value: toView(result.value) };
-    },
-    async return() {
-      await events.return();
-      return finished();
-    },
-    [Symbol.asyncIterator]() {
-      return stream;
-    },
+  const next = async (): Promise<IteratorResult<TView, void>> => {
+    const result = await events.next();
+    return result.done === true ? result : { done: false, value: toView(result.value) };
   };
-  return stream;
+  return streamOf(next, () => events.return());
 }

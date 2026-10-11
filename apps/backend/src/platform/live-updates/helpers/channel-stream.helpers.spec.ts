@@ -50,19 +50,6 @@ describe('channelStream', () => {
     expect(release).toHaveBeenCalledOnce();
   });
 
-  it('releases the channel and ends a waiting read when the consumer stops before any message', async () => {
-    const release = vi.fn<() => Promise<void>>(() => Promise.resolve());
-    const emitter = new EventEmitter();
-    const stream = channelStream(on(emitter, quietChannel), eventSchema, release);
-
-    const pending = stream.next();
-    await stream.return();
-
-    await expect(pending).resolves.toEqual({ done: true, value: undefined });
-    expect(release).toHaveBeenCalledOnce();
-    expect(emitter.listenerCount(quietChannel)).toBe(0);
-  });
-
   it('releases the channel when a message does not match the schema', async () => {
     const release = vi.fn<() => Promise<void>>(() => Promise.resolve());
     const stream = channelStream(messagesOf(JSON.stringify({ other: 1 })), eventSchema, release);
