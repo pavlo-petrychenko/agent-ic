@@ -1,6 +1,7 @@
 import { PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
+import { STORE_ONLY_STATES } from '@/modules/conversations/constants/incoming-message.constants';
 import { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 import { parseConversationInput } from '@/modules/conversations/helpers/conversation-input.helpers';
 import { simulatorMessageSchema } from '@/modules/conversations/schemas/simulation.schema';
@@ -40,9 +41,10 @@ export class SendSimulatorMessageUseCase {
       if (conversation?.id !== own.id) {
         throw new ConversationClosedError(conversationId);
       }
-      const versionId =
-        conversation.simulationVersionId ??
-        (await this.agents.snapshotDraft(workspaceId, conversation.agentId)).id;
+      const versionId = STORE_ONLY_STATES.has(conversation.state)
+        ? null
+        : (conversation.simulationVersionId ??
+          (await this.agents.snapshotDraft(workspaceId, conversation.agentId)).id);
       const received = await this.incoming.handleIncomingMessage(ctx, {
         workspaceId,
         agentId: conversation.agentId,

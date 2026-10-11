@@ -1,6 +1,7 @@
 import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AgentVersionKind } from '@/modules/agents';
+import { WaitingReason } from '@/modules/conversations/constants/conversation.constants';
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 import { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
@@ -8,6 +9,7 @@ import { RestartSimulationUseCase } from '@/modules/conversations/use-cases/rest
 import { SendSimulatorMessageUseCase } from '@/modules/conversations/use-cases/send-simulator-message.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
+import { workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { readVersions, seedPublishedVersion } from '@test/support/helpers/agents-testing.helpers';
 import {
@@ -67,6 +69,27 @@ describe('SendSimulatorMessageUseCase', () => {
     await send(started);
 
     expect(await pinnedVersions(started)).toEqual([started.versionId]);
+  });
+
+  it('stores a message without a snapshot while the simulation waits for an operator', async () => {
+    const started = await startTestSimulation(testbed);
+    const conversationId = testbed.ids.fromPublic(
+      IdPrefix.Conversation,
+      started.simulation.conversation.id,
+    );
+    await testbed.tenants.run(started.workspaceId, () =>
+      testbed.runs.markWaiting(workspaceSystemCtx(started.workspaceId), {
+        workspaceId: started.workspaceId,
+        conversationId,
+        reason: WaitingReason.Escalated,
+      }),
+    );
+
+    await send(started);
+
+    const versions = await readVersions(testbed.module, started.workspaceId, started.agentId);
+    expect(versions.map(({ kind }) => kind)).not.toContain(AgentVersionKind.Snapshot);
+    expect(await pinnedVersions(started)).toEqual([]);
   });
 
   it("refuses a closed simulation, another user's or workspace's simulation and an operator", async () => {

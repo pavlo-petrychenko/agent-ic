@@ -61,21 +61,12 @@ export class ConversationsRepository {
     await this.txHost.tx.execute(
       sql`select pg_advisory_xact_lock(hashtext(${simulationLockKey(key)}))`,
     );
-    const [conversation] = await this.txHost.tx
-      .select()
-      .from(conversations)
-      .where(
-        and(
-          eq(conversations.workspaceId, key.workspaceId),
-          eq(conversations.agentId, key.agentId),
-          eq(conversations.endUserExternalId, key.endUserExternalId),
-          eq(conversations.mode, ConversationMode.Simulation),
-          ne(conversations.state, ConversationState.Closed),
-        ),
-      )
-      .orderBy(desc(conversations.createdAt))
-      .limit(1)
-      .for('update');
+    const [conversation] = await this.openSimulationQuery(key).for('update');
+    return conversation ?? null;
+  }
+
+  async findOpenSimulationForRead(key: SimulationKey): Promise<Conversation | null> {
+    const [conversation] = await this.openSimulationQuery(key);
     return conversation ?? null;
   }
 
@@ -162,5 +153,22 @@ export class ConversationsRepository {
       .update(conversations)
       .set({ lastMessageAt })
       .where(and(eq(conversations.workspaceId, workspaceId), eq(conversations.id, id)));
+  }
+
+  private openSimulationQuery(key: SimulationKey) {
+    return this.txHost.tx
+      .select()
+      .from(conversations)
+      .where(
+        and(
+          eq(conversations.workspaceId, key.workspaceId),
+          eq(conversations.agentId, key.agentId),
+          eq(conversations.endUserExternalId, key.endUserExternalId),
+          eq(conversations.mode, ConversationMode.Simulation),
+          ne(conversations.state, ConversationState.Closed),
+        ),
+      )
+      .orderBy(desc(conversations.createdAt))
+      .limit(1);
   }
 }

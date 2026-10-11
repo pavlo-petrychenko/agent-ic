@@ -36,6 +36,10 @@ export class SimulationsService {
     return this.conversations.findOpenSimulation(key);
   }
 
+  findOpenForRead(key: SimulationKey): Promise<Conversation | null> {
+    return this.conversations.findOpenSimulationForRead(key);
+  }
+
   async requireOwn(workspaceId: string, userId: string, publicId: string): Promise<Conversation> {
     const id = this.ids.fromPublic(IdPrefix.Conversation, publicId);
     const conversation = await this.conversations.findById(workspaceId, id);
