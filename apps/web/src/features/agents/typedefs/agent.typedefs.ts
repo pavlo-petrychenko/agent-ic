@@ -16,6 +16,7 @@ export interface AgentRow {
   readonly name: string;
   readonly description: string | null;
   readonly status: AgentStatus;
+  readonly liveVersionNumber: number | null;
   readonly versionCount: number;
   readonly statusLabel: string;
   readonly note: string | null;

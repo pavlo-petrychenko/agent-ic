@@ -10,6 +10,7 @@ import type { AgentStatus } from '@/features/agents/constants/agentStatus.consta
 import type { AgentsPageProps } from '@/features/agents/containers/AgentsPage/AgentsPage.typedefs';
 import { useAgentRowMenu } from '@/features/agents/containers/AgentsPage/useAgentRowMenu';
 import { DeleteAgentDialog } from '@/features/agents/containers/DeleteAgentDialog';
+import { PauseAgentDialog } from '@/features/agents/containers/PauseAgentDialog';
 import { filterAgents, toStatuses } from '@/features/agents/logic/helpers/agentFilter.helpers';
 import { toTableStatus } from '@/features/agents/logic/helpers/agentList.helpers';
 import { agentStatusNote } from '@/features/agents/logic/helpers/agentStatus.helpers';
@@ -67,6 +68,7 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
       name: agent.name,
       description: agent.description,
       status: agent.status,
+      liveVersionNumber: agent.liveVersionNumber,
       versionCount: agent.versionCount,
       statusLabel: t(`status.${agent.status}`, { version: agent.liveVersionNumber }),
       note: note === null ? null : t(`statusNote.${note}`, { number: agent.draftNumber }),
@@ -132,6 +134,13 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
           />
         )}
       </div>
+      {rowMenu.pauseRow !== null && (
+        <PauseAgentDialog
+          key={rowMenu.pauseRow.id}
+          agent={rowMenu.pauseRow}
+          onClose={rowMenu.closePause}
+        />
+      )}
       {rowMenu.deleteRow !== null && (
         <DeleteAgentDialog
           key={rowMenu.deleteRow.id}

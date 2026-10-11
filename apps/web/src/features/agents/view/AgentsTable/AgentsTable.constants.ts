@@ -26,6 +26,7 @@ export const AGENT_MENU_ICON_SIZE = 14;
 export const AGENT_MENU_ICONS: Readonly<Record<AgentMenuAction, IconName>> = {
   [AgentMenuAction.Open]: IconName.ChevronRight,
   [AgentMenuAction.Test]: IconName.Play,
+  [AgentMenuAction.Pause]: IconName.Pause,
   [AgentMenuAction.Resume]: IconName.Play,
   [AgentMenuAction.Duplicate]: IconName.Plus,
   [AgentMenuAction.Delete]: IconName.X,

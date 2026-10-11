@@ -7,6 +7,8 @@ export interface AgentsPageProps {
 
 export interface UseAgentRowMenuResult {
   readonly onAction: (row: AgentRow, action: AgentMenuAction) => void;
+  readonly pauseRow: AgentRow | null;
   readonly deleteRow: AgentRow | null;
+  readonly closePause: () => void;
   readonly closeDelete: () => void;
 }

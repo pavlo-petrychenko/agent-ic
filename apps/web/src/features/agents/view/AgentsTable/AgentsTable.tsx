@@ -43,6 +43,7 @@ export function AgentsTable({
   const toMenuItem = (action: AgentMenuAction): MenuItem => ({
     id: action,
     label: t(`menu.${action}`),
+    hint: action === AgentMenuAction.Pause ? t('menu.pauseHint') : null,
     leading: <Icon name={AGENT_MENU_ICONS[action]} size={AGENT_MENU_ICON_SIZE} />,
     danger: action === AgentMenuAction.Delete,
   });

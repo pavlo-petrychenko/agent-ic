@@ -3,6 +3,7 @@ import { AgentStatus } from '@/features/agents/constants/agentStatus.constants';
 export enum AgentMenuAction {
   Open = 'open',
   Test = 'test',
+  Pause = 'pause',
   Resume = 'resume',
   Duplicate = 'duplicate',
   Delete = 'delete',
@@ -12,6 +13,7 @@ export const AGENT_MENU_ACTIONS: Readonly<Record<AgentStatus, readonly AgentMenu
   [AgentStatus.Live]: [
     AgentMenuAction.Open,
     AgentMenuAction.Test,
+    AgentMenuAction.Pause,
     AgentMenuAction.Duplicate,
     AgentMenuAction.Delete,
   ],

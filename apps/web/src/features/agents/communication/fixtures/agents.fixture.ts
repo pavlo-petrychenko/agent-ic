@@ -1,14 +1,17 @@
+import { ErrorCode, type ErrorReason } from '@agent-ic/contracts';
 import type { MockLink } from '@apollo/client/testing';
+import { GraphQLError } from 'graphql';
 import { CreateAgentDocument } from '@/features/agents/communication/gql/mutation/createAgent.generated';
 import { DeleteAgentDocument } from '@/features/agents/communication/gql/mutation/deleteAgent.generated';
 import { DuplicateAgentDocument } from '@/features/agents/communication/gql/mutation/duplicateAgent.generated';
+import { PauseAgentDocument } from '@/features/agents/communication/gql/mutation/pauseAgent.generated';
 import { ResumeAgentDocument } from '@/features/agents/communication/gql/mutation/resumeAgent.generated';
 import {
   AgentsDocument,
   type AgentsQuery,
 } from '@/features/agents/communication/gql/query/agents.generated';
 import { AGENTS_PAGE_SIZE } from '@/features/agents/constants/agentList.constants';
-import { AgentStatus } from '@/shared/api/generated/schema.generated';
+import { AgentStatus, type PauseMode } from '@/shared/api/generated/schema.generated';
 
 type AgentFixture = AgentsQuery['agents']['edges'][number]['node'];
 
@@ -92,6 +95,52 @@ export const buildCreateAgentFailureMock = (
 ): MockLink.MockedResponse => ({
   request: { query: CreateAgentDocument, variables: { input: { name } } },
   error,
+});
+
+const PAUSED_AT = '2026-10-10T09:00:00.000Z';
+
+export const buildPauseAgentMock = (
+  id: string,
+  mode: PauseMode,
+  awayMessage: string | null,
+): MockLink.MockedResponse => ({
+  request: { query: PauseAgentDocument, variables: { input: { id, mode, awayMessage } } },
+  result: {
+    data: {
+      pauseAgent: {
+        __typename: 'Agent',
+        id,
+        status: AgentStatus.Paused,
+        pausedAt: PAUSED_AT,
+        pauseMode: mode,
+        awayMessage,
+      },
+    },
+  },
+});
+
+export const buildPauseAgentFailureMock = (
+  id: string,
+  mode: PauseMode,
+  awayMessage: string | null,
+  error: Error,
+): MockLink.MockedResponse => ({
+  request: { query: PauseAgentDocument, variables: { input: { id, mode, awayMessage } } },
+  error,
+});
+
+export const buildPauseAgentReasonFailureMock = (
+  id: string,
+  mode: PauseMode,
+  awayMessage: string | null,
+  reason: ErrorReason,
+): MockLink.MockedResponse => ({
+  request: { query: PauseAgentDocument, variables: { input: { id, mode, awayMessage } } },
+  result: {
+    errors: [
+      new GraphQLError('rejected', { extensions: { code: ErrorCode.BadUserInput, reason } }),
+    ],
+  },
 });
 
 export const buildResumeAgentMock = (id: string): MockLink.MockedResponse => ({
