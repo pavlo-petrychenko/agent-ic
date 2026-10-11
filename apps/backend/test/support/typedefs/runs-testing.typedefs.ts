@@ -3,7 +3,7 @@ import type {
   Conversation,
   NewConversation,
 } from '@/modules/conversations/typedefs/conversation.typedefs';
-import type { NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
+import type { Message, NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
 import type { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import type { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import type { RunExecutionService } from '@/modules/runs/services/run-execution.service';
@@ -57,4 +57,9 @@ export interface ReceivedMessage {
 export interface LifecycleState {
   readonly conversation: Conversation | null;
   readonly latest: Run | null;
+}
+
+export interface RunChat {
+  readonly conversation: Conversation | null;
+  readonly messages: readonly (Message | null)[];
 }

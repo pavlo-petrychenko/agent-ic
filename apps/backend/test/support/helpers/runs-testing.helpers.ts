@@ -1,5 +1,5 @@
 import { NodeType } from '@agent-ic/flow';
-import type { FlowDocument } from '@agent-ic/flow';
+import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import { AgentVersionKind, PauseMode } from '@/modules/agents/constants/agent.constants';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
@@ -7,7 +7,7 @@ import { messageReceivedEvent } from '@/modules/conversations';
 import type { MessageReceivedPayload } from '@/modules/conversations';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
-import { STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
+import { ROOT_BRANCH_KEY, STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import { startRunOnMessageJob } from '@/modules/runs/jobs/start-run-on-message.job';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
@@ -16,7 +16,9 @@ import { MessageTriggerExecutor } from '@/modules/runs/services/message-trigger-
 import { ParallelExecutor } from '@/modules/runs/services/parallel-executor.service';
 import { RouterExecutor } from '@/modules/runs/services/router-executor.service';
 import { RunExecutionService } from '@/modules/runs/services/run-execution.service';
-import type { NewRun } from '@/modules/runs/typedefs/run.typedefs';
+import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
+import type { NewRun, Run } from '@/modules/runs/typedefs/run.typedefs';
+import type { StepExecution } from '@/modules/runs/typedefs/step-executor.typedefs';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -41,6 +43,7 @@ import {
   TEST_REPUBLISHED_NUMBER,
 } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { ScriptedStepExecutor } from '@test/support/fakes/scripted-step-executor.fake';
 import { newAgent, newVersion } from '@test/support/fixtures/agents.fixture';
@@ -59,6 +62,7 @@ import type {
   LiveConversation,
   ReceivedMessage,
   RunExecutionTestbed,
+  RunChat,
   RunLifecycleTestbed,
   RunsTestbed,
 } from '@test/support/typedefs/runs-testing.typedefs';
@@ -93,6 +97,7 @@ export const createRunsTestbed = async (
           new ParallelExecutor(),
           executor,
           observer,
+          new ScriptedStepExecutor(NodeType.Escalation),
         ],
       },
     ],
@@ -241,4 +246,36 @@ export const readLifecycle = (
   testbed.tenants.run(workspaceId, async () => ({
     conversation: await testbed.module.get(ConversationsRepository).findById(workspaceId, id),
     latest: await testbed.runs.findLatestByConversation(workspaceId, id),
+  }));
+
+export const stepExecutionOf = async <TNode extends FlowNode>(
+  testbed: RunExecutionTestbed,
+  { run, ctx }: ExecutableRun,
+  node: TNode,
+  variables: StepData,
+): Promise<StepExecution<TNode>> => {
+  const stored = await testbed.tenants.run(run.workspaceId, () =>
+    testbed.runs.findById(run.workspaceId, run.id),
+  );
+  if (stored === null) {
+    throw new MissingTestDataError(run.id);
+  }
+  const scope = { variables, history: [], today: RUNS_TEST_START };
+  return { ctx, run: stored, node, branchKey: ROOT_BRANCH_KEY, scope };
+};
+
+export const readRunChat = (
+  testbed: RunExecutionTestbed,
+  { workspaceId, conversationId }: Pick<Run, 'workspaceId' | 'conversationId'>,
+  messageIds: unknown,
+): Promise<RunChat> =>
+  testbed.tenants.run(workspaceId, async () => ({
+    conversation: await testbed.module
+      .get(ConversationsRepository)
+      .findById(workspaceId, conversationId),
+    messages: await Promise.all(
+      (Array.isArray(messageIds) ? messageIds : []).map((id) =>
+        testbed.module.get(MessagesRepository).findById(workspaceId, String(id)),
+      ),
+    ),
   }));

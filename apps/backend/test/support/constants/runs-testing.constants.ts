@@ -57,3 +57,13 @@ export enum AgentChange {
 }
 export const TEST_CREDENTIAL_ID = 'credential-orders';
 export const TEST_API_RETRIES = 2;
+export const SEND_NODE_ID = 'node-send';
+export const SEND_NODE_KEY = 'send';
+export const ESCALATION_NODE_ID = 'node-escalation';
+export const ESCALATION_NODE_KEY = 'escalation';
+export const TEST_REPLIES_VARIABLE = 'agent.messages';
+export const TEST_REPLIES = ['We open at nine.', ' ', 'See you soon.'];
+export const TEST_SENT_REPLIES = ['We open at nine.', 'See you soon.'];
+export const TEST_QUICK_REPLIES = ['Book a table', 'Call us'];
+export const TEST_CUSTOMER_NOTICE = 'A person will answer "{{message.text}}" soon.';
+export const TEST_ESCALATION_REASON = 'Asked: {{message.text}}';

@@ -19,7 +19,7 @@ import {
   settleBranch,
 } from '@/modules/runs/helpers/run-branch.helpers';
 import { runFailureOf } from '@/modules/runs/helpers/run-failure.helpers';
-import { messageTriggerOf, nextNode } from '@/modules/runs/helpers/run-flow.helpers';
+import { endStatusOf, messageTriggerOf, nextNode } from '@/modules/runs/helpers/run-flow.helpers';
 import {
   messageTriggerVariables,
   stepInput,
@@ -114,6 +114,7 @@ export class RunExecutionService {
   private async walkFrom(walk: RunWalk, start: FlowNode, branchKey: string): Promise<RunEnd> {
     const visited = new Set<string>();
     let node: FlowNode | null = start;
+    let last = start;
     while (node !== null) {
       if (visited.has(node.id)) {
         return this.failed(new RunFlowInvalidError(walk.run.versionId, node.id), node.id);
@@ -128,14 +129,15 @@ export class RunExecutionService {
         return failedBranch;
       }
       const step = walk.steps.get(node.id) ?? (await this.runStep(walk, node, executor, branchKey));
+      last = node;
       if (step.port === null) {
         return step.status === RunStepStatus.Failed
           ? { status: RunStatus.Failed, error: step.error, finishedAt: this.clock.now() }
-          : this.succeeded();
+          : this.ended(node);
       }
       node = nextNode(walk.flow, node.id, step.port);
     }
-    return this.succeeded();
+    return this.ended(last);
   }
 
   private async fork(walk: RunWalk, parallel: ParallelNode): Promise<RunEnd | null> {
@@ -266,7 +268,7 @@ export class RunExecutionService {
     };
   }
 
-  private succeeded(): RunEnd {
-    return { status: RunStatus.Succeeded, error: null, finishedAt: this.clock.now() };
+  private ended(last: FlowNode): RunEnd {
+    return { status: endStatusOf(last), error: null, finishedAt: this.clock.now() };
   }
 }

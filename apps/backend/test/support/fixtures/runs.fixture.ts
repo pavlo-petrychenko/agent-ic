@@ -5,9 +5,13 @@ import {
   EscalationMode,
   FailureMode,
   HttpMethod,
+  MessageContentKind,
   NodeType,
+  NotifyChannel,
   OutputFieldType,
   PortName,
+  QuickRepliesKind,
+  RecipientsKind,
   RequestAuthKind,
   RequestBodyKind,
   RuleMatch,
@@ -22,6 +26,7 @@ import type {
   FlowNode,
   ParallelNode,
   RouterNode,
+  SendMessageNode,
   WaitFor,
 } from '@agent-ic/flow';
 import { ChannelKind, ConversationMode, ConversationState } from '@/modules/conversations';
@@ -50,8 +55,16 @@ import {
 import { TEST_END_USER_EXTERNAL_ID } from '@test/support/constants/conversations-testing.constants';
 import { OUTBOUND_TEST_HEADER } from '@test/support/constants/outbound-http-testing.constants';
 import {
+  ESCALATION_NODE_ID,
+  ESCALATION_NODE_KEY,
   FIRST_STEP_KEY,
   RUNS_TEST_START,
+  SEND_NODE_ID,
+  SEND_NODE_KEY,
+  TEST_CUSTOMER_NOTICE,
+  TEST_ESCALATION_REASON,
+  TEST_QUICK_REPLIES,
+  TEST_REPLIES_VARIABLE,
   TEST_END_USER_NAME,
   TEST_ROUTE_RULE_ID,
   TEST_STEP_INPUT,
@@ -187,6 +200,40 @@ export const endNode = (id: string, key: string): EscalationNode => ({
   position: NODE_POSITION,
   type: NodeType.Escalation,
   config: { mode: EscalationMode.End, customerMessage: null },
+});
+
+export const sendMessageNode = (): SendMessageNode => ({
+  id: SEND_NODE_ID,
+  key: SEND_NODE_KEY,
+  label: SEND_NODE_KEY,
+  position: NODE_POSITION,
+  type: NodeType.SendMessage,
+  config: {
+    content: { kind: MessageContentKind.List, variable: TEST_REPLIES_VARIABLE },
+    typing: true,
+    waitForDelivery: false,
+    quickReplies: { kind: QuickRepliesKind.Static, buttons: TEST_QUICK_REPLIES },
+  },
+});
+
+export const escalateNode = (): EscalationNode => ({
+  id: ESCALATION_NODE_ID,
+  key: ESCALATION_NODE_KEY,
+  label: ESCALATION_NODE_KEY,
+  position: NODE_POSITION,
+  type: NodeType.Escalation,
+  config: {
+    mode: EscalationMode.Escalate,
+    customerMessage: TEST_CUSTOMER_NOTICE,
+    reason: TEST_ESCALATION_REASON,
+    notify: {
+      recipients: { kind: RecipientsKind.Operators },
+      channels: [NotifyChannel.InPlatform],
+    },
+    reminderAfterMinutes: null,
+    fallbackAfterMinutes: null,
+    fallbackMessage: TEST_CUSTOMER_NOTICE,
+  },
 });
 
 export const flowEdge = (
