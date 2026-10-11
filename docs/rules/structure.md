@@ -247,6 +247,31 @@ A component directly under `shared/ui/`, or in a group that is not listed, fails
 
 Test support lives in `apps/web/test/support/` (`setup/`, `components/`, `helpers/`, `constants/`, `typedefs/`, `fixtures/`), imported as `@test/…`. Tests that cross areas, such as a route rendered through the router, live in `apps/web/test/integration/` (`.test.ts`, `.test.tsx`).
 
+## Landing
+
+`apps/landing` is the static marketing site (D262): HTML, SCSS and a little vanilla TypeScript, no UI framework.
+
+```
+apps/landing/
+├── index.html            the one page template, rendered per language at build time
+├── vite.config.ts        Vite config; vite.*.ts beside it hold the build plugin, env and helpers
+├── public/               static files copied as they are
+└── src/
+    ├── main.ts           the entry: fonts, tokens, styles and page behaviour
+    ├── locales/          <language>.json, one per language, flat
+    ├── styles/           .scss and .css files, flat
+    └── helpers/  constants/  typedefs/
+```
+
+| Folder | File | What |
+|---|---|---|
+| `locales/` | `en.json`, `uk.json` | the page text, the same keys in every file |
+| `styles/` | `x.scss` | page styles on the design tokens |
+| `helpers/` | `x.helpers.ts` | pure functions and small DOM behaviour, such as the mobile menu |
+| `constants/` · `typedefs/` | `x.constants.ts` · `x.typedefs.ts` | as everywhere |
+
+Next to a helper: `x.helpers.test.ts`. `src/` imports only its own files and `@agent-ic/design-tokens` (dependency-cruiser). The build-time code (`vite.*.ts`) sits at the app root, as in `apps/web`, because Vite loads it before any alias exists.
+
 ## Pull requests
 
 A pull request that changes UI includes screenshots of every changed story or screen, stored on the `pr-assets` branch.

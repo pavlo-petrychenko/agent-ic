@@ -14,6 +14,7 @@ export interface StructureAreas {
   readonly backendTest: string;
   readonly webSource: string;
   readonly webTest: string;
+  readonly landingSource: string;
 }
 
 export type Verdict = string | null;

@@ -10,6 +10,7 @@ const BACKEND_SRC = 'apps/backend/src';
 const BACKEND_TEST = 'apps/backend/test';
 const WEB_SRC = 'apps/web/src';
 const WEB_TEST = 'apps/web/test';
+const LANDING_SRC = 'apps/landing/src';
 
 const validFiles = [
   `${BACKEND_SRC}/main.ts`,
@@ -88,6 +89,14 @@ const validFiles = [
   `${WEB_TEST}/support/components/MemoryRouter/MemoryRouter.tsx`,
   `${WEB_TEST}/support/helpers/render.helpers.tsx`,
   `${WEB_TEST}/support/constants/router.constants.ts`,
+  `${LANDING_SRC}/main.ts`,
+  `${LANDING_SRC}/locales/en.json`,
+  `${LANDING_SRC}/locales/uk.json`,
+  `${LANDING_SRC}/styles/main.scss`,
+  `${LANDING_SRC}/helpers/menu.helpers.ts`,
+  `${LANDING_SRC}/helpers/menu.helpers.test.ts`,
+  `${LANDING_SRC}/constants/menu.constants.ts`,
+  `${LANDING_SRC}/typedefs/locale.typedefs.ts`,
 ];
 
 const invalidFiles: ReadonlyArray<readonly [string, string]> = [
@@ -154,6 +163,12 @@ const invalidFiles: ReadonlyArray<readonly [string, string]> = [
   [`${WEB_TEST}/integration/helper.ts`, 'integration holds .test.ts and .test.tsx files only'],
   [`${WEB_TEST}/support/utils/x.ts`, 'unknown folder "utils"'],
   [`${WEB_TEST}/support/helpers/render.ts`, 'does not match'],
+  [`${LANDING_SRC}/index.ts`, 'is not allowed here'],
+  [`${LANDING_SRC}/components/Header.ts`, 'unknown folder "components"'],
+  [`${LANDING_SRC}/locales/en/common.json`, 'is flat'],
+  [`${LANDING_SRC}/locales/en-US.json`, 'one <language>.json file'],
+  [`${LANDING_SRC}/styles/theme.ts`, 'styles holds .css and .scss files only'],
+  [`${LANDING_SRC}/helpers/menu.ts`, 'does not match'],
 ];
 
 const roots: string[] = [];
