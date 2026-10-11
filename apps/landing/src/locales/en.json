@@ -24,6 +24,18 @@
     "lead": "Pick a template, add your price list and FAQ, connect Telegram. Your bot is live in about 10 minutes — and hands the chat to your team when it can’t help.",
     "note": "No code · Ukrainian and English · a person can always step in"
   },
+  "mock": {
+    "alt": "The agent-ic flow builder: a Telegram trigger, a conversation guard, a router, the Receptionist agent and Send replies, next to a Telegram chat where the bot answers from a price list"
+  },
+  "chat": {
+    "initials": "DS",
+    "name": "Demo salon",
+    "channel": "bot · Telegram",
+    "question": "How long does a gel manicure take?",
+    "answer": "About 75 minutes, including removing the old coating.",
+    "offer": "Want me to find a time for you?",
+    "source": "from Price list 2026.pdf"
+  },
   "how": {
     "eyebrow": "How it works",
     "title": "From sign-up to a live bot in three steps",
