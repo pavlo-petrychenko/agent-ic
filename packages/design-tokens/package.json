@@ -1,0 +1,17 @@
+{
+  "name": "@agent-ic/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "tokens.css",
+    "fonts.css"
+  ],
+  "exports": {
+    "./tokens.css": "./tokens.css",
+    "./fonts.css": "./fonts.css"
+  },
+  "dependencies": {
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource-variable/onest": "^5.3.1"
+  }
+}

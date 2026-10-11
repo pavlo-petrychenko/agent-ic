@@ -17,6 +17,7 @@ It is one pnpm and Turborepo monorepo with two apps and a few shared packages.
 | `packages/contracts`                       | what both apps share: roles, permissions, error codes, ID prefixes              |
 | `packages/flow`                            | the home of the flow graph schema and validation; today only a version constant |
 | `packages/api-schema`                      | the merged GraphQL schema, generated, not committed                             |
+| `packages/design-tokens`                   | the design tokens as CSS variables, and the fonts they name                     |
 | `packages/oxc-config`, `packages/tsconfig` | shared lint, format and TypeScript settings                                     |
 
 Apps import packages. Apps never import each other.

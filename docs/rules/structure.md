@@ -222,7 +222,7 @@ shared/
 ├── theme/    clients/ hooks/ helpers/ constants/ typedefs/ (light, dark or system; applied as data-theme on <html>)
 ├── viewport/ hooks/ helpers/ constants/ typedefs/ (the wide, default, compact or unsupported breakpoint, from media queries)
 ├── ui/       group folders, then component folders: ui/<group>/<Name>/; the only place Radix may appear
-└── styles/   tokens.css · global.scss · tailwind.css · index.ts (the one side-effect entry that imports fonts and the stylesheets in order)
+└── styles/   global.scss · tailwind.css · index.ts (the one side-effect entry that imports the fonts and tokens of @agent-ic/design-tokens, then the stylesheets, in order)
 ```
 
 `shared/ui/` has exactly one group level, then component folders as anywhere else (nested private folders included): `shared/ui/<group>/<Name>/`, imported as `@/shared/ui/<group>/<Name>`. The groups are listed in `WEB_UI_GROUPS` in `tools/check-structure/check-structure.constants.ts`:

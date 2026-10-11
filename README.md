@@ -161,6 +161,7 @@ To choose ports yourself, edit `.env`. Run `mise run ports` (or `pnpm stack port
 - `apps/web` React web app
 - `packages/contracts` constants shared by backend and web
 - `packages/flow` flow graph schema and validation
+- `packages/design-tokens` design tokens (CSS variables) and the fonts they name
 - `packages/tsconfig` shared TypeScript configs
 - `packages/oxc-config` shared oxlint and oxfmt configs
 - `compose.yaml` and `deploy/docker` the local stack

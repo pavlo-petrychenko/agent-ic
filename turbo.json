@@ -17,6 +17,10 @@
       ],
       "outputs": ["dist/**"]
     },
+    "@agent-ic/design-tokens#build": {
+      "inputs": ["*.css", "package.json"],
+      "outputs": []
+    },
     "codegen": {
       "inputs": ["src/**/*.graphql", "codegen.config.ts", "package.json"],
       "outputs": ["src/**/*.generated.ts"]

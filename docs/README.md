@@ -16,7 +16,7 @@ Start here. This page tells you what agent-ic is, where things are, and which pa
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `apps/backend`   | the NestJS app. [Module anatomy](../apps/backend/AGENTS.md)                                                                                                                    |
 | `apps/web`       | the React app. [Feature anatomy](../apps/web/AGENTS.md)                                                                                                                        |
-| `packages/`      | code both apps share: `contracts`, `flow`, `api-schema`, and the lint and TypeScript configs                                                                                   |
+| `packages/`      | code both apps share: `contracts`, `flow`, `api-schema`, `design-tokens`, and the lint and TypeScript configs                                                                  |
 | `deploy/`        | the Dockerfiles for local use and production, and the Helm chart                                                                                                               |
 | `tools/`         | the code behind the `mise run` commands, the structure and comment checks, the commit hooks                                                                                    |
 | `docs/learn/`    | the numbered pages below: one idea per page, read in order                                                                                                                     |
@@ -88,4 +88,4 @@ Tests are optional during the MVP. Write them where they help. Existing tests mu
 - [CONTRIBUTING.md](../CONTRIBUTING.md): setup, branches, pull requests and review.
 - [apps/backend/AGENTS.md](../apps/backend/AGENTS.md): backend module anatomy, commands and roles.
 - [apps/web/AGENTS.md](../apps/web/AGENTS.md): web feature anatomy.
-- Packages: what each one holds and must not hold is in its `README.md`: [contracts](../packages/contracts/README.md), [flow](../packages/flow/README.md), [api-schema](../packages/api-schema/README.md), [oxc-config](../packages/oxc-config/README.md), [tsconfig](../packages/tsconfig/README.md).
+- Packages: what each one holds and must not hold is in its `README.md`: [contracts](../packages/contracts/README.md), [flow](../packages/flow/README.md), [api-schema](../packages/api-schema/README.md), [design-tokens](../packages/design-tokens/README.md), [oxc-config](../packages/oxc-config/README.md), [tsconfig](../packages/tsconfig/README.md).
