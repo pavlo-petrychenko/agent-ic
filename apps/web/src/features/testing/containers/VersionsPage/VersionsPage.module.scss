@@ -1,6 +1,9 @@
+$versions-list-width: 636px;
+$compare-panel-width: 496px;
+
 .body {
   display: grid;
-  grid-template-columns: minmax(0, 636px) minmax(0, 496px);
+  grid-template-columns: minmax(0, $versions-list-width) minmax(0, $compare-panel-width);
   gap: var(--space-20);
   align-items: start;
   padding: var(--space-20) var(--space-page-gutter) var(--space-32);
