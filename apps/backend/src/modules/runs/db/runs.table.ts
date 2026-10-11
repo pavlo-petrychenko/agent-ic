@@ -1,4 +1,4 @@
-import { jsonb, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { index, jsonb, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { ConversationMode } from '@/modules/conversations';
 import { RUNS_SCHEMA, RunStatus, RunTrigger } from '@/modules/runs/constants/run.constants';
 import type { RunFailure } from '@/modules/runs/typedefs/run.typedefs';
@@ -44,6 +44,9 @@ export const runs = runsSchema
       startedAt: timestamp('started_at', { withTimezone: true }),
       finishedAt: timestamp('finished_at', { withTimezone: true }),
     },
-    () => [tenantIsolationPolicy('runs')],
+    (table) => [
+      index('runs_conversation_latest_idx').on(table.conversationId, table.createdAt, table.id),
+      tenantIsolationPolicy('runs'),
+    ],
   )
   .enableRLS();
