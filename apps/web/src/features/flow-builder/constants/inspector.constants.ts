@@ -1,4 +1,4 @@
-import { NodeType, WaitFor } from '@agent-ic/flow';
+import { NodeType, OperandKind, WaitFor } from '@agent-ic/flow';
 import type { DescribedNodeType } from '@/features/flow-builder/typedefs/inspector.typedefs';
 import { BadgeTone } from '@/shared/ui/display/Badge/Badge.constants';
 
@@ -55,5 +55,50 @@ export const BRANCH_ROLE_TONES: Readonly<Record<BranchRole, BadgeTone>> = {
   [BranchRole.Racing]: BadgeTone.Warn,
 };
 
+export const LIST_VALUE_SEPARATOR = ',';
+export const LIST_VALUE_JOINER = ', ';
+
+export enum ValueInput {
+  None = 'none',
+  Text = 'text',
+  Number = 'number',
+  Choice = 'choice',
+  List = 'list',
+}
+
+export const OPERAND_INPUTS: Readonly<Record<OperandKind, ValueInput>> = {
+  [OperandKind.None]: ValueInput.None,
+  [OperandKind.Scalar]: ValueInput.Text,
+  [OperandKind.Text]: ValueInput.Text,
+  [OperandKind.Number]: ValueInput.Number,
+  [OperandKind.TextList]: ValueInput.List,
+};
+
+export const MOVE_UP = -1;
+export const MOVE_DOWN = 1;
+
+export const INPUT_DEFAULTS: Readonly<Record<ValueInput, string | number | string[] | null>> = {
+  [ValueInput.None]: null,
+  [ValueInput.Text]: '',
+  [ValueInput.Number]: 0,
+  [ValueInput.Choice]: '',
+  [ValueInput.List]: [],
+};
+
 export const KEY_INVALID_CHARACTERS = /[^a-z0-9]+/g;
 export const KEY_EDGE_SEPARATORS = /^_+|_+$/g;
+export const PATH_JOINER = '.';
+
+export enum IssuePathSegment {
+  Rules = 'rules',
+  Conditions = 'conditions',
+  Id = 'id',
+  Variable = 'variable',
+  Operator = 'operator',
+  Value = 'value',
+}
+
+export enum InputType {
+  Text = 'text',
+  Number = 'number',
+}

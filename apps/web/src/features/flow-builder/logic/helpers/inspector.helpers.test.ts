@@ -1,16 +1,33 @@
-import { CompletionRole, NodeType, PortName, VariableType, WaitFor } from '@agent-ic/flow';
+import {
+  CompletionRole,
+  FlowIssueCode,
+  FlowIssueSeverity,
+  NodeType,
+  PortName,
+  VariableType,
+  WaitFor,
+} from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.constants';
-import { BranchRole, FieldHint } from '@/features/flow-builder/constants/inspector.constants';
+import {
+  BranchRole,
+  FieldHint,
+  IssuePathSegment,
+} from '@/features/flow-builder/constants/inspector.constants';
 import { addNode } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import {
   branchRows,
+  conditionPath,
+  fieldErrors,
   fieldRows,
   nodeKeyFromLabel,
+  observerNames,
   proposeKeyRename,
+  rulePath,
   updateNode,
 } from '@/features/flow-builder/logic/helpers/inspector.helpers';
+import type { AddableNodeType } from '@/features/flow-builder/typedefs/graphEdit.typedefs';
 
 const ORIGIN = { x: 0, y: 0 };
 const flow = addNode(
@@ -56,6 +73,35 @@ describe('fieldRows', () => {
   });
 });
 
+describe('fieldErrors', () => {
+  it('keeps the first issue of the step per field path', () => {
+    const issue = (nodeId: string, code: FlowIssueCode) => ({
+      code,
+      nodeId,
+      severity: FlowIssueSeverity.Error,
+      edgeId: null,
+      path: ['rules', '0', 'conditions'],
+      params: {},
+    });
+    const errors = fieldErrors(
+      [
+        issue('b', FlowIssueCode.Cycle),
+        issue('a', FlowIssueCode.RuleWithoutConditions),
+        issue('a', FlowIssueCode.Cycle),
+      ],
+      'a',
+    );
+
+    expect(errors.get(rulePath(0, IssuePathSegment.Conditions))?.code).toBe(
+      FlowIssueCode.RuleWithoutConditions,
+    );
+  });
+
+  it('builds the path of a condition field', () => {
+    expect(conditionPath(1, 2, IssuePathSegment.Value)).toBe('rules.1.conditions.2.value');
+  });
+});
+
 describe('parallel branches', () => {
   const observed: FlowDocument = {
     ...updateNode(
@@ -86,5 +132,32 @@ describe('parallel branches', () => {
     [WaitFor.First, BranchRole.Racing],
   ])('marks an observer branch for %s', (waitFor, role) => {
     expect(branches(waitFor)).toMatchObject([{ nodeId: 'o', label: 'Tagger', role }]);
+  });
+
+  it('names only the observers that run in parallel with the router', () => {
+    const steps: [AddableNodeType, string][] = [
+      [NodeType.Router, 'r'],
+      [NodeType.Router, 'before'],
+      [NodeType.Completion, 'elsewhere'],
+    ];
+    const document = steps.reduce(
+      (current, [type, id]) => addNode(current, type, ORIGIN, id),
+      observed,
+    );
+    const linked: FlowDocument = {
+      ...updateNode(document, 'elsewhere', (node) =>
+        node.type === NodeType.Completion
+          ? { ...node, label: 'Other', config: { ...node.config, role: CompletionRole.Observer } }
+          : node,
+      ),
+      edges: [
+        ...observed.edges,
+        { id: 'n', source: 'p', sourcePort: PortName.Next, target: 'r' },
+        { id: 'b', source: 'before', sourcePort: 'x', target: 'p' },
+      ],
+    };
+
+    expect(observerNames(linked, 'r')).toEqual(['Tagger']);
+    expect(observerNames(linked, 'before')).toEqual([]);
   });
 });

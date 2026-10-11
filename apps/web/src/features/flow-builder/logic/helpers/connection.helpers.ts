@@ -2,7 +2,7 @@ import { PortName, isTriggerNode, nodePorts } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import type { FlowConnection } from '@/features/flow-builder/typedefs/graphEdit.typedefs';
 
-const reaches = (document: FlowDocument, from: string, to: string): boolean => {
+export const reaches = (document: FlowDocument, from: string, to: string): boolean => {
   const seen = new Set<string>();
   const pending = [from];
   for (let current = pending.pop(); current !== undefined; current = pending.pop()) {
