@@ -68,4 +68,5 @@ export enum ErrorReason {
   RunNotFound = 'RUN_NOT_FOUND',
   UnsupportedNodeType = 'UNSUPPORTED_NODE_TYPE',
   RunFlowInvalid = 'RUN_FLOW_INVALID',
+  OutboundAddressBlocked = 'OUTBOUND_ADDRESS_BLOCKED',
 }
