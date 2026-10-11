@@ -5,6 +5,7 @@ import { identitySchema, users } from '@/modules/identity/db/users.table';
 export const emailTokenPurposeEnum = identitySchema.enum('email_token_purpose', [
   EmailTokenPurpose.EmailConfirmation,
   EmailTokenPurpose.PasswordReset,
+  EmailTokenPurpose.EmailChange,
 ]);
 
 export const emailTokens = identitySchema.table(

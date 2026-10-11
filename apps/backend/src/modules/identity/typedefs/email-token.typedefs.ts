@@ -18,3 +18,10 @@ export interface IssuedPasswordReset {
   readonly name: string;
   readonly locale: Locale;
 }
+
+export interface IssuedEmailChange {
+  readonly token: string;
+  readonly email: string;
+  readonly name: string;
+  readonly locale: Locale;
+}

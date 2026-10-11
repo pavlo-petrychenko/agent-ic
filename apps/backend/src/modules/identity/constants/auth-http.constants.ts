@@ -11,6 +11,7 @@ export enum AuthRoute {
   Refresh = 'refresh',
   Logout = 'logout',
   ConfirmEmail = 'confirm-email',
+  ConfirmEmailChange = 'confirm-email-change',
   ResetPassword = 'reset-password',
 }
 

@@ -52,3 +52,11 @@ export const updateMyLocaleInputSchema = z.object({
 export const updateMyNameInputSchema = z.object({
   [AccountField.Name]: nameSchema,
 });
+
+export const requestMyEmailChangeInputSchema = z.object({
+  [AccountField.Email]: emailSchema,
+});
+
+export const confirmEmailChangeInputSchema = z.object({
+  [AccountField.Token]: tokenSchema,
+});

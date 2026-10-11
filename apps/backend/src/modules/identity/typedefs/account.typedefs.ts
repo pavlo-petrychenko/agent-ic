@@ -31,6 +31,14 @@ export interface ConfirmEmailInput {
   readonly browserBinding: string | null;
 }
 
+export interface ConfirmEmailChangeRequest {
+  readonly token: string;
+}
+
+export interface ConfirmEmailChangeInput {
+  readonly token: string;
+}
+
 export interface ResendConfirmationInput {
   readonly email: string | null;
   readonly token: string | null;
@@ -60,4 +68,8 @@ export interface UpdateMyLocaleInput {
 
 export interface UpdateMyNameInput {
   readonly name: string;
+}
+
+export interface RequestMyEmailChangeInput {
+  readonly email: string;
 }

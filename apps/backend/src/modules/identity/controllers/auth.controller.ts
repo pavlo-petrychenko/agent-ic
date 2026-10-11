@@ -15,12 +15,14 @@ import {
 } from '@/modules/identity/helpers/refresh-cookie.helpers';
 import type {
   AuthSessionResponse,
+  ConfirmEmailChangeRequest,
   ConfirmEmailRequest,
   LoginInput,
   ResetPasswordInput,
   SignUpInput,
   SignUpResponse,
 } from '@/modules/identity/typedefs/account.typedefs';
+import { ConfirmEmailChangeUseCase } from '@/modules/identity/use-cases/confirm-email-change.use-case';
 import { ConfirmEmailUseCase } from '@/modules/identity/use-cases/confirm-email.use-case';
 import { LoginUseCase } from '@/modules/identity/use-cases/login.use-case';
 import { LogoutUseCase } from '@/modules/identity/use-cases/logout.use-case';
@@ -40,6 +42,7 @@ export class AuthController {
     private readonly refreshSessionUseCase: RefreshSessionUseCase,
     private readonly logoutUseCase: LogoutUseCase,
     private readonly confirmEmailUseCase: ConfirmEmailUseCase,
+    private readonly confirmEmailChangeUseCase: ConfirmEmailChangeUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
   ) {}
 
@@ -108,6 +111,15 @@ export class AuthController {
     });
     releaseConfirmationBrowser(response);
     return startBrowserSession(response, session);
+  }
+
+  @Post(AuthRoute.ConfirmEmailChange)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async confirmEmailChange(
+    @HttpCtx() ctx: UseCaseCtx,
+    @Body() body: ConfirmEmailChangeRequest,
+  ): Promise<void> {
+    await this.confirmEmailChangeUseCase.execute(ctx, { token: body.token });
   }
 
   @Post(AuthRoute.ResetPassword)
