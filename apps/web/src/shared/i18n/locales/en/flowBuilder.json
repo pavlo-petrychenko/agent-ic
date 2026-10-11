@@ -213,7 +213,6 @@
       "retries": "retries",
       "knowledgeBaseIds": "knowledge bases",
       "retrievalMode": "knowledge search",
-      "role": "role",
       "input": "input",
       "method": "method",
       "url": "URL",
