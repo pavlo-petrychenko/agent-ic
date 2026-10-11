@@ -38,6 +38,7 @@ export enum TestRedisPrefix {
   Database = 'database:',
   Entrypoints = 'entrypoints:',
   RequestLayer = 'request-layer:',
+  GraphqlSubscriptions = 'graphql-subscriptions:',
   Jobs = 'jobs:',
   QueueBoard = 'queue-board:',
   LiveUpdates = 'live-updates:',

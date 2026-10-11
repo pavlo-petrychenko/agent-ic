@@ -16,3 +16,12 @@ export async function* channelStream<TEvent extends ChannelEvent>(
     await release();
   }
 }
+
+export async function* mapChannelStream<TEvent extends ChannelEvent, TView>(
+  events: AsyncGenerator<TEvent, void, undefined>,
+  toView: (event: TEvent) => TView,
+): AsyncGenerator<TView, void, undefined> {
+  for await (const event of events) {
+    yield toView(event);
+  }
+}

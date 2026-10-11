@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { channelStream } from '@/platform/live-updates/helpers/channel-stream.helpers';
+import {
+  channelStream,
+  mapChannelStream,
+} from '@/platform/live-updates/helpers/channel-stream.helpers';
 
 const eventSchema = z.object({ messageId: z.string() });
 
@@ -49,6 +52,23 @@ describe('channelStream', () => {
     const stream = channelStream(messagesOf(JSON.stringify({ other: 1 })), eventSchema, release);
 
     await expect(stream.next()).rejects.toThrow(z.ZodError);
+    expect(release).toHaveBeenCalledOnce();
+  });
+});
+
+describe('mapChannelStream', () => {
+  it('maps each event and releases the channel when the consumer stops early', async () => {
+    const release = vi.fn<() => Promise<void>>(() => Promise.resolve());
+    const events = channelStream(
+      messagesOf(JSON.stringify({ messageId: 'first' }), JSON.stringify({ messageId: 'second' })),
+      eventSchema,
+      release,
+    );
+    const views = mapChannelStream(events, ({ messageId }) => messageId.toUpperCase());
+
+    expect((await views.next()).value).toBe('FIRST');
+    await views.return();
+
     expect(release).toHaveBeenCalledOnce();
   });
 });

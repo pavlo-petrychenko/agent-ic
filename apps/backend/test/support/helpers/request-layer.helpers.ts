@@ -33,7 +33,7 @@ export const createApi = async (
   return createApplication(config, AppModule.forRole(config, tracing, modules));
 };
 
-const websocketUrl = (app: INestApplication): string => {
+export const websocketUrl = (app: INestApplication): string => {
   const { port } = app.getHttpServer().address() as AddressInfo;
   const url = new URL(graphqlPath(), `http://${LOOPBACK_HOST}:${port}`);
   url.protocol = WEBSOCKET_PROTOCOL;
