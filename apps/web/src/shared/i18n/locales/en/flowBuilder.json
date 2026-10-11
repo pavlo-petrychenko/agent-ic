@@ -155,6 +155,39 @@
     "hide": "Hide issues"
   },
   "publish": {
+    "open": "Publish",
+    "title": "Publish v{{version}} of {{name}}",
+    "titleNoVersion": "Publish {{name}}",
+    "close": "Close",
+    "cancel": "Cancel",
+    "submit": "Publish v{{version}}",
+    "submitNoVersion": "Publish",
+    "loading": "Checking the draft",
+    "loadError": "The changes couldn’t be loaded.",
+    "changesSince": "What changed since v{{version}}",
+    "changesFirst": "What goes live in the first version",
+    "noChanges": "Nothing changed in the flow.",
+    "checks": "Checks",
+    "valid": "Every step is connected",
+    "tested": "Tested in the simulator",
+    "notTested": "Not tested in the simulator yet",
+    "fix": "Fix",
+    "note": "Release note",
+    "notePlaceholder": "What’s new in this version",
+    "goesLive": "Customers switch to the new version right away. Conversations that are mid-run finish on the version they started with.",
+    "success": "v{{version}} is live",
+    "blocked": {
+      "conflict": "The draft changed elsewhere. Reload it before publishing.",
+      "unsaved": "Saving your latest changes…",
+      "errors_one": "Fix {{count}} error to publish",
+      "errors_other": "Fix {{count}} errors to publish",
+      "noChanges": "Nothing changed since v{{version}}"
+    },
+    "sign": {
+      "added": "Added",
+      "changed": "Changed",
+      "removed": "Removed"
+    },
     "change": {
       "stepAdded": "New step: {{step}}",
       "stepRemoved": "Removed step: {{step}}",
