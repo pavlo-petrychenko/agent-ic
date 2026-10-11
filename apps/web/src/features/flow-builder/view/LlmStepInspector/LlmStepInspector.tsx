@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import { UNSET_OPTION } from '@/features/flow-builder/constants/llmStep.constants';
 import type { LlmStepInspectorProps } from '@/features/flow-builder/view/LlmStepInspector/LlmStepInspector.typedefs';
+import { OutputFieldRow } from '@/features/flow-builder/view/LlmStepInspector/OutputFieldRow';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
+import { RowList } from '@/shared/ui/display/RowList';
+import { IconName } from '@/shared/ui/foundations/Icon';
 import { Field } from '@/shared/ui/inputs/Field';
 import { PromptEditor } from '@/shared/ui/inputs/PromptEditor';
 import { Select } from '@/shared/ui/inputs/Select';
@@ -13,6 +17,9 @@ export function LlmStepInspector({
   onPromptChange,
   onModelChange,
   onReasoningChange,
+  onAddField,
+  onFieldChange,
+  onRemoveField,
 }: LlmStepInspectorProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const message = (issue: FlowIssue | null) =>
@@ -86,6 +93,38 @@ export function LlmStepInspector({
             )}
           </Field>
         )}
+      </InspectorSection>
+      <InspectorSection title={t('inspector.llm.output')} note={t('inspector.llm.structured')}>
+        {step.builtIn.length > 0 && (
+          <RowList
+            aria-label={t('inspector.llm.builtIn')}
+            rows={step.builtIn.map((field) => ({
+              id: field.name,
+              name: field.name,
+              meta: t('inspector.llm.builtInType', { type: t(`inspector.type.${field.type}`) }),
+            }))}
+          />
+        )}
+        {step.output.map((field, index) => (
+          <OutputFieldRow
+            key={`${index}:${field.name}:${field.type}`}
+            field={field}
+            issue={step.fieldIssues[index] ?? null}
+            canRemove={step.canRemoveField}
+            onChange={(patch) => onFieldChange(index, patch)}
+            onRemove={() => onRemoveField(index)}
+          />
+        ))}
+        <Button
+          className="self-start"
+          variant={ButtonVariant.Ghost}
+          size={ButtonSize.Sm}
+          icon={IconName.Plus}
+          disabled={!step.canAddField}
+          onClick={onAddField}
+        >
+          {t('inspector.llm.addField')}
+        </Button>
       </InspectorSection>
     </>
   );

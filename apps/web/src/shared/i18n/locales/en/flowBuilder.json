@@ -290,7 +290,17 @@
         "high": "High",
         "xhigh": "Extra high",
         "max": "Max"
-      }
+      },
+      "output": "Output",
+      "structured": "enforced as structured output",
+      "builtIn": "Built-in output",
+      "builtInType": "{{type}} · built-in",
+      "fieldName": "Field name",
+      "fieldType": "Type of {{name}}",
+      "fieldValues": "Values of {{name}}",
+      "removeField": "Remove {{name}}",
+      "fieldNameHint": "Use lowercase letters, digits and _, starting with a letter",
+      "addField": "Add field"
     },
     "router": {
       "routes": "Routes",

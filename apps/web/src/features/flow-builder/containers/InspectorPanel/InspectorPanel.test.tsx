@@ -305,6 +305,25 @@ describe('InspectorPanel', () => {
     expect(screen.getByText('missing.field isn’t available here')).toBeVisible();
   });
 
+  it('adds an output field that later steps can use', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW);
+
+    expect(screen.getByRole('list', { name: 'Built-in output' })).toHaveTextContent('messages');
+    await user.click(screen.getByRole('button', { name: 'Add field' }));
+    const name = screen.getByRole('textbox', { name: 'Field name' });
+    await user.clear(name);
+    await user.type(name, 'Topic');
+    expect(screen.getByText(/Use lowercase letters/)).toBeVisible();
+    await user.clear(name);
+    await user.type(name, 'topic{Enter}');
+    act(() => store().select({ nodeIds: ['route'], edgeIds: [] }));
+
+    expect(
+      within(screen.getByRole('list', { name: 'Fields you can use' })).getByText('agent.topic'),
+    ).toBeVisible();
+  });
+
   it('picks a model, then a reasoning level that model offers', async () => {
     const user = userEvent.setup();
     open('agent', AI_FLOW);

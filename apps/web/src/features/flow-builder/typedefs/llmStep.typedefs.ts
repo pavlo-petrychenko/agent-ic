@@ -1,5 +1,12 @@
 import type { ReasoningLevel } from '@agent-ic/contracts';
-import type { AgentNode, CompletionNode, FlowIssue, NodeType } from '@agent-ic/flow';
+import type {
+  AgentNode,
+  CompletionNode,
+  FlowIssue,
+  NodeType,
+  OutputField,
+  OutputFieldType,
+} from '@agent-ic/flow';
 import type { ModelPurpose, ModelVendor } from '@/shared/api/generated/schema.generated';
 import type { VariableOption } from '@/shared/ui/inputs/PromptEditor';
 
@@ -17,8 +24,14 @@ export interface ModelChoice {
 }
 
 export type LlmStepConfigPatch = Partial<
-  Pick<AgentNode['config'] & CompletionNode['config'], 'prompt' | 'model' | 'reasoning'>
+  Pick<AgentNode['config'] & CompletionNode['config'], 'prompt' | 'model' | 'reasoning' | 'output'>
 >;
+
+export interface OutputFieldPatch {
+  name?: string;
+  type?: OutputFieldType;
+  values?: readonly string[];
+}
 
 export interface LlmStepView {
   prompt: string;
@@ -26,6 +39,11 @@ export interface LlmStepView {
   models: readonly ModelChoice[];
   model: string | null;
   reasoning: ReasoningLevel | null;
+  builtIn: readonly OutputField[];
+  output: readonly OutputField[];
   promptIssue: FlowIssue | null;
   modelIssue: FlowIssue | null;
+  fieldIssues: readonly (FlowIssue | null)[];
+  canAddField: boolean;
+  canRemoveField: boolean;
 }

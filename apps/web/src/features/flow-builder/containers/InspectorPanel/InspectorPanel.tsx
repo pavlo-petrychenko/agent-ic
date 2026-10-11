@@ -1,9 +1,11 @@
 import {
   MAX_LABEL_LENGTH,
+  MAX_OUTPUT_FIELDS,
   MAX_ROUTER_RULES,
   NodeType,
   PortName,
   PromptSourceKind,
+  nodeOutputFields,
   triggerVariables,
   visibleVariables,
 } from '@agent-ic/flow';
@@ -35,9 +37,12 @@ import {
   updateNode,
 } from '@/features/flow-builder/logic/helpers/inspector.helpers';
 import {
+  addOutputField,
   modelsForStep,
+  removeOutputField,
   selectModel,
   updateLlmStep,
+  updateOutputField,
 } from '@/features/flow-builder/logic/helpers/llmStep.helpers';
 import {
   addRule,
@@ -90,8 +95,9 @@ export function InspectorPanel() {
 
   const llmStep = (current: AgentNode | CompletionNode) => {
     const errors = fieldErrors(issues, current.id);
-    const { prompt, model, reasoning } = current.config;
+    const { prompt, model, reasoning, output } = current.config;
     const text = prompt?.kind === PromptSourceKind.Inline ? prompt.text : '';
+    const builtIn = nodeOutputFields(current).filter((field) => !output.includes(field));
     return (
       <LlmStepInspector
         key={current.id}
@@ -101,11 +107,21 @@ export function InspectorPanel() {
           models: modelsForStep(models, current.type),
           model: model?.model ?? null,
           reasoning,
+          builtIn,
+          output,
           promptIssue:
             errors.get(IssuePathSegment.Prompt) ??
             errors.get([IssuePathSegment.Prompt, IssuePathSegment.Text].join(PATH_JOINER)) ??
             null,
           modelIssue: errors.get(IssuePathSegment.Model) ?? null,
+          fieldIssues: output.map(
+            (_, index) =>
+              errors.get(
+                [IssuePathSegment.Output, index, IssuePathSegment.Name].join(PATH_JOINER),
+              ) ?? null,
+          ),
+          canAddField: builtIn.length + output.length < MAX_OUTPUT_FIELDS,
+          canRemoveField: current.type === NodeType.Agent || output.length > 1,
         }}
         onPromptChange={(next) =>
           next !== text &&
@@ -119,6 +135,11 @@ export function InspectorPanel() {
         onReasoningChange={(level) =>
           apply(updateLlmStep(document, current.id, { reasoning: level }))
         }
+        onAddField={() => apply(addOutputField(document, current.id))}
+        onFieldChange={(index, patch) =>
+          apply(updateOutputField(document, current.id, index, patch))
+        }
+        onRemoveField={(index) => apply(removeOutputField(document, current.id, index))}
       />
     );
   };
