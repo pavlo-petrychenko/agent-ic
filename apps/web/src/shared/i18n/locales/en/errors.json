@@ -57,6 +57,7 @@
     "RUN_NOT_FOUND": "This run was not found.",
     "UNSUPPORTED_NODE_TYPE": "This flow has a step the agent cannot run yet.",
     "RUN_FLOW_INVALID": "This flow cannot run: it has no message trigger or it loops.",
+    "API_REQUEST_STEP_NOT_FOUND": "This step is not an API request in the draft.",
     "OUTBOUND_ADDRESS_BLOCKED": "This address is on a private network and cannot be called."
   },
   "code": {
