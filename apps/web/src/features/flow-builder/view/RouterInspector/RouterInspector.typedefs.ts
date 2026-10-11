@@ -1,6 +1,7 @@
+import type { FlowIssue } from '@agent-ic/flow';
+import type { IssuePathSegment } from '@/features/flow-builder/constants/inspector.constants';
 import type {
   ConditionPatch,
-  FieldErrors,
   FieldRow,
   PortTarget,
   RouteView,
@@ -11,7 +12,12 @@ export interface RouterInspectorProps {
   fields: readonly FieldRow[];
   otherwise: readonly PortTarget[];
   observers: readonly string[];
-  errors: FieldErrors;
+  ruleError: (ruleIndex: number, segment: IssuePathSegment) => FlowIssue | null;
+  conditionError: (
+    ruleIndex: number,
+    conditionIndex: number,
+    segment: IssuePathSegment,
+  ) => FlowIssue | null;
   canAddRoute: boolean;
   onAddRoute: () => void;
   onRenameRoute: (ruleId: string, label: string) => void;

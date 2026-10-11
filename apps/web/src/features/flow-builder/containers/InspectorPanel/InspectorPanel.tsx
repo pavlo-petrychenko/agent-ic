@@ -17,12 +17,14 @@ import { renameKey } from '@/features/flow-builder/logic/helpers/graphEdit.helpe
 import { newElementId } from '@/features/flow-builder/logic/helpers/id.helpers';
 import {
   branchRows,
+  conditionPath,
   fieldErrors,
   fieldRows,
   nodeName,
   observerNames,
   portTargets,
   proposeKeyRename,
+  rulePath,
   updateNode,
 } from '@/features/flow-builder/logic/helpers/inspector.helpers';
 import {
@@ -85,7 +87,8 @@ export function InspectorPanel() {
             }
           />
         );
-      case NodeType.Router:
+      case NodeType.Router: {
+        const errors = fieldErrors(issues, current.id);
         return (
           <RouterInspector
             routes={current.config.rules.map((rule) => ({
@@ -96,7 +99,10 @@ export function InspectorPanel() {
             fields={fieldRows(variables)}
             otherwise={portTargets(document, current.id, PortName.Else)}
             observers={observerNames(document, current.id)}
-            errors={fieldErrors(issues, current.id)}
+            ruleError={(rule, segment) => errors.get(rulePath(rule, segment)) ?? null}
+            conditionError={(rule, condition, segment) =>
+              errors.get(conditionPath(rule, condition, segment)) ?? null
+            }
             canAddRoute={current.config.rules.length < MAX_ROUTER_RULES}
             onAddRoute={() => apply(addRule(document, current.id, newElementId(), variables))}
             onRenameRoute={(ruleId, label) =>
@@ -109,6 +115,7 @@ export function InspectorPanel() {
             }
           />
         );
+      }
       default:
         return null;
     }

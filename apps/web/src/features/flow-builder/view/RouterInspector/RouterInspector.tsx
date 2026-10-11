@@ -16,7 +16,8 @@ export function RouterInspector({
   fields,
   otherwise,
   observers,
-  errors,
+  ruleError,
+  conditionError,
   canAddRoute,
   onAddRoute,
   onRenameRoute,
@@ -37,7 +38,8 @@ export function RouterInspector({
             total={routes.length}
             route={route}
             fieldOptions={fieldOptions}
-            errorAt={(path) => errors.get(`rules.${index}.${path}`) ?? null}
+            ruleError={(segment) => ruleError(index, segment)}
+            conditionError={(position, segment) => conditionError(index, position, segment)}
             onRename={(label) => onRenameRoute(route.rule.id, label)}
             onMove={(offset) => onMoveRoute(route.rule.id, offset)}
             onRemove={() => onRemoveRoute(route.rule.id)}
