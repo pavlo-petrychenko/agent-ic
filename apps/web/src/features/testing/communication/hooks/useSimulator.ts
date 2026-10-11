@@ -1,5 +1,7 @@
 import { skipToken, useMutation, useQuery, useSubscription } from '@apollo/client/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { HandBackDocument } from '@/features/testing/communication/gql/mutation/handBack.generated';
+import { ReplyAsOperatorDocument } from '@/features/testing/communication/gql/mutation/replyAsOperator.generated';
 import { RestartSimulationDocument } from '@/features/testing/communication/gql/mutation/restartSimulation.generated';
 import { SendSimulatorMessageDocument } from '@/features/testing/communication/gql/mutation/sendSimulatorMessage.generated';
 import { StartSimulationDocument } from '@/features/testing/communication/gql/mutation/startSimulation.generated';
@@ -19,6 +21,8 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
   const [startSimulation] = useMutation(StartSimulationDocument);
   const [restartSimulation, { loading: restarting }] = useMutation(RestartSimulationDocument);
   const [sendMessage, { loading: sending }] = useMutation(SendSimulatorMessageDocument);
+  const [replyAsOperator, { loading: replying }] = useMutation(ReplyAsOperatorDocument);
+  const [handBackConversation, { loading: handingBack }] = useMutation(HandBackDocument);
   const key =
     agentId === null
       ? null
@@ -68,6 +72,23 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
     [conversationId, refetch, sendMessage],
   );
 
+  const reply = useCallback(
+    async (text: string) => {
+      if (conversationId !== null) {
+        await replyAsOperator({ variables: { input: { conversationId, text } } });
+        await refetch();
+      }
+    },
+    [conversationId, refetch, replyAsOperator],
+  );
+
+  const handBack = useCallback(async () => {
+    if (conversationId !== null) {
+      await handBackConversation({ variables: { input: { conversationId } } });
+      await refetch();
+    }
+  }, [conversationId, refetch, handBackConversation]);
+
   const restart = useCallback(async () => {
     if (agentId !== null) {
       await restartSimulation({ variables: { input: { agentId } } });
@@ -84,8 +105,12 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
     loadFailed,
     sending,
     restarting,
+    replying,
+    handingBack,
     retry: () => (loadFailed ? void refetch() : setAttempt((value) => value + 1)),
     send,
     restart,
+    reply,
+    handBack,
   };
 }

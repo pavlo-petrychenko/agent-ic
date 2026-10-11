@@ -1,6 +1,10 @@
 import {
   ACTIVE_RUN_STATUSES,
+  ChatDividerKind,
   ChatItemKind,
+  ChatSpeaker,
+  ComposerMode,
+  DIVIDER_ID_SEPARATOR,
   MESSAGE_SPEAKERS,
 } from '@/features/testing/constants/simulator.constants';
 import type {
@@ -8,18 +12,62 @@ import type {
   SimulatorMessage,
   SimulatorRun,
 } from '@/features/testing/typedefs/simulator.typedefs';
-import { MessageAuthor, RunStatus } from '@/shared/api/generated/schema.generated';
+import {
+  ConversationState,
+  MessageAuthor,
+  RunStatus,
+} from '@/shared/api/generated/schema.generated';
 
 export const isActiveRun = (run: SimulatorRun): boolean => ACTIVE_RUN_STATUSES.has(run.status);
 
 const runOutcome = (run: SimulatorRun | null) => ({
   failed: run?.status === RunStatus.Failed,
+  escalated: run?.status === RunStatus.Escalated,
   errorMessage: run?.errorMessage ?? null,
 });
+
+const isOperatorLine = (item: ChatItem | undefined): boolean =>
+  item?.kind === ChatItemKind.Message && item.speaker === ChatSpeaker.Operator;
+
+const divider = (item: ChatItem, kind: ChatDividerKind): ChatItem => ({
+  kind: ChatItemKind.Divider,
+  id: [item.id, kind].join(DIVIDER_ID_SEPARATOR),
+  at: item.at,
+  divider: kind,
+});
+
+const withDividers = (items: readonly ChatItem[], state: ConversationState): ChatItem[] =>
+  items.flatMap((item, index) => {
+    const next = items.at(index + 1);
+    const handedBack =
+      next === undefined ? state === ConversationState.AgentActive : !isOperatorLine(next);
+    const escalated = item.kind === ChatItemKind.Turn && item.escalated;
+    if (escalated) {
+      const escalation = divider(item, ChatDividerKind.Escalated);
+      return handedBack
+        ? [item, escalation, divider(item, ChatDividerKind.HandedBack)]
+        : [item, escalation];
+    }
+    if (isOperatorLine(item) && handedBack) {
+      return [item, divider(item, ChatDividerKind.HandedBack)];
+    }
+    return [item];
+  });
+
+export const composerMode = (state: ConversationState, takingOver: boolean): ComposerMode => {
+  if (state === ConversationState.Handled) {
+    return ComposerMode.Operator;
+  }
+  if (state === ConversationState.Waiting) {
+    return takingOver ? ComposerMode.Operator : ComposerMode.Escalated;
+  }
+  return ComposerMode.User;
+};
 
 export const toChatItems = (
   messages: readonly SimulatorMessage[],
   runs: readonly SimulatorRun[],
+  state: ConversationState,
 ): ChatItem[] => {
   const runById = new Map(runs.map((run) => [run.id, run]));
   const items: ChatItem[] = [];
@@ -55,7 +103,10 @@ export const toChatItems = (
       messages: [],
       ...runOutcome(run),
     }));
-  return [...items, ...silent].toSorted((a, b) => a.at.localeCompare(b.at));
+  return withDividers(
+    [...items, ...silent].toSorted((a, b) => a.at.localeCompare(b.at)),
+    state,
+  );
 };
 
 export const latestRunId = (runs: readonly SimulatorRun[]): string | null =>

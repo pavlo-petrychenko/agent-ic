@@ -4,7 +4,13 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import {
   ANSWERS,
+  ESCALATION_MESSAGE,
+  ESCALATION_QUESTION,
+  OPERATOR_REPLY,
   QUESTION,
+  failedHandBackMock,
+  handBackMock,
+  replyAsOperatorMock,
   restartSimulationMock,
   sendSimulatorMessageMock,
   simulationMock,
@@ -19,7 +25,7 @@ import {
   testingVersionsMock,
 } from '@/features/testing/communication/fixtures/testing.fixture';
 import { TestingPage } from '@/features/testing/containers/TestingPage/TestingPage';
-import { RunStatus } from '@/shared/api/generated/schema.generated';
+import { ConversationState, RunStatus } from '@/shared/api/generated/schema.generated';
 import { MemoryRouter } from '@test/support/components/MemoryRouter';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
@@ -143,5 +149,69 @@ describe('TestingPage', () => {
     await user.click(screen.getByRole('button', { name: 'Reset conversation' }));
 
     expect(await screen.findByText('Say hi to your agent')).toBeInTheDocument();
+  });
+
+  it('replies as the operator after an escalation, then hands back', async () => {
+    const user = userEvent.setup();
+    const escalated = [ESCALATION_QUESTION, ESCALATION_MESSAGE];
+    const simulation = (state: ConversationState, operator: boolean) =>
+      simulationMock(
+        operator ? [...escalated, OPERATOR_REPLY] : escalated,
+        RunStatus.Escalated,
+        null,
+        state,
+      );
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(),
+      startSimulationMock(),
+      simulation(ConversationState.Waiting, false),
+      replyAsOperatorMock(OPERATOR_REPLY.text),
+      simulation(ConversationState.Handled, true),
+      handBackMock,
+      simulation(ConversationState.AgentActive, true),
+    ]);
+
+    expect(
+      await screen.findByRole('button', { name: `${TEST_AGENT_NAME} · Escalation message` }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Escalated · in live chats operators would be notified'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Reply as operator' }));
+    await user.type(
+      screen.getByRole('textbox', { name: 'Reply as operator' }),
+      OPERATOR_REPLY.text,
+    );
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+    expect(await screen.findByText('Operator')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Hand back' }));
+
+    expect(await screen.findByText('Handed back to the agent')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Message as the test user' })).toBeInTheDocument();
+  });
+
+  it('retries a failed hand back instead of sending the reply', async () => {
+    const user = userEvent.setup();
+    const escalated = [ESCALATION_QUESTION, ESCALATION_MESSAGE];
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(),
+      startSimulationMock(),
+      simulationMock(escalated, RunStatus.Escalated, null, ConversationState.Waiting),
+      failedHandBackMock,
+      handBackMock,
+      simulationMock(escalated, RunStatus.Escalated, null, ConversationState.AgentActive),
+    ]);
+
+    await user.click(await screen.findByRole('button', { name: 'Reply as operator' }));
+    await user.click(screen.getByRole('button', { name: 'Hand back' }));
+    await user.click(await screen.findByRole('button', { name: 'Retry' }));
+
+    expect(await screen.findByText('Handed back to the agent')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument();
   });
 });

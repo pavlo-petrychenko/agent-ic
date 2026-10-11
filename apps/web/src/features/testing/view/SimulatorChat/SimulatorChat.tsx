@@ -1,13 +1,20 @@
 import { useTranslation } from 'react-i18next';
 import { ChatItemKind, ChatSpeaker } from '@/features/testing/constants/simulator.constants';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
-import type { ChatMessageItem, ChatTurnItem } from '@/features/testing/typedefs/simulator.typedefs';
+import type {
+  ChatDividerItem,
+  ChatItem,
+  ChatMessageItem,
+  ChatTurnItem,
+} from '@/features/testing/typedefs/simulator.typedefs';
 import {
+  DIVIDER_ICONS,
   SPEAKER_BUBBLES,
   TURN_ICON_SIZE,
 } from '@/features/testing/view/SimulatorChat/SimulatorChat.constants';
 import type { SimulatorChatProps } from '@/features/testing/view/SimulatorChat/SimulatorChat.typedefs';
 import { ChatBubble, ChatBubbleFrom } from '@/shared/ui/chat/ChatBubble';
+import { ChatDivider } from '@/shared/ui/chat/ChatDivider';
 import { ChatSystemMessage, ChatSystemMessageTone } from '@/shared/ui/chat/ChatSystemMessage';
 import { TypingIndicator } from '@/shared/ui/chat/TypingIndicator';
 import { Icon, IconName } from '@/shared/ui/foundations/Icon';
@@ -31,7 +38,9 @@ export function SimulatorChat({
         onClick={() => onSelectRun(item.id)}
       >
         <Icon name={IconName.Agent} size={TURN_ICON_SIZE} />
-        {t('chat.turn', { name: agentName, count: item.messages.length })}
+        {item.escalated
+          ? t('chat.escalationTurn', { name: agentName })
+          : t('chat.turn', { name: agentName, count: item.messages.length })}
       </button>
       {item.messages.map((message) => (
         <ChatBubble key={message.id} from={ChatBubbleFrom.Agent} author={null} time={null}>
@@ -66,11 +75,22 @@ export function SimulatorChat({
     );
   };
 
+  const divider = (item: ChatDividerItem) => (
+    <ChatDivider icon={DIVIDER_ICONS[item.divider]} text={t(`chat.divider.${item.divider}`)} />
+  );
+
+  const render = (item: ChatItem) => {
+    if (item.kind === ChatItemKind.Turn) {
+      return turn(item);
+    }
+    return item.kind === ChatItemKind.Divider ? divider(item) : line(item);
+  };
+
   return (
     <ol className={styles.root} aria-label={t('chat.label')}>
       {items.map((item) => (
         <li key={item.id} className={styles.item}>
-          {item.kind === ChatItemKind.Turn ? turn(item) : line(item)}
+          {render(item)}
         </li>
       ))}
       {typing && (

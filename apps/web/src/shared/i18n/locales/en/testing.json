@@ -39,12 +39,23 @@
     "typing": "{{name}} is typing…",
     "failed": "This turn failed",
     "emptyTitle": "Say hi to your agent",
-    "emptyDescription": "Messages you send here run the selected version. Customers never see them."
+    "emptyDescription": "Messages you send here run the selected version. Customers never see them.",
+    "escalationTurn": "{{name}} · Escalation message",
+    "divider": {
+      "escalated": "Escalated · in live chats operators would be notified",
+      "handedBack": "Handed back to the agent"
+    }
   },
   "composer": {
     "label": "Message as the test user",
     "placeholder": "Write as the test user…",
     "send": "Send"
+  },
+  "operator": {
+    "reply": "Reply as operator",
+    "hint": "Simulates taking over and handing back. Nobody is notified.",
+    "placeholder": "Write as the operator…",
+    "handBack": "Hand back"
   },
   "trace": {
     "label": "Flow trace",

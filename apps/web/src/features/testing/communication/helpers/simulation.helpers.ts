@@ -8,6 +8,7 @@ export const toSimulatorConversation = (
     ? null
     : {
         conversationId: simulation.conversation.id,
+        state: simulation.conversation.state,
         messages: simulation.messages,
         runs: simulation.runs.map(({ id, status, createdAt, error }) => ({
           id,
