@@ -1,0 +1,16 @@
+type Subscription {
+  runSteps(runId: ID!): RunStepEvent!
+}
+
+enum RunStepStatus {
+  running
+  succeeded
+  failed
+}
+
+type RunStepEvent {
+  runId: ID!
+  stepId: ID!
+  nodeId: String!
+  status: RunStepStatus!
+}

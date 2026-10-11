@@ -3,7 +3,11 @@ import { AfterCommitService } from '@/platform/database/services/after-commit.se
 import { channelStream } from '@/platform/live-updates/helpers/channel-stream.helpers';
 import { ChannelPublisherService } from '@/platform/live-updates/services/channel-publisher.service';
 import { ChannelSubscriberService } from '@/platform/live-updates/services/channel-subscriber.service';
-import type { Channel, ChannelEvent } from '@/platform/live-updates/typedefs/channel.typedefs';
+import type {
+  Channel,
+  ChannelEvent,
+  ChannelStream,
+} from '@/platform/live-updates/typedefs/channel.typedefs';
 
 @Injectable()
 export class LiveUpdatesService {
@@ -24,7 +28,7 @@ export class LiveUpdatesService {
 
   async subscribe<TEvent extends ChannelEvent>(
     channel: Channel<TEvent>,
-  ): Promise<AsyncGenerator<TEvent, void, undefined>> {
+  ): Promise<ChannelStream<TEvent>> {
     const { key } = channel;
     const messages = await this.subscriber.listen(key);
     return channelStream(messages, channel.schema, () => this.subscriber.release(key));
