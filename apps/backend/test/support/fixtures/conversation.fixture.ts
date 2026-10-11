@@ -5,6 +5,7 @@ import {
 } from '@/modules/conversations/constants/conversation.constants';
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
+import type { IncomingMessageInput } from '@/modules/conversations/typedefs/incoming-message.typedefs';
 import type { NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import {
@@ -47,4 +48,22 @@ export const newMessage = (
 export const workspaceSystemCtx = (workspaceId: string): UseCaseCtx => ({
   ...systemCtx(),
   workspaceId,
+});
+
+export const incomingMessage = (
+  workspaceId: string,
+  agentId: string,
+  overrides: Partial<IncomingMessageInput> = {},
+): IncomingMessageInput => ({
+  workspaceId,
+  agentId,
+  mode: ConversationMode.Live,
+  channelKind: ChannelKind.Simulated,
+  channelId: null,
+  endUserExternalId: TEST_END_USER_EXTERNAL_ID,
+  endUserName: null,
+  externalId: null,
+  text: TEST_MESSAGE_TEXT,
+  versionId: null,
+  ...overrides,
 });

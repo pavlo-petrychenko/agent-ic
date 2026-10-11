@@ -31,3 +31,11 @@ export interface WaitingRequest {
   readonly conversationId: string;
   readonly reason: WaitingReason;
 }
+
+export interface EndUserConversationKey {
+  readonly workspaceId: string;
+  readonly agentId: string;
+  readonly mode: ConversationMode;
+  readonly channelKind: ChannelKind;
+  readonly endUserExternalId: string;
+}

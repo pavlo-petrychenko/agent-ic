@@ -8,6 +8,7 @@ export {
   MessageAuthor,
   MessageDelivery,
 } from '@/modules/conversations/constants/message.constants';
+export { IncomingMessageOutcome } from '@/modules/conversations/constants/incoming-message.constants';
 export { ConversationsModule } from '@/modules/conversations/conversations.module';
 export { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 export { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
@@ -17,6 +18,7 @@ export { needsOperatorEvent } from '@/modules/conversations/events/needs-operato
 export { outboundQueuedEvent } from '@/modules/conversations/events/outbound-queued.event';
 export { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
 export { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
+export { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
 export type {
   MessageReceivedPayload,
   NeedsOperatorPayload,
@@ -30,3 +32,7 @@ export type {
   Message,
   OutboundMessageInput,
 } from '@/modules/conversations/typedefs/message.typedefs';
+export type {
+  IncomingMessageInput,
+  IncomingMessageResult,
+} from '@/modules/conversations/typedefs/incoming-message.typedefs';
