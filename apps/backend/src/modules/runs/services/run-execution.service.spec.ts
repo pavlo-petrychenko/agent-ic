@@ -228,15 +228,16 @@ describe('RunExecutionService', () => {
   it.each([
     [RunStatus.Escalated, escalateNode()],
     [RunStatus.Succeeded, endNode(ESCALATION_NODE_ID, ESCALATION_NODE_KEY)],
-  ])('ends the run %s after an escalation step', async (status, escalation) => {
-    const seeded = await seedExecutableRun(
-      testbed,
-      stepFlow([escalation], [flowEdge(TEST_NODE_ID, ESCALATION_NODE_ID)]),
-    );
+  ])('ends the run %s after an escalation step, also inside a branch', async (status, step) => {
+    const direct = stepFlow([step], [flowEdge(TEST_NODE_ID, ESCALATION_NODE_ID)]);
+    const seeded = await seedExecutableRun(testbed, direct);
+    const branched = await seedExecutableRun(testbed, parallelFlow(WaitFor.All, step));
 
-    expect(await execute(seeded)).toBe(status);
+    expect([await execute(seeded), await execute(branched)]).toEqual([status, status]);
 
     expect((await stored(seeded)).run).toMatchObject({ status, error: null });
+    const afterwards = [THIRD_STEP_ID, FOURTH_STEP_ID];
+    expect(afterwards.map((id) => testbed.executor.callsFor(branched.run.id, id))).toEqual([0, 0]);
   });
 
   it('follows the port of the router rule that matches', async () => {

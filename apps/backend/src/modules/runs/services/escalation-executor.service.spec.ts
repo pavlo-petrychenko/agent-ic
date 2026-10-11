@@ -73,18 +73,10 @@ describe('EscalationExecutor', () => {
       },
     });
     expect(chat.conversation?.state).toBe(ConversationState.Waiting);
-    expect(chat.messages).toEqual([
-      expect.objectContaining({ text: rendered(TEST_CUSTOMER_NOTICE) }),
-    ]);
-    expect(emitted(needsOperatorEvent)).toEqual([
-      expect.objectContaining({ mode: ConversationMode.Live }),
-    ]);
-    expect(emitted(runEscalatedEvent)).toEqual([
-      expect.objectContaining({
-        runId: execution.run.id,
-        nodeId: ESCALATION_NODE_ID,
-        mode: ConversationMode.Live,
-      }),
+    expect(chat.messages.map((message) => message?.text)).toEqual([rendered(TEST_CUSTOMER_NOTICE)]);
+    expect(emitted(needsOperatorEvent)).toMatchObject([{ mode: ConversationMode.Live }]);
+    expect(emitted(runEscalatedEvent)).toMatchObject([
+      { runId: execution.run.id, nodeId: ESCALATION_NODE_ID, mode: ConversationMode.Live },
     ]);
   });
 
@@ -112,9 +104,7 @@ describe('EscalationExecutor', () => {
     const chat = await readRunChat(testbed, execution.run, outcome.output['messageIds']);
     expect(outcome.port).toBeNull();
     expect(chat.conversation?.state).toBe(ConversationState.Closed);
-    expect(chat.messages).toEqual([
-      expect.objectContaining({ text: rendered(TEST_CUSTOMER_NOTICE) }),
-    ]);
+    expect(chat.messages.map((message) => message?.text)).toEqual([rendered(TEST_CUSTOMER_NOTICE)]);
     expect(emitted(needsOperatorEvent)).toEqual([]);
   });
 });

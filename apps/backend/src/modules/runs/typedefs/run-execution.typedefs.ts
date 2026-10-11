@@ -2,7 +2,7 @@ import type { FlowDocument, FlowGraph, ScopeLookup } from '@agent-ic/flow';
 import type { Message, MessageAuthor } from '@/modules/conversations';
 import type { BranchSettlement } from '@/modules/runs/typedefs/run-branch.typedefs';
 import type { RunStep } from '@/modules/runs/typedefs/run-step.typedefs';
-import type { Run } from '@/modules/runs/typedefs/run.typedefs';
+import type { Run, RunEnd } from '@/modules/runs/typedefs/run.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 
 export interface HistoryEntry {
@@ -39,4 +39,5 @@ export interface RunWalk {
   readonly today: Date;
   readonly steps: Map<string, RunStep>;
   readonly background: Promise<BranchSettlement>[];
+  ending: RunEnd | null;
 }
