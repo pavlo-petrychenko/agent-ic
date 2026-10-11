@@ -208,7 +208,9 @@
       "turnedOff": "{{step}}: {{field}} вимкнено",
       "edited": "{{step}}: {{field}} змінено",
       "connected": "Нове з’єднання: {{step}} → {{after}}",
-      "disconnected": "Вилучене з’єднання: {{step}} → {{after}}"
+      "disconnected": "Вилучене з’єднання: {{step}} → {{after}}",
+      "branchInBackground": "Гілка {{step}} → {{after}} тепер виконується у фоні",
+      "branchWaited": "Відповідь тепер чекає на гілку {{step}} → {{after}}"
     },
     "field": {
       "other": "налаштування",

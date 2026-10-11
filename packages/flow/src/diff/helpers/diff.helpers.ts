@@ -53,6 +53,16 @@ const edgesMissingFrom = (edges: readonly FlowEdge[], other: readonly FlowEdge[]
   return edges.filter((edge) => !keys.has(edgeKey(edge)));
 };
 
+const isBackground = (edge: FlowEdge): boolean => edge.background === true;
+
+const edgesSwitchedFrom = (edges: readonly FlowEdge[], other: readonly FlowEdge[]): FlowEdge[] => {
+  const previous = new Map(other.map((edge) => [edgeKey(edge), edge]));
+  return edges.filter((edge) => {
+    const old = previous.get(edgeKey(edge));
+    return old !== undefined && isBackground(old) !== isBackground(edge);
+  });
+};
+
 export const diffFlows = (a: FlowDocument, b: FlowDocument): FlowDiff => {
   const before = new Map(a.nodes.map((node) => [node.id, node]));
   const after = new Map(b.nodes.map((node) => [node.id, node]));
@@ -79,6 +89,7 @@ export const diffFlows = (a: FlowDocument, b: FlowDocument): FlowDiff => {
     renamedKeys,
     addedEdges: edgesMissingFrom(b.edges, a.edges),
     removedEdges: edgesMissingFrom(a.edges, b.edges),
+    changedEdges: edgesSwitchedFrom(b.edges, a.edges),
   };
 };
 
@@ -88,4 +99,5 @@ export const countFlowChanges = (diff: FlowDiff): number =>
   diff.changedNodes.length +
   diff.renamedKeys.length +
   diff.addedEdges.length +
-  diff.removedEdges.length;
+  diff.removedEdges.length +
+  diff.changedEdges.length;

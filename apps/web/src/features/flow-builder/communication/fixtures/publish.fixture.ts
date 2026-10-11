@@ -64,6 +64,7 @@ export const publishPreviewMock = ({
           renamedKeys: [],
           addedEdges: [],
           removedEdges: [],
+          changedEdges: [],
           changeCount: 2,
         },
         errors,

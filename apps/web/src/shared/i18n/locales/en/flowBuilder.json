@@ -200,7 +200,9 @@
       "turnedOff": "{{step}}: {{field}} off",
       "edited": "{{step}}: {{field}} changed",
       "connected": "New connection: {{step}} → {{after}}",
-      "disconnected": "Removed connection: {{step}} → {{after}}"
+      "disconnected": "Removed connection: {{step}} → {{after}}",
+      "branchInBackground": "Branch {{step}} → {{after}} now runs in the background",
+      "branchWaited": "The reply now waits for branch {{step}} → {{after}}"
     },
     "field": {
       "other": "a setting",

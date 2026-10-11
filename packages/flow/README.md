@@ -55,6 +55,7 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 - Each `branches` edge of a Parallel step starts one branch. By default the join waits for it (`waitFor` is `all` or `first`), and its outputs are visible after the join.
 - An edge with `background: true` starts a background branch: the join does not wait for it and its outputs are not visible after the join. Its steps still see each other's outputs, and the run ends only after it finishes. `isBackgroundBranch(graph, edge)` tells them apart.
 - A missing `background` means the join waits for the branch.
+- `validateFlow` refuses a Send message step in any branch, an Escalation in a background branch (`ESCALATION_IN_BACKGROUND_BRANCH`), `background` on an edge that is not a `branches` edge (`BACKGROUND_OUTSIDE_BRANCHES`) and a Parallel step whose branches all run in the background (`NO_WAITED_BRANCH`). An Escalation in a waited branch is allowed: it ends the run, so its path never reaches the join.
 
 ## Compare two flows
 
@@ -63,9 +64,9 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 - Nodes are matched by `id`, which never changes. `addedNodes` and `removedNodes` hold the whole nodes.
 - `renamedKeys` lists `{ nodeId, from, to }` for each node whose key changed. A rename is not also reported as a change to the templates that refer to the key, so a flow passed through `renameNodeKey` differs only by the rename, and swapped keys are two renames.
 - `changedNodes` lists `{ nodeId, key, type, fields }` for each kept node that changed. Each field is `{ path, before, after }`, with the path under the node (`['config', 'schedule', 'time']`) and the old and new values; a missing value is `null`. Objects are compared field by field, a list is one value. `id` and `key` are never fields.
-- Edges are matched by their ends (`source`, `sourcePort`, `target`), not their `id`. `addedEdges` and `removedEdges` hold the whole edges.
-- Identical flows give a diff whose six lists are empty.
-- `countFlowChanges(diff)` adds up the six lists: the number of changes the publish and restore dialogs show.
+- Edges are matched by their ends (`source`, `sourcePort`, `target`), not their `id`. `addedEdges` and `removedEdges` hold the whole edges. `changedEdges` holds the new edge of each branch switched between waited and background.
+- Identical flows give a diff whose seven lists are empty.
+- `countFlowChanges(diff)` adds up the seven lists: the number of changes the publish and restore dialogs show.
 - The web writes each change in plain words ("Schedule trigger: 18:00 instead of 09:30") from these values.
 
 ## Change the format

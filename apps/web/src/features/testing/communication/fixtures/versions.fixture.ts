@@ -110,6 +110,7 @@ export const versionDiffMock = (
         renamedKeys: [],
         addedEdges: [],
         removedEdges: [],
+        changedEdges: [],
         changeCount: 2,
       },
     },

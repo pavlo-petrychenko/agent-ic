@@ -28,4 +28,5 @@ export interface FlowDiff {
   readonly renamedKeys: readonly KeyRename[];
   readonly addedEdges: readonly FlowEdge[];
   readonly removedEdges: readonly FlowEdge[];
+  readonly changedEdges: readonly FlowEdge[];
 }

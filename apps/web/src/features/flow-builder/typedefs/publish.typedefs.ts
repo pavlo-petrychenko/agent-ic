@@ -17,6 +17,10 @@ export interface DiffEdge {
   target: string;
 }
 
+export interface DiffBranch extends DiffEdge {
+  background: boolean;
+}
+
 export interface DiffNodeChange {
   nodeId: string;
   key: string;
@@ -30,6 +34,7 @@ export interface PublishDiff {
   renamedKeys: readonly KeyRename[];
   addedEdges: readonly DiffEdge[];
   removedEdges: readonly DiffEdge[];
+  changedEdges: readonly DiffBranch[];
   changeCount: number;
 }
 

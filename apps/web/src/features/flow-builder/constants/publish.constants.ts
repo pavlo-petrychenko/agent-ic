@@ -18,6 +18,8 @@ export enum ChangeSentence {
   Edited = 'edited',
   Connected = 'connected',
   Disconnected = 'disconnected',
+  BranchInBackground = 'branchInBackground',
+  BranchWaited = 'branchWaited',
 }
 
 export enum PublishBlock {
