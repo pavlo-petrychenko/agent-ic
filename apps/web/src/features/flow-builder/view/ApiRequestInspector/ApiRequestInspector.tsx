@@ -101,36 +101,45 @@ export function ApiRequestInspector({
         />
       </InspectorSection>
       <InspectorSection title={t('inspector.api.headers')}>
-        {headers.map((header, index) => (
-          <div
-            key={[index, header.name, header.value].join(LIST_VALUE_SEPARATOR)}
-            className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)_auto] items-center gap-1.5"
-          >
-            {HEADER_PARTS.map((part) => (
-              <Input
-                key={part}
-                mono
-                aria-label={t(`inspector.api.header.${part}`, { number: index + 1 })}
-                defaultValue={header[part]}
-                invalid={issue([IssuePathSegment.Headers, index, part].join(PATH_JOINER)) !== null}
-                onBlur={(event) => {
-                  const next = event.target.value;
-                  if (part === IssuePathSegment.Name && !HEADER_NAME_PATTERN.test(next)) {
-                    event.target.value = header.name;
-                  } else if (next !== header[part]) {
-                    onHeaderChange(index, { ...header, [part]: next });
-                  }
-                }}
-              />
-            ))}
-            <IconButton
-              icon={IconName.X}
-              size={IconButtonSize.Xs}
-              label={t('inspector.api.removeHeader', { name: header.name })}
-              onClick={() => onHeaderChange(index, null)}
-            />
-          </div>
-        ))}
+        {headers.map((header, index) => {
+          const partIssue = (part: IssuePathSegment) =>
+            issue([IssuePathSegment.Headers, index, part].join(PATH_JOINER));
+          const rowIssue = HEADER_PARTS.map(partIssue).find((found) => found !== null) ?? null;
+          return (
+            <div key={index} className="flex flex-col gap-1">
+              <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)_auto] items-center gap-1.5">
+                {HEADER_PARTS.map((part) => (
+                  <Input
+                    key={[part, header[part]].join(LIST_VALUE_SEPARATOR)}
+                    mono
+                    aria-label={t(`inspector.api.header.${part}`, { number: index + 1 })}
+                    defaultValue={header[part]}
+                    invalid={partIssue(part) !== null}
+                    onBlur={(event) => {
+                      const next = event.target.value;
+                      if (part === IssuePathSegment.Name && !HEADER_NAME_PATTERN.test(next)) {
+                        event.target.value = header.name;
+                      } else if (next !== header[part]) {
+                        onHeaderChange(index, { ...header, [part]: next });
+                      }
+                    }}
+                  />
+                ))}
+                <IconButton
+                  icon={IconName.X}
+                  size={IconButtonSize.Xs}
+                  label={t('inspector.api.removeHeader', { name: header.name })}
+                  onClick={() => onHeaderChange(index, null)}
+                />
+              </div>
+              {rowIssue !== null && (
+                <Text kind={TextKind.Caption} color={TextColor.Err}>
+                  {message(rowIssue)}
+                </Text>
+              )}
+            </div>
+          );
+        })}
         <Button
           className="self-start"
           variant={ButtonVariant.Ghost}

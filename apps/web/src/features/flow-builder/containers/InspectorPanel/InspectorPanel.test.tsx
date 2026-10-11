@@ -662,6 +662,26 @@ describe('InspectorPanel api request', () => {
     expect(screen.getByRole('combobox', { name: 'Timeout' })).toHaveValue('7');
   });
 
+  it('explains a header problem and keeps focus after a name change', async () => {
+    const user = userEvent.setup();
+    const headers = [{ name: 'X-Id', value: '{{missing.field}}' }];
+    open('lookup', {
+      ...API_FLOW,
+      nodes: API_FLOW.nodes.map((candidate) =>
+        candidate.type === NodeType.ApiRequest
+          ? { ...candidate, config: { ...candidate.config, headers } }
+          : candidate,
+      ),
+    });
+
+    expect(screen.getByText('missing.field isn’t available here')).toBeVisible();
+    await user.type(screen.getByRole('textbox', { name: 'Header 1 name' }), '-Ref');
+    await user.tab();
+
+    expect(screen.getByRole('textbox', { name: 'Header 1 value' })).toHaveFocus();
+    expect(node('lookup')).toMatchObject({ config: { headers: [{ name: 'X-Id-Ref' }] } });
+  });
+
   it('tests the saved request and shows the answer', async () => {
     const user = userEvent.setup();
     open('lookup', API_FLOW, [testApiRequestMock('lookup')]);
