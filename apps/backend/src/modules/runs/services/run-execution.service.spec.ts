@@ -130,7 +130,9 @@ describe('RunExecutionService', () => {
 
     expect(await execute(seeded)).toBe(RunStatus.Succeeded);
 
-    const published = await Promise.all(threeSteps.nodes.map(() => events.next()));
+    const published = await Promise.all(
+      threeSteps.nodes.flatMap(() => [events.next(), events.next()]),
+    );
     await events.return();
     const { run, steps } = await stored(seeded);
     const third = testbed.executor.executions.find(
@@ -150,9 +152,10 @@ describe('RunExecutionService', () => {
       [SECOND_STEP_KEY]: { answer: SECOND_STEP_KEY },
     });
     expect(published.map((event) => event.value)).toEqual(
-      threeSteps.nodes.map(({ id: nodeId }) =>
+      threeSteps.nodes.flatMap(({ id: nodeId }) => [
+        expect.objectContaining({ nodeId, status: RunStepStatus.Running }),
         expect.objectContaining({ nodeId, status: RunStepStatus.Succeeded }),
-      ),
+      ]),
     );
   });
 

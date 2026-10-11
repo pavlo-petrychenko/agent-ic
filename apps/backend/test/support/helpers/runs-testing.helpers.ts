@@ -3,7 +3,7 @@ import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import { AgentVersionKind, PauseMode } from '@/modules/agents/constants/agent.constants';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
-import { messageReceivedEvent } from '@/modules/conversations';
+import { ConversationMode, messageReceivedEvent } from '@/modules/conversations';
 import type { MessageReceivedPayload } from '@/modules/conversations';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
@@ -151,6 +151,7 @@ export const seedExecutableRun = async (
   testbed: RunExecutionTestbed,
   flow: FlowDocument,
   earlier: readonly Pick<NewMessage, 'author' | 'text'>[] = [],
+  mode: ConversationMode = ConversationMode.Live,
 ): Promise<ExecutableRun> => {
   const workspaceId = testbed.ids.generate();
   const conversation = newConversation(testbed, workspaceId);
@@ -163,6 +164,7 @@ export const seedExecutableRun = async (
   const { agentId } = conversation;
   const run: NewRun = {
     ...newRun(testbed, workspaceId),
+    mode,
     conversationId: conversation.id,
     agentId,
     lastCoveredMessageId: message.id,

@@ -186,8 +186,8 @@ export class RunExecutionService {
   ): Promise<RunStep> {
     const { workspaceId, id: runId } = walk.run;
     const variables = stepVariables(walk, node.id);
-    const started = await this.tenants.run(workspaceId, () =>
-      this.steps.start({
+    const started = await this.tenants.run(workspaceId, async () => {
+      const created = await this.steps.start({
         id: this.ids.generate(),
         workspaceId,
         runId,
@@ -196,25 +196,22 @@ export class RunExecutionService {
         branchKey,
         input: stepInput(variables),
         startedAt: this.clock.now(),
-      }),
-    );
+      });
+      if (created !== null) {
+        await this.publishStep(created);
+      }
+      return created;
+    });
     if (started === null) {
       return this.reloadStep(walk, node, branchKey);
     }
     const result = await this.outcome(walk, node, executor, variables, branchKey);
+    const step = { ...started, ...result };
     await this.tenants.run(workspaceId, async () => {
       if (await this.steps.finish(workspaceId, started.id, result)) {
-        await this.liveUpdates.publish(channelFor(runStepsChannel, runId), {
-          runId,
-          stepId: started.id,
-          nodeId: node.id,
-          branchKey: started.branchKey,
-          status: result.status,
-          port: result.port,
-        });
+        await this.publishStep(step);
       }
     });
-    const step = { ...started, ...result };
     walk.steps.set(node.id, step);
     return step;
   }
@@ -261,6 +258,17 @@ export class RunExecutionService {
         finishedAt: this.clock.now(),
       };
     }
+  }
+
+  private publishStep(step: RunStep): Promise<void> {
+    return this.liveUpdates.publish(channelFor(runStepsChannel, step.runId), {
+      runId: step.runId,
+      stepId: step.id,
+      nodeId: step.nodeId,
+      branchKey: step.branchKey,
+      status: step.status,
+      port: step.port,
+    });
   }
 
   private async reloadStep(walk: RunWalk, node: FlowNode, branchKey: string): Promise<RunStep> {
