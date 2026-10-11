@@ -22,7 +22,12 @@ export const TRIGGER_ONLY_FLOW: FlowDocument = {
   edges: [],
 };
 
-export const buildFlowBuilderDraftMock = (flow: unknown): MockLink.MockedResponse => ({
+export const DRAFT_REVISION = 4;
+
+export const buildFlowBuilderDraftMock = (
+  flow: unknown,
+  revision = DRAFT_REVISION,
+): MockLink.MockedResponse => ({
   request: { query: FlowBuilderDraftDocument, variables: { agentId: DEMO_AGENT_ID } },
   result: {
     data: {
@@ -35,7 +40,7 @@ export const buildFlowBuilderDraftMock = (flow: unknown): MockLink.MockedRespons
       },
       agentDraft: {
         __typename: 'AgentDraft',
-        revision: 4,
+        revision,
         version: { __typename: 'AgentVersion', id: 'ver_draft', flow },
       },
     },

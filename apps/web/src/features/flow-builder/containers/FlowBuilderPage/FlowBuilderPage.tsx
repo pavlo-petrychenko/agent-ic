@@ -6,15 +6,21 @@ import { useFlowBuilderDraft } from '@/features/flow-builder/communication/hooks
 import { useRenameAgent } from '@/features/flow-builder/communication/hooks/useRenameAgent';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import type { FlowBuilderPageProps } from '@/features/flow-builder/containers/FlowBuilderPage/FlowBuilderPage.typedefs';
+import { useDraftAutosave } from '@/features/flow-builder/containers/FlowBuilderPage/useDraftAutosave';
 import { FlowEditor } from '@/features/flow-builder/containers/FlowEditor';
+import { LeaveGuard } from '@/features/flow-builder/containers/LeaveGuard';
 import { StepPalettePanel } from '@/features/flow-builder/containers/StepPalettePanel';
+import { formatSavedAt } from '@/features/flow-builder/logic/helpers/autosave.helpers';
 import { agentsHref, workspaceHref } from '@/features/flow-builder/logic/helpers/route.helpers';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import { InlineEditField } from '@/features/flow-builder/view/InlineEditField';
+import { SaveStatus } from '@/features/flow-builder/view/SaveStatus';
 import { useActiveWorkspace } from '@/features/workspace';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
-import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { useLocale } from '@/shared/i18n/hooks/useLocale';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
+import { Banner, BannerTone } from '@/shared/ui/display/Banner';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { Skeleton } from '@/shared/ui/display/Skeleton';
 import { IconName } from '@/shared/ui/foundations/Icon';
@@ -32,6 +38,8 @@ export function FlowBuilderPage({ workspaceId, agentId }: FlowBuilderPageProps) 
   const describeAgent = useDescribeAgent(agentId);
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
+  const { locale } = useLocale();
+  const { conflict, retry: retrySave } = useDraftAutosave(agentId);
 
   const save = (request: Promise<void>, message: string) =>
     void request.then(
@@ -40,6 +48,7 @@ export function FlowBuilderPage({ workspaceId, agentId }: FlowBuilderPageProps) 
         showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err }),
     );
   const load = useFlowBuilderStore((state) => state.load);
+  const saveState = useFlowBuilderStore((state) => state.saveState);
 
   useLayoutEffect(() => {
     if (draft !== null) {
@@ -97,11 +106,30 @@ export function FlowBuilderPage({ workspaceId, agentId }: FlowBuilderPageProps) 
             </div>
           )
         }
+        actions={draft === null ? null : <SaveStatus saveState={saveState} onRetry={retrySave} />}
       />
       {draft !== null && (
         <div className="flex min-h-0 flex-1">
           <StepPalettePanel />
-          <FlowEditor />
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            {conflict !== null && (
+              <Banner tone={BannerTone.Warn}>
+                <span className="flex items-center gap-3">
+                  {conflict.savedBy === null || conflict.savedAt === null
+                    ? t('conflict.changed')
+                    : t('conflict.changedBy', {
+                        name: conflict.savedBy,
+                        time: formatSavedAt(conflict.savedAt, locale),
+                      })}
+                  <Button variant={ButtonVariant.Secondary} size={ButtonSize.Sm} onClick={retry}>
+                    {t('conflict.reload')}
+                  </Button>
+                </span>
+              </Banner>
+            )}
+            <FlowEditor />
+          </div>
+          <LeaveGuard />
         </div>
       )}
       {draft === null && loading && (
