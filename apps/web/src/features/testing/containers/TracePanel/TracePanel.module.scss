@@ -1,3 +1,5 @@
+$details-width: 372px;
+
 .root {
   display: flex;
   flex: 1;
@@ -32,7 +34,7 @@
 .details {
   display: flex;
   flex-direction: column;
-  width: var(--size-inspector-width);
+  width: $details-width;
   min-height: 0;
   border-left: var(--border-width) solid var(--color-line);
 }

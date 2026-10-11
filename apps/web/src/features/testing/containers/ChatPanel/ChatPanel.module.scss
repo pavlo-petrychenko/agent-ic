@@ -1,7 +1,9 @@
+$chat-panel-width: 400px;
+
 .root {
   display: flex;
   flex-direction: column;
-  width: var(--size-inspector-width);
+  width: $chat-panel-width;
   min-height: 0;
   border-right: var(--border-width) solid var(--color-line);
   background: var(--color-panel);
