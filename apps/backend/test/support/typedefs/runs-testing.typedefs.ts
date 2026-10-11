@@ -1,3 +1,4 @@
+import type { WorkspaceRole } from '@agent-ic/contracts';
 import type { INestApplication } from '@nestjs/common';
 import type { TestingModule } from '@nestjs/testing';
 import type { AgentRuntimeReader } from '@/modules/agents';
@@ -98,4 +99,9 @@ export interface SettledConversation {
   readonly conversation: Conversation;
   readonly run: Run | null;
   readonly sent: readonly string[];
+}
+
+export interface SeededMember {
+  readonly name: string;
+  readonly role: WorkspaceRole;
 }

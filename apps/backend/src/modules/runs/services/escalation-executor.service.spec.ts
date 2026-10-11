@@ -1,4 +1,4 @@
-import { IdPrefix } from '@agent-ic/contracts';
+import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { EscalationMode, RecipientsKind, renderTemplate } from '@agent-ic/flow';
 import type { EscalationNode } from '@agent-ic/flow';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -11,13 +11,16 @@ import {
 } from '@/modules/conversations';
 import { runEscalatedEvent } from '@/modules/runs/events/run-escalated.event';
 import { EscalationExecutor } from '@/modules/runs/services/escalation-executor.service';
+import type { EscalationRecipients } from '@/modules/runs/typedefs/escalation.typedefs';
 import { DomainEventsService } from '@/platform/domain-events/services/domain-events.service';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
 import {
   ESCALATION_NODE_ID,
   ESCALATION_NODE_KEY,
   TEST_CUSTOMER_NOTICE,
+  TEST_BUILDER_NAME,
   TEST_ESCALATION_REASON,
+  TEST_OPERATOR_NAME,
   UNKNOWN_RECIPIENT_ID,
 } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
@@ -27,6 +30,7 @@ import {
   readRunChat,
   seedExecutableRun,
   seedSimulationRun,
+  seedWorkspaceMembers,
   stepExecutionOf,
 } from '@test/support/helpers/runs-testing.helpers';
 import type { RunExecutionTestbed } from '@test/support/typedefs/runs-testing.typedefs';
@@ -95,29 +99,35 @@ describe('EscalationExecutor', () => {
     expect(emitted(runEscalatedEvent)).toHaveLength(1);
   });
 
-  it('names who would be notified in a simulation, without notifying anyone', async () => {
+  const wouldNotify = async (recipients: EscalationRecipients | null, ids: string[] = []) => {
     const seeded = await seedSimulationRun(testbed);
-    const execution = await stepExecutionOf(testbed, seeded, escalateNode(), {});
+    const memberIds = await seedWorkspaceMembers(testbed, seeded.run.workspaceId, [
+      { name: TEST_OPERATOR_NAME, role: WorkspaceRole.Operator },
+      { name: TEST_BUILDER_NAME, role: WorkspaceRole.Builder },
+    ]);
+    const operator = memberIds.slice(0, 1).map((id) => testbed.ids.toPublic(IdPrefix.User, id));
+    const userIds = [...ids, ...operator];
+    const node = escalateNode(recipients ?? { kind: RecipientsKind.Users, userIds });
+    const execution = await stepExecutionOf(testbed, seeded, node, {});
+    return (await executor.execute(execution)).output['wouldNotify'];
+  };
 
-    const outcome = await executor.execute(execution);
-
-    expect(outcome.output['wouldNotify']).toEqual([]);
+  it('names who would be notified in a simulation, without notifying anyone', async () => {
+    expect(await wouldNotify({ kind: RecipientsKind.Operators })).toEqual([TEST_OPERATOR_NAME]);
     expect(emitted(needsOperatorEvent)).toEqual([]);
     expect(emitted(runEscalatedEvent)).toMatchObject([{ mode: ConversationMode.Simulation }]);
   });
 
-  it('leaves out recipients whose ids are not user ids instead of failing the step', async () => {
-    const seeded = await seedSimulationRun(testbed);
+  it('names the members of the chosen role', async () => {
+    const builders = await wouldNotify({ kind: RecipientsKind.Role, role: WorkspaceRole.Builder });
+
+    expect(builders).toEqual([TEST_BUILDER_NAME]);
+  });
+
+  it('names listed users and leaves out ids that are not user ids or not members', async () => {
     const stranger = testbed.ids.toPublic(IdPrefix.User, testbed.ids.generate());
-    const node = escalateNode({
-      kind: RecipientsKind.Users,
-      userIds: [UNKNOWN_RECIPIENT_ID, stranger],
-    });
-    const execution = await stepExecutionOf(testbed, seeded, node, {});
 
-    const outcome = await executor.execute(execution);
-
-    expect(outcome.output['wouldNotify']).toEqual([]);
+    expect(await wouldNotify(null, [UNKNOWN_RECIPIENT_ID, stranger])).toEqual([TEST_OPERATOR_NAME]);
   });
 
   it('sends the text and closes the conversation when the step ends the chat', async () => {
