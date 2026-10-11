@@ -130,15 +130,15 @@ describe('drawTrace', () => {
 
   it('draws a straight line down a column and a curve into another column', () => {
     expect(drawing.paths.map((path) => path.d)).toEqual([
-      'M110 36 V54',
-      'M110 90 V108',
-      'M110 90 C110 108 346 90 346 108',
+      'M97 36 V54',
+      'M97 90 V108',
+      'M97 90 C97 108 301 90 301 108',
     ]);
   });
 
   it('places every node on its cell and sizes the trace to the farthest one', () => {
-    expect(drawing.nodes.map(({ id, x, y }) => [id, x, y]).at(-1)).toEqual(['d', 236, 108]);
-    expect(drawing.size).toEqual({ x: 456, y: 144 });
+    expect(drawing.nodes.map(({ id, x, y }) => [id, x, y]).at(-1)).toEqual(['d', 204, 108]);
+    expect(drawing.size).toEqual({ x: 398, y: 144 });
     expect(drawTrace([], []).size).toEqual({ x: 0, y: 0 });
   });
 });

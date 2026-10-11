@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
+import { TRACE_NODE } from '@/features/testing/constants/trace.constants';
 import type { RunTraceProps } from '@/features/testing/view/RunTrace/RunTrace.typedefs';
 import { RunNode } from '@/shared/ui/flow/RunNode';
 import styles from '@/features/testing/view/RunTrace/RunTrace.module.scss';
@@ -31,7 +32,7 @@ export function RunTrace({ drawing }: RunTraceProps) {
             state={node.state}
             stateLabel={t(`trace.state.${node.state}`)}
             className={styles.node}
-            style={{ left: node.x, top: node.y }}
+            style={{ left: node.x, top: node.y, width: TRACE_NODE.width }}
           />
         ))}
       </ol>

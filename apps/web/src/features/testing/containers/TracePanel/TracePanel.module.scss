@@ -9,13 +9,14 @@ $grid-dot-size: 1px;
   gap: var(--space-12);
   min-width: 0;
   min-height: 0;
-  padding: var(--space-16);
+  padding: var(--space-16) var(--space-8);
   background-color: var(--color-bg);
   background-image: radial-gradient(var(--color-grid) $grid-dot-size, transparent $grid-dot-size);
   background-size: $grid-gap $grid-gap;
 }
 
 .title {
+  padding-inline: var(--space-8);
   color: var(--color-mute);
   font: var(--type-overline);
   letter-spacing: var(--tracking-overline);
@@ -30,6 +31,7 @@ $grid-dot-size: 1px;
 
 .footer {
   display: flex;
+  padding-inline: var(--space-8);
   align-items: center;
   justify-content: space-between;
   gap: var(--space-12);
