@@ -1,23 +1,42 @@
 import { ErrorReason } from '@agent-ic/contracts';
-import { PortName } from '@agent-ic/flow';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { PortName, WaitFor, isObserverNode } from '@agent-ic/flow';
+import type { FlowNode } from '@agent-ic/flow';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
-import { RunStatus, RunStepStatus } from '@/modules/runs/constants/run.constants';
+import { ROOT_BRANCH_KEY, RunStatus, RunStepStatus } from '@/modules/runs/constants/run.constants';
+import { branchKeyOf } from '@/modules/runs/helpers/run-branch.helpers';
 import { channelFor } from '@/platform/live-updates/helpers/channel.helpers';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
 import {
   FIRST_STEP_ID,
   FIRST_STEP_KEY,
+  FOURTH_STEP_ID,
+  FOURTH_STEP_KEY,
+  OBSERVER_NODE_ID,
+  OBSERVER_NODE_KEY,
+  PARALLEL_NODE_ID,
+  PARALLEL_NODE_KEY,
+  ROUTER_NODE_ID,
+  ROUTER_NODE_KEY,
   SECOND_STEP_ID,
   SECOND_STEP_KEY,
   StepScript,
   THIRD_STEP_ID,
+  TEST_ROUTE_RULE_ID,
   THIRD_STEP_KEY,
 } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { WorkerKilledError } from '@test/support/errors/worker-killed.error';
-import { agentNode, endNode, flowEdge, stepFlow } from '@test/support/fixtures/runs.fixture';
+import {
+  agentNode,
+  endNode,
+  flowEdge,
+  observerNode,
+  parallelNode,
+  routerNode,
+  stepFlow,
+} from '@test/support/fixtures/runs.fixture';
 import { createRunsTestbed, seedExecutableRun } from '@test/support/helpers/runs-testing.helpers';
 import type {
   ExecutableRun,
@@ -36,6 +55,27 @@ const threeSteps = stepFlow(
     flowEdge(SECOND_STEP_ID, THIRD_STEP_ID),
   ],
 );
+
+const parallelFlow = (
+  waitFor: WaitFor,
+  held: FlowNode = agentNode(SECOND_STEP_ID, SECOND_STEP_KEY),
+) =>
+  stepFlow(
+    [
+      parallelNode(PARALLEL_NODE_ID, PARALLEL_NODE_KEY, waitFor),
+      agentNode(FIRST_STEP_ID, FIRST_STEP_KEY),
+      held,
+      ...(isObserverNode(held) ? [] : [agentNode(THIRD_STEP_ID, THIRD_STEP_KEY)]),
+      agentNode(FOURTH_STEP_ID, FOURTH_STEP_KEY),
+    ],
+    [
+      flowEdge(TEST_NODE_ID, PARALLEL_NODE_ID),
+      flowEdge(PARALLEL_NODE_ID, FIRST_STEP_ID, PortName.Branches),
+      flowEdge(PARALLEL_NODE_ID, held.id, PortName.Branches),
+      ...(isObserverNode(held) ? [] : [flowEdge(held.id, THIRD_STEP_ID)]),
+      flowEdge(PARALLEL_NODE_ID, FOURTH_STEP_ID),
+    ],
+  );
 
 describe('RunExecutionService', () => {
   let testbed: RunExecutionTestbed;
@@ -179,4 +219,107 @@ describe('RunExecutionService', () => {
       nodeId: FIRST_STEP_ID,
     });
   });
+
+  it('follows the port of the router rule that matches', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      stepFlow(
+        [
+          agentNode(FIRST_STEP_ID, FIRST_STEP_KEY),
+          routerNode(ROUTER_NODE_ID, ROUTER_NODE_KEY),
+          agentNode(SECOND_STEP_ID, SECOND_STEP_KEY),
+          agentNode(THIRD_STEP_ID, THIRD_STEP_KEY),
+        ],
+        [
+          flowEdge(TEST_NODE_ID, FIRST_STEP_ID),
+          flowEdge(FIRST_STEP_ID, ROUTER_NODE_ID),
+          flowEdge(ROUTER_NODE_ID, SECOND_STEP_ID, TEST_ROUTE_RULE_ID),
+          flowEdge(ROUTER_NODE_ID, THIRD_STEP_ID, PortName.Else),
+        ],
+      ),
+    );
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    const { steps } = await stored(seeded);
+    expect(steps.find((step) => step.nodeId === ROUTER_NODE_ID)?.port).toBe(TEST_ROUTE_RULE_ID);
+    expect(steps.map((step) => step.nodeId)).toContain(SECOND_STEP_ID);
+    expect(steps.map((step) => step.nodeId)).not.toContain(THIRD_STEP_ID);
+  });
+
+  it('runs every branch with its branch key, then joins and sees the branch outputs', async () => {
+    const seeded = await seedExecutableRun(testbed, parallelFlow(WaitFor.All));
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    const { steps } = await stored(seeded);
+    const after = testbed.executor.executions.find(
+      (call) => call.run.id === seeded.run.id && call.node.id === FOURTH_STEP_ID,
+    );
+    expect(Object.fromEntries(steps.map((step) => [step.nodeId, step.branchKey]))).toEqual({
+      [TEST_NODE_ID]: ROOT_BRANCH_KEY,
+      [PARALLEL_NODE_ID]: ROOT_BRANCH_KEY,
+      [FIRST_STEP_ID]: branchKeyOf(PARALLEL_NODE_ID, FIRST_STEP_ID),
+      [SECOND_STEP_ID]: branchKeyOf(PARALLEL_NODE_ID, SECOND_STEP_ID),
+      [THIRD_STEP_ID]: branchKeyOf(PARALLEL_NODE_ID, SECOND_STEP_ID),
+      [FOURTH_STEP_ID]: ROOT_BRANCH_KEY,
+    });
+    expect(after?.scope.variables).toMatchObject({
+      [FIRST_STEP_KEY]: { answer: FIRST_STEP_KEY },
+      [THIRD_STEP_KEY]: { answer: THIRD_STEP_KEY },
+    });
+  });
+
+  it('skips the finished branches when a killed parallel run is retried', async () => {
+    const seeded = await seedExecutableRun(testbed, parallelFlow(WaitFor.All));
+    testbed.executor.script(THIRD_STEP_ID, StepScript.Crash);
+
+    await expect(execute(seeded)).rejects.toBeInstanceOf(WorkerKilledError);
+    const retried = await execute(seeded);
+
+    expect(retried).toBe(RunStatus.Succeeded);
+    expect(
+      [FIRST_STEP_ID, SECOND_STEP_ID, THIRD_STEP_ID, FOURTH_STEP_ID].map((id) =>
+        testbed.executor.callsFor(seeded.run.id, id),
+      ),
+    ).toEqual([1, 1, 2, 1]);
+  });
+
+  it('fails the run when an awaited branch fails without an error port', async () => {
+    const seeded = await seedExecutableRun(testbed, parallelFlow(WaitFor.All));
+    testbed.executor.script(FIRST_STEP_ID, StepScript.Fail);
+
+    expect(await execute(seeded)).toBe(RunStatus.Failed);
+
+    const { run } = await stored(seeded);
+    expect(run?.error).toMatchObject({ nodeId: FIRST_STEP_ID });
+    expect(testbed.executor.callsFor(seeded.run.id, FOURTH_STEP_ID)).toBe(0);
+  });
+
+  it.each([
+    { waitFor: WaitFor.First, held: agentNode(SECOND_STEP_ID, SECOND_STEP_KEY), thirdCalls: 1 },
+    {
+      waitFor: WaitFor.Guards,
+      held: observerNode(OBSERVER_NODE_ID, OBSERVER_NODE_KEY),
+      thirdCalls: 0,
+    },
+  ])(
+    'joins on $waitFor without the held branch and still finishes it before the run ends',
+    async ({ waitFor, held, thirdCalls }) => {
+      const seeded = await seedExecutableRun(testbed, parallelFlow(waitFor, held));
+      const holder = held.id === OBSERVER_NODE_ID ? testbed.observer : testbed.executor;
+      holder.script(held.id, StepScript.Hold);
+
+      const running = execute(seeded);
+      await vi.waitFor(() => {
+        expect(testbed.executor.callsFor(seeded.run.id, FOURTH_STEP_ID)).toBe(1);
+      });
+      holder.release(held.id);
+
+      expect(await running).toBe(RunStatus.Succeeded);
+      const { steps } = await stored(seeded);
+      expect(steps.find((step) => step.nodeId === held.id)?.status).toBe(RunStepStatus.Succeeded);
+      expect(testbed.executor.callsFor(seeded.run.id, THIRD_STEP_ID)).toBe(thirdCalls);
+    },
+  );
 });

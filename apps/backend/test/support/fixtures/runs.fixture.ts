@@ -1,5 +1,24 @@
-import { DEFAULT_RETRIEVAL_MODE, EscalationMode, NodeType, PortName } from '@agent-ic/flow';
-import type { AgentNode, EscalationNode, FlowDocument, FlowEdge, FlowNode } from '@agent-ic/flow';
+import {
+  CompletionRole,
+  ConditionOperator,
+  DEFAULT_RETRIEVAL_MODE,
+  EscalationMode,
+  NodeType,
+  OutputFieldType,
+  PortName,
+  RuleMatch,
+} from '@agent-ic/flow';
+import type {
+  AgentNode,
+  CompletionNode,
+  EscalationNode,
+  FlowDocument,
+  FlowEdge,
+  FlowNode,
+  ParallelNode,
+  RouterNode,
+  WaitFor,
+} from '@agent-ic/flow';
 import { ChannelKind, ConversationMode, ConversationState } from '@/modules/conversations';
 import type { Conversation, Message, MessageAuthor } from '@/modules/conversations';
 import {
@@ -18,8 +37,10 @@ import type { NewRun } from '@/modules/runs/typedefs/run.typedefs';
 import type { IdService } from '@/platform/ids/services/id.service';
 import { TEST_END_USER_EXTERNAL_ID } from '@test/support/constants/conversations-testing.constants';
 import {
+  FIRST_STEP_KEY,
   RUNS_TEST_START,
   TEST_END_USER_NAME,
+  TEST_ROUTE_RULE_ID,
   TEST_STEP_INPUT,
   TEST_STEP_NODE_ID,
   TEST_STEP_NODE_KEY,
@@ -75,6 +96,55 @@ export const agentNode = (id: string, key: string): AgentNode => ({
   },
 });
 
+export const observerNode = (id: string, key: string): CompletionNode => ({
+  id,
+  key,
+  label: key,
+  position: NODE_POSITION,
+  type: NodeType.Completion,
+  config: {
+    role: CompletionRole.Observer,
+    prompt: null,
+    model: null,
+    reasoning: null,
+    input: { includeCurrentMessage: true },
+    output: [{ name: key, type: OutputFieldType.String, description: key, required: true }],
+  },
+});
+
+export const routerNode = (id: string, key: string): RouterNode => ({
+  id,
+  key,
+  label: key,
+  position: NODE_POSITION,
+  type: NodeType.Router,
+  config: {
+    rules: [
+      {
+        id: TEST_ROUTE_RULE_ID,
+        label: TEST_ROUTE_RULE_ID,
+        match: RuleMatch.All,
+        conditions: [
+          {
+            variable: `${FIRST_STEP_KEY}.answer`,
+            operator: ConditionOperator.Eq,
+            value: FIRST_STEP_KEY,
+          },
+        ],
+      },
+    ],
+  },
+});
+
+export const parallelNode = (id: string, key: string, waitFor: WaitFor): ParallelNode => ({
+  id,
+  key,
+  label: key,
+  position: NODE_POSITION,
+  type: NodeType.Parallel,
+  config: { waitFor },
+});
+
 export const endNode = (id: string, key: string): EscalationNode => ({
   id,
   key,
@@ -89,7 +159,7 @@ export const flowEdge = (
   target: string,
   port: string = PortName.Next,
 ): FlowEdge => ({
-  id: `${source}:${port}`,
+  id: `${source}:${port}:${target}`,
   source,
   sourcePort: port,
   target,

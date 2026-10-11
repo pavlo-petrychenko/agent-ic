@@ -1,5 +1,5 @@
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
-import { isTriggerNode } from '@flow/document/helpers/node.helpers';
+import { isObserverNode, isTriggerNode } from '@flow/document/helpers/node.helpers';
 import { nodePorts } from '@flow/document/helpers/port.helpers';
 import type {
   FlowDocument,
@@ -8,7 +8,7 @@ import type {
   ParallelNode,
   TriggerNode,
 } from '@flow/document/typedefs/flow.typedefs';
-import { CompletionRole, WaitFor } from '@flow/nodes/constants/step.constants';
+import { WaitFor } from '@flow/nodes/constants/step.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 import { nodeOutputFields } from '@flow/outputs/helpers/output.helpers';
 import {
@@ -60,9 +60,6 @@ const mergePresence = (states: readonly StepPresence[]): StepPresence => {
 const withStep = (state: StepPresence, nodeId: string): StepPresence =>
   new Map(state).set(nodeId, Presence.Guaranteed);
 
-const isObserver = (node: FlowNode): boolean =>
-  node.type === NodeType.Completion && node.config.role === CompletionRole.Observer;
-
 const createPresenceAnalysis = (graph: FlowGraph): ((nodeId: string) => StepPresence) => {
   const memo = new Map<string, StepPresence>();
   const visiting = new Set<string>();
@@ -109,7 +106,7 @@ const createPresenceAnalysis = (graph: FlowGraph): ((nodeId: string) => StepPres
       const end = mergePresence(exitStates(nodeIds, nestedBranchNodes(nodeIds)));
       const observerBranch = [...nodeIds].some((id) => {
         const node = graph.nodes.get(id);
-        return node !== undefined && isObserver(node);
+        return node !== undefined && isObserverNode(node);
       });
       const weaken =
         parallel.config.waitFor === WaitFor.First ||
@@ -248,7 +245,7 @@ const stepScope = (node: FlowNode, presence: Presence): VisibleVariable[] => {
       values: null,
     }));
   }
-  if (isObserver(node)) {
+  if (isObserverNode(node)) {
     return [];
   }
   return nodeOutputFields(node).map((field) => ({

@@ -48,7 +48,7 @@ export type {
   TriggerNode,
   TriggerScheduleNode,
 } from '@flow/document/typedefs/flow.typedefs';
-export { isTriggerNode } from '@flow/document/helpers/node.helpers';
+export { isObserverNode, isTriggerNode } from '@flow/document/helpers/node.helpers';
 export { nodePorts } from '@flow/document/helpers/port.helpers';
 export { renameNodeKey } from '@flow/document/helpers/rename.helpers';
 export {
@@ -118,12 +118,14 @@ export {
   VariableSourceKind,
   VariableType,
 } from '@flow/scope/constants/scope.constants';
+export { branchNodes, branchStarts, buildFlowGraph } from '@flow/scope/helpers/graph.helpers';
 export {
   createScopeLookup,
   resolveVariable,
   visibleVariables,
 } from '@flow/scope/helpers/scope.helpers';
 export type {
+  FlowGraph,
   ResolvedVariable,
   ScopeLookup,
   VisibleVariable,

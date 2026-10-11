@@ -29,6 +29,7 @@ export interface RunExecutionTestbed extends RunsTestbed {
   readonly clock: ManualClock;
   readonly execution: RunExecutionService;
   readonly executor: ScriptedStepExecutor;
+  readonly observer: ScriptedStepExecutor;
   readonly liveUpdates: LiveUpdatesService;
 }
 

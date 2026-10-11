@@ -1,5 +1,5 @@
-import { PortName, createScopeLookup, nodePorts } from '@agent-ic/flow';
-import type { FlowNode } from '@agent-ic/flow';
+import { NodeType, PortName, buildFlowGraph, createScopeLookup, nodePorts } from '@agent-ic/flow';
+import type { FlowNode, ParallelNode } from '@agent-ic/flow';
 import { Injectable } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
 import { ConversationHistoryService, ConversationRunsService } from '@/modules/conversations';
@@ -13,6 +13,11 @@ import {
 import { RunFlowInvalidError } from '@/modules/runs/errors/run-flow-invalid.error';
 import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { UnsupportedNodeTypeError } from '@/modules/runs/errors/unsupported-node-type.error';
+import {
+  joinBranches,
+  parallelBranches,
+  settleBranch,
+} from '@/modules/runs/helpers/run-branch.helpers';
 import { runFailureOf } from '@/modules/runs/helpers/run-failure.helpers';
 import { messageTriggerOf, nextNode } from '@/modules/runs/helpers/run-flow.helpers';
 import {
@@ -23,8 +28,9 @@ import {
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
+import type { BranchSettlement } from '@/modules/runs/typedefs/run-branch.typedefs';
 import type { RunWalk } from '@/modules/runs/typedefs/run-execution.typedefs';
-import type { RunStep, RunStepResult } from '@/modules/runs/typedefs/run-step.typedefs';
+import type { RunStep, RunStepResult, StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 import type { RunEnd } from '@/modules/runs/typedefs/run.typedefs';
 import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
@@ -77,23 +83,37 @@ export class RunExecutionService {
       run.lastCoveredMessageId,
     );
     const finished = (await this.steps.listByRun(workspaceId, runId)).filter(
-      (step) => step.branchKey === ROOT_BRANCH_KEY && step.status !== RunStepStatus.Running,
+      (step) => step.status !== RunStepStatus.Running,
     );
     return {
       ctx,
       run,
       flow: version.flow,
+      graph: buildFlowGraph(version.flow),
       lookup: createScopeLookup(version.flow),
       trigger: messageTriggerVariables(conversation, history, today),
       history,
       today,
       steps: new Map(finished.map((step) => [step.nodeId, step])),
+      background: [],
     };
   }
 
   private async walk(walk: RunWalk): Promise<RunEnd> {
+    const trigger = messageTriggerOf(walk.flow);
+    if (trigger === null) {
+      return this.failed(new RunFlowInvalidError(walk.run.versionId, null), null);
+    }
+    try {
+      return await this.walkFrom(walk, trigger, ROOT_BRANCH_KEY);
+    } finally {
+      await this.drain(walk);
+    }
+  }
+
+  private async walkFrom(walk: RunWalk, start: FlowNode, branchKey: string): Promise<RunEnd> {
     const visited = new Set<string>();
-    let node = messageTriggerOf(walk.flow);
+    let node: FlowNode | null = start;
     while (node !== null) {
       if (visited.has(node.id)) {
         return this.failed(new RunFlowInvalidError(walk.run.versionId, node.id), node.id);
@@ -103,7 +123,11 @@ export class RunExecutionService {
       if (executor === null) {
         return this.failed(new UnsupportedNodeTypeError(node.id, node.type), node.id);
       }
-      const step = walk.steps.get(node.id) ?? (await this.runStep(walk, node, executor));
+      const failedBranch = node.type === NodeType.Parallel ? await this.fork(walk, node) : null;
+      if (failedBranch !== null) {
+        return failedBranch;
+      }
+      const step = walk.steps.get(node.id) ?? (await this.runStep(walk, node, executor, branchKey));
       if (step.port === null) {
         return step.status === RunStepStatus.Failed
           ? { status: RunStatus.Failed, error: step.error, finishedAt: this.clock.now() }
@@ -111,12 +135,40 @@ export class RunExecutionService {
       }
       node = nextNode(walk.flow, node.id, step.port);
     }
-    return visited.size === 0
-      ? this.failed(new RunFlowInvalidError(walk.run.versionId, null), null)
-      : this.succeeded();
+    return this.succeeded();
   }
 
-  private async runStep(walk: RunWalk, node: FlowNode, executor: StepExecutor): Promise<RunStep> {
+  private async fork(walk: RunWalk, parallel: ParallelNode): Promise<RunEnd | null> {
+    const branches = parallelBranches(walk.graph, parallel).map((branch) => ({
+      ...branch,
+      settled: settleBranch(this.walkFrom(walk, branch.start, branch.key)),
+    }));
+    walk.background.push(...branches.map((branch) => branch.settled));
+    const joined = await joinBranches(parallel.config.waitFor, branches);
+    return this.endsOf(joined).find((end) => end.status !== RunStatus.Succeeded) ?? null;
+  }
+
+  private async drain(walk: RunWalk): Promise<void> {
+    while (walk.background.length > 0) {
+      this.endsOf(await Promise.all(walk.background.splice(0)));
+    }
+  }
+
+  private endsOf(settlements: readonly BranchSettlement[]): RunEnd[] {
+    return settlements.map((settlement) => {
+      if (!settlement.ok) {
+        throw settlement.error;
+      }
+      return settlement.end;
+    });
+  }
+
+  private async runStep(
+    walk: RunWalk,
+    node: FlowNode,
+    executor: StepExecutor,
+    branchKey: string,
+  ): Promise<RunStep> {
     const { workspaceId, id: runId } = walk.run;
     const variables = stepVariables(walk, node.id);
     const started = await this.tenants.run(workspaceId, () =>
@@ -126,15 +178,15 @@ export class RunExecutionService {
         runId,
         nodeId: node.id,
         nodeKey: node.key,
-        branchKey: ROOT_BRANCH_KEY,
+        branchKey,
         input: stepInput(variables),
         startedAt: this.clock.now(),
       }),
     );
     if (started === null) {
-      return this.reloadStep(walk, node);
+      return this.reloadStep(walk, node, branchKey);
     }
-    const result = await this.outcome(walk, node, executor, variables);
+    const result = await this.outcome(walk, node, executor, variables, branchKey);
     await this.tenants.run(workspaceId, async () => {
       if (await this.steps.finish(workspaceId, started.id, result)) {
         await this.liveUpdates.publish(channelFor(runStepsChannel, runId), {
@@ -156,14 +208,15 @@ export class RunExecutionService {
     walk: RunWalk,
     node: FlowNode,
     executor: StepExecutor,
-    variables: RunStep['input'],
+    variables: StepData,
+    branchKey: string,
   ): Promise<RunStepResult> {
     try {
       const { port, output } = await executor.execute({
         ctx: walk.ctx,
         run: walk.run,
         node,
-        branchKey: ROOT_BRANCH_KEY,
+        branchKey,
         scope: { variables, history: walk.history, today: walk.today },
       });
       return {
@@ -190,13 +243,13 @@ export class RunExecutionService {
     }
   }
 
-  private async reloadStep(walk: RunWalk, node: FlowNode): Promise<RunStep> {
+  private async reloadStep(walk: RunWalk, node: FlowNode, branchKey: string): Promise<RunStep> {
     const { workspaceId, id: runId } = walk.run;
     const steps = await this.tenants.run(workspaceId, () =>
       this.steps.listByRun(workspaceId, runId),
     );
     const step = steps.find(
-      (candidate) => candidate.nodeId === node.id && candidate.branchKey === ROOT_BRANCH_KEY,
+      (candidate) => candidate.nodeId === node.id && candidate.branchKey === branchKey,
     );
     if (step === undefined) {
       throw new RunNotFoundError(runId);
