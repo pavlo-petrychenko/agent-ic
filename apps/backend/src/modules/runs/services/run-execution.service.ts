@@ -19,7 +19,7 @@ import {
   settleBranch,
 } from '@/modules/runs/helpers/run-branch.helpers';
 import { runFailureOf } from '@/modules/runs/helpers/run-failure.helpers';
-import { messageTriggerOf, nextNode } from '@/modules/runs/helpers/run-flow.helpers';
+import { endStatusOf, messageTriggerOf, nextNode } from '@/modules/runs/helpers/run-flow.helpers';
 import {
   messageTriggerVariables,
   stepInput,
@@ -63,7 +63,8 @@ export class RunExecutionService {
     if (!UNFINISHED_RUN_STATUSES.includes(walk.run.status)) {
       return walk.run.status;
     }
-    const end = await this.walk(walk);
+    const walked = await this.walk(walk);
+    const end = walked.status === RunStatus.Failed ? walked : (walk.ending ?? walked);
     await this.tenants.run(workspaceId, () => this.runs.finish(workspaceId, runId, end));
     return end.status;
   }
@@ -96,6 +97,7 @@ export class RunExecutionService {
       today,
       steps: new Map(finished.map((step) => [step.nodeId, step])),
       background: [],
+      ending: null,
     };
   }
 
@@ -115,6 +117,9 @@ export class RunExecutionService {
     const visited = new Set<string>();
     let node: FlowNode | null = start;
     while (node !== null) {
+      if (walk.ending !== null) {
+        return walk.ending;
+      }
       if (visited.has(node.id)) {
         return this.failed(new RunFlowInvalidError(walk.run.versionId, node.id), node.id);
       }
@@ -128,6 +133,10 @@ export class RunExecutionService {
         return failedBranch;
       }
       const step = walk.steps.get(node.id) ?? (await this.runStep(walk, node, executor, branchKey));
+      if (step.status === RunStepStatus.Succeeded && node.type === NodeType.Escalation) {
+        walk.ending ??= { status: endStatusOf(node), error: null, finishedAt: this.clock.now() };
+        return walk.ending;
+      }
       if (step.port === null) {
         return step.status === RunStepStatus.Failed
           ? { status: RunStatus.Failed, error: step.error, finishedAt: this.clock.now() }
@@ -145,7 +154,7 @@ export class RunExecutionService {
     }));
     walk.background.push(...branches.map((branch) => branch.settled));
     const joined = await joinBranches(parallel.config.waitFor, branches);
-    return this.endsOf(joined).find((end) => end.status !== RunStatus.Succeeded) ?? null;
+    return this.endsOf(joined).find((end) => end.status !== RunStatus.Succeeded) ?? walk.ending;
   }
 
   private async drain(walk: RunWalk): Promise<void> {

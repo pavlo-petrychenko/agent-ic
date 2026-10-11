@@ -56,6 +56,8 @@ export enum TestRedisPrefix {
   RunExecution = 'run-execution:',
   RunStart = 'run-start:',
   RunEnd = 'run-end:',
+  RunMessages = 'run-messages:',
+  RunEscalation = 'run-escalation:',
   Seed = 'seed:',
   IsolationFirst = 'isolation-first:',
   IsolationSecond = 'isolation-second:',

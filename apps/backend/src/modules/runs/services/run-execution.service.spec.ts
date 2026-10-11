@@ -9,6 +9,8 @@ import { channelFor } from '@/platform/live-updates/helpers/channel.helpers';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
 import {
+  ESCALATION_NODE_ID,
+  ESCALATION_NODE_KEY,
   FIRST_STEP_ID,
   FIRST_STEP_KEY,
   FOURTH_STEP_ID,
@@ -21,6 +23,7 @@ import {
   ROUTER_NODE_KEY,
   SECOND_STEP_ID,
   SECOND_STEP_KEY,
+  SEND_NODE_ID,
   StepScript,
   THIRD_STEP_ID,
   TEST_ROUTE_RULE_ID,
@@ -31,10 +34,12 @@ import { WorkerKilledError } from '@test/support/errors/worker-killed.error';
 import {
   agentNode,
   endNode,
+  escalateNode,
   flowEdge,
   observerNode,
   parallelNode,
   routerNode,
+  sendMessageNode,
   stepFlow,
 } from '@test/support/fixtures/runs.fixture';
 import { createRunsTestbed, seedExecutableRun } from '@test/support/helpers/runs-testing.helpers';
@@ -208,7 +213,7 @@ describe('RunExecutionService', () => {
   it('fails the run clearly on a node type no executor handles', async () => {
     const seeded = await seedExecutableRun(
       testbed,
-      stepFlow([endNode(FIRST_STEP_ID, FIRST_STEP_KEY)], [flowEdge(TEST_NODE_ID, FIRST_STEP_ID)]),
+      stepFlow([sendMessageNode()], [flowEdge(TEST_NODE_ID, SEND_NODE_ID)]),
     );
 
     expect(await execute(seeded)).toBe(RunStatus.Failed);
@@ -216,8 +221,23 @@ describe('RunExecutionService', () => {
     const { run } = await stored(seeded);
     expect(run?.error).toMatchObject({
       reason: ErrorReason.UnsupportedNodeType,
-      nodeId: FIRST_STEP_ID,
+      nodeId: SEND_NODE_ID,
     });
+  });
+
+  it.each([
+    [RunStatus.Escalated, escalateNode()],
+    [RunStatus.Succeeded, endNode(ESCALATION_NODE_ID, ESCALATION_NODE_KEY)],
+  ])('ends the run %s after an escalation step, also inside a branch', async (status, step) => {
+    const direct = stepFlow([step], [flowEdge(TEST_NODE_ID, ESCALATION_NODE_ID)]);
+    const seeded = await seedExecutableRun(testbed, direct);
+    const branched = await seedExecutableRun(testbed, parallelFlow(WaitFor.All, step));
+
+    expect([await execute(seeded), await execute(branched)]).toEqual([status, status]);
+
+    expect((await stored(seeded)).run).toMatchObject({ status, error: null });
+    const afterwards = [THIRD_STEP_ID, FOURTH_STEP_ID];
+    expect(afterwards.map((id) => testbed.executor.callsFor(branched.run.id, id))).toEqual([0, 0]);
   });
 
   it('follows the port of the router rule that matches', async () => {
