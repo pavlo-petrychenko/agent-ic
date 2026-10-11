@@ -23,7 +23,9 @@ import { TracingService } from '@/platform/observability/services/tracing.servic
 import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { QueuesService } from '@/platform/queues/services/queues.service';
 import {
+  PENDING_JOB_TYPES,
   RUNS_TEST_START,
+  RUNS_WORKER_QUEUES,
   RUNS_WORKER_WAIT,
   TEST_LLM_API_KEY,
   TEST_PUBLISHED_NUMBER,
@@ -119,6 +121,14 @@ export const readConversation = async (
   return { conversation: state.conversation, run: state.run, sent };
 };
 
+export const waitForIdleQueues = (worker: RunsWorker): Promise<void> =>
+  vi.waitFor(async () => {
+    for (const name of RUNS_WORKER_QUEUES) {
+      const counts = await worker.queues.get(name).getJobCounts(...PENDING_JOB_TYPES);
+      expect(Object.values(counts).every((count) => count === 0)).toBe(true);
+    }
+  }, RUNS_WORKER_WAIT);
+
 export const settleConversation = async (
   worker: RunsWorker,
   agent: WorkerAgent,
@@ -131,5 +141,8 @@ export const settleConversation = async (
     expect(UNFINISHED_RUN_STATUSES).not.toContain(run?.status);
     expect(sent).toHaveLength(sentCount);
   }, RUNS_WORKER_WAIT);
-  return readConversation(worker, agent, conversationId);
+  await waitForIdleQueues(worker);
+  const settled = await readConversation(worker, agent, conversationId);
+  expect(settled.sent).toHaveLength(sentCount);
+  return settled;
 };

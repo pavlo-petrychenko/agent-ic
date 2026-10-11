@@ -1,6 +1,8 @@
 import { ErrorReason } from '@agent-ic/contracts';
 import { PortName } from '@agent-ic/flow';
+import type { JobType } from 'bullmq';
 import { UNSUPPORTED_NODE_TYPE_MESSAGE } from '@/modules/runs/constants/run-error.constants';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
 
 export const RUNS_TEST_START = new Date('2026-10-10T12:00:00.000Z');
@@ -87,3 +89,5 @@ export const TEST_MOOD = 'curious';
 export const RUNS_WORKER_WAIT = { timeout: 20_000, interval: 50 };
 export const TEST_RENDERED_NOTICE = `A person will answer "${TEST_MESSAGE_TEXT}" soon.`;
 export const TEST_MERGED_TEXTS = ['Hi there', 'do you deliver', 'to the old town?'];
+export const RUNS_WORKER_QUEUES = [QueueName.RunsReactive, QueueName.Outbound];
+export const PENDING_JOB_TYPES: JobType[] = ['waiting', 'active', 'delayed', 'prioritized'];

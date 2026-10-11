@@ -17,8 +17,8 @@ import {
   FIRST_STEP_KEY,
   ROUTER_NODE_ID,
   ROUTER_NODE_KEY,
-  SEND_STEP_ID,
-  SEND_STEP_KEY,
+  SEND_NODE_ID,
+  SEND_NODE_KEY,
   TEST_AGENT_PROMPT,
   TEST_AGENT_REPLY,
   TEST_MERGED_TEXTS,
@@ -45,6 +45,7 @@ import {
   seedWorkerAgent,
   sendCustomerMessage,
   settleConversation,
+  waitForIdleQueues,
 } from '@test/support/helpers/runs-worker.helpers';
 import { startMockLlm } from '@test/support/services/mock-llm.service';
 import type { MockLlmService } from '@test/support/services/mock-llm.service';
@@ -60,7 +61,7 @@ const flow = stepFlow(
     completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, CompletionRole.Guard),
     intentRouterNode(ROUTER_NODE_ID, ROUTER_NODE_KEY, TEST_STEP_NODE_KEY),
     answerer,
-    sendListNode(SEND_STEP_ID, SEND_STEP_KEY, `${FIRST_STEP_KEY}.messages`),
+    sendListNode(SEND_NODE_ID, SEND_NODE_KEY, `${FIRST_STEP_KEY}.messages`),
     escalateNode(),
   ],
   [
@@ -68,12 +69,12 @@ const flow = stepFlow(
     flowEdge(TEST_STEP_NODE_ID, ROUTER_NODE_ID),
     flowEdge(ROUTER_NODE_ID, ESCALATION_NODE_ID, TEST_ORDER_RULE_ID),
     flowEdge(ROUTER_NODE_ID, FIRST_STEP_ID, PortName.Else),
-    flowEdge(FIRST_STEP_ID, SEND_STEP_ID),
+    flowEdge(FIRST_STEP_ID, SEND_NODE_ID),
   ],
 );
 
-const missing = (): never => {
-  throw new MissingTestDataError(TEST_MERGED_TEXTS.join());
+const missing = (what: string): never => {
+  throw new MissingTestDataError(what);
 };
 
 const question = { intent: TEST_QUESTION_INTENT };
@@ -139,6 +140,7 @@ describe('a run end to end', () => {
     const agent = await seedWorkerAgent(worker, flow, true, pauseAs(PauseMode.Inbox));
 
     const { outcome, conversationId } = await sendCustomerMessage(worker, agent);
+    await waitForIdleQueues(worker);
 
     const { conversation, run } = await readConversation(worker, agent, conversationId);
     expect(outcome).toBe(IncomingMessageOutcome.RoutedToInbox);
@@ -171,7 +173,7 @@ describe('a run end to end', () => {
     const { conversationId } = await sendCustomerMessage(worker, agent);
 
     const settled = await settleConversation(worker, agent, conversationId, 1);
-    const steps = await stepsOf(agent, String(settled.run?.id));
+    const steps = await stepsOf(agent, settled.run?.id ?? missing(conversationId));
     const attempts = (nodeId: string) => steps.find((step) => step.nodeId === nodeId)?.attempt;
     expect(settled.sent).toEqual([TEST_AGENT_REPLY]);
     expect(settled.run?.status).toBe(RunStatus.Succeeded);
@@ -191,7 +193,7 @@ describe('a run end to end', () => {
     }
     await queue.resume();
 
-    const { conversationId, messageId } = last ?? missing();
+    const { conversationId, messageId } = last ?? missing(TEST_MERGED_TEXTS.join());
     const settled = await settleConversation(worker, agent, conversationId, 1);
     expect(settled.sent).toEqual([TEST_AGENT_REPLY]);
     expect(settled.run?.lastCoveredMessageId).toBe(messageId);
