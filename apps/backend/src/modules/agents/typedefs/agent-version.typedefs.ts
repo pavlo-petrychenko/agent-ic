@@ -12,6 +12,7 @@ export interface AgentVersion {
   readonly flow: FlowDocument;
   readonly note: string | null;
   readonly authorId: string | null;
+  readonly baseVersionId: string | null;
   readonly publishedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;

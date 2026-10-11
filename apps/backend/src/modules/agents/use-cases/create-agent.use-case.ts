@@ -1,12 +1,12 @@
-import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
+import { PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
 import { initialAgentFlow } from '@/modules/agents/helpers/agent-flow.helpers';
 import { parseAgentInput } from '@/modules/agents/helpers/agent-input.helpers';
-import { toAgentView } from '@/modules/agents/helpers/agent-view.helpers';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { createAgentInputSchema } from '@/modules/agents/schemas/agent-input.schema';
+import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import type { AgentView, CreateAgentInput } from '@/modules/agents/typedefs/agent.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
@@ -21,6 +21,7 @@ export class CreateAgentUseCase {
     private readonly agents: AgentsRepository,
     private readonly versions: AgentVersionsRepository,
     private readonly clock: ClockService,
+    private readonly views: AgentViewsService,
     private readonly ids: IdService,
   ) {}
 
@@ -40,6 +41,7 @@ export class CreateAgentUseCase {
         id: agentId,
         workspaceId,
         name,
+        description: null,
         draftVersionId: draftId,
         liveVersionId: null,
         pausedAt: null,
@@ -59,7 +61,7 @@ export class CreateAgentUseCase {
         createdAt: now,
         updatedAt: now,
       });
-      return toAgentView(agent, this.ids.toPublic(IdPrefix.Agent, agentId));
+      return this.views.agentView(workspaceId, agent);
     });
   }
 }

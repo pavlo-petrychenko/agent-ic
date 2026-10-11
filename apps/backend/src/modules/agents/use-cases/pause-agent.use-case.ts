@@ -2,10 +2,10 @@ import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contra
 import { Injectable } from '@nestjs/common';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { parseAgentInput } from '@/modules/agents/helpers/agent-input.helpers';
-import { toAgentView } from '@/modules/agents/helpers/agent-view.helpers';
 import { buildPauseSettings } from '@/modules/agents/helpers/pause-settings.helpers';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { pauseAgentInputSchema } from '@/modules/agents/schemas/agent-input.schema';
+import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import type { AgentView, PauseAgentInput } from '@/modules/agents/typedefs/agent.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
@@ -19,6 +19,7 @@ export class PauseAgentUseCase {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly agents: AgentsRepository,
     private readonly clock: ClockService,
+    private readonly views: AgentViewsService,
     private readonly ids: IdService,
   ) {}
 
@@ -34,16 +35,13 @@ export class PauseAgentUseCase {
       }
       const pause = buildPauseSettings(mode, awayMessage, agent.pausedAt ?? now);
       await this.agents.setPause(workspaceId, agentId, pause, now);
-      return toAgentView(
-        {
-          ...agent,
-          pausedAt: pause.pausedAt,
-          pauseMode: pause.mode,
-          awayMessage: pause.awayMessage,
-          updatedAt: now,
-        },
-        id,
-      );
+      return this.views.agentView(workspaceId, {
+        ...agent,
+        pausedAt: pause.pausedAt,
+        pauseMode: pause.mode,
+        awayMessage: pause.awayMessage,
+        updatedAt: now,
+      });
     });
   }
 }

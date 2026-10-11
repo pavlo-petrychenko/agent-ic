@@ -5,10 +5,10 @@ import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.erro
 import { AgentVersionNotFoundError } from '@/modules/agents/errors/agent-version-not-found.error';
 import { parseAgentInput } from '@/modules/agents/helpers/agent-input.helpers';
 import { duplicateAgentName } from '@/modules/agents/helpers/agent-name.helpers';
-import { toAgentView } from '@/modules/agents/helpers/agent-view.helpers';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { agentIdInputSchema } from '@/modules/agents/schemas/agent-input.schema';
+import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import type { AgentIdInput, AgentView } from '@/modules/agents/typedefs/agent.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
@@ -23,6 +23,7 @@ export class DuplicateAgentUseCase {
     private readonly agents: AgentsRepository,
     private readonly versions: AgentVersionsRepository,
     private readonly clock: ClockService,
+    private readonly views: AgentViewsService,
     private readonly ids: IdService,
   ) {}
 
@@ -50,6 +51,7 @@ export class DuplicateAgentUseCase {
         id: copyId,
         workspaceId,
         name: duplicateAgentName(source.name),
+        description: source.description,
         draftVersionId: draftId,
         liveVersionId: null,
         pausedAt: null,
@@ -70,7 +72,7 @@ export class DuplicateAgentUseCase {
         createdAt: now,
         updatedAt: now,
       });
-      return toAgentView(copy, this.ids.toPublic(IdPrefix.Agent, copyId));
+      return this.views.agentView(workspaceId, copy);
     });
   }
 }

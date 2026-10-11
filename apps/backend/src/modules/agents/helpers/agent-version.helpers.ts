@@ -13,6 +13,7 @@ export const copyDraftToVersion = (draft: AgentVersion, copy: VersionCopy): Agen
   flow: draft.flow,
   note: draft.note,
   authorId: copy.authorId,
+  baseVersionId: draft.baseVersionId,
   publishedAt: copy.publishedAt,
   createdAt: copy.at,
   updatedAt: copy.at,

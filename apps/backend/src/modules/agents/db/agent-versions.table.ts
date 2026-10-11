@@ -39,6 +39,9 @@ export const agentVersions = agentsSchema
       flow: jsonb('flow').$type<FlowDocument>().notNull(),
       note: text('note'),
       authorId: uuid('author_id'),
+      baseVersionId: uuid('base_version_id').references((): AnyPgColumn => agentVersions.id, {
+        onDelete: 'set null',
+      }),
       publishedAt: timestamp('published_at', { withTimezone: true }),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
       updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),

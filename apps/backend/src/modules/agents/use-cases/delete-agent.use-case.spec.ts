@@ -1,10 +1,10 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { AgentIsLiveError } from '@/modules/agents/errors/agent-is-live.error';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
+import { AgentRuntimeReader } from '@/modules/agents/services/agent-runtime-reader.service';
 import { DeleteAgentUseCase } from '@/modules/agents/use-cases/delete-agent.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -14,6 +14,8 @@ import {
   createAgentsTestingModule,
   makeAgentLive,
   publicAgentId,
+  readAgentConversation,
+  seedAgentConversation,
   seedAgentWithDraft,
 } from '@test/support/helpers/agents-testing.helpers';
 
@@ -52,20 +54,37 @@ describe('DeleteAgentUseCase', () => {
     expect(versions).toEqual([]);
   });
 
-  it('refuses to delete a live agent', async () => {
+  it('deletes a live agent, which stops answering and keeps its conversations', async () => {
     const workspaceId = ids.generate();
     const seeded = await seedAgentWithDraft(testingModule, workspaceId);
     await makeAgentLive(testingModule, workspaceId, seeded);
+    const seededConversation = await seedAgentConversation(
+      testingModule,
+      workspaceId,
+      seeded.agentId,
+    );
 
-    const attempt = deleteAgent.execute(agentsCtx(testingModule, workspaceId), {
+    await deleteAgent.execute(agentsCtx(testingModule, workspaceId), {
       id: publicAgentId(testingModule, seeded.agentId),
     });
 
-    await expect(attempt).rejects.toBeInstanceOf(AgentIsLiveError);
-    const agent = await tenants.run(workspaceId, () =>
-      testingModule.get(AgentsRepository).findById(workspaceId, seeded.agentId),
+    const liveVersion = tenants.run(workspaceId, () =>
+      testingModule.get(AgentRuntimeReader).getLiveVersion(workspaceId, seeded.agentId),
     );
-    expect(agent).not.toBeNull();
+    await expect(liveVersion).rejects.toBeInstanceOf(AgentNotFoundError);
+    const { conversation, message } = await readAgentConversation(
+      testingModule,
+      workspaceId,
+      seededConversation,
+    );
+    expect(conversation).toMatchObject({
+      id: seededConversation.conversationId,
+      agentId: seeded.agentId,
+    });
+    expect(message).toMatchObject({
+      id: seededConversation.messageId,
+      conversationId: seededConversation.conversationId,
+    });
   });
 
   it('does not find an agent of another workspace', async () => {

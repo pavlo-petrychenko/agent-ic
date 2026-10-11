@@ -50,7 +50,13 @@ const GRAPHQL_ISSUE_SEVERITY: Readonly<Record<FlowIssueSeverity, GraphqlFlowIssu
 export const toGraphqlAgent = (agent: AgentView): Agent => ({
   id: agent.id,
   name: agent.name,
+  description: agent.description,
   status: GRAPHQL_AGENT_STATUS[agent.status],
+  liveVersionNumber: agent.liveVersionNumber,
+  draftNumber: agent.draftNumber,
+  draftBaseVersionNumber: agent.draftBaseVersionNumber,
+  hasUnpublishedChanges: agent.hasUnpublishedChanges,
+  versionCount: agent.versionCount,
   pausedAt: agent.pausedAt?.toISOString() ?? null,
   pauseMode: agent.pauseMode === null ? null : GRAPHQL_PAUSE_MODE[agent.pauseMode],
   awayMessage: agent.awayMessage,

@@ -44,7 +44,6 @@
     "INVALID_AGENT_NAME": "Enter an agent name.",
     "AGENT_NOT_FOUND": "This agent does not exist.",
     "AGENT_VERSION_NOT_FOUND": "This agent version does not exist.",
-    "AGENT_IS_LIVE": "This agent is live. Pause or replace it before deleting.",
     "AGENT_VERSION_IMMUTABLE": "A published version cannot be changed.",
     "AGENT_FLOW_HAS_BLOCKING_ISSUES": "Fix the flow errors before publishing.",
     "AWAY_MESSAGE_REQUIRED": "Write the away message the customer will receive.",

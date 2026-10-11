@@ -55,7 +55,6 @@ export enum ErrorReason {
   InvalidAgentName = 'INVALID_AGENT_NAME',
   AgentNotFound = 'AGENT_NOT_FOUND',
   AgentVersionNotFound = 'AGENT_VERSION_NOT_FOUND',
-  AgentIsLive = 'AGENT_IS_LIVE',
   AgentVersionImmutable = 'AGENT_VERSION_IMMUTABLE',
   AgentFlowHasBlockingIssues = 'AGENT_FLOW_HAS_BLOCKING_ISSUES',
   AwayMessageRequired = 'AWAY_MESSAGE_REQUIRED',

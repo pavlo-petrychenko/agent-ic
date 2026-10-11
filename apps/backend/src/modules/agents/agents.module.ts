@@ -12,6 +12,7 @@ import { SaveAgentDraftResolver } from '@/modules/agents/resolvers/save-agent-dr
 import { AgentFlowService } from '@/modules/agents/services/agent-flow.service';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
 import { AgentRuntimeReader } from '@/modules/agents/services/agent-runtime-reader.service';
+import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import { CreateAgentUseCase } from '@/modules/agents/use-cases/create-agent.use-case';
 import { DeleteAgentUseCase } from '@/modules/agents/use-cases/delete-agent.use-case';
 import { DuplicateAgentUseCase } from '@/modules/agents/use-cases/duplicate-agent.use-case';
@@ -32,6 +33,7 @@ export class AgentsModule extends defineModule({
     AgentFlowService,
     AgentPublishingService,
     AgentRuntimeReader,
+    AgentViewsService,
     CreateAgentUseCase,
     RenameAgentUseCase,
     DeleteAgentUseCase,

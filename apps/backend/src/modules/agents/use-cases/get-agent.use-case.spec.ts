@@ -3,10 +3,18 @@ import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AgentStatus } from '@/modules/agents/constants/agent.constants';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
+import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
+import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
 import { GetAgentUseCase } from '@/modules/agents/use-cases/get-agent.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
+import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
-import { TEST_AGENT_NAME } from '@test/support/constants/agents-testing.constants';
+import {
+  AGENTS_TEST_LATER,
+  TEST_AGENT_NAME,
+  TEST_NODE_NEW_LABEL,
+} from '@test/support/constants/agents-testing.constants';
+import { triggerFlow } from '@test/support/fixtures/agents.fixture';
 import {
   agentsCtx,
   createAgentsTestingModule,
@@ -14,6 +22,9 @@ import {
   publicAgentId,
   seedAgentWithDraft,
 } from '@test/support/helpers/agents-testing.helpers';
+
+const FIRST_DRAFT_NUMBER = 1;
+const PUBLISH_COUNT = 2;
 
 describe('GetAgentUseCase', () => {
   let testingModule: TestingModule;
@@ -42,6 +53,50 @@ describe('GetAgentUseCase', () => {
 
     expect(draft).toMatchObject({ id, name: TEST_AGENT_NAME, status: AgentStatus.Draft });
     expect(live.status).toBe(AgentStatus.Live);
+  });
+
+  it('reports the version fields before and after publishing', async () => {
+    const workspaceId = ids.generate();
+    const { agentId, draftId } = await seedAgentWithDraft(testingModule, workspaceId);
+    const id = publicAgentId(testingModule, agentId);
+    const ctx = agentsCtx(testingModule, workspaceId);
+    const tenants = testingModule.get(TenantTransactionService);
+
+    const neverPublished = await getAgent.execute(ctx, { id });
+    await tenants.run(workspaceId, async () => {
+      const publishing = testingModule.get(AgentPublishingService);
+      await publishing.publish(workspaceId, agentId, ids.generate());
+      await publishing.publish(workspaceId, agentId, ids.generate());
+    });
+    const published = await getAgent.execute(ctx, { id });
+    await tenants.run(workspaceId, () =>
+      testingModule
+        .get(AgentVersionsRepository)
+        .updateDraft(
+          workspaceId,
+          draftId,
+          { flow: triggerFlow(TEST_NODE_NEW_LABEL), note: null },
+          AGENTS_TEST_LATER,
+        ),
+    );
+    const edited = await getAgent.execute(ctx, { id });
+
+    expect(neverPublished).toMatchObject({
+      description: null,
+      liveVersionNumber: null,
+      draftNumber: FIRST_DRAFT_NUMBER,
+      draftBaseVersionNumber: null,
+      hasUnpublishedChanges: true,
+      versionCount: 0,
+    });
+    expect(published).toMatchObject({
+      liveVersionNumber: PUBLISH_COUNT,
+      draftNumber: PUBLISH_COUNT + 1,
+      draftBaseVersionNumber: PUBLISH_COUNT,
+      hasUnpublishedChanges: false,
+      versionCount: PUBLISH_COUNT,
+    });
+    expect(edited).toMatchObject({ liveVersionNumber: PUBLISH_COUNT, hasUnpublishedChanges: true });
   });
 
   it('does not find an agent of another workspace', async () => {

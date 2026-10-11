@@ -1,16 +1,27 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
+import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
 import { ListAgentsUseCase } from '@/modules/agents/use-cases/list-agents.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
+import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
-import { TEST_AGENT_PAGE_LIMIT } from '@test/support/constants/agents-testing.constants';
+import {
+  AGENTS_TEST_LATER,
+  TEST_AGENT_PAGE_LIMIT,
+  TEST_NODE_NEW_LABEL,
+} from '@test/support/constants/agents-testing.constants';
+import { triggerFlow } from '@test/support/fixtures/agents.fixture';
 import {
   agentsCtx,
   createAgentsTestingModule,
   publicAgentId,
   seedAgentWithDraft,
 } from '@test/support/helpers/agents-testing.helpers';
+
+const FIRST_DRAFT_NUMBER = 1;
+const PUBLISH_COUNT = 2;
 
 describe('ListAgentsUseCase', () => {
   let testingModule: TestingModule;
@@ -46,6 +57,42 @@ describe('ListAgentsUseCase', () => {
     expect(first.pageInfo.hasNextPage).toBe(true);
     expect(second.pageInfo.hasNextPage).toBe(false);
     expect(listed).toEqual(seeded.map((agent) => publicAgentId(testingModule, agent.agentId)));
+  });
+
+  it('reports the version fields of each agent on the page', async () => {
+    const workspaceId = ids.generate();
+    const neverPublished = await seedAgentWithDraft(testingModule, workspaceId);
+    const edited = await seedAgentWithDraft(testingModule, workspaceId);
+    await testingModule.get(TenantTransactionService).run(workspaceId, async () => {
+      const publishing = testingModule.get(AgentPublishingService);
+      await publishing.publish(workspaceId, edited.agentId, ids.generate());
+      await publishing.publish(workspaceId, edited.agentId, ids.generate());
+      await testingModule
+        .get(AgentVersionsRepository)
+        .updateDraft(
+          workspaceId,
+          edited.draftId,
+          { flow: triggerFlow(TEST_NODE_NEW_LABEL), note: null },
+          AGENTS_TEST_LATER,
+        );
+    });
+
+    const listed = await listAgents.execute(agentsCtx(testingModule, workspaceId), {});
+
+    const nodeOf = (agentId: string) =>
+      listed.edges.find((edge) => edge.node.id === publicAgentId(testingModule, agentId))?.node;
+    expect(nodeOf(neverPublished.agentId)).toMatchObject({
+      liveVersionNumber: null,
+      draftNumber: FIRST_DRAFT_NUMBER,
+      versionCount: 0,
+      hasUnpublishedChanges: true,
+    });
+    expect(nodeOf(edited.agentId)).toMatchObject({
+      liveVersionNumber: PUBLISH_COUNT,
+      draftNumber: PUBLISH_COUNT + 1,
+      versionCount: PUBLISH_COUNT,
+      hasUnpublishedChanges: true,
+    });
   });
 
   it('never shows workspace B the agents of workspace A', async () => {
