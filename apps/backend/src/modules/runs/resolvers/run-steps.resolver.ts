@@ -8,6 +8,7 @@ import type { RunStepUpdate } from '@/modules/runs/typedefs/run-step-update.type
 import { SubscribeToRunStepsUseCase } from '@/modules/runs/use-cases/subscribe-to-run-steps.use-case';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { GraphqlCtx } from '@/platform/graphql-server/decorators/graphql-ctx.decorator';
+import type { ChannelStream } from '@/platform/live-updates/typedefs/channel.typedefs';
 
 @Resolver()
 export class RunStepsResolver {
@@ -17,7 +18,7 @@ export class RunStepsResolver {
   runSteps(
     @GraphqlCtx() ctx: UseCaseCtx,
     @Args(RunGraphqlArgument.RunId) runId: string,
-  ): Promise<AsyncGenerator<RunStepUpdate, void, undefined>> {
+  ): Promise<ChannelStream<RunStepUpdate>> {
     return this.subscribeToRunStepsUseCase.execute(ctx, { runId });
   }
 }

@@ -1,4 +1,4 @@
-import { ErrorCode, ErrorReason, WorkspaceRole } from '@agent-ic/contracts';
+import { ErrorReason, WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { ConversationMode } from '@/modules/conversations';
 import { ROOT_BRANCH_KEY, RunStepStatus } from '@/modules/runs';
@@ -111,8 +111,6 @@ describe('graphql subscriptions over graphql-ws', () => {
 
     const result = await subscribe(owner, runId).next();
 
-    expect(result).toMatchObject({
-      value: { errors: [{ extensions: { code: ErrorCode.NotFound } }] },
-    });
+    expect(result).toEqual(refusal(ErrorReason.RunNotFound));
   });
 });

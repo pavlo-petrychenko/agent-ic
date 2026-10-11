@@ -13,3 +13,9 @@ export interface Channel<TEvent extends ChannelEvent> {
   readonly key: string;
   readonly schema: z.ZodType<TEvent>;
 }
+
+export interface ChannelStream<TValue> {
+  next(): Promise<IteratorResult<TValue, void>>;
+  return(): Promise<IteratorResult<TValue, void>>;
+  [Symbol.asyncIterator](): ChannelStream<TValue>;
+}

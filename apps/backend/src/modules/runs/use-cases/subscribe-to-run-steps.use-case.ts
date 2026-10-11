@@ -15,6 +15,7 @@ import { IdService } from '@/platform/ids/services/id.service';
 import { mapChannelStream } from '@/platform/live-updates/helpers/channel-stream.helpers';
 import { channelFor } from '@/platform/live-updates/helpers/channel.helpers';
 import { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';
+import type { ChannelStream } from '@/platform/live-updates/typedefs/channel.typedefs';
 
 @Injectable()
 export class SubscribeToRunStepsUseCase {
@@ -25,10 +26,7 @@ export class SubscribeToRunStepsUseCase {
     private readonly ids: IdService,
   ) {}
 
-  async execute(
-    ctx: UseCaseCtx,
-    input: RunStepsInput,
-  ): Promise<AsyncGenerator<RunStepUpdate, void, undefined>> {
+  async execute(ctx: UseCaseCtx, input: RunStepsInput): Promise<ChannelStream<RunStepUpdate>> {
     const { workspaceId } = authorize(ctx, PermissionResource.Testing, PermissionAction.View);
     const runId = this.ids.fromPublic(IdPrefix.Run, input.runId);
     await this.tenants.run(workspaceId, async () => {
