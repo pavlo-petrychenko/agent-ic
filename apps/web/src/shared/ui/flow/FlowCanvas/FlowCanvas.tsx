@@ -9,6 +9,7 @@ import {
 import type {
   Connection,
   EdgeChange,
+  NodeMouseHandler,
   EdgeTypes,
   OnConnectEnd,
   IsValidConnection,
@@ -18,6 +19,7 @@ import type {
 import '@xyflow/react/dist/base.css';
 import clsx from 'clsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import { Button } from '@/shared/ui/actions/Button/Button';
 import { IconButton, IconButtonSize } from '@/shared/ui/actions/IconButton';
 import { SelectionBar, SelectionBarVariant } from '@/shared/ui/data/SelectionBar';
@@ -29,24 +31,29 @@ import { CanvasEdge as CanvasEdgeView } from '@/shared/ui/flow/FlowCanvas/Canvas
 import { CanvasNode as CanvasNodeView } from '@/shared/ui/flow/FlowCanvas/CanvasNode';
 import {
   FLOW_CANVAS_EDGE_TYPE,
+  FLOW_CANVAS_FIT_MAX_ZOOM,
   FLOW_CANVAS_FIT_PADDING,
   FLOW_CANVAS_GRID_COLOR,
   FLOW_CANVAS_GRID_DOT_SIZE,
   FLOW_CANVAS_GRID_GAP,
   FLOW_CANVAS_IN_PORT_ID,
-  FLOW_CANVAS_MENU_FOCUS_SELECTOR,
   FLOW_CANVAS_MIDDLE_MOUSE_BUTTON,
   FLOW_CANVAS_MIN_SELECTION_FOR_BAR,
   FLOW_CANVAS_MULTI_SELECT_KEYS,
   FLOW_CANVAS_NODE_TYPE,
   FLOW_CANVAS_PAN_KEY,
+  FLOW_CANVAS_PLACEHOLDER_ID,
   FLOW_CANVAS_ZOOM_KEYS,
+  FlowCanvasContextAction,
 } from '@/shared/ui/flow/FlowCanvas/FlowCanvas.constants';
 import type {
   AddStepMenuState,
   CanvasEdge,
+  ContextMenuState,
   CanvasNode,
+  FlowCanvasNode,
   FlowCanvasNodeMove,
+  FlowCanvasPlaceholder,
   FlowCanvasProps,
   FlowCanvasSelection,
 } from '@/shared/ui/flow/FlowCanvas/FlowCanvas.typedefs';
@@ -56,7 +63,8 @@ import { usePaletteDrop } from '@/shared/ui/flow/FlowCanvas/usePaletteDrop';
 import { ZoomControl } from '@/shared/ui/flow/ZoomControl/ZoomControl';
 import { ZOOM_MAX, ZOOM_MIN } from '@/shared/ui/flow/ZoomControl/ZoomControl.constants';
 import { IconName } from '@/shared/ui/foundations/Icon/Icon.constants';
-import { Menu, MenuVariant } from '@/shared/ui/overlays/Menu';
+import { Menu, MenuRole, MenuVariant } from '@/shared/ui/overlays/Menu';
+import { Popover } from '@/shared/ui/overlays/Popover';
 import { useToast } from '@/shared/ui/overlays/Toast';
 import styles from '@/shared/ui/flow/FlowCanvas/FlowCanvas.module.scss';
 
@@ -65,6 +73,34 @@ const EDGE_TYPES: EdgeTypes = { [FLOW_CANVAS_EDGE_TYPE]: CanvasEdgeView };
 const PAN_BUTTONS = [FLOW_CANVAS_MIDDLE_MOUSE_BUTTON];
 const PRO_OPTIONS = { hideAttribution: true };
 const NO_PORTS: ReadonlySet<string> = new Set();
+const NO_SIZE = { width: 0, height: 0 };
+const PLACEHOLDER_FLAGS = {
+  selectable: false,
+  draggable: false,
+  connectable: false,
+  focusable: false,
+  style: { pointerEvents: 'all' },
+} as const;
+
+const placeholderBelow = (
+  placeholder: FlowCanvasPlaceholder,
+  anchor: FlowCanvasNode,
+  measured: ReadonlyMap<string, { width: number; height: number }>,
+): FlowCanvasNode => {
+  const anchorSize = measured.get(anchor.id) ?? NO_SIZE;
+  const ownSize = measured.get(FLOW_CANVAS_PLACEHOLDER_ID) ?? NO_SIZE;
+  return {
+    id: FLOW_CANVAS_PLACEHOLDER_ID,
+    label: '',
+    position: {
+      x: anchor.position.x + (anchorSize.width - ownSize.width) / 2,
+      y: anchor.position.y + anchorSize.height,
+    },
+    hasInPort: false,
+    outPorts: [],
+    render: () => placeholder.content,
+  };
+};
 
 const applySelection = (
   current: readonly string[],
@@ -109,17 +145,19 @@ function FlowCanvasSurface({
   onPaletteDrop,
   onAddStep,
   onAddTrigger,
+  placeholder = null,
   className,
 }: FlowCanvasProps) {
   const { zoomIn, zoomOut, fitView, screenToFlowPosition } = useReactFlow();
   const { showToast } = useToast();
   const rootRef = useRef<HTMLElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
   const selectionRef = useRef(selection);
+  const fittedRef = useRef(false);
   const [measured, setMeasured] = useState<ReadonlyMap<string, { width: number; height: number }>>(
     new Map(),
   );
   const [addStep, setAddStep] = useState<AddStepMenuState | null>(null);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const keyboard = useKeyboardConnection({ nodes, canConnect, onConnect });
   const { insertEdgeId, dropHandlers } = usePaletteDrop(onPaletteDrop);
 
@@ -127,18 +165,13 @@ function FlowCanvasSurface({
     selectionRef.current = selection;
   }, [selection]);
 
-  useEffect(() => {
-    if (addStep !== null) {
-      menuRef.current?.querySelector<HTMLElement>(FLOW_CANVAS_MENU_FOCUS_SELECTOR)?.focus();
-    }
-  }, [addStep]);
-
   const emitSelection = (next: FlowCanvasSelection) => {
     selectionRef.current = next;
     onSelectionChange(next);
   };
 
   const deleteSelection = (target: FlowCanvasSelection) => {
+    rootRef.current?.focus();
     onDelete(target);
     showToast({ message: labels.deleted, action: { label: labels.undo, onClick: onUndo } });
   };
@@ -157,13 +190,21 @@ function FlowCanvasSurface({
     return ports;
   }, [edges]);
 
-  const rfNodes: CanvasNode[] = nodes.map((node) => {
+  const anchor =
+    placeholder === null ? undefined : nodes.find((node) => node.id === placeholder.anchorId);
+  const canvasNodes =
+    placeholder === null || anchor === undefined
+      ? nodes
+      : [...nodes, placeholderBelow(placeholder, anchor, measured)];
+
+  const rfNodes: CanvasNode[] = canvasNodes.map((node) => {
     const size = measured.get(node.id);
     return {
       id: node.id,
       type: FLOW_CANVAS_NODE_TYPE,
       position: node.position,
       selected: selection.nodeIds.includes(node.id),
+      ...(node.id === FLOW_CANVAS_PLACEHOLDER_ID ? PLACEHOLDER_FLAGS : {}),
       ...(size === undefined ? {} : { measured: size }),
       data: {
         node,
@@ -174,6 +215,15 @@ function FlowCanvasSurface({
       },
     };
   });
+
+  const everyNodeMeasured = rfNodes.length > 0 && rfNodes.every((node) => measured.has(node.id));
+
+  useEffect(() => {
+    if (everyNodeMeasured && !fittedRef.current) {
+      fittedRef.current = true;
+      void fitView({ padding: FLOW_CANVAS_FIT_PADDING, maxZoom: FLOW_CANVAS_FIT_MAX_ZOOM });
+    }
+  }, [everyNodeMeasured, fitView]);
 
   const rfEdges: CanvasEdge[] = edges.map((edge) => ({
     id: edge.id,
@@ -202,7 +252,11 @@ function FlowCanvasSurface({
         resized = true;
       }
       if (change.type === 'position' && change.position !== undefined) {
-        moves.push({ id: change.id, position: change.position });
+        moves.push({
+          id: change.id,
+          position: change.position,
+          dragging: change.dragging ?? false,
+        });
       }
       if (change.type === 'select') {
         selects.push(change);
@@ -242,18 +296,17 @@ function FlowCanvasSurface({
     connection.source !== connection.target && canConnect(connection.source, connection.target);
 
   const handleConnectEnd: OnConnectEnd = (event, state) => {
-    const rect = rootRef.current?.getBoundingClientRect() ?? null;
     const pointer = pointerOf(event);
     if (state.isValid === true || state.fromNode === null || state.toNode !== null) {
       return;
     }
     const sourcePort = state.fromHandle?.id ?? null;
-    if (rect === null || pointer === null || sourcePort === null) {
+    if (pointer === null || sourcePort === null) {
       return;
     }
+    setContextMenu(null);
     setAddStep({
-      left: pointer.x - rect.left,
-      top: pointer.y - rect.top,
+      anchor: pointer,
       position: screenToFlowPosition(pointer),
       source: state.fromNode.id,
       sourcePort,
@@ -272,6 +325,40 @@ function FlowCanvasSurface({
     setAddStep(null);
   };
 
+  const openContextMenu = (event: ReactMouseEvent, target: FlowCanvasSelection) => {
+    event.preventDefault();
+    if (target.nodeIds.length === 0) {
+      return;
+    }
+    setAddStep(null);
+    setContextMenu({ anchor: { x: event.clientX, y: event.clientY }, target });
+  };
+
+  const handleNodeContextMenu: NodeMouseHandler<CanvasNode> = (event, node) => {
+    if (node.id === FLOW_CANVAS_PLACEHOLDER_ID) {
+      return;
+    }
+    const current = selectionRef.current;
+    if (current.nodeIds.includes(node.id)) {
+      openContextMenu(event, current);
+      return;
+    }
+    const target = { nodeIds: [node.id], edgeIds: [] };
+    emitSelection(target);
+    openContextMenu(event, target);
+  };
+
+  const handleContextAction = (action: string) => {
+    if (contextMenu !== null && action === FlowCanvasContextAction.Duplicate) {
+      onDuplicate(contextMenu.target);
+    }
+    if (contextMenu !== null && action === FlowCanvasContextAction.Delete) {
+      deleteSelection(contextMenu.target);
+    }
+    setContextMenu(null);
+    rootRef.current?.focus();
+  };
+
   const handleKeyDown = useCanvasShortcuts({
     selection,
     onDelete: () => deleteSelection(selection),
@@ -281,6 +368,7 @@ function FlowCanvasSurface({
     onOpenNode,
     onEscape: () => {
       setAddStep(null);
+      setContextMenu(null);
       keyboard.cancel();
     },
   });
@@ -309,7 +397,12 @@ function FlowCanvasSurface({
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
         onConnectEnd={handleConnectEnd}
-        onPaneClick={() => setAddStep(null)}
+        onPaneClick={() => {
+          setAddStep(null);
+          setContextMenu(null);
+        }}
+        onNodeContextMenu={handleNodeContextMenu}
+        onSelectionContextMenu={(event) => openContextMenu(event, selectionRef.current)}
         isValidConnection={isValidConnection}
         connectionLineComponent={CanvasConnectionLine}
         minZoom={ZOOM_MIN}
@@ -380,10 +473,15 @@ function FlowCanvasSurface({
         />
       )}
       {addStep !== null && (
-        <div
-          ref={menuRef}
-          className={styles.addStep}
-          style={{ left: addStep.left, top: addStep.top }}
+        <Popover
+          open
+          bare
+          anchor={addStep.anchor}
+          onOpenChange={(open) => {
+            if (!open) {
+              setAddStep(null);
+            }
+          }}
         >
           <Menu
             ariaLabel={labels.addStep}
@@ -395,7 +493,31 @@ function FlowCanvasSurface({
               leading: <NodeTile kind={item.kind} icon={item.icon ?? null} size={TileSize.Sm} />,
             }))}
           />
-        </div>
+        </Popover>
+      )}
+      {contextMenu !== null && (
+        <Popover
+          open
+          bare
+          anchor={contextMenu.anchor}
+          onEscapeKeyDown={() => rootRef.current?.focus()}
+          onOpenChange={(open) => {
+            if (!open) {
+              setContextMenu(null);
+            }
+          }}
+        >
+          <Menu
+            ariaLabel={labels.stepActions}
+            variant={MenuVariant.Action}
+            role={MenuRole.Menu}
+            onSelect={handleContextAction}
+            items={[
+              { id: FlowCanvasContextAction.Duplicate, label: labels.duplicate },
+              { id: FlowCanvasContextAction.Delete, label: labels.delete, danger: true },
+            ]}
+          />
+        </Popover>
       )}
       <ZoomControl
         zoom={viewport.zoom}

@@ -5,6 +5,7 @@ import { Menu } from '@/shared/ui/overlays/Menu/Menu';
 import {
   MENU_TYPEAHEAD_RESET_MS,
   MenuEntryKind,
+  MenuRole,
   MenuVariant,
 } from '@/shared/ui/overlays/Menu/Menu.constants';
 import type { MenuEntry, MenuItem } from '@/shared/ui/overlays/Menu/Menu.typedefs';
@@ -35,6 +36,7 @@ interface RenderMenuOptions {
   selectedId?: string | null;
   width?: number | null;
   variant?: MenuVariant;
+  role?: MenuRole;
 }
 
 const renderMenu = ({
@@ -42,6 +44,7 @@ const renderMenu = ({
   selectedId = null,
   width = null,
   variant = MenuVariant.Listbox,
+  role = MenuRole.Listbox,
 }: RenderMenuOptions = {}) => {
   const onSelect = vi.fn<(id: string) => void>();
   render(
@@ -51,6 +54,7 @@ const renderMenu = ({
       onSelect={onSelect}
       width={width}
       variant={variant}
+      role={role}
       ariaLabel="Variables"
     />,
   );
@@ -247,6 +251,22 @@ describe('Menu', () => {
     expect(disabled).toHaveTextContent('Sharenot published');
   });
 
+  it('grows past a minimum width to fit its content', () => {
+    render(
+      <Menu
+        items={ACTION_ITEMS}
+        onSelect={vi.fn<(id: string) => void>()}
+        variant={MenuVariant.Action}
+        minWidth={240}
+        ariaLabel="Actions"
+      />,
+    );
+
+    const menu = screen.getByRole('listbox', { name: 'Actions' });
+    expect(menu).toHaveStyle({ minWidth: '240px' });
+    expect(menu.className).toMatch(/fit/);
+  });
+
   it('marks a danger action', () => {
     renderMenu({ items: ACTION_ITEMS, variant: MenuVariant.Action });
 
@@ -281,5 +301,14 @@ describe('Menu', () => {
       'data-icon',
       'check',
     );
+  });
+
+  it('is a menu of menu items when it lists actions', () => {
+    renderMenu({ items: ACTION_ITEMS, variant: MenuVariant.Action, role: MenuRole.Menu });
+
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+    expect(screen.getAllByRole('menuitem')).toHaveLength(3);
+    expect(screen.getByRole('menuitem', { name: /Open/ })).not.toHaveAttribute('aria-selected');
+    expect(screen.queryByRole('option')).toBeNull();
   });
 });

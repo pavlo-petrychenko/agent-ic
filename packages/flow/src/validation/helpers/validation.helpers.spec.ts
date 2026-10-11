@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
 import { PortName } from '@flow/document/constants/flow.constants';
-import type { FlowDocument, FlowNode } from '@flow/document/typedefs/flow.typedefs';
+import type { FlowDocument, FlowNode, PromptSource } from '@flow/document/typedefs/flow.typedefs';
 import { CompletionRole, FailureMode, WaitFor } from '@flow/nodes/constants/step.constants';
 import { ReplyMode } from '@flow/nodes/constants/trigger.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
+import {
+  PromptSourceKind,
+  PromptVersionKind,
+} from '@flow/references/constants/reference.constants';
 import { FlowIssueCode, FlowIssueSeverity } from '@flow/validation/constants/issue.constants';
 import { hasBlockingIssues, validateFlow } from '@flow/validation/helpers/validation.helpers';
 import { exampleFlows, faqWithHandOffFlow } from '@test/support/fixtures/example-flow.fixture';
@@ -97,10 +101,11 @@ const failingFlows: Record<FlowIssueCode, () => unknown> = {
     routeOn('answer.messages', ConditionOperator.IsTrue, null),
   [FlowIssueCode.InvalidConditionValue]: () => routeOn('message.text', ConditionOperator.Eq, 3),
   [FlowIssueCode.VariableTypeMismatch]: () => withStep(sendList('more', 'message.text')),
-  [FlowIssueCode.MissingPrompt]: () =>
-    withStep({ ...agent('more'), config: { ...agent('more').config, prompt: null } }),
+  [FlowIssueCode.MissingPrompt]: () => withStep(agent('more', [], null)),
   [FlowIssueCode.MissingModel]: () =>
     withStep({ ...agent('more'), config: { ...agent('more').config, model: null } }),
+  [FlowIssueCode.NoReplyStep]: () =>
+    flowOf([trigger, answer], [link(trigger, PortName.Next, answer)]),
   [FlowIssueCode.MissingEventName]: () => cleanFlow([eventTrigger('paid', null)]),
   [FlowIssueCode.MissingChannel]: () => {
     const event = eventTrigger('paid');
@@ -272,6 +277,64 @@ describe('validateFlow', () => {
     expect(codes(cleanFlow([sendText('orphan', '{{missing}}')]))).toEqual([
       FlowIssueCode.UnreachableNode,
     ]);
+  });
+});
+
+describe('prompt source checks', () => {
+  const withPrompt = (prompt: PromptSource) => withStep(agent('more', [], prompt));
+
+  it('treats a blank inline prompt as missing', () => {
+    expect(codes(withPrompt({ kind: PromptSourceKind.Inline, text: '  ' }))).toContain(
+      FlowIssueCode.MissingPrompt,
+    );
+  });
+
+  it('checks the variables of an inline prompt', () => {
+    expect(
+      validateFlow(withPrompt({ kind: PromptSourceKind.Inline, text: 'Use {{nope}}' })),
+    ).toContainEqual(
+      expect.objectContaining({
+        code: FlowIssueCode.UnknownVariable,
+        nodeId: 'n_more',
+        path: ['prompt', 'text'],
+      }),
+    );
+  });
+
+  it('accepts a library prompt without checking that it exists', () => {
+    const prompt: PromptSource = {
+      kind: PromptSourceKind.Library,
+      promptRef: 'prm_more',
+      pin: { kind: PromptVersionKind.Pinned, number: 2 },
+    };
+    expect(hasBlockingIssues(validateFlow(withPrompt(prompt)))).toBe(false);
+  });
+});
+
+describe('the reply check', () => {
+  it('points at the message trigger that reaches no send message step', () => {
+    expect(validateFlow(failingFlows[FlowIssueCode.NoReplyStep]())).toContainEqual(
+      expect.objectContaining({
+        code: FlowIssueCode.NoReplyStep,
+        severity: FlowIssueSeverity.Error,
+        nodeId: trigger.id,
+      }),
+    );
+  });
+
+  it('ignores flows started by an event or a schedule', () => {
+    const schedule = scheduleTrigger('nightly');
+    const flow = flowOf([schedule, answer], [link(schedule, PortName.Next, answer)]);
+    expect(codes(flow)).not.toContain(FlowIssueCode.NoReplyStep);
+  });
+
+  it('does not count a send message step that only another trigger reaches', () => {
+    const schedule = scheduleTrigger('nightly');
+    const flow = flowOf(
+      [trigger, answer, schedule, reply],
+      [link(trigger, PortName.Next, answer), link(schedule, PortName.Next, reply)],
+    );
+    expect(codes(flow)).toContain(FlowIssueCode.NoReplyStep);
   });
 });
 

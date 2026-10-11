@@ -1,0 +1,118 @@
+{
+  "page": {
+    "title": "Agents",
+    "subtitle": "Build, test and publish chat agents for {{workspace}}"
+  },
+  "actions": {
+    "newAgent": "New agent",
+    "blankFlow": "Blank flow"
+  },
+  "create": {
+    "defaultName": "New agent"
+  },
+  "empty": {
+    "title": "No assistants yet",
+    "description": "Build your first assistant as a flow: add steps, test it in the simulator and publish."
+  },
+  "filters": {
+    "label": "Filter agents",
+    "search": "Search agents",
+    "clearSearch": "Clear search",
+    "status": "Status",
+    "clear": "Clear",
+    "clearAll": "Clear filters",
+    "statuses": {
+      "live": "Live",
+      "draft": "Draft",
+      "paused": "Paused"
+    }
+  },
+  "list": {
+    "label": "Agents",
+    "loading": "Loading agents",
+    "error": "The agents could not be loaded.",
+    "retry": "Try again",
+    "loadMore": "Load more",
+    "columns": {
+      "agent": "Agent",
+      "status": "Status"
+    },
+    "noMatch": {
+      "title": "No agents match",
+      "description": "Try another search or clear the filters."
+    }
+  },
+  "status": {
+    "live": "Live · v{{version}}",
+    "draft": "Draft",
+    "paused": "Paused"
+  },
+  "statusNote": {
+    "draftInProgress": "Draft v{{number}} in progress",
+    "neverPublished": "Never published"
+  },
+  "setup": {
+    "title": "Get set up",
+    "subtitle_one": "{{count}} step",
+    "subtitle_other": "{{count}} steps",
+    "workspace": "Create the workspace",
+    "done": "Done",
+    "agent": "Build your first assistant",
+    "start": "Start",
+    "invite": "Invite your team",
+    "copyInvite": "Copy invite link"
+  },
+  "menu": {
+    "label": "Agent actions",
+    "column": "Actions",
+    "trigger": "More actions for {{name}}",
+    "open": "Open flow builder",
+    "test": "Test in simulator",
+    "pause": "Pause agent",
+    "pauseHint": "stops answering",
+    "resume": "Resume agent",
+    "duplicate": "Duplicate",
+    "delete": "Delete agent"
+  },
+  "dialog": {
+    "cancel": "Cancel",
+    "close": "Close"
+  },
+  "pause": {
+    "title": "Pause {{name}}?",
+    "intro": "The agent stops running its flow. Scheduled follow-ups and external events are skipped while it is paused.",
+    "modeLabel": "While paused, new messages",
+    "modeInbox": "Go to the Inbox as “Needs you”",
+    "modeAway": "Get an away message, nobody is notified",
+    "awayLabel": "Away message",
+    "awayHint": "Up to {{max}} characters",
+    "issue": {
+      "required": "Write the away message the customer will receive.",
+      "tooLong": "The away message is too long. Use up to {{max}} characters."
+    },
+    "resumeNote": "Resume any time from the same menu. The live version (v{{version}}) stays as it is.",
+    "submit": "Pause agent",
+    "success": "{{name}} is paused"
+  },
+  "resume": {
+    "success": "{{name}} is live again"
+  },
+  "duplicate": {
+    "success": "Created “{{name}}”",
+    "done": "The agent was duplicated"
+  },
+  "delete": {
+    "title": "Delete {{name}}?",
+    "subtitle": "This can’t be undone",
+    "versions_one": "Flow and {{count}} version",
+    "versions_other": "Flow and {{count}} versions",
+    "flowNeverPublished": "Flow, never published",
+    "versionsValue": "deleted",
+    "conversations": "Past conversations",
+    "conversationsValue": "kept",
+    "confirm": "Type <strong>{{name}}</strong> to confirm",
+    "nameLabel": "Agent name",
+    "submit": "Delete agent",
+    "success": "{{name}} was deleted"
+  }
+}

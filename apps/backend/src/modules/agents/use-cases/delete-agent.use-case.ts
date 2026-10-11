@@ -1,6 +1,5 @@
 import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
-import { AgentIsLiveError } from '@/modules/agents/errors/agent-is-live.error';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { parseAgentInput } from '@/modules/agents/helpers/agent-input.helpers';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
@@ -27,9 +26,6 @@ export class DeleteAgentUseCase {
       const agent = await this.agents.findByIdForUpdate(workspaceId, agentId);
       if (agent === null) {
         throw new AgentNotFoundError();
-      }
-      if (agent.liveVersionId !== null) {
-        throw new AgentIsLiveError();
       }
       await this.agents.delete(workspaceId, agentId);
     });

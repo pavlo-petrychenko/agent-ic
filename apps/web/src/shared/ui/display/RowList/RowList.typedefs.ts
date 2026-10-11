@@ -3,6 +3,7 @@ import type { ComponentProps, ReactNode } from 'react';
 export interface RowListRow {
   id: string;
   name: string;
+  leading?: ReactNode | null;
   meta?: ReactNode | null;
   disabled?: boolean;
 }

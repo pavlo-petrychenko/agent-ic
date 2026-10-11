@@ -6,6 +6,7 @@ export enum LlmVendor {
   Google = 'google',
   Zhipu = 'zhipu',
   DeepSeek = 'deepseek',
+  Jina = 'jina',
 }
 
 export enum LlmPurpose {
@@ -23,6 +24,10 @@ export enum LlmModelId {
   DeepSeekV41Flash = 'deepseek/deepseek-v4.1-flash',
 }
 
+export enum EmbeddingModelId {
+  JinaEmbeddingsV5TextSmall = 'jina-embeddings-v5-text-small',
+}
+
 export enum LlmApi {
   ChatCompletions = 'chat-completions',
   AnthropicMessages = 'anthropic-messages',
@@ -37,21 +42,3 @@ export enum LlmAgentFinish {
   FinalMessage = 'final-message',
   ReplyTool = 'reply-tool',
 }
-
-export enum LlmReasoningEffort {
-  None = 'none',
-  Low = 'low',
-  Medium = 'medium',
-  High = 'high',
-  XHigh = 'xhigh',
-  Max = 'max',
-}
-
-export const LLM_REASONING_ORDER: readonly LlmReasoningEffort[] = [
-  LlmReasoningEffort.None,
-  LlmReasoningEffort.Low,
-  LlmReasoningEffort.Medium,
-  LlmReasoningEffort.High,
-  LlmReasoningEffort.XHigh,
-  LlmReasoningEffort.Max,
-];

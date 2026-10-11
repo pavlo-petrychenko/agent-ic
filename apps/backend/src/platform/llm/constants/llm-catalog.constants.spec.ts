@@ -1,7 +1,12 @@
+import { REASONING_LEVEL_ORDER } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
-import { LLM_CATALOG, LLM_DEFAULT_MODEL } from '@/platform/llm/constants/llm-catalog.constants';
 import {
-  LLM_REASONING_ORDER,
+  EMBEDDING_CATALOG,
+  LLM_CATALOG,
+  LLM_DEFAULT_MODEL,
+} from '@/platform/llm/constants/llm-catalog.constants';
+import {
+  EmbeddingModelId,
   LlmApi,
   LlmModelId,
   LlmPurpose,
@@ -38,7 +43,7 @@ describe('LLM_CATALOG', () => {
   );
 
   it.each(models)('lists the reasoning levels of $id from lowest to highest', (model) => {
-    const ranks = model.reasoningLevels.map((level) => LLM_REASONING_ORDER.indexOf(level));
+    const ranks = model.reasoningLevels.map((level) => REASONING_LEVEL_ORDER.indexOf(level));
 
     expect(ranks).toEqual(ranks.toSorted((left, right) => left - right));
     expect(new Set(ranks).size).toBe(ranks.length);
@@ -53,5 +58,17 @@ describe('LLM_CATALOG', () => {
 
   it.each(Object.values(LlmPurpose))('defaults %s to a catalog model that serves it', (purpose) => {
     expect(LLM_CATALOG[LLM_DEFAULT_MODEL[purpose]].purposes).toContain(purpose);
+  });
+});
+
+describe('EMBEDDING_CATALOG', () => {
+  it('lists every embedding model under its own id, priced per input token', () => {
+    expect(Object.entries(EMBEDDING_CATALOG).map(([id, model]) => [id, model.id])).toEqual(
+      Object.values(EmbeddingModelId).map((id) => [id, id]),
+    );
+    for (const { price, batchSize } of Object.values(EMBEDDING_CATALOG)) {
+      expect(price.inputUsdPerMillionTokens).toBeGreaterThan(0);
+      expect(batchSize).toBeGreaterThan(0);
+    }
   });
 });

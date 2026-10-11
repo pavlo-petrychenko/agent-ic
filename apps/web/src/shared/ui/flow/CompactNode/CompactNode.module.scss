@@ -26,7 +26,7 @@ $faded-opacity: 0.4;
     --flow-port-reveal: 1;
   }
 
-  &:hover:not(.selected, .disabled) {
+  &:hover:not(.selected, .disabled, .invalid) {
     border-color: var(--color-edge);
   }
 
@@ -46,6 +46,15 @@ $faded-opacity: 0.4;
   width: $card-width;
   height: $card-height;
   border-radius: var(--radius-12);
+}
+
+.invalid {
+  border-color: var(--color-err);
+}
+
+.invalidIcon {
+  flex-shrink: 0;
+  color: var(--color-err);
 }
 
 .selected {

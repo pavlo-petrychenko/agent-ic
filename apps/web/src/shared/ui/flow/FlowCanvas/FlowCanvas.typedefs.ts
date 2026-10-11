@@ -61,6 +61,7 @@ export interface FlowCanvasSelection {
 export interface FlowCanvasNodeMove {
   id: string;
   position: FlowCanvasPoint;
+  dragging: boolean;
 }
 
 export interface FlowCanvasPaletteDrop {
@@ -97,10 +98,16 @@ export interface FlowCanvasLabels {
   deleted: string;
   undo: string;
   addStep: string;
+  stepActions: string;
   connectingTo: (name: string) => string;
   emptyTitle: string;
   emptyDescription: string | null;
   emptyAction: string;
+}
+
+export interface FlowCanvasPlaceholder {
+  anchorId: string;
+  content: ReactNode;
 }
 
 export interface FlowCanvasProps {
@@ -123,6 +130,7 @@ export interface FlowCanvasProps {
   onPaletteDrop: (drop: FlowCanvasPaletteDrop) => void;
   onAddStep: (step: FlowCanvasAddStep) => void;
   onAddTrigger: () => void;
+  placeholder?: FlowCanvasPlaceholder | null;
   className?: string;
 }
 
@@ -152,9 +160,13 @@ export type CanvasNode = Node<CanvasNodeData>;
 export type CanvasEdge = Edge<CanvasEdgeData>;
 
 export interface AddStepMenuState {
-  left: number;
-  top: number;
+  anchor: FlowCanvasPoint;
   position: FlowCanvasPoint;
   source: string;
   sourcePort: string;
+}
+
+export interface ContextMenuState {
+  anchor: FlowCanvasPoint;
+  target: FlowCanvasSelection;
 }

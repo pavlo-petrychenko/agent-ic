@@ -2,10 +2,10 @@ import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contra
 import { Injectable } from '@nestjs/common';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { parseAgentInput } from '@/modules/agents/helpers/agent-input.helpers';
-import { toAgentVersionView } from '@/modules/agents/helpers/agent-version.helpers';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { listAgentVersionsInputSchema } from '@/modules/agents/schemas/agent-input.schema';
+import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import type {
   AgentVersionView,
   ListAgentVersionsInput,
@@ -21,6 +21,7 @@ export class ListAgentVersionsUseCase {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly agents: AgentsRepository,
     private readonly versions: AgentVersionsRepository,
+    private readonly views: AgentViewsService,
     private readonly ids: IdService,
   ) {}
 
@@ -29,12 +30,13 @@ export class ListAgentVersionsUseCase {
     const { agentId: publicId } = parseAgentInput(listAgentVersionsInputSchema, input);
     const agentId = this.ids.fromPublic(IdPrefix.Agent, publicId);
     return this.tenantTransactions.run(workspaceId, async () => {
-      if ((await this.agents.findById(workspaceId, agentId)) === null) {
+      const agent = await this.agents.findById(workspaceId, agentId);
+      if (agent === null) {
         throw new AgentNotFoundError();
       }
-      const rows = await this.versions.listPublished(workspaceId, agentId);
-      return rows.map((row) =>
-        toAgentVersionView(row, this.ids.toPublic(IdPrefix.AgentVersion, row.id)),
+      return this.views.versionViews(
+        agent,
+        await this.versions.listPublished(workspaceId, agentId),
       );
     });
   }

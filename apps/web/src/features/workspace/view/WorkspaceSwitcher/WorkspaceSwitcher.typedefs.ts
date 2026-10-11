@@ -13,4 +13,5 @@ export interface WorkspaceSwitcherProps {
   onSelectWorkspace: (workspaceId: string) => void;
   onCreateWorkspace: () => void;
   onLogOut: () => void;
+  compact?: boolean;
 }

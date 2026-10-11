@@ -1,5 +1,6 @@
 export {
   AGENT_AWAY_MESSAGE_MAX_LENGTH,
+  AGENT_DESCRIPTION_MAX_LENGTH,
   AGENT_NAME_MAX_LENGTH,
   AGENT_VERSION_NOTE_MAX_LENGTH,
 } from '@contracts/agents/agent.constants';
@@ -12,6 +13,7 @@ export {
 } from '@contracts/auth/auth.constants';
 export { ErrorCode, ErrorReason } from '@contracts/errors/errors.constants';
 export { IdPrefix } from '@contracts/ids/id-prefix.constants';
+export { REASONING_LEVEL_ORDER, ReasoningLevel } from '@contracts/llm/reasoning.constants';
 export { DEFAULT_LOCALE, Locale } from '@contracts/locales/locale.constants';
 export {
   DEFAULT_INVITE_ROLE,

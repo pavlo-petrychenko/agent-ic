@@ -33,6 +33,7 @@ const fromPayload = (message: string, payload: ErrorPayload, cause: unknown): Ap
     reason: toReason(payload.reason),
     traceId: payload.traceId ?? null,
     fields: toFields(payload),
+    details: payload.details ?? {},
     cause,
   });
 

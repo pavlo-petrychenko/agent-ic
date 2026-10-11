@@ -38,6 +38,7 @@ export const Decision: Story = {
 export const Selected: Story = { args: { selected: true } };
 export const Faded: Story = { args: { faded: true } };
 export const Disabled: Story = { args: { disabled: true } };
+export const Invalid: Story = { args: { invalidLabel: 'This step has no prompt' } };
 export const AllStates: Story = {
   render: (args) => (
     <>

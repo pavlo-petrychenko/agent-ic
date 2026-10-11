@@ -10,6 +10,7 @@ export class AppError extends Error {
   readonly reason: ErrorReason | null;
   readonly traceId: string | null;
   readonly fields: readonly ApiFieldError[];
+  readonly details: Readonly<Record<string, unknown>>;
 
   constructor(message: string, options: AppErrorOptions) {
     super(message, { cause: options.cause });
@@ -18,5 +19,6 @@ export class AppError extends Error {
     this.reason = options.reason ?? null;
     this.traceId = options.traceId ?? null;
     this.fields = options.fields ?? [];
+    this.details = options.details ?? {};
   }
 }

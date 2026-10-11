@@ -4,7 +4,6 @@ import type { TestingModule } from '@nestjs/testing';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { ClockModule } from '@/platform/clock/clock.module';
 import { ConfigModule } from '@/platform/config/config.module';
-import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { ContextModule } from '@/platform/context/context.module';
 import { CLIENT_CLOSE_TIMEOUT_SECONDS } from '@/platform/database/constants/database-client.constants';
 import { DatabaseModule } from '@/platform/database/database.module';
@@ -15,21 +14,24 @@ import { IdsModule } from '@/platform/ids/ids.module';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import {
   SCRATCH_POOL_SIZE,
-  TestRedisDatabase,
+  TestRedisPrefix,
 } from '@test/support/constants/test-infrastructure.constants';
 import { TestRollbackError } from '@test/support/errors/test-rollback.error';
-import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
+import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 import { discardNotice } from '@test/support/helpers/test-infrastructure.helpers';
 import { TestTransactionService } from '@test/support/services/test-transaction.service';
-import type { ScratchDatabase } from '@test/support/typedefs/test-infrastructure.typedefs';
+import type {
+  ProviderOverride,
+  ScratchDatabase,
+} from '@test/support/typedefs/test-infrastructure.typedefs';
 
 export const createPlatformTestingModule = async (
-  redisDatabase: TestRedisDatabase,
+  redisPrefix: TestRedisPrefix,
   imports: readonly (Type<unknown> | DynamicModule)[] = [],
+  overrides: readonly ProviderOverride[] = [],
 ): Promise<TestingModule> => {
-  const env = createIntegrationTestEnv(redisDatabase);
-  const config = loadAppConfig({ role: Role.Api, queues: [] }, env);
-  const testingModule = await Test.createTestingModule({
+  const config = createIntegrationConfig({ role: Role.Api, queues: [] }, redisPrefix);
+  const builder = Test.createTestingModule({
     imports: [
       ConfigModule.register(config),
       ContextModule,
@@ -40,13 +42,17 @@ export const createPlatformTestingModule = async (
       ...imports,
     ],
     providers: [TestTransactionService],
-  }).compile();
+  });
+  for (const { token, value } of overrides) {
+    builder.overrideProvider(token).useValue(value);
+  }
+  const testingModule = await builder.compile();
   testingModule.useLogger(false);
   return testingModule.init();
 };
 
 export const createDatabaseTestingModule = (): Promise<TestingModule> =>
-  createPlatformTestingModule(TestRedisDatabase.Database);
+  createPlatformTestingModule(TestRedisPrefix.Database);
 
 export const openScratchDatabase = (url: string): ScratchDatabase => {
   const client = createSqlClient({ url, poolMax: SCRATCH_POOL_SIZE }, discardNotice);

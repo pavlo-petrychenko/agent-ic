@@ -19,7 +19,7 @@
     "check:structure": "node tools/check-structure.ts",
     "check": "pnpm lint && pnpm format:check && pnpm check:comments && pnpm check:structure && pnpm depcruise && pnpm typecheck",
     "db:migrate": "pnpm --filter backend db:migrate",
-    "db:seed": "echo \"db:seed: no seed data yet\"",
+    "db:seed": "pnpm --filter backend db:seed",
     "codegen": "turbo run codegen backend#schema:print"
   },
   "devDependencies": {

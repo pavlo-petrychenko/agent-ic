@@ -23,6 +23,13 @@ describe('TriggerNode', () => {
     expect(screen.getByText('Telegram · Web widget')).toBeInTheDocument();
   });
 
+  it('marks an invalid trigger with the reason', () => {
+    render(<TriggerNode title={TITLE} invalidLabel="Connect the trigger to a step" />);
+
+    expect(screen.getByRole('group')).toHaveClass(cssClass(styles.invalid));
+    expect(screen.getByTitle('Connect the trigger to a step')).toBeInTheDocument();
+  });
+
   it('uses the message icon unless told otherwise', () => {
     const { container, rerender } = render(<TriggerNode title={TITLE} />);
     expect(container.querySelector('[data-icon="msg"]')).toBeInTheDocument();

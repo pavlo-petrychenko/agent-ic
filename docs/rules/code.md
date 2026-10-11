@@ -18,6 +18,7 @@ Enforced by oxlint, oxfmt, `tools/check-comments.ts`, `tools/check-structure.ts`
 8. **No `console.*`.** Use the logger.
 9. **No `process.env`** outside `apps/backend/src/platform/config`.
 10. **Time, randomness and ids are services.** Use `ClockService`, `IdService` and `SecureTokenService`, never `new Date()`, `randomUUID()` or `Math.random()` in domain code. They are services even though they hold no state, so tests can replace them.
+    - Exception: the rate limiter reads the Redis clock inside its Lua script, not `ClockService`, so token buckets stay correct across pods. It is infrastructure, where one shared clock is the point.
 11. **Frontend types use `null`, never `undefined`,** for missing API data.
 12. **Imports are absolute.** In apps, `@/…` in source and `@test/…` in test support. In a package, `@<package>/…` in source (`@contracts/permissions/permission.constants`) and `@test/…` in test support, declared as `paths` in the package's `tsconfig.json`. Other packages by name (`@agent-ic/contracts`). Relative paths and Node subpath imports (`#…`) are never used, not even within one folder. Imports have no blank lines between them; the formatter sorts them. Root config files that Vite or Storybook load before any alias exists are the only exception. Why the aliases look this way: `docs/rules/structure.md` rule 8.
 13. **No hardcoding, not even in placeholder code.**

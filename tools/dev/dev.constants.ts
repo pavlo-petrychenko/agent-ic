@@ -71,6 +71,7 @@ export const Tool = {
 
 export const ALL_PROFILES = '*';
 export const POSTGRES_SERVICE = 'postgres';
+export const REDIS_SERVICE = 'redis';
 export const POSTGRES_VOLUME = 'agent-ic_postgres-data';
 export const API_SERVICE = 'api';
 export const START_LOG_TAIL = '50';

@@ -9,6 +9,7 @@ import { IconName } from '@/shared/ui/foundations/Icon';
 export enum WorkspaceSection {
   Agents = 'agents',
   Inbox = 'inbox',
+  Testing = 'testing',
   Settings = 'settings',
   Team = 'team',
   General = 'general',
@@ -23,6 +24,7 @@ export enum NavGroupKey {
 export const WORKSPACE_SECTION_PATHS = {
   [WorkspaceSection.Agents]: '/w/$workspaceId/agents',
   [WorkspaceSection.Inbox]: '/w/$workspaceId/inbox',
+  [WorkspaceSection.Testing]: '/w/$workspaceId/testing',
   [WorkspaceSection.Settings]: '/w/$workspaceId/settings',
   [WorkspaceSection.Team]: '/w/$workspaceId/settings/team',
   [WorkspaceSection.General]: '/w/$workspaceId/settings/general',
@@ -31,6 +33,7 @@ export const WORKSPACE_SECTION_PATHS = {
 export const SECTION_RESOURCES: Readonly<Record<WorkspaceSection, PermissionResource | null>> = {
   [WorkspaceSection.Agents]: PermissionResource.Agents,
   [WorkspaceSection.Inbox]: PermissionResource.Inbox,
+  [WorkspaceSection.Testing]: PermissionResource.Testing,
   [WorkspaceSection.Settings]: null,
   [WorkspaceSection.Team]: PermissionResource.Team,
   [WorkspaceSection.General]: PermissionResource.WorkspaceSettings,
@@ -57,13 +60,17 @@ export const NAV_GROUPS: readonly NavGroupEntry[] = [
     key: NavGroupKey.Operate,
     entries: [
       { section: WorkspaceSection.Inbox, icon: IconName.Inbox, resource: PermissionResource.Inbox },
+      {
+        section: WorkspaceSection.Testing,
+        icon: IconName.Flask,
+        resource: PermissionResource.Testing,
+      },
     ],
   },
   { key: NavGroupKey.Footer, entries: [SETTINGS_NAV_ENTRY] },
 ];
 
 export const SECTION_ICONS: Readonly<Record<PlaceholderSection, IconName>> = {
-  [WorkspaceSection.Agents]: IconName.Agent,
   [WorkspaceSection.Inbox]: IconName.Inbox,
   [WorkspaceSection.Settings]: IconName.Gear,
 };

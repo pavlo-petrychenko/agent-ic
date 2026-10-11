@@ -4,6 +4,7 @@ import { Queue } from 'bullmq';
 import type { Redis } from 'ioredis';
 import { ConfigService } from '@/platform/config/services/config.service';
 import {
+  BULLMQ_KEY_ROOT,
   QueueEvent,
   QueueLogMessage,
   QueueName,
@@ -14,11 +15,13 @@ import { RedisConnectionName } from '@/platform/redis/constants/redis.constants'
 import {
   closeRedisConnection,
   createRedisConnection,
+  withRedisKeyPrefix,
 } from '@/platform/redis/helpers/redis.helpers';
 
 @Injectable()
 export class QueuesService implements OnApplicationShutdown {
   readonly connection: Redis;
+  readonly prefix: string;
   private readonly logger = new Logger(QueuesService.name);
   private readonly queues = new Map<QueueName, Queue<JobEnvelope>>();
 
@@ -27,6 +30,7 @@ export class QueuesService implements OnApplicationShutdown {
       config.config.redis.queueUrl,
       RedisConnectionName.Queue,
     );
+    this.prefix = withRedisKeyPrefix(config.config.redis.keyPrefix, BULLMQ_KEY_ROOT);
   }
 
   get(name: QueueName): Queue<JobEnvelope> {
@@ -36,6 +40,7 @@ export class QueuesService implements OnApplicationShutdown {
     }
     const queue = new Queue<JobEnvelope>(name, {
       connection: this.connection,
+      prefix: this.prefix,
       defaultJobOptions: defaultJobOptions(),
     });
     queue.on(QueueEvent.Error, (error: Error) =>

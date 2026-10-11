@@ -17,6 +17,16 @@ export enum MenuVariant {
   Action = 'action',
 }
 
+export enum MenuRole {
+  Listbox = 'listbox',
+  Menu = 'menu',
+}
+
+export const MENU_ITEM_ROLES: Readonly<Record<MenuRole, string>> = {
+  [MenuRole.Listbox]: 'option',
+  [MenuRole.Menu]: 'menuitem',
+};
+
 export enum MenuEntryKind {
   Option = 'option',
   Section = 'section',

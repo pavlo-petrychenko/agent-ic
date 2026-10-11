@@ -1,7 +1,9 @@
 import { AgentsModule } from '@/modules/agents';
+import { ChannelsModule } from '@/modules/channels';
 import { ConversationsModule } from '@/modules/conversations';
 import { IdentityModule } from '@/modules/identity';
 import { NotificationsModule } from '@/modules/notifications';
+import { RunsModule } from '@/modules/runs';
 import { SystemModule } from '@/modules/system';
 import { CacheModule } from '@/platform/cache/cache.module';
 import { ClockModule } from '@/platform/clock/clock.module';
@@ -16,6 +18,7 @@ import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
 import { LlmModule } from '@/platform/llm/llm.module';
 import type { ModuleImport } from '@/platform/module-roles/typedefs/module-roles.typedefs';
 import { ObservabilityModule } from '@/platform/observability/observability.module';
+import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
@@ -36,6 +39,7 @@ export const PLATFORM_MODULES: readonly ModuleImport[] = [
   CryptoModule,
   SecretsModule,
   LlmModule,
+  OutboundHttpModule,
   ObservabilityModule,
   GraphqlServerModule,
 ];
@@ -46,6 +50,8 @@ export const DOMAIN_MODULES: readonly ModuleImport[] = [
   NotificationsModule,
   AgentsModule,
   ConversationsModule,
+  ChannelsModule,
+  RunsModule,
 ];
 
 export const APP_MODULES: readonly ModuleImport[] = [...PLATFORM_MODULES, ...DOMAIN_MODULES];

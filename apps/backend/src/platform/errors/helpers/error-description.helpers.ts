@@ -22,6 +22,7 @@ const INTERNAL_ERROR: ErrorDescription = {
   message: INTERNAL_ERROR_MESSAGE,
   status: HttpStatus.INTERNAL_SERVER_ERROR,
   fields: [],
+  details: {},
 };
 
 const describeDomainError = (error: DomainError): ErrorDescription => ({
@@ -33,6 +34,7 @@ const describeDomainError = (error: DomainError): ErrorDescription => ({
       ? HTTP_STATUS_BY_LIMIT_SCOPE[error.scope]
       : HTTP_STATUS_BY_KIND[error.kind],
   fields: error.fields,
+  details: error.clientDetails,
 });
 
 const describeUpstreamError = (error: UpstreamError): ErrorDescription => ({
@@ -41,6 +43,7 @@ const describeUpstreamError = (error: UpstreamError): ErrorDescription => ({
   message: error.message,
   status: HttpStatus.BAD_GATEWAY,
   fields: [],
+  details: {},
 });
 
 const describeHttpException = (exception: HttpException): ErrorDescription => {
@@ -54,6 +57,7 @@ const describeHttpException = (exception: HttpException): ErrorDescription => {
     message: exception.message,
     status,
     fields: [],
+    details: {},
   };
 };
 

@@ -1,16 +1,20 @@
+import type { DynamicModule } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
+import type { PauseSettings } from '@/modules/agents/typedefs/pause-settings.typedefs';
 import { ConversationsModule } from '@/modules/conversations/conversations.module';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
 import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
+import { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type { Message, NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
 import { ClockModule } from '@/platform/clock/clock.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { ConfigModule } from '@/platform/config/config.module';
 import { EnvVar } from '@/platform/config/constants/env.constants';
-import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
+import type { RoleSelection } from '@/platform/config/typedefs/app-config.typedefs';
 import { ContextModule } from '@/platform/context/context.module';
 import { DatabaseModule } from '@/platform/database/database.module';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -20,38 +24,43 @@ import type { AnyDomainEventSubscription } from '@/platform/domain-events/typede
 import { ErrorsModule } from '@/platform/errors/errors.module';
 import { IdsModule } from '@/platform/ids/ids.module';
 import { IdService } from '@/platform/ids/services/id.service';
-import { Role } from '@/platform/module-roles/constants/role.constants';
+import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { QueuesService } from '@/platform/queues/services/queues.service';
 import type { JobData } from '@/platform/queues/typedefs/job.typedefs';
+import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
+import { RedisModule } from '@/platform/redis/redis.module';
 import {
   CONCURRENT_POOL_SIZE,
   CONVERSATIONS_TEST_START,
+  CONVERSATIONS_TESTBED_ROLE,
   MESSAGE_SPACING_MS,
 } from '@test/support/constants/conversations-testing.constants';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
+import { newAgent } from '@test/support/fixtures/agents.fixture';
 import { newConversation, newMessage } from '@test/support/fixtures/conversation.fixture';
-import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
+import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 import {
   deliverOnOutboundQueued,
   notifyOnNeedsOperator,
+  runOnMessageReceived,
 } from '@test/support/jobs/conversation-probe.job';
+import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.module';
 import type {
   ConversationsTestbed,
   TiedMessages,
 } from '@test/support/typedefs/conversations-testing.typedefs';
 
-const ROLE = Role.Gateway;
-
-export const createConversationsTestbed = async (): Promise<ConversationsTestbed> => {
-  const config = loadAppConfig(
-    { role: ROLE, queues: [] },
-    createIntegrationTestEnv(TestRedisDatabase.Conversations, {
-      [EnvVar.DatabasePoolMax]: CONCURRENT_POOL_SIZE,
-    }),
-  );
+export const createConversationsTestbed = async (
+  domainModule: DynamicModule = ConversationsModule.forRole(CONVERSATIONS_TESTBED_ROLE),
+  redisPrefix: TestRedisPrefix = TestRedisPrefix.Conversations,
+  selection: RoleSelection = { role: CONVERSATIONS_TESTBED_ROLE, queues: [] },
+): Promise<ConversationsTestbed> => {
+  const config = createIntegrationConfig(selection, redisPrefix, {
+    [EnvVar.DatabasePoolMax]: CONCURRENT_POOL_SIZE,
+  });
   const clock = new ManualClock(CONVERSATIONS_TEST_START);
   const module = await Test.createTestingModule({
     imports: [
@@ -61,14 +70,18 @@ export const createConversationsTestbed = async (): Promise<ConversationsTestbed
       DatabaseModule,
       ClockModule,
       IdsModule,
-      QueuesModule.forRole(ROLE),
-      DomainEventsModule.forRole(ROLE),
-      ConversationsModule.forRole(ROLE),
+      QueuesModule.forRole(selection.role),
+      DomainEventsModule.forRole(selection.role),
+      RedisModule,
+      RateLimitModule,
+      OutboundHttpModule,
+      AgentsNeighboursModule.forRole(selection.role),
+      domainModule,
     ],
     providers: [
       {
         provide: DOMAIN_EVENT_SUBSCRIPTIONS,
-        useValue: [deliverOnOutboundQueued, notifyOnNeedsOperator],
+        useValue: [deliverOnOutboundQueued, notifyOnNeedsOperator, runOnMessageReceived],
       },
     ],
   })
@@ -86,6 +99,8 @@ export const createConversationsTestbed = async (): Promise<ConversationsTestbed
     messages: module.get(MessagesRepository),
     history: module.get(ConversationHistoryService),
     runs: module.get(ConversationRunsService),
+    incoming: module.get(IncomingMessagesService),
+    agents: module.get(AgentsRepository),
     queues: module.get(QueuesService),
   };
 };
@@ -99,6 +114,19 @@ export const seedConversation = async (
     testbed.conversations.insert(conversation),
   );
   return conversation;
+};
+
+export const seedAgent = async (
+  testbed: ConversationsTestbed,
+  workspaceId: string,
+  pause: PauseSettings | null = null,
+): Promise<string> => {
+  const agentId = testbed.ids.generate();
+  await testbed.tenants.run(workspaceId, async () => {
+    await testbed.agents.insert(newAgent(agentId, workspaceId));
+    await testbed.agents.setPause(workspaceId, agentId, pause, testbed.clock.now());
+  });
+  return agentId;
 };
 
 export const seedMessage = async (
@@ -134,7 +162,7 @@ export const seedTiedMessages = async (
 };
 
 export const queuedEventsFor = async (
-  testbed: ConversationsTestbed,
+  testbed: Pick<ConversationsTestbed, 'queues'>,
   subscription: AnyDomainEventSubscription,
   conversationId: string,
 ): Promise<JobData[]> => {

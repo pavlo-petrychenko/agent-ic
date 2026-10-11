@@ -8,11 +8,20 @@ interface RowContentProps {
 }
 
 function RowContent({ row, mono }: RowContentProps) {
+  const leading = row.leading ?? null;
   const meta = row.meta ?? null;
+  const name = <span className={clsx(styles.name, mono && styles.mono)}>{row.name}</span>;
 
   return (
     <>
-      <span className={clsx(styles.name, mono && styles.mono)}>{row.name}</span>
+      {leading === null ? (
+        name
+      ) : (
+        <span className={styles.lead}>
+          {leading}
+          {name}
+        </span>
+      )}
       {meta === null ? null : <span className={styles.meta}>{meta}</span>}
     </>
   );

@@ -1,7 +1,7 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import { ConditionOperator, RuleMatch } from '@flow/conditions/constants/condition.constants';
 import { FLOW_SCHEMA_VERSION, NodeType, PortName } from '@flow/document/constants/flow.constants';
-import type { FlowDocument, ModelRef, PromptRef } from '@flow/document/typedefs/flow.typedefs';
+import type { FlowDocument, ModelRef, PromptSource } from '@flow/document/typedefs/flow.typedefs';
 import {
   AGENT_DEFAULT_RETRIES,
   API_REQUEST_DEFAULT_RETRIES,
@@ -32,14 +32,15 @@ import {
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 import {
   ModelProviderKind,
+  PromptSourceKind,
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
 
 const at = { x: 0, y: 0 };
 
-export const examplePrompt = (promptId: string): PromptRef => ({
-  promptId,
-  version: { kind: PromptVersionKind.Latest },
+export const examplePrompt = (text: string): PromptSource => ({
+  kind: PromptSourceKind.Inline,
+  text,
 });
 
 export const exampleModel: ModelRef = {
@@ -74,8 +75,9 @@ export const faqWithHandOffFlow: FlowDocument = {
       type: NodeType.Completion,
       config: {
         role: CompletionRole.Guard,
-        prompt: examplePrompt('prm_guard'),
+        prompt: examplePrompt('Is {{message.text}} a question we can answer?'),
         model: exampleModel,
+        reasoning: null,
         input: { includeCurrentMessage: true },
         output: [
           {
@@ -101,8 +103,9 @@ export const faqWithHandOffFlow: FlowDocument = {
       type: NodeType.Completion,
       config: {
         role: CompletionRole.Observer,
-        prompt: examplePrompt('prm_topic'),
+        prompt: examplePrompt('Name the topic of the chat.'),
         model: exampleModel,
+        reasoning: null,
         input: { includeCurrentMessage: true },
         output: [
           {
@@ -141,8 +144,9 @@ export const faqWithHandOffFlow: FlowDocument = {
       position: at,
       type: NodeType.Agent,
       config: {
-        prompt: examplePrompt('prm_answer'),
+        prompt: examplePrompt('Answer the customer politely.'),
         model: exampleModel,
+        reasoning: null,
         knowledgeBaseIds: ['kb_faq'],
         retrievalMode: RetrievalMode.Tools,
         output: [],
@@ -222,10 +226,12 @@ export const scheduledFollowUpFlow: FlowDocument = {
       type: NodeType.Agent,
       config: {
         prompt: {
-          promptId: 'prm_follow_up',
-          version: { kind: PromptVersionKind.Pinned, number: 3 },
+          kind: PromptSourceKind.Library,
+          promptRef: 'prm_follow_up',
+          pin: { kind: PromptVersionKind.Pinned, number: 3 },
         },
         model: exampleModel,
+        reasoning: null,
         knowledgeBaseIds: [],
         retrievalMode: RetrievalMode.Tools,
         output: [

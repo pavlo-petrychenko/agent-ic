@@ -14,7 +14,7 @@ export class OutboxRepository {
   ) {}
 
   async insert(message: NewOutboxMessage): Promise<void> {
-    await this.txHost.tx.insert(outboxMessages).values(message);
+    await this.txHost.tx.insert(outboxMessages).values(message).onConflictDoNothing();
   }
 
   async delete(id: string): Promise<void> {
