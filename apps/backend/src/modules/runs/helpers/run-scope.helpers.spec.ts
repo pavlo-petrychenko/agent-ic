@@ -1,4 +1,4 @@
-import { PortName, createScopeLookup } from '@agent-ic/flow';
+import { PortName, WaitFor, createScopeLookup } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { ChannelKind, MessageAuthor } from '@/modules/conversations';
 import { CURRENT_MESSAGE_SEPARATOR, RunStepStatus } from '@/modules/runs/constants/run.constants';
@@ -13,9 +13,15 @@ import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing
 import {
   FIRST_STEP_ID,
   FIRST_STEP_KEY,
+  PARALLEL_NODE_ID,
+  PARALLEL_NODE_KEY,
   RUNS_TEST_START,
+  SCORER_NODE_ID,
+  SCORER_NODE_KEY,
   SECOND_STEP_ID,
   SECOND_STEP_KEY,
+  SEND_NODE_ID,
+  SEND_NODE_KEY,
   TEST_AGENT_REPLY,
   TEST_END_USER_NAME,
   TEST_FOLLOW_UP,
@@ -24,10 +30,15 @@ import {
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import {
   agentNode,
+  backgroundBranchEdge,
+  branchEdge,
+  completionNode,
   finishedStep,
   flowEdge,
   historyMessage,
+  parallelNode,
   runConversation,
+  sendListNode,
   stepFlow,
 } from '@test/support/fixtures/runs.fixture';
 
@@ -55,6 +66,29 @@ const variablesAtSecond = (
   return stepVariables({ flow, lookup: createScopeLookup(flow), trigger, steps }, SECOND_STEP_ID);
 };
 
+const variablesAtSendAfterScorer = () => {
+  const scorer = completionNode(SCORER_NODE_ID, SCORER_NODE_KEY);
+  const flow = stepFlow(
+    [
+      parallelNode(PARALLEL_NODE_ID, PARALLEL_NODE_KEY, WaitFor.All),
+      first,
+      scorer,
+      sendListNode(SEND_NODE_ID, SEND_NODE_KEY, `${FIRST_STEP_KEY}.answer`),
+    ],
+    [
+      flowEdge(TEST_NODE_ID, PARALLEL_NODE_ID),
+      branchEdge(PARALLEL_NODE_ID, FIRST_STEP_ID),
+      backgroundBranchEdge(PARALLEL_NODE_ID, SCORER_NODE_ID),
+      flowEdge(PARALLEL_NODE_ID, SEND_NODE_ID),
+    ],
+  );
+  const steps = new Map([
+    [FIRST_STEP_ID, finishedStep(ids, first, RunStepStatus.Succeeded, PortName.Next)],
+    [SCORER_NODE_ID, finishedStep(ids, scorer, RunStepStatus.Succeeded, PortName.Next)],
+  ]);
+  return stepVariables({ flow, lookup: createScopeLookup(flow), trigger, steps }, SEND_NODE_ID);
+};
+
 describe('messageTriggerVariables', () => {
   it('takes the customer messages after the last reply as the current message', () => {
     expect(trigger).toEqual({
@@ -80,6 +114,13 @@ describe('stepVariables', () => {
 
   it('leaves out a step that failed into its error port', () => {
     expect(variablesAtSecond(PortName.Error, RunStepStatus.Failed)).toEqual(trigger);
+  });
+
+  it('hides a finished background branch output after the join', () => {
+    expect(variablesAtSendAfterScorer()).toEqual({
+      ...trigger,
+      [FIRST_STEP_KEY]: { answer: FIRST_STEP_KEY },
+    });
   });
 });
 
