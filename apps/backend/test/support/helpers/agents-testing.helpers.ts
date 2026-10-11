@@ -11,14 +11,14 @@ import { TenantTransactionService } from '@/platform/database/services/tenant-tr
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { AGENTS_TEST_START } from '@test/support/constants/agents-testing.constants';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { newAgent, newVersion, triggerFlow } from '@test/support/fixtures/agents.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 import type { SeededAgent } from '@test/support/typedefs/agents-testing.typedefs';
 
 export const createAgentsTestingModule = (): Promise<TestingModule> =>
-  createPlatformTestingModule(TestRedisDatabase.Agents, [AgentsModule.forRole(Role.Gateway)]);
+  createPlatformTestingModule(TestRedisPrefix.Agents, [AgentsModule.forRole(Role.Gateway)]);
 
 export const seedAgentWithDraft = async (
   testingModule: TestingModule,

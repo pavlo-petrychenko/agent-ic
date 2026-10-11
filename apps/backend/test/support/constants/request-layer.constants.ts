@@ -1,3 +1,6 @@
+import type { RoleSelection } from '@/platform/config/typedefs/app-config.typedefs';
+import { Role } from '@/platform/module-roles/constants/role.constants';
+
 export enum FailingRoute {
   Base = 'failing',
   NotFound = 'not-found',
@@ -11,3 +14,4 @@ export const EPHEMERAL_PORT = 0;
 export const LOOPBACK_HOST = '127.0.0.1';
 export const WEBSOCKET_PROTOCOL = 'ws:';
 export const WEBSOCKET_NO_RESULT_MESSAGE = 'The WebSocket operation completed without a result.';
+export const API_ROLE_SELECTION: RoleSelection = { role: Role.Api, queues: [] };

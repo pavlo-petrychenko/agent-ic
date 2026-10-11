@@ -7,6 +7,8 @@ export enum QueueName {
   Ingest = 'ingest',
 }
 
+export const BULLMQ_KEY_ROOT = 'bull';
+
 export enum JobBackoffType {
   Exponential = 'exponential',
 }

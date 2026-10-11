@@ -58,7 +58,7 @@ describe('loadAppConfig', () => {
     expect(() => loadAppConfig(roleOf(Role.Api), env)).not.toThrow();
   });
 
-  it('reads the redis urls', () => {
+  it('reads the redis urls and keeps the key prefix empty', () => {
     const env = createTestEnv({
       [EnvVar.RedisQueueUrl]: 'redis://queue:6379',
       [EnvVar.RedisCacheUrl]: 'rediss://cache:6380',
@@ -69,6 +69,7 @@ describe('loadAppConfig', () => {
     expect(config.redis).toEqual({
       queueUrl: 'redis://queue:6379',
       cacheUrl: 'rediss://cache:6380',
+      keyPrefix: '',
     });
   });
 

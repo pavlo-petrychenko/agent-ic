@@ -13,7 +13,7 @@ import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.serv
 import type { RateLimitPolicy } from '@/platform/rate-limit/typedefs/rate-limit.typedefs';
 import { RedisModule } from '@/platform/redis/redis.module';
 import { CacheRedisService } from '@/platform/redis/services/cache-redis.service';
-import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 
 const CAPACITY = 3;
@@ -33,7 +33,7 @@ describe('RateLimitService', () => {
   let redis: CacheRedisService;
 
   beforeAll(async () => {
-    testingModule = await createPlatformTestingModule(TestRedisDatabase.RateLimit, [
+    testingModule = await createPlatformTestingModule(TestRedisPrefix.RateLimit, [
       RedisModule,
       RateLimitModule,
     ]);

@@ -19,6 +19,7 @@ export interface DatabaseConfig {
 export interface RedisConfig {
   readonly queueUrl: string;
   readonly cacheUrl: string;
+  readonly keyPrefix: string;
 }
 
 export interface PlatformAdminConfig {
