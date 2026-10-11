@@ -15,6 +15,7 @@ extend type Mutation {
   rememberWorkspace(workspaceId: ID!): User!
   updateTimeZone(input: UpdateTimeZoneInput!): Membership!
   transferOwnership(input: TransferOwnershipInput!): Membership!
+  leaveWorkspace(workspaceId: ID!): Boolean!
 }
 
 extend type User {

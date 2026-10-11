@@ -130,4 +130,12 @@ export class MembershipsRepository {
       .set({ role })
       .where(and(eq(memberships.workspaceId, workspaceId), eq(memberships.id, membershipId)));
   }
+
+  async deleteByUser(workspaceId: string, userId: string): Promise<boolean> {
+    const deleted = await this.txHost.tx
+      .delete(memberships)
+      .where(and(eq(memberships.workspaceId, workspaceId), eq(memberships.userId, userId)))
+      .returning({ id: memberships.id });
+    return deleted.length > 0;
+  }
 }
