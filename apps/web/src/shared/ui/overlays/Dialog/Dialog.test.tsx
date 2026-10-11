@@ -168,6 +168,35 @@ describe('Dialog', () => {
     expect(screen.getByRole('dialog').querySelector('footer')).toBeNull();
   });
 
+  it('omits the body when there are no children and no error', () => {
+    render(
+      <Dialog
+        open
+        onOpenChange={vi.fn<(open: boolean) => void>()}
+        title="Delete agent"
+        closeLabel="Close"
+        footerRight={<button type="button">Delete</button>}
+      />,
+    );
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.querySelector('header')?.nextElementSibling?.tagName).toBe('FOOTER');
+  });
+
+  it('keeps the body for an error alone', () => {
+    render(
+      <Dialog
+        open
+        onOpenChange={vi.fn<(open: boolean) => void>()}
+        error="Could not delete."
+        title="Delete agent"
+        closeLabel="Close"
+      />,
+    );
+
+    expect(within(screen.getByRole('dialog')).getByRole('alert')).toBeInTheDocument();
+  });
+
   it('moves focus into the dialog when it opens', () => {
     render(
       <Dialog

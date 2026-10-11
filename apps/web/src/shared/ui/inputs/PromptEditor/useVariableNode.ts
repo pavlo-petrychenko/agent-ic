@@ -1,4 +1,4 @@
-import { mergeAttributes, Node, nodeInputRule, nodePasteRule } from '@tiptap/core';
+import { InputRule, mergeAttributes, Node, nodePasteRule } from '@tiptap/core';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import { useMemo } from 'react';
 import { PromptNodeName } from '@/shared/prompt/constants/promptDocument.constants';
@@ -58,10 +58,15 @@ const createVariableNode = () =>
 
     addInputRules() {
       return [
-        nodeInputRule({
+        new InputRule({
           find: PROMPT_VARIABLE_TYPED_PATTERN,
-          type: this.type,
-          getAttributes: (match) => ({ [PATH_ATTRIBUTE]: match[1] ?? '' }),
+          handler: ({ state, range, match }) => {
+            state.tr.replaceWith(
+              range.from,
+              range.to,
+              this.type.create({ [PATH_ATTRIBUTE]: match[1] ?? '' }),
+            );
+          },
         }),
       ];
     },
