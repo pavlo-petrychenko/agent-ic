@@ -1,4 +1,5 @@
 import { AgentsModule } from '@/modules/agents';
+import { CleanUpWorkspaceListener } from '@/modules/conversations/listeners/clean-up-workspace.listener';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import { ConversationActivityResolver } from '@/modules/conversations/resolvers/conversation-activity.resolver';
@@ -10,6 +11,7 @@ import { ConversationRunsService } from '@/modules/conversations/services/conver
 import { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
 import { OperatorConversationsService } from '@/modules/conversations/services/operator-conversations.service';
 import { SimulationsService } from '@/modules/conversations/services/simulations.service';
+import { CleanUpWorkspaceUseCase } from '@/modules/conversations/use-cases/clean-up-workspace.use-case';
 import { GetSimulationUseCase } from '@/modules/conversations/use-cases/get-simulation.use-case';
 import { HandBackUseCase } from '@/modules/conversations/use-cases/hand-back.use-case';
 import { ReplyAsOperatorUseCase } from '@/modules/conversations/use-cases/reply-as-operator.use-case';
@@ -37,8 +39,10 @@ export class ConversationsModule extends defineModule({
     SendSimulatorMessageUseCase,
     ReplyAsOperatorUseCase,
     HandBackUseCase,
+    CleanUpWorkspaceUseCase,
   ],
   resolvers: [ConversationActivityResolver, SimulationResolver, OperatorResolver],
+  listeners: [CleanUpWorkspaceListener],
   exports: [
     ConversationActivityService,
     ConversationHistoryService,

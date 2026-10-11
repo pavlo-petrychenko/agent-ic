@@ -22,3 +22,7 @@ export enum WaitingReason {
 }
 
 export const CONVERSATIONS_SCHEMA = 'conversations';
+
+export enum ConversationJobName {
+  CleanUpWorkspace = 'conversations.clean-up-workspace',
+}
