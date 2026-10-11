@@ -72,4 +72,6 @@ export enum ErrorReason {
   ApiRequestAuthUnsupported = 'API_REQUEST_AUTH_UNSUPPORTED',
   ApiRequestFailed = 'API_REQUEST_FAILED',
   OutboundAddressBlocked = 'OUTBOUND_ADDRESS_BLOCKED',
+  StepPromptUnavailable = 'STEP_PROMPT_UNAVAILABLE',
+  StepModelUnknown = 'STEP_MODEL_UNKNOWN',
 }

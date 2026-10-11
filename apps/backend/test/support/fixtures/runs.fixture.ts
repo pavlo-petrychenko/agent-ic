@@ -6,10 +6,12 @@ import {
   FailureMode,
   HttpMethod,
   MessageContentKind,
+  ModelProviderKind,
   NodeType,
   NotifyChannel,
   OutputFieldType,
   PortName,
+  PromptSourceKind,
   QuickRepliesKind,
   RecipientsKind,
   RequestAuthKind,
@@ -45,6 +47,7 @@ import type {
 } from '@/modules/runs/typedefs/run-step.typedefs';
 import type { NewRun } from '@/modules/runs/typedefs/run.typedefs';
 import type { IdService } from '@/platform/ids/services/id.service';
+import { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
 import {
   TEST_API_BODY_TEMPLATE,
   TEST_API_HEADER_TEMPLATE,
@@ -65,8 +68,13 @@ import {
   TEST_ESCALATION_REASON,
   TEST_QUICK_REPLIES,
   TEST_REPLIES_VARIABLE,
+  TEST_COMPLETION_PROMPT,
   TEST_END_USER_NAME,
   TEST_ROUTE_RULE_ID,
+  TEST_INTENT_FIELD,
+  TEST_ORDER_INTENT,
+  TEST_ORDER_RULE_ID,
+  TEST_QUESTION_INTENT,
   TEST_STEP_INPUT,
   TEST_STEP_NODE_ID,
   TEST_STEP_NODE_KEY,
@@ -193,6 +201,60 @@ export const apiRequestNode = (
   },
 });
 
+export const completionNode = (
+  id: string,
+  key: string,
+  role: CompletionRole,
+  config: Partial<CompletionNode['config']> = {},
+): CompletionNode => ({
+  id,
+  key,
+  label: key,
+  position: NODE_POSITION,
+  type: NodeType.Completion,
+  config: {
+    role,
+    prompt: { kind: PromptSourceKind.Inline, text: TEST_COMPLETION_PROMPT },
+    model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Ministral14b },
+    reasoning: null,
+    input: { includeCurrentMessage: true },
+    output: [
+      {
+        name: TEST_INTENT_FIELD,
+        type: OutputFieldType.Enum,
+        values: [TEST_ORDER_INTENT, TEST_QUESTION_INTENT],
+        description: '',
+        required: true,
+      },
+    ],
+    ...config,
+  },
+});
+
+export const intentRouterNode = (id: string, key: string, guardKey: string): RouterNode => ({
+  id,
+  key,
+  label: key,
+  position: NODE_POSITION,
+  type: NodeType.Router,
+  config: {
+    rules: [
+      {
+        id: TEST_ORDER_RULE_ID,
+        label: TEST_ORDER_INTENT,
+        match: RuleMatch.All,
+        conditions: [
+          {
+            variable: `${guardKey}.${TEST_INTENT_FIELD}`,
+            operator: ConditionOperator.Eq,
+            value: TEST_ORDER_INTENT,
+          },
+        ],
+      },
+    ],
+  },
+});
+
 export const endNode = (id: string, key: string): EscalationNode => ({
   id,
   key,
@@ -245,6 +307,11 @@ export const flowEdge = (
   source,
   sourcePort: port,
   target,
+});
+
+export const branchEdge = (parallelId: string, target: string): FlowEdge => ({
+  ...flowEdge(parallelId, target, PortName.Branches),
+  id: `${parallelId}:${target}`,
 });
 
 export const triggerOnlyFlow = (): FlowDocument => {
