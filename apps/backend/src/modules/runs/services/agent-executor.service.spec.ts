@@ -9,9 +9,13 @@ import {
 import type { AgentNode } from '@agent-ic/flow';
 import { HttpStatus } from '@nestjs/common';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { AGENT_MAX_TOOL_ROUNDS } from '@/modules/runs/constants/llm-step.constants';
 import { RunStatus, RunStepStatus } from '@/modules/runs/constants/run.constants';
 import { EnvVar } from '@/platform/config/constants/env.constants';
-import { LLM_STEP_TIMEOUT_MS } from '@/platform/llm/constants/llm-gateway.constants';
+import {
+  LLM_OUTPUT_INVALID_FEEDBACK,
+  LLM_STEP_TIMEOUT_MS,
+} from '@/platform/llm/constants/llm-gateway.constants';
 import { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
@@ -50,6 +54,11 @@ const agent = agentNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
 });
 const send = sendListNode(SEND_NODE_ID, SEND_NODE_KEY, `${TEST_STEP_NODE_KEY}.messages`);
 const answer = { messages: [TEST_AGENT_REPLY], [TEST_MOOD_FIELD]: TEST_MOOD };
+const invalidAnswer = { messages: [TEST_AGENT_REPLY] };
+const FEEDBACK_ROUNDS = 2;
+
+const timesSent = (messages: unknown, text: string): number =>
+  JSON.stringify(messages).split(text).length - 1;
 
 const agentThenSend = (port: string = PortName.Next, node: AgentNode = agent) =>
   stepFlow([node, send], [flowEdge(TEST_NODE_ID, node.id), flowEdge(node.id, SEND_NODE_ID, port)]);
@@ -132,5 +141,29 @@ describe('AgentExecutor', () => {
       output: null,
     });
     expect(await stepOf(seeded, SEND_NODE_ID)).toMatchObject({ status: RunStepStatus.Succeeded });
+  });
+
+  it('retries an invalid answer from the transcript of the attempt before', async () => {
+    const seeded = await seedExecutableRun(testbed, agentThenSend());
+    mock.json(invalidAnswer).json(invalidAnswer).json(answer);
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    expect(mock.requests).toHaveLength(3);
+    expect(timesSent(mock.body(2).messages, LLM_OUTPUT_INVALID_FEEDBACK)).toBe(FEEDBACK_ROUNDS);
+    expect(await stepOf(seeded, TEST_STEP_NODE_ID)).toMatchObject({ output: answer });
+  });
+
+  it('keeps every retry of the step inside one round budget', async () => {
+    const seeded = await seedExecutableRun(testbed, agentThenSend(PortName.Error));
+    Array.from({ length: AGENT_MAX_TOOL_ROUNDS + 1 }, () => mock.json(invalidAnswer));
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    expect(mock.requests).toHaveLength(AGENT_MAX_TOOL_ROUNDS);
+    expect(await stepOf(seeded, TEST_STEP_NODE_ID)).toMatchObject({
+      status: RunStepStatus.Failed,
+      port: PortName.Error,
+    });
   });
 });

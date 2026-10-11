@@ -41,7 +41,7 @@ complete(request) / runAgent(request)
 2. **Checks.** Every answer is parsed and checked with zod. A wrong answer gets one more round with the error; a second wrong answer is `LlmOutputInvalidError`.
 3. **Rounds.** A round is one model call, tools included. Retries and the nudge spend the same `maxToolRounds` budget.
 4. **Timeouts.** Each round has a time limit by the `purpose` of the call, in `LLM_STEP_TIMEOUT_MS`: 30 seconds for `conversation`, 15 for `light`.
-5. **Fallback.** On 429, a 5xx or a timeout, the gateway starts again on the model's fallback, with the original messages. It never retries the same model: the job retry does that later. Workspace providers have no fallback in the MVP (D83).
+5. **Fallback.** On 429, a 5xx or a timeout, the gateway moves to the model's fallback. `complete` starts it with the original messages; `runAgent` continues the turn from the rounds already finished, so a tool that has run never runs again, and the fallback gets only the rounds still left (D263). It never retries the same model: the job retry does that later. Workspace providers have no fallback in the MVP (D83).
 6. **`LlmUnavailableError`** has the kind `Unavailable`. In a job it retries with backoff instead of giving up. On GraphQL and REST it is `UPSTREAM_ERROR` with HTTP 503. Its details name the models tried, and its cause holds each failure.
 
 ## Tracing
@@ -55,6 +55,7 @@ complete(request) / runAgent(request)
 - [ ] Inject `LlmGateway` (the abstract class), not `AiSdkLlmGateway`.
 - [ ] Describe the answer with a zod schema. Keep it small and flat; the model fills it.
 - [ ] Use `complete` when the model needs no tools, `runAgent` when it does.
+- [ ] To retry a failed `runAgent` call, keep the last progress from `onProgress` and pass it as `resumeFrom`, so the retry does not run finished tools again (D263).
 - [ ] Pass the whole conversation as `messages`. Never cut the history.
 - [ ] Fill `tags`, so the call can be found in Langfuse.
 - [ ] Save `model` and `usage` where you record the result, so a run shows which model answered and what it cost.

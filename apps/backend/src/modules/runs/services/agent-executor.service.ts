@@ -54,13 +54,19 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
     request: LlmAgentRequest<StepData>,
     retriesLeft: number,
   ): Promise<LlmAgentResult<StepData>> {
+    let progress = request.resumeFrom;
     try {
-      return await this.llm.runAgent(request);
+      return await this.llm.runAgent({
+        ...request,
+        onProgress: (next) => {
+          progress = next;
+        },
+      });
     } catch (error) {
       if (retriesLeft <= 0 || jobFailureActionFor(error) === JobFailureAction.Retry) {
         throw error;
       }
-      return this.answer(request, retriesLeft - 1);
+      return this.answer({ ...request, resumeFrom: progress }, retriesLeft - 1);
     }
   }
 }
