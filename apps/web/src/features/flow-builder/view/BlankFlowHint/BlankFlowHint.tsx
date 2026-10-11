@@ -16,6 +16,7 @@ export function BlankFlowHint({ items, onAdd }: BlankFlowHintProps) {
 
   return (
     <div className={styles.root}>
+      <span aria-hidden="true" className={styles.connector} />
       <Popover
         open={open}
         onOpenChange={setOpen}
@@ -39,7 +40,7 @@ export function BlankFlowHint({ items, onAdd }: BlankFlowHintProps) {
           }}
         />
       </Popover>
-      <Card>
+      <Card className={styles.card}>
         <EmptyState
           icon={IconName.Agent}
           title={t('blank.title')}

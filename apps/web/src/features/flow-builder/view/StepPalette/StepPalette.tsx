@@ -15,43 +15,52 @@ export function StepPalette({ sections, query, onQueryChange, onAdd }: StepPalet
   return (
     <Panel
       ariaLabel={t('palette.title')}
-      title={t('palette.title')}
       side={PanelSide.Right}
+      flush
       className={styles.root}
       footer={
-        <Text kind={TextKind.Caption} color={TextColor.Mute}>
-          {t('palette.knowledgeNote')}
-        </Text>
+        <div className={styles.footer}>
+          <Text kind={TextKind.Small} color={TextColor.Mute}>
+            {t('palette.knowledgeNote')}
+          </Text>
+        </div>
       }
     >
-      <SearchInput
-        value={query}
-        label={t('palette.search')}
-        placeholder={t('palette.search')}
-        clearLabel={t('palette.clearSearch')}
-        onChange={(event) => onQueryChange(event.target.value)}
-        onClear={() => onQueryChange('')}
-      />
-      {sections.length === 0 && (
-        <Text kind={TextKind.Small} color={TextColor.Mute}>
-          {t('palette.nothingFound')}
-        </Text>
-      )}
-      {sections.map((section) => (
-        <div key={section.group} className={styles.section}>
-          <NavSectionLabel label={t(`palette.group.${section.group}`)} />
-          {section.types.map((type) => (
-            <PaletteItem
-              key={type}
-              label={t(`step.${type}`)}
-              kind={NODE_PRESENTATION[type].kind}
-              icon={NODE_PRESENTATION[type].icon}
-              dragData={type}
-              onSelect={() => onAdd(type)}
-            />
-          ))}
+      <div className={styles.content}>
+        <div className={styles.search}>
+          <Text kind={TextKind.Caption} color={TextColor.Mute}>
+            {t('palette.title')}
+          </Text>
+          <SearchInput
+            value={query}
+            label={t('palette.search')}
+            placeholder={t('palette.search')}
+            clearLabel={t('palette.clearSearch')}
+            onChange={(event) => onQueryChange(event.target.value)}
+            onClear={() => onQueryChange('')}
+          />
         </div>
-      ))}
+        {sections.length === 0 && (
+          <Text kind={TextKind.Small} color={TextColor.Mute}>
+            {t('palette.nothingFound')}
+          </Text>
+        )}
+        {sections.map((section) => (
+          <div key={section.group} className={styles.section}>
+            <NavSectionLabel label={t(`palette.group.${section.group}`)} />
+            {section.types.map((type) => (
+              <PaletteItem
+                key={type}
+                label={t(`step.${type}`)}
+                kind={NODE_PRESENTATION[type].kind}
+                icon={NODE_PRESENTATION[type].icon}
+                dragData={type}
+                onSelect={() => onAdd(type)}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
     </Panel>
   );
 }
