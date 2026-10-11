@@ -16,7 +16,4 @@ export interface NavGroupEntry {
   readonly entries: readonly NavEntry[];
 }
 
-export type PlaceholderSection = Exclude<
-  WorkspaceSection,
-  WorkspaceSection.Team | WorkspaceSection.General
->;
+export type PlaceholderSection = WorkspaceSection.Inbox | WorkspaceSection.Settings;

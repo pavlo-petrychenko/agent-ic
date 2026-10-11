@@ -1,0 +1,10 @@
+{
+  "page": {
+    "title": "Flow builder",
+    "subtitle": "Design how the agent handles a chat, step by step"
+  },
+  "empty": {
+    "title": "The canvas is on its way",
+    "description": "Editing a flow is coming in the next release."
+  }
+}

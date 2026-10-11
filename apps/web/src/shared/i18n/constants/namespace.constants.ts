@@ -4,4 +4,7 @@ export enum Namespace {
   Auth = 'auth',
   Workspace = 'workspace',
   Settings = 'settings',
+  Agents = 'agents',
+  FlowBuilder = 'flowBuilder',
+  Testing = 'testing',
 }

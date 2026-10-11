@@ -1,0 +1,14 @@
+{
+  "page": {
+    "title": "Testing",
+    "subtitle": "Drafts run here only"
+  },
+  "simulator": {
+    "title": "Nothing to test yet",
+    "description": "The simulator is coming in the next release."
+  },
+  "versions": {
+    "title": "No versions to show yet",
+    "description": "The draft and the published versions will be listed here."
+  }
+}
