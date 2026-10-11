@@ -11,7 +11,10 @@ export {
   USER_NAME_MAX_LENGTH,
   USER_NAME_PATTERN,
 } from '@contracts/auth/auth.constants';
-export { END_USER_LANGUAGE_MAX_LENGTH } from '@contracts/conversations/conversation.constants';
+export {
+  END_USER_LANGUAGE_MAX_LENGTH,
+  SIMULATOR_MESSAGE_MAX_LENGTH,
+} from '@contracts/conversations/conversation.constants';
 export { ErrorCode, ErrorReason } from '@contracts/errors/errors.constants';
 export { IdPrefix } from '@contracts/ids/id-prefix.constants';
 export { REASONING_LEVEL_ORDER, ReasoningLevel } from '@contracts/llm/reasoning.constants';

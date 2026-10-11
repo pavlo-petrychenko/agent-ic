@@ -18,7 +18,7 @@ import {
   QUICK_REPLIES,
   TEST_IDEMPOTENCY_KEY,
 } from '@test/support/constants/conversations-testing.constants';
-import { workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
+import { newConversation, workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import {
   conversationActivity,
   createConversationsTestbed,
@@ -172,6 +172,21 @@ describe('ConversationRunsService', () => {
         mode: ConversationMode.Live,
       },
     ]);
+  });
+
+  it('marks a simulation waiting without asking anyone', async () => {
+    const workspaceId = testbed.ids.generate();
+    const conversation = {
+      ...newConversation(testbed, workspaceId),
+      mode: ConversationMode.Simulation,
+    };
+    await inTenant(conversation, () => testbed.conversations.insert(conversation));
+
+    expect(await markWaiting(conversation)).toBe(true);
+
+    const events = await queuedEventsFor(testbed, notifyOnNeedsOperator, conversation.id);
+    expect((await stateOf(conversation))?.state).toBe(ConversationState.Waiting);
+    expect(events).toEqual([]);
   });
 
   it('marks the delivery of a message, and refuses an unknown one', async () => {

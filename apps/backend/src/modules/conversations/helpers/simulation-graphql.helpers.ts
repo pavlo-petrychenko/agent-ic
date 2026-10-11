@@ -46,7 +46,7 @@ const toGraphqlConversation = (conversation: ConversationView): Conversation => 
   createdAt: conversation.createdAt.toISOString(),
 });
 
-const toGraphqlMessage = (message: MessageView): Message => ({
+export const toGraphqlMessage = (message: MessageView): Message => ({
   ...message,
   author: GRAPHQL_MESSAGE_AUTHOR[message.author],
   createdAt: message.createdAt.toISOString(),

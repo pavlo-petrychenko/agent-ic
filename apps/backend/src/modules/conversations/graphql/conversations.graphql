@@ -15,8 +15,14 @@ type ConversationActivityEvent {
   runId: ID
 }
 
+extend type Query {
+  simulation(agentId: ID!): Simulation
+}
+
 extend type Mutation {
   startSimulation(input: StartSimulationInput!): Simulation!
+  restartSimulation(input: RestartSimulationInput!): Simulation!
+  sendSimulatorMessage(input: SendSimulatorMessageInput!): Message!
 }
 
 enum ConversationState {
@@ -44,6 +50,15 @@ input StartSimulationInput {
   versionId: ID
   channelKind: ChannelKind!
   language: String
+}
+
+input RestartSimulationInput {
+  agentId: ID!
+}
+
+input SendSimulatorMessageInput {
+  conversationId: ID!
+  text: String!
 }
 
 type Conversation {

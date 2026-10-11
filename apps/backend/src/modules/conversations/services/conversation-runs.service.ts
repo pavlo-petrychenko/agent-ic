@@ -3,7 +3,10 @@ import {
   CONVERSATION_EVENT_EMIT_OPTIONS,
   ConversationEventName,
 } from '@/modules/conversations/constants/conversation-event.constants';
-import { ConversationState } from '@/modules/conversations/constants/conversation.constants';
+import {
+  ConversationMode,
+  ConversationState,
+} from '@/modules/conversations/constants/conversation.constants';
 import { MessageDelivery } from '@/modules/conversations/constants/message.constants';
 import { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 import { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
@@ -117,6 +120,9 @@ export class ConversationRunsService {
     }
     if (!(await this.conversations.markWaiting(request.workspaceId, conversation.id))) {
       return false;
+    }
+    if (conversation.mode === ConversationMode.Simulation) {
+      return true;
     }
     await this.domainEvents.emit(
       ctx,
