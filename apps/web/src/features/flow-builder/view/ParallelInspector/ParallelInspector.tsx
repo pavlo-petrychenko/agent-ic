@@ -62,9 +62,6 @@ export function ParallelInspector({ branches, waitFor, onWaitForChange }: Parall
           }}
         />
       </InspectorSection>
-      {branches.some((branch) => branch.role === BranchRole.Observer) && (
-        <Callout>{t('inspector.parallel.observerNote')}</Callout>
-      )}
       {branches.some((branch) => branch.role === BranchRole.Background) && (
         <Callout>{t('inspector.parallel.backgroundNote')}</Callout>
       )}

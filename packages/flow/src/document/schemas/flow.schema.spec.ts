@@ -1,7 +1,7 @@
 import { ReasoningLevel } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
 import { ConditionOperator, RuleMatch } from '@flow/conditions/constants/condition.constants';
-import { NodeType } from '@flow/document/constants/flow.constants';
+import { FLOW_SCHEMA_VERSION, NodeType } from '@flow/document/constants/flow.constants';
 import { flowDocumentSchema } from '@flow/document/schemas/flow.schema';
 import type { FlowDocument, FlowNode } from '@flow/document/typedefs/flow.typedefs';
 import {
@@ -9,7 +9,7 @@ import {
   MAX_RETRIES,
   MAX_TEMPLATE_LENGTH,
 } from '@flow/limits/constants/limit.constants';
-import { CompletionRole, EscalationMode } from '@flow/nodes/constants/step.constants';
+import { EscalationMode } from '@flow/nodes/constants/step.constants';
 import { ScheduleKind } from '@flow/nodes/constants/trigger.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 import {
@@ -50,9 +50,10 @@ describe('flowDocumentSchema', () => {
   );
 
   it('accepts an empty draft', () => {
-    expect(flowDocumentSchema.safeParse({ schemaVersion: 1, nodes: [], edges: [] }).success).toBe(
-      true,
-    );
+    expect(
+      flowDocumentSchema.safeParse({ schemaVersion: FLOW_SCHEMA_VERSION, nodes: [], edges: [] })
+        .success,
+    ).toBe(true);
   });
 
   it('accepts a draft step with no prompt or model chosen yet', () => {
@@ -66,7 +67,7 @@ describe('flowDocumentSchema', () => {
   });
 
   it('rejects another schema version', () => {
-    expect(flowDocumentSchema.safeParse({ ...faqWithHandOffFlow, schemaVersion: 2 }).success).toBe(
+    expect(flowDocumentSchema.safeParse({ ...faqWithHandOffFlow, schemaVersion: 1 }).success).toBe(
       false,
     );
   });
@@ -95,16 +96,16 @@ describe('flowDocumentSchema', () => {
       id: `n_${index}`,
       key: `trigger_${index}`,
     }));
-    expect(flowDocumentSchema.safeParse({ schemaVersion: 1, nodes, edges: [] }).success).toBe(
-      false,
-    );
+    expect(
+      flowDocumentSchema.safeParse({ schemaVersion: FLOW_SCHEMA_VERSION, nodes, edges: [] })
+        .success,
+    ).toBe(false);
   });
 
   it('rejects a completion without output fields', () => {
     const guard = nodeOf(faqWithHandOffFlow, NodeType.Completion);
     const flow = replaceConfig(faqWithHandOffFlow, NodeType.Completion, {
       ...guard.config,
-      role: CompletionRole.Guard,
       output: [],
     });
     expect(flowDocumentSchema.safeParse(flow).success).toBe(false);

@@ -3,13 +3,7 @@ export enum RetrievalMode {
   Auto = 'auto',
 }
 
-export enum CompletionRole {
-  Guard = 'guard',
-  Observer = 'observer',
-}
-
 export enum WaitFor {
-  Guards = 'guards',
   All = 'all',
   First = 'first',
 }

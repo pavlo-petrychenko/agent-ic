@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { CompletionRole } from '@flow/nodes/constants/step.constants';
 import {
   AGENT_MESSAGES_FIELD_NAME,
   OutputFieldType,
@@ -18,7 +17,7 @@ describe('nodeOutputFields', () => {
   });
 
   it('gives a completion its own fields and a router none', () => {
-    expect(nodeOutputFields(completion('guard', CompletionRole.Guard))).toHaveLength(1);
+    expect(nodeOutputFields(completion('guard'))).toHaveLength(1);
     expect(nodeOutputFields(router('route', []))).toEqual([]);
   });
 });

@@ -1,5 +1,5 @@
 import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
-import { CompletionRole, ModelProviderKind, PortName, PromptSourceKind } from '@agent-ic/flow';
+import { ModelProviderKind, PortName, PromptSourceKind } from '@agent-ic/flow';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { ChannelKind, ConversationMode, ConversationState } from '@/modules/conversations';
 import { HandBackUseCase } from '@/modules/conversations/use-cases/hand-back.use-case';
@@ -51,7 +51,7 @@ import type { RunsWorker, WorkerAgent } from '@test/support/typedefs/runs-testin
 
 const answeringFlow = stepFlow(
   [
-    completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, CompletionRole.Guard),
+    completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY),
     intentRouterNode(ROUTER_NODE_ID, ROUTER_NODE_KEY, TEST_STEP_NODE_KEY),
     agentNode(FIRST_STEP_ID, FIRST_STEP_KEY, {
       prompt: { kind: PromptSourceKind.Inline, text: TEST_AGENT_PROMPT },

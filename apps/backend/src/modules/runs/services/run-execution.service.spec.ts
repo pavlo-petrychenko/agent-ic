@@ -1,5 +1,5 @@
 import { ErrorReason } from '@agent-ic/contracts';
-import { CompletionRole, PortName, WaitFor, isObserverNode } from '@agent-ic/flow';
+import { PortName, WaitFor } from '@agent-ic/flow';
 import type { FlowNode } from '@agent-ic/flow';
 import { context, propagation, trace } from '@opentelemetry/api';
 import { node, tracing } from '@opentelemetry/sdk-node';
@@ -95,7 +95,7 @@ const parallelFlow = (
       parallelNode(PARALLEL_NODE_ID, PARALLEL_NODE_KEY, waitFor),
       agentNode(FIRST_STEP_ID, FIRST_STEP_KEY),
       held,
-      ...(isObserverNode(held) ? [] : [agentNode(THIRD_STEP_ID, THIRD_STEP_KEY)]),
+      ...(held.id === OBSERVER_NODE_ID ? [] : [agentNode(THIRD_STEP_ID, THIRD_STEP_KEY)]),
       agentNode(FOURTH_STEP_ID, FOURTH_STEP_KEY),
     ],
     [
@@ -104,7 +104,7 @@ const parallelFlow = (
       background
         ? backgroundBranchEdge(PARALLEL_NODE_ID, held.id)
         : flowEdge(PARALLEL_NODE_ID, held.id, PortName.Branches),
-      ...(isObserverNode(held) ? [] : [flowEdge(held.id, THIRD_STEP_ID)]),
+      ...(held.id === OBSERVER_NODE_ID ? [] : [flowEdge(held.id, THIRD_STEP_ID)]),
       flowEdge(PARALLEL_NODE_ID, FOURTH_STEP_ID),
     ],
   );
@@ -367,9 +367,9 @@ describe('RunExecutionService', () => {
       thirdCalls: 1,
     },
     {
-      waitFor: WaitFor.Guards,
+      waitFor: WaitFor.All,
       held: observerNode(OBSERVER_NODE_ID, OBSERVER_NODE_KEY),
-      background: false,
+      background: true,
       thirdCalls: 0,
     },
     {
@@ -406,7 +406,7 @@ describe('RunExecutionService tracing', () => {
   });
   const guardThenStep = stepFlow(
     [
-      completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, CompletionRole.Guard),
+      completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY),
       agentNode(FIRST_STEP_ID, FIRST_STEP_KEY),
     ],
     [flowEdge(TEST_NODE_ID, TEST_STEP_NODE_ID), flowEdge(TEST_STEP_NODE_ID, FIRST_STEP_ID)],

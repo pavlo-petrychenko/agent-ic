@@ -1,5 +1,5 @@
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
-import { isObserverNode, isTriggerNode } from '@flow/document/helpers/node.helpers';
+import { isTriggerNode } from '@flow/document/helpers/node.helpers';
 import { nodePorts } from '@flow/document/helpers/port.helpers';
 import type {
   FlowDocument,
@@ -105,13 +105,7 @@ const createPresenceAnalysis = (graph: FlowGraph): ((nodeId: string) => StepPres
         continue;
       }
       const end = mergePresence(exitStates(nodeIds, nestedBranchNodes(nodeIds)));
-      const observerBranch = [...nodeIds].some((id) => {
-        const node = graph.nodes.get(id);
-        return node !== undefined && isObserverNode(node);
-      });
-      const weaken =
-        parallel.config.waitFor === WaitFor.First ||
-        (parallel.config.waitFor === WaitFor.Guards && observerBranch);
+      const weaken = parallel.config.waitFor === WaitFor.First;
       for (const [id, presence] of end) {
         if (nodeIds.has(id)) {
           joined.set(id, weaken ? Presence.Possible : presence);
@@ -245,9 +239,6 @@ const stepScope = (node: FlowNode, presence: Presence): VisibleVariable[] => {
       nullable: !guaranteed || output.path !== API_REQUEST_ALWAYS_SET_OUTPUT,
       values: null,
     }));
-  }
-  if (isObserverNode(node)) {
-    return [];
   }
   return nodeOutputFields(node).map((field) => ({
     ...step,

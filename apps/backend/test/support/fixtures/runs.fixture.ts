@@ -1,5 +1,4 @@
 import {
-  CompletionRole,
   ConditionOperator,
   DEFAULT_RETRIEVAL_MODE,
   EscalationMode,
@@ -157,7 +156,6 @@ export const observerNode = (id: string, key: string): CompletionNode => ({
   position: NODE_POSITION,
   type: NodeType.Completion,
   config: {
-    role: CompletionRole.Observer,
     prompt: null,
     model: null,
     reasoning: null,
@@ -224,7 +222,6 @@ export const apiRequestNode = (
 export const completionNode = (
   id: string,
   key: string,
-  role: CompletionRole,
   config: Partial<CompletionNode['config']> = {},
 ): CompletionNode => ({
   id,
@@ -233,7 +230,6 @@ export const completionNode = (
   position: NODE_POSITION,
   type: NodeType.Completion,
   config: {
-    role,
     prompt: { kind: PromptSourceKind.Inline, text: TEST_COMPLETION_PROMPT },
     model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Ministral14b },
     reasoning: null,

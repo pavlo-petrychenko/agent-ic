@@ -1,6 +1,6 @@
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
 import type { FlowNode } from '@flow/document/typedefs/flow.typedefs';
-import { CompletionRole, FailureMode } from '@flow/nodes/constants/step.constants';
+import { FailureMode } from '@flow/nodes/constants/step.constants';
 
 const STEP_PORTS: readonly string[] = [PortName.Next, PortName.Error];
 const NEXT_ONLY: readonly string[] = [PortName.Next];
@@ -14,9 +14,8 @@ export const nodePorts = (node: FlowNode): readonly string[] => {
     case NodeType.SendMessage:
       return NEXT_ONLY;
     case NodeType.Agent:
-      return STEP_PORTS;
     case NodeType.Completion:
-      return node.config.role === CompletionRole.Guard ? STEP_PORTS : NO_PORTS;
+      return STEP_PORTS;
     case NodeType.Router:
       return [...node.config.rules.map((rule) => rule.id), PortName.Else];
     case NodeType.Parallel:

@@ -1,3 +1,4 @@
+import { FLOW_SCHEMA_VERSION } from '@agent-ic/flow';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import type { TestingModule } from '@nestjs/testing';
 import { eq, sql } from 'drizzle-orm';
@@ -157,11 +158,11 @@ describe('AgentVersionsRepository', () => {
     expect(draft).toMatchObject({ flow: emptyFlow(), revision: DRAFT_INITIAL_REVISION });
   });
 
-  it('reads a stored flow through the flow schema', async () => {
+  it('reads a stored version 1 flow as the current version', async () => {
     const workspaceId = ids.generate();
     const agentId = await insertAgent(workspaceId);
     const draftId = await insertVersion(workspaceId, agentId, AgentVersionKind.Draft);
-    const storedFlow = JSON.stringify({ ...triggerFlow(), note: TEST_VERSION_NOTE });
+    const storedFlow = JSON.stringify({ ...triggerFlow(), schemaVersion: FLOW_SCHEMA_VERSION - 1 });
     const txHost = testingModule.get<TransactionHost<AppTransactionAdapter>>(TransactionHost);
 
     const draft = await tenants.run(workspaceId, async () => {

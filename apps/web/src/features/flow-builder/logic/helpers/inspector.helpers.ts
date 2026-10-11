@@ -1,8 +1,6 @@
 import {
-  CompletionRole,
   NODE_KEY_MAX_LENGTH,
   NODE_KEY_PATTERN,
-  NodeType,
   PortName,
   RESERVED_ROOTS,
   WaitFor,
@@ -101,9 +99,6 @@ export const portTargets = (document: FlowDocument, nodeId: string, port: string
       return target === undefined ? [] : [{ nodeId: target.id, label: nodeName(target) }];
     });
 
-const isObserver = (node: FlowNode): boolean =>
-  node.type === NodeType.Completion && node.config.role === CompletionRole.Observer;
-
 const isBackground = (edge: FlowEdge): boolean =>
   edge.sourcePort === PortName.Branches && edge.background === true;
 
@@ -116,22 +111,16 @@ export const observerNames = (document: FlowDocument, nodeId: string): string[] 
       (node) =>
         !reaches(document, node.id, nodeId) &&
         !reaches(document, nodeId, node.id) &&
-        branches.some(
-          (edge) =>
-            (isObserver(node) || isBackground(edge)) && reaches(document, edge.target, node.id),
-        ),
+        branches.some((edge) => isBackground(edge) && reaches(document, edge.target, node.id)),
     )
     .map(nodeName);
 };
 
-const branchRole = (waitFor: WaitFor, observer: boolean, background: boolean): BranchRole => {
+const branchRole = (waitFor: WaitFor, background: boolean): BranchRole => {
   if (background) {
     return BranchRole.Background;
   }
-  if (waitFor === WaitFor.First) {
-    return BranchRole.Racing;
-  }
-  return waitFor === WaitFor.Guards && observer ? BranchRole.Observer : BranchRole.Waited;
+  return waitFor === WaitFor.First ? BranchRole.Racing : BranchRole.Waited;
 };
 
 export const branchRows = (document: FlowDocument, node: ParallelNode, port: string): BranchRow[] =>
@@ -145,7 +134,6 @@ export const branchRows = (document: FlowDocument, node: ParallelNode, port: str
             ...NODE_PRESENTATION[step.type],
             role: branchRole(
               node.config.waitFor,
-              isObserver(step),
               document.edges.some(
                 (edge) => edge.source === node.id && edge.target === step.id && isBackground(edge),
               ),

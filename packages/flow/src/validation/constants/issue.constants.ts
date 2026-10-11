@@ -35,7 +35,6 @@ export enum FlowIssueCode {
   SendInParallelBranch = 'SEND_IN_PARALLEL_BRANCH',
   TooFewBranches = 'TOO_FEW_BRANCHES',
   TooManyBranches = 'TOO_MANY_BRANCHES',
-  ObserverHasEdges = 'OBSERVER_HAS_EDGES',
   ErrorPortNotConnected = 'ERROR_PORT_NOT_CONNECTED',
   DuplicateEventName = 'DUPLICATE_EVENT_NAME',
   InvalidCron = 'INVALID_CRON',

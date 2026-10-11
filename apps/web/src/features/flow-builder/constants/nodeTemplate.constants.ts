@@ -3,7 +3,6 @@ import {
   API_REQUEST_DEFAULT_RETRIES,
   API_REQUEST_DEFAULT_TIMEOUT_SECONDS,
   ChannelSelectionMode,
-  CompletionRole,
   DEFAULT_RETRIEVAL_MODE,
   ESCALATION_DEFAULT_FALLBACK_MINUTES,
   ESCALATION_DEFAULT_REMINDER_MINUTES,
@@ -45,7 +44,6 @@ export const NODE_TEMPLATES: NodeTemplates = {
   [NodeType.Completion]: {
     type: NodeType.Completion,
     config: {
-      role: CompletionRole.Guard,
       prompt: { kind: PromptSourceKind.Inline, text: '' },
       model: null,
       reasoning: null,
@@ -61,7 +59,7 @@ export const NODE_TEMPLATES: NodeTemplates = {
     },
   },
   [NodeType.Router]: { type: NodeType.Router, config: { rules: [] } },
-  [NodeType.Parallel]: { type: NodeType.Parallel, config: { waitFor: WaitFor.Guards } },
+  [NodeType.Parallel]: { type: NodeType.Parallel, config: { waitFor: WaitFor.All } },
   [NodeType.ApiRequest]: {
     type: NodeType.ApiRequest,
     config: {

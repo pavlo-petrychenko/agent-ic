@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
-import { PortName } from '@flow/document/constants/flow.constants';
+import { FLOW_SCHEMA_VERSION, PortName } from '@flow/document/constants/flow.constants';
 import type { FlowDocument, FlowNode, PromptSource } from '@flow/document/typedefs/flow.typedefs';
-import { CompletionRole, FailureMode, WaitFor } from '@flow/nodes/constants/step.constants';
+import { FailureMode, WaitFor } from '@flow/nodes/constants/step.constants';
 import { ReplyMode } from '@flow/nodes/constants/trigger.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 import {
@@ -62,12 +62,15 @@ const branchFlow = (branches: FlowNode[], waitFor = WaitFor.All) => {
 };
 
 const guard = (key: string) => {
-  const node = completion(key, CompletionRole.Guard);
+  const node = completion(key);
   return node;
 };
 
 const failingFlows: Record<FlowIssueCode, () => unknown> = {
-  [FlowIssueCode.UnsupportedVersion]: () => ({ ...cleanFlow(), schemaVersion: 2 }),
+  [FlowIssueCode.UnsupportedVersion]: () => ({
+    ...cleanFlow(),
+    schemaVersion: FLOW_SCHEMA_VERSION + 1,
+  }),
   [FlowIssueCode.InvalidDocument]: () => ({
     ...cleanFlow(),
     nodes: [{ ...answer, config: undefined }],
@@ -145,13 +148,6 @@ const failingFlows: Record<FlowIssueCode, () => unknown> = {
   [FlowIssueCode.TooFewBranches]: () => branchFlow([guard('left')]),
   [FlowIssueCode.TooManyBranches]: () =>
     branchFlow(['a', 'b', 'c', 'd', 'e', 'f'].map((key) => guard(key))),
-  [FlowIssueCode.ObserverHasEdges]: () => {
-    const observer = completion('topic', CompletionRole.Observer);
-    return cleanFlow(
-      [observer],
-      [link(reply, PortName.Next, observer), link(observer, PortName.Next, handoff)],
-    );
-  },
   [FlowIssueCode.ErrorPortNotConnected]: () =>
     withStep(apiRequest('load', 'https://x.test', FailureMode.ErrorPort)),
   [FlowIssueCode.DuplicateEventName]: () => {
@@ -219,9 +215,10 @@ describe('validateFlow', () => {
     },
   );
 
-  it('warns about the guard without an error path in the FAQ example', () => {
+  it('warns about the completions without an error path in the FAQ example', () => {
     expect(validateFlow(faqWithHandOffFlow)).toEqual([
       expect.objectContaining({ code: FlowIssueCode.NoErrorPath, nodeId: 'n_guard' }),
+      expect.objectContaining({ code: FlowIssueCode.NoErrorPath, nodeId: 'n_topic' }),
     ]);
   });
 
@@ -258,7 +255,7 @@ describe('validateFlow', () => {
   });
 
   it('checks enum values in conditions', () => {
-    const topic = completion('topic', CompletionRole.Guard, [field('name', OutputFieldType.Enum)]);
+    const topic = completion('topic', [field('name', OutputFieldType.Enum)]);
     const route = router('route', [rule('first', 'topic.name', ConditionOperator.Eq, 'c')]);
     const flow = cleanFlow(
       [topic, route],

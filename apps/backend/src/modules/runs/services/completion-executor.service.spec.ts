@@ -1,6 +1,5 @@
 import { ErrorReason } from '@agent-ic/contracts';
 import {
-  CompletionRole,
   ModelProviderKind,
   PortName,
   PromptSourceKind,
@@ -45,6 +44,7 @@ import {
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import {
   agentNode,
+  backgroundBranchEdge,
   branchEdge,
   completionNode,
   finishedStep,
@@ -63,8 +63,8 @@ import type {
   RunExecutionTestbed,
 } from '@test/support/typedefs/runs-testing.typedefs';
 
-const guard = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, CompletionRole.Guard);
-const observer = completionNode(OBSERVER_NODE_ID, OBSERVER_STEP_KEY, CompletionRole.Observer);
+const guard = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY);
+const observer = completionNode(OBSERVER_NODE_ID, OBSERVER_STEP_KEY);
 const router = intentRouterNode(TEST_OTHER_NODE_ID, TEST_OTHER_NODE_KEY, TEST_STEP_NODE_KEY);
 
 const guardThenAgent = (node = guard) =>
@@ -131,7 +131,7 @@ describe('CompletionExecutor', () => {
   });
 
   it('leaves the current message out when the step does not include it', async () => {
-    const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, CompletionRole.Guard, {
+    const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
       input: { includeCurrentMessage: false },
     });
     const seeded = await seedExecutableRun(testbed, guardThenAgent(node));
@@ -146,7 +146,7 @@ describe('CompletionExecutor', () => {
   });
 
   it('ends the request with a user turn when the history before the current message ends with a reply', async () => {
-    const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, CompletionRole.Guard, {
+    const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
       input: { includeCurrentMessage: false },
     });
     const seeded = await seedExecutableRun(testbed, guardThenAgent(node), [
@@ -166,7 +166,7 @@ describe('CompletionExecutor', () => {
   });
 
   it('fails the step on a library prompt without calling the model', async () => {
-    const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, CompletionRole.Guard, {
+    const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
       prompt: {
         kind: PromptSourceKind.Library,
         promptRef: TEST_PROMPT_REF,
@@ -186,7 +186,7 @@ describe('CompletionExecutor', () => {
   });
 
   it('follows the error port of a guard whose model is unknown', async () => {
-    const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, CompletionRole.Guard, {
+    const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
       model: { provider: { kind: ModelProviderKind.Platform }, model: TEST_UNKNOWN_MODEL },
     });
     const seeded = await seedExecutableRun(
@@ -210,7 +210,7 @@ describe('CompletionExecutor', () => {
     expect(stepOf(SECOND_STEP_ID)).toMatchObject({ status: RunStepStatus.Succeeded });
   });
 
-  it('ends an observer without a port and hides its output from the router', async () => {
+  it('hides the output of a background completion from the router after the join', async () => {
     const seeded = await seedExecutableRun(
       testbed,
       stepFlow([observer], [flowEdge(TEST_NODE_ID, OBSERVER_NODE_ID)]),
@@ -221,23 +221,26 @@ describe('CompletionExecutor', () => {
 
     const observed = (await stored(seeded)).steps.find((step) => step.nodeId === OBSERVER_NODE_ID);
     const checks = stepFlow(
-      [parallelNode(PARALLEL_NODE_ID, PARALLEL_STEP_KEY, WaitFor.Guards), guard, observer, router],
+      [parallelNode(PARALLEL_NODE_ID, PARALLEL_STEP_KEY, WaitFor.All), guard, observer, router],
       [
         flowEdge(TEST_NODE_ID, PARALLEL_NODE_ID),
         branchEdge(PARALLEL_NODE_ID, TEST_STEP_NODE_ID),
-        branchEdge(PARALLEL_NODE_ID, OBSERVER_NODE_ID),
+        backgroundBranchEdge(PARALLEL_NODE_ID, OBSERVER_NODE_ID),
         flowEdge(PARALLEL_NODE_ID, TEST_OTHER_NODE_ID),
       ],
     );
     const { ids } = testbed;
     const steps = new Map([
       [TEST_STEP_NODE_ID, finishedStep(ids, guard, RunStepStatus.Succeeded, PortName.Next)],
-      [OBSERVER_NODE_ID, finishedStep(ids, observer, RunStepStatus.Succeeded, null)],
+      [OBSERVER_NODE_ID, finishedStep(ids, observer, RunStepStatus.Succeeded, PortName.Next)],
     ]);
     const trigger = messageTriggerVariables(runConversation(ids), [], RUNS_TEST_START);
     const lookup = createScopeLookup(checks);
     const variables = stepVariables({ flow: checks, lookup, trigger, steps }, TEST_OTHER_NODE_ID);
-    expect(observed).toMatchObject({ port: null, output: { intent: TEST_QUESTION_INTENT } });
+    expect(observed).toMatchObject({
+      port: PortName.Next,
+      output: { intent: TEST_QUESTION_INTENT },
+    });
     expect(variables).toHaveProperty(TEST_STEP_NODE_KEY);
     expect(variables).not.toHaveProperty(OBSERVER_STEP_KEY);
   });

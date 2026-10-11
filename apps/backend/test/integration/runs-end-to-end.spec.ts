@@ -1,4 +1,4 @@
-import { CompletionRole, ModelProviderKind, PortName, PromptSourceKind } from '@agent-ic/flow';
+import { ModelProviderKind, PortName, PromptSourceKind } from '@agent-ic/flow';
 import { HttpStatus } from '@nestjs/common';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { PauseMode } from '@/modules/agents';
@@ -58,7 +58,7 @@ const answerer = agentNode(FIRST_STEP_ID, FIRST_STEP_KEY, {
 
 const flow = stepFlow(
   [
-    completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, CompletionRole.Guard),
+    completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY),
     intentRouterNode(ROUTER_NODE_ID, ROUTER_NODE_KEY, TEST_STEP_NODE_KEY),
     answerer,
     sendListNode(SEND_NODE_ID, SEND_NODE_KEY, `${FIRST_STEP_KEY}.messages`),

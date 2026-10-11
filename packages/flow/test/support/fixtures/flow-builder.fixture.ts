@@ -20,7 +20,6 @@ import type {
   TriggerScheduleNode,
 } from '@flow/document/typedefs/flow.typedefs';
 import {
-  type CompletionRole,
   EscalationMode,
   FailureMode,
   HttpMethod,
@@ -113,13 +112,11 @@ export const agent = (
 
 export const completion = (
   key: string,
-  role: CompletionRole,
   output: OutputField[] = [field('verdict', OutputFieldType.Boolean)],
 ): CompletionNode => ({
   ...base(key),
   type: NodeType.Completion,
   config: {
-    role,
     prompt: examplePrompt(`Answer as ${key}.`),
     model: exampleModel,
     reasoning: null,
