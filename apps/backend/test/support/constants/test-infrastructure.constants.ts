@@ -50,6 +50,7 @@ export enum TestRedisPrefix {
   PasswordResetFlow = 'password-reset-flow:',
   DurableJobs = 'durable-jobs:',
   Agents = 'agents:',
+  Prompts = 'prompts:',
   Conversations = 'conversations:',
   Channels = 'channels:',
   ChannelsWorker = 'channels-worker:',

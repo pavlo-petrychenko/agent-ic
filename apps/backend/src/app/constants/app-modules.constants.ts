@@ -3,6 +3,7 @@ import { ChannelsModule } from '@/modules/channels';
 import { ConversationsModule } from '@/modules/conversations';
 import { IdentityModule } from '@/modules/identity';
 import { NotificationsModule } from '@/modules/notifications';
+import { PromptsModule } from '@/modules/prompts';
 import { RunsModule } from '@/modules/runs';
 import { SystemModule } from '@/modules/system';
 import { CacheModule } from '@/platform/cache/cache.module';
@@ -52,6 +53,7 @@ export const DOMAIN_MODULES: readonly ModuleImport[] = [
   ConversationsModule,
   ChannelsModule,
   RunsModule,
+  PromptsModule,
 ];
 
 export const APP_MODULES: readonly ModuleImport[] = [...PLATFORM_MODULES, ...DOMAIN_MODULES];

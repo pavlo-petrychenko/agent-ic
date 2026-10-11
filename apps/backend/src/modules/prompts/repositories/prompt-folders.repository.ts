@@ -1,4 +1,4 @@
-import type { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { eq, isNull, and, sql, asc } from 'drizzle-orm';
 import { promptFolders } from '@/modules/prompts/db/prompt-folders.table';
