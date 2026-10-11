@@ -319,6 +319,7 @@ describe('loadAppConfig', () => {
     [EnvVar.LlmBaseUrl, 'not a url'],
     [EnvVar.EmbeddingModel, undefined],
     [EnvVar.EmbeddingModel, ''],
+    [EnvVar.EmbeddingModel, 'text-embedding-unknown'],
   ])('stops boot on a bad %s: %s', (variable, value) => {
     const env = createTestEnv({ [variable]: value });
 

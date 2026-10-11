@@ -51,6 +51,7 @@ export enum ErrorReason {
   LlmReplyMissing = 'LLM_REPLY_MISSING',
   LlmToolRoundsExceeded = 'LLM_TOOL_ROUNDS_EXCEEDED',
   LlmUnavailable = 'LLM_UNAVAILABLE',
+  EmbeddingDimensionMismatch = 'EMBEDDING_DIMENSION_MISMATCH',
   InvalidAgentName = 'INVALID_AGENT_NAME',
   AgentNotFound = 'AGENT_NOT_FOUND',
   AgentVersionNotFound = 'AGENT_VERSION_NOT_FOUND',

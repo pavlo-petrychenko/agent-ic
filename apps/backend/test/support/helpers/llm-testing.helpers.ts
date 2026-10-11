@@ -5,7 +5,9 @@ import { SystemClockService } from '@/platform/clock/services/system-clock.servi
 import type { EnvVar } from '@/platform/config/constants/env.constants';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { ConfigService } from '@/platform/config/services/config.service';
+import type { LlmMetricName } from '@/platform/llm/constants/llm-metrics.constants';
 import { LLM_TRACER_NAME } from '@/platform/llm/constants/llm-tracing.constants';
+import { AiSdkEmbeddingGateway } from '@/platform/llm/gateways/ai-sdk-embedding.gateway';
 import { AiSdkLlmGateway } from '@/platform/llm/gateways/ai-sdk-llm.gateway';
 import { LlmMetricsService } from '@/platform/llm/services/llm-metrics.service';
 import { LlmSamplerService } from '@/platform/llm/services/llm-sampler.service';
@@ -46,3 +48,28 @@ export const createLlmGateway = (
     deps.metrics ?? createLlmMetricsService(),
     timeouts,
   );
+
+export const createEmbeddingGateway = (
+  env: Partial<Record<EnvVar, string>>,
+  batchTimeoutMs: number,
+  deps: Partial<LlmGatewayTestDeps> = {},
+): AiSdkEmbeddingGateway =>
+  new AiSdkEmbeddingGateway(
+    new ProviderResolverService(testConfig(env)),
+    deps.traces ?? createLlmTraceContextService(env),
+    deps.usage ?? new NoopUsageReporter(),
+    deps.metrics ?? createLlmMetricsService(),
+    batchTimeoutMs,
+  );
+
+export const metricValue = async (
+  metrics: MetricsService,
+  name: LlmMetricName,
+  labels: Readonly<Record<string, string>>,
+): Promise<number | null> => {
+  const metric = await metrics.registry.getSingleMetric(name)?.get();
+  const sample = metric?.values.find((value) =>
+    Object.entries(labels).every(([label, wanted]) => value.labels[label] === wanted),
+  );
+  return sample?.value ?? null;
+};

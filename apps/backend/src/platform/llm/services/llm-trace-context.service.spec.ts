@@ -14,6 +14,7 @@ import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
 import { LLM_CATALOG } from '@/platform/llm/constants/llm-catalog.constants';
 import { LlmMessageRole } from '@/platform/llm/constants/llm-gateway.constants';
 import {
+  EmbeddingModelId,
   LlmModelId,
   LlmPurpose,
   LlmReasoningEffort,
@@ -29,6 +30,7 @@ import type {
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 import type { LlmTags } from '@/platform/llm/typedefs/llm-tracing.typedefs';
 import {
+  createEmbeddingGateway,
   createLlmGateway,
   createLlmTraceContextService,
 } from '@test/support/helpers/llm-testing.helpers';
@@ -102,7 +104,11 @@ describe('LLM tracing', () => {
       [EnvVar.OtelSdkDisabled]: sdkDisabled,
     };
     const traces = createLlmTraceContextService(env, using, sampler);
-    return { traces, gateway: createLlmGateway(env, TIMEOUTS, { traces }) };
+    return {
+      traces,
+      gateway: createLlmGateway(env, TIMEOUTS, { traces }),
+      embeddings: createEmbeddingGateway(env, STEP_TIMEOUT_MS, { traces }),
+    };
   };
 
   const calls: readonly [string, (gateway: LlmGateway) => Promise<unknown>][] = [
@@ -170,6 +176,23 @@ describe('LLM tracing', () => {
         'langfuse.observation.metadata.fallback_hop': 1,
       }),
     ]);
+  });
+
+  it('tags the span of embed for Langfuse when it is on', async () => {
+    const model = EmbeddingModelId.JinaEmbeddingsV5TextSmall;
+    mock.embed();
+
+    await setUp(LangfuseMode.SelfHosted, ALWAYS).embeddings.embed(['Opening hours'], {
+      model,
+      tags: TAGS,
+    });
+
+    expect(taggedSpans()).toHaveLength(1);
+    expect(taggedSpans()[0]?.attributes).toMatchObject({
+      ...TRACE_ATTRIBUTES,
+      [MODEL_ATTRIBUTE]: model,
+      'langfuse.observation.metadata.fallback_hop': 0,
+    });
   });
 
   it('records no spans for calls the sample rate leaves out', async () => {

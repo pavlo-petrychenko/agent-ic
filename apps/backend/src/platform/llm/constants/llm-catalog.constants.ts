@@ -1,4 +1,5 @@
 import {
+  EmbeddingModelId,
   LlmAgentFinish,
   LlmApi,
   LlmModelId,
@@ -7,7 +8,7 @@ import {
   LlmStructuredOutput,
   LlmVendor,
 } from '@/platform/llm/constants/llm-model.constants';
-import type { LlmModel } from '@/platform/llm/typedefs/llm-model.typedefs';
+import type { LlmEmbeddingModel, LlmModel } from '@/platform/llm/typedefs/llm-model.typedefs';
 
 export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
   [LlmModelId.Gpt6Luna]: {
@@ -117,4 +118,14 @@ export const LLM_CATALOG: Readonly<Record<LlmModelId, LlmModel>> = {
 export const LLM_DEFAULT_MODEL: Readonly<Record<LlmPurpose, LlmModelId>> = {
   [LlmPurpose.Conversation]: LlmModelId.Gpt6Luna,
   [LlmPurpose.Light]: LlmModelId.Gpt6Luna,
+};
+
+export const EMBEDDING_CATALOG: Readonly<Record<EmbeddingModelId, LlmEmbeddingModel>> = {
+  [EmbeddingModelId.JinaEmbeddingsV5TextSmall]: {
+    id: EmbeddingModelId.JinaEmbeddingsV5TextSmall,
+    vendor: LlmVendor.Jina,
+    price: { inputUsdPerMillionTokens: 0.02, outputUsdPerMillionTokens: 0 },
+    dimensions: 1024,
+    batchSize: 128,
+  },
 };

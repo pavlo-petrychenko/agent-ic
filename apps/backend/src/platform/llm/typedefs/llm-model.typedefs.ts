@@ -1,4 +1,5 @@
 import type {
+  EmbeddingModelId,
   LlmAgentFinish,
   LlmApi,
   LlmModelId,
@@ -24,4 +25,19 @@ export interface LlmModel {
   readonly agentFinish: LlmAgentFinish;
   readonly reasoningLevels: readonly LlmReasoningEffort[];
   readonly reasoningEffort: LlmReasoningEffort | null;
+}
+
+export interface LlmEmbeddingModel {
+  readonly id: EmbeddingModelId;
+  readonly vendor: LlmVendor;
+  readonly price: LlmPrice;
+  readonly dimensions: number;
+  readonly batchSize: number;
+}
+
+export type LlmAnyModelId = LlmModelId | EmbeddingModelId;
+
+export interface LlmPricedModel {
+  readonly id: LlmAnyModelId;
+  readonly price: LlmPrice;
 }
