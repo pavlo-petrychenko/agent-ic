@@ -31,17 +31,43 @@ export interface TestingRunResult {
   failed: boolean;
 }
 
-export interface TraceSlot {
+export interface TracePosition {
+  row: number;
+  column: number;
+}
+
+export interface TracePoint {
+  x: number;
+  y: number;
+}
+
+export interface TraceSlot extends TracePosition {
   id: string;
   label: string;
   type: NodeType;
-  row: number;
-  column: number;
-  linked: boolean;
+}
+
+export interface TraceEdge {
+  id: string;
+  source: TracePosition;
+  target: TracePosition;
 }
 
 export interface TraceCell extends TraceSlot {
   kind: NodeKind;
   icon: IconName;
   state: RunNodeState;
+}
+
+export interface PlacedTraceCell extends TraceCell, TracePoint {}
+
+export interface TracePath {
+  id: string;
+  d: string;
+}
+
+export interface TraceDrawing {
+  size: TracePoint;
+  nodes: readonly PlacedTraceCell[];
+  paths: readonly TracePath[];
 }

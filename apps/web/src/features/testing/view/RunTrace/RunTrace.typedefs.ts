@@ -1,5 +1,5 @@
-import type { TraceCell } from '@/features/testing/typedefs/trace.typedefs';
+import type { TraceDrawing } from '@/features/testing/typedefs/trace.typedefs';
 
 export interface RunTraceProps {
-  cells: readonly TraceCell[];
+  drawing: TraceDrawing;
 }

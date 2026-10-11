@@ -4,23 +4,37 @@ import type { RunTraceProps } from '@/features/testing/view/RunTrace/RunTrace.ty
 import { RunNode } from '@/shared/ui/flow/RunNode';
 import styles from '@/features/testing/view/RunTrace/RunTrace.module.scss';
 
-export function RunTrace({ cells }: RunTraceProps) {
+export function RunTrace({ drawing }: RunTraceProps) {
   const { t } = useTranslation(TESTING_NAMESPACE);
+  const { size, nodes, paths } = drawing;
 
   return (
-    <ol className={styles.root} aria-label={t('trace.steps')}>
-      {cells.map((cell) => (
-        <RunNode
-          key={cell.id}
-          name={cell.label}
-          kind={cell.kind}
-          icon={cell.icon}
-          state={cell.state}
-          stateLabel={t(`trace.state.${cell.state}`)}
-          className={cell.linked ? styles.linked : undefined}
-          style={{ gridRow: cell.row + 1, gridColumn: cell.column + 1 }}
-        />
-      ))}
-    </ol>
+    <div className={styles.root} style={{ width: size.x, height: size.y }}>
+      <svg
+        className={styles.edges}
+        width={size.x}
+        height={size.y}
+        viewBox={`0 0 ${size.x} ${size.y}`}
+        aria-hidden="true"
+      >
+        {paths.map((path) => (
+          <path key={path.id} d={path.d} />
+        ))}
+      </svg>
+      <ol className={styles.nodes} aria-label={t('trace.steps')}>
+        {nodes.map((node) => (
+          <RunNode
+            key={node.id}
+            name={node.label}
+            kind={node.kind}
+            icon={node.icon}
+            state={node.state}
+            stateLabel={t(`trace.state.${node.state}`)}
+            className={styles.node}
+            style={{ left: node.x, top: node.y }}
+          />
+        ))}
+      </ol>
+    </div>
   );
 }

@@ -8,13 +8,17 @@ import {
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import {
+  drawTrace,
   focusNodeId,
   layoutTrace,
   nodeState,
+  traceEdges,
 } from '@/features/testing/logic/helpers/trace.helpers';
 import type { RunDetails } from '@/features/testing/typedefs/trace.typedefs';
 import { RunStatus, RunStepStatus } from '@/shared/api/generated/schema.generated';
+import { NodeKind } from '@/shared/ui/display/NodeTile';
 import { RunNodeState } from '@/shared/ui/flow/RunNode';
+import { IconName } from '@/shared/ui/foundations/Icon';
 
 const ORIGIN = { x: 0, y: 0 };
 
@@ -75,13 +79,11 @@ describe('layoutTrace', () => {
       [edge('a', 'b'), edge('b', 'c'), edge('b', 'd')],
     );
 
-    expect(
-      layoutTrace(flow).map(({ id, row, column, linked }) => [id, row, column, linked]),
-    ).toEqual([
-      ['a', 0, 0, false],
-      ['b', 1, 0, true],
-      ['c', 2, 0, true],
-      ['d', 2, 1, false],
+    expect(layoutTrace(flow).map(({ id, row, column }) => [id, row, column])).toEqual([
+      ['a', 0, 0],
+      ['b', 1, 0],
+      ['c', 2, 0],
+      ['d', 2, 1],
     ]);
   });
 
@@ -94,6 +96,50 @@ describe('layoutTrace', () => {
       ['loose', 2],
     ]);
     expect(layoutTrace(flow)[0]?.type).toBe(NodeType.TriggerMessage);
+  });
+});
+
+describe('traceEdges', () => {
+  const flow = flowOf(
+    [node('a', TRACE_TRIGGER), node('b'), node('c'), node('d')],
+    [edge('a', 'b'), edge('b', 'c'), edge('b', 'd'), edge('b', 'gone')],
+  );
+  const edges = traceEdges(flow.edges, layoutTrace(flow));
+
+  it('connects every placed source to every placed target, branches included', () => {
+    expect(edges.map(({ id, source, target }) => [id, source.column, target.column])).toEqual([
+      ['a-b', 0, 0],
+      ['b-c', 0, 0],
+      ['b-d', 0, 1],
+    ]);
+  });
+});
+
+describe('drawTrace', () => {
+  const flow = flowOf(
+    [node('a', TRACE_TRIGGER), node('b'), node('c'), node('d')],
+    [edge('a', 'b'), edge('b', 'c'), edge('b', 'd')],
+  );
+  const cells = layoutTrace(flow).map((slot) => ({
+    ...slot,
+    kind: NodeKind.Agent,
+    icon: IconName.Msg,
+    state: RunNodeState.Done,
+  }));
+  const drawing = drawTrace(cells, traceEdges(flow.edges, cells));
+
+  it('draws a straight line down a column and a curve into another column', () => {
+    expect(drawing.paths.map((path) => path.d)).toEqual([
+      'M110 36 V54',
+      'M110 90 V108',
+      'M110 90 C110 108 346 90 346 108',
+    ]);
+  });
+
+  it('places every node on its cell and sizes the trace to the farthest one', () => {
+    expect(drawing.nodes.map(({ id, x, y }) => [id, x, y]).at(-1)).toEqual(['d', 236, 108]);
+    expect(drawing.size).toEqual({ x: 456, y: 144 });
+    expect(drawTrace([], []).size).toEqual({ x: 0, y: 0 });
   });
 });
 
