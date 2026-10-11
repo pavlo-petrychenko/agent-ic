@@ -97,7 +97,7 @@ export function TracePanel({
                 value:
                   turn.durationMs === null
                     ? EMPTY_FIELD_VALUE
-                    : formatSeconds(turn.durationMs, locale),
+                    : t('details.seconds', { value: formatSeconds(turn.durationMs, locale) }),
               },
               {
                 label: t('details.stepsRun'),

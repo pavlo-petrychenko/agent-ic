@@ -69,7 +69,7 @@ describe('TracePanel', () => {
     expect(await screen.findByRole('heading', { name: 'Turn 2' })).toBeInTheDocument();
     expect(await stepState('Send replies')).toBe('skipped');
     expect(screen.getByText('Completed')).toBeInTheDocument();
-    expect(screen.getByText('2.1 sec')).toBeInTheDocument();
+    expect(screen.getByText('2.1 s')).toBeInTheDocument();
     expect(screen.getByText('2 of 2')).toBeInTheDocument();
     expect(screen.getByText('needs_human')).toBeInTheDocument();
   });

@@ -31,8 +31,6 @@ export const toOutputView = (output: unknown): OutputView | null => {
 };
 
 export const formatSeconds = (durationMs: number, locale: string): string =>
-  new Intl.NumberFormat(locale, {
-    style: 'unit',
-    unit: 'second',
-    maximumFractionDigits: DURATION_FRACTION_DIGITS,
-  }).format(durationMs / MS_PER_SECOND);
+  new Intl.NumberFormat(locale, { maximumFractionDigits: DURATION_FRACTION_DIGITS }).format(
+    durationMs / MS_PER_SECOND,
+  );

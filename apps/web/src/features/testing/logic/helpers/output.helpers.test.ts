@@ -26,7 +26,8 @@ describe('toOutputView', () => {
 });
 
 describe('formatSeconds', () => {
-  it('formats milliseconds as seconds with one decimal', () => {
-    expect(formatSeconds(2100, 'en')).toBe('2.1 sec');
+  it('formats milliseconds as seconds with one locale decimal', () => {
+    expect(formatSeconds(2100, 'en')).toBe('2.1');
+    expect(formatSeconds(2100, 'uk')).toBe('2,1');
   });
 });
