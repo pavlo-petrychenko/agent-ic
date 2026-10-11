@@ -21,6 +21,7 @@ export const WORKSPACE_FIELD_REASON: Readonly<Record<string, ErrorReason>> = {
 
 export enum WorkspaceGraphqlArgument {
   Token = 'token',
+  WorkspaceId = 'workspaceId',
   First = 'first',
   After = 'after',
 }

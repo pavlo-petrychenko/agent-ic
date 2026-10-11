@@ -19,6 +19,7 @@ export const users = identitySchema.table(
     pendingInviteLinkId: uuid('pending_invite_link_id'),
     confirmationBindingHash: text('confirmation_binding_hash'),
     lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
+    lastWorkspaceId: uuid('last_workspace_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()

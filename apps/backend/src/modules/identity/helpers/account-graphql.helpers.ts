@@ -32,6 +32,7 @@ export const toGraphqlUser = (me: Me): User => ({
   name: me.name,
   locale: GRAPHQL_LOCALE[me.locale],
   memberships: me.memberships.map(toGraphqlMembership),
+  lastWorkspaceId: me.lastWorkspaceId,
 });
 
 export const toUpdateMyLocaleInput = (args: UpdateMyLocaleArgs): UpdateMyLocaleInput => ({

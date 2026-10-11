@@ -40,6 +40,7 @@ describe('GetMeUseCase', () => {
       name: TEST_USER_NAME,
       locale: Locale.En,
       memberships: [],
+      lastWorkspaceId: null,
     });
   });
 

@@ -1,0 +1,1 @@
+ALTER TABLE "identity"."users" ADD COLUMN "last_workspace_id" uuid;

@@ -12,10 +12,12 @@ extend type Mutation {
   resetInviteLink: InviteLink!
   acceptInvite(token: String!): Membership!
   renameWorkspace(input: RenameWorkspaceInput!): Membership!
+  rememberWorkspace(workspaceId: ID!): User!
 }
 
 extend type User {
   memberships: [Membership!]!
+  lastWorkspaceId: ID
 }
 
 enum WorkspaceRole {

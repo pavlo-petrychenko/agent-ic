@@ -79,6 +79,15 @@ export class UsersRepository {
     return user ?? null;
   }
 
+  async updateLastWorkspace(id: string, workspaceId: string): Promise<UserRecord | null> {
+    const [user] = await this.txHost.tx
+      .update(users)
+      .set({ lastWorkspaceId: workspaceId })
+      .where(eq(users.id, id))
+      .returning();
+    return user ?? null;
+  }
+
   async touchLastActive(id: string, at: Date): Promise<void> {
     await this.txHost.tx.update(users).set({ lastActiveAt: at }).where(eq(users.id, id));
   }
