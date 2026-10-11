@@ -3,10 +3,12 @@ import type { FlowDocument, FlowIssue } from '@agent-ic/flow';
 import { isBlocking } from '@/features/flow-builder/logic/helpers/issue.helpers';
 import { nodeSummary, portLabel } from '@/features/flow-builder/logic/helpers/nodeSummary.helpers';
 import type { CanvasModel } from '@/features/flow-builder/typedefs/flowBuilder.typedefs';
+import type { ModelChoice } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 
 export const documentToCanvas = (
   document: FlowDocument,
   issues: readonly FlowIssue[],
+  models: readonly ModelChoice[],
 ): CanvasModel => ({
   nodes: document.nodes.map((node) => {
     const own = issues.filter((issue) => issue.nodeId === node.id);
@@ -19,7 +21,7 @@ export const documentToCanvas = (
       hasInPort: !isTriggerNode(node),
       outPorts: nodePorts(node),
       portLabels: nodePorts(node).map((port) => portLabel(node, port)),
-      summary: nodeSummary(node),
+      summary: nodeSummary(node, models),
       issues: own,
       blocking: own.find(isBlocking) ?? null,
     };

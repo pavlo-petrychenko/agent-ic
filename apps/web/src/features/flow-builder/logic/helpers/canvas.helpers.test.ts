@@ -46,7 +46,7 @@ const ISSUE: FlowIssue = {
 
 describe('documentToCanvas', () => {
   it('maps steps to canvas nodes with their ports, labels and issues', () => {
-    const canvas = documentToCanvas(DOCUMENT, [ISSUE]);
+    const canvas = documentToCanvas(DOCUMENT, [ISSUE], []);
 
     expect(canvas.nodes).toEqual([
       expect.objectContaining({

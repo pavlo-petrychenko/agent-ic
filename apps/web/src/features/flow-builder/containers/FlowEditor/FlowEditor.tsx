@@ -1,8 +1,10 @@
 import { NodeType, isTriggerNode } from '@agent-ic/flow';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useModelOptions } from '@/features/flow-builder/communication/hooks/useModelOptions';
 import { FIRST_STEP_POSITION } from '@/features/flow-builder/constants/flowBuilder.constants';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
+import { LLM_STEP_TYPES } from '@/features/flow-builder/constants/llmStep.constants';
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
 import {
   PALETTE_SECTIONS,
@@ -38,7 +40,14 @@ export function FlowEditor() {
   const issues = useFlowIssues();
   const { select, setViewport, setDensity } = useFlowBuilderStore();
 
-  const model = useMemo(() => documentToCanvas(document, issues), [document, issues]);
+  const models = useModelOptions(
+    !document.nodes.some((node) => LLM_STEP_TYPES.some((type) => type === node.type)),
+  );
+
+  const model = useMemo(
+    () => documentToCanvas(document, issues, models),
+    [document, issues, models],
+  );
   const nodes: FlowCanvasNode[] = model.nodes.map((node) => ({
     id: node.id,
     label: node.label,

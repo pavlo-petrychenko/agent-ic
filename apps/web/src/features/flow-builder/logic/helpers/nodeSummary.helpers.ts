@@ -11,6 +11,7 @@ import {
   OUTPUT_FIELDS_SEPARATOR,
   SummaryKey,
 } from '@/features/flow-builder/constants/nodeSummary.constants';
+import type { ModelChoice } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 import type { PortLabel, SummaryPart } from '@/features/flow-builder/typedefs/nodeSummary.typedefs';
 
 const part = (key: SummaryKey, params: SummaryPart['params'] = {}): SummaryPart => ({
@@ -18,8 +19,16 @@ const part = (key: SummaryKey, params: SummaryPart['params'] = {}): SummaryPart 
   params,
 });
 
-const modelAndPrompt = (model: ModelRef | null, prompt: PromptSource | null): SummaryPart[] => [
-  model === null ? part(SummaryKey.NoModel) : part(SummaryKey.Model, { model: model.model }),
+const modelAndPrompt = (
+  model: ModelRef | null,
+  prompt: PromptSource | null,
+  models: readonly ModelChoice[],
+): SummaryPart[] => [
+  model === null
+    ? part(SummaryKey.NoModel)
+    : part(SummaryKey.Model, {
+        model: models.find((choice) => choice.id === model.model)?.label ?? model.model,
+      }),
   ...(prompt === null
     ? []
     : [
@@ -31,14 +40,17 @@ const modelAndPrompt = (model: ModelRef | null, prompt: PromptSource | null): Su
       ]),
 ];
 
-export const nodeSummary = (node: FlowNode): readonly SummaryPart[] => {
+export const nodeSummary = (
+  node: FlowNode,
+  models: readonly ModelChoice[],
+): readonly SummaryPart[] => {
   switch (node.type) {
     case NodeType.TriggerMessage:
       return node.config.channels.mode === ChannelSelectionMode.All
         ? [part(SummaryKey.AllChannels)]
         : [part(SummaryKey.SomeChannels, { count: node.config.channels.channelIds.length })];
     case NodeType.Agent:
-      return modelAndPrompt(node.config.model, node.config.prompt);
+      return modelAndPrompt(node.config.model, node.config.prompt, models);
     case NodeType.Completion:
       return [
         part(SummaryKey.Outputs, {
