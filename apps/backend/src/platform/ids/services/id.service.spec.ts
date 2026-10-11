@@ -65,11 +65,12 @@ describe('IdService', () => {
     expect([second, first].toSorted()).toEqual([first, second]);
   });
 
-  it('rejects a public id with another prefix', () => {
+  it('rejects a public id with another prefix, or reads it as nothing when asked to try', () => {
     const { ids } = createIds();
     const publicId = ids.toPublic(OTHER_PREFIX, ids.generate());
 
     expect(() => ids.fromPublic(PREFIX, publicId)).toThrow(InvalidIdError);
+    expect(ids.tryFromPublic(PREFIX, publicId)).toBeNull();
   });
 
   it('rejects a malformed public id', () => {

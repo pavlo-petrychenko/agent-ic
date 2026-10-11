@@ -60,7 +60,9 @@ export class EscalationExecutor implements StepExecutor<EscalationNode> {
 
   private recipientNames(workspaceId: string, recipients: EscalationRecipients): Promise<string[]> {
     if (recipients.kind === RecipientsKind.Users) {
-      const userIds = recipients.userIds.map((id) => this.ids.fromPublic(IdPrefix.User, id));
+      const userIds = recipients.userIds.flatMap(
+        (id) => this.ids.tryFromPublic(IdPrefix.User, id) ?? [],
+      );
       return this.members.listNames(workspaceId, { userIds });
     }
     const role = recipients.kind === RecipientsKind.Role ? recipients.role : WorkspaceRole.Operator;

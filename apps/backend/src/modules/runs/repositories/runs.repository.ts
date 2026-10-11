@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 import { ConversationMode } from '@/modules/conversations';
 import { RunStatus, UNFINISHED_RUN_STATUSES } from '@/modules/runs/constants/run.constants';
 import { runs } from '@/modules/runs/db/runs.table';
@@ -53,6 +53,31 @@ export class RunsRepository {
         ),
       )
       .orderBy(desc(runs.createdAt), desc(runs.id))
+      .limit(1);
+    return run ?? null;
+  }
+
+  async findLatestFinishedOnVersions(
+    workspaceId: string,
+    agentId: string,
+    versionIds: readonly string[],
+  ): Promise<Run | null> {
+    if (versionIds.length === 0) {
+      return null;
+    }
+    const [run] = await this.txHost.tx
+      .select()
+      .from(runs)
+      .where(
+        and(
+          eq(runs.workspaceId, workspaceId),
+          eq(runs.agentId, agentId),
+          eq(runs.mode, ConversationMode.Simulation),
+          inArray(runs.versionId, versionIds),
+          isNotNull(runs.finishedAt),
+        ),
+      )
+      .orderBy(desc(runs.finishedAt), desc(runs.id))
       .limit(1);
     return run ?? null;
   }

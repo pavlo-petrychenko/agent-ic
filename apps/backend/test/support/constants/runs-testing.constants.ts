@@ -70,6 +70,7 @@ export const TEST_SENT_REPLIES = ['We open at nine.', 'See you soon.'];
 export const TEST_QUICK_REPLIES = ['Book a table', 'Call us'];
 export const TEST_CUSTOMER_NOTICE = 'A person will answer "{{message.text}}" soon.';
 export const TEST_ESCALATION_REASON = 'Asked: {{message.text}}';
+export const UNKNOWN_RECIPIENT_ID = 'not-a-user-id';
 export const OBSERVER_STEP_KEY = 'tagger';
 export const PARALLEL_STEP_KEY = 'checks';
 export const TEST_COMPLETION_PROMPT = 'Classify this message: {{message.text}}';

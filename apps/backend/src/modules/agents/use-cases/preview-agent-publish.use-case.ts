@@ -1,6 +1,6 @@
 import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { FlowIssueSeverity } from '@agent-ic/flow';
-import { Inject, Injectable, Optional } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { SimulatorCheckStatus } from '@/modules/agents/constants/agent.constants';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { AgentVersionNotFoundError } from '@/modules/agents/errors/agent-version-not-found.error';
@@ -11,7 +11,7 @@ import { agentDraftInputSchema } from '@/modules/agents/schemas/agent-input.sche
 import { AgentFlowService } from '@/modules/agents/services/agent-flow.service';
 import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import { FlowReferenceChecksService } from '@/modules/agents/services/flow-reference-checks.service';
-import { SimulatorTestsReader } from '@/modules/agents/services/simulator-tests-reader.service';
+import { SimulatorTestsService } from '@/modules/agents/services/simulator-tests.service';
 import type {
   PublishPreview,
   PublishPreviewInput,
@@ -31,9 +31,7 @@ export class PreviewAgentPublishUseCase {
     private readonly references: FlowReferenceChecksService,
     private readonly views: AgentViewsService,
     private readonly ids: IdService,
-    @Optional()
-    @Inject(SimulatorTestsReader)
-    private readonly simulatorTests?: SimulatorTestsReader,
+    private readonly simulatorTests: SimulatorTestsService,
   ) {}
 
   async execute(ctx: UseCaseCtx, input: PublishPreviewInput): Promise<PublishPreview> {
@@ -53,8 +51,7 @@ export class PreviewAgentPublishUseCase {
         ...this.flows.validate(draft.flow),
         ...(await this.references.check(workspaceId, draft.flow)),
       ];
-      const testedAt =
-        (await this.simulatorTests?.lastTestedAt(workspaceId, agentId, draft.revision)) ?? null;
+      const testedAt = await this.simulatorTests.lastTestedAt(workspaceId, agentId, draft.revision);
       return {
         diff: await this.views.draftDiff(agent, draft),
         errors: issues.filter((issue) => issue.severity === FlowIssueSeverity.Error),

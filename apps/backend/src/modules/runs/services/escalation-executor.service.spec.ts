@@ -1,4 +1,5 @@
-import { EscalationMode, renderTemplate } from '@agent-ic/flow';
+import { IdPrefix } from '@agent-ic/contracts';
+import { EscalationMode, RecipientsKind, renderTemplate } from '@agent-ic/flow';
 import type { EscalationNode } from '@agent-ic/flow';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { MockInstance } from 'vitest';
@@ -17,6 +18,7 @@ import {
   ESCALATION_NODE_KEY,
   TEST_CUSTOMER_NOTICE,
   TEST_ESCALATION_REASON,
+  UNKNOWN_RECIPIENT_ID,
 } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { endNode, escalateNode, triggerOnlyFlow } from '@test/support/fixtures/runs.fixture';
@@ -102,6 +104,20 @@ describe('EscalationExecutor', () => {
     expect(outcome.output['wouldNotify']).toEqual([]);
     expect(emitted(needsOperatorEvent)).toEqual([]);
     expect(emitted(runEscalatedEvent)).toMatchObject([{ mode: ConversationMode.Simulation }]);
+  });
+
+  it('leaves out recipients whose ids are not user ids instead of failing the step', async () => {
+    const seeded = await seedSimulationRun(testbed);
+    const stranger = testbed.ids.toPublic(IdPrefix.User, testbed.ids.generate());
+    const node = escalateNode({
+      kind: RecipientsKind.Users,
+      userIds: [UNKNOWN_RECIPIENT_ID, stranger],
+    });
+    const execution = await stepExecutionOf(testbed, seeded, node, {});
+
+    const outcome = await executor.execute(execution);
+
+    expect(outcome.output['wouldNotify']).toEqual([]);
   });
 
   it('sends the text and closes the conversation when the step ends the chat', async () => {

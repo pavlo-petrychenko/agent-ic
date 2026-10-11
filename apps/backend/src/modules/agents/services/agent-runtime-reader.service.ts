@@ -46,6 +46,10 @@ export class AgentRuntimeReader {
     return version;
   }
 
+  listSnapshotIds(workspaceId: string, agentId: string, revision: number): Promise<string[]> {
+    return this.versions.listSnapshotIds(workspaceId, agentId, revision);
+  }
+
   async getPauseSettings(workspaceId: string, agentId: string): Promise<PauseSettings | null> {
     return pauseSettingsOf(await this.getAgent(workspaceId, agentId));
   }
