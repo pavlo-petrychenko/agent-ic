@@ -17,6 +17,7 @@ import { RouterExecutor } from '@/modules/runs/services/router-executor.service'
 import { RunExecutionService } from '@/modules/runs/services/run-execution.service';
 import { RunLifecycleService } from '@/modules/runs/services/run-lifecycle.service';
 import { RunMessagesService } from '@/modules/runs/services/run-messages.service';
+import { RunViewsService } from '@/modules/runs/services/run-views.service';
 import { SendMessageExecutor } from '@/modules/runs/services/send-message-executor.service';
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
 import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedefs';
@@ -57,6 +58,7 @@ export class RunsModule extends defineModule({
     StepExecutorRegistry,
     RunExecutionService,
     RunLifecycleService,
+    RunViewsService,
     StartRunOnMessageUseCase,
     ExecuteRunUseCase,
     SubscribeToRunStepsUseCase,

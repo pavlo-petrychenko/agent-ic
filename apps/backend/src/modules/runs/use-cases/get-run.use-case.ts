@@ -3,9 +3,9 @@ import { Injectable } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
 import { ConversationMode, ConversationRunsService } from '@/modules/conversations';
 import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
-import { toRunView } from '@/modules/runs/helpers/run-view.helpers';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
+import { RunViewsService } from '@/modules/runs/services/run-views.service';
 import type { GetRunInput, RunView } from '@/modules/runs/typedefs/run-details.typedefs';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -20,6 +20,7 @@ export class GetRunUseCase {
     private readonly steps: RunStepsRepository,
     private readonly agents: AgentRuntimeReader,
     private readonly conversations: ConversationRunsService,
+    private readonly views: RunViewsService,
     private readonly ids: IdService,
   ) {}
 
@@ -38,7 +39,7 @@ export class GetRunUseCase {
         stepsInFlow: version.flow.nodes.length,
         messagesSent: await this.conversations.countRunMessages(workspaceId, runId),
       };
-      return toRunView(this.ids, run, steps, totals);
+      return this.views.runView(run, steps, totals);
     });
   }
 }
