@@ -41,58 +41,54 @@ export function ChatPanel({
     }
   };
 
-  const chat = () => {
+  const state = () => {
     if (simulator.failed) {
       return (
-        <div className={styles.state}>
-          <EmptyState
-            icon={IconName.Alert}
-            tone={EmptyStateTone.Err}
-            title={t('startError')}
-            actions={
-              <Button variant={ButtonVariant.Secondary} onClick={simulator.retry}>
-                {t('retry')}
-              </Button>
-            }
-          />
-        </div>
+        <EmptyState
+          icon={IconName.Alert}
+          tone={EmptyStateTone.Err}
+          title={t('startError')}
+          actions={
+            <Button variant={ButtonVariant.Secondary} onClick={simulator.retry}>
+              {t('retry')}
+            </Button>
+          }
+        />
       );
     }
     if (conversation === null) {
-      return (
-        <div className={styles.state}>
-          <Skeleton label={t('loading')} />
-        </div>
-      );
+      return <Skeleton label={t('loading')} />;
     }
     if (items.length === 0) {
       return (
-        <div className={styles.state}>
-          <EmptyState
-            icon={IconName.Msg}
-            title={t('chat.emptyTitle')}
-            description={t('chat.emptyDescription')}
-          />
-        </div>
+        <EmptyState
+          icon={IconName.Msg}
+          title={t('chat.emptyTitle')}
+          description={t('chat.emptyDescription')}
+        />
       );
     }
-    return (
-      <SimulatorChat
-        items={items}
-        agentName={agentName}
-        typing={conversation.runs.some(isActiveRun)}
-        selectedRunId={selectedRunId}
-        onSelectRun={onSelectRun}
-      />
-    );
+    return null;
   };
+
+  const notReady = state();
 
   return (
     <section className={styles.root} aria-label={t('chat.label')}>
       <div className={styles.setup}>
         <SimulatorSetup {...setup} />
       </div>
-      {chat()}
+      {notReady === null ? (
+        <SimulatorChat
+          items={items}
+          agentName={agentName}
+          typing={conversation?.runs.some(isActiveRun) ?? false}
+          selectedRunId={selectedRunId}
+          onSelectRun={onSelectRun}
+        />
+      ) : (
+        <div className={styles.state}>{notReady}</div>
+      )}
       <Composer
         className={styles.composer}
         value={text}
