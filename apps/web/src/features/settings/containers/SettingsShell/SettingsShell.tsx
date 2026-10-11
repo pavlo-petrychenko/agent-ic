@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { ROLE_FIXTURES } from '@/features/settings/constants/roles.constants';
-import { GENERAL_PATH, ROLES_PATH, TEAM_PATH } from '@/features/settings/constants/route.constants';
+import { GENERAL_PATH, ROLES_PATH, PROFILE_PATH, TEAM_PATH } from '@/features/settings/constants/route.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { SettingsShellProps } from '@/features/settings/containers/SettingsShell/SettingsShell.typedefs';
 import { SettingsFrame } from '@/features/settings/view/SettingsFrame';
@@ -21,7 +21,13 @@ export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
     <SettingsFrame
       title={t('title')}
       nav={
-        hasWorkspaceNav && (
+        <>
+          <NavGroup label={t('nav.you')}>
+            <NavItem to={PROFILE_PATH} params={{ workspaceId }}>
+              {t('nav.profile')}
+            </NavItem>
+          </NavGroup>
+        {hasWorkspaceNav && (
           <NavGroup label={t('nav.workspace')}>
             {showGeneral && (
               <NavItem to={GENERAL_PATH} params={{ workspaceId }}>
@@ -41,7 +47,8 @@ export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
               </NavItem>
             )}
           </NavGroup>
-        )
+        )}
+        </>
       }
     >
       {children}

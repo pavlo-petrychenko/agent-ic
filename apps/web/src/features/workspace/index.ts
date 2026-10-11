@@ -9,4 +9,5 @@ export { useActiveWorkspace } from '@/features/workspace/communication/hooks/use
 export { useAgentCount } from '@/features/workspace/communication/hooks/useAgentCount';
 export { canOpenSection } from '@/features/workspace/logic/helpers/navigation.helpers';
 export type { WorkspaceSummary } from '@/features/workspace/typedefs/workspace.typedefs';
+export type { ShellUser } from '@/features/workspace/typedefs/workspace.typedefs';
 export { useUpdateMyLocale } from '@/features/workspace/communication/hooks/useUpdateMyLocale';

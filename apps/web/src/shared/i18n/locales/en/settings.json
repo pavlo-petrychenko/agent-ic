@@ -3,6 +3,8 @@
   "breadcrumb": "Breadcrumb",
   "breadcrumbMore": "More",
   "nav": {
+    "you": "You",
+    "profile": "Profile",
     "workspace": "Workspace",
     "team": "Team",
     "general": "General",
@@ -128,6 +130,35 @@
       "admin": "Builds bots, invites people",
       "builder": "Builds and publishes bots",
       "operator": "Handles escalated chats"
+    }
+  },
+  "profile": {
+    "subtitle": "Your account – the same in every workspace",
+    "details": {
+      "title": "Your details",
+      "name": {
+        "title": "Name",
+        "placeholder": "Your name"
+      },
+      "email": {
+        "title": "Email",
+        "placeholder": "Your email",
+        "description": "We send a link to confirm the new address",
+        "action": "Change"
+      },
+      "language": {
+        "title": "Interface language",
+        "description": "Same as the switch at the bottom of the sidebar"
+      },
+      "theme": {
+        "title": "Theme",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System",
+        "description": "System follows your computer’s setting"
+      },
+      "action": "Save",
+      "saved": "Profile updated"
     }
   }
 }
