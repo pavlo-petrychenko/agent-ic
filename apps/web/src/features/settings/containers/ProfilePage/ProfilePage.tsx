@@ -1,5 +1,7 @@
+import type { Locale } from '@agent-ic/contracts';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useUpdateMyName } from '@/features/settings/communication/hooks/useUpdateMyName';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { ProfilePageProps } from '@/features/settings/containers/ProfilePage/ProfilePage.typedefs';
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
@@ -21,16 +23,30 @@ export function ProfilePage({ workspaceId }: ProfilePageProps) {
   const { locale, setLocale } = useLocale();
   const { preference, setPreference } = useTheme();
   const updateMyLocale = useUpdateMyLocale();
+  const updateMyName = useUpdateMyName();
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
   const [name, setName] = useState(user?.name ?? '');
   const [saving, setSaving] = useState(false);
+  const savedName = user?.name ?? '';
+
+  const changeLocale = (next: Locale) => {
+    setLocale(next);
+    void updateMyLocale(next).catch((error: unknown) => {
+      showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
+    });
+  };
 
   const save = async () => {
+    const nextName = name.trim();
+    if (nextName === savedName) {
+      return;
+    }
     setSaving(true);
     try {
-      await updateMyLocale(locale);
-      showToast({ message: t('profile.details.saved'), tone: ToastTone.Ok });
+      await updateMyName(nextName);
+      setName(nextName);
+      showToast({ message: t('profile.details.name.success'), tone: ToastTone.Ok });
     } catch (error) {
       showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
     } finally {
@@ -60,7 +76,7 @@ export function ProfilePage({ workspaceId }: ProfilePageProps) {
           saving={saving}
           onNameChange={setName}
           onEmailChange={() => undefined}
-          onLocaleChange={setLocale}
+          onLocaleChange={changeLocale}
           onThemeChange={setPreference}
           onSave={() => void save()}
         />

@@ -138,7 +138,8 @@
       "title": "Your details",
       "name": {
         "title": "Name",
-        "placeholder": "Your name"
+        "placeholder": "Your name",
+        "success": "Updated name successfully"
       },
       "email": {
         "title": "Email",
