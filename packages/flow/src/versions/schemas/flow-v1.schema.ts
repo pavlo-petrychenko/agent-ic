@@ -44,5 +44,5 @@ export const flowV1NodeSchema = z.discriminatedUnion('type', [
 export const flowV1DocumentSchema = z.object({
   schemaVersion: z.literal(FIRST_SCHEMA_VERSION),
   nodes: z.array(flowV1NodeSchema).max(MAX_NODES),
-  edges: z.array(flowEdgeSchema.omit({ background: true })).max(MAX_EDGES),
+  edges: z.array(flowEdgeSchema).max(MAX_EDGES),
 });

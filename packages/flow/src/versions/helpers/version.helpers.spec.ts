@@ -6,8 +6,11 @@ import {
   ParseFlowFailureKind,
 } from '@flow/versions/constants/version.constants';
 import { parseFlow } from '@flow/versions/helpers/version.helpers';
+import { flowV1DocumentSchema } from '@flow/versions/schemas/flow-v1.schema';
 import { exampleFlows, faqWithHandOffFlow } from '@test/support/fixtures/example-flow.fixture';
 import { toFlowV1Json } from '@test/support/fixtures/flow-v1.fixture';
+
+const TOPIC_ID = 'n_topic';
 
 const roundTrip = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
 
@@ -24,6 +27,16 @@ describe('parseFlow', () => {
       waitFor: FlowV1WaitFor.Guards,
     });
     expect(parseFlow(roundTrip(v1))).toEqual({ ok: true, flow: faqWithHandOffFlow });
+  });
+
+  it('keeps a background flag a version 1 edge already carries', () => {
+    const v1 = flowV1DocumentSchema.parse(
+      toFlowV1Json(faqWithHandOffFlow, { observerKeys: [], waitFor: FlowV1WaitFor.All }),
+    );
+    const edges = v1.edges.map((edge) =>
+      edge.target === TOPIC_ID ? { ...edge, background: true } : edge,
+    );
+    expect(parseFlow(roundTrip({ ...v1, edges }))).toEqual({ ok: true, flow: faqWithHandOffFlow });
   });
 
   it('refuses a version it does not know', () => {
