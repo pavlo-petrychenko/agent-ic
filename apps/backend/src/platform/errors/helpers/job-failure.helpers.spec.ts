@@ -8,12 +8,17 @@ import {
   SampleNotFoundError,
   SamplePlanLimitError,
   SampleRateLimitError,
+  SampleUnavailableError,
 } from '@test/support/fixtures/sample-errors.fixture';
 
 describe('jobFailureActionFor', () => {
   it('gives up on a domain error', () => {
     expect(jobFailureActionFor(new SampleNotFoundError())).toBe(JobFailureAction.GiveUp);
     expect(jobFailureActionFor(new SamplePlanLimitError())).toBe(JobFailureAction.GiveUp);
+  });
+
+  it('retries a domain error that says the service is unavailable', () => {
+    expect(jobFailureActionFor(new SampleUnavailableError())).toBe(JobFailureAction.Retry);
   });
 
   it('retries a rate limit', () => {

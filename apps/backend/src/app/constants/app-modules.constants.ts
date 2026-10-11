@@ -1,3 +1,5 @@
+import { AgentsModule } from '@/modules/agents';
+import { ConversationsModule } from '@/modules/conversations';
 import { IdentityModule } from '@/modules/identity';
 import { NotificationsModule } from '@/modules/notifications';
 import { SystemModule } from '@/modules/system';
@@ -11,11 +13,13 @@ import { ErrorsModule } from '@/platform/errors/errors.module';
 import { GraphqlServerModule } from '@/platform/graphql-server/graphql-server.module';
 import { IdsModule } from '@/platform/ids/ids.module';
 import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
+import { LlmModule } from '@/platform/llm/llm.module';
 import type { ModuleImport } from '@/platform/module-roles/typedefs/module-roles.typedefs';
 import { ObservabilityModule } from '@/platform/observability/observability.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
+import { SecretsModule } from '@/platform/secrets/secrets.module';
 
 export const PLATFORM_MODULES: readonly ModuleImport[] = [
   ContextModule,
@@ -30,6 +34,8 @@ export const PLATFORM_MODULES: readonly ModuleImport[] = [
   CacheModule,
   RateLimitModule,
   CryptoModule,
+  SecretsModule,
+  LlmModule,
   ObservabilityModule,
   GraphqlServerModule,
 ];
@@ -38,6 +44,8 @@ export const DOMAIN_MODULES: readonly ModuleImport[] = [
   SystemModule,
   IdentityModule,
   NotificationsModule,
+  AgentsModule,
+  ConversationsModule,
 ];
 
 export const APP_MODULES: readonly ModuleImport[] = [...PLATFORM_MODULES, ...DOMAIN_MODULES];

@@ -11,6 +11,10 @@ import { issuesOf, variablesOf } from '@test/support/helpers/config-issue.helper
 
 const roleOf = (role: Role): RoleSelection => ({ role, queues: [] });
 
+const OLD_KEY = 'a'.repeat(64);
+
+const OTHER_KEY = 'B'.repeat(64);
+
 const WORKER: RoleSelection = { role: Role.Worker, queues: [QueueName.Ingest] };
 
 describe('loadAppConfig', () => {
@@ -213,6 +217,113 @@ describe('loadAppConfig', () => {
     const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), createTestEnv(override)));
 
     expect(variablesOf(issues)).toEqual([EnvVar.InviteTokenSecret]);
+  });
+
+  it('reads the secret box key, its version and no previous keys by default', () => {
+    const env = createTestEnv({ [EnvVar.SecretBoxKeyVersion]: '3' });
+
+    const config = loadAppConfig(roleOf(Role.Api), env);
+
+    expect(config.secretBox).toEqual({
+      current: { version: 3, key: env[EnvVar.SecretBoxKey] },
+      previous: [],
+    });
+  });
+
+  it('reads the previous secret box keys as version and key pairs', () => {
+    const env = createTestEnv({
+      [EnvVar.SecretBoxKeyVersion]: '3',
+      [EnvVar.SecretBoxPreviousKeys]: `1:${OLD_KEY}, 2:${OTHER_KEY}`,
+    });
+
+    const config = loadAppConfig(roleOf(Role.Worker), env);
+
+    expect(config.secretBox.previous).toEqual([
+      { version: 1, key: OLD_KEY },
+      { version: 2, key: OTHER_KEY },
+    ]);
+  });
+
+  it.each([undefined, '', OLD_KEY.slice(2), `${OLD_KEY}00`, OLD_KEY.replace('a', 'g')])(
+    'stops boot on a secret box key that is not 32 bytes of hex: %s',
+    (key) => {
+      const env = createTestEnv({ [EnvVar.SecretBoxKey]: key });
+
+      const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+      expect(variablesOf(issues)).toEqual([EnvVar.SecretBoxKey]);
+      expect(() => loadAppConfig(roleOf(Role.Api), env)).toThrow(EnvVar.SecretBoxKey);
+    },
+  );
+
+  it.each([undefined, '0', '-1', '1.5', 'v1'])(
+    'requires a positive whole secret box key version: %s',
+    (version) => {
+      const env = createTestEnv({ [EnvVar.SecretBoxKeyVersion]: version });
+
+      const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+      expect(variablesOf(issues)).toEqual([EnvVar.SecretBoxKeyVersion]);
+    },
+  );
+
+  it.each([OLD_KEY, `0:${OLD_KEY}`, `1:${OLD_KEY}:2`, `1:short`, `1:${OLD_KEY},`])(
+    'rejects previous secret box keys that are not version:key pairs: %s',
+    (previous) => {
+      const env = createTestEnv({ [EnvVar.SecretBoxPreviousKeys]: previous });
+
+      const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+      expect(variablesOf(issues)).toEqual([EnvVar.SecretBoxPreviousKeys]);
+    },
+  );
+
+  it.each([`1:${OLD_KEY}`, `2:${OLD_KEY},2:${OTHER_KEY}`])(
+    'rejects a secret box key version used twice: %s',
+    (previous) => {
+      const env = createTestEnv({
+        [EnvVar.SecretBoxKeyVersion]: '1',
+        [EnvVar.SecretBoxPreviousKeys]: previous,
+      });
+
+      const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+      expect(variablesOf(issues)).toEqual([EnvVar.SecretBoxPreviousKeys]);
+    },
+  );
+
+  it('reads the LLM base url, key and embedding model', () => {
+    const env = createTestEnv({ [EnvVar.LlmApiKey]: 'llm-key' });
+
+    const config = loadAppConfig(roleOf(Role.Worker), env);
+
+    expect(config.llm).toEqual({
+      baseUrl: env[EnvVar.LlmBaseUrl],
+      apiKey: 'llm-key',
+      embeddingModel: env[EnvVar.EmbeddingModel],
+    });
+  });
+
+  it.each([undefined, ''])('boots without an LLM key: %s', (apiKey) => {
+    const env = createTestEnv({ [EnvVar.LlmApiKey]: apiKey });
+
+    const config = loadAppConfig(roleOf(Role.Api), env);
+
+    expect(config.llm.apiKey).toBeNull();
+  });
+
+  it.each([
+    [EnvVar.LlmBaseUrl, undefined],
+    [EnvVar.LlmBaseUrl, 'ftp://llm.example.test/v1'],
+    [EnvVar.LlmBaseUrl, 'not a url'],
+    [EnvVar.EmbeddingModel, undefined],
+    [EnvVar.EmbeddingModel, ''],
+  ])('stops boot on a bad %s: %s', (variable, value) => {
+    const env = createTestEnv({ [variable]: value });
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+    expect(variablesOf(issues)).toEqual([variable]);
   });
 
   it('reads the SMTP settings in smtp mode', () => {

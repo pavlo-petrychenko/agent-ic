@@ -1,0 +1,122 @@
+extend type Query {
+  agents(first: Int, after: String): AgentConnection!
+  agent(id: ID!): Agent!
+  agentVersions(agentId: ID!): [AgentVersion!]!
+}
+
+extend type Mutation {
+  createAgent(input: CreateAgentInput!): Agent!
+  renameAgent(input: RenameAgentInput!): Agent!
+  deleteAgent(input: DeleteAgentInput!): DeleteAgentPayload!
+  duplicateAgent(input: DuplicateAgentInput!): Agent!
+  saveAgentDraft(input: SaveAgentDraftInput!): SaveAgentDraftPayload!
+  publishAgent(input: PublishAgentInput!): PublishAgentPayload!
+  pauseAgent(input: PauseAgentInput!): Agent!
+  resumeAgent(input: ResumeAgentInput!): Agent!
+}
+
+enum AgentStatus {
+  draft
+  live
+  paused
+}
+
+enum PauseMode {
+  inbox
+  away_message
+}
+
+type Agent {
+  id: ID!
+  name: String!
+  status: AgentStatus!
+  pausedAt: String
+  pauseMode: PauseMode
+  awayMessage: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type AgentEdge {
+  cursor: String!
+  node: Agent!
+}
+
+type AgentConnection {
+  edges: [AgentEdge!]!
+  pageInfo: PageInfo!
+}
+
+input CreateAgentInput {
+  name: String!
+}
+
+input RenameAgentInput {
+  id: ID!
+  name: String!
+}
+
+input DeleteAgentInput {
+  id: ID!
+}
+
+type DeleteAgentPayload {
+  id: ID!
+}
+
+input DuplicateAgentInput {
+  id: ID!
+}
+
+input SaveAgentDraftInput {
+  id: ID!
+  flow: JSON!
+  note: String
+}
+
+input PublishAgentInput {
+  id: ID!
+}
+
+input PauseAgentInput {
+  id: ID!
+  mode: PauseMode!
+  awayMessage: String
+}
+
+input ResumeAgentInput {
+  id: ID!
+}
+
+enum FlowIssueSeverity {
+  error
+  warning
+}
+
+type AgentVersion {
+  id: ID!
+  number: Int
+  flow: JSON!
+  note: String
+  publishedAt: String
+  createdAt: String!
+}
+
+type FlowIssue {
+  code: String!
+  severity: FlowIssueSeverity!
+  nodeId: String
+  edgeId: String
+  path: [String!]!
+  params: JSON!
+}
+
+type SaveAgentDraftPayload {
+  version: AgentVersion!
+  issues: [FlowIssue!]!
+}
+
+type PublishAgentPayload {
+  agent: Agent!
+  version: AgentVersion!
+}

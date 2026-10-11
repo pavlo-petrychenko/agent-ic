@@ -65,6 +65,7 @@ secrets:
       JWT_REFRESH_SECRET: jwtRefreshSecret
       INVITE_TOKEN_SECRET: inviteTokenSecret
       SECRET_BOX_KEY: secretBoxKey
+      SECRET_BOX_PREVIOUS_KEYS: secretBoxPreviousKeys
   langfuse:
     name: app-langfuse
     keys:

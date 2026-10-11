@@ -4,4 +4,8 @@ export enum IdPrefix {
   Workspace = 'ws',
   Membership = 'mem',
   InviteLink = 'inv',
+  Agent = 'agt',
+  AgentVersion = 'agv',
+  Conversation = 'cnv',
+  Message = 'msg',
 }

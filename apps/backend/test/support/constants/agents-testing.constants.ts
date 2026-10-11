@@ -1,0 +1,13 @@
+export const TEST_AGENT_NAME = 'Support agent';
+export const TEST_AGENT_NEW_NAME = 'Sales agent';
+export const TEST_AWAY_MESSAGE = 'We are away and will reply tomorrow.';
+export const TEST_VERSION_NOTE = 'Initial version';
+export const TEST_NODE_ID = 'node-trigger';
+export const TEST_NODE_KEY = 'trigger';
+export const TEST_NODE_LABEL = 'Customer message';
+export const TEST_NODE_NEW_LABEL = 'Renamed customer message';
+export const TEST_AGENT_PAGE_LIMIT = 2;
+export const AGENTS_TEST_START = new Date('2026-02-03T10:00:00.000Z');
+export const AGENTS_TEST_LATER = new Date('2026-02-03T11:30:00.000Z');
+export const TEST_UNSUPPORTED_FLOW = { schemaVersion: 0 };
+export const TEST_ROLLBACK_MESSAGE = 'live version could not be set';

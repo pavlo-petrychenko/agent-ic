@@ -1,0 +1,146 @@
+import { Test } from '@nestjs/testing';
+import { ConversationsModule } from '@/modules/conversations/conversations.module';
+import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
+import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
+import { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
+import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
+import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
+import type { Message, NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
+import { ClockModule } from '@/platform/clock/clock.module';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { ConfigModule } from '@/platform/config/config.module';
+import { EnvVar } from '@/platform/config/constants/env.constants';
+import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
+import { ContextModule } from '@/platform/context/context.module';
+import { DatabaseModule } from '@/platform/database/database.module';
+import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import { DOMAIN_EVENT_SUBSCRIPTIONS } from '@/platform/domain-events/constants/domain-event.constants';
+import { DomainEventsModule } from '@/platform/domain-events/domain-events.module';
+import type { AnyDomainEventSubscription } from '@/platform/domain-events/typedefs/domain-event.typedefs';
+import { ErrorsModule } from '@/platform/errors/errors.module';
+import { IdsModule } from '@/platform/ids/ids.module';
+import { IdService } from '@/platform/ids/services/id.service';
+import { Role } from '@/platform/module-roles/constants/role.constants';
+import { QueuesModule } from '@/platform/queues/queues.module';
+import { QueuesService } from '@/platform/queues/services/queues.service';
+import type { JobData } from '@/platform/queues/typedefs/job.typedefs';
+import {
+  CONCURRENT_POOL_SIZE,
+  CONVERSATIONS_TEST_START,
+  MESSAGE_SPACING_MS,
+} from '@test/support/constants/conversations-testing.constants';
+import { TestRedisDatabase } from '@test/support/constants/test-infrastructure.constants';
+import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
+import { ManualClock } from '@test/support/fakes/manual-clock.fake';
+import { newConversation, newMessage } from '@test/support/fixtures/conversation.fixture';
+import { createIntegrationTestEnv } from '@test/support/fixtures/integration-env.fixture';
+import {
+  deliverOnOutboundQueued,
+  notifyOnNeedsOperator,
+} from '@test/support/jobs/conversation-probe.job';
+import type {
+  ConversationsTestbed,
+  TiedMessages,
+} from '@test/support/typedefs/conversations-testing.typedefs';
+
+const ROLE = Role.Gateway;
+
+export const createConversationsTestbed = async (): Promise<ConversationsTestbed> => {
+  const config = loadAppConfig(
+    { role: ROLE, queues: [] },
+    createIntegrationTestEnv(TestRedisDatabase.Conversations, {
+      [EnvVar.DatabasePoolMax]: CONCURRENT_POOL_SIZE,
+    }),
+  );
+  const clock = new ManualClock(CONVERSATIONS_TEST_START);
+  const module = await Test.createTestingModule({
+    imports: [
+      ConfigModule.register(config),
+      ContextModule,
+      ErrorsModule,
+      DatabaseModule,
+      ClockModule,
+      IdsModule,
+      QueuesModule.forRole(ROLE),
+      DomainEventsModule.forRole(ROLE),
+      ConversationsModule.forRole(ROLE),
+    ],
+    providers: [
+      {
+        provide: DOMAIN_EVENT_SUBSCRIPTIONS,
+        useValue: [deliverOnOutboundQueued, notifyOnNeedsOperator],
+      },
+    ],
+  })
+    .overrideProvider(ClockService)
+    .useValue(clock)
+    .compile();
+  module.useLogger(false);
+  await module.init();
+  return {
+    module,
+    clock,
+    ids: module.get(IdService),
+    tenants: module.get(TenantTransactionService),
+    conversations: module.get(ConversationsRepository),
+    messages: module.get(MessagesRepository),
+    history: module.get(ConversationHistoryService),
+    runs: module.get(ConversationRunsService),
+    queues: module.get(QueuesService),
+  };
+};
+
+export const seedConversation = async (
+  testbed: ConversationsTestbed,
+  workspaceId: string = testbed.ids.generate(),
+): Promise<NewConversation> => {
+  const conversation = newConversation(testbed, workspaceId);
+  await testbed.tenants.run(conversation.workspaceId, () =>
+    testbed.conversations.insert(conversation),
+  );
+  return conversation;
+};
+
+export const seedMessage = async (
+  testbed: ConversationsTestbed,
+  conversation: NewConversation,
+  draft: Partial<NewMessage> = {},
+): Promise<Message> => {
+  testbed.clock.advanceBy(MESSAGE_SPACING_MS);
+  const message = await testbed.tenants.run(conversation.workspaceId, () =>
+    testbed.messages.insertIfAbsent(newMessage(testbed, conversation, draft)),
+  );
+  if (message === null) {
+    throw new MissingTestDataError(conversation.id);
+  }
+  return message;
+};
+
+export const seedTiedMessages = async (
+  testbed: ConversationsTestbed,
+  conversation: NewConversation,
+): Promise<TiedMessages> => {
+  const tie = { createdAt: testbed.clock.now() };
+  const seeded = [
+    await seedMessage(testbed, conversation, tie),
+    await seedMessage(testbed, conversation, tie),
+    await seedMessage(testbed, conversation, tie),
+  ];
+  const [earlier, middle, later] = seeded.sort((left, right) => (left.id < right.id ? -1 : 1));
+  if (earlier === undefined || middle === undefined || later === undefined) {
+    throw new MissingTestDataError(conversation.id);
+  }
+  return { earlier, middle, later };
+};
+
+export const queuedEventsFor = async (
+  testbed: ConversationsTestbed,
+  subscription: AnyDomainEventSubscription,
+  conversationId: string,
+): Promise<JobData[]> => {
+  const jobs = await testbed.queues.get(subscription.queue).getJobs();
+  return jobs
+    .filter((job) => job.name === subscription.name)
+    .map((job) => job.data.data)
+    .filter((data) => data['conversationId'] === conversationId);
+};

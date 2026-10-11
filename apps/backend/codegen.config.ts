@@ -1,11 +1,16 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
 
 const config: CodegenConfig = {
-  schema: 'src/modules/**/*.graphql',
+  schema: ['src/modules/**/*.graphql', 'scalar JSON'],
   generates: {
     'src/platform/graphql-server/generated/schema.generated.ts': {
       plugins: ['typescript'],
-      config: { useTypeImports: true, immutableTypes: true, avoidOptionals: true },
+      config: {
+        scalars: { JSON: 'unknown' },
+        useTypeImports: true,
+        immutableTypes: true,
+        avoidOptionals: true,
+      },
     },
   },
 };
