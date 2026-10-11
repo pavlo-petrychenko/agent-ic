@@ -10,7 +10,7 @@ import {
   visibleVariables,
 } from '@agent-ic/flow';
 import type { AgentNode, CompletionNode, FlowNode } from '@agent-ic/flow';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModelOptions } from '@/features/flow-builder/communication/hooks/useModelOptions';
 import { EMPTY_SELECTION } from '@/features/flow-builder/constants/flowBuilder.constants';
@@ -73,6 +73,7 @@ export function InspectorPanel() {
   const document = useFlowBuilderStore((state) => state.document);
   const selection = useFlowBuilderStore((state) => state.selection);
   const apply = useFlowBuilderStore((state) => state.apply);
+  const preview = useFlowBuilderStore((state) => state.preview);
   const select = useFlowBuilderStore((state) => state.select);
   const issues = useFlowIssues();
   const [keyRename, setKeyRename] = useState<KeyRename | null>(null);
@@ -82,7 +83,7 @@ export function InspectorPanel() {
     () => (node === null ? [] : visibleVariables(document, node.id)),
     [document, node],
   );
-  const models = useModelOptions(!LLM_STEP_TYPES.some((type) => type === node?.type));
+  const modelOptions = useModelOptions(!LLM_STEP_TYPES.some((type) => type === node?.type));
   const variableOptions = useMemo(
     () =>
       variables.map((variable) => {
@@ -97,6 +98,8 @@ export function InspectorPanel() {
     [document, variables, t],
   );
 
+  const commitPreview = useCallback(() => apply(useFlowBuilderStore.getState().document), [apply]);
+
   const llmStep = (current: AgentNode | CompletionNode, extra: LlmStepExtra) => {
     const errors = fieldErrors(issues, current.id);
     const { prompt, model, reasoning, output } = current.config;
@@ -108,7 +111,9 @@ export function InspectorPanel() {
         step={{
           prompt: text,
           variables: variableOptions,
-          models: modelsForStep(models, current.type),
+          models: modelsForStep(modelOptions.models, current.type),
+          modelsLoading: modelOptions.loading,
+          modelsFailed: modelOptions.error !== null,
           model: model?.model ?? null,
           reasoning,
           builtIn,
@@ -130,13 +135,17 @@ export function InspectorPanel() {
         extra={extra}
         onPromptChange={(next) =>
           next !== text &&
-          apply(
+          preview(
             updateLlmStep(document, current.id, {
               prompt: { kind: PromptSourceKind.Inline, text: next },
             }),
           )
         }
-        onModelChange={(modelId) => apply(selectModel(document, current.id, models, modelId))}
+        onPromptCommit={commitPreview}
+        onModelChange={(modelId) =>
+          apply(selectModel(document, current.id, modelOptions.models, modelId))
+        }
+        onRetryModels={modelOptions.retry}
         onReasoningChange={(level) =>
           apply(updateLlmStep(document, current.id, { reasoning: level }))
         }

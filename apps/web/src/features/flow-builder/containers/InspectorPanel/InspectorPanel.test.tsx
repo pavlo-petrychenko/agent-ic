@@ -21,6 +21,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   FLASH_MODEL,
   LUNA_MODEL,
+  modelOptionsFailedMock,
   modelOptionsMock,
 } from '@/features/flow-builder/communication/fixtures/modelOptions.fixture';
 import { NODE_TEMPLATES } from '@/features/flow-builder/constants/nodeTemplate.constants';
@@ -85,10 +86,10 @@ const withAgent = (config: Partial<AgentNode['config']>): FlowDocument => ({
 });
 
 const store = useFlowBuilderStore.getState;
-const open = (nodeId: string, document: FlowDocument = FLOW) => {
+const open = (nodeId: string, document: FlowDocument = FLOW, mocks = [modelOptionsMock()]) => {
   store().load({ document, revision: 1, issues: validateFlow(document) });
   store().select({ nodeIds: [nodeId], edgeIds: [] });
-  return renderWithProviders(<InspectorPanel />, { mocks: [modelOptionsMock()] });
+  return renderWithProviders(<InspectorPanel />, { mocks });
 };
 const node = (id: string) => store().document.nodes.find((candidate) => candidate.id === id);
 
@@ -361,6 +362,31 @@ describe('InspectorPanel', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Add field' })).toBeEnabled();
+  });
+
+  it('records a typed prompt as one undo step', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW);
+    const before = node('agent');
+
+    await user.type(screen.getByRole('textbox', { name: 'Prompt' }), 'Greet the customer');
+    await user.tab();
+
+    expect(node('agent')).toMatchObject({ config: { prompt: { text: 'Greet the customer' } } });
+    act(() => store().undo());
+    expect(node('agent')).toEqual(before);
+  });
+
+  it('explains a failed model list and loads it again', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW, [modelOptionsFailedMock(), modelOptionsMock()]);
+
+    expect(await screen.findByText('The models couldn’t be loaded.')).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Try again' }));
+
+    const model = screen.getByRole('combobox', { name: 'Model' });
+    await waitFor(() => expect(within(model).getAllByRole('option')).toHaveLength(3));
+    expect(screen.queryByText('The models couldn’t be loaded.')).not.toBeInTheDocument();
   });
 
   it('picks a model, then a reasoning level that model offers', async () => {

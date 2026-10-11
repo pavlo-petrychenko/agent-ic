@@ -9,6 +9,7 @@ import type {
   OutputFieldType,
 } from '@agent-ic/flow';
 import type { PortTarget } from '@/features/flow-builder/typedefs/inspector.typedefs';
+import type { AppError } from '@/shared/api/errors/app.error';
 import type { ModelPurpose, ModelVendor } from '@/shared/api/generated/schema.generated';
 import type { VariableOption } from '@/shared/ui/inputs/PromptEditor';
 
@@ -23,6 +24,13 @@ export interface ModelChoice {
   readonly defaultReasoningLevel: ReasoningLevel | null;
   readonly inputPrice: number;
   readonly outputPrice: number;
+}
+
+export interface UseModelOptionsResult {
+  readonly models: readonly ModelChoice[];
+  readonly loading: boolean;
+  readonly error: AppError | null;
+  readonly retry: () => void;
 }
 
 export type LlmStepConfigPatch = Partial<
@@ -54,6 +62,8 @@ export interface LlmStepView {
   prompt: string;
   variables: readonly VariableOption[];
   models: readonly ModelChoice[];
+  modelsLoading: boolean;
+  modelsFailed: boolean;
   model: string | null;
   reasoning: ReasoningLevel | null;
   builtIn: readonly OutputField[];

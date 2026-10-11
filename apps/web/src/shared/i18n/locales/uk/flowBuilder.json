@@ -275,6 +275,7 @@
       },
       "model": "Модель",
       "platform": "Від платформи",
+      "modelsFailed": "Не вдалося завантажити моделі.",
       "pickModel": "Виберіть модель",
       "modelOption": "{{label}} · {{vendor}} · {{input, currency(USD)}} / {{output, currency(USD)}} за 1M токенів",
       "vendor": {

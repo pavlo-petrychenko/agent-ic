@@ -31,3 +31,8 @@ export const modelOptionsMock = (): MockLink.MockedResponse => ({
   request: { query: ModelOptionsDocument },
   result: { data: { modelOptions: [LUNA_MODEL, FLASH_MODEL] } },
 });
+
+export const modelOptionsFailedMock = (): MockLink.MockedResponse => ({
+  request: { query: ModelOptionsDocument },
+  error: new Error('offline'),
+});

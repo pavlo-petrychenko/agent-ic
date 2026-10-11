@@ -1,5 +1,6 @@
 import { MAX_RETRIES, NodeType, OutputFieldType } from '@agent-ic/flow';
 import type { FlowIssue } from '@agent-ic/flow';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import {
@@ -15,7 +16,7 @@ import type { LlmStepInspectorProps } from '@/features/flow-builder/view/LlmStep
 import { OutputFieldRow } from '@/features/flow-builder/view/LlmStepInspector/OutputFieldRow';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { SegmentedControl } from '@/shared/ui/actions/SegmentedControl';
-import { Callout } from '@/shared/ui/display/Callout';
+import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { RowList } from '@/shared/ui/display/RowList';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { Field } from '@/shared/ui/inputs/Field';
@@ -29,7 +30,9 @@ export function LlmStepInspector({
   step,
   extra,
   onPromptChange,
+  onPromptCommit,
   onModelChange,
+  onRetryModels,
   onReasoningChange,
   onAddField,
   onFieldChange,
@@ -56,18 +59,22 @@ export function LlmStepInspector({
   ];
   const defaultLevel = chosen?.defaultReasoningLevel ?? null;
 
+  useEffect(() => onPromptCommit, [onPromptCommit]);
+
   return (
     <>
       <InspectorSection title={t('inspector.llm.prompt')}>
-        <PromptEditor
-          value={step.prompt}
-          variables={step.variables}
-          label={t('inspector.llm.prompt')}
-          menuLabel={t('inspector.llm.variables')}
-          placeholder={t('inspector.llm.promptPlaceholder')}
-          error={message(step.promptIssue)}
-          onChange={onPromptChange}
-        />
+        <div className="contents" onBlur={onPromptCommit}>
+          <PromptEditor
+            value={step.prompt}
+            variables={step.variables}
+            label={t('inspector.llm.prompt')}
+            menuLabel={t('inspector.llm.variables')}
+            placeholder={t('inspector.llm.promptPlaceholder')}
+            error={message(step.promptIssue)}
+            onChange={onPromptChange}
+          />
+        </div>
       </InspectorSection>
       <InspectorSection title={t('inspector.llm.model')} note={t('inspector.llm.platform')}>
         <Select
@@ -75,8 +82,21 @@ export function LlmStepInspector({
           value={step.model ?? UNSET_OPTION}
           options={modelOptions}
           error={message(step.modelIssue)}
+          disabled={step.modelsLoading}
           onChange={(event) => onModelChange(event.target.value)}
         />
+        {step.modelsFailed && (
+          <Callout
+            tone={CalloutTone.Err}
+            action={
+              <Button variant={ButtonVariant.Ghost} size={ButtonSize.Sm} onClick={onRetryModels}>
+                {t('retry')}
+              </Button>
+            }
+          >
+            {t('inspector.llm.modelsFailed')}
+          </Callout>
+        )}
         {chosen !== null && chosen.reasoningLevels.length > 0 && (
           <Field label={t('inspector.llm.reasoning')}>
             {(control) => (
