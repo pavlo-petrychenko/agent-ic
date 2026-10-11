@@ -64,7 +64,20 @@
     }
   },
   "details": {
-    "label": "Turn details"
+    "label": "Turn details",
+    "empty": "Send a message to see what ran",
+    "title": "Turn {{number}}",
+    "duration": "Duration",
+    "stepsRun": "Steps run",
+    "stepsValue": "{{run}} of {{total}}",
+    "messagesSent": "Messages sent",
+    "status": {
+      "queued": "Queued",
+      "running": "Running",
+      "succeeded": "Completed",
+      "escalated": "Escalated",
+      "failed": "Failed"
+    }
   },
   "reset": "Reset conversation",
   "loading": "Loading the simulator…",

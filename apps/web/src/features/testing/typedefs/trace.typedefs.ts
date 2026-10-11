@@ -1,4 +1,5 @@
 import type { NodeType } from '@agent-ic/flow';
+import type { OutputViewKind } from '@/features/testing/constants/trace.constants';
 import type { RunStatus, RunStepStatus } from '@/shared/api/generated/schema.generated';
 import type { NodeKind } from '@/shared/ui/display/NodeTile';
 import type { RunNodeState } from '@/shared/ui/flow/RunNode';
@@ -70,4 +71,19 @@ export interface TraceDrawing {
   size: TracePoint;
   nodes: readonly PlacedTraceCell[];
   paths: readonly TracePath[];
+}
+
+export interface OutputField {
+  label: string;
+  value: string;
+}
+
+export type OutputView =
+  | { kind: OutputViewKind.Fields; fields: readonly OutputField[] }
+  | { kind: OutputViewKind.Json; code: string };
+
+export interface StepOutput {
+  id: string;
+  title: string;
+  view: OutputView;
 }

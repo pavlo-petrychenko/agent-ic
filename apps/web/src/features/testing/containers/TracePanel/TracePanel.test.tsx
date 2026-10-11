@@ -1,5 +1,5 @@
 import type { MockLink } from '@apollo/client/testing';
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import {
   REPLY_NODE_ID,
@@ -51,24 +51,27 @@ describe('TracePanel', () => {
 
   it('marks the failed step and links to it in the flow builder', async () => {
     renderPanel(RunStatus.Failed, [testingRunMock(RunStatus.Failed, RunStepStatus.Failed)]);
+    await screen.findByText('Failed');
 
-    await waitFor(() =>
-      expect(screen.getByRole('link', { name: 'Open in flow builder' })).toHaveAttribute(
-        'href',
-        `/w/${TEST_WORKSPACE_ID}/agents/${TEST_AGENT_ID}?node=${REPLY_NODE_ID}`,
-      ),
-    );
     expect(await stepState('Send replies')).toBe('failed');
     expect(
       within(screen.getByRole('list', { name: 'Step states' })).getByText('failed'),
     ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open in flow builder' })).toHaveAttribute(
+      'href',
+      `/w/${TEST_WORKSPACE_ID}/agents/${TEST_AGENT_ID}?node=${REPLY_NODE_ID}`,
+    );
   });
 
-  it('shows the steps a finished turn never reached', async () => {
+  it('shows the steps a finished turn never reached and its details', async () => {
     renderPanel(RunStatus.Succeeded, [testingRunMock(RunStatus.Succeeded, null)]);
 
-    await waitFor(async () => expect(await stepState('Incoming message')).toBe('done'));
+    expect(await screen.findByRole('heading', { name: 'Turn 2' })).toBeInTheDocument();
     expect(await stepState('Send replies')).toBe('skipped');
+    expect(screen.getByText('Completed')).toBeInTheDocument();
+    expect(screen.getByText('2.1 sec')).toBeInTheDocument();
+    expect(screen.getByText('2 of 2')).toBeInTheDocument();
+    expect(screen.getByText('needs_human')).toBeInTheDocument();
   });
 
   it('names the live version under a draft run only', async () => {

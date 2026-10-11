@@ -1,4 +1,5 @@
-import { RunStepStatus } from '@/shared/api/generated/schema.generated';
+import { RunStatus, RunStepStatus } from '@/shared/api/generated/schema.generated';
+import { BadgeTone } from '@/shared/ui/display/Badge';
 import { RunNodeState } from '@/shared/ui/flow/RunNode';
 
 export const TRACE_CELL_SEPARATOR = ':';
@@ -17,3 +18,21 @@ export const FOCUS_STEP_STATUSES: ReadonlySet<RunStepStatus> = new Set([
   RunStepStatus.Running,
   RunStepStatus.Failed,
 ]);
+
+export enum OutputViewKind {
+  Fields = 'fields',
+  Json = 'json',
+}
+
+export const JSON_INDENT = 2;
+export const MS_PER_SECOND = 1000;
+export const DURATION_FRACTION_DIGITS = 1;
+export const EMPTY_FIELD_VALUE = '—';
+
+export const RUN_STATUS_TONES: Readonly<Record<RunStatus, BadgeTone>> = {
+  [RunStatus.Queued]: BadgeTone.Neutral,
+  [RunStatus.Running]: BadgeTone.Accent,
+  [RunStatus.Succeeded]: BadgeTone.Ok,
+  [RunStatus.Escalated]: BadgeTone.Warn,
+  [RunStatus.Failed]: BadgeTone.Err,
+};

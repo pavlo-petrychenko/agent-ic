@@ -45,6 +45,11 @@ $grid-dot-size: 1px;
   border-left: var(--border-width) solid var(--color-line);
 }
 
+.empty {
+  flex: 1;
+  padding: var(--space-16);
+}
+
 .note {
   margin-top: auto;
   padding: var(--space-16);
