@@ -632,6 +632,19 @@ describe('InspectorPanel api request', () => {
     expect(screen.getByText('Connect the “on error” port')).toBeVisible();
   });
 
+  it('shows a timeout the list does not offer', () => {
+    open('lookup', {
+      ...API_FLOW,
+      nodes: API_FLOW.nodes.map((candidate) =>
+        candidate.type === NodeType.ApiRequest
+          ? { ...candidate, config: { ...candidate.config, timeoutSeconds: 7 } }
+          : candidate,
+      ),
+    });
+
+    expect(screen.getByRole('combobox', { name: 'Timeout' })).toHaveValue('7');
+  });
+
   it('tests the saved request and shows the answer', async () => {
     const user = userEvent.setup();
     open('lookup', API_FLOW, [testApiRequestMock('lookup')]);

@@ -54,7 +54,9 @@ export function ApiRequestInspector({
         <Select
           {...control}
           value={String(value)}
-          options={choices.map((choice) => ({ value: String(choice), label: format(choice) }))}
+          options={[...new Set([...choices, value])]
+            .sort((left, right) => left - right)
+            .map((choice) => ({ value: String(choice), label: format(choice) }))}
           onChange={(event) => change(Number(event.target.value))}
         />
       )}
