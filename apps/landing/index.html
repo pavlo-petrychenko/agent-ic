@@ -78,6 +78,25 @@
             </div>
             <p class="hero__note">{{t.hero.note}}</p>
           </div>
+          <figure class="mock" role="img" aria-label="{{t.mock.alt}}">
+            <div class="mock__frame">
+              <div class="mock__chrome"><span></span><span></span><span></span></div>
+            </div>
+            <div class="chat">
+              <div class="chat__head">
+                <span class="chat__avatar">{{t.chat.initials}}</span>
+                <span class="chat__who"
+                  ><strong>{{t.chat.name}}</strong><span>{{t.chat.channel}}</span></span
+                >
+              </div>
+              <div class="chat__body">
+                <span class="chat__bubble chat__bubble--in">{{t.chat.question}}</span>
+                <span class="chat__bubble chat__bubble--out">{{t.chat.answer}}</span>
+                <span class="chat__bubble chat__bubble--out">{{t.chat.offer}}</span>
+                <span class="pill chat__source">{{t.chat.source}}</span>
+              </div>
+            </div>
+          </figure>
         </div>
       </section>
       <section id="how-it-works" class="section section--panel" aria-labelledby="how-title">

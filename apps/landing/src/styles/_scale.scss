@@ -49,6 +49,23 @@ $lead: (
   wide: 18px,
 );
 
+$screen-width: 1440;
+$screen-height: 900;
+$mock-overhang: 38px;
+$mock-chrome-mobile: 22px;
+$chat-width: (
+  mobile: 250px,
+  tablet: 260px,
+  desktop: 280px,
+  wide: 300px,
+);
+$chat-bubble-width: (
+  mobile: 170px,
+  tablet: 180px,
+  desktop: 200px,
+  wide: 220px,
+);
+
 $text-item-title: 16px;
 $text-item: 14px;
 $text-nav: 14px;
@@ -105,4 +122,8 @@ $muted-opacity: 0.75;
       #{$property}: map.get($sizes, wide);
     }
   }
+}
+
+@function u($value) {
+  @return calc(#{$value} * var(--u));
 }

@@ -1,0 +1,150 @@
+@use 'sass:map';
+@use 'scale' as *;
+
+.mock {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+
+  @include from($tablet) {
+    display: block;
+    padding-bottom: $mock-overhang;
+  }
+
+  &__frame {
+    overflow: hidden;
+    border: var(--border-width) solid var(--color-line);
+    border-radius: var(--radius-10);
+    background: var(--color-card);
+    box-shadow: var(--shadow-dialog);
+    container-type: inline-size;
+
+    @include from($tablet) {
+      border-radius: var(--radius-16);
+    }
+  }
+
+  &__chrome {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    height: $mock-chrome-mobile;
+    padding: 0 var(--space-10);
+    border-bottom: var(--border-width) solid var(--color-line);
+    background: var(--color-panel);
+
+    @include from($tablet) {
+      height: var(--size-control-md);
+      padding: 0 var(--space-14);
+    }
+
+    span {
+      width: var(--space-7);
+      height: var(--space-7);
+      border-radius: 50%;
+      background: var(--color-line);
+
+      @include from($tablet) {
+        width: var(--space-10);
+        height: var(--space-10);
+      }
+    }
+  }
+}
+
+.chat {
+  position: relative;
+  align-self: flex-end;
+  width: map.get($chat-width, mobile);
+  margin-top: calc(-1 * #{$space-40});
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-16);
+  background: var(--color-card);
+  box-shadow: var(--shadow-popover);
+
+  @include from($tablet) {
+    position: absolute;
+    right: calc(-1 * var(--space-16));
+    bottom: 0;
+    width: map.get($chat-width, tablet);
+    margin: 0;
+  }
+
+  @include from($desktop) {
+    right: calc(-1 * var(--space-20));
+    width: map.get($chat-width, desktop);
+  }
+
+  @include from($wide) {
+    right: calc(-1 * var(--space-32));
+    width: map.get($chat-width, wide);
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-10);
+    padding: var(--space-12) var(--space-14);
+    border-bottom: var(--border-width) solid var(--color-line);
+  }
+
+  &__avatar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-avatar-md);
+    height: var(--size-avatar-md);
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    font: var(--type-caption-strong);
+  }
+
+  &__who {
+    display: flex;
+    flex-direction: column;
+
+    strong {
+      font: var(--type-title);
+    }
+
+    span {
+      color: var(--color-mute);
+      font-size: $text-pill;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    padding: var(--space-14);
+    background: var(--color-bg);
+  }
+
+  &__bubble {
+    @include fluid(max-width, $chat-bubble-width);
+
+    padding: var(--space-8) var(--space-12);
+
+    &--in {
+      align-self: flex-start;
+      border: var(--border-width) solid var(--color-line);
+      border-radius: var(--radius-14) var(--radius-14) var(--radius-14) var(--radius-4);
+      background: var(--color-card);
+    }
+
+    &--out {
+      align-self: flex-end;
+      border-radius: var(--radius-14) var(--radius-14) var(--radius-4) var(--radius-14);
+      background: var(--color-violet-light);
+    }
+  }
+
+  &__source {
+    align-self: flex-end;
+  }
+}
