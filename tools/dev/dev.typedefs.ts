@@ -22,6 +22,13 @@ export interface CommandStep {
   readonly args: CommandArgs;
 }
 
+export interface ContainerStatus {
+  readonly service: string;
+  readonly state: string;
+  readonly health: string;
+  readonly workingDir: string | null;
+}
+
 export interface LocalUrl {
   readonly label: string;
   readonly url: string;

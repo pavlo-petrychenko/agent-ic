@@ -77,28 +77,37 @@ To let agents answer in local dev, put your LLMAPI key in `.env` as `LLM_API_KEY
 
 Every command is a subcommand of one Node script, `tools/dev.ts`, so it works the same on macOS, Linux and Windows. `mise run <command>` and `pnpm stack <command>` both run it.
 
+After setup, `mise run start` is the only command you need, also after `git checkout` of another branch or `mise run clean`. Before it starts the stack, it:
+
+1. adds new variables from `.env.example` to `.env` and recreates a missing certificate;
+2. compares a fingerprint of the commit, the lockfile, the dev image, the GraphQL files, the routes, the migrations, `packages/` and the database and `node_modules` volumes with the one from the last start (`.dev/start.fingerprint`, gitignored);
+3. when it differs: rebuilds the dev image (cached when unchanged), installs dependencies from the current lockfile, regenerates code, applies new migrations and restarts the running `web`, `api`, `worker` and `gateway`, so Vite and nodemon serve the new code;
+4. when nothing changed: restarts only a node service that is unhealthy, for example after nodemon reported "app crashed".
+
+It never seeds: after `mise run clean`, run `mise run db:seed` for the seed data.
+
 ## Commands
 
-| Command                   | Does                                                               |
-| ------------------------- | ------------------------------------------------------------------ |
-| `mise run setup`          | one-time setup, see above                                          |
-| `mise run start [svc...]` | start everything, or only the listed services, and follow the logs |
-| `mise run add <svc>`      | add one service to the running stack (for example `grafana`)       |
-| `mise run stop [svc]`     | stop everything or one service                                     |
-| `mise run restart <svc>`  | restart one service                                                |
-| `mise run status`         | show the state of every service                                    |
-| `mise run logs [svc]`     | follow the logs of everything or one service                       |
-| `mise run shell <svc>`    | open a shell in a running service                                  |
-| `mise run db:migrate`     | apply migrations                                                   |
-| `mise run db:reset`       | recreate the database volume, then migrate and seed                |
-| `mise run db:seed`        | load seed data                                                     |
-| `mise run db:psql [role]` | open psql as `app_owner` (default), `app` or `app_system`          |
-| `mise run codegen`        | regenerate generated code                                          |
-| `mise run check`          | lint, format check, comments, boundaries and types                 |
-| `mise run chart:validate` | lint, render and kubeconform the Helm chart                        |
-| `mise run lint:workflows` | lint the GitHub Actions workflows                                  |
-| `mise run test`           | run the tests                                                      |
-| `mise run clean`          | remove containers, volumes and certificates                        |
+| Command                   | Does                                                            |
+| ------------------------- | --------------------------------------------------------------- |
+| `mise run setup`          | one-time setup, see above                                       |
+| `mise run start [svc...]` | rebuild what changed, start all or listed services, follow logs |
+| `mise run add <svc>`      | add one service to the running stack (for example `grafana`)    |
+| `mise run stop [svc]`     | stop everything or one service                                  |
+| `mise run restart <svc>`  | restart one service                                             |
+| `mise run status`         | show the state of every service                                 |
+| `mise run logs [svc]`     | follow the logs of everything or one service                    |
+| `mise run shell <svc>`    | open a shell in a running service                               |
+| `mise run db:migrate`     | apply migrations                                                |
+| `mise run db:reset`       | recreate the database volume, then migrate and seed             |
+| `mise run db:seed`        | load seed data                                                  |
+| `mise run db:psql [role]` | open psql as `app_owner` (default), `app` or `app_system`       |
+| `mise run codegen`        | regenerate generated code                                       |
+| `mise run check`          | lint, format check, comments, boundaries and types              |
+| `mise run chart:validate` | lint, render and kubeconform the Helm chart                     |
+| `mise run lint:workflows` | lint the GitHub Actions workflows                               |
+| `mise run test`           | run the tests                                                   |
+| `mise run clean`          | remove containers, volumes, certificates; `start` rebuilds them |
 
 `mise tasks` lists them with descriptions.
 
@@ -121,6 +130,8 @@ mise run add langfuse-web
 ```
 
 ## URLs
+
+With `TRAEFIK_HTTPS_PORT` other than `443`, add the port to each URL, for example `https://local.agent-ic.pavlop.dev:8443`.
 
 | URL                                        | What                                      |
 | ------------------------------------------ | ----------------------------------------- |
