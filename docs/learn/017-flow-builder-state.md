@@ -56,4 +56,4 @@ A new graph edit.
 - **Calling `markSaved` without the saved document.** The store cannot tell a stale response from a fresh one, and an edit made during the save is never sent.
 - **Leaving `conflict` on the next keystroke.** Only `load` leaves it. Anything else would save over someone else's draft.
 
-Next: look at real code in the examples, starting with [the identity module](../examples/identity-module.md). The list is in [the examples section](../README.md#examples) of the docs entry page.
+Next: [018 How a run works](018-how-a-run-works.md)

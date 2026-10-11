@@ -84,3 +84,6 @@ export const TEST_RENDERED_AGENT_PROMPT = `Answer the customer politely: ${TEST_
 export const TEST_AGENT_RETRIES = 2;
 export const TEST_MOOD_FIELD = 'mood';
 export const TEST_MOOD = 'curious';
+export const RUNS_WORKER_WAIT = { timeout: 20_000, interval: 50 };
+export const TEST_RENDERED_NOTICE = `A person will answer "${TEST_MESSAGE_TEXT}" soon.`;
+export const TEST_MERGED_TEXTS = ['Hi there', 'do you deliver', 'to the old town?'];
