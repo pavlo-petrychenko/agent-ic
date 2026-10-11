@@ -1,0 +1,248 @@
+@use 'scale' as *;
+
+.tile {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: $tile-size;
+  height: $tile-size;
+  border-radius: var(--radius-8);
+  background: var(--hue-neutral-bg);
+  color: var(--hue-neutral-fg);
+
+  svg {
+    width: $tile-icon;
+    height: $tile-icon;
+  }
+
+  &--agent {
+    background: var(--hue-agent-bg);
+    color: var(--hue-agent-fg);
+  }
+
+  &--kb {
+    background: var(--hue-kb-bg);
+    color: var(--hue-kb-fg);
+  }
+
+  &--send {
+    background: var(--hue-send-bg);
+    color: var(--hue-send-fg);
+  }
+}
+
+.item-title {
+  color: var(--color-ink);
+  font-size: $text-item-title;
+  font-weight: 600;
+}
+
+.item-text {
+  color: var(--color-ink-secondary);
+  font-size: $text-item;
+  line-height: $leading-text;
+}
+
+.section {
+  @include fluid(
+    padding,
+    (
+      mobile: $space-56 0,
+      tablet: $space-72 0,
+      desktop: $space-80 0,
+      wide: $space-96 0,
+    )
+  );
+
+  &--panel {
+    background: var(--color-panel);
+  }
+
+  &__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-28);
+
+    @include from($tablet) {
+      gap: $space-40;
+    }
+  }
+
+  &__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  &__title {
+    @include fluid(font-size, $title-section);
+
+    color: var(--color-ink);
+    font-weight: 600;
+    line-height: $leading-title;
+    letter-spacing: $tracking-title;
+  }
+
+  &__lead {
+    @include fluid(font-size, $lead);
+
+    max-width: $lead-max-width;
+    color: var(--color-ink-secondary);
+    line-height: $leading-text;
+  }
+}
+
+.eyebrow {
+  color: var(--color-accent);
+  font: var(--type-overline);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+}
+
+.steps {
+  display: grid;
+  gap: var(--space-16);
+
+  @include from($desktop) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.step {
+  display: grid;
+  grid-template-areas:
+    'tile number'
+    'text text';
+  grid-template-columns: 1fr auto;
+  align-content: start;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-22);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-card);
+
+  &__text {
+    display: flex;
+    grid-area: text;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  .tile {
+    grid-area: tile;
+  }
+
+  &__number {
+    grid-area: number;
+    color: var(--color-line);
+    font-size: $text-step-number;
+    font-weight: 600;
+  }
+
+  @include from($tablet) {
+    @include below($desktop) {
+      grid-template-areas: 'tile text number';
+      grid-template-columns: $tile-size minmax(0, 1fr) $step-number-width;
+      align-items: start;
+      gap: var(--space-16);
+      padding: var(--space-20) var(--space-22);
+
+      &__text {
+        gap: var(--space-6);
+      }
+
+      &__number {
+        text-align: right;
+      }
+    }
+  }
+}
+
+.features {
+  display: grid;
+  gap: var(--space-28) $space-40;
+
+  @include from($tablet) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $space-40;
+  }
+
+  @include from($desktop) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.cta {
+  @include fluid(
+    padding,
+    (
+      mobile: var(--space-8) 0 $space-56,
+      tablet: var(--space-8) 0 $space-72,
+      desktop: var(--space-8) 0 $space-80,
+      wide: var(--space-16) 0 $space-96,
+    )
+  );
+
+  &__band {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-24);
+    padding: $space-36 var(--space-24);
+    border-radius: var(--radius-16);
+    background: var(--color-dark);
+    color: var(--color-on-dark);
+
+    @include from($tablet) {
+      padding: var(--space-48);
+      border-radius: $radius-band;
+    }
+
+    @include from($desktop) {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding: $space-64;
+    }
+  }
+
+  &__copy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+  }
+
+  &__title {
+    @include fluid(font-size, $title-cta);
+
+    font-weight: 600;
+    line-height: $leading-title;
+    letter-spacing: $tracking-title;
+  }
+
+  &__text {
+    font-size: $text-item-title;
+    line-height: $leading-text;
+    opacity: $muted-opacity;
+  }
+
+  &__button {
+    align-self: stretch;
+
+    @include from($tablet) {
+      align-self: auto;
+    }
+  }
+
+  :focus-visible {
+    outline-color: var(--color-on-dark);
+  }
+}

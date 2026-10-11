@@ -24,6 +24,55 @@
     "lead": "Pick a template, add your price list and FAQ, connect Telegram. Your bot is live in about 10 minutes — and hands the chat to your team when it can’t help.",
     "note": "No code · Ukrainian and English · a person can always step in"
   },
+  "how": {
+    "eyebrow": "How it works",
+    "title": "From sign-up to a live bot in three steps",
+    "lead": "The quick-start walks you through it. You can change everything later in the flow builder.",
+    "template": {
+      "title": "Pick a template",
+      "text": "FAQ, FAQ with hand-off, scheduled follow-up or event notifications. Or start from scratch."
+    },
+    "documents": {
+      "title": "Add your documents",
+      "text": "Upload PDFs and docs, or connect Google Docs and Notion. The bot answers only from them."
+    },
+    "publish": {
+      "title": "Connect Telegram and publish",
+      "text": "Paste your bot token from @BotFather. Or use the API channel for your website or CRM."
+    }
+  },
+  "features": {
+    "eyebrow": "Features",
+    "title": "Everything a small team needs to run a bot",
+    "flow": {
+      "title": "Visual flow builder",
+      "text": "Drag steps onto a canvas: agents, conditions, messages, API requests. No code."
+    },
+    "knowledge": {
+      "title": "Answers from your documents",
+      "text": "Knowledge bases from files, Google Docs and Notion, kept in sync."
+    },
+    "inbox": {
+      "title": "Inbox for your team",
+      "text": "Take over any chat, reply yourself, then hand it back to the bot."
+    },
+    "testing": {
+      "title": "Test before customers see it",
+      "text": "A simulator runs your draft. Customers keep talking to the live version."
+    },
+    "versions": {
+      "title": "Versions and rollback",
+      "text": "Every publish is a version. Restore an old one in two clicks."
+    },
+    "api": {
+      "title": "API for your site or CRM",
+      "text": "Send messages and events from your own systems; get replies by webhook."
+    }
+  },
+  "cta": {
+    "title": "Your first bot is about 10 minutes away",
+    "text": "Start with a template and your own documents."
+  },
   "footer": {
     "label": "Footer",
     "contact": "Contact"

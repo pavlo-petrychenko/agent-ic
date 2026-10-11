@@ -80,6 +80,112 @@
           </div>
         </div>
       </section>
+      <section id="how-it-works" class="section section--panel" aria-labelledby="how-title">
+        <div class="section__inner container">
+          <div class="section__head">
+            <p class="eyebrow">{{t.how.eyebrow}}</p>
+            <h2 id="how-title" class="section__title">{{t.how.title}}</h2>
+            <p class="section__lead">{{t.how.lead}}</p>
+          </div>
+          <ol class="steps">
+            <li class="step">
+              <span class="tile tile--agent" aria-hidden="true">
+                <svg class="icon"><use href="/icons.svg#agent" /></svg>
+              </span>
+              <div class="step__text">
+                <h3 class="item-title">{{t.how.template.title}}</h3>
+                <p class="item-text">{{t.how.template.text}}</p>
+              </div>
+              <span class="step__number" aria-hidden="true">1</span>
+            </li>
+            <li class="step">
+              <span class="tile tile--kb" aria-hidden="true">
+                <svg class="icon"><use href="/icons.svg#kb" /></svg>
+              </span>
+              <div class="step__text">
+                <h3 class="item-title">{{t.how.documents.title}}</h3>
+                <p class="item-text">{{t.how.documents.text}}</p>
+              </div>
+              <span class="step__number" aria-hidden="true">2</span>
+            </li>
+            <li class="step">
+              <span class="tile tile--send" aria-hidden="true">
+                <svg class="icon"><use href="/icons.svg#send" /></svg>
+              </span>
+              <div class="step__text">
+                <h3 class="item-title">{{t.how.publish.title}}</h3>
+                <p class="item-text">{{t.how.publish.text}}</p>
+              </div>
+              <span class="step__number" aria-hidden="true">3</span>
+            </li>
+          </ol>
+        </div>
+      </section>
+      <section id="features" class="section" aria-labelledby="features-title">
+        <div class="section__inner container">
+          <div class="section__head">
+            <p class="eyebrow">{{t.features.eyebrow}}</p>
+            <h2 id="features-title" class="section__title">{{t.features.title}}</h2>
+          </div>
+          <ul class="features">
+            <li class="feature">
+              <span class="tile" aria-hidden="true">
+                <svg class="icon"><use href="/icons.svg#router" /></svg>
+              </span>
+              <h3 class="item-title">{{t.features.flow.title}}</h3>
+              <p class="item-text">{{t.features.flow.text}}</p>
+            </li>
+            <li class="feature">
+              <span class="tile" aria-hidden="true">
+                <svg class="icon"><use href="/icons.svg#kb" /></svg>
+              </span>
+              <h3 class="item-title">{{t.features.knowledge.title}}</h3>
+              <p class="item-text">{{t.features.knowledge.text}}</p>
+            </li>
+            <li class="feature">
+              <span class="tile" aria-hidden="true">
+                <svg class="icon"><use href="/icons.svg#inbox" /></svg>
+              </span>
+              <h3 class="item-title">{{t.features.inbox.title}}</h3>
+              <p class="item-text">{{t.features.inbox.text}}</p>
+            </li>
+            <li class="feature">
+              <span class="tile" aria-hidden="true">
+                <svg class="icon"><use href="/icons.svg#flask" /></svg>
+              </span>
+              <h3 class="item-title">{{t.features.testing.title}}</h3>
+              <p class="item-text">{{t.features.testing.text}}</p>
+            </li>
+            <li class="feature">
+              <span class="tile" aria-hidden="true">
+                <svg class="icon"><use href="/icons.svg#refresh" /></svg>
+              </span>
+              <h3 class="item-title">{{t.features.versions.title}}</h3>
+              <p class="item-text">{{t.features.versions.text}}</p>
+            </li>
+            <li class="feature">
+              <span class="tile" aria-hidden="true">
+                <svg class="icon"><use href="/icons.svg#api" /></svg>
+              </span>
+              <h3 class="item-title">{{t.features.api.title}}</h3>
+              <p class="item-text">{{t.features.api.text}}</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+      <section class="cta" aria-labelledby="cta-title">
+        <div class="container">
+          <div class="cta__band">
+            <div class="cta__copy">
+              <h2 id="cta-title" class="cta__title">{{t.cta.title}}</h2>
+              <p class="cta__text">{{t.cta.text}}</p>
+            </div>
+            <a class="button button--primary button--lg cta__button" href="{{link.signUp}}"
+              >{{t.actions.createBot}}</a
+            >
+          </div>
+        </div>
+      </section>
     </main>
     <footer class="footer">
       <div class="footer__bar container">
