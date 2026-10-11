@@ -10,7 +10,7 @@ import {
   validateFlow,
 } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
-import { act, screen, within } from '@testing-library/react';
+import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { NODE_TEMPLATES } from '@/features/flow-builder/constants/nodeTemplate.constants';
@@ -109,6 +109,60 @@ describe('InspectorPanel', () => {
 
     expect(store().selection.nodeIds).toEqual([]);
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+  });
+
+  it('edits a router rule in the document', async () => {
+    const user = userEvent.setup();
+    open('route');
+
+    const route = screen.getByRole('region', { name: 'Route 1' });
+    expect(within(route).getByText('→ Reply')).toBeVisible();
+    await user.selectOptions(
+      within(route).getByRole('combobox', { name: 'Operator' }),
+      'starts_with',
+    );
+    fireEvent.change(within(route).getByRole('textbox', { name: 'Value' }), {
+      target: { value: 'hi' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Add route' }));
+
+    expect(node('route')).toMatchObject({
+      config: {
+        rules: [
+          { conditions: [{ operator: ConditionOperator.StartsWith, value: 'hi' }] },
+          { conditions: [{ variable: 'message.text' }] },
+        ],
+      },
+    });
+  });
+
+  it('shows the field error for a field the router can not use', () => {
+    open('route', {
+      ...FLOW,
+      nodes: FLOW.nodes.map((candidate) =>
+        candidate.type === NodeType.Router
+          ? step('route', 'Needs a person?', {
+              type: NodeType.Router,
+              config: {
+                rules: [{ ...RULE, conditions: [{ ...CONDITION, variable: 'reply.gone' }] }],
+              },
+            })
+          : candidate,
+      ),
+    });
+
+    expect(screen.getByText('reply.gone isn’t available here')).toBeVisible();
+    expect(screen.getByRole('combobox', { name: 'Field' })).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('removes a route with its connection', async () => {
+    const user = userEvent.setup();
+    open('route');
+
+    await user.click(screen.getByRole('button', { name: 'Remove Route 1' }));
+
+    expect(node('route')).toMatchObject({ config: { rules: [] } });
+    expect(store().document.edges.map((edge) => edge.id)).toEqual(['e1']);
   });
 
   it('changes when a parallel step continues', async () => {

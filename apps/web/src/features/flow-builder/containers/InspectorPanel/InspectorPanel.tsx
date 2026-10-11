@@ -1,23 +1,44 @@
-import { MAX_LABEL_LENGTH, NodeType, PortName, triggerVariables } from '@agent-ic/flow';
+import {
+  MAX_LABEL_LENGTH,
+  MAX_ROUTER_RULES,
+  NodeType,
+  PortName,
+  triggerVariables,
+  visibleVariables,
+} from '@agent-ic/flow';
 import type { FlowNode } from '@agent-ic/flow';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EMPTY_SELECTION } from '@/features/flow-builder/constants/flowBuilder.constants';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import { DESCRIBED_NODE_TYPES } from '@/features/flow-builder/constants/inspector.constants';
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
 import { renameKey } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
+import { newElementId } from '@/features/flow-builder/logic/helpers/id.helpers';
 import {
   branchRows,
+  fieldErrors,
   fieldRows,
   nodeName,
+  observerNames,
+  portTargets,
   proposeKeyRename,
   updateNode,
 } from '@/features/flow-builder/logic/helpers/inspector.helpers';
+import {
+  addRule,
+  conditionView,
+  moveRule,
+  renameRule,
+  removeRule,
+  updateCondition,
+} from '@/features/flow-builder/logic/helpers/router.helpers';
+import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { KeyRename } from '@/features/flow-builder/typedefs/inspector.typedefs';
 import { InlineEditField } from '@/features/flow-builder/view/InlineEditField';
 import { ParallelInspector } from '@/features/flow-builder/view/ParallelInspector';
+import { RouterInspector } from '@/features/flow-builder/view/RouterInspector';
 import { TriggerInspector } from '@/features/flow-builder/view/TriggerInspector';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Inspector } from '@/shared/ui/layout/Inspector';
@@ -29,9 +50,14 @@ export function InspectorPanel() {
   const selection = useFlowBuilderStore((state) => state.selection);
   const apply = useFlowBuilderStore((state) => state.apply);
   const select = useFlowBuilderStore((state) => state.select);
+  const issues = useFlowIssues();
   const [keyRename, setKeyRename] = useState<KeyRename | null>(null);
   const [nodeId] = selection.nodeIds.length === 1 ? selection.nodeIds : [null];
   const node = document.nodes.find((candidate) => candidate.id === nodeId) ?? null;
+  const variables = useMemo(
+    () => (node === null ? [] : visibleVariables(document, node.id)),
+    [document, node],
+  );
 
   const body = (current: FlowNode) => {
     switch (current.type) {
@@ -56,6 +82,30 @@ export function InspectorPanel() {
                     : step,
                 ),
               )
+            }
+          />
+        );
+      case NodeType.Router:
+        return (
+          <RouterInspector
+            routes={current.config.rules.map((rule) => ({
+              rule,
+              targets: portTargets(document, current.id, rule.id),
+              conditions: rule.conditions.map((condition) => conditionView(condition, variables)),
+            }))}
+            fields={fieldRows(variables)}
+            otherwise={portTargets(document, current.id, PortName.Else)}
+            observers={observerNames(document, current.id)}
+            errors={fieldErrors(issues, current.id)}
+            canAddRoute={current.config.rules.length < MAX_ROUTER_RULES}
+            onAddRoute={() => apply(addRule(document, current.id, newElementId(), variables))}
+            onRenameRoute={(ruleId, label) =>
+              apply(renameRule(document, current.id, ruleId, label))
+            }
+            onMoveRoute={(ruleId, offset) => apply(moveRule(document, current.id, ruleId, offset))}
+            onRemoveRoute={(ruleId) => apply(removeRule(document, current.id, ruleId))}
+            onConditionChange={(ruleId, index, patch) =>
+              apply(updateCondition(document, current.id, ruleId, index, patch, variables))
             }
           />
         );
