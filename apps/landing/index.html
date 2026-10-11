@@ -196,7 +196,237 @@
                   </div>
                   <span class="fb__note">{{t.mock.knowledgeNote}}</span>
                 </div>
-                <div class="fb__canvas"></div>
+                <div class="fb__canvas">
+                  <svg class="fb__edges" viewBox="0 0 832 800">
+                    <defs>
+                      <marker
+                        id="fb-arrow"
+                        viewBox="0 0 10 10"
+                        refX="8"
+                        refY="5"
+                        markerWidth="7"
+                        markerHeight="7"
+                        orient="auto"
+                      >
+                        <path d="M0 1L9 5L0 9z" />
+                      </marker>
+                      <marker
+                        id="fb-arrow-accent"
+                        viewBox="0 0 10 10"
+                        refX="8"
+                        refY="5"
+                        markerWidth="7"
+                        markerHeight="7"
+                        orient="auto"
+                      >
+                        <path d="M0 1L9 5L0 9z" />
+                      </marker>
+                    </defs>
+                    <path
+                      d="M140 88V110M140 148V178M140 264V294M684 88V104M684 184V214M684 278V308M684 496V526M684 590V620"
+                      marker-end="url(#fb-arrow)"
+                    />
+                    <path d="M140 148C140 166 412 160 412 178" marker-end="url(#fb-arrow)" />
+                    <path d="M240 320C268 320 268 354 294 354" marker-end="url(#fb-arrow)" />
+                    <path
+                      class="fb__edge-accent"
+                      d="M140 344V382M140 552V582"
+                      marker-end="url(#fb-arrow-accent)"
+                    />
+                  </svg>
+                  <span class="fb__label fb__label--active" style="--x: 150; --y: 352"
+                    >{{t.mock.else}}</span
+                  >
+                  <span class="fb__label" style="--x: 270; --y: 284">needs_human == true</span>
+                  <div
+                    class="fb__node fb__node--trigger"
+                    style="--x: 16; --y: 16; --w: 248; --h: 72"
+                  >
+                    <span class="fb__node-title"
+                      ><svg class="icon"><use href="/icons.svg#msg" /></svg>{{t.mock.message}}</span
+                    >
+                    <span class="fb__node-sub">Telegram · API</span>
+                  </div>
+                  <div class="fb__node fb__node--pill" style="--x: 80; --y: 112; --w: 120; --h: 36">
+                    <span class="fb__tile hue-par"
+                      ><svg class="icon"><use href="/icons.svg#par" /></svg></span
+                    ><strong>{{t.mock.parallel}}</strong>
+                  </div>
+                  <div class="fb__node" style="--x: 16; --y: 180; --w: 248; --h: 84">
+                    <span class="fb__node-head"
+                      ><span class="fb__tile hue-compl"
+                        ><svg class="icon"><use href="/icons.svg#compl" /></svg></span
+                      ><span
+                        ><span class="fb__kind hue-compl-text">{{t.mock.guardKind}}</span
+                        ><strong>{{t.mock.guard}}</strong></span
+                      ></span
+                    >
+                    <span class="fb__chip">→ needs_human, reason</span>
+                  </div>
+                  <div class="fb__node" style="--x: 296; --y: 180; --w: 232; --h: 84">
+                    <span class="fb__node-head"
+                      ><span class="fb__tile hue-compl"
+                        ><svg class="icon"><use href="/icons.svg#compl" /></svg></span
+                      ><span
+                        ><span class="fb__kind hue-compl-text">{{t.mock.taggerKind}}</span
+                        ><strong>{{t.mock.tagger}}</strong></span
+                      ></span
+                    >
+                    <span class="fb__muted">{{t.mock.taggerText}}</span>
+                  </div>
+                  <div class="fb__node fb__node--row" style="--x: 40; --y: 296; --w: 200; --h: 48">
+                    <span class="fb__tile hue-router"
+                      ><svg class="icon"><use href="/icons.svg#router" /></svg></span
+                    ><strong>{{t.mock.needsPerson}}</strong>
+                  </div>
+                  <div
+                    class="fb__node fb__node--tight"
+                    style="--x: 296; --y: 312; --w: 232; --h: 84"
+                  >
+                    <span class="fb__node-head"
+                      ><span class="fb__tile hue-esc"
+                        ><svg class="icon"><use href="/icons.svg#esc" /></svg></span
+                      ><span
+                        ><span class="fb__kind hue-esc-text">{{t.mock.escalation}}</span
+                        ><strong>{{t.mock.notify}}</strong></span
+                      ></span
+                    >
+                    <span class="fb__muted fb__with-icon"
+                      ><svg class="icon"><use href="/icons.svg#pause" /></svg
+                      >{{t.mock.paused}}</span
+                    >
+                  </div>
+                  <div
+                    class="fb__node fb__node--selected"
+                    style="--x: 16; --y: 384; --w: 248; --h: 168"
+                  >
+                    <span class="fb__node-head"
+                      ><span class="fb__tile hue-agent"
+                        ><svg class="icon"><use href="/icons.svg#agent" /></svg></span
+                      ><span
+                        ><span class="fb__kind hue-agent-text">{{t.mock.agentStep}}</span
+                        ><strong>{{t.mock.receptionist}}</strong></span
+                      ></span
+                    >
+                    <span class="fb__muted">{{t.mock.receptionistModel}}</span>
+                    <span class="fb__tags"
+                      ><span>{{t.mock.services}}</span><span>{{t.mock.hours}}</span></span
+                    >
+                    <span class="fb__chip">→ messages[ ]</span>
+                  </div>
+                  <div
+                    class="fb__node fb__node--tight"
+                    style="--x: 16; --y: 584; --w: 248; --h: 92"
+                  >
+                    <span class="fb__node-head"
+                      ><span class="fb__tile hue-send"
+                        ><svg class="icon"><use href="/icons.svg#send" /></svg></span
+                      ><span
+                        ><span class="fb__kind hue-send-text">{{t.mock.sendMessage}}</span
+                        ><strong>{{t.mock.sendReplies}}</strong></span
+                      ></span
+                    >
+                    <span class="fb__muted"
+                      ><code>{{t.mock.messagesVariable}}</code> {{t.mock.perItem}}</span
+                    >
+                  </div>
+                  <div
+                    class="fb__node fb__node--trigger"
+                    style="--x: 560; --y: 16; --w: 248; --h: 72"
+                  >
+                    <span class="fb__node-title"
+                      ><svg class="icon"><use href="/icons.svg#bolt" /></svg>{{t.mock.event}}</span
+                    >
+                    <span class="fb__node-sub">{{t.mock.eventText}}</span>
+                  </div>
+                  <div
+                    class="fb__node fb__node--tight"
+                    style="--x: 560; --y: 106; --w: 248; --h: 78"
+                  >
+                    <span class="fb__node-head"
+                      ><span class="fb__tile hue-api"
+                        ><svg class="icon"><use href="/icons.svg#api" /></svg></span
+                      ><span
+                        ><span class="fb__kind hue-api-text">{{t.mock.apiRequest}}</span
+                        ><strong>{{t.mock.loadBooking}}</strong></span
+                      ></span
+                    >
+                    <code>GET api.salon-crm.example/…/:id</code>
+                  </div>
+                  <div
+                    class="fb__node fb__node--center"
+                    style="--x: 560; --y: 216; --w: 248; --h: 62"
+                  >
+                    <span class="fb__node-head"
+                      ><span class="fb__tile hue-compl"
+                        ><svg class="icon"><use href="/icons.svg#compl" /></svg></span
+                      ><span
+                        ><span class="fb__kind hue-compl-text">{{t.mock.completion}}</span
+                        ><strong>{{t.mock.writeConfirmation}}</strong></span
+                      ></span
+                    >
+                  </div>
+                  <div
+                    class="fb__node fb__node--center"
+                    style="--x: 560; --y: 310; --w: 248; --h: 56"
+                  >
+                    <span class="fb__node-head"
+                      ><span class="fb__tile hue-send"
+                        ><svg class="icon"><use href="/icons.svg#send" /></svg></span
+                      ><span
+                        ><span class="fb__kind hue-send-text">{{t.mock.sendMessage}}</span
+                        ><strong>{{t.mock.sendConfirmation}}</strong></span
+                      ></span
+                    >
+                  </div>
+                  <div
+                    class="fb__node fb__node--trigger"
+                    style="--x: 560; --y: 420; --w: 248; --h: 76"
+                  >
+                    <span class="fb__node-title"
+                      ><svg class="icon"><use href="/icons.svg#cal" /></svg
+                      >{{t.mock.schedule}}</span
+                    >
+                    <span class="fb__node-sub">{{t.mock.scheduleText}}</span>
+                  </div>
+                  <div
+                    class="fb__node fb__node--center"
+                    style="--x: 560; --y: 528; --w: 248; --h: 62"
+                  >
+                    <span class="fb__node-head"
+                      ><span class="fb__tile hue-compl"
+                        ><svg class="icon"><use href="/icons.svg#compl" /></svg></span
+                      ><span
+                        ><span class="fb__kind hue-compl-text">{{t.mock.completion}}</span
+                        ><strong>{{t.mock.writeFollowUp}}</strong></span
+                      ></span
+                    >
+                  </div>
+                  <div
+                    class="fb__node fb__node--center"
+                    style="--x: 560; --y: 622; --w: 248; --h: 56"
+                  >
+                    <span class="fb__node-head"
+                      ><span class="fb__tile hue-send"
+                        ><svg class="icon"><use href="/icons.svg#send" /></svg></span
+                      ><span
+                        ><span class="fb__kind hue-send-text">{{t.mock.sendMessage}}</span
+                        ><strong>{{t.mock.sendFollowUp}}</strong></span
+                      ></span
+                    >
+                  </div>
+                  <div class="fb__zoom">
+                    <span class="fb__zoom-box"
+                      ><svg class="icon"><use href="/icons.svg#minus" /></svg><span>100%</span
+                      ><svg class="icon"><use href="/icons.svg#plus" /></svg
+                      ><span class="fb__zoom-fit">{{t.mock.fit}}</span></span
+                    >
+                    <span class="fb__segments"
+                      ><span class="is-active">{{t.mock.comfortable}}</span
+                      ><span>{{t.mock.compact}}</span></span
+                    >
+                  </div>
+                </div>
                 <div class="fb__status">
                   <span class="fb__with-icon"
                     ><span class="fb__dot"></span><strong>{{t.mock.lastRun}}</strong
