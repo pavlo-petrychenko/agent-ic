@@ -44,12 +44,19 @@ complete(request) / runAgent(request)
 5. **Fallback.** On 429, a 5xx or a timeout, the gateway starts again on the model's fallback, with the original messages. It never retries the same model: the job retry does that later. Workspace providers have no fallback in the MVP (D83).
 6. **`LlmUnavailableError`** has the kind `Unavailable`. In a job it retries with backoff instead of giving up. On GraphQL and REST it is `UPSTREAM_ERROR` with HTTP 503. Its details name the models tried, and its cause holds each failure.
 
+## Tracing
+
+- When `LANGFUSE_MODE` is not `off` and the OTel SDK runs (`OTEL_SDK_DISABLED` is not `true`), each call is traced at the `LANGFUSE_SAMPLE_RATE`, and the spans go through the OTel Collector to Langfuse (D47, D201). The decision is made once per call, so a call that falls back records every model attempt or none. Otherwise nothing is traced.
+- `tags` name the trace: `traceName` and `workspaceId`, and when known `sessionId` (the conversation), `agentVersionId`, `promptId` and `promptVersion`. Each model attempt's span also says which model it was, its `fallback_hop` and the `reasoning` level it got.
+- To group several calls into one trace, wrap them in `LlmTraceContextService.run(tags, async (traceId) => …)`. It samples once for the whole trace, starts a new trace even inside a traced HTTP request, and gives you the trace id to store, or `null` when the trace is not recorded.
+
 ## Add a call
 
 - [ ] Inject `LlmGateway` (the abstract class), not `AiSdkLlmGateway`.
 - [ ] Describe the answer with a zod schema. Keep it small and flat; the model fills it.
 - [ ] Use `complete` when the model needs no tools, `runAgent` when it does.
 - [ ] Pass the whole conversation as `messages`. Never cut the history.
+- [ ] Fill `tags`, so the call can be found in Langfuse.
 - [ ] Save `model` and `usage` where you record the result, so a run shows which model answered and what it cost.
 - [ ] In a spec, start the mock with `startMockLlm()` and script it: `json(value)`, `text(s)`, `toolCall(name, args)`, `reply(args)`, `fail(status)`, `hang()`. It answers chat completions and the Anthropic messages API, and `body(i)` and `toolNames(i)` show what was sent. Give the gateway short timeouts, as [ai-sdk-llm.gateway.spec.ts](../../apps/backend/src/platform/llm/gateways/ai-sdk-llm.gateway.spec.ts) does.
 
