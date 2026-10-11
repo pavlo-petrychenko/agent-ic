@@ -25,14 +25,14 @@ after-commit buffer --(commit)--> Redis PUBLISH
                        api process: one shared SUBSCRIBE connection
                                       |  fan out in memory
                                       v
-                       subscription resolver --> async generator --> tab
+                       subscription resolver --> ChannelStream --> tab
 ```
 
 1. **Define the channel.** `defineChannel({ name, schema })` names it and says what an event looks like. The schema holds flat values only: strings, numbers, booleans and null.
 2. **Pick the key.** `channelFor(definition, ...segments)` builds the Redis key, `topic:<name>:<segment>:...`. Put the workspace id in a segment, so one workspace never hears another.
 3. **Publish.** `LiveUpdatesService.publish(channel, event)` checks the event against the schema and waits for the commit. A rolled-back transaction publishes nothing.
 4. **Share one connection.** Each process keeps one Redis subscriber connection. It subscribes to a key when the first listener arrives and unsubscribes when the last one leaves.
-5. **Subscribe.** `LiveUpdatesService.subscribe(channel)` returns an async generator of checked events. When the client disconnects, the generator ends and the listener is released.
+5. **Subscribe.** `LiveUpdatesService.subscribe(channel)` returns a `ChannelStream`: an async iterator object of checked events. When the client disconnects, the server calls its `return()`. That stops the stream and releases the listener at once, even while it is still waiting for a message.
 
 The WebSocket is served by the same GraphQL server, through its `graphql-ws` setup. On connect, the server resolves the actor from the `authorization` connection parameter and refuses the connection if that fails. Each operation then gets its ctx from the `authorization` and `x-workspace-id` parameters, like an HTTP request does. The web app already sends subscription operations over a `graphql-ws` link.
 
@@ -48,7 +48,7 @@ If losing the message would break something, it is not a live update. Use a dura
 
 ## Example use (hypothetical)
 
-Not built: no module defines a channel, no resolver subscribes, and the GraphQL schema has no `Subscription` type yet. The names below are invented.
+The real flow today is `runSteps(runId)`. `SubscribeToRunStepsUseCase` authorizes, checks in a tenant transaction that the run exists and is a simulation, then returns `subscribe(channel)` mapped to public ids with `mapChannelStream`. `RunStepsResolver` exposes it with `@Subscription(name, { resolve })`. The Inbox example below is hypothetical, and its names are invented.
 
 A customer writes. An operator has the Inbox open and should see the message without reloading.
 
@@ -71,9 +71,10 @@ A customer writes. An operator has the Inbox open and should see the message wit
 - [channel.helpers.ts](../../apps/backend/src/platform/live-updates/helpers/channel.helpers.ts): `defineChannel` and `channelFor`.
 - [live-updates.service.ts](../../apps/backend/src/platform/live-updates/services/live-updates.service.ts): `publish` and `subscribe`.
 - [channel-publisher.service.ts](../../apps/backend/src/platform/live-updates/services/channel-publisher.service.ts) and [channel-subscriber.service.ts](../../apps/backend/src/platform/live-updates/services/channel-subscriber.service.ts): the two Redis connections, and the counting of listeners per key.
-- [channel-stream.helpers.ts](../../apps/backend/src/platform/live-updates/helpers/channel-stream.helpers.ts): the async generator that checks each message.
+- [channel-stream.helpers.ts](../../apps/backend/src/platform/live-updates/helpers/channel-stream.helpers.ts): `ChannelStream`, which checks each message, and `mapChannelStream`, which maps it.
 - [graphql-options.service.ts](../../apps/backend/src/platform/graphql-server/services/graphql-options.service.ts): the `graphql-ws` setup, the connection check and the ctx for subscriptions.
 - [splitLink.helpers.ts](../../apps/web/src/shared/api/helpers/splitLink.helpers.ts): the web side. Subscriptions go over `graphql-ws`, the rest over HTTP.
+- [subscribe-to-run-steps.use-case.ts](../../apps/backend/src/modules/runs/use-cases/subscribe-to-run-steps.use-case.ts) and [run-steps.resolver.ts](../../apps/backend/src/modules/runs/resolvers/run-steps.resolver.ts): the `runSteps` subscription, end to end.
 - Spec: [live-updates.service.spec.ts](../../apps/backend/src/platform/live-updates/services/live-updates.service.spec.ts) shows delivery, separate channels, the drop on rollback and a shared channel.
 
 ## Pitfalls
