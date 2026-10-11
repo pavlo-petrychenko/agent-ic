@@ -100,7 +100,7 @@ export class ConversationRunsService {
     return created;
   }
 
-  async markWaiting(ctx: UseCaseCtx, request: WaitingRequest): Promise<void> {
+  async markWaiting(ctx: UseCaseCtx, request: WaitingRequest): Promise<boolean> {
     const conversation = await this.requireConversation(
       request.workspaceId,
       request.conversationId,
@@ -109,7 +109,7 @@ export class ConversationRunsService {
       throw new ConversationClosedError(conversation.id);
     }
     if (!(await this.conversations.markWaiting(request.workspaceId, conversation.id))) {
-      return;
+      return false;
     }
     await this.domainEvents.emit(
       ctx,
@@ -122,6 +122,7 @@ export class ConversationRunsService {
       },
       CONVERSATION_EVENT_EMIT_OPTIONS[ConversationEventName.NeedsOperator],
     );
+    return true;
   }
 
   async close(workspaceId: string, conversationId: string): Promise<void> {

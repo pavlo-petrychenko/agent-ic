@@ -44,7 +44,7 @@ describe('EscalationExecutor', () => {
     emit.mock.calls.filter(([, called]) => called === event).map(([, , data]) => data);
 
   beforeAll(async () => {
-    testbed = await createRunsTestbed(TestRedisPrefix.RunMessages);
+    testbed = await createRunsTestbed(TestRedisPrefix.RunEscalation);
     executor = testbed.module.get(EscalationExecutor);
     emit = vi.spyOn(testbed.module.get(DomainEventsService), 'emit');
   });
@@ -97,6 +97,7 @@ describe('EscalationExecutor', () => {
     expect(retried).toEqual(first);
     expect(emitted(outboundQueuedEvent)).toHaveLength(1);
     expect(emitted(needsOperatorEvent)).toHaveLength(1);
+    expect(emitted(runEscalatedEvent)).toHaveLength(1);
   });
 
   it('sends the text and closes the conversation when the step ends the chat', async () => {

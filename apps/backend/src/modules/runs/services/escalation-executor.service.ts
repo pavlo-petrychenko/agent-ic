@@ -29,12 +29,8 @@ export class EscalationExecutor implements StepExecutor<EscalationNode> {
     return this.tenants.run(execution.run.workspaceId, () => this.escalate(execution));
   }
 
-  private async escalate({
-    ctx,
-    run,
-    node,
-    scope,
-  }: StepExecution<EscalationNode>): Promise<StepOutcome> {
+  private async escalate(execution: StepExecution<EscalationNode>): Promise<StepOutcome> {
+    const { ctx, run, node, scope } = execution;
     const { config } = node;
     const { workspaceId, conversationId } = run;
     const texts = templateTexts(config.customerMessage, scope.variables);
@@ -44,13 +40,20 @@ export class EscalationExecutor implements StepExecutor<EscalationNode> {
       return { port: null, output: { mode: config.mode, messageIds } };
     }
     const reason = WaitingReason.Escalated;
-    await this.conversations.markWaiting(ctx, { workspaceId, conversationId, reason });
+    if (await this.conversations.markWaiting(ctx, { workspaceId, conversationId, reason })) {
+      await this.emitEscalated(execution);
+    }
+    const escalation = renderStepText(config.reason, scope.variables);
+    return { port: null, output: { mode: config.mode, messageIds, reason: escalation } };
+  }
+
+  private async emitEscalated({ ctx, run, node }: StepExecution<EscalationNode>): Promise<void> {
     await this.domainEvents.emit(
       ctx,
       runEscalatedEvent,
       {
         runId: run.id,
-        conversationId,
+        conversationId: run.conversationId,
         agentId: run.agentId,
         versionId: run.versionId,
         nodeId: node.id,
@@ -58,7 +61,5 @@ export class EscalationExecutor implements StepExecutor<EscalationNode> {
       },
       RUN_EVENT_EMIT_OPTIONS[RunEventName.Escalated],
     );
-    const escalation = renderStepText(config.reason, scope.variables);
-    return { port: null, output: { mode: config.mode, messageIds, reason: escalation } };
   }
 }
