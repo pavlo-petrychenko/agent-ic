@@ -22,7 +22,7 @@ export class AgentRuntimeReader {
   ) {}
 
   async getLiveVersion(workspaceId: string, agentId: string): Promise<AgentVersion | null> {
-    const agent = await this.requireAgent(workspaceId, agentId);
+    const agent = await this.getAgent(workspaceId, agentId);
     return agent.liveVersionId === null ? null : this.getVersion(workspaceId, agent.liveVersionId);
   }
 
@@ -34,8 +34,20 @@ export class AgentRuntimeReader {
     return version;
   }
 
+  async getPublishedVersion(
+    workspaceId: string,
+    agentId: string,
+    versionId: string,
+  ): Promise<AgentVersion> {
+    const version = await this.versions.findById(workspaceId, versionId);
+    if (version?.agentId !== agentId || version.kind !== AgentVersionKind.Published) {
+      throw new AgentVersionNotFoundError();
+    }
+    return version;
+  }
+
   async getPauseSettings(workspaceId: string, agentId: string): Promise<PauseSettings | null> {
-    return pauseSettingsOf(await this.requireAgent(workspaceId, agentId));
+    return pauseSettingsOf(await this.getAgent(workspaceId, agentId));
   }
 
   async findAnsweringVersionId(workspaceId: string, agentId: string): Promise<string | null> {
@@ -60,7 +72,7 @@ export class AgentRuntimeReader {
     return snapshot;
   }
 
-  private async requireAgent(workspaceId: string, agentId: string): Promise<Agent> {
+  async getAgent(workspaceId: string, agentId: string): Promise<Agent> {
     const agent = await this.agents.findById(workspaceId, agentId);
     if (agent === null) {
       throw new AgentNotFoundError();

@@ -15,9 +15,11 @@ export interface Conversation {
   readonly channelId: string | null;
   readonly endUserExternalId: string;
   readonly endUserName: string | null;
+  readonly endUserLanguage: string | null;
   readonly state: ConversationState;
   readonly handledBy: string | null;
   readonly activeRunId: string | null;
+  readonly simulationVersionId: string | null;
   readonly awaySentAt: Date | null;
   readonly lastMessageAt: Date;
   readonly closedAt: Date | null;
@@ -39,3 +41,8 @@ export interface EndUserConversationKey {
   readonly channelKind: ChannelKind;
   readonly endUserExternalId: string;
 }
+
+export type SimulationKey = Pick<
+  EndUserConversationKey,
+  'workspaceId' | 'agentId' | 'endUserExternalId'
+>;
