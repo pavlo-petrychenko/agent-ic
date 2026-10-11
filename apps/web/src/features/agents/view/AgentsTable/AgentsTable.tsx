@@ -1,8 +1,14 @@
 import { useTranslation } from 'react-i18next';
+import {
+  AGENT_MENU_ACTIONS,
+  type AgentMenuAction,
+} from '@/features/agents/constants/agentMenu.constants';
 import { AGENTS_NAMESPACE } from '@/features/agents/constants/agentsI18n.constants';
 import { AGENT_STATUSES } from '@/features/agents/constants/agentStatus.constants';
 import {
   AGENT_COLUMN_WIDTHS,
+  AGENT_MENU_ICON_SIZE,
+  AGENT_MENU_ICONS,
   AGENT_STATUS_TONES,
   AgentColumn,
   STATUS_FILTER_ID,
@@ -16,7 +22,8 @@ import { TableCellLead, TableCellLeadKind } from '@/shared/ui/data/TableCellLead
 import { Badge } from '@/shared/ui/display/Badge';
 import { EmptyState } from '@/shared/ui/display/EmptyState';
 import { NodeKind } from '@/shared/ui/display/NodeTile';
-import { IconName } from '@/shared/ui/foundations/Icon';
+import { Icon, IconName } from '@/shared/ui/foundations/Icon';
+import type { MenuItem } from '@/shared/ui/overlays/Menu';
 
 export function AgentsTable({
   rows,
@@ -29,8 +36,15 @@ export function AgentsTable({
   onLoadMore,
   onRetry,
   onOpen,
+  onAction,
 }: AgentsTableProps) {
   const { t } = useTranslation(AGENTS_NAMESPACE);
+
+  const toMenuItem = (action: AgentMenuAction): MenuItem => ({
+    id: action,
+    label: t(`menu.${action}`),
+    leading: <Icon name={AGENT_MENU_ICONS[action]} size={AGENT_MENU_ICON_SIZE} />,
+  });
 
   return (
     <div className="flex flex-col gap-3">
@@ -61,6 +75,18 @@ export function AgentsTable({
         rows={rows}
         getRowId={(row) => row.id}
         onRowOpen={onOpen}
+        rowActions={{
+          columnLabel: t('menu.column'),
+          menuLabel: t('menu.label'),
+          getLabel: (row) => t('menu.trigger', { name: row.name }),
+          getItems: (row) => AGENT_MENU_ACTIONS[row.status].map(toMenuItem),
+          onSelect: (row, itemId) => {
+            const action = AGENT_MENU_ACTIONS[row.status].find((entry) => entry === itemId);
+            if (action !== undefined) {
+              onAction(row, action);
+            }
+          },
+        }}
         status={status}
         error={{ message: t('list.error'), retryLabel: t('list.retry'), onRetry }}
         empty={

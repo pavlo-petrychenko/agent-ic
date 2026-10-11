@@ -1,0 +1,6 @@
+mutation DuplicateAgent($input: DuplicateAgentInput!) {
+  duplicateAgent(input: $input) {
+    id
+    name
+  }
+}

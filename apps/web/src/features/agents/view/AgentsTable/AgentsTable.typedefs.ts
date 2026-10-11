@@ -1,3 +1,4 @@
+import type { AgentMenuAction } from '@/features/agents/constants/agentMenu.constants';
 import type { AgentRow } from '@/features/agents/typedefs/agent.typedefs';
 import type { TableStatus } from '@/shared/ui/data/Table';
 
@@ -12,4 +13,5 @@ export interface AgentsTableProps {
   onLoadMore: () => void;
   onRetry: () => void;
   onOpen: (row: AgentRow) => void;
+  onAction: (row: AgentRow, action: AgentMenuAction) => void;
 }

@@ -8,6 +8,7 @@ import { BUILDER_PATH, SETTINGS_TEAM_PATH } from '@/features/agents/constants/ag
 import { AGENTS_NAMESPACE } from '@/features/agents/constants/agentsI18n.constants';
 import type { AgentStatus } from '@/features/agents/constants/agentStatus.constants';
 import type { AgentsPageProps } from '@/features/agents/containers/AgentsPage/AgentsPage.typedefs';
+import { useAgentRowMenu } from '@/features/agents/containers/AgentsPage/useAgentRowMenu';
 import { filterAgents, toStatuses } from '@/features/agents/logic/helpers/agentFilter.helpers';
 import { toTableStatus } from '@/features/agents/logic/helpers/agentList.helpers';
 import { agentStatusNote } from '@/features/agents/logic/helpers/agentStatus.helpers';
@@ -35,6 +36,7 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
   const { createAgent, creating } = useCreateAgent();
   const [query, setQuery] = useState('');
   const [statuses, setStatuses] = useState<AgentStatus[]>([]);
+  const rowMenu = useAgentRowMenu(workspaceId);
 
   const runGuarded = async (action: () => Promise<void>) => {
     try {
@@ -124,6 +126,7 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
             onOpen={(row) =>
               void navigate({ to: BUILDER_PATH, params: { workspaceId, agentId: row.id } })
             }
+            onAction={rowMenu.onAction}
           />
         )}
       </div>
