@@ -12,6 +12,8 @@ export enum WorkspaceField {
   TimeZone = 'timeZone',
   Role = 'role',
   Token = 'token',
+  MembershipId = 'membershipId',
+  Password = 'password',
 }
 
 export const WORKSPACE_FIELD_REASON: Readonly<Record<string, ErrorReason>> = {

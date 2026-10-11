@@ -62,7 +62,9 @@
     "API_REQUEST_AUTH_UNSUPPORTED": "API request auth is not supported yet. Remove it from the step.",
     "API_REQUEST_FAILED": "The API request did not get a successful answer.",
     "STEP_PROMPT_UNAVAILABLE": "This step has no inline prompt, and prompts from the library cannot run yet.",
-    "STEP_MODEL_UNKNOWN": "This step uses a model that is not in the model list."
+    "STEP_MODEL_UNKNOWN": "This step uses a model that is not in the model list.",
+    "CANNOT_TRANSFER_TO_YOURSELF": "Ownership cannot be transferred to yourself.",
+    "TEAM_MEMBER_NOT_FOUND": "This person is not part of this workspace."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",

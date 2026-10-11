@@ -74,4 +74,6 @@ export enum ErrorReason {
   OutboundAddressBlocked = 'OUTBOUND_ADDRESS_BLOCKED',
   StepPromptUnavailable = 'STEP_PROMPT_UNAVAILABLE',
   StepModelUnknown = 'STEP_MODEL_UNKNOWN',
+  CannotTransferToYourself = 'CANNOT_TRANSFER_TO_YOURSELF',
+  TeamMemberNotFound = 'TEAM_MEMBER_NOT_FOUND',
 }
