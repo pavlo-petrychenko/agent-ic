@@ -35,6 +35,7 @@
     "workspace": {
       "title": "Workspace",
       "renameSuccess": "Workspace renamed successfully",
+      "updateSuccess": "All fields updated successfully",
       "nameLabel": "Name",
       "timeZoneLabel": "Time zone",
       "timeZoneHint": "Used by schedule triggers and analytics",

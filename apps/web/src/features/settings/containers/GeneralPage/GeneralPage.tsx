@@ -49,16 +49,22 @@ export function GeneralPage({ workspaceId }: GeneralPageProps) {
       const name = value.name.trim();
       const nameChanged = name !== (workspace?.name ?? '');
       const timeZoneChanged = value.timeZone !== currentTimeZone;
+
+      if (!nameChanged && !timeZoneChanged) return;
+
       try {
-        if (nameChanged) {
-          await renameWorkspace(name);
-        }
-        if (timeZoneChanged) {
-          await updateTimeZone(value.timeZone);
-        }
-        if (nameChanged) {
+        const tasks: Promise<unknown>[] = [];
+
+        if (nameChanged) tasks.push(renameWorkspace(name));
+        if (timeZoneChanged) tasks.push(updateTimeZone(value.timeZone));
+
+        await Promise.all(tasks);
+
+        if (nameChanged && timeZoneChanged) {
+          showToast({ message: t('general.workspace.updateSuccess'), tone: ToastTone.Ok });
+        } else if (nameChanged) {
           showToast({ message: t('general.workspace.renameSuccess'), tone: ToastTone.Ok });
-        } else if (timeZoneChanged) {
+        } else {
           showToast({ message: t('general.workspace.timeZoneSuccess'), tone: ToastTone.Ok });
         }
       } catch (error) {
