@@ -1,20 +1,25 @@
-import { AGENT_NAME_MAX_LENGTH } from '@agent-ic/contracts';
 import { useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import { NameFieldKey } from '@/features/flow-builder/constants/nameField.constants';
-import type { AgentNameFieldProps } from '@/features/flow-builder/view/AgentNameField/AgentNameField.typedefs';
+import type { InlineEditFieldProps } from '@/features/flow-builder/view/InlineEditField/InlineEditField.typedefs';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Input } from '@/shared/ui/inputs/Input';
 
-export function AgentNameField({ name, onRename }: AgentNameFieldProps) {
-  const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
+export function InlineEditField({
+  value,
+  placeholder,
+  editLabel,
+  inputLabel,
+  maxLength,
+  required,
+  current,
+  onCommit,
+}: InlineEditFieldProps) {
   const [draft, setDraft] = useState<string | null>(null);
   const editing = useRef(false);
 
   const start = () => {
     editing.current = true;
-    setDraft(name);
+    setDraft(value ?? '');
   };
 
   const finish = () => {
@@ -23,22 +28,28 @@ export function AgentNameField({ name, onRename }: AgentNameFieldProps) {
   };
 
   const commit = () => {
-    const next = editing.current ? (draft?.trim() ?? '') : '';
+    const wasEditing = editing.current;
+    const next = draft?.trim() ?? '';
     finish();
-    if (next !== '' && next !== name) {
-      onRename(next);
+    if (wasEditing && (next !== '' || !required) && next !== (value ?? '')) {
+      onCommit(next);
     }
   };
 
   return draft === null ? (
-    <Button variant={ButtonVariant.Ghost} title={t('header.rename')} onClick={start}>
-      {name}
+    <Button
+      variant={ButtonVariant.Ghost}
+      title={editLabel}
+      aria-current={current ? 'page' : undefined}
+      onClick={start}
+    >
+      {value ?? placeholder}
     </Button>
   ) : (
     <Input
-      aria-label={t('header.nameLabel')}
+      aria-label={inputLabel}
       value={draft}
-      maxLength={AGENT_NAME_MAX_LENGTH}
+      maxLength={maxLength}
       ref={(element) => element?.focus()}
       onChange={(event) => setDraft(event.target.value)}
       onBlur={commit}

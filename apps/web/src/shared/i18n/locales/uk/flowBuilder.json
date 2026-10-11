@@ -56,6 +56,7 @@
     "deleted": "Видалено",
     "undo": "Скасувати",
     "addStep": "Додати крок",
+    "stepActions": "Дії з кроком",
     "connectingTo": "З’єднати з {{name}}",
     "emptyTitle": "Почніть із тригера",
     "emptyDescription": "Тригер визначає, коли запускається цей агент.",
@@ -118,6 +119,10 @@
     "nameLabel": "Назва агента",
     "renamed": "Агента перейменовано",
     "neverPublished": "Чернетка · ще не опублікована",
-    "editedFrom": "Чернетка · змінена з v{{version}}"
+    "editedFrom": "Чернетка · змінена з v{{version}}",
+    "describe": "Змінити опис",
+    "descriptionLabel": "Опис агента",
+    "addDescription": "Додати опис",
+    "described": "Опис збережено"
   }
 }

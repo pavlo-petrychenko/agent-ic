@@ -83,6 +83,7 @@ export function FlowEditor() {
     deleted: t('canvas.deleted'),
     undo: t('canvas.undo'),
     addStep: t('canvas.addStep'),
+    stepActions: t('canvas.stepActions'),
     connectingTo: (name) => t('canvas.connectingTo', { name }),
     emptyTitle: t('canvas.emptyTitle'),
     emptyDescription: t('canvas.emptyDescription'),

@@ -9,6 +9,7 @@ import {
 import type {
   Connection,
   EdgeChange,
+  NodeMouseHandler,
   EdgeTypes,
   OnConnectEnd,
   IsValidConnection,
@@ -18,6 +19,7 @@ import type {
 import '@xyflow/react/dist/base.css';
 import clsx from 'clsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import { Button } from '@/shared/ui/actions/Button/Button';
 import { IconButton, IconButtonSize } from '@/shared/ui/actions/IconButton';
 import { SelectionBar, SelectionBarVariant } from '@/shared/ui/data/SelectionBar';
@@ -41,10 +43,12 @@ import {
   FLOW_CANVAS_NODE_TYPE,
   FLOW_CANVAS_PAN_KEY,
   FLOW_CANVAS_ZOOM_KEYS,
+  FlowCanvasContextAction,
 } from '@/shared/ui/flow/FlowCanvas/FlowCanvas.constants';
 import type {
   AddStepMenuState,
   CanvasEdge,
+  ContextMenuState,
   CanvasNode,
   FlowCanvasNodeMove,
   FlowCanvasProps,
@@ -120,6 +124,7 @@ function FlowCanvasSurface({
     new Map(),
   );
   const [addStep, setAddStep] = useState<AddStepMenuState | null>(null);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const keyboard = useKeyboardConnection({ nodes, canConnect, onConnect });
   const { insertEdgeId, dropHandlers } = usePaletteDrop(onPaletteDrop);
 
@@ -128,10 +133,10 @@ function FlowCanvasSurface({
   }, [selection]);
 
   useEffect(() => {
-    if (addStep !== null) {
+    if (addStep !== null || contextMenu !== null) {
       menuRef.current?.querySelector<HTMLElement>(FLOW_CANVAS_MENU_FOCUS_SELECTOR)?.focus();
     }
-  }, [addStep]);
+  }, [addStep, contextMenu]);
 
   const emitSelection = (next: FlowCanvasSelection) => {
     selectionRef.current = next;
@@ -255,6 +260,7 @@ function FlowCanvasSurface({
     if (rect === null || pointer === null || sourcePort === null) {
       return;
     }
+    setContextMenu(null);
     setAddStep({
       left: pointer.x - rect.left,
       top: pointer.y - rect.top,
@@ -276,6 +282,37 @@ function FlowCanvasSurface({
     setAddStep(null);
   };
 
+  const openContextMenu = (event: ReactMouseEvent, target: FlowCanvasSelection) => {
+    event.preventDefault();
+    const rect = rootRef.current?.getBoundingClientRect() ?? null;
+    if (rect === null || target.nodeIds.length === 0) {
+      return;
+    }
+    setAddStep(null);
+    setContextMenu({ left: event.clientX - rect.left, top: event.clientY - rect.top, target });
+  };
+
+  const handleNodeContextMenu: NodeMouseHandler<CanvasNode> = (event, node) => {
+    const current = selectionRef.current;
+    if (current.nodeIds.includes(node.id)) {
+      openContextMenu(event, current);
+      return;
+    }
+    const target = { nodeIds: [node.id], edgeIds: [] };
+    emitSelection(target);
+    openContextMenu(event, target);
+  };
+
+  const handleContextAction = (action: string) => {
+    if (contextMenu !== null && action === FlowCanvasContextAction.Duplicate) {
+      onDuplicate(contextMenu.target);
+    }
+    if (contextMenu !== null && action === FlowCanvasContextAction.Delete) {
+      deleteSelection(contextMenu.target);
+    }
+    setContextMenu(null);
+  };
+
   const handleKeyDown = useCanvasShortcuts({
     selection,
     onDelete: () => deleteSelection(selection),
@@ -285,6 +322,7 @@ function FlowCanvasSurface({
     onOpenNode,
     onEscape: () => {
       setAddStep(null);
+      setContextMenu(null);
       keyboard.cancel();
     },
   });
@@ -313,7 +351,12 @@ function FlowCanvasSurface({
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
         onConnectEnd={handleConnectEnd}
-        onPaneClick={() => setAddStep(null)}
+        onPaneClick={() => {
+          setAddStep(null);
+          setContextMenu(null);
+        }}
+        onNodeContextMenu={handleNodeContextMenu}
+        onSelectionContextMenu={(event) => openContextMenu(event, selectionRef.current)}
         isValidConnection={isValidConnection}
         connectionLineComponent={CanvasConnectionLine}
         minZoom={ZOOM_MIN}
@@ -386,7 +429,7 @@ function FlowCanvasSurface({
       {addStep !== null && (
         <div
           ref={menuRef}
-          className={styles.addStep}
+          className={styles.floatingMenu}
           style={{ left: addStep.left, top: addStep.top }}
         >
           <Menu
@@ -398,6 +441,23 @@ function FlowCanvasSurface({
               label: item.label,
               leading: <NodeTile kind={item.kind} icon={item.icon ?? null} size={TileSize.Sm} />,
             }))}
+          />
+        </div>
+      )}
+      {contextMenu !== null && (
+        <div
+          ref={menuRef}
+          className={styles.floatingMenu}
+          style={{ left: contextMenu.left, top: contextMenu.top }}
+        >
+          <Menu
+            ariaLabel={labels.stepActions}
+            variant={MenuVariant.Action}
+            onSelect={handleContextAction}
+            items={[
+              { id: FlowCanvasContextAction.Duplicate, label: labels.duplicate },
+              { id: FlowCanvasContextAction.Delete, label: labels.delete, danger: true },
+            ]}
           />
         </div>
       )}
