@@ -34,7 +34,6 @@ export const BLOCKED_ADDRESS_RANGES: readonly OutboundAddressRange[] = [
   { network: '198.18.0.0', prefix: 15, family: IpFamily.V4 },
   { network: '224.0.0.0', prefix: 3, family: IpFamily.V4 },
   { network: '::', prefix: 127, family: IpFamily.V6 },
-  { network: '::ffff:0:0', prefix: 96, family: IpFamily.V6 },
   { network: '64:ff9b::', prefix: 96, family: IpFamily.V6 },
   { network: 'fc00::', prefix: 7, family: IpFamily.V6 },
   { network: 'fe80::', prefix: 10, family: IpFamily.V6 },

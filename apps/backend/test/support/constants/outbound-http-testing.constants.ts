@@ -9,7 +9,21 @@ export const OUTBOUND_TEST_BODY = '{"ok":true}';
 export const OUTBOUND_TEST_INVALID_HEADER_VALUES = ['Замовлення', 'A-17\r\nX-Injected: 1'];
 export const OUTBOUND_TEST_INVALID_URLS = ['not a url', 'ftp://example.com/file'];
 export const OUTBOUND_TEST_FLAKY_FAILURES = 1;
-export const OUTBOUND_TEST_BLOCKED_HOSTS = ['127.0.0.1', 'localhost', '[::1]', '169.254.169.254'];
+export const OUTBOUND_TEST_BLOCKED_HOSTS = [
+  '127.0.0.1',
+  'localhost',
+  '[::1]',
+  '169.254.169.254',
+  '[::ffff:127.0.0.1]',
+];
+export const OUTBOUND_TEST_PUBLIC_ADDRESSES = ['140.82.121.6', '1.1.1.1', '2606:4700:4700::1111'];
+export const OUTBOUND_TEST_PRIVATE_ADDRESSES = [
+  '10.0.0.1',
+  '192.168.1.109',
+  '::ffff:10.0.0.1',
+  '::ffff:7f00:1',
+  'fd00::1',
+];
 
 export enum OutboundTestPath {
   Echo = '/echo',
