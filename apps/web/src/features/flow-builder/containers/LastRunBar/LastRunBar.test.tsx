@@ -63,6 +63,20 @@ describe('LastRunBar', () => {
     ).toBeInTheDocument();
   });
 
+  it('does not count a run on a published version as testing the draft', async () => {
+    renderBar(
+      lastSimulationRunMock({
+        status: RunStatus.Succeeded,
+        finishedAt: EIGHT_MINUTES_AGO,
+        draftRevision: null,
+      }),
+    );
+
+    expect(
+      await screen.findByText('Simulator · no errors · 8 minutes ago · on a published version'),
+    ).toBeInTheDocument();
+  });
+
   it('asks to test a draft that was never simulated', async () => {
     renderBar(lastSimulationRunMock(null));
 

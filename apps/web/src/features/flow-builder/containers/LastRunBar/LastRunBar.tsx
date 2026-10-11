@@ -22,25 +22,24 @@ export function LastRunBar({ workspaceId, agentId }: LastRunBarProps) {
     return null;
   }
 
-  const outcome =
-    run === null
-      ? null
-      : t(`lastRun.status.${run.status}`, {
-          time: run.finishedAt === null ? '' : formatTimeAgo(run.finishedAt, now, locale),
-        });
-  const stale = run !== null && run.draftRevision !== null && run.draftRevision !== revision;
+  const detail = () => {
+    if (run === null) {
+      return t('lastRun.neverDetail');
+    }
+    const outcome = t(`lastRun.status.${run.status}`, {
+      time: run.finishedAt === null ? '' : formatTimeAgo(run.finishedAt, now, locale),
+    });
+    if (run.draftRevision === null) {
+      return t('lastRun.published', { outcome });
+    }
+    return run.draftRevision === revision ? outcome : t('lastRun.stale', { outcome });
+  };
 
   return (
     <StatusBar
       tone={run === null ? StatusTone.Neutral : LAST_RUN_TONES[run.status]}
       label={run === null ? t('lastRun.never') : t('lastRun.label')}
-      detail={
-        outcome === null
-          ? t('lastRun.neverDetail')
-          : stale
-            ? t('lastRun.stale', { outcome })
-            : outcome
-      }
+      detail={detail()}
       action={{
         label: t('lastRun.open'),
         onClick: () =>

@@ -247,6 +247,7 @@
     "neverDetail": "Run the draft in the simulator before you publish",
     "open": "Test in simulator",
     "stale": "{{outcome}} · on an earlier draft",
+    "published": "{{outcome}} · on a published version",
     "status": {
       "queued": "Simulator · running now",
       "running": "Simulator · running now",
