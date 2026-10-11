@@ -13,6 +13,7 @@ import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constan
 import { NodeOutboundHttpGateway } from '@/platform/outbound-http/gateways/node-outbound-http.gateway';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
 import {
+  OUTBOUND_TEST_FLAKY_FAILURES,
   OUTBOUND_TEST_SHORT_TIMEOUT_MS,
   OUTBOUND_TEST_STATUS,
   OutboundTestPath,
@@ -86,7 +87,7 @@ describe('ApiRequestExecutor', () => {
     const outcome = await call(OutboundTestPath.Flaky, { retries: TEST_API_RETRIES });
 
     expect(outcome.output).toMatchObject({ ok: true, status: HttpStatus.OK });
-    expect(server.hits(OutboundTestPath.Flaky)).toBe(2);
+    expect(server.hits(OutboundTestPath.Flaky)).toBe(OUTBOUND_TEST_FLAKY_FAILURES + 1);
     expect(elapsedMs(startedAt)).toBe(API_REQUEST_BACKOFF_BASE_MS);
   });
 

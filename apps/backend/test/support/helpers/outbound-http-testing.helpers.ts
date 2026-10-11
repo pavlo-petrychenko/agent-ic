@@ -5,6 +5,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { HttpStatus } from '@nestjs/common';
 import { OUTBOUND_RESPONSE_MAX_BYTES } from '@/platform/outbound-http/constants/outbound-http.constants';
 import {
+  OUTBOUND_TEST_FLAKY_FAILURES,
   OUTBOUND_TEST_HEADER,
   OUTBOUND_TEST_HOST,
   OUTBOUND_TEST_SLOW_RESPONSE_MS,
@@ -40,7 +41,7 @@ const respond = async (
   }
   if (
     request.url === OutboundTestPath.Unavailable ||
-    (request.url === OutboundTestPath.Flaky && hits === 1)
+    (request.url === OutboundTestPath.Flaky && hits <= OUTBOUND_TEST_FLAKY_FAILURES)
   ) {
     response.statusCode = HttpStatus.SERVICE_UNAVAILABLE;
     response.end();
