@@ -1,4 +1,5 @@
 import type { TestingModule } from '@nestjs/testing';
+import type { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import type { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import type { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import type { IdService } from '@/platform/ids/services/id.service';
@@ -8,4 +9,5 @@ export interface RunsTestbed {
   readonly ids: IdService;
   readonly tenants: TenantTransactionService;
   readonly runs: RunsRepository;
+  readonly steps: RunStepsRepository;
 }

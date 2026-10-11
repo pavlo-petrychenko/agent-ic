@@ -1,4 +1,5 @@
 import type { RunStepStatus } from '@/modules/runs/constants/run.constants';
+import type { runSteps } from '@/modules/runs/db/run-steps.table';
 import type { RunFailure } from '@/modules/runs/typedefs/run.typedefs';
 
 export type StepData = Readonly<Record<string, unknown>>;
@@ -18,4 +19,19 @@ export interface RunStep {
   readonly error: RunFailure | null;
   readonly startedAt: Date;
   readonly finishedAt: Date | null;
+}
+
+export type NewRunStep = Omit<
+  typeof runSteps.$inferInsert,
+  'status' | 'attempt' | 'output' | 'port' | 'error' | 'finishedAt'
+>;
+
+export type FinishedRunStepStatus = RunStepStatus.Succeeded | RunStepStatus.Failed;
+
+export interface RunStepResult {
+  readonly status: FinishedRunStepStatus;
+  readonly output: StepData | null;
+  readonly port: string | null;
+  readonly error: RunFailure | null;
+  readonly finishedAt: Date;
 }
