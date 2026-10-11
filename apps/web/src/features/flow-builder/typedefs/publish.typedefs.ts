@@ -37,6 +37,7 @@ export interface PublishPreview {
   liveVersion: number | null;
   diff: PublishDiff;
   errors: readonly FlowIssue[];
+  errorCount: number;
   warnings: readonly FlowIssue[];
   testedAt: string | null;
 }

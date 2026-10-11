@@ -31,6 +31,7 @@ export const toPublishPreview = ({
       changeCount: diff.changeCount,
     },
     errors: toFlowIssues(publishPreview.errors),
+    errorCount: publishPreview.errors.length,
     warnings: toFlowIssues(publishPreview.warnings),
     testedAt: publishPreview.simulator.testedAt ?? null,
   };

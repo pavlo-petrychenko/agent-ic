@@ -12,14 +12,13 @@ import {
   PublishBlock,
 } from '@/features/flow-builder/constants/publish.constants';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
+import { stepNameOf } from '@/features/flow-builder/logic/helpers/issue.helpers';
 import type {
   ChangeLine,
   DiffEdge,
   DiffNode,
   PublishPreview,
 } from '@/features/flow-builder/typedefs/publish.typedefs';
-
-const nameOf = (node: DiffNode): string => (node.label === '' ? node.key : node.label);
 
 const inlineValue = (value: unknown): string | null => {
   if (typeof value === 'number') {
@@ -58,10 +57,15 @@ export const toChangeLines = (
   document: FlowDocument,
 ): ChangeLine[] => {
   const names = new Map(
-    [...document.nodes, ...diff.removedNodes].map((node) => [node.id, nameOf(node)]),
+    [...document.nodes, ...diff.removedNodes].map((node) => [node.id, stepNameOf(node)]),
   );
   const stepName = (id: string, fallback: string) => names.get(id) ?? fallback;
   const touched = new Set([...diff.addedNodes, ...diff.removedNodes].map((node) => node.id));
+  const relabeled = new Set(
+    diff.changedNodes
+      .filter((node) => node.fields.some((change) => change.path[0] === LABEL_FIELD))
+      .map((node) => node.nodeId),
+  );
   const edgeLines = (edges: readonly DiffEdge[], kind: ChangeKind, sentence: ChangeSentence) =>
     edges
       .filter((edge) => !touched.has(edge.source) && !touched.has(edge.target))
@@ -78,22 +82,24 @@ export const toChangeLines = (
     id: `${kind}-${node.id}`,
     kind,
     sentence,
-    step: nameOf(node),
+    step: stepNameOf(node),
     field: null,
     before: null,
     after: null,
   });
   return [
     ...diff.addedNodes.map((node) => stepLine(node, ChangeKind.Added, ChangeSentence.StepAdded)),
-    ...diff.renamedKeys.map((rename) => ({
-      id: `rename-${rename.nodeId}`,
-      kind: ChangeKind.Changed,
-      sentence: ChangeSentence.StepRenamed,
-      step: stepName(rename.nodeId, rename.to),
-      field: null,
-      before: rename.from,
-      after: null,
-    })),
+    ...diff.renamedKeys
+      .filter((rename) => !relabeled.has(rename.nodeId))
+      .map((rename) => ({
+        id: `rename-${rename.nodeId}`,
+        kind: ChangeKind.Changed,
+        sentence: ChangeSentence.StepRenamed,
+        step: stepName(rename.nodeId, rename.to),
+        field: null,
+        before: rename.from,
+        after: null,
+      })),
     ...diff.changedNodes.flatMap((node) =>
       node.fields
         .filter((change) => !LAYOUT_FIELDS.includes(change.path[0] ?? ''))
@@ -127,10 +133,13 @@ export const publishBlockOf = (
   if (saveState === SaveState.Conflict) {
     return PublishBlock.Conflict;
   }
+  if (saveState === SaveState.Error) {
+    return PublishBlock.SaveFailed;
+  }
   if (saveState !== SaveState.Idle) {
     return PublishBlock.Unsaved;
   }
-  if (preview.errors.length > 0) {
+  if (preview.errorCount > 0) {
     return PublishBlock.Errors;
   }
   return preview.liveVersion !== null && lines.length === 0 ? PublishBlock.NoChanges : null;

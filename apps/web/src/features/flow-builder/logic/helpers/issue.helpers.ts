@@ -1,5 +1,5 @@
 import { FlowIssueSeverity, validateFlow } from '@agent-ic/flow';
-import type { FlowDocument, FlowIssue } from '@agent-ic/flow';
+import type { FlowDocument, FlowIssue, FlowNode } from '@agent-ic/flow';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import type { IssueOverview } from '@/features/flow-builder/typedefs/issue.typedefs';
 
@@ -21,15 +21,16 @@ export const currentIssues = (
   savedIssues: readonly FlowIssue[],
 ): readonly FlowIssue[] => (saveState === SaveState.Idle ? savedIssues : validateOnce(document));
 
+export const stepNameOf = (node: Pick<FlowNode, 'key' | 'label'>): string =>
+  node.label === '' ? node.key : node.label;
+
 export const isBlocking = (issue: FlowIssue): boolean => issue.severity === FlowIssueSeverity.Error;
 
 export const overviewIssues = (
   document: FlowDocument,
   issues: readonly FlowIssue[],
 ): IssueOverview => {
-  const steps = new Map(
-    document.nodes.map((node) => [node.id, node.label === '' ? node.key : node.label]),
-  );
+  const steps = new Map(document.nodes.map((node) => [node.id, stepNameOf(node)]));
   const errors = issues.filter(isBlocking);
   const warnings = issues.filter((issue) => !isBlocking(issue));
   return {

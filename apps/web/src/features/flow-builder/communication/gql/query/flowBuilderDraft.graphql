@@ -4,6 +4,9 @@ query FlowBuilderDraft($agentId: ID!) {
     name
     description
     draftBaseVersionNumber
+    draftNumber
+    liveVersionNumber
+    hasUnpublishedChanges
   }
   agentDraft(agentId: $agentId) {
     revision

@@ -20,6 +20,7 @@ export enum ChangeSentence {
 
 export enum PublishBlock {
   Conflict = 'conflict',
+  SaveFailed = 'saveFailed',
   Unsaved = 'unsaved',
   Errors = 'errors',
   NoChanges = 'noChanges',
@@ -31,6 +32,7 @@ export enum CheckTone {
   Err = 'err',
 }
 
+export const AGENT_TYPENAME = 'Agent';
 export const CONFIG_FIELD = 'config';
 export const LABEL_FIELD = 'label';
 export const LAYOUT_FIELDS: readonly string[] = ['position'];
