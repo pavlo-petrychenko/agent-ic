@@ -1,0 +1,14 @@
+{
+  "extends": "@agent-ic/tsconfig/base.json",
+  "include": ["src", "vite.config.ts", "vite.*.ts", "vitest.config.ts"],
+  "compilerOptions": {
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "types": ["vite/client"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}

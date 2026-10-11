@@ -22,6 +22,8 @@ jobs:
     env:
       TURBO_TELEMETRY_DISABLED: '1'
       TURBO_SCM_BASE: ${{ github.event_name == 'push' && github.event.before || '' }}
+      LANDING_APP_URL: ${{ vars.LANDING_APP_URL }}
+      LANDING_SITE_URL: ${{ vars.LANDING_SITE_URL }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:

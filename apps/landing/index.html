@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="{{page.lang}}" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{t.meta.title}}</title>
+    <meta name="description" content="{{t.meta.description}}" />
+    <link rel="canonical" href="{{page.url}}" />
+    <link rel="alternate" hreflang="en" href="{{alternate.en}}" />
+    <link rel="alternate" hreflang="uk" href="{{alternate.uk}}" />
+    <link rel="alternate" hreflang="x-default" href="{{alternate.en}}" />
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <header class="header">
+      <a class="logo" href="{{page.path}}">agent-ic</a>
+      <nav class="language" aria-label="{{t.nav.language}}">
+        <a href="{{path.uk}}" hreflang="uk" lang="uk" aria-current="{{current.uk}}">УКР</a>
+        <a href="{{path.en}}" hreflang="en" lang="en" aria-current="{{current.en}}">EN</a>
+      </nav>
+      <a href="{{link.login}}">{{t.nav.logIn}}</a>
+    </header>
+    <main>
+      <h1>{{t.hero.titleStart}} {{t.hero.titleEnd}}</h1>
+      <p>{{t.hero.lead}}</p>
+      <a href="{{link.signUp}}">{{t.actions.createBot}}</a>
+    </main>
+  </body>
+</html>

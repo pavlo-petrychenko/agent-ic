@@ -1,6 +1,6 @@
 # agent-ic
 
-agent-ic is an API-first chat-agent builder. A small business builds an AI chat agent visually as a flow graph, gives it knowledge from its own documents, extends it with custom tools and publishes it to messengers such as Telegram. The backend is a NestJS modular monolith (GraphQL for the dashboard, REST for the channel gateway) on Postgres and Redis. The web app is a React single-page app. Both live in one pnpm and Turborepo monorepo.
+agent-ic is an API-first chat-agent builder. A small business builds an AI chat agent visually as a flow graph, gives it knowledge from its own documents, extends it with custom tools and publishes it to messengers such as Telegram. The backend is a NestJS modular monolith (GraphQL for the dashboard, REST for the channel gateway) on Postgres and Redis. The web app is a React single-page app. The marketing landing site is static HTML built with Vite. All three live in one pnpm and Turborepo monorepo.
 
 ## Commands
 
@@ -48,6 +48,7 @@ Turborepo behaviour can differ from what you remember. Its docs ship with the in
 | Where every file goes and why                             | `docs/rules/structure.md`        |
 | Backend module anatomy                                    | `apps/backend/AGENTS.md`         |
 | Web feature anatomy                                       | `apps/web/AGENTS.md`             |
+| Landing site: page template, locales, deploy              | `apps/landing/AGENTS.md`         |
 | How people contribute and review                          | `CONTRIBUTING.md`                |
 | What each shared package holds                            | `packages/*/README.md`           |
 | Planned work that is waiting on something                 | `docs/backlog/`                  |

@@ -84,6 +84,23 @@
       ],
       "outputs": ["dist/**"]
     },
+    "landing#build": {
+      "dependsOn": ["^build"],
+      "env": ["LANDING_APP_URL", "LANDING_SITE_URL"],
+      "inputs": [
+        "src/**",
+        "public/**",
+        "index.html",
+        "vite.config.ts",
+        "vite.*.ts",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "outputs": ["dist/**"]
+    },
+    "landing#test": {
+      "inputs": ["src/**", "vite.*.ts", "vitest.config.ts", "package.json"]
+    },
     "web#test": {
       "dependsOn": ["codegen"],
       "inputs": ["src/**", "test/**", "vitest.config.ts", "vite.*.ts", "package.json"]

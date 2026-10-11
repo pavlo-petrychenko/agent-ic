@@ -16,6 +16,7 @@ Start here. This page tells you what agent-ic is, where things are, and which pa
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `apps/backend`   | the NestJS app. [Module anatomy](../apps/backend/AGENTS.md)                                                                                                                    |
 | `apps/web`       | the React app. [Feature anatomy](../apps/web/AGENTS.md)                                                                                                                        |
+| `apps/landing`   | the static marketing site, one template rendered in English and Ukrainian. [How it is built](../apps/landing/AGENTS.md)                                                         |
 | `packages/`      | code both apps share: `contracts`, `flow`, `api-schema`, `design-tokens`, and the lint and TypeScript configs                                                                  |
 | `deploy/`        | the Dockerfiles for local use and production, and the Helm chart                                                                                                               |
 | `tools/`         | the code behind the `mise run` commands, the structure and comment checks, the commit hooks                                                                                    |

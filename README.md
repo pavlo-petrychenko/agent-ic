@@ -159,6 +159,7 @@ To choose ports yourself, edit `.env`. Run `mise run ports` (or `pnpm stack port
 
 - `apps/backend` NestJS backend, one image started in three roles (api, gateway, worker)
 - `apps/web` React web app
+- `apps/landing` static marketing site, deployed to Cloudflare Pages
 - `packages/contracts` constants shared by backend and web
 - `packages/flow` flow graph schema and validation
 - `packages/design-tokens` design tokens (CSS variables) and the fonts they name
