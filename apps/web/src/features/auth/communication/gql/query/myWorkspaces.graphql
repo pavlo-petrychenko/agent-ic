@@ -1,4 +1,8 @@
 query MyWorkspaces {
+  me {
+    id
+    lastWorkspaceId
+  }
   myWorkspaces {
     workspace {
       id

@@ -6,12 +6,16 @@ export {
 export { CheckEmailPage } from '@/features/auth/containers/CheckEmailPage';
 export { ConfirmEmailPage } from '@/features/auth/containers/ConfirmEmailPage';
 export { ForgotPasswordPage } from '@/features/auth/containers/ForgotPasswordPage';
+export { LandingRedirect } from '@/features/auth/containers/LandingRedirect';
 export { LoginPage } from '@/features/auth/containers/LoginPage';
 export { ResetPasswordPage } from '@/features/auth/containers/ResetPasswordPage';
 export { SessionGate } from '@/features/auth/containers/SessionGate';
 export { SignUpPage } from '@/features/auth/containers/SignUpPage';
 export { WorkspaceStepPage } from '@/features/auth/containers/WorkspaceStepPage';
-export { requireSession } from '@/features/auth/logic/helpers/sessionGuard.helpers';
+export {
+  requireLandingSession,
+  requireSession,
+} from '@/features/auth/logic/helpers/sessionGuard.helpers';
 export {
   checkEmailSearchSchema,
   loginSearchSchema,

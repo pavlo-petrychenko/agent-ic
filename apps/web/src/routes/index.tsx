@@ -1,15 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PublicLayout } from '@/app/layouts/PublicLayout';
-import { StatusPage } from '@/features/status';
+import { LandingRedirect, requireLandingSession } from '@/features/auth';
 
 export const Route = createFileRoute('/')({
+  beforeLoad: requireLandingSession,
   component: IndexRoute,
 });
 
 function IndexRoute() {
-  return (
-    <PublicLayout>
-      <StatusPage />
-    </PublicLayout>
-  );
+  return <LandingRedirect />;
 }

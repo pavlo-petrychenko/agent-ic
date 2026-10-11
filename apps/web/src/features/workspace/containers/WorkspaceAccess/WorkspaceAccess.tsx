@@ -1,5 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
+import { useRememberWorkspace } from '@/features/workspace/communication/hooks/useRememberWorkspace';
 import { useWorkspaceShell } from '@/features/workspace/communication/hooks/useWorkspaceShell';
 import {
   WORKSPACE_HOME_PATH,
@@ -15,6 +16,7 @@ export function WorkspaceAccess({ workspaceId, children }: WorkspaceAccessProps)
   const { t } = useTranslation(WORKSPACE_NAMESPACE);
   const navigate = useNavigate();
   const { data } = useWorkspaceShell(workspaceId);
+  useRememberWorkspace(data === null || data.active === null ? null : workspaceId);
 
   if (data === null) {
     return null;
