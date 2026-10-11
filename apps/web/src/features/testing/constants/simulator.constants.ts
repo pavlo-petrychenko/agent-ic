@@ -10,13 +10,14 @@ export enum ChatItemKind {
 
 export enum ChatSpeaker {
   User = 'user',
+  Agent = 'agent',
   Operator = 'operator',
   System = 'system',
 }
 
 export const MESSAGE_SPEAKERS: Readonly<Record<MessageAuthor, ChatSpeaker>> = {
   [MessageAuthor.Customer]: ChatSpeaker.User,
-  [MessageAuthor.Agent]: ChatSpeaker.System,
+  [MessageAuthor.Agent]: ChatSpeaker.Agent,
   [MessageAuthor.Operator]: ChatSpeaker.Operator,
   [MessageAuthor.System]: ChatSpeaker.System,
 };

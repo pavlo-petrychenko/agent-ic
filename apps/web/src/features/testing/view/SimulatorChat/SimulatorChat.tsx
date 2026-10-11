@@ -1,8 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { ChatItemKind, ChatSpeaker } from '@/features/testing/constants/simulator.constants';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
-import type { ChatTurnItem } from '@/features/testing/typedefs/simulator.typedefs';
-import { TURN_ICON_SIZE } from '@/features/testing/view/SimulatorChat/SimulatorChat.constants';
+import type { ChatMessageItem, ChatTurnItem } from '@/features/testing/typedefs/simulator.typedefs';
+import {
+  SPEAKER_BUBBLES,
+  TURN_ICON_SIZE,
+} from '@/features/testing/view/SimulatorChat/SimulatorChat.constants';
 import type { SimulatorChatProps } from '@/features/testing/view/SimulatorChat/SimulatorChat.typedefs';
 import { ChatBubble, ChatBubbleFrom } from '@/shared/ui/chat/ChatBubble';
 import { ChatSystemMessage, ChatSystemMessageTone } from '@/shared/ui/chat/ChatSystemMessage';
@@ -45,27 +48,29 @@ export function SimulatorChat({
     </>
   );
 
+  const authors: Readonly<Record<ChatSpeaker, string | null>> = {
+    [ChatSpeaker.User]: t('chat.you'),
+    [ChatSpeaker.Agent]: null,
+    [ChatSpeaker.Operator]: t('chat.operator'),
+    [ChatSpeaker.System]: null,
+  };
+
+  const line = (item: ChatMessageItem) => {
+    const from = SPEAKER_BUBBLES[item.speaker];
+    return from === null ? (
+      <ChatSystemMessage icon={IconName.Info} text={item.text} />
+    ) : (
+      <ChatBubble from={from} author={authors[item.speaker]} time={null}>
+        {item.text}
+      </ChatBubble>
+    );
+  };
+
   return (
     <ol className={styles.root} aria-label={t('chat.label')}>
       {items.map((item) => (
         <li key={item.id} className={styles.item}>
-          {item.kind === ChatItemKind.Turn ? (
-            turn(item)
-          ) : item.speaker === ChatSpeaker.System ? (
-            <ChatSystemMessage icon={IconName.Info} text={item.text} />
-          ) : (
-            <ChatBubble
-              from={
-                item.speaker === ChatSpeaker.Operator
-                  ? ChatBubbleFrom.Operator
-                  : ChatBubbleFrom.Customer
-              }
-              author={item.speaker === ChatSpeaker.Operator ? t('chat.operator') : t('chat.you')}
-              time={null}
-            >
-              {item.text}
-            </ChatBubble>
-          )}
+          {item.kind === ChatItemKind.Turn ? turn(item) : line(item)}
         </li>
       ))}
       {typing && (

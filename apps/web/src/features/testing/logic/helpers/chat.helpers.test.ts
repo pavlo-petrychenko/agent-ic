@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ChatItemKind } from '@/features/testing/constants/simulator.constants';
+import { ChatItemKind, ChatSpeaker } from '@/features/testing/constants/simulator.constants';
 import {
   isActiveRun,
   latestRunId,
@@ -64,6 +64,12 @@ describe('toChatItems', () => {
 
     expect(items.map((item) => item.id)).toEqual(['m1', 'r1', 'm2']);
     expect(items[1]).toMatchObject({ messages: [], failed: true });
+  });
+
+  it('keeps an agent message outside a run as an agent message', () => {
+    const items = toChatItems([message('m1', MessageAuthor.Agent, '2026-10-11T10:00:00Z')], []);
+
+    expect(items).toMatchObject([{ kind: ChatItemKind.Message, speaker: ChatSpeaker.Agent }]);
   });
 });
 
