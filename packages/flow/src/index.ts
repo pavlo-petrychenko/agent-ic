@@ -122,12 +122,14 @@ export { branchNodes, branchStarts, buildFlowGraph } from '@flow/scope/helpers/g
 export {
   createScopeLookup,
   resolveVariable,
+  triggerVariables,
   visibleVariables,
 } from '@flow/scope/helpers/scope.helpers';
 export type {
   FlowGraph,
   ResolvedVariable,
   ScopeLookup,
+  TriggerVariable,
   VisibleVariable,
 } from '@flow/scope/typedefs/scope.typedefs';
 export { nodeTextFields } from '@flow/templates/helpers/node-text.helpers';

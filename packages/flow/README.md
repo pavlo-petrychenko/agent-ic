@@ -18,7 +18,7 @@ Each folder under `src/` is a topic, and inside it files sit in a folder per kin
 | `outputs/`    | output fields of Agent and Completion steps, `outputToZod` for the `reply` tool (D91), `outputFieldTypes`                                                |
 | `conditions/` | router rules, the operator table per type, `evaluateCondition`, `pickRoute`                                                                              |
 | `templates/`  | `parseTemplate`, `templateReferences`, `renderTemplate`, `resolvePath`                                                                                   |
-| `scope/`      | `visibleVariables` and `createScopeLookup`: every variable a node may use, with its type and whether it can be missing                                   |
+| `scope/`      | `visibleVariables`, `createScopeLookup`: what a node may use, its type, if it can be missing; `triggerVariables`                                         |
 | `diff/`       | `diffFlows`: what changed between two flows, for comparing versions and the publish dialog                                                               |
 | `validation/` | `validateFlow`, `FlowIssueCode`, `hasBlockingIssues`                                                                                                     |
 | `versions/`   | `parseFlow`: reads a stored flow and refuses a schema version it does not know (D77)                                                                     |
