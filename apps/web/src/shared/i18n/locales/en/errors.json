@@ -46,6 +46,7 @@
     "AGENT_NOT_FOUND": "This agent does not exist.",
     "AGENT_VERSION_NOT_FOUND": "This agent version does not exist.",
     "AGENT_VERSION_IMMUTABLE": "A published version cannot be changed.",
+    "DRAFT_CONFLICT": "Someone else saved this draft. Reload to continue.",
     "AGENT_FLOW_HAS_BLOCKING_ISSUES": "Fix the flow errors before publishing.",
     "AWAY_MESSAGE_REQUIRED": "Write the away message the customer will receive.",
     "AWAY_MESSAGE_TOO_LONG": "The away message is too long.",

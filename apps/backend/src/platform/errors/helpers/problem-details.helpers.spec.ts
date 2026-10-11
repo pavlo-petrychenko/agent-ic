@@ -5,12 +5,14 @@ import { INTERNAL_ERROR_MESSAGE } from '@/platform/errors/constants/error-descri
 import { PROBLEM_TYPE_DEFAULT } from '@/platform/errors/constants/problem-details.constants';
 import { toProblemDetails } from '@/platform/errors/helpers/problem-details.helpers';
 import {
+  SAMPLE_CLIENT_DETAILS,
   SAMPLE_ERROR_MESSAGE,
   SAMPLE_FIELD_PATH,
   SAMPLE_INTERNAL_DETAIL,
   SAMPLE_TRACE_ID,
 } from '@test/support/constants/sample-errors.constants';
 import {
+  SampleConflictError,
   SamplePlanLimitError,
   SampleRateLimitError,
   SampleValidationError,
@@ -33,6 +35,13 @@ describe('toProblemDetails', () => {
       traceId: SAMPLE_TRACE_ID,
       errors: [{ path: SAMPLE_FIELD_PATH, reason: ErrorReason.InvalidId }],
     });
+  });
+
+  it('carries only the client details of a domain error', () => {
+    const problem = toProblemDetails(new SampleConflictError(), SAMPLE_TRACE_ID, INSTANCE);
+
+    expect(problem).toMatchObject({ status: HttpStatus.CONFLICT });
+    expect(problem.details).toStrictEqual(SAMPLE_CLIENT_DETAILS);
   });
 
   it('answers a rate limit with 429 and a plan limit with 402', () => {

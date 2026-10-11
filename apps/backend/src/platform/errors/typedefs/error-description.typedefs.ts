@@ -7,4 +7,5 @@ export interface ErrorDescription {
   readonly message: string;
   readonly status: number;
   readonly fields: readonly FieldIssue[];
+  readonly details: Readonly<Record<string, unknown>>;
 }

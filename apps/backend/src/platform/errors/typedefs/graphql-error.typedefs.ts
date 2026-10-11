@@ -6,5 +6,6 @@ export interface GraphqlErrorExtensions {
   readonly reason: ErrorReason;
   readonly traceId: string;
   readonly fields?: readonly FieldIssue[];
+  readonly details?: Readonly<Record<string, unknown>>;
   readonly http: { readonly status: number };
 }

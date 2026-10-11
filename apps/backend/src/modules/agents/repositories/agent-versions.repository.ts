@@ -81,21 +81,29 @@ export class AgentVersionsRepository {
   async updateDraft(
     workspaceId: string,
     versionId: string,
+    expectedRevision: number,
     changes: DraftChanges,
     updatedAt: Date,
-  ): Promise<boolean> {
-    const updated = await this.txHost.tx
+  ): Promise<number | null> {
+    const [updated] = await this.txHost.tx
       .update(agentVersions)
-      .set({ flow: changes.flow, note: changes.note, updatedAt })
+      .set({
+        flow: changes.flow,
+        note: changes.note,
+        authorId: changes.authorId,
+        revision: sql`${agentVersions.revision} + 1`,
+        updatedAt,
+      })
       .where(
         and(
           eq(agentVersions.workspaceId, workspaceId),
           eq(agentVersions.id, versionId),
           eq(agentVersions.kind, AgentVersionKind.Draft),
+          eq(agentVersions.revision, expectedRevision),
         ),
       )
-      .returning({ id: agentVersions.id });
-    return updated.length > 0;
+      .returning({ revision: agentVersions.revision });
+    return updated?.revision ?? null;
   }
 
   async setBaseVersion(

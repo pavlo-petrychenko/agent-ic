@@ -1,6 +1,10 @@
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { AgentVersionKind, PauseMode } from '@/modules/agents/constants/agent.constants';
+import {
+  AgentVersionKind,
+  PauseMode,
+  DRAFT_INITIAL_REVISION,
+} from '@/modules/agents/constants/agent.constants';
 import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { AgentVersionNotFoundError } from '@/modules/agents/errors/agent-version-not-found.error';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
@@ -12,6 +16,7 @@ import { IdService } from '@/platform/ids/services/id.service';
 import {
   AGENTS_TEST_LATER,
   TEST_AWAY_MESSAGE,
+  TEST_EDITOR_ID,
   TEST_NODE_NEW_LABEL,
   TEST_VERSION_NOTE,
 } from '@test/support/constants/agents-testing.constants';
@@ -63,7 +68,12 @@ describe('AgentRuntimeReader', () => {
       versions.updateDraft(
         workspaceId,
         draftId,
-        { flow: triggerFlow(TEST_NODE_NEW_LABEL), note: TEST_VERSION_NOTE },
+        DRAFT_INITIAL_REVISION,
+        {
+          flow: triggerFlow(TEST_NODE_NEW_LABEL),
+          note: TEST_VERSION_NOTE,
+          authorId: TEST_EDITOR_ID,
+        },
         AGENTS_TEST_LATER,
       ),
     );
@@ -74,7 +84,7 @@ describe('AgentRuntimeReader', () => {
     const pinned = await tenants.run(workspaceId, () => reader.getVersion(workspaceId, first.id));
     const live = await tenants.run(workspaceId, () => reader.getLiveVersion(workspaceId, agentId));
 
-    expect(edited).toBe(true);
+    expect(edited).toBe(DRAFT_INITIAL_REVISION + 1);
     expect(pinned).toEqual(first);
     expect(pinned.flow).toEqual(triggerFlow());
     expect(live).toEqual(second);
@@ -142,7 +152,8 @@ describe('AgentRuntimeReader', () => {
         versions.updateDraft(
           workspaceId,
           draftId,
-          { flow: emptyFlow(), note: TEST_VERSION_NOTE },
+          DRAFT_INITIAL_REVISION,
+          { flow: emptyFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID },
           AGENTS_TEST_LATER,
         ),
       );
@@ -154,7 +165,8 @@ describe('AgentRuntimeReader', () => {
         versions.updateDraft(
           workspaceId,
           snapshot.id,
-          { flow: emptyFlow(), note: TEST_VERSION_NOTE },
+          DRAFT_INITIAL_REVISION,
+          { flow: emptyFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID },
           AGENTS_TEST_LATER,
         ),
       );
@@ -166,7 +178,7 @@ describe('AgentRuntimeReader', () => {
         flow: triggerFlow(),
       });
       expect(stored).toEqual(snapshot);
-      expect(frozen).toBe(false);
+      expect(frozen).toBeNull();
       expect(agent?.liveVersionId).toBeNull();
     });
 

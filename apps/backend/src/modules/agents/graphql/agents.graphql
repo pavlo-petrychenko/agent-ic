@@ -2,6 +2,7 @@ extend type Query {
   agents(first: Int, after: String): AgentConnection!
   agent(id: ID!): Agent!
   agentVersions(agentId: ID!): [AgentVersion!]!
+  agentDraft(agentId: ID!): AgentDraft!
 }
 
 extend type Mutation {
@@ -10,7 +11,7 @@ extend type Mutation {
   describeAgent(input: DescribeAgentInput!): Agent!
   deleteAgent(input: DeleteAgentInput!): DeleteAgentPayload!
   duplicateAgent(input: DuplicateAgentInput!): Agent!
-  saveAgentDraft(input: SaveAgentDraftInput!): SaveAgentDraftPayload!
+  saveAgentDraft(input: SaveAgentDraftInput!): AgentDraft!
   publishAgent(input: PublishAgentInput!): PublishAgentPayload!
   pauseAgent(input: PauseAgentInput!): Agent!
   resumeAgent(input: ResumeAgentInput!): Agent!
@@ -89,6 +90,7 @@ input DuplicateAgentInput {
 input SaveAgentDraftInput {
   id: ID!
   flow: JSON!
+  revision: Int!
   note: String
 }
 
@@ -136,8 +138,10 @@ type FlowIssue {
   params: JSON!
 }
 
-type SaveAgentDraftPayload {
+type AgentDraft {
   version: AgentVersion!
+  revision: Int!
+  savedAt: String!
   issues: [FlowIssue!]!
 }
 

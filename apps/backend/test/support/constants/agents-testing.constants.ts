@@ -19,3 +19,4 @@ export const TEST_AGENT_DESCRIPTION = 'Answers questions about orders';
 export const TEST_AUTHOR_NAME = 'Pavlo';
 export const TEST_AUTHOR_PASSWORD_HASH = 'not-a-real-hash';
 export const TEST_RELEASE_NOTE = 'Shorter greeting';
+export const TEST_EDITOR_ID = '01960000-0000-7000-8000-00000000e417';

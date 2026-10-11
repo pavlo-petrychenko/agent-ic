@@ -1,6 +1,9 @@
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
+import {
+  AgentVersionKind,
+  DRAFT_INITIAL_REVISION,
+} from '@/modules/agents/constants/agent.constants';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -95,12 +98,20 @@ describe('AgentVersionsRepository', () => {
       FIRST_NUMBER,
     );
     const snapshotId = await insertVersion(workspaceId, agentId, AgentVersionKind.Snapshot);
-    const changes = { flow: triggerFlow(), note: TEST_VERSION_NOTE };
+    const changes = { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: ids.generate() };
+    const update = (versionId: string): Promise<number | null> =>
+      repository.updateDraft(
+        workspaceId,
+        versionId,
+        DRAFT_INITIAL_REVISION,
+        changes,
+        AGENTS_TEST_LATER,
+      );
 
     const results = await tenants.run(workspaceId, async () => ({
-      draft: await repository.updateDraft(workspaceId, draftId, changes, AGENTS_TEST_LATER),
-      published: await repository.updateDraft(workspaceId, publishedId, changes, AGENTS_TEST_LATER),
-      snapshot: await repository.updateDraft(workspaceId, snapshotId, changes, AGENTS_TEST_LATER),
+      draft: await update(draftId),
+      published: await update(publishedId),
+      snapshot: await update(snapshotId),
     }));
     const draft = await tenants.run(workspaceId, () => repository.findById(workspaceId, draftId));
     const published = await tenants.run(workspaceId, () =>
@@ -110,10 +121,35 @@ describe('AgentVersionsRepository', () => {
       repository.findById(workspaceId, snapshotId),
     );
 
-    expect(results).toEqual({ draft: true, published: false, snapshot: false });
-    expect(draft).toMatchObject({ ...changes, updatedAt: AGENTS_TEST_LATER });
+    expect(results).toEqual({ draft: DRAFT_INITIAL_REVISION + 1, published: null, snapshot: null });
+    expect(draft).toMatchObject({
+      ...changes,
+      revision: DRAFT_INITIAL_REVISION + 1,
+      updatedAt: AGENTS_TEST_LATER,
+    });
     expect(published?.flow).toEqual(emptyFlow());
     expect(snapshot?.flow).toEqual(emptyFlow());
+  });
+
+  it('changes nothing when the draft is at another revision', async () => {
+    const workspaceId = ids.generate();
+    const agentId = await insertAgent(workspaceId);
+    const draftId = await insertVersion(workspaceId, agentId, AgentVersionKind.Draft);
+    const changes = { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: ids.generate() };
+
+    const updated = await tenants.run(workspaceId, () =>
+      repository.updateDraft(
+        workspaceId,
+        draftId,
+        DRAFT_INITIAL_REVISION + 1,
+        changes,
+        AGENTS_TEST_LATER,
+      ),
+    );
+    const draft = await tenants.run(workspaceId, () => repository.findById(workspaceId, draftId));
+
+    expect(updated).toBeNull();
+    expect(draft).toMatchObject({ flow: emptyFlow(), revision: DRAFT_INITIAL_REVISION });
   });
 
   it('lists the versions of one agent, newest first', async () => {
@@ -218,12 +254,13 @@ describe('AgentVersionsRepository', () => {
         updated: await repository.updateDraft(
           workspaceA,
           draftId,
-          { flow: triggerFlow(), note: TEST_VERSION_NOTE },
+          DRAFT_INITIAL_REVISION,
+          { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: ids.generate() },
           AGENTS_TEST_LATER,
         ),
       }));
 
-      expect(fromB).toEqual({ byId: null, draft: null, list: [], last: 0, updated: false });
+      expect(fromB).toEqual({ byId: null, draft: null, list: [], last: 0, updated: null });
     });
 
     it('shows nothing without a tenant', async () => {

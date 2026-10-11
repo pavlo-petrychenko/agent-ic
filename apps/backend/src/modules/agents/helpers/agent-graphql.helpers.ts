@@ -6,9 +6,9 @@ import {
   PauseMode,
 } from '@/modules/agents/constants/agent.constants';
 import type {
+  AgentDraftView,
   AgentVersionView,
   PublishedAgent,
-  SavedAgentDraft,
 } from '@/modules/agents/typedefs/agent-version.typedefs';
 import type {
   AgentView,
@@ -18,11 +18,11 @@ import type {
 import type {
   Agent,
   AgentConnection,
+  AgentDraft,
   AgentVersion,
   FlowIssue,
   PauseAgentInput as GraphqlPauseAgentInput,
   PublishAgentPayload,
-  SaveAgentDraftPayload,
 } from '@/platform/graphql-server/generated/schema.generated';
 import {
   AgentStatus as GraphqlAgentStatus,
@@ -100,9 +100,11 @@ export const toGraphqlFlowIssue = (issue: DomainFlowIssue): FlowIssue => ({
   params: issue.params,
 });
 
-export const toGraphqlSavedDraft = (saved: SavedAgentDraft): SaveAgentDraftPayload => ({
-  version: toGraphqlAgentVersion(saved.version),
-  issues: saved.issues.map(toGraphqlFlowIssue),
+export const toGraphqlAgentDraft = (draft: AgentDraftView): AgentDraft => ({
+  version: toGraphqlAgentVersion(draft.version),
+  revision: draft.revision,
+  savedAt: draft.savedAt.toISOString(),
+  issues: draft.issues.map(toGraphqlFlowIssue),
 });
 
 export const toGraphqlPublishedAgent = (published: PublishedAgent): PublishAgentPayload => ({
