@@ -18,6 +18,6 @@ export interface ApiTestState {
 }
 
 export interface UseTestApiRequestResult {
-  readonly stateOf: (nodeId: string) => ApiTestState;
-  readonly run: (nodeId: string) => void;
+  readonly stateOf: (node: ApiRequestNode) => ApiTestState;
+  readonly run: (node: ApiRequestNode) => void;
 }

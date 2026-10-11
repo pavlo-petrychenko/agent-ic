@@ -1,4 +1,5 @@
 import { API_REQUEST_MAX_TIMEOUT_SECONDS, FailureMode, HttpMethod } from '@agent-ic/flow';
+import type { ApiTestState } from '@/features/flow-builder/typedefs/apiRequest.typedefs';
 
 export const HTTP_METHODS: readonly HttpMethod[] = Object.values(HttpMethod);
 
@@ -25,3 +26,5 @@ export const API_OUTPUT_HINTS: Readonly<Record<string, ApiOutputHint>> = {
 };
 
 export const META_JOINER = ' · ';
+
+export const IDLE_API_TEST: ApiTestState = { result: null, running: false, failed: false };

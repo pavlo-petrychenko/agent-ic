@@ -343,12 +343,12 @@ export function InspectorPanel({ agentId }: InspectorPanelProps) {
             outputs={API_REQUEST_OUTPUTS}
             variables={variableOptions}
             issue={(path) => errors.get(path) ?? null}
-            test={apiTest.stateOf(current.id)}
+            test={apiTest.stateOf(current)}
             canTest={saveState === SaveState.Idle}
             onChange={update}
             onTemplateChange={(patch) => previewEdit(updateApiRequest(document, current.id, patch))}
             onCommit={commitPreview}
-            onTest={() => apiTest.run(current.id)}
+            onTest={() => apiTest.run(current)}
           />
         );
       }

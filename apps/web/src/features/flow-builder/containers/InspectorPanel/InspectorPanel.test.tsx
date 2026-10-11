@@ -616,6 +616,7 @@ describe('InspectorPanel api request', () => {
     await user.type(screen.getByRole('textbox', { name: 'URL' }), 'https://crm.example/bookings');
     await user.tab();
     await user.selectOptions(screen.getByRole('combobox', { name: 'Retries' }), '0');
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Timeout' }), '15');
     await user.selectOptions(
       screen.getByRole('combobox', { name: 'If the request fails' }),
       FailureMode.ErrorPort,
@@ -626,6 +627,7 @@ describe('InspectorPanel api request', () => {
         method: HttpMethod.Post,
         url: 'https://crm.example/bookings',
         retries: 0,
+        timeoutSeconds: 15,
         onFailure: FailureMode.ErrorPort,
       },
     });
@@ -656,5 +658,7 @@ describe('InspectorPanel api request', () => {
 
     expect(await screen.findByText('Status 200 · 120 ms')).toBeVisible();
     expect(screen.getByText(TEST_RESPONSE_BODY)).toBeVisible();
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Method' }), HttpMethod.Post);
+    expect(screen.queryByText('Status 200 · 120 ms')).not.toBeInTheDocument();
   });
 });
