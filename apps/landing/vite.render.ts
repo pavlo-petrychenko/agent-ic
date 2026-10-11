@@ -11,11 +11,18 @@ import {
   LINE_BREAK,
   Locale,
   LOCALE_PATHS,
+  OG_IMAGE_DIRECTORY,
+  OG_IMAGE_EXTENSION,
+  SITEMAP_FILE,
   MAILTO,
   PATH_SEPARATOR,
   PLACEHOLDER_PATTERN,
   QUERY_SEPARATOR,
   REDIRECT_STATUS,
+  ROBOTS_ALLOW_ALL,
+  ROBOTS_SITEMAP,
+  SITEMAP_CLOSE,
+  SITEMAP_OPEN,
   TEMPLATE_FILE,
   URL_SEPARATOR,
 } from './vite.constants.ts';
@@ -67,6 +74,7 @@ export const pageValues = (locale: Locale, env: LandingEnv, year: number): Templ
     url: pageUrl(env, locale),
     path: LOCALE_PATHS[locale],
     year: String(year),
+    ogImage: `${env.LANDING_SITE_URL}${OG_IMAGE_DIRECTORY}${locale}${OG_IMAGE_EXTENSION}`,
   },
   alternate: perLocale((other) => pageUrl(env, other)),
   path: perLocale((other) => LOCALE_PATHS[other]),
@@ -100,3 +108,22 @@ export const buildRedirects = (appUrl: string): string =>
   APP_REDIRECT_PREFIXES.map(
     (prefix) => `${prefix}/* ${appUrl}${prefix}/:splat ${REDIRECT_STATUS}${LINE_BREAK}`,
   ).join('');
+
+export const buildRobots = (siteUrl: string): string =>
+  [ROBOTS_ALLOW_ALL, '', `${ROBOTS_SITEMAP}${siteUrl}${URL_SEPARATOR}${SITEMAP_FILE}`, ''].join(
+    LINE_BREAK,
+  );
+
+const sitemapEntry = (env: LandingEnv, locale: Locale): string =>
+  [
+    `<url><loc>${pageUrl(env, locale)}</loc>`,
+    ...LOCALES.map(
+      (other) => `<xhtml:link rel="alternate" hreflang="${other}" href="${pageUrl(env, other)}"/>`,
+    ),
+    '</url>',
+  ].join('');
+
+export const buildSitemap = (env: LandingEnv): string =>
+  [SITEMAP_OPEN, ...LOCALES.map((locale) => sitemapEntry(env, locale)), SITEMAP_CLOSE, ''].join(
+    LINE_BREAK,
+  );

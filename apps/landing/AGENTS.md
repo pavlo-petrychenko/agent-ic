@@ -9,6 +9,8 @@ The marketing site at the product's public address. Static HTML and SCSS built w
 - Both locale files have the same keys; a test checks it.
 - `vite.env.ts` reads `LANDING_APP_URL` (the web app, target of the sign-up and login links) and `LANDING_SITE_URL` (this site, for canonical and alternate links) and validates them with zod. They come from the environment, or from the repo root `.env` locally (`.env.example` has the local values).
 - The build writes `dist/_redirects` for Cloudflare Pages: `/auth/*`, `/w/*` and `/invite/*` go to the same path on `LANDING_APP_URL` with a 301.
+- It also writes `dist/robots.txt` and `dist/sitemap.xml` from `LANDING_SITE_URL`. Open Graph images are `public/og/<language>.png`, 1200×630, one per language.
+- No cookies, analytics, external fonts or external scripts.
 
 ## Commands
 

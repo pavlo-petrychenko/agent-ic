@@ -1,7 +1,10 @@
 {
   "meta": {
     "title": "agent-ic · A Telegram bot that answers from your own documents",
-    "description": "Build a Telegram bot for your salon, clinic, shop or service. Add your price list and FAQ, connect Telegram and go live in about 10 minutes. No code."
+    "description": "Build a Telegram bot for your salon, clinic, shop or service. Add your price list and FAQ, connect Telegram and go live in about 10 minutes. No code.",
+    "ogLocale": "en_US",
+    "ogLocaleAlternate": "uk_UA",
+    "ogImageAlt": "agent-ic: A Telegram bot that answers from your own documents"
   },
   "nav": {
     "skip": "Skip to content",
