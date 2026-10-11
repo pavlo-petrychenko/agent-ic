@@ -26,6 +26,15 @@ export const SECOND_STEP_ID = 'node-second';
 export const SECOND_STEP_KEY = 'second';
 export const THIRD_STEP_ID = 'node-third';
 export const THIRD_STEP_KEY = 'third';
+export const FOURTH_STEP_ID = 'node-fourth';
+export const FOURTH_STEP_KEY = 'fourth';
+export const PARALLEL_NODE_ID = 'node-parallel';
+export const PARALLEL_NODE_KEY = 'parallel';
+export const ROUTER_NODE_ID = 'node-router';
+export const ROUTER_NODE_KEY = 'router';
+export const OBSERVER_NODE_ID = 'node-observer';
+export const OBSERVER_NODE_KEY = 'observer';
+export const TEST_ROUTE_RULE_ID = 'rule-first';
 export const TEST_PUBLISHED_NUMBER = 1;
 export const TEST_REPUBLISHED_NUMBER = 2;
 
@@ -34,6 +43,7 @@ export enum StepScript {
   Fail = 'fail',
   RejectUpstream = 'reject-upstream',
   Crash = 'crash',
+  Hold = 'hold',
 }
 export const TEST_END_USER_NAME = 'Olena';
 export const TEST_AGENT_REPLY = 'We open at nine.';

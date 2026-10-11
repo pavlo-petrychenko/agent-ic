@@ -13,6 +13,8 @@ import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.reposi
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { RunsModule } from '@/modules/runs/runs.module';
 import { MessageTriggerExecutor } from '@/modules/runs/services/message-trigger-executor.service';
+import { ParallelExecutor } from '@/modules/runs/services/parallel-executor.service';
+import { RouterExecutor } from '@/modules/runs/services/router-executor.service';
 import { RunExecutionService } from '@/modules/runs/services/run-execution.service';
 import type { NewRun } from '@/modules/runs/typedefs/run.typedefs';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
@@ -68,6 +70,7 @@ export const createRunsTestbed = async (
 ): Promise<RunExecutionTestbed> => {
   const clock = new ManualClock(RUNS_TEST_START);
   const executor = new ScriptedStepExecutor(NodeType.Agent);
+  const observer = new ScriptedStepExecutor(NodeType.Completion);
   const module = await createPlatformTestingModule(
     redisPrefix,
     [
@@ -82,13 +85,23 @@ export const createRunsTestbed = async (
     ],
     [
       { token: ClockService, value: clock },
-      { token: STEP_EXECUTORS, value: [new MessageTriggerExecutor(), executor] },
+      {
+        token: STEP_EXECUTORS,
+        value: [
+          new MessageTriggerExecutor(),
+          new RouterExecutor(),
+          new ParallelExecutor(),
+          executor,
+          observer,
+        ],
+      },
     ],
   );
   return {
     module,
     clock,
     executor,
+    observer,
     ids: module.get(IdService),
     tenants: module.get(TenantTransactionService),
     runs: module.get(RunsRepository),

@@ -118,12 +118,14 @@ export {
   VariableSourceKind,
   VariableType,
 } from '@flow/scope/constants/scope.constants';
+export { branchNodes, branchStarts, buildFlowGraph } from '@flow/scope/helpers/graph.helpers';
 export {
   createScopeLookup,
   resolveVariable,
   visibleVariables,
 } from '@flow/scope/helpers/scope.helpers';
 export type {
+  FlowGraph,
   ResolvedVariable,
   ScopeLookup,
   VisibleVariable,

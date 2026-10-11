@@ -18,6 +18,8 @@ export enum RunTrigger {
 
 export const ROOT_BRANCH_KEY = 'root';
 
+export const BRANCH_KEY_SEPARATOR = ':';
+
 export const RUNS_SCHEMA = 'runs';
 
 export const FIRST_STEP_ATTEMPT = 1;

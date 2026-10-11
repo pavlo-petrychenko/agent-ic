@@ -14,11 +14,16 @@ import { SampleNotFoundError } from '@test/support/fixtures/sample-errors.fixtur
 export class ScriptedStepExecutor implements StepExecutor {
   readonly executions: StepExecution<FlowNode>[] = [];
   private readonly scripts = new Map<string, StepScript[]>();
+  private readonly held = new Map<string, () => void>();
 
   constructor(readonly nodeType: NodeType) {}
 
   script(nodeId: string, ...scripts: StepScript[]): void {
     this.scripts.set(nodeId, scripts);
+  }
+
+  release(nodeId: string): void {
+    this.held.get(nodeId)?.();
   }
 
   callsFor(runId: string, nodeId: string): number {
@@ -30,9 +35,12 @@ export class ScriptedStepExecutor implements StepExecutor {
   execute(execution: StepExecution<FlowNode>): Promise<StepOutcome> {
     this.executions.push(execution);
     const { node } = execution;
+    const succeeded = { port: PortName.Next, output: { answer: node.key } };
     switch (this.scripts.get(node.id)?.shift() ?? StepScript.Succeed) {
       case StepScript.Succeed:
-        return Promise.resolve({ port: PortName.Next, output: { answer: node.key } });
+        return Promise.resolve(succeeded);
+      case StepScript.Hold:
+        return new Promise((resolve) => this.held.set(node.id, () => resolve(succeeded)));
       case StepScript.Fail:
         return Promise.reject(new SampleNotFoundError());
       case StepScript.RejectUpstream:
