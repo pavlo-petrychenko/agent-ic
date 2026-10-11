@@ -5,13 +5,17 @@ import { WorkspaceShellDocument } from '@/features/workspace/communication/gql/q
 export interface ShellMembershipFixture {
   readonly id: string;
   readonly name: string;
+  readonly timeZone?: string;
   readonly role: WorkspaceRole;
   readonly memberCount?: number;
 }
 
+export const DEMO_TIME_ZONE = 'Europe/Kyiv';
+
 export const DEMO_WORKSPACE: ShellMembershipFixture = {
   id: 'ws_demo',
   name: 'Demo salon',
+  timeZone: DEMO_TIME_ZONE,
   role: WorkspaceRole.Owner,
   memberCount: 5,
 };
@@ -35,6 +39,7 @@ export const buildWorkspaceShellMock = (
           __typename: 'Workspace',
           id: membership.id,
           name: membership.name,
+          timeZone: membership.timeZone ?? DEMO_TIME_ZONE,
           memberCount: membership.memberCount ?? 1,
         },
       })),

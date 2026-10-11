@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-export interface WorkspaceNameCardProps {
+export interface WorkspaceCardProps {
   onSubmit: () => void;
   children: ReactNode;
 }

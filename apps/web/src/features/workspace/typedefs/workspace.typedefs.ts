@@ -3,6 +3,7 @@ import type { Locale, WorkspaceRole } from '@agent-ic/contracts';
 export interface WorkspaceSummary {
   readonly id: string;
   readonly name: string;
+  readonly timeZone: string;
   readonly memberCount: number;
   readonly role: WorkspaceRole;
 }
