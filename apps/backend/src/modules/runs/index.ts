@@ -4,6 +4,8 @@ export {
   RunStepStatus,
   RunTrigger,
 } from '@/modules/runs/constants/run.constants';
+export { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
+export { RunFlowInvalidError } from '@/modules/runs/errors/run-flow-invalid.error';
 export { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 export { UnsupportedNodeTypeError } from '@/modules/runs/errors/unsupported-node-type.error';
 export { executeRunJob } from '@/modules/runs/jobs/execute-run.job';

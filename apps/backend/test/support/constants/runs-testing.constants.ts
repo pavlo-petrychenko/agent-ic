@@ -20,3 +20,21 @@ export const TEST_RUN_FAILURE = {
   message: UNSUPPORTED_NODE_TYPE_MESSAGE,
   nodeId: TEST_STEP_NODE_ID,
 };
+export const FIRST_STEP_ID = 'node-first';
+export const FIRST_STEP_KEY = 'first';
+export const SECOND_STEP_ID = 'node-second';
+export const SECOND_STEP_KEY = 'second';
+export const THIRD_STEP_ID = 'node-third';
+export const THIRD_STEP_KEY = 'third';
+export const TEST_PUBLISHED_NUMBER = 1;
+
+export enum StepScript {
+  Succeed = 'succeed',
+  Fail = 'fail',
+  RejectUpstream = 'reject-upstream',
+  Crash = 'crash',
+}
+export const TEST_END_USER_NAME = 'Olena';
+export const TEST_AGENT_REPLY = 'We open at nine.';
+export const TEST_FOLLOW_UP = 'And on Sunday?';
+export const TEST_TODAY = '2026-10-10';

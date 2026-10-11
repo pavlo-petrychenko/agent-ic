@@ -66,4 +66,5 @@ export enum ErrorReason {
   ChannelAdapterNotFound = 'CHANNEL_ADAPTER_NOT_FOUND',
   RunNotFound = 'RUN_NOT_FOUND',
   UnsupportedNodeType = 'UNSUPPORTED_NODE_TYPE',
+  RunFlowInvalid = 'RUN_FLOW_INVALID',
 }

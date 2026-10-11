@@ -54,7 +54,8 @@
     "MESSAGE_NOT_FOUND": "This message was not found.",
     "CHANNEL_ADAPTER_NOT_FOUND": "This channel cannot send messages yet.",
     "RUN_NOT_FOUND": "This run was not found.",
-    "UNSUPPORTED_NODE_TYPE": "This flow has a step the agent cannot run yet."
+    "UNSUPPORTED_NODE_TYPE": "This flow has a step the agent cannot run yet.",
+    "RUN_FLOW_INVALID": "This flow cannot run: it has no message trigger or it loops."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",
