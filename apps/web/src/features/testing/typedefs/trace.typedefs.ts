@@ -10,6 +10,7 @@ export interface RunStepView {
   nodeId: string;
   status: RunStepStatus;
   output: unknown;
+  errorMessage: string | null;
 }
 
 export interface RunTotalsView {
@@ -80,7 +81,8 @@ export interface OutputField {
 
 export type OutputView =
   | { kind: OutputViewKind.Fields; fields: readonly OutputField[] }
-  | { kind: OutputViewKind.Json; code: string };
+  | { kind: OutputViewKind.Json; code: string }
+  | { kind: OutputViewKind.Error; message: string | null };
 
 export interface StepOutput {
   id: string;

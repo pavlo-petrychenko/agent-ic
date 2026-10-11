@@ -9,6 +9,8 @@ import type { RunStatus } from '@/shared/api/generated/schema.generated';
 
 export const TRACE_RUN_ID = 'run_trace';
 
+export const STEP_ERROR = 'The model did not answer in time';
+
 export const GUARD_OUTPUT = { needs_human: false, reason: null };
 
 export const testingRunMock = (
@@ -34,6 +36,7 @@ export const testingRunMock = (
             nodeId: TRIGGER_NODE_ID,
             status: RunStepStatus.Succeeded,
             output: GUARD_OUTPUT,
+            error: null,
           },
           ...(replyStatus === null
             ? []
@@ -43,6 +46,10 @@ export const testingRunMock = (
                   nodeId: REPLY_NODE_ID,
                   status: replyStatus,
                   output: { messages: ['Hi'] },
+                  error:
+                    replyStatus === RunStepStatus.Failed
+                      ? { __typename: 'RunFailure', message: STEP_ERROR }
+                      : null,
                 },
               ]),
         ].map((step) => ({ __typename: 'RunStep', ...step })),

@@ -16,6 +16,9 @@ query TestingRun($id: ID!) {
       nodeId
       status
       output
+      error {
+        message
+      }
     }
   }
 }

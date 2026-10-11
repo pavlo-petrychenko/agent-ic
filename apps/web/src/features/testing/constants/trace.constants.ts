@@ -23,6 +23,7 @@ export const FOCUS_STEP_STATUSES: ReadonlySet<RunStepStatus> = new Set([
 export enum OutputViewKind {
   Fields = 'fields',
   Json = 'json',
+  Error = 'error',
 }
 
 export const JSON_INDENT = 2;

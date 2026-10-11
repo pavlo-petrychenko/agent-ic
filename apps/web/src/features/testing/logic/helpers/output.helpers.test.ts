@@ -13,6 +13,7 @@ const step = {
   nodeId: 'node_1',
   status: RunStepStatus.Succeeded,
   output: { ok: true },
+  errorMessage: null,
 };
 
 describe('toOutputView', () => {
@@ -43,6 +44,15 @@ describe('toStepView', () => {
   it('leaves out what a send message step did inside', () => {
     expect(toStepView(step, NodeType.SendMessage)).toBeNull();
     expect(toStepView(step, NodeType.Agent)).toMatchObject({ kind: OutputViewKind.Fields });
+  });
+
+  it('shows the error of a failed step', () => {
+    expect(
+      toStepView(
+        { ...step, status: RunStepStatus.Failed, output: null, errorMessage: 'Timed out' },
+        NodeType.Agent,
+      ),
+    ).toEqual({ kind: OutputViewKind.Error, message: 'Timed out' });
   });
 });
 

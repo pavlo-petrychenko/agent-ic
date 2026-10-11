@@ -74,6 +74,7 @@
     "stepsRun": "Виконано кроків",
     "stepsValue": "{{run}} з {{total}}",
     "messagesSent": "Надіслано повідомлень",
+    "stepFailed": "Цей крок завершився помилкою",
     "status": {
       "queued": "У черзі",
       "running": "Виконується",

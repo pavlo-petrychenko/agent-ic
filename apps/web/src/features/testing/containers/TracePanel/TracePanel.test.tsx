@@ -8,6 +8,7 @@ import {
   TRACE_FLOW,
 } from '@/features/testing/communication/fixtures/testing.fixture';
 import {
+  STEP_ERROR,
   TRACE_RUN_ID,
   testingRunMock,
 } from '@/features/testing/communication/fixtures/trace.fixture';
@@ -61,6 +62,14 @@ describe('TracePanel', () => {
       'href',
       `/w/${TEST_WORKSPACE_ID}/agents/${TEST_AGENT_ID}?node=${REPLY_NODE_ID}`,
     );
+  });
+
+  it('lists the failed step with its error in the turn details', async () => {
+    renderPanel(RunStatus.Failed, [testingRunMock(RunStatus.Failed, RunStepStatus.Failed)]);
+    const details = await screen.findByRole('complementary', { name: 'Turn details' });
+
+    expect(await within(details).findByText(STEP_ERROR)).toBeInTheDocument();
+    expect(within(details).getByRole('heading', { name: 'Send replies' })).toBeInTheDocument();
   });
 
   it('shows the steps a finished turn never reached and its details', async () => {
