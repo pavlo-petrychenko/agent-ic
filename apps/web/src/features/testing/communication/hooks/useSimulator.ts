@@ -81,6 +81,7 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
       key !== null &&
       (settled?.key !== key || (started && dataState !== 'complete' && !loadFailed)),
     failed: loadFailed || (key !== null && settled?.key === key && !settled.ok),
+    loadFailed,
     sending,
     restarting,
     retry: () => (loadFailed ? void refetch() : setAttempt((value) => value + 1)),

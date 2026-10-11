@@ -56,6 +56,7 @@ export interface SimulatorResult {
   conversation: SimulatorConversation | null;
   starting: boolean;
   failed: boolean;
+  loadFailed: boolean;
   sending: boolean;
   restarting: boolean;
   retry: () => void;

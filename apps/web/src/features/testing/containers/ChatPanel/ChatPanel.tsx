@@ -47,7 +47,7 @@ export function ChatPanel({
         <EmptyState
           icon={IconName.Alert}
           tone={EmptyStateTone.Err}
-          title={t('startError')}
+          title={t(simulator.loadFailed ? 'conversationError' : 'startError')}
           actions={
             <Button variant={ButtonVariant.Secondary} onClick={simulator.retry}>
               {t('retry')}

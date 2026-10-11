@@ -59,6 +59,7 @@
   "loading": "Loading the simulator…",
   "loadError": "Couldn't load the simulator",
   "startError": "Couldn't start the simulation",
+  "conversationError": "Couldn't load the conversation",
   "retry": "Retry",
   "note": "Draft runs here only — customers keep talking to the live version until you publish.",
   "noAgents": {
