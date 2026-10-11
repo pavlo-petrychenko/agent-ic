@@ -1,0 +1,16 @@
+extend type Subscription {
+  conversationActivity(conversationId: ID!): ConversationActivityEvent!
+}
+
+enum ConversationActivityKind {
+  message_added
+  run_started
+  run_finished
+}
+
+type ConversationActivityEvent {
+  conversationId: ID!
+  kind: ConversationActivityKind!
+  messageId: ID
+  runId: ID
+}

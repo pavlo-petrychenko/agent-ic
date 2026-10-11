@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { ConversationActivityKind } from '@/modules/conversations/constants/conversation-activity.constants';
 import {
   ConversationMode,
   ConversationState,
@@ -19,6 +20,7 @@ import {
 } from '@test/support/constants/conversations-testing.constants';
 import { workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import {
+  conversationActivity,
   createConversationsTestbed,
   queuedEventsFor,
   seedConversation,
@@ -98,6 +100,23 @@ describe('ConversationRunsService', () => {
         mode: ConversationMode.Live,
       },
     ]);
+  });
+
+  it('announces the recorded message with its run to the conversation activity', async () => {
+    const conversation = await seedConversation(testbed);
+    const activity = await conversationActivity(testbed, conversation.id);
+    const input = outbound(conversation);
+
+    const recorded = await recordOutbound(conversation, input);
+
+    const announced = await activity.next();
+    await activity.return();
+    expect(announced.value).toEqual({
+      conversationId: conversation.id,
+      kind: ConversationActivityKind.MessageAdded,
+      messageId: recorded.id,
+      runId: input.runId,
+    });
   });
 
   it('refuses to record a new outbound message in a closed conversation', async () => {

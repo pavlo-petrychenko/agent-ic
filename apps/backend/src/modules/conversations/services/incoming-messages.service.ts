@@ -19,6 +19,7 @@ import { messageReceivedEvent } from '@/modules/conversations/events/message-rec
 import { awayMessageKey } from '@/modules/conversations/helpers/incoming-message.helpers';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
+import { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
 import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
 import type { Conversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type {
@@ -39,6 +40,7 @@ export class IncomingMessagesService {
     private readonly conversations: ConversationsRepository,
     private readonly messages: MessagesRepository,
     private readonly conversationRuns: ConversationRunsService,
+    private readonly activity: ConversationActivityService,
     private readonly agents: AgentRuntimeReader,
     private readonly domainEvents: DomainEventsService,
     private readonly clock: ClockService,
@@ -78,6 +80,7 @@ export class IncomingMessagesService {
       };
     }
     await this.conversations.touch(input.workspaceId, conversation.id, now);
+    await this.activity.messageAdded(message);
     const activePause = conversation.mode === ConversationMode.Live ? pause : null;
     const outcome = await this.route(ctx, conversation, message, activePause, input.versionId);
     return { outcome, conversationId: conversation.id, messageId: message.id };

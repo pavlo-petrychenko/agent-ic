@@ -8,6 +8,7 @@ import type { IncomingMessagesService } from '@/modules/conversations/services/i
 import type { Message } from '@/modules/conversations/typedefs/message.typedefs';
 import type { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import type { IdService } from '@/platform/ids/services/id.service';
+import type { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';
 import type { QueuesService } from '@/platform/queues/services/queues.service';
 import type { ManualClock } from '@test/support/fakes/manual-clock.fake';
 
@@ -23,6 +24,7 @@ export interface ConversationsTestbed {
   readonly incoming: IncomingMessagesService;
   readonly agents: AgentsRepository;
   readonly queues: QueuesService;
+  readonly liveUpdates: LiveUpdatesService;
 }
 
 export interface TiedMessages {

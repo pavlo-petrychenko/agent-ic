@@ -2,6 +2,7 @@ import { ErrorReason } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PauseMode } from '@/modules/agents';
 import type { PauseSettings } from '@/modules/agents';
+import { ConversationActivityKind } from '@/modules/conversations/constants/conversation-activity.constants';
 import {
   ConversationMode,
   ConversationState,
@@ -18,6 +19,7 @@ import {
 } from '@test/support/constants/conversations-testing.constants';
 import { incomingMessage, workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import {
+  conversationActivity,
   createConversationsTestbed,
   queuedEventsFor,
   seedAgent,
@@ -83,6 +85,23 @@ describe('IncomingMessagesService', () => {
         versionId,
       },
     ]);
+  });
+
+  it('announces each stored customer message to the conversation activity', async () => {
+    const input = await startedBy();
+    const { conversationId } = await receive(input);
+    const activity = await conversationActivity(testbed, conversationId);
+
+    const { messageId } = await receive(input);
+
+    const announced = await activity.next();
+    await activity.return();
+    expect(announced.value).toEqual({
+      conversationId,
+      kind: ConversationActivityKind.MessageAdded,
+      messageId,
+      runId: null,
+    });
   });
 
   it('ignores a message whose external id was already received', async () => {

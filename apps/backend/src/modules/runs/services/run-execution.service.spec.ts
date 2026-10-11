@@ -4,6 +4,7 @@ import type { FlowNode } from '@agent-ic/flow';
 import { context, propagation, trace } from '@opentelemetry/api';
 import { node, tracing } from '@opentelemetry/sdk-node';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { ConversationActivityKind, conversationActivityChannel } from '@/modules/conversations';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
 import { RUN_TRACE_NAME } from '@/modules/runs/constants/run-tracing.constants';
 import { ROOT_BRANCH_KEY, RunStatus, RunStepStatus } from '@/modules/runs/constants/run.constants';
@@ -127,13 +128,18 @@ describe('RunExecutionService', () => {
   it('walks the ports, passes earlier outputs on, saves inputs and publishes every step', async () => {
     const seeded = await seedExecutableRun(testbed, threeSteps);
     const events = await testbed.liveUpdates.subscribe(channelFor(runStepsChannel, seeded.run.id));
+    const activity = await testbed.liveUpdates.subscribe(
+      channelFor(conversationActivityChannel, seeded.run.conversationId),
+    );
 
     expect(await execute(seeded)).toBe(RunStatus.Succeeded);
 
     const published = await Promise.all(
       threeSteps.nodes.flatMap(() => [events.next(), events.next()]),
     );
+    const announced = [await activity.next(), await activity.next()];
     await events.return();
+    await activity.return();
     const { run, steps } = await stored(seeded);
     const third = testbed.executor.executions.find(
       (call) => call.run.id === seeded.run.id && call.node.id === THIRD_STEP_ID,
@@ -156,6 +162,14 @@ describe('RunExecutionService', () => {
         expect.objectContaining({ nodeId, status: RunStepStatus.Running }),
         expect.objectContaining({ nodeId, status: RunStepStatus.Succeeded }),
       ]),
+    );
+    expect(announced.map((event) => event.value)).toEqual(
+      [ConversationActivityKind.RunStarted, ConversationActivityKind.RunFinished].map((kind) => ({
+        conversationId: seeded.run.conversationId,
+        kind,
+        messageId: null,
+        runId: seeded.run.id,
+      })),
     );
   });
 

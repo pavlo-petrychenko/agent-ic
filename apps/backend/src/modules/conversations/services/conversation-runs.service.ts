@@ -12,6 +12,7 @@ import { needsOperatorEvent } from '@/modules/conversations/events/needs-operato
 import { outboundQueuedEvent } from '@/modules/conversations/events/outbound-queued.event';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
+import { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
 import type {
   Conversation,
   WaitingRequest,
@@ -32,6 +33,7 @@ export class ConversationRunsService {
     private readonly conversations: ConversationsRepository,
     private readonly messages: MessagesRepository,
     private readonly domainEvents: DomainEventsService,
+    private readonly activity: ConversationActivityService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
@@ -90,6 +92,7 @@ export class ConversationRunsService {
       return this.requireByKey(input.workspaceId, input.key);
     }
     await this.conversations.touch(input.workspaceId, input.conversationId, now);
+    await this.activity.messageAdded(created);
     await this.domainEvents.emit(
       ctx,
       outboundQueuedEvent,
