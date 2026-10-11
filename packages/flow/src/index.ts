@@ -48,7 +48,7 @@ export type {
   TriggerNode,
   TriggerScheduleNode,
 } from '@flow/document/typedefs/flow.typedefs';
-export { isTriggerNode } from '@flow/document/helpers/node.helpers';
+export { isObserverNode, isTriggerNode } from '@flow/document/helpers/node.helpers';
 export { nodePorts } from '@flow/document/helpers/port.helpers';
 export { renameNodeKey } from '@flow/document/helpers/rename.helpers';
 export {

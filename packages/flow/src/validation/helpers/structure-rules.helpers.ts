@@ -1,9 +1,8 @@
-import { NodeType, PortName } from '@flow/document/constants/flow.constants';
-import { isTriggerNode } from '@flow/document/helpers/node.helpers';
+import { PortName } from '@flow/document/constants/flow.constants';
+import { isObserverNode, isTriggerNode } from '@flow/document/helpers/node.helpers';
 import { nodePorts } from '@flow/document/helpers/port.helpers';
 import type { FlowEdge, FlowNode } from '@flow/document/typedefs/flow.typedefs';
 import { NODE_KEY_PATTERN } from '@flow/limits/constants/limit.constants';
-import { CompletionRole } from '@flow/nodes/constants/step.constants';
 import { RESERVED_ROOTS } from '@flow/scope/constants/scope.constants';
 import { findCycleEdges } from '@flow/scope/helpers/graph.helpers';
 import { FlowIssueCode } from '@flow/validation/constants/issue.constants';
@@ -37,9 +36,6 @@ export const identityIssues = ({ flow }: ValidationContext): FlowIssue[] => [
   ),
 ];
 
-const isObserver = (node: FlowNode): boolean =>
-  node.type === NodeType.Completion && node.config.role === CompletionRole.Observer;
-
 const edgeIssue = (context: ValidationContext, edge: FlowEdge): FlowIssue[] => {
   const source = context.graph.nodes.get(edge.source);
   const target = context.graph.nodes.get(edge.target);
@@ -47,7 +43,7 @@ const edgeIssue = (context: ValidationContext, edge: FlowEdge): FlowIssue[] => {
     return [createIssue(FlowIssueCode.EdgeMissingNode, { edgeId: edge.id })];
   }
   const issues: FlowIssue[] = [];
-  if (isObserver(source)) {
+  if (isObserverNode(source)) {
     issues.push(
       createIssue(FlowIssueCode.ObserverHasEdges, { nodeId: source.id, edgeId: edge.id }),
     );

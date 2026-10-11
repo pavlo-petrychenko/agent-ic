@@ -1,5 +1,5 @@
-import { CompletionRole, NodeType, WaitFor, branchNodes, branchStarts } from '@agent-ic/flow';
-import type { FlowGraph, FlowNode, ParallelNode } from '@agent-ic/flow';
+import { WaitFor, branchNodes, branchStarts, isObserverNode } from '@agent-ic/flow';
+import type { FlowGraph, ParallelNode } from '@agent-ic/flow';
 import { BRANCH_KEY_SEPARATOR } from '@/modules/runs/constants/run.constants';
 import type {
   BranchSettlement,
@@ -7,9 +7,6 @@ import type {
   RunBranch,
 } from '@/modules/runs/typedefs/run-branch.typedefs';
 import type { RunEnd } from '@/modules/runs/typedefs/run.typedefs';
-
-const isObserver = (node: FlowNode | undefined): boolean =>
-  node?.type === NodeType.Completion && node.config.role === CompletionRole.Observer;
 
 export const branchKeyOf = (parallelId: string, startId: string): string =>
   `${parallelId}${BRANCH_KEY_SEPARATOR}${startId}`;
@@ -20,7 +17,10 @@ export const parallelBranches = (graph: FlowGraph, parallel: ParallelNode): RunB
     if (start === undefined) {
       return [];
     }
-    const observer = [...branchNodes(graph, edge)].some((id) => isObserver(graph.nodes.get(id)));
+    const observer = [...branchNodes(graph, edge)].some((id) => {
+      const node = graph.nodes.get(id);
+      return node !== undefined && isObserverNode(node);
+    });
     return [{ key: branchKeyOf(parallel.id, start.id), start, observer }];
   });
 

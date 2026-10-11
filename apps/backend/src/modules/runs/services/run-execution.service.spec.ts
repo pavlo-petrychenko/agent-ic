@@ -1,5 +1,5 @@
 import { ErrorReason } from '@agent-ic/contracts';
-import { PortName, WaitFor } from '@agent-ic/flow';
+import { PortName, WaitFor, isObserverNode } from '@agent-ic/flow';
 import type { FlowNode } from '@agent-ic/flow';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
@@ -65,14 +65,14 @@ const parallelFlow = (
       parallelNode(PARALLEL_NODE_ID, PARALLEL_NODE_KEY, waitFor),
       agentNode(FIRST_STEP_ID, FIRST_STEP_KEY),
       held,
-      agentNode(THIRD_STEP_ID, THIRD_STEP_KEY),
+      ...(isObserverNode(held) ? [] : [agentNode(THIRD_STEP_ID, THIRD_STEP_KEY)]),
       agentNode(FOURTH_STEP_ID, FOURTH_STEP_KEY),
     ],
     [
       flowEdge(TEST_NODE_ID, PARALLEL_NODE_ID),
       flowEdge(PARALLEL_NODE_ID, FIRST_STEP_ID, PortName.Branches),
       flowEdge(PARALLEL_NODE_ID, held.id, PortName.Branches),
-      flowEdge(held.id, THIRD_STEP_ID),
+      ...(isObserverNode(held) ? [] : [flowEdge(held.id, THIRD_STEP_ID)]),
       flowEdge(PARALLEL_NODE_ID, FOURTH_STEP_ID),
     ],
   );
@@ -297,11 +297,15 @@ describe('RunExecutionService', () => {
   });
 
   it.each([
-    { waitFor: WaitFor.First, held: agentNode(SECOND_STEP_ID, SECOND_STEP_KEY) },
-    { waitFor: WaitFor.Guards, held: observerNode(OBSERVER_NODE_ID, OBSERVER_NODE_KEY) },
+    { waitFor: WaitFor.First, held: agentNode(SECOND_STEP_ID, SECOND_STEP_KEY), thirdCalls: 1 },
+    {
+      waitFor: WaitFor.Guards,
+      held: observerNode(OBSERVER_NODE_ID, OBSERVER_NODE_KEY),
+      thirdCalls: 0,
+    },
   ])(
     'joins on $waitFor without the held branch and still finishes it before the run ends',
-    async ({ waitFor, held }) => {
+    async ({ waitFor, held, thirdCalls }) => {
       const seeded = await seedExecutableRun(testbed, parallelFlow(waitFor, held));
       const holder = held.id === OBSERVER_NODE_ID ? testbed.observer : testbed.executor;
       holder.script(held.id, StepScript.Hold);
@@ -315,7 +319,7 @@ describe('RunExecutionService', () => {
       expect(await running).toBe(RunStatus.Succeeded);
       const { steps } = await stored(seeded);
       expect(steps.find((step) => step.nodeId === held.id)?.status).toBe(RunStepStatus.Succeeded);
-      expect(testbed.executor.callsFor(seeded.run.id, THIRD_STEP_ID)).toBe(1);
+      expect(testbed.executor.callsFor(seeded.run.id, THIRD_STEP_ID)).toBe(thirdCalls);
     },
   );
 });
