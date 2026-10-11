@@ -1,4 +1,5 @@
 import type { FlowDocument } from '@agent-ic/flow';
+import type { PublishDiff } from '@/features/flow-builder';
 
 export interface PublishedVersion {
   id: string;
@@ -27,6 +28,13 @@ export interface VersionHistory {
 
 export interface VersionHistoryResult {
   history: VersionHistory | null;
+  loading: boolean;
+  failed: boolean;
+  retry: () => void;
+}
+
+export interface VersionDiffResult {
+  diff: PublishDiff | null;
   loading: boolean;
   failed: boolean;
   retry: () => void;

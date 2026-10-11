@@ -16,9 +16,14 @@ import {
   VERSION_META_SEPARATOR,
   VersionKind,
 } from '@/features/testing/constants/versions.constants';
+import { VersionComparePanel } from '@/features/testing/containers/VersionComparePanel';
 import type { VersionsPageProps } from '@/features/testing/containers/VersionsPage/VersionsPage.typedefs';
 import { pickAgent } from '@/features/testing/logic/helpers/agent.helpers';
-import { formatVersionDate, noteLines } from '@/features/testing/logic/helpers/versions.helpers';
+import {
+  formatVersionDate,
+  noteLines,
+  previousVersion,
+} from '@/features/testing/logic/helpers/versions.helpers';
 import type { TestingAgent } from '@/features/testing/typedefs/testing.typedefs';
 import type {
   PublishedVersion,
@@ -27,14 +32,13 @@ import type {
 import { VersionCard } from '@/features/testing/view/VersionCard';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
-import { Card, CardTone } from '@/shared/ui/display/Card';
+import { Card } from '@/shared/ui/display/Card';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { Skeleton } from '@/shared/ui/display/Skeleton';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { SelectButton } from '@/shared/ui/inputs/SelectButton';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
 import { Tabs } from '@/shared/ui/navigation/Tabs';
-import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/testing/containers/VersionsPage/VersionsPage.module.scss';
 
 export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
@@ -46,6 +50,7 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
   const historyResult = useVersionHistory(agent?.id ?? null);
   const { history } = historyResult;
   const [publishing, setPublishing] = useState(false);
+  const [selected, setSelected] = useState<string | null>(null);
   const [now] = useState(Date.now);
 
   const openBuilder = (nodeId: string | null) =>
@@ -98,6 +103,10 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
 
   const body = (current: TestingAgent, { draft, published, liveNumber }: VersionHistory) => {
     const unchanged = liveNumber !== null && draft.changeCount === 0;
+    const latest = previousVersion(published, null);
+    const selectedId = [draft, ...published].some((version) => version.id === selected)
+      ? selected
+      : ((published.find((version) => version.live) ?? latest)?.id ?? null);
     const draftMeta = [
       t('versions.edited', { ago: formatTimeAgo(draft.savedAt, now, locale) }),
       ...(draft.changeCount === null || draft.changeCount === 0
@@ -113,15 +122,27 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
             kind={VersionKind.Draft}
             meta={draftMeta}
             lines={[]}
-            selected={false}
+            selected={selectedId === draft.id}
+            onSelect={latest === null ? null : () => setSelected(draft.id)}
             actions={
-              <Button
-                size={ButtonSize.Sm}
-                disabled={draft.flow === null || unchanged}
-                onClick={() => setPublishing(true)}
-              >
-                {t('versions.publish')}
-              </Button>
+              <>
+                {latest !== null && (
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Sm}
+                    onClick={() => setSelected(draft.id)}
+                  >
+                    {t('versions.compare.action', { number: latest.number })}
+                  </Button>
+                )}
+                <Button
+                  size={ButtonSize.Sm}
+                  disabled={draft.flow === null || unchanged}
+                  onClick={() => setPublishing(true)}
+                >
+                  {t('versions.publish')}
+                </Button>
+              </>
             }
           />
           {published.map((version) => (
@@ -131,12 +152,13 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
               kind={version.live ? VersionKind.Live : VersionKind.Archived}
               meta={publishedMeta(version)}
               lines={noteLines(version.note)}
-              selected={false}
+              selected={selectedId === version.id}
+              onSelect={() => setSelected(version.id)}
               actions={null}
             />
           ))}
         </ul>
-        {published.length === 0 ? (
+        {selectedId === null ? (
           <Card>
             <EmptyState
               icon={IconName.Flask}
@@ -145,11 +167,12 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
             />
           </Card>
         ) : (
-          <Card tone={CardTone.Panel}>
-            <Text kind={TextKind.Caption} color={TextColor.Mute}>
-              {t('versions.footnote')}
-            </Text>
-          </Card>
+          <VersionComparePanel
+            agentId={current.id}
+            draft={draft}
+            published={published}
+            selectedId={selectedId}
+          />
         )}
         {publishing && draft.flow !== null && (
           <PublishDialog

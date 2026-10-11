@@ -8,4 +8,5 @@ export interface VersionCardProps {
   lines: readonly string[];
   selected: boolean;
   actions: ReactNode | null;
+  onSelect: (() => void) | null;
 }

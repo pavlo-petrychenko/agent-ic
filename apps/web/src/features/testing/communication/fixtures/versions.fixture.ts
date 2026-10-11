@@ -1,9 +1,11 @@
 import type { MockLink } from '@apollo/client/testing';
 import {
   LIVE_VERSION_ID,
+  REPLY_NODE_ID,
   TEST_AGENT_ID,
   TRACE_FLOW,
 } from '@/features/testing/communication/fixtures/testing.fixture';
+import { VersionDiffDocument } from '@/features/testing/communication/gql/query/versionDiff.generated';
 import { VersionHistoryDocument } from '@/features/testing/communication/gql/query/versionHistory.generated';
 import { AgentVersionStatus } from '@/shared/api/generated/schema.generated';
 
@@ -67,3 +69,35 @@ export const failedVersionHistoryMock: MockLink.MockedResponse = {
   request: { query: VersionHistoryDocument, variables: { agentId: TEST_AGENT_ID } },
   error: new Error('offline'),
 };
+
+export const versionDiffMock = (fromId: string, toId: string): MockLink.MockedResponse => ({
+  request: { query: VersionDiffDocument, variables: { agentId: TEST_AGENT_ID, fromId, toId } },
+  result: {
+    data: {
+      agentVersionDiff: {
+        __typename: 'FlowDiff',
+        addedNodes: [{ id: 'node_guard', key: 'guard', label: 'Conversation guard' }],
+        removedNodes: [],
+        changedNodes: [
+          {
+            __typename: 'FlowNodeChange',
+            nodeId: REPLY_NODE_ID,
+            key: 'reply',
+            fields: [
+              {
+                __typename: 'FlowFieldChange',
+                path: ['config', 'typing'],
+                before: false,
+                after: true,
+              },
+            ],
+          },
+        ],
+        renamedKeys: [],
+        addedEdges: [],
+        removedEdges: [],
+        changeCount: 2,
+      },
+    },
+  },
+});

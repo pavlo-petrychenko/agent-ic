@@ -1,3 +1,5 @@
+import { FLOW_SCHEMA_VERSION } from '@agent-ic/flow';
+import type { FlowDocument } from '@agent-ic/flow';
 import { BadgeTone } from '@/shared/ui/display/Badge';
 
 export enum VersionKind {
@@ -17,3 +19,9 @@ export const VERSION_DATE_FORMAT: Intl.DateTimeFormatOptions = { month: 'short',
 export const NOTE_LINE_BREAK = /\r?\n/;
 
 export const VERSION_META_SEPARATOR = ' · ';
+
+export const EMPTY_DOCUMENT: FlowDocument = {
+  schemaVersion: FLOW_SCHEMA_VERSION,
+  nodes: [],
+  edges: [],
+};

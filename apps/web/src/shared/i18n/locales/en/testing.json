@@ -136,6 +136,16 @@
     "never": {
       "title": "Not published yet",
       "description": "Publish the draft to make it live. Every published version stays here, and you can restore it later."
+    },
+    "compare": {
+      "action": "Compare with v{{number}}",
+      "title": "What changed in v{{number}}",
+      "draftTitle": "What changed in draft v{{number}}",
+      "subtitle": "compared with v{{number}}",
+      "noChanges": "Nothing changed in the flow.",
+      "first": "v{{number}} is the first version, so there's nothing to compare it with.",
+      "loading": "Comparing the versions…",
+      "loadError": "Couldn't compare the versions"
     }
   }
 }

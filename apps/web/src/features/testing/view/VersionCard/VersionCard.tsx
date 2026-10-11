@@ -8,16 +8,38 @@ import { Card, CardElement, CardGap } from '@/shared/ui/display/Card';
 import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/testing/view/VersionCard/VersionCard.module.scss';
 
-export function VersionCard({ number, kind, meta, lines, selected, actions }: VersionCardProps) {
+export function VersionCard({
+  number,
+  kind,
+  meta,
+  lines,
+  selected,
+  actions,
+  onSelect,
+}: VersionCardProps) {
   const { t } = useTranslation(TESTING_NAMESPACE);
   const name = t('versions.number', { number });
+  const label = (
+    <Text as={TextElement.Span} kind={TextKind.Mono}>
+      {name}
+    </Text>
+  );
 
   return (
     <Card as={CardElement.Li} gap={CardGap.Sm} selected={selected} aria-label={name}>
       <div className={styles.head}>
-        <Text as={TextElement.Span} kind={TextKind.Mono}>
-          {name}
-        </Text>
+        {onSelect === null ? (
+          label
+        ) : (
+          <button
+            type="button"
+            className={styles.select}
+            aria-pressed={selected}
+            onClick={onSelect}
+          >
+            {label}
+          </button>
+        )}
         <Badge tone={VERSION_BADGE_TONE[kind]} dot={kind !== VersionKind.Archived}>
           {t(`versions.kind.${kind}`)}
         </Badge>
