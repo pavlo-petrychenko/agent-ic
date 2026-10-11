@@ -19,7 +19,9 @@ export const prompts = promptsSchema
       }),
       createdByUserId: uuid('created_by_user_id'),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
-      updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+      updatedAt: timestamp('updated_at', { withTimezone: true })
+        .notNull()
+        .$onUpdateFn(() => new Date()),
       deletedAt: timestamp('deleted_at', { withTimezone: true }),
     },
     (table) => [
