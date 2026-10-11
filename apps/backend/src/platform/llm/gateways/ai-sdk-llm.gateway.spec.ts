@@ -2,6 +2,7 @@ import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
+import { ClockModule } from '@/platform/clock/clock.module';
 import { ConfigModule } from '@/platform/config/config.module';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
@@ -35,6 +36,7 @@ import type {
   LlmStepTimeouts,
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { ObservabilityModule } from '@/platform/observability/observability.module';
 import { MockLlmRoute } from '@test/support/constants/mock-llm.constants';
 import { createTestEnv } from '@test/support/fixtures/test-env.fixture';
 import { createLlmGateway } from '@test/support/helpers/llm-testing.helpers';
@@ -219,7 +221,12 @@ describe('AiSdkLlmGateway.complete', () => {
   it('boots the module without an LLM key', async () => {
     const config = loadAppConfig({ role: Role.Api, queues: [] }, createTestEnv());
     const testingModule = await Test.createTestingModule({
-      imports: [ConfigModule.register(config), LlmModule],
+      imports: [
+        ConfigModule.register(config),
+        ClockModule,
+        ObservabilityModule.forRole(Role.Api),
+        LlmModule,
+      ],
     }).compile();
 
     const booted = testingModule.get(LlmGateway);

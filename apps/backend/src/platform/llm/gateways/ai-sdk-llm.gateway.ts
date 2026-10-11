@@ -1,12 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { generateText, hasToolCall, stepCountIs, zodSchema } from 'ai';
+import type { LanguageModelUsage } from 'ai';
 import { LLM_CATALOG } from '@/platform/llm/constants/llm-catalog.constants';
 import {
   LLM_COMPLETE_ROUNDS,
+  LLM_NO_USAGE,
   LLM_REPLY_TOOL_NAME,
   LLM_STEP_TIMEOUTS,
   LLM_TOOL_CALLS_FINISH_REASON,
 } from '@/platform/llm/constants/llm-gateway.constants';
+import { LlmOperation } from '@/platform/llm/constants/llm-metrics.constants';
 import { LlmAgentFinish } from '@/platform/llm/constants/llm-model.constants';
 import type { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
 import { LlmOutputInvalidError } from '@/platform/llm/errors/llm-output-invalid.error';
@@ -15,6 +18,7 @@ import { LlmToolRoundsExceededError } from '@/platform/llm/errors/llm-tool-round
 import { LlmUnavailableError } from '@/platform/llm/errors/llm-unavailable.error';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import {
+  addUsage,
   afterSteps,
   checkOutput,
   initialRunState,
@@ -32,8 +36,11 @@ import {
   toUpstreamFailure,
   withMessage,
 } from '@/platform/llm/helpers/llm-gateway.helpers';
+import { usageReport } from '@/platform/llm/helpers/llm-usage.helpers';
+import { LlmMetricsService } from '@/platform/llm/services/llm-metrics.service';
 import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
+import { UsageReporter } from '@/platform/llm/services/usage-reporter.service';
 import type {
   LlmAgentRequest,
   LlmAgentResult,
@@ -49,13 +56,15 @@ export class AiSdkLlmGateway extends LlmGateway {
   constructor(
     private readonly providers: ProviderResolverService,
     private readonly traces: LlmTraceContextService,
+    private readonly usage: UsageReporter,
+    private readonly metrics: LlmMetricsService,
     @Inject(LLM_STEP_TIMEOUTS) private readonly timeouts: LlmStepTimeouts,
   ) {
     super();
   }
 
   async complete<T>(request: LlmCompleteRequest<T>): Promise<LlmCompletion<T>> {
-    return this.withFallback(request, async (run) => {
+    return this.withFallback(LlmOperation.Complete, request, async (run) => {
       const result = await this.finalMessageAttempt(
         { ...request, tools: {}, maxToolRounds: LLM_COMPLETE_ROUNDS },
         run,
@@ -66,7 +75,7 @@ export class AiSdkLlmGateway extends LlmGateway {
   }
 
   async runAgent<T>(request: LlmAgentRequest<T>): Promise<LlmAgentResult<T>> {
-    return this.withFallback(request, async (run) => {
+    return this.withFallback(LlmOperation.Agent, request, async (run) => {
       const state = initialRunState(request.messages, request.maxToolRounds);
       return run.model.agentFinish === LlmAgentFinish.ReplyTool
         ? this.replyToolAttempt(request, run, state)
@@ -75,10 +84,13 @@ export class AiSdkLlmGateway extends LlmGateway {
   }
 
   private async withFallback<T, R>(
+    operation: LlmOperation,
     request: LlmCompleteRequest<T>,
     attempt: (run: LlmModelRun) => Promise<R>,
   ): Promise<R> {
-    return this.traces.forCall(() => this.tryModels(request, attempt));
+    return this.traces.forCall(() =>
+      this.metrics.measure(operation, request.model, () => this.tryModels(request, attempt)),
+    );
   }
 
   private async tryModels<T, R>(
@@ -95,6 +107,10 @@ export class AiSdkLlmGateway extends LlmGateway {
           throw toUpstreamFailure(error);
         }
         failures.push(error);
+        const fallback = models[fallbackHop + 1];
+        if (fallback !== undefined) {
+          this.metrics.fallback(model, fallback);
+        }
       }
     }
     throw new LlmUnavailableError(models, failures);
@@ -131,6 +147,7 @@ export class AiSdkLlmGateway extends LlmGateway {
       stopWhen: stepCountIs(state.roundsLeft),
       ...runCallSettings(run),
     });
+    await this.report(request, run, result.totalUsage);
     const next = afterSteps(state, result);
     if (result.finishReason === LLM_TOOL_CALLS_FINISH_REASON) {
       throw new LlmToolRoundsExceededError(run.model.id, request.maxToolRounds);
@@ -147,6 +164,7 @@ export class AiSdkLlmGateway extends LlmGateway {
     if (next.retriesLeft <= 0 || next.roundsLeft <= 0) {
       throw new LlmOutputInvalidError(run.model.id, checked.error);
     }
+    this.metrics.outputRetry(run.model.id);
     return this.finalMessageAttempt(request, run, {
       ...withMessage(next, outputFeedbackMessage(checked.error)),
       retriesLeft: next.retriesLeft - 1,
@@ -166,6 +184,7 @@ export class AiSdkLlmGateway extends LlmGateway {
       stopWhen: [stepCountIs(state.roundsLeft), hasToolCall(LLM_REPLY_TOOL_NAME)],
       ...runCallSettings(run),
     });
+    await this.report(request, run, result.totalUsage);
     const next = afterSteps(state, result);
     const replyCall = result.toolCalls.find(({ toolName }) => toolName === LLM_REPLY_TOOL_NAME);
     if (replyCall === undefined && result.finishReason === LLM_TOOL_CALLS_FINISH_REASON) {
@@ -175,6 +194,7 @@ export class AiSdkLlmGateway extends LlmGateway {
       if (next.nudgesLeft <= 0 || next.roundsLeft <= 0) {
         throw new LlmReplyMissingError(run.model.id);
       }
+      this.metrics.replyNudge(run.model.id);
       return this.replyToolAttempt(request, run, {
         ...withMessage(next, replyNudgeMessage()),
         nudgesLeft: next.nudgesLeft - 1,
@@ -192,9 +212,20 @@ export class AiSdkLlmGateway extends LlmGateway {
     if (next.retriesLeft <= 0 || next.roundsLeft <= 0) {
       throw new LlmOutputInvalidError(run.model.id, checked.error);
     }
+    this.metrics.outputRetry(run.model.id);
     return this.replyToolAttempt(request, run, {
       ...withMessage(next, invalidReplyMessage(replyCall.toolCallId, checked.error)),
       retriesLeft: next.retriesLeft - 1,
     });
+  }
+
+  private async report<T>(
+    request: LlmCompleteRequest<T>,
+    run: LlmModelRun,
+    usage: LanguageModelUsage,
+  ): Promise<void> {
+    await this.usage.report(
+      usageReport(request.provider, request.tags, run.model, addUsage(LLM_NO_USAGE, usage)),
+    );
   }
 }

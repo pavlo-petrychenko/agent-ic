@@ -1,0 +1,3 @@
+export const LLM_TOKENS_PER_PRICE_UNIT = 1_000_000;
+export const LLM_USD_PER_CREDIT = 0.001;
+export const LLM_UNMETERED_CREDITS = 0;

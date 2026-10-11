@@ -102,7 +102,7 @@ describe('LLM tracing', () => {
       [EnvVar.OtelSdkDisabled]: sdkDisabled,
     };
     const traces = createLlmTraceContextService(env, using, sampler);
-    return { traces, gateway: createLlmGateway(env, TIMEOUTS, traces) };
+    return { traces, gateway: createLlmGateway(env, TIMEOUTS, { traces }) };
   };
 
   const calls: readonly [string, (gateway: LlmGateway) => Promise<unknown>][] = [
