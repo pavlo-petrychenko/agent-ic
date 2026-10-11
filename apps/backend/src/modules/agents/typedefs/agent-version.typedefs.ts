@@ -5,7 +5,11 @@ import type {
   SimulatorCheckStatus,
 } from '@/modules/agents/constants/agent.constants';
 import type { agentVersions } from '@/modules/agents/db/agent-versions.table';
-import type { Agent, AgentView } from '@/modules/agents/typedefs/agent.typedefs';
+import type {
+  Agent,
+  AgentVersionSummary,
+  AgentView,
+} from '@/modules/agents/typedefs/agent.typedefs';
 
 export interface AgentVersion {
   readonly id: string;
@@ -43,6 +47,16 @@ export interface AgentVersionLabels {
 export interface PublishRequest {
   readonly authorId: string;
   readonly note?: string | null;
+}
+
+export interface StoredFlow {
+  readonly id: string;
+  readonly flow: unknown;
+}
+
+export interface AgentVersionSummaryRow extends Omit<AgentVersionSummary, 'hasUnpublishedChanges'> {
+  readonly draft: StoredFlow | null;
+  readonly live: StoredFlow | null;
 }
 
 export interface DraftChanges {

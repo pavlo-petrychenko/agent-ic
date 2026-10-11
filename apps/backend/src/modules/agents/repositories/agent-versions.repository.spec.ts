@@ -194,6 +194,36 @@ describe('AgentVersionsRepository', () => {
     await expect(read).rejects.toBeInstanceOf(StoredFlowUnreadableError);
   });
 
+  it('reports no unpublished changes when the draft is the upgraded live flow', async () => {
+    const workspaceId = ids.generate();
+    const agentId = await insertAgent(workspaceId);
+    const draftId = await insertVersion(workspaceId, agentId, AgentVersionKind.Draft);
+    const liveId = await insertVersion(
+      workspaceId,
+      agentId,
+      AgentVersionKind.Published,
+      FIRST_NUMBER,
+    );
+    const liveFlow = JSON.stringify({ ...triggerFlow(), schemaVersion: FLOW_SCHEMA_VERSION - 1 });
+    const txHost = testingModule.get<TransactionHost<AppTransactionAdapter>>(TransactionHost);
+
+    const summaries = await tenants.run(workspaceId, async () => {
+      await txHost.tx
+        .update(agentVersions)
+        .set({ flow: sql`${liveFlow}::jsonb` })
+        .where(eq(agentVersions.id, liveId));
+      await txHost.tx
+        .update(agentVersions)
+        .set({ flow: triggerFlow() })
+        .where(eq(agentVersions.id, draftId));
+      await agents.setDraftVersion(workspaceId, agentId, draftId, AGENTS_TEST_LATER);
+      await agents.setLiveVersion(workspaceId, agentId, liveId, AGENTS_TEST_LATER);
+      return repository.summarize(workspaceId, [agentId]);
+    });
+
+    expect(summaries).toMatchObject([{ agentId, hasUnpublishedChanges: false }]);
+  });
+
   it('lists the versions of one agent, newest first', async () => {
     const workspaceId = ids.generate();
     const agentId = await insertAgent(workspaceId);

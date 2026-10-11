@@ -1,4 +1,5 @@
-import { parseFlow } from '@agent-ic/flow';
+import { isDeepStrictEqual } from 'node:util';
+import { parseFlow, type FlowDocument } from '@agent-ic/flow';
 import {
   AgentVersionKind,
   AgentVersionStatus,
@@ -8,9 +9,12 @@ import { StoredFlowUnreadableError } from '@/modules/agents/errors/stored-flow-u
 import type {
   AgentVersion,
   AgentVersionLabels,
+  AgentVersionSummaryRow,
   AgentVersionView,
+  StoredFlow,
   VersionCopy,
 } from '@/modules/agents/typedefs/agent-version.typedefs';
+import type { AgentVersionSummary } from '@/modules/agents/typedefs/agent.typedefs';
 
 export const copyDraftToVersion = (draft: AgentVersion, copy: VersionCopy): AgentVersion => ({
   id: copy.id,
@@ -57,10 +61,27 @@ export const toAgentVersionView = (
   createdAt: version.createdAt,
 });
 
-export const withCurrentFlow = (version: AgentVersion): AgentVersion => {
-  const parsed = parseFlow(version.flow);
+const readStoredFlow = ({ id, flow }: StoredFlow): FlowDocument => {
+  const parsed = parseFlow(flow);
   if (!parsed.ok) {
-    throw new StoredFlowUnreadableError(version.id, parsed.failure);
+    throw new StoredFlowUnreadableError(id, parsed.failure);
   }
-  return { ...version, flow: parsed.flow };
+  return parsed.flow;
 };
+
+export const withCurrentFlow = (version: AgentVersion): AgentVersion => ({
+  ...version,
+  flow: readStoredFlow(version),
+});
+
+export const toAgentVersionSummary = ({
+  draft,
+  live,
+  ...summary
+}: AgentVersionSummaryRow): AgentVersionSummary => ({
+  ...summary,
+  hasUnpublishedChanges:
+    draft === null ||
+    live === null ||
+    !isDeepStrictEqual(readStoredFlow(draft), readStoredFlow(live)),
+});

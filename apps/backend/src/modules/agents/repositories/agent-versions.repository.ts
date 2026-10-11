@@ -10,7 +10,10 @@ import {
 } from '@/modules/agents/constants/agent.constants';
 import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { agents } from '@/modules/agents/db/agents.table';
-import { withCurrentFlow } from '@/modules/agents/helpers/agent-version.helpers';
+import {
+  toAgentVersionSummary,
+  withCurrentFlow,
+} from '@/modules/agents/helpers/agent-version.helpers';
 import type {
   AgentVersion,
   DraftChanges,
@@ -169,7 +172,7 @@ export class AgentVersionsRepository {
       )
       .groupBy(agentVersions.agentId)
       .as(AgentVersionAlias.Published);
-    return this.txHost.tx
+    const rows = await this.txHost.tx
       .select({
         agentId: agents.id,
         liveVersionNumber: live.number,
@@ -180,7 +183,8 @@ export class AgentVersionsRepository {
             Number,
           ),
         draftBaseVersionNumber: base.number,
-        hasUnpublishedChanges: sql<boolean>`${live.id} is null or ${draft.flow} is distinct from ${live.flow}`,
+        draft: { id: draft.id, flow: draft.flow },
+        live: { id: live.id, flow: live.flow },
       })
       .from(agents)
       .leftJoin(draft, eq(draft.id, agents.draftVersionId))
@@ -188,5 +192,6 @@ export class AgentVersionsRepository {
       .leftJoin(base, eq(base.id, draft.baseVersionId))
       .leftJoin(published, eq(published.agentId, agents.id))
       .where(and(eq(agents.workspaceId, workspaceId), inArray(agents.id, [...agentIds])));
+    return rows.map(toAgentVersionSummary);
   }
 }
