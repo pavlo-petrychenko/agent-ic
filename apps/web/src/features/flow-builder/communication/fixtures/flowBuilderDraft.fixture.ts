@@ -37,6 +37,9 @@ export const buildFlowBuilderDraftMock = (
         name: 'Salon assistant',
         description: null,
         draftBaseVersionNumber: 3,
+        draftNumber: 4,
+        liveVersionNumber: 3,
+        hasUnpublishedChanges: true,
       },
       agentDraft: {
         __typename: 'AgentDraft',

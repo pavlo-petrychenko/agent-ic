@@ -89,6 +89,9 @@ export interface FlowBuilderDraftResult {
   agentName: string | null;
   agentDescription: string | null;
   baseVersion: number | null;
+  draftNumber: number | null;
+  liveVersion: number | null;
+  hasUnpublishedChanges: boolean | null;
   draft: FlowDraft | null;
   loading: boolean;
   failed: boolean;

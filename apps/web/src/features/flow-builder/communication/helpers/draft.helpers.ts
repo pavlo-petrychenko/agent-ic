@@ -22,7 +22,7 @@ export const toFlowDraft = (agentDraft: FlowBuilderDraftQuery['agentDraft']): Fl
     : null;
 };
 
-const toFlowIssues = (issues: readonly unknown[]): FlowIssue[] =>
+export const toFlowIssues = (issues: readonly unknown[]): FlowIssue[] =>
   issues.flatMap((issue) => {
     const parsed = flowIssueSchema.safeParse(issue);
     return parsed.success ? [parsed.data] : [];
