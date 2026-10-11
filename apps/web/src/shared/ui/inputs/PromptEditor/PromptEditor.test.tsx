@@ -116,6 +116,29 @@ describe('PromptEditor', () => {
     await waitFor(() => expect(onChange).toHaveBeenLastCalledWith('{{channel}}'));
   });
 
+  it('turns a hand-typed variable into a chip without stray braces', async () => {
+    const onChange = vi.fn<(value: string) => void>();
+    render(<Harness onChange={onChange} />);
+
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'System prompt' }),
+      `Hi ${TYPED_OPEN}x}}`,
+    );
+
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith('Hi {{x}}'));
+    expect(screen.getByRole('textbox', { name: 'System prompt' })).toHaveTextContent('Hi {{x}}');
+  });
+
+  it('turns a pasted variable into a chip between its surrounding text', async () => {
+    const onChange = vi.fn<(value: string) => void>();
+    render(<Harness onChange={onChange} />);
+
+    await userEvent.click(screen.getByRole('textbox', { name: 'System prompt' }));
+    await userEvent.paste('a {{x}} b');
+
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith('a {{x}} b'));
+  });
+
   it('points the textbox at the active option', async () => {
     render(<Harness />);
     const editor = screen.getByRole('textbox', { name: 'System prompt' });

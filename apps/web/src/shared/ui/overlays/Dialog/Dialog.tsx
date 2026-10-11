@@ -25,6 +25,7 @@ export function Dialog({
   children = null,
 }: DialogProps) {
   const describedByOverride = description === null ? { 'aria-describedby': undefined } : {};
+  const hasBody = children !== null || error !== null;
   const hasFooter = footerLeft !== null || footerRight !== null;
 
   return (
@@ -51,14 +52,16 @@ export function Dialog({
               <IconButton icon={IconName.X} label={closeLabel} disabled={busy} />
             </DialogPrimitive.Close>
           </header>
-          <div className={styles.body}>
-            {error === null ? null : (
-              <Callout tone={CalloutTone.Err} icon={DIALOG_ERROR_ICON} className={styles.error}>
-                {error}
-              </Callout>
-            )}
-            {children}
-          </div>
+          {hasBody ? (
+            <div className={styles.body}>
+              {error === null ? null : (
+                <Callout tone={CalloutTone.Err} icon={DIALOG_ERROR_ICON} className={styles.error}>
+                  {error}
+                </Callout>
+              )}
+              {children}
+            </div>
+          ) : null}
           {hasFooter ? (
             <footer className={styles.footer}>
               <div className={styles.footerLeft}>{footerLeft}</div>

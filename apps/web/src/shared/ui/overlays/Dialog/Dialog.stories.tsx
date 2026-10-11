@@ -39,6 +39,21 @@ export const Small: Story = { args: { size: DialogSize.Sm } };
 export const Large: Story = { args: { size: DialogSize.Lg } };
 export const ExtraLarge: Story = { args: { size: DialogSize.Xl } };
 export const WithoutDescription: Story = { args: { description: null } };
+export const WithoutBody: Story = {
+  args: {
+    size: DialogSize.Sm,
+    title: 'Delete Salon assistant?',
+    description: 'The agent and its published versions are removed for good.',
+    footerLeft: null,
+    footerRight: (
+      <>
+        <Button variant={ButtonVariant.Secondary}>Cancel</Button>
+        <Button variant={ButtonVariant.Danger}>Delete agent</Button>
+      </>
+    ),
+    children: null,
+  },
+};
 export const WithoutFooter: Story = { args: { footerLeft: null, footerRight: null } };
 export const FooterRightOnly: Story = { args: { footerLeft: null } };
 export const ScrollingBody: Story = {
