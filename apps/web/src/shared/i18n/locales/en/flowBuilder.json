@@ -216,7 +216,9 @@
     "description": {
       "trigger_message": "Starts a run for every customer message",
       "router": "Checked top to bottom · first match wins",
-      "parallel": "Runs branches at the same time"
+      "parallel": "Runs branches at the same time",
+      "agent": "Runs once per customer message · never messages the customer itself",
+      "completion": "One LLM call · no tools · structured output"
     },
     "renameKey": {
       "title": "Rename the key too?",
@@ -255,6 +257,40 @@
         "ignored": "ignored"
       },
       "available": "Available in the flow"
+    },
+    "llm": {
+      "prompt": "Prompt",
+      "promptPlaceholder": "Tell the model what to do. Type {{ to insert a field.",
+      "variables": "Fields",
+      "source": {
+        "trigger": "Trigger",
+        "step": "Step",
+        "system": "System"
+      },
+      "model": "Model",
+      "platform": "Platform-provided",
+      "pickModel": "Pick a model",
+      "modelOption": "{{label}} · {{vendor}} · {{input, currency(USD)}} / {{output, currency(USD)}} per 1M tokens",
+      "vendor": {
+        "openai": "OpenAI",
+        "anthropic": "Anthropic",
+        "mistral": "Mistral",
+        "xiaomi": "Xiaomi",
+        "google": "Google",
+        "zhipu": "Zhipu",
+        "deepseek": "DeepSeek"
+      },
+      "reasoning": "Reasoning",
+      "reasoningDefault": "Default",
+      "reasoningDefaultLevel": "Default ({{level}})",
+      "level": {
+        "none": "None",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "xhigh": "Extra high",
+        "max": "Max"
+      }
     },
     "router": {
       "routes": "Routes",

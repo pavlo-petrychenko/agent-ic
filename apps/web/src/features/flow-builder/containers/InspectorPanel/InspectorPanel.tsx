@@ -3,15 +3,22 @@ import {
   MAX_ROUTER_RULES,
   NodeType,
   PortName,
+  PromptSourceKind,
   triggerVariables,
   visibleVariables,
 } from '@agent-ic/flow';
-import type { FlowNode } from '@agent-ic/flow';
+import type { AgentNode, CompletionNode, FlowNode } from '@agent-ic/flow';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useModelOptions } from '@/features/flow-builder/communication/hooks/useModelOptions';
 import { EMPTY_SELECTION } from '@/features/flow-builder/constants/flowBuilder.constants';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
-import { DESCRIBED_NODE_TYPES } from '@/features/flow-builder/constants/inspector.constants';
+import {
+  DESCRIBED_NODE_TYPES,
+  IssuePathSegment,
+  PATH_JOINER,
+} from '@/features/flow-builder/constants/inspector.constants';
+import { LLM_STEP_TYPES } from '@/features/flow-builder/constants/llmStep.constants';
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
 import { renameKey } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import { newElementId } from '@/features/flow-builder/logic/helpers/id.helpers';
@@ -28,6 +35,11 @@ import {
   updateNode,
 } from '@/features/flow-builder/logic/helpers/inspector.helpers';
 import {
+  modelsForStep,
+  selectModel,
+  updateLlmStep,
+} from '@/features/flow-builder/logic/helpers/llmStep.helpers';
+import {
   addRule,
   conditionView,
   moveRule,
@@ -39,6 +51,7 @@ import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { KeyRename } from '@/features/flow-builder/typedefs/inspector.typedefs';
 import { InlineEditField } from '@/features/flow-builder/view/InlineEditField';
+import { LlmStepInspector } from '@/features/flow-builder/view/LlmStepInspector';
 import { ParallelInspector } from '@/features/flow-builder/view/ParallelInspector';
 import { RouterInspector } from '@/features/flow-builder/view/RouterInspector';
 import { TriggerInspector } from '@/features/flow-builder/view/TriggerInspector';
@@ -60,6 +73,55 @@ export function InspectorPanel() {
     () => (node === null ? [] : visibleVariables(document, node.id)),
     [document, node],
   );
+  const models = useModelOptions(!LLM_STEP_TYPES.some((type) => type === node?.type));
+  const variableOptions = useMemo(
+    () =>
+      variables.map((variable) => {
+        const source = document.nodes.find((candidate) => candidate.id === variable.nodeId);
+        return {
+          id: variable.path,
+          label: variable.path,
+          group:
+            source === undefined ? t(`inspector.llm.source.${variable.source}`) : nodeName(source),
+        };
+      }),
+    [document, variables, t],
+  );
+
+  const llmStep = (current: AgentNode | CompletionNode) => {
+    const errors = fieldErrors(issues, current.id);
+    const { prompt, model, reasoning } = current.config;
+    const text = prompt?.kind === PromptSourceKind.Inline ? prompt.text : '';
+    return (
+      <LlmStepInspector
+        key={current.id}
+        step={{
+          prompt: text,
+          variables: variableOptions,
+          models: modelsForStep(models, current.type),
+          model: model?.model ?? null,
+          reasoning,
+          promptIssue:
+            errors.get(IssuePathSegment.Prompt) ??
+            errors.get([IssuePathSegment.Prompt, IssuePathSegment.Text].join(PATH_JOINER)) ??
+            null,
+          modelIssue: errors.get(IssuePathSegment.Model) ?? null,
+        }}
+        onPromptChange={(next) =>
+          next !== text &&
+          apply(
+            updateLlmStep(document, current.id, {
+              prompt: { kind: PromptSourceKind.Inline, text: next },
+            }),
+          )
+        }
+        onModelChange={(modelId) => apply(selectModel(document, current.id, models, modelId))}
+        onReasoningChange={(level) =>
+          apply(updateLlmStep(document, current.id, { reasoning: level }))
+        }
+      />
+    );
+  };
 
   const body = (current: FlowNode) => {
     switch (current.type) {
@@ -71,6 +133,9 @@ export function InspectorPanel() {
             )}
           />
         );
+      case NodeType.Agent:
+      case NodeType.Completion:
+        return llmStep(current);
       case NodeType.Parallel:
         return (
           <ParallelInspector

@@ -222,7 +222,9 @@
     "description": {
       "trigger_message": "Запускає сценарій на кожне повідомлення клієнта",
       "router": "Перевіряється згори донизу · спрацьовує перший збіг",
-      "parallel": "Запускає гілки одночасно"
+      "parallel": "Запускає гілки одночасно",
+      "agent": "Запускається на кожне повідомлення клієнта · сам клієнту не пише",
+      "completion": "Один виклик LLM · без інструментів · структурована відповідь"
     },
     "renameKey": {
       "title": "Перейменувати й ключ?",
@@ -261,6 +263,40 @@
         "ignored": "ігноруються"
       },
       "available": "Доступно в сценарії"
+    },
+    "llm": {
+      "prompt": "Промпт",
+      "promptPlaceholder": "Опишіть, що має зробити модель. Введіть {{, щоб вставити поле.",
+      "variables": "Поля",
+      "source": {
+        "trigger": "Тригер",
+        "step": "Крок",
+        "system": "Система"
+      },
+      "model": "Модель",
+      "platform": "Від платформи",
+      "pickModel": "Виберіть модель",
+      "modelOption": "{{label}} · {{vendor}} · {{input, currency(USD)}} / {{output, currency(USD)}} за 1M токенів",
+      "vendor": {
+        "openai": "OpenAI",
+        "anthropic": "Anthropic",
+        "mistral": "Mistral",
+        "xiaomi": "Xiaomi",
+        "google": "Google",
+        "zhipu": "Zhipu",
+        "deepseek": "DeepSeek"
+      },
+      "reasoning": "Міркування",
+      "reasoningDefault": "Типово",
+      "reasoningDefaultLevel": "Типово ({{level}})",
+      "level": {
+        "none": "Без міркувань",
+        "low": "Низьке",
+        "medium": "Середнє",
+        "high": "Високе",
+        "xhigh": "Дуже високе",
+        "max": "Максимальне"
+      }
     },
     "router": {
       "routes": "Маршрути",
