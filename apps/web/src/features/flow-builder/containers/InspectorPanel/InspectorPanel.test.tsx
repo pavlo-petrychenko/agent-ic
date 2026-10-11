@@ -21,6 +21,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   FLASH_MODEL,
   LUNA_MODEL,
+  modelOptionsFailedMock,
   modelOptionsMock,
 } from '@/features/flow-builder/communication/fixtures/modelOptions.fixture';
 import { NODE_TEMPLATES } from '@/features/flow-builder/constants/nodeTemplate.constants';
@@ -71,6 +72,7 @@ const AI_FLOW: FlowDocument = {
     { id: 'e2', source: 'guard', sourcePort: PortName.Next, target: 'agent' },
     { id: 'e3', source: 'agent', sourcePort: PortName.Next, target: 'route' },
     { id: 'e4', source: 'route', sourcePort: 'refund', target: 'tagger' },
+    { id: 'e5', source: 'tagger', sourcePort: PortName.Error, target: 'reply' },
   ],
 };
 
@@ -84,10 +86,10 @@ const withAgent = (config: Partial<AgentNode['config']>): FlowDocument => ({
 });
 
 const store = useFlowBuilderStore.getState;
-const open = (nodeId: string, document: FlowDocument = FLOW) => {
+const open = (nodeId: string, document: FlowDocument = FLOW, mocks = [modelOptionsMock()]) => {
   store().load({ document, revision: 1, issues: validateFlow(document) });
   store().select({ nodeIds: [nodeId], edgeIds: [] });
-  return renderWithProviders(<InspectorPanel />, { mocks: [modelOptionsMock()] });
+  return renderWithProviders(<InspectorPanel />, { mocks });
 };
 const node = (id: string) => store().document.nodes.find((candidate) => candidate.id === id);
 
@@ -362,6 +364,42 @@ describe('InspectorPanel', () => {
     expect(screen.getByRole('button', { name: 'Add field' })).toBeEnabled();
   });
 
+  it('records a typed prompt as one undo step', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW);
+    const before = node('agent');
+
+    await user.type(screen.getByRole('textbox', { name: 'Prompt' }), 'Greet the customer');
+    await user.tab();
+
+    expect(node('agent')).toMatchObject({ config: { prompt: { text: 'Greet the customer' } } });
+    act(() => store().undo());
+    expect(node('agent')).toEqual(before);
+  });
+
+  it('checks a typed prompt and marks it unsaved before the field loses focus', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW);
+    expect(screen.getByText('Write a prompt')).toBeVisible();
+
+    await user.type(screen.getByRole('textbox', { name: 'Prompt' }), 'Hi');
+
+    expect(screen.queryByText('Write a prompt')).not.toBeInTheDocument();
+    expect(store().saveState).toBe(SaveState.Pending);
+  });
+
+  it('explains a failed model list and loads it again', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW, [modelOptionsFailedMock(), modelOptionsMock()]);
+
+    expect(await screen.findByText('The models couldn’t be loaded.')).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Try again' }));
+
+    const model = screen.getByRole('combobox', { name: 'Model' });
+    await waitFor(() => expect(within(model).getAllByRole('option')).toHaveLength(3));
+    expect(screen.queryByText('The models couldn’t be loaded.')).not.toBeInTheDocument();
+  });
+
   it('picks a model, then a reasoning level that model offers', async () => {
     const user = userEvent.setup();
     open('agent', AI_FLOW);
@@ -388,5 +426,31 @@ describe('InspectorPanel', () => {
       config: { model: { model: FLASH_MODEL.id }, reasoning: null },
     });
     expect(screen.queryByRole('combobox', { name: 'Reasoning' })).not.toBeInTheDocument();
+  });
+
+  it('shows the failure path and changes the retries', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW);
+
+    expect(screen.getByText('The run fails')).toBeVisible();
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Retries' }), '0');
+
+    expect(node('agent')).toMatchObject({ config: { retries: 0 } });
+  });
+
+  it('turns a guard into an observer and drops its outgoing connections', async () => {
+    const user = userEvent.setup();
+    open('tagger', AI_FLOW);
+
+    const model = screen.getByRole('combobox', { name: 'Model' });
+    await waitFor(() => expect(within(model).getAllByRole('option')).toHaveLength(2));
+    await user.click(screen.getByRole('switch', { name: 'Include the current message' }));
+    await user.click(screen.getByRole('radio', { name: 'Observer' }));
+
+    expect(node('tagger')).toMatchObject({
+      config: { role: CompletionRole.Observer, input: { includeCurrentMessage: false } },
+    });
+    expect(store().document.edges.map((edge) => edge.id)).not.toContain('e5');
+    expect(screen.getByRole('button', { name: 'Remove result' })).toBeDisabled();
   });
 });

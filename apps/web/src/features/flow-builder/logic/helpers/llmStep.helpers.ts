@@ -1,6 +1,13 @@
-import { ModelProviderKind, NodeType, OutputFieldType, nodeOutputFields } from '@agent-ic/flow';
-import type { FlowDocument, ModelRef, OutputField } from '@agent-ic/flow';
 import {
+  ModelProviderKind,
+  NodeType,
+  OutputFieldType,
+  nodeOutputFields,
+  nodePorts,
+} from '@agent-ic/flow';
+import type { CompletionRole, FlowDocument, ModelRef, OutputField } from '@agent-ic/flow';
+import {
+  CHOOSABLE_MODEL_SOURCE,
   NEW_ENUM_VALUE,
   NEW_OUTPUT_FIELD_PREFIX,
   NEW_OUTPUT_FIELD_SEPARATOR,
@@ -28,11 +35,46 @@ export const updateLlmStep = (
       : node;
   });
 
+export const setRetries = (document: FlowDocument, nodeId: string, retries: number): FlowDocument =>
+  updateNode(document, nodeId, (node) =>
+    node.type === NodeType.Agent ? { ...node, config: { ...node.config, retries } } : node,
+  );
+
+export const setIncludeCurrentMessage = (
+  document: FlowDocument,
+  nodeId: string,
+  includeCurrentMessage: boolean,
+): FlowDocument =>
+  updateNode(document, nodeId, (node) =>
+    node.type === NodeType.Completion
+      ? { ...node, config: { ...node.config, input: { includeCurrentMessage } } }
+      : node,
+  );
+
+export const setCompletionRole = (
+  document: FlowDocument,
+  nodeId: string,
+  role: CompletionRole,
+): FlowDocument => {
+  const next = updateNode(document, nodeId, (node) =>
+    node.type === NodeType.Completion ? { ...node, config: { ...node.config, role } } : node,
+  );
+  const node = next.nodes.find((candidate) => candidate.id === nodeId);
+  const ports = node === undefined ? [] : nodePorts(node);
+  return {
+    ...next,
+    edges: next.edges.filter((edge) => edge.source !== nodeId || ports.includes(edge.sourcePort)),
+  };
+};
+
 export const modelsForStep = (
   models: readonly ModelChoice[],
   type: LlmStepType,
 ): readonly ModelChoice[] =>
-  models.filter((model) => model.purposes.includes(STEP_MODEL_PURPOSE[type]));
+  models.filter(
+    (model) =>
+      model.source === CHOOSABLE_MODEL_SOURCE && model.purposes.includes(STEP_MODEL_PURPOSE[type]),
+  );
 
 export const selectModel = (
   document: FlowDocument,

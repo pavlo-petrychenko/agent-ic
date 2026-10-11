@@ -3,6 +3,7 @@ query ModelOptions {
     id
     label
     vendor
+    source
     purposes
     reasoningLevels
     defaultReasoningLevel

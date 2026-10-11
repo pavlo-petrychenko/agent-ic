@@ -1,8 +1,9 @@
 import { ReasoningLevel } from '@agent-ic/contracts';
-import { NodeType } from '@agent-ic/flow';
+import { CompletionRole, NodeType } from '@agent-ic/flow';
 import type { LlmStepType } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 import {
   ModelPurpose,
+  ModelSource,
   ReasoningLevel as ApiReasoningLevel,
 } from '@/shared/api/generated/schema.generated';
 
@@ -22,7 +23,14 @@ export const STEP_MODEL_PURPOSE: Readonly<Record<LlmStepType, ModelPurpose>> = {
   [NodeType.Completion]: ModelPurpose.Light,
 };
 
+export const CHOOSABLE_MODEL_SOURCE = ModelSource.Platform;
+
 export const UNSET_OPTION = '';
 export const NEW_OUTPUT_FIELD_PREFIX = 'field';
 export const NEW_OUTPUT_FIELD_SEPARATOR = '_';
 export const NEW_ENUM_VALUE = 'option_1';
+export const COMPLETION_ROLES: readonly CompletionRole[] = [
+  CompletionRole.Guard,
+  CompletionRole.Observer,
+];
+export const CONVERSATION_ROW_ID = 'history';

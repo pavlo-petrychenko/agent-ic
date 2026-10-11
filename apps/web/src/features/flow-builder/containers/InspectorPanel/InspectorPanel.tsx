@@ -10,7 +10,7 @@ import {
   visibleVariables,
 } from '@agent-ic/flow';
 import type { AgentNode, CompletionNode, FlowNode } from '@agent-ic/flow';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModelOptions } from '@/features/flow-builder/communication/hooks/useModelOptions';
 import { EMPTY_SELECTION } from '@/features/flow-builder/constants/flowBuilder.constants';
@@ -41,6 +41,9 @@ import {
   modelsForStep,
   removeOutputField,
   selectModel,
+  setCompletionRole,
+  setIncludeCurrentMessage,
+  setRetries,
   updateLlmStep,
   updateOutputField,
 } from '@/features/flow-builder/logic/helpers/llmStep.helpers';
@@ -55,6 +58,7 @@ import {
 import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { KeyRename } from '@/features/flow-builder/typedefs/inspector.typedefs';
+import type { LlmStepExtra } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 import { InlineEditField } from '@/features/flow-builder/view/InlineEditField';
 import { LlmStepInspector } from '@/features/flow-builder/view/LlmStepInspector';
 import { ParallelInspector } from '@/features/flow-builder/view/ParallelInspector';
@@ -69,6 +73,7 @@ export function InspectorPanel() {
   const document = useFlowBuilderStore((state) => state.document);
   const selection = useFlowBuilderStore((state) => state.selection);
   const apply = useFlowBuilderStore((state) => state.apply);
+  const previewEdit = useFlowBuilderStore((state) => state.previewEdit);
   const select = useFlowBuilderStore((state) => state.select);
   const issues = useFlowIssues();
   const [keyRename, setKeyRename] = useState<KeyRename | null>(null);
@@ -78,7 +83,7 @@ export function InspectorPanel() {
     () => (node === null ? [] : visibleVariables(document, node.id)),
     [document, node],
   );
-  const models = useModelOptions(!LLM_STEP_TYPES.some((type) => type === node?.type));
+  const modelOptions = useModelOptions(!LLM_STEP_TYPES.some((type) => type === node?.type));
   const variableOptions = useMemo(
     () =>
       variables.map((variable) => {
@@ -93,7 +98,9 @@ export function InspectorPanel() {
     [document, variables, t],
   );
 
-  const llmStep = (current: AgentNode | CompletionNode) => {
+  const commitPreview = useCallback(() => apply(useFlowBuilderStore.getState().document), [apply]);
+
+  const llmStep = (current: AgentNode | CompletionNode, extra: LlmStepExtra) => {
     const errors = fieldErrors(issues, current.id);
     const { prompt, model, reasoning, output } = current.config;
     const text = prompt?.kind === PromptSourceKind.Inline ? prompt.text : '';
@@ -104,7 +111,9 @@ export function InspectorPanel() {
         step={{
           prompt: text,
           variables: variableOptions,
-          models: modelsForStep(models, current.type),
+          models: modelsForStep(modelOptions.models, current.type),
+          modelsLoading: modelOptions.loading,
+          modelsFailed: modelOptions.error !== null,
           model: model?.model ?? null,
           reasoning,
           builtIn,
@@ -123,15 +132,20 @@ export function InspectorPanel() {
           canAddField: output.length < MAX_OUTPUT_FIELDS,
           canRemoveField: current.type === NodeType.Agent || output.length > 1,
         }}
+        extra={extra}
         onPromptChange={(next) =>
           next !== text &&
-          apply(
+          previewEdit(
             updateLlmStep(document, current.id, {
               prompt: { kind: PromptSourceKind.Inline, text: next },
             }),
           )
         }
-        onModelChange={(modelId) => apply(selectModel(document, current.id, models, modelId))}
+        onPromptCommit={commitPreview}
+        onModelChange={(modelId) =>
+          apply(selectModel(document, current.id, modelOptions.models, modelId))
+        }
+        onRetryModels={modelOptions.retry}
         onReasoningChange={(level) =>
           apply(updateLlmStep(document, current.id, { reasoning: level }))
         }
@@ -155,8 +169,21 @@ export function InspectorPanel() {
           />
         );
       case NodeType.Agent:
+        return llmStep(current, {
+          type: NodeType.Agent,
+          retries: current.config.retries,
+          onFailure: portTargets(document, current.id, PortName.Error),
+          onRetriesChange: (retries) => apply(setRetries(document, current.id, retries)),
+        });
       case NodeType.Completion:
-        return llmStep(current);
+        return llmStep(current, {
+          type: NodeType.Completion,
+          role: current.config.role,
+          includeCurrentMessage: current.config.input.includeCurrentMessage,
+          onRoleChange: (role) => apply(setCompletionRole(document, current.id, role)),
+          onIncludeCurrentMessageChange: (include) =>
+            apply(setIncludeCurrentMessage(document, current.id, include)),
+        });
       case NodeType.Parallel:
         return (
           <ParallelInspector

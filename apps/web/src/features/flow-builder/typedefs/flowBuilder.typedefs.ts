@@ -68,6 +68,7 @@ export interface FlowBuilderActions {
   load: (draft: FlowDraft) => void;
   apply: (document: FlowDocument) => void;
   preview: (document: FlowDocument) => void;
+  previewEdit: (document: FlowDocument) => void;
   undo: () => void;
   redo: () => void;
   select: (selection: FlowSelection) => void;
