@@ -69,10 +69,17 @@ export const roleModule = (
 };
 
 export const defineModule = (definition: ModuleDefinition): RoleModuleClass => {
+  const modulesByRole = new Map<Role, DynamicModule>();
   @Module({})
   class DefinedModule {
     static forRole(this: Type<unknown>, role: Role): DynamicModule {
-      return roleModule(this, definition, role);
+      const existing = modulesByRole.get(role);
+      if (existing !== undefined) {
+        return existing;
+      }
+      const created = roleModule(this, definition, role);
+      modulesByRole.set(role, created);
+      return created;
     }
   }
   return DefinedModule;
