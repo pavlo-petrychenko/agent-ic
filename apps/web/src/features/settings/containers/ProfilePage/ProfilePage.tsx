@@ -6,8 +6,7 @@ import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.c
 import type { ProfilePageProps } from '@/features/settings/containers/ProfilePage/ProfilePage.typedefs';
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
 import { ProfileDetailsCard } from '@/features/settings/view/ProfileDetailsCard';
-import { useUpdateMyLocale } from '@/features/workspace';
-import { useWorkspaceShell } from '@/features/workspace/communication/hooks/useWorkspaceShell';
+import { useUpdateMyLocale, useWorkspaceShell } from '@/features/workspace';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { Namespace } from '@/shared/i18n/constants/namespace.constants';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
