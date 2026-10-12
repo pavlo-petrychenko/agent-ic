@@ -1,12 +1,4 @@
-import {
-  branchNodes,
-  branchStarts,
-  buildFlowGraph,
-  FlowIssueCode,
-  isBackgroundBranch,
-  validateFlow,
-} from '@agent-ic/flow';
-import type { FlowDocument, FlowIssue } from '@agent-ic/flow';
+import { validateFlow } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { FLOW_EXAMPLES } from '@/modules/agents/constants/flow-examples.constants';
 import { buildExampleFlow } from '@/modules/agents/helpers/flow-example-nodes.helpers';
@@ -19,30 +11,13 @@ const sequentialIds = (): (() => string) => {
   };
 };
 
-const backgroundNodeIds = (flow: FlowDocument): ReadonlySet<string> => {
-  const graph = buildFlowGraph(flow);
-  return new Set(
-    flow.nodes.flatMap((node) =>
-      branchStarts(graph, node.id)
-        .filter((start) => isBackgroundBranch(graph, start))
-        .flatMap((start) => [...branchNodes(graph, start)]),
-    ),
-  );
-};
-
-const isAllowedIssue = (issue: FlowIssue, background: ReadonlySet<string>): boolean =>
-  issue.code === FlowIssueCode.NoErrorPath && issue.nodeId !== null && background.has(issue.nodeId);
-
 describe('FLOW_EXAMPLES', () => {
   it.each(FLOW_EXAMPLES.map((example) => [example.name, example] as const))(
-    '%s validates with no issues but a missing error path in a background branch',
+    '%s validates with no issues',
     (_name, example) => {
       const flow = buildExampleFlow(example, sequentialIds());
-      const background = backgroundNodeIds(flow);
 
-      const issues = validateFlow(flow);
-
-      expect(issues.filter((issue) => !isAllowedIssue(issue, background))).toEqual([]);
+      expect(validateFlow(flow)).toEqual([]);
     },
   );
 
