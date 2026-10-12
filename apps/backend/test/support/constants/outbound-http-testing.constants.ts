@@ -33,5 +33,6 @@ export enum OutboundTestPath {
   Ok = '/ok',
   Unavailable = '/unavailable',
   Flaky = '/flaky',
+  Held = '/held',
 }
 export const PROBE_SERVER_ADDRESS = 'probe server address';

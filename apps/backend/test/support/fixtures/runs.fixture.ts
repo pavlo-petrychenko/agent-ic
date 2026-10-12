@@ -1,6 +1,9 @@
 import {
   ConditionOperator,
   DEFAULT_RETRIEVAL_MODE,
+  FIRST_SCHEMA_VERSION,
+  FlowV1CompletionRole,
+  FlowV1WaitFor,
   EscalationMode,
   FailureMode,
   HttpMethod,
@@ -345,6 +348,21 @@ export const triggerOnlyFlow = (): FlowDocument => {
     edges: [],
   };
 };
+
+export const flowV1Json = (flow: FlowDocument): unknown => ({
+  schemaVersion: FIRST_SCHEMA_VERSION,
+  nodes: flow.nodes.map((node) => {
+    switch (node.type) {
+      case NodeType.Completion:
+        return { ...node, config: { ...node.config, role: FlowV1CompletionRole.Observer } };
+      case NodeType.Parallel:
+        return { ...node, config: { waitFor: FlowV1WaitFor.Guards } };
+      default:
+        return node;
+    }
+  }),
+  edges: flow.edges.map(({ background: _background, ...edge }) => edge),
+});
 
 export const stepFlow = (nodes: readonly FlowNode[], edges: readonly FlowEdge[]): FlowDocument => {
   const trigger = triggerOnlyFlow();
