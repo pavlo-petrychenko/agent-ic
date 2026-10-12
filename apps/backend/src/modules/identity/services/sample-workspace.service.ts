@@ -54,11 +54,14 @@ export class SampleWorkspaceService {
     const existing = memberships.find(
       (membership) => membership.name === FLOW_EXAMPLES_WORKSPACE_NAME,
     );
-    if (existing !== undefined) {
-      return { workspaceId: existing.workspaceId, created: false };
-    }
+    const workspaceId =
+      existing?.workspaceId ?? (await this.createWorkspace(ownerId, FLOW_EXAMPLES_WORKSPACE_NAME));
+    await this.ensureOperator(workspaceId);
+    return { workspaceId, created: existing === undefined };
+  }
+
+  private async ensureOperator(workspaceId: string): Promise<void> {
     const operatorId = await this.ensureUser(SAMPLE_OPERATOR_EMAIL, SAMPLE_OPERATOR_NAME);
-    const workspaceId = await this.createWorkspace(ownerId, FLOW_EXAMPLES_WORKSPACE_NAME);
     await this.tenantTransactions.run(workspaceId, () =>
       this.memberships.insertIfAbsent({
         id: this.ids.generate(),
@@ -69,7 +72,6 @@ export class SampleWorkspaceService {
         createdAt: this.clock.now(),
       }),
     );
-    return { workspaceId, created: true };
   }
 
   private async ensureUser(email: string, name: string): Promise<string> {

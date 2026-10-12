@@ -2,6 +2,7 @@ import { WorkspaceRole } from '@agent-ic/contracts';
 import { hasBlockingIssues, validateFlow } from '@agent-ic/flow';
 import type { INestApplicationContext } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '@/app/app.module';
 import { SEED_ROLE_SELECTION } from '@/app/constants/seed.constants';
@@ -15,9 +16,11 @@ import {
   SAMPLE_OPERATOR_EMAIL,
   SAMPLE_USER_EMAIL,
 } from '@/modules/identity/constants/sample-workspace.constants';
+import { memberships } from '@/modules/identity/db/memberships.table';
 import { MembershipDirectoryRepository } from '@/modules/identity/repositories/membership-directory.repository';
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
+import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { TracingService } from '@/platform/observability/services/tracing.service';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
@@ -37,6 +40,15 @@ const readExamples = (app: INestApplicationContext, workspaceId: string) =>
     }
     return { agents, live };
   });
+
+const operatorRole = async (app: INestApplicationContext, workspaceId: string) => {
+  const operator = await app.get(UsersRepository).findByEmail(SAMPLE_OPERATOR_EMAIL);
+  return app
+    .get(TenantTransactionService)
+    .run(workspaceId, () =>
+      app.get(MembershipsRepository).findRole(workspaceId, operator?.id ?? ''),
+    );
+};
 
 const examplesWorkspaces = async (app: INestApplicationContext, userId: string) => {
   const memberships = await app.get(MembershipDirectoryRepository).listForUser(userId);
@@ -129,5 +141,24 @@ describe('seedSampleData', () => {
     expect(stored.agents).toHaveLength(1);
     expect(stored.published).toHaveLength(1);
     expect(stored.published[0]?.number).toBe(FIRST_VERSION_NUMBER);
+  });
+
+  it('adds the operator back when the examples workspace already exists without one', async () => {
+    const { examplesWorkspaceId } = await seedSampleData(app);
+    const operator = await app.get(UsersRepository).findByEmail(SAMPLE_OPERATOR_EMAIL);
+    await app
+      .get(SystemDatabaseService)
+      .db.delete(memberships)
+      .where(
+        and(
+          eq(memberships.workspaceId, examplesWorkspaceId),
+          eq(memberships.userId, operator?.id ?? ''),
+        ),
+      );
+
+    const again = await seedSampleData(app);
+
+    expect(again.examplesCreated).toBe(false);
+    expect(await operatorRole(app, examplesWorkspaceId)).toBe(WorkspaceRole.Operator);
   });
 });
