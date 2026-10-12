@@ -2,7 +2,6 @@ $width-default: 1.5px;
 $width-active: 2px;
 $width-selected: 2.5px;
 $width-hit: 12px;
-$dash: 5 4;
 $delete-size: 24px;
 $story-width: 360px;
 $story-height: 200px;
@@ -54,7 +53,7 @@ $story-height: 200px;
 }
 
 .dashed .line {
-  stroke-dasharray: $dash;
+  stroke-dasharray: var(--edge-dasharray);
 }
 
 .drawing {
@@ -63,7 +62,7 @@ $story-height: 200px;
 
   .line {
     stroke-width: $width-active;
-    stroke-dasharray: $dash;
+    stroke-dasharray: var(--edge-dasharray);
   }
 }
 

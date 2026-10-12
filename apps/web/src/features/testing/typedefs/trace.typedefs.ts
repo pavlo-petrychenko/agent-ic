@@ -54,6 +54,7 @@ export interface TraceEdge {
   id: string;
   source: TracePosition;
   target: TracePosition;
+  dashed: boolean;
 }
 
 export interface TraceCell extends TraceSlot {
@@ -69,6 +70,7 @@ export interface PlacedTraceCell extends TraceCell, TracePoint {}
 export interface TracePath {
   id: string;
   d: string;
+  dashed: boolean;
 }
 
 export interface TraceDrawing {

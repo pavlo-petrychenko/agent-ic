@@ -3,7 +3,9 @@ import {
   FLOW_SCHEMA_VERSION,
   MessageContentKind,
   NodeType,
+  PortName,
   QuickRepliesKind,
+  WaitFor,
 } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
@@ -106,13 +108,37 @@ describe('traceEdges', () => {
     [node('a', TRACE_TRIGGER), node('b'), node('c'), node('d')],
     [edge('a', 'b'), edge('b', 'c'), edge('b', 'd'), edge('b', 'gone')],
   );
-  const edges = traceEdges(flow.edges, layoutTrace(flow));
+  const edges = traceEdges(flow, layoutTrace(flow));
 
   it('connects every placed source to every placed target, branches included', () => {
     expect(edges.map(({ id, source, target }) => [id, source.column, target.column])).toEqual([
       ['a-b', 0, 0],
       ['b-c', 0, 0],
       ['b-d', 0, 1],
+    ]);
+  });
+
+  it('marks only a background branch of a parallel node as dashed', () => {
+    const parallel: FlowNode = {
+      ...TRACE_REPLY,
+      type: NodeType.Parallel,
+      config: { waitFor: WaitFor.All },
+    };
+    const branches = flowOf(
+      [node('a', TRACE_TRIGGER), node('p', parallel), node('b'), node('c')],
+      [
+        edge('a', 'p'),
+        { ...edge('p', 'b'), sourcePort: PortName.Branches, background: true },
+        { ...edge('p', 'c'), sourcePort: PortName.Branches },
+      ],
+    );
+
+    expect(
+      traceEdges(branches, layoutTrace(branches)).map(({ id, dashed }) => [id, dashed]),
+    ).toEqual([
+      ['a-p', false],
+      ['p-b', true],
+      ['p-c', false],
     ]);
   });
 });
@@ -130,7 +156,7 @@ describe('drawTrace', () => {
     selectable: true,
     selected: false,
   }));
-  const drawing = drawTrace(cells, traceEdges(flow.edges, cells));
+  const drawing = drawTrace(cells, traceEdges(flow, cells));
 
   it('draws a straight line down a column and a curve into another column', () => {
     expect(drawing.paths.map((path) => path.d)).toEqual([

@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
 import { TRACE_NODE } from '@/features/testing/constants/trace.constants';
@@ -19,7 +20,7 @@ export function RunTrace({ drawing, onSelectNode }: RunTraceProps) {
         aria-hidden="true"
       >
         {paths.map((path) => (
-          <path key={path.id} d={path.d} />
+          <path key={path.id} d={path.d} className={clsx(path.dashed && styles.dashed)} />
         ))}
       </svg>
       <ol className={styles.nodes} aria-label={t('trace.steps')}>

@@ -10,6 +10,10 @@
   stroke-width: var(--border-width-dash);
 }
 
+.dashed {
+  stroke-dasharray: var(--edge-dasharray);
+}
+
 .nodes {
   margin: 0;
   padding: 0;

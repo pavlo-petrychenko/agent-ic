@@ -1,4 +1,4 @@
-import { isTriggerNode } from '@agent-ic/flow';
+import { buildFlowGraph, isBackgroundBranch, isTriggerNode } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import {
   FOCUS_STEP_STATUSES,
@@ -60,15 +60,15 @@ export const layoutTrace = (flow: FlowDocument): TraceSlot[] => {
     .toSorted((a, b) => a.row - b.row || a.column - b.column);
 };
 
-export const traceEdges = (
-  edges: FlowDocument['edges'],
-  slots: readonly TraceSlot[],
-): TraceEdge[] => {
+export const traceEdges = (flow: FlowDocument, slots: readonly TraceSlot[]): TraceEdge[] => {
+  const graph = buildFlowGraph(flow);
   const byId = new Map(slots.map((slot) => [slot.id, slot]));
-  return edges.flatMap((edge) => {
+  return flow.edges.flatMap((edge) => {
     const source = byId.get(edge.source);
     const target = byId.get(edge.target);
-    return source === undefined || target === undefined ? [] : [{ id: edge.id, source, target }];
+    return source === undefined || target === undefined
+      ? []
+      : [{ id: edge.id, source, target, dashed: isBackgroundBranch(graph, edge) }];
   });
 };
 
@@ -105,7 +105,7 @@ export const drawTrace = (
 ): TraceDrawing => ({
   size: traceSize(cells),
   nodes: cells.map((cell) => ({ ...cell, ...cellOrigin(cell) })),
-  paths: edges.map((edge) => ({ id: edge.id, d: edgePath(edge) })),
+  paths: edges.map((edge) => ({ id: edge.id, d: edgePath(edge), dashed: edge.dashed })),
 });
 
 export const nodeState = (

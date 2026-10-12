@@ -48,7 +48,7 @@ export function TracePanel({
   const { locale } = useLocale();
   const details = useTestingRun(run?.id ?? null, run?.status ?? null);
   const slots = useMemo(() => (flow === null ? [] : layoutTrace(flow)), [flow]);
-  const edges = useMemo(() => (flow === null ? [] : traceEdges(flow.edges, slots)), [flow, slots]);
+  const edges = useMemo(() => (flow === null ? [] : traceEdges(flow, slots)), [flow, slots]);
   const active = run !== null && isActiveRun(run);
   const steps = details.run?.steps ?? [];
   const inspected = steps.findLast((step) => step.nodeId === selectedNodeId) ?? null;
