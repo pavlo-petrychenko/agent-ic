@@ -20,19 +20,21 @@ import {
   sameAgentDetails,
 } from '@/features/flow-builder/logic/helpers/agentDetails.helpers';
 import { formatSavedAt } from '@/features/flow-builder/logic/helpers/autosave.helpers';
+import { isDraftUnchanged } from '@/features/flow-builder/logic/helpers/draftChange.helpers';
 import { isBlocking } from '@/features/flow-builder/logic/helpers/issue.helpers';
 import { agentsHref, workspaceHref } from '@/features/flow-builder/logic/helpers/route.helpers';
 import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { AgentDetails } from '@/features/flow-builder/typedefs/flowBuilder.typedefs';
 import { AgentDetailsPopover } from '@/features/flow-builder/view/AgentDetailsPopover';
+import { DraftBadge } from '@/features/flow-builder/view/DraftBadge';
+import { PublishButton } from '@/features/flow-builder/view/PublishButton';
 import { SaveStatus } from '@/features/flow-builder/view/SaveStatus';
 import { useActiveWorkspace } from '@/features/workspace';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
-import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { Banner, BannerTone } from '@/shared/ui/display/Banner';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { Skeleton } from '@/shared/ui/display/Skeleton';
@@ -40,7 +42,6 @@ import { IconName } from '@/shared/ui/foundations/Icon';
 import { Topbar } from '@/shared/ui/layout/Topbar';
 import { BREADCRUMB_SEPARATOR } from '@/shared/ui/navigation/Breadcrumb';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
-import { Tooltip } from '@/shared/ui/overlays/Tooltip';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
 export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPageProps) {
@@ -52,7 +53,7 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
     baseVersion,
     draftNumber,
     liveVersion,
-    hasUnpublishedChanges,
+    draftChangeCount,
     draft,
     loading,
     failed,
@@ -89,25 +90,12 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
   const load = useFlowBuilderStore((state) => state.load);
   const select = useFlowBuilderStore((state) => state.select);
   const saveState = useFlowBuilderStore((state) => state.saveState);
-  const unchanged =
-    saveState === SaveState.Idle && hasUnpublishedChanges === false && liveVersion !== null;
-  const publishBlocked =
-    unchanged && liveVersion !== null
-      ? t('publish.blocked.noChanges', { version: liveVersion })
-      : errorCount > 0
-        ? t('publish.blocked.errors', { count: errorCount })
-        : null;
-  const publishButton = (
-    <Button
-      size={ButtonSize.Sm}
-      disabled={publishBlocked !== null}
-      onClick={() => setPublishing(true)}
-    >
-      {draftNumber === null
-        ? t('publish.submitNoVersion')
-        : t('publish.submit', { version: draftNumber })}
-    </Button>
-  );
+  const unchanged = saveState === SaveState.Idle && isDraftUnchanged(draftChangeCount, liveVersion);
+  const publishBlocked = unchanged
+    ? t('publish.blocked.noChanges')
+    : errorCount > 0
+      ? t('publish.blocked.errors', { count: errorCount })
+      : null;
 
   useLayoutEffect(() => {
     if (draft !== null) {
@@ -145,11 +133,11 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
                   void saveDetails({ name: agentName, description: agentDescription }, edited)
                 }
               />
-              <Badge tone={baseVersion === null ? BadgeTone.Neutral : BadgeTone.Warn} dot>
-                {baseVersion === null
-                  ? t('header.neverPublished')
-                  : t('header.editedFrom', { version: baseVersion })}
-              </Badge>
+              <DraftBadge
+                baseVersion={baseVersion}
+                liveVersion={liveVersion}
+                unchanged={unchanged}
+              />
             </div>
           )
         }
@@ -157,16 +145,15 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
           draft === null ? null : (
             <div className="flex items-center gap-3">
               <SaveStatus saveState={saveState} onRetry={retrySave} />
-              {publishBlocked === null ? (
-                publishButton
-              ) : (
-                <Tooltip content={publishBlocked}>
-                  {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}
-                  <span tabIndex={0} className="inline-flex">
-                    {publishButton}
-                  </span>
-                </Tooltip>
-              )}
+              <PublishButton
+                label={
+                  draftNumber === null
+                    ? t('publish.submitNoVersion')
+                    : t('publish.submit', { version: draftNumber })
+                }
+                blockedReason={publishBlocked}
+                onClick={() => setPublishing(true)}
+              />
             </div>
           )
         }

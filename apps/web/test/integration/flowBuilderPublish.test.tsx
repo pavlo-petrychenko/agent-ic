@@ -55,14 +55,16 @@ describe('flow builder publish button', () => {
 
   it('is on when the draft has unpublished changes', async () => {
     expect(await publishButton(READY_FLOW, true)).toBeEnabled();
+    expect(screen.getByText('Draft · edited from v3')).toBeInTheDocument();
   });
 
   it('is off when nothing changed since the live version and says why', async () => {
     const button = await publishButton(READY_FLOW, false);
 
     expect(button).toBeDisabled();
+    expect(screen.getByText('Draft · no changes since v3')).toBeInTheDocument();
     await userEvent.hover(button);
-    expect(await screen.findByRole('tooltip')).toHaveTextContent('Nothing changed since v3');
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('No changes to publish');
   });
 
   it('is off while the flow has errors and counts them', async () => {

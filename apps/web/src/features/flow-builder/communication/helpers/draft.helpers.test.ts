@@ -27,6 +27,7 @@ describe('toSavedDraft', () => {
   it('takes the new revision and drops issues this client does not know', () => {
     const saved = toSavedDraft({
       revision: 5,
+      changeCount: 2,
       issues: [ISSUE, { ...ISSUE, code: 'FROM_THE_FUTURE' }],
     });
 

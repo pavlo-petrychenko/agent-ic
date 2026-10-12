@@ -117,6 +117,7 @@ export const toGraphqlAgentDraft = (draft: AgentDraftView): AgentDraft => ({
   version: toGraphqlAgentVersion(draft.version),
   revision: draft.revision,
   savedAt: draft.savedAt.toISOString(),
+  changeCount: draft.changeCount,
   issues: draft.issues.map(toGraphqlFlowIssue),
 });
 

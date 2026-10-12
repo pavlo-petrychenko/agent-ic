@@ -97,10 +97,14 @@ export const testingAgentsMock = (
   },
 });
 
-export const testingVersionsMock = (draftBroken = false): MockLink.MockedResponse => ({
+export const testingVersionsMock = (
+  draftBroken = false,
+  changeCount: number | null = 3,
+): MockLink.MockedResponse => ({
   request: { query: TestingVersionsDocument, variables: { agentId: TEST_AGENT_ID } },
   result: {
     data: {
+      agent: { __typename: 'Agent', id: TEST_AGENT_ID, draftChangeCount: changeCount },
       agentVersions: [
         {
           __typename: 'AgentVersion',

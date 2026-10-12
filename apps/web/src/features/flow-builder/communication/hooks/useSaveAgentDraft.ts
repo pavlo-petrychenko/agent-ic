@@ -10,10 +10,13 @@ export function useSaveAgentDraft(
   agentId: string,
 ): (document: FlowDocument, revision: number) => Promise<SavedDraft | null> {
   const [saveAgentDraft] = useMutation(SaveAgentDraftDocument, {
-    update: (cache) =>
+    update: (cache, { data }) =>
       void cache.modify({
         id: cache.identify({ __typename: AGENT_TYPENAME, id: agentId }),
-        fields: { hasUnpublishedChanges: () => true },
+        fields: {
+          hasUnpublishedChanges: () => true,
+          draftChangeCount: () => data?.saveAgentDraft.changeCount ?? null,
+        },
       }),
   });
 

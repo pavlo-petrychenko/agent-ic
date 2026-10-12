@@ -98,6 +98,7 @@ export const publishAgentMock: MockLink.MockedResponse = {
           draftNumber: 5,
           draftBaseVersionNumber: 4,
           hasUnpublishedChanges: false,
+          draftChangeCount: 0,
           versionCount: 4,
         },
         version: { __typename: 'AgentVersion', id: 'ver_4', number: 4 },

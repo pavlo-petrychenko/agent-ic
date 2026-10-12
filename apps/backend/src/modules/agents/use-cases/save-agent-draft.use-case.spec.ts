@@ -66,6 +66,7 @@ describe('SaveAgentDraftUseCase', () => {
       note: TEST_VERSION_NOTE,
     });
     expect(saved.revision).toBe(DRAFT_INITIAL_REVISION + 1);
+    expect(saved.changeCount).toBeGreaterThan(0);
     expect(hasBlockingIssues(saved.issues)).toBe(false);
     expect(draft).toMatchObject({
       id: draftId,

@@ -126,7 +126,8 @@
   },
   "header": {
     "neverPublished": "Чернетка · ще не опублікована",
-    "editedFrom": "Чернетка · змінена з v{{version}}"
+    "editedFrom": "Чернетка · змінена з v{{version}}",
+    "unchanged": "Чернетка · без змін від v{{version}}"
   },
   "autosave": {
     "saved": "Збережено",
@@ -190,7 +191,7 @@
       "errors_few": "Виправте {{count}} помилки, щоб опублікувати",
       "errors_many": "Виправте {{count}} помилок, щоб опублікувати",
       "errors_other": "Виправте {{count}} помилки, щоб опублікувати",
-      "noChanges": "Нічого не змінилося з v{{version}}"
+      "noChanges": "Немає змін для публікації"
     },
     "sign": {
       "added": "Додано",

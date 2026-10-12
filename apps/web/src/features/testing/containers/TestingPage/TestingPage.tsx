@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { isDraftUnchanged } from '@/features/flow-builder';
 import { useSimulator } from '@/features/testing/communication/hooks/useSimulator';
 import { useTestingAgents } from '@/features/testing/communication/hooks/useTestingAgents';
 import { useTestingVersions } from '@/features/testing/communication/hooks/useTestingVersions';
@@ -47,7 +48,13 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
   const versionChoice = choice.agentId === agent?.id ? choice.versionId : DRAFT_VERSION_OPTION;
   const versionId = versionChoice === DRAFT_VERSION_OPTION ? null : versionChoice;
   const versionsResult = useTestingVersions(agent?.id ?? null);
-  const { versions, draftBroken, draftFlow, loading: versionsLoading } = versionsResult;
+  const {
+    versions,
+    draftBroken,
+    draftChangeCount,
+    draftFlow,
+    loading: versionsLoading,
+  } = versionsResult;
   const blocked = versionId === null && draftBroken;
   const { locale } = useLocale();
   const [channelKind, setChannelKind] = useState(ChannelKind.Simulated);
@@ -88,10 +95,13 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
     }
   };
 
+  const draftUnchanged = isDraftUnchanged(draftChangeCount, liveNumber);
   const draftOption = {
     id: DRAFT_VERSION_OPTION,
-    label: t('picker.draft', { number: agent?.draftNumber ?? 0 }),
-    trailing: t('picker.unpublished'),
+    label: draftUnchanged
+      ? t('picker.sameAs', { number: liveNumber })
+      : t('picker.draft', { number: agent?.draftNumber ?? 0 }),
+    trailing: draftUnchanged ? null : t('picker.unpublished'),
   };
   const versionOptions = [
     draftOption,

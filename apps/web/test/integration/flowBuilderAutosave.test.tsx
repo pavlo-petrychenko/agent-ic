@@ -35,9 +35,13 @@ const builderPath = `/w/${DEMO_WORKSPACE.id}/agents/${DEMO_AGENT_ID}`;
 const shell = buildWorkspaceShellMock([DEMO_WORKSPACE]);
 const store = () => useFlowBuilderStore.getState();
 
-const openBuilder = async (mocks: readonly MockLink.MockedResponse[], flow: unknown) => {
+const openBuilder = async (
+  mocks: readonly MockLink.MockedResponse[],
+  flow: unknown,
+  unchanged = false,
+) => {
   const { history } = renderRoute(builderPath, {
-    mocks: [shell, buildFlowBuilderDraftMock(flow), ...mocks],
+    mocks: [shell, buildFlowBuilderDraftMock(flow, DRAFT_REVISION, !unchanged), ...mocks],
   });
   const canvas = await screen.findByRole('region', { name: 'Flow canvas' });
   vi.useFakeTimers();
@@ -81,6 +85,28 @@ describe('flow builder autosave', () => {
     await saveAfterDebounce();
     expect(screen.getByText('Saved')).toBeInTheDocument();
     expect(store().revision).toBe(DRAFT_REVISION + 1);
+  });
+
+  it('follows the change count the server returns after each save', async () => {
+    await openBuilder(
+      [
+        buildSaveAgentDraftMock(DRAFT_REVISION, [], 1),
+        buildSaveAgentDraftMock(DRAFT_REVISION + 1, [], 0),
+      ],
+      TRIGGER_ONLY_FLOW,
+      true,
+    );
+    expect(screen.getByText('Draft · no changes since v3')).toBeInTheDocument();
+
+    addReply();
+    await saveAfterDebounce();
+    expect(screen.getByText('Draft · edited from v3')).toBeInTheDocument();
+
+    act(() => store().undo());
+    await saveAfterDebounce();
+    expect(screen.getByText('Saved')).toBeInTheDocument();
+    expect(screen.getByText('Draft · no changes since v3')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Publish v4' })).toBeDisabled();
   });
 
   it('sends the edits made during a save when the user leaves', async () => {

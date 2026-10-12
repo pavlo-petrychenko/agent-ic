@@ -1,7 +1,14 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PublishDialog, SaveState, formatTimeAgo, useChangeTexts } from '@/features/flow-builder';
+import {
+  PublishButton,
+  PublishDialog,
+  SaveState,
+  formatTimeAgo,
+  isDraftUnchanged,
+  useChangeTexts,
+} from '@/features/flow-builder';
 import { useTestingAgents } from '@/features/testing/communication/hooks/useTestingAgents';
 import { useVersionDiff } from '@/features/testing/communication/hooks/useVersionDiff';
 import { useVersionHistory } from '@/features/testing/communication/hooks/useVersionHistory';
@@ -113,19 +120,21 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
   };
 
   const body = (current: TestingAgent, { draft, published, liveNumber }: VersionHistory) => {
-    const unchanged = liveNumber !== null && draft.changeCount === 0;
+    const unchanged = isDraftUnchanged(draft.changeCount, liveNumber);
     const selectedId = [draft, ...published].some((version) => version.id === selected)
       ? selected
       : ((published.find((version) => version.live) ?? latest)?.id ?? null);
     const ago = formatTimeAgo(draft.savedAt, now, locale);
-    const draftMeta = [
-      draft.authorName === null
-        ? t('versions.edited', { ago })
-        : t('versions.editedBy', { name: draft.authorName, ago }),
-      ...(draft.changeCount === null || draft.changeCount === 0
-        ? []
-        : [t('versions.changes', { count: draft.changeCount })]),
-    ].join(VERSION_META_SEPARATOR);
+    const draftMeta = unchanged
+      ? t('versions.unchanged', { number: liveNumber })
+      : [
+          draft.authorName === null
+            ? t('versions.edited', { ago })
+            : t('versions.editedBy', { name: draft.authorName, ago }),
+          ...(draft.changeCount === null || draft.changeCount === 0
+            ? []
+            : [t('versions.changes', { count: draft.changeCount })]),
+        ].join(VERSION_META_SEPARATOR);
 
     return (
       <div className={styles.body}>
@@ -148,13 +157,12 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
                     {t('versions.compare.action', { number: latest.number })}
                   </Button>
                 )}
-                <Button
-                  size={ButtonSize.Sm}
-                  disabled={draft.flow === null || unchanged}
+                <PublishButton
+                  label={t('versions.publish')}
+                  blockedReason={unchanged ? t('versions.publishUnchanged') : null}
+                  disabled={draft.flow === null}
                   onClick={() => setPublishing(true)}
-                >
-                  {t('versions.publish')}
-                </Button>
+                />
               </>
             }
           />

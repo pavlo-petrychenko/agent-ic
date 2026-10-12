@@ -64,6 +64,33 @@ describe('TestingPage', () => {
     expect(await screen.findByRole('option', { name: /v3/ })).toBeInTheDocument();
   });
 
+  it('names a draft with no changes after the live version', async () => {
+    const user = userEvent.setup();
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(false, 0),
+      startSimulationMock(),
+      simulationMock([], null),
+    ]);
+
+    await user.click(await screen.findByRole('button', { name: /Version\s+Same as v3/ }));
+
+    expect(screen.getByRole('option', { name: /Same as v3/ })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: /Draft v4/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps the draft name when it has changes', async () => {
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(false, 2),
+      startSimulationMock(),
+      simulationMock([], null),
+    ]);
+
+    expect(await screen.findByRole('button', { name: /Version\s+Draft v4/ })).toBeInTheDocument();
+    expect(screen.queryByText(/Same as/)).not.toBeInTheDocument();
+  });
+
   it('keeps the agent when switching to the Versions tab', async () => {
     const user = userEvent.setup();
     const history = createMemoryHistory();
