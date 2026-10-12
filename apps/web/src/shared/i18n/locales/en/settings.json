@@ -50,7 +50,6 @@
       "transfer": {
         "title": "Transfer ownership",
         "description": "Make another member the owner. You become Admin.",
-        "noAccessDescription": "You need to be an owner to transfer ownership",
         "action": "Transfer",
         "dialog": {
           "title": "Transfer ownership of {{workspace}}",

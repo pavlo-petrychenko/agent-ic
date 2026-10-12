@@ -27,17 +27,13 @@ export function DangerZonePanel({ workspaceId }: DangerZonePanelProps) {
   const leaveDescription = canLeave
     ? t('general.danger.leave.description')
     : t('general.danger.leave.noAccessDescription');
-  const transferDescription = canTransfer
-    ? t('general.danger.transfer.description')
-    : t('general.danger.transfer.noAccessDescription');
 
   const rows: readonly DangerZoneRow[] = [
-    {
+    canTransfer && {
       id: 'transfer',
       title: t('general.danger.transfer.title'),
-      description: transferDescription,
+      description: t('general.danger.transfer.description'),
       actionLabel: t('general.danger.transfer.action'),
-      disabled: !canTransfer,
       onAction: () => setTransferOpen(true),
     },
     {
