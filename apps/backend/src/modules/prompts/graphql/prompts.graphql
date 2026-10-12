@@ -13,6 +13,7 @@ extend type Mutation {
   movePromptToFolder(input: MovePromptToFolderInput!): Prompt!
   duplicatePrompt(input: DuplicatePromptInput!): Prompt!
   deletePrompt(input: DeletePromptInput!): DeletePromptPayload!
+  savePromptVersion(input: SavePromptVersionInput!): PromptDetail!
 }
 
 input CreatePromptFolderInput {
@@ -50,6 +51,12 @@ input DuplicatePromptInput {
 
 input DeletePromptInput {
   id: ID!
+}
+
+input SavePromptVersionInput {
+  id: ID!
+  text: String!
+  note: String
 }
 
 type DeletePromptFolderPayload {

@@ -14,6 +14,12 @@ export interface PromptVersion {
 
 export type NewPromptVersion = typeof promptVersions.$inferInsert;
 
+export interface SavePromptVersionInput {
+  readonly id: string;
+  readonly text: string;
+  readonly note?: string | null;
+}
+
 export interface PromptVersionAuthor {
   readonly name: string;
 }

@@ -32,6 +32,7 @@ export { can, isInvitableRole } from '@contracts/permissions/permission.helpers'
 export {
   PROMPT_FOLDER_NAME_MAX_LENGTH,
   PROMPT_NAME_MAX_LENGTH,
+  PROMPT_VERSION_NOTE_MAX_LENGTH,
 } from '@contracts/prompts/prompt.constants';
 export {
   INVITE_LINK_TTL_DAYS,
