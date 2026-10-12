@@ -213,7 +213,6 @@
       "retries": "retries",
       "knowledgeBaseIds": "knowledge bases",
       "retrievalMode": "knowledge search",
-      "role": "role",
       "input": "input",
       "method": "method",
       "url": "URL",
@@ -447,8 +446,8 @@
       "addRoute": "Add route",
       "otherwise": "Otherwise",
       "fields": "Fields you can use",
-      "observerNote_one": "The observer ({{names}}) runs in parallel and can’t be used here — its result isn’t ready when this router runs.",
-      "observerNote_other": "The observers ({{names}}) run in parallel and can’t be used here — their results aren’t ready when this router runs."
+      "backgroundNote_one": "{{names}} runs in a background branch and can’t be used here — its result isn’t ready when this router runs.",
+      "backgroundNote_other": "{{names}} run in background branches and can’t be used here — their results aren’t ready when this router runs."
     },
     "operator": {
       "eq": "==",
@@ -474,12 +473,10 @@
         "all": "All branches finish",
         "first": "The first branch finishes"
       },
-      "role": {
-        "waited": "waited for",
-        "racing": "first one wins",
-        "background": "in background"
-      },
-      "backgroundNote": "Background branches don’t hold up the reply."
+      "inBackground": "In background",
+      "inBackgroundFor": "Run {{name}} in the background",
+      "lastWaitedHint": "The reply needs to wait for at least one branch.",
+      "backgroundNote": "The reply doesn’t wait for a branch in the background, and steps after the join can’t use its results."
     },
     "send": {
       "messages": "Messages",

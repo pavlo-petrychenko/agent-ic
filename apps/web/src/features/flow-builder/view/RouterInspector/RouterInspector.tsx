@@ -15,7 +15,7 @@ export function RouterInspector({
   routes,
   fields,
   otherwise,
-  observers,
+  backgroundSteps,
   ruleError,
   conditionError,
   canAddRoute,
@@ -76,11 +76,11 @@ export function RouterInspector({
         />
       </InspectorSection>
       <FieldList title={t('inspector.router.fields')} rows={fields} />
-      {observers.length > 0 && (
+      {backgroundSteps.length > 0 && (
         <Callout>
-          {t('inspector.router.observerNote', {
-            count: observers.length,
-            names: observers.join(LIST_VALUE_JOINER),
+          {t('inspector.router.backgroundNote', {
+            count: backgroundSteps.length,
+            names: backgroundSteps.join(LIST_VALUE_JOINER),
           })}
         </Callout>
       )}

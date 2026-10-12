@@ -64,6 +64,22 @@ describe('documentToCanvas', () => {
         blocking: ISSUE,
       }),
     ]);
-    expect(canvas.edges).toEqual([EDGE]);
+    expect(canvas.edges).toEqual([{ ...EDGE, dashed: false }]);
+  });
+
+  it('draws a background branch dashed', () => {
+    const branch = {
+      id: 'b1',
+      source: 'p',
+      sourcePort: PortName.Branches,
+      target: 't',
+      background: true,
+    };
+    const canvas = documentToCanvas({ ...DOCUMENT, edges: [EDGE, branch] }, [], []);
+
+    expect(canvas.edges).toEqual([
+      { ...EDGE, dashed: false },
+      { ...branch, dashed: true },
+    ]);
   });
 });

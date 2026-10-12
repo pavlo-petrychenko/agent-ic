@@ -53,6 +53,10 @@ $story-height: 200px;
   }
 }
 
+.dashed .line {
+  stroke-dasharray: $dash;
+}
+
 .drawing {
   color: var(--color-accent);
   pointer-events: none;

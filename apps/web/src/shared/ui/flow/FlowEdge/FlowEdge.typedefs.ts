@@ -10,6 +10,7 @@ export interface FlowEdgeProps {
   selected?: boolean;
   drawing?: boolean;
   inserting?: boolean;
+  dashed?: boolean;
   onDelete?: (() => void) | null;
   deleteLabel?: string | null;
   edgeId?: string | null;

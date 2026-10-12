@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
 import { FlowCanvas } from '@/shared/ui/flow/FlowCanvas/FlowCanvas';
+import { FLOW_CANVAS_EDGE_ID_ATTRIBUTE } from '@/shared/ui/flow/FlowCanvas/FlowCanvas.constants';
 import type {
   FlowCanvasConnection,
   FlowCanvasLabels,
@@ -14,7 +15,9 @@ import { FlowNode } from '@/shared/ui/flow/FlowNode/FlowNode';
 import { TriggerNode } from '@/shared/ui/flow/TriggerNode/TriggerNode';
 import { ToastProvider } from '@/shared/ui/overlays/Toast';
 import { FLOW_NODE_SELECTOR } from '@test/support/constants/flowMeasure.constants';
+import { cssClass } from '@test/support/helpers/cssModuleClass.helpers';
 import { measureFlowNodes } from '@test/support/helpers/flowMeasure.helpers';
+import edgeStyles from '@/shared/ui/flow/FlowEdge/FlowEdge.module.scss';
 
 const OUT = 'out';
 
@@ -235,5 +238,21 @@ describe('FlowCanvas first layout', () => {
       expect(node).toHaveStyle({ transform: `translate(0px,${NODE_SIZE.height}px)` }),
     );
     expect(node).toBeVisible();
+  });
+
+  it('draws a dashed edge only where the edge asks for it', async () => {
+    const { container } = renderCanvas(
+      createProps({
+        edges: [
+          { id: 'waited', source: 'trigger', sourcePort: OUT, target: 'agent' },
+          { id: 'background', source: 'trigger', sourcePort: OUT, target: 'reply', dashed: true },
+        ],
+      }),
+    );
+    const edge = (id: string) =>
+      container.querySelector(`[${FLOW_CANVAS_EDGE_ID_ATTRIBUTE}="${id}"]`);
+
+    await waitFor(() => expect(edge('background')).toHaveClass(cssClass(edgeStyles.dashed)));
+    expect(edge('waited')).not.toHaveClass(cssClass(edgeStyles.dashed));
   });
 });

@@ -45,15 +45,16 @@ import {
 import { renameKey } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import { newElementId } from '@/features/flow-builder/logic/helpers/id.helpers';
 import {
+  backgroundStepNames,
   branchRows,
   conditionPath,
   fieldErrors,
   fieldRows,
   nodeName,
-  observerNames,
   portTargets,
   proposeKeyRename,
   rulePath,
+  setBranchBackground,
   updateNode,
 } from '@/features/flow-builder/logic/helpers/inspector.helpers';
 import {
@@ -217,7 +218,7 @@ export function InspectorPanel({ agentId }: InspectorPanelProps) {
       case NodeType.Parallel:
         return (
           <ParallelInspector
-            branches={branchRows(document, current, PortName.Branches)}
+            branches={branchRows(document, current)}
             waitFor={current.config.waitFor}
             onWaitForChange={(waitFor) =>
               apply(
@@ -227,6 +228,9 @@ export function InspectorPanel({ agentId }: InspectorPanelProps) {
                     : step,
                 ),
               )
+            }
+            onBackgroundChange={(edgeId, background) =>
+              apply(setBranchBackground(document, edgeId, background))
             }
           />
         );
@@ -241,7 +245,7 @@ export function InspectorPanel({ agentId }: InspectorPanelProps) {
             }))}
             fields={fieldRows(variables)}
             otherwise={portTargets(document, current.id, PortName.Else)}
-            observers={observerNames(document, current.id)}
+            backgroundSteps={backgroundStepNames(document, current.id)}
             ruleError={(rule, segment) => errors.get(rulePath(rule, segment)) ?? null}
             conditionError={(rule, condition, segment) =>
               errors.get(conditionPath(rule, condition, segment)) ?? null

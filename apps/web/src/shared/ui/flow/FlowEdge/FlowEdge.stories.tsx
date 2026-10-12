@@ -27,3 +27,4 @@ export const Active: Story = { args: { active: true } };
 export const Selected: Story = { args: { selected: true, onDelete: () => undefined } };
 export const Drawing: Story = { args: { path: CURVE_PATH, drawing: true } };
 export const InsertionTarget: Story = { args: { inserting: true } };
+export const Dashed: Story = { args: { dashed: true } };

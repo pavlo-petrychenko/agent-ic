@@ -19,6 +19,7 @@ export function FlowEdge({
   selected = false,
   drawing = false,
   inserting = false,
+  dashed = false,
   onDelete = null,
   deleteLabel = null,
   edgeId = null,
@@ -36,6 +37,7 @@ export function FlowEdge({
         selected && styles.selected,
         drawing && styles.drawing,
         inserting && styles.inserting,
+        dashed && styles.dashed,
         className,
       )}
     >

@@ -5,4 +5,5 @@ export interface ParallelInspectorProps {
   branches: readonly BranchRow[];
   waitFor: WaitFor;
   onWaitForChange: (waitFor: WaitFor) => void;
+  onBackgroundChange: (edgeId: string, background: boolean) => void;
 }
