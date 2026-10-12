@@ -9,6 +9,7 @@ import {
   toGraphqlPublishPreview,
 } from '@/modules/agents/helpers/agent-graphql.helpers';
 import { CompareAgentVersionsUseCase } from '@/modules/agents/use-cases/compare-agent-versions.use-case';
+import { CountAgentsUseCase } from '@/modules/agents/use-cases/count-agents.use-case';
 import { GetAgentDraftUseCase } from '@/modules/agents/use-cases/get-agent-draft.use-case';
 import { GetAgentUseCase } from '@/modules/agents/use-cases/get-agent.use-case';
 import { ListAgentVersionsUseCase } from '@/modules/agents/use-cases/list-agent-versions.use-case';
@@ -40,7 +41,13 @@ export class AgentsResolver {
     private readonly getAgentDraftUseCase: GetAgentDraftUseCase,
     private readonly compareAgentVersionsUseCase: CompareAgentVersionsUseCase,
     private readonly previewAgentPublishUseCase: PreviewAgentPublishUseCase,
+    private readonly countAgentsUseCase: CountAgentsUseCase,
   ) {}
+
+  @Query()
+  async agentCount(@GraphqlCtx() ctx: UseCaseCtx): Promise<number> {
+    return this.countAgentsUseCase.execute(ctx);
+  }
 
   @Query()
   async agents(

@@ -3,6 +3,10 @@ import type { FlowDocument } from '@agent-ic/flow';
 
 export const AGENTS_SCHEMA = 'agents';
 
+export enum AgentJobName {
+  CleanUpWorkspace = 'agents.clean-up-workspace',
+}
+
 export enum PauseMode {
   Inbox = 'inbox',
   AwayMessage = 'away_message',

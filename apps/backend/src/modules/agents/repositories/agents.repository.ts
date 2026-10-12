@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, gt, sql } from 'drizzle-orm';
+import { and, asc, count, eq, gt, sql } from 'drizzle-orm';
 import { agents } from '@/modules/agents/db/agents.table';
 import { agentNamesLockKey } from '@/modules/agents/helpers/agent-name.helpers';
 import type { Agent, NewAgent } from '@/modules/agents/typedefs/agent.typedefs';
@@ -120,5 +120,17 @@ export class AgentsRepository {
       .where(and(eq(agents.workspaceId, workspaceId), eq(agents.id, agentId)))
       .returning({ id: agents.id });
     return updated.length > 0;
+  }
+
+  async deleteByWorkspace(workspaceId: string): Promise<void> {
+    await this.txHost.tx.delete(agents).where(eq(agents.workspaceId, workspaceId));
+  }
+
+  async countByWorkspace(workspaceId: string): Promise<number> {
+    const [row] = await this.txHost.tx
+      .select({ total: count() })
+      .from(agents)
+      .where(eq(agents.workspaceId, workspaceId));
+    return row?.total ?? 0;
   }
 }

@@ -46,3 +46,12 @@ export interface TransferOwnershipInput {
   readonly membershipId: string;
   readonly password: string;
 }
+
+export interface DeleteWorkspaceInput {
+  readonly name: string;
+  readonly password: string;
+}
+
+export type WorkspaceDeletedInput = {
+  readonly workspaceId: string;
+};

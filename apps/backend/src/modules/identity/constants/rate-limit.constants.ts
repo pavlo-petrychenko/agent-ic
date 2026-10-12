@@ -10,6 +10,7 @@ const SIGN_UPS_PER_HOUR = 5;
 const CONFIRMATION_RESENDS_PER_HOUR = 3;
 const PASSWORD_RESETS_PER_HOUR = 3;
 const TRANSFER_OWNERSHIP_ATTEMPTS_PER_HOUR = 5;
+const DELETE_WORKSPACE_ATTEMPTS_PER_HOUR = 5;
 
 export const LOGIN_RATE_LIMIT = defineRateLimitPolicy({
   name: 'identity-login',
@@ -45,6 +46,12 @@ export const TRANSFER_OWNERSHIP_RATE_LIMIT = defineRateLimitPolicy({
   name: 'identity-transfer-ownership',
   capacity: TRANSFER_OWNERSHIP_ATTEMPTS_PER_HOUR,
   refillPerSecond: TRANSFER_OWNERSHIP_ATTEMPTS_PER_HOUR / SECONDS_PER_HOUR,
+});
+
+export const DELETE_WORKSPACE_RATE_LIMIT = defineRateLimitPolicy({
+  name: 'identity-delete-workspace',
+  capacity: DELETE_WORKSPACE_ATTEMPTS_PER_HOUR,
+  refillPerSecond: DELETE_WORKSPACE_ATTEMPTS_PER_HOUR / SECONDS_PER_HOUR,
 });
 
 export const UNKNOWN_CLIENT_IP = 'unknown';

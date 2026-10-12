@@ -199,4 +199,8 @@ export class ConversationsRepository {
       .orderBy(desc(conversations.createdAt))
       .limit(1);
   }
+
+  async deleteByWorkspace(workspaceId: string): Promise<void> {
+    await this.txHost.tx.delete(conversations).where(eq(conversations.workspaceId, workspaceId));
+  }
 }

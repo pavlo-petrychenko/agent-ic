@@ -75,6 +75,22 @@
           "cancel": "Cancel",
           "success": "You left workspace"
         }
+      },
+      "delete": {
+        "title": "Delete workspace",
+        "description": "Deletes agents, knowledge, chats and the Telegram bot connections",
+        "action": "Delete",
+        "dialog": {
+          "title": "Delete {{workspace}}?",
+          "description": "This can't be undone",
+          "body": "Everything in {{workspace}} is deleted for all {{membersCount}} members: {{agentsCount}} agents and their versions, knowledge bases, prompts, chats and channel connections. Telegram bots are disconnected.",
+          "notice": "Traces already sent to Langfuse stay there — delete them in Langfuse if you need to.",
+          "confirmLabel": "Type {{workspace}} to confirm",
+          "passwordLabel": "Your password",
+          "confirm": "Delete workspace",
+          "cancel": "Cancel",
+          "success": "Workspace deleted"
+        }
       }
     }
   }

@@ -42,6 +42,12 @@ describe('defineModule', () => {
     }
   });
 
+  it('returns the same role module for repeated calls', () => {
+    for (const role of roles) {
+      expect(RoleProbeModule.forRole(role)).toBe(RoleProbeModule.forRole(role));
+    }
+  });
+
   it('mounts resolvers and controllers only in the api role', () => {
     const api = RoleProbeModule.forRole(Role.Api);
 
