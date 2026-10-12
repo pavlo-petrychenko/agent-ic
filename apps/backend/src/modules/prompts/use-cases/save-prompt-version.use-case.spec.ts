@@ -114,29 +114,18 @@ describe('SavePromptVersionUseCase', () => {
   });
 
   it.each([
-    ['', ErrorReason.InvalidRequest],
-    ['   ', ErrorReason.InvalidRequest],
-    ['x'.repeat(MAX_TEMPLATE_LENGTH + 1), ErrorReason.InvalidRequest],
-  ])('rejects the text %j', async (text, reason) => {
+    ['text', { text: '' }],
+    ['text', { text: '   ' }],
+    ['text', { text: 'x'.repeat(MAX_TEMPLATE_LENGTH + 1) }],
+    ['note', { text: TEST_PROMPT_TEXT, note: 'x'.repeat(PROMPT_VERSION_NOTE_MAX_LENGTH + 1) }],
+  ])('rejects an invalid %s', async (path, input) => {
     const attempt = saveVersion.execute(promptsCtx(testingModule, ids.generate()), {
       id: publicPromptId(testingModule, ids.generate()),
-      text,
+      ...input,
     });
 
     await expect(attempt).rejects.toMatchObject({
-      fields: [{ path: 'text', reason }],
-    });
-  });
-
-  it('rejects a note that is too long', async () => {
-    const attempt = saveVersion.execute(promptsCtx(testingModule, ids.generate()), {
-      id: publicPromptId(testingModule, ids.generate()),
-      text: TEST_PROMPT_TEXT,
-      note: 'x'.repeat(PROMPT_VERSION_NOTE_MAX_LENGTH + 1),
-    });
-
-    await expect(attempt).rejects.toMatchObject({
-      fields: [{ path: 'note', reason: ErrorReason.InvalidRequest }],
+      fields: [{ path, reason: ErrorReason.InvalidRequest }],
     });
   });
 });

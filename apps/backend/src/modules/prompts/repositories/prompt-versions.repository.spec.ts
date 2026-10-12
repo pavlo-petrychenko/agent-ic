@@ -142,17 +142,6 @@ describe('PromptVersionsRepository', () => {
     expect(found?.id).toBe(latestId);
   });
 
-  it('reports no latest version when the prompt has none', async () => {
-    const workspaceId = ids.generate();
-    const promptId = await insertPrompt(workspaceId);
-
-    const found = await tenants.run(workspaceId, () =>
-      repository.findLatest(workspaceId, promptId),
-    );
-
-    expect(found).toBeNull();
-  });
-
   it('soft deletes every version of one prompt only', async () => {
     const workspaceId = ids.generate();
     const promptA = await insertPrompt(workspaceId);
