@@ -24,6 +24,7 @@ import type { VersionsPageProps } from '@/features/testing/containers/VersionsPa
 import { pickAgent } from '@/features/testing/logic/helpers/agent.helpers';
 import {
   formatVersionDate,
+  isDraftUnchanged,
   noteLines,
   previousVersion,
 } from '@/features/testing/logic/helpers/versions.helpers';
@@ -113,19 +114,21 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
   };
 
   const body = (current: TestingAgent, { draft, published, liveNumber }: VersionHistory) => {
-    const unchanged = liveNumber !== null && draft.changeCount === 0;
+    const unchanged = isDraftUnchanged(draft.changeCount, liveNumber);
     const selectedId = [draft, ...published].some((version) => version.id === selected)
       ? selected
       : ((published.find((version) => version.live) ?? latest)?.id ?? null);
     const ago = formatTimeAgo(draft.savedAt, now, locale);
-    const draftMeta = [
-      draft.authorName === null
-        ? t('versions.edited', { ago })
-        : t('versions.editedBy', { name: draft.authorName, ago }),
-      ...(draft.changeCount === null || draft.changeCount === 0
-        ? []
-        : [t('versions.changes', { count: draft.changeCount })]),
-    ].join(VERSION_META_SEPARATOR);
+    const draftMeta = unchanged
+      ? t('versions.unchanged', { number: liveNumber })
+      : [
+          draft.authorName === null
+            ? t('versions.edited', { ago })
+            : t('versions.editedBy', { name: draft.authorName, ago }),
+          ...(draft.changeCount === null || draft.changeCount === 0
+            ? []
+            : [t('versions.changes', { count: draft.changeCount })]),
+        ].join(VERSION_META_SEPARATOR);
 
     return (
       <div className={styles.body}>

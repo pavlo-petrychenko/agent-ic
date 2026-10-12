@@ -1,4 +1,8 @@
 query TestingVersions($agentId: ID!) {
+  agent(id: $agentId) {
+    id
+    draftChangeCount
+  }
   agentVersions(agentId: $agentId) {
     id
     number

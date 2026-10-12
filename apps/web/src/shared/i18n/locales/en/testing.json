@@ -13,6 +13,7 @@
     "version": "Version",
     "draft": "Draft v{{number}}",
     "published": "v{{number}}",
+    "sameAs": "Same as v{{number}}",
     "unpublished": "unpublished",
     "live": "live"
   },
@@ -137,6 +138,7 @@
     },
     "edited": "edited {{ago}}",
     "editedBy": "{{name}} · edited {{ago}}",
+    "unchanged": "No changes since v{{number}}",
     "changes_one": "{{count}} unpublished change",
     "changes_other": "{{count}} unpublished changes",
     "publishedBy": "{{name}} · published {{date}}",

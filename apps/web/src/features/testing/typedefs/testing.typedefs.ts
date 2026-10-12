@@ -23,6 +23,7 @@ export interface TestingAgentsResult {
 export interface TestingVersionsResult {
   versions: readonly TestingVersion[];
   draftBroken: boolean;
+  draftChangeCount: number | null;
   draftFlow: FlowDocument | null;
   loading: boolean;
   failed: boolean;

@@ -13,6 +13,9 @@ export const noteLines = (note: string | null): string[] =>
 export const formatVersionDate = (iso: string, locale: string): string =>
   new Intl.DateTimeFormat(locale, VERSION_DATE_FORMAT).format(new Date(iso));
 
+export const isDraftUnchanged = (changeCount: number | null, liveNumber: number | null): boolean =>
+  liveNumber !== null && changeCount === 0;
+
 export const previousVersion = (
   published: readonly PublishedVersion[],
   number: number | null,

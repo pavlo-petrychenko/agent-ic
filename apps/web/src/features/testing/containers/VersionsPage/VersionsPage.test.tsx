@@ -93,6 +93,34 @@ describe('VersionsPage', () => {
     expect(await screen.findByRole('button', { name: 'Publish' })).toBeDisabled();
   });
 
+  it('says the draft has no changes instead of when it was edited', async () => {
+    renderPage([
+      testingAgentsMock(),
+      versionHistoryMock({ changeCount: 0 }),
+      DRAFT_DIFF,
+      LIVE_DIFF,
+    ]);
+
+    const draft = await screen.findByRole('listitem', { name: 'v4' });
+    expect(within(draft).getByText('No changes since v3')).toBeInTheDocument();
+    expect(within(draft).queryByText(/edited/)).not.toBeInTheDocument();
+  });
+
+  it('keeps the edit time for a draft with changes', async () => {
+    renderPage([testingAgentsMock(), versionHistoryMock(), DRAFT_DIFF, LIVE_DIFF]);
+
+    const draft = await screen.findByRole('listitem', { name: 'v4' });
+    expect(within(draft).getByText(/edited 5 minutes ago/)).toBeInTheDocument();
+    expect(within(draft).queryByText(/No changes since/)).not.toBeInTheDocument();
+  });
+
+  it('keeps the edit time before the first publish', async () => {
+    renderPage([testingAgentsMock(), versionHistoryMock({ published: [], changeCount: 0 })]);
+
+    expect(await screen.findByText(/edited 5 minutes ago/)).toBeInTheDocument();
+    expect(screen.queryByText(/No changes since/)).not.toBeInTheDocument();
+  });
+
   it('opens the publish dialog from the draft card', async () => {
     const user = userEvent.setup();
     renderPage([testingAgentsMock(), versionHistoryMock(), DRAFT_DIFF, LIVE_DIFF]);

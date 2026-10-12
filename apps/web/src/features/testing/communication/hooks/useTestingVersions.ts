@@ -28,6 +28,7 @@ export function useTestingVersions(agentId: string | null): TestingVersionsResul
     versions,
     draftFlow,
     draftBroken: data !== undefined && hasBlockingIssues(data.agentDraft),
+    draftChangeCount: data?.agent.draftChangeCount ?? null,
     loading: agentId !== null && data === undefined && (loading || error === undefined),
     failed: !loading && error !== undefined && data === undefined,
     retry,

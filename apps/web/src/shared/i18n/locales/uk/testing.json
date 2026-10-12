@@ -13,6 +13,7 @@
     "version": "Версія",
     "draft": "Чернетка v{{number}}",
     "published": "v{{number}}",
+    "sameAs": "Те саме, що v{{number}}",
     "unpublished": "не опубліковано",
     "live": "активна"
   },
@@ -139,6 +140,7 @@
     },
     "edited": "змінено {{ago}}",
     "editedBy": "{{name}} · змінено {{ago}}",
+    "unchanged": "Без змін від v{{number}}",
     "changes_one": "{{count}} неопублікована зміна",
     "changes_few": "{{count}} неопубліковані зміни",
     "changes_many": "{{count}} неопублікованих змін",
