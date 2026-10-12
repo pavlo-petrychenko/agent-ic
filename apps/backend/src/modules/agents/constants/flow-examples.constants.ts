@@ -61,24 +61,24 @@ const intentRouter: FlowExample = {
     exampleRouter(
       'route',
       'Route by intent',
-      [0, 2],
+      [-0.5, 2],
       [
         exampleRule('booking', 'Booking', 'intent.kind', ConditionOperator.Eq, 'booking'),
         exampleRule('prices', 'Prices', 'intent.kind', ConditionOperator.Eq, 'prices'),
         exampleRule('complaint', 'Complaint', 'intent.kind', ConditionOperator.Eq, 'complaint'),
       ],
     ),
-    exampleAgent('booking_helper', 'Booking helper', [-1.5, 3], 'Help the guest book a table.'),
-    exampleSendText('prices', 'Send the price list', [-0.5, 3], PRICE_LIST),
-    exampleHandOff('hand_off', 'Hand off to the team', [0.5, 3], 'The customer needs a person.'),
-    exampleAgent('assistant', 'Answer anything else', [1.5, 3], CAFE_ASSISTANT_PROMPT),
+    exampleAgent('booking_helper', 'Booking helper', [-2, 3], 'Help the guest book a table.'),
+    exampleSendText('prices', 'Send the price list', [-1, 4], PRICE_LIST),
+    exampleHandOff('hand_off', 'Hand off to the team', [0, 6], 'The customer needs a person.'),
+    exampleAgent('assistant', 'Answer anything else', [1, 3], CAFE_ASSISTANT_PROMPT),
     exampleSendReply(
       'booking_reply',
       'Send the booking answer',
-      [-1.5, 4],
+      [-2, 5],
       'booking_helper.messages',
     ),
-    exampleSendReply('reply', 'Send the answer', [1.5, 4], 'assistant.messages'),
+    exampleSendReply('reply', 'Send the answer', [0.5, 4], 'assistant.messages'),
   ],
   edges: [
     link(START, 'intent'),
@@ -101,31 +101,26 @@ const complaintCheck: FlowExample = {
   nodes: [
     exampleTrigger([0, 0]),
     exampleParallel('together', 'Check and draft together', [0, 1]),
-    exampleCompletion('complaint', 'Is it a complaint?', [-0.5, 2], 'Is this a complaint?', [
+    exampleCompletion('complaint', 'Is it a complaint?', [-1, 2], 'Is this a complaint?', [
       exampleField('is_complaint', OutputFieldType.Boolean, 'The customer complains'),
       exampleField('reason', OutputFieldType.String, 'What went wrong', false),
     ]),
-    exampleAgent('draft', 'Draft a reply', [0.5, 2], CAFE_ASSISTANT_PROMPT),
-    exampleHandOff(
-      'check_failed',
-      'Hand off to the team',
-      [-1.5, 3],
-      'The complaint check failed.',
-    ),
-    exampleHandOff('draft_failed', 'Hand off to the team', [1.5, 3], 'The draft failed.'),
+    exampleAgent('draft', 'Draft a reply', [1, 2], CAFE_ASSISTANT_PROMPT),
+    exampleHandOff('check_failed', 'Hand off to the team', [-1, 3], 'The complaint check failed.'),
+    exampleHandOff('draft_failed', 'Hand off to the team', [1, 3], 'The draft failed.'),
     exampleRouter(
       'decide',
       'Complaint?',
-      [0, 4],
+      [0, 3],
       [exampleRule('complaint', 'Complaint', 'complaint.is_complaint', ConditionOperator.IsTrue)],
     ),
     exampleHandOff(
       'complaint_hand_off',
       'Hand the complaint over',
-      [-0.5, 5],
+      [-0.5, 4],
       'Complaint: {{complaint.reason}}',
     ),
-    exampleSendReply('reply', 'Send the draft', [0.5, 5], 'draft.messages'),
+    exampleSendReply('reply', 'Send the draft', [0.5, 4], 'draft.messages'),
   ],
   edges: [
     link(START, 'together'),
@@ -145,24 +140,19 @@ const replyAndScore: FlowExample = {
   nodes: [
     exampleTrigger([0, 0]),
     exampleParallel('together', 'Answer and score', [0, 1]),
-    exampleAgent('answer', 'Answer the question', [-0.5, 2], CAFE_ASSISTANT_PROMPT),
-    exampleHandOff(
-      'hand_off',
-      'Hand off to the team',
-      [-1.5, 3],
-      'The assistant could not answer.',
-    ),
-    exampleCompletion('scorer', 'Score the conversation', [0.5, 2], 'Rate the mood and topic.', [
+    exampleAgent('answer', 'Answer the question', [-1, 2], CAFE_ASSISTANT_PROMPT),
+    exampleHandOff('hand_off', 'Hand off to the team', [-1, 3], 'The assistant could not answer.'),
+    exampleCompletion('scorer', 'Score the conversation', [1, 2], 'Rate the mood and topic.', [
       exampleField('mood', OutputFieldType.Number, 'Mood from 1 (angry) to 5 (happy)'),
       exampleField('topic', OutputFieldType.String, 'The topic in two or three words'),
     ]),
-    exampleApiRequest('save_score', 'Save the score', [0.5, 3], {
+    exampleApiRequest('save_score', 'Save the score', [1, 3], {
       method: HttpMethod.Post,
       url: ECHO_POST_URL,
       body: '{"mood": {{scorer.mood}}, "topic": "{{scorer.topic}}"}',
       onFailure: FailureMode.Continue,
     }),
-    exampleSendReply('reply', 'Send the answer', [-0.5, 4], 'answer.messages'),
+    exampleSendReply('reply', 'Send the answer', [0, 3], 'answer.messages'),
   ],
   edges: [
     link(START, 'together'),
@@ -180,13 +170,13 @@ const lookUpThenAnswer: FlowExample = {
   nodes: [
     exampleTrigger([0, 0]),
     exampleParallel('lookups', 'Look up together', [0, 1]),
-    exampleApiRequest('bookings', 'Load bookings', [-0.5, 2], {
+    exampleApiRequest('bookings', 'Load bookings', [-1, 2], {
       method: HttpMethod.Get,
       url: `${ECHO_GET_URL}?customer={{user.name}}&list=bookings`,
       body: null,
       onFailure: FailureMode.Continue,
     }),
-    exampleApiRequest('loyalty', 'Load loyalty points', [0.5, 2], {
+    exampleApiRequest('loyalty', 'Load loyalty points', [1, 2], {
       method: HttpMethod.Get,
       url: `${ECHO_GET_URL}?customer={{user.name}}&list=loyalty`,
       body: null,
@@ -229,11 +219,11 @@ const tableBooking: FlowExample = {
     exampleRouter(
       'check',
       'Has a day?',
-      [0, 2],
+      [-0.5, 2],
       [exampleRule('no_date', 'No day yet', 'booking.date', ConditionOperator.IsEmpty)],
     ),
-    exampleSendText('ask_day', 'Ask for the day', [-0.5, 3], 'Which day would you like to come?'),
-    exampleApiRequest('save_booking', 'Book the table', [0.5, 3], {
+    exampleSendText('ask_day', 'Ask for the day', [-1.5, 3], 'Which day would you like to come?'),
+    exampleApiRequest('save_booking', 'Book the table', [-0.5, 3], {
       method: HttpMethod.Post,
       url: ECHO_POST_URL,
       body: '{"date": "{{booking.date}}", "guests": "{{booking.guests}}"}',
@@ -242,11 +232,11 @@ const tableBooking: FlowExample = {
     exampleSendText(
       'confirm',
       'Confirm the booking',
-      [0.5, 4],
+      [-0.5, 4],
       'Your table for {{booking.guests}} is booked on {{booking.date}}.',
       ['Change', 'Cancel'],
     ),
-    exampleHandOff('hand_off', 'Hand off to the team', [1.5, 4], 'The booking could not be saved.'),
+    exampleHandOff('hand_off', 'Hand off to the team', [1, 4], 'The booking could not be saved.'),
   ],
   edges: [
     link(START, 'booking'),
@@ -275,15 +265,15 @@ const menuButtons: FlowExample = {
       ],
     ),
     exampleSendText('menu', 'Send the menu', [-1.5, 2], PRICE_LIST, MENU_BUTTONS),
-    exampleSendText('hours', 'Send the hours', [-0.5, 2], 'Open daily 8:00–21:00.', MENU_BUTTONS),
+    exampleSendText('hours', 'Send the hours', [-0.5, 3], 'Open daily 8:00–21:00.', MENU_BUTTONS),
     exampleHandOff(
       'hand_off',
       'Hand off to the team',
-      [0.5, 2],
+      [0.5, 5],
       'The customer asked for a person.',
     ),
     exampleAgent('assistant', 'Answer anything else', [1.5, 2], CAFE_ASSISTANT_PROMPT),
-    exampleSendReply('reply', 'Send the answer', [1.5, 3], 'assistant.messages', MENU_BUTTONS),
+    exampleSendReply('reply', 'Send the answer', [1, 3], 'assistant.messages', MENU_BUTTONS),
   ],
   edges: [
     link(START, 'pressed'),
@@ -311,13 +301,13 @@ const closeTheChat: FlowExample = {
     exampleRouter(
       'check',
       'Done?',
-      [0, 2],
+      [-0.5, 2],
       [exampleRule('done', 'Done', 'finished.done', ConditionOperator.IsTrue)],
     ),
-    exampleEndChat('goodbye', 'End the chat', [-0.5, 3], 'Glad we could help. Have a nice day!'),
-    exampleAgent('assistant', 'Keep helping', [0.5, 3], CAFE_ASSISTANT_PROMPT),
-    exampleSendReply('reply', 'Send the answer', [0.5, 4], 'assistant.messages'),
-    exampleHandOff('hand_off', 'Hand off to the team', [1.5, 4], 'The assistant could not answer.'),
+    exampleEndChat('goodbye', 'End the chat', [-1.5, 3], 'Glad we could help. Have a nice day!'),
+    exampleAgent('assistant', 'Keep helping', [1, 3], CAFE_ASSISTANT_PROMPT),
+    exampleSendReply('reply', 'Send the answer', [1, 4], 'assistant.messages'),
+    exampleHandOff('hand_off', 'Hand off to the team', [2, 4], 'The assistant could not answer.'),
   ],
   edges: [
     link(START, 'finished'),
