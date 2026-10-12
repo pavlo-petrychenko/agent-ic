@@ -2,6 +2,7 @@ import { MAX_TEMPLATE_LENGTH } from '@agent-ic/flow';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { NO_PROMPT_VERSIONS } from '@/modules/prompts/constants/prompt.constants';
+import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
 import { PromptVersionsRepository } from '@/modules/prompts/repositories/prompt-versions.repository';
 import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
 import type { NewPromptVersion } from '@/modules/prompts/typedefs/prompt-version.typedefs';
@@ -21,7 +22,7 @@ import {
   TEST_PROMPT_NOTE,
   TEST_PROMPT_TEXT,
 } from '@test/support/constants/prompts-testing.constants';
-import { newPrompt, newPromptVersion } from '@test/support/fixtures/prompts.fixture';
+import { newFolder, newPrompt, newPromptVersion } from '@test/support/fixtures/prompts.fixture';
 import { createPromptsTestingModule } from '@test/support/helpers/prompts-testing.helpers';
 
 const FIRST_NUMBER = 1;
@@ -31,6 +32,7 @@ const SKIPPED_NUMBER = 5;
 
 describe('PromptVersionsRepository', () => {
   let testingModule: TestingModule;
+  let folders: PromptFoldersRepository;
   let prompts: PromptsRepository;
   let repository: PromptVersionsRepository;
   let tenants: TenantTransactionService;
@@ -38,6 +40,7 @@ describe('PromptVersionsRepository', () => {
 
   beforeAll(async () => {
     testingModule = await createPromptsTestingModule();
+    folders = testingModule.get(PromptFoldersRepository);
     prompts = testingModule.get(PromptsRepository);
     repository = testingModule.get(PromptVersionsRepository);
     tenants = testingModule.get(TenantTransactionService);
@@ -53,9 +56,11 @@ describe('PromptVersionsRepository', () => {
     overrides: Partial<NewPrompt> = {},
   ): Promise<string> => {
     const promptId = ids.generate();
-    await tenants.run(workspaceId, () =>
-      prompts.insert(newPrompt(promptId, workspaceId, overrides)),
-    );
+    const folderId = ids.generate();
+    await tenants.run(workspaceId, async () => {
+      await folders.insert(newFolder(folderId, workspaceId, { name: `Folder ${promptId}` }));
+      await prompts.insert(newPrompt(promptId, workspaceId, folderId, overrides));
+    });
     return promptId;
   };
 

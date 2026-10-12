@@ -2,6 +2,7 @@ import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
 import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
+import type { NewPromptFolder } from '@/modules/prompts/typedefs/prompt-folder.typedefs';
 import type { NewPrompt } from '@/modules/prompts/typedefs/prompt.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -9,6 +10,7 @@ import { ROW_LEVEL_SECURITY_VIOLATION } from '@test/support/constants/postgres-e
 import {
   PROMPTS_TEST_LATER,
   PROMPTS_TEST_START,
+  TEST_FOLDER_NEW_NAME,
   TEST_PROMPT_NAME,
   TEST_PROMPT_NEW_NAME,
   TEST_PROMPT_PAGE_LIMIT,
@@ -35,9 +37,14 @@ describe('PromptsRepository', () => {
     await testingModule.close();
   });
 
-  const insertFolder = async (workspaceId: string): Promise<string> => {
+  const insertFolder = async (
+    workspaceId: string,
+    overrides: Partial<NewPromptFolder> = {},
+  ): Promise<string> => {
     const folderId = ids.generate();
-    await tenants.run(workspaceId, () => folders.insert(newFolder(folderId, workspaceId)));
+    await tenants.run(workspaceId, () =>
+      folders.insert(newFolder(folderId, workspaceId, overrides)),
+    );
     return folderId;
   };
 
@@ -46,15 +53,18 @@ describe('PromptsRepository', () => {
     overrides: Partial<NewPrompt> = {},
   ): Promise<string> => {
     const promptId = ids.generate();
+    const folderId =
+      overrides.folderId ?? (await insertFolder(workspaceId, { name: `Folder ${promptId}` }));
     await tenants.run(workspaceId, () =>
-      repository.insert(newPrompt(promptId, workspaceId, overrides)),
+      repository.insert(newPrompt(promptId, workspaceId, folderId, overrides)),
     );
     return promptId;
   };
 
   it('stores a prompt and finds it by id', async () => {
     const workspaceId = ids.generate();
-    const promptId = await insertPrompt(workspaceId);
+    const folderId = await insertFolder(workspaceId);
+    const promptId = await insertPrompt(workspaceId, { folderId });
 
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, promptId));
 
@@ -62,7 +72,7 @@ describe('PromptsRepository', () => {
       id: promptId,
       workspaceId,
       name: TEST_PROMPT_NAME,
-      folderId: null,
+      folderId,
       createdByUserId: null,
       createdAt: PROMPTS_TEST_START,
       updatedAt: PROMPTS_TEST_START,
@@ -81,27 +91,19 @@ describe('PromptsRepository', () => {
     expect(found?.id).toBe(promptId);
   });
 
-  it('moves a prompt between folders and back to Unfiled', async () => {
+  it('moves a prompt between folders', async () => {
     const workspaceId = ids.generate();
     const folderId = await insertFolder(workspaceId);
-    const promptId = await insertPrompt(workspaceId);
+    const otherFolderId = await insertFolder(workspaceId, { name: TEST_FOLDER_NEW_NAME });
+    const promptId = await insertPrompt(workspaceId, { folderId });
 
     const moved = await tenants.run(workspaceId, () =>
-      repository.moveToFolder(workspaceId, promptId, folderId),
+      repository.moveToFolder(workspaceId, promptId, otherFolderId),
     );
-    const inFolder = await tenants.run(workspaceId, () =>
-      repository.findById(workspaceId, promptId),
-    );
-    const cleared = await tenants.run(workspaceId, () =>
-      repository.moveToFolder(workspaceId, promptId, null),
-    );
-    const unfiled = await tenants.run(workspaceId, () =>
-      repository.findById(workspaceId, promptId),
-    );
+    const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, promptId));
 
-    expect({ moved, cleared }).toEqual({ moved: true, cleared: true });
-    expect(inFolder?.folderId).toBe(folderId);
-    expect(unfiled?.folderId).toBeNull();
+    expect(moved).toBe(true);
+    expect(found?.folderId).toBe(otherFolderId);
   });
 
   it('renames a prompt', async () => {
@@ -173,10 +175,45 @@ describe('PromptsRepository', () => {
     await expect(insertPrompt(workspaceId)).resolves.toEqual(expect.any(String));
   });
 
+  describe('countByFolder', () => {
+    it('counts the active prompts of one folder only', async () => {
+      const workspaceId = ids.generate();
+      const folderId = await insertFolder(workspaceId);
+      const otherFolderId = await insertFolder(workspaceId, { name: TEST_FOLDER_NEW_NAME });
+      await insertPrompt(workspaceId, { folderId });
+      await insertPrompt(workspaceId, { name: TEST_PROMPT_NEW_NAME, folderId });
+      await insertPrompt(workspaceId, { name: 'Other', folderId: otherFolderId });
+      const deletedPrompt = await insertPrompt(workspaceId, { name: 'Deleted', folderId });
+      await tenants.run(workspaceId, () =>
+        repository.softDelete(workspaceId, deletedPrompt, PROMPTS_TEST_LATER),
+      );
+
+      const count = await tenants.run(workspaceId, () =>
+        repository.countByFolder(workspaceId, folderId),
+      );
+
+      expect(count).toBe(2);
+    });
+
+    it('never counts the prompts of another workspace', async () => {
+      const workspaceA = ids.generate();
+      const workspaceB = ids.generate();
+      const folderId = await insertFolder(workspaceA);
+      await insertPrompt(workspaceA, { folderId });
+
+      const count = await tenants.run(workspaceB, () =>
+        repository.countByFolder(workspaceA, folderId),
+      );
+
+      expect(count).toBe(0);
+    });
+  });
+
   describe('across tenants', () => {
     it('never shows, changes or deletes the prompt of another workspace', async () => {
       const workspaceA = ids.generate();
       const workspaceB = ids.generate();
+      const folderId = await insertFolder(workspaceA);
       const promptId = await insertPrompt(workspaceA);
 
       const fromB = await tenants.run(workspaceB, async () => ({
@@ -185,7 +222,7 @@ describe('PromptsRepository', () => {
         page: await repository.listPage(workspaceA, null, TEST_PROMPT_PAGE_LIMIT),
         locked: await repository.findByIdForUpdate(workspaceA, promptId),
         renamed: await repository.rename(workspaceA, promptId, TEST_PROMPT_NEW_NAME),
-        moved: await repository.moveToFolder(workspaceA, promptId, null),
+        moved: await repository.moveToFolder(workspaceA, promptId, folderId),
         deleted: await repository.softDelete(workspaceA, promptId, PROMPTS_TEST_LATER),
       }));
       const ownFromA = await tenants.run(workspaceA, () =>
@@ -215,9 +252,10 @@ describe('PromptsRepository', () => {
     it('refuses to write a prompt into another workspace', async () => {
       const workspaceA = ids.generate();
       const workspaceB = ids.generate();
+      const folderId = await insertFolder(workspaceA);
 
       const write = tenants.run(workspaceB, () =>
-        repository.insert(newPrompt(ids.generate(), workspaceA)),
+        repository.insert(newPrompt(ids.generate(), workspaceA, folderId)),
       );
 
       await expect(write).rejects.toMatchObject(ROW_LEVEL_SECURITY_VIOLATION);

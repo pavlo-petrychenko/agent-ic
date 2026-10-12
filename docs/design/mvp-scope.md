@@ -620,6 +620,7 @@ The run is marked failed, and Agents shows "N runs failed today".
 
 ### 12.6 Prompt library
 - Folders; prompts with immutable versions plus one editable draft.
+- Every prompt belongs to a folder; a folder that still has prompts cannot be deleted.
 - Variables with autocomplete.
 - "Where used" per version; steps pin a version or follow latest.
 - Test a prompt with sample inputs; compare two versions (diff).
