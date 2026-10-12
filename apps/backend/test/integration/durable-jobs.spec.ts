@@ -2,7 +2,6 @@ import { randomUUID } from 'node:crypto';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import type { INestApplication } from '@nestjs/common';
 import type { Queue } from 'bullmq';
-import { inArray } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
@@ -23,6 +22,7 @@ import { QueuesService } from '@/platform/queues/services/queues.service';
 import type { JobEnvelope } from '@/platform/queues/typedefs/job.typedefs';
 import type { OutboxMessage } from '@/platform/queues/typedefs/outbox.typedefs';
 import {
+  DURABLE_JOBS_TEST_START,
   PROBE_WAIT_INTERVAL_MS,
   PROBE_WAIT_TIMEOUT_MS,
   ProbeJobName,
@@ -30,6 +30,7 @@ import {
 } from '@test/support/constants/async-jobs.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
+import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { createProbeWorker, userCtx } from '@test/support/helpers/async-jobs.helpers';
 import { probeSignedUpEvent } from '@test/support/jobs/probe-signed-up.job';
 import { recordProbeJob } from '@test/support/jobs/record-probe.job';
@@ -55,7 +56,7 @@ describe('durable jobs', () => {
   let domainEvents: DomainEventsService;
   let sweeper: OutboxSweeperService;
   let outbox: OutboxRepository;
-  let clock: ClockService;
+  let clock: ManualClock;
   let systemDb: SystemDatabaseService;
   let appDb: AppDatabase;
   let recorder: ProbeCallsRecorderService;
@@ -82,24 +83,21 @@ describe('durable jobs', () => {
   const waitUntilHandled = (probeId: string): Promise<void> =>
     vi.waitFor(() => expect(recorder.probeIds()).toContain(probeId), WAIT);
 
-  const sweepAfterGrace = async (probeId: string): Promise<number> => {
-    const ids = (await rowsFor(probeId)).map((row) => row.id);
-    const earlier = new Date(clock.now().getTime() - PAST_GRACE_MS);
-    await systemDb.db
-      .update(outboxMessages)
-      .set({ createdAt: earlier })
-      .where(inArray(outboxMessages.id, ids));
-    return sweeper.sweep();
+  const sweepAfterGrace = async (): Promise<void> => {
+    clock.advanceBy(PAST_GRACE_MS);
+    await sweeper.sweep();
   };
 
   beforeAll(async () => {
-    app = await createProbeWorker(TestRedisPrefix.DurableJobs);
+    clock = new ManualClock(DURABLE_JOBS_TEST_START);
+    app = await createProbeWorker(TestRedisPrefix.DurableJobs, [
+      { token: ClockService, value: clock },
+    ]);
     txHost = app.get(TransactionHost);
     jobs = app.get(JobsService);
     domainEvents = app.get(DomainEventsService);
     sweeper = app.get(OutboxSweeperService);
     outbox = app.get(OutboxRepository);
-    clock = app.get(ClockService);
     systemDb = app.get(SystemDatabaseService);
     appDb = app.get<AppDatabase>(APP_DATABASE);
     recorder = app.get(ProbeCallsRecorderService);
@@ -157,9 +155,9 @@ describe('durable jobs', () => {
     expect(await rowsFor(probeId)).toHaveLength(1);
     await sweeper.sweep();
     expect(await rowsFor(probeId)).toHaveLength(1);
-    expect(await sweepAfterGrace(probeId)).toBe(1);
-    await waitUntilHandled(probeId);
+    await sweepAfterGrace();
     expect(await rowsFor(probeId)).toEqual([]);
+    await waitUntilHandled(probeId);
     expect(callsFor(probeId)).toBe(1);
   });
 
@@ -176,7 +174,7 @@ describe('durable jobs', () => {
       expect(await queue.getJobState(row.id)).toBe(COMPLETED_STATE);
     }, WAIT);
 
-    expect(await sweepAfterGrace(probeId)).toBe(1);
+    await sweepAfterGrace();
     expect(await rowsFor(probeId)).toEqual([]);
     expect(await queue.getJobState(row.id)).toBe(COMPLETED_STATE);
     expect(callsFor(probeId)).toBe(1);
@@ -226,7 +224,8 @@ describe('durable jobs', () => {
     expect(rows.map((row) => row.name).toSorted()).toEqual(
       [ProbeJobName.Audit, ProbeJobName.Welcome].toSorted(),
     );
-    expect(await sweepAfterGrace(probeId)).toBe(2);
+    await sweepAfterGrace();
+    expect(await rowsFor(probeId)).toEqual([]);
     await vi.waitFor(() => {
       const listeners = recorder.calls
         .filter((call) => call.probeId === probeId)

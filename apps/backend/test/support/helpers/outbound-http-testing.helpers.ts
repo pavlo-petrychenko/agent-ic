@@ -14,7 +14,11 @@ import {
   PROBE_SERVER_ADDRESS,
 } from '@test/support/constants/outbound-http-testing.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
-import type { ProbeEcho, ProbeServer } from '@test/support/typedefs/outbound-http-testing.typedefs';
+import type {
+  ProbeArrival,
+  ProbeEcho,
+  ProbeServer,
+} from '@test/support/typedefs/outbound-http-testing.typedefs';
 
 const readText = async (request: IncomingMessage): Promise<string> => {
   const chunks: Buffer[] = [];
@@ -67,11 +71,15 @@ const respond = async (
 export const startProbeServer = async (): Promise<ProbeServer> => {
   const hits = new Map<string, number>();
   const held: (() => void)[] = [];
+  let arrivals: ProbeArrival[] = [];
   const released = () => new Promise<void>((resolve) => held.push(resolve));
   const server = createServer((request, response) => {
     const path = request.url ?? '';
     const count = (hits.get(path) ?? 0) + 1;
     hits.set(path, count);
+    const arrived = arrivals.filter((arrival) => arrival.path === path);
+    arrivals = arrivals.filter((arrival) => arrival.path !== path);
+    arrived.forEach((arrival) => arrival.resolve());
     void respond(request, response, count, released);
   });
   server.listen(0, OUTBOUND_TEST_HOST);
@@ -85,6 +93,10 @@ export const startProbeServer = async (): Promise<ProbeServer> => {
     origin: `http://${OUTBOUND_TEST_HOST}:${port}`,
     port,
     hits: (path) => hits.get(path) ?? 0,
+    arrived: (path) =>
+      hits.has(path)
+        ? Promise.resolve()
+        : new Promise((resolve) => arrivals.push({ path, resolve })),
     release: () => {
       held.splice(0).forEach((resolve) => resolve());
     },

@@ -15,7 +15,9 @@ import type { NewMessage } from '@/modules/conversations/typedefs/message.typede
 import { memberships } from '@/modules/identity/db/memberships.table';
 import { users } from '@/modules/identity/db/users.table';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
+import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
 import { ROOT_BRANCH_KEY, STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
+import type { RunStepStatus } from '@/modules/runs/constants/run.constants';
 import { startRunOnMessageJob } from '@/modules/runs/jobs/start-run-on-message.job';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
@@ -38,6 +40,7 @@ import type { AppTransactionAdapter } from '@/platform/database/typedefs/transac
 import { DomainEventsModule } from '@/platform/domain-events/domain-events.module';
 import { DomainEventsService } from '@/platform/domain-events/services/domain-events.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { channelFor } from '@/platform/live-updates/helpers/channel.helpers';
 import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
 import { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';
 import { LLM_STEP_TIMEOUT_MS } from '@/platform/llm/constants/llm-gateway.constants';
@@ -91,6 +94,7 @@ import type {
   RunLifecycleTestbed,
   RunsTestbed,
   SeededMember,
+  StepWatch,
 } from '@test/support/typedefs/runs-testing.typedefs';
 
 const ROLE = Role.Worker;
@@ -201,6 +205,23 @@ export const seedExecutableRun = async (
     await testbed.runs.insert(run);
   });
   return { run, ctx: workspaceSystemCtx(workspaceId) };
+};
+
+export const watchStep = async (
+  testbed: RunExecutionTestbed,
+  { run }: ExecutableRun,
+  nodeId: string,
+  status: RunStepStatus,
+): Promise<StepWatch> => {
+  const events = await testbed.liveUpdates.subscribe(channelFor(runStepsChannel, run.id));
+  const reached = (async () => {
+    for await (const event of events) {
+      if (event.nodeId === nodeId && event.status === status) {
+        return;
+      }
+    }
+  })();
+  return { reached };
 };
 
 export const storeFlowJson = async (
