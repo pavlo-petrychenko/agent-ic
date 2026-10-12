@@ -15,10 +15,23 @@ const DRAWING = {
 
 describe('RunTrace', () => {
   it('draws a background branch edge dashed and a waited one solid', () => {
-    const { container } = render(<RunTrace drawing={DRAWING} onSelectNode={vi.fn<() => void>()} />);
+    const { container } = render(
+      <RunTrace drawing={DRAWING} scale={1} onSelectNode={vi.fn<() => void>()} />,
+    );
     const [waited, background] = Array.from(container.querySelectorAll('path'));
 
     expect(background).toHaveClass(cssClass(styles.dashed));
     expect(waited).not.toHaveClass(cssClass(styles.dashed));
+  });
+
+  it('scales the drawing and reserves the scaled size', () => {
+    const { container } = render(
+      <RunTrace drawing={DRAWING} scale={0.5} onSelectNode={vi.fn<() => void>()} />,
+    );
+    const frame = container.firstElementChild;
+    const scaled = frame?.firstElementChild;
+
+    expect(frame).toHaveStyle({ width: '199px', height: '72px' });
+    expect(scaled).toHaveStyle({ width: '398px', height: '144px', transform: 'scale(0.5)' });
   });
 });
