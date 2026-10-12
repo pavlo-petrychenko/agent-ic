@@ -102,6 +102,12 @@ const complaintCheck: FlowExample = {
       exampleField('reason', OutputFieldType.String, 'What went wrong', false),
     ]),
     exampleAgent('draft', 'Draft a reply', [0.5, 2], CAFE_ASSISTANT_PROMPT),
+    exampleHandOff(
+      'check_failed',
+      'Hand off to the team',
+      [-1.5, 3],
+      'The complaint check failed.',
+    ),
     exampleHandOff('draft_failed', 'Hand off to the team', [1.5, 3], 'The draft failed.'),
     exampleRouter(
       'decide',
@@ -121,6 +127,7 @@ const complaintCheck: FlowExample = {
     link(START, 'together'),
     link('together', 'complaint', PortName.Branches),
     link('together', 'draft', PortName.Branches),
+    link('complaint', 'check_failed', PortName.Error),
     link('draft', 'draft_failed', PortName.Error),
     link('together', 'decide'),
     link('decide', 'complaint_hand_off', 'complaint'),
