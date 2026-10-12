@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { isDraftUnchanged } from '@/features/flow-builder';
 import { useSimulator } from '@/features/testing/communication/hooks/useSimulator';
 import { useTestingAgents } from '@/features/testing/communication/hooks/useTestingAgents';
 import { useTestingVersions } from '@/features/testing/communication/hooks/useTestingVersions';
@@ -22,7 +23,6 @@ import {
   isSimulatorChannel,
   isSimulatorLanguage,
 } from '@/features/testing/logic/helpers/setup.helpers';
-import { isDraftUnchanged } from '@/features/testing/logic/helpers/versions.helpers';
 import { useDraftRefresh } from '@/features/testing/logic/hooks/useDraftRefresh';
 import { useNodeInspection } from '@/features/testing/logic/hooks/useNodeInspection';
 import { ChannelKind } from '@/shared/api/generated/schema.generated';

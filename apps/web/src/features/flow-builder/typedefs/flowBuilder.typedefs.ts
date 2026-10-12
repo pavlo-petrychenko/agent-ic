@@ -96,6 +96,7 @@ export interface FlowBuilderDraftResult {
   draftNumber: number | null;
   liveVersion: number | null;
   hasUnpublishedChanges: boolean | null;
+  draftChangeCount: number | null;
   draft: FlowDraft | null;
   loading: boolean;
   failed: boolean;

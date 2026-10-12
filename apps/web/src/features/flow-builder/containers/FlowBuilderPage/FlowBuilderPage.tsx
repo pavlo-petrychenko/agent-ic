@@ -20,19 +20,20 @@ import {
   sameAgentDetails,
 } from '@/features/flow-builder/logic/helpers/agentDetails.helpers';
 import { formatSavedAt } from '@/features/flow-builder/logic/helpers/autosave.helpers';
+import { isDraftUnchanged } from '@/features/flow-builder/logic/helpers/draftChange.helpers';
 import { isBlocking } from '@/features/flow-builder/logic/helpers/issue.helpers';
 import { agentsHref, workspaceHref } from '@/features/flow-builder/logic/helpers/route.helpers';
 import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { AgentDetails } from '@/features/flow-builder/typedefs/flowBuilder.typedefs';
 import { AgentDetailsPopover } from '@/features/flow-builder/view/AgentDetailsPopover';
+import { DraftBadge } from '@/features/flow-builder/view/DraftBadge';
 import { SaveStatus } from '@/features/flow-builder/view/SaveStatus';
 import { useActiveWorkspace } from '@/features/workspace';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
-import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { Banner, BannerTone } from '@/shared/ui/display/Banner';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { Skeleton } from '@/shared/ui/display/Skeleton';
@@ -53,6 +54,7 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
     draftNumber,
     liveVersion,
     hasUnpublishedChanges,
+    draftChangeCount,
     draft,
     loading,
     failed,
@@ -145,11 +147,13 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
                   void saveDetails({ name: agentName, description: agentDescription }, edited)
                 }
               />
-              <Badge tone={baseVersion === null ? BadgeTone.Neutral : BadgeTone.Warn} dot>
-                {baseVersion === null
-                  ? t('header.neverPublished')
-                  : t('header.editedFrom', { version: baseVersion })}
-              </Badge>
+              <DraftBadge
+                baseVersion={baseVersion}
+                liveVersion={liveVersion}
+                unchanged={
+                  saveState === SaveState.Idle && isDraftUnchanged(draftChangeCount, liveVersion)
+                }
+              />
             </div>
           )
         }

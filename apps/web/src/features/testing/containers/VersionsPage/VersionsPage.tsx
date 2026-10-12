@@ -1,7 +1,13 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PublishDialog, SaveState, formatTimeAgo, useChangeTexts } from '@/features/flow-builder';
+import {
+  PublishDialog,
+  SaveState,
+  formatTimeAgo,
+  isDraftUnchanged,
+  useChangeTexts,
+} from '@/features/flow-builder';
 import { useTestingAgents } from '@/features/testing/communication/hooks/useTestingAgents';
 import { useVersionDiff } from '@/features/testing/communication/hooks/useVersionDiff';
 import { useVersionHistory } from '@/features/testing/communication/hooks/useVersionHistory';
@@ -24,7 +30,6 @@ import type { VersionsPageProps } from '@/features/testing/containers/VersionsPa
 import { pickAgent } from '@/features/testing/logic/helpers/agent.helpers';
 import {
   formatVersionDate,
-  isDraftUnchanged,
   noteLines,
   previousVersion,
 } from '@/features/testing/logic/helpers/versions.helpers';

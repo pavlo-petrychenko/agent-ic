@@ -13,7 +13,10 @@ export function useSaveAgentDraft(
     update: (cache) =>
       void cache.modify({
         id: cache.identify({ __typename: AGENT_TYPENAME, id: agentId }),
-        fields: { hasUnpublishedChanges: () => true },
+        fields: {
+          hasUnpublishedChanges: () => true,
+          draftChangeCount: (current: number | null) => (current === 0 ? null : current),
+        },
       }),
   });
 

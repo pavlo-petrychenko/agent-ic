@@ -126,7 +126,8 @@
   },
   "header": {
     "neverPublished": "Чернетка · ще не опублікована",
-    "editedFrom": "Чернетка · змінена з v{{version}}"
+    "editedFrom": "Чернетка · змінена з v{{version}}",
+    "unchanged": "Чернетка · без змін від v{{version}}"
   },
   "autosave": {
     "saved": "Збережено",

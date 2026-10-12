@@ -124,7 +124,8 @@
   },
   "header": {
     "neverPublished": "Draft · never published",
-    "editedFrom": "Draft · edited from v{{version}}"
+    "editedFrom": "Draft · edited from v{{version}}",
+    "unchanged": "Draft · no changes since v{{version}}"
   },
   "autosave": {
     "saved": "Saved",

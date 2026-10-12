@@ -19,6 +19,7 @@ export function useFlowBuilderDraft(agentId: string): FlowBuilderDraftResult {
     draftNumber: data?.agent.draftNumber ?? null,
     liveVersion: data?.agent.liveVersionNumber ?? null,
     hasUnpublishedChanges: data?.agent.hasUnpublishedChanges ?? null,
+    draftChangeCount: data?.agent.draftChangeCount ?? null,
     draft,
     loading,
     failed: !loading && draft === null,
