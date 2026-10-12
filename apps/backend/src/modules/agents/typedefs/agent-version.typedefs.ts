@@ -100,6 +100,7 @@ export interface AgentDraftView {
   readonly version: AgentVersionView;
   readonly revision: number;
   readonly savedAt: Date;
+  readonly changeCount: number;
   readonly issues: readonly FlowIssue[];
 }
 

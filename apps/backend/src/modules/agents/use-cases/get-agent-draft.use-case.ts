@@ -45,6 +45,7 @@ export class GetAgentDraftUseCase {
         version: await this.views.versionView(agent, draft),
         revision: draft.revision,
         savedAt: draft.updatedAt,
+        changeCount: await this.views.draftChangeCount(agent, draft),
         issues: this.flows.validate(draft.flow),
       };
     });

@@ -56,6 +56,10 @@ export class AgentViewsService {
     return { ...view, draftChangeCount: countFlowChanges(await this.draftDiff(agent, draft)) };
   }
 
+  async draftChangeCount(agent: Agent, draft: AgentVersion): Promise<number> {
+    return countFlowChanges(await this.draftDiff(agent, draft));
+  }
+
   async draftDiff(agent: Agent, draft: AgentVersion | null): Promise<FlowDiff> {
     const live =
       agent.liveVersionId === null

@@ -59,15 +59,12 @@ export class AgentDraftsService {
     if (saved === null) {
       throw new AgentVersionImmutableError();
     }
+    const savedDraft = { ...draft, ...changes, revision: saved, updatedAt: now };
     return {
-      version: await this.views.versionView(agent, {
-        ...draft,
-        ...changes,
-        revision: saved,
-        updatedAt: now,
-      }),
+      version: await this.views.versionView(agent, savedDraft),
       revision: saved,
       savedAt: now,
+      changeCount: await this.views.draftChangeCount(agent, savedDraft),
       issues: this.flows.validate(changes.flow),
     };
   }
