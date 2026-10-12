@@ -1,6 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { ROLE_FIXTURES } from '@/features/settings/constants/roles.constants';
-import { GENERAL_PATH, ROLES_PATH, PROFILE_PATH, TEAM_PATH } from '@/features/settings/constants/route.constants';
+import {
+  GENERAL_PATH,
+  ROLES_PATH,
+  PROFILE_PATH,
+  TEAM_PATH,
+} from '@/features/settings/constants/route.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { SettingsShellProps } from '@/features/settings/containers/SettingsShell/SettingsShell.typedefs';
 import { SettingsFrame } from '@/features/settings/view/SettingsFrame';
@@ -27,27 +32,27 @@ export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
               {t('nav.profile')}
             </NavItem>
           </NavGroup>
-        {hasWorkspaceNav && (
-          <NavGroup label={t('nav.workspace')}>
-            {showGeneral && (
-              <NavItem to={GENERAL_PATH} params={{ workspaceId }}>
-                {t('nav.general')}
-              </NavItem>
-            )}
+          {hasWorkspaceNav && (
+            <NavGroup label={t('nav.workspace')}>
+              {showGeneral && (
+                <NavItem to={GENERAL_PATH} params={{ workspaceId }}>
+                  {t('nav.general')}
+                </NavItem>
+              )}
 
-            {showTeam && (
-              <NavItem to={TEAM_PATH} params={{ workspaceId }} meta={active.memberCount}>
-                {t('nav.team')}
-              </NavItem>
-            )}
+              {showTeam && (
+                <NavItem to={TEAM_PATH} params={{ workspaceId }} meta={active.memberCount}>
+                  {t('nav.team')}
+                </NavItem>
+              )}
 
-            {showRoles && (
-              <NavItem to={ROLES_PATH} params={{ workspaceId }} meta={ROLE_FIXTURES.length}>
-                {t('nav.roles')}
-              </NavItem>
-            )}
-          </NavGroup>
-        )}
+              {showRoles && (
+                <NavItem to={ROLES_PATH} params={{ workspaceId }} meta={ROLE_FIXTURES.length}>
+                  {t('nav.roles')}
+                </NavItem>
+              )}
+            </NavGroup>
+          )}
         </>
       }
     >
