@@ -10,3 +10,7 @@ export const diffEdgeSchema = z.object({
   source: z.string(),
   target: z.string(),
 });
+
+export const diffBranchSchema = diffEdgeSchema.extend({
+  background: z.boolean().default(false),
+});

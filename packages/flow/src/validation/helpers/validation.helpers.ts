@@ -2,6 +2,7 @@ import { isTriggerNode } from '@flow/document/helpers/node.helpers';
 import type { FlowDocument } from '@flow/document/typedefs/flow.typedefs';
 import {
   buildFlowGraph,
+  nodesInBackgroundBranches,
   nodesInParallelBranches,
   reachableFrom,
 } from '@flow/scope/helpers/graph.helpers';
@@ -69,6 +70,7 @@ const createContext = (flow: FlowDocument): ValidationContext => {
       flow.nodes.filter(isTriggerNode).map((node) => node.id),
     ),
     inBranches: nodesInParallelBranches(graph),
+    inBackground: nodesInBackgroundBranches(graph),
     scope: createScopeLookup(flow),
   };
 };

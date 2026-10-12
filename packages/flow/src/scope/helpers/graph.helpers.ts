@@ -73,11 +73,14 @@ export const isBackgroundBranch = (graph: FlowGraph, edge: FlowEdge): boolean =>
   edge.background === true &&
   graph.nodes.get(edge.source)?.type === NodeType.Parallel;
 
-export const nodesInParallelBranches = (graph: FlowGraph): ReadonlySet<string> => {
+const nodesInBranchesWhere = (
+  graph: FlowGraph,
+  include: (start: FlowEdge) => boolean,
+): ReadonlySet<string> => {
   const inside = new Set<string>();
   for (const node of graph.nodes.values()) {
     if (node.type === NodeType.Parallel) {
-      for (const start of branchStarts(graph, node.id)) {
+      for (const start of branchStarts(graph, node.id).filter(include)) {
         for (const id of branchNodes(graph, start)) {
           inside.add(id);
         }
@@ -86,6 +89,12 @@ export const nodesInParallelBranches = (graph: FlowGraph): ReadonlySet<string> =
   }
   return inside;
 };
+
+export const nodesInParallelBranches = (graph: FlowGraph): ReadonlySet<string> =>
+  nodesInBranchesWhere(graph, () => true);
+
+export const nodesInBackgroundBranches = (graph: FlowGraph): ReadonlySet<string> =>
+  nodesInBranchesWhere(graph, (start) => isBackgroundBranch(graph, start));
 
 export const findCycleEdges = (graph: FlowGraph): readonly FlowEdge[] => {
   const done = new Set<string>();

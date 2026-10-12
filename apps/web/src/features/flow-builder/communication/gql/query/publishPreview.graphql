@@ -24,6 +24,7 @@ query PublishPreview($agentId: ID!) {
       }
       addedEdges
       removedEdges
+      changedEdges
       changeCount
     }
     errors {

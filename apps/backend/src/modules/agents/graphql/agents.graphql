@@ -185,6 +185,7 @@ type FlowDiff {
   renamedKeys: [FlowKeyRename!]!
   addedEdges: [JSON!]!
   removedEdges: [JSON!]!
+  changedEdges: [JSON!]!
   changeCount: Int!
 }
 

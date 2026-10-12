@@ -4,12 +4,15 @@ import type { FlowDiff } from '@flow/diff/typedefs/diff.typedefs';
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
 import { renameNodeKey } from '@flow/document/helpers/rename.helpers';
 import type { TriggerScheduleNode } from '@flow/document/typedefs/flow.typedefs';
+import { WaitFor } from '@flow/nodes/constants/step.constants';
 import { ScheduleKind } from '@flow/nodes/constants/trigger.constants';
 import { examplePrompt, exampleFlows } from '@test/support/fixtures/example-flow.fixture';
 import {
   agent,
+  backgroundLink,
   flowOf,
   link,
+  parallel,
   scheduleTrigger,
   sendText,
 } from '@test/support/fixtures/flow-builder.fixture';
@@ -21,6 +24,7 @@ const emptyDiff: FlowDiff = {
   renamedKeys: [],
   addedEdges: [],
   removedEdges: [],
+  changedEdges: [],
 };
 
 describe('diffFlows', () => {
@@ -101,6 +105,27 @@ describe('diffFlows', () => {
 
     expect(diff.addedEdges).toEqual([direct]);
     expect(diff.removedEdges).toEqual([toReply]);
+  });
+
+  it('lists a branch switched between waited and background as a changed edge', () => {
+    const fork = parallel('fork', WaitFor.All);
+    const waited = link(fork, PortName.Branches, helper);
+    const before = flowOf([trigger, fork, helper, reply], [waited]);
+    const after = flowOf(before.nodes, [backgroundLink(fork, helper)]);
+
+    const diff = diffFlows(before, after);
+
+    expect(diff).toEqual({ ...emptyDiff, changedEdges: [backgroundLink(fork, helper)] });
+    expect(countFlowChanges(diff)).toBe(1);
+    expect(diffFlows(after, before).changedEdges).toEqual([waited]);
+  });
+
+  it('sees a missing background flag and false as the same', () => {
+    const fork = parallel('fork', WaitFor.All);
+    const waited = link(fork, PortName.Branches, helper);
+    const flagged = flowOf([fork, helper], [{ ...waited, background: false }]);
+
+    expect(diffFlows(flowOf([fork, helper], [waited]), flagged)).toEqual(emptyDiff);
   });
 
   it('sees a key rename as a rename, not as changed references', () => {

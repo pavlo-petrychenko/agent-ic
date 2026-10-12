@@ -200,7 +200,9 @@
       "turnedOff": "{{step}}: {{field}} off",
       "edited": "{{step}}: {{field}} changed",
       "connected": "New connection: {{step}} → {{after}}",
-      "disconnected": "Removed connection: {{step}} → {{after}}"
+      "disconnected": "Removed connection: {{step}} → {{after}}",
+      "branchInBackground": "Branch {{step}} → {{after}} now runs in the background",
+      "branchWaited": "The reply now waits for branch {{step}} → {{after}}"
     },
     "field": {
       "other": "a setting",
@@ -286,7 +288,10 @@
     "DUPLICATE_RULE_ID": "Two rules are named “{{rule}}”",
     "INVALID_RULE_ID": "“{{rule}}” isn’t a valid rule name",
     "PARALLEL_BRANCH_LEAK": "A parallel branch is joined from outside",
-    "SEND_IN_PARALLEL_BRANCH": "Messages and escalations can’t run inside a parallel branch",
+    "SEND_IN_PARALLEL_BRANCH": "Messages can’t be sent inside a parallel branch",
+    "ESCALATION_IN_BACKGROUND_BRANCH": "Escalations can’t run inside a background branch",
+    "BACKGROUND_OUTSIDE_BRANCHES": "Only a parallel branch can run in the background",
+    "NO_WAITED_BRANCH": "At least one branch must be one the reply waits for",
     "TOO_FEW_BRANCHES": "A parallel step needs at least two branches",
     "TOO_MANY_BRANCHES": "Too many parallel branches ({{count}})",
     "ERROR_PORT_NOT_CONNECTED": "Connect the “on error” port",

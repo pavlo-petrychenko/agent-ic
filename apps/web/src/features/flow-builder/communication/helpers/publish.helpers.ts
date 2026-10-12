@@ -2,6 +2,7 @@ import type { z } from 'zod';
 import type { PublishPreviewQuery } from '@/features/flow-builder/communication/gql/query/publishPreview.generated';
 import { toFlowIssues } from '@/features/flow-builder/communication/helpers/draft.helpers';
 import {
+  diffBranchSchema,
   diffEdgeSchema,
   diffNodeSchema,
 } from '@/features/flow-builder/communication/schemas/publish.schema';
@@ -23,6 +24,7 @@ export const toFlowDiff = (diff: PublishPreviewQuery['publishPreview']['diff']):
   renamedKeys: diff.renamedKeys,
   addedEdges: parseAll(diffEdgeSchema, diff.addedEdges),
   removedEdges: parseAll(diffEdgeSchema, diff.removedEdges),
+  changedEdges: parseAll(diffBranchSchema, diff.changedEdges),
   changeCount: diff.changeCount,
 });
 

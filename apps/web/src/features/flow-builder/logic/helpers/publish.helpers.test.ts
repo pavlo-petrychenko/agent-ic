@@ -20,6 +20,7 @@ const EMPTY_DIFF: PublishDiff = {
   renamedKeys: [],
   addedEdges: [],
   removedEdges: [],
+  changedEdges: [],
   changeCount: 0,
 };
 
@@ -99,6 +100,24 @@ describe('toChangeLines', () => {
       [ChangeSentence.StepRenamed, 'reply', 'answer', null],
       [ChangeSentence.StepRemoved, 'old', null, null],
       [ChangeSentence.Connected, 'Schedule trigger', null, 'reply'],
+    ]);
+  });
+
+  it('words a branch switched between waited and background', () => {
+    const lines = toChangeLines(
+      {
+        ...EMPTY_DIFF,
+        changedEdges: [
+          { source: 'a', target: 'b', background: true },
+          { source: 'b', target: 'a', background: false },
+        ],
+      },
+      DOCUMENT,
+    );
+
+    expect(lines.map(({ sentence, step, after }) => [sentence, step, after])).toEqual([
+      [ChangeSentence.BranchInBackground, 'Schedule trigger', 'reply'],
+      [ChangeSentence.BranchWaited, 'reply', 'Schedule trigger'],
     ]);
   });
 

@@ -147,6 +147,7 @@ export const toGraphqlFlowDiff = (diff: DomainFlowDiff): FlowDiff => ({
   renamedKeys: [...diff.renamedKeys],
   addedEdges: [...diff.addedEdges],
   removedEdges: [...diff.removedEdges],
+  changedEdges: [...diff.changedEdges],
   changeCount: countFlowChanges(diff),
 });
 

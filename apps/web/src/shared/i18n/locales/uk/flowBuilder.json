@@ -208,7 +208,9 @@
       "turnedOff": "{{step}}: {{field}} вимкнено",
       "edited": "{{step}}: {{field}} змінено",
       "connected": "Нове з’єднання: {{step}} → {{after}}",
-      "disconnected": "Вилучене з’єднання: {{step}} → {{after}}"
+      "disconnected": "Вилучене з’єднання: {{step}} → {{after}}",
+      "branchInBackground": "Гілка {{step}} → {{after}} тепер виконується у фоні",
+      "branchWaited": "Відповідь тепер чекає на гілку {{step}} → {{after}}"
     },
     "field": {
       "other": "налаштування",
@@ -294,7 +296,10 @@
     "DUPLICATE_RULE_ID": "Два правила мають назву «{{rule}}»",
     "INVALID_RULE_ID": "«{{rule}}» не підходить як назва правила",
     "PARALLEL_BRANCH_LEAK": "До паралельної гілки під’єднано крок ззовні",
-    "SEND_IN_PARALLEL_BRANCH": "Повідомлення й ескалації не можуть бути в паралельній гілці",
+    "SEND_IN_PARALLEL_BRANCH": "Повідомлення не можна надсилати в паралельній гілці",
+    "ESCALATION_IN_BACKGROUND_BRANCH": "Ескалація не може бути у фоновій гілці",
+    "BACKGROUND_OUTSIDE_BRANCHES": "У фоні може виконуватися лише паралельна гілка",
+    "NO_WAITED_BRANCH": "Відповідь має чекати хоча б на одну гілку",
     "TOO_FEW_BRANCHES": "Паралельному кроку потрібні щонайменше дві гілки",
     "TOO_MANY_BRANCHES": "Забагато паралельних гілок ({{count}})",
     "ERROR_PORT_NOT_CONNECTED": "Під’єднайте порт «у разі помилки»",

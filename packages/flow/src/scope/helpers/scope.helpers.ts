@@ -70,7 +70,7 @@ const createPresenceAnalysis = (graph: FlowGraph): ((nodeId: string) => StepPres
       .filter((id) => !nested.has(id))
       .flatMap((id) => {
         const node = graph.nodes.get(id);
-        if (node === undefined) {
+        if (node === undefined || node.type === NodeType.Escalation) {
           return [];
         }
         const ports = nodePorts(node);

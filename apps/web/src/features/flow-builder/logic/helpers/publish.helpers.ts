@@ -122,6 +122,15 @@ export const toChangeLines = (
     ),
     ...edgeLines(diff.addedEdges, ChangeKind.Added, ChangeSentence.Connected),
     ...edgeLines(diff.removedEdges, ChangeKind.Removed, ChangeSentence.Disconnected),
+    ...diff.changedEdges.map((edge, index) => ({
+      id: `${ChangeKind.Changed}-edge-${String(index)}`,
+      kind: ChangeKind.Changed,
+      sentence: edge.background ? ChangeSentence.BranchInBackground : ChangeSentence.BranchWaited,
+      step: stepName(edge.source, edge.source),
+      field: null,
+      before: null,
+      after: stepName(edge.target, edge.target),
+    })),
   ];
 };
 

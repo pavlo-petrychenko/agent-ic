@@ -41,6 +41,25 @@ const lookupThenTagFlow = (): FlowDocument => {
   );
 };
 
+const TAG_AND_SCORE = { observerKeys: ['tagger', 'scorer'], waitFor: FlowV1WaitFor.Guards };
+
+const tagAndScoreFlow = (): FlowDocument => {
+  const trigger = messageTrigger('incoming');
+  const fork = parallel('fork', WaitFor.All);
+  const tagger = completion('tagger');
+  const scorer = completion('scorer');
+  const reply = sendText('reply', 'hi');
+  return flowOf(
+    [trigger, fork, tagger, scorer, reply],
+    [
+      link(trigger, PortName.Next, fork),
+      link(fork, PortName.Branches, tagger),
+      link(fork, PortName.Branches, scorer),
+      link(fork, PortName.Next, reply),
+    ],
+  );
+};
+
 describe('upgradeFlowV1', () => {
   it('turns the observer branch of the FAQ into a background branch', () => {
     const v1 = toFlowV1(faqWithHandOffFlow, { ...OBSERVERS, waitFor: FlowV1WaitFor.Guards });
@@ -105,5 +124,18 @@ describe('upgradeFlowV1', () => {
     expect(upgraded.edges.filter((edge) => edge.background === true)).toEqual([
       { ...innerToTagger, background: true },
     ]);
+  });
+
+  it('keeps the first branch waited when every branch starts with an observer', () => {
+    const flow = tagAndScoreFlow();
+    const upgraded = upgradeFlowV1(toFlowV1(flow, TAG_AND_SCORE));
+    expect(upgraded.edges.filter((edge) => edge.background === true)).toEqual([
+      { ...flow.edges[2], background: true },
+    ]);
+  });
+
+  it('accepts a version 1 parallel whose branches are all observers', () => {
+    const issues = validateFlow(toFlowV1Json(tagAndScoreFlow(), TAG_AND_SCORE));
+    expect(hasBlockingIssues(issues)).toBe(false);
   });
 });

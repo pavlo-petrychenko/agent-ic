@@ -22,6 +22,7 @@ import {
   flowOf,
   link,
   messageTrigger,
+  replyAndScoreFlow,
   parallel,
   rule,
   router,
@@ -173,6 +174,16 @@ describe('visibleVariables', () => {
         const atReply = nullability(flow, reply);
         expect(atReply['writer.messages']).toBe(false);
         expect(Object.keys(atReply).some((path) => /^(lookup|scorer)\./.test(path))).toBe(false);
+      });
+
+      it('hides the background scorer from the reply in the reply-and-score flow', () => {
+        const { flow: scored, reply: answer, save } = replyAndScoreFlow();
+        const atAnswer = nullability(scored, answer);
+        expect(atAnswer['writer.messages']).toBe(false);
+        expect(Object.keys(atAnswer).some((path) => /^(scorer|save_score)\./.test(path))).toBe(
+          false,
+        );
+        expect(nullability(scored, save)['scorer.mood']).toBe(false);
       });
 
       it('shows its steps the outputs before them in the branch', () => {
