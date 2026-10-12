@@ -1,0 +1,4 @@
+export const EXAMPLE_NODE_WIDTH = 248;
+export const EXAMPLE_NODE_HEIGHT = 120;
+export const EXAMPLE_NODE_CLEARANCE = 8;
+export const EXAMPLE_OVERLAP_TOLERANCE = 1;

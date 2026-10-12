@@ -27,6 +27,7 @@ $grid-dot-size: 1px;
   flex: 1;
   min-height: 0;
   overflow: auto;
+  scrollbar-gutter: stable;
 }
 
 .footer {

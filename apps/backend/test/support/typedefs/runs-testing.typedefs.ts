@@ -105,3 +105,13 @@ export interface SeededMember {
   readonly name: string;
   readonly role: WorkspaceRole;
 }
+
+export interface StepWaiter {
+  readonly runId: string;
+  readonly nodeId: string;
+  readonly resolve: () => void;
+}
+
+export interface StepWatch {
+  readonly reached: Promise<void>;
+}

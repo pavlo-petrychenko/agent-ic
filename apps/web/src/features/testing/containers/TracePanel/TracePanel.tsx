@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NODE_PRESENTATION } from '@/features/flow-builder';
 import { useTestingRun } from '@/features/testing/communication/hooks/useTestingRun';
@@ -8,6 +8,7 @@ import {
   EMPTY_FIELD_VALUE,
   RUN_STATUS_TONES,
   STEP_STATUS_TONES,
+  TRACE_FALLBACK_WIDTH,
 } from '@/features/testing/constants/trace.constants';
 import { TRACE_LEGEND } from '@/features/testing/containers/TracePanel/TracePanel.constants';
 import type { TracePanelProps } from '@/features/testing/containers/TracePanel/TracePanel.typedefs';
@@ -19,6 +20,7 @@ import {
 } from '@/features/testing/logic/helpers/output.helpers';
 import {
   drawTrace,
+  fitTraceScale,
   focusNodeId,
   layoutTrace,
   nodeState,
@@ -28,6 +30,7 @@ import { RunTrace } from '@/features/testing/view/RunTrace';
 import { TurnDetails } from '@/features/testing/view/TurnDetails';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { TextLink } from '@/shared/ui/actions/TextLink';
+import { useMeasuredWidth } from '@/shared/ui/charts/ChartTooltip';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { Legend, LegendMarkerKind } from '@/shared/ui/display/Legend';
 import { IconName } from '@/shared/ui/foundations/Icon';
@@ -46,9 +49,11 @@ export function TracePanel({
 }: TracePanelProps) {
   const { t } = useTranslation(TESTING_NAMESPACE);
   const { locale } = useLocale();
+  const [graph, setGraph] = useState<HTMLDivElement | null>(null);
+  const graphWidth = useMeasuredWidth(graph, TRACE_FALLBACK_WIDTH);
   const details = useTestingRun(run?.id ?? null, run?.status ?? null);
   const slots = useMemo(() => (flow === null ? [] : layoutTrace(flow)), [flow]);
-  const edges = useMemo(() => (flow === null ? [] : traceEdges(flow.edges, slots)), [flow, slots]);
+  const edges = useMemo(() => (flow === null ? [] : traceEdges(flow, slots)), [flow, slots]);
   const active = run !== null && isActiveRun(run);
   const steps = details.run?.steps ?? [];
   const inspected = steps.findLast((step) => step.nodeId === selectedNodeId) ?? null;
@@ -59,6 +64,7 @@ export function TracePanel({
     selectable: steps.some((step) => step.nodeId === slot.id),
     selected: slot.id === inspected?.nodeId,
   }));
+  const drawing = drawTrace(cells, edges);
   const node = inspected?.nodeId ?? focusNodeId(details.run);
   const slotById = new Map(slots.map((slot) => [slot.id, slot]));
   const turn = details.run;
@@ -92,7 +98,7 @@ export function TracePanel({
         <p className={styles.title}>
           {turnNumber === null ? t('trace.idle') : t('trace.title', { number: turnNumber })}
         </p>
-        <div className={styles.graph}>
+        <div className={styles.graph} ref={setGraph}>
           {flow === null || details.failed ? (
             <EmptyState
               icon={IconName.Alert}
@@ -101,7 +107,8 @@ export function TracePanel({
             />
           ) : (
             <RunTrace
-              drawing={drawTrace(cells, edges)}
+              drawing={drawing}
+              scale={fitTraceScale(graphWidth, drawing.size.x)}
               onSelectNode={(id) => onSelectNode(id === selectedNodeId ? null : id)}
             />
           )}

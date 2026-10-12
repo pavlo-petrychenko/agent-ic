@@ -13,7 +13,7 @@ import {
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import { context, propagation, trace } from '@opentelemetry/api';
 import { node, tracing } from '@opentelemetry/sdk-node';
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { ConversationActivityKind, conversationActivityChannel } from '@/modules/conversations';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
 import { RUN_TRACE_NAME } from '@/modules/runs/constants/run-tracing.constants';
@@ -93,6 +93,7 @@ import {
   createRunsTestbed,
   seedExecutableRun,
   storeFlowJson,
+  watchStep,
 } from '@test/support/helpers/runs-testing.helpers';
 import { startMockLlm } from '@test/support/services/mock-llm.service';
 import type { MockLlmService } from '@test/support/services/mock-llm.service';
@@ -420,9 +421,7 @@ describe('RunExecutionService', () => {
       holder.script(held.id, StepScript.Hold);
 
       const running = execute(seeded);
-      await vi.waitFor(() => {
-        expect(testbed.executor.callsFor(seeded.run.id, FOURTH_STEP_ID)).toBe(1);
-      });
+      await testbed.executor.reached(seeded.run.id, FOURTH_STEP_ID);
       holder.release(held.id);
 
       expect(await running).toBe(RunStatus.Succeeded);
@@ -474,13 +473,10 @@ describe('RunExecutionService', () => {
     testbed.executor.script(FIRST_STEP_ID, StepScript.Fail);
     testbed.executor.script(SECOND_STEP_ID, StepScript.Hold);
 
+    const escalated = await watchStep(testbed, seeded, ESCALATION_NODE_ID, RunStepStatus.Succeeded);
+
     const running = execute(seeded);
-    await vi.waitFor(async () => {
-      const { steps } = await stored(seeded);
-      expect(steps.find((step) => step.nodeId === ESCALATION_NODE_ID)?.status).toBe(
-        RunStepStatus.Succeeded,
-      );
-    });
+    await escalated.reached;
     testbed.executor.release(SECOND_STEP_ID);
 
     expect(await running).toBe(RunStatus.Escalated);
@@ -497,9 +493,7 @@ describe('RunExecutionService', () => {
     testbed.observer.script(OBSERVER_NODE_ID, StepScript.Hold);
 
     const running = execute(seeded);
-    await vi.waitFor(() => {
-      expect(testbed.executor.callsFor(seeded.run.id, FOURTH_STEP_ID)).toBe(1);
-    });
+    await testbed.executor.reached(seeded.run.id, FOURTH_STEP_ID);
     testbed.observer.release(OBSERVER_NODE_ID);
 
     expect(await running).toBe(RunStatus.Succeeded);
@@ -578,10 +572,10 @@ describe('RunExecutionService background branches', () => {
     mock.json(answer).json(answer);
 
     const running = execute(seeded);
-    await vi.waitFor(() => {
-      expect(testbed.executor.callsFor(seeded.run.id, SEND_NODE_ID)).toBe(1);
-      expect(probe.hits(OutboundTestPath.Held)).toBe(1);
-    });
+    await Promise.all([
+      testbed.executor.reached(seeded.run.id, SEND_NODE_ID),
+      probe.arrived(OutboundTestPath.Held),
+    ]);
     const whileHeld = await stepsOf(seeded);
     probe.release();
 
@@ -589,6 +583,8 @@ describe('RunExecutionService background branches', () => {
     const sent = testbed.executor.executions.find(({ run }) => run.id === seeded.run.id);
     const posted = (await stepsOf(seeded)).find((step) => step.nodeId === TEST_API_NODE_ID);
     expect(hasBlockingIssues(validateFlow(flow))).toBe(false);
+    expect(probe.hits(OutboundTestPath.Held)).toBe(1);
+    expect(testbed.executor.callsFor(seeded.run.id, SEND_NODE_ID)).toBe(1);
     expect(whileHeld.find((step) => step.nodeId === TEST_API_NODE_ID)?.status).toBe(
       RunStepStatus.Running,
     );

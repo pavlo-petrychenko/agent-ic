@@ -3,12 +3,16 @@ import {
   FLOW_SCHEMA_VERSION,
   MessageContentKind,
   NodeType,
+  PortName,
   QuickRepliesKind,
+  WaitFor,
 } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
+import { TRACE_MIN_SCALE, TRACE_NODE } from '@/features/testing/constants/trace.constants';
 import {
   drawTrace,
+  fitTraceScale,
   focusNodeId,
   layoutTrace,
   nodeState,
@@ -101,18 +105,123 @@ describe('layoutTrace', () => {
   });
 });
 
+describe('layoutTrace with a parallel', () => {
+  const parallel: FlowNode = {
+    ...TRACE_REPLY,
+    type: NodeType.Parallel,
+    config: { waitFor: WaitFor.All },
+  };
+  const branch = (source: string, target: string, background = false) => ({
+    ...edge(source, target),
+    sourcePort: PortName.Branches,
+    ...(background ? { background } : {}),
+  });
+  const flow = flowOf(
+    [
+      node('a', TRACE_TRIGGER),
+      node('p', parallel),
+      node('answer'),
+      node('hand_off'),
+      node('score'),
+      node('save'),
+      node('reply'),
+    ],
+    [
+      edge('a', 'p'),
+      branch('p', 'answer'),
+      { ...edge('answer', 'hand_off'), sourcePort: PortName.Error },
+      branch('p', 'score', true),
+      edge('score', 'save'),
+      edge('p', 'reply'),
+    ],
+  );
+  const slots = layoutTrace(flow);
+  const at = (id: string) => slots.find((slot) => slot.id === id);
+
+  it('places the join target below every branch, centered under them', () => {
+    const deepestBranchRow = Math.max(
+      ...['answer', 'hand_off', 'score', 'save'].map((id) => at(id)?.row ?? -1),
+    );
+
+    expect(at('answer')?.row).toBe(at('score')?.row);
+    expect(at('reply')?.row).toBe(deepestBranchRow + 1);
+    expect(at('reply')?.column).toBe(
+      ((at('answer')?.column ?? 0) + (at('score')?.column ?? 0)) / 2,
+    );
+  });
+
+  it('keeps every node within the computed width of the drawing', () => {
+    const cells = slots.map((slot) => ({
+      ...slot,
+      kind: NodeKind.Agent,
+      icon: IconName.Msg,
+      state: RunNodeState.Done,
+      selectable: true,
+      selected: false,
+    }));
+    const drawing = drawTrace(cells, traceEdges(flow, slots));
+
+    expect(drawing.size.x).toBe(398);
+    for (const placed of drawing.nodes) {
+      expect(placed.x).toBeGreaterThanOrEqual(0);
+      expect(placed.x + TRACE_NODE.width).toBeLessThanOrEqual(drawing.size.x);
+    }
+  });
+});
+
+describe('fitTraceScale', () => {
+  it('keeps the full size when the trace fits the panel', () => {
+    expect(fitTraceScale(500, 398)).toBe(1);
+    expect(fitTraceScale(398, 398)).toBe(1);
+    expect(fitTraceScale(300, 0)).toBe(1);
+  });
+
+  it('shrinks the trace to the panel width', () => {
+    expect(fitTraceScale(300, 400)).toBe(0.75);
+  });
+
+  it('stops at the minimum scale so the panel scrolls instead', () => {
+    expect(fitTraceScale(100, 400)).toBe(TRACE_MIN_SCALE);
+    expect(fitTraceScale(-5, 400)).toBe(TRACE_MIN_SCALE);
+  });
+});
+
 describe('traceEdges', () => {
   const flow = flowOf(
     [node('a', TRACE_TRIGGER), node('b'), node('c'), node('d')],
     [edge('a', 'b'), edge('b', 'c'), edge('b', 'd'), edge('b', 'gone')],
   );
-  const edges = traceEdges(flow.edges, layoutTrace(flow));
+  const edges = traceEdges(flow, layoutTrace(flow));
 
   it('connects every placed source to every placed target, branches included', () => {
     expect(edges.map(({ id, source, target }) => [id, source.column, target.column])).toEqual([
       ['a-b', 0, 0],
       ['b-c', 0, 0],
       ['b-d', 0, 1],
+    ]);
+  });
+
+  it('marks only a background branch of a parallel node as dashed', () => {
+    const parallel: FlowNode = {
+      ...TRACE_REPLY,
+      type: NodeType.Parallel,
+      config: { waitFor: WaitFor.All },
+    };
+    const branches = flowOf(
+      [node('a', TRACE_TRIGGER), node('p', parallel), node('b'), node('c')],
+      [
+        edge('a', 'p'),
+        { ...edge('p', 'b'), sourcePort: PortName.Branches, background: true },
+        { ...edge('p', 'c'), sourcePort: PortName.Branches },
+      ],
+    );
+
+    expect(
+      traceEdges(branches, layoutTrace(branches)).map(({ id, dashed }) => [id, dashed]),
+    ).toEqual([
+      ['a-p', false],
+      ['p-b', true],
+      ['p-c', false],
     ]);
   });
 });
@@ -130,7 +239,7 @@ describe('drawTrace', () => {
     selectable: true,
     selected: false,
   }));
-  const drawing = drawTrace(cells, traceEdges(flow.edges, cells));
+  const drawing = drawTrace(cells, traceEdges(flow, cells));
 
   it('draws a straight line down a column and a curve into another column', () => {
     expect(drawing.paths.map((path) => path.d)).toEqual([

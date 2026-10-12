@@ -190,6 +190,7 @@ Not drawn on this page (values kept from component pages, unchanged; names added
 | --border-width | 1px solid `--color-line` | cards, inputs, tables, menus |
 | --border-width-dash | 1.5px dashed `--color-line-dash` | add tile, drop zone, empty slots (filter chip uses 1px dashed) |
 | --border-width-strong | 2px | indicators and selection |
+| --edge-dasharray | 5 4 | dash pattern of a background branch edge, in the flow builder and the test trace |
 | indicator | 2px `--color-accent` | tab underline, selected row / nav bar (inset left), timeline cursor |
 | selection | 2px accent + 4px glow halo | selected card, option, node |
 | focus ring | 2px gap + 2px accent | see Focus |

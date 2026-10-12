@@ -263,7 +263,10 @@ describe('VersionsPage', () => {
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('button', { name: 'Restore v2' }));
 
-    expect(await within(dialog).findByRole('alert')).toBeInTheDocument();
+    expect(
+      await within(dialog).findByText('The server cannot be reached. Check your connection.'),
+    ).toBeInTheDocument();
+    expect(dialog).toBeInTheDocument();
   });
 
   it('offers a retry when the comparison fails to load', async () => {

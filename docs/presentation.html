@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agent-ic — презентація</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-bg: #f4f2ee;
+  --color-panel: #fbfaf8;
+  --color-card: #ffffff;
+  --color-soft: #f1efea;
+  --color-chip: #ede9e2;
+  --color-line: #e3dfd8;
+  --color-line-node: #e1dcd3;
+  --color-edge: #9c958a;
+  --color-grid: #d9d4cb;
+  --color-ink: #1f1d1a;
+  --color-ink-secondary: #3b3833;
+  --color-mute: #5e5a53;
+  --color-accent: #0f6b6b;
+  --color-accent-light: #e3f0ef;
+  --color-accent-dark: #0a4f4f;
+  --color-dark: #2a2723;
+  --color-ok: #1c6e4c;
+  --color-ok-light: #e2f1ea;
+  --hue-trig-bg: #2a2723; --hue-trig-fg: #ffffff;
+  --hue-agent-bg: #ece7f6; --hue-agent-fg: #5e43a8;
+  --hue-compl-bg: #e6eef8; --hue-compl-fg: #2b5e9e;
+  --hue-router-bg: #f5ecdf; --hue-router-fg: #8e5410;
+  --hue-par-bg: #e9f0e1; --hue-par-fg: #4a6a2b;
+  --hue-send-bg: #e2f1ea; --hue-send-fg: #1c6e4c;
+  --hue-api-bg: #e4eef3; --hue-api-fg: #23617a;
+  --hue-kb-bg: #f1e8e1; --hue-kb-fg: #74492e;
+  --hue-esc-bg: #f7e4e1; --hue-esc-fg: #a53428;
+  --font-sans: 'Onest', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --radius: 12px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--color-dark); }
+body { font-family: var(--font-sans); color: var(--color-ink); overflow: hidden; }
+
+.stage { position: fixed; inset: 0; display: grid; place-items: center; }
+.deck { width: 1280px; height: 720px; position: relative; transform-origin: center; }
+.slide {
+  position: absolute; inset: 0; display: none; flex-direction: column;
+  padding: 64px 80px 56px; background: var(--color-bg); border-radius: 6px; overflow: hidden;
+}
+.slide.active { display: flex; }
+.slide::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image: radial-gradient(var(--color-grid) 1px, transparent 1px); background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 40%, #000 100%);
+          mask-image: linear-gradient(to bottom, transparent 40%, #000 100%);
+}
+.slide > * { position: relative; z-index: 1; }
+
+.eyebrow { font: 500 14px var(--font-mono); color: var(--color-accent); letter-spacing: .04em; text-transform: uppercase; margin: 0 0 10px; }
+h1 { font: 700 64px/1.05 var(--font-sans); margin: 0; letter-spacing: -.02em; }
+h2 { font: 650 40px/1.15 var(--font-sans); margin: 0 0 28px; letter-spacing: -.01em; }
+h3 { font: 600 19px/1.3 var(--font-sans); margin: 0 0 6px; }
+p, li { font-size: 20px; line-height: 1.5; color: var(--color-ink-secondary); }
+p { margin: 0; }
+.lead { font-size: 24px; line-height: 1.45; color: var(--color-ink-secondary); max-width: 900px; }
+.mute { color: var(--color-mute); }
+.mono { font-family: var(--font-mono); }
+
+.footer {
+  position: absolute; left: 80px; right: 80px; bottom: 22px; z-index: 2;
+  display: flex; justify-content: space-between; font: 500 13px var(--font-mono); color: var(--color-mute);
+}
+.logo { display: inline-flex; align-items: center; gap: 8px; }
+.logo i { width: 18px; height: 18px; border-radius: 5px; background: var(--color-accent); display: inline-block; }
+
+.grid { display: grid; gap: 18px; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.card {
+  background: var(--color-card); border: 1px solid var(--color-line); border-radius: var(--radius);
+  padding: 22px 24px;
+}
+.card p { font-size: 17px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+  font: 500 14px var(--font-sans); background: var(--color-chip); color: var(--color-ink-secondary);
+}
+
+.title-slide { justify-content: center; }
+.title-slide h1 { font-size: 88px; }
+.title-slide .lead { margin-top: 20px; }
+.authors { margin-top: 56px; display: flex; gap: 12px; flex-wrap: wrap; }
+.authors .chip { font-size: 17px; padding: 8px 16px; background: var(--color-card); border: 1px solid var(--color-line); }
+
+.steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; counter-reset: s; }
+.step { background: var(--color-card); border: 1px solid var(--color-line); border-radius: var(--radius); padding: 20px; }
+.step::before {
+  counter-increment: s; content: counter(s); display: grid; place-items: center;
+  width: 30px; height: 30px; border-radius: 8px; margin-bottom: 14px;
+  background: var(--color-accent-light); color: var(--color-accent-dark); font: 600 15px var(--font-mono);
+}
+.step p { font-size: 16px; }
+
+.node {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 9px;
+  border: 1px solid var(--color-line-node); background: var(--color-card); font: 500 15px var(--font-sans);
+  white-space: nowrap; box-shadow: 0 1px 0 rgb(0 0 0 / 4%);
+}
+.node b { flex: none; width: 22px; height: 22px; border-radius: 6px; display: inline-grid; place-items: center; font: 600 11px var(--font-mono); }
+.n-trig b { background: var(--hue-trig-bg); color: var(--hue-trig-fg); }
+.n-agent b { background: var(--hue-agent-bg); color: var(--hue-agent-fg); }
+.n-compl b { background: var(--hue-compl-bg); color: var(--hue-compl-fg); }
+.n-router b { background: var(--hue-router-bg); color: var(--hue-router-fg); }
+.n-par b { background: var(--hue-par-bg); color: var(--hue-par-fg); }
+.n-send b { background: var(--hue-send-bg); color: var(--hue-send-fg); }
+.n-api b { background: var(--hue-api-bg); color: var(--hue-api-fg); }
+.n-esc b { background: var(--hue-esc-bg); color: var(--hue-esc-fg); }
+.n-kb b { background: var(--hue-kb-bg); color: var(--hue-kb-fg); }
+
+.palette { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 28px; }
+.palette .row { display: flex; align-items: flex-start; gap: 14px; }
+.palette .row .node { min-width: 250px; }
+.palette .row p { font-size: 16px; padding-top: 8px; }
+
+.dg { position: relative; margin: 14px auto 0; }
+.dg svg { position: absolute; inset: 0; overflow: visible; }
+.dg svg path { fill: none; stroke: var(--color-edge); stroke-width: 1.6; }
+.dg svg path.dash { stroke-dasharray: 6 5; }
+.dg > .node { position: absolute; height: 36px; justify-content: center; }
+.dg .elabel {
+  position: absolute; transform: translate(-50%, -50%); padding: 1px 6px; border-radius: 6px;
+  font: 500 12px var(--font-mono); color: var(--color-mute); background: var(--color-bg); white-space: nowrap;
+}
+.flow-card .dg .elabel { background: var(--color-panel); }
+.flow-card { background: var(--color-panel); border: 1px solid var(--color-line); border-radius: var(--radius); padding: 18px 20px 16px; }
+.flow-card h3 { margin-bottom: 4px; }
+.flow-card p { font-size: 15px; }
+
+.pipe { display: flex; align-items: stretch; gap: 0; }
+.pipe .stage-box {
+  flex: 1; background: var(--color-card); border: 1px solid var(--color-line); border-radius: var(--radius);
+  padding: 18px 16px; text-align: left;
+}
+.pipe .stage-box h3 { font-size: 17px; }
+.pipe .stage-box p { font-size: 14.5px; line-height: 1.45; }
+.pipe .arrow { width: 34px; display: grid; place-items: center; color: var(--color-edge); font: 600 20px var(--font-mono); }
+.notes { margin-top: 26px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.note { border-left: 3px solid var(--color-accent); padding: 4px 0 4px 14px; }
+.note p { font-size: 16px; }
+
+.dg > .box {
+  position: absolute; background: var(--color-card); border: 1px solid var(--color-line); border-radius: var(--radius);
+  padding: 13px 16px; font-size: 15px; line-height: 1.4; color: var(--color-ink-secondary);
+}
+.dg > .box h3 { font-size: 16px; margin: 0 0 3px; color: var(--color-ink); }
+.dg > .box.core { background: var(--color-accent-light); border-color: #bcd9d7; }
+.dg > .box.ext { background: var(--color-soft); border-style: dashed; }
+.dg > .box.group { background: transparent; border: 1.5px dashed var(--color-edge); padding: 10px 14px; }
+.dg > .box.group h3 { font: 500 13px var(--font-mono); color: var(--color-mute); }
+.dg > .box .mono { font-size: 12.5px; color: var(--color-mute); }
+.dg > .box .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.dg > .box .chips .chip { font-size: 13px; padding: 3px 9px; }
+
+.stack { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.stack .card h3 { color: var(--color-accent-dark); font-size: 16px; text-transform: uppercase; letter-spacing: .04em; font-family: var(--font-mono); font-weight: 500; }
+.stack .card ul { margin: 6px 0 0; padding-left: 18px; }
+.stack .card li { font-size: 16.5px; line-height: 1.55; }
+
+.road { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; margin-top: 30px; position: relative; }
+.road::before { content: ''; position: absolute; left: 4%; right: 4%; top: 22px; height: 2px; background: var(--color-line); }
+.milestone { position: relative; padding: 0 10px; text-align: center; }
+.milestone .dot {
+  width: 44px; height: 44px; border-radius: 50%; margin: 0 auto 16px; display: grid; place-items: center;
+  font: 600 18px var(--font-mono); border: 2px solid var(--color-line); background: var(--color-card); color: var(--color-mute);
+}
+.milestone.done .dot { background: var(--color-ok-light); border-color: #bfdccb; color: var(--color-ok); }
+.milestone.next .dot { background: var(--color-card); border-color: var(--color-accent); color: var(--color-accent); }
+.milestone h3 { font-size: 17px; }
+.milestone p { font-size: 14.5px; line-height: 1.45; }
+.legend { margin-top: 44px; display: flex; gap: 22px; }
+
+.shot {
+  border-radius: var(--radius); border: 1px solid var(--color-line); background-color: var(--color-card);
+  background-image: var(--img); background-repeat: no-repeat;
+  background-size: calc(var(--zoom, 1) * 100%) auto; background-position: var(--x, 0) var(--y, 0);
+  box-shadow: 0 1px 2px rgb(31 29 26 / 6%), 0 14px 36px -14px rgb(31 29 26 / 28%);
+}
+.title-slide .title-text { max-width: 520px; }
+.title-slide .lead { font-size: 22px; }
+.hero-frame {
+  position: absolute; left: 640px; top: 120px; width: 760px; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--color-line); background: var(--color-panel);
+  box-shadow: 0 2px 4px rgb(31 29 26 / 6%), 0 30px 60px -20px rgb(31 29 26 / 35%);
+}
+.frame-bar { height: 28px; display: flex; align-items: center; gap: 6px; padding: 0 12px; border-bottom: 1px solid var(--color-line); }
+.frame-bar i { width: 9px; height: 9px; border-radius: 50%; background: var(--color-line); }
+.split { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 44px; align-items: center; flex: 1; }
+.split.low { margin-top: 22px; align-items: start; gap: 32px; }
+.points { display: flex; flex-direction: column; gap: 26px; }
+.points.tight { gap: 18px; }
+.point { display: flex; gap: 16px; align-items: flex-start; }
+.point h3 { font-size: 21px; margin-bottom: 4px; }
+.point p { font-size: 18px; line-height: 1.45; }
+.pi {
+  flex: none; width: 40px; height: 40px; border-radius: 10px; display: inline-grid; place-items: center;
+  font: 600 17px var(--font-mono);
+}
+.pi.num { background: var(--color-accent-light); color: var(--color-accent-dark); }
+.authors { flex-wrap: nowrap; }
+.authors .chip { font-size: 15px; padding: 7px 14px; }
+.steps .step .shot { margin-bottom: 14px; box-shadow: none; }
+.steps .step::before { display: none; }
+.steps .step { padding: 12px 12px 16px; }
+.steps .step h3 { font-size: 17px; padding: 0 4px; }
+.steps .step p { font-size: 15px; padding: 0 4px; }
+.pipe .stage-box .pi { width: 32px; height: 32px; font-size: 15px; margin-bottom: 10px; border-radius: 8px; }
+.pipe .stage-box p { font-size: 15px; }
+
+.end { justify-content: center; align-items: flex-start; }
+
+.nav {
+  position: fixed; right: 18px; bottom: 16px; display: flex; gap: 8px; z-index: 5; opacity: .35; transition: opacity .2s;
+}
+.nav:hover { opacity: 1; }
+.nav button {
+  font: 500 14px var(--font-mono); border: 1px solid #ffffff33; background: #ffffff14; color: #fff;
+  border-radius: 8px; padding: 6px 12px; cursor: pointer;
+}
+.progress { position: fixed; left: 0; bottom: 0; height: 3px; background: var(--color-accent); z-index: 5; transition: width .2s; }
+</style>
+</head>
+<body>
+<div class="stage">
+<div class="deck" id="deck">
+
+<!-- 1 -->
+<section class="slide title-slide active">
+  <div class="title-text">
+    <p class="eyebrow">Груповий проєкт</p>
+    <h1>agent-ic</h1>
+    <p class="lead">Конструктор чат-агентів для малого бізнесу: сценарій розмови збирається візуально, агент відповідає клієнтам у месенджерах.</p>
+    <div class="authors">
+      <span class="chip">Павло Петриченко</span>
+      <span class="chip">Марія Клевчук</span>
+      <span class="chip">Валерія Челушкіна</span>
+    </div>
+  </div>
+  <div class="hero-frame"><div class="frame-bar"><i></i><i></i><i></i></div><div class="shot" style="--img:url(presentation-assets/builder.jpg);--zoom:1;--x:0;--y:0;aspect-ratio:16/10;border:0;border-radius:0;box-shadow:none"></div></div>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+  <p class="eyebrow">Ідея</p>
+  <h2>Чат-агент без програміста</h2>
+  <div class="split">
+    <div class="points">
+      <div class="point"><span class="pi" style="background:var(--hue-esc-bg);color:var(--hue-esc-fg)">?</span><div><h3>Проблема</h3><p>Бізнес щодня відповідає в месенджерах на ті самі питання.</p></div></div>
+      <div class="point"><span class="pi" style="background:var(--hue-router-bg);color:var(--hue-router-fg)">≈</span><div><h3>Що є зараз</h3><p>Боти або вміють лише кнопки, або потребують розробника.</p></div></div>
+      <div class="point"><span class="pi" style="background:var(--color-accent-light);color:var(--color-accent-dark)">✓</span><div><h3>Наш підхід</h3><p>Власник сам збирає агента зі схеми кроків, на своїх документах.</p></div></div>
+    </div>
+    <div class="shot" style="--img:url(presentation-assets/builder.jpg);--zoom:1.7;--x:34%;--y:8%;aspect-ratio:4/3;"></div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+  <p class="eyebrow">Сценарії використання</p>
+  <h2>Для чого це потрібно</h2>
+  <div class="split">
+    <div class="points">
+      <div class="point"><span class="pi" style="background:var(--hue-agent-bg);color:var(--hue-agent-fg)">A</span><div><h3>Часті питання</h3><p>Відповіді з документів бізнесу; складне — оператору.</p></div></div>
+      <div class="point"><span class="pi" style="background:var(--hue-router-bg);color:var(--hue-router-fg)">?</span><div><h3>Маршрутизація</h3><p>Запис, ціни, скарга — кожен намір своїм шляхом.</p></div></div>
+      <div class="point"><span class="pi" style="background:var(--hue-api-bg);color:var(--hue-api-fg)">⇄</span><div><h3>Бронювання</h3><p>Агент збирає дані й створює запис через API.</p></div></div>
+      <div class="point"><span class="pi" style="background:var(--hue-par-bg);color:var(--hue-par-fg)">⇉</span><div><h3>Аналітика у фоні</h3><p>Оцінка розмови йде в CRM, не затримуючи відповідь.</p></div></div>
+    </div>
+    <div class="shot" style="--img:url(presentation-assets/agents.jpg);--zoom:1.45;--x:44%;--y:4%;aspect-ratio:4/3;"></div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+  <p class="eyebrow">Як це працює</p>
+  <h2>Шлях від ідеї до агента в месенджері</h2>
+  <div class="split">
+    <div class="points tight">
+      <div class="point"><span class="pi num">1</span><div><h3>Створити агента</h3><p>Порожній сценарій або шаблон.</p></div></div>
+      <div class="point"><span class="pi num">2</span><div><h3>Зібрати сценарій</h3><p>Кроки й зв’язки на полотні.</p></div></div>
+      <div class="point"><span class="pi num">3</span><div><h3>Додати знання</h3><p>Документи, з яких агент відповідає.</p></div></div>
+      <div class="point"><span class="pi num">4</span><div><h3>Перевірити</h3><p>Розмова в симуляторі, видно кожен крок.</p></div></div>
+      <div class="point"><span class="pi num">5</span><div><h3>Опублікувати</h3><p>Нова версія йде в Telegram.</p></div></div>
+    </div>
+    <div class="shot" style="--img:url(presentation-assets/publish.jpg);--zoom:1.5;--x:46%;--y:40%;aspect-ratio:4/3"></div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+  <p class="eyebrow">Будівельні блоки</p>
+  <h2>З чого складається сценарій</h2>
+  <div class="palette">
+    <div class="row"><span class="node n-trig"><b>▶</b>Вхідне повідомлення</span><p>Тригер: з чого починається обробка. Також подія чи розклад.</p></div>
+    <div class="row"><span class="node n-agent"><b>A</b>Агент</span><p>Модель веде розмову: інструкція, знання, інструменти.</p></div>
+    <div class="row"><span class="node n-compl"><b>G</b>Генерація</span><p>Одна відповідь моделі у структурі: намір, оцінка, причина.</p></div>
+    <div class="row"><span class="node n-router"><b>?</b>Маршрутизатор / умова</span><p>Обирає шлях за правилами над даними попередніх кроків.</p></div>
+    <div class="row"><span class="node n-par"><b>⇉</b>Паралельно / об’єднання</span><p>Кілька гілок одночасно; відповідь чекає лише потрібні.</p></div>
+    <div class="row"><span class="node n-api"><b>⇄</b>API-запит</span><p>Виклик зовнішнього сервісу: CRM, бронювання, каталог.</p></div>
+    <div class="row"><span class="node n-send"><b>✉</b>Надіслати повідомлення</span><p>Відповідь клієнту, з кнопками швидких відповідей.</p></div>
+    <div class="row"><span class="node n-esc"><b>!</b>Ескалація / вихід</span><p>Передати розмову людині або завершити її.</p></div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="slide">
+  <p class="eyebrow">Приклади</p>
+  <h2>Два типові сценарії</h2>
+  <div class="grid g2" style="gap:24px">
+    <div class="flow-card">
+      <h3>Маршрутизація за наміром</h3>
+      <p class="mute">Спершу визначаємо намір, далі кожен іде своїм шляхом.</p>
+      <div class="dg" data-diagram="router"></div>
+    </div>
+    <div class="flow-card">
+      <h3>Відповідь і оцінка паралельно</h3>
+      <p class="mute">Відповідь не чекає фонову гілку (пунктир).</p>
+      <div class="dg" data-diagram="parallel"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+  <p class="eyebrow">Виконання</p>
+  <h2>Що відбувається з повідомленням</h2>
+  <div class="pipe">
+    <div class="stage-box"><span class="pi" style="background:var(--hue-trig-bg);color:var(--hue-trig-fg)">▶</span><h3>Канал</h3><p>Клієнт пише в Telegram</p></div>
+    <div class="arrow">→</div>
+    <div class="stage-box"><span class="pi" style="background:var(--hue-compl-bg);color:var(--hue-compl-fg)">✎</span><h3>Розмова</h3><p>Повідомлення збережене один раз</p></div>
+    <div class="arrow">→</div>
+    <div class="stage-box"><span class="pi" style="background:var(--hue-par-bg);color:var(--hue-par-fg)">≡</span><h3>Черга</h3><p>Запуск стає фоновою задачею</p></div>
+    <div class="arrow">→</div>
+    <div class="stage-box"><span class="pi" style="background:var(--hue-agent-bg);color:var(--hue-agent-fg)">⚙</span><h3>Рушій</h3><p>Кроки йдуть по графу</p></div>
+    <div class="arrow">→</div>
+    <div class="stage-box"><span class="pi" style="background:var(--hue-send-bg);color:var(--hue-send-fg)">✉</span><h3>Відповідь</h3><p>Доставлена рівно один раз</p></div>
+  </div>
+  <div class="split low">
+    <div class="points tight">
+      <div class="note"><p><b>Закріплена версія.</b> Запуск завершується на тій версії, з якої почався.</p></div>
+      <div class="note"><p><b>Повтор без дублів.</b> Після збою виконані кроки пропускаються.</p></div>
+      <div class="note"><p><b>Той самий рушій.</b> Симулятор запускає чернетку тим самим кодом.</p></div>
+    </div>
+    <div class="shot" style="--img:url(presentation-assets/escalation.jpg);--zoom:1.55;--x:46%;--y:28%;aspect-ratio:16/8.2;"></div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="slide">
+  <p class="eyebrow">Архітектура</p>
+  <h2>Модульний моноліт, три ролі процесу</h2>
+  <div class="dg" data-diagram="arch"></div>
+</section>
+
+<!-- 9 -->
+<section class="slide">
+  <p class="eyebrow">Стек</p>
+  <h2>Технології</h2>
+  <div class="stack">
+    <div class="card"><h3>Бекенд</h3><ul><li>Node.js, TypeScript, NestJS</li><li>GraphQL (Apollo) і REST</li><li>Drizzle ORM</li><li>BullMQ на Redis</li></ul></div>
+    <div class="card"><h3>Фронтенд</h3><ul><li>React, Vite</li><li>Apollo Client</li><li>власна дизайн-система на токенах</li><li>i18n: українська та англійська</li></ul></div>
+    <div class="card"><h3>Дані та ШІ</h3><ul><li>PostgreSQL з RLS, pgvector</li><li>Vercel AI SDK</li><li>OpenAI-сумісний провайдер</li><li>трасування в Langfuse</li></ul></div>
+    <div class="card"><h3>Монорепозиторій</h3><ul><li>pnpm, Turborepo</li><li>спільні пакети: контракти, схема сценарію</li><li>правила структури перевіряються в CI</li></ul></div>
+    <div class="card"><h3>Інфраструктура</h3><ul><li>Docker, Helm</li><li>k3s і Argo CD (GitOps)</li><li>Cloudflare</li></ul></div>
+    <div class="card"><h3>Якість</h3><ul><li>Vitest, Testcontainers</li><li>oxlint, dependency-cruiser</li><li>GitHub Actions</li></ul></div>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="slide">
+  <p class="eyebrow">Дорожня карта</p>
+  <h2>Де ми зараз</h2>
+  <div class="road">
+    <div class="milestone done"><div class="dot">✓</div><h3>Ідея</h3><p>Ідея та обсяг MVP сформульовані й описані.</p></div>
+    <div class="milestone done"><div class="dot">✓</div><h3>Дизайн</h3><p>Інтерфейс і дизайн-система готові.</p></div>
+    <div class="milestone done"><div class="dot">✓</div><h3>Налаштування</h3><p>Репозиторій, архітектура, CI/CD та інфраструктура.</p></div>
+    <div class="milestone next"><div class="dot">4</div><h3>Реалізація</h3><p>Основні функції: конструктор, симулятор, знання, Telegram.</p></div>
+    <div class="milestone"><div class="dot">5</div><h3>Реліз</h3></div>
+    <div class="milestone"><div class="dot">6</div><h3>Тестування</h3></div>
+  </div>
+  <div class="legend">
+    <span class="chip" style="background:var(--color-ok-light);color:var(--color-ok)">✓ виконано</span>
+    <span class="chip" style="background:var(--color-accent-light);color:var(--color-accent-dark)">наступний крок</span>
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="slide end">
+  <p class="eyebrow">agent-ic</p>
+  <h1>Дякуємо!</h1>
+  <p class="lead" style="margin-top:18px">Запитання?</p>
+</section>
+
+</div>
+</div>
+<div class="progress" id="progress"></div>
+<div class="nav"><button id="prev" aria-label="Попередній слайд">←</button><button id="next" aria-label="Наступний слайд">→</button></div>
+<script>
+(function () {
+  var deck = document.getElementById('deck');
+  var slides = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
+  var progress = document.getElementById('progress');
+  var current = 0;
+  var SVG = 'http://www.w3.org/2000/svg';
+  var DIR = { t: [0, -1], b: [0, 1], l: [-1, 0], r: [1, 0] };
+  function n(id, x, y, w, kind, icon, text) { return { id: id, x: x, y: y, w: w, h: 36, cls: 'node n-' + kind, html: '<b>' + icon + '</b>' + text }; }
+  function bx(id, x, y, w, h, cls, html) { return { id: id, x: x, y: y, w: w, h: h, cls: 'box ' + cls, html: html }; }
+  var DIAGRAMS = {
+    router: { w: 500, h: 336, nodes: [
+      n('msg', 175, 0, 150, 'trig', '▶', 'Повідомлення'),
+      n('intent', 165, 64, 170, 'compl', 'G', 'Намір клієнта'),
+      n('router', 160, 128, 180, 'router', '?', 'Маршрутизатор'),
+      n('book', 0, 230, 112, 'agent', 'A', 'Запис'),
+      n('price', 128, 230, 112, 'send', '✉', 'Прайс'),
+      n('esc', 256, 230, 118, 'esc', '!', 'Оператор'),
+      n('other', 390, 230, 110, 'agent', 'A', 'Агент'),
+      n('send1', 0, 300, 112, 'send', '✉', 'Відповідь'),
+      n('send2', 390, 300, 110, 'send', '✉', 'Відповідь')
+    ], edges: [
+      ['msg:b', 'intent:t'], ['intent:b', 'router:t'],
+      ['router:b', 'book:t', 'запис', 0.7], ['router:b', 'price:t', 'ціни', 0.7],
+      ['router:b', 'esc:t', 'скарга', 0.7], ['router:b', 'other:t', 'інше', 0.7],
+      ['book:b', 'send1:t'], ['other:b', 'send2:t']
+    ] },
+    parallel: { w: 500, h: 336, nodes: [
+      n('msg', 175, 0, 150, 'trig', '▶', 'Повідомлення'),
+      n('par', 170, 64, 160, 'par', '⇉', 'Паралельно'),
+      n('agent', 30, 150, 120, 'agent', 'A', 'Агент'),
+      n('score', 310, 150, 180, 'compl', 'G', 'Оцінка настрою'),
+      n('esc', 0, 230, 130, 'esc', '!', 'Оператор'),
+      n('api', 320, 230, 160, 'api', '⇄', 'API: у CRM'),
+      n('send', 175, 300, 150, 'send', '✉', 'Відповідь')
+    ], edges: [
+      ['msg:b', 'par:t'],
+      ['par:b', 'agent:t', 'чекаємо', 0.55],
+      ['par:b', 'score:t', 'фоном', 0.55, true],
+      ['agent:b', 'esc:t', 'помилка', 0.5],
+      ['score:b', 'api:t', null, 0.5, true],
+      ['par:b', 'send:t', 'після об’єднання', 0.62]
+    ] },
+    arch: { w: 1120, h: 420, nodes: [
+      bx('group', 260, 0, 320, 418, 'group', '<h3>NestJS · один застосунок</h3>'),
+      bx('web', 0, 44, 190, 94, 'ext', '<h3>Панель</h3>React SPA<div class="mono">дашборд, конструктор</div>'),
+      bx('chan', 0, 166, 190, 94, 'ext', '<h3>Канали</h3>Telegram, API-канал<div class="mono">вебхуки</div>'),
+      bx('api', 290, 44, 260, 94, 'core', '<h3>api</h3>GraphQL і підписки<div class="mono">дані панелі в реальному часі</div>'),
+      bx('gw', 290, 166, 260, 94, 'core', '<h3>gateway</h3>REST для каналів<div class="mono">приймає повідомлення</div>'),
+      bx('worker', 290, 296, 260, 94, 'core', '<h3>worker</h3>фонові задачі<div class="mono">рушій сценаріїв, доставка</div>'),
+      bx('pg', 690, 44, 220, 94, '', '<h3>PostgreSQL</h3>RLS на кожен простір<div class="mono">pgvector + BM25</div>'),
+      bx('redis', 690, 166, 220, 94, '', '<h3>Redis</h3>черги BullMQ<div class="mono">pub/sub для підписок</div>'),
+      bx('llm', 690, 296, 220, 94, 'ext', '<h3>LLM-провайдер</h3>OpenAI-сумісний<div class="mono">резервна модель</div>'),
+      bx('mods', 960, 44, 160, 216, '', '<h3>Модулі</h3><div class="chips"><span class="chip">identity</span><span class="chip">agents</span><span class="chip">conversations</span><span class="chip">channels</span><span class="chip">runs</span><span class="chip">knowledge</span></div>'),
+      bx('lf', 960, 296, 160, 94, 'ext', '<h3>Langfuse</h3><div class="mono">трейси викликів</div>')
+    ], edges: [
+      ['web:r', 'api:l', 'GraphQL', 0.5], ['chan:r', 'gw:l', 'REST', 0.5],
+      [{ x: 580, y: 91, s: 'r' }, 'pg:l', 'SQL', 0.5],
+      [{ x: 580, y: 213, s: 'r' }, 'redis:l', 'черги', 0.5],
+      ['worker:r', 'llm:l', 'AI SDK', 0.5], ['llm:r', 'lf:l', null, 0.5, true]
+    ] }
+  };
+  function anchor(map, ref) {
+    if (typeof ref !== 'string') return ref;
+    var parts = ref.split(':'), box = map[parts[0]], s = parts[1];
+    var x = s === 'l' ? box.x : s === 'r' ? box.x + box.w : box.x + box.w / 2;
+    var y = s === 't' ? box.y : s === 'b' ? box.y + box.h : box.y + box.h / 2;
+    return { x: x, y: y, s: s };
+  }
+  function bezier(p, t) {
+    var u = 1 - t;
+    return [0, 1].map(function (k) { return u * u * u * p[0][k] + 3 * u * u * t * p[1][k] + 3 * u * t * t * p[2][k] + t * t * t * p[3][k]; });
+  }
+  function draw(el) {
+    var spec = DIAGRAMS[el.getAttribute('data-diagram')];
+    var map = {};
+    el.style.width = spec.w + 'px';
+    el.style.height = spec.h + 'px';
+    var svg = document.createElementNS(SVG, 'svg');
+    svg.setAttribute('width', spec.w);
+    svg.setAttribute('height', spec.h);
+    svg.innerHTML = '<defs><marker id="arr-' + el.getAttribute('data-diagram') + '" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9c958a" stroke="none"/></marker></defs>';
+    el.appendChild(svg);
+    spec.nodes.forEach(function (node) {
+      map[node.id] = node;
+      var div = document.createElement('div');
+      div.className = node.cls;
+      div.style.cssText = 'left:' + node.x + 'px;top:' + node.y + 'px;width:' + node.w + 'px;height:' + node.h + 'px';
+      div.innerHTML = node.html;
+      el.appendChild(div);
+    });
+    spec.edges.forEach(function (edge) {
+      var a = anchor(map, edge[0]), b = anchor(map, edge[1]);
+      var d = Math.max(24, Math.hypot(b.x - a.x, b.y - a.y) / 2.4);
+      var pts = [[a.x, a.y], [a.x + DIR[a.s][0] * d, a.y + DIR[a.s][1] * d], [b.x + DIR[b.s][0] * d, b.y + DIR[b.s][1] * d], [b.x, b.y]];
+      var path = document.createElementNS(SVG, 'path');
+      path.setAttribute('d', 'M' + pts[0] + ' C' + pts[1] + ' ' + pts[2] + ' ' + pts[3]);
+      path.setAttribute('marker-end', 'url(#arr-' + el.getAttribute('data-diagram') + ')');
+      if (edge[4]) path.setAttribute('class', 'dash');
+      svg.appendChild(path);
+      if (edge[2]) {
+        var at = bezier(pts, edge[3] || 0.5);
+        var label = document.createElement('span');
+        label.className = 'elabel';
+        label.style.cssText = 'left:' + at[0] + 'px;top:' + at[1] + 'px';
+        label.textContent = edge[2];
+        el.appendChild(label);
+      }
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-diagram]'), draw);
+  slides.forEach(function (slide, i) {
+    if (i === 0) return;
+    var footer = document.createElement('div');
+    footer.className = 'footer';
+    footer.innerHTML = '<span class="logo"><i></i>agent-ic</span><span>' + (i + 1) + ' / ' + slides.length + '</span>';
+    slide.appendChild(footer);
+  });
+  function show(index) {
+    current = Math.max(0, Math.min(slides.length - 1, index));
+    slides.forEach(function (slide, i) { slide.classList.toggle('active', i === current); });
+    progress.style.width = ((current + 1) / slides.length * 100) + '%';
+    try { history.replaceState(null, '', '#' + (current + 1)); } catch (e) {}
+  }
+  function fit() {
+    var scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    deck.style.transform = 'scale(' + scale + ')';
+  }
+  document.addEventListener('keydown', function (event) {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].indexOf(event.key) >= 0) { event.preventDefault(); show(current + 1); }
+    if (['ArrowLeft', 'PageUp', 'Backspace'].indexOf(event.key) >= 0) { event.preventDefault(); show(current - 1); }
+    if (event.key === 'Home') show(0);
+    if (event.key === 'End') show(slides.length - 1);
+    if (event.key === 'f') { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+  });
+  document.getElementById('prev').onclick = function () { show(current - 1); };
+  document.getElementById('next').onclick = function () { show(current + 1); };
+  window.addEventListener('resize', fit);
+  var start = parseInt((location.hash || '#1').slice(1), 10);
+  fit();
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>

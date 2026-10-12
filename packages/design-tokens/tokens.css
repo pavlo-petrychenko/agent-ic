@@ -160,6 +160,8 @@
   --border-width-strong: 2px;
   --border-width-accent: 3px;
 
+  --edge-dasharray: 5 4;
+
   --shadow-focus-field: 0 0 0 3px var(--color-accent-glow);
   --shadow-focus-field-error: 0 0 0 3px var(--color-err-light);
   --shadow-focus-ring: 0 0 0 2px var(--color-card), 0 0 0 4px var(--color-accent);
