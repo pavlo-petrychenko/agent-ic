@@ -46,18 +46,15 @@ export function DangerZonePanel({ workspaceId }: DangerZonePanelProps) {
       disabled: !canLeave,
       onAction: () => setLeaveOpen(true),
     },
-    {
+    canDelete && {
       id: 'delete',
       title: t('general.danger.delete.title'),
-      description: canDelete
-        ? t('general.danger.delete.description')
-        : t('general.danger.delete.noAccessDescription'),
+      description: t('general.danger.delete.description'),
       actionLabel: t('general.danger.delete.action'),
       tone: DangerActionTone.Danger,
-      disabled: !canDelete,
       onAction: () => setDeleteOpen(true),
     },
-  ];
+  ].filter(Boolean) as DangerZoneRow[];
 
   return (
     <>
