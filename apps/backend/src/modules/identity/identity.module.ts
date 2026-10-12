@@ -12,6 +12,7 @@ import { CreateWorkspaceResolver } from '@/modules/identity/resolvers/create-wor
 import { ForgotPasswordResolver } from '@/modules/identity/resolvers/forgot-password.resolver';
 import { InviteInfoResolver } from '@/modules/identity/resolvers/invite-info.resolver';
 import { InviteLinkResolver } from '@/modules/identity/resolvers/invite-link.resolver';
+import { LeaveWorkspaceResolver } from '@/modules/identity/resolvers/leave-workspace.resolver';
 import { MeResolver } from '@/modules/identity/resolvers/me.resolver';
 import { MembersResolver } from '@/modules/identity/resolvers/members.resolver';
 import { MyWorkspacesResolver } from '@/modules/identity/resolvers/my-workspaces.resolver';
@@ -41,6 +42,7 @@ import { ForgotPasswordUseCase } from '@/modules/identity/use-cases/forgot-passw
 import { GetInviteInfoUseCase } from '@/modules/identity/use-cases/get-invite-info.use-case';
 import { GetInviteLinkUseCase } from '@/modules/identity/use-cases/get-invite-link.use-case';
 import { GetMeUseCase } from '@/modules/identity/use-cases/get-me.use-case';
+import { LeaveWorkspaceUseCase } from '@/modules/identity/use-cases/leave-workspace.use-case';
 import { ListMembersUseCase } from '@/modules/identity/use-cases/list-members.use-case';
 import { ListMyWorkspacesUseCase } from '@/modules/identity/use-cases/list-my-workspaces.use-case';
 import { LoginUseCase } from '@/modules/identity/use-cases/login.use-case';
@@ -86,6 +88,7 @@ export class IdentityModule extends defineModule({
     RefreshSessionUseCase,
     LogoutUseCase,
     GetMeUseCase,
+    LeaveWorkspaceUseCase,
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
     CreateWorkspaceUseCase,
@@ -111,6 +114,7 @@ export class IdentityModule extends defineModule({
     CreateWorkspaceResolver,
     MyWorkspacesResolver,
     InviteLinkResolver,
+    LeaveWorkspaceResolver,
     UpdateInviteLinkRoleResolver,
     ResetInviteLinkResolver,
     InviteInfoResolver,

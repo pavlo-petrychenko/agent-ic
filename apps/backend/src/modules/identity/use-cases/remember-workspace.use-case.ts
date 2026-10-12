@@ -4,7 +4,7 @@ import { MembershipsRepository } from '@/modules/identity/repositories/membershi
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { MeService } from '@/modules/identity/services/me.service';
 import type { Me } from '@/modules/identity/typedefs/user.typedefs';
-import type { RememberWorkspaceInput } from '@/modules/identity/typedefs/workspace.typedefs';
+import type { WorkspaceIdInput } from '@/modules/identity/typedefs/workspace.typedefs';
 import { AuthenticationRequiredError } from '@/platform/context/errors/authentication-required.error';
 import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
 import { requireUserActor } from '@/platform/context/helpers/use-case-ctx.helpers';
@@ -22,7 +22,7 @@ export class RememberWorkspaceUseCase {
     private readonly ids: IdService,
   ) {}
 
-  async execute(ctx: UseCaseCtx, input: RememberWorkspaceInput): Promise<Me> {
+  async execute(ctx: UseCaseCtx, input: WorkspaceIdInput): Promise<Me> {
     const { userId } = requireUserActor(ctx);
     const workspaceId = this.ids.fromPublic(IdPrefix.Workspace, input.workspaceId);
 

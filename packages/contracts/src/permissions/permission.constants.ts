@@ -23,6 +23,7 @@ export enum PermissionAction {
   Publish = 'publish',
   Delete = 'delete',
   Transfer = 'transfer',
+  Leave = 'leave',
 }
 
 export type ResourcePermissions = Readonly<Record<PermissionResource, readonly PermissionAction[]>>;
@@ -36,6 +37,7 @@ const MANAGE_AND_PUBLISH: readonly PermissionAction[] = [...MANAGE, PermissionAc
 const VIEW_ONLY: readonly PermissionAction[] = [PermissionAction.View];
 const VIEW_AND_EDIT: readonly PermissionAction[] = [PermissionAction.View, PermissionAction.Edit];
 const NONE: readonly PermissionAction[] = [];
+const LEAVE: readonly PermissionAction[] = [PermissionAction.Leave];
 
 const FULL_ACCESS: ResourcePermissions = {
   [PermissionResource.Agents]: MANAGE_AND_PUBLISH,
@@ -54,9 +56,14 @@ const OWNER_ACCESS: ResourcePermissions = {
   [PermissionResource.WorkspaceSettings]: [...MANAGE, PermissionAction.Transfer],
 };
 
+const ADMIN_ACCESS: ResourcePermissions = {
+  ...FULL_ACCESS,
+  [PermissionResource.WorkspaceSettings]: [...MANAGE, PermissionAction.Leave],
+};
+
 export const PERMISSION_MATRIX: Readonly<Record<WorkspaceRole, ResourcePermissions>> = {
   [WorkspaceRole.Owner]: OWNER_ACCESS,
-  [WorkspaceRole.Admin]: FULL_ACCESS,
+  [WorkspaceRole.Admin]: ADMIN_ACCESS,
   [WorkspaceRole.Builder]: {
     [PermissionResource.Agents]: MANAGE_AND_PUBLISH,
     [PermissionResource.Prompts]: MANAGE,
@@ -66,7 +73,7 @@ export const PERMISSION_MATRIX: Readonly<Record<WorkspaceRole, ResourcePermissio
     [PermissionResource.Testing]: MANAGE,
     [PermissionResource.Analytics]: VIEW_ONLY,
     [PermissionResource.Team]: NONE,
-    [PermissionResource.WorkspaceSettings]: NONE,
+    [PermissionResource.WorkspaceSettings]: LEAVE,
   },
   [WorkspaceRole.Operator]: {
     [PermissionResource.Agents]: NONE,
@@ -77,7 +84,7 @@ export const PERMISSION_MATRIX: Readonly<Record<WorkspaceRole, ResourcePermissio
     [PermissionResource.Testing]: NONE,
     [PermissionResource.Analytics]: NONE,
     [PermissionResource.Team]: NONE,
-    [PermissionResource.WorkspaceSettings]: NONE,
+    [PermissionResource.WorkspaceSettings]: LEAVE,
   },
 };
 

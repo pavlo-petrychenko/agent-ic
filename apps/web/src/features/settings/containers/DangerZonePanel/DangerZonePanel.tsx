@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { DangerZonePanelProps } from '@/features/settings/containers/DangerZonePanel/DangerZonePanel.typedefs';
+import { LeaveWorkspaceDialog } from '@/features/settings/containers/LeaveWorkspaceDialog';
 import { TransferOwnershipDialog } from '@/features/settings/containers/TransferOwnershipDialog';
 import { DangerZoneCard } from '@/features/settings/view/DangerZoneCard';
 import type { DangerZoneRow } from '@/features/settings/view/DangerZoneCard';
@@ -12,32 +13,53 @@ export function DangerZonePanel({ workspaceId }: DangerZonePanelProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
   const active = useActiveWorkspace(workspaceId);
   const [transferOpen, setTransferOpen] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+
   const canTransfer =
     active !== null &&
     can(active.role, PermissionResource.WorkspaceSettings, PermissionAction.Transfer);
 
-  const rows: readonly DangerZoneRow[] = canTransfer
-    ? [
-        {
-          id: 'transfer',
-          title: t('general.danger.transfer.title'),
-          description: t('general.danger.transfer.description'),
-          actionLabel: t('general.danger.transfer.action'),
-          onAction: () => setTransferOpen(true),
-        },
-      ]
-    : [];
+  const canLeave =
+    active !== null &&
+    can(active.role, PermissionResource.WorkspaceSettings, PermissionAction.Leave);
+
+  const workspaceName = active?.name ?? '';
+  const leaveDescription = canLeave
+    ? t('general.danger.leave.description')
+    : t('general.danger.leave.noAccessDescription');
+
+  const rows: readonly DangerZoneRow[] = [
+    canTransfer && {
+      id: 'transfer',
+      title: t('general.danger.transfer.title'),
+      description: t('general.danger.transfer.description'),
+      actionLabel: t('general.danger.transfer.action'),
+      onAction: () => setTransferOpen(true),
+    },
+    {
+      id: 'leave',
+      title: t('general.danger.leave.title', { workspace: workspaceName }),
+      description: leaveDescription,
+      actionLabel: t('general.danger.leave.action'),
+      disabled: !canLeave,
+      onAction: () => setLeaveOpen(true),
+    },
+  ].filter(Boolean) as DangerZoneRow[];
 
   return (
     <>
       <DangerZoneCard title={t('general.danger.title')} rows={rows} />
-      {canTransfer && (
-        <TransferOwnershipDialog
-          workspaceName={active?.name ?? ''}
-          open={transferOpen}
-          onOpenChange={setTransferOpen}
-        />
-      )}
+      <TransferOwnershipDialog
+        workspaceName={workspaceName}
+        open={transferOpen}
+        onOpenChange={setTransferOpen}
+      />
+      <LeaveWorkspaceDialog
+        workspaceId={active?.id ?? ''}
+        workspaceName={workspaceName}
+        open={leaveOpen}
+        onOpenChange={setLeaveOpen}
+      />
     </>
   );
 }

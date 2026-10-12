@@ -1,0 +1,3 @@
+mutation LeaveWorkspace($workspaceId: ID!) {
+  success: leaveWorkspace(workspaceId: $workspaceId)
+}
