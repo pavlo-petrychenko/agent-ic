@@ -1,5 +1,12 @@
-.root {
+.frame {
   position: relative;
+}
+
+.root {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
 }
 
 .edges {
@@ -8,6 +15,10 @@
   fill: none;
   stroke: var(--color-edge);
   stroke-width: var(--border-width-dash);
+}
+
+.dashed {
+  stroke-dasharray: var(--edge-dasharray);
 }
 
 .nodes {

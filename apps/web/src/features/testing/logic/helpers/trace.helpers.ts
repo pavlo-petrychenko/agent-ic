@@ -1,10 +1,17 @@
-import { isTriggerNode } from '@agent-ic/flow';
+import {
+  buildFlowGraph,
+  isBackgroundBranch,
+  isTriggerNode,
+  NodeType,
+  PortName,
+} from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import {
   FOCUS_STEP_STATUSES,
   STEP_NODE_STATES,
   TRACE_CELL_SEPARATOR,
   TRACE_GAP,
+  TRACE_MIN_SCALE,
   TRACE_NODE,
 } from '@/features/testing/constants/trace.constants';
 import type {
@@ -20,16 +27,13 @@ import type {
 import { RunNodeState } from '@/shared/ui/flow/RunNode';
 
 export const layoutTrace = (flow: FlowDocument): TraceSlot[] => {
-  const targets = new Map<string, string[]>();
-  for (const edge of flow.edges) {
-    targets.set(edge.source, [...(targets.get(edge.source) ?? []), edge.target]);
-  }
-  const cells = new Map<string, { row: number; column: number }>();
+  const graph = buildFlowGraph(flow);
+  const cells = new Map<string, TracePosition>();
   const taken = new Set<string>();
   let bottom = -1;
-  const place = (id: string, row: number, column: number): void => {
+  const place = (id: string, row: number, column: number): number => {
     if (cells.has(id)) {
-      return;
+      return row - 1;
     }
     let free = column;
     while (taken.has(`${row}${TRACE_CELL_SEPARATOR}${free}`)) {
@@ -38,7 +42,22 @@ export const layoutTrace = (flow: FlowDocument): TraceSlot[] => {
     cells.set(id, { row, column: free });
     taken.add(`${row}${TRACE_CELL_SEPARATOR}${free}`);
     bottom = Math.max(bottom, row);
-    (targets.get(id) ?? []).forEach((target, index) => place(target, row + 1, free + index));
+    const isParallel = graph.nodes.get(id)?.type === NodeType.Parallel;
+    const edges = graph.outgoing.get(id) ?? [];
+    const branches = isParallel
+      ? edges.filter((edge) => edge.sourcePort === PortName.Branches)
+      : edges;
+    const joins = isParallel ? edges.filter((edge) => edge.sourcePort !== PortName.Branches) : [];
+    const deepest = branches.reduce(
+      (depth, edge, index) => Math.max(depth, place(edge.target, row + 1, free + index)),
+      row,
+    );
+    const columns = branches.flatMap((edge) => cells.get(edge.target)?.column ?? []);
+    const middle = columns.length === 0 ? free : (Math.min(...columns) + Math.max(...columns)) / 2;
+    return joins.reduce(
+      (depth, edge) => Math.max(depth, place(edge.target, deepest + 1, middle)),
+      deepest,
+    );
   };
   for (const node of [...flow.nodes.filter(isTriggerNode), ...flow.nodes]) {
     place(node.id, bottom + 1, 0);
@@ -60,15 +79,15 @@ export const layoutTrace = (flow: FlowDocument): TraceSlot[] => {
     .toSorted((a, b) => a.row - b.row || a.column - b.column);
 };
 
-export const traceEdges = (
-  edges: FlowDocument['edges'],
-  slots: readonly TraceSlot[],
-): TraceEdge[] => {
+export const traceEdges = (flow: FlowDocument, slots: readonly TraceSlot[]): TraceEdge[] => {
+  const graph = buildFlowGraph(flow);
   const byId = new Map(slots.map((slot) => [slot.id, slot]));
-  return edges.flatMap((edge) => {
+  return flow.edges.flatMap((edge) => {
     const source = byId.get(edge.source);
     const target = byId.get(edge.target);
-    return source === undefined || target === undefined ? [] : [{ id: edge.id, source, target }];
+    return source === undefined || target === undefined
+      ? []
+      : [{ id: edge.id, source, target, dashed: isBackgroundBranch(graph, edge) }];
   });
 };
 
@@ -105,8 +124,13 @@ export const drawTrace = (
 ): TraceDrawing => ({
   size: traceSize(cells),
   nodes: cells.map((cell) => ({ ...cell, ...cellOrigin(cell) })),
-  paths: edges.map((edge) => ({ id: edge.id, d: edgePath(edge) })),
+  paths: edges.map((edge) => ({ id: edge.id, d: edgePath(edge), dashed: edge.dashed })),
 });
+
+export const fitTraceScale = (available: number, content: number): number =>
+  content <= 0 || available >= content
+    ? 1
+    : Math.max(TRACE_MIN_SCALE, Math.max(0, available) / content);
 
 export const nodeState = (
   steps: readonly RunStepView[],

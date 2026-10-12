@@ -9,6 +9,10 @@ export const TRACE_NODE = { width: 194, height: 36 } as const;
 
 export const TRACE_GAP = { x: 10, y: 18 } as const;
 
+export const TRACE_MIN_SCALE = 0.7;
+
+export const TRACE_FALLBACK_WIDTH = 1000;
+
 export const STEP_NODE_STATES: Readonly<Record<RunStepStatus, RunNodeState>> = {
   [RunStepStatus.Succeeded]: RunNodeState.Done,
   [RunStepStatus.Running]: RunNodeState.Running,
