@@ -10,12 +10,14 @@ import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/typography/Hea
 export function ChangePasswordCard({
   currentPassword,
   newPassword,
+  saving,
   onCurrentPasswordChange,
   onNewPasswordChange,
   onSave,
 }: ChangePasswordCardProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
   const { t: tCommon } = useTranslation();
+  const canSubmit = currentPassword !== '' && newPassword !== '';
 
   return (
     <Card>
@@ -60,7 +62,12 @@ export function ChangePasswordCard({
             </Field>
           </div>
           <div>
-            <Button variant={ButtonVariant.Secondary} type="submit">
+            <Button
+              variant={ButtonVariant.Secondary}
+              type="submit"
+              loading={saving}
+              disabled={!canSubmit}
+            >
               {t('profile.password.action')}
             </Button>
           </div>
