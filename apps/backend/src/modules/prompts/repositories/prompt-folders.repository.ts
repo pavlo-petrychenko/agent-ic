@@ -32,6 +32,16 @@ export class PromptFoldersRepository {
     return folder ?? null;
   }
 
+  async findByIdForUpdate(workspaceId: string, folderId: string): Promise<PromptFolder | null> {
+    const [folder] = await this.txHost.tx
+      .select()
+      .from(promptFolders)
+      .where(and(this.activeWhere(workspaceId), eq(promptFolders.id, folderId)))
+      .for('update');
+
+    return folder ?? null;
+  }
+
   async findByName(workspaceId: string, name: string): Promise<PromptFolder | null> {
     const [folder] = await this.txHost.tx
       .select()

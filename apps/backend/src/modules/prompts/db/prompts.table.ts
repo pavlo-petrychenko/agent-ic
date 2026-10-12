@@ -14,9 +14,9 @@ export const prompts = promptsSchema
       id: uuid('id').primaryKey(),
       workspaceId: workspaceIdColumn(),
       name: text('name').notNull(),
-      folderId: uuid('folder_id').references((): AnyPgColumn => promptFolders.id, {
-        onDelete: 'set null',
-      }),
+      folderId: uuid('folder_id')
+        .notNull()
+        .references((): AnyPgColumn => promptFolders.id, { onDelete: 'restrict' }),
       createdByUserId: uuid('created_by_user_id'),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
       updatedAt: timestamp('updated_at', { withTimezone: true })

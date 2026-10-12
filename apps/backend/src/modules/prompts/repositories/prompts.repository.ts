@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, gt, isNull, sql } from 'drizzle-orm';
+import { and, asc, count, eq, gt, isNull, sql } from 'drizzle-orm';
 import { prompts } from '@/modules/prompts/db/prompts.table';
 import type { NewPrompt, Prompt } from '@/modules/prompts/typedefs/prompt.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
@@ -38,13 +38,12 @@ export class PromptsRepository {
     return prompt ?? null;
   }
 
-  async detachFromFolder(workspaceId: string, folderId: string): Promise<number> {
-    const updated = await this.txHost.tx
-      .update(prompts)
-      .set({ folderId: null })
-      .where(and(this.activeWhere(workspaceId), eq(prompts.folderId, folderId)))
-      .returning({ id: prompts.id });
-    return updated.length;
+  async countByFolder(workspaceId: string, folderId: string): Promise<number> {
+    const [row] = await this.txHost.tx
+      .select({ total: count() })
+      .from(prompts)
+      .where(and(this.activeWhere(workspaceId), eq(prompts.folderId, folderId)));
+    return row?.total ?? 0;
   }
 
   listPage(workspaceId: string, afterId: string | null, limit: number): Promise<Prompt[]> {
@@ -62,7 +61,7 @@ export class PromptsRepository {
     return this.update(workspaceId, promptId, { name });
   }
 
-  moveToFolder(workspaceId: string, promptId: string, folderId: string | null): Promise<boolean> {
+  moveToFolder(workspaceId: string, promptId: string, folderId: string): Promise<boolean> {
     return this.update(workspaceId, promptId, { folderId });
   }
 

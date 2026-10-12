@@ -1,5 +1,6 @@
 import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
+import { PromptFolderNotEmptyError } from '@/modules/prompts/errors/prompt-folder-not-empty.error';
 import { PromptFolderNotFoundError } from '@/modules/prompts/errors/prompt-folder-not-found.error';
 import { parsePromptFolderInput } from '@/modules/prompts/helpers/prompt-folder-input.helpers';
 import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
@@ -27,11 +28,15 @@ export class DeletePromptFolderUseCase {
     const { id } = parsePromptFolderInput(deletePromptFolderInputSchema, input);
     const folderId = this.ids.fromPublic(IdPrefix.PromptFolder, id);
     await this.tenantTransactions.run(workspaceId, async () => {
-      const deleted = await this.folders.softDelete(workspaceId, folderId, this.clock.now());
-      if (!deleted) {
+      const folder = await this.folders.findByIdForUpdate(workspaceId, folderId);
+      if (folder === null) {
         throw new PromptFolderNotFoundError();
       }
-      await this.prompts.detachFromFolder(workspaceId, folderId);
+      const promptCount = await this.prompts.countByFolder(workspaceId, folderId);
+      if (promptCount > 0) {
+        throw new PromptFolderNotEmptyError(promptCount);
+      }
+      await this.folders.softDelete(workspaceId, folderId, this.clock.now());
     });
     return { id };
   }

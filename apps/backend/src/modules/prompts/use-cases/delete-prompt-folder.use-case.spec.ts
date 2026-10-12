@@ -1,6 +1,7 @@
 import { ErrorReason, IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { PromptFolderNotEmptyError } from '@/modules/prompts/errors/prompt-folder-not-empty.error';
 import { PromptFolderNotFoundError } from '@/modules/prompts/errors/prompt-folder-not-found.error';
 import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
 import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
@@ -9,7 +10,10 @@ import { PermissionDeniedError } from '@/platform/context/errors/permission-deni
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { InvalidIdError } from '@/platform/ids/errors/invalid-id.error';
 import { IdService } from '@/platform/ids/services/id.service';
-import { TEST_FOLDER_NAME } from '@test/support/constants/prompts-testing.constants';
+import {
+  TEST_FOLDER_NAME,
+  PROMPTS_TEST_LATER,
+} from '@test/support/constants/prompts-testing.constants';
 import { newFolder, newPrompt } from '@test/support/fixtures/prompts.fixture';
 import {
   createPromptsTestingModule,
@@ -46,7 +50,7 @@ describe('DeletePromptFolderUseCase', () => {
   const seedPrompt = async (workspaceId: string, folderId: string): Promise<string> => {
     const promptId = ids.generate();
     await tenants.run(workspaceId, () =>
-      prompts.insert(newPrompt(promptId, workspaceId, { folderId })),
+      prompts.insert(newPrompt(promptId, workspaceId, folderId)),
     );
     return promptId;
   };
@@ -70,17 +74,36 @@ describe('DeletePromptFolderUseCase', () => {
     expect(byName).toBeNull();
   });
 
-  it('moves the prompts of the folder back to Unfiled', async () => {
+  it('refuses to delete a folder that still has prompts', async () => {
     const workspaceId = ids.generate();
     const folderId = await seedFolder(workspaceId);
     const promptId = await seedPrompt(workspaceId, folderId);
+
+    const attempt = deleteFolder.execute(promptsCtx(testingModule, workspaceId), {
+      id: publicFolderId(folderId),
+    });
+
+    await expect(attempt).rejects.toBeInstanceOf(PromptFolderNotEmptyError);
+    const stored = await tenants.run(workspaceId, () => folders.findById(workspaceId, folderId));
+    const prompt = await tenants.run(workspaceId, () => prompts.findById(workspaceId, promptId));
+    expect(stored).not.toBeNull();
+    expect(prompt?.folderId).toBe(folderId);
+  });
+
+  it('deletes a folder once its prompts are gone', async () => {
+    const workspaceId = ids.generate();
+    const folderId = await seedFolder(workspaceId);
+    const promptId = await seedPrompt(workspaceId, folderId);
+    await tenants.run(workspaceId, () =>
+      prompts.softDelete(workspaceId, promptId, PROMPTS_TEST_LATER),
+    );
 
     await deleteFolder.execute(promptsCtx(testingModule, workspaceId), {
       id: publicFolderId(folderId),
     });
 
-    const prompt = await tenants.run(workspaceId, () => prompts.findById(workspaceId, promptId));
-    expect(prompt?.folderId).toBeNull();
+    const stored = await tenants.run(workspaceId, () => folders.findById(workspaceId, folderId));
+    expect(stored).toBeNull();
   });
 
   it('refuses an unknown folder', async () => {

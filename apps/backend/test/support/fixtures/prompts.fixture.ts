@@ -26,12 +26,13 @@ export const newFolder = (
 export const newPrompt = (
   id: string,
   workspaceId: string,
+  folderId: string,
   overrides: Partial<NewPrompt> = {},
 ): NewPrompt => ({
   id,
   workspaceId,
+  folderId,
   name: TEST_PROMPT_NAME,
-  folderId: null,
   createdByUserId: null,
   createdAt: PROMPTS_TEST_START,
   updatedAt: PROMPTS_TEST_START,
