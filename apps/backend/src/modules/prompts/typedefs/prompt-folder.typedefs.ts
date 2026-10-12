@@ -25,3 +25,8 @@ export interface CreatePromptFolderInput {
 export interface DeletePromptFolderInput {
   readonly id: string;
 }
+
+export interface RenamePromptFolderInput {
+  readonly id: string;
+  readonly name: string;
+}

@@ -4,10 +4,12 @@ import { PromptsRepository } from '@/modules/prompts/repositories/prompts.reposi
 import { CreatePromptFolderResolver } from '@/modules/prompts/resolvers/create-prompt-folder.resolver';
 import { DeletePromptFolderResolver } from '@/modules/prompts/resolvers/delete-prompt-folder.resolver';
 import { PromptFoldersResolver } from '@/modules/prompts/resolvers/prompt-folders.resolver';
+import { RenamePromptFolderResolver } from '@/modules/prompts/resolvers/rename-prompt-folder.resolver';
 import { PromptFolderViewsService } from '@/modules/prompts/services/prompt-folder-views.service';
 import { CreatePromptFolderUseCase } from '@/modules/prompts/use-cases/create-prompt-folder.use-case';
 import { DeletePromptFolderUseCase } from '@/modules/prompts/use-cases/delete-prompt-folder.use-case';
 import { ListPromptFoldersUseCase } from '@/modules/prompts/use-cases/list-prompt-folders.use-case';
+import { RenamePromptFolderUseCase } from '@/modules/prompts/use-cases/rename-prompt-folder.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class PromptsModule extends defineModule({
@@ -19,6 +21,12 @@ export class PromptsModule extends defineModule({
     CreatePromptFolderUseCase,
     DeletePromptFolderUseCase,
     ListPromptFoldersUseCase,
+    RenamePromptFolderUseCase,
   ],
-  resolvers: [CreatePromptFolderResolver, DeletePromptFolderResolver, PromptFoldersResolver],
+  resolvers: [
+    CreatePromptFolderResolver,
+    DeletePromptFolderResolver,
+    PromptFoldersResolver,
+    RenamePromptFolderResolver,
+  ],
 }) {}

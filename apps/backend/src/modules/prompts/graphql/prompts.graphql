@@ -4,10 +4,16 @@ extend type Query {
 
 extend type Mutation {
   createPromptFolder(input: CreatePromptFolderInput!): PromptFolder!
+  renamePromptFolder(input: RenamePromptFolderInput!): PromptFolder!
   deletePromptFolder(input: DeletePromptFolderInput!): DeletePromptFolderPayload!
 }
 
 input CreatePromptFolderInput {
+  name: String!
+}
+
+input RenamePromptFolderInput {
+  id: ID!
   name: String!
 }
 

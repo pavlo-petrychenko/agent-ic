@@ -69,17 +69,17 @@ describe('PromptFoldersRepository', () => {
     expect(found?.id).toBe(folderId);
   });
 
-  it('renames a folder', async () => {
+  it('renames a folder and moves updatedAt forward', async () => {
     const workspaceId = ids.generate();
     const folderId = await insertFolder(workspaceId);
 
     const renamed = await tenants.run(workspaceId, () =>
-      repository.rename(workspaceId, folderId, TEST_FOLDER_NEW_NAME),
+      repository.rename(workspaceId, folderId, TEST_FOLDER_NEW_NAME, PROMPTS_TEST_LATER),
     );
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, folderId));
 
     expect(renamed).toBe(true);
-    expect(found?.name).toBe(TEST_FOLDER_NEW_NAME);
+    expect(found).toMatchObject({ name: TEST_FOLDER_NEW_NAME, updatedAt: PROMPTS_TEST_LATER });
   });
 
   it('lists folders by name and hides soft-deleted ones', async () => {
@@ -124,7 +124,12 @@ describe('PromptFoldersRepository', () => {
         found: await repository.findById(workspaceA, folderId),
         byName: await repository.findByName(workspaceA, TEST_FOLDER_NAME),
         list: await repository.listByWorkspace(workspaceA),
-        renamed: await repository.rename(workspaceA, folderId, TEST_FOLDER_NEW_NAME),
+        renamed: await repository.rename(
+          workspaceA,
+          folderId,
+          TEST_FOLDER_NEW_NAME,
+          PROMPTS_TEST_LATER,
+        ),
         deleted: await repository.softDelete(workspaceA, folderId, PROMPTS_TEST_LATER),
       }));
       const ownFromA = await tenants.run(workspaceA, () =>

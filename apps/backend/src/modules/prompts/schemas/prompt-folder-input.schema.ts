@@ -11,3 +11,8 @@ export const createPromptFolderInputSchema = z.object({
 export const deletePromptFolderInputSchema = z.object({
   [PromptFolderField.Id]: z.string().min(1),
 });
+
+export const renamePromptFolderInputSchema = z.object({
+  [PromptFolderField.Id]: z.string().min(1),
+  [PromptFolderField.Name]: promptFolderNameSchema,
+});

@@ -61,8 +61,8 @@ export class PromptFoldersRepository {
       .orderBy(asc(promptFolders.name));
   }
 
-  rename(workspaceId: string, folderId: string, name: string): Promise<boolean> {
-    return this.update(workspaceId, folderId, { name });
+  rename(workspaceId: string, folderId: string, name: string, updatedAt: Date): Promise<boolean> {
+    return this.update(workspaceId, folderId, { name, updatedAt });
   }
 
   softDelete(workspaceId: string, folderId: string, deletedAt: Date): Promise<boolean> {
