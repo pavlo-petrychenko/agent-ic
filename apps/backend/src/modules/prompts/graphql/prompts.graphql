@@ -3,6 +3,7 @@ extend type Query {
   prompts(folderId: ID, search: String): [Prompt!]!
   prompt(id: ID!): PromptDetail!
   promptVersions(promptId: ID!): [PromptVersion!]!
+  promptVersion(id: ID!): PromptVersion!
 }
 
 extend type Mutation {

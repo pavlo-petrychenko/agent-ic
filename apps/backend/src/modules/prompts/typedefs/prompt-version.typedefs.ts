@@ -24,6 +24,10 @@ export interface ListPromptVersionsInput {
   readonly promptId: string;
 }
 
+export interface PromptVersionIdInput {
+  readonly id: string;
+}
+
 export interface PromptVersionAuthor {
   readonly name: string;
 }
