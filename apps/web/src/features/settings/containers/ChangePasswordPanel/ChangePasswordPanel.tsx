@@ -17,7 +17,6 @@ export function ChangePasswordPanel() {
   const [newPassword, setNewPassword] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
 
-
   const savePassword = async () => {
     if (currentPassword === '' || newPassword === '') {
       return;
@@ -37,12 +36,12 @@ export function ChangePasswordPanel() {
 
   return (
     <ChangePasswordCard
-        currentPassword={currentPassword}
-        newPassword={newPassword}
-        saving={passwordSaving}
-        onCurrentPasswordChange={setCurrentPassword}
-        onNewPasswordChange={setNewPassword}
-        onSave={() => void savePassword()}
+      currentPassword={currentPassword}
+      newPassword={newPassword}
+      saving={passwordSaving}
+      onCurrentPasswordChange={setCurrentPassword}
+      onNewPasswordChange={setNewPassword}
+      onSave={() => void savePassword()}
     />
   );
 }

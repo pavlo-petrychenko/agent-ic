@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
-import { ProfileDetailsForm } from '@/features/settings/containers/ProfileDetailsForm';
 import { ChangePasswordPanel } from '@/features/settings/containers/ChangePassword';
+import { ProfileDetailsForm } from '@/features/settings/containers/ProfileDetailsForm';
 import type { ProfilePageProps } from '@/features/settings/containers/ProfilePage/ProfilePage.typedefs';
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
