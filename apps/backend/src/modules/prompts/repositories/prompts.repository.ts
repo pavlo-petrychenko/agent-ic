@@ -77,8 +77,13 @@ export class PromptsRepository {
     return this.update(workspaceId, promptId, { name });
   }
 
-  async moveToFolder(workspaceId: string, promptId: string, folderId: string): Promise<boolean> {
-    return (await this.update(workspaceId, promptId, { folderId })) !== null;
+  async moveToFolder(
+    workspaceId: string,
+    promptId: string,
+    folderId: string,
+    updatedAt: Date,
+  ): Promise<boolean> {
+    return (await this.update(workspaceId, promptId, { folderId, updatedAt })) !== null;
   }
 
   async softDelete(workspaceId: string, promptId: string, deletedAt: Date): Promise<boolean> {

@@ -14,3 +14,8 @@ export const renamePromptInputSchema = z.object({
   [PromptField.Id]: recordIdSchema,
   [PromptField.Name]: promptNameSchema,
 });
+
+export const movePromptToFolderInputSchema = z.object({
+  [PromptField.Id]: recordIdSchema,
+  [PromptField.FolderId]: recordIdSchema,
+});

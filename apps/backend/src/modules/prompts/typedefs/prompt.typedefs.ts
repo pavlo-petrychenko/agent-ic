@@ -31,6 +31,11 @@ export interface RenamePromptInput {
   readonly name: string;
 }
 
+export interface MovePromptToFolderInput {
+  readonly id: string;
+  readonly folderId: string;
+}
+
 export interface PromptListFilters {
   readonly folderId: string | null;
   readonly search: string | null;

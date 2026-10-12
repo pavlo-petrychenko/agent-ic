@@ -9,6 +9,7 @@ extend type Mutation {
   deletePromptFolder(input: DeletePromptFolderInput!): DeletePromptFolderPayload!
   createPrompt(input: CreatePromptInput!): Prompt!
   renamePrompt(input: RenamePromptInput!): Prompt!
+  movePromptToFolder(input: MovePromptToFolderInput!): Prompt!
 }
 
 input CreatePromptFolderInput {
@@ -32,6 +33,11 @@ input CreatePromptInput {
 input RenamePromptInput {
   id: ID!
   name: String!
+}
+
+input MovePromptToFolderInput {
+  id: ID!
+  folderId: ID!
 }
 
 type DeletePromptFolderPayload {
