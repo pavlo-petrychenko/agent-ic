@@ -289,7 +289,6 @@
     "SEND_IN_PARALLEL_BRANCH": "Messages and escalations can’t run inside a parallel branch",
     "TOO_FEW_BRANCHES": "A parallel step needs at least two branches",
     "TOO_MANY_BRANCHES": "Too many parallel branches ({{count}})",
-    "OBSERVER_HAS_EDGES": "An observer step can’t have connections",
     "ERROR_PORT_NOT_CONNECTED": "Connect the “on error” port",
     "DUPLICATE_EVENT_NAME": "Another trigger already listens to “{{eventName}}”",
     "INVALID_CRON": "“{{cron}}” isn’t a valid schedule",
@@ -467,18 +466,15 @@
       "noBranches": "No branches yet. Connect steps to the branches port.",
       "continueWhen": "Continue when",
       "waitFor": {
-        "guards": "Guard branches finish (observers keep running)",
         "all": "All branches finish",
         "first": "The first branch finishes"
       },
       "role": {
         "waited": "waited for",
-        "observer": "observer",
         "racing": "first one wins",
         "background": "in background"
       },
-      "backgroundNote": "Background branches don’t hold up the reply.",
-      "observerNote": "Observer branches can’t stop the flow."
+      "backgroundNote": "Background branches don’t hold up the reply."
     },
     "send": {
       "messages": "Messages",

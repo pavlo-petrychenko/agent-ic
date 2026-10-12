@@ -1,4 +1,4 @@
-export const FLOW_SCHEMA_VERSION = 1;
+export const FLOW_SCHEMA_VERSION = 2;
 
 export enum NodeType {
   TriggerMessage = 'trigger_message',

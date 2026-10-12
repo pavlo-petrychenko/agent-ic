@@ -1,4 +1,4 @@
-import { CompletionRole, NodeType, PortName, outputToZod } from '@agent-ic/flow';
+import { NodeType, PortName, outputToZod } from '@agent-ic/flow';
 import type { CompletionNode } from '@agent-ic/flow';
 import { Injectable } from '@nestjs/common';
 import { COMPLETION_PURPOSE } from '@/modules/runs/constants/llm-step.constants';
@@ -35,6 +35,6 @@ export class CompletionExecutor implements StepExecutor<CompletionNode> {
       ...(config.reasoning === null ? {} : { reasoning: config.reasoning }),
       tags: runTraceTags(run),
     });
-    return { port: config.role === CompletionRole.Guard ? PortName.Next : null, output };
+    return { port: PortName.Next, output };
   }
 }

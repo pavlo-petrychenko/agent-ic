@@ -1,10 +1,4 @@
-import {
-  WaitFor,
-  branchNodes,
-  branchStarts,
-  isBackgroundBranch,
-  isObserverNode,
-} from '@agent-ic/flow';
+import { WaitFor, branchStarts, isBackgroundBranch } from '@agent-ic/flow';
 import type { FlowGraph, ParallelNode } from '@agent-ic/flow';
 import { BRANCH_KEY_SEPARATOR } from '@/modules/runs/constants/run.constants';
 import type {
@@ -23,12 +17,8 @@ export const parallelBranches = (graph: FlowGraph, parallel: ParallelNode): RunB
     if (start === undefined) {
       return [];
     }
-    const observer = [...branchNodes(graph, edge)].some((id) => {
-      const node = graph.nodes.get(id);
-      return node !== undefined && isObserverNode(node);
-    });
     const background = isBackgroundBranch(graph, edge);
-    return [{ key: branchKeyOf(parallel.id, start.id), start, observer, background }];
+    return [{ key: branchKeyOf(parallel.id, start.id), start, background }];
   });
 
 export const settleBranch = (end: Promise<RunEnd>): Promise<BranchSettlement> =>
@@ -45,10 +35,6 @@ export const joinBranches = (
   switch (waitFor) {
     case WaitFor.All:
       return Promise.all(waited.map((branch) => branch.settled));
-    case WaitFor.Guards:
-      return Promise.all(
-        waited.filter((branch) => !branch.observer).map((branch) => branch.settled),
-      );
     case WaitFor.First:
       return waited.length === 0
         ? Promise.resolve([])

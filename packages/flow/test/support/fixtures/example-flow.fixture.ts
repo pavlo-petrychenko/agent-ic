@@ -10,7 +10,6 @@ import {
   ESCALATION_DEFAULT_REMINDER_MINUTES,
 } from '@flow/limits/constants/limit.constants';
 import {
-  CompletionRole,
   EscalationMode,
   FailureMode,
   HttpMethod,
@@ -65,7 +64,7 @@ export const faqWithHandOffFlow: FlowDocument = {
       label: 'Checks',
       position: at,
       type: NodeType.Parallel,
-      config: { waitFor: WaitFor.Guards },
+      config: { waitFor: WaitFor.All },
     },
     {
       id: 'n_guard',
@@ -74,7 +73,6 @@ export const faqWithHandOffFlow: FlowDocument = {
       position: at,
       type: NodeType.Completion,
       config: {
-        role: CompletionRole.Guard,
         prompt: examplePrompt('Is {{message.text}} a question we can answer?'),
         model: exampleModel,
         reasoning: null,
@@ -102,7 +100,6 @@ export const faqWithHandOffFlow: FlowDocument = {
       position: at,
       type: NodeType.Completion,
       config: {
-        role: CompletionRole.Observer,
         prompt: examplePrompt('Name the topic of the chat.'),
         model: exampleModel,
         reasoning: null,

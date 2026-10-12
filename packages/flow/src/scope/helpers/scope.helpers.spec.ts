@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PortName } from '@flow/document/constants/flow.constants';
 import type { FlowDocument, FlowNode } from '@flow/document/typedefs/flow.typedefs';
-import { CompletionRole, WaitFor } from '@flow/nodes/constants/step.constants';
+import { WaitFor } from '@flow/nodes/constants/step.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 import { VariableSourceKind, VariableType } from '@flow/scope/constants/scope.constants';
 import {
@@ -117,9 +117,9 @@ describe('visibleVariables', () => {
     const build = (waitFor: WaitFor) => {
       const trigger = messageTrigger('incoming');
       const fork = parallel('fork', waitFor);
-      const guard = completion('guard', CompletionRole.Guard);
+      const guard = completion('guard');
       const lookup = apiRequest('lookup');
-      const observer = completion('topic', CompletionRole.Observer);
+      const observer = completion('topic');
       const writer = agent('writer');
       const reply = sendText('reply', '');
       const flow = flowOf(
@@ -144,26 +144,11 @@ describe('visibleVariables', () => {
       expect(atReply['lookup.ok']).toBe(false);
     });
 
-    it('makes observer branches nullable when waiting for guards', () => {
-      const { flow, reply } = build(WaitFor.Guards);
-      const atReply = nullability(flow, reply);
-      expect(atReply['guard.verdict']).toBe(false);
-      expect(atReply['writer.messages']).toBe(false);
-      expect(atReply['lookup.ok']).toBe(true);
-    });
-
     it('makes every branch output nullable after the first branch', () => {
       const { flow, reply } = build(WaitFor.First);
       const atReply = nullability(flow, reply);
       expect(atReply['guard.verdict']).toBe(true);
       expect(atReply['writer.messages']).toBe(true);
-    });
-
-    it('never shows observer outputs', () => {
-      const { flow, reply } = build(WaitFor.All);
-      expect([...scopeAt(flow, reply).keys()].some((path) => path.startsWith('topic.'))).toBe(
-        false,
-      );
     });
 
     describe('with a background branch', () => {

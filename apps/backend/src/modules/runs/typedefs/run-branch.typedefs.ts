@@ -4,7 +4,6 @@ import type { RunEnd } from '@/modules/runs/typedefs/run.typedefs';
 export interface RunBranch {
   readonly key: string;
   readonly start: FlowNode;
-  readonly observer: boolean;
   readonly background: boolean;
 }
 

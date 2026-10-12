@@ -1,7 +1,7 @@
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
 import { nodePorts } from '@flow/document/helpers/port.helpers';
 import type { FlowNode } from '@flow/document/typedefs/flow.typedefs';
-import { CompletionRole, EscalationMode } from '@flow/nodes/constants/step.constants';
+import { EscalationMode } from '@flow/nodes/constants/step.constants';
 import { ReplyMode } from '@flow/nodes/constants/trigger.constants';
 import { outgoingEdges, reachableFrom } from '@flow/scope/helpers/graph.helpers';
 import { FlowIssueCode } from '@flow/validation/constants/issue.constants';
@@ -23,8 +23,7 @@ const unconnectedPortIssues = (context: ValidationContext, node: FlowNode): Flow
     );
 
 const canFailUnhandled = (context: ValidationContext, node: FlowNode): boolean =>
-  (node.type === NodeType.Agent ||
-    (node.type === NodeType.Completion && node.config.role === CompletionRole.Guard)) &&
+  (node.type === NodeType.Agent || node.type === NodeType.Completion) &&
   outgoingEdges(context.graph, node.id, PortName.Error).length === 0;
 
 const nodeWarnings = (context: ValidationContext, node: FlowNode): FlowIssue[] => {

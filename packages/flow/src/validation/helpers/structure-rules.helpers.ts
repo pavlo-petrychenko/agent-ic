@@ -1,5 +1,5 @@
 import { PortName } from '@flow/document/constants/flow.constants';
-import { isObserverNode, isTriggerNode } from '@flow/document/helpers/node.helpers';
+import { isTriggerNode } from '@flow/document/helpers/node.helpers';
 import { nodePorts } from '@flow/document/helpers/port.helpers';
 import type { FlowEdge, FlowNode } from '@flow/document/typedefs/flow.typedefs';
 import { NODE_KEY_PATTERN } from '@flow/limits/constants/limit.constants';
@@ -43,11 +43,7 @@ const edgeIssue = (context: ValidationContext, edge: FlowEdge): FlowIssue[] => {
     return [createIssue(FlowIssueCode.EdgeMissingNode, { edgeId: edge.id })];
   }
   const issues: FlowIssue[] = [];
-  if (isObserverNode(source)) {
-    issues.push(
-      createIssue(FlowIssueCode.ObserverHasEdges, { nodeId: source.id, edgeId: edge.id }),
-    );
-  } else if (!nodePorts(source).includes(edge.sourcePort)) {
+  if (!nodePorts(source).includes(edge.sourcePort)) {
     issues.push(
       createIssue(FlowIssueCode.EdgeMissingPort, {
         nodeId: source.id,

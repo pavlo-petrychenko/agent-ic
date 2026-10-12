@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
 import { nodePorts } from '@flow/document/helpers/port.helpers';
 import type { FlowDocument, FlowNode } from '@flow/document/typedefs/flow.typedefs';
-import { CompletionRole, FailureMode } from '@flow/nodes/constants/step.constants';
+import { FailureMode } from '@flow/nodes/constants/step.constants';
 import {
   eventNotificationFlow,
   faqWithHandOffFlow,
@@ -35,8 +35,7 @@ describe('nodePorts', () => {
     ]);
   });
 
-  it('gives an observer and an escalation no ports', () => {
-    expect(nodePorts(nodeByKey(faqWithHandOffFlow, 'topic'))).toEqual([]);
+  it('gives an escalation no ports', () => {
     expect(nodePorts(nodeByKey(faqWithHandOffFlow, 'handoff'))).toEqual([]);
   });
 
@@ -69,17 +68,5 @@ describe('nodePorts', () => {
 
   it('gives send message one next port', () => {
     expect(nodePorts(nodeByKey(faqWithHandOffFlow, 'reply'))).toEqual([PortName.Next]);
-  });
-
-  it('follows the completion role', () => {
-    const guard = nodeByKey(faqWithHandOffFlow, 'guard');
-    if (guard.type !== NodeType.Completion) {
-      throw new Error('guard is a completion');
-    }
-    const observer: FlowNode = {
-      ...guard,
-      config: { ...guard.config, role: CompletionRole.Observer },
-    };
-    expect(nodePorts(observer)).toEqual([]);
   });
 });

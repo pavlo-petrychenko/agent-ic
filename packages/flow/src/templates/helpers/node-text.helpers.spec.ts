@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
 import type { PromptSource } from '@flow/document/typedefs/flow.typedefs';
-import { CompletionRole } from '@flow/nodes/constants/step.constants';
 import {
   PromptSourceKind,
   PromptVersionKind,
@@ -74,7 +73,7 @@ describe('nodeTextFields', () => {
     expect(nodeTextFields(agent('answer', [], prompt))).toEqual([
       { kind: NodeTextKind.Template, path: ['prompt', 'text'], value: 'Reply to {{message.text}}' },
     ]);
-    expect(nodeTextFields(completion('guard', CompletionRole.Guard))).toHaveLength(1);
+    expect(nodeTextFields(completion('guard'))).toHaveLength(1);
   });
 
   it('lists nothing for a library prompt or no prompt', () => {

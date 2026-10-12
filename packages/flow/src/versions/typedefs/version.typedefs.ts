@@ -1,5 +1,7 @@
+import type { z } from 'zod';
 import type { FlowDocument } from '@flow/document/typedefs/flow.typedefs';
 import type { ParseFlowFailureKind } from '@flow/versions/constants/version.constants';
+import type { flowV1DocumentSchema, flowV1NodeSchema } from '@flow/versions/schemas/flow-v1.schema';
 
 export interface FlowSchemaIssue {
   readonly path: readonly (string | number)[];
@@ -17,3 +19,6 @@ export type ParseFlowFailure =
 export type ParseFlowResult =
   | { readonly ok: true; readonly flow: FlowDocument }
   | { readonly ok: false; readonly failure: ParseFlowFailure };
+
+export type FlowV1Document = z.infer<typeof flowV1DocumentSchema>;
+export type FlowV1Node = z.infer<typeof flowV1NodeSchema>;

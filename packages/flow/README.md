@@ -21,7 +21,7 @@ Each folder under `src/` is a topic, and inside it files sit in a folder per kin
 | `scope/`      | `visibleVariables`, `createScopeLookup`: what a node may use, its type, if it can be missing; `triggerVariables`                                         |
 | `diff/`       | `diffFlows`: what changed between two flows, for comparing versions and the publish dialog                                                               |
 | `validation/` | `validateFlow`, `FlowIssueCode`, `hasBlockingIssues`                                                                                                     |
-| `versions/`   | `parseFlow`: reads a stored flow and refuses a schema version it does not know (D77)                                                                     |
+| `versions/`   | `parseFlow`: reads a stored flow, upgrades a version 1 flow and refuses a schema version it does not know (D77)                                          |
 | `limits/`     | node, edge, rule, branch, output and template limits                                                                                                     |
 
 ## Use it
@@ -70,7 +70,10 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 
 ## Change the format
 
-`schemaVersion` is the literal `1`. A change to the format bumps it, adds a migration function from the previous version in this package, and ships with the data migration of D77.
+`schemaVersion` is the literal `2`. A change to the format bumps it and adds an upgrade from the previous version in `versions/`, so `parseFlow` keeps reading every stored flow.
+
+- Version 1 had a `role` on each Completion (`guard` or `observer`) and a `guards` value of `waitFor`. `parseFlow` checks a version 1 flow against its own schema and upgrades it with `upgradeFlowV1`: a branch that holds an observer becomes a background branch, `role` is dropped and `guards` becomes `all`.
+- Stored rows are not rewritten. The engine and the builder work on the upgraded flow, and the next draft save stores version 2.
 
 ## Tests
 

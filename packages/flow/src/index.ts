@@ -48,7 +48,7 @@ export type {
   TriggerNode,
   TriggerScheduleNode,
 } from '@flow/document/typedefs/flow.typedefs';
-export { isObserverNode, isTriggerNode } from '@flow/document/helpers/node.helpers';
+export { isTriggerNode } from '@flow/document/helpers/node.helpers';
 export { nodePorts } from '@flow/document/helpers/port.helpers';
 export { renameNodeKey } from '@flow/document/helpers/rename.helpers';
 export {
@@ -79,7 +79,6 @@ export {
   WAIT_FOR_RESULT_SECONDS,
 } from '@flow/limits/constants/limit.constants';
 export {
-  CompletionRole,
   DEFAULT_RETRIEVAL_MODE,
   EscalationMode,
   FailureMode,
