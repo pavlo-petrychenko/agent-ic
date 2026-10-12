@@ -2,6 +2,14 @@ extend type Query {
   promptFolders: [PromptFolder!]!
 }
 
+extend type Mutation {
+  createPromptFolder(input: CreatePromptFolderInput!): PromptFolder!
+}
+
+input CreatePromptFolderInput {
+  name: String!
+}
+
 type PromptFolder {
   id: ID!
   name: String!

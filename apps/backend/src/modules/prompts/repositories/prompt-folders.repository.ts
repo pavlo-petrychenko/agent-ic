@@ -2,6 +2,7 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { eq, isNull, and, sql, asc } from 'drizzle-orm';
 import { promptFolders } from '@/modules/prompts/db/prompt-folders.table';
+import { promptFolderNamesLockKey } from '@/modules/prompts/helpers/prompt-folder-name.helpers';
 import type {
   NewPromptFolder,
   PromptFolder,
@@ -14,6 +15,12 @@ export class PromptFoldersRepository {
 
   async insert(folder: NewPromptFolder): Promise<void> {
     await this.txHost.tx.insert(promptFolders).values(folder);
+  }
+
+  async lockNames(workspaceId: string): Promise<void> {
+    await this.txHost.tx.execute(
+      sql`select pg_advisory_xact_lock(hashtext(${promptFolderNamesLockKey(workspaceId)}))`,
+    );
   }
 
   async findById(workspaceId: string, folderId: string): Promise<PromptFolder | null> {

@@ -17,3 +17,7 @@ export interface PromptFolderView {
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
+
+export interface CreatePromptFolderInput {
+  readonly name: string;
+}

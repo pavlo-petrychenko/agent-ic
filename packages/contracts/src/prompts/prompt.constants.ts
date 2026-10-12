@@ -1,0 +1,1 @@
+export const PROMPT_FOLDER_NAME_MAX_LENGTH = 60;
