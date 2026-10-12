@@ -1,0 +1,226 @@
+import type { TestingModule } from '@nestjs/testing';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
+import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
+import type { NewPrompt } from '@/modules/prompts/typedefs/prompt.typedefs';
+import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import { IdService } from '@/platform/ids/services/id.service';
+import { ROW_LEVEL_SECURITY_VIOLATION } from '@test/support/constants/postgres-errors.constants';
+import {
+  PROMPTS_TEST_LATER,
+  PROMPTS_TEST_START,
+  TEST_PROMPT_NAME,
+  TEST_PROMPT_NEW_NAME,
+  TEST_PROMPT_PAGE_LIMIT,
+} from '@test/support/constants/prompts-testing.constants';
+import { newFolder, newPrompt } from '@test/support/fixtures/prompts.fixture';
+import { createPromptsTestingModule } from '@test/support/helpers/prompts-testing.helpers';
+
+describe('PromptsRepository', () => {
+  let testingModule: TestingModule;
+  let folders: PromptFoldersRepository;
+  let repository: PromptsRepository;
+  let tenants: TenantTransactionService;
+  let ids: IdService;
+
+  beforeAll(async () => {
+    testingModule = await createPromptsTestingModule();
+    folders = testingModule.get(PromptFoldersRepository);
+    repository = testingModule.get(PromptsRepository);
+    tenants = testingModule.get(TenantTransactionService);
+    ids = testingModule.get(IdService);
+  });
+
+  afterAll(async () => {
+    await testingModule.close();
+  });
+
+  const insertFolder = async (workspaceId: string): Promise<string> => {
+    const folderId = ids.generate();
+    await tenants.run(workspaceId, () => folders.insert(newFolder(folderId, workspaceId)));
+    return folderId;
+  };
+
+  const insertPrompt = async (
+    workspaceId: string,
+    overrides: Partial<NewPrompt> = {},
+  ): Promise<string> => {
+    const promptId = ids.generate();
+    await tenants.run(workspaceId, () =>
+      repository.insert(newPrompt(promptId, workspaceId, overrides)),
+    );
+    return promptId;
+  };
+
+  it('stores a prompt and finds it by id', async () => {
+    const workspaceId = ids.generate();
+    const promptId = await insertPrompt(workspaceId);
+
+    const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, promptId));
+
+    expect(found).toMatchObject({
+      id: promptId,
+      workspaceId,
+      name: TEST_PROMPT_NAME,
+      folderId: null,
+      createdByUserId: null,
+      createdAt: PROMPTS_TEST_START,
+      updatedAt: PROMPTS_TEST_START,
+      deletedAt: null,
+    });
+  });
+
+  it('finds a prompt by name regardless of case', async () => {
+    const workspaceId = ids.generate();
+    const promptId = await insertPrompt(workspaceId);
+
+    const found = await tenants.run(workspaceId, () =>
+      repository.findByName(workspaceId, TEST_PROMPT_NAME.toUpperCase()),
+    );
+
+    expect(found?.id).toBe(promptId);
+  });
+
+  it('moves a prompt between folders and back to Unfiled', async () => {
+    const workspaceId = ids.generate();
+    const folderId = await insertFolder(workspaceId);
+    const promptId = await insertPrompt(workspaceId);
+
+    const moved = await tenants.run(workspaceId, () =>
+      repository.moveToFolder(workspaceId, promptId, folderId),
+    );
+    const inFolder = await tenants.run(workspaceId, () =>
+      repository.findById(workspaceId, promptId),
+    );
+    const cleared = await tenants.run(workspaceId, () =>
+      repository.moveToFolder(workspaceId, promptId, null),
+    );
+    const unfiled = await tenants.run(workspaceId, () =>
+      repository.findById(workspaceId, promptId),
+    );
+
+    expect({ moved, cleared }).toEqual({ moved: true, cleared: true });
+    expect(inFolder?.folderId).toBe(folderId);
+    expect(unfiled?.folderId).toBeNull();
+  });
+
+  it('renames a prompt', async () => {
+    const workspaceId = ids.generate();
+    const promptId = await insertPrompt(workspaceId);
+
+    const renamed = await tenants.run(workspaceId, () =>
+      repository.rename(workspaceId, promptId, TEST_PROMPT_NEW_NAME),
+    );
+    const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, promptId));
+
+    expect(renamed).toBe(true);
+    expect(found?.name).toBe(TEST_PROMPT_NEW_NAME);
+  });
+
+  it('lists prompts in id order, a page at a time', async () => {
+    const workspaceId = ids.generate();
+    const created = [
+      await insertPrompt(workspaceId, { name: 'Alpha' }),
+      await insertPrompt(workspaceId, { name: 'Bravo' }),
+      await insertPrompt(workspaceId, { name: 'Charlie' }),
+    ];
+
+    const first = await tenants.run(workspaceId, () =>
+      repository.listPage(workspaceId, null, TEST_PROMPT_PAGE_LIMIT),
+    );
+    const second = await tenants.run(workspaceId, () =>
+      repository.listPage(workspaceId, created[1] ?? null, TEST_PROMPT_PAGE_LIMIT),
+    );
+
+    expect(first.map((prompt) => prompt.id)).toEqual(created.slice(0, TEST_PROMPT_PAGE_LIMIT));
+    expect(second.map((prompt) => prompt.id)).toEqual(created.slice(TEST_PROMPT_PAGE_LIMIT));
+  });
+
+  it('finds a prompt for update and hides it once deleted', async () => {
+    const workspaceId = ids.generate();
+    const promptId = await insertPrompt(workspaceId);
+
+    const locked = await tenants.run(workspaceId, () =>
+      repository.findByIdForUpdate(workspaceId, promptId),
+    );
+    await tenants.run(workspaceId, () =>
+      repository.softDelete(workspaceId, promptId, PROMPTS_TEST_LATER),
+    );
+    const afterDelete = await tenants.run(workspaceId, () =>
+      repository.findByIdForUpdate(workspaceId, promptId),
+    );
+
+    expect(locked?.id).toBe(promptId);
+    expect(afterDelete).toBeNull();
+  });
+
+  it('soft deletes once and frees the name', async () => {
+    const workspaceId = ids.generate();
+    const promptId = await insertPrompt(workspaceId);
+
+    const results = await tenants.run(workspaceId, async () => ({
+      deleted: await repository.softDelete(workspaceId, promptId, PROMPTS_TEST_LATER),
+      deletedAgain: await repository.softDelete(workspaceId, promptId, PROMPTS_TEST_LATER),
+    }));
+    const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, promptId));
+    const byName = await tenants.run(workspaceId, () =>
+      repository.findByName(workspaceId, TEST_PROMPT_NAME),
+    );
+
+    expect(results).toEqual({ deleted: true, deletedAgain: false });
+    expect(found).toBeNull();
+    expect(byName).toBeNull();
+    await expect(insertPrompt(workspaceId)).resolves.toEqual(expect.any(String));
+  });
+
+  describe('across tenants', () => {
+    it('never shows, changes or deletes the prompt of another workspace', async () => {
+      const workspaceA = ids.generate();
+      const workspaceB = ids.generate();
+      const promptId = await insertPrompt(workspaceA);
+
+      const fromB = await tenants.run(workspaceB, async () => ({
+        found: await repository.findById(workspaceA, promptId),
+        byName: await repository.findByName(workspaceA, TEST_PROMPT_NAME),
+        page: await repository.listPage(workspaceA, null, TEST_PROMPT_PAGE_LIMIT),
+        locked: await repository.findByIdForUpdate(workspaceA, promptId),
+        renamed: await repository.rename(workspaceA, promptId, TEST_PROMPT_NEW_NAME),
+        moved: await repository.moveToFolder(workspaceA, promptId, null),
+        deleted: await repository.softDelete(workspaceA, promptId, PROMPTS_TEST_LATER),
+      }));
+      const ownFromA = await tenants.run(workspaceA, () =>
+        repository.findById(workspaceA, promptId),
+      );
+
+      expect(fromB).toEqual({
+        found: null,
+        byName: null,
+        page: [],
+        locked: null,
+        renamed: false,
+        moved: false,
+        deleted: false,
+      });
+      expect(ownFromA?.name).not.toBe(TEST_PROMPT_NEW_NAME);
+    });
+
+    it('shows nothing without a tenant', async () => {
+      const workspaceId = ids.generate();
+      const promptId = await insertPrompt(workspaceId);
+
+      expect(await repository.findById(workspaceId, promptId)).toBeNull();
+      expect(await repository.listPage(workspaceId, null, TEST_PROMPT_PAGE_LIMIT)).toEqual([]);
+    });
+
+    it('refuses to write a prompt into another workspace', async () => {
+      const workspaceA = ids.generate();
+      const workspaceB = ids.generate();
+
+      const write = tenants.run(workspaceB, () =>
+        repository.insert(newPrompt(ids.generate(), workspaceA)),
+      );
+
+      await expect(write).rejects.toMatchObject(ROW_LEVEL_SECURITY_VIOLATION);
+    });
+  });
+});
