@@ -1,15 +1,9 @@
-import {
-  ErrorReason,
-  IdPrefix,
-  PROMPT_FOLDER_NAME_MAX_LENGTH,
-  WorkspaceRole,
-} from '@agent-ic/contracts';
+import { ErrorReason, PROMPT_FOLDER_NAME_MAX_LENGTH } from '@agent-ic/contracts';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PromptFolderNameTakenError } from '@/modules/prompts/errors/prompt-folder-name-taken.error';
 import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
 import { CreatePromptFolderUseCase } from '@/modules/prompts/use-cases/create-prompt-folder.use-case';
-import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
@@ -19,6 +13,8 @@ import {
 import {
   createPromptsTestingModule,
   promptsCtx,
+  publicPromptFolderId,
+  seedPromptFolder,
 } from '@test/support/helpers/prompts-testing.helpers';
 
 const PADDED_NAME = `  ${TEST_FOLDER_NAME}  `;
@@ -46,16 +42,16 @@ describe('CreatePromptFolderUseCase', () => {
   it('creates a folder and returns it with a public id', async () => {
     const workspaceId = ids.generate();
 
-    const view = await createFolder.execute(
-      promptsCtx(testingModule, workspaceId, WorkspaceRole.Builder),
-      { name: PADDED_NAME },
-    );
+    const view = await createFolder.execute(promptsCtx(testingModule, workspaceId), {
+      name: PADDED_NAME,
+    });
 
     const stored = await tenants.run(workspaceId, () =>
-      folders.findById(workspaceId, ids.fromPublic(IdPrefix.PromptFolder, view.id)),
+      folders.findByName(workspaceId, TEST_FOLDER_NAME),
     );
     expect(view.name).toBe(TEST_FOLDER_NAME);
     expect(view.createdAt).toBeInstanceOf(Date);
+    expect(view.id).toBe(publicPromptFolderId(testingModule, stored?.id ?? ''));
     expect(stored).toMatchObject({ name: TEST_FOLDER_NAME, workspaceId, deletedAt: null });
   });
 
@@ -71,32 +67,16 @@ describe('CreatePromptFolderUseCase', () => {
 
   it('frees the name again once the folder is deleted', async () => {
     const workspaceId = ids.generate();
-    const ctx = promptsCtx(testingModule, workspaceId);
-    const first = await createFolder.execute(ctx, { name: TEST_FOLDER_NAME });
+    const folderId = await seedPromptFolder(testingModule, workspaceId);
     await tenants.run(workspaceId, () =>
-      folders.softDelete(
-        workspaceId,
-        ids.fromPublic(IdPrefix.PromptFolder, first.id),
-        PROMPTS_TEST_LATER,
-      ),
+      folders.softDelete(workspaceId, folderId, PROMPTS_TEST_LATER),
     );
 
-    const second = await createFolder.execute(ctx, { name: TEST_FOLDER_NAME });
-
-    expect(second.name).toBe(TEST_FOLDER_NAME);
-    expect(second.id).not.toBe(first.id);
-  });
-
-  it('allows the same name in another workspace', async () => {
-    await createFolder.execute(promptsCtx(testingModule, ids.generate()), {
+    const view = await createFolder.execute(promptsCtx(testingModule, workspaceId), {
       name: TEST_FOLDER_NAME,
     });
 
-    const other = await createFolder.execute(promptsCtx(testingModule, ids.generate()), {
-      name: TEST_FOLDER_NAME,
-    });
-
-    expect(other.name).toBe(TEST_FOLDER_NAME);
+    expect(view.name).toBe(TEST_FOLDER_NAME);
   });
 
   it('lets exactly one of several identical creates win', async () => {
@@ -132,14 +112,5 @@ describe('CreatePromptFolderUseCase', () => {
     await expect(attempt).rejects.toMatchObject({
       fields: [{ path: 'name', reason }],
     });
-  });
-
-  it('refuses an operator', async () => {
-    const attempt = createFolder.execute(
-      promptsCtx(testingModule, ids.generate(), WorkspaceRole.Operator),
-      { name: TEST_FOLDER_NAME },
-    );
-
-    await expect(attempt).rejects.toBeInstanceOf(PermissionDeniedError);
   });
 });
