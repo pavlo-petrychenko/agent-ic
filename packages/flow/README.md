@@ -50,6 +50,12 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 - Only `inline` is used until the prompt library lands (`docs/backlog/library-prompts-in-steps.md`).
 - `reasoning` is a `ReasoningLevel` from `@agent-ic/contracts`, or `null` for the model's default. A stored flow without the field parses as `null`.
 
+## Parallel branches
+
+- Each `branches` edge of a Parallel step starts one branch. By default the join waits for it (`waitFor` is `all` or `first`), and its outputs are visible after the join.
+- An edge with `background: true` starts a background branch: the join does not wait for it and its outputs are not visible after the join. Its steps still see each other's outputs, and the run ends only after it finishes. `isBackgroundBranch(graph, edge)` tells them apart.
+- A missing `background` means the join waits for the branch.
+
 ## Compare two flows
 
 `diffFlows(a, b)` returns a `FlowDiff`: what changed from `a` (the older flow) to `b`.

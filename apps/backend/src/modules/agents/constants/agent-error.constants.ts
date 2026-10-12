@@ -4,6 +4,8 @@ export const AGENT_VERSION_IMMUTABLE_MESSAGE = 'Only the draft version can be ch
 export const DRAFT_CONFLICT_MESSAGE = 'The draft was saved by someone else since you loaded it.';
 export const AGENT_FLOW_HAS_BLOCKING_ISSUES_MESSAGE =
   'The flow has blocking issues and cannot be published.';
+export const STORED_FLOW_UNREADABLE_MESSAGE =
+  'The stored flow of this agent version cannot be read.';
 export const AWAY_MESSAGE_REQUIRED_MESSAGE = 'An away message needs text.';
 export const AWAY_MESSAGE_TOO_LONG_MESSAGE = 'The away message is too long.';
 export const INVALID_AGENT_INPUT_MESSAGE = 'Some agent fields are not valid.';

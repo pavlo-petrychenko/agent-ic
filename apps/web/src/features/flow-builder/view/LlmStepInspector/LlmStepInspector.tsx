@@ -8,14 +8,12 @@ import {
   LIST_VALUE_SEPARATOR,
 } from '@/features/flow-builder/constants/inspector.constants';
 import {
-  COMPLETION_ROLES,
   CONVERSATION_ROW_ID,
   UNSET_OPTION,
 } from '@/features/flow-builder/constants/llmStep.constants';
 import type { LlmStepInspectorProps } from '@/features/flow-builder/view/LlmStepInspector/LlmStepInspector.typedefs';
 import { OutputFieldRow } from '@/features/flow-builder/view/LlmStepInspector/OutputFieldRow';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
-import { SegmentedControl } from '@/shared/ui/actions/SegmentedControl';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { RowList } from '@/shared/ui/display/RowList';
 import { IconName } from '@/shared/ui/foundations/Icon';
@@ -214,25 +212,6 @@ export function LlmStepInspector({
           </InspectorSection>
           <Callout icon={IconName.Info}>{t('inspector.agent.repliesNote')}</Callout>
         </>
-      )}
-      {extra.type === NodeType.Completion && (
-        <InspectorSection
-          title={t('inspector.completion.role')}
-          note={t(`inspector.completion.roleNote.${extra.role}`)}
-        >
-          <SegmentedControl
-            ariaLabel={t('inspector.completion.role')}
-            value={extra.role}
-            options={COMPLETION_ROLES.map((role) => ({
-              value: role,
-              label: t(`inspector.completion.roles.${role}`),
-            }))}
-            onValueChange={extra.onRoleChange}
-          />
-          <Text kind={TextKind.Caption} color={TextColor.Mute}>
-            {t('inspector.completion.roleHint')}
-          </Text>
-        </InspectorSection>
       )}
     </>
   );

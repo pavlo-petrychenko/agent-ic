@@ -1,12 +1,17 @@
+import { TransactionHost } from '@nestjs-cls/transactional';
 import type { TestingModule } from '@nestjs/testing';
+import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   AgentVersionKind,
   DRAFT_INITIAL_REVISION,
 } from '@/modules/agents/constants/agent.constants';
+import { agentVersions } from '@/modules/agents/db/agent-versions.table';
+import { StoredFlowUnreadableError } from '@/modules/agents/errors/stored-flow-unreadable.error';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
   AGENTS_TEST_LATER,
@@ -150,6 +155,42 @@ describe('AgentVersionsRepository', () => {
 
     expect(updated).toBeNull();
     expect(draft).toMatchObject({ flow: emptyFlow(), revision: DRAFT_INITIAL_REVISION });
+  });
+
+  it('reads a stored flow through the flow schema', async () => {
+    const workspaceId = ids.generate();
+    const agentId = await insertAgent(workspaceId);
+    const draftId = await insertVersion(workspaceId, agentId, AgentVersionKind.Draft);
+    const storedFlow = JSON.stringify({ ...triggerFlow(), note: TEST_VERSION_NOTE });
+    const txHost = testingModule.get<TransactionHost<AppTransactionAdapter>>(TransactionHost);
+
+    const draft = await tenants.run(workspaceId, async () => {
+      await txHost.tx
+        .update(agentVersions)
+        .set({ flow: sql`${storedFlow}::jsonb` })
+        .where(eq(agentVersions.id, draftId));
+      return repository.findDraft(workspaceId, agentId);
+    });
+
+    expect(draft?.flow).toEqual(triggerFlow());
+  });
+
+  it('refuses a stored flow it cannot read', async () => {
+    const workspaceId = ids.generate();
+    const agentId = await insertAgent(workspaceId);
+    const versionId = await insertVersion(workspaceId, agentId, AgentVersionKind.Draft);
+    const storedFlow = JSON.stringify({ ...triggerFlow(), nodes: TEST_VERSION_NOTE });
+    const txHost = testingModule.get<TransactionHost<AppTransactionAdapter>>(TransactionHost);
+
+    const read = tenants.run(workspaceId, async () => {
+      await txHost.tx
+        .update(agentVersions)
+        .set({ flow: sql`${storedFlow}::jsonb` })
+        .where(eq(agentVersions.id, versionId));
+      return repository.findById(workspaceId, versionId);
+    });
+
+    await expect(read).rejects.toBeInstanceOf(StoredFlowUnreadableError);
   });
 
   it('lists the versions of one agent, newest first', async () => {

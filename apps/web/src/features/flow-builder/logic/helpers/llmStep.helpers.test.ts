@@ -1,5 +1,5 @@
 import { ReasoningLevel } from '@agent-ic/contracts';
-import { CompletionRole, NodeType, OutputFieldType, PortName } from '@agent-ic/flow';
+import { NodeType, OutputFieldType, PortName } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.constants';
@@ -10,7 +10,6 @@ import {
   modelsForStep,
   removeOutputField,
   selectModel,
-  setCompletionRole,
   setIncludeCurrentMessage,
   setRetries,
   updateLlmStep,
@@ -101,12 +100,5 @@ describe('llm step helpers', () => {
     expect(config(setIncludeCurrentMessage(flow(), 'c', false), 'c')).toMatchObject({
       input: { includeCurrentMessage: false },
     });
-  });
-
-  it('drops the connections an observer has no port for', () => {
-    const observer = setCompletionRole(flow(), 'c', CompletionRole.Observer);
-
-    expect(config(observer, 'c')).toMatchObject({ role: CompletionRole.Observer });
-    expect(observer.edges).toEqual([]);
   });
 });

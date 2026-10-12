@@ -336,6 +336,11 @@ export const branchEdge = (parallelId: string, target: string): FlowEdge => ({
   id: `${parallelId}:${target}`,
 });
 
+export const backgroundBranchEdge = (parallelId: string, target: string): FlowEdge => ({
+  ...branchEdge(parallelId, target),
+  background: true,
+});
+
 export const triggerOnlyFlow = (): FlowDocument => {
   const trigger = triggerFlow();
   return {

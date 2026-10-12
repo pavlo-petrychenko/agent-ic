@@ -1,8 +1,10 @@
+import { parseFlow } from '@agent-ic/flow';
 import {
   AgentVersionKind,
   AgentVersionStatus,
   DRAFT_INITIAL_REVISION,
 } from '@/modules/agents/constants/agent.constants';
+import { StoredFlowUnreadableError } from '@/modules/agents/errors/stored-flow-unreadable.error';
 import type {
   AgentVersion,
   AgentVersionLabels,
@@ -54,3 +56,11 @@ export const toAgentVersionView = (
   publishedAt: version.publishedAt,
   createdAt: version.createdAt,
 });
+
+export const withCurrentFlow = (version: AgentVersion): AgentVersion => {
+  const parsed = parseFlow(version.flow);
+  if (!parsed.ok) {
+    throw new StoredFlowUnreadableError(version.id, parsed.failure);
+  }
+  return { ...version, flow: parsed.flow };
+};

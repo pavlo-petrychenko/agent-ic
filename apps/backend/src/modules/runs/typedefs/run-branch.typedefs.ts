@@ -5,6 +5,7 @@ export interface RunBranch {
   readonly key: string;
   readonly start: FlowNode;
   readonly observer: boolean;
+  readonly background: boolean;
 }
 
 export type BranchSettlement =

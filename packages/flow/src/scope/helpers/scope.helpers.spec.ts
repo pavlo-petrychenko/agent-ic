@@ -14,6 +14,7 @@ import { faqWithHandOffFlow } from '@test/support/fixtures/example-flow.fixture'
 import {
   agent,
   apiRequest,
+  backgroundLink,
   completion,
   escalation,
   eventTrigger,
@@ -163,6 +164,35 @@ describe('visibleVariables', () => {
       expect([...scopeAt(flow, reply).keys()].some((path) => path.startsWith('topic.'))).toBe(
         false,
       );
+    });
+
+    describe('with a background branch', () => {
+      const trigger = messageTrigger('incoming');
+      const fork = parallel('fork', WaitFor.All);
+      const writer = agent('writer');
+      const lookup = apiRequest('lookup');
+      const scorer = agent('scorer');
+      const reply = sendText('reply', '');
+      const flow = flowOf(
+        [trigger, fork, writer, lookup, scorer, reply],
+        [
+          link(trigger, PortName.Next, fork),
+          link(fork, PortName.Branches, writer),
+          backgroundLink(fork, lookup),
+          link(lookup, PortName.Next, scorer),
+          link(fork, PortName.Next, reply),
+        ],
+      );
+
+      it('hides its outputs after the join', () => {
+        const atReply = nullability(flow, reply);
+        expect(atReply['writer.messages']).toBe(false);
+        expect(Object.keys(atReply).some((path) => /^(lookup|scorer)\./.test(path))).toBe(false);
+      });
+
+      it('shows its steps the outputs before them in the branch', () => {
+        expect(nullability(flow, scorer)['lookup.ok']).toBe(false);
+      });
     });
 
     it('does not show one branch the outputs of another', () => {

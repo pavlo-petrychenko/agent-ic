@@ -51,12 +51,14 @@ export const WAIT_FOR_OPTIONS: readonly WaitFor[] = [WaitFor.Guards, WaitFor.All
 export enum BranchRole {
   Waited = 'waited',
   Observer = 'observer',
+  Background = 'background',
   Racing = 'racing',
 }
 
 export const BRANCH_ROLE_TONES: Readonly<Record<BranchRole, BadgeTone>> = {
   [BranchRole.Waited]: BadgeTone.Accent,
   [BranchRole.Observer]: BadgeTone.Neutral,
+  [BranchRole.Background]: BadgeTone.Neutral,
   [BranchRole.Racing]: BadgeTone.Warn,
 };
 

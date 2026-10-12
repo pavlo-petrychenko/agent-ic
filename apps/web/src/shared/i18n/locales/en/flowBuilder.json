@@ -424,17 +424,7 @@
     "completion": {
       "input": "Input",
       "conversation": "Conversation",
-      "currentMessage": "Include the current message",
-      "role": "Role in the flow",
-      "roleNote": {
-        "guard": "guard = in sequence",
-        "observer": "observer = in parallel"
-      },
-      "roles": {
-        "guard": "Guard",
-        "observer": "Observer"
-      },
-      "roleHint": "A guard runs before the next step and can stop it. An observer runs in parallel and never interrupts."
+      "currentMessage": "Include the current message"
     },
     "router": {
       "routes": "Routes",
@@ -484,8 +474,10 @@
       "role": {
         "waited": "waited for",
         "observer": "observer",
-        "racing": "first one wins"
+        "racing": "first one wins",
+        "background": "in background"
       },
+      "backgroundNote": "Background branches don’t hold up the reply.",
       "observerNote": "Observer branches can’t stop the flow."
     },
     "send": {

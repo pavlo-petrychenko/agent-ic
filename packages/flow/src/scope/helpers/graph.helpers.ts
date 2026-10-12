@@ -68,6 +68,11 @@ export const branchStarts = (graph: FlowGraph, parallelId: string): readonly Flo
 export const branchNodes = (graph: FlowGraph, start: FlowEdge): ReadonlySet<string> =>
   reachableFrom(graph, [start.target]);
 
+export const isBackgroundBranch = (graph: FlowGraph, edge: FlowEdge): boolean =>
+  edge.sourcePort === PortName.Branches &&
+  edge.background === true &&
+  graph.nodes.get(edge.source)?.type === NodeType.Parallel;
+
 export const nodesInParallelBranches = (graph: FlowGraph): ReadonlySet<string> => {
   const inside = new Set<string>();
   for (const node of graph.nodes.values()) {

@@ -49,6 +49,7 @@ import {
   endNode,
   escalateNode,
   flowEdge,
+  backgroundBranchEdge,
   observerNode,
   parallelNode,
   routerNode,
@@ -87,6 +88,7 @@ const threeSteps = stepFlow(
 const parallelFlow = (
   waitFor: WaitFor,
   held: FlowNode = agentNode(SECOND_STEP_ID, SECOND_STEP_KEY),
+  background = false,
 ) =>
   stepFlow(
     [
@@ -99,7 +101,9 @@ const parallelFlow = (
     [
       flowEdge(TEST_NODE_ID, PARALLEL_NODE_ID),
       flowEdge(PARALLEL_NODE_ID, FIRST_STEP_ID, PortName.Branches),
-      flowEdge(PARALLEL_NODE_ID, held.id, PortName.Branches),
+      background
+        ? backgroundBranchEdge(PARALLEL_NODE_ID, held.id)
+        : flowEdge(PARALLEL_NODE_ID, held.id, PortName.Branches),
       ...(isObserverNode(held) ? [] : [flowEdge(held.id, THIRD_STEP_ID)]),
       flowEdge(PARALLEL_NODE_ID, FOURTH_STEP_ID),
     ],
@@ -356,16 +360,28 @@ describe('RunExecutionService', () => {
   });
 
   it.each([
-    { waitFor: WaitFor.First, held: agentNode(SECOND_STEP_ID, SECOND_STEP_KEY), thirdCalls: 1 },
+    {
+      waitFor: WaitFor.First,
+      held: agentNode(SECOND_STEP_ID, SECOND_STEP_KEY),
+      background: false,
+      thirdCalls: 1,
+    },
     {
       waitFor: WaitFor.Guards,
       held: observerNode(OBSERVER_NODE_ID, OBSERVER_NODE_KEY),
+      background: false,
       thirdCalls: 0,
+    },
+    {
+      waitFor: WaitFor.All,
+      held: agentNode(SECOND_STEP_ID, SECOND_STEP_KEY),
+      background: true,
+      thirdCalls: 1,
     },
   ])(
     'joins on $waitFor without the held branch and still finishes it before the run ends',
-    async ({ waitFor, held, thirdCalls }) => {
-      const seeded = await seedExecutableRun(testbed, parallelFlow(waitFor, held));
+    async ({ waitFor, held, background, thirdCalls }) => {
+      const seeded = await seedExecutableRun(testbed, parallelFlow(waitFor, held, background));
       const holder = held.id === OBSERVER_NODE_ID ? testbed.observer : testbed.executor;
       holder.script(held.id, StepScript.Hold);
 
