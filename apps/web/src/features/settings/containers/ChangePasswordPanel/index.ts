@@ -1,1 +1,1 @@
-export { ChangePasswordPanel } from '@/features/settings/containers/ChangePassword/ChangePasswordPanel';
+export { ChangePasswordPanel } from '@/features/settings/containers/ChangePasswordPanel/ChangePasswordPanel';
