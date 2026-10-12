@@ -2,6 +2,7 @@ import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
 import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
+import type { NewPromptFolder } from '@/modules/prompts/typedefs/prompt-folder.typedefs';
 import type { NewPrompt } from '@/modules/prompts/typedefs/prompt.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -9,6 +10,7 @@ import { ROW_LEVEL_SECURITY_VIOLATION } from '@test/support/constants/postgres-e
 import {
   PROMPTS_TEST_LATER,
   PROMPTS_TEST_START,
+  TEST_FOLDER_NEW_NAME,
   TEST_PROMPT_NAME,
   TEST_PROMPT_NEW_NAME,
   TEST_PROMPT_PAGE_LIMIT,
@@ -35,9 +37,14 @@ describe('PromptsRepository', () => {
     await testingModule.close();
   });
 
-  const insertFolder = async (workspaceId: string): Promise<string> => {
+  const insertFolder = async (
+    workspaceId: string,
+    overrides: Partial<NewPromptFolder> = {},
+  ): Promise<string> => {
     const folderId = ids.generate();
-    await tenants.run(workspaceId, () => folders.insert(newFolder(folderId, workspaceId)));
+    await tenants.run(workspaceId, () =>
+      folders.insert(newFolder(folderId, workspaceId, overrides)),
+    );
     return folderId;
   };
 
@@ -171,6 +178,63 @@ describe('PromptsRepository', () => {
     expect(found).toBeNull();
     expect(byName).toBeNull();
     await expect(insertPrompt(workspaceId)).resolves.toEqual(expect.any(String));
+  });
+
+  describe('detachFromFolder', () => {
+    it('moves the prompts of one folder to Unfiled and keeps the others', async () => {
+      const workspaceId = ids.generate();
+      const folderId = await insertFolder(workspaceId);
+      const otherFolderId = await insertFolder(workspaceId, { name: TEST_FOLDER_NEW_NAME });
+      const detachedPrompt = await insertPrompt(workspaceId, { folderId });
+      const keptPrompt = await insertPrompt(workspaceId, {
+        name: TEST_PROMPT_NEW_NAME,
+        folderId: otherFolderId,
+      });
+
+      const detached = await tenants.run(workspaceId, () =>
+        repository.detachFromFolder(workspaceId, folderId),
+      );
+      const moved = await tenants.run(workspaceId, () =>
+        repository.findById(workspaceId, detachedPrompt),
+      );
+      const kept = await tenants.run(workspaceId, () =>
+        repository.findById(workspaceId, keptPrompt),
+      );
+
+      expect(detached).toBe(1);
+      expect(moved?.folderId).toBeNull();
+      expect(kept?.folderId).toBe(otherFolderId);
+    });
+
+    it('leaves a soft-deleted prompt alone', async () => {
+      const workspaceId = ids.generate();
+      const folderId = await insertFolder(workspaceId);
+      const promptId = await insertPrompt(workspaceId, { folderId });
+      await tenants.run(workspaceId, () =>
+        repository.softDelete(workspaceId, promptId, PROMPTS_TEST_LATER),
+      );
+
+      const detached = await tenants.run(workspaceId, () =>
+        repository.detachFromFolder(workspaceId, folderId),
+      );
+
+      expect(detached).toBe(0);
+    });
+
+    it('never detaches the prompts of another workspace', async () => {
+      const workspaceA = ids.generate();
+      const workspaceB = ids.generate();
+      const folderId = await insertFolder(workspaceA);
+      const promptId = await insertPrompt(workspaceA, { folderId });
+
+      const detached = await tenants.run(workspaceB, () =>
+        repository.detachFromFolder(workspaceA, folderId),
+      );
+      const stored = await tenants.run(workspaceA, () => repository.findById(workspaceA, promptId));
+
+      expect(detached).toBe(0);
+      expect(stored?.folderId).toBe(folderId);
+    });
   });
 
   describe('across tenants', () => {

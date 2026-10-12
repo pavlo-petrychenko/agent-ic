@@ -38,6 +38,15 @@ export class PromptsRepository {
     return prompt ?? null;
   }
 
+  async detachFromFolder(workspaceId: string, folderId: string): Promise<number> {
+    const updated = await this.txHost.tx
+      .update(prompts)
+      .set({ folderId: null })
+      .where(and(this.activeWhere(workspaceId), eq(prompts.folderId, folderId)))
+      .returning({ id: prompts.id });
+    return updated.length;
+  }
+
   listPage(workspaceId: string, afterId: string | null, limit: number): Promise<Prompt[]> {
     return this.txHost.tx
       .select()

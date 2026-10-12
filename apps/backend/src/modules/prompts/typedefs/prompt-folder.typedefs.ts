@@ -21,3 +21,7 @@ export interface PromptFolderView {
 export interface CreatePromptFolderInput {
   readonly name: string;
 }
+
+export interface DeletePromptFolderInput {
+  readonly id: string;
+}
