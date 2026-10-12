@@ -10,7 +10,8 @@ import {
 import { renderEmail } from '@/modules/notifications/helpers/email-render.helpers';
 import type { SendEmailChangeEmailInput } from '@/modules/notifications/typedefs/send-email-change-email.typedefs';
 import { ConfigService } from '@/platform/config/services/config.service';
-import { requireSystemActor } from '@/platform/context/helpers/use-case-ctx.helpers';
+import { ActorKind } from '@/platform/context/constants/actor.constants';
+import { getOriginator, requireSystemActor } from '@/platform/context/helpers/use-case-ctx.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
@@ -25,6 +26,10 @@ export class SendEmailChangeEmailUseCase {
 
   async execute(ctx: UseCaseCtx, input: SendEmailChangeEmailInput): Promise<void> {
     requireSystemActor(ctx);
+    const initiator = getOriginator(ctx);
+    if (initiator.kind !== ActorKind.User || initiator.userId !== input.userId) {
+      return;
+    }
     const change = await this.txHost.withTransaction(() =>
       this.emailChanges.issueChangeToken(input.userId),
     );
