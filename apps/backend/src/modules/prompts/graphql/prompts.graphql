@@ -1,5 +1,6 @@
 extend type Query {
   promptFolders: [PromptFolder!]!
+  prompts(folderId: ID, search: String): [Prompt!]!
 }
 
 extend type Mutation {

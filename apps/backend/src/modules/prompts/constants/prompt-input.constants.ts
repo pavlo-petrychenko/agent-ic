@@ -2,6 +2,8 @@ import { ErrorReason } from '@agent-ic/contracts';
 
 export enum PromptGraphqlArgument {
   Input = 'input',
+  FolderId = 'folderId',
+  Search = 'search',
 }
 
 export enum PromptField {

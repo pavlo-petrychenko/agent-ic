@@ -1,9 +1,13 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, eq, gt, isNull, sql } from 'drizzle-orm';
+import { and, asc, count, eq, ilike, isNull, sql } from 'drizzle-orm';
 import { prompts } from '@/modules/prompts/db/prompts.table';
 import { promptNamesLockKey } from '@/modules/prompts/helpers/prompt-name.helpers';
-import type { NewPrompt, Prompt } from '@/modules/prompts/typedefs/prompt.typedefs';
+import type {
+  NewPrompt,
+  Prompt,
+  PromptListFilters,
+} from '@/modules/prompts/typedefs/prompt.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
@@ -53,15 +57,20 @@ export class PromptsRepository {
     return row?.total ?? 0;
   }
 
-  listPage(workspaceId: string, afterId: string | null, limit: number): Promise<Prompt[]> {
+  list(workspaceId: string, filters?: PromptListFilters): Promise<Prompt[]> {
+    const folderId = filters?.folderId ?? null;
+    const search = filters?.search ?? null;
     return this.txHost.tx
       .select()
       .from(prompts)
       .where(
-        and(this.activeWhere(workspaceId), afterId === null ? undefined : gt(prompts.id, afterId)),
+        and(
+          this.activeWhere(workspaceId),
+          folderId === null ? undefined : eq(prompts.folderId, folderId),
+          search === null ? undefined : ilike(prompts.name, `%${search}%`),
+        ),
       )
-      .orderBy(asc(prompts.id))
-      .limit(limit);
+      .orderBy(asc(prompts.id));
   }
 
   rename(workspaceId: string, promptId: string, name: string): Promise<Prompt | null> {

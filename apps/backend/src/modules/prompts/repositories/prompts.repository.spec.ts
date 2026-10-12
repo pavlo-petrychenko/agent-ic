@@ -13,7 +13,6 @@ import {
   TEST_FOLDER_NEW_NAME,
   TEST_PROMPT_NAME,
   TEST_PROMPT_NEW_NAME,
-  TEST_PROMPT_PAGE_LIMIT,
 } from '@test/support/constants/prompts-testing.constants';
 import { newFolder, newPrompt } from '@test/support/fixtures/prompts.fixture';
 import { createPromptsTestingModule } from '@test/support/helpers/prompts-testing.helpers';
@@ -119,7 +118,7 @@ describe('PromptsRepository', () => {
     expect(found).toMatchObject({ name: TEST_PROMPT_NEW_NAME });
   });
 
-  it('lists prompts in id order, a page at a time', async () => {
+  it('lists the prompts in creation order', async () => {
     const workspaceId = ids.generate();
     const created = [
       await insertPrompt(workspaceId, { name: 'Alpha' }),
@@ -127,15 +126,35 @@ describe('PromptsRepository', () => {
       await insertPrompt(workspaceId, { name: 'Charlie' }),
     ];
 
-    const first = await tenants.run(workspaceId, () =>
-      repository.listPage(workspaceId, null, TEST_PROMPT_PAGE_LIMIT),
+    const listed = await tenants.run(workspaceId, () => repository.list(workspaceId));
+
+    expect(listed.map((prompt) => prompt.id)).toEqual(created);
+  });
+
+  it('filters a list by folder and by name', async () => {
+    const workspaceId = ids.generate();
+    const folderId = await insertFolder(workspaceId);
+    const otherFolderId = await insertFolder(workspaceId, { name: TEST_FOLDER_NEW_NAME });
+    const receptionist = await insertPrompt(workspaceId, { name: TEST_PROMPT_NAME, folderId });
+    const concierge = await insertPrompt(workspaceId, {
+      name: TEST_PROMPT_NEW_NAME,
+      folderId: otherFolderId,
+    });
+    const notes = await insertPrompt(workspaceId, { name: 'Reception notes', folderId });
+
+    const inFolder = await tenants.run(workspaceId, () =>
+      repository.list(workspaceId, { folderId, search: null }),
     );
-    const second = await tenants.run(workspaceId, () =>
-      repository.listPage(workspaceId, created[1] ?? null, TEST_PROMPT_PAGE_LIMIT),
+    const searched = await tenants.run(workspaceId, () =>
+      repository.list(workspaceId, { folderId: null, search: 'conci' }),
+    );
+    const byName = await tenants.run(workspaceId, () =>
+      repository.list(workspaceId, { folderId: null, search: 'ReCePtIoN' }),
     );
 
-    expect(first.map((prompt) => prompt.id)).toEqual(created.slice(0, TEST_PROMPT_PAGE_LIMIT));
-    expect(second.map((prompt) => prompt.id)).toEqual(created.slice(TEST_PROMPT_PAGE_LIMIT));
+    expect(inFolder.map((prompt) => prompt.id)).toEqual([receptionist, notes]);
+    expect(searched.map((prompt) => prompt.id)).toEqual([concierge]);
+    expect(byName.map((prompt) => prompt.id)).toEqual([receptionist, notes]);
   });
 
   it('finds a prompt for update and hides it once deleted', async () => {
@@ -219,7 +238,7 @@ describe('PromptsRepository', () => {
       const fromB = await tenants.run(workspaceB, async () => ({
         found: await repository.findById(workspaceA, promptId),
         byName: await repository.findByName(workspaceA, TEST_PROMPT_NAME),
-        page: await repository.listPage(workspaceA, null, TEST_PROMPT_PAGE_LIMIT),
+        listed: await repository.list(workspaceA),
         locked: await repository.findByIdForUpdate(workspaceA, promptId),
         renamed: await repository.rename(workspaceA, promptId, TEST_PROMPT_NEW_NAME),
         moved: await repository.moveToFolder(workspaceA, promptId, folderId),
@@ -232,7 +251,7 @@ describe('PromptsRepository', () => {
       expect(fromB).toEqual({
         found: null,
         byName: null,
-        page: [],
+        listed: [],
         locked: null,
         renamed: null,
         moved: false,
@@ -246,7 +265,7 @@ describe('PromptsRepository', () => {
       const promptId = await insertPrompt(workspaceId);
 
       expect(await repository.findById(workspaceId, promptId)).toBeNull();
-      expect(await repository.listPage(workspaceId, null, TEST_PROMPT_PAGE_LIMIT)).toEqual([]);
+      expect(await repository.list(workspaceId)).toEqual([]);
     });
 
     it('refuses to write a prompt into another workspace', async () => {
