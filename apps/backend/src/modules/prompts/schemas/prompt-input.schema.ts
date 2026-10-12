@@ -19,3 +19,12 @@ export const movePromptToFolderInputSchema = z.object({
   [PromptField.Id]: recordIdSchema,
   [PromptField.FolderId]: recordIdSchema,
 });
+
+export const promptIdInputSchema = z.object({
+  [PromptField.Id]: recordIdSchema,
+});
+
+export const duplicatePromptInputSchema = z.object({
+  [PromptField.Id]: recordIdSchema,
+  [PromptField.FolderId]: recordIdSchema,
+});

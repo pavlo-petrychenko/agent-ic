@@ -4,6 +4,8 @@ import { PromptsRepository } from '@/modules/prompts/repositories/prompts.reposi
 import { CreatePromptFolderResolver } from '@/modules/prompts/resolvers/create-prompt-folder.resolver';
 import { CreatePromptResolver } from '@/modules/prompts/resolvers/create-prompt.resolver';
 import { DeletePromptFolderResolver } from '@/modules/prompts/resolvers/delete-prompt-folder.resolver';
+import { DeletePromptResolver } from '@/modules/prompts/resolvers/delete-prompt.resolver';
+import { DuplicatePromptResolver } from '@/modules/prompts/resolvers/duplicate-prompt.resolver';
 import { MovePromptToFolderResolver } from '@/modules/prompts/resolvers/move-prompt-to-folder.resolver';
 import { PromptFoldersResolver } from '@/modules/prompts/resolvers/prompt-folders.resolver';
 import { PromptsResolver } from '@/modules/prompts/resolvers/prompts.resolver';
@@ -14,6 +16,8 @@ import { PromptViewsService } from '@/modules/prompts/services/prompt-views.serv
 import { CreatePromptFolderUseCase } from '@/modules/prompts/use-cases/create-prompt-folder.use-case';
 import { CreatePromptUseCase } from '@/modules/prompts/use-cases/create-prompt.use-case';
 import { DeletePromptFolderUseCase } from '@/modules/prompts/use-cases/delete-prompt-folder.use-case';
+import { DeletePromptUseCase } from '@/modules/prompts/use-cases/delete-prompt.use-case';
+import { DuplicatePromptUseCase } from '@/modules/prompts/use-cases/duplicate-prompt.use-case';
 import { ListPromptFoldersUseCase } from '@/modules/prompts/use-cases/list-prompt-folders.use-case';
 import { ListPromptsUseCase } from '@/modules/prompts/use-cases/list-prompts.use-case';
 import { MovePromptToFolderUseCase } from '@/modules/prompts/use-cases/move-prompt-to-folder.use-case';
@@ -31,6 +35,8 @@ export class PromptsModule extends defineModule({
     CreatePromptFolderUseCase,
     CreatePromptUseCase,
     DeletePromptFolderUseCase,
+    DeletePromptUseCase,
+    DuplicatePromptUseCase,
     ListPromptFoldersUseCase,
     ListPromptsUseCase,
     MovePromptToFolderUseCase,
@@ -41,6 +47,8 @@ export class PromptsModule extends defineModule({
     CreatePromptFolderResolver,
     CreatePromptResolver,
     DeletePromptFolderResolver,
+    DeletePromptResolver,
+    DuplicatePromptResolver,
     MovePromptToFolderResolver,
     PromptFoldersResolver,
     PromptsResolver,

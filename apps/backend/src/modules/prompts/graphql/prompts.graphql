@@ -10,6 +10,8 @@ extend type Mutation {
   createPrompt(input: CreatePromptInput!): Prompt!
   renamePrompt(input: RenamePromptInput!): Prompt!
   movePromptToFolder(input: MovePromptToFolderInput!): Prompt!
+  duplicatePrompt(input: DuplicatePromptInput!): Prompt!
+  deletePrompt(input: DeletePromptInput!): DeletePromptPayload!
 }
 
 input CreatePromptFolderInput {
@@ -40,7 +42,20 @@ input MovePromptToFolderInput {
   folderId: ID!
 }
 
+input DuplicatePromptInput {
+  id: ID!
+  folderId: ID!
+}
+
+input DeletePromptInput {
+  id: ID!
+}
+
 type DeletePromptFolderPayload {
+  id: ID!
+}
+
+type DeletePromptPayload {
   id: ID!
 }
 
