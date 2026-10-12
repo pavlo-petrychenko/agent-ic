@@ -233,10 +233,9 @@ describe('validateFlow', () => {
     },
   );
 
-  it('warns about the completions without an error path in the FAQ example', () => {
+  it('warns only about the waited completion without an error path in the FAQ example', () => {
     expect(validateFlow(faqWithHandOffFlow)).toEqual([
       expect.objectContaining({ code: FlowIssueCode.NoErrorPath, nodeId: 'n_guard' }),
-      expect.objectContaining({ code: FlowIssueCode.NoErrorPath, nodeId: 'n_topic' }),
     ]);
   });
 
@@ -307,6 +306,27 @@ describe('background branches', () => {
         severity: FlowIssueSeverity.Error,
         nodeId: 'n_stop',
       }),
+    );
+  });
+
+  it('does not warn about a failure nothing handles in the steps of a background branch', () => {
+    const { flow, save } = replyAndScoreFlow();
+    const recheck = completion('recheck');
+    const extended = flowOf(
+      [...flow.nodes, recheck],
+      [...flow.edges, link(save, PortName.Next, recheck)],
+    );
+    expect(codes(flow)).not.toContain(FlowIssueCode.NoErrorPath);
+    expect(codes(extended)).not.toContain(FlowIssueCode.NoErrorPath);
+  });
+
+  it('warns about the same completion in a waited branch', () => {
+    const { flow, fork, scorer } = replyAndScoreFlow();
+    const waited = flow.edges.map((edge) =>
+      edge.target === scorer.id ? link(fork, PortName.Branches, scorer) : edge,
+    );
+    expect(validateFlow(flowOf(flow.nodes, waited))).toContainEqual(
+      expect.objectContaining({ code: FlowIssueCode.NoErrorPath, nodeId: scorer.id }),
     );
   });
 

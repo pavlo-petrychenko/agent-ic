@@ -24,6 +24,7 @@ const unconnectedPortIssues = (context: ValidationContext, node: FlowNode): Flow
 
 const canFailUnhandled = (context: ValidationContext, node: FlowNode): boolean =>
   (node.type === NodeType.Agent || node.type === NodeType.Completion) &&
+  !context.inBackground.has(node.id) &&
   outgoingEdges(context.graph, node.id, PortName.Error).length === 0;
 
 const nodeWarnings = (context: ValidationContext, node: FlowNode): FlowIssue[] => {
