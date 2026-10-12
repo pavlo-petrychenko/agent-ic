@@ -73,3 +73,8 @@ export interface UpdateMyNameInput {
 export interface RequestMyEmailChangeInput {
   readonly email: string;
 }
+
+export interface ChangeMyPasswordInput {
+  readonly currentPassword: string;
+  readonly newPassword: string;
+}

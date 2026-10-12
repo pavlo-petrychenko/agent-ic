@@ -2,8 +2,8 @@ import { ErrorReason } from '@agent-ic/contracts';
 import type { z } from 'zod';
 import {
   ACCOUNT_FIELD_REASON,
-  AccountField,
   FIELD_PATH_SEPARATOR,
+  PASSWORD_FIELDS,
   TOO_BIG_ISSUE_CODE,
 } from '@/modules/identity/constants/account-input.constants';
 import { InvalidAccountInputError } from '@/modules/identity/errors/invalid-account-input.error';
@@ -11,7 +11,7 @@ import type { FieldIssue } from '@/platform/errors/typedefs/domain-error.typedef
 
 const reasonFor = (issue: z.core.$ZodIssue): ErrorReason => {
   const field = String(issue.path[0] ?? '');
-  if (field === AccountField.Password && issue.code === TOO_BIG_ISSUE_CODE) {
+  if (PASSWORD_FIELDS.includes(field) && issue.code === TOO_BIG_ISSUE_CODE) {
     return ErrorReason.PasswordTooLong;
   }
   return ACCOUNT_FIELD_REASON[field] ?? ErrorReason.InvalidRequest;

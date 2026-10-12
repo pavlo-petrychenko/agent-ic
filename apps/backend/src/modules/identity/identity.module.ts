@@ -8,6 +8,7 @@ import { SessionsRepository } from '@/modules/identity/repositories/sessions.rep
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { WorkspacesRepository } from '@/modules/identity/repositories/workspaces.repository';
 import { AcceptInviteResolver } from '@/modules/identity/resolvers/accept-invite.resolver';
+import { ChangeMyPasswordResolver } from '@/modules/identity/resolvers/change-my-password.resolver';
 import { CreateWorkspaceResolver } from '@/modules/identity/resolvers/create-workspace.resolver';
 import { DeleteWorkspaceResolver } from '@/modules/identity/resolvers/delete-workspace.resolver';
 import { ForgotPasswordResolver } from '@/modules/identity/resolvers/forgot-password.resolver';
@@ -38,6 +39,7 @@ import { SampleWorkspaceService } from '@/modules/identity/services/sample-works
 import { SessionsService } from '@/modules/identity/services/sessions.service';
 import { WorkspaceMembershipsService } from '@/modules/identity/services/workspace-memberships.service';
 import { AcceptInviteUseCase } from '@/modules/identity/use-cases/accept-invite.use-case';
+import { ChangeMyPasswordUseCase } from '@/modules/identity/use-cases/change-my-password.use-case';
 import { CleanUpAuthRecordsUseCase } from '@/modules/identity/use-cases/clean-up-auth-records.use-case';
 import { ConfirmEmailChangeUseCase } from '@/modules/identity/use-cases/confirm-email-change.use-case';
 import { ConfirmEmailUseCase } from '@/modules/identity/use-cases/confirm-email.use-case';
@@ -101,6 +103,7 @@ export class IdentityModule extends defineModule({
     LeaveWorkspaceUseCase,
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
+    ChangeMyPasswordUseCase,
     CreateWorkspaceUseCase,
     DeleteWorkspaceUseCase,
     ListMyWorkspacesUseCase,
@@ -124,6 +127,7 @@ export class IdentityModule extends defineModule({
     ResendConfirmationResolver,
     MeResolver,
     ForgotPasswordResolver,
+    ChangeMyPasswordResolver,
     CreateWorkspaceResolver,
     DeleteWorkspaceResolver,
     MyWorkspacesResolver,

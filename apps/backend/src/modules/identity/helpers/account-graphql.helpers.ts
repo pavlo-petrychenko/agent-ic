@@ -1,6 +1,7 @@
 import { Locale } from '@agent-ic/contracts';
 import { toGraphqlMembership } from '@/modules/identity/helpers/workspace-graphql.helpers';
 import type {
+  ChangeMyPasswordInput,
   ForgotPasswordInput,
   RequestMyEmailChangeInput,
   ResendConfirmationInput,
@@ -9,6 +10,7 @@ import type {
 } from '@/modules/identity/typedefs/account.typedefs';
 import type { Me } from '@/modules/identity/typedefs/user.typedefs';
 import type {
+  ChangeMyPasswordInput as ChangeMyPasswordArgs,
   ForgotPasswordInput as ForgotPasswordArgs,
   ForgotPasswordPayload,
   RequestMyEmailChangeInput as RequestMyEmailChangeArgs,
@@ -66,4 +68,9 @@ export const toRequestMyEmailChangeInput = (
 
 export const acceptedRequestMyEmailChangePayload = (): RequestMyEmailChangePayload => ({
   accepted: true,
+});
+
+export const toChangeMyPasswordInput = (args: ChangeMyPasswordArgs): ChangeMyPasswordInput => ({
+  currentPassword: args.currentPassword,
+  newPassword: args.newPassword,
 });
