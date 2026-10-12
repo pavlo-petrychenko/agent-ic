@@ -1,6 +1,7 @@
 extend type Query {
   promptFolders: [PromptFolder!]!
   prompts(folderId: ID, search: String): [Prompt!]!
+  prompt(id: ID!): PromptDetail!
 }
 
 extend type Mutation {
@@ -65,6 +66,24 @@ type Prompt {
   folderId: ID!
   createdAt: String!
   updatedAt: String!
+}
+
+type PromptDetail {
+  prompt: Prompt!
+  latestVersion: PromptVersion
+}
+
+type PromptVersion {
+  id: ID!
+  number: Int!
+  text: String!
+  note: String
+  author: PromptVersionAuthor
+  createdAt: String!
+}
+
+type PromptVersionAuthor {
+  name: String!
 }
 
 type PromptFolder {

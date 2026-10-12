@@ -129,6 +129,30 @@ describe('PromptVersionsRepository', () => {
     expect(last).toBe(SKIPPED_NUMBER);
   });
 
+  it('finds the latest version', async () => {
+    const workspaceId = ids.generate();
+    const promptId = await insertPrompt(workspaceId);
+    await insertVersion(workspaceId, promptId, { number: FIRST_NUMBER });
+    const latestId = await insertVersion(workspaceId, promptId, { number: SECOND_NUMBER });
+
+    const found = await tenants.run(workspaceId, () =>
+      repository.findLatest(workspaceId, promptId),
+    );
+
+    expect(found?.id).toBe(latestId);
+  });
+
+  it('reports no latest version when the prompt has none', async () => {
+    const workspaceId = ids.generate();
+    const promptId = await insertPrompt(workspaceId);
+
+    const found = await tenants.run(workspaceId, () =>
+      repository.findLatest(workspaceId, promptId),
+    );
+
+    expect(found).toBeNull();
+  });
+
   it('soft deletes every version of one prompt only', async () => {
     const workspaceId = ids.generate();
     const promptA = await insertPrompt(workspaceId);
@@ -210,13 +234,20 @@ describe('PromptVersionsRepository', () => {
         found: await repository.findById(workspaceA, versionId),
         list: await repository.listByPrompt(workspaceA, promptId),
         last: await repository.lastNumber(workspaceA, promptId),
+        latest: await repository.findLatest(workspaceA, promptId),
         deleted: await repository.softDeleteByPrompt(workspaceA, promptId, PROMPTS_TEST_LATER),
       }));
       const ownFromA = await tenants.run(workspaceA, () =>
         repository.findById(workspaceA, versionId),
       );
 
-      expect(fromB).toEqual({ found: null, list: [], last: NO_PROMPT_VERSIONS, deleted: 0 });
+      expect(fromB).toEqual({
+        found: null,
+        list: [],
+        last: NO_PROMPT_VERSIONS,
+        latest: null,
+        deleted: 0,
+      });
       expect(ownFromA?.id).toBe(versionId);
     });
 

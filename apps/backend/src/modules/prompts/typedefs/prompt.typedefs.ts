@@ -1,4 +1,5 @@
 import type { prompts } from '@/modules/prompts/db/prompts.table';
+import type { PromptVersionView } from '@/modules/prompts/typedefs/prompt-version.typedefs';
 
 export interface Prompt {
   readonly id: string;
@@ -19,6 +20,11 @@ export interface PromptView {
   readonly folderId: string;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+}
+
+export interface PromptDetailView {
+  readonly prompt: PromptView;
+  readonly latestVersion: PromptVersionView | null;
 }
 
 export interface CreatePromptInput {

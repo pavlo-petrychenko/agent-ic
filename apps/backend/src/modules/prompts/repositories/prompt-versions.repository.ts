@@ -33,6 +33,16 @@ export class PromptVersionsRepository {
       .orderBy(desc(promptVersions.number));
   }
 
+  async findLatest(workspaceId: string, promptId: string): Promise<PromptVersion | null> {
+    const [version] = await this.txHost.tx
+      .select()
+      .from(promptVersions)
+      .where(and(this.activeWhere(workspaceId), eq(promptVersions.promptId, promptId)))
+      .orderBy(desc(promptVersions.number))
+      .limit(1);
+    return version ?? null;
+  }
+
   async lastNumber(workspaceId: string, promptId: string): Promise<number> {
     const [row] = await this.txHost.tx
       .select({ last: max(promptVersions.number) })
