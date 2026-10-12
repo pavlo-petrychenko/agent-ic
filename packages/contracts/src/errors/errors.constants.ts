@@ -78,4 +78,5 @@ export enum ErrorReason {
   CannotTransferToYourself = 'CANNOT_TRANSFER_TO_YOURSELF',
   TeamMemberNotFound = 'TEAM_MEMBER_NOT_FOUND',
   WorkspaceNameMismatch = 'WORKSPACE_NAME_MISMATCH',
+  SamePassword = 'SAME_PASSWORD',
 }

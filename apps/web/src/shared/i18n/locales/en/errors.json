@@ -19,6 +19,7 @@
     "INVALID_NAME": "Enter your name using letters, spaces, apostrophes, hyphens or periods.",
     "PASSWORD_TOO_SHORT": "The password must have at least 10 characters.",
     "PASSWORD_TOO_LONG": "The password is too long.",
+    "SAME_PASSWORD": "The new password must be different from the current one.",
     "INVALID_REFRESH_TOKEN": "Your session has ended. Sign in again.",
     "TOKEN_INVALID": "This link is not valid.",
     "TOKEN_EXPIRED": "This link has expired.",
