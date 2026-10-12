@@ -2,6 +2,7 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, asc, count, eq, gt, isNull, sql } from 'drizzle-orm';
 import { prompts } from '@/modules/prompts/db/prompts.table';
+import { promptNamesLockKey } from '@/modules/prompts/helpers/prompt-name.helpers';
 import type { NewPrompt, Prompt } from '@/modules/prompts/typedefs/prompt.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
@@ -11,6 +12,12 @@ export class PromptsRepository {
 
   async insert(prompt: NewPrompt): Promise<void> {
     await this.txHost.tx.insert(prompts).values(prompt);
+  }
+
+  async lockNames(workspaceId: string): Promise<void> {
+    await this.txHost.tx.execute(
+      sql`select pg_advisory_xact_lock(hashtext(${promptNamesLockKey(workspaceId)}))`,
+    );
   }
 
   async findById(workspaceId: string, promptId: string): Promise<Prompt | null> {
@@ -57,8 +64,8 @@ export class PromptsRepository {
       .limit(limit);
   }
 
-  rename(workspaceId: string, promptId: string, name: string): Promise<boolean> {
-    return this.update(workspaceId, promptId, { name });
+  rename(workspaceId: string, promptId: string, name: string, updatedAt: Date): Promise<boolean> {
+    return this.update(workspaceId, promptId, { name, updatedAt });
   }
 
   moveToFolder(workspaceId: string, promptId: string, folderId: string): Promise<boolean> {
