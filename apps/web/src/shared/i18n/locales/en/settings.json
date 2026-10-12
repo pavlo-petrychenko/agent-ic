@@ -5,7 +5,8 @@
   "nav": {
     "workspace": "Workspace",
     "team": "Team",
-    "general": "General"
+    "general": "General",
+    "roles": "Roles"
   },
   "team": {
     "subtitle_one": "{{count}} member · each person has one role in this workspace",
@@ -92,6 +93,41 @@
           "success": "Workspace deleted"
         }
       }
+    }
+  },
+  "roles": {
+    "subtitle": "Who can see and change what in this workspace",
+    "newRole": "New role",
+    "duplicate": "Duplicate",
+    "save": "Save role",
+    "members_one": "{{count}} member",
+    "members_other": "{{count}} members",
+    "hint": "Owner, Admin, Builder and Operator are built in. Duplicate one or create a new role, then pick it for people in Team or for the invite link.",
+    "matrix": {
+      "resource": "Resource",
+      "view": "View",
+      "edit": "Edit",
+      "publish": "Publish",
+      "delete": "Delete"
+    },
+    "resource": {
+      "agents": "Agents & flows",
+      "agentsNote": "all agents",
+      "prompts": "Prompts",
+      "knowledgeBases": "Knowledge bases",
+      "channels": "Channels",
+      "inbox": "Inbox",
+      "inboxNote": "reply, take over, hand back",
+      "testing": "Testing",
+      "analytics": "Analytics",
+      "team": "Team & roles",
+      "workspaceSettings": "Workspace settings"
+    },
+    "description": {
+      "owner": "Everything, including deleting the workspace",
+      "admin": "Builds bots, invites people",
+      "builder": "Builds and publishes bots",
+      "operator": "Handles escalated chats"
     }
   }
 }

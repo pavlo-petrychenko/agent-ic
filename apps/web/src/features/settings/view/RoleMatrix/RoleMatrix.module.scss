@@ -1,0 +1,58 @@
+$action-column-width: 88px;
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: var(--space-12) var(--space-16);
+  border-bottom: var(--border-width) solid var(--color-line);
+  text-align: left;
+}
+
+.table tbody tr:last-child th,
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.resourceHead,
+.actionHead {
+  color: var(--color-mute);
+  font: var(--type-body-small);
+  font-weight: 400;
+}
+
+.actionHead,
+.actionCell {
+  width: $action-column-width;
+  text-align: center;
+}
+
+.resourceCell {
+  font: var(--type-body);
+}
+
+.resourceText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.resourceLabel {
+  color: var(--color-ink);
+}
+
+.resourceNote {
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.actionCell {
+  vertical-align: middle;
+}
+
+.notApplicable {
+  color: var(--color-mute);
+}

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { TEAM_PATH, GENERAL_PATH } from '@/features/settings/constants/route.constants';
+import { ROLE_FIXTURES } from '@/features/settings/constants/roles.constants';
+import { GENERAL_PATH, ROLES_PATH, TEAM_PATH } from '@/features/settings/constants/route.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { SettingsShellProps } from '@/features/settings/containers/SettingsShell/SettingsShell.typedefs';
 import { SettingsFrame } from '@/features/settings/view/SettingsFrame';
@@ -12,8 +13,9 @@ export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
   const active = useActiveWorkspace(workspaceId);
   const showTeam = active !== null && canOpenSection(active.role, WorkspaceSection.Team);
   const showGeneral = active !== null && canOpenSection(active.role, WorkspaceSection.General);
+  const showRoles = active !== null && canOpenSection(active.role, WorkspaceSection.Roles);
 
-  const hasWorkspaceNav = showGeneral || showTeam;
+  const hasWorkspaceNav = showGeneral || showTeam || showRoles;
 
   return (
     <SettingsFrame
@@ -21,15 +23,21 @@ export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
       nav={
         hasWorkspaceNav && (
           <NavGroup label={t('nav.workspace')}>
+            {showGeneral && (
+              <NavItem to={GENERAL_PATH} params={{ workspaceId }}>
+                {t('nav.general')}
+              </NavItem>
+            )}
+
             {showTeam && (
               <NavItem to={TEAM_PATH} params={{ workspaceId }} meta={active.memberCount}>
                 {t('nav.team')}
               </NavItem>
             )}
 
-            {showGeneral && (
-              <NavItem to={GENERAL_PATH} params={{ workspaceId }}>
-                {t('nav.general')}
+            {showRoles && (
+              <NavItem to={ROLES_PATH} params={{ workspaceId }} meta={ROLE_FIXTURES.length}>
+                {t('nav.roles')}
               </NavItem>
             )}
           </NavGroup>

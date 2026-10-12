@@ -11,7 +11,8 @@
       "testing": "Testing",
       "settings": "Settings",
       "team": "Team",
-      "general": "General"
+      "general": "General",
+      "roles": "Roles"
     }
   },
   "header": {
