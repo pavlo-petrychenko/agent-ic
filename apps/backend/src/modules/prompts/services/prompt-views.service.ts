@@ -1,6 +1,10 @@
 import { IdPrefix } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { UsersRepository } from '@/modules/identity';
+import {
+  promptVersionAuthorIds,
+  toPromptVersionView,
+} from '@/modules/prompts/helpers/prompt-version.helpers';
 import type {
   PromptVersion,
   PromptVersionAuthor,
@@ -44,22 +48,43 @@ export class PromptViewsService {
     };
   }
 
-  async promptVersionView(version: PromptVersion): Promise<PromptVersionView> {
-    return {
-      id: this.ids.toPublic(IdPrefix.PromptVersion, version.id),
-      number: version.number,
-      text: version.text,
-      note: version.note,
-      author: await this.promptVersionAuthor(version.authorId),
-      createdAt: version.createdAt,
-    };
+  async promptVersionViews(versions: readonly PromptVersion[]): Promise<PromptVersionView[]> {
+    const names = await this.authorNames(versions);
+    return versions.map((version) =>
+      toPromptVersionView(version, {
+        id: this.ids.toPublic(IdPrefix.PromptVersion, version.id),
+        author: this.authorOf(version, names),
+      }),
+    );
   }
 
-  private async promptVersionAuthor(authorId: string | null): Promise<PromptVersionAuthor | null> {
-    if (authorId === null) {
+  async promptVersionView(version: PromptVersion): Promise<PromptVersionView> {
+    const names = await this.authorNames([version]);
+    return toPromptVersionView(version, {
+      id: this.ids.toPublic(IdPrefix.PromptVersion, version.id),
+      author: this.authorOf(version, names),
+    });
+  }
+
+  private async authorNames(
+    versions: readonly PromptVersion[],
+  ): Promise<ReadonlyMap<string, string>> {
+    return new Map(
+      (await this.users.findNames(promptVersionAuthorIds(versions))).map((user) => [
+        user.id,
+        user.name,
+      ]),
+    );
+  }
+
+  private authorOf(
+    version: PromptVersion,
+    names: ReadonlyMap<string, string>,
+  ): PromptVersionAuthor | null {
+    if (version.authorId === null) {
       return null;
     }
-    const [author] = await this.users.findNames([authorId]);
-    return author === undefined ? null : { name: author.name };
+    const name = names.get(version.authorId);
+    return name === undefined ? null : { name };
   }
 }

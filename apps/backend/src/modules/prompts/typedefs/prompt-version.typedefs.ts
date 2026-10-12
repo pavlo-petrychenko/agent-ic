@@ -20,8 +20,17 @@ export interface SavePromptVersionInput {
   readonly note?: string | null;
 }
 
+export interface ListPromptVersionsInput {
+  readonly promptId: string;
+}
+
 export interface PromptVersionAuthor {
   readonly name: string;
+}
+
+export interface PromptVersionLabels {
+  readonly id: string;
+  readonly author: PromptVersionAuthor | null;
 }
 
 export interface PromptVersionView {
