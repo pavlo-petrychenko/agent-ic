@@ -2,16 +2,25 @@ import { WorkspaceRole } from '@agent-ic/contracts';
 import { hasBlockingIssues, validateFlow } from '@agent-ic/flow';
 import type { INestApplicationContext } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '@/app/app.module';
 import { SEED_ROLE_SELECTION } from '@/app/constants/seed.constants';
 import { seedSampleData } from '@/app/helpers/seed.helpers';
+import { FLOW_EXAMPLES } from '@/modules/agents/constants/flow-examples.constants';
 import { SAMPLE_AGENT_NAME } from '@/modules/agents/constants/sample-agent.constants';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
-import { SAMPLE_USER_EMAIL } from '@/modules/identity/constants/sample-workspace.constants';
+import {
+  FLOW_EXAMPLES_WORKSPACE_NAME,
+  SAMPLE_OPERATOR_EMAIL,
+  SAMPLE_USER_EMAIL,
+} from '@/modules/identity/constants/sample-workspace.constants';
+import { memberships } from '@/modules/identity/db/memberships.table';
+import { MembershipDirectoryRepository } from '@/modules/identity/repositories/membership-directory.repository';
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
+import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { TracingService } from '@/platform/observability/services/tracing.service';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
@@ -19,6 +28,32 @@ import { createIntegrationConfig } from '@test/support/fixtures/integration-env.
 
 const FIRST_VERSION_NUMBER = 1;
 const AGENT_PAGE_SIZE = 10;
+
+const readExamples = (app: INestApplicationContext, workspaceId: string) =>
+  app.get(TenantTransactionService).run(workspaceId, async () => {
+    const agents = await app.get(AgentsRepository).listPage(workspaceId, null, AGENT_PAGE_SIZE);
+    const live = [];
+    for (const agent of agents) {
+      live.push(
+        await app.get(AgentVersionsRepository).findById(workspaceId, agent.liveVersionId ?? ''),
+      );
+    }
+    return { agents, live };
+  });
+
+const operatorRole = async (app: INestApplicationContext, workspaceId: string) => {
+  const operator = await app.get(UsersRepository).findByEmail(SAMPLE_OPERATOR_EMAIL);
+  return app
+    .get(TenantTransactionService)
+    .run(workspaceId, () =>
+      app.get(MembershipsRepository).findRole(workspaceId, operator?.id ?? ''),
+    );
+};
+
+const examplesWorkspaces = async (app: INestApplicationContext, userId: string) => {
+  const memberships = await app.get(MembershipDirectoryRepository).listForUser(userId);
+  return memberships.filter((membership) => membership.name === FLOW_EXAMPLES_WORKSPACE_NAME);
+};
 
 describe('seedSampleData', () => {
   let app: INestApplicationContext;
@@ -60,6 +95,29 @@ describe('seedSampleData', () => {
     expect(hasBlockingIssues(validateFlow(stored.live?.flow))).toBe(false);
   });
 
+  it('creates a flow examples workspace with an operator and every example live and valid', async () => {
+    const { userId, examplesWorkspaceId } = await seedSampleData(app);
+
+    const operator = await app.get(UsersRepository).findByEmail(SAMPLE_OPERATOR_EMAIL);
+    const roles = await app
+      .get(TenantTransactionService)
+      .run(examplesWorkspaceId, () =>
+        Promise.all([
+          app.get(MembershipsRepository).findRole(examplesWorkspaceId, userId),
+          app.get(MembershipsRepository).findRole(examplesWorkspaceId, operator?.id ?? ''),
+        ]),
+      );
+    const { agents, live } = await readExamples(app, examplesWorkspaceId);
+    expect(roles).toEqual([WorkspaceRole.Owner, WorkspaceRole.Operator]);
+    expect(agents.map((agent) => agent.name).toSorted()).toEqual(
+      FLOW_EXAMPLES.map((example) => example.name).toSorted(),
+    );
+    expect(live.map((version) => version?.number)).toEqual(
+      FLOW_EXAMPLES.map(() => FIRST_VERSION_NUMBER),
+    );
+    expect(live.filter((version) => hasBlockingIssues(validateFlow(version?.flow)))).toEqual([]);
+  });
+
   it('changes nothing when it runs again', async () => {
     const first = await seedSampleData(app);
 
@@ -76,9 +134,31 @@ describe('seedSampleData', () => {
           : await app.get(AgentVersionsRepository).listPublished(first.workspaceId, agent.id);
       return { agents, published };
     });
-    expect(second).toEqual({ ...first, agentCreated: false });
+    const examples = await readExamples(app, first.examplesWorkspaceId);
+    expect(second).toEqual({ ...first, agentCreated: false, examplesCreated: false });
+    expect(await examplesWorkspaces(app, first.userId)).toHaveLength(1);
+    expect(examples.agents).toHaveLength(FLOW_EXAMPLES.length);
     expect(stored.agents).toHaveLength(1);
     expect(stored.published).toHaveLength(1);
     expect(stored.published[0]?.number).toBe(FIRST_VERSION_NUMBER);
+  });
+
+  it('adds the operator back when the examples workspace already exists without one', async () => {
+    const { examplesWorkspaceId } = await seedSampleData(app);
+    const operator = await app.get(UsersRepository).findByEmail(SAMPLE_OPERATOR_EMAIL);
+    await app
+      .get(SystemDatabaseService)
+      .db.delete(memberships)
+      .where(
+        and(
+          eq(memberships.workspaceId, examplesWorkspaceId),
+          eq(memberships.userId, operator?.id ?? ''),
+        ),
+      );
+
+    const again = await seedSampleData(app);
+
+    expect(again.examplesCreated).toBe(false);
+    expect(await operatorRole(app, examplesWorkspaceId)).toBe(WorkspaceRole.Operator);
   });
 });

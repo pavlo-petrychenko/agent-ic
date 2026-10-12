@@ -11,4 +11,7 @@ export type {
   IssuedConfirmation,
   IssuedPasswordReset,
 } from '@/modules/identity/typedefs/email-token.typedefs';
-export type { SampleWorkspace } from '@/modules/identity/typedefs/sample-workspace.typedefs';
+export type {
+  SampleFlowExamplesWorkspace,
+  SampleWorkspace,
+} from '@/modules/identity/typedefs/sample-workspace.typedefs';
