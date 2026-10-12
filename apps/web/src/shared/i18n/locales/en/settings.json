@@ -163,6 +163,14 @@
       },
       "action": "Save",
       "saved": "Profile updated"
+    },
+    "password": {
+      "title": "Password",
+      "current": "Current password",
+      "new": "New password",
+      "newPlaceholder": "At least 10 characters",
+      "action": "Change password",
+      "success": "Changed password successfully"
     }
   }
 }
