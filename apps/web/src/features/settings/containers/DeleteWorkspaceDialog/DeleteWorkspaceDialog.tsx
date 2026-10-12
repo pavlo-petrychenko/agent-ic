@@ -24,7 +24,7 @@ export function DeleteWorkspaceDialog({
   const { t } = useTranslation(SETTINGS_NAMESPACE);
   const { t: tCommon } = useTranslation();
   const deleteWorkspace = useDeleteWorkspace();
-  const agentCount = useAgentCount();
+  const agentCount = useAgentCount(open);
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
   const [typedName, setTypedName] = useState('');
