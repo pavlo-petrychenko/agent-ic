@@ -95,7 +95,7 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 6. Every `api` pod ⇢ its WebSocket clients watching that conversation or Inbox: "new message".
 7. `worker-runs` ⇢ takes the job, then → Postgres: loads the run, the flow version, prompts and the conversation's messages.
 8. `worker-runs` runs the steps:
-   - Parallel: guard + observer → LLM;
+   - Parallel: a waited Completion and a background Completion → LLM;
    - Router;
    - Agent → LLM, with the KB-search tool → Postgres (pgvector) → `messages[]`.
 

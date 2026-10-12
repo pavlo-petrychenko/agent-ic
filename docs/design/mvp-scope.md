@@ -92,8 +92,8 @@ An agent is a **versioned flow graph** built on a canvas. One agent can have sev
 - Outputs become variables for every later node, for analytics and for the API.
 
 **Judge patterns**
-- **Guard:** runs in sequence and can route to escalation.
-- **Observer:** runs in parallel with the conversation and only records scores or tags; it never interrupts.
+- **Guard:** a Completion whose output a Router reads, so it can route to escalation. It runs in sequence or in a waited Parallel branch.
+- **Observer:** a Completion in a Parallel branch that runs in the background (D264); it only records scores or tags, the reply does not wait for it and it never interrupts.
 
 **Triggers**
 - **Incoming message** on any connected channel.
@@ -258,7 +258,7 @@ It proves the core loop of the vision — **flow + knowledge + channel + human h
 | Custom roles | ✅ Partly | Built-in + custom roles per resource type. **Later:** per-agent permissions, roles for API tokens |
 | Flow graph, versions | ✅ Yes | Draft → simulator → publish → restore |
 | Node: Agent | ✅ Yes | Tool: **knowledge search only** |
-| Node: Completion | ✅ Yes | Including guard and observer patterns |
+| Node: Completion | ✅ Yes | Including background branches |
 | Nodes: Router, Parallel/join | ✅ Yes | |
 | Node: API request | ✅ Yes | Inline URL + auth per step. **Later:** shared API connections |
 | Node: Send message | ✅ Partly | Text and quick-reply buttons. **Later:** media |
@@ -462,7 +462,7 @@ Each use case lists the main path, then variations and errors, and the screens i
 1. A customer writes in Telegram, or the business's system calls the API.
 2. The Incoming message trigger starts a run of the **live version**.
 3. A typical Q&A flow:
-   - **Parallel:** a **Guard** (Completion: needs_human?) and an **Observer** (Topic tagger, which feeds analytics) run together.
+   - **Parallel:** a **Guard** (Completion: needs_human?) in a waited branch and an **Observer** (Topic tagger, which feeds analytics) in a background branch run together.
    - **Router:** needs a person? → **Escalation**; otherwise → **Agent** (searches the KB, returns `messages[]`) → **Send message** (one chat message per item).
 4. The conversation shows in Inbox → **Live**.
 
@@ -605,9 +605,9 @@ The run is marked failed, and Agents shows "N runs failed today".
 | Step | Purpose | Configuration |
 |---|---|---|
 | **Agent** | LLM with the KB-search tool; runs once per customer message; **never messages the customer itself** | Prompt (library, pin vN or follow latest); model; attached KBs; structured output with built-in `messages[]` (list of text) + custom fields; **if the model fails:** retry 2× then escalate |
-| **Completion** | One LLM call, no tools, structured output | Prompt; model; input (the whole history, current message); output fields; **role: Guard** (in sequence, can stop the flow) or **Observer** (in parallel, output goes to analytics/Langfuse, can't stop the flow) |
-| **Parallel / join** | Run branches at the same time | Continue when: guard branches finish (observers keep running) / all finish / the first finishes |
-| **Router** | Branch on conditions | Ordered rules `field op value → target`, first match wins; `else` target; fields from triggers and earlier steps (observers excluded) |
+| **Completion** | One LLM call, no tools, structured output | Prompt; model; input (the whole history, current message); output fields; no role: put it in a Parallel branch that runs **in the background** when the reply must not wait for it (output not visible after the join, can't stop the flow) |
+| **Parallel / join** | Run branches at the same time | Per branch: the reply waits for it or it runs in the background (at least one waited branch); continue when all waited branches finish / the first finishes |
+| **Router** | Branch on conditions | Ordered rules `field op value → target`, first match wins; `else` target; fields from triggers and earlier steps (background branches excluded) |
 | **API request** | Call the business's systems (no LLM) | Method, URL with variables, headers/body, auth (Bearer token stored encrypted); output `status`, `body`; timeout (default 5 s); retries (default 2 with backoff); **on failure:** continue without data or escalate |
 | **Send message** | The only step that talks to the customer | From a list variable (one chat message per item) or written text with variables; "typing…" before each; wait for delivery; optional quick-reply buttons (static or from an output field) |
 | **Escalation / exit** | Hand to people or end | Mode: escalate / end conversation; message to the customer; who to notify (operators or a role) and channels (in-platform, email, Telegram); reason variable shown in the Inbox; reminder after N min; fallback message if nobody replies in N min |
