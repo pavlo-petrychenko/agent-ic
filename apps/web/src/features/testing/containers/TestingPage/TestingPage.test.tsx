@@ -193,11 +193,13 @@ describe('TestingPage', () => {
       QUESTION.text,
     );
     await user.click(screen.getByRole('button', { name: 'Send' }));
-    expect(await screen.findByText(QUESTION.text)).toBeInTheDocument();
+    const chat = await screen.findByRole('list', { name: 'Test conversation' });
+    expect(within(chat).getByText(QUESTION.text)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Reset conversation' }));
 
     expect(await screen.findByText('Say hi to your agent')).toBeInTheDocument();
+    expect(chat).not.toBeInTheDocument();
   });
 
   it('replies as the operator after an escalation, then hands back', async () => {

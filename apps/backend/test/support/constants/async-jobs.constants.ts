@@ -24,3 +24,4 @@ export const PROBE_WORKSPACE_ID = 'wsp_probe';
 export const PROBE_TRACE_ID = 'trace-probe';
 export const SCHEDULED_PROBE_ID = 'probe-scheduled';
 export const SCHEDULED_PROBE_EVERY_SECONDS = 3_600;
+export const DURABLE_JOBS_TEST_START = new Date('2099-01-01T09:00:00.000Z');
