@@ -144,6 +144,7 @@
     "publishedBy": "{{name}} · published {{date}}",
     "publishedOn": "published {{date}}",
     "publish": "Publish",
+    "publishUnchanged": "No changes to publish",
     "footnote": "Published versions can't be edited. Restoring an old version copies it into a new draft; nothing changes for customers until you publish.",
     "never": {
       "title": "Not published yet",

@@ -28,6 +28,7 @@ import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFl
 import type { AgentDetails } from '@/features/flow-builder/typedefs/flowBuilder.typedefs';
 import { AgentDetailsPopover } from '@/features/flow-builder/view/AgentDetailsPopover';
 import { DraftBadge } from '@/features/flow-builder/view/DraftBadge';
+import { PublishButton } from '@/features/flow-builder/view/PublishButton';
 import { SaveStatus } from '@/features/flow-builder/view/SaveStatus';
 import { useActiveWorkspace } from '@/features/workspace';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
@@ -41,7 +42,6 @@ import { IconName } from '@/shared/ui/foundations/Icon';
 import { Topbar } from '@/shared/ui/layout/Topbar';
 import { BREADCRUMB_SEPARATOR } from '@/shared/ui/navigation/Breadcrumb';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
-import { Tooltip } from '@/shared/ui/overlays/Tooltip';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
 export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPageProps) {
@@ -53,7 +53,6 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
     baseVersion,
     draftNumber,
     liveVersion,
-    hasUnpublishedChanges,
     draftChangeCount,
     draft,
     loading,
@@ -91,25 +90,12 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
   const load = useFlowBuilderStore((state) => state.load);
   const select = useFlowBuilderStore((state) => state.select);
   const saveState = useFlowBuilderStore((state) => state.saveState);
-  const unchanged =
-    saveState === SaveState.Idle && hasUnpublishedChanges === false && liveVersion !== null;
-  const publishBlocked =
-    unchanged && liveVersion !== null
-      ? t('publish.blocked.noChanges', { version: liveVersion })
-      : errorCount > 0
-        ? t('publish.blocked.errors', { count: errorCount })
-        : null;
-  const publishButton = (
-    <Button
-      size={ButtonSize.Sm}
-      disabled={publishBlocked !== null}
-      onClick={() => setPublishing(true)}
-    >
-      {draftNumber === null
-        ? t('publish.submitNoVersion')
-        : t('publish.submit', { version: draftNumber })}
-    </Button>
-  );
+  const unchanged = saveState === SaveState.Idle && isDraftUnchanged(draftChangeCount, liveVersion);
+  const publishBlocked = unchanged
+    ? t('publish.blocked.noChanges')
+    : errorCount > 0
+      ? t('publish.blocked.errors', { count: errorCount })
+      : null;
 
   useLayoutEffect(() => {
     if (draft !== null) {
@@ -150,9 +136,7 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
               <DraftBadge
                 baseVersion={baseVersion}
                 liveVersion={liveVersion}
-                unchanged={
-                  saveState === SaveState.Idle && isDraftUnchanged(draftChangeCount, liveVersion)
-                }
+                unchanged={unchanged}
               />
             </div>
           )
@@ -161,16 +145,15 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
           draft === null ? null : (
             <div className="flex items-center gap-3">
               <SaveStatus saveState={saveState} onRetry={retrySave} />
-              {publishBlocked === null ? (
-                publishButton
-              ) : (
-                <Tooltip content={publishBlocked}>
-                  {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}
-                  <span tabIndex={0} className="inline-flex">
-                    {publishButton}
-                  </span>
-                </Tooltip>
-              )}
+              <PublishButton
+                label={
+                  draftNumber === null
+                    ? t('publish.submitNoVersion')
+                    : t('publish.submit', { version: draftNumber })
+                }
+                blockedReason={publishBlocked}
+                onClick={() => setPublishing(true)}
+              />
             </div>
           )
         }

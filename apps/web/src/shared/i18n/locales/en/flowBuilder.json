@@ -183,7 +183,7 @@
       "unsaved": "Saving your latest changes…",
       "errors_one": "Fix {{count}} error to publish",
       "errors_other": "Fix {{count}} errors to publish",
-      "noChanges": "Nothing changed since v{{version}}"
+      "noChanges": "No changes to publish"
     },
     "sign": {
       "added": "Added",

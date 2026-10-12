@@ -130,6 +130,17 @@ describe('VersionsPage', () => {
     expect(await screen.findByRole('dialog', { name: /Publish/ })).toBeInTheDocument();
   });
 
+  it('disables publishing when the draft has no changes', async () => {
+    renderPage([
+      testingAgentsMock(),
+      versionHistoryMock({ changeCount: 0 }),
+      DRAFT_DIFF,
+      LIVE_DIFF,
+    ]);
+
+    expect(await screen.findByRole('button', { name: 'Publish' })).toBeDisabled();
+  });
+
   it('offers a retry when the versions fail to load', async () => {
     const user = userEvent.setup();
     renderPage([

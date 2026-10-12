@@ -2,6 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  PublishButton,
   PublishDialog,
   SaveState,
   formatTimeAgo,
@@ -156,13 +157,12 @@ export function VersionsPage({ workspaceId, agentId }: VersionsPageProps) {
                     {t('versions.compare.action', { number: latest.number })}
                   </Button>
                 )}
-                <Button
-                  size={ButtonSize.Sm}
-                  disabled={draft.flow === null || unchanged}
+                <PublishButton
+                  label={t('versions.publish')}
+                  blockedReason={unchanged ? t('versions.publishUnchanged') : null}
+                  disabled={draft.flow === null}
                   onClick={() => setPublishing(true)}
-                >
-                  {t('versions.publish')}
-                </Button>
+                />
               </>
             }
           />
