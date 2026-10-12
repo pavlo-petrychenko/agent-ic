@@ -1,0 +1,10 @@
+extend type Query {
+  promptFolders: [PromptFolder!]!
+}
+
+type PromptFolder {
+  id: ID!
+  name: String!
+  createdAt: String!
+  updatedAt: String!
+}
