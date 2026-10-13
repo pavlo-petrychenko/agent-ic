@@ -2,6 +2,7 @@ import { Locale } from '@agent-ic/contracts';
 import { toGraphqlMembership } from '@/modules/identity/helpers/workspace-graphql.helpers';
 import type {
   ForgotPasswordInput,
+  RequestMyEmailChangeInput,
   ResendConfirmationInput,
   UpdateMyLocaleInput,
   UpdateMyNameInput,
@@ -10,6 +11,8 @@ import type { Me } from '@/modules/identity/typedefs/user.typedefs';
 import type {
   ForgotPasswordInput as ForgotPasswordArgs,
   ForgotPasswordPayload,
+  RequestMyEmailChangeInput as RequestMyEmailChangeArgs,
+  RequestMyEmailChangePayload,
   ResendConfirmationInput as ResendConfirmationArgs,
   ResendConfirmationPayload,
   UpdateMyLocaleInput as UpdateMyLocaleArgs,
@@ -55,4 +58,12 @@ export const acceptedForgotPasswordPayload = (): ForgotPasswordPayload => ({ acc
 
 export const toUpdateMyNameInput = (args: UpdateMyNameArgs): UpdateMyNameInput => ({
   name: args.name,
+});
+
+export const toRequestMyEmailChangeInput = (
+  args: RequestMyEmailChangeArgs,
+): RequestMyEmailChangeInput => ({ email: args.email });
+
+export const acceptedRequestMyEmailChangePayload = (): RequestMyEmailChangePayload => ({
+  accepted: true,
 });

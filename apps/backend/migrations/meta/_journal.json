@@ -113,6 +113,13 @@
       "when": 1791829884307,
       "tag": "0015_prompts-folder-required",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791838533157,
+      "tag": "0016_identity-email-change",
+      "breakpoints": true
     }
   ]
 }

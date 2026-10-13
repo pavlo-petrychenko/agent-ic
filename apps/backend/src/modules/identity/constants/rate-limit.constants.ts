@@ -9,6 +9,7 @@ const ACCOUNT_LOGIN_ATTEMPTS_PER_HOUR = 20;
 const SIGN_UPS_PER_HOUR = 5;
 const CONFIRMATION_RESENDS_PER_HOUR = 3;
 const PASSWORD_RESETS_PER_HOUR = 3;
+const EMAIL_CHANGES_PER_HOUR = 3;
 const TRANSFER_OWNERSHIP_ATTEMPTS_PER_HOUR = 5;
 const DELETE_WORKSPACE_ATTEMPTS_PER_HOUR = 5;
 
@@ -40,6 +41,12 @@ export const PASSWORD_RESET_RATE_LIMIT = defineRateLimitPolicy({
   name: 'identity-password-reset',
   capacity: PASSWORD_RESETS_PER_HOUR,
   refillPerSecond: PASSWORD_RESETS_PER_HOUR / SECONDS_PER_HOUR,
+});
+
+export const EMAIL_CHANGE_RATE_LIMIT = defineRateLimitPolicy({
+  name: 'identity-email-change',
+  capacity: EMAIL_CHANGES_PER_HOUR,
+  refillPerSecond: EMAIL_CHANGES_PER_HOUR / SECONDS_PER_HOUR,
 });
 
 export const TRANSFER_OWNERSHIP_RATE_LIMIT = defineRateLimitPolicy({

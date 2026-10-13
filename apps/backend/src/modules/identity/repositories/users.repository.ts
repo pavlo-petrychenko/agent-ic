@@ -111,4 +111,17 @@ export class UsersRepository {
       .returning();
     return user ?? null;
   }
+
+  async updateEmail(id: string, email: string, confirmedAt: Date): Promise<UserRecord | null> {
+    const [user] = await this.txHost.tx
+      .update(users)
+      .set({ email, pendingEmail: null, emailConfirmedAt: confirmedAt })
+      .where(eq(users.id, id))
+      .returning();
+    return user ?? null;
+  }
+
+  async setPendingEmail(id: string, email: string | null): Promise<void> {
+    await this.txHost.tx.update(users).set({ pendingEmail: email }).where(eq(users.id, id));
+  }
 }

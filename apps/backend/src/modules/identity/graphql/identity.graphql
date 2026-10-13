@@ -7,6 +7,7 @@ type Mutation {
   forgotPassword(input: ForgotPasswordInput!): ForgotPasswordPayload!
   updateMyLocale(input: UpdateMyLocaleInput!): User!
   updateMyName(input: UpdateMyNameInput!): User!
+  requestMyEmailChange(input: RequestMyEmailChangeInput!): RequestMyEmailChangePayload!
 }
 
 enum Locale {
@@ -44,4 +45,12 @@ input UpdateMyLocaleInput {
 
 input UpdateMyNameInput {
   name: String!
+}
+
+input RequestMyEmailChangeInput {
+  email: String!
+}
+
+type RequestMyEmailChangePayload {
+  accepted: Boolean!
 }

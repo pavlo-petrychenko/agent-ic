@@ -19,6 +19,7 @@ import { MembersResolver } from '@/modules/identity/resolvers/members.resolver';
 import { MyWorkspacesResolver } from '@/modules/identity/resolvers/my-workspaces.resolver';
 import { RememberWorkspaceResolver } from '@/modules/identity/resolvers/remember-workspace.resolver';
 import { RenameWorkspaceResolver } from '@/modules/identity/resolvers/rename-workspace.resolver';
+import { RequestMyEmailChangeResolver } from '@/modules/identity/resolvers/request-my-email-change.resolver';
 import { ResendConfirmationResolver } from '@/modules/identity/resolvers/resend-confirmation.resolver';
 import { ResetInviteLinkResolver } from '@/modules/identity/resolvers/reset-invite-link.resolver';
 import { TransferOwnershipResolver } from '@/modules/identity/resolvers/transfer-ownership.resolver';
@@ -26,6 +27,7 @@ import { UpdateInviteLinkRoleResolver } from '@/modules/identity/resolvers/updat
 import { UpdateMyLocaleResolver } from '@/modules/identity/resolvers/update-my-locale.resolver';
 import { UpdateMyNameResolver } from '@/modules/identity/resolvers/update-my-name.resolver';
 import { UpdateTimeZoneResolver } from '@/modules/identity/resolvers/update-time-zone.resolver';
+import { EmailChangesService } from '@/modules/identity/services/email-changes.service';
 import { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
 import { InviteLinksService } from '@/modules/identity/services/invite-links.service';
 import { InviteTokensService } from '@/modules/identity/services/invite-tokens.service';
@@ -37,6 +39,7 @@ import { SessionsService } from '@/modules/identity/services/sessions.service';
 import { WorkspaceMembershipsService } from '@/modules/identity/services/workspace-memberships.service';
 import { AcceptInviteUseCase } from '@/modules/identity/use-cases/accept-invite.use-case';
 import { CleanUpAuthRecordsUseCase } from '@/modules/identity/use-cases/clean-up-auth-records.use-case';
+import { ConfirmEmailChangeUseCase } from '@/modules/identity/use-cases/confirm-email-change.use-case';
 import { ConfirmEmailUseCase } from '@/modules/identity/use-cases/confirm-email.use-case';
 import { CountMembersByRoleUseCase } from '@/modules/identity/use-cases/count-members-by-role.use-case';
 import { CreateWorkspaceUseCase } from '@/modules/identity/use-cases/create-workspace.use-case';
@@ -53,6 +56,7 @@ import { LogoutUseCase } from '@/modules/identity/use-cases/logout.use-case';
 import { RefreshSessionUseCase } from '@/modules/identity/use-cases/refresh-session.use-case';
 import { RememberWorkspaceUseCase } from '@/modules/identity/use-cases/remember-workspace.use-case';
 import { RenameWorkspaceUseCase } from '@/modules/identity/use-cases/rename-workspace.use-case';
+import { RequestMyEmailChangeUseCase } from '@/modules/identity/use-cases/request-my-email-change.use-case';
 import { ResendConfirmationUseCase } from '@/modules/identity/use-cases/resend-confirmation.use-case';
 import { ResetInviteLinkUseCase } from '@/modules/identity/use-cases/reset-invite-link.use-case';
 import { ResetPasswordUseCase } from '@/modules/identity/use-cases/reset-password.use-case';
@@ -77,6 +81,7 @@ export class IdentityModule extends defineModule({
     MembershipDirectoryRepository,
     SessionsService,
     EmailConfirmationsService,
+    EmailChangesService,
     PasswordResetsService,
     InviteTokensService,
     InviteLinksService,
@@ -87,6 +92,7 @@ export class IdentityModule extends defineModule({
     { provide: WorkspaceAccessService, useExisting: MembershipWorkspaceAccessService },
     SignUpUseCase,
     ConfirmEmailUseCase,
+    ConfirmEmailChangeUseCase,
     ResendConfirmationUseCase,
     LoginUseCase,
     RefreshSessionUseCase,
@@ -112,6 +118,7 @@ export class IdentityModule extends defineModule({
     UpdateMyLocaleUseCase,
     UpdateTimeZoneUseCase,
     UpdateMyNameUseCase,
+    RequestMyEmailChangeUseCase,
   ],
   resolvers: [
     ResendConfirmationResolver,
@@ -133,6 +140,7 @@ export class IdentityModule extends defineModule({
     UpdateMyLocaleResolver,
     UpdateTimeZoneResolver,
     UpdateMyNameResolver,
+    RequestMyEmailChangeResolver,
   ],
   controllers: [AuthController],
   processors: [CleanUpAuthRecordsProcessor],
@@ -141,6 +149,7 @@ export class IdentityModule extends defineModule({
     MembershipsRepository,
     SessionsService,
     EmailConfirmationsService,
+    EmailChangesService,
     PasswordResetsService,
     SampleWorkspaceService,
     WorkspaceAccessService,
