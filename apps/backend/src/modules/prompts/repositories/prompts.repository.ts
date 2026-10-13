@@ -64,16 +64,16 @@ export class PromptsRepository {
       .limit(limit);
   }
 
-  rename(workspaceId: string, promptId: string, name: string, updatedAt: Date): Promise<boolean> {
-    return this.update(workspaceId, promptId, { name, updatedAt });
+  rename(workspaceId: string, promptId: string, name: string): Promise<Prompt | null> {
+    return this.update(workspaceId, promptId, { name });
   }
 
-  moveToFolder(workspaceId: string, promptId: string, folderId: string): Promise<boolean> {
-    return this.update(workspaceId, promptId, { folderId });
+  async moveToFolder(workspaceId: string, promptId: string, folderId: string): Promise<boolean> {
+    return (await this.update(workspaceId, promptId, { folderId })) !== null;
   }
 
-  softDelete(workspaceId: string, promptId: string, deletedAt: Date): Promise<boolean> {
-    return this.update(workspaceId, promptId, { deletedAt });
+  async softDelete(workspaceId: string, promptId: string, deletedAt: Date): Promise<boolean> {
+    return (await this.update(workspaceId, promptId, { deletedAt })) !== null;
   }
 
   private activeWhere(workspaceId: string) {
@@ -84,12 +84,12 @@ export class PromptsRepository {
     workspaceId: string,
     promptId: string,
     changes: Partial<NewPrompt>,
-  ): Promise<boolean> {
-    const updated = await this.txHost.tx
+  ): Promise<Prompt | null> {
+    const [prompt] = await this.txHost.tx
       .update(prompts)
       .set(changes)
       .where(and(this.activeWhere(workspaceId), eq(prompts.id, promptId)))
-      .returning({ id: prompts.id });
-    return updated.length > 0;
+      .returning();
+    return prompt ?? null;
   }
 }

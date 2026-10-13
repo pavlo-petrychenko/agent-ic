@@ -7,7 +7,6 @@ import { PromptsRepository } from '@/modules/prompts/repositories/prompts.reposi
 import { renamePromptInputSchema } from '@/modules/prompts/schemas/prompt-input.schema';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
 import type { PromptView, RenamePromptInput } from '@/modules/prompts/typedefs/prompt.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -19,7 +18,6 @@ export class RenamePromptUseCase {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly prompts: PromptsRepository,
     private readonly views: PromptViewsService,
-    private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
 
@@ -27,7 +25,6 @@ export class RenamePromptUseCase {
     const { workspaceId } = authorize(ctx, PermissionResource.Prompts, PermissionAction.Edit);
     const { id, name } = parsePromptInput(renamePromptInputSchema, input);
     const promptId = this.ids.fromPublic(IdPrefix.Prompt, id);
-    const updatedAt = this.clock.now();
     return this.tenantTransactions.run(workspaceId, async () => {
       await this.prompts.lockNames(workspaceId);
       const prompt = await this.prompts.findByIdForUpdate(workspaceId, promptId);
@@ -38,8 +35,11 @@ export class RenamePromptUseCase {
       if (taken !== null && taken.id !== promptId) {
         throw new PromptNameTakenError();
       }
-      await this.prompts.rename(workspaceId, promptId, name, updatedAt);
-      return this.views.promptView({ ...prompt, name, updatedAt });
+      const renamed = await this.prompts.rename(workspaceId, promptId, name);
+      if (renamed === null) {
+        throw new PromptNotFoundError();
+      }
+      return this.views.promptView(renamed);
     });
   }
 }

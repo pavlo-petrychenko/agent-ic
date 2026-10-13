@@ -10,7 +10,6 @@ import type {
   PromptFolderView,
   RenamePromptFolderInput,
 } from '@/modules/prompts/typedefs/prompt-folder.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -22,7 +21,6 @@ export class RenamePromptFolderUseCase {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly folders: PromptFoldersRepository,
     private readonly views: PromptFolderViewsService,
-    private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
 
@@ -30,7 +28,6 @@ export class RenamePromptFolderUseCase {
     const { workspaceId } = authorize(ctx, PermissionResource.Prompts, PermissionAction.Edit);
     const { id, name } = parsePromptFolderInput(renamePromptFolderInputSchema, input);
     const folderId = this.ids.fromPublic(IdPrefix.PromptFolder, id);
-    const updatedAt = this.clock.now();
     return this.tenantTransactions.run(workspaceId, async () => {
       await this.folders.lockNames(workspaceId);
       const folder = await this.folders.findByIdForUpdate(workspaceId, folderId);
@@ -41,8 +38,11 @@ export class RenamePromptFolderUseCase {
       if (taken !== null && taken.id !== folderId) {
         throw new PromptFolderNameTakenError();
       }
-      await this.folders.rename(workspaceId, folderId, name, updatedAt);
-      return this.views.folderView({ ...folder, name, updatedAt });
+      const renamed = await this.folders.rename(workspaceId, folderId, name);
+      if (renamed === null) {
+        throw new PromptFolderNotFoundError();
+      }
+      return this.views.folderView(renamed);
     });
   }
 }

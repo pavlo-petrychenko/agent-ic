@@ -106,17 +106,17 @@ describe('PromptsRepository', () => {
     expect(found?.folderId).toBe(otherFolderId);
   });
 
-  it('renames a prompt and moves updatedAt forward', async () => {
+  it('renames a prompt', async () => {
     const workspaceId = ids.generate();
     const promptId = await insertPrompt(workspaceId);
 
     const renamed = await tenants.run(workspaceId, () =>
-      repository.rename(workspaceId, promptId, TEST_PROMPT_NEW_NAME, PROMPTS_TEST_LATER),
+      repository.rename(workspaceId, promptId, TEST_PROMPT_NEW_NAME),
     );
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, promptId));
 
-    expect(renamed).toBe(true);
-    expect(found).toMatchObject({ name: TEST_PROMPT_NEW_NAME, updatedAt: PROMPTS_TEST_LATER });
+    expect(renamed).toMatchObject({ name: TEST_PROMPT_NEW_NAME });
+    expect(found).toMatchObject({ name: TEST_PROMPT_NEW_NAME });
   });
 
   it('lists prompts in id order, a page at a time', async () => {
@@ -221,12 +221,7 @@ describe('PromptsRepository', () => {
         byName: await repository.findByName(workspaceA, TEST_PROMPT_NAME),
         page: await repository.listPage(workspaceA, null, TEST_PROMPT_PAGE_LIMIT),
         locked: await repository.findByIdForUpdate(workspaceA, promptId),
-        renamed: await repository.rename(
-          workspaceA,
-          promptId,
-          TEST_PROMPT_NEW_NAME,
-          PROMPTS_TEST_LATER,
-        ),
+        renamed: await repository.rename(workspaceA, promptId, TEST_PROMPT_NEW_NAME),
         moved: await repository.moveToFolder(workspaceA, promptId, folderId),
         deleted: await repository.softDelete(workspaceA, promptId, PROMPTS_TEST_LATER),
       }));
@@ -239,7 +234,7 @@ describe('PromptsRepository', () => {
         byName: null,
         page: [],
         locked: null,
-        renamed: false,
+        renamed: null,
         moved: false,
         deleted: false,
       });
