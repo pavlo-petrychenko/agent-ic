@@ -60,3 +60,8 @@ export const requestMyEmailChangeInputSchema = z.object({
 export const confirmEmailChangeInputSchema = z.object({
   [AccountField.Token]: tokenSchema,
 });
+
+export const changeMyPasswordInputSchema = z.object({
+  [AccountField.CurrentPassword]: passwordSchema,
+  [AccountField.NewPassword]: passwordSchema,
+});
