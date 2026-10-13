@@ -177,6 +177,16 @@
       "newPlaceholder": "Щонайменше 10 символів",
       "action": "Змінити пароль",
       "success": "Пароль змінено успішно"
+    },
+    "workspaces": {
+      "title": "Ваші робочі простори",
+      "current": "Поточний",
+      "leave": "Покинути",
+      "logOut": "Вийти",
+      "hint_one": "{{role}} · {{count}} учасник",
+      "hint_few": "{{role}} · {{count}} учасники",
+      "hint_many": "{{role}} · {{count}} учасників",
+      "hint_other": "{{role}} · {{count}} учасника"
     }
   }
 }
