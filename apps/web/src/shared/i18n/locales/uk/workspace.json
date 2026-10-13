@@ -7,6 +7,7 @@
     },
     "sections": {
       "agents": "Агенти",
+      "prompts": "Промпти",
       "inbox": "Вхідні",
       "testing": "Тестування",
       "settings": "Налаштування",

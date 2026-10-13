@@ -14,12 +14,14 @@ describe('navigation helpers', () => {
   it('shows each role only the sections its permissions allow', () => {
     expect(sectionsOf(WorkspaceRole.Owner)).toEqual([
       WorkspaceSection.Agents,
+      WorkspaceSection.Prompts,
       WorkspaceSection.Inbox,
       WorkspaceSection.Testing,
       WorkspaceSection.Settings,
     ]);
     expect(sectionsOf(WorkspaceRole.Builder)).toEqual([
       WorkspaceSection.Agents,
+      WorkspaceSection.Prompts,
       WorkspaceSection.Testing,
       WorkspaceSection.Settings,
     ]);
