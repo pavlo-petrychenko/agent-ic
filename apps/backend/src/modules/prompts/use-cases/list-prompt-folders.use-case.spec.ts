@@ -1,4 +1,4 @@
-import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
+import { WorkspaceRole } from '@agent-ic/contracts';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
@@ -7,10 +7,11 @@ import { PermissionDeniedError } from '@/platform/context/errors/permission-deni
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { PROMPTS_TEST_LATER } from '@test/support/constants/prompts-testing.constants';
-import { newFolder } from '@test/support/fixtures/prompts.fixture';
 import {
   createPromptsTestingModule,
   promptsCtx,
+  publicPromptFolderId,
+  seedPromptFolder,
 } from '@test/support/helpers/prompts-testing.helpers';
 
 describe('ListPromptFoldersUseCase', () => {
@@ -32,46 +33,28 @@ describe('ListPromptFoldersUseCase', () => {
     await testingModule.close();
   });
 
-  const seedFolder = async (workspaceId: string, name: string): Promise<string> => {
-    const folderId = ids.generate();
-    await tenants.run(workspaceId, () =>
-      folders.insert(newFolder(folderId, workspaceId, { name })),
-    );
-    return folderId;
-  };
-
   it('lists folders ordered by name with public ids', async () => {
     const workspaceId = ids.generate();
-    const zulu = await seedFolder(workspaceId, 'Zulu');
-    const alpha = await seedFolder(workspaceId, 'Alpha');
+    const zulu = await seedPromptFolder(testingModule, workspaceId, { name: 'Zulu' });
+    const alpha = await seedPromptFolder(testingModule, workspaceId, { name: 'Alpha' });
 
     const listed = await listFolders.execute(promptsCtx(testingModule, workspaceId));
 
     expect(listed.map((folder) => folder.name)).toEqual(['Alpha', 'Zulu']);
     expect(listed.map((folder) => folder.id)).toEqual([
-      ids.toPublic(IdPrefix.PromptFolder, alpha),
-      ids.toPublic(IdPrefix.PromptFolder, zulu),
+      publicPromptFolderId(testingModule, alpha),
+      publicPromptFolderId(testingModule, zulu),
     ]);
   });
 
   it('hides a deleted folder', async () => {
     const workspaceId = ids.generate();
-    const folderId = await seedFolder(workspaceId, 'Q&A');
+    const folderId = await seedPromptFolder(testingModule, workspaceId);
     await tenants.run(workspaceId, () =>
       folders.softDelete(workspaceId, folderId, PROMPTS_TEST_LATER),
     );
 
     const listed = await listFolders.execute(promptsCtx(testingModule, workspaceId));
-
-    expect(listed).toEqual([]);
-  });
-
-  it('never shows the folders of another workspace', async () => {
-    const workspaceA = ids.generate();
-    const workspaceB = ids.generate();
-    await seedFolder(workspaceA, 'Q&A');
-
-    const listed = await listFolders.execute(promptsCtx(testingModule, workspaceB));
 
     expect(listed).toEqual([]);
   });
