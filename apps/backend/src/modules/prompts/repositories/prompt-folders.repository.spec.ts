@@ -78,8 +78,8 @@ describe('PromptFoldersRepository', () => {
     );
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, folderId));
 
-    expect(renamed).toBe(true);
-    expect(found?.name).toBe(TEST_FOLDER_NEW_NAME);
+    expect(renamed).toMatchObject({ name: TEST_FOLDER_NEW_NAME });
+    expect(found).toMatchObject({ name: TEST_FOLDER_NEW_NAME });
   });
 
   it('lists folders by name and hides soft-deleted ones', async () => {
@@ -135,7 +135,7 @@ describe('PromptFoldersRepository', () => {
         found: null,
         byName: null,
         list: [],
-        renamed: false,
+        renamed: null,
         deleted: false,
       });
       expect(ownFromA?.name).not.toBe(TEST_FOLDER_NEW_NAME);

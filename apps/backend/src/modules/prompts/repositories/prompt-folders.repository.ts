@@ -61,12 +61,12 @@ export class PromptFoldersRepository {
       .orderBy(asc(promptFolders.name));
   }
 
-  rename(workspaceId: string, folderId: string, name: string): Promise<boolean> {
+  rename(workspaceId: string, folderId: string, name: string): Promise<PromptFolder | null> {
     return this.update(workspaceId, folderId, { name });
   }
 
-  softDelete(workspaceId: string, folderId: string, deletedAt: Date): Promise<boolean> {
-    return this.update(workspaceId, folderId, { deletedAt });
+  async softDelete(workspaceId: string, folderId: string, deletedAt: Date): Promise<boolean> {
+    return (await this.update(workspaceId, folderId, { deletedAt })) !== null;
   }
 
   private activeWhere(workspaceId: string) {
@@ -77,13 +77,13 @@ export class PromptFoldersRepository {
     workspaceId: string,
     folderId: string,
     changes: Partial<NewPromptFolder>,
-  ): Promise<boolean> {
-    const updated = await this.txHost.tx
+  ): Promise<PromptFolder | null> {
+    const [folder] = await this.txHost.tx
       .update(promptFolders)
       .set(changes)
       .where(and(this.activeWhere(workspaceId), eq(promptFolders.id, folderId)))
-      .returning({ id: promptFolders.id });
+      .returning();
 
-    return updated.length > 0;
+    return folder ?? null;
   }
 }

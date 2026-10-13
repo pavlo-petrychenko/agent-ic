@@ -115,8 +115,8 @@ describe('PromptsRepository', () => {
     );
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, promptId));
 
-    expect(renamed).toBe(true);
-    expect(found?.name).toBe(TEST_PROMPT_NEW_NAME);
+    expect(renamed).toMatchObject({ name: TEST_PROMPT_NEW_NAME });
+    expect(found).toMatchObject({ name: TEST_PROMPT_NEW_NAME });
   });
 
   it('lists prompts in id order, a page at a time', async () => {
@@ -234,7 +234,7 @@ describe('PromptsRepository', () => {
         byName: null,
         page: [],
         locked: null,
-        renamed: false,
+        renamed: null,
         moved: false,
         deleted: false,
       });
