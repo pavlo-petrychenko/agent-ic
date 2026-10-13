@@ -15,6 +15,7 @@ export interface ComboboxProps extends Omit<
   searchLabel: string;
   searchClearLabel: string;
   emptyLabel: string;
+  createLabel?: ((query: string) => string) | null;
   placeholder?: string | null;
   invalid?: boolean;
   error?: string | null;

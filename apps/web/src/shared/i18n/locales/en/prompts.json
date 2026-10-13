@@ -6,13 +6,33 @@
   "nav": {
     "label": "Prompts"
   },
+  "actions": {
+    "newPrompt": "New prompt"
+  },
   "empty": {
     "title": "No prompts yet",
     "description": "Write a prompt once and use it in many steps. Versions let you change it safely."
   },
-  "select": {
-    "title": "Select a prompt",
-    "description": "Pick a prompt on the left to view it."
+  "newPrompt": {
+    "title": "New prompt",
+    "description": "You can use it in Agent and Completion steps",
+    "close": "Close",
+    "nameLabel": "Name",
+    "nameInvalid": "Enter a prompt name of up to {{count}} characters.",
+    "nameTaken": "A prompt with this name already exists.",
+    "folderLabel": "Folder",
+    "folderHint": "Pick an existing folder or type a new name.",
+    "folderInvalid": "Choose a folder or type a new name of up to {{count}} characters.",
+    "folderTaken": "A folder with this name already exists.",
+    "folderPlaceholder": "Choose or type a folder",
+    "folderSearch": "Search folders",
+    "folderSearchClear": "Clear folder search",
+    "folderEmpty": "No folders found",
+    "folderCreate": "Create “{{name}}”",
+    "cancel": "Cancel",
+    "submit": "Create prompt",
+    "success": "Prompt “{{name}}” created",
+    "failed": "The prompt could not be created."
   },
   "loadError": "The prompts couldn’t be opened.",
   "retry": "Try again"
