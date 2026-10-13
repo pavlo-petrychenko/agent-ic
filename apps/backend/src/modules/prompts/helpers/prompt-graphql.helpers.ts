@@ -8,3 +8,5 @@ export const toGraphqlPrompt = (prompt: PromptView): Prompt => ({
   createdAt: prompt.createdAt.toISOString(),
   updatedAt: prompt.updatedAt.toISOString(),
 });
+
+export const toGraphqlPrompts = (prompts: PromptView[]): Prompt[] => prompts.map(toGraphqlPrompt);
