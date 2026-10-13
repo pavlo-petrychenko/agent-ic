@@ -102,4 +102,13 @@ export class UsersRepository {
       .set({ lastWorkspaceId: null })
       .where(eq(users.lastWorkspaceId, workspaceId));
   }
+
+  async updateName(id: string, name: string): Promise<UserRecord | null> {
+    const [user] = await this.txHost.tx
+      .update(users)
+      .set({ name })
+      .where(eq(users.id, id))
+      .returning();
+    return user ?? null;
+  }
 }

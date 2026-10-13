@@ -3,5 +3,6 @@ export { SettingsShell } from '@/features/settings/containers/SettingsShell';
 export { TeamPage } from '@/features/settings/containers/TeamPage';
 export { GeneralPage } from '@/features/settings/containers/GeneralPage';
 export { RolesPage } from '@/features/settings/containers/RolesPage';
+export { ProfilePage } from '@/features/settings/containers/ProfilePage';
 export { useInviteLink } from '@/features/settings/communication/hooks/useInviteLink';
 export { copyText } from '@/features/settings/logic/helpers/clipboard.helpers';
