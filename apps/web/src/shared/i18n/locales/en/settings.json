@@ -171,6 +171,14 @@
       "newPlaceholder": "At least 10 characters",
       "action": "Change password",
       "success": "Changed password successfully"
+    },
+    "workspaces": {
+      "title": "Your workspaces",
+      "current": "Current",
+      "leave": "Leave",
+      "logOut": "Log out",
+      "hint_one": "{{role}} · {{count}} member",
+      "hint_other": "{{role}} · {{count}} members"
     }
   }
 }

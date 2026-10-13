@@ -3,6 +3,7 @@ import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.c
 import { ChangePasswordPanel } from '@/features/settings/containers/ChangePasswordPanel';
 import { ProfileDetailsForm } from '@/features/settings/containers/ProfileDetailsForm';
 import type { ProfilePageProps } from '@/features/settings/containers/ProfilePage/ProfilePage.typedefs';
+import { WorkspacesPanel } from '@/features/settings/containers/WorkspacesPanel';
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
 import { Breadcrumb } from '@/shared/ui/navigation/Breadcrumb';
@@ -26,6 +27,7 @@ export function ProfilePage({ workspaceId }: ProfilePageProps) {
       <div className="flex flex-col gap-4 px-7">
         <ProfileDetailsForm workspaceId={workspaceId} />
         <ChangePasswordPanel />
+        <WorkspacesPanel workspaceId={workspaceId} />
       </div>
     </div>
   );
