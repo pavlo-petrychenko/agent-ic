@@ -30,7 +30,20 @@
       "member": "Member",
       "role": "Role",
       "lastActive": "Last active",
-      "never": "Not yet"
+      "never": "Not yet",
+      "actions": "Actions",
+      "moreActions": "More actions for {{name}}",
+      "remove": {
+        "dialog": {
+          "title": "Remove {{name}} from {{workspace}}?",
+          "subtitle": "{{email}} · {{role}}",
+          "descriptionChats": "{{name}} loses access right away. Chats they're handling go back to “Needs you”. You can invite them again later.",
+          "descriptionBuilder": "{{name}} loses access right away. Agents and flows they built stay in the workspace. You can invite them again later.",
+          "confirm": "Remove",
+          "cancel": "Cancel",
+          "success": "{{name}} was removed from {{workspace}}"
+        }
+      }
     }
   },
   "general": {

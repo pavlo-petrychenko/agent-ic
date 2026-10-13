@@ -20,30 +20,40 @@ export const DEMO_WORKSPACE: ShellMembershipFixture = {
   memberCount: 5,
 };
 
+export interface ShellUserFixture {
+  readonly id?: string;
+  readonly name: string;
+  readonly email: string;
+  readonly locale: Locale;
+}
+
 export const buildWorkspaceShellMock = (
   memberships: readonly ShellMembershipFixture[],
-  user: Readonly<{ name: string; email: string; locale: Locale }> = {
+  user: Readonly<ShellUserFixture> = {
     name: 'Pavlo',
     email: 'owner@demo-salon.example',
     locale: Locale.En,
   },
-): MockLink.MockedResponse => ({
-  request: { query: WorkspaceShellDocument },
-  result: {
-    data: {
-      me: { __typename: 'User', id: 'usr_1', ...user },
-      myWorkspaces: memberships.map((membership) => ({
-        __typename: 'Membership',
-        role: membership.role,
-        workspace: {
-          __typename: 'Workspace',
-          id: membership.id,
-          name: membership.name,
-          timeZone: membership.timeZone ?? DEMO_TIME_ZONE,
-          memberCount: membership.memberCount ?? 1,
-        },
-      })),
+): MockLink.MockedResponse => {
+  const { id = 'usr_1', ...rest } = user;
+  return {
+    request: { query: WorkspaceShellDocument },
+    result: {
+      data: {
+        me: { __typename: 'User', id, ...rest },
+        myWorkspaces: memberships.map((membership) => ({
+          __typename: 'Membership',
+          role: membership.role,
+          workspace: {
+            __typename: 'Workspace',
+            id: membership.id,
+            name: membership.name,
+            timeZone: membership.timeZone ?? DEMO_TIME_ZONE,
+            memberCount: membership.memberCount ?? 1,
+          },
+        })),
+      },
     },
-  },
-  maxUsageCount: Number.POSITIVE_INFINITY,
-});
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  };
+};

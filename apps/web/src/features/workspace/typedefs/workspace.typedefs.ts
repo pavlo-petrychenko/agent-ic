@@ -9,6 +9,7 @@ export interface WorkspaceSummary {
 }
 
 export interface ShellUser {
+  readonly userId: string;
   readonly name: string;
   readonly email: string;
   readonly locale: Locale;

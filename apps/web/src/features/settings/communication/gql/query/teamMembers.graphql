@@ -4,6 +4,7 @@ query TeamMembers($first: Int) {
     edges {
       node {
         id
+        userId
         name
         email
         role

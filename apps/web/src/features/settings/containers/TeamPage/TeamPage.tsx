@@ -27,7 +27,7 @@ export function TeamPage({ workspaceId }: TeamPageProps) {
       />
       <div className="flex flex-col gap-4 px-7">
         <InviteLinkPanel workspaceId={workspaceId} />
-        <MembersPanel />
+        <MembersPanel workspaceId={workspaceId} />
       </div>
     </div>
   );

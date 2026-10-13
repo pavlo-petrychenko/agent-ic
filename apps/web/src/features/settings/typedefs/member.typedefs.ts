@@ -1,7 +1,9 @@
 import type { WorkspaceRole } from '@agent-ic/contracts';
+import type { MemberAction } from '@/features/settings/constants/member.constants';
 
 export interface TeamMember {
   readonly id: string;
+  readonly userId: string;
   readonly name: string;
   readonly email: string;
   readonly role: WorkspaceRole;
@@ -20,4 +22,17 @@ export interface MemberRow {
   readonly initials: string;
   readonly roleLabel: string;
   readonly lastActive: string;
+  readonly action: MemberAction | null;
+}
+
+export interface UseMemberActionsResult {
+  readonly workspaceName: string;
+  readonly actionFor: (member: TeamMember) => MemberAction | null;
+  readonly onAction: (rowId: string, action: MemberAction) => void;
+  readonly transferOpen: boolean;
+  readonly onTransferOpenChange: (open: boolean) => void;
+  readonly leaveOpen: boolean;
+  readonly onLeaveOpenChange: (open: boolean) => void;
+  readonly removeTarget: TeamMember | null;
+  readonly onRemoveOpenChange: (open: boolean) => void;
 }

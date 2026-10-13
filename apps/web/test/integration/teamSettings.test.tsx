@@ -1,9 +1,10 @@
-import { WorkspaceRole } from '@agent-ic/contracts';
-import { screen, waitFor } from '@testing-library/react';
+import { Locale, WorkspaceRole } from '@agent-ic/contracts';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   buildInviteLinkMock,
+  buildRemoveMemberMock,
   buildResetInviteLinkMock,
   buildTeamMembersMock,
   INVITE_URL,
@@ -19,6 +20,7 @@ import { signInForTest, signOutForTest } from '@test/support/helpers/session.hel
 
 const settingsPath = `/w/${DEMO_WORKSPACE.id}/settings`;
 const OPERATOR_WORKSPACE = { ...DEMO_WORKSPACE, role: WorkspaceRole.Operator };
+const ADMIN_WORKSPACE = { ...DEMO_WORKSPACE, role: WorkspaceRole.Admin };
 
 describe('team settings', () => {
   beforeEach(() => signInForTest());
@@ -64,6 +66,71 @@ describe('team settings', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Reset link' }));
 
     expect(await screen.findByText(RESET_INVITE_URL)).toBeInTheDocument();
+  });
+
+  it('removes another member from the row action', async () => {
+    const user = userEvent.setup();
+    renderRoute(`${settingsPath}/team`, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildInviteLinkMock(),
+        buildTeamMembersMock(),
+        buildRemoveMemberMock('mem_2'),
+      ],
+    });
+
+    await user.click(await screen.findByRole('button', { name: 'More actions for Yulia' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Remove Yulia from Demo salon?' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('yulia@demo-salon.example · Operator')).toBeInTheDocument();
+    expect(screen.getByText(/loses access right away/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Remove' }));
+
+    expect(await screen.findByText('Yulia was removed from Demo salon')).toBeInTheDocument();
+  });
+
+  it('opens transfer ownership from the owner own row', async () => {
+    const user = userEvent.setup();
+    renderRoute(`${settingsPath}/team`, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildInviteLinkMock(),
+        buildTeamMembersMock(),
+      ],
+    });
+
+    await user.click(await screen.findByRole('button', { name: 'More actions for Pavlo' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Transfer ownership of Demo salon' }),
+    ).toBeInTheDocument();
+  });
+
+  it('hides the owner row action from an admin and lets the admin leave', async () => {
+    const user = userEvent.setup();
+    renderRoute(`${settingsPath}/team`, {
+      mocks: [
+        buildWorkspaceShellMock([ADMIN_WORKSPACE], {
+          id: 'usr_2',
+          name: 'Yulia',
+          email: 'yulia@demo-salon.example',
+          locale: Locale.En,
+        }),
+        buildInviteLinkMock(),
+        buildTeamMembersMock(),
+      ],
+    });
+
+    const owner = await screen.findByRole('row', { name: /Pavlo/ });
+    expect(within(owner).queryByRole('button')).not.toBeInTheDocument();
+
+    await user.click(await screen.findByRole('button', { name: 'More actions for Yulia' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Leave workspace - Demo salon' }),
+    ).toBeInTheDocument();
   });
 
   it('keeps Team away from an operator', async () => {

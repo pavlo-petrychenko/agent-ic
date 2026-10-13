@@ -1,4 +1,5 @@
 import type { MockLink } from '@apollo/client/testing';
+import { RemoveMemberDocument } from '@/features/settings/communication/gql/mutation/removeMember.generated';
 import { ResetInviteLinkDocument } from '@/features/settings/communication/gql/mutation/resetInviteLink.generated';
 import { InviteLinkDocument } from '@/features/settings/communication/gql/query/inviteLink.generated';
 import { TeamMembersDocument } from '@/features/settings/communication/gql/query/teamMembers.generated';
@@ -30,8 +31,14 @@ export const buildResetInviteLinkMock = (url = RESET_INVITE_URL): MockLink.Mocke
   result: { data: { resetInviteLink: inviteLink(url) } },
 });
 
+export const buildRemoveMemberMock = (membershipId: string): MockLink.MockedResponse => ({
+  request: { query: RemoveMemberDocument, variables: { input: { membershipId } } },
+  result: { data: { success: true } },
+});
+
 export const buildTeamMembersMock = (): MockLink.MockedResponse => ({
   request: { query: TeamMembersDocument, variables: { first: MEMBERS_PAGE_SIZE } },
+  maxUsageCount: Number.POSITIVE_INFINITY,
   result: {
     data: {
       members: {
@@ -43,6 +50,7 @@ export const buildTeamMembersMock = (): MockLink.MockedResponse => ({
             node: {
               __typename: 'Member',
               id: 'mem_1',
+              userId: 'usr_1',
               name: 'Pavlo',
               email: 'owner@demo-salon.example',
               role: 'owner',
@@ -54,6 +62,7 @@ export const buildTeamMembersMock = (): MockLink.MockedResponse => ({
             node: {
               __typename: 'Member',
               id: 'mem_2',
+              userId: 'usr_2',
               name: 'Yulia',
               email: 'yulia@demo-salon.example',
               role: 'operator',
