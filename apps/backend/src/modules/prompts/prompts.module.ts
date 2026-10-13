@@ -11,6 +11,7 @@ import { PromptFoldersResolver } from '@/modules/prompts/resolvers/prompt-folder
 import { PromptsResolver } from '@/modules/prompts/resolvers/prompts.resolver';
 import { RenamePromptFolderResolver } from '@/modules/prompts/resolvers/rename-prompt-folder.resolver';
 import { RenamePromptResolver } from '@/modules/prompts/resolvers/rename-prompt.resolver';
+import { SavePromptVersionResolver } from '@/modules/prompts/resolvers/save-prompt-version.resolver';
 import { PromptFolderViewsService } from '@/modules/prompts/services/prompt-folder-views.service';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
 import { CreatePromptFolderUseCase } from '@/modules/prompts/use-cases/create-prompt-folder.use-case';
@@ -18,11 +19,13 @@ import { CreatePromptUseCase } from '@/modules/prompts/use-cases/create-prompt.u
 import { DeletePromptFolderUseCase } from '@/modules/prompts/use-cases/delete-prompt-folder.use-case';
 import { DeletePromptUseCase } from '@/modules/prompts/use-cases/delete-prompt.use-case';
 import { DuplicatePromptUseCase } from '@/modules/prompts/use-cases/duplicate-prompt.use-case';
+import { GetPromptUseCase } from '@/modules/prompts/use-cases/get-prompt.use-case';
 import { ListPromptFoldersUseCase } from '@/modules/prompts/use-cases/list-prompt-folders.use-case';
 import { ListPromptsUseCase } from '@/modules/prompts/use-cases/list-prompts.use-case';
 import { MovePromptToFolderUseCase } from '@/modules/prompts/use-cases/move-prompt-to-folder.use-case';
 import { RenamePromptFolderUseCase } from '@/modules/prompts/use-cases/rename-prompt-folder.use-case';
 import { RenamePromptUseCase } from '@/modules/prompts/use-cases/rename-prompt.use-case';
+import { SavePromptVersionUseCase } from '@/modules/prompts/use-cases/save-prompt-version.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class PromptsModule extends defineModule({
@@ -37,11 +40,13 @@ export class PromptsModule extends defineModule({
     DeletePromptFolderUseCase,
     DeletePromptUseCase,
     DuplicatePromptUseCase,
+    GetPromptUseCase,
     ListPromptFoldersUseCase,
     ListPromptsUseCase,
     MovePromptToFolderUseCase,
     RenamePromptFolderUseCase,
     RenamePromptUseCase,
+    SavePromptVersionUseCase,
   ],
   resolvers: [
     CreatePromptFolderResolver,
@@ -54,5 +59,6 @@ export class PromptsModule extends defineModule({
     PromptsResolver,
     RenamePromptFolderResolver,
     RenamePromptResolver,
+    SavePromptVersionResolver,
   ],
 }) {}

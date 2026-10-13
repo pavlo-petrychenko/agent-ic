@@ -12,4 +12,5 @@ export enum IdPrefix {
   RunStep = 'rst',
   Prompt = 'prm',
   PromptFolder = 'pfl',
+  PromptVersion = 'prv',
 }

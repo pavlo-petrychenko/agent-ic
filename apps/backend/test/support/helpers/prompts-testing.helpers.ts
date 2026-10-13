@@ -1,5 +1,6 @@
-import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
+import { IdPrefix, Locale, WorkspaceRole } from '@agent-ic/contracts';
 import type { TestingModule } from '@nestjs/testing';
+import { UsersRepository } from '@/modules/identity';
 import { PromptsModule } from '@/modules/prompts';
 import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
 import { PromptVersionsRepository } from '@/modules/prompts/repositories/prompt-versions.repository';
@@ -11,10 +12,17 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import {
+  PROMPTS_TEST_START,
+  TEST_PROMPT_AUTHOR_NAME,
+  TEST_PROMPT_AUTHOR_PASSWORD_HASH,
+} from '@test/support/constants/prompts-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { uniqueEmail } from '@test/support/fixtures/identity.fixture';
 import { newFolder, newPrompt, newPromptVersion } from '@test/support/fixtures/prompts.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
+import { PromptsNeighboursModule } from '@test/support/modules/prompts-neighbours.module';
 
 export const promptsCtx = (
   testingModule: TestingModule,
@@ -23,7 +31,24 @@ export const promptsCtx = (
 ): UseCaseCtx => workspaceCtx(testingModule.get(IdService).generate(), workspaceId, role);
 
 export const createPromptsTestingModule = (): Promise<TestingModule> =>
-  createPlatformTestingModule(TestRedisPrefix.Prompts, [PromptsModule.forRole(Role.Api)]);
+  createPlatformTestingModule(TestRedisPrefix.Prompts, [
+    PromptsModule.forRole(Role.Api),
+    PromptsNeighboursModule.forRole(Role.Api),
+  ]);
+
+export const seedPromptAuthor = async (testingModule: TestingModule): Promise<string> => {
+  const userId = testingModule.get(IdService).generate();
+  await testingModule.get(UsersRepository).upsertUnconfirmed({
+    id: userId,
+    email: uniqueEmail(),
+    name: TEST_PROMPT_AUTHOR_NAME,
+    passwordHash: TEST_PROMPT_AUTHOR_PASSWORD_HASH,
+    locale: Locale.En,
+    createdAt: PROMPTS_TEST_START,
+    updatedAt: PROMPTS_TEST_START,
+  });
+  return userId;
+};
 
 export const seedPromptFolder = async (
   testingModule: TestingModule,

@@ -86,6 +86,10 @@ export class PromptsRepository {
     return (await this.update(workspaceId, promptId, { folderId, updatedAt })) !== null;
   }
 
+  async touch(workspaceId: string, promptId: string, updatedAt: Date): Promise<boolean> {
+    return (await this.update(workspaceId, promptId, { updatedAt })) !== null;
+  }
+
   async softDelete(workspaceId: string, promptId: string, deletedAt: Date): Promise<boolean> {
     return (await this.update(workspaceId, promptId, { deletedAt })) !== null;
   }
