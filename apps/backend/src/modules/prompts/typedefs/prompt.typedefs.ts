@@ -36,6 +36,15 @@ export interface MovePromptToFolderInput {
   readonly folderId: string;
 }
 
+export interface DuplicatePromptInput {
+  readonly id: string;
+  readonly folderId: string;
+}
+
+export interface PromptIdInput {
+  readonly id: string;
+}
+
 export interface PromptListFilters {
   readonly folderId: string | null;
   readonly search: string | null;
