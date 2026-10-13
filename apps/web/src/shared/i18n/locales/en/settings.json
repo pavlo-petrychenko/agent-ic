@@ -145,7 +145,10 @@
         "title": "Email",
         "placeholder": "Your email",
         "description": "We send a link to confirm the new address",
-        "action": "Change"
+        "action": "Change",
+        "send": "Send link",
+        "cancel": "Cancel",
+        "success": "We sent a confirmation link to {{email}}. Open it to finish the change."
       },
       "language": {
         "title": "Interface language",

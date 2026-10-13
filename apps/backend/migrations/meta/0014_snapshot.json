@@ -155,8 +155,12 @@
           "tableFrom": "agent_versions",
           "tableTo": "agents",
           "schemaTo": "agents",
-          "columnsFrom": ["agent_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "agent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -165,8 +169,12 @@
           "tableFrom": "agent_versions",
           "tableTo": "agent_versions",
           "schemaTo": "agents",
-          "columnsFrom": ["base_version_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "base_version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -178,7 +186,9 @@
           "name": "agent_versions_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": ["public"],
+          "to": [
+            "public"
+          ],
           "using": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid",
           "withCheck": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid"
         }
@@ -294,7 +304,9 @@
           "name": "agents_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": ["public"],
+          "to": [
+            "public"
+          ],
           "using": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid",
           "withCheck": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid"
         }
@@ -455,7 +467,9 @@
           "name": "conversations_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": ["public"],
+          "to": [
+            "public"
+          ],
           "using": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid",
           "withCheck": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid"
         }
@@ -613,8 +627,12 @@
           "tableFrom": "messages",
           "tableTo": "conversations",
           "schemaTo": "conversations",
-          "columnsFrom": ["conversation_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "conversation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -626,7 +644,9 @@
           "name": "messages_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": ["public"],
+          "to": [
+            "public"
+          ],
           "using": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid",
           "withCheck": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid"
         }
@@ -720,8 +740,12 @@
           "tableFrom": "email_tokens",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -825,8 +849,12 @@
           "tableFrom": "invite_links",
           "tableTo": "workspaces",
           "schemaTo": "identity",
-          "columnsFrom": ["workspace_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "workspace_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -835,8 +863,12 @@
           "tableFrom": "invite_links",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": ["created_by_user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "created_by_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -848,7 +880,9 @@
           "name": "invite_links_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": ["public"],
+          "to": [
+            "public"
+          ],
           "using": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid",
           "withCheck": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid"
         }
@@ -957,8 +991,12 @@
           "tableFrom": "memberships",
           "tableTo": "workspaces",
           "schemaTo": "identity",
-          "columnsFrom": ["workspace_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "workspace_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -967,8 +1005,12 @@
           "tableFrom": "memberships",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -977,8 +1019,12 @@
           "tableFrom": "memberships",
           "tableTo": "invite_links",
           "schemaTo": "identity",
-          "columnsFrom": ["invite_link_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "invite_link_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -990,7 +1036,9 @@
           "name": "memberships_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": ["public"],
+          "to": [
+            "public"
+          ],
           "using": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid",
           "withCheck": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid"
         }
@@ -1104,8 +1152,12 @@
           "tableFrom": "sessions",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1114,8 +1166,12 @@
           "tableFrom": "sessions",
           "tableTo": "sessions",
           "schemaTo": "identity",
-          "columnsFrom": ["replaced_by_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "replaced_by_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1282,8 +1338,12 @@
           "tableFrom": "workspaces",
           "tableTo": "users",
           "schemaTo": "identity",
-          "columnsFrom": ["created_by_user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "created_by_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1295,7 +1355,9 @@
           "name": "workspaces_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": ["public"],
+          "to": [
+            "public"
+          ],
           "using": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid",
           "withCheck": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid"
         }
@@ -1811,8 +1873,12 @@
           "tableFrom": "run_steps",
           "tableTo": "runs",
           "schemaTo": "runs",
-          "columnsFrom": ["run_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "run_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1824,7 +1890,9 @@
           "name": "run_steps_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": ["public"],
+          "to": [
+            "public"
+          ],
           "using": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid",
           "withCheck": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid"
         }
@@ -1961,7 +2029,9 @@
           "name": "runs_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": ["public"],
+          "to": [
+            "public"
+          ],
           "using": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid",
           "withCheck": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid"
         }
@@ -2035,7 +2105,9 @@
           "name": "messages_app_insert",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": ["app"],
+          "to": [
+            "app"
+          ],
           "withCheck": "true"
         }
       },
@@ -2047,37 +2119,65 @@
     "agents.agent_version_kind": {
       "name": "agent_version_kind",
       "schema": "agents",
-      "values": ["draft", "published", "snapshot"]
+      "values": [
+        "draft",
+        "published",
+        "snapshot"
+      ]
     },
     "agents.pause_mode": {
       "name": "pause_mode",
       "schema": "agents",
-      "values": ["inbox", "away_message"]
+      "values": [
+        "inbox",
+        "away_message"
+      ]
     },
     "conversations.channel_kind": {
       "name": "channel_kind",
       "schema": "conversations",
-      "values": ["simulated", "telegram", "api"]
+      "values": [
+        "simulated",
+        "telegram",
+        "api"
+      ]
     },
     "conversations.conversation_mode": {
       "name": "conversation_mode",
       "schema": "conversations",
-      "values": ["live", "simulation"]
+      "values": [
+        "live",
+        "simulation"
+      ]
     },
     "conversations.conversation_state": {
       "name": "conversation_state",
       "schema": "conversations",
-      "values": ["agent_active", "waiting", "handled", "closed"]
+      "values": [
+        "agent_active",
+        "waiting",
+        "handled",
+        "closed"
+      ]
     },
     "conversations.message_author": {
       "name": "message_author",
       "schema": "conversations",
-      "values": ["customer", "agent", "operator", "system"]
+      "values": [
+        "customer",
+        "agent",
+        "operator",
+        "system"
+      ]
     },
     "conversations.message_delivery": {
       "name": "message_delivery",
       "schema": "conversations",
-      "values": ["pending", "delivered", "failed"]
+      "values": [
+        "pending",
+        "delivered",
+        "failed"
+      ]
     },
     "identity.email_token_purpose": {
       "name": "email_token_purpose",
@@ -2087,32 +2187,55 @@
     "identity.locale": {
       "name": "locale",
       "schema": "identity",
-      "values": ["en", "uk"]
+      "values": [
+        "en",
+        "uk"
+      ]
     },
     "identity.workspace_role": {
       "name": "workspace_role",
       "schema": "identity",
-      "values": ["owner", "admin", "builder", "operator"]
+      "values": [
+        "owner",
+        "admin",
+        "builder",
+        "operator"
+      ]
     },
     "runs.run_step_status": {
       "name": "run_step_status",
       "schema": "runs",
-      "values": ["running", "succeeded", "failed"]
+      "values": [
+        "running",
+        "succeeded",
+        "failed"
+      ]
     },
     "runs.run_mode": {
       "name": "run_mode",
       "schema": "runs",
-      "values": ["live", "simulation"]
+      "values": [
+        "live",
+        "simulation"
+      ]
     },
     "runs.run_status": {
       "name": "run_status",
       "schema": "runs",
-      "values": ["queued", "running", "succeeded", "failed", "escalated"]
+      "values": [
+        "queued",
+        "running",
+        "succeeded",
+        "failed",
+        "escalated"
+      ]
     },
     "runs.run_trigger": {
       "name": "run_trigger",
       "schema": "runs",
-      "values": ["message"]
+      "values": [
+        "message"
+      ]
     }
   },
   "schemas": {
