@@ -19,6 +19,7 @@ import { MeResolver } from '@/modules/identity/resolvers/me.resolver';
 import { MembersResolver } from '@/modules/identity/resolvers/members.resolver';
 import { MyWorkspacesResolver } from '@/modules/identity/resolvers/my-workspaces.resolver';
 import { RememberWorkspaceResolver } from '@/modules/identity/resolvers/remember-workspace.resolver';
+import { RemoveMemberResolver } from '@/modules/identity/resolvers/remove-member.resolver';
 import { RenameWorkspaceResolver } from '@/modules/identity/resolvers/rename-workspace.resolver';
 import { RequestMyEmailChangeResolver } from '@/modules/identity/resolvers/request-my-email-change.resolver';
 import { ResendConfirmationResolver } from '@/modules/identity/resolvers/resend-confirmation.resolver';
@@ -57,6 +58,7 @@ import { LoginUseCase } from '@/modules/identity/use-cases/login.use-case';
 import { LogoutUseCase } from '@/modules/identity/use-cases/logout.use-case';
 import { RefreshSessionUseCase } from '@/modules/identity/use-cases/refresh-session.use-case';
 import { RememberWorkspaceUseCase } from '@/modules/identity/use-cases/remember-workspace.use-case';
+import { RemoveMemberUseCase } from '@/modules/identity/use-cases/remove-member.use-case';
 import { RenameWorkspaceUseCase } from '@/modules/identity/use-cases/rename-workspace.use-case';
 import { RequestMyEmailChangeUseCase } from '@/modules/identity/use-cases/request-my-email-change.use-case';
 import { ResendConfirmationUseCase } from '@/modules/identity/use-cases/resend-confirmation.use-case';
@@ -117,6 +119,7 @@ export class IdentityModule extends defineModule({
     CleanUpAuthRecordsUseCase,
     RenameWorkspaceUseCase,
     RememberWorkspaceUseCase,
+    RemoveMemberUseCase,
     TransferOwnershipUseCase,
     UpdateMyLocaleUseCase,
     UpdateTimeZoneUseCase,
@@ -140,6 +143,7 @@ export class IdentityModule extends defineModule({
     MembersResolver,
     RenameWorkspaceResolver,
     RememberWorkspaceResolver,
+    RemoveMemberResolver,
     TransferOwnershipResolver,
     UpdateMyLocaleResolver,
     UpdateTimeZoneResolver,

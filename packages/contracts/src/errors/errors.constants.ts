@@ -79,4 +79,6 @@ export enum ErrorReason {
   TeamMemberNotFound = 'TEAM_MEMBER_NOT_FOUND',
   WorkspaceNameMismatch = 'WORKSPACE_NAME_MISMATCH',
   SamePassword = 'SAME_PASSWORD',
+  CannotDeleteOwner = 'CANNOT_DELETE_OWNER',
+  CannotDeleteYourself = 'CANNOT_DELETE_YOURSELF',
 }

@@ -40,3 +40,7 @@ export const deleteWorkspaceInputSchema = z.object({
   [WorkspaceField.Name]: workspaceNameSchema,
   [WorkspaceField.Password]: passwordSchema,
 });
+
+export const removeMemberInputSchema = z.object({
+  [WorkspaceField.MembershipId]: tokenSchema,
+});

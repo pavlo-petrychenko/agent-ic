@@ -17,6 +17,7 @@ extend type Mutation {
   transferOwnership(input: TransferOwnershipInput!): Membership!
   leaveWorkspace(workspaceId: ID!): Boolean!
   deleteWorkspace(input: DeleteWorkspaceInput!): Boolean!
+  removeMember(input: RemoveMemberInput!): Boolean!
 }
 
 extend type User {
@@ -114,4 +115,8 @@ input TransferOwnershipInput {
 input DeleteWorkspaceInput {
   name: String!
   password: String!
+}
+
+input RemoveMemberInput {
+  membershipId: ID!
 }
