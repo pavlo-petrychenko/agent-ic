@@ -19,8 +19,10 @@ import { CreatePromptUseCase } from '@/modules/prompts/use-cases/create-prompt.u
 import { DeletePromptFolderUseCase } from '@/modules/prompts/use-cases/delete-prompt-folder.use-case';
 import { DeletePromptUseCase } from '@/modules/prompts/use-cases/delete-prompt.use-case';
 import { DuplicatePromptUseCase } from '@/modules/prompts/use-cases/duplicate-prompt.use-case';
+import { GetPromptVersionUseCase } from '@/modules/prompts/use-cases/get-prompt-version.use-case';
 import { GetPromptUseCase } from '@/modules/prompts/use-cases/get-prompt.use-case';
 import { ListPromptFoldersUseCase } from '@/modules/prompts/use-cases/list-prompt-folders.use-case';
+import { ListPromptVersionsUseCase } from '@/modules/prompts/use-cases/list-prompt-versions.use-case';
 import { ListPromptsUseCase } from '@/modules/prompts/use-cases/list-prompts.use-case';
 import { MovePromptToFolderUseCase } from '@/modules/prompts/use-cases/move-prompt-to-folder.use-case';
 import { RenamePromptFolderUseCase } from '@/modules/prompts/use-cases/rename-prompt-folder.use-case';
@@ -41,7 +43,9 @@ export class PromptsModule extends defineModule({
     DeletePromptUseCase,
     DuplicatePromptUseCase,
     GetPromptUseCase,
+    GetPromptVersionUseCase,
     ListPromptFoldersUseCase,
+    ListPromptVersionsUseCase,
     ListPromptsUseCase,
     MovePromptToFolderUseCase,
     RenamePromptFolderUseCase,

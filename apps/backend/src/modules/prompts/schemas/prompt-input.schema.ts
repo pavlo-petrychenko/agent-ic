@@ -33,6 +33,14 @@ export const savePromptVersionInputSchema = z.object({
   [PromptField.Note]: promptVersionNoteSchema,
 });
 
+export const listPromptVersionsInputSchema = z.object({
+  [PromptField.PromptId]: recordIdSchema,
+});
+
+export const promptVersionIdInputSchema = z.object({
+  [PromptField.Id]: recordIdSchema,
+});
+
 export const duplicatePromptInputSchema = z.object({
   [PromptField.Id]: recordIdSchema,
   [PromptField.FolderId]: recordIdSchema,
