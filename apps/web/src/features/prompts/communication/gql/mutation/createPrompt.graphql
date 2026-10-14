@@ -1,0 +1,7 @@
+mutation CreatePrompt($input: CreatePromptInput!) {
+  createPrompt(input: $input) {
+    id
+    name
+    folderId
+  }
+}

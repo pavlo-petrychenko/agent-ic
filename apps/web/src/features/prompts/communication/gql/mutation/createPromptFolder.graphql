@@ -1,0 +1,6 @@
+mutation CreatePromptFolder($input: CreatePromptFolderInput!) {
+  createPromptFolder(input: $input) {
+    id
+    name
+  }
+}

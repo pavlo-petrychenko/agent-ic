@@ -37,6 +37,7 @@ export const CONVERSATION_GUARD_PROMPT: PromptFixture = {
 export const buildPromptLibraryMock = (
   folders: readonly PromptFolderFixture[],
   prompts: readonly PromptFixture[],
+  maxUsageCount: number = Number.POSITIVE_INFINITY,
 ): MockLink.MockedResponse => ({
   request: { query: PromptLibraryDocument },
   result: {
@@ -54,5 +55,5 @@ export const buildPromptLibraryMock = (
       })),
     },
   },
-  maxUsageCount: Number.POSITIVE_INFINITY,
+  maxUsageCount,
 });

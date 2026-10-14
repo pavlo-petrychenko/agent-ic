@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { Popover as PopoverPrimitive } from 'radix-ui';
 import { useMemo } from 'react';
+import { useNestedPortalContainer } from '@/shared/ui/overlays/Dialog/portal.context';
 import { POPOVER_SIDE_OFFSET, PopoverAlign } from '@/shared/ui/overlays/Popover/Popover.constants';
 import type { PopoverPoint, PopoverProps } from '@/shared/ui/overlays/Popover/Popover.typedefs';
 import styles from '@/shared/ui/overlays/Popover/Popover.module.scss';
@@ -29,6 +30,7 @@ export function Popover({
   className,
   children,
 }: PopoverProps) {
+  const portalContainer = useNestedPortalContainer();
   const virtualRef = useMemo(
     () => ({
       current: anchor === null ? null : { getBoundingClientRect: () => pointRect(anchor) },
@@ -40,7 +42,7 @@ export function Popover({
     <PopoverPrimitive.Root open={open} onOpenChange={onOpenChange}>
       {trigger !== null && <PopoverPrimitive.Trigger asChild>{trigger}</PopoverPrimitive.Trigger>}
       {anchor !== null && <PopoverPrimitive.Anchor virtualRef={virtualRef} />}
-      <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Portal container={portalContainer}>
         <PopoverPrimitive.Content
           align={align}
           sideOffset={POPOVER_SIDE_OFFSET}

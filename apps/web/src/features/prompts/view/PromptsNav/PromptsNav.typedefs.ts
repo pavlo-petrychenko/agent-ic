@@ -3,5 +3,6 @@ import type { PromptTreeGroup } from '@/features/prompts/typedefs/promptsTree.ty
 export interface PromptsNavProps {
   readonly groups: readonly PromptTreeGroup[];
   readonly loading: boolean;
+  readonly onCreate: () => void;
   readonly onOpenChange: (folderId: string, open: boolean) => void;
 }

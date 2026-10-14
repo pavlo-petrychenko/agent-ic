@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { Dialog } from '@/shared/ui/overlays/Dialog/Dialog';
 import { Menu } from '@/shared/ui/overlays/Menu/Menu';
 import { Popover } from '@/shared/ui/overlays/Popover/Popover';
 import { PopoverAlign } from '@/shared/ui/overlays/Popover/Popover.constants';
@@ -60,6 +61,24 @@ describe('Popover', () => {
       'aria-expanded',
       'true',
     );
+  });
+
+  it('portals into the dialog that contains it', async () => {
+    render(
+      <Dialog
+        open
+        onOpenChange={vi.fn<(open: boolean) => void>()}
+        title="New prompt"
+        closeLabel="Close"
+      >
+        <Harness />
+      </Dialog>,
+    );
+
+    const dialog = screen.getByRole('dialog', { name: 'New prompt' });
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }));
+
+    expect(dialog).toContainElement(screen.getByText('Panel content'));
   });
 
   it('closes on Escape and returns focus to the trigger', async () => {

@@ -4,6 +4,7 @@ import { Icon, IconName } from '@/shared/ui/foundations/Icon';
 import {
   COMBOBOX_CHECK_SIZE,
   COMBOBOX_CHEVRON_SIZE,
+  COMBOBOX_CREATE_VALUE,
   COMBOBOX_ERROR_ID_SUFFIX,
 } from '@/shared/ui/inputs/Combobox/Combobox.constants';
 import type { ComboboxOption, ComboboxProps } from '@/shared/ui/inputs/Combobox/Combobox.typedefs';
@@ -18,6 +19,7 @@ export function Combobox({
   searchLabel,
   searchClearLabel,
   emptyLabel,
+  createLabel = null,
   placeholder = null,
   invalid = false,
   error = null,
@@ -34,11 +36,20 @@ export function Combobox({
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const hasError = error !== null;
-  const normalizedQuery = query.trim().toLocaleLowerCase();
-  const visible =
+  const trimmedQuery = query.trim();
+  const normalizedQuery = trimmedQuery.toLocaleLowerCase();
+  const matched =
     normalizedQuery === ''
       ? options
       : options.filter((option) => option.label.toLocaleLowerCase().includes(normalizedQuery));
+  const hasExactMatch = options.some(
+    (option) => option.label.toLocaleLowerCase() === normalizedQuery,
+  );
+  const createOption =
+    createLabel !== null && trimmedQuery !== '' && !hasExactMatch
+      ? { value: COMBOBOX_CREATE_VALUE, label: createLabel(trimmedQuery) }
+      : null;
+  const visible = createOption === null ? matched : [...matched, createOption];
   const activeOption = visible[Math.min(activeIndex, visible.length - 1)] ?? null;
   const describedBy = [hasError ? errorId : null, ariaDescribedBy]
     .filter((item) => item !== null && item !== undefined)
@@ -58,7 +69,7 @@ export function Combobox({
     if (active !== null && active !== undefined && typeof active.scrollIntoView === 'function') {
       active.scrollIntoView({ block: 'nearest' });
     }
-  }, [activeIndex, open, visible]);
+  }, [activeIndex, open, query]);
 
   const changeOpen = (next: boolean) => {
     setOpen(next);
@@ -73,7 +84,7 @@ export function Combobox({
   };
 
   const select = (option: ComboboxOption) => {
-    onChange(option.value);
+    onChange(option.value === COMBOBOX_CREATE_VALUE ? trimmedQuery : option.value);
     changeOpen(false);
   };
 

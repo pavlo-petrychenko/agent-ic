@@ -37,3 +37,9 @@ export const Empty: Story = { args: { value: '' } };
 export const Invalid: Story = { args: { invalid: true } };
 export const WithError: Story = { args: { error: 'Pick a time zone' } };
 export const Disabled: Story = { args: { disabled: true } };
+export const Creatable: Story = {
+  args: {
+    value: '',
+    createLabel: (query: string) => `Create “${query}”`,
+  },
+};
