@@ -5,6 +5,7 @@ export enum Namespace {
   Workspace = 'workspace',
   Settings = 'settings',
   Agents = 'agents',
+  Prompts = 'prompts',
   FlowBuilder = 'flowBuilder',
   Testing = 'testing',
 }

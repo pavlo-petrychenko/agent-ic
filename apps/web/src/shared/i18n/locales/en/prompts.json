@@ -1,0 +1,19 @@
+{
+  "page": {
+    "title": "Prompts",
+    "subtitle": "Reusable instructions for Agent and Completion steps"
+  },
+  "nav": {
+    "label": "Prompts"
+  },
+  "empty": {
+    "title": "No prompts yet",
+    "description": "Write a prompt once and use it in many steps. Versions let you change it safely."
+  },
+  "select": {
+    "title": "Select a prompt",
+    "description": "Pick a prompt on the left to view it."
+  },
+  "loadError": "The prompts couldn’t be opened.",
+  "retry": "Try again"
+}
