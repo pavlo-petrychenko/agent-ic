@@ -67,7 +67,9 @@
     "STEP_MODEL_UNKNOWN": "This step uses a model that is not in the model list.",
     "CANNOT_TRANSFER_TO_YOURSELF": "Ownership cannot be transferred to yourself.",
     "TEAM_MEMBER_NOT_FOUND": "This person is not part of this workspace.",
-    "WORKSPACE_NAME_MISMATCH": "The name does not match the workspace name."
+    "WORKSPACE_NAME_MISMATCH": "The name does not match the workspace name.",
+    "CANNOT_DELETE_OWNER": "Owner of the workspace cannot be deleted.",
+    "CANNOT_DELETE_YOURSELF": "You cannot remove yourself. Leave the workspace instead."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",

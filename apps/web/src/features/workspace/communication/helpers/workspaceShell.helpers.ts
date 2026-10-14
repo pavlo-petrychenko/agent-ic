@@ -18,7 +18,12 @@ export const toWorkspaceShellData = (
     role: ROLE_FROM_API[membership.role],
   }));
   return {
-    user: { name: data.me.name, email: data.me.email, locale: LOCALE_FROM_API[data.me.locale] },
+    user: {
+      userId: data.me.id,
+      name: data.me.name,
+      email: data.me.email,
+      locale: LOCALE_FROM_API[data.me.locale],
+    },
     workspaces,
     active: workspaces.find((workspace) => workspace.id === activeWorkspaceId) ?? null,
   };

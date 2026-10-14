@@ -5,6 +5,7 @@ import { ROLE_FROM_API } from '@/shared/api/constants/workspaceRole.constants';
 export const toTeamMembers = (data: TeamMembersQuery): readonly TeamMember[] =>
   data.members.edges.map(({ node }) => ({
     id: node.id,
+    userId: node.userId,
     name: node.name,
     email: node.email,
     role: ROLE_FROM_API[node.role],
