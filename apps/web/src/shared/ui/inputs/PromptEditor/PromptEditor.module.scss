@@ -82,6 +82,7 @@ $story-width: 520px;
   flex: 1;
   color: var(--color-ink-secondary);
   font: var(--type-body);
+  font-family: var(--font-mono);
   line-height: var(--leading-relaxed);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -108,6 +109,7 @@ $story-width: 520px;
   left: var(--space-20);
   color: var(--color-mute);
   font: var(--type-body);
+  font-family: var(--font-mono);
   line-height: var(--leading-relaxed);
   pointer-events: none;
 }
