@@ -4,8 +4,10 @@ import {
   PromptFolderMenuAction,
 } from '@/features/prompts/constants/promptFolderMenu.constants';
 import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.constants';
+import { PROMPT_PATH } from '@/features/prompts/constants/route.constants';
 import type { PromptsNavProps } from '@/features/prompts/view/PromptsNav/PromptsNav.typedefs';
 import { IconButton, IconButtonSize, IconButtonVariant } from '@/shared/ui/actions/IconButton';
+import { SubnavItem, SubnavItemDepth } from '@/shared/ui/data/SubnavItem';
 import { TreeFolder } from '@/shared/ui/data/TreeFolder';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { ContextMenu } from '@/shared/ui/overlays/ContextMenu';
@@ -15,6 +17,7 @@ import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/prompts/view/PromptsNav/PromptsNav.module.scss';
 
 export function PromptsNav({
+  workspaceId,
   groups,
   loading,
   onCreate,
@@ -64,9 +67,13 @@ export function PromptsNav({
               }
             >
               {group.prompts.map((prompt) => (
-                <span key={prompt.id} className={styles.prompt}>
-                  {prompt.name}
-                </span>
+                <SubnavItem
+                  key={prompt.id}
+                  to={PROMPT_PATH}
+                  params={{ workspaceId, promptId: prompt.id }}
+                  label={prompt.name}
+                  depth={SubnavItemDepth.Nested}
+                />
               ))}
             </TreeFolder>
           ))}

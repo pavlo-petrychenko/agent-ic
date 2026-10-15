@@ -11,9 +11,29 @@ export interface PromptLibrary {
   readonly prompts: readonly PromptListItem[];
 }
 
+export interface PromptVersion {
+  readonly id: string;
+  readonly number: number;
+  readonly text: string;
+  readonly savedAt: string;
+  readonly author: string | null;
+}
+
+export interface PromptDetail {
+  readonly prompt: PromptListItem;
+  readonly latestVersion: PromptVersion | null;
+}
+
 export interface UsePromptLibraryResult {
   readonly folders: readonly PromptFolderListItem[];
   readonly prompts: readonly PromptListItem[];
+  readonly loading: boolean;
+  readonly failed: boolean;
+  readonly retry: () => Promise<void>;
+}
+
+export interface UsePromptDetailResult {
+  readonly detail: PromptDetail | null;
   readonly loading: boolean;
   readonly failed: boolean;
   readonly retry: () => Promise<void>;

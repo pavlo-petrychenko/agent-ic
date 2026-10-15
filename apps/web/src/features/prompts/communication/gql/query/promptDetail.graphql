@@ -1,0 +1,18 @@
+query PromptDetail($id: ID!) {
+  prompt(id: $id) {
+    prompt {
+      id
+      name
+      folderId
+    }
+    latestVersion {
+      id
+      number
+      text
+      createdAt
+      author {
+        name
+      }
+    }
+  }
+}
