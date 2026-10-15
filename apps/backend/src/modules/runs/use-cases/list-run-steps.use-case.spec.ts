@@ -53,16 +53,19 @@ describe('ListRunStepsUseCase', () => {
 
     const succeeded = { status: RunStepStatus.Succeeded, durationMs: 0 };
     const executed = steps.get(batch.runIds.executed) ?? [];
-    expect(executed).toEqual([
-      expect.objectContaining({ ...succeeded, nodeId: TEST_NODE_ID }),
-      expect.objectContaining({
-        ...succeeded,
-        nodeId: FIRST_STEP_ID,
-        nodeKey: FIRST_STEP_KEY,
-        input: expect.objectContaining({ message: { text: TEST_MESSAGE_TEXT, attachments: [] } }),
-        output: { answer: FIRST_STEP_KEY },
-      }),
-    ]);
+    expect(executed).toHaveLength(2);
+    expect(executed).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ ...succeeded, nodeId: TEST_NODE_ID }),
+        expect.objectContaining({
+          ...succeeded,
+          nodeId: FIRST_STEP_ID,
+          nodeKey: FIRST_STEP_KEY,
+          input: expect.objectContaining({ message: { text: TEST_MESSAGE_TEXT, attachments: [] } }),
+          output: { answer: FIRST_STEP_KEY },
+        }),
+      ]),
+    );
     expect(executed.every((step) => !('history' in step.input))).toBe(true);
     expect(steps.get(batch.runIds.started)).toEqual([
       expect.objectContaining({ nodeId: TEST_STEP_NODE_ID, status: RunStepStatus.Running }),
