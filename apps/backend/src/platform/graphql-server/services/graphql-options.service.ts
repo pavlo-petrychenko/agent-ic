@@ -23,6 +23,7 @@ import {
 import { readConnectionParam } from '@/platform/graphql-server/helpers/connection-param.helpers';
 import { jsonScalar } from '@/platform/graphql-server/helpers/json-scalar.helpers';
 import { moduleTypePaths } from '@/platform/graphql-server/helpers/module-sdl.helpers';
+import { GraphqlLoadersService } from '@/platform/graphql-server/services/graphql-loaders.service';
 import type {
   GraphqlContext,
   GraphqlContextInput,
@@ -38,6 +39,7 @@ export class GraphqlOptionsService implements GqlOptionsFactory<ApolloDriverConf
     private readonly contexts: UseCaseCtxService,
     private readonly traceIds: TraceIdService,
     private readonly reporter: ErrorReporterService,
+    private readonly loaders: GraphqlLoadersService,
   ) {}
 
   createGqlOptions(): ApolloDriverConfig {
@@ -64,7 +66,8 @@ export class GraphqlOptionsService implements GqlOptionsFactory<ApolloDriverConf
   private async createContext(input: GraphqlContextInput): Promise<GraphqlContext> {
     const request = 'req' in input ? this.fromHttp(input.req) : this.fromWebSocket(input);
     try {
-      return { ctx: await this.contexts.create(request) };
+      const ctx = await this.contexts.create(request);
+      return { ctx, loaders: this.loaders.create(ctx) };
     } catch (error) {
       this.reporter.report(error, request.traceId);
       throw toGraphqlError(error, request.traceId);

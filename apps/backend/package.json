@@ -54,6 +54,7 @@
     "@react-email/render": "^2.1.0",
     "ai": "^7.0.137",
     "bullmq": "6.3.11",
+    "dataloader": "2.2.3",
     "drizzle-orm": "^0.45.3",
     "graphql": "^16.14.2",
     "graphql-ws": "^6.3.0",

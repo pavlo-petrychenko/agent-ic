@@ -20,7 +20,7 @@
 ## Consequences
 - One typed contract from the database to the UI. Breaking changes are caught in CI (graphql-inspector against `main`).
 - The server needs:
-  - DataLoader for every relation (N+1);
+  - DataLoader for every relation (N+1), built as batch use cases behind `@Loader` (architecture.md D265);
   - limits on query depth and complexity;
   - authorization in resolvers or services.
 - Caching is per-entity on the client, not HTTP caching.
