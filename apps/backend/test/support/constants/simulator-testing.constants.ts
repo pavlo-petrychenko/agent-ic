@@ -10,6 +10,12 @@ export const simulatorQuery = (agentId: string): string =>
 export const simulationRunsQuery = (agentId: string): string =>
   `{ simulation(agentId: "${agentId}") { runs { id steps { id } totals { stepsRun } } } }`;
 
+export const AGENT_FIELDS_QUERY =
+  '{ agents { edges { node { id draftChangeCount lastSimulationRun { id } } } } }';
+
+export const publishAgentMutation = (agentId: string): string =>
+  `mutation { publishAgent(input: { id: "${agentId}" }) { agent { id draftChangeCount } } }`;
+
 export const SIMULATION_RUN_STEP_COUNTS: readonly number[] = [2, 0, 1];
 
 export const SIMULATOR_TEST_TEXT = 'Do you deliver on Sundays?';

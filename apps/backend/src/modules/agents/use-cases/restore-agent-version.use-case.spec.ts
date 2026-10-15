@@ -6,6 +6,7 @@ import { AgentVersionNotFoundError } from '@/modules/agents/errors/agent-version
 import { DraftConflictError } from '@/modules/agents/errors/draft-conflict.error';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
 import type { RestoreAgentVersionInput } from '@/modules/agents/typedefs/agent-version.typedefs';
+import { CountDraftChangesUseCase } from '@/modules/agents/use-cases/count-draft-changes.use-case';
 import { GetAgentUseCase } from '@/modules/agents/use-cases/get-agent.use-case';
 import { RestoreAgentVersionUseCase } from '@/modules/agents/use-cases/restore-agent-version.use-case';
 import { SaveAgentDraftUseCase } from '@/modules/agents/use-cases/save-agent-draft.use-case';
@@ -80,9 +81,9 @@ describe('RestoreAgentVersionUseCase', () => {
 
     const restored = await restoreVersion.execute(ctx, { versionId, revision });
 
-    const agent = await testingModule
-      .get(GetAgentUseCase)
-      .execute(ctx, { id: publicAgentId(testingModule, seeded.agentId) });
+    const id = publicAgentId(testingModule, seeded.agentId);
+    const agent = await testingModule.get(GetAgentUseCase).execute(ctx, { id });
+    const changes = await testingModule.get(CountDraftChangesUseCase).execute(ctx, [id]);
     const draft = await readDraft(workspaceId, seeded);
     expect(restored.revision).toBe(revision + 1);
     expect(restored.version.flow).toEqual(triggerFlow());
@@ -90,8 +91,8 @@ describe('RestoreAgentVersionUseCase', () => {
     expect(agent).toMatchObject({
       draftBaseVersionNumber: FIRST_NUMBER,
       hasUnpublishedChanges: false,
-      draftChangeCount: 0,
     });
+    expect(changes.get(id)).toBe(0);
   });
 
   it('refuses a stale revision and leaves the draft as it was', async () => {

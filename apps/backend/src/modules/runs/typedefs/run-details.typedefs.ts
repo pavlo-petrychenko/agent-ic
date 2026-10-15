@@ -26,10 +26,6 @@ export interface SimulationRunsInput {
   readonly conversationId: string;
 }
 
-export interface LastSimulationRunInput {
-  readonly agentId: string;
-}
-
 export interface SimulationRunSummary {
   readonly id: string;
   readonly status: Run['status'];

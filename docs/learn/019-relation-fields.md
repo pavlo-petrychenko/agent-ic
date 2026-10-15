@@ -118,9 +118,11 @@ When a batch runs matters: after all promise callbacks of the tick, with `proces
 - [run-fields.resolver.ts](../../apps/backend/src/modules/runs/resolvers/run-fields.resolver.ts): `Run.steps` and `Run.totals`.
 - [list-run-steps.use-case.ts](../../apps/backend/src/modules/runs/use-cases/list-run-steps.use-case.ts): a list relation with `groupByKey`.
 - [get-run-totals.use-case.ts](../../apps/backend/src/modules/runs/use-cases/get-run-totals.use-case.ts): one value per key with `indexByKey`, built from four `GROUP BY` or `IN` queries.
+- [agent-fields.resolver.ts](../../apps/backend/src/modules/agents/resolvers/agent-fields.resolver.ts) and [count-draft-changes.use-case.ts](../../apps/backend/src/modules/agents/use-cases/count-draft-changes.use-case.ts): `Agent.draftChangeCount`, one value per agent from three `IN` queries and an in-memory diff of the flows.
+- [last-simulation-run.resolver.ts](../../apps/backend/src/modules/runs/resolvers/last-simulation-run.resolver.ts) and [list-last-simulation-runs.use-case.ts](../../apps/backend/src/modules/runs/use-cases/list-last-simulation-runs.use-case.ts): `Agent.lastSimulationRun`, a field one module adds to another module's type, with `null` for an agent that was never tested.
 - [graphql-loaders.helpers.ts](../../apps/backend/src/platform/graphql-server/helpers/graphql-loaders.helpers.ts) and [loader.decorator.ts](../../apps/backend/src/platform/graphql-server/decorators/loader.decorator.ts): the registry and `@Loader`.
 - [batch.helpers.ts](../../apps/backend/src/platform/context/helpers/batch.helpers.ts): `groupByKey` and `indexByKey`.
-- Spec: [simulator-graphql.spec.ts](../../apps/backend/test/integration/simulator-graphql.spec.ts) reads three runs with their steps and totals and checks that each batch use case ran once.
+- Spec: [simulator-graphql.spec.ts](../../apps/backend/test/integration/simulator-graphql.spec.ts) reads three runs with their steps and totals and checks that each batch use case ran once; it does the same for a list of three agents with `draftChangeCount` and `lastSimulationRun`.
 
 ## Pitfalls
 
