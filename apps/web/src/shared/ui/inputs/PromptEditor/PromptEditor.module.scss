@@ -14,6 +14,16 @@ $story-width: 520px;
   pointer-events: none;
 }
 
+.fill {
+  flex: 1;
+  min-height: 0;
+
+  .surface {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
 .surface {
   position: relative;
   display: flex;

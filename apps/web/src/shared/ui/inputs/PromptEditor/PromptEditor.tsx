@@ -14,9 +14,11 @@ import { usePromptEditor } from '@/shared/ui/inputs/PromptEditor/usePromptEditor
 import { useVariableMenu } from '@/shared/ui/inputs/PromptEditor/useVariableMenu';
 import styles from '@/shared/ui/inputs/PromptEditor/PromptEditor.module.scss';
 
+const noChange = () => undefined;
+
 export function PromptEditor({
   value,
-  onChange,
+  onChange = null,
   variables,
   label,
   menuLabel,
@@ -25,6 +27,7 @@ export function PromptEditor({
   error = null,
   readOnly = false,
   readOnlyReason = null,
+  fill = false,
   disabled = false,
   placeholder = null,
   className,
@@ -42,7 +45,7 @@ export function PromptEditor({
 
   const editor = usePromptEditor({
     value,
-    onChange,
+    onChange: onChange ?? noChange,
     editable,
     label,
     invalid: hasError,
@@ -64,7 +67,7 @@ export function PromptEditor({
   );
 
   return (
-    <div className={clsx(styles.root, disabled && styles.disabled, className)}>
+    <div className={clsx(styles.root, disabled && styles.disabled, fill && styles.fill, className)}>
       <div
         className={clsx(styles.surface, hasError && styles.invalid, readOnly && styles.readOnly)}
         style={height === null ? undefined : { height }}
