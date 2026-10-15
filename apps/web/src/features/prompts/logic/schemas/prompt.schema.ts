@@ -7,6 +7,9 @@ interface PromptSchemaMessages {
   readonly folder: string;
 }
 
+const folderNameSchema = (message: string) =>
+  z.string().trim().min(1, message).max(PROMPT_FOLDER_NAME_MAX_LENGTH, message);
+
 export const createPromptSchema = (messages: PromptSchemaMessages) =>
   z.object({
     [PromptFormField.Name]: z
@@ -14,9 +17,8 @@ export const createPromptSchema = (messages: PromptSchemaMessages) =>
       .trim()
       .min(1, messages.name)
       .max(PROMPT_NAME_MAX_LENGTH, messages.name),
-    [PromptFormField.Folder]: z
-      .string()
-      .trim()
-      .min(1, messages.folder)
-      .max(PROMPT_FOLDER_NAME_MAX_LENGTH, messages.folder),
+    [PromptFormField.Folder]: folderNameSchema(messages.folder),
   });
+
+export const renamePromptFolderSchema = (message: string) =>
+  z.object({ [PromptFormField.Folder]: folderNameSchema(message) });
