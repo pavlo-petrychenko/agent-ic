@@ -5,6 +5,7 @@ import type { ContextMenuEvent } from '@/shared/ui/overlays/ContextMenu';
 import type { PopoverPoint } from '@/shared/ui/overlays/Popover';
 
 export interface PromptsNavProps {
+  readonly workspaceId: string;
   readonly groups: readonly PromptTreeGroup[];
   readonly loading: boolean;
   readonly onCreate: () => void;
