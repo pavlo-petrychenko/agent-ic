@@ -1,0 +1,6 @@
+mutation RenamePromptFolder($input: RenamePromptFolderInput!) {
+  renamePromptFolder(input: $input) {
+    id
+    name
+  }
+}

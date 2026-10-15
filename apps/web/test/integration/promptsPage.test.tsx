@@ -1,5 +1,5 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
-import { screen, within } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -9,6 +9,12 @@ import {
   NEW_FOLDER_ID,
   NEW_PROMPT_ID,
 } from '@/features/prompts/communication/fixtures/promptCreate.fixture';
+import {
+  buildDeletePromptFolderMock,
+  buildRenamePromptFolderConflictMock,
+  buildRenamePromptFolderMock,
+  RENAMED_FOLDER_NAME,
+} from '@/features/prompts/communication/fixtures/promptFolderActions.fixture';
 import {
   buildPromptLibraryMock,
   CONVERSATION_GUARD_PROMPT,
@@ -148,6 +154,115 @@ describe('prompts page', () => {
     expect(
       await within(dialog).findByText('A prompt with this name already exists.'),
     ).toBeInTheDocument();
+  });
+
+  it('renames a folder from the section', async () => {
+    renderRoute(promptsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
+        buildPromptLibraryMock(
+          [{ id: Q_AND_A_FOLDER.id, name: RENAMED_FOLDER_NAME }],
+          [RECEPTIONIST_PROMPT],
+        ),
+        buildRenamePromptFolderMock(Q_AND_A_FOLDER.id, RENAMED_FOLDER_NAME),
+      ],
+    });
+
+    const section = await screen.findByRole('navigation', { name: 'Prompts' });
+    fireEvent.contextMenu(
+      await within(section).findByRole('button', { name: Q_AND_A_FOLDER.name }),
+    );
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Rename' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Rename folder' });
+    const name = within(dialog).getByRole('textbox', { name: 'Name' });
+    expect(name).toHaveValue(Q_AND_A_FOLDER.name);
+
+    await userEvent.clear(name);
+    await userEvent.type(name, RENAMED_FOLDER_NAME);
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Rename' }));
+
+    expect(await screen.findByText(`Folder “${RENAMED_FOLDER_NAME}” renamed`)).toBeInTheDocument();
+    expect(
+      await within(section).findByRole('button', { name: RENAMED_FOLDER_NAME }),
+    ).toBeInTheDocument();
+  });
+
+  it('tells when the renamed folder name is taken', async () => {
+    renderRoute(promptsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildPromptLibraryMock([Q_AND_A_FOLDER, GUARDS_FOLDER], []),
+        buildRenamePromptFolderConflictMock(GUARDS_FOLDER.id, Q_AND_A_FOLDER.name),
+      ],
+    });
+
+    const section = await screen.findByRole('navigation', { name: 'Prompts' });
+    fireEvent.contextMenu(await within(section).findByRole('button', { name: GUARDS_FOLDER.name }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Rename' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Rename folder' });
+    const name = within(dialog).getByRole('textbox', { name: 'Name' });
+    await userEvent.clear(name);
+    await userEvent.type(name, Q_AND_A_FOLDER.name);
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Rename' }));
+
+    expect(
+      await within(dialog).findByText('A folder with this name already exists.'),
+    ).toBeInTheDocument();
+  });
+
+  it('deletes an empty folder from the section', async () => {
+    renderRoute(promptsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildPromptLibraryMock([GUARDS_FOLDER], [], 1),
+        buildPromptLibraryMock([], []),
+        buildDeletePromptFolderMock(GUARDS_FOLDER.id),
+      ],
+    });
+
+    const section = await screen.findByRole('navigation', { name: 'Prompts' });
+    fireEvent.contextMenu(await within(section).findByRole('button', { name: GUARDS_FOLDER.name }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
+
+    const dialog = await screen.findByRole('dialog', {
+      name: `Delete “${GUARDS_FOLDER.name}”?`,
+    });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+
+    expect(await screen.findByText(`Folder “${GUARDS_FOLDER.name}” deleted`)).toBeInTheDocument();
+    expect(await within(section).findByText('No prompts yet')).toBeInTheDocument();
+    expect(
+      within(section).queryByRole('button', { name: GUARDS_FOLDER.name }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps a folder that still has prompts', async () => {
+    renderRoute(promptsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
+      ],
+    });
+
+    const section = await screen.findByRole('navigation', { name: 'Prompts' });
+    fireEvent.contextMenu(
+      await within(section).findByRole('button', { name: Q_AND_A_FOLDER.name }),
+    );
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
+
+    const dialog = await screen.findByRole('dialog', {
+      name: `Delete “${Q_AND_A_FOLDER.name}”?`,
+    });
+
+    expect(
+      within(dialog).getByText(
+        'This folder isn’t empty. Move its prompts to another folder first.',
+      ),
+    ).toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
   });
 
   it('keeps prompts hidden from an operator', async () => {
