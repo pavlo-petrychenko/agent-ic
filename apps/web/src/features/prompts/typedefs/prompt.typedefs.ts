@@ -3,17 +3,18 @@ import type { PromptFolderListItem } from '@/features/prompts/typedefs/promptFol
 export interface PromptListItem {
   readonly id: string;
   readonly name: string;
-  readonly folderId: string;
+}
+
+export interface PromptFolderWithPrompts extends PromptFolderListItem {
+  readonly prompts: readonly PromptListItem[];
 }
 
 export interface PromptLibrary {
-  readonly folders: readonly PromptFolderListItem[];
-  readonly prompts: readonly PromptListItem[];
+  readonly folders: readonly PromptFolderWithPrompts[];
 }
 
 export interface UsePromptLibraryResult {
-  readonly folders: readonly PromptFolderListItem[];
-  readonly prompts: readonly PromptListItem[];
+  readonly folders: readonly PromptFolderWithPrompts[];
   readonly loading: boolean;
   readonly failed: boolean;
   readonly retry: () => Promise<void>;

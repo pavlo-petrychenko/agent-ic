@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, eq, ilike, isNull, sql } from 'drizzle-orm';
+import { and, asc, count, eq, ilike, inArray, isNull, sql } from 'drizzle-orm';
 import { prompts } from '@/modules/prompts/db/prompts.table';
 import { promptNamesLockKey } from '@/modules/prompts/helpers/prompt-name.helpers';
 import type {
@@ -70,6 +70,14 @@ export class PromptsRepository {
           search === null ? undefined : ilike(prompts.name, `%${search}%`),
         ),
       )
+      .orderBy(asc(prompts.id));
+  }
+
+  listByFolderIds(workspaceId: string, folderIds: readonly string[]): Promise<Prompt[]> {
+    return this.txHost.tx
+      .select()
+      .from(prompts)
+      .where(and(this.activeWhere(workspaceId), inArray(prompts.folderId, folderIds)))
       .orderBy(asc(prompts.id));
   }
 

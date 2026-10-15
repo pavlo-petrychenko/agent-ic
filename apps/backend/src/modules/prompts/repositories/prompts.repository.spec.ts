@@ -158,6 +158,25 @@ describe('PromptsRepository', () => {
     expect(byName.map((prompt) => prompt.id)).toEqual([receptionist, notes]);
   });
 
+  it('lists the prompts of several folders at once', async () => {
+    const workspaceId = ids.generate();
+    const folderId = await insertFolder(workspaceId);
+    const otherFolderId = await insertFolder(workspaceId, { name: TEST_FOLDER_NEW_NAME });
+    const thirdFolderId = await insertFolder(workspaceId, { name: 'Third' });
+    const receptionist = await insertPrompt(workspaceId, { name: 'Receptionist', folderId });
+    const concierge = await insertPrompt(workspaceId, {
+      name: 'Concierge',
+      folderId: otherFolderId,
+    });
+    await insertPrompt(workspaceId, { name: 'Gift card', folderId: thirdFolderId });
+
+    const listed = await tenants.run(workspaceId, () =>
+      repository.listByFolderIds(workspaceId, [folderId, otherFolderId]),
+    );
+
+    expect(listed.map((prompt) => prompt.id)).toEqual([receptionist, concierge]);
+  });
+
   it('finds a prompt for update and hides it once deleted', async () => {
     const workspaceId = ids.generate();
     const promptId = await insertPrompt(workspaceId);

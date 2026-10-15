@@ -13,7 +13,6 @@ export function usePromptLibrary(): UsePromptLibraryResult {
 
   return {
     folders: library?.folders ?? [],
-    prompts: library?.prompts ?? [],
     loading: loading && library === null,
     failed: error !== undefined && library === null,
     retry,

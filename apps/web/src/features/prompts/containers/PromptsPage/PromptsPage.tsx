@@ -14,9 +14,10 @@ import { PageHeader } from '@/shared/ui/layout/PageHeader';
 
 export function PromptsPage() {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
-  const { folders, prompts, loading, failed, retry } = usePromptLibrary();
-  const { groups, setOpen } = usePromptFolderTree(folders, prompts);
+  const { folders, loading, failed, retry } = usePromptLibrary();
+  const { groups, setOpen } = usePromptFolderTree(folders);
   const [creating, setCreating] = useState(false);
+  const hasPrompts = folders.some((folder) => folder.prompts.length > 0);
 
   const openCreate = () => setCreating(true);
   const closeCreate = () => setCreating(false);
@@ -38,7 +39,7 @@ export function PromptsPage() {
         </Card>
       );
     }
-    if (loading || prompts.length > 0) {
+    if (loading || hasPrompts) {
       return null;
     }
     return <PromptsEmpty onCreate={openCreate} />;
