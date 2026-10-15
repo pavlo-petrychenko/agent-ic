@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import swc from 'unplugin-swc';
 import { defineConfig } from 'vitest/config';
@@ -5,10 +6,11 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [swc.vite()],
   resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
-      '@test': fileURLToPath(new URL('./test', import.meta.url)),
-    },
+    alias: [
+      { find: '@', replacement: fileURLToPath(new URL('./src', import.meta.url)) },
+      { find: '@test', replacement: fileURLToPath(new URL('./test', import.meta.url)) },
+      { find: /^graphql$/, replacement: createRequire(import.meta.url).resolve('graphql') },
+    ],
   },
   test: {
     include: ['src/**/*.spec.ts', 'test/**/*.spec.ts'],
