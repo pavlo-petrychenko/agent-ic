@@ -7,6 +7,11 @@ export const startSimulationMutation = (agentId: string): string =>
 export const simulatorQuery = (agentId: string): string =>
   `{ simulation(agentId: "${agentId}") { messages { id } runs { id } } agent(id: "${agentId}") { lastSimulationRun { id } } }`;
 
+export const simulationRunsQuery = (agentId: string): string =>
+  `{ simulation(agentId: "${agentId}") { runs { id steps { id } totals { stepsRun } } } }`;
+
+export const SIMULATION_RUN_STEP_COUNTS: readonly number[] = [2, 0, 1];
+
 export const SIMULATOR_TEST_TEXT = 'Do you deliver on Sundays?';
 
 export const sendSimulatorMessageMutation = (conversationId: string): string =>

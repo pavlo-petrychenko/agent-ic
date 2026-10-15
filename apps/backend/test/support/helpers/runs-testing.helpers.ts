@@ -1,4 +1,4 @@
-import { Locale } from '@agent-ic/contracts';
+import { IdPrefix, Locale } from '@agent-ic/contracts';
 import { NodeType } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import { TransactionHost } from '@nestjs-cls/transactional';
@@ -7,7 +7,12 @@ import { AgentVersionKind, PauseMode } from '@/modules/agents/constants/agent.co
 import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
-import { ConversationMode, messageReceivedEvent } from '@/modules/conversations';
+import {
+  ConversationMode,
+  ConversationRunsService,
+  MessageAuthor,
+  messageReceivedEvent,
+} from '@/modules/conversations';
 import type { MessageReceivedPayload } from '@/modules/conversations';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
@@ -59,6 +64,7 @@ import { MESSAGE_SPACING_MS } from '@test/support/constants/conversations-testin
 import {
   AgentChange,
   RUNS_TEST_START,
+  TEST_AGENT_REPLY,
   TEST_MEMBER_EMAIL_DOMAIN,
   TEST_MEMBER_PASSWORD_HASH,
   TEST_PUBLISHED_NUMBER,
@@ -75,7 +81,7 @@ import {
   newMessage,
   workspaceSystemCtx,
 } from '@test/support/fixtures/conversation.fixture';
-import { newRun, triggerOnlyFlow } from '@test/support/fixtures/runs.fixture';
+import { newRun, newRunStep, triggerOnlyFlow } from '@test/support/fixtures/runs.fixture';
 import { queuedEventsFor } from '@test/support/helpers/conversations-testing.helpers';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 import {
@@ -91,6 +97,7 @@ import type {
   ReceivedMessage,
   RunExecutionTestbed,
   RunChat,
+  RunBatch,
   RunLifecycleTestbed,
   RunsTestbed,
   SeededMember,
@@ -240,6 +247,40 @@ export const storeFlowJson = async (
 
 export const seedSimulationRun = (testbed: RunExecutionTestbed): Promise<ExecutableRun> =>
   seedExecutableRun(testbed, triggerOnlyFlow(), [], ConversationMode.Simulation);
+
+export const seedSimulationRunBatch = async (
+  testbed: RunExecutionTestbed,
+  flow: FlowDocument,
+): Promise<RunBatch> => {
+  const { run, ctx } = await seedExecutableRun(testbed, flow, [], ConversationMode.Simulation);
+  const { workspaceId } = run;
+  await testbed.execution.execute(ctx, workspaceId, run.id);
+  const oneStep = { ...run, id: testbed.ids.generate() };
+  const noSteps = { ...run, id: testbed.ids.generate() };
+  await testbed.tenants.run(workspaceId, async () => {
+    await testbed.runs.insert(oneStep);
+    await testbed.runs.insert(noSteps);
+    await testbed.steps.start(newRunStep(testbed, oneStep));
+    await testbed.module.get(ConversationRunsService).recordOutbound(ctx, {
+      workspaceId,
+      conversationId: run.conversationId,
+      key: testbed.ids.generate(),
+      author: MessageAuthor.Agent,
+      text: TEST_AGENT_REPLY,
+      quickReplies: [],
+      runId: run.id,
+    });
+  });
+  const publicId = (id: string): string => testbed.ids.toPublic(IdPrefix.Run, id);
+  return {
+    workspaceId,
+    runIds: {
+      executed: publicId(run.id),
+      started: publicId(oneStep.id),
+      queued: publicId(noSteps.id),
+    },
+  };
+};
 
 export const seedWorkspaceMembers = async (
   testbed: RunExecutionTestbed,

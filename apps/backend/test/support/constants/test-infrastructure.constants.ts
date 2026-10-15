@@ -59,6 +59,8 @@ export enum TestRedisPrefix {
   RunBackgroundBranches = 'run-background-branches:',
   RunDetails = 'run-details:',
   SimulationRuns = 'simulation-runs:',
+  RunStepsBatch = 'run-steps-batch:',
+  RunTotalsBatch = 'run-totals-batch:',
   LastSimulationRun = 'last-simulation-run:',
   SimulatorTests = 'simulator-tests:',
   RunTracing = 'run-tracing:',

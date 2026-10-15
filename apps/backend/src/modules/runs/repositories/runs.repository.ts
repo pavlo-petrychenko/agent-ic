@@ -23,6 +23,22 @@ export class RunsRepository {
     return run ?? null;
   }
 
+  async listByIds(
+    workspaceId: string,
+    ids: readonly string[],
+    mode: ConversationMode,
+  ): Promise<Run[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    return this.txHost.tx
+      .select()
+      .from(runs)
+      .where(
+        and(eq(runs.workspaceId, workspaceId), inArray(runs.id, [...ids]), eq(runs.mode, mode)),
+      );
+  }
+
   async findLatestByConversation(workspaceId: string, conversationId: string): Promise<Run | null> {
     const [run] = await this.txHost.tx
       .select()

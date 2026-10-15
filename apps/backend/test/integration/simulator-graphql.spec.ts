@@ -1,17 +1,22 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ConversationState, MessageAuthor } from '@/modules/conversations';
+import { GetRunTotalsUseCase } from '@/modules/runs/use-cases/get-run-totals.use-case';
+import { ListRunStepsUseCase } from '@/modules/runs/use-cases/list-run-steps.use-case';
 import { ConnectionParam } from '@/platform/graphql-server/constants/connection-param.constants';
 import {
   CREATE_AGENT_MUTATION,
   handBackMutation,
   replyAsOperatorMutation,
   restartSimulationMutation,
+  SIMULATION_RUN_STEP_COUNTS,
   sendSimulatorMessageMutation,
+  simulationRunsQuery,
   simulatorQuery,
   startSimulationMutation,
 } from '@test/support/constants/simulator-testing.constants';
 import {
   seedOwner,
+  seedSimulationRuns,
   startSubscriptionsApi,
   stopSubscriptionsApi,
 } from '@test/support/helpers/graphql-subscriptions.helpers';
@@ -46,6 +51,10 @@ describe('the simulator through graphql', () => {
     owner = await seedOwner(api);
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   afterAll(async () => {
     await stopSubscriptionsApi(api);
   });
@@ -63,6 +72,31 @@ describe('the simulator through graphql', () => {
       simulation: { messages: [], runs: [] },
       agent: { lastSimulationRun: null },
     });
+  });
+
+  it('reads the steps and totals of every run with one batch per field', async () => {
+    const { agentId, conversationId } = await startSimulation();
+    const seeded = await seedSimulationRuns(
+      api,
+      owner,
+      { agentId, conversationId },
+      SIMULATION_RUN_STEP_COUNTS,
+    );
+    const listSteps = vi.spyOn(api.app.get(ListRunStepsUseCase), 'execute');
+    const getTotals = vi.spyOn(api.app.get(GetRunTotalsUseCase), 'execute');
+
+    const read = await graphql(simulationRunsQuery(agentId));
+
+    const runs = seeded.map(({ id, stepCount }) => ({
+      id,
+      steps: Array.from({ length: stepCount }, () => ({ id: expect.any(String) })),
+      totals: { stepsRun: stepCount },
+    }));
+    const listed = Object(read?.['simulation'])['runs'];
+    expect(listed).toHaveLength(runs.length);
+    expect(listed).toEqual(expect.arrayContaining(runs));
+    expect(listSteps).toHaveBeenCalledTimes(1);
+    expect(getTotals).toHaveBeenCalledTimes(1);
   });
 
   it('sends a message, replies as an operator, hands back and restarts', async () => {

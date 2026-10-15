@@ -9,5 +9,6 @@ export enum RunGraphqlArgument {
 
 export enum RunGraphqlParent {
   Agent = 'Agent',
+  Run = 'Run',
   Simulation = 'Simulation',
 }

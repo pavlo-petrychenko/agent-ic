@@ -34,6 +34,14 @@ export class AgentRuntimeReader {
     return version;
   }
 
+  async countFlowNodes(
+    workspaceId: string,
+    versionIds: readonly string[],
+  ): Promise<ReadonlyMap<string, number>> {
+    const counts = await this.versions.countFlowNodes(workspaceId, versionIds);
+    return new Map(counts.map(({ versionId, nodes }) => [versionId, nodes]));
+  }
+
   async getPublishedVersion(
     workspaceId: string,
     agentId: string,

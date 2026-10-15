@@ -21,3 +21,13 @@ export interface LiveSubscription {
   readonly next: () => Promise<IteratorResult<SubscriptionResult>>;
   readonly close: () => Promise<void>;
 }
+
+export interface SimulatorIds {
+  readonly agentId: string;
+  readonly conversationId: string;
+}
+
+export interface SeededSimulationRun {
+  readonly id: string;
+  readonly stepCount: number;
+}
