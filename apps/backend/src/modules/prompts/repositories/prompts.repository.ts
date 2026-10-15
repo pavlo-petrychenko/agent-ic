@@ -85,13 +85,8 @@ export class PromptsRepository {
     return this.update(workspaceId, promptId, { name });
   }
 
-  async moveToFolder(
-    workspaceId: string,
-    promptId: string,
-    folderId: string,
-    updatedAt: Date,
-  ): Promise<boolean> {
-    return (await this.update(workspaceId, promptId, { folderId, updatedAt })) !== null;
+  moveToFolder(workspaceId: string, promptId: string, folderId: string): Promise<Prompt | null> {
+    return this.update(workspaceId, promptId, { folderId });
   }
 
   async touch(workspaceId: string, promptId: string, updatedAt: Date): Promise<boolean> {
