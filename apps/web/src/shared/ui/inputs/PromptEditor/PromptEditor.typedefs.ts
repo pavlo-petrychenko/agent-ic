@@ -6,7 +6,7 @@ export interface VariableOption {
 
 export interface PromptEditorProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange?: ((value: string) => void) | null;
   variables: readonly VariableOption[];
   label: string;
   menuLabel: string;
@@ -15,6 +15,7 @@ export interface PromptEditorProps {
   error?: string | null;
   readOnly?: boolean;
   readOnlyReason?: string | null;
+  fill?: boolean;
   disabled?: boolean;
   placeholder?: string | null;
   className?: string;

@@ -51,6 +51,18 @@ export function parsePromptLine(line: string): PromptSegment[] {
   return segments;
 }
 
+export const collectPromptVariables = (value: string): readonly string[] => {
+  const paths = new Set<string>();
+  for (const line of value.split(PROMPT_LINE_SEPARATOR)) {
+    for (const segment of parsePromptLine(line)) {
+      if (segment.kind === PromptSegmentKind.Variable) {
+        paths.add(segment.path);
+      }
+    }
+  }
+  return [...paths];
+};
+
 function toParagraph(line: string): PromptParagraphNode {
   const segments = parsePromptLine(line);
   if (segments.length === 0) {
