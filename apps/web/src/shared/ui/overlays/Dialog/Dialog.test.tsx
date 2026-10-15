@@ -183,6 +183,24 @@ describe('Dialog', () => {
     expect(dialog.querySelector('header')?.nextElementSibling?.tagName).toBe('FOOTER');
   });
 
+  it('omits the body for falsy children', () => {
+    render(
+      <Dialog
+        open
+        onOpenChange={vi.fn<(open: boolean) => void>()}
+        title="Delete folder"
+        closeLabel="Close"
+        footerRight={<button type="button">Delete</button>}
+      >
+        {false}
+      </Dialog>,
+    );
+
+    expect(screen.getByRole('dialog').querySelector('header')?.nextElementSibling?.tagName).toBe(
+      'FOOTER',
+    );
+  });
+
   it('keeps the body for an error alone', () => {
     render(
       <Dialog

@@ -47,11 +47,11 @@ export function DeletePromptFolderModal({
         )
       }
     >
-      {blocked && (
+      {blocked ? (
         <Callout tone={CalloutTone.Warn} icon={IconName.Alert}>
           {t('deleteFolder.notEmpty')}
         </Callout>
-      )}
+      ) : null}
     </Dialog>
   );
 }
