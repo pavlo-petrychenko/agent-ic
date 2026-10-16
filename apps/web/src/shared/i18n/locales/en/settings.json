@@ -8,7 +8,8 @@
     "workspace": "Workspace",
     "team": "Team",
     "general": "General",
-    "roles": "Roles"
+    "roles": "Roles",
+    "usage": "Usage"
   },
   "team": {
     "subtitle_one": "{{count}} member · each person has one role in this workspace",
@@ -108,6 +109,31 @@
           "success": "Workspace deleted"
         }
       }
+    }
+  },
+  "usage": {
+    "subtitle": "Monthly limits for {{workspace}}",
+    "thisMonth": "This month",
+    "rows": {
+      "platformModels": "Platform model usage",
+      "conversations": "Conversations",
+      "knowledge": "Knowledge storage"
+    },
+    "notes": {
+      "platformModels": "Steps on your own keys don't count here",
+      "conversations": "All agents and channels",
+      "knowledge": "Across all knowledge bases"
+    },
+    "value": {
+      "percent": "{{percent}}% of limit",
+      "chunks": "{{used}} / {{limit}} chunks"
+    },
+    "notice": "When a limit is reached, agents on platform models stop answering and the chat goes to the Inbox. We email owners at 80% and 100%.",
+    "earlyAccess": {
+      "title": "Your workspace",
+      "heading": "Early access",
+      "description": "Free while in beta · limits reset monthly",
+      "action": "Ask for a higher limit"
     }
   },
   "roles": {
