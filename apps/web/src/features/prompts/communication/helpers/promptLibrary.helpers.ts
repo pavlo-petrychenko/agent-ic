@@ -7,5 +7,6 @@ export const toPromptLibrary = (data: PromptLibraryQuery): PromptLibrary => ({
     id: prompt.id,
     name: prompt.name,
     folderId: prompt.folderId,
+    updatedAt: prompt.updatedAt,
   })),
 });
