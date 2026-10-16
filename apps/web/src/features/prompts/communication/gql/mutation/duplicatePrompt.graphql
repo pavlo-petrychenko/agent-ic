@@ -1,0 +1,6 @@
+mutation DuplicatePrompt($input: DuplicatePromptInput!) {
+  duplicatePrompt(input: $input) {
+    id
+    name
+  }
+}

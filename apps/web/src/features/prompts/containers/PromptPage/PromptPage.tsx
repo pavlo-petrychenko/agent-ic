@@ -37,7 +37,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const { detail, failed, retry } = usePromptDetail(promptId);
   const { folders } = usePromptLibrary();
   const draft = usePromptDraftsStore((state) => state.drafts[promptId] ?? null);
-  const options = usePromptOptions();
+  const options = usePromptOptions(workspaceId, detail?.prompt ?? null);
   const [saving, setSaving] = useState(false);
   const [discarding, setDiscarding] = useState(false);
 
@@ -51,7 +51,9 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const canDelete =
     active !== null && can(active.role, PermissionResource.Prompts, PermissionAction.Delete);
   const menuActions = [
-    ...(canEdit ? [PromptMenuAction.Rename, PromptMenuAction.Move] : []),
+    ...(canEdit
+      ? [PromptMenuAction.Rename, PromptMenuAction.Move, PromptMenuAction.Duplicate]
+      : []),
     ...(canDelete ? [PromptMenuAction.Delete] : []),
   ];
 
