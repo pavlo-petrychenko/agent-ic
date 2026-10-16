@@ -81,4 +81,7 @@ export enum ErrorReason {
   SamePassword = 'SAME_PASSWORD',
   CannotDeleteOwner = 'CANNOT_DELETE_OWNER',
   CannotDeleteYourself = 'CANNOT_DELETE_YOURSELF',
+  PromptNameTaken = 'PROMPT_NAME_TAKEN',
+  PromptFolderNameTaken = 'PROMPT_FOLDER_NAME_TAKEN',
+  PromptFolderNotEmpty = 'PROMPT_FOLDER_NOT_EMPTY',
 }

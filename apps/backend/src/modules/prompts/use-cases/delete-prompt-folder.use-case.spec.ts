@@ -1,3 +1,4 @@
+import { ErrorReason } from '@agent-ic/contracts';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PromptFolderNotEmptyError } from '@/modules/prompts/errors/prompt-folder-not-empty.error';
@@ -6,6 +7,7 @@ import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-f
 import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
 import { DeletePromptFolderUseCase } from '@/modules/prompts/use-cases/delete-prompt-folder.use-case';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import { DomainErrorKind } from '@/platform/errors/constants/domain-error.constants';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
   PROMPTS_TEST_LATER,
@@ -66,6 +68,10 @@ describe('DeletePromptFolderUseCase', () => {
     });
 
     await expect(attempt).rejects.toBeInstanceOf(PromptFolderNotEmptyError);
+    await expect(attempt).rejects.toMatchObject({
+      kind: DomainErrorKind.Conflict,
+      reason: ErrorReason.PromptFolderNotEmpty,
+    });
     const stored = await tenants.run(workspaceId, () => folders.findById(workspaceId, folderId));
     const prompt = await tenants.run(workspaceId, () => prompts.findById(workspaceId, promptId));
     expect(stored).not.toBeNull();

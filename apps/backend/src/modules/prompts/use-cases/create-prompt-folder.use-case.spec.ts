@@ -5,6 +5,7 @@ import { PromptFolderNameTakenError } from '@/modules/prompts/errors/prompt-fold
 import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
 import { CreatePromptFolderUseCase } from '@/modules/prompts/use-cases/create-prompt-folder.use-case';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import { DomainErrorKind } from '@/platform/errors/constants/domain-error.constants';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
   PROMPTS_TEST_LATER,
@@ -63,6 +64,10 @@ describe('CreatePromptFolderUseCase', () => {
     const attempt = createFolder.execute(ctx, { name: TEST_FOLDER_NAME.toUpperCase() });
 
     await expect(attempt).rejects.toBeInstanceOf(PromptFolderNameTakenError);
+    await expect(attempt).rejects.toMatchObject({
+      kind: DomainErrorKind.Conflict,
+      reason: ErrorReason.PromptFolderNameTaken,
+    });
   });
 
   it('frees the name again once the folder is deleted', async () => {
