@@ -4,6 +4,7 @@ export interface PromptListItem {
   readonly id: string;
   readonly name: string;
   readonly folderId: string;
+  readonly updatedAt: string;
 }
 
 export interface PromptLibrary {

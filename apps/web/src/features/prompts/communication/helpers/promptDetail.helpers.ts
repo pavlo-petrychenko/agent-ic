@@ -5,7 +5,12 @@ export const toPromptDetail = (data: PromptDetailQuery): PromptDetail => {
   const { prompt, latestVersion } = data.prompt;
 
   return {
-    prompt: { id: prompt.id, name: prompt.name, folderId: prompt.folderId },
+    prompt: {
+      id: prompt.id,
+      name: prompt.name,
+      folderId: prompt.folderId,
+      updatedAt: prompt.updatedAt,
+    },
     latestVersion:
       latestVersion === null
         ? null

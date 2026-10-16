@@ -9,6 +9,7 @@ import {
   NEW_FOLDER_ID,
   NEW_PROMPT_ID,
 } from '@/features/prompts/communication/fixtures/promptCreate.fixture';
+import { buildPromptDetailMock } from '@/features/prompts/communication/fixtures/promptDetail.fixture';
 import {
   buildDeletePromptFolderMock,
   buildRenamePromptFolderConflictMock,
@@ -18,10 +19,16 @@ import {
 import {
   buildPromptLibraryMock,
   CONVERSATION_GUARD_PROMPT,
+  GIFT_CARD_PROMPT,
   GUARDS_FOLDER,
   Q_AND_A_FOLDER,
   RECEPTIONIST_PROMPT,
 } from '@/features/prompts/communication/fixtures/promptLibrary.fixture';
+import type { PromptFixture } from '@/features/prompts/communication/fixtures/promptLibrary.fixture';
+import {
+  PROMPT_LAST_OPENED_KEY_SEPARATOR,
+  PROMPT_LAST_OPENED_STORAGE_KEY_PREFIX,
+} from '@/features/prompts/constants/promptLastOpened.constants';
 import {
   buildWorkspaceShellMock,
   DEMO_WORKSPACE,
@@ -34,9 +41,18 @@ const promptsPath = `/w/${DEMO_WORKSPACE.id}/prompts`;
 const OPERATOR_WORKSPACE = { ...DEMO_WORKSPACE, role: WorkspaceRole.Operator };
 const NEW_PROMPT_NAME = 'Booking reminder';
 const NEW_FOLDER_NAME = 'Messages';
+const NEW_PROMPT: PromptFixture = {
+  id: NEW_PROMPT_ID,
+  name: NEW_PROMPT_NAME,
+  folderId: NEW_FOLDER_ID,
+  updatedAt: '2026-10-16T12:00:00.000Z',
+};
 
 describe('prompts page', () => {
-  beforeEach(() => signInForTest());
+  beforeEach(() => {
+    window.localStorage.clear();
+    signInForTest();
+  });
 
   afterEach(async () => {
     setWorkspaceId(null);
@@ -71,6 +87,7 @@ describe('prompts page', () => {
           [Q_AND_A_FOLDER, GUARDS_FOLDER],
           [RECEPTIONIST_PROMPT, CONVERSATION_GUARD_PROMPT],
         ),
+        buildPromptDetailMock(RECEPTIONIST_PROMPT, null),
       ],
     });
 
@@ -80,6 +97,37 @@ describe('prompts page', () => {
     expect(within(section).getByText('Receptionist')).toBeInTheDocument();
     expect(within(section).getByText('Conversation guard')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'No prompts yet' })).not.toBeInTheDocument();
+  });
+
+  it('opens the most recently updated prompt', async () => {
+    renderRoute(promptsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT, GIFT_CARD_PROMPT]),
+        buildPromptDetailMock(GIFT_CARD_PROMPT, null),
+      ],
+    });
+
+    expect(await screen.findByRole('heading', { name: GIFT_CARD_PROMPT.name })).toBeInTheDocument();
+  });
+
+  it('opens the last opened prompt', async () => {
+    window.localStorage.setItem(
+      `${PROMPT_LAST_OPENED_STORAGE_KEY_PREFIX}${PROMPT_LAST_OPENED_KEY_SEPARATOR}${DEMO_WORKSPACE.id}`,
+      RECEPTIONIST_PROMPT.id,
+    );
+
+    renderRoute(promptsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT, GIFT_CARD_PROMPT]),
+        buildPromptDetailMock(RECEPTIONIST_PROMPT, null),
+      ],
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: RECEPTIONIST_PROMPT.name }),
+    ).toBeInTheDocument();
   });
 
   it('requires a name and a folder', async () => {
@@ -106,12 +154,10 @@ describe('prompts page', () => {
       mocks: [
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildPromptLibraryMock([], [], 1),
-        buildPromptLibraryMock(
-          [{ id: NEW_FOLDER_ID, name: NEW_FOLDER_NAME }],
-          [{ id: NEW_PROMPT_ID, name: NEW_PROMPT_NAME, folderId: NEW_FOLDER_ID }],
-        ),
+        buildPromptLibraryMock([{ id: NEW_FOLDER_ID, name: NEW_FOLDER_NAME }], [NEW_PROMPT]),
         buildCreatePromptFolderMock(NEW_FOLDER_NAME),
         buildCreatePromptMock(NEW_PROMPT_NAME, NEW_FOLDER_ID),
+        buildPromptDetailMock(NEW_PROMPT, null),
       ],
     });
 
@@ -138,6 +184,7 @@ describe('prompts page', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
         buildCreatePromptConflictMock(RECEPTIONIST_PROMPT.name, Q_AND_A_FOLDER.id),
+        buildPromptDetailMock(RECEPTIONIST_PROMPT, null),
       ],
     });
 
@@ -167,6 +214,7 @@ describe('prompts page', () => {
           [RECEPTIONIST_PROMPT],
         ),
         buildRenamePromptFolderMock(Q_AND_A_FOLDER.id, RENAMED_FOLDER_NAME),
+        buildPromptDetailMock(RECEPTIONIST_PROMPT, null),
       ],
     });
 
@@ -245,6 +293,7 @@ describe('prompts page', () => {
       mocks: [
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
+        buildPromptDetailMock(RECEPTIONIST_PROMPT, null),
       ],
     });
 

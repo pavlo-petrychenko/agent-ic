@@ -7,5 +7,6 @@ query PromptLibrary {
     id
     name
     folderId
+    updatedAt
   }
 }
