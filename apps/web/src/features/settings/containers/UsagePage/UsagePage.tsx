@@ -45,7 +45,7 @@ export function UsagePage({ workspaceId }: UsagePageProps) {
   });
 
   const { start, end } = useUsagePeriod();
-  const periodLabel = `${formatUsageDay(start, locale)} - ${formatUsageDay(end, locale)}`;
+  const periodLabel = `${formatUsageDay(start, locale)} – ${formatUsageDay(end, locale)}`;
 
   return (
     <div className="flex flex-col gap-5 pb-8">
