@@ -384,7 +384,10 @@ describe('prompt view', () => {
 
     const section = await screen.findByRole('navigation', { name: 'Prompts' });
     await within(section).findByRole('link', { name: RECEPTIONIST_PROMPT.name });
-    await userEvent.type(within(section).getByRole('textbox', { name: 'Search prompts' }), 'guard');
+    await userEvent.type(
+      within(section).getByRole('searchbox', { name: 'Search prompts' }),
+      'guard',
+    );
 
     await waitFor(() =>
       expect(within(section).queryByRole('link', { name: RECEPTIONIST_PROMPT.name })).toBeNull(),
@@ -410,7 +413,7 @@ describe('prompt view', () => {
     });
 
     const section = await screen.findByRole('navigation', { name: 'Prompts' });
-    await userEvent.type(within(section).getByRole('textbox', { name: 'Search prompts' }), 'zzz');
+    await userEvent.type(within(section).getByRole('searchbox', { name: 'Search prompts' }), 'zzz');
 
     expect(await within(section).findByText('No prompts found')).toBeInTheDocument();
   });
@@ -434,7 +437,10 @@ describe('prompt view', () => {
       ).toBeNull(),
     );
 
-    await userEvent.type(within(section).getByRole('textbox', { name: 'Search prompts' }), 'guard');
+    await userEvent.type(
+      within(section).getByRole('searchbox', { name: 'Search prompts' }),
+      'guard',
+    );
 
     expect(
       await within(section).findByRole('link', { name: CONVERSATION_GUARD_PROMPT.name }),
