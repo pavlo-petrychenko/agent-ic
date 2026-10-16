@@ -7,6 +7,10 @@ import {
   buildRenamePromptMock,
 } from '@/features/prompts/communication/fixtures/promptActions.fixture';
 import {
+  buildCreatePromptFolderMock,
+  NEW_FOLDER_ID,
+} from '@/features/prompts/communication/fixtures/promptCreate.fixture';
+import {
   buildPromptDetailMock,
   buildSavePromptVersionMock,
   RECEPTIONIST_SAVED_VERSION,
@@ -303,5 +307,39 @@ describe('prompt view', () => {
         `Prompt “${RECEPTIONIST_PROMPT.name}” moved to “${GUARDS_FOLDER.name}”`,
       ),
     ).toBeInTheDocument();
+  });
+
+  it('creates a new folder and moves the prompt into it', async () => {
+    const folderName = 'Messages';
+    const created = { id: NEW_FOLDER_ID, name: folderName };
+    const moved = { ...RECEPTIONIST_PROMPT, folderId: NEW_FOLDER_ID };
+    renderRoute(promptPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
+        buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
+        buildCreatePromptFolderMock(folderName),
+        buildPromptLibraryMock([Q_AND_A_FOLDER, created], [RECEPTIONIST_PROMPT], 1),
+        buildMovePromptMock(RECEPTIONIST_PROMPT, NEW_FOLDER_ID),
+        buildPromptLibraryMock([Q_AND_A_FOLDER, created], [moved], 1),
+        buildPromptDetailMock(moved, RECEPTIONIST_VERSION, 1),
+      ],
+    });
+
+    await screen.findByRole('heading', { name: RECEPTIONIST_PROMPT.name });
+    await userEvent.click(await screen.findByRole('button', { name: 'Prompt actions' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: /Move to folder/ }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Move to folder' });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Folder' }));
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Search folders' }), folderName);
+    await userEvent.click(screen.getByRole('button', { name: `Create “${folderName}”` }));
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Move' }));
+
+    expect(
+      await screen.findByText(`Prompt “${RECEPTIONIST_PROMPT.name}” moved to “${folderName}”`),
+    ).toBeInTheDocument();
+    const section = screen.getByRole('navigation', { name: 'Prompts' });
+    expect(await within(section).findByRole('button', { name: folderName })).toBeInTheDocument();
   });
 });

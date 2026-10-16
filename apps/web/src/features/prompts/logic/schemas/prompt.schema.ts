@@ -30,7 +30,7 @@ export const renamePromptSchema = (message: string) =>
   z.object({ [PromptFormField.Name]: promptNameSchema(message) });
 
 export const movePromptSchema = (message: string) =>
-  z.object({ [PromptFormField.Folder]: z.string().trim().min(1, message) });
+  z.object({ [PromptFormField.Folder]: folderNameSchema(message) });
 
 export const savePromptVersionSchema = (message: string) =>
   z.object({

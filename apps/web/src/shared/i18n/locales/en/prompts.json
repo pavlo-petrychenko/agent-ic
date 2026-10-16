@@ -75,8 +75,7 @@
   "movePrompt": {
     "title": "Move to folder",
     "folderLabel": "Folder",
-    "folderHint": "Pick the folder to move this prompt to.",
-    "folderInvalid": "Choose a folder.",
+    "folderInvalid": "Choose a folder or type a new name of up to {{count}} characters.",
     "submit": "Move",
     "success": "Prompt “{{name}}” moved to “{{folder}}”",
     "failed": "The prompt could not be moved."
