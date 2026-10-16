@@ -81,4 +81,5 @@ export enum ErrorReason {
   SamePassword = 'SAME_PASSWORD',
   CannotDeleteOwner = 'CANNOT_DELETE_OWNER',
   CannotDeleteYourself = 'CANNOT_DELETE_YOURSELF',
+  WrongPassword = 'WRONG_PASSWORD',
 }

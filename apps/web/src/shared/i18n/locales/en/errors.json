@@ -69,7 +69,8 @@
     "TEAM_MEMBER_NOT_FOUND": "This person is not part of this workspace.",
     "WORKSPACE_NAME_MISMATCH": "The name does not match the workspace name.",
     "CANNOT_DELETE_OWNER": "Owner of the workspace cannot be deleted.",
-    "CANNOT_DELETE_YOURSELF": "You cannot remove yourself. Leave the workspace instead."
+    "CANNOT_DELETE_YOURSELF": "You cannot remove yourself. Leave the workspace instead.",
+    "WRONG_PASSWORD": "The password is not correct."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",
