@@ -27,6 +27,7 @@
     "label": "Prompt actions",
     "rename": "Rename",
     "move": "Move to folder",
+    "duplicate": "Duplicate",
     "delete": "Delete prompt"
   },
   "newPrompt": {
@@ -79,6 +80,10 @@
     "submit": "Move",
     "success": "Prompt “{{name}}” moved to “{{folder}}”",
     "failed": "The prompt could not be moved."
+  },
+  "duplicate": {
+    "success": "Duplicated as “{{name}}”",
+    "done": "The prompt was duplicated"
   },
   "deletePrompt": {
     "title": "Delete “{{name}}”?",

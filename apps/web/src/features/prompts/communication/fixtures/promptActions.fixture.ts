@@ -1,6 +1,7 @@
 import type { MockLink } from '@apollo/client/testing';
 import type { PromptFixture } from '@/features/prompts/communication/fixtures/promptLibrary.fixture';
 import { DeletePromptDocument } from '@/features/prompts/communication/gql/mutation/deletePrompt.generated';
+import { DuplicatePromptDocument } from '@/features/prompts/communication/gql/mutation/duplicatePrompt.generated';
 import { MovePromptToFolderDocument } from '@/features/prompts/communication/gql/mutation/movePromptToFolder.generated';
 import { RenamePromptDocument } from '@/features/prompts/communication/gql/mutation/renamePrompt.generated';
 
@@ -47,6 +48,25 @@ export const buildMovePromptMock = (
         id: prompt.id,
         name: prompt.name,
         folderId,
+      },
+    },
+  },
+});
+
+export const buildDuplicatePromptMock = (
+  prompt: PromptFixture,
+  copy: PromptFixture,
+): MockLink.MockedResponse => ({
+  request: {
+    query: DuplicatePromptDocument,
+    variables: { input: { id: prompt.id, folderId: prompt.folderId } },
+  },
+  result: {
+    data: {
+      duplicatePrompt: {
+        __typename: 'Prompt',
+        id: copy.id,
+        name: copy.name,
       },
     },
   },

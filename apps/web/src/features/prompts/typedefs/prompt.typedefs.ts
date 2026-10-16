@@ -111,6 +111,23 @@ export interface UseMovePromptToFolderResult {
   readonly moving: boolean;
 }
 
+export interface DuplicatePromptValues {
+  readonly id: string;
+  readonly folderId: string;
+}
+
+export interface DuplicatePromptResult {
+  readonly id: string;
+  readonly name: string;
+}
+
+export interface UseDuplicatePromptResult {
+  readonly duplicatePrompt: (
+    values: DuplicatePromptValues,
+  ) => Promise<DuplicatePromptResult | null>;
+  readonly duplicating: boolean;
+}
+
 export interface UsePromptFormErrorsResult {
   readonly fieldErrors: Readonly<Record<string, string>>;
   readonly formError: string | null;
