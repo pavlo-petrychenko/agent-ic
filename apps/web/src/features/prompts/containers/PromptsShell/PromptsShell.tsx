@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePromptLibrary } from '@/features/prompts/communication/hooks/usePromptLibrary';
 import { DeletePromptFolderDialog } from '@/features/prompts/containers/DeletePromptFolderDialog';
 import { NewPromptDialog } from '@/features/prompts/containers/NewPromptDialog';
@@ -6,13 +6,20 @@ import type { PromptsShellProps } from '@/features/prompts/containers/PromptsShe
 import { usePromptFolderMenu } from '@/features/prompts/containers/PromptsShell/usePromptFolderMenu';
 import { RenamePromptFolderDialog } from '@/features/prompts/containers/RenamePromptFolderDialog';
 import { usePromptFolderTree } from '@/features/prompts/logic/hooks/usePromptFolderTree';
+import { usePromptDraftsStore } from '@/features/prompts/storage/hooks/usePromptDraftsStore';
 import { PromptsNav } from '@/features/prompts/view/PromptsNav';
 
 export function PromptsShell({ workspaceId, children }: PromptsShellProps) {
   const { folders, prompts, loading } = usePromptLibrary();
+  const drafts = usePromptDraftsStore((state) => state.drafts);
+  const draftPromptIds = useMemo(() => new Set(Object.keys(drafts)), [drafts]);
   const { groups, setOpen } = usePromptFolderTree(folders, prompts);
   const folderMenu = usePromptFolderMenu();
   const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    usePromptDraftsStore.getState().load();
+  }, []);
 
   return (
     <div className="flex h-full min-h-0">
@@ -20,6 +27,7 @@ export function PromptsShell({ workspaceId, children }: PromptsShellProps) {
         workspaceId={workspaceId}
         groups={groups}
         loading={loading}
+        draftPromptIds={draftPromptIds}
         onCreate={() => setCreating(true)}
         onOpenChange={setOpen}
         folderMenuAnchor={folderMenu.anchor}

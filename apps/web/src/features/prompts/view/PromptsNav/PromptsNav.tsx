@@ -7,7 +7,7 @@ import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.cons
 import { PROMPT_PATH } from '@/features/prompts/constants/route.constants';
 import type { PromptsNavProps } from '@/features/prompts/view/PromptsNav/PromptsNav.typedefs';
 import { IconButton, IconButtonSize, IconButtonVariant } from '@/shared/ui/actions/IconButton';
-import { SubnavItem, SubnavItemDepth } from '@/shared/ui/data/SubnavItem';
+import { SubnavItem, SubnavItemDepth, SubnavItemMetaKind } from '@/shared/ui/data/SubnavItem';
 import { TreeFolder } from '@/shared/ui/data/TreeFolder';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { ContextMenu } from '@/shared/ui/overlays/ContextMenu';
@@ -20,6 +20,7 @@ export function PromptsNav({
   workspaceId,
   groups,
   loading,
+  draftPromptIds,
   onCreate,
   onOpenChange,
   folderMenuAnchor,
@@ -72,6 +73,8 @@ export function PromptsNav({
                   to={PROMPT_PATH}
                   params={{ workspaceId, promptId: prompt.id }}
                   label={prompt.name}
+                  meta={draftPromptIds.has(prompt.id) ? t('nav.draft') : null}
+                  metaKind={SubnavItemMetaKind.Version}
                   depth={SubnavItemDepth.Nested}
                 />
               ))}
