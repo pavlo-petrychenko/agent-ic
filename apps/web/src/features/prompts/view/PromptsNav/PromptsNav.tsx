@@ -10,6 +10,7 @@ import { IconButton, IconButtonSize, IconButtonVariant } from '@/shared/ui/actio
 import { SubnavItem, SubnavItemDepth, SubnavItemMetaKind } from '@/shared/ui/data/SubnavItem';
 import { TreeFolder } from '@/shared/ui/data/TreeFolder';
 import { IconName } from '@/shared/ui/foundations/Icon';
+import { SearchInput } from '@/shared/ui/inputs/SearchInput';
 import { ContextMenu } from '@/shared/ui/overlays/ContextMenu';
 import type { MenuItem } from '@/shared/ui/overlays/Menu';
 import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/typography/Heading';
@@ -20,8 +21,11 @@ export function PromptsNav({
   workspaceId,
   groups,
   loading,
+  query,
   draftPromptIds,
   onCreate,
+  onQueryChange,
+  onQueryClear,
   onOpenChange,
   folderMenuAnchor,
   onFolderMenuOpen,
@@ -29,6 +33,7 @@ export function PromptsNav({
   onFolderMenuClose,
 }: PromptsNavProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
+  const searching = query.trim() !== '';
 
   const toMenuItem = (action: PromptFolderMenuAction): MenuItem => ({
     id: action,
@@ -50,9 +55,17 @@ export function PromptsNav({
           onClick={onCreate}
         />
       </header>
+      <SearchInput
+        value={query}
+        label={t('nav.search')}
+        clearLabel={t('nav.searchClear')}
+        placeholder={t('nav.search')}
+        onChange={(event) => onQueryChange(event.target.value)}
+        onClear={onQueryClear}
+      />
       {!loading && groups.length === 0 && (
         <Text kind={TextKind.BodySmall} color={TextColor.Mute}>
-          {t('empty.title')}
+          {searching ? t('nav.noResults') : t('empty.title')}
         </Text>
       )}
       {groups.length > 0 && (
