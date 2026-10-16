@@ -133,5 +133,6 @@ When a batch runs matters: after all promise callbacks of the tick, with `proces
 - There is no cache, on purpose: see [Why there is no cache](#why-there-is-no-cache).
 - A relation field inside a subscription payload is batched again for every event, because each event is resolved on its own.
 - Never compute a relation field in the root resolver "to save a call": then every query pays for it, asked or not.
+- Every query has two limits, checked before any resolver runs (D266). Depth counts how many levels of fields sit inside each other (`{ simulation { runs { steps { id } } } }` is 4 deep); the limit is 10. Complexity adds 1 for every field the query selects; the limit is 100. A query over either limit is refused as a whole with `GRAPHQL_VALIDATION_FAILED`. [graphql-query-limits.spec.ts](../../apps/backend/test/integration/graphql-query-limits.spec.ts) checks every web operation against both, so a new screen that selects too much fails there first: split the query, or raise `MAX_QUERY_DEPTH` or `MAX_QUERY_COMPLEXITY` in `graphql-server.constants.ts` and say why in the pull request.
 
 Next: look at real code in the examples, starting with [the identity module](../examples/identity-module.md). The list is in [the examples section](../README.md#examples) of the docs entry page.

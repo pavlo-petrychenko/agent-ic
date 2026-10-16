@@ -124,7 +124,7 @@ Infrastructure used by two or more modules, with no business meaning. Same kinds
 | `context` | `UseCaseCtx`, actors, locale, trace id, the abstract authenticator, the `BatchUseCase` type and its `groupByKey` / `indexByKey` helpers |
 | `errors` | `DomainError`, `UpstreamError`, how errors look on GraphQL, REST and in jobs |
 | `database` | clients per Postgres role, tenant transactions, after-commit, RLS table helpers, migrations |
-| `graphql-server` | Apollo setup, `@GraphqlCtx()`, batch loading (`@Loader`, the per-request loader registry), Relay pagination, resolver binding check |
+| `graphql-server` | Apollo setup, `@GraphqlCtx()`, batch loading (`@Loader`, the per-request loader registry), query depth and complexity limits, Relay pagination, resolver binding check |
 | `http` | HTTP constants only |
 | `queues` | BullMQ, `JobsService.enqueue`, workers, Bull Board, KEDA metrics, the durable outbox (`outbox.messages` table and its sweeper) |
 | `domain-events` | `emit()`, `@OnDomainEvent`, listener registry |
