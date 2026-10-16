@@ -26,6 +26,7 @@
   "menu": {
     "label": "Prompt actions",
     "rename": "Rename",
+    "move": "Move to folder",
     "delete": "Delete prompt"
   },
   "newPrompt": {
@@ -70,6 +71,15 @@
     "submit": "Rename",
     "success": "Prompt “{{name}}” renamed",
     "failed": "The prompt could not be renamed."
+  },
+  "movePrompt": {
+    "title": "Move to folder",
+    "folderLabel": "Folder",
+    "folderHint": "Pick the folder to move this prompt to.",
+    "folderInvalid": "Choose a folder.",
+    "submit": "Move",
+    "success": "Prompt “{{name}}” moved to “{{folder}}”",
+    "failed": "The prompt could not be moved."
   },
   "deletePrompt": {
     "title": "Delete “{{name}}”?",
