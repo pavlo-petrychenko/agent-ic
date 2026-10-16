@@ -48,7 +48,6 @@ describe('prompt drafts store', () => {
     storePromptDraft('prm_2', {
       text: 'Stored draft',
       baseVersionNumber: null,
-      savedAt: '2026-10-16T14:20:00.000Z',
     });
     usePromptDraftsStore.getState().load();
 

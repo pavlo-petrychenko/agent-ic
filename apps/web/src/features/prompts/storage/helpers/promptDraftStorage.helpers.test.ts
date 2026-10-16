@@ -13,7 +13,6 @@ import {
 const DRAFT = {
   text: 'Hello {{contact.name}}',
   baseVersionNumber: 4,
-  savedAt: '2026-10-16T14:20:00.000Z',
 };
 
 describe('prompt draft storage', () => {
@@ -41,7 +40,7 @@ describe('prompt draft storage', () => {
   it('reads null for a draft with a wrong shape', () => {
     window.localStorage.setItem(
       `${PROMPT_DRAFT_STORAGE_KEY_PREFIX}${PROMPT_DRAFT_KEY_SEPARATOR}prm_1`,
-      JSON.stringify({ text: 7, savedAt: null }),
+      JSON.stringify({ text: 7 }),
     );
 
     expect(readPromptDraft('prm_1')).toBeNull();

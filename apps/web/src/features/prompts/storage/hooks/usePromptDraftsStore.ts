@@ -31,7 +31,6 @@ export const usePromptDraftsStore = create<PromptDraftsStore>()((set, get) => ({
     const draft: PromptDraft = {
       text: seed.text,
       baseVersionNumber: seed.baseVersionNumber,
-      savedAt: new Date().toISOString(),
     };
     storePromptDraft(promptId, draft);
     set((state) => ({ drafts: { ...state.drafts, [promptId]: draft } }));
@@ -41,7 +40,7 @@ export const usePromptDraftsStore = create<PromptDraftsStore>()((set, get) => ({
     if (current === undefined) {
       return;
     }
-    const draft: PromptDraft = { ...current, text, savedAt: new Date().toISOString() };
+    const draft: PromptDraft = { ...current, text };
     storePromptDraft(promptId, draft);
     set((state) => ({ drafts: { ...state.drafts, [promptId]: draft } }));
   },

@@ -11,8 +11,8 @@
 
 ## Decision
 
-1. **The prompt draft lives in the browser**, one `localStorage` entry per prompt (`agent-ic.prompt-draft:<promptId>`), holding the draft text, the number of the version it was seeded from, and when it was last saved locally.
-2. **Edit creates the draft** from the latest version's text (an empty text for a prompt without versions); every edit writes it back. Opening a prompt that has a stored draft opens it in edit mode with "Editing vN draft based on vM · draft saved HH:MM" from the local data. The section marks such prompts with a `draft` meta.
+1. **The prompt draft lives in the browser**, one `localStorage` entry per prompt (`agent-ic.prompt-draft:<promptId>`), holding the draft text and the number of the version it was seeded from.
+2. **Edit creates the draft** from the latest version's text (an empty text for a prompt without versions); every edit writes it back. Opening a prompt that has a stored draft opens it in edit mode with "Editing vN draft based on vM" from the local data; the design's "draft saved HH:MM" is dropped, because nothing about the draft is persisted beyond the browser. The section marks such prompts with a `draft` meta.
 3. **Save is the only server write**: the dialog takes the note and calls `savePromptVersion`, which appends the next immutable version; the local draft is deleted on success. The saved number comes back from the server (the "Save as v5" label is the optimistic `latest + 1`).
 4. **Discard deletes the local draft**; the latest version stays untouched.
 5. The web feature owns the draft in `features/prompts/storage/`, so the UI never depends on where the draft is stored.
@@ -26,7 +26,7 @@
 
 ## Alternatives considered
 
-- **A server draft like the agent builder (D233):** rejected for now. It needs a migration, new use cases, autosave and conflict handling, and it would change the rule that nothing about a prompt reaches the server before Save. The design's draft timestamp becomes true for this browser instead.
-- **Draft in memory only:** rejected. A reload or a closed tab loses the edit silently, and the "draft saved" timestamp would be false.
+- **A server draft like the agent builder (D233):** rejected for now. It needs a migration, new use cases, autosave and conflict handling, and it would change the rule that nothing about a prompt reaches the server before Save. It is also the only option that would make the design's "draft saved" timestamp real.
+- **Draft in memory only:** rejected. A reload or a closed tab loses the edit silently, and there would be no trace of it.
 - **Editing the latest version in place:** rejected. Versions are immutable; steps pin them and published agent versions keep working only while the pinned text cannot change.
 - **`sessionStorage`:** rejected. It dies with the tab, so a draft does not survive a reload after a crash or a restart, which is when losing the edit hurts most.

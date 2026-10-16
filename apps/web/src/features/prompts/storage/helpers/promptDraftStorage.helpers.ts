@@ -12,8 +12,8 @@ const toPromptDraft = (value: unknown): PromptDraft | null => {
   if (typeof value !== 'object' || value === null) {
     return null;
   }
-  const { text, baseVersionNumber, savedAt } = value as Record<string, unknown>;
-  if (typeof text !== 'string' || typeof savedAt !== 'string') {
+  const { text, baseVersionNumber } = value as Record<string, unknown>;
+  if (typeof text !== 'string') {
     return null;
   }
   if (
@@ -26,7 +26,6 @@ const toPromptDraft = (value: unknown): PromptDraft | null => {
   return {
     text,
     baseVersionNumber: typeof baseVersionNumber === 'number' ? baseVersionNumber : null,
-    savedAt,
   };
 };
 

@@ -1,7 +1,6 @@
 export interface PromptDraft {
   readonly text: string;
   readonly baseVersionNumber: number | null;
-  readonly savedAt: string;
 }
 
 export interface PromptDraftSeed {

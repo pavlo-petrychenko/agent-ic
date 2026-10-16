@@ -8,7 +8,6 @@ import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 export function PromptDraftEditor({
   draftNumber,
   baseVersionNumber,
-  savedAtLabel,
   text,
   variables,
   onChange,
@@ -26,8 +25,8 @@ export function PromptDraftEditor({
           </Badge>
           <Text kind={TextKind.Caption} color={TextColor.Mute}>
             {baseVersionNumber === null
-              ? t('draft.neverSaved', { time: savedAtLabel })
-              : t('draft.basedOn', { base: baseVersionNumber, time: savedAtLabel })}
+              ? t('draft.neverSaved')
+              : t('draft.basedOn', { base: baseVersionNumber })}
           </Text>
         </div>
         <Text kind={TextKind.Caption} color={TextColor.Mute}>

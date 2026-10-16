@@ -6,10 +6,7 @@ import { usePromptLibrary } from '@/features/prompts/communication/hooks/useProm
 import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.constants';
 import type { PromptPageProps } from '@/features/prompts/containers/PromptPage/PromptPage.typedefs';
 import { SavePromptVersionDialog } from '@/features/prompts/containers/SavePromptVersionDialog';
-import {
-  formatPromptDraftTime,
-  nextPromptVersionNumber,
-} from '@/features/prompts/logic/helpers/promptDraft.helpers';
+import { nextPromptVersionNumber } from '@/features/prompts/logic/helpers/promptDraft.helpers';
 import { findFolderName } from '@/features/prompts/logic/helpers/promptFolder.helpers';
 import { formatPromptVersionDate } from '@/features/prompts/logic/helpers/promptVersion.helpers';
 import { usePromptDraftsStore } from '@/features/prompts/storage/hooks/usePromptDraftsStore';
@@ -118,9 +115,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
             </>
           ) : canEdit ? (
             <Button variant={ButtonVariant.Secondary} onClick={startEditing}>
-              {latestVersion === null
-                ? t('view.edit')
-                : t('view.editLatest', { number: latestVersion.number })}
+              {t('view.edit')}
             </Button>
           ) : null
         }
@@ -130,7 +125,6 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
           <PromptDraftEditor
             draftNumber={draftNumber}
             baseVersionNumber={draft.baseVersionNumber}
-            savedAtLabel={formatPromptDraftTime(draft.savedAt, locale)}
             text={draft.text}
             variables={variables}
             onChange={changeDraft}
