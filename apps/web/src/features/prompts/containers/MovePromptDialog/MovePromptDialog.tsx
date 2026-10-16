@@ -25,10 +25,12 @@ export function MovePromptDialog({ prompt, folders, onClose }: MovePromptDialogP
         {(field) => (
           <field.ComboboxField
             label={t('movePrompt.folderLabel')}
-            hint={t('movePrompt.folderHint')}
+            hint={t('newPrompt.folderHint')}
+            placeholder={t('newPrompt.folderPlaceholder')}
             searchLabel={t('newPrompt.folderSearch')}
             searchClearLabel={t('newPrompt.folderSearchClear')}
             emptyLabel={t('newPrompt.folderEmpty')}
+            createLabel={(query) => t('newPrompt.folderCreate', { name: query })}
             options={folders.map((folder) => ({ value: folder.name, label: folder.name }))}
             error={fieldErrors[PromptFormField.Folder] ?? null}
           />
