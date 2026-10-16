@@ -1,5 +1,6 @@
 import type { MockLink } from '@apollo/client/testing';
 import type { PromptFixture } from '@/features/prompts/communication/fixtures/promptLibrary.fixture';
+import { SavePromptVersionDocument } from '@/features/prompts/communication/gql/mutation/savePromptVersion.generated';
 import { PromptDetailDocument } from '@/features/prompts/communication/gql/query/promptDetail.generated';
 
 export interface PromptVersionFixture {
@@ -21,6 +22,36 @@ export const RECEPTIONIST_VERSION: PromptVersionFixture = {
   authorName: 'Pavlo',
 };
 
+export const RECEPTIONIST_SAVED_VERSION: PromptVersionFixture = {
+  id: 'pvr_5',
+  number: 5,
+  text: `${RECEPTIONIST_VERSION.text}\nReply as 1–3 short messages, never one long paragraph.`,
+  createdAt: '2026-10-16T14:20:00.000Z',
+  authorName: 'Pavlo',
+};
+
+const promptNode = (prompt: PromptFixture) => ({
+  __typename: 'Prompt' as const,
+  id: prompt.id,
+  name: prompt.name,
+  folderId: prompt.folderId,
+});
+
+const versionNode = (version: PromptVersionFixture | null) =>
+  version === null
+    ? null
+    : {
+        __typename: 'PromptVersion' as const,
+        id: version.id,
+        number: version.number,
+        text: version.text,
+        createdAt: version.createdAt,
+        author:
+          version.authorName === null
+            ? null
+            : { __typename: 'PromptVersionAuthor' as const, name: version.authorName },
+      };
+
 export const buildPromptDetailMock = (
   prompt: PromptFixture,
   version: PromptVersionFixture | null,
@@ -31,28 +62,31 @@ export const buildPromptDetailMock = (
     data: {
       prompt: {
         __typename: 'PromptDetail',
-        prompt: {
-          __typename: 'Prompt',
-          id: prompt.id,
-          name: prompt.name,
-          folderId: prompt.folderId,
-        },
-        latestVersion:
-          version === null
-            ? null
-            : {
-                __typename: 'PromptVersion',
-                id: version.id,
-                number: version.number,
-                text: version.text,
-                createdAt: version.createdAt,
-                author:
-                  version.authorName === null
-                    ? null
-                    : { __typename: 'PromptVersionAuthor', name: version.authorName },
-              },
+        prompt: promptNode(prompt),
+        latestVersion: versionNode(version),
       },
     },
   },
   maxUsageCount,
+});
+
+export const buildSavePromptVersionMock = (
+  prompt: PromptFixture,
+  version: PromptVersionFixture,
+  text: string,
+  note: string | null,
+): MockLink.MockedResponse => ({
+  request: {
+    query: SavePromptVersionDocument,
+    variables: { input: { id: prompt.id, text, note } },
+  },
+  result: {
+    data: {
+      savePromptVersion: {
+        __typename: 'PromptDetail',
+        prompt: promptNode(prompt),
+        latestVersion: versionNode(version),
+      },
+    },
+  },
 });

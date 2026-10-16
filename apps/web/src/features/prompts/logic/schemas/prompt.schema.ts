@@ -1,4 +1,8 @@
-import { PROMPT_FOLDER_NAME_MAX_LENGTH, PROMPT_NAME_MAX_LENGTH } from '@agent-ic/contracts';
+import {
+  PROMPT_FOLDER_NAME_MAX_LENGTH,
+  PROMPT_NAME_MAX_LENGTH,
+  PROMPT_VERSION_NOTE_MAX_LENGTH,
+} from '@agent-ic/contracts';
 import { z } from 'zod';
 import { PromptFormField } from '@/features/prompts/constants/promptForm.constants';
 
@@ -22,3 +26,8 @@ export const createPromptSchema = (messages: PromptSchemaMessages) =>
 
 export const renamePromptFolderSchema = (message: string) =>
   z.object({ [PromptFormField.Folder]: folderNameSchema(message) });
+
+export const savePromptVersionSchema = (message: string) =>
+  z.object({
+    [PromptFormField.Note]: z.string().trim().max(PROMPT_VERSION_NOTE_MAX_LENGTH, message),
+  });

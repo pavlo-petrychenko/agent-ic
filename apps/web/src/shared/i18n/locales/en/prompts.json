@@ -4,7 +4,8 @@
     "subtitle": "Reusable instructions for Agent and Completion steps"
   },
   "nav": {
-    "label": "Prompts"
+    "label": "Prompts",
+    "draft": "draft"
   },
   "actions": {
     "newPrompt": "New prompt"
@@ -64,7 +65,33 @@
     "readOnly": "Read-only — Edit creates a draft",
     "noText": "This prompt has no text yet.",
     "body": "Prompt text",
-    "variables": "Variables"
+    "variables": "Variables",
+    "edit": "Edit",
+    "editLatest": "Edit v{{number}} · latest"
+  },
+  "draft": {
+    "badge": "v{{number}} draft",
+    "editing": "Editing v{{number}} draft",
+    "basedOn": "based on v{{base}} · draft saved {{time}}",
+    "neverSaved": "never saved · draft saved {{time}}",
+    "insertVariable": "Type {{ to insert a variable",
+    "placeholder": "Write what the step should do, who it talks to and how.",
+    "saveAs": "Save as v{{number}}",
+    "discard": "Discard draft",
+    "keepEditing": "Keep editing",
+    "discardTitle": "Discard the v{{number}} draft?",
+    "discardDescription": "Your changes since v{{base}} are deleted. v{{base}} stays the latest version.",
+    "discardNewDescription": "Your draft is deleted.",
+    "saved": "Saved v{{number}}"
+  },
+  "saveVersion": {
+    "title": "Save as v{{number}}",
+    "description": "{{name}} · versions can’t be edited after saving",
+    "noteLabel": "What changed",
+    "noteHint": "Shown in the version list and when comparing",
+    "noteInvalid": "Keep the note under {{count}} characters.",
+    "submit": "Save v{{number}}",
+    "failed": "The version could not be saved."
   },
   "loadError": "The prompts couldn’t be opened.",
   "retry": "Try again"
