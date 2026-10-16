@@ -39,7 +39,6 @@ const seedDraft = () => {
   storePromptDraft(RECEPTIONIST_PROMPT.id, {
     text: DRAFT_TEXT,
     baseVersionNumber: RECEPTIONIST_VERSION.number,
-    savedAt: '2026-10-16T14:20:00.000Z',
   });
 };
 
@@ -82,6 +81,7 @@ describe('prompt view', () => {
     expect(field).toHaveAttribute('contenteditable', 'false');
     expect(field).toHaveTextContent('You are the receptionist of Demo salon.');
     expect(screen.getByText('Read-only — Edit creates a draft')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
   });
 
   it('shows the version tag and the read-only note above the field', async () => {
@@ -121,7 +121,7 @@ describe('prompt view', () => {
     expect(
       screen.getByText(`Editing v${RECEPTIONIST_VERSION.number + 1} draft`),
     ).toBeInTheDocument();
-    expect(screen.getByText(/based on v4/)).toBeInTheDocument();
+    expect(screen.getByText(`based on v${RECEPTIONIST_VERSION.number}`)).toBeInTheDocument();
 
     const field = screen.getByRole('textbox', { name: 'Prompt text' });
     expect(field).toHaveAttribute('contenteditable', 'true');
@@ -143,7 +143,7 @@ describe('prompt view', () => {
 
     await waitFor(() => expect(readPromptDraft(RECEPTIONIST_PROMPT.id)?.text).toBe('Hello'));
     expect(screen.getByText('v1 draft')).toBeInTheDocument();
-    expect(screen.getByText(/never saved/)).toBeInTheDocument();
+    expect(screen.getByText('never saved')).toBeInTheDocument();
     const section = screen.getByRole('navigation', { name: 'Prompts' });
     const link = await within(section).findByRole('link', { name: /receptionist/i });
     expect(link).toHaveTextContent('draft');

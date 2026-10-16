@@ -66,14 +66,13 @@
     "noText": "This prompt has no text yet.",
     "body": "Prompt text",
     "variables": "Variables",
-    "edit": "Edit",
-    "editLatest": "Edit v{{number}} · latest"
+    "edit": "Edit"
   },
   "draft": {
     "badge": "v{{number}} draft",
     "editing": "Editing v{{number}} draft",
-    "basedOn": "based on v{{base}} · draft saved {{time}}",
-    "neverSaved": "never saved · draft saved {{time}}",
+    "basedOn": "based on v{{base}}",
+    "neverSaved": "never saved",
     "insertVariable": "Type {{ to insert a variable",
     "placeholder": "Write what the step should do, who it talks to and how.",
     "saveAs": "Save as v{{number}}",
