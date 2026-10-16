@@ -13,7 +13,8 @@ export function PromptsShell({ workspaceId, children }: PromptsShellProps) {
   const { folders, prompts, loading } = usePromptLibrary();
   const drafts = usePromptDraftsStore((state) => state.drafts);
   const draftPromptIds = useMemo(() => new Set(Object.keys(drafts)), [drafts]);
-  const { groups, setOpen } = usePromptFolderTree(folders, prompts);
+  const [query, setQuery] = useState('');
+  const { groups, setOpen } = usePromptFolderTree(folders, prompts, query);
   const folderMenu = usePromptFolderMenu();
   const [creating, setCreating] = useState(false);
 
@@ -27,8 +28,11 @@ export function PromptsShell({ workspaceId, children }: PromptsShellProps) {
         workspaceId={workspaceId}
         groups={groups}
         loading={loading}
+        query={query}
         draftPromptIds={draftPromptIds}
         onCreate={() => setCreating(true)}
+        onQueryChange={setQuery}
+        onQueryClear={() => setQuery('')}
         onOpenChange={setOpen}
         folderMenuAnchor={folderMenu.anchor}
         onFolderMenuOpen={folderMenu.open}

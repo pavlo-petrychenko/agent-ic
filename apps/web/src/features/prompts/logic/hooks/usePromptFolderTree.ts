@@ -7,6 +7,7 @@ import type { UsePromptFolderTreeResult } from '@/features/prompts/typedefs/prom
 export function usePromptFolderTree(
   folders: readonly PromptFolderListItem[],
   prompts: readonly PromptListItem[],
+  query: string,
 ): UsePromptFolderTreeResult {
   const [closedIds, setClosedIds] = useState<ReadonlySet<string>>(() => new Set<string>());
   const setOpen = useCallback((folderId: string, open: boolean) => {
@@ -20,14 +21,13 @@ export function usePromptFolderTree(
       return next;
     });
   }, []);
-  const groups = useMemo(
-    () =>
-      toPromptGroups(folders, prompts).map((group) => ({
-        ...group,
-        open: !closedIds.has(group.folder.id),
-      })),
-    [folders, prompts, closedIds],
-  );
+  const groups = useMemo(() => {
+    const searching = query.trim() !== '';
+    return toPromptGroups(folders, prompts, query).map((group) => ({
+      ...group,
+      open: searching || !closedIds.has(group.folder.id),
+    }));
+  }, [folders, prompts, query, closedIds]);
 
   return { groups, setOpen };
 }
