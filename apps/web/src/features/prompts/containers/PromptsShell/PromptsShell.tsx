@@ -36,7 +36,13 @@ export function PromptsShell({ workspaceId, children }: PromptsShellProps) {
         onFolderMenuClose={folderMenu.close}
       />
       <div className="flex min-w-0 flex-1 flex-col overflow-auto">{children}</div>
-      {creating && <NewPromptDialog folders={folders} onClose={() => setCreating(false)} />}
+      {creating && (
+        <NewPromptDialog
+          workspaceId={workspaceId}
+          folders={folders}
+          onClose={() => setCreating(false)}
+        />
+      )}
       {folderMenu.renameFolder !== null && (
         <RenamePromptFolderDialog
           folder={folderMenu.renameFolder}

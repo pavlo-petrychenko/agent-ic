@@ -64,7 +64,13 @@ export function PromptsPage({ workspaceId }: PromptsPageProps) {
       <div className="px-7">
         <PromptsEmpty onCreate={() => setCreating(true)} />
       </div>
-      {creating && <NewPromptDialog folders={folders} onClose={() => setCreating(false)} />}
+      {creating && (
+        <NewPromptDialog
+          workspaceId={workspaceId}
+          folders={folders}
+          onClose={() => setCreating(false)}
+        />
+      )}
     </div>
   );
 }
