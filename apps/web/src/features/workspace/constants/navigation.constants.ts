@@ -65,7 +65,7 @@ export const NAV_GROUPS: readonly NavGroupEntry[] = [
       },
       {
         section: WorkspaceSection.Prompts,
-        icon: IconName.Note,
+        icon: IconName.Compl,
         resource: PermissionResource.Prompts,
       },
     ],
