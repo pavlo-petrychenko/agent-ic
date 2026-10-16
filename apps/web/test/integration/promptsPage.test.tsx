@@ -176,6 +176,7 @@ describe('prompts page', () => {
 
     expect(await screen.findByText(`Prompt “${NEW_PROMPT_NAME}” created`)).toBeInTheDocument();
     expect(within(section).getByText(NEW_PROMPT_NAME)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: NEW_PROMPT_NAME })).toBeInTheDocument();
   });
 
   it('tells when the prompt name is taken', async () => {
