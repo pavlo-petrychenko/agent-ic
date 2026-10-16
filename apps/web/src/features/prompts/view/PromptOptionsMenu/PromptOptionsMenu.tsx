@@ -14,13 +14,18 @@ import { Menu, MenuRole, MenuVariant } from '@/shared/ui/overlays/Menu';
 import type { MenuItem } from '@/shared/ui/overlays/Menu';
 import { Popover, PopoverAlign } from '@/shared/ui/overlays/Popover';
 
-export function PromptOptionsMenu({ actions, onSelect }: PromptOptionsMenuProps) {
+export function PromptOptionsMenu({
+  actions,
+  currentFolderName,
+  onSelect,
+}: PromptOptionsMenuProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
   const [open, setOpen] = useState(false);
 
   const toMenuItem = (action: PromptMenuAction): MenuItem => ({
     id: action,
     label: t(`menu.${action}`),
+    hint: action === PromptMenuAction.Move ? currentFolderName : null,
     leading: <Icon name={PROMPT_MENU_ICONS[action]} size={PROMPT_MENU_ICON_SIZE} />,
     danger: action === PromptMenuAction.Delete,
   });
