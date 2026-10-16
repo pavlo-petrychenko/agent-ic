@@ -1,5 +1,6 @@
 import { IdPrefix, Locale } from '@agent-ic/contracts';
 import type { WorkspaceRole } from '@agent-ic/contracts';
+import type { FlowDocument } from '@agent-ic/flow';
 import { createClient } from 'graphql-ws';
 import { expect, vi } from 'vitest';
 import WebSocket from 'ws';
@@ -162,6 +163,32 @@ export const seedSimulationRuns = async (
       seeded.push({ id: ids.toPublic(IdPrefix.Run, run.id), stepCount });
     }
     return seeded;
+  });
+};
+
+export const replaceDraftFlow = async (
+  api: SubscriptionsApi,
+  member: TestMember,
+  agentId: string,
+  flow: FlowDocument,
+): Promise<void> => {
+  const { workspaceId } = member;
+  const ids = api.app.get(IdService);
+  const internalId = ids.fromPublic(IdPrefix.Agent, agentId);
+  const versions = api.app.get(AgentVersionsRepository);
+  await api.app.get(TenantTransactionService).run(workspaceId, async () => {
+    const draft = await versions.findDraft(workspaceId, internalId);
+    if (draft === null) {
+      throw new MissingTestDataError(internalId);
+    }
+    const changes = { flow, note: null, authorId: ids.generate() };
+    await versions.updateDraft(
+      workspaceId,
+      draft.id,
+      draft.revision,
+      changes,
+      SUBSCRIPTIONS_TEST_START,
+    );
   });
 };
 

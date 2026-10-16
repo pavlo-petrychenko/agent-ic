@@ -3,6 +3,7 @@ import { NodeType } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { eq, sql } from 'drizzle-orm';
+import { AgentRuntimeReader } from '@/modules/agents';
 import { AgentVersionKind, PauseMode } from '@/modules/agents/constants/agent.constants';
 import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
@@ -82,6 +83,7 @@ import {
   workspaceSystemCtx,
 } from '@test/support/fixtures/conversation.fixture';
 import { newRun, newRunStep, triggerOnlyFlow } from '@test/support/fixtures/runs.fixture';
+import { seedPublishedVersion } from '@test/support/helpers/agents-testing.helpers';
 import { queuedEventsFor } from '@test/support/helpers/conversations-testing.helpers';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 import {
@@ -92,6 +94,7 @@ import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.
 import { LlmTracesProbeModule } from '@test/support/modules/llm-traces-probe.module';
 import type {
   ExecutableRun,
+  LastRunBatch,
   LifecycleState,
   LiveConversation,
   ReceivedMessage,
@@ -279,6 +282,39 @@ export const seedSimulationRunBatch = async (
       started: publicId(oneStep.id),
       queued: publicId(noSteps.id),
     },
+  };
+};
+
+export const seedLastSimulationRuns = async (
+  testbed: RunExecutionTestbed,
+  draftRevision: number,
+): Promise<LastRunBatch> => {
+  const { run } = await seedSimulationRun(testbed);
+  const { workspaceId, agentId } = run;
+  const draft = { kind: AgentVersionKind.Draft, number: null, revision: draftRevision };
+  await seedPublishedVersion(testbed.module, workspaceId, agentId, draft);
+  testbed.clock.advanceBy(MESSAGE_SPACING_MS);
+  const published = { ...run, id: testbed.ids.generate(), agentId: testbed.ids.generate() };
+  const neverTested = testbed.ids.generate();
+  const testedRunId = testbed.ids.generate();
+  await testbed.tenants.run(workspaceId, async () => {
+    const agents = testbed.module.get(AgentsRepository);
+    await agents.insert(newAgent(published.agentId, workspaceId));
+    await agents.insert(newAgent(neverTested, workspaceId));
+    await testbed.runs.insert(published);
+    const snapshot = await testbed.module
+      .get(AgentRuntimeReader)
+      .snapshotDraft(workspaceId, agentId);
+    const createdAt = testbed.clock.now();
+    await testbed.runs.insert({ ...run, id: testedRunId, versionId: snapshot.id, createdAt });
+  });
+  return {
+    workspaceId,
+    agentIds: [agentId, published.agentId, neverTested].map((id) =>
+      testbed.ids.toPublic(IdPrefix.Agent, id),
+    ),
+    testedRunId: testbed.ids.toPublic(IdPrefix.Run, testedRunId),
+    publishedRunId: testbed.ids.toPublic(IdPrefix.Run, published.id),
   };
 };
 

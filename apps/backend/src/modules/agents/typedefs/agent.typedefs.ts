@@ -36,13 +36,17 @@ export interface AgentView {
   readonly draftNumber: number;
   readonly draftBaseVersionNumber: number | null;
   readonly hasUnpublishedChanges: boolean;
-  readonly draftChangeCount: number | null;
   readonly versionCount: number;
   readonly pausedAt: Date | null;
   readonly pauseMode: PauseMode | null;
   readonly awayMessage: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+}
+
+export interface DraftChangeCount {
+  readonly agentId: string;
+  readonly changeCount: number;
 }
 
 export interface CreateAgentInput {

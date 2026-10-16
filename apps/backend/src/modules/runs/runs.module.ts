@@ -28,9 +28,9 @@ import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-regi
 import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedefs';
 import { CleanUpWorkspaceUseCase } from '@/modules/runs/use-cases/clean-up-workspace.use-case';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
-import { GetLastSimulationRunUseCase } from '@/modules/runs/use-cases/get-last-simulation-run.use-case';
 import { GetRunTotalsUseCase } from '@/modules/runs/use-cases/get-run-totals.use-case';
 import { GetRunUseCase } from '@/modules/runs/use-cases/get-run.use-case';
+import { ListLastSimulationRunsUseCase } from '@/modules/runs/use-cases/list-last-simulation-runs.use-case';
 import { ListRunStepsUseCase } from '@/modules/runs/use-cases/list-run-steps.use-case';
 import { ListSimulationRunsUseCase } from '@/modules/runs/use-cases/list-simulation-runs.use-case';
 import { StartRunOnMessageUseCase } from '@/modules/runs/use-cases/start-run-on-message.use-case';
@@ -77,7 +77,7 @@ export class RunsModule extends defineModule({
     ListSimulationRunsUseCase,
     ListRunStepsUseCase,
     GetRunTotalsUseCase,
-    GetLastSimulationRunUseCase,
+    ListLastSimulationRunsUseCase,
     CleanUpWorkspaceUseCase,
   ],
   resolvers: [

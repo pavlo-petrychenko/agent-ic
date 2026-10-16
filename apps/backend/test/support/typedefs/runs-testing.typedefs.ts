@@ -126,3 +126,10 @@ export interface RunBatch {
   readonly workspaceId: string;
   readonly runIds: RunBatchIds;
 }
+
+export interface LastRunBatch {
+  readonly workspaceId: string;
+  readonly agentIds: readonly string[];
+  readonly testedRunId: string;
+  readonly publishedRunId: string;
+}
