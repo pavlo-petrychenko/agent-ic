@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   buildDeletePromptMock,
+  buildDuplicatePromptMock,
   buildMovePromptMock,
   buildRenamePromptMock,
 } from '@/features/prompts/communication/fixtures/promptActions.fixture';
@@ -341,5 +342,31 @@ describe('prompt view', () => {
     ).toBeInTheDocument();
     const section = screen.getByRole('navigation', { name: 'Prompts' });
     expect(await within(section).findByRole('button', { name: folderName })).toBeInTheDocument();
+  });
+
+  it('duplicates the prompt from the actions menu and opens the copy', async () => {
+    const copy = {
+      ...RECEPTIONIST_PROMPT,
+      id: `${RECEPTIONIST_PROMPT.id}_copy`,
+      name: `${RECEPTIONIST_PROMPT.name} (copy)`,
+    };
+    const { router } = renderRoute(promptPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
+        buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
+        buildDuplicatePromptMock(RECEPTIONIST_PROMPT, copy),
+        buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT, copy], 1),
+        buildPromptDetailMock(copy, RECEPTIONIST_VERSION, 1),
+      ],
+    });
+
+    await screen.findByRole('heading', { name: RECEPTIONIST_PROMPT.name });
+    await userEvent.click(await screen.findByRole('button', { name: 'Prompt actions' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Duplicate' }));
+
+    expect(await screen.findByText(`Duplicated as “${copy.name}”`)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: copy.name })).toBeInTheDocument();
+    await waitFor(() => expect(router.state.location.pathname).toBe(`${promptsPath}/${copy.id}`));
   });
 });
