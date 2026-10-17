@@ -7,6 +7,7 @@ query PromptLibrary {
     id
     name
     folderId
+    latestVersionNumber
     updatedAt
   }
 }

@@ -10,6 +10,7 @@ const prompt = (id: string, name: string, folderId: string): PromptListItem => (
   id,
   name,
   folderId,
+  latestVersionNumber: null,
   updatedAt: '2026-10-01T00:00:00.000Z',
 });
 
