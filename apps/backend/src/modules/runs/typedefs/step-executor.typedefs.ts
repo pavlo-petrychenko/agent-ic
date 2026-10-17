@@ -1,5 +1,6 @@
 import type { FlowNode } from '@agent-ic/flow';
 import type { Message } from '@/modules/conversations';
+import type { ResolvedPrompts } from '@/modules/prompts';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 import type { Run } from '@/modules/runs/typedefs/run.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -8,6 +9,7 @@ export interface StepScope {
   readonly variables: StepData;
   readonly history: readonly Message[];
   readonly today: Date;
+  readonly prompts: ResolvedPrompts;
 }
 
 export interface StepExecution<TNode extends FlowNode> {

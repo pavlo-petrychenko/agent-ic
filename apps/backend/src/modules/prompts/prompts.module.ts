@@ -15,6 +15,7 @@ import { RenamePromptFolderResolver } from '@/modules/prompts/resolvers/rename-p
 import { RenamePromptResolver } from '@/modules/prompts/resolvers/rename-prompt.resolver';
 import { SavePromptVersionResolver } from '@/modules/prompts/resolvers/save-prompt-version.resolver';
 import { PromptFolderViewsService } from '@/modules/prompts/services/prompt-folder-views.service';
+import { PromptResolverService } from '@/modules/prompts/services/prompt-resolver.service';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
 import { CleanUpWorkspaceUseCase } from '@/modules/prompts/use-cases/clean-up-workspace.use-case';
 import { CreatePromptFolderUseCase } from '@/modules/prompts/use-cases/create-prompt-folder.use-case';
@@ -40,6 +41,7 @@ export class PromptsModule extends defineModule({
     PromptFoldersRepository,
     PromptVersionsRepository,
     PromptFolderViewsService,
+    PromptResolverService,
     PromptViewsService,
     CleanUpWorkspaceUseCase,
     CreatePromptFolderUseCase,
@@ -73,4 +75,5 @@ export class PromptsModule extends defineModule({
     SavePromptVersionResolver,
   ],
   listeners: [CleanUpWorkspaceListener],
+  exports: [PromptResolverService],
 }) {}

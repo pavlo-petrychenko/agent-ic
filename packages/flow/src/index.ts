@@ -112,6 +112,11 @@ export {
   PromptSourceKind,
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
+export { promptReferences } from '@flow/references/helpers/prompt-reference.helpers';
+export type {
+  PromptPin,
+  PromptReference,
+} from '@flow/references/typedefs/prompt-reference.typedefs';
 export {
   API_REQUEST_OUTPUTS,
   RESERVED_ROOTS,

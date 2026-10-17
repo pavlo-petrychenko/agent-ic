@@ -182,9 +182,10 @@ export const seedExecutableRun = async (
   flow: FlowDocument,
   earlier: readonly Pick<NewMessage, 'author' | 'text'>[] = [],
   mode: ConversationMode = ConversationMode.Live,
+  workspaceId: string | null = null,
 ): Promise<ExecutableRun> => {
-  const workspaceId = testbed.ids.generate();
-  const conversation = { ...newConversation(testbed, workspaceId), mode };
+  const seededWorkspaceId = workspaceId ?? testbed.ids.generate();
+  const conversation = { ...newConversation(testbed, seededWorkspaceId), mode };
   const history = earlier.map((overrides) => {
     const seededMessage = newMessage(testbed, conversation, overrides);
     testbed.clock.advanceBy(MESSAGE_SPACING_MS);
@@ -193,20 +194,20 @@ export const seedExecutableRun = async (
   const message = newMessage(testbed, conversation);
   const { agentId } = conversation;
   const run: NewRun = {
-    ...newRun(testbed, workspaceId),
+    ...newRun(testbed, seededWorkspaceId),
     mode,
     conversationId: conversation.id,
     agentId,
     lastCoveredMessageId: message.id,
   };
-  const version = newVersion(run.versionId, workspaceId, agentId, {
+  const version = newVersion(run.versionId, seededWorkspaceId, agentId, {
     flow,
     kind: AgentVersionKind.Published,
     number: TEST_PUBLISHED_NUMBER,
     publishedAt: RUNS_TEST_START,
   });
-  await testbed.tenants.run(workspaceId, async () => {
-    await testbed.module.get(AgentsRepository).insert(newAgent(agentId, workspaceId));
+  await testbed.tenants.run(seededWorkspaceId, async () => {
+    await testbed.module.get(AgentsRepository).insert(newAgent(agentId, seededWorkspaceId));
     await testbed.module.get(AgentVersionsRepository).insert(version);
     await testbed.module.get(ConversationsRepository).insert(conversation);
     for (const seededMessage of [...history, message]) {
@@ -214,7 +215,7 @@ export const seedExecutableRun = async (
     }
     await testbed.runs.insert(run);
   });
-  return { run, ctx: workspaceSystemCtx(workspaceId) };
+  return { run, ctx: workspaceSystemCtx(seededWorkspaceId) };
 };
 
 export const watchStep = async (
@@ -467,7 +468,7 @@ export const stepExecutionOf = async <TNode extends FlowNode>(
   if (stored === null) {
     throw new MissingTestDataError(run.id);
   }
-  const scope = { variables, history: [], today: RUNS_TEST_START };
+  const scope = { variables, history: [], today: RUNS_TEST_START, prompts: new Map() };
   return { ctx, run: stored, node, branchKey: ROOT_BRANCH_KEY, scope };
 };
 

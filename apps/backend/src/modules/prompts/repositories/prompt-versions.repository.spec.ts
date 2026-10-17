@@ -142,6 +142,23 @@ describe('PromptVersionsRepository', () => {
     expect(found?.id).toBe(latestId);
   });
 
+  it('finds a version by its number, null when it is missing', async () => {
+    const workspaceId = ids.generate();
+    const promptId = await insertPrompt(workspaceId);
+    await insertVersion(workspaceId, promptId, { number: FIRST_NUMBER });
+    const secondId = await insertVersion(workspaceId, promptId, { number: SECOND_NUMBER });
+
+    const found = await tenants.run(workspaceId, () =>
+      repository.findByNumber(workspaceId, promptId, SECOND_NUMBER),
+    );
+    const missing = await tenants.run(workspaceId, () =>
+      repository.findByNumber(workspaceId, promptId, SKIPPED_NUMBER),
+    );
+
+    expect(found?.id).toBe(secondId);
+    expect(missing).toBeNull();
+  });
+
   it('soft deletes every version of one prompt only', async () => {
     const workspaceId = ids.generate();
     const promptA = await insertPrompt(workspaceId);
@@ -158,6 +175,7 @@ describe('PromptVersionsRepository', () => {
     );
     const results = await tenants.run(workspaceId, async () => ({
       found: await repository.findById(workspaceId, versionA1),
+      byNumber: await repository.findByNumber(workspaceId, promptA, FIRST_NUMBER),
       listA: await repository.listByPrompt(workspaceId, promptA),
       lastA: await repository.lastNumber(workspaceId, promptA),
       listB: await repository.listByPrompt(workspaceId, promptB),
@@ -165,6 +183,7 @@ describe('PromptVersionsRepository', () => {
 
     expect({ deleted, deletedAgain }).toEqual({ deleted: 2, deletedAgain: 0 });
     expect(results.found).toBeNull();
+    expect(results.byNumber).toBeNull();
     expect(results.listA).toEqual([]);
     expect(results.lastA).toBe(SECOND_NUMBER);
     expect(results.listB.map((version) => version.id)).toEqual([versionB1]);
@@ -221,6 +240,7 @@ describe('PromptVersionsRepository', () => {
 
       const fromB = await tenants.run(workspaceB, async () => ({
         found: await repository.findById(workspaceA, versionId),
+        byNumber: await repository.findByNumber(workspaceA, promptId, FIRST_NUMBER),
         list: await repository.listByPrompt(workspaceA, promptId),
         last: await repository.lastNumber(workspaceA, promptId),
         latest: await repository.findLatest(workspaceA, promptId),
@@ -232,6 +252,7 @@ describe('PromptVersionsRepository', () => {
 
       expect(fromB).toEqual({
         found: null,
+        byNumber: null,
         list: [],
         last: NO_PROMPT_VERSIONS,
         latest: null,
