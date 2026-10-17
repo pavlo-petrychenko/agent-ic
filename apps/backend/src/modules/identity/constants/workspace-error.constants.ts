@@ -10,3 +10,9 @@ export const CANNOT_DELETE_YOURSELF = 'You cannot remove yourself. Leave the wor
 export const CANNOT_CHANGE_OWNER_ROLE =
   'The owner role cannot be changed. Transfer ownership instead.';
 export const CANNOT_CHANGE_ADMIN_ROLE = "Only the owner can change an admin's role.";
+export const INVALID_ROLE_NAME_MESSAGE = 'The role name is not valid.';
+export const ROLE_NOT_FOUND_MESSAGE = 'That role does not exist in this workspace.';
+export const ROLE_NAME_TAKEN_MESSAGE = 'A role with this name already exists.';
+export const ROLE_NOT_EDITABLE_MESSAGE = 'This role cannot be changed.';
+export const ROLE_IN_USE_MESSAGE = 'Move the members of this role before deleting it.';
+export const ROLE_BASE_INVALID_MESSAGE = 'A new role must be based on an invitable role.';
