@@ -13,6 +13,8 @@ export const LLM_VENDOR_ORDER: readonly ModelVendor[] = [
 
 export const DEFAULT_LLM_VENDOR = ModelVendor.Openai;
 export const LLM_KEY_VISIBLE_LENGTH = 4;
+export const LLM_KEY_VISIBLE_PREFIX = 2;
+export const LLM_KEY_MASK_CHARACTER = '•';
 export const LLM_NOTICE_ICON_SIZE = 14;
 
 export const MOCK_LLM_KEYS: readonly LlmKey[] = [
