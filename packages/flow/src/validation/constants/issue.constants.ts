@@ -24,6 +24,7 @@ export enum FlowIssueCode {
   InvalidConditionValue = 'INVALID_CONDITION_VALUE',
   VariableTypeMismatch = 'VARIABLE_TYPE_MISMATCH',
   MissingPrompt = 'MISSING_PROMPT',
+  MissingPromptVersion = 'MISSING_PROMPT_VERSION',
   MissingModel = 'MISSING_MODEL',
   MissingEventName = 'MISSING_EVENT_NAME',
   MissingChannel = 'MISSING_CHANNEL',
