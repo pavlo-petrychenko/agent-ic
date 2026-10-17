@@ -113,11 +113,12 @@ export const agent = (
 export const completion = (
   key: string,
   output: OutputField[] = [field('verdict', OutputFieldType.Boolean)],
+  prompt: PromptSource | null = examplePrompt(`Answer as ${key}.`),
 ): CompletionNode => ({
   ...base(key),
   type: NodeType.Completion,
   config: {
-    prompt: examplePrompt(`Answer as ${key}.`),
+    prompt,
     model: exampleModel,
     reasoning: null,
     input: { includeCurrentMessage: true },

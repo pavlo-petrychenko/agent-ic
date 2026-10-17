@@ -2,6 +2,7 @@ import { ModelProviderKind, PromptSourceKind, renderTemplate, resolvePath } from
 import type { ModelRef, PromptSource } from '@agent-ic/flow';
 import { MessageAuthor } from '@/modules/conversations';
 import type { Message } from '@/modules/conversations';
+import type { ResolvedPrompts } from '@/modules/prompts';
 import { ANSWER_FROM_CONVERSATION_MESSAGE } from '@/modules/runs/constants/llm-step.constants';
 import { StepModelUnknownError } from '@/modules/runs/errors/step-model-unknown.error';
 import { StepPromptUnavailableError } from '@/modules/runs/errors/step-prompt-unavailable.error';
@@ -40,11 +41,19 @@ export const stepSystemPrompt = (
   nodeId: string,
   prompt: PromptSource | null,
   variables: StepData,
+  prompts: ResolvedPrompts,
 ): string => {
-  if (prompt === null || prompt.kind === PromptSourceKind.Library) {
-    throw new StepPromptUnavailableError(nodeId, prompt?.kind ?? null);
+  if (prompt === null) {
+    throw new StepPromptUnavailableError(nodeId, null, null);
   }
-  return renderTemplate(prompt.text, (path) => resolvePath(variables, path));
+  if (prompt.kind === PromptSourceKind.Inline) {
+    return renderTemplate(prompt.text, (path) => resolvePath(variables, path));
+  }
+  const resolved = prompts.get(nodeId) ?? null;
+  if (resolved === null) {
+    throw new StepPromptUnavailableError(nodeId, prompt.kind, prompt.promptRef);
+  }
+  return renderTemplate(resolved.text, (path) => resolvePath(variables, path));
 };
 
 const historyMessages = (

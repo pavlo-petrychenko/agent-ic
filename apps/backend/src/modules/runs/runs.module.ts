@@ -1,5 +1,6 @@
 import { AgentsModule, SimulatorTestsReader } from '@/modules/agents';
 import { ConversationsModule } from '@/modules/conversations';
+import { PromptsModule } from '@/modules/prompts';
 import { STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import { CleanUpWorkspaceListener } from '@/modules/runs/listeners/clean-up-workspace.listener';
 import { StartRunOnMessageListener } from '@/modules/runs/listeners/start-run-on-message.listener';
@@ -36,7 +37,7 @@ import { SubscribeToRunStepsUseCase } from '@/modules/runs/use-cases/subscribe-t
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class RunsModule extends defineModule({
-  imports: [AgentsModule, ConversationsModule],
+  imports: [AgentsModule, ConversationsModule, PromptsModule],
   providers: [
     RunsRepository,
     RunStepsRepository,

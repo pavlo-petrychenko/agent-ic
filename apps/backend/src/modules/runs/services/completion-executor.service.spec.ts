@@ -10,7 +10,7 @@ import {
   WaitFor,
 } from '@agent-ic/flow';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { MessageAuthor } from '@/modules/conversations';
+import { ConversationMode, MessageAuthor } from '@/modules/conversations';
 import { ANSWER_FROM_CONVERSATION_MESSAGE } from '@/modules/runs/constants/llm-step.constants';
 import { RunStatus, RunStepStatus } from '@/modules/runs/constants/run.constants';
 import { messageTriggerVariables, stepVariables } from '@/modules/runs/helpers/run-scope.helpers';
@@ -19,6 +19,10 @@ import { LLM_STEP_TIMEOUT_MS } from '@/platform/llm/constants/llm-gateway.consta
 import { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
+import {
+  TEST_PROMPT_LATER_TEXT,
+  TEST_PROMPT_TEXT,
+} from '@test/support/constants/prompts-testing.constants';
 import {
   OBSERVER_NODE_ID,
   OBSERVER_STEP_KEY,
@@ -55,6 +59,12 @@ import {
   stepFlow,
 } from '@test/support/fixtures/runs.fixture';
 import { createLlmGateway } from '@test/support/helpers/llm-testing.helpers';
+import {
+  publicPromptId,
+  seedPrompt,
+  seedPromptFolder,
+  seedPromptVersion,
+} from '@test/support/helpers/prompts-testing.helpers';
 import { createRunsTestbed, seedExecutableRun } from '@test/support/helpers/runs-testing.helpers';
 import { startMockLlm } from '@test/support/services/mock-llm.service';
 import type { MockLlmService } from '@test/support/services/mock-llm.service';
@@ -66,6 +76,7 @@ import type {
 const guard = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY);
 const observer = completionNode(OBSERVER_NODE_ID, OBSERVER_STEP_KEY);
 const router = intentRouterNode(TEST_OTHER_NODE_ID, TEST_OTHER_NODE_KEY, TEST_STEP_NODE_KEY);
+const SECOND_PROMPT_VERSION_NUMBER = 2;
 
 const guardThenAgent = (node = guard) =>
   stepFlow(
@@ -182,6 +193,45 @@ describe('CompletionExecutor', () => {
     expect(run?.error).toMatchObject({
       reason: ErrorReason.StepPromptUnavailable,
       nodeId: TEST_STEP_NODE_ID,
+    });
+  });
+
+  it('answers with the pinned version of a library prompt', async () => {
+    const workspaceId = testbed.ids.generate();
+    const folderId = await seedPromptFolder(testbed.module, workspaceId);
+    const promptId = await seedPrompt(testbed.module, workspaceId, folderId);
+    await seedPromptVersion(testbed.module, workspaceId, promptId, { text: TEST_PROMPT_TEXT });
+    await seedPromptVersion(testbed.module, workspaceId, promptId, {
+      number: SECOND_PROMPT_VERSION_NUMBER,
+      text: TEST_PROMPT_LATER_TEXT,
+    });
+    const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
+      prompt: {
+        kind: PromptSourceKind.Library,
+        promptRef: publicPromptId(testbed.module, promptId),
+        pin: { kind: PromptVersionKind.Pinned, number: SECOND_PROMPT_VERSION_NUMBER },
+      },
+    });
+    const seeded = await seedExecutableRun(
+      testbed,
+      stepFlow([node], [flowEdge(TEST_NODE_ID, node.id)]),
+      [],
+      ConversationMode.Live,
+      workspaceId,
+    );
+    mock.json({ intent: TEST_ORDER_INTENT });
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    expect(mock.body(0)['messages']).toEqual([
+      { role: 'system', content: TEST_PROMPT_LATER_TEXT },
+      { role: 'user', content: TEST_MESSAGE_TEXT },
+    ]);
+    const { steps } = await stored(seeded);
+    expect(steps.find((step) => step.nodeId === TEST_STEP_NODE_ID)).toMatchObject({
+      status: RunStepStatus.Succeeded,
+      port: PortName.Next,
+      output: { intent: TEST_ORDER_INTENT },
     });
   });
 
