@@ -73,6 +73,7 @@ type Prompt {
   id: ID!
   name: String!
   folderId: ID!
+  latestVersionNumber: Int
   createdAt: String!
   updatedAt: String!
 }

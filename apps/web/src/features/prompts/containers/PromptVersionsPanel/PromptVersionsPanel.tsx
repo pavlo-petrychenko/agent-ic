@@ -10,7 +10,11 @@ import { Panel, PanelSide } from '@/shared/ui/layout/Panel';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/prompts/containers/PromptVersionsPanel/PromptVersionsPanel.module.scss';
 
-export function PromptVersionsPanel({ promptId, activeVersionId }: PromptVersionsPanelProps) {
+export function PromptVersionsPanel({
+  promptId,
+  activeVersionId,
+  onSelect,
+}: PromptVersionsPanelProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
   const { locale } = useLocale();
   const { versions, failed, retry } = usePromptVersions(promptId);
@@ -45,6 +49,7 @@ export function PromptVersionsPanel({ promptId, activeVersionId }: PromptVersion
     return (
       <PromptVersions
         activeId={activeVersionId}
+        onSelect={onSelect}
         versions={versions.map((version) => ({
           id: version.id,
           number: version.number,

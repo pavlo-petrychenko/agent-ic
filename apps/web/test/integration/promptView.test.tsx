@@ -13,8 +13,10 @@ import {
 } from '@/features/prompts/communication/fixtures/promptCreate.fixture';
 import {
   buildPromptDetailMock,
+  buildPromptVersionMock,
   buildPromptVersionsMock,
   buildSavePromptVersionMock,
+  RECEPTIONIST_PREVIOUS_VERSION,
   RECEPTIONIST_SAVED_VERSION,
   RECEPTIONIST_VERSION,
   RECEPTIONIST_VERSIONS,
@@ -26,6 +28,7 @@ import {
   Q_AND_A_FOLDER,
   RECEPTIONIST_PROMPT,
 } from '@/features/prompts/communication/fixtures/promptLibrary.fixture';
+import type { PromptFixture } from '@/features/prompts/communication/fixtures/promptLibrary.fixture';
 import {
   readPromptDraft,
   storePromptDraft,
@@ -42,6 +45,12 @@ import { signInForTest, signOutForTest } from '@test/support/helpers/session.hel
 const promptsPath = `/w/${DEMO_WORKSPACE.id}/prompts`;
 const promptPath = `${promptsPath}/${RECEPTIONIST_PROMPT.id}`;
 const DRAFT_TEXT = 'Draft text for {{contact.name}}';
+
+const promptLinkName = (prompt: PromptFixture): RegExp => {
+  const name = prompt.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const version = prompt.latestVersionNumber === null ? '' : `\\s*v${prompt.latestVersionNumber}`;
+  return new RegExp(`^${name}${version}$`);
+};
 
 const promptMocks = () => [
   buildWorkspaceShellMock([DEMO_WORKSPACE]),
@@ -72,7 +81,7 @@ describe('prompt view', () => {
 
     const section = await screen.findByRole('navigation', { name: 'Prompts' });
     await userEvent.click(
-      await within(section).findByRole('link', { name: RECEPTIONIST_PROMPT.name }),
+      await within(section).findByRole('link', { name: promptLinkName(RECEPTIONIST_PROMPT) }),
     );
 
     expect(
@@ -121,13 +130,75 @@ describe('prompt view', () => {
     expect(await within(list).findByText(`v${RECEPTIONIST_VERSION.number}`)).toBeInTheDocument();
     expect(within(list).getByText('Offer a manager when unsure')).toBeInTheDocument();
     expect(within(list).getByText('Sep 17')).toBeInTheDocument();
-    expect(within(list).queryAllByRole('button')).toHaveLength(0);
     expect(within(list).queryAllByRole('link')).toHaveLength(0);
+    expect(within(list).getAllByRole('button')).toHaveLength(RECEPTIONIST_VERSIONS.length - 1);
     expect(within(list).getByText(`v${RECEPTIONIST_VERSION.number}`).closest('li')).toHaveAttribute(
       'aria-current',
       'true',
     );
     expect(within(list).getByText('v3').closest('li')).not.toHaveAttribute('aria-current');
+  });
+
+  it('opens an older version from the list and returns to the latest', async () => {
+    renderRoute(promptPath, {
+      mocks: [...promptMocks(), buildPromptVersionMock(RECEPTIONIST_PREVIOUS_VERSION)],
+    });
+
+    const panel = await screen.findByRole('complementary', { name: 'Prompt details' });
+    const list = await within(panel).findByRole('list', { name: 'Versions' });
+    await userEvent.click(
+      await within(list).findByRole('button', {
+        name: `View v${RECEPTIONIST_PREVIOUS_VERSION.number}`,
+      }),
+    );
+
+    expect(await screen.findByText(/You’re viewing an older version/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(`Saved Sep 10 by ${RECEPTIONIST_PREVIOUS_VERSION.authorName}`),
+    ).toBeInTheDocument();
+    expect(within(list).getByText('v3').closest('li')).toHaveAttribute('aria-current', 'true');
+    expect(screen.getByRole('textbox', { name: 'Prompt text' })).toHaveTextContent(
+      'Answer only from the knowledge search results.',
+    );
+    expect(screen.queryByText(`v${RECEPTIONIST_VERSION.number} · latest`)).not.toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole('button', { name: `Back to latest (v${RECEPTIONIST_VERSION.number})` }),
+    );
+
+    expect(await screen.findByText(`v${RECEPTIONIST_VERSION.number} · latest`)).toBeInTheDocument();
+    expect(within(list).getByText(`v${RECEPTIONIST_VERSION.number}`).closest('li')).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
+  });
+
+  it('restores an older version as a draft', async () => {
+    renderRoute(promptPath, {
+      mocks: [...promptMocks(), buildPromptVersionMock(RECEPTIONIST_PREVIOUS_VERSION)],
+    });
+
+    const panel = await screen.findByRole('complementary', { name: 'Prompt details' });
+    const list = await within(panel).findByRole('list', { name: 'Versions' });
+    await userEvent.click(
+      await within(list).findByRole('button', {
+        name: `View v${RECEPTIONIST_PREVIOUS_VERSION.number}`,
+      }),
+    );
+    await userEvent.click(await screen.findByRole('button', { name: 'Restore as draft' }));
+
+    const draft = readPromptDraft(RECEPTIONIST_PROMPT.id);
+    expect(draft?.text).toBe(RECEPTIONIST_PREVIOUS_VERSION.text);
+    expect(draft?.baseVersionNumber).toBe(RECEPTIONIST_PREVIOUS_VERSION.number);
+    expect(
+      screen.getByText(`Editing v${RECEPTIONIST_VERSION.number + 1} draft`),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(`based on v${RECEPTIONIST_PREVIOUS_VERSION.number}`),
+    ).toBeInTheDocument();
+    const field = screen.getByRole('textbox', { name: 'Prompt text' });
+    expect(field).toHaveAttribute('contenteditable', 'true');
+    expect(field).toHaveTextContent('Answer only from the knowledge search results.');
   });
 
   it('shows an empty field for a prompt without versions', async () => {
@@ -199,9 +270,13 @@ describe('prompt view', () => {
     renderRoute(promptPath, {
       mocks: [
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
-        buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
+        buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
         buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS, 1),
+        buildPromptLibraryMock(
+          [Q_AND_A_FOLDER],
+          [{ ...RECEPTIONIST_PROMPT, latestVersionNumber: RECEPTIONIST_SAVED_VERSION.number }],
+        ),
         buildSavePromptVersionMock(
           RECEPTIONIST_PROMPT,
           RECEPTIONIST_SAVED_VERSION,
@@ -243,6 +318,14 @@ describe('prompt view', () => {
     ).closest('li');
     expect(savedRow).toHaveAttribute('aria-current', 'true');
     expect(within(panel).getByText(note)).toBeInTheDocument();
+    expect(
+      await within(screen.getByRole('navigation', { name: 'Prompts' })).findByRole('link', {
+        name: promptLinkName({
+          ...RECEPTIONIST_PROMPT,
+          latestVersionNumber: RECEPTIONIST_SAVED_VERSION.number,
+        }),
+      }),
+    ).toBeInTheDocument();
   });
 
   it('discards the draft', async () => {
@@ -317,7 +400,9 @@ describe('prompt view', () => {
     ).toBeInTheDocument();
     const section = screen.getByRole('navigation', { name: 'Prompts' });
     await waitFor(() =>
-      expect(within(section).queryByRole('link', { name: RECEPTIONIST_PROMPT.name })).toBeNull(),
+      expect(
+        within(section).queryByRole('link', { name: promptLinkName(RECEPTIONIST_PROMPT) }),
+      ).toBeNull(),
     );
   });
 
@@ -432,23 +517,25 @@ describe('prompt view', () => {
     });
 
     const section = await screen.findByRole('navigation', { name: 'Prompts' });
-    await within(section).findByRole('link', { name: RECEPTIONIST_PROMPT.name });
+    await within(section).findByRole('link', { name: promptLinkName(RECEPTIONIST_PROMPT) });
     await userEvent.type(
       within(section).getByRole('searchbox', { name: 'Search prompts' }),
       'guard',
     );
 
     await waitFor(() =>
-      expect(within(section).queryByRole('link', { name: RECEPTIONIST_PROMPT.name })).toBeNull(),
+      expect(
+        within(section).queryByRole('link', { name: promptLinkName(RECEPTIONIST_PROMPT) }),
+      ).toBeNull(),
     );
     expect(
-      within(section).getByRole('link', { name: CONVERSATION_GUARD_PROMPT.name }),
+      within(section).getByRole('link', { name: promptLinkName(CONVERSATION_GUARD_PROMPT) }),
     ).toBeInTheDocument();
     expect(within(section).queryByRole('button', { name: Q_AND_A_FOLDER.name })).toBeNull();
 
     await userEvent.click(within(section).getByRole('button', { name: 'Clear search' }));
     expect(
-      await within(section).findByRole('link', { name: RECEPTIONIST_PROMPT.name }),
+      await within(section).findByRole('link', { name: promptLinkName(RECEPTIONIST_PROMPT) }),
     ).toBeInTheDocument();
     expect(within(section).getByRole('button', { name: Q_AND_A_FOLDER.name })).toBeInTheDocument();
   });
@@ -482,7 +569,7 @@ describe('prompt view', () => {
     await userEvent.click(await within(section).findByRole('button', { name: GUARDS_FOLDER.name }));
     await waitFor(() =>
       expect(
-        within(section).queryByRole('link', { name: CONVERSATION_GUARD_PROMPT.name }),
+        within(section).queryByRole('link', { name: promptLinkName(CONVERSATION_GUARD_PROMPT) }),
       ).toBeNull(),
     );
 
@@ -492,7 +579,7 @@ describe('prompt view', () => {
     );
 
     expect(
-      await within(section).findByRole('link', { name: CONVERSATION_GUARD_PROMPT.name }),
+      await within(section).findByRole('link', { name: promptLinkName(CONVERSATION_GUARD_PROMPT) }),
     ).toBeInTheDocument();
   });
 });
