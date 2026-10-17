@@ -16,3 +16,5 @@ export const PROMPT_DIFF_SIGN: Readonly<Record<PromptDiffLineKind, string>> = {
 };
 
 export const PROMPT_DIFF_BLANK_LINE = '\u00A0';
+
+export const PROMPT_COMPARE_ARROW_SIZE = 12;
