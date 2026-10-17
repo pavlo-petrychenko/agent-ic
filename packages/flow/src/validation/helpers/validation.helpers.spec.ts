@@ -68,7 +68,15 @@ const guard = (key: string) => {
   return node;
 };
 
-const failingFlows: Record<FlowIssueCode, () => unknown> = {
+const REFERENCE_CHECKER_CODES = [FlowIssueCode.MissingPromptVersion] as const;
+type ValidationIssueCode = Exclude<FlowIssueCode, (typeof REFERENCE_CHECKER_CODES)[number]>;
+
+const validationCodes = Object.values(FlowIssueCode).filter(
+  (code): code is ValidationIssueCode =>
+    !REFERENCE_CHECKER_CODES.some((checkerCode) => checkerCode === code),
+);
+
+const failingFlows: Record<ValidationIssueCode, () => unknown> = {
   [FlowIssueCode.UnsupportedVersion]: () => ({
     ...cleanFlow(),
     schemaVersion: FLOW_SCHEMA_VERSION + 1,
@@ -239,7 +247,7 @@ describe('validateFlow', () => {
     ]);
   });
 
-  it.each(Object.values(FlowIssueCode))('reports %s', (code) => {
+  it.each(validationCodes)('reports %s', (code) => {
     expect(codes(failingFlows[code]())).toContain(code);
   });
 

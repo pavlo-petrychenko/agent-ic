@@ -165,6 +165,7 @@ export type {
   VariableResolver,
 } from '@flow/templates/typedefs/template.typedefs';
 export { FlowIssueCode, FlowIssueSeverity } from '@flow/validation/constants/issue.constants';
+export { createIssue } from '@flow/validation/helpers/issue.helpers';
 export { hasBlockingIssues, validateFlow } from '@flow/validation/helpers/validation.helpers';
 export type { FlowIssue, FlowIssueParams } from '@flow/validation/typedefs/validation.typedefs';
 export {

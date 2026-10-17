@@ -1,3 +1,4 @@
+import { FLOW_REFERENCE_CHECKER } from '@/modules/agents';
 import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
 import { PromptVersionsRepository } from '@/modules/prompts/repositories/prompt-versions.repository';
 import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
@@ -12,6 +13,7 @@ import { PromptsResolver } from '@/modules/prompts/resolvers/prompts.resolver';
 import { RenamePromptFolderResolver } from '@/modules/prompts/resolvers/rename-prompt-folder.resolver';
 import { RenamePromptResolver } from '@/modules/prompts/resolvers/rename-prompt.resolver';
 import { SavePromptVersionResolver } from '@/modules/prompts/resolvers/save-prompt-version.resolver';
+import { PromptFlowReferenceChecker } from '@/modules/prompts/services/prompt-flow-reference-checker.service';
 import { PromptFolderViewsService } from '@/modules/prompts/services/prompt-folder-views.service';
 import { PromptResolverService } from '@/modules/prompts/services/prompt-resolver.service';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
@@ -36,6 +38,11 @@ export class PromptsModule extends defineModule({
     PromptsRepository,
     PromptFoldersRepository,
     PromptVersionsRepository,
+    PromptFlowReferenceChecker,
+    {
+      provide: FLOW_REFERENCE_CHECKER,
+      useExisting: PromptFlowReferenceChecker,
+    },
     PromptFolderViewsService,
     PromptResolverService,
     PromptViewsService,
