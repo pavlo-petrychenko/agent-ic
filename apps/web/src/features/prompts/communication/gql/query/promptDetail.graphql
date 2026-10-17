@@ -4,6 +4,7 @@ query PromptDetail($id: ID!) {
       id
       name
       folderId
+      updatedAt
     }
     latestVersion {
       id

@@ -1,5 +1,5 @@
 import { can, PermissionAction, PermissionResource } from '@agent-ic/contracts';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePromptDetail } from '@/features/prompts/communication/hooks/usePromptDetail';
 import { usePromptLibrary } from '@/features/prompts/communication/hooks/usePromptLibrary';
@@ -13,6 +13,7 @@ import { SavePromptVersionDialog } from '@/features/prompts/containers/SavePromp
 import { nextPromptVersionNumber } from '@/features/prompts/logic/helpers/promptDraft.helpers';
 import { findFolderName } from '@/features/prompts/logic/helpers/promptFolder.helpers';
 import { formatPromptVersionDate } from '@/features/prompts/logic/helpers/promptVersion.helpers';
+import { storeLastOpenedPromptId } from '@/features/prompts/storage/helpers/promptLastOpenedStorage.helpers';
 import { usePromptDraftsStore } from '@/features/prompts/storage/hooks/usePromptDraftsStore';
 import { DiscardPromptDraftModal } from '@/features/prompts/view/DiscardPromptDraftModal';
 import { PromptDraftEditor } from '@/features/prompts/view/PromptDraftEditor';
@@ -38,6 +39,11 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const options = usePromptOptions();
   const [saving, setSaving] = useState(false);
   const [discarding, setDiscarding] = useState(false);
+
+  useEffect(() => {
+    storeLastOpenedPromptId(workspaceId, promptId);
+  }, [workspaceId, promptId]);
+
   const editing = draft !== null;
   const canEdit =
     active !== null && can(active.role, PermissionResource.Prompts, PermissionAction.Edit);

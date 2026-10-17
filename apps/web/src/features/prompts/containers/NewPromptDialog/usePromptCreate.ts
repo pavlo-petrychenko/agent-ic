@@ -61,14 +61,14 @@ export function usePromptCreate(folders: readonly PromptFolderListItem[]): UsePr
   );
 
   const submit = useCallback(
-    async (values: PromptFormValues): Promise<boolean> => {
+    async (values: PromptFormValues): Promise<string | null> => {
       clearField(PromptFormField.Name);
       clearField(PromptFormField.Folder);
       const folderId = await createFolder(values.folder);
       if (folderId === null) {
-        return false;
+        return null;
       }
-      return (await create(values.name.trim(), folderId)) !== null;
+      return create(values.name.trim(), folderId);
     },
     [clearField, createFolder, create],
   );
