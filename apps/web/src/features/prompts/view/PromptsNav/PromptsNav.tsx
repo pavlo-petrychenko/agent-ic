@@ -34,10 +34,10 @@ export function PromptsNav({ groups, loading, onCreate, onOpenChange }: PromptsN
         <div className={styles.tree}>
           {groups.map((group) => (
             <TreeFolder
-              key={group.folder.id}
-              label={group.folder.name}
+              key={group.id}
+              label={group.name}
               open={group.open}
-              onOpenChange={(open) => onOpenChange(group.folder.id, open)}
+              onOpenChange={(open) => onOpenChange(group.id, open)}
             >
               {group.prompts.map((prompt) => (
                 <span key={prompt.id} className={styles.prompt}>

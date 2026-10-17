@@ -1,12 +1,6 @@
-import type { PromptListItem } from '@/features/prompts/typedefs/prompt.typedefs';
-import type { PromptFolderListItem } from '@/features/prompts/typedefs/promptFolder.typedefs';
+import type { PromptFolderWithPrompts } from '@/features/prompts/typedefs/prompt.typedefs';
 
-export interface PromptGroup {
-  readonly folder: PromptFolderListItem;
-  readonly prompts: readonly PromptListItem[];
-}
-
-export interface PromptTreeGroup extends PromptGroup {
+export interface PromptTreeGroup extends PromptFolderWithPrompts {
   readonly open: boolean;
 }
 
