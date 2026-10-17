@@ -1,0 +1,18 @@
+mutation SavePromptVersion($input: SavePromptVersionInput!) {
+  savePromptVersion(input: $input) {
+    prompt {
+      id
+      name
+      folderId
+    }
+    latestVersion {
+      id
+      number
+      text
+      createdAt
+      author {
+        name
+      }
+    }
+  }
+}

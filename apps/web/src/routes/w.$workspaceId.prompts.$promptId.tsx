@@ -6,6 +6,6 @@ export const Route = createFileRoute('/w/$workspaceId/prompts/$promptId')({
 });
 
 function PromptRoute() {
-  const { promptId } = Route.useParams();
-  return <PromptPage promptId={promptId} />;
+  const { workspaceId, promptId } = Route.useParams();
+  return <PromptPage key={promptId} workspaceId={workspaceId} promptId={promptId} />;
 }
