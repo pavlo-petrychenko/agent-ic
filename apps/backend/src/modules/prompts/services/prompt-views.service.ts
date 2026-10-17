@@ -29,13 +29,17 @@ export class PromptViewsService {
       id: this.ids.toPublic(IdPrefix.Prompt, prompt.id),
       name: prompt.name,
       folderId: this.ids.toPublic(IdPrefix.PromptFolder, prompt.folderId),
+      latestVersionNumber: null,
       createdAt: prompt.createdAt,
       updatedAt: prompt.updatedAt,
     };
   }
 
-  promptViews(prompts: readonly Prompt[]): PromptView[] {
-    return prompts.map((prompt) => this.promptView(prompt));
+  promptViews(prompts: readonly Prompt[], lastNumbers: ReadonlyMap<string, number>): PromptView[] {
+    return prompts.map((prompt) => ({
+      ...this.promptView(prompt),
+      latestVersionNumber: lastNumbers.get(prompt.id) ?? null,
+    }));
   }
 
   async promptDetailView(

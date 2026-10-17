@@ -7,10 +7,15 @@ import { Dialog, DialogSize } from '@/shared/ui/overlays/Dialog';
 export function DiscardPromptDraftModal({
   versionNumber,
   baseVersionNumber,
+  latestVersionNumber,
   onDiscard,
   onClose,
 }: DiscardPromptDraftModalProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
+  const restored =
+    baseVersionNumber !== null &&
+    latestVersionNumber !== null &&
+    baseVersionNumber !== latestVersionNumber;
 
   return (
     <Dialog
@@ -24,7 +29,12 @@ export function DiscardPromptDraftModal({
       description={
         baseVersionNumber === null
           ? t('draft.discardNewDescription')
-          : t('draft.discardDescription', { base: baseVersionNumber })
+          : restored
+            ? t('draft.discardRestoredDescription', {
+                base: baseVersionNumber,
+                latest: latestVersionNumber,
+              })
+            : t('draft.discardDescription', { base: baseVersionNumber })
       }
       closeLabel={t('dialog.close')}
       size={DialogSize.Sm}

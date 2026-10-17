@@ -10,6 +10,7 @@ export interface PromptFixture {
   readonly id: string;
   readonly name: string;
   readonly folderId: string;
+  readonly latestVersionNumber: number | null;
   readonly updatedAt: string;
 }
 
@@ -21,6 +22,7 @@ export const RECEPTIONIST_PROMPT: PromptFixture = {
   id: 'prm_receptionist',
   name: 'Receptionist',
   folderId: Q_AND_A_FOLDER.id,
+  latestVersionNumber: 4,
   updatedAt: '2026-10-16T09:00:00.000Z',
 };
 
@@ -28,6 +30,7 @@ export const GIFT_CARD_PROMPT: PromptFixture = {
   id: 'prm_gift_card',
   name: 'Gift card answers',
   folderId: Q_AND_A_FOLDER.id,
+  latestVersionNumber: 2,
   updatedAt: '2026-10-16T11:30:00.000Z',
 };
 
@@ -35,6 +38,7 @@ export const CONVERSATION_GUARD_PROMPT: PromptFixture = {
   id: 'prm_conversation_guard',
   name: 'Conversation guard',
   folderId: GUARDS_FOLDER.id,
+  latestVersionNumber: 3,
   updatedAt: '2026-10-10T10:00:00.000Z',
 };
 
@@ -56,6 +60,7 @@ export const buildPromptLibraryMock = (
         id: prompt.id,
         name: prompt.name,
         folderId: prompt.folderId,
+        latestVersionNumber: prompt.latestVersionNumber,
         updatedAt: prompt.updatedAt,
       })),
     },
