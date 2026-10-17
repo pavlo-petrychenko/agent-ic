@@ -9,7 +9,10 @@ import {
   NEW_FOLDER_ID,
   NEW_PROMPT_ID,
 } from '@/features/prompts/communication/fixtures/promptCreate.fixture';
-import { buildPromptDetailMock } from '@/features/prompts/communication/fixtures/promptDetail.fixture';
+import {
+  buildPromptDetailMock,
+  buildPromptVersionsMock,
+} from '@/features/prompts/communication/fixtures/promptDetail.fixture';
 import {
   buildDeletePromptFolderMock,
   buildRenamePromptFolderConflictMock,
@@ -88,6 +91,7 @@ describe('prompts page', () => {
           [RECEPTIONIST_PROMPT, CONVERSATION_GUARD_PROMPT],
         ),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, null),
+        buildPromptVersionsMock(RECEPTIONIST_PROMPT, []),
       ],
     });
 
@@ -105,6 +109,7 @@ describe('prompts page', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT, GIFT_CARD_PROMPT]),
         buildPromptDetailMock(GIFT_CARD_PROMPT, null),
+        buildPromptVersionsMock(GIFT_CARD_PROMPT, []),
       ],
     });
 
@@ -122,6 +127,7 @@ describe('prompts page', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT, GIFT_CARD_PROMPT]),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, null),
+        buildPromptVersionsMock(RECEPTIONIST_PROMPT, []),
       ],
     });
 
@@ -158,6 +164,7 @@ describe('prompts page', () => {
         buildCreatePromptFolderMock(NEW_FOLDER_NAME),
         buildCreatePromptMock(NEW_PROMPT_NAME, NEW_FOLDER_ID),
         buildPromptDetailMock(NEW_PROMPT, null),
+        buildPromptVersionsMock(NEW_PROMPT, []),
       ],
     });
 
@@ -186,6 +193,7 @@ describe('prompts page', () => {
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
         buildCreatePromptConflictMock(RECEPTIONIST_PROMPT.name, Q_AND_A_FOLDER.id),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, null),
+        buildPromptVersionsMock(RECEPTIONIST_PROMPT, []),
       ],
     });
 
@@ -216,6 +224,7 @@ describe('prompts page', () => {
         ),
         buildRenamePromptFolderMock(Q_AND_A_FOLDER.id, RENAMED_FOLDER_NAME),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, null),
+        buildPromptVersionsMock(RECEPTIONIST_PROMPT, []),
       ],
     });
 

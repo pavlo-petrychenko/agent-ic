@@ -1,0 +1,8 @@
+query PromptVersions($promptId: ID!) {
+  promptVersions(promptId: $promptId) {
+    id
+    number
+    note
+    createdAt
+  }
+}
