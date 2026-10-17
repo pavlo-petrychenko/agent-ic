@@ -315,7 +315,7 @@ Design still to draw (ask the designer or accept the proposals)
 
 Drawn sources that disagree (OPEN; each spec uses the stated proposal)
 11. **Dialog spacing**: DS-States draws header and body 16 20, footer 12 20, close ghost sm 28 and title tracking -0.01em; DS-Navigation draws 18 22 / 14 22, close md 34 and no tracking. Proposal: Navigation values.
-12. **PromptEditor font**: DS-States uses JetBrains Mono 13 at line-height 1.7; tokens.md uses sans `--type-body` at `--leading-relaxed` 1.45. Proposal: tokens.
+12. **PromptEditor font**. **Resolved:** JetBrains Mono 13 at `--leading-relaxed` 1.45 — mono from DS-States, leading from tokens.
 13. **Badge and Topbar dots**: every page, DS-States and DS-Patterns included, draws the dot in the text colour (`--color-ok`, `--color-warn`); the written rule says dot tokens (`--color-ok-dot`, `--color-warn-dot`). Proposal: dot tokens.
 14. **Row and control heights against the 28 rule**: SegmentedControl and ThemeToggle draw about 31 (md, settings) and 25 (sm, menu); TreeFolder rows 30 (kept as `--size-row-sm`). Proposal: 28 and 22. (ZoomControl Fit 28 and PaletteItem rows `--size-row-sm` are decided with item 6.)
 15. **Button label weight**: the page CSS puts `font-weight: 600` before `font: inherit`, so every label (primary included, e.g. "Try again") renders at 400. Proposal: 600 for primary, secondary and danger.

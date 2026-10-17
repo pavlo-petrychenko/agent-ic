@@ -76,3 +76,11 @@ export const ReadOnly: Story = {
 };
 export const Disabled: Story = { args: { disabled: true } };
 export const AutoHeight: Story = { args: { height: null } };
+export const Fill: Story = {
+  args: { height: null, fill: true },
+  render: (args) => (
+    <div style={{ height: 320 }}>
+      <PromptEditor {...args} />
+    </div>
+  ),
+};
