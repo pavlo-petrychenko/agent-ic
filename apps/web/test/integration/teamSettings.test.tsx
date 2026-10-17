@@ -3,6 +3,8 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  buildAdminTeamMembersMock,
+  buildChangeMemberRoleMock,
   buildInviteLinkMock,
   buildRemoveMemberMock,
   buildResetInviteLinkMock,
@@ -131,6 +133,60 @@ describe('team settings', () => {
     expect(
       await screen.findByRole('heading', { name: 'Leave workspace - Demo salon' }),
     ).toBeInTheDocument();
+  });
+
+  it('changes a member role from the row select as the owner', async () => {
+    const user = userEvent.setup();
+    renderRoute(`${settingsPath}/team`, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildInviteLinkMock(),
+        buildTeamMembersMock(),
+        buildChangeMemberRoleMock('mem_2', 'admin'),
+      ],
+    });
+
+    const owner = await screen.findByRole('row', { name: /Pavlo/ });
+    expect(within(owner).queryByRole('combobox')).not.toBeInTheDocument();
+    expect(within(owner).getByText('Owner')).toBeInTheDocument();
+
+    const yulia = await screen.findByRole('row', { name: /Yulia/ });
+    const select = within(yulia).getByRole('combobox', { name: 'Role for Yulia' });
+    expect(
+      within(select)
+        .getAllByRole('option')
+        .map((option) => option.textContent),
+    ).toEqual(['Admin', 'Builder', 'Operator']);
+
+    await user.selectOptions(select, 'admin');
+
+    expect(await screen.findByText('Yulia is now Admin')).toBeInTheDocument();
+  });
+
+  it('keeps the owner and admin roles static for an admin', async () => {
+    renderRoute(`${settingsPath}/team`, {
+      mocks: [
+        buildWorkspaceShellMock([ADMIN_WORKSPACE], {
+          id: 'usr_2',
+          name: 'Yulia',
+          email: 'yulia@demo-salon.example',
+          locale: Locale.En,
+        }),
+        buildInviteLinkMock(),
+        buildAdminTeamMembersMock(),
+      ],
+    });
+
+    const owner = await screen.findByRole('row', { name: /Pavlo/ });
+    expect(within(owner).queryByRole('combobox')).not.toBeInTheDocument();
+    expect(within(owner).getByText('Owner')).toBeInTheDocument();
+
+    const admin = await screen.findByRole('row', { name: /Yulia/ });
+    expect(within(admin).queryByRole('combobox')).not.toBeInTheDocument();
+    expect(within(admin).getByText('Admin')).toBeInTheDocument();
+
+    const builder = await screen.findByRole('row', { name: /Taras/ });
+    expect(within(builder).getByRole('combobox', { name: 'Role for Taras' })).toBeInTheDocument();
   });
 
   it('keeps Team away from an operator', async () => {

@@ -38,6 +38,8 @@
       "never": "Ще не було",
       "actions": "Дії",
       "moreActions": "Більше дій для {{name}}",
+      "changeRole": "Роль для {{name}}",
+      "roleChanged": "{{name}} тепер {{role}}",
       "remove": {
         "dialog": {
           "title": "Видалити {{name}} з {{workspace}}?",

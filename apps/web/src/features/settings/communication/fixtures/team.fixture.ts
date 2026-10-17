@@ -1,4 +1,5 @@
 import type { MockLink } from '@apollo/client/testing';
+import { ChangeMemberRoleDocument } from '@/features/settings/communication/gql/mutation/changeMemberRole.generated';
 import { RemoveMemberDocument } from '@/features/settings/communication/gql/mutation/removeMember.generated';
 import { ResetInviteLinkDocument } from '@/features/settings/communication/gql/mutation/resetInviteLink.generated';
 import { InviteLinkDocument } from '@/features/settings/communication/gql/query/inviteLink.generated';
@@ -36,41 +37,92 @@ export const buildRemoveMemberMock = (membershipId: string): MockLink.MockedResp
   result: { data: { success: true } },
 });
 
-export const buildTeamMembersMock = (): MockLink.MockedResponse => ({
+export const buildChangeMemberRoleMock = (
+  membershipId: string,
+  role: string,
+): MockLink.MockedResponse => ({
+  request: { query: ChangeMemberRoleDocument, variables: { input: { membershipId, role } } },
+  result: {
+    data: {
+      changeMemberRole: {
+        __typename: 'Membership',
+        role,
+        workspace: { __typename: 'Workspace', id: 'ws_demo' },
+      },
+    },
+  },
+});
+
+interface MemberFixture {
+  readonly id: string;
+  readonly userId: string;
+  readonly name: string;
+  readonly email: string;
+  readonly role: string;
+  readonly lastActiveAt: string | null;
+}
+
+const buildTeamMembersResponse = (members: readonly MemberFixture[]): MockLink.MockedResponse => ({
   request: { query: TeamMembersDocument, variables: { first: MEMBERS_PAGE_SIZE } },
   maxUsageCount: Number.POSITIVE_INFINITY,
   result: {
     data: {
       members: {
         __typename: 'MemberConnection',
-        totalCount: 2,
-        edges: [
-          {
-            __typename: 'MemberEdge',
-            node: {
-              __typename: 'Member',
-              id: 'mem_1',
-              userId: 'usr_1',
-              name: 'Pavlo',
-              email: 'owner@demo-salon.example',
-              role: 'owner',
-              lastActiveAt: '2026-10-04T09:40:00.000Z',
-            },
-          },
-          {
-            __typename: 'MemberEdge',
-            node: {
-              __typename: 'Member',
-              id: 'mem_2',
-              userId: 'usr_2',
-              name: 'Yulia',
-              email: 'yulia@demo-salon.example',
-              role: 'operator',
-              lastActiveAt: null,
-            },
-          },
-        ],
+        totalCount: members.length,
+        edges: members.map((member) => ({
+          __typename: 'MemberEdge',
+          node: { __typename: 'Member', ...member },
+        })),
       },
     },
   },
 });
+
+export const buildTeamMembersMock = (): MockLink.MockedResponse =>
+  buildTeamMembersResponse([
+    {
+      id: 'mem_1',
+      userId: 'usr_1',
+      name: 'Pavlo',
+      email: 'owner@demo-salon.example',
+      role: 'owner',
+      lastActiveAt: '2026-10-04T09:40:00.000Z',
+    },
+    {
+      id: 'mem_2',
+      userId: 'usr_2',
+      name: 'Yulia',
+      email: 'yulia@demo-salon.example',
+      role: 'operator',
+      lastActiveAt: null,
+    },
+  ]);
+
+export const buildAdminTeamMembersMock = (): MockLink.MockedResponse =>
+  buildTeamMembersResponse([
+    {
+      id: 'mem_1',
+      userId: 'usr_1',
+      name: 'Pavlo',
+      email: 'owner@demo-salon.example',
+      role: 'owner',
+      lastActiveAt: '2026-10-04T09:40:00.000Z',
+    },
+    {
+      id: 'mem_2',
+      userId: 'usr_2',
+      name: 'Yulia',
+      email: 'yulia@demo-salon.example',
+      role: 'admin',
+      lastActiveAt: '2026-10-04T09:41:00.000Z',
+    },
+    {
+      id: 'mem_3',
+      userId: 'usr_3',
+      name: 'Taras',
+      email: 'taras@demo-salon.example',
+      role: 'builder',
+      lastActiveAt: null,
+    },
+  ]);

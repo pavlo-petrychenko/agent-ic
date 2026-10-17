@@ -1,0 +1,8 @@
+mutation ChangeMemberRole($input: ChangeMemberRoleInput!) {
+  changeMemberRole(input: $input) {
+    role
+    workspace {
+      id
+    }
+  }
+}

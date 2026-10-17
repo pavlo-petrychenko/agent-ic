@@ -81,5 +81,7 @@ export enum ErrorReason {
   SamePassword = 'SAME_PASSWORD',
   CannotDeleteOwner = 'CANNOT_DELETE_OWNER',
   CannotDeleteYourself = 'CANNOT_DELETE_YOURSELF',
+  CannotChangeOwnerRole = 'CANNOT_CHANGE_OWNER_ROLE',
+  CannotChangeAdminRole = 'CANNOT_CHANGE_ADMIN_ROLE',
   WrongPassword = 'WRONG_PASSWORD',
 }

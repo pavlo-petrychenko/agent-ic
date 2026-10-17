@@ -11,6 +11,7 @@ import type {
 import { AcceptInviteUseCase } from '@/modules/identity/use-cases/accept-invite.use-case';
 import { CreateWorkspaceUseCase } from '@/modules/identity/use-cases/create-workspace.use-case';
 import { GetInviteLinkUseCase } from '@/modules/identity/use-cases/get-invite-link.use-case';
+import { UpdateInviteLinkRoleUseCase } from '@/modules/identity/use-cases/update-invite-link-role.use-case';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -79,6 +80,15 @@ export const addMember = async (
   const member = await createConfirmedAccount(testbed);
   await joinWorkspace(testbed, member.userId, await inviteTokenOf(testbed, workspace));
   return member.userId;
+};
+
+export const addMemberWithRole = async (
+  testbed: IdentityTestbed,
+  workspace: TestWorkspace,
+  role: WorkspaceRole,
+): Promise<string> => {
+  await testbed.module.get(UpdateInviteLinkRoleUseCase).execute(ownerCtx(workspace), { role });
+  return addMember(testbed, workspace);
 };
 
 export const readMemberships = (
