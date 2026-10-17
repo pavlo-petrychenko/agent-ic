@@ -59,3 +59,8 @@ export type WorkspaceDeletedInput = {
 export interface RemoveMemberInput {
   readonly membershipId: string;
 }
+
+export interface ChangeMemberRoleInput {
+  readonly membershipId: string;
+  readonly role: WorkspaceRole;
+}

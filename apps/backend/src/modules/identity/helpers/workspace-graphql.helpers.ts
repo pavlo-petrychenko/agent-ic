@@ -5,8 +5,12 @@ import type {
   UpdateInviteLinkRoleInput,
 } from '@/modules/identity/typedefs/invite-link.typedefs';
 import type { MembersPage, RoleMemberCount } from '@/modules/identity/typedefs/membership.typedefs';
-import type { WorkspaceMembership } from '@/modules/identity/typedefs/workspace.typedefs';
 import type {
+  ChangeMemberRoleInput,
+  WorkspaceMembership,
+} from '@/modules/identity/typedefs/workspace.typedefs';
+import type {
+  ChangeMemberRoleInput as ChangeMemberRoleArgs,
   InviteInfo as GraphqlInviteInfo,
   InviteLink as GraphqlInviteLink,
   MemberConnection,
@@ -70,6 +74,11 @@ export const toGraphqlMemberConnection = (page: MembersPage): MemberConnection =
       joinedAt: edge.node.joinedAt.toISOString(),
     },
   })),
+});
+
+export const toChangeMemberRoleInput = (args: ChangeMemberRoleArgs): ChangeMemberRoleInput => ({
+  membershipId: args.membershipId,
+  role: WORKSPACE_ROLE_FROM_GRAPHQL[args.role],
 });
 
 export const toUpdateInviteLinkRoleInput = (
