@@ -2,6 +2,10 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  buildDeletePromptMock,
+  buildRenamePromptMock,
+} from '@/features/prompts/communication/fixtures/promptActions.fixture';
+import {
   buildPromptDetailMock,
   buildSavePromptVersionMock,
   RECEPTIONIST_SAVED_VERSION,
@@ -205,5 +209,62 @@ describe('prompt view', () => {
     await waitFor(() => expect(readPromptDraft(RECEPTIONIST_PROMPT.id)).toBeNull());
     expect(screen.getByText('Read-only — Edit creates a draft')).toBeInTheDocument();
     expect(screen.queryByText(`Editing v${RECEPTIONIST_VERSION.number + 1} draft`)).toBeNull();
+  });
+
+  it('renames the prompt from the actions menu', async () => {
+    const renamed = { ...RECEPTIONIST_PROMPT, name: 'Receptionist Q&A' };
+    renderRoute(promptPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
+        buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
+        buildRenamePromptMock(RECEPTIONIST_PROMPT, renamed.name),
+        buildPromptLibraryMock([Q_AND_A_FOLDER], [renamed], 1),
+        buildPromptDetailMock(renamed, RECEPTIONIST_VERSION, 1),
+      ],
+    });
+
+    await screen.findByRole('heading', { name: RECEPTIONIST_PROMPT.name });
+    await userEvent.click(await screen.findByRole('button', { name: 'Prompt actions' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Rename' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Rename prompt' });
+    const field = within(dialog).getByRole('textbox', { name: 'Name' });
+    await userEvent.clear(field);
+    await userEvent.type(field, renamed.name);
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Rename' }));
+
+    expect(await screen.findByRole('heading', { name: renamed.name })).toBeInTheDocument();
+    expect(await screen.findByText(`Prompt “${renamed.name}” renamed`)).toBeInTheDocument();
+  });
+
+  it('deletes the prompt from the actions menu', async () => {
+    const { router } = renderRoute(promptPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
+        buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION),
+        buildDeletePromptMock(RECEPTIONIST_PROMPT),
+        buildPromptLibraryMock([Q_AND_A_FOLDER], [], 1),
+      ],
+    });
+
+    await screen.findByRole('heading', { name: RECEPTIONIST_PROMPT.name });
+    await userEvent.click(await screen.findByRole('button', { name: 'Prompt actions' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete prompt' }));
+
+    const dialog = await screen.findByRole('dialog', {
+      name: `Delete “${RECEPTIONIST_PROMPT.name}”?`,
+    });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete prompt' }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe(promptsPath));
+    expect(
+      await screen.findByText(`Prompt “${RECEPTIONIST_PROMPT.name}” deleted`),
+    ).toBeInTheDocument();
+    const section = screen.getByRole('navigation', { name: 'Prompts' });
+    await waitFor(() =>
+      expect(within(section).queryByRole('link', { name: RECEPTIONIST_PROMPT.name })).toBeNull(),
+    );
   });
 });

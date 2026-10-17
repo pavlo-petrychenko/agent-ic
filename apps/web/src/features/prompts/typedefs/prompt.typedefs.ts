@@ -85,6 +85,21 @@ export interface UseDeletePromptFolderResult {
   readonly deleting: boolean;
 }
 
+export interface RenamePromptValues {
+  readonly id: string;
+  readonly name: string;
+}
+
+export interface UseRenamePromptResult {
+  readonly renamePrompt: (values: RenamePromptValues) => Promise<string | null>;
+  readonly renaming: boolean;
+}
+
+export interface UseDeletePromptResult {
+  readonly deletePrompt: (id: string) => Promise<void>;
+  readonly deleting: boolean;
+}
+
 export interface UsePromptFormErrorsResult {
   readonly fieldErrors: Readonly<Record<string, string>>;
   readonly formError: string | null;
