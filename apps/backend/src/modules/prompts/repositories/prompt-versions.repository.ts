@@ -43,6 +43,24 @@ export class PromptVersionsRepository {
     return version ?? null;
   }
 
+  async findByNumber(
+    workspaceId: string,
+    promptId: string,
+    number: number,
+  ): Promise<PromptVersion | null> {
+    const [version] = await this.txHost.tx
+      .select()
+      .from(promptVersions)
+      .where(
+        and(
+          this.activeWhere(workspaceId),
+          eq(promptVersions.promptId, promptId),
+          eq(promptVersions.number, number),
+        ),
+      );
+    return version ?? null;
+  }
+
   async lastNumber(workspaceId: string, promptId: string): Promise<number> {
     const [row] = await this.txHost.tx
       .select({ last: max(promptVersions.number) })

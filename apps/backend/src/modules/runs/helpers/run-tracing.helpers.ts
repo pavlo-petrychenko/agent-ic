@@ -1,4 +1,5 @@
 import type { FlowNode } from '@agent-ic/flow';
+import type { ResolvedPrompts } from '@/modules/prompts';
 import {
   RUN_TRACE_NAME,
   RunStepTraceMetadata,
@@ -13,6 +14,16 @@ export const runTraceTags = (run: Run): LlmTags => ({
   agentVersionId: run.versionId,
   runId: run.id,
 });
+
+export const stepPromptTags = (
+  nodeId: string,
+  prompts: ResolvedPrompts,
+): Partial<Pick<LlmTags, 'promptId' | 'promptVersion'>> => {
+  const resolved = prompts.get(nodeId);
+  return resolved === undefined
+    ? {}
+    : { promptId: resolved.promptRef, promptVersion: resolved.versionNumber };
+};
 
 export const stepTraceMetadata = (
   node: FlowNode,

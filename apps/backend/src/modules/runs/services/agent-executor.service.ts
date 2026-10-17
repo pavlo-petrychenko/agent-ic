@@ -12,7 +12,7 @@ import {
   stepModel,
   stepSystemPrompt,
 } from '@/modules/runs/helpers/llm-step.helpers';
-import { runTraceTags } from '@/modules/runs/helpers/run-tracing.helpers';
+import { runTraceTags, stepPromptTags } from '@/modules/runs/helpers/run-tracing.helpers';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 import type {
   StepExecution,
@@ -36,7 +36,7 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
       ...stepModel(id, config.model, AGENT_PURPOSE, run.workspaceId),
       purpose: AGENT_PURPOSE,
       ...stepConversation(
-        stepSystemPrompt(id, config.prompt, scope.variables),
+        stepSystemPrompt(id, config.prompt, scope.variables, scope.prompts),
         scope.history,
         AGENT_INCLUDES_CURRENT_MESSAGE,
       ),
@@ -44,7 +44,7 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
       ...(config.reasoning === null ? {} : { reasoning: config.reasoning }),
       tools: AGENT_TOOLS,
       maxToolRounds: AGENT_MAX_TOOL_ROUNDS,
-      tags: runTraceTags(run),
+      tags: { ...runTraceTags(run), ...stepPromptTags(id, scope.prompts) },
     };
     const { output } = await this.answer(request, config.retries);
     return { port: PortName.Next, output };
