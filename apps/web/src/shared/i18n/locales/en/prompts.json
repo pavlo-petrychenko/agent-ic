@@ -129,6 +129,13 @@
     "submit": "Save v{{number}}",
     "failed": "The version could not be saved."
   },
+  "versions": {
+    "title": "Versions",
+    "panelLabel": "Prompt details",
+    "number": "v{{number}}",
+    "empty": "No versions yet. Saving creates v1.",
+    "loadError": "The versions couldn’t be loaded."
+  },
   "loadError": "The prompts couldn’t be opened.",
   "retry": "Try again"
 }
