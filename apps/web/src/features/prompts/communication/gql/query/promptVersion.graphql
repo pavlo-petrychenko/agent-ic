@@ -3,6 +3,7 @@ query PromptVersion($id: ID!) {
     id
     number
     text
+    note
     createdAt
     author {
       name

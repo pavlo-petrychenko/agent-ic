@@ -19,6 +19,7 @@ export const toPromptDetail = (data: PromptDetailQuery): PromptDetail => {
             id: latestVersion.id,
             number: latestVersion.number,
             text: latestVersion.text,
+            note: latestVersion.note,
             savedAt: latestVersion.createdAt,
             author: latestVersion.author?.name ?? null,
           },

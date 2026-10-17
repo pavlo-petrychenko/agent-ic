@@ -32,3 +32,14 @@ export interface UsePromptVersionViewResult {
   readonly select: (versionId: string) => void;
   readonly clearSelection: () => void;
 }
+
+export interface UsePromptCompareResult {
+  readonly open: boolean;
+  readonly begin: (fromId: string, toId: string) => void;
+  readonly close: () => void;
+  readonly from: PromptVersion | null;
+  readonly to: PromptVersion | null;
+  readonly loading: boolean;
+  readonly failed: boolean;
+  readonly retry: () => Promise<void>;
+}

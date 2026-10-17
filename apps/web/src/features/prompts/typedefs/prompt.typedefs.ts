@@ -17,6 +17,7 @@ export interface PromptVersion {
   readonly id: string;
   readonly number: number;
   readonly text: string;
+  readonly note: string | null;
   readonly savedAt: string;
   readonly author: string | null;
 }

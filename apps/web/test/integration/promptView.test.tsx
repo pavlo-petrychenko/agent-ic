@@ -158,7 +158,7 @@ describe('prompt view', () => {
     ).toBeInTheDocument();
     expect(within(list).getByText('v3').closest('li')).toHaveAttribute('aria-current', 'true');
     expect(screen.getByRole('textbox', { name: 'Prompt text' })).toHaveTextContent(
-      'Answer only from the knowledge search results.',
+      '- If you don’t know, say “I don’t know”.',
     );
     expect(screen.queryByText(`v${RECEPTIONIST_VERSION.number} · latest`)).not.toBeInTheDocument();
 
@@ -198,7 +198,64 @@ describe('prompt view', () => {
     ).toBeInTheDocument();
     const field = screen.getByRole('textbox', { name: 'Prompt text' });
     expect(field).toHaveAttribute('contenteditable', 'true');
-    expect(field).toHaveTextContent('Answer only from the knowledge search results.');
+    expect(field).toHaveTextContent('- If you don’t know, say “I don’t know”.');
+  });
+
+  it('compares the latest and the previous versions from the section', async () => {
+    renderRoute(promptPath, {
+      mocks: [
+        ...promptMocks(),
+        buildPromptVersionMock(RECEPTIONIST_VERSION),
+        buildPromptVersionMock(RECEPTIONIST_PREVIOUS_VERSION),
+      ],
+    });
+
+    const panel = await screen.findByRole('complementary', { name: 'Prompt details' });
+    await userEvent.click(await within(panel).findByRole('button', { name: 'Compare' }));
+
+    expect(await screen.findByText('1 removed · 1 added')).toBeInTheDocument();
+    expect(screen.getByText('- If you don’t know, say “I don’t know”.')).toBeInTheDocument();
+    expect(screen.getByText('Answer only from the knowledge search results.')).toBeInTheDocument();
+    expect(screen.getByText('v3 · Sep 10 · Pavlo')).toBeInTheDocument();
+    expect(screen.getByText('v4 · Sep 17 · Pavlo')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: `Restore v${RECEPTIONIST_PREVIOUS_VERSION.number} as draft`,
+      }),
+    ).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Close compare' }));
+
+    expect(await screen.findByText(`v${RECEPTIONIST_VERSION.number} · latest`)).toBeInTheDocument();
+  });
+
+  it('compares the open version with the latest one', async () => {
+    renderRoute(promptPath, {
+      mocks: [
+        ...promptMocks(),
+        buildPromptVersionMock(RECEPTIONIST_PREVIOUS_VERSION),
+        buildPromptVersionMock(RECEPTIONIST_VERSION),
+      ],
+    });
+
+    const panel = await screen.findByRole('complementary', { name: 'Prompt details' });
+    const list = await within(panel).findByRole('list', { name: 'Versions' });
+    await userEvent.click(
+      await within(list).findByRole('button', {
+        name: `View v${RECEPTIONIST_PREVIOUS_VERSION.number}`,
+      }),
+    );
+    await userEvent.click(
+      await screen.findByRole('button', {
+        name: `Compare with v${RECEPTIONIST_VERSION.number}`,
+      }),
+    );
+
+    expect(await screen.findByText('1 removed · 1 added')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Close compare' }));
+
+    expect(await screen.findByText(/You’re viewing an older version/)).toBeInTheDocument();
   });
 
   it('shows an empty field for a prompt without versions', async () => {
