@@ -1,0 +1,5 @@
+mutation DeletePromptFolder($input: DeletePromptFolderInput!) {
+  deletePromptFolder(input: $input) {
+    id
+  }
+}

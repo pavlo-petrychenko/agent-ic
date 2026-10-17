@@ -13,10 +13,18 @@
     "title": "No prompts yet",
     "description": "Write a prompt once and use it in many steps. Versions let you change it safely."
   },
+  "dialog": {
+    "close": "Close",
+    "cancel": "Cancel"
+  },
+  "folderMenu": {
+    "label": "Folder actions",
+    "rename": "Rename",
+    "delete": "Delete"
+  },
   "newPrompt": {
     "title": "New prompt",
     "description": "You can use it in Agent and Completion steps",
-    "close": "Close",
     "nameLabel": "Name",
     "nameInvalid": "Enter a prompt name of up to {{count}} characters.",
     "nameTaken": "A prompt with this name already exists.",
@@ -29,10 +37,25 @@
     "folderSearchClear": "Clear folder search",
     "folderEmpty": "No folders found",
     "folderCreate": "Create “{{name}}”",
-    "cancel": "Cancel",
     "submit": "Create prompt",
     "success": "Prompt “{{name}}” created",
     "failed": "The prompt could not be created."
+  },
+  "renameFolder": {
+    "title": "Rename folder",
+    "nameLabel": "Name",
+    "nameInvalid": "Enter a folder name of up to {{count}} characters.",
+    "submit": "Rename",
+    "success": "Folder “{{name}}” renamed",
+    "failed": "The folder could not be renamed."
+  },
+  "deleteFolder": {
+    "title": "Delete “{{name}}”?",
+    "description": "This can’t be undone.",
+    "notEmpty": "This folder isn’t empty. Move its prompts to another folder first.",
+    "submit": "Delete",
+    "success": "Folder “{{name}}” deleted",
+    "failed": "The folder could not be deleted."
   },
   "loadError": "The prompts couldn’t be opened.",
   "retry": "Try again"
