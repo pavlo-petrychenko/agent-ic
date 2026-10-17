@@ -82,4 +82,10 @@ export enum ErrorReason {
   CannotDeleteOwner = 'CANNOT_DELETE_OWNER',
   CannotDeleteYourself = 'CANNOT_DELETE_YOURSELF',
   WrongPassword = 'WRONG_PASSWORD',
+  InvalidRoleName = 'INVALID_ROLE_NAME',
+  RoleNotFound = 'ROLE_NOT_FOUND',
+  RoleNameTaken = 'ROLE_NAME_TAKEN',
+  RoleNotEditable = 'ROLE_NOT_EDITABLE',
+  RoleInUse = 'ROLE_IN_USE',
+  RoleBaseInvalid = 'ROLE_BASE_INVALID',
 }

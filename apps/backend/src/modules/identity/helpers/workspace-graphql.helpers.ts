@@ -16,14 +16,14 @@ import type {
 } from '@/platform/graphql-server/generated/schema.generated';
 import { WorkspaceRole as GraphqlWorkspaceRole } from '@/platform/graphql-server/generated/schema.generated';
 
-const GRAPHQL_WORKSPACE_ROLE: Readonly<Record<WorkspaceRole, GraphqlWorkspaceRole>> = {
+export const GRAPHQL_WORKSPACE_ROLE: Readonly<Record<WorkspaceRole, GraphqlWorkspaceRole>> = {
   [WorkspaceRole.Owner]: GraphqlWorkspaceRole.Owner,
   [WorkspaceRole.Admin]: GraphqlWorkspaceRole.Admin,
   [WorkspaceRole.Builder]: GraphqlWorkspaceRole.Builder,
   [WorkspaceRole.Operator]: GraphqlWorkspaceRole.Operator,
 };
 
-const WORKSPACE_ROLE_FROM_GRAPHQL: Readonly<Record<GraphqlWorkspaceRole, WorkspaceRole>> = {
+export const WORKSPACE_ROLE_FROM_GRAPHQL: Readonly<Record<GraphqlWorkspaceRole, WorkspaceRole>> = {
   [GraphqlWorkspaceRole.Owner]: WorkspaceRole.Owner,
   [GraphqlWorkspaceRole.Admin]: WorkspaceRole.Admin,
   [GraphqlWorkspaceRole.Builder]: WorkspaceRole.Builder,

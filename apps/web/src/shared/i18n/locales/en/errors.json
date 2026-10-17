@@ -70,7 +70,13 @@
     "WORKSPACE_NAME_MISMATCH": "The name does not match the workspace name.",
     "CANNOT_DELETE_OWNER": "Owner of the workspace cannot be deleted.",
     "CANNOT_DELETE_YOURSELF": "You cannot remove yourself. Leave the workspace instead.",
-    "WRONG_PASSWORD": "The password is not correct."
+    "WRONG_PASSWORD": "The password is not correct.",
+    "INVALID_ROLE_NAME": "Enter a role name.",
+    "ROLE_NOT_FOUND": "This role does not exist.",
+    "ROLE_NAME_TAKEN": "A role with this name already exists.",
+    "ROLE_NOT_EDITABLE": "This role cannot be changed.",
+    "ROLE_IN_USE": "Move the members of this role before deleting it.",
+    "ROLE_BASE_INVALID": "Choose an existing role as the base."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",
