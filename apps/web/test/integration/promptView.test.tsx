@@ -19,6 +19,7 @@ import {
 } from '@/features/prompts/communication/fixtures/promptDetail.fixture';
 import {
   buildPromptLibraryMock,
+  CONVERSATION_GUARD_PROMPT,
   GUARDS_FOLDER,
   Q_AND_A_FOLDER,
   RECEPTIONIST_PROMPT,
@@ -368,5 +369,81 @@ describe('prompt view', () => {
     expect(await screen.findByText(`Duplicated as “${copy.name}”`)).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: copy.name })).toBeInTheDocument();
     await waitFor(() => expect(router.state.location.pathname).toBe(`${promptsPath}/${copy.id}`));
+  });
+
+  it('searches prompts from the section', async () => {
+    renderRoute(promptsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildPromptLibraryMock(
+          [Q_AND_A_FOLDER, GUARDS_FOLDER],
+          [RECEPTIONIST_PROMPT, CONVERSATION_GUARD_PROMPT],
+        ),
+      ],
+    });
+
+    const section = await screen.findByRole('navigation', { name: 'Prompts' });
+    await within(section).findByRole('link', { name: RECEPTIONIST_PROMPT.name });
+    await userEvent.type(
+      within(section).getByRole('searchbox', { name: 'Search prompts' }),
+      'guard',
+    );
+
+    await waitFor(() =>
+      expect(within(section).queryByRole('link', { name: RECEPTIONIST_PROMPT.name })).toBeNull(),
+    );
+    expect(
+      within(section).getByRole('link', { name: CONVERSATION_GUARD_PROMPT.name }),
+    ).toBeInTheDocument();
+    expect(within(section).queryByRole('button', { name: Q_AND_A_FOLDER.name })).toBeNull();
+
+    await userEvent.click(within(section).getByRole('button', { name: 'Clear search' }));
+    expect(
+      await within(section).findByRole('link', { name: RECEPTIONIST_PROMPT.name }),
+    ).toBeInTheDocument();
+    expect(within(section).getByRole('button', { name: Q_AND_A_FOLDER.name })).toBeInTheDocument();
+  });
+
+  it('shows a message when no prompt matches the search', async () => {
+    renderRoute(promptsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
+      ],
+    });
+
+    const section = await screen.findByRole('navigation', { name: 'Prompts' });
+    await userEvent.type(within(section).getByRole('searchbox', { name: 'Search prompts' }), 'zzz');
+
+    expect(await within(section).findByText('No prompts found')).toBeInTheDocument();
+  });
+
+  it('reveals matches inside a collapsed folder while searching', async () => {
+    renderRoute(promptsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildPromptLibraryMock(
+          [Q_AND_A_FOLDER, GUARDS_FOLDER],
+          [RECEPTIONIST_PROMPT, CONVERSATION_GUARD_PROMPT],
+        ),
+      ],
+    });
+
+    const section = await screen.findByRole('navigation', { name: 'Prompts' });
+    await userEvent.click(await within(section).findByRole('button', { name: GUARDS_FOLDER.name }));
+    await waitFor(() =>
+      expect(
+        within(section).queryByRole('link', { name: CONVERSATION_GUARD_PROMPT.name }),
+      ).toBeNull(),
+    );
+
+    await userEvent.type(
+      within(section).getByRole('searchbox', { name: 'Search prompts' }),
+      'guard',
+    );
+
+    expect(
+      await within(section).findByRole('link', { name: CONVERSATION_GUARD_PROMPT.name }),
+    ).toBeInTheDocument();
   });
 });

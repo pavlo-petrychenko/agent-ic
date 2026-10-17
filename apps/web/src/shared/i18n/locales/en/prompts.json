@@ -5,7 +5,10 @@
   },
   "nav": {
     "label": "Prompts",
-    "draft": "draft"
+    "draft": "draft",
+    "search": "Search prompts",
+    "searchClear": "Clear search",
+    "noResults": "No prompts found"
   },
   "actions": {
     "newPrompt": "New prompt"
