@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePromptDetail } from '@/features/prompts/communication/hooks/usePromptDetail';
 import { usePromptLibrary } from '@/features/prompts/communication/hooks/usePromptLibrary';
+import { usePromptVersions } from '@/features/prompts/communication/hooks/usePromptVersions';
 import { PromptMenuAction } from '@/features/prompts/constants/promptMenu.constants';
 import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.constants';
 import { DeletePromptDialog } from '@/features/prompts/containers/DeletePromptDialog';
@@ -33,8 +34,7 @@ import { PromptView } from '@/features/prompts/view/PromptView';
 import { useActiveWorkspace } from '@/features/workspace';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { collectPromptVariables } from '@/shared/prompt/helpers/promptDocument.helpers';
-import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
-import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
+import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Card } from '@/shared/ui/display/Card';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { Skeleton } from '@/shared/ui/display/Skeleton';
@@ -43,6 +43,7 @@ import type { VariableOption } from '@/shared/ui/inputs/PromptEditor';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
 
 const toCompareVersion = (version: PromptVersion, locale: string): PromptCompareVersion => ({
+  id: version.id,
   number: version.number,
   date: formatPromptVersionDate(version.savedAt, locale),
   author: version.author,
@@ -55,6 +56,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const active = useActiveWorkspace(workspaceId);
   const { detail, failed, retry } = usePromptDetail(promptId);
   const { folders } = usePromptLibrary();
+  const versionsResult = usePromptVersions(promptId);
   const { draft, beginDraft, updateDraft, discardDraft } = usePromptDraft(promptId);
   const options = usePromptOptions(workspaceId, detail?.prompt ?? null);
   const versionView = usePromptVersionView(promptId, detail?.latestVersion?.id ?? null);
@@ -134,37 +136,38 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   };
 
   const { from: compareFrom, to: compareTo } = compare;
+  const comparePair = compare.pair;
+  const versionOptions = (versionsResult.versions ?? []).map((version) => ({
+    id: version.id,
+    number: version.number,
+  }));
 
   const body = () => {
-    if (compare.open) {
-      if (compareFrom === null || compareTo === null) {
-        return compare.failed ? (
-          <Callout
-            tone={CalloutTone.Err}
-            action={
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Sm}
-                onClick={() => void compare.retry()}
-              >
-                {t('retry')}
-              </Button>
-            }
-          >
-            {t('compare.loadError')}
-          </Callout>
-        ) : (
-          <Skeleton label={t('compare.loading')} />
-        );
-      }
-      const diff = diffPromptLines(compareFrom.text, compareTo.text);
+    if (comparePair !== null) {
+      const diff =
+        compareFrom === null || compareTo === null
+          ? null
+          : diffPromptLines(compareFrom.text, compareTo.text);
       return (
         <PromptCompare
-          from={toCompareVersion(compareFrom, locale)}
-          to={toCompareVersion(compareTo, locale)}
-          rows={toPromptDiffRows(diff.lines)}
-          removed={diff.removed}
-          added={diff.added}
+          fromId={comparePair.fromId}
+          toId={comparePair.toId}
+          options={versionOptions}
+          from={compareFrom === null ? null : toCompareVersion(compareFrom, locale)}
+          to={compareTo === null ? null : toCompareVersion(compareTo, locale)}
+          diff={
+            diff === null
+              ? null
+              : {
+                  rows: toPromptDiffRows(diff.lines),
+                  removed: diff.removed,
+                  added: diff.added,
+                }
+          }
+          failed={compare.failed}
+          onSelectFrom={compare.selectFrom}
+          onSelectTo={compare.selectTo}
+          onRetry={() => void compare.retry()}
         />
       );
     }
@@ -218,7 +221,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
           title={prompt.name}
           subtitle={folderName}
           actions={
-            compare.open ? (
+            comparePair !== null ? (
               <>
                 {canEdit && compareFrom !== null && (
                   <Button
@@ -277,10 +280,12 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
       <PromptVersionsPanel
         promptId={promptId}
         activeVersionId={
-          editing || compare.open ? null : (versionView.olderVersionId ?? latestVersion?.id ?? null)
+          editing || comparePair !== null
+            ? null
+            : (versionView.olderVersionId ?? latestVersion?.id ?? null)
         }
-        onSelect={editing || compare.open ? null : versionView.select}
-        onCompare={editing || compare.open ? null : compare.begin}
+        onSelect={editing || comparePair !== null ? null : versionView.select}
+        onCompare={editing || comparePair !== null ? null : compare.begin}
       />
       {discarding && editing && (
         <DiscardPromptDraftModal

@@ -147,6 +147,10 @@
   },
   "compare": {
     "close": "Закрити порівняння",
+    "from": "Від версії",
+    "to": "До версії",
+    "fromValue": "Від версії {{number}}",
+    "toValue": "До версії {{number}}",
     "restore": "Відновити v{{number}} як чернетку",
     "summary": "{{removed}} видалено · {{added}} додано",
     "loading": "Порівняння версій",

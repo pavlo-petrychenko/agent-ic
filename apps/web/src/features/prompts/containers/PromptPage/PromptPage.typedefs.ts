@@ -33,13 +33,19 @@ export interface UsePromptVersionViewResult {
   readonly clearSelection: () => void;
 }
 
+export interface PromptComparePair {
+  readonly fromId: string;
+  readonly toId: string;
+}
+
 export interface UsePromptCompareResult {
-  readonly open: boolean;
+  readonly pair: PromptComparePair | null;
   readonly begin: (fromId: string, toId: string) => void;
   readonly close: () => void;
+  readonly selectFrom: (versionId: string) => void;
+  readonly selectTo: (versionId: string) => void;
   readonly from: PromptVersion | null;
   readonly to: PromptVersion | null;
-  readonly loading: boolean;
   readonly failed: boolean;
   readonly retry: () => Promise<void>;
 }

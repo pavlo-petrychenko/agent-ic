@@ -223,6 +223,28 @@ describe('prompt view', () => {
         name: `Restore v${RECEPTIONIST_PREVIOUS_VERSION.number} as draft`,
       }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: `Compare from v${RECEPTIONIST_PREVIOUS_VERSION.number}`,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: `Compare to v${RECEPTIONIST_VERSION.number}` }),
+    ).toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole('button', { name: `Compare to v${RECEPTIONIST_VERSION.number}` }),
+    );
+    await userEvent.click(
+      await screen.findByRole('option', { name: `v${RECEPTIONIST_PREVIOUS_VERSION.number}` }),
+    );
+
+    expect(
+      await screen.findByRole('button', { name: `Compare from v${RECEPTIONIST_VERSION.number}` }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: `Compare to v${RECEPTIONIST_PREVIOUS_VERSION.number}` }),
+    ).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Close compare' }));
 
@@ -252,6 +274,12 @@ describe('prompt view', () => {
     );
 
     expect(await screen.findByText('1 removed · 1 added')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: `Compare from v${RECEPTIONIST_PREVIOUS_VERSION.number}` }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: `Compare to v${RECEPTIONIST_VERSION.number}` }),
+    ).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Close compare' }));
 

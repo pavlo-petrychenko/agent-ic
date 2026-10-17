@@ -4,6 +4,23 @@
   overflow: auto;
 }
 
+.controls {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.picker {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.arrow {
+  display: flex;
+  color: var(--color-mute);
+}
+
 .rows {
   display: flex;
   flex-direction: column;

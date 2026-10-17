@@ -147,6 +147,10 @@
   },
   "compare": {
     "close": "Close compare",
+    "from": "Compare from",
+    "to": "Compare to",
+    "fromValue": "Compare from {{number}}",
+    "toValue": "Compare to {{number}}",
     "restore": "Restore v{{number}} as draft",
     "summary": "{{removed}} removed · {{added}} added",
     "loading": "Comparing versions",
