@@ -1,0 +1,7 @@
+mutation MovePromptToFolder($input: MovePromptToFolderInput!) {
+  movePromptToFolder(input: $input) {
+    id
+    name
+    folderId
+  }
+}

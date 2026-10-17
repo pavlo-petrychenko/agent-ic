@@ -101,6 +101,16 @@ export interface UseDeletePromptResult {
   readonly deleting: boolean;
 }
 
+export interface MovePromptToFolderValues {
+  readonly id: string;
+  readonly folderId: string;
+}
+
+export interface UseMovePromptToFolderResult {
+  readonly movePromptToFolder: (values: MovePromptToFolderValues) => Promise<string | null>;
+  readonly moving: boolean;
+}
+
 export interface UsePromptFormErrorsResult {
   readonly fieldErrors: Readonly<Record<string, string>>;
   readonly formError: string | null;
