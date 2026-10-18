@@ -20,7 +20,13 @@ export class RolesRepository {
 
   async list(workspaceId: string): Promise<RoleWithPermissions[]> {
     const rows = await this.txHost.tx
-      .select({ id: roles.id, key: roles.key, name: roles.name, isSystem: roles.isSystem })
+      .select({
+        id: roles.id,
+        key: roles.key,
+        name: roles.name,
+        description: roles.description,
+        isSystem: roles.isSystem,
+      })
       .from(roles)
       .where(eq(roles.workspaceId, workspaceId))
       .orderBy(desc(roles.isSystem), asc(roles.key), asc(roles.name));

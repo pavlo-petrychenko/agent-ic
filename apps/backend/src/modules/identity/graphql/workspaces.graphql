@@ -78,6 +78,7 @@ type Member {
   name: String!
   email: String!
   role: WorkspaceRole!
+  roleId: ID!
   lastActiveAt: String
   joinedAt: String!
 }

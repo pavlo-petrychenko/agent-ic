@@ -105,6 +105,7 @@ export class MembershipsRepository {
         name: users.name,
         email: users.email,
         role: roles.key,
+        roleId: memberships.roleId,
         lastActiveAt: users.lastActiveAt,
         joinedAt: memberships.createdAt,
       })

@@ -72,6 +72,7 @@ export const toGraphqlMemberConnection = (page: MembersPage): MemberConnection =
       name: edge.node.name,
       email: edge.node.email,
       role: GRAPHQL_WORKSPACE_ROLE[edge.node.role],
+      roleId: edge.node.roleId,
       lastActiveAt: edge.node.lastActiveAt?.toISOString() ?? null,
       joinedAt: edge.node.joinedAt.toISOString(),
     },

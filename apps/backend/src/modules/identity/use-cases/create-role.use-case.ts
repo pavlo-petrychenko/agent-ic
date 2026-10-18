@@ -30,7 +30,12 @@ export class CreateRoleUseCase {
       if (existing !== null) {
         throw new RoleNameTakenError(data.name);
       }
-      return this.workspaceRoles.create(access.workspaceId, data.name, data.baseRole);
+      return this.workspaceRoles.create(access.workspaceId, {
+        name: data.name,
+        baseRole: data.baseRole,
+        description: data.description ?? null,
+        permissions: data.permissions ?? null,
+      });
     });
   }
 }
