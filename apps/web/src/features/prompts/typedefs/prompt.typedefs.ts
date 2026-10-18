@@ -44,6 +44,17 @@ export interface CreatePromptValues {
   readonly folderId: string;
 }
 
+export interface SavePromptVersionValues {
+  readonly id: string;
+  readonly text: string;
+  readonly note: string | null;
+}
+
+export interface UseSavePromptVersionResult {
+  readonly savePromptVersion: (values: SavePromptVersionValues) => Promise<number | null>;
+  readonly saving: boolean;
+}
+
 export interface PromptFormValues {
   readonly name: string;
   readonly folder: string;

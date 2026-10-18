@@ -8,6 +8,7 @@ export interface PromptsNavProps {
   readonly workspaceId: string;
   readonly groups: readonly PromptTreeGroup[];
   readonly loading: boolean;
+  readonly draftPromptIds: ReadonlySet<string>;
   readonly onCreate: () => void;
   readonly onOpenChange: (folderId: string, open: boolean) => void;
   readonly folderMenuAnchor: PopoverPoint | null;
