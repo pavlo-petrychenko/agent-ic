@@ -38,7 +38,7 @@ export function useInviteLink(
 
   const changeRole = useCallback(
     async (role: WorkspaceRole) => {
-      await updateRole({ variables: { input: { role: ROLE_TO_API[role] } } });
+      await updateRole({ variables: { input: { role: ROLE_TO_API[role], roleId: null } } });
     },
     [updateRole],
   );
