@@ -1,5 +1,6 @@
 import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
-import { ModelProviderKind, PortName, PromptSourceKind } from '@agent-ic/flow';
+import { ModelProviderKind, PortName } from '@agent-ic/flow';
+import type { FlowDocument } from '@agent-ic/flow';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { ChannelKind, ConversationMode, ConversationState } from '@/modules/conversations';
 import { HandBackUseCase } from '@/modules/conversations/use-cases/hand-back.use-case';
@@ -19,6 +20,7 @@ import {
   SEND_NODE_KEY,
   TEST_AGENT_PROMPT,
   TEST_AGENT_REPLY,
+  TEST_COMPLETION_PROMPT,
   TEST_ORDER_INTENT,
   TEST_ORDER_RULE_ID,
   TEST_QUESTION_INTENT,
@@ -29,6 +31,7 @@ import {
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
 import { triggerFlow } from '@test/support/fixtures/agents.fixture';
+import { libraryPromptSource } from '@test/support/fixtures/prompt-flow.fixture';
 import {
   agentNode,
   completionNode,
@@ -42,6 +45,7 @@ import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import {
   createRunsWorker,
   seedWorkerAgent,
+  seedWorkerPrompt,
   sendCustomerMessage,
   settleConversation,
 } from '@test/support/helpers/runs-worker.helpers';
@@ -49,29 +53,11 @@ import { startMockLlm } from '@test/support/services/mock-llm.service';
 import type { MockLlmService } from '@test/support/services/mock-llm.service';
 import type { RunsWorker, WorkerAgent } from '@test/support/typedefs/runs-testing.typedefs';
 
-const answeringFlow = stepFlow(
-  [
-    completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY),
-    intentRouterNode(ROUTER_NODE_ID, ROUTER_NODE_KEY, TEST_STEP_NODE_KEY),
-    agentNode(FIRST_STEP_ID, FIRST_STEP_KEY, {
-      prompt: { kind: PromptSourceKind.Inline, text: TEST_AGENT_PROMPT },
-      model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Ministral14b },
-    }),
-    sendListNode(SEND_NODE_ID, SEND_NODE_KEY, `${FIRST_STEP_KEY}.messages`),
-    escalateNode(),
-  ],
-  [
-    flowEdge(TEST_NODE_ID, TEST_STEP_NODE_ID),
-    flowEdge(TEST_STEP_NODE_ID, ROUTER_NODE_ID),
-    flowEdge(ROUTER_NODE_ID, ESCALATION_NODE_ID, TEST_ORDER_RULE_ID),
-    flowEdge(ROUTER_NODE_ID, FIRST_STEP_ID, PortName.Else),
-    flowEdge(FIRST_STEP_ID, SEND_NODE_ID),
-  ],
-);
-
 describe('the simulator end to end', () => {
   let mock: MockLlmService;
   let worker: RunsWorker;
+  let promptWorkspaceId: string;
+  let answeringFlow: FlowDocument;
 
   const simulate = async (agent: WorkerAgent) => {
     const ctx = workspaceCtx(worker.ids.generate(), agent.workspaceId, WorkspaceRole.Builder);
@@ -115,6 +101,30 @@ describe('the simulator end to end', () => {
   beforeAll(async () => {
     mock = await startMockLlm();
     worker = await createRunsWorker(mock.url, TestRedisPrefix.SimulatorWorker);
+    promptWorkspaceId = worker.ids.generate();
+    const completionRef = await seedWorkerPrompt(worker, promptWorkspaceId, TEST_COMPLETION_PROMPT);
+    const agentRef = await seedWorkerPrompt(worker, promptWorkspaceId, TEST_AGENT_PROMPT);
+    answeringFlow = stepFlow(
+      [
+        completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
+          prompt: libraryPromptSource(completionRef),
+        }),
+        intentRouterNode(ROUTER_NODE_ID, ROUTER_NODE_KEY, TEST_STEP_NODE_KEY),
+        agentNode(FIRST_STEP_ID, FIRST_STEP_KEY, {
+          prompt: libraryPromptSource(agentRef),
+          model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Ministral14b },
+        }),
+        sendListNode(SEND_NODE_ID, SEND_NODE_KEY, `${FIRST_STEP_KEY}.messages`),
+        escalateNode(),
+      ],
+      [
+        flowEdge(TEST_NODE_ID, TEST_STEP_NODE_ID),
+        flowEdge(TEST_STEP_NODE_ID, ROUTER_NODE_ID),
+        flowEdge(ROUTER_NODE_ID, ESCALATION_NODE_ID, TEST_ORDER_RULE_ID),
+        flowEdge(ROUTER_NODE_ID, FIRST_STEP_ID, PortName.Else),
+        flowEdge(FIRST_STEP_ID, SEND_NODE_ID),
+      ],
+    );
   });
 
   afterEach(() => {
@@ -127,7 +137,7 @@ describe('the simulator end to end', () => {
   });
 
   it('runs each message on a snapshot of the draft as it is then', async () => {
-    const agent = await seedWorkerAgent(worker, answeringFlow, false);
+    const agent = await seedWorkerAgent(worker, answeringFlow, false, null, promptWorkspaceId);
     const { send } = await simulate(agent);
     mock.json({ intent: TEST_QUESTION_INTENT }).json({ messages: [TEST_AGENT_REPLY] });
 
@@ -142,7 +152,7 @@ describe('the simulator end to end', () => {
   });
 
   it('keeps live customers on the live version while the draft is simulated', async () => {
-    const agent = await seedWorkerAgent(worker, answeringFlow, true);
+    const agent = await seedWorkerAgent(worker, answeringFlow, true, null, promptWorkspaceId);
     await editDraft(agent);
     const { send } = await simulate(agent);
     mock.json({ intent: TEST_QUESTION_INTENT }).json({ messages: [TEST_AGENT_REPLY] });
@@ -157,7 +167,7 @@ describe('the simulator end to end', () => {
   });
 
   it('escalates to the builder as operator, who answers and hands the chat back', async () => {
-    const agent = await seedWorkerAgent(worker, answeringFlow, false);
+    const agent = await seedWorkerAgent(worker, answeringFlow, false, null, promptWorkspaceId);
     const simulation = await simulate(agent);
     mock
       .json({ intent: TEST_ORDER_INTENT })

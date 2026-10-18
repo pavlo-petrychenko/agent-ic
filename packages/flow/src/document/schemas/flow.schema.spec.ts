@@ -4,11 +4,7 @@ import { ConditionOperator, RuleMatch } from '@flow/conditions/constants/conditi
 import { FLOW_SCHEMA_VERSION, NodeType } from '@flow/document/constants/flow.constants';
 import { flowDocumentSchema } from '@flow/document/schemas/flow.schema';
 import type { FlowDocument, FlowNode } from '@flow/document/typedefs/flow.typedefs';
-import {
-  MAX_NODES,
-  MAX_RETRIES,
-  MAX_TEMPLATE_LENGTH,
-} from '@flow/limits/constants/limit.constants';
+import { MAX_NODES, MAX_RETRIES } from '@flow/limits/constants/limit.constants';
 import { EscalationMode } from '@flow/nodes/constants/step.constants';
 import { ScheduleKind } from '@flow/nodes/constants/trigger.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
@@ -229,11 +225,6 @@ describe('prompt source and reasoning', () => {
     [
       'a library prompt pinned to version 0',
       { kind: PromptSourceKind.Library, promptRef: 'prm_a', pin: { kind: 'pinned', number: 0 } },
-    ],
-    ['an inline prompt without text', { kind: PromptSourceKind.Inline }],
-    [
-      'an inline prompt over the template limit',
-      { kind: PromptSourceKind.Inline, text: 'x'.repeat(MAX_TEMPLATE_LENGTH + 1) },
     ],
     ['an unknown prompt source', { kind: 'file', text: 'hi' }],
   ])('rejects %s', (_name, prompt) => {

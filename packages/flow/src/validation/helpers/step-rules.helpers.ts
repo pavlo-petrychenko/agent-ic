@@ -15,7 +15,6 @@ import {
 import { FailureMode } from '@flow/nodes/constants/step.constants';
 import { ScheduleKind } from '@flow/nodes/constants/trigger.constants';
 import { AGENT_MESSAGES_FIELD_NAME } from '@flow/outputs/constants/output.constants';
-import { PromptSourceKind } from '@flow/references/constants/reference.constants';
 import {
   branchNodes,
   branchStarts,
@@ -32,7 +31,7 @@ import type { FlowIssue, ValidationContext } from '@flow/validation/typedefs/val
 const llmStepIssues = (node: AgentNode | CompletionNode): FlowIssue[] => {
   const issues: FlowIssue[] = [];
   const { prompt } = node.config;
-  if (prompt === null || (prompt.kind === PromptSourceKind.Inline && prompt.text.trim() === '')) {
+  if (prompt === null) {
     issues.push(createIssue(FlowIssueCode.MissingPrompt, { nodeId: node.id, path: ['prompt'] }));
   }
   if (node.config.model === null) {

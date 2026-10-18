@@ -1,14 +1,9 @@
 import { ReasoningLevel } from '@agent-ic/contracts';
-import {
-  ModelProviderKind,
-  NodeType,
-  OutputFieldType,
-  PortName,
-  PromptSourceKind,
-} from '@agent-ic/flow';
+import { ModelProviderKind, NodeType, OutputFieldType, PortName } from '@agent-ic/flow';
 import type { AgentNode } from '@agent-ic/flow';
 import { HttpStatus } from '@nestjs/common';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { ConversationMode } from '@/modules/conversations';
 import { AGENT_MAX_TOOL_ROUNDS } from '@/modules/runs/constants/llm-step.constants';
 import { RunStatus, RunStepStatus } from '@/modules/runs/constants/run.constants';
 import { EnvVar } from '@/platform/config/constants/env.constants';
@@ -33,8 +28,10 @@ import {
   TEST_STEP_NODE_KEY,
 } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { libraryPromptSource } from '@test/support/fixtures/prompt-flow.fixture';
 import { agentNode, flowEdge, sendListNode, stepFlow } from '@test/support/fixtures/runs.fixture';
 import { createLlmGateway } from '@test/support/helpers/llm-testing.helpers';
+import { seedLibraryPrompt } from '@test/support/helpers/prompts-testing.helpers';
 import { createRunsTestbed, seedExecutableRun } from '@test/support/helpers/runs-testing.helpers';
 import { startMockLlm } from '@test/support/services/mock-llm.service';
 import type { MockLlmService } from '@test/support/services/mock-llm.service';
@@ -43,15 +40,6 @@ import type {
   RunExecutionTestbed,
 } from '@test/support/typedefs/runs-testing.typedefs';
 
-const agent = agentNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
-  prompt: { kind: PromptSourceKind.Inline, text: TEST_AGENT_PROMPT },
-  model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Ministral14b },
-  reasoning: ReasoningLevel.Low,
-  output: [
-    { name: TEST_MOOD_FIELD, type: OutputFieldType.String, description: '', required: true },
-  ],
-  retries: TEST_AGENT_RETRIES,
-});
 const send = sendListNode(SEND_NODE_ID, SEND_NODE_KEY, `${TEST_STEP_NODE_KEY}.messages`);
 const answer = { messages: [TEST_AGENT_REPLY], [TEST_MOOD_FIELD]: TEST_MOOD };
 const invalidAnswer = { messages: [TEST_AGENT_REPLY] };
@@ -60,12 +48,17 @@ const FEEDBACK_ROUNDS = 2;
 const timesSent = (messages: unknown, text: string): number =>
   JSON.stringify(messages).split(text).length - 1;
 
-const agentThenSend = (port: string = PortName.Next, node: AgentNode = agent) =>
-  stepFlow([node, send], [flowEdge(TEST_NODE_ID, node.id), flowEdge(node.id, SEND_NODE_ID, port)]);
-
 describe('AgentExecutor', () => {
   let mock: MockLlmService;
   let testbed: RunExecutionTestbed;
+  let workspaceId: string;
+  let agent: AgentNode;
+
+  const agentThenSend = (port: string = PortName.Next, node: AgentNode = agent) =>
+    stepFlow(
+      [node, send],
+      [flowEdge(TEST_NODE_ID, node.id), flowEdge(node.id, SEND_NODE_ID, port)],
+    );
 
   const execute = ({ ctx, run }: ExecutableRun): Promise<RunStatus> =>
     testbed.execution.execute(ctx, run.workspaceId, run.id);
@@ -85,6 +78,18 @@ describe('AgentExecutor', () => {
       createLlmGateway(env, LLM_STEP_TIMEOUT_MS),
       NodeType.SendMessage,
     );
+    workspaceId = testbed.ids.generate();
+    agent = agentNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
+      prompt: libraryPromptSource(
+        await seedLibraryPrompt(testbed.module, workspaceId, TEST_AGENT_PROMPT),
+      ),
+      model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Ministral14b },
+      reasoning: ReasoningLevel.Low,
+      output: [
+        { name: TEST_MOOD_FIELD, type: OutputFieldType.String, description: '', required: true },
+      ],
+      retries: TEST_AGENT_RETRIES,
+    });
   });
 
   afterEach(() => {
@@ -97,7 +102,13 @@ describe('AgentExecutor', () => {
   });
 
   it('answers with the history and its prompt, and the reply flows into Send message', async () => {
-    const seeded = await seedExecutableRun(testbed, agentThenSend());
+    const seeded = await seedExecutableRun(
+      testbed,
+      agentThenSend(),
+      [],
+      ConversationMode.Live,
+      workspaceId,
+    );
     mock.json(answer);
 
     expect(await execute(seeded)).toBe(RunStatus.Succeeded);
@@ -119,7 +130,13 @@ describe('AgentExecutor', () => {
   });
 
   it('retries a failed answer and then succeeds', async () => {
-    const seeded = await seedExecutableRun(testbed, agentThenSend());
+    const seeded = await seedExecutableRun(
+      testbed,
+      agentThenSend(),
+      [],
+      ConversationMode.Live,
+      workspaceId,
+    );
     mock.fail(HttpStatus.BAD_REQUEST).json(answer);
 
     expect(await execute(seeded)).toBe(RunStatus.Succeeded);
@@ -129,7 +146,13 @@ describe('AgentExecutor', () => {
   });
 
   it('fails to its error port once the retries are used up', async () => {
-    const seeded = await seedExecutableRun(testbed, agentThenSend(PortName.Error));
+    const seeded = await seedExecutableRun(
+      testbed,
+      agentThenSend(PortName.Error),
+      [],
+      ConversationMode.Live,
+      workspaceId,
+    );
     Array.from({ length: TEST_AGENT_RETRIES + 1 }, () => mock.fail(HttpStatus.BAD_REQUEST));
 
     expect(await execute(seeded)).toBe(RunStatus.Succeeded);
@@ -144,7 +167,13 @@ describe('AgentExecutor', () => {
   });
 
   it('retries an invalid answer from the transcript of the attempt before', async () => {
-    const seeded = await seedExecutableRun(testbed, agentThenSend());
+    const seeded = await seedExecutableRun(
+      testbed,
+      agentThenSend(),
+      [],
+      ConversationMode.Live,
+      workspaceId,
+    );
     mock.json(invalidAnswer).json(invalidAnswer).json(answer);
 
     expect(await execute(seeded)).toBe(RunStatus.Succeeded);
@@ -155,7 +184,13 @@ describe('AgentExecutor', () => {
   });
 
   it('keeps every retry of the step inside one round budget', async () => {
-    const seeded = await seedExecutableRun(testbed, agentThenSend(PortName.Error));
+    const seeded = await seedExecutableRun(
+      testbed,
+      agentThenSend(PortName.Error),
+      [],
+      ConversationMode.Live,
+      workspaceId,
+    );
     Array.from({ length: AGENT_MAX_TOOL_ROUNDS + 1 }, () => mock.json(invalidAnswer));
 
     expect(await execute(seeded)).toBe(RunStatus.Succeeded);

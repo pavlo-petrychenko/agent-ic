@@ -9,6 +9,7 @@ import {
   resolvePath,
   WaitFor,
 } from '@agent-ic/flow';
+import type { CompletionNode } from '@agent-ic/flow';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { ConversationMode, MessageAuthor } from '@/modules/conversations';
 import { ANSWER_FROM_CONVERSATION_MESSAGE } from '@/modules/runs/constants/llm-step.constants';
@@ -32,6 +33,7 @@ import {
   SECOND_STEP_ID,
   SECOND_STEP_KEY,
   TEST_AGENT_REPLY,
+  TEST_COMPLETION_PROMPT,
   TEST_FOLLOW_UP,
   TEST_LLM_API_KEY,
   TEST_ORDER_INTENT,
@@ -46,6 +48,7 @@ import {
   TEST_UNKNOWN_MODEL,
 } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { libraryPromptSource } from '@test/support/fixtures/prompt-flow.fixture';
 import {
   agentNode,
   backgroundBranchEdge,
@@ -61,6 +64,7 @@ import {
 import { createLlmGateway } from '@test/support/helpers/llm-testing.helpers';
 import {
   publicPromptId,
+  seedLibraryPrompt,
   seedPrompt,
   seedPromptFolder,
   seedPromptVersion,
@@ -73,20 +77,22 @@ import type {
   RunExecutionTestbed,
 } from '@test/support/typedefs/runs-testing.typedefs';
 
-const guard = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY);
-const observer = completionNode(OBSERVER_NODE_ID, OBSERVER_STEP_KEY);
 const router = intentRouterNode(TEST_OTHER_NODE_ID, TEST_OTHER_NODE_KEY, TEST_STEP_NODE_KEY);
 const SECOND_PROMPT_VERSION_NUMBER = 2;
-
-const guardThenAgent = (node = guard) =>
-  stepFlow(
-    [node, agentNode(SECOND_STEP_ID, SECOND_STEP_KEY)],
-    [flowEdge(TEST_NODE_ID, node.id), flowEdge(node.id, SECOND_STEP_ID)],
-  );
 
 describe('CompletionExecutor', () => {
   let mock: MockLlmService;
   let testbed: RunExecutionTestbed;
+  let workspaceId: string;
+  let promptRef: string;
+  let guard: CompletionNode;
+  let observer: CompletionNode;
+
+  const guardThenAgent = (node: CompletionNode = guard) =>
+    stepFlow(
+      [node, agentNode(SECOND_STEP_ID, SECOND_STEP_KEY)],
+      [flowEdge(TEST_NODE_ID, node.id), flowEdge(node.id, SECOND_STEP_ID)],
+    );
 
   const execute = ({ ctx, run }: ExecutableRun): Promise<RunStatus> =>
     testbed.execution.execute(ctx, run.workspaceId, run.id);
@@ -104,6 +110,14 @@ describe('CompletionExecutor', () => {
       TestRedisPrefix.CompletionStep,
       createLlmGateway(env, LLM_STEP_TIMEOUT_MS),
     );
+    workspaceId = testbed.ids.generate();
+    promptRef = await seedLibraryPrompt(testbed.module, workspaceId, TEST_COMPLETION_PROMPT);
+    guard = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
+      prompt: libraryPromptSource(promptRef),
+    });
+    observer = completionNode(OBSERVER_NODE_ID, OBSERVER_STEP_KEY, {
+      prompt: libraryPromptSource(promptRef),
+    });
   });
 
   afterEach(() => {
@@ -116,7 +130,13 @@ describe('CompletionExecutor', () => {
   });
 
   it('asks the step model with its prompt and the history, and a guard answer routes', async () => {
-    const seeded = await seedExecutableRun(testbed, guardThenAgent());
+    const seeded = await seedExecutableRun(
+      testbed,
+      guardThenAgent(),
+      [],
+      ConversationMode.Live,
+      workspaceId,
+    );
     mock.json({ intent: TEST_ORDER_INTENT });
 
     expect(await execute(seeded)).toBe(RunStatus.Succeeded);
@@ -143,9 +163,16 @@ describe('CompletionExecutor', () => {
 
   it('leaves the current message out when the step does not include it', async () => {
     const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
+      prompt: libraryPromptSource(promptRef),
       input: { includeCurrentMessage: false },
     });
-    const seeded = await seedExecutableRun(testbed, guardThenAgent(node));
+    const seeded = await seedExecutableRun(
+      testbed,
+      guardThenAgent(node),
+      [],
+      ConversationMode.Live,
+      workspaceId,
+    );
     mock.json({ intent: TEST_QUESTION_INTENT });
 
     expect(await execute(seeded)).toBe(RunStatus.Succeeded);
@@ -158,12 +185,19 @@ describe('CompletionExecutor', () => {
 
   it('ends the request with a user turn when the history before the current message ends with a reply', async () => {
     const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
+      prompt: libraryPromptSource(promptRef),
       input: { includeCurrentMessage: false },
     });
-    const seeded = await seedExecutableRun(testbed, guardThenAgent(node), [
-      { author: MessageAuthor.Customer, text: TEST_FOLLOW_UP },
-      { author: MessageAuthor.Agent, text: TEST_AGENT_REPLY },
-    ]);
+    const seeded = await seedExecutableRun(
+      testbed,
+      guardThenAgent(node),
+      [
+        { author: MessageAuthor.Customer, text: TEST_FOLLOW_UP },
+        { author: MessageAuthor.Agent, text: TEST_AGENT_REPLY },
+      ],
+      ConversationMode.Live,
+      workspaceId,
+    );
     mock.json({ intent: TEST_QUESTION_INTENT });
 
     expect(await execute(seeded)).toBe(RunStatus.Succeeded);
@@ -184,7 +218,13 @@ describe('CompletionExecutor', () => {
         pin: { kind: PromptVersionKind.Latest },
       },
     });
-    const seeded = await seedExecutableRun(testbed, guardThenAgent(node));
+    const seeded = await seedExecutableRun(
+      testbed,
+      guardThenAgent(node),
+      [],
+      ConversationMode.Live,
+      workspaceId,
+    );
 
     expect(await execute(seeded)).toBe(RunStatus.Failed);
 
@@ -264,6 +304,9 @@ describe('CompletionExecutor', () => {
     const seeded = await seedExecutableRun(
       testbed,
       stepFlow([observer], [flowEdge(TEST_NODE_ID, OBSERVER_NODE_ID)]),
+      [],
+      ConversationMode.Live,
+      workspaceId,
     );
     mock.json({ intent: TEST_QUESTION_INTENT });
 

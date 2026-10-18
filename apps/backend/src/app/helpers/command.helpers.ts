@@ -1,4 +1,3 @@
-import { BackfillPromptsCommand } from '@/app/commands/backfill-prompts.command';
 import type { BaseCommand } from '@/app/commands/base.command';
 import { MigrateCommand } from '@/app/commands/migrate.command';
 import { PrintSchemaCommand } from '@/app/commands/print-schema.command';
@@ -24,7 +23,5 @@ export const resolveCommand = (argv: readonly string[]): BaseCommand => {
       return new PrintSchemaCommand(args);
     case CommandName.Seed:
       return new SeedCommand();
-    case CommandName.BackfillPrompts:
-      return new BackfillPromptsCommand();
   }
 };

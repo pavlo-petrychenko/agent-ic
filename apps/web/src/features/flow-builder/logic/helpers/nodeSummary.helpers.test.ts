@@ -77,13 +77,7 @@ describe('nodeSummary', () => {
     });
   });
 
-  it('marks the prompt source of a step', () => {
-    expect(
-      nodeSummary(agentWith(HAIKU.id, { kind: PromptSourceKind.Inline, text: 'Hi' }), [HAIKU]),
-    ).toEqual([
-      { key: SummaryKey.Model, params: { model: HAIKU.label } },
-      { key: SummaryKey.InlinePrompt, params: {} },
-    ]);
+  it('marks a step that uses a library prompt', () => {
     expect(
       nodeSummary(
         agentWith(HAIKU.id, {

@@ -3,7 +3,6 @@ export enum CommandName {
   Migrate = 'migrate',
   PrintSchema = 'print-schema',
   Seed = 'seed',
-  BackfillPrompts = 'backfill-prompts',
 }
 
 export enum ExitCode {
