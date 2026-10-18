@@ -19,7 +19,7 @@ const usage = (overrides: Partial<PromptUsageItem> = {}): PromptUsageItem => ({
 });
 
 describe('PromptUsages', () => {
-  it('shows each step with its agent version and pin', () => {
+  it('shows the agent version that uses the prompt, with its step and pin', () => {
     renderWithProviders(
       <PromptUsages
         usages={[
@@ -35,9 +35,9 @@ describe('PromptUsages', () => {
       />,
     );
 
-    expect(screen.getAllByText('Receptionist step')).toHaveLength(2);
-    expect(screen.getByText('Salon assistant · v3 live')).toBeInTheDocument();
-    expect(screen.getByText('Salon assistant · draft')).toBeInTheDocument();
+    expect(screen.getAllByText('Salon assistant')).toHaveLength(2);
+    expect(screen.getByText('Receptionist step · v3 live')).toBeInTheDocument();
+    expect(screen.getByText('Receptionist step · draft')).toBeInTheDocument();
     expect(screen.getByText('pinned v4')).toBeInTheDocument();
     expect(screen.getByText('follow latest')).toBeInTheDocument();
   });

@@ -34,6 +34,7 @@
       "versions_one": "{{count}} agent version",
       "versions_other": "{{count}} agent versions",
       "agentVersion": "{{agent}} · {{version}}",
+      "stepVersion": "{{step}} · {{version}}",
       "versionLive": "v{{number}} live",
       "versionDraft": "draft",
       "pinned": "pinned v{{number}}",
