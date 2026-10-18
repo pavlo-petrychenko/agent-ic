@@ -9,6 +9,11 @@ export interface MembershipWithRole extends MembershipRecord {
   readonly roleKey: WorkspaceRole;
 }
 
+export interface MembershipWithRoleId {
+  readonly roleId: string;
+  readonly roleKey: WorkspaceRole;
+}
+
 export type NewMembership = typeof memberships.$inferInsert;
 
 export type MemberSelection =

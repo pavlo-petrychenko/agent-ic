@@ -1,4 +1,9 @@
-import { PermissionAction, PermissionResource, can } from '@agent-ic/contracts';
+import {
+  hasPermission,
+  PermissionAction,
+  PermissionResource,
+  permissionsForRole,
+} from '@agent-ic/contracts';
 import {
   OPERATOR_MESSAGE_KEY_PREFIX,
   OPERATOR_MESSAGE_KEY_SEPARATOR,
@@ -9,9 +14,11 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 import type { WorkspaceAccess } from '@/platform/context/typedefs/workspace-access.typedefs';
 
 export const authorizeOperator = (ctx: UseCaseCtx): WorkspaceAccess => {
-  const { workspaceRole } = ctx;
-  const resource = Object.values(OPERATOR_RESOURCE).find(
-    (candidate) => workspaceRole !== null && can(workspaceRole, candidate, PermissionAction.Edit),
+  const permissions =
+    ctx.permissions ??
+    (ctx.workspaceRole === null ? new Set<string>() : permissionsForRole(ctx.workspaceRole));
+  const resource = Object.values(OPERATOR_RESOURCE).find((candidate) =>
+    hasPermission(permissions, candidate, PermissionAction.Edit),
   );
   return authorize(ctx, resource ?? PermissionResource.Inbox, PermissionAction.Edit);
 };

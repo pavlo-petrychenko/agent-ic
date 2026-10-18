@@ -122,7 +122,11 @@ export class SampleWorkspaceService {
         inviteLinkId: null,
         createdAt: now,
       });
-      await this.inviteLinks.issue(workspaceId, DEFAULT_INVITE_ROLE, userId);
+      await this.inviteLinks.issue(
+        workspaceId,
+        await this.roles.systemRoleId(workspaceId, DEFAULT_INVITE_ROLE),
+        userId,
+      );
       return workspaceId;
     });
   }
