@@ -141,9 +141,9 @@ describe('prompt view', () => {
     const usages = await within(panel).findByRole('list', { name: 'Where it’s used' });
 
     expect(within(usages).getAllByRole('listitem')).toHaveLength(RECEPTIONIST_USAGES.length);
-    expect(within(usages).getAllByText('Receptionist step')).toHaveLength(2);
-    expect(within(usages).getByText('Salon assistant · v3 live')).toBeInTheDocument();
-    expect(within(usages).getByText('Salon assistant · draft')).toBeInTheDocument();
+    expect(within(usages).getAllByText('Salon assistant')).toHaveLength(2);
+    expect(within(usages).getByText('Receptionist step · v3 live')).toBeInTheDocument();
+    expect(within(usages).getByText('Receptionist step · draft')).toBeInTheDocument();
     expect(within(usages).getAllByText('pinned v4')).toHaveLength(2);
     expect(await screen.findByText('Q&A · used by 1 step in 2 agent versions')).toBeInTheDocument();
     expect(await within(panel).findByText('pinned')).toBeInTheDocument();

@@ -38,6 +38,7 @@
       "versions_many": "{{count}} версіях агента",
       "versions_other": "{{count}} версіях агента",
       "agentVersion": "{{agent}} · {{version}}",
+      "stepVersion": "{{step}} · {{version}}",
       "versionLive": "v{{number}} активна",
       "versionDraft": "чернетка",
       "pinned": "закріплено v{{number}}",
