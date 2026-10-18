@@ -6,8 +6,8 @@ import { CreatePromptResolver } from '@/modules/prompts/resolvers/create-prompt.
 import { DeletePromptFolderResolver } from '@/modules/prompts/resolvers/delete-prompt-folder.resolver';
 import { DeletePromptResolver } from '@/modules/prompts/resolvers/delete-prompt.resolver';
 import { DuplicatePromptResolver } from '@/modules/prompts/resolvers/duplicate-prompt.resolver';
+import { FolderPromptsResolver } from '@/modules/prompts/resolvers/folder-prompts.resolver';
 import { MovePromptToFolderResolver } from '@/modules/prompts/resolvers/move-prompt-to-folder.resolver';
-import { PromptFolderPromptsResolver } from '@/modules/prompts/resolvers/prompt-folder-prompts.resolver';
 import { PromptFoldersResolver } from '@/modules/prompts/resolvers/prompt-folders.resolver';
 import { PromptsResolver } from '@/modules/prompts/resolvers/prompts.resolver';
 import { RenamePromptFolderResolver } from '@/modules/prompts/resolvers/rename-prompt-folder.resolver';
@@ -61,8 +61,8 @@ export class PromptsModule extends defineModule({
     DeletePromptFolderResolver,
     DeletePromptResolver,
     DuplicatePromptResolver,
+    FolderPromptsResolver,
     MovePromptToFolderResolver,
-    PromptFolderPromptsResolver,
     PromptFoldersResolver,
     PromptsResolver,
     RenamePromptFolderResolver,

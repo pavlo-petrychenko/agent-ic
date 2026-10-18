@@ -8,7 +8,7 @@ import type { Prompt } from '@/platform/graphql-server/generated/schema.generate
 import type { LoaderOf } from '@/platform/graphql-server/typedefs/graphql-loader.typedefs';
 
 @Resolver(PromptFolderGraphqlParent.PromptFolder)
-export class PromptFolderPromptsResolver {
+export class FolderPromptsResolver {
   @ResolveField()
   async prompts(
     @Parent() folder: PromptFolderParent,
