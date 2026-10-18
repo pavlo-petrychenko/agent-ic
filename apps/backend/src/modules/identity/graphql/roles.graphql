@@ -4,6 +4,9 @@ extend type Query {
 
 extend type Mutation {
   createRole(input: CreateRoleInput!): Role!
+  renameRole(input: RenameRoleInput!): Role!
+  updateRolePermissions(input: UpdateRolePermissionsInput!): Role!
+  deleteRole(roleId: ID!): Boolean!
 }
 
 enum PermissionResource {

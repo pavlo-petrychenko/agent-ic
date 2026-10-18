@@ -101,6 +101,21 @@ export class WorkspaceRolesService {
     return this.describe(workspaceId, roleId);
   }
 
+  async replacePermissions(
+    workspaceId: string,
+    roleId: string,
+    permissions: readonly RolePermission[],
+  ): Promise<RoleView> {
+    await this.roles.deletePermissions(workspaceId, roleId);
+    await this.roles.insertPermissions(this.permissionRows(workspaceId, roleId, permissions));
+    return this.describe(workspaceId, roleId);
+  }
+
+  async rename(workspaceId: string, roleId: string, name: string): Promise<RoleView> {
+    await this.roles.rename(workspaceId, roleId, name);
+    return this.describe(workspaceId, roleId);
+  }
+
   private permissionRows(
     workspaceId: string,
     roleId: string,
