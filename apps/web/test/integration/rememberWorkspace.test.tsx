@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   buildRememberWorkspaceErrorMock,
@@ -14,7 +14,10 @@ import { signInForTest, signOutForTest } from '@test/support/helpers/session.hel
 
 const OTHER_WORKSPACE = { ...DEMO_WORKSPACE, id: 'ws_other', name: 'Other salon' };
 const shellMock = buildWorkspaceShellMock([DEMO_WORKSPACE, OTHER_WORKSPACE]);
-const mainNavigation = () => screen.findByRole('navigation', { name: 'Main' }, { timeout: 5000 });
+const mainNavigation = () =>
+  waitFor(() => expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument(), {
+    timeout: 5000,
+  });
 
 describe('remembering the open workspace', () => {
   beforeEach(() => signInForTest());
@@ -48,7 +51,6 @@ describe('remembering the open workspace', () => {
     });
 
     await mainNavigation();
-    expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
