@@ -8,8 +8,12 @@ export interface PromptListItem {
   readonly updatedAt: string;
 }
 
+export interface PromptFolderWithPrompts extends PromptFolderListItem {
+  readonly prompts: readonly PromptListItem[];
+}
+
 export interface PromptLibrary {
-  readonly folders: readonly PromptFolderListItem[];
+  readonly folders: readonly PromptFolderWithPrompts[];
   readonly prompts: readonly PromptListItem[];
 }
 
@@ -35,7 +39,7 @@ export interface PromptVersionListItem {
 }
 
 export interface UsePromptLibraryResult {
-  readonly folders: readonly PromptFolderListItem[];
+  readonly folders: readonly PromptFolderWithPrompts[];
   readonly prompts: readonly PromptListItem[];
   readonly loading: boolean;
   readonly failed: boolean;

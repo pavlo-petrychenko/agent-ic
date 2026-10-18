@@ -2,12 +2,11 @@ query PromptLibrary {
   promptFolders {
     id
     name
-  }
-  prompts {
-    id
-    name
-    folderId
-    latestVersionNumber
-    updatedAt
+    prompts {
+      id
+      name
+      latestVersionNumber
+      updatedAt
+    }
   }
 }

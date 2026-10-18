@@ -54,14 +54,15 @@ export const buildPromptLibraryMock = (
         __typename: 'PromptFolder',
         id: folder.id,
         name: folder.name,
-      })),
-      prompts: prompts.map((prompt) => ({
-        __typename: 'Prompt',
-        id: prompt.id,
-        name: prompt.name,
-        folderId: prompt.folderId,
-        latestVersionNumber: prompt.latestVersionNumber,
-        updatedAt: prompt.updatedAt,
+        prompts: prompts
+          .filter((prompt) => prompt.folderId === folder.id)
+          .map((prompt) => ({
+            __typename: 'Prompt',
+            id: prompt.id,
+            name: prompt.name,
+            latestVersionNumber: prompt.latestVersionNumber,
+            updatedAt: prompt.updatedAt,
+          })),
       })),
     },
   },

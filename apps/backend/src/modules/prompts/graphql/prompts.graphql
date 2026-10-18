@@ -99,6 +99,7 @@ type PromptVersionAuthor {
 type PromptFolder {
   id: ID!
   name: String!
+  prompts: [Prompt!]!
   createdAt: String!
   updatedAt: String!
 }
