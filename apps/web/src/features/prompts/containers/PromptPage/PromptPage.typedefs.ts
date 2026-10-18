@@ -17,11 +17,21 @@ export interface UsePromptOptionsResult {
   readonly closeDelete: () => void;
 }
 
-export interface UsePromptDraftResult {
+export interface UsePromptDraftSessionResult {
+  readonly editing: boolean;
   readonly draft: PromptDraft | null;
-  readonly beginDraft: (version: PromptVersion | null) => void;
-  readonly updateDraft: (text: string) => void;
-  readonly discardDraft: () => void;
+  readonly draftNumber: number;
+  readonly editorText: string;
+  readonly saving: boolean;
+  readonly discarding: boolean;
+  readonly startEditing: (version?: PromptVersion | null) => void;
+  readonly changeText: (text: string) => void;
+  readonly openSaveDialog: () => void;
+  readonly closeSaveDialog: () => void;
+  readonly finishSaving: () => void;
+  readonly openDiscardDialog: () => void;
+  readonly closeDiscardDialog: () => void;
+  readonly finishDiscarding: () => void;
 }
 
 export interface UsePromptVersionViewResult {
