@@ -16,15 +16,15 @@ export function PromptUsages({ usages }: PromptUsagesProps) {
           <NodeTile kind={NodeKind.Agent} size={TileSize.Sm} aria-label={usage.nodeLabel} />
           <span className={styles.info}>
             <Text as={TextElement.Span} kind={TextKind.BodySmall} className={styles.name}>
-              {usage.nodeLabel}
-            </Text>
-            <Text as={TextElement.Span} kind={TextKind.Caption} color={TextColor.Mute}>
               {t('details.usage.agentVersion', {
                 agent: usage.agentName,
                 version: usage.live
                   ? t('details.usage.versionLive', { number: usage.versionNumber })
                   : t('details.usage.versionDraft'),
               })}
+            </Text>
+            <Text as={TextElement.Span} kind={TextKind.Caption} color={TextColor.Mute}>
+              {usage.nodeLabel}
             </Text>
           </span>
           <Badge tone={usage.pinned ? BadgeTone.Violet : BadgeTone.Neutral} mono>
