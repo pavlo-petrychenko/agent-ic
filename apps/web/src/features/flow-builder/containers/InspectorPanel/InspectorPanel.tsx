@@ -98,7 +98,7 @@ import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Inspector } from '@/shared/ui/layout/Inspector';
 import { Dialog } from '@/shared/ui/overlays/Dialog';
 
-export function InspectorPanel({ agentId }: InspectorPanelProps) {
+export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const document = useFlowBuilderStore((state) => state.document);
   const selection = useFlowBuilderStore((state) => state.selection);
@@ -136,13 +136,13 @@ export function InspectorPanel({ agentId }: InspectorPanelProps) {
   const llmStep = (current: AgentNode | CompletionNode, extra: LlmStepExtra) => {
     const errors = fieldErrors(issues, current.id);
     const { prompt, model, reasoning, output } = current.config;
-    const text = prompt?.kind === PromptSourceKind.Inline ? prompt.text : '';
     const builtIn = nodeOutputFields(current).filter((field) => !output.includes(field));
     return (
       <LlmStepInspector
         key={current.id}
+        workspaceId={workspaceId}
         step={{
-          prompt: text,
+          source: prompt,
           variables: variableOptions,
           models: modelsForStep(modelOptions.models, current.type),
           modelsLoading: modelOptions.loading,
@@ -166,14 +166,16 @@ export function InspectorPanel({ agentId }: InspectorPanelProps) {
           canRemoveField: current.type === NodeType.Agent || output.length > 1,
         }}
         extra={extra}
-        onPromptChange={(next) =>
-          next !== text &&
-          previewEdit(
-            updateLlmStep(document, current.id, {
-              prompt: { kind: PromptSourceKind.Inline, text: next },
-            }),
-          )
-        }
+        onPromptChange={(next) => {
+          if (next.kind === PromptSourceKind.Library) {
+            apply(updateLlmStep(document, current.id, { prompt: next }));
+            return;
+          }
+          const currentText = prompt?.kind === PromptSourceKind.Inline ? prompt.text : '';
+          if (next.text !== currentText) {
+            previewEdit(updateLlmStep(document, current.id, { prompt: next }));
+          }
+        }}
         onPromptCommit={commitPreview}
         onModelChange={(modelId) =>
           apply(selectModel(document, current.id, modelOptions.models, modelId))

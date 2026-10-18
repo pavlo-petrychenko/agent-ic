@@ -1,5 +1,12 @@
-import { ModelProviderKind, NodeType, PortName, RuleMatch } from '@agent-ic/flow';
-import type { FlowNode } from '@agent-ic/flow';
+import {
+  ModelProviderKind,
+  NodeType,
+  PortName,
+  PromptSourceKind,
+  PromptVersionKind,
+  RuleMatch,
+} from '@agent-ic/flow';
+import type { FlowNode, PromptSource } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.constants';
 import { SummaryKey } from '@/features/flow-builder/constants/nodeSummary.constants';
@@ -31,13 +38,14 @@ const HAIKU: ModelChoice = {
   outputPrice: 5,
 };
 
-const agentWith = (model: string): FlowNode => {
+const agentWith = (model: string, prompt: PromptSource | null = null): FlowNode => {
   const agent = stepOf(NodeType.Agent);
   return agent.type === NodeType.Agent
     ? {
         ...agent,
         config: {
           ...agent.config,
+          prompt,
           model: { provider: { kind: ModelProviderKind.Platform }, model },
         },
       }
@@ -47,7 +55,7 @@ const agentWith = (model: string): FlowNode => {
 describe('nodeSummary', () => {
   it('describes each new step from its config', () => {
     expect(keys(NodeType.TriggerMessage)).toEqual([SummaryKey.AllChannels]);
-    expect(keys(NodeType.Agent)).toEqual([SummaryKey.NoModel, SummaryKey.InlinePrompt]);
+    expect(keys(NodeType.Agent)).toEqual([SummaryKey.NoModel]);
     expect(keys(NodeType.SendMessage)).toEqual([SummaryKey.Text]);
     expect(keys(NodeType.Escalation)).toEqual([SummaryKey.NotifyTeam]);
     expect(keys(NodeType.Router)).toEqual([]);
@@ -62,12 +70,33 @@ describe('nodeSummary', () => {
   it('names the model by its label and falls back to the id of an unlisted one', () => {
     expect(nodeSummary(agentWith(HAIKU.id), [HAIKU])).toEqual([
       { key: SummaryKey.Model, params: { model: HAIKU.label } },
-      { key: SummaryKey.InlinePrompt, params: {} },
     ]);
     expect(nodeSummary(agentWith('retired-model'), [HAIKU])[0]).toEqual({
       key: SummaryKey.Model,
       params: { model: 'retired-model' },
     });
+  });
+
+  it('marks the prompt source of a step', () => {
+    expect(
+      nodeSummary(agentWith(HAIKU.id, { kind: PromptSourceKind.Inline, text: 'Hi' }), [HAIKU]),
+    ).toEqual([
+      { key: SummaryKey.Model, params: { model: HAIKU.label } },
+      { key: SummaryKey.InlinePrompt, params: {} },
+    ]);
+    expect(
+      nodeSummary(
+        agentWith(HAIKU.id, {
+          kind: PromptSourceKind.Library,
+          promptRef: 'prm_receptionist',
+          pin: { kind: PromptVersionKind.Latest },
+        }),
+        [HAIKU],
+      ),
+    ).toEqual([
+      { key: SummaryKey.Model, params: { model: HAIKU.label } },
+      { key: SummaryKey.LibraryPrompt, params: {} },
+    ]);
   });
 });
 

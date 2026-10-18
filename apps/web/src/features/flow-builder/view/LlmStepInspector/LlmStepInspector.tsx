@@ -13,18 +13,19 @@ import {
 } from '@/features/flow-builder/constants/llmStep.constants';
 import type { LlmStepInspectorProps } from '@/features/flow-builder/view/LlmStepInspector/LlmStepInspector.typedefs';
 import { OutputFieldRow } from '@/features/flow-builder/view/LlmStepInspector/OutputFieldRow';
+import { PromptField } from '@/features/prompts';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { RowList } from '@/shared/ui/display/RowList';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { Field } from '@/shared/ui/inputs/Field';
-import { PromptEditor } from '@/shared/ui/inputs/PromptEditor';
 import { Select } from '@/shared/ui/inputs/Select';
 import { Switch } from '@/shared/ui/inputs/Switch';
 import { InspectorSection } from '@/shared/ui/layout/Inspector';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
 export function LlmStepInspector({
+  workspaceId,
   step,
   extra,
   onPromptChange,
@@ -63,8 +64,9 @@ export function LlmStepInspector({
     <>
       <InspectorSection title={t('inspector.llm.prompt')}>
         <div className="contents" onBlur={onPromptCommit}>
-          <PromptEditor
-            value={step.prompt}
+          <PromptField
+            workspaceId={workspaceId}
+            source={step.source}
             variables={step.variables}
             label={t('inspector.llm.prompt')}
             menuLabel={t('inspector.llm.variables')}

@@ -13,7 +13,6 @@ import {
   NodeType,
   NotifyChannel,
   OutputFieldType,
-  PromptSourceKind,
   QuickRepliesKind,
   RecipientsKind,
   RequestAuthKind,
@@ -32,7 +31,7 @@ export const NODE_TEMPLATES: NodeTemplates = {
   [NodeType.Agent]: {
     type: NodeType.Agent,
     config: {
-      prompt: { kind: PromptSourceKind.Inline, text: '' },
+      prompt: null,
       model: null,
       reasoning: null,
       knowledgeBaseIds: [],
@@ -44,7 +43,7 @@ export const NODE_TEMPLATES: NodeTemplates = {
   [NodeType.Completion]: {
     type: NodeType.Completion,
     config: {
-      prompt: { kind: PromptSourceKind.Inline, text: '' },
+      prompt: null,
       model: null,
       reasoning: null,
       input: { includeCurrentMessage: true },
