@@ -5,6 +5,7 @@ import type { PromptDetailsPanelProps } from '@/features/prompts/containers/Prom
 import { pinnedNumbers } from '@/features/prompts/logic/helpers/promptUsage.helpers';
 import { formatPromptVersionDate } from '@/features/prompts/logic/helpers/promptVersion.helpers';
 import { PromptUsages } from '@/features/prompts/view/PromptUsages';
+import { PromptVariables } from '@/features/prompts/view/PromptVariables';
 import { PromptVersions } from '@/features/prompts/view/PromptVersions';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
@@ -18,6 +19,7 @@ export function PromptDetailsPanel({
   usages,
   usagesFailed,
   onRetryUsages,
+  variablePaths,
 }: PromptDetailsPanelProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
   const { locale } = useLocale();
@@ -90,6 +92,15 @@ export function PromptDetailsPanel({
           {usages !== null && usages.length > 0 && (
             <Text kind={TextKind.Caption} color={TextColor.Mute}>
               {t('details.usage.note')}
+            </Text>
+          )}
+        </section>
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>{t('details.variables.title')}</h3>
+          <PromptVariables paths={variablePaths} />
+          {variablePaths.length > 0 && (
+            <Text kind={TextKind.Caption} color={TextColor.Mute}>
+              {t('details.variables.note')}
             </Text>
           )}
         </section>

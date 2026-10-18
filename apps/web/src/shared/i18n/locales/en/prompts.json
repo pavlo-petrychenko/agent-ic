@@ -39,6 +39,11 @@
       "versionDraft": "draft",
       "pinned": "pinned v{{number}}",
       "followLatest": "follow latest"
+    },
+    "variables": {
+      "title": "Variables in this prompt",
+      "empty": "No variables in this prompt yet.",
+      "note": "user.* comes from the channel (e.g. the Telegram first name)."
     }
   },
   "folderMenu": {

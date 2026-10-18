@@ -43,6 +43,11 @@
       "versionDraft": "чернетка",
       "pinned": "закріплено v{{number}}",
       "followLatest": "остання версія"
+    },
+    "variables": {
+      "title": "Змінні в цьому промпті",
+      "empty": "У цьому промпті ще немає змінних.",
+      "note": "user.* надходить із каналу (наприклад, ім’я з Telegram)."
     }
   },
   "folderMenu": {

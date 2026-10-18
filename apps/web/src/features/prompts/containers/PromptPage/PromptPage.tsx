@@ -88,7 +88,8 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const folderName = findFolderName(folders, prompt.folderId);
   const draftNumber = nextPromptVersionNumber(latestVersion?.number ?? null);
   const editorText = editing ? draft.text : (latestVersion?.text ?? '');
-  const variables: readonly VariableOption[] = collectPromptVariables(editorText).map((path) => ({
+  const variablePaths = collectPromptVariables(editorText);
+  const variables: readonly VariableOption[] = variablePaths.map((path) => ({
     id: path,
     label: path,
     group: '',
@@ -190,6 +191,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
         onRetryUsages={() => {
           void retryUsages();
         }}
+        variablePaths={variablePaths}
       />
       {discarding && editing && (
         <DiscardPromptDraftModal
