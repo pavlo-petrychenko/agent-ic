@@ -7,7 +7,6 @@ export interface PromptFieldProps {
   readonly variables: readonly VariableOption[];
   readonly label: string;
   readonly menuLabel: string;
-  readonly placeholder: string;
   readonly error: string | null;
   readonly onChange: (source: PromptSource) => void;
 }

@@ -7,6 +7,7 @@ export enum SeedLogMessage {
   SampleAgentCreated = 'seed: sample agent created',
   SampleAgentExists = 'seed: workspace already has agents',
   SampleWorkspaceReady = 'seed: sample workspace ready',
+  SamplePromptsReady = 'seed: sample prompts ready',
   FlowExamplesWorkspaceReady = 'seed: flow examples workspace ready',
   FlowExamplesCreated = 'seed: flow examples created',
   FlowExamplesExist = 'seed: flow examples workspace already has agents',

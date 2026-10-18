@@ -6,7 +6,6 @@ import {
   MessageContentKind,
   NodeType,
   PortName,
-  PromptSourceKind,
   QuickRepliesKind,
   nodeOutputFields,
   triggerVariables,
@@ -166,16 +165,7 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
           canRemoveField: current.type === NodeType.Agent || output.length > 1,
         }}
         extra={extra}
-        onPromptChange={(next) => {
-          if (next.kind === PromptSourceKind.Library) {
-            apply(updateLlmStep(document, current.id, { prompt: next }));
-            return;
-          }
-          const currentText = prompt?.kind === PromptSourceKind.Inline ? prompt.text : '';
-          if (next.text !== currentText) {
-            previewEdit(updateLlmStep(document, current.id, { prompt: next }));
-          }
-        }}
+        onPromptChange={(next) => apply(updateLlmStep(document, current.id, { prompt: next }))}
         onPromptCommit={commitPreview}
         onModelChange={(modelId) =>
           apply(selectModel(document, current.id, modelOptions.models, modelId))

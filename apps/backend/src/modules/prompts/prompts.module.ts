@@ -18,6 +18,7 @@ import { PromptFolderViewsService } from '@/modules/prompts/services/prompt-fold
 import { PromptResolverService } from '@/modules/prompts/services/prompt-resolver.service';
 import { PromptUsageService } from '@/modules/prompts/services/prompt-usage.service';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
+import { SamplePromptService } from '@/modules/prompts/services/sample-prompt.service';
 import { CreatePromptFolderUseCase } from '@/modules/prompts/use-cases/create-prompt-folder.use-case';
 import { CreatePromptUseCase } from '@/modules/prompts/use-cases/create-prompt.use-case';
 import { DeletePromptFolderUseCase } from '@/modules/prompts/use-cases/delete-prompt-folder.use-case';
@@ -50,6 +51,7 @@ export class PromptsModule extends defineModule({
     PromptResolverService,
     PromptUsageService,
     PromptViewsService,
+    SamplePromptService,
     CreatePromptFolderUseCase,
     CreatePromptUseCase,
     DeletePromptFolderUseCase,
@@ -79,5 +81,5 @@ export class PromptsModule extends defineModule({
     RenamePromptResolver,
     SavePromptVersionResolver,
   ],
-  exports: [PromptResolverService],
+  exports: [PromptResolverService, SamplePromptService],
 }) {}

@@ -1,11 +1,12 @@
 import type { FlowDocument } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
-import { FLOW_EXAMPLES } from '@/modules/agents/constants/flow-examples.constants';
+import { flowExamples } from '@/modules/agents/constants/flow-examples.constants';
 import {
   exampleEdgeOverlaps,
   exampleNodeHits,
 } from '@/modules/agents/helpers/flow-example-geometry.helpers';
 import { buildExampleFlow } from '@/modules/agents/helpers/flow-example-nodes.helpers';
+import { samplePromptRefs } from '@test/support/fixtures/sample-prompt.fixture';
 
 const sequentialIds = (): (() => string) => {
   let next = 0;
@@ -23,9 +24,11 @@ const edgeName = (flow: FlowDocument, edgeId: string): string => {
   return `${keyOf(flow, edge?.source)}.${edge?.sourcePort ?? '?'} -> ${keyOf(flow, edge?.target)}`;
 };
 
-const EXAMPLE_CASES = FLOW_EXAMPLES.map((example) => [example.name, example] as const);
+const EXAMPLE_CASES = flowExamples(samplePromptRefs()).map(
+  (example) => [example.name, example] as const,
+);
 
-describe('FLOW_EXAMPLES layout', () => {
+describe('flowExamples layout', () => {
   it.each(EXAMPLE_CASES)('%s has no edge running through a node', (_name, example) => {
     const flow = buildExampleFlow(example, sequentialIds());
 

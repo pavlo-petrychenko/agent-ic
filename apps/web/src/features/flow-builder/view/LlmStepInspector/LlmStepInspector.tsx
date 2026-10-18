@@ -70,7 +70,6 @@ export function LlmStepInspector({
             variables={step.variables}
             label={t('inspector.llm.prompt')}
             menuLabel={t('inspector.llm.variables')}
-            placeholder={t('inspector.llm.promptPlaceholder')}
             error={message(step.promptIssue)}
             onChange={onPromptChange}
           />

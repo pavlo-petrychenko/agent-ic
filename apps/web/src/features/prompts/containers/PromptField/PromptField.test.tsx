@@ -22,7 +22,6 @@ const renderField = (source: PromptSource | null) => {
       variables={[]}
       label="Prompt"
       menuLabel="Fields"
-      placeholder="Write a prompt"
       error={null}
       onChange={onChange}
     />,
@@ -32,19 +31,26 @@ const renderField = (source: PromptSource | null) => {
 };
 
 describe('PromptField', () => {
-  it('edits an inline prompt and writes the text', async () => {
-    const onChange = renderField({ kind: PromptSourceKind.Inline, text: '' });
+  it('shows a prompt written in the step read-only and offers the library', () => {
+    renderField({ kind: PromptSourceKind.Inline, text: 'Help the guest book a table.' });
 
-    await userEvent.type(screen.getByRole('textbox', { name: 'Prompt' }), 'Greet the customer');
+    expect(screen.getByText('Help the guest book a table.')).toBeVisible();
+    expect(
+      screen.getByText('This prompt is written in the step. Pick a library prompt to replace it.'),
+    ).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Use a library prompt' })).toBeVisible();
+  });
 
-    expect(onChange).toHaveBeenLastCalledWith({
-      kind: PromptSourceKind.Inline,
-      text: 'Greet the customer',
-    });
+  it('asks for a prompt when the step has none', () => {
+    renderField(null);
+
+    expect(
+      screen.getByText('This step has no prompt yet. Pick one from the library.'),
+    ).toBeVisible();
   });
 
   it('picks a library prompt and writes the reference', async () => {
-    const onChange = renderField({ kind: PromptSourceKind.Inline, text: '' });
+    const onChange = renderField(null);
 
     await userEvent.click(screen.getByRole('button', { name: 'Use a library prompt' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Gift card answers' }));
