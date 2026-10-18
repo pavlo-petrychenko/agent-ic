@@ -57,6 +57,15 @@
     "success": "Folder “{{name}}” deleted",
     "failed": "The folder could not be deleted."
   },
+  "view": {
+    "version": "v{{number}} · latest",
+    "savedAt": "Saved {{date}}",
+    "savedBy": "Saved {{date}} by {{author}}",
+    "readOnly": "Read-only — Edit creates a draft",
+    "noText": "This prompt has no text yet.",
+    "body": "Prompt text",
+    "variables": "Variables"
+  },
   "loadError": "The prompts couldn’t be opened.",
   "retry": "Try again"
 }

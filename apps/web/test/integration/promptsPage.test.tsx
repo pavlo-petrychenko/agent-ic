@@ -142,6 +142,7 @@ describe('prompts page', () => {
     });
 
     const section = await screen.findByRole('navigation', { name: 'Prompts' });
+    await within(section).findByRole('button', { name: Q_AND_A_FOLDER.name });
     await userEvent.click(await within(section).findByRole('button', { name: 'New prompt' }));
 
     const dialog = await screen.findByRole('dialog', { name: 'New prompt' });
