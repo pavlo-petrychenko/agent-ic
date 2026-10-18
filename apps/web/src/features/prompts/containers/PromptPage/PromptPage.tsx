@@ -112,7 +112,8 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const shownVersion =
     versionView.olderVersionId === null ? latestVersion : versionView.olderVersion;
   const editorText = editing ? draft.text : (shownVersion?.text ?? '');
-  const variables: readonly VariableOption[] = collectPromptVariables(editorText).map((path) => ({
+  const variablePaths = collectPromptVariables(editorText);
+  const variables: readonly VariableOption[] = variablePaths.map((path) => ({
     id: path,
     label: path,
     group: '',
@@ -305,6 +306,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
         onRetryUsages={() => {
           void retryUsages();
         }}
+        variablePaths={variablePaths}
       />
       {discarding && editing && (
         <DiscardPromptDraftModal

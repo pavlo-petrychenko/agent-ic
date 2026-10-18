@@ -8,4 +8,5 @@ export interface PromptDetailsPanelProps {
   readonly onRetryUsages: () => void;
   readonly onSelect: ((versionId: string) => void) | null;
   readonly onCompare: ((fromId: string, toId: string) => void) | null;
+  readonly variablePaths: readonly string[];
 }
