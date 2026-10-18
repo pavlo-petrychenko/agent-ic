@@ -94,6 +94,10 @@ export class PromptsRepository {
     return (await this.update(workspaceId, promptId, { deletedAt })) !== null;
   }
 
+  async deleteByWorkspace(workspaceId: string): Promise<void> {
+    await this.txHost.tx.delete(prompts).where(eq(prompts.workspaceId, workspaceId));
+  }
+
   private activeWhere(workspaceId: string) {
     return and(eq(prompts.workspaceId, workspaceId), isNull(prompts.deletedAt));
   }
