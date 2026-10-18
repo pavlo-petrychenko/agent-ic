@@ -2,6 +2,7 @@ import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { asc, eq } from 'drizzle-orm';
 import { inviteLinks } from '@/modules/identity/db/invite-links.table';
 import { memberships } from '@/modules/identity/db/memberships.table';
+import { roles } from '@/modules/identity/db/roles.table';
 import type { InviteLinkRecord } from '@/modules/identity/typedefs/invite-link.typedefs';
 import type { MembershipRecord } from '@/modules/identity/typedefs/membership.typedefs';
 import type {
@@ -81,16 +82,23 @@ export const addMember = async (
   return member.userId;
 };
 
-export const readMemberships = (
+export interface MembershipWithRoleKey extends MembershipRecord {
+  readonly role: WorkspaceRole;
+}
+
+export const readMemberships = async (
   testbed: IdentityTestbed,
   workspaceId: string,
-): Promise<MembershipRecord[]> =>
-  testbed.module
+): Promise<MembershipWithRoleKey[]> => {
+  const rows = await testbed.module
     .get(SystemDatabaseService)
-    .db.select()
+    .db.select({ membership: memberships, role: roles.key })
     .from(memberships)
+    .innerJoin(roles, eq(roles.id, memberships.roleId))
     .where(eq(memberships.workspaceId, workspaceId))
     .orderBy(asc(memberships.createdAt), asc(memberships.id));
+  return rows.map((row) => ({ ...row.membership, role: row.role }));
+};
 
 export const activeInviteLinkOf = async (
   testbed: IdentityTestbed,

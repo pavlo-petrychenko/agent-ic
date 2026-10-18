@@ -1,3 +1,11 @@
+extend type Query {
+  roles: [Role!]!
+}
+
+extend type Mutation {
+  createRole(input: CreateRoleInput!): Role!
+}
+
 enum PermissionResource {
   agents
   prompts

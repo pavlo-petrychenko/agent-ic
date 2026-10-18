@@ -4,6 +4,7 @@ import { EmailTokensRepository } from '@/modules/identity/repositories/email-tok
 import { InviteLinksRepository } from '@/modules/identity/repositories/invite-links.repository';
 import { MembershipDirectoryRepository } from '@/modules/identity/repositories/membership-directory.repository';
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
+import { RolesRepository } from '@/modules/identity/repositories/roles.repository';
 import { SessionsRepository } from '@/modules/identity/repositories/sessions.repository';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { WorkspacesRepository } from '@/modules/identity/repositories/workspaces.repository';
@@ -24,6 +25,7 @@ import { RenameWorkspaceResolver } from '@/modules/identity/resolvers/rename-wor
 import { RequestMyEmailChangeResolver } from '@/modules/identity/resolvers/request-my-email-change.resolver';
 import { ResendConfirmationResolver } from '@/modules/identity/resolvers/resend-confirmation.resolver';
 import { ResetInviteLinkResolver } from '@/modules/identity/resolvers/reset-invite-link.resolver';
+import { RolesResolver } from '@/modules/identity/resolvers/roles.resolver';
 import { TransferOwnershipResolver } from '@/modules/identity/resolvers/transfer-ownership.resolver';
 import { UpdateInviteLinkRoleResolver } from '@/modules/identity/resolvers/update-invite-link-role.resolver';
 import { UpdateMyLocaleResolver } from '@/modules/identity/resolvers/update-my-locale.resolver';
@@ -39,12 +41,14 @@ import { PasswordResetsService } from '@/modules/identity/services/password-rese
 import { SampleWorkspaceService } from '@/modules/identity/services/sample-workspace.service';
 import { SessionsService } from '@/modules/identity/services/sessions.service';
 import { WorkspaceMembershipsService } from '@/modules/identity/services/workspace-memberships.service';
+import { WorkspaceRolesService } from '@/modules/identity/services/workspace-roles.service';
 import { AcceptInviteUseCase } from '@/modules/identity/use-cases/accept-invite.use-case';
 import { ChangeMyPasswordUseCase } from '@/modules/identity/use-cases/change-my-password.use-case';
 import { CleanUpAuthRecordsUseCase } from '@/modules/identity/use-cases/clean-up-auth-records.use-case';
 import { ConfirmEmailChangeUseCase } from '@/modules/identity/use-cases/confirm-email-change.use-case';
 import { ConfirmEmailUseCase } from '@/modules/identity/use-cases/confirm-email.use-case';
 import { CountMembersByRoleUseCase } from '@/modules/identity/use-cases/count-members-by-role.use-case';
+import { CreateRoleUseCase } from '@/modules/identity/use-cases/create-role.use-case';
 import { CreateWorkspaceUseCase } from '@/modules/identity/use-cases/create-workspace.use-case';
 import { DeleteWorkspaceUseCase } from '@/modules/identity/use-cases/delete-workspace.use-case';
 import { ForgotPasswordUseCase } from '@/modules/identity/use-cases/forgot-password.use-case';
@@ -54,6 +58,7 @@ import { GetMeUseCase } from '@/modules/identity/use-cases/get-me.use-case';
 import { LeaveWorkspaceUseCase } from '@/modules/identity/use-cases/leave-workspace.use-case';
 import { ListMembersUseCase } from '@/modules/identity/use-cases/list-members.use-case';
 import { ListMyWorkspacesUseCase } from '@/modules/identity/use-cases/list-my-workspaces.use-case';
+import { ListRolesUseCase } from '@/modules/identity/use-cases/list-roles.use-case';
 import { LoginUseCase } from '@/modules/identity/use-cases/login.use-case';
 import { LogoutUseCase } from '@/modules/identity/use-cases/logout.use-case';
 import { RefreshSessionUseCase } from '@/modules/identity/use-cases/refresh-session.use-case';
@@ -81,6 +86,7 @@ export class IdentityModule extends defineModule({
     EmailTokensRepository,
     WorkspacesRepository,
     MembershipsRepository,
+    RolesRepository,
     InviteLinksRepository,
     MembershipDirectoryRepository,
     SessionsService,
@@ -90,6 +96,7 @@ export class IdentityModule extends defineModule({
     InviteTokensService,
     InviteLinksService,
     WorkspaceMembershipsService,
+    WorkspaceRolesService,
     MeService,
     SampleWorkspaceService,
     MembershipWorkspaceAccessService,
@@ -107,6 +114,7 @@ export class IdentityModule extends defineModule({
     ResetPasswordUseCase,
     ChangeMyPasswordUseCase,
     CreateWorkspaceUseCase,
+    CreateRoleUseCase,
     DeleteWorkspaceUseCase,
     ListMyWorkspacesUseCase,
     GetInviteLinkUseCase,
@@ -115,6 +123,7 @@ export class IdentityModule extends defineModule({
     GetInviteInfoUseCase,
     AcceptInviteUseCase,
     ListMembersUseCase,
+    ListRolesUseCase,
     CountMembersByRoleUseCase,
     CleanUpAuthRecordsUseCase,
     RenameWorkspaceUseCase,
@@ -138,6 +147,7 @@ export class IdentityModule extends defineModule({
     LeaveWorkspaceResolver,
     UpdateInviteLinkRoleResolver,
     ResetInviteLinkResolver,
+    RolesResolver,
     InviteInfoResolver,
     AcceptInviteResolver,
     MembersResolver,
@@ -155,11 +165,13 @@ export class IdentityModule extends defineModule({
   exports: [
     UsersRepository,
     MembershipsRepository,
+    RolesRepository,
     SessionsService,
     EmailConfirmationsService,
     EmailChangesService,
     PasswordResetsService,
     SampleWorkspaceService,
+    WorkspaceRolesService,
     WorkspaceAccessService,
   ],
 }) {}

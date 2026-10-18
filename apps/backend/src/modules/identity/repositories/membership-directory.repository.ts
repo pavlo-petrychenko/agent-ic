@@ -7,6 +7,7 @@ import {
 } from '@/modules/identity/constants/workspace.constants';
 import { inviteLinks } from '@/modules/identity/db/invite-links.table';
 import { memberships } from '@/modules/identity/db/memberships.table';
+import { roles } from '@/modules/identity/db/roles.table';
 import { users } from '@/modules/identity/db/users.table';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
 import type { DirectoryInvite } from '@/modules/identity/typedefs/invite-link.typedefs';
@@ -24,11 +25,12 @@ export class MembershipDirectoryRepository {
         workspaceId: workspaces.id,
         name: workspaces.name,
         timeZone: workspaces.timeZone,
-        role: memberships.role,
+        role: roles.key,
         memberCount: counts.memberCount,
       })
       .from(memberships)
       .innerJoin(workspaces, eq(workspaces.id, memberships.workspaceId))
+      .innerJoin(roles, eq(roles.id, memberships.roleId))
       .innerJoin(counts, eq(counts.workspaceId, memberships.workspaceId))
       .where(eq(memberships.userId, userId))
       .orderBy(asc(memberships.createdAt), asc(memberships.id));
