@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { Dialog as DialogPrimitive } from 'radix-ui';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { IconButton } from '@/shared/ui/actions/IconButton';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { IconName } from '@/shared/ui/foundations/Icon';
@@ -11,6 +11,10 @@ import styles from '@/shared/ui/overlays/Dialog/Dialog.module.scss';
 
 function preventDismiss(event: Event) {
   event.preventDefault();
+}
+
+function rendersContent(children: ReactNode): boolean {
+  return children !== null && children !== undefined && typeof children !== 'boolean';
 }
 
 export function Dialog({
@@ -28,7 +32,7 @@ export function Dialog({
 }: DialogProps) {
   const [portalContainer, setPortalContainer] = useState<Element | null>(null);
   const describedByOverride = description === null ? { 'aria-describedby': undefined } : {};
-  const hasBody = children !== null || error !== null;
+  const hasBody = error !== null || rendersContent(children);
   const hasFooter = footerLeft !== null || footerRight !== null;
 
   return (
