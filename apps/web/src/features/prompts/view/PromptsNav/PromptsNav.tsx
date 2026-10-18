@@ -1,15 +1,45 @@
 import { useTranslation } from 'react-i18next';
+import {
+  PROMPT_FOLDER_MENU_ACTIONS,
+  PromptFolderMenuAction,
+} from '@/features/prompts/constants/promptFolderMenu.constants';
 import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.constants';
+import { PROMPT_PATH } from '@/features/prompts/constants/route.constants';
 import type { PromptsNavProps } from '@/features/prompts/view/PromptsNav/PromptsNav.typedefs';
 import { IconButton, IconButtonSize, IconButtonVariant } from '@/shared/ui/actions/IconButton';
+import { SubnavItem, SubnavItemDepth, SubnavItemMetaKind } from '@/shared/ui/data/SubnavItem';
 import { TreeFolder } from '@/shared/ui/data/TreeFolder';
 import { IconName } from '@/shared/ui/foundations/Icon';
+import { SearchInput } from '@/shared/ui/inputs/SearchInput';
+import { ContextMenu } from '@/shared/ui/overlays/ContextMenu';
+import type { MenuItem } from '@/shared/ui/overlays/Menu';
 import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/typography/Heading';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/prompts/view/PromptsNav/PromptsNav.module.scss';
 
-export function PromptsNav({ groups, loading, onCreate, onOpenChange }: PromptsNavProps) {
+export function PromptsNav({
+  workspaceId,
+  groups,
+  loading,
+  query,
+  draftPromptIds,
+  onCreate,
+  onQueryChange,
+  onQueryClear,
+  onOpenChange,
+  folderMenuAnchor,
+  onFolderMenuOpen,
+  onFolderMenuSelect,
+  onFolderMenuClose,
+}: PromptsNavProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
+  const searching = query.trim() !== '';
+
+  const toMenuItem = (action: PromptFolderMenuAction): MenuItem => ({
+    id: action,
+    label: t(`folderMenu.${action}`),
+    danger: action === PromptFolderMenuAction.Delete,
+  });
 
   return (
     <nav aria-label={t('nav.label')} className={styles.root}>
@@ -25,9 +55,17 @@ export function PromptsNav({ groups, loading, onCreate, onOpenChange }: PromptsN
           onClick={onCreate}
         />
       </header>
+      <SearchInput
+        value={query}
+        label={t('nav.search')}
+        clearLabel={t('nav.searchClear')}
+        placeholder={t('nav.search')}
+        onChange={(event) => onQueryChange(event.target.value)}
+        onClear={onQueryClear}
+      />
       {!loading && groups.length === 0 && (
         <Text kind={TextKind.BodySmall} color={TextColor.Mute}>
-          {t('empty.title')}
+          {searching ? t('nav.noResults') : t('empty.title')}
         </Text>
       )}
       {groups.length > 0 && (
@@ -38,16 +76,43 @@ export function PromptsNav({ groups, loading, onCreate, onOpenChange }: PromptsN
               label={group.folder.name}
               open={group.open}
               onOpenChange={(open) => onOpenChange(group.folder.id, open)}
+              onContextMenu={(event) =>
+                onFolderMenuOpen({ folder: group.folder, promptCount: group.prompts.length }, event)
+              }
             >
               {group.prompts.map((prompt) => (
-                <span key={prompt.id} className={styles.prompt}>
-                  {prompt.name}
-                </span>
+                <SubnavItem
+                  key={prompt.id}
+                  to={PROMPT_PATH}
+                  params={{ workspaceId, promptId: prompt.id }}
+                  label={prompt.name}
+                  meta={
+                    draftPromptIds.has(prompt.id)
+                      ? t('nav.draft')
+                      : prompt.latestVersionNumber === null
+                        ? null
+                        : t('versions.number', { number: prompt.latestVersionNumber })
+                  }
+                  metaKind={SubnavItemMetaKind.Version}
+                  depth={SubnavItemDepth.Nested}
+                />
               ))}
             </TreeFolder>
           ))}
         </div>
       )}
+      <ContextMenu
+        anchor={folderMenuAnchor}
+        items={PROMPT_FOLDER_MENU_ACTIONS.map(toMenuItem)}
+        ariaLabel={t('folderMenu.label')}
+        onSelect={(id) => {
+          const action = PROMPT_FOLDER_MENU_ACTIONS.find((entry) => entry === id);
+          if (action !== undefined) {
+            onFolderMenuSelect(action);
+          }
+        }}
+        onClose={onFolderMenuClose}
+      />
     </nav>
   );
 }

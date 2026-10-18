@@ -1,13 +1,32 @@
+import { useNavigate } from '@tanstack/react-router';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PromptFormField } from '@/features/prompts/constants/promptForm.constants';
 import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.constants';
 import type { NewPromptDialogProps } from '@/features/prompts/containers/NewPromptDialog/NewPromptDialog.typedefs';
 import { useNewPromptForm } from '@/features/prompts/containers/NewPromptDialog/useNewPromptForm';
+import { storeLastOpenedPromptId } from '@/features/prompts/storage/helpers/promptLastOpenedStorage.helpers';
 import { NewPromptModal } from '@/features/prompts/view/NewPromptModal';
 
-export function NewPromptDialog({ folders, onClose }: NewPromptDialogProps) {
+export function NewPromptDialog({ workspaceId, folders, onClose }: NewPromptDialogProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
-  const { form, fieldErrors, formError, submitting } = useNewPromptForm(folders, onClose);
+  const navigate = useNavigate();
+  const openCreated = useCallback(
+    (promptId: string) => {
+      storeLastOpenedPromptId(workspaceId, promptId);
+      void navigate({
+        to: '/w/$workspaceId/prompts/$promptId',
+        params: { workspaceId, promptId },
+        replace: true,
+      });
+    },
+    [navigate, workspaceId],
+  );
+  const { form, fieldErrors, formError, submitting } = useNewPromptForm(
+    folders,
+    onClose,
+    openCreated,
+  );
 
   return (
     <NewPromptModal

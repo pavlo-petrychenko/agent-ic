@@ -1,13 +1,19 @@
-import { Locale } from '@agent-ic/contracts';
+import { IdPrefix, Locale } from '@agent-ic/contracts';
 import { NodeType } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { eq, sql } from 'drizzle-orm';
+import { AgentRuntimeReader } from '@/modules/agents';
 import { AgentVersionKind, PauseMode } from '@/modules/agents/constants/agent.constants';
 import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
-import { ConversationMode, messageReceivedEvent } from '@/modules/conversations';
+import {
+  ConversationMode,
+  ConversationRunsService,
+  MessageAuthor,
+  messageReceivedEvent,
+} from '@/modules/conversations';
 import type { MessageReceivedPayload } from '@/modules/conversations';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
@@ -59,6 +65,7 @@ import { MESSAGE_SPACING_MS } from '@test/support/constants/conversations-testin
 import {
   AgentChange,
   RUNS_TEST_START,
+  TEST_AGENT_REPLY,
   TEST_MEMBER_EMAIL_DOMAIN,
   TEST_MEMBER_PASSWORD_HASH,
   TEST_PUBLISHED_NUMBER,
@@ -75,7 +82,8 @@ import {
   newMessage,
   workspaceSystemCtx,
 } from '@test/support/fixtures/conversation.fixture';
-import { newRun, triggerOnlyFlow } from '@test/support/fixtures/runs.fixture';
+import { newRun, newRunStep, triggerOnlyFlow } from '@test/support/fixtures/runs.fixture';
+import { seedPublishedVersion } from '@test/support/helpers/agents-testing.helpers';
 import { queuedEventsFor } from '@test/support/helpers/conversations-testing.helpers';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 import {
@@ -86,11 +94,13 @@ import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.
 import { LlmTracesProbeModule } from '@test/support/modules/llm-traces-probe.module';
 import type {
   ExecutableRun,
+  LastRunBatch,
   LifecycleState,
   LiveConversation,
   ReceivedMessage,
   RunExecutionTestbed,
   RunChat,
+  RunBatch,
   RunLifecycleTestbed,
   RunsTestbed,
   SeededMember,
@@ -240,6 +250,73 @@ export const storeFlowJson = async (
 
 export const seedSimulationRun = (testbed: RunExecutionTestbed): Promise<ExecutableRun> =>
   seedExecutableRun(testbed, triggerOnlyFlow(), [], ConversationMode.Simulation);
+
+export const seedSimulationRunBatch = async (
+  testbed: RunExecutionTestbed,
+  flow: FlowDocument,
+): Promise<RunBatch> => {
+  const { run, ctx } = await seedExecutableRun(testbed, flow, [], ConversationMode.Simulation);
+  const { workspaceId } = run;
+  await testbed.execution.execute(ctx, workspaceId, run.id);
+  const oneStep = { ...run, id: testbed.ids.generate() };
+  const noSteps = { ...run, id: testbed.ids.generate() };
+  await testbed.tenants.run(workspaceId, async () => {
+    await testbed.runs.insert(oneStep);
+    await testbed.runs.insert(noSteps);
+    await testbed.steps.start(newRunStep(testbed, oneStep));
+    await testbed.module.get(ConversationRunsService).recordOutbound(ctx, {
+      workspaceId,
+      conversationId: run.conversationId,
+      key: testbed.ids.generate(),
+      author: MessageAuthor.Agent,
+      text: TEST_AGENT_REPLY,
+      quickReplies: [],
+      runId: run.id,
+    });
+  });
+  const publicId = (id: string): string => testbed.ids.toPublic(IdPrefix.Run, id);
+  return {
+    workspaceId,
+    runIds: {
+      executed: publicId(run.id),
+      started: publicId(oneStep.id),
+      queued: publicId(noSteps.id),
+    },
+  };
+};
+
+export const seedLastSimulationRuns = async (
+  testbed: RunExecutionTestbed,
+  draftRevision: number,
+): Promise<LastRunBatch> => {
+  const { run } = await seedSimulationRun(testbed);
+  const { workspaceId, agentId } = run;
+  const draft = { kind: AgentVersionKind.Draft, number: null, revision: draftRevision };
+  await seedPublishedVersion(testbed.module, workspaceId, agentId, draft);
+  testbed.clock.advanceBy(MESSAGE_SPACING_MS);
+  const published = { ...run, id: testbed.ids.generate(), agentId: testbed.ids.generate() };
+  const neverTested = testbed.ids.generate();
+  const testedRunId = testbed.ids.generate();
+  await testbed.tenants.run(workspaceId, async () => {
+    const agents = testbed.module.get(AgentsRepository);
+    await agents.insert(newAgent(published.agentId, workspaceId));
+    await agents.insert(newAgent(neverTested, workspaceId));
+    await testbed.runs.insert(published);
+    const snapshot = await testbed.module
+      .get(AgentRuntimeReader)
+      .snapshotDraft(workspaceId, agentId);
+    const createdAt = testbed.clock.now();
+    await testbed.runs.insert({ ...run, id: testedRunId, versionId: snapshot.id, createdAt });
+  });
+  return {
+    workspaceId,
+    agentIds: [agentId, published.agentId, neverTested].map((id) =>
+      testbed.ids.toPublic(IdPrefix.Agent, id),
+    ),
+    testedRunId: testbed.ids.toPublic(IdPrefix.Run, testedRunId),
+    publishedRunId: testbed.ids.toPublic(IdPrefix.Run, published.id),
+  };
+};
 
 export const seedWorkspaceMembers = async (
   testbed: RunExecutionTestbed,

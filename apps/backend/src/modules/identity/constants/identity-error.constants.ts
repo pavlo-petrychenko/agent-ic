@@ -10,3 +10,4 @@ export const UNSUPPORTED_CONTENT_TYPE_MESSAGE = 'Send the request body as applic
 export const CONFIRMATION_BROWSER_MISMATCH_MESSAGE =
   'Open the link in the browser where you signed up, or sign up again in this browser.';
 export const SAME_PASSWORD_MESSAGE = 'The new password must be different from the current one.';
+export const WRONG_PASSWORD_MESSAGE = 'The password is not correct.';

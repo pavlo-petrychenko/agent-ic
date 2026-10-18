@@ -15,6 +15,8 @@ export enum WorkspaceSection {
   Team = 'team',
   General = 'general',
   Roles = 'roles',
+  Usage = 'usage',
+  LlmKeys = 'llmKeys',
   Profile = 'profile',
 }
 
@@ -33,6 +35,8 @@ export const WORKSPACE_SECTION_PATHS = {
   [WorkspaceSection.Team]: '/w/$workspaceId/settings/team',
   [WorkspaceSection.General]: '/w/$workspaceId/settings/general',
   [WorkspaceSection.Roles]: '/w/$workspaceId/settings/roles',
+  [WorkspaceSection.Usage]: '/w/$workspaceId/settings/usage',
+  [WorkspaceSection.LlmKeys]: '/w/$workspaceId/settings/llm',
   [WorkspaceSection.Profile]: '/w/$workspaceId/settings/profile',
 } as const;
 
@@ -45,6 +49,8 @@ export const SECTION_RESOURCES: Readonly<Record<WorkspaceSection, PermissionReso
   [WorkspaceSection.Team]: PermissionResource.Team,
   [WorkspaceSection.General]: PermissionResource.WorkspaceSettings,
   [WorkspaceSection.Roles]: PermissionResource.Team,
+  [WorkspaceSection.Usage]: PermissionResource.WorkspaceSettings,
+  [WorkspaceSection.LlmKeys]: PermissionResource.WorkspaceSettings,
   [WorkspaceSection.Profile]: null,
 };
 
@@ -65,7 +71,7 @@ export const NAV_GROUPS: readonly NavGroupEntry[] = [
       },
       {
         section: WorkspaceSection.Prompts,
-        icon: IconName.Note,
+        icon: IconName.Compl,
         resource: PermissionResource.Prompts,
       },
     ],

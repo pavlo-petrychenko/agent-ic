@@ -25,12 +25,12 @@ export function NewPromptModal({
       error={error}
       title={t('newPrompt.title')}
       description={t('newPrompt.description')}
-      closeLabel={t('newPrompt.close')}
+      closeLabel={t('dialog.close')}
       size={DialogSize.Sm}
       footerRight={
         <>
           <Button variant={ButtonVariant.Secondary} disabled={submitting} onClick={onClose}>
-            {t('newPrompt.cancel')}
+            {t('dialog.cancel')}
           </Button>
           <Button loading={submitting} onClick={onSubmit}>
             {t('newPrompt.submit')}

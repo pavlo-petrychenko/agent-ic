@@ -11,7 +11,6 @@ import type {
   MovePromptToFolderInput,
   PromptView,
 } from '@/modules/prompts/typedefs/prompt.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -24,7 +23,6 @@ export class MovePromptToFolderUseCase {
     private readonly prompts: PromptsRepository,
     private readonly folders: PromptFoldersRepository,
     private readonly views: PromptViewsService,
-    private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
 
@@ -33,7 +31,6 @@ export class MovePromptToFolderUseCase {
     const { id, folderId: publicFolderId } = parsePromptInput(movePromptToFolderInputSchema, input);
     const promptId = this.ids.fromPublic(IdPrefix.Prompt, id);
     const folderId = this.ids.fromPublic(IdPrefix.PromptFolder, publicFolderId);
-    const updatedAt = this.clock.now();
     return this.tenantTransactions.run(workspaceId, async () => {
       if ((await this.folders.findByIdForUpdate(workspaceId, folderId)) === null) {
         throw new PromptFolderNotFoundError();
@@ -45,8 +42,11 @@ export class MovePromptToFolderUseCase {
       if (prompt.folderId === folderId) {
         return this.views.promptView(prompt);
       }
-      await this.prompts.moveToFolder(workspaceId, promptId, folderId, updatedAt);
-      return this.views.promptView({ ...prompt, folderId, updatedAt });
+      const moved = await this.prompts.moveToFolder(workspaceId, promptId, folderId);
+      if (moved === null) {
+        throw new PromptNotFoundError();
+      }
+      return this.views.promptView(moved);
     });
   }
 }

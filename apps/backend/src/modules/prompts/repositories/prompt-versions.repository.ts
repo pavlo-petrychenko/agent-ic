@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, isNull, max } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, max } from 'drizzle-orm';
 import { NO_PROMPT_VERSIONS } from '@/modules/prompts/constants/prompt.constants';
 import { promptVersions } from '@/modules/prompts/db/prompt-versions.table';
 import type {
@@ -23,6 +23,24 @@ export class PromptVersionsRepository {
       .from(promptVersions)
       .where(and(this.activeWhere(workspaceId), eq(promptVersions.id, versionId)));
     return version ?? null;
+  }
+
+  async summarize(
+    workspaceId: string,
+    promptIds: readonly string[],
+  ): Promise<ReadonlyMap<string, number>> {
+    if (promptIds.length === 0) {
+      return new Map();
+    }
+    const rows = await this.txHost.tx
+      .select({
+        promptId: promptVersions.promptId,
+        lastNumber: max(promptVersions.number).mapWith(Number).as('last_number'),
+      })
+      .from(promptVersions)
+      .where(and(this.activeWhere(workspaceId), inArray(promptVersions.promptId, [...promptIds])))
+      .groupBy(promptVersions.promptId);
+    return new Map(rows.map((row) => [row.promptId, row.lastNumber]));
   }
 
   listByPrompt(workspaceId: string, promptId: string): Promise<PromptVersion[]> {
@@ -64,6 +82,10 @@ export class PromptVersionsRepository {
       .where(and(this.activeWhere(workspaceId), eq(promptVersions.promptId, promptId)))
       .returning({ id: promptVersions.id });
     return updated.length;
+  }
+
+  async deleteByWorkspace(workspaceId: string): Promise<void> {
+    await this.txHost.tx.delete(promptVersions).where(eq(promptVersions.workspaceId, workspaceId));
   }
 
   private activeWhere(workspaceId: string) {

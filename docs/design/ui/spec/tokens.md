@@ -210,7 +210,7 @@ Scale in the Typography section. Letter-spacing and line-height tokens named by 
 | --leading-relaxed | 1.45 | multi-line: descriptions, inputs, code, bubbles, help (replaces proposed --leading-snug) |
 | --leading-tight | 1.2 | two-line identity blocks (name + meta) |
 | --type-h1-mono | 21/500 mono | page title that is a code id |
-Old proposals `--leading-snug` 1.45 and `--leading-loose` 1.7 / relaxed 1.6: the page defines only 1.2, 1.4, 1.45; code and PromptEditor use 1.45 (component specs that cite 1.6/1.7 should adopt `--leading-relaxed`, see notes). OPEN against this: DS-States draws the PromptEditor surface in JetBrains Mono 13 at line-height 1.7, and the Dialog title at 18/600 with letter-spacing -0.01em (`--type-h2` has no tracking). Neither is adopted until confirmed (INDEX section 7).
+Old proposals `--leading-snug` 1.45 and `--leading-loose` 1.7 / relaxed 1.6: the page defines only 1.2, 1.4, 1.45; code and PromptEditor use 1.45 (component specs that cite 1.6/1.7 should adopt `--leading-relaxed`, see notes). Resolved against this: the PromptEditor surface is JetBrains Mono 13 at `--leading-relaxed` 1.45 (mono from DS-States, leading from tokens), not DS-States' 1.7. OPEN: the Dialog title at 18/600 with letter-spacing -0.01em (`--type-h2` has no tracking), not adopted until confirmed (INDEX section 7).
 
 ## Motion
 | var | value | used by |

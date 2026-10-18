@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
@@ -50,5 +50,23 @@ describe('TreeFolder', () => {
 
     expect(trigger).toBeDisabled();
     expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('reports a right click on the header', () => {
+    const onContextMenu = vi.fn<() => void>();
+    render(
+      <TreeFolder
+        label="Booking"
+        open
+        onOpenChange={vi.fn<(open: boolean) => void>()}
+        onContextMenu={onContextMenu}
+      >
+        <a href="/receptionist">Receptionist</a>
+      </TreeFolder>,
+    );
+
+    fireEvent.contextMenu(screen.getByRole('button', { name: 'Booking' }));
+
+    expect(onContextMenu).toHaveBeenCalledTimes(1);
   });
 });

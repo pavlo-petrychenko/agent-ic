@@ -69,6 +69,10 @@ export class PromptFoldersRepository {
     return (await this.update(workspaceId, folderId, { deletedAt })) !== null;
   }
 
+  async deleteByWorkspace(workspaceId: string): Promise<void> {
+    await this.txHost.tx.delete(promptFolders).where(eq(promptFolders.workspaceId, workspaceId));
+  }
+
   private activeWhere(workspaceId: string) {
     return and(eq(promptFolders.workspaceId, workspaceId), isNull(promptFolders.deletedAt));
   }
