@@ -1,4 +1,5 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
+import { toGraphqlPermissions } from '@/modules/identity/helpers/permission-graphql.helpers';
 import type {
   InviteInfo,
   InviteLinkView,
@@ -37,6 +38,7 @@ export const WORKSPACE_ROLE_FROM_GRAPHQL: Readonly<Record<GraphqlWorkspaceRole, 
 export const toGraphqlMembership = (membership: WorkspaceMembership): Membership => ({
   workspace: membership.workspace,
   role: GRAPHQL_WORKSPACE_ROLE[membership.role],
+  permissions: toGraphqlPermissions(membership.permissions),
 });
 
 export const toGraphqlInviteLink = (link: InviteLinkView): GraphqlInviteLink => ({

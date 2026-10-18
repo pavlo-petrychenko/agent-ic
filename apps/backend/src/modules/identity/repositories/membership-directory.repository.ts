@@ -7,10 +7,12 @@ import {
 } from '@/modules/identity/constants/workspace.constants';
 import { inviteLinks } from '@/modules/identity/db/invite-links.table';
 import { memberships } from '@/modules/identity/db/memberships.table';
+import { rolePermissions } from '@/modules/identity/db/role-permissions.table';
 import { roles } from '@/modules/identity/db/roles.table';
 import { users } from '@/modules/identity/db/users.table';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
 import type { DirectoryInvite } from '@/modules/identity/typedefs/invite-link.typedefs';
+import type { RolePermission } from '@/modules/identity/typedefs/role.typedefs';
 import type { DirectoryMembership } from '@/modules/identity/typedefs/workspace.typedefs';
 import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
 
@@ -18,9 +20,9 @@ import { SystemDatabaseService } from '@/platform/database/services/system-datab
 export class MembershipDirectoryRepository {
   constructor(private readonly systemDb: SystemDatabaseService) {}
 
-  listForUser(userId: string): Promise<DirectoryMembership[]> {
+  async listForUser(userId: string): Promise<DirectoryMembership[]> {
     const counts = this.memberCounts();
-    return this.systemDb.db
+    const rows = await this.systemDb.db
       .select({
         workspaceId: workspaces.id,
         name: workspaces.name,
@@ -34,6 +36,36 @@ export class MembershipDirectoryRepository {
       .innerJoin(counts, eq(counts.workspaceId, memberships.workspaceId))
       .where(eq(memberships.userId, userId))
       .orderBy(asc(memberships.createdAt), asc(memberships.id));
+    if (rows.length === 0) {
+      return [];
+    }
+    const permissions = await this.permissionsForUser(userId);
+    return rows.map((row) => ({
+      ...row,
+      permissions: permissions.get(row.workspaceId) ?? [],
+    }));
+  }
+
+  private async permissionsForUser(
+    userId: string,
+  ): Promise<ReadonlyMap<string, readonly RolePermission[]>> {
+    const rows = await this.systemDb.db
+      .select({
+        workspaceId: memberships.workspaceId,
+        resource: rolePermissions.resource,
+        action: rolePermissions.action,
+      })
+      .from(memberships)
+      .innerJoin(roles, eq(roles.id, memberships.roleId))
+      .innerJoin(rolePermissions, eq(rolePermissions.roleId, roles.id))
+      .where(eq(memberships.userId, userId));
+    const byWorkspace = new Map<string, RolePermission[]>();
+    for (const row of rows) {
+      const list = byWorkspace.get(row.workspaceId) ?? [];
+      list.push({ resource: row.resource, action: row.action });
+      byWorkspace.set(row.workspaceId, list);
+    }
+    return byWorkspace;
   }
 
   findInviteByTokenHash(tokenHash: string): Promise<DirectoryInvite | null> {

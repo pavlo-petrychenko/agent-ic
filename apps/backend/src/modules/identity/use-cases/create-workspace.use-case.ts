@@ -66,6 +66,7 @@ export class CreateWorkspaceUseCase {
           memberCount: FIRST_MEMBER_COUNT,
         },
         role: WorkspaceRole.Owner,
+        permissions: [],
       };
     });
   }
