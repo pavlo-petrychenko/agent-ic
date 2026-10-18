@@ -26,6 +26,7 @@ import { newFolder, newPrompt, newPromptVersion } from '@test/support/fixtures/p
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 import { PromptsNeighboursModule } from '@test/support/modules/prompts-neighbours.module';
+import type { ProviderOverride } from '@test/support/typedefs/test-infrastructure.typedefs';
 
 export const promptsCtx = (
   testingModule: TestingModule,
@@ -33,14 +34,20 @@ export const promptsCtx = (
   role: WorkspaceRole = WorkspaceRole.Owner,
 ): UseCaseCtx => workspaceCtx(testingModule.get(IdService).generate(), workspaceId, role);
 
-export const createPromptsTestingModule = (): Promise<TestingModule> =>
-  createPlatformTestingModule(TestRedisPrefix.Prompts, [
-    RedisModule,
-    RateLimitModule,
-    OutboundHttpModule,
-    PromptsModule.forRole(Role.Api),
-    PromptsNeighboursModule.forRole(Role.Api),
-  ]);
+export const createPromptsTestingModule = (
+  overrides: readonly ProviderOverride[] = [],
+): Promise<TestingModule> =>
+  createPlatformTestingModule(
+    TestRedisPrefix.Prompts,
+    [
+      RedisModule,
+      RateLimitModule,
+      OutboundHttpModule,
+      PromptsModule.forRole(Role.Api),
+      PromptsNeighboursModule.forRole(Role.Api),
+    ],
+    overrides,
+  );
 
 export const seedPromptAuthor = async (testingModule: TestingModule): Promise<string> => {
   const userId = testingModule.get(IdService).generate();

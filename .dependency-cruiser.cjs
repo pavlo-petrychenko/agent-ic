@@ -24,6 +24,7 @@ const systemDatabaseService = `${platform}database/services/system-database\\.se
 const systemDatabaseAllowList = [
   `${platform}(database|outbox|queues)/`,
   `${modules}identity/repositories/membership-directory\\.repository\\.ts$`,
+  `${modules}identity/repositories/workspace-directory\\.repository\\.ts$`,
   `${modules}analytics/repositories/`,
 ];
 

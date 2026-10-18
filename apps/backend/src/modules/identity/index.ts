@@ -5,6 +5,7 @@ export { workspaceDeletedEvent } from '@/modules/identity/events/workspace-delet
 export { IdentityModule } from '@/modules/identity/identity.module';
 export { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 export { UsersRepository } from '@/modules/identity/repositories/users.repository';
+export { WorkspaceDirectoryRepository } from '@/modules/identity/repositories/workspace-directory.repository';
 export { EmailChangesService } from '@/modules/identity/services/email-changes.service';
 export { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
 export { PasswordResetsService } from '@/modules/identity/services/password-resets.service';
