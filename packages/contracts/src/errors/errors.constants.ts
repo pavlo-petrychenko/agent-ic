@@ -93,4 +93,5 @@ export enum ErrorReason {
   RoleNotEditable = 'ROLE_NOT_EDITABLE',
   RoleInUse = 'ROLE_IN_USE',
   RoleBaseInvalid = 'ROLE_BASE_INVALID',
+  RoleReplacementInvalid = 'ROLE_REPLACEMENT_INVALID',
 }

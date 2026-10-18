@@ -81,7 +81,8 @@
     "ROLE_NAME_TAKEN": "A role with this name already exists.",
     "ROLE_NOT_EDITABLE": "This role cannot be changed.",
     "ROLE_IN_USE": "Move the members of this role before deleting it.",
-    "ROLE_BASE_INVALID": "Choose an existing role as the base."
+    "ROLE_BASE_INVALID": "Choose an existing role as the base.",
+    "ROLE_REPLACEMENT_INVALID": "Members cannot be moved to this role."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",

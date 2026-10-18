@@ -1,5 +1,6 @@
 import type { PermissionAction } from '@agent-ic/contracts';
 import type { CreateRoleDialogProps } from '@/features/settings/containers/CreateRoleDialog';
+import type { DeleteRoleDialogProps } from '@/features/settings/containers/DeleteRoleDialog';
 import type { RoleMatrixContent } from '@/features/settings/typedefs/role.typedefs';
 import type { RoleListItem } from '@/features/settings/view/RoleList';
 
@@ -17,10 +18,13 @@ export interface UseRolesPageResult {
   readonly locked: boolean;
   readonly saving: boolean;
   readonly hint: string;
+  readonly canDelete: boolean;
   readonly createRoleDialog: CreateRoleDialogProps;
+  readonly deleteRoleDialog: DeleteRoleDialogProps;
   readonly onSelect: (id: string) => void;
   readonly onToggle: (rowId: string, action: PermissionAction, checked: boolean) => void;
   readonly onSave: () => void;
   readonly onNewRole: () => void;
   readonly onDuplicate: () => void;
+  readonly onDelete: () => void;
 }
