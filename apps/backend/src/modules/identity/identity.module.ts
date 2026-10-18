@@ -50,6 +50,7 @@ import { ConfirmEmailUseCase } from '@/modules/identity/use-cases/confirm-email.
 import { CountMembersByRoleUseCase } from '@/modules/identity/use-cases/count-members-by-role.use-case';
 import { CreateRoleUseCase } from '@/modules/identity/use-cases/create-role.use-case';
 import { CreateWorkspaceUseCase } from '@/modules/identity/use-cases/create-workspace.use-case';
+import { DeleteRoleUseCase } from '@/modules/identity/use-cases/delete-role.use-case';
 import { DeleteWorkspaceUseCase } from '@/modules/identity/use-cases/delete-workspace.use-case';
 import { ForgotPasswordUseCase } from '@/modules/identity/use-cases/forgot-password.use-case';
 import { GetInviteInfoUseCase } from '@/modules/identity/use-cases/get-invite-info.use-case';
@@ -64,6 +65,7 @@ import { LogoutUseCase } from '@/modules/identity/use-cases/logout.use-case';
 import { RefreshSessionUseCase } from '@/modules/identity/use-cases/refresh-session.use-case';
 import { RememberWorkspaceUseCase } from '@/modules/identity/use-cases/remember-workspace.use-case';
 import { RemoveMemberUseCase } from '@/modules/identity/use-cases/remove-member.use-case';
+import { RenameRoleUseCase } from '@/modules/identity/use-cases/rename-role.use-case';
 import { RenameWorkspaceUseCase } from '@/modules/identity/use-cases/rename-workspace.use-case';
 import { RequestMyEmailChangeUseCase } from '@/modules/identity/use-cases/request-my-email-change.use-case';
 import { ResendConfirmationUseCase } from '@/modules/identity/use-cases/resend-confirmation.use-case';
@@ -74,6 +76,7 @@ import { TransferOwnershipUseCase } from '@/modules/identity/use-cases/transfer-
 import { UpdateInviteLinkRoleUseCase } from '@/modules/identity/use-cases/update-invite-link-role.use-case';
 import { UpdateMyLocaleUseCase } from '@/modules/identity/use-cases/update-my-locale.use-case';
 import { UpdateMyNameUseCase } from '@/modules/identity/use-cases/update-my-name.use-case';
+import { UpdateRolePermissionsUseCase } from '@/modules/identity/use-cases/update-role-permissions.use-case';
 import { UpdateTimeZoneUseCase } from '@/modules/identity/use-cases/update-time-zone.use-case';
 import { WorkspaceAccessService } from '@/platform/context/services/workspace-access.service';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
@@ -116,6 +119,7 @@ export class IdentityModule extends defineModule({
     CreateWorkspaceUseCase,
     CreateRoleUseCase,
     DeleteWorkspaceUseCase,
+    DeleteRoleUseCase,
     ListMyWorkspacesUseCase,
     GetInviteLinkUseCase,
     UpdateInviteLinkRoleUseCase,
@@ -127,12 +131,14 @@ export class IdentityModule extends defineModule({
     CountMembersByRoleUseCase,
     CleanUpAuthRecordsUseCase,
     RenameWorkspaceUseCase,
+    RenameRoleUseCase,
     RememberWorkspaceUseCase,
     RemoveMemberUseCase,
     TransferOwnershipUseCase,
     UpdateMyLocaleUseCase,
     UpdateTimeZoneUseCase,
     UpdateMyNameUseCase,
+    UpdateRolePermissionsUseCase,
     RequestMyEmailChangeUseCase,
   ],
   resolvers: [
