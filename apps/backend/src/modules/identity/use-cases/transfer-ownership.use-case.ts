@@ -10,6 +10,7 @@ import { MembershipsRepository } from '@/modules/identity/repositories/membershi
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { transferOwnershipInputSchema } from '@/modules/identity/schemas/workspace-input.schema';
 import { WorkspaceMembershipsService } from '@/modules/identity/services/workspace-memberships.service';
+import { WorkspaceRolesService } from '@/modules/identity/services/workspace-roles.service';
 import type {
   TransferOwnershipInput,
   WorkspaceMembership,
@@ -29,6 +30,7 @@ export class TransferOwnershipUseCase {
     private readonly memberships: MembershipsRepository,
     private readonly users: UsersRepository,
     private readonly workspaces: WorkspaceMembershipsService,
+    private readonly roles: WorkspaceRolesService,
     private readonly ids: IdService,
   ) {}
 
@@ -60,12 +62,10 @@ export class TransferOwnershipUseCase {
       if (target.userId === access.userId) {
         throw new CannotTransferToYourselfError();
       }
-      await this.memberships.updateRole(access.workspaceId, owner.id, WorkspaceRole.Admin);
-      await this.memberships.updateRole(
-        access.workspaceId,
-        targetMembershipId,
-        WorkspaceRole.Owner,
-      );
+      const ownerRoleId = await this.roles.systemRoleId(access.workspaceId, WorkspaceRole.Owner);
+      const adminRoleId = await this.roles.systemRoleId(access.workspaceId, WorkspaceRole.Admin);
+      await this.memberships.updateRoleId(access.workspaceId, owner.id, adminRoleId);
+      await this.memberships.updateRoleId(access.workspaceId, targetMembershipId, ownerRoleId);
       return this.workspaces.describe(access.workspaceId, WorkspaceRole.Admin);
     });
   }

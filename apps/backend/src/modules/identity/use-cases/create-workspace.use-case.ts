@@ -6,6 +6,7 @@ import { MembershipsRepository } from '@/modules/identity/repositories/membershi
 import { WorkspacesRepository } from '@/modules/identity/repositories/workspaces.repository';
 import { createWorkspaceInputSchema } from '@/modules/identity/schemas/workspace-input.schema';
 import { InviteLinksService } from '@/modules/identity/services/invite-links.service';
+import { WorkspaceRolesService } from '@/modules/identity/services/workspace-roles.service';
 import type {
   CreateWorkspaceInput,
   WorkspaceMembership,
@@ -22,6 +23,7 @@ export class CreateWorkspaceUseCase {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly workspaces: WorkspacesRepository,
     private readonly memberships: MembershipsRepository,
+    private readonly roles: WorkspaceRolesService,
     private readonly inviteLinks: InviteLinksService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
@@ -42,11 +44,12 @@ export class CreateWorkspaceUseCase {
         createdAt: now,
         updatedAt: now,
       });
+      await this.roles.seedDefaults(workspaceId);
       await this.memberships.insertIfAbsent({
         id: this.ids.generate(),
         workspaceId,
         userId,
-        role: WorkspaceRole.Owner,
+        roleId: await this.roles.systemRoleId(workspaceId, WorkspaceRole.Owner),
         inviteLinkId: null,
         createdAt: now,
       });

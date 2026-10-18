@@ -37,7 +37,7 @@ export class AcceptInviteUseCase {
       if (outcome.kind === JoinOutcomeKind.Invalid) {
         throw new InviteInvalidError();
       }
-      return this.workspaceMemberships.describe(invite.workspaceId, outcome.membership.role);
+      return this.workspaceMemberships.describe(invite.workspaceId, outcome.role);
     });
   }
 }

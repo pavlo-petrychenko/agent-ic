@@ -25,6 +25,7 @@ export {
   PERMISSION_MATRIX,
   PermissionAction,
   PermissionResource,
+  ROLE_NAME_MAX_LENGTH,
   WorkspaceRole,
 } from '@contracts/permissions/permission.constants';
 export type { ResourcePermissions } from '@contracts/permissions/permission.constants';
