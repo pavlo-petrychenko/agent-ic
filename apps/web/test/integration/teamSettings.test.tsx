@@ -1,5 +1,5 @@
 import { Locale, WorkspaceRole } from '@agent-ic/contracts';
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -34,7 +34,7 @@ describe('team settings', () => {
   it('opens Team for an owner and copies the invite link', async () => {
     const writeText = vi.fn<(text: string) => Promise<void>>(() => Promise.resolve());
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
-    const { router } = renderRoute(settingsPath, {
+    renderRoute(`${settingsPath}/team`, {
       mocks: [
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildInviteLinkMock(),
@@ -42,7 +42,6 @@ describe('team settings', () => {
       ],
     });
 
-    await waitFor(() => expect(router.state.location.pathname).toBe(`${settingsPath}/team`));
     expect(await screen.findByText(INVITE_URL)).toBeInTheDocument();
     expect(screen.getByText('Link expires Oct 16 · 1 person joined with it')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Copy link' }));

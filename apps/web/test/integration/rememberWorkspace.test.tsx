@@ -25,7 +25,7 @@ describe('remembering the open workspace', () => {
 
   it('remembers a workspace once when it opens and again only after a switch', async () => {
     const remembered = vi.fn<(workspaceId: string) => void>();
-    const { history } = renderRoute(`/w/${DEMO_WORKSPACE.id}/settings`, {
+    const { history } = renderRoute(`/w/${DEMO_WORKSPACE.id}/settings/profile`, {
       mocks: [
         shellMock,
         buildRememberWorkspaceMock(DEMO_WORKSPACE.id, remembered),
@@ -43,7 +43,7 @@ describe('remembering the open workspace', () => {
   });
 
   it('keeps the workspace open when remembering it fails', async () => {
-    renderRoute(`/w/${DEMO_WORKSPACE.id}/settings`, {
+    renderRoute(`/w/${DEMO_WORKSPACE.id}/settings/profile`, {
       mocks: [shellMock, buildRememberWorkspaceErrorMock(DEMO_WORKSPACE.id)],
     });
 
