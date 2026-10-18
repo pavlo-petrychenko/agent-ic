@@ -3,7 +3,7 @@ import { useMutation } from '@apollo/client/react';
 import { useCallback } from 'react';
 import { UpdateRolePermissionsDocument } from '@/features/settings/communication/gql/mutation/updateRolePermissions.generated';
 import { RolesDocument } from '@/features/settings/communication/gql/query/roles.generated';
-import { toPermissionInputs } from '@/features/settings/communication/helpers/role.helpers';
+import { toPermissionInputs } from '@/shared/api/helpers/permission.helpers';
 
 export function useUpdateRolePermissions(): (
   roleId: string,

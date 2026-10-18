@@ -18,10 +18,11 @@ import { NavItem } from '@/shared/ui/navigation/NavItem';
 export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
   const active = useActiveWorkspace(workspaceId);
-  const showTeam = active !== null && canOpenSection(active.role, WorkspaceSection.Team);
-  const showGeneral = active !== null && canOpenSection(active.role, WorkspaceSection.General);
-  const showRoles = active !== null && canOpenSection(active.role, WorkspaceSection.Roles);
-  const showUsage = active !== null && canOpenSection(active.role, WorkspaceSection.Usage);
+  const showTeam = active !== null && canOpenSection(active.permissions, WorkspaceSection.Team);
+  const showGeneral =
+    active !== null && canOpenSection(active.permissions, WorkspaceSection.General);
+  const showRoles = active !== null && canOpenSection(active.permissions, WorkspaceSection.Roles);
+  const showUsage = active !== null && canOpenSection(active.permissions, WorkspaceSection.Usage);
   const showLlmKeys = active !== null && canOpenSection(active.role, WorkspaceSection.LlmKeys);
 
   const hasWorkspaceNav = showGeneral || showTeam || showRoles || showUsage || showLlmKeys;

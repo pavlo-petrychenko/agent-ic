@@ -3,12 +3,10 @@ import { useMutation } from '@apollo/client/react';
 import { useCallback } from 'react';
 import { CreateRoleDocument } from '@/features/settings/communication/gql/mutation/createRole.generated';
 import { RolesDocument } from '@/features/settings/communication/gql/query/roles.generated';
-import {
-  toAppRole,
-  toPermissionInputs,
-} from '@/features/settings/communication/helpers/role.helpers';
+import { toAppRole } from '@/features/settings/communication/helpers/role.helpers';
 import type { AppRole } from '@/features/settings/typedefs/role.typedefs';
 import { ROLE_TO_API } from '@/shared/api/constants/workspaceRole.constants';
+import { toPermissionInputs } from '@/shared/api/helpers/permission.helpers';
 
 export interface CreateRoleRequest {
   readonly name: string;

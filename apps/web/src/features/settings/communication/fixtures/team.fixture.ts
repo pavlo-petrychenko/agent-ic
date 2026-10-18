@@ -1,10 +1,14 @@
+import { PERMISSION_MATRIX, WorkspaceRole } from '@agent-ic/contracts';
+import type { PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import type { MockLink } from '@apollo/client/testing';
 import { ChangeMemberRoleDocument } from '@/features/settings/communication/gql/mutation/changeMemberRole.generated';
 import { RemoveMemberDocument } from '@/features/settings/communication/gql/mutation/removeMember.generated';
 import { ResetInviteLinkDocument } from '@/features/settings/communication/gql/mutation/resetInviteLink.generated';
 import { InviteLinkDocument } from '@/features/settings/communication/gql/query/inviteLink.generated';
+import { RolesDocument } from '@/features/settings/communication/gql/query/roles.generated';
 import { TeamMembersDocument } from '@/features/settings/communication/gql/query/teamMembers.generated';
 import { MEMBERS_PAGE_SIZE } from '@/features/settings/constants/member.constants';
+import { ACTION_TO_API, RESOURCE_TO_API } from '@/shared/api/constants/permission.constants';
 
 export const INVITE_URL = 'https://app.example/invite/first-token';
 export const RESET_INVITE_URL = 'https://app.example/invite/second-token';
@@ -13,8 +17,43 @@ const inviteLink = (url: string) => ({
   __typename: 'InviteLink',
   url,
   role: 'operator',
+  roleId: 'rol_operator',
   expiresAt: '2026-10-16T12:00:00.000Z',
   joinedCount: 1,
+});
+
+const rolePermissions = (key: WorkspaceRole) =>
+  (Object.keys(PERMISSION_MATRIX[key]) as PermissionResource[]).flatMap((resource) =>
+    PERMISSION_MATRIX[key][resource].map((action: PermissionAction) => ({
+      __typename: 'RolePermission',
+      resource: RESOURCE_TO_API[resource],
+      action: ACTION_TO_API[action],
+    })),
+  );
+
+const roleNode = (id: string, key: WorkspaceRole, name: string | null, isSystem: boolean) => ({
+  __typename: 'Role',
+  id,
+  key,
+  name,
+  isSystem,
+  memberCount: 0,
+  permissions: rolePermissions(key),
+});
+
+export const buildRolesMock = (): MockLink.MockedResponse => ({
+  request: { query: RolesDocument },
+  result: {
+    data: {
+      roles: [
+        roleNode('rol_owner', WorkspaceRole.Owner, null, true),
+        roleNode('rol_admin', WorkspaceRole.Admin, null, true),
+        roleNode('rol_builder', WorkspaceRole.Builder, null, true),
+        roleNode('rol_operator', WorkspaceRole.Operator, null, true),
+      ],
+    },
+  },
+  maxUsageCount: Number.POSITIVE_INFINITY,
 });
 
 export const buildInviteLinkMock = (url = INVITE_URL): MockLink.MockedResponse => ({
@@ -87,6 +126,7 @@ export const buildTeamMembersMock = (): MockLink.MockedResponse =>
       name: 'Pavlo',
       email: 'owner@demo-salon.example',
       role: 'owner',
+              roleId: 'rol_owner',
       lastActiveAt: '2026-10-04T09:40:00.000Z',
     },
     {
@@ -95,6 +135,7 @@ export const buildTeamMembersMock = (): MockLink.MockedResponse =>
       name: 'Yulia',
       email: 'yulia@demo-salon.example',
       role: 'operator',
+              roleId: 'rol_operator',
       lastActiveAt: null,
     },
   ]);
