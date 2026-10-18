@@ -1,4 +1,4 @@
-import { can } from '@agent-ic/contracts';
+import { hasPermission, permissionsForRole } from '@agent-ic/contracts';
 import type { PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
@@ -15,7 +15,7 @@ export const authorize = (
   if (ctx.workspaceId === null || ctx.workspaceRole === null) {
     throw new WorkspaceAccessDeniedError();
   }
-  if (!can(ctx.workspaceRole, resource, action)) {
+  if (!hasPermission(ctx.permissions ?? permissionsForRole(ctx.workspaceRole), resource, action)) {
     throw new PermissionDeniedError(resource, action);
   }
   return { userId, workspaceId: ctx.workspaceId, role: ctx.workspaceRole };

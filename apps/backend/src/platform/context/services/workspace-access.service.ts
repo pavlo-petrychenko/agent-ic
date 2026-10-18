@@ -1,5 +1,5 @@
-import type { WorkspaceRole } from '@agent-ic/contracts';
+import type { MemberAccess } from '@/platform/context/typedefs/workspace-access.typedefs';
 
 export abstract class WorkspaceAccessService {
-  abstract resolveRole(userId: string, workspaceId: string): Promise<WorkspaceRole | null>;
+  abstract resolveAccess(userId: string, workspaceId: string): Promise<MemberAccess | null>;
 }

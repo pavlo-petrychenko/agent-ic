@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
+import { IdPrefix, permissionsForRole, WorkspaceRole } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { ConfigService } from '@/platform/config/services/config.service';
@@ -9,6 +9,7 @@ import { AccessTokenService } from '@/platform/context/services/access-token.ser
 import { UseCaseCtxService } from '@/platform/context/services/use-case-ctx.service';
 import { WorkspaceAccessService } from '@/platform/context/services/workspace-access.service';
 import type { TransportRequest } from '@/platform/context/typedefs/use-case-ctx.typedefs';
+import type { MemberAccess } from '@/platform/context/typedefs/workspace-access.typedefs';
 import { InvalidIdError } from '@/platform/ids/errors/invalid-id.error';
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
@@ -27,9 +28,17 @@ class SingleMembershipAccessService extends WorkspaceAccessService {
     super();
   }
 
-  resolveRole(userId: string, workspaceId: string): Promise<WorkspaceRole | null> {
+  resolveAccess(userId: string, workspaceId: string): Promise<MemberAccess | null> {
     const isMember = userId === this.userId && workspaceId === this.workspaceId;
-    return Promise.resolve(isMember ? this.role : null);
+    return Promise.resolve(
+      isMember
+        ? {
+            workspaceId: this.workspaceId,
+            role: this.role,
+            permissions: permissionsForRole(this.role),
+          }
+        : null,
+    );
   }
 }
 
@@ -74,6 +83,7 @@ describe('UseCaseCtxService workspace resolution', () => {
 
     expect(ctx.workspaceId).toBe(workspaceId);
     expect(ctx.workspaceRole).toBe(WorkspaceRole.Operator);
+    expect(ctx.permissions).toEqual(permissionsForRole(WorkspaceRole.Operator));
   });
 
   it('leaves the workspace empty for a user who is not a member', async () => {

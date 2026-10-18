@@ -29,7 +29,13 @@ export {
   WorkspaceRole,
 } from '@contracts/permissions/permission.constants';
 export type { ResourcePermissions } from '@contracts/permissions/permission.constants';
-export { can, isInvitableRole } from '@contracts/permissions/permission.helpers';
+export {
+  can,
+  hasPermission,
+  isInvitableRole,
+  permissionKey,
+  permissionsForRole,
+} from '@contracts/permissions/permission.helpers';
 export {
   PROMPT_FOLDER_NAME_MAX_LENGTH,
   PROMPT_NAME_MAX_LENGTH,
