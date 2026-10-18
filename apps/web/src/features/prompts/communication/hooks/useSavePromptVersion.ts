@@ -2,6 +2,7 @@ import { useMutation } from '@apollo/client/react';
 import { useCallback } from 'react';
 import { SavePromptVersionDocument } from '@/features/prompts/communication/gql/mutation/savePromptVersion.generated';
 import { PromptDetailDocument } from '@/features/prompts/communication/gql/query/promptDetail.generated';
+import { PromptVersionsDocument } from '@/features/prompts/communication/gql/query/promptVersions.generated';
 import type {
   SavePromptVersionValues,
   UseSavePromptVersionResult,
@@ -9,7 +10,7 @@ import type {
 
 export function useSavePromptVersion(): UseSavePromptVersionResult {
   const [save, { loading }] = useMutation(SavePromptVersionDocument, {
-    refetchQueries: [PromptDetailDocument],
+    refetchQueries: [PromptDetailDocument, PromptVersionsDocument],
     awaitRefetchQueries: true,
   });
 

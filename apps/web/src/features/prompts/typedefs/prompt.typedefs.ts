@@ -25,6 +25,13 @@ export interface PromptDetail {
   readonly latestVersion: PromptVersion | null;
 }
 
+export interface PromptVersionListItem {
+  readonly id: string;
+  readonly number: number;
+  readonly note: string | null;
+  readonly savedAt: string;
+}
+
 export interface UsePromptLibraryResult {
   readonly folders: readonly PromptFolderListItem[];
   readonly prompts: readonly PromptListItem[];
@@ -35,6 +42,13 @@ export interface UsePromptLibraryResult {
 
 export interface UsePromptDetailResult {
   readonly detail: PromptDetail | null;
+  readonly loading: boolean;
+  readonly failed: boolean;
+  readonly retry: () => Promise<void>;
+}
+
+export interface UsePromptVersionsResult {
+  readonly versions: readonly PromptVersionListItem[] | null;
   readonly loading: boolean;
   readonly failed: boolean;
   readonly retry: () => Promise<void>;

@@ -13,9 +13,11 @@ import {
 } from '@/features/prompts/communication/fixtures/promptCreate.fixture';
 import {
   buildPromptDetailMock,
+  buildPromptVersionsMock,
   buildSavePromptVersionMock,
   RECEPTIONIST_SAVED_VERSION,
   RECEPTIONIST_VERSION,
+  RECEPTIONIST_VERSIONS,
 } from '@/features/prompts/communication/fixtures/promptDetail.fixture';
 import {
   buildPromptLibraryMock,
@@ -45,6 +47,7 @@ const promptMocks = () => [
   buildWorkspaceShellMock([DEMO_WORKSPACE]),
   buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
   buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION),
+  buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS),
 ];
 
 const seedDraft = () => {
@@ -107,12 +110,33 @@ describe('prompt view', () => {
     expect(note.compareDocumentPosition(field) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
   });
 
+  it('lists the saved versions with their notes and dates', async () => {
+    renderRoute(promptPath, { mocks: promptMocks() });
+
+    const panel = await screen.findByRole('complementary', { name: 'Prompt details' });
+    expect(await within(panel).findByRole('heading', { name: 'Versions' })).toBeInTheDocument();
+
+    const list = await within(panel).findByRole('list', { name: 'Versions' });
+    expect(within(list).getAllByRole('listitem')).toHaveLength(RECEPTIONIST_VERSIONS.length);
+    expect(await within(list).findByText(`v${RECEPTIONIST_VERSION.number}`)).toBeInTheDocument();
+    expect(within(list).getByText('Offer a manager when unsure')).toBeInTheDocument();
+    expect(within(list).getByText('Sep 17')).toBeInTheDocument();
+    expect(within(list).queryAllByRole('button')).toHaveLength(0);
+    expect(within(list).queryAllByRole('link')).toHaveLength(0);
+    expect(within(list).getByText(`v${RECEPTIONIST_VERSION.number}`).closest('li')).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
+    expect(within(list).getByText('v3').closest('li')).not.toHaveAttribute('aria-current');
+  });
+
   it('shows an empty field for a prompt without versions', async () => {
     renderRoute(promptPath, {
       mocks: [
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, null),
+        buildPromptVersionsMock(RECEPTIONIST_PROMPT, []),
       ],
     });
 
@@ -121,6 +145,7 @@ describe('prompt view', () => {
     ).toBeInTheDocument();
     expect(screen.queryByText(/· latest/)).not.toBeInTheDocument();
     expect(screen.getByText('This prompt has no text yet.')).toBeInTheDocument();
+    expect(await screen.findByText('No versions yet. Saving creates v1.')).toBeInTheDocument();
   });
 
   it('opens a stored draft for editing', async () => {
@@ -138,6 +163,12 @@ describe('prompt view', () => {
     const field = screen.getByRole('textbox', { name: 'Prompt text' });
     expect(field).toHaveAttribute('contenteditable', 'true');
     expect(field).toHaveTextContent(DRAFT_TEXT);
+
+    const panel = screen.getByRole('complementary', { name: 'Prompt details' });
+    const latestRow = (await within(panel).findByText(`v${RECEPTIONIST_VERSION.number}`)).closest(
+      'li',
+    );
+    expect(latestRow).not.toHaveAttribute('aria-current');
   });
 
   it('keeps edits in the browser and marks the prompt in the section', async () => {
@@ -146,6 +177,7 @@ describe('prompt view', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, null),
+        buildPromptVersionsMock(RECEPTIONIST_PROMPT, []),
       ],
     });
 
@@ -169,6 +201,7 @@ describe('prompt view', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
+        buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS, 1),
         buildSavePromptVersionMock(
           RECEPTIONIST_PROMPT,
           RECEPTIONIST_SAVED_VERSION,
@@ -176,6 +209,10 @@ describe('prompt view', () => {
           note,
         ),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_SAVED_VERSION, 1),
+        buildPromptVersionsMock(RECEPTIONIST_PROMPT, [
+          RECEPTIONIST_SAVED_VERSION,
+          ...RECEPTIONIST_VERSIONS,
+        ]),
       ],
     });
 
@@ -200,6 +237,12 @@ describe('prompt view', () => {
     ).toBeInTheDocument();
     expect(readPromptDraft(RECEPTIONIST_PROMPT.id)).toBeNull();
     expect(screen.getByText('Read-only — Edit creates a draft')).toBeInTheDocument();
+    const panel = screen.getByRole('complementary', { name: 'Prompt details' });
+    const savedRow = (
+      await within(panel).findByText(`v${RECEPTIONIST_SAVED_VERSION.number}`)
+    ).closest('li');
+    expect(savedRow).toHaveAttribute('aria-current', 'true');
+    expect(within(panel).getByText(note)).toBeInTheDocument();
   });
 
   it('discards the draft', async () => {
@@ -226,6 +269,7 @@ describe('prompt view', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
+        buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS),
         buildRenamePromptMock(RECEPTIONIST_PROMPT, renamed.name),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [renamed], 1),
         buildPromptDetailMock(renamed, RECEPTIONIST_VERSION, 1),
@@ -252,6 +296,7 @@ describe('prompt view', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION),
+        buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS),
         buildDeletePromptMock(RECEPTIONIST_PROMPT),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [], 1),
       ],
@@ -283,6 +328,7 @@ describe('prompt view', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildPromptLibraryMock([Q_AND_A_FOLDER, GUARDS_FOLDER], [RECEPTIONIST_PROMPT], 1),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
+        buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS),
         buildMovePromptMock(RECEPTIONIST_PROMPT, GUARDS_FOLDER.id),
         buildPromptLibraryMock([Q_AND_A_FOLDER, GUARDS_FOLDER], [moved], 1),
         buildPromptDetailMock(moved, RECEPTIONIST_VERSION, 1),
@@ -320,6 +366,7 @@ describe('prompt view', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
+        buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS),
         buildCreatePromptFolderMock(folderName),
         buildPromptLibraryMock([Q_AND_A_FOLDER, created], [RECEPTIONIST_PROMPT], 1),
         buildMovePromptMock(RECEPTIONIST_PROMPT, NEW_FOLDER_ID),
@@ -356,9 +403,11 @@ describe('prompt view', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
+        buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS),
         buildDuplicatePromptMock(RECEPTIONIST_PROMPT, copy),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT, copy], 1),
         buildPromptDetailMock(copy, RECEPTIONIST_VERSION, 1),
+        buildPromptVersionsMock(copy, RECEPTIONIST_VERSIONS),
       ],
     });
 

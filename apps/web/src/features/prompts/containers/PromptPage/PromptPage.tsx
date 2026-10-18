@@ -9,6 +9,7 @@ import { DeletePromptDialog } from '@/features/prompts/containers/DeletePromptDi
 import { MovePromptDialog } from '@/features/prompts/containers/MovePromptDialog';
 import type { PromptPageProps } from '@/features/prompts/containers/PromptPage/PromptPage.typedefs';
 import { usePromptOptions } from '@/features/prompts/containers/PromptPage/usePromptOptions';
+import { PromptVersionsPanel } from '@/features/prompts/containers/PromptVersionsPanel';
 import { RenamePromptDialog } from '@/features/prompts/containers/RenamePromptDialog';
 import { SavePromptVersionDialog } from '@/features/prompts/containers/SavePromptVersionDialog';
 import { nextPromptVersionNumber } from '@/features/prompts/logic/helpers/promptDraft.helpers';
@@ -121,50 +122,56 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-5 pb-6">
-      <PageHeader
-        title={prompt.name}
-        subtitle={folderName}
-        actions={
-          editing ? (
-            <>
-              <Button variant={ButtonVariant.Secondary} onClick={() => setDiscarding(true)}>
-                {t('draft.discard')}
-              </Button>
-              <Button onClick={() => setSaving(true)}>
-                {t('draft.saveAs', { number: draftNumber })}
-              </Button>
-            </>
-          ) : menuActions.length > 0 ? (
-            <>
-              <PromptOptionsMenu
-                actions={menuActions}
-                currentFolderName={folderName}
-                onSelect={options.onSelect}
-              />
-              {canEdit && <Button onClick={startEditing}>{t('view.edit')}</Button>}
-            </>
-          ) : null
-        }
-      />
-      <div className="flex min-h-0 flex-1 flex-col px-7">
-        {editing ? (
-          <PromptDraftEditor
-            draftNumber={draftNumber}
-            baseVersionNumber={draft.baseVersionNumber}
-            text={draft.text}
-            variables={variables}
-            onChange={changeDraft}
-          />
-        ) : (
-          <PromptView
-            versionNumber={latestVersion?.number ?? null}
-            text={latestVersion?.text ?? ''}
-            savedLabel={savedLabel}
-            variables={variables}
-          />
-        )}
+    <div className="flex h-full min-h-0">
+      <div className="flex min-w-0 flex-1 flex-col gap-5 pb-6">
+        <PageHeader
+          title={prompt.name}
+          subtitle={folderName}
+          actions={
+            editing ? (
+              <>
+                <Button variant={ButtonVariant.Secondary} onClick={() => setDiscarding(true)}>
+                  {t('draft.discard')}
+                </Button>
+                <Button onClick={() => setSaving(true)}>
+                  {t('draft.saveAs', { number: draftNumber })}
+                </Button>
+              </>
+            ) : menuActions.length > 0 ? (
+              <>
+                <PromptOptionsMenu
+                  actions={menuActions}
+                  currentFolderName={folderName}
+                  onSelect={options.onSelect}
+                />
+                {canEdit && <Button onClick={startEditing}>{t('view.edit')}</Button>}
+              </>
+            ) : null
+          }
+        />
+        <div className="flex min-h-0 flex-1 flex-col px-7">
+          {editing ? (
+            <PromptDraftEditor
+              draftNumber={draftNumber}
+              baseVersionNumber={draft.baseVersionNumber}
+              text={draft.text}
+              variables={variables}
+              onChange={changeDraft}
+            />
+          ) : (
+            <PromptView
+              versionNumber={latestVersion?.number ?? null}
+              text={latestVersion?.text ?? ''}
+              savedLabel={savedLabel}
+              variables={variables}
+            />
+          )}
+        </div>
       </div>
+      <PromptVersionsPanel
+        promptId={promptId}
+        activeVersionId={editing ? null : (latestVersion?.id ?? null)}
+      />
       {discarding && editing && (
         <DiscardPromptDraftModal
           versionNumber={draftNumber}
