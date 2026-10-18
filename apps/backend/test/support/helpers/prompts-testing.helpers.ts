@@ -12,6 +12,9 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
+import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
+import { RedisModule } from '@/platform/redis/redis.module';
 import {
   PROMPTS_TEST_START,
   TEST_PROMPT_AUTHOR_NAME,
@@ -32,6 +35,9 @@ export const promptsCtx = (
 
 export const createPromptsTestingModule = (): Promise<TestingModule> =>
   createPlatformTestingModule(TestRedisPrefix.Prompts, [
+    RedisModule,
+    RateLimitModule,
+    OutboundHttpModule,
     PromptsModule.forRole(Role.Api),
     PromptsNeighboursModule.forRole(Role.Api),
   ]);

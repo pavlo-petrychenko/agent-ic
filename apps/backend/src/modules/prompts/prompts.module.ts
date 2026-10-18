@@ -1,4 +1,4 @@
-import { FLOW_REFERENCE_CHECKER } from '@/modules/agents';
+import { AgentsModule, FLOW_REFERENCE_CHECKER } from '@/modules/agents';
 import { CleanUpWorkspaceListener } from '@/modules/prompts/listeners/clean-up-workspace.listener';
 import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
 import { PromptVersionsRepository } from '@/modules/prompts/repositories/prompt-versions.repository';
@@ -18,6 +18,7 @@ import { SavePromptVersionResolver } from '@/modules/prompts/resolvers/save-prom
 import { PromptFlowReferenceChecker } from '@/modules/prompts/services/prompt-flow-reference-checker.service';
 import { PromptFolderViewsService } from '@/modules/prompts/services/prompt-folder-views.service';
 import { PromptResolverService } from '@/modules/prompts/services/prompt-resolver.service';
+import { PromptUsageService } from '@/modules/prompts/services/prompt-usage.service';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
 import { CleanUpWorkspaceUseCase } from '@/modules/prompts/use-cases/clean-up-workspace.use-case';
 import { CreatePromptFolderUseCase } from '@/modules/prompts/use-cases/create-prompt-folder.use-case';
@@ -28,6 +29,7 @@ import { DuplicatePromptUseCase } from '@/modules/prompts/use-cases/duplicate-pr
 import { GetPromptVersionUseCase } from '@/modules/prompts/use-cases/get-prompt-version.use-case';
 import { GetPromptUseCase } from '@/modules/prompts/use-cases/get-prompt.use-case';
 import { ListPromptFoldersUseCase } from '@/modules/prompts/use-cases/list-prompt-folders.use-case';
+import { ListPromptUsagesUseCase } from '@/modules/prompts/use-cases/list-prompt-usages.use-case';
 import { ListPromptVersionsUseCase } from '@/modules/prompts/use-cases/list-prompt-versions.use-case';
 import { ListPromptsByFoldersUseCase } from '@/modules/prompts/use-cases/list-prompts-by-folders.use-case';
 import { ListPromptsUseCase } from '@/modules/prompts/use-cases/list-prompts.use-case';
@@ -38,6 +40,7 @@ import { SavePromptVersionUseCase } from '@/modules/prompts/use-cases/save-promp
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class PromptsModule extends defineModule({
+  imports: [AgentsModule],
   providers: [
     PromptsRepository,
     PromptFoldersRepository,
@@ -49,6 +52,7 @@ export class PromptsModule extends defineModule({
     },
     PromptFolderViewsService,
     PromptResolverService,
+    PromptUsageService,
     PromptViewsService,
     CleanUpWorkspaceUseCase,
     CreatePromptFolderUseCase,
@@ -59,6 +63,7 @@ export class PromptsModule extends defineModule({
     GetPromptUseCase,
     GetPromptVersionUseCase,
     ListPromptFoldersUseCase,
+    ListPromptUsagesUseCase,
     ListPromptVersionsUseCase,
     ListPromptsByFoldersUseCase,
     ListPromptsUseCase,

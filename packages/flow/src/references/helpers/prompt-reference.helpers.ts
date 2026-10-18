@@ -17,6 +17,14 @@ export const promptReferences = (flow: FlowDocument): readonly PromptReference[]
   flow.nodes.flatMap((node): readonly PromptReference[] => {
     const prompt = nodePrompt(node);
     return prompt !== null && prompt.kind === PromptSourceKind.Library
-      ? [{ nodeId: node.id, nodeKey: node.key, promptRef: prompt.promptRef, pin: prompt.pin }]
+      ? [
+          {
+            nodeId: node.id,
+            nodeKey: node.key,
+            nodeLabel: node.label,
+            promptRef: prompt.promptRef,
+            pin: prompt.pin,
+          },
+        ]
       : [];
   });

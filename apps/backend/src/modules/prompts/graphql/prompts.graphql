@@ -4,6 +4,7 @@ extend type Query {
   prompt(id: ID!): PromptDetail!
   promptVersions(promptId: ID!): [PromptVersion!]!
   promptVersion(id: ID!): PromptVersion!
+  promptUsages(promptId: ID!): [PromptUsage!]!
 }
 
 extend type Mutation {
@@ -102,4 +103,31 @@ type PromptFolder {
   prompts: [Prompt!]!
   createdAt: String!
   updatedAt: String!
+}
+
+enum PromptUsageVersionKind {
+  draft
+  live
+}
+
+enum PromptPinKind {
+  pinned
+  latest
+}
+
+type PromptUsagePin {
+  kind: PromptPinKind!
+  number: Int
+}
+
+type PromptUsage {
+  agentId: ID!
+  agentName: String!
+  versionId: ID!
+  versionKind: PromptUsageVersionKind!
+  versionNumber: Int
+  nodeId: String!
+  nodeKey: String!
+  nodeLabel: String!
+  pin: PromptUsagePin!
 }
