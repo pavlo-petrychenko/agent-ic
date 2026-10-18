@@ -1,4 +1,5 @@
 import { can, PermissionAction, PermissionResource } from '@agent-ic/contracts';
+import { libraryVariables } from '@agent-ic/flow';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePromptDetail } from '@/features/prompts/communication/hooks/usePromptDetail';
@@ -24,6 +25,7 @@ import {
 import { nextPromptVersionNumber } from '@/features/prompts/logic/helpers/promptDraft.helpers';
 import { findFolderName } from '@/features/prompts/logic/helpers/promptFolder.helpers';
 import { usageCounts } from '@/features/prompts/logic/helpers/promptUsage.helpers';
+import { promptVariableOptions } from '@/features/prompts/logic/helpers/promptVariable.helpers';
 import { formatPromptVersionDate } from '@/features/prompts/logic/helpers/promptVersion.helpers';
 import { storeLastOpenedPromptId } from '@/features/prompts/storage/helpers/promptLastOpenedStorage.helpers';
 import type { PromptVersion } from '@/features/prompts/typedefs/prompt.typedefs';
@@ -113,10 +115,13 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
     versionView.olderVersionId === null ? latestVersion : versionView.olderVersion;
   const editorText = editing ? draft.text : (shownVersion?.text ?? '');
   const variablePaths = collectPromptVariables(editorText);
-  const variables: readonly VariableOption[] = variablePaths.map((path) => ({
-    id: path,
-    label: path,
-    group: '',
+  const variables: readonly VariableOption[] = promptVariableOptions(
+    libraryVariables(),
+    editorText,
+  ).map((option) => ({
+    id: option.path,
+    label: option.path,
+    group: t(`view.variableGroups.${option.group}`),
   }));
   const counts = usages === null ? null : usageCounts(usages);
   const usageSummary =
