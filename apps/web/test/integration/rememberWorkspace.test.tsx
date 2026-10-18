@@ -14,8 +14,7 @@ import { signInForTest, signOutForTest } from '@test/support/helpers/session.hel
 
 const OTHER_WORKSPACE = { ...DEMO_WORKSPACE, id: 'ws_other', name: 'Other salon' };
 const shellMock = buildWorkspaceShellMock([DEMO_WORKSPACE, OTHER_WORKSPACE]);
-const mainNavigation = () =>
-  screen.findByRole('navigation', { name: 'Main' }, { timeout: 5000 });
+const mainNavigation = () => screen.findByRole('navigation', { name: 'Main' }, { timeout: 5000 });
 
 describe('remembering the open workspace', () => {
   beforeEach(() => signInForTest());
