@@ -181,7 +181,7 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
             <IssuesPanel />
             <LastRunBar workspaceId={workspaceId} agentId={agentId} />
           </div>
-          <InspectorPanel agentId={agentId} />
+          <InspectorPanel workspaceId={workspaceId} agentId={agentId} />
           <LeaveGuard />
           {publishing && (
             <BuilderPublishDialog

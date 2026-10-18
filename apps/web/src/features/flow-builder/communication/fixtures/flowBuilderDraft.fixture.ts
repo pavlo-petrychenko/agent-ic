@@ -7,6 +7,8 @@ import { FlowBuilderDraftDocument } from '@/features/flow-builder/communication/
 
 export const DEMO_AGENT_ID = 'agt_demo';
 
+export const DEMO_WORKSPACE_ID = 'ws_demo';
+
 export const TRIGGER_ONLY_FLOW: FlowDocument = {
   schemaVersion: FLOW_SCHEMA_VERSION,
   nodes: [

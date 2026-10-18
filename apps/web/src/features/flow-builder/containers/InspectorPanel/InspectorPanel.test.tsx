@@ -25,7 +25,10 @@ import type { AgentNode, FlowDocument, FlowNode } from '@agent-ic/flow';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DEMO_AGENT_ID } from '@/features/flow-builder/communication/fixtures/flowBuilderDraft.fixture';
+import {
+  DEMO_AGENT_ID,
+  DEMO_WORKSPACE_ID,
+} from '@/features/flow-builder/communication/fixtures/flowBuilderDraft.fixture';
 import { membersByRoleMock } from '@/features/flow-builder/communication/fixtures/membersByRole.fixture';
 import {
   FLASH_MODEL,
@@ -102,7 +105,10 @@ const store = useFlowBuilderStore.getState;
 const open = (nodeId: string, document: FlowDocument = FLOW, mocks = [modelOptionsMock()]) => {
   store().load({ document, revision: 1, issues: validateFlow(document) });
   store().select({ nodeIds: [nodeId], edgeIds: [] });
-  return renderWithProviders(<InspectorPanel agentId={DEMO_AGENT_ID} />, { mocks });
+  return renderWithProviders(
+    <InspectorPanel workspaceId={DEMO_WORKSPACE_ID} agentId={DEMO_AGENT_ID} />,
+    { mocks },
+  );
 };
 const node = (id: string) => store().document.nodes.find((candidate) => candidate.id === id);
 

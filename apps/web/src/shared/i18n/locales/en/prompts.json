@@ -200,6 +200,21 @@
     "loading": "Comparing versions",
     "loadError": "The versions couldn’t be compared."
   },
+  "field": {
+    "useLibrary": "Use a library prompt",
+    "openInLibrary": "Open in library",
+    "version": "Version",
+    "followLatest": "Follow latest"
+  },
+  "picker": {
+    "title": "Use a library prompt",
+    "description": "The step follows the latest version unless you pin one.",
+    "search": "Search prompts",
+    "clear": "Clear search",
+    "empty": "No prompts yet",
+    "emptyNote": "Create a prompt in the library first, then pick it here.",
+    "noMatch": "No prompts match “{{query}}”."
+  },
   "loadError": "The prompts couldn’t be opened.",
   "retry": "Try again"
 }
