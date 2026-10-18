@@ -137,6 +137,16 @@
     "noText": "This prompt has no text yet.",
     "body": "Prompt text",
     "variables": "Variables",
+    "variableGroups": {
+      "message": "incoming message",
+      "user": "from the channel",
+      "language": "detected",
+      "conversation": "conversation",
+      "system": "system",
+      "event": "event payload",
+      "caller": "from the caller",
+      "step": "earlier step"
+    },
     "edit": "Edit"
   },
   "draft": {
