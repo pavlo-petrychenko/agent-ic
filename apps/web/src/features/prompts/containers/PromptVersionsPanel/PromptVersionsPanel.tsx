@@ -14,10 +14,30 @@ export function PromptVersionsPanel({
   promptId,
   activeVersionId,
   onSelect,
+  onCompare,
 }: PromptVersionsPanelProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
   const { locale } = useLocale();
   const { versions, failed, retry } = usePromptVersions(promptId);
+
+  const compareAction = () => {
+    if (onCompare === null || versions === null) {
+      return null;
+    }
+    const [latest, previous] = versions;
+    if (latest === undefined || previous === undefined) {
+      return null;
+    }
+    return (
+      <button
+        type="button"
+        className={styles.compare}
+        onClick={() => onCompare(previous.id, latest.id)}
+      >
+        {t('versions.compare')}
+      </button>
+    );
+  };
 
   const body = () => {
     if (failed) {
@@ -66,6 +86,7 @@ export function PromptVersionsPanel({
       className={styles.panel}
       side={PanelSide.Left}
       title={t('versions.title')}
+      headRight={compareAction()}
     >
       <div className={styles.content}>{body()}</div>
     </Panel>

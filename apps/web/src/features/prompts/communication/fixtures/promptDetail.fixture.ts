@@ -38,7 +38,10 @@ export const RECEPTIONIST_SAVED_VERSION: PromptVersionFixture = {
 export const RECEPTIONIST_PREVIOUS_VERSION: PromptVersionFixture = {
   id: 'pvr_3',
   number: 3,
-  text: 'Answer only from the knowledge search results.',
+  text: [
+    'You are the receptionist of Demo salon. Talk to {{contact.name}} in a warm, short style.',
+    '- If you don’t know, say “I don’t know”.',
+  ].join('\n'),
   note: 'Answer only from search results',
   createdAt: '2026-09-10T12:00:00.000Z',
   authorName: 'Pavlo',
@@ -81,6 +84,7 @@ const versionNode = (version: PromptVersionFixture | null) =>
         id: version.id,
         number: version.number,
         text: version.text,
+        note: version.note,
         createdAt: version.createdAt,
         author:
           version.authorName === null

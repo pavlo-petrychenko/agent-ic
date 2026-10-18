@@ -106,6 +106,7 @@
     "edit": "Edit",
     "backToLatest": "Back to latest (v{{number}})",
     "olderNotice": "You’re viewing an older version. Restoring copies it into a new draft; v{{number}} stays until you save.",
+    "compareWith": "Compare with v{{number}}",
     "restoreAsDraft": "Restore as draft",
     "versionLoadError": "The version couldn’t be opened.",
     "loadingVersion": "Loading the version"
@@ -140,8 +141,20 @@
     "panelLabel": "Prompt details",
     "number": "v{{number}}",
     "open": "View v{{number}}",
+    "compare": "Compare",
     "empty": "No versions yet. Saving creates v1.",
     "loadError": "The versions couldn’t be loaded."
+  },
+  "compare": {
+    "close": "Close compare",
+    "from": "Compare from",
+    "to": "Compare to",
+    "fromValue": "Compare from {{number}}",
+    "toValue": "Compare to {{number}}",
+    "restore": "Restore v{{number}} as draft",
+    "summary": "{{removed}} removed · {{added}} added",
+    "loading": "Comparing versions",
+    "loadError": "The versions couldn’t be compared."
   },
   "loadError": "The prompts couldn’t be opened.",
   "retry": "Try again"
