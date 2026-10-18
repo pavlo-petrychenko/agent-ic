@@ -6,6 +6,7 @@ export type PromptPin = Extract<PromptSource, { kind: PromptSourceKind.Library }
 export interface PromptReference {
   readonly nodeId: string;
   readonly nodeKey: string;
+  readonly nodeLabel: string;
   readonly promptRef: string;
   readonly pin: PromptPin;
 }

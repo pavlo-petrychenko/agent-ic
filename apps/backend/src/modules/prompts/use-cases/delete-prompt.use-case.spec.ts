@@ -1,6 +1,7 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { PromptInUseError } from '@/modules/prompts/errors/prompt-in-use.error';
 import { PromptNotFoundError } from '@/modules/prompts/errors/prompt-not-found.error';
 import { PromptVersionsRepository } from '@/modules/prompts/repositories/prompt-versions.repository';
 import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
@@ -12,6 +13,15 @@ import {
   TEST_PROMPT_NAME,
   TEST_PROMPT_NEW_NAME,
 } from '@test/support/constants/prompts-testing.constants';
+import {
+  TEST_STEP_NODE_ID,
+  TEST_STEP_NODE_KEY,
+} from '@test/support/constants/runs-testing.constants';
+import {
+  agentWithLibraryPrompt,
+  libraryPromptFlow,
+} from '@test/support/fixtures/prompt-flow.fixture';
+import { seedAgentWithDraft } from '@test/support/helpers/agents-testing.helpers';
 import {
   createPromptsTestingModule,
   promptsCtx,
@@ -68,6 +78,26 @@ describe('DeletePromptUseCase', () => {
     expect(stored.versions).toEqual([]);
     expect(stored.listed.map((prompt) => prompt.id)).toEqual([otherPromptId]);
     expect(stored.other).not.toBeNull();
+  });
+
+  it('refuses to delete a prompt that a step uses and keeps it', async () => {
+    const workspaceId = ids.generate();
+    const folderId = await seedPromptFolder(testingModule, workspaceId);
+    const promptId = await seedPrompt(testingModule, workspaceId, folderId);
+    const promptRef = publicPromptId(testingModule, promptId);
+    await seedAgentWithDraft(
+      testingModule,
+      workspaceId,
+      libraryPromptFlow([agentWithLibraryPrompt(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, promptRef)]),
+    );
+
+    const attempt = deletePrompt.execute(promptsCtx(testingModule, workspaceId), {
+      id: promptRef,
+    });
+
+    await expect(attempt).rejects.toBeInstanceOf(PromptInUseError);
+    const stored = await tenants.run(workspaceId, () => prompts.findById(workspaceId, promptId));
+    expect(stored).not.toBeNull();
   });
 
   it('refuses an unknown prompt', async () => {

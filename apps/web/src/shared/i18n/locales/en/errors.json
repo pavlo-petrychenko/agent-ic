@@ -50,6 +50,7 @@
     "DRAFT_CONFLICT": "Someone else saved this draft. Reload to continue.",
     "STORED_FLOW_UNREADABLE": "This version of the flow cannot be read. Contact support.",
     "AGENT_FLOW_HAS_BLOCKING_ISSUES": "Fix the flow errors before publishing.",
+    "PROMPT_IN_USE": "Pick another prompt in the steps that use it before deleting this one.",
     "AWAY_MESSAGE_REQUIRED": "Write the away message the customer will receive.",
     "AWAY_MESSAGE_TOO_LONG": "The away message is too long.",
     "CONVERSATION_NOT_FOUND": "This conversation was not found.",

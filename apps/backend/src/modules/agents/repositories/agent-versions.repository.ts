@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, count, desc, eq, inArray, max, sql } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, max, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import {
   AgentVersionAggregate,
@@ -20,6 +20,7 @@ import type {
   NewAgentVersion,
 } from '@/modules/agents/typedefs/agent-version.typedefs';
 import type { AgentVersionSummary } from '@/modules/agents/typedefs/agent.typedefs';
+import type { CurrentAgentFlow } from '@/modules/agents/typedefs/current-agent-flow.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
@@ -89,6 +90,38 @@ export class AgentVersionsRepository {
       )
       .orderBy(desc(agentVersions.number));
     return versions.map(withCurrentFlow);
+  }
+
+  async listCurrentFlows(workspaceId: string): Promise<CurrentAgentFlow[]> {
+    const rows = await this.txHost.tx
+      .select({ agentId: agents.id, agentName: agents.name, version: agentVersions })
+      .from(agents)
+      .innerJoin(
+        agentVersions,
+        and(
+          eq(agentVersions.workspaceId, agents.workspaceId),
+          or(
+            eq(agentVersions.id, agents.liveVersionId),
+            and(
+              eq(agentVersions.agentId, agents.id),
+              eq(agentVersions.kind, AgentVersionKind.Draft),
+            ),
+          ),
+        ),
+      )
+      .where(eq(agents.workspaceId, workspaceId))
+      .orderBy(agents.name, agentVersions.number);
+    return rows.map(({ agentId, agentName, version }) => {
+      const current = withCurrentFlow(version);
+      return {
+        agentId,
+        agentName,
+        versionId: current.id,
+        versionKind: current.kind,
+        versionNumber: current.number,
+        flow: current.flow,
+      };
+    });
   }
 
   async lastPublishedNumber(workspaceId: string, agentId: string): Promise<number> {
