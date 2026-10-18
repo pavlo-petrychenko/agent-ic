@@ -50,12 +50,14 @@ input CreateWorkspaceInput {
 }
 
 input UpdateInviteLinkRoleInput {
-  role: WorkspaceRole!
+  role: WorkspaceRole
+  roleId: ID
 }
 
 type InviteLink {
   url: String!
   role: WorkspaceRole!
+  roleId: ID!
   expiresAt: String!
   joinedCount: Int!
 }
@@ -65,6 +67,7 @@ type InviteInfo {
   inviterName: String!
   memberCount: Int!
   role: WorkspaceRole!
+  roleId: ID!
   expiresAt: String!
 }
 

@@ -50,7 +50,8 @@ export class MembershipDirectoryRepository {
       .select({
         id: inviteLinks.id,
         workspaceId: inviteLinks.workspaceId,
-        role: inviteLinks.role,
+        roleId: inviteLinks.roleId,
+        role: roles.key,
         expiresAt: inviteLinks.expiresAt,
         revokedAt: inviteLinks.revokedAt,
         workspaceName: workspaces.name,
@@ -58,6 +59,7 @@ export class MembershipDirectoryRepository {
         memberCount: counts.memberCount,
       })
       .from(inviteLinks)
+      .innerJoin(roles, eq(roles.id, inviteLinks.roleId))
       .innerJoin(workspaces, eq(workspaces.id, inviteLinks.workspaceId))
       .innerJoin(users, eq(users.id, inviteLinks.createdByUserId))
       .innerJoin(counts, eq(counts.workspaceId, inviteLinks.workspaceId))
