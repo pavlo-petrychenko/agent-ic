@@ -4,6 +4,7 @@ export interface PromptListItem {
   readonly id: string;
   readonly name: string;
   readonly folderId: string;
+  readonly updatedAt: string;
 }
 
 export interface PromptLibrary {
@@ -112,6 +113,6 @@ export interface UsePromptFormErrorsResult {
 export interface UsePromptCreateResult {
   readonly fieldErrors: Readonly<Record<string, string>>;
   readonly formError: string | null;
-  readonly submit: (values: PromptFormValues) => Promise<boolean>;
+  readonly submit: (values: PromptFormValues) => Promise<string | null>;
   readonly clearField: (field: string) => void;
 }

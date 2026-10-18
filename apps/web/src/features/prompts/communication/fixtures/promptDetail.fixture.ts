@@ -35,6 +35,7 @@ const promptNode = (prompt: PromptFixture) => ({
   id: prompt.id,
   name: prompt.name,
   folderId: prompt.folderId,
+  updatedAt: prompt.updatedAt,
 });
 
 const versionNode = (version: PromptVersionFixture | null) =>
