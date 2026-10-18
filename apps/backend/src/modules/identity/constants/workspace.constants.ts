@@ -11,6 +11,7 @@ export enum WorkspaceField {
   Name = 'name',
   TimeZone = 'timeZone',
   Role = 'role',
+  RoleId = 'roleId',
   Token = 'token',
   MembershipId = 'membershipId',
   Password = 'password',

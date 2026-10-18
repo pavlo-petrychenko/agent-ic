@@ -1,3 +1,4 @@
+import { IdPrefix } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { INVITE_LOOKUP_RATE_LIMIT } from '@/modules/identity/constants/invite-rate-limit.constants';
 import { clientSubject } from '@/modules/identity/helpers/rate-limit.helpers';
@@ -9,6 +10,7 @@ import type {
   InviteTokenInput,
 } from '@/modules/identity/typedefs/invite-link.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
+import { IdService } from '@/platform/ids/services/id.service';
 import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.service';
 
 @Injectable()
@@ -16,6 +18,7 @@ export class GetInviteInfoUseCase {
   constructor(
     private readonly rateLimits: RateLimitService,
     private readonly invites: InviteLinksService,
+    private readonly ids: IdService,
   ) {}
 
   async execute(ctx: UseCaseCtx, input: InviteTokenInput): Promise<InviteInfo> {
@@ -27,6 +30,7 @@ export class GetInviteInfoUseCase {
       inviterName: invite.inviterName,
       memberCount: invite.memberCount,
       role: invite.role,
+      roleId: this.ids.toPublic(IdPrefix.Role, invite.roleId),
       expiresAt: invite.expiresAt,
     };
   }
