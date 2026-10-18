@@ -15,6 +15,7 @@
       "general": "General",
       "roles": "Roles",
       "usage": "Usage",
+      "llmKeys": "LLM keys",
       "profile": "Profile"
     }
   },
