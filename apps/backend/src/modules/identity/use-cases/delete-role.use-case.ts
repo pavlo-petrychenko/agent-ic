@@ -1,8 +1,8 @@
-import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
+import { IdPrefix, PermissionAction, PermissionResource, WorkspaceRole } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
-import { RoleInUseError } from '@/modules/identity/errors/role-in-use.error';
 import { RoleNotEditableError } from '@/modules/identity/errors/role-not-editable.error';
 import { RoleNotFoundError } from '@/modules/identity/errors/role-not-found.error';
+import { RoleReplacementInvalidError } from '@/modules/identity/errors/role-replacement-invalid.error';
 import { parseRoleInput } from '@/modules/identity/helpers/role-input.helpers';
 import { RolesRepository } from '@/modules/identity/repositories/roles.repository';
 import { deleteRoleInputSchema } from '@/modules/identity/schemas/role-input.schema';
@@ -24,6 +24,7 @@ export class DeleteRoleUseCase {
     const access = authorize(ctx, PermissionResource.Team, PermissionAction.Edit);
     const data = parseRoleInput(deleteRoleInputSchema, input);
     const roleId = this.ids.fromPublic(IdPrefix.Role, data.roleId);
+    const replacementRoleId = this.ids.fromPublic(IdPrefix.Role, data.replacementRoleId);
     return this.tenantTransactions.run(access.workspaceId, async () => {
       const role = await this.roleRepository.findByIdForUpdate(access.workspaceId, roleId);
       if (role === null) {
@@ -32,10 +33,17 @@ export class DeleteRoleUseCase {
       if (role.isSystem) {
         throw new RoleNotEditableError(data.roleId);
       }
-      const counts = await this.roleRepository.memberCounts(access.workspaceId);
-      if ((counts.get(roleId) ?? 0) > 0) {
-        throw new RoleInUseError(data.roleId);
+      const replacement = await this.roleRepository.findById(access.workspaceId, replacementRoleId);
+      if (replacement === null) {
+        throw new RoleNotFoundError(data.replacementRoleId);
       }
+      if (
+        replacement.id === roleId ||
+        (replacement.isSystem && replacement.key === WorkspaceRole.Owner)
+      ) {
+        throw new RoleReplacementInvalidError(data.replacementRoleId);
+      }
+      await this.roleRepository.reassignMembers(access.workspaceId, roleId, replacementRoleId);
       await this.roleRepository.deleteById(access.workspaceId, roleId);
       return true;
     });

@@ -52,4 +52,5 @@ export interface UpdateRolePermissionsInput {
 
 export interface DeleteRoleInput {
   readonly roleId: string;
+  readonly replacementRoleId: string;
 }

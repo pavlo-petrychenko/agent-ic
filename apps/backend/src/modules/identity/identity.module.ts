@@ -11,7 +11,9 @@ import { WorkspacesRepository } from '@/modules/identity/repositories/workspaces
 import { AcceptInviteResolver } from '@/modules/identity/resolvers/accept-invite.resolver';
 import { ChangeMemberRoleResolver } from '@/modules/identity/resolvers/change-member-role.resolver';
 import { ChangeMyPasswordResolver } from '@/modules/identity/resolvers/change-my-password.resolver';
+import { CreateRoleResolver } from '@/modules/identity/resolvers/create-role.resolver';
 import { CreateWorkspaceResolver } from '@/modules/identity/resolvers/create-workspace.resolver';
+import { DeleteRoleResolver } from '@/modules/identity/resolvers/delete-role.resolver';
 import { DeleteWorkspaceResolver } from '@/modules/identity/resolvers/delete-workspace.resolver';
 import { ForgotPasswordResolver } from '@/modules/identity/resolvers/forgot-password.resolver';
 import { InviteInfoResolver } from '@/modules/identity/resolvers/invite-info.resolver';
@@ -22,6 +24,7 @@ import { MembersResolver } from '@/modules/identity/resolvers/members.resolver';
 import { MyWorkspacesResolver } from '@/modules/identity/resolvers/my-workspaces.resolver';
 import { RememberWorkspaceResolver } from '@/modules/identity/resolvers/remember-workspace.resolver';
 import { RemoveMemberResolver } from '@/modules/identity/resolvers/remove-member.resolver';
+import { RenameRoleResolver } from '@/modules/identity/resolvers/rename-role.resolver';
 import { RenameWorkspaceResolver } from '@/modules/identity/resolvers/rename-workspace.resolver';
 import { RequestMyEmailChangeResolver } from '@/modules/identity/resolvers/request-my-email-change.resolver';
 import { ResendConfirmationResolver } from '@/modules/identity/resolvers/resend-confirmation.resolver';
@@ -31,6 +34,7 @@ import { TransferOwnershipResolver } from '@/modules/identity/resolvers/transfer
 import { UpdateInviteLinkRoleResolver } from '@/modules/identity/resolvers/update-invite-link-role.resolver';
 import { UpdateMyLocaleResolver } from '@/modules/identity/resolvers/update-my-locale.resolver';
 import { UpdateMyNameResolver } from '@/modules/identity/resolvers/update-my-name.resolver';
+import { UpdateRolePermissionsResolver } from '@/modules/identity/resolvers/update-role-permissions.resolver';
 import { UpdateTimeZoneResolver } from '@/modules/identity/resolvers/update-time-zone.resolver';
 import { EmailChangesService } from '@/modules/identity/services/email-changes.service';
 import { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
@@ -164,6 +168,12 @@ export class IdentityModule extends defineModule({
     RenameWorkspaceResolver,
     RememberWorkspaceResolver,
     RemoveMemberResolver,
+
+    CreateRoleResolver,
+    UpdateRolePermissionsResolver,
+    RenameRoleResolver,
+    DeleteRoleResolver,
+
     TransferOwnershipResolver,
     UpdateMyLocaleResolver,
     UpdateTimeZoneResolver,

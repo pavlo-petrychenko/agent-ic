@@ -16,3 +16,4 @@ export const ROLE_NAME_TAKEN_MESSAGE = 'A role with this name already exists.';
 export const ROLE_NOT_EDITABLE_MESSAGE = 'This role cannot be changed.';
 export const ROLE_IN_USE_MESSAGE = 'Move the members of this role before deleting it.';
 export const ROLE_BASE_INVALID_MESSAGE = 'A new role must be based on an invitable role.';
+export const ROLE_REPLACEMENT_INVALID_MESSAGE = 'Members cannot be moved to this role.';
