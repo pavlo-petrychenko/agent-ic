@@ -5,12 +5,40 @@
   "nav": {
     "you": "Ви",
     "profile": "Профіль",
+    "notifications": "Сповіщення",
     "workspace": "Робочий простір",
     "team": "Команда",
     "general": "Загальне",
     "roles": "Ролі",
     "usage": "Використання",
     "llmKeys": "Ключі LLM"
+  },
+  "notifications": {
+    "subtitle": "Як ви дізнаєтеся про чати, що потребують людини",
+    "card": {
+      "title": "Коли чат передають мені",
+      "personal": "Особисті налаштування для {{name}}",
+      "personalOperators": "Особисті налаштування для {{name}} · оператори налаштовують свої самі",
+      "inPlatform": "У застосунку",
+      "inPlatformHint": "Лічильник у Вхідних і сповіщення браузера",
+      "email": "Пошта",
+      "telegram": "Telegram",
+      "telegramLinked": "Прив'язано до {{account}} · через {{bot}}",
+      "telegramNotLinked": "Ще не прив'язано",
+      "waitingForCode": "Очікує коду",
+      "unlinkTelegram": "Відв'язати Telegram",
+      "linkedOn": "Прив'язано {{date}}",
+      "footer": "Ви отримуєте сповіщення про передані чати від кожного агента, до якого маєте доступ у Вхідних."
+    },
+    "link": {
+      "title": "Прив'яжіть свій Telegram",
+      "openBot": "Відкрийте {{bot}} у Telegram",
+      "sendCode": "Надішліть цей код — він діє {{minutes}} хвилин",
+      "copy": "Копіювати",
+      "copied": "Код скопійовано",
+      "open": "Відкрити Telegram",
+      "hint": "Сторінка оновиться, щойно бот отримає код."
+    }
   },
   "team": {
     "subtitle_one": "{{count}} учасник · кожен має одну роль у цьому робочому просторі",

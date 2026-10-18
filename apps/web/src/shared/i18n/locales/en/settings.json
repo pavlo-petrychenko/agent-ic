@@ -5,12 +5,40 @@
   "nav": {
     "you": "You",
     "profile": "Profile",
+    "notifications": "Notifications",
     "workspace": "Workspace",
     "team": "Team",
     "general": "General",
     "roles": "Roles",
     "usage": "Usage",
     "llmKeys": "LLM keys"
+  },
+  "notifications": {
+    "subtitle": "How you hear about chats that need a person",
+    "card": {
+      "title": "When a chat is escalated to me",
+      "personal": "Personal settings for {{name}}",
+      "personalOperators": "Personal settings for {{name}} · operators set their own",
+      "inPlatform": "In the platform",
+      "inPlatformHint": "Inbox badge and browser notification",
+      "email": "Email",
+      "telegram": "Telegram",
+      "telegramLinked": "Linked to {{account}} · via {{bot}}",
+      "telegramNotLinked": "Not linked yet",
+      "waitingForCode": "Waiting for code",
+      "unlinkTelegram": "Unlink Telegram",
+      "linkedOn": "Linked {{date}}",
+      "footer": "You get alerts for escalations from every agent you can access in the Inbox."
+    },
+    "link": {
+      "title": "Link your Telegram",
+      "openBot": "Open {{bot}} in Telegram",
+      "sendCode": "Send this code — it works for {{minutes}} minutes",
+      "copy": "Copy",
+      "copied": "Code copied",
+      "open": "Open Telegram",
+      "hint": "This page updates as soon as the bot gets the code."
+    }
   },
   "team": {
     "subtitle_one": "{{count}} member · each person has one role in this workspace",

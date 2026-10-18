@@ -6,5 +6,6 @@ export { RolesPage } from '@/features/settings/containers/RolesPage';
 export { UsagePage } from '@/features/settings/containers/UsagePage';
 export { LlmKeysPage } from '@/features/settings/containers/LlmKeysPage';
 export { ProfilePage } from '@/features/settings/containers/ProfilePage';
+export { NotificationsPage } from '@/features/settings/containers/NotificationsPage';
 export { useInviteLink } from '@/features/settings/communication/hooks/useInviteLink';
 export { copyText } from '@/features/settings/logic/helpers/clipboard.helpers';

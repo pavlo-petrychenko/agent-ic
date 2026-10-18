@@ -3,8 +3,9 @@ import { SYSTEM_ROLE_COUNT } from '@/features/settings/constants/roles.constants
 import {
   GENERAL_PATH,
   LLM_KEYS_PATH,
-  ROLES_PATH,
+  NOTIFICATIONS_PATH,
   PROFILE_PATH,
+  ROLES_PATH,
   TEAM_PATH,
   USAGE_PATH,
 } from '@/features/settings/constants/route.constants';
@@ -36,6 +37,9 @@ export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
           <NavGroup label={t('nav.you')}>
             <NavItem to={PROFILE_PATH} params={{ workspaceId }}>
               {t('nav.profile')}
+            </NavItem>
+            <NavItem to={NOTIFICATIONS_PATH} params={{ workspaceId }}>
+              {t('nav.notifications')}
             </NavItem>
           </NavGroup>
           {hasWorkspaceNav && (
