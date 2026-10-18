@@ -7,8 +7,9 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '@/app/app.module';
 import { SEED_ROLE_SELECTION } from '@/app/constants/seed.constants';
 import { seedSampleData } from '@/app/helpers/seed.helpers';
-import { FLOW_EXAMPLES } from '@/modules/agents/constants/flow-examples.constants';
+import { flowExamples } from '@/modules/agents/constants/flow-examples.constants';
 import { SAMPLE_AGENT_NAME } from '@/modules/agents/constants/sample-agent.constants';
+import { SAMPLE_PROMPTS } from '@/modules/agents/constants/sample-prompt.constants';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import {
@@ -20,14 +21,17 @@ import { memberships } from '@/modules/identity/db/memberships.table';
 import { MembershipDirectoryRepository } from '@/modules/identity/repositories/membership-directory.repository';
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
+import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
 import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { TracingService } from '@/platform/observability/services/tracing.service';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
+import { samplePromptRefs } from '@test/support/fixtures/sample-prompt.fixture';
 
 const FIRST_VERSION_NUMBER = 1;
 const AGENT_PAGE_SIZE = 10;
+const EXAMPLES = flowExamples(samplePromptRefs());
 
 const readExamples = (app: INestApplicationContext, workspaceId: string) =>
   app.get(TenantTransactionService).run(workspaceId, async () => {
@@ -110,12 +114,20 @@ describe('seedSampleData', () => {
     const { agents, live } = await readExamples(app, examplesWorkspaceId);
     expect(roles).toEqual([WorkspaceRole.Owner, WorkspaceRole.Operator]);
     expect(agents.map((agent) => agent.name).toSorted()).toEqual(
-      FLOW_EXAMPLES.map((example) => example.name).toSorted(),
+      EXAMPLES.map((example) => example.name).toSorted(),
     );
     expect(live.map((version) => version?.number)).toEqual(
-      FLOW_EXAMPLES.map(() => FIRST_VERSION_NUMBER),
+      EXAMPLES.map(() => FIRST_VERSION_NUMBER),
     );
     expect(live.filter((version) => hasBlockingIssues(validateFlow(version?.flow)))).toEqual([]);
+    const prompts = await app
+      .get(TenantTransactionService)
+      .run(examplesWorkspaceId, () => app.get(PromptsRepository).list(examplesWorkspaceId));
+    expect(prompts.map((prompt) => prompt.name).toSorted()).toEqual(
+      Object.values(SAMPLE_PROMPTS)
+        .map((prompt) => prompt.name)
+        .toSorted(),
+    );
   });
 
   it('changes nothing when it runs again', async () => {
@@ -137,7 +149,7 @@ describe('seedSampleData', () => {
     const examples = await readExamples(app, first.examplesWorkspaceId);
     expect(second).toEqual({ ...first, agentCreated: false, examplesCreated: false });
     expect(await examplesWorkspaces(app, first.userId)).toHaveLength(1);
-    expect(examples.agents).toHaveLength(FLOW_EXAMPLES.length);
+    expect(examples.agents).toHaveLength(EXAMPLES.length);
     expect(stored.agents).toHaveLength(1);
     expect(stored.published).toHaveLength(1);
     expect(stored.published[0]?.number).toBe(FIRST_VERSION_NUMBER);

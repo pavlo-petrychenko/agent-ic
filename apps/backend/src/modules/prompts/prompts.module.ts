@@ -17,9 +17,11 @@ import { RenamePromptResolver } from '@/modules/prompts/resolvers/rename-prompt.
 import { SavePromptVersionResolver } from '@/modules/prompts/resolvers/save-prompt-version.resolver';
 import { PromptFlowReferenceChecker } from '@/modules/prompts/services/prompt-flow-reference-checker.service';
 import { PromptFolderViewsService } from '@/modules/prompts/services/prompt-folder-views.service';
+import { PromptImportService } from '@/modules/prompts/services/prompt-import.service';
 import { PromptResolverService } from '@/modules/prompts/services/prompt-resolver.service';
 import { PromptUsageService } from '@/modules/prompts/services/prompt-usage.service';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
+import { SamplePromptService } from '@/modules/prompts/services/sample-prompt.service';
 import { CleanUpWorkspaceUseCase } from '@/modules/prompts/use-cases/clean-up-workspace.use-case';
 import { CreatePromptFolderUseCase } from '@/modules/prompts/use-cases/create-prompt-folder.use-case';
 import { CreatePromptUseCase } from '@/modules/prompts/use-cases/create-prompt.use-case';
@@ -51,9 +53,11 @@ export class PromptsModule extends defineModule({
       useExisting: PromptFlowReferenceChecker,
     },
     PromptFolderViewsService,
+    PromptImportService,
     PromptResolverService,
     PromptUsageService,
     PromptViewsService,
+    SamplePromptService,
     CleanUpWorkspaceUseCase,
     CreatePromptFolderUseCase,
     CreatePromptUseCase,
@@ -87,5 +91,5 @@ export class PromptsModule extends defineModule({
     SavePromptVersionResolver,
   ],
   listeners: [CleanUpWorkspaceListener],
-  exports: [PromptResolverService],
+  exports: [PromptResolverService, SamplePromptService],
 }) {}

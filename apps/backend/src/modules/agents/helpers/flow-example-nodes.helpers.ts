@@ -14,6 +14,7 @@ import {
   OutputFieldType,
   PortName,
   PromptSourceKind,
+  PromptVersionKind,
   QuickRepliesKind,
   RecipientsKind,
   RequestAuthKind,
@@ -31,6 +32,7 @@ import type {
   FlowDocument,
   OutputField,
   ParallelNode,
+  PromptSource,
   RouterNode,
   RouterRule,
   SendMessageNode,
@@ -60,7 +62,11 @@ const place = (key: string, label: string, [column, row]: GridCell) => ({
   position: { x: column * EXAMPLE_COLUMN_WIDTH, y: row * EXAMPLE_ROW_HEIGHT },
 });
 
-const inline = (text: string) => ({ kind: PromptSourceKind.Inline, text }) as const;
+export const examplePrompt = (promptRef: string): PromptSource => ({
+  kind: PromptSourceKind.Library,
+  promptRef,
+  pin: { kind: PromptVersionKind.Latest },
+});
 
 const quickReplies = (buttons: readonly string[]): SendMessageNode['config']['quickReplies'] =>
   buttons.length === 0
@@ -96,13 +102,13 @@ export const exampleAgent = (
   key: string,
   label: string,
   at: GridCell,
-  prompt: string,
+  prompt: PromptSource,
   output: readonly OutputField[] = [],
 ): AgentNode => ({
   ...place(key, label, at),
   type: NodeType.Agent,
   config: {
-    prompt: inline(prompt),
+    prompt,
     model: EXAMPLE_AGENT_MODEL,
     reasoning: null,
     knowledgeBaseIds: [],
@@ -116,13 +122,13 @@ export const exampleCompletion = (
   key: string,
   label: string,
   at: GridCell,
-  prompt: string,
+  prompt: PromptSource,
   output: readonly OutputField[],
 ): CompletionNode => ({
   ...place(key, label, at),
   type: NodeType.Completion,
   config: {
-    prompt: inline(prompt),
+    prompt,
     model: EXAMPLE_COMPLETION_MODEL,
     reasoning: null,
     input: { includeCurrentMessage: true },

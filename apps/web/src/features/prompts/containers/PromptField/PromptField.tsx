@@ -8,6 +8,7 @@ import { PromptPickerDialog } from '@/features/prompts/containers/PromptPickerDi
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { PromptEditor } from '@/shared/ui/inputs/PromptEditor';
+import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
 export function PromptField({
   workspaceId,
@@ -15,13 +16,12 @@ export function PromptField({
   variables,
   label,
   menuLabel,
-  placeholder,
   error,
   onChange,
 }: PromptFieldProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
   const [picking, setPicking] = useState(false);
-  const inlineText = source !== null && source.kind === PromptSourceKind.Inline ? source.text : '';
+  const inline = source !== null && source.kind === PromptSourceKind.Inline;
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
@@ -34,15 +34,26 @@ export function PromptField({
         />
       ) : (
         <>
-          <PromptEditor
-            value={inlineText}
-            variables={variables}
-            label={label}
-            menuLabel={menuLabel}
-            placeholder={placeholder}
-            error={error}
-            onChange={(text) => onChange({ kind: PromptSourceKind.Inline, text })}
-          />
+          {inline && (
+            <PromptEditor
+              value={source.text}
+              variables={variables}
+              label={label}
+              menuLabel={menuLabel}
+              readOnly
+              readOnlyReason={t('field.inlineNote')}
+            />
+          )}
+          {source === null && (
+            <Text kind={TextKind.Caption} color={TextColor.Mute}>
+              {t('field.empty')}
+            </Text>
+          )}
+          {error !== null && (
+            <Text kind={TextKind.Caption} color={TextColor.Err}>
+              {error}
+            </Text>
+          )}
           <Button
             className="self-start"
             variant={ButtonVariant.Ghost}
