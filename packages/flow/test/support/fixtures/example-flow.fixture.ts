@@ -36,10 +36,12 @@ import {
 } from '@flow/references/constants/reference.constants';
 
 const at = { x: 0, y: 0 };
+const EXAMPLE_PROMPT_REF = 'prm_example';
 
-export const examplePrompt = (text: string): PromptSource => ({
-  kind: PromptSourceKind.Inline,
-  text,
+export const examplePrompt = (promptRef: string = EXAMPLE_PROMPT_REF): PromptSource => ({
+  kind: PromptSourceKind.Library,
+  promptRef,
+  pin: { kind: PromptVersionKind.Latest },
 });
 
 export const exampleModel: ModelRef = {
@@ -73,7 +75,7 @@ export const faqWithHandOffFlow: FlowDocument = {
       position: at,
       type: NodeType.Completion,
       config: {
-        prompt: examplePrompt('Is {{message.text}} a question we can answer?'),
+        prompt: examplePrompt('prm_guard'),
         model: exampleModel,
         reasoning: null,
         input: { includeCurrentMessage: true },
@@ -100,7 +102,7 @@ export const faqWithHandOffFlow: FlowDocument = {
       position: at,
       type: NodeType.Completion,
       config: {
-        prompt: examplePrompt('Name the topic of the chat.'),
+        prompt: examplePrompt('prm_topic'),
         model: exampleModel,
         reasoning: null,
         input: { includeCurrentMessage: true },
@@ -141,7 +143,7 @@ export const faqWithHandOffFlow: FlowDocument = {
       position: at,
       type: NodeType.Agent,
       config: {
-        prompt: examplePrompt('Answer the customer politely.'),
+        prompt: examplePrompt('prm_answer'),
         model: exampleModel,
         reasoning: null,
         knowledgeBaseIds: ['kb_faq'],

@@ -71,7 +71,6 @@ export enum TestRedisPrefix {
   RunsWorker = 'runs-worker:',
   SimulatorWorker = 'simulator-worker:',
   Seed = 'seed:',
-  Backfill = 'backfill:',
   IsolationFirst = 'isolation-first:',
   IsolationSecond = 'isolation-second:',
 }

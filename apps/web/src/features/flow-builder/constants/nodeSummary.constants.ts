@@ -6,7 +6,6 @@ export enum SummaryKey {
   SomeChannels = 'someChannels',
   Model = 'model',
   NoModel = 'noModel',
-  InlinePrompt = 'inlinePrompt',
   LibraryPrompt = 'libraryPrompt',
   Outputs = 'outputs',
   EachItem = 'eachItem',

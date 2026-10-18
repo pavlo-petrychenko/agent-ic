@@ -1,7 +1,6 @@
-import type { FlowDocument } from '@agent-ic/flow';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, desc, eq, inArray, max, or, sql } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, max, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import {
   AgentVersionAggregate,
@@ -15,7 +14,6 @@ import {
   toAgentVersionSummary,
   withCurrentFlow,
 } from '@/modules/agents/helpers/agent-version.helpers';
-import type { AgentVersionFlow } from '@/modules/agents/typedefs/agent-version-flow.typedefs';
 import type {
   AgentVersion,
   DraftChanges,
@@ -132,39 +130,6 @@ export class AgentVersionsRepository {
       .from(agentVersions)
       .where(and(eq(agentVersions.workspaceId, workspaceId), eq(agentVersions.agentId, agentId)));
     return row?.last ?? 0;
-  }
-
-  async listAllFlows(workspaceId: string): Promise<AgentVersionFlow[]> {
-    const rows = await this.txHost.tx
-      .select({ agentName: agents.name, version: agentVersions })
-      .from(agentVersions)
-      .innerJoin(
-        agents,
-        and(
-          eq(agents.workspaceId, agentVersions.workspaceId),
-          eq(agents.id, agentVersions.agentId),
-        ),
-      )
-      .where(eq(agentVersions.workspaceId, workspaceId))
-      .orderBy(asc(agents.name), asc(agentVersions.id));
-    return rows.map(({ agentName, version }) => {
-      const current = withCurrentFlow(version);
-      return { agentId: current.agentId, agentName, versionId: current.id, flow: current.flow };
-    });
-  }
-
-  async replaceFlow(
-    workspaceId: string,
-    versionId: string,
-    flow: FlowDocument,
-    updatedAt: Date,
-  ): Promise<boolean> {
-    const updated = await this.txHost.tx
-      .update(agentVersions)
-      .set({ flow, revision: sql`${agentVersions.revision} + 1`, updatedAt })
-      .where(and(eq(agentVersions.workspaceId, workspaceId), eq(agentVersions.id, versionId)))
-      .returning({ id: agentVersions.id });
-    return updated.length > 0;
   }
 
   async updateDraft(

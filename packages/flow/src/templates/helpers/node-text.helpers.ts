@@ -1,12 +1,11 @@
 import { NodeType } from '@flow/document/constants/flow.constants';
-import type { FlowNode, PromptSource } from '@flow/document/typedefs/flow.typedefs';
+import type { FlowNode } from '@flow/document/typedefs/flow.typedefs';
 import {
   EscalationMode,
   MessageContentKind,
   QuickRepliesKind,
   RequestBodyKind,
 } from '@flow/nodes/constants/step.constants';
-import { PromptSourceKind } from '@flow/references/constants/reference.constants';
 import { NodeTextKind } from '@flow/templates/constants/template.constants';
 import type { NodeTextField, NodeTextMappers } from '@flow/templates/typedefs/template.typedefs';
 
@@ -21,16 +20,6 @@ const variable = (path: readonly string[], value: string): NodeTextField => ({
   path,
   value,
 });
-
-const promptFields = (prompt: PromptSource | null): readonly NodeTextField[] =>
-  prompt !== null && prompt.kind === PromptSourceKind.Inline
-    ? [template(['prompt', 'text'], prompt.text)]
-    : [];
-
-const mapPrompt = (prompt: PromptSource | null, mappers: NodeTextMappers): PromptSource | null =>
-  prompt !== null && prompt.kind === PromptSourceKind.Inline
-    ? { ...prompt, text: mappers.template(prompt.text) }
-    : prompt;
 
 export const nodeTextFields = (node: FlowNode): readonly NodeTextField[] => {
   switch (node.type) {
@@ -83,7 +72,6 @@ export const nodeTextFields = (node: FlowNode): readonly NodeTextField[] => {
     }
     case NodeType.Agent:
     case NodeType.Completion:
-      return promptFields(node.config.prompt);
     case NodeType.TriggerMessage:
     case NodeType.TriggerExternalEvent:
     case NodeType.TriggerSchedule:
@@ -160,15 +148,7 @@ export const mapNodeText = (node: FlowNode, mappers: NodeTextMappers): FlowNode 
       };
     }
     case NodeType.Agent:
-      return {
-        ...node,
-        config: { ...node.config, prompt: mapPrompt(node.config.prompt, mappers) },
-      };
     case NodeType.Completion:
-      return {
-        ...node,
-        config: { ...node.config, prompt: mapPrompt(node.config.prompt, mappers) },
-      };
     case NodeType.TriggerMessage:
     case NodeType.TriggerExternalEvent:
     case NodeType.TriggerSchedule:

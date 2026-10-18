@@ -95,7 +95,7 @@ export const scheduleTrigger = (key: string, cron: string | null = null): Trigge
 export const agent = (
   key: string,
   output: OutputField[] = [],
-  prompt: PromptSource | null = examplePrompt(`Answer as ${key}.`),
+  prompt: PromptSource | null = examplePrompt(),
 ): AgentNode => ({
   ...base(key),
   type: NodeType.Agent,
@@ -113,7 +113,7 @@ export const agent = (
 export const completion = (
   key: string,
   output: OutputField[] = [field('verdict', OutputFieldType.Boolean)],
-  prompt: PromptSource | null = examplePrompt(`Answer as ${key}.`),
+  prompt: PromptSource | null = examplePrompt(),
 ): CompletionNode => ({
   ...base(key),
   type: NodeType.Completion,

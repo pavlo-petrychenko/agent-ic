@@ -26,7 +26,6 @@ import { newFolder, newPrompt, newPromptVersion } from '@test/support/fixtures/p
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 import { PromptsNeighboursModule } from '@test/support/modules/prompts-neighbours.module';
-import type { ProviderOverride } from '@test/support/typedefs/test-infrastructure.typedefs';
 
 export const promptsCtx = (
   testingModule: TestingModule,
@@ -34,20 +33,14 @@ export const promptsCtx = (
   role: WorkspaceRole = WorkspaceRole.Owner,
 ): UseCaseCtx => workspaceCtx(testingModule.get(IdService).generate(), workspaceId, role);
 
-export const createPromptsTestingModule = (
-  overrides: readonly ProviderOverride[] = [],
-): Promise<TestingModule> =>
-  createPlatformTestingModule(
-    TestRedisPrefix.Prompts,
-    [
-      RedisModule,
-      RateLimitModule,
-      OutboundHttpModule,
-      PromptsModule.forRole(Role.Api),
-      PromptsNeighboursModule.forRole(Role.Api),
-    ],
-    overrides,
-  );
+export const createPromptsTestingModule = (): Promise<TestingModule> =>
+  createPlatformTestingModule(TestRedisPrefix.Prompts, [
+    RedisModule,
+    RateLimitModule,
+    OutboundHttpModule,
+    PromptsModule.forRole(Role.Api),
+    PromptsNeighboursModule.forRole(Role.Api),
+  ]);
 
 export const seedPromptAuthor = async (testingModule: TestingModule): Promise<string> => {
   const userId = testingModule.get(IdService).generate();
@@ -115,6 +108,22 @@ export const seedPromptVersion = async (
 
 export const publicPromptId = (testingModule: TestingModule, promptId: string): string =>
   testingModule.get(IdService).toPublic(IdPrefix.Prompt, promptId);
+
+export const seedLibraryPrompt = async (
+  testingModule: TestingModule,
+  workspaceId: string,
+  text: string,
+): Promise<string> => {
+  const suffix = testingModule.get(IdService).generate();
+  const folderId = await seedPromptFolder(testingModule, workspaceId, {
+    name: `Folder ${suffix}`,
+  });
+  const promptId = await seedPrompt(testingModule, workspaceId, folderId, {
+    name: `Prompt ${suffix}`,
+  });
+  await seedPromptVersion(testingModule, workspaceId, promptId, { text });
+  return publicPromptId(testingModule, promptId);
+};
 
 export const publicPromptFolderId = (testingModule: TestingModule, folderId: string): string =>
   testingModule.get(IdService).toPublic(IdPrefix.PromptFolder, folderId);

@@ -68,7 +68,6 @@
     "someChannels_other": "{{count}} channels",
     "model": "{{model}}",
     "noModel": "No model yet",
-    "inlinePrompt": "inline prompt",
     "libraryPrompt": "library prompt",
     "outputs": "→ {{fields}}",
     "eachItem": "{{variable}} · one message per item",

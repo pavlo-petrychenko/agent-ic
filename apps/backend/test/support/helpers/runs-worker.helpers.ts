@@ -1,3 +1,4 @@
+import { IdPrefix } from '@agent-ic/contracts';
 import type { FlowDocument } from '@agent-ic/flow';
 import { expect, vi } from 'vitest';
 import { AppModule } from '@/app/app.module';
@@ -11,6 +12,9 @@ import { SimulatedChannelAdapter } from '@/modules/channels';
 import { IncomingMessagesService } from '@/modules/conversations';
 import type { IncomingMessageInput, IncomingMessageResult } from '@/modules/conversations';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
+import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
+import { PromptVersionsRepository } from '@/modules/prompts/repositories/prompt-versions.repository';
+import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
 import { UNFINISHED_RUN_STATUSES } from '@/modules/runs/constants/run.constants';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
@@ -35,6 +39,7 @@ import { MissingTestDataError } from '@test/support/errors/missing-test-data.err
 import { newAgent, newVersion } from '@test/support/fixtures/agents.fixture';
 import { incomingMessage, workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
+import { newFolder, newPrompt, newPromptVersion } from '@test/support/fixtures/prompts.fixture';
 import type {
   RunsWorker,
   SettledConversation,
@@ -75,27 +80,52 @@ export const seedWorkerAgent = async (
   flow: FlowDocument,
   published: boolean,
   pause: PauseSettings | null = null,
+  workspaceId: string | null = null,
 ): Promise<WorkerAgent> => {
-  const workspaceId = worker.ids.generate();
+  const seededWorkspaceId = workspaceId ?? worker.ids.generate();
   const agentId = worker.ids.generate();
   const versionId = published ? worker.ids.generate() : null;
   const live = { kind: AgentVersionKind.Published, number: TEST_PUBLISHED_NUMBER };
-  await worker.tenants.run(workspaceId, async () => {
-    await worker.agents.insert(newAgent(agentId, workspaceId));
-    await worker.versions.insert(newVersion(worker.ids.generate(), workspaceId, agentId, { flow }));
+  await worker.tenants.run(seededWorkspaceId, async () => {
+    await worker.agents.insert(newAgent(agentId, seededWorkspaceId));
+    await worker.versions.insert(
+      newVersion(worker.ids.generate(), seededWorkspaceId, agentId, { flow }),
+    );
     if (versionId !== null) {
       await worker.versions.insert(
-        newVersion(versionId, workspaceId, agentId, {
+        newVersion(versionId, seededWorkspaceId, agentId, {
           ...live,
           flow,
           publishedAt: RUNS_TEST_START,
         }),
       );
-      await worker.agents.setLiveVersion(workspaceId, agentId, versionId, worker.clock.now());
+      await worker.agents.setLiveVersion(seededWorkspaceId, agentId, versionId, worker.clock.now());
     }
-    await worker.agents.setPause(workspaceId, agentId, pause, worker.clock.now());
+    await worker.agents.setPause(seededWorkspaceId, agentId, pause, worker.clock.now());
   });
-  return { workspaceId, agentId, versionId };
+  return { workspaceId: seededWorkspaceId, agentId, versionId };
+};
+
+export const seedWorkerPrompt = async (
+  worker: RunsWorker,
+  workspaceId: string,
+  text: string,
+): Promise<string> => {
+  const suffix = worker.ids.generate();
+  const folderId = worker.ids.generate();
+  const promptId = worker.ids.generate();
+  await worker.tenants.run(workspaceId, async () => {
+    await worker.app
+      .get(PromptFoldersRepository)
+      .insert(newFolder(folderId, workspaceId, { name: `Folder ${suffix}` }));
+    await worker.app
+      .get(PromptsRepository)
+      .insert(newPrompt(promptId, workspaceId, folderId, { name: `Prompt ${suffix}` }));
+    await worker.app
+      .get(PromptVersionsRepository)
+      .insert(newPromptVersion(worker.ids.generate(), workspaceId, promptId, { text }));
+  });
+  return worker.ids.toPublic(IdPrefix.Prompt, promptId);
 };
 
 export const sendCustomerMessage = (

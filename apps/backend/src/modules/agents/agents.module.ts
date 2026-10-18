@@ -19,7 +19,6 @@ import { AgentDraftsService } from '@/modules/agents/services/agent-drafts.servi
 import { AgentFlowService } from '@/modules/agents/services/agent-flow.service';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
 import { AgentRuntimeReader } from '@/modules/agents/services/agent-runtime-reader.service';
-import { AgentVersionFlowsService } from '@/modules/agents/services/agent-version-flows.service';
 import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import { CurrentAgentFlowsReader } from '@/modules/agents/services/current-agent-flows-reader.service';
 import { FlowReferenceChecksService } from '@/modules/agents/services/flow-reference-checks.service';
@@ -56,7 +55,6 @@ export class AgentsModule extends defineModule({
     AgentFlowService,
     AgentPublishingService,
     AgentRuntimeReader,
-    AgentVersionFlowsService,
     AgentViewsService,
     CurrentAgentFlowsReader,
     FlowReferenceChecksService,
@@ -99,10 +97,5 @@ export class AgentsModule extends defineModule({
     TestApiRequestResolver,
   ],
   listeners: [CleanUpWorkspaceListener],
-  exports: [
-    AgentRuntimeReader,
-    AgentVersionFlowsService,
-    CurrentAgentFlowsReader,
-    SampleAgentService,
-  ],
+  exports: [AgentRuntimeReader, CurrentAgentFlowsReader, SampleAgentService],
 }) {}

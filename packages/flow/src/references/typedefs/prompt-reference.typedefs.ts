@@ -1,7 +1,6 @@
 import type { PromptSource } from '@flow/document/typedefs/flow.typedefs';
-import type { PromptSourceKind } from '@flow/references/constants/reference.constants';
 
-export type PromptPin = Extract<PromptSource, { kind: PromptSourceKind.Library }>['pin'];
+export type PromptPin = PromptSource['pin'];
 
 export interface PromptReference {
   readonly nodeId: string;

@@ -13,7 +13,6 @@ import { PromptsResolver } from '@/modules/prompts/resolvers/prompts.resolver';
 import { RenamePromptFolderResolver } from '@/modules/prompts/resolvers/rename-prompt-folder.resolver';
 import { RenamePromptResolver } from '@/modules/prompts/resolvers/rename-prompt.resolver';
 import { SavePromptVersionResolver } from '@/modules/prompts/resolvers/save-prompt-version.resolver';
-import { PromptBackfillService } from '@/modules/prompts/services/prompt-backfill.service';
 import { PromptFlowReferenceChecker } from '@/modules/prompts/services/prompt-flow-reference-checker.service';
 import { PromptFolderViewsService } from '@/modules/prompts/services/prompt-folder-views.service';
 import { PromptImportService } from '@/modules/prompts/services/prompt-import.service';
@@ -54,7 +53,6 @@ export class PromptsModule extends defineModule({
     PromptResolverService,
     PromptUsageService,
     PromptViewsService,
-    PromptBackfillService,
     SamplePromptService,
     CreatePromptFolderUseCase,
     CreatePromptUseCase,
@@ -85,5 +83,5 @@ export class PromptsModule extends defineModule({
     RenamePromptResolver,
     SavePromptVersionResolver,
   ],
-  exports: [PromptBackfillService, PromptResolverService, SamplePromptService],
+  exports: [PromptResolverService, SamplePromptService],
 }) {}

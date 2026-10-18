@@ -4,9 +4,9 @@ import type { FlowDiff } from '@flow/diff/typedefs/diff.typedefs';
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
 import { renameNodeKey } from '@flow/document/helpers/rename.helpers';
 import type { TriggerScheduleNode } from '@flow/document/typedefs/flow.typedefs';
-import { WaitFor } from '@flow/nodes/constants/step.constants';
+import { WaitFor, MessageContentKind } from '@flow/nodes/constants/step.constants';
 import { ScheduleKind } from '@flow/nodes/constants/trigger.constants';
-import { examplePrompt, exampleFlows } from '@test/support/fixtures/example-flow.fixture';
+import { exampleFlows } from '@test/support/fixtures/example-flow.fixture';
 import {
   agent,
   backgroundLink,
@@ -138,15 +138,18 @@ describe('diffFlows', () => {
   });
 
   it('sees two keys swapped as two renames', () => {
-    const first = agent('first');
-    const second = agent('second', [], examplePrompt('Use {{first.messages}}'));
+    const first = sendText('first', 'Ask {{message.text}}');
+    const second = sendText('second', 'Use {{first.messages}}');
     const swapped = flowOf(
       [
         { ...first, key: 'second' },
         {
           ...second,
           key: 'first',
-          config: { ...second.config, prompt: examplePrompt('Use {{second.messages}}') },
+          config: {
+            ...second.config,
+            content: { kind: MessageContentKind.Text, text: 'Use {{second.messages}}' },
+          },
         },
       ],
       [],

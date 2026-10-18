@@ -4,17 +4,20 @@ import {
   NodeType,
   OutputFieldType,
   PortName,
-  PromptSourceKind,
   RequestBodyKind,
   WaitFor,
   hasBlockingIssues,
   validateFlow,
 } from '@agent-ic/flow';
-import type { FlowDocument, FlowNode } from '@agent-ic/flow';
+import type { AgentNode, CompletionNode, FlowDocument, FlowNode } from '@agent-ic/flow';
 import { context, propagation, trace } from '@opentelemetry/api';
 import { node, tracing } from '@opentelemetry/sdk-node';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { ConversationActivityKind, conversationActivityChannel } from '@/modules/conversations';
+import {
+  ConversationActivityKind,
+  ConversationMode,
+  conversationActivityChannel,
+} from '@/modules/conversations';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
 import { RUN_TRACE_NAME } from '@/modules/runs/constants/run-tracing.constants';
 import { ROOT_BRANCH_KEY, RunStatus, RunStepStatus } from '@/modules/runs/constants/run.constants';
@@ -57,6 +60,7 @@ import {
   THIRD_STEP_KEY,
   TEST_AGENT_PROMPT,
   TEST_AGENT_REPLY,
+  TEST_COMPLETION_PROMPT,
   TEST_LLM_API_KEY,
   TEST_MOOD,
   TEST_MOOD_FIELD,
@@ -67,6 +71,7 @@ import {
 } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { WorkerKilledError } from '@test/support/errors/worker-killed.error';
+import { libraryPromptSource } from '@test/support/fixtures/prompt-flow.fixture';
 import {
   agentNode,
   apiRequestNode,
@@ -89,6 +94,7 @@ import {
   createLlmTraceContextService,
 } from '@test/support/helpers/llm-testing.helpers';
 import { startProbeServer } from '@test/support/helpers/outbound-http-testing.helpers';
+import { seedLibraryPrompt } from '@test/support/helpers/prompts-testing.helpers';
 import {
   createRunsTestbed,
   seedExecutableRun,
@@ -505,19 +511,13 @@ describe('RunExecutionService', () => {
 });
 
 describe('RunExecutionService background branches', () => {
-  const agent = agentNode(FIRST_STEP_ID, FIRST_STEP_KEY, {
-    prompt: { kind: PromptSourceKind.Inline, text: TEST_AGENT_PROMPT },
-    model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Ministral14b },
-  });
-  const scorer = completionNode(SCORER_NODE_ID, SCORER_NODE_KEY, {
-    output: [
-      { name: TEST_MOOD_FIELD, type: OutputFieldType.String, description: '', required: true },
-    ],
-  });
   const answer = { messages: [TEST_AGENT_REPLY], [TEST_MOOD_FIELD]: TEST_MOOD };
   let mock: MockLlmService;
   let probe: ProbeServer;
   let testbed: RunExecutionTestbed;
+  let workspaceId: string;
+  let agent: AgentNode;
+  let scorer: CompletionNode;
 
   const replyAndScore = (): FlowDocument => {
     const post = apiRequestNode(`${probe.origin}${OutboundTestPath.Held}`, {
@@ -558,6 +558,21 @@ describe('RunExecutionService background branches', () => {
       createLlmGateway(env, LLM_STEP_TIMEOUT_MS),
       NodeType.SendMessage,
     );
+    workspaceId = testbed.ids.generate();
+    agent = agentNode(FIRST_STEP_ID, FIRST_STEP_KEY, {
+      prompt: libraryPromptSource(
+        await seedLibraryPrompt(testbed.module, workspaceId, TEST_AGENT_PROMPT),
+      ),
+      model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Ministral14b },
+    });
+    scorer = completionNode(SCORER_NODE_ID, SCORER_NODE_KEY, {
+      prompt: libraryPromptSource(
+        await seedLibraryPrompt(testbed.module, workspaceId, TEST_COMPLETION_PROMPT),
+      ),
+      output: [
+        { name: TEST_MOOD_FIELD, type: OutputFieldType.String, description: '', required: true },
+      ],
+    });
   });
 
   afterAll(async () => {
@@ -568,7 +583,7 @@ describe('RunExecutionService background branches', () => {
 
   it('sends the reply while the background scorer is still posting its score', async () => {
     const flow = replyAndScore();
-    const seeded = await seedExecutableRun(testbed, flow);
+    const seeded = await seedExecutableRun(testbed, flow, [], ConversationMode.Live, workspaceId);
     mock.json(answer).json(answer);
 
     const running = execute(seeded);
@@ -604,15 +619,10 @@ describe('RunExecutionService tracing', () => {
   const provider = new node.NodeTracerProvider({
     spanProcessors: [new tracing.SimpleSpanProcessor(exporter)],
   });
-  const guardThenStep = stepFlow(
-    [
-      completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY),
-      agentNode(FIRST_STEP_ID, FIRST_STEP_KEY),
-    ],
-    [flowEdge(TEST_NODE_ID, TEST_STEP_NODE_ID), flowEdge(TEST_STEP_NODE_ID, FIRST_STEP_ID)],
-  );
+  let guardThenStep: FlowDocument;
   let mock: MockLlmService;
   let testbed: RunExecutionTestbed;
+  let workspaceId: string;
 
   const traceIdOf = async ({ run }: ExecutableRun): Promise<string | null> => {
     const stored = await testbed.tenants.run(run.workspaceId, () =>
@@ -649,6 +659,18 @@ describe('RunExecutionService tracing', () => {
     const traces = createLlmTraceContextService(env, provider.getTracer(LLM_TRACER_NAME));
     const llm = createLlmGateway(env, LLM_STEP_TIMEOUT_MS, { traces });
     testbed = await createRunsTestbed(TestRedisPrefix.RunTracing, llm, undefined, traces);
+    workspaceId = testbed.ids.generate();
+    guardThenStep = stepFlow(
+      [
+        completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
+          prompt: libraryPromptSource(
+            await seedLibraryPrompt(testbed.module, workspaceId, TEST_COMPLETION_PROMPT),
+          ),
+        }),
+        agentNode(FIRST_STEP_ID, FIRST_STEP_KEY),
+      ],
+      [flowEdge(TEST_NODE_ID, TEST_STEP_NODE_ID), flowEdge(TEST_STEP_NODE_ID, FIRST_STEP_ID)],
+    );
   });
 
   afterEach(() => {
@@ -666,7 +688,13 @@ describe('RunExecutionService tracing', () => {
   });
 
   it('records one trace per run, saved on the run, with a span per step around its LLM call', async () => {
-    const seeded = await seedExecutableRun(testbed, guardThenStep);
+    const seeded = await seedExecutableRun(
+      testbed,
+      guardThenStep,
+      [],
+      ConversationMode.Live,
+      workspaceId,
+    );
     mock.json({ intent: TEST_ORDER_INTENT });
 
     expect(await execute(seeded)).toBe(RunStatus.Succeeded);

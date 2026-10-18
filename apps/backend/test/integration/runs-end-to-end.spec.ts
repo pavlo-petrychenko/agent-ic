@@ -1,4 +1,5 @@
-import { ModelProviderKind, PortName, PromptSourceKind } from '@agent-ic/flow';
+import { ModelProviderKind, PortName } from '@agent-ic/flow';
+import type { FlowDocument } from '@agent-ic/flow';
 import { HttpStatus } from '@nestjs/common';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { PauseMode } from '@/modules/agents';
@@ -21,6 +22,7 @@ import {
   SEND_NODE_KEY,
   TEST_AGENT_PROMPT,
   TEST_AGENT_REPLY,
+  TEST_COMPLETION_PROMPT,
   TEST_MERGED_TEXTS,
   TEST_ORDER_INTENT,
   TEST_ORDER_RULE_ID,
@@ -30,6 +32,7 @@ import {
   TEST_STEP_NODE_KEY,
 } from '@test/support/constants/runs-testing.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
+import { libraryPromptSource } from '@test/support/fixtures/prompt-flow.fixture';
 import {
   agentNode,
   completionNode,
@@ -43,6 +46,7 @@ import {
   createRunsWorker,
   readConversation,
   seedWorkerAgent,
+  seedWorkerPrompt,
   sendCustomerMessage,
   settleConversation,
   waitForIdleQueues,
@@ -50,28 +54,6 @@ import {
 import { startMockLlm } from '@test/support/services/mock-llm.service';
 import type { MockLlmService } from '@test/support/services/mock-llm.service';
 import type { RunsWorker, WorkerAgent } from '@test/support/typedefs/runs-testing.typedefs';
-
-const answerer = agentNode(FIRST_STEP_ID, FIRST_STEP_KEY, {
-  prompt: { kind: PromptSourceKind.Inline, text: TEST_AGENT_PROMPT },
-  model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Ministral14b },
-});
-
-const flow = stepFlow(
-  [
-    completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY),
-    intentRouterNode(ROUTER_NODE_ID, ROUTER_NODE_KEY, TEST_STEP_NODE_KEY),
-    answerer,
-    sendListNode(SEND_NODE_ID, SEND_NODE_KEY, `${FIRST_STEP_KEY}.messages`),
-    escalateNode(),
-  ],
-  [
-    flowEdge(TEST_NODE_ID, TEST_STEP_NODE_ID),
-    flowEdge(TEST_STEP_NODE_ID, ROUTER_NODE_ID),
-    flowEdge(ROUTER_NODE_ID, ESCALATION_NODE_ID, TEST_ORDER_RULE_ID),
-    flowEdge(ROUTER_NODE_ID, FIRST_STEP_ID, PortName.Else),
-    flowEdge(FIRST_STEP_ID, SEND_NODE_ID),
-  ],
-);
 
 const missing = (what: string): never => {
   throw new MissingTestDataError(what);
@@ -83,6 +65,8 @@ const answer = { messages: [TEST_AGENT_REPLY] };
 describe('a run end to end', () => {
   let mock: MockLlmService;
   let worker: RunsWorker;
+  let promptWorkspaceId: string;
+  let flow: FlowDocument;
 
   const pauseAs = (mode: PauseMode) => ({
     mode,
@@ -96,6 +80,30 @@ describe('a run end to end', () => {
   beforeAll(async () => {
     mock = await startMockLlm();
     worker = await createRunsWorker(mock.url);
+    promptWorkspaceId = worker.ids.generate();
+    const completionRef = await seedWorkerPrompt(worker, promptWorkspaceId, TEST_COMPLETION_PROMPT);
+    const agentRef = await seedWorkerPrompt(worker, promptWorkspaceId, TEST_AGENT_PROMPT);
+    flow = stepFlow(
+      [
+        completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
+          prompt: libraryPromptSource(completionRef),
+        }),
+        intentRouterNode(ROUTER_NODE_ID, ROUTER_NODE_KEY, TEST_STEP_NODE_KEY),
+        agentNode(FIRST_STEP_ID, FIRST_STEP_KEY, {
+          prompt: libraryPromptSource(agentRef),
+          model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Ministral14b },
+        }),
+        sendListNode(SEND_NODE_ID, SEND_NODE_KEY, `${FIRST_STEP_KEY}.messages`),
+        escalateNode(),
+      ],
+      [
+        flowEdge(TEST_NODE_ID, TEST_STEP_NODE_ID),
+        flowEdge(TEST_STEP_NODE_ID, ROUTER_NODE_ID),
+        flowEdge(ROUTER_NODE_ID, ESCALATION_NODE_ID, TEST_ORDER_RULE_ID),
+        flowEdge(ROUTER_NODE_ID, FIRST_STEP_ID, PortName.Else),
+        flowEdge(FIRST_STEP_ID, SEND_NODE_ID),
+      ],
+    );
   });
 
   afterEach(() => {
@@ -108,7 +116,7 @@ describe('a run end to end', () => {
   });
 
   it('answers a customer of a published agent through the simulated channel', async () => {
-    const agent = await seedWorkerAgent(worker, flow, true);
+    const agent = await seedWorkerAgent(worker, flow, true, null, promptWorkspaceId);
     mock.json(question).json(answer);
 
     const { conversationId } = await sendCustomerMessage(worker, agent);
@@ -124,7 +132,7 @@ describe('a run end to end', () => {
   });
 
   it('escalates to a person and leaves the conversation waiting', async () => {
-    const agent = await seedWorkerAgent(worker, flow, true);
+    const agent = await seedWorkerAgent(worker, flow, true, null, promptWorkspaceId);
     mock.json({ intent: TEST_ORDER_INTENT });
 
     const { conversationId } = await sendCustomerMessage(worker, agent);
@@ -137,7 +145,13 @@ describe('a run end to end', () => {
   });
 
   it('routes the chat of an agent paused to the Inbox without a run', async () => {
-    const agent = await seedWorkerAgent(worker, flow, true, pauseAs(PauseMode.Inbox));
+    const agent = await seedWorkerAgent(
+      worker,
+      flow,
+      true,
+      pauseAs(PauseMode.Inbox),
+      promptWorkspaceId,
+    );
 
     const { outcome, conversationId } = await sendCustomerMessage(worker, agent);
     await waitForIdleQueues(worker);
@@ -150,7 +164,13 @@ describe('a run end to end', () => {
   });
 
   it('sends the away message of a paused agent once and starts no run', async () => {
-    const agent = await seedWorkerAgent(worker, flow, true, pauseAs(PauseMode.AwayMessage));
+    const agent = await seedWorkerAgent(
+      worker,
+      flow,
+      true,
+      pauseAs(PauseMode.AwayMessage),
+      promptWorkspaceId,
+    );
 
     const first = await sendCustomerMessage(worker, agent);
     const second = await sendCustomerMessage(worker, agent);
@@ -166,7 +186,7 @@ describe('a run end to end', () => {
   });
 
   it('retries the run job when every model is down and delivers the reply once', async () => {
-    const agent = await seedWorkerAgent(worker, flow, true);
+    const agent = await seedWorkerAgent(worker, flow, true, null, promptWorkspaceId);
     const down = HttpStatus.SERVICE_UNAVAILABLE;
     mock.json(question).fail(down).fail(down).json(answer);
 
@@ -182,7 +202,7 @@ describe('a run end to end', () => {
   });
 
   it('answers messages that arrive together in one run', async () => {
-    const agent = await seedWorkerAgent(worker, flow, true);
+    const agent = await seedWorkerAgent(worker, flow, true, null, promptWorkspaceId);
     const queue = worker.queues.get(QueueName.RunsReactive);
     mock.json(question).json(answer);
 
@@ -204,7 +224,13 @@ describe('a run end to end', () => {
   });
 
   it('runs a simulation on a snapshot of the draft, even while the agent is paused', async () => {
-    const agent = await seedWorkerAgent(worker, flow, false, pauseAs(PauseMode.Inbox));
+    const agent = await seedWorkerAgent(
+      worker,
+      flow,
+      false,
+      pauseAs(PauseMode.Inbox),
+      promptWorkspaceId,
+    );
     const snapshot = await worker.tenants.run(agent.workspaceId, () =>
       worker.reader.snapshotDraft(agent.workspaceId, agent.agentId),
     );

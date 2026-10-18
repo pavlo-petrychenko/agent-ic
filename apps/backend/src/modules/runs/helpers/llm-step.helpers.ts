@@ -1,4 +1,4 @@
-import { ModelProviderKind, PromptSourceKind, renderTemplate, resolvePath } from '@agent-ic/flow';
+import { ModelProviderKind, renderTemplate, resolvePath } from '@agent-ic/flow';
 import type { ModelRef, PromptSource } from '@agent-ic/flow';
 import { MessageAuthor } from '@/modules/conversations';
 import type { Message } from '@/modules/conversations';
@@ -44,14 +44,11 @@ export const stepSystemPrompt = (
   prompts: ResolvedPrompts,
 ): string => {
   if (prompt === null) {
-    throw new StepPromptUnavailableError(nodeId, null, null);
-  }
-  if (prompt.kind === PromptSourceKind.Inline) {
-    return renderTemplate(prompt.text, (path) => resolvePath(variables, path));
+    throw new StepPromptUnavailableError(nodeId, null);
   }
   const resolved = prompts.get(nodeId) ?? null;
   if (resolved === null) {
-    throw new StepPromptUnavailableError(nodeId, prompt.kind, prompt.promptRef);
+    throw new StepPromptUnavailableError(nodeId, prompt.promptRef);
   }
   return renderTemplate(resolved.text, (path) => resolvePath(variables, path));
 };

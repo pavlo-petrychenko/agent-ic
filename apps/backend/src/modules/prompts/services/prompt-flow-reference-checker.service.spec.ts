@@ -194,13 +194,13 @@ describe('PromptFlowReferenceChecker', () => {
     ]);
   });
 
-  it('ignores inline and missing prompts', async () => {
+  it('ignores steps without a prompt', async () => {
     const workspaceId = ids.generate();
 
     const issues = await check(
       workspaceId,
       flowWith([
-        { id: STEP_NODE_ID, prompt: { kind: PromptSourceKind.Inline, text: TEST_PROMPT_TEXT } },
+        { id: STEP_NODE_ID, prompt: null },
         { id: OTHER_STEP_NODE_ID, prompt: null },
       ]),
     );
