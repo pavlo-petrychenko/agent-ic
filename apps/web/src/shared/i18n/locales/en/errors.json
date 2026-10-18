@@ -70,7 +70,10 @@
     "WORKSPACE_NAME_MISMATCH": "The name does not match the workspace name.",
     "CANNOT_DELETE_OWNER": "Owner of the workspace cannot be deleted.",
     "CANNOT_DELETE_YOURSELF": "You cannot remove yourself. Leave the workspace instead.",
-    "WRONG_PASSWORD": "The password is not correct."
+    "WRONG_PASSWORD": "The password is not correct.",
+    "PROMPT_NAME_TAKEN": "A prompt with this name already exists.",
+    "PROMPT_FOLDER_NAME_TAKEN": "A folder with this name already exists.",
+    "PROMPT_FOLDER_NOT_EMPTY": "Move the prompts out of this folder before deleting it."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",
