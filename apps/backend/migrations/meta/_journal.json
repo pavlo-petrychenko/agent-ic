@@ -127,6 +127,13 @@
       "when": 1792279740616,
       "tag": "0017_roles_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792279955957,
+      "tag": "0018_memberships_role_id",
+      "breakpoints": true
     }
   ]
 }

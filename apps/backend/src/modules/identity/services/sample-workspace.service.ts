@@ -18,6 +18,7 @@ import { MembershipsRepository } from '@/modules/identity/repositories/membershi
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { WorkspacesRepository } from '@/modules/identity/repositories/workspaces.repository';
 import { InviteLinksService } from '@/modules/identity/services/invite-links.service';
+import { WorkspaceRolesService } from '@/modules/identity/services/workspace-roles.service';
 import type {
   SampleFlowExamplesWorkspace,
   SampleWorkspace,
@@ -37,6 +38,7 @@ export class SampleWorkspaceService {
     private readonly memberships: MembershipsRepository,
     private readonly directory: MembershipDirectoryRepository,
     private readonly inviteLinks: InviteLinksService,
+    private readonly roles: WorkspaceRolesService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
@@ -62,16 +64,16 @@ export class SampleWorkspaceService {
 
   private async ensureOperator(workspaceId: string): Promise<void> {
     const operatorId = await this.ensureUser(SAMPLE_OPERATOR_EMAIL, SAMPLE_OPERATOR_NAME);
-    await this.tenantTransactions.run(workspaceId, () =>
-      this.memberships.insertIfAbsent({
+    await this.tenantTransactions.run(workspaceId, async () => {
+      await this.memberships.insertIfAbsent({
         id: this.ids.generate(),
         workspaceId,
         userId: operatorId,
-        role: WorkspaceRole.Operator,
+        roleId: await this.roles.systemRoleId(workspaceId, WorkspaceRole.Operator),
         inviteLinkId: null,
         createdAt: this.clock.now(),
-      }),
-    );
+      });
+    });
   }
 
   private async ensureUser(email: string, name: string): Promise<string> {
@@ -111,11 +113,12 @@ export class SampleWorkspaceService {
         createdAt: now,
         updatedAt: now,
       });
+      await this.roles.seedDefaults(workspaceId);
       await this.memberships.insertIfAbsent({
         id: this.ids.generate(),
         workspaceId,
         userId,
-        role: WorkspaceRole.Owner,
+        roleId: await this.roles.systemRoleId(workspaceId, WorkspaceRole.Owner),
         inviteLinkId: null,
         createdAt: now,
       });

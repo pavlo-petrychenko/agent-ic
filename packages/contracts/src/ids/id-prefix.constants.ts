@@ -3,6 +3,7 @@ export enum IdPrefix {
   Session = 'ses',
   Workspace = 'ws',
   Membership = 'mem',
+  Role = 'rol',
   InviteLink = 'inv',
   Agent = 'agt',
   AgentVersion = 'agv',

@@ -18,9 +18,13 @@ import type { MessageReceivedPayload } from '@/modules/conversations';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import type { NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
+import { SYSTEM_ROLES } from '@/modules/identity/constants/role.constants';
 import { memberships } from '@/modules/identity/db/memberships.table';
+import { rolePermissions } from '@/modules/identity/db/role-permissions.table';
+import { roles } from '@/modules/identity/db/roles.table';
 import { users } from '@/modules/identity/db/users.table';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
+import { defaultPermissionsFor } from '@/modules/identity/helpers/role-permission.helpers';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
 import { ROOT_BRANCH_KEY, STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import type { RunStepStatus } from '@/modules/runs/constants/run.constants';
@@ -350,14 +354,42 @@ export const seedWorkspaceMembers = async (
     createdAt: now,
     updatedAt: now,
   });
+  const seededRoles = SYSTEM_ROLES.map((key) => ({
+    id: testbed.ids.generate(),
+    workspaceId,
+    key,
+    name: null,
+    isSystem: true,
+    createdAt: now,
+    updatedAt: now,
+  }));
+  await db.insert(roles).values(seededRoles);
+  await db.insert(rolePermissions).values(
+    seededRoles.flatMap((role) =>
+      defaultPermissionsFor(role.key).map((permission) => ({
+        id: testbed.ids.generate(),
+        workspaceId,
+        roleId: role.id,
+        resource: permission.resource,
+        action: permission.action,
+      })),
+    ),
+  );
+  const roleIdByKey = new Map(seededRoles.map((role) => [role.key, role.id]));
   await db.insert(memberships).values(
-    rows.map(({ userId, role }) => ({
-      id: testbed.ids.generate(),
-      workspaceId,
-      userId,
-      role,
-      createdAt: now,
-    })),
+    rows.map(({ userId, role }) => {
+      const roleId = roleIdByKey.get(role);
+      if (roleId === undefined) {
+        throw new MissingTestDataError(role);
+      }
+      return {
+        id: testbed.ids.generate(),
+        workspaceId,
+        userId,
+        roleId,
+        createdAt: now,
+      };
+    }),
   );
   return rows.map(({ userId }) => userId);
 };

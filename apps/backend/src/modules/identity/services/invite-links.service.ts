@@ -13,6 +13,7 @@ import { MembershipDirectoryRepository } from '@/modules/identity/repositories/m
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { InviteTokensService } from '@/modules/identity/services/invite-tokens.service';
+import { WorkspaceRolesService } from '@/modules/identity/services/workspace-roles.service';
 import type {
   DirectoryInvite,
   InviteLinkRecord,
@@ -32,6 +33,7 @@ export class InviteLinksService {
     private readonly directory: MembershipDirectoryRepository,
     private readonly users: UsersRepository,
     private readonly tokens: InviteTokensService,
+    private readonly workspaceRoles: WorkspaceRolesService,
     private readonly tenantTransactions: TenantTransactionService,
     private readonly config: ConfigService,
     private readonly clock: ClockService,
@@ -93,14 +95,18 @@ export class InviteLinksService {
         id: this.ids.generate(),
         workspaceId,
         userId,
-        role: link.role,
+        roleId: await this.workspaceRoles.systemRoleId(workspaceId, link.role),
         inviteLinkId: link.id,
         createdAt: now,
       });
       const membership = created ?? (await this.memberships.findByUser(workspaceId, userId));
-      return membership === null
+      if (membership === null) {
+        return { kind: JoinOutcomeKind.Invalid };
+      }
+      const role = await this.memberships.findRole(workspaceId, userId);
+      return role === null
         ? { kind: JoinOutcomeKind.Invalid }
-        : { kind: JoinOutcomeKind.Joined, membership };
+        : { kind: JoinOutcomeKind.Joined, membership, role };
     });
   }
 
