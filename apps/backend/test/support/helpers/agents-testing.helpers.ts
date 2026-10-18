@@ -80,23 +80,34 @@ export const seedAgentWithDraft = async (
   return { agentId, draftId };
 };
 
-export const seedPublishedVersion = async (
+export const seedAgentVersion = async (
   testingModule: TestingModule,
   workspaceId: string,
   agentId: string,
   version: Partial<NewAgentVersion> = {},
 ): Promise<string> => {
   const versionId = testingModule.get(IdService).generate();
-  const published = { kind: AgentVersionKind.Published, number: TEST_PUBLISHED_NUMBER, ...version };
   await testingModule
     .get(TenantTransactionService)
     .run(workspaceId, () =>
       testingModule
         .get(AgentVersionsRepository)
-        .insert(newVersion(versionId, workspaceId, agentId, published)),
+        .insert(newVersion(versionId, workspaceId, agentId, version)),
     );
   return versionId;
 };
+
+export const seedPublishedVersion = (
+  testingModule: TestingModule,
+  workspaceId: string,
+  agentId: string,
+  version: Partial<NewAgentVersion> = {},
+): Promise<string> =>
+  seedAgentVersion(testingModule, workspaceId, agentId, {
+    kind: AgentVersionKind.Published,
+    number: TEST_PUBLISHED_NUMBER,
+    ...version,
+  });
 
 export const agentsCtx = (
   testingModule: TestingModule,
@@ -112,12 +123,21 @@ export const makeAgentLive = async (
   workspaceId: string,
   seeded: SeededAgent,
 ): Promise<void> => {
+  await makeVersionLive(testingModule, workspaceId, seeded.agentId, seeded.draftId);
+};
+
+export const makeVersionLive = async (
+  testingModule: TestingModule,
+  workspaceId: string,
+  agentId: string,
+  versionId: string,
+): Promise<void> => {
   await testingModule
     .get(TenantTransactionService)
     .run(workspaceId, () =>
       testingModule
         .get(AgentsRepository)
-        .setLiveVersion(workspaceId, seeded.agentId, seeded.draftId, AGENTS_TEST_START),
+        .setLiveVersion(workspaceId, agentId, versionId, AGENTS_TEST_START),
     );
 };
 

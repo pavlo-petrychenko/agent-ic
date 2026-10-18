@@ -17,6 +17,7 @@ import {
 
 const PINNED_REF = 'prm_pinned';
 const PINNED_NUMBER = 2;
+const PINNED_LABEL = 'Receptionist';
 const LATEST_REF = 'prm_latest';
 
 const library = (promptRef: string, number: number | null = null): PromptSource =>
@@ -32,7 +33,10 @@ describe('promptReferences', () => {
   it('lists the library prompt of every Agent and Completion step', () => {
     const trigger = messageTrigger('incoming');
     const inline = agent('inline');
-    const pinned = agent('pinned', [], library(PINNED_REF, PINNED_NUMBER));
+    const pinned = {
+      ...agent('pinned', [], library(PINNED_REF, PINNED_NUMBER)),
+      label: PINNED_LABEL,
+    };
     const latest = completion('latest', [field('verdict')], library(LATEST_REF));
     const reply = sendText('reply', 'Hello');
     const flow: FlowDocument = {
@@ -50,12 +54,14 @@ describe('promptReferences', () => {
       {
         nodeId: pinned.id,
         nodeKey: pinned.key,
+        nodeLabel: PINNED_LABEL,
         promptRef: PINNED_REF,
         pin: { kind: PromptVersionKind.Pinned, number: PINNED_NUMBER },
       },
       {
         nodeId: latest.id,
         nodeKey: latest.key,
+        nodeLabel: latest.label,
         promptRef: LATEST_REF,
         pin: { kind: PromptVersionKind.Latest },
       },
