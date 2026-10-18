@@ -1,5 +1,6 @@
 import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
+import { PromptVersionsRepository } from '@/modules/prompts/repositories/prompt-versions.repository';
 import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
 import type { PromptView } from '@/modules/prompts/typedefs/prompt.typedefs';
@@ -15,6 +16,7 @@ export class ListPromptsByFoldersUseCase implements BatchUseCase<string, readonl
   constructor(
     private readonly tenantTransactions: TenantTransactionService,
     private readonly prompts: PromptsRepository,
+    private readonly versions: PromptVersionsRepository,
     private readonly views: PromptViewsService,
     private readonly ids: IdService,
   ) {}
@@ -27,7 +29,15 @@ export class ListPromptsByFoldersUseCase implements BatchUseCase<string, readonl
     const folderIds = keys.map((key) => this.ids.fromPublic(IdPrefix.PromptFolder, key));
     return this.tenantTransactions.run(workspaceId, async () => {
       const rows = await this.prompts.listByFolderIds(workspaceId, folderIds);
-      return groupByKey(keys, this.views.promptViews(rows), ({ folderId }) => folderId);
+      const lastNumbers = await this.versions.summarize(
+        workspaceId,
+        rows.map((row) => row.id),
+      );
+      return groupByKey(
+        keys,
+        this.views.promptViews(rows, lastNumbers),
+        ({ folderId }) => folderId,
+      );
     });
   }
 }

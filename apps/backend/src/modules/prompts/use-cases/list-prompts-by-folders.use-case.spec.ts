@@ -12,6 +12,7 @@ import {
   publicPromptId,
   seedPrompt,
   seedPromptFolder,
+  seedPromptVersion,
 } from '@test/support/helpers/prompts-testing.helpers';
 
 describe('ListPromptsByFoldersUseCase', () => {
@@ -58,6 +59,29 @@ describe('ListPromptsByFoldersUseCase', () => {
     );
     expect(listed.get(publicEmptyFolderId)).toEqual([]);
     expect([...listed.keys()]).toEqual([publicFolderId, publicEmptyFolderId]);
+  });
+
+  it('reports the latest version number of every prompt', async () => {
+    const workspaceId = ids.generate();
+    const folderId = await seedPromptFolder(testingModule, workspaceId);
+    const withVersions = await seedPrompt(testingModule, workspaceId, folderId, {
+      name: 'Receptionist',
+    });
+    const withoutVersions = await seedPrompt(testingModule, workspaceId, folderId, {
+      name: 'Gift card',
+    });
+    await seedPromptVersion(testingModule, workspaceId, withVersions, { number: 1 });
+    await seedPromptVersion(testingModule, workspaceId, withVersions, { number: 2 });
+    const publicFolderId = publicPromptFolderId(testingModule, folderId);
+
+    const listed = await list(workspaceId, [publicFolderId]);
+
+    expect(
+      listed.get(publicFolderId)?.map((prompt) => [prompt.id, prompt.latestVersionNumber]),
+    ).toEqual([
+      [publicPromptId(testingModule, withVersions), 2],
+      [publicPromptId(testingModule, withoutVersions), null],
+    ]);
   });
 
   it('returns no prompts for the folders of another workspace', async () => {

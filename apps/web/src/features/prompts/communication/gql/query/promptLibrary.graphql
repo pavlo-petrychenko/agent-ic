@@ -5,6 +5,8 @@ query PromptLibrary {
     prompts {
       id
       name
+      latestVersionNumber
+      updatedAt
     }
   }
 }

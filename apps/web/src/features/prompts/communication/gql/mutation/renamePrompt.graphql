@@ -1,0 +1,6 @@
+mutation RenamePrompt($input: RenamePromptInput!) {
+  renamePrompt(input: $input) {
+    id
+    name
+  }
+}

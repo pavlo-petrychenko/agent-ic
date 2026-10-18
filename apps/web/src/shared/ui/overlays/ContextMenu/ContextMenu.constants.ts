@@ -1,0 +1,1 @@
+export const CONTEXT_MENU_MIN_WIDTH = 180;
