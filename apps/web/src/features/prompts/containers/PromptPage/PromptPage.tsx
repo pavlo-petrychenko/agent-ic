@@ -8,7 +8,9 @@ import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.cons
 import { DeletePromptDialog } from '@/features/prompts/containers/DeletePromptDialog';
 import { MovePromptDialog } from '@/features/prompts/containers/MovePromptDialog';
 import type { PromptPageProps } from '@/features/prompts/containers/PromptPage/PromptPage.typedefs';
+import { usePromptDraft } from '@/features/prompts/containers/PromptPage/usePromptDraft';
 import { usePromptOptions } from '@/features/prompts/containers/PromptPage/usePromptOptions';
+import { usePromptVersionView } from '@/features/prompts/containers/PromptPage/usePromptVersionView';
 import { PromptVersionsPanel } from '@/features/prompts/containers/PromptVersionsPanel';
 import { RenamePromptDialog } from '@/features/prompts/containers/RenamePromptDialog';
 import { SavePromptVersionDialog } from '@/features/prompts/containers/SavePromptVersionDialog';
@@ -16,7 +18,6 @@ import { nextPromptVersionNumber } from '@/features/prompts/logic/helpers/prompt
 import { findFolderName } from '@/features/prompts/logic/helpers/promptFolder.helpers';
 import { formatPromptVersionDate } from '@/features/prompts/logic/helpers/promptVersion.helpers';
 import { storeLastOpenedPromptId } from '@/features/prompts/storage/helpers/promptLastOpenedStorage.helpers';
-import { usePromptDraftsStore } from '@/features/prompts/storage/hooks/usePromptDraftsStore';
 import { DiscardPromptDraftModal } from '@/features/prompts/view/DiscardPromptDraftModal';
 import { PromptDraftEditor } from '@/features/prompts/view/PromptDraftEditor';
 import { PromptOptionsMenu } from '@/features/prompts/view/PromptOptionsMenu';
@@ -27,6 +28,7 @@ import { collectPromptVariables } from '@/shared/prompt/helpers/promptDocument.h
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Card } from '@/shared/ui/display/Card';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
+import { Skeleton } from '@/shared/ui/display/Skeleton';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import type { VariableOption } from '@/shared/ui/inputs/PromptEditor';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
@@ -37,8 +39,9 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const active = useActiveWorkspace(workspaceId);
   const { detail, failed, retry } = usePromptDetail(promptId);
   const { folders } = usePromptLibrary();
-  const draft = usePromptDraftsStore((state) => state.drafts[promptId] ?? null);
+  const { draft, beginDraft, updateDraft, discardDraft } = usePromptDraft(promptId);
   const options = usePromptOptions(workspaceId, detail?.prompt ?? null);
+  const versionView = usePromptVersionView(promptId, detail?.latestVersion?.id ?? null);
   const [saving, setSaving] = useState(false);
   const [discarding, setDiscarding] = useState(false);
 
@@ -84,41 +87,77 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const { prompt, latestVersion } = detail;
   const folderName = findFolderName(folders, prompt.folderId);
   const draftNumber = nextPromptVersionNumber(latestVersion?.number ?? null);
-  const editorText = editing ? draft.text : (latestVersion?.text ?? '');
+  const shownVersion =
+    versionView.olderVersionId === null ? latestVersion : versionView.olderVersion;
+  const editorText = editing ? draft.text : (shownVersion?.text ?? '');
   const variables: readonly VariableOption[] = collectPromptVariables(editorText).map((path) => ({
     id: path,
     label: path,
     group: '',
   }));
   const savedLabel =
-    latestVersion === null
+    shownVersion === null
       ? null
-      : latestVersion.author === null
-        ? t('view.savedAt', { date: formatPromptVersionDate(latestVersion.savedAt, locale) })
+      : shownVersion.author === null
+        ? t('view.savedAt', { date: formatPromptVersionDate(shownVersion.savedAt, locale) })
         : t('view.savedBy', {
-            date: formatPromptVersionDate(latestVersion.savedAt, locale),
-            author: latestVersion.author,
+            date: formatPromptVersionDate(shownVersion.savedAt, locale),
+            author: shownVersion.author,
           });
 
-  const startEditing = () => {
-    usePromptDraftsStore.getState().begin(promptId, {
-      text: latestVersion?.text ?? '',
-      baseVersionNumber: latestVersion?.number ?? null,
-    });
-  };
-
-  const changeDraft = (text: string) => {
-    usePromptDraftsStore.getState().update(promptId, text);
-  };
-
   const finishSaving = () => {
-    usePromptDraftsStore.getState().discard(promptId);
+    discardDraft();
+    versionView.clearSelection();
     setSaving(false);
   };
 
   const finishDiscarding = () => {
-    usePromptDraftsStore.getState().discard(promptId);
+    discardDraft();
     setDiscarding(false);
+  };
+
+  const body = () => {
+    if (editing) {
+      return (
+        <PromptDraftEditor
+          draftNumber={draftNumber}
+          baseVersionNumber={draft.baseVersionNumber}
+          text={draft.text}
+          variables={variables}
+          onChange={updateDraft}
+        />
+      );
+    }
+    if (versionView.olderVersionId !== null && shownVersion === null) {
+      return versionView.failed ? (
+        <Card>
+          <EmptyState
+            icon={IconName.Alert}
+            tone={EmptyStateTone.Err}
+            title={t('view.versionLoadError')}
+            actions={
+              <Button variant={ButtonVariant.Secondary} onClick={() => void versionView.retry()}>
+                {t('retry')}
+              </Button>
+            }
+          />
+        </Card>
+      ) : (
+        <Skeleton label={t('view.loadingVersion')} />
+      );
+    }
+    return (
+      <PromptView
+        versionNumber={shownVersion?.number ?? null}
+        text={editorText}
+        savedLabel={savedLabel}
+        variables={variables}
+        olderThanVersionNumber={
+          versionView.olderVersionId === null ? null : (latestVersion?.number ?? null)
+        }
+        onBackToLatest={versionView.olderVersionId === null ? null : versionView.clearSelection}
+      />
+    );
   };
 
   return (
@@ -137,6 +176,10 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
                   {t('draft.saveAs', { number: draftNumber })}
                 </Button>
               </>
+            ) : versionView.olderVersionId !== null ? (
+              canEdit && shownVersion !== null ? (
+                <Button onClick={() => beginDraft(shownVersion)}>{t('view.restoreAsDraft')}</Button>
+              ) : null
             ) : menuActions.length > 0 ? (
               <>
                 <PromptOptionsMenu
@@ -144,38 +187,25 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
                   currentFolderName={folderName}
                   onSelect={options.onSelect}
                 />
-                {canEdit && <Button onClick={startEditing}>{t('view.edit')}</Button>}
+                {canEdit && (
+                  <Button onClick={() => beginDraft(latestVersion)}>{t('view.edit')}</Button>
+                )}
               </>
             ) : null
           }
         />
-        <div className="flex min-h-0 flex-1 flex-col px-7">
-          {editing ? (
-            <PromptDraftEditor
-              draftNumber={draftNumber}
-              baseVersionNumber={draft.baseVersionNumber}
-              text={draft.text}
-              variables={variables}
-              onChange={changeDraft}
-            />
-          ) : (
-            <PromptView
-              versionNumber={latestVersion?.number ?? null}
-              text={latestVersion?.text ?? ''}
-              savedLabel={savedLabel}
-              variables={variables}
-            />
-          )}
-        </div>
+        <div className="flex min-h-0 flex-1 flex-col px-7">{body()}</div>
       </div>
       <PromptVersionsPanel
         promptId={promptId}
-        activeVersionId={editing ? null : (latestVersion?.id ?? null)}
+        activeVersionId={editing ? null : (versionView.olderVersionId ?? latestVersion?.id ?? null)}
+        onSelect={editing ? null : versionView.select}
       />
       {discarding && editing && (
         <DiscardPromptDraftModal
           versionNumber={draftNumber}
           baseVersionNumber={draft.baseVersionNumber}
+          latestVersionNumber={latestVersion?.number ?? null}
           onDiscard={finishDiscarding}
           onClose={() => setDiscarding(false)}
         />
