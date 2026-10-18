@@ -3,8 +3,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePromptDetail } from '@/features/prompts/communication/hooks/usePromptDetail';
 import { usePromptLibrary } from '@/features/prompts/communication/hooks/usePromptLibrary';
+import { PromptMenuAction } from '@/features/prompts/constants/promptMenu.constants';
 import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.constants';
+import { DeletePromptDialog } from '@/features/prompts/containers/DeletePromptDialog';
 import type { PromptPageProps } from '@/features/prompts/containers/PromptPage/PromptPage.typedefs';
+import { usePromptOptions } from '@/features/prompts/containers/PromptPage/usePromptOptions';
+import { RenamePromptDialog } from '@/features/prompts/containers/RenamePromptDialog';
 import { SavePromptVersionDialog } from '@/features/prompts/containers/SavePromptVersionDialog';
 import { nextPromptVersionNumber } from '@/features/prompts/logic/helpers/promptDraft.helpers';
 import { findFolderName } from '@/features/prompts/logic/helpers/promptFolder.helpers';
@@ -12,6 +16,7 @@ import { formatPromptVersionDate } from '@/features/prompts/logic/helpers/prompt
 import { usePromptDraftsStore } from '@/features/prompts/storage/hooks/usePromptDraftsStore';
 import { DiscardPromptDraftModal } from '@/features/prompts/view/DiscardPromptDraftModal';
 import { PromptDraftEditor } from '@/features/prompts/view/PromptDraftEditor';
+import { PromptOptionsMenu } from '@/features/prompts/view/PromptOptionsMenu';
 import { PromptView } from '@/features/prompts/view/PromptView';
 import { useActiveWorkspace } from '@/features/workspace';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
@@ -30,11 +35,18 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const { detail, failed, retry } = usePromptDetail(promptId);
   const { folders } = usePromptLibrary();
   const draft = usePromptDraftsStore((state) => state.drafts[promptId] ?? null);
+  const options = usePromptOptions();
   const [saving, setSaving] = useState(false);
   const [discarding, setDiscarding] = useState(false);
   const editing = draft !== null;
   const canEdit =
     active !== null && can(active.role, PermissionResource.Prompts, PermissionAction.Edit);
+  const canDelete =
+    active !== null && can(active.role, PermissionResource.Prompts, PermissionAction.Delete);
+  const menuActions = [
+    ...(canEdit ? [PromptMenuAction.Rename] : []),
+    ...(canDelete ? [PromptMenuAction.Delete] : []),
+  ];
 
   if (detail === null) {
     return (
@@ -113,10 +125,15 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
                 {t('draft.saveAs', { number: draftNumber })}
               </Button>
             </>
-          ) : canEdit ? (
-            <Button variant={ButtonVariant.Secondary} onClick={startEditing}>
-              {t('view.edit')}
-            </Button>
+          ) : menuActions.length > 0 ? (
+            <>
+              <PromptOptionsMenu actions={menuActions} onSelect={options.onSelect} />
+              {canEdit && (
+                <Button variant={ButtonVariant.Secondary} onClick={startEditing}>
+                  {t('view.edit')}
+                </Button>
+              )}
+            </>
           ) : null
         }
       />
@@ -154,6 +171,14 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
           versionNumber={draftNumber}
           onSaved={finishSaving}
           onClose={() => setSaving(false)}
+        />
+      )}
+      {options.renaming && <RenamePromptDialog prompt={prompt} onClose={options.closeRename} />}
+      {options.deleting && (
+        <DeletePromptDialog
+          workspaceId={workspaceId}
+          prompt={prompt}
+          onClose={options.closeDelete}
         />
       )}
     </div>

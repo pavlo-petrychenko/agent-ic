@@ -14,18 +14,20 @@ interface PromptSchemaMessages {
 const folderNameSchema = (message: string) =>
   z.string().trim().min(1, message).max(PROMPT_FOLDER_NAME_MAX_LENGTH, message);
 
+const promptNameSchema = (message: string) =>
+  z.string().trim().min(1, message).max(PROMPT_NAME_MAX_LENGTH, message);
+
 export const createPromptSchema = (messages: PromptSchemaMessages) =>
   z.object({
-    [PromptFormField.Name]: z
-      .string()
-      .trim()
-      .min(1, messages.name)
-      .max(PROMPT_NAME_MAX_LENGTH, messages.name),
+    [PromptFormField.Name]: promptNameSchema(messages.name),
     [PromptFormField.Folder]: folderNameSchema(messages.folder),
   });
 
 export const renamePromptFolderSchema = (message: string) =>
   z.object({ [PromptFormField.Folder]: folderNameSchema(message) });
+
+export const renamePromptSchema = (message: string) =>
+  z.object({ [PromptFormField.Name]: promptNameSchema(message) });
 
 export const savePromptVersionSchema = (message: string) =>
   z.object({
