@@ -128,11 +128,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
           ) : menuActions.length > 0 ? (
             <>
               <PromptOptionsMenu actions={menuActions} onSelect={options.onSelect} />
-              {canEdit && (
-                <Button variant={ButtonVariant.Secondary} onClick={startEditing}>
-                  {t('view.edit')}
-                </Button>
-              )}
+              {canEdit && <Button onClick={startEditing}>{t('view.edit')}</Button>}
             </>
           ) : null
         }
