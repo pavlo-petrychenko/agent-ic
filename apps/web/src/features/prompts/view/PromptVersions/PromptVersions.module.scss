@@ -53,6 +53,12 @@
   min-width: 0;
 }
 
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
 .note {
   overflow: hidden;
   max-width: 100%;

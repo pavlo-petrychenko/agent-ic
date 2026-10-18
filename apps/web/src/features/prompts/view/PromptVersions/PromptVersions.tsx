@@ -5,18 +5,29 @@ import type {
   PromptVersionRow,
   PromptVersionsProps,
 } from '@/features/prompts/view/PromptVersions/PromptVersions.typedefs';
+import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/prompts/view/PromptVersions/PromptVersions.module.scss';
 
-export function PromptVersions({ versions, activeId, onSelect }: PromptVersionsProps) {
+export function PromptVersions({
+  versions,
+  activeId,
+  onSelect,
+  pinnedNumbers,
+}: PromptVersionsProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
 
   const content = (version: PromptVersionRow) => (
     <>
       <span className={styles.info}>
-        <Text as={TextElement.Span} kind={TextKind.Mono}>
-          {t('versions.number', { number: version.number })}
-        </Text>
+        <span className={styles.head}>
+          <Text as={TextElement.Span} kind={TextKind.Mono}>
+            {t('versions.number', { number: version.number })}
+          </Text>
+          {pinnedNumbers.includes(version.number) && (
+            <Badge tone={BadgeTone.Violet}>{t('versions.pinned')}</Badge>
+          )}
+        </span>
         {version.note !== null && (
           <Text
             as={TextElement.Span}

@@ -3,17 +3,18 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePromptDetail } from '@/features/prompts/communication/hooks/usePromptDetail';
 import { usePromptLibrary } from '@/features/prompts/communication/hooks/usePromptLibrary';
+import { usePromptUsages } from '@/features/prompts/communication/hooks/usePromptUsages';
 import { usePromptVersions } from '@/features/prompts/communication/hooks/usePromptVersions';
 import { PromptMenuAction } from '@/features/prompts/constants/promptMenu.constants';
 import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.constants';
 import { DeletePromptDialog } from '@/features/prompts/containers/DeletePromptDialog';
 import { MovePromptDialog } from '@/features/prompts/containers/MovePromptDialog';
+import { PromptDetailsPanel } from '@/features/prompts/containers/PromptDetailsPanel';
 import type { PromptPageProps } from '@/features/prompts/containers/PromptPage/PromptPage.typedefs';
 import { usePromptCompare } from '@/features/prompts/containers/PromptPage/usePromptCompare';
 import { usePromptDraft } from '@/features/prompts/containers/PromptPage/usePromptDraft';
 import { usePromptOptions } from '@/features/prompts/containers/PromptPage/usePromptOptions';
 import { usePromptVersionView } from '@/features/prompts/containers/PromptPage/usePromptVersionView';
-import { PromptVersionsPanel } from '@/features/prompts/containers/PromptVersionsPanel';
 import { RenamePromptDialog } from '@/features/prompts/containers/RenamePromptDialog';
 import { SavePromptVersionDialog } from '@/features/prompts/containers/SavePromptVersionDialog';
 import {
@@ -22,6 +23,7 @@ import {
 } from '@/features/prompts/logic/helpers/promptDiff.helpers';
 import { nextPromptVersionNumber } from '@/features/prompts/logic/helpers/promptDraft.helpers';
 import { findFolderName } from '@/features/prompts/logic/helpers/promptFolder.helpers';
+import { usageCounts } from '@/features/prompts/logic/helpers/promptUsage.helpers';
 import { formatPromptVersionDate } from '@/features/prompts/logic/helpers/promptVersion.helpers';
 import { storeLastOpenedPromptId } from '@/features/prompts/storage/helpers/promptLastOpenedStorage.helpers';
 import type { PromptVersion } from '@/features/prompts/typedefs/prompt.typedefs';
@@ -57,6 +59,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const { detail, failed, retry } = usePromptDetail(promptId);
   const { folders } = usePromptLibrary();
   const versionsResult = usePromptVersions(promptId);
+  const { usages, failed: usagesFailed, retry: retryUsages } = usePromptUsages(promptId);
   const { draft, beginDraft, updateDraft, discardDraft } = usePromptDraft(promptId);
   const options = usePromptOptions(workspaceId, detail?.prompt ?? null);
   const versionView = usePromptVersionView(promptId, detail?.latestVersion?.id ?? null);
@@ -114,6 +117,17 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
     label: path,
     group: '',
   }));
+  const counts = usages === null ? null : usageCounts(usages);
+  const usageSummary =
+    counts === null || counts.versions === 0
+      ? null
+      : t('details.usage.summary', {
+          steps: t('details.usage.steps', { count: counts.steps }),
+          versions: t('details.usage.versions', { count: counts.versions }),
+        });
+  const subtitle = [folderName, usageSummary]
+    .filter((part): part is string => part !== null)
+    .join(' · ');
   const savedLabel =
     shownVersion === null
       ? null
@@ -219,7 +233,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
       <div className="flex min-w-0 flex-1 flex-col gap-5 pb-6">
         <PageHeader
           title={prompt.name}
-          subtitle={folderName}
+          subtitle={subtitle === '' ? null : subtitle}
           actions={
             comparePair !== null ? (
               <>
@@ -277,7 +291,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
         />
         <div className="flex min-h-0 flex-1 flex-col px-7">{body()}</div>
       </div>
-      <PromptVersionsPanel
+      <PromptDetailsPanel
         promptId={promptId}
         activeVersionId={
           editing || comparePair !== null
@@ -286,6 +300,11 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
         }
         onSelect={editing || comparePair !== null ? null : versionView.select}
         onCompare={editing || comparePair !== null ? null : compare.begin}
+        usages={usages}
+        usagesFailed={usagesFailed}
+        onRetryUsages={() => {
+          void retryUsages();
+        }}
       />
       {discarding && editing && (
         <DiscardPromptDraftModal
@@ -314,6 +333,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
         <DeletePromptDialog
           workspaceId={workspaceId}
           prompt={prompt}
+          usages={usages ?? []}
           onClose={options.closeDelete}
         />
       )}
