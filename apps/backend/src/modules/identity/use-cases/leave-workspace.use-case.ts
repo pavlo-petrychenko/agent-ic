@@ -1,4 +1,10 @@
-import { can, IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
+import {
+  hasPermission,
+  IdPrefix,
+  PermissionAction,
+  PermissionResource,
+  permissionsForRole,
+} from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 import type { WorkspaceIdInput } from '@/modules/identity/typedefs/workspace.typedefs';
@@ -25,7 +31,13 @@ export class LeaveWorkspaceUseCase {
       if (role === null) {
         throw new WorkspaceAccessDeniedError();
       }
-      if (!can(role, PermissionResource.WorkspaceSettings, PermissionAction.Leave)) {
+      const permissions =
+        ctx.permissions !== undefined && ctx.workspaceId === workspaceId
+          ? ctx.permissions
+          : permissionsForRole(role);
+      if (
+        !hasPermission(permissions, PermissionResource.WorkspaceSettings, PermissionAction.Leave)
+      ) {
         throw new PermissionDeniedError(
           PermissionResource.WorkspaceSettings,
           PermissionAction.Leave,
