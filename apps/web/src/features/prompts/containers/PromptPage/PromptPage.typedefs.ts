@@ -8,7 +8,9 @@ export interface PromptPageProps {
 export interface UsePromptOptionsResult {
   readonly onSelect: (action: PromptMenuAction) => void;
   readonly renaming: boolean;
+  readonly moving: boolean;
   readonly deleting: boolean;
   readonly closeRename: () => void;
+  readonly closeMove: () => void;
   readonly closeDelete: () => void;
 }

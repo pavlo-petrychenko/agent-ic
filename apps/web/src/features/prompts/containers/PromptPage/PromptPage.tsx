@@ -6,6 +6,7 @@ import { usePromptLibrary } from '@/features/prompts/communication/hooks/useProm
 import { PromptMenuAction } from '@/features/prompts/constants/promptMenu.constants';
 import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.constants';
 import { DeletePromptDialog } from '@/features/prompts/containers/DeletePromptDialog';
+import { MovePromptDialog } from '@/features/prompts/containers/MovePromptDialog';
 import type { PromptPageProps } from '@/features/prompts/containers/PromptPage/PromptPage.typedefs';
 import { usePromptOptions } from '@/features/prompts/containers/PromptPage/usePromptOptions';
 import { RenamePromptDialog } from '@/features/prompts/containers/RenamePromptDialog';
@@ -50,7 +51,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const canDelete =
     active !== null && can(active.role, PermissionResource.Prompts, PermissionAction.Delete);
   const menuActions = [
-    ...(canEdit ? [PromptMenuAction.Rename] : []),
+    ...(canEdit ? [PromptMenuAction.Rename, PromptMenuAction.Move] : []),
     ...(canDelete ? [PromptMenuAction.Delete] : []),
   ];
 
@@ -78,6 +79,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   }
 
   const { prompt, latestVersion } = detail;
+  const folderName = findFolderName(folders, prompt.folderId);
   const draftNumber = nextPromptVersionNumber(latestVersion?.number ?? null);
   const editorText = editing ? draft.text : (latestVersion?.text ?? '');
   const variables: readonly VariableOption[] = collectPromptVariables(editorText).map((path) => ({
@@ -120,7 +122,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
     <div className="flex h-full min-h-0 flex-col gap-5 pb-6">
       <PageHeader
         title={prompt.name}
-        subtitle={findFolderName(folders, prompt.folderId)}
+        subtitle={folderName}
         actions={
           editing ? (
             <>
@@ -133,7 +135,11 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
             </>
           ) : menuActions.length > 0 ? (
             <>
-              <PromptOptionsMenu actions={menuActions} onSelect={options.onSelect} />
+              <PromptOptionsMenu
+                actions={menuActions}
+                currentFolderName={folderName}
+                onSelect={options.onSelect}
+              />
               {canEdit && <Button onClick={startEditing}>{t('view.edit')}</Button>}
             </>
           ) : null
@@ -176,6 +182,9 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
         />
       )}
       {options.renaming && <RenamePromptDialog prompt={prompt} onClose={options.closeRename} />}
+      {options.moving && (
+        <MovePromptDialog prompt={prompt} folders={folders} onClose={options.closeMove} />
+      )}
       {options.deleting && (
         <DeletePromptDialog
           workspaceId={workspaceId}
