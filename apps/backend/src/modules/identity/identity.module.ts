@@ -6,6 +6,7 @@ import { MembershipDirectoryRepository } from '@/modules/identity/repositories/m
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 import { SessionsRepository } from '@/modules/identity/repositories/sessions.repository';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
+import { WorkspaceDirectoryRepository } from '@/modules/identity/repositories/workspace-directory.repository';
 import { WorkspacesRepository } from '@/modules/identity/repositories/workspaces.repository';
 import { AcceptInviteResolver } from '@/modules/identity/resolvers/accept-invite.resolver';
 import { ChangeMyPasswordResolver } from '@/modules/identity/resolvers/change-my-password.resolver';
@@ -83,6 +84,7 @@ export class IdentityModule extends defineModule({
     MembershipsRepository,
     InviteLinksRepository,
     MembershipDirectoryRepository,
+    WorkspaceDirectoryRepository,
     SessionsService,
     EmailConfirmationsService,
     EmailChangesService,
@@ -155,6 +157,7 @@ export class IdentityModule extends defineModule({
   exports: [
     UsersRepository,
     MembershipsRepository,
+    WorkspaceDirectoryRepository,
     SessionsService,
     EmailConfirmationsService,
     EmailChangesService,
