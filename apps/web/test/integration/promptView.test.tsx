@@ -13,12 +13,15 @@ import {
 } from '@/features/prompts/communication/fixtures/promptCreate.fixture';
 import {
   buildPromptDetailMock,
+  buildPromptUsagesMock,
   buildPromptVersionsMock,
   buildSavePromptVersionMock,
   RECEPTIONIST_SAVED_VERSION,
+  RECEPTIONIST_USAGES,
   RECEPTIONIST_VERSION,
   RECEPTIONIST_VERSIONS,
 } from '@/features/prompts/communication/fixtures/promptDetail.fixture';
+import type { PromptUsageFixture } from '@/features/prompts/communication/fixtures/promptDetail.fixture';
 import {
   buildPromptLibraryMock,
   CONVERSATION_GUARD_PROMPT,
@@ -43,11 +46,12 @@ const promptsPath = `/w/${DEMO_WORKSPACE.id}/prompts`;
 const promptPath = `${promptsPath}/${RECEPTIONIST_PROMPT.id}`;
 const DRAFT_TEXT = 'Draft text for {{contact.name}}';
 
-const promptMocks = () => [
+const promptMocks = (usages: readonly PromptUsageFixture[] = RECEPTIONIST_USAGES) => [
   buildWorkspaceShellMock([DEMO_WORKSPACE]),
   buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
   buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION),
   buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS),
+  buildPromptUsagesMock(RECEPTIONIST_PROMPT, usages),
 ];
 
 const seedDraft = () => {
@@ -130,6 +134,37 @@ describe('prompt view', () => {
     expect(within(list).getByText('v3').closest('li')).not.toHaveAttribute('aria-current');
   });
 
+  it('shows where the prompt is used and marks the pinned version', async () => {
+    renderRoute(promptPath, { mocks: promptMocks() });
+
+    const panel = await screen.findByRole('complementary', { name: 'Prompt details' });
+    const usages = await within(panel).findByRole('list', { name: 'Where it’s used' });
+
+    expect(within(usages).getAllByRole('listitem')).toHaveLength(RECEPTIONIST_USAGES.length);
+    expect(within(usages).getAllByText('Receptionist step')).toHaveLength(2);
+    expect(within(usages).getByText('Salon assistant · v3 live')).toBeInTheDocument();
+    expect(within(usages).getByText('Salon assistant · draft')).toBeInTheDocument();
+    expect(within(usages).getAllByText('pinned v4')).toHaveLength(2);
+    expect(await screen.findByText('Q&A · used by 1 step in 2 agent versions')).toBeInTheDocument();
+    expect(await within(panel).findByText('pinned')).toBeInTheDocument();
+  });
+
+  it('keeps a used prompt from being deleted', async () => {
+    renderRoute(promptPath, { mocks: promptMocks() });
+
+    await screen.findByRole('heading', { name: RECEPTIONIST_PROMPT.name });
+    await userEvent.click(await screen.findByRole('button', { name: 'Prompt actions' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete prompt' }));
+
+    const dialog = await screen.findByRole('dialog', {
+      name: `Can’t delete ${RECEPTIONIST_PROMPT.name} yet`,
+    });
+    expect(within(dialog).getByText('4 versions · used in 2 agent versions')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Delete prompt' })).toBeDisabled();
+    expect(within(dialog).getByRole('button', { name: 'Open step' })).toBeInTheDocument();
+    expect(within(dialog).getByText('published')).toBeInTheDocument();
+  });
+
   it('shows an empty field for a prompt without versions', async () => {
     renderRoute(promptPath, {
       mocks: [
@@ -137,6 +172,7 @@ describe('prompt view', () => {
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, null),
         buildPromptVersionsMock(RECEPTIONIST_PROMPT, []),
+        buildPromptUsagesMock(RECEPTIONIST_PROMPT, []),
       ],
     });
 
@@ -178,6 +214,7 @@ describe('prompt view', () => {
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, null),
         buildPromptVersionsMock(RECEPTIONIST_PROMPT, []),
+        buildPromptUsagesMock(RECEPTIONIST_PROMPT, []),
       ],
     });
 
@@ -202,6 +239,7 @@ describe('prompt view', () => {
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT]),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
         buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS, 1),
+        buildPromptUsagesMock(RECEPTIONIST_PROMPT, []),
         buildSavePromptVersionMock(
           RECEPTIONIST_PROMPT,
           RECEPTIONIST_SAVED_VERSION,
@@ -213,6 +251,7 @@ describe('prompt view', () => {
           RECEPTIONIST_SAVED_VERSION,
           ...RECEPTIONIST_VERSIONS,
         ]),
+        buildPromptUsagesMock(RECEPTIONIST_PROMPT, []),
       ],
     });
 
@@ -270,6 +309,7 @@ describe('prompt view', () => {
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
         buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS),
+        buildPromptUsagesMock(RECEPTIONIST_PROMPT, []),
         buildRenamePromptMock(RECEPTIONIST_PROMPT, renamed.name),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [renamed], 1),
         buildPromptDetailMock(renamed, RECEPTIONIST_VERSION, 1),
@@ -297,6 +337,7 @@ describe('prompt view', () => {
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION),
         buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS),
+        buildPromptUsagesMock(RECEPTIONIST_PROMPT, []),
         buildDeletePromptMock(RECEPTIONIST_PROMPT),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [], 1),
       ],
@@ -329,6 +370,7 @@ describe('prompt view', () => {
         buildPromptLibraryMock([Q_AND_A_FOLDER, GUARDS_FOLDER], [RECEPTIONIST_PROMPT], 1),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
         buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS),
+        buildPromptUsagesMock(RECEPTIONIST_PROMPT, []),
         buildMovePromptMock(RECEPTIONIST_PROMPT, GUARDS_FOLDER.id),
         buildPromptLibraryMock([Q_AND_A_FOLDER, GUARDS_FOLDER], [moved], 1),
         buildPromptDetailMock(moved, RECEPTIONIST_VERSION, 1),
@@ -367,6 +409,7 @@ describe('prompt view', () => {
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
         buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS),
+        buildPromptUsagesMock(RECEPTIONIST_PROMPT, []),
         buildCreatePromptFolderMock(folderName),
         buildPromptLibraryMock([Q_AND_A_FOLDER, created], [RECEPTIONIST_PROMPT], 1),
         buildMovePromptMock(RECEPTIONIST_PROMPT, NEW_FOLDER_ID),
@@ -404,10 +447,12 @@ describe('prompt view', () => {
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT], 1),
         buildPromptDetailMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSION, 1),
         buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS),
+        buildPromptUsagesMock(RECEPTIONIST_PROMPT, []),
         buildDuplicatePromptMock(RECEPTIONIST_PROMPT, copy),
         buildPromptLibraryMock([Q_AND_A_FOLDER], [RECEPTIONIST_PROMPT, copy], 1),
         buildPromptDetailMock(copy, RECEPTIONIST_VERSION, 1),
         buildPromptVersionsMock(copy, RECEPTIONIST_VERSIONS),
+        buildPromptUsagesMock(copy, []),
       ],
     });
 

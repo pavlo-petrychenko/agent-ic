@@ -1,0 +1,16 @@
+query PromptUsages($promptId: ID!) {
+  promptUsages(promptId: $promptId) {
+    agentId
+    agentName
+    versionId
+    versionKind
+    versionNumber
+    nodeId
+    nodeKey
+    nodeLabel
+    pin {
+      kind
+      number
+    }
+  }
+}

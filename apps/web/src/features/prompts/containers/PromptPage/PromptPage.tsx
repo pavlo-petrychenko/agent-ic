@@ -3,17 +3,19 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePromptDetail } from '@/features/prompts/communication/hooks/usePromptDetail';
 import { usePromptLibrary } from '@/features/prompts/communication/hooks/usePromptLibrary';
+import { usePromptUsages } from '@/features/prompts/communication/hooks/usePromptUsages';
 import { PromptMenuAction } from '@/features/prompts/constants/promptMenu.constants';
 import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.constants';
 import { DeletePromptDialog } from '@/features/prompts/containers/DeletePromptDialog';
 import { MovePromptDialog } from '@/features/prompts/containers/MovePromptDialog';
+import { PromptDetailsPanel } from '@/features/prompts/containers/PromptDetailsPanel';
 import type { PromptPageProps } from '@/features/prompts/containers/PromptPage/PromptPage.typedefs';
 import { usePromptOptions } from '@/features/prompts/containers/PromptPage/usePromptOptions';
-import { PromptVersionsPanel } from '@/features/prompts/containers/PromptVersionsPanel';
 import { RenamePromptDialog } from '@/features/prompts/containers/RenamePromptDialog';
 import { SavePromptVersionDialog } from '@/features/prompts/containers/SavePromptVersionDialog';
 import { nextPromptVersionNumber } from '@/features/prompts/logic/helpers/promptDraft.helpers';
 import { findFolderName } from '@/features/prompts/logic/helpers/promptFolder.helpers';
+import { usageCounts } from '@/features/prompts/logic/helpers/promptUsage.helpers';
 import { formatPromptVersionDate } from '@/features/prompts/logic/helpers/promptVersion.helpers';
 import { storeLastOpenedPromptId } from '@/features/prompts/storage/helpers/promptLastOpenedStorage.helpers';
 import { usePromptDraftsStore } from '@/features/prompts/storage/hooks/usePromptDraftsStore';
@@ -37,6 +39,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const active = useActiveWorkspace(workspaceId);
   const { detail, failed, retry } = usePromptDetail(promptId);
   const { folders } = usePromptLibrary();
+  const { usages, failed: usagesFailed, retry: retryUsages } = usePromptUsages(promptId);
   const draft = usePromptDraftsStore((state) => state.drafts[promptId] ?? null);
   const options = usePromptOptions(workspaceId, detail?.prompt ?? null);
   const [saving, setSaving] = useState(false);
@@ -90,6 +93,17 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
     label: path,
     group: '',
   }));
+  const counts = usages === null ? null : usageCounts(usages);
+  const usageSummary =
+    counts === null || counts.versions === 0
+      ? null
+      : t('details.usage.summary', {
+          steps: t('details.usage.steps', { count: counts.steps }),
+          versions: t('details.usage.versions', { count: counts.versions }),
+        });
+  const subtitle = [folderName, usageSummary]
+    .filter((part): part is string => part !== null)
+    .join(' · ');
   const savedLabel =
     latestVersion === null
       ? null
@@ -126,7 +140,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
       <div className="flex min-w-0 flex-1 flex-col gap-5 pb-6">
         <PageHeader
           title={prompt.name}
-          subtitle={folderName}
+          subtitle={subtitle === '' ? null : subtitle}
           actions={
             editing ? (
               <>
@@ -168,9 +182,14 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
           )}
         </div>
       </div>
-      <PromptVersionsPanel
+      <PromptDetailsPanel
         promptId={promptId}
         activeVersionId={editing ? null : (latestVersion?.id ?? null)}
+        usages={usages}
+        usagesFailed={usagesFailed}
+        onRetryUsages={() => {
+          void retryUsages();
+        }}
       />
       {discarding && editing && (
         <DiscardPromptDraftModal
@@ -198,6 +217,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
         <DeletePromptDialog
           workspaceId={workspaceId}
           prompt={prompt}
+          usages={usages ?? []}
           onClose={options.closeDelete}
         />
       )}

@@ -21,6 +21,25 @@
     "close": "Close",
     "cancel": "Cancel"
   },
+  "details": {
+    "panelLabel": "Prompt details",
+    "usage": {
+      "title": "Where it’s used",
+      "empty": "No step uses this prompt yet.",
+      "loadError": "The usages couldn’t be loaded.",
+      "note": "Pinned steps keep their version until you change the pin. Steps on “Follow latest” get each new version when you save.",
+      "summary": "used by {{steps}} in {{versions}}",
+      "steps_one": "{{count}} step",
+      "steps_other": "{{count}} steps",
+      "versions_one": "{{count}} agent version",
+      "versions_other": "{{count}} agent versions",
+      "agentVersion": "{{agent}} · {{version}}",
+      "versionLive": "v{{number}} live",
+      "versionDraft": "draft",
+      "pinned": "pinned v{{number}}",
+      "followLatest": "follow latest"
+    }
+  },
   "folderMenu": {
     "label": "Folder actions",
     "rename": "Rename",
@@ -93,7 +112,16 @@
     "description": "This can’t be undone. The prompt and all of its versions are removed.",
     "submit": "Delete prompt",
     "success": "Prompt “{{name}}” deleted",
-    "failed": "The prompt could not be deleted."
+    "failed": "The prompt could not be deleted.",
+    "inUseTitle": "Can’t delete {{name}} yet",
+    "versions_one": "{{count}} version",
+    "versions_other": "{{count}} versions",
+    "inUseSubtitle": "{{versions}} · used in {{usages}}",
+    "usedIn": "used in {{usages}}",
+    "inUseWarning_one": "{{name}} is used by {{count}} step. Pick another prompt in that step first — published agent versions keep working only while their prompt exists.",
+    "inUseWarning_other": "{{name}} is used by {{count}} steps. Pick another prompt in those steps first — published agent versions keep working only while their prompt exists.",
+    "openStep": "Open step",
+    "published": "published"
   },
   "view": {
     "version": "v{{number}} · latest",
@@ -131,7 +159,7 @@
   },
   "versions": {
     "title": "Versions",
-    "panelLabel": "Prompt details",
+    "pinned": "pinned",
     "number": "v{{number}}",
     "empty": "No versions yet. Saving creates v1.",
     "loadError": "The versions couldn’t be loaded."

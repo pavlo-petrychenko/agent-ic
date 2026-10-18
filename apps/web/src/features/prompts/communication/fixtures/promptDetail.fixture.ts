@@ -2,7 +2,48 @@ import type { MockLink } from '@apollo/client/testing';
 import type { PromptFixture } from '@/features/prompts/communication/fixtures/promptLibrary.fixture';
 import { SavePromptVersionDocument } from '@/features/prompts/communication/gql/mutation/savePromptVersion.generated';
 import { PromptDetailDocument } from '@/features/prompts/communication/gql/query/promptDetail.generated';
+import { PromptUsagesDocument } from '@/features/prompts/communication/gql/query/promptUsages.generated';
 import { PromptVersionsDocument } from '@/features/prompts/communication/gql/query/promptVersions.generated';
+
+export interface PromptUsageFixture {
+  readonly agentId: string;
+  readonly agentName: string;
+  readonly versionId: string;
+  readonly versionKind: 'draft' | 'live';
+  readonly versionNumber: number | null;
+  readonly nodeId: string;
+  readonly nodeKey: string;
+  readonly nodeLabel: string;
+  readonly pinKind: 'pinned' | 'latest';
+  readonly pinNumber: number | null;
+}
+
+export const RECEPTIONIST_USAGES: readonly PromptUsageFixture[] = [
+  {
+    agentId: 'agt_salon',
+    agentName: 'Salon assistant',
+    versionId: 'agv_salon_live',
+    versionKind: 'live',
+    versionNumber: 3,
+    nodeId: 'n_reception',
+    nodeKey: 'reception',
+    nodeLabel: 'Receptionist step',
+    pinKind: 'pinned',
+    pinNumber: 4,
+  },
+  {
+    agentId: 'agt_salon',
+    agentName: 'Salon assistant',
+    versionId: 'agv_salon_draft',
+    versionKind: 'draft',
+    versionNumber: null,
+    nodeId: 'n_reception',
+    nodeKey: 'reception',
+    nodeLabel: 'Receptionist step',
+    pinKind: 'pinned',
+    pinNumber: 4,
+  },
+];
 
 export interface PromptVersionFixture {
   readonly id: string;
@@ -100,6 +141,33 @@ export const buildPromptVersionsMock = (
 ): MockLink.MockedResponse => ({
   request: { query: PromptVersionsDocument, variables: { promptId: prompt.id } },
   result: { data: { promptVersions: versions.map(versionListNode) } },
+  maxUsageCount,
+});
+
+const usageNode = (usage: PromptUsageFixture) => ({
+  __typename: 'PromptUsage' as const,
+  agentId: usage.agentId,
+  agentName: usage.agentName,
+  versionId: usage.versionId,
+  versionKind: usage.versionKind,
+  versionNumber: usage.versionNumber,
+  nodeId: usage.nodeId,
+  nodeKey: usage.nodeKey,
+  nodeLabel: usage.nodeLabel,
+  pin: {
+    __typename: 'PromptUsagePin' as const,
+    kind: usage.pinKind,
+    number: usage.pinNumber,
+  },
+});
+
+export const buildPromptUsagesMock = (
+  prompt: PromptFixture,
+  usages: readonly PromptUsageFixture[],
+  maxUsageCount: number = Number.POSITIVE_INFINITY,
+): MockLink.MockedResponse => ({
+  request: { query: PromptUsagesDocument, variables: { promptId: prompt.id } },
+  result: { data: { promptUsages: usages.map(usageNode) } },
   maxUsageCount,
 });
 
