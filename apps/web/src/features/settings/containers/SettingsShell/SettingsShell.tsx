@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { ROLE_FIXTURES } from '@/features/settings/constants/roles.constants';
+import { SYSTEM_ROLE_COUNT } from '@/features/settings/constants/roles.constants';
 import {
   GENERAL_PATH,
   LLM_KEYS_PATH,
@@ -51,7 +51,7 @@ export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
               )}
 
               {showRoles && (
-                <NavItem to={ROLES_PATH} params={{ workspaceId }} meta={ROLE_FIXTURES.length}>
+                <NavItem to={ROLES_PATH} params={{ workspaceId }} meta={SYSTEM_ROLE_COUNT}>
                   {t('nav.roles')}
                 </NavItem>
               )}

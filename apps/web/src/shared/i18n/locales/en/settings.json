@@ -147,6 +147,22 @@
     "members_one": "{{count}} member",
     "members_other": "{{count}} members",
     "hint": "Owner, Admin, Builder and Operator are built in. Duplicate one or create a new role, then pick it for people in Team or for the invite link.",
+    "saved": "Permissions saved",
+    "customDescription": "Custom role",
+    "copySuffix": "copy",
+    "locked": "The owner role always has every permission.",
+    "create": {
+      "title": "New role",
+      "subtitle": "Custom roles can be picked in Team and for the invite link",
+      "nameLabel": "Name",
+      "namePlaceholder": "Content editor",
+      "baseLabel": "Start from",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Edits prompts and knowledge",
+      "permissionsLabel": "Permissions",
+      "submit": "Create role",
+      "cancel": "Cancel"
+    },
     "matrix": {
       "resource": "Resource",
       "view": "View",

@@ -1,18 +1,9 @@
-import { PERMISSION_MATRIX } from '@agent-ic/contracts';
-import type { PermissionAction, ResourcePermissions, WorkspaceRole } from '@agent-ic/contracts';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  DEFAULT_ROLE,
-  ROLE_ACTION_LABEL_KEYS,
-  ROLE_FIXTURES,
-  ROLE_MATRIX_ACTIONS,
-  ROLE_RESOURCE_DEFINITIONS,
-} from '@/features/settings/constants/roles.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
+import { CreateRoleDialog } from '@/features/settings/containers/CreateRoleDialog';
 import type { RolesPageProps } from '@/features/settings/containers/RolesPage/RolesPage.typedefs';
+import { useRolesPage } from '@/features/settings/containers/RolesPage/useRolesPage';
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
-import type { RoleMatrixRow } from '@/features/settings/typedefs/role.typedefs';
 import { RoleList } from '@/features/settings/view/RoleList';
 import { RoleMatrix } from '@/features/settings/view/RoleMatrix';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
@@ -27,54 +18,7 @@ import styles from '@/features/settings/containers/RolesPage/RolesPage.module.sc
 
 export function RolesPage({ workspaceId }: RolesPageProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
-  const { t: tCommon } = useTranslation();
-  const [selectedId, setSelectedId] = useState<WorkspaceRole>(DEFAULT_ROLE);
-  const [draft, setDraft] = useState<ResourcePermissions>(() => ({
-    ...PERMISSION_MATRIX[DEFAULT_ROLE],
-  }));
-
-  const roles = ROLE_FIXTURES.map((role) => ({
-    id: role.id,
-    title: tCommon(`roles.name.${role.id}`),
-    description: `${t(role.descriptionKey)} · ${t('roles.members', {
-      count: role.memberNames.length,
-    })}`,
-  }));
-
-  const memberNames = ROLE_FIXTURES.find((role) => role.id === selectedId)?.memberNames ?? [];
-
-  const columns = ROLE_MATRIX_ACTIONS.map((action) => ({
-    id: action,
-    label: t(ROLE_ACTION_LABEL_KEYS[action]),
-    action,
-  }));
-
-  const rows: readonly RoleMatrixRow[] = ROLE_RESOURCE_DEFINITIONS.map((definition) => ({
-    id: definition.id,
-    label: t(definition.labelKey),
-    note: definition.noteKey === null ? null : t(definition.noteKey),
-    actions: definition.actions,
-    granted: draft[definition.resource],
-  }));
-
-  const selectRole = (id: WorkspaceRole) => {
-    setSelectedId(id);
-    setDraft({ ...PERMISSION_MATRIX[id] });
-  };
-
-  const toggle = (rowId: string, action: PermissionAction, checked: boolean) => {
-    const definition = ROLE_RESOURCE_DEFINITIONS.find((entry) => entry.id === rowId);
-    if (definition === undefined) {
-      return;
-    }
-    setDraft((current) => {
-      const actions = current[definition.resource];
-      const next = checked
-        ? [...new Set([...actions, action])]
-        : actions.filter((entry) => entry !== action);
-      return { ...current, [definition.resource]: next };
-    });
-  };
+  const page = useRolesPage();
 
   return (
     <div className="flex flex-col gap-5 pb-8">
@@ -91,44 +35,48 @@ export function RolesPage({ workspaceId }: RolesPageProps) {
       />
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,3fr)] gap-4 px-7">
         <RoleList
-          roles={roles}
-          selectedId={selectedId}
+          roles={page.roles}
+          selectedId={page.selectedId}
           ariaLabel={t('nav.roles')}
           newRoleLabel={t('roles.newRole')}
-          onSelect={selectRole}
-          onNewRole={() => undefined}
+          onSelect={page.onSelect}
+          onNewRole={page.onNewRole}
         />
         <div className="flex flex-col gap-4">
-          <Card flush>
-            <div className={styles.header}>
-              <div className={styles.heading}>
-                <Heading size={HeadingSize.H3} as={HeadingElement.H3}>
-                  {tCommon(`roles.name.${selectedId}`)}
-                </Heading>
-                <Text kind={TextKind.BodySmall} color={TextColor.Mute}>
-                  {t('roles.members', { count: memberNames.length })}
-                  {memberNames.length > 0 ? ` · ${memberNames.join(', ')}` : ''}
-                </Text>
+          {page.selectedTitle === null ? null : (
+            <Card flush>
+              <div className={styles.header}>
+                <div className={styles.heading}>
+                  <Heading size={HeadingSize.H3} as={HeadingElement.H3}>
+                    {page.selectedTitle}
+                  </Heading>
+                  <Text kind={TextKind.BodySmall} color={TextColor.Mute}>
+                    {t('roles.members', { count: page.memberCount })}
+                    {page.memberNames.length > 0 ? ` · ${page.memberNames.join(', ')}` : ''}
+                  </Text>
+                </div>
+                <div className={styles.actions}>
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    disabled={page.locked}
+                    onClick={page.onDuplicate}
+                  >
+                    {t('roles.duplicate')}
+                  </Button>
+                  <Button loading={page.saving} disabled={page.locked} onClick={page.onSave}>
+                    {t('roles.save')}
+                  </Button>
+                </div>
               </div>
-              <div className={styles.actions}>
-                <Button variant={ButtonVariant.Secondary} onClick={() => undefined}>
-                  {t('roles.duplicate')}
-                </Button>
-                <Button onClick={() => undefined}>{t('roles.save')}</Button>
-              </div>
-            </div>
-            <RoleMatrix
-              resourceLabel={t('roles.matrix.resource')}
-              columns={columns}
-              rows={rows}
-              onToggle={toggle}
-            />
-          </Card>
+              <RoleMatrix {...page.matrix} readOnly={page.locked} onToggle={page.onToggle} />
+            </Card>
+          )}
           <Callout tone={CalloutTone.Info} icon={IconName.Info}>
-            {t('roles.hint')}
+            {page.hint}
           </Callout>
         </div>
       </div>
+      <CreateRoleDialog {...page.createRoleDialog} />
     </div>
   );
 }
