@@ -2,6 +2,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { normalizePathVariable } from '@/shared/prompt/helpers/promptDocument.helpers';
+import type { PathNormalizer } from '@/shared/prompt/typedefs/promptDocument.typedefs';
 import { PromptEditor } from '@/shared/ui/inputs/PromptEditor/PromptEditor';
 import type { VariableOption } from '@/shared/ui/inputs/PromptEditor/PromptEditor.typedefs';
 
@@ -17,6 +19,7 @@ interface HarnessProps {
   readOnly?: boolean;
   readOnlyReason?: string | null;
   error?: string | null;
+  normalizeVariable?: PathNormalizer | null;
 }
 
 function Harness({
@@ -25,6 +28,7 @@ function Harness({
   readOnly = false,
   readOnlyReason = null,
   error = null,
+  normalizeVariable = null,
 }: HarnessProps) {
   const [value, setValue] = useState(initial);
   return (
@@ -37,6 +41,7 @@ function Harness({
       variables={VARIABLES}
       label="System prompt"
       menuLabel="Variables"
+      normalizeVariable={normalizeVariable}
       readOnly={readOnly}
       readOnlyReason={readOnlyReason}
       error={error}
@@ -127,6 +132,32 @@ describe('PromptEditor', () => {
 
     await waitFor(() => expect(onChange).toHaveBeenLastCalledWith('Hi {{x}}'));
     expect(screen.getByRole('textbox', { name: 'System prompt' })).toHaveTextContent('Hi {{x}}');
+  });
+
+  it('normalizes a hand-typed variable to lowercase', async () => {
+    const onChange = vi.fn<(value: string) => void>();
+    render(<Harness onChange={onChange} normalizeVariable={normalizePathVariable} />);
+
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'System prompt' }),
+      `Hi ${TYPED_OPEN}Contact.Name}}`,
+    );
+
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith('Hi {{contact.name}}'));
+    expect(screen.getByText('{{contact.name}}')).toBeInTheDocument();
+  });
+
+  it('keeps the case of a hand-typed variable by default', async () => {
+    const onChange = vi.fn<(value: string) => void>();
+    render(<Harness onChange={onChange} />);
+
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'System prompt' }),
+      `Hi ${TYPED_OPEN}Contact.Name}}`,
+    );
+
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith('Hi {{Contact.Name}}'));
+    expect(screen.getByText('{{Contact.Name}}')).toBeInTheDocument();
   });
 
   it('turns a pasted variable into a chip between its surrounding text', async () => {

@@ -42,8 +42,7 @@
     },
     "variables": {
       "title": "Variables in this prompt",
-      "empty": "No variables in this prompt yet.",
-      "note": "user.* comes from the channel (e.g. the Telegram first name)."
+      "empty": "No variables in this prompt yet."
     }
   },
   "folderMenu": {
@@ -137,16 +136,6 @@
     "noText": "This prompt has no text yet.",
     "body": "Prompt text",
     "variables": "Variables",
-    "variableGroups": {
-      "message": "incoming message",
-      "user": "from the channel",
-      "language": "detected",
-      "conversation": "conversation",
-      "system": "system",
-      "event": "event payload",
-      "caller": "from the caller",
-      "step": "earlier step"
-    },
     "edit": "Edit"
   },
   "draft": {

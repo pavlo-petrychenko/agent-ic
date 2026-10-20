@@ -1,5 +1,4 @@
 import { can, PermissionAction, PermissionResource } from '@agent-ic/contracts';
-import { libraryVariables } from '@agent-ic/flow';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePromptDetail } from '@/features/prompts/communication/hooks/usePromptDetail';
@@ -17,7 +16,6 @@ import { SavePromptVersionDialog } from '@/features/prompts/containers/SavePromp
 import { nextPromptVersionNumber } from '@/features/prompts/logic/helpers/promptDraft.helpers';
 import { findFolderName } from '@/features/prompts/logic/helpers/promptFolder.helpers';
 import { usageCounts } from '@/features/prompts/logic/helpers/promptUsage.helpers';
-import { promptVariableOptions } from '@/features/prompts/logic/helpers/promptVariable.helpers';
 import { formatPromptVersionDate } from '@/features/prompts/logic/helpers/promptVersion.helpers';
 import { storeLastOpenedPromptId } from '@/features/prompts/storage/helpers/promptLastOpenedStorage.helpers';
 import { usePromptDraftsStore } from '@/features/prompts/storage/hooks/usePromptDraftsStore';
@@ -27,7 +25,10 @@ import { PromptOptionsMenu } from '@/features/prompts/view/PromptOptionsMenu';
 import { PromptView } from '@/features/prompts/view/PromptView';
 import { useActiveWorkspace } from '@/features/workspace';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
-import { collectPromptVariables } from '@/shared/prompt/helpers/promptDocument.helpers';
+import {
+  collectPromptVariables,
+  normalizePathVariable,
+} from '@/shared/prompt/helpers/promptDocument.helpers';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Card } from '@/shared/ui/display/Card';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
@@ -90,14 +91,10 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const folderName = findFolderName(folders, prompt.folderId);
   const draftNumber = nextPromptVersionNumber(latestVersion?.number ?? null);
   const editorText = editing ? draft.text : (latestVersion?.text ?? '');
-  const variablePaths = collectPromptVariables(editorText);
-  const variables: readonly VariableOption[] = promptVariableOptions(
-    libraryVariables(),
-    editorText,
-  ).map((option) => ({
-    id: option.path,
-    label: option.path,
-    group: t(`view.variableGroups.${option.group}`),
+  const variablePaths = collectPromptVariables(editorText, normalizePathVariable);
+  const variables: readonly VariableOption[] = variablePaths.map((path) => ({
+    id: path,
+    label: path,
   }));
   const counts = usages === null ? null : usageCounts(usages);
   const usageSummary =
@@ -176,6 +173,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
               baseVersionNumber={draft.baseVersionNumber}
               text={draft.text}
               variables={variables}
+              normalizeVariable={normalizePathVariable}
               onChange={changeDraft}
             />
           ) : (
@@ -184,6 +182,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
               text={latestVersion?.text ?? ''}
               savedLabel={savedLabel}
               variables={variables}
+              normalizeVariable={normalizePathVariable}
             />
           )}
         </div>

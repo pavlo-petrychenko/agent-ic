@@ -98,11 +98,6 @@ export function PromptDetailsPanel({
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>{t('details.variables.title')}</h3>
           <PromptVariables paths={variablePaths} />
-          {variablePaths.length > 0 && (
-            <Text kind={TextKind.Caption} color={TextColor.Mute}>
-              {t('details.variables.note')}
-            </Text>
-          )}
         </section>
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>{t('versions.title')}</h3>

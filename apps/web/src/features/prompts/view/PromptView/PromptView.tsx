@@ -5,7 +5,13 @@ import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { PromptEditor } from '@/shared/ui/inputs/PromptEditor';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
-export function PromptView({ versionNumber, text, savedLabel, variables }: PromptViewProps) {
+export function PromptView({
+  versionNumber,
+  text,
+  savedLabel,
+  variables,
+  normalizeVariable,
+}: PromptViewProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
 
   return (
@@ -32,6 +38,7 @@ export function PromptView({ versionNumber, text, savedLabel, variables }: Promp
         variables={variables}
         label={t('view.body')}
         menuLabel={t('view.variables')}
+        normalizeVariable={normalizeVariable}
         placeholder={t('view.noText')}
         readOnly
         fill
