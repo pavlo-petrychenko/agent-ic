@@ -9,7 +9,7 @@ import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
-export function PromptField({ workspaceId, source, error, onChange }: PromptFieldProps) {
+export function PromptField({ workspaceId, source, variables, error, onChange }: PromptFieldProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
   const [picking, setPicking] = useState(false);
 
@@ -19,6 +19,7 @@ export function PromptField({ workspaceId, source, error, onChange }: PromptFiel
         <PromptLibraryCard
           workspaceId={workspaceId}
           source={source}
+          variables={variables}
           error={error}
           onChange={onChange}
         />

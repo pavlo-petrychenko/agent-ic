@@ -5,6 +5,7 @@ export const toPromptVersionList = (data: PromptVersionsQuery): PromptVersionLis
   data.promptVersions.map((version) => ({
     id: version.id,
     number: version.number,
+    variables: version.variables,
     note: version.note,
     savedAt: version.createdAt,
   }));

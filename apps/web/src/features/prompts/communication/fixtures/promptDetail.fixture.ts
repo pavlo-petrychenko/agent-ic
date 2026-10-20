@@ -50,6 +50,7 @@ export interface PromptVersionFixture {
   readonly id: string;
   readonly number: number;
   readonly text: string;
+  readonly variables: readonly string[];
   readonly note: string | null;
   readonly createdAt: string;
   readonly authorName: string | null;
@@ -62,6 +63,7 @@ export const RECEPTIONIST_VERSION: PromptVersionFixture = {
     'You are the receptionist of Demo salon. Talk to {{contact.name}} in a warm, short style.',
     'Answer only from the knowledge search results.',
   ].join('\n'),
+  variables: ['contact.name'],
   note: 'Offer a manager when unsure',
   createdAt: '2026-09-17T12:00:00.000Z',
   authorName: 'Pavlo',
@@ -71,6 +73,7 @@ export const RECEPTIONIST_SAVED_VERSION: PromptVersionFixture = {
   id: 'pvr_5',
   number: 5,
   text: `${RECEPTIONIST_VERSION.text}\nReply as 1–3 short messages, never one long paragraph.`,
+  variables: ['contact.name'],
   note: 'Reply in 1–3 messages',
   createdAt: '2026-10-16T14:20:00.000Z',
   authorName: 'Pavlo',
@@ -83,6 +86,7 @@ export const RECEPTIONIST_PREVIOUS_VERSION: PromptVersionFixture = {
     'You are the receptionist of Demo salon. Talk to {{contact.name}} in a warm, short style.',
     '- If you don’t know, say “I don’t know”.',
   ].join('\n'),
+  variables: ['contact.name'],
   note: 'Answer only from search results',
   createdAt: '2026-09-10T12:00:00.000Z',
   authorName: 'Pavlo',
@@ -95,6 +99,7 @@ export const RECEPTIONIST_VERSIONS: readonly PromptVersionFixture[] = [
     id: 'pvr_2',
     number: 2,
     text: "Reply in the customer's language.",
+    variables: [],
     note: "Reply in the customer's language",
     createdAt: '2026-09-03T12:00:00.000Z',
     authorName: 'Pavlo',
@@ -103,6 +108,7 @@ export const RECEPTIONIST_VERSIONS: readonly PromptVersionFixture[] = [
     id: 'pvr_1',
     number: 1,
     text: 'You are the receptionist of Demo salon.',
+    variables: [],
     note: 'First version from the template',
     createdAt: '2026-09-01T12:00:00.000Z',
     authorName: 'Pavlo',
@@ -137,6 +143,7 @@ const versionListNode = (version: PromptVersionFixture) => ({
   __typename: 'PromptVersion' as const,
   id: version.id,
   number: version.number,
+  variables: version.variables,
   note: version.note,
   createdAt: version.createdAt,
 });

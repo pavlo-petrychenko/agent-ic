@@ -67,6 +67,7 @@ export function LlmStepInspector({
           <PromptField
             workspaceId={workspaceId}
             source={step.source}
+            variables={step.variables}
             error={message(step.promptIssue)}
             onChange={onPromptChange}
           />

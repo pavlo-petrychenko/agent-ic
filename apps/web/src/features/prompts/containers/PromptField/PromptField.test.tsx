@@ -1,23 +1,39 @@
 import { PromptSourceKind, PromptVersionKind } from '@agent-ic/flow';
 import type { PromptSource } from '@agent-ic/flow';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  RECEPTIONIST_VERSIONS,
+  buildPromptVersionsMock,
+} from '@/features/prompts/communication/fixtures/promptDetail.fixture';
+import {
   GIFT_CARD_PROMPT,
   Q_AND_A_FOLDER,
+  RECEPTIONIST_PROMPT,
   buildPromptLibraryMock,
 } from '@/features/prompts/communication/fixtures/promptLibrary.fixture';
 import { PromptField } from '@/features/prompts/containers/PromptField';
+import type { VariableOption } from '@/shared/ui/inputs/PromptEditor';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
-const library = buildPromptLibraryMock([Q_AND_A_FOLDER], [GIFT_CARD_PROMPT]);
+const library = buildPromptLibraryMock([Q_AND_A_FOLDER], [GIFT_CARD_PROMPT, RECEPTIONIST_PROMPT]);
 
-const renderField = (source: PromptSource | null) => {
+const renderField = (
+  source: PromptSource | null,
+  variables: readonly VariableOption[] = [],
+  mocks = [library],
+) => {
   const onChange = vi.fn<(next: PromptSource) => void>();
   renderWithProviders(
-    <PromptField workspaceId="ws_demo" source={source} error={null} onChange={onChange} />,
-    { mocks: [library] },
+    <PromptField
+      workspaceId="ws_demo"
+      source={source}
+      variables={variables}
+      error={null}
+      onChange={onChange}
+    />,
+    { mocks },
   );
   return onChange;
 };
@@ -43,5 +59,26 @@ describe('PromptField', () => {
       pin: { kind: PromptVersionKind.Latest },
       bindings: {},
     });
+  });
+
+  it('fills an exact prompt variable from the step variables', async () => {
+    const source: PromptSource = {
+      kind: PromptSourceKind.Library,
+      promptRef: RECEPTIONIST_PROMPT.id,
+      pin: { kind: PromptVersionKind.Latest },
+      bindings: {},
+    };
+    const onChange = renderField(
+      source,
+      [{ id: 'contact.name', label: 'contact.name', group: 'User' }],
+      [library, buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS)],
+    );
+
+    await waitFor(() =>
+      expect(onChange).toHaveBeenCalledWith({
+        ...source,
+        bindings: { 'contact.name': 'contact.name' },
+      }),
+    );
   });
 });
