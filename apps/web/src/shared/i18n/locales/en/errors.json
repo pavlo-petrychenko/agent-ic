@@ -75,7 +75,13 @@
     "WRONG_PASSWORD": "The password is not correct.",
     "PROMPT_NAME_TAKEN": "A prompt with this name already exists.",
     "PROMPT_FOLDER_NAME_TAKEN": "A folder with this name already exists.",
-    "PROMPT_FOLDER_NOT_EMPTY": "Move the prompts out of this folder before deleting it."
+    "PROMPT_FOLDER_NOT_EMPTY": "Move the prompts out of this folder before deleting it.",
+    "INVALID_ROLE_NAME": "Enter a role name.",
+    "ROLE_NOT_FOUND": "This role does not exist.",
+    "ROLE_NAME_TAKEN": "A role with this name already exists.",
+    "ROLE_NOT_EDITABLE": "This role cannot be changed.",
+    "ROLE_IN_USE": "Move the members of this role before deleting it.",
+    "ROLE_BASE_INVALID": "Choose an existing role as the base."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",

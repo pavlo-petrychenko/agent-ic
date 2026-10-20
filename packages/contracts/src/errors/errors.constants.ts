@@ -87,4 +87,10 @@ export enum ErrorReason {
   PromptNameTaken = 'PROMPT_NAME_TAKEN',
   PromptFolderNameTaken = 'PROMPT_FOLDER_NAME_TAKEN',
   PromptFolderNotEmpty = 'PROMPT_FOLDER_NOT_EMPTY',
+  InvalidRoleName = 'INVALID_ROLE_NAME',
+  RoleNotFound = 'ROLE_NOT_FOUND',
+  RoleNameTaken = 'ROLE_NAME_TAKEN',
+  RoleNotEditable = 'ROLE_NOT_EDITABLE',
+  RoleInUse = 'ROLE_IN_USE',
+  RoleBaseInvalid = 'ROLE_BASE_INVALID',
 }

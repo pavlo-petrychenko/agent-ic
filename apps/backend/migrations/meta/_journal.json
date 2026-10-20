@@ -120,6 +120,13 @@
       "when": 1791838533157,
       "tag": "0016_identity-email-change",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792279740616,
+      "tag": "0017_roles_tables",
+      "breakpoints": true
     }
   ]
 }
