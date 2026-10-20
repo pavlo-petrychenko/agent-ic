@@ -4,7 +4,7 @@ import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { FIRST_PROMPT_VERSION_NUMBER } from '@/modules/prompts/constants/prompt.constants';
 import { PromptVersionsRepository } from '@/modules/prompts/repositories/prompt-versions.repository';
-import { PromptResolverService } from '@/modules/prompts/services/prompt-resolver.service';
+import { PromptFlowReader } from '@/modules/prompts/services/prompt-flow-reader.service';
 import type { ResolvedPrompts } from '@/modules/prompts/typedefs/resolved-prompt.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -44,16 +44,16 @@ const flowWith = (nodes: readonly { id: string; prompt: PromptSource | null }[])
     nodes.map(({ id }) => flowEdge(TEST_NODE_ID, id)),
   );
 
-describe('PromptResolverService', () => {
+describe('PromptFlowReader', () => {
   let testingModule: TestingModule;
-  let resolver: PromptResolverService;
+  let reader: PromptFlowReader;
   let versions: PromptVersionsRepository;
   let tenants: TenantTransactionService;
   let ids: IdService;
 
   beforeAll(async () => {
     testingModule = await createPromptsTestingModule();
-    resolver = testingModule.get(PromptResolverService);
+    reader = testingModule.get(PromptFlowReader);
     versions = testingModule.get(PromptVersionsRepository);
     tenants = testingModule.get(TenantTransactionService);
     ids = testingModule.get(IdService);
@@ -84,7 +84,7 @@ describe('PromptResolverService', () => {
   };
 
   const resolve = (workspaceId: string, flow: FlowDocument): Promise<ResolvedPrompts> =>
-    tenants.run(workspaceId, () => resolver.resolveForFlow(workspaceId, flow));
+    tenants.run(workspaceId, () => reader.forFlow(workspaceId, flow));
 
   it('resolves the pinned version of a library prompt', async () => {
     const workspaceId = ids.generate();

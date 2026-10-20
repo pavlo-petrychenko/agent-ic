@@ -4,11 +4,16 @@ export interface PromptListItem {
   readonly id: string;
   readonly name: string;
   readonly folderId: string;
+  readonly latestVersionNumber: number | null;
   readonly updatedAt: string;
 }
 
+export interface PromptFolderWithPrompts extends PromptFolderListItem {
+  readonly prompts: readonly PromptListItem[];
+}
+
 export interface PromptLibrary {
-  readonly folders: readonly PromptFolderListItem[];
+  readonly folders: readonly PromptFolderWithPrompts[];
   readonly prompts: readonly PromptListItem[];
 }
 
@@ -16,6 +21,7 @@ export interface PromptVersion {
   readonly id: string;
   readonly number: number;
   readonly text: string;
+  readonly note: string | null;
   readonly savedAt: string;
   readonly author: string | null;
 }
@@ -33,7 +39,7 @@ export interface PromptVersionListItem {
 }
 
 export interface UsePromptLibraryResult {
-  readonly folders: readonly PromptFolderListItem[];
+  readonly folders: readonly PromptFolderWithPrompts[];
   readonly prompts: readonly PromptListItem[];
   readonly loading: boolean;
   readonly failed: boolean;
@@ -49,6 +55,13 @@ export interface UsePromptDetailResult {
 
 export interface UsePromptVersionsResult {
   readonly versions: readonly PromptVersionListItem[] | null;
+  readonly loading: boolean;
+  readonly failed: boolean;
+  readonly retry: () => Promise<void>;
+}
+
+export interface UsePromptVersionResult {
+  readonly version: PromptVersion | null;
   readonly loading: boolean;
   readonly failed: boolean;
   readonly retry: () => Promise<void>;

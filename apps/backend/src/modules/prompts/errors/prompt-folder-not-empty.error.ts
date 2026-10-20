@@ -5,7 +5,7 @@ import { DomainError } from '@/platform/errors/errors/domain.error';
 
 export class PromptFolderNotEmptyError extends DomainError {
   readonly kind = DomainErrorKind.Conflict;
-  readonly reason = ErrorReason.InvalidRequest;
+  readonly reason = ErrorReason.PromptFolderNotEmpty;
 
   constructor(promptCount: number) {
     super(PROMPT_FOLDER_NOT_EMPTY_MESSAGE, { details: { promptCount } });

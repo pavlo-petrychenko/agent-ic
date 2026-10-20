@@ -7,7 +7,7 @@ import {
   ConversationHistoryService,
   ConversationRunsService,
 } from '@/modules/conversations';
-import { PromptResolverService } from '@/modules/prompts';
+import { PromptFlowReader } from '@/modules/prompts';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
 import {
   ROOT_BRANCH_KEY,
@@ -57,7 +57,7 @@ export class RunExecutionService {
     private readonly steps: RunStepsRepository,
     private readonly executors: StepExecutorRegistry,
     private readonly agents: AgentRuntimeReader,
-    private readonly prompts: PromptResolverService,
+    private readonly prompts: PromptFlowReader,
     private readonly conversations: ConversationRunsService,
     private readonly conversationHistory: ConversationHistoryService,
     private readonly activity: ConversationActivityService,
@@ -96,7 +96,7 @@ export class RunExecutionService {
       await this.activity.runStarted(run.conversationId, runId);
     }
     const version = await this.agents.getVersion(workspaceId, run.versionId);
-    const prompts = await this.prompts.resolveForFlow(workspaceId, version.flow);
+    const prompts = await this.prompts.forFlow(workspaceId, version.flow);
     const conversation = await this.conversations.getConversation(workspaceId, run.conversationId);
     const history = await this.conversationHistory.forRun(
       workspaceId,

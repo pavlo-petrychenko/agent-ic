@@ -48,6 +48,7 @@ const NEW_PROMPT: PromptFixture = {
   id: NEW_PROMPT_ID,
   name: NEW_PROMPT_NAME,
   folderId: NEW_FOLDER_ID,
+  latestVersionNumber: null,
   updatedAt: '2026-10-16T12:00:00.000Z',
 };
 

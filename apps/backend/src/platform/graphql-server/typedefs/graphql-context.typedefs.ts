@@ -3,9 +3,11 @@ import type { Context } from 'graphql-ws';
 import type { Extra } from 'graphql-ws/use/ws';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import type { ConnectionParams } from '@/platform/graphql-server/typedefs/connection-param.typedefs';
+import type { GraphqlLoaders } from '@/platform/graphql-server/typedefs/graphql-loader.typedefs';
 
 export interface GraphqlContext {
   readonly ctx: UseCaseCtx;
+  readonly loaders: GraphqlLoaders;
 }
 
 export interface HttpContextInput {

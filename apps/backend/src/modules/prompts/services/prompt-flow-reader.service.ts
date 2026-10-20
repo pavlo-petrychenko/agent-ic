@@ -11,13 +11,13 @@ import type {
 import { IdService } from '@/platform/ids/services/id.service';
 
 @Injectable()
-export class PromptResolverService {
+export class PromptFlowReader {
   constructor(
     private readonly versions: PromptVersionsRepository,
     private readonly ids: IdService,
   ) {}
 
-  async resolveForFlow(workspaceId: string, flow: FlowDocument): Promise<ResolvedPrompts> {
+  async forFlow(workspaceId: string, flow: FlowDocument): Promise<ResolvedPrompts> {
     const resolved = new Map<string, ResolvedPrompt>();
     for (const reference of promptReferences(flow)) {
       const promptId = this.ids.tryFromPublic(IdPrefix.Prompt, reference.promptRef);

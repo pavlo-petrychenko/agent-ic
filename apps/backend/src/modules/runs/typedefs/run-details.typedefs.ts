@@ -20,16 +20,10 @@ export interface RunView extends Omit<
   'workspaceId' | 'mode' | 'trigger' | 'lastCoveredMessageId' | 'traceId'
 > {
   readonly durationMs: number | null;
-  readonly totals: RunTotals;
-  readonly steps: readonly RunStepView[];
 }
 
 export interface SimulationRunsInput {
   readonly conversationId: string;
-}
-
-export interface LastSimulationRunInput {
-  readonly agentId: string;
 }
 
 export interface SimulationRunSummary {

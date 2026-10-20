@@ -1,4 +1,4 @@
-import { ErrorCode } from '@agent-ic/contracts';
+import { ErrorReason } from '@agent-ic/contracts';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PromptFormField } from '@/features/prompts/constants/promptForm.constants';
@@ -14,9 +14,9 @@ export function usePromptFormErrors(): UsePromptFormErrorsResult {
   const [formError, setFormError] = useState<string | null>(null);
 
   const reportTaken = useCallback(
-    (error: unknown, field: string, message: string) => {
+    (error: unknown, field: string, reason: ErrorReason, message: string) => {
       const appError = toAppError(error);
-      if (appError.code === ErrorCode.Conflict) {
+      if (appError.reason === reason) {
         setFieldErrors({ [field]: message });
         setFormError(null);
         return;
@@ -28,11 +28,23 @@ export function usePromptFormErrors(): UsePromptFormErrorsResult {
   );
 
   const reportName = useCallback(
-    (error: unknown) => reportTaken(error, PromptFormField.Name, t('newPrompt.nameTaken')),
+    (error: unknown) =>
+      reportTaken(
+        error,
+        PromptFormField.Name,
+        ErrorReason.PromptNameTaken,
+        t('newPrompt.nameTaken'),
+      ),
     [reportTaken, t],
   );
   const reportFolder = useCallback(
-    (error: unknown) => reportTaken(error, PromptFormField.Folder, t('newPrompt.folderTaken')),
+    (error: unknown) =>
+      reportTaken(
+        error,
+        PromptFormField.Folder,
+        ErrorReason.PromptFolderNameTaken,
+        t('newPrompt.folderTaken'),
+      ),
     [reportTaken, t],
   );
   const reportMessage = useCallback((message: string) => {
