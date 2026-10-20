@@ -132,7 +132,7 @@ export class MembershipsRepository {
       .from(memberships)
       .innerJoin(roles, eq(roles.id, memberships.roleId))
       .where(and(eq(memberships.workspaceId, workspaceId), eq(memberships.id, membershipId)))
-      .for('update', { of: memberships });
+      .for('update');
     return row === undefined ? null : { ...row.membership, roleKey: row.roleKey };
   }
 

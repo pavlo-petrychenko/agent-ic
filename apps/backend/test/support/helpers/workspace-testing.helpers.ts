@@ -92,15 +92,6 @@ export const addMemberWithRole = async (
   return addMember(testbed, workspace);
 };
 
-export const addMemberWithRole = async (
-  testbed: IdentityTestbed,
-  workspace: TestWorkspace,
-  role: WorkspaceRole,
-): Promise<string> => {
-  await testbed.module.get(UpdateInviteLinkRoleUseCase).execute(ownerCtx(workspace), { role });
-  return addMember(testbed, workspace);
-};
-
 export interface MembershipWithRoleKey extends MembershipRecord {
   readonly role: WorkspaceRole;
 }

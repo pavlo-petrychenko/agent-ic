@@ -7,6 +7,7 @@ import { parseWorkspaceInput } from '@/modules/identity/helpers/workspace-input.
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 import { changeMemberRoleInputSchema } from '@/modules/identity/schemas/workspace-input.schema';
 import { WorkspaceMembershipsService } from '@/modules/identity/services/workspace-memberships.service';
+import { WorkspaceRolesService } from '@/modules/identity/services/workspace-roles.service';
 import type {
   ChangeMemberRoleInput,
   WorkspaceMembership,
@@ -21,6 +22,7 @@ export class ChangeMemberRoleUseCase {
   constructor(
     private readonly tenantTransactions: TenantTransactionService,
     private readonly memberships: MembershipsRepository,
+    private readonly roles: WorkspaceRolesService,
     private readonly workspaceMemberships: WorkspaceMembershipsService,
     private readonly ids: IdService,
   ) {}
@@ -34,14 +36,15 @@ export class ChangeMemberRoleUseCase {
       if (member === null) {
         throw new TeamMemberNotFoundError(membershipId);
       }
-      if (member.role === WorkspaceRole.Owner) {
+      if (member.roleKey === WorkspaceRole.Owner) {
         throw new CannotChangeOwnerRoleError();
       }
-      if (access.role === WorkspaceRole.Admin && member.role === WorkspaceRole.Admin) {
+      if (access.role === WorkspaceRole.Admin && member.roleKey === WorkspaceRole.Admin) {
         throw new CannotChangeAdminRoleError();
       }
-      if (member.role !== role) {
-        await this.memberships.updateRole(access.workspaceId, id, role);
+      if (member.roleKey !== role) {
+        const roleId = await this.roles.systemRoleId(access.workspaceId, role);
+        await this.memberships.updateRoleId(access.workspaceId, id, roleId);
       }
       return this.workspaceMemberships.describe(access.workspaceId, role);
     });
