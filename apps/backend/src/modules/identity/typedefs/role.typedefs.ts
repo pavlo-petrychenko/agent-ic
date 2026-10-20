@@ -8,6 +8,11 @@ export type NewRole = typeof roles.$inferInsert;
 
 export type RolePermissionRecord = typeof rolePermissions.$inferSelect;
 
+export interface RoleRef {
+  readonly roleId: string;
+  readonly roleKey: WorkspaceRole;
+}
+
 export type NewRolePermission = typeof rolePermissions.$inferInsert;
 
 export interface RolePermission {

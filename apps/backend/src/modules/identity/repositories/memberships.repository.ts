@@ -12,8 +12,8 @@ import type {
   MembershipWithRole,
   NewMembership,
   RoleMemberCount,
-  MembershipWithRoleId,
 } from '@/modules/identity/typedefs/membership.typedefs';
+import type { RoleRef } from '@/modules/identity/typedefs/role.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
@@ -42,7 +42,7 @@ export class MembershipsRepository {
     return membership?.roleKey ?? null;
   }
 
-  async findRoleWithId(workspaceId: string, userId: string): Promise<MembershipWithRoleId | null> {
+  async findRoleWithId(workspaceId: string, userId: string): Promise<RoleRef | null> {
     const [row] = await this.txHost.tx
       .select({ roleId: memberships.roleId, roleKey: roles.key })
       .from(memberships)
