@@ -55,6 +55,15 @@ export class RolesRepository {
     return role ?? null;
   }
 
+  async findByIdForUpdate(workspaceId: string, id: string): Promise<RoleRecord | null> {
+    const [role] = await this.txHost.tx
+      .select()
+      .from(roles)
+      .where(and(eq(roles.workspaceId, workspaceId), eq(roles.id, id)))
+      .for('update');
+    return role ?? null;
+  }
+
   async findByName(workspaceId: string, name: string): Promise<RoleRecord | null> {
     const [role] = await this.txHost.tx
       .select()
@@ -93,12 +102,31 @@ export class RolesRepository {
       .onConflictDoNothing();
   }
 
+  async deletePermissions(workspaceId: string, roleId: string): Promise<void> {
+    await this.txHost.tx
+      .delete(rolePermissions)
+      .where(and(eq(rolePermissions.workspaceId, workspaceId), eq(rolePermissions.roleId, roleId)));
+  }
+
   async permissionsForRole(workspaceId: string, roleId: string): Promise<RolePermission[]> {
     const rows = await this.txHost.tx
       .select({ resource: rolePermissions.resource, action: rolePermissions.action })
       .from(rolePermissions)
       .where(and(eq(rolePermissions.workspaceId, workspaceId), eq(rolePermissions.roleId, roleId)));
     return rows.map((row) => ({ resource: row.resource, action: row.action }));
+  }
+
+  async rename(workspaceId: string, id: string, name: string): Promise<void> {
+    await this.txHost.tx
+      .update(roles)
+      .set({ name })
+      .where(and(eq(roles.workspaceId, workspaceId), eq(roles.id, id)));
+  }
+
+  async deleteById(workspaceId: string, id: string): Promise<void> {
+    await this.txHost.tx
+      .delete(roles)
+      .where(and(eq(roles.workspaceId, workspaceId), eq(roles.id, id)));
   }
 
   async memberCounts(workspaceId: string): Promise<ReadonlyMap<string, number>> {
