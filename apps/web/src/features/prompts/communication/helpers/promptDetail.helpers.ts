@@ -9,6 +9,7 @@ export const toPromptDetail = (data: PromptDetailQuery): PromptDetail => {
       id: prompt.id,
       name: prompt.name,
       folderId: prompt.folderId,
+      latestVersionNumber: latestVersion?.number ?? null,
       updatedAt: prompt.updatedAt,
     },
     latestVersion:
@@ -18,6 +19,7 @@ export const toPromptDetail = (data: PromptDetailQuery): PromptDetail => {
             id: latestVersion.id,
             number: latestVersion.number,
             text: latestVersion.text,
+            note: latestVersion.note,
             savedAt: latestVersion.createdAt,
             author: latestVersion.author?.name ?? null,
           },

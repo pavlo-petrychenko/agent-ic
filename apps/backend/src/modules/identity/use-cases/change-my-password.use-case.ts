@@ -1,8 +1,8 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { CHANGE_PASSWORD_RATE_LIMIT } from '@/modules/identity/constants/rate-limit.constants';
-import { InvalidCredentialsError } from '@/modules/identity/errors/invalid-credentials.error';
 import { SamePasswordError } from '@/modules/identity/errors/same-password.error';
+import { WrongPasswordError } from '@/modules/identity/errors/wrong-password.error';
 import { parseAccountInput } from '@/modules/identity/helpers/account-input.helpers';
 import { hashPassword, verifyPassword } from '@/modules/identity/helpers/password.helpers';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
@@ -38,7 +38,7 @@ export class ChangeMyPasswordUseCase {
         throw new AuthenticationRequiredError();
       }
       if (!(await verifyPassword(user.passwordHash, currentPassword))) {
-        throw new InvalidCredentialsError();
+        throw new WrongPasswordError();
       }
       if (await verifyPassword(user.passwordHash, newPassword)) {
         throw new SamePasswordError();

@@ -7,6 +7,7 @@ import { PromptsRepository } from '@/modules/prompts/repositories/prompts.reposi
 import { CreatePromptUseCase } from '@/modules/prompts/use-cases/create-prompt.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import { DomainErrorKind } from '@/platform/errors/constants/domain-error.constants';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
   PROMPTS_TEST_LATER,
@@ -85,6 +86,10 @@ describe('CreatePromptUseCase', () => {
     });
 
     await expect(attempt).rejects.toBeInstanceOf(PromptNameTakenError);
+    await expect(attempt).rejects.toMatchObject({
+      kind: DomainErrorKind.Conflict,
+      reason: ErrorReason.PromptNameTaken,
+    });
   });
 
   it('allows a name freed by a deleted prompt', async () => {

@@ -5,4 +5,6 @@ export interface PromptViewProps {
   readonly text: string;
   readonly savedLabel: string | null;
   readonly variables: readonly VariableOption[];
+  readonly olderThanVersionNumber: number | null;
+  readonly onBackToLatest: (() => void) | null;
 }
