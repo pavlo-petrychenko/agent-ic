@@ -8,6 +8,7 @@ import { useUpdateRolePermissions } from '@/features/settings/communication/hook
 import { ROLE_RESOURCE_DEFINITIONS } from '@/features/settings/constants/roles.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import { useCreateRoleDialog } from '@/features/settings/containers/CreateRoleDialog';
+import { useDeleteRoleDialog } from '@/features/settings/containers/DeleteRoleDialog';
 import type { UseRolesPageResult } from '@/features/settings/containers/RolesPage/RolesPage.typedefs';
 import { useRoleMatrix } from '@/features/settings/logic/hooks/useRoleMatrix';
 import type { AppRole } from '@/features/settings/typedefs/role.typedefs';
@@ -39,6 +40,14 @@ export function useRolesPage(): UseRolesPageResult {
     onCreated: (role) => {
       setSelectedId(role.id);
       setDraft({ roleId: role.id, permissions: role.permissions });
+    },
+  });
+
+  const { openDialog: openDeleteDialog, ...deleteRoleDialog } = useDeleteRoleDialog({
+    roles,
+    onDeleted: () => {
+      setSelectedId(null);
+      setDraft(null);
     },
   });
 
@@ -128,6 +137,14 @@ export function useRolesPage(): UseRolesPageResult {
     openDialog({ name: `${titleOf(selected)} ${t('roles.copySuffix')}`, baseRole: selected.key });
   };
 
+  const canDelete = selected !== null && !selected.isSystem;
+
+  const onDelete = () => {
+    if (selected !== null && !selected.isSystem) {
+      openDeleteDialog(selected);
+    }
+  };
+
   return {
     roles: roleItems,
     selectedId: selected?.id ?? '',
@@ -139,10 +156,13 @@ export function useRolesPage(): UseRolesPageResult {
     saving,
     hint: locked ? t('roles.locked') : t('roles.hint'),
     createRoleDialog,
+    deleteRoleDialog,
+    canDelete,
     onSelect,
     onToggle,
     onSave: () => void save(),
     onNewRole,
     onDuplicate,
+    onDelete,
   };
 }

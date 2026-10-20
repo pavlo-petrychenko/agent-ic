@@ -163,6 +163,15 @@
       "submit": "Create role",
       "cancel": "Cancel"
     },
+    "delete": {
+      "action": "Delete role",
+      "title": "Delete {{name}}?",
+      "subtitle": "Its members move to the role you choose.",
+      "replacementLabel": "Move members to",
+      "confirm": "Delete role",
+      "cancel": "Cancel",
+      "success": "{{name}} was deleted"
+    },
     "matrix": {
       "resource": "Resource",
       "view": "View",

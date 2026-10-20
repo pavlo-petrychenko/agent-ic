@@ -135,6 +135,13 @@ export class RolesRepository {
       .where(and(eq(roles.workspaceId, workspaceId), eq(roles.id, id)));
   }
 
+  async reassignMembers(workspaceId: string, fromRoleId: string, toRoleId: string): Promise<void> {
+    await this.txHost.tx
+      .update(memberships)
+      .set({ roleId: toRoleId })
+      .where(and(eq(memberships.workspaceId, workspaceId), eq(memberships.roleId, fromRoleId)));
+  }
+
   async memberCounts(workspaceId: string): Promise<ReadonlyMap<string, number>> {
     const rows = await this.txHost.tx
       .select({ roleId: memberships.roleId, total: count() })

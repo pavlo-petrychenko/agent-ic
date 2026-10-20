@@ -35,4 +35,5 @@ export const updateRolePermissionsInputSchema = z.object({
 
 export const deleteRoleInputSchema = z.object({
   [RoleField.RoleId]: roleIdSchema,
+  [RoleField.ReplacementRoleId]: roleIdSchema,
 });

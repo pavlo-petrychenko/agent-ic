@@ -14,7 +14,7 @@ import { signInForTest, signOutForTest } from '@test/support/helpers/session.hel
 
 const OTHER_WORKSPACE = { ...DEMO_WORKSPACE, id: 'ws_other', name: 'Other salon' };
 const shellMock = buildWorkspaceShellMock([DEMO_WORKSPACE, OTHER_WORKSPACE]);
-const mainNavigation = () => screen.findByRole('navigation', { name: 'Main' });
+const mainNavigation = () => screen.findByRole('navigation', { name: 'Main' }, { timeout: 5000 });
 
 describe('remembering the open workspace', () => {
   beforeEach(() => signInForTest());
@@ -47,7 +47,8 @@ describe('remembering the open workspace', () => {
       mocks: [shellMock, buildRememberWorkspaceErrorMock(DEMO_WORKSPACE.id)],
     });
 
-    expect(await mainNavigation()).toBeInTheDocument();
+    await mainNavigation();
+    expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });

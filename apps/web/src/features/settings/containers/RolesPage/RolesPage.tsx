@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import { CreateRoleDialog } from '@/features/settings/containers/CreateRoleDialog';
+import { DeleteRoleDialog } from '@/features/settings/containers/DeleteRoleDialog';
 import type { RolesPageProps } from '@/features/settings/containers/RolesPage/RolesPage.typedefs';
 import { useRolesPage } from '@/features/settings/containers/RolesPage/useRolesPage';
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
@@ -66,6 +67,11 @@ export function RolesPage({ workspaceId }: RolesPageProps) {
                   <Button loading={page.saving} disabled={page.locked} onClick={page.onSave}>
                     {t('roles.save')}
                   </Button>
+                  {page.canDelete && (
+                    <Button variant={ButtonVariant.Danger} onClick={page.onDelete}>
+                      {t('roles.delete.action')}
+                    </Button>
+                  )}
                 </div>
               </div>
               <RoleMatrix {...page.matrix} readOnly={page.locked} onToggle={page.onToggle} />
@@ -77,6 +83,7 @@ export function RolesPage({ workspaceId }: RolesPageProps) {
         </div>
       </div>
       <CreateRoleDialog {...page.createRoleDialog} />
+      <DeleteRoleDialog {...page.deleteRoleDialog} />
     </div>
   );
 }

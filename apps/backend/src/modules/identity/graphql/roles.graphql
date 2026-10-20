@@ -6,7 +6,7 @@ extend type Mutation {
   createRole(input: CreateRoleInput!): Role!
   renameRole(input: RenameRoleInput!): Role!
   updateRolePermissions(input: UpdateRolePermissionsInput!): Role!
-  deleteRole(roleId: ID!): Boolean!
+  deleteRole(input: DeleteRoleInput!): Boolean!
 }
 
 enum PermissionResource {
@@ -65,4 +65,9 @@ input RenameRoleInput {
 input UpdateRolePermissionsInput {
   roleId: ID!
   permissions: [RolePermissionInput!]!
+}
+
+input DeleteRoleInput {
+  roleId: ID!
+  replacementRoleId: ID!
 }

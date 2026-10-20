@@ -8,10 +8,12 @@ import type {
   RenameRoleInput,
   RolePermission,
   RoleView,
+  DeleteRoleInput,
   UpdateRolePermissionsInput,
 } from '@/modules/identity/typedefs/role.typedefs';
 import type {
   CreateRoleInput as GraphqlCreateRoleArgs,
+  DeleteRoleInput as GraphqlDeleteRoleArgs,
   RenameRoleInput as GraphqlRenameRoleArgs,
   Role as GraphqlRole,
   RolePermission as GraphqlRolePermission,
@@ -105,4 +107,9 @@ export const toUpdateRolePermissionsInput = (
     resource: RESOURCE_FROM_GRAPHQL[permission.resource],
     action: ACTION_FROM_GRAPHQL[permission.action],
   })),
+});
+
+export const toDeleteRoleInput = (args: GraphqlDeleteRoleArgs): DeleteRoleInput => ({
+  roleId: args.roleId,
+  replacementRoleId: args.replacementRoleId,
 });
