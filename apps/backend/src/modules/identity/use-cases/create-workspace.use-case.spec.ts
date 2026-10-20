@@ -55,6 +55,7 @@ describe('CreateWorkspaceUseCase', () => {
         memberCount: 1,
       },
       role: WorkspaceRole.Owner,
+      permissions: [],
     });
     const workspaceId = testbed.module
       .get(IdService)

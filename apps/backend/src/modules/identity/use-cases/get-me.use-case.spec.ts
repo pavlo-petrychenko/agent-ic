@@ -58,6 +58,7 @@ describe('GetMeUseCase', () => {
           memberCount: 1,
         },
         role: WorkspaceRole.Owner,
+        permissions: expect.any(Array),
       },
     ]);
   });

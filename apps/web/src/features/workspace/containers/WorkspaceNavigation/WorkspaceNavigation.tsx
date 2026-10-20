@@ -37,7 +37,7 @@ export function WorkspaceNavigation({
   const groups =
     active === null
       ? []
-      : visibleNavGroups(active.role).map((group) => ({
+      : visibleNavGroups(active.permissions).map((group) => ({
           key: group.key,
           label: group.key === NavGroupKey.Footer ? null : t(`nav.groups.${group.key}`),
           items: group.entries.map((entry) => ({

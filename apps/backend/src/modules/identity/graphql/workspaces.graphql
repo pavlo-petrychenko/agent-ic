@@ -43,6 +43,7 @@ type Workspace {
 type Membership {
   workspace: Workspace!
   role: WorkspaceRole!
+  permissions: [RolePermission!]!
 }
 
 input CreateWorkspaceInput {

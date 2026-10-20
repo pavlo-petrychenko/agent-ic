@@ -1,7 +1,6 @@
 import { INVITABLE_ROLES, WorkspaceRole } from '@agent-ic/contracts';
 import type { PermissionAction, ResourcePermissions } from '@agent-ic/contracts';
 import { useCallback, useMemo, useState } from 'react';
-import { emptyResourcePermissions } from '@/features/settings/communication/helpers/role.helpers';
 import { useCreateRole } from '@/features/settings/communication/hooks/useCreateRole';
 import { ROLE_RESOURCE_DEFINITIONS } from '@/features/settings/constants/roles.constants';
 import type {
@@ -11,6 +10,7 @@ import type {
 } from '@/features/settings/containers/CreateRoleDialog/CreateRoleDialog.typedefs';
 import type { AppRole } from '@/features/settings/typedefs/role.typedefs';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
+import { emptyResourcePermissions } from '@/shared/api/helpers/permission.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 
 export function useCreateRoleDialog({

@@ -8,6 +8,7 @@ import {
   buildInviteLinkMock,
   buildRemoveMemberMock,
   buildResetInviteLinkMock,
+  buildRolesMock,
   buildTeamMembersMock,
   INVITE_URL,
   RESET_INVITE_URL,
@@ -39,6 +40,7 @@ describe('team settings', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildInviteLinkMock(),
         buildTeamMembersMock(),
+        buildRolesMock(),
       ],
     });
 
@@ -60,6 +62,7 @@ describe('team settings', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildInviteLinkMock(),
         buildTeamMembersMock(),
+        buildRolesMock(),
         buildResetInviteLinkMock(),
       ],
     });
@@ -76,6 +79,7 @@ describe('team settings', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildInviteLinkMock(),
         buildTeamMembersMock(),
+        buildRolesMock(),
         buildRemoveMemberMock('mem_2'),
       ],
     });
@@ -100,6 +104,7 @@ describe('team settings', () => {
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildInviteLinkMock(),
         buildTeamMembersMock(),
+        buildRolesMock(),
       ],
     });
 
@@ -122,6 +127,7 @@ describe('team settings', () => {
         }),
         buildInviteLinkMock(),
         buildTeamMembersMock(),
+        buildRolesMock(),
       ],
     });
 
