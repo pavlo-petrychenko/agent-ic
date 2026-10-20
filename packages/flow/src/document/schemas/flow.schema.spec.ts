@@ -269,6 +269,21 @@ describe('prompt source and reasoning', () => {
     });
   });
 
+  it('rejects binding names that differ only by case', () => {
+    const parsed = flowDocumentSchema.safeParse(
+      withAgentConfig({
+        prompt: {
+          kind: PromptSourceKind.Library,
+          promptRef: 'prm_answer',
+          pin: { kind: PromptVersionKind.Latest },
+          bindings: { Name: 'user.name', name: 'channel' },
+        },
+      }),
+    );
+
+    expect(parsed.success).toBe(false);
+  });
+
   it('rejects a binding name outside the prompt variable alphabet', () => {
     const parsed = flowDocumentSchema.safeParse(
       withAgentConfig({

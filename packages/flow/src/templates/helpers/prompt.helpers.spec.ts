@@ -46,6 +46,21 @@ describe('renderPrompt', () => {
     expect(renderPrompt('Hi {{name}}.', () => null)).toBe('Hi .');
   });
 
+  it('accepts spaces around a declared prompt name', () => {
+    expect(renderPrompt('Hi {{ user.name }}.', (path) => path)).toBe('Hi user.name.');
+  });
+
+  it('keeps rendering older flow-template paths', () => {
+    const values: Readonly<Record<string, string>> = {
+      'history[0].text': 'first',
+      'user.name': 'Olena',
+    };
+
+    expect(renderPrompt('{{ history[0].text }} for {{user.name}}', (path) => values[path])).toBe(
+      'first for Olena',
+    );
+  });
+
   it('leaves invalid declarations as text', () => {
     expect(renderPrompt('Hi {{name with spaces}}.', () => 'x')).toBe('Hi {{name with spaces}}.');
   });

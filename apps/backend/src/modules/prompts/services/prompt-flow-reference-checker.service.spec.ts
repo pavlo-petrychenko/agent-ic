@@ -190,6 +190,7 @@ describe('PromptFlowReferenceChecker', () => {
     expect(issues).toEqual([
       bindingIssue(FlowIssueCode.UnknownVariable, STEP_NODE_ID, 'customer_name', {
         variable: 'missing.value',
+        promptVariable: 'customer_name',
       }),
     ]);
   });

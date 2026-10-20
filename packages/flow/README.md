@@ -46,7 +46,7 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 
 - `prompt` is a prompt source, or `null` while the step is a draft:
   - `{ kind: 'library', promptRef, pin, bindings }`: a prompt of the library. `pin` is `{ kind: 'pinned', number }` or `{ kind: 'latest' }`; whether it exists is the backend's check. `bindings` maps each variable declared in the prompt text to a flow variable visible at the node, for example `{ customer_name: 'user.name' }`; the field defaults to `{}` (D273).
-- A prompt declares its variables in its text (`{{customer_name}}`, lowercased, letters, digits, `_`, `.` and `-`). The parser and renderer for those tokens are `collectPromptVariables` and `renderPrompt`; they are separate from the flow template parser because prompt names may contain hyphens and are case-insensitive. `renameNodeKey` rewrites binding targets.
+- A prompt declares its variables in its text (`{{customer_name}}`, lowercased, letters, digits, `_`, `.` and `-`). The parser and renderer for those tokens are `collectPromptVariables` and `renderPrompt`; they are separate from the flow template parser because prompt names may contain hyphens and are case-insensitive. `renderPrompt` also renders older flow-template tokens, such as `{{ user.name }}` and `{{history[0].text}}`, so prompt text written before the prompt parser existed keeps working. `renameNodeKey` rewrites binding targets.
 - The engine resolves a library prompt through the prompts module: the pinned version, or the latest at run start (D269). A step's prompt is always a library reference (D272).
 - `reasoning` is a `ReasoningLevel` from `@agent-ic/contracts`, or `null` for the model's default. A stored flow without the field parses as `null`.
 

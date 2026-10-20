@@ -38,7 +38,7 @@ export const promptBindingIssues = (
           createIssue(FlowIssueCode.UnknownVariable, {
             nodeId: reference.nodeId,
             path: promptBindingPath(name),
-            params: { variable: target },
+            params: { variable: target, promptVariable: name },
           }),
         ]
       : [];
