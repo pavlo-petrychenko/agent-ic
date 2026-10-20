@@ -4,6 +4,7 @@ export enum RoleField {
   Name = 'name',
   BaseRole = 'baseRole',
   RoleId = 'roleId',
+  Description = 'description',
   Permissions = 'permissions',
 }
 

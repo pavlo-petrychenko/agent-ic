@@ -18,6 +18,7 @@ export const roles = identitySchema
       }),
       key: workspaceRoleEnum('key').notNull(),
       name: text('name'),
+      description: text('description'),
       isSystem: boolean('is_system').notNull(),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
       updatedAt: timestamp('updated_at', { withTimezone: true })

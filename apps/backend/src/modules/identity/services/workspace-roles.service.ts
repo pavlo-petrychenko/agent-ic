@@ -73,6 +73,7 @@ export class WorkspaceRolesService {
         id: role.id,
         key: role.key,
         name: role.name,
+        description: role.description,
         isSystem: role.isSystem,
         permissions,
       },
@@ -80,25 +81,41 @@ export class WorkspaceRolesService {
     );
   }
 
-  async create(workspaceId: string, name: string, baseRole: WorkspaceRole): Promise<RoleView> {
+  async create(
+    workspaceId: string,
+    input: {
+      readonly name: string;
+      readonly baseRole: WorkspaceRole;
+      readonly description: string | null;
+      readonly permissions: readonly RolePermission[] | null;
+    },
+  ): Promise<RoleView> {
     const now = this.clock.now();
     const roleId = this.ids.generate();
     await this.roles.insert({
       id: roleId,
       workspaceId,
-      key: baseRole,
-      name,
+      key: input.baseRole,
+      name: input.name,
+      description: input.description,
       isSystem: false,
       createdAt: now,
       updatedAt: now,
     });
-    const base = await this.roles.findByKey(workspaceId, baseRole);
-    const basePermissions =
-      base === null
-        ? defaultPermissionsFor(baseRole)
-        : await this.roles.permissionsForRole(workspaceId, base.id);
-    await this.roles.insertPermissions(this.permissionRows(workspaceId, roleId, basePermissions));
+    const permissions =
+      input.permissions ?? (await this.basePermissions(workspaceId, input.baseRole));
+    await this.roles.insertPermissions(this.permissionRows(workspaceId, roleId, permissions));
     return this.describe(workspaceId, roleId);
+  }
+
+  private async basePermissions(
+    workspaceId: string,
+    baseRole: WorkspaceRole,
+  ): Promise<readonly RolePermission[]> {
+    const base = await this.roles.findByKey(workspaceId, baseRole);
+    return base === null
+      ? defaultPermissionsFor(baseRole)
+      : await this.roles.permissionsForRole(workspaceId, base.id);
   }
 
   async replacePermissions(
@@ -135,6 +152,7 @@ export class WorkspaceRolesService {
       readonly id: string;
       readonly key: WorkspaceRole;
       readonly name: string | null;
+      readonly description: string | null;
       readonly isSystem: boolean;
       readonly permissions: readonly RolePermission[];
     },
@@ -144,6 +162,7 @@ export class WorkspaceRolesService {
       id: this.ids.toPublic(IdPrefix.Role, role.id),
       key: role.key,
       name: role.name,
+      description: role.description,
       isSystem: role.isSystem,
       memberCount,
       permissions: role.permissions,

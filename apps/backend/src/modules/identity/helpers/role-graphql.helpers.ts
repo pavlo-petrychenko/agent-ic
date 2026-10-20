@@ -73,6 +73,7 @@ export const toGraphqlRole = (role: RoleView): GraphqlRole => ({
   id: role.id,
   key: GRAPHQL_WORKSPACE_ROLE[role.key],
   name: role.name,
+  description: role.description,
   isSystem: role.isSystem,
   memberCount: role.memberCount,
   permissions: role.permissions.map(toGraphqlPermission),
@@ -81,6 +82,14 @@ export const toGraphqlRole = (role: RoleView): GraphqlRole => ({
 export const toCreateRoleInput = (args: GraphqlCreateRoleArgs): CreateRoleInput => ({
   name: args.name,
   baseRole: WORKSPACE_ROLE_FROM_GRAPHQL[args.baseRole],
+  description: args.description,
+  permissions:
+    args.permissions === null
+      ? null
+      : args.permissions.map((permission) => ({
+          resource: RESOURCE_FROM_GRAPHQL[permission.resource],
+          action: ACTION_FROM_GRAPHQL[permission.action],
+        })),
 });
 
 export const toRenameRoleInput = (args: GraphqlRenameRoleArgs): RenameRoleInput => ({

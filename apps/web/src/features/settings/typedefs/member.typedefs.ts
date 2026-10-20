@@ -7,6 +7,7 @@ export interface TeamMember {
   readonly name: string;
   readonly email: string;
   readonly role: WorkspaceRole;
+  readonly roleId: string;
   readonly lastActiveAt: string | null;
 }
 

@@ -24,6 +24,7 @@ export interface RoleWithPermissions {
   readonly id: string;
   readonly key: WorkspaceRole;
   readonly name: string | null;
+  readonly description: string | null;
   readonly isSystem: boolean;
   readonly permissions: readonly RolePermission[];
 }
@@ -35,6 +36,8 @@ export interface RoleView extends RoleWithPermissions {
 export interface CreateRoleInput {
   readonly name: string;
   readonly baseRole: WorkspaceRole;
+  readonly description: string | null;
+  readonly permissions: readonly RolePermission[] | null;
 }
 
 export interface RenameRoleInput {

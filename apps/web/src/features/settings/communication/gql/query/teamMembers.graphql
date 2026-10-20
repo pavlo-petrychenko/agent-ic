@@ -8,6 +8,7 @@ query TeamMembers($first: Int) {
         name
         email
         role
+        roleId
         lastActiveAt
       }
     }

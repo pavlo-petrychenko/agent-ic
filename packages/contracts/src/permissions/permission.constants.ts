@@ -1,4 +1,5 @@
 export const ROLE_NAME_MAX_LENGTH = 50;
+export const ROLE_DESCRIPTION_MAX_LENGTH = 200;
 
 export enum WorkspaceRole {
   Owner = 'owner',

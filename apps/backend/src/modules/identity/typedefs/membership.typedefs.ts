@@ -21,6 +21,7 @@ export interface MemberRow {
   readonly name: string;
   readonly email: string;
   readonly role: WorkspaceRole;
+  readonly roleId: string;
   readonly lastActiveAt: Date | null;
   readonly joinedAt: Date;
 }
@@ -31,6 +32,7 @@ export interface Member {
   readonly name: string;
   readonly email: string;
   readonly role: WorkspaceRole;
+  readonly roleId: string;
   readonly lastActiveAt: Date | null;
   readonly joinedAt: Date;
 }
