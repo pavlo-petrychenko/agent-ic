@@ -23,7 +23,8 @@ export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
     active !== null && canOpenSection(active.permissions, WorkspaceSection.General);
   const showRoles = active !== null && canOpenSection(active.permissions, WorkspaceSection.Roles);
   const showUsage = active !== null && canOpenSection(active.permissions, WorkspaceSection.Usage);
-  const showLlmKeys = active !== null && canOpenSection(active.role, WorkspaceSection.LlmKeys);
+  const showLlmKeys =
+    active !== null && canOpenSection(active.permissions, WorkspaceSection.LlmKeys);
 
   const hasWorkspaceNav = showGeneral || showTeam || showRoles || showUsage || showLlmKeys;
 

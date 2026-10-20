@@ -126,7 +126,6 @@ export const buildTeamMembersMock = (): MockLink.MockedResponse =>
       name: 'Pavlo',
       email: 'owner@demo-salon.example',
       role: 'owner',
-      roleId: 'rol_owner',
       lastActiveAt: '2026-10-04T09:40:00.000Z',
     },
     {
@@ -135,7 +134,6 @@ export const buildTeamMembersMock = (): MockLink.MockedResponse =>
       name: 'Yulia',
       email: 'yulia@demo-salon.example',
       role: 'operator',
-      roleId: 'rol_operator',
       lastActiveAt: null,
     },
   ]);
