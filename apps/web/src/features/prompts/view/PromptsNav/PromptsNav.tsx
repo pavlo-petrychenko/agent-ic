@@ -86,7 +86,13 @@ export function PromptsNav({
                   to={PROMPT_PATH}
                   params={{ workspaceId, promptId: prompt.id }}
                   label={prompt.name}
-                  meta={draftPromptIds.has(prompt.id) ? t('nav.draft') : null}
+                  meta={
+                    draftPromptIds.has(prompt.id)
+                      ? t('nav.draft')
+                      : prompt.latestVersionNumber === null
+                        ? null
+                        : t('versions.number', { number: prompt.latestVersionNumber })
+                  }
                   metaKind={SubnavItemMetaKind.Version}
                   depth={SubnavItemDepth.Nested}
                 />

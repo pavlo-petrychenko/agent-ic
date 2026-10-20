@@ -9,6 +9,7 @@ import { useLocale } from '@/shared/i18n/hooks/useLocale';
 export function usePromptDetailsPanel(
   promptId: string,
   usages: readonly PromptUsageItem[] | null,
+  onCompare: ((fromId: string, toId: string) => void) | null,
 ): UsePromptDetailsPanelResult {
   const { locale } = useLocale();
   const { versions, failed, retry } = usePromptVersions(promptId);
@@ -35,10 +36,22 @@ export function usePromptDetailsPanel(
     void retry();
   }, [retry]);
 
+  const compareVersions = useMemo(() => {
+    if (onCompare === null || versions === null) {
+      return null;
+    }
+    const [latest, previous] = versions;
+    if (latest === undefined || previous === undefined) {
+      return null;
+    }
+    return () => onCompare(previous.id, latest.id);
+  }, [onCompare, versions]);
+
   return {
     versions: versionRows,
     pinnedNumbers: pinnedVersionNumbers,
     versionsFailed: failed,
     retryVersions,
+    compareVersions,
   };
 }

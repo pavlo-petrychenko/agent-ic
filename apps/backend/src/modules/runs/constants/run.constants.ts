@@ -33,3 +33,5 @@ export const RUN_STEPS_CHANNEL_NAME = 'run-steps';
 export const CURRENT_MESSAGE_SEPARATOR = '\n';
 
 export const ISO_DATE_LENGTH = 10;
+
+export const NO_RUN_COUNT = 0;

@@ -10,15 +10,15 @@ import styles from '@/features/prompts/containers/PromptDetailsPanel/PromptDetai
 export function PromptDetailsPanel({
   promptId,
   activeVersionId,
+  onSelect,
+  onCompare,
   usages,
   usagesFailed,
   onRetryUsages,
 }: PromptDetailsPanelProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
-  const { versions, pinnedNumbers, versionsFailed, retryVersions } = usePromptDetailsPanel(
-    promptId,
-    usages,
-  );
+  const { versions, pinnedNumbers, versionsFailed, retryVersions, compareVersions } =
+    usePromptDetailsPanel(promptId, usages, onCompare);
 
   return (
     <Panel ariaLabel={t('details.panelLabel')} className={styles.panel} side={PanelSide.Left}>
@@ -28,6 +28,8 @@ export function PromptDetailsPanel({
           versions={versions}
           pinnedNumbers={pinnedNumbers}
           activeId={activeVersionId}
+          onSelect={onSelect}
+          onCompare={compareVersions}
           failed={versionsFailed}
           onRetry={retryVersions}
         />

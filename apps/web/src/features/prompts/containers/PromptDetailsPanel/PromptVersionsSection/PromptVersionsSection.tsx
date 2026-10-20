@@ -5,11 +5,14 @@ import { PromptDetailsSection } from '@/features/prompts/containers/PromptDetail
 import type { PromptVersionsSectionProps } from '@/features/prompts/containers/PromptDetailsPanel/PromptVersionsSection/PromptVersionsSection.typedefs';
 import { PromptVersions } from '@/features/prompts/view/PromptVersions';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
+import styles from '@/features/prompts/containers/PromptDetailsPanel/PromptVersionsSection/PromptVersionsSection.module.scss';
 
 export function PromptVersionsSection({
   versions,
   pinnedNumbers,
   activeId,
+  onSelect,
+  onCompare,
   failed,
   onRetry,
 }: PromptVersionsSectionProps) {
@@ -29,11 +32,27 @@ export function PromptVersionsSection({
         </Text>
       );
     }
-    return <PromptVersions activeId={activeId} pinnedNumbers={pinnedNumbers} versions={versions} />;
+    return (
+      <PromptVersions
+        activeId={activeId}
+        pinnedNumbers={pinnedNumbers}
+        onSelect={onSelect}
+        versions={versions}
+      />
+    );
   };
 
   return (
-    <PromptDetailsSection title={t('versions.title')} action={null}>
+    <PromptDetailsSection
+      title={t('versions.title')}
+      action={
+        onCompare === null ? null : (
+          <button type="button" className={styles.compare} onClick={onCompare}>
+            {t('versions.compare')}
+          </button>
+        )
+      }
+    >
       {body()}
     </PromptDetailsSection>
   );

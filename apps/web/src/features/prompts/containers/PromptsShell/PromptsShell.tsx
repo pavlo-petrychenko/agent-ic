@@ -10,11 +10,11 @@ import { usePromptDraftsStore } from '@/features/prompts/storage/hooks/usePrompt
 import { PromptsNav } from '@/features/prompts/view/PromptsNav';
 
 export function PromptsShell({ workspaceId, children }: PromptsShellProps) {
-  const { folders, prompts, loading } = usePromptLibrary();
+  const { folders, loading } = usePromptLibrary();
   const drafts = usePromptDraftsStore((state) => state.drafts);
   const draftPromptIds = useMemo(() => new Set(Object.keys(drafts)), [drafts]);
   const [query, setQuery] = useState('');
-  const { groups, setOpen } = usePromptFolderTree(folders, prompts, query);
+  const { groups, setOpen } = usePromptFolderTree(folders, query);
   const folderMenu = usePromptFolderMenu();
   const [creating, setCreating] = useState(false);
 
