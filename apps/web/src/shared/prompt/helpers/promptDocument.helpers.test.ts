@@ -4,6 +4,7 @@ import {
   PromptSegmentKind,
 } from '@/shared/prompt/constants/promptDocument.constants';
 import {
+  collectPromptVariables,
   documentToPrompt,
   findVariableTrigger,
   formatVariableToken,
@@ -45,6 +46,18 @@ describe('parsePromptLine', () => {
 
   it('returns no segments for an empty line', () => {
     expect(parsePromptLine('')).toEqual([]);
+  });
+});
+
+describe('collectPromptVariables', () => {
+  it('lists every variable path once, in the order it appears', () => {
+    expect(
+      collectPromptVariables('Hi {{contact.name}}\nBye {{channel}} and {{contact.name}}'),
+    ).toEqual(['contact.name', 'channel']);
+  });
+
+  it('ignores unfinished braces', () => {
+    expect(collectPromptVariables('use {{ and {{name')).toEqual([]);
   });
 });
 

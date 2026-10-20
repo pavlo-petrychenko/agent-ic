@@ -4,7 +4,11 @@
     "subtitle": "Reusable instructions for Agent and Completion steps"
   },
   "nav": {
-    "label": "Prompts"
+    "label": "Prompts",
+    "draft": "draft",
+    "search": "Search prompts",
+    "searchClear": "Clear search",
+    "noResults": "No prompts found"
   },
   "actions": {
     "newPrompt": "New prompt"
@@ -13,10 +17,25 @@
     "title": "No prompts yet",
     "description": "Write a prompt once and use it in many steps. Versions let you change it safely."
   },
+  "dialog": {
+    "close": "Close",
+    "cancel": "Cancel"
+  },
+  "folderMenu": {
+    "label": "Folder actions",
+    "rename": "Rename",
+    "delete": "Delete"
+  },
+  "menu": {
+    "label": "Prompt actions",
+    "rename": "Rename",
+    "move": "Move to folder",
+    "duplicate": "Duplicate",
+    "delete": "Delete prompt"
+  },
   "newPrompt": {
     "title": "New prompt",
     "description": "You can use it in Agent and Completion steps",
-    "close": "Close",
     "nameLabel": "Name",
     "nameInvalid": "Enter a prompt name of up to {{count}} characters.",
     "nameTaken": "A prompt with this name already exists.",
@@ -29,10 +48,113 @@
     "folderSearchClear": "Clear folder search",
     "folderEmpty": "No folders found",
     "folderCreate": "Create “{{name}}”",
-    "cancel": "Cancel",
     "submit": "Create prompt",
     "success": "Prompt “{{name}}” created",
     "failed": "The prompt could not be created."
+  },
+  "renameFolder": {
+    "title": "Rename folder",
+    "nameLabel": "Name",
+    "nameInvalid": "Enter a folder name of up to {{count}} characters.",
+    "submit": "Rename",
+    "success": "Folder “{{name}}” renamed",
+    "failed": "The folder could not be renamed."
+  },
+  "deleteFolder": {
+    "title": "Delete “{{name}}”?",
+    "description": "This can’t be undone.",
+    "notEmpty": "This folder isn’t empty. Move its prompts to another folder first.",
+    "submit": "Delete",
+    "success": "Folder “{{name}}” deleted",
+    "failed": "The folder could not be deleted."
+  },
+  "renamePrompt": {
+    "title": "Rename prompt",
+    "nameLabel": "Name",
+    "nameInvalid": "Enter a prompt name of up to {{count}} characters.",
+    "submit": "Rename",
+    "success": "Prompt “{{name}}” renamed",
+    "failed": "The prompt could not be renamed."
+  },
+  "movePrompt": {
+    "title": "Move to folder",
+    "folderLabel": "Folder",
+    "folderInvalid": "Choose a folder or type a new name of up to {{count}} characters.",
+    "submit": "Move",
+    "success": "Prompt “{{name}}” moved to “{{folder}}”",
+    "failed": "The prompt could not be moved."
+  },
+  "duplicate": {
+    "success": "Duplicated as “{{name}}”",
+    "done": "The prompt was duplicated"
+  },
+  "deletePrompt": {
+    "title": "Delete “{{name}}”?",
+    "description": "This can’t be undone. The prompt and all of its versions are removed.",
+    "submit": "Delete prompt",
+    "success": "Prompt “{{name}}” deleted",
+    "failed": "The prompt could not be deleted."
+  },
+  "view": {
+    "version": "v{{number}} · latest",
+    "savedAt": "Saved {{date}}",
+    "savedBy": "Saved {{date}} by {{author}}",
+    "readOnly": "Read-only — Edit creates a draft",
+    "noText": "This prompt has no text yet.",
+    "body": "Prompt text",
+    "variables": "Variables",
+    "edit": "Edit",
+    "backToLatest": "Back to latest (v{{number}})",
+    "olderNotice": "You’re viewing an older version. Restoring copies it into a new draft; v{{number}} stays until you save.",
+    "compareWith": "Compare with v{{number}}",
+    "restoreAsDraft": "Restore as draft",
+    "versionLoadError": "The version couldn’t be opened.",
+    "loadingVersion": "Loading the version"
+  },
+  "draft": {
+    "badge": "v{{number}} draft",
+    "editing": "Editing v{{number}} draft",
+    "basedOn": "based on v{{base}}",
+    "neverSaved": "never saved",
+    "insertVariable": "Type {{ to insert a variable",
+    "placeholder": "Write what the step should do, who it talks to and how.",
+    "saveAs": "Save as v{{number}}",
+    "discard": "Discard draft",
+    "keepEditing": "Keep editing",
+    "discardTitle": "Discard the v{{number}} draft?",
+    "discardDescription": "Your changes since v{{base}} are deleted. v{{base}} stays the latest version.",
+    "discardRestoredDescription": "Your changes since v{{base}} are deleted. v{{latest}} stays the latest version.",
+    "discardNewDescription": "Your draft is deleted.",
+    "saved": "Saved v{{number}}"
+  },
+  "saveVersion": {
+    "title": "Save as v{{number}}",
+    "description": "{{name}} · versions can’t be edited after saving",
+    "noteLabel": "What changed",
+    "noteHint": "Shown in the version list and when comparing",
+    "noteInvalid": "Keep the note under {{count}} characters.",
+    "submit": "Save v{{number}}",
+    "failed": "The version could not be saved."
+  },
+  "versions": {
+    "title": "Versions",
+    "panelLabel": "Prompt details",
+    "number": "v{{number}}",
+    "open": "View v{{number}}",
+    "compare": "Compare",
+    "empty": "No versions yet. Saving creates v1.",
+    "loadError": "The versions couldn’t be loaded."
+  },
+  "compare": {
+    "close": "Close compare",
+    "from": "Compare from",
+    "to": "Compare to",
+    "fromValue": "Compare from {{number}}",
+    "toValue": "Compare to {{number}}",
+    "restore": "Restore v{{number}} as draft",
+    "summary": "{{removed}} removed · {{added}} added",
+    "loading": "Comparing versions",
+    "loadError": "The versions couldn’t be compared."
   },
   "loadError": "The prompts couldn’t be opened.",
   "retry": "Try again"

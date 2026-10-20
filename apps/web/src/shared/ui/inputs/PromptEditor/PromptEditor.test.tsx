@@ -229,4 +229,21 @@ describe('PromptEditor', () => {
     expect(editor).not.toHaveTextContent('more');
     expect(editor).toHaveAccessibleDescription('v4 is published — create a draft to edit');
   });
+
+  it('renders read-only without a change handler', () => {
+    render(
+      <PromptEditor
+        value="Locked"
+        variables={VARIABLES}
+        label="System prompt"
+        menuLabel="Variables"
+        readOnly
+        readOnlyReason="v4 is published — create a draft to edit"
+      />,
+    );
+
+    const editor = screen.getByRole('textbox', { name: 'System prompt' });
+    expect(editor).toHaveTextContent('Locked');
+    expect(editor).toHaveAttribute('contenteditable', 'false');
+  });
 });

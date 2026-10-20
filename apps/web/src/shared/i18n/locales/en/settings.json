@@ -9,7 +9,8 @@
     "team": "Team",
     "general": "General",
     "roles": "Roles",
-    "usage": "Usage"
+    "usage": "Usage",
+    "llmKeys": "LLM keys"
   },
   "team": {
     "subtitle_one": "{{count}} member · each person has one role in this workspace",
@@ -171,6 +172,62 @@
       "admin": "Builds bots, invites people",
       "builder": "Builds and publishes bots",
       "operator": "Handles escalated chats"
+    }
+  },
+  "llmKeys": {
+    "subtitle": "Platform models or bring your own key",
+    "models": {
+      "title": "Models",
+      "description": "Platform models work out of the box within your usage limit. Add your own key to use a provider's models on your account instead."
+    },
+    "platform": {
+      "title": "Platform models",
+      "subtitle": "{{models}} · counted in your usage limit",
+      "badge": "Platform-provided"
+    },
+    "purposes": {
+      "conversation": "Strong model",
+      "light": "Fast model"
+    },
+    "connected": "Connected",
+    "noKey": "No key",
+    "keyEnds": "Key ends …{{last4}}",
+    "addedBy": "added by {{name}}",
+    "usedBy_one": "used by {{count}} step",
+    "usedBy_other": "used by {{count}} steps",
+    "add": "Add key",
+    "saved": "{{provider}} key saved",
+    "remove": "Remove key",
+    "removed": "{{provider}} key removed",
+    "removeDialog": {
+      "title": "Remove the {{provider}} key?",
+      "warning": "This can't be undone.",
+      "notice": "Steps that use this provider's models on your account stop working until you add a key again.",
+      "confirm": "Remove key",
+      "cancel": "Cancel"
+    },
+    "notice": "Each Agent and Completion step picks its own model in the flow builder. Keys are stored encrypted and never shown again.",
+    "dialog": {
+      "title": "Add a key for {{provider}}",
+      "description": "Use your own account for this provider's models",
+      "providerLabel": "Provider",
+      "keyLabel": "API key",
+      "keyHint": "Stored encrypted. You won't see it again.",
+      "works_one": "Key works · {{count}} model available",
+      "works_other": "Key works · {{count}} models available",
+      "checked": "Checked just now",
+      "afterSave": "After saving, pick these models in any Agent or Completion step. Usage on your key doesn't count toward the workspace limit.",
+      "confirm": "Save key",
+      "cancel": "Cancel"
+    },
+    "vendors": {
+      "openai": "OpenAI",
+      "anthropic": "Anthropic",
+      "mistral": "Mistral",
+      "xiaomi": "Xiaomi",
+      "google": "Google",
+      "zhipu": "Zhipu",
+      "deepseek": "DeepSeek"
     }
   },
   "profile": {

@@ -9,7 +9,11 @@ import type { PromptFolderListItem } from '@/features/prompts/typedefs/promptFol
 import { useAppForm } from '@/shared/forms/hooks/useAppForm';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
-export function useNewPromptForm(folders: readonly PromptFolderListItem[], onClose: () => void) {
+export function useNewPromptForm(
+  folders: readonly PromptFolderListItem[],
+  onClose: () => void,
+  onCreated: (promptId: string) => void,
+) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
   const { showToast } = useToast();
   const { fieldErrors, formError, submit, clearField } = usePromptCreate(folders);
@@ -29,7 +33,8 @@ export function useNewPromptForm(folders: readonly PromptFolderListItem[], onClo
       onChange: ({ fieldApi }) => clearField(fieldApi.name),
     },
     onSubmit: async ({ value }) => {
-      if (!(await submit(value))) {
+      const promptId = await submit(value);
+      if (promptId === null) {
         return;
       }
       showToast({
@@ -37,6 +42,7 @@ export function useNewPromptForm(folders: readonly PromptFolderListItem[], onClo
         tone: ToastTone.Ok,
       });
       onClose();
+      onCreated(promptId);
     },
   });
   const submitting = useStore(form.store, (state) => state.isSubmitting);

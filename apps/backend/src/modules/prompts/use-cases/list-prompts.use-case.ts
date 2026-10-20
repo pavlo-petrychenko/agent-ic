@@ -1,5 +1,6 @@
 import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
+import { PromptVersionsRepository } from '@/modules/prompts/repositories/prompt-versions.repository';
 import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
 import type { ListPromptsInput, PromptView } from '@/modules/prompts/typedefs/prompt.typedefs';
@@ -13,6 +14,7 @@ export class ListPromptsUseCase {
   constructor(
     private readonly tenantTransactions: TenantTransactionService,
     private readonly prompts: PromptsRepository,
+    private readonly versions: PromptVersionsRepository,
     private readonly views: PromptViewsService,
     private readonly ids: IdService,
   ) {}
@@ -28,7 +30,11 @@ export class ListPromptsUseCase {
         folderId,
         search: search.length === 0 ? null : search,
       });
-      return this.views.promptViews(rows);
+      const lastNumbers = await this.versions.summarize(
+        workspaceId,
+        rows.map((row) => row.id),
+      );
+      return this.views.promptViews(rows, lastNumbers);
     });
   }
 }

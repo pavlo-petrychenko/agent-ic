@@ -15,6 +15,7 @@ export function TreeFolder({
   onOpenChange,
   disabled = false,
   className,
+  onContextMenu = null,
   children,
 }: TreeFolderProps) {
   return (
@@ -24,7 +25,10 @@ export function TreeFolder({
       disabled={disabled}
       className={clsx(styles.root, className)}
     >
-      <CollapsiblePrimitive.Trigger className={clsx(styles.trigger, disabled && styles.disabled)}>
+      <CollapsiblePrimitive.Trigger
+        className={clsx(styles.trigger, disabled && styles.disabled)}
+        onContextMenu={onContextMenu ?? undefined}
+      >
         <Icon
           name={open ? IconName.ChevronDown : IconName.ChevronRight}
           size={TREE_FOLDER_CHEVRON_SIZE}
