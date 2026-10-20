@@ -41,6 +41,7 @@ describe('PromptField', () => {
       kind: PromptSourceKind.Library,
       promptRef: GIFT_CARD_PROMPT.id,
       pin: { kind: PromptVersionKind.Latest },
+      bindings: {},
     });
   });
 });

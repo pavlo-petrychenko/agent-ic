@@ -79,6 +79,7 @@ export function PromptLibraryCard({
                   event.target.value === PROMPT_PIN_LATEST
                     ? { kind: PromptVersionKind.Latest }
                     : { kind: PromptVersionKind.Pinned, number: Number(event.target.value) },
+                bindings: source.bindings,
               })
             }
           />

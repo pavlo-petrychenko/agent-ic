@@ -29,6 +29,7 @@ export const toGraphqlPromptVersion = (version: PromptVersionView): PromptVersio
   id: version.id,
   number: version.number,
   text: version.text,
+  variables: version.variables,
   note: version.note,
   author: version.author,
   createdAt: version.createdAt.toISOString(),

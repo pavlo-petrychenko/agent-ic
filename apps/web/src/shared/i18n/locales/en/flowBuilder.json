@@ -280,6 +280,7 @@
     "VARIABLE_TYPE_MISMATCH": "{{variable}} is a {{type}}, which doesn’t fit here",
     "MISSING_PROMPT": "Write a prompt",
     "MISSING_PROMPT_VERSION": "Prompt v{{number}} no longer exists",
+    "PROMPT_VARIABLE_UNMAPPED": "Map {{variable}} to a variable in this step",
     "MISSING_MODEL": "Pick a model",
     "MISSING_EVENT_NAME": "Name the event",
     "MISSING_CHANNEL": "Pick at least one channel",

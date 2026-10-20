@@ -11,7 +11,7 @@ import {
 } from '@agent-ic/flow';
 import type { CompletionNode } from '@agent-ic/flow';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { ConversationMode, MessageAuthor } from '@/modules/conversations';
+import { ChannelKind, ConversationMode, MessageAuthor } from '@/modules/conversations';
 import { ANSWER_FROM_CONVERSATION_MESSAGE } from '@/modules/runs/constants/llm-step.constants';
 import { RunStatus, RunStepStatus } from '@/modules/runs/constants/run.constants';
 import { messageTriggerVariables, stepVariables } from '@/modules/runs/helpers/run-scope.helpers';
@@ -161,6 +161,32 @@ describe('CompletionExecutor', () => {
     );
   });
 
+  it('fills a prompt variable from the binding of the step', async () => {
+    const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
+      prompt: libraryPromptSource(
+        promptRef,
+        { kind: PromptVersionKind.Latest },
+        {
+          'message.text': 'channel',
+        },
+      ),
+    });
+    const seeded = await seedExecutableRun(
+      testbed,
+      guardThenAgent(node),
+      [],
+      ConversationMode.Live,
+      workspaceId,
+    );
+    mock.json({ intent: TEST_ORDER_INTENT });
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+    expect(mock.body(0)['messages']).toContainEqual({
+      role: 'system',
+      content: `Classify this message: ${ChannelKind.Simulated}`,
+    });
+  });
+
   it('leaves the current message out when the step does not include it', async () => {
     const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
       prompt: libraryPromptSource(promptRef),
@@ -216,6 +242,7 @@ describe('CompletionExecutor', () => {
         kind: PromptSourceKind.Library,
         promptRef: TEST_PROMPT_REF,
         pin: { kind: PromptVersionKind.Latest },
+        bindings: {},
       },
     });
     const seeded = await seedExecutableRun(
@@ -250,6 +277,7 @@ describe('CompletionExecutor', () => {
         kind: PromptSourceKind.Library,
         promptRef: publicPromptId(testbed.module, promptId),
         pin: { kind: PromptVersionKind.Pinned, number: SECOND_PROMPT_VERSION_NUMBER },
+        bindings: {},
       },
     });
     const seeded = await seedExecutableRun(

@@ -53,6 +53,7 @@ const draftWithLibraryPrompt = (promptRef: string): FlowDocument =>
           kind: PromptSourceKind.Library,
           promptRef,
           pin: { kind: PromptVersionKind.Latest },
+          bindings: {},
         },
         model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Ministral14b },
       }),

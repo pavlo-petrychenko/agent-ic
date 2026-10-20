@@ -1,4 +1,4 @@
-import { ModelProviderKind, renderTemplate, resolvePath } from '@agent-ic/flow';
+import { ModelProviderKind, renderPrompt, resolvePath } from '@agent-ic/flow';
 import type { ModelRef, PromptSource } from '@agent-ic/flow';
 import { MessageAuthor } from '@/modules/conversations';
 import type { Message } from '@/modules/conversations';
@@ -50,7 +50,10 @@ export const stepSystemPrompt = (
   if (resolved === null) {
     throw new StepPromptUnavailableError(nodeId, prompt.promptRef);
   }
-  return renderTemplate(resolved.text, (path) => resolvePath(variables, path));
+  const bindings = new Map(
+    Object.entries(prompt.bindings ?? {}).map(([name, target]) => [name.toLowerCase(), target]),
+  );
+  return renderPrompt(resolved.text, (path) => resolvePath(variables, bindings.get(path) ?? path));
 };
 
 const historyMessages = (

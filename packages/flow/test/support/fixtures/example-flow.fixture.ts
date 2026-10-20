@@ -42,6 +42,7 @@ export const examplePrompt = (promptRef: string = EXAMPLE_PROMPT_REF): PromptSou
   kind: PromptSourceKind.Library,
   promptRef,
   pin: { kind: PromptVersionKind.Latest },
+  bindings: {},
 });
 
 export const exampleModel: ModelRef = {
@@ -234,6 +235,7 @@ export const scheduledFollowUpFlow: FlowDocument = {
           kind: PromptSourceKind.Library,
           promptRef: 'prm_follow_up',
           pin: { kind: PromptVersionKind.Pinned, number: 3 },
+          bindings: {},
         },
         model: exampleModel,
         reasoning: null,

@@ -41,6 +41,7 @@ export interface PromptVersionView {
   readonly id: string;
   readonly number: number;
   readonly text: string;
+  readonly variables: readonly string[];
   readonly note: string | null;
   readonly author: PromptVersionAuthor | null;
   readonly createdAt: Date;

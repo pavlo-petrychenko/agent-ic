@@ -24,6 +24,7 @@ export const promptReferences = (flow: FlowDocument): readonly PromptReference[]
             nodeLabel: node.label,
             promptRef: prompt.promptRef,
             pin: prompt.pin,
+            bindings: prompt.bindings,
           },
         ];
   });

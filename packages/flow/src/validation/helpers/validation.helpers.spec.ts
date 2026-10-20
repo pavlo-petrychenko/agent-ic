@@ -68,7 +68,10 @@ const guard = (key: string) => {
   return node;
 };
 
-const REFERENCE_CHECKER_CODES = [FlowIssueCode.MissingPromptVersion] as const;
+const REFERENCE_CHECKER_CODES = [
+  FlowIssueCode.MissingPromptVersion,
+  FlowIssueCode.PromptVariableUnmapped,
+] as const;
 type ValidationIssueCode = Exclude<FlowIssueCode, (typeof REFERENCE_CHECKER_CODES)[number]>;
 
 const validationCodes = Object.values(FlowIssueCode).filter(
@@ -367,6 +370,7 @@ describe('prompt source checks', () => {
       kind: PromptSourceKind.Library,
       promptRef: 'prm_more',
       pin: { kind: PromptVersionKind.Pinned, number: 2 },
+      bindings: {},
     };
     expect(hasBlockingIssues(validateFlow(withPrompt(prompt)))).toBe(false);
   });

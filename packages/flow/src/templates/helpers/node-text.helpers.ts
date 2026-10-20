@@ -1,5 +1,5 @@
 import { NodeType } from '@flow/document/constants/flow.constants';
-import type { FlowNode } from '@flow/document/typedefs/flow.typedefs';
+import type { FlowNode, PromptSource } from '@flow/document/typedefs/flow.typedefs';
 import {
   EscalationMode,
   MessageContentKind,
@@ -20,6 +20,19 @@ const variable = (path: readonly string[], value: string): NodeTextField => ({
   path,
   value,
 });
+
+const mapPrompt = (prompt: PromptSource | null, mappers: NodeTextMappers): PromptSource | null =>
+  prompt === null
+    ? null
+    : {
+        ...prompt,
+        bindings: Object.fromEntries(
+          Object.entries(prompt.bindings ?? {}).map(([path, target]) => [
+            path,
+            mappers.variable(target),
+          ]),
+        ),
+      };
 
 export const nodeTextFields = (node: FlowNode): readonly NodeTextField[] => {
   switch (node.type) {
@@ -148,7 +161,15 @@ export const mapNodeText = (node: FlowNode, mappers: NodeTextMappers): FlowNode 
       };
     }
     case NodeType.Agent:
+      return {
+        ...node,
+        config: { ...node.config, prompt: mapPrompt(node.config.prompt, mappers) },
+      };
     case NodeType.Completion:
+      return {
+        ...node,
+        config: { ...node.config, prompt: mapPrompt(node.config.prompt, mappers) },
+      };
     case NodeType.TriggerMessage:
     case NodeType.TriggerExternalEvent:
     case NodeType.TriggerSchedule:

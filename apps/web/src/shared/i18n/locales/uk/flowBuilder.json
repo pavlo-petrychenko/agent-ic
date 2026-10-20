@@ -288,6 +288,7 @@
     "VARIABLE_TYPE_MISMATCH": "{{variable}} має тип {{type}}, який тут не підходить",
     "MISSING_PROMPT": "Напишіть промпт",
     "MISSING_PROMPT_VERSION": "Версії v{{number}} цього промпту більше не існує",
+    "PROMPT_VARIABLE_UNMAPPED": "Зіставте {{variable}} зі змінною цього кроку",
     "MISSING_MODEL": "Оберіть модель",
     "MISSING_EVENT_NAME": "Назвіть подію",
     "MISSING_CHANNEL": "Оберіть хоча б один канал",

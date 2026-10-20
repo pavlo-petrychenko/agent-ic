@@ -33,6 +33,7 @@ const library = (promptRef: string, pin: PromptPin): PromptSource => ({
   kind: PromptSourceKind.Library,
   promptRef,
   pin,
+  bindings: {},
 });
 
 const pinned = (number: number): PromptPin => ({ kind: PromptVersionKind.Pinned, number });

@@ -25,6 +25,7 @@ export enum FlowIssueCode {
   VariableTypeMismatch = 'VARIABLE_TYPE_MISMATCH',
   MissingPrompt = 'MISSING_PROMPT',
   MissingPromptVersion = 'MISSING_PROMPT_VERSION',
+  PromptVariableUnmapped = 'PROMPT_VARIABLE_UNMAPPED',
   MissingModel = 'MISSING_MODEL',
   MissingEventName = 'MISSING_EVENT_NAME',
   MissingChannel = 'MISSING_CHANNEL',
