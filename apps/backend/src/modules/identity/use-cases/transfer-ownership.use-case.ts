@@ -2,8 +2,8 @@ import { IdPrefix, PermissionAction, PermissionResource, WorkspaceRole } from '@
 import { Injectable } from '@nestjs/common';
 import { TRANSFER_OWNERSHIP_RATE_LIMIT } from '@/modules/identity/constants/rate-limit.constants';
 import { CannotTransferToYourselfError } from '@/modules/identity/errors/cannot-transfer-to-yourself.error';
-import { InvalidCredentialsError } from '@/modules/identity/errors/invalid-credentials.error';
 import { TeamMemberNotFoundError } from '@/modules/identity/errors/team-member-not-found.error';
+import { WrongPasswordError } from '@/modules/identity/errors/wrong-password.error';
 import { verifyPassword } from '@/modules/identity/helpers/password.helpers';
 import { parseWorkspaceInput } from '@/modules/identity/helpers/workspace-input.helpers';
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
@@ -41,7 +41,7 @@ export class TransferOwnershipUseCase {
       const user = await this.users.findById(access.userId);
       const matches = await verifyPassword(user?.passwordHash ?? null, password);
       if (user === null || !matches) {
-        throw new InvalidCredentialsError();
+        throw new WrongPasswordError();
       }
       const owner = await this.memberships.findOwnerForUpdate(access.workspaceId);
       if (owner === null || owner.userId !== access.userId) {

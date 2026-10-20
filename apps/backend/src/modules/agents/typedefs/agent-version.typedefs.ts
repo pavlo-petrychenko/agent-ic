@@ -140,3 +140,8 @@ export interface PublishPreview {
   readonly warnings: readonly FlowIssue[];
   readonly simulator: SimulatorCheck;
 }
+
+export interface FlowNodeCount {
+  readonly versionId: string;
+  readonly nodes: number;
+}

@@ -1,7 +1,7 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { InvalidCredentialsError } from '@/modules/identity/errors/invalid-credentials.error';
 import { WorkspaceNameMismatchError } from '@/modules/identity/errors/workspace-name-mismatch.error';
+import { WrongPasswordError } from '@/modules/identity/errors/wrong-password.error';
 import { DeleteWorkspaceUseCase } from '@/modules/identity/use-cases/delete-workspace.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { TEST_PASSWORD } from '@test/support/constants/identity-testing.constants';
@@ -72,6 +72,6 @@ describe('DeleteWorkspaceUseCase', () => {
       password: 'not the password',
     });
 
-    await expect(attempt).rejects.toBeInstanceOf(InvalidCredentialsError);
+    await expect(attempt).rejects.toBeInstanceOf(WrongPasswordError);
   });
 });

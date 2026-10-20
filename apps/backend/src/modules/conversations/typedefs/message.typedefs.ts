@@ -37,3 +37,8 @@ export interface OutboundDelivery {
   readonly message: Message;
   readonly conversation: Conversation;
 }
+
+export interface RunMessageCount {
+  readonly runId: string | null;
+  readonly total: number;
+}

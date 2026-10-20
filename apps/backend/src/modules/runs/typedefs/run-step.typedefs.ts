@@ -35,3 +35,8 @@ export interface RunStepResult {
   readonly error: RunFailure | null;
   readonly finishedAt: Date;
 }
+
+export interface RunStepCount {
+  readonly runId: string;
+  readonly total: number;
+}

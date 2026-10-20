@@ -87,6 +87,11 @@ module.exports = {
       { path: systemDatabaseService },
     ),
     forbidden(
+      'backend-dataloader-only-in-graphql-server',
+      { path: '^apps/backend/', pathNot: `${platform}graphql-server/` },
+      { path: '(^|node_modules/)dataloader/' },
+    ),
+    forbidden(
       'web-communication-layer',
       { path: `${features}([^/]+)/communication/` },
       { path: `${features}$1/`, pathNot: [`${features}$1/communication/`, featureShared] },

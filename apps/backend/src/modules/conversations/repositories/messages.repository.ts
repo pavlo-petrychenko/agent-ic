@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, eq, gt, lt, lte, or } from 'drizzle-orm';
+import { and, asc, count, eq, gt, inArray, lt, lte, or } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import type { MessageDelivery } from '@/modules/conversations/constants/message.constants';
@@ -9,6 +9,7 @@ import type {
   Message,
   MessagePosition,
   NewMessage,
+  RunMessageCount,
 } from '@/modules/conversations/typedefs/message.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
@@ -59,12 +60,15 @@ export class MessagesRepository {
     return message ?? null;
   }
 
-  async countByRun(workspaceId: string, runId: string): Promise<number> {
-    const [counted] = await this.txHost.tx
-      .select({ total: count() })
+  async countByRuns(workspaceId: string, runIds: readonly string[]): Promise<RunMessageCount[]> {
+    if (runIds.length === 0) {
+      return [];
+    }
+    return this.txHost.tx
+      .select({ runId: messages.runId, total: count() })
       .from(messages)
-      .where(and(eq(messages.workspaceId, workspaceId), eq(messages.runId, runId)));
-    return counted?.total ?? 0;
+      .where(and(eq(messages.workspaceId, workspaceId), inArray(messages.runId, [...runIds])))
+      .groupBy(messages.runId);
   }
 
   listByConversation(workspaceId: string, conversationId: string): Promise<Message[]> {

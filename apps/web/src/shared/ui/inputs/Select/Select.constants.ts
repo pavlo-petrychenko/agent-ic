@@ -4,3 +4,4 @@ export enum SelectSize {
 }
 
 export const SELECT_ERROR_ID_SUFFIX = '-error';
+export const SELECT_CHEVRON_SIZE = 12;

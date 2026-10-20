@@ -6,6 +6,7 @@ const prompt = (id: string, updatedAt: string): PromptListItem => ({
   id,
   name: id,
   folderId: 'pfl_1',
+  latestVersionNumber: null,
   updatedAt,
 });
 

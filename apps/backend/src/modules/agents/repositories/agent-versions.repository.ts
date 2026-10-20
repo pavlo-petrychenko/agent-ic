@@ -6,6 +6,7 @@ import {
   AgentVersionAggregate,
   AgentVersionAlias,
   AgentVersionKind,
+  FLOW_NODES_FIELD,
   NO_PUBLISHED_VERSIONS,
 } from '@/modules/agents/constants/agent.constants';
 import { agentVersions } from '@/modules/agents/db/agent-versions.table';
@@ -17,9 +18,11 @@ import {
 import type {
   AgentVersion,
   DraftChanges,
+  FlowNodeCount,
   NewAgentVersion,
 } from '@/modules/agents/typedefs/agent-version.typedefs';
 import type { AgentVersionSummary } from '@/modules/agents/typedefs/agent.typedefs';
+import { toSqlLiteral } from '@/platform/database/helpers/tenant-sql.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
@@ -50,6 +53,57 @@ export class AgentVersionsRepository {
         ),
       );
     return draft === undefined ? null : withCurrentFlow(draft);
+  }
+
+  async listByIds(workspaceId: string, versionIds: readonly string[]): Promise<AgentVersion[]> {
+    if (versionIds.length === 0) {
+      return [];
+    }
+    const versions = await this.txHost.tx
+      .select()
+      .from(agentVersions)
+      .where(
+        and(eq(agentVersions.workspaceId, workspaceId), inArray(agentVersions.id, [...versionIds])),
+      );
+    return versions.map(withCurrentFlow);
+  }
+
+  async listDrafts(workspaceId: string, agentIds: readonly string[]): Promise<AgentVersion[]> {
+    if (agentIds.length === 0) {
+      return [];
+    }
+    const drafts = await this.txHost.tx
+      .select()
+      .from(agentVersions)
+      .where(
+        and(
+          eq(agentVersions.workspaceId, workspaceId),
+          inArray(agentVersions.agentId, [...agentIds]),
+          eq(agentVersions.kind, AgentVersionKind.Draft),
+        ),
+      );
+    return drafts.map(withCurrentFlow);
+  }
+
+  async countFlowNodes(
+    workspaceId: string,
+    versionIds: readonly string[],
+  ): Promise<FlowNodeCount[]> {
+    if (versionIds.length === 0) {
+      return [];
+    }
+    return this.txHost.tx
+      .select({
+        versionId: agentVersions.id,
+        nodes:
+          sql<number>`jsonb_array_length(${agentVersions.flow} -> ${sql.raw(toSqlLiteral(FLOW_NODES_FIELD))})`.mapWith(
+            Number,
+          ),
+      })
+      .from(agentVersions)
+      .where(
+        and(eq(agentVersions.workspaceId, workspaceId), inArray(agentVersions.id, [...versionIds])),
+      );
   }
 
   async listByAgent(workspaceId: string, agentId: string): Promise<AgentVersion[]> {
