@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, eq, ilike, isNull, sql } from 'drizzle-orm';
+import { and, asc, count, eq, ilike, inArray, isNull, sql } from 'drizzle-orm';
 import { prompts } from '@/modules/prompts/db/prompts.table';
 import { promptNamesLockKey } from '@/modules/prompts/helpers/prompt-name.helpers';
 import type {
@@ -73,17 +73,20 @@ export class PromptsRepository {
       .orderBy(asc(prompts.id));
   }
 
+  listByFolderIds(workspaceId: string, folderIds: readonly string[]): Promise<Prompt[]> {
+    return this.txHost.tx
+      .select()
+      .from(prompts)
+      .where(and(this.activeWhere(workspaceId), inArray(prompts.folderId, folderIds)))
+      .orderBy(asc(prompts.id));
+  }
+
   rename(workspaceId: string, promptId: string, name: string): Promise<Prompt | null> {
     return this.update(workspaceId, promptId, { name });
   }
 
-  async moveToFolder(
-    workspaceId: string,
-    promptId: string,
-    folderId: string,
-    updatedAt: Date,
-  ): Promise<boolean> {
-    return (await this.update(workspaceId, promptId, { folderId, updatedAt })) !== null;
+  moveToFolder(workspaceId: string, promptId: string, folderId: string): Promise<Prompt | null> {
+    return this.update(workspaceId, promptId, { folderId });
   }
 
   async touch(workspaceId: string, promptId: string, updatedAt: Date): Promise<boolean> {
@@ -92,6 +95,10 @@ export class PromptsRepository {
 
   async softDelete(workspaceId: string, promptId: string, deletedAt: Date): Promise<boolean> {
     return (await this.update(workspaceId, promptId, { deletedAt })) !== null;
+  }
+
+  async deleteByWorkspace(workspaceId: string): Promise<void> {
+    await this.txHost.tx.delete(prompts).where(eq(prompts.workspaceId, workspaceId));
   }
 
   private activeWhere(workspaceId: string) {

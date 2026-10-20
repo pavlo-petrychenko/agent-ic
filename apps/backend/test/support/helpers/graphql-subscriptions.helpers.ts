@@ -1,14 +1,17 @@
 import { IdPrefix, Locale } from '@agent-ic/contracts';
 import type { WorkspaceRole } from '@agent-ic/contracts';
+import type { FlowDocument } from '@agent-ic/flow';
 import { createClient } from 'graphql-ws';
 import { expect, vi } from 'vitest';
 import WebSocket from 'ws';
 import { APP_MODULES } from '@/app/constants/app-modules.constants';
+import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { ConversationMode } from '@/modules/conversations';
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { CreateWorkspaceUseCase } from '@/modules/identity/use-cases/create-workspace.use-case';
 import { ROOT_BRANCH_KEY, RunStepStatus, runStepsChannel } from '@/modules/runs';
+import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { AccessTokenService } from '@/platform/context/services/access-token.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -26,6 +29,7 @@ import {
   RUN_STEPS_SUBSCRIPTION,
   SUBSCRIBERS_REPLY_COUNT_INDEX,
   SUBSCRIPTIONS_TEST_START,
+  TEST_STEP_NODE_PREFIX,
   TEST_MEMBER_NAME,
   TEST_MEMBER_PASSWORD_HASH,
 } from '@test/support/constants/graphql-subscriptions.constants';
@@ -35,14 +39,17 @@ import {
   LOOPBACK_HOST,
 } from '@test/support/constants/request-layer.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
 import { TestRollbackError } from '@test/support/errors/test-rollback.error';
 import { uniqueEmail, userCtx } from '@test/support/fixtures/identity.fixture';
 import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
-import { newRun } from '@test/support/fixtures/runs.fixture';
+import { newRun, newRunStep } from '@test/support/fixtures/runs.fixture';
 import { createWorkspaceInput } from '@test/support/fixtures/workspace.fixture';
 import { createApi, websocketUrl } from '@test/support/helpers/request-layer.helpers';
 import type {
   LiveSubscription,
+  SeededSimulationRun,
+  SimulatorIds,
   SubscriptionsApi,
   TestMember,
 } from '@test/support/typedefs/graphql-subscriptions.typedefs';
@@ -122,6 +129,67 @@ export const seedRun = async (
     .get(TenantTransactionService)
     .run(workspaceId, () => api.app.get(RunsRepository).insert(run));
   return run.id;
+};
+
+export const seedSimulationRuns = async (
+  api: SubscriptionsApi,
+  owner: TestMember,
+  simulation: SimulatorIds,
+  stepCounts: readonly number[],
+): Promise<SeededSimulationRun[]> => {
+  const ids = api.app.get(IdService);
+  const { workspaceId } = owner;
+  const agentId = ids.fromPublic(IdPrefix.Agent, simulation.agentId);
+  const conversationId = ids.fromPublic(IdPrefix.Conversation, simulation.conversationId);
+  return api.app.get(TenantTransactionService).run(workspaceId, async () => {
+    const draft = await api.app.get(AgentVersionsRepository).findDraft(workspaceId, agentId);
+    if (draft === null) {
+      throw new MissingTestDataError(agentId);
+    }
+    const seeded: SeededSimulationRun[] = [];
+    for (const stepCount of stepCounts) {
+      const run = {
+        ...newRun({ ids }, workspaceId),
+        mode: ConversationMode.Simulation,
+        conversationId,
+        agentId,
+        versionId: draft.id,
+      };
+      await api.app.get(RunsRepository).insert(run);
+      for (let index = 0; index < stepCount; index += 1) {
+        const step = newRunStep({ ids }, run, { nodeId: `${TEST_STEP_NODE_PREFIX}${index}` });
+        await api.app.get(RunStepsRepository).start(step);
+      }
+      seeded.push({ id: ids.toPublic(IdPrefix.Run, run.id), stepCount });
+    }
+    return seeded;
+  });
+};
+
+export const replaceDraftFlow = async (
+  api: SubscriptionsApi,
+  member: TestMember,
+  agentId: string,
+  flow: FlowDocument,
+): Promise<void> => {
+  const { workspaceId } = member;
+  const ids = api.app.get(IdService);
+  const internalId = ids.fromPublic(IdPrefix.Agent, agentId);
+  const versions = api.app.get(AgentVersionsRepository);
+  await api.app.get(TenantTransactionService).run(workspaceId, async () => {
+    const draft = await versions.findDraft(workspaceId, internalId);
+    if (draft === null) {
+      throw new MissingTestDataError(internalId);
+    }
+    const changes = { flow, note: null, authorId: ids.generate() };
+    await versions.updateDraft(
+      workspaceId,
+      draft.id,
+      draft.revision,
+      changes,
+      SUBSCRIPTIONS_TEST_START,
+    );
+  });
 };
 
 export const publicRunId = (api: SubscriptionsApi, runId: string): string =>

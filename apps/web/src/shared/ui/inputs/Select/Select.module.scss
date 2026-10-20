@@ -5,7 +5,12 @@
   width: 100%;
 }
 
+.control {
+  position: relative;
+}
+
 .select {
+  appearance: none;
   width: 100%;
   padding: 0 var(--space-8);
   border: var(--border-width) solid var(--color-line);
@@ -35,6 +40,15 @@
 .disabled {
   opacity: var(--opacity-disabled);
   cursor: not-allowed;
+}
+
+.chevron {
+  position: absolute;
+  top: 50%;
+  right: var(--space-6);
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--color-mute);
 }
 
 .md {

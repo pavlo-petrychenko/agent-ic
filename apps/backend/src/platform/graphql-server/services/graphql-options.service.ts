@@ -1,5 +1,6 @@
 import type { ApolloDriverConfig } from '@nestjs/apollo';
 import { Injectable } from '@nestjs/common';
+import { GraphQLSchemaHost } from '@nestjs/graphql';
 import type { GqlOptionsFactory } from '@nestjs/graphql';
 import type { Request } from 'express';
 import { NodeEnvironment } from '@/platform/config/constants/env.constants';
@@ -23,6 +24,11 @@ import {
 import { readConnectionParam } from '@/platform/graphql-server/helpers/connection-param.helpers';
 import { jsonScalar } from '@/platform/graphql-server/helpers/json-scalar.helpers';
 import { moduleTypePaths } from '@/platform/graphql-server/helpers/module-sdl.helpers';
+import {
+  queryLimitsPlugin,
+  subscriptionErrors,
+} from '@/platform/graphql-server/helpers/query-limits.helpers';
+import { GraphqlLoadersService } from '@/platform/graphql-server/services/graphql-loaders.service';
 import type {
   GraphqlContext,
   GraphqlContextInput,
@@ -38,6 +44,8 @@ export class GraphqlOptionsService implements GqlOptionsFactory<ApolloDriverConf
     private readonly contexts: UseCaseCtxService,
     private readonly traceIds: TraceIdService,
     private readonly reporter: ErrorReporterService,
+    private readonly loaders: GraphqlLoadersService,
+    private readonly schemaHost: GraphQLSchemaHost,
   ) {}
 
   createGqlOptions(): ApolloDriverConfig {
@@ -51,10 +59,13 @@ export class GraphqlOptionsService implements GqlOptionsFactory<ApolloDriverConf
       graphiql: nodeEnv === NodeEnvironment.Development,
       introspection: nodeEnv !== NodeEnvironment.Production,
       includeStacktraceInErrorResponses: false,
+      plugins: [queryLimitsPlugin],
       subscriptions: {
         'graphql-ws': {
           path: GRAPHQL_PATH,
           onConnect: (connection: WebSocketConnectionInput) => this.acceptConnection(connection),
+          onSubscribe: (_connection, _id, payload) =>
+            subscriptionErrors(this.schemaHost.schema, payload),
         },
       },
       context: (input: GraphqlContextInput) => this.createContext(input),
@@ -64,7 +75,8 @@ export class GraphqlOptionsService implements GqlOptionsFactory<ApolloDriverConf
   private async createContext(input: GraphqlContextInput): Promise<GraphqlContext> {
     const request = 'req' in input ? this.fromHttp(input.req) : this.fromWebSocket(input);
     try {
-      return { ctx: await this.contexts.create(request) };
+      const ctx = await this.contexts.create(request);
+      return { ctx, loaders: this.loaders.create(ctx) };
     } catch (error) {
       this.reporter.report(error, request.traceId);
       throw toGraphqlError(error, request.traceId);

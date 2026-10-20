@@ -1,3 +1,4 @@
+import { ErrorReason } from '@agent-ic/contracts';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PromptNameTakenError } from '@/modules/prompts/errors/prompt-name-taken.error';
@@ -5,6 +6,7 @@ import { PromptNotFoundError } from '@/modules/prompts/errors/prompt-not-found.e
 import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
 import { RenamePromptUseCase } from '@/modules/prompts/use-cases/rename-prompt.use-case';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import { DomainErrorKind } from '@/platform/errors/constants/domain-error.constants';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
   PROMPTS_TEST_LATER,
@@ -85,6 +87,10 @@ describe('RenamePromptUseCase', () => {
     });
 
     await expect(attempt).rejects.toBeInstanceOf(PromptNameTakenError);
+    await expect(attempt).rejects.toMatchObject({
+      kind: DomainErrorKind.Conflict,
+      reason: ErrorReason.PromptNameTaken,
+    });
   });
 
   it('allows a name freed by a deleted prompt', async () => {

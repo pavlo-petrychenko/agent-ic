@@ -7,6 +7,11 @@ import {
   SimulatorCheckStatus,
 } from '@/modules/agents/constants/agent.constants';
 import type {
+  AgentConnectionParent,
+  AgentParent,
+  PublishAgentPayloadParent,
+} from '@/modules/agents/typedefs/agent-graphql.typedefs';
+import type {
   AgentDraftView,
   AgentVersionView,
   PublishPreview as DomainPublishPreview,
@@ -18,14 +23,11 @@ import type {
   PauseAgentInput,
 } from '@/modules/agents/typedefs/agent.typedefs';
 import type {
-  Agent,
-  AgentConnection,
   AgentDraft,
   AgentVersion,
   FlowDiff,
   FlowIssue,
   PauseAgentInput as GraphqlPauseAgentInput,
-  PublishAgentPayload,
   PublishPreview,
 } from '@/platform/graphql-server/generated/schema.generated';
 import {
@@ -69,7 +71,7 @@ const GRAPHQL_SIMULATOR_CHECK: Readonly<Record<SimulatorCheckStatus, GraphqlSimu
     [SimulatorCheckStatus.NotTested]: GraphqlSimulatorCheckStatus.NotTested,
   };
 
-export const toGraphqlAgent = (agent: AgentView): Agent => ({
+export const toGraphqlAgent = (agent: AgentView): AgentParent => ({
   id: agent.id,
   name: agent.name,
   description: agent.description,
@@ -78,17 +80,15 @@ export const toGraphqlAgent = (agent: AgentView): Agent => ({
   draftNumber: agent.draftNumber,
   draftBaseVersionNumber: agent.draftBaseVersionNumber,
   hasUnpublishedChanges: agent.hasUnpublishedChanges,
-  draftChangeCount: agent.draftChangeCount,
   versionCount: agent.versionCount,
   pausedAt: agent.pausedAt?.toISOString() ?? null,
   pauseMode: agent.pauseMode === null ? null : GRAPHQL_PAUSE_MODE[agent.pauseMode],
   awayMessage: agent.awayMessage,
   createdAt: agent.createdAt.toISOString(),
   updatedAt: agent.updatedAt.toISOString(),
-  lastSimulationRun: null,
 });
 
-export const toGraphqlAgentConnection = (page: AgentsPage): AgentConnection => ({
+export const toGraphqlAgentConnection = (page: AgentsPage): AgentConnectionParent => ({
   pageInfo: page.pageInfo,
   edges: page.edges.map((edge) => ({ cursor: edge.cursor, node: toGraphqlAgent(edge.node) })),
 });
@@ -121,7 +121,7 @@ export const toGraphqlAgentDraft = (draft: AgentDraftView): AgentDraft => ({
   issues: draft.issues.map(toGraphqlFlowIssue),
 });
 
-export const toGraphqlPublishedAgent = (published: PublishedAgent): PublishAgentPayload => ({
+export const toGraphqlPublishedAgent = (published: PublishedAgent): PublishAgentPayloadParent => ({
   agent: toGraphqlAgent(published.agent),
   version: toGraphqlAgentVersion(published.version),
 });
