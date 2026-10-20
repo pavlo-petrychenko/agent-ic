@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { ConversationMode } from '@/modules/conversations';
 import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
-import { RunDetailsService } from '@/modules/runs/services/run-details.service';
+import { RunViewsService } from '@/modules/runs/services/run-views.service';
 import type { GetRunInput, RunView } from '@/modules/runs/typedefs/run-details.typedefs';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -15,7 +15,7 @@ export class GetRunUseCase {
   constructor(
     private readonly tenants: TenantTransactionService,
     private readonly runs: RunsRepository,
-    private readonly details: RunDetailsService,
+    private readonly views: RunViewsService,
     private readonly ids: IdService,
   ) {}
 
@@ -27,7 +27,7 @@ export class GetRunUseCase {
       if (run?.mode !== ConversationMode.Simulation) {
         throw new RunNotFoundError(input.id);
       }
-      return this.details.details(run);
+      return this.views.runView(run);
     });
   }
 }

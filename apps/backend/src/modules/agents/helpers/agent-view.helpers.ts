@@ -25,7 +25,6 @@ export const toAgentView = (
   draftNumber: summary.lastVersionNumber + 1,
   draftBaseVersionNumber: summary.draftBaseVersionNumber,
   hasUnpublishedChanges: summary.hasUnpublishedChanges,
-  draftChangeCount: null,
   versionCount: summary.versionCount,
   pausedAt: agent.pausedAt,
   pauseMode: agent.pauseMode,
@@ -33,3 +32,6 @@ export const toAgentView = (
   createdAt: agent.createdAt,
   updatedAt: agent.updatedAt,
 });
+
+export const liveVersionIdsOf = (agents: readonly Agent[]): string[] =>
+  agents.flatMap(({ liveVersionId }) => (liveVersionId === null ? [] : [liveVersionId]));

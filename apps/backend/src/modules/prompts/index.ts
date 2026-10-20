@@ -1,5 +1,5 @@
 export { PromptsModule } from '@/modules/prompts/prompts.module';
-export { PromptResolverService } from '@/modules/prompts/services/prompt-resolver.service';
+export { PromptFlowReader } from '@/modules/prompts/services/prompt-flow-reader.service';
 export type {
   ResolvedPrompt,
   ResolvedPrompts,

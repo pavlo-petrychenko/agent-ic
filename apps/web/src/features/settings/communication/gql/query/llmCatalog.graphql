@@ -1,0 +1,8 @@
+query LlmCatalog {
+  modelOptions {
+    id
+    vendor
+    source
+    purposes
+  }
+}

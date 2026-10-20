@@ -6,7 +6,7 @@ import {
   ConversationRunsService,
 } from '@/modules/conversations';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
-import { RunDetailsService } from '@/modules/runs/services/run-details.service';
+import { RunViewsService } from '@/modules/runs/services/run-views.service';
 import type { RunView, SimulationRunsInput } from '@/modules/runs/typedefs/run-details.typedefs';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -19,7 +19,7 @@ export class ListSimulationRunsUseCase {
     private readonly tenants: TenantTransactionService,
     private readonly conversations: ConversationRunsService,
     private readonly runs: RunsRepository,
-    private readonly details: RunDetailsService,
+    private readonly views: RunViewsService,
     private readonly ids: IdService,
   ) {}
 
@@ -39,7 +39,7 @@ export class ListSimulationRunsUseCase {
         throw new ConversationNotFoundError(input.conversationId);
       }
       const runs = await this.runs.listByConversation(workspaceId, conversationId);
-      return Promise.all(runs.map((run) => this.details.details(run)));
+      return runs.map((run) => this.views.runView(run));
     });
   }
 }

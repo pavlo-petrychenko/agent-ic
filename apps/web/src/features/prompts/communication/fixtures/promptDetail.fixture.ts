@@ -2,6 +2,7 @@ import type { MockLink } from '@apollo/client/testing';
 import type { PromptFixture } from '@/features/prompts/communication/fixtures/promptLibrary.fixture';
 import { SavePromptVersionDocument } from '@/features/prompts/communication/gql/mutation/savePromptVersion.generated';
 import { PromptDetailDocument } from '@/features/prompts/communication/gql/query/promptDetail.generated';
+import { PromptVersionDocument } from '@/features/prompts/communication/gql/query/promptVersion.generated';
 import { PromptVersionsDocument } from '@/features/prompts/communication/gql/query/promptVersions.generated';
 
 export interface PromptVersionFixture {
@@ -34,16 +35,21 @@ export const RECEPTIONIST_SAVED_VERSION: PromptVersionFixture = {
   authorName: 'Pavlo',
 };
 
+export const RECEPTIONIST_PREVIOUS_VERSION: PromptVersionFixture = {
+  id: 'pvr_3',
+  number: 3,
+  text: [
+    'You are the receptionist of Demo salon. Talk to {{contact.name}} in a warm, short style.',
+    '- If you don’t know, say “I don’t know”.',
+  ].join('\n'),
+  note: 'Answer only from search results',
+  createdAt: '2026-09-10T12:00:00.000Z',
+  authorName: 'Pavlo',
+};
+
 export const RECEPTIONIST_VERSIONS: readonly PromptVersionFixture[] = [
   RECEPTIONIST_VERSION,
-  {
-    id: 'pvr_3',
-    number: 3,
-    text: 'Answer only from the knowledge search results.',
-    note: 'Answer only from search results',
-    createdAt: '2026-09-10T12:00:00.000Z',
-    authorName: 'Pavlo',
-  },
+  RECEPTIONIST_PREVIOUS_VERSION,
   {
     id: 'pvr_2',
     number: 2,
@@ -78,6 +84,7 @@ const versionNode = (version: PromptVersionFixture | null) =>
         id: version.id,
         number: version.number,
         text: version.text,
+        note: version.note,
         createdAt: version.createdAt,
         author:
           version.authorName === null
@@ -100,6 +107,15 @@ export const buildPromptVersionsMock = (
 ): MockLink.MockedResponse => ({
   request: { query: PromptVersionsDocument, variables: { promptId: prompt.id } },
   result: { data: { promptVersions: versions.map(versionListNode) } },
+  maxUsageCount,
+});
+
+export const buildPromptVersionMock = (
+  version: PromptVersionFixture,
+  maxUsageCount: number = Number.POSITIVE_INFINITY,
+): MockLink.MockedResponse => ({
+  request: { query: PromptVersionDocument, variables: { id: version.id } },
+  result: { data: { promptVersion: versionNode(version) } },
   maxUsageCount,
 });
 

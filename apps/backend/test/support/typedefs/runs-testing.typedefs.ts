@@ -115,3 +115,21 @@ export interface StepWaiter {
 export interface StepWatch {
   readonly reached: Promise<void>;
 }
+
+export interface RunBatchIds {
+  readonly executed: string;
+  readonly started: string;
+  readonly queued: string;
+}
+
+export interface RunBatch {
+  readonly workspaceId: string;
+  readonly runIds: RunBatchIds;
+}
+
+export interface LastRunBatch {
+  readonly workspaceId: string;
+  readonly agentIds: readonly string[];
+  readonly testedRunId: string;
+  readonly publishedRunId: string;
+}

@@ -2,9 +2,11 @@ import { useTranslation } from 'react-i18next';
 import { ROLE_FIXTURES } from '@/features/settings/constants/roles.constants';
 import {
   GENERAL_PATH,
+  LLM_KEYS_PATH,
   ROLES_PATH,
   PROFILE_PATH,
   TEAM_PATH,
+  USAGE_PATH,
 } from '@/features/settings/constants/route.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { SettingsShellProps } from '@/features/settings/containers/SettingsShell/SettingsShell.typedefs';
@@ -19,8 +21,10 @@ export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
   const showTeam = active !== null && canOpenSection(active.role, WorkspaceSection.Team);
   const showGeneral = active !== null && canOpenSection(active.role, WorkspaceSection.General);
   const showRoles = active !== null && canOpenSection(active.role, WorkspaceSection.Roles);
+  const showUsage = active !== null && canOpenSection(active.role, WorkspaceSection.Usage);
+  const showLlmKeys = active !== null && canOpenSection(active.role, WorkspaceSection.LlmKeys);
 
-  const hasWorkspaceNav = showGeneral || showTeam || showRoles;
+  const hasWorkspaceNav = showGeneral || showTeam || showRoles || showUsage || showLlmKeys;
 
   return (
     <SettingsFrame
@@ -49,6 +53,18 @@ export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
               {showRoles && (
                 <NavItem to={ROLES_PATH} params={{ workspaceId }} meta={ROLE_FIXTURES.length}>
                   {t('nav.roles')}
+                </NavItem>
+              )}
+
+              {showUsage && (
+                <NavItem to={USAGE_PATH} params={{ workspaceId }}>
+                  {t('nav.usage')}
+                </NavItem>
+              )}
+
+              {showLlmKeys && (
+                <NavItem to={LLM_KEYS_PATH} params={{ workspaceId }}>
+                  {t('nav.llmKeys')}
                 </NavItem>
               )}
             </NavGroup>

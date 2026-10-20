@@ -8,6 +8,10 @@ import {
   toGraphqlFlowDiff,
   toGraphqlPublishPreview,
 } from '@/modules/agents/helpers/agent-graphql.helpers';
+import type {
+  AgentConnectionParent,
+  AgentParent,
+} from '@/modules/agents/typedefs/agent-graphql.typedefs';
 import { CompareAgentVersionsUseCase } from '@/modules/agents/use-cases/compare-agent-versions.use-case';
 import { CountAgentsUseCase } from '@/modules/agents/use-cases/count-agents.use-case';
 import { GetAgentDraftUseCase } from '@/modules/agents/use-cases/get-agent-draft.use-case';
@@ -18,8 +22,6 @@ import { PreviewAgentPublishUseCase } from '@/modules/agents/use-cases/preview-a
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { GraphqlCtx } from '@/platform/graphql-server/decorators/graphql-ctx.decorator';
 import type {
-  Agent,
-  AgentConnection,
   AgentDraft,
   AgentVersion,
   FlowDiff,
@@ -54,7 +56,7 @@ export class AgentsResolver {
     @GraphqlCtx() ctx: UseCaseCtx,
     @Args(AgentGraphqlArgument.First) first: QueryAgentsArgs['first'],
     @Args(AgentGraphqlArgument.After) after: QueryAgentsArgs['after'],
-  ): Promise<AgentConnection> {
+  ): Promise<AgentConnectionParent> {
     return toGraphqlAgentConnection(await this.listAgentsUseCase.execute(ctx, { first, after }));
   }
 
@@ -62,7 +64,7 @@ export class AgentsResolver {
   async agent(
     @GraphqlCtx() ctx: UseCaseCtx,
     @Args(AgentGraphqlArgument.Id) id: QueryAgentArgs['id'],
-  ): Promise<Agent> {
+  ): Promise<AgentParent> {
     return toGraphqlAgent(await this.getAgentUseCase.execute(ctx, { id }));
   }
 

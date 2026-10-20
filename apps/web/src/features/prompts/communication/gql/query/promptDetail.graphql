@@ -10,6 +10,7 @@ query PromptDetail($id: ID!) {
       id
       number
       text
+      note
       createdAt
       author {
         name
