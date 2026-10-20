@@ -42,6 +42,7 @@ export const toGraphqlMembership = (membership: WorkspaceMembership): Membership
 export const toGraphqlInviteLink = (link: InviteLinkView): GraphqlInviteLink => ({
   url: link.url,
   role: GRAPHQL_WORKSPACE_ROLE[link.role],
+  roleId: link.roleId,
   expiresAt: link.expiresAt.toISOString(),
   joinedCount: link.joinedCount,
 });
@@ -51,6 +52,7 @@ export const toGraphqlInviteInfo = (info: InviteInfo): GraphqlInviteInfo => ({
   inviterName: info.inviterName,
   memberCount: info.memberCount,
   role: GRAPHQL_WORKSPACE_ROLE[info.role],
+  roleId: info.roleId,
   expiresAt: info.expiresAt.toISOString(),
 });
 
@@ -83,4 +85,7 @@ export const toChangeMemberRoleInput = (args: ChangeMemberRoleArgs): ChangeMembe
 
 export const toUpdateInviteLinkRoleInput = (
   args: UpdateInviteLinkRoleArgs,
-): UpdateInviteLinkRoleInput => ({ role: WORKSPACE_ROLE_FROM_GRAPHQL[args.role] });
+): UpdateInviteLinkRoleInput => ({
+  role: args.role === null ? undefined : WORKSPACE_ROLE_FROM_GRAPHQL[args.role],
+  roleId: args.roleId ?? undefined,
+});

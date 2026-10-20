@@ -24,9 +24,10 @@ export const inviteTokenInputSchema = z.object({
 
 export const optionalInviteTokenSchema = tokenSchema.nullish();
 
-export const inviteRoleInputSchema = z.object({
-  [WorkspaceField.Role]: z.enum(WorkspaceRole),
-});
+export const inviteRoleInputSchema = z.union([
+  z.object({ [WorkspaceField.Role]: z.enum(WorkspaceRole) }),
+  z.object({ [WorkspaceField.RoleId]: z.string().min(1) }),
+]);
 
 export const renameWorkspaceInputSchema = z.object({
   [WorkspaceField.Name]: workspaceNameSchema,

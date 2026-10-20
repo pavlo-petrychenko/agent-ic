@@ -13,6 +13,7 @@ import type {
   NewMembership,
   RoleMemberCount,
 } from '@/modules/identity/typedefs/membership.typedefs';
+import type { RoleRef } from '@/modules/identity/typedefs/role.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
@@ -37,12 +38,17 @@ export class MembershipsRepository {
   }
 
   async findRole(workspaceId: string, userId: string): Promise<WorkspaceRole | null> {
+    const membership = await this.findRoleWithId(workspaceId, userId);
+    return membership?.roleKey ?? null;
+  }
+
+  async findRoleWithId(workspaceId: string, userId: string): Promise<RoleRef | null> {
     const [row] = await this.txHost.tx
-      .select({ key: roles.key })
+      .select({ roleId: memberships.roleId, roleKey: roles.key })
       .from(memberships)
       .innerJoin(roles, eq(roles.id, memberships.roleId))
       .where(and(eq(memberships.workspaceId, workspaceId), eq(memberships.userId, userId)));
-    return row?.key ?? null;
+    return row ?? null;
   }
 
   async countByWorkspace(workspaceId: string): Promise<number> {
