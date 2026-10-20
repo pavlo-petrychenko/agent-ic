@@ -1,4 +1,4 @@
-$role-column-width: 150px;
+$role-column-width: 190px;
 $actions-column-width: 56px;
 
 .table {
@@ -62,6 +62,10 @@ $actions-column-width: 56px;
   color: var(--color-ink-secondary);
   font: var(--type-body-small);
   font-variant-numeric: tabular-nums;
+}
+
+.role {
+  max-width: $role-column-width;
 }
 
 .actions {

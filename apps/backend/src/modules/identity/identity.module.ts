@@ -8,6 +8,7 @@ import { SessionsRepository } from '@/modules/identity/repositories/sessions.rep
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { WorkspacesRepository } from '@/modules/identity/repositories/workspaces.repository';
 import { AcceptInviteResolver } from '@/modules/identity/resolvers/accept-invite.resolver';
+import { ChangeMemberRoleResolver } from '@/modules/identity/resolvers/change-member-role.resolver';
 import { ChangeMyPasswordResolver } from '@/modules/identity/resolvers/change-my-password.resolver';
 import { CreateWorkspaceResolver } from '@/modules/identity/resolvers/create-workspace.resolver';
 import { DeleteWorkspaceResolver } from '@/modules/identity/resolvers/delete-workspace.resolver';
@@ -40,6 +41,7 @@ import { SampleWorkspaceService } from '@/modules/identity/services/sample-works
 import { SessionsService } from '@/modules/identity/services/sessions.service';
 import { WorkspaceMembershipsService } from '@/modules/identity/services/workspace-memberships.service';
 import { AcceptInviteUseCase } from '@/modules/identity/use-cases/accept-invite.use-case';
+import { ChangeMemberRoleUseCase } from '@/modules/identity/use-cases/change-member-role.use-case';
 import { ChangeMyPasswordUseCase } from '@/modules/identity/use-cases/change-my-password.use-case';
 import { CleanUpAuthRecordsUseCase } from '@/modules/identity/use-cases/clean-up-auth-records.use-case';
 import { ConfirmEmailChangeUseCase } from '@/modules/identity/use-cases/confirm-email-change.use-case';
@@ -106,6 +108,7 @@ export class IdentityModule extends defineModule({
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
     ChangeMyPasswordUseCase,
+    ChangeMemberRoleUseCase,
     CreateWorkspaceUseCase,
     DeleteWorkspaceUseCase,
     ListMyWorkspacesUseCase,
@@ -131,6 +134,7 @@ export class IdentityModule extends defineModule({
     MeResolver,
     ForgotPasswordResolver,
     ChangeMyPasswordResolver,
+    ChangeMemberRoleResolver,
     CreateWorkspaceResolver,
     DeleteWorkspaceResolver,
     MyWorkspacesResolver,

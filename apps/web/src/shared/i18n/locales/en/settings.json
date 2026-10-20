@@ -35,6 +35,8 @@
       "never": "Not yet",
       "actions": "Actions",
       "moreActions": "More actions for {{name}}",
+      "changeRole": "Role for {{name}}",
+      "roleChanged": "{{name}} is now {{role}}",
       "remove": {
         "dialog": {
           "title": "Remove {{name}} from {{workspace}}?",

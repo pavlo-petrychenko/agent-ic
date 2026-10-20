@@ -7,3 +7,6 @@ export const TEAM_MEMBER_NOT_FOUND_MESSAGE = 'That person is not part of this wo
 export const WORKSPACE_NAME_MISMATCH_MESSAGE = 'The name does not match the workspace name.';
 export const CANNOT_DELETE_OWNER = 'Owner of the workspace cannot be deleted.';
 export const CANNOT_DELETE_YOURSELF = 'You cannot remove yourself. Leave the workspace instead.';
+export const CANNOT_CHANGE_OWNER_ROLE =
+  'The owner role cannot be changed. Transfer ownership instead.';
+export const CANNOT_CHANGE_ADMIN_ROLE = "Only the owner can change an admin's role.";
