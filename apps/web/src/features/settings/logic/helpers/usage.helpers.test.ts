@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatUsageDay,
+  formatUsageLastDay,
   usagePercent,
-  usagePeriod,
+  usagePeriodLabel,
+  usageReachedWhen,
   usageTone,
 } from '@/features/settings/logic/helpers/usage.helpers';
+import { UsageWhenKind } from '@/features/settings/typedefs/usage.typedefs';
 import { ProgressTone } from '@/shared/ui/display/Progress/Progress.constants';
 
 describe('usage helpers', () => {
@@ -23,15 +26,43 @@ describe('usage helpers', () => {
     expect(usageTone(100)).toBe(ProgressTone.Err);
   });
 
-  it('takes the first and the last day of the month of the given date', () => {
-    const { start, end } = usagePeriod(new Date(2026, 9, 15));
-    expect(formatUsageDay(start, 'en')).toBe('Oct 1');
-    expect(formatUsageDay(end, 'en')).toBe('Oct 31');
+  it('formats a UTC day', () => {
+    expect(formatUsageDay('2026-10-01T00:00:00.000Z', 'en')).toBe('Oct 1');
+    expect(formatUsageDay('2026-10-31T23:59:59.000Z', 'en')).toBe('Oct 31');
   });
 
-  it('keeps short months and the year boundary local', () => {
-    expect(formatUsageDay(usagePeriod(new Date(2027, 1, 8)).end, 'en')).toBe('Feb 28');
-    expect(formatUsageDay(usagePeriod(new Date(2026, 11, 31)).start, 'en')).toBe('Dec 1');
-    expect(formatUsageDay(usagePeriod(new Date(2026, 11, 31)).end, 'en')).toBe('Dec 31');
+  it('shows the last day of the period from the exclusive end', () => {
+    expect(formatUsageLastDay('2026-11-01T00:00:00.000Z', 'en')).toBe('Oct 31');
+    expect(formatUsageLastDay('2027-03-01T00:00:00.000Z', 'en')).toBe('Feb 28');
+    expect(formatUsageLastDay('2027-01-01T00:00:00.000Z', 'en')).toBe('Dec 31');
+  });
+
+  it('builds the period label', () => {
+    expect(usagePeriodLabel('2026-10-01T00:00:00.000Z', '2026-11-01T00:00:00.000Z', 'en')).toBe(
+      'Oct 1 – Oct 31',
+    );
+  });
+
+  it('says today when the limit was reached on the current UTC day', () => {
+    const now = new Date('2026-10-12T18:00:00.000Z');
+    expect(usageReachedWhen('2026-10-12T01:00:00.000Z', now, 'en')).toEqual({
+      kind: UsageWhenKind.Today,
+      date: null,
+    });
+  });
+
+  it('gives the date when the limit was reached on an earlier day', () => {
+    const now = new Date('2026-10-12T18:00:00.000Z');
+    expect(usageReachedWhen('2026-10-09T23:59:00.000Z', now, 'en')).toEqual({
+      kind: UsageWhenKind.On,
+      date: 'Oct 9',
+    });
+  });
+
+  it('gives no date when the reach time is unknown', () => {
+    expect(usageReachedWhen(null, new Date('2026-10-12T18:00:00.000Z'), 'en')).toEqual({
+      kind: UsageWhenKind.Unknown,
+      date: null,
+    });
   });
 });

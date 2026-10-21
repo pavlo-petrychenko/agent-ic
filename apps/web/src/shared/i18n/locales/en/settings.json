@@ -164,7 +164,18 @@
       "title": "Your workspace",
       "heading": "Early access",
       "description": "Free while in beta · limits reset monthly",
-      "action": "Ask for a higher limit"
+      "action": "Ask for a higher limit",
+      "soon": "Coming soon"
+    },
+    "loading": "Loading usage",
+    "failed": "Couldn't load usage.",
+    "retry": "Retry",
+    "limitBanner": {
+      "text": "{{workspace}} reached this month's usage limit {{when}}. Agents on platform models aren't answering, new chats go to the Inbox until {{date}}.",
+      "textUndated": "{{workspace}} reached this month's usage limit. Agents on platform models aren't answering, new chats go to the Inbox until {{date}}.",
+      "today": "today",
+      "on": "on {{date}}",
+      "action": "See usage"
     }
   },
   "roles": {

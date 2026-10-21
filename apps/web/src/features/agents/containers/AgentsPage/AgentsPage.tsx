@@ -4,7 +4,11 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAgents } from '@/features/agents/communication/hooks/useAgents';
 import { useCreateAgent } from '@/features/agents/communication/hooks/useCreateAgent';
-import { BUILDER_PATH, SETTINGS_TEAM_PATH } from '@/features/agents/constants/agentList.constants';
+import {
+  BUILDER_PATH,
+  SETTINGS_TEAM_PATH,
+  SETTINGS_USAGE_PATH,
+} from '@/features/agents/constants/agentList.constants';
 import { AGENTS_NAMESPACE } from '@/features/agents/constants/agentsI18n.constants';
 import type { AgentStatus } from '@/features/agents/constants/agentStatus.constants';
 import type { AgentsPageProps } from '@/features/agents/containers/AgentsPage/AgentsPage.typedefs';
@@ -19,11 +23,13 @@ import { AgentsEmpty } from '@/features/agents/view/AgentsEmpty';
 import { AgentsTable } from '@/features/agents/view/AgentsTable';
 import { SetupChecklist, SetupInviteAction } from '@/features/agents/view/SetupChecklist';
 import type { SetupInvite } from '@/features/agents/view/SetupChecklist';
-import { copyText, useInviteLink } from '@/features/settings';
+import { copyText, formatUsageDay, useInviteLink, useUsageStatus } from '@/features/settings';
 import { useActiveWorkspace } from '@/features/workspace';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
+import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { Button } from '@/shared/ui/actions/Button';
+import { AttentionCard } from '@/shared/ui/display/AttentionCard';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { SearchInput } from '@/shared/ui/inputs/SearchInput';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
@@ -35,7 +41,9 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
   const router = useRouter();
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
+  const { locale } = useLocale();
   const active = useActiveWorkspace(workspaceId);
+  const { status: usageStatus, limitReached } = useUsageStatus();
   const { agents, loading, failed, hasNextPage, loadingMore, loadMore, retry } = useAgents();
   const { createAgent, creating } = useCreateAgent();
   const [query, setQuery] = useState('');
@@ -142,21 +150,51 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
             />
           </div>
         ) : (
-          <AgentsTable
-            rows={filterAgents(agents, query, statuses).map(toRow)}
-            status={toTableStatus(loading, failed)}
-            statusIds={statuses}
-            hasNextPage={hasNextPage}
-            loadingMore={loadingMore}
-            onStatusIdsChange={(ids) => setStatuses(toStatuses(ids))}
-            onClearFilters={onClearFilters}
-            onLoadMore={() => void runGuarded(loadMore)}
-            onRetry={() => void runGuarded(retry)}
-            onOpen={(row) =>
-              void navigate({ to: BUILDER_PATH, params: { workspaceId, agentId: row.id } })
+          <div
+            className={
+              limitReached && usageStatus !== null
+                ? 'grid grid-cols-[minmax(0,1fr)_var(--size-agents-setup-width)] items-start gap-5'
+                : undefined
             }
-            onAction={rowMenu.onAction}
-          />
+          >
+            <AgentsTable
+              rows={filterAgents(agents, query, statuses).map(toRow)}
+              status={toTableStatus(loading, failed)}
+              statusIds={statuses}
+              hasNextPage={hasNextPage}
+              loadingMore={loadingMore}
+              onStatusIdsChange={(ids) => setStatuses(toStatuses(ids))}
+              onClearFilters={onClearFilters}
+              onLoadMore={() => void runGuarded(loadMore)}
+              onRetry={() => void runGuarded(retry)}
+              onOpen={(row) =>
+                void navigate({ to: BUILDER_PATH, params: { workspaceId, agentId: row.id } })
+              }
+              onAction={rowMenu.onAction}
+            />
+            {limitReached && usageStatus !== null && (
+              <AttentionCard
+                title={t('attention.title')}
+                rows={[
+                  {
+                    id: 'usage-limit',
+                    icon: IconName.Alert,
+                    title: t('attention.usageLimit.title'),
+                    meta: t('attention.usageLimit.meta', {
+                      date: formatUsageDay(usageStatus.periodEnd, locale),
+                    }),
+                    action: {
+                      label: t('attention.usageLimit.action'),
+                      href: router.buildLocation({
+                        to: SETTINGS_USAGE_PATH,
+                        params: { workspaceId },
+                      }).href,
+                    },
+                  },
+                ]}
+              />
+            )}
+          </div>
         )}
       </div>
       {rowMenu.pauseRow !== null && (
