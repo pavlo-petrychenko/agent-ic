@@ -1,17 +1,21 @@
-import { ModelProviderKind, NodeType, OutputFieldType, nodeOutputFields } from '@agent-ic/flow';
-import type { FlowDocument, ModelRef, OutputField } from '@agent-ic/flow';
+import { NodeType, OutputFieldType, nodeOutputFields } from '@agent-ic/flow';
+import type { FlowDocument, OutputField } from '@agent-ic/flow';
 import {
-  CHOOSABLE_MODEL_SOURCE,
   NEW_ENUM_VALUE,
   NEW_OUTPUT_FIELD_PREFIX,
   NEW_OUTPUT_FIELD_SEPARATOR,
   STEP_MODEL_PURPOSE,
 } from '@/features/flow-builder/constants/llmStep.constants';
 import { updateNode } from '@/features/flow-builder/logic/helpers/inspector.helpers';
+import {
+  choiceSource,
+  modelRefOf,
+  parseChoiceKey,
+} from '@/features/flow-builder/logic/helpers/modelChoice.helpers';
 import type {
   LlmStepConfigPatch,
   LlmStepType,
-  ModelChoice,
+  ModelGroup,
   OutputFieldPatch,
 } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 
@@ -46,33 +50,41 @@ export const setIncludeCurrentMessage = (
   );
 
 export const modelsForStep = (
-  models: readonly ModelChoice[],
+  groups: readonly ModelGroup[],
   type: LlmStepType,
-): readonly ModelChoice[] =>
-  models.filter(
-    (model) =>
-      model.source === CHOOSABLE_MODEL_SOURCE && model.purposes.includes(STEP_MODEL_PURPOSE[type]),
-  );
+): readonly ModelGroup[] =>
+  groups.map((group) => ({
+    ...group,
+    choices: group.choices.filter((choice) => choice.purposes.includes(STEP_MODEL_PURPOSE[type])),
+  }));
 
 export const selectModel = (
   document: FlowDocument,
   nodeId: string,
-  models: readonly ModelChoice[],
-  modelId: string,
+  groups: readonly ModelGroup[],
+  key: string,
 ): FlowDocument => {
   const node = document.nodes.find((candidate) => candidate.id === nodeId);
-  const chosen = models.find((model) => model.id === modelId) ?? null;
-  if (node === undefined || chosen === null) {
+  const parsed = parseChoiceKey(key);
+  const group =
+    parsed === null
+      ? undefined
+      : groups.find((candidate) => candidate.id === choiceSource(parsed.providerKeyId));
+  if (node === undefined || parsed === null || group === undefined) {
     return document;
   }
-  const model: ModelRef = { provider: { kind: ModelProviderKind.Platform }, model: chosen.id };
+  const chosen = group.choices.find((choice) => choice.id === parsed.model) ?? null;
+  if (chosen === null && parsed.providerKeyId === null) {
+    return document;
+  }
+  const levels = chosen?.reasoningLevels ?? [];
   const reasoning =
     (node.type === NodeType.Agent || node.type === NodeType.Completion) &&
     node.config.reasoning !== null &&
-    chosen.reasoningLevels.includes(node.config.reasoning)
+    levels.includes(node.config.reasoning)
       ? node.config.reasoning
       : null;
-  return updateLlmStep(document, nodeId, { model, reasoning });
+  return updateLlmStep(document, nodeId, { model: modelRefOf(parsed), reasoning });
 };
 
 const withOutput = (

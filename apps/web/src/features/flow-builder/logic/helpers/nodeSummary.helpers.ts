@@ -5,6 +5,7 @@ import {
   OUTPUT_FIELDS_SEPARATOR,
   SummaryKey,
 } from '@/features/flow-builder/constants/nodeSummary.constants';
+import { refChoiceKey } from '@/features/flow-builder/logic/helpers/modelChoice.helpers';
 import type { ModelChoice } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 import type { PortLabel, SummaryPart } from '@/features/flow-builder/typedefs/nodeSummary.typedefs';
 
@@ -13,6 +14,14 @@ const part = (key: SummaryKey, params: SummaryPart['params'] = {}): SummaryPart 
   params,
 });
 
+const modelLabel = (model: ModelRef, models: readonly ModelChoice[]): string => {
+  const { providerKeyId } = refChoiceKey(model);
+  return (
+    models.find((choice) => choice.providerKeyId === providerKeyId && choice.id === model.model)
+      ?.label ?? model.model
+  );
+};
+
 const modelAndPrompt = (
   model: ModelRef | null,
   prompt: PromptSource | null,
@@ -20,9 +29,7 @@ const modelAndPrompt = (
 ): SummaryPart[] => [
   model === null
     ? part(SummaryKey.NoModel)
-    : part(SummaryKey.Model, {
-        model: models.find((choice) => choice.id === model.model)?.label ?? model.model,
-      }),
+    : part(SummaryKey.Model, { model: modelLabel(model, models) }),
   ...(prompt === null ? [] : [part(SummaryKey.LibraryPrompt)]),
 ];
 
