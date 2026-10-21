@@ -52,6 +52,34 @@ const fieldLine = (change: FieldChange): Pick<ChangeLine, 'sentence' | 'before' 
 const fieldName = (path: readonly string[]): string =>
   (path[0] === CONFIG_FIELD ? path[1] : path[0]) ?? CONFIG_FIELD;
 
+const promptBindingName = (path: readonly string[]): string | null =>
+  path[0] === CONFIG_FIELD && path[1] === 'prompt' && path[2] === 'bindings'
+    ? (path[3] ?? null)
+    : null;
+
+const promptBindingLine = (
+  change: FieldChange,
+): Pick<ChangeLine, 'sentence' | 'field' | 'variable' | 'before' | 'after'> | null => {
+  const variable = promptBindingName(change.path);
+  if (variable === null) {
+    return null;
+  }
+  const before = inlineValue(change.before);
+  const after = inlineValue(change.after);
+  return {
+    sentence:
+      change.after === undefined || isEmpty(change.after)
+        ? ChangeSentence.PromptBindingRemoved
+        : change.before === undefined || isEmpty(change.before)
+          ? ChangeSentence.PromptBindingSet
+          : ChangeSentence.PromptBindingChanged,
+    field: null,
+    variable,
+    before,
+    after,
+  };
+};
+
 export const toChangeLines = (
   diff: PublishPreview['diff'],
   document: FlowDocument,
@@ -103,19 +131,23 @@ export const toChangeLines = (
     ...diff.changedNodes.flatMap((node) =>
       node.fields
         .filter((change) => !LAYOUT_FIELDS.includes(change.path[0] ?? ''))
-        .map((change) => ({
-          id: `${node.nodeId}-${change.path.join('.')}`,
-          kind: ChangeKind.Changed,
-          step: stepName(node.nodeId, node.key),
-          ...(change.path[0] === LABEL_FIELD
-            ? {
-                sentence: ChangeSentence.StepRenamed,
-                field: null,
-                before: inlineValue(change.before) ?? node.key,
-                after: null,
-              }
-            : { field: fieldName(change.path), ...fieldLine(change) }),
-        })),
+        .map((change) => {
+          const binding = promptBindingLine(change);
+          return {
+            id: `${node.nodeId}-${change.path.join('.')}`,
+            kind: ChangeKind.Changed,
+            step: stepName(node.nodeId, node.key),
+            ...(binding ??
+              (change.path[0] === LABEL_FIELD
+                ? {
+                    sentence: ChangeSentence.StepRenamed,
+                    field: null,
+                    before: inlineValue(change.before) ?? node.key,
+                    after: null,
+                  }
+                : { field: fieldName(change.path), ...fieldLine(change) })),
+          };
+        }),
     ),
     ...diff.removedNodes.map((node) =>
       stepLine(node, ChangeKind.Removed, ChangeSentence.StepRemoved),

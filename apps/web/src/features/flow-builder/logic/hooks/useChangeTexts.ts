@@ -25,6 +25,7 @@ export function useChangeTexts(
                 line.field === null
                   ? ''
                   : t(`publish.field.${line.field}`, { defaultValue: t('publish.field.other') }),
+              variable: line.variable ?? '',
               before: line.before,
               after: line.after,
             }),

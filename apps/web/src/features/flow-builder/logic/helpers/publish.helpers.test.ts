@@ -54,6 +54,38 @@ describe('toChangeLines', () => {
     ]);
   });
 
+  it('names a changed prompt binding instead of the whole prompt', () => {
+    expect(
+      fieldLines(
+        {
+          path: ['config', 'prompt', 'bindings', 'bookings.body'],
+          before: 'bookings.body',
+          after: 'user.name',
+        },
+        {
+          path: ['config', 'prompt', 'bindings', 'loyalty.body'],
+          before: 'loyalty.body',
+          after: undefined,
+        },
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        sentence: ChangeSentence.PromptBindingChanged,
+        field: null,
+        variable: 'bookings.body',
+        before: 'bookings.body',
+        after: 'user.name',
+      }),
+      expect.objectContaining({
+        sentence: ChangeSentence.PromptBindingRemoved,
+        field: null,
+        variable: 'loyalty.body',
+        before: 'loyalty.body',
+        after: null,
+      }),
+    ]);
+  });
+
   it('picks the sentence for each kind of field change', () => {
     const sentences = fieldLines(
       { path: ['config', 'typing'], before: false, after: true },
