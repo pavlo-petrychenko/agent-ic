@@ -62,7 +62,6 @@ export class RunLifecycleService {
       trigger: RunTrigger.Message,
       status: RunStatus.Queued,
       lastCoveredMessageId,
-      createdAt: this.clock.now(),
     };
     await this.runs.insert(run);
     await this.conversations.claimRun(workspaceId, conversationId, run.id);

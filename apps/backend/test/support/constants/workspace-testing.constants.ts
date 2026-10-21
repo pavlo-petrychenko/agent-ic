@@ -15,6 +15,7 @@ import { runs } from '@/modules/runs/db/runs.table';
 import type { WorkspaceTable } from '@test/support/typedefs/workspace-testing.typedefs';
 
 export const TEST_WORKSPACE_NAME = 'Kavarnia Lviv';
+export const TEST_WORKSPACE_NEW_NAME = 'Kavarnia Kyiv';
 export const TEST_TIME_ZONE = 'Europe/Kyiv';
 export const UNKNOWN_TIME_ZONE = 'Mars/Olympus_Mons';
 export const INVITE_LOOKUPS_PER_HOUR = 20;

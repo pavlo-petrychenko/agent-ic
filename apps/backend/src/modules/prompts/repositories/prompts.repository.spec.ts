@@ -6,15 +6,17 @@ import type { NewPromptFolder } from '@/modules/prompts/typedefs/prompt-folder.t
 import type { NewPrompt } from '@/modules/prompts/typedefs/prompt.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { CLOCK_TICK_MS } from '@test/support/constants/manual-clock.constants';
 import { ROW_LEVEL_SECURITY_VIOLATION } from '@test/support/constants/postgres-errors.constants';
 import {
   PROMPTS_TEST_LATER,
-  PROMPTS_TEST_START,
   TEST_FOLDER_NEW_NAME,
   TEST_PROMPT_NAME,
   TEST_PROMPT_NEW_NAME,
 } from '@test/support/constants/prompts-testing.constants';
+import type { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { newFolder, newPrompt } from '@test/support/fixtures/prompts.fixture';
+import { manualClockOf } from '@test/support/helpers/manual-clock.helpers';
 import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import { createPromptsTestingModule } from '@test/support/helpers/prompts-testing.helpers';
 
@@ -24,6 +26,7 @@ describe('PromptsRepository', () => {
   let repository: PromptsRepository;
   let tenants: TenantTransactionService;
   let ids: IdService;
+  let clock: ManualClock;
 
   beforeAll(async () => {
     testingModule = await createPromptsTestingModule();
@@ -31,6 +34,7 @@ describe('PromptsRepository', () => {
     repository = testingModule.get(PromptsRepository);
     tenants = testingModule.get(TenantTransactionService);
     ids = testingModule.get(IdService);
+    clock = manualClockOf(testingModule);
   });
 
   afterAll(async () => {
@@ -53,6 +57,7 @@ describe('PromptsRepository', () => {
     workspaceId: string,
     overrides: Partial<NewPrompt> = {},
   ): Promise<string> => {
+    clock.advanceBy(CLOCK_TICK_MS);
     const promptId = ids.generate();
     const folderId =
       overrides.folderId ?? (await insertFolder(workspaceId, { name: `Folder ${promptId}` }));
@@ -62,10 +67,11 @@ describe('PromptsRepository', () => {
     return promptId;
   };
 
-  it('stores a prompt and finds it by id', async () => {
+  it('stores a prompt, stamps both timestamps and finds it by id', async () => {
     const workspaceId = ids.generate();
     const folderId = await insertFolder(workspaceId);
     const promptId = await insertPrompt(workspaceId, { folderId });
+    const createdAt = clock.now();
 
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, promptId));
 
@@ -75,8 +81,8 @@ describe('PromptsRepository', () => {
       name: TEST_PROMPT_NAME,
       folderId,
       createdByUserId: null,
-      createdAt: PROMPTS_TEST_START,
-      updatedAt: PROMPTS_TEST_START,
+      createdAt,
+      updatedAt: createdAt,
       deletedAt: null,
     });
   });
@@ -92,11 +98,34 @@ describe('PromptsRepository', () => {
     expect(found?.id).toBe(promptId);
   });
 
-  it('moves a prompt between folders and moves updatedAt forward', async () => {
+  it('returns the stored prompt from an insert', async () => {
+    const workspaceId = ids.generate();
+    const folderId = await insertFolder(workspaceId);
+    const promptId = ids.generate();
+
+    const stored = await tenants.run(workspaceId, () =>
+      repository.insert(newPrompt(promptId, workspaceId, folderId)),
+    );
+
+    expect(stored).toEqual({
+      id: promptId,
+      workspaceId,
+      name: TEST_PROMPT_NAME,
+      folderId,
+      createdByUserId: null,
+      createdAt: clock.now(),
+      updatedAt: clock.now(),
+      deletedAt: null,
+    });
+  });
+
+  it('moves a prompt between folders and stamps updatedAt', async () => {
     const workspaceId = ids.generate();
     const folderId = await insertFolder(workspaceId);
     const otherFolderId = await insertFolder(workspaceId, { name: TEST_FOLDER_NEW_NAME });
     const promptId = await insertPrompt(workspaceId, { folderId });
+    const createdAt = clock.now();
+    clock.advanceBy(CLOCK_TICK_MS);
 
     const moved = await tenants.run(workspaceId, () =>
       repository.moveToFolder(workspaceId, promptId, otherFolderId),
@@ -105,20 +134,37 @@ describe('PromptsRepository', () => {
 
     expect(moved?.folderId).toBe(otherFolderId);
     expect(found?.folderId).toBe(otherFolderId);
-    expect(found?.updatedAt.getTime()).toBeGreaterThan(PROMPTS_TEST_START.getTime());
+    expect(found).toMatchObject({ createdAt, updatedAt: clock.now() });
   });
 
-  it('renames a prompt', async () => {
+  it('touches a prompt by stamping updatedAt only', async () => {
     const workspaceId = ids.generate();
     const promptId = await insertPrompt(workspaceId);
+    const createdAt = clock.now();
+    clock.advanceBy(CLOCK_TICK_MS);
+
+    const touched = await tenants.run(workspaceId, () => repository.touch(workspaceId, promptId));
+
+    expect(touched).toMatchObject({
+      id: promptId,
+      name: TEST_PROMPT_NAME,
+      createdAt,
+      updatedAt: clock.now(),
+    });
+  });
+
+  it('renames a prompt and stamps updatedAt', async () => {
+    const workspaceId = ids.generate();
+    const promptId = await insertPrompt(workspaceId);
+    clock.advanceBy(CLOCK_TICK_MS);
 
     const renamed = await tenants.run(workspaceId, () =>
       repository.rename(workspaceId, promptId, TEST_PROMPT_NEW_NAME),
     );
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, promptId));
 
-    expect(renamed).toMatchObject({ name: TEST_PROMPT_NEW_NAME });
-    expect(found).toMatchObject({ name: TEST_PROMPT_NEW_NAME });
+    expect(renamed).toMatchObject({ name: TEST_PROMPT_NEW_NAME, updatedAt: clock.now() });
+    expect(found).toMatchObject({ name: TEST_PROMPT_NEW_NAME, updatedAt: clock.now() });
   });
 
   it('lists the prompts in creation order', async () => {

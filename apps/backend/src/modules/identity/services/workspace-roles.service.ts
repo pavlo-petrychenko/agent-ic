@@ -13,19 +13,16 @@ import type {
   RolePermission,
   RoleView,
 } from '@/modules/identity/typedefs/role.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { IdService } from '@/platform/ids/services/id.service';
 
 @Injectable()
 export class WorkspaceRolesService {
   constructor(
     private readonly roles: RolesRepository,
-    private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
 
   async seedDefaults(workspaceId: string): Promise<void> {
-    const now = this.clock.now();
     await this.roles.insertMany(
       SYSTEM_ROLES.map((key) => ({
         id: this.ids.generate(),
@@ -33,8 +30,6 @@ export class WorkspaceRolesService {
         key,
         name: null,
         isSystem: true,
-        createdAt: now,
-        updatedAt: now,
       })),
     );
     const rows: NewRolePermission[] = [];
@@ -90,7 +85,6 @@ export class WorkspaceRolesService {
       readonly permissions: readonly RolePermission[] | null;
     },
   ): Promise<RoleView> {
-    const now = this.clock.now();
     const roleId = this.ids.generate();
     await this.roles.insert({
       id: roleId,
@@ -99,8 +93,6 @@ export class WorkspaceRolesService {
       name: input.name,
       description: input.description,
       isSystem: false,
-      createdAt: now,
-      updatedAt: now,
     });
     const permissions =
       input.permissions ?? (await this.basePermissions(workspaceId, input.baseRole));

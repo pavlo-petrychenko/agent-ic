@@ -48,23 +48,22 @@ export class AgentPublishingService {
     ) {
       throw new AgentFlowHasBlockingIssuesError();
     }
-    const now = this.clock.now();
     const lastNumber = await this.versions.lastPublishedNumber(workspaceId, agentId);
     const note = request.note === undefined ? draft.note : request.note;
-    const published = copyDraftToVersion(
-      { ...draft, note },
-      {
-        id: this.ids.generate(),
-        kind: AgentVersionKind.Published,
-        number: lastNumber + 1,
-        authorId: request.authorId,
-        publishedAt: now,
-        at: now,
-      },
+    const published = await this.versions.insert(
+      copyDraftToVersion(
+        { ...draft, note },
+        {
+          id: this.ids.generate(),
+          kind: AgentVersionKind.Published,
+          number: lastNumber + 1,
+          authorId: request.authorId,
+          publishedAt: this.clock.now(),
+        },
+      ),
     );
-    await this.versions.insert(published);
     await this.versions.setBaseVersion(workspaceId, draft.id, published.id);
-    await this.agents.setLiveVersion(workspaceId, agentId, published.id, now);
+    await this.agents.setLiveVersion(workspaceId, agentId, published.id);
     return published;
   }
 }

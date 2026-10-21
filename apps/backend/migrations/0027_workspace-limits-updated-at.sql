@@ -1,0 +1,1 @@
+ALTER TABLE "usage"."workspace_limits" ALTER COLUMN "updated_at" DROP DEFAULT;

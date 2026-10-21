@@ -8,6 +8,7 @@ import { PromptsRepository } from '@/modules/prompts/repositories/prompts.reposi
 import type { NewPromptFolder } from '@/modules/prompts/typedefs/prompt-folder.typedefs';
 import type { NewPromptVersion } from '@/modules/prompts/typedefs/prompt-version.typedefs';
 import type { NewPrompt } from '@/modules/prompts/typedefs/prompt.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -17,16 +18,19 @@ import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.modul
 import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
 import { TEST_EDITOR_ID } from '@test/support/constants/agents-testing.constants';
+import { CLOCK_TICK_MS } from '@test/support/constants/manual-clock.constants';
 import {
   PROMPTS_TEST_START,
   TEST_PROMPT_AUTHOR_NAME,
   TEST_PROMPT_AUTHOR_PASSWORD_HASH,
 } from '@test/support/constants/prompts-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { uniqueEmail } from '@test/support/fixtures/identity.fixture';
 import { newFolder, newPrompt, newPromptVersion } from '@test/support/fixtures/prompts.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
+import { manualClockOf } from '@test/support/helpers/manual-clock.helpers';
 import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import { PromptsNeighboursModule } from '@test/support/modules/prompts-neighbours.module';
 import type { ProviderOverride } from '@test/support/typedefs/test-infrastructure.typedefs';
@@ -50,7 +54,7 @@ export const createPromptsTestingModule = (
       PromptsModule.forRole(Role.Api),
       PromptsNeighboursModule.forRole(Role.Api),
     ],
-    overrides,
+    [{ token: ClockService, value: new ManualClock(PROMPTS_TEST_START) }, ...overrides],
   );
 
 export const seedPromptAuthor = async (testingModule: TestingModule): Promise<string> => {
@@ -61,8 +65,6 @@ export const seedPromptAuthor = async (testingModule: TestingModule): Promise<st
     name: TEST_PROMPT_AUTHOR_NAME,
     passwordHash: TEST_PROMPT_AUTHOR_PASSWORD_HASH,
     locale: Locale.En,
-    createdAt: PROMPTS_TEST_START,
-    updatedAt: PROMPTS_TEST_START,
   });
   return userId;
 };
@@ -90,6 +92,7 @@ export const seedPrompt = async (
   folderId: string,
   overrides: Partial<NewPrompt> = {},
 ): Promise<string> => {
+  manualClockOf(testingModule).advanceBy(CLOCK_TICK_MS);
   const promptId = testingModule.get(IdService).generate();
   await testingModule
     .get(TenantTransactionService)

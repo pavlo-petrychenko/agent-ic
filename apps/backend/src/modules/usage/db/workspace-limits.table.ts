@@ -26,7 +26,7 @@ export const workspaceLimits = usageSchema
       }),
       conversationsLimit: integer('conversations_limit'),
       chunksLimit: integer('chunks_limit'),
-      updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+      updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
     },
     (table) => [
       unique('workspace_limits_workspace_id_key').on(table.workspaceId),

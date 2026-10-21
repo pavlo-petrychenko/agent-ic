@@ -71,7 +71,6 @@ export class SampleWorkspaceService {
         userId: operatorId,
         roleId: await this.roles.systemRoleId(workspaceId, WorkspaceRole.Operator),
         inviteLinkId: null,
-        createdAt: this.clock.now(),
       });
     });
   }
@@ -92,8 +91,6 @@ export class SampleWorkspaceService {
         name,
         passwordHash,
         locale: SAMPLE_USER_LOCALE,
-        createdAt: now,
-        updatedAt: now,
       });
       await this.users.markEmailConfirmed(userId, now);
       return userId;
@@ -103,15 +100,12 @@ export class SampleWorkspaceService {
   private createWorkspace(userId: string, name: string): Promise<string> {
     const workspaceId = this.ids.generate();
     return this.tenantTransactions.run(workspaceId, async () => {
-      const now = this.clock.now();
       await this.workspaces.insert({
         id: workspaceId,
         workspaceId,
         name,
         timeZone: SAMPLE_WORKSPACE_TIME_ZONE,
         createdByUserId: userId,
-        createdAt: now,
-        updatedAt: now,
       });
       await this.roles.seedDefaults(workspaceId);
       await this.memberships.insertIfAbsent({
@@ -120,7 +114,6 @@ export class SampleWorkspaceService {
         userId,
         roleId: await this.roles.systemRoleId(workspaceId, WorkspaceRole.Owner),
         inviteLinkId: null,
-        createdAt: now,
       });
       await this.inviteLinks.issue(
         workspaceId,

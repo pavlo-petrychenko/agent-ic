@@ -40,7 +40,6 @@ export class PasswordResetsService {
       purpose: EmailTokenPurpose.PasswordReset,
       tokenHash: hash,
       expiresAt: addSeconds(now, PASSWORD_RESET_TTL_SECONDS),
-      createdAt: now,
     });
     return { token, email: user.email, name: user.name, locale: user.locale };
   }

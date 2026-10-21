@@ -5,14 +5,24 @@ import { ConversationMode } from '@/modules/conversations';
 import { RunStatus, UNFINISHED_RUN_STATUSES } from '@/modules/runs/constants/run.constants';
 import { runs } from '@/modules/runs/db/runs.table';
 import type { NewRun, Run, RunEnd } from '@/modules/runs/typedefs/run.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class RunsRepository {
-  constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
+  constructor(
+    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly clock: ClockService,
+  ) {}
 
-  async insert(run: NewRun): Promise<void> {
-    await this.txHost.tx.insert(runs).values(run);
+  async insert(run: NewRun): Promise<Run> {
+    return storedRow(
+      await this.txHost.tx
+        .insert(runs)
+        .values({ ...run, createdAt: this.clock.now() })
+        .returning(),
+    );
   }
 
   async findById(workspaceId: string, id: string): Promise<Run | null> {

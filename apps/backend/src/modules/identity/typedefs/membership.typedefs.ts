@@ -9,7 +9,7 @@ export interface MembershipWithRole extends MembershipRecord {
   readonly roleKey: WorkspaceRole;
 }
 
-export type NewMembership = typeof memberships.$inferInsert;
+export type NewMembership = Omit<typeof memberships.$inferInsert, 'createdAt'>;
 
 export type MemberSelection =
   | { readonly role: WorkspaceRole }

@@ -11,16 +11,20 @@ import type {
   NewMessage,
   RunMessageCount,
 } from '@/modules/conversations/typedefs/message.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class MessagesRepository {
-  constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
+  constructor(
+    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly clock: ClockService,
+  ) {}
 
   async insertIfAbsent(message: NewMessage): Promise<Message | null> {
     const [created] = await this.txHost.tx
       .insert(messages)
-      .values(message)
+      .values({ ...message, createdAt: this.clock.now() })
       .onConflictDoNothing()
       .returning();
     return created ?? null;

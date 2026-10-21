@@ -5,11 +5,11 @@ import { PromptVersionNotFoundError } from '@/modules/prompts/errors/prompt-vers
 import { GetPromptVersionUseCase } from '@/modules/prompts/use-cases/get-prompt-version.use-case';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
-  PROMPTS_TEST_START,
   TEST_PROMPT_AUTHOR_NAME,
   TEST_PROMPT_NOTE,
   TEST_PROMPT_TEXT,
 } from '@test/support/constants/prompts-testing.constants';
+import { manualClockOf } from '@test/support/helpers/manual-clock.helpers';
 import {
   createPromptsTestingModule,
   promptsCtx,
@@ -39,6 +39,7 @@ describe('GetPromptVersionUseCase', () => {
     const authorId = await seedPromptAuthor(testingModule);
     const folderId = await seedPromptFolder(testingModule, workspaceId);
     const promptId = await seedPrompt(testingModule, workspaceId, folderId);
+    const seededAt = manualClockOf(testingModule).now();
     const versionId = await seedPromptVersion(testingModule, workspaceId, promptId, {
       text: TEST_PROMPT_TEXT,
       note: TEST_PROMPT_NOTE,
@@ -55,7 +56,7 @@ describe('GetPromptVersionUseCase', () => {
       text: TEST_PROMPT_TEXT,
       note: TEST_PROMPT_NOTE,
       author: { name: TEST_PROMPT_AUTHOR_NAME },
-      createdAt: PROMPTS_TEST_START,
+      createdAt: seededAt,
     });
   });
 

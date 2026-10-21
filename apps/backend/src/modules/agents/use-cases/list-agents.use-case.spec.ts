@@ -9,7 +9,6 @@ import { PermissionDeniedError } from '@/platform/context/errors/permission-deni
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
-  AGENTS_TEST_LATER,
   TEST_AGENT_PAGE_LIMIT,
   TEST_EDITOR_ID,
   TEST_NODE_NEW_LABEL,
@@ -71,13 +70,11 @@ describe('ListAgentsUseCase', () => {
       await publishing.publish(workspaceId, edited.agentId, { authorId: TEST_EDITOR_ID });
       await testingModule
         .get(AgentVersionsRepository)
-        .updateDraft(
-          workspaceId,
-          edited.draftId,
-          DRAFT_INITIAL_REVISION,
-          { flow: triggerFlow(TEST_NODE_NEW_LABEL), note: null, authorId: TEST_EDITOR_ID },
-          AGENTS_TEST_LATER,
-        );
+        .updateDraft(workspaceId, edited.draftId, DRAFT_INITIAL_REVISION, {
+          flow: triggerFlow(TEST_NODE_NEW_LABEL),
+          note: null,
+          authorId: TEST_EDITOR_ID,
+        });
     });
 
     const listed = await listAgents.execute(agentsCtx(testingModule, workspaceId), {});

@@ -4,7 +4,7 @@ import type { WorkspaceMembership } from '@/modules/identity/typedefs/workspace.
 
 export type UserRecord = typeof users.$inferSelect;
 
-export type NewUser = typeof users.$inferInsert;
+export type NewUser = Omit<typeof users.$inferInsert, 'createdAt' | 'updatedAt'>;
 
 export interface UserName {
   readonly id: string;

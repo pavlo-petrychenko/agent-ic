@@ -101,9 +101,9 @@ export const seedWorkerAgent = async (
           publishedAt: RUNS_TEST_START,
         }),
       );
-      await worker.agents.setLiveVersion(seededWorkspaceId, agentId, versionId, worker.clock.now());
+      await worker.agents.setLiveVersion(seededWorkspaceId, agentId, versionId);
     }
-    await worker.agents.setPause(seededWorkspaceId, agentId, pause, worker.clock.now());
+    await worker.agents.setPause(seededWorkspaceId, agentId, pause);
   });
   return { workspaceId: seededWorkspaceId, agentId, versionId };
 };

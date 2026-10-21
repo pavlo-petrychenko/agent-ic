@@ -78,7 +78,7 @@ A module is organised by kind: `<module>/<kind folder>/<topic>.<kind>.ts`. The m
 | Channel | `channels/` | `.channel.ts` | a live-update channel behind a subscription |
 | Use case | `use-cases/` | `.use-case.ts` | one business operation, one transaction, permissions first |
 | Service | `services/` | `.service.ts` | stateful or dependent logic shared by use cases; abstract services for internal ports |
-| Repository | `repositories/` | `.repository.ts` | the only place with Drizzle and SQL |
+| Repository | `repositories/` | `.repository.ts` | the only place with Drizzle and SQL; stamps `created_at` and `updated_at` from `ClockService` |
 | Gateway | `gateways/` | `.gateway.ts`, `.fake.ts` | an external system: abstract class, implementations, fake |
 | Table | `db/` | `.table.ts` | Drizzle tables in the module's Postgres schema |
 | Error | `errors/` | `.error.ts` | `DomainError` subclasses |
@@ -130,7 +130,7 @@ repository                                      the only place with Drizzle and 
 - Layers are recognised by file suffix: `.resolver.ts`, `.controller.ts`, `.processor.ts`, `.listener.ts`, `.use-case.ts`, `.service.ts`, `.repository.ts`.
 - A use case is an `@Injectable()` class with `execute(ctx, input)`. It never calls another use case; shared logic moves to a service.
 - Inbound code in `modules/` never imports a service, a repository or a gateway.
-- A service never imports a use case; a repository never imports a service.
+- A service never imports a use case; a repository never imports a service, except `ClockService`: a repository stamps `created_at` on insert and `updated_at` on every update itself, and an insert returns the stored row (`storedRow(… .returning())`).
 - A service is a class with state or injected dependencies. Logic without state is a pure function in `helpers/`. Time, randomness and ids are always services (`ClockService`, `IdService`, `SecureTokenService`), so tests can replace them.
 - No value classes. Data is an interface in `typedefs/`; definitions of jobs, events, channels, cache entries and rate-limit policies are made with `defineX({...})` helpers.
 - `workspaces` may use `SessionsService` from `@/modules/identity` (its `index.ts`). It may never import `@/modules/identity/services/sessions.service`. `index.ts` never exports use cases or inbound adapters.

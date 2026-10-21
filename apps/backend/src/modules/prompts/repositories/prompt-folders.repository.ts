@@ -6,15 +6,27 @@ import { promptFolderNamesLockKey } from '@/modules/prompts/helpers/prompt-folde
 import type {
   NewPromptFolder,
   PromptFolder,
+  PromptFolderChanges,
 } from '@/modules/prompts/typedefs/prompt-folder.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class PromptFoldersRepository {
-  constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
+  constructor(
+    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly clock: ClockService,
+  ) {}
 
-  async insert(folder: NewPromptFolder): Promise<void> {
-    await this.txHost.tx.insert(promptFolders).values(folder);
+  async insert(folder: NewPromptFolder): Promise<PromptFolder> {
+    const now = this.clock.now();
+    return storedRow(
+      await this.txHost.tx
+        .insert(promptFolders)
+        .values({ ...folder, createdAt: now, updatedAt: now })
+        .returning(),
+    );
   }
 
   async lockNames(workspaceId: string): Promise<void> {
@@ -76,11 +88,11 @@ export class PromptFoldersRepository {
   private async update(
     workspaceId: string,
     folderId: string,
-    changes: Partial<NewPromptFolder>,
+    changes: PromptFolderChanges,
   ): Promise<PromptFolder | null> {
     const [folder] = await this.txHost.tx
       .update(promptFolders)
-      .set(changes)
+      .set({ ...changes, updatedAt: this.clock.now() })
       .where(and(this.activeWhere(workspaceId), eq(promptFolders.id, folderId)))
       .returning();
 

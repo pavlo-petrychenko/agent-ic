@@ -15,7 +15,6 @@ import { PermissionDeniedError } from '@/platform/context/errors/permission-deni
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
-  AGENTS_TEST_LATER,
   TEST_AGENT_DESCRIPTION,
   TEST_AGENT_NAME,
   TEST_EDITOR_ID,
@@ -54,20 +53,16 @@ describe('DuplicateAgentUseCase', () => {
     const seeded = await seedAgentWithDraft(testingModule, workspaceId);
     await makeAgentLive(testingModule, workspaceId, seeded);
     await testingModule.get(TenantTransactionService).run(workspaceId, async () => {
-      await testingModule.get(AgentVersionsRepository).updateDraft(
-        workspaceId,
-        seeded.draftId,
-        DRAFT_INITIAL_REVISION,
-        {
+      await testingModule
+        .get(AgentVersionsRepository)
+        .updateDraft(workspaceId, seeded.draftId, DRAFT_INITIAL_REVISION, {
           flow: triggerFlow(TEST_NODE_NEW_LABEL),
           note: TEST_VERSION_NOTE,
           authorId: TEST_EDITOR_ID,
-        },
-        AGENTS_TEST_LATER,
-      );
+        });
       await testingModule
         .get(AgentsRepository)
-        .setDescription(workspaceId, seeded.agentId, TEST_AGENT_DESCRIPTION, AGENTS_TEST_LATER);
+        .setDescription(workspaceId, seeded.agentId, TEST_AGENT_DESCRIPTION);
     });
 
     const copy = await duplicateAgent.execute(agentsCtx(testingModule, workspaceId), {
@@ -103,8 +98,6 @@ describe('DuplicateAgentUseCase', () => {
         id: agentId,
         workspaceId,
         name: longName,
-        createdAt: AGENTS_TEST_LATER,
-        updatedAt: AGENTS_TEST_LATER,
       });
       await testingModule.get(AgentVersionsRepository).insert({
         id: draftId,
@@ -112,12 +105,8 @@ describe('DuplicateAgentUseCase', () => {
         agentId,
         kind: AgentVersionKind.Draft,
         flow: triggerFlow(),
-        createdAt: AGENTS_TEST_LATER,
-        updatedAt: AGENTS_TEST_LATER,
       });
-      await testingModule
-        .get(AgentsRepository)
-        .setDraftVersion(workspaceId, agentId, draftId, AGENTS_TEST_LATER);
+      await testingModule.get(AgentsRepository).setDraftVersion(workspaceId, agentId, draftId);
     });
 
     const copy = await duplicateAgent.execute(agentsCtx(testingModule, workspaceId), {

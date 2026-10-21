@@ -6,12 +6,8 @@ import { PromptVersionsRepository } from '@/modules/prompts/repositories/prompt-
 import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
 import { savePromptVersionInputSchema } from '@/modules/prompts/schemas/prompt-input.schema';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
-import type {
-  PromptVersion,
-  SavePromptVersionInput,
-} from '@/modules/prompts/typedefs/prompt-version.typedefs';
+import type { SavePromptVersionInput } from '@/modules/prompts/typedefs/prompt-version.typedefs';
 import type { PromptDetailView } from '@/modules/prompts/typedefs/prompt.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -24,7 +20,6 @@ export class SavePromptVersionUseCase {
     private readonly prompts: PromptsRepository,
     private readonly versions: PromptVersionsRepository,
     private readonly views: PromptViewsService,
-    private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
 
@@ -36,13 +31,12 @@ export class SavePromptVersionUseCase {
     );
     const { id, text, note } = parsePromptInput(savePromptVersionInputSchema, input);
     const promptId = this.ids.fromPublic(IdPrefix.Prompt, id);
-    const createdAt = this.clock.now();
     return this.tenantTransactions.run(workspaceId, async () => {
       const prompt = await this.prompts.findByIdForUpdate(workspaceId, promptId);
       if (prompt === null) {
         throw new PromptNotFoundError();
       }
-      const version: PromptVersion = {
+      const version = await this.versions.insert({
         id: this.ids.generate(),
         workspaceId,
         promptId,
@@ -50,12 +44,9 @@ export class SavePromptVersionUseCase {
         text,
         note: note ?? null,
         authorId: userId,
-        createdAt,
-        deletedAt: null,
-      };
-      await this.versions.insert(version);
-      await this.prompts.touch(workspaceId, promptId, createdAt);
-      return this.views.promptDetailView({ ...prompt, updatedAt: createdAt }, version);
+      });
+      const touched = await this.prompts.touch(workspaceId, promptId);
+      return this.views.promptDetailView(touched ?? prompt, version);
     });
   }
 }

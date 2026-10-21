@@ -65,9 +65,8 @@ export class SimulationsService {
     return this.conversations.close(conversation.workspaceId, conversation.id, this.clock.now());
   }
 
-  async open(key: SimulationKey, setup: SimulationSetup): Promise<Conversation> {
-    const now = this.clock.now();
-    const conversation: Conversation = {
+  open(key: SimulationKey, setup: SimulationSetup): Promise<Conversation> {
+    return this.conversations.insert({
       id: this.ids.generate(),
       workspaceId: key.workspaceId,
       agentId: key.agentId,
@@ -82,12 +81,9 @@ export class SimulationsService {
       activeRunId: null,
       simulationVersionId: setup.versionId,
       awaySentAt: null,
-      lastMessageAt: now,
+      lastMessageAt: this.clock.now(),
       closedAt: null,
-      createdAt: now,
-    };
-    await this.conversations.insert(conversation);
-    return conversation;
+    });
   }
 
   async view(conversation: Conversation): Promise<SimulationView> {

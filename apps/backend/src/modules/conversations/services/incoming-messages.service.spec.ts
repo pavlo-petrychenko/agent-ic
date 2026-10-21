@@ -206,12 +206,7 @@ describe('IncomingMessagesService', () => {
     const first = await receive(input);
     testbed.clock.advanceBy(MESSAGE_SPACING_MS);
     await testbed.tenants.run(input.workspaceId, () =>
-      testbed.agents.setPause(
-        input.workspaceId,
-        input.agentId,
-        pausedAs(PauseMode.AwayMessage),
-        testbed.clock.now(),
-      ),
+      testbed.agents.setPause(input.workspaceId, input.agentId, pausedAs(PauseMode.AwayMessage)),
     );
 
     const second = await receive(input);

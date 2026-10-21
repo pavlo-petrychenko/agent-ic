@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { asc, eq, inArray, lte } from 'drizzle-orm';
+import { ClockService } from '@/platform/clock/services/clock.service';
 import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 import { outboxMessages } from '@/platform/queues/db/outbox-message.table';
@@ -11,10 +12,14 @@ export class OutboxRepository {
   constructor(
     private readonly txHost: TransactionHost<AppTransactionAdapter>,
     private readonly systemDb: SystemDatabaseService,
+    private readonly clock: ClockService,
   ) {}
 
   async insert(message: NewOutboxMessage): Promise<void> {
-    await this.txHost.tx.insert(outboxMessages).values(message).onConflictDoNothing();
+    await this.txHost.tx
+      .insert(outboxMessages)
+      .values({ ...message, createdAt: this.clock.now() })
+      .onConflictDoNothing();
   }
 
   async delete(id: string): Promise<void> {

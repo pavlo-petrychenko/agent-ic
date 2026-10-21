@@ -7,14 +7,15 @@ import { PromptVersionsRepository } from '@/modules/prompts/repositories/prompt-
 import { SavePromptVersionUseCase } from '@/modules/prompts/use-cases/save-prompt-version.use-case';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { CLOCK_TICK_MS } from '@test/support/constants/manual-clock.constants';
 import {
-  PROMPTS_TEST_START,
   TEST_PROMPT_AUTHOR_NAME,
   TEST_PROMPT_NAME,
   TEST_PROMPT_NOTE,
   TEST_PROMPT_TEXT,
 } from '@test/support/constants/prompts-testing.constants';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
+import { manualClockOf } from '@test/support/helpers/manual-clock.helpers';
 import {
   createPromptsTestingModule,
   promptsCtx,
@@ -55,11 +56,15 @@ describe('SavePromptVersionUseCase', () => {
     const promptId = await seedPromptForVersion(workspaceId);
     const id = publicPromptId(testingModule, promptId);
 
+    const clock = manualClockOf(testingModule);
+    const createdAt = clock.now();
+    clock.advanceBy(CLOCK_TICK_MS);
     const first = await saveVersion.execute(ctx, {
       id,
       text: 'First version text',
       note: TEST_PROMPT_NOTE,
     });
+    clock.advanceBy(CLOCK_TICK_MS);
     const second = await saveVersion.execute(ctx, { id, text: TEST_PROMPT_TEXT });
 
     expect(first.latestVersion).toMatchObject({
@@ -74,11 +79,14 @@ describe('SavePromptVersionUseCase', () => {
       note: null,
       author: { name: TEST_PROMPT_AUTHOR_NAME },
     });
+    expect(first.prompt.updatedAt).toEqual(first.latestVersion?.createdAt);
     expect(second.prompt).toMatchObject({
       id,
       name: TEST_PROMPT_NAME,
+      createdAt,
+      updatedAt: clock.now(),
     });
-    expect(second.prompt.updatedAt.getTime()).toBeGreaterThan(PROMPTS_TEST_START.getTime());
+    expect(second.latestVersion?.createdAt).toEqual(clock.now());
 
     const stored = await tenants.run(workspaceId, () =>
       versions.listByPrompt(workspaceId, promptId),

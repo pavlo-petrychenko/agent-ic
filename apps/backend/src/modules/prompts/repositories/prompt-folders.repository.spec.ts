@@ -4,14 +4,16 @@ import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-f
 import type { NewPromptFolder } from '@/modules/prompts/typedefs/prompt-folder.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { CLOCK_TICK_MS } from '@test/support/constants/manual-clock.constants';
 import { ROW_LEVEL_SECURITY_VIOLATION } from '@test/support/constants/postgres-errors.constants';
 import {
   PROMPTS_TEST_LATER,
-  PROMPTS_TEST_START,
   TEST_FOLDER_NAME,
   TEST_FOLDER_NEW_NAME,
 } from '@test/support/constants/prompts-testing.constants';
+import type { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { newFolder } from '@test/support/fixtures/prompts.fixture';
+import { manualClockOf } from '@test/support/helpers/manual-clock.helpers';
 import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import { createPromptsTestingModule } from '@test/support/helpers/prompts-testing.helpers';
 
@@ -20,12 +22,14 @@ describe('PromptFoldersRepository', () => {
   let repository: PromptFoldersRepository;
   let tenants: TenantTransactionService;
   let ids: IdService;
+  let clock: ManualClock;
 
   beforeAll(async () => {
     testingModule = await createPromptsTestingModule();
     repository = testingModule.get(PromptFoldersRepository);
     tenants = testingModule.get(TenantTransactionService);
     ids = testingModule.get(IdService);
+    clock = manualClockOf(testingModule);
   });
 
   afterAll(async () => {
@@ -44,8 +48,9 @@ describe('PromptFoldersRepository', () => {
     return folderId;
   };
 
-  it('stores a folder and finds it by id', async () => {
+  it('stores a folder, stamps both timestamps and finds it by id', async () => {
     const workspaceId = ids.generate();
+    clock.advanceBy(CLOCK_TICK_MS);
     const folderId = await insertFolder(workspaceId);
 
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, folderId));
@@ -54,8 +59,8 @@ describe('PromptFoldersRepository', () => {
       id: folderId,
       workspaceId,
       name: TEST_FOLDER_NAME,
-      createdAt: PROMPTS_TEST_START,
-      updatedAt: PROMPTS_TEST_START,
+      createdAt: clock.now(),
+      updatedAt: clock.now(),
       deletedAt: null,
     });
   });
@@ -71,17 +76,23 @@ describe('PromptFoldersRepository', () => {
     expect(found?.id).toBe(folderId);
   });
 
-  it('renames a folder', async () => {
+  it('renames a folder and stamps updatedAt', async () => {
     const workspaceId = ids.generate();
     const folderId = await insertFolder(workspaceId);
+    const createdAt = clock.now();
+    clock.advanceBy(CLOCK_TICK_MS);
 
     const renamed = await tenants.run(workspaceId, () =>
       repository.rename(workspaceId, folderId, TEST_FOLDER_NEW_NAME),
     );
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, folderId));
 
-    expect(renamed).toMatchObject({ name: TEST_FOLDER_NEW_NAME });
-    expect(found).toMatchObject({ name: TEST_FOLDER_NEW_NAME });
+    expect(renamed).toMatchObject({ name: TEST_FOLDER_NEW_NAME, updatedAt: clock.now() });
+    expect(found).toMatchObject({
+      name: TEST_FOLDER_NEW_NAME,
+      createdAt,
+      updatedAt: clock.now(),
+    });
   });
 
   it('lists folders by name and hides soft-deleted ones', async () => {
