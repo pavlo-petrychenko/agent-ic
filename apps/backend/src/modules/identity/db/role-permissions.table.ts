@@ -1,32 +1,14 @@
-import { PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { foreignKey, index, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import {
+  identitySchema,
+  permissionActionEnum,
+  permissionResourceEnum,
+} from '@/modules/identity/db/identity.pg-schema';
 import { roles } from '@/modules/identity/db/roles.table';
-import { identitySchema } from '@/modules/identity/db/users.table';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,
 } from '@/platform/database/helpers/tenant-table.helpers';
-
-export const permissionResourceEnum = identitySchema.enum('permission_resource', [
-  PermissionResource.Agents,
-  PermissionResource.Prompts,
-  PermissionResource.KnowledgeBases,
-  PermissionResource.Channels,
-  PermissionResource.Inbox,
-  PermissionResource.Testing,
-  PermissionResource.Analytics,
-  PermissionResource.Team,
-  PermissionResource.WorkspaceSettings,
-]);
-
-export const permissionActionEnum = identitySchema.enum('permission_action', [
-  PermissionAction.View,
-  PermissionAction.Edit,
-  PermissionAction.Publish,
-  PermissionAction.Delete,
-  PermissionAction.Transfer,
-  PermissionAction.Leave,
-]);
 
 export const rolePermissions = identitySchema
   .table(

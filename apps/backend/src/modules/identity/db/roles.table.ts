@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm';
 import { boolean, index, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
-import { identitySchema } from '@/modules/identity/db/users.table';
-import { workspaceRoleEnum, workspaces } from '@/modules/identity/db/workspaces.table';
+import { identitySchema, workspaceRoleEnum } from '@/modules/identity/db/identity.pg-schema';
+import { workspaces } from '@/modules/identity/db/workspaces.table';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,

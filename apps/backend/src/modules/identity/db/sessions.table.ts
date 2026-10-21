@@ -1,6 +1,7 @@
 import { index, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
-import { identitySchema, users } from '@/modules/identity/db/users.table';
+import { identitySchema } from '@/modules/identity/db/identity.pg-schema';
+import { users } from '@/modules/identity/db/users.table';
 
 export const sessions = identitySchema.table(
   'sessions',

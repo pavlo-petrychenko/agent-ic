@@ -1,7 +1,8 @@
 import { sql } from 'drizzle-orm';
 import { index, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
-import { promptFolders, promptsSchema } from '@/modules/prompts/db/prompt-folders.table';
+import { promptFolders } from '@/modules/prompts/db/prompt-folders.table';
+import { promptsSchema } from '@/modules/prompts/db/prompts.pg-schema';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,

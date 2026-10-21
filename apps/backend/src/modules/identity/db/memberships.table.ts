@@ -1,8 +1,9 @@
 import { foreignKey, index, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
+import { identitySchema } from '@/modules/identity/db/identity.pg-schema';
 import { inviteLinks } from '@/modules/identity/db/invite-links.table';
 import { roles } from '@/modules/identity/db/roles.table';
-import { identitySchema, users } from '@/modules/identity/db/users.table';
+import { users } from '@/modules/identity/db/users.table';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
 import {
   tenantIsolationPolicy,

@@ -76,7 +76,7 @@ How the three message kinds differ:
 | `services/` | `.service.ts` | logic with state or dependencies, shared by use cases or by the platform; includes abstract services that another module implements (internal ports) |
 | `repositories/` | `.repository.ts` | the only place with Drizzle and SQL |
 | `gateways/` | `.gateway.ts`, `.fake.ts` | an external system: an abstract class, its implementations and a fake for tests |
-| `db/` | `.table.ts` | Drizzle tables in the module's Postgres schema |
+| `db/` | `.table.ts`, `.pg-schema.ts` | Drizzle tables in the module's Postgres schema; the module's `pgSchema` and its Postgres enums, importing no table file |
 
 **Support.**
 
@@ -115,7 +115,7 @@ modules/identity/
 Infrastructure used by two or more modules, with no business meaning. Same kinds as modules, with three rules:
 
 - **No use cases.** Platform controllers (health, metrics, queue board) call platform services directly, because they have no actor, no permissions and no transaction.
-- **A platform folder may own tables.** A platform folder that needs its own table puts it in `db/` (`<name>.table.ts`) in its own Postgres schema, the same way a module does; `drizzle.config.ts` reads `src/platform/*/db/*.table.ts` as well as the modules. Example: `queues/db/outbox-message.table.ts`.
+- **A platform folder may own tables.** A platform folder that needs its own table puts it in `db/` (`<name>.table.ts`) in its own Postgres schema, the same way a module does; `drizzle.config.ts` reads `src/platform/*/db/*.{table,pg-schema}.ts` as well as the modules. Example: `queues/db/outbox-message.table.ts` with `queues/db/queues.pg-schema.ts`.
 - **A platform folder never takes a kind-folder name.** Hence `database`, not `db`; `graphql-server`, not `graphql`; `live-updates`, not `channels`. The one exception is `errors`: it was named in the approved module list, it holds the base error classes in its own `errors/` folder, and no module-level `errors/` folder can be confused with it because platform folders sit one level higher.
 
 | Module | Holds |
