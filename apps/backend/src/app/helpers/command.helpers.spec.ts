@@ -1,5 +1,6 @@
 import { EOL } from 'node:os';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { BackfillPromptsCommand } from '@/app/commands/backfill-prompts.command';
 import { MigrateCommand } from '@/app/commands/migrate.command';
 import { PrintSchemaCommand } from '@/app/commands/print-schema.command';
 import { SeedCommand } from '@/app/commands/seed.command';
@@ -24,6 +25,9 @@ describe('resolveCommand', () => {
     expect(resolveCommand(createArgv(CommandName.Migrate))).toBeInstanceOf(MigrateCommand);
     expect(resolveCommand(createArgv(CommandName.PrintSchema))).toBeInstanceOf(PrintSchemaCommand);
     expect(resolveCommand(createArgv(CommandName.Seed))).toBeInstanceOf(SeedCommand);
+    expect(resolveCommand(createArgv(CommandName.BackfillPrompts))).toBeInstanceOf(
+      BackfillPromptsCommand,
+    );
   });
 
   it('answers a missing or unknown command with a config error', () => {

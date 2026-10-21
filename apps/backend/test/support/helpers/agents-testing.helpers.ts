@@ -161,6 +161,17 @@ export const readVersions = (
       testingModule.get(AgentVersionsRepository).listByAgent(workspaceId, agentId),
     );
 
+export const readVersion = (
+  testingModule: TestingModule,
+  workspaceId: string,
+  versionId: string,
+): Promise<AgentVersion | null> =>
+  testingModule
+    .get(TenantTransactionService)
+    .run(workspaceId, () =>
+      testingModule.get(AgentVersionsRepository).findById(workspaceId, versionId),
+    );
+
 export const seedAuthor = async (testingModule: TestingModule): Promise<string> => {
   const userId = testingModule.get(IdService).generate();
   await testingModule.get(UsersRepository).upsertUnconfirmed({
