@@ -7,6 +7,7 @@ export interface UseCaseCtx {
   readonly initiatedBy: Actor | null;
   readonly workspaceId: string | null;
   readonly workspaceRole: WorkspaceRole | null;
+  readonly permissions?: ReadonlySet<string>;
   readonly traceId: string;
   readonly locale: Locale;
   readonly clientIp: string | null;

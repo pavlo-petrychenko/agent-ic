@@ -9,6 +9,7 @@ import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-ver
 import { ConversationMode } from '@/modules/conversations';
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
+import { WorkspaceRolesService } from '@/modules/identity/services/workspace-roles.service';
 import { CreateWorkspaceUseCase } from '@/modules/identity/use-cases/create-workspace.use-case';
 import { ROOT_BRANCH_KEY, RunStepStatus, runStepsChannel } from '@/modules/runs';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
@@ -107,15 +108,15 @@ export const seedMember = async (
 ): Promise<TestMember> => {
   const userId = await seedUser(api);
   const { workspaceId } = owner;
-  await api.app.get(TenantTransactionService).run(workspaceId, () =>
-    api.app.get(MembershipsRepository).insertIfAbsent({
+  await api.app.get(TenantTransactionService).run(workspaceId, async () => {
+    await api.app.get(MembershipsRepository).insertIfAbsent({
       id: api.app.get(IdService).generate(),
       workspaceId,
       userId,
-      role,
+      roleId: await api.app.get(WorkspaceRolesService).systemRoleId(workspaceId, role),
       createdAt: SUBSCRIPTIONS_TEST_START,
-    }),
-  );
+    });
+  });
   return { ...owner, accessToken: await accessTokenFor(api, userId) };
 };
 

@@ -1,4 +1,4 @@
-import type { Locale, WorkspaceRole } from '@agent-ic/contracts';
+import type { Locale, ResourcePermissions, WorkspaceRole } from '@agent-ic/contracts';
 
 export interface WorkspaceSummary {
   readonly id: string;
@@ -6,6 +6,7 @@ export interface WorkspaceSummary {
   readonly timeZone: string;
   readonly memberCount: number;
   readonly role: WorkspaceRole;
+  readonly permissions: ResourcePermissions;
 }
 
 export interface ShellUser {

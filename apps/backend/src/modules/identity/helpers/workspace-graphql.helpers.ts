@@ -1,12 +1,17 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
+import { toGraphqlPermissions } from '@/modules/identity/helpers/permission-graphql.helpers';
 import type {
   InviteInfo,
   InviteLinkView,
   UpdateInviteLinkRoleInput,
 } from '@/modules/identity/typedefs/invite-link.typedefs';
 import type { MembersPage, RoleMemberCount } from '@/modules/identity/typedefs/membership.typedefs';
-import type { WorkspaceMembership } from '@/modules/identity/typedefs/workspace.typedefs';
 import type {
+  ChangeMemberRoleInput,
+  WorkspaceMembership,
+} from '@/modules/identity/typedefs/workspace.typedefs';
+import type {
+  ChangeMemberRoleInput as ChangeMemberRoleArgs,
   InviteInfo as GraphqlInviteInfo,
   InviteLink as GraphqlInviteLink,
   MemberConnection,
@@ -16,14 +21,14 @@ import type {
 } from '@/platform/graphql-server/generated/schema.generated';
 import { WorkspaceRole as GraphqlWorkspaceRole } from '@/platform/graphql-server/generated/schema.generated';
 
-const GRAPHQL_WORKSPACE_ROLE: Readonly<Record<WorkspaceRole, GraphqlWorkspaceRole>> = {
+export const GRAPHQL_WORKSPACE_ROLE: Readonly<Record<WorkspaceRole, GraphqlWorkspaceRole>> = {
   [WorkspaceRole.Owner]: GraphqlWorkspaceRole.Owner,
   [WorkspaceRole.Admin]: GraphqlWorkspaceRole.Admin,
   [WorkspaceRole.Builder]: GraphqlWorkspaceRole.Builder,
   [WorkspaceRole.Operator]: GraphqlWorkspaceRole.Operator,
 };
 
-const WORKSPACE_ROLE_FROM_GRAPHQL: Readonly<Record<GraphqlWorkspaceRole, WorkspaceRole>> = {
+export const WORKSPACE_ROLE_FROM_GRAPHQL: Readonly<Record<GraphqlWorkspaceRole, WorkspaceRole>> = {
   [GraphqlWorkspaceRole.Owner]: WorkspaceRole.Owner,
   [GraphqlWorkspaceRole.Admin]: WorkspaceRole.Admin,
   [GraphqlWorkspaceRole.Builder]: WorkspaceRole.Builder,
@@ -33,11 +38,13 @@ const WORKSPACE_ROLE_FROM_GRAPHQL: Readonly<Record<GraphqlWorkspaceRole, Workspa
 export const toGraphqlMembership = (membership: WorkspaceMembership): Membership => ({
   workspace: membership.workspace,
   role: GRAPHQL_WORKSPACE_ROLE[membership.role],
+  permissions: toGraphqlPermissions(membership.permissions),
 });
 
 export const toGraphqlInviteLink = (link: InviteLinkView): GraphqlInviteLink => ({
   url: link.url,
   role: GRAPHQL_WORKSPACE_ROLE[link.role],
+  roleId: link.roleId,
   expiresAt: link.expiresAt.toISOString(),
   joinedCount: link.joinedCount,
 });
@@ -47,6 +54,7 @@ export const toGraphqlInviteInfo = (info: InviteInfo): GraphqlInviteInfo => ({
   inviterName: info.inviterName,
   memberCount: info.memberCount,
   role: GRAPHQL_WORKSPACE_ROLE[info.role],
+  roleId: info.roleId,
   expiresAt: info.expiresAt.toISOString(),
 });
 
@@ -66,12 +74,21 @@ export const toGraphqlMemberConnection = (page: MembersPage): MemberConnection =
       name: edge.node.name,
       email: edge.node.email,
       role: GRAPHQL_WORKSPACE_ROLE[edge.node.role],
+      roleId: edge.node.roleId,
       lastActiveAt: edge.node.lastActiveAt?.toISOString() ?? null,
       joinedAt: edge.node.joinedAt.toISOString(),
     },
   })),
 });
 
+export const toChangeMemberRoleInput = (args: ChangeMemberRoleArgs): ChangeMemberRoleInput => ({
+  membershipId: args.membershipId,
+  role: WORKSPACE_ROLE_FROM_GRAPHQL[args.role],
+});
+
 export const toUpdateInviteLinkRoleInput = (
   args: UpdateInviteLinkRoleArgs,
-): UpdateInviteLinkRoleInput => ({ role: WORKSPACE_ROLE_FROM_GRAPHQL[args.role] });
+): UpdateInviteLinkRoleInput => ({
+  role: args.role === null ? undefined : WORKSPACE_ROLE_FROM_GRAPHQL[args.role],
+  roleId: args.roleId ?? undefined,
+});

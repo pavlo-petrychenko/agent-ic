@@ -1,5 +1,6 @@
 import type { WorkspaceRole } from '@agent-ic/contracts';
 import type { workspaces } from '@/modules/identity/db/workspaces.table';
+import type { RolePermission } from '@/modules/identity/typedefs/role.typedefs';
 
 export type WorkspaceRecord = typeof workspaces.$inferSelect;
 
@@ -20,6 +21,7 @@ export interface WorkspaceSummary {
 export interface WorkspaceMembership {
   readonly workspace: WorkspaceSummary;
   readonly role: WorkspaceRole;
+  readonly permissions: readonly RolePermission[];
 }
 
 export interface DirectoryMembership {
@@ -27,6 +29,7 @@ export interface DirectoryMembership {
   readonly name: string;
   readonly timeZone: string;
   readonly role: WorkspaceRole;
+  readonly permissions: readonly RolePermission[];
   readonly memberCount: number;
 }
 
@@ -58,4 +61,9 @@ export type WorkspaceDeletedInput = {
 
 export interface RemoveMemberInput {
   readonly membershipId: string;
+}
+
+export interface ChangeMemberRoleInput {
+  readonly membershipId: string;
+  readonly role: WorkspaceRole;
 }

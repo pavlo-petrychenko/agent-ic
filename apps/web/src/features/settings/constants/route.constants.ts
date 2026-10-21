@@ -5,5 +5,6 @@ export const ROLES_PATH = '/w/$workspaceId/settings/roles';
 export const USAGE_PATH = '/w/$workspaceId/settings/usage';
 export const LLM_KEYS_PATH = '/w/$workspaceId/settings/llm';
 export const PROFILE_PATH = '/w/$workspaceId/settings/profile';
+export const NOTIFICATIONS_PATH = '/w/$workspaceId/settings/notifications';
 export const SETTINGS_HREF_PREFIX = '/w/';
 export const SETTINGS_HREF_SUFFIX = '/settings';
