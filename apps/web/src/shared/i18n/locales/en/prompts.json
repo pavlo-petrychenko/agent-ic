@@ -193,7 +193,9 @@
     "useLibrary": "Use a library prompt",
     "openInLibrary": "Open in library",
     "version": "Version",
-    "followLatest": "Follow latest"
+    "followLatest": "Follow latest",
+    "empty": "This step has no prompt yet. Pick one from the library.",
+    "inlineNote": "This prompt is written in the step. Pick a library prompt to replace it."
   },
   "picker": {
     "title": "Use a library prompt",

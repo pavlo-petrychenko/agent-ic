@@ -371,7 +371,6 @@
     },
     "llm": {
       "prompt": "Prompt",
-      "promptPlaceholder": "Tell the model what to do. Type {{ to insert a field.",
       "variables": "Fields",
       "source": {
         "trigger": "Trigger",

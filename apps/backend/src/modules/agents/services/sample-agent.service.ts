@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
 import { EXAMPLE_VERSION_NOTE } from '@/modules/agents/constants/flow-example-nodes.constants';
-import { FLOW_EXAMPLES } from '@/modules/agents/constants/flow-examples.constants';
+import { flowExamples } from '@/modules/agents/constants/flow-examples.constants';
 import {
   SAMPLE_AGENT_DESCRIPTION,
   SAMPLE_AGENT_NAME,
@@ -14,6 +14,7 @@ import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-ver
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
 import type { SampleLiveAgent } from '@/modules/agents/typedefs/sample-agent.typedefs';
+import type { SamplePromptRefs } from '@/modules/agents/typedefs/sample-prompt.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -53,12 +54,16 @@ export class SampleAgentService {
     });
   }
 
-  ensureFlowExamples(workspaceId: string, authorId: string): Promise<boolean> {
+  ensureFlowExamples(
+    workspaceId: string,
+    authorId: string,
+    promptRefs: SamplePromptRefs,
+  ): Promise<boolean> {
     return this.tenantTransactions.run(workspaceId, async () => {
       if (await this.hasAgents(workspaceId)) {
         return false;
       }
-      for (const example of FLOW_EXAMPLES) {
+      for (const example of flowExamples(promptRefs)) {
         await this.createLive(workspaceId, authorId, {
           name: example.name,
           description: example.description,

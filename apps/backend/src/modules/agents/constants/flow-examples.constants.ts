@@ -6,6 +6,7 @@ import {
   PortName,
 } from '@agent-ic/flow';
 import { EXAMPLE_TRIGGER_KEY as START } from '@/modules/agents/constants/flow-example-nodes.constants';
+import { SamplePromptKey } from '@/modules/agents/constants/sample-prompt.constants';
 import {
   backgroundLink,
   exampleAgent,
@@ -16,6 +17,7 @@ import {
   exampleField,
   exampleHandOff,
   exampleParallel,
+  examplePrompt,
   exampleRouter,
   exampleRule,
   exampleSendReply,
@@ -24,40 +26,50 @@ import {
   link,
 } from '@/modules/agents/helpers/flow-example-nodes.helpers';
 import type { FlowExample } from '@/modules/agents/typedefs/flow-example.typedefs';
+import type { SamplePromptRefs } from '@/modules/agents/typedefs/sample-prompt.typedefs';
 
 const ECHO_GET_URL = 'https://postman-echo.com/get';
 const ECHO_POST_URL = 'https://postman-echo.com/post';
-const CAFE_ASSISTANT_PROMPT =
-  'You are the assistant of Kavarnia, a cosy café in Lviv. Answer briefly and kindly.';
 const PRICE_LIST = 'Espresso 45 UAH, cappuccino 65 UAH, syrnyky 120 UAH, lviv cheesecake 95 UAH.';
 const MENU_BUTTONS = ['Menu', 'Hours', 'Talk to a person'] as const;
 const [MENU_BUTTON, HOURS_BUTTON, PERSON_BUTTON] = MENU_BUTTONS;
 
-const faqAssistant: FlowExample = {
+const faqAssistant = (prompts: SamplePromptRefs): FlowExample => ({
   name: 'FAQ assistant',
   description: 'An agent answers; when it fails, a person takes over.',
   nodes: [
     exampleTrigger([0, 0]),
-    exampleAgent('faq', 'Answer the question', [0, 1], CAFE_ASSISTANT_PROMPT),
+    exampleAgent(
+      'faq',
+      'Answer the question',
+      [0, 1],
+      examplePrompt(prompts[SamplePromptKey.CafeAssistant]),
+    ),
     exampleSendReply('reply', 'Send the answer', [0, 2], 'faq.messages'),
     exampleHandOff('hand_off', 'Hand off to the team', [1, 2], 'The assistant could not answer.'),
   ],
   edges: [link(START, 'faq'), link('faq', 'reply'), link('faq', 'hand_off', PortName.Error)],
-};
+});
 
-const intentRouter: FlowExample = {
+const intentRouter = (prompts: SamplePromptRefs): FlowExample => ({
   name: 'Intent router',
   description: 'A completion sorts the message, a router sends each kind its own way.',
   nodes: [
     exampleTrigger([0, 0]),
-    exampleCompletion('intent', 'What does the customer want?', [0, 1], 'Sort the message.', [
-      exampleEnumField('kind', 'What the customer wants', [
-        'booking',
-        'prices',
-        'complaint',
-        'other',
-      ]),
-    ]),
+    exampleCompletion(
+      'intent',
+      'What does the customer want?',
+      [0, 1],
+      examplePrompt(prompts[SamplePromptKey.IntentSort]),
+      [
+        exampleEnumField('kind', 'What the customer wants', [
+          'booking',
+          'prices',
+          'complaint',
+          'other',
+        ]),
+      ],
+    ),
     exampleRouter(
       'route',
       'Route by intent',
@@ -68,10 +80,20 @@ const intentRouter: FlowExample = {
         exampleRule('complaint', 'Complaint', 'intent.kind', ConditionOperator.Eq, 'complaint'),
       ],
     ),
-    exampleAgent('booking_helper', 'Booking helper', [-2, 3], 'Help the guest book a table.'),
+    exampleAgent(
+      'booking_helper',
+      'Booking helper',
+      [-2, 3],
+      examplePrompt(prompts[SamplePromptKey.BookingHelper]),
+    ),
     exampleSendText('prices', 'Send the price list', [-1, 4], PRICE_LIST),
     exampleHandOff('hand_off', 'Hand off to the team', [0, 6], 'The customer needs a person.'),
-    exampleAgent('assistant', 'Answer anything else', [1, 3], CAFE_ASSISTANT_PROMPT),
+    exampleAgent(
+      'assistant',
+      'Answer anything else',
+      [1, 3],
+      examplePrompt(prompts[SamplePromptKey.CafeAssistant]),
+    ),
     exampleSendReply(
       'booking_reply',
       'Send the booking answer',
@@ -93,19 +115,30 @@ const intentRouter: FlowExample = {
     link('assistant', 'reply'),
     link('assistant', 'hand_off', PortName.Error),
   ],
-};
+});
 
-const complaintCheck: FlowExample = {
+const complaintCheck = (prompts: SamplePromptRefs): FlowExample => ({
   name: 'Complaint check in parallel',
   description: 'A complaint check and a drafted reply run together; the reply waits for both.',
   nodes: [
     exampleTrigger([0, 0]),
     exampleParallel('together', 'Check and draft together', [0, 1]),
-    exampleCompletion('complaint', 'Is it a complaint?', [-1, 2], 'Is this a complaint?', [
-      exampleField('is_complaint', OutputFieldType.Boolean, 'The customer complains'),
-      exampleField('reason', OutputFieldType.String, 'What went wrong', false),
-    ]),
-    exampleAgent('draft', 'Draft a reply', [1, 2], CAFE_ASSISTANT_PROMPT),
+    exampleCompletion(
+      'complaint',
+      'Is it a complaint?',
+      [-1, 2],
+      examplePrompt(prompts[SamplePromptKey.ComplaintCheck]),
+      [
+        exampleField('is_complaint', OutputFieldType.Boolean, 'The customer complains'),
+        exampleField('reason', OutputFieldType.String, 'What went wrong', false),
+      ],
+    ),
+    exampleAgent(
+      'draft',
+      'Draft a reply',
+      [1, 2],
+      examplePrompt(prompts[SamplePromptKey.CafeAssistant]),
+    ),
     exampleHandOff('check_failed', 'Hand off to the team', [-1, 3], 'The complaint check failed.'),
     exampleHandOff('draft_failed', 'Hand off to the team', [1, 3], 'The draft failed.'),
     exampleRouter(
@@ -132,20 +165,31 @@ const complaintCheck: FlowExample = {
     link('decide', 'complaint_hand_off', 'complaint'),
     link('decide', 'reply', PortName.Else),
   ],
-};
+});
 
-const replyAndScore: FlowExample = {
+const replyAndScore = (prompts: SamplePromptRefs): FlowExample => ({
   name: 'Reply and score',
   description: 'The reply waits only for the agent; scoring runs in the background.',
   nodes: [
     exampleTrigger([0, 0]),
     exampleParallel('together', 'Answer and score', [0, 1]),
-    exampleAgent('answer', 'Answer the question', [-1, 2], CAFE_ASSISTANT_PROMPT),
+    exampleAgent(
+      'answer',
+      'Answer the question',
+      [-1, 2],
+      examplePrompt(prompts[SamplePromptKey.CafeAssistant]),
+    ),
     exampleHandOff('hand_off', 'Hand off to the team', [-1, 3], 'The assistant could not answer.'),
-    exampleCompletion('scorer', 'Score the conversation', [1, 2], 'Rate the mood and topic.', [
-      exampleField('mood', OutputFieldType.Number, 'Mood from 1 (angry) to 5 (happy)'),
-      exampleField('topic', OutputFieldType.String, 'The topic in two or three words'),
-    ]),
+    exampleCompletion(
+      'scorer',
+      'Score the conversation',
+      [1, 2],
+      examplePrompt(prompts[SamplePromptKey.MoodScorer]),
+      [
+        exampleField('mood', OutputFieldType.Number, 'Mood from 1 (angry) to 5 (happy)'),
+        exampleField('topic', OutputFieldType.String, 'The topic in two or three words'),
+      ],
+    ),
     exampleApiRequest('save_score', 'Save the score', [1, 3], {
       method: HttpMethod.Post,
       url: ECHO_POST_URL,
@@ -162,9 +206,9 @@ const replyAndScore: FlowExample = {
     link('scorer', 'save_score'),
     link('together', 'reply'),
   ],
-};
+});
 
-const lookUpThenAnswer: FlowExample = {
+const lookUpThenAnswer = (prompts: SamplePromptRefs): FlowExample => ({
   name: 'Look up, then answer',
   description: 'Two lookups run at the same time; the agent answers with both results.',
   nodes: [
@@ -186,7 +230,7 @@ const lookUpThenAnswer: FlowExample = {
       'answer',
       'Answer with both',
       [0, 3],
-      `${CAFE_ASSISTANT_PROMPT} Bookings: {{bookings.body}}. Loyalty points: {{loyalty.body}}.`,
+      examplePrompt(prompts[SamplePromptKey.LookUpAnswer]),
     ),
     exampleSendReply('reply', 'Send the answer', [0, 4], 'answer.messages'),
     exampleHandOff('hand_off', 'Hand off to the team', [1, 4], 'The assistant could not answer.'),
@@ -199,9 +243,9 @@ const lookUpThenAnswer: FlowExample = {
     link('answer', 'reply'),
     link('answer', 'hand_off', PortName.Error),
   ],
-};
+});
 
-const tableBooking: FlowExample = {
+const tableBooking = (prompts: SamplePromptRefs): FlowExample => ({
   name: 'Table booking',
   description: 'An agent collects the day and guests, then an API request books the table.',
   nodes: [
@@ -210,7 +254,7 @@ const tableBooking: FlowExample = {
       'booking',
       'Collect the booking',
       [0, 1],
-      'Find the day and the number of guests.',
+      examplePrompt(prompts[SamplePromptKey.BookingDetails]),
       [
         exampleField('date', OutputFieldType.String, 'The day, as YYYY-MM-DD', false),
         exampleField('guests', OutputFieldType.Number, 'How many guests', false),
@@ -247,9 +291,9 @@ const tableBooking: FlowExample = {
     link('save_booking', 'confirm'),
     link('save_booking', 'hand_off', PortName.Error),
   ],
-};
+});
 
-const menuButtons: FlowExample = {
+const menuButtons = (prompts: SamplePromptRefs): FlowExample => ({
   name: 'Menu buttons',
   description: 'Quick reply buttons lead to fixed answers; anything else goes to the agent.',
   nodes: [
@@ -272,7 +316,12 @@ const menuButtons: FlowExample = {
       [0.5, 5],
       'The customer asked for a person.',
     ),
-    exampleAgent('assistant', 'Answer anything else', [1.5, 2], CAFE_ASSISTANT_PROMPT),
+    exampleAgent(
+      'assistant',
+      'Answer anything else',
+      [1.5, 2],
+      examplePrompt(prompts[SamplePromptKey.CafeAssistant]),
+    ),
     exampleSendReply('reply', 'Send the answer', [1, 3], 'assistant.messages', MENU_BUTTONS),
   ],
   edges: [
@@ -284,9 +333,9 @@ const menuButtons: FlowExample = {
     link('assistant', 'reply'),
     link('assistant', 'hand_off', PortName.Error),
   ],
-};
+});
 
-const closeTheChat: FlowExample = {
+const closeTheChat = (prompts: SamplePromptRefs): FlowExample => ({
   name: 'Close the chat',
   description: 'When the customer is done, the chat ends with a goodbye.',
   nodes: [
@@ -295,7 +344,7 @@ const closeTheChat: FlowExample = {
       'finished',
       'Is the customer done?',
       [0, 1],
-      'Is the customer saying goodbye?',
+      examplePrompt(prompts[SamplePromptKey.GoodbyeCheck]),
       [exampleField('done', OutputFieldType.Boolean, 'The customer has nothing more to ask')],
     ),
     exampleRouter(
@@ -305,7 +354,12 @@ const closeTheChat: FlowExample = {
       [exampleRule('done', 'Done', 'finished.done', ConditionOperator.IsTrue)],
     ),
     exampleEndChat('goodbye', 'End the chat', [-1.5, 3], 'Glad we could help. Have a nice day!'),
-    exampleAgent('assistant', 'Keep helping', [1, 3], CAFE_ASSISTANT_PROMPT),
+    exampleAgent(
+      'assistant',
+      'Keep helping',
+      [1, 3],
+      examplePrompt(prompts[SamplePromptKey.CafeAssistant]),
+    ),
     exampleSendReply('reply', 'Send the answer', [1, 4], 'assistant.messages'),
     exampleHandOff('hand_off', 'Hand off to the team', [2, 4], 'The assistant could not answer.'),
   ],
@@ -318,15 +372,15 @@ const closeTheChat: FlowExample = {
     link('assistant', 'reply'),
     link('assistant', 'hand_off', PortName.Error),
   ],
-};
+});
 
-export const FLOW_EXAMPLES: readonly FlowExample[] = [
-  faqAssistant,
-  intentRouter,
-  complaintCheck,
-  replyAndScore,
-  lookUpThenAnswer,
-  tableBooking,
-  menuButtons,
-  closeTheChat,
+export const flowExamples = (prompts: SamplePromptRefs): readonly FlowExample[] => [
+  faqAssistant(prompts),
+  intentRouter(prompts),
+  complaintCheck(prompts),
+  replyAndScore(prompts),
+  lookUpThenAnswer(prompts),
+  tableBooking(prompts),
+  menuButtons(prompts),
+  closeTheChat(prompts),
 ];

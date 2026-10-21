@@ -1,7 +1,8 @@
-import { validateFlow } from '@agent-ic/flow';
+import { NodeType, PromptSourceKind, validateFlow } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
-import { FLOW_EXAMPLES } from '@/modules/agents/constants/flow-examples.constants';
+import { flowExamples } from '@/modules/agents/constants/flow-examples.constants';
 import { buildExampleFlow } from '@/modules/agents/helpers/flow-example-nodes.helpers';
+import { samplePromptRefs } from '@test/support/fixtures/sample-prompt.fixture';
 
 const sequentialIds = (): (() => string) => {
   let next = 0;
@@ -11,8 +12,10 @@ const sequentialIds = (): (() => string) => {
   };
 };
 
-describe('FLOW_EXAMPLES', () => {
-  it.each(FLOW_EXAMPLES.map((example) => [example.name, example] as const))(
+const EXAMPLES = flowExamples(samplePromptRefs());
+
+describe('flowExamples', () => {
+  it.each(EXAMPLES.map((example) => [example.name, example] as const))(
     '%s validates with no issues',
     (_name, example) => {
       const flow = buildExampleFlow(example, sequentialIds());
@@ -21,7 +24,7 @@ describe('FLOW_EXAMPLES', () => {
     },
   );
 
-  it.each(FLOW_EXAMPLES.map((example) => [example.name, example] as const))(
+  it.each(EXAMPLES.map((example) => [example.name, example] as const))(
     '%s gets a fresh id on every node and edge and keeps the background flags',
     (_name, example) => {
       const flow = buildExampleFlow(example, sequentialIds());
@@ -37,4 +40,19 @@ describe('FLOW_EXAMPLES', () => {
       );
     },
   );
+
+  it('points every agent and completion step at a library prompt', () => {
+    const prompts = EXAMPLES.flatMap((example) =>
+      example.nodes.flatMap((node) =>
+        node.type === NodeType.Agent || node.type === NodeType.Completion
+          ? [node.config.prompt]
+          : [],
+      ),
+    );
+
+    expect(prompts).not.toEqual([]);
+    for (const prompt of prompts) {
+      expect(prompt?.kind).toBe(PromptSourceKind.Library);
+    }
+  });
 });

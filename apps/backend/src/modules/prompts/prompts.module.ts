@@ -20,6 +20,7 @@ import { PromptFlowReferenceChecker } from '@/modules/prompts/services/prompt-fl
 import { PromptFolderViewsService } from '@/modules/prompts/services/prompt-folder-views.service';
 import { PromptUsageService } from '@/modules/prompts/services/prompt-usage.service';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
+import { SamplePromptService } from '@/modules/prompts/services/sample-prompt.service';
 import { CleanUpWorkspaceUseCase } from '@/modules/prompts/use-cases/clean-up-workspace.use-case';
 import { CreatePromptFolderUseCase } from '@/modules/prompts/use-cases/create-prompt-folder.use-case';
 import { CreatePromptUseCase } from '@/modules/prompts/use-cases/create-prompt.use-case';
@@ -54,6 +55,7 @@ export class PromptsModule extends defineModule({
     PromptFlowReader,
     PromptUsageService,
     PromptViewsService,
+    SamplePromptService,
     CleanUpWorkspaceUseCase,
     CreatePromptFolderUseCase,
     CreatePromptUseCase,
@@ -86,6 +88,6 @@ export class PromptsModule extends defineModule({
     RenamePromptResolver,
     SavePromptVersionResolver,
   ],
-  exports: [PromptFlowReader],
+  exports: [PromptFlowReader, SamplePromptService],
   listeners: [CleanUpWorkspaceListener],
 }) {}

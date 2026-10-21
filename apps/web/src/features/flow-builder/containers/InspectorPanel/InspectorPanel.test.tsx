@@ -335,21 +335,6 @@ describe('InspectorPanel', () => {
     expect(screen.queryByText('The reply needs to wait for at least one branch.')).toBeNull();
   });
 
-  it('offers only the fields visible to the step in the prompt autocomplete', async () => {
-    const user = userEvent.setup();
-    open('agent', AI_FLOW);
-
-    await user.type(screen.getByRole('textbox', { name: 'Prompt' }), '{{{{');
-    const options = within(await screen.findByRole('listbox', { name: 'Fields' }))
-      .getAllByRole('option')
-      .map((option) => option.textContent);
-
-    expect(options).toContain('message.textTrigger');
-    expect(options).toContain('guard.resultGuard');
-    expect(options.some((option) => option?.startsWith('tagger.'))).toBe(false);
-    expect(options.some((option) => option?.startsWith('agent.'))).toBe(false);
-  });
-
   it('shows a variable the prompt can not use under the prompt', () => {
     open(
       'agent',
@@ -415,28 +400,11 @@ describe('InspectorPanel', () => {
     expect(screen.getByRole('button', { name: 'Add field' })).toBeEnabled();
   });
 
-  it('records a typed prompt as one undo step', async () => {
-    const user = userEvent.setup();
-    open('agent', AI_FLOW);
-    const before = node('agent');
+  it('asks for a prompt on a step that has none', () => {
+    open('agent', withAgent({ prompt: null }));
 
-    await user.type(screen.getByRole('textbox', { name: 'Prompt' }), 'Greet the customer');
-    await user.tab();
-
-    expect(node('agent')).toMatchObject({ config: { prompt: { text: 'Greet the customer' } } });
-    act(() => store().undo());
-    expect(node('agent')).toEqual(before);
-  });
-
-  it('checks a typed prompt and marks it unsaved before the field loses focus', async () => {
-    const user = userEvent.setup();
-    open('agent', AI_FLOW);
     expect(screen.getByText('Write a prompt')).toBeVisible();
-
-    await user.type(screen.getByRole('textbox', { name: 'Prompt' }), 'Hi');
-
-    expect(screen.queryByText('Write a prompt')).not.toBeInTheDocument();
-    expect(store().saveState).toBe(SaveState.Pending);
+    expect(screen.getByRole('button', { name: 'Use a library prompt' })).toBeVisible();
   });
 
   it('explains a failed model list and loads it again', async () => {
