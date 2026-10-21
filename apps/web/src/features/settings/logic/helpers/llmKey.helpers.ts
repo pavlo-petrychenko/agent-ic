@@ -1,14 +1,21 @@
+import { LLM_KEY_MIN_LENGTH, LLM_KEY_NAME_MAX_LENGTH } from '@agent-ic/contracts';
 import {
-  DEFAULT_LLM_VENDOR,
+  LLM_KEY_CHECK_CHECKING,
+  LLM_KEY_CHECK_IDLE,
+  LLM_KEY_HTTPS_PROTOCOL,
   LLM_KEY_MASK_CHARACTER,
-  LLM_KEY_VISIBLE_LENGTH,
   LLM_KEY_VISIBLE_PREFIX,
-  LLM_VENDOR_ORDER,
+  LLM_KNOWN_VENDOR_ORDER,
+  LLM_SELECTABLE_VENDORS,
 } from '@/features/settings/constants/llmKey.constants';
-import type { LlmKey, LlmProviderModels } from '@/features/settings/typedefs/llmKey.typedefs';
-import type { ModelVendor } from '@/shared/api/generated/schema.generated';
-
-export const llmKeyLast4 = (rawKey: string): string => rawKey.slice(-LLM_KEY_VISIBLE_LENGTH);
+import type {
+  LlmKey,
+  LlmKeyCheckInput,
+  LlmKeyCheckOutcome,
+  LlmKeyCheckState,
+  LlmKeyDraft,
+} from '@/features/settings/typedefs/llmKey.typedefs';
+import { LlmKeyVendor } from '@/shared/api/generated/schema.generated';
 
 export const maskLlmKeyInput = (rawKey: string): string =>
   rawKey.length <= LLM_KEY_VISIBLE_PREFIX
@@ -32,17 +39,60 @@ export const applyLlmKeyEdit = (current: string, next: string): string => {
   return current;
 };
 
-export const llmVendorFromValue = (value: string): ModelVendor | null =>
-  LLM_VENDOR_ORDER.find((vendor) => vendor === value) ?? null;
+export const llmVendorFromValue = (value: string): LlmKeyVendor | null =>
+  LLM_SELECTABLE_VENDORS.find((vendor) => vendor === value) ?? null;
 
-export const firstVendorWithoutKey = (
-  providers: readonly LlmProviderModels[],
-  keys: readonly LlmKey[],
-): ModelVendor => {
+export const firstVendorWithoutKey = (keys: readonly LlmKey[]): LlmKeyVendor => {
   const keyed = new Set(keys.map((key) => key.vendor));
-  return (
-    providers.find((provider) => !keyed.has(provider.vendor))?.vendor ??
-    providers[0]?.vendor ??
-    DEFAULT_LLM_VENDOR
-  );
+  return LLM_KNOWN_VENDOR_ORDER.find((vendor) => !keyed.has(vendor)) ?? LlmKeyVendor.Custom;
+};
+
+export const parseHttpsUrl = (value: string): URL | null => {
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === LLM_KEY_HTTPS_PROTOCOL ? url : null;
+  } catch {
+    return null;
+  }
+};
+
+export const llmKeyHost = (baseUrl: string | null): string => {
+  if (baseUrl === null) {
+    return '';
+  }
+  return parseHttpsUrl(baseUrl)?.host ?? baseUrl;
+};
+
+export const llmKeyCheckInput = (
+  draft: Pick<LlmKeyDraft, 'vendor' | 'apiKey' | 'baseUrl'>,
+): LlmKeyCheckInput | null => {
+  const apiKey = draft.apiKey.trim();
+  if (apiKey.length < LLM_KEY_MIN_LENGTH) {
+    return null;
+  }
+  if (draft.vendor !== LlmKeyVendor.Custom) {
+    return { vendor: draft.vendor, apiKey, baseUrl: null };
+  }
+  if (parseHttpsUrl(draft.baseUrl) === null) {
+    return null;
+  }
+  return { vendor: draft.vendor, apiKey, baseUrl: draft.baseUrl.trim() };
+};
+
+export const isCustomNameValid = (name: string): boolean => {
+  const trimmed = name.trim();
+  return trimmed.length > 0 && trimmed.length <= LLM_KEY_NAME_MAX_LENGTH;
+};
+
+export const isLlmKeyDraftComplete = (draft: LlmKeyDraft): boolean =>
+  draft.vendor !== LlmKeyVendor.Custom || isCustomNameValid(draft.name);
+
+export const resolveLlmKeyCheck = (
+  checkId: string | null,
+  outcome: LlmKeyCheckOutcome | null,
+): LlmKeyCheckState => {
+  if (checkId === null) {
+    return LLM_KEY_CHECK_IDLE;
+  }
+  return outcome?.checkId === checkId ? outcome.state : LLM_KEY_CHECK_CHECKING;
 };

@@ -1,0 +1,13 @@
+mutation AddLlmKey($input: AddLlmKeyInput!) {
+  addLlmKey(input: $input) {
+    id
+    vendor
+    name
+    baseUrl
+    keyLast4
+    fallbackToPlatform
+    addedBy
+    createdAt
+    usedBySteps
+  }
+}

@@ -1,15 +1,11 @@
 import { useQuery } from '@apollo/client/react';
 import { useMemo } from 'react';
 import { LlmCatalogDocument } from '@/features/settings/communication/gql/query/llmCatalog.generated';
-import {
-  toLlmProviders,
-  toPlatformPurposes,
-} from '@/features/settings/communication/helpers/llmCatalog.helpers';
+import { toPlatformPurposes } from '@/features/settings/communication/helpers/llmCatalog.helpers';
 import type { UseLlmCatalogResult } from '@/features/settings/typedefs/llmKey.typedefs';
 
 export function useLlmCatalog(): UseLlmCatalogResult {
   const { data, loading } = useQuery(LlmCatalogDocument);
-  const providers = useMemo(() => toLlmProviders(data), [data]);
   const purposes = useMemo(() => toPlatformPurposes(data), [data]);
-  return { providers, purposes, loading };
+  return { purposes, loading };
 }
