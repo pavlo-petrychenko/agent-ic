@@ -1,16 +1,14 @@
-import type { WorkspaceRole } from '@agent-ic/contracts';
-
 export interface RoleListItem {
-  readonly id: WorkspaceRole;
+  readonly id: string;
   readonly title: string;
   readonly description: string;
 }
 
 export interface RoleListProps {
   readonly roles: readonly RoleListItem[];
-  readonly selectedId: WorkspaceRole;
+  readonly selectedId: string;
   readonly ariaLabel: string;
   readonly newRoleLabel: string;
-  readonly onSelect: (id: WorkspaceRole) => void;
+  readonly onSelect: (id: string) => void;
   readonly onNewRole: () => void;
 }

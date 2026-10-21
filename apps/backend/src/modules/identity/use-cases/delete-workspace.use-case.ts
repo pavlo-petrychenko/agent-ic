@@ -1,8 +1,8 @@
 import { PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { DELETE_WORKSPACE_RATE_LIMIT } from '@/modules/identity/constants/rate-limit.constants';
-import { InvalidCredentialsError } from '@/modules/identity/errors/invalid-credentials.error';
 import { WorkspaceNameMismatchError } from '@/modules/identity/errors/workspace-name-mismatch.error';
+import { WrongPasswordError } from '@/modules/identity/errors/wrong-password.error';
 import { workspaceDeletedEvent } from '@/modules/identity/events/workspace-deleted.event';
 import { verifyPassword } from '@/modules/identity/helpers/password.helpers';
 import { parseWorkspaceInput } from '@/modules/identity/helpers/workspace-input.helpers';
@@ -35,7 +35,7 @@ export class DeleteWorkspaceUseCase {
       const user = await this.users.findById(access.userId);
       const matches = await verifyPassword(user?.passwordHash ?? null, password);
       if (user === null || !matches) {
-        throw new InvalidCredentialsError();
+        throw new WrongPasswordError();
       }
       const workspace = await this.workspaces.findById(access.workspaceId);
       if (workspace === null) {

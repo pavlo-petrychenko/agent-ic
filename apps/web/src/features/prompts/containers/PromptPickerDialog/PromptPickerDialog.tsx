@@ -17,7 +17,7 @@ export function PromptPickerDialog({ onPick, onClose }: PromptPickerDialogProps)
   const { t } = useTranslation(PROMPTS_NAMESPACE);
   const { folders, prompts, loading, failed, retry } = usePromptLibrary();
   const [query, setQuery] = useState('');
-  const groups = toPromptGroups(folders, prompts, query);
+  const groups = toPromptGroups(folders, query);
 
   return (
     <Dialog

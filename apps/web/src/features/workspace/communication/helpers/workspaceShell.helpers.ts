@@ -5,6 +5,7 @@ import type {
 } from '@/features/workspace/typedefs/workspace.typedefs';
 import { LOCALE_FROM_API } from '@/shared/api/constants/locale.constants';
 import { ROLE_FROM_API } from '@/shared/api/constants/workspaceRole.constants';
+import { toResourcePermissions } from '@/shared/api/helpers/permission.helpers';
 
 export const toWorkspaceShellData = (
   data: WorkspaceShellQuery,
@@ -16,6 +17,7 @@ export const toWorkspaceShellData = (
     timeZone: membership.workspace.timeZone,
     memberCount: membership.workspace.memberCount,
     role: ROLE_FROM_API[membership.role],
+    permissions: toResourcePermissions(membership.permissions),
   }));
   return {
     user: {

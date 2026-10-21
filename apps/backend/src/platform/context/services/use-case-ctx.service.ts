@@ -43,6 +43,7 @@ export class UseCaseCtxService {
       initiatedBy: init.initiatedBy,
       workspaceId: init.workspaceId,
       workspaceRole: null,
+      permissions: new Set(),
       traceId: init.traceId,
       locale: DEFAULT_LOCALE,
       clientIp: null,
@@ -69,7 +70,13 @@ export class UseCaseCtxService {
       return NO_WORKSPACE;
     }
     const workspaceId = this.ids.fromPublic(IdPrefix.Workspace, publicWorkspaceId);
-    const workspaceRole = await this.workspaceAccess.resolveRole(actor.userId, workspaceId);
-    return workspaceRole === null ? NO_WORKSPACE : { workspaceId, workspaceRole };
+    const access = await this.workspaceAccess.resolveAccess(actor.userId, workspaceId);
+    return access === null
+      ? NO_WORKSPACE
+      : {
+          workspaceId: access.workspaceId,
+          workspaceRole: access.role,
+          permissions: access.permissions,
+        };
   }
 }

@@ -9,6 +9,7 @@ import {
   PromptSegmentKind,
 } from '@/shared/prompt/constants/promptDocument.constants';
 import type {
+  PathNormalizer,
   PromptDocumentJson,
   PromptNodeLike,
   PromptParagraphNode,
@@ -31,7 +32,14 @@ const TRIGGER_PATTERN = new RegExp(`${OPEN}(${PROMPT_VARIABLE_PATH_CHARACTERS}*)
 export const formatVariableToken = (path: string): string =>
   `${PROMPT_VARIABLE_OPEN}${path}${PROMPT_VARIABLE_CLOSE}`;
 
-export function parsePromptLine(line: string): PromptSegment[] {
+export const normalizePathVariable = (path: string): string => path.toLowerCase();
+
+const identityPathVariable = (path: string): string => path;
+
+export function parsePromptLine(
+  line: string,
+  normalizePath: PathNormalizer = identityPathVariable,
+): PromptSegment[] {
   const segments: PromptSegment[] = [];
   let cursor = 0;
   for (const match of line.matchAll(PROMPT_VARIABLE_PASTE_PATTERN)) {
@@ -42,7 +50,7 @@ export function parsePromptLine(line: string): PromptSegment[] {
     if (match.index > cursor) {
       segments.push({ kind: PromptSegmentKind.Text, text: line.slice(cursor, match.index) });
     }
-    segments.push({ kind: PromptSegmentKind.Variable, path });
+    segments.push({ kind: PromptSegmentKind.Variable, path: normalizePath(path) });
     cursor = match.index + match[0].length;
   }
   if (cursor < line.length) {
@@ -51,10 +59,13 @@ export function parsePromptLine(line: string): PromptSegment[] {
   return segments;
 }
 
-export const collectPromptVariables = (value: string): readonly string[] => {
+export const collectPromptVariables = (
+  value: string,
+  normalizePath: PathNormalizer = identityPathVariable,
+): readonly string[] => {
   const paths = new Set<string>();
   for (const line of value.split(PROMPT_LINE_SEPARATOR)) {
-    for (const segment of parsePromptLine(line)) {
+    for (const segment of parsePromptLine(line, normalizePath)) {
       if (segment.kind === PromptSegmentKind.Variable) {
         paths.add(segment.path);
       }
@@ -63,8 +74,8 @@ export const collectPromptVariables = (value: string): readonly string[] => {
   return [...paths];
 };
 
-function toParagraph(line: string): PromptParagraphNode {
-  const segments = parsePromptLine(line);
+function toParagraph(line: string, normalizePath: PathNormalizer): PromptParagraphNode {
+  const segments = parsePromptLine(line, normalizePath);
   if (segments.length === 0) {
     return { type: PromptNodeName.Paragraph };
   }
@@ -78,9 +89,12 @@ function toParagraph(line: string): PromptParagraphNode {
   };
 }
 
-export const promptToDocument = (value: string): PromptDocumentJson => ({
+export const promptToDocument = (
+  value: string,
+  normalizePath: PathNormalizer = identityPathVariable,
+): PromptDocumentJson => ({
   type: PromptNodeName.Doc,
-  content: value.split(PROMPT_LINE_SEPARATOR).map(toParagraph),
+  content: value.split(PROMPT_LINE_SEPARATOR).map((line) => toParagraph(line, normalizePath)),
 });
 
 function serializeInline(node: PromptNodeLike): string {

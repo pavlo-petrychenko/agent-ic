@@ -36,7 +36,7 @@ export const buildCreatePromptConflictMock = (
   result: {
     errors: [
       new GraphQLError('taken', {
-        extensions: { code: ErrorCode.Conflict, reason: ErrorReason.InvalidRequest },
+        extensions: { code: ErrorCode.Conflict, reason: ErrorReason.PromptNameTaken },
       }),
     ],
   },

@@ -1,18 +1,16 @@
 import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { ConversationMode, ConversationRunsService, MessageAuthor } from '@/modules/conversations';
-import { RunStatus, RunStepStatus } from '@/modules/runs/constants/run.constants';
+import { ConversationMode } from '@/modules/conversations';
+import { RunStatus } from '@/modules/runs/constants/run.constants';
 import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { GetRunUseCase } from '@/modules/runs/use-cases/get-run.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
-import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
 import {
   FIRST_STEP_ID,
   FIRST_STEP_KEY,
   SECOND_STEP_ID,
   SECOND_STEP_KEY,
-  TEST_AGENT_REPLY,
 } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { agentNode, flowEdge, stepFlow } from '@test/support/fixtures/runs.fixture';
@@ -49,47 +47,22 @@ describe('GetRunUseCase', () => {
     await testbed.module.close();
   });
 
-  it('returns the steps with status, input, output and duration, and the run totals', async () => {
+  it('returns the run with its status and duration', async () => {
     const seeded = await seedSimulation();
     const { run, ctx } = seeded;
     await testbed.execution.execute(ctx, run.workspaceId, run.id);
-    await testbed.tenants.run(run.workspaceId, () =>
-      testbed.module.get(ConversationRunsService).recordOutbound(ctx, {
-        workspaceId: run.workspaceId,
-        conversationId: run.conversationId,
-        key: testbed.ids.generate(),
-        author: MessageAuthor.Agent,
-        text: TEST_AGENT_REPLY,
-        quickReplies: [],
-        runId: run.id,
-      }),
-    );
 
     const details = await read(run.workspaceId, seeded);
 
-    expect(details).toMatchObject({
-      id: testbed.ids.toPublic(IdPrefix.Run, run.id),
-      conversationId: testbed.ids.toPublic(IdPrefix.Conversation, run.conversationId),
-      status: RunStatus.Succeeded,
-      durationMs: 0,
-      totals: { stepsRun: 2, stepsInFlow: 3, messagesSent: 1 },
-    });
-    const succeeded = { status: RunStepStatus.Succeeded, durationMs: 0 };
-    expect(details.steps).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ ...succeeded, nodeId: TEST_NODE_ID }),
-        expect.objectContaining({
-          ...succeeded,
-          nodeId: FIRST_STEP_ID,
-          nodeKey: FIRST_STEP_KEY,
-          input: expect.objectContaining({
-            message: { text: TEST_MESSAGE_TEXT, attachments: [] },
-          }),
-          output: { answer: FIRST_STEP_KEY },
-        }),
-      ]),
+    expect(details).toEqual(
+      expect.objectContaining({
+        id: testbed.ids.toPublic(IdPrefix.Run, run.id),
+        conversationId: testbed.ids.toPublic(IdPrefix.Conversation, run.conversationId),
+        status: RunStatus.Succeeded,
+        durationMs: 0,
+      }),
     );
-    expect(details.steps.every((step) => !('history' in step.input))).toBe(true);
+    expect(details).not.toHaveProperty('steps');
   });
 
   it('does not find a run of another workspace', async () => {

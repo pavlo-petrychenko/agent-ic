@@ -4,12 +4,14 @@ export { passwordResetRequestedEvent } from '@/modules/identity/events/password-
 export { workspaceDeletedEvent } from '@/modules/identity/events/workspace-deleted.event';
 export { IdentityModule } from '@/modules/identity/identity.module';
 export { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
+export { RolesRepository } from '@/modules/identity/repositories/roles.repository';
 export { UsersRepository } from '@/modules/identity/repositories/users.repository';
 export { WorkspaceDirectoryRepository } from '@/modules/identity/repositories/workspace-directory.repository';
 export { EmailChangesService } from '@/modules/identity/services/email-changes.service';
 export { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
 export { PasswordResetsService } from '@/modules/identity/services/password-resets.service';
 export { SampleWorkspaceService } from '@/modules/identity/services/sample-workspace.service';
+export { WorkspaceRolesService } from '@/modules/identity/services/workspace-roles.service';
 export { SessionsService } from '@/modules/identity/services/sessions.service';
 export type {
   IssuedConfirmation,

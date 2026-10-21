@@ -5,8 +5,8 @@ import type {
   RunView,
   SimulationRunSummary,
 } from '@/modules/runs/typedefs/run-details.typedefs';
+import type { RunParent } from '@/modules/runs/typedefs/run-graphql.typedefs';
 import type {
-  Run,
   RunStep,
   SimulationRunSummary as GraphqlSimulationRunSummary,
 } from '@/platform/graphql-server/generated/schema.generated';
@@ -20,20 +20,19 @@ const GRAPHQL_RUN_STATUS: Readonly<Record<RunStatus, GraphqlRunStatus>> = {
   [RunStatus.Escalated]: GraphqlRunStatus.Escalated,
 };
 
-const toGraphqlRunStep = (step: RunStepView): RunStep => ({
+export const toGraphqlRunStep = (step: RunStepView): RunStep => ({
   ...step,
   status: toGraphqlRunStepStatus(step.status),
   startedAt: step.startedAt.toISOString(),
   finishedAt: step.finishedAt?.toISOString() ?? null,
 });
 
-export const toGraphqlRun = (run: RunView): Run => ({
+export const toGraphqlRun = (run: RunView): RunParent => ({
   ...run,
   status: GRAPHQL_RUN_STATUS[run.status],
   createdAt: run.createdAt.toISOString(),
   startedAt: run.startedAt?.toISOString() ?? null,
   finishedAt: run.finishedAt?.toISOString() ?? null,
-  steps: run.steps.map(toGraphqlRunStep),
 });
 
 export const toGraphqlSimulationRunSummary = (

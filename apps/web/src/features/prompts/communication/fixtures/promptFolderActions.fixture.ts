@@ -22,7 +22,7 @@ export const buildRenamePromptFolderConflictMock = (
   result: {
     errors: [
       new GraphQLError('taken', {
-        extensions: { code: ErrorCode.Conflict, reason: ErrorReason.InvalidRequest },
+        extensions: { code: ErrorCode.Conflict, reason: ErrorReason.PromptFolderNameTaken },
       }),
     ],
   },
@@ -42,7 +42,7 @@ export const buildDeletePromptFolderNotEmptyMock = (id: string): MockLink.Mocked
       new GraphQLError('not empty', {
         extensions: {
           code: ErrorCode.Conflict,
-          reason: ErrorReason.InvalidRequest,
+          reason: ErrorReason.PromptFolderNotEmpty,
           details: { promptCount: NOT_EMPTY_PROMPT_COUNT },
         },
       }),

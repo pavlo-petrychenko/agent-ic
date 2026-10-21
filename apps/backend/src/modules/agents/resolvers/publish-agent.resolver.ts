@@ -1,13 +1,11 @@
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { AgentGraphqlArgument } from '@/modules/agents/constants/agent-input.constants';
 import { toGraphqlPublishedAgent } from '@/modules/agents/helpers/agent-graphql.helpers';
+import type { PublishAgentPayloadParent } from '@/modules/agents/typedefs/agent-graphql.typedefs';
 import { PublishAgentUseCase } from '@/modules/agents/use-cases/publish-agent.use-case';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { GraphqlCtx } from '@/platform/graphql-server/decorators/graphql-ctx.decorator';
-import type {
-  PublishAgentInput,
-  PublishAgentPayload,
-} from '@/platform/graphql-server/generated/schema.generated';
+import type { PublishAgentInput } from '@/platform/graphql-server/generated/schema.generated';
 
 @Resolver()
 export class PublishAgentResolver {
@@ -17,7 +15,7 @@ export class PublishAgentResolver {
   async publishAgent(
     @GraphqlCtx() ctx: UseCaseCtx,
     @Args(AgentGraphqlArgument.Input) input: PublishAgentInput,
-  ): Promise<PublishAgentPayload> {
+  ): Promise<PublishAgentPayloadParent> {
     return toGraphqlPublishedAgent(await this.publishAgentUseCase.execute(ctx, input));
   }
 }

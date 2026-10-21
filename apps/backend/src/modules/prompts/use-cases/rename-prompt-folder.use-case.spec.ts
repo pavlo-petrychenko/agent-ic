@@ -1,3 +1,4 @@
+import { ErrorReason } from '@agent-ic/contracts';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PromptFolderNameTakenError } from '@/modules/prompts/errors/prompt-folder-name-taken.error';
@@ -5,6 +6,7 @@ import { PromptFolderNotFoundError } from '@/modules/prompts/errors/prompt-folde
 import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
 import { RenamePromptFolderUseCase } from '@/modules/prompts/use-cases/rename-prompt-folder.use-case';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import { DomainErrorKind } from '@/platform/errors/constants/domain-error.constants';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
   PROMPTS_TEST_LATER,
@@ -81,6 +83,10 @@ describe('RenamePromptFolderUseCase', () => {
     });
 
     await expect(attempt).rejects.toBeInstanceOf(PromptFolderNameTakenError);
+    await expect(attempt).rejects.toMatchObject({
+      kind: DomainErrorKind.Conflict,
+      reason: ErrorReason.PromptFolderNameTaken,
+    });
   });
 
   it('allows a name freed by a deleted folder', async () => {

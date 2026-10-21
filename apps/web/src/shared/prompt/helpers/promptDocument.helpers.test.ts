@@ -8,6 +8,7 @@ import {
   documentToPrompt,
   findVariableTrigger,
   formatVariableToken,
+  normalizePathVariable,
   parsePromptLine,
   PROMPT_VARIABLE_PASTE_PATTERN,
   PROMPT_VARIABLE_TYPED_PATTERN,
@@ -44,6 +45,20 @@ describe('parsePromptLine', () => {
     ]);
   });
 
+  it('keeps variable names as written by default', () => {
+    expect(parsePromptLine('Hi {{Contact.Name}}')).toEqual([
+      { kind: PromptSegmentKind.Text, text: 'Hi ' },
+      { kind: PromptSegmentKind.Variable, path: 'Contact.Name' },
+    ]);
+  });
+
+  it('normalizes variable names when a normalizer is given', () => {
+    expect(parsePromptLine('Hi {{Contact.Name}}', normalizePathVariable)).toEqual([
+      { kind: PromptSegmentKind.Text, text: 'Hi ' },
+      { kind: PromptSegmentKind.Variable, path: 'contact.name' },
+    ]);
+  });
+
   it('returns no segments for an empty line', () => {
     expect(parsePromptLine('')).toEqual([]);
   });
@@ -58,6 +73,12 @@ describe('collectPromptVariables', () => {
 
   it('ignores unfinished braces', () => {
     expect(collectPromptVariables('use {{ and {{name')).toEqual([]);
+  });
+
+  it('treats names that differ only by case as one variable when normalized', () => {
+    expect(
+      collectPromptVariables('{{Name}} and {{name}} and {{NAME}}', normalizePathVariable),
+    ).toEqual(['name']);
   });
 });
 
@@ -77,6 +98,24 @@ describe('promptToDocument', () => {
 
   it('has a single empty paragraph for an empty prompt', () => {
     expect(promptToDocument('').content).toEqual([{ type: PromptNodeName.Paragraph }]);
+  });
+
+  it('keeps variable names as written by default', () => {
+    expect(promptToDocument('{{Contact.Name}}').content).toEqual([
+      {
+        type: PromptNodeName.Paragraph,
+        content: [{ type: PromptNodeName.Variable, attrs: { path: 'Contact.Name' } }],
+      },
+    ]);
+  });
+
+  it('writes variable names in lowercase when normalized', () => {
+    expect(promptToDocument('{{Contact.Name}}', normalizePathVariable).content).toEqual([
+      {
+        type: PromptNodeName.Paragraph,
+        content: [{ type: PromptNodeName.Variable, attrs: { path: 'contact.name' } }],
+      },
+    ]);
   });
 });
 

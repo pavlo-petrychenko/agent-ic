@@ -1,6 +1,8 @@
-import { Locale, WorkspaceRole } from '@agent-ic/contracts';
+import { Locale, PERMISSION_MATRIX, WorkspaceRole } from '@agent-ic/contracts';
+import type { PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import type { MockLink } from '@apollo/client/testing';
 import { WorkspaceShellDocument } from '@/features/workspace/communication/gql/query/workspaceShell.generated';
+import { ACTION_TO_API, RESOURCE_TO_API } from '@/shared/api/constants/permission.constants';
 
 export interface ShellMembershipFixture {
   readonly id: string;
@@ -44,6 +46,15 @@ export const buildWorkspaceShellMock = (
         myWorkspaces: memberships.map((membership) => ({
           __typename: 'Membership',
           role: membership.role,
+          permissions: (
+            Object.keys(PERMISSION_MATRIX[membership.role]) as PermissionResource[]
+          ).flatMap((resource) =>
+            PERMISSION_MATRIX[membership.role][resource].map((action: PermissionAction) => ({
+              __typename: 'RolePermission',
+              resource: RESOURCE_TO_API[resource],
+              action: ACTION_TO_API[action],
+            })),
+          ),
           workspace: {
             __typename: 'Workspace',
             id: membership.id,

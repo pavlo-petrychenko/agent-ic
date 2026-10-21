@@ -1,0 +1,13 @@
+.compare {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font: var(--type-caption);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

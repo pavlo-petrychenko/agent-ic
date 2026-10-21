@@ -5,7 +5,7 @@ import { DomainError } from '@/platform/errors/errors/domain.error';
 
 export class PromptNameTakenError extends DomainError {
   readonly kind = DomainErrorKind.Conflict;
-  readonly reason = ErrorReason.InvalidRequest;
+  readonly reason = ErrorReason.PromptNameTaken;
 
   constructor() {
     super(PROMPT_NAME_TAKEN_MESSAGE);

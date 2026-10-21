@@ -29,7 +29,7 @@ export class RemoveMemberUseCase {
       if (member === null) {
         throw new TeamMemberNotFoundError(membershipId);
       }
-      if (member.role === WorkspaceRole.Owner) {
+      if (member.roleKey === WorkspaceRole.Owner) {
         throw new CannotDeleteOwnerError();
       }
       if (member.userId === access.userId) {
