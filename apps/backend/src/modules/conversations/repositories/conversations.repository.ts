@@ -90,6 +90,21 @@ export class ConversationsRepository {
     return claimed.length > 0;
   }
 
+  async lockIdle(workspaceId: string, id: string): Promise<boolean> {
+    const locked = await this.txHost.tx
+      .select({ id: conversations.id })
+      .from(conversations)
+      .where(
+        and(
+          eq(conversations.workspaceId, workspaceId),
+          eq(conversations.id, id),
+          isNull(conversations.activeRunId),
+        ),
+      )
+      .for('update');
+    return locked.length > 0;
+  }
+
   async claim(workspaceId: string, id: string, runId: string): Promise<boolean> {
     const claimed = await this.txHost.tx
       .update(conversations)
@@ -198,9 +213,5 @@ export class ConversationsRepository {
       )
       .orderBy(desc(conversations.createdAt))
       .limit(1);
-  }
-
-  async deleteByWorkspace(workspaceId: string): Promise<void> {
-    await this.txHost.tx.delete(conversations).where(eq(conversations.workspaceId, workspaceId));
   }
 }

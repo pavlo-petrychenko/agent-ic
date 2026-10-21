@@ -9,6 +9,7 @@ import { PermissionDeniedError } from '@/platform/context/errors/permission-deni
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { DomainErrorKind } from '@/platform/errors/constants/domain-error.constants';
 import { IdService } from '@/platform/ids/services/id.service';
+import { TEST_EDITOR_ID } from '@test/support/constants/agents-testing.constants';
 import {
   PROMPTS_TEST_LATER,
   TEST_PROMPT_NAME,
@@ -47,7 +48,7 @@ describe('CreatePromptUseCase', () => {
   it('creates a prompt in a folder and returns it with public ids', async () => {
     const workspaceId = ids.generate();
     const folderId = await seedPromptFolder(testingModule, workspaceId);
-    const userId = ids.generate();
+    const userId = TEST_EDITOR_ID;
     const ctx = workspaceCtx(userId, workspaceId, WorkspaceRole.Builder);
 
     const view = await createPrompt.execute(ctx, {

@@ -1,6 +1,9 @@
-import { isNull } from 'drizzle-orm';
-import { index, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { isNotNull } from 'drizzle-orm';
+import { index, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
+import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { agentsSchema, pauseModeEnum } from '@/modules/agents/db/agents.pg-schema';
+import { workspaces } from '@/modules/identity/db/workspaces.table';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,
@@ -11,11 +14,17 @@ export const agents = agentsSchema
     'agents',
     {
       id: uuid('id').primaryKey(),
-      workspaceId: workspaceIdColumn(),
+      workspaceId: workspaceIdColumn().references((): AnyPgColumn => workspaces.id, {
+        onDelete: 'cascade',
+      }),
       name: text('name').notNull(),
       description: text('description'),
-      liveVersionId: uuid('live_version_id'),
-      draftVersionId: uuid('draft_version_id'),
+      liveVersionId: uuid('live_version_id').references((): AnyPgColumn => agentVersions.id, {
+        onDelete: 'set null',
+      }),
+      draftVersionId: uuid('draft_version_id').references((): AnyPgColumn => agentVersions.id, {
+        onDelete: 'set null',
+      }),
       pausedAt: timestamp('paused_at', { withTimezone: true }),
       pauseMode: pauseModeEnum('pause_mode'),
       awayMessage: text('away_message'),
@@ -24,9 +33,13 @@ export const agents = agentsSchema
       deletedAt: timestamp('deleted_at', { withTimezone: true }),
     },
     (table) => [
-      index('agents_workspace_id_idx')
-        .on(table.workspaceId, table.id)
-        .where(isNull(table.deletedAt)),
+      unique('agents_workspace_id_id_key').on(table.workspaceId, table.id),
+      index('agents_live_version_id_idx')
+        .on(table.liveVersionId)
+        .where(isNotNull(table.liveVersionId)),
+      index('agents_draft_version_id_idx')
+        .on(table.draftVersionId)
+        .where(isNotNull(table.draftVersionId)),
       tenantIsolationPolicy('agents'),
     ],
   )

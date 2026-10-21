@@ -31,6 +31,7 @@ import {
   AGENTS_TEST_START,
   TEST_AUTHOR_NAME,
   TEST_AUTHOR_PASSWORD_HASH,
+  TEST_EDITOR_ID,
 } from '@test/support/constants/agents-testing.constants';
 import {
   TEST_END_USER_EXTERNAL_ID,
@@ -42,6 +43,7 @@ import { newAgent, newVersion, triggerFlow } from '@test/support/fixtures/agents
 import { uniqueEmail } from '@test/support/fixtures/identity.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.module';
 import type {
   SeededAgent,
@@ -72,6 +74,7 @@ export const seedAgentWithDraft = async (
   const ids = testingModule.get(IdService);
   const agentId = ids.generate();
   const draftId = ids.generate();
+  await ensureWorkspaceRow(testingModule, workspaceId);
   await tenants.run(workspaceId, async () => {
     await agents.insert(newAgent(agentId, workspaceId));
     await versions.insert(newVersion(draftId, workspaceId, agentId, { flow }));
@@ -113,7 +116,7 @@ export const agentsCtx = (
   testingModule: TestingModule,
   workspaceId: string,
   role: WorkspaceRole = WorkspaceRole.Owner,
-): UseCaseCtx => workspaceCtx(testingModule.get(IdService).generate(), workspaceId, role);
+): UseCaseCtx => workspaceCtx(TEST_EDITOR_ID, workspaceId, role);
 
 export const publicAgentId = (testingModule: TestingModule, agentId: string): string =>
   testingModule.get(IdService).toPublic(IdPrefix.Agent, agentId);

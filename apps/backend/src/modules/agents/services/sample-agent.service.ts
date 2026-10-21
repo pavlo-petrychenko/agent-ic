@@ -93,7 +93,7 @@ export class SampleAgentService {
       workspaceId,
       name: agent.name,
       description: agent.description,
-      draftVersionId: draftId,
+      draftVersionId: null,
       liveVersionId: null,
       pausedAt: null,
       pauseMode: null,
@@ -111,6 +111,7 @@ export class SampleAgentService {
       createdAt: now,
       updatedAt: now,
     });
+    await this.agents.setDraftVersion(workspaceId, agentId, draftId, now);
     await this.publishing.publish(workspaceId, agentId, { authorId, note: agent.note });
   }
 }

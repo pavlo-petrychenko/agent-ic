@@ -20,7 +20,10 @@
 
 ## Consequences
 
-- The rule and its tooling land first and change no database object. The keys themselves, the on-delete policy and the removal of the D229 cleanup jobs follow in later steps.
+- The rule and its tooling landed first and changed no database object. The keys, the on-delete policy and the removal of the D229 cleanup jobs followed in migration `0022_foreign-keys`, the contract step (D273 holds the policy): `workspace_id` cascades from the workspace, ownership keys cascade and are composite `(workspace_id, x_id)`, nullable pointers are single-column `set null`, keys the product forbids deleting restrict, and the history of soft-deleted agents is `no action`.
+- Deleting a workspace removes all its rows in one statement, so it is immediately consistent and needs no job.
+- `test/integration/foreign-keys.spec.ts` is the tool behind the rule: it fails on an id column without a key, a tenant table whose `workspace_id` has no key to the workspace, and a key without an index.
+- Rows that point at a row that does not exist yet now fail at once, so writes follow the key order: an agent is inserted before it points at its draft, and a run is inserted before its conversation points at it.
 - A table file can import another module's table file, so a change to a table of one module can force a rebuild of the types of another. This is the price of a real key.
 - The load-time exception (`pgSchema` and enums) is easy to break by accident. A table file that evaluates another table at load time fails when the cycle is first loaded, which the test suite hits at once.
 

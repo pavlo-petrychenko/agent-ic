@@ -25,6 +25,7 @@ import {
   createAgentsTestingModule,
   seedAgentWithDraft,
 } from '@test/support/helpers/agents-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 describe('AgentRuntimeReader', () => {
   let testingModule: TestingModule;
@@ -62,7 +63,7 @@ describe('AgentRuntimeReader', () => {
     const workspaceId = ids.generate();
     const { agentId, draftId } = await seedAgentWithDraft(testingModule, workspaceId);
     const first = await tenants.run(workspaceId, () =>
-      publishing.publish(workspaceId, agentId, { authorId: ids.generate() }),
+      publishing.publish(workspaceId, agentId, { authorId: TEST_EDITOR_ID }),
     );
     const edited = await tenants.run(workspaceId, () =>
       versions.updateDraft(
@@ -78,7 +79,7 @@ describe('AgentRuntimeReader', () => {
       ),
     );
     const second = await tenants.run(workspaceId, () =>
-      publishing.publish(workspaceId, agentId, { authorId: ids.generate() }),
+      publishing.publish(workspaceId, agentId, { authorId: TEST_EDITOR_ID }),
     );
 
     const pinned = await tenants.run(workspaceId, () => reader.getVersion(workspaceId, first.id));
@@ -185,6 +186,7 @@ describe('AgentRuntimeReader', () => {
     it('fails when the agent has no draft', async () => {
       const workspaceId = ids.generate();
       const agentId = ids.generate();
+      await ensureWorkspaceRow(testingModule, workspaceId);
       await tenants.run(workspaceId, () => agents.insert(newAgent(agentId, workspaceId)));
 
       const snapshot = tenants.run(workspaceId, () => reader.snapshotDraft(workspaceId, agentId));
@@ -198,7 +200,7 @@ describe('AgentRuntimeReader', () => {
       const workspaceId = ids.generate();
       const { agentId } = await seedAgentWithDraft(testingModule, workspaceId);
       const live = await tenants.run(workspaceId, () =>
-        publishing.publish(workspaceId, agentId, { authorId: ids.generate() }),
+        publishing.publish(workspaceId, agentId, { authorId: TEST_EDITOR_ID }),
       );
       await tenants.run(workspaceId, () => agents.delete(workspaceId, agentId, AGENTS_TEST_LATER));
 

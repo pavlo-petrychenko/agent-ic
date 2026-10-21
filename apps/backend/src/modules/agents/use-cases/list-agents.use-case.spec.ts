@@ -67,8 +67,8 @@ describe('ListAgentsUseCase', () => {
     const edited = await seedAgentWithDraft(testingModule, workspaceId);
     await testingModule.get(TenantTransactionService).run(workspaceId, async () => {
       const publishing = testingModule.get(AgentPublishingService);
-      await publishing.publish(workspaceId, edited.agentId, { authorId: ids.generate() });
-      await publishing.publish(workspaceId, edited.agentId, { authorId: ids.generate() });
+      await publishing.publish(workspaceId, edited.agentId, { authorId: TEST_EDITOR_ID });
+      await publishing.publish(workspaceId, edited.agentId, { authorId: TEST_EDITOR_ID });
       await testingModule
         .get(AgentVersionsRepository)
         .updateDraft(

@@ -26,6 +26,7 @@ import {
   createRedisConnection,
   withRedisKeyPrefix,
 } from '@/platform/redis/helpers/redis.helpers';
+import { TEST_EDITOR_ID } from '@test/support/constants/agents-testing.constants';
 import {
   RUN_STEPS_SUBSCRIPTION,
   SUBSCRIBERS_REPLY_COUNT_INDEX,
@@ -46,6 +47,7 @@ import { uniqueEmail, userCtx } from '@test/support/fixtures/identity.fixture';
 import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 import { newRun, newRunStep } from '@test/support/fixtures/runs.fixture';
 import { createWorkspaceInput } from '@test/support/fixtures/workspace.fixture';
+import { ensureRunParents } from '@test/support/helpers/parent-rows.helpers';
 import { createApi, websocketUrl } from '@test/support/helpers/request-layer.helpers';
 import type {
   LiveSubscription,
@@ -126,6 +128,7 @@ export const seedRun = async (
   mode: ConversationMode = ConversationMode.Simulation,
 ): Promise<string> => {
   const run = { ...newRun({ ids: api.app.get(IdService) }, workspaceId), mode };
+  await ensureRunParents(api.app, run);
   await api.app
     .get(TenantTransactionService)
     .run(workspaceId, () => api.app.get(RunsRepository).insert(run));
@@ -156,6 +159,7 @@ export const seedSimulationRuns = async (
         agentId,
         versionId: draft.id,
       };
+      await ensureRunParents(api.app, run);
       await api.app.get(RunsRepository).insert(run);
       for (let index = 0; index < stepCount; index += 1) {
         const step = newRunStep({ ids }, run, { nodeId: `${TEST_STEP_NODE_PREFIX}${index}` });
@@ -182,7 +186,7 @@ export const replaceDraftFlow = async (
     if (draft === null) {
       throw new MissingTestDataError(internalId);
     }
-    const changes = { flow, note: null, authorId: ids.generate() };
+    const changes = { flow, note: null, authorId: TEST_EDITOR_ID };
     await versions.updateDraft(
       workspaceId,
       draft.id,

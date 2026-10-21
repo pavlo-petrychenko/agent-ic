@@ -40,6 +40,7 @@ import { newAgent, newVersion } from '@test/support/fixtures/agents.fixture';
 import { incomingMessage, workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 import { newFolder, newPrompt, newPromptVersion } from '@test/support/fixtures/prompts.fixture';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import type {
   RunsWorker,
   SettledConversation,
@@ -86,6 +87,7 @@ export const seedWorkerAgent = async (
   const agentId = worker.ids.generate();
   const versionId = published ? worker.ids.generate() : null;
   const live = { kind: AgentVersionKind.Published, number: TEST_PUBLISHED_NUMBER };
+  await ensureWorkspaceRow(worker.app, seededWorkspaceId);
   await worker.tenants.run(seededWorkspaceId, async () => {
     await worker.agents.insert(newAgent(agentId, seededWorkspaceId));
     await worker.versions.insert(
@@ -114,6 +116,7 @@ export const seedWorkerPrompt = async (
   const suffix = worker.ids.generate();
   const folderId = worker.ids.generate();
   const promptId = worker.ids.generate();
+  await ensureWorkspaceRow(worker.app, workspaceId);
   await worker.tenants.run(workspaceId, async () => {
     await worker.app
       .get(PromptFoldersRepository)

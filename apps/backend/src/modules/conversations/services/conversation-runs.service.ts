@@ -45,6 +45,10 @@ export class ConversationRunsService {
     return this.requireConversation(workspaceId, conversationId);
   }
 
+  lockIdleConversation(workspaceId: string, conversationId: string): Promise<boolean> {
+    return this.conversations.lockIdle(workspaceId, conversationId);
+  }
+
   claimRun(workspaceId: string, conversationId: string, runId: string): Promise<boolean> {
     return this.conversations.claim(workspaceId, conversationId, runId);
   }

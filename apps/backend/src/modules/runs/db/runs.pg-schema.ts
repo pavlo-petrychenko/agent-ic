@@ -1,4 +1,3 @@
-import { conversationModeEnum } from '@/modules/conversations/db/conversations.pg-schema';
 import {
   RUNS_SCHEMA,
   RunStatus,
@@ -8,8 +7,6 @@ import {
 import { moduleSchema } from '@/platform/database/helpers/tenant-table.helpers';
 
 export const runsSchema = moduleSchema(RUNS_SCHEMA);
-
-export const runModeEnum = runsSchema.enum('run_mode', conversationModeEnum.enumValues);
 
 export const runTriggerEnum = runsSchema.enum('run_trigger', [RunTrigger.Message]);
 

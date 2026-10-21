@@ -14,6 +14,7 @@ import { PromptsRepository } from '@/modules/prompts/repositories/prompts.reposi
 import { DuplicatePromptUseCase } from '@/modules/prompts/use-cases/duplicate-prompt.use-case';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { TEST_EDITOR_ID } from '@test/support/constants/agents-testing.constants';
 import {
   PROMPTS_TEST_LATER,
   TEST_FOLDER_NEW_NAME,
@@ -57,7 +58,7 @@ describe('DuplicatePromptUseCase', () => {
 
   it('duplicates a prompt into the chosen folder and credits the caller', async () => {
     const workspaceId = ids.generate();
-    const userId = ids.generate();
+    const userId = TEST_EDITOR_ID;
     const folderId = await seedPromptFolder(testingModule, workspaceId);
     const targetFolderId = await seedPromptFolder(testingModule, workspaceId, {
       name: TEST_FOLDER_NEW_NAME,

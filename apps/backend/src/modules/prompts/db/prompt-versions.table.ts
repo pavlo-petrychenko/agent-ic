@@ -1,5 +1,5 @@
 import { MAX_TEMPLATE_LENGTH } from '@agent-ic/flow';
-import { sql } from 'drizzle-orm';
+import { isNotNull, sql } from 'drizzle-orm';
 import {
   check,
   foreignKey,
@@ -10,6 +10,9 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
+import { users } from '@/modules/identity/db/users.table';
+import { workspaces } from '@/modules/identity/db/workspaces.table';
 import { FIRST_PROMPT_VERSION_NUMBER } from '@/modules/prompts/constants/prompt.constants';
 import { promptsSchema } from '@/modules/prompts/db/prompts.pg-schema';
 import { prompts } from '@/modules/prompts/db/prompts.table';
@@ -23,12 +26,16 @@ export const promptVersions = promptsSchema
     'prompt_versions',
     {
       id: uuid('id').primaryKey(),
-      workspaceId: workspaceIdColumn(),
+      workspaceId: workspaceIdColumn().references((): AnyPgColumn => workspaces.id, {
+        onDelete: 'cascade',
+      }),
       promptId: uuid('prompt_id').notNull(),
       number: integer('number').notNull(),
       text: text('text').notNull(),
       note: text('note'),
-      authorId: uuid('author_id'),
+      authorId: uuid('author_id').references((): AnyPgColumn => users.id, {
+        onDelete: 'set null',
+      }),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
       deletedAt: timestamp('deleted_at', { withTimezone: true }),
     },
@@ -52,6 +59,7 @@ export const promptVersions = promptsSchema
         table.promptId,
         table.number,
       ),
+      index('prompt_versions_author_id_idx').on(table.authorId).where(isNotNull(table.authorId)),
       tenantIsolationPolicy('prompt_versions'),
     ],
   )

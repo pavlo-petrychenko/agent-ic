@@ -53,7 +53,7 @@ export class CreateAgentUseCase {
         createdAt: now,
         updatedAt: now,
       };
-      await this.agents.insert(agent);
+      await this.agents.insert({ ...agent, draftVersionId: null });
       await this.versions.insert({
         id: draftId,
         workspaceId,
@@ -64,6 +64,7 @@ export class CreateAgentUseCase {
         createdAt: now,
         updatedAt: now,
       });
+      await this.agents.setDraftVersion(workspaceId, agentId, draftId, now);
       return this.views.agentView(workspaceId, agent);
     });
   }

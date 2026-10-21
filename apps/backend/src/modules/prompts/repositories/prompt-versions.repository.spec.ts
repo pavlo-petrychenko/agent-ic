@@ -23,6 +23,7 @@ import {
   TEST_PROMPT_TEXT,
 } from '@test/support/constants/prompts-testing.constants';
 import { newFolder, newPrompt, newPromptVersion } from '@test/support/fixtures/prompts.fixture';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import { createPromptsTestingModule } from '@test/support/helpers/prompts-testing.helpers';
 
 const FIRST_NUMBER = 1;
@@ -57,6 +58,7 @@ describe('PromptVersionsRepository', () => {
   ): Promise<string> => {
     const promptId = ids.generate();
     const folderId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     await tenants.run(workspaceId, async () => {
       await folders.insert(newFolder(folderId, workspaceId, { name: `Folder ${promptId}` }));
       await prompts.insert(newPrompt(promptId, workspaceId, folderId, overrides));

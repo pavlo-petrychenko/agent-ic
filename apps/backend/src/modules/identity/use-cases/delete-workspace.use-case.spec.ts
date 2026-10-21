@@ -9,6 +9,11 @@ import { TEST_WORKSPACE_NAME } from '@test/support/constants/workspace-testing.c
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createIdentityTestbed } from '@test/support/helpers/identity-testing.helpers';
 import {
+  countWorkspaceRows,
+  readLastWorkspaceId,
+  seedWorkspaceContent,
+} from '@test/support/helpers/workspace-deletion.helpers';
+import {
   addMember,
   createOwnedWorkspace,
   ownerCtx,
@@ -39,6 +44,23 @@ describe('DeleteWorkspaceUseCase', () => {
 
     expect(deleted).toBe(true);
     expect(await readMemberships(testbed, workspace.workspaceId)).toHaveLength(0);
+  });
+
+  it('removes every row of the workspace at once, with no cleanup job', async () => {
+    const workspace = await createOwnedWorkspace(testbed);
+    await addMember(testbed, workspace);
+    await seedWorkspaceContent(testbed.module, workspace);
+    const before = await countWorkspaceRows(testbed.module, workspace.workspaceId);
+
+    await deleteWorkspace.execute(ownerCtx(workspace), {
+      name: TEST_WORKSPACE_NAME,
+      password: TEST_PASSWORD,
+    });
+
+    const after = await countWorkspaceRows(testbed.module, workspace.workspaceId);
+    expect(Object.values(before).every((total) => total > 0)).toBe(true);
+    expect(after).toEqual(Object.fromEntries(Object.keys(before).map((table) => [table, 0])));
+    expect(await readLastWorkspaceId(testbed.module, workspace.ownerId)).toBeNull();
   });
 
   it('refuses an admin', async () => {
