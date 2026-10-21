@@ -27,6 +27,7 @@ export class WorkspaceMembershipsService {
         memberCount: row.memberCount,
       },
       role: row.role,
+      permissions: row.permissions,
     }));
   }
 
@@ -43,6 +44,7 @@ export class WorkspaceMembershipsService {
         memberCount: await this.memberships.countByWorkspace(workspaceId),
       },
       role,
+      permissions: [],
     };
   }
 }

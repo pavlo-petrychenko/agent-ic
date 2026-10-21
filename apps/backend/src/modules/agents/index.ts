@@ -1,5 +1,6 @@
 export { AgentsModule } from '@/modules/agents/agents.module';
 export { AgentVersionKind, PauseMode } from '@/modules/agents/constants/agent.constants';
+export { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 export { FLOW_REFERENCE_CHECKER } from '@/modules/agents/constants/flow-reference.constants';
 export {
   SAMPLE_PROMPTS,
@@ -10,7 +11,6 @@ export {
 export { toOutboundRequest } from '@/modules/agents/helpers/api-request-test.helpers';
 export { FlowReferenceChecker } from '@/modules/agents/services/flow-reference-checker.service';
 export { AgentRuntimeReader } from '@/modules/agents/services/agent-runtime-reader.service';
-export { CurrentAgentFlowsReader } from '@/modules/agents/services/current-agent-flows-reader.service';
 export { SimulatorTestsReader } from '@/modules/agents/services/simulator-tests-reader.service';
 export { SampleAgentService } from '@/modules/agents/services/sample-agent.service';
 export type { Agent } from '@/modules/agents/typedefs/agent.typedefs';

@@ -65,8 +65,12 @@ export class ConversationRunsService {
     return this.messages.listCustomerAfter(workspaceId, conversationId, first);
   }
 
-  countRunMessages(workspaceId: string, runId: string): Promise<number> {
-    return this.messages.countByRun(workspaceId, runId);
+  async countMessagesByRuns(
+    workspaceId: string,
+    runIds: readonly string[],
+  ): Promise<ReadonlyMap<string | null, number>> {
+    const counts = await this.messages.countByRuns(workspaceId, runIds);
+    return new Map(counts.map(({ runId, total }) => [runId, total]));
   }
 
   async recordOutbound(ctx: UseCaseCtx, input: OutboundMessageInput): Promise<Message> {

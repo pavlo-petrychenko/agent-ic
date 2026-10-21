@@ -5,5 +5,6 @@ export interface PromptDraftEditorProps {
   readonly baseVersionNumber: number | null;
   readonly text: string;
   readonly variables: readonly VariableOption[];
+  readonly normalizeVariable: (path: string) => string;
   readonly onChange: (text: string) => void;
 }

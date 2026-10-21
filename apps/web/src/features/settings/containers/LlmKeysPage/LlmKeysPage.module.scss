@@ -1,0 +1,11 @@
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+  padding: 0 var(--space-16);
+}
+
+.noticeIcon {
+  flex-shrink: 0;
+  color: var(--color-mute);
+}

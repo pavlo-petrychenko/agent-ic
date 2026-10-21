@@ -1,4 +1,7 @@
-export { WorkspaceSection } from '@/features/workspace/constants/navigation.constants';
+export {
+  WorkspaceSection,
+  WORKSPACE_SECTION_PATHS,
+} from '@/features/workspace/constants/navigation.constants';
 export { WorkspaceNavForm } from '@/features/workspace/constants/navigationForm.constants';
 export { SectionGate } from '@/features/workspace/containers/SectionGate';
 export { SectionPlaceholderPage } from '@/features/workspace/containers/SectionPlaceholderPage';

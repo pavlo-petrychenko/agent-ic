@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { InvalidCredentialsError } from '@/modules/identity/errors/invalid-credentials.error';
 import { SamePasswordError } from '@/modules/identity/errors/same-password.error';
+import { WrongPasswordError } from '@/modules/identity/errors/wrong-password.error';
 import { verifyPassword } from '@/modules/identity/helpers/password.helpers';
 import { ChangeMyPasswordUseCase } from '@/modules/identity/use-cases/change-my-password.use-case';
 import { LoginUseCase } from '@/modules/identity/use-cases/login.use-case';
@@ -51,7 +51,7 @@ describe('ChangeMyPasswordUseCase', () => {
       newPassword: NEW_PASSWORD,
     });
 
-    await expect(attempt).rejects.toBeInstanceOf(InvalidCredentialsError);
+    await expect(attempt).rejects.toBeInstanceOf(WrongPasswordError);
     const user = await readUser(testbed.db, account.userId);
     expect(await verifyPassword(user.passwordHash, account.password)).toBe(true);
   });

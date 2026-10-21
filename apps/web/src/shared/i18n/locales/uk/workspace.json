@@ -14,7 +14,10 @@
       "team": "Команда",
       "general": "Загальне",
       "roles": "Ролі",
-      "profile": "Профіль"
+      "usage": "Використання",
+      "llmKeys": "Ключі LLM",
+      "profile": "Профіль",
+      "notifications": "Сповіщення"
     }
   },
   "header": {

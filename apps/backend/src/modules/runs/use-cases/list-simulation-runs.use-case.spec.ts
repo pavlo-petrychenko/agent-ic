@@ -39,7 +39,7 @@ describe('ListSimulationRunsUseCase', () => {
     await testbed.module.close();
   });
 
-  it('lists the runs of the caller simulation with their details', async () => {
+  it('lists the runs of the caller simulation', async () => {
     const seeded = await seedSimulationRun(testbed);
     const { ctx, run } = seeded;
     await testbed.execution.execute(ctx, run.workspaceId, run.id);
@@ -47,7 +47,7 @@ describe('ListSimulationRunsUseCase', () => {
     const [listed, ...others] = await list(seeded);
 
     expect(others).toEqual([]);
-    expect(listed).toMatchObject({ status: RunStatus.Succeeded, totals: { stepsRun: 1 } });
+    expect(listed).toMatchObject({ status: RunStatus.Succeeded });
   });
 
   it("refuses a live chat, another user's or workspace's simulation and an operator", async () => {

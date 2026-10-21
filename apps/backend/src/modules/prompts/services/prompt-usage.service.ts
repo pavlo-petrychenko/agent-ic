@@ -2,7 +2,7 @@ import { IdPrefix } from '@agent-ic/contracts';
 import { promptReferences } from '@agent-ic/flow';
 import type { PromptReference } from '@agent-ic/flow';
 import { Injectable } from '@nestjs/common';
-import { AgentVersionKind, CurrentAgentFlowsReader } from '@/modules/agents';
+import { AgentVersionKind, AgentVersionsRepository } from '@/modules/agents';
 import type { CurrentAgentFlow } from '@/modules/agents';
 import { PromptUsageVersionKind } from '@/modules/prompts/constants/prompt-usage.constants';
 import type { PromptUsage } from '@/modules/prompts/typedefs/prompt-usage.typedefs';
@@ -11,12 +11,12 @@ import { IdService } from '@/platform/ids/services/id.service';
 @Injectable()
 export class PromptUsageService {
   constructor(
-    private readonly flows: CurrentAgentFlowsReader,
+    private readonly flows: AgentVersionsRepository,
     private readonly ids: IdService,
   ) {}
 
   async listForPrompt(workspaceId: string, promptId: string): Promise<readonly PromptUsage[]> {
-    const current = await this.flows.listCurrent(workspaceId);
+    const current = await this.flows.listCurrentFlows(workspaceId);
     return current.flatMap((entry) =>
       promptReferences(entry.flow)
         .filter(

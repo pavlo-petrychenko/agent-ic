@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, eq, gt, sql } from 'drizzle-orm';
+import { and, asc, count, eq, gt, inArray, sql } from 'drizzle-orm';
 import { agents } from '@/modules/agents/db/agents.table';
 import { agentNamesLockKey } from '@/modules/agents/helpers/agent-name.helpers';
 import type { Agent, NewAgent } from '@/modules/agents/typedefs/agent.typedefs';
@@ -21,6 +21,16 @@ export class AgentsRepository {
       .from(agents)
       .where(and(eq(agents.workspaceId, workspaceId), eq(agents.id, agentId)));
     return agent ?? null;
+  }
+
+  async listByIds(workspaceId: string, agentIds: readonly string[]): Promise<Agent[]> {
+    if (agentIds.length === 0) {
+      return [];
+    }
+    return this.txHost.tx
+      .select()
+      .from(agents)
+      .where(and(eq(agents.workspaceId, workspaceId), inArray(agents.id, [...agentIds])));
   }
 
   async findByIdForUpdate(workspaceId: string, agentId: string): Promise<Agent | null> {

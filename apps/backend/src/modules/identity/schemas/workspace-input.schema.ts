@@ -1,4 +1,9 @@
-import { WORKSPACE_NAME_MAX_LENGTH, PASSWORD_MAX_LENGTH, WorkspaceRole } from '@agent-ic/contracts';
+import {
+  WORKSPACE_NAME_MAX_LENGTH,
+  PASSWORD_MAX_LENGTH,
+  WorkspaceRole,
+  isInvitableRole,
+} from '@agent-ic/contracts';
 import { z } from 'zod';
 import { WorkspaceField } from '@/modules/identity/constants/workspace.constants';
 import { isSupportedTimeZone } from '@/modules/identity/helpers/workspace-input.helpers';
@@ -19,9 +24,10 @@ export const inviteTokenInputSchema = z.object({
 
 export const optionalInviteTokenSchema = tokenSchema.nullish();
 
-export const inviteRoleInputSchema = z.object({
-  [WorkspaceField.Role]: z.enum(WorkspaceRole),
-});
+export const inviteRoleInputSchema = z.union([
+  z.object({ [WorkspaceField.Role]: z.enum(WorkspaceRole) }),
+  z.object({ [WorkspaceField.RoleId]: z.string().min(1) }),
+]);
 
 export const renameWorkspaceInputSchema = z.object({
   [WorkspaceField.Name]: workspaceNameSchema,
@@ -43,4 +49,9 @@ export const deleteWorkspaceInputSchema = z.object({
 
 export const removeMemberInputSchema = z.object({
   [WorkspaceField.MembershipId]: tokenSchema,
+});
+
+export const changeMemberRoleInputSchema = z.object({
+  [WorkspaceField.MembershipId]: tokenSchema,
+  [WorkspaceField.Role]: z.enum(WorkspaceRole).refine(isInvitableRole),
 });

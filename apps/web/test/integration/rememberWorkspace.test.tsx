@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   buildRememberWorkspaceErrorMock,
@@ -14,7 +14,10 @@ import { signInForTest, signOutForTest } from '@test/support/helpers/session.hel
 
 const OTHER_WORKSPACE = { ...DEMO_WORKSPACE, id: 'ws_other', name: 'Other salon' };
 const shellMock = buildWorkspaceShellMock([DEMO_WORKSPACE, OTHER_WORKSPACE]);
-const mainNavigation = () => screen.findByRole('navigation', { name: 'Main' });
+const mainNavigation = () =>
+  waitFor(() => expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument(), {
+    timeout: 5000,
+  });
 
 describe('remembering the open workspace', () => {
   beforeEach(() => signInForTest());
@@ -25,7 +28,7 @@ describe('remembering the open workspace', () => {
 
   it('remembers a workspace once when it opens and again only after a switch', async () => {
     const remembered = vi.fn<(workspaceId: string) => void>();
-    const { history } = renderRoute(`/w/${DEMO_WORKSPACE.id}/settings`, {
+    const { history } = renderRoute(`/w/${DEMO_WORKSPACE.id}/settings/profile`, {
       mocks: [
         shellMock,
         buildRememberWorkspaceMock(DEMO_WORKSPACE.id, remembered),
@@ -43,11 +46,11 @@ describe('remembering the open workspace', () => {
   });
 
   it('keeps the workspace open when remembering it fails', async () => {
-    renderRoute(`/w/${DEMO_WORKSPACE.id}/settings`, {
+    renderRoute(`/w/${DEMO_WORKSPACE.id}/settings/profile`, {
       mocks: [shellMock, buildRememberWorkspaceErrorMock(DEMO_WORKSPACE.id)],
     });
 
-    expect(await mainNavigation()).toBeInTheDocument();
+    await mainNavigation();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });

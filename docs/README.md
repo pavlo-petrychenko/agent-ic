@@ -56,10 +56,11 @@ Read the pages in order. Each page ends with a link to the next.
 | 016 | [PR media](learn/016-pr-media.md)                           | the demo seed, and screenshots and recordings with the Playwright MCP |
 | 017 | [Flow builder state](learn/017-flow-builder-state.md)       | the builder store, undo and redo, pure graph edits, the canvas model  |
 | 018 | [How a run works](learn/018-how-a-run-works.md)             | a message to a reply: claims, the step loop, retries, simulation      |
+| 019 | [Relation fields](learn/019-relation-fields.md)             | GraphQL resolvers from zero, the N+1 problem, batch use cases         |
 
 ## Examples
 
-Read these after 018. They link real files instead of pasting code, so they stay true.
+Read these after 019. They link real files instead of pasting code, so they stay true.
 
 - [The identity module](examples/identity-module.md): the backend, file by file. SDL, schema, use case, repository, resolver, module, spec.
 - [Auth and settings](examples/auth-and-settings.md): the web, file by file. Operation, hook, mapping helper, view, container, route, test.
