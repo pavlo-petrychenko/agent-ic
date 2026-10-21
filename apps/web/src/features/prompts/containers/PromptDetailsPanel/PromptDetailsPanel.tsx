@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.constants';
 import type { PromptDetailsPanelProps } from '@/features/prompts/containers/PromptDetailsPanel/PromptDetailsPanel.typedefs';
 import { PromptUsagesSection } from '@/features/prompts/containers/PromptDetailsPanel/PromptUsagesSection';
+import { PromptVariablesSection } from '@/features/prompts/containers/PromptDetailsPanel/PromptVariablesSection';
 import { PromptVersionsSection } from '@/features/prompts/containers/PromptDetailsPanel/PromptVersionsSection';
 import { usePromptDetailsPanel } from '@/features/prompts/containers/PromptDetailsPanel/usePromptDetailsPanel';
 import { Panel, PanelSide } from '@/shared/ui/layout/Panel';
@@ -15,6 +16,7 @@ export function PromptDetailsPanel({
   usages,
   usagesFailed,
   onRetryUsages,
+  variablePaths,
 }: PromptDetailsPanelProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
   const { versions, pinnedNumbers, versionsFailed, retryVersions, compareVersions } =
@@ -24,6 +26,7 @@ export function PromptDetailsPanel({
     <Panel ariaLabel={t('details.panelLabel')} className={styles.panel} side={PanelSide.Left}>
       <div className={styles.content}>
         <PromptUsagesSection usages={usages} failed={usagesFailed} onRetry={onRetryUsages} />
+        <PromptVariablesSection paths={variablePaths} />
         <PromptVersionsSection
           versions={versions}
           pinnedNumbers={pinnedNumbers}
