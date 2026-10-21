@@ -15,6 +15,7 @@ import { PromptsResolver } from '@/modules/prompts/resolvers/prompts.resolver';
 import { RenamePromptFolderResolver } from '@/modules/prompts/resolvers/rename-prompt-folder.resolver';
 import { RenamePromptResolver } from '@/modules/prompts/resolvers/rename-prompt.resolver';
 import { SavePromptVersionResolver } from '@/modules/prompts/resolvers/save-prompt-version.resolver';
+import { TestPromptResolver } from '@/modules/prompts/resolvers/test-prompt.resolver';
 import { PromptFlowReader } from '@/modules/prompts/services/prompt-flow-reader.service';
 import { PromptFlowReferenceChecker } from '@/modules/prompts/services/prompt-flow-reference-checker.service';
 import { PromptFolderViewsService } from '@/modules/prompts/services/prompt-folder-views.service';
@@ -39,6 +40,7 @@ import { MovePromptToFolderUseCase } from '@/modules/prompts/use-cases/move-prom
 import { RenamePromptFolderUseCase } from '@/modules/prompts/use-cases/rename-prompt-folder.use-case';
 import { RenamePromptUseCase } from '@/modules/prompts/use-cases/rename-prompt.use-case';
 import { SavePromptVersionUseCase } from '@/modules/prompts/use-cases/save-prompt-version.use-case';
+import { TestPromptUseCase } from '@/modules/prompts/use-cases/test-prompt.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class PromptsModule extends defineModule({
@@ -75,6 +77,7 @@ export class PromptsModule extends defineModule({
     RenamePromptFolderUseCase,
     RenamePromptUseCase,
     SavePromptVersionUseCase,
+    TestPromptUseCase,
   ],
   resolvers: [
     CreatePromptFolderResolver,
@@ -89,6 +92,7 @@ export class PromptsModule extends defineModule({
     RenamePromptFolderResolver,
     RenamePromptResolver,
     SavePromptVersionResolver,
+    TestPromptResolver,
   ],
   exports: [PromptFlowReader, SamplePromptService],
   listeners: [CleanUpWorkspaceListener],

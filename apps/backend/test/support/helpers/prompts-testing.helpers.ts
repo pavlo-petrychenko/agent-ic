@@ -11,7 +11,9 @@ import type { NewPrompt } from '@/modules/prompts/typedefs/prompt.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { LlmModule } from '@/platform/llm/llm.module';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { ObservabilityModule } from '@/platform/observability/observability.module';
 import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
@@ -26,6 +28,7 @@ import { newFolder, newPrompt, newPromptVersion } from '@test/support/fixtures/p
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 import { PromptsNeighboursModule } from '@test/support/modules/prompts-neighbours.module';
+import type { ProviderOverride } from '@test/support/typedefs/test-infrastructure.typedefs';
 
 export const promptsCtx = (
   testingModule: TestingModule,
@@ -33,14 +36,22 @@ export const promptsCtx = (
   role: WorkspaceRole = WorkspaceRole.Owner,
 ): UseCaseCtx => workspaceCtx(testingModule.get(IdService).generate(), workspaceId, role);
 
-export const createPromptsTestingModule = (): Promise<TestingModule> =>
-  createPlatformTestingModule(TestRedisPrefix.Prompts, [
-    RedisModule,
-    RateLimitModule,
-    OutboundHttpModule,
-    PromptsModule.forRole(Role.Api),
-    PromptsNeighboursModule.forRole(Role.Api),
-  ]);
+export const createPromptsTestingModule = (
+  overrides: readonly ProviderOverride[] = [],
+): Promise<TestingModule> =>
+  createPlatformTestingModule(
+    TestRedisPrefix.Prompts,
+    [
+      RedisModule,
+      RateLimitModule,
+      OutboundHttpModule,
+      ObservabilityModule.forRole(Role.Api),
+      LlmModule,
+      PromptsModule.forRole(Role.Api),
+      PromptsNeighboursModule.forRole(Role.Api),
+    ],
+    overrides,
+  );
 
 export const seedPromptAuthor = async (testingModule: TestingModule): Promise<string> => {
   const userId = testingModule.get(IdService).generate();
