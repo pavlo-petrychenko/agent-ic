@@ -1,3 +1,6 @@
+import { IdPrefix } from '@agent-ic/contracts';
+import { ModelProviderKind, PromptSourceKind, PromptVersionKind } from '@agent-ic/flow';
+import type { FlowDocument } from '@agent-ic/flow';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
@@ -9,21 +12,54 @@ import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.erro
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
+import { PromptsModule } from '@/modules/prompts';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
+import { Role } from '@/platform/module-roles/constants/role.constants';
 import {
   AGENTS_TEST_LATER,
   TEST_EDITOR_ID,
+  TEST_NODE_ID,
   TEST_VERSION_NOTE,
 } from '@test/support/constants/agents-testing.constants';
+import {
+  SEND_NODE_ID,
+  SEND_NODE_KEY,
+  TEST_STEP_NODE_ID,
+  TEST_STEP_NODE_KEY,
+} from '@test/support/constants/runs-testing.constants';
 import { emptyFlow, triggerFlow } from '@test/support/fixtures/agents.fixture';
+import { agentNode, flowEdge, sendListNode, stepFlow } from '@test/support/fixtures/runs.fixture';
 import {
   createAgentsTestingModule,
   seedAgentWithDraft,
 } from '@test/support/helpers/agents-testing.helpers';
+import {
+  publicPromptId,
+  seedPrompt,
+  seedPromptFolder,
+  seedPromptVersion,
+} from '@test/support/helpers/prompts-testing.helpers';
 
 const FIRST_NUMBER = 1;
 const SECOND_NUMBER = 2;
+
+const draftWithLibraryPrompt = (promptRef: string): FlowDocument =>
+  stepFlow(
+    [
+      agentNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
+        prompt: {
+          kind: PromptSourceKind.Library,
+          promptRef,
+          pin: { kind: PromptVersionKind.Latest },
+        },
+        model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Ministral14b },
+      }),
+      sendListNode(SEND_NODE_ID, SEND_NODE_KEY, `${TEST_STEP_NODE_KEY}.messages`),
+    ],
+    [flowEdge(TEST_NODE_ID, TEST_STEP_NODE_ID), flowEdge(TEST_STEP_NODE_ID, SEND_NODE_ID)],
+  );
 
 describe('AgentPublishingService', () => {
   let testingModule: TestingModule;
@@ -34,7 +70,7 @@ describe('AgentPublishingService', () => {
   let ids: IdService;
 
   beforeAll(async () => {
-    testingModule = await createAgentsTestingModule();
+    testingModule = await createAgentsTestingModule([PromptsModule.forRole(Role.Api)]);
     service = testingModule.get(AgentPublishingService);
     agents = testingModule.get(AgentsRepository);
     versions = testingModule.get(AgentVersionsRepository);
@@ -133,6 +169,42 @@ describe('AgentPublishingService', () => {
     const all = await tenants.run(workspaceId, () => versions.listByAgent(workspaceId, agentId));
     expect(agent?.liveVersionId).toBeNull();
     expect(all.map((version) => version.kind)).toEqual([AgentVersionKind.Draft]);
+  });
+
+  it('refuses a draft whose library prompt does not exist', async () => {
+    const workspaceId = ids.generate();
+    const missingRef = ids.toPublic(IdPrefix.Prompt, ids.generate());
+    const { agentId } = await seedAgentWithDraft(
+      testingModule,
+      workspaceId,
+      draftWithLibraryPrompt(missingRef),
+    );
+
+    const publish = tenants.run(workspaceId, () =>
+      service.publish(workspaceId, agentId, { authorId: ids.generate() }),
+    );
+
+    await expect(publish).rejects.toBeInstanceOf(AgentFlowHasBlockingIssuesError);
+    const all = await tenants.run(workspaceId, () => versions.listByAgent(workspaceId, agentId));
+    expect(all.map((version) => version.kind)).toEqual([AgentVersionKind.Draft]);
+  });
+
+  it('publishes a draft whose library prompt exists', async () => {
+    const workspaceId = ids.generate();
+    const folderId = await seedPromptFolder(testingModule, workspaceId);
+    const promptId = await seedPrompt(testingModule, workspaceId, folderId);
+    await seedPromptVersion(testingModule, workspaceId, promptId);
+    const { agentId } = await seedAgentWithDraft(
+      testingModule,
+      workspaceId,
+      draftWithLibraryPrompt(publicPromptId(testingModule, promptId)),
+    );
+
+    const published = await tenants.run(workspaceId, () =>
+      service.publish(workspaceId, agentId, { authorId: ids.generate() }),
+    );
+
+    expect(published.kind).toBe(AgentVersionKind.Published);
   });
 
   it('refuses an agent of another workspace', async () => {
