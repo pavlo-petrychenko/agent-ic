@@ -1,0 +1,74 @@
+.preferences {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-panel);
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  padding: var(--space-12) var(--space-16);
+  border-bottom: var(--border-width) solid var(--color-line-row);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.telegramMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.linkCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding-left: var(--space-18);
+  color: var(--color-ink);
+  font: var(--type-body-small);
+}
+
+.codeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.code {
+  color: var(--color-ink);
+  font: var(--type-mono);
+  letter-spacing: 0.08em;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}

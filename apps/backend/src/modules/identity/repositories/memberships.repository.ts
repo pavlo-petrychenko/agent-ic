@@ -3,14 +3,17 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, asc, count, eq, gt, inArray } from 'drizzle-orm';
 import { memberships } from '@/modules/identity/db/memberships.table';
+import { roles } from '@/modules/identity/db/roles.table';
 import { users } from '@/modules/identity/db/users.table';
 import type {
   MemberRow,
   MemberSelection,
   MembershipRecord,
+  MembershipWithRole,
   NewMembership,
   RoleMemberCount,
 } from '@/modules/identity/typedefs/membership.typedefs';
+import type { RoleRef } from '@/modules/identity/typedefs/role.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
@@ -35,8 +38,17 @@ export class MembershipsRepository {
   }
 
   async findRole(workspaceId: string, userId: string): Promise<WorkspaceRole | null> {
-    const membership = await this.findByUser(workspaceId, userId);
-    return membership?.role ?? null;
+    const membership = await this.findRoleWithId(workspaceId, userId);
+    return membership?.roleKey ?? null;
+  }
+
+  async findRoleWithId(workspaceId: string, userId: string): Promise<RoleRef | null> {
+    const [row] = await this.txHost.tx
+      .select({ roleId: memberships.roleId, roleKey: roles.key })
+      .from(memberships)
+      .innerJoin(roles, eq(roles.id, memberships.roleId))
+      .where(and(eq(memberships.workspaceId, workspaceId), eq(memberships.userId, userId)));
+    return row ?? null;
   }
 
   async countByWorkspace(workspaceId: string): Promise<number> {
@@ -49,10 +61,11 @@ export class MembershipsRepository {
 
   countByRole(workspaceId: string): Promise<RoleMemberCount[]> {
     return this.txHost.tx
-      .select({ role: memberships.role, count: count() })
+      .select({ role: roles.key, count: count() })
       .from(memberships)
+      .innerJoin(roles, eq(roles.id, memberships.roleId))
       .where(eq(memberships.workspaceId, workspaceId))
-      .groupBy(memberships.role);
+      .groupBy(roles.key);
   }
 
   async countByInviteLink(workspaceId: string, inviteLinkId: string): Promise<number> {
@@ -70,11 +83,12 @@ export class MembershipsRepository {
       .select({ name: users.name })
       .from(memberships)
       .innerJoin(users, eq(users.id, memberships.userId))
+      .innerJoin(roles, eq(roles.id, memberships.roleId))
       .where(
         and(
           eq(memberships.workspaceId, workspaceId),
           'role' in selection
-            ? eq(memberships.role, selection.role)
+            ? eq(roles.key, selection.role)
             : inArray(memberships.userId, [...selection.userIds]),
         ),
       )
@@ -90,24 +104,28 @@ export class MembershipsRepository {
         userId: users.id,
         name: users.name,
         email: users.email,
-        role: memberships.role,
+        role: roles.key,
+        roleId: memberships.roleId,
         lastActiveAt: users.lastActiveAt,
         joinedAt: memberships.createdAt,
       })
       .from(memberships)
       .innerJoin(users, eq(users.id, memberships.userId))
+      .innerJoin(roles, eq(roles.id, memberships.roleId))
       .where(afterId === null ? inWorkspace : and(inWorkspace, gt(memberships.id, afterId)))
       .orderBy(asc(memberships.id))
       .limit(limit);
   }
 
   async findOwnerForUpdate(workspaceId: string): Promise<MembershipRecord | null> {
+    const ownerRoles = this.txHost.tx
+      .select({ id: roles.id })
+      .from(roles)
+      .where(and(eq(roles.workspaceId, workspaceId), eq(roles.key, WorkspaceRole.Owner)));
     const [membership] = await this.txHost.tx
       .select()
       .from(memberships)
-      .where(
-        and(eq(memberships.workspaceId, workspaceId), eq(memberships.role, WorkspaceRole.Owner)),
-      )
+      .where(and(eq(memberships.workspaceId, workspaceId), inArray(memberships.roleId, ownerRoles)))
       .for('update');
     return membership ?? null;
   }
@@ -115,19 +133,20 @@ export class MembershipsRepository {
   async findByIdForUpdate(
     workspaceId: string,
     membershipId: string,
-  ): Promise<MembershipRecord | null> {
-    const [membership] = await this.txHost.tx
-      .select()
+  ): Promise<MembershipWithRole | null> {
+    const [row] = await this.txHost.tx
+      .select({ membership: memberships, roleKey: roles.key })
       .from(memberships)
+      .innerJoin(roles, eq(roles.id, memberships.roleId))
       .where(and(eq(memberships.workspaceId, workspaceId), eq(memberships.id, membershipId)))
       .for('update');
-    return membership ?? null;
+    return row === undefined ? null : { ...row.membership, roleKey: row.roleKey };
   }
 
-  async updateRole(workspaceId: string, membershipId: string, role: WorkspaceRole): Promise<void> {
+  async updateRoleId(workspaceId: string, membershipId: string, roleId: string): Promise<void> {
     await this.txHost.tx
       .update(memberships)
-      .set({ role })
+      .set({ roleId })
       .where(and(eq(memberships.workspaceId, workspaceId), eq(memberships.id, membershipId)));
   }
 

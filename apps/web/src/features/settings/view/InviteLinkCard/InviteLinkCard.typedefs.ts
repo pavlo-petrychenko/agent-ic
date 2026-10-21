@@ -1,4 +1,3 @@
-import type { WorkspaceRole } from '@agent-ic/contracts';
 import type { InviteLinkView } from '@/features/settings/typedefs/inviteLink.typedefs';
 import type { SelectOption } from '@/shared/ui/inputs/Select';
 
@@ -11,5 +10,5 @@ export interface InviteLinkCardProps {
   resetting: boolean;
   onCopy: () => void;
   onReset: () => void;
-  onRoleChange: (role: WorkspaceRole) => void;
+  onRoleChange: (roleId: string) => void;
 }

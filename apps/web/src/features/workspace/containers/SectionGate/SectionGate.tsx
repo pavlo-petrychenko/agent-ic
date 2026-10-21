@@ -16,10 +16,10 @@ export function SectionGate({ workspaceId, section, children }: SectionGateProps
   if (active === null) {
     return null;
   }
-  if (canOpenSection(active.role, section)) {
+  if (canOpenSection(active.permissions, section)) {
     return children;
   }
-  const home = homeSection(active.role);
+  const home = homeSection(active.permissions);
 
   return (
     <NoAccess

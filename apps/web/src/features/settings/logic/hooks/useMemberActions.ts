@@ -1,9 +1,10 @@
-import { can, PermissionAction, PermissionResource, WorkspaceRole } from '@agent-ic/contracts';
+import { PermissionAction, PermissionResource, WorkspaceRole } from '@agent-ic/contracts';
 import { useState } from 'react';
 import { MemberAction } from '@/features/settings/constants/member.constants';
 import type { UseMemberActionsResult } from '@/features/settings/typedefs/member.typedefs';
 import type { TeamMember } from '@/features/settings/typedefs/member.typedefs';
 import type { WorkspaceSummary } from '@/features/workspace';
+import { hasPermission } from '@/shared/api/helpers/permission.helpers';
 
 export function useMemberActions(
   active: WorkspaceSummary | null,
@@ -16,12 +17,17 @@ export function useMemberActions(
 
   const canTransfer =
     active !== null &&
-    can(active.role, PermissionResource.WorkspaceSettings, PermissionAction.Transfer);
+    hasPermission(
+      active.permissions,
+      PermissionResource.WorkspaceSettings,
+      PermissionAction.Transfer,
+    );
   const canLeave =
     active !== null &&
-    can(active.role, PermissionResource.WorkspaceSettings, PermissionAction.Leave);
+    hasPermission(active.permissions, PermissionResource.WorkspaceSettings, PermissionAction.Leave);
   const canRemove =
-    active !== null && can(active.role, PermissionResource.Team, PermissionAction.Delete);
+    active !== null &&
+    hasPermission(active.permissions, PermissionResource.Team, PermissionAction.Delete);
 
   const actionFor = (member: TeamMember): MemberAction | null => {
     if (member.userId === userId) {

@@ -2,6 +2,7 @@ mutation UpdateInviteLinkRole($input: UpdateInviteLinkRoleInput!) {
   updateInviteLinkRole(input: $input) {
     url
     role
+    roleId
     expiresAt
     joinedCount
   }

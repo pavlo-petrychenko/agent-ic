@@ -16,7 +16,8 @@
       "roles": "Ролі",
       "usage": "Використання",
       "llmKeys": "Ключі LLM",
-      "profile": "Профіль"
+      "profile": "Профіль",
+      "notifications": "Сповіщення"
     }
   },
   "header": {
