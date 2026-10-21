@@ -43,3 +43,35 @@ export const Creatable: Story = {
     createLabel: (query: string) => `Create “${query}”`,
   },
 };
+
+const MODELS = [
+  { value: 'platform:gpt-6-luna', label: 'GPT-6 Luna · OpenAI', group: 'platform' },
+  { value: 'platform:glm-5-3-flash', label: 'GLM-5.3 Flash · Zhipu', group: 'platform' },
+  { value: 'lmk_openai:gpt-4o', label: 'gpt-4o', group: 'lmk_openai' },
+  { value: 'lmk_openai:gpt-4o-mini', label: 'gpt-4o-mini', group: 'lmk_openai' },
+];
+
+export const Grouped: Story = {
+  args: {
+    'aria-label': 'Model',
+    value: 'lmk_openai:gpt-4o',
+    options: MODELS,
+    searchLabel: 'Search models',
+    searchClearLabel: 'Clear model search',
+    emptyLabel: 'No model found',
+    placeholder: 'Pick a model',
+    createLabel: (query: string) => `Use “${query}”`,
+    groups: [
+      { id: 'platform', label: 'Platform models' },
+      { id: 'lmk_openai', label: 'OpenAI · your key', creatable: true },
+      { id: 'lmk_mistral', label: 'Mistral · your key', hint: 'Loading models…', creatable: true },
+      {
+        id: 'lmk_custom',
+        label: 'Local proxy · your key',
+        hint: 'This key’s models couldn’t be loaded.',
+        action: { label: 'Try again', onSelect: () => undefined },
+        creatable: true,
+      },
+    ],
+  },
+};
