@@ -94,6 +94,7 @@ import {
   createLlmGateway,
   createLlmTraceContextService,
 } from '@test/support/helpers/llm-testing.helpers';
+import { ensureRunParents, ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.module';
 import { LlmTracesProbeModule } from '@test/support/modules/llm-traces-probe.module';
 import type {
@@ -177,6 +178,7 @@ export const seedRun = async (
   workspaceId: string = testbed.ids.generate(),
 ): Promise<NewRun> => {
   const run = newRun(testbed, workspaceId);
+  await ensureRunParents(testbed.module, run);
   await testbed.tenants.run(workspaceId, () => testbed.runs.insert(run));
   return run;
 };
@@ -189,6 +191,7 @@ export const seedExecutableRun = async (
   workspaceId: string | null = null,
 ): Promise<ExecutableRun> => {
   const seededWorkspaceId = workspaceId ?? testbed.ids.generate();
+  await ensureWorkspaceRow(testbed.module, seededWorkspaceId);
   const conversation = { ...newConversation(testbed, seededWorkspaceId), mode };
   const history = earlier.map((overrides) => {
     const seededMessage = newMessage(testbed, conversation, overrides);
@@ -346,15 +349,18 @@ export const seedWorkspaceMembers = async (
   if (creator === undefined) {
     throw new MissingTestDataError(workspaceId);
   }
-  await db.insert(workspaces).values({
-    id: workspaceId,
-    workspaceId,
-    name: workspaceId,
-    timeZone: TEST_TIME_ZONE,
-    createdByUserId: creator.userId,
-    createdAt: now,
-    updatedAt: now,
-  });
+  await db
+    .insert(workspaces)
+    .values({
+      id: workspaceId,
+      workspaceId,
+      name: workspaceId,
+      timeZone: TEST_TIME_ZONE,
+      createdByUserId: creator.userId,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .onConflictDoNothing();
   const seededRoles = SYSTEM_ROLES.map((key) => ({
     id: testbed.ids.generate(),
     workspaceId,
@@ -430,6 +436,7 @@ export const seedLiveConversation = async (
 ): Promise<LiveConversation> => {
   const workspaceId = testbed.ids.generate();
   const conversation = newConversation(testbed, workspaceId);
+  await ensureWorkspaceRow(testbed.module, workspaceId);
   await testbed.tenants.run(workspaceId, async () => {
     await testbed.module.get(AgentsRepository).insert(newAgent(conversation.agentId, workspaceId));
     await testbed.module.get(ConversationsRepository).insert(conversation);

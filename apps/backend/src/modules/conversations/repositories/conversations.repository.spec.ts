@@ -3,6 +3,7 @@ import {
   createConversationsTestbed,
   seedConversation,
 } from '@test/support/helpers/conversations-testing.helpers';
+import { seedRunRow } from '@test/support/helpers/parent-rows.helpers';
 import type { ConversationsTestbed } from '@test/support/typedefs/conversations-testing.typedefs';
 
 describe('ConversationsRepository', () => {
@@ -17,8 +18,12 @@ describe('ConversationsRepository', () => {
   });
 
   it('lets only one of two concurrent claims win', async () => {
-    const { id, workspaceId } = await seedConversation(testbed);
-    const runs = [testbed.ids.generate(), testbed.ids.generate()];
+    const conversation = await seedConversation(testbed);
+    const { id, workspaceId } = conversation;
+    const runs = [
+      await seedRunRow(testbed.module, conversation),
+      await seedRunRow(testbed.module, conversation),
+    ];
 
     const results = await Promise.all(
       runs.map((runId) =>
@@ -34,9 +39,10 @@ describe('ConversationsRepository', () => {
   });
 
   it('releases the claim only for the run that holds it', async () => {
-    const { id, workspaceId } = await seedConversation(testbed);
-    const holder = testbed.ids.generate();
-    const other = testbed.ids.generate();
+    const conversation = await seedConversation(testbed);
+    const { id, workspaceId } = conversation;
+    const holder = await seedRunRow(testbed.module, conversation);
+    const other = await seedRunRow(testbed.module, conversation);
 
     const outcome = await testbed.tenants.run(workspaceId, async () => ({
       claimed: await testbed.conversations.claim(workspaceId, id, holder),
@@ -54,15 +60,32 @@ describe('ConversationsRepository', () => {
   });
 
   it('never shows or claims the conversation of another workspace', async () => {
-    const { id, workspaceId } = await seedConversation(testbed);
+    const conversation = await seedConversation(testbed);
+    const { id, workspaceId } = conversation;
+    const runId = await seedRunRow(testbed.module, conversation);
     const otherWorkspaceId = testbed.ids.generate();
 
     const fromOther = await testbed.tenants.run(otherWorkspaceId, async () => ({
       found: await testbed.conversations.findById(workspaceId, id),
-      claimed: await testbed.conversations.claim(workspaceId, id, testbed.ids.generate()),
+      locked: await testbed.conversations.lockIdle(workspaceId, id),
+      claimed: await testbed.conversations.claim(workspaceId, id, runId),
     }));
 
-    expect(fromOther).toEqual({ found: null, claimed: false });
+    expect(fromOther).toEqual({ found: null, locked: false, claimed: false });
+  });
+
+  it('locks a conversation only while it has no active run', async () => {
+    const conversation = await seedConversation(testbed);
+    const { id, workspaceId } = conversation;
+    const runId = await seedRunRow(testbed.module, conversation);
+
+    const outcome = await testbed.tenants.run(workspaceId, async () => ({
+      idle: await testbed.conversations.lockIdle(workspaceId, id),
+      claimed: await testbed.conversations.claim(workspaceId, id, runId),
+      busy: await testbed.conversations.lockIdle(workspaceId, id),
+    }));
+
+    expect(outcome).toEqual({ idle: true, claimed: true, busy: false });
   });
 
   it('shows nothing without a tenant', async () => {

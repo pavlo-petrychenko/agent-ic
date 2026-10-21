@@ -1,10 +1,23 @@
+import { Locale } from '@agent-ic/contracts';
 import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import type { StartedRedisContainer } from '@testcontainers/redis';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { users } from '@/modules/identity/db/users.table';
 import type { AppConfig } from '@/platform/config/typedefs/app-config.typedefs';
+import { CLIENT_CLOSE_TIMEOUT_SECONDS } from '@/platform/database/constants/database-client.constants';
 import { DatabaseRole } from '@/platform/database/constants/database.constants';
+import { createSqlClient } from '@/platform/database/helpers/sql-client.helpers';
 import { URL_PATH_SEPARATOR } from '@/platform/http/constants/url.constants';
 import {
+  AGENTS_TEST_START,
+  TEST_AUTHOR_PASSWORD_HASH,
+  TEST_EDITOR_EMAIL,
+  TEST_EDITOR_ID,
+  TEST_EDITOR_NAME,
+} from '@test/support/constants/agents-testing.constants';
+import {
   DATABASE_URL_PROTOCOL,
+  SCRATCH_POOL_SIZE,
   TEST_DATABASE_NAME,
   TEST_ROLE_PASSWORDS,
   TEST_SUPERUSER,
@@ -62,3 +75,23 @@ export const withTestRedisPrefix = <TConfig extends AppConfig>(
 });
 
 export const discardNotice = (): void => undefined;
+
+export const seedSharedTestUsers = async (ownerUrl: string): Promise<void> => {
+  const client = createSqlClient({ url: ownerUrl, poolMax: SCRATCH_POOL_SIZE }, discardNotice);
+  try {
+    await drizzle({ client })
+      .insert(users)
+      .values({
+        id: TEST_EDITOR_ID,
+        email: TEST_EDITOR_EMAIL,
+        name: TEST_EDITOR_NAME,
+        passwordHash: TEST_AUTHOR_PASSWORD_HASH,
+        locale: Locale.En,
+        createdAt: AGENTS_TEST_START,
+        updatedAt: AGENTS_TEST_START,
+      })
+      .onConflictDoNothing();
+  } finally {
+    await client.end({ timeout: CLIENT_CLOSE_TIMEOUT_SECONDS });
+  }
+};

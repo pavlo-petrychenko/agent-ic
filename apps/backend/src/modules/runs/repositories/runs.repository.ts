@@ -131,8 +131,4 @@ export class RunsRepository {
       .returning({ id: runs.id });
     return finished.length > 0;
   }
-
-  async deleteByWorkspace(workspaceId: string): Promise<void> {
-    await this.txHost.tx.delete(runs).where(eq(runs.workspaceId, workspaceId));
-  }
 }

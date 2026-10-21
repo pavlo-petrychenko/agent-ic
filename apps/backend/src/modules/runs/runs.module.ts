@@ -2,7 +2,6 @@ import { AgentsModule, SimulatorTestsReader } from '@/modules/agents';
 import { ConversationsModule } from '@/modules/conversations';
 import { PromptsModule } from '@/modules/prompts';
 import { STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
-import { CleanUpWorkspaceListener } from '@/modules/runs/listeners/clean-up-workspace.listener';
 import { StartRunOnMessageListener } from '@/modules/runs/listeners/start-run-on-message.listener';
 import { ExecuteRunProcessor } from '@/modules/runs/processors/execute-run.processor';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
@@ -27,7 +26,6 @@ import { SendMessageExecutor } from '@/modules/runs/services/send-message-execut
 import { SimulationTestsReaderService } from '@/modules/runs/services/simulation-tests-reader.service';
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
 import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedefs';
-import { CleanUpWorkspaceUseCase } from '@/modules/runs/use-cases/clean-up-workspace.use-case';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
 import { GetRunTotalsUseCase } from '@/modules/runs/use-cases/get-run-totals.use-case';
 import { GetRunUseCase } from '@/modules/runs/use-cases/get-run.use-case';
@@ -79,7 +77,6 @@ export class RunsModule extends defineModule({
     ListRunStepsUseCase,
     GetRunTotalsUseCase,
     ListLastSimulationRunsUseCase,
-    CleanUpWorkspaceUseCase,
   ],
   resolvers: [
     RunStepsResolver,
@@ -89,5 +86,5 @@ export class RunsModule extends defineModule({
     LastSimulationRunResolver,
   ],
   processors: [ExecuteRunProcessor],
-  listeners: [StartRunOnMessageListener, CleanUpWorkspaceListener],
+  listeners: [StartRunOnMessageListener],
 }) {}

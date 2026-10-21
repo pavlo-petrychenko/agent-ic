@@ -11,6 +11,7 @@ import {
   PROMPTS_TEST_LATER,
   TEST_FOLDER_NAME,
 } from '@test/support/constants/prompts-testing.constants';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import {
   createPromptsTestingModule,
   promptsCtx,
@@ -42,6 +43,7 @@ describe('CreatePromptFolderUseCase', () => {
 
   it('creates a folder and returns it with a public id', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
 
     const view = await createFolder.execute(promptsCtx(testingModule, workspaceId), {
       name: PADDED_NAME,
@@ -58,6 +60,7 @@ describe('CreatePromptFolderUseCase', () => {
 
   it('refuses a name already used in the workspace, ignoring case', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const ctx = promptsCtx(testingModule, workspaceId);
     await createFolder.execute(ctx, { name: TEST_FOLDER_NAME });
 
@@ -72,6 +75,7 @@ describe('CreatePromptFolderUseCase', () => {
 
   it('frees the name again once the folder is deleted', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const folderId = await seedPromptFolder(testingModule, workspaceId);
     await tenants.run(workspaceId, () =>
       folders.softDelete(workspaceId, folderId, PROMPTS_TEST_LATER),
@@ -85,7 +89,9 @@ describe('CreatePromptFolderUseCase', () => {
   });
 
   it('lets exactly one of several identical creates win', async () => {
-    const ctx = promptsCtx(testingModule, ids.generate());
+    const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
+    const ctx = promptsCtx(testingModule, workspaceId);
 
     const outcomes = await Promise.all(
       Array.from({ length: CONCURRENT_CREATES }, async () => {

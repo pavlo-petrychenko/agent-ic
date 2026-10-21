@@ -1,5 +1,15 @@
-import { integer, jsonb, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import {
+  foreignKey,
+  index,
+  integer,
+  jsonb,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
+import { workspaces } from '@/modules/identity/db/workspaces.table';
 import { runStepStatusEnum, runsSchema } from '@/modules/runs/db/runs.pg-schema';
 import { runs } from '@/modules/runs/db/runs.table';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
@@ -14,10 +24,10 @@ export const runSteps = runsSchema
     'run_steps',
     {
       id: uuid('id').primaryKey(),
-      workspaceId: workspaceIdColumn(),
-      runId: uuid('run_id')
-        .notNull()
-        .references((): AnyPgColumn => runs.id, { onDelete: 'cascade' }),
+      workspaceId: workspaceIdColumn().references((): AnyPgColumn => workspaces.id, {
+        onDelete: 'cascade',
+      }),
+      runId: uuid('run_id').notNull(),
       nodeId: text('node_id').notNull(),
       nodeKey: text('node_key').notNull(),
       branchKey: text('branch_key').notNull(),
@@ -31,11 +41,17 @@ export const runSteps = runsSchema
       finishedAt: timestamp('finished_at', { withTimezone: true }),
     },
     (table) => [
+      foreignKey({
+        name: 'run_steps_workspace_id_run_id_runs_fk',
+        columns: [table.workspaceId, table.runId],
+        foreignColumns: [runs.workspaceId, runs.id],
+      }).onDelete('cascade'),
       uniqueIndex('run_steps_run_id_node_id_branch_key_key').on(
         table.runId,
         table.nodeId,
         table.branchKey,
       ),
+      index('run_steps_workspace_id_run_id_idx').on(table.workspaceId, table.runId),
       tenantIsolationPolicy('run_steps'),
     ],
   )

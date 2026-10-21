@@ -16,6 +16,7 @@ import type { AppTransactionAdapter } from '@/platform/database/typedefs/transac
 import { IdService } from '@/platform/ids/services/id.service';
 import {
   AGENTS_TEST_LATER,
+  TEST_EDITOR_ID,
   TEST_VERSION_NOTE,
 } from '@test/support/constants/agents-testing.constants';
 import {
@@ -30,6 +31,7 @@ import {
   triggerFlow,
 } from '@test/support/fixtures/agents.fixture';
 import { createAgentsTestingModule } from '@test/support/helpers/agents-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 const FIRST_NUMBER = 1;
 const SECOND_NUMBER = 2;
@@ -55,6 +57,7 @@ describe('AgentVersionsRepository', () => {
 
   const insertAgent = async (workspaceId: string): Promise<string> => {
     const agentId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     await tenants.run(workspaceId, () => agents.insert(newAgent(agentId, workspaceId)));
     return agentId;
   };
@@ -104,7 +107,7 @@ describe('AgentVersionsRepository', () => {
       FIRST_NUMBER,
     );
     const snapshotId = await insertVersion(workspaceId, agentId, AgentVersionKind.Snapshot);
-    const changes = { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: ids.generate() };
+    const changes = { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID };
     const update = (versionId: string): Promise<number | null> =>
       repository.updateDraft(
         workspaceId,
@@ -141,7 +144,7 @@ describe('AgentVersionsRepository', () => {
     const workspaceId = ids.generate();
     const agentId = await insertAgent(workspaceId);
     const draftId = await insertVersion(workspaceId, agentId, AgentVersionKind.Draft);
-    const changes = { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: ids.generate() };
+    const changes = { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID };
 
     const updated = await tenants.run(workspaceId, () =>
       repository.updateDraft(
@@ -340,7 +343,7 @@ describe('AgentVersionsRepository', () => {
           workspaceA,
           draftId,
           DRAFT_INITIAL_REVISION,
-          { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: ids.generate() },
+          { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID },
           AGENTS_TEST_LATER,
         ),
       }));

@@ -48,6 +48,7 @@ import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { newAgent } from '@test/support/fixtures/agents.fixture';
 import { newConversation, newMessage } from '@test/support/fixtures/conversation.fixture';
 import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
+import { ensureAgentRow, ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import {
   deliverOnOutboundQueued,
   notifyOnNeedsOperator,
@@ -124,6 +125,7 @@ export const seedConversation = async (
   workspaceId: string = testbed.ids.generate(),
 ): Promise<NewConversation> => {
   const conversation = newConversation(testbed, workspaceId);
+  await ensureAgentRow(testbed.module, workspaceId, conversation.agentId);
   await testbed.tenants.run(conversation.workspaceId, () =>
     testbed.conversations.insert(conversation),
   );
@@ -136,6 +138,7 @@ export const seedAgent = async (
   pause: PauseSettings | null = null,
 ): Promise<string> => {
   const agentId = testbed.ids.generate();
+  await ensureWorkspaceRow(testbed.module, workspaceId);
   await testbed.tenants.run(workspaceId, async () => {
     await testbed.agents.insert(newAgent(agentId, workspaceId));
     await testbed.agents.setPause(workspaceId, agentId, pause, testbed.clock.now());

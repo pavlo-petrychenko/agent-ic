@@ -66,8 +66,8 @@ describe('GetAgentUseCase', () => {
     const neverPublished = await getAgent.execute(ctx, { id });
     await tenants.run(workspaceId, async () => {
       const publishing = testingModule.get(AgentPublishingService);
-      await publishing.publish(workspaceId, agentId, { authorId: ids.generate() });
-      await publishing.publish(workspaceId, agentId, { authorId: ids.generate() });
+      await publishing.publish(workspaceId, agentId, { authorId: TEST_EDITOR_ID });
+      await publishing.publish(workspaceId, agentId, { authorId: TEST_EDITOR_ID });
     });
     const published = await getAgent.execute(ctx, { id });
     await tenants.run(workspaceId, () =>

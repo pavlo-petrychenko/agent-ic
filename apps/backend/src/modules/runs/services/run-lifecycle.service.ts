@@ -44,18 +44,16 @@ export class RunLifecycleService {
     if (conversation.state !== ConversationState.AgentActive) {
       return null;
     }
-    const runId = this.ids.generate();
-    if (!(await this.conversations.claimRun(workspaceId, conversationId, runId))) {
+    if (!(await this.conversations.lockIdleConversation(workspaceId, conversationId))) {
       return null;
     }
     const lastCoveredMessageId = await this.lastUncoveredMessageId(target);
     const versionId = lastCoveredMessageId === null ? null : await resolveVersion();
     if (lastCoveredMessageId === null || versionId === null) {
-      await this.conversations.releaseRun(workspaceId, conversationId, runId);
       return null;
     }
     const run: NewRun = {
-      id: runId,
+      id: this.ids.generate(),
       workspaceId,
       conversationId,
       agentId: conversation.agentId,
@@ -67,7 +65,13 @@ export class RunLifecycleService {
       createdAt: this.clock.now(),
     };
     await this.runs.insert(run);
-    await this.jobs.enqueue(ctx, executeRunJob, { runId }, { durable: true, jobId: runId });
+    await this.conversations.claimRun(workspaceId, conversationId, run.id);
+    await this.jobs.enqueue(
+      ctx,
+      executeRunJob,
+      { runId: run.id },
+      { durable: true, jobId: run.id },
+    );
     return run;
   }
 

@@ -32,6 +32,7 @@ import {
   readVersions,
   seedAgentWithDraft,
 } from '@test/support/helpers/agents-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 describe('DuplicateAgentUseCase', () => {
   let testingModule: TestingModule;
@@ -96,12 +97,12 @@ describe('DuplicateAgentUseCase', () => {
     const agentId = ids.generate();
     const draftId = ids.generate();
     const longName = 'a'.repeat(AGENT_NAME_MAX_LENGTH);
+    await ensureWorkspaceRow(testingModule, workspaceId);
     await testingModule.get(TenantTransactionService).run(workspaceId, async () => {
       await testingModule.get(AgentsRepository).insert({
         id: agentId,
         workspaceId,
         name: longName,
-        draftVersionId: draftId,
         createdAt: AGENTS_TEST_LATER,
         updatedAt: AGENTS_TEST_LATER,
       });
@@ -114,6 +115,9 @@ describe('DuplicateAgentUseCase', () => {
         createdAt: AGENTS_TEST_LATER,
         updatedAt: AGENTS_TEST_LATER,
       });
+      await testingModule
+        .get(AgentsRepository)
+        .setDraftVersion(workspaceId, agentId, draftId, AGENTS_TEST_LATER);
     });
 
     const copy = await duplicateAgent.execute(agentsCtx(testingModule, workspaceId), {

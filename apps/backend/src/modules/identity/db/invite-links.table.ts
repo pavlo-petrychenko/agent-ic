@@ -1,5 +1,5 @@
 import { isNull } from 'drizzle-orm';
-import { foreignKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { foreignKey, index, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { identitySchema } from '@/modules/identity/db/identity.pg-schema';
 import { roles } from '@/modules/identity/db/roles.table';
@@ -36,6 +36,8 @@ export const inviteLinks = identitySchema
       uniqueIndex('invite_links_active_workspace_key')
         .on(table.workspaceId)
         .where(isNull(table.revokedAt)),
+      index('invite_links_workspace_id_role_id_idx').on(table.workspaceId, table.roleId),
+      index('invite_links_created_by_user_id_idx').on(table.createdByUserId),
       tenantIsolationPolicy('invite_links'),
     ],
   )

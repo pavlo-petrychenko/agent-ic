@@ -18,6 +18,7 @@ import {
   AGENTS_TEST_LATER,
   TEST_AUTHOR_NAME,
   TEST_EDITOR_ID,
+  TEST_EDITOR_NAME,
   TEST_RELEASE_NOTE,
   TEST_ROLLBACK_MESSAGE,
   TEST_VERSION_NOTE,
@@ -117,7 +118,10 @@ describe('PublishAgentUseCase', () => {
       id: publicAgentId(testingModule, agentId),
     });
 
-    expect(published.version).toMatchObject({ note: TEST_VERSION_NOTE, author: null });
+    expect(published.version).toMatchObject({
+      note: TEST_VERSION_NOTE,
+      author: { name: TEST_EDITOR_NAME },
+    });
   });
 
   it('stops on a blocking issue and writes nothing', async () => {

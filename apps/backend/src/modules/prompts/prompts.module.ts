@@ -1,5 +1,4 @@
 import { AgentsModule, FLOW_REFERENCE_CHECKER } from '@/modules/agents';
-import { CleanUpWorkspaceListener } from '@/modules/prompts/listeners/clean-up-workspace.listener';
 import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
 import { PromptVersionsRepository } from '@/modules/prompts/repositories/prompt-versions.repository';
 import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
@@ -22,7 +21,6 @@ import { PromptImportService } from '@/modules/prompts/services/prompt-import.se
 import { PromptUsageService } from '@/modules/prompts/services/prompt-usage.service';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
 import { SamplePromptService } from '@/modules/prompts/services/sample-prompt.service';
-import { CleanUpWorkspaceUseCase } from '@/modules/prompts/use-cases/clean-up-workspace.use-case';
 import { CreatePromptFolderUseCase } from '@/modules/prompts/use-cases/create-prompt-folder.use-case';
 import { CreatePromptUseCase } from '@/modules/prompts/use-cases/create-prompt.use-case';
 import { DeletePromptFolderUseCase } from '@/modules/prompts/use-cases/delete-prompt-folder.use-case';
@@ -58,7 +56,6 @@ export class PromptsModule extends defineModule({
     PromptUsageService,
     PromptViewsService,
     SamplePromptService,
-    CleanUpWorkspaceUseCase,
     CreatePromptFolderUseCase,
     CreatePromptUseCase,
     DeletePromptFolderUseCase,
@@ -91,5 +88,4 @@ export class PromptsModule extends defineModule({
     SavePromptVersionResolver,
   ],
   exports: [PromptFlowReader, SamplePromptService],
-  listeners: [CleanUpWorkspaceListener],
 }) {}

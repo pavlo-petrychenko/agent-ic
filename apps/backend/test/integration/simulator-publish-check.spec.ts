@@ -8,6 +8,7 @@ import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-ver
 import { PreviewAgentPublishUseCase } from '@/modules/agents/use-cases/preview-agent-publish.use-case';
 import { ConversationMode } from '@/modules/conversations';
 import { RunStatus } from '@/modules/runs/constants/run.constants';
+import { TEST_EDITOR_ID } from '@test/support/constants/agents-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { triggerFlow } from '@test/support/fixtures/agents.fixture';
 import { newRun } from '@test/support/fixtures/runs.fixture';
@@ -16,6 +17,7 @@ import {
   publicAgentId,
   seedAgentWithDraft,
 } from '@test/support/helpers/agents-testing.helpers';
+import { ensureRunParents } from '@test/support/helpers/parent-rows.helpers';
 import { createRunsTestbed } from '@test/support/helpers/runs-testing.helpers';
 import type { RunExecutionTestbed } from '@test/support/typedefs/runs-testing.typedefs';
 
@@ -43,16 +45,17 @@ describe('the publish check after a simulator test', () => {
     const finishedAt = testbed.clock.now();
 
     const untested = await preview();
+    const snapshot = await testbed.tenants.run(workspaceId, () =>
+      testbed.module.get(AgentRuntimeReader).snapshotDraft(workspaceId, agentId),
+    );
+    const run = {
+      ...newRun(testbed, workspaceId),
+      mode: ConversationMode.Simulation,
+      agentId,
+      versionId: snapshot.id,
+    };
+    await ensureRunParents(testbed.module, run);
     await testbed.tenants.run(workspaceId, async () => {
-      const snapshot = await testbed.module
-        .get(AgentRuntimeReader)
-        .snapshotDraft(workspaceId, agentId);
-      const run = {
-        ...newRun(testbed, workspaceId),
-        mode: ConversationMode.Simulation,
-        agentId,
-        versionId: snapshot.id,
-      };
       await testbed.runs.insert(run);
       await testbed.runs.finish(workspaceId, run.id, {
         status: RunStatus.Succeeded,
@@ -68,7 +71,7 @@ describe('the publish check after a simulator test', () => {
           workspaceId,
           draftId,
           DRAFT_INITIAL_REVISION,
-          { flow: triggerFlow(), note: null, authorId: testbed.ids.generate() },
+          { flow: triggerFlow(), note: null, authorId: TEST_EDITOR_ID },
           finishedAt,
         ),
     );

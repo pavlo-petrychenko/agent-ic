@@ -15,6 +15,7 @@ import { Role } from '@/platform/module-roles/constants/role.constants';
 import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
+import { TEST_EDITOR_ID } from '@test/support/constants/agents-testing.constants';
 import {
   PROMPTS_TEST_START,
   TEST_PROMPT_AUTHOR_NAME,
@@ -25,13 +26,14 @@ import { uniqueEmail } from '@test/support/fixtures/identity.fixture';
 import { newFolder, newPrompt, newPromptVersion } from '@test/support/fixtures/prompts.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import { PromptsNeighboursModule } from '@test/support/modules/prompts-neighbours.module';
 
 export const promptsCtx = (
   testingModule: TestingModule,
   workspaceId: string,
   role: WorkspaceRole = WorkspaceRole.Owner,
-): UseCaseCtx => workspaceCtx(testingModule.get(IdService).generate(), workspaceId, role);
+): UseCaseCtx => workspaceCtx(TEST_EDITOR_ID, workspaceId, role);
 
 export const createPromptsTestingModule = (): Promise<TestingModule> =>
   createPlatformTestingModule(TestRedisPrefix.Prompts, [
@@ -62,6 +64,7 @@ export const seedPromptFolder = async (
   overrides: Partial<NewPromptFolder> = {},
 ): Promise<string> => {
   const folderId = testingModule.get(IdService).generate();
+  await ensureWorkspaceRow(testingModule, workspaceId);
   await testingModule
     .get(TenantTransactionService)
     .run(workspaceId, () =>

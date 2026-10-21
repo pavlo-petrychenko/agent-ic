@@ -60,7 +60,7 @@ export class DuplicateAgentUseCase {
         createdAt: now,
         updatedAt: now,
       };
-      await this.agents.insert(copy);
+      await this.agents.insert({ ...copy, draftVersionId: null });
       await this.versions.insert({
         id: draftId,
         workspaceId,
@@ -72,6 +72,7 @@ export class DuplicateAgentUseCase {
         createdAt: now,
         updatedAt: now,
       });
+      await this.agents.setDraftVersion(workspaceId, copyId, draftId, now);
       return this.views.agentView(workspaceId, copy);
     });
   }
