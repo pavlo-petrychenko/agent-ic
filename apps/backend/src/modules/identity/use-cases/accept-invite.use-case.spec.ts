@@ -53,6 +53,7 @@ describe('AcceptInviteUseCase', () => {
         memberCount: 2,
       },
       role: WorkspaceRole.Operator,
+      permissions: [],
     });
     expect(membership).toMatchObject({ role: WorkspaceRole.Operator, inviteLinkId: link?.id });
   });

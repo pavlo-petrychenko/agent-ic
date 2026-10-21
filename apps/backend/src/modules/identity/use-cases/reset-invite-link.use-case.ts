@@ -2,6 +2,7 @@ import { DEFAULT_INVITE_ROLE, PermissionAction, PermissionResource } from '@agen
 import { Injectable } from '@nestjs/common';
 import { InviteLinksRepository } from '@/modules/identity/repositories/invite-links.repository';
 import { InviteLinksService } from '@/modules/identity/services/invite-links.service';
+import { WorkspaceRolesService } from '@/modules/identity/services/workspace-roles.service';
 import type { InviteLinkView } from '@/modules/identity/typedefs/invite-link.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
@@ -14,6 +15,7 @@ export class ResetInviteLinkUseCase {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly inviteLinks: InviteLinksRepository,
     private readonly invites: InviteLinksService,
+    private readonly roles: WorkspaceRolesService,
     private readonly clock: ClockService,
   ) {}
 
@@ -24,11 +26,9 @@ export class ResetInviteLinkUseCase {
       if (current !== null) {
         await this.inviteLinks.revoke(access.workspaceId, current.id, this.clock.now());
       }
-      const next = await this.invites.issue(
-        access.workspaceId,
-        current?.role ?? DEFAULT_INVITE_ROLE,
-        access.userId,
-      );
+      const roleId =
+        current?.roleId ?? (await this.roles.systemRoleId(access.workspaceId, DEFAULT_INVITE_ROLE));
+      const next = await this.invites.issue(access.workspaceId, roleId, access.userId);
       return this.invites.view(next);
     });
   }

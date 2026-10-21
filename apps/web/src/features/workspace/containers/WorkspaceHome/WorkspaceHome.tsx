@@ -7,17 +7,17 @@ import { homeSection } from '@/features/workspace/logic/helpers/navigation.helpe
 
 export function WorkspaceHome({ workspaceId }: WorkspaceHomeProps) {
   const navigate = useNavigate();
-  const role = useWorkspaceShell(workspaceId).data?.active?.role ?? null;
+  const active = useWorkspaceShell(workspaceId).data?.active ?? null;
 
   useEffect(() => {
-    if (role !== null) {
+    if (active !== null) {
       void navigate({
-        to: WORKSPACE_SECTION_PATHS[homeSection(role)],
+        to: WORKSPACE_SECTION_PATHS[homeSection(active.permissions)],
         params: { workspaceId },
         replace: true,
       });
     }
-  }, [navigate, role, workspaceId]);
+  }, [navigate, active, workspaceId]);
 
   return null;
 }
