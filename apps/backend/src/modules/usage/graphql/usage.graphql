@@ -1,0 +1,23 @@
+type UsageMeter {
+  used: Float!
+  limit: Float!
+}
+
+type WorkspaceUsage {
+  periodStart: String!
+  periodEnd: String!
+  credits: UsageMeter!
+  conversations: UsageMeter!
+  chunks: UsageMeter!
+}
+
+type UsageStatus {
+  limitReached: Boolean!
+  reachedAt: String
+  periodEnd: String!
+}
+
+extend type Query {
+  workspaceUsage: WorkspaceUsage!
+  usageStatus: UsageStatus!
+}

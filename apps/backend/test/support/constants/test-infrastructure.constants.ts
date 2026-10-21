@@ -53,6 +53,8 @@ export enum TestRedisPrefix {
   Agents = 'agents:',
   Prompts = 'prompts:',
   LlmKeys = 'llm-keys:',
+  Usage = 'usage:',
+  UsageGateway = 'usage-gateway:',
   Conversations = 'conversations:',
   Channels = 'channels:',
   ChannelsWorker = 'channels-worker:',

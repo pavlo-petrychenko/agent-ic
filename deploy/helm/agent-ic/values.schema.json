@@ -26,6 +26,10 @@
       "minimum": 1,
       "maximum": 65535
     },
+    "usageLimit": {
+      "type": "integer",
+      "minimum": 1
+    },
     "urlPath": {
       "type": "string",
       "pattern": "^/"
@@ -551,6 +555,7 @@
         "langfuse",
         "s3",
         "llm",
+        "usage",
         "secretBox",
         "email"
       ],
@@ -677,6 +682,22 @@
             },
             "embeddingModel": {
               "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        },
+        "usage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["creditsLimit", "conversationsLimit", "chunksLimit"],
+          "properties": {
+            "creditsLimit": {
+              "$ref": "#/definitions/usageLimit"
+            },
+            "conversationsLimit": {
+              "$ref": "#/definitions/usageLimit"
+            },
+            "chunksLimit": {
+              "$ref": "#/definitions/usageLimit"
             }
           }
         },

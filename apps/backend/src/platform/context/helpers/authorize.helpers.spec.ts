@@ -10,7 +10,7 @@ import { ActorKind } from '@/platform/context/constants/actor.constants';
 import { AuthenticationRequiredError } from '@/platform/context/errors/authentication-required.error';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
-import { authorize } from '@/platform/context/helpers/authorize.helpers';
+import { authorize, requireWorkspaceMember } from '@/platform/context/helpers/authorize.helpers';
 import type { Actor } from '@/platform/context/typedefs/actor.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 
@@ -80,5 +80,25 @@ describe('authorize', () => {
     expect(() => authorize(anonymous, PermissionResource.Team, PermissionAction.View)).toThrow(
       AuthenticationRequiredError,
     );
+  });
+});
+
+describe('requireWorkspaceMember', () => {
+  it.each(Object.values(WorkspaceRole))('lets every member through: %s', (role) => {
+    expect(requireWorkspaceMember(ctxOf(role))).toEqual({
+      userId: USER_ID,
+      workspaceId: WORKSPACE_ID,
+      role,
+    });
+  });
+
+  it('refuses a user with no workspace in the context', () => {
+    expect(() => requireWorkspaceMember(ctxOf(null))).toThrow(WorkspaceAccessDeniedError);
+  });
+
+  it('asks an anonymous caller to sign in first', () => {
+    const anonymous = ctxOf(WorkspaceRole.Operator, { kind: ActorKind.Anonymous });
+
+    expect(() => requireWorkspaceMember(anonymous)).toThrow(AuthenticationRequiredError);
   });
 });

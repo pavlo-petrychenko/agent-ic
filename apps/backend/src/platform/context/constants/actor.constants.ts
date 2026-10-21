@@ -8,6 +8,7 @@ export enum ActorKind {
 export enum SystemReason {
   Job = 'job',
   Schedule = 'schedule',
+  Metering = 'metering',
 }
 
 export const ACTOR_DISCRIMINATOR = 'kind';

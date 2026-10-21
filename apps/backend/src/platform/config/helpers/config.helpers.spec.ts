@@ -328,6 +328,33 @@ describe('loadAppConfig', () => {
     expect(variablesOf(issues)).toEqual([variable]);
   });
 
+  it('reads the usage limits', () => {
+    const env = createTestEnv({
+      [EnvVar.UsageCreditsLimit]: '2500',
+      [EnvVar.UsageConversationsLimit]: '300',
+      [EnvVar.UsageChunksLimit]: '40',
+    });
+
+    const config = loadAppConfig(roleOf(Role.Api), env);
+
+    expect(config.usage).toEqual({ creditsLimit: 2500, conversationsLimit: 300, chunksLimit: 40 });
+  });
+
+  it.each([
+    [EnvVar.UsageCreditsLimit, undefined],
+    [EnvVar.UsageCreditsLimit, '0'],
+    [EnvVar.UsageConversationsLimit, '-5'],
+    [EnvVar.UsageConversationsLimit, '1.5'],
+    [EnvVar.UsageChunksLimit, ''],
+    [EnvVar.UsageChunksLimit, 'many'],
+  ])('stops boot on a bad usage limit %s: %s', (variable, value) => {
+    const env = createTestEnv({ [variable]: value });
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+    expect(variablesOf(issues)).toEqual([variable]);
+  });
+
   it('reads the SMTP settings in smtp mode', () => {
     const env = createTestEnv({ [EnvVar.EmailMode]: EmailMode.Smtp, [EnvVar.SmtpPort]: '2525' });
 

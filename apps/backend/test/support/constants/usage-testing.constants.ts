@@ -1,0 +1,13 @@
+export const USAGE_TEST_START = new Date('2026-10-14T09:30:00.000Z');
+export const USAGE_TEST_PERIOD = '2026-10';
+export const USAGE_TEST_PERIOD_START = new Date('2026-10-01T00:00:00.000Z');
+export const USAGE_TEST_PERIOD_END = new Date('2026-11-01T00:00:00.000Z');
+export const USAGE_TEST_NEXT_PERIOD = '2026-11';
+export const USAGE_TEST_MONTH_MS = 31 * 24 * 60 * 60 * 1000;
+export const TEST_CREDITS_LIMIT = 10_000;
+export const TEST_CONVERSATIONS_LIMIT = 10_000;
+export const TEST_CHUNKS_LIMIT = 5_000;
+export const TEST_USAGE_OWNER_NAME = 'Olena';
+export const TEST_USAGE_WORKSPACE_NAME = 'Demo salon';
+export const TEST_USAGE_TIME_ZONE = 'Europe/Kyiv';
+export const TEST_USAGE_PASSWORD_HASH = 'not-a-real-hash';

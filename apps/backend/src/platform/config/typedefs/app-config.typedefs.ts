@@ -74,6 +74,12 @@ export interface LlmConfig {
   readonly embeddingModel: EmbeddingModelId;
 }
 
+export interface UsageConfig {
+  readonly creditsLimit: number;
+  readonly conversationsLimit: number;
+  readonly chunksLimit: number;
+}
+
 export interface SmtpCredentials {
   readonly user: string;
   readonly password: string;
@@ -118,6 +124,7 @@ export interface BaseConfig {
   readonly auth: AuthConfig;
   readonly secretBox: SecretBoxConfig;
   readonly llm: LlmConfig;
+  readonly usage: UsageConfig;
   readonly email: EmailConfig;
 }
 

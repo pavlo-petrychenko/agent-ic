@@ -20,6 +20,7 @@ export enum ErrorReason {
   InvalidCursor = 'INVALID_CURSOR',
   InvalidPageSize = 'INVALID_PAGE_SIZE',
   RateLimited = 'RATE_LIMITED',
+  UsageLimitReached = 'USAGE_LIMIT_REACHED',
   PlatformAdminRequired = 'PLATFORM_ADMIN_REQUIRED',
   AuthenticationRequired = 'AUTHENTICATION_REQUIRED',
   SystemActorRequired = 'SYSTEM_ACTOR_REQUIRED',

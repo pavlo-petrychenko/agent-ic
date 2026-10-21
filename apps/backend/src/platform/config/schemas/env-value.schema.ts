@@ -6,6 +6,7 @@ import {
   PORT_MIN,
   PUBLIC_URL_PROTOCOL,
   REDIS_URL_PROTOCOL,
+  USAGE_LIMIT_MIN,
   WORKER_CONCURRENCY_MIN,
 } from '@/platform/config/constants/env-value.constants';
 import { SAMPLE_RATE_MAX, SAMPLE_RATE_MIN } from '@/platform/config/constants/langfuse.constants';
@@ -22,3 +23,4 @@ export const poolSizeSchema = z.coerce.number().int().min(POOL_SIZE_MIN);
 export const redisUrlSchema = z.url({ protocol: REDIS_URL_PROTOCOL });
 export const publicUrlSchema = z.url({ protocol: PUBLIC_URL_PROTOCOL });
 export const concurrencySchema = z.coerce.number().int().min(WORKER_CONCURRENCY_MIN);
+export const usageLimitSchema = z.coerce.number().int().min(USAGE_LIMIT_MIN);

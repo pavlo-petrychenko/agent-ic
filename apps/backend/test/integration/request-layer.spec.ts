@@ -27,6 +27,7 @@ import {
 } from '@test/support/helpers/request-layer.helpers';
 import { FailingApiModule } from '@test/support/modules/failing-api.module';
 import { LlmNeighboursModule } from '@test/support/modules/llm-neighbours.module';
+import { UsageSeamsFakeModule } from '@test/support/modules/usage-seams-fake.module';
 
 describe('api request layer', () => {
   let app: INestApplication | null = null;
@@ -134,7 +135,7 @@ describe('api request layer', () => {
   });
 
   it('fails to boot when a root field has no resolver', async () => {
-    app = await createApi([...PLATFORM_MODULES, LlmNeighboursModule]);
+    app = await createApi([...PLATFORM_MODULES, LlmNeighboursModule, UsageSeamsFakeModule]);
 
     await expect(app.init()).rejects.toBeInstanceOf(UnboundResolverError);
   });
