@@ -2,7 +2,6 @@ import { ChannelsModule } from '@/modules/channels/channels.module';
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
-import { TelegramChannelsRepository } from '@/modules/channels/repositories/telegram-channels.repository';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
@@ -32,7 +31,6 @@ export const createChannelsTestbed = async (): Promise<ChannelsTestbed> => {
     simulated: testbed.module.get(SimulatedChannelAdapter),
     channels: testbed.module.get(ChannelsRepository),
     channelEvents: testbed.module.get(ChannelEventsRepository),
-    telegramChannels: testbed.module.get(TelegramChannelsRepository),
     channelTokens: testbed.module.get(ChannelTokenService),
   };
 };
@@ -49,7 +47,6 @@ export const createChannelsWorkerTestbed = async (): Promise<ChannelsTestbed> =>
     simulated: testbed.module.get(SimulatedChannelAdapter),
     channels: testbed.module.get(ChannelsRepository),
     channelEvents: testbed.module.get(ChannelEventsRepository),
-    telegramChannels: testbed.module.get(TelegramChannelsRepository),
     channelTokens: testbed.module.get(ChannelTokenService),
   };
 };

@@ -1,7 +1,8 @@
 import { ChannelKind } from '@agent-ic/contracts';
+import { ChannelEventType } from '@/modules/channels/constants/channel-event.constants';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import type { NewChannelEvent } from '@/modules/channels/typedefs/channel-event.typedefs';
-import type { NewChannel, NewTelegramChannel } from '@/modules/channels/typedefs/channel.typedefs';
+import type { NewChannel } from '@/modules/channels/typedefs/channel.typedefs';
 import {
   TEST_CHANNEL_NAME,
   TEST_TELEGRAM_BOT_USERNAME,
@@ -18,26 +19,13 @@ export const newChannel = (
   kind: ChannelKind.Telegram,
   status: ChannelStatus.Pending,
   agentId: null,
-  lastUpdateAt: null,
+  externalId: testbed.ids.generate(),
+  identity: { name: TEST_CHANNEL_NAME, username: TEST_TELEGRAM_BOT_USERNAME },
+  showTyping: true,
+  credentialsSealed: 'sealed-credentials',
   createdByUserId: testbed.ids.generate(),
   createdAt: testbed.clock.now(),
   updatedAt: testbed.clock.now(),
-  ...overrides,
-});
-
-export const newTelegramChannel = (
-  testbed: Pick<ChannelsTestbed, 'ids' | 'clock'>,
-  channel: Pick<NewChannel, 'id' | 'workspaceId'>,
-  overrides: Partial<NewTelegramChannel> = {},
-): NewTelegramChannel => ({
-  channelId: channel.id,
-  workspaceId: channel.workspaceId,
-  name: TEST_CHANNEL_NAME,
-  botId: testbed.ids.generate(),
-  username: TEST_TELEGRAM_BOT_USERNAME,
-  tokenSealed: 'sealed-token',
-  webhookSecretHash: 'webhook-secret-hash',
-  showTyping: true,
   ...overrides,
 });
 
@@ -50,7 +38,11 @@ export const newChannelEvent = (
   workspaceId: channel.workspaceId,
   channelId: channel.id,
   externalId: testbed.ids.generate(),
-  payload: {},
+  type: ChannelEventType.Message,
+  senderExternalId: testbed.ids.generate(),
+  senderName: 'Test customer',
+  text: 'Hello',
+  sentAt: testbed.clock.now(),
   receivedAt: testbed.clock.now(),
   ...overrides,
 });

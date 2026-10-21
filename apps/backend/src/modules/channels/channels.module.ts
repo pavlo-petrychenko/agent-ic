@@ -4,7 +4,6 @@ import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-c
 import { DeliverOutboundMessageListener } from '@/modules/channels/listeners/deliver-outbound-message.listener';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
-import { TelegramChannelsRepository } from '@/modules/channels/repositories/telegram-channels.repository';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
@@ -16,7 +15,6 @@ export class ChannelsModule extends defineModule({
   providers: [
     ChannelsRepository,
     ChannelEventsRepository,
-    TelegramChannelsRepository,
     ChannelTokenService,
     SimulatedChannelAdapter,
     {
