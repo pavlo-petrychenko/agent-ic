@@ -1,4 +1,4 @@
-import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { sql } from 'drizzle-orm';
@@ -22,7 +22,10 @@ import {
 import { SCRATCH_POOL_SIZE } from '@test/support/constants/test-infrastructure.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
 import { discardNotice } from '@test/support/helpers/test-infrastructure.helpers';
-import type { MigrationJournal } from '@test/support/typedefs/migration-testing.typedefs';
+import type {
+  MigrationFileMismatch,
+  MigrationJournal,
+} from '@test/support/typedefs/migration-testing.typedefs';
 
 export const databaseUrlFor = (url: string, database: string): string => {
   const target = new URL(url);
@@ -55,9 +58,33 @@ export const dropDatabase = async (superuserUrl: string, database: string): Prom
   }
 };
 
-const copyMigrationsThrough = async (lastTag: string): Promise<string> => {
+const readMigrationJournal = async (): Promise<MigrationJournal> => {
   const journalText = await readFile(join(MIGRATIONS_FOLDER, MIGRATION_JOURNAL_PATH), 'utf8');
-  const journal = JSON.parse(journalText) as MigrationJournal;
+  return JSON.parse(journalText) as MigrationJournal;
+};
+
+export const readJournalTags = async (): Promise<string[]> => {
+  const journal = await readMigrationJournal();
+  return journal.entries.map((entry) => entry.tag);
+};
+
+export const readMigrationFileTags = async (): Promise<string[]> => {
+  const names = await readdir(MIGRATIONS_FOLDER);
+  return names
+    .filter((name) => name.endsWith(MIGRATION_FILE_EXTENSION))
+    .map((name) => name.slice(0, -MIGRATION_FILE_EXTENSION.length));
+};
+
+export const diffMigrationTags = (
+  fileTags: readonly string[],
+  journalTags: readonly string[],
+): MigrationFileMismatch => ({
+  orphanFiles: fileTags.filter((tag) => !journalTags.includes(tag)).sort(),
+  missingFiles: journalTags.filter((tag) => !fileTags.includes(tag)).sort(),
+});
+
+const copyMigrationsThrough = async (lastTag: string): Promise<string> => {
+  const journal = await readMigrationJournal();
   const last = journal.entries.findIndex((entry) => entry.tag === lastTag);
   if (last < 0) {
     throw new MissingTestDataError(lastTag);

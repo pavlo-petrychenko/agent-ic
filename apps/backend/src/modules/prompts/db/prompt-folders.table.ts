@@ -28,7 +28,9 @@ export const promptFolders = promptsSchema
       uniqueIndex('prompt_folders_workspace_id_lower_name_key')
         .on(table.workspaceId, sql`lower(${table.name})`)
         .where(sql`${table.deletedAt} is null`),
-      index('prompt_folders_workspace_id_name_idx').on(table.workspaceId, table.name),
+      index('prompt_folders_workspace_id_name_idx')
+        .on(table.workspaceId, table.name)
+        .where(sql`${table.deletedAt} is null`),
       tenantIsolationPolicy('prompt_folders'),
     ],
   )

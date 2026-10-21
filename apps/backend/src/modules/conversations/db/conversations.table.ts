@@ -58,8 +58,9 @@ export const conversations = conversationsSchema
       index('conversations_end_user_idx').on(
         table.workspaceId,
         table.agentId,
-        table.channelKind,
         table.endUserExternalId,
+        table.channelKind,
+        table.mode,
       ),
       index('conversations_handled_by_idx').on(table.handledBy).where(isNotNull(table.handledBy)),
       index('conversations_active_run_id_idx')
