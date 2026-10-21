@@ -56,6 +56,12 @@
       }
     },
     {
+      "files": ["**/apps/backend/src/**/db/*.table.ts"],
+      "rules": {
+        "import/no-cycle": "off"
+      }
+    },
+    {
       "files": ["**/apps/backend/src/platform/config/**"],
       "rules": {
         "node/no-process-env": "off"

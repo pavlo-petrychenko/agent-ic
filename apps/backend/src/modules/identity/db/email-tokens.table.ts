@@ -1,12 +1,6 @@
 import { index, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
-import { EmailTokenPurpose } from '@/modules/identity/constants/identity.constants';
-import { identitySchema, users } from '@/modules/identity/db/users.table';
-
-export const emailTokenPurposeEnum = identitySchema.enum('email_token_purpose', [
-  EmailTokenPurpose.EmailConfirmation,
-  EmailTokenPurpose.PasswordReset,
-  EmailTokenPurpose.EmailChange,
-]);
+import { emailTokenPurposeEnum, identitySchema } from '@/modules/identity/db/identity.pg-schema';
+import { users } from '@/modules/identity/db/users.table';
 
 export const emailTokens = identitySchema.table(
   'email_tokens',

@@ -1,13 +1,10 @@
 import { sql } from 'drizzle-orm';
 import { index, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
-import { PROMPTS_SCHEMA } from '@/modules/prompts/constants/prompt.constants';
+import { promptsSchema } from '@/modules/prompts/db/prompts.pg-schema';
 import {
-  moduleSchema,
   tenantIsolationPolicy,
   workspaceIdColumn,
 } from '@/platform/database/helpers/tenant-table.helpers';
-
-export const promptsSchema = moduleSchema(PROMPTS_SCHEMA);
 
 export const promptFolders = promptsSchema
   .table(

@@ -1,35 +1,14 @@
 import { index, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import {
-  CONVERSATIONS_SCHEMA,
-  ChannelKind,
-  ConversationMode,
-  ConversationState,
-} from '@/modules/conversations/constants/conversation.constants';
+  channelKindEnum,
+  conversationModeEnum,
+  conversationStateEnum,
+  conversationsSchema,
+} from '@/modules/conversations/db/conversations.pg-schema';
 import {
-  moduleSchema,
   tenantIsolationPolicy,
   workspaceIdColumn,
 } from '@/platform/database/helpers/tenant-table.helpers';
-
-export const conversationsSchema = moduleSchema(CONVERSATIONS_SCHEMA);
-
-export const conversationModeEnum = conversationsSchema.enum('conversation_mode', [
-  ConversationMode.Live,
-  ConversationMode.Simulation,
-]);
-
-export const conversationStateEnum = conversationsSchema.enum('conversation_state', [
-  ConversationState.AgentActive,
-  ConversationState.Waiting,
-  ConversationState.Handled,
-  ConversationState.Closed,
-]);
-
-export const channelKindEnum = conversationsSchema.enum('channel_kind', [
-  ChannelKind.Simulated,
-  ChannelKind.Telegram,
-  ChannelKind.Api,
-]);
 
 export const conversations = conversationsSchema
   .table(

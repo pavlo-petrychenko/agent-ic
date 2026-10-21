@@ -17,6 +17,10 @@ Enforced by dependency-cruiser (`pnpm depcruise`, CI) where a rule names a path 
 7. Drizzle and SQL only in repositories.
 8. Every tenant table has `workspace_id` and an RLS policy. `SystemDatabaseService` is imported only from files on an allow-list in `.dependency-cruiser.cjs`.
 9. Each module owns its Postgres schema. No joins across schemas.
+   - Every column that holds another row's id has a foreign key, also across modules and in both directions of a cycle (D273, ADR 0022).
+   - A `db/` file may import another module's `db/` files directly. It is the only cross-module import that skips `index.ts`, and it never imports anything else of another module (`backend-db-imports-only-db`).
+   - Table files may import each other in a cycle, so a table file reads another table only inside `.references(() => …)` and the extra-config callback. The module's `pgSchema` and its enums sit in `db/<module>.pg-schema.ts`, which imports no table file.
+   - Repositories still query only their own module's tables.
 10. **One Nest module per module.** `defineModule()` declares providers and every transport; `forRole(role)` mounts only what that role runs.
 11. **Resolvers return generated GraphQL types; use cases return the module's typedefs.** A helper maps between them when the shapes differ.
 12. **Time, randomness and ids are services** (`ClockService`, `IdService`, `SecureTokenService`), so tests can replace them. Other stateless logic is a helper.

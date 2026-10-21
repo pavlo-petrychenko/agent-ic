@@ -15,18 +15,13 @@ import {
   AgentVersionKind,
   DRAFT_INITIAL_REVISION,
 } from '@/modules/agents/constants/agent.constants';
-import { agents, agentsSchema } from '@/modules/agents/db/agents.table';
+import { agentVersionKindEnum, agentsSchema } from '@/modules/agents/db/agents.pg-schema';
+import { agents } from '@/modules/agents/db/agents.table';
 import { toSqlLiteral } from '@/platform/database/helpers/tenant-sql.helpers';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,
 } from '@/platform/database/helpers/tenant-table.helpers';
-
-export const agentVersionKindEnum = agentsSchema.enum('agent_version_kind', [
-  AgentVersionKind.Draft,
-  AgentVersionKind.Published,
-  AgentVersionKind.Snapshot,
-]);
 
 export const agentVersions = agentsSchema
   .table(

@@ -1,11 +1,5 @@
-import { Locale } from '@agent-ic/contracts';
 import { text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
-import { IDENTITY_SCHEMA } from '@/modules/identity/constants/identity.constants';
-import { moduleSchema } from '@/platform/database/helpers/tenant-table.helpers';
-
-export const identitySchema = moduleSchema(IDENTITY_SCHEMA);
-
-export const localeEnum = identitySchema.enum('locale', [Locale.En, Locale.Uk]);
+import { identitySchema, localeEnum } from '@/modules/identity/db/identity.pg-schema';
 
 export const users = identitySchema.table(
   'users',

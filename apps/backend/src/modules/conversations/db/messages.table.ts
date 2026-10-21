@@ -1,27 +1,15 @@
 import { index, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import {
-  MessageAuthor,
-  MessageDelivery,
-} from '@/modules/conversations/constants/message.constants';
-import { conversations, conversationsSchema } from '@/modules/conversations/db/conversations.table';
+  conversationsSchema,
+  messageAuthorEnum,
+  messageDeliveryEnum,
+} from '@/modules/conversations/db/conversations.pg-schema';
+import { conversations } from '@/modules/conversations/db/conversations.table';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,
 } from '@/platform/database/helpers/tenant-table.helpers';
-
-export const messageAuthorEnum = conversationsSchema.enum('message_author', [
-  MessageAuthor.Customer,
-  MessageAuthor.Agent,
-  MessageAuthor.Operator,
-  MessageAuthor.System,
-]);
-
-export const messageDeliveryEnum = conversationsSchema.enum('message_delivery', [
-  MessageDelivery.Pending,
-  MessageDelivery.Delivered,
-  MessageDelivery.Failed,
-]);
 
 export const messages = conversationsSchema
   .table(

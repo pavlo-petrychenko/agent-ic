@@ -11,7 +11,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { FIRST_PROMPT_VERSION_NUMBER } from '@/modules/prompts/constants/prompt.constants';
-import { promptsSchema } from '@/modules/prompts/db/prompt-folders.table';
+import { promptsSchema } from '@/modules/prompts/db/prompts.pg-schema';
 import { prompts } from '@/modules/prompts/db/prompts.table';
 import {
   tenantIsolationPolicy,

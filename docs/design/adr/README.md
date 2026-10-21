@@ -27,6 +27,7 @@ Smaller decisions, and amendments to these ADRs, are rows D1 to D190 in section 
 | [0019](0019-charts-recharts.md) | Recharts for the chart components | Accepted |
 | [0020](0020-flow-canvas-react-flow.md) | React Flow for the flow canvas | Accepted |
 | [0021](0021-prompt-drafts-in-the-browser.md) | Prompt drafts live in the browser | Accepted |
+| [0022](0022-foreign-keys-for-every-reference.md) | A foreign key for every reference | Accepted |
 
 ## Template
 
