@@ -17,26 +17,45 @@ export function PromptPageHeader({
   onEdit,
   onDiscard,
   onSave,
+  compare,
+  older,
 }: PromptPageHeaderProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
 
-  const actions = editing ? (
-    <>
-      <Button variant={ButtonVariant.Secondary} onClick={onDiscard}>
-        {t('draft.discard')}
-      </Button>
-      <Button onClick={onSave}>{t('draft.saveAs', { number: draftNumber })}</Button>
-    </>
-  ) : menuActions.length > 0 ? (
-    <>
-      <PromptOptionsMenu
-        actions={menuActions}
-        currentFolderName={currentFolderName}
-        onSelect={onSelect}
-      />
-      {canEdit && <Button onClick={onEdit}>{t('view.edit')}</Button>}
-    </>
-  ) : null;
+  const actions =
+    compare !== null ? (
+      <>
+        {canEdit && compare.restoreLabel !== null && compare.onRestoreFrom !== null && (
+          <Button variant={ButtonVariant.Secondary} onClick={compare.onRestoreFrom}>
+            {compare.restoreLabel}
+          </Button>
+        )}
+        <Button onClick={compare.onClose}>{t('compare.close')}</Button>
+      </>
+    ) : editing ? (
+      <>
+        <Button variant={ButtonVariant.Secondary} onClick={onDiscard}>
+          {t('draft.discard')}
+        </Button>
+        <Button onClick={onSave}>{t('draft.saveAs', { number: draftNumber })}</Button>
+      </>
+    ) : older !== null ? (
+      <>
+        <Button variant={ButtonVariant.Secondary} onClick={older.onCompare}>
+          {older.compareLabel}
+        </Button>
+        {canEdit && <Button onClick={older.onRestore}>{t('view.restoreAsDraft')}</Button>}
+      </>
+    ) : menuActions.length > 0 ? (
+      <>
+        <PromptOptionsMenu
+          actions={menuActions}
+          currentFolderName={currentFolderName}
+          onSelect={onSelect}
+        />
+        {canEdit && <Button onClick={onEdit}>{t('view.edit')}</Button>}
+      </>
+    ) : null;
 
   return <PageHeader title={name} subtitle={subtitle} actions={actions} />;
 }

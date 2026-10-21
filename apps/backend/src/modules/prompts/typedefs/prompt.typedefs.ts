@@ -18,6 +18,7 @@ export interface PromptView {
   readonly id: string;
   readonly name: string;
   readonly folderId: string;
+  readonly latestVersionNumber: number | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

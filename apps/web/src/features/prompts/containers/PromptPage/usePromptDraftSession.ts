@@ -15,10 +15,11 @@ export function usePromptDraftSession(
   const draftNumber = nextPromptVersionNumber(latestVersion?.number ?? null);
   const editorText = draft === null ? (latestVersion?.text ?? '') : draft.text;
 
-  const startEditing = () => {
+  const startEditing = (version?: PromptVersion | null) => {
+    const source = version ?? latestVersion;
     usePromptDraftsStore.getState().begin(promptId, {
-      text: latestVersion?.text ?? '',
-      baseVersionNumber: latestVersion?.number ?? null,
+      text: source?.text ?? '',
+      baseVersionNumber: source?.number ?? null,
     });
   };
 

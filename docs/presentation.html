@@ -41,14 +41,15 @@
   --radius: 12px;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; background: var(--color-dark); }
+html, body { margin: 0; height: 100%; background: var(--color-bg); }
 body { font-family: var(--font-sans); color: var(--color-ink); overflow: hidden; }
 
 .stage { position: fixed; inset: 0; display: grid; place-items: center; }
 .deck { width: 1280px; height: 720px; position: relative; transform-origin: center; }
 .slide {
+  --pad-x: max(80px, calc(50% - 600px));
   position: absolute; inset: 0; display: none; flex-direction: column;
-  padding: 64px 80px 56px; background: var(--color-bg); border-radius: 6px; overflow: hidden;
+  padding: 64px var(--pad-x) 56px; background: var(--color-bg); overflow: hidden;
 }
 .slide.active { display: flex; }
 .slide::after {
@@ -70,7 +71,7 @@ p { margin: 0; }
 .mono { font-family: var(--font-mono); }
 
 .footer {
-  position: absolute; left: 80px; right: 80px; bottom: 22px; z-index: 2;
+  position: absolute; left: var(--pad-x); right: var(--pad-x); bottom: 22px; z-index: 2;
   display: flex; justify-content: space-between; font: 500 13px var(--font-mono); color: var(--color-mute);
 }
 .logo { display: inline-flex; align-items: center; gap: 8px; }
@@ -110,7 +111,10 @@ p { margin: 0; }
   border: 1px solid var(--color-line-node); background: var(--color-card); font: 500 15px var(--font-sans);
   white-space: nowrap; box-shadow: 0 1px 0 rgb(0 0 0 / 4%);
 }
-.node b { flex: none; width: 22px; height: 22px; border-radius: 6px; display: inline-grid; place-items: center; font: 600 11px var(--font-mono); }
+.node b { flex: none; width: 22px; height: 22px; border-radius: 6px; display: inline-grid; place-items: center; }
+[data-ico] { display: inline-grid; place-items: center; }
+[data-ico] svg { width: var(--ico, 13px); height: var(--ico, 13px); }
+.pi { --ico: 20px; }
 .n-trig b { background: var(--hue-trig-bg); color: var(--hue-trig-fg); }
 .n-agent b { background: var(--hue-agent-bg); color: var(--hue-agent-fg); }
 .n-compl b { background: var(--hue-compl-bg); color: var(--hue-compl-fg); }
@@ -121,16 +125,51 @@ p { margin: 0; }
 .n-esc b { background: var(--hue-esc-bg); color: var(--hue-esc-fg); }
 .n-kb b { background: var(--hue-kb-bg); color: var(--hue-kb-fg); }
 
-.palette { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 28px; }
-.palette .row { display: flex; align-items: flex-start; gap: 14px; }
-.palette .row .node { min-width: 250px; }
-.palette .row p { font-size: 16px; padding-top: 8px; }
+.pal { display: grid; grid-template-columns: repeat(4, 262px); justify-content: space-between; gap: 24px; margin-top: 6px; }
+.pal h4 { margin: 0 0 14px; font: 500 12.5px var(--font-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--color-mute); }
+.pal .col { display: flex; flex-direction: column; gap: 10px; }
+.pal .cap { font-size: 14px; line-height: 1.4; color: var(--color-mute); margin: 0 2px 6px; }
+.fn {
+  display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; width: 262px;
+  background: var(--color-card); border: 1px solid var(--color-line-node); border-radius: 12px; box-shadow: 0 1px 2px rgb(31 29 26 / 6%);
+}
+.fn.sel { border: 2px solid var(--color-accent); padding: 11px 13px; box-shadow: 0 0 0 3px rgb(15 107 107 / 14%); }
+.fn .hd { display: flex; align-items: center; gap: 8px; }
+.fn .hd b { flex: none; width: 24px; height: 24px; border-radius: 6px; display: inline-grid; place-items: center; }
+.fn .hd .tx { display: flex; flex-direction: column; min-width: 0; }
+.fn .ov { font: 600 11px var(--font-sans); letter-spacing: .04em; text-transform: uppercase; }
+.fn .nm { font: 600 15px/1.25 var(--font-sans); color: var(--color-ink); }
+.fn .meta { font: 400 13px/1.35 var(--font-sans); color: var(--color-mute); }
+.fn .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.fn .chips span { font: 500 11.5px var(--font-sans); padding: 3px 8px; border-radius: 6px; background: var(--color-chip); color: var(--color-ink-secondary); }
+.fn .out { align-self: flex-start; font: 400 12px var(--font-mono); padding: 3px 7px; border-radius: 5px; background: var(--color-soft); color: var(--color-ink-secondary); }
+.fn .pause { display: flex; align-items: center; gap: 6px; font: 400 13px var(--font-sans); color: var(--color-mute); }
+.k-agent .ov { color: var(--hue-agent-fg); } .k-agent .hd b { background: var(--hue-agent-bg); color: var(--hue-agent-fg); }
+.k-compl .ov { color: var(--hue-compl-fg); } .k-compl .hd b { background: var(--hue-compl-bg); color: var(--hue-compl-fg); }
+.k-send .ov { color: var(--hue-send-fg); } .k-send .hd b { background: var(--hue-send-bg); color: var(--hue-send-fg); }
+.k-api .ov { color: var(--hue-api-fg); } .k-api .hd b { background: var(--hue-api-bg); color: var(--hue-api-fg); }
+.k-esc .ov { color: var(--hue-esc-fg); } .k-esc .hd b { background: var(--hue-esc-bg); color: var(--hue-esc-fg); }
+.tn {
+  display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 262px; min-height: 72px; padding: 11px 14px;
+  background: var(--color-dark); color: #fff; border-radius: 12px; box-shadow: 0 1px 2px rgb(31 29 26 / 6%);
+}
+.tn .t { display: flex; align-items: center; gap: 8px; font: 600 15px var(--font-sans); --ico: 15px; }
+.tn .s { font: 400 13px var(--font-sans); color: #d8d3ca; }
+.cn {
+  display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; height: 38px; padding: 0 14px 0 10px;
+  background: var(--color-card); border: 1px solid var(--color-line-node); border-radius: 999px; font: 600 15px var(--font-sans); box-shadow: 0 1px 2px rgb(31 29 26 / 6%);
+}
+.cn b { flex: none; width: 24px; height: 24px; border-radius: 6px; display: inline-grid; place-items: center; }
+.cn.k-router b { background: var(--hue-router-bg); color: var(--hue-router-fg); }
+.cn.k-par b { background: var(--hue-par-bg); color: var(--hue-par-fg); }
+.ports { display: flex; gap: 6px; margin: -2px 0 0 10px; }
+.ports span { font: 500 12px var(--font-mono); padding: 2px 7px; border-radius: 6px; background: var(--color-bg); border: 1px solid var(--color-line-node); color: var(--color-mute); }
 
 .dg { position: relative; margin: 14px auto 0; }
-.dg svg { position: absolute; inset: 0; overflow: visible; }
-.dg svg path { fill: none; stroke: var(--color-edge); stroke-width: 1.6; }
-.dg svg path.dash { stroke-dasharray: 6 5; }
-.dg > .node { position: absolute; height: 36px; justify-content: center; }
+.dg > svg { position: absolute; inset: 0; overflow: visible; }
+.dg > svg path { fill: none; stroke: var(--color-edge); stroke-width: 1.6; }
+.dg > svg path.dash { stroke-dasharray: 6 5; }
+.dg > .node { position: absolute; height: 36px; justify-content: center; font-size: 14px; padding: 0 10px; }
 .dg .elabel {
   position: absolute; transform: translate(-50%, -50%); padding: 1px 6px; border-radius: 6px;
   font: 500 12px var(--font-mono); color: var(--color-mute); background: var(--color-bg); white-space: nowrap;
@@ -192,7 +231,7 @@ p { margin: 0; }
 .title-slide .title-text { max-width: 520px; }
 .title-slide .lead { font-size: 22px; }
 .hero-frame {
-  position: absolute; left: 640px; top: 120px; width: 760px; border-radius: 12px; overflow: hidden;
+  position: absolute; left: 50%; top: 120px; width: 760px; border-radius: 12px; overflow: hidden;
   border: 1px solid var(--color-line); background: var(--color-panel);
   box-shadow: 0 2px 4px rgb(31 29 26 / 6%), 0 30px 60px -20px rgb(31 29 26 / 35%);
 }
@@ -223,11 +262,11 @@ p { margin: 0; }
 .end { justify-content: center; align-items: flex-start; }
 
 .nav {
-  position: fixed; right: 18px; bottom: 16px; display: flex; gap: 8px; z-index: 5; opacity: .35; transition: opacity .2s;
+  position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 8px; z-index: 5; opacity: .35; transition: opacity .2s;
 }
 .nav:hover { opacity: 1; }
 .nav button {
-  font: 500 14px var(--font-mono); border: 1px solid #ffffff33; background: #ffffff14; color: #fff;
+  font: 500 14px var(--font-mono); border: 1px solid var(--color-line); background: var(--color-card); color: var(--color-ink);
   border-radius: 8px; padding: 6px 12px; cursor: pointer;
 }
 .progress { position: fixed; left: 0; bottom: 0; height: 3px; background: var(--color-accent); z-index: 5; transition: width .2s; }
@@ -258,9 +297,8 @@ p { margin: 0; }
   <h2>Чат-агент без програміста</h2>
   <div class="split">
     <div class="points">
-      <div class="point"><span class="pi" style="background:var(--hue-esc-bg);color:var(--hue-esc-fg)">?</span><div><h3>Проблема</h3><p>Бізнес щодня відповідає в месенджерах на ті самі питання.</p></div></div>
-      <div class="point"><span class="pi" style="background:var(--hue-router-bg);color:var(--hue-router-fg)">≈</span><div><h3>Що є зараз</h3><p>Боти або вміють лише кнопки, або потребують розробника.</p></div></div>
-      <div class="point"><span class="pi" style="background:var(--color-accent-light);color:var(--color-accent-dark)">✓</span><div><h3>Наш підхід</h3><p>Власник сам збирає агента зі схеми кроків, на своїх документах.</p></div></div>
+      <div class="point"><span class="pi" style="background:var(--hue-esc-bg);color:var(--hue-esc-fg)"><i data-ico="alert"></i></span><div><h3>Проблема</h3><p>Власник малого бізнесу щодня вручну відповідає в месенджерах на ті самі питання: ціни, графік, запис. Готові боти вміють лише кнопки, а гнучкий агент потребує розробника і окремого бюджету.</p></div></div>
+      <div class="point"><span class="pi" style="background:var(--color-accent-light);color:var(--color-accent-dark)"><i data-ico="check"></i></span><div><h3>Рішення</h3><p>agent-ic дає власнику зібрати агента самому: сценарій розмови малюється як схема кроків, відповіді беруться з документів бізнесу, складні випадки йдуть оператору, а публікація в Telegram — одна кнопка.</p></div></div>
     </div>
     <div class="shot" style="--img:url(presentation-assets/builder.jpg);--zoom:1.7;--x:34%;--y:8%;aspect-ratio:4/3;"></div>
   </div>
@@ -284,7 +322,7 @@ p { margin: 0; }
 <!-- 4 -->
 <section class="slide">
   <p class="eyebrow">Як це працює</p>
-  <h2>Шлях від ідеї до агента в месенджері</h2>
+  <h2>Шлях побудови агента</h2>
   <div class="split">
     <div class="points tight">
       <div class="point"><span class="pi num">1</span><div><h3>Створити агента</h3><p>Порожній сценарій або шаблон.</p></div></div>
@@ -301,32 +339,75 @@ p { margin: 0; }
 <section class="slide">
   <p class="eyebrow">Будівельні блоки</p>
   <h2>З чого складається сценарій</h2>
-  <div class="palette">
-    <div class="row"><span class="node n-trig"><b>▶</b>Вхідне повідомлення</span><p>Тригер: з чого починається обробка. Також подія чи розклад.</p></div>
-    <div class="row"><span class="node n-agent"><b>A</b>Агент</span><p>Модель веде розмову: інструкція, знання, інструменти.</p></div>
-    <div class="row"><span class="node n-compl"><b>G</b>Генерація</span><p>Одна відповідь моделі у структурі: намір, оцінка, причина.</p></div>
-    <div class="row"><span class="node n-router"><b>?</b>Маршрутизатор / умова</span><p>Обирає шлях за правилами над даними попередніх кроків.</p></div>
-    <div class="row"><span class="node n-par"><b>⇉</b>Паралельно / об’єднання</span><p>Кілька гілок одночасно; відповідь чекає лише потрібні.</p></div>
-    <div class="row"><span class="node n-api"><b>⇄</b>API-запит</span><p>Виклик зовнішнього сервісу: CRM, бронювання, каталог.</p></div>
-    <div class="row"><span class="node n-send"><b>✉</b>Надіслати повідомлення</span><p>Відповідь клієнту, з кнопками швидких відповідей.</p></div>
-    <div class="row"><span class="node n-esc"><b>!</b>Ескалація / вихід</span><p>Передати розмову людині або завершити її.</p></div>
+  <div class="pal">
+    <div class="col">
+      <h4>Тригери</h4>
+      <div class="tn"><span class="t"><i data-ico="msg"></i>Вхідне повідомлення</span><span class="s">Telegram · API</span></div>
+      <p class="cap">Клієнт написав — сценарій стартує.</p>
+      <div class="tn"><span class="t"><i data-ico="bolt"></i>Зовнішня подія</span><span class="s">booking.created · з вашої CRM</span></div>
+      <p class="cap">Ваша система надіслала подію.</p>
+      <div class="tn"><span class="t"><i data-ico="cal"></i>Розклад / cron</span><span class="s">Щодня о 18:00 · чат мовчить 24 год</span></div>
+      <p class="cap">За розкладом, без повідомлення.</p>
+    </div>
+    <div class="col">
+      <h4>ШІ</h4>
+      <div class="fn k-agent sel">
+        <div class="hd"><b><i data-ico="agent"></i></b><span class="tx"><span class="ov">Агент</span><span class="nm">Адміністратор</span></span></div>
+        <span class="meta">Сильна модель · промпт v4</span>
+        <span class="chips"><span>Послуги та ціни</span><span>Графік і правила</span></span>
+        <span class="out">→ messages[ ]</span>
+      </div>
+      <p class="cap">Веде розмову за інструкцією, відповідає з документів бізнесу.</p>
+      <div class="fn k-compl">
+        <div class="hd"><b><i data-ico="compl"></i></b><span class="tx"><span class="ov">Генерація · guard</span><span class="nm">Чи потрібна людина?</span></span></div>
+        <span class="meta">Швидка модель</span>
+        <span class="out">→ needs_human, reason</span>
+      </div>
+      <p class="cap">Одна відповідь моделі у заданій структурі.</p>
+    </div>
+    <div class="col">
+      <h4>Перебіг</h4>
+      <span class="cn k-router"><b><i data-ico="router"></i></b>Потрібна людина?</span>
+      <div class="ports"><span>needs_human == true</span><span>else</span></div>
+      <p class="cap">Обирає гілку за даними попередніх кроків.</p>
+      <span class="cn k-par"><b><i data-ico="par"></i></b>Паралельно</span>
+      <p class="cap">Кілька гілок одночасно. Відповідь чекає лише потрібні; решта йде у фоні.</p>
+    </div>
+    <div class="col">
+      <h4>Дії</h4>
+      <div class="fn k-send">
+        <div class="hd"><b><i data-ico="send"></i></b><span class="tx"><span class="ov">Надіслати повідомлення</span><span class="nm">Відповідь клієнту</span></span></div>
+        <span class="meta">{{messages}} · одне повідомлення на елемент</span>
+      </div>
+      <p class="cap">Текст і кнопки швидких відповідей у месенджер.</p>
+      <div class="fn k-api">
+        <div class="hd"><b><i data-ico="api"></i></b><span class="tx"><span class="ov">API-запит</span><span class="nm">Створити запис</span></span></div>
+        <span class="out">POST api.salon-crm.example/…/bookings</span>
+      </div>
+      <p class="cap">Виклик вашої CRM, бронювання чи каталогу.</p>
+      <div class="fn k-esc">
+        <div class="hd"><b><i data-ico="esc"></i></b><span class="tx"><span class="ov">Ескалація</span><span class="nm">Передати оператору</span></span></div>
+        <span class="pause">⏸ Сценарій на паузі до повернення</span>
+      </div>
+      <p class="cap">Людина забирає розмову, агент мовчить до повернення.</p>
+    </div>
   </div>
 </section>
 
 <!-- 6 -->
 <section class="slide">
   <p class="eyebrow">Приклади</p>
-  <h2>Два типові сценарії</h2>
+  <h2>Два сценарії, всі можливості</h2>
   <div class="grid g2" style="gap:24px">
     <div class="flow-card">
-      <h3>Маршрутизація за наміром</h3>
-      <p class="mute">Спершу визначаємо намір, далі кожен іде своїм шляхом.</p>
-      <div class="dg" data-diagram="router"></div>
+      <h3>Салон краси: запис, питання, скарги</h3>
+      <p class="mute">Один вхід, три шляхи. Оцінка чату йде у фоні й не затримує відповідь.</p>
+      <div class="dg" data-diagram="salon"></div>
     </div>
     <div class="flow-card">
-      <h3>Відповідь і оцінка паралельно</h3>
-      <p class="mute">Відповідь не чекає фонову гілку (пунктир).</p>
-      <div class="dg" data-diagram="parallel"></div>
+      <h3>Нагадування: за розкладом і за подією</h3>
+      <p class="mute">Старт без повідомлення клієнта: за розкладом або за подією з CRM.</p>
+      <div class="dg" data-diagram="remind"></div>
     </div>
   </div>
 </section>
@@ -414,40 +495,62 @@ p { margin: 0; }
   var current = 0;
   var SVG = 'http://www.w3.org/2000/svg';
   var DIR = { t: [0, -1], b: [0, 1], l: [-1, 0], r: [1, 0] };
-  function n(id, x, y, w, kind, icon, text) { return { id: id, x: x, y: y, w: w, h: 36, cls: 'node n-' + kind, html: '<b>' + icon + '</b>' + text }; }
+  var ICONS = {
+    msg: '<path d="M2.5 3h11v8h-6l-3 2.5V11h-2z"/>',
+    bolt: '<path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z"/>',
+    cal: '<rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/>',
+    agent: '<rect x="2.5" y="4.5" width="11" height="9" rx="2.5"/><path d="M8 1.5v3M6 9h.01M10 9h.01"/>',
+    compl: '<path d="M3 4h10M3 8h10M3 12h6"/>',
+    router: '<path d="M2 8h4M6 8l4-4h4M6 8l4 4h4"/>',
+    par: '<path d="M2 5h12M2 11h12M11 2.5l3 2.5-3 2.5M11 8.5l3 2.5-3 2.5"/>',
+    send: '<path d="M14 2L7 9M14 2l-4.5 12L7 9 2 6.5z"/>',
+    api: '<circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c1.8 1.8 2.6 3.8 2.6 6S9.8 12.2 8 14M8 2C6.2 3.8 5.4 5.8 5.4 8s.8 4.2 2.6 6"/>',
+    esc: '<circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.8 2.2-4.5 5-4.5s5 1.7 5 4.5"/>',
+    kb: '<path d="M3 2.5h7.5a2 2 0 0 1 2 2v9H5a2 2 0 0 1-2-2zM3 11.5a2 2 0 0 1 2-2h7.5"/>',
+    alert: '<path d="M8 2.5l6 11H2zM8 7v3M8 12.5h.01"/>',
+    check: '<path d="M3 8.5l3 3 7-7"/>'
+  };
+  function ico(name) { return '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + ICONS[name] + '</svg>'; }
+  function n(id, x, y, w, kind, icon, text) { return { id: id, x: x, y: y, w: w, h: 36, cls: 'node n-' + kind, html: '<b><i data-ico="' + icon + '"></i></b>' + text }; }
   function bx(id, x, y, w, h, cls, html) { return { id: id, x: x, y: y, w: w, h: h, cls: 'box ' + cls, html: html }; }
   var DIAGRAMS = {
-    router: { w: 500, h: 336, nodes: [
-      n('msg', 175, 0, 150, 'trig', '▶', 'Повідомлення'),
-      n('intent', 165, 64, 170, 'compl', 'G', 'Намір клієнта'),
-      n('router', 160, 128, 180, 'router', '?', 'Маршрутизатор'),
-      n('book', 0, 230, 112, 'agent', 'A', 'Запис'),
-      n('price', 128, 230, 112, 'send', '✉', 'Прайс'),
-      n('esc', 256, 230, 118, 'esc', '!', 'Оператор'),
-      n('other', 390, 230, 110, 'agent', 'A', 'Агент'),
-      n('send1', 0, 300, 112, 'send', '✉', 'Відповідь'),
-      n('send2', 390, 300, 110, 'send', '✉', 'Відповідь')
-    ], edges: [
-      ['msg:b', 'intent:t'], ['intent:b', 'router:t'],
-      ['router:b', 'book:t', 'запис', 0.7], ['router:b', 'price:t', 'ціни', 0.7],
-      ['router:b', 'esc:t', 'скарга', 0.7], ['router:b', 'other:t', 'інше', 0.7],
-      ['book:b', 'send1:t'], ['other:b', 'send2:t']
-    ] },
-    parallel: { w: 500, h: 336, nodes: [
-      n('msg', 175, 0, 150, 'trig', '▶', 'Повідомлення'),
-      n('par', 170, 64, 160, 'par', '⇉', 'Паралельно'),
-      n('agent', 30, 150, 120, 'agent', 'A', 'Агент'),
-      n('score', 310, 150, 180, 'compl', 'G', 'Оцінка настрою'),
-      n('esc', 0, 230, 130, 'esc', '!', 'Оператор'),
-      n('api', 320, 230, 160, 'api', '⇄', 'API: у CRM'),
-      n('send', 175, 300, 150, 'send', '✉', 'Відповідь')
+    salon: { w: 500, h: 372, nodes: [
+      n('msg', 165, 0, 170, 'trig', 'msg', 'Повідомлення'),
+      n('par', 175, 54, 150, 'par', 'par', 'Паралельно'),
+      n('intent', 50, 108, 170, 'compl', 'compl', 'Намір клієнта'),
+      n('router', 50, 162, 170, 'router', 'router', 'Що хоче клієнт?'),
+      n('score', 360, 108, 140, 'compl', 'compl', 'Оцінка чату'),
+      n('crm', 380, 162, 100, 'api', 'api', 'У CRM'),
+      n('book', 0, 228, 160, 'agent', 'agent', 'Запис'),
+      n('qa', 170, 228, 160, 'agent', 'agent', 'Агент + знання'),
+      n('esc', 340, 228, 120, 'esc', 'esc', 'Оператор'),
+      n('create', 0, 282, 160, 'api', 'api', 'Створити запис'),
+      n('reply', 185, 282, 130, 'send', 'send', 'Відповідь'),
+      n('confirm', 0, 336, 160, 'send', 'send', 'Підтвердження')
     ], edges: [
       ['msg:b', 'par:t'],
-      ['par:b', 'agent:t', 'чекаємо', 0.55],
-      ['par:b', 'score:t', 'фоном', 0.55, true],
-      ['agent:b', 'esc:t', 'помилка', 0.5],
-      ['score:b', 'api:t', null, 0.5, true],
-      ['par:b', 'send:t', 'після об’єднання', 0.62]
+      ['par:b', 'intent:t', 'чекаємо', 0.5],
+      ['par:b', 'score:t', 'фоном', 0.5, true],
+      ['score:b', 'crm:t', null, 0.5, true],
+      ['intent:b', 'router:t'],
+      ['router:b', 'book:t', 'запис', 0.7], ['router:b', 'qa:t', 'питання', 0.7], ['router:b', 'esc:t', 'скарга', 0.7],
+      ['book:b', 'create:t'], ['create:b', 'confirm:t'], ['qa:b', 'reply:t']
+    ] },
+    remind: { w: 500, h: 268, nodes: [
+      n('cron', 10, 0, 180, 'trig', 'cal', 'Щодня о 18:00'),
+      n('event', 260, 0, 240, 'trig', 'bolt', 'Подія: booking.created'),
+      n('load', 0, 58, 200, 'api', 'api', 'Завантажити записи'),
+      n('details', 305, 58, 150, 'compl', 'compl', 'Дані візиту'),
+      n('check', 15, 116, 170, 'router', 'router', 'Є візит завтра?'),
+      n('ok', 285, 116, 190, 'send', 'send', 'Підтвердити запис'),
+      n('text', 5, 174, 190, 'compl', 'compl', 'Текст нагадування'),
+      n('exit', 215, 174, 130, 'esc', 'esc', 'Завершити'),
+      n('remind', 25, 232, 150, 'send', 'send', 'Нагадування')
+    ], edges: [
+      ['cron:b', 'load:t'], ['load:b', 'check:t'],
+      ['check:b', 'text:t', 'так', 0.5], ['check:b', 'exit:t', 'ні', 0.6],
+      ['text:b', 'remind:t'],
+      ['event:b', 'details:t'], ['details:b', 'ok:t']
     ] },
     arch: { w: 1120, h: 420, nodes: [
       bx('group', 260, 0, 320, 418, 'group', '<h3>NestJS · один застосунок</h3>'),
@@ -517,6 +620,7 @@ p { margin: 0; }
     });
   }
   Array.prototype.forEach.call(document.querySelectorAll('[data-diagram]'), draw);
+  Array.prototype.forEach.call(document.querySelectorAll('[data-ico]'), function (el) { el.innerHTML = ico(el.getAttribute('data-ico')); });
   slides.forEach(function (slide, i) {
     if (i === 0) return;
     var footer = document.createElement('div');
@@ -531,7 +635,12 @@ p { margin: 0; }
     try { history.replaceState(null, '', '#' + (current + 1)); } catch (e) {}
   }
   function fit() {
-    var scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    var aspect = window.innerWidth / window.innerHeight;
+    var width = Math.max(1280, Math.round(720 * aspect));
+    var height = Math.max(720, Math.round(1280 / aspect));
+    deck.style.width = width + 'px';
+    deck.style.height = height + 'px';
+    var scale = Math.min(window.innerWidth / width, window.innerHeight / height);
     deck.style.transform = 'scale(' + scale + ')';
   }
   document.addEventListener('keydown', function (event) {

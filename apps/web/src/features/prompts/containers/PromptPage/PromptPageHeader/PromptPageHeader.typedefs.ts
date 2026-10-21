@@ -1,5 +1,17 @@
 import type { PromptMenuAction } from '@/features/prompts/constants/promptMenu.constants';
 
+export interface PromptPageHeaderCompare {
+  readonly restoreLabel: string | null;
+  readonly onClose: () => void;
+  readonly onRestoreFrom: (() => void) | null;
+}
+
+export interface PromptPageHeaderOlder {
+  readonly compareLabel: string;
+  readonly onCompare: () => void;
+  readonly onRestore: () => void;
+}
+
 export interface PromptPageHeaderProps {
   readonly name: string;
   readonly subtitle: string | null;
@@ -12,4 +24,6 @@ export interface PromptPageHeaderProps {
   readonly onEdit: () => void;
   readonly onDiscard: () => void;
   readonly onSave: () => void;
+  readonly compare: PromptPageHeaderCompare | null;
+  readonly older: PromptPageHeaderOlder | null;
 }

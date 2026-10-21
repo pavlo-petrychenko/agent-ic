@@ -2,6 +2,7 @@ import { DiscoveryModule } from '@nestjs/core';
 import { CleanUpWorkspaceListener } from '@/modules/agents/listeners/clean-up-workspace.listener';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
+import { AgentFieldsResolver } from '@/modules/agents/resolvers/agent-fields.resolver';
 import { AgentsResolver } from '@/modules/agents/resolvers/agents.resolver';
 import { CreateAgentResolver } from '@/modules/agents/resolvers/create-agent.resolver';
 import { DeleteAgentResolver } from '@/modules/agents/resolvers/delete-agent.resolver';
@@ -20,13 +21,13 @@ import { AgentFlowService } from '@/modules/agents/services/agent-flow.service';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
 import { AgentRuntimeReader } from '@/modules/agents/services/agent-runtime-reader.service';
 import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
-import { CurrentAgentFlowsReader } from '@/modules/agents/services/current-agent-flows-reader.service';
 import { FlowReferenceChecksService } from '@/modules/agents/services/flow-reference-checks.service';
 import { SampleAgentService } from '@/modules/agents/services/sample-agent.service';
 import { SimulatorTestsService } from '@/modules/agents/services/simulator-tests.service';
 import { CleanUpWorkspaceUseCase } from '@/modules/agents/use-cases/clean-up-workspace.use-case';
 import { CompareAgentVersionsUseCase } from '@/modules/agents/use-cases/compare-agent-versions.use-case';
 import { CountAgentsUseCase } from '@/modules/agents/use-cases/count-agents.use-case';
+import { CountDraftChangesUseCase } from '@/modules/agents/use-cases/count-draft-changes.use-case';
 import { CreateAgentUseCase } from '@/modules/agents/use-cases/create-agent.use-case';
 import { DeleteAgentUseCase } from '@/modules/agents/use-cases/delete-agent.use-case';
 import { DescribeAgentUseCase } from '@/modules/agents/use-cases/describe-agent.use-case';
@@ -56,7 +57,6 @@ export class AgentsModule extends defineModule({
     AgentPublishingService,
     AgentRuntimeReader,
     AgentViewsService,
-    CurrentAgentFlowsReader,
     FlowReferenceChecksService,
     SimulatorTestsService,
     SampleAgentService,
@@ -79,6 +79,7 @@ export class AgentsModule extends defineModule({
     ListModelOptionsUseCase,
     TestApiRequestUseCase,
     CountAgentsUseCase,
+    CountDraftChangesUseCase,
     CleanUpWorkspaceUseCase,
   ],
   resolvers: [
@@ -87,6 +88,7 @@ export class AgentsModule extends defineModule({
     DescribeAgentResolver,
     DeleteAgentResolver,
     AgentsResolver,
+    AgentFieldsResolver,
     SaveAgentDraftResolver,
     PublishAgentResolver,
     DuplicateAgentResolver,
@@ -97,5 +99,5 @@ export class AgentsModule extends defineModule({
     TestApiRequestResolver,
   ],
   listeners: [CleanUpWorkspaceListener],
-  exports: [AgentRuntimeReader, CurrentAgentFlowsReader, SampleAgentService],
+  exports: [AgentRuntimeReader, AgentVersionsRepository, SampleAgentService],
 }) {}

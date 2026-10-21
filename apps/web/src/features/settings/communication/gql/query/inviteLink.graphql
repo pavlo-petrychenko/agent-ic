@@ -2,6 +2,7 @@ query InviteLink {
   inviteLink {
     url
     role
+    roleId
     expiresAt
     joinedCount
   }

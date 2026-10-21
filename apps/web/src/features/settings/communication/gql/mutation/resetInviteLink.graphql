@@ -2,6 +2,7 @@ mutation ResetInviteLink {
   resetInviteLink {
     url
     role
+    roleId
     expiresAt
     joinedCount
   }

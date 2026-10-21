@@ -10,6 +10,7 @@ export function PromptDraftEditor({
   baseVersionNumber,
   text,
   variables,
+  normalizeVariable,
   onChange,
 }: PromptDraftEditorProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
@@ -39,6 +40,7 @@ export function PromptDraftEditor({
         variables={variables}
         label={t('view.body')}
         menuLabel={t('view.variables')}
+        normalizeVariable={normalizeVariable}
         placeholder={t('draft.placeholder')}
         fill
       />

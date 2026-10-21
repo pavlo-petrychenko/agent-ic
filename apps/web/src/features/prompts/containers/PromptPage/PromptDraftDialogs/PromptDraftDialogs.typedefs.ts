@@ -3,5 +3,6 @@ import type { UsePromptDraftSessionResult } from '@/features/prompts/containers/
 export interface PromptDraftDialogsProps {
   readonly promptId: string;
   readonly promptName: string;
+  readonly latestVersionNumber: number | null;
   readonly session: UsePromptDraftSessionResult;
 }

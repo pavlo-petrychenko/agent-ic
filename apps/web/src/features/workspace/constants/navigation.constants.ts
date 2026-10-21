@@ -15,7 +15,10 @@ export enum WorkspaceSection {
   Team = 'team',
   General = 'general',
   Roles = 'roles',
+  Usage = 'usage',
+  LlmKeys = 'llmKeys',
   Profile = 'profile',
+  Notifications = 'notifications',
 }
 
 export enum NavGroupKey {
@@ -33,7 +36,10 @@ export const WORKSPACE_SECTION_PATHS = {
   [WorkspaceSection.Team]: '/w/$workspaceId/settings/team',
   [WorkspaceSection.General]: '/w/$workspaceId/settings/general',
   [WorkspaceSection.Roles]: '/w/$workspaceId/settings/roles',
+  [WorkspaceSection.Usage]: '/w/$workspaceId/settings/usage',
+  [WorkspaceSection.LlmKeys]: '/w/$workspaceId/settings/llm',
   [WorkspaceSection.Profile]: '/w/$workspaceId/settings/profile',
+  [WorkspaceSection.Notifications]: '/w/$workspaceId/settings/notifications',
 } as const;
 
 export const SECTION_RESOURCES: Readonly<Record<WorkspaceSection, PermissionResource | null>> = {
@@ -45,7 +51,10 @@ export const SECTION_RESOURCES: Readonly<Record<WorkspaceSection, PermissionReso
   [WorkspaceSection.Team]: PermissionResource.Team,
   [WorkspaceSection.General]: PermissionResource.WorkspaceSettings,
   [WorkspaceSection.Roles]: PermissionResource.Team,
+  [WorkspaceSection.Usage]: PermissionResource.WorkspaceSettings,
+  [WorkspaceSection.LlmKeys]: PermissionResource.WorkspaceSettings,
   [WorkspaceSection.Profile]: null,
+  [WorkspaceSection.Notifications]: null,
 };
 
 export const SETTINGS_NAV_ENTRY: NavEntry = {

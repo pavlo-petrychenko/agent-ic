@@ -34,6 +34,22 @@ export class AgentRuntimeReader {
     return version;
   }
 
+  async getVersions(
+    workspaceId: string,
+    versionIds: readonly string[],
+  ): Promise<ReadonlyMap<string, AgentVersion>> {
+    const versions = await this.versions.listByIds(workspaceId, versionIds);
+    return new Map(versions.map((version) => [version.id, version]));
+  }
+
+  async countFlowNodes(
+    workspaceId: string,
+    versionIds: readonly string[],
+  ): Promise<ReadonlyMap<string, number>> {
+    const counts = await this.versions.countFlowNodes(workspaceId, versionIds);
+    return new Map(counts.map(({ versionId, nodes }) => [versionId, nodes]));
+  }
+
   async getPublishedVersion(
     workspaceId: string,
     agentId: string,

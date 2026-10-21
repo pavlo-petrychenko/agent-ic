@@ -2,9 +2,11 @@ import { DEFAULT_INVITE_ROLE, ErrorReason, IdPrefix, WorkspaceRole } from '@agen
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { INVITE_LINK_TTL_SECONDS } from '@/modules/identity/constants/workspace.constants';
 import { InvalidWorkspaceInputError } from '@/modules/identity/errors/invalid-workspace-input.error';
+import { WorkspaceRolesService } from '@/modules/identity/services/workspace-roles.service';
 import { CreateWorkspaceUseCase } from '@/modules/identity/use-cases/create-workspace.use-case';
 import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
 import { AuthenticationRequiredError } from '@/platform/context/errors/authentication-required.error';
+import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
   TEST_TIME_ZONE,
@@ -53,15 +55,21 @@ describe('CreateWorkspaceUseCase', () => {
         memberCount: 1,
       },
       role: WorkspaceRole.Owner,
+      permissions: [],
     });
     const workspaceId = testbed.module
       .get(IdService)
       .fromPublic(IdPrefix.Workspace, created.workspace.id);
     const [membership] = await readMemberships(testbed, workspaceId);
     const [link] = await readInviteLinks(testbed, workspaceId);
+    const operatorRoleId = await testbed.module
+      .get(TenantTransactionService)
+      .run(workspaceId, () =>
+        testbed.module.get(WorkspaceRolesService).systemRoleId(workspaceId, DEFAULT_INVITE_ROLE),
+      );
     expect(membership).toMatchObject({ userId: owner.userId, role: WorkspaceRole.Owner });
     expect(membership?.inviteLinkId).toBeNull();
-    expect(link).toMatchObject({ role: DEFAULT_INVITE_ROLE, revokedAt: null });
+    expect(link).toMatchObject({ roleId: operatorRoleId, revokedAt: null });
     expect(link?.expiresAt).toEqual(
       new Date(testbed.clock.now().getTime() + INVITE_LINK_TTL_SECONDS * MILLISECONDS_PER_SECOND),
     );

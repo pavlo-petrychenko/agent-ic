@@ -119,9 +119,7 @@ export type {
 } from '@flow/references/typedefs/prompt-reference.typedefs';
 export {
   API_REQUEST_OUTPUTS,
-  EVENT_ROOT,
   RESERVED_ROOTS,
-  TODAY_VARIABLE,
   VariableSourceKind,
   VariableType,
 } from '@flow/scope/constants/scope.constants';
@@ -131,7 +129,6 @@ export {
   buildFlowGraph,
   isBackgroundBranch,
 } from '@flow/scope/helpers/graph.helpers';
-export { libraryVariables } from '@flow/scope/helpers/library-variables.helpers';
 export {
   createScopeLookup,
   resolveVariable,

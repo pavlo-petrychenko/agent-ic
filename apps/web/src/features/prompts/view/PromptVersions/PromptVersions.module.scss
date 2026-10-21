@@ -8,21 +8,41 @@
   list-style: none;
 }
 
-.row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-8);
-  padding: var(--space-7) var(--space-10);
-}
-
-.row + .row {
+.item + .item {
   border-top: var(--border-width) solid var(--color-line-row);
 }
 
 .active {
   background: var(--color-accent-light);
   box-shadow: inset 2px 0 0 var(--color-accent);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  width: 100%;
+  padding: var(--space-7) var(--space-10);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.interactive {
+  font: inherit;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+
+  &:hover {
+    background: var(--color-soft);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring-inset);
+  }
 }
 
 .info {

@@ -97,7 +97,7 @@ export const newRun = (testbed: Pick<RunsTestbed, 'ids'>, workspaceId: string): 
 });
 
 export const newRunStep = (
-  testbed: RunsTestbed,
+  testbed: Pick<RunsTestbed, 'ids'>,
   run: NewRun,
   overrides: Partial<NewRunStep> = {},
 ): NewRunStep => ({

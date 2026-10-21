@@ -7,6 +7,7 @@ import { useEditor } from '@tiptap/react';
 import clsx from 'clsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { documentToPrompt, promptToDocument } from '@/shared/prompt/helpers/promptDocument.helpers';
+import type { PathNormalizer } from '@/shared/prompt/typedefs/promptDocument.typedefs';
 import {
   NOT_FOUND_INDEX,
   PROMPT_EDITOR_LISTBOX_POPUP,
@@ -26,6 +27,7 @@ interface UsePromptEditorOptions {
   describedBy: string | null;
   menuId: string;
   activeOptionId: string | null;
+  normalizeVariable: PathNormalizer | null;
   onSync: (editor: Editor) => void;
   onKeyDown: (event: KeyboardEvent) => boolean;
 }
@@ -40,11 +42,12 @@ export function usePromptEditor({
   describedBy,
   menuId,
   activeOptionId,
+  normalizeVariable,
   onSync,
   onKeyDown,
 }: UsePromptEditorOptions) {
-  const variableNode = useVariableNode();
-  const [initialContent] = useState(() => promptToDocument(value));
+  const variableNode = useVariableNode(normalizeVariable ?? undefined);
+  const [initialContent] = useState(() => promptToDocument(value, normalizeVariable ?? undefined));
   const pendingRef = useRef<string[]>([]);
   const keyDownRef = useRef(onKeyDown);
 
@@ -106,9 +109,11 @@ export function usePromptEditor({
     }
     pendingRef.current = [];
     if (documentToPrompt(editor.state.doc) !== value) {
-      editor.commands.setContent(promptToDocument(value), { emitUpdate: false });
+      editor.commands.setContent(promptToDocument(value, normalizeVariable ?? undefined), {
+        emitUpdate: false,
+      });
     }
-  }, [editor, value]);
+  }, [editor, value, normalizeVariable]);
 
   return editor;
 }

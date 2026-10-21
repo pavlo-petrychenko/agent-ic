@@ -147,7 +147,13 @@
       "caller": "from the caller",
       "step": "earlier step"
     },
-    "edit": "Edit"
+    "edit": "Edit",
+    "backToLatest": "Back to latest (v{{number}})",
+    "olderNotice": "You’re viewing an older version. Restoring copies it into a new draft; v{{number}} stays until you save.",
+    "compareWith": "Compare with v{{number}}",
+    "restoreAsDraft": "Restore as draft",
+    "versionLoadError": "The version couldn’t be opened.",
+    "loadingVersion": "Loading the version"
   },
   "draft": {
     "badge": "v{{number}} draft",
@@ -161,6 +167,7 @@
     "keepEditing": "Keep editing",
     "discardTitle": "Discard the v{{number}} draft?",
     "discardDescription": "Your changes since v{{base}} are deleted. v{{base}} stays the latest version.",
+    "discardRestoredDescription": "Your changes since v{{base}} are deleted. v{{latest}} stays the latest version.",
     "discardNewDescription": "Your draft is deleted.",
     "saved": "Saved v{{number}}"
   },
@@ -177,6 +184,8 @@
     "title": "Versions",
     "pinned": "pinned",
     "number": "v{{number}}",
+    "open": "View v{{number}}",
+    "compare": "Compare",
     "empty": "No versions yet. Saving creates v1.",
     "loadError": "The versions couldn’t be loaded."
   },
@@ -195,6 +204,17 @@
     "empty": "No prompts yet",
     "emptyNote": "Create a prompt in the library first, then pick it here.",
     "noMatch": "No prompts match “{{query}}”."
+  },
+  "compare": {
+    "close": "Close compare",
+    "from": "Compare from",
+    "to": "Compare to",
+    "fromValue": "Compare from {{number}}",
+    "toValue": "Compare to {{number}}",
+    "restore": "Restore v{{number}} as draft",
+    "summary": "{{removed}} removed · {{added}} added",
+    "loading": "Comparing versions",
+    "loadError": "The versions couldn’t be compared."
   },
   "loadError": "The prompts couldn’t be opened.",
   "retry": "Try again"
