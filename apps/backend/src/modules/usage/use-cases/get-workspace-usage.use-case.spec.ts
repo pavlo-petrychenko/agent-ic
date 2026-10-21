@@ -15,6 +15,7 @@ import {
   createUsageTestbed,
   meteredReport,
   setWorkspaceLimits,
+  seedOwnedWorkspace,
 } from '@test/support/helpers/usage-testing.helpers';
 import type { UsageTestbed } from '@test/support/typedefs/usage-testing.typedefs';
 
@@ -35,7 +36,7 @@ describe('GetWorkspaceUsageUseCase', () => {
     workspaceCtx(testbed.ids.generate(), workspaceId, role);
 
   it('shows the month, the used amounts and the configured limits', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
     await testbed.module.get(UsageReporter).report(meteredReport(workspaceId, 42.5));
     await testbed.tenants.run(workspaceId, () =>
       testbed.module.get(UsageCountersService).countConversation(workspaceId),
@@ -53,7 +54,7 @@ describe('GetWorkspaceUsageUseCase', () => {
   });
 
   it('shows zero before anything is used and the limits of the workspace', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
     await setWorkspaceLimits(testbed, workspaceId, { creditsLimit: 50_000, chunksLimit: 9 });
 
     const usage = await getWorkspaceUsage.execute(ctxFor(workspaceId, WorkspaceRole.Admin));
@@ -66,7 +67,7 @@ describe('GetWorkspaceUsageUseCase', () => {
   });
 
   it.each([WorkspaceRole.Builder, WorkspaceRole.Operator])('refuses a %s', async (role) => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
 
     await expect(getWorkspaceUsage.execute(ctxFor(workspaceId, role))).rejects.toMatchObject({
       reason: ErrorReason.PermissionDenied,

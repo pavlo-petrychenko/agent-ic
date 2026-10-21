@@ -102,10 +102,6 @@ export class PromptVersionsRepository {
     return updated.length;
   }
 
-  async deleteByWorkspace(workspaceId: string): Promise<void> {
-    await this.txHost.tx.delete(promptVersions).where(eq(promptVersions.workspaceId, workspaceId));
-  }
-
   private activeWhere(workspaceId: string) {
     return and(eq(promptVersions.workspaceId, workspaceId), isNull(promptVersions.deletedAt));
   }

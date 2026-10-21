@@ -1,6 +1,8 @@
 import { index, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { ChannelEventType } from '@/modules/channels/constants/channel-event.constants';
 import { channels, channelsSchema } from '@/modules/channels/db/channels.table';
+import { workspaces } from '@/modules/identity/db/workspaces.table';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,
@@ -16,7 +18,9 @@ export const channelEvents = channelsSchema
     'channel_events',
     {
       id: uuid('id').primaryKey(),
-      workspaceId: workspaceIdColumn(),
+      workspaceId: workspaceIdColumn().references((): AnyPgColumn => workspaces.id, {
+        onDelete: 'cascade',
+      }),
       channelId: uuid('channel_id')
         .notNull()
         .references(() => channels.id, { onDelete: 'cascade' }),

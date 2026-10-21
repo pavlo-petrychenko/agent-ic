@@ -13,6 +13,7 @@ import {
   seedLlmKey,
   seedLlmKeyAuthor,
 } from '@test/support/helpers/llm-keys-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 const KEPT_NODE_ID = 'n_kept';
 const REMOVED_NODE_ID = 'n_removed';
@@ -49,6 +50,7 @@ describe('LlmKeyFlowReferenceChecker', () => {
 
   it('flags every step whose key is gone', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const keyId = await seedLlmKey(testingModule, workspaceId, authorId);
     const flow = keyModelFlow([
       agentOnKey(KEPT_NODE_ID, publicLlmKeyId(testingModule, keyId)),
@@ -64,6 +66,7 @@ describe('LlmKeyFlowReferenceChecker', () => {
 
   it('does not accept a key of another workspace', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const keyId = await seedLlmKey(testingModule, ids.generate(), authorId);
     const flow = keyModelFlow([agentOnKey(KEPT_NODE_ID, publicLlmKeyId(testingModule, keyId))]);
 
@@ -74,6 +77,7 @@ describe('LlmKeyFlowReferenceChecker', () => {
 
   it('finds nothing in a flow on platform models', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const flow = keyModelFlow([agentOnPlatform(PLATFORM_NODE_ID)]);
 
     await expect(tenants.run(workspaceId, () => checker.check(workspaceId, flow))).resolves.toEqual(

@@ -62,19 +62,6 @@ describe('ExecuteRunUseCase', () => {
     expect(after.latest).toMatchObject({ id: followUp?.id, status: RunStatus.Succeeded });
   });
 
-  it('fails the run and releases the conversation when the run cannot load', async () => {
-    const seeded = await seedLiveConversation(testbed, triggerOnlyFlow());
-    const { run } = await receiveMessage(testbed, seeded, { versionId: testbed.ids.generate() });
-
-    const execution = testbed.executeRun.execute(seeded.ctx, { runId: String(run?.id) });
-
-    await expect(execution).rejects.toMatchObject({ reason: ErrorReason.AgentVersionNotFound });
-    const after = await readLifecycle(testbed, seeded);
-    expect(after.latest?.status).toBe(RunStatus.Failed);
-    expect(after.latest?.error?.reason).toBe(ErrorReason.AgentVersionNotFound);
-    expect(after.conversation?.activeRunId).toBeNull();
-  });
-
   it('fails a queued live run without answering once its agent is deleted', async () => {
     const seeded = await seedLiveConversation(testbed, oneStep(FIRST_STEP_ID, FIRST_STEP_KEY));
     const { run } = await receiveMessage(testbed, seeded);

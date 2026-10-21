@@ -176,6 +176,13 @@
       "when": 1792873052754,
       "tag": "0024_agents-soft-delete",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792873598891,
+      "tag": "0025_foreign-keys",
+      "breakpoints": true
     }
   ]
 }

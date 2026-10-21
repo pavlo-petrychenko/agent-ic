@@ -9,6 +9,7 @@ import {
   createUsageTestbed,
   meteredReport,
   setWorkspaceLimits,
+  seedOwnedWorkspace,
 } from '@test/support/helpers/usage-testing.helpers';
 import type { UsageTestbed } from '@test/support/typedefs/usage-testing.typedefs';
 
@@ -36,8 +37,8 @@ describe('CleanUpWorkspaceUseCase', () => {
     );
 
   it('deletes the counters and limits of the workspace and keeps the others', async () => {
-    const workspaceId = testbed.ids.generate();
-    const otherWorkspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
+    const { workspaceId: otherWorkspaceId } = await seedOwnedWorkspace(testbed);
     await seedUsage(workspaceId);
     await seedUsage(otherWorkspaceId);
 
@@ -50,7 +51,7 @@ describe('CleanUpWorkspaceUseCase', () => {
   });
 
   it('refuses a non-system actor', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
 
     const attempt = cleanUp.execute(userCtx(testbed.ids.generate()), { workspaceId });
 

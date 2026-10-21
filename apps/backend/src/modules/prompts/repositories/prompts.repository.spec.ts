@@ -15,6 +15,7 @@ import {
   TEST_PROMPT_NEW_NAME,
 } from '@test/support/constants/prompts-testing.constants';
 import { newFolder, newPrompt } from '@test/support/fixtures/prompts.fixture';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import { createPromptsTestingModule } from '@test/support/helpers/prompts-testing.helpers';
 
 describe('PromptsRepository', () => {
@@ -41,6 +42,7 @@ describe('PromptsRepository', () => {
     overrides: Partial<NewPromptFolder> = {},
   ): Promise<string> => {
     const folderId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     await tenants.run(workspaceId, () =>
       folders.insert(newFolder(folderId, workspaceId, overrides)),
     );

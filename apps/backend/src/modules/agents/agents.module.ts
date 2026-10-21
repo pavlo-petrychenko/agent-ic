@@ -1,5 +1,4 @@
 import { DiscoveryModule } from '@nestjs/core';
-import { CleanUpWorkspaceListener } from '@/modules/agents/listeners/clean-up-workspace.listener';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { AgentFieldsResolver } from '@/modules/agents/resolvers/agent-fields.resolver';
@@ -24,7 +23,6 @@ import { AgentViewsService } from '@/modules/agents/services/agent-views.service
 import { FlowReferenceChecksService } from '@/modules/agents/services/flow-reference-checks.service';
 import { SampleAgentService } from '@/modules/agents/services/sample-agent.service';
 import { SimulatorTestsService } from '@/modules/agents/services/simulator-tests.service';
-import { CleanUpWorkspaceUseCase } from '@/modules/agents/use-cases/clean-up-workspace.use-case';
 import { CompareAgentVersionsUseCase } from '@/modules/agents/use-cases/compare-agent-versions.use-case';
 import { CountAgentsUseCase } from '@/modules/agents/use-cases/count-agents.use-case';
 import { CountDraftChangesUseCase } from '@/modules/agents/use-cases/count-draft-changes.use-case';
@@ -80,7 +78,6 @@ export class AgentsModule extends defineModule({
     TestApiRequestUseCase,
     CountAgentsUseCase,
     CountDraftChangesUseCase,
-    CleanUpWorkspaceUseCase,
   ],
   resolvers: [
     CreateAgentResolver,
@@ -98,6 +95,5 @@ export class AgentsModule extends defineModule({
     ModelOptionsResolver,
     TestApiRequestResolver,
   ],
-  listeners: [CleanUpWorkspaceListener],
   exports: [AgentRuntimeReader, AgentVersionsRepository, SampleAgentService],
 }) {}

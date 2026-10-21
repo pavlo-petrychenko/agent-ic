@@ -11,6 +11,7 @@ import {
   seedLlmKey,
   seedLlmKeyAuthor,
 } from '@test/support/helpers/llm-keys-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 describe('SetLlmKeyFallbackUseCase', () => {
   let testingModule: TestingModule;
@@ -33,6 +34,7 @@ describe('SetLlmKeyFallbackUseCase', () => {
 
   it('switches the fallback on and the gateway sees it', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const keyId = await seedLlmKey(testingModule, workspaceId, authorId);
 
     const view = await setFallback.execute(llmKeysCtx(authorId, workspaceId), {

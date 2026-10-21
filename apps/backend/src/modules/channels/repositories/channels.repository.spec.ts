@@ -16,6 +16,11 @@ import {
 } from '@test/support/constants/postgres-errors.constants';
 import { newChannel, newChannelEvent } from '@test/support/fixtures/channel.fixture';
 import { createChannelsTestbed } from '@test/support/helpers/channels-testing.helpers';
+import {
+  ensureAgentRow,
+  ensureUserRow,
+  ensureWorkspaceRow,
+} from '@test/support/helpers/parent-rows.helpers';
 import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.typedefs';
 
 const channelPatch = (
@@ -52,7 +57,9 @@ describe('Channels repositories across tenants', () => {
 
   it('stores and reads a channel inside its workspace', async () => {
     const workspaceA = testbed.ids.generate();
+    await ensureWorkspaceRow(testbed.module, workspaceA);
     const channel = newChannel(testbed, workspaceA);
+    await ensureUserRow(testbed.module, channel.createdByUserId);
 
     await tenants.run(workspaceA, () => channels.insert(channel));
 
@@ -70,8 +77,11 @@ describe('Channels repositories across tenants', () => {
 
   it('never shows or changes a channel from another workspace', async () => {
     const workspaceA = testbed.ids.generate();
+    await ensureWorkspaceRow(testbed.module, workspaceA);
     const workspaceB = testbed.ids.generate();
+    await ensureWorkspaceRow(testbed.module, workspaceB);
     const channel = newChannel(testbed, workspaceA);
+    await ensureUserRow(testbed.module, channel.createdByUserId);
     await tenants.run(workspaceA, () => channels.insert(channel));
 
     const seenFromB = await tenants.run(workspaceB, async () => ({
@@ -94,7 +104,9 @@ describe('Channels repositories across tenants', () => {
 
   it('refuses to write a channel into another workspace', async () => {
     const workspaceA = testbed.ids.generate();
+    await ensureWorkspaceRow(testbed.module, workspaceA);
     const workspaceB = testbed.ids.generate();
+    await ensureWorkspaceRow(testbed.module, workspaceB);
     const write = tenants.run(workspaceB, () => channels.insert(newChannel(testbed, workspaceA)));
 
     await expect(write).rejects.toMatchObject(ROW_LEVEL_SECURITY_VIOLATION);
@@ -102,8 +114,11 @@ describe('Channels repositories across tenants', () => {
 
   it('updates a channel with an explicit timestamp', async () => {
     const workspaceA = testbed.ids.generate();
+    await ensureWorkspaceRow(testbed.module, workspaceA);
     const channel = newChannel(testbed, workspaceA);
+    await ensureUserRow(testbed.module, channel.createdByUserId);
     const agentId = testbed.ids.generate();
+    await ensureAgentRow(testbed.module, workspaceA, agentId);
     const at = new Date(testbed.clock.now().getTime() + 1_000);
     await tenants.run(workspaceA, () => channels.insert(channel));
 
@@ -134,8 +149,11 @@ describe('Channels repositories across tenants', () => {
 
   it('keeps a channel external id unique per kind across workspaces', async () => {
     const workspaceA = testbed.ids.generate();
+    await ensureWorkspaceRow(testbed.module, workspaceA);
     const workspaceB = testbed.ids.generate();
+    await ensureWorkspaceRow(testbed.module, workspaceB);
     const first = newChannel(testbed, workspaceA, { externalId: TEST_TELEGRAM_BOT_ID });
+    await ensureUserRow(testbed.module, first.createdByUserId);
     await tenants.run(workspaceA, () => channels.insert(first));
 
     const duplicate = newChannel(testbed, workspaceB, { externalId: TEST_TELEGRAM_BOT_ID });
@@ -146,8 +164,11 @@ describe('Channels repositories across tenants', () => {
 
   it('keeps each external event only once per channel', async () => {
     const workspaceA = testbed.ids.generate();
+    await ensureWorkspaceRow(testbed.module, workspaceA);
     const first = newChannel(testbed, workspaceA);
+    await ensureUserRow(testbed.module, first.createdByUserId);
     const second = newChannel(testbed, workspaceA);
+    await ensureUserRow(testbed.module, second.createdByUserId);
     await tenants.run(workspaceA, async () => {
       await channels.insert(first);
       await channels.insert(second);

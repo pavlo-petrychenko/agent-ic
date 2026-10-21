@@ -7,7 +7,10 @@ import {
   USAGE_TEST_START,
 } from '@test/support/constants/usage-testing.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
-import { createUsageTestbed } from '@test/support/helpers/usage-testing.helpers';
+import {
+  createUsageTestbed,
+  seedOwnedWorkspace,
+} from '@test/support/helpers/usage-testing.helpers';
 import type { UsageTestbed } from '@test/support/typedefs/usage-testing.typedefs';
 
 describe('UsageCountersRepository', () => {
@@ -34,7 +37,7 @@ describe('UsageCountersRepository', () => {
     testbed.tenants.run(workspaceId, () => counters.addCredits(keyOf(workspaceId), credits));
 
   it('keeps one row per workspace and month and adds to it', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
     const first = await addCredits(workspaceId, 0.1234);
 
     const second = await addCredits(workspaceId, 1.5);
@@ -47,7 +50,7 @@ describe('UsageCountersRepository', () => {
   });
 
   it('marks a threshold only once', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
     const counter = await addCredits(workspaceId, 1);
     if (counter === null) {
       throw new MissingTestDataError(workspaceId);
@@ -65,8 +68,8 @@ describe('UsageCountersRepository', () => {
   });
 
   it('shows nothing of one workspace to another', async () => {
-    const workspaceId = testbed.ids.generate();
-    const otherWorkspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
+    const { workspaceId: otherWorkspaceId } = await seedOwnedWorkspace(testbed);
     await addCredits(workspaceId, 3);
 
     const seen = await testbed.tenants.run(otherWorkspaceId, () =>

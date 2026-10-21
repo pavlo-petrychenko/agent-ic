@@ -14,6 +14,7 @@ import {
   seedLlmKey,
   seedLlmKeyAuthor,
 } from '@test/support/helpers/llm-keys-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 describe('LlmKeysRepository', () => {
   let testingModule: TestingModule;
@@ -36,6 +37,7 @@ describe('LlmKeysRepository', () => {
 
   it('finds keys by id, vendor and name inside the workspace', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const vendorKeyId = await seedLlmKey(testingModule, workspaceId, authorId);
     const customKeyId = await seedLlmKey(testingModule, workspaceId, authorId, {
       vendor: LlmKeyVendor.Custom,
@@ -58,7 +60,9 @@ describe('LlmKeysRepository', () => {
 
   it('shows nothing of workspace A to workspace B', async () => {
     const workspaceA = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceA);
     const workspaceB = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceB);
     const keyId = await seedLlmKey(testingModule, workspaceA, authorId);
 
     const seen = await tenants.run(workspaceB, async () => ({
@@ -82,6 +86,7 @@ describe('LlmKeysRepository', () => {
 
   it('switches the fallback and deletes a key', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const keyId = await seedLlmKey(testingModule, workspaceId, authorId);
 
     const result = await tenants.run(workspaceId, async () => ({

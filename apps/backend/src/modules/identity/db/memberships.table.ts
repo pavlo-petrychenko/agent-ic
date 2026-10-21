@@ -33,6 +33,7 @@ export const memberships = identitySchema
         foreignColumns: [roles.workspaceId, roles.id],
       }).onDelete('restrict'),
       uniqueIndex('memberships_workspace_id_user_id_key').on(table.workspaceId, table.userId),
+      index('memberships_workspace_id_role_id_idx').on(table.workspaceId, table.roleId),
       index('memberships_user_id_idx').on(table.userId),
       index('memberships_invite_link_id_idx').on(table.inviteLinkId),
       tenantIsolationPolicy('memberships'),

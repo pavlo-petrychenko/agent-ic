@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { check, index, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { identitySchema } from '@/modules/identity/db/identity.pg-schema';
 import { users } from '@/modules/identity/db/users.table';
@@ -26,6 +26,7 @@ export const workspaces = identitySchema
     },
     (table) => [
       check('workspaces_workspace_id_is_id', sql`${table.workspaceId} = ${table.id}`),
+      index('workspaces_created_by_user_id_idx').on(table.createdByUserId),
       tenantIsolationPolicy('workspaces'),
     ],
   )

@@ -14,6 +14,7 @@ import {
   seedLlmKey,
   seedLlmKeyAuthor,
 } from '@test/support/helpers/llm-keys-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 describe('RemoveLlmKeyUseCase', () => {
   let testingModule: TestingModule;
@@ -38,6 +39,7 @@ describe('RemoveLlmKeyUseCase', () => {
 
   it('deletes the key', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const keyId = await seedLlmKey(testingModule, workspaceId, authorId);
 
     const removed = await removeLlmKey.execute(llmKeysCtx(authorId, workspaceId), {
@@ -52,6 +54,7 @@ describe('RemoveLlmKeyUseCase', () => {
 
   it('refuses a key of another workspace', async () => {
     const owner = ids.generate();
+    await ensureWorkspaceRow(testingModule, owner);
     const keyId = await seedLlmKey(testingModule, owner, authorId);
 
     await expect(
@@ -64,6 +67,7 @@ describe('RemoveLlmKeyUseCase', () => {
 
   it('refuses a builder', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const keyId = await seedLlmKey(testingModule, workspaceId, authorId);
 
     await expect(

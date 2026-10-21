@@ -1,6 +1,8 @@
 import { LlmKeyVendor } from '@agent-ic/contracts';
 import { sql } from 'drizzle-orm';
 import { boolean, text, timestamp, unique, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
+import { workspaces } from '@/modules/identity/db/workspaces.table';
 import { LLM_KEYS_SCHEMA } from '@/modules/llm-keys/constants/llm-key.constants';
 import { toSqlLiteral } from '@/platform/database/helpers/tenant-sql.helpers';
 import {
@@ -16,7 +18,9 @@ export const llmKeys = llmKeysSchema
     'llm_keys',
     {
       id: uuid('id').primaryKey(),
-      workspaceId: workspaceIdColumn(),
+      workspaceId: workspaceIdColumn().references((): AnyPgColumn => workspaces.id, {
+        onDelete: 'cascade',
+      }),
       vendor: text('vendor').$type<LlmKeyVendor>().notNull(),
       name: text('name').notNull(),
       baseUrl: text('base_url'),

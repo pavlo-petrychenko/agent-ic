@@ -20,6 +20,7 @@ import {
 import {
   describeInfrastructure,
   discardNotice,
+  seedSharedTestUsers,
 } from '@test/support/helpers/test-infrastructure.helpers';
 
 const startPostgres = (): Promise<StartedPostgreSqlContainer> =>
@@ -43,6 +44,7 @@ export const setup = async (project: TestProject): Promise<() => Promise<void>> 
   ]);
   const infrastructure = describeInfrastructure(postgres, redis);
   await runMigrations(infrastructure.ownerUrl, discardNotice);
+  await seedSharedTestUsers(infrastructure.ownerUrl);
   project.provide(TEST_INFRASTRUCTURE_KEY, infrastructure);
   return async () => {
     await Promise.all([postgres.stop(), redis.stop()]);

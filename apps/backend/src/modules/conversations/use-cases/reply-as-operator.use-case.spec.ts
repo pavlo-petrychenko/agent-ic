@@ -6,6 +6,7 @@ import { ConversationNotFoundError } from '@/modules/conversations/errors/conver
 import { ReplyAsOperatorUseCase } from '@/modules/conversations/use-cases/reply-as-operator.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
+import { TEST_EDITOR_ID } from '@test/support/constants/agents-testing.constants';
 import { AGENT_REPLY_TEXT } from '@test/support/constants/conversations-testing.constants';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import {
@@ -50,8 +51,7 @@ describe('ReplyAsOperatorUseCase', () => {
 
   it('lets the Inbox answer a live chat, and keeps Builders out of it', async () => {
     const live = await seedConversation(testbed);
-    const as = (role: WorkspaceRole) =>
-      workspaceCtx(testbed.ids.generate(), live.workspaceId, role);
+    const as = (role: WorkspaceRole) => workspaceCtx(TEST_EDITOR_ID, live.workspaceId, role);
 
     const message = await reply(as(WorkspaceRole.Operator), live.id);
 

@@ -28,6 +28,7 @@ import {
   createUsageTestbed,
   meteredReport,
   setWorkspaceLimits,
+  seedOwnedWorkspace,
 } from '@test/support/helpers/usage-testing.helpers';
 import { startMockLlm } from '@test/support/services/mock-llm.service';
 import type { MockLlmService } from '@test/support/services/mock-llm.service';
@@ -61,7 +62,7 @@ describe('UsageLimitsService', () => {
     reporter.report(meteredReport(workspaceId, credits));
 
   it('allows platform calls below the credit limit', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
     await reachLimit(workspaceId, TEST_CREDITS_LIMIT - 1);
 
     await expect(limits.assertPlatformCallAllowed(workspaceId)).resolves.toBeUndefined();
@@ -72,7 +73,7 @@ describe('UsageLimitsService', () => {
   });
 
   it('refuses at the credit limit with a plan limit that ends with the month', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
     await reachLimit(workspaceId);
 
     const refusal = limits.assertPlatformCallAllowed(workspaceId);
@@ -92,8 +93,8 @@ describe('UsageLimitsService', () => {
   });
 
   it('uses the workspace override over the configured limit', async () => {
-    const raised = testbed.ids.generate();
-    const lowered = testbed.ids.generate();
+    const { workspaceId: raised } = await seedOwnedWorkspace(testbed);
+    const { workspaceId: lowered } = await seedOwnedWorkspace(testbed);
     await setWorkspaceLimits(testbed, raised, { creditsLimit: TEST_CREDITS_LIMIT * 2 });
     await setWorkspaceLimits(testbed, lowered, { creditsLimit: 5 });
     await reachLimit(raised);
@@ -106,7 +107,7 @@ describe('UsageLimitsService', () => {
   });
 
   it('keeps the configured limit when the override leaves credits empty', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
     await setWorkspaceLimits(testbed, workspaceId, { conversationsLimit: 5 });
     await reachLimit(workspaceId);
 
@@ -116,7 +117,7 @@ describe('UsageLimitsService', () => {
   });
 
   it('allows platform calls again in the next month', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
     await reachLimit(workspaceId);
     testbed.clock.advanceBy(USAGE_TEST_MONTH_MS);
 
@@ -184,7 +185,7 @@ describe('UsageLimitsService', () => {
       );
 
     it('refuses a platform call at the limit before the model is called', async () => {
-      const workspaceId = testbed.ids.generate();
+      const { workspaceId } = await seedOwnedWorkspace(testbed);
       await reachLimit(workspaceId);
 
       await expect(gateway.complete(onPlatform(workspaceId))).rejects.toBeInstanceOf(
@@ -194,7 +195,7 @@ describe('UsageLimitsService', () => {
     });
 
     it('keeps answering on the workspace key at the limit', async () => {
-      const workspaceId = testbed.ids.generate();
+      const { workspaceId } = await seedOwnedWorkspace(testbed);
       await reachLimit(workspaceId);
       mock.json(DELIVERY);
 
@@ -204,7 +205,7 @@ describe('UsageLimitsService', () => {
     });
 
     it('stops the platform fallback hop of a key at the limit', async () => {
-      const workspaceId = testbed.ids.generate();
+      const { workspaceId } = await seedOwnedWorkspace(testbed);
       await reachLimit(workspaceId);
       mock.fail(HttpStatus.SERVICE_UNAVAILABLE).json(DELIVERY);
 

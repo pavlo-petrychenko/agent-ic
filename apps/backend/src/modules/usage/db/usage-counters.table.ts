@@ -1,5 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { check, integer, numeric, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
+import { workspaces } from '@/modules/identity/db/workspaces.table';
 import {
   CREDITS_PRECISION,
   CREDITS_SCALE,
@@ -20,7 +22,9 @@ export const usageCounters = usageSchema
     'usage_counters',
     {
       id: uuid('id').primaryKey(),
-      workspaceId: workspaceIdColumn(),
+      workspaceId: workspaceIdColumn().references((): AnyPgColumn => workspaces.id, {
+        onDelete: 'cascade',
+      }),
       period: text('period').notNull(),
       credits: numeric('credits', {
         precision: CREDITS_PRECISION,

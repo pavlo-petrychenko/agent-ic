@@ -27,6 +27,7 @@ import {
   seedMessage,
   seedTiedMessages,
 } from '@test/support/helpers/conversations-testing.helpers';
+import { ensureAgentRow, seedRunRow } from '@test/support/helpers/parent-rows.helpers';
 import {
   deliverOnOutboundQueued,
   notifyOnNeedsOperator,
@@ -41,20 +42,25 @@ describe('ConversationRunsService', () => {
     work: () => Promise<TResult>,
   ): Promise<TResult> => testbed.tenants.run(conversation.workspaceId, work);
 
-  const outbound = (conversation: NewConversation): OutboundMessageInput => ({
+  const outbound = async (conversation: NewConversation): Promise<OutboundMessageInput> => ({
     workspaceId: conversation.workspaceId,
     conversationId: conversation.id,
     key: `${TEST_IDEMPOTENCY_KEY}:${conversation.id}`,
     author: MessageAuthor.Agent,
     text: AGENT_REPLY_TEXT,
     quickReplies: QUICK_REPLIES,
-    runId: testbed.ids.generate(),
+    runId: await seedRunRow(testbed.module, conversation),
   });
 
-  const recordOutbound = (conversation: NewConversation, input = outbound(conversation)) =>
-    inTenant(conversation, () =>
-      testbed.runs.recordOutbound(workspaceSystemCtx(conversation.workspaceId), input),
+  const recordOutbound = async (
+    conversation: NewConversation,
+    input: OutboundMessageInput | null = null,
+  ) => {
+    const message = input ?? (await outbound(conversation));
+    return inTenant(conversation, () =>
+      testbed.runs.recordOutbound(workspaceSystemCtx(conversation.workspaceId), message),
     );
+  };
 
   const markWaiting = (conversation: NewConversation) =>
     inTenant(conversation, () =>
@@ -80,7 +86,7 @@ describe('ConversationRunsService', () => {
 
   it('records one message and one event when the same key is recorded twice', async () => {
     const conversation = await seedConversation(testbed);
-    const input = outbound(conversation);
+    const input = await outbound(conversation);
 
     const first = await recordOutbound(conversation, input);
     const second = await recordOutbound(conversation, input);
@@ -105,7 +111,7 @@ describe('ConversationRunsService', () => {
   it('announces the recorded message with its run to the conversation activity', async () => {
     const conversation = await seedConversation(testbed);
     const activity = await conversationActivity(testbed, conversation.id);
-    const input = outbound(conversation);
+    const input = await outbound(conversation);
 
     const recorded = await recordOutbound(conversation, input);
 
@@ -180,6 +186,7 @@ describe('ConversationRunsService', () => {
       ...newConversation(testbed, workspaceId),
       mode: ConversationMode.Simulation,
     };
+    await ensureAgentRow(testbed.module, workspaceId, conversation.agentId);
     await inTenant(conversation, () => testbed.conversations.insert(conversation));
 
     expect(await markWaiting(conversation)).toBe(true);

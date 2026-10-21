@@ -44,7 +44,6 @@ export class DeleteWorkspaceUseCase {
       if (workspace.name !== name) {
         throw new WorkspaceNameMismatchError();
       }
-      await this.users.clearLastWorkspace(access.workspaceId);
       await this.workspaces.delete(access.workspaceId);
       await this.domainEvents.emit(ctx, workspaceDeletedEvent, { workspaceId: access.workspaceId });
       return true;
