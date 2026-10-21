@@ -24,14 +24,10 @@ const readStoredDrafts = (): Readonly<Record<string, PromptDraft>> => {
 export const usePromptDraftsStore = create<PromptDraftsStore>()((set, get) => ({
   drafts: {},
   load: () => set({ drafts: readStoredDrafts() }),
-  begin: (promptId, seed) => {
+  begin: (promptId, draft) => {
     if (get().drafts[promptId] !== undefined) {
       return;
     }
-    const draft: PromptDraft = {
-      text: seed.text,
-      baseVersionNumber: seed.baseVersionNumber,
-    };
     storePromptDraft(promptId, draft);
     set((state) => ({ drafts: { ...state.drafts, [promptId]: draft } }));
   },

@@ -1,0 +1,73 @@
+extend type Query {
+  roles: [Role!]!
+}
+
+extend type Mutation {
+  createRole(input: CreateRoleInput!): Role!
+  renameRole(input: RenameRoleInput!): Role!
+  updateRolePermissions(input: UpdateRolePermissionsInput!): Role!
+  deleteRole(input: DeleteRoleInput!): Boolean!
+}
+
+enum PermissionResource {
+  agents
+  prompts
+  knowledge_bases
+  channels
+  inbox
+  testing
+  analytics
+  team
+  workspace_settings
+}
+
+enum PermissionAction {
+  view
+  edit
+  publish
+  delete
+  transfer
+  leave
+}
+
+type RolePermission {
+  resource: PermissionResource!
+  action: PermissionAction!
+}
+
+type Role {
+  id: ID!
+  key: WorkspaceRole!
+  name: String
+  description: String
+  isSystem: Boolean!
+  memberCount: Int!
+  permissions: [RolePermission!]!
+}
+
+input RolePermissionInput {
+  resource: PermissionResource!
+  action: PermissionAction!
+}
+
+input CreateRoleInput {
+  name: String!
+  baseRole: WorkspaceRole!
+  description: String
+  permissions: [RolePermissionInput!]
+}
+
+input RenameRoleInput {
+  roleId: ID!
+  name: String!
+}
+
+input UpdateRolePermissionsInput {
+  roleId: ID!
+  permissions: [RolePermissionInput!]!
+}
+
+input DeleteRoleInput {
+  roleId: ID!
+  replacementRoleId: ID!
+}

@@ -7,6 +7,10 @@ query WorkspaceShell {
   }
   myWorkspaces {
     role
+    permissions {
+      resource
+      action
+    }
     workspace {
       id
       name

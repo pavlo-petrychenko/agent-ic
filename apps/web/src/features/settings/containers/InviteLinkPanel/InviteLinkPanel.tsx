@@ -1,16 +1,18 @@
-import { can, INVITABLE_ROLES, PermissionAction, PermissionResource } from '@agent-ic/contracts';
-import type { WorkspaceRole } from '@agent-ic/contracts';
+import { PermissionAction, PermissionResource, WorkspaceRole } from '@agent-ic/contracts';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useInviteLink } from '@/features/settings/communication/hooks/useInviteLink';
+import { useRoles } from '@/features/settings/communication/hooks/useRoles';
 import { INVITE_LINK_DATE_FORMAT } from '@/features/settings/constants/inviteLink.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { InviteLinkPanelProps } from '@/features/settings/containers/InviteLinkPanel/InviteLinkPanel.typedefs';
 import { copyText } from '@/features/settings/logic/helpers/clipboard.helpers';
 import { formatDate } from '@/features/settings/logic/helpers/format.helpers';
+import type { AppRole } from '@/features/settings/typedefs/role.typedefs';
 import { InviteLinkCard } from '@/features/settings/view/InviteLinkCard';
 import { useActiveWorkspace } from '@/features/workspace';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
+import { hasPermission } from '@/shared/api/helpers/permission.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
@@ -23,7 +25,15 @@ export function InviteLinkPanel({ workspaceId }: InviteLinkPanelProps) {
   const errorMessage = useErrorMessage();
   const active = useActiveWorkspace(workspaceId);
   const { link, changeRole, reset } = useInviteLink();
+  const { roles } = useRoles();
   const [resetting, setResetting] = useState(false);
+
+  const labelOf = (role: AppRole): string =>
+    role.isSystem ? tCommon(`roles.name.${role.key}`) : (role.name ?? '');
+
+  const roleOptions = roles
+    .filter((role) => !(role.isSystem && role.key === WorkspaceRole.Owner))
+    .map((role) => ({ value: role.id, label: labelOf(role) }));
 
   const run = async (action: () => Promise<void>, success: string) => {
     try {
@@ -45,11 +55,11 @@ export function InviteLinkPanel({ workspaceId }: InviteLinkPanelProps) {
       link={link}
       workspaceName={active?.name ?? ''}
       expiresOn={link === null ? null : formatDate(link.expiresAt, locale, INVITE_LINK_DATE_FORMAT)}
-      canEdit={active !== null && can(active.role, PermissionResource.Team, PermissionAction.Edit)}
-      roleOptions={INVITABLE_ROLES.map((role) => ({
-        value: role,
-        label: tCommon(`roles.name.${role}`),
-      }))}
+      canEdit={
+        active !== null &&
+        hasPermission(active.permissions, PermissionResource.Team, PermissionAction.Edit)
+      }
+      roleOptions={roleOptions}
       resetting={resetting}
       onCopy={() => {
         if (link !== null) {
@@ -57,12 +67,12 @@ export function InviteLinkPanel({ workspaceId }: InviteLinkPanelProps) {
         }
       }}
       onReset={() => void onReset()}
-      onRoleChange={(role: WorkspaceRole) =>
-        void run(
-          () => changeRole(role),
-          t('team.invite.roleChanged', { role: tCommon(`roles.name.${role}`) }),
-        )
-      }
+      onRoleChange={(roleId) => {
+        const role = roles.find((entry) => entry.id === roleId);
+        if (role !== undefined) {
+          void run(() => changeRole(roleId), t('team.invite.roleChanged', { role: labelOf(role) }));
+        }
+      }}
     />
   );
 }

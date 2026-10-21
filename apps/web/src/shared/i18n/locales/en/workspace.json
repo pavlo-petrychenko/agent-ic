@@ -14,7 +14,10 @@
       "team": "Team",
       "general": "General",
       "roles": "Roles",
-      "profile": "Profile"
+      "usage": "Usage",
+      "llmKeys": "LLM keys",
+      "profile": "Profile",
+      "notifications": "Notifications"
     }
   },
   "header": {

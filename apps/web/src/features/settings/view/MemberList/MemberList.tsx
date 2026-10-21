@@ -6,9 +6,10 @@ import { Avatar } from '@/shared/ui/display/Avatar';
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { Card } from '@/shared/ui/display/Card';
 import { IconName } from '@/shared/ui/foundations/Icon';
+import { Select } from '@/shared/ui/inputs/Select';
 import styles from '@/features/settings/view/MemberList/MemberList.module.scss';
 
-export function MemberList({ rows, onAction }: MemberListProps) {
+export function MemberList({ rows, roleOptions, onAction, onRoleChange }: MemberListProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
 
   return (
@@ -38,8 +39,27 @@ export function MemberList({ rows, onAction }: MemberListProps) {
                     </span>
                   </span>
                 </td>
-                <td>
-                  <Badge tone={BadgeTone.Accent}>{row.roleLabel}</Badge>
+                <td className={styles.role}>
+                  {row.roleEditable ? (
+                    <Select
+                      aria-label={t('team.members.changeRole', { name: row.name })}
+                      value={row.role}
+                      options={roleOptions.map((option) => ({
+                        value: option.role,
+                        label: option.label,
+                      }))}
+                      onChange={(event) => {
+                        const next = roleOptions.find(
+                          (option) => option.role === event.target.value,
+                        );
+                        if (next !== undefined) {
+                          onRoleChange(row.id, next.role);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <Badge tone={BadgeTone.Accent}>{row.roleLabel}</Badge>
+                  )}
                 </td>
                 <td className={styles.lastActive}>{row.lastActive}</td>
                 <td className={styles.actions}>
