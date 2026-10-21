@@ -11,7 +11,9 @@ import { createSqlClient } from '@/platform/database/helpers/sql-client.helpers'
 import type { AppDatabase, SqlExecutor } from '@/platform/database/typedefs/database.typedefs';
 import { ErrorsModule } from '@/platform/errors/errors.module';
 import { IdsModule } from '@/platform/ids/ids.module';
+import { LlmModule } from '@/platform/llm/llm.module';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { ObservabilityModule } from '@/platform/observability/observability.module';
 import {
   SCRATCH_POOL_SIZE,
   TestRedisPrefix,
@@ -39,6 +41,8 @@ export const createPlatformTestingModule = async (
       DatabaseModule,
       ClockModule,
       IdsModule,
+      ObservabilityModule.forRole(Role.Api),
+      LlmModule,
       ...imports,
     ],
     providers: [TestTransactionService],

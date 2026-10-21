@@ -11,7 +11,6 @@ import type { NewPrompt } from '@/modules/prompts/typedefs/prompt.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
-import { LlmModule } from '@/platform/llm/llm.module';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { ObservabilityModule } from '@/platform/observability/observability.module';
 import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
@@ -46,7 +45,6 @@ export const createPromptsTestingModule = (
       RateLimitModule,
       OutboundHttpModule,
       ObservabilityModule.forRole(Role.Api),
-      LlmModule,
       PromptsModule.forRole(Role.Api),
       PromptsNeighboursModule.forRole(Role.Api),
     ],
