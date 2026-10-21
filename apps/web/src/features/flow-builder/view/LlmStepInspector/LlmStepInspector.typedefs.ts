@@ -1,4 +1,5 @@
 import type { ReasoningLevel } from '@agent-ic/contracts';
+import type { PromptSource } from '@agent-ic/flow';
 import type {
   LlmStepExtra,
   LlmStepView,
@@ -6,9 +7,10 @@ import type {
 } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 
 export interface LlmStepInspectorProps {
+  workspaceId: string;
   step: LlmStepView;
   extra: LlmStepExtra;
-  onPromptChange: (text: string) => void;
+  onPromptChange: (source: PromptSource) => void;
   onPromptCommit: () => void;
   onRetryModels: () => void;
   onModelChange: (modelId: string) => void;

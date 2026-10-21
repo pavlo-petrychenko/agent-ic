@@ -42,7 +42,8 @@
     },
     "variables": {
       "title": "Variables in this prompt",
-      "empty": "No variables in this prompt yet."
+      "empty": "No variables in this prompt yet.",
+      "note": "user.* comes from the channel (e.g. the Telegram first name)."
     }
   },
   "folderMenu": {
@@ -136,6 +137,16 @@
     "noText": "This prompt has no text yet.",
     "body": "Prompt text",
     "variables": "Variables",
+    "variableGroups": {
+      "message": "incoming message",
+      "user": "from the channel",
+      "language": "detected",
+      "conversation": "conversation",
+      "system": "system",
+      "event": "event payload",
+      "caller": "from the caller",
+      "step": "earlier step"
+    },
     "edit": "Edit",
     "backToLatest": "Back to latest (v{{number}})",
     "olderNotice": "You’re viewing an older version. Restoring copies it into a new draft; v{{number}} stays until you save.",
@@ -177,6 +188,21 @@
     "compare": "Compare",
     "empty": "No versions yet. Saving creates v1.",
     "loadError": "The versions couldn’t be loaded."
+  },
+  "field": {
+    "useLibrary": "Use a library prompt",
+    "openInLibrary": "Open in library",
+    "version": "Version",
+    "followLatest": "Follow latest"
+  },
+  "picker": {
+    "title": "Use a library prompt",
+    "description": "The step follows the latest version unless you pin one.",
+    "search": "Search prompts",
+    "clear": "Clear search",
+    "empty": "No prompts yet",
+    "emptyNote": "Create a prompt in the library first, then pick it here.",
+    "noMatch": "No prompts match “{{query}}”."
   },
   "compare": {
     "close": "Close compare",

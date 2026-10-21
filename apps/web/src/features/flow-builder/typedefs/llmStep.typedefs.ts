@@ -6,6 +6,7 @@ import type {
   NodeType,
   OutputField,
   OutputFieldType,
+  PromptSource,
 } from '@agent-ic/flow';
 import type { PortTarget } from '@/features/flow-builder/typedefs/inspector.typedefs';
 import type { AppError } from '@/shared/api/errors/app.error';
@@ -61,7 +62,7 @@ export type LlmStepExtra =
     };
 
 export interface LlmStepView {
-  prompt: string;
+  source: PromptSource | null;
   variables: readonly VariableOption[];
   models: readonly ModelChoice[];
   modelsLoading: boolean;
