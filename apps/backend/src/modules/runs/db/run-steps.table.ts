@@ -1,19 +1,13 @@
 import { integer, jsonb, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
-import { RunStepStatus } from '@/modules/runs/constants/run.constants';
-import { runs, runsSchema } from '@/modules/runs/db/runs.table';
+import { runStepStatusEnum, runsSchema } from '@/modules/runs/db/runs.pg-schema';
+import { runs } from '@/modules/runs/db/runs.table';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 import type { RunFailure } from '@/modules/runs/typedefs/run.typedefs';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,
 } from '@/platform/database/helpers/tenant-table.helpers';
-
-export const runStepStatusEnum = runsSchema.enum('run_step_status', [
-  RunStepStatus.Running,
-  RunStepStatus.Succeeded,
-  RunStepStatus.Failed,
-]);
 
 export const runSteps = runsSchema
   .table(

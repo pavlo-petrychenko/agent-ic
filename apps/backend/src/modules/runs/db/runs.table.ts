@@ -1,29 +1,15 @@
 import { index, jsonb, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { ConversationMode } from '@/modules/conversations';
-import { RUNS_SCHEMA, RunStatus, RunTrigger } from '@/modules/runs/constants/run.constants';
+import {
+  runModeEnum,
+  runStatusEnum,
+  runTriggerEnum,
+  runsSchema,
+} from '@/modules/runs/db/runs.pg-schema';
 import type { RunFailure } from '@/modules/runs/typedefs/run.typedefs';
 import {
-  moduleSchema,
   tenantIsolationPolicy,
   workspaceIdColumn,
 } from '@/platform/database/helpers/tenant-table.helpers';
-
-export const runsSchema = moduleSchema(RUNS_SCHEMA);
-
-export const runModeEnum = runsSchema.enum('run_mode', [
-  ConversationMode.Live,
-  ConversationMode.Simulation,
-]);
-
-export const runTriggerEnum = runsSchema.enum('run_trigger', [RunTrigger.Message]);
-
-export const runStatusEnum = runsSchema.enum('run_status', [
-  RunStatus.Queued,
-  RunStatus.Running,
-  RunStatus.Succeeded,
-  RunStatus.Failed,
-  RunStatus.Escalated,
-]);
 
 export const runs = runsSchema
   .table(

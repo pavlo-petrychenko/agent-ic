@@ -67,7 +67,7 @@ export const BACKEND_KIND_SUFFIXES: Readonly<Record<string, readonly string[]>> 
   services: ['.service.ts'],
   repositories: ['.repository.ts'],
   gateways: ['.gateway.ts', '.fake.ts'],
-  db: ['.table.ts'],
+  db: ['.table.ts', '.pg-schema.ts'],
   errors: ['.error.ts'],
   schemas: ['.schema.ts'],
   typedefs: ['.typedefs.ts'],

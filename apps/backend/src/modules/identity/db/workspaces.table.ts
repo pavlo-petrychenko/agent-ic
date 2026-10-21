@@ -1,19 +1,12 @@
-import { WorkspaceRole } from '@agent-ic/contracts';
 import { sql } from 'drizzle-orm';
 import { check, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
-import { identitySchema, users } from '@/modules/identity/db/users.table';
+import { identitySchema } from '@/modules/identity/db/identity.pg-schema';
+import { users } from '@/modules/identity/db/users.table';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,
 } from '@/platform/database/helpers/tenant-table.helpers';
-
-export const workspaceRoleEnum = identitySchema.enum('workspace_role', [
-  WorkspaceRole.Owner,
-  WorkspaceRole.Admin,
-  WorkspaceRole.Builder,
-  WorkspaceRole.Operator,
-]);
 
 export const workspaces = identitySchema
   .table(
