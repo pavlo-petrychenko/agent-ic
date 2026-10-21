@@ -175,6 +175,7 @@ const start = (args: CommandArgs): Promise<number> =>
     ensureCertificate,
     refreshStack,
     step(compose('up', '-d', '--wait', ...args)),
+    printUrls,
     saveFingerprint,
     step(composeAllProfiles('logs', '-f', `--tail=${START_LOG_TAIL}`, ...args)),
   ]);
