@@ -26,4 +26,5 @@ export interface PromptPageHeaderProps {
   readonly onSave: () => void;
   readonly compare: PromptPageHeaderCompare | null;
   readonly older: PromptPageHeaderOlder | null;
+  readonly onTest: (() => void) | null;
 }

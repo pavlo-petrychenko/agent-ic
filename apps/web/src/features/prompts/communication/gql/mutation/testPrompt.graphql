@@ -1,0 +1,11 @@
+mutation TestPrompt($input: TestPromptInput!) {
+  testPrompt(input: $input) {
+    output
+    model
+    usage {
+      inputTokens
+      outputTokens
+    }
+    durationMs
+  }
+}

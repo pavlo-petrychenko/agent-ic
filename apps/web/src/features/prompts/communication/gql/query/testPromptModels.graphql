@@ -1,0 +1,9 @@
+query TestPromptModels {
+  modelOptions {
+    id
+    label
+    source
+    purposes
+    defaultFor
+  }
+}
