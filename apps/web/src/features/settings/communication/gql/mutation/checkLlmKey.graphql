@@ -1,0 +1,5 @@
+mutation CheckLlmKey($input: CheckLlmKeyInput!) {
+  checkLlmKey(input: $input) {
+    models
+  }
+}

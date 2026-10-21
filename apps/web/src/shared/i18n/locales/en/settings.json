@@ -257,7 +257,9 @@
       "warning": "This can't be undone.",
       "notice": "Steps that use this provider's models on your account stop working until you add a key again.",
       "confirm": "Remove key",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "inUse_one": "{{count}} step uses this key. It will fail until you pick another model.",
+      "inUse_other": "{{count}} steps use this key. They will fail until you pick another model."
     },
     "notice": "Each Agent and Completion step picks its own model in the flow builder. Keys are stored encrypted and never shown again.",
     "dialog": {
@@ -271,17 +273,31 @@
       "checked": "Checked just now",
       "afterSave": "After saving, pick these models in any Agent or Completion step. Usage on your key doesn't count toward the workspace limit.",
       "confirm": "Save key",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "checking": "Checking…",
+      "customTitle": "Add a custom endpoint",
+      "customDescription": "Use any OpenAI-compatible API with your own key"
     },
     "vendors": {
       "openai": "OpenAI",
       "anthropic": "Anthropic",
       "mistral": "Mistral",
-      "xiaomi": "Xiaomi",
       "google": "Google",
-      "zhipu": "Zhipu",
-      "deepseek": "DeepSeek"
-    }
+      "deepseek": "DeepSeek",
+      "custom": "Custom OpenAI-compatible endpoint"
+    },
+    "custom": {
+      "add": "Add custom endpoint",
+      "subtitle": "Any OpenAI-compatible API, such as a gateway or a self-hosted model",
+      "nameLabel": "Name",
+      "baseUrlLabel": "Base URL",
+      "baseUrlHint": "https://…/v1"
+    },
+    "fallback": "Fallback to platform model",
+    "fallbackHint": "On errors, retry once on a platform model (counted in your usage)",
+    "loading": "Loading keys",
+    "loadFailed": "We couldn't load your keys.",
+    "retry": "Try again"
   },
   "profile": {
     "subtitle": "Your account – the same in every workspace",

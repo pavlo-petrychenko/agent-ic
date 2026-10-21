@@ -1,0 +1,13 @@
+query LlmKeys {
+  llmKeys {
+    id
+    vendor
+    name
+    baseUrl
+    keyLast4
+    fallbackToPlatform
+    addedBy
+    createdAt
+    usedBySteps
+  }
+}
