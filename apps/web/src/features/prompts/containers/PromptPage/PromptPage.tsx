@@ -35,7 +35,10 @@ import { PromptOptionsMenu } from '@/features/prompts/view/PromptOptionsMenu';
 import { PromptView } from '@/features/prompts/view/PromptView';
 import { useActiveWorkspace } from '@/features/workspace';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
-import { collectPromptVariables } from '@/shared/prompt/helpers/promptDocument.helpers';
+import {
+  collectPromptVariables,
+  normalizePathVariable,
+} from '@/shared/prompt/helpers/promptDocument.helpers';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Card } from '@/shared/ui/display/Card';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
@@ -112,11 +115,10 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const shownVersion =
     versionView.olderVersionId === null ? latestVersion : versionView.olderVersion;
   const editorText = editing ? draft.text : (shownVersion?.text ?? '');
-  const variablePaths = collectPromptVariables(editorText);
+  const variablePaths = collectPromptVariables(editorText, normalizePathVariable);
   const variables: readonly VariableOption[] = variablePaths.map((path) => ({
     id: path,
     label: path,
-    group: '',
   }));
   const counts = usages === null ? null : usageCounts(usages);
   const usageSummary =
@@ -193,6 +195,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
           baseVersionNumber={draft.baseVersionNumber}
           text={draft.text}
           variables={variables}
+          normalizeVariable={normalizePathVariable}
           onChange={updateDraft}
         />
       );
@@ -221,6 +224,7 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
         text={editorText}
         savedLabel={savedLabel}
         variables={variables}
+        normalizeVariable={normalizePathVariable}
         olderThanVersionNumber={
           versionView.olderVersionId === null ? null : (latestVersion?.number ?? null)
         }

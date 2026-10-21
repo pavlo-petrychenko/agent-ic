@@ -15,6 +15,8 @@ export interface PromptVariableSegment {
 
 export type PromptSegment = PromptTextSegment | PromptVariableSegment;
 
+export type PathNormalizer = (path: string) => string;
+
 export interface PromptTextNode {
   type: PromptNodeName.Text;
   text: string;

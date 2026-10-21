@@ -12,6 +12,7 @@ export function PromptView({
   text,
   savedLabel,
   variables,
+  normalizeVariable,
   olderThanVersionNumber,
   onBackToLatest,
 }: PromptViewProps) {
@@ -59,6 +60,7 @@ export function PromptView({
         variables={variables}
         label={t('view.body')}
         menuLabel={t('view.variables')}
+        normalizeVariable={normalizeVariable}
         placeholder={t('view.noText')}
         readOnly
         fill

@@ -22,6 +22,7 @@ export function PromptEditor({
   variables,
   label,
   menuLabel,
+  normalizeVariable = null,
   height = null,
   invalid = false,
   error = null,
@@ -53,6 +54,7 @@ export function PromptEditor({
     describedBy: message === null ? null : messageId,
     menuId,
     activeOptionId: activeOption === undefined ? null : optionId(menu.activeIndex),
+    normalizeVariable,
     onSync: menu.sync,
     onKeyDown: menu.handleKeyDown,
   });
@@ -120,7 +122,9 @@ export function PromptEditor({
                   onClick={() => menu.insert(option)}
                 >
                   <span className={styles.optionLabel}>{option.label}</span>
-                  <span className={styles.optionGroup}>{option.group}</span>
+                  {option.group !== undefined && option.group !== '' && (
+                    <span className={styles.optionGroup}>{option.group}</span>
+                  )}
                 </div>
               ))}
             </div>
