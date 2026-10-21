@@ -120,6 +120,34 @@
       "when": 1791838533157,
       "tag": "0016_identity-email-change",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792279740616,
+      "tag": "0017_roles_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792279955957,
+      "tag": "0018_memberships_role_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792284062793,
+      "tag": "0019_invite_links_role_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792320503542,
+      "tag": "0020_roles_description",
+      "breakpoints": true
     }
   ]
 }

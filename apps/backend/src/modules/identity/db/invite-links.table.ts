@@ -1,8 +1,9 @@
 import { isNull } from 'drizzle-orm';
-import { text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { foreignKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
+import { roles } from '@/modules/identity/db/roles.table';
 import { identitySchema, users } from '@/modules/identity/db/users.table';
-import { workspaceRoleEnum, workspaces } from '@/modules/identity/db/workspaces.table';
+import { workspaces } from '@/modules/identity/db/workspaces.table';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,
@@ -17,7 +18,7 @@ export const inviteLinks = identitySchema
         onDelete: 'cascade',
       }),
       tokenHash: text('token_hash').notNull(),
-      role: workspaceRoleEnum('role').notNull(),
+      roleId: uuid('role_id').notNull(),
       createdByUserId: uuid('created_by_user_id')
         .notNull()
         .references((): AnyPgColumn => users.id),
@@ -26,6 +27,10 @@ export const inviteLinks = identitySchema
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
     },
     (table) => [
+      foreignKey({
+        columns: [table.workspaceId, table.roleId],
+        foreignColumns: [roles.workspaceId, roles.id],
+      }).onDelete('restrict'),
       uniqueIndex('invite_links_token_hash_key').on(table.tokenHash),
       uniqueIndex('invite_links_active_workspace_key')
         .on(table.workspaceId)

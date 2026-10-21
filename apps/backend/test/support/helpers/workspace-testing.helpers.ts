@@ -2,6 +2,7 @@ import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { asc, eq } from 'drizzle-orm';
 import { inviteLinks } from '@/modules/identity/db/invite-links.table';
 import { memberships } from '@/modules/identity/db/memberships.table';
+import { roles } from '@/modules/identity/db/roles.table';
 import type { InviteLinkRecord } from '@/modules/identity/typedefs/invite-link.typedefs';
 import type { MembershipRecord } from '@/modules/identity/typedefs/membership.typedefs';
 import type {
@@ -11,6 +12,7 @@ import type {
 import { AcceptInviteUseCase } from '@/modules/identity/use-cases/accept-invite.use-case';
 import { CreateWorkspaceUseCase } from '@/modules/identity/use-cases/create-workspace.use-case';
 import { GetInviteLinkUseCase } from '@/modules/identity/use-cases/get-invite-link.use-case';
+import { UpdateInviteLinkRoleUseCase } from '@/modules/identity/use-cases/update-invite-link-role.use-case';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -81,16 +83,32 @@ export const addMember = async (
   return member.userId;
 };
 
-export const readMemberships = (
+export const addMemberWithRole = async (
+  testbed: IdentityTestbed,
+  workspace: TestWorkspace,
+  role: WorkspaceRole,
+): Promise<string> => {
+  await testbed.module.get(UpdateInviteLinkRoleUseCase).execute(ownerCtx(workspace), { role });
+  return addMember(testbed, workspace);
+};
+
+export interface MembershipWithRoleKey extends MembershipRecord {
+  readonly role: WorkspaceRole;
+}
+
+export const readMemberships = async (
   testbed: IdentityTestbed,
   workspaceId: string,
-): Promise<MembershipRecord[]> =>
-  testbed.module
+): Promise<MembershipWithRoleKey[]> => {
+  const rows = await testbed.module
     .get(SystemDatabaseService)
-    .db.select()
+    .db.select({ membership: memberships, role: roles.key })
     .from(memberships)
+    .innerJoin(roles, eq(roles.id, memberships.roleId))
     .where(eq(memberships.workspaceId, workspaceId))
     .orderBy(asc(memberships.createdAt), asc(memberships.id));
+  return rows.map((row) => ({ ...row.membership, role: row.role }));
+};
 
 export const activeInviteLinkOf = async (
   testbed: IdentityTestbed,

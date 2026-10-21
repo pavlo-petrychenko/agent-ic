@@ -10,6 +10,7 @@ export const toInviteLinkView = (link: ApiInviteLink | null): InviteLinkView | n
     : {
         url: link.url,
         role: ROLE_FROM_API[link.role],
+        roleId: link.roleId,
         expiresAt: link.expiresAt,
         joinedCount: link.joinedCount,
       };

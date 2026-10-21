@@ -1,4 +1,4 @@
-import type { WorkspaceRole } from '@agent-ic/contracts';
+import { IdPrefix } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import {
   INVITE_LINK_TTL_SECONDS,
@@ -6,11 +6,13 @@ import {
 } from '@/modules/identity/constants/workspace.constants';
 import { InviteExpiredError } from '@/modules/identity/errors/invite-expired.error';
 import { InviteInvalidError } from '@/modules/identity/errors/invite-invalid.error';
+import { RoleNotFoundError } from '@/modules/identity/errors/role-not-found.error';
 import { inviteLinkUrl } from '@/modules/identity/helpers/invite-link.helpers';
 import { addSeconds, isPast } from '@/modules/identity/helpers/time.helpers';
 import { InviteLinksRepository } from '@/modules/identity/repositories/invite-links.repository';
 import { MembershipDirectoryRepository } from '@/modules/identity/repositories/membership-directory.repository';
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
+import { RolesRepository } from '@/modules/identity/repositories/roles.repository';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { InviteTokensService } from '@/modules/identity/services/invite-tokens.service';
 import type {
@@ -30,6 +32,7 @@ export class InviteLinksService {
     private readonly inviteLinks: InviteLinksRepository,
     private readonly memberships: MembershipsRepository,
     private readonly directory: MembershipDirectoryRepository,
+    private readonly roles: RolesRepository,
     private readonly users: UsersRepository,
     private readonly tokens: InviteTokensService,
     private readonly tenantTransactions: TenantTransactionService,
@@ -40,7 +43,7 @@ export class InviteLinksService {
 
   async issue(
     workspaceId: string,
-    role: WorkspaceRole,
+    roleId: string,
     createdByUserId: string,
   ): Promise<InviteLinkRecord> {
     const now = this.clock.now();
@@ -49,7 +52,7 @@ export class InviteLinksService {
       id,
       workspaceId,
       tokenHash: this.tokens.derive(id).hash,
-      role,
+      roleId,
       createdByUserId,
       expiresAt: addSeconds(now, INVITE_LINK_TTL_SECONDS),
       revokedAt: null,
@@ -60,9 +63,14 @@ export class InviteLinksService {
   }
 
   async view(link: InviteLinkRecord): Promise<InviteLinkView> {
+    const role = await this.roles.findById(link.workspaceId, link.roleId);
+    if (role === null) {
+      throw new RoleNotFoundError(link.roleId);
+    }
     return {
       url: inviteLinkUrl(this.config.config.publicUrl, this.tokens.derive(link.id).token),
-      role: link.role,
+      role: role.key,
+      roleId: this.ids.toPublic(IdPrefix.Role, link.roleId),
       expiresAt: link.expiresAt,
       joinedCount: await this.memberships.countByInviteLink(link.workspaceId, link.id),
     };
@@ -93,14 +101,18 @@ export class InviteLinksService {
         id: this.ids.generate(),
         workspaceId,
         userId,
-        role: link.role,
+        roleId: link.roleId,
         inviteLinkId: link.id,
         createdAt: now,
       });
       const membership = created ?? (await this.memberships.findByUser(workspaceId, userId));
-      return membership === null
+      if (membership === null) {
+        return { kind: JoinOutcomeKind.Invalid };
+      }
+      const role = await this.memberships.findRole(workspaceId, userId);
+      return role === null
         ? { kind: JoinOutcomeKind.Invalid }
-        : { kind: JoinOutcomeKind.Joined, membership };
+        : { kind: JoinOutcomeKind.Joined, membership, role };
     });
   }
 

@@ -1,6 +1,7 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { InviteLinksRepository } from '@/modules/identity/repositories/invite-links.repository';
+import { WorkspaceRolesService } from '@/modules/identity/services/workspace-roles.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { createIdentityTestbed } from '@test/support/helpers/identity-testing.helpers';
 import {
@@ -44,14 +45,19 @@ describe('InviteLinksRepository across tenants', () => {
 
   it('cannot change the link of workspace A from workspace B', async () => {
     const linkOfA = await activeInviteLinkOf(testbed, workspaceA.workspaceId);
+    const roles = testbed.module.get(WorkspaceRolesService);
+    const { operatorRoleId, adminRoleId } = await tenants.run(workspaceA.workspaceId, async () => ({
+      operatorRoleId: await roles.systemRoleId(workspaceA.workspaceId, WorkspaceRole.Operator),
+      adminRoleId: await roles.systemRoleId(workspaceA.workspaceId, WorkspaceRole.Admin),
+    }));
 
     await tenants.run(workspaceB.workspaceId, async () => {
-      await repository.updateRole(workspaceA.workspaceId, linkOfA.id, WorkspaceRole.Admin);
+      await repository.updateRoleId(workspaceA.workspaceId, linkOfA.id, adminRoleId);
       await repository.revoke(workspaceA.workspaceId, linkOfA.id, testbed.clock.now());
     });
 
     const [after] = await readInviteLinks(testbed, workspaceA.workspaceId);
-    expect(after).toMatchObject({ role: WorkspaceRole.Operator, revokedAt: null });
+    expect(after).toMatchObject({ roleId: operatorRoleId, revokedAt: null });
   });
 
   it('shows nothing without a tenant', async () => {
