@@ -6,7 +6,7 @@ import {
   PromptVersionKind,
   RuleMatch,
 } from '@agent-ic/flow';
-import type { FlowNode, PromptSource } from '@agent-ic/flow';
+import type { FlowNode, ModelRef, PromptSource } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.constants';
 import { SummaryKey } from '@/features/flow-builder/constants/nodeSummary.constants';
@@ -31,6 +31,7 @@ const HAIKU: ModelChoice = {
   label: 'Claude Haiku 5.5',
   vendor: ModelVendor.Anthropic,
   source: ModelSource.Platform,
+  providerKeyId: null,
   purposes: [],
   reasoningLevels: [],
   defaultReasoningLevel: null,
@@ -38,7 +39,12 @@ const HAIKU: ModelChoice = {
   outputPrice: 5,
 };
 
-const agentWith = (model: string, prompt: PromptSource | null = null): FlowNode => {
+const platform = (model: string): ModelRef => ({
+  provider: { kind: ModelProviderKind.Platform },
+  model,
+});
+
+const agentWith = (model: string | ModelRef, prompt: PromptSource | null = null): FlowNode => {
   const agent = stepOf(NodeType.Agent);
   return agent.type === NodeType.Agent
     ? {
@@ -46,7 +52,7 @@ const agentWith = (model: string, prompt: PromptSource | null = null): FlowNode 
         config: {
           ...agent.config,
           prompt,
-          model: { provider: { kind: ModelProviderKind.Platform }, model },
+          model: typeof model === 'string' ? platform(model) : model,
         },
       }
     : agent;
@@ -74,6 +80,18 @@ describe('nodeSummary', () => {
     expect(nodeSummary(agentWith('retired-model'), [HAIKU])[0]).toEqual({
       key: SummaryKey.Model,
       params: { model: 'retired-model' },
+    });
+  });
+
+  it('names a model of a workspace key by its id', () => {
+    const own: ModelRef = {
+      provider: { kind: ModelProviderKind.Workspace, providerKeyId: 'lmk_01own' },
+      model: HAIKU.id,
+    };
+
+    expect(nodeSummary(agentWith(own), [HAIKU])[0]).toEqual({
+      key: SummaryKey.Model,
+      params: { model: HAIKU.id },
     });
   });
 

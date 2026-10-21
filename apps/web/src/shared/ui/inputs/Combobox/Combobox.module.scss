@@ -95,7 +95,7 @@ $story-width: 260px;
   box-shadow: var(--shadow-popover);
 }
 
-.options {
+.list {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -104,6 +104,51 @@ $story-width: 260px;
   padding: 0;
   overflow-y: auto;
   list-style: none;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.groupLabel {
+  margin: 0;
+  float: left;
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--space-8) var(--space-8) var(--space-4);
+  color: var(--color-mute);
+  font: var(--type-overline);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+}
+
+.groupHint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-8);
+  color: var(--color-mute);
+  font: var(--type-small);
+}
+
+.groupHintText {
+  flex: 1;
+  min-width: 0;
 }
 
 .option {

@@ -1,9 +1,12 @@
 import { ReasoningLevel } from '@agent-ic/contracts';
-import { NodeType, OutputFieldType, PortName } from '@agent-ic/flow';
+import { ModelProviderKind, NodeType, OutputFieldType, PortName } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.constants';
-import { NEW_ENUM_VALUE } from '@/features/flow-builder/constants/llmStep.constants';
+import {
+  NEW_ENUM_VALUE,
+  PLATFORM_CHOICE_SOURCE,
+} from '@/features/flow-builder/constants/llmStep.constants';
 import { addNode } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import {
   addOutputField,
@@ -15,7 +18,8 @@ import {
   updateLlmStep,
   updateOutputField,
 } from '@/features/flow-builder/logic/helpers/llmStep.helpers';
-import type { ModelChoice } from '@/features/flow-builder/typedefs/llmStep.typedefs';
+import { choiceKey } from '@/features/flow-builder/logic/helpers/modelChoice.helpers';
+import type { ModelChoice, ModelGroup } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 import { ModelPurpose, ModelSource, ModelVendor } from '@/shared/api/generated/schema.generated';
 
 const ORIGIN = { x: 0, y: 0 };
@@ -24,6 +28,7 @@ const model = (id: string, purposes: ModelPurpose[], levels: ReasoningLevel[]): 
   label: id,
   vendor: ModelVendor.Openai,
   source: ModelSource.Platform,
+  providerKeyId: null,
   purposes,
   reasoningLevels: levels,
   defaultReasoningLevel: null,
@@ -32,7 +37,25 @@ const model = (id: string, purposes: ModelPurpose[], levels: ReasoningLevel[]): 
 });
 const STRONG = model('strong', [ModelPurpose.Conversation], [ReasoningLevel.High]);
 const FAST = model('fast', [ModelPurpose.Light], []);
-const MODELS = [STRONG, FAST];
+const KEY_ID = 'lmk_01own';
+const OWN: ModelChoice = {
+  ...model('gpt-4o', [ModelPurpose.Conversation, ModelPurpose.Light], []),
+  vendor: null,
+  source: ModelSource.Workspace,
+  providerKeyId: KEY_ID,
+  inputPrice: null,
+  outputPrice: null,
+};
+const group = (id: string, choices: readonly ModelChoice[]): ModelGroup => ({
+  id,
+  label: id,
+  choices,
+  loading: false,
+  failed: false,
+  retry: () => undefined,
+});
+const GROUPS = [group(PLATFORM_CHOICE_SOURCE, [STRONG, FAST]), group(KEY_ID, [OWN])];
+const platformKey = (id: string) => choiceKey({ providerKeyId: null, model: id });
 
 const flow = (): FlowDocument => {
   const document = addNode(
@@ -53,28 +76,49 @@ const config = (document: FlowDocument, id: string) =>
   document.nodes.find((node) => node.id === id)?.config;
 
 describe('llm step helpers', () => {
-  it('offers the models made for the step type', () => {
-    expect(modelsForStep(MODELS, NodeType.Agent)).toEqual([STRONG]);
-    expect(modelsForStep(MODELS, NodeType.Completion)).toEqual([FAST]);
-  });
+  it('offers the platform models made for the step type and key models to both', () => {
+    const choices = (type: NodeType.Agent | NodeType.Completion) =>
+      modelsForStep(GROUPS, type).map((entry) => entry.choices);
 
-  it('does not offer a model from a workspace provider', () => {
-    const own = { ...STRONG, id: 'own', source: ModelSource.Workspace };
-
-    expect(modelsForStep([own, STRONG], NodeType.Agent)).toEqual([STRONG]);
+    expect(choices(NodeType.Agent)).toEqual([[STRONG], [OWN]]);
+    expect(choices(NodeType.Completion)).toEqual([[FAST], [OWN]]);
   });
 
   it('keeps the reasoning level only while the new model supports it', () => {
-    const strong = updateLlmStep(selectModel(flow(), 'a', MODELS, 'strong'), 'a', {
+    const strong = updateLlmStep(selectModel(flow(), 'a', GROUPS, platformKey('strong')), 'a', {
       reasoning: ReasoningLevel.High,
     });
 
-    expect(config(strong, 'a')).toMatchObject({ model: { model: 'strong' }, reasoning: 'high' });
-    expect(config(selectModel(strong, 'a', MODELS, 'fast'), 'a')).toMatchObject({
+    expect(config(strong, 'a')).toMatchObject({
+      model: { provider: { kind: ModelProviderKind.Platform }, model: 'strong' },
+      reasoning: 'high',
+    });
+    expect(config(selectModel(strong, 'a', GROUPS, platformKey('fast')), 'a')).toMatchObject({
       model: { model: 'fast' },
       reasoning: null,
     });
-    expect(selectModel(strong, 'a', MODELS, 'gone')).toBe(strong);
+    expect(selectModel(strong, 'a', GROUPS, platformKey('gone'))).toBe(strong);
+  });
+
+  it('stores a key model and a typed id as a workspace model', () => {
+    const workspace = { kind: ModelProviderKind.Workspace, providerKeyId: KEY_ID };
+    const listed = selectModel(
+      flow(),
+      'a',
+      GROUPS,
+      choiceKey({ providerKeyId: KEY_ID, model: 'gpt-4o' }),
+    );
+    const typed = selectModel(
+      flow(),
+      'a',
+      GROUPS,
+      choiceKey({ providerKeyId: KEY_ID, model: 'o3' }),
+    );
+
+    expect(config(listed, 'a')).toMatchObject({ model: { provider: workspace, model: 'gpt-4o' } });
+    expect(config(typed, 'a')).toMatchObject({ model: { provider: workspace, model: 'o3' } });
+    const unknownKey = choiceKey({ providerKeyId: 'lmk_gone', model: 'o3' });
+    expect(selectModel(flow(), 'a', GROUPS, unknownKey)).toEqual(flow());
   });
 
   it('adds, edits and removes output fields with unique names', () => {

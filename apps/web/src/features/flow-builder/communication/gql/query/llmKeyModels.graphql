@@ -1,0 +1,3 @@
+query LlmKeyModels($keyId: ID!) {
+  llmKeyModels(keyId: $keyId)
+}

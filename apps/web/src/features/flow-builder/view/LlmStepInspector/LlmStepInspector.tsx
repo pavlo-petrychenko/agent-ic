@@ -9,8 +9,10 @@ import {
 } from '@/features/flow-builder/constants/inspector.constants';
 import {
   CONVERSATION_ROW_ID,
+  PLATFORM_CHOICE_SOURCE,
   UNSET_OPTION,
 } from '@/features/flow-builder/constants/llmStep.constants';
+import type { ModelOption } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 import type { LlmStepInspectorProps } from '@/features/flow-builder/view/LlmStepInspector/LlmStepInspector.typedefs';
 import { OutputFieldRow } from '@/features/flow-builder/view/LlmStepInspector/OutputFieldRow';
 import { PromptField } from '@/features/prompts';
@@ -18,6 +20,7 @@ import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { RowList } from '@/shared/ui/display/RowList';
 import { IconName } from '@/shared/ui/foundations/Icon';
+import { Combobox } from '@/shared/ui/inputs/Combobox';
 import { Field } from '@/shared/ui/inputs/Field';
 import { Select } from '@/shared/ui/inputs/Select';
 import { Switch } from '@/shared/ui/inputs/Switch';
@@ -31,7 +34,7 @@ export function LlmStepInspector({
   onPromptChange,
   onPromptCommit,
   onModelChange,
-  onRetryModels,
+  onModelType,
   onReasoningChange,
   onAddField,
   onFieldChange,
@@ -40,22 +43,37 @@ export function LlmStepInspector({
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const message = (issue: FlowIssue | null) =>
     issue === null ? null : t(`issue.${issue.code}`, { ...issue.params });
-  const chosen = step.models.find((model) => model.id === step.model) ?? null;
-  const modelOptions = [
-    ...(step.model === null
-      ? [{ value: UNSET_OPTION, label: t('inspector.llm.pickModel'), disabled: true }]
-      : []),
-    ...(step.model !== null && chosen === null ? [{ value: step.model, label: step.model }] : []),
-    ...step.models.map((model) => ({
-      value: model.id,
-      label: t('inspector.llm.modelOption', {
-        label: model.label,
-        vendor: t(`inspector.llm.vendor.${model.vendor}`),
-        input: model.inputPrice,
-        output: model.outputPrice,
-      }),
-    })),
-  ];
+  const chosen = step.options.find((option) => option.key === step.modelKey)?.choice ?? null;
+  const platform = step.groups.find((group) => group.id === PLATFORM_CHOICE_SOURCE) ?? null;
+  const keyGroups = step.groups.filter((group) => group.id !== PLATFORM_CHOICE_SOURCE);
+  const optionLabel = ({ choice, model }: ModelOption) =>
+    choice === null ||
+    choice.vendor === null ||
+    choice.inputPrice === null ||
+    choice.outputPrice === null
+      ? model
+      : t('inspector.llm.modelOption', {
+          label: choice.label,
+          vendor: t(`inspector.llm.vendor.${choice.vendor}`),
+          input: choice.inputPrice,
+          output: choice.outputPrice,
+        });
+  const modelOptions = step.options.map((option) => ({
+    value: option.key,
+    label: optionLabel(option),
+    ...(option.group === null ? {} : { group: option.group }),
+  }));
+  const modelGroups = step.groups.map((group) => ({
+    id: group.id,
+    label: group.label,
+    hint: group.loading
+      ? t('inspector.llm.keyModelsLoading')
+      : group.failed
+        ? t(group === platform ? 'inspector.llm.modelsFailed' : 'inspector.llm.keyModelsFailed')
+        : null,
+    action: group.failed ? { label: t('retry'), onSelect: group.retry } : null,
+    creatable: group !== platform,
+  }));
   const defaultLevel = chosen?.defaultReasoningLevel ?? null;
 
   useEffect(() => onPromptCommit, [onPromptCommit]);
@@ -72,20 +90,35 @@ export function LlmStepInspector({
           />
         </div>
       </InspectorSection>
-      <InspectorSection title={t('inspector.llm.model')} note={t('inspector.llm.platform')}>
-        <Select
+      <InspectorSection
+        title={t('inspector.llm.model')}
+        note={
+          step.keyName === null
+            ? t('inspector.llm.platform')
+            : t('inspector.llm.sourceKey', { name: step.keyName })
+        }
+      >
+        <Combobox
           aria-label={t('inspector.llm.model')}
-          value={step.model ?? UNSET_OPTION}
+          value={step.modelKey ?? UNSET_OPTION}
           options={modelOptions}
+          groups={modelGroups}
+          placeholder={t('inspector.llm.pickModel')}
+          searchLabel={t('inspector.llm.searchModels')}
+          searchClearLabel={t('inspector.llm.clearModelSearch')}
+          emptyLabel={t('inspector.llm.noModels')}
+          createLabel={
+            keyGroups.length === 0 ? null : (query) => t('inspector.llm.useTyped', { query })
+          }
+          onCreate={onModelType}
           error={message(step.modelIssue)}
-          disabled={step.modelsLoading}
-          onChange={(event) => onModelChange(event.target.value)}
+          onChange={onModelChange}
         />
-        {step.modelsFailed && (
+        {platform !== null && platform.failed && (
           <Callout
             tone={CalloutTone.Err}
             action={
-              <Button variant={ButtonVariant.Ghost} size={ButtonSize.Sm} onClick={onRetryModels}>
+              <Button variant={ButtonVariant.Ghost} size={ButtonSize.Sm} onClick={platform.retry}>
                 {t('retry')}
               </Button>
             }

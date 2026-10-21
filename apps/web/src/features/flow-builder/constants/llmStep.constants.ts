@@ -3,7 +3,6 @@ import { NodeType } from '@agent-ic/flow';
 import type { LlmStepType } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 import {
   ModelPurpose,
-  ModelSource,
   ReasoningLevel as ApiReasoningLevel,
 } from '@/shared/api/generated/schema.generated';
 
@@ -23,7 +22,12 @@ export const STEP_MODEL_PURPOSE: Readonly<Record<LlmStepType, ModelPurpose>> = {
   [NodeType.Completion]: ModelPurpose.Light,
 };
 
-export const CHOOSABLE_MODEL_SOURCE = ModelSource.Platform;
+export const KEY_MODEL_PURPOSES: readonly ModelPurpose[] = LLM_STEP_TYPES.map(
+  (type) => STEP_MODEL_PURPOSE[type],
+);
+
+export const PLATFORM_CHOICE_SOURCE = 'platform';
+export const CHOICE_KEY_SEPARATOR = ':';
 
 export const UNSET_OPTION = '';
 export const NEW_OUTPUT_FIELD_PREFIX = 'field';

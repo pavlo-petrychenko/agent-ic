@@ -11,9 +11,12 @@ import {
   triggerVariables,
   visibleVariables,
 } from '@agent-ic/flow';
-import type { AgentNode, CompletionNode, FlowNode } from '@agent-ic/flow';
+import { ModelProviderKind } from '@agent-ic/flow';
+import type { AgentNode, CompletionNode, FlowNode, ModelRef } from '@agent-ic/flow';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLlmKeyModels } from '@/features/flow-builder/communication/hooks/useLlmKeyModels';
+import { useLlmKeyOptions } from '@/features/flow-builder/communication/hooks/useLlmKeyOptions';
 import { useMembersByRole } from '@/features/flow-builder/communication/hooks/useMembersByRole';
 import { useModelOptions } from '@/features/flow-builder/communication/hooks/useModelOptions';
 import { useTestApiRequest } from '@/features/flow-builder/communication/hooks/useTestApiRequest';
@@ -24,7 +27,10 @@ import {
   IssuePathSegment,
   PATH_JOINER,
 } from '@/features/flow-builder/constants/inspector.constants';
-import { LLM_STEP_TYPES } from '@/features/flow-builder/constants/llmStep.constants';
+import {
+  LLM_STEP_TYPES,
+  PLATFORM_CHOICE_SOURCE,
+} from '@/features/flow-builder/constants/llmStep.constants';
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import type { InspectorPanelProps } from '@/features/flow-builder/containers/InspectorPanel/InspectorPanel.typedefs';
@@ -67,6 +73,12 @@ import {
   updateOutputField,
 } from '@/features/flow-builder/logic/helpers/llmStep.helpers';
 import {
+  choiceKey,
+  groupChoiceKey,
+  modelOptions as toModelOptions,
+  refChoiceKey,
+} from '@/features/flow-builder/logic/helpers/modelChoice.helpers';
+import {
   addRule,
   conditionView,
   moveRule,
@@ -84,7 +96,11 @@ import {
 import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { KeyRename } from '@/features/flow-builder/typedefs/inspector.typedefs';
-import type { LlmStepExtra } from '@/features/flow-builder/typedefs/llmStep.typedefs';
+import type {
+  LlmKeyChoice,
+  LlmStepExtra,
+  ModelGroup,
+} from '@/features/flow-builder/typedefs/llmStep.typedefs';
 import { ApiRequestInspector } from '@/features/flow-builder/view/ApiRequestInspector';
 import { EscalationInspector } from '@/features/flow-builder/view/EscalationInspector';
 import { InlineEditField } from '@/features/flow-builder/view/InlineEditField';
@@ -96,6 +112,8 @@ import { TriggerInspector } from '@/features/flow-builder/view/TriggerInspector'
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Inspector } from '@/shared/ui/layout/Inspector';
 import { Dialog } from '@/shared/ui/overlays/Dialog';
+
+const NO_KEYS: readonly LlmKeyChoice[] = [];
 
 export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
@@ -112,7 +130,25 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
     () => (node === null ? [] : visibleVariables(document, node.id)),
     [document, node],
   );
-  const modelOptions = useModelOptions(!LLM_STEP_TYPES.some((type) => type === node?.type));
+  const skipModels = !LLM_STEP_TYPES.some((type) => type === node?.type);
+  const platformModels = useModelOptions(skipModels);
+  const keyOptions = useLlmKeyOptions(skipModels);
+  const keyModels = useLlmKeyModels(skipModels ? NO_KEYS : keyOptions.keys);
+  const modelGroups: readonly ModelGroup[] = [
+    {
+      id: PLATFORM_CHOICE_SOURCE,
+      label: t('inspector.llm.groupPlatform'),
+      choices: platformModels.models,
+      loading: platformModels.loading,
+      failed: platformModels.error !== null,
+      retry: platformModels.retry,
+    },
+    ...keyModels.map(({ key, ...state }) => ({
+      id: key.id,
+      label: t('inspector.llm.groupKey', { name: key.name }),
+      ...state,
+    })),
+  ];
   const saveState = useFlowBuilderStore((state) => state.saveState);
   const apiTest = useTestApiRequest(agentId);
   const memberCounts = useMembersByRole(node?.type !== NodeType.Escalation);
@@ -132,10 +168,22 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
 
   const commitPreview = useCallback(() => apply(useFlowBuilderStore.getState().document), [apply]);
 
+  const keyName = (model: ModelRef | null) => {
+    const provider = model?.provider ?? null;
+    if (provider === null || provider.kind === ModelProviderKind.Platform) {
+      return null;
+    }
+    return (
+      keyOptions.keys.find(({ id }) => id === provider.providerKeyId)?.name ??
+      provider.providerKeyId
+    );
+  };
+
   const llmStep = (current: AgentNode | CompletionNode, extra: LlmStepExtra) => {
     const errors = fieldErrors(issues, current.id);
     const { prompt, model, reasoning, output } = current.config;
     const builtIn = nodeOutputFields(current).filter((field) => !output.includes(field));
+    const groups = modelsForStep(modelGroups, current.type);
     return (
       <LlmStepInspector
         key={current.id}
@@ -143,10 +191,11 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
         step={{
           source: prompt,
           variables: variableOptions,
-          models: modelsForStep(modelOptions.models, current.type),
-          modelsLoading: modelOptions.loading,
-          modelsFailed: modelOptions.error !== null,
-          model: model?.model ?? null,
+          groups,
+          options: toModelOptions(groups, model),
+          model,
+          modelKey: model === null ? null : choiceKey(refChoiceKey(model)),
+          keyName: keyName(model),
           reasoning,
           builtIn,
           output,
@@ -167,10 +216,11 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
         extra={extra}
         onPromptChange={(next) => apply(updateLlmStep(document, current.id, { prompt: next }))}
         onPromptCommit={commitPreview}
-        onModelChange={(modelId) =>
-          apply(selectModel(document, current.id, modelOptions.models, modelId))
+        onModelChange={(key) => apply(selectModel(document, current.id, groups, key))}
+        onModelType={(typed, group) =>
+          group !== null &&
+          apply(selectModel(document, current.id, groups, groupChoiceKey(group, typed)))
         }
-        onRetryModels={modelOptions.retry}
         onReasoningChange={(level) =>
           apply(updateLlmStep(document, current.id, { reasoning: level }))
         }

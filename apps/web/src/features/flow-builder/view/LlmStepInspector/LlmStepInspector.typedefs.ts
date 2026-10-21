@@ -12,8 +12,8 @@ export interface LlmStepInspectorProps {
   extra: LlmStepExtra;
   onPromptChange: (source: PromptSource) => void;
   onPromptCommit: () => void;
-  onRetryModels: () => void;
-  onModelChange: (modelId: string) => void;
+  onModelChange: (key: string) => void;
+  onModelType: (model: string, group: string | null) => void;
   onReasoningChange: (reasoning: ReasoningLevel | null) => void;
   onAddField: () => void;
   onFieldChange: (index: number, patch: OutputFieldPatch) => void;
