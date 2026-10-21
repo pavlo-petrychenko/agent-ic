@@ -11,6 +11,7 @@ import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { StoredFlowUnreadableError } from '@/modules/agents/errors/stored-flow-unreadable.error';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
+import type { SavedDraft } from '@/modules/agents/typedefs/agent-version.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -19,11 +20,13 @@ import {
   TEST_EDITOR_ID,
   TEST_VERSION_NOTE,
 } from '@test/support/constants/agents-testing.constants';
+import { CLOCK_TICK_MS } from '@test/support/constants/manual-clock.constants';
 import {
   CHECK_VIOLATION,
   ROW_LEVEL_SECURITY_VIOLATION,
   UNIQUE_VIOLATION,
 } from '@test/support/constants/postgres-errors.constants';
+import type { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import {
   emptyFlow,
   newAgent,
@@ -31,6 +34,7 @@ import {
   triggerFlow,
 } from '@test/support/fixtures/agents.fixture';
 import { createAgentsTestingModule } from '@test/support/helpers/agents-testing.helpers';
+import { manualClockOf } from '@test/support/helpers/manual-clock.helpers';
 import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 const FIRST_NUMBER = 1;
@@ -42,6 +46,7 @@ describe('AgentVersionsRepository', () => {
   let repository: AgentVersionsRepository;
   let tenants: TenantTransactionService;
   let ids: IdService;
+  let clock: ManualClock;
 
   beforeAll(async () => {
     testingModule = await createAgentsTestingModule();
@@ -49,6 +54,7 @@ describe('AgentVersionsRepository', () => {
     repository = testingModule.get(AgentVersionsRepository);
     tenants = testingModule.get(TenantTransactionService);
     ids = testingModule.get(IdService);
+    clock = manualClockOf(testingModule);
   });
 
   afterAll(async () => {
@@ -68,6 +74,7 @@ describe('AgentVersionsRepository', () => {
     kind: AgentVersionKind,
     number: number | null = null,
   ): Promise<string> => {
+    clock.advanceBy(CLOCK_TICK_MS);
     const versionId = ids.generate();
     await tenants.run(workspaceId, () =>
       repository.insert(newVersion(versionId, workspaceId, agentId, { kind, number })),
@@ -79,6 +86,7 @@ describe('AgentVersionsRepository', () => {
     const workspaceId = ids.generate();
     const agentId = await insertAgent(workspaceId);
     const draftId = await insertVersion(workspaceId, agentId, AgentVersionKind.Draft);
+    const createdAt = clock.now();
 
     const byId = await tenants.run(workspaceId, () => repository.findById(workspaceId, draftId));
     const draft = await tenants.run(workspaceId, () => repository.findDraft(workspaceId, agentId));
@@ -92,6 +100,8 @@ describe('AgentVersionsRepository', () => {
       note: null,
       authorId: null,
       publishedAt: null,
+      createdAt,
+      updatedAt: createdAt,
     });
     expect(draft?.id).toBe(draftId);
   });
@@ -108,14 +118,9 @@ describe('AgentVersionsRepository', () => {
     );
     const snapshotId = await insertVersion(workspaceId, agentId, AgentVersionKind.Snapshot);
     const changes = { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID };
-    const update = (versionId: string): Promise<number | null> =>
-      repository.updateDraft(
-        workspaceId,
-        versionId,
-        DRAFT_INITIAL_REVISION,
-        changes,
-        AGENTS_TEST_LATER,
-      );
+    clock.advanceBy(CLOCK_TICK_MS);
+    const update = (versionId: string): Promise<SavedDraft | null> =>
+      repository.updateDraft(workspaceId, versionId, DRAFT_INITIAL_REVISION, changes);
 
     const results = await tenants.run(workspaceId, async () => ({
       draft: await update(draftId),
@@ -130,14 +135,40 @@ describe('AgentVersionsRepository', () => {
       repository.findById(workspaceId, snapshotId),
     );
 
-    expect(results).toEqual({ draft: DRAFT_INITIAL_REVISION + 1, published: null, snapshot: null });
+    expect(results).toEqual({
+      draft: { revision: DRAFT_INITIAL_REVISION + 1, updatedAt: clock.now() },
+      published: null,
+      snapshot: null,
+    });
     expect(draft).toMatchObject({
       ...changes,
       revision: DRAFT_INITIAL_REVISION + 1,
-      updatedAt: AGENTS_TEST_LATER,
+      updatedAt: clock.now(),
     });
     expect(published?.flow).toEqual(emptyFlow());
     expect(snapshot?.flow).toEqual(emptyFlow());
+  });
+
+  it('points a draft at its base version and stamps updatedAt', async () => {
+    const workspaceId = ids.generate();
+    const agentId = await insertAgent(workspaceId);
+    const draftId = await insertVersion(workspaceId, agentId, AgentVersionKind.Draft);
+    const createdAt = clock.now();
+    const publishedId = await insertVersion(
+      workspaceId,
+      agentId,
+      AgentVersionKind.Published,
+      FIRST_NUMBER,
+    );
+    clock.advanceBy(CLOCK_TICK_MS);
+
+    const pointed = await tenants.run(workspaceId, () =>
+      repository.setBaseVersion(workspaceId, draftId, publishedId),
+    );
+    const draft = await tenants.run(workspaceId, () => repository.findById(workspaceId, draftId));
+
+    expect(pointed).toBe(true);
+    expect(draft).toMatchObject({ baseVersionId: publishedId, createdAt, updatedAt: clock.now() });
   });
 
   it('changes nothing when the draft is at another revision', async () => {
@@ -147,13 +178,7 @@ describe('AgentVersionsRepository', () => {
     const changes = { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID };
 
     const updated = await tenants.run(workspaceId, () =>
-      repository.updateDraft(
-        workspaceId,
-        draftId,
-        DRAFT_INITIAL_REVISION + 1,
-        changes,
-        AGENTS_TEST_LATER,
-      ),
+      repository.updateDraft(workspaceId, draftId, DRAFT_INITIAL_REVISION + 1, changes),
     );
     const draft = await tenants.run(workspaceId, () => repository.findById(workspaceId, draftId));
 
@@ -219,8 +244,8 @@ describe('AgentVersionsRepository', () => {
         .update(agentVersions)
         .set({ flow: triggerFlow() })
         .where(eq(agentVersions.id, draftId));
-      await agents.setDraftVersion(workspaceId, agentId, draftId, AGENTS_TEST_LATER);
-      await agents.setLiveVersion(workspaceId, agentId, liveId, AGENTS_TEST_LATER);
+      await agents.setDraftVersion(workspaceId, agentId, draftId);
+      await agents.setLiveVersion(workspaceId, agentId, liveId);
       return repository.summarize(workspaceId, [agentId]);
     });
 
@@ -339,13 +364,11 @@ describe('AgentVersionsRepository', () => {
         draft: await repository.findDraft(workspaceA, agentId),
         list: await repository.listByAgent(workspaceA, agentId),
         last: await repository.lastPublishedNumber(workspaceA, agentId),
-        updated: await repository.updateDraft(
-          workspaceA,
-          draftId,
-          DRAFT_INITIAL_REVISION,
-          { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID },
-          AGENTS_TEST_LATER,
-        ),
+        updated: await repository.updateDraft(workspaceA, draftId, DRAFT_INITIAL_REVISION, {
+          flow: triggerFlow(),
+          note: TEST_VERSION_NOTE,
+          authorId: TEST_EDITOR_ID,
+        }),
       }));
 
       expect(fromB).toEqual({ byId: null, draft: null, list: [], last: 0, updated: null });

@@ -3,7 +3,7 @@ import type { sessions } from '@/modules/identity/db/sessions.table';
 
 export type SessionRecord = typeof sessions.$inferSelect;
 
-export type NewSession = typeof sessions.$inferInsert;
+export type NewSession = Omit<typeof sessions.$inferInsert, 'createdAt'>;
 
 export interface IssuedSession {
   readonly userId: string;

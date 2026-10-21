@@ -26,7 +26,7 @@ export interface Conversation {
   readonly createdAt: Date;
 }
 
-export type NewConversation = typeof conversations.$inferInsert;
+export type NewConversation = Omit<typeof conversations.$inferInsert, 'createdAt'>;
 
 export interface WaitingRequest {
   readonly workspaceId: string;

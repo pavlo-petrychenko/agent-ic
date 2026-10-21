@@ -24,9 +24,7 @@ export const prompts = promptsSchema
         onDelete: 'set null',
       }),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
-      updatedAt: timestamp('updated_at', { withTimezone: true })
-        .notNull()
-        .$onUpdateFn(() => new Date()),
+      updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
       deletedAt: timestamp('deleted_at', { withTimezone: true }),
     },
     (table) => [

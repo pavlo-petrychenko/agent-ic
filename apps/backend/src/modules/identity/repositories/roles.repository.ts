@@ -12,11 +12,16 @@ import type {
   RoleRecord,
   RoleWithPermissions,
 } from '@/modules/identity/typedefs/role.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class RolesRepository {
-  constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
+  constructor(
+    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly clock: ClockService,
+  ) {}
 
   async list(workspaceId: string): Promise<RoleWithPermissions[]> {
     const rows = await this.txHost.tx
@@ -84,17 +89,24 @@ export class RolesRepository {
     return role ?? null;
   }
 
-  async insert(role: NewRole): Promise<void> {
-    await this.txHost.tx.insert(roles).values(role);
+  async insert(role: NewRole): Promise<RoleRecord> {
+    const now = this.clock.now();
+    return storedRow(
+      await this.txHost.tx
+        .insert(roles)
+        .values({ ...role, createdAt: now, updatedAt: now })
+        .returning(),
+    );
   }
 
   async insertMany(rows: readonly NewRole[]): Promise<void> {
     if (rows.length === 0) {
       return;
     }
+    const now = this.clock.now();
     await this.txHost.tx
       .insert(roles)
-      .values([...rows])
+      .values(rows.map((row) => ({ ...row, createdAt: now, updatedAt: now })))
       .onConflictDoNothing();
   }
 
@@ -125,7 +137,7 @@ export class RolesRepository {
   async rename(workspaceId: string, id: string, name: string): Promise<void> {
     await this.txHost.tx
       .update(roles)
-      .set({ name })
+      .set({ name, updatedAt: this.clock.now() })
       .where(and(eq(roles.workspaceId, workspaceId), eq(roles.id, id)));
   }
 

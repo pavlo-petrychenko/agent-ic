@@ -48,7 +48,7 @@ export class InviteLinksService {
   ): Promise<InviteLinkRecord> {
     const now = this.clock.now();
     const id = this.ids.generate();
-    const link: InviteLinkRecord = {
+    return this.inviteLinks.insert({
       id,
       workspaceId,
       tokenHash: this.tokens.derive(id).hash,
@@ -56,10 +56,7 @@ export class InviteLinksService {
       createdByUserId,
       expiresAt: addSeconds(now, INVITE_LINK_TTL_SECONDS),
       revokedAt: null,
-      createdAt: now,
-    };
-    await this.inviteLinks.insert(link);
-    return link;
+    });
   }
 
   async view(link: InviteLinkRecord): Promise<InviteLinkView> {
@@ -103,7 +100,6 @@ export class InviteLinksService {
         userId,
         roleId: link.roleId,
         inviteLinkId: link.id,
-        createdAt: now,
       });
       const membership = created ?? (await this.memberships.findByUser(workspaceId, userId));
       if (membership === null) {

@@ -9,7 +9,9 @@ export interface PromptFolder {
   readonly deletedAt: Date | null;
 }
 
-export type NewPromptFolder = typeof promptFolders.$inferInsert;
+export type NewPromptFolder = Omit<typeof promptFolders.$inferInsert, 'createdAt' | 'updatedAt'>;
+
+export type PromptFolderChanges = Partial<Omit<NewPromptFolder, 'id' | 'workspaceId'>>;
 
 export interface PromptFolderView {
   readonly id: string;

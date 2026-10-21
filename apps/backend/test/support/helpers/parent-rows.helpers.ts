@@ -32,6 +32,7 @@ import {
 } from '@test/support/constants/workspace-testing.constants';
 import { newAgent, newVersion } from '@test/support/fixtures/agents.fixture';
 import { uniqueEmail } from '@test/support/fixtures/identity.fixture';
+import { rowTimestamps } from '@test/support/helpers/row-timestamps.helpers';
 
 type RunParents = Pick<
   NewRun,
@@ -84,7 +85,7 @@ export const ensureAgentRow = async (
   await app
     .get(SystemDatabaseService)
     .db.insert(agents)
-    .values(newAgent(agentId, workspaceId))
+    .values({ ...newAgent(agentId, workspaceId), ...rowTimestamps(app.get(ClockService).now()) })
     .onConflictDoNothing();
 };
 
@@ -98,7 +99,10 @@ export const ensureRunParents = async (
   const now = app.get(ClockService).now();
   await db
     .insert(agentVersions)
-    .values(newVersion(run.versionId, workspaceId, agentId, { kind: AgentVersionKind.Snapshot }))
+    .values({
+      ...newVersion(run.versionId, workspaceId, agentId, { kind: AgentVersionKind.Snapshot }),
+      ...rowTimestamps(now),
+    })
     .onConflictDoNothing();
   await db
     .insert(conversations)
@@ -143,9 +147,11 @@ export const seedRunRow = async (
     trigger: RunTrigger.Message,
     status: RunStatus.Queued,
     lastCoveredMessageId: ids.generate(),
-    createdAt: app.get(ClockService).now(),
   };
   await ensureRunParents(app, run);
-  await app.get(SystemDatabaseService).db.insert(runs).values(run);
+  await app
+    .get(SystemDatabaseService)
+    .db.insert(runs)
+    .values({ ...run, createdAt: app.get(ClockService).now() });
   return run.id;
 };

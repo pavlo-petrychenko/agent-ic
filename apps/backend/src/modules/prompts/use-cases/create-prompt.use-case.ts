@@ -9,10 +9,9 @@ import { createPromptInputSchema } from '@/modules/prompts/schemas/prompt-input.
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
 import type {
   CreatePromptInput,
-  Prompt,
+  NewPrompt,
   PromptView,
 } from '@/modules/prompts/typedefs/prompt.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -25,7 +24,6 @@ export class CreatePromptUseCase {
     private readonly prompts: PromptsRepository,
     private readonly folders: PromptFoldersRepository,
     private readonly views: PromptViewsService,
-    private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
 
@@ -37,16 +35,12 @@ export class CreatePromptUseCase {
     );
     const { name, folderId: publicFolderId } = parsePromptInput(createPromptInputSchema, input);
     const folderId = this.ids.fromPublic(IdPrefix.PromptFolder, publicFolderId);
-    const now = this.clock.now();
-    const prompt: Prompt = {
+    const prompt: NewPrompt = {
       id: this.ids.generate(),
       workspaceId,
       name,
       folderId,
       createdByUserId: userId,
-      createdAt: now,
-      updatedAt: now,
-      deletedAt: null,
     };
     return this.tenantTransactions.run(workspaceId, async () => {
       await this.prompts.lockNames(workspaceId);
@@ -56,8 +50,7 @@ export class CreatePromptUseCase {
       if ((await this.prompts.findByName(workspaceId, name)) !== null) {
         throw new PromptNameTakenError();
       }
-      await this.prompts.insert(prompt);
-      return this.views.promptView(prompt);
+      return this.views.promptView(await this.prompts.insert(prompt));
     });
   }
 }

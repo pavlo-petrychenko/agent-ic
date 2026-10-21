@@ -66,17 +66,11 @@ describe('AgentRuntimeReader', () => {
       publishing.publish(workspaceId, agentId, { authorId: TEST_EDITOR_ID }),
     );
     const edited = await tenants.run(workspaceId, () =>
-      versions.updateDraft(
-        workspaceId,
-        draftId,
-        DRAFT_INITIAL_REVISION,
-        {
-          flow: triggerFlow(TEST_NODE_NEW_LABEL),
-          note: TEST_VERSION_NOTE,
-          authorId: TEST_EDITOR_ID,
-        },
-        AGENTS_TEST_LATER,
-      ),
+      versions.updateDraft(workspaceId, draftId, DRAFT_INITIAL_REVISION, {
+        flow: triggerFlow(TEST_NODE_NEW_LABEL),
+        note: TEST_VERSION_NOTE,
+        authorId: TEST_EDITOR_ID,
+      }),
     );
     const second = await tenants.run(workspaceId, () =>
       publishing.publish(workspaceId, agentId, { authorId: TEST_EDITOR_ID }),
@@ -85,7 +79,7 @@ describe('AgentRuntimeReader', () => {
     const pinned = await tenants.run(workspaceId, () => reader.getVersion(workspaceId, first.id));
     const live = await tenants.run(workspaceId, () => reader.getLiveVersion(workspaceId, agentId));
 
-    expect(edited).toBe(DRAFT_INITIAL_REVISION + 1);
+    expect(edited?.revision).toBe(DRAFT_INITIAL_REVISION + 1);
     expect(pinned).toEqual(first);
     expect(pinned.flow).toEqual(triggerFlow());
     expect(live).toEqual(second);
@@ -117,16 +111,11 @@ describe('AgentRuntimeReader', () => {
       reader.getPauseSettings(workspaceId, agentId),
     );
     await tenants.run(workspaceId, () =>
-      agents.setPause(
-        workspaceId,
-        agentId,
-        {
-          mode: PauseMode.AwayMessage,
-          awayMessage: TEST_AWAY_MESSAGE,
-          pausedAt: AGENTS_TEST_LATER,
-        },
-        AGENTS_TEST_LATER,
-      ),
+      agents.setPause(workspaceId, agentId, {
+        mode: PauseMode.AwayMessage,
+        awayMessage: TEST_AWAY_MESSAGE,
+        pausedAt: AGENTS_TEST_LATER,
+      }),
     );
 
     const paused = await tenants.run(workspaceId, () =>
@@ -150,26 +139,22 @@ describe('AgentRuntimeReader', () => {
         reader.snapshotDraft(workspaceId, agentId),
       );
       await tenants.run(workspaceId, () =>
-        versions.updateDraft(
-          workspaceId,
-          draftId,
-          DRAFT_INITIAL_REVISION,
-          { flow: emptyFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID },
-          AGENTS_TEST_LATER,
-        ),
+        versions.updateDraft(workspaceId, draftId, DRAFT_INITIAL_REVISION, {
+          flow: emptyFlow(),
+          note: TEST_VERSION_NOTE,
+          authorId: TEST_EDITOR_ID,
+        }),
       );
 
       const stored = await tenants.run(workspaceId, () =>
         reader.getVersion(workspaceId, snapshot.id),
       );
       const frozen = await tenants.run(workspaceId, () =>
-        versions.updateDraft(
-          workspaceId,
-          snapshot.id,
-          DRAFT_INITIAL_REVISION,
-          { flow: emptyFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID },
-          AGENTS_TEST_LATER,
-        ),
+        versions.updateDraft(workspaceId, snapshot.id, DRAFT_INITIAL_REVISION, {
+          flow: emptyFlow(),
+          note: TEST_VERSION_NOTE,
+          authorId: TEST_EDITOR_ID,
+        }),
       );
       const agent = await tenants.run(workspaceId, () => agents.findById(workspaceId, agentId));
       expect(snapshot).toMatchObject({

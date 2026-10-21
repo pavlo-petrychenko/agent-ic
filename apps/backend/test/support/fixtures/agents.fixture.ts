@@ -15,7 +15,6 @@ import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
 import type { NewAgentVersion } from '@/modules/agents/typedefs/agent-version.typedefs';
 import type { NewAgent } from '@/modules/agents/typedefs/agent.typedefs';
 import {
-  AGENTS_TEST_START,
   TEST_AGENT_NAME,
   TEST_API_BODY_TEMPLATE,
   TEST_API_HEADER_NAME,
@@ -108,8 +107,6 @@ export const newAgent = (
   id,
   workspaceId,
   name: TEST_AGENT_NAME,
-  createdAt: AGENTS_TEST_START,
-  updatedAt: AGENTS_TEST_START,
   ...overrides,
 });
 
@@ -124,7 +121,5 @@ export const newVersion = (
   agentId,
   kind: AgentVersionKind.Draft,
   flow: emptyFlow(),
-  createdAt: AGENTS_TEST_START,
-  updatedAt: AGENTS_TEST_START,
   ...overrides,
 });

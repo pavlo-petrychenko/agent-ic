@@ -69,7 +69,7 @@ Details and reasons are in `docs/rules/`. A tool enforces each rule marked with 
 10. `SystemDatabaseService` only from the allow-list in `.dependency-cruiser.cjs` (`depcruise`).
 11. A use case checks permissions first, and is one transaction. Side effects go through jobs or events after commit.
 12. Throw `DomainError` subclasses; never swallow errors.
-13. Time, randomness and ids are services, even without state, so tests can replace them: `ClockService`, `IdService`, `SecureTokenService`. Never `new Date()` or `randomUUID()` in domain code.
+13. Time, randomness and ids are services, even without state, so tests can replace them: `ClockService`, `IdService`, `SecureTokenService`. Never `new Date()` or `randomUUID()` in domain code. `created_at` and `updated_at` are row bookkeeping: the repository stamps them from `ClockService`, both on insert and `updated_at` on every update, so no caller passes them and no table has `$onUpdateFn`, `$defaultFn` or `defaultNow` (oxlint). Domain times (`published_at`, `deleted_at`, `expires_at` and the like) stay decisions of the use case.
 14. Web feature layers are communication, logic, storage, view, containers. Another feature only through its `index.ts` (`depcruise`).
 15. Radix only inside `apps/web/src/shared/ui` (`depcruise`).
 16. Web types use `null`, never `undefined`, for missing API data.

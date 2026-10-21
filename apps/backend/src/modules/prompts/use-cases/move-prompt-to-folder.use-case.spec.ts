@@ -7,12 +7,13 @@ import { PromptsRepository } from '@/modules/prompts/repositories/prompts.reposi
 import { MovePromptToFolderUseCase } from '@/modules/prompts/use-cases/move-prompt-to-folder.use-case';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { CLOCK_TICK_MS } from '@test/support/constants/manual-clock.constants';
 import {
   PROMPTS_TEST_LATER,
-  PROMPTS_TEST_START,
   TEST_FOLDER_NEW_NAME,
   TEST_PROMPT_NAME,
 } from '@test/support/constants/prompts-testing.constants';
+import { manualClockOf } from '@test/support/helpers/manual-clock.helpers';
 import {
   createPromptsTestingModule,
   promptsCtx,
@@ -50,6 +51,9 @@ describe('MovePromptToFolderUseCase', () => {
       name: TEST_FOLDER_NEW_NAME,
     });
     const promptId = await seedPrompt(testingModule, workspaceId, folderId);
+    const clock = manualClockOf(testingModule);
+    const createdAt = clock.now();
+    clock.advanceBy(CLOCK_TICK_MS);
 
     const view = await movePrompt.execute(promptsCtx(testingModule, workspaceId), {
       id: publicPromptId(testingModule, promptId),
@@ -63,13 +67,16 @@ describe('MovePromptToFolderUseCase', () => {
       folderId: publicPromptFolderId(testingModule, otherFolderId),
     });
     expect(stored?.folderId).toBe(otherFolderId);
-    expect(stored?.updatedAt.getTime()).toBeGreaterThan(PROMPTS_TEST_START.getTime());
+    expect(stored).toMatchObject({ createdAt, updatedAt: clock.now() });
   });
 
   it('keeps the prompt in place when it is already in the folder', async () => {
     const workspaceId = ids.generate();
     const folderId = await seedPromptFolder(testingModule, workspaceId);
     const promptId = await seedPrompt(testingModule, workspaceId, folderId);
+    const clock = manualClockOf(testingModule);
+    const createdAt = clock.now();
+    clock.advanceBy(CLOCK_TICK_MS);
 
     const view = await movePrompt.execute(promptsCtx(testingModule, workspaceId), {
       id: publicPromptId(testingModule, promptId),
@@ -78,7 +85,7 @@ describe('MovePromptToFolderUseCase', () => {
 
     const stored = await tenants.run(workspaceId, () => prompts.findById(workspaceId, promptId));
     expect(view.folderId).toBe(publicPromptFolderId(testingModule, folderId));
-    expect(stored?.updatedAt).toEqual(PROMPTS_TEST_START);
+    expect(stored?.updatedAt).toEqual(createdAt);
   });
 
   it('refuses an unknown prompt', async () => {

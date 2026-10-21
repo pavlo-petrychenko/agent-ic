@@ -12,7 +12,9 @@ export interface Prompt {
   readonly deletedAt: Date | null;
 }
 
-export type NewPrompt = typeof prompts.$inferInsert;
+export type NewPrompt = Omit<typeof prompts.$inferInsert, 'createdAt' | 'updatedAt'>;
+
+export type PromptChanges = Partial<Omit<NewPrompt, 'id' | 'workspaceId'>>;
 
 export interface PromptView {
   readonly id: string;

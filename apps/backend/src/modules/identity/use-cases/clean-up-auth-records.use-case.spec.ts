@@ -10,8 +10,8 @@ import {
 import { emailTokens } from '@/modules/identity/db/email-tokens.table';
 import { sessions } from '@/modules/identity/db/sessions.table';
 import { addSeconds } from '@/modules/identity/helpers/time.helpers';
-import type { NewEmailToken } from '@/modules/identity/typedefs/email-token.typedefs';
-import type { NewSession } from '@/modules/identity/typedefs/session.typedefs';
+import type { EmailTokenRecord } from '@/modules/identity/typedefs/email-token.typedefs';
+import type { SessionRecord } from '@/modules/identity/typedefs/session.typedefs';
 import { CleanUpAuthRecordsUseCase } from '@/modules/identity/use-cases/clean-up-auth-records.use-case';
 import { SystemActorRequiredError } from '@/platform/context/errors/system-actor-required.error';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
@@ -35,7 +35,7 @@ describe('CleanUpAuthRecordsUseCase', () => {
 
   const at = (seconds: number): Date => addSeconds(testbed.clock.now(), seconds);
 
-  const token = (overrides: Partial<NewEmailToken>): NewEmailToken => ({
+  const token = (overrides: Partial<EmailTokenRecord>): EmailTokenRecord => ({
     id: randomUUID(),
     userId,
     purpose: EmailTokenPurpose.EmailConfirmation,
@@ -46,7 +46,7 @@ describe('CleanUpAuthRecordsUseCase', () => {
     ...overrides,
   });
 
-  const session = (overrides: Partial<NewSession>): NewSession => ({
+  const session = (overrides: Partial<SessionRecord>): SessionRecord => ({
     id: randomUUID(),
     userId,
     familyId: randomUUID(),

@@ -4,7 +4,7 @@ import type { roles } from '@/modules/identity/db/roles.table';
 
 export type RoleRecord = typeof roles.$inferSelect;
 
-export type NewRole = typeof roles.$inferInsert;
+export type NewRole = Omit<typeof roles.$inferInsert, 'createdAt' | 'updatedAt'>;
 
 export type RolePermissionRecord = typeof rolePermissions.$inferSelect;
 

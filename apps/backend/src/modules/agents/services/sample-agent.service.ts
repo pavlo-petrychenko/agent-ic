@@ -15,7 +15,6 @@ import { AgentsRepository } from '@/modules/agents/repositories/agents.repositor
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
 import type { SampleLiveAgent } from '@/modules/agents/typedefs/sample-agent.typedefs';
 import type { SamplePromptRefs } from '@/modules/agents/typedefs/sample-prompt.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 
@@ -26,7 +25,6 @@ export class SampleAgentService {
     private readonly agents: AgentsRepository,
     private readonly versions: AgentVersionsRepository,
     private readonly publishing: AgentPublishingService,
-    private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
 
@@ -85,7 +83,6 @@ export class SampleAgentService {
     authorId: string,
     agent: SampleLiveAgent,
   ): Promise<void> {
-    const now = this.clock.now();
     const agentId = this.ids.generate();
     const draftId = this.ids.generate();
     await this.agents.insert({
@@ -98,8 +95,6 @@ export class SampleAgentService {
       pausedAt: null,
       pauseMode: null,
       awayMessage: null,
-      createdAt: now,
-      updatedAt: now,
     });
     await this.versions.insert({
       id: draftId,
@@ -108,10 +103,8 @@ export class SampleAgentService {
       kind: AgentVersionKind.Draft,
       flow: agent.flow,
       authorId,
-      createdAt: now,
-      updatedAt: now,
     });
-    await this.agents.setDraftVersion(workspaceId, agentId, draftId, now);
+    await this.agents.setDraftVersion(workspaceId, agentId, draftId);
     await this.publishing.publish(workspaceId, agentId, { authorId, note: agent.note });
   }
 }

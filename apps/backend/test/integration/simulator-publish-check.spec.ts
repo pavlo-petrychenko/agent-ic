@@ -67,13 +67,11 @@ describe('the publish check after a simulator test', () => {
     await testbed.tenants.run(workspaceId, () =>
       testbed.module
         .get(AgentVersionsRepository)
-        .updateDraft(
-          workspaceId,
-          draftId,
-          DRAFT_INITIAL_REVISION,
-          { flow: triggerFlow(), note: null, authorId: TEST_EDITOR_ID },
-          finishedAt,
-        ),
+        .updateDraft(workspaceId, draftId, DRAFT_INITIAL_REVISION, {
+          flow: triggerFlow(),
+          note: null,
+          authorId: TEST_EDITOR_ID,
+        }),
     );
     const changed = await preview();
 

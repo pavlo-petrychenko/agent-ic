@@ -3,7 +3,7 @@ import type { emailTokens } from '@/modules/identity/db/email-tokens.table';
 
 export type EmailTokenRecord = typeof emailTokens.$inferSelect;
 
-export type NewEmailToken = typeof emailTokens.$inferInsert;
+export type NewEmailToken = Omit<typeof emailTokens.$inferInsert, 'createdAt'>;
 
 export interface IssuedConfirmation {
   readonly token: string;

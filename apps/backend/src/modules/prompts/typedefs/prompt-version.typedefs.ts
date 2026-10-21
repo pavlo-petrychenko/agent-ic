@@ -12,7 +12,7 @@ export interface PromptVersion {
   readonly deletedAt: Date | null;
 }
 
-export type NewPromptVersion = typeof promptVersions.$inferInsert;
+export type NewPromptVersion = Omit<typeof promptVersions.$inferInsert, 'createdAt'>;
 
 export interface SavePromptVersionInput {
   readonly id: string;

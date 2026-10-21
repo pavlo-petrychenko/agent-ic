@@ -11,7 +11,6 @@ import { PermissionDeniedError } from '@/platform/context/errors/permission-deni
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
-  AGENTS_TEST_LATER,
   TEST_EDITOR_ID,
   TEST_NODE_ID,
   TEST_NODE_LABEL,
@@ -39,13 +38,11 @@ describe('CompareAgentVersionsUseCase', () => {
         .publish(workspaceId, seeded.agentId, { authorId: TEST_EDITOR_ID });
       await testingModule
         .get(AgentVersionsRepository)
-        .updateDraft(
-          workspaceId,
-          seeded.draftId,
-          DRAFT_INITIAL_REVISION,
-          { flow: triggerFlow(TEST_NODE_NEW_LABEL), note: null, authorId: TEST_EDITOR_ID },
-          AGENTS_TEST_LATER,
-        );
+        .updateDraft(workspaceId, seeded.draftId, DRAFT_INITIAL_REVISION, {
+          flow: triggerFlow(TEST_NODE_NEW_LABEL),
+          note: null,
+          authorId: TEST_EDITOR_ID,
+        });
       return ids.toPublic(IdPrefix.AgentVersion, published.id);
     });
 

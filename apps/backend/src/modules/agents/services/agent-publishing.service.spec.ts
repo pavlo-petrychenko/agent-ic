@@ -18,7 +18,6 @@ import { IdService } from '@/platform/ids/services/id.service';
 import { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import {
-  AGENTS_TEST_LATER,
   TEST_EDITOR_ID,
   TEST_NODE_ID,
   TEST_VERSION_NOTE,
@@ -35,6 +34,7 @@ import {
   createAgentsTestingModule,
   seedAgentWithDraft,
 } from '@test/support/helpers/agents-testing.helpers';
+import { manualClockOf } from '@test/support/helpers/manual-clock.helpers';
 import {
   publicPromptId,
   seedPrompt,
@@ -133,26 +133,28 @@ describe('AgentPublishingService', () => {
     );
 
     const changed = await tenants.run(workspaceId, async () => ({
-      draft: await versions.updateDraft(
-        workspaceId,
-        draftId,
-        DRAFT_INITIAL_REVISION,
-        { flow: emptyFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID },
-        AGENTS_TEST_LATER,
-      ),
-      published: await versions.updateDraft(
-        workspaceId,
-        published.id,
-        DRAFT_INITIAL_REVISION,
-        { flow: emptyFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID },
-        AGENTS_TEST_LATER,
-      ),
+      draft: await versions.updateDraft(workspaceId, draftId, DRAFT_INITIAL_REVISION, {
+        flow: emptyFlow(),
+        note: TEST_VERSION_NOTE,
+        authorId: TEST_EDITOR_ID,
+      }),
+      published: await versions.updateDraft(workspaceId, published.id, DRAFT_INITIAL_REVISION, {
+        flow: emptyFlow(),
+        note: TEST_VERSION_NOTE,
+        authorId: TEST_EDITOR_ID,
+      }),
     }));
 
     const stored = await tenants.run(workspaceId, () =>
       versions.findById(workspaceId, published.id),
     );
-    expect(changed).toEqual({ draft: DRAFT_INITIAL_REVISION + 1, published: null });
+    expect(changed).toEqual({
+      draft: {
+        revision: DRAFT_INITIAL_REVISION + 1,
+        updatedAt: manualClockOf(testingModule).now(),
+      },
+      published: null,
+    });
     expect(stored).toEqual(published);
   });
 

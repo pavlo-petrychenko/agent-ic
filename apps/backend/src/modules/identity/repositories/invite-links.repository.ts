@@ -6,14 +6,24 @@ import type {
   InviteLinkRecord,
   NewInviteLink,
 } from '@/modules/identity/typedefs/invite-link.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class InviteLinksRepository {
-  constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
+  constructor(
+    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly clock: ClockService,
+  ) {}
 
-  async insert(link: NewInviteLink): Promise<void> {
-    await this.txHost.tx.insert(inviteLinks).values(link);
+  async insert(link: NewInviteLink): Promise<InviteLinkRecord> {
+    return storedRow(
+      await this.txHost.tx
+        .insert(inviteLinks)
+        .values({ ...link, createdAt: this.clock.now() })
+        .returning(),
+    );
   }
 
   async findActive(workspaceId: string): Promise<InviteLinkRecord | null> {

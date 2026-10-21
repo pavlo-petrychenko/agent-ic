@@ -16,14 +16,24 @@ import type {
   NewConversation,
   SimulationKey,
 } from '@/modules/conversations/typedefs/conversation.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class ConversationsRepository {
-  constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
+  constructor(
+    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly clock: ClockService,
+  ) {}
 
-  async insert(conversation: NewConversation): Promise<void> {
-    await this.txHost.tx.insert(conversations).values(conversation);
+  async insert(conversation: NewConversation): Promise<Conversation> {
+    return storedRow(
+      await this.txHost.tx
+        .insert(conversations)
+        .values({ ...conversation, createdAt: this.clock.now() })
+        .returning(),
+    );
   }
 
   async findById(workspaceId: string, id: string): Promise<Conversation | null> {
