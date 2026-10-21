@@ -24,6 +24,23 @@ export interface UsePromptDraftResult {
   readonly discardDraft: () => void;
 }
 
+export interface UsePromptDraftSessionResult {
+  readonly editing: boolean;
+  readonly draft: PromptDraft | null;
+  readonly draftNumber: number;
+  readonly editorText: string;
+  readonly saving: boolean;
+  readonly discarding: boolean;
+  readonly startEditing: (version?: PromptVersion | null) => void;
+  readonly changeText: (text: string) => void;
+  readonly openSaveDialog: () => void;
+  readonly closeSaveDialog: () => void;
+  readonly finishSaving: () => void;
+  readonly openDiscardDialog: () => void;
+  readonly closeDiscardDialog: () => void;
+  readonly finishDiscarding: () => void;
+}
+
 export interface UsePromptVersionViewResult {
   readonly olderVersionId: string | null;
   readonly olderVersion: PromptVersion | null;
