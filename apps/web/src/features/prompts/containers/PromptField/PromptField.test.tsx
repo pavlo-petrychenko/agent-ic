@@ -2,6 +2,7 @@ import { PromptSourceKind, PromptVersionKind } from '@agent-ic/flow';
 import type { PromptSource } from '@agent-ic/flow';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import {
   RECEPTIONIST_VERSIONS,
@@ -38,6 +39,27 @@ const renderField = (
   return onChange;
 };
 
+const renderControlledField = (variables: readonly VariableOption[], mocks = [library]) => {
+  const onChange = vi.fn<(next: PromptSource) => void>();
+  function Harness() {
+    const [source, setSource] = useState<PromptSource | null>(null);
+    return (
+      <PromptField
+        workspaceId="ws_demo"
+        source={source}
+        variables={variables}
+        error={null}
+        onChange={(next) => {
+          setSource(next);
+          onChange(next);
+        }}
+      />
+    );
+  }
+  renderWithProviders(<Harness />, { mocks });
+  return onChange;
+};
+
 describe('PromptField', () => {
   it('asks for a prompt when the step has none', () => {
     renderField(null);
@@ -61,24 +83,23 @@ describe('PromptField', () => {
     });
   });
 
-  it('fills an exact prompt variable from the step variables', async () => {
-    const source: PromptSource = {
-      kind: PromptSourceKind.Library,
-      promptRef: RECEPTIONIST_PROMPT.id,
-      pin: { kind: PromptVersionKind.Latest },
-      bindings: {},
-    };
-    const onChange = renderField(
-      source,
+  it('fills an exact prompt variable after the prompt is picked', async () => {
+    const onChange = renderControlledField(
       [{ id: 'contact.name', label: 'contact.name', group: 'User' }],
       [library, buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS)],
     );
 
+    await userEvent.click(screen.getByRole('button', { name: 'Use a library prompt' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Receptionist' }));
+
     await waitFor(() =>
       expect(onChange).toHaveBeenCalledWith({
-        ...source,
+        kind: PromptSourceKind.Library,
+        promptRef: RECEPTIONIST_PROMPT.id,
+        pin: { kind: PromptVersionKind.Latest },
         bindings: { 'contact.name': 'contact.name' },
       }),
     );
+    expect(onChange).toHaveBeenCalledTimes(2);
   });
 });

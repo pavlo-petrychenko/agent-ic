@@ -1,5 +1,5 @@
 import { PromptSourceKind, PromptVersionKind } from '@agent-ic/flow';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.constants';
 import type { PromptFieldProps } from '@/features/prompts/containers/PromptField/PromptField.typedefs';
@@ -12,6 +12,8 @@ import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 export function PromptField({ workspaceId, source, variables, error, onChange }: PromptFieldProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
   const [picking, setPicking] = useState(false);
+  const [autoFillPrompt, setAutoFillPrompt] = useState<string | null>(null);
+  const clearAutoFill = useCallback(() => setAutoFillPrompt(null), []);
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
@@ -20,6 +22,8 @@ export function PromptField({ workspaceId, source, variables, error, onChange }:
           workspaceId={workspaceId}
           source={source}
           variables={variables}
+          autoFill={autoFillPrompt === source.promptRef}
+          onAutoFilled={clearAutoFill}
           error={error}
           onChange={onChange}
         />
@@ -47,6 +51,7 @@ export function PromptField({ workspaceId, source, variables, error, onChange }:
       {picking && (
         <PromptPickerDialog
           onPick={(promptId) => {
+            setAutoFillPrompt(promptId);
             onChange({
               kind: PromptSourceKind.Library,
               promptRef: promptId,

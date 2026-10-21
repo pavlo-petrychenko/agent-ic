@@ -1,4 +1,4 @@
-import { PromptVersionKind } from '@agent-ic/flow';
+import { PromptVersionKind, parseVariablePath } from '@agent-ic/flow';
 import type { PromptBindings as PromptBindingsMap } from '@agent-ic/flow';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
@@ -24,13 +24,15 @@ export function PromptLibraryCard({
   workspaceId,
   source,
   variables,
+  autoFill = false,
+  onAutoFilled = null,
   error,
   onChange,
 }: PromptLibraryCardProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
   const navigate = useNavigate();
   const { folders, prompts } = usePromptLibrary();
-  const { versions } = usePromptVersions(source.promptRef);
+  const { versions, failed, retry } = usePromptVersions(source.promptRef);
   const prompt = prompts.find((item) => item.id === source.promptRef) ?? null;
   const folderName = prompt === null ? null : findFolderName(folders, prompt.folderId);
   const pinned = source.pin.kind === PromptVersionKind.Pinned ? source.pin.number : null;
@@ -45,24 +47,26 @@ export function PromptLibraryCard({
   const autoKey = `${source.promptRef}:${shownVersion?.number ?? 'none'}`;
 
   useEffect(() => {
-    if (shownVersion === null || autoFilled.current === autoKey) {
+    if (!autoFill || shownVersion === null || autoFilled.current === autoKey) {
       return;
     }
     autoFilled.current = autoKey;
     const matched = shownVersion.variables.filter(
-      (name) => !Object.hasOwn(bindings, name) && variables.some((item) => item.id === name),
+      (name) =>
+        !Object.hasOwn(bindings, name) &&
+        variables.some((item) => item.id === name && parseVariablePath(item.id) !== null),
     );
-    if (matched.length === 0) {
-      return;
+    if (matched.length > 0) {
+      onChange({
+        ...source,
+        bindings: {
+          ...bindings,
+          ...Object.fromEntries(matched.map((name) => [name, name])),
+        },
+      });
     }
-    onChange({
-      ...source,
-      bindings: {
-        ...bindings,
-        ...Object.fromEntries(matched.map((name) => [name, name])),
-      },
-    });
-  }, [autoKey, bindings, onChange, shownVersion, source, variables]);
+    onAutoFilled?.();
+  }, [autoFill, autoKey, bindings, onChange, onAutoFilled, shownVersion, source, variables]);
 
   const numbers = versions?.map((version) => version.number) ?? [];
   const options = [
@@ -119,6 +123,21 @@ export function PromptLibraryCard({
           />
         )}
       </Field>
+      {versions === null && (
+        <Text kind={TextKind.Caption} color={failed ? TextColor.Err : TextColor.Mute}>
+          {failed ? t('versions.loadError') : t('field.variables.loading')}
+        </Text>
+      )}
+      {failed && (
+        <Button
+          className="self-start"
+          variant={ButtonVariant.Ghost}
+          size={ButtonSize.Sm}
+          onClick={() => void retry()}
+        >
+          {t('retry')}
+        </Button>
+      )}
       <PromptBindings
         paths={shownVersion?.variables ?? []}
         options={variables}

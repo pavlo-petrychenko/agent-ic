@@ -1,7 +1,8 @@
-import {
-  VARIABLE_CHIP_CLOSE,
-  VARIABLE_CHIP_OPEN,
-} from '@/shared/ui/inputs/VariableChip/VariableChip.constants';
+export {
+  PROMPT_VARIABLE_CLOSE,
+  PROMPT_VARIABLE_OPEN,
+  PROMPT_VARIABLE_PATH_CHARACTERS,
+} from '@agent-ic/flow';
 
 export enum PromptNodeName {
   Doc = 'doc',
@@ -16,8 +17,5 @@ export enum PromptSegmentKind {
 }
 
 export const PROMPT_LINE_SEPARATOR = '\n';
-export const PROMPT_VARIABLE_PATH_CHARACTERS = '[A-Za-z0-9_.-]';
-export const PROMPT_VARIABLE_OPEN = VARIABLE_CHIP_OPEN;
-export const PROMPT_VARIABLE_CLOSE = VARIABLE_CHIP_CLOSE;
 export const PROMPT_REGEXP_ESCAPE_PATTERN = /[.*+?^${}()|[\]\\]/g;
 export const PROMPT_REGEXP_ESCAPE_REPLACEMENT = '\\$&';

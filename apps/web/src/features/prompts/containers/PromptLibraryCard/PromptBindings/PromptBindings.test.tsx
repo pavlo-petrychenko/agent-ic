@@ -10,12 +10,15 @@ const OPTIONS = [
   { id: 'message.text', label: 'message.text', group: 'Message' },
 ];
 
-const renderBindings = (bindings: PromptBindingsMap) => {
+const renderBindings = (
+  bindings: PromptBindingsMap,
+  options: readonly { id: string; label: string; group?: string; open?: boolean }[] = OPTIONS,
+) => {
   const onChange = vi.fn<(next: PromptBindingsMap) => void>();
   renderWithProviders(
     <PromptBindings
       paths={['customer_name']}
-      options={OPTIONS}
+      options={options}
       bindings={bindings}
       onChange={onChange}
     />,
@@ -53,5 +56,32 @@ describe('PromptBindings', () => {
     renderBindings({ customer_name: 'old.name' });
 
     expect(screen.getByText('This variable is not available in this step.')).toBeVisible();
+  });
+
+  it('accepts a child of an open flow variable', () => {
+    renderBindings({ customer_name: 'event.payload.name' }, [
+      { id: 'event.payload', label: 'event.payload', open: true, group: 'Event' },
+    ]);
+
+    expect(screen.queryByText('This variable is not available in this step.')).toBeNull();
+  });
+
+  it('clears a binding', async () => {
+    const onChange = renderBindings({ customer_name: 'user.name' });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Variable for customer_name' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Not mapped' }));
+
+    expect(onChange).toHaveBeenCalledWith({});
+  });
+
+  it('fills all exact-name matches on request', async () => {
+    const onChange = renderBindings({}, [
+      { id: 'customer_name', label: 'customer_name', group: 'Trigger' },
+    ]);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Use matching variables' }));
+
+    expect(onChange).toHaveBeenCalledWith({ customer_name: 'customer_name' });
   });
 });

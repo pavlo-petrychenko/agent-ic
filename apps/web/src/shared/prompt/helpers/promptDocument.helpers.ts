@@ -1,4 +1,8 @@
 import {
+  collectPromptVariables as collectFlowPromptVariables,
+  normalizePathVariable,
+} from '@agent-ic/flow';
+import {
   PROMPT_LINE_SEPARATOR,
   PROMPT_REGEXP_ESCAPE_PATTERN,
   PROMPT_REGEXP_ESCAPE_REPLACEMENT,
@@ -29,10 +33,10 @@ export const PROMPT_VARIABLE_TYPED_PATTERN = new RegExp(`${TOKEN_SOURCE}$`);
 export const PROMPT_VARIABLE_PASTE_PATTERN = new RegExp(TOKEN_SOURCE, 'g');
 const TRIGGER_PATTERN = new RegExp(`${OPEN}(${PROMPT_VARIABLE_PATH_CHARACTERS}*)$`);
 
+export { normalizePathVariable };
+
 export const formatVariableToken = (path: string): string =>
   `${PROMPT_VARIABLE_OPEN}${path}${PROMPT_VARIABLE_CLOSE}`;
-
-export const normalizePathVariable = (path: string): string => path.toLowerCase();
 
 const identityPathVariable = (path: string): string => path;
 
@@ -62,17 +66,7 @@ export function parsePromptLine(
 export const collectPromptVariables = (
   value: string,
   normalizePath: PathNormalizer = identityPathVariable,
-): readonly string[] => {
-  const paths = new Set<string>();
-  for (const line of value.split(PROMPT_LINE_SEPARATOR)) {
-    for (const segment of parsePromptLine(line, normalizePath)) {
-      if (segment.kind === PromptSegmentKind.Variable) {
-        paths.add(segment.path);
-      }
-    }
-  }
-  return [...paths];
-};
+): readonly string[] => collectFlowPromptVariables(value, normalizePath);
 
 function toParagraph(line: string, normalizePath: PathNormalizer): PromptParagraphNode {
   const segments = parsePromptLine(line, normalizePath);
