@@ -36,6 +36,7 @@ import { QueuesService } from '@/platform/queues/services/queues.service';
 import type { JobData } from '@/platform/queues/typedefs/job.typedefs';
 import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
+import { SecretsModule } from '@/platform/secrets/secrets.module';
 import {
   CONCURRENT_POOL_SIZE,
   CONVERSATIONS_TEST_START,
@@ -82,6 +83,7 @@ export const createConversationsTestbed = async (
       RedisModule,
       RateLimitModule,
       OutboundHttpModule,
+      SecretsModule,
       AgentsNeighboursModule.forRole(selection.role),
       domainModule,
     ],

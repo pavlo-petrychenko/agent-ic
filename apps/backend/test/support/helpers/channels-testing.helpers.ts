@@ -1,5 +1,8 @@
 import { ChannelsModule } from '@/modules/channels/channels.module';
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
+import { ChannelUpdatesRepository } from '@/modules/channels/repositories/channel-updates.repository';
+import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
+import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
@@ -26,6 +29,9 @@ export const createChannelsTestbed = async (): Promise<ChannelsTestbed> => {
     ...testbed,
     deliver: testbed.module.get(DeliverOutboundMessageUseCase),
     simulated: testbed.module.get(SimulatedChannelAdapter),
+    channels: testbed.module.get(ChannelsRepository),
+    channelUpdates: testbed.module.get(ChannelUpdatesRepository),
+    channelTokens: testbed.module.get(ChannelTokenService),
   };
 };
 
@@ -39,6 +45,9 @@ export const createChannelsWorkerTestbed = async (): Promise<ChannelsTestbed> =>
     ...testbed,
     deliver: testbed.module.get(DeliverOutboundMessageUseCase),
     simulated: testbed.module.get(SimulatedChannelAdapter),
+    channels: testbed.module.get(ChannelsRepository),
+    channelUpdates: testbed.module.get(ChannelUpdatesRepository),
+    channelTokens: testbed.module.get(ChannelTokenService),
   };
 };
 
