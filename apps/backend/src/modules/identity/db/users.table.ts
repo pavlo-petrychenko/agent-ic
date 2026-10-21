@@ -25,9 +25,7 @@ export const users = identitySchema.table(
       onDelete: 'set null',
     }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .$onUpdateFn(() => new Date()),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     uniqueIndex('users_email_key').on(table.email),

@@ -16,7 +16,9 @@ export interface Agent {
   readonly updatedAt: Date;
 }
 
-export type NewAgent = typeof agents.$inferInsert;
+export type NewAgent = Omit<typeof agents.$inferInsert, 'createdAt' | 'updatedAt'>;
+
+export type AgentChanges = Partial<Omit<NewAgent, 'id' | 'workspaceId'>>;
 
 export interface AgentVersionSummary {
   readonly agentId: string;

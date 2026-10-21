@@ -7,14 +7,24 @@ import type {
   EmailTokenRecord,
   NewEmailToken,
 } from '@/modules/identity/typedefs/email-token.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class EmailTokensRepository {
-  constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
+  constructor(
+    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly clock: ClockService,
+  ) {}
 
-  async insert(token: NewEmailToken): Promise<void> {
-    await this.txHost.tx.insert(emailTokens).values(token);
+  async insert(token: NewEmailToken): Promise<EmailTokenRecord> {
+    return storedRow(
+      await this.txHost.tx
+        .insert(emailTokens)
+        .values({ ...token, createdAt: this.clock.now() })
+        .returning(),
+    );
   }
 
   async findByTokenHash(

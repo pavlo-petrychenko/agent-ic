@@ -59,9 +59,8 @@ export class IncomingMessagesService {
     input: IncomingMessageInput,
   ): Promise<IncomingMessageResult> {
     const pause = await this.agents.getPauseSettings(input.workspaceId, input.agentId);
-    const now = this.clock.now();
     const conversation =
-      (await this.conversations.findOpenForUpdate(input)) ?? (await this.open(input, now));
+      (await this.conversations.findOpenForUpdate(input)) ?? (await this.open(input));
     const message = await this.messages.insertIfAbsent({
       id: this.ids.generate(),
       workspaceId: input.workspaceId,
@@ -70,7 +69,6 @@ export class IncomingMessagesService {
       text: input.text,
       quickReplies: [],
       externalId: input.externalId,
-      createdAt: now,
     });
     if (message === null) {
       return {
@@ -79,15 +77,15 @@ export class IncomingMessagesService {
         messageId: null,
       };
     }
-    await this.conversations.touch(input.workspaceId, conversation.id, now);
+    await this.conversations.touch(input.workspaceId, conversation.id, message.createdAt);
     await this.activity.messageAdded(message);
     const activePause = conversation.mode === ConversationMode.Live ? pause : null;
     const outcome = await this.route(ctx, conversation, message, activePause, input.versionId);
     return { outcome, conversationId: conversation.id, messageId: message.id };
   }
 
-  private async open(input: IncomingMessageInput, now: Date): Promise<Conversation> {
-    const conversation: Conversation = {
+  private open(input: IncomingMessageInput): Promise<Conversation> {
+    return this.conversations.insert({
       id: this.ids.generate(),
       workspaceId: input.workspaceId,
       agentId: input.agentId,
@@ -102,12 +100,9 @@ export class IncomingMessagesService {
       activeRunId: null,
       simulationVersionId: null,
       awaySentAt: null,
-      lastMessageAt: now,
+      lastMessageAt: this.clock.now(),
       closedAt: null,
-      createdAt: now,
-    };
-    await this.conversations.insert(conversation);
-    return conversation;
+    });
   }
 
   private async route(

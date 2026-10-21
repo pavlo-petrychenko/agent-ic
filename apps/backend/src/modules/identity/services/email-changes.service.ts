@@ -45,7 +45,6 @@ export class EmailChangesService {
       purpose: EmailTokenPurpose.EmailChange,
       tokenHash: hash,
       expiresAt: addSeconds(now, EMAIL_CHANGE_TTL_SECONDS),
-      createdAt: now,
     });
     return { token, email, name: user.name, locale: user.locale };
   }

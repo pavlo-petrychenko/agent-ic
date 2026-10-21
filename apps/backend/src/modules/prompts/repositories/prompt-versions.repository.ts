@@ -7,14 +7,24 @@ import type {
   NewPromptVersion,
   PromptVersion,
 } from '@/modules/prompts/typedefs/prompt-version.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class PromptVersionsRepository {
-  constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
+  constructor(
+    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly clock: ClockService,
+  ) {}
 
-  async insert(version: NewPromptVersion): Promise<void> {
-    await this.txHost.tx.insert(promptVersions).values(version);
+  async insert(version: NewPromptVersion): Promise<PromptVersion> {
+    return storedRow(
+      await this.txHost.tx
+        .insert(promptVersions)
+        .values({ ...version, createdAt: this.clock.now() })
+        .returning(),
+    );
   }
 
   async findById(workspaceId: string, versionId: string): Promise<PromptVersion | null> {

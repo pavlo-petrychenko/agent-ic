@@ -11,12 +11,13 @@ import type {
   AgentVersionLabels,
   AgentVersionSummaryRow,
   AgentVersionView,
+  NewAgentVersion,
   StoredFlow,
   VersionCopy,
 } from '@/modules/agents/typedefs/agent-version.typedefs';
 import type { AgentVersionSummary } from '@/modules/agents/typedefs/agent.typedefs';
 
-export const copyDraftToVersion = (draft: AgentVersion, copy: VersionCopy): AgentVersion => ({
+export const copyDraftToVersion = (draft: AgentVersion, copy: VersionCopy): NewAgentVersion => ({
   id: copy.id,
   workspaceId: draft.workspaceId,
   agentId: draft.agentId,
@@ -28,8 +29,6 @@ export const copyDraftToVersion = (draft: AgentVersion, copy: VersionCopy): Agen
   baseVersionId: draft.baseVersionId,
   revision: DRAFT_INITIAL_REVISION,
   publishedAt: copy.publishedAt,
-  createdAt: copy.at,
-  updatedAt: copy.at,
 });
 
 export const agentVersionStatusOf = (

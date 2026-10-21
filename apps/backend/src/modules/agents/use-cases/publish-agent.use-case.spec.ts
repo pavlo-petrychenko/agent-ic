@@ -15,7 +15,6 @@ import { PermissionDeniedError } from '@/platform/context/errors/permission-deni
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
-  AGENTS_TEST_LATER,
   TEST_AUTHOR_NAME,
   TEST_EDITOR_ID,
   TEST_EDITOR_NAME,
@@ -100,19 +99,15 @@ describe('PublishAgentUseCase', () => {
   it('keeps the draft note when no note is given', async () => {
     const workspaceId = ids.generate();
     const { agentId, draftId } = await seedAgentWithDraft(testingModule, workspaceId);
-    await testingModule
-      .get(TenantTransactionService)
-      .run(workspaceId, () =>
-        testingModule
-          .get(AgentVersionsRepository)
-          .updateDraft(
-            workspaceId,
-            draftId,
-            DRAFT_INITIAL_REVISION,
-            { flow: triggerFlow(), note: TEST_VERSION_NOTE, authorId: TEST_EDITOR_ID },
-            AGENTS_TEST_LATER,
-          ),
-      );
+    await testingModule.get(TenantTransactionService).run(workspaceId, () =>
+      testingModule
+        .get(AgentVersionsRepository)
+        .updateDraft(workspaceId, draftId, DRAFT_INITIAL_REVISION, {
+          flow: triggerFlow(),
+          note: TEST_VERSION_NOTE,
+          authorId: TEST_EDITOR_ID,
+        }),
+    );
 
     const published = await publishAgent.execute(agentsCtx(testingModule, workspaceId), {
       id: publicAgentId(testingModule, agentId),

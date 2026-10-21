@@ -9,7 +9,6 @@ import { AgentsRepository } from '@/modules/agents/repositories/agents.repositor
 import type { AgentVersion } from '@/modules/agents/typedefs/agent-version.typedefs';
 import type { Agent } from '@/modules/agents/typedefs/agent.typedefs';
 import type { PauseSettings } from '@/modules/agents/typedefs/pause-settings.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { IdService } from '@/platform/ids/services/id.service';
 
 @Injectable()
@@ -17,7 +16,6 @@ export class AgentRuntimeReader {
   constructor(
     private readonly agents: AgentsRepository,
     private readonly versions: AgentVersionsRepository,
-    private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
 
@@ -81,19 +79,16 @@ export class AgentRuntimeReader {
     if (draft === null) {
       throw new AgentVersionNotFoundError();
     }
-    const snapshot = {
+    return this.versions.insert({
       ...copyDraftToVersion(draft, {
         id: this.ids.generate(),
         kind: AgentVersionKind.Snapshot,
         number: null,
         authorId: null,
         publishedAt: null,
-        at: this.clock.now(),
       }),
       revision: draft.revision,
-    };
-    await this.versions.insert(snapshot);
-    return snapshot;
+    });
   }
 
   async getAgent(workspaceId: string, agentId: string): Promise<Agent> {

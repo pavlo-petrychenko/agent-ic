@@ -30,7 +30,6 @@ import { TEST_EDITOR_ID } from '@test/support/constants/agents-testing.constants
 import {
   RUN_STEPS_SUBSCRIPTION,
   SUBSCRIBERS_REPLY_COUNT_INDEX,
-  SUBSCRIPTIONS_TEST_START,
   TEST_STEP_NODE_PREFIX,
   TEST_MEMBER_NAME,
   TEST_MEMBER_PASSWORD_HASH,
@@ -79,8 +78,6 @@ const seedUser = async (api: SubscriptionsApi): Promise<string> => {
     name: TEST_MEMBER_NAME,
     passwordHash: TEST_MEMBER_PASSWORD_HASH,
     locale: Locale.En,
-    createdAt: SUBSCRIPTIONS_TEST_START,
-    updatedAt: SUBSCRIPTIONS_TEST_START,
   });
   return userId;
 };
@@ -116,7 +113,6 @@ export const seedMember = async (
       workspaceId,
       userId,
       roleId: await api.app.get(WorkspaceRolesService).systemRoleId(workspaceId, role),
-      createdAt: SUBSCRIPTIONS_TEST_START,
     });
   });
   return { ...owner, accessToken: await accessTokenFor(api, userId) };
@@ -187,13 +183,7 @@ export const replaceDraftFlow = async (
       throw new MissingTestDataError(internalId);
     }
     const changes = { flow, note: null, authorId: TEST_EDITOR_ID };
-    await versions.updateDraft(
-      workspaceId,
-      draft.id,
-      draft.revision,
-      changes,
-      SUBSCRIPTIONS_TEST_START,
-    );
+    await versions.updateDraft(workspaceId, draft.id, draft.revision, changes);
   });
 };
 

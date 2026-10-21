@@ -20,18 +20,32 @@ import type {
   DraftChanges,
   FlowNodeCount,
   NewAgentVersion,
+  SavedDraft,
 } from '@/modules/agents/typedefs/agent-version.typedefs';
 import type { AgentVersionSummary } from '@/modules/agents/typedefs/agent.typedefs';
 import type { CurrentAgentFlow } from '@/modules/agents/typedefs/current-agent-flow.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import { toSqlLiteral } from '@/platform/database/helpers/tenant-sql.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class AgentVersionsRepository {
-  constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
+  constructor(
+    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly clock: ClockService,
+  ) {}
 
-  async insert(version: NewAgentVersion): Promise<void> {
-    await this.txHost.tx.insert(agentVersions).values(version);
+  async insert(version: NewAgentVersion): Promise<AgentVersion> {
+    const now = this.clock.now();
+    return withCurrentFlow(
+      storedRow(
+        await this.txHost.tx
+          .insert(agentVersions)
+          .values({ ...version, createdAt: now, updatedAt: now })
+          .returning(),
+      ),
+    );
   }
 
   async findById(workspaceId: string, versionId: string): Promise<AgentVersion | null> {
@@ -191,16 +205,15 @@ export class AgentVersionsRepository {
     versionId: string,
     expectedRevision: number,
     changes: DraftChanges,
-    updatedAt: Date,
-  ): Promise<number | null> {
-    const [updated] = await this.txHost.tx
+  ): Promise<SavedDraft | null> {
+    const [saved] = await this.txHost.tx
       .update(agentVersions)
       .set({
         flow: changes.flow,
         note: changes.note,
         authorId: changes.authorId,
         revision: sql`${agentVersions.revision} + 1`,
-        updatedAt,
+        updatedAt: this.clock.now(),
       })
       .where(
         and(
@@ -210,8 +223,8 @@ export class AgentVersionsRepository {
           eq(agentVersions.revision, expectedRevision),
         ),
       )
-      .returning({ revision: agentVersions.revision });
-    return updated?.revision ?? null;
+      .returning({ revision: agentVersions.revision, updatedAt: agentVersions.updatedAt });
+    return saved ?? null;
   }
 
   async setBaseVersion(
@@ -221,7 +234,7 @@ export class AgentVersionsRepository {
   ): Promise<boolean> {
     const updated = await this.txHost.tx
       .update(agentVersions)
-      .set({ baseVersionId })
+      .set({ baseVersionId, updatedAt: this.clock.now() })
       .where(
         and(
           eq(agentVersions.workspaceId, workspaceId),

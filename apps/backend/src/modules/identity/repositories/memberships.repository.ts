@@ -14,16 +14,20 @@ import type {
   RoleMemberCount,
 } from '@/modules/identity/typedefs/membership.typedefs';
 import type { RoleRef } from '@/modules/identity/typedefs/role.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class MembershipsRepository {
-  constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
+  constructor(
+    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly clock: ClockService,
+  ) {}
 
   async insertIfAbsent(membership: NewMembership): Promise<MembershipRecord | null> {
     const [created] = await this.txHost.tx
       .insert(memberships)
-      .values(membership)
+      .values({ ...membership, createdAt: this.clock.now() })
       .onConflictDoNothing({ target: [memberships.workspaceId, memberships.userId] })
       .returning();
     return created ?? null;

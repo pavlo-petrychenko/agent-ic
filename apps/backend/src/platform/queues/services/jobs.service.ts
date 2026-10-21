@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { getOriginator } from '@/platform/context/helpers/use-case-ctx.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { AfterCommitService } from '@/platform/database/services/after-commit.service';
@@ -23,7 +22,6 @@ export class JobsService {
     private readonly afterCommit: AfterCommitService,
     private readonly outbox: OutboxRepository,
     private readonly ids: IdService,
-    private readonly clock: ClockService,
   ) {}
 
   async enqueue<TData extends JobData>(
@@ -61,7 +59,6 @@ export class JobsService {
       name: definition.name,
       envelope,
       workspaceId: envelope.workspaceId,
-      createdAt: this.clock.now(),
     });
     await this.afterCommit.schedule(async () => {
       await this.queues.get(definition.queue).add(definition.name, envelope, outboxJobOptions(id));

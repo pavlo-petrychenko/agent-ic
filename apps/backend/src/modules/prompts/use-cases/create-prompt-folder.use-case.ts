@@ -7,10 +7,9 @@ import { createPromptFolderInputSchema } from '@/modules/prompts/schemas/prompt-
 import { PromptFolderViewsService } from '@/modules/prompts/services/prompt-folder-views.service';
 import type {
   CreatePromptFolderInput,
-  PromptFolder,
+  NewPromptFolder,
   PromptFolderView,
 } from '@/modules/prompts/typedefs/prompt-folder.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -22,29 +21,23 @@ export class CreatePromptFolderUseCase {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly folders: PromptFoldersRepository,
     private readonly views: PromptFolderViewsService,
-    private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
 
   async execute(ctx: UseCaseCtx, input: CreatePromptFolderInput): Promise<PromptFolderView> {
     const { workspaceId } = authorize(ctx, PermissionResource.Prompts, PermissionAction.Edit);
     const { name } = parsePromptFolderInput(createPromptFolderInputSchema, input);
-    const now = this.clock.now();
-    const folder: PromptFolder = {
+    const folder: NewPromptFolder = {
       id: this.ids.generate(),
       workspaceId,
       name,
-      createdAt: now,
-      updatedAt: now,
-      deletedAt: null,
     };
     return this.tenantTransactions.run(workspaceId, async () => {
       await this.folders.lockNames(workspaceId);
       if ((await this.folders.findByName(workspaceId, name)) !== null) {
         throw new PromptFolderNameTakenError();
       }
-      await this.folders.insert(folder);
-      return this.views.folderView(folder);
+      return this.views.folderView(await this.folders.insert(folder));
     });
   }
 }

@@ -20,6 +20,7 @@ import { MessageAuthor } from '@/modules/conversations/constants/message.constan
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
+import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -37,12 +38,15 @@ import {
   TEST_END_USER_EXTERNAL_ID,
   TEST_MESSAGE_TEXT,
 } from '@test/support/constants/conversations-testing.constants';
+import { CLOCK_TICK_MS } from '@test/support/constants/manual-clock.constants';
 import { TEST_PUBLISHED_NUMBER } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { newAgent, newVersion, triggerFlow } from '@test/support/fixtures/agents.fixture';
 import { uniqueEmail } from '@test/support/fixtures/identity.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
+import { manualClockOf } from '@test/support/helpers/manual-clock.helpers';
 import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.module';
 import type {
@@ -54,14 +58,18 @@ import type {
 export const createAgentsTestingModule = (
   imports: readonly DynamicModule[] = [],
 ): Promise<TestingModule> =>
-  createPlatformTestingModule(TestRedisPrefix.Agents, [
-    RedisModule,
-    RateLimitModule,
-    OutboundHttpModule,
-    AgentsNeighboursModule.forRole(Role.Gateway),
-    AgentsModule.forRole(Role.Gateway),
-    ...imports,
-  ]);
+  createPlatformTestingModule(
+    TestRedisPrefix.Agents,
+    [
+      RedisModule,
+      RateLimitModule,
+      OutboundHttpModule,
+      AgentsNeighboursModule.forRole(Role.Gateway),
+      AgentsModule.forRole(Role.Gateway),
+      ...imports,
+    ],
+    [{ token: ClockService, value: new ManualClock(AGENTS_TEST_START) }],
+  );
 
 export const seedAgentWithDraft = async (
   testingModule: TestingModule,
@@ -72,13 +80,14 @@ export const seedAgentWithDraft = async (
   const versions = testingModule.get(AgentVersionsRepository);
   const tenants = testingModule.get(TenantTransactionService);
   const ids = testingModule.get(IdService);
+  manualClockOf(testingModule).advanceBy(CLOCK_TICK_MS);
   const agentId = ids.generate();
   const draftId = ids.generate();
   await ensureWorkspaceRow(testingModule, workspaceId);
   await tenants.run(workspaceId, async () => {
     await agents.insert(newAgent(agentId, workspaceId));
     await versions.insert(newVersion(draftId, workspaceId, agentId, { flow }));
-    await agents.setDraftVersion(workspaceId, agentId, draftId, AGENTS_TEST_START);
+    await agents.setDraftVersion(workspaceId, agentId, draftId);
   });
   return { agentId, draftId };
 };
@@ -138,9 +147,7 @@ export const makeVersionLive = async (
   await testingModule
     .get(TenantTransactionService)
     .run(workspaceId, () =>
-      testingModule
-        .get(AgentsRepository)
-        .setLiveVersion(workspaceId, agentId, versionId, AGENTS_TEST_START),
+      testingModule.get(AgentsRepository).setLiveVersion(workspaceId, agentId, versionId),
     );
 };
 
@@ -184,8 +191,6 @@ export const seedAuthor = async (testingModule: TestingModule): Promise<string> 
     name: TEST_AUTHOR_NAME,
     passwordHash: TEST_AUTHOR_PASSWORD_HASH,
     locale: Locale.En,
-    createdAt: AGENTS_TEST_START,
-    updatedAt: AGENTS_TEST_START,
   });
   return userId;
 };
@@ -208,7 +213,6 @@ export const seedAgentConversation = async (
       endUserExternalId: TEST_END_USER_EXTERNAL_ID,
       state: ConversationState.AgentActive,
       lastMessageAt: AGENTS_TEST_START,
-      createdAt: AGENTS_TEST_START,
     });
     await testingModule.get(MessagesRepository).insertIfAbsent({
       id: messageId,
@@ -217,7 +221,6 @@ export const seedAgentConversation = async (
       author: MessageAuthor.Customer,
       text: TEST_MESSAGE_TEXT,
       quickReplies: [],
-      createdAt: AGENTS_TEST_START,
     });
   });
   return { conversationId, messageId };

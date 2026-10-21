@@ -141,7 +141,7 @@ export const seedAgent = async (
   await ensureWorkspaceRow(testbed.module, workspaceId);
   await testbed.tenants.run(workspaceId, async () => {
     await testbed.agents.insert(newAgent(agentId, workspaceId));
-    await testbed.agents.setPause(workspaceId, agentId, pause, testbed.clock.now());
+    await testbed.agents.setPause(workspaceId, agentId, pause);
   });
   return agentId;
 };
@@ -165,11 +165,10 @@ export const seedTiedMessages = async (
   testbed: ConversationsTestbed,
   conversation: NewConversation,
 ): Promise<TiedMessages> => {
-  const tie = { createdAt: testbed.clock.now() };
   const seeded = [
-    await seedMessage(testbed, conversation, tie),
-    await seedMessage(testbed, conversation, tie),
-    await seedMessage(testbed, conversation, tie),
+    await seedMessage(testbed, conversation),
+    await seedMessage(testbed, conversation),
+    await seedMessage(testbed, conversation),
   ];
   const [earlier, middle, later] = seeded.sort((left, right) => (left.id < right.id ? -1 : 1));
   if (earlier === undefined || middle === undefined || later === undefined) {

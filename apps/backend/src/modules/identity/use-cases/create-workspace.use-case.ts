@@ -11,7 +11,6 @@ import type {
   CreateWorkspaceInput,
   WorkspaceMembership,
 } from '@/modules/identity/typedefs/workspace.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { requireUserActor } from '@/platform/context/helpers/use-case-ctx.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -25,7 +24,6 @@ export class CreateWorkspaceUseCase {
     private readonly memberships: MembershipsRepository,
     private readonly roles: WorkspaceRolesService,
     private readonly inviteLinks: InviteLinksService,
-    private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
 
@@ -34,15 +32,12 @@ export class CreateWorkspaceUseCase {
     const data = parseWorkspaceInput(createWorkspaceInputSchema, input);
     const workspaceId = this.ids.generate();
     return this.tenantTransactions.run(workspaceId, async () => {
-      const now = this.clock.now();
       await this.workspaces.insert({
         id: workspaceId,
         workspaceId,
         name: data.name,
         timeZone: data.timeZone,
         createdByUserId: userId,
-        createdAt: now,
-        updatedAt: now,
       });
       await this.roles.seedDefaults(workspaceId);
       await this.memberships.insertIfAbsent({
@@ -51,7 +46,6 @@ export class CreateWorkspaceUseCase {
         userId,
         roleId: await this.roles.systemRoleId(workspaceId, WorkspaceRole.Owner),
         inviteLinkId: null,
-        createdAt: now,
       });
       await this.inviteLinks.issue(
         workspaceId,

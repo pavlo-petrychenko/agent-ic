@@ -4,16 +4,27 @@ import { and, asc, count, eq, gt, inArray, isNull, sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { agents } from '@/modules/agents/db/agents.table';
 import { agentNamesLockKey } from '@/modules/agents/helpers/agent-name.helpers';
-import type { Agent, NewAgent } from '@/modules/agents/typedefs/agent.typedefs';
+import type { Agent, AgentChanges, NewAgent } from '@/modules/agents/typedefs/agent.typedefs';
 import type { PauseSettings } from '@/modules/agents/typedefs/pause-settings.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class AgentsRepository {
-  constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
+  constructor(
+    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly clock: ClockService,
+  ) {}
 
-  async insert(agent: NewAgent): Promise<void> {
-    await this.txHost.tx.insert(agents).values(agent);
+  async insert(agent: NewAgent): Promise<Agent> {
+    const now = this.clock.now();
+    return storedRow(
+      await this.txHost.tx
+        .insert(agents)
+        .values({ ...agent, createdAt: now, updatedAt: now })
+        .returning(),
+    );
   }
 
   async findById(workspaceId: string, agentId: string): Promise<Agent | null> {
@@ -66,66 +77,61 @@ export class AgentsRepository {
       .limit(limit);
   }
 
-  rename(workspaceId: string, agentId: string, name: string, updatedAt: Date): Promise<boolean> {
-    return this.update(workspaceId, agentId, { name, updatedAt });
+  rename(workspaceId: string, agentId: string, name: string): Promise<Agent | null> {
+    return this.update(workspaceId, agentId, { name });
   }
 
   setDescription(
     workspaceId: string,
     agentId: string,
     description: string | null,
-    updatedAt: Date,
-  ): Promise<boolean> {
-    return this.update(workspaceId, agentId, { description, updatedAt });
+  ): Promise<Agent | null> {
+    return this.update(workspaceId, agentId, { description });
   }
 
   setDraftVersion(
     workspaceId: string,
     agentId: string,
     draftVersionId: string | null,
-    updatedAt: Date,
-  ): Promise<boolean> {
-    return this.update(workspaceId, agentId, { draftVersionId, updatedAt });
+  ): Promise<Agent | null> {
+    return this.update(workspaceId, agentId, { draftVersionId });
   }
 
   setLiveVersion(
     workspaceId: string,
     agentId: string,
     liveVersionId: string | null,
-    updatedAt: Date,
-  ): Promise<boolean> {
-    return this.update(workspaceId, agentId, { liveVersionId, updatedAt });
+  ): Promise<Agent | null> {
+    return this.update(workspaceId, agentId, { liveVersionId });
   }
 
   setPause(
     workspaceId: string,
     agentId: string,
     pause: PauseSettings | null,
-    updatedAt: Date,
-  ): Promise<boolean> {
+  ): Promise<Agent | null> {
     return this.update(workspaceId, agentId, {
       pausedAt: pause?.pausedAt ?? null,
       pauseMode: pause?.mode ?? null,
       awayMessage: pause?.awayMessage ?? null,
-      updatedAt,
     });
   }
 
-  delete(workspaceId: string, agentId: string, deletedAt: Date): Promise<boolean> {
-    return this.update(workspaceId, agentId, { deletedAt, updatedAt: deletedAt });
+  async delete(workspaceId: string, agentId: string, deletedAt: Date): Promise<boolean> {
+    return (await this.update(workspaceId, agentId, { deletedAt })) !== null;
   }
 
   private async update(
     workspaceId: string,
     agentId: string,
-    changes: Partial<NewAgent>,
-  ): Promise<boolean> {
-    const updated = await this.txHost.tx
+    changes: AgentChanges,
+  ): Promise<Agent | null> {
+    const [agent] = await this.txHost.tx
       .update(agents)
-      .set(changes)
+      .set({ ...changes, updatedAt: this.clock.now() })
       .where(this.notDeleted(workspaceId, eq(agents.id, agentId)))
-      .returning({ id: agents.id });
-    return updated.length > 0;
+      .returning();
+    return agent ?? null;
   }
 
   private notDeleted(workspaceId: string, ...conditions: SQL[]): SQL | undefined {

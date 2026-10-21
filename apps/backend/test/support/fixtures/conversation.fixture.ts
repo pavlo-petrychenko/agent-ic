@@ -27,7 +27,6 @@ export const newConversation = (
   endUserExternalId: TEST_END_USER_EXTERNAL_ID,
   state: ConversationState.AgentActive,
   lastMessageAt: testbed.clock.now(),
-  createdAt: testbed.clock.now(),
 });
 
 export const newMessage = (
@@ -41,7 +40,6 @@ export const newMessage = (
   author: MessageAuthor.Customer,
   text: TEST_MESSAGE_TEXT,
   quickReplies: [],
-  createdAt: testbed.clock.now(),
   ...overrides,
 });
 

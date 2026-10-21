@@ -12,7 +12,6 @@ import type {
   DraftChanges,
   LockedDraft,
 } from '@/modules/agents/typedefs/agent-version.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 
 @Injectable()
 export class AgentDraftsService {
@@ -21,7 +20,6 @@ export class AgentDraftsService {
     private readonly versions: AgentVersionsRepository,
     private readonly flows: AgentFlowService,
     private readonly views: AgentViewsService,
-    private readonly clock: ClockService,
   ) {}
 
   async lock(workspaceId: string, agentId: string, revision: number): Promise<LockedDraft> {
@@ -48,22 +46,15 @@ export class AgentDraftsService {
     { agent, draft }: LockedDraft,
     changes: DraftChanges,
   ): Promise<AgentDraftView> {
-    const now = this.clock.now();
-    const saved = await this.versions.updateDraft(
-      workspaceId,
-      draft.id,
-      draft.revision,
-      changes,
-      now,
-    );
+    const saved = await this.versions.updateDraft(workspaceId, draft.id, draft.revision, changes);
     if (saved === null) {
       throw new AgentVersionImmutableError();
     }
-    const savedDraft = { ...draft, ...changes, revision: saved, updatedAt: now };
+    const savedDraft = { ...draft, ...changes, ...saved };
     return {
       version: await this.views.versionView(agent, savedDraft),
-      revision: saved,
-      savedAt: now,
+      revision: saved.revision,
+      savedAt: saved.updatedAt,
       changeCount: await this.views.draftChangeCount(agent, savedDraft),
       issues: this.flows.validate(changes.flow),
     };

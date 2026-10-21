@@ -18,9 +18,7 @@ export const promptFolders = promptsSchema
       }),
       name: text('name').notNull(),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
-      updatedAt: timestamp('updated_at', { withTimezone: true })
-        .notNull()
-        .$onUpdateFn(() => new Date()),
+      updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
       deletedAt: timestamp('deleted_at', { withTimezone: true }),
     },
     (table) => [
