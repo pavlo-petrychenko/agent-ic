@@ -131,7 +131,7 @@ mise run add langfuse-web
 
 ## URLs
 
-With `TRAEFIK_HTTPS_PORT` other than `443`, add the port to each URL, for example `https://local.agent-ic.pavlop.dev:8443`.
+`mise run start` prints these URLs once every service is healthy, and `mise run urls` prints them any time. With `TRAEFIK_HTTPS_PORT` other than `443`, each URL carries the port, for example `https://local.agent-ic.pavlop.dev:8443`.
 
 | URL                                        | What                                      |
 | ------------------------------------------ | ----------------------------------------- |

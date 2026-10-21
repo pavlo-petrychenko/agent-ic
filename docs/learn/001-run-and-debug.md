@@ -37,6 +37,7 @@ Once, after cloning: `mise run setup`. Every day, after `git checkout` of any br
 | `mise run logs [svc]`    | follows the logs of everything, or of one service (`api`)    |
 | `mise run restart <svc>` | restarts one service                                         |
 | `mise run stop`          | stops the stack                                              |
+| `mise run urls`          | prints the URL of every service                              |
 | `mise run shell <svc>`   | opens a shell inside a service                               |
 | `mise run codegen`       | regenerates GraphQL types and the route tree                 |
 | `mise run db:migrate`    | applies new migrations                                       |
@@ -56,7 +57,7 @@ pnpm scripts run through mise, so the right Node and pnpm are used: `mise exec -
 | https://queues.local.agent-ic.pavlop.dev      | the queue board (Bull Board)                  |
 | https://grafana.local.agent-ic.pavlop.dev     | Grafana, only with the observability profile  |
 
-The URLs need a port only when `TRAEFIK_HTTPS_PORT` in `.env` is not `443`, for example `https://local.agent-ic.pavlop.dev:8443`. Setup moves it when `443` is busy and prints the real URLs; `mise run urls` prints them again.
+The URLs need a port only when `TRAEFIK_HTTPS_PORT` in `.env` is not `443`, for example `https://local.agent-ic.pavlop.dev:8443`. Setup moves it when `443` is busy; `mise run start` prints the real URLs once the stack is up, and `mise run urls` prints them again.
 
 ## Emails
 
