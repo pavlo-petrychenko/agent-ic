@@ -1,10 +1,13 @@
 import { useTranslation } from 'react-i18next';
-import { ROLE_FIXTURES } from '@/features/settings/constants/roles.constants';
+import { SYSTEM_ROLE_COUNT } from '@/features/settings/constants/roles.constants';
 import {
   GENERAL_PATH,
-  ROLES_PATH,
+  LLM_KEYS_PATH,
+  NOTIFICATIONS_PATH,
   PROFILE_PATH,
+  ROLES_PATH,
   TEAM_PATH,
+  USAGE_PATH,
 } from '@/features/settings/constants/route.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { SettingsShellProps } from '@/features/settings/containers/SettingsShell/SettingsShell.typedefs';
@@ -16,11 +19,15 @@ import { NavItem } from '@/shared/ui/navigation/NavItem';
 export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
   const active = useActiveWorkspace(workspaceId);
-  const showTeam = active !== null && canOpenSection(active.role, WorkspaceSection.Team);
-  const showGeneral = active !== null && canOpenSection(active.role, WorkspaceSection.General);
-  const showRoles = active !== null && canOpenSection(active.role, WorkspaceSection.Roles);
+  const showTeam = active !== null && canOpenSection(active.permissions, WorkspaceSection.Team);
+  const showGeneral =
+    active !== null && canOpenSection(active.permissions, WorkspaceSection.General);
+  const showRoles = active !== null && canOpenSection(active.permissions, WorkspaceSection.Roles);
+  const showUsage = active !== null && canOpenSection(active.permissions, WorkspaceSection.Usage);
+  const showLlmKeys =
+    active !== null && canOpenSection(active.permissions, WorkspaceSection.LlmKeys);
 
-  const hasWorkspaceNav = showGeneral || showTeam || showRoles;
+  const hasWorkspaceNav = showGeneral || showTeam || showRoles || showUsage || showLlmKeys;
 
   return (
     <SettingsFrame
@@ -30,6 +37,9 @@ export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
           <NavGroup label={t('nav.you')}>
             <NavItem to={PROFILE_PATH} params={{ workspaceId }}>
               {t('nav.profile')}
+            </NavItem>
+            <NavItem to={NOTIFICATIONS_PATH} params={{ workspaceId }}>
+              {t('nav.notifications')}
             </NavItem>
           </NavGroup>
           {hasWorkspaceNav && (
@@ -47,8 +57,20 @@ export function SettingsShell({ workspaceId, children }: SettingsShellProps) {
               )}
 
               {showRoles && (
-                <NavItem to={ROLES_PATH} params={{ workspaceId }} meta={ROLE_FIXTURES.length}>
+                <NavItem to={ROLES_PATH} params={{ workspaceId }} meta={SYSTEM_ROLE_COUNT}>
                   {t('nav.roles')}
+                </NavItem>
+              )}
+
+              {showUsage && (
+                <NavItem to={USAGE_PATH} params={{ workspaceId }}>
+                  {t('nav.usage')}
+                </NavItem>
+              )}
+
+              {showLlmKeys && (
+                <NavItem to={LLM_KEYS_PATH} params={{ workspaceId }}>
+                  {t('nav.llmKeys')}
                 </NavItem>
               )}
             </NavGroup>

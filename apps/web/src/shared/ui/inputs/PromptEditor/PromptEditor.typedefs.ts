@@ -1,7 +1,9 @@
+import type { PathNormalizer } from '@/shared/prompt/typedefs/promptDocument.typedefs';
+
 export interface VariableOption {
   id: string;
   label: string;
-  group: string;
+  group?: string;
 }
 
 export interface PromptEditorProps {
@@ -10,6 +12,7 @@ export interface PromptEditorProps {
   variables: readonly VariableOption[];
   label: string;
   menuLabel: string;
+  normalizeVariable?: PathNormalizer | null;
   height?: number | null;
   invalid?: boolean;
   error?: string | null;

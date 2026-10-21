@@ -3,7 +3,13 @@ import type { RoleMatrixProps } from '@/features/settings/view/RoleMatrix/RoleMa
 import { Checkbox } from '@/shared/ui/inputs/Checkbox';
 import styles from '@/features/settings/view/RoleMatrix/RoleMatrix.module.scss';
 
-export function RoleMatrix({ resourceLabel, columns, rows, onToggle }: RoleMatrixProps) {
+export function RoleMatrix({
+  resourceLabel,
+  columns,
+  rows,
+  readOnly = false,
+  onToggle,
+}: RoleMatrixProps) {
   return (
     <table className={styles.table}>
       <thead>
@@ -33,6 +39,7 @@ export function RoleMatrix({ resourceLabel, columns, rows, onToggle }: RoleMatri
                   <Checkbox
                     checked={row.granted.includes(column.action)}
                     aria-label={`${row.label} · ${column.label}`}
+                    disabled={readOnly}
                     onCheckedChange={(checked) => onToggle(row.id, column.action, checked)}
                   />
                 ) : (

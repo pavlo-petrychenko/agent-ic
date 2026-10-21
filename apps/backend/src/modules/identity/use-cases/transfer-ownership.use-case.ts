@@ -2,14 +2,15 @@ import { IdPrefix, PermissionAction, PermissionResource, WorkspaceRole } from '@
 import { Injectable } from '@nestjs/common';
 import { TRANSFER_OWNERSHIP_RATE_LIMIT } from '@/modules/identity/constants/rate-limit.constants';
 import { CannotTransferToYourselfError } from '@/modules/identity/errors/cannot-transfer-to-yourself.error';
-import { InvalidCredentialsError } from '@/modules/identity/errors/invalid-credentials.error';
 import { TeamMemberNotFoundError } from '@/modules/identity/errors/team-member-not-found.error';
+import { WrongPasswordError } from '@/modules/identity/errors/wrong-password.error';
 import { verifyPassword } from '@/modules/identity/helpers/password.helpers';
 import { parseWorkspaceInput } from '@/modules/identity/helpers/workspace-input.helpers';
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 import { UsersRepository } from '@/modules/identity/repositories/users.repository';
 import { transferOwnershipInputSchema } from '@/modules/identity/schemas/workspace-input.schema';
 import { WorkspaceMembershipsService } from '@/modules/identity/services/workspace-memberships.service';
+import { WorkspaceRolesService } from '@/modules/identity/services/workspace-roles.service';
 import type {
   TransferOwnershipInput,
   WorkspaceMembership,
@@ -29,6 +30,7 @@ export class TransferOwnershipUseCase {
     private readonly memberships: MembershipsRepository,
     private readonly users: UsersRepository,
     private readonly workspaces: WorkspaceMembershipsService,
+    private readonly roles: WorkspaceRolesService,
     private readonly ids: IdService,
   ) {}
 
@@ -41,7 +43,7 @@ export class TransferOwnershipUseCase {
       const user = await this.users.findById(access.userId);
       const matches = await verifyPassword(user?.passwordHash ?? null, password);
       if (user === null || !matches) {
-        throw new InvalidCredentialsError();
+        throw new WrongPasswordError();
       }
       const owner = await this.memberships.findOwnerForUpdate(access.workspaceId);
       if (owner === null || owner.userId !== access.userId) {
@@ -60,12 +62,10 @@ export class TransferOwnershipUseCase {
       if (target.userId === access.userId) {
         throw new CannotTransferToYourselfError();
       }
-      await this.memberships.updateRole(access.workspaceId, owner.id, WorkspaceRole.Admin);
-      await this.memberships.updateRole(
-        access.workspaceId,
-        targetMembershipId,
-        WorkspaceRole.Owner,
-      );
+      const ownerRoleId = await this.roles.systemRoleId(access.workspaceId, WorkspaceRole.Owner);
+      const adminRoleId = await this.roles.systemRoleId(access.workspaceId, WorkspaceRole.Admin);
+      await this.memberships.updateRoleId(access.workspaceId, owner.id, adminRoleId);
+      await this.memberships.updateRoleId(access.workspaceId, targetMembershipId, ownerRoleId);
       return this.workspaces.describe(access.workspaceId, WorkspaceRole.Admin);
     });
   }

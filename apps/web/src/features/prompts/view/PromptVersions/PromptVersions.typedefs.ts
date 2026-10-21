@@ -8,5 +8,6 @@ export interface PromptVersionRow {
 export interface PromptVersionsProps {
   readonly versions: readonly PromptVersionRow[];
   readonly activeId: string | null;
+  readonly onSelect: ((versionId: string) => void) | null;
   readonly pinnedNumbers: readonly number[];
 }

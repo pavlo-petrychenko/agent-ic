@@ -1,0 +1,12 @@
+query PromptVersion($id: ID!) {
+  promptVersion(id: $id) {
+    id
+    number
+    text
+    note
+    createdAt
+    author {
+      name
+    }
+  }
+}

@@ -106,4 +106,4 @@ One run attempt is one Langfuse trace: the trace id is saved on the run, the con
 - A step's saved `input` leaves out `history`, so do not look for the conversation in `run_steps`.
 - A run in `simulation` mode must never notify anyone or use a real channel. Carry the mode on every event you add.
 
-Next: look at real code in the examples, starting with [the identity module](../examples/identity-module.md). The list is in [the examples section](../README.md#examples) of the docs entry page.
+Next: [Relation fields](019-relation-fields.md).

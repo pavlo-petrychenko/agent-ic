@@ -47,6 +47,7 @@ export class ListMembersUseCase {
       name: row.name,
       email: row.email,
       role: row.role,
+      roleId: this.ids.toPublic(IdPrefix.Role, row.roleId),
       lastActiveAt: row.lastActiveAt,
       joinedAt: row.joinedAt,
     };

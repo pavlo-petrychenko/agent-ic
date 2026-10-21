@@ -8,6 +8,7 @@ export type NewInviteLink = typeof inviteLinks.$inferInsert;
 export interface InviteLinkView {
   readonly url: string;
   readonly role: WorkspaceRole;
+  readonly roleId: string;
   readonly expiresAt: Date;
   readonly joinedCount: number;
 }
@@ -16,6 +17,7 @@ export interface DirectoryInvite {
   readonly id: string;
   readonly workspaceId: string;
   readonly role: WorkspaceRole;
+  readonly roleId: string;
   readonly expiresAt: Date;
   readonly revokedAt: Date | null;
   readonly workspaceName: string;
@@ -28,6 +30,7 @@ export interface InviteInfo {
   readonly inviterName: string;
   readonly memberCount: number;
   readonly role: WorkspaceRole;
+  readonly roleId: string;
   readonly expiresAt: Date;
 }
 
@@ -36,7 +39,8 @@ export interface InviteTokenInput {
 }
 
 export interface UpdateInviteLinkRoleInput {
-  readonly role: string;
+  readonly role?: WorkspaceRole;
+  readonly roleId?: string;
 }
 
 export interface DerivedInviteToken {

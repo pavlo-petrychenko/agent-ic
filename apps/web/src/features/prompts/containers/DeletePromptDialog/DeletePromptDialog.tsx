@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDeletePrompt } from '@/features/prompts/communication/hooks/useDeletePrompt';
 import { usePromptVersions } from '@/features/prompts/communication/hooks/usePromptVersions';
@@ -42,13 +42,16 @@ export function DeletePromptDialog({
     await navigate({ to: PROMPTS_PATH, params: { workspaceId } });
   };
 
-  const openStep = (usage: PromptUsageItem) => {
-    void navigate({
-      to: AGENT_BUILDER_PATH,
-      params: { workspaceId, agentId: usage.agentId },
-      search: { node: usage.nodeId },
-    });
-  };
+  const openStep = useCallback(
+    (usage: PromptUsageItem) => {
+      void navigate({
+        to: AGENT_BUILDER_PATH,
+        params: { workspaceId, agentId: usage.agentId },
+        search: { node: usage.nodeId },
+      });
+    },
+    [navigate, workspaceId],
+  );
 
   if (usages.length > 0) {
     return (

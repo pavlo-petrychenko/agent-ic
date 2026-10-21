@@ -24,56 +24,11 @@ export class SamplePromptService {
   ensure(workspaceId: string, authorId: string): Promise<SamplePromptRefs> {
     return this.tenantTransactions.run(workspaceId, async () => {
       const folderId = await this.imports.ensureFolder(workspaceId, SAMPLE_PROMPT_FOLDER_NAME);
-      return {
-        [SamplePromptKey.CafeAssistant]: await this.ensurePrompt(
-          workspaceId,
-          authorId,
-          folderId,
-          SAMPLE_PROMPTS[SamplePromptKey.CafeAssistant],
-        ),
-        [SamplePromptKey.IntentSort]: await this.ensurePrompt(
-          workspaceId,
-          authorId,
-          folderId,
-          SAMPLE_PROMPTS[SamplePromptKey.IntentSort],
-        ),
-        [SamplePromptKey.BookingHelper]: await this.ensurePrompt(
-          workspaceId,
-          authorId,
-          folderId,
-          SAMPLE_PROMPTS[SamplePromptKey.BookingHelper],
-        ),
-        [SamplePromptKey.BookingDetails]: await this.ensurePrompt(
-          workspaceId,
-          authorId,
-          folderId,
-          SAMPLE_PROMPTS[SamplePromptKey.BookingDetails],
-        ),
-        [SamplePromptKey.ComplaintCheck]: await this.ensurePrompt(
-          workspaceId,
-          authorId,
-          folderId,
-          SAMPLE_PROMPTS[SamplePromptKey.ComplaintCheck],
-        ),
-        [SamplePromptKey.MoodScorer]: await this.ensurePrompt(
-          workspaceId,
-          authorId,
-          folderId,
-          SAMPLE_PROMPTS[SamplePromptKey.MoodScorer],
-        ),
-        [SamplePromptKey.GoodbyeCheck]: await this.ensurePrompt(
-          workspaceId,
-          authorId,
-          folderId,
-          SAMPLE_PROMPTS[SamplePromptKey.GoodbyeCheck],
-        ),
-        [SamplePromptKey.LookUpAnswer]: await this.ensurePrompt(
-          workspaceId,
-          authorId,
-          folderId,
-          SAMPLE_PROMPTS[SamplePromptKey.LookUpAnswer],
-        ),
-      };
+      const refs: Record<string, string> = {};
+      for (const key of Object.values(SamplePromptKey)) {
+        refs[key] = await this.ensurePrompt(workspaceId, authorId, folderId, SAMPLE_PROMPTS[key]);
+      }
+      return refs as SamplePromptRefs;
     });
   }
 

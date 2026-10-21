@@ -94,35 +94,6 @@ export const ROLE_RESOURCE_DEFINITIONS = [
   },
 ] as const satisfies readonly RoleResourceDefinition[];
 
-export interface RoleFixture {
-  readonly id: WorkspaceRole;
-  readonly descriptionKey: string;
-  readonly memberNames: readonly string[];
-}
-
-export const ROLE_FIXTURES = [
-  {
-    id: WorkspaceRole.Owner,
-    descriptionKey: 'roles.description.owner',
-    memberNames: ['Pavlo'],
-  },
-  {
-    id: WorkspaceRole.Admin,
-    descriptionKey: 'roles.description.admin',
-    memberNames: ['Oksana'],
-  },
-  {
-    id: WorkspaceRole.Builder,
-    descriptionKey: 'roles.description.builder',
-    memberNames: ['Marko'],
-  },
-  {
-    id: WorkspaceRole.Operator,
-    descriptionKey: 'roles.description.operator',
-    memberNames: ['Oksana', 'Marko'],
-  },
-] as const satisfies readonly RoleFixture[];
-
-export const DEFAULT_ROLE = WorkspaceRole.Operator;
+export const SYSTEM_ROLE_COUNT = Object.values(WorkspaceRole).length;
 
 export const NOT_APPLICABLE_MARK = '–';
