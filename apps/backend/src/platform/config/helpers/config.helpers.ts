@@ -8,6 +8,7 @@ import { llmEnvSchema } from '@/platform/config/schemas/llm-env.schema';
 import { migrationEnvSchema } from '@/platform/config/schemas/migration-env.schema';
 import { roleEnvSchemas } from '@/platform/config/schemas/role-env.schema';
 import { secretsEnvSchema } from '@/platform/config/schemas/secrets-env.schema';
+import { usageEnvSchema } from '@/platform/config/schemas/usage-env.schema';
 import type {
   AppConfig,
   BaseConfig,
@@ -25,6 +26,7 @@ export const loadAppConfig = (
   const auth = authEnvSchema.safeParse(env);
   const secretBox = secretsEnvSchema.safeParse(env);
   const llm = llmEnvSchema.safeParse(env);
+  const usage = usageEnvSchema.safeParse(env);
   const email = emailEnvSchema.safeParse(env);
   const roleEnvironment = roleEnvSchemas[selection.role].safeParse(env);
 
@@ -34,10 +36,11 @@ export const loadAppConfig = (
     !auth.success ||
     !secretBox.success ||
     !llm.success ||
+    !usage.success ||
     !email.success ||
     !roleEnvironment.success
   ) {
-    const results = [common, langfuse, auth, secretBox, llm, email, roleEnvironment];
+    const results = [common, langfuse, auth, secretBox, llm, usage, email, roleEnvironment];
     throw new ConfigError(
       results.flatMap((result) => (result.success ? [] : toConfigIssues(result.error))),
     );
@@ -57,6 +60,7 @@ export const loadAppConfig = (
     auth: auth.data,
     secretBox: secretBox.data,
     llm: llm.data,
+    usage: usage.data,
     email: email.data,
   };
 

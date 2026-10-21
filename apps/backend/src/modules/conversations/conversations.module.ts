@@ -19,10 +19,11 @@ import { RestartSimulationUseCase } from '@/modules/conversations/use-cases/rest
 import { SendSimulatorMessageUseCase } from '@/modules/conversations/use-cases/send-simulator-message.use-case';
 import { StartSimulationUseCase } from '@/modules/conversations/use-cases/start-simulation.use-case';
 import { SubscribeToConversationActivityUseCase } from '@/modules/conversations/use-cases/subscribe-to-conversation-activity.use-case';
+import { UsageModule } from '@/modules/usage';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class ConversationsModule extends defineModule({
-  imports: [AgentsModule],
+  imports: [AgentsModule, UsageModule],
   providers: [
     ConversationsRepository,
     MessagesRepository,

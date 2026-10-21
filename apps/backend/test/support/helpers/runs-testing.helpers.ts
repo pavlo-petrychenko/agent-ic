@@ -96,6 +96,7 @@ import {
 } from '@test/support/helpers/llm-testing.helpers';
 import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.module';
 import { LlmTracesProbeModule } from '@test/support/modules/llm-traces-probe.module';
+import { UsageNeighboursModule } from '@test/support/modules/usage-neighbours.module';
 import type {
   ExecutableRun,
   LastRunBatch,
@@ -137,6 +138,7 @@ export const createRunsTestbed = async (
       LlmTracesProbeModule.forRole(ROLE),
       OutboundHttpModule,
       AgentsNeighboursModule.forRole(ROLE),
+      UsageNeighboursModule.forRole(ROLE),
       RunsModule.forRole(ROLE),
     ],
     [

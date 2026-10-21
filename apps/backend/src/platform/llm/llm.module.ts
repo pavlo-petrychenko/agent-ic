@@ -15,16 +15,12 @@ import { EmbeddingGateway } from '@/platform/llm/gateways/embedding.gateway';
 import { HttpLlmModelListGateway } from '@/platform/llm/gateways/http-llm-model-list.gateway';
 import { LlmModelListGateway } from '@/platform/llm/gateways/llm-model-list.gateway';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
-import { AllowAllUsageLimits } from '@/platform/llm/services/allow-all-usage-limits.service';
 import { LlmKeyResolver } from '@/platform/llm/services/llm-key-resolver.service';
 import { LlmMetricsService } from '@/platform/llm/services/llm-metrics.service';
 import { LlmSamplerService } from '@/platform/llm/services/llm-sampler.service';
 import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
 import { NoopLlmKeyResolver } from '@/platform/llm/services/noop-llm-key-resolver.service';
-import { NoopUsageReporter } from '@/platform/llm/services/noop-usage-reporter.service';
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
-import { UsageLimits } from '@/platform/llm/services/usage-limits.service';
-import { UsageReporter } from '@/platform/llm/services/usage-reporter.service';
 
 @Global()
 @Module({
@@ -33,8 +29,6 @@ import { UsageReporter } from '@/platform/llm/services/usage-reporter.service';
     LlmSamplerService,
     LlmTraceContextService,
     LlmMetricsService,
-    { provide: UsageReporter, useClass: NoopUsageReporter },
-    { provide: UsageLimits, useClass: AllowAllUsageLimits },
     { provide: LlmKeyResolver, useClass: NoopLlmKeyResolver },
     { provide: LlmModelListGateway, useClass: HttpLlmModelListGateway },
     { provide: LLM_TRACER, useFactory: () => trace.getTracer(LLM_TRACER_NAME) },

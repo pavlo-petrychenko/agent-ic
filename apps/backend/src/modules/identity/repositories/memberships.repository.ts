@@ -117,15 +117,29 @@ export class MembershipsRepository {
       .limit(limit);
   }
 
-  async findOwnerForUpdate(workspaceId: string): Promise<MembershipRecord | null> {
-    const ownerRoles = this.txHost.tx
-      .select({ id: roles.id })
-      .from(roles)
-      .where(and(eq(roles.workspaceId, workspaceId), eq(roles.key, WorkspaceRole.Owner)));
+  async findOwner(workspaceId: string): Promise<MembershipRecord | null> {
     const [membership] = await this.txHost.tx
       .select()
       .from(memberships)
-      .where(and(eq(memberships.workspaceId, workspaceId), inArray(memberships.roleId, ownerRoles)))
+      .where(
+        and(
+          eq(memberships.workspaceId, workspaceId),
+          inArray(memberships.roleId, this.ownerRoleIds(workspaceId)),
+        ),
+      );
+    return membership ?? null;
+  }
+
+  async findOwnerForUpdate(workspaceId: string): Promise<MembershipRecord | null> {
+    const [membership] = await this.txHost.tx
+      .select()
+      .from(memberships)
+      .where(
+        and(
+          eq(memberships.workspaceId, workspaceId),
+          inArray(memberships.roleId, this.ownerRoleIds(workspaceId)),
+        ),
+      )
       .for('update');
     return membership ?? null;
   }
@@ -156,5 +170,12 @@ export class MembershipsRepository {
       .where(and(eq(memberships.workspaceId, workspaceId), eq(memberships.userId, userId)))
       .returning({ id: memberships.id });
     return deleted.length > 0;
+  }
+
+  private ownerRoleIds(workspaceId: string) {
+    return this.txHost.tx
+      .select({ id: roles.id })
+      .from(roles)
+      .where(and(eq(roles.workspaceId, workspaceId), eq(roles.key, WorkspaceRole.Owner)));
   }
 }

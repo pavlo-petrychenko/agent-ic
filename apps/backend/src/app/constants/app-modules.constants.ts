@@ -6,6 +6,7 @@ import { NotificationsModule } from '@/modules/notifications';
 import { PromptsModule } from '@/modules/prompts';
 import { RunsModule } from '@/modules/runs';
 import { SystemModule } from '@/modules/system';
+import { UsageModule } from '@/modules/usage';
 import { CacheModule } from '@/platform/cache/cache.module';
 import { ClockModule } from '@/platform/clock/clock.module';
 import { ContextModule } from '@/platform/context/context.module';
@@ -49,6 +50,7 @@ export const DOMAIN_MODULES: readonly ModuleImport[] = [
   SystemModule,
   IdentityModule,
   NotificationsModule,
+  UsageModule,
   AgentsModule,
   ConversationsModule,
   ChannelsModule,
