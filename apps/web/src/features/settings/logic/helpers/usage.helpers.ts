@@ -3,7 +3,11 @@ import {
   USAGE_FULL_PERCENT,
   USAGE_WARN_PERCENT,
 } from '@/features/settings/constants/usage.constants';
+import { UsageWhenKind } from '@/features/settings/typedefs/usage.typedefs';
+import type { UsageWhen } from '@/features/settings/typedefs/usage.typedefs';
 import { ProgressTone } from '@/shared/ui/display/Progress/Progress.constants';
+
+const MILLISECONDS_PER_DAY = 86_400_000;
 
 export const usagePercent = (used: number, limit: number): number => {
   if (limit <= 0) {
@@ -22,11 +26,32 @@ export const usageTone = (percent: number): ProgressTone => {
 export const formatUsageNumber = (value: number, locale: string): string =>
   new Intl.NumberFormat(locale).format(value);
 
-export const usagePeriod = (now: Date): { start: Date; end: Date } => {
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return { start, end };
-};
+export const formatUsageDay = (iso: string, locale: string): string =>
+  new Intl.DateTimeFormat(locale, USAGE_DAY_FORMAT).format(new Date(iso));
 
-export const formatUsageDay = (date: Date, locale: string): string =>
-  new Intl.DateTimeFormat(locale, USAGE_DAY_FORMAT).format(date);
+export const formatUsageLastDay = (periodEndIso: string, locale: string): string =>
+  formatUsageDay(new Date(Date.parse(periodEndIso) - 1).toISOString(), locale);
+
+export const usagePeriodLabel = (
+  periodStartIso: string,
+  periodEndIso: string,
+  locale: string,
+): string =>
+  `${formatUsageDay(periodStartIso, locale)} – ${formatUsageLastDay(periodEndIso, locale)}`;
+
+const utcDayIndex = (time: number): number => Math.floor(time / MILLISECONDS_PER_DAY);
+
+export const usageReachedWhen = (
+  reachedAtIso: string | null,
+  now: Date,
+  locale: string,
+): UsageWhen => {
+  if (reachedAtIso === null) {
+    return { kind: UsageWhenKind.Unknown, date: null };
+  }
+  const reachedAt = Date.parse(reachedAtIso);
+  if (utcDayIndex(reachedAt) === utcDayIndex(now.getTime())) {
+    return { kind: UsageWhenKind.Today, date: null };
+  }
+  return { kind: UsageWhenKind.On, date: formatUsageDay(reachedAtIso, locale) };
+};

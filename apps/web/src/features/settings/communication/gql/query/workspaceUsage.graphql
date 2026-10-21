@@ -1,0 +1,18 @@
+query WorkspaceUsage {
+  workspaceUsage {
+    periodStart
+    periodEnd
+    credits {
+      used
+      limit
+    }
+    conversations {
+      used
+      limit
+    }
+    chunks {
+      used
+      limit
+    }
+  }
+}

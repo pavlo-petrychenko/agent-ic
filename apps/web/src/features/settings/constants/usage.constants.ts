@@ -1,4 +1,4 @@
-import type { UsageMetric } from '@/features/settings/typedefs/usage.typedefs';
+import type { UsageRowDefinition } from '@/features/settings/typedefs/usage.typedefs';
 
 export enum UsageFormat {
   Percent = 'percent',
@@ -6,37 +6,40 @@ export enum UsageFormat {
   Chunks = 'chunks',
 }
 
+export enum UsageMetricKey {
+  Credits = 'credits',
+  Conversations = 'conversations',
+  Chunks = 'chunks',
+}
+
 export const USAGE_WARN_PERCENT = 80;
 export const USAGE_FULL_PERCENT = 100;
+
+export const USAGE_TIME_ZONE = 'UTC';
 
 export const USAGE_DAY_FORMAT: Intl.DateTimeFormatOptions = {
   month: 'short',
   day: 'numeric',
+  timeZone: USAGE_TIME_ZONE,
 };
 
-export const USAGE_ROWS = [
+export const USAGE_ROW_DEFINITIONS = [
   {
-    id: 'platformModels',
+    key: UsageMetricKey.Credits,
     labelKey: 'usage.rows.platformModels',
     noteKey: 'usage.notes.platformModels',
     format: UsageFormat.Percent,
-    used: 7200,
-    limit: 10000,
   },
   {
-    id: 'conversations',
+    key: UsageMetricKey.Conversations,
     labelKey: 'usage.rows.conversations',
     noteKey: 'usage.notes.conversations',
     format: UsageFormat.Count,
-    used: 4190,
-    limit: 10000,
   },
   {
-    id: 'knowledge',
+    key: UsageMetricKey.Chunks,
     labelKey: 'usage.rows.knowledge',
     noteKey: 'usage.notes.knowledge',
     format: UsageFormat.Chunks,
-    used: 107,
-    limit: 5000,
   },
-] as const satisfies readonly UsageMetric[];
+] as const satisfies readonly UsageRowDefinition[];

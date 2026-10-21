@@ -1,6 +1,7 @@
 import { useMatches } from '@tanstack/react-router';
 import { LocaleSwitcher } from '@/app/components/LocaleSwitcher';
 import type { WorkspaceLayoutProps } from '@/app/layouts/WorkspaceLayout/WorkspaceLayout.typedefs';
+import { UsageLimitBanner } from '@/features/settings';
 import {
   useUpdateMyLocale,
   WorkspaceAccess,
@@ -26,8 +27,13 @@ export function WorkspaceLayout({ workspaceId, children }: WorkspaceLayoutProps)
           footerAction={<LocaleSwitcher compact onLocaleChange={saveLocale} />}
         />
       </aside>
-      <main className={`${styles.main} min-w-0 flex-1 overflow-auto`}>
-        <WorkspaceAccess workspaceId={workspaceId}>{children}</WorkspaceAccess>
+      <main className={`${styles.main} flex min-w-0 flex-1 flex-col overflow-auto`}>
+        <div className="shrink-0">
+          <UsageLimitBanner workspaceId={workspaceId} />
+        </div>
+        <div className="min-h-0 flex-1">
+          <WorkspaceAccess workspaceId={workspaceId}>{children}</WorkspaceAccess>
+        </div>
       </main>
     </div>
   );
