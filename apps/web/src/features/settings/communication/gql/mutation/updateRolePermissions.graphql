@@ -1,0 +1,13 @@
+mutation UpdateRolePermissions($input: UpdateRolePermissionsInput!) {
+  updateRolePermissions(input: $input) {
+    id
+    key
+    name
+    isSystem
+    memberCount
+    permissions {
+      resource
+      action
+    }
+  }
+}

@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { INVITABLE_ROLE_SET } from '@/features/settings/constants/inviteLink.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { InviteLinkCardProps } from '@/features/settings/view/InviteLinkCard/InviteLinkCard.typedefs';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
@@ -48,14 +47,9 @@ export function InviteLinkCard({
             {canEdit && (
               <Select
                 aria-label={t('team.invite.role')}
-                value={link.role}
+                value={link.roleId}
                 options={roleOptions}
-                onChange={(event) => {
-                  const role = INVITABLE_ROLE_SET.get(event.target.value) ?? null;
-                  if (role !== null) {
-                    onRoleChange(role);
-                  }
-                }}
+                onChange={(event) => onRoleChange(event.target.value)}
               />
             )}
             <Button icon={IconName.Copy} onClick={onCopy}>

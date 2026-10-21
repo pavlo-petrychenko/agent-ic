@@ -5,5 +5,6 @@ export interface RoleMatrixProps {
   readonly resourceLabel: string;
   readonly columns: readonly RoleMatrixColumn[];
   readonly rows: readonly RoleMatrixRow[];
+  readonly readOnly?: boolean;
   readonly onToggle: (rowId: string, action: PermissionAction, checked: boolean) => void;
 }

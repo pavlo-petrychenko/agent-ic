@@ -1,6 +1,7 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
+import { WorkspaceRolesService } from '@/modules/identity/services/workspace-roles.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { TEST_USER_NAME } from '@test/support/constants/identity-testing.constants';
@@ -69,12 +70,17 @@ describe('MembershipsRepository across tenants', () => {
   });
 
   it('refuses to write a membership into another workspace', async () => {
+    const roleId = await tenants.run(workspaceA.workspaceId, () =>
+      testbed.module
+        .get(WorkspaceRolesService)
+        .systemRoleId(workspaceA.workspaceId, WorkspaceRole.Admin),
+    );
     const write = tenants.run(workspaceB.workspaceId, () =>
       repository.insertIfAbsent({
         id: testbed.module.get(IdService).generate(),
         workspaceId: workspaceA.workspaceId,
         userId: workspaceB.ownerId,
-        role: WorkspaceRole.Admin,
+        roleId,
         inviteLinkId: null,
         createdAt: testbed.clock.now(),
       }),
