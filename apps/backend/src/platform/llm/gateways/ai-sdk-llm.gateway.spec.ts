@@ -35,6 +35,7 @@ import type {
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { ObservabilityModule } from '@/platform/observability/observability.module';
+import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { MockLlmRoute } from '@test/support/constants/mock-llm.constants';
 import { createTestEnv } from '@test/support/fixtures/test-env.fixture';
 import { createLlmGateway } from '@test/support/helpers/llm-testing.helpers';
@@ -204,9 +205,13 @@ describe('AiSdkLlmGateway.complete', () => {
     expect(Object.keys(mock.body(0)).filter((key) => SAMPLING_PARAMS.includes(key))).toEqual([]);
   });
 
-  it('refuses a workspace provider until workspaces can bring their own keys', async () => {
+  it('refuses a workspace provider while no key resolver is bound', async () => {
     const request = completeRequest({
-      provider: { kind: LlmProviderKind.Workspace, workspaceId: 'wsp_1' },
+      provider: {
+        kind: LlmProviderKind.Workspace,
+        workspaceId: 'wsp_1',
+        providerKeyId: 'lmk_1',
+      },
     });
 
     await expect(gateway.complete(request)).rejects.toBeInstanceOf(LlmNotConfiguredError);
@@ -229,6 +234,7 @@ describe('AiSdkLlmGateway.complete', () => {
         ConfigModule.register(config),
         ClockModule,
         ObservabilityModule.forRole(Role.Api),
+        OutboundHttpModule,
         LlmModule,
       ],
     }).compile();

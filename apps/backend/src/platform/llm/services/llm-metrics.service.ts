@@ -10,8 +10,6 @@ import {
   LlmMetricName,
 } from '@/platform/llm/constants/llm-metrics.constants';
 import type { LlmOperation } from '@/platform/llm/constants/llm-metrics.constants';
-import type { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
-import type { LlmAnyModelId } from '@/platform/llm/typedefs/llm-model.typedefs';
 import { MetricsService } from '@/platform/observability/services/metrics.service';
 
 @Injectable()
@@ -61,11 +59,7 @@ export class LlmMetricsService {
     });
   }
 
-  async measure<R>(
-    operation: LlmOperation,
-    model: LlmAnyModelId,
-    call: () => Promise<R>,
-  ): Promise<R> {
+  async measure<R>(operation: LlmOperation, model: string, call: () => Promise<R>): Promise<R> {
     const startedAt = this.clock.now().getTime();
     let outcome = LlmCallOutcome.Failed;
     try {
@@ -86,15 +80,15 @@ export class LlmMetricsService {
     }
   }
 
-  fallback(model: LlmModelId, fallback: LlmModelId): void {
+  fallback(model: string, fallback: string): void {
     this.fallbacks.inc({ [LlmMetricLabel.Model]: model, [LlmMetricLabel.Fallback]: fallback });
   }
 
-  outputRetry(model: LlmModelId): void {
+  outputRetry(model: string): void {
     this.outputRetries.inc({ [LlmMetricLabel.Model]: model });
   }
 
-  replyNudge(model: LlmModelId): void {
+  replyNudge(model: string): void {
     this.replyNudges.inc({ [LlmMetricLabel.Model]: model });
   }
 }

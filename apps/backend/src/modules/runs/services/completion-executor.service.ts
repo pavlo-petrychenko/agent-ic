@@ -13,18 +13,22 @@ import type {
   StepExecutor,
   StepOutcome,
 } from '@/modules/runs/typedefs/step-executor.typedefs';
+import { IdService } from '@/platform/ids/services/id.service';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 
 @Injectable()
 export class CompletionExecutor implements StepExecutor<CompletionNode> {
   readonly nodeType = NodeType.Completion;
 
-  constructor(private readonly llm: LlmGateway) {}
+  constructor(
+    private readonly llm: LlmGateway,
+    private readonly ids: IdService,
+  ) {}
 
   async execute({ run, node, scope }: StepExecution<CompletionNode>): Promise<StepOutcome> {
     const { id, config } = node;
     const { output } = await this.llm.complete({
-      ...stepModel(id, config.model, COMPLETION_PURPOSE, run.workspaceId),
+      ...stepModel(id, config.model, COMPLETION_PURPOSE, run.workspaceId, this.ids),
       purpose: COMPLETION_PURPOSE,
       ...stepConversation(
         stepSystemPrompt(id, config.prompt, scope.variables, scope.prompts),

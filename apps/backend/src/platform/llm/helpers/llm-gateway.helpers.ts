@@ -14,7 +14,7 @@ import type {
 import { z } from 'zod';
 import { UpstreamError } from '@/platform/errors/errors/upstream.error';
 import { isRetryableUpstreamStatus } from '@/platform/errors/helpers/upstream.helpers';
-import { LLM_CATALOG } from '@/platform/llm/constants/llm-catalog.constants';
+import { LLM_DEFAULT_MODEL } from '@/platform/llm/constants/llm-catalog.constants';
 import {
   LLM_JSON_OBJECT_INSTRUCTION,
   LLM_NO_USAGE,
@@ -31,11 +31,12 @@ import {
   LlmMessageRole,
 } from '@/platform/llm/constants/llm-gateway.constants';
 import { LlmStructuredOutput } from '@/platform/llm/constants/llm-model.constants';
-import type { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
 import {
+  LLM_PLATFORM_SOURCE,
   LLM_PROVIDER_OPTIONS,
   LlmProviderKind,
 } from '@/platform/llm/constants/llm-provider.constants';
+import { profileFor } from '@/platform/llm/helpers/llm-model-profile.helpers';
 import { jsonTextSchema } from '@/platform/llm/schemas/llm-output.schema';
 import type {
   LlmAgentProgress,
@@ -49,13 +50,14 @@ import type {
   LlmTools,
   LlmUsage,
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
-import type { LlmModel } from '@/platform/llm/typedefs/llm-model.typedefs';
+import type { LlmModelProfile } from '@/platform/llm/typedefs/llm-model.typedefs';
+import type { LlmModelHop, LlmResolvedSource } from '@/platform/llm/typedefs/llm-provider.typedefs';
 
 export const toModelMessages = (messages: readonly LlmMessage[]): ModelMessage[] =>
   messages.map(({ role, content }) => ({ role, content }));
 
 export const structuredOutput = (
-  model: LlmModel,
+  model: LlmModelProfile,
   schema: JSONSchema7,
 ): OutputInterface<string, string, never> => ({
   ...Output.text(),
@@ -66,7 +68,11 @@ export const structuredOutput = (
   ),
 });
 
-export const outputInstructions = (system: string, model: LlmModel, schema: JSONSchema7): string =>
+export const outputInstructions = (
+  system: string,
+  model: LlmModelProfile,
+  schema: JSONSchema7,
+): string =>
   model.structuredOutput === LlmStructuredOutput.JsonObject
     ? `${system}\n\n${LLM_JSON_OBJECT_INSTRUCTION}\n${JSON.stringify(schema)}`
     : system;
@@ -84,7 +90,7 @@ export const nearestReasoning = (
 };
 
 export const reasoningFor = (
-  model: LlmModel,
+  model: LlmModelProfile,
   requested: ReasoningLevel | undefined,
 ): ReasoningLevel | null => {
   const wanted = requested ?? model.reasoningEffort;
@@ -202,10 +208,19 @@ export const withMessage = (state: LlmRunState, message: ModelMessage): LlmRunSt
   messages: [...state.messages, message],
 });
 
-export const modelsToTry = <T>(request: LlmCompleteRequest<T>): readonly LlmModelId[] =>
-  request.provider.kind === LlmProviderKind.Platform
-    ? [request.model, LLM_CATALOG[request.model].fallback]
-    : [request.model];
+export const modelsToTry = <T>(
+  request: LlmCompleteRequest<T>,
+  source: LlmResolvedSource,
+): readonly LlmModelHop[] => {
+  const requested: LlmModelHop = { source, model: request.model };
+  if (source.kind === LlmProviderKind.Workspace) {
+    return source.key.fallbackToPlatform
+      ? [requested, { source: LLM_PLATFORM_SOURCE, model: LLM_DEFAULT_MODEL[request.purpose] }]
+      : [requested];
+  }
+  const { fallback } = profileFor(source, request.model);
+  return fallback === null ? [requested] : [requested, { source, model: fallback }];
+};
 
 export const isModelUnavailable = (error: unknown): boolean => {
   if (APICallError.isInstance(error)) {

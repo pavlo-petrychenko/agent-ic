@@ -9,14 +9,19 @@ import type { LlmMetricName } from '@/platform/llm/constants/llm-metrics.constan
 import { LLM_TRACER_NAME } from '@/platform/llm/constants/llm-tracing.constants';
 import { AiSdkEmbeddingGateway } from '@/platform/llm/gateways/ai-sdk-embedding.gateway';
 import { AiSdkLlmGateway } from '@/platform/llm/gateways/ai-sdk-llm.gateway';
+import { AllowAllUsageLimits } from '@/platform/llm/services/allow-all-usage-limits.service';
+import type { LlmKeyResolver } from '@/platform/llm/services/llm-key-resolver.service';
 import { LlmMetricsService } from '@/platform/llm/services/llm-metrics.service';
 import { LlmSamplerService } from '@/platform/llm/services/llm-sampler.service';
 import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
+import { NoopLlmKeyResolver } from '@/platform/llm/services/noop-llm-key-resolver.service';
 import { NoopUsageReporter } from '@/platform/llm/services/noop-usage-reporter.service';
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
 import type { LlmStepTimeouts } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { MetricsService } from '@/platform/observability/services/metrics.service';
+import { guardedFetch } from '@/platform/outbound-http/helpers/guarded-fetch.helpers';
+import { toBlockList } from '@/platform/outbound-http/helpers/outbound-address.helpers';
 import { createTestEnv } from '@test/support/fixtures/test-env.fixture';
 import type { LlmGatewayTestDeps } from '@test/support/typedefs/llm-testing.typedefs';
 
@@ -36,15 +41,22 @@ export const createLlmMetricsService = (
   clock: ClockService = new SystemClockService(),
 ): LlmMetricsService => new LlmMetricsService(metrics, clock);
 
+export const createProviderResolver = (
+  env: Partial<Record<EnvVar, string>>,
+  keys: LlmKeyResolver = new NoopLlmKeyResolver(),
+): ProviderResolverService =>
+  new ProviderResolverService(testConfig(env), keys, guardedFetch(toBlockList([])));
+
 export const createLlmGateway = (
   env: Partial<Record<EnvVar, string>>,
   timeouts: LlmStepTimeouts,
   deps: Partial<LlmGatewayTestDeps> = {},
 ): AiSdkLlmGateway =>
   new AiSdkLlmGateway(
-    new ProviderResolverService(testConfig(env)),
+    createProviderResolver(env, deps.keys),
     deps.traces ?? createLlmTraceContextService(env),
     deps.usage ?? new NoopUsageReporter(),
+    deps.limits ?? new AllowAllUsageLimits(),
     deps.metrics ?? createLlmMetricsService(),
     timeouts,
   );
@@ -55,9 +67,10 @@ export const createEmbeddingGateway = (
   deps: Partial<LlmGatewayTestDeps> = {},
 ): AiSdkEmbeddingGateway =>
   new AiSdkEmbeddingGateway(
-    new ProviderResolverService(testConfig(env)),
+    createProviderResolver(env, deps.keys),
     deps.traces ?? createLlmTraceContextService(env),
     deps.usage ?? new NoopUsageReporter(),
+    deps.limits ?? new AllowAllUsageLimits(),
     deps.metrics ?? createLlmMetricsService(),
     batchTimeoutMs,
   );
