@@ -40,6 +40,7 @@ describe('ApiRequestExecutor', () => {
         variables: { message: { text: TEST_MESSAGE_TEXT } },
         history: [],
         today: RUNS_TEST_START,
+        prompts: new Map(),
       },
     });
 

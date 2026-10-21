@@ -8,7 +8,7 @@ export class StepPromptUnavailableError extends DomainError {
   readonly kind = DomainErrorKind.PreconditionFailed;
   readonly reason = ErrorReason.StepPromptUnavailable;
 
-  constructor(nodeId: string, promptKind: PromptSourceKind | null) {
-    super(STEP_PROMPT_UNAVAILABLE_MESSAGE, { details: { nodeId, promptKind } });
+  constructor(nodeId: string, promptKind: PromptSourceKind | null, promptRef: string | null) {
+    super(STEP_PROMPT_UNAVAILABLE_MESSAGE, { details: { nodeId, promptKind, promptRef } });
   }
 }

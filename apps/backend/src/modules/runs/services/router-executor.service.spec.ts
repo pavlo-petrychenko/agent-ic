@@ -18,6 +18,7 @@ const routeWith = (answer: string | null) =>
       variables: answer === null ? {} : { [FIRST_STEP_KEY]: { answer } },
       history: [],
       today: RUNS_TEST_START,
+      prompts: new Map(),
     },
   });
 

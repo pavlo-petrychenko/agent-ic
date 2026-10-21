@@ -3,6 +3,7 @@ export const TEST_FOLDER_NEW_NAME = 'Guards & tags';
 export const TEST_PROMPT_NAME = 'Receptionist';
 export const TEST_PROMPT_NEW_NAME = 'Concierge';
 export const TEST_PROMPT_TEXT = 'You are the receptionist of Demo salon.';
+export const TEST_PROMPT_LATER_TEXT = 'Offer a manager when unsure.';
 export const TEST_PROMPT_NOTE = 'First version';
 export const PROMPTS_TEST_START = new Date('2026-03-01T10:00:00.000Z');
 export const PROMPTS_TEST_LATER = new Date('2026-03-01T11:30:00.000Z');

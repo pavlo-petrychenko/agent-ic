@@ -47,7 +47,7 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 - `prompt` is a prompt source, or `null` while the step is a draft:
   - `{ kind: 'inline', text }`: a template, checked like every other template and rewritten by `renameNodeKey`. A blank text counts as missing (`MISSING_PROMPT`).
   - `{ kind: 'library', promptRef, pin }`: a prompt of the library, `pin` is `{ kind: 'pinned', number }` or `{ kind: 'latest' }`. Whether it exists is the backend's check.
-- Only `inline` is used until the prompt library lands (`docs/backlog/library-prompts-in-steps.md`).
+- The engine resolves a library prompt through the prompts module: the pinned version, or the latest at run start (D269). `inline` stays valid until the migration removes it (`docs/backlog/library-prompts-in-steps.md`).
 - `reasoning` is a `ReasoningLevel` from `@agent-ic/contracts`, or `null` for the model's default. A stored flow without the field parses as `null`.
 
 ## Parallel branches

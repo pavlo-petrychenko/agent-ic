@@ -7,7 +7,7 @@ import {
   stepModel,
   stepSystemPrompt,
 } from '@/modules/runs/helpers/llm-step.helpers';
-import { runTraceTags } from '@/modules/runs/helpers/run-tracing.helpers';
+import { runTraceTags, stepPromptTags } from '@/modules/runs/helpers/run-tracing.helpers';
 import type {
   StepExecution,
   StepExecutor,
@@ -27,13 +27,13 @@ export class CompletionExecutor implements StepExecutor<CompletionNode> {
       ...stepModel(id, config.model, COMPLETION_PURPOSE, run.workspaceId),
       purpose: COMPLETION_PURPOSE,
       ...stepConversation(
-        stepSystemPrompt(id, config.prompt, scope.variables),
+        stepSystemPrompt(id, config.prompt, scope.variables, scope.prompts),
         scope.history,
         config.input.includeCurrentMessage,
       ),
       output: outputToZod(config.output),
       ...(config.reasoning === null ? {} : { reasoning: config.reasoning }),
-      tags: runTraceTags(run),
+      tags: { ...runTraceTags(run), ...stepPromptTags(id, scope.prompts) },
     });
     return { port: PortName.Next, output };
   }
