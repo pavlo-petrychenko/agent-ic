@@ -10,6 +10,7 @@ import { ConfigService } from '@/platform/config/services/config.service';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class NotificationsModule extends defineModule({
+  global: true,
   providers: [
     {
       provide: EmailGateway,
@@ -25,4 +26,5 @@ export class NotificationsModule extends defineModule({
     SendPasswordResetEmailListener,
     SendEmailChangeEmailListener,
   ],
+  exports: [EmailGateway],
 }) {}

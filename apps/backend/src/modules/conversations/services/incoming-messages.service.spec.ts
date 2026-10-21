@@ -24,6 +24,7 @@ import {
   queuedEventsFor,
   seedAgent,
 } from '@test/support/helpers/conversations-testing.helpers';
+import { conversationsCounted } from '@test/support/helpers/usage-testing.helpers';
 import {
   deliverOnOutboundQueued,
   notifyOnNeedsOperator,
@@ -54,6 +55,9 @@ describe('IncomingMessagesService', () => {
     testbed.tenants.run(workspaceId, () =>
       testbed.conversations.findById(workspaceId, conversationId),
     );
+
+  const conversationsOpened = (workspaceId: string): Promise<number> =>
+    conversationsCounted(testbed.module, workspaceId, testbed.clock.now());
 
   const startedBy = async (pause: PauseSettings | null = null) => {
     const workspaceId = testbed.ids.generate();
@@ -243,6 +247,35 @@ describe('IncomingMessagesService', () => {
     const result = await receive({ ...input, mode: ConversationMode.Simulation });
 
     expect(result.outcome).toBe(IncomingMessageOutcome.RunRequested);
+  });
+
+  it('counts a new live conversation once in the usage of the month', async () => {
+    const input = await startedBy();
+    const first = await receive(input);
+    await receive(input);
+    await testbed.tenants.run(input.workspaceId, () =>
+      testbed.runs.close(input.workspaceId, first.conversationId),
+    );
+
+    await receive(input);
+
+    expect(await conversationsOpened(input.workspaceId)).toBe(2);
+  });
+
+  it('does not count a simulation conversation', async () => {
+    const input = await startedBy();
+
+    await receive({ ...input, mode: ConversationMode.Simulation });
+
+    expect(await conversationsOpened(input.workspaceId)).toBe(0);
+  });
+
+  it('counts one conversation when the same first message arrives twice at once', async () => {
+    const input = { ...(await startedBy()), externalId: TEST_EXTERNAL_MESSAGE_ID };
+
+    await Promise.all([receive(input), receive(input)]);
+
+    expect(await conversationsOpened(input.workspaceId)).toBe(1);
   });
 
   it('refuses a message for an unknown agent', async () => {

@@ -27,6 +27,7 @@ import type {
   IncomingMessageResult,
 } from '@/modules/conversations/typedefs/incoming-message.typedefs';
 import type { Message } from '@/modules/conversations/typedefs/message.typedefs';
+import { UsageCountersService } from '@/modules/usage';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -43,6 +44,7 @@ export class IncomingMessagesService {
     private readonly activity: ConversationActivityService,
     private readonly agents: AgentRuntimeReader,
     private readonly domainEvents: DomainEventsService,
+    private readonly usage: UsageCountersService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
@@ -107,6 +109,9 @@ export class IncomingMessagesService {
       createdAt: now,
     };
     await this.conversations.insert(conversation);
+    if (conversation.mode === ConversationMode.Live) {
+      await this.usage.countConversation(conversation.workspaceId);
+    }
     return conversation;
   }
 

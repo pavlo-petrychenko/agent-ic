@@ -102,6 +102,27 @@ SET app.workspace_id = '<workspace uuid>';
 
 `app_system` skips RLS and sees every row; use it only to look around. `mise run db:reset` starts again from an empty database.
 
+## Raising a workspace's usage limit
+
+Each workspace has three monthly limits: credits for platform models, conversations and knowledge chunks. They come from `USAGE_CREDITS_LIMIT`, `USAGE_CONVERSATIONS_LIMIT` and `USAGE_CHUNKS_LIMIT` (D275). Only the credit limit blocks: at 100 percent the gateway refuses platform model calls until the first day of the next month (UTC), while steps on the workspace's own keys keep answering.
+
+The dashboard has no button to ask for more yet. To raise one workspace's limit, write an override row as `app_system`, the one role that sees every workspace:
+
+```sh
+mise run db:psql app_system
+```
+
+```sql
+SELECT id, name FROM identity.workspaces WHERE name = 'Demo salon';
+
+INSERT INTO usage.workspace_limits (workspace_id, credits_limit)
+VALUES ('<workspace uuid>', 50000)
+ON CONFLICT (workspace_id)
+DO UPDATE SET credits_limit = excluded.credits_limit, updated_at = now();
+```
+
+A column left `NULL` keeps the configured default, so `conversations_limit` and `chunks_limit` work the same way. The next model call reads the new limit; nothing restarts. To return to the defaults, delete the row. The month's usage is in `usage.usage_counters`, one row per workspace and `YYYY-MM`.
+
 ## In the code
 
 - [compose.yaml](../../compose.yaml): every service, and the worker's `--queues` list.
