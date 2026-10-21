@@ -99,5 +99,5 @@ export class AgentsModule extends defineModule({
     TestApiRequestResolver,
   ],
   listeners: [CleanUpWorkspaceListener],
-  exports: [AgentRuntimeReader, SampleAgentService],
+  exports: [AgentRuntimeReader, AgentVersionsRepository, SampleAgentService],
 }) {}
