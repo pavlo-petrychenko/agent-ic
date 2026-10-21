@@ -173,6 +173,38 @@ describe('PromptFlowReferenceChecker', () => {
     expect(issues).toEqual([]);
   });
 
+  it('checks the pinned version and ignores stale binding keys', async () => {
+    const workspaceId = ids.generate();
+    const promptRef = await seedPromptWithVersions(workspaceId, [
+      'Hi {{customer_name}}.',
+      'Hi {{order_id}}.',
+    ]);
+
+    const issues = await check(
+      workspaceId,
+      flowWith([
+        {
+          id: STEP_NODE_ID,
+          prompt: library(promptRef, pinned(FIRST_PROMPT_VERSION_NUMBER), {
+            customer_name: 'user.name',
+            removed_variable: 'missing.value',
+          }),
+        },
+        {
+          id: OTHER_STEP_NODE_ID,
+          prompt: library(promptRef, latest, {
+            customer_name: 'user.name',
+            removed_variable: 'missing.value',
+          }),
+        },
+      ]),
+    );
+
+    expect(issues).toEqual([
+      bindingIssue(FlowIssueCode.PromptVariableUnmapped, OTHER_STEP_NODE_ID, 'order_id'),
+    ]);
+  });
+
   it('reports a binding target that the step cannot see', async () => {
     const workspaceId = ids.generate();
     const promptRef = await seedPromptWithVersions(workspaceId, ['Hi {{customer_name}}.']);
