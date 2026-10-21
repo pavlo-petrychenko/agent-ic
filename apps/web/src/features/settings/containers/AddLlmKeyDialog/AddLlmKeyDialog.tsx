@@ -1,59 +1,53 @@
-import { useState } from 'react';
+import { LLM_KEY_NAME_MAX_LENGTH } from '@agent-ic/contracts';
 import { useTranslation } from 'react-i18next';
+import {
+  LLM_SELECTABLE_VENDORS,
+  LlmKeyCheckStatus,
+} from '@/features/settings/constants/llmKey.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { AddLlmKeyDialogProps } from '@/features/settings/containers/AddLlmKeyDialog/AddLlmKeyDialog.typedefs';
+import { useAddLlmKeyDialog } from '@/features/settings/containers/AddLlmKeyDialog/useAddLlmKeyDialog';
 import {
   applyLlmKeyEdit,
   llmVendorFromValue,
   maskLlmKeyInput,
 } from '@/features/settings/logic/helpers/llmKey.helpers';
-import type { ModelVendor } from '@/shared/api/generated/schema.generated';
+import { LlmKeyVendor } from '@/shared/api/generated/schema.generated';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { Field } from '@/shared/ui/inputs/Field';
 import { Input } from '@/shared/ui/inputs/Input';
 import { Select } from '@/shared/ui/inputs/Select';
+import { Switch } from '@/shared/ui/inputs/Switch';
 import { Dialog } from '@/shared/ui/overlays/Dialog';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
-export function AddLlmKeyDialog({
-  vendor,
-  providers,
-  open,
-  onOpenChange,
-  onSubmit,
-}: AddLlmKeyDialogProps) {
+export function AddLlmKeyDialog({ vendor, open, onOpenChange }: AddLlmKeyDialogProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
   const { t: tCommon } = useTranslation();
-
-  const [selected, setSelected] = useState<ModelVendor>(vendor);
-  const [key, setKey] = useState('');
-
-  const hasKey = key.trim() !== '';
-  const modelCount = providers.find((provider) => provider.vendor === selected)?.modelCount ?? 0;
+  const dialog = useAddLlmKeyDialog({ vendor, onOpenChange });
+  const { draft, check, busy } = dialog;
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) {
-      setKey('');
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
     }
-    onOpenChange(nextOpen);
-  };
-
-  const confirm = () => {
-    onSubmit(selected, key.trim());
-    handleOpenChange(false);
+    dialog.close();
   };
 
   return (
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
-      title={t('llmKeys.dialog.title', { provider: t(`llmKeys.vendors.${selected}`) })}
+      title={t('llmKeys.dialog.title', { provider: t(`llmKeys.vendors.${draft.vendor}`) })}
       description={t('llmKeys.dialog.description')}
       closeLabel={tCommon('ui.close')}
+      busy={busy}
+      error={dialog.error}
       footerLeft={
-        hasKey ? (
+        check.status === LlmKeyCheckStatus.Ok ? (
           <Text kind={TextKind.Caption} color={TextColor.Mute}>
             {t('llmKeys.dialog.checked')}
           </Text>
@@ -61,10 +55,10 @@ export function AddLlmKeyDialog({
       }
       footerRight={
         <>
-          <Button variant={ButtonVariant.Secondary} onClick={() => handleOpenChange(false)}>
+          <Button variant={ButtonVariant.Secondary} disabled={busy} onClick={dialog.close}>
             {t('llmKeys.dialog.cancel')}
           </Button>
-          <Button disabled={!hasKey} onClick={confirm}>
+          <Button disabled={!dialog.canSave} loading={busy} onClick={() => void dialog.save()}>
             {t('llmKeys.dialog.confirm')}
           </Button>
         </>
@@ -75,37 +69,80 @@ export function AddLlmKeyDialog({
           {(control) => (
             <Select
               {...control}
-              value={selected}
-              options={providers.map((provider) => ({
-                value: provider.vendor,
-                label: t(`llmKeys.vendors.${provider.vendor}`),
+              value={draft.vendor}
+              options={LLM_SELECTABLE_VENDORS.map((option) => ({
+                value: option,
+                label: t(`llmKeys.vendors.${option}`),
               }))}
               onChange={(event) => {
                 const next = llmVendorFromValue(event.target.value);
                 if (next !== null) {
-                  setSelected(next);
+                  dialog.setVendor(next);
                 }
               }}
             />
           )}
         </Field>
+        {draft.vendor === LlmKeyVendor.Custom && (
+          <>
+            <Field label={t('llmKeys.custom.nameLabel')}>
+              {(control) => (
+                <Input
+                  {...control}
+                  type="text"
+                  value={draft.name}
+                  maxLength={LLM_KEY_NAME_MAX_LENGTH}
+                  autoComplete="off"
+                  onChange={(event) => dialog.setName(event.target.value)}
+                />
+              )}
+            </Field>
+            <Field label={t('llmKeys.custom.baseUrlLabel')} hint={t('llmKeys.custom.baseUrlHint')}>
+              {(control) => (
+                <Input
+                  {...control}
+                  type="url"
+                  value={draft.baseUrl}
+                  autoComplete="off"
+                  spellCheck={false}
+                  onChange={(event) => dialog.setBaseUrl(event.target.value)}
+                />
+              )}
+            </Field>
+          </>
+        )}
         <Field label={t('llmKeys.dialog.keyLabel')} hint={t('llmKeys.dialog.keyHint')}>
           {(control) => (
             <Input
               {...control}
               type="text"
-              value={maskLlmKeyInput(key)}
+              value={maskLlmKeyInput(draft.apiKey)}
               autoComplete="off"
               spellCheck={false}
-              onChange={(event) => setKey(applyLlmKeyEdit(key, event.target.value))}
+              onChange={(event) =>
+                dialog.setApiKey(applyLlmKeyEdit(draft.apiKey, event.target.value))
+              }
             />
           )}
         </Field>
-        {hasKey && (
+        {check.status === LlmKeyCheckStatus.Checking && (
+          <Text kind={TextKind.Caption} color={TextColor.Mute}>
+            {t('llmKeys.dialog.checking')}
+          </Text>
+        )}
+        {check.status === LlmKeyCheckStatus.Ok && (
           <Callout tone={CalloutTone.Ok} icon={IconName.Check}>
-            {t('llmKeys.dialog.works', { count: modelCount })}
+            {t('llmKeys.dialog.works', { count: check.models.length })}
           </Callout>
         )}
+        {check.status === LlmKeyCheckStatus.Failed && (
+          <Callout tone={CalloutTone.Err}>{check.message}</Callout>
+        )}
+        <Switch
+          checked={draft.fallbackToPlatform}
+          onCheckedChange={dialog.setFallbackToPlatform}
+          label={t('llmKeys.fallbackHint')}
+        />
         <Text kind={TextKind.BodySmall} color={TextColor.Mute}>
           {t('llmKeys.dialog.afterSave')}
         </Text>

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { BadgeTone } from '@/shared/ui/display/Badge';
 
 export interface LlmKeyBadge {
@@ -9,8 +10,9 @@ export interface LlmKeyBadge {
 export interface LlmKeyRow {
   readonly id: string;
   readonly title: string;
-  readonly subtitle: string;
+  readonly subtitle: ReactNode;
   readonly badge: LlmKeyBadge | null;
+  readonly control: ReactNode | null;
   readonly addLabel: string | null;
   readonly onAdd: (() => void) | null;
   readonly removeLabel: string | null;

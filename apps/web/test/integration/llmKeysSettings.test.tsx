@@ -4,16 +4,43 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildLlmCatalogMock } from '@/features/settings/communication/fixtures/llmCatalog.fixture';
 import {
+  ANTHROPIC_KEY,
+  CHECKED_MODELS,
+  VALID_API_KEY,
+  buildAddLlmKeyMock,
+  buildCheckLlmKeyMock,
+  buildLlmKeysMock,
+  buildRemoveLlmKeyMock,
+} from '@/features/settings/communication/fixtures/llmKeys.fixture';
+import { maskLlmKeyInput } from '@/features/settings/logic/helpers/llmKey.helpers';
+import {
   buildWorkspaceShellMock,
   DEMO_WORKSPACE,
 } from '@/features/workspace/communication/fixtures/workspaceShell.fixture';
+import { LlmKeyVendor } from '@/shared/api/generated/schema.generated';
 import { setWorkspaceId } from '@/shared/api/helpers/requestContext.helpers';
 import { renderRoute } from '@test/support/helpers/router.helpers';
 import { signInForTest, signOutForTest } from '@test/support/helpers/session.helpers';
 
 const settingsPath = `/w/${DEMO_WORKSPACE.id}/settings`;
 const OPERATOR_WORKSPACE = { ...DEMO_WORKSPACE, role: WorkspaceRole.Operator };
-const PROVIDERS = ['OpenAI', 'Anthropic', 'Google', 'Mistral', 'Xiaomi', 'Zhipu', 'DeepSeek'];
+const PROVIDERS = ['OpenAI', 'Anthropic', 'Google', 'Mistral', 'DeepSeek'];
+const CHECK_TIMEOUT_MS = 3000;
+const OPENAI_KEY = {
+  ...ANTHROPIC_KEY,
+  id: 'llk_openai',
+  vendor: LlmKeyVendor.Openai,
+  name: 'OpenAI',
+  keyLast4: '9999',
+  usedBySteps: 0,
+};
+const OPENAI_CHECK = { vendor: LlmKeyVendor.Openai, apiKey: VALID_API_KEY, baseUrl: null };
+
+const pageMocks = [
+  buildWorkspaceShellMock([DEMO_WORKSPACE]),
+  buildLlmCatalogMock(),
+  buildLlmKeysMock([ANTHROPIC_KEY]),
+];
 
 const providerRow = (provider: string): HTMLElement => {
   const row = screen.getByText(provider).closest('li');
@@ -42,12 +69,12 @@ describe('llm keys settings', () => {
 
   it('lists the platform models and every provider with its key state', async () => {
     renderRoute(`${settingsPath}/llm`, {
-      mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE]), buildLlmCatalogMock()],
+      mocks: pageMocks,
     });
 
     expect(await screen.findByRole('heading', { name: 'LLM keys' })).toBeInTheDocument();
     expect(screen.getByText('Platform models or bring your own key')).toBeInTheDocument();
-    expect(screen.getByText('Models')).toBeInTheDocument();
+    expect(await screen.findByText('Models')).toBeInTheDocument();
     expect(screen.getByText('Platform models')).toBeInTheDocument();
     expect(
       await screen.findByText('Strong model, Fast model · counted in your usage limit'),
@@ -55,20 +82,20 @@ describe('llm keys settings', () => {
     expect(screen.getByText('Platform-provided')).toBeInTheDocument();
 
     for (const provider of PROVIDERS) {
-      expect(screen.getByText(provider)).toBeInTheDocument();
+      expect(await screen.findByText(provider)).toBeInTheDocument();
     }
     expect(
       screen.getByText('Key ends …41aa · added by Pavlo · used by 2 steps'),
     ).toBeInTheDocument();
     expect(screen.getByText('Connected')).toBeInTheDocument();
-    expect(screen.getAllByText('No key')).toHaveLength(6);
+    expect(screen.getAllByText('No key')).toHaveLength(4);
     expect(screen.getByRole('button', { name: 'Remove key' })).toBeInTheDocument();
   });
 
   it('opens the dialog from the page-level Add key button', async () => {
     const user = userEvent.setup();
     renderRoute(`${settingsPath}/llm`, {
-      mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE]), buildLlmCatalogMock()],
+      mocks: pageMocks,
     });
 
     await screen.findByText('OpenAI');
@@ -84,7 +111,7 @@ describe('llm keys settings', () => {
   it('removes a key after the password confirmation', async () => {
     const user = userEvent.setup();
     renderRoute(`${settingsPath}/llm`, {
-      mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE]), buildLlmCatalogMock()],
+      mocks: [...pageMocks, buildRemoveLlmKeyMock(ANTHROPIC_KEY), buildLlmKeysMock([])],
     });
 
     await user.click(await screen.findByRole('button', { name: 'Remove key' }));
@@ -98,14 +125,19 @@ describe('llm keys settings', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Remove key' }));
 
     expect(await screen.findByText('Anthropic key removed')).toBeInTheDocument();
-    expect(screen.getAllByText('No key')).toHaveLength(7);
+    expect(screen.getAllByText('No key')).toHaveLength(5);
     expect(screen.queryByRole('button', { name: 'Remove key' })).not.toBeInTheDocument();
   });
 
   it('adds a key for a provider through the dialog', async () => {
     const user = userEvent.setup();
     renderRoute(`${settingsPath}/llm`, {
-      mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE]), buildLlmCatalogMock()],
+      mocks: [
+        ...pageMocks,
+        buildCheckLlmKeyMock(OPENAI_CHECK),
+        buildAddLlmKeyMock({ ...OPENAI_CHECK, name: null, fallbackToPlatform: false }, OPENAI_KEY),
+        buildLlmKeysMock([ANTHROPIC_KEY, OPENAI_KEY]),
+      ],
     });
 
     await screen.findByText('OpenAI');
@@ -120,10 +152,16 @@ describe('llm keys settings', () => {
     ).toBeInTheDocument();
     expect(within(dialog).getByRole('combobox')).toHaveValue('openai');
 
-    await user.type(within(dialog).getByLabelText('API key'), 'sk-9999');
+    await user.type(within(dialog).getByLabelText('API key'), VALID_API_KEY);
 
-    expect(within(dialog).getByLabelText('API key')).toHaveValue('sk-••••');
-    expect(within(dialog).getByText('Key works · 2 models available')).toBeInTheDocument();
+    expect(within(dialog).getByLabelText('API key')).toHaveValue(maskLlmKeyInput(VALID_API_KEY));
+    expect(
+      await within(dialog).findByText(
+        `Key works · ${CHECKED_MODELS.length} models available`,
+        {},
+        { timeout: CHECK_TIMEOUT_MS },
+      ),
+    ).toBeInTheDocument();
     expect(within(dialog).getByText('Checked just now')).toBeInTheDocument();
 
     await user.click(within(dialog).getByRole('button', { name: 'Save key' }));

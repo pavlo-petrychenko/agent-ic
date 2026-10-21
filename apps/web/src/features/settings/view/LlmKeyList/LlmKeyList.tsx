@@ -36,6 +36,7 @@ export function LlmKeyList({ title, description, rows }: LlmKeyListProps) {
                 {row.subtitle}
               </Text>
             </div>
+            {row.control}
             {row.badge !== null && (
               <Badge tone={row.badge.tone} dot={row.badge.dot}>
                 {row.badge.label}
