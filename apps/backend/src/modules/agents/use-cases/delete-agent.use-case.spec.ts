@@ -36,22 +36,32 @@ describe('DeleteAgentUseCase', () => {
     await testingModule.close();
   });
 
-  it('deletes an agent that is not live together with its versions', async () => {
+  it('deletes an agent that is not live and keeps its versions for history', async () => {
     const workspaceId = ids.generate();
-    const { agentId } = await seedAgentWithDraft(testingModule, workspaceId);
+    const { agentId, draftId } = await seedAgentWithDraft(testingModule, workspaceId);
     const id = publicAgentId(testingModule, agentId);
 
     const result = await deleteAgent.execute(agentsCtx(testingModule, workspaceId), { id });
 
-    const agent = await tenants.run(workspaceId, () =>
-      testingModule.get(AgentsRepository).findById(workspaceId, agentId),
-    );
-    const versions = await tenants.run(workspaceId, () =>
-      testingModule.get(AgentVersionsRepository).listByAgent(workspaceId, agentId),
-    );
+    const read = await tenants.run(workspaceId, async () => ({
+      agent: await testingModule.get(AgentsRepository).findById(workspaceId, agentId),
+      draft: await testingModule.get(AgentVersionsRepository).findById(workspaceId, draftId),
+    }));
     expect(result).toEqual({ id });
-    expect(agent).toBeNull();
-    expect(versions).toEqual([]);
+    expect(read.agent).toBeNull();
+    expect(read.draft?.id).toBe(draftId);
+  });
+
+  it('does not delete an agent twice', async () => {
+    const workspaceId = ids.generate();
+    const { agentId } = await seedAgentWithDraft(testingModule, workspaceId);
+    const ctx = agentsCtx(testingModule, workspaceId);
+    const id = publicAgentId(testingModule, agentId);
+    await deleteAgent.execute(ctx, { id });
+
+    const again = deleteAgent.execute(ctx, { id });
+
+    await expect(again).rejects.toBeInstanceOf(AgentNotFoundError);
   });
 
   it('deletes a live agent, which stops answering and keeps its conversations', async () => {

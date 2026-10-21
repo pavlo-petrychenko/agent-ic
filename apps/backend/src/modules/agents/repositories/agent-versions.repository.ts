@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, count, desc, eq, inArray, max, or, sql } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, isNull, max, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import {
   AgentVersionAggregate,
@@ -163,7 +163,7 @@ export class AgentVersionsRepository {
           ),
         ),
       )
-      .where(eq(agents.workspaceId, workspaceId))
+      .where(and(eq(agents.workspaceId, workspaceId), isNull(agents.deletedAt)))
       .orderBy(agents.name, agentVersions.number);
     return rows.map(({ agentId, agentName, version }) => {
       const current = withCurrentFlow(version);
@@ -278,7 +278,13 @@ export class AgentVersionsRepository {
       .leftJoin(live, eq(live.id, agents.liveVersionId))
       .leftJoin(base, eq(base.id, draft.baseVersionId))
       .leftJoin(published, eq(published.agentId, agents.id))
-      .where(and(eq(agents.workspaceId, workspaceId), inArray(agents.id, [...agentIds])));
+      .where(
+        and(
+          eq(agents.workspaceId, workspaceId),
+          isNull(agents.deletedAt),
+          inArray(agents.id, [...agentIds]),
+        ),
+      );
     return rows.map(toAgentVersionSummary);
   }
 }

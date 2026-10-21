@@ -1,12 +1,17 @@
+import { TransactionHost } from '@nestjs-cls/transactional';
 import type { TestingModule } from '@nestjs/testing';
+import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PauseMode } from '@/modules/agents/constants/agent.constants';
+import { agents } from '@/modules/agents/db/agents.table';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
   AGENTS_TEST_LATER,
   AGENTS_TEST_START,
+  TEST_AGENT_NAME,
   TEST_AGENT_NEW_NAME,
   TEST_AGENT_PAGE_LIMIT,
   TEST_AWAY_MESSAGE,
@@ -20,10 +25,12 @@ describe('AgentsRepository', () => {
   let repository: AgentsRepository;
   let tenants: TenantTransactionService;
   let ids: IdService;
+  let txHost: TransactionHost<AppTransactionAdapter>;
 
   beforeAll(async () => {
     testingModule = await createAgentsTestingModule();
     repository = testingModule.get(AgentsRepository);
+    txHost = testingModule.get<TransactionHost<AppTransactionAdapter>>(TransactionHost);
     tenants = testingModule.get(TenantTransactionService);
     ids = testingModule.get(IdService);
   });
@@ -133,21 +140,75 @@ describe('AgentsRepository', () => {
     expect(second.map((agent) => agent.id)).toEqual(created.slice(TEST_AGENT_PAGE_LIMIT));
   });
 
-  it('deletes an agent', async () => {
+  it('deletes an agent once, stamping the time, and then neither finds nor changes it', async () => {
     const workspaceId = ids.generate();
     const agentId = await insertAgent(workspaceId);
 
-    const deleted = await tenants.run(workspaceId, () => repository.delete(workspaceId, agentId));
-    const deletedAgain = await tenants.run(workspaceId, () =>
-      repository.delete(workspaceId, agentId),
+    const deleted = await tenants.run(workspaceId, () =>
+      repository.delete(workspaceId, agentId, AGENTS_TEST_LATER),
     );
-    const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, agentId));
+    const after = await tenants.run(workspaceId, async () => ({
+      deletedAgain: await repository.delete(workspaceId, agentId, AGENTS_TEST_LATER),
+      renamed: await repository.rename(
+        workspaceId,
+        agentId,
+        TEST_AGENT_NEW_NAME,
+        AGENTS_TEST_LATER,
+      ),
+      found: await repository.findById(workspaceId, agentId),
+      locked: await repository.findByIdForUpdate(workspaceId, agentId),
+      stored: await txHost.tx
+        .select({ deletedAt: agents.deletedAt, updatedAt: agents.updatedAt })
+        .from(agents)
+        .where(eq(agents.id, agentId)),
+    }));
 
-    expect({ deleted, deletedAgain, found }).toEqual({
+    expect({ deleted, ...after }).toEqual({
       deleted: true,
       deletedAgain: false,
+      renamed: false,
       found: null,
+      locked: null,
+      stored: [{ deletedAt: AGENTS_TEST_LATER, updatedAt: AGENTS_TEST_LATER }],
     });
+  });
+
+  it('leaves a deleted agent out of lists and counts', async () => {
+    const workspaceId = ids.generate();
+    const kept = await insertAgent(workspaceId);
+    const deleted = await insertAgent(workspaceId);
+    await tenants.run(workspaceId, () =>
+      repository.delete(workspaceId, deleted, AGENTS_TEST_LATER),
+    );
+
+    const read = await tenants.run(workspaceId, async () => ({
+      page: await repository.listPage(workspaceId, null, TEST_AGENT_PAGE_LIMIT),
+      byIds: await repository.listByIds(workspaceId, [kept, deleted]),
+      total: await repository.countByWorkspace(workspaceId),
+    }));
+
+    expect({
+      page: read.page.map((agent) => agent.id),
+      byIds: read.byIds.map((agent) => agent.id),
+      total: read.total,
+    }).toEqual({ page: [kept], byIds: [kept], total: 1 });
+  });
+
+  it('frees the name of a deleted agent', async () => {
+    const workspaceId = ids.generate();
+    const agentId = await insertAgent(workspaceId);
+    const before = await tenants.run(workspaceId, () =>
+      repository.findNamesStartingWith(workspaceId, TEST_AGENT_NAME),
+    );
+    await tenants.run(workspaceId, () =>
+      repository.delete(workspaceId, agentId, AGENTS_TEST_LATER),
+    );
+
+    const after = await tenants.run(workspaceId, () =>
+      repository.findNamesStartingWith(workspaceId, TEST_AGENT_NAME),
+    );
+
+    expect({ before, after }).toEqual({ before: [TEST_AGENT_NAME], after: [] });
   });
 
   describe('across tenants', () => {
@@ -165,7 +226,7 @@ describe('AgentsRepository', () => {
           TEST_AGENT_NEW_NAME,
           AGENTS_TEST_LATER,
         ),
-        deleted: await repository.delete(workspaceA, agentId),
+        deleted: await repository.delete(workspaceA, agentId, AGENTS_TEST_LATER),
       }));
       const ownFromA = await tenants.run(workspaceA, () =>
         repository.findById(workspaceA, agentId),

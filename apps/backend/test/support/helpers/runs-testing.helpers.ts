@@ -450,7 +450,7 @@ export const changeAgent = async (
   const changes: Readonly<Record<AgentChange, () => Promise<unknown>>> = {
     [AgentChange.PauseWithAwayMessage]: () => agents.setPause(workspaceId, agentId, pause, at),
     [AgentChange.Unpublish]: () => agents.setLiveVersion(workspaceId, agentId, null, at),
-    [AgentChange.Delete]: () => agents.delete(workspaceId, agentId),
+    [AgentChange.Delete]: () => agents.delete(workspaceId, agentId, at),
   };
   await testbed.tenants.run(workspaceId, changes[change]);
 };

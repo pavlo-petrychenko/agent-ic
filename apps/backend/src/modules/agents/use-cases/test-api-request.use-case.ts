@@ -9,6 +9,7 @@ import {
   toOutboundRequest,
 } from '@/modules/agents/helpers/api-request-test.helpers';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
+import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { testApiRequestInputSchema } from '@/modules/agents/schemas/agent-input.schema';
 import type {
   ApiRequestTestResult,
@@ -25,6 +26,7 @@ import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.serv
 export class TestApiRequestUseCase {
   constructor(
     private readonly tenantTransactions: TenantTransactionService,
+    private readonly agents: AgentsRepository,
     private readonly versions: AgentVersionsRepository,
     private readonly http: OutboundHttpGateway,
     private readonly ids: IdService,
@@ -40,8 +42,10 @@ export class TestApiRequestUseCase {
       variables,
     } = parseAgentInput(testApiRequestInputSchema, input);
     const agentId = this.ids.fromPublic(IdPrefix.Agent, publicId);
-    const draft = await this.tenantTransactions.run(workspaceId, () =>
-      this.versions.findDraft(workspaceId, agentId),
+    const draft = await this.tenantTransactions.run(workspaceId, async () =>
+      (await this.agents.findById(workspaceId, agentId)) === null
+        ? null
+        : this.versions.findDraft(workspaceId, agentId),
     );
     if (draft === null) {
       throw new AgentNotFoundError();

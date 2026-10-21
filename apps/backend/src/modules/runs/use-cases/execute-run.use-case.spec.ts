@@ -75,6 +75,21 @@ describe('ExecuteRunUseCase', () => {
     expect(after.conversation?.activeRunId).toBeNull();
   });
 
+  it('fails a queued live run without answering once its agent is deleted', async () => {
+    const seeded = await seedLiveConversation(testbed, oneStep(FIRST_STEP_ID, FIRST_STEP_KEY));
+    const { run } = await receiveMessage(testbed, seeded);
+    await changeAgent(testbed, seeded, AgentChange.Delete);
+    const runId = String(run?.id);
+
+    const execution = testbed.executeRun.execute(seeded.ctx, { runId });
+
+    await expect(execution).rejects.toMatchObject({ reason: ErrorReason.AgentNotFound });
+    const after = await readLifecycle(testbed, seeded);
+    expect(testbed.executor.callsFor(runId, FIRST_STEP_ID)).toBe(0);
+    expect(after.latest).toMatchObject({ id: run?.id, status: RunStatus.Failed });
+    expect(after.conversation?.activeRunId).toBeNull();
+  });
+
   it('keeps the pinned version when the agent is published mid-run', async () => {
     const seeded = await seedLiveConversation(testbed, oneStep(FIRST_STEP_ID, FIRST_STEP_KEY));
     const { run } = await receiveMessage(testbed, seeded);

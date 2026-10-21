@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, eq, gt, inArray, sql } from 'drizzle-orm';
+import { and, asc, count, eq, gt, inArray, isNull, sql } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
 import { agents } from '@/modules/agents/db/agents.table';
 import { agentNamesLockKey } from '@/modules/agents/helpers/agent-name.helpers';
 import type { Agent, NewAgent } from '@/modules/agents/typedefs/agent.typedefs';
@@ -19,7 +20,7 @@ export class AgentsRepository {
     const [agent] = await this.txHost.tx
       .select()
       .from(agents)
-      .where(and(eq(agents.workspaceId, workspaceId), eq(agents.id, agentId)));
+      .where(this.notDeleted(workspaceId, eq(agents.id, agentId)));
     return agent ?? null;
   }
 
@@ -30,14 +31,14 @@ export class AgentsRepository {
     return this.txHost.tx
       .select()
       .from(agents)
-      .where(and(eq(agents.workspaceId, workspaceId), inArray(agents.id, [...agentIds])));
+      .where(this.notDeleted(workspaceId, inArray(agents.id, [...agentIds])));
   }
 
   async findByIdForUpdate(workspaceId: string, agentId: string): Promise<Agent | null> {
     const [agent] = await this.txHost.tx
       .select()
       .from(agents)
-      .where(and(eq(agents.workspaceId, workspaceId), eq(agents.id, agentId)))
+      .where(this.notDeleted(workspaceId, eq(agents.id, agentId)))
       .for('update');
     return agent ?? null;
   }
@@ -52,16 +53,15 @@ export class AgentsRepository {
     const rows = await this.txHost.tx
       .select({ name: agents.name })
       .from(agents)
-      .where(and(eq(agents.workspaceId, workspaceId), sql`starts_with(${agents.name}, ${prefix})`));
+      .where(this.notDeleted(workspaceId, sql`starts_with(${agents.name}, ${prefix})`));
     return rows.map((row) => row.name);
   }
 
   listPage(workspaceId: string, afterId: string | null, limit: number): Promise<Agent[]> {
-    const inWorkspace = eq(agents.workspaceId, workspaceId);
     return this.txHost.tx
       .select()
       .from(agents)
-      .where(afterId === null ? inWorkspace : and(inWorkspace, gt(agents.id, afterId)))
+      .where(this.notDeleted(workspaceId, ...(afterId === null ? [] : [gt(agents.id, afterId)])))
       .orderBy(asc(agents.id))
       .limit(limit);
   }
@@ -111,12 +111,8 @@ export class AgentsRepository {
     });
   }
 
-  async delete(workspaceId: string, agentId: string): Promise<boolean> {
-    const deleted = await this.txHost.tx
-      .delete(agents)
-      .where(and(eq(agents.workspaceId, workspaceId), eq(agents.id, agentId)))
-      .returning({ id: agents.id });
-    return deleted.length > 0;
+  delete(workspaceId: string, agentId: string, deletedAt: Date): Promise<boolean> {
+    return this.update(workspaceId, agentId, { deletedAt, updatedAt: deletedAt });
   }
 
   private async update(
@@ -127,9 +123,13 @@ export class AgentsRepository {
     const updated = await this.txHost.tx
       .update(agents)
       .set(changes)
-      .where(and(eq(agents.workspaceId, workspaceId), eq(agents.id, agentId)))
+      .where(this.notDeleted(workspaceId, eq(agents.id, agentId)))
       .returning({ id: agents.id });
     return updated.length > 0;
+  }
+
+  private notDeleted(workspaceId: string, ...conditions: SQL[]): SQL | undefined {
+    return and(eq(agents.workspaceId, workspaceId), isNull(agents.deletedAt), ...conditions);
   }
 
   async deleteByWorkspace(workspaceId: string): Promise<void> {
@@ -140,7 +140,7 @@ export class AgentsRepository {
     const [row] = await this.txHost.tx
       .select({ total: count() })
       .from(agents)
-      .where(eq(agents.workspaceId, workspaceId));
+      .where(this.notDeleted(workspaceId));
     return row?.total ?? 0;
   }
 }
