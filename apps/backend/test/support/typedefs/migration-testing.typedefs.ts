@@ -6,6 +6,11 @@ export interface MigrationJournal {
   readonly entries: readonly MigrationJournalEntry[];
 }
 
+export interface MigrationFileMismatch {
+  readonly orphanFiles: readonly string[];
+  readonly missingFiles: readonly string[];
+}
+
 export interface SeededOrphans {
   readonly userId: string;
   readonly workspaceId: string;

@@ -53,8 +53,7 @@ export const promptVersions = promptsSchema
         'prompt_versions_text_max_length',
         sql`char_length(${table.text}) <= ${sql.raw(String(MAX_TEMPLATE_LENGTH))}`,
       ),
-      uniqueIndex('prompt_versions_prompt_id_number_key').on(table.promptId, table.number),
-      index('prompt_versions_workspace_id_prompt_id_number_idx').on(
+      uniqueIndex('prompt_versions_workspace_id_prompt_id_number_key').on(
         table.workspaceId,
         table.promptId,
         table.number,

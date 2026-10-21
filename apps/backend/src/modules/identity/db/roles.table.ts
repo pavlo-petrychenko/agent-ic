@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { boolean, index, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { boolean, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { identitySchema, workspaceRoleEnum } from '@/modules/identity/db/identity.pg-schema';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
@@ -33,7 +33,6 @@ export const roles = identitySchema
       uniqueIndex('roles_workspace_custom_name_key')
         .on(table.workspaceId, sql`lower(${table.name})`)
         .where(sql`${table.isSystem} = false`),
-      index('roles_workspace_id_idx').on(table.workspaceId),
       tenantIsolationPolicy('roles'),
     ],
   )
