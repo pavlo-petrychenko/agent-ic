@@ -1,0 +1,13 @@
+.panel {
+  flex: 0 0 var(--size-inspector-width);
+  width: var(--size-inspector-width);
+}
+
+.content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-18);
+  min-height: 0;
+  overflow: auto;
+}
