@@ -15,7 +15,9 @@ import {
   OUTBOUND_TEST_HEADER_VALUE,
   OUTBOUND_TEST_INVALID_HEADER_VALUES,
   OUTBOUND_TEST_INVALID_URLS,
+  OUTBOUND_TEST_LARGE_BODY_FACTOR,
   OUTBOUND_TEST_SHORT_TIMEOUT_MS,
+  OUTBOUND_TEST_SMALL_BODY_LIMIT,
   OUTBOUND_TEST_STATUS,
   OUTBOUND_TEST_TIMEOUT_MS,
   OutboundTestPath,
@@ -81,6 +83,26 @@ describe('NodeOutboundHttpGateway', () => {
 
     expect(result.bodyTruncated).toBe(false);
     expect(result.body).toHaveLength(OUTBOUND_RESPONSE_MAX_BYTES);
+  });
+
+  it('reads a long body whole when the request allows more', async () => {
+    const result = await open.send({
+      ...get(`${server.origin}${OutboundTestPath.Large}`),
+      maxBodyBytes: OUTBOUND_RESPONSE_MAX_BYTES * OUTBOUND_TEST_LARGE_BODY_FACTOR,
+    });
+
+    expect(result.bodyTruncated).toBe(false);
+    expect(result.body).toHaveLength(OUTBOUND_RESPONSE_MAX_BYTES * OUTBOUND_TEST_LARGE_BODY_FACTOR);
+  });
+
+  it('cuts a body at a smaller limit of the request', async () => {
+    const result = await open.send({
+      ...get(`${server.origin}${OutboundTestPath.Exact}`),
+      maxBodyBytes: OUTBOUND_TEST_SMALL_BODY_LIMIT,
+    });
+
+    expect(result.bodyTruncated).toBe(true);
+    expect(result.body).toHaveLength(OUTBOUND_TEST_SMALL_BODY_LIMIT);
   });
 
   it.each(OUTBOUND_TEST_INVALID_HEADER_VALUES)(

@@ -68,7 +68,10 @@ const guard = (key: string) => {
   return node;
 };
 
-const REFERENCE_CHECKER_CODES = [FlowIssueCode.MissingPromptVersion] as const;
+const REFERENCE_CHECKER_CODES = [
+  FlowIssueCode.MissingPromptVersion,
+  FlowIssueCode.MissingProviderKey,
+] as const;
 type ValidationIssueCode = Exclude<FlowIssueCode, (typeof REFERENCE_CHECKER_CODES)[number]>;
 
 const validationCodes = Object.values(FlowIssueCode).filter(
