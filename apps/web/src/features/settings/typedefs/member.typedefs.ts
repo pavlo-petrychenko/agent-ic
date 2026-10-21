@@ -7,6 +7,7 @@ export interface TeamMember {
   readonly name: string;
   readonly email: string;
   readonly role: WorkspaceRole;
+  readonly roleId: string;
   readonly lastActiveAt: string | null;
 }
 
@@ -20,9 +21,16 @@ export interface MemberRow {
   readonly name: string;
   readonly email: string;
   readonly initials: string;
+  readonly role: WorkspaceRole;
   readonly roleLabel: string;
   readonly lastActive: string;
   readonly action: MemberAction | null;
+  readonly roleEditable: boolean;
+}
+
+export interface UseChangeMemberRoleResult {
+  readonly changeMemberRole: (membershipId: string, role: WorkspaceRole) => Promise<void>;
+  readonly changing: boolean;
 }
 
 export interface UseMemberActionsResult {

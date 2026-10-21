@@ -1,4 +1,3 @@
-import type { WorkspaceRole } from '@agent-ic/contracts';
 import { useMutation, useQuery } from '@apollo/client/react';
 import { useCallback } from 'react';
 import { ResetInviteLinkDocument } from '@/features/settings/communication/gql/mutation/resetInviteLink.generated';
@@ -9,7 +8,6 @@ import type {
   UseInviteLinkOptions,
   UseInviteLinkResult,
 } from '@/features/settings/typedefs/inviteLink.typedefs';
-import { ROLE_TO_API } from '@/shared/api/constants/workspaceRole.constants';
 
 export function useInviteLink(
   { skip }: UseInviteLinkOptions = { skip: false },
@@ -37,8 +35,8 @@ export function useInviteLink(
   });
 
   const changeRole = useCallback(
-    async (role: WorkspaceRole) => {
-      await updateRole({ variables: { input: { role: ROLE_TO_API[role] } } });
+    async (roleId: string) => {
+      await updateRole({ variables: { input: { role: null, roleId } } });
     },
     [updateRole],
   );

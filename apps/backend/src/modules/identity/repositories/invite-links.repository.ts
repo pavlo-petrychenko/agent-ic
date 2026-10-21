@@ -1,4 +1,3 @@
-import type { WorkspaceRole } from '@agent-ic/contracts';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, eq, isNull } from 'drizzle-orm';
@@ -50,10 +49,10 @@ export class InviteLinksRepository {
       .where(and(eq(inviteLinks.workspaceId, workspaceId), eq(inviteLinks.id, id)));
   }
 
-  async updateRole(workspaceId: string, id: string, role: WorkspaceRole): Promise<void> {
+  async updateRoleId(workspaceId: string, id: string, roleId: string): Promise<void> {
     await this.txHost.tx
       .update(inviteLinks)
-      .set({ role })
+      .set({ roleId })
       .where(and(eq(inviteLinks.workspaceId, workspaceId), eq(inviteLinks.id, id)));
   }
 }

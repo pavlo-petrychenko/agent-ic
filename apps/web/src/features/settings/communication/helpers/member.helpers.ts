@@ -9,5 +9,6 @@ export const toTeamMembers = (data: TeamMembersQuery): readonly TeamMember[] =>
     name: node.name,
     email: node.email,
     role: ROLE_FROM_API[node.role],
+    roleId: node.roleId,
     lastActiveAt: node.lastActiveAt,
   }));

@@ -16,7 +16,8 @@
       "roles": "Roles",
       "usage": "Usage",
       "llmKeys": "LLM keys",
-      "profile": "Profile"
+      "profile": "Profile",
+      "notifications": "Notifications"
     }
   },
   "header": {

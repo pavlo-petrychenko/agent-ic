@@ -5,6 +5,10 @@ import type { Connection, ConnectionArgs } from '@/platform/graphql-server/typed
 
 export type MembershipRecord = typeof memberships.$inferSelect;
 
+export interface MembershipWithRole extends MembershipRecord {
+  readonly roleKey: WorkspaceRole;
+}
+
 export type NewMembership = typeof memberships.$inferInsert;
 
 export type MemberSelection =
@@ -17,6 +21,7 @@ export interface MemberRow {
   readonly name: string;
   readonly email: string;
   readonly role: WorkspaceRole;
+  readonly roleId: string;
   readonly lastActiveAt: Date | null;
   readonly joinedAt: Date;
 }
@@ -27,6 +32,7 @@ export interface Member {
   readonly name: string;
   readonly email: string;
   readonly role: WorkspaceRole;
+  readonly roleId: string;
   readonly lastActiveAt: Date | null;
   readonly joinedAt: Date;
 }
@@ -44,6 +50,10 @@ export interface MembersPage {
 export type ListMembersInput = ConnectionArgs;
 
 export type JoinOutcome =
-  | { readonly kind: JoinOutcomeKind.Joined; readonly membership: MembershipRecord }
+  | {
+      readonly kind: JoinOutcomeKind.Joined;
+      readonly membership: MembershipRecord;
+      readonly role: WorkspaceRole;
+    }
   | { readonly kind: JoinOutcomeKind.Invalid }
   | { readonly kind: JoinOutcomeKind.Expired };

@@ -22,18 +22,19 @@ describe('MembershipWorkspaceAccessService', () => {
     const workspace = await createOwnedWorkspace(testbed);
     const operatorId = await addMember(testbed, workspace);
 
-    expect(await access.resolveRole(workspace.ownerId, workspace.workspaceId)).toBe(
-      WorkspaceRole.Owner,
-    );
-    expect(await access.resolveRole(operatorId, workspace.workspaceId)).toBe(
-      WorkspaceRole.Operator,
-    );
+    expect(await access.resolveAccess(workspace.ownerId, workspace.workspaceId)).toMatchObject({
+      workspaceId: workspace.workspaceId,
+      role: WorkspaceRole.Owner,
+    });
+    expect(await access.resolveAccess(operatorId, workspace.workspaceId)).toMatchObject({
+      role: WorkspaceRole.Operator,
+    });
   });
 
   it('finds no role in a workspace the user does not belong to', async () => {
     const workspaceA = await createOwnedWorkspace(testbed);
     const workspaceB = await createOwnedWorkspace(testbed);
 
-    expect(await access.resolveRole(workspaceA.ownerId, workspaceB.workspaceId)).toBeNull();
+    expect(await access.resolveAccess(workspaceA.ownerId, workspaceB.workspaceId)).toBeNull();
   });
 });

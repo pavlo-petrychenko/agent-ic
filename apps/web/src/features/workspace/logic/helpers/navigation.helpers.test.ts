@@ -1,4 +1,4 @@
-import { WorkspaceRole } from '@agent-ic/contracts';
+import { PERMISSION_MATRIX, WorkspaceRole } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
 import { WorkspaceSection } from '@/features/workspace/constants/navigation.constants';
 import {
@@ -7,8 +7,12 @@ import {
   visibleNavGroups,
 } from '@/features/workspace/logic/helpers/navigation.helpers';
 
+const permissionsOf = (role: WorkspaceRole) => PERMISSION_MATRIX[role];
+
 const sectionsOf = (role: WorkspaceRole) =>
-  visibleNavGroups(role).flatMap((group) => group.entries.map((entry) => entry.section));
+  visibleNavGroups(permissionsOf(role)).flatMap((group) =>
+    group.entries.map((entry) => entry.section),
+  );
 
 describe('navigation helpers', () => {
   it('shows each role only the sections its permissions allow', () => {
@@ -32,15 +36,25 @@ describe('navigation helpers', () => {
   });
 
   it('starts every role on its first allowed section', () => {
-    expect(homeSection(WorkspaceRole.Admin)).toBe(WorkspaceSection.Agents);
-    expect(homeSection(WorkspaceRole.Operator)).toBe(WorkspaceSection.Inbox);
+    expect(homeSection(permissionsOf(WorkspaceRole.Admin))).toBe(WorkspaceSection.Agents);
+    expect(homeSection(permissionsOf(WorkspaceRole.Operator))).toBe(WorkspaceSection.Inbox);
   });
 
   it('blocks a section the role cannot view', () => {
-    expect(canOpenSection(WorkspaceRole.Operator, WorkspaceSection.Agents)).toBe(false);
-    expect(canOpenSection(WorkspaceRole.Operator, WorkspaceSection.Testing)).toBe(false);
-    expect(canOpenSection(WorkspaceRole.Builder, WorkspaceSection.Testing)).toBe(true);
-    expect(canOpenSection(WorkspaceRole.Builder, WorkspaceSection.Inbox)).toBe(false);
-    expect(canOpenSection(WorkspaceRole.Operator, WorkspaceSection.Settings)).toBe(true);
+    expect(canOpenSection(permissionsOf(WorkspaceRole.Operator), WorkspaceSection.Agents)).toBe(
+      false,
+    );
+    expect(canOpenSection(permissionsOf(WorkspaceRole.Operator), WorkspaceSection.Testing)).toBe(
+      false,
+    );
+    expect(canOpenSection(permissionsOf(WorkspaceRole.Builder), WorkspaceSection.Testing)).toBe(
+      true,
+    );
+    expect(canOpenSection(permissionsOf(WorkspaceRole.Builder), WorkspaceSection.Inbox)).toBe(
+      false,
+    );
+    expect(canOpenSection(permissionsOf(WorkspaceRole.Operator), WorkspaceSection.Settings)).toBe(
+      true,
+    );
   });
 });

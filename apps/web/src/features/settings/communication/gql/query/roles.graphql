@@ -1,0 +1,14 @@
+query Roles {
+  roles {
+    id
+    key
+    name
+    description
+    isSystem
+    memberCount
+    permissions {
+      resource
+      action
+    }
+  }
+}
