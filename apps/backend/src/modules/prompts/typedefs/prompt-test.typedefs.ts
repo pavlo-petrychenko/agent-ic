@@ -1,5 +1,3 @@
-import type { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
-
 export interface PromptTestVariable {
   readonly name: string;
   readonly value: string;
@@ -21,7 +19,7 @@ export interface PromptTestUsage {
 
 export interface PromptTestResult {
   readonly output: Record<string, unknown>;
-  readonly model: LlmModelId;
+  readonly model: string;
   readonly usage: PromptTestUsage;
   readonly durationMs: number;
 }

@@ -35,3 +35,6 @@ export enum LlmCallOutcome {
 export const LLM_CALL_DURATION_BUCKETS_SECONDS: readonly number[] = [
   0.25, 0.5, 1, 2, 5, 10, 20, 30, 60,
 ];
+
+export const LLM_WORKSPACE_METRIC_MODEL_PREFIX = 'workspace';
+export const LLM_METRIC_MODEL_SEPARATOR = ':';

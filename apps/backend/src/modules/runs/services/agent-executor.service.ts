@@ -21,6 +21,7 @@ import type {
 } from '@/modules/runs/typedefs/step-executor.typedefs';
 import { JobFailureAction } from '@/platform/errors/constants/job-failure.constants';
 import { jobFailureActionFor } from '@/platform/errors/helpers/job-failure.helpers';
+import { IdService } from '@/platform/ids/services/id.service';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import type { LlmAgentRequest, LlmAgentResult } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 
@@ -28,12 +29,15 @@ import type { LlmAgentRequest, LlmAgentResult } from '@/platform/llm/typedefs/ll
 export class AgentExecutor implements StepExecutor<AgentNode> {
   readonly nodeType = NodeType.Agent;
 
-  constructor(private readonly llm: LlmGateway) {}
+  constructor(
+    private readonly llm: LlmGateway,
+    private readonly ids: IdService,
+  ) {}
 
   async execute({ run, node, scope }: StepExecution<AgentNode>): Promise<StepOutcome> {
     const { id, config } = node;
     const request: LlmAgentRequest<StepData> = {
-      ...stepModel(id, config.model, AGENT_PURPOSE, run.workspaceId),
+      ...stepModel(id, config.model, AGENT_PURPOSE, run.workspaceId, this.ids),
       purpose: AGENT_PURPOSE,
       ...stepConversation(
         stepSystemPrompt(id, config.prompt, scope.variables, scope.prompts),
