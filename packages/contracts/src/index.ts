@@ -12,6 +12,11 @@ export {
   USER_NAME_PATTERN,
 } from '@contracts/auth/auth.constants';
 export {
+  CHANNEL_KINDS,
+  CHANNEL_PROVIDERS,
+  ChannelKind,
+} from '@contracts/channels/channel.constants';
+export {
   END_USER_LANGUAGE_MAX_LENGTH,
   SIMULATOR_MESSAGE_MAX_LENGTH,
 } from '@contracts/conversations/conversation.constants';

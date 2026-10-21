@@ -1,9 +1,6 @@
+import { CHANNEL_PROVIDERS } from '@agent-ic/contracts';
 import { index, timestamp, uuid } from 'drizzle-orm/pg-core';
-import {
-  CHANNELS_SCHEMA,
-  ChannelStatus,
-  ChannelType,
-} from '@/modules/channels/constants/channel.constants';
+import { CHANNELS_SCHEMA, ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import {
   moduleSchema,
   tenantIsolationPolicy,
@@ -12,10 +9,7 @@ import {
 
 export const channelsSchema = moduleSchema(CHANNELS_SCHEMA);
 
-export const channelKindEnum = channelsSchema.enum('channel_kind', [
-  ChannelType.Telegram,
-  ChannelType.Api,
-]);
+export const channelKindEnum = channelsSchema.enum('channel_kind', CHANNEL_PROVIDERS);
 
 export const channelStatusEnum = channelsSchema.enum('channel_status', [
   ChannelStatus.Pending,

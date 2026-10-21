@@ -1,4 +1,5 @@
-import { ChannelStatus, ChannelType } from '@/modules/channels/constants/channel.constants';
+import { ChannelKind } from '@agent-ic/contracts';
+import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import type { NewChannelEvent } from '@/modules/channels/typedefs/channel-event.typedefs';
 import type { NewChannel, NewTelegramChannel } from '@/modules/channels/typedefs/channel.typedefs';
 import {
@@ -14,7 +15,7 @@ export const newChannel = (
 ): NewChannel => ({
   id: testbed.ids.generate(),
   workspaceId,
-  kind: ChannelType.Telegram,
+  kind: ChannelKind.Telegram,
   status: ChannelStatus.Pending,
   agentId: null,
   lastUpdateAt: null,

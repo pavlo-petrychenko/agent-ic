@@ -1,7 +1,7 @@
+import { CHANNEL_KINDS } from '@agent-ic/contracts';
 import { index, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import {
   CONVERSATIONS_SCHEMA,
-  ChannelKind,
   ConversationMode,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
@@ -25,11 +25,7 @@ export const conversationStateEnum = conversationsSchema.enum('conversation_stat
   ConversationState.Closed,
 ]);
 
-export const channelKindEnum = conversationsSchema.enum('channel_kind', [
-  ChannelKind.Simulated,
-  ChannelKind.Telegram,
-  ChannelKind.Api,
-]);
+export const channelKindEnum = conversationsSchema.enum('channel_kind', CHANNEL_KINDS);
 
 export const conversations = conversationsSchema
   .table(
