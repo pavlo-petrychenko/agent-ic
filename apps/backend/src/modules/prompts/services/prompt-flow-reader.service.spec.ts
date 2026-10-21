@@ -154,7 +154,6 @@ describe('PromptFlowReader', () => {
         { id: STEP_NODE_ID, prompt: library(promptRef, pinned(MISSING_NUMBER)) },
         { id: OTHER_STEP_NODE_ID, prompt: library(emptyRef, latest) },
         { id: 'n_unknown', prompt: library(UNKNOWN_REF, latest) },
-        { id: 'n_inline', prompt: { kind: PromptSourceKind.Inline, text: TEST_PROMPT_TEXT } },
         { id: 'n_missing', prompt: null },
       ]),
     );

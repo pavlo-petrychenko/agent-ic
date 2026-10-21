@@ -32,7 +32,7 @@ const library = (promptRef: string, number: number | null = null): PromptSource 
 describe('promptReferences', () => {
   it('lists the library prompt of every Agent and Completion step', () => {
     const trigger = messageTrigger('incoming');
-    const inline = agent('inline');
+    const bare = agent('bare', [], null);
     const pinned = {
       ...agent('pinned', [], library(PINNED_REF, PINNED_NUMBER)),
       label: PINNED_LABEL,
@@ -41,10 +41,10 @@ describe('promptReferences', () => {
     const reply = sendText('reply', 'Hello');
     const flow: FlowDocument = {
       schemaVersion: FLOW_SCHEMA_VERSION,
-      nodes: [trigger, inline, pinned, latest, reply],
+      nodes: [trigger, bare, pinned, latest, reply],
       edges: [
-        link(trigger, PortName.Next, inline),
-        link(inline, PortName.Next, pinned),
+        link(trigger, PortName.Next, bare),
+        link(bare, PortName.Next, pinned),
         link(pinned, PortName.Next, latest),
         link(latest, PortName.Next, reply),
       ],
@@ -68,14 +68,13 @@ describe('promptReferences', () => {
     ]);
   });
 
-  it('lists nothing for inline and missing prompts', () => {
+  it('lists nothing for steps without a prompt', () => {
     const trigger = messageTrigger('incoming');
-    const inline = agent('inline');
     const bare = agent('bare', [], null);
     const flow: FlowDocument = {
       schemaVersion: FLOW_SCHEMA_VERSION,
-      nodes: [trigger, inline, bare],
-      edges: [link(trigger, PortName.Next, inline), link(inline, PortName.Next, bare)],
+      nodes: [trigger, bare],
+      edges: [link(trigger, PortName.Next, bare)],
     };
 
     expect(promptReferences(flow)).toEqual([]);

@@ -16,31 +16,13 @@ const library = buildPromptLibraryMock([Q_AND_A_FOLDER], [GIFT_CARD_PROMPT]);
 const renderField = (source: PromptSource | null) => {
   const onChange = vi.fn<(next: PromptSource) => void>();
   renderWithProviders(
-    <PromptField
-      workspaceId="ws_demo"
-      source={source}
-      variables={[]}
-      label="Prompt"
-      menuLabel="Fields"
-      error={null}
-      onChange={onChange}
-    />,
+    <PromptField workspaceId="ws_demo" source={source} error={null} onChange={onChange} />,
     { mocks: [library] },
   );
   return onChange;
 };
 
 describe('PromptField', () => {
-  it('shows a prompt written in the step read-only and offers the library', () => {
-    renderField({ kind: PromptSourceKind.Inline, text: 'Help the guest book a table.' });
-
-    expect(screen.getByText('Help the guest book a table.')).toBeVisible();
-    expect(
-      screen.getByText('This prompt is written in the step. Pick a library prompt to replace it.'),
-    ).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Use a library prompt' })).toBeVisible();
-  });
-
   it('asks for a prompt when the step has none', () => {
     renderField(null);
 

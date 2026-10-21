@@ -10,7 +10,6 @@ import { mapNodeText, nodeTextFields } from '@flow/templates/helpers/node-text.h
 import {
   agent,
   apiRequest,
-  completion,
   escalation,
   rule,
   router,
@@ -65,17 +64,6 @@ describe('nodeTextFields', () => {
     ).toEqual([['reason'], ['fallbackMessage']]);
   });
 
-  it('lists the inline prompt of an agent and a completion', () => {
-    const prompt: PromptSource = {
-      kind: PromptSourceKind.Inline,
-      text: 'Reply to {{message.text}}',
-    };
-    expect(nodeTextFields(agent('answer', [], prompt))).toEqual([
-      { kind: NodeTextKind.Template, path: ['prompt', 'text'], value: 'Reply to {{message.text}}' },
-    ]);
-    expect(nodeTextFields(completion('guard'))).toHaveLength(1);
-  });
-
   it('lists nothing for a library prompt or no prompt', () => {
     const library: PromptSource = {
       kind: PromptSourceKind.Library,
@@ -111,7 +99,6 @@ describe('mapNodeText', () => {
       'WHY',
       'LATER',
       'x.guard.ok',
-      'ANSWER AS ANSWER.',
     ]);
   });
 });

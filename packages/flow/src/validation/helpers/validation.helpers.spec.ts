@@ -356,24 +356,10 @@ describe('background branches', () => {
 });
 
 describe('prompt source checks', () => {
-  const withPrompt = (prompt: PromptSource) => withStep(agent('more', [], prompt));
+  const withPrompt = (prompt: PromptSource | null) => withStep(agent('more', [], prompt));
 
-  it('treats a blank inline prompt as missing', () => {
-    expect(codes(withPrompt({ kind: PromptSourceKind.Inline, text: '  ' }))).toContain(
-      FlowIssueCode.MissingPrompt,
-    );
-  });
-
-  it('checks the variables of an inline prompt', () => {
-    expect(
-      validateFlow(withPrompt({ kind: PromptSourceKind.Inline, text: 'Use {{nope}}' })),
-    ).toContainEqual(
-      expect.objectContaining({
-        code: FlowIssueCode.UnknownVariable,
-        nodeId: 'n_more',
-        path: ['prompt', 'text'],
-      }),
-    );
+  it('treats a step without a prompt as missing', () => {
+    expect(codes(withPrompt(null))).toContain(FlowIssueCode.MissingPrompt);
   });
 
   it('accepts a library prompt without checking that it exists', () => {

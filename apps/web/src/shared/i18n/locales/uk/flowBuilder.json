@@ -70,7 +70,6 @@
     "someChannels_other": "{{count}} каналу",
     "model": "{{model}}",
     "noModel": "Модель ще не вибрано",
-    "inlinePrompt": "власний промпт",
     "libraryPrompt": "промпт із бібліотеки",
     "outputs": "→ {{fields}}",
     "eachItem": "{{variable}} · окреме повідомлення на кожен елемент",

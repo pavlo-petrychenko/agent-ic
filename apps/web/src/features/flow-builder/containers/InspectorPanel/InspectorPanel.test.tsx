@@ -12,7 +12,6 @@ import {
   PortName,
   MessageContentKind,
   NotifyChannel,
-  PromptSourceKind,
   QuickRepliesKind,
   RecipientsKind,
   RequestBodyKind,
@@ -333,15 +332,6 @@ describe('InspectorPanel', () => {
     expect(store().document.edges[0]).toMatchObject({ background: false });
     expect(drafter).toBeEnabled();
     expect(screen.queryByText('The reply needs to wait for at least one branch.')).toBeNull();
-  });
-
-  it('shows a variable the prompt can not use under the prompt', () => {
-    open(
-      'agent',
-      withAgent({ prompt: { kind: PromptSourceKind.Inline, text: 'Hi {{missing.field}}' } }),
-    );
-
-    expect(screen.getByText('missing.field isn’t available here')).toBeVisible();
   });
 
   it('adds an output field that later steps can use', async () => {

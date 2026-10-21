@@ -1,10 +1,4 @@
-import {
-  ChannelSelectionMode,
-  EscalationMode,
-  MessageContentKind,
-  NodeType,
-  PromptSourceKind,
-} from '@agent-ic/flow';
+import { ChannelSelectionMode, EscalationMode, MessageContentKind, NodeType } from '@agent-ic/flow';
 import type { FlowNode, ModelRef, PromptSource } from '@agent-ic/flow';
 import {
   LABELLED_PORTS,
@@ -29,15 +23,7 @@ const modelAndPrompt = (
     : part(SummaryKey.Model, {
         model: models.find((choice) => choice.id === model.model)?.label ?? model.model,
       }),
-  ...(prompt === null
-    ? []
-    : [
-        part(
-          prompt.kind === PromptSourceKind.Inline
-            ? SummaryKey.InlinePrompt
-            : SummaryKey.LibraryPrompt,
-        ),
-      ]),
+  ...(prompt === null ? [] : [part(SummaryKey.LibraryPrompt)]),
 ];
 
 export const nodeSummary = (

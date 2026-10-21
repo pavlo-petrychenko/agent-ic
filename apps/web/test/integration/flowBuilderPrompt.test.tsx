@@ -69,7 +69,7 @@ describe('flow builder prompt picker', () => {
   });
 
   it('picks a library prompt for a step', async () => {
-    const inspector = await openStep({ kind: PromptSourceKind.Inline, text: 'Hi' });
+    const inspector = await openStep(null);
 
     await userEvent.click(within(inspector).getByRole('button', { name: 'Use a library prompt' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Gift card answers' }));

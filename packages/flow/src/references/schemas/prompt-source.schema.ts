@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { templateSchema } from '@flow/document/schemas/node-base.schema';
 import {
   PromptSourceKind,
   PromptVersionKind,
@@ -11,11 +10,8 @@ export const promptPinSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal(PromptVersionKind.Latest) }),
 ]);
 
-export const promptSourceSchema = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal(PromptSourceKind.Library),
-    promptRef: recordIdSchema,
-    pin: promptPinSchema,
-  }),
-  z.object({ kind: z.literal(PromptSourceKind.Inline), text: templateSchema }),
-]);
+export const promptSourceSchema = z.object({
+  kind: z.literal(PromptSourceKind.Library),
+  promptRef: recordIdSchema,
+  pin: promptPinSchema,
+});

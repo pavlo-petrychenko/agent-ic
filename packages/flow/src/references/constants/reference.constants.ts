@@ -10,5 +10,4 @@ export enum ModelProviderKind {
 
 export enum PromptSourceKind {
   Library = 'library',
-  Inline = 'inline',
 }
