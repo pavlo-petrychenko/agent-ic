@@ -1,3 +1,4 @@
+import { isNull } from 'drizzle-orm';
 import { index, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { agentsSchema, pauseModeEnum } from '@/modules/agents/db/agents.pg-schema';
 import {
@@ -20,9 +21,12 @@ export const agents = agentsSchema
       awayMessage: text('away_message'),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
       updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+      deletedAt: timestamp('deleted_at', { withTimezone: true }),
     },
     (table) => [
-      index('agents_workspace_id_idx').on(table.workspaceId, table.id),
+      index('agents_workspace_id_idx')
+        .on(table.workspaceId, table.id)
+        .where(isNull(table.deletedAt)),
       tenantIsolationPolicy('agents'),
     ],
   )

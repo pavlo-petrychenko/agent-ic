@@ -18,6 +18,7 @@ import {
   TEST_EXTERNAL_MESSAGE_ID,
 } from '@test/support/constants/conversations-testing.constants';
 import { incomingMessage, workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
+import { deleteAgent } from '@test/support/helpers/agents-testing.helpers';
 import {
   conversationActivity,
   createConversationsTestbed,
@@ -247,6 +248,13 @@ describe('IncomingMessagesService', () => {
 
   it('refuses a message for an unknown agent', async () => {
     const input = incomingMessage(testbed.ids.generate(), testbed.ids.generate());
+
+    await expect(receive(input)).rejects.toMatchObject({ reason: ErrorReason.AgentNotFound });
+  });
+
+  it('refuses a message for a deleted agent', async () => {
+    const input = await startedBy();
+    await deleteAgent(testbed.module, input.workspaceId, input.agentId);
 
     await expect(receive(input)).rejects.toMatchObject({ reason: ErrorReason.AgentNotFound });
   });
