@@ -117,5 +117,13 @@
     "nameLabel": "Agent name",
     "submit": "Delete agent",
     "success": "{{name}} was deleted"
+  },
+  "attention": {
+    "title": "Needs attention",
+    "usageLimit": {
+      "title": "Usage limit",
+      "meta": "100% of this month's limit · resets {{date}}",
+      "action": "See usage"
+    }
   }
 }

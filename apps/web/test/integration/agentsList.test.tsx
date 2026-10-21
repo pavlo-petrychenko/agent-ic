@@ -16,6 +16,7 @@ import {
   buildNoInviteLinkMock,
   INVITE_URL,
 } from '@/features/settings/communication/fixtures/team.fixture';
+import { buildUsageStatusMock } from '@/features/settings/communication/fixtures/usage.fixture';
 import {
   buildWorkspaceShellMock,
   DEMO_WORKSPACE,
@@ -51,6 +52,39 @@ describe('agents list', () => {
     expect(within(table).getByText('Draft v4 in progress')).toBeInTheDocument();
     expect(within(table).getByText('Paused')).toBeInTheDocument();
     expect(within(table).getByText('Never published')).toBeInTheDocument();
+  });
+
+  it('adds the usage row to the attention card once the limit is reached', async () => {
+    renderRoute(agentsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildAgentsMock(ALL_AGENTS),
+        buildUsageStatusMock(true, '2026-10-09T08:00:00.000Z'),
+      ],
+    });
+
+    const card = await screen.findByRole('region', { name: 'Needs attention' });
+
+    expect(within(card).getByText('Usage limit')).toBeInTheDocument();
+    expect(within(card).getByText("100% of this month's limit · resets Nov 1")).toBeInTheDocument();
+    expect(within(card).getByRole('link', { name: 'See usage' })).toHaveAttribute(
+      'href',
+      `/w/${DEMO_WORKSPACE.id}/settings/usage`,
+    );
+    expect(await screen.findByRole('table', { name: 'Agents' })).toBeInTheDocument();
+  });
+
+  it('shows no attention card below the limit', async () => {
+    renderRoute(agentsPath, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildAgentsMock(ALL_AGENTS),
+        buildUsageStatusMock(false),
+      ],
+    });
+
+    expect(await screen.findByRole('table', { name: 'Agents' })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Needs attention' })).not.toBeInTheDocument();
   });
 
   it('filters by the search text and offers to clear it', async () => {
