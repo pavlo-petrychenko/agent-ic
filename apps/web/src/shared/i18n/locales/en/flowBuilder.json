@@ -285,6 +285,7 @@
     "MISSING_PROMPT_VERSION": "Prompt v{{number}} no longer exists",
     "PROMPT_VARIABLE_UNMAPPED": "Map {{variable}} to a variable in this step",
     "MISSING_MODEL": "Pick a model",
+    "MISSING_PROVIDER_KEY": "The key this step uses was removed. Pick a model",
     "MISSING_EVENT_NAME": "Name the event",
     "MISSING_CHANNEL": "Pick at least one channel",
     "NO_REPLY_STEP": "Add at least one step that sends a message",

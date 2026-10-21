@@ -22,6 +22,7 @@ export const LLM_ANTHROPIC_API_VERSION = '2023-06-01';
 export const LLM_CUSTOM_MODELS_PATH = '/models';
 export const LLM_URL_TRAILING_SLASHES = /\/+$/;
 export const LLM_MODEL_LIST_TIMEOUT_MS = 10_000;
+export const LLM_MODEL_LIST_MAX_BYTES = 4 * 1_024 * 1_024;
 export const LLM_GOOGLE_MODEL_NAME_PREFIX = 'models/';
 export const LLM_GOOGLE_CHAT_METHOD = 'generateContent';
 

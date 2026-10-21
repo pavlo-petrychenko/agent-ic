@@ -293,6 +293,7 @@
     "MISSING_PROMPT_VERSION": "Версії v{{number}} цього промпту більше не існує",
     "PROMPT_VARIABLE_UNMAPPED": "Зіставте {{variable}} зі змінною цього кроку",
     "MISSING_MODEL": "Оберіть модель",
+    "MISSING_PROVIDER_KEY": "Ключ, який використовує цей крок, видалено. Оберіть модель",
     "MISSING_EVENT_NAME": "Назвіть подію",
     "MISSING_CHANNEL": "Оберіть хоча б один канал",
     "NO_REPLY_STEP": "Додайте хоча б один крок, який надсилає повідомлення",

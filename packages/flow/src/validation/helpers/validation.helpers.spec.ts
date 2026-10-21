@@ -71,6 +71,7 @@ const guard = (key: string) => {
 const REFERENCE_CHECKER_CODES = [
   FlowIssueCode.MissingPromptVersion,
   FlowIssueCode.PromptVariableUnmapped,
+  FlowIssueCode.MissingProviderKey,
 ] as const;
 type ValidationIssueCode = Exclude<FlowIssueCode, (typeof REFERENCE_CHECKER_CODES)[number]>;
 
