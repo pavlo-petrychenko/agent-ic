@@ -9,6 +9,8 @@ export const OUTBOUND_TEST_BODY = '{"ok":true}';
 export const OUTBOUND_TEST_INVALID_HEADER_VALUES = ['Замовлення', 'A-17\r\nX-Injected: 1'];
 export const OUTBOUND_TEST_INVALID_URLS = ['not a url', 'ftp://example.com/file'];
 export const OUTBOUND_TEST_FLAKY_FAILURES = 1;
+export const OUTBOUND_TEST_LARGE_BODY_FACTOR = 2;
+export const OUTBOUND_TEST_SMALL_BODY_LIMIT = 1_024;
 export const OUTBOUND_TEST_BLOCKED_HOSTS = [
   '127.0.0.1',
   'localhost',

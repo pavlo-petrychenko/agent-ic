@@ -14,7 +14,6 @@ import type { LlmKeyResolver } from '@/platform/llm/services/llm-key-resolver.se
 import { LlmMetricsService } from '@/platform/llm/services/llm-metrics.service';
 import { LlmSamplerService } from '@/platform/llm/services/llm-sampler.service';
 import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
-import { NoopLlmKeyResolver } from '@/platform/llm/services/noop-llm-key-resolver.service';
 import { NoopUsageReporter } from '@/platform/llm/services/noop-usage-reporter.service';
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
 import type { LlmStepTimeouts } from '@/platform/llm/typedefs/llm-gateway.typedefs';
@@ -22,6 +21,7 @@ import { Role } from '@/platform/module-roles/constants/role.constants';
 import { MetricsService } from '@/platform/observability/services/metrics.service';
 import { guardedFetch } from '@/platform/outbound-http/helpers/guarded-fetch.helpers';
 import { toBlockList } from '@/platform/outbound-http/helpers/outbound-address.helpers';
+import { RecordingLlmKeyResolver } from '@test/support/fakes/recording-llm-key-resolver.fake';
 import { createTestEnv } from '@test/support/fixtures/test-env.fixture';
 import type { LlmGatewayTestDeps } from '@test/support/typedefs/llm-testing.typedefs';
 
@@ -43,7 +43,7 @@ export const createLlmMetricsService = (
 
 export const createProviderResolver = (
   env: Partial<Record<EnvVar, string>>,
-  keys: LlmKeyResolver = new NoopLlmKeyResolver(),
+  keys: LlmKeyResolver = new RecordingLlmKeyResolver(),
 ): ProviderResolverService =>
   new ProviderResolverService(testConfig(env), keys, guardedFetch(toBlockList([])));
 

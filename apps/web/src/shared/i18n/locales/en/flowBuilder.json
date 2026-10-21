@@ -281,6 +281,7 @@
     "MISSING_PROMPT": "Write a prompt",
     "MISSING_PROMPT_VERSION": "Prompt v{{number}} no longer exists",
     "MISSING_MODEL": "Pick a model",
+    "MISSING_PROVIDER_KEY": "The key this step uses was removed. Pick a model",
     "MISSING_EVENT_NAME": "Name the event",
     "MISSING_CHANNEL": "Pick at least one channel",
     "NO_REPLY_STEP": "Add at least one step that sends a message",

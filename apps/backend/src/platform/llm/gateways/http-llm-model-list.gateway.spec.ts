@@ -2,6 +2,7 @@ import { LlmKeyVendor } from '@agent-ic/contracts';
 import { HttpMethod } from '@agent-ic/flow';
 import { HttpStatus } from '@nestjs/common';
 import { describe, expect, it } from 'vitest';
+import { LLM_MODEL_LIST_MAX_BYTES } from '@/platform/llm/constants/llm-vendor-endpoint.constants';
 import { LlmKeyEndpointBlockedError } from '@/platform/llm/errors/llm-key-endpoint-blocked.error';
 import { LlmKeyInvalidError } from '@/platform/llm/errors/llm-key-invalid.error';
 import { LlmKeyUnreachableError } from '@/platform/llm/errors/llm-key-unreachable.error';
@@ -61,6 +62,7 @@ describe('HttpLlmModelListGateway', () => {
         headers: { authorization: `Bearer ${API_KEY}` },
         body: null,
         timeoutMs: expect.any(Number),
+        maxBodyBytes: LLM_MODEL_LIST_MAX_BYTES,
       },
     ]);
   });

@@ -79,7 +79,7 @@ export class NodeOutboundHttpGateway extends OutboundHttpGateway {
             lookup: (hostname, options, callback) => this.lookup(hostname, options, callback),
           },
           (response) => {
-            void this.readBody(response).then(
+            void this.readBody(response, request.maxBodyBytes ?? OUTBOUND_RESPONSE_MAX_BYTES).then(
               (body) => resolve(finish(OutboundHttpOutcome.Responded, body)),
               () => resolve(finish(this.failureOutcome(signal, null))),
             );
@@ -118,13 +118,14 @@ export class NodeOutboundHttpGateway extends OutboundHttpGateway {
 
   private async readBody(
     response: IncomingMessage,
+    maxBodyBytes: number,
   ): Promise<Pick<OutboundHttpResult, 'status' | 'body' | 'bodyTruncated'>> {
     const chunks: Buffer[] = [];
     let size = 0;
     let bodyTruncated = false;
     for await (const chunk of response) {
       const buffer = Buffer.from(chunk);
-      const room = OUTBOUND_RESPONSE_MAX_BYTES - size;
+      const room = maxBodyBytes - size;
       chunks.push(buffer.subarray(0, room));
       size += Math.min(buffer.length, room);
       if (buffer.length > room) {

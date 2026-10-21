@@ -13,6 +13,7 @@ export interface OutboundHttpRequest {
   readonly headers: Readonly<Record<string, string>>;
   readonly body: string | null;
   readonly timeoutMs: number;
+  readonly maxBodyBytes?: number;
 }
 
 export interface OutboundHttpResult {

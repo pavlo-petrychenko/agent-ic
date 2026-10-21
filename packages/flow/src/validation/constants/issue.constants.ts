@@ -26,6 +26,7 @@ export enum FlowIssueCode {
   MissingPrompt = 'MISSING_PROMPT',
   MissingPromptVersion = 'MISSING_PROMPT_VERSION',
   MissingModel = 'MISSING_MODEL',
+  MissingProviderKey = 'MISSING_PROVIDER_KEY',
   MissingEventName = 'MISSING_EVENT_NAME',
   MissingChannel = 'MISSING_CHANNEL',
   NoReplyStep = 'NO_REPLY_STEP',
