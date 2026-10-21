@@ -37,9 +37,10 @@ export class StartSimulationUseCase {
     const setup = { channelKind: parsed.channelKind, language: parsed.language, versionId: pinned };
     const key = { workspaceId, agentId, endUserExternalId: userId };
     return this.tenants.run(workspaceId, async () => {
-      await (pinned === null
-        ? this.agents.getAgent(workspaceId, agentId)
-        : this.agents.getPublishedVersion(workspaceId, agentId, pinned));
+      await this.agents.getAgent(workspaceId, agentId);
+      if (pinned !== null) {
+        await this.agents.getPublishedVersion(workspaceId, agentId, pinned);
+      }
       const open = await this.simulations.findOpen(key);
       if (open !== null && hasSimulationSetup(open, setup)) {
         return this.simulations.view(open);

@@ -2,6 +2,7 @@ import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DRAFT_INITIAL_REVISION } from '@/modules/agents/constants/agent.constants';
+import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.error';
 import { AgentVersionNotFoundError } from '@/modules/agents/errors/agent-version-not-found.error';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
@@ -20,6 +21,7 @@ import { triggerFlow } from '@test/support/fixtures/agents.fixture';
 import {
   agentsCtx,
   createAgentsTestingModule,
+  deleteAgent,
   publicAgentId,
   seedAgentWithDraft,
 } from '@test/support/helpers/agents-testing.helpers';
@@ -94,7 +96,7 @@ describe('CompareAgentVersionsUseCase', () => {
     await expect(attempt).rejects.toBeInstanceOf(AgentVersionNotFoundError);
   });
 
-  it('does not find a version of another workspace', async () => {
+  it('does not find an agent of another workspace', async () => {
     const workspaceId = ids.generate();
     const seeded = await seedAgentWithDraft(testingModule, workspaceId);
     const draftId = ids.toPublic(IdPrefix.AgentVersion, seeded.draftId);
@@ -105,7 +107,22 @@ describe('CompareAgentVersionsUseCase', () => {
       toId: draftId,
     });
 
-    await expect(attempt).rejects.toBeInstanceOf(AgentVersionNotFoundError);
+    await expect(attempt).rejects.toBeInstanceOf(AgentNotFoundError);
+  });
+
+  it('does not find a deleted agent', async () => {
+    const workspaceId = ids.generate();
+    const seeded = await seedAgentWithDraft(testingModule, workspaceId);
+    const draftId = ids.toPublic(IdPrefix.AgentVersion, seeded.draftId);
+    await deleteAgent(testingModule, workspaceId, seeded.agentId);
+
+    const attempt = compareVersions.execute(agentsCtx(testingModule, workspaceId), {
+      agentId: publicAgentId(testingModule, seeded.agentId),
+      fromId: draftId,
+      toId: draftId,
+    });
+
+    await expect(attempt).rejects.toBeInstanceOf(AgentNotFoundError);
   });
 
   it('refuses an operator', async () => {

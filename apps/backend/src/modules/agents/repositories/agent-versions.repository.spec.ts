@@ -261,15 +261,28 @@ describe('AgentVersionsRepository', () => {
     expect({ beforeFirst, afterTwo }).toEqual({ beforeFirst: 0, afterTwo: SECOND_NUMBER });
   });
 
-  it('removes the versions with their agent', async () => {
+  it('keeps the versions of a deleted agent', async () => {
     const workspaceId = ids.generate();
     const agentId = await insertAgent(workspaceId);
     const draftId = await insertVersion(workspaceId, agentId, AgentVersionKind.Draft);
 
-    await tenants.run(workspaceId, () => agents.delete(workspaceId, agentId));
+    await tenants.run(workspaceId, () => agents.delete(workspaceId, agentId, AGENTS_TEST_LATER));
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, draftId));
 
-    expect(found).toBeNull();
+    expect(found?.id).toBe(draftId);
+  });
+
+  it('leaves the flows of a deleted agent out of the current flows', async () => {
+    const workspaceId = ids.generate();
+    const keptId = await insertAgent(workspaceId);
+    const deletedId = await insertAgent(workspaceId);
+    await insertVersion(workspaceId, keptId, AgentVersionKind.Draft);
+    await insertVersion(workspaceId, deletedId, AgentVersionKind.Draft);
+    await tenants.run(workspaceId, () => agents.delete(workspaceId, deletedId, AGENTS_TEST_LATER));
+
+    const flows = await tenants.run(workspaceId, () => repository.listCurrentFlows(workspaceId));
+
+    expect(flows.map((flow) => flow.agentId)).toEqual([keptId]);
   });
 
   describe('constraints', () => {

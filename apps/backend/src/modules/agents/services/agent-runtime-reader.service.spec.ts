@@ -20,7 +20,7 @@ import {
   TEST_NODE_NEW_LABEL,
   TEST_VERSION_NOTE,
 } from '@test/support/constants/agents-testing.constants';
-import { emptyFlow, triggerFlow } from '@test/support/fixtures/agents.fixture';
+import { emptyFlow, newAgent, triggerFlow } from '@test/support/fixtures/agents.fixture';
 import {
   createAgentsTestingModule,
   seedAgentWithDraft,
@@ -184,12 +184,42 @@ describe('AgentRuntimeReader', () => {
 
     it('fails when the agent has no draft', async () => {
       const workspaceId = ids.generate();
+      const agentId = ids.generate();
+      await tenants.run(workspaceId, () => agents.insert(newAgent(agentId, workspaceId)));
 
-      const snapshot = tenants.run(workspaceId, () =>
-        reader.snapshotDraft(workspaceId, ids.generate()),
-      );
+      const snapshot = tenants.run(workspaceId, () => reader.snapshotDraft(workspaceId, agentId));
 
       await expect(snapshot).rejects.toBeInstanceOf(AgentVersionNotFoundError);
+    });
+  });
+
+  describe('a deleted agent', () => {
+    it('stops answering and keeps the versions its runs point at', async () => {
+      const workspaceId = ids.generate();
+      const { agentId } = await seedAgentWithDraft(testingModule, workspaceId);
+      const live = await tenants.run(workspaceId, () =>
+        publishing.publish(workspaceId, agentId, { authorId: ids.generate() }),
+      );
+      await tenants.run(workspaceId, () => agents.delete(workspaceId, agentId, AGENTS_TEST_LATER));
+
+      const read = await tenants.run(workspaceId, async () => ({
+        answering: await reader.findAnsweringVersionId(workspaceId, agentId),
+        pinned: await reader.getVersion(workspaceId, live.id),
+      }));
+
+      expect(read).toEqual({ answering: null, pinned: live });
+    });
+
+    it('refuses its live version and a snapshot of its draft', async () => {
+      const workspaceId = ids.generate();
+      const { agentId } = await seedAgentWithDraft(testingModule, workspaceId);
+      await tenants.run(workspaceId, () => agents.delete(workspaceId, agentId, AGENTS_TEST_LATER));
+
+      const live = tenants.run(workspaceId, () => reader.getLiveVersion(workspaceId, agentId));
+      const snapshot = tenants.run(workspaceId, () => reader.snapshotDraft(workspaceId, agentId));
+
+      await expect(live).rejects.toBeInstanceOf(AgentNotFoundError);
+      await expect(snapshot).rejects.toBeInstanceOf(AgentNotFoundError);
     });
   });
 });

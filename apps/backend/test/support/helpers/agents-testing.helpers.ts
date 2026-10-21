@@ -141,6 +141,18 @@ export const makeVersionLive = async (
     );
 };
 
+export const deleteAgent = async (
+  testingModule: TestingModule,
+  workspaceId: string,
+  agentId: string,
+): Promise<void> => {
+  await testingModule
+    .get(TenantTransactionService)
+    .run(workspaceId, () =>
+      testingModule.get(AgentsRepository).delete(workspaceId, agentId, AGENTS_TEST_START),
+    );
+};
+
 export const readAgent = (
   testingModule: TestingModule,
   workspaceId: string,

@@ -169,6 +169,13 @@
       "when": 1792869917486,
       "tag": "0023_usage",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792873052754,
+      "tag": "0024_agents-soft-delete",
+      "breakpoints": true
     }
   ]
 }

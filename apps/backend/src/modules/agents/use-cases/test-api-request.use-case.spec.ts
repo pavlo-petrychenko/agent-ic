@@ -37,6 +37,7 @@ import { apiRequestFlow } from '@test/support/fixtures/agents.fixture';
 import {
   agentsCtx,
   createAgentsTestingModule,
+  deleteAgent,
   publicAgentId,
   seedAgentWithDraft,
 } from '@test/support/helpers/agents-testing.helpers';
@@ -71,7 +72,7 @@ describe('TestApiRequestUseCase', () => {
   const seed = async (url: string) => {
     const workspaceId = ids.generate();
     const { agentId } = await seedAgentWithDraft(testingModule, workspaceId, apiRequestFlow(url));
-    return { workspaceId, agentId: publicAgentId(testingModule, agentId) };
+    return { workspaceId, agentId: publicAgentId(testingModule, agentId), internalId: agentId };
   };
 
   it('sends the draft step with the sample variables and returns the answer', async () => {
@@ -143,6 +144,20 @@ describe('TestApiRequestUseCase', () => {
     });
 
     await expect(attempt).rejects.toBeInstanceOf(AgentNotFoundError);
+  });
+
+  it('refuses a deleted agent and never sends', async () => {
+    const { workspaceId, agentId, internalId } = await seed(TEST_API_URL_TEMPLATE);
+    await deleteAgent(testingModule, workspaceId, internalId);
+    const send = vi.spyOn(testingModule.get(OutboundHttpGateway), 'send');
+
+    const attempt = testApiRequest.execute(agentsCtx(testingModule, workspaceId), {
+      agentId,
+      nodeId: TEST_API_NODE_ID,
+    });
+
+    await expect(attempt).rejects.toBeInstanceOf(AgentNotFoundError);
+    expect(send).not.toHaveBeenCalled();
   });
 
   it('refuses a workspace that has used up its test requests', async () => {

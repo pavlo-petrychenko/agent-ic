@@ -5,6 +5,7 @@ import { parseAgentInput } from '@/modules/agents/helpers/agent-input.helpers';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { agentIdInputSchema } from '@/modules/agents/schemas/agent-input.schema';
 import type { AgentIdInput } from '@/modules/agents/typedefs/agent.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -15,6 +16,7 @@ export class DeleteAgentUseCase {
   constructor(
     private readonly tenantTransactions: TenantTransactionService,
     private readonly agents: AgentsRepository,
+    private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
 
@@ -27,7 +29,7 @@ export class DeleteAgentUseCase {
       if (agent === null) {
         throw new AgentNotFoundError();
       }
-      await this.agents.delete(workspaceId, agentId);
+      await this.agents.delete(workspaceId, agentId, this.clock.now());
     });
     return { id };
   }
