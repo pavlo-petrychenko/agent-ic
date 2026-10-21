@@ -28,6 +28,7 @@ export function AddLlmKeyDialog({ vendor, open, onOpenChange }: AddLlmKeyDialogP
   const { t: tCommon } = useTranslation();
   const dialog = useAddLlmKeyDialog({ vendor, onOpenChange });
   const { draft, check, busy } = dialog;
+  const isCustom = draft.vendor === LlmKeyVendor.Custom;
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
@@ -41,8 +42,12 @@ export function AddLlmKeyDialog({ vendor, open, onOpenChange }: AddLlmKeyDialogP
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
-      title={t('llmKeys.dialog.title', { provider: t(`llmKeys.vendors.${draft.vendor}`) })}
-      description={t('llmKeys.dialog.description')}
+      title={
+        isCustom
+          ? t('llmKeys.dialog.customTitle')
+          : t('llmKeys.dialog.title', { provider: t(`llmKeys.vendors.${draft.vendor}`) })
+      }
+      description={t(isCustom ? 'llmKeys.dialog.customDescription' : 'llmKeys.dialog.description')}
       closeLabel={tCommon('ui.close')}
       busy={busy}
       error={dialog.error}
@@ -83,7 +88,7 @@ export function AddLlmKeyDialog({ vendor, open, onOpenChange }: AddLlmKeyDialogP
             />
           )}
         </Field>
-        {draft.vendor === LlmKeyVendor.Custom && (
+        {isCustom && (
           <>
             <Field label={t('llmKeys.custom.nameLabel')}>
               {(control) => (

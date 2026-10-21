@@ -274,7 +274,9 @@
       "afterSave": "After saving, pick these models in any Agent or Completion step. Usage on your key doesn't count toward the workspace limit.",
       "confirm": "Save key",
       "cancel": "Cancel",
-      "checking": "Checking…"
+      "checking": "Checking…",
+      "customTitle": "Add a custom endpoint",
+      "customDescription": "Use any OpenAI-compatible API with your own key"
     },
     "vendors": {
       "openai": "OpenAI",
