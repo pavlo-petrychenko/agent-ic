@@ -123,8 +123,8 @@ export const createRunsTestbed = async (
   const executor = new ScriptedStepExecutor(scriptedNodeType);
   const observer = new ScriptedStepExecutor(NodeType.Completion);
   const gateway = llm ?? createLlmGateway({}, LLM_STEP_TIMEOUT_MS);
-  const completion = new CompletionExecutor(gateway);
-  const agent = new AgentExecutor(gateway);
+  const completion = new CompletionExecutor(gateway, new IdService(clock));
+  const agent = new AgentExecutor(gateway, new IdService(clock));
   const llmSteps = llm === null ? [observer] : [completion, agent];
   const module = await createPlatformTestingModule(
     redisPrefix,

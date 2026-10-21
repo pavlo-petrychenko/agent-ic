@@ -1,5 +1,4 @@
 import type { ReasoningLevel } from '@agent-ic/contracts';
-import type { LlmAnyModelId } from '@/platform/llm/typedefs/llm-model.typedefs';
 
 export interface LlmTags {
   readonly traceName: string;
@@ -12,7 +11,7 @@ export interface LlmTags {
 }
 
 export interface LlmCallTrace {
-  readonly model: LlmAnyModelId;
+  readonly model: string;
   readonly fallbackHop: number;
   readonly reasoning: ReasoningLevel | null;
 }

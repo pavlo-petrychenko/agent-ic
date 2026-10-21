@@ -1,3 +1,4 @@
+import { IdPrefix } from '@agent-ic/contracts';
 import { ModelProviderKind, renderTemplate, resolvePath } from '@agent-ic/flow';
 import type { ModelRef, PromptSource } from '@agent-ic/flow';
 import { MessageAuthor } from '@/modules/conversations';
@@ -8,33 +9,38 @@ import { StepModelUnknownError } from '@/modules/runs/errors/step-model-unknown.
 import { StepPromptUnavailableError } from '@/modules/runs/errors/step-prompt-unavailable.error';
 import { currentMessageStart } from '@/modules/runs/helpers/run-scope.helpers';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
-import { LLM_CATALOG, LLM_DEFAULT_MODEL } from '@/platform/llm/constants/llm-catalog.constants';
+import type { IdService } from '@/platform/ids/services/id.service';
+import { LLM_DEFAULT_MODEL } from '@/platform/llm/constants/llm-catalog.constants';
 import { LlmMessageRole } from '@/platform/llm/constants/llm-gateway.constants';
-import type { LlmModelId, LlmPurpose } from '@/platform/llm/constants/llm-model.constants';
+import type { LlmPurpose } from '@/platform/llm/constants/llm-model.constants';
 import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants';
+import { isLlmModelId } from '@/platform/llm/helpers/llm-model-profile.helpers';
 import type { LlmCompleteRequest, LlmMessage } from '@/platform/llm/typedefs/llm-gateway.typedefs';
-
-const isLlmModelId = (model: string): model is LlmModelId => Object.hasOwn(LLM_CATALOG, model);
 
 export const stepModel = (
   nodeId: string,
   model: ModelRef | null,
   purpose: LlmPurpose,
   workspaceId: string,
+  ids: IdService,
 ): Pick<LlmCompleteRequest<unknown>, 'provider' | 'model'> => {
   if (model === null) {
     return { provider: { kind: LlmProviderKind.Platform }, model: LLM_DEFAULT_MODEL[purpose] };
   }
+  if (model.provider.kind === ModelProviderKind.Workspace) {
+    return {
+      provider: {
+        kind: LlmProviderKind.Workspace,
+        workspaceId,
+        providerKeyId: ids.fromPublic(IdPrefix.LlmKey, model.provider.providerKeyId),
+      },
+      model: model.model,
+    };
+  }
   if (!isLlmModelId(model.model)) {
     throw new StepModelUnknownError(nodeId, model.model);
   }
-  return {
-    provider:
-      model.provider.kind === ModelProviderKind.Platform
-        ? { kind: LlmProviderKind.Platform }
-        : { kind: LlmProviderKind.Workspace, workspaceId },
-    model: model.model,
-  };
+  return { provider: { kind: LlmProviderKind.Platform }, model: model.model };
 };
 
 export const stepSystemPrompt = (

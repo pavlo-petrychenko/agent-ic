@@ -17,7 +17,9 @@ import { LlmUnavailableError } from '@/platform/llm/errors/llm-unavailable.error
 import type { AiSdkEmbeddingGateway } from '@/platform/llm/gateways/ai-sdk-embedding.gateway';
 import type { MetricsService } from '@/platform/observability/services/metrics.service';
 import { MockLlmRoute } from '@test/support/constants/mock-llm.constants';
+import { RecordingUsageLimits } from '@test/support/fakes/recording-usage-limits.fake';
 import { RecordingUsageReporter } from '@test/support/fakes/recording-usage-reporter.fake';
+import { SamplePlanLimitError } from '@test/support/fixtures/sample-errors.fixture';
 import {
   createEmbeddingGateway,
   createLlmMetricsService,
@@ -56,6 +58,7 @@ const meteredReport = (tokens: number, credits: number) => ({
 describe('AiSdkEmbeddingGateway', () => {
   let mock: MockLlmService;
   let usage: RecordingUsageReporter;
+  let limits: RecordingUsageLimits;
   let metrics: MetricsService;
   let gateway: AiSdkEmbeddingGateway;
 
@@ -73,11 +76,12 @@ describe('AiSdkEmbeddingGateway', () => {
 
   const startGateway = (apiKey = API_KEY, batchTimeoutMs = BATCH_TIMEOUT_MS) => {
     usage = new RecordingUsageReporter();
+    limits = new RecordingUsageLimits();
     metrics = createMetricsService();
     gateway = createEmbeddingGateway(
       { [EnvVar.LlmBaseUrl]: mock.url, [EnvVar.LlmApiKey]: apiKey },
       batchTimeoutMs,
-      { usage, metrics: createLlmMetricsService(metrics) },
+      { usage, limits, metrics: createLlmMetricsService(metrics) },
     );
   };
 
@@ -115,6 +119,25 @@ describe('AiSdkEmbeddingGateway', () => {
       meteredReport(BATCH_SIZE, FULL_BATCH_CREDITS),
       meteredReport(EXTRA_TEXTS, SHORT_BATCH_CREDITS),
     ]);
+  });
+
+  it('checks the platform limit before every batch', async () => {
+    startGateway();
+    mock.embed().embed();
+
+    await gateway.embed(textsOf(BATCH_SIZE + EXTRA_TEXTS), OPTIONS);
+
+    expect(limits.checks).toEqual([WORKSPACE_ID, WORKSPACE_ID]);
+  });
+
+  it('embeds nothing once the platform limit is reached', async () => {
+    startGateway();
+    limits.reach();
+
+    await expect(gateway.embed(textsOf(EXTRA_TEXTS), OPTIONS)).rejects.toBeInstanceOf(
+      SamplePlanLimitError,
+    );
+    expect(mock.requests).toHaveLength(0);
   });
 
   it('reports no tokens and no credits when the provider sends no usage', async () => {

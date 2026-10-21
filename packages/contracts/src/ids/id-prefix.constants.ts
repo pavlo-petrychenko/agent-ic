@@ -14,4 +14,5 @@ export enum IdPrefix {
   Prompt = 'prm',
   PromptFolder = 'pfl',
   PromptVersion = 'prv',
+  LlmKey = 'lmk',
 }

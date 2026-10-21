@@ -36,3 +36,7 @@ export const LLM_OUTPUT_INVALID_MESSAGE = 'The LLM answer does not match the sch
 export const LLM_REPLY_MISSING_MESSAGE = 'The LLM ended without calling the reply tool';
 export const LLM_TOOL_ROUNDS_EXCEEDED_MESSAGE = 'The LLM kept calling tools past the round limit';
 export const LLM_UNAVAILABLE_MESSAGE = 'No LLM model could answer right now';
+export const LLM_MODEL_UNKNOWN_MESSAGE = 'The model is not in the platform catalog';
+export const LLM_KEY_INVALID_MESSAGE = 'The provider did not accept the key';
+export const LLM_KEY_UNREACHABLE_MESSAGE = 'The provider could not be reached with the key';
+export const LLM_KEY_ENDPOINT_BLOCKED_MESSAGE = 'The provider endpoint is not allowed';
