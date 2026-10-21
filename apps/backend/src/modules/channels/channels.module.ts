@@ -1,6 +1,8 @@
 import { CHANNEL_ADAPTERS } from '@/modules/channels/constants/channel-adapter.constants';
 import type { ChannelAdapter } from '@/modules/channels/gateways/channel-adapter.gateway';
+import { HttpTelegramGateway } from '@/modules/channels/gateways/http-telegram.gateway';
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
+import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { DeliverOutboundMessageListener } from '@/modules/channels/listeners/deliver-outbound-message.listener';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
@@ -16,6 +18,10 @@ export class ChannelsModule extends defineModule({
     ChannelsRepository,
     ChannelEventsRepository,
     ChannelTokenService,
+    {
+      provide: TelegramGateway,
+      useClass: HttpTelegramGateway,
+    },
     SimulatedChannelAdapter,
     {
       provide: CHANNEL_ADAPTERS,

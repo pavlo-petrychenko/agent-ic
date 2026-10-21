@@ -59,17 +59,19 @@ import type {
   ConversationsTestbed,
   TiedMessages,
 } from '@test/support/typedefs/conversations-testing.typedefs';
+import type { ProviderOverride } from '@test/support/typedefs/test-infrastructure.typedefs';
 
 export const createConversationsTestbed = async (
   domainModule: DynamicModule = ConversationsModule.forRole(CONVERSATIONS_TESTBED_ROLE),
   redisPrefix: TestRedisPrefix = TestRedisPrefix.Conversations,
   selection: RoleSelection = { role: CONVERSATIONS_TESTBED_ROLE, queues: [] },
+  overrides: readonly ProviderOverride[] = [],
 ): Promise<ConversationsTestbed> => {
   const config = createIntegrationConfig(selection, redisPrefix, {
     [EnvVar.DatabasePoolMax]: CONCURRENT_POOL_SIZE,
   });
   const clock = new ManualClock(CONVERSATIONS_TEST_START);
-  const module = await Test.createTestingModule({
+  const builder = Test.createTestingModule({
     imports: [
       ConfigModule.register(config),
       ContextModule,
@@ -95,8 +97,11 @@ export const createConversationsTestbed = async (
     ],
   })
     .overrideProvider(ClockService)
-    .useValue(clock)
-    .compile();
+    .useValue(clock);
+  for (const { token, value } of overrides) {
+    builder.overrideProvider(token).useValue(value);
+  }
+  const module = await builder.compile();
   module.useLogger(false);
   await module.init();
   return {
