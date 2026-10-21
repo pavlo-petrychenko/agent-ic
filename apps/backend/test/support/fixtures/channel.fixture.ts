@@ -1,6 +1,6 @@
 import { ChannelStatus, ChannelType } from '@/modules/channels/constants/channel.constants';
-import type { NewChannelUpdate } from '@/modules/channels/typedefs/channel-update.typedefs';
-import type { NewChannel } from '@/modules/channels/typedefs/channel.typedefs';
+import type { NewChannelEvent } from '@/modules/channels/typedefs/channel-event.typedefs';
+import type { NewChannel, NewTelegramChannel } from '@/modules/channels/typedefs/channel.typedefs';
 import {
   TEST_CHANNEL_NAME,
   TEST_TELEGRAM_BOT_USERNAME,
@@ -17,12 +17,6 @@ export const newChannel = (
   kind: ChannelType.Telegram,
   status: ChannelStatus.Pending,
   agentId: null,
-  name: TEST_CHANNEL_NAME,
-  telegramBotId: testbed.ids.generate(),
-  telegramUsername: TEST_TELEGRAM_BOT_USERNAME,
-  tokenSealed: 'sealed-token',
-  webhookSecretHash: 'webhook-secret-hash',
-  showTyping: true,
   lastUpdateAt: null,
   createdByUserId: testbed.ids.generate(),
   createdAt: testbed.clock.now(),
@@ -30,15 +24,32 @@ export const newChannel = (
   ...overrides,
 });
 
-export const newChannelUpdate = (
+export const newTelegramChannel = (
   testbed: Pick<ChannelsTestbed, 'ids' | 'clock'>,
   channel: Pick<NewChannel, 'id' | 'workspaceId'>,
-  overrides: Partial<NewChannelUpdate> = {},
-): NewChannelUpdate => ({
+  overrides: Partial<NewTelegramChannel> = {},
+): NewTelegramChannel => ({
+  channelId: channel.id,
+  workspaceId: channel.workspaceId,
+  name: TEST_CHANNEL_NAME,
+  botId: testbed.ids.generate(),
+  username: TEST_TELEGRAM_BOT_USERNAME,
+  tokenSealed: 'sealed-token',
+  webhookSecretHash: 'webhook-secret-hash',
+  showTyping: true,
+  ...overrides,
+});
+
+export const newChannelEvent = (
+  testbed: Pick<ChannelsTestbed, 'ids' | 'clock'>,
+  channel: Pick<NewChannel, 'id' | 'workspaceId'>,
+  overrides: Partial<NewChannelEvent> = {},
+): NewChannelEvent => ({
   id: testbed.ids.generate(),
   workspaceId: channel.workspaceId,
   channelId: channel.id,
   externalId: testbed.ids.generate(),
+  payload: {},
   receivedAt: testbed.clock.now(),
   ...overrides,
 });

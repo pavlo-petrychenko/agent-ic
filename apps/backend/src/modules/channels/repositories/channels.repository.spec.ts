@@ -1,11 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
-import { ChannelUpdatesRepository } from '@/modules/channels/repositories/channel-updates.repository';
+import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
+import { TelegramChannelsRepository } from '@/modules/channels/repositories/telegram-channels.repository';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import type { ChannelPatch, NewChannel } from '@/modules/channels/typedefs/channel.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import {
+  TEST_CHANNEL_NAME,
   TEST_CHANNEL_UPDATE_ID,
   TEST_TELEGRAM_BOT_ID,
   TEST_TELEGRAM_TOKEN,
@@ -14,7 +16,11 @@ import {
   ROW_LEVEL_SECURITY_VIOLATION,
   UNIQUE_VIOLATION,
 } from '@test/support/constants/postgres-errors.constants';
-import { newChannel, newChannelUpdate } from '@test/support/fixtures/channel.fixture';
+import {
+  newChannel,
+  newChannelEvent,
+  newTelegramChannel,
+} from '@test/support/fixtures/channel.fixture';
 import { createChannelsTestbed } from '@test/support/helpers/channels-testing.helpers';
 import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.typedefs';
 
@@ -24,12 +30,6 @@ const channelPatch = (
 ): ChannelPatch => ({
   status: channel.status,
   agentId: channel.agentId ?? null,
-  name: channel.name,
-  telegramBotId: channel.telegramBotId ?? null,
-  telegramUsername: channel.telegramUsername ?? null,
-  tokenSealed: channel.tokenSealed ?? null,
-  webhookSecretHash: channel.webhookSecretHash ?? null,
-  showTyping: channel.showTyping,
   lastUpdateAt: channel.lastUpdateAt ?? null,
   updatedAt: channel.updatedAt,
   ...overrides,
@@ -38,14 +38,16 @@ const channelPatch = (
 describe('Channels repositories across tenants', () => {
   let testbed: ChannelsTestbed;
   let channels: ChannelsRepository;
-  let updates: ChannelUpdatesRepository;
+  let telegramChannels: TelegramChannelsRepository;
+  let events: ChannelEventsRepository;
   let tokens: ChannelTokenService;
   let tenants: TenantTransactionService;
 
   beforeAll(async () => {
     testbed = await createChannelsTestbed();
     channels = testbed.channels;
-    updates = testbed.channelUpdates;
+    telegramChannels = testbed.telegramChannels;
+    events = testbed.channelEvents;
     tokens = testbed.channelTokens;
     tenants = testbed.tenants;
   });
@@ -66,6 +68,27 @@ describe('Channels repositories across tenants', () => {
     expect(listed.map((row) => row.id)).toEqual([channel.id]);
   });
 
+  it('stores the Telegram profile beside the channel', async () => {
+    const workspaceA = testbed.ids.generate();
+    const channel = newChannel(testbed, workspaceA);
+    const telegram = newTelegramChannel(testbed, channel);
+
+    await tenants.run(workspaceA, async () => {
+      await channels.insert(channel);
+      await telegramChannels.insert(telegram);
+    });
+
+    const found = await tenants.run(workspaceA, () =>
+      telegramChannels.findByChannelId(workspaceA, channel.id),
+    );
+    expect(found).toMatchObject({
+      channelId: channel.id,
+      workspaceId: workspaceA,
+      name: TEST_CHANNEL_NAME,
+      botId: telegram.botId,
+    });
+  });
+
   it('never shows or changes a channel from another workspace', async () => {
     const workspaceA = testbed.ids.generate();
     const workspaceB = testbed.ids.generate();
@@ -78,7 +101,10 @@ describe('Channels repositories across tenants', () => {
       updated: await channels.update(
         workspaceA,
         channel.id,
-        channelPatch(channel, { name: 'Changed', updatedAt: testbed.clock.now() }),
+        channelPatch(channel, {
+          status: ChannelStatus.Connected,
+          updatedAt: testbed.clock.now(),
+        }),
       ),
       deleted: await channels.delete(workspaceA, channel.id),
     }));
@@ -87,10 +113,43 @@ describe('Channels repositories across tenants', () => {
     expect(await tenants.run(workspaceA, () => channels.list(workspaceA))).toHaveLength(1);
   });
 
+  it('never shows or changes a Telegram profile from another workspace', async () => {
+    const workspaceA = testbed.ids.generate();
+    const workspaceB = testbed.ids.generate();
+    const channel = newChannel(testbed, workspaceA);
+    await tenants.run(workspaceA, async () => {
+      await channels.insert(channel);
+      await telegramChannels.insert(newTelegramChannel(testbed, channel));
+    });
+
+    const seenFromB = await tenants.run(workspaceB, async () => ({
+      found: await telegramChannels.findByChannelId(workspaceA, channel.id),
+      updated: await telegramChannels.update(workspaceA, channel.id, { name: 'Changed' }),
+    }));
+
+    expect(seenFromB).toEqual({ found: null, updated: null });
+    await expect(
+      tenants.run(workspaceA, () => telegramChannels.findByChannelId(workspaceA, channel.id)),
+    ).resolves.toMatchObject({ name: TEST_CHANNEL_NAME });
+  });
+
   it('refuses to write a channel into another workspace', async () => {
     const workspaceA = testbed.ids.generate();
     const workspaceB = testbed.ids.generate();
     const write = tenants.run(workspaceB, () => channels.insert(newChannel(testbed, workspaceA)));
+
+    await expect(write).rejects.toMatchObject(ROW_LEVEL_SECURITY_VIOLATION);
+  });
+
+  it('refuses to write a Telegram profile into another workspace', async () => {
+    const workspaceA = testbed.ids.generate();
+    const workspaceB = testbed.ids.generate();
+    const channel = newChannel(testbed, workspaceA);
+    await tenants.run(workspaceA, () => channels.insert(channel));
+
+    const write = tenants.run(workspaceB, () =>
+      telegramChannels.insert(newTelegramChannel(testbed, channel)),
+    );
 
     await expect(write).rejects.toMatchObject(ROW_LEVEL_SECURITY_VIOLATION);
   });
@@ -109,7 +168,6 @@ describe('Channels repositories across tenants', () => {
         channelPatch(channel, {
           status: ChannelStatus.Connected,
           agentId,
-          showTyping: false,
           lastUpdateAt: at,
           updatedAt: at,
         }),
@@ -119,40 +177,56 @@ describe('Channels repositories across tenants', () => {
     expect(updated).toMatchObject({
       status: ChannelStatus.Connected,
       agentId,
-      showTyping: false,
       lastUpdateAt: at,
       updatedAt: at,
     });
   });
 
-  it('keeps a Telegram bot unique while its channel is active', async () => {
+  it('updates the Telegram profile', async () => {
     const workspaceA = testbed.ids.generate();
-    const workspaceB = testbed.ids.generate();
-    const first = newChannel(testbed, workspaceA, { telegramBotId: TEST_TELEGRAM_BOT_ID });
-    await tenants.run(workspaceA, () => channels.insert(first));
+    const channel = newChannel(testbed, workspaceA);
+    await tenants.run(workspaceA, async () => {
+      await channels.insert(channel);
+      await telegramChannels.insert(newTelegramChannel(testbed, channel));
+    });
 
-    const duplicate = newChannel(testbed, workspaceB, { telegramBotId: TEST_TELEGRAM_BOT_ID });
-    await expect(tenants.run(workspaceB, () => channels.insert(duplicate))).rejects.toMatchObject(
-      UNIQUE_VIOLATION,
+    const updated = await tenants.run(workspaceA, () =>
+      telegramChannels.update(workspaceA, channel.id, {
+        name: 'Changed',
+        showTyping: false,
+        tokenSealed: 'sealed-2',
+      }),
     );
 
-    await tenants.run(workspaceA, () =>
-      channels.update(
-        workspaceA,
-        first.id,
-        channelPatch(first, {
-          status: ChannelStatus.Disconnected,
-          updatedAt: testbed.clock.now(),
-        }),
-      ),
-    );
-
-    await expect(
-      tenants.run(workspaceB, () => channels.insert(duplicate)),
-    ).resolves.toBeUndefined();
+    expect(updated).toMatchObject({
+      name: 'Changed',
+      showTyping: false,
+      tokenSealed: 'sealed-2',
+    });
   });
 
-  it('keeps each external update only once per channel', async () => {
+  it('keeps a Telegram bot unique across workspaces', async () => {
+    const workspaceA = testbed.ids.generate();
+    const workspaceB = testbed.ids.generate();
+    const firstChannel = newChannel(testbed, workspaceA);
+    const first = newTelegramChannel(testbed, firstChannel, { botId: TEST_TELEGRAM_BOT_ID });
+    await tenants.run(workspaceA, async () => {
+      await channels.insert(firstChannel);
+      await telegramChannels.insert(first);
+    });
+
+    const duplicateChannel = newChannel(testbed, workspaceB);
+    const duplicate = newTelegramChannel(testbed, duplicateChannel, {
+      botId: TEST_TELEGRAM_BOT_ID,
+    });
+    await tenants.run(workspaceB, () => channels.insert(duplicateChannel));
+
+    await expect(
+      tenants.run(workspaceB, () => telegramChannels.insert(duplicate)),
+    ).rejects.toMatchObject(UNIQUE_VIOLATION);
+  });
+
+  it('keeps each external event only once per channel', async () => {
     const workspaceA = testbed.ids.generate();
     const first = newChannel(testbed, workspaceA);
     const second = newChannel(testbed, workspaceA);
@@ -160,13 +234,13 @@ describe('Channels repositories across tenants', () => {
       await channels.insert(first);
       await channels.insert(second);
     });
-    const update = newChannelUpdate(testbed, first, { externalId: TEST_CHANNEL_UPDATE_ID });
+    const event = newChannelEvent(testbed, first, { externalId: TEST_CHANNEL_UPDATE_ID });
 
-    const firstInsert = await tenants.run(workspaceA, () => updates.insertIfAbsent(update));
-    const duplicate = await tenants.run(workspaceA, () => updates.insertIfAbsent(update));
+    const firstInsert = await tenants.run(workspaceA, () => events.insertIfAbsent(event));
+    const duplicate = await tenants.run(workspaceA, () => events.insertIfAbsent(event));
     const otherChannel = await tenants.run(workspaceA, () =>
-      updates.insertIfAbsent(
-        newChannelUpdate(testbed, second, { externalId: TEST_CHANNEL_UPDATE_ID }),
+      events.insertIfAbsent(
+        newChannelEvent(testbed, second, { externalId: TEST_CHANNEL_UPDATE_ID }),
       ),
     );
 

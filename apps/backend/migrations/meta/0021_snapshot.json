@@ -1,5 +1,5 @@
 {
-  "id": "f42677ec-a429-4e3c-8bf8-ae061a80212b",
+  "id": "db4eaf27-f647-452d-a23f-30679a781c7b",
   "prevId": "32e14070-a8f7-4904-9824-bc7ae788477a",
   "version": "7",
   "dialect": "postgresql",
@@ -302,8 +302,8 @@
       "checkConstraints": {},
       "isRLSEnabled": true
     },
-    "channels.channel_updates": {
-      "name": "channel_updates",
+    "channels.channel_events": {
+      "name": "channel_events",
       "schema": "channels",
       "columns": {
         "id": {
@@ -330,6 +330,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "payload": {
+          "name": "payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
         "received_at": {
           "name": "received_at",
           "type": "timestamp with time zone",
@@ -338,8 +344,8 @@
         }
       },
       "indexes": {
-        "channel_updates_channel_external_id_key": {
-          "name": "channel_updates_channel_external_id_key",
+        "channel_events_channel_external_id_key": {
+          "name": "channel_events_channel_external_id_key",
           "columns": [
             {
               "expression": "channel_id",
@@ -359,8 +365,8 @@
           "method": "btree",
           "with": {}
         },
-        "channel_updates_workspace_received_idx": {
-          "name": "channel_updates_workspace_received_idx",
+        "channel_events_workspace_received_idx": {
+          "name": "channel_events_workspace_received_idx",
           "columns": [
             {
               "expression": "workspace_id",
@@ -379,12 +385,33 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "channel_events_channel_received_idx": {
+          "name": "channel_events_channel_received_idx",
+          "columns": [
+            {
+              "expression": "channel_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "received_at",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
-        "channel_updates_channel_id_channels_id_fk": {
-          "name": "channel_updates_channel_id_channels_id_fk",
-          "tableFrom": "channel_updates",
+        "channel_events_channel_id_channels_id_fk": {
+          "name": "channel_events_channel_id_channels_id_fk",
+          "tableFrom": "channel_events",
           "tableTo": "channels",
           "schemaTo": "channels",
           "columnsFrom": ["channel_id"],
@@ -396,8 +423,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {
-        "channel_updates_tenant_isolation": {
-          "name": "channel_updates_tenant_isolation",
+        "channel_events_tenant_isolation": {
+          "name": "channel_events_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
           "to": ["public"],
@@ -444,42 +471,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "telegram_bot_id": {
-          "name": "telegram_bot_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "telegram_username": {
-          "name": "telegram_username",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "token_sealed": {
-          "name": "token_sealed",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "webhook_secret_hash": {
-          "name": "webhook_secret_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "show_typing": {
-          "name": "show_typing",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
         "last_update_at": {
           "name": "last_update_at",
           "type": "timestamp with time zone",
@@ -506,22 +497,6 @@
         }
       },
       "indexes": {
-        "channels_telegram_bot_id_key": {
-          "name": "channels_telegram_bot_id_key",
-          "columns": [
-            {
-              "expression": "telegram_bot_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "where": "\"channels\".\"channels\".\"telegram_bot_id\" is not null and \"channels\".\"channels\".\"status\" <> 'disconnected'",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "channels_workspace_kind_idx": {
           "name": "channels_workspace_kind_idx",
           "columns": [
@@ -565,6 +540,104 @@
       "policies": {
         "channels_tenant_isolation": {
           "name": "channels_tenant_isolation",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": ["public"],
+          "using": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid",
+          "withCheck": "\"workspace_id\" = nullif(current_setting('app.workspace_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "channels.telegram_channels": {
+      "name": "telegram_channels",
+      "schema": "channels",
+      "columns": {
+        "channel_id": {
+          "name": "channel_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bot_id": {
+          "name": "bot_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "username": {
+          "name": "username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_sealed": {
+          "name": "token_sealed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "webhook_secret_hash": {
+          "name": "webhook_secret_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "show_typing": {
+          "name": "show_typing",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "telegram_channels_bot_id_key": {
+          "name": "telegram_channels_bot_id_key",
+          "columns": [
+            {
+              "expression": "bot_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"channels\".\"telegram_channels\".\"bot_id\" is not null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "telegram_channels_channel_id_channels_id_fk": {
+          "name": "telegram_channels_channel_id_channels_id_fk",
+          "tableFrom": "telegram_channels",
+          "tableTo": "channels",
+          "schemaTo": "channels",
+          "columnsFrom": ["channel_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "telegram_channels_tenant_isolation": {
+          "name": "telegram_channels_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
           "to": ["public"],
