@@ -123,6 +123,7 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
         return {
           id: variable.path,
           label: variable.path,
+          open: variable.open,
           group:
             source === undefined ? t(`inspector.llm.source.${variable.source}`) : nodeName(source),
         };

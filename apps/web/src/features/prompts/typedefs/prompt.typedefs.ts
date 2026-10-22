@@ -34,6 +34,7 @@ export interface PromptDetail {
 export interface PromptVersionListItem {
   readonly id: string;
   readonly number: number;
+  readonly variables: readonly string[];
   readonly note: string | null;
   readonly savedAt: string;
 }

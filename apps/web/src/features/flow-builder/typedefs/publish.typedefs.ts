@@ -54,6 +54,7 @@ export interface ChangeLine {
   sentence: ChangeSentence;
   step: string;
   field: string | null;
+  variable?: string | null;
   before: string | null;
   after: string | null;
 }

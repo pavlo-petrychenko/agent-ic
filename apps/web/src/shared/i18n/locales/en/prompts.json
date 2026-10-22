@@ -194,7 +194,21 @@
     "openInLibrary": "Open in library",
     "version": "Version",
     "followLatest": "Follow latest",
-    "empty": "This step has no prompt yet. Pick one from the library."
+    "empty": "This step has no prompt yet. Pick one from the library.",
+    "variables": {
+      "title": "Variables",
+      "note": "This step fills each prompt variable from its flow.",
+      "choose": "Choose a variable",
+      "unmapped": "Choose a variable for this prompt variable.",
+      "unknown": "This variable is not available in this step.",
+      "mapLabel": "Variable for {{variable}}",
+      "search": "Search variables",
+      "searchClear": "Clear variable search",
+      "empty": "No variables found",
+      "loading": "Loading the prompt variables",
+      "none": "Not mapped",
+      "useMatches": "Use matching variables"
+    }
   },
   "picker": {
     "title": "Use a library prompt",

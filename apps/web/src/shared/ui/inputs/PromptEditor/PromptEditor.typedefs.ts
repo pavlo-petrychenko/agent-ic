@@ -4,6 +4,7 @@ export interface VariableOption {
   id: string;
   label: string;
   group?: string;
+  open?: boolean;
 }
 
 export interface PromptEditorProps {
