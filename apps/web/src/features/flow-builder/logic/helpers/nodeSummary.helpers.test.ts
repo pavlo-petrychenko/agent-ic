@@ -84,6 +84,7 @@ describe('nodeSummary', () => {
           kind: PromptSourceKind.Library,
           promptRef: 'prm_receptionist',
           pin: { kind: PromptVersionKind.Latest },
+          bindings: {},
         }),
         [HAIKU],
       ),

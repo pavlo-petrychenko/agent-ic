@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
+import { NodeType } from '@flow/document/constants/flow.constants';
 import type { PromptSource } from '@flow/document/typedefs/flow.typedefs';
 import {
   PromptSourceKind,
@@ -69,6 +70,7 @@ describe('nodeTextFields', () => {
       kind: PromptSourceKind.Library,
       promptRef: 'prm_answer',
       pin: { kind: PromptVersionKind.Latest },
+      bindings: {},
     };
     expect(nodeTextFields(agent('answer', [], library))).toEqual([]);
     expect(nodeTextFields(agent('answer', [], null))).toEqual([]);
@@ -100,5 +102,25 @@ describe('mapNodeText', () => {
       'LATER',
       'x.guard.ok',
     ]);
+  });
+
+  it('rewrites prompt bindings without listing them as text fields', () => {
+    const prompt: PromptSource = {
+      kind: PromptSourceKind.Library,
+      promptRef: 'prm_answer',
+      pin: { kind: PromptVersionKind.Latest },
+      bindings: { customer_name: 'guard.name' },
+    };
+    const mapped = mapNodeText(agent('answer', [], prompt), {
+      template: (text) => text,
+      variable: (path) => `x.${path}`,
+    });
+
+    expect(mapped.type).toBe(NodeType.Agent);
+    if (mapped.type !== NodeType.Agent) {
+      throw new Error('Expected an Agent node');
+    }
+    expect(mapped.config.prompt?.bindings).toEqual({ customer_name: 'x.guard.name' });
+    expect(nodeTextFields(mapped)).toEqual([]);
   });
 });

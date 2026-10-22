@@ -1,3 +1,4 @@
+import { collectPromptVariables } from '@agent-ic/flow';
 import type {
   PromptVersion,
   PromptVersionLabels,
@@ -15,6 +16,7 @@ export const toPromptVersionView = (
   id: labels.id,
   number: version.number,
   text: version.text,
+  variables: collectPromptVariables(version.text),
   note: version.note,
   author: labels.author,
   createdAt: version.createdAt,

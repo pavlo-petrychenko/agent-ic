@@ -38,6 +38,11 @@ const replaceConfig = (flow: FlowDocument, type: NodeType, config: unknown): unk
   nodes: flow.nodes.map((node) => (node.type === type ? { ...node, config } : node)),
 });
 
+const agentPrompt = (flow: FlowDocument) => {
+  const node = nodeOf(flow, NodeType.Agent);
+  return node.type === NodeType.Agent ? node.config.prompt : null;
+};
+
 describe('flowDocumentSchema', () => {
   it.each(exampleFlows.map((flow, index) => [index, flow]))(
     'accepts example flow %i',
@@ -212,9 +217,101 @@ describe('prompt source and reasoning', () => {
       { kind: PromptVersionKind.Latest },
     ];
     for (const pin of pins) {
-      const prompt = { kind: PromptSourceKind.Library, promptRef: 'prm_answer', pin };
+      const prompt = {
+        kind: PromptSourceKind.Library,
+        promptRef: 'prm_answer',
+        pin,
+        bindings: {},
+      };
       expect(flowDocumentSchema.safeParse(withAgentConfig({ prompt })).success).toBe(true);
     }
+  });
+
+  it('defaults prompt bindings to an empty map', () => {
+    const parsed = flowDocumentSchema.safeParse(
+      withAgentConfig({
+        prompt: {
+          kind: PromptSourceKind.Library,
+          promptRef: 'prm_answer',
+          pin: { kind: PromptVersionKind.Latest },
+        },
+      }),
+    );
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) {
+      throw new Error('Expected the flow to parse');
+    }
+    expect(agentPrompt(parsed.data)).toMatchObject({ bindings: {} });
+  });
+
+  it('keeps prompt bindings and normalizes their names', () => {
+    const parsed = flowDocumentSchema.safeParse(
+      withAgentConfig({
+        prompt: {
+          kind: PromptSourceKind.Library,
+          promptRef: 'prm_answer',
+          pin: { kind: PromptVersionKind.Latest },
+          bindings: { 'Customer.Name': 'user.name', 'order-number': 'lookup.order.id' },
+        },
+      }),
+    );
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) {
+      throw new Error('Expected the flow to parse');
+    }
+    expect(agentPrompt(parsed.data)).toMatchObject({
+      bindings: {
+        'customer.name': 'user.name',
+        'order-number': 'lookup.order.id',
+      },
+    });
+  });
+
+  it('rejects binding names that differ only by case', () => {
+    const parsed = flowDocumentSchema.safeParse(
+      withAgentConfig({
+        prompt: {
+          kind: PromptSourceKind.Library,
+          promptRef: 'prm_answer',
+          pin: { kind: PromptVersionKind.Latest },
+          bindings: { Name: 'user.name', name: 'channel' },
+        },
+      }),
+    );
+
+    expect(parsed.success).toBe(false);
+  });
+
+  it('rejects a binding name outside the prompt variable alphabet', () => {
+    const parsed = flowDocumentSchema.safeParse(
+      withAgentConfig({
+        prompt: {
+          kind: PromptSourceKind.Library,
+          promptRef: 'prm_answer',
+          pin: { kind: PromptVersionKind.Latest },
+          bindings: { 'customer name': 'user.name' },
+        },
+      }),
+    );
+
+    expect(parsed.success).toBe(false);
+  });
+
+  it('rejects an empty binding target', () => {
+    const parsed = flowDocumentSchema.safeParse(
+      withAgentConfig({
+        prompt: {
+          kind: PromptSourceKind.Library,
+          promptRef: 'prm_answer',
+          pin: { kind: PromptVersionKind.Latest },
+          bindings: { customer_name: '' },
+        },
+      }),
+    );
+
+    expect(parsed.success).toBe(false);
   });
 
   it.each([

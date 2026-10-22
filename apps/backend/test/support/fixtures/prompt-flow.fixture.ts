@@ -7,7 +7,8 @@ import { agentNode, flowEdge, stepFlow } from '@test/support/fixtures/runs.fixtu
 export const libraryPromptSource = (
   promptRef: string,
   pin: PromptPin = { kind: PromptVersionKind.Latest },
-): PromptSource => ({ kind: PromptSourceKind.Library, promptRef, pin });
+  bindings: PromptSource['bindings'] = {},
+): PromptSource => ({ kind: PromptSourceKind.Library, promptRef, pin, bindings });
 
 export const agentWithLibraryPrompt = (
   id: string,
@@ -15,9 +16,10 @@ export const agentWithLibraryPrompt = (
   promptRef: string,
   pin: PromptPin = { kind: PromptVersionKind.Latest },
   label: string | null = null,
+  bindings: PromptSource['bindings'] = {},
 ): AgentNode => {
   const node = agentNode(id, key, {
-    prompt: libraryPromptSource(promptRef, pin),
+    prompt: libraryPromptSource(promptRef, pin, bindings),
     model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Ministral14b },
   });
   return label === null ? node : { ...node, label };

@@ -75,6 +75,24 @@ describe('GetPromptUseCase', () => {
     });
   });
 
+  it('exposes the variables declared in the latest prompt text', async () => {
+    const workspaceId = ids.generate();
+    const authorId = await seedPromptAuthor(testingModule);
+    const folderId = await seedPromptFolder(testingModule, workspaceId);
+    const promptId = await seedPrompt(testingModule, workspaceId, folderId);
+    await seedPromptVersion(testingModule, workspaceId, promptId, {
+      number: 1,
+      text: 'Hi {{Customer.Name}}, order {{order_number}}.',
+      authorId,
+    });
+
+    const detail = await getPrompt.execute(promptsCtx(testingModule, workspaceId), {
+      id: publicPromptId(testingModule, promptId),
+    });
+
+    expect(detail.latestVersion?.variables).toEqual(['customer.name', 'order_number']);
+  });
+
   it('returns an empty latest version for a prompt with no versions', async () => {
     const workspaceId = ids.generate();
     const folderId = await seedPromptFolder(testingModule, workspaceId);

@@ -114,6 +114,7 @@ export {
 } from '@flow/references/constants/reference.constants';
 export { promptReferences } from '@flow/references/helpers/prompt-reference.helpers';
 export type {
+  PromptBindings,
   PromptPin,
   PromptReference,
 } from '@flow/references/typedefs/prompt-reference.typedefs';
@@ -143,6 +144,18 @@ export type {
   VisibleVariable,
 } from '@flow/scope/typedefs/scope.typedefs';
 export { nodeTextFields } from '@flow/templates/helpers/node-text.helpers';
+export {
+  PROMPT_VARIABLE_CLOSE,
+  PROMPT_VARIABLE_OPEN,
+  PROMPT_VARIABLE_PATH_CHARACTERS,
+  PROMPT_VARIABLE_PATH_PATTERN,
+} from '@flow/templates/constants/prompt.constants';
+export {
+  collectPromptVariables,
+  normalizePathVariable,
+  renderPrompt,
+} from '@flow/templates/helpers/prompt.helpers';
+export type { PromptPathVariableNormalizer } from '@flow/templates/helpers/prompt.helpers';
 export { parseVariablePath, resolvePath } from '@flow/templates/helpers/path.helpers';
 export {
   NodeTextKind,

@@ -22,11 +22,17 @@ const LATEST_REF = 'prm_latest';
 
 const library = (promptRef: string, number: number | null = null): PromptSource =>
   number === null
-    ? { kind: PromptSourceKind.Library, promptRef, pin: { kind: PromptVersionKind.Latest } }
+    ? {
+        kind: PromptSourceKind.Library,
+        promptRef,
+        pin: { kind: PromptVersionKind.Latest },
+        bindings: {},
+      }
     : {
         kind: PromptSourceKind.Library,
         promptRef,
         pin: { kind: PromptVersionKind.Pinned, number },
+        bindings: {},
       };
 
 describe('promptReferences', () => {
@@ -57,6 +63,7 @@ describe('promptReferences', () => {
         nodeLabel: PINNED_LABEL,
         promptRef: PINNED_REF,
         pin: { kind: PromptVersionKind.Pinned, number: PINNED_NUMBER },
+        bindings: {},
       },
       {
         nodeId: latest.id,
@@ -64,6 +71,7 @@ describe('promptReferences', () => {
         nodeLabel: latest.label,
         promptRef: LATEST_REF,
         pin: { kind: PromptVersionKind.Latest },
+        bindings: {},
       },
     ]);
   });

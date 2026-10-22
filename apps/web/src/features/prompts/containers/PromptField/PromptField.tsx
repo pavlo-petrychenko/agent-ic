@@ -50,6 +50,7 @@ export function PromptField({ workspaceId, source, error, onChange }: PromptFiel
               kind: PromptSourceKind.Library,
               promptRef: promptId,
               pin: { kind: PromptVersionKind.Latest },
+              bindings: {},
             });
             setPicking(false);
           }}

@@ -230,7 +230,10 @@ const lookUpThenAnswer = (prompts: SamplePromptRefs): FlowExample => ({
       'answer',
       'Answer with both',
       [0, 3],
-      examplePrompt(prompts[SamplePromptKey.LookUpAnswer]),
+      examplePrompt(prompts[SamplePromptKey.LookUpAnswer], {
+        'bookings.body': 'bookings.body',
+        'loyalty.body': 'loyalty.body',
+      }),
     ),
     exampleSendReply('reply', 'Send the answer', [0, 4], 'answer.messages'),
     exampleHandOff('hand_off', 'Hand off to the team', [1, 4], 'The assistant could not answer.'),

@@ -108,7 +108,7 @@ An agent is a **versioned flow graph** built on a canvas. One agent can have sev
 
 ### 5.2 Prompts and models
 - **Prompt library** per workspace, with folders, search and version history.
-- **Variables** in prompts (`{{contact.name}}`, outputs of earlier nodes), with autocomplete.
+- **Variables** in prompts (`{{customer_name}}`, declared in the prompt text), mapped to trigger variables, `today` or outputs of earlier nodes in each Agent or Completion step.
 - **Reuse:** one prompt can back many nodes across agents; a node pins a version or follows the latest.
 - **Models:** every Agent and Completion node picks its own model, so a cheap model can score while a strong one converses.
 - **Providers:** platform-provided models are included in the subscription; bring-your-own API keys per workspace.

@@ -79,6 +79,7 @@ describe('flow builder prompt picker', () => {
         kind: PromptSourceKind.Library,
         promptRef: GIFT_CARD_PROMPT.id,
         pin: { kind: PromptVersionKind.Latest },
+        bindings: {},
       },
     });
   });
@@ -88,6 +89,7 @@ describe('flow builder prompt picker', () => {
       kind: PromptSourceKind.Library,
       promptRef: RECEPTIONIST_PROMPT.id,
       pin: { kind: PromptVersionKind.Latest },
+      bindings: {},
     });
 
     expect(await within(inspector).findByText('Receptionist')).toBeVisible();

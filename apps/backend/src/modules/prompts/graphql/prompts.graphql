@@ -88,6 +88,7 @@ type PromptVersion {
   id: ID!
   number: Int!
   text: String!
+  variables: [String!]!
   note: String
   author: PromptVersionAuthor
   createdAt: String!

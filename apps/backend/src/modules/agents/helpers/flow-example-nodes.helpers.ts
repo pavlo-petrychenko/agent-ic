@@ -62,10 +62,14 @@ const place = (key: string, label: string, [column, row]: GridCell) => ({
   position: { x: column * EXAMPLE_COLUMN_WIDTH, y: row * EXAMPLE_ROW_HEIGHT },
 });
 
-export const examplePrompt = (promptRef: string): PromptSource => ({
+export const examplePrompt = (
+  promptRef: string,
+  bindings: PromptSource['bindings'] = {},
+): PromptSource => ({
   kind: PromptSourceKind.Library,
   promptRef,
   pin: { kind: PromptVersionKind.Latest },
+  bindings,
 });
 
 const quickReplies = (buttons: readonly string[]): SendMessageNode['config']['quickReplies'] =>

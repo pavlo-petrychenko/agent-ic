@@ -42,10 +42,15 @@ const OTHER_STEP_NODE_ID = 'n_other';
 const THIRD_STEP_NODE_ID = 'n_third';
 const UNKNOWN_REF = 'not-a-prompt';
 
-const library = (promptRef: string, pin: PromptPin): PromptSource => ({
+const library = (
+  promptRef: string,
+  pin: PromptPin,
+  bindings: PromptSource['bindings'] = {},
+): PromptSource => ({
   kind: PromptSourceKind.Library,
   promptRef,
   pin,
+  bindings,
 });
 
 const pinned = (number: number): PromptPin => ({ kind: PromptVersionKind.Pinned, number });
@@ -61,14 +66,22 @@ const promptIssue = (
   code: FlowIssueCode,
   nodeId: string,
   params: FlowIssueParams = {},
+  path: readonly string[] = ['prompt'],
 ): FlowIssue => ({
   code,
   severity: FlowIssueSeverity.Error,
   nodeId,
   edgeId: null,
-  path: ['prompt'],
+  path,
   params,
 });
+
+const bindingIssue = (
+  code: FlowIssueCode,
+  nodeId: string,
+  variable: string,
+  params: FlowIssueParams = { variable },
+): FlowIssue => promptIssue(code, nodeId, params, ['prompt', 'bindings', variable]);
 
 describe('PromptFlowReferenceChecker', () => {
   let testingModule: TestingModule;
@@ -130,6 +143,88 @@ describe('PromptFlowReferenceChecker', () => {
     );
 
     expect(issues).toEqual([]);
+  });
+
+  it('reports a declared prompt variable without a binding', async () => {
+    const workspaceId = ids.generate();
+    const promptRef = await seedPromptWithVersions(workspaceId, ['Hi {{customer_name}}.']);
+
+    const issues = await check(
+      workspaceId,
+      flowWith([{ id: STEP_NODE_ID, prompt: library(promptRef, latest) }]),
+    );
+
+    expect(issues).toEqual([
+      bindingIssue(FlowIssueCode.PromptVariableUnmapped, STEP_NODE_ID, 'customer_name'),
+    ]);
+  });
+
+  it('accepts a binding to a visible step variable', async () => {
+    const workspaceId = ids.generate();
+    const promptRef = await seedPromptWithVersions(workspaceId, ['Hi {{customer_name}}.']);
+
+    const issues = await check(
+      workspaceId,
+      flowWith([
+        { id: STEP_NODE_ID, prompt: library(promptRef, latest, { customer_name: 'user.name' }) },
+      ]),
+    );
+
+    expect(issues).toEqual([]);
+  });
+
+  it('checks the pinned version and ignores stale binding keys', async () => {
+    const workspaceId = ids.generate();
+    const promptRef = await seedPromptWithVersions(workspaceId, [
+      'Hi {{customer_name}}.',
+      'Hi {{order_id}}.',
+    ]);
+
+    const issues = await check(
+      workspaceId,
+      flowWith([
+        {
+          id: STEP_NODE_ID,
+          prompt: library(promptRef, pinned(FIRST_PROMPT_VERSION_NUMBER), {
+            customer_name: 'user.name',
+            removed_variable: 'missing.value',
+          }),
+        },
+        {
+          id: OTHER_STEP_NODE_ID,
+          prompt: library(promptRef, latest, {
+            customer_name: 'user.name',
+            removed_variable: 'missing.value',
+          }),
+        },
+      ]),
+    );
+
+    expect(issues).toEqual([
+      bindingIssue(FlowIssueCode.PromptVariableUnmapped, OTHER_STEP_NODE_ID, 'order_id'),
+    ]);
+  });
+
+  it('reports a binding target that the step cannot see', async () => {
+    const workspaceId = ids.generate();
+    const promptRef = await seedPromptWithVersions(workspaceId, ['Hi {{customer_name}}.']);
+
+    const issues = await check(
+      workspaceId,
+      flowWith([
+        {
+          id: STEP_NODE_ID,
+          prompt: library(promptRef, latest, { customer_name: 'missing.value' }),
+        },
+      ]),
+    );
+
+    expect(issues).toEqual([
+      bindingIssue(FlowIssueCode.UnknownVariable, STEP_NODE_ID, 'customer_name', {
+        variable: 'missing.value',
+        promptVariable: 'customer_name',
+      }),
+    ]);
   });
 
   it('reports a missing version for a pinned number that never existed', async () => {
