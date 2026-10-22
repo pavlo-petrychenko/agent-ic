@@ -1,4 +1,4 @@
-export const IDENTITY_TEST_START = new Date('2026-10-04T09:00:00.000Z');
+export const IDENTITY_TEST_START = new Date();
 export const TEST_PASSWORD = 'correct horse battery';
 export const TEST_USER_NAME = 'Olena Test';
 export const TEST_EMAIL_DOMAIN = 'agent-ic.test';
