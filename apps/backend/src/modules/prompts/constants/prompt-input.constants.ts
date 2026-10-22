@@ -15,6 +15,10 @@ export enum PromptField {
   FolderId = 'folderId',
   Text = 'text',
   Note = 'note',
+  VersionNumber = 'versionNumber',
+  Variables = 'variables',
+  CustomerMessage = 'customerMessage',
+  Model = 'model',
 }
 
 export const PROMPT_FIELD_PATH_SEPARATOR = '.';
@@ -26,4 +30,8 @@ export const PROMPT_FIELD_REASON: Readonly<Record<string, ErrorReason>> = {
   [PromptField.FolderId]: ErrorReason.InvalidId,
   [PromptField.Text]: ErrorReason.InvalidRequest,
   [PromptField.Note]: ErrorReason.InvalidRequest,
+  [PromptField.VersionNumber]: ErrorReason.InvalidRequest,
+  [PromptField.Variables]: ErrorReason.InvalidRequest,
+  [PromptField.CustomerMessage]: ErrorReason.InvalidRequest,
+  [PromptField.Model]: ErrorReason.InvalidRequest,
 };

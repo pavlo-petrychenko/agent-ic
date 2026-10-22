@@ -17,6 +17,33 @@ extend type Mutation {
   duplicatePrompt(input: DuplicatePromptInput!): Prompt!
   deletePrompt(input: DeletePromptInput!): DeletePromptPayload!
   savePromptVersion(input: SavePromptVersionInput!): PromptDetail!
+  testPrompt(input: TestPromptInput!): PromptTestResult!
+}
+
+input TestPromptVariableInput {
+  name: String!
+  value: String!
+}
+
+input TestPromptInput {
+  promptId: ID!
+  text: String!
+  versionNumber: Int
+  variables: [TestPromptVariableInput!]!
+  customerMessage: String!
+  model: String!
+}
+
+type PromptTestUsage {
+  inputTokens: Int!
+  outputTokens: Int!
+}
+
+type PromptTestResult {
+  output: JSON!
+  model: String!
+  usage: PromptTestUsage!
+  durationMs: Int!
 }
 
 input CreatePromptFolderInput {
