@@ -1,4 +1,5 @@
 import type { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
+import type { FakeTelegramGateway } from '@/modules/channels/gateways/telegram.fake';
 import type { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import type { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import type { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
@@ -8,6 +9,7 @@ import type { ConversationsTestbed } from '@test/support/typedefs/conversations-
 export interface ChannelsTestbed extends ConversationsTestbed {
   readonly deliver: DeliverOutboundMessageUseCase;
   readonly simulated: SimulatedChannelAdapter;
+  readonly telegram: FakeTelegramGateway;
   readonly channels: ChannelsRepository;
   readonly channelEvents: ChannelEventsRepository;
   readonly channelTokens: ChannelTokenService;

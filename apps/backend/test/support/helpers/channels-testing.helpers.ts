@@ -1,5 +1,7 @@
 import { ChannelsModule } from '@/modules/channels/channels.module';
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
+import { FakeTelegramGateway } from '@/modules/channels/gateways/telegram.fake';
+import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
@@ -21,14 +23,18 @@ import { createConversationsTestbed } from '@test/support/helpers/conversations-
 import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.typedefs';
 
 export const createChannelsTestbed = async (): Promise<ChannelsTestbed> => {
+  const telegram = new FakeTelegramGateway();
   const testbed = await createConversationsTestbed(
     ChannelsModule.forRole(CONVERSATIONS_TESTBED_ROLE),
     TestRedisPrefix.Channels,
+    { role: CONVERSATIONS_TESTBED_ROLE, queues: [] },
+    [{ token: TelegramGateway, value: telegram }],
   );
   return {
     ...testbed,
     deliver: testbed.module.get(DeliverOutboundMessageUseCase),
     simulated: testbed.module.get(SimulatedChannelAdapter),
+    telegram,
     channels: testbed.module.get(ChannelsRepository),
     channelEvents: testbed.module.get(ChannelEventsRepository),
     channelTokens: testbed.module.get(ChannelTokenService),
@@ -36,15 +42,18 @@ export const createChannelsTestbed = async (): Promise<ChannelsTestbed> => {
 };
 
 export const createChannelsWorkerTestbed = async (): Promise<ChannelsTestbed> => {
+  const telegram = new FakeTelegramGateway();
   const testbed = await createConversationsTestbed(
     ChannelsModule.forRole(Role.Worker),
     TestRedisPrefix.ChannelsWorker,
     { role: Role.Worker, queues: [QueueName.Outbound] },
+    [{ token: TelegramGateway, value: telegram }],
   );
   return {
     ...testbed,
     deliver: testbed.module.get(DeliverOutboundMessageUseCase),
     simulated: testbed.module.get(SimulatedChannelAdapter),
+    telegram,
     channels: testbed.module.get(ChannelsRepository),
     channelEvents: testbed.module.get(ChannelEventsRepository),
     channelTokens: testbed.module.get(ChannelTokenService),
