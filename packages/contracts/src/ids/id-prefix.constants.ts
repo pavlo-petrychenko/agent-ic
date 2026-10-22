@@ -7,6 +7,7 @@ export enum IdPrefix {
   InviteLink = 'inv',
   Agent = 'agt',
   AgentVersion = 'agv',
+  Channel = 'chn',
   Conversation = 'cnv',
   Message = 'msg',
   Run = 'run',

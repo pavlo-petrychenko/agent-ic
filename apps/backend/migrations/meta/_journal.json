@@ -148,6 +148,13 @@
       "when": 1792320503542,
       "tag": "0020_roles_description",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792620982180,
+      "tag": "0021_channels-tables",
+      "breakpoints": true
     }
   ]
 }
