@@ -14,6 +14,7 @@ import { PromptPageHeader } from '@/features/prompts/containers/PromptPage/Promp
 import { usePromptCompare } from '@/features/prompts/containers/PromptPage/usePromptCompare';
 import { usePromptDraftSession } from '@/features/prompts/containers/PromptPage/usePromptDraftSession';
 import { usePromptOptions } from '@/features/prompts/containers/PromptPage/usePromptOptions';
+import { usePromptTest } from '@/features/prompts/containers/PromptPage/usePromptTest';
 import { usePromptVersionView } from '@/features/prompts/containers/PromptPage/usePromptVersionView';
 import { RenamePromptDialog } from '@/features/prompts/containers/RenamePromptDialog';
 import {
@@ -33,6 +34,7 @@ import type { PromptVersion } from '@/features/prompts/typedefs/prompt.typedefs'
 import { PromptCompare } from '@/features/prompts/view/PromptCompare';
 import type { PromptCompareVersion } from '@/features/prompts/view/PromptCompare';
 import { PromptDraftEditor } from '@/features/prompts/view/PromptDraftEditor';
+import { PromptTestPanel } from '@/features/prompts/view/PromptTestPanel';
 import { PromptView } from '@/features/prompts/view/PromptView';
 import { useActiveWorkspace } from '@/features/workspace';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
@@ -68,6 +70,12 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
     versionView.olderVersionId === null ? latestVersion : versionView.olderVersion;
   const editorText = session.draft === null ? (shownVersion?.text ?? '') : session.draft.text;
   const variables = usePromptVariables(editorText);
+  const test = usePromptTest({
+    promptId,
+    text: editorText,
+    versionNumber: session.editing ? null : (shownVersion?.number ?? null),
+    variablePaths: variables.paths,
+  });
 
   useEffect(() => {
     storeLastOpenedPromptId(workspaceId, promptId);
@@ -98,6 +106,11 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
 
   const { prompt } = detail;
   const role = active?.role ?? null;
+  const canTest = canEditPrompt(role) && (session.editing || shownVersion !== null);
+  const testVersionLabel =
+    session.editing || shownVersion === null
+      ? t('test.versionDraft', { number: session.draftNumber })
+      : t('test.versionSaved', { number: shownVersion.number });
   const folderName = findFolderName(folders, prompt.folderId);
   const counts = usages === null ? null : usageCounts(usages);
   const usageSummary =
@@ -243,25 +256,47 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
           onSave={session.openSaveDialog}
           compare={headerCompare}
           older={headerOlder}
+          onTest={canTest ? test.toggleTesting : null}
         />
         <div className="flex min-h-0 flex-1 flex-col px-7">{body()}</div>
       </div>
-      <PromptDetailsPanel
-        promptId={promptId}
-        activeVersionId={
-          session.editing || comparePair !== null
-            ? null
-            : (versionView.olderVersionId ?? latestVersion?.id ?? null)
-        }
-        onSelect={session.editing || comparePair !== null ? null : versionView.select}
-        onCompare={session.editing || comparePair !== null ? null : compare.begin}
-        usages={usages}
-        usagesFailed={usagesFailed}
-        onRetryUsages={() => {
-          void retryUsages();
-        }}
-        variablePaths={variables.paths}
-      />
+      {test.testing ? (
+        <PromptTestPanel
+          versionLabel={testVersionLabel}
+          variables={test.variables}
+          onVariableChange={test.changeVariable}
+          customerMessage={test.customerMessage}
+          onCustomerMessageChange={test.changeCustomerMessage}
+          models={test.models}
+          modelsLoading={test.modelsLoading}
+          model={test.model}
+          onModelChange={test.changeModel}
+          running={test.running}
+          result={test.result}
+          failed={test.failed}
+          canRun={test.canRun}
+          workspaceId={workspaceId}
+          onClose={test.closeTesting}
+          onRun={test.run}
+        />
+      ) : (
+        <PromptDetailsPanel
+          promptId={promptId}
+          activeVersionId={
+            session.editing || comparePair !== null
+              ? null
+              : (versionView.olderVersionId ?? latestVersion?.id ?? null)
+          }
+          onSelect={session.editing || comparePair !== null ? null : versionView.select}
+          onCompare={session.editing || comparePair !== null ? null : compare.begin}
+          usages={usages}
+          usagesFailed={usagesFailed}
+          onRetryUsages={() => {
+            void retryUsages();
+          }}
+          variablePaths={variables.paths}
+        />
+      )}
       <PromptDraftDialogs
         promptId={promptId}
         promptName={prompt.name}

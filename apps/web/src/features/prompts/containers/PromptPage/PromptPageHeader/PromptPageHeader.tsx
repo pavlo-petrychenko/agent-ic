@@ -3,6 +3,7 @@ import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.cons
 import type { PromptPageHeaderProps } from '@/features/prompts/containers/PromptPage/PromptPageHeader/PromptPageHeader.typedefs';
 import { PromptOptionsMenu } from '@/features/prompts/view/PromptOptionsMenu';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { IconName } from '@/shared/ui/foundations/Icon';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
 
 export function PromptPageHeader({
@@ -19,8 +20,16 @@ export function PromptPageHeader({
   onSave,
   compare,
   older,
+  onTest,
 }: PromptPageHeaderProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
+
+  const testAction =
+    onTest === null ? null : (
+      <Button variant={ButtonVariant.Secondary} icon={IconName.Play} onClick={onTest}>
+        {t('test.open')}
+      </Button>
+    );
 
   const actions =
     compare !== null ? (
@@ -37,6 +46,7 @@ export function PromptPageHeader({
         <Button variant={ButtonVariant.Secondary} onClick={onDiscard}>
           {t('draft.discard')}
         </Button>
+        {testAction}
         <Button onClick={onSave}>{t('draft.saveAs', { number: draftNumber })}</Button>
       </>
     ) : older !== null ? (
@@ -44,6 +54,7 @@ export function PromptPageHeader({
         <Button variant={ButtonVariant.Secondary} onClick={older.onCompare}>
           {older.compareLabel}
         </Button>
+        {testAction}
         {canEdit && <Button onClick={older.onRestore}>{t('view.restoreAsDraft')}</Button>}
       </>
     ) : menuActions.length > 0 ? (
@@ -53,6 +64,7 @@ export function PromptPageHeader({
           currentFolderName={currentFolderName}
           onSelect={onSelect}
         />
+        {testAction}
         {canEdit && <Button onClick={onEdit}>{t('view.edit')}</Button>}
       </>
     ) : null;

@@ -180,6 +180,28 @@
     "submit": "Save v{{number}}",
     "failed": "The version could not be saved."
   },
+  "test": {
+    "title": "Test the prompt",
+    "open": "Test",
+    "close": "Close test",
+    "versionDraft": "v{{number}} draft · sample values",
+    "versionSaved": "v{{number}} · sample values",
+    "message": "Customer message",
+    "model": "Model",
+    "models": {
+      "loading": "Loading the models",
+      "empty": "The models could not be loaded."
+    },
+    "run": "Run",
+    "failed": "The test failed. Try again.",
+    "output": {
+      "title": "Output · {{duration}} · {{tokens}}",
+      "tokens_one": "{{count}} token",
+      "tokens_other": "{{count}} tokens",
+      "copy": "Copy output"
+    },
+    "footnote": "Knowledge isn’t searched here. To test with knowledge and the whole flow, <simulator>use the simulator</simulator>."
+  },
   "versions": {
     "title": "Versions",
     "pinned": "pinned",
