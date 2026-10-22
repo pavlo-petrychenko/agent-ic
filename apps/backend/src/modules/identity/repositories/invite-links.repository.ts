@@ -55,4 +55,11 @@ export class InviteLinksRepository {
       .set({ roleId })
       .where(and(eq(inviteLinks.workspaceId, workspaceId), eq(inviteLinks.id, id)));
   }
+
+  async reassignRole(workspaceId: string, fromRoleId: string, toRoleId: string): Promise<void> {
+    await this.txHost.tx
+      .update(inviteLinks)
+      .set({ roleId: toRoleId })
+      .where(and(eq(inviteLinks.workspaceId, workspaceId), eq(inviteLinks.roleId, fromRoleId)));
+  }
 }
