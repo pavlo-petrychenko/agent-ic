@@ -4,6 +4,7 @@ import { RoleNotEditableError } from '@/modules/identity/errors/role-not-editabl
 import { RoleNotFoundError } from '@/modules/identity/errors/role-not-found.error';
 import { RoleReplacementInvalidError } from '@/modules/identity/errors/role-replacement-invalid.error';
 import { parseRoleInput } from '@/modules/identity/helpers/role-input.helpers';
+import { InviteLinksRepository } from '@/modules/identity/repositories/invite-links.repository';
 import { RolesRepository } from '@/modules/identity/repositories/roles.repository';
 import { deleteRoleInputSchema } from '@/modules/identity/schemas/role-input.schema';
 import type { DeleteRoleInput } from '@/modules/identity/typedefs/role.typedefs';
@@ -17,6 +18,7 @@ export class DeleteRoleUseCase {
   constructor(
     private readonly tenantTransactions: TenantTransactionService,
     private readonly roleRepository: RolesRepository,
+    private readonly inviteLinks: InviteLinksRepository,
     private readonly ids: IdService,
   ) {}
 
@@ -44,6 +46,7 @@ export class DeleteRoleUseCase {
         throw new RoleReplacementInvalidError(data.replacementRoleId);
       }
       await this.roleRepository.reassignMembers(access.workspaceId, roleId, replacementRoleId);
+      await this.inviteLinks.reassignRole(access.workspaceId, roleId, replacementRoleId);
       await this.roleRepository.deleteById(access.workspaceId, roleId);
       return true;
     });
