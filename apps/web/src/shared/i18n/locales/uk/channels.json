@@ -6,6 +6,8 @@
       "telegram": "Telegram-боти",
       "api": "API"
     },
+    "tokenRevoked": "токен відкликано",
+    "messagesAndEvents": "повідомлення та події",
     "empty": "Каналів ще немає"
   },
   "page": {
@@ -53,6 +55,46 @@
       "chats": "Чати",
       "messages": "Повідомлення",
       "errors": "Помилки"
+    },
+    "bot": {
+      "subtitle": "Telegram-бот · відповідає {{agent}}",
+      "actions": {
+        "disconnect": "Відключити",
+        "save": "Зберегти"
+      },
+      "connection": {
+        "title": "З’єднання",
+        "connected": "Підключено",
+        "revoked": "Токен відкликано",
+        "tokenLabel": "Токен бота",
+        "tokenHint": "Від @BotFather. Ми реєструємо вебхук і отримуємо повідомлення цього бота за вас.",
+        "replaceToken": "Замінити токен",
+        "webhook": "Вебхук",
+        "receiving": "Отримує",
+        "notReceiving": "Не отримує",
+        "lastUpdate": "Останнє оновлення",
+        "lastUpdateToday": "Сьогодні {{time}} · від {{author}}",
+        "lastUpdateDate": "{{date}} {{time}} · від {{author}}",
+        "botName": "Назва бота",
+        "botNameValue": "{{name}} · змініть у @BotFather",
+        "alerted": "Сповіщено",
+        "alertedValue": "Власники та адміністратори · email",
+        "revokedNote": "Telegram відхилив цей токен {{date}} о {{time}} — його відкликали або перегенерували в @BotFather."
+      },
+      "whoAnswers": {
+        "title": "Хто відповідає",
+        "agent": "Агент",
+        "publishedHint": "Завжди працює опублікована версія (зараз v{{version}}).",
+        "draftHint": "Чернетка — опублікуйте, щоб почати відповідати.",
+        "typing": "Показувати «друкує…», поки агент працює"
+      },
+      "fix": {
+        "title": "Як це виправити",
+        "stepOpen": "Відкрийте @BotFather і надішліть /token",
+        "stepPick": "Виберіть {{username}} і скопіюйте новий токен",
+        "stepPaste": "Вставте його сюди та натисніть «Замінити токен»"
+      },
+      "warning": "Повідомлення, надіслані боту, поки токен був відкликаний, відновити неможливо — Telegram не доставив їх нам."
     }
   }
 }
