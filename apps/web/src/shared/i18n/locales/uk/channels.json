@@ -23,5 +23,36 @@
       "description": "Надсилайте повідомлення та події зі свого сайту, застосунку чи CRM за допомогою секретного ключа.",
       "action": "Створити API-канал"
     }
+  },
+  "telegram": {
+    "title": "Підключити Telegram-бота",
+    "subtitle": "Ми налаштовуємо вебхук і отримуємо повідомлення за вас",
+    "breadcrumb": "Навігаційний ланцюжок",
+    "breadcrumbMore": "Ще",
+    "breadcrumbChannels": "Канали",
+    "breadcrumbTelegram": "Telegram-боти",
+    "form": {
+      "cardTitle": "Токен бота",
+      "tokenLabel": "Вставте токен від @BotFather",
+      "tokenRequired": "Вставте токен від @BotFather.",
+      "tokenError": "Telegram не прийняв цей токен. Він має вигляд 123456789:AA… — скопіюйте його ще раз.",
+      "agentLabel": "Хто відповідає",
+      "agentPlaceholder": "Виберіть агента",
+      "agentHint": "Агента можна змінити пізніше.",
+      "connect": "Підключити бота",
+      "cancel": "Скасувати"
+    },
+    "howTo": {
+      "title": "Як підключити бота",
+      "stepOpen": "Відкрийте @BotFather у Telegram і надішліть /newbot",
+      "stepName": "Виберіть назву та ім’я користувача, що закінчується на “bot”",
+      "stepCopy": "Скопіюйте токен і вставте його сюди"
+    },
+    "stats": {
+      "title": "Останні 7 днів",
+      "chats": "Чати",
+      "messages": "Повідомлення",
+      "errors": "Помилки"
+    }
   }
 }
