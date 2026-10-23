@@ -36,6 +36,7 @@ const roleNode = (id: string, key: WorkspaceRole, name: string | null, isSystem:
   id,
   key,
   name,
+  description: null,
   isSystem,
   memberCount: 0,
   permissions: rolePermissions(key),
@@ -98,6 +99,7 @@ interface MemberFixture {
   readonly name: string;
   readonly email: string;
   readonly role: string;
+  readonly roleId: string;
   readonly lastActiveAt: string | null;
 }
 
@@ -126,6 +128,7 @@ export const buildTeamMembersMock = (): MockLink.MockedResponse =>
       name: 'Pavlo',
       email: 'owner@demo-salon.example',
       role: 'owner',
+      roleId: 'rol_owner',
       lastActiveAt: '2026-10-04T09:40:00.000Z',
     },
     {
@@ -134,6 +137,7 @@ export const buildTeamMembersMock = (): MockLink.MockedResponse =>
       name: 'Yulia',
       email: 'yulia@demo-salon.example',
       role: 'operator',
+      roleId: 'rol_operator',
       lastActiveAt: null,
     },
   ]);
@@ -146,6 +150,7 @@ export const buildAdminTeamMembersMock = (): MockLink.MockedResponse =>
       name: 'Pavlo',
       email: 'owner@demo-salon.example',
       role: 'owner',
+      roleId: 'rol_owner',
       lastActiveAt: '2026-10-04T09:40:00.000Z',
     },
     {
@@ -154,6 +159,7 @@ export const buildAdminTeamMembersMock = (): MockLink.MockedResponse =>
       name: 'Yulia',
       email: 'yulia@demo-salon.example',
       role: 'admin',
+      roleId: 'rol_admin',
       lastActiveAt: '2026-10-04T09:41:00.000Z',
     },
     {
@@ -162,6 +168,7 @@ export const buildAdminTeamMembersMock = (): MockLink.MockedResponse =>
       name: 'Taras',
       email: 'taras@demo-salon.example',
       role: 'builder',
+      roleId: 'rol_builder',
       lastActiveAt: null,
     },
   ]);

@@ -12,6 +12,7 @@ import type {
 import { AcceptInviteUseCase } from '@/modules/identity/use-cases/accept-invite.use-case';
 import { CreateWorkspaceUseCase } from '@/modules/identity/use-cases/create-workspace.use-case';
 import { GetInviteLinkUseCase } from '@/modules/identity/use-cases/get-invite-link.use-case';
+import { ListRolesUseCase } from '@/modules/identity/use-cases/list-roles.use-case';
 import { UpdateInviteLinkRoleUseCase } from '@/modules/identity/use-cases/update-invite-link-role.use-case';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
@@ -90,6 +91,41 @@ export const addMemberWithRole = async (
 ): Promise<string> => {
   await testbed.module.get(UpdateInviteLinkRoleUseCase).execute(ownerCtx(workspace), { role });
   return addMember(testbed, workspace);
+};
+
+export const addMemberWithRoleId = async (
+  testbed: IdentityTestbed,
+  workspace: TestWorkspace,
+  roleId: string,
+): Promise<string> => {
+  await testbed.module.get(UpdateInviteLinkRoleUseCase).execute(ownerCtx(workspace), { roleId });
+  return addMember(testbed, workspace);
+};
+
+export const systemRoleIdOf = async (
+  testbed: IdentityTestbed,
+  workspace: TestWorkspace,
+  role: WorkspaceRole,
+): Promise<string> => {
+  const roles = await testbed.module.get(ListRolesUseCase).execute(ownerCtx(workspace));
+  const systemRole = roles.find((entry) => entry.isSystem && entry.key === role);
+  if (systemRole === undefined) {
+    throw new MissingTestDataError(role);
+  }
+  return systemRole.id;
+};
+
+export const membershipIdOf = async (
+  testbed: IdentityTestbed,
+  workspace: TestWorkspace,
+  userId: string,
+): Promise<string> => {
+  const memberships = await readMemberships(testbed, workspace.workspaceId);
+  const membership = memberships.find((entry) => entry.userId === userId);
+  if (membership === undefined) {
+    throw new MissingTestDataError(userId);
+  }
+  return testbed.module.get(IdService).toPublic(IdPrefix.Membership, membership.id);
 };
 
 export interface MembershipWithRoleKey extends MembershipRecord {
