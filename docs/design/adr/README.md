@@ -2,7 +2,7 @@
 
 One file per decision. ADRs are never edited after they are accepted, except for their status. A changed decision gets a new ADR that supersedes the old one.
 
-Smaller decisions, and amendments to these ADRs, are rows D1 to D190 in section 1 of [architecture.md](../architecture.md). The Status column below summarises the status line of each file.
+Smaller decisions, and amendments to these ADRs, are rows D1 to D278 in section 1 of [architecture.md](../architecture.md). The Status column below summarises the status line of each file.
 
 | # | Decision | Status |
 |---|---|---|
@@ -16,7 +16,7 @@ Smaller decisions, and amendments to these ADRs, are rows D1 to D190 in section 
 | [0008](0008-telegram-webhooks-polling-for-dev.md) | Telegram: webhooks in production, long polling only for local dev | Accepted |
 | [0009](0009-transport-agnostic-use-cases.md) | Transport-agnostic use cases, permissions in the use case, service-locator context | Accepted; point 3 superseded by 0010, cross-module rule by 0012 |
 | [0010](0010-nestjs-native-di.md) | NestJS with native DI; classes everywhere | Accepted; point 4 superseded by 0012 |
-| [0011](0011-knowledge-base-and-retrieval.md) | Knowledge base ingestion and retrieval | Accepted |
+| [0011](0011-knowledge-base-and-retrieval.md) | Knowledge base ingestion and retrieval | Accepted; refined by 0022: sources, storage, sync, per-document generations, agent tools and the BM25 term index |
 | [0012](0012-layering-transport-use-case-service-repository.md) | Layering: transport → use case → service → repository | Accepted |
 | [0013](0013-transactions-cls-and-postgres-rls.md) | Transactions through CLS; tenant isolation with repositories + Postgres RLS | Accepted |
 | [0014](0014-domain-errors-and-transport-mapping.md) | Domain errors and their mapping per transport | Accepted |
@@ -27,6 +27,7 @@ Smaller decisions, and amendments to these ADRs, are rows D1 to D190 in section 
 | [0019](0019-charts-recharts.md) | Recharts for the chart components | Accepted |
 | [0020](0020-flow-canvas-react-flow.md) | React Flow for the flow canvas | Accepted |
 | [0021](0021-prompt-drafts-in-the-browser.md) | Prompt drafts live in the browser | Accepted |
+| [0022](0022-knowledge-sources-storage-and-sync.md) | Knowledge sources, storage and sync | Accepted; refines 0011 |
 
 ## Template
 
