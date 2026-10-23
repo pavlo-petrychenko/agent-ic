@@ -18,8 +18,8 @@
    - "Someone must do X, retry until done" → a **BullMQ job**.
    - "Something changed, whoever cares can react" → a **Redis pub/sub event**. These are fire-and-forget, and consumers refetch from Postgres if they miss one.
 4. **Who accepts what from outside:**
-   - `gateway` accepts **machines**: Telegram, businesses' systems, Google / ClickUp change notifications.
-   - `api` accepts **humans through the web app**: GraphQL, WebSocket, OAuth callbacks.
+   - `gateway` accepts **machines**: Telegram and businesses' systems.
+   - `api` accepts **humans through the web app**: GraphQL, WebSocket, OAuth token exchange.
    - Workers accept **nothing** from outside; they expose only `/metrics` and `/health`.
 5. **Sync calls to the outside happen only where someone is waiting:**
    - `api` calls out while a user waits, e.g. validating a bot token;
@@ -39,10 +39,9 @@
 | Browser | S3 / Silo | S | Upload KB files directly with a presigned URL (up to 20 MB, never streamed through `api`) |
 | Browser | Langfuse UI | S | "Open in Langfuse" links for platform admins only, when Langfuse is on (D47) |
 | Telegram | `gateway` | S | Bot webhooks (customer messages) |
-| Business systems | `gateway` | S | `POST /v1/channels/{id}/messages`, `/events`, KB refresh endpoint |
-| Google / ClickUp | `gateway` | S | Change notifications for real-time KB sync |
+| Business systems | `gateway` | S | `POST /v1/channels/{id}/messages`, `/events` |
 | `gateway` | Postgres | S | Save message + conversation + run in one transaction; de-duplicate; check channel key hash |
-| `gateway` | Redis queue | A | Enqueue `runs-reactive`, `ingest` (KB webhooks / refresh) |
+| `gateway` | Redis queue | A | Enqueue `runs-reactive` |
 | `gateway` | Redis pub/sub | A | Publish "new customer message"; subscribe to `run:{id}:done` for "wait for result" |
 | `gateway` | Redis cache | S | Channel config lookup, per-channel rate limits |
 | `api` | Postgres | S | Everything the dashboard reads and writes |
@@ -51,7 +50,7 @@
 | `api` | Redis cache | S | Sessions, permission cache, rate limits on auth |
 | `api` | Telegram Bot API | S | `getMe` + `setWebhook` / `deleteWebhook` when connecting or disconnecting a bot |
 | `api` | LLM / embedding providers | S | BYOK key check on save; embedding the query in the retrieval playground |
-| `api` | Google / ClickUp OAuth | S | Exchange the OAuth code on callback |
+| `api` | Google OAuth | S | Exchange the OAuth code on the connection callback |
 | Redis queue | `worker-runs` | A | `runs-reactive`, `runs-proactive`, `outbound`, `notify`, `timers` |
 | Redis queue | `worker-ingest` | A | `ingest` |
 | `worker-runs` | Postgres | S | Load the flow version, prompts and history; save run steps, messages, escalations; vector search |
@@ -63,9 +62,9 @@
 | `worker-runs` | Email provider, alerts bot | S | Operator alerts, system emails |
 | `worker-runs` | Langfuse | A | Traces via the OTel Collector, only when Langfuse is on (D47) |
 | `worker-ingest` | S3 / Silo | S | Read uploaded files |
-| `worker-ingest` | Google / ClickUp APIs | S | Fetch documents |
+| `worker-ingest` | Google Drive API | S | Fetch picked documents |
 | `worker-ingest` | Embedding provider | S | Embed chunks |
-| `worker-ingest` | Postgres | S | Write chunks and swap them in one transaction; source status |
+| `worker-ingest` | Postgres | S | Write sections, chunks, terms and vectors under a new generation; flip the document; source status |
 | `worker-ingest` | Redis pub/sub | A | Indexing progress events |
 | Prometheus | every process | S | Scrape `/metrics` (pull) |
 
@@ -158,24 +157,24 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 5. "Reply as operator" and "fire event / schedule now" are `api` mutations that enqueue the same jobs with the simulated adapter.
 
 ### H. Knowledge base: file upload
-1. Browser → `api` mutation `createUpload(kbId, filename, size)` → `api` checks permissions and limits → returns a **presigned PUT URL** (signed locally; no call to S3).
+1. Browser → `api` mutation `createUpload(kbId, filename, size)` → `api` checks permissions and limits → creates an upload ticket → returns a **presigned PUT URL** and the document id (signed locally; no call to S3).
 2. Browser → S3 / Silo: PUT the file directly.
-3. Browser → `api` mutation `confirmUpload` → Postgres: source row `pending` ⇢ queue `ingest`.
+3. Browser → `api` mutation `confirmUpload` → `api` HEADs the object, copies it server-side to its permanent key, creates source and document rows as `pending` ⇢ queue `ingest` (durable).
 4. `worker-ingest`:
-   - → S3 read → parse → chunk;
-   - → embedding provider;
-   - → Postgres: new chunks, then **swap them in one transaction**;
-   - progress ⇢ pub/sub `ws:{id}:knowledge` → browser.
-5. A parse error → source status `error` + reason ⇢ pub/sub.
+   - → S3 read → parse → canonical Markdown → sections → chunks;
+   - → document summary and embedding provider; BM25 terms in the same transaction;
+   - → Postgres: new sections, chunks, terms and vectors under generation N+1, then **flip `documents.active_generation` in one transaction**;
+   - progress ⇢ pub/sub `knowledge-source-status` → browser.
+5. A parse error → document status `error` with a reason; other documents continue ⇢ pub/sub.
 
-### I. Knowledge base: Google Docs / ClickUp
-1. **Connect:** browser → `api` starts OAuth → redirect to Google → Google redirects the browser to the **`api` callback** → `api` → Google token endpoint (exchange the code) → Postgres (encrypted tokens).
-2. **Sync triggers**, all of which end in ⇢ queue `ingest`:
-   - one-time: right after connecting;
-   - scheduled: a BullMQ job scheduler;
-   - manual: browser → `api` mutation, or business system → `gateway` refresh endpoint;
-   - real-time: Google / ClickUp → `gateway` change notification.
-3. `worker-ingest` → Google / ClickUp APIs (fetch), then like H.4. "Access revoked" → status `error` ⇢ pub/sub, plus ⇢ `notify` (email to owners).
+### I. Knowledge base: Google Docs
+1. **Connect:** browser → `api` mutation starts OAuth → redirect to Google → Google redirects the browser to the **web callback route** → browser → `api` mutation exchanges the code with Google → Postgres (sealed refresh token).
+2. **Pick documents:** browser asks `api` for a short-lived Picker token → Google Picker → selected document ids → `api` mutation creates one source and one document per picked Google Doc.
+3. **Sync triggers**, all of which end in ⇢ queue `ingest`:
+   - one-time: right after the source is created;
+   - scheduled: a per-source BullMQ job scheduler;
+   - manual: browser → `api` mutation.
+4. `worker-ingest` → Google Drive API (metadata, then Markdown export for changed documents), then like H.4. A revoked token → connection `revoked`, source `error` ⇢ pub/sub, plus ⇢ `notify` (email to owners).
 
 ### J. Publish a version
 1. Browser → `api` mutation `publish(agentId, note)` → validation with `@agent-ic/flow` → Postgres, in one transaction:

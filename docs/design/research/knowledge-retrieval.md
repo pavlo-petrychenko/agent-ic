@@ -1,6 +1,6 @@
 # Research: knowledge base ingestion and retrieval
 
-**Status:** research summary, 2026-10-02. Feeds the KB/search design decisions in [architecture.md](../architecture.md).
+**Status:** research summary, 2026-10-02; updated 2026-10-23 with the Google Drive access constraints and the BM25 term-frequency implementation. Feeds the KB/search design decisions in [architecture.md](../architecture.md); [ADR 0022](../adr/0022-knowledge-sources-storage-and-sync.md) narrows the MVP.
 **Inputs:** four research tracks:
 - PageIndex and tree-based retrieval;
 - hybrid search in Postgres;
@@ -58,14 +58,14 @@ Vendor claims are marked as such. Numbers without a source are estimates.
   - zerank-2: $0.025 per 1M tokens (vendor numbers);
   - self-hosted models (Qwen3 / bge reranker) need a GPU;
   - adds ~100–400 ms (estimate). Intercom Fin runs its own reranker at p50 ≈ 150 ms.
-- **Atomic re-sync:** write the new chunks under generation N+1, then flip `sources.active_generation` in one short transaction. Reads filter on the active generation. Delete with `ON DELETE CASCADE`.
+- **Atomic re-sync:** write the new chunks under generation N+1, then flip `documents.active_generation` in one short transaction (per document in ADR 0022; the original research assumed the source). Reads filter on the active generation. Delete with `ON DELETE CASCADE`.
 - **Outside Postgres** (Qdrant 1.19 with per-tenant IDF, OpenSearch with Lucene morphology) would only be justified at very large single-tenant scale. They break the single-transaction re-sync.
 
 ## 3. Ingestion: parsing, chunking, embeddings
 
 **Parsing by source:**
 - **Google Docs:** Drive export as `text/markdown`.
-- **ClickUp:** v3 pages API with `content_format=text/md`, and `max_page_depth=-1` gives the page tree. Watch for the empty-table-cell bug.
+- **ClickUp:** v3 pages API with `content_format=text/md`, and `max_page_depth=-1` gives the page tree. Watch for the empty-table-cell bug. Not in the MVP (ADR 0022).
 - **MD / TXT:** native.
 - **DOCX:** mammoth → HTML → Markdown, mapping heading styles, plus a heuristic for "bold used as heading".
 - **PDF** (the hard part):
@@ -111,6 +111,8 @@ Vendor claims are marked as such. Numbers without a source are estimates.
 
 ## 4. Agent access: tools and orchestration
 
+The MVP ships tool-only search: the agent calls one `search_knowledge` per attached KB with a natural-language question, and there is no browse/read tool and no automatic retrieval (ADR 0022). The rest of this section is the research behind that choice and the later options.
+
 **Reference:** Dust's production filesystem tools are `semantic_search`, `list`, `find`, `cat(nodeId, offset, limit, grep)` and `locate_in_tree`.
 
 **Recommended shape:**
@@ -124,6 +126,8 @@ Vendor claims are marked as such. Numbers without a source are estimates.
    - `search_knowledge(query, path?/doc_ids?, top_k)`: hybrid search, **returns whole small sections or documents** (small-to-big), each with `doc_id`, path and score;
    - `browse_documents(path, depth, title_query?, cursor?)`: a paginated tree, replacing a fixed path enum;
    - `read_document(doc_id, section?, offset, max_tokens, grep?)`: for **large** documents only.
+
+   The MVP ships only the search tool with a natural-language query; browse and read are later (ADR 0022).
 3. **Guard rails:**
    - de-duplicate results already in the conversation;
    - a token budget per tool result;
@@ -167,7 +171,26 @@ Vendor claims are marked as such. Numbers without a source are estimates.
 
 That gives a p95 under ~5 s with at most 2 tool rounds. Telegram shows "typing…" in the meantime.
 
-## 7. Main sources
+## 7. Google Drive access, checked 2026-10-23
+
+- **`drive.file` is non-sensitive** and is the scope Google recommends with Google Picker. The app can read only files the user picked or files the app created. A picked folder grants access to the folder itself, **not to its children**, so folder-wide import cannot be built on `drive.file`.
+- **`drive.readonly` is restricted.** It needs restricted-scope verification, a third-party security assessment (CASA Tier 2) and an annual reassessment. Google's FAQ puts restricted verification at roughly six weeks. Apps that store restricted data on a server must pass the assessment.
+- **Google Docs export as Markdown** is supported by `files.export` with `text/markdown`; an export is capped at 10 MB.
+- **Options:**
+  - Picker + `drive.file`, individual documents: no verification, no folder sync. This is the MVP choice (ADR 0022).
+  - `drive.readonly`: folders and whole-Drive scans, but verification and CASA.
+  - Google Workspace domain-wide delegation: folders for Workspace domains, not consumer Gmail.
+  - A service account with a folder shared to it: no restricted scope, but a robot-address sharing UX and cross-tenant discovery risk.
+
+## 8. BM25 without an extension
+
+- Postgres `ts_rank` and `ts_rank_cd` have no IDF and no BM25 term saturation.
+- Extracting true term frequencies from `tsvector` is convoluted and slow; ParadeDB's own write-up recommends auxiliary tables for a manual BM25 implementation.
+- The chosen recipe is a `chunk_terms` table: one row per `(chunk, term)` with `frequency`, written at ingestion. A single SQL query computes per-KB `N` and `avgdl`, document frequency per query term and the BM25 score (`k1 = 1.2`, `b = 0.75`). It uses plain tables and btree indexes, so it stays portable to RDS.
+- The cost is write amplification: roughly 100–250 term rows per chunk. The trade-off is accepted for the MVP; corpus-stat caching and term caps are the first scaling levers.
+- The application tokenizer is shared by ingestion and query (NFKC, lowercase, strip diacritics, split on letters and numbers), so query terms and stored terms match without Postgres stemming.
+
+## 9. Main sources
 
 - Anthropic, *Contextual Retrieval* (2024-09-19); *Effective context engineering for AI agents* (2025-09-29); *Writing tools for agents* (2025-09-11).
 - PageIndex: github.com/VectifyAI/PageIndex; the OSS benchmark repo; Mafin 2.5 FinanceBench.
@@ -176,3 +199,5 @@ That gives a p95 under ~5 s with at most 2 tool rounds. Telegram shows "typing�
 - Mistral OCR 4 (Jun 2026); LlamaIndex ParseBench (Apr 2026); Docling.
 - Intercom Fin research blog (reranker, retrieval fine-tuning, 2025-09); Dust source and changelog (Nov 2025); Sierra τ-knowledge (2026-03, 2026-05); Glean Waldo (2026-04); AWS Bedrock KB chunking docs; Gemini File Search docs.
 - LlamaIndex, *Did filesystem tools kill vector search* (2026-01-13); Cursor, *semantic search* (2025-11-06).
+- Google Drive scopes: <https://developers.google.com/workspace/drive/api/guides/api-specific-auth>; Google Picker: <https://developers.google.com/workspace/drive/picker/guides/overview>; export MIME types: <https://developers.google.com/workspace/drive/api/guides/ref-export-formats>; restricted-scope verification: <https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification>.
+- ParadeDB, *Implementing BM25 in PostgreSQL*: <https://www.paradedb.com/learn/search-in-postgresql/bm25>.
