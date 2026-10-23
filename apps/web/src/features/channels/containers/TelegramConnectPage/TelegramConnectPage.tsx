@@ -64,7 +64,7 @@ export function TelegramConnectPage({ workspaceId }: TelegramConnectPageProps) {
           />
         }
       />
-      <div className="grid grid-cols-1 items-start gap-5 px-7 default:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="grid grid-cols-1 items-start gap-5 px-7 compact:grid-cols-[minmax(18rem,1fr)_minmax(15rem,20rem)]">
         <TelegramConnectForm
           token={token}
           tokenError={tokenError}
