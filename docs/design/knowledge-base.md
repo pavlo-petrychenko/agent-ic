@@ -644,19 +644,188 @@ modules/knowledge/
 
 ### 11.2 ER diagram
 
+Every column, primary key and foreign key:
+
 ```mermaid
 erDiagram
-    knowledge_bases ||--o{ sources : has
-    connections ||--o{ sources : authorizes
-    sources ||--o{ documents : contains
-    documents ||--o{ sections : has
-    sections ||--o{ chunks : has
-    chunks ||--o{ chunk_terms : has
-    sources ||--o{ sync_runs : runs
-    knowledge_bases ||--o{ embedding_cache : scopes
+    knowledge_bases {
+        uuid id PK
+        uuid workspace_id
+        text name
+        text description
+        text tool_name
+        text tool_description
+        text embedding_model
+        int embedding_dimensions
+        int document_count
+        int chunk_count
+        uuid created_by_user_id
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+
+    connections {
+        uuid id PK
+        uuid workspace_id
+        connection_provider provider
+        text account_email
+        text account_subject
+        text sealed_refresh_token
+        text_array scopes
+        connection_status status
+        text last_error_code
+        text last_error_message
+        timestamptz last_used_at
+        uuid created_by_user_id
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    sources {
+        uuid id PK
+        uuid workspace_id
+        uuid kb_id FK
+        uuid connection_id FK
+        source_kind kind
+        text title
+        source_status status
+        sync_mode sync_mode
+        sync_interval sync_interval
+        time sync_time
+        smallint sync_weekday
+        text timezone
+        timestamptz next_sync_at
+        timestamptz last_sync_at
+        text last_error_code
+        text last_error_message
+        int document_count
+        int chunk_count
+        uuid created_by_user_id
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+
+    documents {
+        uuid id PK
+        uuid workspace_id
+        uuid kb_id FK
+        uuid source_id FK
+        text external_id
+        text external_resource_key
+        text provider_version
+        timestamptz provider_modified_at
+        text title
+        text mime_type
+        text source_url
+        bigint size_bytes
+        text original_storage_key
+        text content_storage_key
+        text content_hash
+        text summary
+        int token_count
+        int chunk_count
+        document_status status
+        int active_generation
+        timestamptz last_indexed_at
+        text error_code
+        text error_message
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+
+    sections {
+        uuid id PK
+        uuid workspace_id
+        uuid kb_id
+        uuid document_id FK
+        int generation
+        int ordinal
+        smallint level
+        text path
+        text heading
+        int token_count
+        text content_hash
+        timestamptz created_at
+    }
+
+    chunks {
+        uuid id PK
+        uuid workspace_id
+        uuid kb_id
+        uuid document_id FK
+        uuid section_id FK
+        int generation
+        int ordinal
+        text content
+        text index_text
+        text content_hash
+        int token_count
+        halfvec embedding
+        text embedding_model
+        int embedding_dimensions
+        timestamptz created_at
+    }
+
+    chunk_terms {
+        uuid workspace_id
+        uuid kb_id
+        uuid chunk_id PK
+        text term PK
+        int frequency
+    }
+
+    sync_runs {
+        uuid id PK
+        uuid workspace_id
+        uuid source_id FK
+        sync_trigger trigger
+        sync_status status
+        timestamptz started_at
+        timestamptz finished_at
+        int documents_total
+        int documents_indexed
+        int documents_skipped
+        int documents_failed
+        int documents_removed
+        text error_code
+        text error_message
+        timestamptz created_at
+    }
+
+    embedding_cache {
+        uuid workspace_id PK
+        text model PK
+        int dimensions PK
+        text text_hash PK
+        halfvec embedding
+        timestamptz created_at
+        timestamptz last_used_at
+    }
+
+    knowledge_bases ||--o{ sources : "has"
+    knowledge_bases ||--o{ documents : "owns"
+    connections |o--o{ sources : "authorizes"
+    sources ||--o{ documents : "contains"
+    documents ||--o{ sections : "has"
+    documents ||--o{ chunks : "has"
+    sections ||--o{ chunks : "groups"
+    chunks ||--o{ chunk_terms : "indexed by"
+    sources ||--o{ sync_runs : "runs"
 ```
 
-`embedding_cache` is workspace-scoped, not KB-scoped; the line is conceptual.
+Reading the diagram:
+
+- `workspace_id` is on every table and is the tenant key. It is not drawn as a foreign key because the workspace table lives in the `identity` schema.
+- `halfvec` is `halfvec(1024)`.
+- `text_array` is `text[]`.
+- Enum types (`source_kind`, `source_status`, `sync_mode`, `sync_interval`, `sync_trigger`, `sync_status`, `document_status`, `connection_provider`, `connection_status`) are defined in 11.3.
+- `chunk_terms` has a composite primary key `(chunk_id, term)`; the relationship line is also its foreign key to `chunks`.
+- `embedding_cache` has a composite primary key `(workspace_id, model, dimensions, text_hash)` and is workspace-scoped, not linked to a KB.
+- The diagram does not encode nullability. `sources.connection_id` is null for uploads, `documents.external_id` is null for uploads, and `sources.sync_*` are null unless the source is scheduled.
+- `sections.kb_id`, `chunks.kb_id` and `chunk_terms.kb_id` are denormalized for filtering; the document and chunk foreign keys are authoritative.
 
 ### 11.3 Enums
 
