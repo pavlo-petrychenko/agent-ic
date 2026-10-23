@@ -19,11 +19,13 @@ describe('ChannelsNav', () => {
             id: 'telegram',
             label: 'Telegram bots',
             action: { label: 'Connect a Telegram bot', onClick: onCreateTelegram },
+            items: [],
           },
           {
             id: 'api',
             label: 'API',
             action: { label: 'Create an API channel', onClick: onCreateApi },
+            items: [],
           },
         ]}
       />,

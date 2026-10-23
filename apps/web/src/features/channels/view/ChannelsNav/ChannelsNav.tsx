@@ -1,5 +1,6 @@
 import type { ChannelsNavProps } from '@/features/channels/view/ChannelsNav/ChannelsNav.typedefs';
 import { Divider } from '@/shared/ui/layout/Divider';
+import { ListItem } from '@/shared/ui/navigation/ListItem';
 import { NavSectionLabel } from '@/shared/ui/navigation/NavSectionLabel';
 import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/typography/Heading';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
@@ -15,11 +16,29 @@ export function ChannelsNav({ title, ariaLabel, groups, emptyLabel }: ChannelsNa
       </header>
       <div className={styles.groups}>
         {groups.map((group) => (
-          <NavSectionLabel
-            key={group.id}
-            label={group.label}
-            action={{ label: group.action.label, onClick: group.action.onClick }}
-          />
+          <div key={group.id} className={styles.group}>
+            <NavSectionLabel
+              label={group.label}
+              action={{ label: group.action.label, onClick: group.action.onClick }}
+            />
+            {group.items.length > 0 && (
+              <ul className={styles.list}>
+                {group.items.map((item) => (
+                  <li key={item.id}>
+                    <ListItem
+                      to={item.to}
+                      params={item.params}
+                      activeOptions={{ exact: true }}
+                      title={item.title}
+                      subtitle={item.subtitle}
+                      icon={item.icon}
+                      selected={item.selected}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         ))}
       </div>
       {emptyLabel !== null && (
