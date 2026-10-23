@@ -1,31 +1,20 @@
+import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { ChannelKind } from '@/features/channels/constants/channel.constants';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
+import { CHANNELS_TELEGRAM_NEW_PATH } from '@/features/channels/constants/route.constants';
+import type { ChannelsPageProps } from '@/features/channels/containers/ChannelsPage/ChannelsPage.typedefs';
 import type { ChannelOption } from '@/features/channels/view/ChannelOptions';
 import { ChannelOptions } from '@/features/channels/view/ChannelOptions';
-import type { ChannelsNavGroup } from '@/features/channels/view/ChannelsNav';
-import { ChannelsNav } from '@/features/channels/view/ChannelsNav';
 import { ButtonVariant } from '@/shared/ui/actions/Button';
 import { EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
 
-export function ChannelsPage() {
+export function ChannelsPage({ workspaceId }: ChannelsPageProps) {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
+  const navigate = useNavigate();
   const openCreate = () => undefined;
-
-  const groups: readonly ChannelsNavGroup[] = [
-    {
-      id: ChannelKind.Telegram,
-      label: t('nav.groups.telegram'),
-      action: { label: t('options.telegram.title'), onClick: openCreate },
-    },
-    {
-      id: ChannelKind.Api,
-      label: t('nav.groups.api'),
-      action: { label: t('options.api.title'), onClick: openCreate },
-    },
-  ];
 
   const options: readonly ChannelOption[] = [
     {
@@ -36,7 +25,7 @@ export function ChannelsPage() {
       description: t('options.telegram.description'),
       actionLabel: t('options.telegram.action'),
       actionVariant: ButtonVariant.Primary,
-      onAction: openCreate,
+      onAction: () => void navigate({ to: CHANNELS_TELEGRAM_NEW_PATH, params: { workspaceId } }),
     },
     {
       id: ChannelKind.Api,
@@ -51,18 +40,10 @@ export function ChannelsPage() {
   ];
 
   return (
-    <div className="flex h-full min-h-0">
-      <ChannelsNav
-        title={t('nav.title')}
-        ariaLabel={t('nav.label')}
-        groups={groups}
-        emptyLabel={t('nav.empty')}
-      />
-      <div className="flex min-w-0 flex-1 flex-col overflow-auto">
-        <PageHeader title={t('page.title')} subtitle={t('page.subtitle')} />
-        <div className="px-7 pt-5">
-          <ChannelOptions options={options} />
-        </div>
+    <div className="flex flex-col gap-5 pb-8">
+      <PageHeader title={t('page.title')} subtitle={t('page.subtitle')} />
+      <div className="px-7">
+        <ChannelOptions options={options} />
       </div>
     </div>
   );
