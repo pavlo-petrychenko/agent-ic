@@ -3,6 +3,7 @@ import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
+import type { TelegramChannelCredentials } from '@/modules/channels/typedefs/channel-identity.typedefs';
 import type { ChannelPatch, NewChannel } from '@/modules/channels/typedefs/channel.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import {
@@ -19,6 +20,15 @@ import {
   ensureWorkspaceRow,
 } from '@test/support/helpers/parent-rows.helpers';
 import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.typedefs';
+
+const WEBHOOK_SECRET_HASH = 'webhook-secret-hash';
+
+const telegramCredentials = (
+  botToken: string = TEST_TELEGRAM_TOKEN,
+): TelegramChannelCredentials => ({
+  botToken,
+  webhookSecretHash: WEBHOOK_SECRET_HASH,
+});
 
 const channelPatch = (
   channel: NewChannel,
@@ -54,9 +64,9 @@ describe('Channels repositories across tenants', () => {
 
   it('stores and reads a channel inside its workspace', async () => {
     const workspaceA = testbed.ids.generate();
-    await ensureWorkspaceRow(testbed.module, workspaceA);
-    const channel = newChannel(testbed, workspaceA);
-    await ensureUserRow(testbed.module, channel.createdByUserId);
+    const credentials = telegramCredentials();
+    const credentialsSealed = tokens.sealCredentials(credentials);
+    const channel = newChannel(testbed, workspaceA, { credentialsSealed });
 
     await tenants.run(workspaceA, () => channels.insertIfAbsent(channel));
 
@@ -67,9 +77,14 @@ describe('Channels repositories across tenants', () => {
       workspaceId: workspaceA,
       externalId: channel.externalId,
       identity: channel.identity,
-      credentialsSealed: channel.credentialsSealed,
+      credentialsSealed,
     });
     expect(listed.map((row) => row.id)).toEqual([channel.id]);
+
+    if (found === null) {
+      throw new Error('Expected a stored channel');
+    }
+    expect(tokens.openCredentials(found.credentialsSealed)).toEqual(credentials);
   });
 
   it('never shows or changes a channel from another workspace', async () => {
@@ -117,6 +132,8 @@ describe('Channels repositories across tenants', () => {
     const agentId = testbed.ids.generate();
     await ensureAgentRow(testbed.module, workspaceA, agentId);
     const at = new Date(testbed.clock.now().getTime() + 1_000);
+    const credentials = telegramCredentials('changed-token');
+    const credentialsSealed = tokens.sealCredentials(credentials);
     await tenants.run(workspaceA, () => channels.insertIfAbsent(channel));
 
     const updated = await tenants.run(workspaceA, () =>
@@ -128,7 +145,7 @@ describe('Channels repositories across tenants', () => {
           agentId,
           identity: { name: 'Changed', username: 'changed_bot' },
           showTyping: false,
-          credentialsSealed: 'sealed-2',
+          credentialsSealed,
           updatedAt: at,
         }),
       ),
@@ -139,9 +156,14 @@ describe('Channels repositories across tenants', () => {
       agentId,
       identity: { name: 'Changed', username: 'changed_bot' },
       showTyping: false,
-      credentialsSealed: 'sealed-2',
+      credentialsSealed,
       updatedAt: at,
     });
+
+    if (updated === null) {
+      throw new Error('Expected an updated channel');
+    }
+    expect(tokens.openCredentials(updated.credentialsSealed)).toEqual(credentials);
   });
 
   it('keeps a channel external id unique per kind across workspaces', async () => {
@@ -182,10 +204,11 @@ describe('Channels repositories across tenants', () => {
     expect([firstInsert, duplicate, otherChannel]).toEqual([true, false, true]);
   });
 
-  it('seals and opens a channel token', () => {
-    const sealed = tokens.seal(TEST_TELEGRAM_TOKEN);
+  it('seals and opens channel credentials', () => {
+    const credentials = telegramCredentials();
+    const sealed = tokens.sealCredentials(credentials);
 
-    expect(sealed).not.toBe(TEST_TELEGRAM_TOKEN);
-    expect(tokens.open(sealed)).toBe(TEST_TELEGRAM_TOKEN);
+    expect(sealed).not.toContain(TEST_TELEGRAM_TOKEN);
+    expect(tokens.openCredentials(sealed)).toEqual(credentials);
   });
 });

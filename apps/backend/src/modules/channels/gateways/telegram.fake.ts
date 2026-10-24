@@ -6,7 +6,7 @@ import type {
 } from '@/modules/channels/typedefs/telegram.typedefs';
 
 export class FakeTelegramGateway extends TelegramGateway {
-  bot: TelegramBot = { id: '1', username: null, firstName: 'Test bot' };
+  bot: TelegramBot = { id: '1', username: 'test_bot' };
   webhookInfo: TelegramWebhookInfo = {
     url: '',
     pendingUpdateCount: 0,
