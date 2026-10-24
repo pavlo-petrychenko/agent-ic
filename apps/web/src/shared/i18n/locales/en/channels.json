@@ -85,6 +85,16 @@
         "title": "Example request",
         "response": "Response",
         "hint": "Use the same user_id to continue a conversation. When status is “escalated”, the operator’s replies come later to your webhook."
+      },
+      "deleteDialog": {
+        "title": "Delete the {{name}} API channel?",
+        "description": "This can’t be undone",
+        "body": "Requests with its key start failing with 401 right away, so {{agent}} stops answering here. Past conversations stay in the Inbox and Langfuse.",
+        "confirmLabel": "Type <strong>{{name}}</strong> to confirm",
+        "confirmInputLabel": "Channel name",
+        "confirmPlaceholder": "{{name}}",
+        "cancel": "Cancel",
+        "confirm": "Delete channel"
       }
     }
   },
