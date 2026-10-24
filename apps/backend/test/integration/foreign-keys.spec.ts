@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm';
+import { sql, type SQL } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest';
 import { WORKSPACE_ID_COLUMN } from '@/platform/database/constants/tenant.constants';
 import type { SqlExecutor } from '@/platform/database/typedefs/database.typedefs';
@@ -13,6 +13,13 @@ const PARENT_TABLE = 'parents';
 const CHILD_TABLE = 'children';
 const CHILD_KEY = 'children_parent_id_fk';
 const PARENT_COLUMN = 'parent_id';
+const LABEL_COLUMN = 'label';
+const NOTE_COLUMN = 'note';
+const PREFIX_INDEX = 'children_workspace_id_idx';
+const WIDER_INDEX = 'children_workspace_id_label_idx';
+const WIDER_UNIQUE_INDEX = 'children_workspace_id_label_key';
+const PARTIAL_INDEX = 'children_workspace_id_note_idx';
+const EXPRESSION_INDEX = 'children_lower_label_idx';
 
 const qualified = (...parts: readonly string[]): string => parts.join(QUALIFIED_NAME_SEPARATOR);
 
@@ -29,10 +36,15 @@ const createProbeTables = async (tx: SqlExecutor, withKey: boolean): Promise<voi
     create table ${schema}.${sql.identifier(CHILD_TABLE)} (
       id uuid primary key,
       ${sql.identifier(WORKSPACE_ID_COLUMN)} uuid not null,
-      ${sql.identifier(PARENT_COLUMN)} uuid ${parentKey}
+      ${sql.identifier(PARENT_COLUMN)} uuid ${parentKey},
+      ${sql.identifier(LABEL_COLUMN)} text,
+      ${sql.identifier(NOTE_COLUMN)} text
     )
   `);
 };
+
+const probeChildren = (): SQL =>
+  sql`${sql.identifier(PROBE_SCHEMA)}.${sql.identifier(CHILD_TABLE)}`;
 
 describe('foreign keys', () => {
   let owner: ScratchDatabase;
@@ -104,6 +116,66 @@ describe('foreign keys', () => {
       const key = qualified(PROBE_SCHEMA, CHILD_TABLE, CHILD_KEY);
       expect(unindexed).toContain(key);
       expect(indexed).not.toContain(key);
+    });
+  });
+
+  it('has no index that is a leading prefix of another index after migrations', async () => {
+    const indexes = await new ForeignKeyInspectorService(owner.db).findRedundantIndexes();
+
+    expect(indexes).toEqual([]);
+  });
+
+  it('reports an index that is a leading prefix of a wider index', async () => {
+    await rollbackAfter(owner.db, async (tx) => {
+      await createProbeTables(tx, true);
+      await tx.execute(
+        sql`create index ${sql.identifier(PREFIX_INDEX)} on ${probeChildren()} (${sql.identifier(WORKSPACE_ID_COLUMN)})`,
+      );
+      await tx.execute(
+        sql`create index ${sql.identifier(WIDER_INDEX)} on ${probeChildren()} (${sql.identifier(WORKSPACE_ID_COLUMN)}, ${sql.identifier(LABEL_COLUMN)})`,
+      );
+
+      const indexes = await new ForeignKeyInspectorService(tx).findRedundantIndexes();
+
+      expect(indexes).toEqual([qualified(PROBE_SCHEMA, CHILD_TABLE, PREFIX_INDEX)]);
+    });
+  });
+
+  it('reports an index that is a prefix of a unique index', async () => {
+    await rollbackAfter(owner.db, async (tx) => {
+      await createProbeTables(tx, true);
+      await tx.execute(
+        sql`create index ${sql.identifier(PREFIX_INDEX)} on ${probeChildren()} (${sql.identifier(WORKSPACE_ID_COLUMN)}, ${sql.identifier(LABEL_COLUMN)})`,
+      );
+      await tx.execute(
+        sql`create unique index ${sql.identifier(WIDER_UNIQUE_INDEX)} on ${probeChildren()} (${sql.identifier(WORKSPACE_ID_COLUMN)}, ${sql.identifier(LABEL_COLUMN)})`,
+      );
+
+      const indexes = await new ForeignKeyInspectorService(tx).findRedundantIndexes();
+
+      expect(indexes).toEqual([qualified(PROBE_SCHEMA, CHILD_TABLE, PREFIX_INDEX)]);
+    });
+  });
+
+  it('accepts a prefix index whose predicate differs, and ignores expression indexes', async () => {
+    await rollbackAfter(owner.db, async (tx) => {
+      await createProbeTables(tx, true);
+      await tx.execute(
+        sql`create index ${sql.identifier(PREFIX_INDEX)} on ${probeChildren()} (${sql.identifier(WORKSPACE_ID_COLUMN)})`,
+      );
+      await tx.execute(
+        sql`create index ${sql.identifier(PARTIAL_INDEX)} on ${probeChildren()} (${sql.identifier(WORKSPACE_ID_COLUMN)}, ${sql.identifier(NOTE_COLUMN)}) where ${sql.identifier(NOTE_COLUMN)} is not null`,
+      );
+      await tx.execute(
+        sql`create index ${sql.identifier(EXPRESSION_INDEX)} on ${probeChildren()} (lower(${sql.identifier(LABEL_COLUMN)}))`,
+      );
+      await tx.execute(
+        sql`create index ${sql.identifier(WIDER_INDEX)} on ${probeChildren()} (lower(${sql.identifier(LABEL_COLUMN)}), ${sql.identifier(NOTE_COLUMN)})`,
+      );
+
+      const indexes = await new ForeignKeyInspectorService(tx).findRedundantIndexes();
+
+      expect(indexes).toEqual([]);
     });
   });
 });

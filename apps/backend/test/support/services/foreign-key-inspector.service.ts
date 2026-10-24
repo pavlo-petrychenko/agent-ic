@@ -101,4 +101,37 @@ export class ForeignKeyInspectorService {
     `);
     return rows.map((row) => row.name);
   }
+
+  async findRedundantIndexes(): Promise<string[]> {
+    const rows = await this.db.execute<QualifiedNameRow>(sql`
+      select concat_ws(${QUALIFIED_NAME_SEPARATOR}, n.nspname, c.relname, ic.relname) as "name"
+      from pg_index i
+      join pg_class ic on ic.oid = i.indexrelid
+      join pg_class c on c.oid = i.indrelid
+      join pg_namespace n on n.oid = c.relnamespace
+      join pg_roles r on r.oid = c.relowner
+      where r.rolname = ${DatabaseRole.Owner}
+        and n.nspname <> ${MIGRATIONS_SCHEMA}
+        and not i.indisunique
+        and i.indexprs is null
+        and exists (
+          select 1 from pg_index j
+          where j.indrelid = i.indrelid
+            and j.indexrelid <> i.indexrelid
+            and j.indisvalid
+            and pg_get_expr(j.indpred, j.indrelid) is not distinct from pg_get_expr(i.indpred, i.indrelid)
+            and (string_to_array(j.indkey::text, ' ')::int2[])[1:i.indnkeyatts]
+              = (string_to_array(i.indkey::text, ' ')::int2[])[1:i.indnkeyatts]
+            and (
+              j.indnkeyatts > i.indnkeyatts
+              or (
+                j.indnkeyatts = i.indnkeyatts
+                and (j.indisunique or j.indexrelid < i.indexrelid)
+              )
+            )
+        )
+      order by 1
+    `);
+    return rows.map((row) => row.name);
+  }
 }
