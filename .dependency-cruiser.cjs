@@ -12,6 +12,7 @@ const repository = '\\.repository\\.ts$';
 const gateway = '\\.(gateway|fake)\\.ts$';
 
 const moduleIndex = `${modules}[^/]+/index\\.ts$`;
+const moduleDb = `${modules}[^/]+/db/`;
 const featureIndex = `${features}[^/]+/index\\.ts$`;
 const featureShared = `${features}$1/(constants|typedefs)/`;
 const testFile = '\\.test\\.tsx?$';
@@ -68,8 +69,13 @@ module.exports = {
     ),
     forbidden(
       'backend-cross-module-through-index',
-      { path: `${modules}([^/]+)/` },
+      { path: `${modules}([^/]+)/`, pathNot: moduleDb },
       { path: `${modules}[^/]+/`, pathNot: [`${modules}$1/`, moduleIndex] },
+    ),
+    forbidden(
+      'backend-db-imports-only-db',
+      { path: `${modules}([^/]+)/db/` },
+      { path: `${modules}[^/]+/`, pathNot: [`${modules}$1/`, moduleDb] },
     ),
     forbidden(
       'backend-module-internals-private',

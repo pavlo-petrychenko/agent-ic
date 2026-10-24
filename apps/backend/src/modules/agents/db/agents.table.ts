@@ -1,17 +1,9 @@
 import { index, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { AGENTS_SCHEMA, PauseMode } from '@/modules/agents/constants/agent.constants';
+import { agentsSchema, pauseModeEnum } from '@/modules/agents/db/agents.pg-schema';
 import {
-  moduleSchema,
   tenantIsolationPolicy,
   workspaceIdColumn,
 } from '@/platform/database/helpers/tenant-table.helpers';
-
-export const agentsSchema = moduleSchema(AGENTS_SCHEMA);
-
-export const pauseModeEnum = agentsSchema.enum('pause_mode', [
-  PauseMode.Inbox,
-  PauseMode.AwayMessage,
-]);
 
 export const agents = agentsSchema
   .table(

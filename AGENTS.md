@@ -64,7 +64,7 @@ Details and reasons are in `docs/rules/`. A tool enforces each rule marked with 
 4. No `console.*`; use the logger (oxlint).
 5. No `process.env` outside `apps/backend/src/platform/config` (oxlint).
 6. Backend layers go inbound (resolver, controller, processor, listener), use case, service, repository. No use case calls a use case (`depcruise`).
-7. Another backend module is used only through its `index.ts` (`depcruise`).
+7. Another backend module is used only through its `index.ts`, except that a `db/` file may import another module's `db/` files (rule 25, `depcruise`).
 8. `platform/` never imports `modules/` (`depcruise`). `platform/` has no use cases: its controllers call platform services directly.
 9. Drizzle and SQL only in repositories; every tenant table has `workspace_id` and RLS.
 10. `SystemDatabaseService` only from the allow-list in `.dependency-cruiser.cjs` (`depcruise`).
@@ -82,6 +82,7 @@ Details and reasons are in `docs/rules/`. A tool enforces each rule marked with 
 22. A file lives at `<area>/<kind folder>/<topic>.<kind>.ts`. A backend module root holds only `<name>.module.ts` and `index.ts`; a web feature root holds only `index.ts`. An unknown folder or suffix fails the check (`check:structure`).
 23. Imports are absolute: `@/…` in app `src`, `@test/…` in app test support, `@<package>/…` and `@test/…` inside a package (`paths` in its `tsconfig.json`), other packages by name. Never relative, never `#`, not even in the same folder. No blank lines between imports (oxlint, oxfmt).
 24. No value classes. Data is an interface in `typedefs/`, logic on it is a helper. Jobs, events, channels, cache entries and rate-limit policies are made with `defineX({...})` helpers, not abstract definition classes (review).
+25. Every column that holds another row's id has a foreign key, also across modules and in a cycle. A `db/` file may import another module's `db/` files directly, the only cross-module import that skips `index.ts`; a table file reads another table only inside `.references(() => …)` and the extra-config callback (`depcruise`, D277).
 
 ## What lives where and why
 
