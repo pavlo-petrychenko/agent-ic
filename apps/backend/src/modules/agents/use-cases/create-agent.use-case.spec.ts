@@ -12,6 +12,7 @@ import { TenantTransactionService } from '@/platform/database/services/tenant-tr
 import { IdService } from '@/platform/ids/services/id.service';
 import { TEST_AGENT_NAME } from '@test/support/constants/agents-testing.constants';
 import { agentsCtx, createAgentsTestingModule } from '@test/support/helpers/agents-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 const PADDED_NAME = `  ${TEST_AGENT_NAME}  `;
 const CONCURRENT_CREATES = 3;
@@ -33,6 +34,7 @@ describe('CreateAgentUseCase', () => {
 
   it('creates a draft agent with a draft version holding only a trigger node', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const ctx = agentsCtx(testingModule, workspaceId, WorkspaceRole.Builder);
 
     const view = await createAgent.execute(ctx, { name: PADDED_NAME });
@@ -55,12 +57,16 @@ describe('CreateAgentUseCase', () => {
   });
 
   it('numbers a name already used in the workspace', async () => {
-    const ctx = agentsCtx(testingModule, ids.generate());
+    const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
+    const ctx = agentsCtx(testingModule, workspaceId);
 
     const first = await createAgent.execute(ctx, { name: TEST_AGENT_NAME });
     const second = await createAgent.execute(ctx, { name: TEST_AGENT_NAME });
     const third = await createAgent.execute(ctx, { name: TEST_AGENT_NAME });
-    const elsewhere = await createAgent.execute(agentsCtx(testingModule, ids.generate()), {
+    const otherWorkspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, otherWorkspaceId);
+    const elsewhere = await createAgent.execute(agentsCtx(testingModule, otherWorkspaceId), {
       name: TEST_AGENT_NAME,
     });
 
@@ -73,7 +79,9 @@ describe('CreateAgentUseCase', () => {
   });
 
   it('gives agents created at the same time different names', async () => {
-    const ctx = agentsCtx(testingModule, ids.generate());
+    const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
+    const ctx = agentsCtx(testingModule, workspaceId);
 
     const views = await Promise.all(
       Array.from({ length: CONCURRENT_CREATES }, () =>

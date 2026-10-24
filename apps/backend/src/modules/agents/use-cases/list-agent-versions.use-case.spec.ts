@@ -8,7 +8,11 @@ import { ListAgentVersionsUseCase } from '@/modules/agents/use-cases/list-agent-
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
-import { TEST_AUTHOR_NAME } from '@test/support/constants/agents-testing.constants';
+import {
+  TEST_AUTHOR_NAME,
+  TEST_EDITOR_ID,
+  TEST_EDITOR_NAME,
+} from '@test/support/constants/agents-testing.constants';
 import {
   agentsCtx,
   createAgentsTestingModule,
@@ -42,7 +46,7 @@ describe('ListAgentVersionsUseCase', () => {
     const publishing = testingModule.get(AgentPublishingService);
     await testingModule.get(TenantTransactionService).run(workspaceId, async () => {
       await publishing.publish(workspaceId, agentId, { authorId });
-      await publishing.publish(workspaceId, agentId, { authorId: ids.generate() });
+      await publishing.publish(workspaceId, agentId, { authorId: TEST_EDITOR_ID });
     });
 
     const versions = await listVersions.execute(
@@ -56,7 +60,10 @@ describe('ListAgentVersionsUseCase', () => {
       AgentVersionStatus.Live,
       AgentVersionStatus.Archived,
     ]);
-    expect(versions.map((version) => version.author)).toEqual([null, { name: TEST_AUTHOR_NAME }]);
+    expect(versions.map((version) => version.author)).toEqual([
+      { name: TEST_EDITOR_NAME },
+      { name: TEST_AUTHOR_NAME },
+    ]);
   });
 
   it('does not find an agent of another workspace', async () => {

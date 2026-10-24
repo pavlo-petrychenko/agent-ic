@@ -12,6 +12,7 @@ import {
   seedLlmKey,
   seedLlmKeyAuthor,
 } from '@test/support/helpers/llm-keys-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 describe('CleanUpWorkspaceUseCase', () => {
   let testingModule: TestingModule;
@@ -39,7 +40,9 @@ describe('CleanUpWorkspaceUseCase', () => {
 
   it('deletes the keys of the workspace and keeps the others', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const otherWorkspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, otherWorkspaceId);
     await seedLlmKey(testingModule, workspaceId, authorId);
     await seedLlmKey(testingModule, otherWorkspaceId, authorId);
 
@@ -51,6 +54,7 @@ describe('CleanUpWorkspaceUseCase', () => {
 
   it('refuses a non-system actor', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
 
     await expect(
       cleanUp.execute(llmKeysCtx(authorId, workspaceId), { workspaceId }),

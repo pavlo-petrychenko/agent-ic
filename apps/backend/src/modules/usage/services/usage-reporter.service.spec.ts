@@ -19,6 +19,7 @@ import {
   createUsageTestbed,
   meteredReport,
   setWorkspaceLimits,
+  seedOwnedWorkspace,
   thresholdEmailsQueued,
 } from '@test/support/helpers/usage-testing.helpers';
 import { startMockLlm } from '@test/support/services/mock-llm.service';
@@ -49,7 +50,7 @@ describe('UsageReporterService', () => {
   });
 
   it('adds every metered report to the counter of the month', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
 
     await reporter.report(meteredReport(workspaceId, 1.25));
     await reporter.report(meteredReport(workspaceId, 0.5));
@@ -61,7 +62,7 @@ describe('UsageReporterService', () => {
   });
 
   it('changes nothing for a call on the workspace key', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
 
     await reporter.report({
       ...meteredReport(workspaceId, 0),
@@ -73,7 +74,7 @@ describe('UsageReporterService', () => {
   });
 
   it('starts a fresh counter in a new month', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
     await reporter.report(meteredReport(workspaceId, 3));
     testbed.clock.advanceBy(USAGE_TEST_MONTH_MS);
 
@@ -87,7 +88,7 @@ describe('UsageReporterService', () => {
   });
 
   it('asks for one owner email at 80 and one at 100 percent of the limit', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
 
     await reporter.report(meteredReport(workspaceId, 7_000));
     expect(await thresholdEmailsQueued(testbed, workspaceId)).toEqual([]);
@@ -109,7 +110,7 @@ describe('UsageReporterService', () => {
   });
 
   it('asks for both emails when one report jumps past both thresholds', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
 
     await reporter.report(meteredReport(workspaceId, 12_000));
 
@@ -120,7 +121,7 @@ describe('UsageReporterService', () => {
   });
 
   it('measures the thresholds against the limit of the workspace', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
     await setWorkspaceLimits(testbed, workspaceId, { creditsLimit: 10 });
 
     await reporter.report(meteredReport(workspaceId, 8));
@@ -155,7 +156,7 @@ describe('UsageReporterService', () => {
     });
 
     it('stores the credits of a platform call at the catalog price', async () => {
-      const workspaceId = testbed.ids.generate();
+      const { workspaceId } = await seedOwnedWorkspace(testbed);
       const gateway = createLlmGateway(
         { [EnvVar.LlmBaseUrl]: mock.url, [EnvVar.LlmApiKey]: 'test-llmapi-key' },
         TIMEOUTS,

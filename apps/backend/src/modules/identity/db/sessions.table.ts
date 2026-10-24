@@ -1,3 +1,4 @@
+import { isNotNull } from 'drizzle-orm';
 import { index, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { identitySchema } from '@/modules/identity/db/identity.pg-schema';
@@ -21,5 +22,8 @@ export const sessions = identitySchema.table(
     uniqueIndex('sessions_token_hash_key').on(table.tokenHash),
     index('sessions_family_id_idx').on(table.familyId),
     index('sessions_user_id_idx').on(table.userId),
+    index('sessions_replaced_by_id_idx')
+      .on(table.replacedById)
+      .where(isNotNull(table.replacedById)),
   ],
 );

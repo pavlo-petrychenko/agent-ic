@@ -132,10 +132,6 @@ export class AgentsRepository {
     return and(eq(agents.workspaceId, workspaceId), isNull(agents.deletedAt), ...conditions);
   }
 
-  async deleteByWorkspace(workspaceId: string): Promise<void> {
-    await this.txHost.tx.delete(agents).where(eq(agents.workspaceId, workspaceId));
-  }
-
   async countByWorkspace(workspaceId: string): Promise<number> {
     const [row] = await this.txHost.tx
       .select({ total: count() })

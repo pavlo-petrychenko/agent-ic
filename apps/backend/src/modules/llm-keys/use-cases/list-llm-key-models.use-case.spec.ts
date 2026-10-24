@@ -17,6 +17,7 @@ import {
   seedLlmKey,
   seedLlmKeyAuthor,
 } from '@test/support/helpers/llm-keys-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 describe('ListLlmKeyModelsUseCase', () => {
   let testingModule: TestingModule;
@@ -39,6 +40,7 @@ describe('ListLlmKeyModelsUseCase', () => {
 
   it('lists the models of the key for a builder and keeps them for a while', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const keyId = await seedLlmKey(testingModule, workspaceId, authorId);
     const ctx = llmKeysCtx(authorId, workspaceId, WorkspaceRole.Builder);
     const input = { id: publicLlmKeyId(testingModule, keyId) };

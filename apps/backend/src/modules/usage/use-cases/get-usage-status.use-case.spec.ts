@@ -12,6 +12,7 @@ import {
   createUsageTestbed,
   meteredReport,
   setWorkspaceLimits,
+  seedOwnedWorkspace,
 } from '@test/support/helpers/usage-testing.helpers';
 import type { UsageTestbed } from '@test/support/typedefs/usage-testing.typedefs';
 
@@ -32,7 +33,7 @@ describe('GetUsageStatusUseCase', () => {
     testbed.module.get(UsageReporter).report(meteredReport(workspaceId, credits));
 
   it('says the limit is not reached below it', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
     await report(workspaceId, TEST_CREDITS_LIMIT - 1);
 
     const status = await getUsageStatus.execute(
@@ -47,7 +48,7 @@ describe('GetUsageStatusUseCase', () => {
   });
 
   it('tells every member, operators included, when the limit was reached', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
     await report(workspaceId, TEST_CREDITS_LIMIT);
 
     const status = await getUsageStatus.execute(
@@ -62,7 +63,7 @@ describe('GetUsageStatusUseCase', () => {
   });
 
   it('clears the banner when the limit of the workspace is raised', async () => {
-    const workspaceId = testbed.ids.generate();
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
     await report(workspaceId, TEST_CREDITS_LIMIT);
     await setWorkspaceLimits(testbed, workspaceId, { creditsLimit: TEST_CREDITS_LIMIT * 2 });
 

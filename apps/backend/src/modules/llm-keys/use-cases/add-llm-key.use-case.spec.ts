@@ -32,6 +32,7 @@ import {
   llmKeysCtx,
   seedLlmKeyAuthor,
 } from '@test/support/helpers/llm-keys-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 describe('AddLlmKeyUseCase', () => {
   let testingModule: TestingModule;
@@ -64,6 +65,7 @@ describe('AddLlmKeyUseCase', () => {
 
   it('checks the key, seals it and returns the view', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
 
     const view = await addLlmKey.execute(llmKeysCtx(authorId, workspaceId), {
       vendor: LlmKeyVendor.OpenAi,
@@ -97,6 +99,7 @@ describe('AddLlmKeyUseCase', () => {
 
   it('stores a custom endpoint with its name and base URL', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
 
     const view = await addLlmKey.execute(llmKeysCtx(authorId, workspaceId), {
       vendor: LlmKeyVendor.Custom,
@@ -116,6 +119,7 @@ describe('AddLlmKeyUseCase', () => {
 
   it('refuses a second key for the same vendor', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const ctx = llmKeysCtx(authorId, workspaceId);
     const input = {
       vendor: LlmKeyVendor.Anthropic,
@@ -131,6 +135,7 @@ describe('AddLlmKeyUseCase', () => {
 
   it('refuses a custom endpoint named like another key', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const ctx = llmKeysCtx(authorId, workspaceId);
     await addLlmKey.execute(ctx, {
       vendor: LlmKeyVendor.Mistral,
@@ -153,6 +158,7 @@ describe('AddLlmKeyUseCase', () => {
     'refuses the base URL %s without calling it',
     async (baseUrl) => {
       const workspaceId = ids.generate();
+      await ensureWorkspaceRow(testingModule, workspaceId);
       const calls = models.keys.length;
 
       await expect(
@@ -170,6 +176,7 @@ describe('AddLlmKeyUseCase', () => {
 
   it('stores nothing when the vendor rejects the key', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     models.fail(new LlmKeyInvalidError(LlmKeyVendor.OpenAi, HttpStatus.UNAUTHORIZED));
 
     await expect(

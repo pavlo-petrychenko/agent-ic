@@ -20,6 +20,7 @@ import {
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { newConversation, workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import { createConversationsTestbed } from '@test/support/helpers/conversations-testing.helpers';
+import { ensureAgentRow, seedRunRow } from '@test/support/helpers/parent-rows.helpers';
 import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.typedefs';
 
 export const createChannelsTestbed = async (): Promise<ChannelsTestbed> => {
@@ -65,17 +66,19 @@ export const seedChannelConversation = async (
   overrides: Partial<NewConversation> = {},
 ): Promise<NewConversation> => {
   const conversation = { ...newConversation(testbed, testbed.ids.generate()), ...overrides };
+  await ensureAgentRow(testbed.module, conversation.workspaceId, conversation.agentId);
   await testbed.tenants.run(conversation.workspaceId, () =>
     testbed.conversations.insert(conversation),
   );
   return conversation;
 };
 
-export const queueAgentReply = (
+export const queueAgentReply = async (
   testbed: ChannelsTestbed,
   conversation: NewConversation,
-): Promise<Message> =>
-  testbed.tenants.run(conversation.workspaceId, () =>
+): Promise<Message> => {
+  const runId = await seedRunRow(testbed.module, conversation);
+  return testbed.tenants.run(conversation.workspaceId, () =>
     testbed.runs.recordOutbound(workspaceSystemCtx(conversation.workspaceId), {
       workspaceId: conversation.workspaceId,
       conversationId: conversation.id,
@@ -83,9 +86,10 @@ export const queueAgentReply = (
       author: MessageAuthor.Agent,
       text: AGENT_REPLY_TEXT,
       quickReplies: QUICK_REPLIES,
-      runId: testbed.ids.generate(),
+      runId,
     }),
   );
+};
 
 export const deliveryOf = async (
   testbed: ChannelsTestbed,

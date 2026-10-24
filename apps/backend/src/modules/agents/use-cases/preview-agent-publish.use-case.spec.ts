@@ -9,7 +9,7 @@ import { PreviewAgentPublishUseCase } from '@/modules/agents/use-cases/preview-a
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
-import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
+import { TEST_EDITOR_ID, TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
 import { triggerFlow } from '@test/support/fixtures/agents.fixture';
 import {
   agentsCtx,
@@ -73,7 +73,7 @@ describe('PreviewAgentPublishUseCase', () => {
       .run(workspaceId, () =>
         testingModule
           .get(AgentPublishingService)
-          .publish(workspaceId, agentId, { authorId: ids.generate() }),
+          .publish(workspaceId, agentId, { authorId: TEST_EDITOR_ID }),
       );
     const published = await previewPublish.execute(ctx, input);
 

@@ -96,13 +96,6 @@ export class UsersRepository {
     await this.txHost.tx.update(users).set({ pendingInviteLinkId: null }).where(eq(users.id, id));
   }
 
-  async clearLastWorkspace(workspaceId: string): Promise<void> {
-    await this.txHost.tx
-      .update(users)
-      .set({ lastWorkspaceId: null })
-      .where(eq(users.lastWorkspaceId, workspaceId));
-  }
-
   async updateName(id: string, name: string): Promise<UserRecord | null> {
     const [user] = await this.txHost.tx
       .update(users)

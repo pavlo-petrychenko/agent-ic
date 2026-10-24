@@ -27,6 +27,7 @@ import { uniqueEmail } from '@test/support/fixtures/identity.fixture';
 import { newLlmKey } from '@test/support/fixtures/llm-keys.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import { LlmKeysNeighboursModule } from '@test/support/modules/llm-keys-neighbours.module';
 import { UsageSeamsFakeModule } from '@test/support/modules/usage-seams-fake.module';
 
@@ -77,6 +78,7 @@ export const seedLlmKey = async (
   createdBy: string,
   overrides: Partial<NewLlmKey> = {},
 ): Promise<string> => {
+  await ensureWorkspaceRow(testingModule, workspaceId);
   const keyId = testingModule.get(IdService).generate();
   const sealedKey = testingModule.get(SecretBoxService).seal(TEST_LLM_API_KEY);
   await testingModule

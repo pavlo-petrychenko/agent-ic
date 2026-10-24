@@ -18,7 +18,12 @@ import {
 } from '@test/support/constants/agents-testing.constants';
 import { ROW_LEVEL_SECURITY_VIOLATION } from '@test/support/constants/postgres-errors.constants';
 import { newAgent } from '@test/support/fixtures/agents.fixture';
-import { createAgentsTestingModule } from '@test/support/helpers/agents-testing.helpers';
+import {
+  createAgentsTestingModule,
+  seedAgentVersion,
+  seedPublishedVersion,
+} from '@test/support/helpers/agents-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 describe('AgentsRepository', () => {
   let testingModule: TestingModule;
@@ -41,6 +46,7 @@ describe('AgentsRepository', () => {
 
   const insertAgent = async (workspaceId: string): Promise<string> => {
     const agentId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     await tenants.run(workspaceId, () => repository.insert(newAgent(agentId, workspaceId)));
     return agentId;
   };
@@ -79,8 +85,8 @@ describe('AgentsRepository', () => {
   it('points an agent at its draft and live versions', async () => {
     const workspaceId = ids.generate();
     const agentId = await insertAgent(workspaceId);
-    const draftId = ids.generate();
-    const liveId = ids.generate();
+    const draftId = await seedAgentVersion(testingModule, workspaceId, agentId);
+    const liveId = await seedPublishedVersion(testingModule, workspaceId, agentId);
 
     await tenants.run(workspaceId, async () => {
       await repository.setDraftVersion(workspaceId, agentId, draftId, AGENTS_TEST_LATER);

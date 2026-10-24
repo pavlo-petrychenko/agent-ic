@@ -8,7 +8,11 @@ import { ReplyAsOperatorUseCase } from '@/modules/conversations/use-cases/reply-
 import { SendSimulatorMessageUseCase } from '@/modules/conversations/use-cases/send-simulator-message.use-case';
 import { StartSimulationUseCase } from '@/modules/conversations/use-cases/start-simulation.use-case';
 import { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
-import { TEST_NODE_ID, TEST_REPLY_TEXT } from '@test/support/constants/agents-testing.constants';
+import {
+  TEST_EDITOR_ID,
+  TEST_NODE_ID,
+  TEST_REPLY_TEXT,
+} from '@test/support/constants/agents-testing.constants';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
 import {
   ESCALATION_NODE_ID,
@@ -60,7 +64,7 @@ describe('the simulator end to end', () => {
   let answeringFlow: FlowDocument;
 
   const simulate = async (agent: WorkerAgent) => {
-    const ctx = workspaceCtx(worker.ids.generate(), agent.workspaceId, WorkspaceRole.Builder);
+    const ctx = workspaceCtx(TEST_EDITOR_ID, agent.workspaceId, WorkspaceRole.Builder);
     const { conversation } = await worker.app.get(StartSimulationUseCase).execute(ctx, {
       agentId: worker.ids.toPublic(IdPrefix.Agent, agent.agentId),
       versionId: null,
@@ -93,7 +97,7 @@ describe('the simulator end to end', () => {
       if (draft === null) {
         throw new MissingTestDataError(agent.agentId);
       }
-      const changes = { flow: triggerFlow(), note: null, authorId: worker.ids.generate() };
+      const changes = { flow: triggerFlow(), note: null, authorId: TEST_EDITOR_ID };
       const at = worker.clock.now();
       await worker.versions.updateDraft(agent.workspaceId, draft.id, draft.revision, changes, at);
     });

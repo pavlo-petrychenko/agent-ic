@@ -10,6 +10,7 @@ import { PermissionDeniedError } from '@/platform/context/errors/permission-deni
 import { newConversation } from '@test/support/fixtures/conversation.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createConversationsTestbed } from '@test/support/helpers/conversations-testing.helpers';
+import { ensureAgentRow, seedRunRow } from '@test/support/helpers/parent-rows.helpers';
 import type { ConversationsTestbed } from '@test/support/typedefs/conversations-testing.typedefs';
 
 describe('SubscribeToConversationActivityUseCase', () => {
@@ -17,6 +18,7 @@ describe('SubscribeToConversationActivityUseCase', () => {
 
   const seed = async (mode = ConversationMode.Simulation): Promise<NewConversation> => {
     const conversation = { ...newConversation(testbed, testbed.ids.generate()), mode };
+    await ensureAgentRow(testbed.module, conversation.workspaceId, conversation.agentId);
     await testbed.tenants.run(conversation.workspaceId, () =>
       testbed.conversations.insert(conversation),
     );
@@ -44,7 +46,7 @@ describe('SubscribeToConversationActivityUseCase', () => {
 
   it('streams what changed in a simulation, with public ids only', async () => {
     const conversation = await seed();
-    const runId = testbed.ids.generate();
+    const runId = await seedRunRow(testbed.module, conversation);
     const activity = await subscribe(conversation);
 
     await testbed.tenants.run(conversation.workspaceId, () =>

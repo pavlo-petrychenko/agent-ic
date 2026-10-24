@@ -14,6 +14,7 @@ import {
   seedLlmKey,
   seedLlmKeyAuthor,
 } from '@test/support/helpers/llm-keys-testing.helpers';
+import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 describe('LlmKeyResolverService', () => {
   let testingModule: TestingModule;
@@ -34,6 +35,7 @@ describe('LlmKeyResolverService', () => {
 
   it('opens the sealed key of the workspace', async () => {
     const workspaceId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
     const keyId = await seedLlmKey(testingModule, workspaceId, authorId, {
       vendor: LlmKeyVendor.Custom,
       name: TEST_CUSTOM_KEY_NAME,
@@ -52,6 +54,7 @@ describe('LlmKeyResolverService', () => {
 
   it('does not resolve a key of another workspace', async () => {
     const owner = ids.generate();
+    await ensureWorkspaceRow(testingModule, owner);
     const keyId = await seedLlmKey(testingModule, owner, authorId);
 
     await expect(resolver.resolve(ids.generate(), keyId)).rejects.toBeInstanceOf(

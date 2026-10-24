@@ -1,10 +1,12 @@
 import { foreignKey, index, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import {
   identitySchema,
   permissionActionEnum,
   permissionResourceEnum,
 } from '@/modules/identity/db/identity.pg-schema';
 import { roles } from '@/modules/identity/db/roles.table';
+import { workspaces } from '@/modules/identity/db/workspaces.table';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,
@@ -15,7 +17,9 @@ export const rolePermissions = identitySchema
     'role_permissions',
     {
       id: uuid('id').primaryKey(),
-      workspaceId: workspaceIdColumn(),
+      workspaceId: workspaceIdColumn().references((): AnyPgColumn => workspaces.id, {
+        onDelete: 'cascade',
+      }),
       roleId: uuid('role_id').notNull(),
       resource: permissionResourceEnum('resource').notNull(),
       action: permissionActionEnum('action').notNull(),
