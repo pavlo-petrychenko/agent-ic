@@ -4,10 +4,13 @@ export const EXIT_SUCCESS = 0;
 export const EXIT_FAILURE = 1;
 
 export const LOCAL_DOMAIN = 'local.agent-ic.pavlop.dev';
-export const LOCAL_SUBDOMAINS = ['mail', 's3', 'grafana', 'langfuse', 'queues'] as const;
+export const LOCAL_SUBDOMAINS = ['mail', 's3', 'langfuse', 'queues'] as const;
+export const OBSERVABILITY_SUBDOMAINS = ['grafana', 'prometheus'] as const;
 export const LOCAL_HOSTNAMES: readonly string[] = [
   LOCAL_DOMAIN,
-  ...LOCAL_SUBDOMAINS.map((subdomain) => `${subdomain}.${LOCAL_DOMAIN}`),
+  ...[...LOCAL_SUBDOMAINS, ...OBSERVABILITY_SUBDOMAINS].map(
+    (subdomain) => `${subdomain}.${LOCAL_DOMAIN}`,
+  ),
 ];
 export const LOOPBACK_ADDRESS = '127.0.0.1';
 export const ANY_ADDRESS = '0.0.0.0';
@@ -71,6 +74,15 @@ export const Tool = {
 } as const;
 
 export const ALL_PROFILES = '*';
+export const OBSERVABILITY_PROFILE = 'observability';
+export const COMPOSE_FILE = 'compose.yaml';
+export const OBSERVABILITY_OVERLAY_FILE = 'compose.observability.yaml';
+export const STACK_MODE_FILE = '.dev/stack.mode';
+
+export const StackMode = {
+  Lean: 'lean',
+  Observability: 'observability',
+} as const;
 export const POSTGRES_SERVICE = 'postgres';
 export const REDIS_SERVICE = 'redis';
 export const POSTGRES_VOLUME = 'agent-ic_postgres-data';
@@ -102,7 +114,7 @@ export const FINGERPRINT_PATHSPECS: readonly string[] = [
 export const FINGERPRINT_VOLUMES: readonly string[] = ['postgres-data', 'root-node-modules'];
 export const START_LOG_TAIL = '50';
 export const LOG_TAIL = '100';
-export const URL_LABEL_WIDTH = 8;
+export const URL_LABEL_WIDTH = 10;
 
 export const DATABASE_ROLE_PASSWORDS: Readonly<Record<string, string>> = {
   app_owner: 'APP_OWNER_PASSWORD',
@@ -114,6 +126,7 @@ export const DEFAULT_DATABASE_ROLE = 'app_owner';
 export const Command = {
   Setup: 'setup',
   Start: 'start',
+  StartObservability: 'start:obs',
   Add: 'add',
   Stop: 'stop',
   Restart: 'restart',

@@ -18,21 +18,34 @@ import {
   LOCAL_SUBDOMAINS,
   LOG_TAIL,
   LOOPBACK_ADDRESS,
+  OBSERVABILITY_PROFILE,
+  OBSERVABILITY_SUBDOMAINS,
   PORT_VARIABLES,
   POSTGRES_SERVICE,
   POSTGRES_VOLUME,
   REDIS_SERVICE,
+  StackMode,
   START_LOG_TAIL,
   Tool,
   URL_LABEL_WIDTH,
   WATCH_POLLING_ON,
 } from './dev.constants.ts';
-import type { CommandArgs, CommandHandler, CommandStep } from './dev.typedefs.ts';
+import type { CommandArgs, CommandHandler, StackModeName, StepFactory } from './dev.typedefs.ts';
 import { readEnvFile, syncEnvFile, writeEnvValue } from './env.helpers.ts';
 import { ensureHosts } from './hosts.helpers.ts';
 import { capture, isWindows, log, logError, runStep, sequence } from './platform.helpers.ts';
 import { choosePorts, isPortBusy, publicUrl } from './ports.helpers.ts';
 import {
+  composeFileArgs,
+  modeProfileArgs,
+  observabilityServices,
+  readStackMode,
+  removeStackMode,
+  resolveMode,
+  writeStackMode,
+} from './stack-mode.helpers.ts';
+import {
+  allStackContainers,
   otherCheckouts,
   readFingerprint,
   servicesToRestart,
@@ -41,20 +54,29 @@ import {
   writeFingerprint,
 } from './start.helpers.ts';
 
-const compose = (...args: CommandArgs): CommandStep => ({
-  command: Tool.Docker,
-  args: ['compose', ...args],
-});
+const compose =
+  (...args: CommandArgs): StepFactory =>
+  () => ({
+    command: Tool.Docker,
+    args: ['compose', ...composeFileArgs(readStackMode()), ...args],
+  });
 
-const composeAllProfiles = (...args: CommandArgs): CommandStep =>
+const composeAllProfiles = (...args: CommandArgs): StepFactory =>
   compose('--profile', ALL_PROFILES, ...args);
 
-const pnpm = (...args: CommandArgs): CommandStep => ({ command: Tool.Pnpm, args });
+const composeInMode =
+  (...args: CommandArgs): StepFactory =>
+  () =>
+    compose(...modeProfileArgs(readStackMode()), ...args)();
+
+const pnpm =
+  (...args: CommandArgs): StepFactory =>
+  () => ({ command: Tool.Pnpm, args });
 
 const step =
-  (commandStep: CommandStep): (() => number) =>
+  (factory: StepFactory): (() => number) =>
   () =>
-    runStep(commandStep);
+    runStep(factory());
 
 const requireArgument = (args: CommandArgs, command: string, name: string): string | null => {
   const [value] = args;
@@ -84,14 +106,20 @@ const printUrls = (): number => {
   const env = readEnvFile();
   const port = httpsPort();
   const web = publicUrl(port);
+  const subdomains =
+    readStackMode() === StackMode.Observability
+      ? [...LOCAL_SUBDOMAINS, ...OBSERVABILITY_SUBDOMAINS]
+      : LOCAL_SUBDOMAINS;
   log('urls:');
-  log(`  web      ${web}`);
-  log(`  api      ${web}/api`);
-  log(`  gateway  ${web}/v1`);
-  for (const subdomain of LOCAL_SUBDOMAINS) {
+  log(`  ${'web'.padEnd(URL_LABEL_WIDTH)} ${web}`);
+  log(`  ${'api'.padEnd(URL_LABEL_WIDTH)} ${web}/api`);
+  log(`  ${'gateway'.padEnd(URL_LABEL_WIDTH)} ${web}/v1`);
+  for (const subdomain of subdomains) {
     log(`  ${subdomain.padEnd(URL_LABEL_WIDTH)} ${publicUrl(port, subdomain)}`);
   }
-  log(`  postgres ${LOOPBACK_ADDRESS}:${env.get(EnvVariable.PostgresPort) ?? ''}`);
+  log(
+    `  ${'postgres'.padEnd(URL_LABEL_WIDTH)} ${LOOPBACK_ADDRESS}:${env.get(EnvVariable.PostgresPort) ?? ''}`,
+  );
   log(`  http on ${env.get(EnvVariable.TraefikHttpPort) ?? ''} redirects to https`);
   return EXIT_SUCCESS;
 };
@@ -169,21 +197,63 @@ const saveFingerprint = (): number => {
   return EXIT_SUCCESS;
 };
 
-const start = (args: CommandArgs): Promise<number> =>
-  sequence([
-    syncEnv,
-    ensureCertificate,
-    refreshStack,
-    step(compose('up', '-d', '--wait', ...args)),
-    printUrls,
-    saveFingerprint,
-    step(composeAllProfiles('logs', '-f', `--tail=${START_LOG_TAIL}`, ...args)),
+const applyMode =
+  (requested: StackModeName, services: CommandArgs): (() => number) =>
+  () => {
+    const mode = resolveMode(requested, services, readStackMode());
+    writeStackMode(mode);
+    log(`start: ${mode} mode`);
+    return EXIT_SUCCESS;
+  };
+
+const removeObservabilityServices = (): number => {
+  if (readStackMode() === StackMode.Observability) {
+    return EXIT_SUCCESS;
+  }
+  const withProfile = capture(Tool.Docker, [
+    'compose',
+    '--profile',
+    OBSERVABILITY_PROFILE,
+    'config',
+    '--services',
   ]);
+  const lean = capture(Tool.Docker, ['compose', 'config', '--services']);
+  if (withProfile === null || lean === null) {
+    logError('start: could not list the compose services');
+    return EXIT_FAILURE;
+  }
+  const names = new Set(observabilityServices(withProfile, lean));
+  const present = allStackContainers()
+    .map(({ service }) => service)
+    .filter((service) => names.has(service));
+  if (present.length === 0) {
+    return EXIT_SUCCESS;
+  }
+  log(`start: removing the observability services ${present.join(' ')}`);
+  return runStep(
+    compose('--profile', OBSERVABILITY_PROFILE, 'rm', '--stop', '--force', ...present)(),
+  );
+};
+
+const start =
+  (requested: StackModeName): CommandHandler =>
+  (args) =>
+    sequence([
+      syncEnv,
+      ensureCertificate,
+      applyMode(requested, args),
+      refreshStack,
+      removeObservabilityServices,
+      step(composeInMode('up', '-d', '--wait', ...args)),
+      printUrls,
+      saveFingerprint,
+      step(composeAllProfiles('logs', '-f', `--tail=${START_LOG_TAIL}`, ...args)),
+    ]);
 const status = step(composeAllProfiles('ps', '--all'));
 
 const setup = (): Promise<number> =>
   sequence([
-    step({ command: Tool.Mkcert, args: ['-install'] }),
+    step(() => ({ command: Tool.Mkcert, args: ['-install'] })),
     syncEnv,
     checkPorts,
     ensureCertificate,
@@ -192,7 +262,7 @@ const setup = (): Promise<number> =>
     step(pnpm('install', '--frozen-lockfile')),
     step(pnpm('exec', 'lefthook', 'install')),
     step(compose('build')),
-    step(compose('up', '-d', '--wait')),
+    step(composeInMode('up', '-d', '--wait')),
     migrate,
     seed,
     status,
@@ -200,10 +270,10 @@ const setup = (): Promise<number> =>
   ]);
 
 const withService =
-  (command: string, toStep: (service: string) => CommandStep): CommandHandler =>
+  (command: string, toStep: (service: string) => StepFactory): CommandHandler =>
   (args) => {
     const service = requireArgument(args, command, 'svc');
-    return service === null ? EXIT_FAILURE : runStep(toStep(service));
+    return service === null ? EXIT_FAILURE : runStep(toStep(service)());
   };
 
 const psql = (args: CommandArgs): number => {
@@ -227,7 +297,7 @@ const psql = (args: CommandArgs): number => {
       role,
       '-d',
       env.get(EnvVariable.DatabaseName) ?? '',
-    ),
+    )(),
   );
 };
 
@@ -237,6 +307,7 @@ const clean = (): Promise<number> =>
     () => {
       rmSync(CERTS_DIRECTORY, { recursive: true, force: true });
       rmSync(FINGERPRINT_FILE, { force: true });
+      removeStackMode();
       log('clean: done, `mise run start` rebuilds everything, `mise run db:seed` adds seed data');
       return EXIT_SUCCESS;
     },
@@ -244,15 +315,18 @@ const clean = (): Promise<number> =>
 
 export const COMMANDS: Readonly<Record<string, CommandHandler>> = {
   [Command.Setup]: setup,
-  [Command.Start]: start,
-  [Command.Add]: withService(Command.Add, (service) => compose('up', '-d', '--wait', service)),
-  [Command.Stop]: (args) => runStep(composeAllProfiles('stop', ...args)),
+  [Command.Start]: start(StackMode.Lean),
+  [Command.StartObservability]: start(StackMode.Observability),
+  [Command.Add]: withService(Command.Add, (service) =>
+    composeInMode('up', '-d', '--wait', service),
+  ),
+  [Command.Stop]: (args) => runStep(composeAllProfiles('stop', ...args)()),
   [Command.Restart]: withService(Command.Restart, (service) =>
     composeAllProfiles('restart', service),
   ),
   [Command.Status]: status,
   [Command.Logs]: (args) =>
-    runStep(composeAllProfiles('logs', '-f', `--tail=${LOG_TAIL}`, ...args)),
+    runStep(composeAllProfiles('logs', '-f', `--tail=${LOG_TAIL}`, ...args)()),
   [Command.Shell]: withService(Command.Shell, (service) =>
     composeAllProfiles('exec', service, 'sh'),
   ),
@@ -260,7 +334,7 @@ export const COMMANDS: Readonly<Record<string, CommandHandler>> = {
   [Command.DbReset]: () =>
     sequence([
       step(compose('rm', '--stop', '--force', POSTGRES_SERVICE)),
-      step({ command: Tool.Docker, args: ['volume', 'rm', POSTGRES_VOLUME] }),
+      step(() => ({ command: Tool.Docker, args: ['volume', 'rm', POSTGRES_VOLUME] })),
       step(compose('up', '-d', '--wait', POSTGRES_SERVICE, REDIS_SERVICE)),
       migrate,
       seed,

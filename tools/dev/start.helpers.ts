@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import {
+  ALL_PROFILES,
   FINGERPRINT_FILE,
   FINGERPRINT_HASH,
   FINGERPRINT_PATHSPECS,
@@ -103,6 +104,19 @@ const volumeCreatedAt = (project: string, volume: string): string =>
 
 export const stackContainers = (): readonly ContainerStatus[] =>
   parseContainers(capture(Tool.Docker, ['compose', 'ps', '--all', '--format', 'json']) ?? '');
+
+export const allStackContainers = (): readonly ContainerStatus[] =>
+  parseContainers(
+    capture(Tool.Docker, [
+      'compose',
+      '--profile',
+      ALL_PROFILES,
+      'ps',
+      '--all',
+      '--format',
+      'json',
+    ]) ?? '',
+  );
 
 export const stackFingerprint = (): string | null => {
   const head = capture(Tool.Git, ['rev-parse', 'HEAD']);

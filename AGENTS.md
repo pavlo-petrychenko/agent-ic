@@ -6,16 +6,16 @@ agent-ic is an API-first chat-agent builder. A small business builds an AI chat 
 
 Node 24 and pnpm 10 come from `mise.toml`. The stack runs in Docker through `mise run <task>`; pnpm scripts run through mise: `mise exec -- pnpm <script>`.
 
-| Task                                                              | What it does                                |
-| ----------------------------------------------------------------- | ------------------------------------------- |
-| `mise run setup`                                                  | one-time setup, then the stack is running   |
-| `mise run start [svc...]` / `add <svc>`                           | rebuild changes and start / add one service |
-| `mise run stop [svc]` / `restart <svc>` / `status` / `logs [svc]` | operate the stack                           |
-| `mise run urls` / `ports`                                         | print every service URL / re-check ports    |
-| `mise run shell <svc>`                                            | shell inside a service container            |
-| `mise run db:migrate` / `db:reset` / `db:seed` / `db:psql [role]` | database                                    |
-| `mise run codegen` / `check` / `test`                             | generated code, all guardrails, tests       |
-| `mise run chart:validate` / `lint:workflows`                      | Helm chart checks, GitHub workflow lint     |
+| Task                                                              | What it does                                                           |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `mise run setup`                                                  | one-time setup, then the stack is running                              |
+| `mise run start [svc...]` / `start:obs` / `add <svc>`             | rebuild changes and start / start with observability / add one service |
+| `mise run stop [svc]` / `restart <svc>` / `status` / `logs [svc]` | operate the stack                                                      |
+| `mise run urls` / `ports`                                         | print every service URL / re-check ports                               |
+| `mise run shell <svc>`                                            | shell inside a service container                                       |
+| `mise run db:migrate` / `db:reset` / `db:seed` / `db:psql [role]` | database                                                               |
+| `mise run codegen` / `check` / `test`                             | generated code, all guardrails, tests                                  |
+| `mise run chart:validate` / `lint:workflows`                      | Helm chart checks, GitHub workflow lint                                |
 
 The stack tasks run `node tools/dev.ts <task>`; `pnpm stack <task>` is the same without mise (native Windows uses it after `tools/windows/setup.ps1`).
 

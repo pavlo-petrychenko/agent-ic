@@ -53,6 +53,11 @@ http:
       entryPoints: [websecure]
       service: grafana
       tls: {}
+    prometheus:
+      rule: Host(`prometheus.local.agent-ic.pavlop.dev`)
+      entryPoints: [websecure]
+      service: prometheus
+      tls: {}
     langfuse:
       rule: Host(`langfuse.local.agent-ic.pavlop.dev`)
       entryPoints: [websecure]
@@ -98,6 +103,10 @@ http:
       loadBalancer:
         servers:
           - url: http://grafana:3000
+    prometheus:
+      loadBalancer:
+        servers:
+          - url: http://prometheus:9090
     langfuse:
       loadBalancer:
         servers:

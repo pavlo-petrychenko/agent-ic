@@ -1,0 +1,11 @@
+x-observability-environment: &observability-environment
+  OTEL_SDK_DISABLED: 'false'
+  OTEL_TRACES_SAMPLER: parentbased_always_on
+
+services:
+  api:
+    environment: *observability-environment
+  gateway:
+    environment: *observability-environment
+  worker:
+    environment: *observability-environment
