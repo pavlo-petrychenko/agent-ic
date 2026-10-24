@@ -6,6 +6,8 @@
       "telegram": "Telegram bots",
       "api": "API"
     },
+    "tokenRevoked": "token revoked",
+    "messagesAndEvents": "messages & events",
     "empty": "No channels yet"
   },
   "page": {
@@ -53,6 +55,46 @@
       "chats": "Chats",
       "messages": "Messages",
       "errors": "Errors"
+    },
+    "bot": {
+      "subtitle": "Telegram bot · answered by {{agent}}",
+      "actions": {
+        "disconnect": "Disconnect",
+        "save": "Save"
+      },
+      "connection": {
+        "title": "Connection",
+        "connected": "Connected",
+        "revoked": "Token revoked",
+        "tokenLabel": "Bot token",
+        "tokenHint": "From @BotFather. We register the webhook and receive this bot’s messages for you.",
+        "replaceToken": "Replace token",
+        "webhook": "Webhook",
+        "receiving": "Receiving",
+        "notReceiving": "Not receiving",
+        "lastUpdate": "Last update",
+        "lastUpdateToday": "Today {{time}} · from {{author}}",
+        "lastUpdateDate": "{{date}} {{time}} · from {{author}}",
+        "botName": "Bot name",
+        "botNameValue": "{{name}} · edit in @BotFather",
+        "alerted": "Alerted",
+        "alertedValue": "Owners and admins · email",
+        "revokedNote": "Telegram rejected this token on {{date}} at {{time}} — it was revoked or regenerated in @BotFather."
+      },
+      "whoAnswers": {
+        "title": "Who answers",
+        "agent": "Agent",
+        "publishedHint": "Always runs the published version (v{{version}} now).",
+        "draftHint": "Draft — publish it to start answering.",
+        "typing": "Show “typing…” while the agent works"
+      },
+      "fix": {
+        "title": "How to fix it",
+        "stepOpen": "Open @BotFather and send /token",
+        "stepPick": "Pick {{username}} and copy the new token",
+        "stepPaste": "Paste it here and press Replace token"
+      },
+      "warning": "Messages sent to the bot while the token was revoked can’t be recovered — Telegram didn’t deliver them to us."
     }
   }
 }
