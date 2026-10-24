@@ -1,0 +1,58 @@
+{
+  "nav": {
+    "label": "Channels",
+    "title": "Channels",
+    "groups": {
+      "telegram": "Telegram bots",
+      "api": "API"
+    },
+    "empty": "No channels yet"
+  },
+  "page": {
+    "title": "Channels",
+    "subtitle": "Where customers talk to your assistants"
+  },
+  "options": {
+    "telegram": {
+      "title": "Connect a Telegram bot",
+      "description": "Create a bot in @BotFather and paste its token. We host it and route its messages.",
+      "action": "Connect bot"
+    },
+    "api": {
+      "title": "Create an API channel",
+      "description": "Send messages and events from your website, app or CRM with a secret key.",
+      "action": "Create API channel"
+    }
+  },
+  "telegram": {
+    "title": "Connect a Telegram bot",
+    "subtitle": "We set the webhook and receive messages for you",
+    "breadcrumb": "Breadcrumb",
+    "breadcrumbMore": "More",
+    "breadcrumbChannels": "Channels",
+    "breadcrumbTelegram": "Telegram bots",
+    "form": {
+      "cardTitle": "Bot token",
+      "tokenLabel": "Paste the token from @BotFather",
+      "tokenRequired": "Paste the token from @BotFather.",
+      "tokenError": "Telegram didn’t accept this token. It looks like 123456789:AA… — copy it again.",
+      "agentLabel": "Who answers",
+      "agentPlaceholder": "Choose an agent",
+      "agentHint": "You can change the agent later.",
+      "connect": "Connect bot",
+      "cancel": "Cancel"
+    },
+    "howTo": {
+      "title": "How to connect a bot",
+      "stepOpen": "Open @BotFather in Telegram and send /newbot",
+      "stepName": "Pick a name and a username ending in “bot”",
+      "stepCopy": "Copy the token and paste it here"
+    },
+    "stats": {
+      "title": "Last 7 days",
+      "chats": "Chats",
+      "messages": "Messages",
+      "errors": "Errors"
+    }
+  }
+}
