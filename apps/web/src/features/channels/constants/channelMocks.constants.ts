@@ -1,5 +1,6 @@
+import type { ApiChannelMock } from '@/features/channels/typedefs/apiChannel.typedefs';
+import { ApiReplyMode } from '@/features/channels/typedefs/apiChannel.typedefs';
 import type {
-  ApiChannelMock,
   TelegramBotMock,
   TelegramBotStats,
 } from '@/features/channels/typedefs/telegramBot.typedefs';
@@ -60,17 +61,49 @@ export const TELEGRAM_BOTS: readonly TelegramBotMock[] = [
 
 export const DEFAULT_TELEGRAM_BOT = CONNECTED_TELEGRAM_BOT;
 
+export const WEBSITE_API_CHANNEL: ApiChannelMock = {
+  id: 'website',
+  name: 'Website',
+  agentId: 'agent_gift',
+  agentName: 'Gift card FAQ',
+  sendsEvents: false,
+  endpoint: 'POST https://api.agents.example/v1/channels/ch_7Hk2/messages',
+  secretMasked: 'demo_secret_••••••••••••••••Q4',
+  replyMode: ApiReplyMode.Response,
+  webhook: 'https://demo-salon.example/hooks/agent',
+  exampleRequest: `curl -X POST https://api.agents.example/v1/channels/ch_7Hk2/messages \\
+  -H "Authorization: Bearer $KEY" \\
+  -d '{ "user_id": "site-8812",
+        "text": "Can I use a gift card online?" }'`,
+  exampleResponse: `{ "conversation_id": "cv_31a",
+  "messages": [
+    "Yes — enter the code at checkout."
+  ],
+  "status": "answered" }`,
+};
+
+export const SALON_CRM_API_CHANNEL: ApiChannelMock = {
+  id: 'salon_crm',
+  name: 'Salon CRM',
+  agentId: 'agent_salon',
+  agentName: 'Salon assistant',
+  sendsEvents: true,
+  endpoint: 'POST https://api.agents.example/v1/channels/ch_9Pq4/messages',
+  secretMasked: 'demo_secret_••••••••••••••••R7',
+  replyMode: ApiReplyMode.Webhook,
+  webhook: 'https://demo-salon.example/hooks/crm',
+  exampleRequest: `curl -X POST https://api.agents.example/v1/channels/ch_9Pq4/messages \\
+  -H "Authorization: Bearer $KEY" \\
+  -d '{ "user_id": "crm-4410",
+        "text": "Book a cut for Friday" }'`,
+  exampleResponse: `{ "conversation_id": "cv_44b",
+  "messages": [],
+  "status": "escalated" }`,
+};
+
 export const API_CHANNEL_MOCKS: readonly ApiChannelMock[] = [
-  {
-    id: 'website',
-    name: 'Website',
-    agentName: 'Gift card FAQ',
-    sendsEvents: false,
-  },
-  {
-    id: 'salon_crm',
-    name: 'Salon CRM',
-    agentName: 'Salon assistant',
-    sendsEvents: true,
-  },
+  WEBSITE_API_CHANNEL,
+  SALON_CRM_API_CHANNEL,
 ];
+
+export const DEFAULT_API_CHANNEL = WEBSITE_API_CHANNEL;

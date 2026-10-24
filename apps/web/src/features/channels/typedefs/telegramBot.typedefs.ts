@@ -26,10 +26,3 @@ export interface TelegramBotMock {
   readonly typingIndicator: boolean;
   readonly stats: TelegramBotStats | null;
 }
-
-export interface ApiChannelMock {
-  readonly id: string;
-  readonly name: string;
-  readonly agentName: string;
-  readonly sendsEvents: boolean;
-}

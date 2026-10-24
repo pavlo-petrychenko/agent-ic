@@ -4,7 +4,7 @@ import {
   DEFAULT_TELEGRAM_BOT,
   TELEGRAM_BOT_AGENT_OPTIONS,
   TELEGRAM_BOTS,
-} from '@/features/channels/constants/telegramBot.constants';
+} from '@/features/channels/constants/channelMocks.constants';
 import type { TelegramBotPageProps } from '@/features/channels/containers/TelegramBotPage/TelegramBotPage.typedefs';
 import { channelsHref } from '@/features/channels/logic/helpers/route.helpers';
 import { DisconnectTelegramBotDialog } from '@/features/channels/view/DisconnectTelegramBotDialog';
