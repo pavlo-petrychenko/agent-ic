@@ -94,6 +94,15 @@
         "disconnect": "Disconnect",
         "save": "Save"
       },
+      "disconnectDialog": {
+        "title": "Disconnect {{username}}?",
+        "description": "Telegram bot · answered by {{agent}}",
+        "body": "We remove our webhook and stop receiving this bot’s messages.",
+        "bodyWithApi": "We remove our webhook and stop receiving this bot’s messages. {{agent}} keeps answering through API · {{channel}}.",
+        "warning": "Open Telegram chats stay readable in the Inbox, but nobody can reply to them until a bot is connected again.",
+        "cancel": "Cancel",
+        "confirm": "Disconnect"
+      },
       "connection": {
         "title": "Connection",
         "connected": "Connected",
