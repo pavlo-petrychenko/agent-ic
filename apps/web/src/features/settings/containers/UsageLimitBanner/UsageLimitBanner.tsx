@@ -18,9 +18,9 @@ export function UsageLimitBanner({ workspaceId }: UsageLimitBannerProps) {
   const router = useRouter();
   const now = useUsageNow();
   const { status, limitReached } = useUsageStatus();
-  const workspace = useActiveWorkspace(workspaceId)?.name ?? '';
+  const workspace = useActiveWorkspace(workspaceId);
 
-  if (!limitReached || status === null) {
+  if (!limitReached || status === null || workspace === null) {
     return null;
   }
 
@@ -30,7 +30,7 @@ export function UsageLimitBanner({ workspaceId }: UsageLimitBannerProps) {
       ? 'usage.limitBanner.textUndated'
       : 'usage.limitBanner.text',
     {
-      workspace,
+      workspace: workspace.name,
       when:
         when.kind === UsageWhenKind.Today
           ? t('usage.limitBanner.today')
