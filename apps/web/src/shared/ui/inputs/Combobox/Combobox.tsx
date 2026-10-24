@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { type ChangeEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Icon, IconName } from '@/shared/ui/foundations/Icon';
 import {
   COMBOBOX_CHECK_SIZE,
@@ -7,10 +8,45 @@ import {
   COMBOBOX_CREATE_VALUE,
   COMBOBOX_ERROR_ID_SUFFIX,
 } from '@/shared/ui/inputs/Combobox/Combobox.constants';
-import type { ComboboxOption, ComboboxProps } from '@/shared/ui/inputs/Combobox/Combobox.typedefs';
+import type {
+  ComboboxGroup,
+  ComboboxOption,
+  ComboboxProps,
+  ComboboxSection,
+} from '@/shared/ui/inputs/Combobox/Combobox.typedefs';
 import { SearchInput } from '@/shared/ui/inputs/SearchInput';
 import { Popover } from '@/shared/ui/overlays/Popover';
 import styles from '@/shared/ui/inputs/Combobox/Combobox.module.scss';
+
+function sectionsOf(
+  options: readonly ComboboxOption[],
+  groups: readonly ComboboxGroup[],
+  createOption: ComboboxOption | null,
+): readonly ComboboxSection[] {
+  const known = new Set(groups.map((group) => group.id));
+  const inGroup = (option: ComboboxOption, id: string | null) =>
+    id === null ? option.group === undefined || !known.has(option.group) : option.group === id;
+  const withCreate = (id: string | null, listed: readonly ComboboxOption[]) =>
+    createOption !== null && (createOption.group ?? null) === id
+      ? [...listed, createOption]
+      : listed;
+  return [
+    {
+      group: null,
+      options: withCreate(
+        null,
+        options.filter((option) => inGroup(option, null)),
+      ),
+    },
+    ...groups.map((group) => ({
+      group,
+      options: withCreate(
+        group.id,
+        options.filter((option) => inGroup(option, group.id)),
+      ),
+    })),
+  ];
+}
 
 export function Combobox({
   value,
@@ -20,6 +56,8 @@ export function Combobox({
   searchClearLabel,
   emptyLabel,
   createLabel = null,
+  onCreate = null,
+  groups = [],
   placeholder = null,
   invalid = false,
   error = null,
@@ -45,11 +83,27 @@ export function Combobox({
   const hasExactMatch = options.some(
     (option) => option.label.toLocaleLowerCase() === normalizedQuery,
   );
+  const creatable = groups.filter((group) => group.creatable === true).map((group) => group.id);
+  const createGroup =
+    matched.find((option) => option.group !== undefined && creatable.includes(option.group))
+      ?.group ??
+    creatable[0] ??
+    null;
   const createOption =
     createLabel !== null && trimmedQuery !== '' && !hasExactMatch
-      ? { value: COMBOBOX_CREATE_VALUE, label: createLabel(trimmedQuery) }
+      ? {
+          value: COMBOBOX_CREATE_VALUE,
+          label: createLabel(trimmedQuery),
+          ...(createGroup === null ? {} : { group: createGroup }),
+        }
       : null;
-  const visible = createOption === null ? matched : [...matched, createOption];
+  const sections = sectionsOf(matched, groups, createOption).filter(
+    (section) =>
+      section.options.length > 0 ||
+      (section.group?.hint !== undefined && section.group.hint !== null),
+  );
+  const visible = sections.flatMap((section) => section.options);
+  const selected = options.find((option) => option.value === value) ?? null;
   const activeOption = visible[Math.min(activeIndex, visible.length - 1)] ?? null;
   const describedBy = [hasError ? errorId : null, ariaDescribedBy]
     .filter((item) => item !== null && item !== undefined)
@@ -84,9 +138,66 @@ export function Combobox({
   };
 
   const select = (option: ComboboxOption) => {
-    onChange(option.value === COMBOBOX_CREATE_VALUE ? trimmedQuery : option.value);
+    if (option.value !== COMBOBOX_CREATE_VALUE) {
+      onChange(option.value);
+    } else if (onCreate === null) {
+      onChange(trimmedQuery);
+    } else {
+      onCreate(trimmedQuery, option.group ?? null);
+    }
     changeOpen(false);
   };
+
+  const renderOption = (option: ComboboxOption) => {
+    const index = visible.indexOf(option);
+    return (
+      <li key={option.value}>
+        <button
+          type="button"
+          aria-current={option.value === value ? 'true' : undefined}
+          data-active={index === activeIndex ? 'true' : undefined}
+          className={clsx(
+            styles.option,
+            index === activeIndex && styles.active,
+            option.value === value && styles.selected,
+          )}
+          onMouseEnter={() => setActiveIndex(index)}
+          onFocus={() => setActiveIndex(index)}
+          onClick={() => select(option)}
+        >
+          <span className={styles.optionLabel}>{option.label}</span>
+
+          {option.value === value && <Icon name={IconName.Check} size={COMBOBOX_CHECK_SIZE} />}
+        </button>
+      </li>
+    );
+  };
+
+  const renderGroup = (group: ComboboxGroup, listed: readonly ComboboxOption[]) => (
+    <li key={group.id}>
+      <fieldset className={styles.group}>
+        <legend className={styles.groupLabel}>{group.label}</legend>
+
+        {group.hint !== undefined && group.hint !== null && (
+          <div className={styles.groupHint}>
+            <span className={styles.groupHintText}>{group.hint}</span>
+
+            {group.action !== undefined && group.action !== null && (
+              <Button
+                variant={ButtonVariant.Ghost}
+                size={ButtonSize.Sm}
+                onClick={group.action.onSelect}
+              >
+                {group.action.label}
+              </Button>
+            )}
+          </div>
+        )}
+
+        {listed.length > 0 && <ul className={styles.options}>{listed.map(renderOption)}</ul>}
+      </fieldset>
+    </li>
+  );
 
   const handleQueryChange = (event: ChangeEvent<HTMLInputElement>) => {
     setQuery(event.target.value);
@@ -120,7 +231,7 @@ export function Combobox({
       className={clsx(styles.trigger, (invalid || hasError) && styles.invalid)}
     >
       <span className={clsx(styles.value, value === '' && styles.placeholder)}>
-        {value === '' ? (placeholder ?? '') : value}
+        {value === '' ? (placeholder ?? '') : (selected?.label ?? value)}
       </span>
 
       <Icon name={IconName.ChevronDown} size={COMBOBOX_CHEVRON_SIZE} className={styles.chevron} />
@@ -149,33 +260,15 @@ export function Combobox({
             onKeyDown={handleKeyDown}
           />
 
-          {visible.length === 0 ? (
+          {sections.length === 0 ? (
             <p className={styles.empty}>{emptyLabel}</p>
           ) : (
-            <ul ref={optionsRef} className={styles.options}>
-              {visible.map((option, index) => (
-                <li key={option.value}>
-                  <button
-                    type="button"
-                    aria-current={option.value === value ? 'true' : undefined}
-                    data-active={index === activeIndex ? 'true' : undefined}
-                    className={clsx(
-                      styles.option,
-                      index === activeIndex && styles.active,
-                      option.value === value && styles.selected,
-                    )}
-                    onMouseEnter={() => setActiveIndex(index)}
-                    onFocus={() => setActiveIndex(index)}
-                    onClick={() => select(option)}
-                  >
-                    <span className={styles.optionLabel}>{option.label}</span>
-
-                    {option.value === value && (
-                      <Icon name={IconName.Check} size={COMBOBOX_CHECK_SIZE} />
-                    )}
-                  </button>
-                </li>
-              ))}
+            <ul ref={optionsRef} className={styles.list}>
+              {sections.map((section) =>
+                section.group === null
+                  ? section.options.map(renderOption)
+                  : renderGroup(section.group, section.options),
+              )}
             </ul>
           )}
         </div>

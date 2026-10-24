@@ -8,6 +8,7 @@ import {
   FLOW_SCHEMA_VERSION,
   MAX_LABEL_LENGTH,
   MAX_OUTPUT_FIELDS,
+  ModelProviderKind,
   NodeType,
   PortName,
   MessageContentKind,
@@ -28,10 +29,19 @@ import {
   DEMO_AGENT_ID,
   DEMO_WORKSPACE_ID,
 } from '@/features/flow-builder/communication/fixtures/flowBuilderDraft.fixture';
+import {
+  OPENAI_KEY_MODELS,
+  llmKeyModelsFailedMock,
+  llmKeyModelsMock,
+} from '@/features/flow-builder/communication/fixtures/llmKeyModels.fixture';
+import {
+  OPENAI_KEY,
+  PROXY_KEY,
+  llmKeyOptionsMock,
+} from '@/features/flow-builder/communication/fixtures/llmKeyOptions.fixture';
 import { membersByRoleMock } from '@/features/flow-builder/communication/fixtures/membersByRole.fixture';
 import {
   FLASH_MODEL,
-  LUNA_MODEL,
   modelOptionsFailedMock,
   modelOptionsMock,
 } from '@/features/flow-builder/communication/fixtures/modelOptions.fixture';
@@ -101,7 +111,18 @@ const withAgent = (config: Partial<AgentNode['config']>): FlowDocument => ({
 });
 
 const store = useFlowBuilderStore.getState;
-const open = (nodeId: string, document: FlowDocument = FLOW, mocks = [modelOptionsMock()]) => {
+const WITH_KEYS = [
+  modelOptionsMock(),
+  llmKeyOptionsMock([OPENAI_KEY]),
+  llmKeyModelsMock(OPENAI_KEY.id, OPENAI_KEY_MODELS),
+];
+const LUNA_LABEL = 'GPT-6 Luna · OpenAI · $0.20 / $1.60 per 1M tokens';
+const FLASH_LABEL = 'GLM-5.3 Flash · Zhipu · $0.10 / $0.40 per 1M tokens';
+const open = (
+  nodeId: string,
+  document: FlowDocument = FLOW,
+  mocks = [modelOptionsMock(), llmKeyOptionsMock()],
+) => {
   store().load({ document, revision: 1, issues: validateFlow(document) });
   store().select({ nodeIds: [nodeId], edgeIds: [] });
   return renderWithProviders(
@@ -399,29 +420,30 @@ describe('InspectorPanel', () => {
 
   it('explains a failed model list and loads it again', async () => {
     const user = userEvent.setup();
-    open('agent', AI_FLOW, [modelOptionsFailedMock(), modelOptionsMock()]);
+    open('agent', AI_FLOW, [modelOptionsFailedMock(), modelOptionsMock(), llmKeyOptionsMock()]);
 
     expect(await screen.findByText('The models couldn’t be loaded.')).toBeVisible();
     await user.click(screen.getByRole('button', { name: 'Try again' }));
 
-    const model = screen.getByRole('combobox', { name: 'Model' });
-    await waitFor(() => expect(within(model).getAllByRole('option')).toHaveLength(3));
-    expect(screen.queryByText('The models couldn’t be loaded.')).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByText('The models couldn’t be loaded.')).not.toBeInTheDocument(),
+    );
+    await user.click(screen.getByRole('button', { name: 'Model' }));
+    await screen.findByRole('button', { name: LUNA_LABEL });
+    const platform = screen.getByRole('group', { name: 'Platform models' });
+    expect(within(platform).getAllByRole('button')).toHaveLength(2);
   });
 
-  it('picks a model, then a reasoning level that model offers', async () => {
+  it('picks a platform model, then a reasoning level that model offers', async () => {
     const user = userEvent.setup();
     open('agent', AI_FLOW);
 
-    const model = screen.getByRole('combobox', { name: 'Model' });
+    const model = screen.getByRole('button', { name: 'Model' });
     expect(model).toHaveAccessibleDescription('Pick a model');
-    await waitFor(() => expect(within(model).getAllByRole('option')).toHaveLength(3));
-    expect(
-      within(model).getByRole('option', {
-        name: 'GPT-6 Luna · OpenAI · $0.20 / $1.60 per 1M tokens',
-      }),
-    ).toBeInTheDocument();
-    await user.selectOptions(model, LUNA_MODEL.id);
+    await user.click(model);
+    await user.click(await screen.findByRole('button', { name: LUNA_LABEL }));
+    expect(model).toHaveTextContent(LUNA_LABEL);
+    expect(screen.getByText('Platform-provided')).toBeVisible();
     const reasoning = screen.getByRole('combobox', { name: 'Reasoning' });
     expect(
       within(reasoning)
@@ -429,12 +451,95 @@ describe('InspectorPanel', () => {
         .map((option) => option.textContent),
     ).toEqual(['Default (Low)', 'Low', 'High']);
     await user.selectOptions(reasoning, ReasoningLevel.High);
-    await user.selectOptions(model, FLASH_MODEL.id);
+    await user.click(model);
+    await user.click(screen.getByRole('button', { name: FLASH_LABEL }));
 
     expect(node('agent')).toMatchObject({
-      config: { model: { model: FLASH_MODEL.id }, reasoning: null },
+      config: {
+        model: { provider: { kind: ModelProviderKind.Platform }, model: FLASH_MODEL.id },
+        reasoning: null,
+      },
     });
     expect(screen.queryByRole('combobox', { name: 'Reasoning' })).not.toBeInTheDocument();
+  });
+
+  it('does not offer a typed model id without a workspace key', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW);
+
+    await user.click(screen.getByRole('button', { name: 'Model' }));
+    await screen.findByRole('button', { name: LUNA_LABEL });
+    await user.type(screen.getByRole('searchbox', { name: 'Search models' }), 'o3-pro');
+
+    expect(screen.getByText('No models found')).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Use “o3-pro”' })).not.toBeInTheDocument();
+  });
+
+  it('picks a model of a workspace key and names the key', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW, WITH_KEYS);
+
+    const model = screen.getByRole('button', { name: 'Model' });
+    await user.click(model);
+    const key = await screen.findByRole('group', { name: 'OpenAI · your key' });
+    await user.click(await within(key).findByRole('button', { name: 'gpt-4o-mini' }));
+
+    expect(node('agent')).toMatchObject({
+      config: {
+        model: {
+          provider: { kind: ModelProviderKind.Workspace, providerKeyId: OPENAI_KEY.id },
+          model: 'gpt-4o-mini',
+        },
+        reasoning: null,
+      },
+    });
+    expect(model).toHaveTextContent('gpt-4o-mini');
+    expect(screen.getByText('Your key · OpenAI')).toBeVisible();
+  });
+
+  it('uses a typed model id with the key', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW, WITH_KEYS);
+
+    const model = screen.getByRole('button', { name: 'Model' });
+    await user.click(model);
+    const key = await screen.findByRole('group', { name: 'OpenAI · your key' });
+    await within(key).findByRole('button', { name: 'gpt-4o' });
+    await user.type(screen.getByRole('searchbox', { name: 'Search models' }), 'o3-pro');
+    await user.click(screen.getByRole('button', { name: 'Use “o3-pro”' }));
+
+    expect(node('agent')).toMatchObject({
+      config: {
+        model: {
+          provider: { kind: ModelProviderKind.Workspace, providerKeyId: OPENAI_KEY.id },
+          model: 'o3-pro',
+        },
+      },
+    });
+    expect(model).toHaveTextContent('o3-pro');
+  });
+
+  it('explains a key whose models failed and loads them again', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW, [
+      modelOptionsMock(),
+      llmKeyOptionsMock([OPENAI_KEY, PROXY_KEY]),
+      llmKeyModelsMock(OPENAI_KEY.id, OPENAI_KEY_MODELS),
+      llmKeyModelsFailedMock(PROXY_KEY.id),
+      llmKeyModelsMock(PROXY_KEY.id, ['llama3:8b']),
+    ]);
+
+    await user.click(screen.getByRole('button', { name: 'Model' }));
+    const proxy = await screen.findByRole('group', { name: 'Local proxy · your key' });
+    expect(await within(proxy).findByText('This key’s models couldn’t be loaded.')).toBeVisible();
+    await user.click(within(proxy).getByRole('button', { name: 'Try again' }));
+
+    expect(await within(proxy).findByRole('button', { name: 'llama3:8b' })).toBeVisible();
+    expect(
+      within(screen.getByRole('group', { name: 'OpenAI · your key' })).getByRole('button', {
+        name: 'gpt-4o',
+      }),
+    ).toBeVisible();
   });
 
   it('shows the failure path and changes the retries', async () => {
@@ -451,8 +556,12 @@ describe('InspectorPanel', () => {
     const user = userEvent.setup();
     open('tagger', AI_FLOW);
 
-    const model = screen.getByRole('combobox', { name: 'Model' });
-    await waitFor(() => expect(within(model).getAllByRole('option')).toHaveLength(2));
+    await user.click(screen.getByRole('button', { name: 'Model' }));
+    const luna = await screen.findByRole('button', { name: LUNA_LABEL });
+    expect(
+      within(screen.getByRole('group', { name: 'Platform models' })).getAllByRole('button'),
+    ).toEqual([luna]);
+    await user.keyboard('{Escape}');
     await user.click(screen.getByRole('switch', { name: 'Include the current message' }));
 
     expect(node('tagger')).toMatchObject({ config: { input: { includeCurrentMessage: false } } });
