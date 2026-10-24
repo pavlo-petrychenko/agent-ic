@@ -30,6 +30,7 @@ import { channelFor } from '@/platform/live-updates/helpers/channel.helpers';
 import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
 import { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';
 import type { ChannelStream } from '@/platform/live-updates/typedefs/channel.typedefs';
+import { ObservabilityModule } from '@/platform/observability/observability.module';
 import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { QueuesService } from '@/platform/queues/services/queues.service';
@@ -85,6 +86,7 @@ export const createConversationsTestbed = async (
       LiveUpdatesModule.forRole(selection.role),
       RedisModule,
       RateLimitModule,
+      ObservabilityModule.forRole(selection.role),
       OutboundHttpModule,
       SecretsModule,
       AgentsNeighboursModule.forRole(selection.role),
