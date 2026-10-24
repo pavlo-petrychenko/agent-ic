@@ -1,0 +1,6 @@
+mutation SetLlmKeyFallback($id: ID!, $enabled: Boolean!) {
+  setLlmKeyFallback(id: $id, enabled: $enabled) {
+    id
+    fallbackToPlatform
+  }
+}
