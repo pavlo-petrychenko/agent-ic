@@ -13,7 +13,6 @@ import { optionalInviteTokenSchema } from '@/modules/identity/schemas/workspace-
 import { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
 import { InviteLinksService } from '@/modules/identity/services/invite-links.service';
 import type { SignUpInput, SignUpResult } from '@/modules/identity/typedefs/account.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
@@ -31,7 +30,6 @@ export class SignUpUseCase {
     private readonly invites: InviteLinksService,
     private readonly domainEvents: DomainEventsService,
     private readonly secureTokens: SecureTokenService,
-    private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
 
@@ -43,7 +41,6 @@ export class SignUpUseCase {
     const passwordHash = await hashPassword(data.password);
     const browserBinding = this.secureTokens.generate();
     return this.txHost.withTransaction(async () => {
-      const now = this.clock.now();
       const user = await this.users.upsertUnconfirmed({
         id: this.ids.generate(),
         email: data.email,
@@ -52,8 +49,6 @@ export class SignUpUseCase {
         locale: data.locale,
         pendingInviteLinkId: invite?.id ?? null,
         confirmationBindingHash: browserBinding.hash,
-        createdAt: now,
-        updatedAt: now,
       });
       if (user === null) {
         throw new EmailTakenError();

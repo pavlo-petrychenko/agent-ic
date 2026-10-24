@@ -5,6 +5,7 @@ import { LlmKeysModule } from '@/modules/llm-keys';
 import { LlmKeysRepository } from '@/modules/llm-keys/repositories/llm-keys.repository';
 import type { NewLlmKey } from '@/modules/llm-keys/typedefs/llm-key.typedefs';
 import { CacheModule } from '@/platform/cache/cache.module';
+import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
@@ -23,6 +24,7 @@ import {
   TEST_LLM_KEY_AUTHOR_PASSWORD_HASH,
 } from '@test/support/constants/llm-keys-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { uniqueEmail } from '@test/support/fixtures/identity.fixture';
 import { newLlmKey } from '@test/support/fixtures/llm-keys.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
@@ -47,6 +49,7 @@ export const createLlmKeysTestingModule = (): Promise<TestingModule> => {
     [
       { token: LlmModelListGateway, value: models },
       { token: FakeLlmModelListGateway, value: models },
+      { token: ClockService, value: new ManualClock(LLM_KEYS_TEST_START) },
     ],
     [UsageSeamsFakeModule],
   );
@@ -60,8 +63,6 @@ export const seedLlmKeyAuthor = async (testingModule: TestingModule): Promise<st
     name: TEST_LLM_KEY_AUTHOR_NAME,
     passwordHash: TEST_LLM_KEY_AUTHOR_PASSWORD_HASH,
     locale: Locale.En,
-    createdAt: LLM_KEYS_TEST_START,
-    updatedAt: LLM_KEYS_TEST_START,
   });
   return userId;
 };

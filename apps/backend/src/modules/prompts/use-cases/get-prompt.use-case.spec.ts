@@ -5,12 +5,12 @@ import { PromptNotFoundError } from '@/modules/prompts/errors/prompt-not-found.e
 import { GetPromptUseCase } from '@/modules/prompts/use-cases/get-prompt.use-case';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
-  PROMPTS_TEST_START,
   TEST_PROMPT_AUTHOR_NAME,
   TEST_PROMPT_NAME,
   TEST_PROMPT_NOTE,
   TEST_PROMPT_TEXT,
 } from '@test/support/constants/prompts-testing.constants';
+import { manualClockOf } from '@test/support/helpers/manual-clock.helpers';
 import {
   createPromptsTestingModule,
   promptsCtx,
@@ -42,6 +42,7 @@ describe('GetPromptUseCase', () => {
     const authorId = await seedPromptAuthor(testingModule);
     const folderId = await seedPromptFolder(testingModule, workspaceId);
     const promptId = await seedPrompt(testingModule, workspaceId, folderId);
+    const seededAt = manualClockOf(testingModule).now();
     await seedPromptVersion(testingModule, workspaceId, promptId, {
       number: 1,
       text: 'First version text',
@@ -62,8 +63,8 @@ describe('GetPromptUseCase', () => {
       id: publicPromptId(testingModule, promptId),
       name: TEST_PROMPT_NAME,
       folderId: publicPromptFolderId(testingModule, folderId),
-      createdAt: PROMPTS_TEST_START,
-      updatedAt: PROMPTS_TEST_START,
+      createdAt: seededAt,
+      updatedAt: seededAt,
     });
     expect(detail.latestVersion).toMatchObject({
       id: ids.toPublic(IdPrefix.PromptVersion, latestId),
@@ -71,7 +72,7 @@ describe('GetPromptUseCase', () => {
       text: TEST_PROMPT_TEXT,
       note: TEST_PROMPT_NOTE,
       author: { name: TEST_PROMPT_AUTHOR_NAME },
-      createdAt: PROMPTS_TEST_START,
+      createdAt: seededAt,
     });
   });
 

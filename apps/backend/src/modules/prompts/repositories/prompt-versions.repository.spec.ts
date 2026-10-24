@@ -9,6 +9,7 @@ import type { NewPromptVersion } from '@/modules/prompts/typedefs/prompt-version
 import type { NewPrompt } from '@/modules/prompts/typedefs/prompt.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { CLOCK_TICK_MS } from '@test/support/constants/manual-clock.constants';
 import {
   CHECK_VIOLATION,
   FOREIGN_KEY_VIOLATION,
@@ -17,12 +18,13 @@ import {
 } from '@test/support/constants/postgres-errors.constants';
 import {
   PROMPTS_TEST_LATER,
-  PROMPTS_TEST_START,
   TEST_PROMPT_NEW_NAME,
   TEST_PROMPT_NOTE,
   TEST_PROMPT_TEXT,
 } from '@test/support/constants/prompts-testing.constants';
+import type { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { newFolder, newPrompt, newPromptVersion } from '@test/support/fixtures/prompts.fixture';
+import { manualClockOf } from '@test/support/helpers/manual-clock.helpers';
 import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import { createPromptsTestingModule } from '@test/support/helpers/prompts-testing.helpers';
 
@@ -38,6 +40,7 @@ describe('PromptVersionsRepository', () => {
   let repository: PromptVersionsRepository;
   let tenants: TenantTransactionService;
   let ids: IdService;
+  let clock: ManualClock;
 
   beforeAll(async () => {
     testingModule = await createPromptsTestingModule();
@@ -46,6 +49,7 @@ describe('PromptVersionsRepository', () => {
     repository = testingModule.get(PromptVersionsRepository);
     tenants = testingModule.get(TenantTransactionService);
     ids = testingModule.get(IdService);
+    clock = manualClockOf(testingModule);
   });
 
   afterAll(async () => {
@@ -81,6 +85,7 @@ describe('PromptVersionsRepository', () => {
   it('stores a version and finds it by id', async () => {
     const workspaceId = ids.generate();
     const promptId = await insertPrompt(workspaceId);
+    clock.advanceBy(CLOCK_TICK_MS);
     const versionId = await insertVersion(workspaceId, promptId);
 
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, versionId));
@@ -93,7 +98,7 @@ describe('PromptVersionsRepository', () => {
       text: TEST_PROMPT_TEXT,
       note: TEST_PROMPT_NOTE,
       authorId: null,
-      createdAt: PROMPTS_TEST_START,
+      createdAt: clock.now(),
       deletedAt: null,
     });
   });

@@ -7,14 +7,24 @@ import type { PgColumn } from 'drizzle-orm/pg-core';
 import { REPLACING_SESSION_ALIAS } from '@/modules/identity/constants/session.constants';
 import { sessions } from '@/modules/identity/db/sessions.table';
 import type { NewSession, SessionRecord } from '@/modules/identity/typedefs/session.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class SessionsRepository {
-  constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
+  constructor(
+    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly clock: ClockService,
+  ) {}
 
-  async insert(session: NewSession): Promise<void> {
-    await this.txHost.tx.insert(sessions).values(session);
+  async insert(session: NewSession): Promise<SessionRecord> {
+    return storedRow(
+      await this.txHost.tx
+        .insert(sessions)
+        .values({ ...session, createdAt: this.clock.now() })
+        .returning(),
+    );
   }
 
   async findByTokenHashForUpdate(tokenHash: string): Promise<SessionRecord | null> {

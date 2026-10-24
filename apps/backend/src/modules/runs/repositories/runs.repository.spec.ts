@@ -9,10 +9,10 @@ import {
 } from '@test/support/constants/runs-testing.constants';
 import { newRun } from '@test/support/fixtures/runs.fixture';
 import { createRunsTestbed, seedRun } from '@test/support/helpers/runs-testing.helpers';
-import type { RunsTestbed } from '@test/support/typedefs/runs-testing.typedefs';
+import type { RunExecutionTestbed } from '@test/support/typedefs/runs-testing.typedefs';
 
 describe('RunsRepository', () => {
-  let testbed: RunsTestbed;
+  let testbed: RunExecutionTestbed;
 
   beforeAll(async () => {
     testbed = await createRunsTestbed();
@@ -22,7 +22,7 @@ describe('RunsRepository', () => {
     await testbed.module.close();
   });
 
-  it('stores a queued run and finds it by id', async () => {
+  it('stores a queued run, stamps createdAt and finds it by id', async () => {
     const run = await seedRun(testbed);
 
     const stored = await testbed.tenants.run(run.workspaceId, () =>
@@ -35,6 +35,7 @@ describe('RunsRepository', () => {
       traceId: null,
       startedAt: null,
       finishedAt: null,
+      createdAt: testbed.clock.now(),
     });
   });
 

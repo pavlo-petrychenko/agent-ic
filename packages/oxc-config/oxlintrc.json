@@ -62,6 +62,34 @@
       }
     },
     {
+      "files": ["**/apps/backend/src/**/db/*.ts"],
+      "rules": {
+        "no-restricted-properties": [
+          "error",
+          {
+            "property": "$onUpdateFn",
+            "message": "Row timestamps are stamped by the repository from ClockService, not by the table."
+          },
+          {
+            "property": "$onUpdate",
+            "message": "Row timestamps are stamped by the repository from ClockService, not by the table."
+          },
+          {
+            "property": "$defaultFn",
+            "message": "Row timestamps are stamped by the repository from ClockService, not by the table."
+          },
+          {
+            "property": "$default",
+            "message": "Row timestamps are stamped by the repository from ClockService, not by the table."
+          },
+          {
+            "property": "defaultNow",
+            "message": "Row timestamps are stamped by the repository from ClockService, not by the table."
+          }
+        ]
+      }
+    },
+    {
       "files": ["**/apps/backend/src/platform/config/**"],
       "rules": {
         "node/no-process-env": "off"

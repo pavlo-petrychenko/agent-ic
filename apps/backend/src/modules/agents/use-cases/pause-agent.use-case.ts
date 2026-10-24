@@ -34,14 +34,11 @@ export class PauseAgentUseCase {
         throw new AgentNotFoundError();
       }
       const pause = buildPauseSettings(mode, awayMessage, agent.pausedAt ?? now);
-      await this.agents.setPause(workspaceId, agentId, pause, now);
-      return this.views.agentView(workspaceId, {
-        ...agent,
-        pausedAt: pause.pausedAt,
-        pauseMode: pause.mode,
-        awayMessage: pause.awayMessage,
-        updatedAt: now,
-      });
+      const paused = await this.agents.setPause(workspaceId, agentId, pause);
+      if (paused === null) {
+        throw new AgentNotFoundError();
+      }
+      return this.views.agentView(workspaceId, paused);
     });
   }
 }

@@ -31,6 +31,7 @@ import {
 import { emptyFlow, newAgent } from '@test/support/fixtures/agents.fixture';
 import { uniqueEmail } from '@test/support/fixtures/identity.fixture';
 import { newFolder, newPrompt } from '@test/support/fixtures/prompts.fixture';
+import { rowTimestamps } from '@test/support/helpers/row-timestamps.helpers';
 import type { SeededOrphans } from '@test/support/typedefs/migration-testing.typedefs';
 
 const insertWorkspace = async (db: AppDatabase, userId: string): Promise<string> => {
@@ -88,12 +89,13 @@ export const seedOrphans = async (db: AppDatabase): Promise<SeededOrphans> => {
     deletedFolderId: randomUUID(),
     deletedPromptId: randomUUID(),
   };
-  await db
-    .insert(agents)
-    .values([
-      newAgent(seeded.keptAgentId, workspaceId, { liveVersionId: randomUUID() }),
-      newAgent(seeded.deletedAgentId, missingWorkspaceId),
-    ]);
+  await db.insert(agents).values([
+    {
+      ...newAgent(seeded.keptAgentId, workspaceId, { liveVersionId: randomUUID() }),
+      ...rowTimestamps(AGENTS_TEST_START),
+    },
+    { ...newAgent(seeded.deletedAgentId, missingWorkspaceId), ...rowTimestamps(AGENTS_TEST_START) },
+  ]);
   await db.insert(agentVersions).values({
     id: seeded.deletedVersionId,
     workspaceId: missingWorkspaceId,
@@ -133,13 +135,17 @@ export const seedOrphans = async (db: AppDatabase): Promise<SeededOrphans> => {
     createdAt: AGENTS_TEST_START,
   });
   const otherFolderId = randomUUID();
-  await db
-    .insert(promptFolders)
-    .values([
-      newFolder(seeded.deletedFolderId, missingWorkspaceId),
-      newFolder(otherFolderId, otherWorkspaceId),
-    ]);
-  await db.insert(prompts).values(newPrompt(seeded.deletedPromptId, workspaceId, otherFolderId));
+  await db.insert(promptFolders).values([
+    {
+      ...newFolder(seeded.deletedFolderId, missingWorkspaceId),
+      ...rowTimestamps(AGENTS_TEST_START),
+    },
+    { ...newFolder(otherFolderId, otherWorkspaceId), ...rowTimestamps(AGENTS_TEST_START) },
+  ]);
+  await db.insert(prompts).values({
+    ...newPrompt(seeded.deletedPromptId, workspaceId, otherFolderId),
+    ...rowTimestamps(AGENTS_TEST_START),
+  });
   return seeded;
 };
 

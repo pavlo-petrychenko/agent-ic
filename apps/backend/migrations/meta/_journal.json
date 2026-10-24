@@ -190,6 +190,13 @@
       "when": 1792873986880,
       "tag": "0026_drop-redundant-indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1792874217264,
+      "tag": "0027_workspace-limits-updated-at",
+      "breakpoints": true
     }
   ]
 }

@@ -98,8 +98,7 @@ describe('the simulator end to end', () => {
         throw new MissingTestDataError(agent.agentId);
       }
       const changes = { flow: triggerFlow(), note: null, authorId: TEST_EDITOR_ID };
-      const at = worker.clock.now();
-      await worker.versions.updateDraft(agent.workspaceId, draft.id, draft.revision, changes, at);
+      await worker.versions.updateDraft(agent.workspaceId, draft.id, draft.revision, changes);
     });
 
   beforeAll(async () => {

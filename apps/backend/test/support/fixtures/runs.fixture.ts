@@ -93,7 +93,6 @@ export const newRun = (testbed: Pick<RunsTestbed, 'ids'>, workspaceId: string): 
   trigger: RunTrigger.Message,
   status: RunStatus.Queued,
   lastCoveredMessageId: testbed.ids.generate(),
-  createdAt: RUNS_TEST_START,
 });
 
 export const newRunStep = (

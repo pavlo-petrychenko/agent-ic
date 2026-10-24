@@ -56,7 +56,6 @@ export class SessionsService {
       familyId,
       tokenHash: refresh.hash,
       expiresAt: refreshTokenExpiresAt,
-      createdAt: now,
     });
     const access = await this.accessTokens.issue({ userId, sessionId });
     return {

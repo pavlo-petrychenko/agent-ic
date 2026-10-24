@@ -38,7 +38,6 @@ export class EmailConfirmationsService {
       purpose: EmailTokenPurpose.EmailConfirmation,
       tokenHash: hash,
       expiresAt: addSeconds(now, EMAIL_CONFIRMATION_TTL_SECONDS),
-      createdAt: now,
     });
     return { token, email: user.email, name: user.name, locale: user.locale };
   }

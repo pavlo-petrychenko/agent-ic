@@ -6,16 +6,28 @@ import { promptNamesLockKey } from '@/modules/prompts/helpers/prompt-name.helper
 import type {
   NewPrompt,
   Prompt,
+  PromptChanges,
   PromptListFilters,
 } from '@/modules/prompts/typedefs/prompt.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class PromptsRepository {
-  constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
+  constructor(
+    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly clock: ClockService,
+  ) {}
 
-  async insert(prompt: NewPrompt): Promise<void> {
-    await this.txHost.tx.insert(prompts).values(prompt);
+  async insert(prompt: NewPrompt): Promise<Prompt> {
+    const now = this.clock.now();
+    return storedRow(
+      await this.txHost.tx
+        .insert(prompts)
+        .values({ ...prompt, createdAt: now, updatedAt: now })
+        .returning(),
+    );
   }
 
   async lockNames(workspaceId: string): Promise<void> {
@@ -89,8 +101,8 @@ export class PromptsRepository {
     return this.update(workspaceId, promptId, { folderId });
   }
 
-  async touch(workspaceId: string, promptId: string, updatedAt: Date): Promise<boolean> {
-    return (await this.update(workspaceId, promptId, { updatedAt })) !== null;
+  touch(workspaceId: string, promptId: string): Promise<Prompt | null> {
+    return this.update(workspaceId, promptId, {});
   }
 
   async softDelete(workspaceId: string, promptId: string, deletedAt: Date): Promise<boolean> {
@@ -104,11 +116,11 @@ export class PromptsRepository {
   private async update(
     workspaceId: string,
     promptId: string,
-    changes: Partial<NewPrompt>,
+    changes: PromptChanges,
   ): Promise<Prompt | null> {
     const [prompt] = await this.txHost.tx
       .update(prompts)
-      .set(changes)
+      .set({ ...changes, updatedAt: this.clock.now() })
       .where(and(this.activeWhere(workspaceId), eq(prompts.id, promptId)))
       .returning();
     return prompt ?? null;

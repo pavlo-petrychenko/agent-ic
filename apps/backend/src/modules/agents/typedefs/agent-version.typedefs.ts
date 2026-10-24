@@ -27,7 +27,7 @@ export interface AgentVersion {
   readonly updatedAt: Date;
 }
 
-export type NewAgentVersion = typeof agentVersions.$inferInsert;
+export type NewAgentVersion = Omit<typeof agentVersions.$inferInsert, 'createdAt' | 'updatedAt'>;
 
 export interface VersionCopy {
   readonly id: string;
@@ -35,7 +35,6 @@ export interface VersionCopy {
   readonly number: number | null;
   readonly authorId: string | null;
   readonly publishedAt: Date | null;
-  readonly at: Date;
 }
 
 export interface AgentVersionLabels {
@@ -57,6 +56,11 @@ export interface StoredFlow {
 export interface AgentVersionSummaryRow extends Omit<AgentVersionSummary, 'hasUnpublishedChanges'> {
   readonly draft: StoredFlow | null;
   readonly live: StoredFlow | null;
+}
+
+export interface SavedDraft {
+  readonly revision: number;
+  readonly updatedAt: Date;
 }
 
 export interface DraftChanges {

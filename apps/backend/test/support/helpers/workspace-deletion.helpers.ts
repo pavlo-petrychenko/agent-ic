@@ -28,6 +28,7 @@ import { newVersion } from '@test/support/fixtures/agents.fixture';
 import { newFolder, newPrompt, newPromptVersion } from '@test/support/fixtures/prompts.fixture';
 import { newRunStep } from '@test/support/fixtures/runs.fixture';
 import { ensureAgentRow, ensureRunParents } from '@test/support/helpers/parent-rows.helpers';
+import { rowTimestamps } from '@test/support/helpers/row-timestamps.helpers';
 import type { TestWorkspace } from '@test/support/typedefs/workspace-testing.typedefs';
 
 export const seedWorkspaceContent = async (
@@ -49,20 +50,20 @@ export const seedWorkspaceContent = async (
     trigger: RunTrigger.Message,
     status: RunStatus.Queued,
     lastCoveredMessageId: ids.generate(),
-    createdAt: now,
   };
   await ensureAgentRow(app, workspaceId, agentId);
-  await db.insert(agentVersions).values(
-    newVersion(run.versionId, workspaceId, agentId, {
+  await db.insert(agentVersions).values({
+    ...newVersion(run.versionId, workspaceId, agentId, {
       kind: AgentVersionKind.Published,
       number: TEST_PUBLISHED_NUMBER,
       publishedAt: now,
       authorId: ownerId,
     }),
-  );
+    ...rowTimestamps(now),
+  });
   await db.update(agents).set({ liveVersionId: run.versionId }).where(eq(agents.id, agentId));
   await ensureRunParents(app, run);
-  await db.insert(runs).values(run);
+  await db.insert(runs).values({ ...run, createdAt: now });
   await db.insert(runSteps).values({
     ...newRunStep({ ids }, run),
     status: RunStepStatus.Running,
@@ -75,13 +76,17 @@ export const seedWorkspaceContent = async (
   await db.update(messages).set({ runId: run.id }).where(eq(messages.id, run.lastCoveredMessageId));
   const folderId = ids.generate();
   const promptId = ids.generate();
-  await db.insert(promptFolders).values(newFolder(folderId, workspaceId));
   await db
-    .insert(prompts)
-    .values(newPrompt(promptId, workspaceId, folderId, { createdByUserId: ownerId }));
-  await db
-    .insert(promptVersions)
-    .values(newPromptVersion(ids.generate(), workspaceId, promptId, { authorId: ownerId }));
+    .insert(promptFolders)
+    .values({ ...newFolder(folderId, workspaceId), ...rowTimestamps(now) });
+  await db.insert(prompts).values({
+    ...newPrompt(promptId, workspaceId, folderId, { createdByUserId: ownerId }),
+    ...rowTimestamps(now),
+  });
+  await db.insert(promptVersions).values({
+    ...newPromptVersion(ids.generate(), workspaceId, promptId, { authorId: ownerId }),
+    createdAt: now,
+  });
   await db.update(users).set({ lastWorkspaceId: workspaceId }).where(eq(users.id, ownerId));
 };
 

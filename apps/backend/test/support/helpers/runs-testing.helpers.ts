@@ -315,8 +315,7 @@ export const seedLastSimulationRuns = async (
     const snapshot = await testbed.module
       .get(AgentRuntimeReader)
       .snapshotDraft(workspaceId, agentId);
-    const createdAt = testbed.clock.now();
-    await testbed.runs.insert({ ...run, id: testedRunId, versionId: snapshot.id, createdAt });
+    await testbed.runs.insert({ ...run, id: testedRunId, versionId: snapshot.id });
   });
   return {
     workspaceId,
@@ -427,7 +426,7 @@ export const republish = async (
     const versions = testbed.module.get(AgentVersionsRepository);
     await versions.insert(newVersion(versionId, workspaceId, agentId, version));
     const agents = testbed.module.get(AgentsRepository);
-    await agents.setLiveVersion(workspaceId, agentId, versionId, testbed.clock.now());
+    await agents.setLiveVersion(workspaceId, agentId, versionId);
   });
   return versionId;
 };
@@ -457,8 +456,8 @@ export const changeAgent = async (
   const at = testbed.clock.now();
   const pause = { mode: PauseMode.AwayMessage, awayMessage: TEST_AWAY_MESSAGE, pausedAt: at };
   const changes: Readonly<Record<AgentChange, () => Promise<unknown>>> = {
-    [AgentChange.PauseWithAwayMessage]: () => agents.setPause(workspaceId, agentId, pause, at),
-    [AgentChange.Unpublish]: () => agents.setLiveVersion(workspaceId, agentId, null, at),
+    [AgentChange.PauseWithAwayMessage]: () => agents.setPause(workspaceId, agentId, pause),
+    [AgentChange.Unpublish]: () => agents.setLiveVersion(workspaceId, agentId, null),
     [AgentChange.Delete]: () => agents.delete(workspaceId, agentId, at),
   };
   await testbed.tenants.run(workspaceId, changes[change]);

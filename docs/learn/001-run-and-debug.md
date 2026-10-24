@@ -116,8 +116,8 @@ mise run db:psql app_system
 ```sql
 SELECT id, name FROM identity.workspaces WHERE name = 'Demo salon';
 
-INSERT INTO usage.workspace_limits (workspace_id, credits_limit)
-VALUES ('<workspace uuid>', 50000)
+INSERT INTO usage.workspace_limits (workspace_id, credits_limit, updated_at)
+VALUES ('<workspace uuid>', 50000, now())
 ON CONFLICT (workspace_id)
 DO UPDATE SET credits_limit = excluded.credits_limit, updated_at = now();
 ```

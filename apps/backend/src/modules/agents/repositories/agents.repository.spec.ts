@@ -10,19 +10,21 @@ import type { AppTransactionAdapter } from '@/platform/database/typedefs/transac
 import { IdService } from '@/platform/ids/services/id.service';
 import {
   AGENTS_TEST_LATER,
-  AGENTS_TEST_START,
   TEST_AGENT_NAME,
   TEST_AGENT_NEW_NAME,
   TEST_AGENT_PAGE_LIMIT,
   TEST_AWAY_MESSAGE,
 } from '@test/support/constants/agents-testing.constants';
+import { CLOCK_TICK_MS } from '@test/support/constants/manual-clock.constants';
 import { ROW_LEVEL_SECURITY_VIOLATION } from '@test/support/constants/postgres-errors.constants';
+import type { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { newAgent } from '@test/support/fixtures/agents.fixture';
 import {
   createAgentsTestingModule,
   seedAgentVersion,
   seedPublishedVersion,
 } from '@test/support/helpers/agents-testing.helpers';
+import { manualClockOf } from '@test/support/helpers/manual-clock.helpers';
 import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 describe('AgentsRepository', () => {
@@ -31,6 +33,7 @@ describe('AgentsRepository', () => {
   let tenants: TenantTransactionService;
   let ids: IdService;
   let txHost: TransactionHost<AppTransactionAdapter>;
+  let clock: ManualClock;
 
   beforeAll(async () => {
     testingModule = await createAgentsTestingModule();
@@ -38,6 +41,7 @@ describe('AgentsRepository', () => {
     txHost = testingModule.get<TransactionHost<AppTransactionAdapter>>(TransactionHost);
     tenants = testingModule.get(TenantTransactionService);
     ids = testingModule.get(IdService);
+    clock = manualClockOf(testingModule);
   });
 
   afterAll(async () => {
@@ -45,15 +49,17 @@ describe('AgentsRepository', () => {
   });
 
   const insertAgent = async (workspaceId: string): Promise<string> => {
+    clock.advanceBy(CLOCK_TICK_MS);
     const agentId = ids.generate();
     await ensureWorkspaceRow(testingModule, workspaceId);
     await tenants.run(workspaceId, () => repository.insert(newAgent(agentId, workspaceId)));
     return agentId;
   };
 
-  it('stores an agent with no versions and no pause', async () => {
+  it('stores an agent with no versions, no pause and both timestamps stamped', async () => {
     const workspaceId = ids.generate();
     const agentId = await insertAgent(workspaceId);
+    const createdAt = clock.now();
 
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, agentId));
 
@@ -65,21 +71,42 @@ describe('AgentsRepository', () => {
       pausedAt: null,
       pauseMode: null,
       awayMessage: null,
+      createdAt,
+      updatedAt: createdAt,
     });
   });
 
-  it('renames an agent and stamps the given time', async () => {
+  it('returns the stored agent from an insert', async () => {
+    const workspaceId = ids.generate();
+    const agentId = ids.generate();
+    await ensureWorkspaceRow(testingModule, workspaceId);
+
+    const stored = await tenants.run(workspaceId, () =>
+      repository.insert(newAgent(agentId, workspaceId)),
+    );
+
+    expect(stored).toMatchObject({
+      id: agentId,
+      workspaceId,
+      name: TEST_AGENT_NAME,
+      createdAt: clock.now(),
+      updatedAt: clock.now(),
+    });
+  });
+
+  it('renames an agent and stamps updatedAt', async () => {
     const workspaceId = ids.generate();
     const agentId = await insertAgent(workspaceId);
+    const createdAt = clock.now();
+    clock.advanceBy(CLOCK_TICK_MS);
 
     const renamed = await tenants.run(workspaceId, () =>
-      repository.rename(workspaceId, agentId, TEST_AGENT_NEW_NAME, AGENTS_TEST_LATER),
+      repository.rename(workspaceId, agentId, TEST_AGENT_NEW_NAME),
     );
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, agentId));
 
-    expect(renamed).toBe(true);
-    expect(found).toMatchObject({ name: TEST_AGENT_NEW_NAME, updatedAt: AGENTS_TEST_LATER });
-    expect(found?.createdAt).toEqual(AGENTS_TEST_START);
+    expect(renamed).toMatchObject({ name: TEST_AGENT_NEW_NAME, updatedAt: clock.now() });
+    expect(found).toMatchObject({ name: TEST_AGENT_NEW_NAME, createdAt, updatedAt: clock.now() });
   });
 
   it('points an agent at its draft and live versions', async () => {
@@ -89,8 +116,8 @@ describe('AgentsRepository', () => {
     const liveId = await seedPublishedVersion(testingModule, workspaceId, agentId);
 
     await tenants.run(workspaceId, async () => {
-      await repository.setDraftVersion(workspaceId, agentId, draftId, AGENTS_TEST_LATER);
-      await repository.setLiveVersion(workspaceId, agentId, liveId, AGENTS_TEST_LATER);
+      await repository.setDraftVersion(workspaceId, agentId, draftId);
+      await repository.setLiveVersion(workspaceId, agentId, liveId);
     });
     const found = await tenants.run(workspaceId, () => repository.findById(workspaceId, agentId));
 
@@ -102,21 +129,14 @@ describe('AgentsRepository', () => {
     const agentId = await insertAgent(workspaceId);
 
     await tenants.run(workspaceId, () =>
-      repository.setPause(
-        workspaceId,
-        agentId,
-        {
-          mode: PauseMode.AwayMessage,
-          awayMessage: TEST_AWAY_MESSAGE,
-          pausedAt: AGENTS_TEST_LATER,
-        },
-        AGENTS_TEST_LATER,
-      ),
+      repository.setPause(workspaceId, agentId, {
+        mode: PauseMode.AwayMessage,
+        awayMessage: TEST_AWAY_MESSAGE,
+        pausedAt: AGENTS_TEST_LATER,
+      }),
     );
     const paused = await tenants.run(workspaceId, () => repository.findById(workspaceId, agentId));
-    await tenants.run(workspaceId, () =>
-      repository.setPause(workspaceId, agentId, null, AGENTS_TEST_LATER),
-    );
+    await tenants.run(workspaceId, () => repository.setPause(workspaceId, agentId, null));
     const resumed = await tenants.run(workspaceId, () => repository.findById(workspaceId, agentId));
 
     expect(paused).toMatchObject({
@@ -149,18 +169,16 @@ describe('AgentsRepository', () => {
   it('deletes an agent once, stamping the time, and then neither finds nor changes it', async () => {
     const workspaceId = ids.generate();
     const agentId = await insertAgent(workspaceId);
+    clock.advanceBy(CLOCK_TICK_MS);
+    const deletedOn = clock.now();
 
     const deleted = await tenants.run(workspaceId, () =>
       repository.delete(workspaceId, agentId, AGENTS_TEST_LATER),
     );
+    clock.advanceBy(CLOCK_TICK_MS);
     const after = await tenants.run(workspaceId, async () => ({
       deletedAgain: await repository.delete(workspaceId, agentId, AGENTS_TEST_LATER),
-      renamed: await repository.rename(
-        workspaceId,
-        agentId,
-        TEST_AGENT_NEW_NAME,
-        AGENTS_TEST_LATER,
-      ),
+      renamed: await repository.rename(workspaceId, agentId, TEST_AGENT_NEW_NAME),
       found: await repository.findById(workspaceId, agentId),
       locked: await repository.findByIdForUpdate(workspaceId, agentId),
       stored: await txHost.tx
@@ -172,10 +190,10 @@ describe('AgentsRepository', () => {
     expect({ deleted, ...after }).toEqual({
       deleted: true,
       deletedAgain: false,
-      renamed: false,
+      renamed: null,
       found: null,
       locked: null,
-      stored: [{ deletedAt: AGENTS_TEST_LATER, updatedAt: AGENTS_TEST_LATER }],
+      stored: [{ deletedAt: AGENTS_TEST_LATER, updatedAt: deletedOn }],
     });
   });
 
@@ -226,19 +244,14 @@ describe('AgentsRepository', () => {
       const fromB = await tenants.run(workspaceB, async () => ({
         found: await repository.findById(workspaceA, agentId),
         page: await repository.listPage(workspaceA, null, TEST_AGENT_PAGE_LIMIT),
-        renamed: await repository.rename(
-          workspaceA,
-          agentId,
-          TEST_AGENT_NEW_NAME,
-          AGENTS_TEST_LATER,
-        ),
+        renamed: await repository.rename(workspaceA, agentId, TEST_AGENT_NEW_NAME),
         deleted: await repository.delete(workspaceA, agentId, AGENTS_TEST_LATER),
       }));
       const ownFromA = await tenants.run(workspaceA, () =>
         repository.findById(workspaceA, agentId),
       );
 
-      expect(fromB).toEqual({ found: null, page: [], renamed: false, deleted: false });
+      expect(fromB).toEqual({ found: null, page: [], renamed: null, deleted: false });
       expect(ownFromA?.name).not.toBe(TEST_AGENT_NEW_NAME);
     });
 

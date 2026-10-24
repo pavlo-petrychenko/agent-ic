@@ -10,7 +10,6 @@ import { AgentsRepository } from '@/modules/agents/repositories/agents.repositor
 import { agentIdInputSchema } from '@/modules/agents/schemas/agent-input.schema';
 import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import type { AgentIdInput, AgentView } from '@/modules/agents/typedefs/agent.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -22,7 +21,6 @@ export class DuplicateAgentUseCase {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly agents: AgentsRepository,
     private readonly versions: AgentVersionsRepository,
-    private readonly clock: ClockService,
     private readonly views: AgentViewsService,
     private readonly ids: IdService,
   ) {}
@@ -35,7 +33,6 @@ export class DuplicateAgentUseCase {
     );
     const { id } = parseAgentInput(agentIdInputSchema, input);
     const sourceId = this.ids.fromPublic(IdPrefix.Agent, id);
-    const now = this.clock.now();
     const copyId = this.ids.generate();
     const draftId = this.ids.generate();
     return this.tenantTransactions.run(workspaceId, async () => {
@@ -47,20 +44,17 @@ export class DuplicateAgentUseCase {
       if (sourceDraft === null) {
         throw new AgentVersionNotFoundError();
       }
-      const copy = {
+      await this.agents.insert({
         id: copyId,
         workspaceId,
         name: duplicateAgentName(source.name),
         description: source.description,
-        draftVersionId: draftId,
+        draftVersionId: null,
         liveVersionId: null,
         pausedAt: null,
         pauseMode: null,
         awayMessage: null,
-        createdAt: now,
-        updatedAt: now,
-      };
-      await this.agents.insert({ ...copy, draftVersionId: null });
+      });
       await this.versions.insert({
         id: draftId,
         workspaceId,
@@ -69,10 +63,11 @@ export class DuplicateAgentUseCase {
         flow: sourceDraft.flow,
         note: sourceDraft.note,
         authorId: userId,
-        createdAt: now,
-        updatedAt: now,
       });
-      await this.agents.setDraftVersion(workspaceId, copyId, draftId, now);
+      const copy = await this.agents.setDraftVersion(workspaceId, copyId, draftId);
+      if (copy === null) {
+        throw new AgentNotFoundError();
+      }
       return this.views.agentView(workspaceId, copy);
     });
   }

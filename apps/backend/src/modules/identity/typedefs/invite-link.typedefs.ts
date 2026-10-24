@@ -3,7 +3,7 @@ import type { inviteLinks } from '@/modules/identity/db/invite-links.table';
 
 export type InviteLinkRecord = typeof inviteLinks.$inferSelect;
 
-export type NewInviteLink = typeof inviteLinks.$inferInsert;
+export type NewInviteLink = Omit<typeof inviteLinks.$inferInsert, 'createdAt'>;
 
 export interface InviteLinkView {
   readonly url: string;

@@ -4,7 +4,7 @@ import type { RolePermission } from '@/modules/identity/typedefs/role.typedefs';
 
 export type WorkspaceRecord = typeof workspaces.$inferSelect;
 
-export type NewWorkspace = typeof workspaces.$inferInsert;
+export type NewWorkspace = Omit<typeof workspaces.$inferInsert, 'createdAt' | 'updatedAt'>;
 
 export interface CreateWorkspaceInput {
   readonly name: string;

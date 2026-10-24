@@ -82,7 +82,6 @@ describe('MembershipsRepository across tenants', () => {
         userId: workspaceB.ownerId,
         roleId,
         inviteLinkId: null,
-        createdAt: testbed.clock.now(),
       }),
     );
 

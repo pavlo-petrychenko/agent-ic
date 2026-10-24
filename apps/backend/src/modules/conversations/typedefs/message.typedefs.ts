@@ -19,7 +19,7 @@ export interface Message {
   readonly createdAt: Date;
 }
 
-export type NewMessage = typeof messages.$inferInsert;
+export type NewMessage = Omit<typeof messages.$inferInsert, 'createdAt'>;
 
 export type MessagePosition = Pick<Message, 'id' | 'createdAt'>;
 

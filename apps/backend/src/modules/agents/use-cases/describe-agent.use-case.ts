@@ -6,7 +6,6 @@ import { AgentsRepository } from '@/modules/agents/repositories/agents.repositor
 import { describeAgentInputSchema } from '@/modules/agents/schemas/agent-input.schema';
 import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import type { AgentView, DescribeAgentInput } from '@/modules/agents/typedefs/agent.typedefs';
-import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -17,7 +16,6 @@ export class DescribeAgentUseCase {
   constructor(
     private readonly tenantTransactions: TenantTransactionService,
     private readonly agents: AgentsRepository,
-    private readonly clock: ClockService,
     private readonly views: AgentViewsService,
     private readonly ids: IdService,
   ) {}
@@ -26,14 +24,16 @@ export class DescribeAgentUseCase {
     const { workspaceId } = authorize(ctx, PermissionResource.Agents, PermissionAction.Edit);
     const { id, description } = parseAgentInput(describeAgentInputSchema, input);
     const agentId = this.ids.fromPublic(IdPrefix.Agent, id);
-    const now = this.clock.now();
     return this.tenantTransactions.run(workspaceId, async () => {
       const agent = await this.agents.findByIdForUpdate(workspaceId, agentId);
       if (agent === null) {
         throw new AgentNotFoundError();
       }
-      await this.agents.setDescription(workspaceId, agentId, description, now);
-      return this.views.agentView(workspaceId, { ...agent, description, updatedAt: now });
+      const described = await this.agents.setDescription(workspaceId, agentId, description);
+      if (described === null) {
+        throw new AgentNotFoundError();
+      }
+      return this.views.agentView(workspaceId, described);
     });
   }
 }

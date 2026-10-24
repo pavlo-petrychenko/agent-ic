@@ -21,9 +21,7 @@ export const roles = identitySchema
       description: text('description'),
       isSystem: boolean('is_system').notNull(),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
-      updatedAt: timestamp('updated_at', { withTimezone: true })
-        .notNull()
-        .$onUpdateFn(() => new Date()),
+      updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
     },
     (table) => [
       uniqueIndex('roles_workspace_id_id_key').on(table.workspaceId, table.id),

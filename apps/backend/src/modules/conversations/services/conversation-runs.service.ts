@@ -86,7 +86,6 @@ export class ConversationRunsService {
     if (conversation.state === ConversationState.Closed) {
       throw new ConversationClosedError(conversation.id);
     }
-    const now = this.clock.now();
     const created = await this.messages.insertIfAbsent({
       id: this.ids.generate(),
       workspaceId: input.workspaceId,
@@ -97,12 +96,11 @@ export class ConversationRunsService {
       idempotencyKey: input.key,
       delivery: MessageDelivery.Pending,
       runId: input.runId,
-      createdAt: now,
     });
     if (created === null) {
       return this.requireByKey(input.workspaceId, input.key);
     }
-    await this.conversations.touch(input.workspaceId, input.conversationId, now);
+    await this.conversations.touch(input.workspaceId, input.conversationId, created.createdAt);
     await this.activity.messageAdded(created);
     await this.domainEvents.emit(
       ctx,

@@ -27,7 +27,7 @@ export interface Run {
   readonly finishedAt: Date | null;
 }
 
-export type NewRun = typeof runs.$inferInsert;
+export type NewRun = Omit<typeof runs.$inferInsert, 'createdAt'>;
 
 export type FinishedRunStatus = RunStatus.Succeeded | RunStatus.Failed | RunStatus.Escalated;
 

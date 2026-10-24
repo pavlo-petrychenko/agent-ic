@@ -10,7 +10,6 @@ import { PermissionDeniedError } from '@/platform/context/errors/permission-deni
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import {
-  AGENTS_TEST_LATER,
   TEST_AGENT_NAME,
   TEST_EDITOR_ID,
   TEST_NODE_NEW_LABEL,
@@ -73,13 +72,11 @@ describe('GetAgentUseCase', () => {
     await tenants.run(workspaceId, () =>
       testingModule
         .get(AgentVersionsRepository)
-        .updateDraft(
-          workspaceId,
-          draftId,
-          DRAFT_INITIAL_REVISION,
-          { flow: triggerFlow(TEST_NODE_NEW_LABEL), note: null, authorId: TEST_EDITOR_ID },
-          AGENTS_TEST_LATER,
-        ),
+        .updateDraft(workspaceId, draftId, DRAFT_INITIAL_REVISION, {
+          flow: triggerFlow(TEST_NODE_NEW_LABEL),
+          note: null,
+          authorId: TEST_EDITOR_ID,
+        }),
     );
     const edited = await getAgent.execute(ctx, { id });
 

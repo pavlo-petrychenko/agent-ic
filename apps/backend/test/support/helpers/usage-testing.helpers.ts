@@ -152,8 +152,6 @@ export const seedOwnedWorkspace = async (
     name: TEST_USAGE_OWNER_NAME,
     passwordHash: TEST_USAGE_PASSWORD_HASH,
     locale: input.locale,
-    createdAt: USAGE_TEST_START,
-    updatedAt: USAGE_TEST_START,
   });
   await testbed.tenants.run(workspaceId, async () => {
     await testbed.module.get(WorkspacesRepository).insert({
@@ -162,8 +160,6 @@ export const seedOwnedWorkspace = async (
       name: TEST_USAGE_WORKSPACE_NAME,
       timeZone: TEST_USAGE_TIME_ZONE,
       createdByUserId: userId,
-      createdAt: USAGE_TEST_START,
-      updatedAt: USAGE_TEST_START,
     });
     const roles = testbed.module.get(WorkspaceRolesService);
     await roles.seedDefaults(workspaceId);
@@ -172,7 +168,6 @@ export const seedOwnedWorkspace = async (
       workspaceId,
       userId,
       roleId: await roles.systemRoleId(workspaceId, WorkspaceRole.Owner),
-      createdAt: USAGE_TEST_START,
     });
   });
   return { workspaceId, userId, email };
