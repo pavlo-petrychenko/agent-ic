@@ -35,3 +35,19 @@ export interface ConnectTelegramInput {
   readonly agentId: string;
   readonly showTyping: boolean;
 }
+
+export interface PrepareChannelConnectionInput {
+  readonly workspaceId: string;
+  readonly kind: ChannelRecord['kind'];
+  readonly agentId: string;
+  readonly externalId: string;
+  readonly identity: ChannelIdentity;
+  readonly showTyping: boolean;
+  readonly credentialsSealed: string;
+  readonly createdByUserId: string;
+}
+
+export interface CompleteChannelConnectionInput {
+  readonly workspaceId: string;
+  readonly channelId: string;
+}

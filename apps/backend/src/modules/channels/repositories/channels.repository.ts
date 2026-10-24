@@ -78,6 +78,20 @@ export class ChannelsRepository {
     return channel ?? null;
   }
 
+  async updateStatus(
+    workspaceId: string,
+    id: string,
+    status: ChannelRecord['status'],
+    updatedAt: Date,
+  ): Promise<ChannelRecord | null> {
+    const [channel] = await this.txHost.tx
+      .update(channels)
+      .set({ status, updatedAt })
+      .where(and(eq(channels.workspaceId, workspaceId), eq(channels.id, id)))
+      .returning();
+    return channel ?? null;
+  }
+
   async delete(workspaceId: string, id: string): Promise<boolean> {
     const deleted = await this.txHost.tx
       .delete(channels)
