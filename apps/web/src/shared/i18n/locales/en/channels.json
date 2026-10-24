@@ -14,6 +14,9 @@
     "title": "Channels",
     "subtitle": "Where customers talk to your assistants"
   },
+  "dialog": {
+    "close": "Close"
+  },
   "options": {
     "telegram": {
       "title": "Connect a Telegram bot",
@@ -24,6 +27,35 @@
       "title": "Create an API channel",
       "description": "Send messages and events from your website, app or CRM with a secret key.",
       "action": "Create API channel"
+    }
+  },
+  "api": {
+    "create": {
+      "title": "New API channel",
+      "description": "You get an endpoint and a secret key",
+      "name": "Name",
+      "namePlaceholder": "e.g. Booking widget",
+      "agent": "Who answers",
+      "replyLabel": "Replies to a message",
+      "replyResponse": "In the response",
+      "replyWebhook": "To my webhook",
+      "webhook": "Webhook for later messages",
+      "webhookPlaceholder": "https://example.com/hooks/channel",
+      "webhookHint": "Operator replies, follow-ups and event messages. You can add it later.",
+      "cancel": "Cancel",
+      "submit": "Create channel",
+      "defaultName": "Booking widget"
+    },
+    "secret": {
+      "title": "Your secret key",
+      "description": "{{name}} · API channel",
+      "copyWarning": "Copy it now — we only show a key once. If you lose it, rotate it.",
+      "keyLabel": "Secret key",
+      "copy": "Copy",
+      "endpointLabel": "Endpoint",
+      "rotationHint": "After a rotation the previous key keeps working for 24 h.",
+      "docs": "API docs",
+      "done": "I’ve copied it"
     }
   },
   "telegram": {
