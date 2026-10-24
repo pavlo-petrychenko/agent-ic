@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
 import {
   ConversationActivityService,
+  ConversationMode,
   ConversationHistoryService,
   ConversationRunsService,
 } from '@/modules/conversations';
@@ -94,6 +95,9 @@ export class RunExecutionService {
     const today = this.clock.now();
     if (await this.runs.markRunning(workspaceId, runId, today)) {
       await this.activity.runStarted(run.conversationId, runId);
+    }
+    if (run.mode === ConversationMode.Live) {
+      await this.agents.getAgent(workspaceId, run.agentId);
     }
     const version = await this.agents.getVersion(workspaceId, run.versionId);
     const prompts = await this.prompts.forFlow(workspaceId, version.flow);

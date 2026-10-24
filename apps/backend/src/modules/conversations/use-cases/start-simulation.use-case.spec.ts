@@ -10,6 +10,7 @@ import { PermissionDeniedError } from '@/platform/context/errors/permission-deni
 import { TEST_END_USER_LANGUAGE } from '@test/support/constants/conversations-testing.constants';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import {
+  deleteAgent,
   seedAgentWithDraft,
   seedPublishedVersion,
 } from '@test/support/helpers/agents-testing.helpers';
@@ -93,5 +94,19 @@ describe('StartSimulationUseCase', () => {
     await expect(start(workspaceId, input, WorkspaceRole.Operator)).rejects.toBeInstanceOf(
       PermissionDeniedError,
     );
+  });
+
+  it('refuses a deleted agent, also with one of its published versions pinned', async () => {
+    const { workspaceId, agentId, input } = await seed();
+    const published = await seedPublishedVersion(testbed.module, workspaceId, agentId);
+    const versionId = testbed.ids.toPublic(IdPrefix.AgentVersion, published);
+    await deleteAgent(testbed.module, workspaceId, agentId);
+
+    await expect(start(workspaceId, input)).rejects.toMatchObject({
+      reason: ErrorReason.AgentNotFound,
+    });
+    await expect(start(workspaceId, { ...input, versionId })).rejects.toMatchObject({
+      reason: ErrorReason.AgentNotFound,
+    });
   });
 });

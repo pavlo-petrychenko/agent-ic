@@ -76,6 +76,7 @@ export class AgentRuntimeReader {
   }
 
   async snapshotDraft(workspaceId: string, agentId: string): Promise<AgentVersion> {
+    await this.getAgent(workspaceId, agentId);
     const draft = await this.versions.findDraft(workspaceId, agentId);
     if (draft === null) {
       throw new AgentVersionNotFoundError();
