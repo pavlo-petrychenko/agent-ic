@@ -88,7 +88,7 @@ describe('tenant schema', () => {
     await rollbackAfter(owner.db, async (tx) => {
       await createPlainTable(tx, GRANTS_SCHEMA);
 
-      const privileges = await tx.execute<Record<string, boolean>>(sql`
+      const { rows: privileges } = await tx.execute<Record<string, boolean>>(sql`
         select
           has_schema_privilege(${DatabaseRole.App}, ${GRANTS_SCHEMA}, ${USAGE_PRIVILEGE}) as "appSchema",
           has_table_privilege(${DatabaseRole.App}, ${table}, ${SELECT_PRIVILEGE}) as "appTable",
@@ -96,7 +96,7 @@ describe('tenant schema', () => {
           has_table_privilege(${DatabaseRole.System}, ${table}, ${SELECT_PRIVILEGE}) as "systemTable"
       `);
 
-      expect([...privileges]).toEqual([
+      expect(privileges).toEqual([
         { appSchema: true, appTable: true, systemSchema: true, systemTable: true },
       ]);
     });

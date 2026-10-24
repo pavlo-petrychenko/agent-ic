@@ -1,5 +1,5 @@
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export type AppDatabase = PostgresJsDatabase;
+export type AppDatabase = NodePgDatabase;
 
 export type SqlExecutor = Pick<AppDatabase, 'execute'>;

@@ -19,7 +19,7 @@ import {
 } from '@test/support/constants/test-infrastructure.constants';
 import {
   describeInfrastructure,
-  discardNotice,
+  testDatabaseListeners,
   seedSharedTestUsers,
 } from '@test/support/helpers/test-infrastructure.helpers';
 
@@ -43,7 +43,7 @@ export const setup = async (project: TestProject): Promise<() => Promise<void>> 
     new RedisContainer(REDIS_IMAGE).start(),
   ]);
   const infrastructure = describeInfrastructure(postgres, redis);
-  await runMigrations(infrastructure.ownerUrl, discardNotice);
+  await runMigrations(infrastructure.ownerUrl, testDatabaseListeners());
   await seedSharedTestUsers(infrastructure.ownerUrl);
   project.provide(TEST_INFRASTRUCTURE_KEY, infrastructure);
   return async () => {

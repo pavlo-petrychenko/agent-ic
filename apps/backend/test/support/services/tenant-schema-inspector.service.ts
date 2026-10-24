@@ -17,7 +17,7 @@ export class TenantSchemaInspectorService {
   constructor(private readonly db: SqlExecutor) {}
 
   async findViolations(): Promise<TenantSchemaViolation[]> {
-    const rows = await this.db.execute<TenantTableRow>(sql`
+    const { rows } = await this.db.execute<TenantTableRow>(sql`
       select
         n.nspname as "schemaName",
         c.relname as "tableName",

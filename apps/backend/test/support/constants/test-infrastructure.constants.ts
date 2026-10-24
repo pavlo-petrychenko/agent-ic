@@ -33,6 +33,7 @@ export enum RolesInitEnvVar {
 
 export const TEST_POOL_SIZE = '1';
 export const SCRATCH_POOL_SIZE = 1;
+export const TEST_APPLICATION_NAME = 'agent-ic-test';
 
 export enum TestRedisPrefix {
   Database = 'database:',
