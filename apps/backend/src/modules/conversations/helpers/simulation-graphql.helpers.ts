@@ -7,14 +7,16 @@ import type {
   ConversationView,
   MessageView,
   SimulationView,
+  StartSimulationInput,
 } from '@/modules/conversations/typedefs/simulation.typedefs';
 import type {
   Conversation,
   Message,
   Simulation,
+  StartSimulationInput as GraphqlStartSimulationInput,
 } from '@/platform/graphql-server/generated/schema.generated';
 import {
-  ChannelKind as GraphqlChannelKind,
+  ChannelConversationKind as GraphqlChannelConversationKind,
   ConversationState as GraphqlConversationState,
   MessageAuthor as GraphqlMessageAuthor,
 } from '@/platform/graphql-server/generated/schema.generated';
@@ -26,10 +28,18 @@ const GRAPHQL_CONVERSATION_STATE: Readonly<Record<ConversationState, GraphqlConv
   [ConversationState.Closed]: GraphqlConversationState.Closed,
 };
 
-const GRAPHQL_CHANNEL_KIND: Readonly<Record<ChannelKind, GraphqlChannelKind>> = {
-  [ChannelKind.Simulated]: GraphqlChannelKind.Simulated,
-  [ChannelKind.Telegram]: GraphqlChannelKind.Telegram,
-  [ChannelKind.Api]: GraphqlChannelKind.Api,
+const GRAPHQL_CHANNEL_CONVERSATION_KIND: Readonly<
+  Record<ChannelKind, GraphqlChannelConversationKind>
+> = {
+  [ChannelKind.Simulated]: GraphqlChannelConversationKind.Simulated,
+  [ChannelKind.Telegram]: GraphqlChannelConversationKind.Telegram,
+  [ChannelKind.Api]: GraphqlChannelConversationKind.Api,
+};
+
+const CHANNEL_KIND_FROM_GRAPHQL: Readonly<Record<GraphqlChannelConversationKind, ChannelKind>> = {
+  [GraphqlChannelConversationKind.Simulated]: ChannelKind.Simulated,
+  [GraphqlChannelConversationKind.Telegram]: ChannelKind.Telegram,
+  [GraphqlChannelConversationKind.Api]: ChannelKind.Api,
 };
 
 const GRAPHQL_MESSAGE_AUTHOR: Readonly<Record<MessageAuthor, GraphqlMessageAuthor>> = {
@@ -42,8 +52,17 @@ const GRAPHQL_MESSAGE_AUTHOR: Readonly<Record<MessageAuthor, GraphqlMessageAutho
 export const toGraphqlConversation = (conversation: ConversationView): Conversation => ({
   ...conversation,
   state: GRAPHQL_CONVERSATION_STATE[conversation.state],
-  channelKind: GRAPHQL_CHANNEL_KIND[conversation.channelKind],
+  channelKind: GRAPHQL_CHANNEL_CONVERSATION_KIND[conversation.channelKind],
   createdAt: conversation.createdAt.toISOString(),
+});
+
+export const toStartSimulationInput = (
+  input: GraphqlStartSimulationInput,
+): StartSimulationInput => ({
+  agentId: input.agentId,
+  versionId: input.versionId,
+  channelKind: CHANNEL_KIND_FROM_GRAPHQL[input.channelKind],
+  language: input.language,
 });
 
 export const toGraphqlMessage = (message: MessageView): Message => ({

@@ -34,7 +34,7 @@ enum ConversationState {
   closed
 }
 
-enum ChannelKind {
+enum ChannelConversationKind {
   simulated
   telegram
   api
@@ -50,7 +50,7 @@ enum MessageAuthor {
 input StartSimulationInput {
   agentId: ID!
   versionId: ID
-  channelKind: ChannelKind!
+  channelKind: ChannelConversationKind!
   language: String
 }
 
@@ -75,7 +75,7 @@ input HandBackInput {
 type Conversation {
   id: ID!
   state: ConversationState!
-  channelKind: ChannelKind!
+  channelKind: ChannelConversationKind!
   language: String
   versionId: ID
   createdAt: String!
