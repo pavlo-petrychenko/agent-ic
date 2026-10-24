@@ -10,10 +10,7 @@ import {
   TEST_TELEGRAM_BOT_ID,
   TEST_TELEGRAM_TOKEN,
 } from '@test/support/constants/channel-testing.constants';
-import {
-  ROW_LEVEL_SECURITY_VIOLATION,
-  UNIQUE_VIOLATION,
-} from '@test/support/constants/postgres-errors.constants';
+import { ROW_LEVEL_SECURITY_VIOLATION } from '@test/support/constants/postgres-errors.constants';
 import { newChannel, newChannelEvent } from '@test/support/fixtures/channel.fixture';
 import { createChannelsTestbed } from '@test/support/helpers/channels-testing.helpers';
 import {
@@ -61,7 +58,7 @@ describe('Channels repositories across tenants', () => {
     const channel = newChannel(testbed, workspaceA);
     await ensureUserRow(testbed.module, channel.createdByUserId);
 
-    await tenants.run(workspaceA, () => channels.insert(channel));
+    await tenants.run(workspaceA, () => channels.insertIfAbsent(channel));
 
     const found = await tenants.run(workspaceA, () => channels.findById(workspaceA, channel.id));
     const listed = await tenants.run(workspaceA, () => channels.list(workspaceA));
@@ -81,8 +78,7 @@ describe('Channels repositories across tenants', () => {
     const workspaceB = testbed.ids.generate();
     await ensureWorkspaceRow(testbed.module, workspaceB);
     const channel = newChannel(testbed, workspaceA);
-    await ensureUserRow(testbed.module, channel.createdByUserId);
-    await tenants.run(workspaceA, () => channels.insert(channel));
+    await tenants.run(workspaceA, () => channels.insertIfAbsent(channel));
 
     const seenFromB = await tenants.run(workspaceB, async () => ({
       found: await channels.findById(workspaceA, channel.id),
@@ -106,8 +102,9 @@ describe('Channels repositories across tenants', () => {
     const workspaceA = testbed.ids.generate();
     await ensureWorkspaceRow(testbed.module, workspaceA);
     const workspaceB = testbed.ids.generate();
-    await ensureWorkspaceRow(testbed.module, workspaceB);
-    const write = tenants.run(workspaceB, () => channels.insert(newChannel(testbed, workspaceA)));
+    const write = tenants.run(workspaceB, () =>
+      channels.insertIfAbsent(newChannel(testbed, workspaceA)),
+    );
 
     await expect(write).rejects.toMatchObject(ROW_LEVEL_SECURITY_VIOLATION);
   });
@@ -120,7 +117,7 @@ describe('Channels repositories across tenants', () => {
     const agentId = testbed.ids.generate();
     await ensureAgentRow(testbed.module, workspaceA, agentId);
     const at = new Date(testbed.clock.now().getTime() + 1_000);
-    await tenants.run(workspaceA, () => channels.insert(channel));
+    await tenants.run(workspaceA, () => channels.insertIfAbsent(channel));
 
     const updated = await tenants.run(workspaceA, () =>
       channels.update(
@@ -153,13 +150,12 @@ describe('Channels repositories across tenants', () => {
     const workspaceB = testbed.ids.generate();
     await ensureWorkspaceRow(testbed.module, workspaceB);
     const first = newChannel(testbed, workspaceA, { externalId: TEST_TELEGRAM_BOT_ID });
-    await ensureUserRow(testbed.module, first.createdByUserId);
-    await tenants.run(workspaceA, () => channels.insert(first));
+    await tenants.run(workspaceA, () => channels.insertIfAbsent(first));
 
     const duplicate = newChannel(testbed, workspaceB, { externalId: TEST_TELEGRAM_BOT_ID });
-    await expect(tenants.run(workspaceB, () => channels.insert(duplicate))).rejects.toMatchObject(
-      UNIQUE_VIOLATION,
-    );
+
+    const result = await tenants.run(workspaceB, () => channels.insertIfAbsent(duplicate));
+    expect(result).toBe(false);
   });
 
   it('keeps each external event only once per channel', async () => {
@@ -170,8 +166,8 @@ describe('Channels repositories across tenants', () => {
     const second = newChannel(testbed, workspaceA);
     await ensureUserRow(testbed.module, second.createdByUserId);
     await tenants.run(workspaceA, async () => {
-      await channels.insert(first);
-      await channels.insert(second);
+      await channels.insertIfAbsent(first);
+      await channels.insertIfAbsent(second);
     });
     const event = newChannelEvent(testbed, first, { externalId: TEST_CHANNEL_UPDATE_ID });
 

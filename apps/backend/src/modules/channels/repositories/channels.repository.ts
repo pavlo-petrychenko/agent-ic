@@ -13,8 +13,31 @@ import type { AppTransactionAdapter } from '@/platform/database/typedefs/transac
 export class ChannelsRepository {
   constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
 
-  async insert(channel: NewChannel): Promise<void> {
-    await this.txHost.tx.insert(channels).values(channel);
+  async insertIfAbsent(channel: NewChannel): Promise<boolean> {
+    const inserted = await this.txHost.tx
+      .insert(channels)
+      .values(channel)
+      .onConflictDoNothing({ target: [channels.kind, channels.externalId] })
+      .returning({ id: channels.id });
+    return inserted.length > 0;
+  }
+
+  async findByKindAndExternalId(
+    workspaceId: string,
+    kind: ChannelRecord['kind'],
+    externalId: string,
+  ): Promise<ChannelRecord | null> {
+    const [channel] = await this.txHost.tx
+      .select()
+      .from(channels)
+      .where(
+        and(
+          eq(channels.workspaceId, workspaceId),
+          eq(channels.kind, kind),
+          eq(channels.externalId, externalId),
+        ),
+      );
+    return channel ?? null;
   }
 
   async findById(workspaceId: string, id: string): Promise<ChannelRecord | null> {
