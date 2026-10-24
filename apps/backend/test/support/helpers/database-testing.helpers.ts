@@ -23,6 +23,7 @@ import { TestRollbackError } from '@test/support/errors/test-rollback.error';
 import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 import { discardNotice } from '@test/support/helpers/test-infrastructure.helpers';
 import { LlmNeighboursModule } from '@test/support/modules/llm-neighbours.module';
+import { UsageSeamsFakeModule } from '@test/support/modules/usage-seams-fake.module';
 import { TestTransactionService } from '@test/support/services/test-transaction.service';
 import type {
   ProviderOverride,
@@ -33,7 +34,10 @@ export const createPlatformTestingModule = async (
   redisPrefix: TestRedisPrefix,
   imports: readonly (Type<unknown> | DynamicModule)[] = [],
   overrides: readonly ProviderOverride[] = [],
-  seams: readonly (Type<unknown> | DynamicModule)[] = [LlmNeighboursModule.forRole(Role.Api)],
+  seams: readonly (Type<unknown> | DynamicModule)[] = [
+    LlmNeighboursModule.forRole(Role.Api),
+    UsageSeamsFakeModule,
+  ],
 ): Promise<TestingModule> => {
   const config = createIntegrationConfig({ role: Role.Api, queues: [] }, redisPrefix);
   const builder = Test.createTestingModule({

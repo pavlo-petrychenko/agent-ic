@@ -129,6 +129,12 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | replace 
   value: {{ $config.llm.baseUrl | quote }}
 - name: EMBEDDING_MODEL
   value: {{ $config.llm.embeddingModel | quote }}
+- name: USAGE_CREDITS_LIMIT
+  value: {{ $config.usage.creditsLimit | int | quote }}
+- name: USAGE_CONVERSATIONS_LIMIT
+  value: {{ $config.usage.conversationsLimit | int | quote }}
+- name: USAGE_CHUNKS_LIMIT
+  value: {{ $config.usage.chunksLimit | int | quote }}
 - name: OTEL_SDK_DISABLED
   value: {{ not $config.telemetry.enabled | quote }}
 {{- if $config.telemetry.enabled }}

@@ -28,6 +28,7 @@ import { newLlmKey } from '@test/support/fixtures/llm-keys.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 import { LlmKeysNeighboursModule } from '@test/support/modules/llm-keys-neighbours.module';
+import { UsageSeamsFakeModule } from '@test/support/modules/usage-seams-fake.module';
 
 export const createLlmKeysTestingModule = (): Promise<TestingModule> => {
   const models = new FakeLlmModelListGateway();
@@ -46,7 +47,7 @@ export const createLlmKeysTestingModule = (): Promise<TestingModule> => {
       { token: LlmModelListGateway, value: models },
       { token: FakeLlmModelListGateway, value: models },
     ],
-    [],
+    [UsageSeamsFakeModule],
   );
 };
 

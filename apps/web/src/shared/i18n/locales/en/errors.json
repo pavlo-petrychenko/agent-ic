@@ -9,6 +9,7 @@
     "INVALID_CURSOR": "The page position is not valid.",
     "INVALID_PAGE_SIZE": "The page size is not allowed.",
     "RATE_LIMITED": "You are doing this too often. Try again in a moment.",
+    "USAGE_LIMIT_REACHED": "This workspace reached this month's usage limit. Platform models are paused until the first day of next month.",
     "PLATFORM_ADMIN_REQUIRED": "This action is available to platform administrators only.",
     "AUTHENTICATION_REQUIRED": "Sign in to continue.",
     "SYSTEM_ACTOR_REQUIRED": "This action is not available.",

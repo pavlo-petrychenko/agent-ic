@@ -6,6 +6,7 @@ export { IdentityModule } from '@/modules/identity/identity.module';
 export { MembershipsRepository } from '@/modules/identity/repositories/memberships.repository';
 export { RolesRepository } from '@/modules/identity/repositories/roles.repository';
 export { UsersRepository } from '@/modules/identity/repositories/users.repository';
+export { WorkspacesRepository } from '@/modules/identity/repositories/workspaces.repository';
 export { EmailChangesService } from '@/modules/identity/services/email-changes.service';
 export { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
 export { PasswordResetsService } from '@/modules/identity/services/password-resets.service';

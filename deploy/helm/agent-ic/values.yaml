@@ -27,6 +27,10 @@ config:
     forcePathStyle: false
   secretBox:
     keyVersion: 1
+  usage:
+    creditsLimit: 10000
+    conversationsLimit: 10000
+    chunksLimit: 5000
 
 connections:
   database:

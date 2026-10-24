@@ -40,6 +40,7 @@ import { MockLlmRoute } from '@test/support/constants/mock-llm.constants';
 import { createTestEnv } from '@test/support/fixtures/test-env.fixture';
 import { createLlmGateway } from '@test/support/helpers/llm-testing.helpers';
 import { LlmNeighboursModule } from '@test/support/modules/llm-neighbours.module';
+import { UsageSeamsFakeModule } from '@test/support/modules/usage-seams-fake.module';
 import { startMockLlm } from '@test/support/services/mock-llm.service';
 import type { MockLlmService } from '@test/support/services/mock-llm.service';
 
@@ -236,6 +237,7 @@ describe('AiSdkLlmGateway.complete', () => {
         ClockModule,
         ObservabilityModule.forRole(Role.Api),
         OutboundHttpModule,
+        UsageSeamsFakeModule,
         LlmModule,
         LlmNeighboursModule.forRole(Role.Api),
       ],

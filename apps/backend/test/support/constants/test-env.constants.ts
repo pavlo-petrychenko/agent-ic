@@ -3,6 +3,11 @@ import { EnvVar, NodeEnvironment } from '@/platform/config/constants/env.constan
 import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
 import { LogLevel } from '@/platform/config/constants/log-level.constants';
 import { EmbeddingModelId } from '@/platform/llm/constants/llm-model.constants';
+import {
+  TEST_CHUNKS_LIMIT,
+  TEST_CONVERSATIONS_LIMIT,
+  TEST_CREDITS_LIMIT,
+} from '@test/support/constants/usage-testing.constants';
 
 export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.NodeEnv]: NodeEnvironment.Test,
@@ -38,6 +43,9 @@ export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.LlmBaseUrl]: 'http://127.0.0.1:4010/v1',
   [EnvVar.LlmApiKey]: '',
   [EnvVar.EmbeddingModel]: EmbeddingModelId.JinaEmbeddingsV5TextSmall,
+  [EnvVar.UsageCreditsLimit]: String(TEST_CREDITS_LIMIT),
+  [EnvVar.UsageConversationsLimit]: String(TEST_CONVERSATIONS_LIMIT),
+  [EnvVar.UsageChunksLimit]: String(TEST_CHUNKS_LIMIT),
   [EnvVar.EmailMode]: EmailMode.Smtp,
   [EnvVar.EmailFrom]: 'agent-ic <no-reply@agent-ic.test>',
   [EnvVar.SmtpHost]: '127.0.0.1',
