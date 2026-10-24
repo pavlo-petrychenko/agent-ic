@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { ChannelsPage } from '@/features/channels/containers/ChannelsPage/ChannelsPage';
 import { MemoryRouter } from '@test/support/components/MemoryRouter';
@@ -18,5 +19,17 @@ describe('ChannelsPage', () => {
     expect(screen.getByText('Create an API channel')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Connect bot' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create API channel' })).toBeInTheDocument();
+  });
+
+  it('opens the new API channel dialog from the empty state', async () => {
+    renderWithProviders(
+      <MemoryRouter>
+        <ChannelsPage workspaceId="ws_1" />
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Create API channel' }));
+
+    expect(screen.getByRole('dialog', { name: 'New API channel' })).toBeInTheDocument();
   });
 });
