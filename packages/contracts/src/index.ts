@@ -22,6 +22,7 @@ export {
 } from '@contracts/conversations/conversation.constants';
 export { ErrorCode, ErrorReason } from '@contracts/errors/errors.constants';
 export { IdPrefix } from '@contracts/ids/id-prefix.constants';
+export { LlmKeyVendor } from '@contracts/llm/llm-key.constants';
 export { REASONING_LEVEL_ORDER, ReasoningLevel } from '@contracts/llm/reasoning.constants';
 export { DEFAULT_LOCALE, Locale } from '@contracts/locales/locale.constants';
 export {

@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { generateText, hasToolCall, stepCountIs, zodSchema } from 'ai';
-import { LLM_CATALOG } from '@/platform/llm/constants/llm-catalog.constants';
 import {
   LLM_COMPLETE_ROUNDS,
   LLM_REPLY_TOOL_NAME,
@@ -9,7 +8,7 @@ import {
 } from '@/platform/llm/constants/llm-gateway.constants';
 import { LlmOperation } from '@/platform/llm/constants/llm-metrics.constants';
 import { LlmAgentFinish } from '@/platform/llm/constants/llm-model.constants';
-import type { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
+import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants';
 import { LlmOutputInvalidError } from '@/platform/llm/errors/llm-output-invalid.error';
 import { LlmReplyMissingError } from '@/platform/llm/errors/llm-reply-missing.error';
 import { LlmToolRoundsExceededError } from '@/platform/llm/errors/llm-tool-rounds-exceeded.error';
@@ -38,10 +37,13 @@ import {
   usageBetween,
   withMessage,
 } from '@/platform/llm/helpers/llm-gateway.helpers';
+import { metricModelLabel } from '@/platform/llm/helpers/llm-metrics.helpers';
+import { profileFor } from '@/platform/llm/helpers/llm-model-profile.helpers';
 import { usageReport } from '@/platform/llm/helpers/llm-usage.helpers';
 import { LlmMetricsService } from '@/platform/llm/services/llm-metrics.service';
 import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
+import { UsageLimits } from '@/platform/llm/services/usage-limits.service';
 import { UsageReporter } from '@/platform/llm/services/usage-reporter.service';
 import type {
   LlmAgentRequest,
@@ -56,6 +58,7 @@ import type {
   LlmStepTimeouts,
   LlmUsage,
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
+import type { LlmModelHop, LlmResolvedSource } from '@/platform/llm/typedefs/llm-provider.typedefs';
 
 @Injectable()
 export class AiSdkLlmGateway extends LlmGateway {
@@ -63,6 +66,7 @@ export class AiSdkLlmGateway extends LlmGateway {
     private readonly providers: ProviderResolverService,
     private readonly traces: LlmTraceContextService,
     private readonly usage: UsageReporter,
+    private readonly limits: UsageLimits,
     private readonly metrics: LlmMetricsService,
     @Inject(LLM_STEP_TIMEOUTS) private readonly timeouts: LlmStepTimeouts,
   ) {
@@ -104,44 +108,58 @@ export class AiSdkLlmGateway extends LlmGateway {
     request: LlmCompleteRequest<T>,
     attempt: (run: LlmModelRun) => Promise<R>,
   ): Promise<R> {
-    return this.traces.forCall(() =>
-      this.metrics.measure(operation, request.model, () => this.tryModels(request, attempt)),
-    );
+    return this.traces.forCall(async () => {
+      const source = await this.providers.resolve(request.provider);
+      return this.metrics.measure(operation, metricModelLabel(source, request.model), () =>
+        this.tryModels(request, source, attempt),
+      );
+    });
   }
 
   private async tryModels<T, R>(
     request: LlmCompleteRequest<T>,
+    source: LlmResolvedSource,
     attempt: (run: LlmModelRun) => Promise<R>,
   ): Promise<R> {
-    const models = modelsToTry(request);
+    const hops = modelsToTry(request, source);
     const failures: unknown[] = [];
-    for (const [fallbackHop, model] of models.entries()) {
+    for (const [fallbackHop, hop] of hops.entries()) {
+      if (hop.source.kind === LlmProviderKind.Platform) {
+        await this.limits.assertPlatformCallAllowed(request.tags.workspaceId);
+      }
       try {
-        return await attempt(await this.modelRun(request, model, fallbackHop));
+        return await attempt(await this.modelRun(request, hop, fallbackHop));
       } catch (error) {
         if (!isModelUnavailable(error)) {
           throw toUpstreamFailure(error);
         }
         failures.push(error);
-        const fallback = models[fallbackHop + 1];
-        if (fallback !== undefined) {
-          this.metrics.fallback(model, fallback);
+        const next = hops[fallbackHop + 1];
+        if (next !== undefined) {
+          this.metrics.fallback(
+            metricModelLabel(hop.source, hop.model),
+            metricModelLabel(next.source, next.model),
+          );
         }
       }
     }
-    throw new LlmUnavailableError(models, failures);
+    throw new LlmUnavailableError(
+      hops.map(({ model }) => model),
+      failures,
+    );
   }
 
   private async modelRun<T>(
     request: LlmCompleteRequest<T>,
-    model: LlmModelId,
+    { source, model }: LlmModelHop,
     fallbackHop: number,
   ): Promise<LlmModelRun> {
-    const entry = LLM_CATALOG[model];
-    const reasoning = reasoningFor(entry, request.reasoning);
+    const profile = profileFor(source, model);
+    const reasoning = reasoningFor(profile, request.reasoning);
     return {
-      model: entry,
-      languageModel: this.providers.languageModel(request.provider, model),
+      source,
+      model: profile,
+      languageModel: this.providers.languageModel(source, profile),
       jsonSchema: await zodSchema(request.output).jsonSchema,
       stepTimeoutMs: this.timeouts[request.purpose],
       reasoning,
@@ -183,7 +201,7 @@ export class AiSdkLlmGateway extends LlmGateway {
     if (next.retriesLeft <= 0 || next.roundsLeft <= 0) {
       throw new LlmOutputInvalidError(run.model.id, checked.error);
     }
-    this.metrics.outputRetry(run.model.id);
+    this.metrics.outputRetry(metricModelLabel(run.source, run.model.id));
     return this.finalMessageAttempt(
       request,
       run,
@@ -218,7 +236,7 @@ export class AiSdkLlmGateway extends LlmGateway {
       if (next.nudgesLeft <= 0 || next.roundsLeft <= 0) {
         throw new LlmReplyMissingError(run.model.id);
       }
-      this.metrics.replyNudge(run.model.id);
+      this.metrics.replyNudge(metricModelLabel(run.source, run.model.id));
       return this.replyToolAttempt(
         request,
         run,
@@ -241,7 +259,7 @@ export class AiSdkLlmGateway extends LlmGateway {
     if (next.retriesLeft <= 0 || next.roundsLeft <= 0) {
       throw new LlmOutputInvalidError(run.model.id, checked.error);
     }
-    this.metrics.outputRetry(run.model.id);
+    this.metrics.outputRetry(metricModelLabel(run.source, run.model.id));
     return this.replyToolAttempt(
       request,
       run,
@@ -275,6 +293,6 @@ export class AiSdkLlmGateway extends LlmGateway {
     run: LlmModelRun,
     usage: LlmUsage,
   ): Promise<void> {
-    await this.usage.report(usageReport(request.provider, request.tags, run.model, usage));
+    await this.usage.report(usageReport(run.source, request.tags, run.model, usage));
   }
 }

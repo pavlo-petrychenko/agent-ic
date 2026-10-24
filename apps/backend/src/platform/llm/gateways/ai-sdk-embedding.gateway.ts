@@ -9,7 +9,7 @@ import {
 import { EMBEDDING_CATALOG } from '@/platform/llm/constants/llm-catalog.constants';
 import { LLM_SDK_MAX_RETRIES } from '@/platform/llm/constants/llm-gateway.constants';
 import { LlmOperation } from '@/platform/llm/constants/llm-metrics.constants';
-import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants';
+import { LLM_PLATFORM_SOURCE } from '@/platform/llm/constants/llm-provider.constants';
 import { EmbeddingDimensionMismatchError } from '@/platform/llm/errors/embedding-dimension-mismatch.error';
 import { LlmUnavailableError } from '@/platform/llm/errors/llm-unavailable.error';
 import { EmbeddingGateway } from '@/platform/llm/gateways/embedding.gateway';
@@ -19,6 +19,7 @@ import { usageReport } from '@/platform/llm/helpers/llm-usage.helpers';
 import { LlmMetricsService } from '@/platform/llm/services/llm-metrics.service';
 import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
+import { UsageLimits } from '@/platform/llm/services/usage-limits.service';
 import { UsageReporter } from '@/platform/llm/services/usage-reporter.service';
 import type {
   EmbeddingBatch,
@@ -34,6 +35,7 @@ export class AiSdkEmbeddingGateway extends EmbeddingGateway {
     private readonly providers: ProviderResolverService,
     private readonly traces: LlmTraceContextService,
     private readonly usage: UsageReporter,
+    private readonly limits: UsageLimits,
     private readonly metrics: LlmMetricsService,
     @Inject(EMBEDDING_BATCH_TIMEOUT) private readonly batchTimeoutMs: number,
   ) {
@@ -48,6 +50,7 @@ export class AiSdkEmbeddingGateway extends EmbeddingGateway {
         const vectors: (readonly number[])[] = [];
         let tokens = 0;
         for (const batch of toBatches(texts, entry.batchSize)) {
+          await this.limits.assertPlatformCallAllowed(tags.workspaceId);
           const batchResult = await this.embedBatch(entry, embeddingModel, batch, tags);
           vectors.push(...batchResult.embeddings);
           tokens += batchResult.tokens;
@@ -66,7 +69,7 @@ export class AiSdkEmbeddingGateway extends EmbeddingGateway {
     const result = await this.callModel(entry, embeddingModel, values, tags);
     const tokens = reportedTokens(result.usage.tokens);
     await this.usage.report(
-      usageReport({ kind: LlmProviderKind.Platform }, tags, entry, {
+      usageReport(LLM_PLATFORM_SOURCE, tags, entry, {
         inputTokens: tokens,
         outputTokens: EMBEDDING_OUTPUT_TOKENS,
       }),

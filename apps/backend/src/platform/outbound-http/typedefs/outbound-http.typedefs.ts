@@ -22,3 +22,5 @@ export interface OutboundHttpResult {
   readonly bodyTruncated: boolean;
   readonly durationMs: number;
 }
+
+export type OutboundHostLookup = (host: string) => Promise<readonly string[]>;

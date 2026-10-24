@@ -2,6 +2,7 @@ import { IpFamily } from '@/platform/outbound-http/constants/ip-family.constants
 import type { OutboundAddressRange } from '@/platform/outbound-http/typedefs/outbound-http.typedefs';
 
 export const OUTBOUND_BLOCKED_RANGES = Symbol('OUTBOUND_BLOCKED_RANGES');
+export const OUTBOUND_GUARDED_FETCH = Symbol('OUTBOUND_GUARDED_FETCH');
 
 export enum OutboundHttpOutcome {
   Responded = 'responded',

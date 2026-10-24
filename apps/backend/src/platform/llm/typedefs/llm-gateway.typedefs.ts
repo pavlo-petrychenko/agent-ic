@@ -8,9 +8,12 @@ import type {
 } from 'ai';
 import type { z } from 'zod';
 import type { LlmMessageRole } from '@/platform/llm/constants/llm-gateway.constants';
-import type { LlmModelId, LlmPurpose } from '@/platform/llm/constants/llm-model.constants';
-import type { LlmModel } from '@/platform/llm/typedefs/llm-model.typedefs';
-import type { LlmProviderSource } from '@/platform/llm/typedefs/llm-provider.typedefs';
+import type { LlmPurpose } from '@/platform/llm/constants/llm-model.constants';
+import type { LlmModelProfile } from '@/platform/llm/typedefs/llm-model.typedefs';
+import type {
+  LlmProviderSource,
+  LlmResolvedSource,
+} from '@/platform/llm/typedefs/llm-provider.typedefs';
 import type { LlmTags } from '@/platform/llm/typedefs/llm-tracing.typedefs';
 
 export interface LlmMessage {
@@ -20,7 +23,7 @@ export interface LlmMessage {
 
 export interface LlmCompleteRequest<T> {
   readonly provider: LlmProviderSource;
-  readonly model: LlmModelId;
+  readonly model: string;
   readonly purpose: LlmPurpose;
   readonly system: string;
   readonly messages: readonly LlmMessage[];
@@ -62,12 +65,13 @@ export interface LlmUsage {
 
 export interface LlmCompletion<T> {
   readonly output: T;
-  readonly model: LlmModelId;
+  readonly model: string;
   readonly usage: LlmUsage;
 }
 
 export interface LlmModelRun {
-  readonly model: LlmModel;
+  readonly source: LlmResolvedSource;
+  readonly model: LlmModelProfile;
   readonly languageModel: LanguageModel;
   readonly jsonSchema: JSONSchema7;
   readonly stepTimeoutMs: number;

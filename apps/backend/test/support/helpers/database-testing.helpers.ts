@@ -14,6 +14,7 @@ import { IdsModule } from '@/platform/ids/ids.module';
 import { LlmModule } from '@/platform/llm/llm.module';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { ObservabilityModule } from '@/platform/observability/observability.module';
+import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import {
   SCRATCH_POOL_SIZE,
   TestRedisPrefix,
@@ -42,6 +43,7 @@ export const createPlatformTestingModule = async (
       ClockModule,
       IdsModule,
       ObservabilityModule.forRole(Role.Api),
+      OutboundHttpModule,
       LlmModule,
       ...imports,
     ],
