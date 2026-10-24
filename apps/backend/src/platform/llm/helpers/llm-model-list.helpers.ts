@@ -8,6 +8,7 @@ import {
   LLM_GOOGLE_CHAT_METHOD,
   LLM_GOOGLE_MODEL_NAME_PREFIX,
   LLM_MODEL_ID_EXCLUDED_FRAGMENTS,
+  LLM_MODEL_LIST_MAX_BYTES,
   LLM_MODEL_LIST_TIMEOUT_MS,
   LLM_URL_TRAILING_SLASHES,
   LLM_VENDOR_ENDPOINTS,
@@ -51,6 +52,7 @@ const getRequest = (url: string, headers: Record<string, string>): OutboundHttpR
   headers,
   body: null,
   timeoutMs: LLM_MODEL_LIST_TIMEOUT_MS,
+  maxBodyBytes: LLM_MODEL_LIST_MAX_BYTES,
 });
 
 export const modelListRequest = ({

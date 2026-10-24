@@ -6,6 +6,7 @@ import { HttpStatus } from '@nestjs/common';
 import { OUTBOUND_RESPONSE_MAX_BYTES } from '@/platform/outbound-http/constants/outbound-http.constants';
 import {
   OUTBOUND_TEST_FLAKY_FAILURES,
+  OUTBOUND_TEST_LARGE_BODY_FACTOR,
   OUTBOUND_TEST_HEADER,
   OUTBOUND_TEST_HOST,
   OUTBOUND_TEST_SLOW_RESPONSE_MS,
@@ -43,7 +44,7 @@ const respond = async (
     return;
   }
   if (request.url === OutboundTestPath.Large || request.url === OutboundTestPath.Exact) {
-    const factor = request.url === OutboundTestPath.Large ? 2 : 1;
+    const factor = request.url === OutboundTestPath.Large ? OUTBOUND_TEST_LARGE_BODY_FACTOR : 1;
     response.end('x'.repeat(OUTBOUND_RESPONSE_MAX_BYTES * factor));
     return;
   }

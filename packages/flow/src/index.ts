@@ -112,7 +112,9 @@ export {
   PromptSourceKind,
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
+export { modelReferences } from '@flow/references/helpers/model-reference.helpers';
 export { promptReferences } from '@flow/references/helpers/prompt-reference.helpers';
+export type { ModelReference } from '@flow/references/typedefs/model-reference.typedefs';
 export type {
   PromptBindings,
   PromptPin,

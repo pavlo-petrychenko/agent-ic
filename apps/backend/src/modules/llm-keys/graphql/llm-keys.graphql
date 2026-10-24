@@ -1,0 +1,57 @@
+extend type Query {
+  llmKeys: [LlmKey!]!
+  llmKeyOptions: [LlmKeyOption!]!
+  llmKeyModels(keyId: ID!): [String!]!
+}
+
+extend type Mutation {
+  checkLlmKey(input: CheckLlmKeyInput!): LlmKeyCheck!
+  addLlmKey(input: AddLlmKeyInput!): LlmKey!
+  setLlmKeyFallback(id: ID!, enabled: Boolean!): LlmKey!
+  removeLlmKey(id: ID!): Boolean!
+}
+
+enum LlmKeyVendor {
+  openai
+  anthropic
+  google
+  mistral
+  deepseek
+  custom
+}
+
+type LlmKey {
+  id: ID!
+  vendor: LlmKeyVendor!
+  name: String!
+  baseUrl: String
+  keyLast4: String!
+  fallbackToPlatform: Boolean!
+  addedBy: String!
+  createdAt: String!
+  usedBySteps: Int!
+}
+
+type LlmKeyCheck {
+  models: [String!]!
+}
+
+type LlmKeyOption {
+  id: ID!
+  vendor: LlmKeyVendor!
+  name: String!
+}
+
+input CheckLlmKeyInput {
+  vendor: LlmKeyVendor!
+  apiKey: String!
+  baseUrl: String
+}
+
+input AddLlmKeyInput {
+  vendor: LlmKeyVendor!
+  apiKey: String!
+  name: String
+  baseUrl: String
+  fallbackToPlatform: Boolean!
+}
