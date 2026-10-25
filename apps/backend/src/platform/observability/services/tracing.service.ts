@@ -16,7 +16,7 @@ export class TracingService implements OnApplicationShutdown {
   constructor(private readonly telemetry: TelemetryConfig) {}
 
   start(): void {
-    if (!this.telemetry.enabled) {
+    if (!this.telemetry.enabled || this.telemetry.endpoint === null) {
       return;
     }
     const instrumentations = createInstrumentations();

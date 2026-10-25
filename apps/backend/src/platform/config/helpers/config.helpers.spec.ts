@@ -213,6 +213,40 @@ describe('loadAppConfig', () => {
     expect(variablesOf(issues)).toEqual([EnvVar.DatabaseUrl]);
   });
 
+  it('accepts disabled telemetry without an endpoint', () => {
+    const env = createTestEnv({
+      [EnvVar.OtelSdkDisabled]: 'true',
+      [EnvVar.OtelExporterEndpoint]: undefined,
+    });
+
+    const config = loadAppConfig(roleOf(Role.Api), env);
+
+    expect(config.telemetry.enabled).toBe(false);
+    expect(config.telemetry.endpoint).toBeNull();
+  });
+
+  it('rejects enabled telemetry without an endpoint', () => {
+    const env = createTestEnv({
+      [EnvVar.OtelSdkDisabled]: 'false',
+      [EnvVar.OtelExporterEndpoint]: undefined,
+    });
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+    expect(variablesOf(issues)).toEqual([EnvVar.OtelExporterEndpoint]);
+  });
+
+  it('reads the endpoint of enabled telemetry', () => {
+    const env = createTestEnv({
+      [EnvVar.OtelSdkDisabled]: 'false',
+      [EnvVar.OtelExporterEndpoint]: 'http://collector:4318',
+    });
+
+    const config = loadAppConfig(roleOf(Role.Api), env);
+
+    expect(config.telemetry.endpoint).toBe('http://collector:4318');
+  });
+
   it('reads the public url and the access token secret', () => {
     const env = createTestEnv();
 

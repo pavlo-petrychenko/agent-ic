@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   NO_REDIS_KEY_PREFIX,
+  OTEL_ENDPOINT_REQUIRED_MESSAGE,
   TRACES_SAMPLER_RATIO_DEFAULT,
 } from '@/platform/config/constants/env-value.constants';
 import { EnvVar, NodeEnvironment } from '@/platform/config/constants/env.constants';
@@ -24,7 +25,7 @@ export const commonEnvSchema = z
     [EnvVar.HttpHost]: textSchema,
     [EnvVar.PublicUrl]: publicUrlSchema,
     [EnvVar.OtelSdkDisabled]: z.stringbool(),
-    [EnvVar.OtelExporterEndpoint]: z.url(),
+    [EnvVar.OtelExporterEndpoint]: z.url().optional(),
     [EnvVar.OtelServiceName]: textSchema,
     [EnvVar.OtelServiceNamespace]: textSchema,
     [EnvVar.OtelTracesSamplerArg]: sampleRateSchema.default(TRACES_SAMPLER_RATIO_DEFAULT),
@@ -34,6 +35,10 @@ export const commonEnvSchema = z
     [EnvVar.DatabasePoolMax]: poolSizeSchema,
     [EnvVar.RedisQueueUrl]: redisUrlSchema,
     [EnvVar.RedisCacheUrl]: redisUrlSchema,
+  })
+  .refine((env) => env[EnvVar.OtelSdkDisabled] || env[EnvVar.OtelExporterEndpoint] !== undefined, {
+    message: OTEL_ENDPOINT_REQUIRED_MESSAGE,
+    path: [EnvVar.OtelExporterEndpoint],
   })
   .transform((env): CommonEnvironment => ({
     nodeEnv: env[EnvVar.NodeEnv],
@@ -53,7 +58,7 @@ export const commonEnvSchema = z
     },
     telemetry: {
       enabled: !env[EnvVar.OtelSdkDisabled],
-      endpoint: env[EnvVar.OtelExporterEndpoint],
+      endpoint: env[EnvVar.OtelExporterEndpoint] ?? null,
       serviceName: env[EnvVar.OtelServiceName],
       serviceNamespace: env[EnvVar.OtelServiceNamespace],
       serviceVersion: env[EnvVar.AppVersion],

@@ -71,6 +71,20 @@ render telemetry-tuned \
   --set config.telemetry.environment=production \
   --set image.backend.tag=1.2.3-test
 
+echo "== every backend workload sets the OTLP endpoint or disables the SDK"
+for render_name in "$rendered"/*.yaml; do
+  unsafe="$(yq -N 'select(.kind == "Deployment" and .metadata.name != "agent-ic-web") | .spec.template.spec.containers[0].env | ((map(select(.name == "OTEL_EXPORTER_OTLP_ENDPOINT")) | length) > 0 or (map(select(.name == "OTEL_SDK_DISABLED" and .value == "true")) | length) > 0) | select(. == false)' "$render_name")"
+  if test -n "$unsafe"; then
+    echo "backend workload without OTEL_EXPORTER_OTLP_ENDPOINT and with the SDK enabled in $render_name" >&2
+    exit 1
+  fi
+done
+minimal_sdk="$(yq -N 'select(.kind == "Deployment" and .metadata.name == "agent-ic-api") | .spec.template.spec.containers[0].env[] | select(.name == "OTEL_SDK_DISABLED") | .value' "$rendered/minimal.yaml")"
+minimal_endpoint="$(yq -N 'select(.kind == "Deployment" and .metadata.name == "agent-ic-api") | .spec.template.spec.containers[0].env[] | select(.name == "OTEL_EXPORTER_OTLP_ENDPOINT") | .value' "$rendered/minimal.yaml")"
+test "$minimal_sdk" = "true"
+test -z "$minimal_endpoint"
+echo "telemetry off: SDK disabled, no endpoint | telemetry on: endpoint set"
+
 echo "== no unresolved template values"
 if grep -n '<no value>' "$rendered"/*.yaml; then
   echo "unresolved template values" >&2

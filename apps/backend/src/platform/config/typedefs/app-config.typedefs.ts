@@ -33,7 +33,7 @@ export interface WorkerRuntimeConfig {
 
 export interface TelemetryConfig {
   readonly enabled: boolean;
-  readonly endpoint: string;
+  readonly endpoint: string | null;
   readonly serviceName: string;
   readonly serviceNamespace: string;
   readonly serviceVersion: string;
