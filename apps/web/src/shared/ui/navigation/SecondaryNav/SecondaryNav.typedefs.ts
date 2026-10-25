@@ -19,7 +19,7 @@ export interface SecondaryNavItem {
 
 export interface SecondaryNavGroup {
   id: string;
-  label: string;
+  label: string | null;
   action: SecondaryNavAction | null;
   items: readonly SecondaryNavItem[];
 }

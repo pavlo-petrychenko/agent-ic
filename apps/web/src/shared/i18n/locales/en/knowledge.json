@@ -3,7 +3,6 @@
   "subtitle": "Searchable answers from your own documents",
   "nav": {
     "label": "Knowledge bases",
-    "group": "All knowledge bases",
     "new": "New knowledge base",
     "noSources": "no sources yet",
     "sources_one": "{{count}} source",
@@ -18,7 +17,8 @@
     "subtitle_one": "Workspace knowledge base · {{count}} chunk indexed",
     "subtitle_other": "Workspace knowledge base · {{count}} chunks indexed",
     "sourcesTitle": "No sources yet",
-    "sourcesDescription": "Upload files or connect Google Docs. We split them into chunks so agents can search them."
+    "sourcesDescription": "Upload files or connect Google Docs. We split them into chunks so agents can search them.",
+    "agentsNote": "Agents only answer from knowledge bases attached to them. Attach this one in the agent step after adding sources."
   },
   "new": {
     "title": "New knowledge base",

@@ -59,6 +59,40 @@ describe('SecondaryNav', () => {
     expect(within(apiList).getByRole('link', { name: 'CRM' })).not.toHaveAttribute('aria-current');
   });
 
+  it('renders a group without a section label', async () => {
+    render(
+      <MemoryRouter>
+        <SecondaryNav
+          title="Knowledge"
+          ariaLabel="Knowledge bases"
+          action={null}
+          groups={[
+            {
+              id: 'knowledge-bases',
+              label: null,
+              action: null,
+              items: [
+                {
+                  id: 'handbook',
+                  to: '/auth/login',
+                  title: 'Handbook',
+                  subtitle: 'no sources yet',
+                  monoTitle: false,
+                  tile: { icon: null, tone: NodeKind.Kb },
+                  selected: true,
+                },
+              ],
+            },
+          ]}
+        />
+      </MemoryRouter>,
+    );
+
+    const list = await screen.findByRole('list');
+    expect(within(list).getByRole('link', { name: /Handbook/ })).toBeInTheDocument();
+    expect(screen.queryByText('All knowledge bases')).not.toBeInTheDocument();
+  });
+
   it('renders the title as the main heading by default', async () => {
     render(
       <MemoryRouter>
