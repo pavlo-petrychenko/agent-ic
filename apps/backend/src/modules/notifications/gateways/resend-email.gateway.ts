@@ -4,6 +4,7 @@ import {
   RESEND_CONTENT_TYPE,
 } from '@/modules/notifications/constants/email-gateway.constants';
 import { EmailGateway } from '@/modules/notifications/gateways/email.gateway';
+import type { NotificationMetricsService } from '@/modules/notifications/services/notification-metrics.service';
 import type {
   EmailMessage,
   ResendEmailRequest,
@@ -16,11 +17,18 @@ export class ResendEmailGateway extends EmailGateway {
     private readonly from: string,
     private readonly apiKey: string,
     private readonly url: string,
+    private readonly metrics: NotificationMetricsService,
   ) {
     super();
   }
 
-  async send(message: EmailMessage): Promise<void> {
+  send(message: EmailMessage): Promise<void> {
+    return this.metrics.trackEmail(EmailUpstream.Resend, message.template, () =>
+      this.deliver(message),
+    );
+  }
+
+  private async deliver(message: EmailMessage): Promise<void> {
     const request: ResendEmailRequest = {
       from: this.from,
       to: [message.to],

@@ -17,6 +17,7 @@ export const channelFor = <TEvent extends ChannelEvent>(
   ...segments: readonly string[]
 ): Channel<TEvent> =>
   Object.freeze({
+    name: definition.name,
     key: [CHANNEL_KEY_ROOT, definition.name, ...segments].join(CHANNEL_KEY_SEPARATOR),
     schema: definition.schema,
   });

@@ -1,10 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ChannelLogMessage } from '@/modules/channels/constants/channel-delivery.constants';
+import { ChannelSendOutcome } from '@/modules/channels/constants/channel-metrics.constants';
 import {
   deliveryChannelKind,
   toChannelOutboundMessage,
 } from '@/modules/channels/helpers/channel-delivery.helpers';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
+import { ChannelMetricsService } from '@/modules/channels/services/channel-metrics.service';
 import { ConversationRunsService, MessageDelivery } from '@/modules/conversations';
 import type { OutboundQueuedPayload } from '@/modules/conversations';
 import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
@@ -20,6 +22,7 @@ export class DeliverOutboundMessageUseCase {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly conversationRuns: ConversationRunsService,
     private readonly adapters: ChannelAdapterRegistryService,
+    private readonly metrics: ChannelMetricsService,
   ) {}
 
   async execute(ctx: UseCaseCtx, input: OutboundQueuedPayload): Promise<void> {
@@ -34,11 +37,11 @@ export class DeliverOutboundMessageUseCase {
     if (delivery.message.delivery === MessageDelivery.Delivered) {
       return;
     }
+    const channelKind = deliveryChannelKind(delivery.conversation);
     try {
-      await this.adapters
-        .adapterFor(deliveryChannelKind(delivery.conversation))
-        .send(toChannelOutboundMessage(delivery));
+      await this.adapters.adapterFor(channelKind).send(toChannelOutboundMessage(delivery));
     } catch (error) {
+      this.metrics.messageSent(channelKind, ChannelSendOutcome.Failed);
       await this.markDelivery(workspaceId, input.messageId, MessageDelivery.Failed).catch(
         (markError: unknown) => {
           this.logger.error({
@@ -50,6 +53,7 @@ export class DeliverOutboundMessageUseCase {
       );
       throw error;
     }
+    this.metrics.messageSent(channelKind, ChannelSendOutcome.Delivered);
     await this.markDelivery(workspaceId, input.messageId, MessageDelivery.Delivered);
   }
 

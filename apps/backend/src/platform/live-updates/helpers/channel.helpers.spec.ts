@@ -26,6 +26,7 @@ describe('channelFor', () => {
     expect(channel.key).toBe(
       [CHANNEL_KEY_ROOT, 'conversation', 'wsp_1', 'cnv_1'].join(CHANNEL_KEY_SEPARATOR),
     );
+    expect(channel.name).toBe('conversation');
     expect(channel.schema).toBe(eventSchema);
   });
 });

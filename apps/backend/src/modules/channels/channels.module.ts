@@ -7,6 +7,7 @@ import { DeliverOutboundMessageListener } from '@/modules/channels/listeners/del
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
+import { ChannelMetricsService } from '@/modules/channels/services/channel-metrics.service';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
 import { ConversationsModule } from '@/modules/conversations';
@@ -29,6 +30,7 @@ export class ChannelsModule extends defineModule({
       useFactory: (simulated: SimulatedChannelAdapter): ChannelAdapter[] => [simulated],
     },
     ChannelAdapterRegistryService,
+    ChannelMetricsService,
     DeliverOutboundMessageUseCase,
   ],
   listeners: [DeliverOutboundMessageListener],

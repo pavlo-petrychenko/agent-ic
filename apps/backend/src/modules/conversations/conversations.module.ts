@@ -6,6 +6,7 @@ import { OperatorResolver } from '@/modules/conversations/resolvers/operator.res
 import { SimulationResolver } from '@/modules/conversations/resolvers/simulation.resolver';
 import { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
 import { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
+import { ConversationMetricsService } from '@/modules/conversations/services/conversation-metrics.service';
 import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
 import { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
 import { OperatorConversationsService } from '@/modules/conversations/services/operator-conversations.service';
@@ -28,6 +29,7 @@ export class ConversationsModule extends defineModule({
     ConversationActivityService,
     ConversationHistoryService,
     ConversationRunsService,
+    ConversationMetricsService,
     IncomingMessagesService,
     SimulationsService,
     OperatorConversationsService,

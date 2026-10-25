@@ -38,6 +38,7 @@ import { UpdateRolePermissionsResolver } from '@/modules/identity/resolvers/upda
 import { UpdateTimeZoneResolver } from '@/modules/identity/resolvers/update-time-zone.resolver';
 import { EmailChangesService } from '@/modules/identity/services/email-changes.service';
 import { EmailConfirmationsService } from '@/modules/identity/services/email-confirmations.service';
+import { IdentityMetricsService } from '@/modules/identity/services/identity-metrics.service';
 import { InviteLinksService } from '@/modules/identity/services/invite-links.service';
 import { InviteTokensService } from '@/modules/identity/services/invite-tokens.service';
 import { MeService } from '@/modules/identity/services/me.service';
@@ -99,6 +100,7 @@ export class IdentityModule extends defineModule({
     InviteLinksRepository,
     MembershipDirectoryRepository,
     SessionsService,
+    IdentityMetricsService,
     EmailConfirmationsService,
     EmailChangesService,
     PasswordResetsService,

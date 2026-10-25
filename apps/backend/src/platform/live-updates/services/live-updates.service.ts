@@ -3,6 +3,7 @@ import { AfterCommitService } from '@/platform/database/services/after-commit.se
 import { channelStream } from '@/platform/live-updates/helpers/channel-stream.helpers';
 import { ChannelPublisherService } from '@/platform/live-updates/services/channel-publisher.service';
 import { ChannelSubscriberService } from '@/platform/live-updates/services/channel-subscriber.service';
+import { LiveUpdatesMetricsService } from '@/platform/live-updates/services/live-updates-metrics.service';
 import type {
   Channel,
   ChannelEvent,
@@ -15,6 +16,7 @@ export class LiveUpdatesService {
     private readonly publisher: ChannelPublisherService,
     private readonly subscriber: ChannelSubscriberService,
     private readonly afterCommit: AfterCommitService,
+    private readonly metrics: LiveUpdatesMetricsService,
   ) {}
 
   async publish<TEvent extends ChannelEvent>(
@@ -22,8 +24,11 @@ export class LiveUpdatesService {
     event: TEvent,
   ): Promise<void> {
     const message = JSON.stringify(channel.schema.parse(event));
-    const { key } = channel;
-    await this.afterCommit.schedule(() => this.publisher.publish(key, message));
+    const { key, name } = channel;
+    await this.afterCommit.schedule(async () => {
+      await this.publisher.publish(key, message);
+      this.metrics.eventPublished(name);
+    });
   }
 
   async subscribe<TEvent extends ChannelEvent>(

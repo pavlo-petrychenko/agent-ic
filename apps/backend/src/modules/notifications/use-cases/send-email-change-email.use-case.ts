@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { EmailChangesService } from '@/modules/identity';
+import { EmailTemplate } from '@/modules/notifications/constants/notification-metrics.constants';
 import { EmailGateway } from '@/modules/notifications/gateways/email.gateway';
 import {
   emailChangeEmailElement,
@@ -44,6 +45,7 @@ export class SendEmailChangeEmailUseCase {
       }),
     );
     await this.email.send({
+      template: EmailTemplate.EmailChange,
       to: change.email,
       subject: emailChangeEmailSubject(change.locale),
       ...rendered,

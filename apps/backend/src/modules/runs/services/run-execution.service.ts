@@ -35,6 +35,7 @@ import {
 import { runTraceTags, stepTraceMetadata } from '@/modules/runs/helpers/run-tracing.helpers';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
+import { RunMetricsService } from '@/modules/runs/services/run-metrics.service';
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
 import type { BranchSettlement } from '@/modules/runs/typedefs/run-branch.typedefs';
 import type { RunWalk } from '@/modules/runs/typedefs/run-execution.typedefs';
@@ -73,6 +74,7 @@ export class RunExecutionService {
     private readonly clock: ClockService,
     private readonly ids: IdService,
     private readonly logContext: LogContextService,
+    private readonly metrics: RunMetricsService,
   ) {}
 
   async execute(ctx: UseCaseCtx, workspaceId: string, runId: string): Promise<RunStatus> {
@@ -93,6 +95,12 @@ export class RunExecutionService {
       await this.tenants.run(workspaceId, async () => {
         if (await this.runs.finish(workspaceId, runId, end)) {
           await this.activity.runFinished(walk.run.conversationId, runId);
+          this.metrics.runFinished(
+            walk.run,
+            end.status,
+            walk.run.startedAt ?? walk.today,
+            end.finishedAt,
+          );
         }
       });
       this.logger.log({ msg: RunLogMessage.Finished, status: end.status });
@@ -108,6 +116,7 @@ export class RunExecutionService {
     const today = this.clock.now();
     if (await this.runs.markRunning(workspaceId, runId, today)) {
       await this.activity.runStarted(run.conversationId, runId);
+      this.metrics.runStarted(run, today);
     }
     if (run.mode === ConversationMode.Live) {
       await this.agents.getAgent(workspaceId, run.agentId);
@@ -241,6 +250,7 @@ export class RunExecutionService {
     const step = { ...started, ...result };
     await this.tenants.run(workspaceId, async () => {
       if (await this.steps.finish(workspaceId, started.id, result)) {
+        this.metrics.stepFinished(node.type, result.status, started.startedAt, result.finishedAt);
         await this.publishStep(step);
       }
     });
