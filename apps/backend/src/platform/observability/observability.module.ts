@@ -5,6 +5,7 @@ import { HealthController } from '@/platform/observability/controllers/health.co
 import { MetricsController } from '@/platform/observability/controllers/metrics.controller';
 import { createLoggerParams } from '@/platform/observability/helpers/logger.helpers';
 import { HealthService } from '@/platform/observability/services/health.service';
+import { HttpMetricsService } from '@/platform/observability/services/http-metrics.service';
 import { LogContextService } from '@/platform/observability/services/log-context.service';
 import { MetricsService } from '@/platform/observability/services/metrics.service';
 
@@ -17,7 +18,7 @@ export class ObservabilityModule extends defineModule({
         createLoggerParams(config.config, logContext),
     }),
   ],
-  providers: [HealthService, LogContextService, MetricsService],
-  exports: [HealthService, LogContextService, MetricsService],
+  providers: [HealthService, HttpMetricsService, LogContextService, MetricsService],
+  exports: [HealthService, HttpMetricsService, LogContextService, MetricsService],
   roleControllers: inEveryRole([HealthController, MetricsController]),
 }) {}

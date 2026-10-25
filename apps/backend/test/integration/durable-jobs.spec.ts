@@ -12,7 +12,11 @@ import { SystemDatabaseService } from '@/platform/database/services/system-datab
 import type { AppDatabase } from '@/platform/database/typedefs/database.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 import { DomainEventsService } from '@/platform/domain-events/services/domain-events.service';
-import { OUTBOX_GRACE_PERIOD_SECONDS } from '@/platform/queues/constants/outbox.constants';
+import { MetricsService } from '@/platform/observability/services/metrics.service';
+import {
+  OUTBOX_GRACE_PERIOD_SECONDS,
+  OutboxMetricName,
+} from '@/platform/queues/constants/outbox.constants';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { outboxMessages } from '@/platform/queues/db/outbox-message.table';
 import { OutboxRepository } from '@/platform/queues/repositories/outbox.repository';
@@ -32,6 +36,7 @@ import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.con
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { createProbeWorker, userCtx } from '@test/support/helpers/async-jobs.helpers';
+import { metricValue } from '@test/support/helpers/llm-testing.helpers';
 import { probeSignedUpEvent } from '@test/support/jobs/probe-signed-up.job';
 import { recordProbeJob } from '@test/support/jobs/record-probe.job';
 import { ProbeCallsRecorderService } from '@test/support/services/probe-calls-recorder.service';
@@ -159,6 +164,26 @@ describe('durable jobs', () => {
     expect(await rowsFor(probeId)).toEqual([]);
     await waitUntilHandled(probeId);
     expect(callsFor(probeId)).toBe(1);
+  });
+
+  it('reports the outbox backlog and counts the messages the sweeper re-sends', async () => {
+    const metrics = app.get(MetricsService);
+    const probeId = randomUUID();
+    const sweptBefore = (await metricValue(metrics, OutboxMetricName.SweptMessages, {})) ?? 0;
+    vi.spyOn(queue, 'add').mockRejectedValueOnce(new ProbeOutage());
+
+    await txHost.withTransaction(() =>
+      jobs.enqueue(workspaceCtx(), recordProbeJob, { probeId }, DURABLE),
+    );
+    const backlog = await outbox.backlog();
+    await sweepAfterGrace();
+
+    expect(backlog.pending).toBeGreaterThanOrEqual(1);
+    expect(backlog.oldestCreatedAt).not.toBeNull();
+    expect(await metricValue(metrics, OutboxMetricName.SweptMessages, {})).toBeGreaterThan(
+      sweptBefore,
+    );
+    await waitUntilHandled(probeId);
   });
 
   it('re-sends with the same job id when the row was not deleted, and runs the job once', async () => {

@@ -7,9 +7,11 @@ import { SweepOutboxProcessor } from '@/platform/queues/processors/sweep-outbox.
 import { OutboxRepository } from '@/platform/queues/repositories/outbox.repository';
 import { JobExecutionService } from '@/platform/queues/services/job-execution.service';
 import { JobHandlersService } from '@/platform/queues/services/job-handlers.service';
+import { JobMetricsService } from '@/platform/queues/services/job-metrics.service';
 import { JobSchedulesService } from '@/platform/queues/services/job-schedules.service';
 import { JobWorkersService } from '@/platform/queues/services/job-workers.service';
 import { JobsService } from '@/platform/queues/services/jobs.service';
+import { OutboxMetricsService } from '@/platform/queues/services/outbox-metrics.service';
 import { OutboxSweeperService } from '@/platform/queues/services/outbox-sweeper.service';
 import { QueueBoardService } from '@/platform/queues/services/queue-board.service';
 import { QueueMetricsService } from '@/platform/queues/services/queue-metrics.service';
@@ -27,8 +29,10 @@ export class QueuesModule extends defineModule({
     [Role.Worker]: [
       JobHandlersService,
       JobExecutionService,
+      JobMetricsService,
       JobWorkersService,
       JobSchedulesService,
+      OutboxMetricsService,
       OutboxSweeperService,
     ],
   },

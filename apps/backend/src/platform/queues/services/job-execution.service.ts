@@ -19,6 +19,7 @@ import type { QueueName } from '@/platform/queues/constants/queue.constants';
 import { traceContextOf } from '@/platform/queues/helpers/queue-telemetry.helpers';
 import { jobEnvelopeSchema } from '@/platform/queues/schemas/job-envelope.schema';
 import { JobHandlersService } from '@/platform/queues/services/job-handlers.service';
+import { JobMetricsService } from '@/platform/queues/services/job-metrics.service';
 
 @Injectable()
 export class JobExecutionService {
@@ -28,9 +29,14 @@ export class JobExecutionService {
     private readonly reporter: ErrorReporterService,
     private readonly cls: ClsService,
     private readonly logContext: LogContextService,
+    private readonly metrics: JobMetricsService,
   ) {}
 
-  async run(queue: QueueName, job: Job<unknown>): Promise<void> {
+  run(queue: QueueName, job: Job<unknown>): Promise<void> {
+    return this.metrics.track(queue, job, () => this.execute(queue, job));
+  }
+
+  private async execute(queue: QueueName, job: Job<unknown>): Promise<void> {
     const envelope = jobEnvelopeSchema.safeParse(job.data);
     if (!envelope.success) {
       throw new UnrecoverableError(INVALID_JOB_PAYLOAD_MESSAGE);

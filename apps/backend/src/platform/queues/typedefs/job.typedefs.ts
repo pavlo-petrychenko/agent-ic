@@ -1,3 +1,4 @@
+import type { Job } from 'bullmq';
 import type { z } from 'zod';
 import type { Actor } from '@/platform/context/typedefs/actor.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -47,3 +48,5 @@ export interface EnqueueOptions {
 export interface JobEnqueueOptions extends Partial<EnqueueOptions> {
   readonly jobId?: string;
 }
+
+export type TrackedJob = Pick<Job, 'name' | 'timestamp' | 'attemptsMade' | 'opts'>;

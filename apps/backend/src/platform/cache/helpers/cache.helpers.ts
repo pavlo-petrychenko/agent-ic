@@ -5,6 +5,7 @@ import type { CacheEntry, CacheEntryDefinition } from '@/platform/cache/typedefs
 export const defineCacheEntry =
   <TValue>(definition: CacheEntryDefinition<TValue>) =>
   (...segments: readonly string[]): CacheEntry<TValue> => ({
+    name: definition.name,
     key: [CACHE_ROOT, definition.name, ...segments].join(CACHE_KEY_SEPARATOR),
     schema: definition.schema,
     ttlSeconds: definition.ttlSeconds,

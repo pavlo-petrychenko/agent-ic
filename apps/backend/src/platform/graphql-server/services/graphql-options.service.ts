@@ -22,6 +22,7 @@ import {
   JSON_SCALAR_TYPE_DEFS,
 } from '@/platform/graphql-server/constants/scalar.constants';
 import { readConnectionParam } from '@/platform/graphql-server/helpers/connection-param.helpers';
+import { graphqlMetricsPlugin } from '@/platform/graphql-server/helpers/graphql-metrics.helpers';
 import { jsonScalar } from '@/platform/graphql-server/helpers/json-scalar.helpers';
 import { moduleTypePaths } from '@/platform/graphql-server/helpers/module-sdl.helpers';
 import {
@@ -29,6 +30,7 @@ import {
   subscriptionErrors,
 } from '@/platform/graphql-server/helpers/query-limits.helpers';
 import { GraphqlLoadersService } from '@/platform/graphql-server/services/graphql-loaders.service';
+import { GraphqlMetricsService } from '@/platform/graphql-server/services/graphql-metrics.service';
 import type {
   GraphqlContext,
   GraphqlContextInput,
@@ -45,6 +47,7 @@ export class GraphqlOptionsService implements GqlOptionsFactory<ApolloDriverConf
     private readonly traceIds: TraceIdService,
     private readonly reporter: ErrorReporterService,
     private readonly loaders: GraphqlLoadersService,
+    private readonly graphqlMetrics: GraphqlMetricsService,
     private readonly schemaHost: GraphQLSchemaHost,
   ) {}
 
@@ -59,11 +62,12 @@ export class GraphqlOptionsService implements GqlOptionsFactory<ApolloDriverConf
       graphiql: nodeEnv === NodeEnvironment.Development,
       introspection: nodeEnv !== NodeEnvironment.Production,
       includeStacktraceInErrorResponses: false,
-      plugins: [queryLimitsPlugin],
+      plugins: [queryLimitsPlugin, graphqlMetricsPlugin(this.graphqlMetrics)],
       subscriptions: {
         'graphql-ws': {
           path: GRAPHQL_PATH,
           onConnect: (connection: WebSocketConnectionInput) => this.acceptConnection(connection),
+          onDisconnect: () => this.graphqlMetrics.connectionClosed(),
           onSubscribe: (_connection, _id, payload) =>
             subscriptionErrors(this.schemaHost.schema, payload),
         },
@@ -88,6 +92,7 @@ export class GraphqlOptionsService implements GqlOptionsFactory<ApolloDriverConf
       await this.contexts.resolveActor(
         readConnectionParam(connection.connectionParams, ConnectionParam.Authorization),
       );
+      this.graphqlMetrics.connectionOpened();
       return true;
     } catch (error) {
       this.reporter.report(error, this.traceIds.current());

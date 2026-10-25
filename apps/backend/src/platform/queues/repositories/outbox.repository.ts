@@ -1,11 +1,16 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { asc, eq, inArray, lte } from 'drizzle-orm';
+import { asc, count, eq, inArray, lte, min } from 'drizzle-orm';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
+import { NO_OUTBOX_MESSAGES } from '@/platform/queues/constants/outbox.constants';
 import { outboxMessages } from '@/platform/queues/db/outbox-message.table';
-import type { NewOutboxMessage, OutboxSend } from '@/platform/queues/typedefs/outbox.typedefs';
+import type {
+  NewOutboxMessage,
+  OutboxBacklog,
+  OutboxSend,
+} from '@/platform/queues/typedefs/outbox.typedefs';
 
 @Injectable()
 export class OutboxRepository {
@@ -24,6 +29,16 @@ export class OutboxRepository {
 
   async delete(id: string): Promise<void> {
     await this.systemDb.db.delete(outboxMessages).where(eq(outboxMessages.id, id));
+  }
+
+  async backlog(): Promise<OutboxBacklog> {
+    const [row] = await this.systemDb.db
+      .select({ pending: count(), oldestCreatedAt: min(outboxMessages.createdAt) })
+      .from(outboxMessages);
+    return {
+      pending: row?.pending ?? NO_OUTBOX_MESSAGES,
+      oldestCreatedAt: row?.oldestCreatedAt ?? null,
+    };
   }
 
   takeDue(cutoff: Date, limit: number, send: OutboxSend): Promise<number> {

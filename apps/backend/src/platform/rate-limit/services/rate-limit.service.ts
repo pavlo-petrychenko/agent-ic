@@ -11,6 +11,7 @@ import {
   toRateLimitDecision,
   toRetryAfterSeconds,
 } from '@/platform/rate-limit/helpers/rate-limit.helpers';
+import { RateLimitMetricsService } from '@/platform/rate-limit/services/rate-limit-metrics.service';
 import type {
   RateLimitDecision,
   RateLimitPolicy,
@@ -19,7 +20,10 @@ import { CacheRedisService } from '@/platform/redis/services/cache-redis.service
 
 @Injectable()
 export class RateLimitService {
-  constructor(private readonly redis: CacheRedisService) {}
+  constructor(
+    private readonly redis: CacheRedisService,
+    private readonly metrics: RateLimitMetricsService,
+  ) {}
 
   async consume(
     policy: RateLimitPolicy,
@@ -34,7 +38,11 @@ export class RateLimitService {
       refillPerMillisecond(policy),
       cost,
     );
-    return toRateLimitDecision(reply);
+    const decision = toRateLimitDecision(reply);
+    if (!decision.allowed) {
+      this.metrics.rejected(policy.name);
+    }
+    return decision;
   }
 
   async enforce(

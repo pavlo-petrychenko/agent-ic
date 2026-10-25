@@ -2,12 +2,14 @@ import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest';
 import { z } from 'zod';
 import { defineCacheEntry } from '@/platform/cache/helpers/cache.helpers';
+import { CacheMetricsService } from '@/platform/cache/services/cache-metrics.service';
 import { CacheService } from '@/platform/cache/services/cache.service';
 import { ConfigService } from '@/platform/config/services/config.service';
 import { ActorKind, SystemReason } from '@/platform/context/constants/actor.constants';
 import { ChannelPublisherService } from '@/platform/live-updates/services/channel-publisher.service';
 import { ChannelSubscriberService } from '@/platform/live-updates/services/channel-subscriber.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { MetricsService } from '@/platform/observability/services/metrics.service';
 import {
   DETACHED_TRACE_CONTEXT,
   ENVELOPE_VERSION,
@@ -15,6 +17,7 @@ import {
 import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { QueuesService } from '@/platform/queues/services/queues.service';
 import { defineRateLimitPolicy } from '@/platform/rate-limit/helpers/rate-limit.helpers';
+import { RateLimitMetricsService } from '@/platform/rate-limit/services/rate-limit-metrics.service';
 import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.service';
 import { RedisConnectionName } from '@/platform/redis/constants/redis.constants';
 import {
@@ -49,10 +52,11 @@ const startSuite = (prefix: TestRedisPrefix) => {
     createIntegrationConfig({ role: Role.Worker, queues: [QUEUE] }, prefix),
   );
   const redis = new CacheRedisService(config);
+  const metrics = new MetricsService(config);
   return {
     redis,
-    cache: new CacheService(redis),
-    limiter: new RateLimitService(redis),
+    cache: new CacheService(redis, new CacheMetricsService(metrics)),
+    limiter: new RateLimitService(redis, new RateLimitMetricsService(metrics)),
     publisher: new ChannelPublisherService(config),
     subscriber: new ChannelSubscriberService(config),
     queues: new QueuesService(config),
