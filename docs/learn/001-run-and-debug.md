@@ -74,7 +74,7 @@ Password reset emails land in Mailpit too.
 
 ## Logs
 
-Run `mise run logs api` or `mise run logs worker`. The backend writes one JSON line per log entry (pino). Authorization headers and cookies show as `[redacted]`. With `mise run start:obs` the same lines also land in Loki, see Observability.
+Run `mise run logs api` or `mise run logs worker`. The backend writes one JSON line per log entry (pino). Authorization headers, cookies, the Telegram secret header and secret query parameters (`token`, `secret`, `code` and similar) show as `[redacted]`. An error is logged with its type, message, stack and code only, never with the request or response it carried. With `mise run start:obs` the same lines also land in Loki, see Observability.
 
 For more detail, set `LOG_LEVEL=debug` in `.env`, then run `mise run start api`. `start` recreates the container with the new value; `restart` keeps the old one. In code, use the Nest `Logger`, never `console.*`.
 
@@ -117,7 +117,7 @@ Grafana comes with three data sources (Prometheus, Loki, Tempo) and the dashboar
 
 The mode is stored in `.dev/stack.mode`. `start:obs` writes `observability`; `mise run start` writes `lean`, removes the observability containers (their data volumes stay) and recreates `api`, `gateway` and `worker` with tracing off. `mise run start <svc>` and `mise run add <svc>` keep the current mode, so `mise run start api` after `start:obs` does not switch tracing off. The tracing switch itself is [compose.observability.yaml](../../compose.observability.yaml), which `tools/dev` adds to every Compose call while the mode is `observability`. `.env` keeps `OTEL_SDK_DISABLED=true`.
 
-With tracing on, every log line also carries the `traceId` of its request. Alloy reads the Docker socket, which is root-equivalent access on your machine; that is fine for a dev machine.
+Every log line carries a `traceId`: the id of the active span when tracing is on, else the request id (for a job, the id saved in its envelope), so scheduled jobs are searchable too. With tracing on it also carries the `spanId`. Lines written while a workspace is known carry `workspaceId`, and lines written during a run carry `runId` and `conversationId`. In Grafana, `{service="worker"} | json | runId="…"` returns one run's lines. Alloy reads the Docker socket, which is root-equivalent access on your machine; that is fine for a dev machine.
 
 ### Memory
 

@@ -14,12 +14,15 @@ import type {
 } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import type { ResolvedWorkspace } from '@/platform/context/typedefs/workspace-access.typedefs';
 import { IdService } from '@/platform/ids/services/id.service';
+import { LogContextField } from '@/platform/observability/constants/logger.constants';
+import { LogContextService } from '@/platform/observability/services/log-context.service';
 
 @Injectable()
 export class UseCaseCtxService {
   constructor(
     private readonly authenticator: AuthenticatorService,
     private readonly ids: IdService,
+    private readonly logContext: LogContextService,
     @Optional()
     @Inject(WorkspaceAccessService)
     private readonly workspaceAccess?: WorkspaceAccessService,
@@ -27,10 +30,14 @@ export class UseCaseCtxService {
 
   async create(request: TransportRequest): Promise<UseCaseCtx> {
     const actor = await this.resolveActor(request.authorization);
+    const workspace = await this.resolveWorkspace(actor, request.workspaceId);
+    if (workspace.workspaceId !== null) {
+      this.logContext.assign({ [LogContextField.WorkspaceId]: workspace.workspaceId });
+    }
     return {
       actor,
       initiatedBy: null,
-      ...(await this.resolveWorkspace(actor, request.workspaceId)),
+      ...workspace,
       traceId: request.traceId,
       locale: negotiateLocale(request.acceptLanguage),
       clientIp: request.clientIp,

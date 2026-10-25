@@ -1,6 +1,6 @@
 import { NodeType, PortName, buildFlowGraph, createScopeLookup, nodePorts } from '@agent-ic/flow';
 import type { FlowNode, ParallelNode } from '@agent-ic/flow';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
 import {
   ConversationActivityService,
@@ -10,6 +10,7 @@ import {
 } from '@/modules/conversations';
 import { PromptFlowReader } from '@/modules/prompts';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
+import { RunLogMessage } from '@/modules/runs/constants/run-log.constants';
 import {
   ROOT_BRANCH_KEY,
   RunStatus,
@@ -50,9 +51,13 @@ import { IdService } from '@/platform/ids/services/id.service';
 import { channelFor } from '@/platform/live-updates/helpers/channel.helpers';
 import { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';
 import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
+import { LogContextField } from '@/platform/observability/constants/logger.constants';
+import { LogContextService } from '@/platform/observability/services/log-context.service';
 
 @Injectable()
 export class RunExecutionService {
+  private readonly logger = new Logger(RunExecutionService.name);
+
   constructor(
     private readonly runs: RunsRepository,
     private readonly steps: RunStepsRepository,
@@ -67,6 +72,7 @@ export class RunExecutionService {
     private readonly traces: LlmTraceContextService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
+    private readonly logContext: LogContextService,
   ) {}
 
   async execute(ctx: UseCaseCtx, workspaceId: string, runId: string): Promise<RunStatus> {
@@ -74,6 +80,12 @@ export class RunExecutionService {
     if (!UNFINISHED_RUN_STATUSES.includes(walk.run.status)) {
       return walk.run.status;
     }
+    this.logContext.assign({
+      [LogContextField.WorkspaceId]: workspaceId,
+      [LogContextField.RunId]: runId,
+      [LogContextField.ConversationId]: walk.run.conversationId,
+    });
+    this.logger.log({ msg: RunLogMessage.Started, mode: walk.run.mode });
     return this.traces.run(runTraceTags(walk.run), async (traceId) => {
       await this.tenants.run(workspaceId, () => this.runs.setTraceId(workspaceId, runId, traceId));
       const walked = await this.walk(walk);
@@ -83,6 +95,7 @@ export class RunExecutionService {
           await this.activity.runFinished(walk.run.conversationId, runId);
         }
       });
+      this.logger.log({ msg: RunLogMessage.Finished, status: end.status });
       return end.status;
     });
   }
@@ -271,6 +284,13 @@ export class RunExecutionService {
       if (jobFailureActionFor(error) === JobFailureAction.Retry) {
         throw error;
       }
+      this.logger.warn({
+        msg: RunLogMessage.StepFailed,
+        nodeId: node.id,
+        nodeType: node.type,
+        branchKey,
+        err: error,
+      });
       const errorPort =
         nodePorts(node).includes(PortName.Error) &&
         nextNode(walk.flow, node.id, PortName.Error) !== null;

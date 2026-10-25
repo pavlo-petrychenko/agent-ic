@@ -28,6 +28,7 @@ import { DomainEventsModule } from '@/platform/domain-events/domain-events.modul
 import { ErrorsModule } from '@/platform/errors/errors.module';
 import { IdsModule } from '@/platform/ids/ids.module';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { ObservabilityModule } from '@/platform/observability/observability.module';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { QueuesService } from '@/platform/queues/services/queues.service';
@@ -61,6 +62,7 @@ export const createIdentityTestbed = async (
     imports: [
       ConfigModule.register(config),
       ContextModule,
+      ObservabilityModule.forRole(ROLE),
       ErrorsModule,
       DatabaseModule,
       ClockModule,
