@@ -1,6 +1,8 @@
+import { ErrorCode, ErrorReason } from '@agent-ic/contracts';
 import type { MockLink } from '@apollo/client/testing';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { GraphQLError } from 'graphql';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { CreateKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/createKnowledgeBase.generated';
 import { DeleteKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/deleteKnowledgeBase.generated';
@@ -69,6 +71,20 @@ const buildDeleteKnowledgeBaseMock = (id: string): MockLink.MockedResponse => ({
   result: { data: { deleteKnowledgeBase: { id } } },
 });
 
+const buildDeleteKnowledgeBaseFailureMock = (id: string): MockLink.MockedResponse => ({
+  request: { query: DeleteKnowledgeBaseDocument, variables: { input: { id } } },
+  result: {
+    errors: [
+      new GraphQLError('rejected', {
+        extensions: {
+          code: ErrorCode.Conflict,
+          reason: ErrorReason.KnowledgeBaseHasSources,
+        },
+      }),
+    ],
+  },
+});
+
 describe('knowledge bases', () => {
   beforeEach(() => signInForTest());
 
@@ -102,7 +118,7 @@ describe('knowledge bases', () => {
     );
   });
 
-  it('deletes a knowledge base and selects the next one', async () => {
+  it('deletes an empty knowledge base and selects the next one', async () => {
     const user = userEvent.setup();
     renderRoute(`${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`, {
       mocks: [
@@ -131,6 +147,34 @@ describe('knowledge bases', () => {
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: new RegExp(SERVICES_KNOWLEDGE_BASE.name) }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps a knowledge base that still has sources', async () => {
+    const user = userEvent.setup();
+    renderRoute(`${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
+        buildDeleteKnowledgeBaseFailureMock(SERVICES_KNOWLEDGE_BASE.id),
+      ],
+    });
+
+    await screen.findByRole('heading', { name: SERVICES_KNOWLEDGE_BASE.name });
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    const dialog = await screen.findByRole('dialog', {
+      name: `Delete “${SERVICES_KNOWLEDGE_BASE.name}”?`,
+    });
+    expect(
+      within(dialog).getByText('This deletes the knowledge base. This cannot be undone.'),
+    ).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Delete knowledge base' }));
+
+    expect(
+      await within(dialog).findByText('Delete the sources in this knowledge base first.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(`Knowledge base “${SERVICES_KNOWLEDGE_BASE.name}” deleted.`),
     ).not.toBeInTheDocument();
   });
 });

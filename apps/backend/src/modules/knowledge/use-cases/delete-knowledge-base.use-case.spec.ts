@@ -1,4 +1,6 @@
+import { ErrorReason } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { KnowledgeBaseHasSourcesError } from '@/modules/knowledge/errors/knowledge-base-has-sources.error';
 import { KnowledgeBaseNotFoundError } from '@/modules/knowledge/errors/knowledge-base-not-found.error';
 import { ChunkTermsRepository } from '@/modules/knowledge/repositories/chunk-terms.repository';
 import { ChunksRepository } from '@/modules/knowledge/repositories/chunks.repository';
@@ -8,6 +10,7 @@ import { SectionsRepository } from '@/modules/knowledge/repositories/sections.re
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { DeleteKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/delete-knowledge-base.use-case';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import { DomainErrorKind } from '@/platform/errors/constants/domain-error.constants';
 import { IdService } from '@/platform/ids/services/id.service';
 import { TEST_CHUNK_TERM, TEST_KB_NAME } from '@test/support/constants/knowledge-testing.constants';
 import {
@@ -52,7 +55,25 @@ describe('DeleteKnowledgeBaseUseCase', () => {
     await testbed.module.close();
   });
 
-  it('deletes a knowledge base with its sources and indexed content', async () => {
+  it('deletes an empty knowledge base and frees its name', async () => {
+    const workspaceId = ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const publicId = publicKnowledgeBaseId(testbed, knowledgeBaseId);
+
+    const result = await deleteKnowledgeBase.execute(knowledgeCtx(workspaceId), {
+      id: publicId,
+    });
+
+    const stored = await tenants.run(workspaceId, async () => ({
+      knowledgeBase: await knowledgeBases.findById(workspaceId, knowledgeBaseId),
+      byName: await knowledgeBases.findByName(workspaceId, TEST_KB_NAME),
+      listed: await knowledgeBases.list(workspaceId),
+    }));
+    expect(result).toEqual({ id: publicId });
+    expect(stored).toEqual({ knowledgeBase: null, byName: null, listed: [] });
+  });
+
+  it('refuses a knowledge base with a source and keeps its content', async () => {
     const workspaceId = ids.generate();
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
     const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId);
@@ -66,33 +87,30 @@ describe('DeleteKnowledgeBaseUseCase', () => {
       sectionId,
     );
     await seedKnowledgeChunkTerm(testbed, workspaceId, knowledgeBaseId, chunkId);
-    const publicId = publicKnowledgeBaseId(testbed, knowledgeBaseId);
 
-    const result = await deleteKnowledgeBase.execute(knowledgeCtx(workspaceId), {
-      id: publicId,
+    const attempt = deleteKnowledgeBase.execute(knowledgeCtx(workspaceId), {
+      id: publicKnowledgeBaseId(testbed, knowledgeBaseId),
     });
 
+    await expect(attempt).rejects.toBeInstanceOf(KnowledgeBaseHasSourcesError);
+    await expect(attempt).rejects.toMatchObject({
+      kind: DomainErrorKind.Conflict,
+      reason: ErrorReason.KnowledgeBaseHasSources,
+    });
     const stored = await tenants.run(workspaceId, async () => ({
       knowledgeBase: await knowledgeBases.findById(workspaceId, knowledgeBaseId),
-      byName: await knowledgeBases.findByName(workspaceId, TEST_KB_NAME),
-      listed: await knowledgeBases.list(workspaceId),
       source: await sources.findById(workspaceId, sourceId),
       document: await documents.findById(workspaceId, documentId),
       section: await sections.findById(workspaceId, sectionId),
       chunk: await chunks.findById(workspaceId, chunkId),
       term: await chunkTerms.find(workspaceId, chunkId, TEST_CHUNK_TERM),
     }));
-    expect(result).toEqual({ id: publicId });
-    expect(stored).toEqual({
-      knowledgeBase: null,
-      byName: null,
-      listed: [],
-      source: null,
-      document: null,
-      section: null,
-      chunk: null,
-      term: null,
-    });
+    expect(stored.knowledgeBase).not.toBeNull();
+    expect(stored.source).not.toBeNull();
+    expect(stored.document).not.toBeNull();
+    expect(stored.section).not.toBeNull();
+    expect(stored.chunk).not.toBeNull();
+    expect(stored.term).not.toBeNull();
   });
 
   it('refuses an unknown knowledge base', async () => {
