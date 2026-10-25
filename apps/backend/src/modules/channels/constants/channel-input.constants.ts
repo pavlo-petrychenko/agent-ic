@@ -14,4 +14,5 @@ export const CHANNEL_FIELD_REASON: Readonly<Record<string, ErrorReason>> = {
 
 export enum ChannelGraphqlArgument {
   Input = 'input',
+  Id = 'id',
 }

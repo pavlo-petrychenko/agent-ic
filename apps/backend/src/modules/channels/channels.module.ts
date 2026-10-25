@@ -7,7 +7,9 @@ import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { DeliverOutboundMessageListener } from '@/modules/channels/listeners/deliver-outbound-message.listener';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
+import { ChannelResolver } from '@/modules/channels/resolvers/channel.resolver';
 import { ConnectTelegramResolver } from '@/modules/channels/resolvers/connect-telegram.resolver';
+import { DisconnectTelegramResolver } from '@/modules/channels/resolvers/disconnect-telegram.resolver';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
 import { ChannelConnectionService } from '@/modules/channels/services/channel-connection.service';
 import { ChannelMetricsService } from '@/modules/channels/services/channel-metrics.service';
@@ -15,6 +17,9 @@ import { ChannelTokenService } from '@/modules/channels/services/channel-token.s
 import { TelegramChannelService } from '@/modules/channels/services/telegram-channel.service';
 import { ConnectTelegramChannelUseCase } from '@/modules/channels/use-cases/connect-telegram.use-case';
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
+import { DisconnectTelegramUseCase } from '@/modules/channels/use-cases/disconnect-telegram.use-case';
+import { GetChannelUseCase } from '@/modules/channels/use-cases/get-channel.use-case';
+import { ListChannelsUseCase } from '@/modules/channels/use-cases/list-channels.use-case';
 import { ConversationsModule } from '@/modules/conversations';
 import { CryptoModule } from '@/platform/crypto/crypto.module';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
@@ -40,9 +45,12 @@ export class ChannelsModule extends defineModule({
     ChannelAdapterRegistryService,
     ChannelMetricsService,
     ConnectTelegramChannelUseCase,
+    DisconnectTelegramUseCase,
+    GetChannelUseCase,
+    ListChannelsUseCase,
     DeliverOutboundMessageUseCase,
   ],
-  resolvers: [ConnectTelegramResolver],
+  resolvers: [ChannelResolver, ConnectTelegramResolver, DisconnectTelegramResolver],
   listeners: [DeliverOutboundMessageListener],
   exports: [SimulatedChannelAdapter, ChannelAdapterRegistryService],
 }) {}
