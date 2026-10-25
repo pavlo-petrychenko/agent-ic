@@ -3,6 +3,34 @@ export enum TelegramBotStatus {
   Revoked = 'revoked',
 }
 
+export enum TelegramChannelStatus {
+  Pending = 'pending',
+  Connected = 'connected',
+  Broken = 'broken',
+  Disconnected = 'disconnected',
+}
+
+export interface TelegramChannelSummary {
+  readonly id: string;
+  readonly displayName: string;
+  readonly status: TelegramChannelStatus;
+  readonly agentId: string | null;
+  readonly agentName: string | null;
+}
+
+export interface TelegramChannelView extends TelegramChannelSummary {
+  readonly firstName: string | null;
+  readonly agentLiveVersionNumber: number | null;
+  readonly showTyping: boolean;
+  readonly updatedAt: string;
+}
+
+export interface ConnectTelegramVariables {
+  readonly token: string;
+  readonly agentId: string;
+  readonly showTyping: boolean;
+}
+
 export interface TelegramBotStats {
   readonly chats: string;
   readonly messages: string;
