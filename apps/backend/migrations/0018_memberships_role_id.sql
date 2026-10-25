@@ -2,6 +2,7 @@ ALTER TABLE "identity"."memberships" ADD COLUMN "role_id" uuid;--> statement-bre
 ALTER TABLE "identity"."roles" NO FORCE ROW LEVEL SECURITY;--> statement-breakpoint
 ALTER TABLE "identity"."role_permissions" NO FORCE ROW LEVEL SECURITY;--> statement-breakpoint
 ALTER TABLE "identity"."memberships" NO FORCE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "identity"."workspaces" NO FORCE ROW LEVEL SECURITY;--> statement-breakpoint
 INSERT INTO "identity"."roles" ("id","workspace_id","key","name","is_system","created_at","updated_at")
 SELECT gen_random_uuid(), w."id", k."key"::"identity"."workspace_role", NULL, true, now(), now()
 FROM "identity"."workspaces" w
@@ -51,4 +52,5 @@ ALTER TABLE "identity"."memberships" ADD CONSTRAINT "memberships_workspace_id_ro
 ALTER TABLE "identity"."memberships" DROP COLUMN "role";--> statement-breakpoint
 ALTER TABLE "identity"."roles" FORCE ROW LEVEL SECURITY;--> statement-breakpoint
 ALTER TABLE "identity"."role_permissions" FORCE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "identity"."memberships" FORCE ROW LEVEL SECURITY;
+ALTER TABLE "identity"."memberships" FORCE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "identity"."workspaces" FORCE ROW LEVEL SECURITY;
