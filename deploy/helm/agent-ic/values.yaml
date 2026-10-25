@@ -21,7 +21,6 @@ config:
     serviceNamespace: agent-ic
   langfuse:
     mode: 'off'
-    sampleRate: 1
     host: ''
   s3:
     forcePathStyle: false

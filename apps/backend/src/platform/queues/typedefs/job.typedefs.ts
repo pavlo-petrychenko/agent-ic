@@ -8,6 +8,8 @@ export type JobDataValue = string | number | boolean | null | readonly string[];
 
 export type JobData = Readonly<Record<string, JobDataValue>>;
 
+export type JobTraceContext = Readonly<Record<string, string>>;
+
 export interface JobDefinition<TData extends JobData> {
   readonly queue: QueueName;
   readonly name: string;
@@ -25,6 +27,7 @@ export interface JobEnvelope {
   readonly data: JobData;
   readonly workspaceId: string | null;
   readonly traceId: string;
+  readonly traceContext: JobTraceContext;
   readonly initiatedBy: Actor;
 }
 

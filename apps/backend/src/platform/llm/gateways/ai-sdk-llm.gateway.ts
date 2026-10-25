@@ -108,12 +108,10 @@ export class AiSdkLlmGateway extends LlmGateway {
     request: LlmCompleteRequest<T>,
     attempt: (run: LlmModelRun) => Promise<R>,
   ): Promise<R> {
-    return this.traces.forCall(async () => {
-      const source = await this.providers.resolve(request.provider);
-      return this.metrics.measure(operation, metricModelLabel(source, request.model), () =>
-        this.tryModels(request, source, attempt),
-      );
-    });
+    const source = await this.providers.resolve(request.provider);
+    return this.metrics.measure(operation, metricModelLabel(source, request.model), () =>
+      this.tryModels(request, source, attempt),
+    );
   }
 
   private async tryModels<T, R>(

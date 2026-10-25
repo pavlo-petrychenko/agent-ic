@@ -79,7 +79,7 @@ The simulator freezes the draft with `AgentRuntimeReader.snapshotDraft`, which w
 
 ## Tracing
 
-One run attempt is one Langfuse trace: the trace id is saved on the run, the conversation is the session, each step is a span named by its node key, and the LLM calls of a step are generations under it. A retried job starts a new trace and the run points at the latest one (D228).
+A run attempt is a subtree of the trace of the request that started it: the GraphQL mutation or webhook, the job it added, the worker's consumer span, then the run span. The trace id is saved on the run, the conversation is the Langfuse session, each step is a span named by its node key, and the LLM calls of a step are generations under it. A retried job is another consumer span of the same trace, so its run span sits next to the killed one and the run keeps the same trace id (D124, D228).
 
 ## In the code
 

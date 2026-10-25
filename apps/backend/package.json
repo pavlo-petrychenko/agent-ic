@@ -63,6 +63,7 @@
     "@react-email/render": "^2.1.0",
     "ai": "^7.0.137",
     "bullmq": "6.3.11",
+    "bullmq-otel": "2.0.1",
     "dataloader": "2.2.3",
     "drizzle-orm": "^0.45.3",
     "graphql": "^16.14.2",

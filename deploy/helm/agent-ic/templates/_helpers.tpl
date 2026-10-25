@@ -147,8 +147,6 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | replace 
   value: {{ .component | quote }}
 - name: LANGFUSE_MODE
   value: {{ $langfuse.mode | quote }}
-- name: LANGFUSE_SAMPLE_RATE
-  value: {{ $langfuse.sampleRate | quote }}
 {{ include "agent-ic.databaseCredentialsEnv" (dict "prefix" "DATABASE_APP" "secret" $secrets.databaseApp) }}
 {{ include "agent-ic.databaseCredentialsEnv" (dict "prefix" "DATABASE_SYSTEM" "secret" $secrets.databaseSystem) }}
 {{ include "agent-ic.secretEnv" (dict "name" "REDIS_QUEUE_PASSWORD" "secret" $secrets.redisQueue.name "key" $secrets.redisQueue.passwordKey) }}

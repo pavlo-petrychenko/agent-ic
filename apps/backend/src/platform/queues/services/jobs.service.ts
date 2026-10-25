@@ -6,6 +6,7 @@ import { AfterCommitService } from '@/platform/database/services/after-commit.se
 import { IdService } from '@/platform/ids/services/id.service';
 import { ENVELOPE_VERSION } from '@/platform/queues/constants/job.constants';
 import { outboxJobOptions } from '@/platform/queues/helpers/outbox.helpers';
+import { currentTraceContext } from '@/platform/queues/helpers/queue-telemetry.helpers';
 import { OutboxRepository } from '@/platform/queues/repositories/outbox.repository';
 import { QueuesService } from '@/platform/queues/services/queues.service';
 import type {
@@ -35,6 +36,7 @@ export class JobsService {
       data: definition.schema.parse(data),
       workspaceId: ctx.workspaceId,
       traceId: ctx.traceId,
+      traceContext: currentTraceContext(),
       initiatedBy: getOriginator(ctx),
     };
     const jobId = options?.jobId;

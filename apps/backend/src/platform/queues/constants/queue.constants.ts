@@ -8,6 +8,7 @@ export enum QueueName {
 }
 
 export const BULLMQ_KEY_ROOT = 'bull';
+export const QUEUE_TRACER_NAME = 'agent-ic.queues';
 
 export enum JobBackoffType {
   Exponential = 'exponential',

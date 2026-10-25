@@ -16,7 +16,6 @@ import { HttpLlmModelListGateway } from '@/platform/llm/gateways/http-llm-model-
 import { LlmModelListGateway } from '@/platform/llm/gateways/llm-model-list.gateway';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import { LlmMetricsService } from '@/platform/llm/services/llm-metrics.service';
-import { LlmSamplerService } from '@/platform/llm/services/llm-sampler.service';
 import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
 
@@ -24,7 +23,6 @@ import { ProviderResolverService } from '@/platform/llm/services/provider-resolv
 @Module({
   providers: [
     ProviderResolverService,
-    LlmSamplerService,
     LlmTraceContextService,
     LlmMetricsService,
     { provide: LlmModelListGateway, useClass: HttpLlmModelListGateway },

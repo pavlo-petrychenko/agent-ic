@@ -44,20 +44,18 @@ export class AiSdkEmbeddingGateway extends EmbeddingGateway {
 
   async embed(texts: readonly string[], { model, tags }: EmbedOptions): Promise<EmbeddingResult> {
     const entry = EMBEDDING_CATALOG[model];
-    return this.traces.forCall(() =>
-      this.metrics.measure(LlmOperation.Embed, model, async () => {
-        const embeddingModel = this.providers.embeddingModel(model);
-        const vectors: (readonly number[])[] = [];
-        let tokens = 0;
-        for (const batch of toBatches(texts, entry.batchSize)) {
-          await this.limits.assertPlatformCallAllowed(tags.workspaceId);
-          const batchResult = await this.embedBatch(entry, embeddingModel, batch, tags);
-          vectors.push(...batchResult.embeddings);
-          tokens += batchResult.tokens;
-        }
-        return { vectors, model, dimensions: entry.dimensions, tokens };
-      }),
-    );
+    return this.metrics.measure(LlmOperation.Embed, model, async () => {
+      const embeddingModel = this.providers.embeddingModel(model);
+      const vectors: (readonly number[])[] = [];
+      let tokens = 0;
+      for (const batch of toBatches(texts, entry.batchSize)) {
+        await this.limits.assertPlatformCallAllowed(tags.workspaceId);
+        const batchResult = await this.embedBatch(entry, embeddingModel, batch, tags);
+        vectors.push(...batchResult.embeddings);
+        tokens += batchResult.tokens;
+      }
+      return { vectors, model, dimensions: entry.dimensions, tokens };
+    });
   }
 
   private async embedBatch(

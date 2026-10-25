@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { OnApplicationShutdown } from '@nestjs/common';
+import type { Context } from '@opentelemetry/api';
 import { Queue } from 'bullmq';
+import type { Telemetry } from 'bullmq';
 import type { Redis } from 'ioredis';
 import { ConfigService } from '@/platform/config/services/config.service';
 import {
@@ -9,6 +11,7 @@ import {
   QueueLogMessage,
   QueueName,
 } from '@/platform/queues/constants/queue.constants';
+import { queueTelemetry } from '@/platform/queues/helpers/queue-telemetry.helpers';
 import { defaultJobOptions } from '@/platform/queues/helpers/queue.helpers';
 import type { JobEnvelope } from '@/platform/queues/typedefs/job.typedefs';
 import { RedisConnectionName } from '@/platform/redis/constants/redis.constants';
@@ -22,6 +25,7 @@ import {
 export class QueuesService implements OnApplicationShutdown {
   readonly connection: Redis;
   readonly prefix: string;
+  readonly telemetry: Telemetry<Context> = queueTelemetry();
   private readonly logger = new Logger(QueuesService.name);
   private readonly queues = new Map<QueueName, Queue<JobEnvelope>>();
 
@@ -41,6 +45,7 @@ export class QueuesService implements OnApplicationShutdown {
     const queue = new Queue<JobEnvelope>(name, {
       connection: this.connection,
       prefix: this.prefix,
+      telemetry: this.telemetry,
       defaultJobOptions: defaultJobOptions(),
     });
     queue.on(QueueEvent.Error, (error: Error) =>

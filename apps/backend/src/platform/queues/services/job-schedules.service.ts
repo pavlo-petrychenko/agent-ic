@@ -6,7 +6,10 @@ import { ConfigService } from '@/platform/config/services/config.service';
 import { ActorKind, SystemReason } from '@/platform/context/constants/actor.constants';
 import { TraceIdService } from '@/platform/context/services/trace-id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { ENVELOPE_VERSION } from '@/platform/queues/constants/job.constants';
+import {
+  DETACHED_TRACE_CONTEXT,
+  ENVELOPE_VERSION,
+} from '@/platform/queues/constants/job.constants';
 import { QueueLogMessage } from '@/platform/queues/constants/queue.constants';
 import { ProcessJob } from '@/platform/queues/decorators/process-job.decorator';
 import { ScheduleJob } from '@/platform/queues/decorators/schedule-job.decorator';
@@ -55,6 +58,7 @@ export class JobSchedulesService implements OnApplicationBootstrap {
       data: job.schema.parse(schedule.data),
       workspaceId: null,
       traceId: this.traceIds.current(),
+      traceContext: DETACHED_TRACE_CONTEXT,
       initiatedBy: { kind: ActorKind.System, reason: SystemReason.Schedule },
     };
     await this.queues

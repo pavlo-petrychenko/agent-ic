@@ -132,12 +132,11 @@ describe('loadAppConfig', () => {
       [EnvVar.LangfuseHost]: undefined,
       [EnvVar.LangfusePublicKey]: undefined,
       [EnvVar.LangfuseSecretKey]: undefined,
-      [EnvVar.LangfuseSampleRate]: '0.25',
     });
 
     const config = loadAppConfig(roleOf(Role.Api), env);
 
-    expect(config.langfuse).toEqual({ mode: LangfuseMode.Off, sampleRate: 0.25 });
+    expect(config.langfuse).toEqual({ mode: LangfuseMode.Off });
   });
 
   it('requires credentials when Langfuse is on', () => {
@@ -161,14 +160,6 @@ describe('loadAppConfig', () => {
     const config = loadAppConfig(roleOf(Role.Api), env);
 
     expect(config.langfuse.mode).toBe(LangfuseMode.Cloud);
-  });
-
-  it('rejects a Langfuse sample rate above one', () => {
-    const env = createTestEnv({ [EnvVar.LangfuseSampleRate]: '1.5' });
-
-    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
-
-    expect(variablesOf(issues)).toEqual([EnvVar.LangfuseSampleRate]);
   });
 
   it('reads the telemetry resource and sampler settings', () => {

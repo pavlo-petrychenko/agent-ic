@@ -6,9 +6,10 @@ import {
   ProxyTracerProvider,
   SpanStatusCode,
   trace,
+  TraceFlags,
 } from '@opentelemetry/api';
 import { node, tracing } from '@opentelemetry/sdk-node';
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
@@ -22,7 +23,6 @@ import {
 import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants';
 import { LLM_TRACER_NAME } from '@/platform/llm/constants/llm-tracing.constants';
 import type { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
-import { LlmSamplerService } from '@/platform/llm/services/llm-sampler.service';
 import type { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
 import type {
   LlmAgentRequest,
@@ -39,9 +39,6 @@ import type { MockLlmService } from '@test/support/services/mock-llm.service';
 
 const API_KEY = 'test-llmapi-key';
 const DELIVERY = { intent: 'delivery' };
-const ALWAYS = '1';
-const NEVER = '0';
-const HALF = '0.5';
 const SDK_RUNNING = 'false';
 const SDK_DISABLED = 'true';
 const STEP_TIMEOUT_MS = 2_000;
@@ -68,6 +65,12 @@ const TRACE_ATTRIBUTES = {
   'langfuse.trace.metadata.prompt_version': TAGS.promptVersion,
 };
 const MODEL_ATTRIBUTE = 'langfuse.observation.metadata.model';
+const CONTENT_ATTRIBUTE = /^(ai\.(prompt|response)|gen_ai\.(input|output))/;
+const UNSAMPLED_PARENT = {
+  traceId: '0af7651916cd43dd8448eb211c80319c',
+  spanId: 'b7ad6b7169203331',
+  traceFlags: TraceFlags.NONE,
+};
 
 const routeSchema = z.object({ intent: z.string() });
 const request: LlmAgentRequest<z.infer<typeof routeSchema>> = {
@@ -91,19 +94,14 @@ describe('LLM tracing', () => {
   const tracer = provider.getTracer(LLM_TRACER_NAME);
   let mock: MockLlmService;
 
-  const setUp = (
-    mode: LangfuseMode,
-    sampleRate: string,
-    { sdkDisabled = SDK_RUNNING, using = tracer, sampler = new LlmSamplerService() } = {},
-  ) => {
+  const setUp = (mode: LangfuseMode, { sdkDisabled = SDK_RUNNING, using = tracer } = {}) => {
     const env = {
       [EnvVar.LlmBaseUrl]: mock.url,
       [EnvVar.LlmApiKey]: API_KEY,
       [EnvVar.LangfuseMode]: mode,
-      [EnvVar.LangfuseSampleRate]: sampleRate,
       [EnvVar.OtelSdkDisabled]: sdkDisabled,
     };
-    const traces = createLlmTraceContextService(env, using, sampler);
+    const traces = createLlmTraceContextService(env, using);
     return {
       traces,
       gateway: createLlmGateway(env, TIMEOUTS, { traces }),
@@ -118,6 +116,12 @@ describe('LLM tracing', () => {
 
   const taggedSpans = () =>
     exporter.getFinishedSpans().filter((span) => span.attributes[MODEL_ATTRIBUTE] !== undefined);
+
+  const contentKeys = () =>
+    exporter
+      .getFinishedSpans()
+      .flatMap((span) => Object.keys(span.attributes))
+      .filter((key) => CONTENT_ATTRIBUTE.test(key));
 
   beforeAll(async () => {
     provider.register();
@@ -137,18 +141,30 @@ describe('LLM tracing', () => {
     propagation.disable();
   });
 
-  it.each(calls)('records no spans for %s when Langfuse is off', async (_name, call) => {
+  it.each(calls)(
+    'records the spans of %s without prompts or outputs when Langfuse is off',
+    async (_name, call) => {
+      mock.json(DELIVERY);
+
+      await call(setUp(LangfuseMode.Off).gateway);
+
+      expect(taggedSpans()).toHaveLength(1);
+      expect(contentKeys()).toEqual([]);
+    },
+  );
+
+  it.each(calls)('records the prompt and output of %s when Langfuse is on', async (_name, call) => {
     mock.json(DELIVERY);
 
-    await call(setUp(LangfuseMode.Off, ALWAYS).gateway);
+    await call(setUp(LangfuseMode.SelfHosted).gateway);
 
-    expect(exporter.getFinishedSpans()).toEqual([]);
+    expect(contentKeys()).not.toEqual([]);
   });
 
   it.each(calls)('tags the span of %s for Langfuse when it is on', async (_name, call) => {
     mock.json(DELIVERY);
 
-    await call(setUp(LangfuseMode.SelfHosted, ALWAYS).gateway);
+    await call(setUp(LangfuseMode.SelfHosted).gateway);
 
     expect(taggedSpans()).toHaveLength(1);
     expect(taggedSpans()[0]?.attributes).toMatchObject({
@@ -164,7 +180,7 @@ describe('LLM tracing', () => {
   it('tags the fallback model and its hop when the first model is down', async () => {
     mock.fail(HttpStatus.SERVICE_UNAVAILABLE).json(DELIVERY);
 
-    await setUp(LangfuseMode.Cloud, ALWAYS).gateway.complete(request);
+    await setUp(LangfuseMode.Cloud).gateway.complete(request);
 
     expect(taggedSpans().map(({ attributes }) => attributes)).toEqual([
       expect.objectContaining({
@@ -182,7 +198,7 @@ describe('LLM tracing', () => {
     const model = EmbeddingModelId.JinaEmbeddingsV5TextSmall;
     mock.embed();
 
-    await setUp(LangfuseMode.SelfHosted, ALWAYS).embeddings.embed(['Opening hours'], {
+    await setUp(LangfuseMode.SelfHosted).embeddings.embed(['Opening hours'], {
       model,
       tags: TAGS,
     });
@@ -195,29 +211,21 @@ describe('LLM tracing', () => {
     });
   });
 
-  it('records no spans for calls the sample rate leaves out', async () => {
+  it('records no spans for calls inside a trace the sampler left out', async () => {
     mock.json(DELIVERY);
+    const { traces, gateway } = setUp(LangfuseMode.SelfHosted);
+    const unsampled = trace.setSpanContext(context.active(), UNSAMPLED_PARENT);
 
-    await setUp(LangfuseMode.SelfHosted, NEVER).gateway.complete(request);
+    const traceId = await context.with(unsampled, () =>
+      runTraced(traces, () => gateway.complete(request)),
+    );
 
+    expect(traceId).toBeNull();
     expect(exporter.getFinishedSpans()).toEqual([]);
   });
 
-  it.each([true, false])(
-    'records both attempts of a fallback call or neither when the first pick is %s',
-    async (pick) => {
-      mock.fail(HttpStatus.SERVICE_UNAVAILABLE).json(DELIVERY);
-      const sampler = new LlmSamplerService();
-      vi.spyOn(sampler, 'sample').mockReturnValueOnce(pick).mockReturnValue(!pick);
-
-      await setUp(LangfuseMode.Cloud, HALF, { sampler }).gateway.complete(request);
-
-      expect(taggedSpans()).toHaveLength(pick ? 2 : 0);
-    },
-  );
-
   it('passes no trace id when the OTel SDK is off', async () => {
-    const { traces } = setUp(LangfuseMode.SelfHosted, ALWAYS, { sdkDisabled: SDK_DISABLED });
+    const { traces } = setUp(LangfuseMode.SelfHosted, { sdkDisabled: SDK_DISABLED });
 
     expect(await runTraced(traces, () => Promise.resolve())).toBeNull();
     expect(exporter.getFinishedSpans()).toEqual([]);
@@ -225,29 +233,34 @@ describe('LLM tracing', () => {
 
   it('passes no trace id when the tracer is a no-op', async () => {
     const noop = new ProxyTracerProvider().getTracer(LLM_TRACER_NAME);
-    const { traces } = setUp(LangfuseMode.SelfHosted, ALWAYS, { using: noop });
+    const { traces } = setUp(LangfuseMode.SelfHosted, { using: noop });
 
     expect(await runTraced(traces, () => Promise.resolve())).toBeNull();
   });
 
-  it('starts a separate trace for each run inside an active span', async () => {
-    const { traces } = setUp(LangfuseMode.SelfHosted, ALWAYS);
+  it('nests each run inside the active span, in its trace', async () => {
+    const { traces } = setUp(LangfuseMode.SelfHosted);
 
-    const [outer, first, second] = await tracer.startActiveSpan('request', async (span) => {
-      const ids = await Promise.all([
+    const { outer, ids } = await tracer.startActiveSpan('request', async (span) => {
+      const traceIds = await Promise.all([
         runTraced(traces, () => Promise.resolve()),
         runTraced(traces, () => Promise.resolve()),
       ]);
       span.end();
-      return [span.spanContext().traceId, ...ids];
+      return { outer: span.spanContext(), ids: traceIds };
     });
 
-    expect(new Set([outer, first, second]).size).toBe(3);
+    const runs = exporter.getFinishedSpans().filter(({ name }) => name === TAGS.traceName);
+    expect(ids).toEqual([outer.traceId, outer.traceId]);
+    expect(runs.map((span) => span.parentSpanContext?.spanId)).toEqual([
+      outer.spanId,
+      outer.spanId,
+    ]);
   });
 
   it('starts a tagged parent span whose trace the calls inside join', async () => {
     mock.json(DELIVERY);
-    const { traces, gateway } = setUp(LangfuseMode.SelfHosted, ALWAYS);
+    const { traces, gateway } = setUp(LangfuseMode.SelfHosted);
 
     const traceId = await runTraced(traces, () => gateway.complete(request));
 
@@ -257,19 +270,9 @@ describe('LLM tracing', () => {
     expect(taggedSpans().map((span) => span.spanContext().traceId)).toEqual([traceId]);
   });
 
-  it('passes no trace id and traces nothing inside an unsampled trace', async () => {
-    mock.json(DELIVERY);
-    const { traces, gateway } = setUp(LangfuseMode.SelfHosted, NEVER);
-
-    const traceId = await runTraced(traces, () => gateway.complete(request));
-
-    expect(traceId).toBeNull();
-    expect(exporter.getFinishedSpans()).toEqual([]);
-  });
-
   it('marks the parent span failed and rethrows when the work fails', async () => {
     const failure = new Error('step failed');
-    const { traces } = setUp(LangfuseMode.SelfHosted, ALWAYS);
+    const { traces } = setUp(LangfuseMode.SelfHosted);
 
     await expect(traces.run(TAGS, () => Promise.reject(failure))).rejects.toBe(failure);
 
