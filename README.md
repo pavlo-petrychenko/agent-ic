@@ -6,6 +6,8 @@ Documentation starts at [docs/README.md](docs/README.md). The design documents a
 
 New to the project? Start with [docs/README.md](docs/README.md): what agent-ic is, a map of the repository and a numbered reading path from running the stack to shipping.
 
+University demo: [demo/README.md](demo/README.md) starts the whole system, observability and a load generator included, with `cd demo && docker compose up -d --wait`.
+
 ## Prerequisites
 
 You install two things by hand. Everything else comes from `mise.toml`. On Windows, pick one of the two ways under "Windows" below.
