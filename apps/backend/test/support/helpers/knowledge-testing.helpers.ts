@@ -1,23 +1,29 @@
+import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { KnowledgeModule } from '@/modules/knowledge';
+import { ChunkTermsRepository } from '@/modules/knowledge/repositories/chunk-terms.repository';
 import { ChunksRepository } from '@/modules/knowledge/repositories/chunks.repository';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
 import { SectionsRepository } from '@/modules/knowledge/repositories/sections.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { ClockService } from '@/platform/clock/services/clock.service';
+import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { TEST_EDITOR_ID } from '@test/support/constants/agents-testing.constants';
 import { KNOWLEDGE_TEST_START } from '@test/support/constants/knowledge-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import {
   newChunk,
+  newChunkTerm,
   newDocument,
   newKnowledgeBase,
   newSection,
   newSource,
 } from '@test/support/fixtures/knowledge.fixture';
+import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import type { KnowledgeTestbed } from '@test/support/typedefs/knowledge-testing.typedefs';
@@ -36,6 +42,14 @@ export const createKnowledgeTestbed = async (): Promise<KnowledgeTestbed> => {
     ids: module.get(IdService),
   };
 };
+
+export const knowledgeCtx = (
+  workspaceId: string,
+  role: WorkspaceRole = WorkspaceRole.Owner,
+): UseCaseCtx => workspaceCtx(TEST_EDITOR_ID, workspaceId, role);
+
+export const publicKnowledgeBaseId = (testbed: KnowledgeTestbed, knowledgeBaseId: string): string =>
+  testbed.ids.toPublic(IdPrefix.KnowledgeBase, knowledgeBaseId);
 
 export const seedKnowledgeBase = async (
   testbed: KnowledgeTestbed,
@@ -107,4 +121,17 @@ export const seedKnowledgeChunk = async (
       .insert(newChunk(chunkId, workspaceId, knowledgeBaseId, documentId, sectionId)),
   );
   return chunkId;
+};
+
+export const seedKnowledgeChunkTerm = async (
+  testbed: KnowledgeTestbed,
+  workspaceId: string,
+  knowledgeBaseId: string,
+  chunkId: string,
+): Promise<void> => {
+  await testbed.tenants.run(workspaceId, () =>
+    testbed.module
+      .get(ChunkTermsRepository)
+      .insert(newChunkTerm(workspaceId, knowledgeBaseId, chunkId)),
+  );
 };
