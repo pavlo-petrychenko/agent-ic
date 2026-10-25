@@ -76,6 +76,7 @@ export const loadAppConfig = (
     llm: llm.data,
     usage: usage.data,
     email: email.data,
+    telegram: common.data.telegram,
   };
 
   switch (environment.role) {
