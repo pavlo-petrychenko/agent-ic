@@ -27,17 +27,19 @@ Backend and web reload when you save a file. After you add files, the web app ma
 
 ## Start
 
-Once, after cloning: `mise run setup`. Every day, after `git checkout` of any branch and after `mise run clean`: `mise run start`. It recreates a missing certificate, then compares a fingerprint of the commit, the lockfile, the GraphQL files, the routes, the migrations and the volumes with the last start. When something changed, it installs dependencies, regenerates code, applies migrations and restarts `web`, `api`, `worker` and `gateway`. When nothing changed, it only restarts a node service that is unhealthy. Then it starts every service and follows the logs. Press Ctrl+C to stop following; the stack keeps running.
+Once, after cloning: `mise run setup`. Every day, after `git checkout` of any branch and after `mise run clean`: `mise run start`. It recreates a missing certificate, then compares a fingerprint of the commit, the lockfile, the GraphQL files, the routes, the migrations and the volumes with the last start. When something changed, it installs dependencies, regenerates code, applies migrations and restarts `web`, `api`, `worker` and `gateway`. When nothing changed, it only restarts a node service that is unhealthy. Then it starts the default services and follows the logs. Press Ctrl+C to stop following; the stack keeps running.
 
 `start` never seeds. After `mise run clean` the database is empty: run `mise run db:seed` for the seed data. `setup` is still needed once per machine: it trusts the certificate authority, edits the hosts file, chooses free ports and installs the git hooks.
 
 | Command                  | What it does                                                 |
 | ------------------------ | ------------------------------------------------------------ |
+| `mise run start:obs`     | `start`, plus metrics, logs and traces (see Observability)   |
 | `mise run status`        | shows which services run and whether they are healthy        |
 | `mise run logs [svc]`    | follows the logs of everything, or of one service (`api`)    |
 | `mise run restart <svc>` | restarts one service                                         |
 | `mise run stop`          | stops the stack                                              |
 | `mise run urls`          | prints the URL of every service                              |
+| `mise run hosts`         | adds the local hostnames to the hosts file                   |
 | `mise run shell <svc>`   | opens a shell inside a service                               |
 | `mise run codegen`       | regenerates GraphQL types and the route tree                 |
 | `mise run db:migrate`    | applies new migrations                                       |
@@ -55,7 +57,10 @@ pnpm scripts run through mise, so the right Node and pnpm are used: `mise exec -
 | https://local.agent-ic.pavlop.dev/api/graphql | GraphQL                                       |
 | https://mail.local.agent-ic.pavlop.dev        | Mailpit: every email the app sends lands here |
 | https://queues.local.agent-ic.pavlop.dev      | the queue board (Bull Board)                  |
-| https://grafana.local.agent-ic.pavlop.dev     | Grafana, only with the observability profile  |
+| https://grafana.local.agent-ic.pavlop.dev     | Grafana, only after `mise run start:obs`      |
+| https://prometheus.local.agent-ic.pavlop.dev  | Prometheus, only after `mise run start:obs`   |
+
+A new hostname needs a hosts entry: after pulling a change that adds one, run `mise run hosts` once (it asks for your password). `mise run setup` does the same.
 
 The URLs need a port only when `TRAEFIK_HTTPS_PORT` in `.env` is not `443`, for example `https://local.agent-ic.pavlop.dev:8443`. Setup moves it when `443` is busy; `mise run start` prints the real URLs once the stack is up, and `mise run urls` prints them again.
 
@@ -69,7 +74,7 @@ Password reset emails land in Mailpit too.
 
 ## Logs
 
-Run `mise run logs api` or `mise run logs worker`. The backend writes one JSON line per log entry (pino). Authorization headers and cookies show as `[redacted]`.
+Run `mise run logs api` or `mise run logs worker`. The backend writes one JSON line per log entry (pino). Authorization headers and cookies show as `[redacted]`. With `mise run start:obs` the same lines also land in Loki, see Observability.
 
 For more detail, set `LOG_LEVEL=debug` in `.env`, then run `mise run start api`. `start` recreates the container with the new value; `restart` keeps the old one. In code, use the Nest `Logger`, never `console.*`.
 
@@ -81,15 +86,56 @@ For more detail, set `LOG_LEVEL=debug` in `.env`, then run `mise run start api`.
 4. `INTERNAL`: an unexpected error. The web app shows the `traceId`; find the stack trace in `mise run logs api`.
 5. `UNAUTHENTICATED`: the access token expired. The web app refreshes it once and repeats the request. If that fails too, log in again.
 
-## Traces
+## Observability
 
-Tracing is off by default, to save memory. To turn it on:
+The default stack keeps tracing off and ships no metrics or logs, to save memory. `mise run start:obs` is `mise run start` plus a collection stack, and it switches tracing on in `api`, `gateway` and `worker`:
 
-1. In `.env`, set `OTEL_SDK_DISABLED=false`.
-2. Run `COMPOSE_PROFILES=observability mise run start`.
-3. Open Grafana (user `admin`, password `GRAFANA_ADMIN_PASSWORD` from `.env`), then Explore, data source Tempo, and search by service name (`api`, `gateway`, `worker`).
+```
+api, gateway, worker --OTLP traces--> otel-collector --> tempo
+all containers --stdout--> alloy (Docker socket) --> loki
+prometheus --scrapes /metrics--> api, gateway, worker, traefik, the postgres and redis exporters, silo, tempo, loki, alloy, grafana, collector
+tempo --span metrics, service graph--> prometheus
+grafana reads prometheus, loki and tempo
+```
 
-With tracing on, every log line also carries the `traceId` of its request. The profile needs about 6 GB for Docker. Turn it off when you are done.
+| Service             | What it does                                                                                 |
+| ------------------- | -------------------------------------------------------------------------------------------- |
+| `prometheus`        | scrapes every service every 15 s, keeps 72 h or 1 GB; targets carry `namespace="local"`      |
+| `loki`              | stores logs; labels `service`, `level`, `namespace`, structured metadata `traceId`, `spanId` |
+| `alloy`             | tails the stdout of every container of this Compose project and pushes it to Loki            |
+| `tempo`             | stores traces and turns them into span metrics and a service graph                           |
+| `otel-collector`    | receives OTLP from the backend, removes prompts, responses and bot tokens, forwards to Tempo |
+| `grafana`           | https://grafana.local.agent-ic.pavlop.dev, user `admin`, password `GRAFANA_ADMIN_PASSWORD`   |
+| `redis-exporter`    | Redis metrics for Prometheus                                                                 |
+| `postgres-exporter` | Postgres metrics for Prometheus (as the superuser, locally only)                             |
+
+Grafana comes with three data sources (Prometheus, Loki, Tempo) and the dashboards of `deploy/helm/agent-ic/dashboards`, the same files the Helm chart ships to production. In Grafana:
+
+1. Explore, Loki: `{service="worker", level="error"}`. `service` is the Compose service, `level` is `trace`, `debug`, `info`, `warn`, `error`, `fatal` or `unknown`. A log line with a `traceId` has a link that opens the trace.
+2. Explore, Tempo: search by service name (`api`, `gateway`, `worker`). A span has a link to the logs of its service in the same time window.
+3. Dashboards, folder `agent-ic`: overview, queues and workers.
+
+The mode is stored in `.dev/stack.mode`. `start:obs` writes `observability`; `mise run start` writes `lean`, removes the observability containers (their data volumes stay) and recreates `api`, `gateway` and `worker` with tracing off. `mise run start <svc>` and `mise run add <svc>` keep the current mode, so `mise run start api` after `start:obs` does not switch tracing off. The tracing switch itself is [compose.observability.yaml](../../compose.observability.yaml), which `tools/dev` adds to every Compose call while the mode is `observability`. `.env` keeps `OTEL_SDK_DISABLED=true`.
+
+With tracing on, every log line also carries the `traceId` of its request. Alloy reads the Docker socket, which is root-equivalent access on your machine; that is fine for a dev machine.
+
+### Memory
+
+Measured on 2026-10-25 with `docker stats` (OrbStack, Apple silicon): 100 s after start (idle), and again after 2000 GraphQL requests. The default stack uses about 1.0 GiB idle and 1.1 GiB after the requests. Each observability service has a `mem_limit` and a matching `GOMEMLIMIT` in [compose.yaml](../../compose.yaml).
+
+| Service             | Idle    | After 2000 requests | `mem_limit` |
+| ------------------- | ------- | ------------------- | ----------- |
+| `grafana`           | 207 MiB | 207 MiB             | 384 MiB     |
+| `alloy`             | 91 MiB  | 102 MiB             | 192 MiB     |
+| `loki`              | 75 MiB  | 107 MiB             | 256 MiB     |
+| `prometheus`        | 91 MiB  | 101 MiB             | 320 MiB     |
+| `tempo`             | 43 MiB  | 108 MiB             | 256 MiB     |
+| `otel-collector`    | 25 MiB  | 58 MiB              | 128 MiB     |
+| `redis-exporter`    | 10 MiB  | 13 MiB              | 48 MiB      |
+| `postgres-exporter` | 11 MiB  | 15 MiB              | 48 MiB      |
+| **Total**           | 553 MiB | 711 MiB             |             |
+
+With tracing on, `api` grew from 259 MiB to 349 MiB after the requests, and `worker` sat near 295 MiB instead of 160 MiB (the numbers move with garbage collection). The whole stack in observability mode used 1.7 GiB idle and 2.0 GiB after the requests. Prometheus and Tempo grow with retention (72 h). Run `mise run start` to go back to the default stack when you are done.
 
 ## The database
 
@@ -130,6 +176,8 @@ A column left `NULL` keeps the configured default, so `conversations_limit` and 
 - [mise.toml](../../mise.toml): the tasks. They run [tools/dev.ts](../../tools/dev.ts).
 - [commands.helpers.ts](../../tools/dev/commands.helpers.ts): what each command does.
 - [dynamic.yaml](../../deploy/docker/traefik/dynamic.yaml): the local routes.
+- [compose.observability.yaml](../../compose.observability.yaml) and [deploy/docker/observability](../../deploy/docker/observability): the tracing switch and the config of Prometheus, Loki, Tempo, Alloy, the collector and Grafana.
+- [stack-mode.helpers.ts](../../tools/dev/stack-mode.helpers.ts): how `lean` and `observability` mode change the Compose calls.
 
 ## Pitfalls
 

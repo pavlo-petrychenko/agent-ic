@@ -1,0 +1,85 @@
+discovery.docker "containers" {
+	host = "unix:///var/run/docker.sock"
+
+	filter {
+		name   = "label"
+		values = ["com.docker.compose.project=agent-ic"]
+	}
+}
+
+discovery.relabel "containers" {
+	targets = discovery.docker.containers.targets
+
+	rule {
+		source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+		target_label  = "service"
+	}
+
+	rule {
+		target_label = "namespace"
+		replacement  = "local"
+	}
+}
+
+loki.source.docker "containers" {
+	host       = "unix:///var/run/docker.sock"
+	targets    = discovery.relabel.containers.output
+	forward_to = [loki.process.containers.receiver]
+}
+
+loki.process "containers" {
+	forward_to = [loki.write.local.receiver]
+
+	stage.drop {
+		older_than          = "72h"
+		drop_counter_reason = "older_than_retention"
+	}
+
+	stage.match {
+		selector = "{service=~\"api|gateway|worker\"}"
+
+		stage.json {
+			expressions = {
+				level   = "level",
+				traceId = "traceId",
+				spanId  = "spanId",
+			}
+		}
+	}
+
+	stage.match {
+		selector = "{service!~\"api|gateway|worker\"}"
+
+		stage.regex {
+			expression = "(?i)(?:(?:level|lvl)\"?[=:]\\s*\"?(?P<level>trace|debug|info|notice|warn|warning|error|err|fatal|panic|critical)|\\t(?P<level_tab>debug|info|warn|error|fatal)\\t|\\s(?P<level_pg>log|info|notice|warning|error|fatal|panic|debug[1-5]):)"
+		}
+
+		stage.regex {
+			expression = "\\d{2}:\\d{2}:\\d{2}\\.\\d{3} (?P<level_redis>[.*#-]) "
+		}
+	}
+
+	stage.template {
+		source   = "level"
+		template = "{{ $l := ToLower (print (or .Value .level_tab .level_pg .level_redis)) }}{{ if or (eq $l \"10\") (eq $l \"trace\") }}trace{{ else if or (eq $l \"20\") (eq $l \"debug\") (eq $l \"debug1\") (eq $l \"debug2\") (eq $l \"debug3\") (eq $l \"debug4\") (eq $l \"debug5\") (eq $l \".\") (eq $l \"-\") }}debug{{ else if or (eq $l \"30\") (eq $l \"info\") (eq $l \"notice\") (eq $l \"log\") (eq $l \"*\") }}info{{ else if or (eq $l \"40\") (eq $l \"warn\") (eq $l \"warning\") (eq $l \"#\") }}warn{{ else if or (eq $l \"50\") (eq $l \"error\") (eq $l \"err\") }}error{{ else if or (eq $l \"60\") (eq $l \"fatal\") (eq $l \"panic\") (eq $l \"critical\") }}fatal{{ else }}unknown{{ end }}"
+	}
+
+	stage.labels {
+		values = {
+			level = "",
+		}
+	}
+
+	stage.structured_metadata {
+		values = {
+			traceId = "",
+			spanId  = "",
+		}
+	}
+}
+
+loki.write "local" {
+	endpoint {
+		url = "http://loki:3100/loki/api/v1/push"
+	}
+}

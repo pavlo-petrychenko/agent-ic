@@ -92,10 +92,12 @@ It never seeds: after `mise run clean`, run `mise run db:seed` for the seed data
 | ------------------------- | --------------------------------------------------------------- |
 | `mise run setup`          | one-time setup, see above                                       |
 | `mise run start [svc...]` | rebuild what changed, start all or listed services, follow logs |
-| `mise run add <svc>`      | add one service to the running stack (for example `grafana`)    |
+| `mise run start:obs`      | `start`, plus Prometheus, Loki, Tempo, Alloy, Grafana, tracing  |
+| `mise run add <svc>`      | add one service to the running stack (for example `mailpit`)    |
 | `mise run stop [svc]`     | stop everything or one service                                  |
 | `mise run restart <svc>`  | restart one service                                             |
 | `mise run status`         | show the state of every service                                 |
+| `mise run hosts`          | add the local hostnames to the hosts file                       |
 | `mise run logs [svc]`     | follow the logs of everything or one service                    |
 | `mise run shell <svc>`    | open a shell in a running service                               |
 | `mise run db:migrate`     | apply migrations                                                |
@@ -116,16 +118,14 @@ The default stack is the minimum to run the app: Postgres, one Redis (queues and
 | Mode               | Memory | Disk  |
 | ------------------ | ------ | ----- |
 | Minimal (default)  | 4 GB   | 10 GB |
-| Plus observability | 6 GB   | 15 GB |
+| Plus observability | 5 GB   | 15 GB |
 | Plus Langfuse      | 8 GB   | 20 GB |
 
 Optional stacks stay off until you ask for them:
 
 ```sh
-COMPOSE_PROFILES=observability mise run start
+mise run start:obs
 COMPOSE_PROFILES=langfuse mise run start
-COMPOSE_PROFILES=observability,langfuse mise run start
-mise run add grafana
 mise run add langfuse-web
 ```
 
@@ -133,17 +133,18 @@ mise run add langfuse-web
 
 `mise run start` prints these URLs once every service is healthy, and `mise run urls` prints them any time. With `TRAEFIK_HTTPS_PORT` other than `443`, each URL carries the port, for example `https://local.agent-ic.pavlop.dev:8443`.
 
-| URL                                        | What                                      |
-| ------------------------------------------ | ----------------------------------------- |
-| https://local.agent-ic.pavlop.dev          | web                                       |
-| https://local.agent-ic.pavlop.dev/api      | api, served under `/api` as in production |
-| https://local.agent-ic.pavlop.dev/v1       | gateway                                   |
-| https://local.agent-ic.pavlop.dev/webhooks | gateway                                   |
-| https://mail.local.agent-ic.pavlop.dev     | Mailpit, catches all outgoing email       |
-| https://s3.local.agent-ic.pavlop.dev       | Silo (S3) console                         |
-| https://grafana.local.agent-ic.pavlop.dev  | Grafana (observability profile)           |
-| https://langfuse.local.agent-ic.pavlop.dev | Langfuse (langfuse profile)               |
-| https://queues.local.agent-ic.pavlop.dev   | Bull Board, opened by the admin route     |
+| URL                                          | What                                      |
+| -------------------------------------------- | ----------------------------------------- |
+| https://local.agent-ic.pavlop.dev            | web                                       |
+| https://local.agent-ic.pavlop.dev/api        | api, served under `/api` as in production |
+| https://local.agent-ic.pavlop.dev/v1         | gateway                                   |
+| https://local.agent-ic.pavlop.dev/webhooks   | gateway                                   |
+| https://mail.local.agent-ic.pavlop.dev       | Mailpit, catches all outgoing email       |
+| https://s3.local.agent-ic.pavlop.dev         | Silo (S3) console                         |
+| https://grafana.local.agent-ic.pavlop.dev    | Grafana (`mise run start:obs`)            |
+| https://prometheus.local.agent-ic.pavlop.dev | Prometheus (`mise run start:obs`)         |
+| https://langfuse.local.agent-ic.pavlop.dev   | Langfuse (langfuse profile)               |
+| https://queues.local.agent-ic.pavlop.dev     | Bull Board, opened by the admin route     |
 
 ## Port conflicts
 

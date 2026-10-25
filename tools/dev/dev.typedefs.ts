@@ -1,3 +1,5 @@
+import type { StackMode } from './dev.constants.ts';
+
 export type EnvValues = ReadonlyMap<string, string>;
 
 export interface PortVariable {
@@ -33,3 +35,7 @@ export interface LocalUrl {
   readonly label: string;
   readonly url: string;
 }
+
+export type StackModeName = (typeof StackMode)[keyof typeof StackMode];
+
+export type StepFactory = () => CommandStep;
