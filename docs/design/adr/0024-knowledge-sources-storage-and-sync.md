@@ -53,6 +53,11 @@ Three constraints shape the rest:
 
 - New platform module `storage`: an abstract `FileStorage` gateway with an S3/Silo implementation and a fake, two clients (internal endpoint for workers, public endpoint for presigned browser URLs), and explicit S3 config validated by zod.
 - One bucket with workspace-scoped keys for temporary uploads, retained originals and canonical Markdown.
+
+### Schema
+
+- Every reference is a foreign key, as ADR 0022 requires: `workspace_id` cascades from `identity.workspaces`; ownership and composite keys cascade; `created_by_user_id` pointers set null; `sources.connection_id` restricts while a source exists. Every foreign key has an index that starts with its columns.
+- `sections.kb_id`, `chunks.kb_id` and `chunk_terms.kb_id` stay denormalized for filtering, but reference `knowledge_bases(workspace_id, id)`.
 - CORS on the bucket allows `PUT`, `GET` and `HEAD` from the web origin.
 
 ### Retrieval and agent tools

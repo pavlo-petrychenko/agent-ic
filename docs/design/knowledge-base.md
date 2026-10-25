@@ -647,6 +647,7 @@ modules/knowledge/
 - Every table is a tenant table: `workspace_id`, RLS, `tenantIsolationPolicy` and `FORCE ROW LEVEL SECURITY` appended to the generated migration.
 - Parent tables carry `unique (workspace_id, id)` so children use composite foreign keys and can never cross tenants.
 - Every column that holds another row's id has a foreign key (ADR 0022): `workspace_id` references `identity.workspaces(id) on delete cascade`; ownership and composite keys cascade; `created_by_user_id` references `identity.users(id) on delete set null`; `sources.connection_id` references `connections` on delete restrict. Every foreign key has an index that starts with its columns.
+- The standard keys are implied in every table below: `workspace_id` → `identity.workspaces(id)` cascade, and `created_by_user_id` → `identity.users(id)` set null with a partial index where it is not null.
 - Timestamps are `timestamptz`; ids are UUIDv7 from `IdService`.
 - Soft delete is `deleted_at`; partial unique indexes ignore deleted rows.
 
@@ -828,14 +829,15 @@ erDiagram
 
 Reading the diagram:
 
-- `workspace_id` is on every table and is the tenant key. It is not drawn as a foreign key because the workspace table lives in the `identity` schema.
+- `workspace_id` is on every table and is the tenant key. It references `identity.workspaces(id)` with `on delete cascade` (ADR 0022); the cross-schema line is not drawn.
+- `connections.created_by_user_id`, `knowledge_bases.created_by_user_id` and `sources.created_by_user_id` reference `identity.users(id)` with `on delete set null`; those cross-schema lines are not drawn.
 - `halfvec` is `halfvec(1024)`.
 - `text_array` is `text[]`.
 - Enum types (`source_kind`, `source_status`, `sync_mode`, `sync_interval`, `sync_trigger`, `sync_status`, `document_status`, `summary_source`, `connection_provider`, `connection_status`) are defined in 11.3.
 - `chunk_terms` has a composite primary key `(chunk_id, term)`; the relationship line is also its foreign key to `chunks`.
 - `embedding_cache` has a composite primary key `(workspace_id, model, dimensions, text_hash)` and is workspace-scoped, not linked to a KB.
 - The diagram does not encode nullability. `sources.connection_id` is null for uploads, `documents.external_id` is null for uploads, and `sources.sync_*` are null unless the source is scheduled.
-- `sections.kb_id`, `chunks.kb_id` and `chunk_terms.kb_id` are denormalized for filtering; the document and chunk foreign keys are authoritative.
+- `sections.kb_id`, `chunks.kb_id` and `chunk_terms.kb_id` are denormalized for filtering, but still reference `knowledge_bases(workspace_id, id)` with `on delete cascade`; the document and chunk keys are authoritative.
 
 ### 11.3 Enums
 
@@ -941,8 +943,9 @@ Constraints and indexes:
 
 - `unique (workspace_id, id)`;
 - FK `(workspace_id, kb_id)` → `knowledge_bases (workspace_id, id)`;
-- FK `(workspace_id, connection_id)` → `connections (workspace_id, id)`;
+- FK `(workspace_id, connection_id)` → `connections (workspace_id, id)` on delete restrict;
 - `index (workspace_id, kb_id)`;
+- partial `index (workspace_id, connection_id)` where `connection_id is not null`;
 - partial `index (workspace_id, next_sync_at)` where `deleted_at is null and sync_mode = 'scheduled'`;
 - RLS.
 
@@ -1010,7 +1013,10 @@ Constraints and indexes:
 
 - `unique (workspace_id, id)`;
 - FK `(workspace_id, document_id)` → `documents`;
+- FK `(workspace_id, kb_id)` → `knowledge_bases`;
 - unique `(document_id, generation, ordinal)`;
+- `index (workspace_id, document_id)`;
+- `index (workspace_id, kb_id)`;
 - RLS.
 
 #### `knowledge.chunks`
@@ -1038,7 +1044,10 @@ Constraints and indexes:
 - `unique (workspace_id, id)`;
 - FK `(workspace_id, document_id)` → `documents`;
 - FK `(workspace_id, section_id)` → `sections`;
+- FK `(workspace_id, kb_id)` → `knowledge_bases`;
 - unique `(document_id, generation, ordinal)`;
+- `index (workspace_id, document_id)`;
+- `index (workspace_id, section_id)`;
 - `index (workspace_id, kb_id, generation)`;
 - `index (section_id, ordinal)`;
 - `index (workspace_id, kb_id, content_hash)` for cache/reuse lookups;
@@ -1060,6 +1069,8 @@ Constraints and indexes:
 
 - primary key `(chunk_id, term)`;
 - FK `(workspace_id, chunk_id)` → `chunks (workspace_id, id)` on delete cascade;
+- FK `(workspace_id, kb_id)` → `knowledge_bases`;
+- `index (workspace_id, chunk_id)`;
 - `index (workspace_id, kb_id, term)`;
 - RLS.
 
@@ -1087,6 +1098,7 @@ Constraints and indexes:
 
 - `unique (workspace_id, id)`;
 - FK `(workspace_id, source_id)` → `sources`;
+- `index (workspace_id, source_id)`;
 - `index (source_id, created_at desc)`;
 - RLS.
 
