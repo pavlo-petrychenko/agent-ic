@@ -43,6 +43,7 @@ describe('GetChannelUseCase', () => {
       status: ChannelStatus.Connected,
       agentId: null,
       displayName: TEST_TELEGRAM_BOT_USERNAME,
+      tokenMasked: '7000•••••:dem•••••••••••••',
       showTyping: true,
     });
   });

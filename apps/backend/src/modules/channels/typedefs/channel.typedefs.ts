@@ -26,6 +26,7 @@ export interface ChannelView {
   readonly agentId: string | null;
   readonly displayName: string;
   readonly firstName: string | null;
+  readonly tokenMasked: string | null;
   readonly showTyping: boolean;
   readonly createdAt: Date;
   readonly updatedAt: Date;

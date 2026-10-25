@@ -6,6 +6,7 @@ query Channel($id: ID!) {
     agentId
     displayName
     firstName
+    tokenMasked
     showTyping
     updatedAt
   }

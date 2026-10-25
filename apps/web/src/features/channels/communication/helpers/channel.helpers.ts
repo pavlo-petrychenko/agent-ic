@@ -33,6 +33,7 @@ export const toTelegramChannelView = (
 ): TelegramChannelView => ({
   ...toTelegramChannelSummary(channel, agent?.name ?? null),
   firstName: channel.firstName,
+  tokenMasked: channel.tokenMasked,
   agentLiveVersionNumber: agent?.liveVersionNumber ?? null,
   showTyping: channel.showTyping,
   updatedAt: channel.updatedAt,
