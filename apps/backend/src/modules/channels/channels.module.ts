@@ -9,8 +9,8 @@ import { ChannelEventsRepository } from '@/modules/channels/repositories/channel
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { ConnectTelegramResolver } from '@/modules/channels/resolvers/connect-telegram.resolver';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
-import { ChannelMetricsService } from '@/modules/channels/services/channel-metrics.service';
 import { ChannelConnectionService } from '@/modules/channels/services/channel-connection.service';
+import { ChannelMetricsService } from '@/modules/channels/services/channel-metrics.service';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { TelegramChannelService } from '@/modules/channels/services/telegram-channel.service';
 import { ConnectTelegramChannelUseCase } from '@/modules/channels/use-cases/connect-telegram.use-case';
