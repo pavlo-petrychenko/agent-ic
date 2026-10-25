@@ -36,6 +36,10 @@ export interface ConnectTelegramInput {
   readonly showTyping: boolean;
 }
 
+export interface ChannelIdInput {
+  readonly id: string;
+}
+
 export interface PrepareChannelConnectionInput {
   readonly workspaceId: string;
   readonly kind: ChannelRecord['kind'];
