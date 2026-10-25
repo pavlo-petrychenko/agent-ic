@@ -72,6 +72,7 @@ The backend reads environment variables only in `apps/backend/src/platform/confi
    - a plain value: `templates/_helpers.tpl` (`agent-ic.backendEnv`), `values.yaml` and `values.schema.json`;
    - a secret: a key in the matching secret in `values.schema.json` (see `authSecret`).
    - Add an example value to `tools/chart/test-values.yaml`, then run `mise run chart:validate`.
+   - A new metric: use it in a dashboard or rule only after adding it to a `*MetricName` enum; `mise run chart:validate` rejects names the backend does not define.
 6. Say in the pull request description that a new variable needs a production value. The owner sets production values and secrets in `agent-ic-deploy`. Never put a real secret in this repository.
 
 The web app has no environment variables. Its runtime settings are in `apps/web/public/config.json`.

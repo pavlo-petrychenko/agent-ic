@@ -113,7 +113,14 @@ Grafana comes with three data sources (Prometheus, Loki, Tempo) and the dashboar
 
 1. Explore, Loki: `{service="worker", level="error"}`. `service` is the Compose service, `level` is `trace`, `debug`, `info`, `warn`, `error`, `fatal` or `unknown`. A log line with a `traceId` has a link that opens the trace.
 2. Explore, Tempo: search by service name (`api`, `gateway`, `worker`). A GraphQL request shows its HTTP span, the GraphQL operation and its top-level fields, and every `pg` query and Redis call inside it; each `fetch` (an LLM call, Telegram, Resend) is a span too. A job is part of the trace of the request that added it: the BullMQ producer span under the request, the worker's consumer span under it, and for a run job the run, its steps and their LLM calls below that. Search by the `trace_id` saved on a run to open it. Scheduled jobs and BullMQ polling start no traces. A span has a link to the logs of its service in the same time window.
-3. Dashboards, folder `agent-ic`: overview, queues and workers.
+3. Dashboards, folder `agent-ic`:
+   - **overview**: request, job, run and LLM health at a glance, then CPU, memory and restarts;
+   - **queues and workers**: waiting jobs, jobs by state, the outbox, worker load;
+   - **HTTP and GraphQL**: rate, 5xx ratio and p95 per role and route, GraphQL operations per root field, rate limit rejections;
+   - **jobs and runs**: job throughput, failures and duration, runs and steps, LLM calls, channel messages, e-mail and sign-in;
+   - **database**: pool connections per role, `pg` query rate and p95 per statement from the span metrics.
+
+   Panels that need `kube-state-metrics` (ready replicas, container restarts, worker replicas) stay empty locally. The latency panels show exemplar dots that open the trace.
 
 The mode is stored in `.dev/stack.mode`. `start:obs` writes `observability`; `mise run start` writes `lean`, removes the observability containers (their data volumes stay) and recreates `api`, `gateway` and `worker` with tracing off. `mise run start <svc>` and `mise run add <svc>` keep the current mode, so `mise run start api` after `start:obs` does not switch tracing off. The tracing switch itself is [compose.observability.yaml](../../compose.observability.yaml), which `tools/dev` adds to every Compose call while the mode is `observability`. `.env` keeps `OTEL_SDK_DISABLED=true`.
 

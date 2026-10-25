@@ -66,6 +66,10 @@ render minimal \
   --set prometheusRule.enabled=false
 render admin-prefix-with-trailing-slash \
   --set ingress.admin.pathPrefix=/api/admin/queues/
+render telemetry-tuned \
+  --set-json config.telemetry.samplerArg=0.25 \
+  --set config.telemetry.environment=production \
+  --set image.backend.tag=1.2.3-test
 
 echo "== no unresolved template values"
 if grep -n '<no value>' "$rendered"/*.yaml; then
@@ -166,6 +170,72 @@ policy_count="$(yq -N 'select(.kind == "NetworkPolicy") | .metadata.name' "$rend
 test "$policy_count" = "1"
 echo "$policy_peers"
 
+echo "== the telemetry values reach every backend workload"
+telemetry_env() {
+  yq -N "select(.kind == \"Deployment\" and .metadata.name != \"agent-ic-web\") | .spec.template.spec.containers[0].env[] | select(.name == \"$1\") | .value" "$rendered/$2.yaml" | sort -u
+}
+test "$(telemetry_env OTEL_TRACES_SAMPLER_ARG default)" = "1"
+test "$(telemetry_env DEPLOYMENT_ENVIRONMENT default)" = "test"
+test "$(telemetry_env OTEL_TRACES_SAMPLER_ARG telemetry-tuned)" = "0.25"
+test "$(telemetry_env DEPLOYMENT_ENVIRONMENT telemetry-tuned)" = "production"
+test "$(telemetry_env APP_VERSION telemetry-tuned)" = "1.2.3-test"
+test -z "$(telemetry_env OTEL_TRACES_SAMPLER_ARG minimal)"
+test -z "$(telemetry_env DEPLOYMENT_ENVIRONMENT minimal)"
+echo "sampler 1 and test by default, 0.25 and production tuned, APP_VERSION follows the image tag, none when telemetry is off"
+
+echo "== every backend workload has a ServiceMonitor"
+workload_count="$(yq -N '.workloads | length' "$chart/values.yaml")"
+monitor_count="$(yq -N 'select(.kind == "ServiceMonitor") | .metadata.name' "$rendered/default.yaml" | wc -l | tr -d ' ')"
+test "$monitor_count" = "$workload_count"
+echo "$monitor_count ServiceMonitors for $workload_count workloads"
+
+echo "== the PrometheusRule passes promtool"
+mkdir -p "$rendered/promtool"
+yq -N 'select(.kind == "PrometheusRule") | .spec' "$rendered/default.yaml" >"$rendered/promtool/rules.yaml"
+promtool check rules "$rendered/promtool/rules.yaml"
+
+echo "== rule job matchers name existing workloads"
+workload_names="$(yq -N '.workloads | keys | .[]' "$chart/values.yaml")"
+rule_exprs="$(yq -N 'select(.kind == "PrometheusRule") | .spec.groups[].rules[].expr' "$rendered/default.yaml")"
+matched_jobs="$(grep -oE 'job(=~|=)"[^"]*"' <<<"$rule_exprs" | sed -E 's/^job(=~|=)"//; s/"$//' | tr '|' '\n' | sort -u || true)"
+test -n "$matched_jobs"
+for matched_job in $matched_jobs; do
+  if ! grep -qxF -e "$matched_job" <<<"$workload_names"; then
+    echo "rule matches the job $matched_job, which is not a workload" >&2
+    exit 1
+  fi
+done
+echo "$(wc -w <<<"$matched_jobs" | tr -d ' ') job names, all workloads"
+
+echo "== dashboards and rules use only metrics the backend defines"
+metric_names="$rendered/metric-names.txt"
+grep -rlE 'enum [A-Za-z]*MetricName \{' apps/backend/src --include='*.ts' --exclude='*.spec.ts' \
+  | xargs sed -nE "/^export enum [A-Za-z]*MetricName \{/,/^\}/ s/^[[:space:]]*[A-Za-z]+ = '([a-z0-9_]+)',?\$/\1/p" \
+  | sort -u >"$metric_names"
+test -s "$metric_names"
+unknown_metrics() {
+  local prefixes token base
+  prefixes="$(cut -d_ -f1 "$metric_names" | sort -u)"
+  { grep -oE '[a-z][a-z0-9_]*\{' | tr -d '{' | sort -u || true; } | while read -r token; do
+    base="$(sed -E 's/_(bucket|sum|count)$//' <<<"$token")"
+    if grep -qxF -e "$token" "$metric_names" || grep -qxF -e "$base" "$metric_names"; then
+      continue
+    fi
+    if grep -qxF -e "${token%%_*}" <<<"$prefixes"; then
+      echo "$token"
+    fi
+  done
+}
+test "$(echo 'sum(rate(http_server_requestz_total{a="b"}[5m]))' | unknown_metrics)" = "http_server_requestz_total"
+test -z "$(echo 'sum(rate(process_cpu_seconds_total{a="b"}[5m]))  + up{x="y"}' | unknown_metrics)"
+dashboard_unknown="$(cat "$chart"/dashboards/*.json | unknown_metrics)"
+rule_unknown="$(unknown_metrics <<<"$rule_exprs")"
+if [ -n "$dashboard_unknown$rule_unknown" ]; then
+  echo "metrics the backend does not define: $dashboard_unknown $rule_unknown" >&2
+  exit 1
+fi
+echo "$(wc -l <"$metric_names" | tr -d ' ') backend metric names, every dashboard and rule metric among them"
+
 echo "== guardrails reject unsafe values"
 expect_failure() {
   local name="$1" pattern="$2" output
@@ -254,6 +324,18 @@ expect_failure "enabled SMTP secret without keys" \
 expect_failure "unknown e-mail mode" \
   'mode' \
   --set config.email.mode=sendmail
+expect_failure "telemetry on without an environment name" \
+  'environment' \
+  --set config.telemetry.environment=
+expect_failure "sampler ratio above one" \
+  'samplerArg' \
+  --set config.telemetry.samplerArg=2
+expect_failure "error ratio threshold above one" \
+  'ratio' \
+  --set prometheusRule.httpErrorRatio.ratio=2
+expect_failure "alert window that is not a duration" \
+  'window' \
+  --set prometheusRule.window=five
 expect_failure "migration without arguments" \
   'migration' \
   --set-json 'migration.args=[]'

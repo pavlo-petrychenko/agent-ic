@@ -2,6 +2,9 @@
 {{- $context := dict "root" . "component" "alerts" }}
 {{- $queueWait := .Values.prometheusRule.queueWait }}
 {{- $scope := printf "namespace=%q, role=%q" .Release.Namespace .Values.metrics.queueRole }}
+{{- $namespace := printf "namespace=%q" .Release.Namespace }}
+{{- $window := .Values.prometheusRule.window }}
+{{- $rule := .Values.prometheusRule }}
 {{- $jobs := list }}
 {{- range $name, $workload := .Values.workloads }}
 {{- $jobs = append $jobs $name }}
@@ -28,6 +31,13 @@ spec:
             summary: {{ "{{ $labels.job }} target {{ $labels.pod }} is down" | quote }}
     - name: {{ include "agent-ic.fullname" . }}.queues
       rules:
+        - alert: AgentIcQueueMetricsAbsent
+          expr: {{ printf "absent(queue_waiting_jobs{%s})" $scope | quote }}
+          for: {{ $rule.queueMetricsAbsent.for }}
+          labels:
+            severity: {{ $rule.queueMetricsAbsent.severity }}
+          annotations:
+            summary: "Queue metrics are missing, so KEDA and the queue alerts cannot see the queues"
         {{- $overrides := keys $queueWait.overrides | sortAlpha }}
         - alert: AgentIcQueueWaitHigh
           expr: {{ printf "max by (queue) (queue_oldest_waiting_job_age_seconds{%s%s}) > %v" $scope (ternary (printf ", queue!~%q" (join "|" $overrides)) "" (gt (len $overrides) 0)) $queueWait.default.seconds | quote }}
@@ -46,4 +56,61 @@ spec:
           annotations:
             summary: {{ "Queue {{ $labels.queue }} oldest waiting job is {{ $value | humanizeDuration }} old" | quote }}
         {{- end }}
+    - name: {{ include "agent-ic.fullname" . }}.http
+      rules:
+        - alert: AgentIcHttpErrorRatioHigh
+          expr: {{ printf "sum by (role) (rate(http_server_requests_total{%s, status_class=\"5xx\"}[%s])) / sum by (role) (rate(http_server_requests_total{%s}[%s])) > %v" $namespace $window $namespace $window $rule.httpErrorRatio.ratio | quote }}
+          for: {{ $rule.httpErrorRatio.for }}
+          labels:
+            severity: {{ $rule.httpErrorRatio.severity }}
+          annotations:
+            summary: {{ "{{ $labels.role }} answers {{ $value | humanizePercentage }} of its requests with a 5xx" | quote }}
+        - alert: AgentIcHttpLatencyHigh
+          expr: {{ printf "histogram_quantile(0.95, sum by (role, le) (rate(http_server_request_duration_seconds_bucket{%s}[%s]))) > %v" $namespace $window $rule.httpLatency.seconds | quote }}
+          for: {{ $rule.httpLatency.for }}
+          labels:
+            severity: {{ $rule.httpLatency.severity }}
+          annotations:
+            summary: {{ "{{ $labels.role }} p95 request duration is {{ $value | humanizeDuration }}" | quote }}
+    - name: {{ include "agent-ic.fullname" . }}.jobs
+      rules:
+        - alert: AgentIcJobFailureRatioHigh
+          expr: {{ printf "sum by (queue) (rate(jobs_processed_total{%s, outcome=\"failed\"}[%s])) / sum by (queue) (rate(jobs_processed_total{%s}[%s])) > %v" $namespace $window $namespace $window $rule.jobFailureRatio.ratio | quote }}
+          for: {{ $rule.jobFailureRatio.for }}
+          labels:
+            severity: {{ $rule.jobFailureRatio.severity }}
+          annotations:
+            summary: {{ "{{ $value | humanizePercentage }} of the jobs in queue {{ $labels.queue }} fail" | quote }}
+        - alert: AgentIcOutboxLagHigh
+          expr: {{ printf "max(outbox_oldest_message_age_seconds{%s}) > %v" $namespace $rule.outboxLag.seconds | quote }}
+          for: {{ $rule.outboxLag.for }}
+          labels:
+            severity: {{ $rule.outboxLag.severity }}
+          annotations:
+            summary: {{ "The oldest outbox message waited {{ $value | humanizeDuration }} for the sweeper" | quote }}
+    - name: {{ include "agent-ic.fullname" . }}.llm
+      rules:
+        - alert: AgentIcLlmFailureRatioHigh
+          expr: {{ printf "sum by (operation) (rate(llm_calls_total{%s, outcome=\"failed\"}[%s])) / sum by (operation) (rate(llm_calls_total{%s}[%s])) > %v" $namespace $window $namespace $window $rule.llmFailureRatio.ratio | quote }}
+          for: {{ $rule.llmFailureRatio.for }}
+          labels:
+            severity: {{ $rule.llmFailureRatio.severity }}
+          annotations:
+            summary: {{ "{{ $value | humanizePercentage }} of the {{ $labels.operation }} LLM calls fail" | quote }}
+        - alert: AgentIcLlmLatencyHigh
+          expr: {{ printf "histogram_quantile(0.95, sum by (operation, le) (rate(llm_call_duration_seconds_bucket{%s}[%s]))) > %v" $namespace $window $rule.llmLatency.seconds | quote }}
+          for: {{ $rule.llmLatency.for }}
+          labels:
+            severity: {{ $rule.llmLatency.severity }}
+          annotations:
+            summary: {{ "p95 duration of the {{ $labels.operation }} LLM calls is {{ $value | humanizeDuration }}" | quote }}
+    - name: {{ include "agent-ic.fullname" . }}.usage
+      rules:
+        - alert: AgentIcUsageReportFailing
+          expr: {{ printf "sum(increase(usage_report_failures_total{%s}[%s])) > 0" $namespace $window | quote }}
+          for: {{ $rule.usageReportFailures.for }}
+          labels:
+            severity: {{ $rule.usageReportFailures.severity }}
+          annotations:
+            summary: "Model usage reports cannot be stored in the monthly counters"
 {{- end }}

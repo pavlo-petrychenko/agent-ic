@@ -8,6 +8,7 @@ config:
   publicUrl: https://app.example.test
   telemetry:
     endpoint: http://otel-collector.observability.svc.example.test:4318
+    environment: test
   s3:
     endpoint: http://s3.data.svc.example.test:9000
     region: us-east-1

@@ -65,7 +65,7 @@ AI assistants read [AGENTS.md](AGENTS.md) in the repository root and the one ins
 | Generated GraphQL types and `packages/api-schema` (gitignored, built first in CI)                  | `pnpm codegen`                                         | no           | yes     |
 | Every GraphQL root field has a resolver (boot test)                                                | `pnpm test`                                            | no           | yes     |
 | Web build and Storybook build                                                                      | `pnpm build`, `turbo run storybook:build --filter=web` | no           | yes     |
-| Chart valid, no unsafe route, kubeconform on the rendered chart                                    | `mise run chart:validate`                              | no           | yes     |
+| Chart valid, no unsafe route, kubeconform and promtool on the rendered chart                       | `mise run chart:validate`                              | no           | yes     |
 | GitHub workflows valid                                                                             | `mise run lint:workflows`                              | no           | yes     |
 | Both images build                                                                                  | `docker build -f deploy/docker/<image>.Dockerfile .`   | no           | yes     |
 | Image vulnerabilities                                                                              | Trivy in `release.yml`                                 | no           | release |

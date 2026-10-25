@@ -140,6 +140,10 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | replace 
 {{- if $config.telemetry.enabled }}
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
   value: {{ $config.telemetry.endpoint | quote }}
+- name: OTEL_TRACES_SAMPLER_ARG
+  value: {{ $config.telemetry.samplerArg | quote }}
+- name: DEPLOYMENT_ENVIRONMENT
+  value: {{ $config.telemetry.environment | quote }}
 {{- end }}
 - name: OTEL_SERVICE_NAMESPACE
   value: {{ $config.telemetry.serviceNamespace | quote }}
