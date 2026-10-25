@@ -14,9 +14,13 @@ import {
 } from '@/features/testing/communication/fixtures/simulator.fixture';
 import { TEST_AGENT_ID } from '@/features/testing/communication/fixtures/testing.fixture';
 import { useSimulator } from '@/features/testing/communication/hooks/useSimulator';
-import { ChannelKind } from '@/shared/api/generated/schema.generated';
+import { ChannelConversationKind } from '@/shared/api/generated/schema.generated';
 
-const SETUP = { versionId: null, channelKind: ChannelKind.Simulated, language: Locale.En };
+const SETUP = {
+  versionId: null,
+  channelKind: ChannelConversationKind.Simulated,
+  language: Locale.En,
+};
 
 const renderSimulator = (agentId: string | null, mocks: readonly MockLink.MockedResponse[]) =>
   renderHook(() => useSimulator(agentId, SETUP), {

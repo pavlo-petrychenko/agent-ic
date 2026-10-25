@@ -3,9 +3,9 @@ import {
   SIMULATOR_CHANNELS,
   SIMULATOR_LANGUAGES,
 } from '@/features/testing/constants/simulator.constants';
-import type { ChannelKind } from '@/shared/api/generated/schema.generated';
+import type { ChannelConversationKind } from '@/shared/api/generated/schema.generated';
 
-export const isSimulatorChannel = (value: string): value is ChannelKind =>
+export const isSimulatorChannel = (value: string): value is ChannelConversationKind =>
   SIMULATOR_CHANNELS.some((channel) => channel === value);
 
 export const isSimulatorLanguage = (value: string): value is Locale =>
