@@ -39,9 +39,12 @@ Three constraints shape the rest:
 
 ### Ingestion and generations
 
-- Pipeline: fetch → parse → canonical Markdown → section tree → chunks → a one-line summary → embed → BM25 terms → write generation N+1 → flip.
+- Pipeline: fetch → parse → canonical Markdown → section tree → chunks → a one-time summary → embed → BM25 terms → write generation N+1 → flip.
 - Chunks never cross headings; 300–600 tokens; 10–15% overlap inside prose; tables atomic or split by row groups with the header repeated.
 - The embedding and BM25 text is the document title, section breadcrumb, document summary and chunk.
+- A document gets one summary at its first successful index: a light model reads the full canonical Markdown and returns one sentence. The document stores `summary_source` (`auto` or `user`) and `summary_updated_at`.
+- Scheduled and manual re-syncs never regenerate a summary. A failed summary is retried only while it is still null. A replacement upload keeps the summary.
+- The user can edit the summary; a user edit is never overwritten. Because the summary is in every chunk's `index_text`, an edit enqueues a document re-index and flips a new generation. The UI labels the summary as AI-generated once, says it is not updated automatically, and explains the re-index.
 - Embeddings are cached by `(workspace, model, dimensions, text hash)`. A re-sync embeds only changed chunks.
 - **Generation is per document, not per source.** A Google source can hold many documents; one failed document must not block the others. Search joins `chunks.generation = documents.active_generation`, and the flip is one short transaction. Old results remain searchable until it commits.
 - The source status aggregates its documents and the last sync run. Progress comes from the `sync_runs` counters, not from polling a worker.
@@ -78,6 +81,7 @@ Three constraints shape the rest:
 - Google Docs ships without a six-week restricted-scope review and an annual security assessment. The cost is no folder import and no Drive-wide sync; users pick documents explicitly, and adding more documents is another “Add source”.
 - Uploads are fast and do not load the API. The cost is a more complex handshake (ticket, head, copy) and an object-storage CORS/lifecycle setup.
 - Per-document generations make a multi-document Google source robust; a single broken doc cannot block the rest and search never sees a half-index.
+- One full-document summary per new document bounds the LLM cost: daily re-syncs do not call the summary model, and a user edit costs a re-index rather than another summary call. The trade-off is that the summary can go stale until the user edits it, which the UI states explicitly.
 - True BM25 gives keyword quality without an extension, but `chunk_terms` adds significant write amplification. The mitigations are corpus-stat caching, capping terms and a different lexical engine behind the retriever if a large tenant makes it necessary.
 - Search-only tools keep prompt size and cost predictable, but the agent cannot open a long document that search did not surface. That is an accepted MVP limitation.
 - The design still needs an evaluation set: chunk sizes, RRF weights and the retrieval tool description are chosen by manual testing until then.

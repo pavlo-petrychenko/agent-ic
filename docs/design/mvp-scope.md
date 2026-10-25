@@ -130,6 +130,7 @@ Uploads do not sync; replacing the file re-indexes it. Real-time sync is later.
 
 **Under the hood:**
 - the platform chunks, embeds and indexes content, showing per-document index status and errors;
+- each document gets one AI-generated summary at first index; the user can edit it, and it is not regenerated on sync;
 - each attached KB becomes a `search_knowledge` tool with an editable name and description; the agent searches with a natural-language question and cannot browse or read the whole KB;
 - a **retrieval playground** shows which sections a query returns, with source and score.
 
@@ -435,9 +436,10 @@ Each use case lists the main path, then variations and errors, and the screens i
 3. Watch the index status for each source (`Knowledge`):
    - indexed with N chunks, indexing %, or an error such as "access revoked" → reconnect;
    - re-sync one source or all.
-4. Set **how agents see the KB**: the search-tool name and description the LLM receives.
-5. Check retrieval in the **playground**: query → top sections with source and score.
-6. Attach the KB to an Agent step.
+4. Review each document summary: one AI-generated line at first index; edit it if needed. The UI says it is not auto-updated and that editing re-indexes the document.
+5. Set **how agents see the KB**: the search-tool name and description the LLM receives.
+6. Check retrieval in the **playground**: query → top sections with source and score.
+7. Attach the KB to an Agent step.
 
 **Deleting a KB** is blocked while any current agent draft or live version uses it; the dialog lists those agents → `Knowledge-Delete`.
 
@@ -643,6 +645,7 @@ The run is marked failed, and Agents shows "N runs failed today".
   - error with reason (access revoked, unsupported file…)
   - last sync time
 - Re-sync replaces that document's chunks atomically; agents never see a half-indexed document. The old generation stays searchable until the new one is ready.
+- Summary: one AI-generated line at first index; the user can edit it, it is not auto-updated, and editing re-indexes the document. The UI states this.
 - Uploads and parsed Markdown are kept in object storage; originals stay available for re-indexing.
 - Retrieval playground: query → top sections with scores, source and section.
 - Deleting a KB is blocked while any current agent draft or live version uses it; the dialog lists the agents.

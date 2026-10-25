@@ -1,6 +1,6 @@
 # Research: knowledge base ingestion and retrieval
 
-**Status:** research summary, 2026-10-02; updated 2026-10-23 with the Google Drive access constraints and the BM25 term-frequency implementation. Feeds the KB/search design decisions in [architecture.md](../architecture.md); [ADR 0024](../adr/0024-knowledge-sources-storage-and-sync.md) narrows the MVP.
+**Status:** research summary, 2026-10-02; updated 2026-10-23 with the Google Drive access constraints and the BM25 term-frequency implementation, and 2026-10-25 with the one-time editable document summary. Feeds the KB/search design decisions in [architecture.md](../architecture.md); [ADR 0024](../adr/0024-knowledge-sources-storage-and-sync.md) narrows the MVP.
 **Inputs:** four research tracks:
 - PageIndex and tree-based retrieval;
 - hybrid search in Postgres;
@@ -82,6 +82,7 @@ Vendor claims are marked as such. Numbers without a source are estimates.
   - a document under ~800 tokens becomes one chunk.
 - **Tables:** atomic when under ~1k tokens, otherwise split by groups of rows with the header repeated. Also emit row-level text, e.g. "Section › Service: X | Price: 500 UAH".
 - **Text used for both the embedding and BM25** = breadcrumb ("Doc › H2 › H3") + the document's one-line summary + the chunk.
+- In the MVP, the document summary is generated once at first index from the full Markdown, stored with `summary_source` (`auto` or `user`), and never auto-regenerated on sync. The user can edit it; an edit triggers a re-index. ADR 0022 records the lifecycle.
 - **Small-to-big:** a matching chunk expands to its parent section (when under ~1.5k tokens) or to the whole small document.
 
 **Contextual retrieval** (Anthropic): −35% retrieval failures with contextual embeddings, −49% when BM25 also sees the context, −67% with a reranker.

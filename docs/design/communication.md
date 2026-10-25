@@ -162,10 +162,11 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 3. Browser → `api` mutation `confirmUpload` → `api` HEADs the object, copies it server-side to its permanent key, creates source and document rows as `pending` ⇢ queue `ingest` (durable).
 4. `worker-ingest`:
    - → S3 read → parse → canonical Markdown → sections → chunks;
-   - → document summary and embedding provider; BM25 terms in the same transaction;
+   - → whole-document summary on the first index (skipped on re-sync) and embedding provider; BM25 terms in the same transaction;
    - → Postgres: new sections, chunks, terms and vectors under generation N+1, then **flip `documents.active_generation` in one transaction**;
    - progress ⇢ pub/sub `knowledge-source-status` → browser.
 5. A parse error → document status `error` with a reason; other documents continue ⇢ pub/sub.
+6. A summary edit: browser → `api` mutation `updateDocumentSummary` → Postgres `summary` + `summary_source = user` ⇢ queue `ingest` (`reindex-knowledge-document`) → `worker-ingest` rebuilds `index_text`, embeddings and terms, then flips the generation. The old generation stays searchable until the flip.
 
 ### I. Knowledge base: Google Docs
 1. **Connect:** browser → `api` mutation starts OAuth → redirect to Google → Google redirects the browser to the **web callback route** → browser → `api` mutation exchanges the code with Google → Postgres (sealed refresh token).

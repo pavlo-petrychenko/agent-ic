@@ -28,7 +28,7 @@ The module does **not** let the agent read a whole knowledge base or browse its 
 
 A knowledge base is a prepared library, not a folder the agent reads.
 
-You give us a file or pick Google Docs. We keep the originals, then a background helper reads each document, breaks it into section-sized pieces, writes a short summary, gives every piece a meaning fingerprint and records its important words. The pieces go into a searchable catalog.
+You give us a file or pick Google Docs. We keep the originals, then a background helper reads each document, breaks it into section-sized pieces, writes a one-time summary you can edit, gives every piece a meaning fingerprint and records its important words. The pieces go into a searchable catalog.
 
 When a customer asks a question, the agent asks the catalog for the few most relevant pieces and answers from them. It never receives the whole library.
 
@@ -220,7 +220,7 @@ split into sections (headings)
           ↓
 split sections into chunks (300–600 tokens, no crossing)
           ↓
-one-line document summary + breadcrumb
+whole-document summary (first index) + breadcrumb
           ↓
 build index_text per chunk
           ↓
@@ -293,12 +293,20 @@ Each chunk stores:
 
 ### 5.4 Document summary
 
-One cheap LLM call per document produces a one-sentence summary, for example “A salon price list with services, prices and gift-card rules.” The call uses `LlmGateway.complete` with `LlmPurpose.Light`, a strict structured output and the document title plus the first sections.
+A document gets one summary when it is first indexed. The call uses `LlmGateway.complete` with `LlmPurpose.Light`, a strict structured output and the full canonical Markdown. It returns one sentence, for example “A salon price list with services, prices and gift-card rules.”
 
-- The summary is used in every chunk's `index_text`, giving short chunks context they would otherwise lack.
-- If the call fails, the document is still indexed with the title as a fallback. A summary is helpful, not a gate.
-- The summary is stored on the document so a re-chunk can reuse it without another LLM call.
+- The summary is generated once per document, at the first successful index. A retry of the same index reuses a stored summary; scheduled and manual re-syncs do not regenerate it.
+- A failed summary is retried on the next sync even when the content is unchanged, but only while `summary` is still null. Once a summary exists, a sync never regenerates it.
+- Replacing an uploaded file does not regenerate the summary either; the UI keeps it and invites an edit.
+- A user can edit the summary from the document view. The edit stores `summary_source = 'user'`; automatic generation never overwrites a user edit. A generated summary uses `summary_source = 'auto'`. If the user writes one before the first index, the worker uses it and skips the model call. While the document is indexing, the editor is disabled and the mutation returns `KNOWLEDGE_DOCUMENT_BUSY`.
+- The summary is used in every chunk's `index_text`. Changing it changes every chunk's embedding and BM25 text, so an edit enqueues `reindex-knowledge-document` and rebuilds the document under a new generation. The old generation stays searchable until the flip.
+- The UI labels an auto summary as AI-generated once, says that it is not updated automatically, and explains that editing it re-indexes the document. A user-edited summary is labelled as edited by the user.
+- If the summary call fails, the document is still indexed without a summary. The UI shows “Add a summary” and the user can write one; a summary is helpful, not a gate.
+- If the document is longer than the summary model's input window, the pipeline sends the largest fitting prefix plus the heading outline and records a warning. The normal path is the whole document.
+- `summary_updated_at` records when the summary was generated or last edited.
 - The call is traced and tagged like any other LLM call.
+
+The cost is one summary call per new document, not per sync. Re-syncs and unchanged documents do not call the model.
 
 ### 5.5 Embeddings
 
@@ -604,9 +612,9 @@ modules/knowledge/
 ├── index.ts                              KnowledgeModule + KnowledgeSearchService
 ├── graphql/knowledge.graphql
 ├── resolvers/                            knowledge-bases, sources, documents, search, usage, google
-├── processors/                           ingest-knowledge-source, clean-up-knowledge-source-files, clean-up-knowledge-base-files
+├── processors/                           ingest-knowledge-source, reindex-knowledge-document, clean-up-knowledge-source-files, clean-up-knowledge-base-files
 ├── listeners/                            clean-up-workspace
-├── use-cases/                            create/update/delete KB, upload, sync, schedule, Google OAuth
+├── use-cases/                            create/update/delete KB, upload, sync, schedule, update document summary, Google OAuth
 ├── services/                             search, ingestion, usage, flow-reference-checker, google connections
 ├── repositories/                         knowledge-bases, sources, documents, sections, chunks, chunk-terms, sync-runs, connections
 ├── gateways/                             google-oauth.*, google-drive.*, fakes
@@ -724,6 +732,8 @@ erDiagram
         text content_storage_key
         text content_hash
         text summary
+        knowledge_summary_source summary_source
+        timestamptz summary_updated_at
         int token_count
         int chunk_count
         document_status status
@@ -821,7 +831,7 @@ Reading the diagram:
 - `workspace_id` is on every table and is the tenant key. It is not drawn as a foreign key because the workspace table lives in the `identity` schema.
 - `halfvec` is `halfvec(1024)`.
 - `text_array` is `text[]`.
-- Enum types (`source_kind`, `source_status`, `sync_mode`, `sync_interval`, `sync_trigger`, `sync_status`, `document_status`, `connection_provider`, `connection_status`) are defined in 11.3.
+- Enum types (`source_kind`, `source_status`, `sync_mode`, `sync_interval`, `sync_trigger`, `sync_status`, `document_status`, `summary_source`, `connection_provider`, `connection_status`) are defined in 11.3.
 - `chunk_terms` has a composite primary key `(chunk_id, term)`; the relationship line is also its foreign key to `chunks`.
 - `embedding_cache` has a composite primary key `(workspace_id, model, dimensions, text_hash)` and is workspace-scoped, not linked to a KB.
 - The diagram does not encode nullability. `sources.connection_id` is null for uploads, `documents.external_id` is null for uploads, and `sources.sync_*` are null unless the source is scheduled.
@@ -838,6 +848,7 @@ Reading the diagram:
 | `knowledge_sync_trigger` | `initial`, `manual`, `scheduled` |
 | `knowledge_sync_status` | `queued`, `running`, `succeeded`, `partial`, `failed` |
 | `knowledge_document_status` | `pending`, `indexing`, `indexed`, `error`, `removed` |
+| `knowledge_summary_source` | `auto`, `user` |
 | `knowledge_connection_provider` | `google_docs` |
 | `knowledge_connection_status` | `active`, `revoked`, `error` |
 
@@ -954,7 +965,9 @@ Constraints and indexes:
 | `original_storage_key` | text | nullable, uploads |
 | `content_storage_key` | text | nullable until parsed |
 | `content_hash` | text | nullable until parsed |
-| `summary` | text | nullable |
+| `summary` | text | nullable; one sentence, generated once or user-edited |
+| `summary_source` | enum | nullable; `auto` or `user` |
+| `summary_updated_at` | timestamptz | nullable; generation or last edit |
 | `token_count` | integer | not null, default 0 |
 | `chunk_count` | integer | not null, default 0 |
 | `status` | enum | `pending`, `indexing`, `indexed`, `error`, `removed` |
@@ -1182,6 +1195,7 @@ export const chunkTerms = knowledgeSchema
 | Job | Queue | Payload | Durable | Purpose |
 |---|---|---|---|---|
 | `ingest-knowledge-source` | `ingest` | `{ sourceId }` | yes | Run one source sync: fetch, parse, chunk, embed, index |
+| `reindex-knowledge-document` | `ingest` | `{ documentId }` | yes | Rebuild a document after a summary edit; no summary generation |
 | `clean-up-knowledge-source-files` | `timers` | `{ sourceId }` | yes | Delete S3 objects and hard-delete a soft-deleted source and its documents |
 | `clean-up-knowledge-base-files` | `timers` | `{ knowledgeBaseId }` | yes | Delete S3 objects and hard-delete a soft-deleted KB, sources and documents |
 | `clean-up-knowledge-sync-runs` | `timers` | `{}` | no | Delete sync runs older than 90 days |
@@ -1191,6 +1205,7 @@ export const chunkTerms = knowledgeSchema
 - Payloads hold ids only. The envelope adds `workspaceId`, `traceId` and `initiatedBy`.
 - A scheduled sync uses the same `ingest-knowledge-source` job, enqueued by the per-source scheduler.
 - `sync_runs` is created by the use case before enqueue; the processor loads it and updates progress.
+- A summary edit locks the document, sets it to `indexing` and enqueues `reindex-knowledge-document`. The job rebuilds `index_text`, embeddings and terms, then flips the generation; it never calls the summary model.
 
 ### 12.2 Events
 
@@ -1238,6 +1253,7 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 | `createGoogleDocsSource` | edit | Validates picked docs, creates source + documents |
 | `syncSource` | edit | Manual sync |
 | `syncKnowledgeBase` | edit | Sync all sources of a KB |
+| `updateDocumentSummary` | edit | Sets a user summary and re-indexes the document |
 | `updateSourceSchedule` | edit | Mode, interval, time, weekday |
 | `deleteSource` | edit | Soft delete + cleanup |
 | `startGoogleConnection` | edit | Returns Google authorization URL |
@@ -1253,7 +1269,7 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 
 - `KnowledgeBase`: id, name, description, toolName, toolDescription, documentCount, chunkCount, status, createdAt, updatedAt.
 - `KnowledgeSource`: id, kind, title, status, syncMode, syncInterval, nextSyncAt, lastSyncAt, lastError, documentCount, chunkCount, documents (Relay connection).
-- `KnowledgeDocument`: id, title, mimeType, sourceUrl, status, sizeBytes, tokenCount, chunkCount, lastIndexedAt, error.
+- `KnowledgeDocument`: id, title, mimeType, sourceUrl, status, sizeBytes, tokenCount, chunkCount, summary, summarySource, summaryUpdatedAt, lastIndexedAt, error.
 - `KnowledgeSearchResult`: documentId, documentTitle, sourceId, sourceTitle, path, text, score, url.
 - `KnowledgeBaseUsage`: agentId, agentName, versionId, versionKind, versionNumber, nodeId, nodeKey, nodeLabel.
 
@@ -1270,7 +1286,7 @@ Public ids use the `kbs_`, `kso_`, `kdc_` and `kcn_` prefixes. Internal section/
 | `communication/` | GraphQL queries, mutations, subscription, hooks, API-to-UI mappers |
 | `logic/` | upload state machine, schedule helpers, source status labels |
 | `storage/` | no shared store in the MVP; local state is enough |
-| `view/` | KnowledgeList, KnowledgeBase, SourceRow, DocumentRow, AddSourceDialog, UploadDrop, GooglePickerCard, Playground, DeleteKnowledgeBaseDialog |
+| `view/` | KnowledgeList, KnowledgeBase, SourceRow, DocumentRow, DocumentSummary, SummaryEditor, AddSourceDialog, UploadDrop, GooglePickerCard, Playground, DeleteKnowledgeBaseDialog |
 | `containers/` | KnowledgeListPage, KnowledgeBasePage, AddSourceFlow, KnowledgePlayground |
 | `index.ts` | the public surface for routes |
 
@@ -1282,6 +1298,7 @@ Behaviour:
 - **Detail page:** header with rename/edit/delete; sources table with type, status, chunks, last sync, next sync, actions; Add source; Sync all; settings for tool name/description; Playground tab or panel.
 - **Add source:** Upload tab with drop zone and per-file progress; Google tab with Connect, account status and Pick documents.
 - **Upload hook:** call `createUpload`, PUT with `XMLHttpRequest` for progress, call `confirmUpload`, then subscribe/refetch. Errors show the server reason.
+- **Document summary:** show the one-line summary with an “AI-generated once” or “Edited by you” badge. Helper text says it is not updated automatically and that editing it re-indexes the document. The edit dialog calls `updateDocumentSummary`; saving shows the document as `indexing` until the new generation is ready.
 - **Google Picker:** load the Google script on demand, call `createGooglePickerSession`, open the Picker filtered to Google Docs, send selected ids to `createGoogleDocsSource`.
 - **Delete dialog:** query usages first; if non-empty, list agents/versions and disable confirmation. The mutation is still the authority.
 - **Playground:** query input, top results, score bar, source/document/section labels, empty state.
@@ -1308,14 +1325,14 @@ There is no product-level document or chunk quota in the first version. The work
 ### 15.2 Cost
 
 - Embeddings: `jina-embeddings-v5-text-small` is $0.02 per 1M input tokens. A 1M-token KB costs about $0.02 to embed once.
-- Document summaries: one light-model call per document, a few hundred tokens each; the dominant LLM cost of ingestion but still small.
+- Document summaries: one light-model call per new document over the full canonical Markdown, not one per sync. Re-syncs and user edits reuse the stored summary; a user edit costs a re-index, not another summary call. The only repeat call is the retry of a failed, still-empty summary.
 - PDF parsing is local; no per-page OCR cost in the MVP.
 - Re-syncs are nearly free when documents are unchanged because of document hashes and the embedding cache.
 - A search costs one query embedding plus SQL; no LLM call inside the retriever.
 
 ### 15.3 Observability
 
-- Metrics: ingestion jobs, documents indexed/failed, chunks written, embedding tokens, search latency, zero-result searches, Google API errors, queue depth.
+- Metrics: ingestion jobs, documents indexed/failed, chunks written, embedding tokens, summary calls/failures, summary edits and re-indexes, search latency, zero-result searches, Google API errors, queue depth.
 - Traces: ingestion spans per stage, embedding calls through `LlmGateway`, search spans with KB id and result count.
 - Logs: ids, hashes, counts and error codes. Never document content, query text or tokens.
 - Alerts: repeated sync failures, revoked Google connections, embedding dimension mismatch, queue wait above threshold.
@@ -1343,6 +1360,8 @@ There is no product-level document or chunk quota in the first version. The work
 | Wrong type or too large | Object deleted; mutation fails with a reason | User picks another file |
 | Scanned PDF | Document `error` with `PDF_HAS_NO_TEXT` | Upload a text PDF/DOCX, or wait for OCR |
 | Parser crash | Document `error`; other documents continue | Retry the source |
+| Summary model fails | Document indexes without a summary; UI offers “Add a summary” | Retry on the next sync while the summary is null, or edit manually |
+| Summary edit re-index fails | Old generation stays searchable; document `error` | Retry the re-index; the summary is already saved |
 | Embedding provider 429/5xx | Job retries with backoff | Automatic; old generation stays active |
 | Embedding dimension mismatch | Document `error`; alert | Fix model/config, re-index |
 | Worker crash before flip | New generation orphaned; old remains active | Retry; orphan cleanup |
@@ -1361,7 +1380,7 @@ There is no product-level document or chunk quota in the first version. The work
 1. **Foundation:** `platform/storage` with S3/Silo, `StorageConfig`, CORS/lifecycle, tests with a fake. No knowledge tables yet.
 2. **Schema and module skeleton:** `knowledge` schema with the tables above, RLS checks, ID prefixes, empty module wired into `AppModule`.
 3. **KB CRUD and safety:** GraphQL CRUD, list/detail/delete, `knowledgeBaseUsages`, `KnowledgeFlowReferenceChecker`, `MissingKnowledgeBase`, builder issue, web list/empty/delete.
-4. **Upload ingestion:** upload handshake, parsers, chunking, summary, embeddings, terms, generation flip, source/document status, live updates, replace file.
+4. **Upload ingestion:** upload handshake, parsers, chunking, one-time whole-document summary and its editor, embeddings, terms, generation flip, source/document status, live updates, replace file.
 5. **Retrieval:** `KnowledgeSearchService`, BM25 SQL, vector + trigram RRF, section expansion, playground, `search_knowledge` in `AgentExecutor`, evaluation fixtures.
 6. **Google Docs:** OAuth, Picker, connection UI, create source, one-time/manual sync, document metadata checks, revocation handling.
 7. **Scheduling and hardening:** per-source schedulers, workspace timezone, cleanup jobs, notifications, metrics, limits, failure-path tests.
