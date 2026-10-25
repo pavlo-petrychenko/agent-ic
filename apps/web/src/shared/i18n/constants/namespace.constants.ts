@@ -6,6 +6,7 @@ export enum Namespace {
   Settings = 'settings',
   Agents = 'agents',
   Prompts = 'prompts',
+  Knowledge = 'knowledge',
   FlowBuilder = 'flowBuilder',
   Testing = 'testing',
 }

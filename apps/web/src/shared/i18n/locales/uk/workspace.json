@@ -8,6 +8,7 @@
     "sections": {
       "agents": "Агенти",
       "prompts": "Промпти",
+      "knowledge": "Знання",
       "inbox": "Вхідні",
       "testing": "Тестування",
       "settings": "Налаштування",

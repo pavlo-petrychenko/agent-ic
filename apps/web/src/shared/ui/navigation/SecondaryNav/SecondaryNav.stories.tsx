@@ -77,3 +77,6 @@ export const Empty: Story = {
     ],
   },
 };
+export const NoGroups: Story = {
+  args: { action: null, groups: [], emptyMessage: 'No tools yet' },
+};

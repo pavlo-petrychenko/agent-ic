@@ -69,6 +69,22 @@ describe('SecondaryNav', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument();
   });
 
+  it('shows the empty message when there are no groups', async () => {
+    render(
+      <MemoryRouter>
+        <SecondaryNav
+          title="Knowledge"
+          ariaLabel="Knowledge bases"
+          action={null}
+          groups={[]}
+          emptyMessage="No knowledge bases yet"
+        />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('No knowledge bases yet')).toBeInTheDocument();
+  });
+
   it('renders the title as a level two heading on request', async () => {
     render(
       <MemoryRouter>

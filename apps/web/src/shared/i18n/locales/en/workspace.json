@@ -8,6 +8,7 @@
     "sections": {
       "agents": "Agents",
       "prompts": "Prompts",
+      "knowledge": "Knowledge",
       "inbox": "Inbox",
       "testing": "Testing",
       "settings": "Settings",
