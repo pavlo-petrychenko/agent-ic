@@ -121,12 +121,12 @@ Workspace-level resources, attached to agents many-to-many.
 - **Google Docs:** connect a Google account with read-only per-file access (`drive.file`), pick documents with Google Picker. Folder import is later and needs restricted-scope verification.
 - **Later:** ClickUp, Google Drive folders, Notion, pages written on the platform, custom sources via API.
 
-**Sync modes**, three available per source:
-- one-time import;
-- scheduled re-sync (hourly, daily or weekly at a time in the workspace timezone);
-- manual re-sync (UI button).
+**Sync** per source:
+- an initial import when the source is created;
+- an always-available “Sync now” action for Google Docs;
+- an optional schedule (hourly, daily or weekly at a time in the workspace timezone).
 
-Uploads do not sync; replacing the file re-indexes it. Real-time sync is later.
+Uploads do not have a schedule; replacing the file re-indexes it. Real-time sync is later.
 
 **Under the hood:**
 - the platform chunks, embeds and indexes content, showing per-document index status and errors;
@@ -276,7 +276,7 @@ It proves the core loop of the vision — **flow + knowledge + channel + human h
 | Models and providers | ✅ Yes | A curated list of platform models (the default provider) + bring your own key for OpenAI, Anthropic, Google or any OpenAI-compatible API |
 | KB: upload | ✅ Yes | PDF, DOCX, TXT, MD |
 | KB: Google Docs | ✅ Yes | Google Picker with `drive.file`; individual documents, no folder import |
-| KB: 3 sync modes, index status, playground | ✅ Yes | One-time, manual, scheduled; uploads are manual only |
+| KB: sync, index status, playground | ✅ Yes | Initial import, manual “Sync now”, optional schedule; uploads have no schedule |
 | KB: ClickUp, real-time sync, Google Drive folders, Notion, pages written on the platform, custom sources via API | ❌ Later | |
 | Custom tools, secrets vault, tool library | ❌ Later | |
 | Channel: Telegram | ✅ Yes | The user pastes a BotFather token; we host the webhook |
@@ -432,7 +432,7 @@ Each use case lists the main path, then variations and errors, and the screens i
 2. Add sources (`Knowledge-AddSource*`):
    - **Upload:** PDF, DOCX, TXT, MD, up to 20 MB each. Unsupported files are skipped with a reason. Uploads don't sync; uploading a new version replaces the old chunks.
    - **Google Docs:** connect an account (read-only per-file access), pick documents with Google Picker. Folder import is later.
-   - **Sync mode** per source: one-time import, scheduled re-sync (hourly, daily or weekly at a time), or manual (button). Uploads are manual only; real-time sync is later.
+   - **Sync** per source: an initial import, an always-available “Sync now” button, and an optional schedule (hourly, daily or weekly at a time). Uploads have no schedule; real-time sync is later.
 3. Watch the index status for each source (`Knowledge`):
    - indexed with N chunks, indexing %, or an error such as "access revoked" → reconnect;
    - re-sync one source or all.
@@ -633,12 +633,12 @@ The run is marked failed, and Agents shows "N runs failed today".
   - upload (PDF, DOCX, TXT, MD, ≤20 MB), stored by us and replaced manually;
   - Google Docs (Google Picker with `drive.file`; individual documents, no folder import).
   - ClickUp and Google Drive folders are later.
-- **Sync modes:**
-  - one-time
-  - scheduled (hourly / daily / weekly at a time)
-  - manual (UI button)
+- **Sync:**
+  - initial import;
+  - “Sync now” button;
+  - optional schedule (hourly / daily / weekly at a time).
 
-  Uploads are manual only. Real-time sync is later.
+  Uploads have no schedule. Real-time sync is later.
 - **Pipeline:** fetch → parse → chunk → embed → index. Status per source:
   - indexed with chunk count
   - indexing %
@@ -779,7 +779,7 @@ Workspace ─ InviteLink (role, expires_at, token)
 Workspace ─< Agent ─< AgentVersion (n, status: draft|published, flow JSON, note, author)
                   └─ live_version_id, paused
 Workspace ─< Prompt ─< PromptVersion (n, text, variables)        Folder
-Workspace ─< KnowledgeBase ─< Source (type, sync_mode, schedule, status) ─< Chunk (embedding)
+Workspace ─< KnowledgeBase ─< Source (type, schedule, status) ─< Chunk (embedding)
 Workspace ─< Channel (type: telegram|api, agent_id, encrypted token | key hash, reply_mode, webhook_url)
 Workspace ─< ProviderKey (provider, encrypted key)
 Channel ─< Conversation (end_user_id, state, handled_by, closed_at) ─< Message (author, text)
@@ -807,7 +807,7 @@ Workspace ─ UsageCounter (month, credits, conversations, chunks)
 ## 16. Suggested build order
 
 1. **Foundation:** auth, workspaces, membership, built-in roles, invite link, app shell (EN/UK).
-2. **Knowledge & prompts:** KB with upload first, then Google Docs with one-time, manual and scheduled sync; retrieval playground; prompt library with versions.
+2. **Knowledge & prompts:** KB with upload first, then Google Docs with initial import, manual re-sync and an optional schedule; retrieval playground; prompt library with versions.
 3. **Flow engine + builder:** flow JSON format, run queue, Incoming message trigger, Agent (KB search), Completion, Router, Parallel, Send message; Langfuse tracing; simulator.
 4. **Channels & release:** Telegram and API channels; publish, versions, restore; quick-start.
 5. **Operate:** Escalation step, Inbox (take over, hand back, close), notifications (in-app, email, Telegram alerts bot).
@@ -818,7 +818,7 @@ Workspace ─ UsageCounter (month, credits, conversations, chunks)
 1. ~~**Paused agent default**~~ — resolved: the user chooses in the pause dialog: new messages go to the Inbox, or get an away message written by the user, sent once per conversation per pause.
 2. ~~**Closing a chat**~~ — resolved: the customer's next message starts a fresh conversation with the agent.
 3. **API channel without a webhook:** block publishing an agent that can escalate or message proactively, or only warn?
-4. ~~**Real-time sync:** feasibility for Google Docs (Drive change notifications) and ClickUp (webhooks); fall back to frequent scheduled sync if limited.~~ Resolved: real-time sync is out of the MVP. Google Docs uses `drive.file` + Google Picker with one-time, manual and scheduled sync; folder import waits for the restricted scope (ADR 0024).
+4. ~~**Real-time sync:** feasibility for Google Docs (Drive change notifications) and ClickUp (webhooks); fall back to frequent scheduled sync if limited.~~ Resolved: real-time sync is out of the MVP. Google Docs uses `drive.file` + Google Picker with an initial import, manual re-sync and an optional schedule; folder import waits for the restricted scope (ADR 0024).
 5. **Limit values:** the design uses placeholders (e.g. 10,000 conversations, 5,000 chunks per month). Set the real numbers.
 6. ~~**Platform models**~~ — resolved: no tiers; a curated model list (`architecture.md` D81–D84, D90).
 7. ~~**Conversation history window**~~ — resolved: no limit; steps get the whole conversation (`architecture.md` D192). Compaction can be added later in one place if it is ever needed.

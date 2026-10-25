@@ -18,7 +18,7 @@ The module owns:
 - uploads and Google Docs connections;
 - the fetch → parse → chunk → embed → index pipeline;
 - the retrieval index and `search_knowledge`;
-- sync modes and schedules;
+- schedules and manual re-sync;
 - index status, errors and the retrieval playground;
 - the “in use by an agent” guard on deletion.
 
@@ -40,7 +40,7 @@ Preparing takes time, so it happens in the background. The user sees “Queued�
 |---|---|---|
 | Sources | File uploads; Google Docs picked through Google Picker | Google Drive folders, Notion, ClickUp, pages written on the platform, custom sources via API |
 | Google access | `drive.file`, selected documents only | `drive.readonly` with restricted-scope verification and CASA, or Workspace domain-wide delegation |
-| Sync | One-time import, manual re-sync, scheduled hourly / daily / weekly | Real-time change notifications |
+| Sync | Initial import, manual “Sync now”, optional scheduled hourly / daily / weekly | Real-time change notifications |
 | Parsing | PDF text layer, DOCX, TXT, MD, Google Docs Markdown export | OCR and vision parsers for scanned PDFs |
 | Retrieval | Vector + true BM25 + trigram, RRF, section expansion | Reranking, query rewrite, automatic retrieval mode |
 | Agent tools | One `search_knowledge` per attached KB | Browse/read tools, whole-KB prompt mode |
@@ -69,7 +69,7 @@ Preparing takes time, so it happens in the background. The user sees “Queued�
 | K6 | Re-index writes a new per-document generation and flips `documents.active_generation` in one transaction. Old results stay live until the flip. | ADR 0024 (refines ADR 0011) |
 | K7 | The agent gets one `search_knowledge` tool per attached KB, with the KB's editable tool name and description. No browse/read tools and no whole-KB prompt. | ADR 0024 (amends ADR 0011) |
 | K8 | Retrieval is vector + true BM25 + trigram, fused with RRF and expanded to sections. BM25 uses a term-frequency table, not `tsvector` scoring. | ADR 0024 (refines ADR 0011) |
-| K9 | Sync modes are one-time, manual and scheduled. Uploads are manual only; Google Docs supports all three. | ADR 0024 |
+| K9 | A source is imported once on creation. “Sync now” is always available. Google Docs can also have an hourly, daily or weekly schedule; uploads have no schedule. Manual re-sync is a run trigger, not a stored mode. | ADR 0024 |
 | K10 | Deleting a KB is blocked while any current agent draft or live version references it. | ADR 0024 |
 | K11 | The module stores everything in Postgres with RLS; no second search store. Exact vector search is scoped to the KB. | ADR 0011, ADR 0024 |
 | K12 | The parser, Google client, S3 client and embedding gateway sit behind abstractions with fakes. | ADR 0011 |
@@ -92,7 +92,7 @@ embedding_cache (workspace-scoped, shared by documents)
 |---|---|
 | **Knowledge base** | A named collection plus the search-tool name and description the LLM sees. Belongs to one workspace. |
 | **Connection** | A Google account connected to the workspace. Stores the encrypted refresh token. |
-| **Source** | One thing the user added: an uploaded file, or one Google Picker selection. Holds the sync mode and schedule. |
+| **Source** | One thing the user added: an uploaded file, or one Google Picker selection. Holds the optional sync schedule and status. |
 | **Document** | One imported document. An upload source has one document; a Google source has one per picked Google Doc. |
 | **Section** | A heading subtree of a document. Its path is a breadcrumb such as `Pricing › Gift cards`. |
 | **Chunk** | A self-contained piece of a section. Chunks never cross section boundaries. It is what gets embedded and BM25-indexed. |
@@ -188,7 +188,7 @@ The API callback is deliberately a web route plus a GraphQL mutation: the token 
 
 **Sync.**
 
-- On creation the source is synced once. Its sync mode is `once`, `manual` or `scheduled`.
+- On creation the source is synced once (`initial`). A Google source can later be synced with the “Sync now” button or by its optional schedule. An upload is updated by replacing the file.
 - Each sync asks Drive for the metadata of every active document in the source (`id`, `name`, `mimeType`, `modifiedTime`, `version`, `trashed`, `webViewLink`, `resourceKey`).
 - A document is re-exported only when `version` or `modifiedTime` differs from the stored value, or when it has never been indexed.
 - Export uses `files.export` with `text/markdown`. Google caps an export at 10 MB; a larger document fails with a reason.
@@ -204,7 +204,7 @@ The API callback is deliberately a web route plus a GraphQL mutation: the token 
 - ClickUp: dropped from the MVP.
 - Google Drive folder import: requires the restricted scope; later.
 - Google Sheets, Slides and PDFs in Drive: only Google Docs are picked in the MVP.
-- Real-time change notifications: replaced by scheduled and manual re-sync.
+- Real-time change notifications: replaced by the optional schedule and the “Sync now” button.
 - Pages written on the platform and custom sources via API: later.
 
 ---
@@ -537,14 +537,15 @@ The retrieval playground is a screen on the KB page:
 
 ## 8. Sync and scheduling
 
-| Source | Modes | Default |
+| Source | Automatic sync | Manual action |
 |---|---|---|
-| Upload | Manual only | Replace file |
-| Google Docs | `once`, `manual`, `scheduled` | `once` |
+| Upload | None | Replace file |
+| Google Docs | Optional: hourly, daily or weekly | Sync now |
 
-- **One-time** runs the initial sync and never schedules another; manual re-sync is still allowed.
-- **Manual** only syncs when the user clicks Sync.
-- **Scheduled** syncs hourly, daily or weekly at a chosen time in the workspace timezone. The source stores `sync_interval`, `sync_time` (for daily/weekly), `sync_weekday` (for weekly), `next_sync_at` and the schedule's timezone.
+- Every source is imported once when it is created. The run trigger is `initial`.
+- A Google source always has a “Sync now” action. It is a run trigger, not a stored mode, and it does not change the scheduled `next_sync_at`.
+- A source has an automatic schedule only when `sync_interval` is set. The schedule stores `sync_interval`, `sync_time` (for daily/weekly), `sync_weekday` (for weekly), `next_sync_at` and the schedule's timezone.
+- There is no `one-time` or `manual` mode: “no automatic sync” is simply `sync_interval = null`.
 
 The timezone is copied onto the source when the schedule is saved. Changing the workspace timezone does not rewrite existing source schedules; re-saving the source applies the new timezone. A future workspace-timezone event can reschedule them automatically.
 
@@ -699,7 +700,6 @@ erDiagram
         source_kind kind
         text title
         source_status status
-        sync_mode sync_mode
         sync_interval sync_interval
         time sync_time
         smallint sync_weekday
@@ -833,7 +833,7 @@ Reading the diagram:
 - `connections.created_by_user_id`, `knowledge_bases.created_by_user_id` and `sources.created_by_user_id` reference `identity.users(id)` with `on delete set null`; those cross-schema lines are not drawn.
 - `halfvec` is `halfvec(1024)`.
 - `text_array` is `text[]`.
-- Enum types (`source_kind`, `source_status`, `sync_mode`, `sync_interval`, `sync_trigger`, `sync_status`, `document_status`, `summary_source`, `connection_provider`, `connection_status`) are defined in 11.3.
+- Enum types (`source_kind`, `source_status`, `sync_interval`, `sync_trigger`, `sync_status`, `document_status`, `summary_source`, `connection_provider`, `connection_status`) are defined in 11.3.
 - `chunk_terms` has a composite primary key `(chunk_id, term)`; the relationship line is also its foreign key to `chunks`.
 - `embedding_cache` has a composite primary key `(workspace_id, model, dimensions, text_hash)` and is workspace-scoped, not linked to a KB.
 - The diagram does not encode nullability. `sources.connection_id` is null for uploads, `documents.external_id` is null for uploads, and `sources.sync_*` are null unless the source is scheduled.
@@ -845,7 +845,6 @@ Reading the diagram:
 |---|---|
 | `knowledge_source_kind` | `upload`, `google_docs` |
 | `knowledge_source_status` | `pending`, `indexing`, `ready`, `error` |
-| `knowledge_sync_mode` | `manual`, `once`, `scheduled` |
 | `knowledge_sync_interval` | `hourly`, `daily`, `weekly` |
 | `knowledge_sync_trigger` | `initial`, `manual`, `scheduled` |
 | `knowledge_sync_status` | `queued`, `running`, `succeeded`, `partial`, `failed` |
@@ -853,6 +852,8 @@ Reading the diagram:
 | `knowledge_summary_source` | `auto`, `user` |
 | `knowledge_connection_provider` | `google_docs` |
 | `knowledge_connection_status` | `active`, `revoked`, `error` |
+
+`knowledge_sync_trigger` records why a `sync_runs` row exists: `initial` for the import created with the source, `manual` for the “Sync now” button and `scheduled` for the per-source scheduler. It is run history, not source configuration.
 
 ### 11.4 Tables
 
@@ -916,8 +917,7 @@ Constraints and indexes:
 | `kind` | enum | `upload`, `google_docs` |
 | `title` | text | not null |
 | `status` | enum | `pending`, `indexing`, `ready`, `error` |
-| `sync_mode` | enum | `manual`, `once`, `scheduled` |
-| `sync_interval` | enum | nullable |
+| `sync_interval` | enum | nullable; null means no automatic sync |
 | `sync_time` | time | nullable, workspace-local |
 | `sync_weekday` | smallint | nullable, ISO 1–7 |
 | `timezone` | text | nullable; IANA, set when a schedule exists |
@@ -932,12 +932,12 @@ Constraints and indexes:
 
 Checks:
 
-- upload → `connection_id is null and sync_mode = 'manual' and sync_interval is null and next_sync_at is null`;
+- upload → `connection_id is null and sync_interval is null`;
 - Google → `connection_id is not null`;
-- scheduled → `sync_interval is not null and next_sync_at is not null and timezone is not null`;
+- no automatic sync → `sync_interval is null` implies `sync_time`, `sync_weekday`, `timezone` and `next_sync_at` are null;
+- automatic sync → `sync_interval is not null` implies `next_sync_at` and `timezone` are not null;
 - weekly → `sync_interval = 'weekly'` implies `sync_weekday between 1 and 7 and sync_time is not null`;
-- daily → `sync_interval = 'daily'` implies `sync_time is not null`;
-- not scheduled → `sync_interval is null and sync_time is null and sync_weekday is null and next_sync_at is null`.
+- daily → `sync_interval = 'daily'` implies `sync_time is not null`.
 
 Constraints and indexes:
 
@@ -946,7 +946,7 @@ Constraints and indexes:
 - FK `(workspace_id, connection_id)` → `connections (workspace_id, id)` on delete restrict;
 - `index (workspace_id, kb_id)`;
 - partial `index (workspace_id, connection_id)` where `connection_id is not null`;
-- partial `index (workspace_id, next_sync_at)` where `deleted_at is null and sync_mode = 'scheduled'`;
+- partial `index (workspace_id, next_sync_at)` where `deleted_at is null and sync_interval is not null`;
 - RLS.
 
 #### `knowledge.documents`
@@ -1266,7 +1266,7 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 | `syncSource` | edit | Manual sync |
 | `syncKnowledgeBase` | edit | Sync all sources of a KB |
 | `updateDocumentSummary` | edit | Sets a user summary and re-indexes the document |
-| `updateSourceSchedule` | edit | Mode, interval, time, weekday |
+| `updateSourceSchedule` | edit | Interval, time, weekday; clearing the interval turns automatic sync off |
 | `deleteSource` | edit | Soft delete + cleanup |
 | `startGoogleConnection` | edit | Returns Google authorization URL |
 | `completeGoogleConnection` | edit | Exchanges code, stores sealed token |
@@ -1280,7 +1280,7 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 ### 13.4 Types
 
 - `KnowledgeBase`: id, name, description, toolName, toolDescription, documentCount, chunkCount, status, createdAt, updatedAt.
-- `KnowledgeSource`: id, kind, title, status, syncMode, syncInterval, nextSyncAt, lastSyncAt, lastError, documentCount, chunkCount, documents (Relay connection).
+- `KnowledgeSource`: id, kind, title, status, syncInterval, nextSyncAt, lastSyncAt, lastError, documentCount, chunkCount, documents (Relay connection).
 - `KnowledgeDocument`: id, title, mimeType, sourceUrl, status, sizeBytes, tokenCount, chunkCount, summary, summarySource, summaryUpdatedAt, lastIndexedAt, error.
 - `KnowledgeSearchResult`: documentId, documentTitle, sourceId, sourceTitle, path, text, score, url.
 - `KnowledgeBaseUsage`: agentId, agentName, versionId, versionKind, versionNumber, nodeId, nodeKey, nodeLabel.
@@ -1394,7 +1394,7 @@ There is no product-level document or chunk quota in the first version. The work
 3. **KB CRUD and safety:** GraphQL CRUD, list/detail/delete, `knowledgeBaseUsages`, `KnowledgeFlowReferenceChecker`, `MissingKnowledgeBase`, builder issue, web list/empty/delete.
 4. **Upload ingestion:** upload handshake, parsers, chunking, one-time whole-document summary and its editor, embeddings, terms, generation flip, source/document status, live updates, replace file.
 5. **Retrieval:** `KnowledgeSearchService`, BM25 SQL, vector + trigram RRF, section expansion, playground, `search_knowledge` in `AgentExecutor`, evaluation fixtures.
-6. **Google Docs:** OAuth, Picker, connection UI, create source, one-time/manual sync, document metadata checks, revocation handling.
+6. **Google Docs:** OAuth, Picker, connection UI, create source, initial import and manual re-sync, document metadata checks, revocation handling.
 7. **Scheduling and hardening:** per-source schedulers, workspace timezone, cleanup jobs, notifications, metrics, limits, failure-path tests.
 
 Each step ends with `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, `pnpm depcruise`, `pnpm check:comments`, `pnpm check:structure` and `pnpm test`.

@@ -172,7 +172,7 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 1. **Connect:** browser → `api` mutation starts OAuth → redirect to Google → Google redirects the browser to the **web callback route** → browser → `api` mutation exchanges the code with Google → Postgres (sealed refresh token).
 2. **Pick documents:** browser asks `api` for a short-lived Picker token → Google Picker → selected document ids → `api` mutation creates one source and one document per picked Google Doc.
 3. **Sync triggers**, all of which end in ⇢ queue `ingest`:
-   - one-time: right after the source is created;
+   - initial: right after the source is created;
    - scheduled: a per-source BullMQ job scheduler;
    - manual: browser → `api` mutation.
 4. `worker-ingest` → Google Drive API (metadata, then Markdown export for changed documents), then like H.4. A revoked token → connection `revoked`, source `error` ⇢ pub/sub, plus ⇢ `notify` (email to owners).

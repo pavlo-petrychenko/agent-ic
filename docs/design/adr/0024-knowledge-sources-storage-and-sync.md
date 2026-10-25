@@ -28,7 +28,7 @@ Three constraints shape the rest:
 - Uploads accept PDF, DOCX, TXT and MD, up to 20 MB. PDFs are text-layer only; scanned PDFs fail with a reason. Uploads do not sync; replacing the file creates a new generation and the old version stays searchable until the flip.
 - Google Docs uses `drive.file` and Google Picker, with `openid` and `email` for the account identity. Users pick individual documents. Folder import, Drive-wide access and real-time notifications are out of the MVP.
 - Google access is a workspace-level connection: a sealed refresh token, the account email and subject, a status and a last error. A revoked token turns the connection `revoked`; the sources become `error` and ask for a reconnect.
-- Sync modes: **one-time**, **manual** and **scheduled** (hourly, daily or weekly at a time in the workspace timezone). Real-time is dropped.
+- Sync is an initial import on creation, an always-available **manual** re-sync (a run trigger, not stored source state) and an optional **schedule** (hourly, daily or weekly at a time in the workspace timezone). A source has no automatic sync when `sync_interval` is null. Real-time is dropped.
 
 ### Upload path
 
