@@ -39,6 +39,7 @@ export class JobWorkersService implements OnApplicationBootstrap, BeforeApplicat
     const worker = new Worker(queue, (job: Job<unknown>) => this.execution.run(queue, job), {
       connection: this.queues.connection,
       prefix: this.queues.prefix,
+      telemetry: this.queues.telemetry,
       concurrency,
     });
     worker.on(QueueEvent.Error, (error: Error) =>

@@ -11,7 +11,6 @@ import { AiSdkEmbeddingGateway } from '@/platform/llm/gateways/ai-sdk-embedding.
 import { AiSdkLlmGateway } from '@/platform/llm/gateways/ai-sdk-llm.gateway';
 import type { LlmKeyResolver } from '@/platform/llm/services/llm-key-resolver.service';
 import { LlmMetricsService } from '@/platform/llm/services/llm-metrics.service';
-import { LlmSamplerService } from '@/platform/llm/services/llm-sampler.service';
 import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
 import { ProviderResolverService } from '@/platform/llm/services/provider-resolver.service';
 import type { LlmStepTimeouts } from '@/platform/llm/typedefs/llm-gateway.typedefs';
@@ -31,8 +30,7 @@ const testConfig = (env: Partial<Record<EnvVar, string>>): ConfigService =>
 export const createLlmTraceContextService = (
   env: Partial<Record<EnvVar, string>>,
   tracer: Tracer = trace.getTracer(LLM_TRACER_NAME),
-  sampler: LlmSamplerService = new LlmSamplerService(),
-): LlmTraceContextService => new LlmTraceContextService(testConfig(env), sampler, tracer);
+): LlmTraceContextService => new LlmTraceContextService(testConfig(env), tracer);
 
 export const createMetricsService = (): MetricsService => new MetricsService(testConfig({}));
 

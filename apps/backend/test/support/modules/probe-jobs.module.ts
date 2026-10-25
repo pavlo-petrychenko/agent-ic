@@ -1,5 +1,6 @@
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 import { AuditProbeListener } from '@test/support/processors/audit-probe-listener.processor';
+import { FlakyProbeProcessor } from '@test/support/processors/flaky-probe.processor';
 import { RecordProbeProcessor } from '@test/support/processors/record-probe.processor';
 import { RejectProbeProcessor } from '@test/support/processors/reject-probe.processor';
 import { ScheduledProbeProcessor } from '@test/support/processors/scheduled-probe.processor';
@@ -9,6 +10,11 @@ import { ProbeCallsRecorderService } from '@test/support/services/probe-calls-re
 export class ProbeJobsModule extends defineModule({
   providers: [ProbeCallsRecorderService],
   exports: [ProbeCallsRecorderService],
-  processors: [RecordProbeProcessor, RejectProbeProcessor, ScheduledProbeProcessor],
+  processors: [
+    RecordProbeProcessor,
+    RejectProbeProcessor,
+    ScheduledProbeProcessor,
+    FlakyProbeProcessor,
+  ],
   listeners: [WelcomeProbeListener, AuditProbeListener],
 }) {}

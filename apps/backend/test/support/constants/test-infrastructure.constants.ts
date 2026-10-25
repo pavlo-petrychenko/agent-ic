@@ -51,6 +51,7 @@ export enum TestRedisPrefix {
   WorkspacesFlow = 'workspaces-flow:',
   PasswordResetFlow = 'password-reset-flow:',
   DurableJobs = 'durable-jobs:',
+  JobTracing = 'job-tracing:',
   Agents = 'agents:',
   Prompts = 'prompts:',
   LlmKeys = 'llm-keys:',

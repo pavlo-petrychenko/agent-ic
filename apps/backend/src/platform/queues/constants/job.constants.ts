@@ -1,4 +1,7 @@
+import type { JobTraceContext } from '@/platform/queues/typedefs/job.typedefs';
+
 export const ENVELOPE_VERSION = 1;
+export const DETACHED_TRACE_CONTEXT: JobTraceContext = {};
 export const UNKNOWN_JOB_MESSAGE = 'No handler is registered for this job.';
 export const INVALID_JOB_PAYLOAD_MESSAGE = 'The job payload is not valid.';
 export const DUPLICATE_JOB_HANDLER_MESSAGE = 'A handler is already registered for this job.';

@@ -239,10 +239,10 @@ importers:
         version: 1.1.2(@apollo/server@5.5.1(graphql@16.14.2)(supports-color@5.5.0))(express@5.2.1(supports-color@5.5.0))
       '@bull-board/api':
         specifier: 9.10.2
-        version: 9.10.2(@bull-board/ui@9.10.2(bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1))(typescript@7.0.2))(bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1))(typescript@7.0.2)
+        version: 9.10.2(@bull-board/ui@9.10.2(bullmq@6.3.11)(typescript@7.0.2))(bullmq@6.3.11)(typescript@7.0.2)
       '@bull-board/express':
         specifier: 9.10.2
-        version: 9.10.2(bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1))(supports-color@5.5.0)(typescript@7.0.2)
+        version: 9.10.2(bullmq@6.3.11)(supports-color@5.5.0)(typescript@7.0.2)
       '@nestjs-cls/transactional':
         specifier: ^4.0.1
         version: 4.0.1(@nestjs/common@12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@5.5.0))(@nestjs/core@12.1.2)(nestjs-cls@7.0.1(@nestjs/common@12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@5.5.0))(@nestjs/core@12.1.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -311,7 +311,10 @@ importers:
         version: 7.0.137(zod@4.6.5)
       bullmq:
         specifier: 6.3.11
-        version: 6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1)
+        version: 6.3.11(bullmq-otel@2.0.1)(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1)
+      bullmq-otel:
+        specifier: 2.0.1
+        version: 2.0.1(bullmq@6.3.11)
       dataloader:
         specifier: 2.2.3
         version: 2.2.3
@@ -5742,6 +5745,11 @@ packages:
     resolution: {integrity: sha512-lHblz4ahamxpTmnsk+MNTRWsjYKv965MwOrSJyeD588rR3Jcu7swE+0wN5F+PbL5cjgu/9ObkhfzEPuofEMwLA==}
     engines: {node: '>=10.0.0'}
 
+  bullmq-otel@2.0.1:
+    resolution: {integrity: sha512-w+nO+oo3VBL62z2oVlqIPgc2g5+CNy6O3FQEy+M/220togI/NBaqanGdTQt0pvzE8o++oz5D+GtROuRqD9+8qg==}
+    peerDependencies:
+      bullmq: '>=6.0.0'
+
   bullmq@6.3.11:
     resolution: {integrity: sha512-ylSY3FYil6E9IjqVtT+WHcZvS1rgTZ0L3Aev62u45NXQFe+H37a1AuC3WDATR7ScNDet1Ah8MnP3lf8XaUbPUw==}
     engines: {node: '>=14.17.0'}
@@ -9753,20 +9761,20 @@ snapshots:
 
   '@bufbuild/protobuf@2.16.0': {}
 
-  '@bull-board/api@9.10.2(@bull-board/ui@9.10.2(bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1))(typescript@7.0.2))(bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1))(typescript@7.0.2)':
+  '@bull-board/api@9.10.2(@bull-board/ui@9.10.2(bullmq@6.3.11)(typescript@7.0.2))(bullmq@6.3.11)(typescript@7.0.2)':
     dependencies:
-      '@bull-board/ui': 9.10.2(bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1))(typescript@7.0.2)
+      '@bull-board/ui': 9.10.2(bullmq@6.3.11)(typescript@7.0.2)
       redis-info: 3.1.0
       valibot: 1.5.0(typescript@7.0.2)
     optionalDependencies:
-      bullmq: 6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1)
+      bullmq: 6.3.11(bullmq-otel@2.0.1)(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1)
     transitivePeerDependencies:
       - typescript
 
-  '@bull-board/express@9.10.2(bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1))(supports-color@5.5.0)(typescript@7.0.2)':
+  '@bull-board/express@9.10.2(bullmq@6.3.11)(supports-color@5.5.0)(typescript@7.0.2)':
     dependencies:
-      '@bull-board/api': 9.10.2(@bull-board/ui@9.10.2(bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1))(typescript@7.0.2))(bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1))(typescript@7.0.2)
-      '@bull-board/ui': 9.10.2(bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1))(typescript@7.0.2)
+      '@bull-board/api': 9.10.2(@bull-board/ui@9.10.2(bullmq@6.3.11)(typescript@7.0.2))(bullmq@6.3.11)(typescript@7.0.2)
+      '@bull-board/ui': 9.10.2(bullmq@6.3.11)(typescript@7.0.2)
       ejs: 6.0.1
       express: 5.2.1(supports-color@5.5.0)
     transitivePeerDependencies:
@@ -9775,9 +9783,9 @@ snapshots:
       - supports-color
       - typescript
 
-  '@bull-board/ui@9.10.2(bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1))(typescript@7.0.2)':
+  '@bull-board/ui@9.10.2(bullmq@6.3.11)(typescript@7.0.2)':
     dependencies:
-      '@bull-board/api': 9.10.2(@bull-board/ui@9.10.2(bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1))(typescript@7.0.2))(bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1))(typescript@7.0.2)
+      '@bull-board/api': 9.10.2(@bull-board/ui@9.10.2(bullmq@6.3.11)(typescript@7.0.2))(bullmq@6.3.11)(typescript@7.0.2)
     transitivePeerDependencies:
       - bull
       - bullmq
@@ -14113,7 +14121,13 @@ snapshots:
   buildcheck@0.0.7:
     optional: true
 
-  bullmq@6.3.11(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1):
+  bullmq-otel@2.0.1(bullmq@6.3.11):
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      bullmq: 6.3.11(bullmq-otel@2.0.1)(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1)
+      tslib: 2.8.1
+
+  bullmq@6.3.11(bullmq-otel@2.0.1)(ioredis@6.0.0(supports-color@5.5.0))(pg@8.23.1):
     dependencies:
       cron-parser: 5.10.1
       msgpackr: 2.1.0
@@ -14121,6 +14135,7 @@ snapshots:
       semver: 7.8.5
       tslib: 2.8.1
     optionalDependencies:
+      bullmq-otel: 2.0.1(bullmq@6.3.11)
       ioredis: 6.0.0(supports-color@5.5.0)
       pg: 8.23.1
 

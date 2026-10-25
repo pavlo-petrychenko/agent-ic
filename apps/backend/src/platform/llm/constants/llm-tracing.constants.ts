@@ -1,9 +1,7 @@
 import type { OpenTelemetrySpanType } from '@ai-sdk/otel';
-import { createContextKey } from '@opentelemetry/api';
 
 export const LLM_TRACER = 'LLM_TRACER';
 export const LLM_TRACER_NAME = 'agent-ic.llm';
-export const LLM_TRACE_SAMPLED = createContextKey('agent-ic.llm-trace-sampled');
 export const LLM_TAGGED_SPAN: OpenTelemetrySpanType = 'operation';
 export const LLM_TELEMETRY_OFF = { isEnabled: false } as const;
 

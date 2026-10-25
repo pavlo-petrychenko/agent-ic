@@ -8,7 +8,10 @@ import { ActorKind, SystemReason } from '@/platform/context/constants/actor.cons
 import { ChannelPublisherService } from '@/platform/live-updates/services/channel-publisher.service';
 import { ChannelSubscriberService } from '@/platform/live-updates/services/channel-subscriber.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import { ENVELOPE_VERSION } from '@/platform/queues/constants/job.constants';
+import {
+  DETACHED_TRACE_CONTEXT,
+  ENVELOPE_VERSION,
+} from '@/platform/queues/constants/job.constants';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { QueuesService } from '@/platform/queues/services/queues.service';
 import { defineRateLimitPolicy } from '@/platform/rate-limit/helpers/rate-limit.helpers';
@@ -139,6 +142,7 @@ describe('redis isolation by key prefix', () => {
       data: {},
       workspaceId: null,
       traceId: randomUUID(),
+      traceContext: DETACHED_TRACE_CONTEXT,
       initiatedBy: { kind: ActorKind.System, reason: SystemReason.Job },
     });
 

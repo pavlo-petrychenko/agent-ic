@@ -616,16 +616,11 @@
         "langfuse": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["mode", "sampleRate", "host"],
+          "required": ["mode", "host"],
           "properties": {
             "mode": {
               "type": "string",
               "enum": ["off", "cloud", "self-hosted"]
-            },
-            "sampleRate": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
             },
             "host": {
               "type": "string"

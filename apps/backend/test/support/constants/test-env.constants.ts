@@ -32,7 +32,6 @@ export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.OtelTracesSamplerArg]: '1',
   [EnvVar.DeploymentEnvironment]: 'test',
   [EnvVar.LangfuseMode]: LangfuseMode.Off,
-  [EnvVar.LangfuseSampleRate]: '1',
   [EnvVar.LangfuseHost]: 'http://localhost:3000',
   [EnvVar.LangfusePublicKey]: 'test-public-key',
   [EnvVar.LangfuseSecretKey]: 'test-secret-key',

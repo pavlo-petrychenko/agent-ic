@@ -13,8 +13,8 @@ const traceMetadata = (key: LlmTraceMetadata): string => `${LANGFUSE_TRACE_METAD
 
 const observationMetadata = (key: string): string => `${LANGFUSE_OBSERVATION_METADATA}.${key}`;
 
-export const traceSampleRate = ({ telemetry, langfuse }: AppConfig): number | null =>
-  telemetry.enabled && langfuse.mode !== LangfuseMode.Off ? langfuse.sampleRate : null;
+export const recordsLlmContent = ({ langfuse }: AppConfig): boolean =>
+  langfuse.mode !== LangfuseMode.Off;
 
 export const langfuseTraceAttributes = (tags: LlmTags): Attributes => ({
   [LangfuseAttribute.TraceName]: tags.traceName,

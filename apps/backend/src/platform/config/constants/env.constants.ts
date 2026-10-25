@@ -27,7 +27,6 @@ export enum EnvVar {
   OtelTracesSamplerArg = 'OTEL_TRACES_SAMPLER_ARG',
   DeploymentEnvironment = 'DEPLOYMENT_ENVIRONMENT',
   LangfuseMode = 'LANGFUSE_MODE',
-  LangfuseSampleRate = 'LANGFUSE_SAMPLE_RATE',
   LangfuseHost = 'LANGFUSE_HOST',
   LangfusePublicKey = 'LANGFUSE_PUBLIC_KEY',
   LangfuseSecretKey = 'LANGFUSE_SECRET_KEY',

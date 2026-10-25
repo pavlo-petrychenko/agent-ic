@@ -46,9 +46,9 @@ complete(request) / runAgent(request)
 
 ## Tracing
 
-- When `LANGFUSE_MODE` is not `off` and the OTel SDK runs (`OTEL_SDK_DISABLED` is not `true`), each call is traced at the `LANGFUSE_SAMPLE_RATE`, and the spans go through the OTel Collector to Langfuse (D47, D201); the local collector of `mise run start:obs` sends traces to Tempo only. The decision is made once per call, so a call that falls back records every model attempt or none. Otherwise nothing is traced.
+- When the OTel SDK runs (`OTEL_SDK_DISABLED` is not `true`), each call is traced as part of the trace it runs in: the sampling decision is made once at the root of the request (D99, D201), so a call that falls back records every model attempt or none. Prompts and outputs are recorded only when `LANGFUSE_MODE` is not `off`, and the collector deletes them before Tempo either way. The local collector of `mise run start:obs` sends traces to Tempo only. With the SDK off, nothing is traced.
 - `tags` name the trace: `traceName` and `workspaceId`, and when known `sessionId` (the conversation), `agentVersionId`, `promptId` and `promptVersion`. Each model attempt's span also says which model it was, its `fallback_hop` and the `reasoning` level it got.
-- To group several calls into one trace, wrap them in `LlmTraceContextService.run(tags, async (traceId) => …)`. It samples once for the whole trace, starts a new trace even inside a traced HTTP request, and gives you the trace id to store, or `null` when the trace is not recorded.
+- To group several calls under one parent span, wrap them in `LlmTraceContextService.run(tags, async (traceId) => …)`. The span is a child of the active one, so inside a job it joins the trace of the request that added the job (D124), and you get the trace id to store, or `null` when the trace is not recorded.
 
 ## Add a call
 

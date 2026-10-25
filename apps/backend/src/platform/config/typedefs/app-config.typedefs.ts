@@ -43,12 +43,10 @@ export interface TelemetryConfig {
 
 export interface LangfuseDisabledConfig {
   readonly mode: LangfuseMode.Off;
-  readonly sampleRate: number;
 }
 
 export interface LangfuseActiveConfig {
   readonly mode: LangfuseMode.Cloud | LangfuseMode.SelfHosted;
-  readonly sampleRate: number;
   readonly host: string;
   readonly publicKey: string;
   readonly secretKey: string;

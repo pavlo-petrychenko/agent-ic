@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { context, trace } from '@opentelemetry/api';
 import { UnrecoverableError } from 'bullmq';
 import type { Job } from 'bullmq';
 import { CLS_ID, ClsService } from 'nestjs-cls';
@@ -13,6 +14,7 @@ import {
   UNKNOWN_JOB_MESSAGE,
 } from '@/platform/queues/constants/job.constants';
 import type { QueueName } from '@/platform/queues/constants/queue.constants';
+import { traceContextOf } from '@/platform/queues/helpers/queue-telemetry.helpers';
 import { jobEnvelopeSchema } from '@/platform/queues/schemas/job-envelope.schema';
 import { JobHandlersService } from '@/platform/queues/services/job-handlers.service';
 
@@ -38,21 +40,27 @@ export class JobExecutionService {
     if (!data.success) {
       throw new UnrecoverableError(INVALID_JOB_PAYLOAD_MESSAGE);
     }
+    const parent =
+      trace.getActiveSpan() === undefined
+        ? traceContextOf(envelope.data.traceContext)
+        : context.active();
     const ctx = this.contexts.system({
       reason: SystemReason.Job,
       workspaceId: envelope.data.workspaceId,
-      traceId: envelope.data.traceId,
+      traceId: trace.getSpanContext(parent)?.traceId ?? envelope.data.traceId,
       initiatedBy: envelope.data.initiatedBy,
     });
-    await this.cls.run(async () => {
-      this.cls.set(CLS_ID, ctx.traceId);
-      try {
-        await registered.handler.handle(ctx, data.data);
-      } catch (error) {
-        this.reporter.report(error, ctx.traceId);
-        throw this.toFailure(error);
-      }
-    });
+    await context.with(parent, () =>
+      this.cls.run(async () => {
+        this.cls.set(CLS_ID, ctx.traceId);
+        try {
+          await registered.handler.handle(ctx, data.data);
+        } catch (error) {
+          this.reporter.report(error, ctx.traceId);
+          throw this.toFailure(error);
+        }
+      }),
+    );
   }
 
   private toFailure(error: unknown): Error {

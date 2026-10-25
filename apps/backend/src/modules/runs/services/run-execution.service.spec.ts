@@ -110,7 +110,8 @@ import type {
 } from '@test/support/typedefs/runs-testing.typedefs';
 
 const MODEL_ATTRIBUTE = 'langfuse.observation.metadata.model';
-const SAMPLE_EVERY_RUN = '1';
+const JOB_SPAN_NAME = 'process runs-reactive';
+const REQUEST_SPAN_NAME = 'POST /graphql';
 const SDK_RUNNING = 'false';
 
 const threeSteps = stepFlow(
@@ -634,6 +635,15 @@ describe('RunExecutionService tracing', () => {
   const execute = ({ ctx, run }: ExecutableRun): Promise<RunStatus> =>
     testbed.execution.execute(ctx, run.workspaceId, run.id);
 
+  const inSpan = <R>(name: string, work: () => Promise<R>): Promise<R> =>
+    provider.getTracer(LLM_TRACER_NAME).startActiveSpan(name, async (span) => {
+      try {
+        return await work();
+      } finally {
+        span.end();
+      }
+    });
+
   const spansOf = (traceId: string | null) =>
     exporter.getFinishedSpans().filter((span) => span.spanContext().traceId === traceId);
 
@@ -653,7 +663,6 @@ describe('RunExecutionService tracing', () => {
       [EnvVar.LlmBaseUrl]: mock.url,
       [EnvVar.LlmApiKey]: TEST_LLM_API_KEY,
       [EnvVar.LangfuseMode]: LangfuseMode.SelfHosted,
-      [EnvVar.LangfuseSampleRate]: SAMPLE_EVERY_RUN,
       [EnvVar.OtelSdkDisabled]: SDK_RUNNING,
     };
     const traces = createLlmTraceContextService(env, provider.getTracer(LLM_TRACER_NAME));
@@ -687,7 +696,7 @@ describe('RunExecutionService tracing', () => {
     propagation.disable();
   });
 
-  it('records one trace per run, saved on the run, with a span per step around its LLM call', async () => {
+  it('records the run inside the job trace, saved on the run, with a span per step around its LLM call', async () => {
     const seeded = await seedExecutableRun(
       testbed,
       guardThenStep,
@@ -697,18 +706,20 @@ describe('RunExecutionService tracing', () => {
     );
     mock.json({ intent: TEST_ORDER_INTENT });
 
-    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+    expect(await inSpan(JOB_SPAN_NAME, () => execute(seeded))).toBe(RunStatus.Succeeded);
 
     const traceId = await traceIdOf(seeded);
     const spans = spansOf(traceId);
+    const job = spans.find((span) => span.name === JOB_SPAN_NAME);
     const root = spans.find((span) => span.name === RUN_TRACE_NAME);
     const rootId = root?.spanContext().spanId;
     const steps = spans.filter((span) => span.parentSpanContext?.spanId === rootId);
     const guard = steps.find((span) => span.name === TEST_STEP_NODE_KEY);
     const generation = spans.find((span) => span.attributes[MODEL_ATTRIBUTE] !== undefined);
     expect(traceId).not.toBeNull();
+    expect(job?.spanContext().traceId).toBe(traceId);
     expect(exporter.getFinishedSpans()).toHaveLength(spans.length);
-    expect(root?.parentSpanContext).toBeUndefined();
+    expect(root?.parentSpanContext?.spanId).toBe(job?.spanContext().spanId);
     expect(root?.attributes).toMatchObject({
       'langfuse.trace.name': RUN_TRACE_NAME,
       'langfuse.session.id': seeded.run.conversationId,
@@ -734,21 +745,24 @@ describe('RunExecutionService tracing', () => {
     expect(ancestorsOf(spans, generation)).toContain(guard?.spanContext().spanId);
   });
 
-  it('saves the trace of the retry when a killed run is retried', async () => {
+  it('records a retried run next to the killed one in the trace of the request', async () => {
     const seeded = await seedExecutableRun(testbed, threeSteps);
     testbed.executor.script(SECOND_STEP_ID, StepScript.Crash);
 
-    await expect(execute(seeded)).rejects.toBeInstanceOf(WorkerKilledError);
-    const killed = await traceIdOf(seeded);
-    await execute(seeded);
-    const retried = await traceIdOf(seeded);
+    const { killed, retried } = await inSpan(REQUEST_SPAN_NAME, async () => {
+      await expect(inSpan(JOB_SPAN_NAME, () => execute(seeded))).rejects.toBeInstanceOf(
+        WorkerKilledError,
+      );
+      const killedTrace = await traceIdOf(seeded);
+      await inSpan(JOB_SPAN_NAME, () => execute(seeded));
+      return { killed: killedTrace, retried: await traceIdOf(seeded) };
+    });
 
+    const names = spansOf(retried).map(({ name }) => name);
     expect(killed).not.toBeNull();
-    expect(retried).not.toBe(killed);
-    expect(spansOf(retried).map(({ name }) => name)).toEqual([
-      SECOND_STEP_KEY,
-      THIRD_STEP_KEY,
-      RUN_TRACE_NAME,
-    ]);
+    expect(retried).toBe(killed);
+    expect(names.filter((name) => name === RUN_TRACE_NAME)).toHaveLength(2);
+    expect(names.filter((name) => name === JOB_SPAN_NAME)).toHaveLength(2);
+    expect(names.filter((name) => name === THIRD_STEP_KEY)).toHaveLength(1);
   });
 });
