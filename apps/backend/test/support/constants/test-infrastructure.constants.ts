@@ -56,6 +56,7 @@ export enum TestRedisPrefix {
   JobTracing = 'job-tracing:',
   Agents = 'agents:',
   Prompts = 'prompts:',
+  Knowledge = 'knowledge:',
   LlmKeys = 'llm-keys:',
   Usage = 'usage:',
   UsageGateway = 'usage-gateway:',
