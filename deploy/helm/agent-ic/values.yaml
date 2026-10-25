@@ -28,7 +28,7 @@ config:
   secretBox:
     keyVersion: 1
   usage:
-    creditsLimit: 10000
+    creditsLimit: 1000
     conversationsLimit: 10000
     chunksLimit: 5000
 
