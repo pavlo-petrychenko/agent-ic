@@ -20,6 +20,7 @@ export interface TelegramChannelSummary {
 
 export interface TelegramChannelView extends TelegramChannelSummary {
   readonly firstName: string | null;
+  readonly tokenMasked: string | null;
   readonly agentLiveVersionNumber: number | null;
   readonly showTyping: boolean;
   readonly updatedAt: string;
