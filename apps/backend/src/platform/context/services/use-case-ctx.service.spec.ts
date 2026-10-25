@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { IdPrefix, permissionsForRole, WorkspaceRole } from '@agent-ic/contracts';
+import { ClsServiceManager } from 'nestjs-cls';
 import { describe, expect, it } from 'vitest';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
 import { ConfigService } from '@/platform/config/services/config.service';
@@ -13,6 +14,8 @@ import type { MemberAccess } from '@/platform/context/typedefs/workspace-access.
 import { InvalidIdError } from '@/platform/ids/errors/invalid-id.error';
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { LogContextField } from '@/platform/observability/constants/logger.constants';
+import { LogContextService } from '@/platform/observability/services/log-context.service';
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { createTestEnv } from '@test/support/fixtures/test-env.fixture';
 
@@ -50,8 +53,11 @@ const accessTokens = new AccessTokenService(
   ids,
 );
 
+const cls = ClsServiceManager.getClsService();
+const logContext = new LogContextService();
+
 const contextsWith = (access?: WorkspaceAccessService): UseCaseCtxService =>
-  new UseCaseCtxService(new AccessTokenAuthenticatorService(accessTokens), ids, access);
+  new UseCaseCtxService(new AccessTokenAuthenticatorService(accessTokens), ids, logContext, access);
 
 const requestOf = (authorization: string | null, workspaceId: string | null): TransportRequest => ({
   authorization,
@@ -84,6 +90,26 @@ describe('UseCaseCtxService workspace resolution', () => {
     expect(ctx.workspaceId).toBe(workspaceId);
     expect(ctx.workspaceRole).toBe(WorkspaceRole.Operator);
     expect(ctx.permissions).toEqual(permissionsForRole(WorkspaceRole.Operator));
+  });
+
+  it('puts the workspace on the log context of the request', async () => {
+    const logged = await cls.run(async () => {
+      await contextsWith(memberAccess).create(
+        requestOf(await bearerFor(userId), publicWorkspaceId),
+      );
+      return logContext.fields();
+    });
+
+    expect(logged).toEqual({ [LogContextField.WorkspaceId]: workspaceId });
+  });
+
+  it('leaves the log context empty for a caller without a workspace', async () => {
+    const logged = await cls.run(async () => {
+      await contextsWith(memberAccess).create(requestOf(null, publicWorkspaceId));
+      return logContext.fields();
+    });
+
+    expect(logged).toEqual({});
   });
 
   it('leaves the workspace empty for a user who is not a member', async () => {

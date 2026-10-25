@@ -5,17 +5,19 @@ import { HealthController } from '@/platform/observability/controllers/health.co
 import { MetricsController } from '@/platform/observability/controllers/metrics.controller';
 import { createLoggerParams } from '@/platform/observability/helpers/logger.helpers';
 import { HealthService } from '@/platform/observability/services/health.service';
+import { LogContextService } from '@/platform/observability/services/log-context.service';
 import { MetricsService } from '@/platform/observability/services/metrics.service';
 
 export class ObservabilityModule extends defineModule({
   global: true,
   imports: [
     LoggerModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => createLoggerParams(config.config),
+      inject: [ConfigService, LogContextService],
+      useFactory: (config: ConfigService, logContext: LogContextService) =>
+        createLoggerParams(config.config, logContext),
     }),
   ],
-  providers: [HealthService, MetricsService],
-  exports: [HealthService, MetricsService],
+  providers: [HealthService, LogContextService, MetricsService],
+  exports: [HealthService, LogContextService, MetricsService],
   roleControllers: inEveryRole([HealthController, MetricsController]),
 }) {}

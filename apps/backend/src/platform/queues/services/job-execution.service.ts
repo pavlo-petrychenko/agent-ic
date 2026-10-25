@@ -8,6 +8,8 @@ import { UseCaseCtxService } from '@/platform/context/services/use-case-ctx.serv
 import { JobFailureAction } from '@/platform/errors/constants/job-failure.constants';
 import { jobFailureActionFor } from '@/platform/errors/helpers/job-failure.helpers';
 import { ErrorReporterService } from '@/platform/errors/services/error-reporter.service';
+import { LogContextField } from '@/platform/observability/constants/logger.constants';
+import { LogContextService } from '@/platform/observability/services/log-context.service';
 import {
   INVALID_JOB_PAYLOAD_MESSAGE,
   NON_ERROR_FAILURE_MESSAGE,
@@ -25,6 +27,7 @@ export class JobExecutionService {
     private readonly contexts: UseCaseCtxService,
     private readonly reporter: ErrorReporterService,
     private readonly cls: ClsService,
+    private readonly logContext: LogContextService,
   ) {}
 
   async run(queue: QueueName, job: Job<unknown>): Promise<void> {
@@ -53,6 +56,9 @@ export class JobExecutionService {
     await context.with(parent, () =>
       this.cls.run(async () => {
         this.cls.set(CLS_ID, ctx.traceId);
+        if (ctx.workspaceId !== null) {
+          this.logContext.assign({ [LogContextField.WorkspaceId]: ctx.workspaceId });
+        }
         try {
           await registered.handler.handle(ctx, data.data);
         } catch (error) {

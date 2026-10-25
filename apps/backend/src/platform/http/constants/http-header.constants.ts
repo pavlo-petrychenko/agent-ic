@@ -8,4 +8,5 @@ export enum HttpHeader {
   SecFetchSite = 'sec-fetch-site',
   PlatformAdminRoute = 'x-agent-ic-admin-route',
   WorkspaceId = 'x-workspace-id',
+  TelegramSecretToken = 'x-telegram-bot-api-secret-token',
 }
