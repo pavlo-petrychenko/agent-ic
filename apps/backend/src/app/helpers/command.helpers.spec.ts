@@ -19,22 +19,31 @@ describe('resolveCommand', () => {
     process.exitCode = undefined;
   });
 
-  it('resolves each command by its name', () => {
-    expect(resolveCommand(createArgv(CommandName.Serve))).toBeInstanceOf(ServeCommand);
-    expect(resolveCommand(createArgv(CommandName.Migrate))).toBeInstanceOf(MigrateCommand);
-    expect(resolveCommand(createArgv(CommandName.PrintSchema))).toBeInstanceOf(PrintSchemaCommand);
-    expect(resolveCommand(createArgv(CommandName.Seed))).toBeInstanceOf(SeedCommand);
+  it('resolves each command by its name', async () => {
+    await expect(resolveCommand(createArgv(CommandName.Serve))).resolves.toBeInstanceOf(
+      ServeCommand,
+    );
+    await expect(resolveCommand(createArgv(CommandName.Migrate))).resolves.toBeInstanceOf(
+      MigrateCommand,
+    );
+    await expect(resolveCommand(createArgv(CommandName.PrintSchema))).resolves.toBeInstanceOf(
+      PrintSchemaCommand,
+    );
+    await expect(resolveCommand(createArgv(CommandName.Seed))).resolves.toBeInstanceOf(SeedCommand);
   });
 
-  it('answers a missing or unknown command with a config error', () => {
-    expect(resolveCommand(createArgv())).toBeInstanceOf(UnknownCommand);
-    expect(resolveCommand(createArgv(UNKNOWN_COMMAND))).toBeInstanceOf(UnknownCommand);
+  it('answers a missing or unknown command with a config error', async () => {
+    await expect(resolveCommand(createArgv())).resolves.toBeInstanceOf(UnknownCommand);
+    await expect(resolveCommand(createArgv(UNKNOWN_COMMAND))).resolves.toBeInstanceOf(
+      UnknownCommand,
+    );
   });
 
   it('prints an unknown command and exits with the invalid config code', async () => {
     const stderr = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
 
-    await resolveCommand(createArgv(UNKNOWN_COMMAND)).execute();
+    const command = await resolveCommand(createArgv(UNKNOWN_COMMAND));
+    await command.execute();
 
     const [output] = stderr.mock.calls[0] ?? [];
     expect(String(output)).toMatch(new RegExp(`^${CONFIG_ERROR_HEADER}`));
@@ -46,9 +55,10 @@ describe('resolveCommand', () => {
   it('prints invalid serve flags before loading anything', async () => {
     const stderr = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
 
-    await resolveCommand(
+    const command = await resolveCommand(
       createArgv(CommandName.Serve, cliArgument(CliOption.Role, UNKNOWN_COMMAND)),
-    ).execute();
+    );
+    await command.execute();
 
     expect(String(stderr.mock.calls[0]?.[0])).toContain(`--${CliOption.Role}`);
     expect(process.exitCode).toBe(ExitCode.InvalidConfig);

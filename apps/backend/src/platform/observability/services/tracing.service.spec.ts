@@ -7,6 +7,9 @@ const disabledTelemetry: TelemetryConfig = {
   endpoint: 'http://localhost:4318',
   serviceName: 'test-service',
   serviceNamespace: 'test-namespace',
+  serviceVersion: '0.0.0-test',
+  deploymentEnvironment: null,
+  samplerRatio: 1,
 };
 
 describe('TracingService', () => {

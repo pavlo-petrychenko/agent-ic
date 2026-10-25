@@ -1,12 +1,17 @@
 import { z } from 'zod';
-import { NO_REDIS_KEY_PREFIX } from '@/platform/config/constants/env-value.constants';
+import {
+  NO_REDIS_KEY_PREFIX,
+  TRACES_SAMPLER_RATIO_DEFAULT,
+} from '@/platform/config/constants/env-value.constants';
 import { EnvVar, NodeEnvironment } from '@/platform/config/constants/env.constants';
 import { LogLevel } from '@/platform/config/constants/log-level.constants';
 import {
   databaseUrlSchema,
+  optionalTextSchema,
   poolSizeSchema,
   publicUrlSchema,
   redisUrlSchema,
+  sampleRateSchema,
   textSchema,
 } from '@/platform/config/schemas/env-value.schema';
 import type { CommonEnvironment } from '@/platform/config/typedefs/env.typedefs';
@@ -22,6 +27,8 @@ export const commonEnvSchema = z
     [EnvVar.OtelExporterEndpoint]: z.url(),
     [EnvVar.OtelServiceName]: textSchema,
     [EnvVar.OtelServiceNamespace]: textSchema,
+    [EnvVar.OtelTracesSamplerArg]: sampleRateSchema.default(TRACES_SAMPLER_RATIO_DEFAULT),
+    [EnvVar.DeploymentEnvironment]: optionalTextSchema,
     [EnvVar.DatabaseUrl]: databaseUrlSchema,
     [EnvVar.DatabaseSystemUrl]: databaseUrlSchema,
     [EnvVar.DatabasePoolMax]: poolSizeSchema,
@@ -49,5 +56,8 @@ export const commonEnvSchema = z
       endpoint: env[EnvVar.OtelExporterEndpoint],
       serviceName: env[EnvVar.OtelServiceName],
       serviceNamespace: env[EnvVar.OtelServiceNamespace],
+      serviceVersion: env[EnvVar.AppVersion],
+      deploymentEnvironment: env[EnvVar.DeploymentEnvironment],
+      samplerRatio: env[EnvVar.OtelTracesSamplerArg],
     },
   }));

@@ -1,15 +1,13 @@
 import type { OnApplicationShutdown } from '@nestjs/common';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
-import { resourceFromAttributes } from '@opentelemetry/resources';
 import { NodeSDK } from '@opentelemetry/sdk-node';
-import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
-import { ATTR_SERVICE_NAMESPACE } from '@opentelemetry/semantic-conventions/incubating';
 import type { TelemetryConfig } from '@/platform/config/typedefs/app-config.typedefs';
+import { registerInstrumentationHooks } from '@/platform/observability/helpers/instrumentation-hooks.helpers';
+import { createInstrumentations } from '@/platform/observability/helpers/instrumentation.helpers';
 import {
-  ignoreOperationalRequest,
+  traceSampler,
   tracesEndpoint,
+  tracingResource,
 } from '@/platform/observability/helpers/tracing.helpers';
 
 export class TracingService implements OnApplicationShutdown {
@@ -21,18 +19,15 @@ export class TracingService implements OnApplicationShutdown {
     if (!this.telemetry.enabled) {
       return;
     }
+    const instrumentations = createInstrumentations();
+    registerInstrumentationHooks(instrumentations);
     this.sdk = new NodeSDK({
-      resource: resourceFromAttributes({
-        [ATTR_SERVICE_NAME]: this.telemetry.serviceName,
-        [ATTR_SERVICE_NAMESPACE]: this.telemetry.serviceNamespace,
-      }),
+      resource: tracingResource(this.telemetry),
+      sampler: traceSampler(this.telemetry.samplerRatio),
       traceExporter: new OTLPTraceExporter({ url: tracesEndpoint(this.telemetry.endpoint) }),
       metricReaders: [],
       logRecordProcessors: [],
-      instrumentations: [
-        new HttpInstrumentation({ ignoreIncomingRequestHook: ignoreOperationalRequest }),
-        new ExpressInstrumentation(),
-      ],
+      instrumentations,
     });
     this.sdk.start();
   }

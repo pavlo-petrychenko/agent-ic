@@ -171,6 +171,37 @@ describe('loadAppConfig', () => {
     expect(variablesOf(issues)).toEqual([EnvVar.LangfuseSampleRate]);
   });
 
+  it('reads the telemetry resource and sampler settings', () => {
+    const env = createTestEnv({ [EnvVar.OtelTracesSamplerArg]: '0.25' });
+
+    const config = loadAppConfig(roleOf(Role.Api), env);
+
+    expect(config.telemetry).toMatchObject({
+      serviceVersion: env[EnvVar.AppVersion],
+      deploymentEnvironment: env[EnvVar.DeploymentEnvironment],
+      samplerRatio: 0.25,
+    });
+  });
+
+  it('samples every trace and names no environment by default', () => {
+    const env = createTestEnv({
+      [EnvVar.OtelTracesSamplerArg]: undefined,
+      [EnvVar.DeploymentEnvironment]: undefined,
+    });
+
+    const config = loadAppConfig(roleOf(Role.Api), env);
+
+    expect(config.telemetry).toMatchObject({ deploymentEnvironment: null, samplerRatio: 1 });
+  });
+
+  it('rejects a trace sampler ratio above one', () => {
+    const env = createTestEnv({ [EnvVar.OtelTracesSamplerArg]: '1.5' });
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+    expect(variablesOf(issues)).toEqual([EnvVar.OtelTracesSamplerArg]);
+  });
+
   it('reads the database section', () => {
     const env = createTestEnv({ [EnvVar.DatabasePoolMax]: '7' });
 

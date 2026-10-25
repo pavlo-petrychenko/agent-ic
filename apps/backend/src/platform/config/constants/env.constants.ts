@@ -24,6 +24,8 @@ export enum EnvVar {
   OtelExporterEndpoint = 'OTEL_EXPORTER_OTLP_ENDPOINT',
   OtelServiceName = 'OTEL_SERVICE_NAME',
   OtelServiceNamespace = 'OTEL_SERVICE_NAMESPACE',
+  OtelTracesSamplerArg = 'OTEL_TRACES_SAMPLER_ARG',
+  DeploymentEnvironment = 'DEPLOYMENT_ENVIRONMENT',
   LangfuseMode = 'LANGFUSE_MODE',
   LangfuseSampleRate = 'LANGFUSE_SAMPLE_RATE',
   LangfuseHost = 'LANGFUSE_HOST',

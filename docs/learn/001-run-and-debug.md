@@ -112,7 +112,7 @@ grafana reads prometheus, loki and tempo
 Grafana comes with three data sources (Prometheus, Loki, Tempo) and the dashboards of `deploy/helm/agent-ic/dashboards`, the same files the Helm chart ships to production. In Grafana:
 
 1. Explore, Loki: `{service="worker", level="error"}`. `service` is the Compose service, `level` is `trace`, `debug`, `info`, `warn`, `error`, `fatal` or `unknown`. A log line with a `traceId` has a link that opens the trace.
-2. Explore, Tempo: search by service name (`api`, `gateway`, `worker`). A span has a link to the logs of its service in the same time window.
+2. Explore, Tempo: search by service name (`api`, `gateway`, `worker`). A GraphQL request shows its HTTP span, the GraphQL operation and its top-level fields, and every `pg` query and Redis call inside it; each `fetch` (an LLM call, Telegram, Resend) is a span too. A span has a link to the logs of its service in the same time window.
 3. Dashboards, folder `agent-ic`: overview, queues and workers.
 
 The mode is stored in `.dev/stack.mode`. `start:obs` writes `observability`; `mise run start` writes `lean`, removes the observability containers (their data volumes stay) and recreates `api`, `gateway` and `worker` with tracing off. `mise run start <svc>` and `mise run add <svc>` keep the current mode, so `mise run start api` after `start:obs` does not switch tracing off. The tracing switch itself is [compose.observability.yaml](../../compose.observability.yaml), which `tools/dev` adds to every Compose call while the mode is `observability`. `.env` keeps `OTEL_SDK_DISABLED=true`.

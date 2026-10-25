@@ -73,6 +73,7 @@ x-backend-environment: &backend-environment
   CHOKIDAR_USEPOLLING: ${DEV_WATCH_POLLING}
   OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
   OTEL_SERVICE_NAMESPACE: ${OTEL_SERVICE_NAMESPACE}
+  DEPLOYMENT_ENVIRONMENT: local
 
 x-backend-depends-on: &backend-depends-on
   deps:
