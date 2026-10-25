@@ -2,6 +2,7 @@ import { AgentsModule } from '@/modules/agents';
 import { ChannelsModule } from '@/modules/channels';
 import { ConversationsModule } from '@/modules/conversations';
 import { IdentityModule } from '@/modules/identity';
+import { KnowledgeModule } from '@/modules/knowledge';
 import { LlmKeysModule } from '@/modules/llm-keys';
 import { NotificationsModule } from '@/modules/notifications';
 import { PromptsModule } from '@/modules/prompts';
@@ -59,6 +60,7 @@ export const DOMAIN_MODULES: readonly ModuleImport[] = [
   ChannelsModule,
   RunsModule,
   PromptsModule,
+  KnowledgeModule,
   LlmKeysModule,
 ];
 
