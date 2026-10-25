@@ -7,7 +7,7 @@ import type {
 import {
   type TelegramChannelSummary,
   type TelegramChannelView,
-} from '@/features/channels/typedefs/telegramBot.typedefs';
+} from '@/features/channels/typedefs/telegram.typedefs';
 import { ChannelKind as ApiChannelKind } from '@/shared/api/generated/schema.generated';
 
 export const isTelegramChannel = (channel: { readonly kind: ApiChannelKind }): boolean =>

@@ -31,6 +31,16 @@ export interface ConnectTelegramVariables {
   readonly showTyping: boolean;
 }
 
+export interface UseConnectTelegramResult {
+  readonly connectTelegram: (variables: ConnectTelegramVariables) => Promise<string>;
+  readonly connecting: boolean;
+}
+
+export interface UseDisconnectTelegramResult {
+  readonly disconnectTelegram: (id: string) => Promise<void>;
+  readonly disconnecting: boolean;
+}
+
 export interface TelegramBotStats {
   readonly chats: string;
   readonly messages: string;

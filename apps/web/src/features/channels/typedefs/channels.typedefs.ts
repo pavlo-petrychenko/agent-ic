@@ -3,7 +3,7 @@ import type { ChannelsQuery } from '@/features/channels/communication/gql/query/
 import type {
   TelegramChannelSummary,
   TelegramChannelView,
-} from '@/features/channels/typedefs/telegramBot.typedefs';
+} from '@/features/channels/typedefs/telegram.typedefs';
 
 export interface ChannelAgent {
   readonly id: string;
