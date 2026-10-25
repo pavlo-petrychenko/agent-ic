@@ -10,6 +10,7 @@ import {
 } from '@/app/constants/application.constants';
 import type { AppConfig } from '@/platform/config/typedefs/app-config.typedefs';
 import { TRUSTED_PROXY_RANGES } from '@/platform/http/constants/trusted-proxy.constants';
+import { HttpMetricsService } from '@/platform/observability/services/http-metrics.service';
 
 export const configureApplication = (
   config: AppConfig,
@@ -17,6 +18,7 @@ export const configureApplication = (
 ): NestExpressApplication => {
   app.useLogger(app.get(Logger));
   app.set(TRUST_PROXY_SETTING, [...TRUSTED_PROXY_RANGES]);
+  app.use(app.get(HttpMetricsService).middleware);
   const globalPrefix = ROLE_GLOBAL_PREFIX[config.role];
   if (globalPrefix !== null) {
     app.setGlobalPrefix(globalPrefix, { exclude: [...UNPREFIXED_ROUTES] });

@@ -5,9 +5,11 @@ import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constan
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { MetricsService } from '@/platform/observability/services/metrics.service';
 import {
+  NO_JOBS,
   NO_WAIT_SECONDS,
   OLDEST_FIRST,
   OLDEST_JOB_INDEX,
+  QUEUE_JOB_STATES,
   QueueMetricHelp,
   QueueMetricLabel,
   QueueMetricName,
@@ -33,6 +35,7 @@ export class QueueMetricsService implements OnModuleInit {
       QueueMetricHelp.OldestWaitingJobAge,
       (queue) => this.oldestWaitingJobAgeSeconds(queue),
     );
+    this.registerJobsGauge();
   }
 
   waitingJobs(queue: QueueName): Promise<number> {
@@ -63,6 +66,26 @@ export class QueueMetricsService implements OnModuleInit {
       collect: async () => {
         for (const queue of Object.values(QueueName)) {
           gauge.set({ [QueueMetricLabel.Queue]: queue }, await measure(queue));
+        }
+      },
+    });
+  }
+
+  private registerJobsGauge(): void {
+    const gauge: Gauge<QueueMetricLabel> = new Gauge({
+      name: QueueMetricName.Jobs,
+      help: QueueMetricHelp.Jobs,
+      labelNames: [QueueMetricLabel.Queue, QueueMetricLabel.State],
+      registers: [this.metrics.registry],
+      collect: async () => {
+        for (const queue of Object.values(QueueName)) {
+          const counts = await this.queues.get(queue).getJobCounts(...QUEUE_JOB_STATES);
+          for (const state of QUEUE_JOB_STATES) {
+            gauge.set(
+              { [QueueMetricLabel.Queue]: queue, [QueueMetricLabel.State]: state },
+              counts[state] ?? NO_JOBS,
+            );
+          }
         }
       },
     });

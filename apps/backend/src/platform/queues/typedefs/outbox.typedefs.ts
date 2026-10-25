@@ -7,3 +7,8 @@ export type NewOutboxMessage = Omit<typeof outboxMessages.$inferInsert, 'created
 export type OutboxSend = (message: OutboxMessage) => Promise<void>;
 
 export type OutboxSweepInput = Readonly<Record<string, never>>;
+
+export interface OutboxBacklog {
+  readonly pending: number;
+  readonly oldestCreatedAt: Date | null;
+}

@@ -1,5 +1,5 @@
-import { Controller, Get, Header } from '@nestjs/common';
-import { Registry } from 'prom-client';
+import { Controller, Get, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   CONTENT_TYPE_HEADER,
   MetricsRoute,
@@ -11,8 +11,8 @@ export class MetricsController {
   constructor(private readonly metrics: MetricsService) {}
 
   @Get()
-  @Header(CONTENT_TYPE_HEADER, Registry.PROMETHEUS_CONTENT_TYPE)
-  render(): Promise<string> {
+  render(@Res({ passthrough: true }) response: Response): Promise<string> {
+    response.setHeader(CONTENT_TYPE_HEADER, this.metrics.contentType);
     return this.metrics.render();
   }
 }

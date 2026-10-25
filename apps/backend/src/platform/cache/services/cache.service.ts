@@ -1,16 +1,23 @@
 import { Injectable } from '@nestjs/common';
+import { CacheResult } from '@/platform/cache/constants/cache-metrics.constants';
 import { REDIS_EXPIRE_SECONDS_FLAG } from '@/platform/cache/constants/cache.constants';
 import { parseCachedValue } from '@/platform/cache/helpers/cache.helpers';
+import { CacheMetricsService } from '@/platform/cache/services/cache-metrics.service';
 import type { CacheEntry } from '@/platform/cache/typedefs/cache.typedefs';
 import { CacheRedisService } from '@/platform/redis/services/cache-redis.service';
 
 @Injectable()
 export class CacheService {
-  constructor(private readonly redis: CacheRedisService) {}
+  constructor(
+    private readonly redis: CacheRedisService,
+    private readonly metrics: CacheMetricsService,
+  ) {}
 
   async get<TValue>(entry: CacheEntry<TValue>): Promise<TValue | null> {
     const raw = await this.redis.connection.get(entry.key);
-    return raw === null ? null : parseCachedValue(entry.schema, raw);
+    const value = raw === null ? null : parseCachedValue(entry.schema, raw);
+    this.metrics.requested(entry.name, value === null ? CacheResult.Miss : CacheResult.Hit);
+    return value;
   }
 
   async set<TValue>(entry: CacheEntry<TValue>, value: TValue): Promise<void> {

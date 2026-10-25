@@ -119,6 +119,23 @@ The mode is stored in `.dev/stack.mode`. `start:obs` writes `observability`; `mi
 
 Every log line carries a `traceId`: the id of the active span when tracing is on, else the request id (for a job, the id saved in its envelope), so scheduled jobs are searchable too. With tracing on it also carries the `spanId`. Lines written while a workspace is known carry `workspaceId`, and lines written during a run carry `runId` and `conversationId`. In Grafana, `{service="worker"} | json | runId="…"` returns one run's lines. Alloy reads the Docker socket, which is root-equivalent access on your machine; that is fine for a dev machine.
 
+### Metrics
+
+Every role serves `/metrics` in the OpenMetrics format, and Prometheus scrapes it every 15 s. The platform metrics (D279):
+
+| Metric                                                                                  | Role           | Labels                          |
+| --------------------------------------------------------------------------------------- | -------------- | ------------------------------- |
+| `http_server_requests_total`, `http_server_request_duration_seconds`                    | every role     | `method`, `route`, `status_class` |
+| `graphql_operations_total`, `graphql_operation_duration_seconds`, `graphql_ws_connections` | `api`       | `type`, `root_field`, `outcome` |
+| `jobs_processed_total`, `job_duration_seconds`, `job_wait_seconds`, `jobs_active`       | `worker`       | `queue`, `job_name`, `outcome`  |
+| `queue_jobs`                                                                            | `api`          | `queue`, `state`                |
+| `outbox_pending_messages`, `outbox_oldest_message_age_seconds`, `outbox_swept_messages_total` | `worker` | none                            |
+| `db_pool_connections`                                                                   | every role     | `pool`, `state`                 |
+| `cache_requests_total`                                                                  | every role     | `entry`, `result`               |
+| `rate_limit_rejections_total`                                                           | every role     | `policy`                        |
+
+Every sample also has the `role` label. The duration histograms carry exemplars: a bucket remembers the `trace_id` of one request that fell into it, and Grafana shows it as a dot on the panel that opens the trace. In Grafana, Explore, Prometheus: `histogram_quantile(0.95, sum by (le, route) (rate(http_server_request_duration_seconds_bucket[5m])))`, with Exemplars switched on.
+
 ### Memory
 
 Measured on 2026-10-25 with `docker stats` (OrbStack, Apple silicon): 100 s after start (idle), and again after 2000 GraphQL requests. The default stack uses about 1.0 GiB idle and 1.1 GiB after the requests. Each observability service has a `mem_limit` and a matching `GOMEMLIMIT` in [compose.yaml](../../compose.yaml).

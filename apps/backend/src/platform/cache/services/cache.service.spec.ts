@@ -3,12 +3,19 @@ import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { CacheModule } from '@/platform/cache/cache.module';
+import {
+  CacheMetricLabel,
+  CacheMetricName,
+  CacheResult,
+} from '@/platform/cache/constants/cache-metrics.constants';
 import { defineCacheEntry } from '@/platform/cache/helpers/cache.helpers';
 import { CacheService } from '@/platform/cache/services/cache.service';
+import { MetricsService } from '@/platform/observability/services/metrics.service';
 import { RedisModule } from '@/platform/redis/redis.module';
 import { CacheRedisService } from '@/platform/redis/services/cache-redis.service';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
+import { metricValue } from '@test/support/helpers/llm-testing.helpers';
 
 const TTL_SECONDS = 60;
 
@@ -18,6 +25,12 @@ type Profile = z.infer<typeof profileSchema>;
 
 const profileEntry = defineCacheEntry({
   name: 'test-profile',
+  schema: profileSchema,
+  ttlSeconds: TTL_SECONDS,
+});
+
+const meteredEntry = defineCacheEntry({
+  name: 'test-metered',
   schema: profileSchema,
   ttlSeconds: TTL_SECONDS,
 });
@@ -90,5 +103,22 @@ describe('CacheService', () => {
     await redis.connection.set(entry.key, '{not json');
 
     expect(await cache.get(entry)).toBeNull();
+  });
+
+  it('counts reads as hits and misses per entry', async () => {
+    const metrics = testingModule.get(MetricsService);
+    const entry = meteredEntry(randomUUID());
+
+    await cache.get(entry);
+    await cache.set(entry, PROFILE);
+    await cache.get(entry);
+    await cache.get(entry);
+
+    const outcome = (result: CacheResult) => ({
+      [CacheMetricLabel.Entry]: 'test-metered',
+      [CacheMetricLabel.Result]: result,
+    });
+    expect(await metricValue(metrics, CacheMetricName.Requests, outcome(CacheResult.Miss))).toBe(1);
+    expect(await metricValue(metrics, CacheMetricName.Requests, outcome(CacheResult.Hit))).toBe(2);
   });
 });

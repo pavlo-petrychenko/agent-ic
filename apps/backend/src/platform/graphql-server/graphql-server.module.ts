@@ -2,6 +2,7 @@ import { ApolloDriver } from '@nestjs/apollo';
 import type { ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import { GraphqlLoadersService } from '@/platform/graphql-server/services/graphql-loaders.service';
+import { GraphqlMetricsService } from '@/platform/graphql-server/services/graphql-metrics.service';
 import { GraphqlOptionsService } from '@/platform/graphql-server/services/graphql-options.service';
 import { ResolverBindingCheckService } from '@/platform/graphql-server/services/resolver-binding-check.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
@@ -9,8 +10,8 @@ import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpe
 
 export class GraphqlServerModule extends defineModule({
   global: true,
-  providers: [GraphqlLoadersService],
-  exports: [GraphqlLoadersService],
+  providers: [GraphqlLoadersService, GraphqlMetricsService],
+  exports: [GraphqlLoadersService, GraphqlMetricsService],
   roleImports: {
     [Role.Api]: [
       GraphQLModule.forRootAsync<ApolloDriverConfig>({

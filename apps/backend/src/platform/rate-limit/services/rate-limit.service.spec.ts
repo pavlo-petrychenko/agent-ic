@@ -2,6 +2,11 @@ import { randomUUID } from 'node:crypto';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
+import { MetricsService } from '@/platform/observability/services/metrics.service';
+import {
+  RateLimitMetricLabel,
+  RateLimitMetricName,
+} from '@/platform/rate-limit/constants/rate-limit-metrics.constants';
 import { TOKEN_BUCKET_UPDATED_FIELD } from '@/platform/rate-limit/constants/token-bucket.constants';
 import { RateLimitedError } from '@/platform/rate-limit/errors/rate-limited.error';
 import {
@@ -15,6 +20,7 @@ import { RedisModule } from '@/platform/redis/redis.module';
 import { CacheRedisService } from '@/platform/redis/services/cache-redis.service';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
+import { metricValue } from '@test/support/helpers/llm-testing.helpers';
 
 const CAPACITY = 3;
 const REFILL_PERIOD_SECONDS = 3_600;
@@ -24,6 +30,12 @@ const HALF_REFILL_PERIOD_MS = REFILL_PERIOD_MS / 2;
 const slow = defineRateLimitPolicy({
   name: 'test-slow',
   capacity: CAPACITY,
+  refillPerSecond: 1 / REFILL_PERIOD_SECONDS,
+});
+
+const metered = defineRateLimitPolicy({
+  name: 'test-metered',
+  capacity: 1,
   refillPerSecond: 1 / REFILL_PERIOD_SECONDS,
 });
 
@@ -105,5 +117,20 @@ describe('RateLimitService', () => {
     await rewindBucket(slow, subject, HALF_REFILL_PERIOD_MS);
     expect((await limiter.consume(slow, subject)).allowed).toBe(true);
     expect((await limiter.consume(slow, subject)).allowed).toBe(false);
+  });
+
+  it('counts the calls it turns away per policy', async () => {
+    const metrics = testingModule.get(MetricsService);
+    const subject = randomUUID();
+
+    await limiter.consume(metered, subject);
+    await limiter.consume(metered, subject);
+    await limiter.consume(metered, subject);
+
+    expect(
+      await metricValue(metrics, RateLimitMetricName.Rejections, {
+        [RateLimitMetricLabel.Policy]: 'test-metered',
+      }),
+    ).toBe(2);
   });
 });

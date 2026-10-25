@@ -9,6 +9,7 @@ import { outboxJobOptions, outboxSweepCutoff } from '@/platform/queues/helpers/o
 import { traceContextOf } from '@/platform/queues/helpers/queue-telemetry.helpers';
 import { OutboxRepository } from '@/platform/queues/repositories/outbox.repository';
 import { jobTraceContextSchema } from '@/platform/queues/schemas/job-envelope.schema';
+import { OutboxMetricsService } from '@/platform/queues/services/outbox-metrics.service';
 import { QueuesService } from '@/platform/queues/services/queues.service';
 import type { OutboxMessage } from '@/platform/queues/typedefs/outbox.typedefs';
 
@@ -20,6 +21,7 @@ export class OutboxSweeperService {
     private readonly outbox: OutboxRepository,
     private readonly queues: QueuesService,
     private readonly clock: ClockService,
+    private readonly metrics: OutboxMetricsService,
   ) {}
 
   async sweep(): Promise<number> {
@@ -29,6 +31,7 @@ export class OutboxSweeperService {
       (message) => this.send(message),
     );
     if (sent > 0) {
+      this.metrics.sweptMessages(sent);
       this.logger.log({ msg: OutboxLogMessage.Swept, count: sent });
     }
     return sent;

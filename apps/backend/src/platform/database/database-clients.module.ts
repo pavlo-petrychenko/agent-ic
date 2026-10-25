@@ -3,6 +3,7 @@ import { ConfigService } from '@/platform/config/services/config.service';
 import { APP_DATABASE } from '@/platform/database/constants/database-token.constants';
 import { applicationNameFor } from '@/platform/database/helpers/sql-client.helpers';
 import { AppDatabaseService } from '@/platform/database/services/app-database.service';
+import { DatabaseMetricsService } from '@/platform/database/services/database-metrics.service';
 import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
 import type { AppDatabase } from '@/platform/database/typedefs/database.typedefs';
 
@@ -33,6 +34,7 @@ import type { AppDatabase } from '@/platform/database/typedefs/database.typedefs
       inject: [AppDatabaseService],
       useFactory: (client: AppDatabaseService): AppDatabase => client.db,
     },
+    DatabaseMetricsService,
   ],
   exports: [APP_DATABASE, SystemDatabaseService],
 })
