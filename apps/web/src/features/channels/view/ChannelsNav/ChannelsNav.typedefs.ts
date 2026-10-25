@@ -1,4 +1,3 @@
-import type { StatusKind } from '@/shared/ui/display/StatusDot';
 import type { IconName } from '@/shared/ui/foundations/Icon';
 
 export interface ChannelsNavAction {
@@ -11,7 +10,6 @@ export interface ChannelsNavItem {
   readonly title: string;
   readonly subtitle: string;
   readonly icon: IconName;
-  readonly status: StatusKind | null;
   readonly selected: boolean;
   readonly to: string;
   readonly params: Readonly<Record<string, string>>;

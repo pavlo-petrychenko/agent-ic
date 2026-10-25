@@ -1,11 +1,10 @@
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAgents } from '@/features/agents';
+import { useChannels } from '@/features/channels/communication/hooks/useChannels';
 import { ChannelKind } from '@/features/channels/constants/channel.constants';
-import {
-  API_CHANNEL_MOCKS,
-  TELEGRAM_BOTS,
-} from '@/features/channels/constants/channelMocks.constants';
+import { API_CHANNEL_MOCKS } from '@/features/channels/constants/channelMocks.constants';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
 import {
   CHANNELS_API_CHANNEL_PATH,
@@ -13,62 +12,50 @@ import {
   CHANNELS_TELEGRAM_NEW_PATH,
 } from '@/features/channels/constants/route.constants';
 import { ApiChannelCreateDialogs } from '@/features/channels/containers/ApiChannelCreateDialogs';
+import { TELEGRAM_NAV_STATUS_KEY } from '@/features/channels/containers/ChannelsShell/ChannelsShell.constants';
 import type { ChannelsShellProps } from '@/features/channels/containers/ChannelsShell/ChannelsShell.typedefs';
-import {
-  apiChannelHref,
-  apiChannelPrefix,
-  telegramBotHref,
-  telegramBotPrefix,
-  telegramNewHref,
-} from '@/features/channels/logic/helpers/route.helpers';
-import { TelegramBotStatus } from '@/features/channels/typedefs/telegramBot.typedefs';
+import { apiChannelHref, telegramBotHref } from '@/features/channels/logic/helpers/route.helpers';
+import type { TelegramChannelSummary } from '@/features/channels/typedefs/telegram.typedefs';
 import type { ChannelsNavGroup, ChannelsNavItem } from '@/features/channels/view/ChannelsNav';
 import { ChannelsNav } from '@/features/channels/view/ChannelsNav';
-import { StatusKind } from '@/shared/ui/display/StatusDot';
 import { IconName } from '@/shared/ui/foundations/Icon';
 
 export function ChannelsShell({ workspaceId, children }: ChannelsShellProps) {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const { agents } = useAgents();
+  const { channels } = useChannels(agents);
   const [apiCreateOpen, setApiCreateOpen] = useState(false);
-  const showTelegramChannels =
-    pathname.startsWith(telegramBotPrefix(workspaceId)) &&
-    pathname !== telegramNewHref(workspaceId);
-  const showApiChannels = pathname.startsWith(apiChannelPrefix(workspaceId));
-  const showMockChannels = showTelegramChannels || showApiChannels;
   const openApiCreate = () => setApiCreateOpen(true);
 
-  const telegramItems: readonly ChannelsNavItem[] = showMockChannels
-    ? TELEGRAM_BOTS.map((bot) => ({
-        id: bot.id,
-        title: bot.username,
-        subtitle:
-          bot.status === TelegramBotStatus.Revoked
-            ? `${bot.agentName} · ${t('nav.tokenRevoked')}`
-            : bot.agentName,
-        icon: IconName.Send,
-        status: bot.status === TelegramBotStatus.Revoked ? StatusKind.Err : StatusKind.Ok,
-        selected: pathname === telegramBotHref(workspaceId, bot.id),
-        to: CHANNELS_TELEGRAM_BOT_PATH,
-        params: { workspaceId, botId: bot.id },
-      }))
-    : [];
+  const subtitleOf = (channel: TelegramChannelSummary): string => {
+    const agent = channel.agentName ?? t('nav.noAgent');
+    const statusKey = TELEGRAM_NAV_STATUS_KEY[channel.status];
+    return statusKey === null ? agent : `${agent} · ${t(statusKey)}`;
+  };
 
-  const apiItems: readonly ChannelsNavItem[] = showMockChannels
-    ? API_CHANNEL_MOCKS.map((channel) => ({
-        id: channel.id,
-        title: channel.name,
-        subtitle: channel.sendsEvents
-          ? `${channel.agentName} · ${t('nav.messagesAndEvents')}`
-          : channel.agentName,
-        icon: IconName.Api,
-        status: StatusKind.Ok,
-        selected: pathname === apiChannelHref(workspaceId, channel.id),
-        to: CHANNELS_API_CHANNEL_PATH,
-        params: { workspaceId, channelId: channel.id },
-      }))
-    : [];
+  const telegramItems: readonly ChannelsNavItem[] = channels.map((channel) => ({
+    id: channel.id,
+    title: channel.displayName,
+    subtitle: subtitleOf(channel),
+    icon: IconName.Send,
+    selected: pathname === telegramBotHref(workspaceId, channel.id),
+    to: CHANNELS_TELEGRAM_BOT_PATH,
+    params: { workspaceId, botId: channel.id },
+  }));
+
+  const apiItems: readonly ChannelsNavItem[] = API_CHANNEL_MOCKS.map((channel) => ({
+    id: channel.id,
+    title: channel.name,
+    subtitle: channel.sendsEvents
+      ? `${channel.agentName} · ${t('nav.messagesAndEvents')}`
+      : channel.agentName,
+    icon: IconName.Api,
+    selected: pathname === apiChannelHref(workspaceId, channel.id),
+    to: CHANNELS_API_CHANNEL_PATH,
+    params: { workspaceId, channelId: channel.id },
+  }));
 
   const groups: readonly ChannelsNavGroup[] = [
     {
@@ -94,7 +81,7 @@ export function ChannelsShell({ workspaceId, children }: ChannelsShellProps) {
         title={t('nav.title')}
         ariaLabel={t('nav.label')}
         groups={groups}
-        emptyLabel={showMockChannels ? null : t('nav.empty')}
+        emptyLabel={telegramItems.length === 0 && apiItems.length === 0 ? t('nav.empty') : null}
       />
       <div className="flex min-w-0 flex-1 flex-col overflow-auto">{children}</div>
       {apiCreateOpen && <ApiChannelCreateDialogs onClose={() => setApiCreateOpen(false)} />}
