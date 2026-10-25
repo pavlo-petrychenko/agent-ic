@@ -36,6 +36,9 @@ export interface TelemetryConfig {
   readonly endpoint: string;
   readonly serviceName: string;
   readonly serviceNamespace: string;
+  readonly serviceVersion: string;
+  readonly deploymentEnvironment: string | null;
+  readonly samplerRatio: number;
 }
 
 export interface LangfuseDisabledConfig {

@@ -10,7 +10,10 @@
       "@/*": ["./src/*"],
       "@test/*": ["./test/*"],
       "@contracts/*": ["../../packages/contracts/src/*"],
-      "@flow/*": ["../../packages/flow/src/*"]
+      "@flow/*": ["../../packages/flow/src/*"],
+      "import-in-the-middle/register-hooks.mjs": [
+        "./node_modules/import-in-the-middle/register-hooks.d.ts"
+      ]
     }
   }
 }

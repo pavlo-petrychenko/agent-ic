@@ -1,3 +1,4 @@
 import { resolveCommand } from '@/app/helpers/command.helpers';
 
-await resolveCommand(process.argv).execute();
+const command = await resolveCommand(process.argv);
+await command.execute();

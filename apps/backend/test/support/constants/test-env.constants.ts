@@ -29,6 +29,8 @@ export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.OtelExporterEndpoint]: 'http://localhost:4318',
   [EnvVar.OtelServiceName]: 'test-service',
   [EnvVar.OtelServiceNamespace]: 'test-namespace',
+  [EnvVar.OtelTracesSamplerArg]: '1',
+  [EnvVar.DeploymentEnvironment]: 'test',
   [EnvVar.LangfuseMode]: LangfuseMode.Off,
   [EnvVar.LangfuseSampleRate]: '1',
   [EnvVar.LangfuseHost]: 'http://localhost:3000',
