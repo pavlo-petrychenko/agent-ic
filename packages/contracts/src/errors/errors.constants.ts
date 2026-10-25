@@ -93,6 +93,7 @@ export enum ErrorReason {
   CannotChangeAdminRole = 'CANNOT_CHANGE_ADMIN_ROLE',
   WrongPassword = 'WRONG_PASSWORD',
   KnowledgeBaseNameTaken = 'KNOWLEDGE_BASE_NAME_TAKEN',
+  KnowledgeBaseNotFound = 'KNOWLEDGE_BASE_NOT_FOUND',
   PromptNameTaken = 'PROMPT_NAME_TAKEN',
   PromptFolderNameTaken = 'PROMPT_FOLDER_NAME_TAKEN',
   PromptFolderNotEmpty = 'PROMPT_FOLDER_NOT_EMPTY',

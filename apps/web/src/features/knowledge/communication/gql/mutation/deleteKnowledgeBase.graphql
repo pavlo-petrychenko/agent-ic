@@ -1,0 +1,5 @@
+mutation DeleteKnowledgeBase($input: DeleteKnowledgeBaseInput!) {
+  deleteKnowledgeBase(input: $input) {
+    id
+  }
+}

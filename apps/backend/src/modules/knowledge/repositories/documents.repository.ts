@@ -53,6 +53,25 @@ export class DocumentsRepository {
     return (await this.update(workspaceId, documentId, { deletedAt })) !== null;
   }
 
+  async softDeleteByKnowledgeBase(
+    workspaceId: string,
+    knowledgeBaseId: string,
+    deletedAt: Date,
+  ): Promise<number> {
+    const deleted = await this.txHost.tx
+      .update(documents)
+      .set({ deletedAt, updatedAt: this.clock.now() })
+      .where(
+        and(
+          eq(documents.workspaceId, workspaceId),
+          eq(documents.kbId, knowledgeBaseId),
+          isNull(documents.deletedAt),
+        ),
+      )
+      .returning({ id: documents.id });
+    return deleted.length;
+  }
+
   private activeWhere(workspaceId: string, documentId: string) {
     return and(
       eq(documents.workspaceId, workspaceId),

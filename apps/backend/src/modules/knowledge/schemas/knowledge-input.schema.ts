@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { KnowledgeField } from '@/modules/knowledge/constants/knowledge-input.constants';
 
 const nameSchema = z.string().trim().min(1).max(KNOWLEDGE_BASE_NAME_MAX_LENGTH);
+const recordIdSchema = z.string().min(1);
 
 const descriptionSchema = z
   .string()
@@ -19,4 +20,8 @@ const descriptionSchema = z
 export const createKnowledgeBaseInputSchema = z.object({
   [KnowledgeField.Name]: nameSchema,
   [KnowledgeField.Description]: descriptionSchema,
+});
+
+export const deleteKnowledgeBaseInputSchema = z.object({
+  [KnowledgeField.Id]: recordIdSchema,
 });

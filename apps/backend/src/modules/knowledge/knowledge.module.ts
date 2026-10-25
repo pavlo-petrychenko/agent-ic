@@ -8,9 +8,11 @@ import { SectionsRepository } from '@/modules/knowledge/repositories/sections.re
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
 import { CreateKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/create-knowledge-base.resolver';
+import { DeleteKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/delete-knowledge-base.resolver';
 import { KnowledgeBasesResolver } from '@/modules/knowledge/resolvers/knowledge-bases.resolver';
 import { KnowledgeBaseViewsService } from '@/modules/knowledge/services/knowledge-base-views.service';
 import { CreateKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/create-knowledge-base.use-case';
+import { DeleteKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/delete-knowledge-base.use-case';
 import { ListKnowledgeBasesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-bases.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
@@ -27,7 +29,8 @@ export class KnowledgeModule extends defineModule({
     EmbeddingCacheRepository,
     KnowledgeBaseViewsService,
     CreateKnowledgeBaseUseCase,
+    DeleteKnowledgeBaseUseCase,
     ListKnowledgeBasesUseCase,
   ],
-  resolvers: [CreateKnowledgeBaseResolver, KnowledgeBasesResolver],
+  resolvers: [CreateKnowledgeBaseResolver, DeleteKnowledgeBaseResolver, KnowledgeBasesResolver],
 }) {}

@@ -20,6 +20,13 @@
     "sourcesDescription": "Upload files or connect Google Docs. We split them into chunks so agents can search them.",
     "agentsNote": "Agents only answer from knowledge bases attached to them. Attach this one in the agent step after adding sources."
   },
+  "delete": {
+    "action": "Delete",
+    "title": "Delete “{{name}}”?",
+    "description": "This deletes the knowledge base, its sources and its indexed content. This cannot be undone.",
+    "submit": "Delete knowledge base",
+    "success": "Knowledge base “{{name}}” deleted."
+  },
   "new": {
     "title": "New knowledge base",
     "description": "Give your knowledge base a name. You can add sources next.",

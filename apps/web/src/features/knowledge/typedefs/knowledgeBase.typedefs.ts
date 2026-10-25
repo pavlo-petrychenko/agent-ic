@@ -25,3 +25,8 @@ export interface UseCreateKnowledgeBaseResult {
   readonly createKnowledgeBase: (values: CreateKnowledgeBaseValues) => Promise<KnowledgeBase>;
   readonly creating: boolean;
 }
+
+export interface UseDeleteKnowledgeBaseResult {
+  readonly deleteKnowledgeBase: (id: string) => Promise<void>;
+  readonly deleting: boolean;
+}
