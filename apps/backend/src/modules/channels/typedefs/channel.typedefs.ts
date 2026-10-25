@@ -25,6 +25,7 @@ export interface ChannelView {
   readonly status: ChannelRecord['status'];
   readonly agentId: string | null;
   readonly displayName: string;
+  readonly firstName: string | null;
   readonly showTyping: boolean;
   readonly createdAt: Date;
   readonly updatedAt: Date;

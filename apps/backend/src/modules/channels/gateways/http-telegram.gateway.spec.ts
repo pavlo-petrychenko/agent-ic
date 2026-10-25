@@ -52,6 +52,7 @@ describe('HttpTelegramGateway', () => {
     await expect(gateway.getMe(TEST_TELEGRAM_TOKEN)).resolves.toEqual({
       id: TEST_TELEGRAM_BOT_ID,
       username: TEST_TELEGRAM_BOT_USERNAME,
+      firstName: TEST_TELEGRAM_BOT_NAME,
     });
     expect(fetchMock).toHaveBeenCalledWith(
       `${TELEGRAM_API_BASE_URL}/bot${TEST_TELEGRAM_TOKEN}/getMe`,

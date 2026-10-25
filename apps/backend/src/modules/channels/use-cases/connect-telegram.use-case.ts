@@ -38,7 +38,7 @@ export class ConnectTelegramChannelUseCase {
       kind: ChannelKind.Telegram,
       agentId,
       externalId: bot.id,
-      identity: { username: bot.username },
+      identity: { username: bot.username, firstName: bot.firstName },
       showTyping: data.showTyping,
       credentialsSealed: credentials.sealed,
       createdByUserId: access.userId,

@@ -8,7 +8,10 @@ import { TelegramTokenInvalidError } from '@/modules/channels/errors/telegram-to
 import { ConnectTelegramChannelUseCase } from '@/modules/channels/use-cases/connect-telegram.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
-import { TEST_TELEGRAM_BOT_USERNAME } from '@test/support/constants/channel-testing.constants';
+import {
+  TEST_TELEGRAM_BOT_NAME,
+  TEST_TELEGRAM_BOT_USERNAME,
+} from '@test/support/constants/channel-testing.constants';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createChannelsTestbed } from '@test/support/helpers/channels-testing.helpers';
 import { seedAgent } from '@test/support/helpers/conversations-testing.helpers';
@@ -65,6 +68,7 @@ describe('ConnectTelegramChannelUseCase', () => {
     testbed.telegram.bot = {
       id: botId,
       username: TEST_TELEGRAM_BOT_USERNAME,
+      firstName: TEST_TELEGRAM_BOT_NAME,
     };
 
     const channel = await execute(workspaceId, agentId);
@@ -94,7 +98,10 @@ describe('ConnectTelegramChannelUseCase', () => {
       throw new Error('Expected a stored channel');
     }
     expect(stored.status).toBe(ChannelStatus.Connected);
-    expect(stored.identity).toEqual({ username: TEST_TELEGRAM_BOT_USERNAME });
+    expect(stored.identity).toEqual({
+      username: TEST_TELEGRAM_BOT_USERNAME,
+      firstName: TEST_TELEGRAM_BOT_NAME,
+    });
     expect(stored.credentialsSealed).not.toContain(CONNECT_TOKEN);
     const credentials = testbed.channelTokens.openCredentials(stored.credentialsSealed);
     if (!('webhookSecretHash' in credentials)) {
@@ -110,6 +117,7 @@ describe('ConnectTelegramChannelUseCase', () => {
     testbed.telegram.bot = {
       id: testbed.ids.generate(),
       username: TEST_TELEGRAM_BOT_USERNAME,
+      firstName: TEST_TELEGRAM_BOT_NAME,
     };
     await execute(workspaceId, agentId);
 
