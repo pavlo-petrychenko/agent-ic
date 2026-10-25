@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@/platform/config/services/config.service';
 import { APP_DATABASE } from '@/platform/database/constants/database-token.constants';
+import { applicationNameFor } from '@/platform/database/helpers/sql-client.helpers';
 import { AppDatabaseService } from '@/platform/database/services/app-database.service';
 import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
 import type { AppDatabase } from '@/platform/database/typedefs/database.typedefs';
@@ -11,7 +12,11 @@ import type { AppDatabase } from '@/platform/database/typedefs/database.typedefs
       provide: AppDatabaseService,
       inject: [ConfigService],
       useFactory: ({ config }: ConfigService) =>
-        new AppDatabaseService({ url: config.database.url, poolMax: config.database.poolMax }),
+        new AppDatabaseService({
+          url: config.database.url,
+          poolMax: config.database.poolMax,
+          applicationName: applicationNameFor(config.role),
+        }),
     },
     {
       provide: SystemDatabaseService,
@@ -20,6 +25,7 @@ import type { AppDatabase } from '@/platform/database/typedefs/database.typedefs
         new SystemDatabaseService({
           url: config.database.systemUrl,
           poolMax: config.database.poolMax,
+          applicationName: applicationNameFor(config.role),
         }),
     },
     {

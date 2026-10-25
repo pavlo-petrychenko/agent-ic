@@ -23,7 +23,7 @@ export class ForeignKeyInspectorService {
   constructor(private readonly db: SqlExecutor) {}
 
   async findIdColumnsWithoutKey(): Promise<string[]> {
-    const rows = await this.db.execute<QualifiedNameRow>(sql`
+    const { rows } = await this.db.execute<QualifiedNameRow>(sql`
       select concat_ws(${QUALIFIED_NAME_SEPARATOR}, n.nspname, c.relname, a.attname) as "name"
       from pg_attribute a
       join pg_class c on c.oid = a.attrelid
@@ -48,7 +48,7 @@ export class ForeignKeyInspectorService {
   }
 
   async findTenantTablesWithoutWorkspaceKey(): Promise<string[]> {
-    const rows = await this.db.execute<QualifiedNameRow>(sql`
+    const { rows } = await this.db.execute<QualifiedNameRow>(sql`
       select concat_ws(${QUALIFIED_NAME_SEPARATOR}, n.nspname, c.relname) as "name"
       from pg_class c
       join pg_namespace n on n.oid = c.relnamespace
@@ -79,7 +79,7 @@ export class ForeignKeyInspectorService {
   }
 
   async findKeysWithoutIndex(): Promise<string[]> {
-    const rows = await this.db.execute<QualifiedNameRow>(sql`
+    const { rows } = await this.db.execute<QualifiedNameRow>(sql`
       select concat_ws(${QUALIFIED_NAME_SEPARATOR}, n.nspname, c.relname, k.conname) as "name"
       from pg_constraint k
       join pg_class c on c.oid = k.conrelid
@@ -103,7 +103,7 @@ export class ForeignKeyInspectorService {
   }
 
   async findRedundantIndexes(): Promise<string[]> {
-    const rows = await this.db.execute<QualifiedNameRow>(sql`
+    const { rows } = await this.db.execute<QualifiedNameRow>(sql`
       select concat_ws(${QUALIFIED_NAME_SEPARATOR}, n.nspname, c.relname, ic.relname) as "name"
       from pg_index i
       join pg_class ic on ic.oid = i.indexrelid

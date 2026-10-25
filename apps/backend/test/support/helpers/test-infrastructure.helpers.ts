@@ -1,12 +1,13 @@
 import { Locale } from '@agent-ic/contracts';
 import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import type { StartedRedisContainer } from '@testcontainers/redis';
-import { drizzle } from 'drizzle-orm/postgres-js';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import type { Pool } from 'pg';
 import { users } from '@/modules/identity/db/users.table';
 import type { AppConfig } from '@/platform/config/typedefs/app-config.typedefs';
-import { CLIENT_CLOSE_TIMEOUT_SECONDS } from '@/platform/database/constants/database-client.constants';
 import { DatabaseRole } from '@/platform/database/constants/database.constants';
 import { createSqlClient } from '@/platform/database/helpers/sql-client.helpers';
+import type { DatabaseClientListeners } from '@/platform/database/typedefs/database-client.typedefs';
 import { URL_PATH_SEPARATOR } from '@/platform/http/constants/url.constants';
 import {
   AGENTS_TEST_START,
@@ -18,6 +19,7 @@ import {
 import {
   DATABASE_URL_PROTOCOL,
   SCRATCH_POOL_SIZE,
+  TEST_APPLICATION_NAME,
   TEST_DATABASE_NAME,
   TEST_ROLE_PASSWORDS,
   TEST_SUPERUSER,
@@ -74,10 +76,25 @@ export const withTestRedisPrefix = <TConfig extends AppConfig>(
   redis: { ...config.redis, keyPrefix },
 });
 
-export const discardNotice = (): void => undefined;
+const discardNotice = (): void => undefined;
+
+const failOnIdleError = (error: Error): never => {
+  throw error;
+};
+
+export const testDatabaseListeners = (): DatabaseClientListeners => ({
+  onNotice: discardNotice,
+  onIdleError: failOnIdleError,
+});
+
+export const createTestSqlClient = (url: string, poolMax: number): Pool =>
+  createSqlClient(
+    { url, poolMax, applicationName: TEST_APPLICATION_NAME },
+    testDatabaseListeners(),
+  );
 
 export const seedSharedTestUsers = async (ownerUrl: string): Promise<void> => {
-  const client = createSqlClient({ url: ownerUrl, poolMax: SCRATCH_POOL_SIZE }, discardNotice);
+  const client = createTestSqlClient(ownerUrl, SCRATCH_POOL_SIZE);
   try {
     await drizzle({ client })
       .insert(users)
@@ -92,6 +109,6 @@ export const seedSharedTestUsers = async (ownerUrl: string): Promise<void> => {
       })
       .onConflictDoNothing();
   } finally {
-    await client.end({ timeout: CLIENT_CLOSE_TIMEOUT_SECONDS });
+    await client.end();
   }
 };

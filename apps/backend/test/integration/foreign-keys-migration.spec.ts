@@ -13,7 +13,7 @@ import {
   migrateThrough,
 } from '@test/support/helpers/migration-testing.helpers';
 import { readOrphanSurvivors, seedOrphans } from '@test/support/helpers/orphans-testing.helpers';
-import { discardNotice } from '@test/support/helpers/test-infrastructure.helpers';
+import { testDatabaseListeners } from '@test/support/helpers/test-infrastructure.helpers';
 import type { ScratchDatabase } from '@test/support/typedefs/test-infrastructure.typedefs';
 
 describe('the foreign keys migration', () => {
@@ -35,7 +35,7 @@ describe('the foreign keys migration', () => {
   it('cleans orphan rows so the keys apply to a database that was not recreated', async () => {
     const seeded = await seedOrphans(superuser.db);
 
-    await runMigrations(ownerUrl, discardNotice);
+    await runMigrations(ownerUrl, testDatabaseListeners());
 
     const survivors = await readOrphanSurvivors(superuser.db, seeded);
     expect(survivors.user).toEqual({ lastWorkspaceId: null, pendingInviteLinkId: null });

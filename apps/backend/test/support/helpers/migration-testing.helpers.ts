@@ -2,9 +2,8 @@ import { copyFile, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { sql } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
-import { CLIENT_CLOSE_TIMEOUT_SECONDS } from '@/platform/database/constants/database-client.constants';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { DatabaseRole } from '@/platform/database/constants/database.constants';
 import {
   MIGRATION_POOL_SIZE,
@@ -12,7 +11,6 @@ import {
   MIGRATIONS_SCHEMA,
   MIGRATIONS_TABLE,
 } from '@/platform/database/constants/migration.constants';
-import { createSqlClient } from '@/platform/database/helpers/sql-client.helpers';
 import { URL_PATH_SEPARATOR } from '@/platform/http/constants/url.constants';
 import {
   MIGRATION_FILE_EXTENSION,
@@ -21,7 +19,7 @@ import {
 } from '@test/support/constants/migration-testing.constants';
 import { SCRATCH_POOL_SIZE } from '@test/support/constants/test-infrastructure.constants';
 import { MissingTestDataError } from '@test/support/errors/missing-test-data.error';
-import { discardNotice } from '@test/support/helpers/test-infrastructure.helpers';
+import { createTestSqlClient } from '@test/support/helpers/test-infrastructure.helpers';
 import type {
   MigrationFileMismatch,
   MigrationJournal,
@@ -37,24 +35,24 @@ export const createOwnedDatabase = async (
   superuserUrl: string,
   database: string,
 ): Promise<void> => {
-  const client = createSqlClient({ url: superuserUrl, poolMax: SCRATCH_POOL_SIZE }, discardNotice);
+  const client = createTestSqlClient(superuserUrl, SCRATCH_POOL_SIZE);
   try {
     await drizzle({ client }).execute(
       sql`create database ${sql.identifier(database)} owner ${sql.identifier(DatabaseRole.Owner)}`,
     );
   } finally {
-    await client.end({ timeout: CLIENT_CLOSE_TIMEOUT_SECONDS });
+    await client.end();
   }
 };
 
 export const dropDatabase = async (superuserUrl: string, database: string): Promise<void> => {
-  const client = createSqlClient({ url: superuserUrl, poolMax: SCRATCH_POOL_SIZE }, discardNotice);
+  const client = createTestSqlClient(superuserUrl, SCRATCH_POOL_SIZE);
   try {
     await drizzle({ client }).execute(
       sql`drop database if exists ${sql.identifier(database)} with (force)`,
     );
   } finally {
-    await client.end({ timeout: CLIENT_CLOSE_TIMEOUT_SECONDS });
+    await client.end();
   }
 };
 
@@ -102,7 +100,7 @@ const copyMigrationsThrough = async (lastTag: string): Promise<string> => {
 };
 
 const migrateFrom = async (ownerUrl: string, migrationsFolder: string): Promise<void> => {
-  const client = createSqlClient({ url: ownerUrl, poolMax: MIGRATION_POOL_SIZE }, discardNotice);
+  const client = createTestSqlClient(ownerUrl, MIGRATION_POOL_SIZE);
   try {
     await migrate(drizzle({ client }), {
       migrationsFolder,
@@ -110,7 +108,7 @@ const migrateFrom = async (ownerUrl: string, migrationsFolder: string): Promise<
       migrationsTable: MIGRATIONS_TABLE,
     });
   } finally {
-    await client.end({ timeout: CLIENT_CLOSE_TIMEOUT_SECONDS });
+    await client.end();
   }
 };
 
