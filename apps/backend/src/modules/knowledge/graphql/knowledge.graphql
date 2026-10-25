@@ -1,0 +1,24 @@
+extend type Query {
+  knowledgeBases: [KnowledgeBase!]!
+}
+
+extend type Mutation {
+  createKnowledgeBase(input: CreateKnowledgeBaseInput!): KnowledgeBase!
+}
+
+input CreateKnowledgeBaseInput {
+  name: String!
+  description: String
+}
+
+type KnowledgeBase {
+  id: ID!
+  name: String!
+  description: String
+  toolName: String!
+  toolDescription: String
+  documentCount: Int!
+  chunkCount: Int!
+  createdAt: String!
+  updatedAt: String!
+}

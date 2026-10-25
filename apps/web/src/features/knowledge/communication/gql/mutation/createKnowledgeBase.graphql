@@ -1,0 +1,13 @@
+mutation CreateKnowledgeBase($input: CreateKnowledgeBaseInput!) {
+  createKnowledgeBase(input: $input) {
+    id
+    name
+    description
+    toolName
+    toolDescription
+    documentCount
+    chunkCount
+    createdAt
+    updatedAt
+  }
+}

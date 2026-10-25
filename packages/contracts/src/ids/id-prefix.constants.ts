@@ -12,6 +12,7 @@ export enum IdPrefix {
   Message = 'msg',
   Run = 'run',
   RunStep = 'rst',
+  KnowledgeBase = 'kbs',
   Prompt = 'prm',
   PromptFolder = 'pfl',
   PromptVersion = 'prv',

@@ -81,6 +81,7 @@
     "CANNOT_CHANGE_OWNER_ROLE": "The owner role cannot be changed. Transfer ownership instead.",
     "CANNOT_CHANGE_ADMIN_ROLE": "Only the owner can change an admin's role.",
     "WRONG_PASSWORD": "The password is not correct.",
+    "KNOWLEDGE_BASE_NAME_TAKEN": "A knowledge base with this name already exists.",
     "PROMPT_NAME_TAKEN": "A prompt with this name already exists.",
     "PROMPT_FOLDER_NAME_TAKEN": "A folder with this name already exists.",
     "PROMPT_FOLDER_NOT_EMPTY": "Move the prompts out of this folder before deleting it.",

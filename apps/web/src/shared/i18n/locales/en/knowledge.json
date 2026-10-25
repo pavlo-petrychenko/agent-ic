@@ -2,10 +2,39 @@
   "title": "Knowledge",
   "subtitle": "Searchable answers from your own documents",
   "nav": {
-    "label": "Knowledge bases"
+    "label": "Knowledge bases",
+    "group": "All knowledge bases",
+    "new": "New knowledge base",
+    "noSources": "no sources yet",
+    "sources_one": "{{count}} source",
+    "sources_other": "{{count}} sources"
   },
   "empty": {
     "title": "No knowledge bases yet",
-    "description": "Knowledge bases you create will appear here. Add files or Google Docs so agents can answer from them."
+    "description": "Knowledge bases you create will appear here. Add files or Google Docs so agents can answer from them.",
+    "action": "New knowledge base"
+  },
+  "detail": {
+    "subtitle_one": "Workspace knowledge base · {{count}} chunk indexed",
+    "subtitle_other": "Workspace knowledge base · {{count}} chunks indexed",
+    "sourcesTitle": "No sources yet",
+    "sourcesDescription": "Upload files or connect Google Docs. We split them into chunks so agents can search them."
+  },
+  "new": {
+    "title": "New knowledge base",
+    "description": "Give your knowledge base a name. You can add sources next.",
+    "nameLabel": "Name",
+    "namePlaceholder": "Services & prices",
+    "nameInvalid": "Enter a name up to {{count}} characters.",
+    "nameTaken": "A knowledge base with this name already exists.",
+    "submit": "Create knowledge base",
+    "success": "Knowledge base “{{name}}” created.",
+    "failed": "Could not create the knowledge base. Try again."
+  },
+  "loadError": "Could not load knowledge bases.",
+  "retry": "Try again",
+  "dialog": {
+    "close": "Close",
+    "cancel": "Cancel"
   }
 }
