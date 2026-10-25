@@ -13,6 +13,7 @@ import {
 } from '@/platform/database/constants/migration.constants';
 import { URL_PATH_SEPARATOR } from '@/platform/http/constants/url.constants';
 import {
+  DATABASE_EXTENSIONS,
   MIGRATION_FILE_EXTENSION,
   MIGRATION_JOURNAL_PATH,
   MIGRATIONS_COPY_PREFIX,
@@ -40,6 +41,18 @@ export const createOwnedDatabase = async (
     await drizzle({ client }).execute(
       sql`create database ${sql.identifier(database)} owner ${sql.identifier(DatabaseRole.Owner)}`,
     );
+    const databaseClient = createTestSqlClient(
+      databaseUrlFor(superuserUrl, database),
+      SCRATCH_POOL_SIZE,
+    );
+    try {
+      const scratchDb = drizzle({ client: databaseClient });
+      for (const extension of DATABASE_EXTENSIONS) {
+        await scratchDb.execute(sql`create extension if not exists ${sql.identifier(extension)}`);
+      }
+    } finally {
+      await databaseClient.end();
+    }
   } finally {
     await client.end();
   }
