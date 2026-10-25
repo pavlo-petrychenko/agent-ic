@@ -89,7 +89,7 @@ describe('knowledge bases', () => {
     });
 
     const main = await screen.findByRole('main');
-    await user.click(within(main).getByRole('button', { name: 'New knowledge base' }));
+    await user.click(await within(main).findByRole('button', { name: 'New knowledge base' }));
     const dialog = await screen.findByRole('dialog', { name: 'New knowledge base' });
     await user.type(within(dialog).getByLabelText('Name'), 'Handbook');
     await user.click(within(dialog).getByRole('button', { name: 'Create knowledge base' }));
