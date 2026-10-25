@@ -11,10 +11,12 @@ import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { runFailureOf } from '@/modules/runs/helpers/run-failure.helpers';
 import { executeRunJob } from '@/modules/runs/jobs/execute-run.job';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
+import { RunMetricsService } from '@/modules/runs/services/run-metrics.service';
 import type { RunStart, RunTarget } from '@/modules/runs/typedefs/run-start.typedefs';
 import type { NewRun, Run, RunEnd } from '@/modules/runs/typedefs/run.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
+import { AfterCommitService } from '@/platform/database/services/after-commit.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { JobsService } from '@/platform/queues/services/jobs.service';
 
@@ -28,6 +30,8 @@ export class RunLifecycleService {
     private readonly jobs: JobsService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
+    private readonly metrics: RunMetricsService,
+    private readonly afterCommit: AfterCommitService,
   ) {}
 
   startRun(ctx: UseCaseCtx, start: RunStart): Promise<NewRun | null> {
@@ -71,6 +75,7 @@ export class RunLifecycleService {
       { runId: run.id },
       { durable: true, jobId: run.id },
     );
+    await this.afterCommit.schedule(() => Promise.resolve(this.metrics.runCreated(run)));
     return run;
   }
 
@@ -92,6 +97,7 @@ export class RunLifecycleService {
     const run = await this.runs.findById(workspaceId, runId);
     if (run !== null && (await this.runs.finish(workspaceId, runId, end))) {
       await this.activity.runFinished(run.conversationId, runId);
+      this.metrics.runFinished(run, end.status, run.startedAt, end.finishedAt);
     }
   }
 

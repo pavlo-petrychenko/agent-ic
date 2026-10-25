@@ -1,7 +1,7 @@
 import { IdPrefix } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { MembershipsRepository, UsersRepository, WorkspacesRepository } from '@/modules/identity';
-import { EmailGateway, renderEmail } from '@/modules/notifications';
+import { EmailGateway, EmailTemplate, renderEmail } from '@/modules/notifications';
 import {
   usageSettingsLink,
   usageThresholdEmailCopy,
@@ -45,7 +45,12 @@ export class SendUsageThresholdEmailUseCase {
     };
     const copy = usageThresholdEmailCopy(props);
     const rendered = await renderEmail(usageThresholdEmailElement(props, copy));
-    await this.email.send({ to: recipient.email, subject: copy.subject, ...rendered });
+    await this.email.send({
+      template: EmailTemplate.UsageThreshold,
+      to: recipient.email,
+      subject: copy.subject,
+      ...rendered,
+    });
   }
 
   private async findRecipient(workspaceId: string): Promise<UsageEmailRecipient | null> {

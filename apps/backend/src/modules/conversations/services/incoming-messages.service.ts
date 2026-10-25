@@ -5,6 +5,7 @@ import {
   CONVERSATION_EVENT_EMIT_OPTIONS,
   ConversationEventName,
 } from '@/modules/conversations/constants/conversation-event.constants';
+import { ReceiveFailureOutcome } from '@/modules/conversations/constants/conversation-metrics.constants';
 import {
   ConversationMode,
   ConversationState,
@@ -20,6 +21,7 @@ import { awayMessageKey } from '@/modules/conversations/helpers/incoming-message
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
+import { ConversationMetricsService } from '@/modules/conversations/services/conversation-metrics.service';
 import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
 import type { Conversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type {
@@ -47,13 +49,23 @@ export class IncomingMessagesService {
     private readonly usage: UsageCountersService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
+    private readonly metrics: ConversationMetricsService,
   ) {}
 
-  handleIncomingMessage(
+  async handleIncomingMessage(
     ctx: UseCaseCtx,
     input: IncomingMessageInput,
   ): Promise<IncomingMessageResult> {
-    return this.tenantTransactions.run(input.workspaceId, () => this.receive(ctx, input));
+    try {
+      const result = await this.tenantTransactions.run(input.workspaceId, () =>
+        this.receive(ctx, input),
+      );
+      this.metrics.messageReceived(input.channelKind, result.outcome);
+      return result;
+    } catch (error) {
+      this.metrics.messageReceived(input.channelKind, ReceiveFailureOutcome.Failed);
+      throw error;
+    }
   }
 
   private async receive(

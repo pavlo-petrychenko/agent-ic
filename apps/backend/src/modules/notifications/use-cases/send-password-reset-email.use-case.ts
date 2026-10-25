@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { PasswordResetsService } from '@/modules/identity';
+import { EmailTemplate } from '@/modules/notifications/constants/notification-metrics.constants';
 import { EmailGateway } from '@/modules/notifications/gateways/email.gateway';
 import { renderEmail } from '@/modules/notifications/helpers/email-render.helpers';
 import {
@@ -39,6 +40,7 @@ export class SendPasswordResetEmailUseCase {
       }),
     );
     await this.email.send({
+      template: EmailTemplate.PasswordReset,
       to: reset.email,
       subject: passwordResetEmailSubject(reset.locale),
       ...rendered,

@@ -134,6 +134,22 @@ Every role serves `/metrics` in the OpenMetrics format, and Prometheus scrapes i
 | `cache_requests_total`                                                                  | every role     | `entry`, `result`               |
 | `rate_limit_rejections_total`                                                           | every role     | `policy`                        |
 
+The domain metrics (D280):
+
+| Metric                                                                      | Role                | Labels                      |
+| --------------------------------------------------------------------------- | ------------------- | --------------------------- |
+| `runs_created_total`                                                        | `worker`            | `trigger`, `mode`           |
+| `runs_finished_total`, `run_duration_seconds`                               | `worker`            | `mode`, `status`            |
+| `run_queue_wait_seconds`                                                    | `worker`            | `mode`                      |
+| `run_steps_total`, `run_step_duration_seconds`                              | `worker`            | `node_type`, `status`       |
+| `channel_messages_received_total`                                           | `api`, `gateway`    | `channel_type`, `outcome`   |
+| `channel_messages_sent_total`                                               | `worker`            | `channel_type`, `outcome`   |
+| `email_sends_total`                                                         | `worker`            | `gateway`, `template`, `outcome` |
+| `auth_logins_total`                                                         | `api`               | `outcome`                   |
+| `live_update_events_published_total`                                        | `api`, `worker`     | `channel`                   |
+
+A counter shows up on `/metrics` from boot, but a labelled series only after its first event. `rate(runs_finished_total[5m])` by `status` is the run outcome rate; `histogram_quantile(0.95, sum by (le, node_type) (rate(run_step_duration_seconds_bucket[5m])))` is the step p95.
+
 Every sample also has the `role` label. The duration histograms carry exemplars: a bucket remembers the `trace_id` of one request that fell into it, and Grafana shows it as a dot on the panel that opens the trace. In Grafana, Explore, Prometheus: `histogram_quantile(0.95, sum by (le, route) (rate(http_server_request_duration_seconds_bucket[5m])))`, with Exemplars switched on.
 
 ### Memory

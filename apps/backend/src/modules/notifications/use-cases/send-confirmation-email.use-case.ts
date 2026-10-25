@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { EmailConfirmationsService } from '@/modules/identity';
+import { EmailTemplate } from '@/modules/notifications/constants/notification-metrics.constants';
 import { EmailGateway } from '@/modules/notifications/gateways/email.gateway';
 import {
   confirmationEmailElement,
@@ -39,6 +40,7 @@ export class SendConfirmationEmailUseCase {
       }),
     );
     await this.email.send({
+      template: EmailTemplate.Confirmation,
       to: confirmation.email,
       subject: confirmationEmailSubject(confirmation.locale),
       ...rendered,

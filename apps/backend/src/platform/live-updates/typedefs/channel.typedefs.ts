@@ -10,6 +10,7 @@ export interface ChannelDefinition<TEvent extends ChannelEvent> {
 }
 
 export interface Channel<TEvent extends ChannelEvent> {
+  readonly name: string;
   readonly key: string;
   readonly schema: z.ZodType<TEvent>;
 }

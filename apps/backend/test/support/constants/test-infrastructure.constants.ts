@@ -41,6 +41,7 @@ export enum TestRedisPrefix {
   RequestLayer = 'request-layer:',
   QueryLimits = 'query-limits:',
   PlatformMetrics = 'platform-metrics:',
+  DomainMetrics = 'domain-metrics:',
   GraphqlSubscriptions = 'graphql-subscriptions:',
   Jobs = 'jobs:',
   QueueBoard = 'queue-board:',

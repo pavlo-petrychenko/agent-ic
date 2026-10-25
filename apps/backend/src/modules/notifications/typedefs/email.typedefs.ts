@@ -1,6 +1,8 @@
 import type { Locale } from '@agent-ic/contracts';
+import type { EmailTemplate } from '@/modules/notifications/constants/notification-metrics.constants';
 
 export interface EmailMessage {
+  readonly template: EmailTemplate;
   readonly to: string;
   readonly subject: string;
   readonly html: string;
