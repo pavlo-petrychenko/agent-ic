@@ -17,7 +17,6 @@ import { workspaces } from '@/modules/identity/db/workspaces.table';
 import {
   KnowledgeSourceKind,
   KnowledgeSyncInterval,
-  KnowledgeSyncMode,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { connections } from '@/modules/knowledge/db/connections.table';
 import { knowledgeBases } from '@/modules/knowledge/db/knowledge-bases.table';
@@ -26,7 +25,6 @@ import {
   knowledgeSourceKindEnum,
   knowledgeSourceStatusEnum,
   knowledgeSyncIntervalEnum,
-  knowledgeSyncModeEnum,
 } from '@/modules/knowledge/db/knowledge.pg-schema';
 import { toSqlLiteral } from '@/platform/database/helpers/tenant-sql.helpers';
 import {
@@ -36,8 +34,6 @@ import {
 
 const upload = sql.raw(toSqlLiteral(KnowledgeSourceKind.Upload));
 const googleDocs = sql.raw(toSqlLiteral(KnowledgeSourceKind.GoogleDocs));
-const manual = sql.raw(toSqlLiteral(KnowledgeSyncMode.Manual));
-const scheduled = sql.raw(toSqlLiteral(KnowledgeSyncMode.Scheduled));
 const daily = sql.raw(toSqlLiteral(KnowledgeSyncInterval.Daily));
 const weekly = sql.raw(toSqlLiteral(KnowledgeSyncInterval.Weekly));
 
@@ -54,7 +50,6 @@ export const sources = knowledgeSchema
       kind: knowledgeSourceKindEnum('kind').notNull(),
       title: text('title').notNull(),
       status: knowledgeSourceStatusEnum('status').notNull(),
-      syncMode: knowledgeSyncModeEnum('sync_mode').notNull(),
       syncInterval: knowledgeSyncIntervalEnum('sync_interval'),
       syncTime: time('sync_time'),
       syncWeekday: smallint('sync_weekday'),
@@ -85,16 +80,16 @@ export const sources = knowledgeSchema
       }).onDelete('restrict'),
       unique('sources_workspace_id_id_key').on(table.workspaceId, table.id),
       check(
-        'sources_upload_manual',
-        sql`${table.kind} <> ${upload} OR (${table.connectionId} is null and ${table.syncMode} = ${manual} and ${table.syncInterval} is null and ${table.nextSyncAt} is null)`,
+        'sources_upload_has_no_connection_or_schedule',
+        sql`${table.kind} <> ${upload} OR (${table.connectionId} is null and ${table.syncInterval} is null)`,
       ),
       check(
         'sources_google_has_connection',
         sql`${table.kind} <> ${googleDocs} OR ${table.connectionId} is not null`,
       ),
       check(
-        'sources_scheduled_has_schedule',
-        sql`${table.syncMode} <> ${scheduled} OR (${table.syncInterval} is not null and ${table.nextSyncAt} is not null and ${table.timezone} is not null)`,
+        'sources_schedule_fields',
+        sql`(${table.syncInterval} is null and ${table.syncTime} is null and ${table.syncWeekday} is null and ${table.timezone} is null and ${table.nextSyncAt} is null) OR (${table.syncInterval} is not null and ${table.nextSyncAt} is not null and ${table.timezone} is not null)`,
       ),
       check(
         'sources_weekly_has_time',
@@ -104,17 +99,13 @@ export const sources = knowledgeSchema
         'sources_daily_has_time',
         sql`${table.syncInterval} is distinct from ${daily} OR ${table.syncTime} is not null`,
       ),
-      check(
-        'sources_not_scheduled_has_no_schedule',
-        sql`${table.syncMode} = ${scheduled} OR (${table.syncInterval} is null and ${table.syncTime} is null and ${table.syncWeekday} is null and ${table.timezone} is null and ${table.nextSyncAt} is null)`,
-      ),
       index('sources_workspace_id_kb_id_idx').on(table.workspaceId, table.kbId),
       index('sources_workspace_id_connection_id_idx')
         .on(table.workspaceId, table.connectionId)
         .where(isNotNull(table.connectionId)),
       index('sources_workspace_id_next_sync_at_idx')
         .on(table.workspaceId, table.nextSyncAt)
-        .where(sql`${table.deletedAt} is null and ${table.syncMode} = ${scheduled}`),
+        .where(sql`${table.deletedAt} is null and ${table.syncInterval} is not null`),
       index('sources_created_by_user_id_idx')
         .on(table.createdByUserId)
         .where(isNotNull(table.createdByUserId)),

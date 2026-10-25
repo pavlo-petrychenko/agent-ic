@@ -11,7 +11,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
-import { KNOWLEDGE_MIN_COUNT } from '@/modules/knowledge/constants/knowledge.constants';
+import { KNOWLEDGE_MIN_SYNC_DOCUMENT_COUNT } from '@/modules/knowledge/constants/knowledge.constants';
 import {
   knowledgeSchema,
   knowledgeSyncStatusEnum,
@@ -23,7 +23,7 @@ import {
   workspaceIdColumn,
 } from '@/platform/database/helpers/tenant-table.helpers';
 
-const minCount = sql.raw(String(KNOWLEDGE_MIN_COUNT));
+const minDocumentCount = sql.raw(String(KNOWLEDGE_MIN_SYNC_DOCUMENT_COUNT));
 
 export const syncRuns = knowledgeSchema
   .table(
@@ -54,19 +54,25 @@ export const syncRuns = knowledgeSchema
         foreignColumns: [sources.workspaceId, sources.id],
       }).onDelete('cascade'),
       unique('sync_runs_workspace_id_id_key').on(table.workspaceId, table.id),
-      check('sync_runs_documents_total_nonnegative', sql`${table.documentsTotal} >= ${minCount}`),
+      check(
+        'sync_runs_documents_total_nonnegative',
+        sql`${table.documentsTotal} >= ${minDocumentCount}`,
+      ),
       check(
         'sync_runs_documents_indexed_nonnegative',
-        sql`${table.documentsIndexed} >= ${minCount}`,
+        sql`${table.documentsIndexed} >= ${minDocumentCount}`,
       ),
       check(
         'sync_runs_documents_skipped_nonnegative',
-        sql`${table.documentsSkipped} >= ${minCount}`,
+        sql`${table.documentsSkipped} >= ${minDocumentCount}`,
       ),
-      check('sync_runs_documents_failed_nonnegative', sql`${table.documentsFailed} >= ${minCount}`),
+      check(
+        'sync_runs_documents_failed_nonnegative',
+        sql`${table.documentsFailed} >= ${minDocumentCount}`,
+      ),
       check(
         'sync_runs_documents_removed_nonnegative',
-        sql`${table.documentsRemoved} >= ${minCount}`,
+        sql`${table.documentsRemoved} >= ${minDocumentCount}`,
       ),
       index('sync_runs_workspace_id_source_id_idx').on(table.workspaceId, table.sourceId),
       index('sync_runs_source_id_created_at_idx').on(table.sourceId, table.createdAt),

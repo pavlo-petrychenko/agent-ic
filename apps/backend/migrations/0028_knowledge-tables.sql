@@ -7,7 +7,6 @@ CREATE TYPE "knowledge"."knowledge_source_kind" AS ENUM('upload', 'google_docs')
 CREATE TYPE "knowledge"."knowledge_source_status" AS ENUM('pending', 'indexing', 'ready', 'error');--> statement-breakpoint
 CREATE TYPE "knowledge"."knowledge_summary_source" AS ENUM('auto', 'user');--> statement-breakpoint
 CREATE TYPE "knowledge"."knowledge_sync_interval" AS ENUM('hourly', 'daily', 'weekly');--> statement-breakpoint
-CREATE TYPE "knowledge"."knowledge_sync_mode" AS ENUM('manual', 'once', 'scheduled');--> statement-breakpoint
 CREATE TYPE "knowledge"."knowledge_sync_status" AS ENUM('queued', 'running', 'succeeded', 'partial', 'failed');--> statement-breakpoint
 CREATE TYPE "knowledge"."knowledge_sync_trigger" AS ENUM('initial', 'manual', 'scheduled');--> statement-breakpoint
 CREATE TABLE "knowledge"."chunk_terms" (
@@ -43,7 +42,7 @@ CREATE TABLE "knowledge"."chunks" (
 	CONSTRAINT "chunks_generation_nonnegative" CHECK ("knowledge"."chunks"."generation" >= 0),
 	CONSTRAINT "chunks_ordinal_nonnegative" CHECK ("knowledge"."chunks"."ordinal" >= 0),
 	CONSTRAINT "chunks_token_count_nonnegative" CHECK ("knowledge"."chunks"."token_count" >= 0),
-	CONSTRAINT "chunks_embedding_dimensions_positive" CHECK ("knowledge"."chunks"."embedding_dimensions" > 0)
+	CONSTRAINT "chunks_embedding_dimensions_positive" CHECK ("knowledge"."chunks"."embedding_dimensions" >= 1)
 );
 --> statement-breakpoint
 ALTER TABLE "knowledge"."chunks" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
@@ -112,7 +111,7 @@ CREATE TABLE "knowledge"."embedding_cache" (
 	"created_at" timestamp with time zone NOT NULL,
 	"last_used_at" timestamp with time zone NOT NULL,
 	CONSTRAINT "embedding_cache_workspace_id_model_dimensions_text_hash_key" PRIMARY KEY("workspace_id","model","dimensions","text_hash"),
-	CONSTRAINT "embedding_cache_dimensions_positive" CHECK ("knowledge"."embedding_cache"."dimensions" > 0)
+	CONSTRAINT "embedding_cache_dimensions_positive" CHECK ("knowledge"."embedding_cache"."dimensions" >= 1)
 );
 --> statement-breakpoint
 ALTER TABLE "knowledge"."embedding_cache" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
@@ -168,7 +167,6 @@ CREATE TABLE "knowledge"."sources" (
 	"kind" "knowledge"."knowledge_source_kind" NOT NULL,
 	"title" text NOT NULL,
 	"status" "knowledge"."knowledge_source_status" NOT NULL,
-	"sync_mode" "knowledge"."knowledge_sync_mode" NOT NULL,
 	"sync_interval" "knowledge"."knowledge_sync_interval",
 	"sync_time" time,
 	"sync_weekday" smallint,
@@ -184,12 +182,11 @@ CREATE TABLE "knowledge"."sources" (
 	"updated_at" timestamp with time zone NOT NULL,
 	"deleted_at" timestamp with time zone,
 	CONSTRAINT "sources_workspace_id_id_key" UNIQUE("workspace_id","id"),
-	CONSTRAINT "sources_upload_manual" CHECK ("knowledge"."sources"."kind" <> 'upload' OR ("knowledge"."sources"."connection_id" is null and "knowledge"."sources"."sync_mode" = 'manual' and "knowledge"."sources"."sync_interval" is null and "knowledge"."sources"."next_sync_at" is null)),
+	CONSTRAINT "sources_upload_has_no_connection_or_schedule" CHECK ("knowledge"."sources"."kind" <> 'upload' OR ("knowledge"."sources"."connection_id" is null and "knowledge"."sources"."sync_interval" is null)),
 	CONSTRAINT "sources_google_has_connection" CHECK ("knowledge"."sources"."kind" <> 'google_docs' OR "knowledge"."sources"."connection_id" is not null),
-	CONSTRAINT "sources_scheduled_has_schedule" CHECK ("knowledge"."sources"."sync_mode" <> 'scheduled' OR ("knowledge"."sources"."sync_interval" is not null and "knowledge"."sources"."next_sync_at" is not null and "knowledge"."sources"."timezone" is not null)),
+	CONSTRAINT "sources_schedule_fields" CHECK (("knowledge"."sources"."sync_interval" is null and "knowledge"."sources"."sync_time" is null and "knowledge"."sources"."sync_weekday" is null and "knowledge"."sources"."timezone" is null and "knowledge"."sources"."next_sync_at" is null) OR ("knowledge"."sources"."sync_interval" is not null and "knowledge"."sources"."next_sync_at" is not null and "knowledge"."sources"."timezone" is not null)),
 	CONSTRAINT "sources_weekly_has_time" CHECK ("knowledge"."sources"."sync_interval" is distinct from 'weekly' OR ("knowledge"."sources"."sync_weekday" between 1 and 7 and "knowledge"."sources"."sync_time" is not null)),
-	CONSTRAINT "sources_daily_has_time" CHECK ("knowledge"."sources"."sync_interval" is distinct from 'daily' OR "knowledge"."sources"."sync_time" is not null),
-	CONSTRAINT "sources_not_scheduled_has_no_schedule" CHECK ("knowledge"."sources"."sync_mode" = 'scheduled' OR ("knowledge"."sources"."sync_interval" is null and "knowledge"."sources"."sync_time" is null and "knowledge"."sources"."sync_weekday" is null and "knowledge"."sources"."timezone" is null and "knowledge"."sources"."next_sync_at" is null))
+	CONSTRAINT "sources_daily_has_time" CHECK ("knowledge"."sources"."sync_interval" is distinct from 'daily' OR "knowledge"."sources"."sync_time" is not null)
 );
 --> statement-breakpoint
 ALTER TABLE "knowledge"."sources" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
@@ -265,7 +262,7 @@ CREATE INDEX "sections_workspace_id_document_id_idx" ON "knowledge"."sections" U
 CREATE INDEX "sections_workspace_id_kb_id_idx" ON "knowledge"."sections" USING btree ("workspace_id","kb_id");--> statement-breakpoint
 CREATE INDEX "sources_workspace_id_kb_id_idx" ON "knowledge"."sources" USING btree ("workspace_id","kb_id");--> statement-breakpoint
 CREATE INDEX "sources_workspace_id_connection_id_idx" ON "knowledge"."sources" USING btree ("workspace_id","connection_id") WHERE "knowledge"."sources"."connection_id" is not null;--> statement-breakpoint
-CREATE INDEX "sources_workspace_id_next_sync_at_idx" ON "knowledge"."sources" USING btree ("workspace_id","next_sync_at") WHERE "knowledge"."sources"."deleted_at" is null and "knowledge"."sources"."sync_mode" = 'scheduled';--> statement-breakpoint
+CREATE INDEX "sources_workspace_id_next_sync_at_idx" ON "knowledge"."sources" USING btree ("workspace_id","next_sync_at") WHERE "knowledge"."sources"."deleted_at" is null and "knowledge"."sources"."sync_interval" is not null;--> statement-breakpoint
 CREATE INDEX "sources_created_by_user_id_idx" ON "knowledge"."sources" USING btree ("created_by_user_id") WHERE "knowledge"."sources"."created_by_user_id" is not null;--> statement-breakpoint
 CREATE INDEX "sync_runs_workspace_id_source_id_idx" ON "knowledge"."sync_runs" USING btree ("workspace_id","source_id");--> statement-breakpoint
 CREATE INDEX "sync_runs_source_id_created_at_idx" ON "knowledge"."sync_runs" USING btree ("source_id","created_at");--> statement-breakpoint

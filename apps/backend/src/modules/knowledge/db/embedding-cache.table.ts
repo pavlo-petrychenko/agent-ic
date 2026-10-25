@@ -4,7 +4,7 @@ import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
 import {
   KNOWLEDGE_EMBEDDING_DIMENSIONS,
-  KNOWLEDGE_MIN_COUNT,
+  KNOWLEDGE_MIN_EMBEDDING_DIMENSIONS,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { knowledgeSchema } from '@/modules/knowledge/db/knowledge.pg-schema';
 import {
@@ -33,7 +33,7 @@ export const embeddingCache = knowledgeSchema
       }),
       check(
         'embedding_cache_dimensions_positive',
-        sql`${table.dimensions} > ${sql.raw(String(KNOWLEDGE_MIN_COUNT))}`,
+        sql`${table.dimensions} >= ${sql.raw(String(KNOWLEDGE_MIN_EMBEDDING_DIMENSIONS))}`,
       ),
       tenantIsolationPolicy('embedding_cache'),
     ],

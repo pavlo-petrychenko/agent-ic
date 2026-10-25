@@ -7,7 +7,6 @@ import {
   KnowledgeSourceStatus,
   KnowledgeSummarySource,
   KnowledgeSyncInterval,
-  KnowledgeSyncMode,
   KnowledgeSyncStatus,
   KnowledgeSyncTrigger,
 } from '@/modules/knowledge/constants/knowledge.constants';
@@ -25,12 +24,6 @@ export const knowledgeSourceStatusEnum = knowledgeSchema.enum('knowledge_source_
   KnowledgeSourceStatus.Indexing,
   KnowledgeSourceStatus.Ready,
   KnowledgeSourceStatus.Error,
-]);
-
-export const knowledgeSyncModeEnum = knowledgeSchema.enum('knowledge_sync_mode', [
-  KnowledgeSyncMode.Manual,
-  KnowledgeSyncMode.Once,
-  KnowledgeSyncMode.Scheduled,
 ]);
 
 export const knowledgeSyncIntervalEnum = knowledgeSchema.enum('knowledge_sync_interval', [

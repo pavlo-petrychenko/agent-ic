@@ -4,8 +4,12 @@ export const KNOWLEDGE_EMBEDDING_DIMENSIONS = 1024;
 
 export const KNOWLEDGE_MIN_HEADING_LEVEL = 1;
 export const KNOWLEDGE_MAX_HEADING_LEVEL = 6;
-export const KNOWLEDGE_MIN_COUNT = 0;
-export const KNOWLEDGE_MIN_FREQUENCY = 1;
+export const KNOWLEDGE_MIN_GENERATION = 0;
+export const KNOWLEDGE_MIN_ORDINAL = 0;
+export const KNOWLEDGE_MIN_TOKEN_COUNT = 0;
+export const KNOWLEDGE_MIN_SYNC_DOCUMENT_COUNT = 0;
+export const KNOWLEDGE_MIN_EMBEDDING_DIMENSIONS = 1;
+export const KNOWLEDGE_MIN_TERM_FREQUENCY = 1;
 
 export enum KnowledgeSourceKind {
   Upload = 'upload',
@@ -17,12 +21,6 @@ export enum KnowledgeSourceStatus {
   Indexing = 'indexing',
   Ready = 'ready',
   Error = 'error',
-}
-
-export enum KnowledgeSyncMode {
-  Manual = 'manual',
-  Once = 'once',
-  Scheduled = 'scheduled',
 }
 
 export enum KnowledgeSyncInterval {

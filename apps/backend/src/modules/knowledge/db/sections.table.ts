@@ -14,8 +14,10 @@ import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
 import {
   KNOWLEDGE_MAX_HEADING_LEVEL,
-  KNOWLEDGE_MIN_COUNT,
+  KNOWLEDGE_MIN_GENERATION,
   KNOWLEDGE_MIN_HEADING_LEVEL,
+  KNOWLEDGE_MIN_ORDINAL,
+  KNOWLEDGE_MIN_TOKEN_COUNT,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { documents } from '@/modules/knowledge/db/documents.table';
 import { knowledgeBases } from '@/modules/knowledge/db/knowledge-bases.table';
@@ -67,15 +69,15 @@ export const sections = knowledgeSchema
       ),
       check(
         'sections_generation_nonnegative',
-        sql`${table.generation} >= ${sql.raw(String(KNOWLEDGE_MIN_COUNT))}`,
+        sql`${table.generation} >= ${sql.raw(String(KNOWLEDGE_MIN_GENERATION))}`,
       ),
       check(
         'sections_ordinal_nonnegative',
-        sql`${table.ordinal} >= ${sql.raw(String(KNOWLEDGE_MIN_COUNT))}`,
+        sql`${table.ordinal} >= ${sql.raw(String(KNOWLEDGE_MIN_ORDINAL))}`,
       ),
       check(
         'sections_token_count_nonnegative',
-        sql`${table.tokenCount} >= ${sql.raw(String(KNOWLEDGE_MIN_COUNT))}`,
+        sql`${table.tokenCount} >= ${sql.raw(String(KNOWLEDGE_MIN_TOKEN_COUNT))}`,
       ),
       index('sections_workspace_id_document_id_idx').on(table.workspaceId, table.documentId),
       index('sections_workspace_id_kb_id_idx').on(table.workspaceId, table.kbId),

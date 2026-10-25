@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm';
 import { check, foreignKey, index, integer, primaryKey, text, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
-import { KNOWLEDGE_MIN_FREQUENCY } from '@/modules/knowledge/constants/knowledge.constants';
+import { KNOWLEDGE_MIN_TERM_FREQUENCY } from '@/modules/knowledge/constants/knowledge.constants';
 import { chunks } from '@/modules/knowledge/db/chunks.table';
 import { knowledgeBases } from '@/modules/knowledge/db/knowledge-bases.table';
 import { knowledgeSchema } from '@/modules/knowledge/db/knowledge.pg-schema';
@@ -37,7 +37,7 @@ export const chunkTerms = knowledgeSchema
       }).onDelete('cascade'),
       check(
         'chunk_terms_frequency_positive',
-        sql`${table.frequency} >= ${sql.raw(String(KNOWLEDGE_MIN_FREQUENCY))}`,
+        sql`${table.frequency} >= ${sql.raw(String(KNOWLEDGE_MIN_TERM_FREQUENCY))}`,
       ),
       index('chunk_terms_workspace_id_chunk_id_idx').on(table.workspaceId, table.chunkId),
       index('chunk_terms_workspace_id_kb_id_term_idx').on(

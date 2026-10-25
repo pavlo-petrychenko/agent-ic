@@ -1,5 +1,5 @@
 {
-  "id": "ee94a658-5211-400d-a4b4-14675bb38e44",
+  "id": "695b8515-4b84-469e-8de2-edb233f5b709",
   "prevId": "8eb895bd-d827-486b-84c5-a4568ebd5df2",
   "version": "7",
   "dialect": "postgresql",
@@ -2821,7 +2821,7 @@
         },
         "chunks_embedding_dimensions_positive": {
           "name": "chunks_embedding_dimensions_positive",
-          "value": "\"knowledge\".\"chunks\".\"embedding_dimensions\" > 0"
+          "value": "\"knowledge\".\"chunks\".\"embedding_dimensions\" >= 1"
         }
       },
       "isRLSEnabled": true
@@ -3430,7 +3430,7 @@
       "checkConstraints": {
         "embedding_cache_dimensions_positive": {
           "name": "embedding_cache_dimensions_positive",
-          "value": "\"knowledge\".\"embedding_cache\".\"dimensions\" > 0"
+          "value": "\"knowledge\".\"embedding_cache\".\"dimensions\" >= 1"
         }
       },
       "isRLSEnabled": true
@@ -3875,13 +3875,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "sync_mode": {
-          "name": "sync_mode",
-          "type": "knowledge_sync_mode",
-          "typeSchema": "knowledge",
-          "primaryKey": false,
-          "notNull": true
-        },
         "sync_interval": {
           "name": "sync_interval",
           "type": "knowledge_sync_interval",
@@ -4031,7 +4024,7 @@
             }
           ],
           "isUnique": false,
-          "where": "\"knowledge\".\"sources\".\"deleted_at\" is null and \"knowledge\".\"sources\".\"sync_mode\" = 'scheduled'",
+          "where": "\"knowledge\".\"sources\".\"deleted_at\" is null and \"knowledge\".\"sources\".\"sync_interval\" is not null",
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -4114,17 +4107,17 @@
         }
       },
       "checkConstraints": {
-        "sources_upload_manual": {
-          "name": "sources_upload_manual",
-          "value": "\"knowledge\".\"sources\".\"kind\" <> 'upload' OR (\"knowledge\".\"sources\".\"connection_id\" is null and \"knowledge\".\"sources\".\"sync_mode\" = 'manual' and \"knowledge\".\"sources\".\"sync_interval\" is null and \"knowledge\".\"sources\".\"next_sync_at\" is null)"
+        "sources_upload_has_no_connection_or_schedule": {
+          "name": "sources_upload_has_no_connection_or_schedule",
+          "value": "\"knowledge\".\"sources\".\"kind\" <> 'upload' OR (\"knowledge\".\"sources\".\"connection_id\" is null and \"knowledge\".\"sources\".\"sync_interval\" is null)"
         },
         "sources_google_has_connection": {
           "name": "sources_google_has_connection",
           "value": "\"knowledge\".\"sources\".\"kind\" <> 'google_docs' OR \"knowledge\".\"sources\".\"connection_id\" is not null"
         },
-        "sources_scheduled_has_schedule": {
-          "name": "sources_scheduled_has_schedule",
-          "value": "\"knowledge\".\"sources\".\"sync_mode\" <> 'scheduled' OR (\"knowledge\".\"sources\".\"sync_interval\" is not null and \"knowledge\".\"sources\".\"next_sync_at\" is not null and \"knowledge\".\"sources\".\"timezone\" is not null)"
+        "sources_schedule_fields": {
+          "name": "sources_schedule_fields",
+          "value": "(\"knowledge\".\"sources\".\"sync_interval\" is null and \"knowledge\".\"sources\".\"sync_time\" is null and \"knowledge\".\"sources\".\"sync_weekday\" is null and \"knowledge\".\"sources\".\"timezone\" is null and \"knowledge\".\"sources\".\"next_sync_at\" is null) OR (\"knowledge\".\"sources\".\"sync_interval\" is not null and \"knowledge\".\"sources\".\"next_sync_at\" is not null and \"knowledge\".\"sources\".\"timezone\" is not null)"
         },
         "sources_weekly_has_time": {
           "name": "sources_weekly_has_time",
@@ -4133,10 +4126,6 @@
         "sources_daily_has_time": {
           "name": "sources_daily_has_time",
           "value": "\"knowledge\".\"sources\".\"sync_interval\" is distinct from 'daily' OR \"knowledge\".\"sources\".\"sync_time\" is not null"
-        },
-        "sources_not_scheduled_has_no_schedule": {
-          "name": "sources_not_scheduled_has_no_schedule",
-          "value": "\"knowledge\".\"sources\".\"sync_mode\" = 'scheduled' OR (\"knowledge\".\"sources\".\"sync_interval\" is null and \"knowledge\".\"sources\".\"sync_time\" is null and \"knowledge\".\"sources\".\"sync_weekday\" is null and \"knowledge\".\"sources\".\"timezone\" is null and \"knowledge\".\"sources\".\"next_sync_at\" is null)"
         }
       },
       "isRLSEnabled": true
@@ -5770,11 +5759,6 @@
       "name": "knowledge_sync_interval",
       "schema": "knowledge",
       "values": ["hourly", "daily", "weekly"]
-    },
-    "knowledge.knowledge_sync_mode": {
-      "name": "knowledge_sync_mode",
-      "schema": "knowledge",
-      "values": ["manual", "once", "scheduled"]
     },
     "knowledge.knowledge_sync_status": {
       "name": "knowledge_sync_status",
