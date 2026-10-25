@@ -23,7 +23,7 @@
   "delete": {
     "action": "Delete",
     "title": "Delete “{{name}}”?",
-    "description": "This deletes the knowledge base, its sources and its indexed content. This cannot be undone.",
+    "description": "This deletes the knowledge base. This cannot be undone.",
     "submit": "Delete knowledge base",
     "success": "Knowledge base “{{name}}” deleted."
   },

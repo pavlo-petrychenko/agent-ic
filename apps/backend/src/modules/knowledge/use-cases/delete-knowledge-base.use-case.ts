@@ -1,10 +1,10 @@
 import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
+import { KnowledgeBaseHasSourcesError } from '@/modules/knowledge/errors/knowledge-base-has-sources.error';
 import { KnowledgeBaseNotFoundError } from '@/modules/knowledge/errors/knowledge-base-not-found.error';
 import { parseKnowledgeInput } from '@/modules/knowledge/helpers/knowledge-input.helpers';
 import { ChunkTermsRepository } from '@/modules/knowledge/repositories/chunk-terms.repository';
 import { ChunksRepository } from '@/modules/knowledge/repositories/chunks.repository';
-import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
 import { SectionsRepository } from '@/modules/knowledge/repositories/sections.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
@@ -22,7 +22,6 @@ export class DeleteKnowledgeBaseUseCase {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly knowledgeBases: KnowledgeBasesRepository,
     private readonly sources: SourcesRepository,
-    private readonly documents: DocumentsRepository,
     private readonly sections: SectionsRepository,
     private readonly chunks: ChunksRepository,
     private readonly chunkTerms: ChunkTermsRepository,
@@ -45,9 +44,10 @@ export class DeleteKnowledgeBaseUseCase {
       if ((await this.knowledgeBases.findByIdForUpdate(workspaceId, knowledgeBaseId)) === null) {
         throw new KnowledgeBaseNotFoundError();
       }
+      if (await this.sources.hasActiveByKnowledgeBase(workspaceId, knowledgeBaseId)) {
+        throw new KnowledgeBaseHasSourcesError();
+      }
       const deletedAt = this.clock.now();
-      await this.sources.softDeleteByKnowledgeBase(workspaceId, knowledgeBaseId, deletedAt);
-      await this.documents.softDeleteByKnowledgeBase(workspaceId, knowledgeBaseId, deletedAt);
       await this.chunkTerms.deleteByKnowledgeBase(workspaceId, knowledgeBaseId);
       await this.chunks.deleteByKnowledgeBase(workspaceId, knowledgeBaseId);
       await this.sections.deleteByKnowledgeBase(workspaceId, knowledgeBaseId);

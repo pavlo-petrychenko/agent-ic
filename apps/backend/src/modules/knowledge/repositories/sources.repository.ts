@@ -53,14 +53,10 @@ export class SourcesRepository {
     return (await this.update(workspaceId, sourceId, { deletedAt })) !== null;
   }
 
-  async softDeleteByKnowledgeBase(
-    workspaceId: string,
-    knowledgeBaseId: string,
-    deletedAt: Date,
-  ): Promise<number> {
-    const deleted = await this.txHost.tx
-      .update(sources)
-      .set({ deletedAt, updatedAt: this.clock.now() })
+  async hasActiveByKnowledgeBase(workspaceId: string, knowledgeBaseId: string): Promise<boolean> {
+    const [source] = await this.txHost.tx
+      .select({ id: sources.id })
+      .from(sources)
       .where(
         and(
           eq(sources.workspaceId, workspaceId),
@@ -68,8 +64,8 @@ export class SourcesRepository {
           isNull(sources.deletedAt),
         ),
       )
-      .returning({ id: sources.id });
-    return deleted.length;
+      .limit(1);
+    return source !== undefined;
   }
 
   private activeWhere(workspaceId: string, sourceId: string) {
