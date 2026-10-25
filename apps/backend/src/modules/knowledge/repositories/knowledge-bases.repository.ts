@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, asc, eq, isNull, sql } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
 import { knowledgeBases } from '@/modules/knowledge/db/knowledge-bases.table';
 import { knowledgeNamesLockKey } from '@/modules/knowledge/helpers/knowledge-names.helpers';
 import type {
@@ -39,7 +40,7 @@ export class KnowledgeBasesRepository {
     const [knowledgeBase] = await this.txHost.tx
       .select()
       .from(knowledgeBases)
-      .where(this.activeWhere(workspaceId, knowledgeBaseId));
+      .where(this.activeWhere(workspaceId, eq(knowledgeBases.id, knowledgeBaseId)));
     return knowledgeBase ?? null;
   }
 
@@ -47,9 +48,7 @@ export class KnowledgeBasesRepository {
     const [knowledgeBase] = await this.txHost.tx
       .select()
       .from(knowledgeBases)
-      .where(
-        and(this.activeWhere(workspaceId), sql`lower(${knowledgeBases.name}) = lower(${name})`),
-      );
+      .where(this.activeWhere(workspaceId, sql`lower(${knowledgeBases.name}) = lower(${name})`));
     return knowledgeBase ?? null;
   }
 
@@ -58,10 +57,7 @@ export class KnowledgeBasesRepository {
       .select()
       .from(knowledgeBases)
       .where(
-        and(
-          this.activeWhere(workspaceId),
-          sql`lower(${knowledgeBases.toolName}) = lower(${toolName})`,
-        ),
+        this.activeWhere(workspaceId, sql`lower(${knowledgeBases.toolName}) = lower(${toolName})`),
       );
     return knowledgeBase ?? null;
   }
@@ -82,7 +78,7 @@ export class KnowledgeBasesRepository {
     const [knowledgeBase] = await this.txHost.tx
       .update(knowledgeBases)
       .set({ ...changes, updatedAt: this.clock.now() })
-      .where(this.activeWhere(workspaceId, knowledgeBaseId))
+      .where(this.activeWhere(workspaceId, eq(knowledgeBases.id, knowledgeBaseId)))
       .returning();
     return knowledgeBase ?? null;
   }
@@ -95,11 +91,11 @@ export class KnowledgeBasesRepository {
     return (await this.update(workspaceId, knowledgeBaseId, { deletedAt })) !== null;
   }
 
-  private activeWhere(workspaceId: string, knowledgeBaseId: string | null = null) {
+  private activeWhere(workspaceId: string, ...conditions: SQL[]): SQL | undefined {
     return and(
       eq(knowledgeBases.workspaceId, workspaceId),
-      knowledgeBaseId === null ? undefined : eq(knowledgeBases.id, knowledgeBaseId),
       isNull(knowledgeBases.deletedAt),
+      ...conditions,
     );
   }
 }
