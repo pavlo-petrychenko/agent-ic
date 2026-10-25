@@ -63,7 +63,7 @@ mise run setup
 
 `mise run setup` is run once. It:
 
-1. installs the pinned tools (Node 24, pnpm, mkcert, kubectl, helm, kubeseal, actionlint, kubeconform);
+1. installs the pinned tools (Node 24, pnpm, mkcert, kubectl, helm, kubeseal, actionlint, kubeconform, promtool);
 2. runs `mkcert -install` so your browser trusts the local certificate authority (it may ask for your password);
 3. creates `.env` from `.env.example`, or adds the variables your `.env` is missing, then checks every host port and moves busy ones (see "Port conflicts");
 4. creates a wildcard certificate for `*.local.agent-ic.pavlop.dev` in `.certs/` with mkcert;
@@ -106,7 +106,7 @@ It never seeds: after `mise run clean`, run `mise run db:seed` for the seed data
 | `mise run db:psql [role]` | open psql as `app_owner` (default), `app` or `app_system`       |
 | `mise run codegen`        | regenerate generated code                                       |
 | `mise run check`          | lint, format check, comments, boundaries and types              |
-| `mise run chart:validate` | lint, render and kubeconform the Helm chart                     |
+| `mise run chart:validate` | lint, render, kubeconform and promtool the Helm chart           |
 | `mise run lint:workflows` | lint the GitHub Actions workflows                               |
 | `mise run test`           | run the tests                                                   |
 | `mise run clean`          | remove containers, volumes, certificates; `start` rebuilds them |

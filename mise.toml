@@ -7,6 +7,7 @@ helm = "4.3.0"
 kubeseal = "0.40.0"
 actionlint = "1.7.12"
 kubeconform = "0.8.0"
+promtool = "3.15.0"
 yq = "4.54.1"
 
 [env]
@@ -85,7 +86,7 @@ description = "Run every guardrail"
 run = "pnpm check"
 
 [tasks."chart:validate"]
-description = "Lint, render and validate the Helm chart with kubeconform"
+description = "Lint, render and validate the Helm chart with kubeconform and promtool"
 env = { KUBERNETES_VERSION = "1.36.0", CRD_CATALOG_REF = "4c8dc296d32b06d15ccde9668ff136c951f4d539" }
 run = "tools/chart/validate.sh"
 

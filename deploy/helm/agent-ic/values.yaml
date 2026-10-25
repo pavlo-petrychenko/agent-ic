@@ -19,6 +19,7 @@ config:
   telemetry:
     enabled: true
     serviceNamespace: agent-ic
+    samplerArg: 1
   langfuse:
     mode: 'off'
     host: ''
@@ -290,3 +291,34 @@ prometheusRule:
         seconds: 30
         for: 2m
         severity: critical
+  window: 5m
+  queueMetricsAbsent:
+    for: 5m
+    severity: critical
+  httpErrorRatio:
+    ratio: 0.05
+    for: 10m
+    severity: warning
+  httpLatency:
+    seconds: 2
+    for: 10m
+    severity: warning
+  jobFailureRatio:
+    ratio: 0.2
+    for: 15m
+    severity: warning
+  llmFailureRatio:
+    ratio: 0.25
+    for: 10m
+    severity: warning
+  llmLatency:
+    seconds: 30
+    for: 10m
+    severity: warning
+  outboxLag:
+    seconds: 120
+    for: 5m
+    severity: warning
+  usageReportFailures:
+    for: 5m
+    severity: warning

@@ -507,6 +507,54 @@
           }
         }
       }
+    },
+    "alertTiming": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["for", "severity"],
+      "properties": {
+        "for": {
+          "$ref": "#/definitions/duration"
+        },
+        "severity": {
+          "$ref": "#/definitions/severity"
+        }
+      }
+    },
+    "ratioAlert": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ratio", "for", "severity"],
+      "properties": {
+        "ratio": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "for": {
+          "$ref": "#/definitions/duration"
+        },
+        "severity": {
+          "$ref": "#/definitions/severity"
+        }
+      }
+    },
+    "secondsAlert": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seconds", "for", "severity"],
+      "properties": {
+        "seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "for": {
+          "$ref": "#/definitions/duration"
+        },
+        "severity": {
+          "$ref": "#/definitions/severity"
+        }
+      }
     }
   },
   "properties": {
@@ -589,7 +637,7 @@
         "telemetry": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["enabled", "serviceNamespace"],
+          "required": ["enabled", "serviceNamespace", "samplerArg"],
           "properties": {
             "enabled": {
               "type": "boolean"
@@ -600,6 +648,14 @@
             },
             "serviceNamespace": {
               "$ref": "#/definitions/nonEmptyString"
+            },
+            "environment": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "samplerArg": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
             }
           },
           "if": {
@@ -610,7 +666,7 @@
             }
           },
           "then": {
-            "required": ["endpoint"]
+            "required": ["endpoint", "environment"]
           }
         },
         "langfuse": {
@@ -1168,7 +1224,21 @@
     "prometheusRule": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["enabled", "labels", "backendDown", "queueWait"],
+      "required": [
+        "enabled",
+        "labels",
+        "backendDown",
+        "queueWait",
+        "window",
+        "queueMetricsAbsent",
+        "httpErrorRatio",
+        "httpLatency",
+        "jobFailureRatio",
+        "llmFailureRatio",
+        "llmLatency",
+        "outboxLag",
+        "usageReportFailures"
+      ],
       "properties": {
         "enabled": {
           "type": "boolean"
@@ -1207,6 +1277,33 @@
               }
             }
           }
+        },
+        "window": {
+          "$ref": "#/definitions/duration"
+        },
+        "queueMetricsAbsent": {
+          "$ref": "#/definitions/alertTiming"
+        },
+        "httpErrorRatio": {
+          "$ref": "#/definitions/ratioAlert"
+        },
+        "httpLatency": {
+          "$ref": "#/definitions/secondsAlert"
+        },
+        "jobFailureRatio": {
+          "$ref": "#/definitions/ratioAlert"
+        },
+        "llmFailureRatio": {
+          "$ref": "#/definitions/ratioAlert"
+        },
+        "llmLatency": {
+          "$ref": "#/definitions/secondsAlert"
+        },
+        "outboxLag": {
+          "$ref": "#/definitions/secondsAlert"
+        },
+        "usageReportFailures": {
+          "$ref": "#/definitions/alertTiming"
         }
       }
     }
