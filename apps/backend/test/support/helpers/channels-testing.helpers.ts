@@ -20,7 +20,12 @@ import {
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { newConversation, workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import { createConversationsTestbed } from '@test/support/helpers/conversations-testing.helpers';
-import { ensureAgentRow, seedRunRow } from '@test/support/helpers/parent-rows.helpers';
+import {
+  ensureAgentRow,
+  ensureUserRow,
+  ensureWorkspaceRow,
+  seedRunRow,
+} from '@test/support/helpers/parent-rows.helpers';
 import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.typedefs';
 
 export const createChannelsTestbed = async (): Promise<ChannelsTestbed> => {
@@ -59,6 +64,16 @@ export const createChannelsWorkerTestbed = async (): Promise<ChannelsTestbed> =>
     channelEvents: testbed.module.get(ChannelEventsRepository),
     channelTokens: testbed.module.get(ChannelTokenService),
   };
+};
+
+export const seedChannelWorkspace = async (
+  testbed: ChannelsTestbed,
+): Promise<{ readonly workspaceId: string; readonly userId: string }> => {
+  const workspaceId = testbed.ids.generate();
+  const userId = testbed.ids.generate();
+  await ensureWorkspaceRow(testbed.module, workspaceId);
+  await ensureUserRow(testbed.module, userId);
+  return { workspaceId, userId };
 };
 
 export const seedChannelConversation = async (

@@ -12,6 +12,7 @@ import { TEST_TELEGRAM_BOT_USERNAME } from '@test/support/constants/channel-test
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createChannelsTestbed } from '@test/support/helpers/channels-testing.helpers';
 import { seedAgent } from '@test/support/helpers/conversations-testing.helpers';
+import { ensureUserRow } from '@test/support/helpers/parent-rows.helpers';
 import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.typedefs';
 
 const CONNECT_TOKEN = `700000001:${'A'.repeat(35)}`;
@@ -40,20 +41,22 @@ describe('ConnectTelegramChannelUseCase', () => {
   });
 
   const workspace = () => testbed.ids.generate();
-  const userId = () => testbed.ids.generate();
   const agentPublicId = (agentId: string) => testbed.ids.toPublic(IdPrefix.Agent, agentId);
 
-  const execute = (
+  const execute = async (
     workspaceId: string,
     agentId: string,
     token: string = CONNECT_TOKEN,
     showTyping: boolean = true,
-  ) =>
-    connect.execute(workspaceCtx(userId(), workspaceId, WorkspaceRole.Owner), {
+  ) => {
+    const userId = testbed.ids.generate();
+    await ensureUserRow(testbed.module, userId);
+    return connect.execute(workspaceCtx(userId, workspaceId, WorkspaceRole.Owner), {
       token,
       agentId: agentPublicId(agentId),
       showTyping,
     });
+  };
 
   it('connects a bot, seals its credentials and registers the webhook', async () => {
     const workspaceId = workspace();
@@ -150,9 +153,11 @@ describe('ConnectTelegramChannelUseCase', () => {
   it('refuses an operator', async () => {
     const workspaceId = workspace();
     const agentId = await seedAgent(testbed, workspaceId);
+    const userId = testbed.ids.generate();
+    await ensureUserRow(testbed.module, userId);
 
     await expect(
-      connect.execute(workspaceCtx(userId(), workspaceId, WorkspaceRole.Operator), {
+      connect.execute(workspaceCtx(userId, workspaceId, WorkspaceRole.Operator), {
         token: CONNECT_TOKEN,
         agentId: agentPublicId(agentId),
         showTyping: true,

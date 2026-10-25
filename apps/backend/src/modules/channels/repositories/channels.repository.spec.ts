@@ -13,12 +13,11 @@ import {
 } from '@test/support/constants/channel-testing.constants';
 import { ROW_LEVEL_SECURITY_VIOLATION } from '@test/support/constants/postgres-errors.constants';
 import { newChannel, newChannelEvent } from '@test/support/fixtures/channel.fixture';
-import { createChannelsTestbed } from '@test/support/helpers/channels-testing.helpers';
 import {
-  ensureAgentRow,
-  ensureUserRow,
-  ensureWorkspaceRow,
-} from '@test/support/helpers/parent-rows.helpers';
+  createChannelsTestbed,
+  seedChannelWorkspace,
+} from '@test/support/helpers/channels-testing.helpers';
+import { ensureAgentRow } from '@test/support/helpers/parent-rows.helpers';
 import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.typedefs';
 
 const WEBHOOK_SECRET_HASH = 'webhook-secret-hash';
@@ -63,18 +62,21 @@ describe('Channels repositories across tenants', () => {
   });
 
   it('stores and reads a channel inside its workspace', async () => {
-    const workspaceA = testbed.ids.generate();
+    const { workspaceId, userId } = await seedChannelWorkspace(testbed);
     const credentials = telegramCredentials();
     const credentialsSealed = tokens.sealCredentials(credentials);
-    const channel = newChannel(testbed, workspaceA, { credentialsSealed });
+    const channel = newChannel(testbed, workspaceId, {
+      createdByUserId: userId,
+      credentialsSealed,
+    });
 
-    await tenants.run(workspaceA, () => channels.insertIfAbsent(channel));
+    await tenants.run(workspaceId, () => channels.insertIfAbsent(channel));
 
-    const found = await tenants.run(workspaceA, () => channels.findById(workspaceA, channel.id));
-    const listed = await tenants.run(workspaceA, () => channels.list(workspaceA));
+    const found = await tenants.run(workspaceId, () => channels.findById(workspaceId, channel.id));
+    const listed = await tenants.run(workspaceId, () => channels.list(workspaceId));
     expect(found).toMatchObject({
       id: channel.id,
-      workspaceId: workspaceA,
+      workspaceId,
       externalId: channel.externalId,
       identity: channel.identity,
       credentialsSealed,
@@ -88,57 +90,58 @@ describe('Channels repositories across tenants', () => {
   });
 
   it('never shows or changes a channel from another workspace', async () => {
-    const workspaceA = testbed.ids.generate();
-    await ensureWorkspaceRow(testbed.module, workspaceA);
-    const workspaceB = testbed.ids.generate();
-    await ensureWorkspaceRow(testbed.module, workspaceB);
-    const channel = newChannel(testbed, workspaceA);
-    await tenants.run(workspaceA, () => channels.insertIfAbsent(channel));
+    const workspaceA = await seedChannelWorkspace(testbed);
+    const workspaceB = await seedChannelWorkspace(testbed);
+    const channel = newChannel(testbed, workspaceA.workspaceId, {
+      createdByUserId: workspaceA.userId,
+    });
+    await tenants.run(workspaceA.workspaceId, () => channels.insertIfAbsent(channel));
 
-    const seenFromB = await tenants.run(workspaceB, async () => ({
-      found: await channels.findById(workspaceA, channel.id),
-      listed: await channels.list(workspaceA),
+    const seenFromB = await tenants.run(workspaceB.workspaceId, async () => ({
+      found: await channels.findById(workspaceA.workspaceId, channel.id),
+      listed: await channels.list(workspaceA.workspaceId),
       updated: await channels.update(
-        workspaceA,
+        workspaceA.workspaceId,
         channel.id,
         channelPatch(channel, {
           status: ChannelStatus.Connected,
           updatedAt: testbed.clock.now(),
         }),
       ),
-      deleted: await channels.delete(workspaceA, channel.id),
+      deleted: await channels.delete(workspaceA.workspaceId, channel.id),
     }));
 
     expect(seenFromB).toEqual({ found: null, listed: [], updated: null, deleted: false });
-    expect(await tenants.run(workspaceA, () => channels.list(workspaceA))).toHaveLength(1);
+    expect(
+      await tenants.run(workspaceA.workspaceId, () => channels.list(workspaceA.workspaceId)),
+    ).toHaveLength(1);
   });
 
   it('refuses to write a channel into another workspace', async () => {
-    const workspaceA = testbed.ids.generate();
-    await ensureWorkspaceRow(testbed.module, workspaceA);
-    const workspaceB = testbed.ids.generate();
-    const write = tenants.run(workspaceB, () =>
-      channels.insertIfAbsent(newChannel(testbed, workspaceA)),
+    const workspaceA = await seedChannelWorkspace(testbed);
+    const workspaceB = await seedChannelWorkspace(testbed);
+    const write = tenants.run(workspaceB.workspaceId, () =>
+      channels.insertIfAbsent(
+        newChannel(testbed, workspaceA.workspaceId, { createdByUserId: workspaceA.userId }),
+      ),
     );
 
     await expect(write).rejects.toMatchObject(ROW_LEVEL_SECURITY_VIOLATION);
   });
 
   it('updates a channel with an explicit timestamp', async () => {
-    const workspaceA = testbed.ids.generate();
-    await ensureWorkspaceRow(testbed.module, workspaceA);
-    const channel = newChannel(testbed, workspaceA);
-    await ensureUserRow(testbed.module, channel.createdByUserId);
+    const { workspaceId, userId } = await seedChannelWorkspace(testbed);
+    const channel = newChannel(testbed, workspaceId, { createdByUserId: userId });
     const agentId = testbed.ids.generate();
-    await ensureAgentRow(testbed.module, workspaceA, agentId);
+    await ensureAgentRow(testbed.module, workspaceId, agentId);
     const at = new Date(testbed.clock.now().getTime() + 1_000);
     const credentials = telegramCredentials('changed-token');
     const credentialsSealed = tokens.sealCredentials(credentials);
-    await tenants.run(workspaceA, () => channels.insertIfAbsent(channel));
+    await tenants.run(workspaceId, () => channels.insertIfAbsent(channel));
 
-    const updated = await tenants.run(workspaceA, () =>
+    const updated = await tenants.run(workspaceId, () =>
       channels.update(
-        workspaceA,
+        workspaceId,
         channel.id,
         channelPatch(channel, {
           status: ChannelStatus.Connected,
@@ -167,35 +170,38 @@ describe('Channels repositories across tenants', () => {
   });
 
   it('keeps a channel external id unique per kind across workspaces', async () => {
-    const workspaceA = testbed.ids.generate();
-    await ensureWorkspaceRow(testbed.module, workspaceA);
-    const workspaceB = testbed.ids.generate();
-    await ensureWorkspaceRow(testbed.module, workspaceB);
-    const first = newChannel(testbed, workspaceA, { externalId: TEST_TELEGRAM_BOT_ID });
-    await tenants.run(workspaceA, () => channels.insertIfAbsent(first));
+    const workspaceA = await seedChannelWorkspace(testbed);
+    const workspaceB = await seedChannelWorkspace(testbed);
+    const first = newChannel(testbed, workspaceA.workspaceId, {
+      createdByUserId: workspaceA.userId,
+      externalId: TEST_TELEGRAM_BOT_ID,
+    });
+    await tenants.run(workspaceA.workspaceId, () => channels.insertIfAbsent(first));
 
-    const duplicate = newChannel(testbed, workspaceB, { externalId: TEST_TELEGRAM_BOT_ID });
+    const duplicate = newChannel(testbed, workspaceB.workspaceId, {
+      createdByUserId: workspaceB.userId,
+      externalId: TEST_TELEGRAM_BOT_ID,
+    });
 
-    const result = await tenants.run(workspaceB, () => channels.insertIfAbsent(duplicate));
+    const result = await tenants.run(workspaceB.workspaceId, () =>
+      channels.insertIfAbsent(duplicate),
+    );
     expect(result).toBe(false);
   });
 
   it('keeps each external event only once per channel', async () => {
-    const workspaceA = testbed.ids.generate();
-    await ensureWorkspaceRow(testbed.module, workspaceA);
-    const first = newChannel(testbed, workspaceA);
-    await ensureUserRow(testbed.module, first.createdByUserId);
-    const second = newChannel(testbed, workspaceA);
-    await ensureUserRow(testbed.module, second.createdByUserId);
-    await tenants.run(workspaceA, async () => {
+    const { workspaceId, userId } = await seedChannelWorkspace(testbed);
+    const first = newChannel(testbed, workspaceId, { createdByUserId: userId });
+    const second = newChannel(testbed, workspaceId, { createdByUserId: userId });
+    await tenants.run(workspaceId, async () => {
       await channels.insertIfAbsent(first);
       await channels.insertIfAbsent(second);
     });
     const event = newChannelEvent(testbed, first, { externalId: TEST_CHANNEL_UPDATE_ID });
 
-    const firstInsert = await tenants.run(workspaceA, () => events.insertIfAbsent(event));
-    const duplicate = await tenants.run(workspaceA, () => events.insertIfAbsent(event));
-    const otherChannel = await tenants.run(workspaceA, () =>
+    const firstInsert = await tenants.run(workspaceId, () => events.insertIfAbsent(event));
+    const duplicate = await tenants.run(workspaceId, () => events.insertIfAbsent(event));
+    const otherChannel = await tenants.run(workspaceId, () =>
       events.insertIfAbsent(
         newChannelEvent(testbed, second, { externalId: TEST_CHANNEL_UPDATE_ID }),
       ),
