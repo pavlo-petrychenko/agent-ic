@@ -1,0 +1,17 @@
+apiVersion: 1
+
+providers:
+  - name: demo
+    folder: Demo
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards/demo
+  - name: agent-ic
+    folder: agent-ic
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards/agent-ic
