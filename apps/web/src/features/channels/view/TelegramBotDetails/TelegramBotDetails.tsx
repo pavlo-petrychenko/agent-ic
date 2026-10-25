@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
-import { TelegramBotStatus } from '@/features/channels/typedefs/telegramBot.typedefs';
+import { EMPTY_TELEGRAM_STATS } from '@/features/channels/constants/telegram.constants';
+import { TelegramChannelStatus } from '@/features/channels/typedefs/telegram.typedefs';
 import { TelegramActivityCard } from '@/features/channels/view/TelegramActivityCard';
 import { TelegramBotConnection } from '@/features/channels/view/TelegramBotDetails/TelegramBotConnection';
 import type { TelegramBotDetailsProps } from '@/features/channels/view/TelegramBotDetails/TelegramBotDetails.typedefs';
@@ -14,7 +15,7 @@ import { Breadcrumb } from '@/shared/ui/navigation/Breadcrumb';
 
 export function TelegramBotDetails({
   channelsLink,
-  bot,
+  channel,
   agentOptions,
   agentId,
   typing,
@@ -25,13 +26,16 @@ export function TelegramBotDetails({
   onSave,
 }: TelegramBotDetailsProps) {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
-  const revoked = bot.status === TelegramBotStatus.Revoked;
+  const broken = channel.status === TelegramChannelStatus.Broken;
+  const disconnected = channel.status === TelegramChannelStatus.Disconnected;
 
   return (
     <div className="flex flex-col gap-5 pb-8">
       <PageHeader
-        title={bot.username}
-        subtitle={t('telegram.bot.subtitle', { agent: bot.agentName })}
+        title={channel.displayName}
+        subtitle={t('telegram.bot.subtitle', {
+          agent: channel.agentName ?? t('telegram.bot.unknownAgent'),
+        })}
         crumbs={
           <Breadcrumb
             ariaLabel={t('telegram.breadcrumb')}
@@ -44,10 +48,10 @@ export function TelegramBotDetails({
         }
         actions={
           <>
-            <Button variant={ButtonVariant.Danger} onClick={onDisconnect}>
+            <Button variant={ButtonVariant.Danger} disabled={disconnected} onClick={onDisconnect}>
               {t('telegram.bot.actions.disconnect')}
             </Button>
-            <Button disabled={revoked} onClick={onSave}>
+            <Button disabled={broken || disconnected} onClick={onSave}>
               {t('telegram.bot.actions.save')}
             </Button>
           </>
@@ -55,27 +59,32 @@ export function TelegramBotDetails({
       />
       <div className="grid grid-cols-1 items-start gap-5 px-7 compact:grid-cols-[minmax(18rem,1fr)_minmax(15rem,20rem)]">
         <div className="flex flex-col gap-4">
-          <TelegramBotConnection bot={bot} revoked={revoked} onReplaceToken={onReplaceToken} />
+          <TelegramBotConnection channel={channel} onReplaceToken={onReplaceToken} />
           <TelegramBotWhoAnswers
-            bot={bot}
+            channel={channel}
             agentOptions={agentOptions}
             agentId={agentId}
             typing={typing}
-            revoked={revoked}
             onAgentChange={onAgentChange}
             onTypingChange={onTypingChange}
           />
         </div>
         <div className="flex flex-col gap-4">
-          {revoked ? (
+          {broken && (
             <>
-              <TelegramFixHelpCard username={bot.username} />
+              <TelegramFixHelpCard username={channel.displayName} />
               <Callout tone={CalloutTone.Warn}>{t('telegram.bot.warning')}</Callout>
             </>
-          ) : (
+          )}
+          {disconnected && (
+            <Callout tone={CalloutTone.Neutral}>
+              {t('telegram.bot.connection.disconnectedHint')}
+            </Callout>
+          )}
+          {!broken && !disconnected && (
             <>
               <TelegramConnectHelpCard />
-              {bot.stats !== null && <TelegramActivityCard stats={bot.stats} />}
+              <TelegramActivityCard stats={EMPTY_TELEGRAM_STATS} />
             </>
           )}
         </div>

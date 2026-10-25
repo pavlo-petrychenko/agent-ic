@@ -3,6 +3,8 @@ import type { SelectOption } from '@/shared/ui/inputs/Select';
 export interface TelegramConnectFormProps {
   readonly token: string;
   readonly tokenError: string | null;
+  readonly error: string | null;
+  readonly busy: boolean;
   readonly agentId: string;
   readonly agentOptions: readonly SelectOption[];
   readonly onTokenChange: (value: string) => void;

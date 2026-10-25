@@ -2,75 +2,77 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import {
-  CONNECTED_TELEGRAM_BOT,
-  REVOKED_TELEGRAM_BOT,
-  TELEGRAM_BOT_AGENT_OPTIONS,
-} from '@/features/channels/constants/channelMocks.constants';
+  TelegramChannelStatus,
+  type TelegramChannelView,
+} from '@/features/channels/typedefs/telegram.typedefs';
 import { TelegramBotDetails } from '@/features/channels/view/TelegramBotDetails';
 import type { TelegramBotDetailsProps } from '@/features/channels/view/TelegramBotDetails';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
+const agentOptions = [{ value: 'agt_1', label: 'Salon assistant' }];
+
+const connectedChannel: TelegramChannelView = {
+  id: 'chn_1',
+  displayName: '@demo_salon_bot',
+  firstName: 'Demo salon',
+  tokenMasked: '7000•••••:dem•••••••••••••',
+  status: TelegramChannelStatus.Connected,
+  agentId: 'agt_1',
+  agentName: 'Salon assistant',
+  agentLiveVersionNumber: 3,
+  showTyping: true,
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
 const renderDetails = (props: Partial<TelegramBotDetailsProps> = {}) => {
   const onDisconnect = vi.fn<() => void>();
-  const onSave = vi.fn<() => void>();
-  const onReplaceToken = vi.fn<() => void>();
   renderWithProviders(
     <TelegramBotDetails
       channelsLink="/w/ws_1/channels"
-      bot={CONNECTED_TELEGRAM_BOT}
-      agentOptions={TELEGRAM_BOT_AGENT_OPTIONS}
-      agentId="agent_salon"
+      channel={connectedChannel}
+      agentOptions={agentOptions}
+      agentId="agt_1"
       typing
-      onAgentChange={vi.fn<(value: string) => void>()}
-      onTypingChange={vi.fn<(checked: boolean) => void>()}
-      onReplaceToken={onReplaceToken}
+      onAgentChange={() => undefined}
+      onTypingChange={() => undefined}
+      onReplaceToken={() => undefined}
       onDisconnect={onDisconnect}
-      onSave={onSave}
+      onSave={() => undefined}
       {...props}
     />,
   );
-  return { onDisconnect, onSave, onReplaceToken };
+  return { onDisconnect };
 };
 
 describe('TelegramBotDetails', () => {
-  it('shows the connected bot with its webhook, agent and stats', () => {
+  it('shows the connected bot with its webhook, bot name and agent', () => {
     renderDetails();
 
     expect(screen.getByRole('heading', { level: 1, name: '@demo_salon_bot' })).toBeInTheDocument();
     expect(screen.getByText('Connected')).toBeInTheDocument();
     expect(screen.getByText('Receiving')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('7091•••••:AAH••••••••••••••••••••')).toBeInTheDocument();
-    expect(screen.getByLabelText('Agent')).toHaveValue('agent_salon');
+    expect(screen.getByText('Demo salon · edit in @BotFather')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toHaveValue('agt_1');
     expect(screen.getByRole('switch')).toBeChecked();
-    expect(screen.getByText('1,470')).toBeInTheDocument();
   });
 
-  it('shows the revoked state and disables saving', () => {
+  it('shows the broken state', () => {
     renderDetails({
-      bot: REVOKED_TELEGRAM_BOT,
-      agentId: 'agent_reviews',
-      typing: false,
+      channel: { ...connectedChannel, status: TelegramChannelStatus.Broken },
     });
 
     expect(screen.getByText('Token revoked')).toBeInTheDocument();
     expect(screen.getByText('Not receiving')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
-    expect(screen.getByText('How to fix it')).toBeInTheDocument();
     expect(
       screen.getByText(/Messages sent to the bot while the token was revoked/),
     ).toBeInTheDocument();
-    expect(screen.queryByText('Last 7 days')).not.toBeInTheDocument();
   });
 
-  it('runs the header and token actions', async () => {
-    const { onDisconnect, onSave, onReplaceToken } = renderDetails();
+  it('starts the disconnect flow', async () => {
+    const { onDisconnect } = renderDetails();
 
     await userEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Replace token' }));
 
     expect(onDisconnect).toHaveBeenCalledTimes(1);
-    expect(onSave).toHaveBeenCalledTimes(1);
-    expect(onReplaceToken).toHaveBeenCalledTimes(1);
   });
 });

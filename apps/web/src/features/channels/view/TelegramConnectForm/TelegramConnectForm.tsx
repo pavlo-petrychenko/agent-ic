@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
 import type { TelegramConnectFormProps } from '@/features/channels/view/TelegramConnectForm/TelegramConnectForm.typedefs';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { Card, CardGap, CardPad } from '@/shared/ui/display/Card';
 import { Field } from '@/shared/ui/inputs/Field';
 import { Input } from '@/shared/ui/inputs/Input';
@@ -10,6 +11,8 @@ import { Select } from '@/shared/ui/inputs/Select';
 export function TelegramConnectForm({
   token,
   tokenError,
+  error,
+  busy,
   agentId,
   agentOptions,
   onTokenChange,
@@ -43,9 +46,12 @@ export function TelegramConnectForm({
           />
         )}
       </Field>
+      {error !== null && <Callout tone={CalloutTone.Err}>{error}</Callout>}
       <div className="flex gap-2">
-        <Button onClick={onSubmit}>{t('telegram.form.connect')}</Button>
-        <Button variant={ButtonVariant.Secondary} onClick={onCancel}>
+        <Button loading={busy} disabled={busy} onClick={onSubmit}>
+          {t('telegram.form.connect')}
+        </Button>
+        <Button variant={ButtonVariant.Secondary} disabled={busy} onClick={onCancel}>
           {t('telegram.form.cancel')}
         </Button>
       </div>

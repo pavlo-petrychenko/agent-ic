@@ -12,6 +12,8 @@ const renderForm = (props: Partial<TelegramConnectFormProps> = {}) => {
     <TelegramConnectForm
       token=""
       tokenError={null}
+      error={null}
+      busy={false}
       agentId="agt_1"
       agentOptions={[{ value: 'agt_1', label: 'Salon assistant' }]}
       onTokenChange={vi.fn<(value: string) => void>()}
