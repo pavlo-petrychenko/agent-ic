@@ -37,7 +37,7 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
       : [
           {
             id: 'knowledge-bases',
-            label: t('nav.group'),
+            label: null,
             action: null,
             items: knowledgeBases.map((knowledgeBase) => ({
               id: knowledgeBase.id,
