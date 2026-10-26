@@ -247,6 +247,46 @@ describe('loadAppConfig', () => {
     expect(config.telemetry.endpoint).toBe('http://collector:4318');
   });
 
+  it('reads the storage endpoints, credentials and bucket', () => {
+    const env = createTestEnv({
+      [EnvVar.S3Endpoint]: 'http://storage.internal:9000',
+      [EnvVar.S3PublicEndpoint]: 'https://storage.example.test',
+      [EnvVar.S3Region]: 'eu-central-1',
+      [EnvVar.S3AccessKeyId]: 'access-key',
+      [EnvVar.S3SecretAccessKey]: 'secret-key',
+      [EnvVar.S3Bucket]: 'uploads',
+      [EnvVar.S3ForcePathStyle]: 'true',
+    });
+
+    const config = loadAppConfig(roleOf(Role.Api), env);
+
+    expect(config.storage).toEqual({
+      endpoint: 'http://storage.internal:9000',
+      publicEndpoint: 'https://storage.example.test',
+      region: 'eu-central-1',
+      accessKeyId: 'access-key',
+      secretAccessKey: 'secret-key',
+      bucket: 'uploads',
+      forcePathStyle: true,
+    });
+  });
+
+  it.each([
+    [EnvVar.S3Endpoint, 'ftp://storage.example.test'],
+    [EnvVar.S3PublicEndpoint, 'not a url'],
+    [EnvVar.S3Region, ''],
+    [EnvVar.S3AccessKeyId, undefined],
+    [EnvVar.S3SecretAccessKey, ''],
+    [EnvVar.S3Bucket, ''],
+    [EnvVar.S3ForcePathStyle, 'sometimes'],
+  ])('stops boot on a bad storage setting %s: %s', (variable, value) => {
+    const env = createTestEnv({ [variable]: value });
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+    expect(variablesOf(issues)).toEqual([variable]);
+  });
+
   it('reads the public url and the access token secret', () => {
     const env = createTestEnv();
 

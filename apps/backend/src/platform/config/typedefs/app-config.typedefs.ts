@@ -23,6 +23,16 @@ export interface RedisConfig {
   readonly keyPrefix: string;
 }
 
+export interface StorageConfig {
+  readonly endpoint: string;
+  readonly publicEndpoint: string;
+  readonly region: string;
+  readonly accessKeyId: string;
+  readonly secretAccessKey: string;
+  readonly bucket: string;
+  readonly forcePathStyle: boolean;
+}
+
 export interface PlatformAdminConfig {
   readonly devAccess: boolean;
 }
@@ -120,6 +130,7 @@ export interface BaseConfig {
   readonly http: HttpConfig;
   readonly database: DatabaseConfig;
   readonly redis: RedisConfig;
+  readonly storage: StorageConfig;
   readonly telemetry: TelemetryConfig;
   readonly langfuse: LangfuseConfig;
   readonly auth: AuthConfig;

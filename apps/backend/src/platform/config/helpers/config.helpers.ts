@@ -8,6 +8,7 @@ import { llmEnvSchema } from '@/platform/config/schemas/llm-env.schema';
 import { migrationEnvSchema } from '@/platform/config/schemas/migration-env.schema';
 import { roleEnvSchemas } from '@/platform/config/schemas/role-env.schema';
 import { secretsEnvSchema } from '@/platform/config/schemas/secrets-env.schema';
+import { storageEnvSchema } from '@/platform/config/schemas/storage-env.schema';
 import { usageEnvSchema } from '@/platform/config/schemas/usage-env.schema';
 import type {
   AppConfig,
@@ -23,6 +24,7 @@ export const loadAppConfig = (
 ): AppConfig => {
   const common = commonEnvSchema.safeParse(env);
   const langfuse = langfuseEnvSchema.safeParse(env);
+  const storage = storageEnvSchema.safeParse(env);
   const auth = authEnvSchema.safeParse(env);
   const secretBox = secretsEnvSchema.safeParse(env);
   const llm = llmEnvSchema.safeParse(env);
@@ -33,6 +35,7 @@ export const loadAppConfig = (
   if (
     !common.success ||
     !langfuse.success ||
+    !storage.success ||
     !auth.success ||
     !secretBox.success ||
     !llm.success ||
@@ -40,7 +43,17 @@ export const loadAppConfig = (
     !email.success ||
     !roleEnvironment.success
   ) {
-    const results = [common, langfuse, auth, secretBox, llm, usage, email, roleEnvironment];
+    const results = [
+      common,
+      langfuse,
+      storage,
+      auth,
+      secretBox,
+      llm,
+      usage,
+      email,
+      roleEnvironment,
+    ];
     throw new ConfigError(
       results.flatMap((result) => (result.success ? [] : toConfigIssues(result.error))),
     );
@@ -55,6 +68,7 @@ export const loadAppConfig = (
     http: { host: common.data.host, port: environment.port },
     database: common.data.database,
     redis: common.data.redis,
+    storage: storage.data,
     telemetry: common.data.telemetry,
     langfuse: langfuse.data,
     auth: auth.data,

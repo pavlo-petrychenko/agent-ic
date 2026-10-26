@@ -705,9 +705,13 @@
         "s3": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["endpoint", "region", "bucket", "forcePathStyle"],
+          "required": ["endpoint", "publicEndpoint", "region", "bucket", "forcePathStyle"],
           "properties": {
             "endpoint": {
+              "type": "string",
+              "format": "uri"
+            },
+            "publicEndpoint": {
               "type": "string",
               "format": "uri"
             },
