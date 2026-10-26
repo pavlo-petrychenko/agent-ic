@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useKnowledgeBases } from '@/features/knowledge/communication/hooks/useKnowledgeBases';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
+import { AddSourceDialog } from '@/features/knowledge/containers/AddSourceDialog';
 import { DeleteKnowledgeBaseDialog } from '@/features/knowledge/containers/DeleteKnowledgeBaseDialog';
 import type { KnowledgePageProps } from '@/features/knowledge/containers/KnowledgePage/KnowledgePage.typedefs';
 import { NewKnowledgeBaseDialog } from '@/features/knowledge/containers/NewKnowledgeBaseDialog';
@@ -28,6 +29,7 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
   const active = useActiveWorkspace(workspaceId);
   const [creating, setCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<KnowledgeBase | null>(null);
+  const [addingSource, setAddingSource] = useState(false);
   const canCreate =
     active !== null && can(active.role, PermissionResource.KnowledgeBases, PermissionAction.Edit);
   const canDelete =
@@ -114,12 +116,15 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
               <KnowledgeEmpty onCreate={onCreate} />
             )
           ) : (
-            <KnowledgeSourcesEmpty />
+            <KnowledgeSourcesEmpty onAddSource={canCreate ? () => setAddingSource(true) : null} />
           )}
         </div>
       </div>
       {creating && (
         <NewKnowledgeBaseDialog onClose={() => setCreating(false)} onCreated={onCreated} />
+      )}
+      {addingSource && selected !== null && (
+        <AddSourceDialog knowledgeBaseName={selected.name} onClose={() => setAddingSource(false)} />
       )}
       {deleteTarget !== null && (
         <DeleteKnowledgeBaseDialog
