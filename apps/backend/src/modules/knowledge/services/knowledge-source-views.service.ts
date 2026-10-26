@@ -25,4 +25,8 @@ export class KnowledgeSourceViewsService {
       updatedAt: source.updatedAt,
     };
   }
+
+  views(sources: readonly Source[]): KnowledgeSourceView[] {
+    return sources.map((source) => this.view(source));
+  }
 }

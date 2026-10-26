@@ -45,3 +45,7 @@ export const toGraphqlKnowledgeSource = (source: KnowledgeSourceView): GraphqlKn
   createdAt: source.createdAt.toISOString(),
   updatedAt: source.updatedAt.toISOString(),
 });
+
+export const toGraphqlKnowledgeSources = (
+  sources: readonly KnowledgeSourceView[],
+): GraphqlKnowledgeSource[] => sources.map(toGraphqlKnowledgeSource);

@@ -1,5 +1,6 @@
 extend type Query {
   knowledgeBases: [KnowledgeBase!]!
+  knowledgeSources(knowledgeBaseId: ID!): [KnowledgeSource!]!
 }
 
 extend type Mutation {

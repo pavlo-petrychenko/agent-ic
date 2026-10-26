@@ -1257,6 +1257,7 @@ Best effort, like every live update. A reload always shows the truth.
 | Query | Permission | Returns |
 |---|---|---|
 | `knowledgeBases` | view | KBs with counts and tool identity |
+| `knowledgeSources(knowledgeBaseId)` | view | Sources of one KB with status and chunk counts; the web polls this while a source is pending or indexing |
 | `knowledgeBase(id)` | view | One KB with its sources |
 | `knowledgeBaseUsages(id)` | view | Agent/version/node usages for the delete dialog |
 | `knowledgeConnections` | view | Google account email and status; tokens are never exposed |

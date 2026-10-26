@@ -2,13 +2,14 @@ import { ErrorReason } from '@agent-ic/contracts';
 
 export enum KnowledgeGraphqlArgument {
   Input = 'input',
+  KnowledgeBaseId = 'knowledgeBaseId',
 }
 
 export enum KnowledgeField {
   Id = 'id',
+  KnowledgeBaseId = 'knowledgeBaseId',
   Name = 'name',
   Description = 'description',
-  KnowledgeBaseId = 'knowledgeBaseId',
   DocumentId = 'documentId',
   SourceId = 'sourceId',
   FileName = 'fileName',

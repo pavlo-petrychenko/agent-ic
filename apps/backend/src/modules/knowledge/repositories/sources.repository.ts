@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, isNull } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { sources } from '@/modules/knowledge/db/sources.table';
 import type {
@@ -69,6 +69,14 @@ export class SourcesRepository {
       .where(and(eq(sources.workspaceId, workspaceId), eq(sources.id, sourceId)))
       .returning({ id: sources.id });
     return deleted.length > 0;
+  }
+
+  async listByKnowledgeBase(workspaceId: string, knowledgeBaseId: string): Promise<Source[]> {
+    return this.txHost.tx
+      .select()
+      .from(sources)
+      .where(this.activeWhere(workspaceId, eq(sources.kbId, knowledgeBaseId)))
+      .orderBy(desc(sources.createdAt));
   }
 
   async hasActiveByKnowledgeBase(workspaceId: string, knowledgeBaseId: string): Promise<boolean> {

@@ -12,6 +12,7 @@ import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.r
 import { CreateKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/create-knowledge-base.resolver';
 import { DeleteKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/delete-knowledge-base.resolver';
 import { KnowledgeBasesResolver } from '@/modules/knowledge/resolvers/knowledge-bases.resolver';
+import { KnowledgeSourcesResolver } from '@/modules/knowledge/resolvers/knowledge-sources.resolver';
 import { KnowledgeUploadResolver } from '@/modules/knowledge/resolvers/knowledge-upload.resolver';
 import { DocumentParserService } from '@/modules/knowledge/services/document-parser.service';
 import { DocumentSummaryService } from '@/modules/knowledge/services/document-summary.service';
@@ -26,6 +27,7 @@ import { CreateUploadUseCase } from '@/modules/knowledge/use-cases/create-upload
 import { DeleteKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/delete-knowledge-base.use-case';
 import { IngestKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/ingest-knowledge-source.use-case';
 import { ListKnowledgeBasesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-bases.use-case';
+import { ListKnowledgeSourcesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-sources.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class KnowledgeModule extends defineModule({
@@ -53,11 +55,13 @@ export class KnowledgeModule extends defineModule({
     DeleteKnowledgeBaseUseCase,
     IngestKnowledgeSourceUseCase,
     ListKnowledgeBasesUseCase,
+    ListKnowledgeSourcesUseCase,
   ],
   resolvers: [
     CreateKnowledgeBaseResolver,
     DeleteKnowledgeBaseResolver,
     KnowledgeBasesResolver,
+    KnowledgeSourcesResolver,
     KnowledgeUploadResolver,
   ],
   processors: [IngestKnowledgeSourceProcessor],

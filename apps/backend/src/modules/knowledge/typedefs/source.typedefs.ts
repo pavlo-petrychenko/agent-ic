@@ -27,3 +27,7 @@ export interface KnowledgeSourceView {
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
+
+export interface ListKnowledgeSourcesInput {
+  readonly knowledgeBaseId: string;
+}
