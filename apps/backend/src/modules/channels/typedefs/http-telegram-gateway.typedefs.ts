@@ -33,6 +33,7 @@ export interface TelegramChatResponse {
 }
 
 export interface TelegramUserResponse {
+  readonly id?: number;
   readonly first_name?: string;
 }
 

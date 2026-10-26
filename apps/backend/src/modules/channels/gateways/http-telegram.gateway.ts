@@ -151,6 +151,7 @@ const toTelegramMessage = (message: TelegramMessageResponse): TelegramMessage =>
   messageId: String(message.message_id),
   sentAt: new Date(message.date * MILLISECONDS_PER_SECOND),
   chatId: String(message.chat.id),
+  senderId: message.from?.id === undefined ? null : String(message.from.id),
   senderName: message.from?.first_name ?? null,
   text: message.text ?? null,
 });

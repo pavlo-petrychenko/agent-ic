@@ -22,6 +22,7 @@ import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deli
 import { DisconnectTelegramUseCase } from '@/modules/channels/use-cases/disconnect-telegram.use-case';
 import { GetChannelUseCase } from '@/modules/channels/use-cases/get-channel.use-case';
 import { ListChannelsUseCase } from '@/modules/channels/use-cases/list-channels.use-case';
+import { ReceiveTelegramUpdateUseCase } from '@/modules/channels/use-cases/receive-telegram-update.use-case';
 import { ReplaceTelegramTokenUseCase } from '@/modules/channels/use-cases/replace-telegram-token.use-case';
 import { UpdateTelegramChannelUseCase } from '@/modules/channels/use-cases/update-telegram.use-case';
 import { ConversationsModule } from '@/modules/conversations';
@@ -52,6 +53,7 @@ export class ChannelsModule extends defineModule({
     DisconnectTelegramUseCase,
     GetChannelUseCase,
     ListChannelsUseCase,
+    ReceiveTelegramUpdateUseCase,
     ReplaceTelegramTokenUseCase,
     UpdateTelegramChannelUseCase,
     DeliverOutboundMessageUseCase,
