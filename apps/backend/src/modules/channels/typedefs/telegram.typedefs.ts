@@ -27,6 +27,12 @@ export interface TelegramUpdate {
   readonly message: TelegramMessage | null;
 }
 
+export interface TelegramPollerChannel {
+  readonly id: string;
+  readonly workspaceId: string;
+  readonly credentialsSealed: string;
+}
+
 export interface GetTelegramUpdatesInput {
   readonly token: string;
   readonly offset: number;
