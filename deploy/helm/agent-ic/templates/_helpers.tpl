@@ -103,6 +103,8 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | replace 
   value: {{ $config.databasePoolMax | quote }}
 - name: S3_ENDPOINT
   value: {{ $config.s3.endpoint | quote }}
+- name: S3_PUBLIC_ENDPOINT
+  value: {{ $config.s3.publicEndpoint | quote }}
 - name: S3_REGION
   value: {{ $config.s3.region | quote }}
 - name: S3_BUCKET
