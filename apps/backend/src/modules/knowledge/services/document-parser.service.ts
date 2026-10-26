@@ -4,7 +4,10 @@ import { DocumentParseErrorCode } from '@/modules/knowledge/constants/document-p
 import { DocumentParseError } from '@/modules/knowledge/errors/document-parse.error';
 import { canonicalizeMarkdown } from '@/modules/knowledge/helpers/canonical-markdown.helpers';
 import { contentHash } from '@/modules/knowledge/helpers/content-hash.helpers';
-import { resolveDocumentFormat } from '@/modules/knowledge/helpers/document-format.helpers';
+import {
+  documentBytesMatchFormat,
+  resolveDocumentFormat,
+} from '@/modules/knowledge/helpers/document-format.helpers';
 import { documentTitle } from '@/modules/knowledge/helpers/document-title.helpers';
 import { documentTokenCount } from '@/modules/knowledge/helpers/document-token.helpers';
 import { parseDocxDocument } from '@/modules/knowledge/helpers/docx-parser.helpers';
@@ -30,6 +33,9 @@ export class DocumentParserService {
       throw new DocumentParseError(DocumentParseErrorCode.TooLarge);
     }
     const format = resolveDocumentFormat(input.fileName, input.mimeType);
+    if (!documentBytesMatchFormat(format, input.bytes)) {
+      throw new DocumentParseError(DocumentParseErrorCode.SignatureMismatch);
+    }
     const parsed = await PARSERS[format](input);
     const markdown = canonicalizeMarkdown(parsed.markdown);
     if (markdown.length === 0) {

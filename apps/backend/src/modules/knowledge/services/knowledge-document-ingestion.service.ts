@@ -1,0 +1,239 @@
+import { basename } from 'node:path';
+import { KNOWLEDGE_DOCUMENT_MAX_BYTES } from '@agent-ic/contracts';
+import { Injectable, Logger } from '@nestjs/common';
+import { DocumentParseErrorCode } from '@/modules/knowledge/constants/document-parser.constants';
+import {
+  KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE,
+  KNOWLEDGE_DOCUMENT_UPDATE_MISSING_MESSAGE,
+} from '@/modules/knowledge/constants/knowledge-error.constants';
+import { KnowledgeLogMessage } from '@/modules/knowledge/constants/knowledge-log.constants';
+import {
+  KnowledgeDocumentStatus,
+  KnowledgeSummarySource,
+} from '@/modules/knowledge/constants/knowledge.constants';
+import { DocumentParseError } from '@/modules/knowledge/errors/document-parse.error';
+import { bm25TermFrequencies } from '@/modules/knowledge/helpers/bm25.helpers';
+import { buildIndexedChunks } from '@/modules/knowledge/helpers/chunk-index.helpers';
+import { buildDocumentChunks } from '@/modules/knowledge/helpers/chunking.helpers';
+import { knowledgeEmbeddingModel } from '@/modules/knowledge/helpers/knowledge-embedding.helpers';
+import { knowledgeContentStorageKey } from '@/modules/knowledge/helpers/knowledge-storage.helpers';
+import { buildDocumentSections } from '@/modules/knowledge/helpers/section-tree.helpers';
+import { ChunkTermsRepository } from '@/modules/knowledge/repositories/chunk-terms.repository';
+import { ChunksRepository } from '@/modules/knowledge/repositories/chunks.repository';
+import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
+import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
+import { KnowledgeStatsRepository } from '@/modules/knowledge/repositories/knowledge-stats.repository';
+import { SectionsRepository } from '@/modules/knowledge/repositories/sections.repository';
+import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
+import { DocumentParserService } from '@/modules/knowledge/services/document-parser.service';
+import { DocumentSummaryService } from '@/modules/knowledge/services/document-summary.service';
+import { KnowledgeEmbeddingService } from '@/modules/knowledge/services/knowledge-embedding.service';
+import type { NewChunkTerm } from '@/modules/knowledge/typedefs/chunk-term.typedefs';
+import type { NewChunk } from '@/modules/knowledge/typedefs/chunk.typedefs';
+import type { DocumentSummaryResult } from '@/modules/knowledge/typedefs/document-summary.typedefs';
+import type {
+  DocumentIngestionInput,
+  DocumentIngestionResult,
+} from '@/modules/knowledge/typedefs/knowledge-ingestion.typedefs';
+import type { NewSection } from '@/modules/knowledge/typedefs/section.typedefs';
+import { ClockService } from '@/platform/clock/services/clock.service';
+import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import { IdService } from '@/platform/ids/services/id.service';
+import { FileStorage } from '@/platform/storage/gateways/file-storage.gateway';
+import { readStream } from '@/platform/storage/helpers/stream.helpers';
+
+@Injectable()
+export class KnowledgeDocumentIngestionService {
+  private readonly logger = new Logger(KnowledgeDocumentIngestionService.name);
+
+  constructor(
+    private readonly tenants: TenantTransactionService,
+    private readonly storage: FileStorage,
+    private readonly parser: DocumentParserService,
+    private readonly summary: DocumentSummaryService,
+    private readonly embeddings: KnowledgeEmbeddingService,
+    private readonly documents: DocumentsRepository,
+    private readonly sections: SectionsRepository,
+    private readonly chunks: ChunksRepository,
+    private readonly chunkTerms: ChunkTermsRepository,
+    private readonly sources: SourcesRepository,
+    private readonly knowledgeBases: KnowledgeBasesRepository,
+    private readonly stats: KnowledgeStatsRepository,
+    private readonly clock: ClockService,
+    private readonly ids: IdService,
+  ) {}
+
+  async ingest(input: DocumentIngestionInput): Promise<DocumentIngestionResult> {
+    const { workspaceId, knowledgeBase, document } = input;
+    if (document.originalStorageKey === null) {
+      throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
+    }
+    const original = await this.storage.head(document.originalStorageKey);
+    if (original === null) {
+      throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
+    }
+    if (original.size > KNOWLEDGE_DOCUMENT_MAX_BYTES) {
+      throw new DocumentParseError(DocumentParseErrorCode.TooLarge);
+    }
+    const bytes = await readStream(await this.storage.get(document.originalStorageKey));
+    const parsed = await this.parser.parse({
+      bytes,
+      fileName: basename(document.originalStorageKey),
+      mimeType: document.mimeType,
+      title: document.title,
+    });
+    if (
+      document.contentHash === parsed.contentHash &&
+      document.activeGeneration > 0 &&
+      document.contentStorageKey !== null
+    ) {
+      return { skipped: true, chunkCount: document.chunkCount };
+    }
+
+    const sections = buildDocumentSections(parsed.markdown);
+    const chunks = buildDocumentChunks(sections);
+    const summary = await this.documentSummary(
+      workspaceId,
+      document.id,
+      document,
+      parsed.title,
+      sections,
+      parsed.markdown,
+    );
+    const indexedChunks = buildIndexedChunks({
+      title: parsed.title,
+      summary: summary?.summary ?? null,
+      sections,
+      chunks,
+    });
+    const embeddingModel = knowledgeEmbeddingModel(knowledgeBase.embeddingModel);
+    const embedded = await this.embeddings.embed({
+      workspaceId,
+      model: embeddingModel,
+      dimensions: knowledgeBase.embeddingDimensions,
+      chunks: indexedChunks,
+    });
+    const contentStorageKey = knowledgeContentStorageKey(workspaceId, document.id);
+    await this.storage.put(contentStorageKey, Buffer.from(parsed.markdown), 'text/markdown');
+
+    const now = this.clock.now();
+    const generation = document.activeGeneration + 1;
+    const sectionIds = new Map(sections.map((section) => [section.ordinal, this.ids.generate()]));
+    const sectionRows = sections.map((section): NewSection => {
+      const id = sectionIds.get(section.ordinal);
+      if (id === undefined) {
+        throw new Error(KNOWLEDGE_DOCUMENT_UPDATE_MISSING_MESSAGE);
+      }
+      return {
+        id,
+        workspaceId,
+        kbId: knowledgeBase.id,
+        documentId: document.id,
+        generation,
+        ordinal: section.ordinal,
+        level: section.level,
+        path: section.path,
+        heading: section.heading,
+        tokenCount: section.tokenCount,
+        contentHash: section.contentHash,
+      };
+    });
+    const chunkIds = embedded.chunks.map(() => this.ids.generate());
+    const chunkRows = embedded.chunks.map((chunk, index): NewChunk => {
+      const id = chunkIds[index];
+      const sectionId = sectionIds.get(chunk.sectionOrdinal);
+      if (id === undefined || sectionId === undefined) {
+        throw new Error(KNOWLEDGE_DOCUMENT_UPDATE_MISSING_MESSAGE);
+      }
+      return {
+        id,
+        workspaceId,
+        kbId: knowledgeBase.id,
+        documentId: document.id,
+        sectionId,
+        generation,
+        ordinal: chunk.ordinal,
+        content: chunk.content,
+        indexText: chunk.indexText,
+        contentHash: chunk.contentHash,
+        tokenCount: chunk.tokenCount,
+        embedding: [...chunk.embedding],
+        embeddingModel: chunk.embeddingModel,
+        embeddingDimensions: chunk.embeddingDimensions,
+      };
+    });
+    const termRows: NewChunkTerm[] = [];
+    embedded.chunks.forEach((chunk, index) => {
+      const chunkId = chunkIds[index];
+      if (chunkId === undefined) {
+        throw new Error(KNOWLEDGE_DOCUMENT_UPDATE_MISSING_MESSAGE);
+      }
+      for (const [term, frequency] of bm25TermFrequencies(chunk.indexText)) {
+        termRows.push({ workspaceId, kbId: knowledgeBase.id, chunkId, term, frequency });
+      }
+    });
+
+    await this.tenants.run(workspaceId, async () => {
+      await this.sections.deleteByDocumentGeneration(workspaceId, document.id, generation);
+      await this.sections.insertMany(sectionRows);
+      await this.chunks.insertMany(chunkRows);
+      await this.chunkTerms.insertMany(termRows);
+      const updated = await this.documents.update(workspaceId, document.id, {
+        title: parsed.title,
+        contentStorageKey,
+        contentHash: parsed.contentHash,
+        tokenCount: parsed.tokenCount,
+        chunkCount: embedded.chunks.length,
+        status: KnowledgeDocumentStatus.Indexed,
+        activeGeneration: generation,
+        lastIndexedAt: now,
+        errorCode: null,
+        errorMessage: null,
+        ...(summary?.generated === true
+          ? {
+              summary: summary.summary,
+              summarySource: KnowledgeSummarySource.Auto,
+              summaryUpdatedAt: now,
+            }
+          : {}),
+      });
+      if (updated === null) {
+        throw new Error(KNOWLEDGE_DOCUMENT_UPDATE_MISSING_MESSAGE);
+      }
+      await this.sections.deleteByDocumentGeneration(
+        workspaceId,
+        document.id,
+        document.activeGeneration,
+      );
+      await this.sources.update(workspaceId, document.sourceId, {
+        ...(await this.stats.sourceCounts(workspaceId, document.sourceId)),
+      });
+      await this.knowledgeBases.update(workspaceId, knowledgeBase.id, {
+        ...(await this.stats.knowledgeBaseCounts(workspaceId, knowledgeBase.id)),
+      });
+    });
+    return { skipped: false, chunkCount: embedded.chunks.length };
+  }
+
+  private async documentSummary(
+    workspaceId: string,
+    documentId: string,
+    document: DocumentIngestionInput['document'],
+    title: string,
+    sections: ReturnType<typeof buildDocumentSections>,
+    markdown: string,
+  ): Promise<DocumentSummaryResult | null> {
+    try {
+      return await this.summary.generate({
+        workspaceId,
+        title,
+        markdown,
+        sections,
+        existingSummary: document.summary,
+      });
+    } catch (error) {
+      this.logger.warn({ msg: KnowledgeLogMessage.SummaryFailed, documentId, err: error });
+      return null;
+    }
+  }
+}
