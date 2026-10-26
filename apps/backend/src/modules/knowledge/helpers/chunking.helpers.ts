@@ -3,7 +3,6 @@ import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfmFromMarkdown } from 'mdast-util-gfm';
 import { gfm } from 'micromark-extension-gfm';
 import {
-  KNOWLEDGE_CHUNK_INDEX_SEPARATOR,
   KNOWLEDGE_CHUNK_MAX_TOKENS,
   KNOWLEDGE_CHUNK_OVERLAP_TOKENS,
   KNOWLEDGE_CHUNK_TARGET_TOKENS,
@@ -11,7 +10,6 @@ import {
   KNOWLEDGE_TABLE_HEADER_LINE_COUNT,
   KNOWLEDGE_TABLE_MAX_TOKENS,
 } from '@/modules/knowledge/constants/knowledge-chunking.constants';
-import { contentHash } from '@/modules/knowledge/helpers/content-hash.helpers';
 import { textTokenCount } from '@/modules/knowledge/helpers/document-token.helpers';
 import type {
   ChunkBlock,
@@ -19,7 +17,6 @@ import type {
   ChunkDraft,
   ChunkUnit,
   DocumentChunk,
-  DocumentChunkInput,
   SectionChunk,
 } from '@/modules/knowledge/typedefs/document-chunk.typedefs';
 import type { DocumentSection } from '@/modules/knowledge/typedefs/document-section.typedefs';
@@ -268,36 +265,20 @@ const buildSectionChunks = (markdown: string): SectionChunk[] => {
   return chunks;
 };
 
-const chunkIndexText = (
-  title: string,
-  section: DocumentSection,
-  summary: string | null,
-  content: string,
-): string =>
-  [title.trim(), section.path.trim(), summary?.trim() ?? '', content]
-    .filter((part) => part.length > 0)
-    .join(KNOWLEDGE_CHUNK_INDEX_SEPARATOR);
-
 const toDocumentChunk = (
   section: DocumentSection,
   chunk: SectionChunk,
-  input: DocumentChunkInput,
   ordinal: number,
-): DocumentChunk => {
-  const indexText = chunkIndexText(input.title, section, input.summary ?? null, chunk.content);
-  return {
-    sectionOrdinal: section.ordinal,
-    ordinal,
-    content: chunk.content,
-    indexText,
-    contentHash: contentHash(indexText),
-    tokenCount: textTokenCount(chunk.content),
-  };
-};
+): DocumentChunk => ({
+  sectionOrdinal: section.ordinal,
+  ordinal,
+  content: chunk.content,
+  tokenCount: textTokenCount(chunk.content),
+});
 
-export const buildDocumentChunks = (input: DocumentChunkInput): DocumentChunk[] => {
-  if (input.sections.length === 1) {
-    const [section] = input.sections;
+export const buildDocumentChunks = (sections: readonly DocumentSection[]): DocumentChunk[] => {
+  if (sections.length === 1) {
+    const [section] = sections;
     if (
       section !== undefined &&
       section.tokenCount <= KNOWLEDGE_SMALL_DOCUMENT_MAX_TOKENS &&
@@ -307,7 +288,6 @@ export const buildDocumentChunks = (input: DocumentChunkInput): DocumentChunk[] 
         toDocumentChunk(
           section,
           { content: stripOuterBlankLines(section.content), prose: true },
-          input,
           0,
         ),
       ];
@@ -315,9 +295,9 @@ export const buildDocumentChunks = (input: DocumentChunkInput): DocumentChunk[] 
   }
 
   const chunks: DocumentChunk[] = [];
-  for (const section of input.sections) {
+  for (const section of sections) {
     for (const chunk of buildSectionChunks(section.content)) {
-      chunks.push(toDocumentChunk(section, chunk, input, chunks.length));
+      chunks.push(toDocumentChunk(section, chunk, chunks.length));
     }
   }
   return chunks;

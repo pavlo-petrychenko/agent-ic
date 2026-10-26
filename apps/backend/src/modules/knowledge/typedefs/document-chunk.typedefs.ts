@@ -1,5 +1,3 @@
-import type { DocumentSection } from '@/modules/knowledge/typedefs/document-section.typedefs';
-
 export type ChunkBlockKind = 'prose' | 'table' | 'other';
 
 export interface ChunkBlock {
@@ -30,13 +28,5 @@ export interface DocumentChunk {
   readonly sectionOrdinal: number;
   readonly ordinal: number;
   readonly content: string;
-  readonly indexText: string;
-  readonly contentHash: string;
   readonly tokenCount: number;
-}
-
-export interface DocumentChunkInput {
-  readonly title: string;
-  readonly summary?: string | null;
-  readonly sections: readonly DocumentSection[];
 }

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { buildDocumentChunks } from '@/modules/knowledge/helpers/chunking.helpers';
-import { contentHash } from '@/modules/knowledge/helpers/content-hash.helpers';
 import { textTokenCount } from '@/modules/knowledge/helpers/document-token.helpers';
 import { buildDocumentSections } from '@/modules/knowledge/helpers/section-tree.helpers';
 
@@ -22,7 +21,7 @@ describe('buildDocumentChunks', () => {
   it('builds chunks for each section with global ordinals', () => {
     const sections = buildDocumentSections('Intro\n\n# A\n\nAlpha.\n\n# B\n\nBeta.\n');
 
-    const chunks = buildDocumentChunks({ title: 'Handbook', sections });
+    const chunks = buildDocumentChunks(sections);
 
     expect(chunks.map(({ sectionOrdinal, ordinal }) => ({ sectionOrdinal, ordinal }))).toEqual([
       { sectionOrdinal: 0, ordinal: 0 },
@@ -30,29 +29,14 @@ describe('buildDocumentChunks', () => {
       { sectionOrdinal: 2, ordinal: 2 },
     ]);
     expect(chunks.map(({ content }) => content)).toEqual(['Intro', 'Alpha.', 'Beta.']);
-    expect(chunks[0]?.indexText).toBe('Handbook\n\nIntro');
-    expect(chunks[1]?.indexText).toBe('Handbook\n\nA\n\nAlpha.');
-  });
-
-  it('includes the section path and summary in index text', () => {
-    const sections = buildDocumentSections('# Pricing\n\nService prices.\n');
-
-    const [chunk] = buildDocumentChunks({
-      title: 'Handbook',
-      summary: 'Price list.',
-      sections,
-    });
-
-    expect(chunk?.indexText).toBe('Handbook\n\nPricing\n\nPrice list.\n\nService prices.');
-    expect(chunk?.contentHash).toBe(contentHash(chunk?.indexText ?? ''));
-    expect(chunk?.tokenCount).toBe(textTokenCount('Service prices.'));
+    expect(chunks[0]?.tokenCount).toBe(textTokenCount('Intro'));
   });
 
   it('keeps a small document in one root chunk even above the normal maximum', () => {
     const content = Array.from({ length: 700 }, () => 'a').join(' ');
     const sections = buildDocumentSections(content);
 
-    const chunks = buildDocumentChunks({ title: 'Note', sections });
+    const chunks = buildDocumentChunks(sections);
 
     expect(textTokenCount(content)).toBe(700);
     expect(chunks).toHaveLength(1);
@@ -66,7 +50,7 @@ describe('buildDocumentChunks', () => {
     );
     const sections = buildDocumentSections(`# Long\n\n${sentences.join(' ')}\n`);
 
-    const chunks = buildDocumentChunks({ title: 'Handbook', sections });
+    const chunks = buildDocumentChunks(sections);
 
     expect(chunks.length).toBeGreaterThan(1);
     for (const chunk of chunks) {
@@ -82,7 +66,7 @@ describe('buildDocumentChunks', () => {
   it('keeps a table under the atomic limit in one chunk', () => {
     const sections = buildDocumentSections(`# Price list\n\n${table}\n`);
 
-    const chunks = buildDocumentChunks({ title: 'Handbook', sections });
+    const chunks = buildDocumentChunks(sections);
 
     expect(chunks).toHaveLength(1);
     expect(chunks[0]?.content).toBe(table);
@@ -91,7 +75,7 @@ describe('buildDocumentChunks', () => {
   it('splits a large table by rows and repeats its header', () => {
     const sections = buildDocumentSections(`# Catalog\n\n${largeTable}\n`);
 
-    const chunks = buildDocumentChunks({ title: 'Handbook', sections });
+    const chunks = buildDocumentChunks(sections);
 
     expect(chunks.length).toBeGreaterThan(1);
     const header = largeTable.split('\n').slice(0, 2).join('\n');
@@ -104,8 +88,6 @@ describe('buildDocumentChunks', () => {
   });
 
   it('returns no chunks for an empty document', () => {
-    expect(buildDocumentChunks({ title: 'Empty', sections: buildDocumentSections('') })).toEqual(
-      [],
-    );
+    expect(buildDocumentChunks(buildDocumentSections(''))).toEqual([]);
   });
 });
