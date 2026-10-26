@@ -130,6 +130,17 @@ const input = (chunks: readonly IndexedDocumentChunk[]) => ({
 });
 
 describe('KnowledgeEmbeddingService', () => {
+  it('returns no chunks and no tokens for an empty input', async () => {
+    const gateway = new FakeEmbeddingGateway();
+    const cache = new FakeEmbeddingCache();
+
+    await expect(serviceWith(gateway, cache).embed(input([]))).resolves.toEqual({
+      chunks: [],
+      tokens: 0,
+    });
+    expect(gateway.calls).toHaveLength(0);
+  });
+
   it('reuses cached embeddings and embeds only misses', async () => {
     const gateway = new FakeEmbeddingGateway();
     const cache = new FakeEmbeddingCache();

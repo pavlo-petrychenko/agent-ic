@@ -24,6 +24,9 @@ export class KnowledgeEmbeddingService {
   ) {}
 
   async embed(input: KnowledgeEmbeddingInput): Promise<KnowledgeEmbeddingResult> {
+    if (input.chunks.length === 0) {
+      return { chunks: [], tokens: 0 };
+    }
     const chunksByHash = new Map<string, IndexedDocumentChunk>();
     for (const chunk of input.chunks) {
       if (!chunksByHash.has(chunk.contentHash)) {
