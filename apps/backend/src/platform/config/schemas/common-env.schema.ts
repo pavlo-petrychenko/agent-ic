@@ -15,6 +15,7 @@ import {
   redisUrlSchema,
   sampleRateSchema,
   textSchema,
+  telegramTimeoutSchema,
 } from '@/platform/config/schemas/env-value.schema';
 import type { CommonEnvironment } from '@/platform/config/typedefs/env.typedefs';
 
@@ -37,6 +38,7 @@ export const commonEnvSchema = z
     [EnvVar.RedisQueueUrl]: redisUrlSchema,
     [EnvVar.RedisCacheUrl]: redisUrlSchema,
     [EnvVar.TelegramTransport]: z.enum(TelegramTransport).default(TelegramTransport.Webhook),
+    [EnvVar.TelegramPollTimeoutSeconds]: telegramTimeoutSchema,
   })
   .refine((env) => env[EnvVar.OtelSdkDisabled] || env[EnvVar.OtelExporterEndpoint] !== undefined, {
     message: OTEL_ENDPOINT_REQUIRED_MESSAGE,
@@ -67,5 +69,8 @@ export const commonEnvSchema = z
       deploymentEnvironment: env[EnvVar.DeploymentEnvironment],
       samplerRatio: env[EnvVar.OtelTracesSamplerArg],
     },
-    telegram: { transport: env[EnvVar.TelegramTransport] },
+    telegram: {
+      transport: env[EnvVar.TelegramTransport],
+      pollTimeoutSeconds: env[EnvVar.TelegramPollTimeoutSeconds],
+    },
   }));
