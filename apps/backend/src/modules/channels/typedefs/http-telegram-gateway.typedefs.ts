@@ -27,3 +27,24 @@ export interface TelegramWebhookInfoResponse {
   readonly last_error_date?: number;
   readonly last_error_message?: string;
 }
+
+export interface TelegramChatResponse {
+  readonly id: number;
+}
+
+export interface TelegramUserResponse {
+  readonly first_name?: string;
+}
+
+export interface TelegramMessageResponse {
+  readonly message_id: number;
+  readonly date: number;
+  readonly text?: string;
+  readonly chat: TelegramChatResponse;
+  readonly from?: TelegramUserResponse;
+}
+
+export interface TelegramUpdateResponse {
+  readonly update_id: number;
+  readonly message?: TelegramMessageResponse;
+}

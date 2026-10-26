@@ -10,12 +10,17 @@ import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import type {
   TelegramMeResponse,
+  TelegramMessageResponse,
+  TelegramUpdateResponse,
   TelegramWebhookInfoResponse,
   TelegramResponse,
 } from '@/modules/channels/typedefs/http-telegram-gateway.typedefs';
 import type {
+  GetTelegramUpdatesInput,
   SetTelegramWebhookInput,
   TelegramBot,
+  TelegramMessage,
+  TelegramUpdate,
   TelegramWebhookInfo,
 } from '@/modules/channels/typedefs/telegram.typedefs';
 import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
@@ -67,12 +72,35 @@ export class HttpTelegramGateway extends TelegramGateway {
     };
   }
 
-  private async call<TResult>(token: string, method: string, init: RequestInit): Promise<TResult> {
+  async getUpdates(input: GetTelegramUpdatesInput): Promise<TelegramUpdate[]> {
+    const result = await this.call<TelegramUpdateResponse[]>(
+      input.token,
+      'getUpdates',
+      {
+        method: 'POST',
+        headers: { [HttpHeader.ContentType]: TELEGRAM_CONTENT_TYPE },
+        body: JSON.stringify({
+          offset: input.offset,
+          timeout: input.timeoutSeconds,
+          allowed_updates: input.allowedUpdates,
+        }),
+      },
+      input.timeoutSeconds * MILLISECONDS_PER_SECOND + TELEGRAM_API_TIMEOUT_MS,
+    );
+    return result.map(toTelegramUpdate);
+  }
+
+  private async call<TResult>(
+    token: string,
+    method: string,
+    init: RequestInit,
+    timeoutMs: number = TELEGRAM_API_TIMEOUT_MS,
+  ): Promise<TResult> {
     let response: Response;
     try {
       response = await fetch(`${TELEGRAM_API_BASE_URL}/bot${token}/${method}`, {
         ...init,
-        signal: AbortSignal.timeout(TELEGRAM_API_TIMEOUT_MS),
+        signal: AbortSignal.timeout(timeoutMs),
       });
     } catch {
       throw new TelegramApiError({ method, status: null });
@@ -113,3 +141,16 @@ export class HttpTelegramGateway extends TelegramGateway {
     }
   }
 }
+
+const toTelegramUpdate = (update: TelegramUpdateResponse): TelegramUpdate => ({
+  updateId: String(update.update_id),
+  message: update.message === undefined ? null : toTelegramMessage(update.message),
+});
+
+const toTelegramMessage = (message: TelegramMessageResponse): TelegramMessage => ({
+  messageId: String(message.message_id),
+  sentAt: new Date(message.date * MILLISECONDS_PER_SECOND),
+  chatId: String(message.chat.id),
+  senderName: message.from?.first_name ?? null,
+  text: message.text ?? null,
+});
