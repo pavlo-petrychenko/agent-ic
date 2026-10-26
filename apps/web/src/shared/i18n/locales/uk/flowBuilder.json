@@ -402,7 +402,7 @@
       "noModels": "Моделей не знайдено",
       "modelsFailed": "Не вдалося завантажити моделі.",
       "pickModel": "Виберіть модель",
-      "modelOption": "{{label}} · {{vendor}} · {{input, currency(USD)}} / {{output, currency(USD)}} за 1M токенів",
+      "modelPrice": "{{vendor}} · {{input, currency(USD)}} / {{output, currency(USD)}} за 1M токенів",
       "vendor": {
         "openai": "OpenAI",
         "anthropic": "Anthropic",

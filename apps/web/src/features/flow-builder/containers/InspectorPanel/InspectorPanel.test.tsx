@@ -116,8 +116,9 @@ const WITH_KEYS = [
   llmKeyOptionsMock([OPENAI_KEY]),
   llmKeyModelsMock(OPENAI_KEY.id, OPENAI_KEY_MODELS),
 ];
-const LUNA_LABEL = 'GPT-6 Luna · OpenAI · $0.20 / $1.60 per 1M tokens';
-const FLASH_LABEL = 'GLM-5.3 Flash · Zhipu · $0.10 / $0.40 per 1M tokens';
+const LUNA_LABEL = 'GPT-6 Luna';
+const LUNA_PRICE = 'OpenAI · $0.20 / $1.60 per 1M tokens';
+const FLASH_LABEL = 'GLM-5.3 Flash';
 const open = (
   nodeId: string,
   document: FlowDocument = FLOW,
@@ -441,8 +442,11 @@ describe('InspectorPanel', () => {
     const model = screen.getByRole('button', { name: 'Model' });
     expect(model).toHaveAccessibleDescription('Pick a model');
     await user.click(model);
-    await user.click(await screen.findByRole('button', { name: LUNA_LABEL }));
+    const luna = await screen.findByRole('button', { name: LUNA_LABEL });
+    expect(luna).toHaveAccessibleDescription(LUNA_PRICE);
+    await user.click(luna);
     expect(model).toHaveTextContent(LUNA_LABEL);
+    expect(model).not.toHaveTextContent(LUNA_PRICE);
     expect(screen.getByText('Platform-provided')).toBeVisible();
     const reasoning = screen.getByRole('combobox', { name: 'Reasoning' });
     expect(
