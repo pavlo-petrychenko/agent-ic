@@ -54,6 +54,16 @@ export interface UseUpdateTelegramResult {
   readonly saving: boolean;
 }
 
+export interface ReplaceTelegramTokenVariables {
+  readonly id: string;
+  readonly token: string;
+}
+
+export interface UseReplaceTelegramTokenResult {
+  readonly replaceTelegramToken: (variables: ReplaceTelegramTokenVariables) => Promise<void>;
+  readonly replacing: boolean;
+}
+
 export interface TelegramBotStats {
   readonly chats: string;
   readonly messages: string;

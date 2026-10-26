@@ -140,6 +140,7 @@
       "subtitle": "Telegram bot · answered by {{agent}}",
       "unknownAgent": "No agent",
       "saved": "Channel settings saved",
+      "tokenReplaced": "Bot token replaced",
       "actions": {
         "disconnect": "Disconnect",
         "save": "Save"
@@ -152,6 +153,16 @@
         "warning": "Open Telegram chats stay readable in the Inbox, but nobody can reply to them until a bot is connected again.",
         "cancel": "Cancel",
         "confirm": "Disconnect"
+      },
+      "replaceDialog": {
+        "title": "Replace the token for {{username}}?",
+        "description": "Telegram bot · the webhook is registered again with the new token",
+        "tokenLabel": "New token from @BotFather",
+        "tokenHint": "In @BotFather, send /token, pick this bot and copy the new token.",
+        "tokenRequired": "Paste the token from @BotFather.",
+        "tokenError": "Telegram didn’t accept this token. It looks like 123456789:AA… — copy it again.",
+        "cancel": "Cancel",
+        "confirm": "Replace token"
       },
       "connection": {
         "title": "Connection",

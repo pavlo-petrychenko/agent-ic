@@ -23,6 +23,10 @@ const disconnectTelegram = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Pro
 
 const updateTelegram = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
 
+const replaceTelegramToken = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
+
+const NEW_TOKEN = `700000001:${'A'.repeat(35)}`;
+
 vi.mock('../../../agents', () => ({
   useAgents: () => ({
     agents: [
@@ -69,6 +73,13 @@ vi.mock('@/features/channels/communication/hooks/useUpdateTelegram', () => ({
   }),
 }));
 
+vi.mock('@/features/channels/communication/hooks/useReplaceTelegramToken', () => ({
+  useReplaceTelegramToken: () => ({
+    replaceTelegramToken,
+    replacing: false,
+  }),
+}));
+
 const renderPage = () =>
   renderWithProviders(
     <MemoryRouter>
@@ -101,6 +112,40 @@ describe('TelegramBotPage', () => {
         showTyping: true,
       });
     });
+  });
+
+  it('replaces the bot token', async () => {
+    replaceTelegramToken.mockClear();
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Replace token' }));
+    const dialog = screen.getByRole('dialog', {
+      name: 'Replace the token for @demo_salon_bot?',
+    });
+    await userEvent.type(within(dialog).getByRole('textbox'), NEW_TOKEN);
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Replace token' }));
+
+    await waitFor(() => {
+      expect(replaceTelegramToken).toHaveBeenCalledWith({ id: CHANNEL.id, token: NEW_TOKEN });
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  it('refuses a malformed replacement token', async () => {
+    replaceTelegramToken.mockClear();
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Replace token' }));
+    const dialog = screen.getByRole('dialog', {
+      name: 'Replace the token for @demo_salon_bot?',
+    });
+    await userEvent.type(within(dialog).getByRole('textbox'), 'not-a-token');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Replace token' }));
+
+    expect(within(dialog).getByText(/It looks like 123456789/)).toBeInTheDocument();
+    expect(replaceTelegramToken).not.toHaveBeenCalled();
   });
 
   it('opens and cancels the disconnect dialog', async () => {
