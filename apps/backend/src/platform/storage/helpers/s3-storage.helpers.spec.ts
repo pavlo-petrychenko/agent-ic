@@ -3,6 +3,7 @@ import type { HeadObjectCommandOutput } from '@aws-sdk/client-s3';
 import { describe, expect, it } from 'vitest';
 import {
   isMissingS3Object,
+  s3CopySource,
   storedObjectFromHead,
 } from '@/platform/storage/helpers/s3-storage.helpers';
 
@@ -23,6 +24,14 @@ describe('isMissingS3Object', () => {
   it('keeps every other failure', () => {
     expect(isMissingS3Object(serviceException('AccessDenied', 403))).toBe(false);
     expect(isMissingS3Object(new Error('network'))).toBe(false);
+  });
+});
+
+describe('s3CopySource', () => {
+  it('keeps slashes and encodes each key segment', () => {
+    expect(s3CopySource('bucket', 'workspaces/a/knowledge/my file.pdf')).toBe(
+      'bucket/workspaces/a/knowledge/my%20file.pdf',
+    );
   });
 });
 

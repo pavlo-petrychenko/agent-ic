@@ -10,6 +10,8 @@ export abstract class FileStorage {
 
   abstract delete(key: string): Promise<void>;
 
+  abstract copy(sourceKey: string, targetKey: string): Promise<void>;
+
   abstract presignPut(key: string, contentType: string, expiresInSeconds: number): Promise<string>;
 
   abstract presignGet(key: string, expiresInSeconds: number): Promise<string>;

@@ -6,6 +6,9 @@ import {
 } from '@/platform/storage/constants/storage.constants';
 import type { StoredObject } from '@/platform/storage/typedefs/storage.typedefs';
 
+export const s3CopySource = (bucket: string, key: string): string =>
+  `${bucket}/${key.split('/').map(encodeURIComponent).join('/')}`;
+
 export const isMissingS3Object = (error: unknown): boolean =>
   error instanceof S3ServiceException &&
   (error.$metadata.httpStatusCode === S3_OBJECT_NOT_FOUND_STATUS ||

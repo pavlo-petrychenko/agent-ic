@@ -24,6 +24,21 @@ describe('FakeFileStorage', () => {
     await expect(storage.get(key)).rejects.toThrow(STORAGE_OBJECT_MISSING_MESSAGE);
   });
 
+  it('copies an object without removing the source', async () => {
+    const storage = new FakeFileStorage();
+    const source = 'workspaces/workspace-id/knowledge/uploads/document/original.txt';
+    const target = 'workspaces/workspace-id/knowledge/documents/document/original.txt';
+    await storage.put(source, Buffer.from('hello'), 'text/plain');
+
+    await storage.copy(source, target);
+
+    await expect(storage.head(target)).resolves.toMatchObject({
+      size: 5,
+      contentType: 'text/plain',
+    });
+    await expect(storage.head(source)).resolves.not.toBeNull();
+  });
+
   it('records the presigned requests', async () => {
     const storage = new FakeFileStorage();
     const key = 'workspaces/workspace-id/knowledge/original.txt';

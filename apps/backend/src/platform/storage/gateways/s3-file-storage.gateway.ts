@@ -1,5 +1,6 @@
 import { Readable } from 'node:stream';
 import {
+  CopyObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
@@ -13,6 +14,7 @@ import { STORAGE_UNREADABLE_BODY_MESSAGE } from '@/platform/storage/constants/st
 import { FileStorage } from '@/platform/storage/gateways/file-storage.gateway';
 import {
   isMissingS3Object,
+  s3CopySource,
   storedObjectFromHead,
 } from '@/platform/storage/helpers/s3-storage.helpers';
 import type { StoredObject } from '@/platform/storage/typedefs/storage.typedefs';
@@ -76,6 +78,16 @@ export class S3FileStorageGateway extends FileStorage {
 
   async delete(key: string): Promise<void> {
     await this.internal.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
+  }
+
+  async copy(sourceKey: string, targetKey: string): Promise<void> {
+    await this.internal.send(
+      new CopyObjectCommand({
+        Bucket: this.bucket,
+        Key: targetKey,
+        CopySource: s3CopySource(this.bucket, sourceKey),
+      }),
+    );
   }
 
   async presignPut(key: string, contentType: string, expiresInSeconds: number): Promise<string> {
