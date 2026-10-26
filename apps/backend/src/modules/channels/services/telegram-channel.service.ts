@@ -22,7 +22,7 @@ export class TelegramChannelService {
     private readonly telegram: TelegramGateway,
     private readonly channelTokens: ChannelTokenService,
     private readonly secureTokens: SecureTokenService,
-    private readonly config: ConfigService,
+    private readonly configService: ConfigService,
     private readonly ids: IdService,
   ) {}
 
@@ -56,7 +56,7 @@ export class TelegramChannelService {
     await this.telegram.setWebhook({
       token: input.token,
       url: telegramWebhookUrl(
-        this.config.config.publicUrl,
+        this.configService.config.publicUrl,
         this.ids.toPublic(IdPrefix.Workspace, input.workspaceId),
         this.ids.toPublic(IdPrefix.Channel, input.channelId),
       ),
@@ -70,6 +70,6 @@ export class TelegramChannelService {
   }
 
   private usesWebhook(): boolean {
-    return this.config.config.telegram.transport === TelegramTransport.Webhook;
+    return this.configService.config.telegram.transport === TelegramTransport.Webhook;
   }
 }
