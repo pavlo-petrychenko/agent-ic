@@ -25,6 +25,10 @@ export { IdPrefix } from '@contracts/ids/id-prefix.constants';
 export {
   KNOWLEDGE_BASE_DESCRIPTION_MAX_LENGTH,
   KNOWLEDGE_BASE_NAME_MAX_LENGTH,
+  KNOWLEDGE_DOCUMENT_MAX_BYTES,
+  KNOWLEDGE_DOCUMENT_MAX_TOKENS,
+  KNOWLEDGE_DOCUMENT_TITLE_MAX_LENGTH,
+  KnowledgeDocumentFormat,
 } from '@contracts/knowledge/knowledge.constants';
 export {
   LLM_KEY_MIN_LENGTH,
