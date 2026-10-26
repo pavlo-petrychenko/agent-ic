@@ -4,12 +4,19 @@ import { DocumentParseError } from '@/modules/knowledge/errors/document-parse.er
 import {
   documentTokenCount,
   textTokenCount,
+  truncateTextToTokens,
 } from '@/modules/knowledge/helpers/document-token.helpers';
 
 describe('documentTokenCount', () => {
   it('counts tokens with the cl100k tokenizer', () => {
     expect(documentTokenCount('hello world')).toBe(2);
     expect(textTokenCount('hello world')).toBe(2);
+  });
+
+  it('truncates text to the requested token count', () => {
+    expect(truncateTextToTokens('hello world', 1)).toBe('hello');
+    expect(truncateTextToTokens('hello world', 10)).toBe('hello world');
+    expect(truncateTextToTokens('hello world', 0)).toBe('');
   });
 
   it('allows a document at the limit', () => {
