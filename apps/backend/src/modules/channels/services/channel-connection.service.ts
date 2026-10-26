@@ -9,6 +9,7 @@ import type {
   CompleteChannelConnectionInput,
   NewChannel,
   PrepareChannelConnectionInput,
+  ReplaceChannelCredentialsInput,
   UpdateChannelSettingsInput,
 } from '@/modules/channels/typedefs/channel.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
@@ -94,6 +95,22 @@ export class ChannelConnectionService {
       const channel = await this.channels.updateSettings(input.workspaceId, input.channelId, {
         agentId: input.agentId,
         showTyping: input.showTyping,
+        updatedAt: this.clock.now(),
+        updatedByUserId: input.updatedByUserId,
+      });
+      if (channel === null) {
+        throw new ChannelNotFoundError();
+      }
+      return toChannelView(channel, this.ids);
+    });
+  }
+
+  replaceCredentials(input: ReplaceChannelCredentialsInput): Promise<ChannelView> {
+    return this.tenantTransactions.run(input.workspaceId, async () => {
+      const channel = await this.channels.updateCredentials(input.workspaceId, input.channelId, {
+        status: ChannelStatus.Connected,
+        identity: input.identity,
+        credentialsSealed: input.credentialsSealed,
         updatedAt: this.clock.now(),
         updatedByUserId: input.updatedByUserId,
       });
