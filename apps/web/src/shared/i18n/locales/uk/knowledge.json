@@ -92,6 +92,41 @@
     "retry_other": "Повторити {{count}} файлу",
     "submitEmpty": "Додати файли"
   },
+  "sources": {
+    "title": "Джерела",
+    "add": "Додати джерело",
+    "tableLabel": "Джерела знань",
+    "loading": "Завантаження джерел",
+    "loadError": "Не вдалося завантажити джерела.",
+    "columns": {
+      "source": "Джерело",
+      "type": "Тип",
+      "sync": "Синхронізація",
+      "status": "Стан індексації"
+    },
+    "kind": {
+      "upload": "Завантажений файл",
+      "googleDocs": "Google Docs"
+    },
+    "sync": {
+      "oneTime": "Одноразовий імпорт",
+      "connected": "Підключено",
+      "added": "Додано {{date}}"
+    },
+    "status": {
+      "queued": "У черзі",
+      "indexing": "Індексується",
+      "indexed": "Проіндексовано",
+      "failed": "Помилка",
+      "pendingDetail": "Очікує індексації",
+      "indexingDetail": "Готуємо фрагменти",
+      "errorDetail": "Не вдалося проіндексувати"
+    },
+    "chunks_one": "{{count}} фрагмент",
+    "chunks_few": "{{count}} фрагменти",
+    "chunks_many": "{{count}} фрагментів",
+    "chunks_other": "{{count}} фрагмента"
+  },
   "delete": {
     "action": "Видалити",
     "title": "Видалити «{{name}}»?",
