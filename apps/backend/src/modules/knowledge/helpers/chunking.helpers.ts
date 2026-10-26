@@ -173,7 +173,10 @@ const tablePieces = (table: string): string[] => {
       currentRows += 1;
     }
   }
-  return currentRows === 0 ? [content] : [...pieces, current];
+  const built = currentRows === 0 ? [content] : [...pieces, current];
+  return built.flatMap((piece) =>
+    textTokenCount(piece) <= KNOWLEDGE_CHUNK_MAX_TOKENS ? [piece] : splitOther(piece),
+  );
 };
 
 const overlapSuffix = (text: string): string => {
