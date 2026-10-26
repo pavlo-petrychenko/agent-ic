@@ -25,7 +25,7 @@ export class KnowledgeEmbeddingService {
 
   async embed(input: KnowledgeEmbeddingInput): Promise<KnowledgeEmbeddingResult> {
     if (input.chunks.length === 0) {
-      return { chunks: [], tokens: 0 };
+      return { chunks: [] };
     }
     const chunksByHash = new Map<string, IndexedDocumentChunk>();
     for (const chunk of input.chunks) {
@@ -52,7 +52,6 @@ export class KnowledgeEmbeddingService {
       .filter(([contentHash]) => !cached.has(contentHash))
       .map(([, chunk]) => chunk);
 
-    let tokens = 0;
     let embeddingModel = input.model;
     let embeddingDimensions = input.dimensions;
     const fresh = new Map<string, readonly number[]>();
@@ -77,7 +76,6 @@ export class KnowledgeEmbeddingService {
           result.dimensions,
         );
       }
-      tokens = result.tokens;
       embeddingModel = result.model;
       embeddingDimensions = result.dimensions;
       for (const [index, chunk] of misses.entries()) {
@@ -116,6 +114,6 @@ export class KnowledgeEmbeddingService {
         embeddingDimensions,
       };
     });
-    return { chunks, tokens };
+    return { chunks };
   }
 }

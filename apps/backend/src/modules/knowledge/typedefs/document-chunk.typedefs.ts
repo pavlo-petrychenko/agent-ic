@@ -16,6 +16,7 @@ export interface ChunkUnit {
 export interface SectionChunk {
   readonly content: string;
   readonly prose: boolean;
+  readonly tokenCount: number;
 }
 
 export interface ChunkDraft {

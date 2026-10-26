@@ -18,6 +18,21 @@ export const truncateTextToTokens = (text: string, maxTokens: number): string =>
   return tokens.length <= maxTokens ? text : decode(tokens.slice(0, maxTokens));
 };
 
+export const splitTextToTokenPieces = (text: string, maxTokens: number): string[] => {
+  if (maxTokens <= 0 || text.length === 0) {
+    return [];
+  }
+  const tokens = encode(text);
+  if (tokens.length <= maxTokens) {
+    return [text];
+  }
+  const pieces: string[] = [];
+  for (let start = 0; start < tokens.length; start += maxTokens) {
+    pieces.push(decode(tokens.slice(start, start + maxTokens)));
+  }
+  return pieces;
+};
+
 export const documentTokenCount = (
   markdown: string,
   maxTokens = KNOWLEDGE_DOCUMENT_MAX_TOKENS,

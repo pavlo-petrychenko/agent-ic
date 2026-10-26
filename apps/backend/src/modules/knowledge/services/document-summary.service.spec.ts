@@ -57,8 +57,6 @@ describe('DocumentSummaryService', () => {
     expect(result).toEqual({
       summary: 'Gift-card rules.',
       generated: false,
-      model: null,
-      usage: null,
       warnings: [],
     });
     expect(gateway.requests).toHaveLength(0);
@@ -79,8 +77,6 @@ describe('DocumentSummaryService', () => {
     expect(result).toMatchObject({
       summary: TEST_SUMMARY,
       generated: true,
-      model: LLM_DEFAULT_MODEL[LlmPurpose.Light],
-      usage: { inputTokens: TEST_INPUT_TOKENS, outputTokens: TEST_OUTPUT_TOKENS },
       warnings: [],
     });
     expect(gateway.requests).toHaveLength(1);

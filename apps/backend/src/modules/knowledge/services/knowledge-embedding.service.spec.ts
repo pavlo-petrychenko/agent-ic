@@ -130,13 +130,12 @@ const input = (chunks: readonly IndexedDocumentChunk[]) => ({
 });
 
 describe('KnowledgeEmbeddingService', () => {
-  it('returns no chunks and no tokens for an empty input', async () => {
+  it('returns no chunks for an empty input', async () => {
     const gateway = new FakeEmbeddingGateway();
     const cache = new FakeEmbeddingCache();
 
     await expect(serviceWith(gateway, cache).embed(input([]))).resolves.toEqual({
       chunks: [],
-      tokens: 0,
     });
     expect(gateway.calls).toHaveLength(0);
   });
@@ -159,7 +158,6 @@ describe('KnowledgeEmbeddingService', () => {
       model: TEST_MODEL,
       tags: { traceName: 'knowledge.chunk.embedding', workspaceId: TEST_WORKSPACE_ID },
     });
-    expect(result.tokens).toBe(10);
     expect(result.chunks.map(({ embedding }) => embedding)).toEqual([
       TEST_EMBEDDING_VECTOR,
       TEST_EMBEDDING_VECTOR,
@@ -196,7 +194,7 @@ describe('KnowledgeEmbeddingService', () => {
     );
 
     expect(gateway.calls).toHaveLength(0);
-    expect(result.tokens).toBe(0);
+    expect(result.chunks).toHaveLength(2);
     expect(cache.inserted).toHaveLength(0);
     expect(cache.updated).toEqual(['hash-a', 'hash-b']);
   });
