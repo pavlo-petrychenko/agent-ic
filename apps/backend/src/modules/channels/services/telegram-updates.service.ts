@@ -16,7 +16,7 @@ import { TenantTransactionService } from '@/platform/database/services/tenant-tr
 import { IdService } from '@/platform/ids/services/id.service';
 
 @Injectable()
-export class ReceiveTelegramUpdateUseCase {
+export class TelegramUpdatesService {
   constructor(
     private readonly tenantTransactions: TenantTransactionService,
     private readonly channels: ChannelsRepository,
@@ -26,7 +26,7 @@ export class ReceiveTelegramUpdateUseCase {
     private readonly ids: IdService,
   ) {}
 
-  async execute(
+  async handleTelegramUpdate(
     ctx: UseCaseCtx,
     input: ReceiveTelegramUpdateInput,
   ): Promise<IncomingMessageResult | null> {
