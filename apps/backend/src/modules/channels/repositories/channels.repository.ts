@@ -5,6 +5,7 @@ import { channels } from '@/modules/channels/db/channels.table';
 import type {
   ChannelPatch,
   ChannelRecord,
+  ChannelSettingsPatch,
   NewChannel,
 } from '@/modules/channels/typedefs/channel.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
@@ -83,10 +84,24 @@ export class ChannelsRepository {
     id: string,
     status: ChannelRecord['status'],
     updatedAt: Date,
+    updatedByUserId: string,
   ): Promise<ChannelRecord | null> {
     const [channel] = await this.txHost.tx
       .update(channels)
-      .set({ status, updatedAt })
+      .set({ status, updatedAt, updatedByUserId })
+      .where(and(eq(channels.workspaceId, workspaceId), eq(channels.id, id)))
+      .returning();
+    return channel ?? null;
+  }
+
+  async updateSettings(
+    workspaceId: string,
+    id: string,
+    patch: ChannelSettingsPatch,
+  ): Promise<ChannelRecord | null> {
+    const [channel] = await this.txHost.tx
+      .update(channels)
+      .set(patch)
       .where(and(eq(channels.workspaceId, workspaceId), eq(channels.id, id)))
       .returning();
     return channel ?? null;

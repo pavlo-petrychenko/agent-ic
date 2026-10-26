@@ -39,6 +39,7 @@ const channelPatch = (
   showTyping: channel.showTyping,
   credentialsSealed: channel.credentialsSealed,
   updatedAt: channel.updatedAt,
+  updatedByUserId: channel.updatedByUserId ?? channel.createdByUserId,
   ...overrides,
 });
 

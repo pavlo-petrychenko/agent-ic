@@ -42,6 +42,7 @@ export class ConnectTelegramChannelUseCase {
       showTyping: data.showTyping,
       credentialsSealed: credentials.sealed,
       createdByUserId: access.userId,
+      updatedByUserId: access.userId,
     });
     await this.telegram.configureTransport({
       token: data.token,
@@ -52,6 +53,7 @@ export class ConnectTelegramChannelUseCase {
     return this.connections.complete({
       workspaceId: access.workspaceId,
       channelId,
+      updatedByUserId: access.userId,
     });
   }
 }

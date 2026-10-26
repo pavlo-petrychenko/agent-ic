@@ -17,6 +17,14 @@ export interface ChannelPatch {
   readonly showTyping: boolean;
   readonly credentialsSealed: string;
   readonly updatedAt: Date;
+  readonly updatedByUserId: string;
+}
+
+export interface ChannelSettingsPatch {
+  readonly agentId: string;
+  readonly showTyping: boolean;
+  readonly updatedAt: Date;
+  readonly updatedByUserId: string;
 }
 
 export interface ChannelView {
@@ -27,6 +35,7 @@ export interface ChannelView {
   readonly displayName: string;
   readonly firstName: string | null;
   readonly tokenMasked: string | null;
+  readonly updatedByName: string | null;
   readonly showTyping: boolean;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -51,9 +60,25 @@ export interface PrepareChannelConnectionInput {
   readonly showTyping: boolean;
   readonly credentialsSealed: string;
   readonly createdByUserId: string;
+  readonly updatedByUserId: string;
 }
 
 export interface CompleteChannelConnectionInput {
   readonly workspaceId: string;
   readonly channelId: string;
+  readonly updatedByUserId: string;
+}
+
+export interface UpdateTelegramChannelInput {
+  readonly id: string;
+  readonly agentId: string;
+  readonly showTyping: boolean;
+}
+
+export interface UpdateChannelSettingsInput {
+  readonly workspaceId: string;
+  readonly channelId: string;
+  readonly agentId: string;
+  readonly showTyping: boolean;
+  readonly updatedByUserId: string;
 }
