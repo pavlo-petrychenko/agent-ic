@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { syncRuns } from '@/modules/knowledge/db/sync-runs.table';
 import type {
   NewSyncRun,
@@ -32,6 +32,16 @@ export class SyncRunsRepository {
       .select()
       .from(syncRuns)
       .where(and(eq(syncRuns.workspaceId, workspaceId), eq(syncRuns.id, syncRunId)));
+    return syncRun ?? null;
+  }
+
+  async findLatestBySource(workspaceId: string, sourceId: string): Promise<SyncRun | null> {
+    const [syncRun] = await this.txHost.tx
+      .select()
+      .from(syncRuns)
+      .where(and(eq(syncRuns.workspaceId, workspaceId), eq(syncRuns.sourceId, sourceId)))
+      .orderBy(desc(syncRuns.createdAt), desc(syncRuns.id))
+      .limit(1);
     return syncRun ?? null;
   }
 

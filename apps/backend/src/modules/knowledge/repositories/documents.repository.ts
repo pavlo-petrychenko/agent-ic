@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, asc, eq, isNull } from 'drizzle-orm';
 import { documents } from '@/modules/knowledge/db/documents.table';
 import type {
   Document,
@@ -34,6 +34,20 @@ export class DocumentsRepository {
       .from(documents)
       .where(this.activeWhere(workspaceId, documentId));
     return document ?? null;
+  }
+
+  async listBySource(workspaceId: string, sourceId: string): Promise<Document[]> {
+    return this.txHost.tx
+      .select()
+      .from(documents)
+      .where(
+        and(
+          eq(documents.workspaceId, workspaceId),
+          eq(documents.sourceId, sourceId),
+          isNull(documents.deletedAt),
+        ),
+      )
+      .orderBy(asc(documents.createdAt), asc(documents.id));
   }
 
   async update(
