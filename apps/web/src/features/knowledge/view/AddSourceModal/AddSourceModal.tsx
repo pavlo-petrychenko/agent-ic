@@ -18,30 +18,69 @@ const UPLOAD_ICON_SIZE = 15;
 const SOURCE_CHECK_ICON_SIZE = 12;
 const SOURCE_CHECK_STROKE_WIDTH = 2.2;
 
+const STATUS_TONES: Readonly<Record<KnowledgeFileStatus, BadgeTone>> = {
+  [KnowledgeFileStatus.Ready]: BadgeTone.Neutral,
+  [KnowledgeFileStatus.Uploading]: BadgeTone.Accent,
+  [KnowledgeFileStatus.Uploaded]: BadgeTone.Ok,
+  [KnowledgeFileStatus.Failed]: BadgeTone.Err,
+  [KnowledgeFileStatus.Skipped]: BadgeTone.Err,
+};
+
 export function AddSourceModal({
   knowledgeBaseName,
   files,
   readyCount,
+  uploadingCount,
+  uploadedCount,
+  failedCount,
   skippedCount,
+  uploading,
   onFiles,
   onRemoveFile,
   onSubmit,
   onClose,
 }: AddSourceModalProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
+  const actionCount = readyCount + failedCount;
   const summary =
     files.length === 0
       ? t('add.noFiles')
       : [
           readyCount > 0 ? t('add.ready', { count: readyCount }) : null,
+          uploadingCount > 0 ? t('add.uploading', { count: uploadingCount }) : null,
+          uploadedCount > 0 ? t('add.uploaded', { count: uploadedCount }) : null,
+          failedCount > 0 ? t('add.failed', { count: failedCount }) : null,
           skippedCount > 0 ? t('add.skipped', { count: skippedCount }) : null,
         ]
           .filter((part) => part !== null)
           .join(' · ');
 
+  const statusLabel = (status: KnowledgeFileStatus): string => {
+    switch (status) {
+      case KnowledgeFileStatus.Ready:
+        return t('add.statusReady');
+      case KnowledgeFileStatus.Uploading:
+        return t('add.statusUploading');
+      case KnowledgeFileStatus.Uploaded:
+        return t('add.statusUploaded');
+      case KnowledgeFileStatus.Failed:
+        return t('add.statusFailed');
+      case KnowledgeFileStatus.Skipped:
+        return t('add.statusSkipped');
+    }
+  };
+
+  const submitLabel =
+    actionCount === 0
+      ? t('add.submitEmpty')
+      : failedCount > 0 && readyCount === 0
+        ? t('add.retry', { count: actionCount })
+        : t('add.submit', { count: actionCount });
+
   return (
     <Dialog
       open
+      busy={uploading}
       onOpenChange={(open) => {
         if (!open) {
           onClose();
@@ -55,11 +94,11 @@ export function AddSourceModal({
       footerLeft={<span className={styles.summary}>{summary}</span>}
       footerRight={
         <>
-          <Button variant={ButtonVariant.Secondary} onClick={onClose}>
+          <Button variant={ButtonVariant.Secondary} disabled={uploading} onClick={onClose}>
             {t('dialog.cancel')}
           </Button>
-          <Button disabled={readyCount === 0} onClick={onSubmit}>
-            {readyCount === 0 ? t('add.submitEmpty') : t('add.submit', { count: readyCount })}
+          <Button loading={uploading} disabled={actionCount === 0} onClick={onSubmit}>
+            {submitLabel}
           </Button>
         </>
       }
@@ -116,6 +155,7 @@ export function AddSourceModal({
             dragTitle={(count) => t('add.dropDrag', { count })}
             browseLabel={t('add.browse')}
             hint={t('add.hint', { max: KNOWLEDGE_UPLOAD_MAX_MEGABYTES })}
+            disabled={uploading}
             onFiles={onFiles}
             formatResult={(count) => t('add.filesSelected', { count })}
           />
@@ -136,16 +176,14 @@ export function AddSourceModal({
                     name={file.name}
                     subtitle={file.subtitle}
                     status={
-                      <Badge
-                        tone={
-                          file.status === KnowledgeFileStatus.Ready ? BadgeTone.Ok : BadgeTone.Err
-                        }
-                        dot
-                      >
-                        {file.status === KnowledgeFileStatus.Ready
-                          ? t('add.statusReady')
-                          : t('add.statusSkipped')}
+                      <Badge tone={STATUS_TONES[file.status]} dot>
+                        {statusLabel(file.status)}
                       </Badge>
+                    }
+                    disabled={
+                      uploading ||
+                      file.status === KnowledgeFileStatus.Uploading ||
+                      file.status === KnowledgeFileStatus.Uploaded
                     }
                     removeLabel={t('add.remove')}
                     onRemove={() => onRemoveFile(file.id)}

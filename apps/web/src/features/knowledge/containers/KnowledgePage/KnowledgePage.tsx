@@ -124,7 +124,12 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
         <NewKnowledgeBaseDialog onClose={() => setCreating(false)} onCreated={onCreated} />
       )}
       {addingSource && selected !== null && (
-        <AddSourceDialog knowledgeBaseName={selected.name} onClose={() => setAddingSource(false)} />
+        <AddSourceDialog
+          knowledgeBaseId={selected.id}
+          knowledgeBaseName={selected.name}
+          onClose={() => setAddingSource(false)}
+          onUploaded={() => void retry()}
+        />
       )}
       {deleteTarget !== null && (
         <DeleteKnowledgeBaseDialog

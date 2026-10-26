@@ -4,6 +4,7 @@ import { KnowledgeFileSkipReason } from '@/features/knowledge/constants/knowledg
 import {
   formatKnowledgeFileSize,
   knowledgeFileExtension,
+  knowledgeFileMimeType,
   knowledgeFileSkipReason,
   knowledgeFileTypeLabel,
 } from '@/features/knowledge/logic/helpers/knowledgeUpload.helpers';
@@ -31,6 +32,12 @@ describe('knowledge upload helpers', () => {
   it('accepts supported files within the limit', () => {
     expect(knowledgeFileSkipReason(fileOf('guide.pdf'))).toBeNull();
     expect(knowledgeFileSkipReason(fileOf('notes.TXT'))).toBeNull();
+  });
+
+  it('maps supported extensions to upload MIME types', () => {
+    expect(knowledgeFileMimeType('guide.pdf')).toBe('application/pdf');
+    expect(knowledgeFileMimeType('notes.MD')).toBe('text/markdown');
+    expect(knowledgeFileMimeType('unknown.bin')).toBe('application/octet-stream');
   });
 
   it('formats file sizes', () => {
