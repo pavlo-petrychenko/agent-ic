@@ -3,12 +3,14 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { RunStatus } from '@/modules/runs/constants/run.constants';
 import { RunLifecycleService } from '@/modules/runs/services/run-lifecycle.service';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
+import { FINAL_ATTEMPT, RETRYABLE_ATTEMPT } from '@test/support/constants/async-jobs.constants';
 import {
   AgentChange,
   FIRST_STEP_ID,
   FIRST_STEP_KEY,
   SECOND_STEP_ID,
   SECOND_STEP_KEY,
+  StepScript,
 } from '@test/support/constants/runs-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import {
@@ -17,6 +19,7 @@ import {
   stepFlow,
   triggerOnlyFlow,
 } from '@test/support/fixtures/runs.fixture';
+import { SampleUnavailableError } from '@test/support/fixtures/sample-errors.fixture';
 import {
   changeAgent,
   createRunLifecycleTestbed,
@@ -47,9 +50,17 @@ describe('ExecuteRunUseCase', () => {
     const second = await receiveMessage(testbed, seeded);
     const third = await receiveMessage(testbed, seeded);
 
-    const followUp = await testbed.executeRun.execute(seeded.ctx, { runId: String(first.run?.id) });
+    const followUp = await testbed.executeRun.execute(
+      seeded.ctx,
+      { runId: String(first.run?.id) },
+      RETRYABLE_ATTEMPT,
+    );
     const during = await readLifecycle(testbed, seeded);
-    const last = await testbed.executeRun.execute(seeded.ctx, { runId: String(followUp?.id) });
+    const last = await testbed.executeRun.execute(
+      seeded.ctx,
+      { runId: String(followUp?.id) },
+      RETRYABLE_ATTEMPT,
+    );
 
     const after = await readLifecycle(testbed, seeded);
     expect([second.run, third.run, last]).toEqual([null, null, null]);
@@ -68,12 +79,34 @@ describe('ExecuteRunUseCase', () => {
     await changeAgent(testbed, seeded, AgentChange.Delete);
     const runId = String(run?.id);
 
-    const execution = testbed.executeRun.execute(seeded.ctx, { runId });
+    const execution = testbed.executeRun.execute(seeded.ctx, { runId }, RETRYABLE_ATTEMPT);
 
     await expect(execution).rejects.toMatchObject({ reason: ErrorReason.AgentNotFound });
     const after = await readLifecycle(testbed, seeded);
     expect(testbed.executor.callsFor(runId, FIRST_STEP_ID)).toBe(0);
     expect(after.latest).toMatchObject({ id: run?.id, status: RunStatus.Failed });
+    expect(after.conversation?.activeRunId).toBeNull();
+  });
+
+  it('fails the run and frees the conversation when its last attempt fails', async () => {
+    const seeded = await seedLiveConversation(testbed, oneStep(FIRST_STEP_ID, FIRST_STEP_KEY));
+    const { run } = await receiveMessage(testbed, seeded);
+    const runId = String(run?.id);
+    testbed.executor.script(FIRST_STEP_ID, StepScript.Unavailable, StepScript.Unavailable);
+
+    const retried = testbed.executeRun.execute(seeded.ctx, { runId }, RETRYABLE_ATTEMPT);
+    await expect(retried).rejects.toBeInstanceOf(SampleUnavailableError);
+    const during = await readLifecycle(testbed, seeded);
+    const followUp = await testbed.executeRun.execute(seeded.ctx, { runId }, FINAL_ATTEMPT);
+
+    const after = await readLifecycle(testbed, seeded);
+    expect(during.latest).toMatchObject({ id: runId, status: RunStatus.Running });
+    expect(followUp).toBeNull();
+    expect(after.latest).toMatchObject({
+      id: runId,
+      status: RunStatus.Failed,
+      error: { reason: ErrorReason.UpstreamFailed, nodeId: FIRST_STEP_ID },
+    });
     expect(after.conversation?.activeRunId).toBeNull();
   });
 
@@ -83,7 +116,11 @@ describe('ExecuteRunUseCase', () => {
     const published = await republish(testbed, seeded, oneStep(SECOND_STEP_ID, SECOND_STEP_KEY));
     await receiveMessage(testbed, seeded);
 
-    const followUp = await testbed.executeRun.execute(seeded.ctx, { runId: String(run?.id) });
+    const followUp = await testbed.executeRun.execute(
+      seeded.ctx,
+      { runId: String(run?.id) },
+      RETRYABLE_ATTEMPT,
+    );
 
     const runId = String(run?.id);
     expect(testbed.executor.callsFor(runId, FIRST_STEP_ID)).toBe(1);
@@ -98,7 +135,7 @@ describe('ExecuteRunUseCase', () => {
       const { workspaceId } = seeded.conversation;
       const runId = String((await receiveMessage(testbed, seeded)).run?.id);
       await receiveMessage(testbed, seeded);
-      await testbed.execution.execute(seeded.ctx, workspaceId, runId);
+      await testbed.execution.execute(seeded.ctx, workspaceId, runId, RETRYABLE_ATTEMPT);
       await changeAgent(testbed, seeded, change);
 
       const followUp = await testbed.tenants.run(workspaceId, () =>

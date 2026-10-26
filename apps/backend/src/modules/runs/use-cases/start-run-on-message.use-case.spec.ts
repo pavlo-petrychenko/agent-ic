@@ -3,6 +3,7 @@ import { RunStatus } from '@/modules/runs/constants/run.constants';
 import { executeRunJob } from '@/modules/runs/jobs/execute-run.job';
 import { StartRunOnMessageUseCase } from '@/modules/runs/use-cases/start-run-on-message.use-case';
 import { JobHandlersService } from '@/platform/queues/services/job-handlers.service';
+import { RETRYABLE_ATTEMPT } from '@test/support/constants/async-jobs.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { triggerOnlyFlow } from '@test/support/fixtures/runs.fixture';
 import {
@@ -45,7 +46,7 @@ describe('StartRunOnMessageUseCase', () => {
   it('starts nothing for a message that an earlier run already covered', async () => {
     const seeded = await seedLiveConversation(testbed, triggerOnlyFlow());
     const { message, run } = await receiveMessage(testbed, seeded);
-    await testbed.executeRun.execute(seeded.ctx, { runId: String(run?.id) });
+    await testbed.executeRun.execute(seeded.ctx, { runId: String(run?.id) }, RETRYABLE_ATTEMPT);
 
     const { id: conversationId, agentId, mode } = seeded.conversation;
     const repeat = { conversationId, messageId: message.id, agentId, mode };

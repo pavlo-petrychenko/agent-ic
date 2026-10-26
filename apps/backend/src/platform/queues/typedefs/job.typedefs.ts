@@ -32,8 +32,12 @@ export interface JobEnvelope {
   readonly initiatedBy: Actor;
 }
 
+export interface JobAttempt {
+  readonly final: boolean;
+}
+
 export interface JobHandler<TData extends JobData> {
-  handle(ctx: UseCaseCtx, data: TData): Promise<void>;
+  handle(ctx: UseCaseCtx, data: TData, attempt: JobAttempt): Promise<void>;
 }
 
 export interface RegisteredJobHandler {
@@ -50,3 +54,5 @@ export interface JobEnqueueOptions extends Partial<EnqueueOptions> {
 }
 
 export type TrackedJob = Pick<Job, 'name' | 'timestamp' | 'attemptsMade' | 'opts'>;
+
+export type AttemptedJob = Pick<Job, 'attemptsMade' | 'opts'>;
