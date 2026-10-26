@@ -14,5 +14,4 @@ export interface DocumentIngestionInput {
 
 export interface DocumentIngestionResult {
   readonly skipped: boolean;
-  readonly chunkCount: number;
 }

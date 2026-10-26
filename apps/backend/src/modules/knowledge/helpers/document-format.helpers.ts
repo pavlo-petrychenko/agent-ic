@@ -9,7 +9,7 @@ import {
 import { DocumentParseError } from '@/modules/knowledge/errors/document-parse.error';
 import { documentFileName } from '@/modules/knowledge/helpers/document-file-name.helpers';
 
-const normalizedMimeType = (mimeType: string): string =>
+export const normalizeDocumentMimeType = (mimeType: string): string =>
   mimeType.split(DOCUMENT_MIME_TYPE_SEPARATOR)[0]?.trim().toLowerCase() ?? '';
 
 const formatByMimeType = (mimeType: string): KnowledgeDocumentFormat | null =>
@@ -24,7 +24,7 @@ export const resolveDocumentFormat = (
 ): KnowledgeDocumentFormat => {
   const format =
     formatByExtension(documentFileName(fileName).extension) ??
-    formatByMimeType(normalizedMimeType(mimeType));
+    formatByMimeType(normalizeDocumentMimeType(mimeType));
 
   if (format === null) {
     throw new DocumentParseError(DocumentParseErrorCode.UnsupportedType);

@@ -29,6 +29,16 @@ export class DocumentsRepository {
     );
   }
 
+  async insertIfAbsent(document: NewDocument): Promise<Document | null> {
+    const now = this.clock.now();
+    const [stored] = await this.txHost.tx
+      .insert(documents)
+      .values({ ...document, createdAt: now, updatedAt: now })
+      .onConflictDoNothing({ target: documents.id })
+      .returning();
+    return stored ?? null;
+  }
+
   async findById(workspaceId: string, documentId: string): Promise<Document | null> {
     const [document] = await this.txHost.tx
       .select()

@@ -10,6 +10,7 @@ export const knowledgeUploadTicketSchema = z.object({
   userId: z.uuid(),
   knowledgeBaseId: z.uuid(),
   documentId: z.uuid(),
+  uploadId: z.uuid(),
   sourceId: z.uuid().nullable(),
   fileName: z.string().trim().min(1).max(KNOWLEDGE_UPLOAD_FILE_NAME_MAX_LENGTH),
   mimeType: z.string().trim().min(1).max(KNOWLEDGE_UPLOAD_MIME_TYPE_MAX_LENGTH),

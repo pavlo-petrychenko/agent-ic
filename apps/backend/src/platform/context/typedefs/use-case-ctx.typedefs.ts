@@ -11,6 +11,7 @@ export interface UseCaseCtx {
   readonly traceId: string;
   readonly locale: Locale;
   readonly clientIp: string | null;
+  readonly jobAttempt?: number;
 }
 
 export interface TransportRequest {

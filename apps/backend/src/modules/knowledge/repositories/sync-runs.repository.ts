@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
+import { KnowledgeSyncStatus } from '@/modules/knowledge/constants/knowledge.constants';
 import { syncRuns } from '@/modules/knowledge/db/sync-runs.table';
 import type {
   NewSyncRun,
@@ -40,6 +41,22 @@ export class SyncRunsRepository {
       .select()
       .from(syncRuns)
       .where(and(eq(syncRuns.workspaceId, workspaceId), eq(syncRuns.sourceId, sourceId)))
+      .orderBy(desc(syncRuns.createdAt), desc(syncRuns.id))
+      .limit(1);
+    return syncRun ?? null;
+  }
+
+  async findActiveBySource(workspaceId: string, sourceId: string): Promise<SyncRun | null> {
+    const [syncRun] = await this.txHost.tx
+      .select()
+      .from(syncRuns)
+      .where(
+        and(
+          eq(syncRuns.workspaceId, workspaceId),
+          eq(syncRuns.sourceId, sourceId),
+          inArray(syncRuns.status, [KnowledgeSyncStatus.Queued, KnowledgeSyncStatus.Running]),
+        ),
+      )
       .orderBy(desc(syncRuns.createdAt), desc(syncRuns.id))
       .limit(1);
     return syncRun ?? null;

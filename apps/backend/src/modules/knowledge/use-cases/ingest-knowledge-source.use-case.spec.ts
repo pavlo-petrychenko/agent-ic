@@ -1,4 +1,9 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { KNOWLEDGE_DOCUMENT_TITLE_MAX_LENGTH } from '@agent-ic/contracts';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import {
+  DOCUMENT_TITLE_TRUNCATED_MESSAGE,
+  DocumentParseWarningCode,
+} from '@/modules/knowledge/constants/document-parser.constants';
 import {
   KnowledgeDocumentStatus,
   KnowledgeSourceStatus,
@@ -15,6 +20,7 @@ import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowl
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
 import { IngestKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/ingest-knowledge-source.use-case';
+import { LlmUnavailableError } from '@/platform/llm/errors/llm-unavailable.error';
 import { EmbeddingGateway } from '@/platform/llm/gateways/embedding.gateway';
 import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import type {
@@ -26,6 +32,7 @@ import type {
   LlmCompleteRequest,
   LlmCompletion,
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
+import { JOB_ATTEMPTS } from '@/platform/queues/constants/queue.constants';
 import { TEST_EMBEDDING_VECTOR } from '@test/support/constants/knowledge-testing.constants';
 import { workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import { newSyncRun } from '@test/support/fixtures/knowledge.fixture';
@@ -62,9 +69,13 @@ class FakeLlmGateway extends LlmGateway {
 
 class FakeEmbeddingGateway extends EmbeddingGateway {
   readonly calls: string[][] = [];
+  fail = false;
 
   async embed(texts: readonly string[], options: EmbedOptions): Promise<EmbeddingResult> {
     this.calls.push([...texts]);
+    if (this.fail) {
+      throw new LlmUnavailableError([options.model], [new Error('embeddings unavailable')]);
+    }
     return {
       vectors: texts.map(() => TEST_EMBEDDING_VECTOR),
       model: options.model,
@@ -98,6 +109,12 @@ describe('IngestKnowledgeSourceUseCase', () => {
     syncRuns = testbed.module.get(SyncRunsRepository);
   });
 
+  beforeEach(() => {
+    llm.calls = 0;
+    embedding.calls.length = 0;
+    embedding.fail = false;
+  });
+
   afterEach(() => {
     llm.fail = false;
   });
@@ -113,7 +130,7 @@ describe('IngestKnowledgeSourceUseCase', () => {
     const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
     const syncRunId = testbed.ids.generate();
     const markdown = '# Refunds\n\nRefunds are processed within five days.\n';
-    const originalKey = knowledgeOriginalStorageKey(workspaceId, documentId, 'refunds.md');
+    const originalKey = knowledgeOriginalStorageKey(workspaceId, documentId, 'run-1', 'refunds.md');
     await testbed.storage.put(originalKey, Buffer.from(markdown), 'text/markdown');
     await testbed.tenants.run(workspaceId, async () => {
       await documents.update(workspaceId, documentId, {
@@ -125,7 +142,7 @@ describe('IngestKnowledgeSourceUseCase', () => {
       await syncRuns.insert(newSyncRun(syncRunId, workspaceId, sourceId));
     });
 
-    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId });
+    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId });
 
     const document = await testbed.tenants.run(workspaceId, () =>
       documents.findById(workspaceId, documentId),
@@ -139,7 +156,7 @@ describe('IngestKnowledgeSourceUseCase', () => {
     const syncRun = await testbed.tenants.run(workspaceId, () =>
       syncRuns.findById(workspaceId, syncRunId),
     );
-    const contentKey = knowledgeContentStorageKey(workspaceId, documentId);
+    const contentKey = knowledgeContentStorageKey(workspaceId, documentId, 1);
 
     expect(document).toMatchObject({
       status: KnowledgeDocumentStatus.Indexed,
@@ -170,7 +187,13 @@ describe('IngestKnowledgeSourceUseCase', () => {
     expect(llm.calls).toBe(1);
     expect(embedding.calls).toHaveLength(1);
 
-    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId });
+    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId });
+
+    const skippedRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(skippedRunId, workspaceId, sourceId)),
+    );
+    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId: skippedRunId });
 
     const skipped = await testbed.tenants.run(workspaceId, () =>
       documents.findById(workspaceId, documentId),
@@ -182,6 +205,14 @@ describe('IngestKnowledgeSourceUseCase', () => {
     });
     expect(llm.calls).toBe(1);
     expect(embedding.calls).toHaveLength(1);
+    const skippedRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, skippedRunId),
+    );
+    expect(skippedRun).toMatchObject({
+      status: KnowledgeSyncStatus.Succeeded,
+      documentsSkipped: 1,
+      documentsIndexed: 0,
+    });
   });
 
   it('keeps the document searchable when the summary call fails', async () => {
@@ -191,18 +222,20 @@ describe('IngestKnowledgeSourceUseCase', () => {
     const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId);
     const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
     const markdown = '# Refunds\n\nRefunds are processed within five days.\n';
-    const originalKey = knowledgeOriginalStorageKey(workspaceId, documentId, 'refunds.md');
+    const originalKey = knowledgeOriginalStorageKey(workspaceId, documentId, 'run-1', 'refunds.md');
+    const syncRunId = testbed.ids.generate();
     await testbed.storage.put(originalKey, Buffer.from(markdown), 'text/markdown');
-    await testbed.tenants.run(workspaceId, () =>
-      documents.update(workspaceId, documentId, {
+    await testbed.tenants.run(workspaceId, async () => {
+      await documents.update(workspaceId, documentId, {
         title: 'Refunds',
         mimeType: 'text/markdown',
         sizeBytes: Buffer.byteLength(markdown),
         originalStorageKey: originalKey,
-      }),
-    );
+      });
+      await syncRuns.insert(newSyncRun(syncRunId, workspaceId, sourceId));
+    });
 
-    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId });
+    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId });
 
     const document = await testbed.tenants.run(workspaceId, () =>
       documents.findById(workspaceId, documentId),
@@ -214,6 +247,177 @@ describe('IngestKnowledgeSourceUseCase', () => {
       activeGeneration: 1,
     });
     llm.fail = false;
+    const retryRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(retryRunId, workspaceId, sourceId)),
+    );
+    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId: retryRunId });
+
+    const retried = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    expect(retried).toMatchObject({
+      status: KnowledgeDocumentStatus.Indexed,
+      summary: SUMMARY,
+      summarySource: KnowledgeSummarySource.Auto,
+      activeGeneration: 2,
+    });
+    expect(llm.calls).toBe(2);
+    expect(embedding.calls).toHaveLength(2);
+  });
+
+  it('persists parser warnings on the indexed document', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId);
+    const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
+    const markdown = '# Refunds\n\nRefunds are processed within five days.\n';
+    const originalKey = knowledgeOriginalStorageKey(workspaceId, documentId, 'run-1', 'refunds.md');
+    const syncRunId = testbed.ids.generate();
+    await testbed.storage.put(originalKey, Buffer.from(markdown), 'text/markdown');
+    await testbed.tenants.run(workspaceId, async () => {
+      await documents.update(workspaceId, documentId, {
+        title: 'x'.repeat(KNOWLEDGE_DOCUMENT_TITLE_MAX_LENGTH + 1),
+        mimeType: 'text/markdown',
+        sizeBytes: Buffer.byteLength(markdown),
+        originalStorageKey: originalKey,
+      });
+      await syncRuns.insert(newSyncRun(syncRunId, workspaceId, sourceId));
+    });
+
+    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId });
+
+    const document = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    expect(document?.title).toHaveLength(KNOWLEDGE_DOCUMENT_TITLE_MAX_LENGTH);
+    expect(document?.warnings).toEqual([
+      {
+        code: DocumentParseWarningCode.TitleTruncated,
+        message: DOCUMENT_TITLE_TRUNCATED_MESSAGE,
+      },
+    ]);
+  });
+
+  it('leaves the run open for a retryable failure and closes it on the last attempt', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId);
+    const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
+    const markdown = '# Refunds\n\nRefunds are processed within five days.\n';
+    const originalKey = knowledgeOriginalStorageKey(workspaceId, documentId, 'run-1', 'refunds.md');
+    const syncRunId = testbed.ids.generate();
+    await testbed.storage.put(originalKey, Buffer.from(markdown), 'text/markdown');
+    await testbed.tenants.run(workspaceId, async () => {
+      await documents.update(workspaceId, documentId, {
+        title: 'Refunds',
+        mimeType: 'text/markdown',
+        sizeBytes: Buffer.byteLength(markdown),
+        originalStorageKey: originalKey,
+      });
+      await syncRuns.insert(newSyncRun(syncRunId, workspaceId, sourceId));
+    });
+    embedding.fail = true;
+
+    await expect(
+      ingest.execute(
+        { ...workspaceSystemCtx(workspaceId), jobAttempt: 1 },
+        { sourceId, syncRunId },
+      ),
+    ).rejects.toBeInstanceOf(LlmUnavailableError);
+
+    const retryingSource = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    const retryingRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, syncRunId),
+    );
+    const retryingDocument = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    expect(retryingSource?.status).toBe(KnowledgeSourceStatus.Indexing);
+    expect(retryingRun?.status).toBe(KnowledgeSyncStatus.Running);
+    expect(retryingDocument?.status).toBe(KnowledgeDocumentStatus.Indexing);
+
+    await expect(
+      ingest.execute(
+        { ...workspaceSystemCtx(workspaceId), jobAttempt: JOB_ATTEMPTS },
+        { sourceId, syncRunId },
+      ),
+    ).rejects.toBeInstanceOf(LlmUnavailableError);
+
+    const failedSource = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    const failedRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, syncRunId),
+    );
+    const failedDocument = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    expect(failedSource?.status).toBe(KnowledgeSourceStatus.Error);
+    expect(failedRun).toMatchObject({
+      status: KnowledgeSyncStatus.Failed,
+      documentsFailed: 1,
+    });
+    expect(failedDocument?.status).toBe(KnowledgeDocumentStatus.Error);
+  });
+
+  it('promotes a pending replacement and deletes the old files after the flip', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId);
+    const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
+    const oldMarkdown = '# Refunds\n\nRefunds are processed within five days.\n';
+    const newMarkdown = '# Refunds\n\nRefunds are processed within seven days.\n';
+    const oldOriginalKey = knowledgeOriginalStorageKey(
+      workspaceId,
+      documentId,
+      'old-run',
+      'refunds.md',
+    );
+    const pendingOriginalKey = knowledgeOriginalStorageKey(
+      workspaceId,
+      documentId,
+      'new-run',
+      'refunds.txt',
+    );
+    const oldContentKey = knowledgeContentStorageKey(workspaceId, documentId, 1);
+    const syncRunId = testbed.ids.generate();
+    await testbed.storage.put(oldOriginalKey, Buffer.from(oldMarkdown), 'text/markdown');
+    await testbed.storage.put(pendingOriginalKey, Buffer.from(newMarkdown), 'text/plain');
+    await testbed.storage.put(oldContentKey, Buffer.from(oldMarkdown), 'text/markdown');
+    await testbed.tenants.run(workspaceId, async () => {
+      await documents.update(workspaceId, documentId, {
+        title: 'Refunds',
+        mimeType: 'text/plain',
+        sizeBytes: Buffer.byteLength(newMarkdown),
+        originalStorageKey: oldOriginalKey,
+        pendingOriginalStorageKey: pendingOriginalKey,
+        contentStorageKey: oldContentKey,
+        contentHash: 'old-hash',
+        status: KnowledgeDocumentStatus.Indexed,
+        activeGeneration: 1,
+      });
+      await syncRuns.insert(newSyncRun(syncRunId, workspaceId, sourceId));
+    });
+
+    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId });
+
+    const document = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    const newContentKey = knowledgeContentStorageKey(workspaceId, documentId, 2);
+    expect(document).toMatchObject({
+      status: KnowledgeDocumentStatus.Indexed,
+      activeGeneration: 2,
+      originalStorageKey: pendingOriginalKey,
+      pendingOriginalStorageKey: null,
+      contentStorageKey: newContentKey,
+    });
+    await expect(testbed.storage.head(oldOriginalKey)).resolves.toBeNull();
+    await expect(testbed.storage.head(oldContentKey)).resolves.toBeNull();
+    expect(testbed.storage.objects.get(newContentKey)?.body.toString()).toBe(newMarkdown);
   });
 
   it('marks a document and source as failed on a parse error without retrying the job', async () => {
@@ -221,7 +425,12 @@ describe('IngestKnowledgeSourceUseCase', () => {
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
     const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId);
     const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
-    const originalKey = knowledgeOriginalStorageKey(workspaceId, documentId, 'refunds.pdf');
+    const originalKey = knowledgeOriginalStorageKey(
+      workspaceId,
+      documentId,
+      'run-1',
+      'refunds.pdf',
+    );
     await testbed.storage.put(originalKey, Buffer.from('not a PDF'), 'application/pdf');
     const syncRunId = testbed.ids.generate();
     await testbed.tenants.run(workspaceId, async () => {
@@ -233,7 +442,7 @@ describe('IngestKnowledgeSourceUseCase', () => {
       await syncRuns.insert(newSyncRun(syncRunId, workspaceId, sourceId));
     });
 
-    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId });
+    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId });
 
     const document = await testbed.tenants.run(workspaceId, () =>
       documents.findById(workspaceId, documentId),

@@ -8,6 +8,10 @@ import {
 } from '@/modules/knowledge/constants/knowledge-error.constants';
 import { KnowledgeLogMessage } from '@/modules/knowledge/constants/knowledge-log.constants';
 import {
+  KNOWLEDGE_CANONICAL_MARKDOWN_MIME_TYPE,
+  KNOWLEDGE_STORAGE_DELETE_FAILED_MESSAGE,
+} from '@/modules/knowledge/constants/knowledge-storage.constants';
+import {
   KnowledgeDocumentStatus,
   KnowledgeSummarySource,
 } from '@/modules/knowledge/constants/knowledge.constants';
@@ -21,16 +25,15 @@ import { buildDocumentSections } from '@/modules/knowledge/helpers/section-tree.
 import { ChunkTermsRepository } from '@/modules/knowledge/repositories/chunk-terms.repository';
 import { ChunksRepository } from '@/modules/knowledge/repositories/chunks.repository';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
-import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
-import { KnowledgeStatsRepository } from '@/modules/knowledge/repositories/knowledge-stats.repository';
 import { SectionsRepository } from '@/modules/knowledge/repositories/sections.repository';
-import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { DocumentParserService } from '@/modules/knowledge/services/document-parser.service';
 import { DocumentSummaryService } from '@/modules/knowledge/services/document-summary.service';
 import { KnowledgeEmbeddingService } from '@/modules/knowledge/services/knowledge-embedding.service';
 import type { NewChunkTerm } from '@/modules/knowledge/typedefs/chunk-term.typedefs';
 import type { NewChunk } from '@/modules/knowledge/typedefs/chunk.typedefs';
+import type { ParsedDocument } from '@/modules/knowledge/typedefs/document-parser.typedefs';
 import type { DocumentSummaryResult } from '@/modules/knowledge/typedefs/document-summary.typedefs';
+import type { KnowledgeDocumentWarning } from '@/modules/knowledge/typedefs/document-warning.typedefs';
 import type {
   DocumentIngestionInput,
   DocumentIngestionResult,
@@ -56,50 +59,42 @@ export class KnowledgeDocumentIngestionService {
     private readonly sections: SectionsRepository,
     private readonly chunks: ChunksRepository,
     private readonly chunkTerms: ChunkTermsRepository,
-    private readonly sources: SourcesRepository,
-    private readonly knowledgeBases: KnowledgeBasesRepository,
-    private readonly stats: KnowledgeStatsRepository,
     private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
 
   async ingest(input: DocumentIngestionInput): Promise<DocumentIngestionResult> {
     const { workspaceId, knowledgeBase, document } = input;
-    if (document.originalStorageKey === null) {
+    const originalKey = document.pendingOriginalStorageKey ?? document.originalStorageKey;
+    if (originalKey === null) {
       throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
     }
-    const original = await this.storage.head(document.originalStorageKey);
+    const original = await this.storage.head(originalKey);
     if (original === null) {
       throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
     }
     if (original.size > KNOWLEDGE_DOCUMENT_MAX_BYTES) {
       throw new DocumentParseError(DocumentParseErrorCode.TooLarge);
     }
-    const bytes = await readStream(await this.storage.get(document.originalStorageKey));
+    const bytes = await readStream(await this.storage.get(originalKey));
     const parsed = await this.parser.parse({
       bytes,
-      fileName: basename(document.originalStorageKey),
+      fileName: basename(originalKey),
       mimeType: document.mimeType,
       title: document.title,
     });
-    if (
+    const sections = buildDocumentSections(parsed.markdown);
+    const unchanged =
       document.contentHash === parsed.contentHash &&
       document.activeGeneration > 0 &&
-      document.contentStorageKey !== null
-    ) {
-      return { skipped: true, chunkCount: document.chunkCount };
+      document.contentStorageKey !== null;
+    const summary = await this.summaryFor(document, parsed, sections, unchanged);
+    if (unchanged && summary === null) {
+      await this.adoptPendingOriginal(workspaceId, document, originalKey);
+      return { skipped: true };
     }
 
-    const sections = buildDocumentSections(parsed.markdown);
     const chunks = buildDocumentChunks(sections);
-    const summary = await this.documentSummary(
-      workspaceId,
-      document.id,
-      document,
-      parsed.title,
-      sections,
-      parsed.markdown,
-    );
     const indexedChunks = buildIndexedChunks({
       title: parsed.title,
       summary: summary?.summary ?? null,
@@ -113,11 +108,15 @@ export class KnowledgeDocumentIngestionService {
       dimensions: knowledgeBase.embeddingDimensions,
       chunks: indexedChunks,
     });
-    const contentStorageKey = knowledgeContentStorageKey(workspaceId, document.id);
-    await this.storage.put(contentStorageKey, Buffer.from(parsed.markdown), 'text/markdown');
+    const generation = document.activeGeneration + 1;
+    const contentStorageKey = knowledgeContentStorageKey(workspaceId, document.id, generation);
+    await this.storage.put(
+      contentStorageKey,
+      Buffer.from(parsed.markdown),
+      KNOWLEDGE_CANONICAL_MARKDOWN_MIME_TYPE,
+    );
 
     const now = this.clock.now();
-    const generation = document.activeGeneration + 1;
     const sectionIds = new Map(sections.map((section) => [section.ordinal, this.ids.generate()]));
     const sectionRows = sections.map((section): NewSection => {
       const id = sectionIds.get(section.ordinal);
@@ -180,8 +179,11 @@ export class KnowledgeDocumentIngestionService {
       await this.chunkTerms.insertMany(termRows);
       const updated = await this.documents.update(workspaceId, document.id, {
         title: parsed.title,
+        originalStorageKey: originalKey,
+        pendingOriginalStorageKey: null,
         contentStorageKey,
         contentHash: parsed.contentHash,
+        warnings: this.warnings(parsed, summary),
         tokenCount: parsed.tokenCount,
         chunkCount: embedded.chunks.length,
         status: KnowledgeDocumentStatus.Indexed,
@@ -205,35 +207,80 @@ export class KnowledgeDocumentIngestionService {
         document.id,
         document.activeGeneration,
       );
-      await this.sources.update(workspaceId, document.sourceId, {
-        ...(await this.stats.sourceCounts(workspaceId, document.sourceId)),
-      });
-      await this.knowledgeBases.update(workspaceId, knowledgeBase.id, {
-        ...(await this.stats.knowledgeBaseCounts(workspaceId, knowledgeBase.id)),
-      });
     });
-    return { skipped: false, chunkCount: embedded.chunks.length };
+
+    await this.deleteObjectIfChanged(document.originalStorageKey, originalKey);
+    await this.deleteObjectIfChanged(document.contentStorageKey, contentStorageKey);
+    return { skipped: false };
   }
 
-  private async documentSummary(
-    workspaceId: string,
-    documentId: string,
+  private async summaryFor(
     document: DocumentIngestionInput['document'],
-    title: string,
+    parsed: ParsedDocument,
     sections: ReturnType<typeof buildDocumentSections>,
-    markdown: string,
+    unchanged: boolean,
   ): Promise<DocumentSummaryResult | null> {
+    const hasSummary = (document.summary?.trim() ?? '').length > 0;
+    if (unchanged && hasSummary) {
+      return null;
+    }
     try {
       return await this.summary.generate({
-        workspaceId,
-        title,
-        markdown,
+        workspaceId: document.workspaceId,
+        title: parsed.title,
+        markdown: parsed.markdown,
         sections,
         existingSummary: document.summary,
       });
     } catch (error) {
-      this.logger.warn({ msg: KnowledgeLogMessage.SummaryFailed, documentId, err: error });
+      this.logger.warn({
+        msg: KnowledgeLogMessage.SummaryFailed,
+        documentId: document.id,
+        err: error,
+      });
       return null;
     }
+  }
+
+  private async adoptPendingOriginal(
+    workspaceId: string,
+    document: DocumentIngestionInput['document'],
+    originalKey: string,
+  ): Promise<void> {
+    if (document.pendingOriginalStorageKey === null) {
+      return;
+    }
+    const updated = await this.tenants.run(workspaceId, () =>
+      this.documents.update(workspaceId, document.id, {
+        originalStorageKey: originalKey,
+        pendingOriginalStorageKey: null,
+      }),
+    );
+    if (updated === null) {
+      return;
+    }
+    await this.deleteObjectIfChanged(document.originalStorageKey, originalKey);
+  }
+
+  private warnings(
+    parsed: ParsedDocument,
+    summary: DocumentSummaryResult | null,
+  ): readonly KnowledgeDocumentWarning[] {
+    return [...parsed.warnings, ...(summary?.warnings ?? [])].map(({ code, message }) => ({
+      code,
+      message,
+    }));
+  }
+
+  private async deleteObjectIfChanged(
+    previousKey: string | null,
+    currentKey: string,
+  ): Promise<void> {
+    if (previousKey === null || previousKey === currentKey) {
+      return;
+    }
+    await this.storage.delete(previousKey).catch((error: unknown) => {
+      this.logger.warn({ msg: KNOWLEDGE_STORAGE_DELETE_FAILED_MESSAGE, err: error });
+    });
   }
 }

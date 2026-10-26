@@ -1,5 +1,5 @@
 import { IdPrefix } from '@agent-ic/contracts';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { knowledgeUploadTicketEntry } from '@/modules/knowledge/constants/knowledge-upload-cache.constants';
 import {
   KnowledgeDocumentStatus,
@@ -7,11 +7,9 @@ import {
   KnowledgeSourceStatus,
   KnowledgeSyncStatus,
 } from '@/modules/knowledge/constants/knowledge.constants';
+import { KnowledgeSourceBusyError } from '@/modules/knowledge/errors/knowledge-source-busy.error';
 import { KnowledgeUploadInvalidError } from '@/modules/knowledge/errors/knowledge-upload-invalid.error';
-import {
-  knowledgeOriginalStorageKey,
-  knowledgeUploadStorageKey,
-} from '@/modules/knowledge/helpers/knowledge-storage.helpers';
+import { knowledgeUploadStorageKey } from '@/modules/knowledge/helpers/knowledge-storage.helpers';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
@@ -31,7 +29,7 @@ import type { KnowledgeTestbed } from '@test/support/typedefs/knowledge-testing.
 
 const MARKDOWN = '# Refunds\n\nRefunds are processed within five days.\n';
 
-describe('knowledge upload use cases', () => {
+describe('ConfirmUploadUseCase', () => {
   let testbed: KnowledgeTestbed;
   let createUpload: CreateUploadUseCase;
   let confirmUpload: ConfirmUploadUseCase;
@@ -56,7 +54,20 @@ describe('knowledge upload use cases', () => {
     await testbed.module.close();
   });
 
-  it('creates, confirms and enqueues one upload', async () => {
+  beforeEach(async () => {
+    await queues.get(QueueName.Ingest).drain();
+  });
+
+  const uploadKeyOf = async (
+    workspaceId: string,
+    documentId: string,
+    fileName: string,
+  ): Promise<string> => {
+    const ticket = await cache.get(knowledgeUploadTicketEntry(workspaceId, documentId));
+    return knowledgeUploadStorageKey(workspaceId, documentId, ticket?.uploadId ?? '', fileName);
+  };
+
+  it('creates, confirms and enqueues one upload idempotently', async () => {
     const workspaceId = testbed.ids.generate();
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
     const ctx = knowledgeCtx(workspaceId);
@@ -67,19 +78,8 @@ describe('knowledge upload use cases', () => {
       sizeBytes: Buffer.byteLength(MARKDOWN),
     });
     const documentId = testbed.ids.fromPublic(IdPrefix.KnowledgeDocument, created.documentId);
-    const uploadKey = knowledgeUploadStorageKey(workspaceId, documentId, 'Refunds.MD');
-    const originalKey = knowledgeOriginalStorageKey(workspaceId, documentId, 'Refunds.MD');
+    const uploadKey = await uploadKeyOf(workspaceId, documentId, 'Refunds.MD');
     await testbed.storage.put(uploadKey, Buffer.from(MARKDOWN), 'text/markdown');
-
-    expect(created.uploadUrl).toContain(uploadKey);
-    expect(testbed.storage.presignedPuts[0]).toEqual({
-      key: uploadKey,
-      contentType: 'text/markdown',
-      expiresInSeconds: 900,
-    });
-    await expect(
-      cache.get(knowledgeUploadTicketEntry(workspaceId, documentId)),
-    ).resolves.not.toBeNull();
 
     const confirmed = await confirmUpload.execute(ctx, created);
 
@@ -105,20 +105,22 @@ describe('knowledge upload use cases', () => {
     expect(document).toMatchObject({
       sourceId,
       status: KnowledgeDocumentStatus.Pending,
-      originalStorageKey: originalKey,
       activeGeneration: 0,
       contentStorageKey: null,
       summary: null,
+      pendingOriginalStorageKey: null,
     });
+    expect(document?.originalStorageKey).toContain('original-');
     expect(source).toMatchObject({ status: KnowledgeSourceStatus.Pending });
     expect(syncRun).toMatchObject({
+      id: jobs[0]?.id,
       status: KnowledgeSyncStatus.Queued,
       documentsTotal: 1,
       documentsIndexed: 0,
     });
     expect(jobs).toHaveLength(1);
     await expect(testbed.storage.head(uploadKey)).resolves.toBeNull();
-    await expect(testbed.storage.head(originalKey)).resolves.toMatchObject({
+    await expect(testbed.storage.head(document?.originalStorageKey ?? '')).resolves.toMatchObject({
       size: Buffer.byteLength(MARKDOWN),
       contentType: 'text/markdown',
     });
@@ -131,6 +133,16 @@ describe('knowledge upload use cases', () => {
     expect(
       await queues.get(QueueName.Ingest).getJobs(['waiting', 'delayed', 'active']),
     ).toHaveLength(1);
+
+    await expect(
+      createUpload.execute(ctx, {
+        knowledgeBaseId: publicKnowledgeBaseId(testbed, knowledgeBaseId),
+        sourceId: confirmed.id,
+        fileName: 'refunds-v2.md',
+        mimeType: 'text/markdown',
+        sizeBytes: Buffer.byteLength(MARKDOWN),
+      }),
+    ).rejects.toBeInstanceOf(KnowledgeSourceBusyError);
   });
 
   it('rejects an object whose actual content type does not match the ticket', async () => {
@@ -144,7 +156,7 @@ describe('knowledge upload use cases', () => {
       sizeBytes: Buffer.byteLength(MARKDOWN),
     });
     const documentId = testbed.ids.fromPublic(IdPrefix.KnowledgeDocument, created.documentId);
-    const uploadKey = knowledgeUploadStorageKey(workspaceId, documentId, 'refunds.md');
+    const uploadKey = await uploadKeyOf(workspaceId, documentId, 'refunds.md');
     await testbed.storage.put(uploadKey, Buffer.from(MARKDOWN), 'text/plain');
 
     await expect(confirmUpload.execute(ctx, created)).rejects.toBeInstanceOf(
@@ -159,7 +171,7 @@ describe('knowledge upload use cases', () => {
     ).toBeNull();
   });
 
-  it('replaces the file of an existing upload without changing the document id', async () => {
+  it('keeps the old original when replacing a file and forces a reindex', async () => {
     const workspaceId = testbed.ids.generate();
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
     const ctx = knowledgeCtx(workspaceId);
@@ -170,10 +182,19 @@ describe('knowledge upload use cases', () => {
       sizeBytes: Buffer.byteLength(MARKDOWN),
     });
     const documentId = testbed.ids.fromPublic(IdPrefix.KnowledgeDocument, created.documentId);
-    const uploadKey = knowledgeUploadStorageKey(workspaceId, documentId, 'refunds.md');
-    await testbed.storage.put(uploadKey, Buffer.from(MARKDOWN), 'text/markdown');
+    await testbed.storage.put(
+      await uploadKeyOf(workspaceId, documentId, 'refunds.md'),
+      Buffer.from(MARKDOWN),
+      'text/markdown',
+    );
     const confirmed = await confirmUpload.execute(ctx, created);
     const sourceId = testbed.ids.fromPublic(IdPrefix.KnowledgeSource, confirmed.id);
+    const firstRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findLatestBySource(workspaceId, sourceId),
+    );
+    const oldOriginalKey = (
+      await testbed.tenants.run(workspaceId, () => documents.findById(workspaceId, documentId))
+    )?.originalStorageKey;
     await testbed.tenants.run(workspaceId, async () => {
       await documents.update(workspaceId, documentId, {
         status: KnowledgeDocumentStatus.Indexed,
@@ -182,31 +203,31 @@ describe('knowledge upload use cases', () => {
         chunkCount: 2,
       });
       await sources.update(workspaceId, sourceId, { status: KnowledgeSourceStatus.Ready });
+      if (firstRun !== null) {
+        await syncRuns.update(workspaceId, firstRun.id, {
+          status: KnowledgeSyncStatus.Succeeded,
+          finishedAt: testbed.clock.now(),
+        });
+      }
     });
     testbed.clock.advanceBy(1_000);
     const newMarkdown = '# Refunds\n\nRefunds are processed within seven days.\n';
     const replacement = await createUpload.execute(ctx, {
       knowledgeBaseId: publicKnowledgeBaseId(testbed, knowledgeBaseId),
       sourceId: publicKnowledgeSourceId(testbed, sourceId),
-      fileName: 'Refunds-v2.md',
-      mimeType: 'text/markdown',
+      fileName: 'Refunds-v2.txt',
+      mimeType: 'text/plain',
       sizeBytes: Buffer.byteLength(newMarkdown),
     });
     const replacementDocumentId = testbed.ids.fromPublic(
       IdPrefix.KnowledgeDocument,
       replacement.documentId,
     );
-    const replacementUploadKey = knowledgeUploadStorageKey(
-      workspaceId,
-      replacementDocumentId,
-      'Refunds-v2.md',
+    await testbed.storage.put(
+      await uploadKeyOf(workspaceId, replacementDocumentId, 'Refunds-v2.txt'),
+      Buffer.from(newMarkdown),
+      'text/plain',
     );
-    const replacementOriginalKey = knowledgeOriginalStorageKey(
-      workspaceId,
-      replacementDocumentId,
-      'Refunds-v2.md',
-    );
-    await testbed.storage.put(replacementUploadKey, Buffer.from(newMarkdown), 'text/markdown');
 
     const replaced = await confirmUpload.execute(ctx, replacement);
 
@@ -221,10 +242,13 @@ describe('knowledge upload use cases', () => {
     expect(document).toMatchObject({
       status: KnowledgeDocumentStatus.Pending,
       activeGeneration: 1,
-      contentHash: 'old-hash',
+      contentHash: null,
       chunkCount: 2,
-      originalStorageKey: replacementOriginalKey,
+      originalStorageKey: oldOriginalKey,
     });
+    expect(document?.pendingOriginalStorageKey).toContain('original-');
+    expect(document?.pendingOriginalStorageKey).not.toBe(oldOriginalKey);
+    await expect(testbed.storage.head(oldOriginalKey ?? '')).resolves.not.toBeNull();
     expect(syncRun).toMatchObject({ status: KnowledgeSyncStatus.Queued });
     expect(syncRun?.trigger).toBe('manual');
   });

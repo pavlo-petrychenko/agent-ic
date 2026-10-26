@@ -5,13 +5,10 @@ import {
   PermissionResource,
 } from '@agent-ic/contracts';
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  knowledgeUploadConfirmedEntry,
-  knowledgeUploadTicketEntry,
-} from '@/modules/knowledge/constants/knowledge-upload-cache.constants';
+import { knowledgeUploadTicketEntry } from '@/modules/knowledge/constants/knowledge-upload-cache.constants';
 import {
   KNOWLEDGE_UPLOAD_CLEANUP_FAILED_MESSAGE,
-  KNOWLEDGE_UPLOAD_MARKER_FAILED_MESSAGE,
+  KNOWLEDGE_UPLOAD_STORAGE_FAILED_MESSAGE,
   KNOWLEDGE_UPLOAD_TICKET_DELETE_FAILED_MESSAGE,
 } from '@/modules/knowledge/constants/knowledge-upload.constants';
 import {
@@ -21,32 +18,34 @@ import {
   KnowledgeSyncStatus,
   KnowledgeSyncTrigger,
 } from '@/modules/knowledge/constants/knowledge.constants';
+import { KnowledgeBaseNotFoundError } from '@/modules/knowledge/errors/knowledge-base-not-found.error';
 import { KnowledgeUploadInvalidError } from '@/modules/knowledge/errors/knowledge-upload-invalid.error';
+import { normalizeDocumentMimeType } from '@/modules/knowledge/helpers/document-format.helpers';
 import { parseKnowledgeInput } from '@/modules/knowledge/helpers/knowledge-input.helpers';
 import {
   knowledgeOriginalStorageKey,
   knowledgeUploadStorageKey,
 } from '@/modules/knowledge/helpers/knowledge-storage.helpers';
-import {
-  normalizeUploadMimeType,
-  uploadTitle,
-} from '@/modules/knowledge/helpers/knowledge-upload.helpers';
+import { uploadTitle } from '@/modules/knowledge/helpers/knowledge-upload.helpers';
 import { ingestKnowledgeSourceJob } from '@/modules/knowledge/jobs/ingest-knowledge-source.job';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
+import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
 import { confirmUploadInputSchema } from '@/modules/knowledge/schemas/knowledge-input.schema';
 import { KnowledgeSourceViewsService } from '@/modules/knowledge/services/knowledge-source-views.service';
+import { KnowledgeUploadTargetsService } from '@/modules/knowledge/services/knowledge-upload-targets.service';
 import type {
+  ConfirmedKnowledgeUpload,
   ConfirmUploadInput,
+  KnowledgeUploadTarget,
   KnowledgeUploadTicket,
 } from '@/modules/knowledge/typedefs/knowledge-upload.typedefs';
-import type { KnowledgeSourceView, Source } from '@/modules/knowledge/typedefs/source.typedefs';
+import type { KnowledgeSourceView } from '@/modules/knowledge/typedefs/source.typedefs';
 import { CacheService } from '@/platform/cache/services/cache.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
-import { UpstreamError } from '@/platform/errors/errors/upstream.error';
 import { IdService } from '@/platform/ids/services/id.service';
 import { JobsService } from '@/platform/queues/services/jobs.service';
 import { FileStorage } from '@/platform/storage/gateways/file-storage.gateway';
@@ -57,6 +56,8 @@ export class ConfirmUploadUseCase {
 
   constructor(
     private readonly tenants: TenantTransactionService,
+    private readonly knowledgeBases: KnowledgeBasesRepository,
+    private readonly targets: KnowledgeUploadTargetsService,
     private readonly sources: SourcesRepository,
     private readonly documents: DocumentsRepository,
     private readonly syncRuns: SyncRunsRepository,
@@ -79,17 +80,11 @@ export class ConfirmUploadUseCase {
     const ticket = await this.cache.get(ticketEntry);
 
     if (ticket === null) {
-      const confirmed = await this.cache.get(
-        knowledgeUploadConfirmedEntry(workspaceId, documentId),
-      );
-      if (confirmed === null) {
+      const existing = await this.findConfirmed(workspaceId, documentId);
+      if (existing === null) {
         throw new KnowledgeUploadInvalidError();
       }
-      const source = await this.existingSource(workspaceId, documentId);
-      if (source === null || source.id !== confirmed.sourceId) {
-        throw new KnowledgeUploadInvalidError();
-      }
-      return this.views.view(source);
+      return this.views.view(existing.source);
     }
     if (
       ticket.workspaceId !== workspaceId ||
@@ -98,19 +93,34 @@ export class ConfirmUploadUseCase {
     ) {
       throw new KnowledgeUploadInvalidError();
     }
-    if (ticket.sourceId === null) {
-      const existing = await this.existingSource(workspaceId, documentId);
+    const ticketSourceId = ticket.sourceId;
+    if (ticketSourceId === null) {
+      const existing = await this.findConfirmed(workspaceId, documentId);
       if (existing !== null) {
-        await this.rememberConfirmed(workspaceId, documentId, existing.id);
         await this.forgetTicket(workspaceId, documentId);
-        return this.views.view(existing);
+        return this.views.view(existing.source);
       }
     } else {
-      await this.assertReplaceable(workspaceId, ticket);
+      await this.tenants.run(workspaceId, () =>
+        this.targets.findReplaceTarget(workspaceId, ticketSourceId, ticket.knowledgeBaseId, {
+          lock: false,
+        }),
+      );
     }
 
-    const uploadKey = knowledgeUploadStorageKey(workspaceId, documentId, ticket.fileName);
-    const originalKey = knowledgeOriginalStorageKey(workspaceId, documentId, ticket.fileName);
+    const uploadKey = knowledgeUploadStorageKey(
+      workspaceId,
+      documentId,
+      ticket.uploadId,
+      ticket.fileName,
+    );
+    const syncRunId = this.ids.generate();
+    const originalKey = knowledgeOriginalStorageKey(
+      workspaceId,
+      documentId,
+      syncRunId,
+      ticket.fileName,
+    );
     const stored = await this.storage.head(uploadKey);
     if (stored === null) {
       await this.discardUpload(workspaceId, documentId, uploadKey);
@@ -120,166 +130,237 @@ export class ConfirmUploadUseCase {
       stored.size <= 0 ||
       stored.size > KNOWLEDGE_DOCUMENT_MAX_BYTES ||
       stored.size > ticket.sizeBytes ||
-      normalizeUploadMimeType(stored.contentType ?? '') !== ticket.mimeType
+      normalizeDocumentMimeType(stored.contentType ?? '') !== ticket.mimeType
     ) {
       await this.discardUpload(workspaceId, documentId, uploadKey);
       throw new KnowledgeUploadInvalidError();
     }
+    await this.storage.copy(uploadKey, originalKey);
+
+    let confirmed: ConfirmedKnowledgeUpload;
     try {
-      await this.storage.copy(uploadKey, originalKey);
+      confirmed = await this.tenants.run(workspaceId, async () => {
+        const knowledgeBase = await this.knowledgeBases.findByIdForUpdate(
+          workspaceId,
+          ticket.knowledgeBaseId,
+        );
+        if (knowledgeBase === null) {
+          throw new KnowledgeBaseNotFoundError();
+        }
+        if (ticket.sourceId === null) {
+          return this.createSource(
+            workspaceId,
+            ctx,
+            ticket,
+            documentId,
+            originalKey,
+            stored.size,
+            syncRunId,
+          );
+        }
+        const target = await this.targets.findReplaceTarget(
+          workspaceId,
+          ticket.sourceId,
+          knowledgeBase.id,
+          { lock: true },
+        );
+        return this.replaceSource(
+          workspaceId,
+          ctx,
+          ticket,
+          target,
+          originalKey,
+          stored.size,
+          syncRunId,
+        );
+      });
     } catch (error) {
-      throw new UpstreamError('storage', { retryable: true, cause: error });
+      await this.deleteStorageKey(originalKey);
+      if (
+        error instanceof KnowledgeUploadInvalidError ||
+        error instanceof KnowledgeBaseNotFoundError
+      ) {
+        await this.discardUpload(workspaceId, documentId, uploadKey);
+      }
+      throw error;
     }
 
-    const source = await this.tenants.run(workspaceId, async () => {
-      const saved =
-        ticket.sourceId === null
-          ? await this.createSource(ctx, ticket, documentId, originalKey, stored.size)
-          : await this.replaceSource(ctx, ticket, documentId, originalKey, stored.size);
-      await this.syncRuns.insert({
-        id: this.ids.generate(),
-        workspaceId,
-        sourceId: saved.id,
-        trigger:
-          ticket.sourceId === null ? KnowledgeSyncTrigger.Initial : KnowledgeSyncTrigger.Manual,
-        status: KnowledgeSyncStatus.Queued,
-        documentsTotal: 1,
-      });
-      await this.jobs.enqueue(
-        ctx,
-        ingestKnowledgeSourceJob,
-        { sourceId: saved.id },
-        { durable: true },
-      );
-      return saved;
-    });
+    await this.cleanupStorageKeys(confirmed.discardedStorageKeys);
+    await this.deleteStorageKeyIfUnused(confirmed.document, originalKey);
     await this.storage.delete(uploadKey).catch((error: unknown) => {
       this.logger.warn({ msg: KNOWLEDGE_UPLOAD_CLEANUP_FAILED_MESSAGE, err: error });
     });
-    await this.rememberConfirmed(workspaceId, documentId, source.id);
     await this.forgetTicket(workspaceId, documentId);
-    return this.views.view(source);
+    return this.views.view(confirmed.source);
   }
 
-  private async existingSource(workspaceId: string, documentId: string): Promise<Source | null> {
-    const document = await this.tenants.run(workspaceId, () =>
-      this.documents.findById(workspaceId, documentId),
+  private async findConfirmed(
+    workspaceId: string,
+    documentId: string,
+  ): Promise<KnowledgeUploadTarget | null> {
+    return this.tenants.run(workspaceId, () =>
+      this.findConfirmedInTransaction(workspaceId, documentId),
     );
+  }
+
+  private async findConfirmedInTransaction(
+    workspaceId: string,
+    documentId: string,
+  ): Promise<KnowledgeUploadTarget | null> {
+    const document = await this.documents.findById(workspaceId, documentId);
     if (document === null) {
       return null;
     }
-    return this.tenants.run(workspaceId, () =>
-      this.sources.findById(workspaceId, document.sourceId),
-    );
-  }
-
-  private async assertReplaceable(
-    workspaceId: string,
-    ticket: KnowledgeUploadTicket,
-  ): Promise<void> {
-    const sourceId = ticket.sourceId;
-    if (sourceId === null) {
-      return;
-    }
-    const source = await this.tenants.run(workspaceId, () =>
-      this.sources.findById(workspaceId, sourceId),
-    );
-    if (
-      source === null ||
-      source.kbId !== ticket.knowledgeBaseId ||
-      source.kind !== KnowledgeSourceKind.Upload ||
-      source.status === KnowledgeSourceStatus.Indexing
-    ) {
-      throw new KnowledgeUploadInvalidError();
-    }
+    const source = await this.sources.findById(workspaceId, document.sourceId);
+    return source === null || source.kind !== KnowledgeSourceKind.Upload
+      ? null
+      : { source, document };
   }
 
   private async createSource(
+    workspaceId: string,
     ctx: UseCaseCtx,
     ticket: KnowledgeUploadTicket,
     documentId: string,
     originalKey: string,
     sizeBytes: number,
-  ): Promise<Source> {
-    const workspaceId = ctx.workspaceId;
-    if (workspaceId === null) {
-      throw new KnowledgeUploadInvalidError();
-    }
+    syncRunId: string,
+  ): Promise<ConfirmedKnowledgeUpload> {
+    const title = uploadTitle(ticket.fileName);
     const source = await this.sources.insert({
       id: this.ids.generate(),
       workspaceId,
       kbId: ticket.knowledgeBaseId,
       kind: KnowledgeSourceKind.Upload,
-      title: uploadTitle(ticket.fileName),
+      title,
       status: KnowledgeSourceStatus.Pending,
       createdByUserId: ticket.userId,
     });
-    await this.documents.insert({
+    const document = await this.documents.insertIfAbsent({
       id: documentId,
       workspaceId,
       kbId: ticket.knowledgeBaseId,
       sourceId: source.id,
-      title: uploadTitle(ticket.fileName),
+      title,
       mimeType: ticket.mimeType,
       sizeBytes,
       originalStorageKey: originalKey,
       status: KnowledgeDocumentStatus.Pending,
     });
-    return source;
+    if (document === null) {
+      await this.sources.deleteById(workspaceId, source.id);
+      const existing = await this.findConfirmedInTransaction(workspaceId, documentId);
+      if (existing === null) {
+        throw new KnowledgeUploadInvalidError();
+      }
+      return { ...existing, discardedStorageKeys: [] };
+    }
+    await this.enqueueIngestion(
+      workspaceId,
+      ctx,
+      source.id,
+      syncRunId,
+      KnowledgeSyncTrigger.Initial,
+    );
+    return { source, document, discardedStorageKeys: [] };
   }
 
   private async replaceSource(
+    workspaceId: string,
     ctx: UseCaseCtx,
     ticket: KnowledgeUploadTicket,
-    documentId: string,
+    target: KnowledgeUploadTarget,
     originalKey: string,
     sizeBytes: number,
-  ): Promise<Source> {
-    const workspaceId = ctx.workspaceId;
-    if (workspaceId === null || ticket.sourceId === null) {
+    syncRunId: string,
+  ): Promise<ConfirmedKnowledgeUpload> {
+    if (ticket.sourceId === null) {
       throw new KnowledgeUploadInvalidError();
     }
-    const source = await this.sources.findById(workspaceId, ticket.sourceId);
-    const document = await this.documents.findById(workspaceId, documentId);
-    if (
-      source === null ||
-      document === null ||
-      document.sourceId !== source.id ||
-      source.kbId !== ticket.knowledgeBaseId
-    ) {
-      throw new KnowledgeUploadInvalidError();
-    }
-    const updatedSource = await this.sources.update(workspaceId, source.id, {
-      title: uploadTitle(ticket.fileName),
+    const title = uploadTitle(ticket.fileName);
+    const source = await this.sources.update(workspaceId, target.source.id, {
+      title,
       status: KnowledgeSourceStatus.Pending,
       lastErrorCode: null,
       lastErrorMessage: null,
     });
-    await this.documents.update(workspaceId, documentId, {
-      title: uploadTitle(ticket.fileName),
+    const document = await this.documents.update(workspaceId, target.document.id, {
+      title,
       mimeType: ticket.mimeType,
       sizeBytes,
-      originalStorageKey: originalKey,
+      pendingOriginalStorageKey: originalKey,
+      contentHash: null,
       status: KnowledgeDocumentStatus.Pending,
+      warnings: [],
       errorCode: null,
       errorMessage: null,
     });
-    if (updatedSource === null) {
+    if (source === null || document === null) {
       throw new KnowledgeUploadInvalidError();
     }
-    return updatedSource;
+    await this.enqueueIngestion(
+      workspaceId,
+      ctx,
+      source.id,
+      syncRunId,
+      KnowledgeSyncTrigger.Manual,
+    );
+    const previousPending = target.document.pendingOriginalStorageKey;
+    return {
+      source,
+      document,
+      discardedStorageKeys:
+        previousPending === null ||
+        previousPending === originalKey ||
+        previousPending === target.document.originalStorageKey
+          ? []
+          : [previousPending],
+    };
   }
 
-  private async rememberConfirmed(
+  private async enqueueIngestion(
     workspaceId: string,
-    documentId: string,
+    ctx: UseCaseCtx,
     sourceId: string,
+    syncRunId: string,
+    trigger: KnowledgeSyncTrigger,
   ): Promise<void> {
-    try {
-      await this.cache.set(knowledgeUploadConfirmedEntry(workspaceId, documentId), { sourceId });
-    } catch (error) {
-      this.logger.warn({ msg: KNOWLEDGE_UPLOAD_MARKER_FAILED_MESSAGE, err: error });
+    await this.syncRuns.insert({
+      id: syncRunId,
+      workspaceId,
+      sourceId,
+      trigger,
+      status: KnowledgeSyncStatus.Queued,
+      documentsTotal: 1,
+    });
+    await this.jobs.enqueue(
+      ctx,
+      ingestKnowledgeSourceJob,
+      { sourceId, syncRunId },
+      { durable: true, jobId: syncRunId },
+    );
+  }
+
+  private async deleteStorageKeyIfUnused(
+    document: KnowledgeUploadTarget['document'],
+    key: string,
+  ): Promise<void> {
+    if (document.originalStorageKey === key || document.pendingOriginalStorageKey === key) {
+      return;
     }
+    await this.deleteStorageKey(key);
+  }
+
+  private async cleanupStorageKeys(keys: readonly string[]): Promise<void> {
+    for (const key of keys) {
+      await this.deleteStorageKey(key);
+    }
+  }
+
+  private async deleteStorageKey(key: string): Promise<void> {
+    await this.storage.delete(key).catch((error: unknown) => {
+      this.logger.warn({ msg: KNOWLEDGE_UPLOAD_STORAGE_FAILED_MESSAGE, err: error });
+    });
   }
 
   private async forgetTicket(workspaceId: string, documentId: string): Promise<void> {
