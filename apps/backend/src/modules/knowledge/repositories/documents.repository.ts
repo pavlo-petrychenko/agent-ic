@@ -36,6 +36,21 @@ export class DocumentsRepository {
     return document ?? null;
   }
 
+  async findActiveBySource(workspaceId: string, sourceId: string): Promise<Document | null> {
+    const [document] = await this.txHost.tx
+      .select()
+      .from(documents)
+      .where(
+        and(
+          eq(documents.workspaceId, workspaceId),
+          eq(documents.sourceId, sourceId),
+          isNull(documents.deletedAt),
+        ),
+      )
+      .limit(1);
+    return document ?? null;
+  }
+
   async listBySource(workspaceId: string, sourceId: string): Promise<Document[]> {
     return this.txHost.tx
       .select()

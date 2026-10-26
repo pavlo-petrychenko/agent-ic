@@ -6,11 +6,13 @@ import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
 import { SectionsRepository } from '@/modules/knowledge/repositories/sections.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
+import { CacheModule } from '@/platform/cache/cache.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { RedisModule } from '@/platform/redis/redis.module';
 import { FakeFileStorage } from '@/platform/storage/gateways/file-storage.fake';
 import { FileStorage } from '@/platform/storage/gateways/file-storage.gateway';
 import { StorageModule } from '@/platform/storage/storage.module';
@@ -39,7 +41,7 @@ export const createKnowledgeTestbed = async (
   const storage = new FakeFileStorage();
   const module = await createPlatformTestingModule(
     TestRedisPrefix.Knowledge,
-    [KnowledgeModule.forRole(Role.Api), StorageModule],
+    [KnowledgeModule.forRole(Role.Api), StorageModule, RedisModule, CacheModule],
     [{ token: ClockService, value: clock }, { token: FileStorage, value: storage }, ...overrides],
   );
   return {
@@ -58,6 +60,12 @@ export const knowledgeCtx = (
 
 export const publicKnowledgeBaseId = (testbed: KnowledgeTestbed, knowledgeBaseId: string): string =>
   testbed.ids.toPublic(IdPrefix.KnowledgeBase, knowledgeBaseId);
+
+export const publicKnowledgeSourceId = (testbed: KnowledgeTestbed, sourceId: string): string =>
+  testbed.ids.toPublic(IdPrefix.KnowledgeSource, sourceId);
+
+export const publicKnowledgeDocumentId = (testbed: KnowledgeTestbed, documentId: string): string =>
+  testbed.ids.toPublic(IdPrefix.KnowledgeDocument, documentId);
 
 export const seedKnowledgeBase = async (
   testbed: KnowledgeTestbed,

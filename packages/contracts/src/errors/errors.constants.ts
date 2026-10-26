@@ -98,6 +98,7 @@ export enum ErrorReason {
   KnowledgeBaseNameTaken = 'KNOWLEDGE_BASE_NAME_TAKEN',
   KnowledgeBaseNotFound = 'KNOWLEDGE_BASE_NOT_FOUND',
   KnowledgeBaseHasSources = 'KNOWLEDGE_BASE_HAS_SOURCES',
+  KnowledgeUploadInvalid = 'KNOWLEDGE_UPLOAD_INVALID',
   PromptNameTaken = 'PROMPT_NAME_TAKEN',
   PromptFolderNameTaken = 'PROMPT_FOLDER_NAME_TAKEN',
   PromptFolderNotEmpty = 'PROMPT_FOLDER_NOT_EMPTY',
