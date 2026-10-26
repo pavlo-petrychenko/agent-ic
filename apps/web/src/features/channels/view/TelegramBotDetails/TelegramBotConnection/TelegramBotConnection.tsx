@@ -15,7 +15,11 @@ import { KeyValue, KeyValueLayout } from '@/shared/ui/display/KeyValue';
 import { Field } from '@/shared/ui/inputs/Field';
 import { Input } from '@/shared/ui/inputs/Input';
 
-export function TelegramBotConnection({ channel, onReplaceToken }: TelegramBotConnectionProps) {
+export function TelegramBotConnection({
+  channel,
+  lastUpdate,
+  onReplaceToken,
+}: TelegramBotConnectionProps) {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
   const connected = channel.status === TelegramChannelStatus.Connected;
   const broken = channel.status === TelegramChannelStatus.Broken;
@@ -70,7 +74,7 @@ export function TelegramBotConnection({ channel, onReplaceToken }: TelegramBotCo
           },
           {
             label: t('telegram.bot.connection.lastUpdate'),
-            value: null,
+            value: lastUpdate,
           },
           broken
             ? {

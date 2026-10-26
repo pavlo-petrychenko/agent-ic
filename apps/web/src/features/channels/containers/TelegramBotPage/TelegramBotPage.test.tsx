@@ -16,9 +16,12 @@ const CHANNEL = vi.hoisted(() => ({
   agentLiveVersionNumber: 3,
   showTyping: true,
   updatedAt: '2026-01-01T00:00:00.000Z',
+  updatedByName: 'Demo Owner',
 }));
 
 const disconnectTelegram = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
+
+const updateTelegram = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
 
 vi.mock('../../../agents', () => ({
   useAgents: () => ({
@@ -59,6 +62,13 @@ vi.mock('../../communication/hooks/useDisconnectTelegram', () => ({
   }),
 }));
 
+vi.mock('@/features/channels/communication/hooks/useUpdateTelegram', () => ({
+  useUpdateTelegram: () => ({
+    updateTelegram,
+    saving: false,
+  }),
+}));
+
 const renderPage = () =>
   renderWithProviders(
     <MemoryRouter>
@@ -76,6 +86,21 @@ describe('TelegramBotPage', () => {
     expect(screen.getByText('Connected')).toBeInTheDocument();
     expect(screen.getByRole('combobox')).toHaveValue('agt_1');
     expect(screen.getByText('Always runs the published version (v3 now).')).toBeInTheDocument();
+  });
+
+  it('saves the bot settings', async () => {
+    updateTelegram.mockClear();
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Save' }));
+
+    await waitFor(() => {
+      expect(updateTelegram).toHaveBeenCalledWith({
+        id: CHANNEL.id,
+        agentId: 'agt_1',
+        showTyping: true,
+      });
+    });
   });
 
   it('opens and cancels the disconnect dialog', async () => {

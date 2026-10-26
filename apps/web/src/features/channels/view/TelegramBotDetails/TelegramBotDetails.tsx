@@ -19,6 +19,8 @@ export function TelegramBotDetails({
   agentOptions,
   agentId,
   typing,
+  saving,
+  lastUpdate,
   onAgentChange,
   onTypingChange,
   onReplaceToken,
@@ -51,7 +53,7 @@ export function TelegramBotDetails({
             <Button variant={ButtonVariant.Danger} disabled={disconnected} onClick={onDisconnect}>
               {t('telegram.bot.actions.disconnect')}
             </Button>
-            <Button disabled={broken || disconnected} onClick={onSave}>
+            <Button disabled={broken || disconnected || saving} onClick={onSave}>
               {t('telegram.bot.actions.save')}
             </Button>
           </>
@@ -59,7 +61,11 @@ export function TelegramBotDetails({
       />
       <div className="grid grid-cols-1 items-start gap-5 px-7 compact:grid-cols-[minmax(18rem,1fr)_minmax(15rem,20rem)]">
         <div className="flex flex-col gap-4">
-          <TelegramBotConnection channel={channel} onReplaceToken={onReplaceToken} />
+          <TelegramBotConnection
+            channel={channel}
+            lastUpdate={lastUpdate}
+            onReplaceToken={onReplaceToken}
+          />
           <TelegramBotWhoAnswers
             channel={channel}
             agentOptions={agentOptions}
