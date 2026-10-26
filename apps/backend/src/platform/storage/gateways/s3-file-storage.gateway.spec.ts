@@ -87,6 +87,8 @@ const originOf = (server: Server): string => {
   return `http://127.0.0.1:${address.port}`;
 };
 
+const pathOf = (url: string): string => new URL(url, 'http://storage.test').pathname;
+
 describe('S3FileStorageGateway', () => {
   const requests: RecordedRequest[] = [];
   let server: Server;
@@ -118,10 +120,8 @@ describe('S3FileStorageGateway', () => {
     await storage.put(KEY, BODY, 'text/plain');
 
     expect(requests).toHaveLength(1);
-    expect(requests[0]).toMatchObject({
-      method: 'PUT',
-      url: `/agent-ic-test/${KEY}`,
-    });
+    expect(requests[0]?.method).toBe('PUT');
+    expect(pathOf(requests[0]?.url ?? '')).toBe(`/agent-ic-test/${KEY}`);
     expect(requests[0]?.headers['content-type']).toBe('text/plain');
     expect(requests[0]?.body).toEqual(BODY);
   });
@@ -143,7 +143,8 @@ describe('S3FileStorageGateway', () => {
   it('deletes an object', async () => {
     await storage.delete(KEY);
 
-    expect(requests[0]).toMatchObject({ method: 'DELETE', url: `/agent-ic-test/${KEY}` });
+    expect(requests[0]?.method).toBe('DELETE');
+    expect(pathOf(requests[0]?.url ?? '')).toBe(`/agent-ic-test/${KEY}`);
   });
 
   it('presigns upload and download URLs against the public endpoint', async () => {
