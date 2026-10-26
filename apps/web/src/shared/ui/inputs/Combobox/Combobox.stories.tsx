@@ -45,8 +45,23 @@ export const Creatable: Story = {
 };
 
 const MODELS = [
-  { value: 'platform:gpt-6-luna', label: 'GPT-6 Luna · OpenAI', group: 'platform' },
-  { value: 'platform:glm-5-3-flash', label: 'GLM-5.3 Flash · Zhipu', group: 'platform' },
+  {
+    value: 'platform:gpt-6-luna',
+    label: 'GPT-6 Luna',
+    description: 'OpenAI · $0.10 / $0.50 per 1M tokens',
+    group: 'platform',
+  },
+  {
+    value: 'platform:glm-5-3-flash',
+    label: 'GLM-5.3 Flash',
+    description: 'Zhipu · $0.15 / $0.50 per 1M tokens',
+    group: 'platform',
+  },
+  {
+    value: 'lmk_openai:accounts/fireworks/models/deepseek-v4p1-flash-instruct-preview',
+    label: 'accounts/fireworks/models/deepseek-v4p1-flash-instruct-preview',
+    group: 'lmk_openai',
+  },
   { value: 'lmk_openai:gpt-4o', label: 'gpt-4o', group: 'lmk_openai' },
   { value: 'lmk_openai:gpt-4o-mini', label: 'gpt-4o-mini', group: 'lmk_openai' },
 ];

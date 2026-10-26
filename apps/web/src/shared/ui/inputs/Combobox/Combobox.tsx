@@ -6,6 +6,7 @@ import {
   COMBOBOX_CHECK_SIZE,
   COMBOBOX_CHEVRON_SIZE,
   COMBOBOX_CREATE_VALUE,
+  COMBOBOX_DESCRIPTION_ID_SUFFIX,
   COMBOBOX_ERROR_ID_SUFFIX,
 } from '@/shared/ui/inputs/Combobox/Combobox.constants';
 import type {
@@ -67,7 +68,8 @@ export function Combobox({
   'aria-describedby': ariaDescribedBy,
   ...rest
 }: ComboboxProps) {
-  const errorId = `${useId()}${COMBOBOX_ERROR_ID_SUFFIX}`;
+  const baseId = useId();
+  const errorId = `${baseId}${COMBOBOX_ERROR_ID_SUFFIX}`;
   const panelRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<HTMLUListElement>(null);
   const [open, setOpen] = useState(false);
@@ -79,7 +81,11 @@ export function Combobox({
   const matched =
     normalizedQuery === ''
       ? options
-      : options.filter((option) => option.label.toLocaleLowerCase().includes(normalizedQuery));
+      : options.filter((option) =>
+          [option.label, option.description ?? ''].some((text) =>
+            text.toLocaleLowerCase().includes(normalizedQuery),
+          ),
+        );
   const hasExactMatch = options.some(
     (option) => option.label.toLocaleLowerCase() === normalizedQuery,
   );
@@ -150,10 +156,16 @@ export function Combobox({
 
   const renderOption = (option: ComboboxOption) => {
     const index = visible.indexOf(option);
+    const descriptionId =
+      option.description === undefined
+        ? undefined
+        : `${baseId}-${index}${COMBOBOX_DESCRIPTION_ID_SUFFIX}`;
     return (
       <li key={option.value}>
         <button
           type="button"
+          aria-label={option.description === undefined ? undefined : option.label}
+          aria-describedby={descriptionId}
           aria-current={option.value === value ? 'true' : undefined}
           data-active={index === activeIndex ? 'true' : undefined}
           className={clsx(
@@ -165,9 +177,19 @@ export function Combobox({
           onFocus={() => setActiveIndex(index)}
           onClick={() => select(option)}
         >
-          <span className={styles.optionLabel}>{option.label}</span>
+          <span className={styles.optionText}>
+            <span className={styles.optionLabel}>{option.label}</span>
 
-          {option.value === value && <Icon name={IconName.Check} size={COMBOBOX_CHECK_SIZE} />}
+            {option.description !== undefined && (
+              <span id={descriptionId} className={styles.optionDescription}>
+                {option.description}
+              </span>
+            )}
+          </span>
+
+          {option.value === value && (
+            <Icon name={IconName.Check} size={COMBOBOX_CHECK_SIZE} className={styles.check} />
+          )}
         </button>
       </li>
     );
