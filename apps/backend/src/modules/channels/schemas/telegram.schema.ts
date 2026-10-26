@@ -6,3 +6,9 @@ export const connectTelegramInputSchema = z.object({
   agentId: z.string().min(1),
   showTyping: z.boolean().default(true),
 });
+
+export const updateTelegramInputSchema = z.object({
+  id: z.string().min(1),
+  agentId: z.string().min(1),
+  showTyping: z.boolean(),
+});

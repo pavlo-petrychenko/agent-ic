@@ -9,6 +9,7 @@ import type {
   CompleteChannelConnectionInput,
   NewChannel,
   PrepareChannelConnectionInput,
+  UpdateChannelSettingsInput,
 } from '@/modules/channels/typedefs/channel.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -42,6 +43,7 @@ export class ChannelConnectionService {
           showTyping: input.showTyping,
           credentialsSealed: input.credentialsSealed,
           updatedAt: now,
+          updatedByUserId: input.updatedByUserId,
         });
         if (updated === null) {
           throw new ChannelNotFoundError();
@@ -60,6 +62,7 @@ export class ChannelConnectionService {
         showTyping: input.showTyping,
         credentialsSealed: input.credentialsSealed,
         createdByUserId: input.createdByUserId,
+        updatedByUserId: input.updatedByUserId,
         createdAt: now,
         updatedAt: now,
       };
@@ -77,7 +80,23 @@ export class ChannelConnectionService {
         input.channelId,
         ChannelStatus.Connected,
         this.clock.now(),
+        input.updatedByUserId,
       );
+      if (channel === null) {
+        throw new ChannelNotFoundError();
+      }
+      return toChannelView(channel, this.ids);
+    });
+  }
+
+  updateSettings(input: UpdateChannelSettingsInput): Promise<ChannelView> {
+    return this.tenantTransactions.run(input.workspaceId, async () => {
+      const channel = await this.channels.updateSettings(input.workspaceId, input.channelId, {
+        agentId: input.agentId,
+        showTyping: input.showTyping,
+        updatedAt: this.clock.now(),
+        updatedByUserId: input.updatedByUserId,
+      });
       if (channel === null) {
         throw new ChannelNotFoundError();
       }
