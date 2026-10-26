@@ -1,6 +1,7 @@
 import { ErrorReason } from '@agent-ic/contracts';
 
 export enum ChannelField {
+  Id = 'id',
   Token = 'token',
   AgentId = 'agentId',
   ShowTyping = 'showTyping',
