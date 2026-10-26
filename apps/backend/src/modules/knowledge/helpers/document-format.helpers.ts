@@ -1,21 +1,14 @@
-import { basename, extname } from 'node:path';
 import type { KnowledgeDocumentFormat } from '@agent-ic/contracts';
 import {
   DOCUMENT_FORMATS,
   DOCUMENT_MIME_TYPE_SEPARATOR,
-  DOCUMENT_PATH_SEPARATOR,
-  DOCUMENT_WINDOWS_PATH_SEPARATOR,
   DocumentParseErrorCode,
 } from '@/modules/knowledge/constants/document-parser.constants';
 import { DocumentParseError } from '@/modules/knowledge/errors/document-parse.error';
+import { documentFileName } from '@/modules/knowledge/helpers/document-file-name.helpers';
 
 const normalizedMimeType = (mimeType: string): string =>
   mimeType.split(DOCUMENT_MIME_TYPE_SEPARATOR)[0]?.trim().toLowerCase() ?? '';
-
-const normalizedExtension = (fileName: string): string =>
-  extname(
-    basename(fileName.replaceAll(DOCUMENT_WINDOWS_PATH_SEPARATOR, DOCUMENT_PATH_SEPARATOR)),
-  ).toLowerCase();
 
 const formatByMimeType = (mimeType: string): KnowledgeDocumentFormat | null =>
   DOCUMENT_FORMATS.find((definition) => definition.mimeTypes.includes(mimeType))?.format ?? null;
@@ -28,7 +21,7 @@ export const resolveDocumentFormat = (
   mimeType: string,
 ): KnowledgeDocumentFormat => {
   const format =
-    formatByExtension(normalizedExtension(fileName)) ??
+    formatByExtension(documentFileName(fileName).extension) ??
     formatByMimeType(normalizedMimeType(mimeType));
 
   if (format === null) {

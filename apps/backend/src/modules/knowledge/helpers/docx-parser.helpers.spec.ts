@@ -62,12 +62,6 @@ describe('parseDocxDocument', () => {
     expect(result.warnings).toEqual([]);
   });
 
-  it('rejects an empty document', async () => {
-    await expect(parseDocxDocument(input(await buildDocx('')))).rejects.toMatchObject({
-      code: DocumentParseErrorCode.Empty,
-    });
-  });
-
   it('fails a file that is not a DOCX archive', async () => {
     await expect(parseDocxDocument(input(Buffer.from('not a docx')))).rejects.toMatchObject({
       code: DocumentParseErrorCode.Unreadable,

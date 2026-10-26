@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { DocumentParseErrorCode } from '@/modules/knowledge/constants/document-parser.constants';
 import { DocumentParseError } from '@/modules/knowledge/errors/document-parse.error';
 import { canonicalizeMarkdown } from '@/modules/knowledge/helpers/canonical-markdown.helpers';
-import { documentContentHash } from '@/modules/knowledge/helpers/document-content-hash.helpers';
+import { contentHash } from '@/modules/knowledge/helpers/content-hash.helpers';
 import { resolveDocumentFormat } from '@/modules/knowledge/helpers/document-format.helpers';
 import { documentTitle } from '@/modules/knowledge/helpers/document-title.helpers';
 import { documentTokenCount } from '@/modules/knowledge/helpers/document-token.helpers';
@@ -39,7 +39,7 @@ export class DocumentParserService {
     return {
       title: title.title,
       markdown,
-      contentHash: documentContentHash(markdown),
+      contentHash: contentHash(markdown),
       tokenCount: documentTokenCount(markdown),
       warnings: [...title.warnings, ...parsed.warnings],
     };

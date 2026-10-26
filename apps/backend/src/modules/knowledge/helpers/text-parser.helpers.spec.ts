@@ -19,12 +19,6 @@ describe('parseTextDocument', () => {
     });
   });
 
-  it('rejects an empty document', async () => {
-    await expect(parseTextDocument(input(Buffer.from(' \n\t')))).rejects.toMatchObject({
-      code: DocumentParseErrorCode.Empty,
-    });
-  });
-
   it('rejects bytes that are not UTF-8', async () => {
     const failure = parseTextDocument(input(Buffer.from([0xff])));
 

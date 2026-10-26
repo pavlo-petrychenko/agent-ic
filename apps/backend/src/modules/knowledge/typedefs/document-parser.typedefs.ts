@@ -7,6 +7,12 @@ export interface DocumentFormatDefinition {
   readonly mimeTypes: readonly string[];
 }
 
+export interface DocumentFileName {
+  readonly baseName: string;
+  readonly extension: string;
+  readonly stem: string;
+}
+
 export interface DocumentParseInput {
   readonly bytes: Buffer;
   readonly fileName: string;

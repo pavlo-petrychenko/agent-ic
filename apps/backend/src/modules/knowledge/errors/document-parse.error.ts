@@ -11,4 +11,8 @@ export class DocumentParseError extends Error {
     super(DOCUMENT_PARSE_ERROR_MESSAGE[code], { cause: options.cause });
     this.name = new.target.name;
   }
+
+  static unreadable(cause: unknown): DocumentParseError {
+    return new DocumentParseError(DocumentParseErrorCode.Unreadable, { cause });
+  }
 }

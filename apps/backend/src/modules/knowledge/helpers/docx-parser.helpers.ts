@@ -1,7 +1,6 @@
 import mammoth from 'mammoth';
 import {
   DOCX_EMPTY_IMAGE_PATTERN,
-  DocumentParseErrorCode,
   DocumentParseWarningCode,
 } from '@/modules/knowledge/constants/document-parser.constants';
 import { DocumentParseError } from '@/modules/knowledge/errors/document-parse.error';
@@ -30,16 +29,11 @@ export const parseDocxDocument = async (
       { convertImage: emptyImage },
     );
   } catch (error) {
-    throw new DocumentParseError(DocumentParseErrorCode.Unreadable, { cause: error });
-  }
-
-  const markdown = result.value.replace(DOCX_EMPTY_IMAGE_PATTERN, '').trim();
-  if (markdown.length === 0) {
-    throw new DocumentParseError(DocumentParseErrorCode.Empty);
+    throw DocumentParseError.unreadable(error);
   }
 
   return {
-    markdown,
+    markdown: result.value.replace(DOCX_EMPTY_IMAGE_PATTERN, ''),
     warnings: result.messages
       .filter((message) => message.type === 'warning')
       .map((message) => ({

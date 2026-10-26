@@ -19,7 +19,7 @@ export const parsePdfDocument = async (
     const extracted = await extractText(new Uint8Array(input.bytes), { mergePages: false });
     pages = extracted.text;
   } catch (error) {
-    throw new DocumentParseError(DocumentParseErrorCode.Unreadable, { cause: error });
+    throw DocumentParseError.unreadable(error);
   }
 
   const textPages = pages.map((page) => page.trim()).filter((page) => page.length > 0);
