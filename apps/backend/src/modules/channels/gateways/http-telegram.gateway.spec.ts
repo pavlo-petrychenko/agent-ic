@@ -197,6 +197,52 @@ describe('HttpTelegramGateway', () => {
     ]);
   });
 
+  it('returns no updates when telegram has none', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json({ ok: true, result: [] }));
+
+    await expect(
+      gateway.getUpdates({
+        token: TEST_TELEGRAM_TOKEN,
+        offset: 0,
+        timeoutSeconds: 20,
+        allowedUpdates: TELEGRAM_ALLOWED_UPDATES,
+      }),
+    ).resolves.toEqual([]);
+  });
+
+  it('maps a rate limit on getUpdates to a retryable error', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json(
+        {
+          ok: false,
+          error_code: 429,
+          description: 'Too Many Requests',
+          parameters: { retry_after: 3 },
+        },
+        { status: 429 },
+      ),
+    );
+
+    const error = await gateway
+      .getUpdates({
+        token: TEST_TELEGRAM_TOKEN,
+        offset: 0,
+        timeoutSeconds: 20,
+        allowedUpdates: TELEGRAM_ALLOWED_UPDATES,
+      })
+      .catch((caught: unknown) => caught);
+
+    if (!(error instanceof TelegramApiError)) {
+      throw error;
+    }
+    expect(error).toMatchObject({
+      method: 'getUpdates',
+      status: 429,
+      retryable: true,
+      retryAfterSeconds: 3,
+    });
+  });
+
   it('maps an invalid token to a non-retryable error without leaking it', async () => {
     fetchMock.mockResolvedValueOnce(
       Response.json({ ok: false, error_code: 401, description: 'Unauthorized' }, { status: 401 }),

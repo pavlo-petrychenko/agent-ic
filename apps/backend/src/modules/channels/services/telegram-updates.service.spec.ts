@@ -8,6 +8,7 @@ import type {
 } from '@/modules/channels/typedefs/telegram.typedefs';
 import { IncomingMessageOutcome, MessageAuthor } from '@/modules/conversations';
 import { SystemActorRequiredError } from '@/platform/context/errors/system-actor-required.error';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { newChannel } from '@test/support/fixtures/channel.fixture';
 import { workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
@@ -87,6 +88,22 @@ describe('TelegramUpdatesService', () => {
       author: MessageAuthor.Customer,
       text: 'Hello',
     });
+  });
+
+  it('enqueues the run job', async () => {
+    const { channel, ctx, workspaceId } = await seed();
+
+    await updates.handleTelegramUpdate(ctx, {
+      channelId: channel.id,
+      update: telegramUpdate(),
+    });
+
+    const jobs = (
+      await testbed.queues
+        .get(QueueName.RunsReactive)
+        .getJobs(['waiting', 'prioritized', 'delayed', 'active'])
+    ).filter((job) => job.data.workspaceId === workspaceId);
+    expect(jobs).toHaveLength(1);
   });
 
   it('ignores an update that was already received', async () => {
