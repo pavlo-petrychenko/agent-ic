@@ -13,6 +13,33 @@ export interface TelegramWebhookInfo {
   readonly lastErrorMessage: string | null;
 }
 
+export interface TelegramMessage {
+  readonly messageId: string;
+  readonly sentAt: Date;
+  readonly chatId: string;
+  readonly senderId: string | null;
+  readonly senderName: string | null;
+  readonly text: string | null;
+}
+
+export interface TelegramUpdate {
+  readonly updateId: string;
+  readonly message: TelegramMessage | null;
+}
+
+export interface TelegramPollerChannel {
+  readonly id: string;
+  readonly workspaceId: string;
+  readonly credentialsSealed: string;
+}
+
+export interface GetTelegramUpdatesInput {
+  readonly token: string;
+  readonly offset: number;
+  readonly timeoutSeconds: number;
+  readonly allowedUpdates: readonly TelegramUpdateType[];
+}
+
 export interface SetTelegramWebhookInput {
   readonly token: string;
   readonly url: string;

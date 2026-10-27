@@ -94,6 +94,7 @@ export interface UsageConfig {
 
 export interface TelegramConfig {
   readonly transport: TelegramTransport;
+  readonly pollTimeoutSeconds: number;
 }
 
 export interface SmtpCredentials {

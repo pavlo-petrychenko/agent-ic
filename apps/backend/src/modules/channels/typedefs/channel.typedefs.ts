@@ -3,6 +3,7 @@ import type {
   ChannelCredentials,
   ChannelIdentity,
 } from '@/modules/channels/typedefs/channel-identity.typedefs';
+import type { TelegramUpdate } from '@/modules/channels/typedefs/telegram.typedefs';
 
 export type ChannelRecord = typeof channels.$inferSelect;
 
@@ -102,4 +103,9 @@ export interface UpdateChannelSettingsInput {
   readonly agentId: string;
   readonly showTyping: boolean;
   readonly updatedByUserId: string;
+}
+
+export interface ReceiveTelegramUpdateInput {
+  readonly channelId: string;
+  readonly update: TelegramUpdate;
 }
