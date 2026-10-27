@@ -7,6 +7,7 @@ import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { DeliverOutboundMessageListener } from '@/modules/channels/listeners/deliver-outbound-message.listener';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
+import { TelegramPollerRepository } from '@/modules/channels/repositories/telegram-poller.repository';
 import { ChannelResolver } from '@/modules/channels/resolvers/channel.resolver';
 import { ConnectTelegramResolver } from '@/modules/channels/resolvers/connect-telegram.resolver';
 import { DisconnectTelegramResolver } from '@/modules/channels/resolvers/disconnect-telegram.resolver';
@@ -17,12 +18,13 @@ import { ChannelConnectionService } from '@/modules/channels/services/channel-co
 import { ChannelMetricsService } from '@/modules/channels/services/channel-metrics.service';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { TelegramChannelService } from '@/modules/channels/services/telegram-channel.service';
+import { TelegramPollerService } from '@/modules/channels/services/telegram-poller.service';
+import { TelegramUpdatesService } from '@/modules/channels/services/telegram-updates.service';
 import { ConnectTelegramChannelUseCase } from '@/modules/channels/use-cases/connect-telegram.use-case';
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
 import { DisconnectTelegramUseCase } from '@/modules/channels/use-cases/disconnect-telegram.use-case';
 import { GetChannelUseCase } from '@/modules/channels/use-cases/get-channel.use-case';
 import { ListChannelsUseCase } from '@/modules/channels/use-cases/list-channels.use-case';
-import { ReceiveTelegramUpdateUseCase } from '@/modules/channels/use-cases/receive-telegram-update.use-case';
 import { ReplaceTelegramTokenUseCase } from '@/modules/channels/use-cases/replace-telegram-token.use-case';
 import { UpdateTelegramChannelUseCase } from '@/modules/channels/use-cases/update-telegram.use-case';
 import { ConversationsModule } from '@/modules/conversations';
@@ -34,9 +36,12 @@ export class ChannelsModule extends defineModule({
   providers: [
     ChannelsRepository,
     ChannelEventsRepository,
+    TelegramPollerRepository,
     ChannelTokenService,
     ChannelConnectionService,
     TelegramChannelService,
+    TelegramPollerService,
+    TelegramUpdatesService,
     {
       provide: TelegramGateway,
       useClass: HttpTelegramGateway,
@@ -53,7 +58,6 @@ export class ChannelsModule extends defineModule({
     DisconnectTelegramUseCase,
     GetChannelUseCase,
     ListChannelsUseCase,
-    ReceiveTelegramUpdateUseCase,
     ReplaceTelegramTokenUseCase,
     UpdateTelegramChannelUseCase,
     DeliverOutboundMessageUseCase,
