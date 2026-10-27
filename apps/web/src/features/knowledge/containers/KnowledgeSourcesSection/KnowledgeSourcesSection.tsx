@@ -7,6 +7,7 @@ import { AddSourceDialog } from '@/features/knowledge/containers/AddSourceDialog
 import { DeleteKnowledgeSourceDialog } from '@/features/knowledge/containers/DeleteKnowledgeSourceDialog';
 import type { KnowledgeSourcesSectionProps } from '@/features/knowledge/containers/KnowledgeSourcesSection/KnowledgeSourcesSection.typedefs';
 import { useKnowledgeSourceRows } from '@/features/knowledge/containers/KnowledgeSourcesSection/useKnowledgeSourceRows';
+import { RenameKnowledgeSourceDialog } from '@/features/knowledge/containers/RenameKnowledgeSourceDialog';
 import { isKnowledgeSourceActive } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
 import type { KnowledgeSourceRowView } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import { KnowledgeSourcesEmpty } from '@/features/knowledge/view/KnowledgeSourcesEmpty';
@@ -30,6 +31,7 @@ export function KnowledgeSourcesSection({
   const { retryKnowledgeSource, retryingSourceId } = useRetryKnowledgeSource(knowledgeBaseId);
   const rows = useKnowledgeSourceRows(sources);
   const [adding, setAdding] = useState(false);
+  const [renameTarget, setRenameTarget] = useState<KnowledgeSourceRowView | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<KnowledgeSourceRowView | null>(null);
   const active = sources.some(({ status }) => isKnowledgeSourceActive(status));
   const previousActive = useRef(active);
@@ -42,6 +44,7 @@ export function KnowledgeSourcesSection({
   }, [active, onCountsChanged]);
 
   const onAddSource = canAddSource ? () => setAdding(true) : null;
+  const onRenameSource = canManageSources ? setRenameTarget : null;
   const onRetrySource = canManageSources
     ? (source: KnowledgeSourceRowView) => {
         void (async () => {
@@ -73,6 +76,7 @@ export function KnowledgeSourcesSection({
           onRetry: refreshSources,
         }}
         onAddSource={onAddSource}
+        onRenameSource={null}
         onRetrySource={null}
         onDeleteSource={null}
         retryingSourceId={null}
@@ -84,6 +88,7 @@ export function KnowledgeSourcesSection({
           loading
           error={null}
           onAddSource={null}
+          onRenameSource={null}
           onRetrySource={null}
           onDeleteSource={null}
           retryingSourceId={null}
@@ -98,6 +103,7 @@ export function KnowledgeSourcesSection({
           loading={false}
           error={null}
           onAddSource={onAddSource}
+          onRenameSource={onRenameSource}
           onRetrySource={onRetrySource}
           onDeleteSource={onDeleteSource}
           retryingSourceId={retryingSourceId}
@@ -115,6 +121,13 @@ export function KnowledgeSourcesSection({
           knowledgeBaseName={knowledgeBaseName}
           onUploaded={refreshSources}
           onClose={() => setAdding(false)}
+        />
+      ) : null}
+      {renameTarget !== null ? (
+        <RenameKnowledgeSourceDialog
+          knowledgeBaseId={knowledgeBaseId}
+          source={renameTarget}
+          onClose={() => setRenameTarget(null)}
         />
       ) : null}
       {deleteTarget !== null ? (

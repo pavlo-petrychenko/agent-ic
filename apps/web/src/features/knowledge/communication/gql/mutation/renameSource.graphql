@@ -1,0 +1,6 @@
+mutation RenameSource($input: RenameSourceInput!) {
+  renameSource(input: $input) {
+    id
+    title
+  }
+}

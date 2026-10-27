@@ -105,9 +105,18 @@
     "menu": {
       "label": "Source actions",
       "trigger": "Actions for “{{name}}”",
+      "rename": "Rename",
       "delete": "Delete source",
       "deleteBusy": "Wait for indexing to finish",
       "retry": "Retry"
+    },
+    "rename": {
+      "title": "Rename “{{name}}”",
+      "description": "Only the source name changes. Indexed content stays the same.",
+      "nameLabel": "Source name",
+      "nameInvalid": "Enter a name up to {{count}} characters.",
+      "submit": "Save",
+      "success": "Source “{{name}}” renamed."
     },
     "delete": {
       "title": "Delete “{{name}}”?",
@@ -136,6 +145,16 @@
     "submit": "Create knowledge base",
     "success": "Knowledge base “{{name}}” created.",
     "failed": "Could not create the knowledge base. Try again."
+  },
+  "rename": {
+    "action": "Rename",
+    "title": "Rename knowledge base",
+    "description": "Give your knowledge base a new name. Its sources and indexed content stay the same.",
+    "nameLabel": "Name",
+    "nameInvalid": "Enter a name up to {{count}} characters.",
+    "nameTaken": "A knowledge base with this name already exists.",
+    "submit": "Save",
+    "success": "Knowledge base “{{name}}” renamed."
   },
   "loadError": "Could not load knowledge bases.",
   "retry": "Try again",

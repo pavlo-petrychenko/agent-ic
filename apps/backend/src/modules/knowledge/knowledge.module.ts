@@ -17,6 +17,8 @@ import { DeleteKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/del
 import { KnowledgeBasesResolver } from '@/modules/knowledge/resolvers/knowledge-bases.resolver';
 import { KnowledgeSourcesResolver } from '@/modules/knowledge/resolvers/knowledge-sources.resolver';
 import { KnowledgeUploadResolver } from '@/modules/knowledge/resolvers/knowledge-upload.resolver';
+import { RenameKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/rename-knowledge-base.resolver';
+import { RenameKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/rename-knowledge-source.resolver';
 import { RetryKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/retry-knowledge-source.resolver';
 import { DocumentParserService } from '@/modules/knowledge/services/document-parser.service';
 import { DocumentSummaryService } from '@/modules/knowledge/services/document-summary.service';
@@ -35,6 +37,8 @@ import { DeleteKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/dele
 import { IngestKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/ingest-knowledge-source.use-case';
 import { ListKnowledgeBasesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-bases.use-case';
 import { ListKnowledgeSourcesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-sources.use-case';
+import { RenameKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/rename-knowledge-base.use-case';
+import { RenameKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/rename-knowledge-source.use-case';
 import { RetryKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/retry-knowledge-source.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
@@ -67,6 +71,8 @@ export class KnowledgeModule extends defineModule({
     IngestKnowledgeSourceUseCase,
     ListKnowledgeBasesUseCase,
     ListKnowledgeSourcesUseCase,
+    RenameKnowledgeBaseUseCase,
+    RenameKnowledgeSourceUseCase,
     RetryKnowledgeSourceUseCase,
   ],
   resolvers: [
@@ -76,6 +82,8 @@ export class KnowledgeModule extends defineModule({
     KnowledgeBasesResolver,
     KnowledgeSourcesResolver,
     KnowledgeUploadResolver,
+    RenameKnowledgeBaseResolver,
+    RenameKnowledgeSourceResolver,
     RetryKnowledgeSourceResolver,
   ],
   processors: [CleanUpKnowledgeSourceFilesProcessor, IngestKnowledgeSourceProcessor],

@@ -11,6 +11,7 @@ export interface KnowledgeSourcesTableProps {
   readonly loading: boolean;
   readonly error: KnowledgeSourcesTableError | null;
   readonly onAddSource: (() => void) | null;
+  readonly onRenameSource: ((row: KnowledgeSourceRowView) => void) | null;
   readonly onRetrySource: ((row: KnowledgeSourceRowView) => void) | null;
   readonly onDeleteSource: ((row: KnowledgeSourceRowView) => void) | null;
   readonly retryingSourceId: string | null;

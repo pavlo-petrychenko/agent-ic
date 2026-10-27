@@ -2,6 +2,7 @@ import {
   KNOWLEDGE_BASE_DESCRIPTION_MAX_LENGTH,
   KNOWLEDGE_BASE_NAME_MAX_LENGTH,
   KNOWLEDGE_DOCUMENT_MAX_BYTES,
+  KNOWLEDGE_SOURCE_TITLE_MAX_LENGTH,
 } from '@agent-ic/contracts';
 import { z } from 'zod';
 import { KnowledgeField } from '@/modules/knowledge/constants/knowledge-input.constants';
@@ -12,6 +13,7 @@ import {
 
 const nameSchema = z.string().trim().min(1).max(KNOWLEDGE_BASE_NAME_MAX_LENGTH);
 const recordIdSchema = z.string().min(1);
+const sourceTitleSchema = z.string().trim().min(1).max(KNOWLEDGE_SOURCE_TITLE_MAX_LENGTH);
 
 const descriptionSchema = z
   .string()
@@ -25,6 +27,16 @@ const descriptionSchema = z
 export const createKnowledgeBaseInputSchema = z.object({
   [KnowledgeField.Name]: nameSchema,
   [KnowledgeField.Description]: descriptionSchema,
+});
+
+export const renameKnowledgeBaseInputSchema = z.object({
+  [KnowledgeField.Id]: recordIdSchema,
+  [KnowledgeField.Name]: nameSchema,
+});
+
+export const renameKnowledgeSourceInputSchema = z.object({
+  [KnowledgeField.Id]: recordIdSchema,
+  [KnowledgeField.Title]: sourceTitleSchema,
 });
 
 export const deleteKnowledgeBaseInputSchema = z.object({

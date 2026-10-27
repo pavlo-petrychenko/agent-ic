@@ -15,6 +15,7 @@ export enum KnowledgeField {
   FileName = 'fileName',
   MimeType = 'mimeType',
   SizeBytes = 'sizeBytes',
+  Title = 'title',
 }
 
 export const KNOWLEDGE_FIELD_PATH_SEPARATOR = '.';
@@ -29,4 +30,5 @@ export const KNOWLEDGE_FIELD_REASON: Readonly<Record<string, ErrorReason>> = {
   [KnowledgeField.FileName]: ErrorReason.InvalidRequest,
   [KnowledgeField.MimeType]: ErrorReason.InvalidRequest,
   [KnowledgeField.SizeBytes]: ErrorReason.InvalidRequest,
+  [KnowledgeField.Title]: ErrorReason.InvalidRequest,
 };

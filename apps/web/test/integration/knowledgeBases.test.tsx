@@ -7,6 +7,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { CreateKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/createKnowledgeBase.generated';
 import { DeleteKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/deleteKnowledgeBase.generated';
 import { DeleteSourceDocument } from '@/features/knowledge/communication/gql/mutation/deleteSource.generated';
+import { RenameKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/renameKnowledgeBase.generated';
+import { RenameSourceDocument } from '@/features/knowledge/communication/gql/mutation/renameSource.generated';
 import { RetrySourceDocument } from '@/features/knowledge/communication/gql/mutation/retrySource.generated';
 import {
   KnowledgeBasesDocument,
@@ -127,6 +129,16 @@ const buildDeleteKnowledgeBaseMock = (id: string): MockLink.MockedResponse => ({
   result: { data: { deleteKnowledgeBase: { id } } },
 });
 
+const buildRenameKnowledgeBaseMock = (id: string, name: string): MockLink.MockedResponse => ({
+  request: { query: RenameKnowledgeBaseDocument, variables: { input: { id, name } } },
+  result: { data: { renameKnowledgeBase: { id, name } } },
+});
+
+const buildRenameKnowledgeSourceMock = (id: string, title: string): MockLink.MockedResponse => ({
+  request: { query: RenameSourceDocument, variables: { input: { id, title } } },
+  result: { data: { renameSource: { id, title } } },
+});
+
 const buildDeleteKnowledgeSourceMock = (id: string): MockLink.MockedResponse => ({
   request: { query: DeleteSourceDocument, variables: { input: { id } } },
   result: { data: { deleteSource: { id } } },
@@ -211,6 +223,79 @@ describe('knowledge bases', () => {
       within(dialog).getByText('Content is chunked, embedded and indexed after you add it'),
     ).toBeInTheDocument();
     expect(within(dialog).getByText('Drop files here or')).toBeInTheDocument();
+  });
+
+  it('renames a knowledge base from the header', async () => {
+    const user = userEvent.setup();
+    const renamedKnowledgeBase: KnowledgeBaseFixture = {
+      ...SERVICES_KNOWLEDGE_BASE,
+      name: 'Services and prices',
+      updatedAt: '2026-10-27T10:00:00.000Z',
+    };
+    renderRoute(`${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id),
+        buildRenameKnowledgeBaseMock(SERVICES_KNOWLEDGE_BASE.id, renamedKnowledgeBase.name),
+        buildKnowledgeBasesMock([renamedKnowledgeBase]),
+      ],
+    });
+
+    await screen.findByRole('heading', { name: SERVICES_KNOWLEDGE_BASE.name });
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Rename knowledge base' });
+    const name = within(dialog).getByLabelText('Name');
+    await user.clear(name);
+    await user.type(name, renamedKnowledgeBase.name);
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    expect(
+      await screen.findByText(`Knowledge base “${renamedKnowledgeBase.name}” renamed.`),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: renamedKnowledgeBase.name }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: new RegExp(renamedKnowledgeBase.name) }),
+    ).toHaveAttribute('href', `${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`);
+  });
+
+  it('renames a source from the row menu', async () => {
+    const user = userEvent.setup();
+    const renamedSource: KnowledgeSourceFixture = {
+      ...READY_SOURCE,
+      title: 'price-list',
+      updatedAt: '2026-10-27T10:00:00.000Z',
+    };
+    renderRoute(`${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [READY_SOURCE]),
+        buildRenameKnowledgeSourceMock(READY_SOURCE.id, renamedSource.title),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [renamedSource]),
+      ],
+    });
+
+    await screen.findByRole('heading', { name: SERVICES_KNOWLEDGE_BASE.name });
+    await user.click(
+      await screen.findByRole('button', { name: `Actions for “${READY_SOURCE.title}”` }),
+    );
+    await user.click(screen.getByRole('option', { name: 'Rename' }));
+    const dialog = await screen.findByRole('dialog', {
+      name: `Rename “${READY_SOURCE.title}”`,
+    });
+    const title = within(dialog).getByLabelText('Source name');
+    await user.clear(title);
+    await user.type(title, renamedSource.title);
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    expect(await screen.findByText(`Source “${renamedSource.title}” renamed.`)).toBeInTheDocument();
+    expect(await screen.findByText(renamedSource.title, { exact: true })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: `Actions for “${renamedSource.title}”` }),
+    ).toBeInTheDocument();
   });
 
   it('shows source indexing status and chunk counts', async () => {

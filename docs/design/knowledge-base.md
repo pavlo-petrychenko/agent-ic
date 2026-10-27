@@ -104,6 +104,8 @@ The source is the unit the user sees and manages: it has a status, a sync schedu
 
 For an upload they are 1:1. For a Google selection one source may contain five Google Docs; each document gets its own status and generation, so one broken document does not block the other four. This also keeps the door open for a future folder source that expands into many documents.
 
+Titles are display metadata. Renaming a source changes only `sources.title`; `documents.title` and `index_text` stay as they are, so a rename never re-indexes. Renaming a knowledge base changes only its name, not its `toolName` or its sources.
+
 ### 3.2 Status model
 
 | Entity | Statuses | Meaning |
@@ -1272,7 +1274,8 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 | Mutation | Permission | Notes |
 |---|---|---|
 | `createKnowledgeBase` | edit | Name, description, tool identity |
-| `updateKnowledgeBase` | edit | Rename, description, tool name/description |
+| `renameKnowledgeBase` | edit | Renames the display name; `toolName` and indexed content stay unchanged |
+| `updateKnowledgeBase` | edit | Description, tool name/description |
 | `deleteKnowledgeBase` | delete | Sources and in-use guard |
 | `createUpload` | edit | Returns presigned PUT + document id; optional `sourceId` replaces an upload |
 | `confirmUpload` | edit | Validates object, creates or updates source/document, enqueues |
@@ -1281,6 +1284,7 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 | `syncKnowledgeBase` | edit | Sync all sources of a KB |
 | `updateDocumentSummary` | edit | Sets a user summary and re-indexes the document |
 | `updateSourceSchedule` | edit | Interval, time, weekday; clearing the interval turns automatic sync off |
+| `renameSource` | edit | Renames the display title only; documents and index text stay unchanged |
 | `retrySource` | edit | Creates a manual sync run for a failed source and reuses the stored original |
 | `deleteSource` | edit | Soft delete + cleanup |
 | `startGoogleConnection` | edit | Returns Google authorization URL |
@@ -1322,7 +1326,7 @@ Screens from `mvp-scope.md`: `Knowledge-Empty`, `Knowledge`, `Knowledge-AddSourc
 Behaviour:
 
 - **List page:** empty state, KB cards/rows with status, source count, chunk count, last activity.
-- **Detail page:** breadcrumb above the KB name; header with rename/edit/delete; sources table with type, status, chunks, last sync, next sync, and a source actions menu (retry, delete); Add source; Sync all; settings for tool name/description; Playground tab or panel.
+- **Detail page:** breadcrumb above the KB name; header with rename/edit/delete; sources table with type, status, chunks, last sync, next sync, and a source actions menu (rename, retry, delete); Add source; Sync all; settings for tool name/description; Playground tab or panel.
 - **Add source:** Upload tab with drop zone and per-file progress; Google tab with Connect, account status and Pick documents.
 - **Upload hook:** call `createUpload`, PUT with `XMLHttpRequest` for progress, call `confirmUpload`, then subscribe/refetch. Errors show the server reason.
 - **Document summary:** show the one-line summary with an “AI-generated once” or “Edited by you” badge. Helper text says it is not updated automatically and that editing it re-indexes the document. The edit dialog calls `updateDocumentSummary`; saving shows the document as `indexing` until the new generation is ready.
