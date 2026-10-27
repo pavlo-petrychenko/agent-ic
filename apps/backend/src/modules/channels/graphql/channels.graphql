@@ -6,6 +6,7 @@ extend type Query {
 extend type Mutation {
   connectTelegram(input: ConnectTelegramInput!): Channel!
   disconnectTelegram(id: ID!): Channel!
+  replaceTelegramToken(input: ReplaceTelegramTokenInput!): Channel!
   updateTelegram(input: UpdateTelegramInput!): Channel!
 }
 
@@ -45,4 +46,9 @@ input UpdateTelegramInput {
   id: ID!
   agentId: ID!
   showTyping: Boolean!
+}
+
+input ReplaceTelegramTokenInput {
+  id: ID!
+  token: String!
 }

@@ -1,14 +1,20 @@
 import { z } from 'zod';
+import { ChannelField } from '@/modules/channels/constants/channel-input.constants';
 import { TELEGRAM_TOKEN_PATTERN } from '@/modules/channels/constants/telegram.constants';
 
 export const connectTelegramInputSchema = z.object({
-  token: z.string().trim().regex(TELEGRAM_TOKEN_PATTERN),
-  agentId: z.string().min(1),
-  showTyping: z.boolean().default(true),
+  [ChannelField.Token]: z.string().trim().regex(TELEGRAM_TOKEN_PATTERN),
+  [ChannelField.AgentId]: z.string().min(1),
+  [ChannelField.ShowTyping]: z.boolean().default(true),
 });
 
 export const updateTelegramInputSchema = z.object({
-  id: z.string().min(1),
-  agentId: z.string().min(1),
-  showTyping: z.boolean(),
+  [ChannelField.Id]: z.string().min(1),
+  [ChannelField.AgentId]: z.string().min(1),
+  [ChannelField.ShowTyping]: z.boolean(),
+});
+
+export const replaceTelegramTokenInputSchema = z.object({
+  [ChannelField.Id]: z.string().min(1),
+  [ChannelField.Token]: z.string().trim().regex(TELEGRAM_TOKEN_PATTERN),
 });

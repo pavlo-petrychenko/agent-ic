@@ -27,6 +27,14 @@ export interface ChannelSettingsPatch {
   readonly updatedByUserId: string;
 }
 
+export interface ChannelCredentialsPatch {
+  readonly status: ChannelRecord['status'];
+  readonly identity: ChannelIdentity;
+  readonly credentialsSealed: string;
+  readonly updatedAt: Date;
+  readonly updatedByUserId: string;
+}
+
 export interface ChannelView {
   readonly id: string;
   readonly kind: ChannelRecord['kind'];
@@ -73,6 +81,19 @@ export interface UpdateTelegramChannelInput {
   readonly id: string;
   readonly agentId: string;
   readonly showTyping: boolean;
+}
+
+export interface ReplaceTelegramTokenInput {
+  readonly id: string;
+  readonly token: string;
+}
+
+export interface ReplaceChannelCredentialsInput {
+  readonly workspaceId: string;
+  readonly channelId: string;
+  readonly identity: ChannelIdentity;
+  readonly credentialsSealed: string;
+  readonly updatedByUserId: string;
 }
 
 export interface UpdateChannelSettingsInput {

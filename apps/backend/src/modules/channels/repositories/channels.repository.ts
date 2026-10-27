@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { and, asc, eq } from 'drizzle-orm';
 import { channels } from '@/modules/channels/db/channels.table';
 import type {
+  ChannelCredentialsPatch,
   ChannelPatch,
   ChannelRecord,
   ChannelSettingsPatch,
@@ -98,6 +99,19 @@ export class ChannelsRepository {
     workspaceId: string,
     id: string,
     patch: ChannelSettingsPatch,
+  ): Promise<ChannelRecord | null> {
+    const [channel] = await this.txHost.tx
+      .update(channels)
+      .set(patch)
+      .where(and(eq(channels.workspaceId, workspaceId), eq(channels.id, id)))
+      .returning();
+    return channel ?? null;
+  }
+
+  async updateCredentials(
+    workspaceId: string,
+    id: string,
+    patch: ChannelCredentialsPatch,
   ): Promise<ChannelRecord | null> {
     const [channel] = await this.txHost.tx
       .update(channels)
