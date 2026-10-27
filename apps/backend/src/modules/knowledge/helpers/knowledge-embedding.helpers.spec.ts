@@ -4,7 +4,10 @@ import { knowledgeEmbeddingModel } from '@/modules/knowledge/helpers/knowledge-e
 import { EmbeddingModelId } from '@/platform/llm/constants/llm-model.constants';
 
 describe('knowledgeEmbeddingModel', () => {
-  it('maps a stored model to the catalog id', () => {
+  it('maps stored models to catalog ids', () => {
+    expect(knowledgeEmbeddingModel('text-embedding-3-small')).toBe(
+      EmbeddingModelId.TextEmbedding3Small,
+    );
     expect(knowledgeEmbeddingModel('jina-embeddings-v5-text-small')).toBe(
       EmbeddingModelId.JinaEmbeddingsV5TextSmall,
     );

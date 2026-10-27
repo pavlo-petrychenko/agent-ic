@@ -40,8 +40,8 @@
 - Everything sits behind a `Retriever` abstraction, so `pg_search` or Qdrant can replace parts of it later.
 
 **Embeddings:**
-- `jina-embeddings-v5-text-small` through **LLMAPI** (our LLM provider; AI SDK OpenAI-compatible provider, `https://api.llmapi.ai/v1`).
-- **Verified on 2026-10-02:**
+- The original model was `jina-embeddings-v5-text-small` through **LLMAPI** (our LLM provider; AI SDK OpenAI-compatible provider, `https://api.llmapi.ai/v1`). LLMAPI removed it on 2026-10-27, so the default is now `text-embedding-3-small` with the same 1,024 dimensions and $0.02/M input price. Existing KBs need a re-index when their stored model changes.
+- **Jina was verified on 2026-10-02:**
   - `dimensions` passes through;
   - ~120 ms per query embedding;
   - LLMAPI **drops Jina's `task` parameter** (query vs passage modes), so all text uses one default mode.
