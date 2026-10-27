@@ -27,7 +27,7 @@ export class CreateKnowledgeBaseUseCase {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly knowledgeBases: KnowledgeBasesRepository,
     private readonly views: KnowledgeBaseViewsService,
-    private readonly config: ConfigService,
+    private readonly configService: ConfigService,
     private readonly ids: IdService,
   ) {}
 
@@ -39,7 +39,7 @@ export class CreateKnowledgeBaseUseCase {
     );
     const parsed = parseKnowledgeInput(createKnowledgeBaseInputSchema, input);
     const knowledgeBaseId = this.ids.generate();
-    const embeddingModel = this.config.config.llm.embeddingModel;
+    const embeddingModel = this.configService.config.llm.embeddingModel;
     const embeddingDimensions = EMBEDDING_CATALOG[embeddingModel].dimensions;
 
     return this.tenantTransactions.run(workspaceId, async () => {
