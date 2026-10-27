@@ -41,7 +41,7 @@ export class SourcesRepository {
     const [source] = await this.txHost.tx
       .select()
       .from(sources)
-      .where(this.activeWhere(workspaceId, sourceId))
+      .where(this.activeWhere(workspaceId, eq(sources.id, sourceId)))
       .for('update');
     return source ?? null;
   }
