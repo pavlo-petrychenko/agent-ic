@@ -7,6 +7,8 @@ export interface TelegramBotDetailsProps {
   readonly agentOptions: readonly SelectOption[];
   readonly agentId: string;
   readonly typing: boolean;
+  readonly saving: boolean;
+  readonly lastUpdate: string;
   readonly onAgentChange: (value: string) => void;
   readonly onTypingChange: (checked: boolean) => void;
   readonly onReplaceToken: () => void;

@@ -6,6 +6,7 @@ extend type Query {
 extend type Mutation {
   connectTelegram(input: ConnectTelegramInput!): Channel!
   disconnectTelegram(id: ID!): Channel!
+  updateTelegram(input: UpdateTelegramInput!): Channel!
 }
 
 enum ChannelStatus {
@@ -28,6 +29,7 @@ type Channel {
   displayName: String!
   firstName: String
   tokenMasked: String
+  updatedByName: String
   showTyping: Boolean!
   createdAt: String!
   updatedAt: String!
@@ -37,4 +39,10 @@ input ConnectTelegramInput {
   token: String!
   agentId: ID!
   showTyping: Boolean
+}
+
+input UpdateTelegramInput {
+  id: ID!
+  agentId: ID!
+  showTyping: Boolean!
 }

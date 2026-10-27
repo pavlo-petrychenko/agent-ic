@@ -37,4 +37,5 @@ export const toTelegramChannelView = (
   agentLiveVersionNumber: agent?.liveVersionNumber ?? null,
   showTyping: channel.showTyping,
   updatedAt: channel.updatedAt,
+  updatedByName: channel.updatedByName,
 });

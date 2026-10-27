@@ -54,6 +54,7 @@ export class DisconnectTelegramUseCase {
         channelId,
         ChannelStatus.Disconnected,
         this.clock.now(),
+        access.userId,
       ),
     );
     if (disconnected === null) {

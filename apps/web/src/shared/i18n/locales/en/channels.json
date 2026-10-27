@@ -139,6 +139,7 @@
     "bot": {
       "subtitle": "Telegram bot · answered by {{agent}}",
       "unknownAgent": "No agent",
+      "saved": "Channel settings saved",
       "actions": {
         "disconnect": "Disconnect",
         "save": "Save"
@@ -169,6 +170,7 @@
         "receiving": "Receiving",
         "notReceiving": "Not receiving",
         "lastUpdate": "Last update",
+        "unknownUser": "Unknown",
         "lastUpdateToday": "Today {{time}} · from {{author}}",
         "lastUpdateDate": "{{date}} {{time}} · from {{author}}",
         "botName": "Bot name",

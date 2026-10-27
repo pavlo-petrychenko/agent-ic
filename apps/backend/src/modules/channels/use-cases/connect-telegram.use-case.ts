@@ -2,7 +2,7 @@ import { ChannelKind, IdPrefix, PermissionAction, PermissionResource } from '@ag
 import { Injectable } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
 import { parseChannelInput } from '@/modules/channels/helpers/channel-input.helpers';
-import { connectTelegramInputSchema } from '@/modules/channels/schemas/telegram-connect.schema';
+import { connectTelegramInputSchema } from '@/modules/channels/schemas/telegram.schema';
 import { ChannelConnectionService } from '@/modules/channels/services/channel-connection.service';
 import { TelegramChannelService } from '@/modules/channels/services/telegram-channel.service';
 import type {
@@ -42,6 +42,7 @@ export class ConnectTelegramChannelUseCase {
       showTyping: data.showTyping,
       credentialsSealed: credentials.sealed,
       createdByUserId: access.userId,
+      updatedByUserId: access.userId,
     });
     await this.telegram.configureTransport({
       token: data.token,
@@ -52,6 +53,7 @@ export class ConnectTelegramChannelUseCase {
     return this.connections.complete({
       workspaceId: access.workspaceId,
       channelId,
+      updatedByUserId: access.userId,
     });
   }
 }

@@ -4,10 +4,12 @@ import type {
   ChannelRecord,
   ChannelView,
   ConnectTelegramInput,
+  UpdateTelegramChannelInput,
 } from '@/modules/channels/typedefs/channel.typedefs';
 import type {
   Channel as GraphqlChannel,
   ConnectTelegramInput as GraphqlConnectTelegramInput,
+  UpdateTelegramInput as GraphqlUpdateTelegramInput,
 } from '@/platform/graphql-server/generated/schema.generated';
 import {
   ChannelKind as GraphqlChannelKind,
@@ -40,4 +42,12 @@ export const toConnectTelegramInput = (
   token: input.token,
   agentId: input.agentId,
   showTyping: input.showTyping ?? true,
+});
+
+export const toUpdateTelegramInput = (
+  input: GraphqlUpdateTelegramInput,
+): UpdateTelegramChannelInput => ({
+  id: input.id,
+  agentId: input.agentId,
+  showTyping: input.showTyping,
 });

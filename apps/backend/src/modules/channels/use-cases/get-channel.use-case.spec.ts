@@ -4,6 +4,7 @@ import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { GetChannelUseCase } from '@/modules/channels/use-cases/get-channel.use-case';
 import { TEST_TELEGRAM_BOT_USERNAME } from '@test/support/constants/channel-testing.constants';
+import { TEST_WORKSPACE_OWNER_NAME } from '@test/support/constants/workspace-testing.constants';
 import { newChannel } from '@test/support/fixtures/channel.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import {
@@ -45,6 +46,7 @@ describe('GetChannelUseCase', () => {
       displayName: TEST_TELEGRAM_BOT_USERNAME,
       tokenMasked: '7000•••••:dem•••••••••••••',
       showTyping: true,
+      updatedByName: TEST_WORKSPACE_OWNER_NAME,
     });
   });
 

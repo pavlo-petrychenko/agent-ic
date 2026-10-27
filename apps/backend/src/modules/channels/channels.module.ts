@@ -10,6 +10,7 @@ import { ChannelsRepository } from '@/modules/channels/repositories/channels.rep
 import { ChannelResolver } from '@/modules/channels/resolvers/channel.resolver';
 import { ConnectTelegramResolver } from '@/modules/channels/resolvers/connect-telegram.resolver';
 import { DisconnectTelegramResolver } from '@/modules/channels/resolvers/disconnect-telegram.resolver';
+import { UpdateTelegramResolver } from '@/modules/channels/resolvers/update-telegram.resolver';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
 import { ChannelConnectionService } from '@/modules/channels/services/channel-connection.service';
 import { ChannelMetricsService } from '@/modules/channels/services/channel-metrics.service';
@@ -20,6 +21,7 @@ import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deli
 import { DisconnectTelegramUseCase } from '@/modules/channels/use-cases/disconnect-telegram.use-case';
 import { GetChannelUseCase } from '@/modules/channels/use-cases/get-channel.use-case';
 import { ListChannelsUseCase } from '@/modules/channels/use-cases/list-channels.use-case';
+import { UpdateTelegramChannelUseCase } from '@/modules/channels/use-cases/update-telegram.use-case';
 import { ConversationsModule } from '@/modules/conversations';
 import { CryptoModule } from '@/platform/crypto/crypto.module';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
@@ -48,9 +50,15 @@ export class ChannelsModule extends defineModule({
     DisconnectTelegramUseCase,
     GetChannelUseCase,
     ListChannelsUseCase,
+    UpdateTelegramChannelUseCase,
     DeliverOutboundMessageUseCase,
   ],
-  resolvers: [ChannelResolver, ConnectTelegramResolver, DisconnectTelegramResolver],
+  resolvers: [
+    ChannelResolver,
+    ConnectTelegramResolver,
+    DisconnectTelegramResolver,
+    UpdateTelegramResolver,
+  ],
   listeners: [DeliverOutboundMessageListener],
   exports: [SimulatedChannelAdapter, ChannelAdapterRegistryService],
 }) {}

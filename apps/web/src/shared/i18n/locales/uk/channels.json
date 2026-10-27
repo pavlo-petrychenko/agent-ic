@@ -139,6 +139,7 @@
     "bot": {
       "subtitle": "Telegram-бот · відповідає {{agent}}",
       "unknownAgent": "Без агента",
+      "saved": "Налаштування каналу збережено",
       "actions": {
         "disconnect": "Відключити",
         "save": "Зберегти"
@@ -169,6 +170,7 @@
         "receiving": "Отримує",
         "notReceiving": "Не отримує",
         "lastUpdate": "Останнє оновлення",
+        "unknownUser": "Невідомо",
         "lastUpdateToday": "Сьогодні {{time}} · від {{author}}",
         "lastUpdateDate": "{{date}} {{time}} · від {{author}}",
         "botName": "Назва бота",

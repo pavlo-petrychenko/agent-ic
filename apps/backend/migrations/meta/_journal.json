@@ -197,6 +197,13 @@
       "when": 1792874217264,
       "tag": "0027_workspace-limits-updated-at",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1792971470746,
+      "tag": "0028_add_updated_by_user_id",
+      "breakpoints": true
     }
   ]
 }

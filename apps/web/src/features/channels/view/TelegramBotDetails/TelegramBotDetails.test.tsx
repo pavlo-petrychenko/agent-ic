@@ -22,6 +22,7 @@ const connectedChannel: TelegramChannelView = {
   agentLiveVersionNumber: 3,
   showTyping: true,
   updatedAt: '2026-01-01T00:00:00.000Z',
+  updatedByName: 'Demo Owner',
 };
 
 const renderDetails = (props: Partial<TelegramBotDetailsProps> = {}) => {
@@ -33,6 +34,8 @@ const renderDetails = (props: Partial<TelegramBotDetailsProps> = {}) => {
       agentOptions={agentOptions}
       agentId="agt_1"
       typing
+      saving={false}
+      lastUpdate="Today 14:21 · from Demo Owner"
       onAgentChange={() => undefined}
       onTypingChange={() => undefined}
       onReplaceToken={() => undefined}
@@ -51,6 +54,7 @@ describe('TelegramBotDetails', () => {
     expect(screen.getByRole('heading', { level: 1, name: '@demo_salon_bot' })).toBeInTheDocument();
     expect(screen.getByText('Connected')).toBeInTheDocument();
     expect(screen.getByText('Receiving')).toBeInTheDocument();
+    expect(screen.getByText(/Demo Owner/)).toBeInTheDocument();
     expect(screen.getByText('Demo salon · edit in @BotFather')).toBeInTheDocument();
     expect(screen.getByRole('combobox')).toHaveValue('agt_1');
     expect(screen.getByRole('switch')).toBeChecked();
