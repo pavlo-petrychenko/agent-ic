@@ -5,12 +5,12 @@ import { useAgents } from '@/features/agents';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
 import { CHANNELS_PATH } from '@/features/channels/constants/route.constants';
 import { TELEGRAM_TOKEN_PATTERN } from '@/features/channels/constants/telegram.constants';
+import { EMPTY_TELEGRAM_STATS } from '@/features/channels/constants/telegramBot.constants';
 import type { TelegramConnectPageProps } from '@/features/channels/containers/TelegramConnectPage/TelegramConnectPage.typedefs';
 import { channelsHref } from '@/features/channels/logic/helpers/route.helpers';
+import { TelegramActivityCard } from '@/features/channels/view/TelegramActivityCard';
 import { TelegramConnectForm } from '@/features/channels/view/TelegramConnectForm';
-import { BulletList } from '@/shared/ui/display/BulletList';
-import { Card, CardPad, CardTone } from '@/shared/ui/display/Card';
-import { Metric } from '@/shared/ui/display/Metric';
+import { TelegramConnectHelpCard } from '@/features/channels/view/TelegramConnectHelpCard';
 import type { SelectOption } from '@/shared/ui/inputs/Select';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
 import { Breadcrumb } from '@/shared/ui/navigation/Breadcrumb';
@@ -76,24 +76,8 @@ export function TelegramConnectPage({ workspaceId }: TelegramConnectPageProps) {
           onCancel={() => void navigate({ to: CHANNELS_PATH, params: { workspaceId } })}
         />
         <div className="flex flex-col gap-4">
-          <Card title={t('telegram.howTo.title')} tone={CardTone.Panel} pad={CardPad.Lg}>
-            <BulletList
-              items={[
-                t('telegram.howTo.stepOpen'),
-                t('telegram.howTo.stepName'),
-                t('telegram.howTo.stepCopy'),
-              ]}
-            />
-          </Card>
-          <Card title={t('telegram.stats.title')} pad={CardPad.Lg}>
-            <Metric
-              items={[
-                { label: t('telegram.stats.chats'), value: '0' },
-                { label: t('telegram.stats.messages'), value: '0' },
-                { label: t('telegram.stats.errors'), value: '0' },
-              ]}
-            />
-          </Card>
+          <TelegramConnectHelpCard />
+          <TelegramActivityCard stats={EMPTY_TELEGRAM_STATS} />
         </div>
       </div>
     </div>
