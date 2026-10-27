@@ -23,7 +23,9 @@ export function KnowledgeSourcesTable({
   loading,
   error,
   onAddSource,
+  onRetrySource,
   onDeleteSource,
+  retryingSourceId,
 }: KnowledgeSourcesTableProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
 
@@ -81,25 +83,42 @@ export function KnowledgeSourcesTable({
   ];
 
   const rowActions: TableRowActions<KnowledgeSourceRowView> | null =
-    onDeleteSource === null
+    onRetrySource === null && onDeleteSource === null
       ? null
       : {
           columnLabel: t('sources.menu.label'),
           menuLabel: t('sources.menu.label'),
           getLabel: (row) => t('sources.menu.trigger', { name: row.title }),
           getItems: (row) => [
-            {
-              id: KnowledgeSourceMenuAction.Delete,
-              label: t('sources.menu.delete'),
-              leading: <Icon name={IconName.X} size={14} />,
-              danger: true,
-              disabled: row.isActive,
-              hint: row.isActive ? t('sources.menu.deleteBusy') : null,
-            },
+            ...(row.canRetry && onRetrySource !== null
+              ? [
+                  {
+                    id: KnowledgeSourceMenuAction.Retry,
+                    label: t('sources.menu.retry'),
+                    leading: <Icon name={IconName.Refresh} size={14} />,
+                    disabled: retryingSourceId === row.id,
+                  },
+                ]
+              : []),
+            ...(onDeleteSource !== null
+              ? [
+                  {
+                    id: KnowledgeSourceMenuAction.Delete,
+                    label: t('sources.menu.delete'),
+                    leading: <Icon name={IconName.X} size={14} />,
+                    danger: true,
+                    disabled: row.isActive || retryingSourceId === row.id,
+                    hint: row.isActive ? t('sources.menu.deleteBusy') : null,
+                  },
+                ]
+              : []),
           ],
           onSelect: (row, itemId) => {
+            if (itemId === KnowledgeSourceMenuAction.Retry) {
+              onRetrySource?.(row);
+            }
             if (itemId === KnowledgeSourceMenuAction.Delete) {
-              onDeleteSource(row);
+              onDeleteSource?.(row);
             }
           },
           persistent: true,

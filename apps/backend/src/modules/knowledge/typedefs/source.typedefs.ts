@@ -35,3 +35,7 @@ export interface ListKnowledgeSourcesInput {
 export interface DeleteKnowledgeSourceInput {
   readonly id: string;
 }
+
+export interface RetryKnowledgeSourceInput {
+  readonly id: string;
+}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useKnowledgeSources } from '@/features/knowledge/communication/hooks/useKnowledgeSources';
+import { useRetryKnowledgeSource } from '@/features/knowledge/communication/hooks/useRetryKnowledgeSource';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import { AddSourceDialog } from '@/features/knowledge/containers/AddSourceDialog';
 import { DeleteKnowledgeSourceDialog } from '@/features/knowledge/containers/DeleteKnowledgeSourceDialog';
@@ -10,17 +11,23 @@ import { isKnowledgeSourceActive } from '@/features/knowledge/logic/helpers/know
 import type { KnowledgeSourceRowView } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import { KnowledgeSourcesEmpty } from '@/features/knowledge/view/KnowledgeSourcesEmpty';
 import { KnowledgeSourcesTable } from '@/features/knowledge/view/KnowledgeSourcesTable';
+import { toAppError } from '@/shared/api/helpers/appError.helpers';
+import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
+import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
 export function KnowledgeSourcesSection({
   knowledgeBaseId,
   knowledgeBaseName,
   canAddSource,
-  canDeleteSource,
+  canManageSources,
   onCountsChanged,
 }: KnowledgeSourcesSectionProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
+  const { showToast } = useToast();
+  const errorMessage = useErrorMessage();
   const { sources, loading, failed, retry } = useKnowledgeSources(knowledgeBaseId);
+  const { retryKnowledgeSource, retryingSourceId } = useRetryKnowledgeSource(knowledgeBaseId);
   const rows = useKnowledgeSourceRows(sources);
   const [adding, setAdding] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<KnowledgeSourceRowView | null>(null);
@@ -35,6 +42,22 @@ export function KnowledgeSourcesSection({
   }, [active, onCountsChanged]);
 
   const onAddSource = canAddSource ? () => setAdding(true) : null;
+  const onRetrySource = canManageSources
+    ? (source: KnowledgeSourceRowView) => {
+        void (async () => {
+          try {
+            await retryKnowledgeSource(source.id);
+            showToast({
+              message: t('sources.retry.success', { name: source.title }),
+              tone: ToastTone.Ok,
+            });
+          } catch (failure) {
+            showToast({ message: errorMessage(toAppError(failure)), tone: ToastTone.Err });
+          }
+        })();
+      }
+    : null;
+  const onDeleteSource = canManageSources ? setDeleteTarget : null;
   const refreshSources = useCallback(() => {
     void retry();
   }, [retry]);
@@ -50,7 +73,9 @@ export function KnowledgeSourcesSection({
           onRetry: refreshSources,
         }}
         onAddSource={onAddSource}
-        onDeleteSource={canDeleteSource ? setDeleteTarget : null}
+        onRetrySource={null}
+        onDeleteSource={null}
+        retryingSourceId={null}
       />
     ) : sources.length === 0 ? (
       loading ? (
@@ -59,7 +84,9 @@ export function KnowledgeSourcesSection({
           loading
           error={null}
           onAddSource={null}
+          onRetrySource={null}
           onDeleteSource={null}
+          retryingSourceId={null}
         />
       ) : (
         <KnowledgeSourcesEmpty onAddSource={onAddSource} />
@@ -71,7 +98,9 @@ export function KnowledgeSourcesSection({
           loading={false}
           error={null}
           onAddSource={onAddSource}
-          onDeleteSource={canDeleteSource ? setDeleteTarget : null}
+          onRetrySource={onRetrySource}
+          onDeleteSource={onDeleteSource}
+          retryingSourceId={retryingSourceId}
         />
         <Callout tone={CalloutTone.Neutral}>{t('detail.agentsNote')}</Callout>
       </div>

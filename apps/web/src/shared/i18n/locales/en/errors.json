@@ -100,7 +100,8 @@
     "ROLE_IN_USE": "Move the members of this role before deleting it.",
     "ROLE_BASE_INVALID": "Choose an existing role as the base.",
     "ROLE_REPLACEMENT_INVALID": "Members cannot be moved to this role.",
-    "KNOWLEDGE_SOURCE_NOT_FOUND": "This source does not exist."
+    "KNOWLEDGE_SOURCE_NOT_FOUND": "This source does not exist.",
+    "KNOWLEDGE_SOURCE_NOT_RETRYABLE": "Only failed sources can be retried."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",

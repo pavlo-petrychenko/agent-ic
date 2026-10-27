@@ -106,13 +106,17 @@
       "label": "Source actions",
       "trigger": "Actions for “{{name}}”",
       "delete": "Delete source",
-      "deleteBusy": "Wait for indexing to finish"
+      "deleteBusy": "Wait for indexing to finish",
+      "retry": "Retry"
     },
     "delete": {
       "title": "Delete “{{name}}”?",
       "description": "This removes the source and its indexed chunks. This cannot be undone.",
       "submit": "Delete source",
       "success": "Source “{{name}}” deleted."
+    },
+    "retry": {
+      "success": "Retrying “{{name}}”…"
     }
   },
   "delete": {

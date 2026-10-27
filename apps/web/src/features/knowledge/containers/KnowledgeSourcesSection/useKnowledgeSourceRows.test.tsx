@@ -43,6 +43,16 @@ describe('useKnowledgeSourceRows', () => {
     expect(result.current[0]?.statusDetail).toBe(
       'Зовнішній сервіс не відповідає. Спробуйте за мить.',
     );
+    expect(result.current[0]?.canRetry).toBe(true);
+  });
+
+  it('does not offer retry for a permanent document failure', () => {
+    const { result } = renderHook(
+      () => useKnowledgeSourceRows([{ ...SOURCE, lastErrorCode: 'PDF_HAS_NO_TEXT' }]),
+      { wrapper: wrapperFor(Locale.En) },
+    );
+
+    expect(result.current[0]?.canRetry).toBe(false);
   });
 
   it('falls back to the localized generic message for an unknown error code', () => {

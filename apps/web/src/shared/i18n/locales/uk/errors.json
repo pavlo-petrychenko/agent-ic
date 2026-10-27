@@ -100,7 +100,8 @@
     "ROLE_IN_USE": "Перенесіть учасників цієї ролі, перш ніж видаляти її.",
     "ROLE_BASE_INVALID": "Оберіть наявну роль як основу.",
     "ROLE_REPLACEMENT_INVALID": "Учасників не можна перевести на цю роль.",
-    "KNOWLEDGE_SOURCE_NOT_FOUND": "Цього джерела не існує."
+    "KNOWLEDGE_SOURCE_NOT_FOUND": "Цього джерела не існує.",
+    "KNOWLEDGE_SOURCE_NOT_RETRYABLE": "Повторити можна лише джерела з помилкою."
   },
   "code": {
     "NOT_FOUND": "Не вдалося знайти те, що ви шукаєте.",

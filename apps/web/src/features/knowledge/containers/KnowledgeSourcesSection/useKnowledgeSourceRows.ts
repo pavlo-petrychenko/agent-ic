@@ -9,6 +9,7 @@ import {
   formatKnowledgeSourceDate,
   isKnowledgeSourceActive,
   isKnowledgeSourceErrorReason,
+  isKnowledgeSourceRetryable,
 } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
 import type {
   KnowledgeSource,
@@ -73,6 +74,7 @@ export function useKnowledgeSourceRows(
       }),
       status: source.status,
       isActive: isKnowledgeSourceActive(source.status),
+      canRetry: isKnowledgeSourceRetryable(source.status, source.lastErrorCode),
       statusLabel: statusLabel(source.status),
       statusDetail: statusDetail(source),
     }));

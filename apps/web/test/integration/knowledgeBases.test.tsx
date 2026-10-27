@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { CreateKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/createKnowledgeBase.generated';
 import { DeleteKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/deleteKnowledgeBase.generated';
 import { DeleteSourceDocument } from '@/features/knowledge/communication/gql/mutation/deleteSource.generated';
+import { RetrySourceDocument } from '@/features/knowledge/communication/gql/mutation/retrySource.generated';
 import {
   KnowledgeBasesDocument,
   type KnowledgeBasesQuery,
@@ -131,6 +132,11 @@ const buildDeleteKnowledgeSourceMock = (id: string): MockLink.MockedResponse => 
   result: { data: { deleteSource: { id } } },
 });
 
+const buildRetryKnowledgeSourceMock = (id: string): MockLink.MockedResponse => ({
+  request: { query: RetrySourceDocument, variables: { input: { id } } },
+  result: { data: { retrySource: { id } } },
+});
+
 const buildDeleteKnowledgeBaseFailureMock = (id: string): MockLink.MockedResponse => ({
   request: { query: DeleteKnowledgeBaseDocument, variables: { input: { id } } },
   result: {
@@ -229,6 +235,34 @@ describe('knowledge bases', () => {
       screen.getByText('This document cannot be read. Check the file and try again.'),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Add source' })).toBeInTheDocument();
+  });
+
+  it('retries a failed source from the row menu', async () => {
+    const user = userEvent.setup();
+    const pendingSource: KnowledgeSourceFixture = {
+      ...FAILED_SOURCE,
+      status: KnowledgeSourceStatus.Pending,
+      lastErrorCode: null,
+      lastErrorMessage: null,
+    };
+    renderRoute(`${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [FAILED_SOURCE]),
+        buildRetryKnowledgeSourceMock(FAILED_SOURCE.id),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [pendingSource]),
+      ],
+    });
+
+    await screen.findByRole('heading', { name: SERVICES_KNOWLEDGE_BASE.name });
+    await user.click(
+      await screen.findByRole('button', { name: `Actions for “${FAILED_SOURCE.title}”` }),
+    );
+    await user.click(screen.getByRole('option', { name: 'Retry' }));
+
+    expect(await screen.findByText(`Retrying “${FAILED_SOURCE.title}”…`)).toBeInTheDocument();
+    expect(await screen.findByText('Queued')).toBeInTheDocument();
   });
 
   it('deletes a source from the row menu', async () => {

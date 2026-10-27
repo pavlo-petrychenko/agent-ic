@@ -1279,6 +1279,7 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 | `syncKnowledgeBase` | edit | Sync all sources of a KB |
 | `updateDocumentSummary` | edit | Sets a user summary and re-indexes the document |
 | `updateSourceSchedule` | edit | Interval, time, weekday; clearing the interval turns automatic sync off |
+| `retrySource` | edit | Creates a manual sync run for a failed source and reuses the stored original |
 | `deleteSource` | edit | Soft delete + cleanup |
 | `startGoogleConnection` | edit | Returns Google authorization URL |
 | `completeGoogleConnection` | edit | Exchanges code, stores sealed token |
@@ -1319,7 +1320,7 @@ Screens from `mvp-scope.md`: `Knowledge-Empty`, `Knowledge`, `Knowledge-AddSourc
 Behaviour:
 
 - **List page:** empty state, KB cards/rows with status, source count, chunk count, last activity.
-- **Detail page:** breadcrumb above the KB name; header with rename/edit/delete; sources table with type, status, chunks, last sync, next sync, and a source actions menu (delete); Add source; Sync all; settings for tool name/description; Playground tab or panel.
+- **Detail page:** breadcrumb above the KB name; header with rename/edit/delete; sources table with type, status, chunks, last sync, next sync, and a source actions menu (retry, delete); Add source; Sync all; settings for tool name/description; Playground tab or panel.
 - **Add source:** Upload tab with drop zone and per-file progress; Google tab with Connect, account status and Pick documents.
 - **Upload hook:** call `createUpload`, PUT with `XMLHttpRequest` for progress, call `confirmUpload`, then subscribe/refetch. Errors show the server reason.
 - **Document summary:** show the one-line summary with an “AI-generated once” or “Edited by you” badge. Helper text says it is not updated automatically and that editing it re-indexes the document. The edit dialog calls `updateDocumentSummary`; saving shows the document as `indexing` until the new generation is ready.
@@ -1383,7 +1384,7 @@ There is no product-level document or chunk quota in the first version. The work
 | Confirm copy succeeds, DB write fails | Final object exists without a row | Retry confirm with the same document id; a future orphan sweep can remove leftovers |
 | Wrong type or too large | Object deleted; mutation fails with a reason | User picks another file |
 | Scanned PDF | Document `error` with `PDF_HAS_NO_TEXT` | Upload a text PDF/DOCX, or wait for OCR |
-| Parser crash | Document `error`; other documents continue | Retry the source |
+| Parser crash | Document `error`; other documents continue | Retry the source from its row menu |
 | Summary model fails | Document indexes without a summary; UI offers “Add a summary” | Retry on the next sync while the summary is null, or edit manually |
 | Summary edit re-index fails | Old generation stays searchable; document `error` | Retry the re-index; the summary is already saved |
 | Embedding provider 429/5xx | Job retries with backoff | Automatic; old generation stays active |
