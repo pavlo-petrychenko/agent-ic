@@ -18,3 +18,36 @@ export interface ChannelPatch {
   readonly credentialsSealed: string;
   readonly updatedAt: Date;
 }
+
+export interface ChannelView {
+  readonly id: string;
+  readonly kind: ChannelRecord['kind'];
+  readonly status: ChannelRecord['status'];
+  readonly agentId: string | null;
+  readonly displayName: string;
+  readonly showTyping: boolean;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+export interface ConnectTelegramInput {
+  readonly token: string;
+  readonly agentId: string;
+  readonly showTyping: boolean;
+}
+
+export interface PrepareChannelConnectionInput {
+  readonly workspaceId: string;
+  readonly kind: ChannelRecord['kind'];
+  readonly agentId: string;
+  readonly externalId: string;
+  readonly identity: ChannelIdentity;
+  readonly showTyping: boolean;
+  readonly credentialsSealed: string;
+  readonly createdByUserId: string;
+}
+
+export interface CompleteChannelConnectionInput {
+  readonly workspaceId: string;
+  readonly channelId: string;
+}

@@ -2,8 +2,7 @@ import type { TelegramUpdateType } from '@/modules/channels/constants/telegram.c
 
 export interface TelegramBot {
   readonly id: string;
-  readonly username: string | null;
-  readonly firstName: string;
+  readonly username: string;
 }
 
 export interface TelegramWebhookInfo {
@@ -18,4 +17,16 @@ export interface SetTelegramWebhookInput {
   readonly url: string;
   readonly secret: string;
   readonly allowedUpdates: readonly TelegramUpdateType[];
+}
+
+export interface TelegramConnectionCredentials {
+  readonly sealed: string;
+  readonly webhookSecret: string;
+}
+
+export interface RegisterTelegramWebhookInput {
+  readonly token: string;
+  readonly workspaceId: string;
+  readonly channelId: string;
+  readonly secret: string;
 }

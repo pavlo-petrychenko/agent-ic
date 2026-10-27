@@ -25,7 +25,7 @@ import {
 } from '@/features/testing/logic/helpers/setup.helpers';
 import { useDraftRefresh } from '@/features/testing/logic/hooks/useDraftRefresh';
 import { useNodeInspection } from '@/features/testing/logic/hooks/useNodeInspection';
-import { ChannelKind } from '@/shared/api/generated/schema.generated';
+import { ChannelConversationKind } from '@/shared/api/generated/schema.generated';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
@@ -57,7 +57,7 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
   } = versionsResult;
   const blocked = versionId === null && draftBroken;
   const { locale } = useLocale();
-  const [channelKind, setChannelKind] = useState(ChannelKind.Simulated);
+  const [channelKind, setChannelKind] = useState(ChannelConversationKind.Simulated);
   const [language, setLanguage] = useState(locale);
   const simulator = useSimulator(agent === null || versionsLoading || blocked ? null : agent.id, {
     versionId,

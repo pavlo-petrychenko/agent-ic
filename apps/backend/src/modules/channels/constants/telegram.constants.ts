@@ -4,6 +4,8 @@ export const TELEGRAM_CONTENT_TYPE = 'application/json';
 export const TELEGRAM_UPSTREAM = 'telegram-bot-api';
 export const TELEGRAM_DROP_PENDING_UPDATES = true;
 export const TELEGRAM_INVALID_RESPONSE_MESSAGE = 'Telegram returned an invalid response.';
+export const TELEGRAM_TOKEN_PATTERN = /^\d+:[A-Za-z0-9_-]{35}$/;
+export const TELEGRAM_WEBHOOK_PATH = '/webhooks/telegram';
 
 export enum TelegramUpdateType {
   Message = 'message',
