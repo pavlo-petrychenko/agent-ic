@@ -1,3 +1,4 @@
+import type { JobAttempt } from '@/platform/queues/typedefs/job.typedefs';
 export enum ProbeJobName {
   Record = 'probe-record',
   Reject = 'probe-reject',
@@ -28,3 +29,6 @@ export const SCHEDULED_PROBE_ID = 'probe-scheduled';
 export const SCHEDULED_PROBE_EVERY_SECONDS = 3_600;
 export const FLAKY_PROBE_FAILED_ATTEMPTS = 1;
 export const DURABLE_JOBS_TEST_START = new Date('2099-01-01T09:00:00.000Z');
+
+export const RETRYABLE_ATTEMPT: JobAttempt = { final: false };
+export const FINAL_ATTEMPT: JobAttempt = { final: true };

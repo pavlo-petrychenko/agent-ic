@@ -8,7 +8,7 @@ import { SendSimulatorMessageDocument } from '@/features/testing/communication/g
 import { StartSimulationDocument } from '@/features/testing/communication/gql/mutation/startSimulation.generated';
 import { SimulationDocument } from '@/features/testing/communication/gql/query/simulation.generated';
 import {
-  ChannelKind,
+  ChannelConversationKind,
   ConversationState,
   MessageAuthor,
   RunStatus,
@@ -29,7 +29,12 @@ export const startSimulationMock = (
   request: {
     query: StartSimulationDocument,
     variables: {
-      input: { agentId: TEST_AGENT_ID, versionId, channelKind: ChannelKind.Simulated, language },
+      input: {
+        agentId: TEST_AGENT_ID,
+        versionId,
+        channelKind: ChannelConversationKind.Simulated,
+        language,
+      },
     },
   },
   result: { data: { startSimulation: simulation(TEST_CONVERSATION_ID) } },

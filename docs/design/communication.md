@@ -49,6 +49,7 @@
 | `api` | Redis pub/sub | A | Publish operator actions; subscribe to forward events to its WebSocket clients |
 | `api` | Redis cache | S | Sessions, permission cache, rate limits on auth |
 | `api` | Telegram Bot API | S | `getMe` + `setWebhook` / `deleteWebhook` when connecting or disconnecting a bot |
+| `gateway` | Telegram Bot API | S | `getUpdates` long polling, local-dev transport only (ADR 0008) |
 | `api` | LLM / embedding providers | S | BYOK key check on save; embedding the query in the retrieval playground |
 | `api` | Google OAuth | S | Exchange the OAuth code on the connection callback |
 | Redis queue | `worker-runs` | A | `runs-reactive`, `runs-proactive`, `outbound`, `notify`, `timers` |
@@ -83,9 +84,10 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 ### A. Customer message in Telegram → agent reply
 *(diagram "5. Sequence — customer message to reply")*
 
-1. Telegram → `gateway`: webhook update (checked with `secret_token`).
+1. Telegram → `gateway`: webhook update (checked with `secret_token`); in local dev the `gateway` pulls the same update with `getUpdates` (chain K).
 2. `gateway` → Postgres, in one transaction:
-   - insert the message (unique `update_id`, so duplicates are dropped);
+   - record the update in `channels.channel_events` (unique `channel_id + update_id`, so a retry is dropped);
+   - insert the message (unique `conversation_id + message_id`, so the same message is not stored twice);
    - upsert the conversation;
    - if the agent should answer and no run is active: insert a run, set `active_run_id`.
 3. `gateway` ⇢ queue `runs-reactive`.
@@ -185,12 +187,16 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 3. `api` ⇢ pub/sub `ws:{id}:agents` → browsers update the status.
 4. Runs already in progress keep their `version_id`. New runs pick up the new live version.
 
-### K. Connecting a Telegram channel
-*Production always uses webhooks. Local dev may use a polling transport with test bots; both call the same `handleTelegramUpdate()` (ADR 0008).*
+### K. Telegram channel lifecycle
+*Production uses webhooks; local dev can use long polling (`TELEGRAM_TRANSPORT=polling`). Both transports feed the same entry point — `handleTelegramUpdate` in `TelegramUpdatesService`: de-duplicate in `channels.channel_events` by `(channel_id, update_id)`, map the update to a message, save it and enqueue the run (ADR 0008).*
 
-1. Browser → `api` mutation `connectTelegram(token, agentId)` → Telegram `getMe` (validate) → Telegram `setWebhook(url, secret_token)`. Both are synchronous; the user sees errors immediately.
-2. → Postgres: channel with the encrypted token.
-3. **Broken token later:** `worker-runs` sends fail with 401, or Telegram stops delivering → channel status `broken` → Postgres ⇢ `notify` (email to owners and admins) ⇢ pub/sub (UI badge).
+1. Browser → `api` mutation `connectTelegram(token, agentId)` → Telegram `getMe` (validate) → `setWebhook(url, secret_token)` in webhook mode, `deleteWebhook` in polling mode. Both are synchronous; the user sees errors immediately.
+2. → Postgres: channel with the sealed token and the bot identity; `pending` while the transport is configured, then `connected`.
+3. **Polling transport (local dev):** the `gateway` role runs `TelegramPollerService` only when `TELEGRAM_TRANSPORT=polling`. It lists connected Telegram channels across workspaces, calls `getUpdates` per bot with that channel's offset and `TELEGRAM_POLL_TIMEOUT_SECONDS`, and passes each update to the entry point. The offset advances only after the update is handled; it is kept in memory, and `channel_events` makes a replay after a restart harmless. One consumer per bot: a second poller or a registered webhook gets `409`.
+4. **Settings, replace, disconnect:** `updateTelegram(id, agentId, showTyping)` stores who answers; `replaceTelegramToken(id, token)` validates the new token, requires the same bot, re-registers the transport and seals the new token; `disconnectTelegram(id)` deletes the webhook and sets `disconnected`.
+5. **Broken token later:** sends fail with 401, or Telegram stops delivering → status `broken` → email to owners and admins (not built yet).
+
+The webhook endpoint is not built yet: today only the polling transport delivers updates, and the webhook registration in step 1 waits for it.
 
 ### L. Accounts and system emails
 - Sign-up, password reset, invites, usage at 80% / 100%: `api` → Postgres (token / state) ⇢ queue `notify` → `worker-runs` → email provider.

@@ -1,15 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import type { ChannelCredentials } from '@/modules/channels/typedefs/channel-identity.typedefs';
 import { SecretBoxService } from '@/platform/secrets/services/secret-box.service';
 
 @Injectable()
 export class ChannelTokenService {
   constructor(private readonly secrets: SecretBoxService) {}
 
-  seal(token: string): string {
-    return this.secrets.seal(token);
+  sealCredentials(credentials: ChannelCredentials): string {
+    return this.secrets.seal(JSON.stringify(credentials));
   }
 
-  open(sealed: string): string {
-    return this.secrets.open(sealed);
+  openCredentials(sealed: string): ChannelCredentials {
+    return JSON.parse(this.secrets.open(sealed)) as ChannelCredentials;
   }
 }

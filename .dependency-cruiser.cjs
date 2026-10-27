@@ -26,6 +26,7 @@ const clockService = `${platform}clock/services/clock\\.service\\.ts$`;
 const systemDatabaseAllowList = [
   `${platform}(database|outbox|queues)/`,
   `${modules}identity/repositories/membership-directory\\.repository\\.ts$`,
+  `${modules}channels/repositories/telegram-poller\\.repository\\.ts$`,
   `${modules}analytics/repositories/`,
 ];
 

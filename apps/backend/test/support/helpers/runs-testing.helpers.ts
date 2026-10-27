@@ -65,6 +65,7 @@ import { QueuesService } from '@/platform/queues/services/queues.service';
 import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
 import { TEST_AWAY_MESSAGE } from '@test/support/constants/agents-testing.constants';
+import { RETRYABLE_ATTEMPT } from '@test/support/constants/async-jobs.constants';
 import { MESSAGE_SPACING_MS } from '@test/support/constants/conversations-testing.constants';
 import {
   AgentChange,
@@ -267,7 +268,7 @@ export const seedSimulationRunBatch = async (
 ): Promise<RunBatch> => {
   const { run, ctx } = await seedExecutableRun(testbed, flow, [], ConversationMode.Simulation);
   const { workspaceId } = run;
-  await testbed.execution.execute(ctx, workspaceId, run.id);
+  await testbed.execution.execute(ctx, workspaceId, run.id, RETRYABLE_ATTEMPT);
   const oneStep = { ...run, id: testbed.ids.generate() };
   const noSteps = { ...run, id: testbed.ids.generate() };
   await testbed.tenants.run(workspaceId, async () => {
@@ -481,7 +482,7 @@ export const receiveMessage = async (
   const listener = testbed.module.get(JobHandlersService).find(queue, name);
   const queued = await queuedEventsFor(testbed, startRunOnMessageJob, conversationId);
   for (const data of queued.filter((queuedEvent) => queuedEvent['messageId'] === message.id)) {
-    await listener?.handler.handle(ctx, data);
+    await listener?.handler.handle(ctx, data, RETRYABLE_ATTEMPT);
   }
   const { latest } = await readLifecycle(testbed, seeded);
   return { message, run: latest?.lastCoveredMessageId === message.id ? latest : null };

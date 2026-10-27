@@ -3,8 +3,10 @@ import { Injectable } from '@nestjs/common';
 import { and, asc, eq } from 'drizzle-orm';
 import { channels } from '@/modules/channels/db/channels.table';
 import type {
+  ChannelCredentialsPatch,
   ChannelPatch,
   ChannelRecord,
+  ChannelSettingsPatch,
   NewChannel,
 } from '@/modules/channels/typedefs/channel.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
@@ -13,8 +15,31 @@ import type { AppTransactionAdapter } from '@/platform/database/typedefs/transac
 export class ChannelsRepository {
   constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
 
-  async insert(channel: NewChannel): Promise<void> {
-    await this.txHost.tx.insert(channels).values(channel);
+  async insertIfAbsent(channel: NewChannel): Promise<boolean> {
+    const inserted = await this.txHost.tx
+      .insert(channels)
+      .values(channel)
+      .onConflictDoNothing({ target: [channels.kind, channels.externalId] })
+      .returning({ id: channels.id });
+    return inserted.length > 0;
+  }
+
+  async findByKindAndExternalId(
+    workspaceId: string,
+    kind: ChannelRecord['kind'],
+    externalId: string,
+  ): Promise<ChannelRecord | null> {
+    const [channel] = await this.txHost.tx
+      .select()
+      .from(channels)
+      .where(
+        and(
+          eq(channels.workspaceId, workspaceId),
+          eq(channels.kind, kind),
+          eq(channels.externalId, externalId),
+        ),
+      );
+    return channel ?? null;
   }
 
   async findById(workspaceId: string, id: string): Promise<ChannelRecord | null> {
@@ -46,6 +71,47 @@ export class ChannelsRepository {
     workspaceId: string,
     id: string,
     patch: ChannelPatch,
+  ): Promise<ChannelRecord | null> {
+    const [channel] = await this.txHost.tx
+      .update(channels)
+      .set(patch)
+      .where(and(eq(channels.workspaceId, workspaceId), eq(channels.id, id)))
+      .returning();
+    return channel ?? null;
+  }
+
+  async updateStatus(
+    workspaceId: string,
+    id: string,
+    status: ChannelRecord['status'],
+    updatedAt: Date,
+    updatedByUserId: string,
+  ): Promise<ChannelRecord | null> {
+    const [channel] = await this.txHost.tx
+      .update(channels)
+      .set({ status, updatedAt, updatedByUserId })
+      .where(and(eq(channels.workspaceId, workspaceId), eq(channels.id, id)))
+      .returning();
+    return channel ?? null;
+  }
+
+  async updateSettings(
+    workspaceId: string,
+    id: string,
+    patch: ChannelSettingsPatch,
+  ): Promise<ChannelRecord | null> {
+    const [channel] = await this.txHost.tx
+      .update(channels)
+      .set(patch)
+      .where(and(eq(channels.workspaceId, workspaceId), eq(channels.id, id)))
+      .returning();
+    return channel ?? null;
+  }
+
+  async updateCredentials(
+    workspaceId: string,
+    id: string,
+    patch: ChannelCredentialsPatch,
   ): Promise<ChannelRecord | null> {
     const [channel] = await this.txHost.tx
       .update(channels)

@@ -394,7 +394,7 @@
       "noModels": "No models found",
       "modelsFailed": "The models couldn’t be loaded.",
       "pickModel": "Pick a model",
-      "modelOption": "{{label}} · {{vendor}} · {{input, currency(USD)}} / {{output, currency(USD)}} per 1M tokens",
+      "modelPrice": "{{vendor}} · {{input, currency(USD)}} / {{output, currency(USD)}} per 1M tokens",
       "vendor": {
         "openai": "OpenAI",
         "anthropic": "Anthropic",

@@ -6,6 +6,7 @@ import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { GetRunUseCase } from '@/modules/runs/use-cases/get-run.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
+import { RETRYABLE_ATTEMPT } from '@test/support/constants/async-jobs.constants';
 import {
   FIRST_STEP_ID,
   FIRST_STEP_KEY,
@@ -50,7 +51,7 @@ describe('GetRunUseCase', () => {
   it('returns the run with its status and duration', async () => {
     const seeded = await seedSimulation();
     const { run, ctx } = seeded;
-    await testbed.execution.execute(ctx, run.workspaceId, run.id);
+    await testbed.execution.execute(ctx, run.workspaceId, run.id, RETRYABLE_ATTEMPT);
 
     const details = await read(run.workspaceId, seeded);
 
