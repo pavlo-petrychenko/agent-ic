@@ -4,6 +4,7 @@ import type {
   DatabaseConfig,
   PlatformAdminConfig,
   RedisConfig,
+  TelegramConfig,
   TelemetryConfig,
   WorkerRuntimeConfig,
 } from '@/platform/config/typedefs/app-config.typedefs';
@@ -37,4 +38,5 @@ export interface CommonEnvironment {
   readonly database: DatabaseConfig;
   readonly redis: RedisConfig;
   readonly telemetry: TelemetryConfig;
+  readonly telegram: TelegramConfig;
 }

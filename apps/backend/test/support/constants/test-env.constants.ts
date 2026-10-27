@@ -2,6 +2,7 @@ import { EmailMode } from '@/platform/config/constants/email.constants';
 import { EnvVar, NodeEnvironment } from '@/platform/config/constants/env.constants';
 import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
 import { LogLevel } from '@/platform/config/constants/log-level.constants';
+import { TelegramTransport } from '@/platform/config/constants/telegram.constants';
 import { EmbeddingModelId } from '@/platform/llm/constants/llm-model.constants';
 import {
   TEST_CHUNKS_LIMIT,
@@ -43,6 +44,7 @@ export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.LangfusePublicKey]: 'test-public-key',
   [EnvVar.LangfuseSecretKey]: 'test-secret-key',
   [EnvVar.PublicUrl]: 'https://app.agent-ic.test',
+  [EnvVar.TelegramTransport]: TelegramTransport.Webhook,
   [EnvVar.JwtAccessSecret]: 'test-access-secret-0123456789abcdef0123456789',
   [EnvVar.InviteTokenSecret]: 'test-invite-secret-0123456789abcdef0123456789',
   [EnvVar.SecretBoxKey]: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',

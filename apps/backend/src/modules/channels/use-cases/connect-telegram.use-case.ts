@@ -43,7 +43,7 @@ export class ConnectTelegramChannelUseCase {
       credentialsSealed: credentials.sealed,
       createdByUserId: access.userId,
     });
-    await this.telegram.registerWebhook({
+    await this.telegram.configureTransport({
       token: data.token,
       workspaceId: access.workspaceId,
       channelId,

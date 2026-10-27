@@ -24,7 +24,7 @@ export interface TelegramConnectionCredentials {
   readonly webhookSecret: string;
 }
 
-export interface RegisterTelegramWebhookInput {
+export interface ConfigureTelegramTransportInput {
   readonly token: string;
   readonly workspaceId: string;
   readonly channelId: string;

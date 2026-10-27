@@ -6,6 +6,7 @@ import {
 } from '@/platform/config/constants/env-value.constants';
 import { EnvVar, NodeEnvironment } from '@/platform/config/constants/env.constants';
 import { LogLevel } from '@/platform/config/constants/log-level.constants';
+import { TelegramTransport } from '@/platform/config/constants/telegram.constants';
 import {
   databaseUrlSchema,
   optionalTextSchema,
@@ -35,6 +36,7 @@ export const commonEnvSchema = z
     [EnvVar.DatabasePoolMax]: poolSizeSchema,
     [EnvVar.RedisQueueUrl]: redisUrlSchema,
     [EnvVar.RedisCacheUrl]: redisUrlSchema,
+    [EnvVar.TelegramTransport]: z.enum(TelegramTransport).default(TelegramTransport.Webhook),
   })
   .refine((env) => env[EnvVar.OtelSdkDisabled] || env[EnvVar.OtelExporterEndpoint] !== undefined, {
     message: OTEL_ENDPOINT_REQUIRED_MESSAGE,
@@ -65,4 +67,5 @@ export const commonEnvSchema = z
       deploymentEnvironment: env[EnvVar.DeploymentEnvironment],
       samplerRatio: env[EnvVar.OtelTracesSamplerArg],
     },
+    telegram: { transport: env[EnvVar.TelegramTransport] },
   }));

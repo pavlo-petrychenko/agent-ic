@@ -58,4 +58,5 @@ export enum EnvVar {
   SmtpUser = 'SMTP_USER',
   SmtpPassword = 'SMTP_PASSWORD',
   ResendApiKey = 'RESEND_API_KEY',
+  TelegramTransport = 'TELEGRAM_TRANSPORT',
 }
