@@ -54,6 +54,7 @@ import { LiveUpdatesService } from '@/platform/live-updates/services/live-update
 import { LlmTraceContextService } from '@/platform/llm/services/llm-trace-context.service';
 import { LogContextField } from '@/platform/observability/constants/logger.constants';
 import { LogContextService } from '@/platform/observability/services/log-context.service';
+import type { JobAttempt } from '@/platform/queues/typedefs/job.typedefs';
 
 @Injectable()
 export class RunExecutionService {
@@ -77,8 +78,15 @@ export class RunExecutionService {
     private readonly metrics: RunMetricsService,
   ) {}
 
-  async execute(ctx: UseCaseCtx, workspaceId: string, runId: string): Promise<RunStatus> {
-    const walk = await this.tenants.run(workspaceId, () => this.load(ctx, workspaceId, runId));
+  async execute(
+    ctx: UseCaseCtx,
+    workspaceId: string,
+    runId: string,
+    attempt: JobAttempt,
+  ): Promise<RunStatus> {
+    const walk = await this.tenants.run(workspaceId, () =>
+      this.load(ctx, workspaceId, runId, attempt),
+    );
     if (!UNFINISHED_RUN_STATUSES.includes(walk.run.status)) {
       return walk.run.status;
     }
@@ -108,7 +116,12 @@ export class RunExecutionService {
     });
   }
 
-  private async load(ctx: UseCaseCtx, workspaceId: string, runId: string): Promise<RunWalk> {
+  private async load(
+    ctx: UseCaseCtx,
+    workspaceId: string,
+    runId: string,
+    attempt: JobAttempt,
+  ): Promise<RunWalk> {
     const run = await this.runs.findById(workspaceId, runId);
     if (run === null) {
       throw new RunNotFoundError(runId);
@@ -134,6 +147,7 @@ export class RunExecutionService {
     );
     return {
       ctx,
+      finalAttempt: attempt.final,
       run,
       flow: version.flow,
       graph: buildFlowGraph(version.flow),
@@ -291,7 +305,7 @@ export class RunExecutionService {
         finishedAt: this.clock.now(),
       };
     } catch (error) {
-      if (jobFailureActionFor(error) === JobFailureAction.Retry) {
+      if (!walk.finalAttempt && jobFailureActionFor(error) === JobFailureAction.Retry) {
         throw error;
       }
       this.logger.warn({
