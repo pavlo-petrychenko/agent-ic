@@ -5,7 +5,7 @@ import {
   CONNECTED_TELEGRAM_BOT,
   REVOKED_TELEGRAM_BOT,
   TELEGRAM_BOT_AGENT_OPTIONS,
-} from '@/features/channels/constants/telegramBot.constants';
+} from '@/features/channels/constants/channelMocks.constants';
 import { TelegramBotDetails } from '@/features/channels/view/TelegramBotDetails';
 import type { TelegramBotDetailsProps } from '@/features/channels/view/TelegramBotDetails';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';

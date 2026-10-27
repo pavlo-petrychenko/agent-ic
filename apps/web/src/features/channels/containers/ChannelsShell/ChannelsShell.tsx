@@ -2,19 +2,21 @@ import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChannelKind } from '@/features/channels/constants/channel.constants';
-import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
-import {
-  CHANNELS_PATH,
-  CHANNELS_TELEGRAM_BOT_PATH,
-  CHANNELS_TELEGRAM_NEW_PATH,
-} from '@/features/channels/constants/route.constants';
 import {
   API_CHANNEL_MOCKS,
   TELEGRAM_BOTS,
-} from '@/features/channels/constants/telegramBot.constants';
+} from '@/features/channels/constants/channelMocks.constants';
+import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
+import {
+  CHANNELS_API_CHANNEL_PATH,
+  CHANNELS_TELEGRAM_BOT_PATH,
+  CHANNELS_TELEGRAM_NEW_PATH,
+} from '@/features/channels/constants/route.constants';
 import { ApiChannelCreateDialogs } from '@/features/channels/containers/ApiChannelCreateDialogs';
 import type { ChannelsShellProps } from '@/features/channels/containers/ChannelsShell/ChannelsShell.typedefs';
 import {
+  apiChannelHref,
+  apiChannelPrefix,
   telegramBotHref,
   telegramBotPrefix,
   telegramNewHref,
@@ -30,12 +32,14 @@ export function ChannelsShell({ workspaceId, children }: ChannelsShellProps) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [apiCreateOpen, setApiCreateOpen] = useState(false);
-  const showDemoChannels =
+  const showTelegramChannels =
     pathname.startsWith(telegramBotPrefix(workspaceId)) &&
     pathname !== telegramNewHref(workspaceId);
+  const showApiChannels = pathname.startsWith(apiChannelPrefix(workspaceId));
+  const showMockChannels = showTelegramChannels || showApiChannels;
   const openApiCreate = () => setApiCreateOpen(true);
 
-  const telegramItems: readonly ChannelsNavItem[] = showDemoChannels
+  const telegramItems: readonly ChannelsNavItem[] = showMockChannels
     ? TELEGRAM_BOTS.map((bot) => ({
         id: bot.id,
         title: bot.username,
@@ -51,7 +55,7 @@ export function ChannelsShell({ workspaceId, children }: ChannelsShellProps) {
       }))
     : [];
 
-  const apiItems: readonly ChannelsNavItem[] = showDemoChannels
+  const apiItems: readonly ChannelsNavItem[] = showMockChannels
     ? API_CHANNEL_MOCKS.map((channel) => ({
         id: channel.id,
         title: channel.name,
@@ -60,9 +64,9 @@ export function ChannelsShell({ workspaceId, children }: ChannelsShellProps) {
           : channel.agentName,
         icon: IconName.Api,
         status: StatusKind.Ok,
-        selected: false,
-        to: CHANNELS_PATH,
-        params: { workspaceId },
+        selected: pathname === apiChannelHref(workspaceId, channel.id),
+        to: CHANNELS_API_CHANNEL_PATH,
+        params: { workspaceId, channelId: channel.id },
       }))
     : [];
 
@@ -90,7 +94,7 @@ export function ChannelsShell({ workspaceId, children }: ChannelsShellProps) {
         title={t('nav.title')}
         ariaLabel={t('nav.label')}
         groups={groups}
-        emptyLabel={showDemoChannels ? null : t('nav.empty')}
+        emptyLabel={showMockChannels ? null : t('nav.empty')}
       />
       <div className="flex min-w-0 flex-1 flex-col overflow-auto">{children}</div>
       {apiCreateOpen && <ApiChannelCreateDialogs onClose={() => setApiCreateOpen(false)} />}
