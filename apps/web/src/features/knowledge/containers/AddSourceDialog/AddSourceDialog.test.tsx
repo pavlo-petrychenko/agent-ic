@@ -1,4 +1,4 @@
-import { ErrorCode, ErrorReason } from '@agent-ic/contracts';
+import { ErrorCode, ErrorReason, Locale } from '@agent-ic/contracts';
 import type { MockLink } from '@apollo/client/testing';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -77,7 +77,10 @@ const FAILED_CREATE_UPLOAD_MOCK: MockLink.MockedResponse = {
   },
 };
 
-const renderDialog = (mocks: readonly MockLink.MockedResponse[] = []) => {
+const renderDialog = (
+  mocks: readonly MockLink.MockedResponse[] = [],
+  locale: Locale = Locale.En,
+) => {
   const onClose = vi.fn<() => void>();
   const onUploaded = vi.fn<() => void>();
   renderWithProviders(
@@ -87,7 +90,7 @@ const renderDialog = (mocks: readonly MockLink.MockedResponse[] = []) => {
       onClose={onClose}
       onUploaded={onUploaded}
     />,
-    { mocks },
+    { locale, mocks },
   );
   return { onClose, onUploaded };
 };
@@ -157,6 +160,15 @@ describe('AddSourceDialog', () => {
 
     const dialog = screen.getByRole('dialog');
     expect(within(dialog).getByText('1 ready · 1 skipped')).toBeInTheDocument();
+  });
+
+  it('names the unsupported format in Ukrainian', async () => {
+    const user = userEvent.setup();
+    renderDialog([], Locale.Uk);
+
+    await user.upload(fileInput(), [XLSX]);
+
+    expect(await screen.findByText('формат не підтримується')).toBeInTheDocument();
   });
 
   it('keeps failed files in the dialog so they can be retried', async () => {

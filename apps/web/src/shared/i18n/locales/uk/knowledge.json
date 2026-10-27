@@ -55,7 +55,7 @@
     "statusUploaded": "Завантажено",
     "statusFailed": "Помилка",
     "statusSkipped": "Пропущено",
-    "skipUnsupported": "не підтримується",
+    "skipUnsupported": "формат не підтримується",
     "skipTooLarge": "більше {{max}} МБ",
     "skipEmpty": "порожній файл",
     "remove": "Видалити",
