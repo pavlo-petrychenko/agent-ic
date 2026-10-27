@@ -2,6 +2,7 @@ import type { EmailMode } from '@/platform/config/constants/email.constants';
 import type { NodeEnvironment } from '@/platform/config/constants/env.constants';
 import type { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
 import type { LogLevel } from '@/platform/config/constants/log-level.constants';
+import type { TelegramTransport } from '@/platform/config/constants/telegram.constants';
 import type { EmbeddingModelId } from '@/platform/llm/constants/llm-model.constants';
 import type { Role } from '@/platform/module-roles/constants/role.constants';
 import type { QueueName } from '@/platform/queues/constants/queue.constants';
@@ -91,6 +92,11 @@ export interface UsageConfig {
   readonly chunksLimit: number;
 }
 
+export interface TelegramConfig {
+  readonly transport: TelegramTransport;
+  readonly pollTimeoutSeconds: number;
+}
+
 export interface SmtpCredentials {
   readonly user: string;
   readonly password: string;
@@ -138,6 +144,7 @@ export interface BaseConfig {
   readonly llm: LlmConfig;
   readonly usage: UsageConfig;
   readonly email: EmailConfig;
+  readonly telegram: TelegramConfig;
 }
 
 export interface ApiConfig extends BaseConfig {

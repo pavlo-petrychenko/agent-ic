@@ -23,6 +23,7 @@ x-backend-environment: &backend-environment
   NODE_ENV: ${NODE_ENV}
   APP_VERSION: ${APP_VERSION}
   PUBLIC_URL: ${PUBLIC_URL}
+  TELEGRAM_TRANSPORT: ${TELEGRAM_TRANSPORT:-webhook}
   LOG_LEVEL: ${LOG_LEVEL}
   HTTP_HOST: ${HTTP_HOST}
   API_PORT: ${API_PORT}

@@ -43,6 +43,9 @@ export const channels = channelsSchema
       createdByUserId: uuid('created_by_user_id')
         .notNull()
         .references((): AnyPgColumn => users.id),
+      updatedByUserId: uuid('updated_by_user_id').references((): AnyPgColumn => users.id, {
+        onDelete: 'set null',
+      }),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
       updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
     },
@@ -51,6 +54,7 @@ export const channels = channelsSchema
       index('channels_workspace_kind_idx').on(table.workspaceId, table.kind),
       index('channels_agent_id_idx').on(table.agentId),
       index('channels_created_by_user_id_idx').on(table.createdByUserId),
+      index('channels_updated_by_user_id_idx').on(table.updatedByUserId),
       tenantIsolationPolicy('channels'),
     ],
   )

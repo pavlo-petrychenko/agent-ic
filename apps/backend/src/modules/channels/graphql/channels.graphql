@@ -1,0 +1,54 @@
+extend type Query {
+  channel(id: ID!): Channel
+  channels: [Channel!]!
+}
+
+extend type Mutation {
+  connectTelegram(input: ConnectTelegramInput!): Channel!
+  disconnectTelegram(id: ID!): Channel!
+  replaceTelegramToken(input: ReplaceTelegramTokenInput!): Channel!
+  updateTelegram(input: UpdateTelegramInput!): Channel!
+}
+
+enum ChannelStatus {
+  pending
+  connected
+  broken
+  disconnected
+}
+
+enum ChannelKind {
+  telegram
+  api
+}
+
+type Channel {
+  id: ID!
+  kind: ChannelKind!
+  status: ChannelStatus!
+  agentId: ID
+  displayName: String!
+  firstName: String
+  tokenMasked: String
+  updatedByName: String
+  showTyping: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input ConnectTelegramInput {
+  token: String!
+  agentId: ID!
+  showTyping: Boolean
+}
+
+input UpdateTelegramInput {
+  id: ID!
+  agentId: ID!
+  showTyping: Boolean!
+}
+
+input ReplaceTelegramTokenInput {
+  id: ID!
+  token: String!
+}

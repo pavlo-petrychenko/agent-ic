@@ -3,6 +3,7 @@ import { ConversationGraphqlArgument } from '@/modules/conversations/constants/c
 import {
   toGraphqlMessage,
   toGraphqlSimulation,
+  toStartSimulationInput,
 } from '@/modules/conversations/helpers/simulation-graphql.helpers';
 import { GetSimulationUseCase } from '@/modules/conversations/use-cases/get-simulation.use-case';
 import { RestartSimulationUseCase } from '@/modules/conversations/use-cases/restart-simulation.use-case';
@@ -41,7 +42,9 @@ export class SimulationResolver {
     @GraphqlCtx() ctx: UseCaseCtx,
     @Args(ConversationGraphqlArgument.Input) input: StartSimulationInput,
   ): Promise<Simulation> {
-    return toGraphqlSimulation(await this.startSimulationUseCase.execute(ctx, input));
+    return toGraphqlSimulation(
+      await this.startSimulationUseCase.execute(ctx, toStartSimulationInput(input)),
+    );
   }
 
   @Mutation()

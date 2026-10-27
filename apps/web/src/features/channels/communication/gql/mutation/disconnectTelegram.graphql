@@ -1,0 +1,10 @@
+mutation DisconnectTelegram($id: ID!) {
+  disconnectTelegram(id: $id) {
+    id
+    kind
+    status
+    agentId
+    displayName
+    showTyping
+  }
+}

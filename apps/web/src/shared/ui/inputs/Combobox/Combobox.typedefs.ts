@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react';
 export interface ComboboxOption {
   readonly value: string;
   readonly label: string;
+  readonly description?: string;
   readonly group?: string;
 }
 

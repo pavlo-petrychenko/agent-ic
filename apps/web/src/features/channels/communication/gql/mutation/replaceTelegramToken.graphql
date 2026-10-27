@@ -1,0 +1,11 @@
+mutation ReplaceTelegramToken($input: ReplaceTelegramTokenInput!) {
+  replaceTelegramToken(input: $input) {
+    id
+    status
+    displayName
+    firstName
+    tokenMasked
+    updatedAt
+    updatedByName
+  }
+}

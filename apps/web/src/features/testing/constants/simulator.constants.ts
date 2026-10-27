@@ -1,5 +1,9 @@
 import { Locale } from '@agent-ic/contracts';
-import { ChannelKind, MessageAuthor, RunStatus } from '@/shared/api/generated/schema.generated';
+import {
+  ChannelConversationKind,
+  MessageAuthor,
+  RunStatus,
+} from '@/shared/api/generated/schema.generated';
 
 export const SETUP_KEY_SEPARATOR = '|';
 
@@ -41,6 +45,8 @@ export const ACTIVE_RUN_STATUSES: ReadonlySet<RunStatus> = new Set([
   RunStatus.Running,
 ]);
 
-export const SIMULATOR_CHANNELS: readonly ChannelKind[] = [ChannelKind.Simulated];
+export const SIMULATOR_CHANNELS: readonly ChannelConversationKind[] = [
+  ChannelConversationKind.Simulated,
+];
 
 export const SIMULATOR_LANGUAGES: readonly Locale[] = [Locale.Uk, Locale.En];

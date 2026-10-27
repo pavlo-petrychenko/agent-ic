@@ -13,7 +13,12 @@ const FOLDERS: readonly ComboboxOption[] = [
 const createLabel = (query: string): string => `Create “${query}”`;
 
 const MODELS: readonly ComboboxOption[] = [
-  { value: 'platform:luna', label: 'Luna · OpenAI', group: 'platform' },
+  {
+    value: 'platform:luna',
+    label: 'Luna',
+    description: 'OpenAI · $0.10 / $0.50 per 1M tokens',
+    group: 'platform',
+  },
   { value: 'key-a:gpt-4o', label: 'gpt-4o', group: 'key-a' },
   { value: 'key-b:mistral-large', label: 'mistral-large', group: 'key-b' },
 ];
@@ -117,7 +122,8 @@ describe('Combobox', () => {
 
     expect(
       within(screen.getByRole('group', { name: 'Platform models' })).getByRole('button', {
-        name: 'Luna · OpenAI',
+        name: 'Luna',
+        description: 'OpenAI · $0.10 / $0.50 per 1M tokens',
       }),
     ).toBeVisible();
     expect(
@@ -135,9 +141,24 @@ describe('Combobox', () => {
     render(<Grouped onCreate={vi.fn<CreateHandler>()} retry={vi.fn<RetryHandler>()} />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Model' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Luna · OpenAI' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Luna' }));
 
-    expect(screen.getByRole('button', { name: 'Model' })).toHaveTextContent('Luna · OpenAI');
+    const trigger = screen.getByRole('button', { name: 'Model' });
+    expect(trigger).toHaveTextContent('Luna');
+    expect(trigger).not.toHaveTextContent('OpenAI');
+  });
+
+  it('finds an option by its description', async () => {
+    render(<Grouped onCreate={vi.fn<CreateHandler>()} retry={vi.fn<RetryHandler>()} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Model' }));
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Search models' }), 'openai');
+
+    expect(
+      within(screen.getByRole('group', { name: 'Platform models' })).getByRole('button', {
+        name: 'Luna',
+      }),
+    ).toBeVisible();
   });
 
   it('creates a typed value in the creatable group the search matches', async () => {

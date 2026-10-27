@@ -1,0 +1,10 @@
+mutation ConnectTelegram($input: ConnectTelegramInput!) {
+  connectTelegram(input: $input) {
+    id
+    kind
+    status
+    agentId
+    displayName
+    showTyping
+  }
+}
