@@ -2,7 +2,7 @@
 
 One file per decision. ADRs are never edited after they are accepted, except for their status. A changed decision gets a new ADR that supersedes the old one.
 
-Smaller decisions, and amendments to these ADRs, are rows D1 to D286 in section 1 of [architecture.md](../architecture.md). The Status column below summarises the status line of each file.
+Smaller decisions, and amendments to these ADRs, are rows D1 to D287 in section 1 of [architecture.md](../architecture.md). The Status column below summarises the status line of each file.
 
 | # | Decision | Status |
 |---|---|---|

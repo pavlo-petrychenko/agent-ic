@@ -5,7 +5,7 @@ import type {
   ChatSpeaker,
 } from '@/features/testing/constants/simulator.constants';
 import type {
-  ChannelKind,
+  ChannelConversationKind,
   ConversationState,
   MessageAuthor,
   RunStatus,
@@ -13,7 +13,7 @@ import type {
 
 export interface SimulatorSetup {
   versionId: string | null;
-  channelKind: ChannelKind;
+  channelKind: ChannelConversationKind;
   language: Locale;
 }
 

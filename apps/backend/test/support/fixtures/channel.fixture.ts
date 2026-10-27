@@ -6,11 +6,12 @@ import type { NewChannel } from '@/modules/channels/typedefs/channel.typedefs';
 import {
   TEST_CHANNEL_NAME,
   TEST_TELEGRAM_BOT_USERNAME,
+  TEST_TELEGRAM_TOKEN,
 } from '@test/support/constants/channel-testing.constants';
 import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.typedefs';
 
 export const newChannel = (
-  testbed: Pick<ChannelsTestbed, 'ids' | 'clock'>,
+  testbed: Pick<ChannelsTestbed, 'ids' | 'clock' | 'channelTokens'>,
   workspaceId: string,
   overrides: Partial<NewChannel> = {},
 ): NewChannel => ({
@@ -22,7 +23,10 @@ export const newChannel = (
   externalId: testbed.ids.generate(),
   identity: { name: TEST_CHANNEL_NAME, username: TEST_TELEGRAM_BOT_USERNAME },
   showTyping: true,
-  credentialsSealed: 'sealed-credentials',
+  credentialsSealed: testbed.channelTokens.sealCredentials({
+    botToken: TEST_TELEGRAM_TOKEN,
+    webhookSecretHash: 'hash',
+  }),
   createdByUserId: testbed.ids.generate(),
   createdAt: testbed.clock.now(),
   updatedAt: testbed.clock.now(),

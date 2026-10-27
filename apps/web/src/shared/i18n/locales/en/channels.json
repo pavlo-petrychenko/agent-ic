@@ -1,0 +1,209 @@
+{
+  "nav": {
+    "label": "Channels",
+    "title": "Channels",
+    "groups": {
+      "telegram": "Telegram bots",
+      "api": "API"
+    },
+    "tokenRevoked": "token revoked",
+    "connecting": "connecting",
+    "disconnected": "disconnected",
+    "noAgent": "no agent",
+    "messagesAndEvents": "messages & events",
+    "empty": "No channels yet"
+  },
+  "page": {
+    "title": "Channels",
+    "subtitle": "Where customers talk to your assistants"
+  },
+  "dialog": {
+    "close": "Close"
+  },
+  "options": {
+    "telegram": {
+      "title": "Connect a Telegram bot",
+      "description": "Create a bot in @BotFather and paste its token. We host it and route its messages.",
+      "action": "Connect bot"
+    },
+    "api": {
+      "title": "Create an API channel",
+      "description": "Send messages and events from your website, app or CRM with a secret key.",
+      "action": "Create API channel"
+    }
+  },
+  "api": {
+    "create": {
+      "title": "New API channel",
+      "description": "You get an endpoint and a secret key",
+      "name": "Name",
+      "namePlaceholder": "e.g. Booking widget",
+      "agent": "Who answers",
+      "replyLabel": "Replies to a message",
+      "replyResponse": "In the response",
+      "replyWebhook": "To my webhook",
+      "webhook": "Webhook for later messages",
+      "webhookPlaceholder": "https://example.com/hooks/channel",
+      "webhookHint": "Operator replies, follow-ups and event messages. You can add it later.",
+      "cancel": "Cancel",
+      "submit": "Create channel",
+      "defaultName": "Booking widget"
+    },
+    "secret": {
+      "title": "Your secret key",
+      "description": "{{name}} · API channel",
+      "copyWarning": "Copy it now — we only show a key once. If you lose it, rotate it.",
+      "keyLabel": "Secret key",
+      "copy": "Copy",
+      "endpointLabel": "Endpoint",
+      "rotationHint": "After a rotation the previous key keeps working for 24 h.",
+      "docs": "API docs",
+      "done": "I’ve copied it"
+    },
+    "channel": {
+      "breadcrumbApi": "API",
+      "subtitle": "API channel · answered by {{agent}}",
+      "actions": {
+        "delete": "Delete",
+        "save": "Save"
+      },
+      "endpoint": {
+        "title": "Endpoint",
+        "sendMessage": "Send a message",
+        "secretKey": "Secret key",
+        "rotate": "Rotate",
+        "secretHint": "Send it as a Bearer token. We show a key only once; rotating gives you 24 h to switch."
+      },
+      "whoAnswers": {
+        "title": "Who answers and how replies come back",
+        "agent": "Agent",
+        "replyLabel": "Replies to a message",
+        "replyResponse": "In the response",
+        "replyWebhook": "To my webhook",
+        "replyHint": "In the response: the call waits for the flow (up to 30 s) and returns its messages.",
+        "webhook": "Webhook for later messages",
+        "webhookHint": "Operator replies, scheduled follow-ups and event messages arrive here. Required when a person can take over."
+      },
+      "example": {
+        "title": "Example request",
+        "response": "Response",
+        "hint": "Use the same user_id to continue a conversation. When status is “escalated”, the operator’s replies come later to your webhook."
+      },
+      "deleteDialog": {
+        "title": "Delete the {{name}} API channel?",
+        "description": "This can’t be undone",
+        "body": "Requests with its key start failing with 401 right away, so {{agent}} stops answering here. Past conversations stay in the Inbox and Langfuse.",
+        "confirmLabel": "Type <strong>{{name}}</strong> to confirm",
+        "confirmInputLabel": "Channel name",
+        "confirmPlaceholder": "{{name}}",
+        "cancel": "Cancel",
+        "confirm": "Delete channel"
+      }
+    }
+  },
+  "telegram": {
+    "title": "Connect a Telegram bot",
+    "subtitle": "We set the webhook and receive messages for you",
+    "loading": "Loading the bot",
+    "loadError": "The bot could not be loaded.",
+    "notFound": "That bot was not found.",
+    "retry": "Try again",
+    "breadcrumb": "Breadcrumb",
+    "breadcrumbMore": "More",
+    "breadcrumbChannels": "Channels",
+    "breadcrumbTelegram": "Telegram bots",
+    "form": {
+      "cardTitle": "Bot token",
+      "tokenLabel": "Paste the token from @BotFather",
+      "tokenRequired": "Paste the token from @BotFather.",
+      "tokenError": "Telegram didn’t accept this token. It looks like 123456789:AA… — copy it again.",
+      "agentRequired": "Choose the agent that answers this bot.",
+      "agentLabel": "Who answers",
+      "agentPlaceholder": "Choose an agent",
+      "agentHint": "You can change the agent later.",
+      "connect": "Connect bot",
+      "cancel": "Cancel"
+    },
+    "howTo": {
+      "title": "How to connect a bot",
+      "stepOpen": "Open @BotFather in Telegram and send /newbot",
+      "stepName": "Pick a name and a username ending in “bot”",
+      "stepCopy": "Copy the token and paste it here"
+    },
+    "stats": {
+      "title": "Last 7 days",
+      "chats": "Chats",
+      "messages": "Messages",
+      "errors": "Errors"
+    },
+    "bot": {
+      "subtitle": "Telegram bot · answered by {{agent}}",
+      "unknownAgent": "No agent",
+      "saved": "Channel settings saved",
+      "tokenReplaced": "Bot token replaced",
+      "actions": {
+        "disconnect": "Disconnect",
+        "save": "Save"
+      },
+      "disconnectDialog": {
+        "title": "Disconnect {{username}}?",
+        "description": "Telegram bot · answered by {{agent}}",
+        "body": "We remove our webhook and stop receiving this bot’s messages.",
+        "bodyWithApi": "We remove our webhook and stop receiving this bot’s messages. {{agent}} keeps answering through API · {{channel}}.",
+        "warning": "Open Telegram chats stay readable in the Inbox, but nobody can reply to them until a bot is connected again.",
+        "cancel": "Cancel",
+        "confirm": "Disconnect"
+      },
+      "replaceDialog": {
+        "title": "Replace the token for {{username}}?",
+        "description": "Telegram bot · the webhook is registered again with the new token",
+        "tokenLabel": "New token from @BotFather",
+        "tokenHint": "In @BotFather, send /token, pick this bot and copy the new token.",
+        "tokenRequired": "Paste the token from @BotFather.",
+        "tokenError": "Telegram didn’t accept this token. It looks like 123456789:AA… — copy it again.",
+        "cancel": "Cancel",
+        "confirm": "Replace token"
+      },
+      "connection": {
+        "title": "Connection",
+        "connected": "Connected",
+        "pending": "Connecting",
+        "revoked": "Token revoked",
+        "disconnected": "Disconnected",
+        "disconnectedHint": "This bot is disconnected. Connect it again to receive new messages.",
+        "tokenLabel": "Bot token",
+        "tokenHint": "From @BotFather. We register the webhook and receive this bot’s messages for you.",
+        "storedSecurely": "Stored securely",
+        "replaceToken": "Replace token",
+        "webhook": "Webhook",
+        "registered": "Registered",
+        "notRegistered": "Not registered",
+        "receiving": "Receiving",
+        "notReceiving": "Not receiving",
+        "lastUpdate": "Last update",
+        "unknownUser": "Unknown",
+        "lastUpdateToday": "Today {{time}} · from {{author}}",
+        "lastUpdateDate": "{{date}} {{time}} · from {{author}}",
+        "botName": "Bot name",
+        "botNameValue": "{{name}} · edit in @BotFather",
+        "alerted": "Alerted",
+        "alertedValue": "Owners and admins · email",
+        "revokedNote": "Telegram rejected this token on {{date}} at {{time}} — it was revoked or regenerated in @BotFather."
+      },
+      "whoAnswers": {
+        "title": "Who answers",
+        "agent": "Agent",
+        "publishedHint": "Always runs the published version (v{{version}} now).",
+        "draftHint": "Draft — publish it to start answering.",
+        "typing": "Show “typing…” while the agent works"
+      },
+      "fix": {
+        "title": "How to fix it",
+        "stepOpen": "Open @BotFather and send /token",
+        "stepPick": "Pick {{username}} and copy the new token",
+        "stepPaste": "Paste it here and press Replace token"
+      },
+      "warning": "Messages sent to the bot while the token was revoked can’t be recovered — Telegram didn’t deliver them to us."
+    }
+  }
+}
