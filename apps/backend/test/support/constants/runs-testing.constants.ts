@@ -45,6 +45,7 @@ export enum StepScript {
   Succeed = 'succeed',
   Fail = 'fail',
   RejectUpstream = 'reject-upstream',
+  Unavailable = 'unavailable',
   Crash = 'crash',
   Hold = 'hold',
 }

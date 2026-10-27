@@ -113,6 +113,136 @@ describe('HttpTelegramGateway', () => {
     });
   });
 
+  it('long-polls updates and maps the message fields', async () => {
+    const sentAt = 1_760_000_000;
+    fetchMock.mockResolvedValueOnce(
+      Response.json({
+        ok: true,
+        result: [
+          {
+            update_id: 10,
+            message: {
+              message_id: 5,
+              date: sentAt,
+              text: 'Hello',
+              chat: { id: 42 },
+              from: { id: 900, first_name: 'Moshe' },
+            },
+          },
+          { update_id: 11 },
+        ],
+      }),
+    );
+
+    await expect(
+      gateway.getUpdates({
+        token: TEST_TELEGRAM_TOKEN,
+        offset: 10,
+        timeoutSeconds: 20,
+        allowedUpdates: TELEGRAM_ALLOWED_UPDATES,
+      }),
+    ).resolves.toEqual([
+      {
+        updateId: '10',
+        message: {
+          messageId: '5',
+          sentAt: new Date(sentAt * 1_000),
+          chatId: '42',
+          senderId: '900',
+          senderName: 'Moshe',
+          text: 'Hello',
+        },
+      },
+      { updateId: '11', message: null },
+    ]);
+
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe(`${TELEGRAM_API_BASE_URL}/bot${TEST_TELEGRAM_TOKEN}/getUpdates`);
+    expect(init?.method).toBe('POST');
+    expect(requestBody(init)).toEqual({
+      offset: 10,
+      timeout: 20,
+      allowed_updates: [...TELEGRAM_ALLOWED_UPDATES],
+    });
+  });
+
+  it('maps a message without text or sender to nulls', async () => {
+    const sentAt = 1_760_000_000;
+    fetchMock.mockResolvedValueOnce(
+      Response.json({
+        ok: true,
+        result: [{ update_id: 12, message: { message_id: 6, date: sentAt, chat: { id: 42 } } }],
+      }),
+    );
+
+    await expect(
+      gateway.getUpdates({
+        token: TEST_TELEGRAM_TOKEN,
+        offset: 0,
+        timeoutSeconds: 20,
+        allowedUpdates: TELEGRAM_ALLOWED_UPDATES,
+      }),
+    ).resolves.toEqual([
+      {
+        updateId: '12',
+        message: {
+          messageId: '6',
+          sentAt: new Date(sentAt * 1_000),
+          chatId: '42',
+          senderId: null,
+          senderName: null,
+          text: null,
+        },
+      },
+    ]);
+  });
+
+  it('returns no updates when telegram has none', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json({ ok: true, result: [] }));
+
+    await expect(
+      gateway.getUpdates({
+        token: TEST_TELEGRAM_TOKEN,
+        offset: 0,
+        timeoutSeconds: 20,
+        allowedUpdates: TELEGRAM_ALLOWED_UPDATES,
+      }),
+    ).resolves.toEqual([]);
+  });
+
+  it('maps a rate limit on getUpdates to a retryable error', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json(
+        {
+          ok: false,
+          error_code: 429,
+          description: 'Too Many Requests',
+          parameters: { retry_after: 3 },
+        },
+        { status: 429 },
+      ),
+    );
+
+    const error = await gateway
+      .getUpdates({
+        token: TEST_TELEGRAM_TOKEN,
+        offset: 0,
+        timeoutSeconds: 20,
+        allowedUpdates: TELEGRAM_ALLOWED_UPDATES,
+      })
+      .catch((caught: unknown) => caught);
+
+    if (!(error instanceof TelegramApiError)) {
+      throw error;
+    }
+    expect(error).toMatchObject({
+      method: 'getUpdates',
+      status: 429,
+      retryable: true,
+      retryAfterSeconds: 3,
+    });
+  });
+
   it('maps an invalid token to a non-retryable error without leaking it', async () => {
     fetchMock.mockResolvedValueOnce(
       Response.json({ ok: false, error_code: 401, description: 'Unauthorized' }, { status: 401 }),

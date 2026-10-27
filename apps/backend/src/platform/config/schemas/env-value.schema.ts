@@ -10,6 +10,10 @@ import {
   WORKER_CONCURRENCY_MIN,
 } from '@/platform/config/constants/env-value.constants';
 import { SAMPLE_RATE_MAX, SAMPLE_RATE_MIN } from '@/platform/config/constants/langfuse.constants';
+import {
+  TELEGRAM_POLL_TIMEOUT_DEFAULT_SECONDS,
+  TELEGRAM_POLL_TIMEOUT_MAX_SECONDS,
+} from '@/platform/config/constants/telegram.constants';
 
 export const textSchema = z.string().min(1);
 export const optionalTextSchema = z
@@ -24,3 +28,9 @@ export const redisUrlSchema = z.url({ protocol: REDIS_URL_PROTOCOL });
 export const publicUrlSchema = z.url({ protocol: PUBLIC_URL_PROTOCOL });
 export const concurrencySchema = z.coerce.number().int().min(WORKER_CONCURRENCY_MIN);
 export const usageLimitSchema = z.coerce.number().int().min(USAGE_LIMIT_MIN);
+export const telegramTimeoutSchema = z.coerce
+  .number()
+  .int()
+  .min(1)
+  .max(TELEGRAM_POLL_TIMEOUT_MAX_SECONDS)
+  .default(TELEGRAM_POLL_TIMEOUT_DEFAULT_SECONDS);

@@ -1,5 +1,6 @@
 export interface TelegramChannelIdentity {
   readonly username: string;
+  readonly firstName: string;
 }
 
 export interface ApiChannelIdentity {
@@ -10,7 +11,7 @@ export type ChannelIdentity = TelegramChannelIdentity | ApiChannelIdentity;
 
 export interface TelegramChannelCredentials {
   readonly botToken: string;
-  readonly webhookSecret: string;
+  readonly webhookSecretHash: string;
 }
 
 export interface ApiChannelCredentials {

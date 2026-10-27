@@ -46,21 +46,23 @@ export function LlmStepInspector({
   const chosen = step.options.find((option) => option.key === step.modelKey)?.choice ?? null;
   const platform = step.groups.find((group) => group.id === PLATFORM_CHOICE_SOURCE) ?? null;
   const keyGroups = step.groups.filter((group) => group.id !== PLATFORM_CHOICE_SOURCE);
-  const optionLabel = ({ choice, model }: ModelOption) =>
+  const optionText = ({ choice, model }: ModelOption) =>
     choice === null ||
     choice.vendor === null ||
     choice.inputPrice === null ||
     choice.outputPrice === null
-      ? model
-      : t('inspector.llm.modelOption', {
+      ? { label: model }
+      : {
           label: choice.label,
-          vendor: t(`inspector.llm.vendor.${choice.vendor}`),
-          input: choice.inputPrice,
-          output: choice.outputPrice,
-        });
+          description: t('inspector.llm.modelPrice', {
+            vendor: t(`inspector.llm.vendor.${choice.vendor}`),
+            input: choice.inputPrice,
+            output: choice.outputPrice,
+          }),
+        };
   const modelOptions = step.options.map((option) => ({
     value: option.key,
-    label: optionLabel(option),
+    ...optionText(option),
     ...(option.group === null ? {} : { group: option.group }),
   }));
   const modelGroups = step.groups.map((group) => ({

@@ -19,6 +19,7 @@ import { EnvVar } from '@/platform/config/constants/env.constants';
 import { LLM_STEP_TIMEOUT_MS } from '@/platform/llm/constants/llm-gateway.constants';
 import { LlmModelId } from '@/platform/llm/constants/llm-model.constants';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
+import { RETRYABLE_ATTEMPT } from '@test/support/constants/async-jobs.constants';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
 import {
   TEST_PROMPT_LATER_TEXT,
@@ -95,7 +96,7 @@ describe('CompletionExecutor', () => {
     );
 
   const execute = ({ ctx, run }: ExecutableRun): Promise<RunStatus> =>
-    testbed.execution.execute(ctx, run.workspaceId, run.id);
+    testbed.execution.execute(ctx, run.workspaceId, run.id, RETRYABLE_ATTEMPT);
 
   const stored = ({ run }: ExecutableRun) =>
     testbed.tenants.run(run.workspaceId, async () => ({

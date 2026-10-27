@@ -1,6 +1,8 @@
 import type {
+  GetTelegramUpdatesInput,
   SetTelegramWebhookInput,
   TelegramBot,
+  TelegramUpdate,
   TelegramWebhookInfo,
 } from '@/modules/channels/typedefs/telegram.typedefs';
 
@@ -12,4 +14,6 @@ export abstract class TelegramGateway {
   abstract deleteWebhook(token: string): Promise<void>;
 
   abstract getWebhookInfo(token: string): Promise<TelegramWebhookInfo>;
+
+  abstract getUpdates(input: GetTelegramUpdatesInput): Promise<TelegramUpdate[]>;
 }

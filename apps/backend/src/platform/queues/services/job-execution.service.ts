@@ -16,6 +16,7 @@ import {
   UNKNOWN_JOB_MESSAGE,
 } from '@/platform/queues/constants/job.constants';
 import type { QueueName } from '@/platform/queues/constants/queue.constants';
+import { jobAttemptOf } from '@/platform/queues/helpers/job.helpers';
 import { traceContextOf } from '@/platform/queues/helpers/queue-telemetry.helpers';
 import { jobEnvelopeSchema } from '@/platform/queues/schemas/job-envelope.schema';
 import { JobHandlersService } from '@/platform/queues/services/job-handlers.service';
@@ -66,7 +67,7 @@ export class JobExecutionService {
           this.logContext.assign({ [LogContextField.WorkspaceId]: ctx.workspaceId });
         }
         try {
-          await registered.handler.handle(ctx, data.data);
+          await registered.handler.handle(ctx, data.data, jobAttemptOf(job));
         } catch (error) {
           this.reporter.report(error, ctx.traceId);
           throw this.toFailure(error);

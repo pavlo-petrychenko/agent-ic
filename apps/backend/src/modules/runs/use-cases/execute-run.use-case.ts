@@ -8,6 +8,7 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { JobFailureAction } from '@/platform/errors/constants/job-failure.constants';
 import { jobFailureActionFor } from '@/platform/errors/helpers/job-failure.helpers';
+import type { JobAttempt } from '@/platform/queues/typedefs/job.typedefs';
 
 @Injectable()
 export class ExecuteRunUseCase {
@@ -17,12 +18,16 @@ export class ExecuteRunUseCase {
     private readonly lifecycle: RunLifecycleService,
   ) {}
 
-  async execute(ctx: UseCaseCtx, { runId }: ExecuteRunJobData): Promise<NewRun | null> {
+  async execute(
+    ctx: UseCaseCtx,
+    { runId }: ExecuteRunJobData,
+    attempt: JobAttempt,
+  ): Promise<NewRun | null> {
     const workspaceId = runWorkspaceOf(ctx);
     try {
-      await this.execution.execute(ctx, workspaceId, runId);
+      await this.execution.execute(ctx, workspaceId, runId, attempt);
     } catch (error) {
-      if (jobFailureActionFor(error) === JobFailureAction.GiveUp) {
+      if (attempt.final || jobFailureActionFor(error) === JobFailureAction.GiveUp) {
         await this.tenants.run(workspaceId, async () => {
           await this.lifecycle.failRun(workspaceId, runId, error);
           await this.lifecycle.endRun(ctx, workspaceId, runId);

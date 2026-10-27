@@ -1,6 +1,13 @@
-import { HANDLE_METHOD, JOB_KEY_SEPARATOR } from '@/platform/queues/constants/job.constants';
+import {
+  HANDLE_METHOD,
+  JOB_CURRENT_ATTEMPT,
+  JOB_DEFAULT_ATTEMPTS,
+  JOB_KEY_SEPARATOR,
+} from '@/platform/queues/constants/job.constants';
 import type { QueueName } from '@/platform/queues/constants/queue.constants';
 import type {
+  AttemptedJob,
+  JobAttempt,
   JobData,
   JobDefinition,
   JobHandler,
@@ -23,3 +30,7 @@ export const isJobHandler = (value: unknown): value is JobHandler<JobData> =>
   value !== null &&
   HANDLE_METHOD in value &&
   typeof value[HANDLE_METHOD] === 'function';
+
+export const jobAttemptOf = ({ attemptsMade, opts }: AttemptedJob): JobAttempt => ({
+  final: attemptsMade + JOB_CURRENT_ATTEMPT >= (opts.attempts ?? JOB_DEFAULT_ATTEMPTS),
+});

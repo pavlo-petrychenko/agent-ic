@@ -31,6 +31,7 @@ export interface MessageTriggerVariables {
 
 export interface RunWalk {
   readonly ctx: UseCaseCtx;
+  readonly finalAttempt: boolean;
   readonly run: Run;
   readonly flow: FlowDocument;
   readonly graph: FlowGraph;

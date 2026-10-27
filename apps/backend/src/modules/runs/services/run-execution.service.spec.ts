@@ -33,6 +33,7 @@ import {
   TEST_NODE_ID,
   TEST_NODE_KEY,
 } from '@test/support/constants/agents-testing.constants';
+import { FINAL_ATTEMPT, RETRYABLE_ATTEMPT } from '@test/support/constants/async-jobs.constants';
 import { TEST_MESSAGE_TEXT } from '@test/support/constants/conversations-testing.constants';
 import { OutboundTestPath } from '@test/support/constants/outbound-http-testing.constants';
 import {
@@ -89,6 +90,7 @@ import {
   sendMessageNode,
   stepFlow,
 } from '@test/support/fixtures/runs.fixture';
+import { SampleUnavailableError } from '@test/support/fixtures/sample-errors.fixture';
 import {
   createLlmGateway,
   createLlmTraceContextService,
@@ -155,7 +157,10 @@ describe('RunExecutionService', () => {
   let testbed: RunExecutionTestbed;
 
   const execute = ({ ctx, run }: ExecutableRun): Promise<RunStatus> =>
-    testbed.execution.execute(ctx, run.workspaceId, run.id);
+    testbed.execution.execute(ctx, run.workspaceId, run.id, RETRYABLE_ATTEMPT);
+
+  const executeFinal = ({ ctx, run }: ExecutableRun): Promise<RunStatus> =>
+    testbed.execution.execute(ctx, run.workspaceId, run.id, FINAL_ATTEMPT);
 
   const stored = async ({ run }: ExecutableRun) =>
     testbed.tenants.run(run.workspaceId, async () => ({
@@ -293,6 +298,59 @@ describe('RunExecutionService', () => {
       status: RunStepStatus.Failed,
       error: failure,
     });
+  });
+
+  it('leaves an unavailable step to the job retry while attempts are left', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      stepFlow([agentNode(FIRST_STEP_ID, FIRST_STEP_KEY)], [flowEdge(TEST_NODE_ID, FIRST_STEP_ID)]),
+    );
+    testbed.executor.script(FIRST_STEP_ID, StepScript.Unavailable);
+
+    await expect(execute(seeded)).rejects.toBeInstanceOf(SampleUnavailableError);
+
+    const { run, steps } = await stored(seeded);
+    expect(run?.status).toBe(RunStatus.Running);
+    expect(steps.find((step) => step.nodeId === FIRST_STEP_ID)?.status).toBe(RunStepStatus.Running);
+  });
+
+  it('fails an unavailable step on the last attempt and follows its error port', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      stepFlow(
+        [agentNode(FIRST_STEP_ID, FIRST_STEP_KEY), agentNode(SECOND_STEP_ID, SECOND_STEP_KEY)],
+        [
+          flowEdge(TEST_NODE_ID, FIRST_STEP_ID),
+          flowEdge(FIRST_STEP_ID, SECOND_STEP_ID, PortName.Error),
+        ],
+      ),
+    );
+    testbed.executor.script(FIRST_STEP_ID, StepScript.Unavailable);
+
+    expect(await executeFinal(seeded)).toBe(RunStatus.Succeeded);
+
+    const { steps } = await stored(seeded);
+    expect(steps.find((step) => step.nodeId === FIRST_STEP_ID)).toMatchObject({
+      status: RunStepStatus.Failed,
+      port: PortName.Error,
+      error: { reason: ErrorReason.UpstreamFailed, nodeId: FIRST_STEP_ID },
+    });
+    expect(steps.find((step) => step.nodeId === SECOND_STEP_ID)?.status).toBe(
+      RunStepStatus.Succeeded,
+    );
+  });
+
+  it('fails the run when an unavailable step on the last attempt has no error port', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      stepFlow([agentNode(FIRST_STEP_ID, FIRST_STEP_KEY)], [flowEdge(TEST_NODE_ID, FIRST_STEP_ID)]),
+    );
+    testbed.executor.script(FIRST_STEP_ID, StepScript.Unavailable);
+
+    expect(await executeFinal(seeded)).toBe(RunStatus.Failed);
+
+    const { run } = await stored(seeded);
+    expect(run?.error).toMatchObject({ reason: ErrorReason.UpstreamFailed, nodeId: FIRST_STEP_ID });
   });
 
   it('fails the run clearly on a node type no executor handles', async () => {
@@ -545,7 +603,7 @@ describe('RunExecutionService background branches', () => {
   };
 
   const execute = ({ ctx, run }: ExecutableRun): Promise<RunStatus> =>
-    testbed.execution.execute(ctx, run.workspaceId, run.id);
+    testbed.execution.execute(ctx, run.workspaceId, run.id, RETRYABLE_ATTEMPT);
 
   const stepsOf = ({ run }: ExecutableRun) =>
     testbed.tenants.run(run.workspaceId, () => testbed.steps.listByRun(run.workspaceId, run.id));
@@ -633,7 +691,7 @@ describe('RunExecutionService tracing', () => {
   };
 
   const execute = ({ ctx, run }: ExecutableRun): Promise<RunStatus> =>
-    testbed.execution.execute(ctx, run.workspaceId, run.id);
+    testbed.execution.execute(ctx, run.workspaceId, run.id, RETRYABLE_ATTEMPT);
 
   const inSpan = <R>(name: string, work: () => Promise<R>): Promise<R> =>
     provider.getTracer(LLM_TRACER_NAME).startActiveSpan(name, async (span) => {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { EmailMode } from '@/platform/config/constants/email.constants';
 import { EnvVar, NodeEnvironment } from '@/platform/config/constants/env.constants';
 import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
+import { TELEGRAM_POLL_TIMEOUT_DEFAULT_SECONDS } from '@/platform/config/constants/telegram.constants';
 import { loadAppConfig, loadMigrationConfig } from '@/platform/config/helpers/config.helpers';
 import type { RoleSelection } from '@/platform/config/typedefs/app-config.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
@@ -33,6 +34,35 @@ describe('loadAppConfig', () => {
 
     expect(config.role).toBe(Role.Gateway);
     expect(config.http.port).toBe(4200);
+  });
+
+  it('defaults the telegram poll timeout', () => {
+    const config = loadAppConfig(
+      roleOf(Role.Gateway),
+      createTestEnv({ [EnvVar.TelegramPollTimeoutSeconds]: undefined }),
+    );
+
+    expect(config.telegram.pollTimeoutSeconds).toBe(TELEGRAM_POLL_TIMEOUT_DEFAULT_SECONDS);
+  });
+
+  it('reads the telegram poll timeout', () => {
+    const config = loadAppConfig(
+      roleOf(Role.Gateway),
+      createTestEnv({ [EnvVar.TelegramPollTimeoutSeconds]: '35' }),
+    );
+
+    expect(config.telegram.pollTimeoutSeconds).toBe(35);
+  });
+
+  it.each(['0', '51'])('rejects the telegram poll timeout %s', (timeout) => {
+    const issues = issuesOf(() =>
+      loadAppConfig(
+        roleOf(Role.Gateway),
+        createTestEnv({ [EnvVar.TelegramPollTimeoutSeconds]: timeout }),
+      ),
+    );
+
+    expect(variablesOf(issues)).toEqual([EnvVar.TelegramPollTimeoutSeconds]);
   });
 
   it('keeps the queues of the worker role', () => {

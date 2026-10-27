@@ -4,6 +4,7 @@ import { ConversationNotFoundError } from '@/modules/conversations';
 import { RunStatus } from '@/modules/runs/constants/run.constants';
 import { ListSimulationRunsUseCase } from '@/modules/runs/use-cases/list-simulation-runs.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
+import { RETRYABLE_ATTEMPT } from '@test/support/constants/async-jobs.constants';
 import { TEST_END_USER_EXTERNAL_ID } from '@test/support/constants/conversations-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { triggerOnlyFlow } from '@test/support/fixtures/runs.fixture';
@@ -42,7 +43,7 @@ describe('ListSimulationRunsUseCase', () => {
   it('lists the runs of the caller simulation', async () => {
     const seeded = await seedSimulationRun(testbed);
     const { ctx, run } = seeded;
-    await testbed.execution.execute(ctx, run.workspaceId, run.id);
+    await testbed.execution.execute(ctx, run.workspaceId, run.id, RETRYABLE_ATTEMPT);
 
     const [listed, ...others] = await list(seeded);
 

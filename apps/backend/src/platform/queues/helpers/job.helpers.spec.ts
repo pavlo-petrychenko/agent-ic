@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { JOB_KEY_SEPARATOR } from '@/platform/queues/constants/job.constants';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
-import { defineJob, isJobHandler, jobKey } from '@/platform/queues/helpers/job.helpers';
+import {
+  defineJob,
+  isJobHandler,
+  jobAttemptOf,
+  jobKey,
+} from '@/platform/queues/helpers/job.helpers';
 import { ProbeJobName } from '@test/support/constants/async-jobs.constants';
 import { probeDataSchema } from '@test/support/schemas/async-jobs.schema';
 
@@ -38,4 +43,18 @@ describe('isJobHandler', () => {
   it.each([null, undefined, {}, { handle: true }])('rejects %s', (value) => {
     expect(isJobHandler(value)).toBe(false);
   });
+});
+
+describe('jobAttemptOf', () => {
+  it.each([
+    { attemptsMade: 0, attempts: 5, final: false },
+    { attemptsMade: 3, attempts: 5, final: false },
+    { attemptsMade: 4, attempts: 5, final: true },
+    { attemptsMade: 0, attempts: undefined, final: true },
+  ])(
+    'marks attempt $attemptsMade of $attempts final: $final',
+    ({ attemptsMade, attempts, final }) => {
+      expect(jobAttemptOf({ attemptsMade, opts: { attempts } })).toEqual({ final });
+    },
+  );
 });

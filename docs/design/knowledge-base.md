@@ -1420,7 +1420,7 @@ Each step ends with `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, `pnpm de
 - [ADR 0024: knowledge sources, storage and sync](adr/0024-knowledge-sources-storage-and-sync.md)
 - [Research: knowledge base ingestion and retrieval](research/knowledge-retrieval.md)
 - [MVP scope, 5.3 and 12.7](mvp-scope.md)
-- [Architecture, D8, D26–D32, D46 and D282–D286](architecture.md)
+- [Architecture, D8, D26–D32, D46 and D283–D287](architecture.md)
 - [Backend module anatomy](../../apps/backend/AGENTS.md)
 - [Code structure rules](../rules/structure.md)
 - Google Drive scopes: <https://developers.google.com/workspace/drive/api/guides/api-specific-auth>

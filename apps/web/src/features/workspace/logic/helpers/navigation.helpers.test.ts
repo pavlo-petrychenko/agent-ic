@@ -20,6 +20,7 @@ describe('navigation helpers', () => {
       WorkspaceSection.Agents,
       WorkspaceSection.Prompts,
       WorkspaceSection.Knowledge,
+      WorkspaceSection.Channels,
       WorkspaceSection.Inbox,
       WorkspaceSection.Testing,
       WorkspaceSection.Settings,
@@ -28,6 +29,7 @@ describe('navigation helpers', () => {
       WorkspaceSection.Agents,
       WorkspaceSection.Prompts,
       WorkspaceSection.Knowledge,
+      WorkspaceSection.Channels,
       WorkspaceSection.Testing,
       WorkspaceSection.Settings,
     ]);
