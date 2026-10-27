@@ -64,6 +64,14 @@ export class DocumentsRepository {
       .orderBy(asc(documents.createdAt), asc(documents.id));
   }
 
+  async listAllBySource(workspaceId: string, sourceId: string): Promise<Document[]> {
+    return this.txHost.tx
+      .select()
+      .from(documents)
+      .where(and(eq(documents.workspaceId, workspaceId), eq(documents.sourceId, sourceId)))
+      .orderBy(asc(documents.createdAt), asc(documents.id));
+  }
+
   async update(
     workspaceId: string,
     documentId: string,

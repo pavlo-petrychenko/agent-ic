@@ -1,3 +1,4 @@
+import { CleanUpKnowledgeSourceFilesProcessor } from '@/modules/knowledge/processors/clean-up-knowledge-source-files.processor';
 import { IngestKnowledgeSourceProcessor } from '@/modules/knowledge/processors/ingest-knowledge-source.processor';
 import { ChunkTermsRepository } from '@/modules/knowledge/repositories/chunk-terms.repository';
 import { ChunksRepository } from '@/modules/knowledge/repositories/chunks.repository';
@@ -11,6 +12,7 @@ import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repo
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
 import { CreateKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/create-knowledge-base.resolver';
 import { DeleteKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/delete-knowledge-base.resolver';
+import { DeleteKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/delete-knowledge-source.resolver';
 import { KnowledgeBasesResolver } from '@/modules/knowledge/resolvers/knowledge-bases.resolver';
 import { KnowledgeSourcesResolver } from '@/modules/knowledge/resolvers/knowledge-sources.resolver';
 import { KnowledgeUploadResolver } from '@/modules/knowledge/resolvers/knowledge-upload.resolver';
@@ -21,10 +23,12 @@ import { KnowledgeDocumentIngestionService } from '@/modules/knowledge/services/
 import { KnowledgeEmbeddingService } from '@/modules/knowledge/services/knowledge-embedding.service';
 import { KnowledgeSourceViewsService } from '@/modules/knowledge/services/knowledge-source-views.service';
 import { KnowledgeUploadTargetsService } from '@/modules/knowledge/services/knowledge-upload-targets.service';
+import { CleanUpKnowledgeSourceFilesUseCase } from '@/modules/knowledge/use-cases/clean-up-knowledge-source-files.use-case';
 import { ConfirmUploadUseCase } from '@/modules/knowledge/use-cases/confirm-upload.use-case';
 import { CreateKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/create-knowledge-base.use-case';
 import { CreateUploadUseCase } from '@/modules/knowledge/use-cases/create-upload.use-case';
 import { DeleteKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/delete-knowledge-base.use-case';
+import { DeleteKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/delete-knowledge-source.use-case';
 import { IngestKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/ingest-knowledge-source.use-case';
 import { ListKnowledgeBasesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-bases.use-case';
 import { ListKnowledgeSourcesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-sources.use-case';
@@ -49,10 +53,12 @@ export class KnowledgeModule extends defineModule({
     KnowledgeBaseViewsService,
     KnowledgeSourceViewsService,
     KnowledgeUploadTargetsService,
+    CleanUpKnowledgeSourceFilesUseCase,
     ConfirmUploadUseCase,
     CreateKnowledgeBaseUseCase,
     CreateUploadUseCase,
     DeleteKnowledgeBaseUseCase,
+    DeleteKnowledgeSourceUseCase,
     IngestKnowledgeSourceUseCase,
     ListKnowledgeBasesUseCase,
     ListKnowledgeSourcesUseCase,
@@ -60,9 +66,10 @@ export class KnowledgeModule extends defineModule({
   resolvers: [
     CreateKnowledgeBaseResolver,
     DeleteKnowledgeBaseResolver,
+    DeleteKnowledgeSourceResolver,
     KnowledgeBasesResolver,
     KnowledgeSourcesResolver,
     KnowledgeUploadResolver,
   ],
-  processors: [IngestKnowledgeSourceProcessor],
+  processors: [CleanUpKnowledgeSourceFilesProcessor, IngestKnowledgeSourceProcessor],
 }) {}

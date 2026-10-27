@@ -101,7 +101,19 @@
       "errorDetail": "Indexing failed"
     },
     "chunks_one": "{{count}} chunk",
-    "chunks_other": "{{count}} chunks"
+    "chunks_other": "{{count}} chunks",
+    "menu": {
+      "label": "Source actions",
+      "trigger": "Actions for “{{name}}”",
+      "delete": "Delete source",
+      "deleteBusy": "Wait for indexing to finish"
+    },
+    "delete": {
+      "title": "Delete “{{name}}”?",
+      "description": "This removes the source and its indexed chunks. This cannot be undone.",
+      "submit": "Delete source",
+      "success": "Source “{{name}}” deleted."
+    }
   },
   "delete": {
     "action": "Delete",
@@ -126,5 +138,7 @@
   "dialog": {
     "close": "Close",
     "cancel": "Cancel"
-  }
+  },
+  "breadcrumb": "Breadcrumb",
+  "breadcrumbMore": "More"
 }

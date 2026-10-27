@@ -31,3 +31,7 @@ export interface KnowledgeSourceView {
 export interface ListKnowledgeSourcesInput {
   readonly knowledgeBaseId: string;
 }
+
+export interface DeleteKnowledgeSourceInput {
+  readonly id: string;
+}

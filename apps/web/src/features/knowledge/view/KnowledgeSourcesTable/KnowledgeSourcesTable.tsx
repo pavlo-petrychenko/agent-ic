@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
+import { KnowledgeSourceMenuAction } from '@/features/knowledge/constants/knowledgeSource.constants';
 import type { KnowledgeSourceRowView } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import { STATUS_TONES } from '@/features/knowledge/view/KnowledgeSourcesTable/KnowledgeSourcesTable.constants';
 import type { KnowledgeSourcesTableProps } from '@/features/knowledge/view/KnowledgeSourcesTable/KnowledgeSourcesTable.typedefs';
 import { Button } from '@/shared/ui/actions/Button';
 import { Table, TablePadding, TableStatus } from '@/shared/ui/data/Table';
 import type { TableColumn } from '@/shared/ui/data/Table';
+import { TableRowMenu } from '@/shared/ui/data/Table/TableRowMenu';
 import { TableCell, TableCellTone } from '@/shared/ui/data/TableCell';
 import {
   TableCellLead,
@@ -14,7 +16,7 @@ import {
 } from '@/shared/ui/data/TableCellLead';
 import { Badge } from '@/shared/ui/display/Badge';
 import { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
-import { IconName } from '@/shared/ui/foundations/Icon';
+import { Icon, IconName } from '@/shared/ui/foundations/Icon';
 import styles from '@/features/knowledge/view/KnowledgeSourcesTable/KnowledgeSourcesTable.module.scss';
 
 export function KnowledgeSourcesTable({
@@ -22,6 +24,7 @@ export function KnowledgeSourcesTable({
   loading,
   error,
   onAddSource,
+  onDeleteSource,
 }: KnowledgeSourcesTableProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
 
@@ -63,15 +66,39 @@ export function KnowledgeSourcesTable({
       width: 'minmax(0, 1fr)',
       render: (row) => (
         <TableCell>
-          <span className={styles.stacked}>
-            <Badge tone={STATUS_TONES[row.status]} dot>
-              {row.statusLabel}
-            </Badge>
-            {row.statusDetail === null ? null : (
-              <span className={styles.meta} title={row.statusDetail}>
-                {row.statusDetail}
-              </span>
+          <span className={styles.statusRow}>
+            {onDeleteSource === null ? null : (
+              <TableRowMenu
+                label={t('sources.menu.trigger', { name: row.title })}
+                menuLabel={t('sources.menu.label')}
+                items={[
+                  {
+                    id: KnowledgeSourceMenuAction.Delete,
+                    label: t('sources.menu.delete'),
+                    leading: <Icon name={IconName.X} size={14} />,
+                    danger: true,
+                    disabled: row.isActive,
+                    hint: row.isActive ? t('sources.menu.deleteBusy') : null,
+                  },
+                ]}
+                disabled={false}
+                onSelect={(itemId) => {
+                  if (itemId === KnowledgeSourceMenuAction.Delete) {
+                    onDeleteSource(row);
+                  }
+                }}
+              />
             )}
+            <span className={styles.stacked}>
+              <Badge tone={STATUS_TONES[row.status]} dot>
+                {row.statusLabel}
+              </Badge>
+              {row.statusDetail === null ? null : (
+                <span className={styles.meta} title={row.statusDetail}>
+                  {row.statusDetail}
+                </span>
+              )}
+            </span>
           </span>
         </TableCell>
       ),

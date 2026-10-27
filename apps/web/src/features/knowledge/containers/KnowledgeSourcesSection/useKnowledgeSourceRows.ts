@@ -7,6 +7,7 @@ import {
 } from '@/features/knowledge/constants/knowledgeSource.constants';
 import {
   formatKnowledgeSourceDate,
+  isKnowledgeSourceActive,
   isKnowledgeSourceErrorReason,
 } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
 import type {
@@ -71,6 +72,7 @@ export function useKnowledgeSourceRows(
         date: formatKnowledgeSourceDate(source.createdAt, i18n.language),
       }),
       status: source.status,
+      isActive: isKnowledgeSourceActive(source.status),
       statusLabel: statusLabel(source.status),
       statusDetail: statusDetail(source),
     }));

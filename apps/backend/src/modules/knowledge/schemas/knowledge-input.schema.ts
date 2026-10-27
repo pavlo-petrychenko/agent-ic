@@ -31,6 +31,10 @@ export const deleteKnowledgeBaseInputSchema = z.object({
   [KnowledgeField.Id]: recordIdSchema,
 });
 
+export const deleteKnowledgeSourceInputSchema = z.object({
+  [KnowledgeField.Id]: recordIdSchema,
+});
+
 export const createUploadInputSchema = z.object({
   [KnowledgeField.KnowledgeBaseId]: recordIdSchema,
   [KnowledgeField.FileName]: z.string().trim().min(1).max(KNOWLEDGE_UPLOAD_FILE_NAME_MAX_LENGTH),

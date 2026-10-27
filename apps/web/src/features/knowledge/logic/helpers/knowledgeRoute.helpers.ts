@@ -1,2 +1,4 @@
+export const knowledgePath = (workspaceId: string): string => `/w/${workspaceId}/knowledge`;
+
 export const knowledgeBasePath = (workspaceId: string, knowledgeBaseId: string): string =>
-  `/w/${workspaceId}/knowledge?kb=${encodeURIComponent(knowledgeBaseId)}`;
+  `${knowledgePath(workspaceId)}?kb=${encodeURIComponent(knowledgeBaseId)}`;

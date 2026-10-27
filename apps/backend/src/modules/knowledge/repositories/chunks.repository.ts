@@ -57,6 +57,14 @@ export class ChunksRepository {
     return deleted.length > 0;
   }
 
+  async deleteByDocument(workspaceId: string, documentId: string): Promise<number> {
+    const deleted = await this.txHost.tx
+      .delete(chunks)
+      .where(and(eq(chunks.workspaceId, workspaceId), eq(chunks.documentId, documentId)))
+      .returning({ id: chunks.id });
+    return deleted.length;
+  }
+
   async deleteByKnowledgeBase(workspaceId: string, knowledgeBaseId: string): Promise<number> {
     const deleted = await this.txHost.tx
       .delete(chunks)

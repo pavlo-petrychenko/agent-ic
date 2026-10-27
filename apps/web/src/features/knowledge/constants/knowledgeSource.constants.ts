@@ -22,3 +22,7 @@ export const KNOWLEDGE_SOURCE_DATE_FORMAT: Intl.DateTimeFormatOptions = {
   month: 'short',
   day: 'numeric',
 };
+
+export enum KnowledgeSourceMenuAction {
+  Delete = 'delete',
+}
