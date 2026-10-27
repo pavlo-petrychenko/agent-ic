@@ -1,3 +1,4 @@
+import { CleanUpWorkspaceListener } from '@/modules/knowledge/listeners/clean-up-workspace.listener';
 import { CleanUpKnowledgeSourceFilesProcessor } from '@/modules/knowledge/processors/clean-up-knowledge-source-files.processor';
 import { IngestKnowledgeSourceProcessor } from '@/modules/knowledge/processors/ingest-knowledge-source.processor';
 import { ChunkTermsRepository } from '@/modules/knowledge/repositories/chunk-terms.repository';
@@ -25,6 +26,7 @@ import { KnowledgeEmbeddingService } from '@/modules/knowledge/services/knowledg
 import { KnowledgeSourceViewsService } from '@/modules/knowledge/services/knowledge-source-views.service';
 import { KnowledgeUploadTargetsService } from '@/modules/knowledge/services/knowledge-upload-targets.service';
 import { CleanUpKnowledgeSourceFilesUseCase } from '@/modules/knowledge/use-cases/clean-up-knowledge-source-files.use-case';
+import { CleanUpKnowledgeWorkspaceFilesUseCase } from '@/modules/knowledge/use-cases/clean-up-knowledge-workspace-files.use-case';
 import { ConfirmUploadUseCase } from '@/modules/knowledge/use-cases/confirm-upload.use-case';
 import { CreateKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/create-knowledge-base.use-case';
 import { CreateUploadUseCase } from '@/modules/knowledge/use-cases/create-upload.use-case';
@@ -56,6 +58,7 @@ export class KnowledgeModule extends defineModule({
     KnowledgeSourceViewsService,
     KnowledgeUploadTargetsService,
     CleanUpKnowledgeSourceFilesUseCase,
+    CleanUpKnowledgeWorkspaceFilesUseCase,
     ConfirmUploadUseCase,
     CreateKnowledgeBaseUseCase,
     CreateUploadUseCase,
@@ -76,4 +79,5 @@ export class KnowledgeModule extends defineModule({
     RetryKnowledgeSourceResolver,
   ],
   processors: [CleanUpKnowledgeSourceFilesProcessor, IngestKnowledgeSourceProcessor],
+  listeners: [CleanUpWorkspaceListener],
 }) {}

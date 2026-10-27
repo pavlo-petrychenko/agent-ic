@@ -7,6 +7,15 @@ import { ConversationMode } from '@/modules/conversations/constants/conversation
 import { conversations } from '@/modules/conversations/db/conversations.table';
 import { messages } from '@/modules/conversations/db/messages.table';
 import { users } from '@/modules/identity/db/users.table';
+import { chunkTerms } from '@/modules/knowledge/db/chunk-terms.table';
+import { chunks } from '@/modules/knowledge/db/chunks.table';
+import { connections } from '@/modules/knowledge/db/connections.table';
+import { documents } from '@/modules/knowledge/db/documents.table';
+import { embeddingCache } from '@/modules/knowledge/db/embedding-cache.table';
+import { knowledgeBases } from '@/modules/knowledge/db/knowledge-bases.table';
+import { sections } from '@/modules/knowledge/db/sections.table';
+import { sources } from '@/modules/knowledge/db/sources.table';
+import { syncRuns } from '@/modules/knowledge/db/sync-runs.table';
 import { promptFolders } from '@/modules/prompts/db/prompt-folders.table';
 import { promptVersions } from '@/modules/prompts/db/prompt-versions.table';
 import { prompts } from '@/modules/prompts/db/prompts.table';
@@ -25,6 +34,17 @@ import { IdService } from '@/platform/ids/services/id.service';
 import { TEST_PUBLISHED_NUMBER } from '@test/support/constants/runs-testing.constants';
 import { WORKSPACE_TABLES } from '@test/support/constants/workspace-testing.constants';
 import { newVersion } from '@test/support/fixtures/agents.fixture';
+import {
+  newChunk,
+  newChunkTerm,
+  newConnection,
+  newDocument,
+  newEmbeddingCacheEntry,
+  newKnowledgeBase,
+  newSection,
+  newSource,
+  newSyncRun,
+} from '@test/support/fixtures/knowledge.fixture';
 import { newFolder, newPrompt, newPromptVersion } from '@test/support/fixtures/prompts.fixture';
 import { newRunStep } from '@test/support/fixtures/runs.fixture';
 import { ensureAgentRow, ensureRunParents } from '@test/support/helpers/parent-rows.helpers';
@@ -86,6 +106,46 @@ export const seedWorkspaceContent = async (
   await db.insert(promptVersions).values({
     ...newPromptVersion(ids.generate(), workspaceId, promptId, { authorId: ownerId }),
     createdAt: now,
+  });
+  const connectionId = ids.generate();
+  const knowledgeBaseId = ids.generate();
+  const sourceId = ids.generate();
+  const documentId = ids.generate();
+  const sectionId = ids.generate();
+  const chunkId = ids.generate();
+  await db.insert(connections).values({
+    ...newConnection(connectionId, workspaceId),
+    ...rowTimestamps(now),
+  });
+  await db.insert(knowledgeBases).values({
+    ...newKnowledgeBase(knowledgeBaseId, workspaceId),
+    ...rowTimestamps(now),
+  });
+  await db.insert(sources).values({
+    ...newSource(sourceId, workspaceId, knowledgeBaseId),
+    ...rowTimestamps(now),
+  });
+  await db.insert(documents).values({
+    ...newDocument(documentId, workspaceId, knowledgeBaseId, sourceId),
+    ...rowTimestamps(now),
+  });
+  await db.insert(sections).values({
+    ...newSection(sectionId, workspaceId, knowledgeBaseId, documentId),
+    createdAt: now,
+  });
+  await db.insert(chunks).values({
+    ...newChunk(chunkId, workspaceId, knowledgeBaseId, documentId, sectionId),
+    createdAt: now,
+  });
+  await db.insert(chunkTerms).values(newChunkTerm(workspaceId, knowledgeBaseId, chunkId));
+  await db.insert(syncRuns).values({
+    ...newSyncRun(ids.generate(), workspaceId, sourceId),
+    createdAt: now,
+  });
+  await db.insert(embeddingCache).values({
+    ...newEmbeddingCacheEntry(workspaceId),
+    createdAt: now,
+    lastUsedAt: now,
   });
   await db.update(users).set({ lastWorkspaceId: workspaceId }).where(eq(users.id, ownerId));
 };

@@ -24,6 +24,25 @@ describe('FakeFileStorage', () => {
     await expect(storage.get(key)).rejects.toThrow(STORAGE_OBJECT_MISSING_MESSAGE);
   });
 
+  it('deletes every object under a prefix and keeps the others', async () => {
+    const storage = new FakeFileStorage();
+    const prefix = 'workspaces/workspace-id/knowledge/';
+    const keptKey = 'workspaces/other-workspace/knowledge/original.txt';
+    await storage.put(`${prefix}uploads/document/original.txt`, Buffer.from('one'), 'text/plain');
+    await storage.put(
+      `${prefix}documents/document/content-1.md`,
+      Buffer.from('two'),
+      'text/markdown',
+    );
+    await storage.put(keptKey, Buffer.from('three'), 'text/plain');
+
+    await storage.deletePrefix(prefix);
+
+    await expect(storage.head(`${prefix}uploads/document/original.txt`)).resolves.toBeNull();
+    await expect(storage.head(`${prefix}documents/document/content-1.md`)).resolves.toBeNull();
+    await expect(storage.head(keptKey)).resolves.not.toBeNull();
+  });
+
   it('copies an object without removing the source', async () => {
     const storage = new FakeFileStorage();
     const source = 'workspaces/workspace-id/knowledge/uploads/document/original.txt';

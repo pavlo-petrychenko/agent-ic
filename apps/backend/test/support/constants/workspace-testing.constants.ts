@@ -7,6 +7,15 @@ import { memberships } from '@/modules/identity/db/memberships.table';
 import { rolePermissions } from '@/modules/identity/db/role-permissions.table';
 import { roles } from '@/modules/identity/db/roles.table';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
+import { chunkTerms } from '@/modules/knowledge/db/chunk-terms.table';
+import { chunks } from '@/modules/knowledge/db/chunks.table';
+import { connections } from '@/modules/knowledge/db/connections.table';
+import { documents } from '@/modules/knowledge/db/documents.table';
+import { embeddingCache } from '@/modules/knowledge/db/embedding-cache.table';
+import { knowledgeBases } from '@/modules/knowledge/db/knowledge-bases.table';
+import { sections } from '@/modules/knowledge/db/sections.table';
+import { sources } from '@/modules/knowledge/db/sources.table';
+import { syncRuns } from '@/modules/knowledge/db/sync-runs.table';
 import { promptFolders } from '@/modules/prompts/db/prompt-folders.table';
 import { promptVersions } from '@/modules/prompts/db/prompt-versions.table';
 import { prompts } from '@/modules/prompts/db/prompts.table';
@@ -38,4 +47,13 @@ export const WORKSPACE_TABLES: readonly WorkspaceTable[] = [
   promptFolders,
   prompts,
   promptVersions,
+  knowledgeBases,
+  connections,
+  sources,
+  documents,
+  sections,
+  chunks,
+  chunkTerms,
+  syncRuns,
+  embeddingCache,
 ];

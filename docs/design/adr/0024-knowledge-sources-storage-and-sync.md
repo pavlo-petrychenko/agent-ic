@@ -79,7 +79,7 @@ Three constraints shape the rest:
 - The flow package gains `knowledgeBaseReferences` and `MissingKnowledgeBase`; a `KnowledgeFlowReferenceChecker` validates references on publish and in the publish preview.
 - Deletes are soft (`deleted_at`) and a durable cleanup job removes S3 objects and then hard-deletes rows.
 - Disconnecting a Google account is blocked while sources use it.
-- The workspace deletion event cleans up knowledge files, like prompts.
+- The workspace deletion event cleans up the workspace's stored knowledge files through a durable cleanup job.
 
 ## Consequences
 

@@ -46,7 +46,7 @@ describe('DeleteWorkspaceUseCase', () => {
     expect(await readMemberships(testbed, workspace.workspaceId)).toHaveLength(0);
   });
 
-  it('removes every row of the workspace at once, with no cleanup job', async () => {
+  it('removes every row of the workspace at once through the cascade', async () => {
     const workspace = await createOwnedWorkspace(testbed);
     await addMember(testbed, workspace);
     await seedWorkspaceContent(testbed.module, workspace);

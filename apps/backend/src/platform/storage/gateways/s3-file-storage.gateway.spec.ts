@@ -15,6 +15,11 @@ const BODY = Buffer.from('hello');
 const PUBLIC_ORIGIN = 'https://public.storage.test';
 const MISSING_KEY = 'workspaces/workspace-id/knowledge/missing.txt';
 const COPY_TARGET_KEY = 'workspaces/workspace-id/knowledge/documents/original.txt';
+const PREFIX = 'workspaces/workspace-id/knowledge/';
+const PREFIX_KEYS = [
+  'workspaces/workspace-id/knowledge/uploads/document/original.txt',
+  'workspaces/workspace-id/knowledge/documents/document/content-1.md',
+];
 const EXPIRES_IN_SECONDS = 900;
 
 interface RecordedRequest {
@@ -24,7 +29,26 @@ interface RecordedRequest {
   readonly body: Buffer;
 }
 
-const startServer = async (requests: RecordedRequest[]): Promise<Server> => {
+const listObjectsResponse = (prefix: string, keys: readonly string[]): string =>
+  [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">',
+    '<Name>agent-ic-test</Name>',
+    `<Prefix>${prefix}</Prefix>`,
+    `<KeyCount>${keys.length}</KeyCount>`,
+    '<MaxKeys>1000</MaxKeys>',
+    '<IsTruncated>false</IsTruncated>',
+    ...keys.map(
+      (key) =>
+        `<Contents><Key>${key}</Key><ETag>&quot;etag-1&quot;</ETag><Size>${BODY.length}</Size><LastModified>2026-05-01T09:00:00.000Z</LastModified><StorageClass>STANDARD</StorageClass></Contents>`,
+    ),
+    '</ListBucketResult>',
+  ].join('');
+
+const startServer = async (
+  requests: RecordedRequest[],
+  prefixObjects: Set<string>,
+): Promise<Server> => {
   const server = createServer((request, response) => {
     void (async () => {
       const chunks: Buffer[] = [];
@@ -47,6 +71,24 @@ const startServer = async (requests: RecordedRequest[]): Promise<Server> => {
       if (url.includes('unavailable')) {
         response.writeHead(503);
         response.end();
+        return;
+      }
+      if (request.method === 'GET' && url.includes('list-type=2')) {
+        const prefix = new URL(url, 'http://storage.test').searchParams.get('prefix') ?? '';
+        const keys = [...prefixObjects].filter((key) => key.startsWith(prefix));
+        response.writeHead(200, { 'Content-Type': 'application/xml' });
+        response.end(listObjectsResponse(prefix, keys));
+        return;
+      }
+      if (request.method === 'POST' && url.includes('delete')) {
+        const body = Buffer.concat(chunks).toString('utf8');
+        for (const match of body.matchAll(/<Key>([^<]+)<\/Key>/g)) {
+          prefixObjects.delete(match[1] ?? '');
+        }
+        response.writeHead(200, { 'Content-Type': 'application/xml' });
+        response.end(
+          '<DeleteResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"></DeleteResult>',
+        );
         return;
       }
       if (request.method === 'PUT' && request.headers['x-amz-copy-source'] !== undefined) {
@@ -109,11 +151,12 @@ const pathOf = (url: string): string => new URL(url, 'http://storage.test').path
 
 describe('S3FileStorageGateway', () => {
   const requests: RecordedRequest[] = [];
+  const prefixObjects = new Set<string>();
   let server: Server;
   let storage: S3FileStorageGateway;
 
   beforeAll(async () => {
-    server = await startServer(requests);
+    server = await startServer(requests, prefixObjects);
     const config = loadAppConfig(
       { role: Role.Api, queues: [] },
       createTestEnv({
@@ -132,6 +175,10 @@ describe('S3FileStorageGateway', () => {
 
   beforeEach(() => {
     requests.length = 0;
+    prefixObjects.clear();
+    for (const key of PREFIX_KEYS) {
+      prefixObjects.add(key);
+    }
   });
 
   it('puts an object with its content type', async () => {
@@ -172,6 +219,21 @@ describe('S3FileStorageGateway', () => {
 
     expect(requests[0]?.method).toBe('DELETE');
     expect(pathOf(requests[0]?.url ?? '')).toBe(`/agent-ic-test/${KEY}`);
+  });
+
+  it('deletes every object under a prefix', async () => {
+    await storage.deletePrefix(PREFIX);
+
+    expect(prefixObjects.size).toBe(0);
+    const listRequest = requests.find(
+      (request) => request.method === 'GET' && request.url.includes('list-type=2'),
+    );
+    expect(new URL(listRequest?.url ?? '', 'http://storage.test').searchParams.get('prefix')).toBe(
+      PREFIX,
+    );
+    const deleteRequest = requests.find((request) => request.method === 'POST');
+    expect(deleteRequest?.body.toString()).toContain(PREFIX_KEYS[0]);
+    expect(deleteRequest?.body.toString()).toContain(PREFIX_KEYS[1]);
   });
 
   it('maps a rejected S3 call to a non-retryable upstream error', async () => {

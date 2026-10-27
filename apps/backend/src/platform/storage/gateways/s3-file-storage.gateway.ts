@@ -2,8 +2,10 @@ import { Readable } from 'node:stream';
 import {
   CopyObjectCommand,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
   HeadObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -12,6 +14,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@/platform/config/services/config.service';
 import { UpstreamError } from '@/platform/errors/errors/upstream.error';
 import {
+  S3_DELETE_OBJECTS_BATCH_SIZE,
+  STORAGE_PREFIX_DELETE_FAILED_MESSAGE,
   STORAGE_UNREADABLE_BODY_MESSAGE,
   STORAGE_UPSTREAM,
 } from '@/platform/storage/constants/storage.constants';
@@ -92,6 +96,35 @@ export class S3FileStorageGateway extends FileStorage {
     await this.guard(() =>
       this.internal.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key })),
     );
+  }
+
+  async deletePrefix(prefix: string): Promise<void> {
+    await this.guard(async () => {
+      for (;;) {
+        const listed = await this.internal.send(
+          new ListObjectsV2Command({
+            Bucket: this.bucket,
+            Prefix: prefix,
+            MaxKeys: S3_DELETE_OBJECTS_BATCH_SIZE,
+          }),
+        );
+        const objects = (listed.Contents ?? []).flatMap((object) =>
+          object.Key === undefined ? [] : [{ Key: object.Key }],
+        );
+        if (objects.length === 0) {
+          return;
+        }
+        const deleted = await this.internal.send(
+          new DeleteObjectsCommand({
+            Bucket: this.bucket,
+            Delete: { Objects: objects, Quiet: true },
+          }),
+        );
+        if ((deleted.Errors?.length ?? 0) > 0) {
+          throw new Error(STORAGE_PREFIX_DELETE_FAILED_MESSAGE);
+        }
+      }
+    });
   }
 
   async copy(sourceKey: string, targetKey: string): Promise<void> {
