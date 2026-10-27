@@ -1,8 +1,10 @@
 import { useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChannelKind } from '@/features/channels/constants/channel.constants';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
 import { CHANNELS_TELEGRAM_NEW_PATH } from '@/features/channels/constants/route.constants';
+import { ApiChannelCreateDialogs } from '@/features/channels/containers/ApiChannelCreateDialogs';
 import type { ChannelsPageProps } from '@/features/channels/containers/ChannelsPage/ChannelsPage.typedefs';
 import type { ChannelOption } from '@/features/channels/view/ChannelOptions';
 import { ChannelOptions } from '@/features/channels/view/ChannelOptions';
@@ -14,7 +16,7 @@ import { PageHeader } from '@/shared/ui/layout/PageHeader';
 export function ChannelsPage({ workspaceId }: ChannelsPageProps) {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
   const navigate = useNavigate();
-  const openCreate = () => undefined;
+  const [creatingApi, setCreatingApi] = useState(false);
 
   const options: readonly ChannelOption[] = [
     {
@@ -35,7 +37,7 @@ export function ChannelsPage({ workspaceId }: ChannelsPageProps) {
       description: t('options.api.description'),
       actionLabel: t('options.api.action'),
       actionVariant: ButtonVariant.Secondary,
-      onAction: openCreate,
+      onAction: () => setCreatingApi(true),
     },
   ];
 
@@ -45,6 +47,7 @@ export function ChannelsPage({ workspaceId }: ChannelsPageProps) {
       <div className="px-7">
         <ChannelOptions options={options} />
       </div>
+      {creatingApi && <ApiChannelCreateDialogs onClose={() => setCreatingApi(false)} />}
     </div>
   );
 }

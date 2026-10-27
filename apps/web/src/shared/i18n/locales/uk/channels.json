@@ -14,6 +14,9 @@
     "title": "Канали",
     "subtitle": "Тут клієнти спілкуються з вашими асистентами"
   },
+  "dialog": {
+    "close": "Закрити"
+  },
   "options": {
     "telegram": {
       "title": "Підключити Telegram-бота",
@@ -24,6 +27,35 @@
       "title": "Створити API-канал",
       "description": "Надсилайте повідомлення та події зі свого сайту, застосунку чи CRM за допомогою секретного ключа.",
       "action": "Створити API-канал"
+    }
+  },
+  "api": {
+    "create": {
+      "title": "Новий API-канал",
+      "description": "Ви отримаєте endpoint і секретний ключ",
+      "name": "Назва",
+      "namePlaceholder": "напр. Booking widget",
+      "agent": "Хто відповідає",
+      "replyLabel": "Відповіді на повідомлення",
+      "replyResponse": "У відповіді",
+      "replyWebhook": "На мій вебхук",
+      "webhook": "Вебхук для подальших повідомлень",
+      "webhookPlaceholder": "https://example.com/hooks/channel",
+      "webhookHint": "Відповіді операторів, follow-up та події. Можна додати пізніше.",
+      "cancel": "Скасувати",
+      "submit": "Створити канал",
+      "defaultName": "Booking widget"
+    },
+    "secret": {
+      "title": "Ваш секретний ключ",
+      "description": "{{name}} · API-канал",
+      "copyWarning": "Скопіюйте зараз — ми показуємо ключ лише один раз. Якщо загубите, оновіть його.",
+      "keyLabel": "Секретний ключ",
+      "copy": "Копіювати",
+      "endpointLabel": "Endpoint",
+      "rotationHint": "Після оновлення попередній ключ працює ще 24 год.",
+      "docs": "Документація API",
+      "done": "Ключ скопійовано"
     }
   },
   "telegram": {

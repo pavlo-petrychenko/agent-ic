@@ -1,4 +1,5 @@
 import { useNavigate, useRouterState } from '@tanstack/react-router';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChannelKind } from '@/features/channels/constants/channel.constants';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
@@ -11,6 +12,7 @@ import {
   API_CHANNEL_MOCKS,
   TELEGRAM_BOTS,
 } from '@/features/channels/constants/telegramBot.constants';
+import { ApiChannelCreateDialogs } from '@/features/channels/containers/ApiChannelCreateDialogs';
 import type { ChannelsShellProps } from '@/features/channels/containers/ChannelsShell/ChannelsShell.typedefs';
 import {
   telegramBotHref,
@@ -27,10 +29,11 @@ export function ChannelsShell({ workspaceId, children }: ChannelsShellProps) {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const [apiCreateOpen, setApiCreateOpen] = useState(false);
   const showDemoChannels =
     pathname.startsWith(telegramBotPrefix(workspaceId)) &&
     pathname !== telegramNewHref(workspaceId);
-  const openCreate = () => undefined;
+  const openApiCreate = () => setApiCreateOpen(true);
 
   const telegramItems: readonly ChannelsNavItem[] = showDemoChannels
     ? TELEGRAM_BOTS.map((bot) => ({
@@ -76,7 +79,7 @@ export function ChannelsShell({ workspaceId, children }: ChannelsShellProps) {
     {
       id: ChannelKind.Api,
       label: t('nav.groups.api'),
-      action: { label: t('options.api.title'), onClick: openCreate },
+      action: { label: t('options.api.title'), onClick: openApiCreate },
       items: apiItems,
     },
   ];
@@ -90,6 +93,7 @@ export function ChannelsShell({ workspaceId, children }: ChannelsShellProps) {
         emptyLabel={showDemoChannels ? null : t('nav.empty')}
       />
       <div className="flex min-w-0 flex-1 flex-col overflow-auto">{children}</div>
+      {apiCreateOpen && <ApiChannelCreateDialogs onClose={() => setApiCreateOpen(false)} />}
     </div>
   );
 }
