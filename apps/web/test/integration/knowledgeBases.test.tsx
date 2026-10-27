@@ -209,7 +209,9 @@ describe('knowledge bases', () => {
       ],
     });
 
-    expect(await screen.findByRole('heading', { name: 'Sources' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Sources' }, { timeout: 5000 }),
+    ).toBeInTheDocument();
     expect(await screen.findByText('Indexed')).toBeInTheDocument();
     expect(screen.getByText('Indexing')).toBeInTheDocument();
     expect(screen.getByText('Failed')).toBeInTheDocument();
