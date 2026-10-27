@@ -1,5 +1,11 @@
+extend type Query {
+  channel(id: ID!): Channel
+  channels: [Channel!]!
+}
+
 extend type Mutation {
   connectTelegram(input: ConnectTelegramInput!): Channel!
+  disconnectTelegram(id: ID!): Channel!
 }
 
 enum ChannelStatus {

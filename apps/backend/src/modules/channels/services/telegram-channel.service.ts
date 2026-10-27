@@ -59,4 +59,8 @@ export class TelegramChannelService {
       allowedUpdates: TELEGRAM_ALLOWED_UPDATES,
     });
   }
+
+  async deleteWebhook(token: string): Promise<void> {
+    await this.telegram.deleteWebhook(token);
+  }
 }
