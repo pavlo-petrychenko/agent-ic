@@ -33,8 +33,8 @@ export interface TelegramChatResponse {
 }
 
 export interface TelegramUserResponse {
-  readonly id?: number;
-  readonly first_name?: string;
+  readonly id: number;
+  readonly first_name: string;
 }
 
 export interface TelegramMessageResponse {

@@ -147,11 +147,14 @@ const toTelegramUpdate = (update: TelegramUpdateResponse): TelegramUpdate => ({
   message: update.message === undefined ? null : toTelegramMessage(update.message),
 });
 
-const toTelegramMessage = (message: TelegramMessageResponse): TelegramMessage => ({
-  messageId: String(message.message_id),
-  sentAt: new Date(message.date * MILLISECONDS_PER_SECOND),
-  chatId: String(message.chat.id),
-  senderId: message.from?.id === undefined ? null : String(message.from.id),
-  senderName: message.from?.first_name ?? null,
-  text: message.text ?? null,
-});
+const toTelegramMessage = (message: TelegramMessageResponse): TelegramMessage => {
+  const sender = message.from;
+  return {
+    messageId: String(message.message_id),
+    sentAt: new Date(message.date * MILLISECONDS_PER_SECOND),
+    chatId: String(message.chat.id),
+    senderId: sender === undefined ? null : String(sender.id),
+    senderName: sender?.first_name ?? null,
+    text: message.text ?? null,
+  };
+};
