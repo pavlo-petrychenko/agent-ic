@@ -1,7 +1,6 @@
-import type { TelegramBotMock } from '@/features/channels/typedefs/telegramBot.typedefs';
+import type { TelegramChannelView } from '@/features/channels/typedefs/telegram.typedefs';
 
 export interface TelegramBotConnectionProps {
-  readonly bot: TelegramBotMock;
-  readonly revoked: boolean;
+  readonly channel: TelegramChannelView;
   readonly onReplaceToken: () => void;
 }

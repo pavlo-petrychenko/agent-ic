@@ -1,51 +1,45 @@
-import { useState } from 'react';
-import {
-  API_CHANNEL_MOCKS,
-  DEFAULT_TELEGRAM_BOT,
-  TELEGRAM_BOT_AGENT_OPTIONS,
-  TELEGRAM_BOTS,
-} from '@/features/channels/constants/channelMocks.constants';
+import { useTranslation } from 'react-i18next';
+import { useAgents } from '@/features/agents';
+import { useChannel } from '@/features/channels/communication/hooks/useChannel';
+import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
+import { TelegramBotContent } from '@/features/channels/containers/TelegramBotPage/TelegramBotContent';
 import type { TelegramBotPageProps } from '@/features/channels/containers/TelegramBotPage/TelegramBotPage.typedefs';
-import { channelsHref } from '@/features/channels/logic/helpers/route.helpers';
-import { DisconnectTelegramBotDialog } from '@/features/channels/view/DisconnectTelegramBotDialog';
-import { TelegramBotDetails } from '@/features/channels/view/TelegramBotDetails';
+import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
+import { Skeleton } from '@/shared/ui/display/Skeleton';
+import { IconName } from '@/shared/ui/foundations/Icon';
+import type { SelectOption } from '@/shared/ui/inputs/Select';
 
 export function TelegramBotPage({ workspaceId, botId }: TelegramBotPageProps) {
-  const bot = TELEGRAM_BOTS.find((item) => item.id === botId) ?? DEFAULT_TELEGRAM_BOT;
-  const [agentId, setAgentId] = useState(bot.agentId);
-  const [typing, setTyping] = useState(bot.typingIndicator);
-  const [disconnectOpen, setDisconnectOpen] = useState(false);
-  const linkedApiChannel = API_CHANNEL_MOCKS.find((channel) => channel.agentName === bot.agentName);
-  const noop = () => undefined;
+  const { t } = useTranslation(CHANNELS_NAMESPACE);
+  const { agents } = useAgents();
+  const { channel, loading, failed, retry } = useChannel(botId, agents);
+
+  if (loading) {
+    return <Skeleton label={t('telegram.loading')} />;
+  }
+
+  if (failed || channel === null) {
+    return (
+      <EmptyState
+        icon={IconName.Alert}
+        tone={EmptyStateTone.Err}
+        title={t(failed ? 'telegram.loadError' : 'telegram.notFound')}
+        actions={
+          <Button variant={ButtonVariant.Secondary} onClick={retry}>
+            {t('telegram.retry')}
+          </Button>
+        }
+      />
+    );
+  }
+
+  const agentOptions: readonly SelectOption[] =
+    agents.length === 0
+      ? [{ value: '', label: t('telegram.form.agentPlaceholder'), disabled: true }]
+      : agents.map((agent) => ({ value: agent.id, label: agent.name }));
 
   return (
-    <>
-      <TelegramBotDetails
-        channelsLink={channelsHref(workspaceId)}
-        bot={bot}
-        agentOptions={TELEGRAM_BOT_AGENT_OPTIONS}
-        agentId={agentId}
-        typing={typing}
-        onAgentChange={setAgentId}
-        onTypingChange={setTyping}
-        onReplaceToken={noop}
-        onDisconnect={() => setDisconnectOpen(true)}
-        onSave={noop}
-      />
-      {disconnectOpen && (
-        <DisconnectTelegramBotDialog
-          username={bot.username}
-          agent={bot.agentName}
-          apiChannelName={linkedApiChannel?.name ?? null}
-          onOpenChange={(open) => {
-            if (!open) {
-              setDisconnectOpen(false);
-            }
-          }}
-          onCancel={() => setDisconnectOpen(false)}
-          onConfirm={() => setDisconnectOpen(false)}
-        />
-      )}
-    </>
+    <TelegramBotContent workspaceId={workspaceId} channel={channel} agentOptions={agentOptions} />
   );
 }

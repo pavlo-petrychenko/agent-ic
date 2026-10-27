@@ -26,6 +26,8 @@ type Channel {
   status: ChannelStatus!
   agentId: ID
   displayName: String!
+  firstName: String
+  tokenMasked: String
   showTyping: Boolean!
   createdAt: String!
   updatedAt: String!

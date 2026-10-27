@@ -1,5 +1,6 @@
 export interface TelegramChannelIdentity {
   readonly username: string;
+  readonly firstName: string;
 }
 
 export interface ApiChannelIdentity {

@@ -5,6 +5,10 @@ export const TELEGRAM_UPSTREAM = 'telegram-bot-api';
 export const TELEGRAM_DROP_PENDING_UPDATES = true;
 export const TELEGRAM_INVALID_RESPONSE_MESSAGE = 'Telegram returned an invalid response.';
 export const TELEGRAM_TOKEN_PATTERN = /^\d+:[A-Za-z0-9_-]{35}$/;
+export const TELEGRAM_TOKEN_SEPARATOR = ':';
+export const TELEGRAM_TOKEN_VISIBLE_BOT_ID_LENGTH = 4;
+export const TELEGRAM_TOKEN_VISIBLE_SECRET_LENGTH = 3;
+export const TELEGRAM_TOKEN_MASK_CHARACTER = '•';
 export const TELEGRAM_WEBHOOK_PATH = '/webhooks/telegram';
 
 export enum TelegramUpdateType {

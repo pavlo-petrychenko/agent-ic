@@ -27,7 +27,8 @@ export class HttpTelegramGateway extends TelegramGateway {
     const result = await this.call<TelegramMeResponse>(token, 'getMe', { method: 'GET' });
     return {
       id: String(result.id),
-      username: result.username ?? '',
+      username: result.username,
+      firstName: result.first_name,
     };
   }
 

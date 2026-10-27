@@ -1,0 +1,13 @@
+query Channel($id: ID!) {
+  channel(id: $id) {
+    id
+    kind
+    status
+    agentId
+    displayName
+    firstName
+    tokenMasked
+    showTyping
+    updatedAt
+  }
+}

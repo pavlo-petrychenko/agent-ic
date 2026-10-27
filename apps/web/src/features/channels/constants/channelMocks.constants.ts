@@ -1,17 +1,8 @@
 import type { ApiChannelMock } from '@/features/channels/typedefs/apiChannel.typedefs';
 import { ApiReplyMode } from '@/features/channels/typedefs/apiChannel.typedefs';
-import type {
-  TelegramBotMock,
-  TelegramBotStats,
-} from '@/features/channels/typedefs/telegramBot.typedefs';
-import { TelegramBotStatus } from '@/features/channels/typedefs/telegramBot.typedefs';
+import type { TelegramBotMock } from '@/features/channels/typedefs/telegram.typedefs';
+import { TelegramBotStatus } from '@/features/channels/typedefs/telegram.typedefs';
 import type { SelectOption } from '@/shared/ui/inputs/Select';
-
-export const EMPTY_TELEGRAM_STATS: TelegramBotStats = {
-  chats: '0',
-  messages: '0',
-  errors: '0',
-};
 
 export const TELEGRAM_BOT_AGENT_OPTIONS: readonly SelectOption[] = [
   { value: 'agent_salon', label: 'Salon assistant' },

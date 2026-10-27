@@ -3,6 +3,7 @@ import type { TelegramUpdateType } from '@/modules/channels/constants/telegram.c
 export interface TelegramBot {
   readonly id: string;
   readonly username: string;
+  readonly firstName: string;
 }
 
 export interface TelegramWebhookInfo {

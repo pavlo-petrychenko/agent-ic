@@ -7,6 +7,9 @@
       "api": "API"
     },
     "tokenRevoked": "токен відкликано",
+    "connecting": "підключення",
+    "disconnected": "від’єднано",
+    "noAgent": "без агента",
     "messagesAndEvents": "повідомлення та події",
     "empty": "Каналів ще немає"
   },
@@ -101,6 +104,10 @@
   "telegram": {
     "title": "Підключити Telegram-бота",
     "subtitle": "Ми налаштовуємо вебхук і отримуємо повідомлення за вас",
+    "loading": "Завантаження бота",
+    "loadError": "Не вдалося завантажити бота.",
+    "notFound": "Такого бота не знайдено.",
+    "retry": "Спробувати знову",
     "breadcrumb": "Навігаційний ланцюжок",
     "breadcrumbMore": "Ще",
     "breadcrumbChannels": "Канали",
@@ -110,6 +117,7 @@
       "tokenLabel": "Вставте токен від @BotFather",
       "tokenRequired": "Вставте токен від @BotFather.",
       "tokenError": "Telegram не прийняв цей токен. Він має вигляд 123456789:AA… — скопіюйте його ще раз.",
+      "agentRequired": "Виберіть агента, який відповідатиме від імені цього бота.",
       "agentLabel": "Хто відповідає",
       "agentPlaceholder": "Виберіть агента",
       "agentHint": "Агента можна змінити пізніше.",
@@ -130,6 +138,7 @@
     },
     "bot": {
       "subtitle": "Telegram-бот · відповідає {{agent}}",
+      "unknownAgent": "Без агента",
       "actions": {
         "disconnect": "Відключити",
         "save": "Зберегти"
@@ -146,11 +155,17 @@
       "connection": {
         "title": "З’єднання",
         "connected": "Підключено",
+        "pending": "Підключення",
         "revoked": "Токен відкликано",
+        "disconnected": "Від’єднано",
+        "disconnectedHint": "Цього бота від’єднано. Підключіть його знову, щоб отримувати нові повідомлення.",
         "tokenLabel": "Токен бота",
         "tokenHint": "Від @BotFather. Ми реєструємо вебхук і отримуємо повідомлення цього бота за вас.",
+        "storedSecurely": "Зберігається зашифровано",
         "replaceToken": "Замінити токен",
         "webhook": "Вебхук",
+        "registered": "Зареєстровано",
+        "notRegistered": "Не зареєстровано",
         "receiving": "Отримує",
         "notReceiving": "Не отримує",
         "lastUpdate": "Останнє оновлення",

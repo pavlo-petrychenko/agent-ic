@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
+import { TelegramChannelStatus } from '@/features/channels/typedefs/telegram.typedefs';
 import type { TelegramBotWhoAnswersProps } from '@/features/channels/view/TelegramBotDetails/TelegramBotWhoAnswers/TelegramBotWhoAnswers.typedefs';
 import { Card, CardGap, CardPad } from '@/shared/ui/display/Card';
 import { CardHeader } from '@/shared/ui/display/CardHeader';
@@ -8,16 +9,16 @@ import { Select } from '@/shared/ui/inputs/Select';
 import { Switch } from '@/shared/ui/inputs/Switch';
 
 export function TelegramBotWhoAnswers({
-  bot,
+  channel,
   agentOptions,
   agentId,
   typing,
-  revoked,
   onAgentChange,
   onTypingChange,
 }: TelegramBotWhoAnswersProps) {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
-  const version = bot.publishedVersion ?? 0;
+  const publishedVersion = channel.agentLiveVersionNumber;
+  const broken = channel.status === TelegramChannelStatus.Broken;
 
   return (
     <Card pad={CardPad.Lg} gap={CardGap.Lg}>
@@ -25,9 +26,9 @@ export function TelegramBotWhoAnswers({
       <Field
         label={t('telegram.bot.whoAnswers.agent')}
         hint={
-          bot.agentIsDraft
+          publishedVersion === null
             ? t('telegram.bot.whoAnswers.draftHint')
-            : t('telegram.bot.whoAnswers.publishedHint', { version })
+            : t('telegram.bot.whoAnswers.publishedHint', { version: publishedVersion })
         }
       >
         {(control) => (
@@ -39,7 +40,7 @@ export function TelegramBotWhoAnswers({
           />
         )}
       </Field>
-      {!revoked && (
+      {!broken && (
         <Switch
           label={t('telegram.bot.whoAnswers.typing')}
           checked={typing}

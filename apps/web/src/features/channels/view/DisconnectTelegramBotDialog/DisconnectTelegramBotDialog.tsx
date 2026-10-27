@@ -10,6 +10,8 @@ export function DisconnectTelegramBotDialog({
   username,
   agent,
   apiChannelName,
+  busy,
+  error,
   onOpenChange,
   onCancel,
   onConfirm,
@@ -28,12 +30,14 @@ export function DisconnectTelegramBotDialog({
       description={t('telegram.bot.disconnectDialog.description', { agent })}
       closeLabel={t('dialog.close')}
       size={DialogSize.Sm}
+      busy={busy}
+      error={error}
       footerRight={
         <>
-          <Button variant={ButtonVariant.Secondary} onClick={onCancel}>
+          <Button variant={ButtonVariant.Secondary} disabled={busy} onClick={onCancel}>
             {t('telegram.bot.disconnectDialog.cancel')}
           </Button>
-          <Button variant={ButtonVariant.Danger} onClick={onConfirm}>
+          <Button variant={ButtonVariant.Danger} loading={busy} onClick={onConfirm}>
             {t('telegram.bot.disconnectDialog.confirm')}
           </Button>
         </>

@@ -7,6 +7,9 @@
       "api": "API"
     },
     "tokenRevoked": "token revoked",
+    "connecting": "connecting",
+    "disconnected": "disconnected",
+    "noAgent": "no agent",
     "messagesAndEvents": "messages & events",
     "empty": "No channels yet"
   },
@@ -101,6 +104,10 @@
   "telegram": {
     "title": "Connect a Telegram bot",
     "subtitle": "We set the webhook and receive messages for you",
+    "loading": "Loading the bot",
+    "loadError": "The bot could not be loaded.",
+    "notFound": "That bot was not found.",
+    "retry": "Try again",
     "breadcrumb": "Breadcrumb",
     "breadcrumbMore": "More",
     "breadcrumbChannels": "Channels",
@@ -110,6 +117,7 @@
       "tokenLabel": "Paste the token from @BotFather",
       "tokenRequired": "Paste the token from @BotFather.",
       "tokenError": "Telegram didn’t accept this token. It looks like 123456789:AA… — copy it again.",
+      "agentRequired": "Choose the agent that answers this bot.",
       "agentLabel": "Who answers",
       "agentPlaceholder": "Choose an agent",
       "agentHint": "You can change the agent later.",
@@ -130,6 +138,7 @@
     },
     "bot": {
       "subtitle": "Telegram bot · answered by {{agent}}",
+      "unknownAgent": "No agent",
       "actions": {
         "disconnect": "Disconnect",
         "save": "Save"
@@ -146,11 +155,17 @@
       "connection": {
         "title": "Connection",
         "connected": "Connected",
+        "pending": "Connecting",
         "revoked": "Token revoked",
+        "disconnected": "Disconnected",
+        "disconnectedHint": "This bot is disconnected. Connect it again to receive new messages.",
         "tokenLabel": "Bot token",
         "tokenHint": "From @BotFather. We register the webhook and receive this bot’s messages for you.",
+        "storedSecurely": "Stored securely",
         "replaceToken": "Replace token",
         "webhook": "Webhook",
+        "registered": "Registered",
+        "notRegistered": "Not registered",
         "receiving": "Receiving",
         "notReceiving": "Not receiving",
         "lastUpdate": "Last update",
