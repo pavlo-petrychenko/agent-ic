@@ -8,6 +8,7 @@
     "sections": {
       "agents": "Agents",
       "prompts": "Prompts",
+      "channels": "Channels",
       "inbox": "Inbox",
       "testing": "Testing",
       "settings": "Settings",

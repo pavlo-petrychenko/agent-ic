@@ -8,6 +8,7 @@
     "sections": {
       "agents": "Агенти",
       "prompts": "Промпти",
+      "channels": "Канали",
       "inbox": "Вхідні",
       "testing": "Тестування",
       "settings": "Налаштування",
