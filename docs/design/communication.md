@@ -198,7 +198,7 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 6. **Outbound:** `worker-runs` delivers through `TelegramChannelAdapter`: it loads the channel and opens its token, enforces the per-bot and per-chat token buckets, sends `sendChatAction` when `showTyping` is on, then `sendMessage` to the conversation's chat id. The delivery use case marks the message `delivered` or `failed`.
 7. **Broken token later:** sends fail with 401, or Telegram stops delivering → status `broken` → email to owners and admins (not built yet).
 
-The webhook endpoint is not built yet: today only the polling transport delivers updates, and the webhook registration in step 1 waits for it.
+The webhook endpoint is `POST /webhooks/telegram/{workspacePublicId}/{channelPublicId}`: the gateway checks the `x-telegram-bot-api-secret-token` header against the channel's sealed webhook secret hash, then calls `handleTelegramUpdate`. Local development can keep using the polling transport; the two are mutually exclusive per bot (ADR 0008).
 
 ### L. Accounts and system emails
 - Sign-up, password reset, invites, usage at 80% / 100%: `api` → Postgres (token / state) ⇢ queue `notify` → `worker-runs` → email provider.
