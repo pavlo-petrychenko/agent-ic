@@ -12,6 +12,7 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { QueuesModule } from '@/platform/queues/queues.module';
 import { RedisModule } from '@/platform/redis/redis.module';
 import { FakeFileStorage } from '@/platform/storage/gateways/file-storage.fake';
 import { FileStorage } from '@/platform/storage/gateways/file-storage.gateway';
@@ -41,7 +42,13 @@ export const createKnowledgeTestbed = async (
   const storage = new FakeFileStorage();
   const module = await createPlatformTestingModule(
     TestRedisPrefix.Knowledge,
-    [KnowledgeModule.forRole(Role.Api), StorageModule, RedisModule, CacheModule],
+    [
+      KnowledgeModule.forRole(Role.Api),
+      StorageModule,
+      RedisModule,
+      CacheModule,
+      QueuesModule.forRole(Role.Api),
+    ],
     [{ token: ClockService, value: clock }, { token: FileStorage, value: storage }, ...overrides],
   );
   return {

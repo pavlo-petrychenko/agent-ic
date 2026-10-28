@@ -6,11 +6,15 @@ import {
   KNOWLEDGE_CHUNK_MAX_TOKENS,
   KNOWLEDGE_CHUNK_OVERLAP_TOKENS,
   KNOWLEDGE_CHUNK_TARGET_TOKENS,
+  KNOWLEDGE_SENTENCE_LOCALE,
   KNOWLEDGE_SMALL_DOCUMENT_MAX_TOKENS,
   KNOWLEDGE_TABLE_HEADER_LINE_COUNT,
   KNOWLEDGE_TABLE_MAX_TOKENS,
 } from '@/modules/knowledge/constants/knowledge-chunking.constants';
-import { textTokenCount } from '@/modules/knowledge/helpers/document-token.helpers';
+import {
+  splitTextToTokenPieces,
+  textTokenCount,
+} from '@/modules/knowledge/helpers/document-token.helpers';
 import type {
   ChunkBlock,
   ChunkBlockKind,
@@ -23,7 +27,9 @@ import type { DocumentSection } from '@/modules/knowledge/typedefs/document-sect
 
 const OUTER_BLANK_LINES_PATTERN = /^(?:[ \t]*\n)+|(?:[ \t]*\n)+$/g;
 const WORD_SEPARATOR_PATTERN = /\s+/;
-const SENTENCE_SEGMENTER = new Intl.Segmenter(undefined, { granularity: 'sentence' });
+const SENTENCE_SEGMENTER = new Intl.Segmenter(KNOWLEDGE_SENTENCE_LOCALE, {
+  granularity: 'sentence',
+});
 const GFM_EXTENSIONS = [gfm()];
 const GFM_MDAST_EXTENSIONS = [gfmFromMarkdown()];
 
@@ -38,6 +44,14 @@ const splitWords = (text: string): string[] => {
   const pieces: string[] = [];
   let current = '';
   for (const word of text.split(WORD_SEPARATOR_PATTERN).filter((part) => part.length > 0)) {
+    if (textTokenCount(word) > KNOWLEDGE_CHUNK_MAX_TOKENS) {
+      if (current.length > 0) {
+        pieces.push(current);
+        current = '';
+      }
+      pieces.push(...splitTextToTokenPieces(word, KNOWLEDGE_CHUNK_MAX_TOKENS));
+      continue;
+    }
     const candidate = current.length === 0 ? word : `${current} ${word}`;
     if (textTokenCount(candidate) > KNOWLEDGE_CHUNK_MAX_TOKENS && current.length > 0) {
       pieces.push(current);
@@ -159,7 +173,10 @@ const tablePieces = (table: string): string[] => {
       currentRows += 1;
     }
   }
-  return currentRows === 0 ? [content] : [...pieces, current];
+  const built = currentRows === 0 ? [content] : [...pieces, current];
+  return built.flatMap((piece) =>
+    textTokenCount(piece) <= KNOWLEDGE_CHUNK_MAX_TOKENS ? [piece] : splitOther(piece),
+  );
 };
 
 const overlapSuffix = (text: string): string => {
@@ -185,7 +202,7 @@ const buildSectionChunks = (markdown: string): SectionChunk[] => {
     if (normalized.trim().length === 0) {
       return;
     }
-    chunks.push({ content: normalized, prose });
+    chunks.push({ content: normalized, prose, tokenCount: textTokenCount(normalized) });
     lastProseContent = prose ? normalized : null;
   };
 
@@ -273,7 +290,7 @@ const toDocumentChunk = (
   sectionOrdinal: section.ordinal,
   ordinal,
   content: chunk.content,
-  tokenCount: textTokenCount(chunk.content),
+  tokenCount: chunk.tokenCount,
 });
 
 export const buildDocumentChunks = (sections: readonly DocumentSection[]): DocumentChunk[] => {
@@ -287,7 +304,11 @@ export const buildDocumentChunks = (sections: readonly DocumentSection[]): Docum
       return [
         toDocumentChunk(
           section,
-          { content: stripOuterBlankLines(section.content), prose: true },
+          {
+            content: stripOuterBlankLines(section.content),
+            prose: true,
+            tokenCount: textTokenCount(stripOuterBlankLines(section.content)),
+          },
           0,
         ),
       ];

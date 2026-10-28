@@ -6,15 +6,15 @@ import {
 } from '@/modules/knowledge/helpers/knowledge-storage.helpers';
 
 describe('knowledge storage keys', () => {
-  it('uses the document id and extension under the workspace', () => {
-    expect(knowledgeUploadStorageKey('ws', 'doc', 'Handbook.PDF')).toBe(
-      'workspaces/ws/knowledge/uploads/doc/original.pdf',
+  it('versions uploads, originals and canonical Markdown under the workspace', () => {
+    expect(knowledgeUploadStorageKey('ws', 'doc', 'upload-1', 'Handbook.PDF')).toBe(
+      'workspaces/ws/knowledge/uploads/doc/upload-1/original-upload-1.pdf',
     );
-    expect(knowledgeOriginalStorageKey('ws', 'doc', 'Handbook.PDF')).toBe(
-      'workspaces/ws/knowledge/documents/doc/original.pdf',
+    expect(knowledgeOriginalStorageKey('ws', 'doc', 'run-1', 'Handbook.PDF')).toBe(
+      'workspaces/ws/knowledge/documents/doc/original-run-1.pdf',
     );
-    expect(knowledgeContentStorageKey('ws', 'doc')).toBe(
-      'workspaces/ws/knowledge/documents/doc/content.md',
+    expect(knowledgeContentStorageKey('ws', 'doc', 3)).toBe(
+      'workspaces/ws/knowledge/documents/doc/content-3.md',
     );
   });
 });

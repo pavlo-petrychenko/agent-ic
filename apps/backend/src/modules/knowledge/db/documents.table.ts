@@ -4,6 +4,7 @@ import {
   foreignKey,
   index,
   integer,
+  jsonb,
   text,
   timestamp,
   unique,
@@ -19,6 +20,7 @@ import {
   knowledgeSummarySourceEnum,
 } from '@/modules/knowledge/db/knowledge.pg-schema';
 import { sources } from '@/modules/knowledge/db/sources.table';
+import type { KnowledgeDocumentWarning } from '@/modules/knowledge/typedefs/document-warning.typedefs';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,
@@ -43,8 +45,13 @@ export const documents = knowledgeSchema
       sourceUrl: text('source_url'),
       sizeBytes: bigint('size_bytes', { mode: 'number' }),
       originalStorageKey: text('original_storage_key'),
+      pendingOriginalStorageKey: text('pending_original_storage_key'),
       contentStorageKey: text('content_storage_key'),
       contentHash: text('content_hash'),
+      warnings: jsonb('warnings')
+        .$type<readonly KnowledgeDocumentWarning[]>()
+        .notNull()
+        .default(sql`'[]'::jsonb`),
       summary: text('summary'),
       summarySource: knowledgeSummarySourceEnum('summary_source'),
       summaryUpdatedAt: timestamp('summary_updated_at', { withTimezone: true }),

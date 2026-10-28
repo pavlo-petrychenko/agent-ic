@@ -87,6 +87,32 @@ describe('buildDocumentChunks', () => {
     expect(rows).toBe(200);
   });
 
+  it('splits a single word that is longer than the chunk limit', () => {
+    const content = 'abcdefghij'.repeat(500);
+    const sections = buildDocumentSections(content);
+
+    const chunks = buildDocumentChunks(sections);
+
+    expect(chunks.length).toBeGreaterThan(1);
+    for (const chunk of chunks) {
+      expect(chunk.tokenCount).toBeLessThanOrEqual(600);
+    }
+    expect(chunks.map(({ content: chunk }) => chunk).join('')).toBe(content);
+  });
+
+  it('splits a table row that alone exceeds the chunk limit', () => {
+    const hugeRow = `| Service | ${'x'.repeat(10_000)} |`;
+    const hugeTable = ['| Service | Price |', '| --- | --- |', hugeRow].join('\n');
+    const sections = buildDocumentSections(`# Catalog\n\n${hugeTable}\n`);
+
+    const chunks = buildDocumentChunks(sections);
+
+    expect(chunks.length).toBeGreaterThan(1);
+    for (const chunk of chunks) {
+      expect(chunk.tokenCount).toBeLessThanOrEqual(600);
+    }
+  });
+
   it('returns no chunks for an empty document', () => {
     expect(buildDocumentChunks(buildDocumentSections(''))).toEqual([]);
   });

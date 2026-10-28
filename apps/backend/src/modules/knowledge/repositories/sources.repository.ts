@@ -37,6 +37,15 @@ export class SourcesRepository {
     return source ?? null;
   }
 
+  async findByIdForUpdate(workspaceId: string, sourceId: string): Promise<Source | null> {
+    const [source] = await this.txHost.tx
+      .select()
+      .from(sources)
+      .where(this.activeWhere(workspaceId, eq(sources.id, sourceId)))
+      .for('update');
+    return source ?? null;
+  }
+
   async update(
     workspaceId: string,
     sourceId: string,
@@ -52,6 +61,14 @@ export class SourcesRepository {
 
   async softDelete(workspaceId: string, sourceId: string, deletedAt: Date): Promise<boolean> {
     return (await this.update(workspaceId, sourceId, { deletedAt })) !== null;
+  }
+
+  async deleteById(workspaceId: string, sourceId: string): Promise<boolean> {
+    const deleted = await this.txHost.tx
+      .delete(sources)
+      .where(and(eq(sources.workspaceId, workspaceId), eq(sources.id, sourceId)))
+      .returning({ id: sources.id });
+    return deleted.length > 0;
   }
 
   async hasActiveByKnowledgeBase(workspaceId: string, knowledgeBaseId: string): Promise<boolean> {

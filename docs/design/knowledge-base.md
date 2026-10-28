@@ -148,13 +148,14 @@ browser                         api                         Silo / S3
    │◀─────────────────────────────┤  source (pending)            │
 ```
 
-- The API generates the document id during `createUpload` and stores a short-lived upload ticket in Redis: workspace, user, file name, declared type, declared size, expiry.
+- The API generates the document id during `createUpload` and stores a short-lived upload ticket in Redis: workspace, user, target knowledge base, document id, upload id, optional source id, file name, declared type, declared size and expiry.
 - The presigned PUT lives for 15 minutes. The ticket lives for one hour, so a finished upload can still be confirmed after the URL expired.
-- The file first lands under `workspaces/{workspaceId}/knowledge/uploads/{documentId}/original.{ext}`.
-- `confirmUpload` asks storage for the object metadata, validates the actual size and content type, then copies the object server-side to `workspaces/{workspaceId}/knowledge/documents/{documentId}/original.{ext}`. The temporary object is deleted. A lifecycle rule on the `uploads/` prefix removes abandoned objects after 24 hours.
+- The file first lands under `workspaces/{workspaceId}/knowledge/uploads/{documentId}/{uploadId}/original-{uploadId}.{ext}`. The upload id makes a retried `createUpload` unable to overwrite an earlier file.
+- `confirmUpload` asks storage for the object metadata, validates the actual size and content type, then copies the object server-side to `workspaces/{workspaceId}/knowledge/documents/{documentId}/original-{syncRunId}.{ext}`. The temporary object is deleted. A lifecycle rule on the `uploads/` prefix removes abandoned objects after 24 hours.
 - The document id and its workspace prefix are checked against the ticket. A caller can never confirm another workspace's object.
-- Confirm is idempotent: if a source already exists for the document id, it returns it instead of creating a duplicate.
-- The source and document are created as `pending`, and a durable `ingest-knowledge-source` job is enqueued with `{ sourceId }`.
+- Confirm is idempotent in the database, not only in Redis: a repeated call returns the existing source, and two concurrent confirms of the same new upload keep one source and delete the loser's source row.
+- The source and document are created as `pending`, and a durable `ingest-knowledge-source` job is enqueued with `{ sourceId, syncRunId }`. The sync run id is also the durable BullMQ job id, so the job runs once per run.
+- A replacement keeps the old original searchable: the new key is stored in `pending_original_storage_key`, `content_hash` is cleared to force a reindex, and the old original is deleted only after the new generation flips.
 - If the object is too large or the type is wrong, the object is deleted and the mutation fails with a reason. Nothing is queued.
 
 ### 4.2 Google Docs
@@ -396,13 +397,14 @@ abstract class FileStorage {
 One bucket (`S3_BUCKET`), workspace-scoped prefixes:
 
 ```
-workspaces/{workspaceId}/knowledge/uploads/{documentId}/original.{ext}      temporary
-workspaces/{workspaceId}/knowledge/documents/{documentId}/original.{ext}    retained upload
-workspaces/{workspaceId}/knowledge/documents/{documentId}/content.md        canonical Markdown
+workspaces/{workspaceId}/knowledge/uploads/{documentId}/{uploadId}/original-{uploadId}.{ext}      temporary
+workspaces/{workspaceId}/knowledge/documents/{documentId}/original-{syncRunId}.{ext}              retained upload
+workspaces/{workspaceId}/knowledge/documents/{documentId}/content-{generation}.md                  canonical Markdown
 ```
 
 - The temporary prefix is covered by a lifecycle rule: delete objects older than 24 hours that were never confirmed.
 - The final original and the Markdown live until the source or KB is deleted.
+- Keys are versioned: a replacement never overwrites the original or Markdown that the active generation still references. The previous objects are deleted after the generation flip.
 - A presigned PUT is scoped to one key, has a short expiry and is only issued after a permission check.
 - A presigned GET may be issued for “download original” in the UI, with a short expiry.
 
@@ -557,7 +559,7 @@ The timezone is copied onto the source when the schedule is saved. Changing the 
 Scheduling uses a per-source BullMQ job scheduler:
 
 - scheduler id `knowledge-sync:{sourceId}`;
-- job `ingest-knowledge-source` with `{ sourceId }`;
+- the scheduler tick creates a `sync_runs` row and enqueues `ingest-knowledge-source` with `{ sourceId, syncRunId }`; it is not implemented yet;
 - hourly → `every` one hour;
 - daily/weekly → a cron pattern with the workspace's IANA timezone;
 - the envelope carries the workspace id, so the processor runs as that workspace's system actor;
@@ -567,7 +569,7 @@ Scheduling uses a per-source BullMQ job scheduler:
 
 Concurrency and idempotency:
 
-- one sync per source at a time, enforced by the source status and a `FOR UPDATE` row lock;
+- one sync per source at a time: the processor locks the source row and checks for another active `sync_runs` row;
 - a scheduled sync that arrives while a manual one runs is skipped and logged;
 - the job is safe to repeat: content hashes skip unchanged documents, and a repeated generation write is overwritten before the flip;
 - the manual sync use case creates the `sync_runs` row and enqueues a durable job; it does not change the scheduled `next_sync_at`. The UI does not wait for the result.
@@ -735,8 +737,10 @@ erDiagram
         text source_url
         bigint size_bytes
         text original_storage_key
+        text pending_original_storage_key
         text content_storage_key
         text content_hash
+        jsonb warnings
         text summary
         knowledge_summary_source summary_source
         timestamptz summary_updated_at
@@ -971,8 +975,10 @@ Constraints and indexes:
 | `source_url` | text | nullable, webViewLink |
 | `size_bytes` | bigint | nullable |
 | `original_storage_key` | text | nullable, uploads |
+| `pending_original_storage_key` | text | nullable; replacement file held until the generation flips |
 | `content_storage_key` | text | nullable until parsed |
-| `content_hash` | text | nullable until parsed |
+| `content_hash` | text | nullable until parsed; cleared to force a replacement reindex |
+| `warnings` | jsonb | not null, default `[]`; parser and summary warnings shown to the user |
 | `summary` | text | nullable; one sentence, generated once or user-edited |
 | `summary_source` | enum | nullable; `auto` or `user` |
 | `summary_updated_at` | timestamptz | nullable; generation or last edit |
@@ -1211,7 +1217,7 @@ export const chunkTerms = knowledgeSchema
 
 | Job | Queue | Payload | Durable | Purpose |
 |---|---|---|---|---|
-| `ingest-knowledge-source` | `ingest` | `{ sourceId }` | yes | Run one source sync: fetch, parse, chunk, embed, index |
+| `ingest-knowledge-source` | `ingest` | `{ sourceId, syncRunId }` | yes | Run one source sync: fetch, parse, chunk, embed, index |
 | `reindex-knowledge-document` | `ingest` | `{ documentId }` | yes | Rebuild a document after a summary edit; no summary generation |
 | `clean-up-knowledge-source-files` | `timers` | `{ sourceId }` | yes | Delete S3 objects and hard-delete a soft-deleted source and its documents |
 | `clean-up-knowledge-sync-runs` | `timers` | `{}` | no | Delete sync runs older than 90 days |
@@ -1219,8 +1225,9 @@ export const chunkTerms = knowledgeSchema
 
 - The processor runs on `worker-ingest` for `ingest`; `timers` runs on `worker-runs`.
 - Payloads hold ids only. The envelope adds `workspaceId`, `traceId` and `initiatedBy`.
-- A scheduled sync uses the same `ingest-knowledge-source` job, enqueued by the per-source scheduler.
-- `sync_runs` is created by the use case before enqueue; the processor loads it and updates progress.
+- A scheduled sync follows the same path: it creates a sync run first and then enqueues the job; this path is not implemented yet.
+- `sync_runs` is created by the use case before enqueue; the processor loads it by `syncRunId`, locks the source, and updates progress. `syncRunId` is also the BullMQ job id.
+- A retryable failure on a non-final attempt leaves the run `running` and the source `indexing`, so the same `syncRunId` can retry. The final attempt or a non-retryable error closes the run and source with the failure.
 - A summary edit locks the document, sets it to `indexing` and enqueues `reindex-knowledge-document`. The job rebuilds `index_text`, embeddings and terms, then flips the generation; it never calls the summary model.
 
 ### 12.2 Events

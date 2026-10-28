@@ -2,22 +2,16 @@ import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contra
 import { Injectable } from '@nestjs/common';
 import { knowledgeUploadTicketEntry } from '@/modules/knowledge/constants/knowledge-upload-cache.constants';
 import { KNOWLEDGE_UPLOAD_URL_TTL_SECONDS } from '@/modules/knowledge/constants/knowledge-upload.constants';
-import {
-  KnowledgeSourceKind,
-  KnowledgeSourceStatus,
-} from '@/modules/knowledge/constants/knowledge.constants';
 import { KnowledgeBaseNotFoundError } from '@/modules/knowledge/errors/knowledge-base-not-found.error';
-import { KnowledgeUploadInvalidError } from '@/modules/knowledge/errors/knowledge-upload-invalid.error';
 import { parseKnowledgeInput } from '@/modules/knowledge/helpers/knowledge-input.helpers';
 import { knowledgeUploadStorageKey } from '@/modules/knowledge/helpers/knowledge-storage.helpers';
 import {
   uploadFileName,
   validateUploadFile,
 } from '@/modules/knowledge/helpers/knowledge-upload.helpers';
-import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
-import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { createUploadInputSchema } from '@/modules/knowledge/schemas/knowledge-input.schema';
+import { KnowledgeUploadTargetsService } from '@/modules/knowledge/services/knowledge-upload-targets.service';
 import type {
   CreateUploadInput,
   CreateUploadResult,
@@ -34,8 +28,7 @@ export class CreateUploadUseCase {
   constructor(
     private readonly tenants: TenantTransactionService,
     private readonly knowledgeBases: KnowledgeBasesRepository,
-    private readonly sources: SourcesRepository,
-    private readonly documents: DocumentsRepository,
+    private readonly targets: KnowledgeUploadTargetsService,
     private readonly storage: FileStorage,
     private readonly cache: CacheService,
     private readonly ids: IdService,
@@ -55,6 +48,7 @@ export class CreateUploadUseCase {
         : this.ids.fromPublic(IdPrefix.KnowledgeSource, parsed.sourceId);
     const fileName = uploadFileName(parsed.fileName);
     const mimeType = validateUploadFile(fileName, parsed.mimeType, parsed.sizeBytes);
+    const uploadId = this.ids.generate();
 
     const documentId = await this.tenants.run(workspaceId, async () => {
       const knowledgeBase = await this.knowledgeBases.findById(workspaceId, knowledgeBaseId);
@@ -64,24 +58,14 @@ export class CreateUploadUseCase {
       if (sourceId === null) {
         return this.ids.generate();
       }
-      const source = await this.sources.findById(workspaceId, sourceId);
-      if (
-        source === null ||
-        source.kbId !== knowledgeBase.id ||
-        source.kind !== KnowledgeSourceKind.Upload ||
-        source.status === KnowledgeSourceStatus.Indexing
-      ) {
-        throw new KnowledgeUploadInvalidError();
-      }
-      const document = await this.documents.findActiveBySource(workspaceId, source.id);
-      if (document === null) {
-        throw new KnowledgeUploadInvalidError();
-      }
-      return document.id;
+      const target = await this.targets.findReplaceTarget(workspaceId, sourceId, knowledgeBase.id, {
+        lock: false,
+      });
+      return target.document.id;
     });
 
     const uploadUrl = await this.storage.presignPut(
-      knowledgeUploadStorageKey(workspaceId, documentId, fileName),
+      knowledgeUploadStorageKey(workspaceId, documentId, uploadId, fileName),
       mimeType,
       KNOWLEDGE_UPLOAD_URL_TTL_SECONDS,
     );
@@ -90,6 +74,7 @@ export class CreateUploadUseCase {
       userId,
       knowledgeBaseId,
       documentId,
+      uploadId,
       sourceId,
       fileName,
       mimeType,

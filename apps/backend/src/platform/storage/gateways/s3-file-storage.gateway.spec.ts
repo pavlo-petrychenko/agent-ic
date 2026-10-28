@@ -14,6 +14,7 @@ const KEY = 'workspaces/workspace-id/knowledge/original.txt';
 const BODY = Buffer.from('hello');
 const PUBLIC_ORIGIN = 'https://public.storage.test';
 const MISSING_KEY = 'workspaces/workspace-id/knowledge/missing.txt';
+const COPY_TARGET_KEY = 'workspaces/workspace-id/knowledge/documents/original.txt';
 const EXPIRES_IN_SECONDS = 900;
 
 interface RecordedRequest {
@@ -38,6 +39,23 @@ const startServer = async (requests: RecordedRequest[]): Promise<Server> => {
         body: Buffer.concat(chunks),
       });
 
+      if (url.includes('forbidden')) {
+        response.writeHead(403);
+        response.end();
+        return;
+      }
+      if (url.includes('unavailable')) {
+        response.writeHead(503);
+        response.end();
+        return;
+      }
+      if (request.method === 'PUT' && request.headers['x-amz-copy-source'] !== undefined) {
+        response.writeHead(200, { 'Content-Type': 'application/xml' });
+        response.end(
+          '<CopyObjectResult><ETag>"etag-1"</ETag><LastModified>2026-05-01T09:00:00.000Z</LastModified></CopyObjectResult>',
+        );
+        return;
+      }
       if (request.method === 'PUT') {
         response.writeHead(200, { ETag: '"etag-1"' });
         response.end();
@@ -140,11 +158,38 @@ describe('S3FileStorageGateway', () => {
     await expect(buffer(await storage.get(KEY))).resolves.toEqual(BODY);
   });
 
+  it('copies an object server-side', async () => {
+    await storage.copy(KEY, COPY_TARGET_KEY);
+
+    expect(requests).toHaveLength(1);
+    expect(requests[0]?.method).toBe('PUT');
+    expect(pathOf(requests[0]?.url ?? '')).toBe(`/agent-ic-test/${COPY_TARGET_KEY}`);
+    expect(requests[0]?.headers['x-amz-copy-source']).toBe(`agent-ic-test/${KEY}`);
+  });
+
   it('deletes an object', async () => {
     await storage.delete(KEY);
 
     expect(requests[0]?.method).toBe('DELETE');
     expect(pathOf(requests[0]?.url ?? '')).toBe(`/agent-ic-test/${KEY}`);
+  });
+
+  it('maps a rejected S3 call to a non-retryable upstream error', async () => {
+    await expect(
+      storage.put('workspaces/workspace-id/forbidden', BODY, 'text/plain'),
+    ).rejects.toMatchObject({
+      upstream: 'storage',
+      retryable: false,
+    });
+  });
+
+  it('maps a transient S3 failure to a retryable upstream error', async () => {
+    await expect(
+      storage.put('workspaces/workspace-id/unavailable', BODY, 'text/plain'),
+    ).rejects.toMatchObject({
+      upstream: 'storage',
+      retryable: true,
+    });
   });
 
   it('presigns upload and download URLs against the public endpoint', async () => {

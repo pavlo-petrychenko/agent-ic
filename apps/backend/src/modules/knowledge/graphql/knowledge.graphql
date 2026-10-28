@@ -5,6 +5,8 @@ extend type Query {
 extend type Mutation {
   createKnowledgeBase(input: CreateKnowledgeBaseInput!): KnowledgeBase!
   deleteKnowledgeBase(input: DeleteKnowledgeBaseInput!): DeleteKnowledgeBasePayload!
+  createUpload(input: CreateUploadInput!): CreateUploadPayload!
+  confirmUpload(input: ConfirmUploadInput!): KnowledgeSource!
 }
 
 input DeleteKnowledgeBaseInput {
@@ -18,6 +20,58 @@ type DeleteKnowledgeBasePayload {
 input CreateKnowledgeBaseInput {
   name: String!
   description: String
+}
+
+input CreateUploadInput {
+  knowledgeBaseId: ID!
+  fileName: String!
+  mimeType: String!
+  sizeBytes: Int!
+  sourceId: ID
+}
+
+type CreateUploadPayload {
+  documentId: ID!
+  uploadUrl: String!
+}
+
+input ConfirmUploadInput {
+  documentId: ID!
+}
+
+enum KnowledgeSourceKind {
+  upload
+  google_docs
+}
+
+enum KnowledgeSourceStatus {
+  pending
+  indexing
+  ready
+  error
+}
+
+enum KnowledgeSyncInterval {
+  hourly
+  daily
+  weekly
+}
+
+type KnowledgeSource {
+  id: ID!
+  knowledgeBaseId: ID!
+  kind: KnowledgeSourceKind!
+  title: String!
+  status: KnowledgeSourceStatus!
+  syncInterval: KnowledgeSyncInterval
+  nextSyncAt: String
+  lastSyncAt: String
+  lastErrorCode: String
+  lastErrorMessage: String
+  documentCount: Int!
+  chunkCount: Int!
+  createdAt: String!
+  updatedAt: String!
 }
 
 type KnowledgeBase {

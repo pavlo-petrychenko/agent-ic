@@ -54,12 +54,15 @@ export class JobExecutionService {
       trace.getActiveSpan() === undefined
         ? traceContextOf(envelope.data.traceContext)
         : context.active();
-    const ctx = this.contexts.system({
-      reason: SystemReason.Job,
-      workspaceId: envelope.data.workspaceId,
-      traceId: trace.getSpanContext(parent)?.traceId ?? envelope.data.traceId,
-      initiatedBy: envelope.data.initiatedBy,
-    });
+    const ctx = {
+      ...this.contexts.system({
+        reason: SystemReason.Job,
+        workspaceId: envelope.data.workspaceId,
+        traceId: trace.getSpanContext(parent)?.traceId ?? envelope.data.traceId,
+        initiatedBy: envelope.data.initiatedBy,
+      }),
+      jobAttempt: job.attemptsMade + 1,
+    };
     await context.with(parent, () =>
       this.cls.run(async () => {
         this.cls.set(CLS_ID, ctx.traceId);

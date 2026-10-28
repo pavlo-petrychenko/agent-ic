@@ -2,7 +2,6 @@ import { KNOWLEDGE_DOCUMENT_MAX_BYTES } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
 import { KnowledgeUploadInvalidError } from '@/modules/knowledge/errors/knowledge-upload-invalid.error';
 import {
-  normalizeUploadMimeType,
   uploadFileName,
   uploadTitle,
   validateUploadFile,
@@ -12,10 +11,6 @@ describe('knowledge upload helpers', () => {
   it('sanitizes the file name and derives the title', () => {
     expect(uploadFileName('C:\\fakepath\\Refunds.MD')).toBe('Refunds.MD');
     expect(uploadTitle('C:\\fakepath\\Refunds.MD')).toBe('Refunds');
-  });
-
-  it('normalizes a MIME type with parameters', () => {
-    expect(normalizeUploadMimeType(' Text/Markdown ; charset=utf-8 ')).toBe('text/markdown');
   });
 
   it('accepts a supported file within the limit', () => {

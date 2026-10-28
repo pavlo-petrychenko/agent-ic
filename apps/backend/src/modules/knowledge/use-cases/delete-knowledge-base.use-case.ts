@@ -3,8 +3,6 @@ import { Injectable } from '@nestjs/common';
 import { KnowledgeBaseHasSourcesError } from '@/modules/knowledge/errors/knowledge-base-has-sources.error';
 import { KnowledgeBaseNotFoundError } from '@/modules/knowledge/errors/knowledge-base-not-found.error';
 import { parseKnowledgeInput } from '@/modules/knowledge/helpers/knowledge-input.helpers';
-import { ChunkTermsRepository } from '@/modules/knowledge/repositories/chunk-terms.repository';
-import { ChunksRepository } from '@/modules/knowledge/repositories/chunks.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
 import { SectionsRepository } from '@/modules/knowledge/repositories/sections.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
@@ -23,8 +21,6 @@ export class DeleteKnowledgeBaseUseCase {
     private readonly knowledgeBases: KnowledgeBasesRepository,
     private readonly sources: SourcesRepository,
     private readonly sections: SectionsRepository,
-    private readonly chunks: ChunksRepository,
-    private readonly chunkTerms: ChunkTermsRepository,
     private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
@@ -48,8 +44,6 @@ export class DeleteKnowledgeBaseUseCase {
         throw new KnowledgeBaseHasSourcesError();
       }
       const deletedAt = this.clock.now();
-      await this.chunkTerms.deleteByKnowledgeBase(workspaceId, knowledgeBaseId);
-      await this.chunks.deleteByKnowledgeBase(workspaceId, knowledgeBaseId);
       await this.sections.deleteByKnowledgeBase(workspaceId, knowledgeBaseId);
       await this.knowledgeBases.softDelete(workspaceId, knowledgeBaseId, deletedAt);
     });

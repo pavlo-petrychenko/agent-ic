@@ -1,4 +1,6 @@
+import { ErrorReason } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
+import { KNOWLEDGE_SOURCE_BUSY_MESSAGE } from '@/modules/knowledge/constants/knowledge-error.constants';
 import {
   KnowledgeDocumentStatus,
   KnowledgeSourceStatus,
@@ -10,9 +12,11 @@ import {
 } from '@/modules/knowledge/helpers/knowledge-ingestion.helpers';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
+import { KnowledgeStatsRepository } from '@/modules/knowledge/repositories/knowledge-stats.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
 import { KnowledgeDocumentIngestionService } from '@/modules/knowledge/services/knowledge-document-ingestion.service';
+import type { SourceIngestionStart } from '@/modules/knowledge/typedefs/knowledge-ingestion.typedefs';
 import type {
   IngestKnowledgeSourceJobData,
   KnowledgeFailure,
@@ -22,6 +26,9 @@ import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-
 import { requireSystemActor } from '@/platform/context/helpers/use-case-ctx.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
+import { JobFailureAction } from '@/platform/errors/constants/job-failure.constants';
+import { jobFailureActionFor } from '@/platform/errors/helpers/job-failure.helpers';
+import { JOB_ATTEMPTS } from '@/platform/queues/constants/queue.constants';
 
 @Injectable()
 export class IngestKnowledgeSourceUseCase {
@@ -31,70 +38,37 @@ export class IngestKnowledgeSourceUseCase {
     private readonly documents: DocumentsRepository,
     private readonly syncRuns: SyncRunsRepository,
     private readonly knowledgeBases: KnowledgeBasesRepository,
+    private readonly stats: KnowledgeStatsRepository,
     private readonly ingestion: KnowledgeDocumentIngestionService,
     private readonly clock: ClockService,
   ) {}
 
-  async execute(ctx: UseCaseCtx, { sourceId }: IngestKnowledgeSourceJobData): Promise<void> {
+  async execute(
+    ctx: UseCaseCtx,
+    { sourceId, syncRunId }: IngestKnowledgeSourceJobData,
+  ): Promise<void> {
     requireSystemActor(ctx);
     const workspaceId = ctx.workspaceId;
     if (workspaceId === null) {
       throw new WorkspaceAccessDeniedError();
     }
-    const loaded = await this.tenants.run(workspaceId, async () => {
-      const source = await this.sources.findById(workspaceId, sourceId);
-      if (source === null) {
-        return null;
-      }
-      const knowledgeBase = await this.knowledgeBases.findById(workspaceId, source.kbId);
-      if (knowledgeBase === null) {
-        return null;
-      }
-      return {
-        source,
-        knowledgeBase,
-        documents: await this.documents.listBySource(workspaceId, source.id),
-        syncRun: await this.syncRuns.findLatestBySource(workspaceId, source.id),
-      };
-    });
-    if (loaded === null) {
+    const startedAt = this.clock.now();
+    const started = await this.start(workspaceId, sourceId, syncRunId, startedAt);
+    if (started === null) {
       return;
     }
-    const syncRunId = loaded.syncRun?.id ?? null;
-    const startedAt = this.clock.now();
-    await this.tenants.run(workspaceId, async () => {
-      await this.sources.update(workspaceId, sourceId, {
-        status: KnowledgeSourceStatus.Indexing,
-        lastErrorCode: null,
-        lastErrorMessage: null,
-      });
-      if (syncRunId !== null) {
-        await this.syncRuns.update(workspaceId, syncRunId, {
-          status: KnowledgeSyncStatus.Running,
-          startedAt,
-          finishedAt: null,
-          documentsTotal: loaded.documents.length,
-          documentsIndexed: 0,
-          documentsSkipped: 0,
-          documentsFailed: 0,
-          documentsRemoved: 0,
-          errorCode: null,
-          errorMessage: null,
-        });
-      }
-    });
 
     let indexed = 0;
     let skipped = 0;
     let failed = 0;
     let failure: KnowledgeFailure | null = null;
     try {
-      for (const document of loaded.documents) {
+      for (const document of started.documents) {
         await this.markDocument(workspaceId, document.id, KnowledgeDocumentStatus.Indexing, null);
         try {
           const result = await this.ingestion.ingest({
             workspaceId,
-            knowledgeBase: loaded.knowledgeBase,
+            knowledgeBase: started.knowledgeBase,
             document,
           });
           if (result.skipped) {
@@ -110,76 +84,186 @@ export class IngestKnowledgeSourceUseCase {
           }
         } catch (error) {
           failure = knowledgeFailure(error);
-          await this.markDocument(workspaceId, document.id, KnowledgeDocumentStatus.Error, failure);
-          if (!isDocumentFailure(error)) {
+          const documentFailure = isDocumentFailure(error);
+          if (documentFailure || this.isFinalAttempt(ctx)) {
+            await this.markDocument(
+              workspaceId,
+              document.id,
+              KnowledgeDocumentStatus.Error,
+              failure,
+            );
+          }
+          if (!documentFailure) {
+            if (this.isFinalAttempt(ctx)) {
+              failed += 1;
+            }
             throw error;
           }
           failed += 1;
         }
-        if (syncRunId !== null) {
-          await this.tenants.run(workspaceId, () =>
-            this.syncRuns.update(workspaceId, syncRunId, {
-              documentsTotal: loaded.documents.length,
-              documentsIndexed: indexed,
-              documentsSkipped: skipped,
-              documentsFailed: failed,
-            }),
-          );
-        }
+        await this.updateProgress(workspaceId, started.syncRunId, {
+          documentsTotal: started.documents.length,
+          documentsIndexed: indexed,
+          documentsSkipped: skipped,
+          documentsFailed: failed,
+        });
       }
 
       const finishedAt = this.clock.now();
       const runStatus =
         failed === 0
           ? KnowledgeSyncStatus.Succeeded
-          : failed === loaded.documents.length
+          : failed === started.documents.length
             ? KnowledgeSyncStatus.Failed
             : KnowledgeSyncStatus.Partial;
-      await this.tenants.run(workspaceId, async () => {
-        await this.sources.update(workspaceId, sourceId, {
-          status: failed === 0 ? KnowledgeSourceStatus.Ready : KnowledgeSourceStatus.Error,
-          lastSyncAt: finishedAt,
-          lastErrorCode: failure?.code ?? null,
-          lastErrorMessage: failure?.message ?? null,
-        });
-        if (syncRunId !== null) {
-          await this.syncRuns.update(workspaceId, syncRunId, {
-            status: runStatus,
-            documentsTotal: loaded.documents.length,
-            documentsIndexed: indexed,
-            documentsSkipped: skipped,
-            documentsFailed: failed,
-            finishedAt,
-            errorCode: failure?.code ?? null,
-            errorMessage: failure?.message ?? null,
-          });
-        }
+      await this.finish(workspaceId, started.knowledgeBase.id, sourceId, started.syncRunId, {
+        status: runStatus,
+        sourceStatus: failed === 0 ? KnowledgeSourceStatus.Ready : KnowledgeSourceStatus.Error,
+        finishedAt,
+        counters: {
+          documentsTotal: started.documents.length,
+          documentsIndexed: indexed,
+          documentsSkipped: skipped,
+          documentsFailed: failed,
+        },
+        failure,
       });
     } catch (error) {
       const thrownFailure = knowledgeFailure(error);
-      const finishedAt = this.clock.now();
-      await this.tenants.run(workspaceId, async () => {
-        await this.sources.update(workspaceId, sourceId, {
-          status: KnowledgeSourceStatus.Error,
-          lastSyncAt: finishedAt,
-          lastErrorCode: thrownFailure.code,
-          lastErrorMessage: thrownFailure.message,
-        });
-        if (syncRunId !== null) {
-          await this.syncRuns.update(workspaceId, syncRunId, {
-            status: KnowledgeSyncStatus.Failed,
-            documentsTotal: loaded.documents.length,
+      if (this.shouldFinishOnFailure(ctx, error)) {
+        const finishedAt = this.clock.now();
+        await this.finish(workspaceId, started.knowledgeBase.id, sourceId, started.syncRunId, {
+          status: KnowledgeSyncStatus.Failed,
+          sourceStatus: KnowledgeSourceStatus.Error,
+          finishedAt,
+          counters: {
+            documentsTotal: started.documents.length,
             documentsIndexed: indexed,
             documentsSkipped: skipped,
             documentsFailed: failed,
-            finishedAt,
-            errorCode: thrownFailure.code,
-            errorMessage: thrownFailure.message,
-          });
-        }
-      });
+          },
+          failure: thrownFailure,
+        });
+      }
       throw error;
     }
+  }
+
+  private async start(
+    workspaceId: string,
+    sourceId: string,
+    syncRunId: string,
+    startedAt: Date,
+  ): Promise<SourceIngestionStart | null> {
+    return this.tenants.run(workspaceId, async () => {
+      const source = await this.sources.findByIdForUpdate(workspaceId, sourceId);
+      if (source === null) {
+        return null;
+      }
+      const knowledgeBase = await this.knowledgeBases.findById(workspaceId, source.kbId);
+      if (knowledgeBase === null) {
+        return null;
+      }
+      const syncRun = await this.syncRuns.findById(workspaceId, syncRunId);
+      if (syncRun === null || syncRun.sourceId !== source.id) {
+        return null;
+      }
+      if (syncRun.status === KnowledgeSyncStatus.Succeeded) {
+        return null;
+      }
+      const active = await this.syncRuns.findActiveBySource(workspaceId, source.id);
+      if (active !== null && active.id !== syncRun.id) {
+        await this.syncRuns.update(workspaceId, syncRun.id, {
+          status: KnowledgeSyncStatus.Failed,
+          startedAt,
+          finishedAt: startedAt,
+          errorCode: ErrorReason.KnowledgeSourceBusy,
+          errorMessage: KNOWLEDGE_SOURCE_BUSY_MESSAGE,
+        });
+        return null;
+      }
+      const documents = await this.documents.listBySource(workspaceId, source.id);
+      await this.sources.update(workspaceId, sourceId, {
+        status: KnowledgeSourceStatus.Indexing,
+        lastErrorCode: null,
+        lastErrorMessage: null,
+      });
+      await this.syncRuns.update(workspaceId, syncRun.id, {
+        status: KnowledgeSyncStatus.Running,
+        startedAt,
+        finishedAt: null,
+        documentsTotal: documents.length,
+        documentsIndexed: 0,
+        documentsSkipped: 0,
+        documentsFailed: 0,
+        documentsRemoved: 0,
+        errorCode: null,
+        errorMessage: null,
+      });
+      return { knowledgeBase, documents, syncRunId: syncRun.id };
+    });
+  }
+
+  private isFinalAttempt(ctx: UseCaseCtx): boolean {
+    return ctx.jobAttempt === undefined || ctx.jobAttempt >= JOB_ATTEMPTS;
+  }
+
+  private shouldFinishOnFailure(ctx: UseCaseCtx, error: unknown): boolean {
+    return jobFailureActionFor(error) === JobFailureAction.GiveUp || this.isFinalAttempt(ctx);
+  }
+
+  private async updateProgress(
+    workspaceId: string,
+    syncRunId: string,
+    counters: {
+      readonly documentsTotal: number;
+      readonly documentsIndexed: number;
+      readonly documentsSkipped: number;
+      readonly documentsFailed: number;
+    },
+  ): Promise<void> {
+    await this.tenants.run(workspaceId, () =>
+      this.syncRuns.update(workspaceId, syncRunId, counters),
+    );
+  }
+
+  private async finish(
+    workspaceId: string,
+    knowledgeBaseId: string,
+    sourceId: string,
+    syncRunId: string,
+    input: {
+      readonly status: KnowledgeSyncStatus;
+      readonly sourceStatus: KnowledgeSourceStatus;
+      readonly finishedAt: Date;
+      readonly counters: {
+        readonly documentsTotal: number;
+        readonly documentsIndexed: number;
+        readonly documentsSkipped: number;
+        readonly documentsFailed: number;
+      };
+      readonly failure: KnowledgeFailure | null;
+    },
+  ): Promise<void> {
+    await this.tenants.run(workspaceId, async () => {
+      await this.sources.update(workspaceId, sourceId, {
+        status: input.sourceStatus,
+        lastSyncAt: input.finishedAt,
+        lastErrorCode: input.failure?.code ?? null,
+        lastErrorMessage: input.failure?.message ?? null,
+        ...(await this.stats.sourceCounts(workspaceId, sourceId)),
+      });
+      await this.knowledgeBases.update(workspaceId, knowledgeBaseId, {
+        ...(await this.stats.knowledgeBaseCounts(workspaceId, knowledgeBaseId)),
+      });
+      await this.syncRuns.update(workspaceId, syncRunId, {
+        status: input.status,
+        ...input.counters,
+        finishedAt: input.finishedAt,
+        errorCode: input.failure?.code ?? null,
+        errorMessage: input.failure?.message ?? null,
+      });
+    });
   }
 
   private async markDocument(

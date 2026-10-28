@@ -43,6 +43,17 @@ export class FakeFileStorage extends FileStorage {
     this.objects.delete(key);
   }
 
+  async copy(sourceKey: string, targetKey: string): Promise<void> {
+    const source = this.objects.get(sourceKey);
+    if (source === undefined) {
+      throw new Error(STORAGE_OBJECT_MISSING_MESSAGE);
+    }
+    this.objects.set(targetKey, {
+      body: Buffer.from(source.body),
+      contentType: source.contentType,
+    });
+  }
+
   async presignPut(key: string, contentType: string, expiresInSeconds: number): Promise<string> {
     this.presignedPuts.push({ key, contentType, expiresInSeconds });
     return `${FAKE_STORAGE_ORIGIN}/${key}?expires=${expiresInSeconds}`;

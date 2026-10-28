@@ -16,5 +16,4 @@ export interface EmbeddedDocumentChunk extends IndexedDocumentChunk {
 
 export interface KnowledgeEmbeddingResult {
   readonly chunks: readonly EmbeddedDocumentChunk[];
-  readonly tokens: number;
 }

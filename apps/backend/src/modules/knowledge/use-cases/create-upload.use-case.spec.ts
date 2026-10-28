@@ -44,8 +44,9 @@ describe('CreateUploadUseCase', () => {
       sizeBytes: 100,
     });
     const documentId = testbed.ids.fromPublic(IdPrefix.KnowledgeDocument, created.documentId);
-    const uploadKey = knowledgeUploadStorageKey(workspaceId, documentId, 'Refunds.MD');
     const ticket = await cache.get(knowledgeUploadTicketEntry(workspaceId, documentId));
+    const uploadId = ticket?.uploadId ?? '';
+    const uploadKey = knowledgeUploadStorageKey(workspaceId, documentId, uploadId, 'Refunds.MD');
 
     expect(created.uploadUrl).toContain(uploadKey);
     expect(testbed.storage.presignedPuts[0]).toEqual({
@@ -58,11 +59,13 @@ describe('CreateUploadUseCase', () => {
       userId: TEST_EDITOR_ID,
       knowledgeBaseId,
       documentId,
+      uploadId,
       sourceId: null,
       fileName: 'Refunds.MD',
       mimeType: 'text/markdown',
       sizeBytes: 100,
     });
+    expect(uploadId).toEqual(expect.any(String));
   });
 
   it('targets the existing document when replacing an upload', async () => {

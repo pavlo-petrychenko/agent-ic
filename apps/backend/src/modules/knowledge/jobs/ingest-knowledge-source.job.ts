@@ -6,5 +6,5 @@ import { defineJob } from '@/platform/queues/helpers/job.helpers';
 export const ingestKnowledgeSourceJob = defineJob({
   queue: QueueName.Ingest,
   name: KnowledgeJobName.IngestSource,
-  schema: z.object({ sourceId: z.uuid() }),
+  schema: z.object({ sourceId: z.uuid(), syncRunId: z.uuid() }),
 });

@@ -25,8 +25,6 @@ export class DocumentSummaryService {
       return {
         summary: existing,
         generated: false,
-        model: null,
-        usage: null,
         warnings: [],
       };
     }
@@ -47,8 +45,6 @@ export class DocumentSummaryService {
     return {
       summary: completion.output.summary,
       generated: true,
-      model: completion.model,
-      usage: completion.usage,
       warnings: content.warnings,
     };
   }
