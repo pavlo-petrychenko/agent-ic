@@ -306,7 +306,7 @@ A document gets one summary when it is first indexed. The call uses `LlmGateway.
 - The summary is used in every chunk's `index_text`. Changing it changes every chunk's embedding and BM25 text, so an edit enqueues `reindex-knowledge-document` and rebuilds the document under a new generation. The old generation stays searchable until the flip.
 - The UI labels an auto summary as AI-generated once, says that it is not updated automatically, and explains that editing it re-indexes the document. A user-edited summary is labelled as edited by the user.
 - If the summary call fails, the document is still indexed without a summary. The UI shows “Add a summary” and the user can write one; a summary is helpful, not a gate.
-- If the document is longer than the summary model's input window, the pipeline sends the largest fitting prefix plus the heading outline and records a warning. The normal path is the whole document.
+- The summary input is capped at `SUMMARY_MAX_INPUT_TOKENS` (60,000). If the canonical Markdown is longer than the cap, the pipeline sends the largest fitting prefix plus the heading outline and records a warning. The normal path is the whole document.
 - `summary_updated_at` records when the summary was generated or last edited.
 - The call is traced and tagged like any other LLM call.
 
