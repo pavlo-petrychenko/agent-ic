@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
-import { KnowledgeSourceStatus } from '@/features/knowledge/constants/knowledgeSource.constants';
 import type { KnowledgeSourceRowView } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import { STATUS_TONES } from '@/features/knowledge/view/KnowledgeSourcesTable/KnowledgeSourcesTable.constants';
 import type { KnowledgeSourcesTableProps } from '@/features/knowledge/view/KnowledgeSourcesTable/KnowledgeSourcesTable.typedefs';
 import { Button } from '@/shared/ui/actions/Button';
 import { Table, TablePadding, TableStatus } from '@/shared/ui/data/Table';
@@ -12,17 +12,10 @@ import {
   TableCellLeadKind,
   TableCellLeadSize,
 } from '@/shared/ui/data/TableCellLead';
-import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
+import { Badge } from '@/shared/ui/display/Badge';
 import { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import styles from '@/features/knowledge/view/KnowledgeSourcesTable/KnowledgeSourcesTable.module.scss';
-
-const STATUS_TONES: Readonly<Record<KnowledgeSourceStatus, BadgeTone>> = {
-  [KnowledgeSourceStatus.Pending]: BadgeTone.Neutral,
-  [KnowledgeSourceStatus.Indexing]: BadgeTone.Accent,
-  [KnowledgeSourceStatus.Ready]: BadgeTone.Ok,
-  [KnowledgeSourceStatus.Error]: BadgeTone.Err,
-};
 
 export function KnowledgeSourcesTable({
   rows,
