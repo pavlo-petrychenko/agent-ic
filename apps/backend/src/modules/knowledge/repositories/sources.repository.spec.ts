@@ -70,4 +70,38 @@ describe('SourcesRepository', () => {
     expect(deleted).toBe(true);
     expect(found).toBeNull();
   });
+
+  it('lists only active sources of a knowledge base newest first', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+
+    const first = await testbed.tenants.run(workspaceId, () =>
+      repository.insert({
+        ...newSource(testbed.ids.generate(), workspaceId, knowledgeBaseId),
+        title: 'First',
+      }),
+    );
+    testbed.clock.advanceBy(CLOCK_TICK_MS);
+    const second = await testbed.tenants.run(workspaceId, () =>
+      repository.insert({
+        ...newSource(testbed.ids.generate(), workspaceId, knowledgeBaseId),
+        title: 'Second',
+      }),
+    );
+    const third = await testbed.tenants.run(workspaceId, () =>
+      repository.insert({
+        ...newSource(testbed.ids.generate(), workspaceId, knowledgeBaseId),
+        title: 'Deleted',
+      }),
+    );
+    await testbed.tenants.run(workspaceId, () =>
+      repository.softDelete(workspaceId, third.id, KNOWLEDGE_TEST_LATER),
+    );
+
+    const listed = await testbed.tenants.run(workspaceId, () =>
+      repository.listByKnowledgeBase(workspaceId, knowledgeBaseId),
+    );
+
+    expect(listed.map(({ id }) => id)).toEqual([second.id, first.id]);
+  });
 });

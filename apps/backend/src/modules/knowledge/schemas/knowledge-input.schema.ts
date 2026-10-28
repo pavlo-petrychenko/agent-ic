@@ -42,3 +42,7 @@ export const createUploadInputSchema = z.object({
 export const confirmUploadInputSchema = z.object({
   [KnowledgeField.DocumentId]: recordIdSchema,
 });
+
+export const listKnowledgeSourcesInputSchema = z.object({
+  [KnowledgeField.KnowledgeBaseId]: recordIdSchema,
+});
