@@ -1,3 +1,5 @@
+import { GoogleDriveApiGateway } from '@/modules/knowledge/gateways/google-drive-api.gateway';
+import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.gateway';
 import { GoogleOAuthApiGateway } from '@/modules/knowledge/gateways/google-oauth-api.gateway';
 import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
 import { CleanUpWorkspaceListener } from '@/modules/knowledge/listeners/clean-up-workspace.listener';
@@ -18,6 +20,7 @@ import { DeleteKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/delet
 import { DeleteKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/delete-knowledge-source.resolver';
 import { KnowledgeBasesResolver } from '@/modules/knowledge/resolvers/knowledge-bases.resolver';
 import { KnowledgeConnectionsResolver } from '@/modules/knowledge/resolvers/knowledge-connections.resolver';
+import { KnowledgePickerResolver } from '@/modules/knowledge/resolvers/knowledge-picker.resolver';
 import { KnowledgeSourcesResolver } from '@/modules/knowledge/resolvers/knowledge-sources.resolver';
 import { KnowledgeUploadResolver } from '@/modules/knowledge/resolvers/knowledge-upload.resolver';
 import { RenameKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/rename-knowledge-base.resolver';
@@ -25,6 +28,7 @@ import { RenameKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/ren
 import { RetryKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/retry-knowledge-source.resolver';
 import { DocumentParserService } from '@/modules/knowledge/services/document-parser.service';
 import { DocumentSummaryService } from '@/modules/knowledge/services/document-summary.service';
+import { GoogleConnectionTokenService } from '@/modules/knowledge/services/google-connection-token.service';
 import { KnowledgeBaseViewsService } from '@/modules/knowledge/services/knowledge-base-views.service';
 import { KnowledgeConnectionViewsService } from '@/modules/knowledge/services/knowledge-connection-views.service';
 import { KnowledgeDocumentIngestionService } from '@/modules/knowledge/services/knowledge-document-ingestion.service';
@@ -35,6 +39,7 @@ import { CleanUpKnowledgeSourceFilesUseCase } from '@/modules/knowledge/use-case
 import { CleanUpKnowledgeWorkspaceFilesUseCase } from '@/modules/knowledge/use-cases/clean-up-knowledge-workspace-files.use-case';
 import { CompleteGoogleConnectionUseCase } from '@/modules/knowledge/use-cases/complete-google-connection.use-case';
 import { ConfirmUploadUseCase } from '@/modules/knowledge/use-cases/confirm-upload.use-case';
+import { CreateGooglePickerSessionUseCase } from '@/modules/knowledge/use-cases/create-google-picker-session.use-case';
 import { CreateKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/create-knowledge-base.use-case';
 import { CreateUploadUseCase } from '@/modules/knowledge/use-cases/create-upload.use-case';
 import { DeleteKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/delete-knowledge-base.use-case';
@@ -70,11 +75,14 @@ export class KnowledgeModule extends defineModule({
     KnowledgeSourceViewsService,
     KnowledgeConnectionViewsService,
     KnowledgeUploadTargetsService,
+    GoogleConnectionTokenService,
     { provide: GoogleOAuthGateway, useClass: GoogleOAuthApiGateway },
+    { provide: GoogleDriveGateway, useClass: GoogleDriveApiGateway },
     CleanUpKnowledgeSourceFilesUseCase,
     CleanUpKnowledgeWorkspaceFilesUseCase,
     CompleteGoogleConnectionUseCase,
     ConfirmUploadUseCase,
+    CreateGooglePickerSessionUseCase,
     CreateKnowledgeBaseUseCase,
     CreateUploadUseCase,
     DeleteKnowledgeBaseUseCase,
@@ -95,6 +103,7 @@ export class KnowledgeModule extends defineModule({
     DeleteKnowledgeSourceResolver,
     KnowledgeBasesResolver,
     KnowledgeConnectionsResolver,
+    KnowledgePickerResolver,
     KnowledgeSourcesResolver,
     KnowledgeUploadResolver,
     RenameKnowledgeBaseResolver,

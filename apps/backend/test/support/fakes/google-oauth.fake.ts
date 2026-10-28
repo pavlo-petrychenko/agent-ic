@@ -1,5 +1,6 @@
 import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
 import type {
+  GoogleAccessToken,
   GoogleAccount,
   GoogleAuthorizationUrlInput,
   GoogleCodeExchangeInput,
@@ -17,6 +18,7 @@ import {
 export class FakeGoogleOAuthGateway extends GoogleOAuthGateway {
   readonly authorizationInputs: GoogleAuthorizationUrlInput[] = [];
   readonly exchangeInputs: GoogleCodeExchangeInput[] = [];
+  readonly refreshInputs: string[] = [];
   readonly accessTokens: string[] = [];
   private tokenSet: GoogleTokenSet = {
     accessToken: TEST_GOOGLE_ACCESS_TOKEN,
@@ -27,6 +29,10 @@ export class FakeGoogleOAuthGateway extends GoogleOAuthGateway {
   private account: GoogleAccount = {
     subject: TEST_CONNECTION_SUBJECT,
     email: TEST_CONNECTION_EMAIL,
+  };
+  private accessToken: GoogleAccessToken = {
+    accessToken: TEST_GOOGLE_ACCESS_TOKEN,
+    expiresInSeconds: 3600,
   };
   private failure: Error | null = null;
 
@@ -41,10 +47,20 @@ export class FakeGoogleOAuthGateway extends GoogleOAuthGateway {
     return this.tokenSet;
   }
 
+  async refreshAccessToken(refreshToken: string): Promise<GoogleAccessToken> {
+    this.refreshInputs.push(refreshToken);
+    this.throwWhenFailed();
+    return this.accessToken;
+  }
+
   async userInfo(accessToken: string): Promise<GoogleAccount> {
     this.accessTokens.push(accessToken);
     this.throwWhenFailed();
     return this.account;
+  }
+
+  setAccessToken(token: GoogleAccessToken): void {
+    this.accessToken = token;
   }
 
   setTokens(tokens: Partial<GoogleTokenSet>): void {

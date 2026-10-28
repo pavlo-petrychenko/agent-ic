@@ -18,6 +18,14 @@ extend type Mutation {
   disconnectGoogleConnection(
     input: DisconnectGoogleConnectionInput!
   ): DisconnectGoogleConnectionPayload!
+  createGooglePickerSession(connectionId: ID!): GooglePickerSession!
+}
+
+type GooglePickerSession {
+  accessToken: String!
+  apiKey: String!
+  appId: String!
+  expiresAt: String!
 }
 
 type StartGoogleConnectionPayload {

@@ -8,6 +8,11 @@ export interface GoogleCodeExchangeInput {
   readonly codeVerifier: string;
 }
 
+export interface GoogleAccessToken {
+  readonly accessToken: string;
+  readonly expiresInSeconds: number;
+}
+
 export interface GoogleTokenSet {
   readonly accessToken: string;
   readonly refreshToken: string | null;

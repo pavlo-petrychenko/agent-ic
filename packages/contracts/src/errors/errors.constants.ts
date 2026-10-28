@@ -117,6 +117,7 @@ export enum ErrorReason {
   GoogleOAuthNotConfigured = 'GOOGLE_OAUTH_NOT_CONFIGURED',
   GoogleOAuthStateInvalid = 'GOOGLE_OAUTH_STATE_INVALID',
   GoogleOAuthFailed = 'GOOGLE_OAUTH_FAILED',
+  GooglePickerNotConfigured = 'GOOGLE_PICKER_NOT_CONFIGURED',
   PromptNameTaken = 'PROMPT_NAME_TAKEN',
   PromptFolderNameTaken = 'PROMPT_FOLDER_NAME_TAKEN',
   PromptFolderNotEmpty = 'PROMPT_FOLDER_NOT_EMPTY',
