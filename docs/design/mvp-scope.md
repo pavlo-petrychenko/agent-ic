@@ -116,21 +116,23 @@ An agent is a **versioned flow graph** built on a canvas. One agent can have sev
 ### 5.3 Knowledge bases
 Workspace-level resources, attached to agents many-to-many.
 
-**Sources:**
-- **Internal storage:** files uploaded, or pages written directly on the platform.
-- **External connectors:** Google Docs, Google Drive, Notion, ClickUp and more, through OAuth.
-- **Custom sources:** anything else, pushed in through the API.
+**Sources (MVP):**
+- **Uploads:** PDF, DOCX, TXT, MD, up to 20 MB; stored by us; replaced manually.
+- **Google Docs:** connect a Google account with read-only per-file access (`drive.file`), pick documents with Google Picker. Folder import is later and needs restricted-scope verification.
+- **Later:** ClickUp, Google Drive folders, Notion, pages written on the platform, custom sources via API.
 
-**Sync modes**, all four available per source:
-- one-time import;
-- scheduled re-sync;
-- manual re-sync (UI button or refresh endpoint);
-- real-time (the source's webhook calls our refresh endpoint).
+**Sync** per source:
+- an initial import when the source is created;
+- an always-available “Sync now” action for Google Docs;
+- an optional schedule (hourly, daily or weekly at a time in the workspace timezone).
+
+Uploads do not have a schedule; replacing the file re-indexes it. Real-time sync is later.
 
 **Under the hood:**
 - the platform chunks, embeds and indexes content, showing per-document index status and errors;
-- each attached KB becomes a search tool with an editable name and description;
-- a **retrieval playground** shows which chunks a query returns, with scores.
+- each document gets one AI-generated summary at first index; the user can edit it, and it is not regenerated on sync;
+- each attached KB becomes a `search_knowledge` tool with an editable name and description; the agent searches with a natural-language question and cannot browse or read the whole KB;
+- a **retrieval playground** shows which sections a query returns, with source and score.
 
 ### 5.4 Custom tools
 A tool has two halves. The **definition** is what the agent sees; the **implementation** is known only to the platform, so the agent never learns the endpoint.
@@ -273,9 +275,9 @@ It proves the core loop of the vision — **flow + knowledge + channel + human h
 | Prompt library | ✅ Yes | Folders, versions, pinning, variables |
 | Models and providers | ✅ Yes | A curated list of platform models (the default provider) + bring your own key for OpenAI, Anthropic, Google or any OpenAI-compatible API |
 | KB: upload | ✅ Yes | PDF, DOCX, TXT, MD |
-| KB: Google Docs, ClickUp | ✅ Yes | |
-| KB: Google Drive, Notion, pages written on the platform, custom sources via API | ❌ Later | |
-| KB: 4 sync modes, index status, playground | ✅ Yes | |
+| KB: Google Docs | ✅ Yes | Google Picker with `drive.file`; individual documents, no folder import |
+| KB: sync, index status, playground | ✅ Yes | Initial import, manual “Sync now”, optional schedule; uploads have no schedule |
+| KB: ClickUp, real-time sync, Google Drive folders, Notion, pages written on the platform, custom sources via API | ❌ Later | |
 | Custom tools, secrets vault, tool library | ❌ Later | |
 | Channel: Telegram | ✅ Yes | The user pastes a BotFather token; we host the webhook |
 | Channel: API | ✅ Yes | Per-channel secret key; replies in the response or to a webhook; external events |
@@ -383,7 +385,7 @@ Each use case lists the main path, then variations and errors, and the screens i
    - Event notifications
    - Questions with routing
    - Start from scratch
-2. **Knowledge:** upload files or connect Google Docs or ClickUp into a new or existing KB. A "Try it as you go" preview answers from what has been added so far → `QuickStart`.
+2. **Knowledge:** upload files or connect Google Docs into a new or existing KB. A "Try it as you go" preview answers from what has been added so far → `QuickStart`.
 3. **Channel:** Telegram (paste a BotFather token) and/or API → `QuickStart-Channel`.
 4. **Publish:** a checklist summary, plus who gets escalation alerts and how → `QuickStart-Publish`.
 5. **Live:** links to the bot, the API key, the flow builder, team invites and alert setup → `QuickStart-Live`.
@@ -429,17 +431,17 @@ Each use case lists the main path, then variations and errors, and the screens i
 1. Create a KB → `Knowledge-Empty`.
 2. Add sources (`Knowledge-AddSource*`):
    - **Upload:** PDF, DOCX, TXT, MD, up to 20 MB each. Unsupported files are skipped with a reason. Uploads don't sync; uploading a new version replaces the old chunks.
-   - **Google Docs:** connect an account (read-only), pick documents or a folder.
-   - **ClickUp:** connect (read-only), pick docs from a space.
-   - **Sync mode** per source: one-time import, scheduled re-sync (hourly, daily or weekly at a time), manual (button or refresh endpoint), or real-time (re-index on change).
+   - **Google Docs:** connect an account (read-only per-file access), pick documents with Google Picker. Folder import is later.
+   - **Sync** per source: an initial import, an always-available “Sync now” button, and an optional schedule (hourly, daily or weekly at a time). Uploads have no schedule; real-time sync is later.
 3. Watch the index status for each source (`Knowledge`):
    - indexed with N chunks, indexing %, or an error such as "access revoked" → reconnect;
    - re-sync one source or all.
-4. Set **how agents see the KB**: the search-tool name and description the LLM receives.
-5. Check retrieval in the **playground**: query → top results with scores.
-6. Attach the KB to an Agent step.
+4. Review each document summary: one AI-generated line at first index; edit it if needed. The UI says it is not auto-updated and that editing re-indexes the document.
+5. Set **how agents see the KB**: the search-tool name and description the LLM receives.
+6. Check retrieval in the **playground**: query → top sections with source and score.
+7. Attach the KB to an Agent step.
 
-**Deleting a KB** warns which agents and versions use it → `Knowledge-Delete`.
+**Deleting a KB** is blocked while any current agent draft or live version uses it; the dialog lists those agents → `Knowledge-Delete`.
 
 ### UC-9 · Connect channels
 **Telegram:**
@@ -628,22 +630,25 @@ The run is marked failed, and Agents shows "N runs failed today".
 ### 12.7 Knowledge
 - KB = name, description and search-tool name + description (what the LLM sees).
 - **Sources:**
-  - upload (PDF, DOCX, TXT, MD, ≤20 MB)
-  - Google Docs (docs or folder, read-only OAuth)
-  - ClickUp (docs from a space, read-only)
-- **Sync modes:**
-  - one-time
-  - scheduled (hourly / daily / weekly at a time)
-  - manual (UI button + refresh endpoint)
-  - real-time (provider change notifications / webhooks)
+  - upload (PDF, DOCX, TXT, MD, ≤20 MB), stored by us and replaced manually;
+  - Google Docs (Google Picker with `drive.file`; individual documents, no folder import).
+  - ClickUp and Google Drive folders are later.
+- **Sync:**
+  - initial import;
+  - “Sync now” button;
+  - optional schedule (hourly / daily / weekly at a time).
+
+  Uploads have no schedule. Real-time sync is later.
 - **Pipeline:** fetch → parse → chunk → embed → index. Status per source:
   - indexed with chunk count
   - indexing %
   - error with reason (access revoked, unsupported file…)
   - last sync time
-- Re-sync replaces that source's chunks atomically (agents never see a half-indexed source).
-- Retrieval playground: query → top 3 chunks with scores and source.
-- Deleting a KB warns about the agents and versions that use it.
+- Re-sync replaces that document's chunks atomically; agents never see a half-indexed document. The old generation stays searchable until the new one is ready.
+- Summary: one AI-generated line at first index; the user can edit it, it is not auto-updated, and editing re-indexes the document. The UI states this.
+- Uploads and parsed Markdown are kept in object storage; originals stay available for re-indexing.
+- Retrieval playground: query → top sections with scores, source and section.
+- Deleting a KB is blocked while any current agent draft or live version uses it; the dialog lists the agents.
 
 ### 12.8 Channels
 - **Telegram bot:**
@@ -774,7 +779,7 @@ Workspace ─ InviteLink (role, expires_at, token)
 Workspace ─< Agent ─< AgentVersion (n, status: draft|published, flow JSON, note, author)
                   └─ live_version_id, paused
 Workspace ─< Prompt ─< PromptVersion (n, text, variables)        Folder
-Workspace ─< KnowledgeBase ─< Source (type, sync_mode, schedule, status) ─< Chunk (embedding)
+Workspace ─< KnowledgeBase ─< Source (type, schedule, status) ─< Chunk (embedding)
 Workspace ─< Channel (type: telegram|api, agent_id, encrypted token | key hash, reply_mode, webhook_url)
 Workspace ─< ProviderKey (provider, encrypted key)
 Channel ─< Conversation (end_user_id, state, handled_by, closed_at) ─< Message (author, text)
@@ -792,7 +797,7 @@ Workspace ─ UsageCounter (month, credits, conversations, chunks)
 | Agents | `Agents-Empty`, `Agents-Empty-UK`, `Agents`, `Agents-RowMenu`, `Agents-Pause`, `Agents-Delete`, `Agents-LimitReached`, `Agents-AccountMenu` |
 | Quick-start | `QuickStart-Template`, `QuickStart`, `QuickStart-Channel`, `QuickStart-Channel-Error`, `QuickStart-Publish`, `QuickStart-Live` |
 | Flow builder | `FlowBuilder` (Agent step), `FB-Blank`, `FB-Trigger-Message`, `FB-Trigger-Event`, `FB-Trigger-Schedule`, `FB-Completion`, `FB-Parallel`, `FB-Router`, `FB-ApiRequest`, `FB-SendMessage`, `FB-Escalation`, `FB-Publish` |
-| Prompts & knowledge | `Prompts`, `Knowledge-Empty`, `Knowledge`, `Knowledge-AddSource` (Google Docs), `Knowledge-AddSource-Upload`, `Knowledge-AddSource-ClickUp`, `Knowledge-Delete` |
+| Prompts & knowledge | `Prompts`, `Knowledge-Empty`, `Knowledge`, `Knowledge-AddSource` (Google Docs), `Knowledge-AddSource-Upload`, `Knowledge-Delete` |
 | Channels | `Channels-Empty`, `Channels-Telegram-New`, `Channels`, `Channels-Telegram-Broken`, `Channels-Telegram-Disconnect`, `Channels-API-New`, `Channels-API-Key`, `Channels-API`, `Channels-API-Delete` |
 | Inbox | `Inbox`, `Inbox-Waiting`, `Inbox-Taken`, `Inbox-HandedBack`, `Inbox-Close`, `Inbox-Empty`, `Inbox-Operator`, `Operator-Alerts`, `NoAccess` |
 | Testing & analytics | `Testing`, `Testing-Event`, `Testing-Escalation`, `Testing-Versions`, `Testing-Versions-Restore`, `Analytics` |
@@ -802,7 +807,7 @@ Workspace ─ UsageCounter (month, credits, conversations, chunks)
 ## 16. Suggested build order
 
 1. **Foundation:** auth, workspaces, membership, built-in roles, invite link, app shell (EN/UK).
-2. **Knowledge & prompts:** KB with upload first, then Google Docs and ClickUp with sync modes; prompt library with versions.
+2. **Knowledge & prompts:** KB with upload first, then Google Docs with initial import, manual re-sync and an optional schedule; retrieval playground; prompt library with versions.
 3. **Flow engine + builder:** flow JSON format, run queue, Incoming message trigger, Agent (KB search), Completion, Router, Parallel, Send message; Langfuse tracing; simulator.
 4. **Channels & release:** Telegram and API channels; publish, versions, restore; quick-start.
 5. **Operate:** Escalation step, Inbox (take over, hand back, close), notifications (in-app, email, Telegram alerts bot).
@@ -813,7 +818,7 @@ Workspace ─ UsageCounter (month, credits, conversations, chunks)
 1. ~~**Paused agent default**~~ — resolved: the user chooses in the pause dialog: new messages go to the Inbox, or get an away message written by the user, sent once per conversation per pause.
 2. ~~**Closing a chat**~~ — resolved: the customer's next message starts a fresh conversation with the agent.
 3. **API channel without a webhook:** block publishing an agent that can escalate or message proactively, or only warn?
-4. **Real-time sync:** feasibility for Google Docs (Drive change notifications) and ClickUp (webhooks); fall back to frequent scheduled sync if limited.
+4. ~~**Real-time sync:** feasibility for Google Docs (Drive change notifications) and ClickUp (webhooks); fall back to frequent scheduled sync if limited.~~ Resolved: real-time sync is out of the MVP. Google Docs uses `drive.file` + Google Picker with an initial import, manual re-sync and an optional schedule; folder import waits for the restricted scope (ADR 0024).
 5. **Limit values:** the design uses placeholders (e.g. 10,000 conversations, 5,000 chunks per month). Set the real numbers.
 6. ~~**Platform models**~~ — resolved: no tiers; a curated model list (`architecture.md` D81–D84, D90).
 7. ~~**Conversation history window**~~ — resolved: no limit; steps get the whole conversation (`architecture.md` D192). Compaction can be added later in one place if it is ever needed.

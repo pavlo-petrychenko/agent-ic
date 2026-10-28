@@ -1,6 +1,6 @@
 # 0011. Knowledge base ingestion and retrieval
 
-- **Status:** Accepted
+- **Status:** Accepted; refined by [0024](0024-knowledge-sources-storage-and-sync.md): sources, storage, sync, per-document generations, agent tools and the BM25 term index
 - **Date:** 2026-10-02
 - **Research:** [docs/research/knowledge-retrieval.md](../research/knowledge-retrieval.md)
 
