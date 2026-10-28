@@ -33,6 +33,16 @@ describe('DocumentParserService', () => {
     expect(result.title).toBe('Workspace guide');
   });
 
+  it('rejects a file whose bytes do not match its declared type', async () => {
+    await expect(
+      service.parse({
+        bytes: Buffer.from('not a PDF'),
+        fileName: 'guide.pdf',
+        mimeType: 'application/pdf',
+      }),
+    ).rejects.toMatchObject({ code: DocumentParseErrorCode.SignatureMismatch });
+  });
+
   it('rejects an unsupported document type', async () => {
     await expect(
       service.parse({

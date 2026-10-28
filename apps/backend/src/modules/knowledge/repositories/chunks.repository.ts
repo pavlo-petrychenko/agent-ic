@@ -1,9 +1,11 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
+import { KNOWLEDGE_WRITE_BATCH_SIZE } from '@/modules/knowledge/constants/knowledge.constants';
 import { chunks } from '@/modules/knowledge/db/chunks.table';
 import type { Chunk, ChunkChanges, NewChunk } from '@/modules/knowledge/typedefs/chunk.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
+import { rowBatches } from '@/platform/database/helpers/row-batch.helpers';
 import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
@@ -21,6 +23,13 @@ export class ChunksRepository {
         .values({ ...chunk, createdAt: this.clock.now() })
         .returning(),
     );
+  }
+
+  async insertMany(chunksToInsert: readonly NewChunk[]): Promise<void> {
+    const createdAt = this.clock.now();
+    for (const batch of rowBatches(chunksToInsert, KNOWLEDGE_WRITE_BATCH_SIZE)) {
+      await this.txHost.tx.insert(chunks).values(batch.map((chunk) => ({ ...chunk, createdAt })));
+    }
   }
 
   async findById(workspaceId: string, chunkId: string): Promise<Chunk | null> {

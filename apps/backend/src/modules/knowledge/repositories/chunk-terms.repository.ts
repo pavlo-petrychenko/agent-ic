@@ -1,12 +1,14 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
+import { KNOWLEDGE_WRITE_BATCH_SIZE } from '@/modules/knowledge/constants/knowledge.constants';
 import { chunkTerms } from '@/modules/knowledge/db/chunk-terms.table';
 import type {
   ChunkTerm,
   ChunkTermChanges,
   NewChunkTerm,
 } from '@/modules/knowledge/typedefs/chunk-term.typedefs';
+import { rowBatches } from '@/platform/database/helpers/row-batch.helpers';
 import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
@@ -16,6 +18,12 @@ export class ChunkTermsRepository {
 
   async insert(chunkTerm: NewChunkTerm): Promise<ChunkTerm> {
     return storedRow(await this.txHost.tx.insert(chunkTerms).values(chunkTerm).returning());
+  }
+
+  async insertMany(chunkTermsToInsert: readonly NewChunkTerm[]): Promise<void> {
+    for (const batch of rowBatches(chunkTermsToInsert, KNOWLEDGE_WRITE_BATCH_SIZE)) {
+      await this.txHost.tx.insert(chunkTerms).values([...batch]);
+    }
   }
 
   async find(workspaceId: string, chunkId: string, term: string): Promise<ChunkTerm | null> {

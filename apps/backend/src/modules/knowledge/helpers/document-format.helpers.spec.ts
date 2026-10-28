@@ -2,7 +2,10 @@ import { KnowledgeDocumentFormat } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
 import { DocumentParseErrorCode } from '@/modules/knowledge/constants/document-parser.constants';
 import { DocumentParseError } from '@/modules/knowledge/errors/document-parse.error';
-import { resolveDocumentFormat } from '@/modules/knowledge/helpers/document-format.helpers';
+import {
+  documentBytesMatchFormat,
+  resolveDocumentFormat,
+} from '@/modules/knowledge/helpers/document-format.helpers';
 
 const failureOf = (action: () => unknown): unknown => {
   try {
@@ -47,5 +50,29 @@ describe('resolveDocumentFormat', () => {
 
     expect(failure).toBeInstanceOf(DocumentParseError);
     expect(failure).toMatchObject({ code: DocumentParseErrorCode.UnsupportedType });
+  });
+});
+
+describe('documentBytesMatchFormat', () => {
+  it('checks the PDF and DOCX magic bytes', () => {
+    expect(documentBytesMatchFormat(KnowledgeDocumentFormat.Pdf, Buffer.from('%PDF-1.7\n'))).toBe(
+      true,
+    );
+    expect(documentBytesMatchFormat(KnowledgeDocumentFormat.Pdf, Buffer.from('not a pdf'))).toBe(
+      false,
+    );
+    expect(
+      documentBytesMatchFormat(KnowledgeDocumentFormat.Docx, Buffer.from([0x50, 0x4b, 0x03, 0x04])),
+    ).toBe(true);
+    expect(documentBytesMatchFormat(KnowledgeDocumentFormat.Docx, Buffer.from('plain'))).toBe(
+      false,
+    );
+  });
+
+  it('does not restrict text and Markdown files to a signature', () => {
+    expect(documentBytesMatchFormat(KnowledgeDocumentFormat.Txt, Buffer.from('text'))).toBe(true);
+    expect(documentBytesMatchFormat(KnowledgeDocumentFormat.Markdown, Buffer.from('# text'))).toBe(
+      true,
+    );
   });
 });

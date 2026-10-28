@@ -7,6 +7,7 @@ export enum DocumentParseErrorCode {
   TooManyTokens = 'DOCUMENT_TOO_MANY_TOKENS',
   Empty = 'DOCUMENT_EMPTY',
   Unreadable = 'DOCUMENT_UNREADABLE',
+  SignatureMismatch = 'DOCUMENT_SIGNATURE_MISMATCH',
   PdfHasNoText = 'PDF_HAS_NO_TEXT',
 }
 
@@ -22,6 +23,8 @@ export const DOCUMENT_PARSE_ERROR_MESSAGE: Readonly<Record<DocumentParseErrorCod
   [DocumentParseErrorCode.TooManyTokens]: 'The document has too many tokens.',
   [DocumentParseErrorCode.Empty]: 'The document has no extractable text.',
   [DocumentParseErrorCode.Unreadable]: 'The document could not be read.',
+  [DocumentParseErrorCode.SignatureMismatch]:
+    'The file contents do not match the declared document type.',
   [DocumentParseErrorCode.PdfHasNoText]: 'The PDF contains no extractable text.',
 };
 
@@ -31,6 +34,8 @@ export const DOCUMENT_UNTITLED_TITLE = 'Untitled document';
 export const DOCUMENT_MIME_TYPE_SEPARATOR = ';';
 export const DOCUMENT_PATH_SEPARATOR = '/';
 export const DOCUMENT_WINDOWS_PATH_SEPARATOR = '\\';
+export const DOCUMENT_PDF_SIGNATURE = '%PDF-';
+export const DOCUMENT_ZIP_SIGNATURE: readonly number[] = [0x50, 0x4b, 0x03, 0x04];
 export const PDF_PAGE_SEPARATOR = '\n\n';
 export const DOCX_EMPTY_IMAGE_PATTERN = /!\[[^\]]*\]\(\)/g;
 

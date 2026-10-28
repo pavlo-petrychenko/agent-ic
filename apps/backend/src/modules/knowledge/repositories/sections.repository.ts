@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
+import { KNOWLEDGE_WRITE_BATCH_SIZE } from '@/modules/knowledge/constants/knowledge.constants';
 import { sections } from '@/modules/knowledge/db/sections.table';
 import type {
   NewSection,
@@ -8,6 +9,7 @@ import type {
   SectionChanges,
 } from '@/modules/knowledge/typedefs/section.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
+import { rowBatches } from '@/platform/database/helpers/row-batch.helpers';
 import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
@@ -25,6 +27,15 @@ export class SectionsRepository {
         .values({ ...section, createdAt: this.clock.now() })
         .returning(),
     );
+  }
+
+  async insertMany(sectionsToInsert: readonly NewSection[]): Promise<void> {
+    const createdAt = this.clock.now();
+    for (const batch of rowBatches(sectionsToInsert, KNOWLEDGE_WRITE_BATCH_SIZE)) {
+      await this.txHost.tx
+        .insert(sections)
+        .values(batch.map((section) => ({ ...section, createdAt })));
+    }
   }
 
   async findById(workspaceId: string, sectionId: string): Promise<Section | null> {
@@ -60,6 +71,24 @@ export class SectionsRepository {
     const deleted = await this.txHost.tx
       .delete(sections)
       .where(and(eq(sections.workspaceId, workspaceId), eq(sections.kbId, knowledgeBaseId)))
+      .returning({ id: sections.id });
+    return deleted.length;
+  }
+
+  async deleteByDocumentGeneration(
+    workspaceId: string,
+    documentId: string,
+    generation: number,
+  ): Promise<number> {
+    const deleted = await this.txHost.tx
+      .delete(sections)
+      .where(
+        and(
+          eq(sections.workspaceId, workspaceId),
+          eq(sections.documentId, documentId),
+          eq(sections.generation, generation),
+        ),
+      )
       .returning({ id: sections.id });
     return deleted.length;
   }

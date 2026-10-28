@@ -1,6 +1,7 @@
 export const KNOWLEDGE_SCHEMA = 'knowledge';
 
 export const KNOWLEDGE_EMBEDDING_DIMENSIONS = 1024;
+export const KNOWLEDGE_WRITE_BATCH_SIZE = 1000;
 
 export const KNOWLEDGE_MIN_HEADING_LEVEL = 1;
 export const KNOWLEDGE_MAX_HEADING_LEVEL = 6;
