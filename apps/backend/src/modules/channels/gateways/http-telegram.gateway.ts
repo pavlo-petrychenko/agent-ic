@@ -8,6 +8,7 @@ import {
 } from '@/modules/channels/constants/telegram.constants';
 import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
+import { toTelegramUpdate } from '@/modules/channels/helpers/telegram-update.helpers';
 import { telegramReplyMarkup } from '@/modules/channels/helpers/telegram.helpers';
 import type {
   TelegramMeResponse,
@@ -22,7 +23,6 @@ import type {
   SendTelegramMessageInput,
   SetTelegramWebhookInput,
   TelegramBot,
-  TelegramMessage,
   TelegramUpdate,
   TelegramWebhookInfo,
 } from '@/modules/channels/typedefs/telegram.typedefs';
@@ -168,20 +168,3 @@ export class HttpTelegramGateway extends TelegramGateway {
     }
   }
 }
-
-const toTelegramUpdate = (update: TelegramUpdateResponse): TelegramUpdate => ({
-  updateId: String(update.update_id),
-  message: update.message === undefined ? null : toTelegramMessage(update.message),
-});
-
-const toTelegramMessage = (message: TelegramMessageResponse): TelegramMessage => {
-  const sender = message.from;
-  return {
-    messageId: String(message.message_id),
-    sentAt: new Date(message.date * MILLISECONDS_PER_SECOND),
-    chatId: String(message.chat.id),
-    senderId: sender === undefined ? null : String(sender.id),
-    senderName: sender?.first_name ?? null,
-    text: message.text ?? null,
-  };
-};
