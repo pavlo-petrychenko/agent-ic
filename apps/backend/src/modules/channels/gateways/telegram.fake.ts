@@ -1,6 +1,8 @@
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import type {
   GetTelegramUpdatesInput,
+  SendTelegramChatActionInput,
+  SendTelegramMessageInput,
   SetTelegramWebhookInput,
   TelegramBot,
   TelegramUpdate,
@@ -21,6 +23,8 @@ export class FakeTelegramGateway extends TelegramGateway {
   readonly deleteWebhookCalls: string[] = [];
   readonly getWebhookInfoCalls: string[] = [];
   readonly getUpdatesCalls: GetTelegramUpdatesInput[] = [];
+  readonly sendMessageCalls: SendTelegramMessageInput[] = [];
+  readonly sendChatActionCalls: SendTelegramChatActionInput[] = [];
   private readonly failures: Error[] = [];
 
   failNext(error: Error): void {
@@ -64,6 +68,16 @@ export class FakeTelegramGateway extends TelegramGateway {
   getUpdates(input: GetTelegramUpdatesInput): Promise<TelegramUpdate[]> {
     this.getUpdatesCalls.push(input);
     return this.respond(this.updates.splice(0));
+  }
+
+  sendMessage(input: SendTelegramMessageInput): Promise<void> {
+    this.sendMessageCalls.push(input);
+    return this.respond(undefined);
+  }
+
+  sendChatAction(input: SendTelegramChatActionInput): Promise<void> {
+    this.sendChatActionCalls.push(input);
+    return this.respond(undefined);
   }
 
   private async respond<TResult>(result: TResult): Promise<TResult> {

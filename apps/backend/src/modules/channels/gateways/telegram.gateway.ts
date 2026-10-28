@@ -1,5 +1,7 @@
 import type {
   GetTelegramUpdatesInput,
+  SendTelegramChatActionInput,
+  SendTelegramMessageInput,
   SetTelegramWebhookInput,
   TelegramBot,
   TelegramUpdate,
@@ -16,4 +18,8 @@ export abstract class TelegramGateway {
   abstract getWebhookInfo(token: string): Promise<TelegramWebhookInfo>;
 
   abstract getUpdates(input: GetTelegramUpdatesInput): Promise<TelegramUpdate[]>;
+
+  abstract sendMessage(input: SendTelegramMessageInput): Promise<void>;
+
+  abstract sendChatAction(input: SendTelegramChatActionInput): Promise<void>;
 }

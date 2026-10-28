@@ -1,4 +1,7 @@
-import type { TelegramUpdateType } from '@/modules/channels/constants/telegram.constants';
+import type {
+  TelegramChatAction,
+  TelegramUpdateType,
+} from '@/modules/channels/constants/telegram.constants';
 
 export interface TelegramBot {
   readonly id: string;
@@ -45,6 +48,28 @@ export interface SetTelegramWebhookInput {
   readonly url: string;
   readonly secret: string;
   readonly allowedUpdates: readonly TelegramUpdateType[];
+}
+
+export interface SendTelegramMessageInput {
+  readonly token: string;
+  readonly chatId: string;
+  readonly text: string;
+  readonly quickReplies: readonly string[];
+}
+
+export interface SendTelegramChatActionInput {
+  readonly token: string;
+  readonly chatId: string;
+  readonly action: TelegramChatAction;
+}
+
+export interface TelegramInlineKeyboardButton {
+  readonly text: string;
+  readonly callback_data: string;
+}
+
+export interface TelegramReplyMarkup {
+  readonly inline_keyboard: readonly (readonly TelegramInlineKeyboardButton[])[];
 }
 
 export interface TelegramConnectionCredentials {
