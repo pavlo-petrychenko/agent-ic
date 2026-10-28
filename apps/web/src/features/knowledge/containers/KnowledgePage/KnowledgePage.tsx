@@ -1,8 +1,9 @@
 import { can, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { useNavigate } from '@tanstack/react-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useKnowledgeBases } from '@/features/knowledge/communication/hooks/useKnowledgeBases';
+import { AddSourceType } from '@/features/knowledge/constants/googleConnection.constants';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import { DeleteKnowledgeBaseDialog } from '@/features/knowledge/containers/DeleteKnowledgeBaseDialog';
 import type { KnowledgePageProps } from '@/features/knowledge/containers/KnowledgePage/KnowledgePage.typedefs';
@@ -26,7 +27,11 @@ import { Breadcrumb } from '@/shared/ui/navigation/Breadcrumb';
 import { SecondaryNav } from '@/shared/ui/navigation/SecondaryNav';
 import { HeadingElement } from '@/shared/ui/typography/Heading';
 
-export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: KnowledgePageProps) {
+export function KnowledgePage({
+  workspaceId,
+  selectedKnowledgeBaseId,
+  googleConnected,
+}: KnowledgePageProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
   const navigate = useNavigate();
   const { knowledgeBases, loading, failed, retry } = useKnowledgeBases();
@@ -42,6 +47,7 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
     knowledgeBases.find((knowledgeBase) => knowledgeBase.id === selectedKnowledgeBaseId) ??
     knowledgeBases[0] ??
     null;
+  const selectedId = selected?.id ?? null;
   const groups =
     knowledgeBases.length === 0
       ? []
@@ -78,6 +84,18 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
       replace: true,
     });
   };
+
+  useEffect(() => {
+    if (!googleConnected || loading) {
+      return;
+    }
+    void navigate({
+      to: '/w/$workspaceId/knowledge',
+      params: { workspaceId },
+      search: selectedId === null ? {} : { kb: selectedId },
+      replace: true,
+    });
+  }, [googleConnected, loading, navigate, selectedId, workspaceId]);
 
   return (
     <div className="flex h-full min-h-0">
@@ -146,8 +164,10 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
           ) : (
             <KnowledgeSourcesSection
               key={selected.id}
+              workspaceId={workspaceId}
               knowledgeBaseId={selected.id}
               knowledgeBaseName={selected.name}
+              initialAddSource={googleConnected && canEdit ? AddSourceType.GoogleDocs : null}
               canAddSource={canEdit}
               canManageSources={canEdit}
               onCountsChanged={refreshKnowledgeBases}

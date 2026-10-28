@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useDisconnectGoogleConnection } from '@/features/knowledge/communication/hooks/useDisconnectGoogleConnection';
+import { useKnowledgeConnections } from '@/features/knowledge/communication/hooks/useKnowledgeConnections';
+import { useStartGoogleConnection } from '@/features/knowledge/communication/hooks/useStartGoogleConnection';
 import { useUploadKnowledgeSource } from '@/features/knowledge/communication/hooks/useUploadKnowledgeSource';
+import { AddSourceType } from '@/features/knowledge/constants/googleConnection.constants';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import {
   KNOWLEDGE_UPLOAD_MAX_MEGABYTES,
@@ -10,27 +14,48 @@ import {
 import type { AddSourceDialogProps } from '@/features/knowledge/containers/AddSourceDialog/AddSourceDialog.typedefs';
 import { useAddSourceFiles } from '@/features/knowledge/containers/AddSourceDialog/useAddSourceFiles';
 import {
+  redirectToGoogle,
+  saveGoogleConnectionReturn,
+} from '@/features/knowledge/logic/helpers/googleConnection.helpers';
+import {
   formatKnowledgeFileSize,
   knowledgeFileMimeType,
   knowledgeFileTypeLabel,
 } from '@/features/knowledge/logic/helpers/knowledgeUpload.helpers';
+import type { GoogleConnection } from '@/features/knowledge/typedefs/googleConnection.typedefs';
 import type {
   SelectedKnowledgeFile,
   SelectedKnowledgeFileView,
 } from '@/features/knowledge/typedefs/knowledgeUpload.typedefs';
 import { AddSourceModal } from '@/features/knowledge/view/AddSourceModal';
+import { GoogleConnectionPanel } from '@/features/knowledge/view/GoogleConnectionPanel';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
+import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
 export function AddSourceDialog({
+  workspaceId,
   knowledgeBaseId,
   knowledgeBaseName,
+  initialSourceType = AddSourceType.Upload,
   onClose,
   onUploaded,
 }: AddSourceDialogProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
+  const { showToast } = useToast();
   const errorMessage = useErrorMessage();
   const { uploadKnowledgeSource } = useUploadKnowledgeSource();
+  const [sourceType, setSourceType] = useState<AddSourceType>(initialSourceType);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const googleEnabled = sourceType === AddSourceType.GoogleDocs;
+  const {
+    connections,
+    loading: connectionsLoading,
+    failed: connectionsFailed,
+    retry: retryConnections,
+  } = useKnowledgeConnections(googleEnabled);
+  const { startGoogleConnection, starting } = useStartGoogleConnection();
+  const { disconnectGoogleConnection, disconnectingId } = useDisconnectGoogleConnection();
   const {
     files,
     readyCount,
@@ -108,9 +133,34 @@ export function AddSourceDialog({
     }
   };
 
+  const connect = async () => {
+    setConnectionError(null);
+    try {
+      const authorizationUrl = await startGoogleConnection();
+      saveGoogleConnectionReturn({ workspaceId, knowledgeBaseId });
+      redirectToGoogle(authorizationUrl);
+    } catch (failure) {
+      setConnectionError(errorMessage(toAppError(failure)));
+    }
+  };
+
+  const disconnect = async (connection: GoogleConnection) => {
+    setConnectionError(null);
+    try {
+      await disconnectGoogleConnection(connection.id);
+      showToast({
+        message: t('add.googleConnection.disconnectSuccess'),
+        tone: ToastTone.Ok,
+      });
+    } catch (failure) {
+      showToast({ message: errorMessage(toAppError(failure)), tone: ToastTone.Err });
+    }
+  };
+
   return (
     <AddSourceModal
       knowledgeBaseName={knowledgeBaseName}
+      sourceType={sourceType}
       files={viewFiles}
       readyCount={readyCount}
       uploadingCount={uploadingCount}
@@ -118,6 +168,20 @@ export function AddSourceDialog({
       failedCount={failedCount}
       skippedCount={skippedCount}
       uploading={uploading}
+      googleContent={
+        <GoogleConnectionPanel
+          connections={connections}
+          loading={connectionsLoading}
+          failed={connectionsFailed}
+          errorMessage={connectionError}
+          starting={starting}
+          disconnectingId={disconnectingId}
+          onConnect={() => void connect()}
+          onDisconnect={(connection) => void disconnect(connection)}
+          onRetry={() => void retryConnections()}
+        />
+      }
+      onSourceTypeChange={setSourceType}
       onFiles={addFiles}
       onRemoveFile={removeFile}
       onSubmit={() => void submit()}

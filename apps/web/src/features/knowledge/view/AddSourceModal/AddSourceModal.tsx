@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { AddSourceType } from '@/features/knowledge/constants/googleConnection.constants';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import {
   KNOWLEDGE_UPLOAD_MAX_MEGABYTES,
@@ -21,6 +22,7 @@ const SOURCE_CHECK_STROKE_WIDTH = 2.2;
 
 export function AddSourceModal({
   knowledgeBaseName,
+  sourceType,
   files,
   readyCount,
   uploadingCount,
@@ -28,12 +30,15 @@ export function AddSourceModal({
   failedCount,
   skippedCount,
   uploading,
+  googleContent,
+  onSourceTypeChange,
   onFiles,
   onRemoveFile,
   onSubmit,
   onClose,
 }: AddSourceModalProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
+  const isUpload = sourceType === AddSourceType.Upload;
   const actionCount = readyCount + failedCount;
   const summary =
     files.length === 0
@@ -84,23 +89,34 @@ export function AddSourceModal({
       closeLabel={t('dialog.close')}
       size={DialogSize.Xl}
       flush
-      footerLeft={<span className={styles.summary}>{summary}</span>}
+      footerLeft={isUpload ? <span className={styles.summary}>{summary}</span> : null}
       footerRight={
-        <>
-          <Button variant={ButtonVariant.Secondary} disabled={uploading} onClick={onClose}>
-            {t('dialog.cancel')}
+        isUpload ? (
+          <>
+            <Button variant={ButtonVariant.Secondary} disabled={uploading} onClick={onClose}>
+              {t('dialog.cancel')}
+            </Button>
+            <Button loading={uploading} disabled={actionCount === 0} onClick={onSubmit}>
+              {submitLabel}
+            </Button>
+          </>
+        ) : (
+          <Button variant={ButtonVariant.Secondary} onClick={onClose}>
+            {t('dialog.close')}
           </Button>
-          <Button loading={uploading} disabled={actionCount === 0} onClick={onSubmit}>
-            {submitLabel}
-          </Button>
-        </>
+        )
       }
     >
       <div className={styles.layout}>
         <aside className={styles.rail} aria-label={t('add.sourceTypeLabel')}>
           <div className={styles.group}>
             <span className={styles.groupLabel}>{t('add.uploadGroup')}</span>
-            <div className={styles.typeCardSelected}>
+            <button
+              type="button"
+              className={isUpload ? styles.typeCardSelected : styles.typeCard}
+              disabled={uploading}
+              onClick={() => onSourceTypeChange(AddSourceType.Upload)}
+            >
               <span className={styles.typeIcon}>
                 <Icon name={IconName.Upload} size={UPLOAD_ICON_SIZE} />
               </span>
@@ -108,21 +124,25 @@ export function AddSourceModal({
                 <span className={styles.typeTitle}>{t('add.uploadTitle')}</span>
                 <span className={styles.typeDescription}>{t('add.uploadDescription')}</span>
               </span>
-              <span className={styles.selectedMark}>
-                <Icon
-                  name={IconName.Check}
-                  size={SOURCE_CHECK_ICON_SIZE}
-                  strokeWidth={SOURCE_CHECK_STROKE_WIDTH}
-                />
-              </span>
-            </div>
+              {isUpload ? (
+                <span className={styles.selectedMark}>
+                  <Icon
+                    name={IconName.Check}
+                    size={SOURCE_CHECK_ICON_SIZE}
+                    strokeWidth={SOURCE_CHECK_STROKE_WIDTH}
+                  />
+                </span>
+              ) : null}
+            </button>
           </div>
           <div className={styles.group}>
-            <div className={styles.groupHeading}>
-              <span className={styles.groupLabel}>{t('add.connectGroup')}</span>
-              <Badge tone={BadgeTone.Outline}>{t('add.soon')}</Badge>
-            </div>
-            <button type="button" className={styles.typeCard} disabled>
+            <span className={styles.groupLabel}>{t('add.connectGroup')}</span>
+            <button
+              type="button"
+              className={isUpload ? styles.typeCard : styles.typeCardSelected}
+              disabled={uploading}
+              onClick={() => onSourceTypeChange(AddSourceType.GoogleDocs)}
+            >
               <span className={styles.typeIcon}>
                 <Icon name={IconName.Note} size={UPLOAD_ICON_SIZE} />
               </span>
@@ -130,62 +150,80 @@ export function AddSourceModal({
                 <span className={styles.typeTitle}>{t('add.googleDocsTitle')}</span>
                 <span className={styles.typeDescription}>{t('add.googleDocsDescription')}</span>
               </span>
+              {isUpload ? null : (
+                <span className={styles.selectedMark}>
+                  <Icon
+                    name={IconName.Check}
+                    size={SOURCE_CHECK_ICON_SIZE}
+                    strokeWidth={SOURCE_CHECK_STROKE_WIDTH}
+                  />
+                </span>
+              )}
             </button>
             <button type="button" className={styles.typeCard} disabled>
               <span className={styles.typeIcon}>
                 <Icon name={IconName.Note} size={UPLOAD_ICON_SIZE} />
               </span>
               <span className={styles.typeText}>
-                <span className={styles.typeTitle}>{t('add.clickUpTitle')}</span>
+                <span className={styles.typeTitleRow}>
+                  <span className={styles.typeTitle}>{t('add.clickUpTitle')}</span>
+                  <Badge tone={BadgeTone.Outline}>{t('add.soon')}</Badge>
+                </span>
                 <span className={styles.typeDescription}>{t('add.clickUpDescription')}</span>
               </span>
             </button>
           </div>
         </aside>
         <div className={styles.content}>
-          <DropZone
-            title={t('add.dropTitle')}
-            dragTitle={(count) => t('add.dropDrag', { count })}
-            browseLabel={t('add.browse')}
-            hint={t('add.hint', { max: KNOWLEDGE_UPLOAD_MAX_MEGABYTES })}
-            disabled={uploading}
-            onFiles={onFiles}
-            formatResult={(count) => t('add.filesSelected', { count })}
-          />
-          {files.length === 0 ? null : (
-            <div className={styles.files}>
-              <span className={styles.filesTitle}>{t('add.selectedFiles')}</span>
-              <FileRowList aria-label={t('add.selectedFiles')} className={styles.fileList}>
-                {files.map((file) => (
-                  <FileRow
-                    key={file.id}
-                    icon={
-                      <Icon
-                        name={IconName.Note}
-                        size={UPLOAD_ICON_SIZE}
-                        className={styles.fileIcon}
+          {isUpload ? (
+            <>
+              <DropZone
+                title={t('add.dropTitle')}
+                dragTitle={(count) => t('add.dropDrag', { count })}
+                browseLabel={t('add.browse')}
+                hint={t('add.hint', { max: KNOWLEDGE_UPLOAD_MAX_MEGABYTES })}
+                disabled={uploading}
+                onFiles={onFiles}
+                formatResult={(count) => t('add.filesSelected', { count })}
+              />
+              {files.length === 0 ? null : (
+                <div className={styles.files}>
+                  <span className={styles.filesTitle}>{t('add.selectedFiles')}</span>
+                  <FileRowList aria-label={t('add.selectedFiles')} className={styles.fileList}>
+                    {files.map((file) => (
+                      <FileRow
+                        key={file.id}
+                        icon={
+                          <Icon
+                            name={IconName.Note}
+                            size={UPLOAD_ICON_SIZE}
+                            className={styles.fileIcon}
+                          />
+                        }
+                        name={file.name}
+                        subtitle={file.subtitle}
+                        status={
+                          <Badge tone={STATUS_TONES[file.status]} dot>
+                            {statusLabel(file.status)}
+                          </Badge>
+                        }
+                        disabled={
+                          uploading ||
+                          file.status === KnowledgeFileStatus.Uploading ||
+                          file.status === KnowledgeFileStatus.Uploaded
+                        }
+                        removeLabel={t('add.remove')}
+                        onRemove={() => onRemoveFile(file.id)}
                       />
-                    }
-                    name={file.name}
-                    subtitle={file.subtitle}
-                    status={
-                      <Badge tone={STATUS_TONES[file.status]} dot>
-                        {statusLabel(file.status)}
-                      </Badge>
-                    }
-                    disabled={
-                      uploading ||
-                      file.status === KnowledgeFileStatus.Uploading ||
-                      file.status === KnowledgeFileStatus.Uploaded
-                    }
-                    removeLabel={t('add.remove')}
-                    onRemove={() => onRemoveFile(file.id)}
-                  />
-                ))}
-              </FileRowList>
-            </div>
+                    ))}
+                  </FileRowList>
+                </div>
+              )}
+              <Callout tone={CalloutTone.Neutral}>{t('add.info')}</Callout>
+            </>
+          ) : (
+            googleContent
           )}
-          <Callout tone={CalloutTone.Neutral}>{t('add.info')}</Callout>
         </div>
       </div>
     </Dialog>
