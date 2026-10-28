@@ -6,6 +6,7 @@ import {
   KNOWLEDGE_UPLOADS_ROOT,
 } from '@/modules/knowledge/constants/knowledge-storage.constants';
 import { documentFileName } from '@/modules/knowledge/helpers/document-file-name.helpers';
+import { STORAGE_KEY_SEPARATOR } from '@/platform/storage/constants/storage.constants';
 import { workspaceStorageKey } from '@/platform/storage/helpers/storage-key.helpers';
 
 const originalFileName = (fileName: string, version: string): string =>
@@ -13,6 +14,9 @@ const originalFileName = (fileName: string, version: string): string =>
 
 const contentFileName = (generation: number): string =>
   `${KNOWLEDGE_CONTENT_FILE_STEM}-${generation}.md`;
+
+export const knowledgeWorkspaceStoragePrefix = (workspaceId: string): string =>
+  `${workspaceStorageKey(workspaceId, KNOWLEDGE_STORAGE_ROOT)}${STORAGE_KEY_SEPARATOR}`;
 
 export const knowledgeUploadStorageKey = (
   workspaceId: string,

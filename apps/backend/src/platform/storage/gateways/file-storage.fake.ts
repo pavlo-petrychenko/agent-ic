@@ -43,6 +43,14 @@ export class FakeFileStorage extends FileStorage {
     this.objects.delete(key);
   }
 
+  async deletePrefix(prefix: string): Promise<void> {
+    for (const key of Array.from(this.objects.keys())) {
+      if (key.startsWith(prefix)) {
+        this.objects.delete(key);
+      }
+    }
+  }
+
   async copy(sourceKey: string, targetKey: string): Promise<void> {
     const source = this.objects.get(sourceKey);
     if (source === undefined) {

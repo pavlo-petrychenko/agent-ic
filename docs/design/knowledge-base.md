@@ -383,6 +383,7 @@ abstract class FileStorage {
   abstract get(key: string): Promise<Readable>;
   abstract head(key: string): Promise<StoredObject | null>;
   abstract delete(key: string): Promise<void>;
+  abstract deletePrefix(prefix: string): Promise<void>;
   abstract presignPut(key: string, contentType: string, expiresInSeconds: number): Promise<string>;
   abstract presignGet(key: string, expiresInSeconds: number): Promise<string>;
 }
@@ -606,7 +607,7 @@ A race is theoretically possible: a flow can be published after the delete scan 
 - **Delete knowledge base:** lock the KB and refuse with `KNOWLEDGE_BASE_HAS_SOURCES` while any active source still belongs to it. Sources are deleted one by one, never by deleting their KB. Once the KB has no sources, run the usage scan, mark the KB `deleted_at`, and delete sections/chunks/terms. A KB delete leaves source and document rows and their files alone.
 - **Disconnect Google connection:** blocked while any source row still references it, including a soft-deleted source waiting for cleanup, with `KNOWLEDGE_CONNECTION_IN_USE`. Otherwise the sealed token is deleted with the row.
 - **Delete a document removed by Google:** explicit 404/trashed → `status = 'removed'`, `deleted_at` set, cleanup job deletes its objects. A transient error never does this.
-- **Workspace deletion:** the `workspaceDeletedEvent` listener enqueues a cleanup job for all knowledge files of that workspace, mirroring prompts.
+- **Workspace deletion:** deleting the workspace row hard-deletes every knowledge-base, connection, source, document, section, chunk, term, sync-run and embedding-cache row through the `workspace_id` cascade. The `workspaceDeletedEvent` listener then enqueues a durable `clean-up-knowledge-workspace-files` job, which deletes every stored object under `workspaces/{workspaceId}/knowledge/`.
 
 The cleanup job is durable and idempotent: a missing object is not an error, and a retry deletes the rows only after storage succeeds. If the job is lost, the soft-deleted rows remain hidden from all reads and a future sweep can retry.
 
@@ -1220,6 +1221,7 @@ export const chunkTerms = knowledgeSchema
 | `ingest-knowledge-source` | `ingest` | `{ sourceId, syncRunId }` | yes | Run one source sync: fetch, parse, chunk, embed, index |
 | `reindex-knowledge-document` | `ingest` | `{ documentId }` | yes | Rebuild a document after a summary edit; no summary generation |
 | `clean-up-knowledge-source-files` | `timers` | `{ sourceId }` | yes | Delete S3 objects and hard-delete a soft-deleted source and its documents |
+| `clean-up-knowledge-workspace-files` | `timers` | `{ workspaceId }` | yes | Delete every stored knowledge file after its workspace is deleted |
 | `clean-up-knowledge-sync-runs` | `timers` | `{}` | no | Delete sync runs older than 90 days |
 | `clean-up-knowledge-embeddings` | `timers` | `{}` | no | Delete stale embedding-cache rows |
 
@@ -1233,7 +1235,7 @@ export const chunkTerms = knowledgeSchema
 ### 12.2 Events
 
 - `knowledge.sync-failed` is emitted after a run ends `failed` or `partial` with a user-actionable error. A notifications listener may send an email to owners and admins; the MVP can start with in-app only if notifications is not ready.
-- `workspaceDeletedEvent` is consumed by a listener that enqueues the knowledge cleanup for the workspace.
+- `workspaceDeletedEvent` is emitted durably and consumed by a listener that enqueues the knowledge file cleanup for the workspace.
 
 No event is emitted per document; the source status and the `sync_runs` row are enough for the UI.
 

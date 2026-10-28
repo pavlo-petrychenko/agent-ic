@@ -1,5 +1,6 @@
 import { PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
+import { WORKSPACE_DELETED_EMIT_OPTIONS } from '@/modules/identity/constants/identity-event.constants';
 import { DELETE_WORKSPACE_RATE_LIMIT } from '@/modules/identity/constants/rate-limit.constants';
 import { WorkspaceNameMismatchError } from '@/modules/identity/errors/workspace-name-mismatch.error';
 import { WrongPasswordError } from '@/modules/identity/errors/wrong-password.error';
@@ -45,7 +46,12 @@ export class DeleteWorkspaceUseCase {
         throw new WorkspaceNameMismatchError();
       }
       await this.workspaces.delete(access.workspaceId);
-      await this.domainEvents.emit(ctx, workspaceDeletedEvent, { workspaceId: access.workspaceId });
+      await this.domainEvents.emit(
+        ctx,
+        workspaceDeletedEvent,
+        { workspaceId: access.workspaceId },
+        WORKSPACE_DELETED_EMIT_OPTIONS,
+      );
       return true;
     });
   }

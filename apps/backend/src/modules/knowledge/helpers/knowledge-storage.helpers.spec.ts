@@ -3,6 +3,7 @@ import {
   knowledgeContentStorageKey,
   knowledgeOriginalStorageKey,
   knowledgeUploadStorageKey,
+  knowledgeWorkspaceStoragePrefix,
 } from '@/modules/knowledge/helpers/knowledge-storage.helpers';
 
 describe('knowledge storage keys', () => {
@@ -16,5 +17,9 @@ describe('knowledge storage keys', () => {
     expect(knowledgeContentStorageKey('ws', 'doc', 3)).toBe(
       'workspaces/ws/knowledge/documents/doc/content-3.md',
     );
+  });
+
+  it('scopes the workspace cleanup prefix to the knowledge folder', () => {
+    expect(knowledgeWorkspaceStoragePrefix('ws')).toBe('workspaces/ws/knowledge/');
   });
 });
