@@ -48,6 +48,14 @@ export class ChunkTermsRepository {
     return deleted.length > 0;
   }
 
+  async deleteByKnowledgeBase(workspaceId: string, knowledgeBaseId: string): Promise<number> {
+    const deleted = await this.txHost.tx
+      .delete(chunkTerms)
+      .where(and(eq(chunkTerms.workspaceId, workspaceId), eq(chunkTerms.kbId, knowledgeBaseId)))
+      .returning({ chunkId: chunkTerms.chunkId });
+    return deleted.length;
+  }
+
   private termWhere(workspaceId: string, chunkId: string, term: string) {
     return and(
       eq(chunkTerms.workspaceId, workspaceId),

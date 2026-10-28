@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useKnowledgeBases } from '@/features/knowledge/communication/hooks/useKnowledgeBases';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
+import { DeleteKnowledgeBaseDialog } from '@/features/knowledge/containers/DeleteKnowledgeBaseDialog';
 import type { KnowledgePageProps } from '@/features/knowledge/containers/KnowledgePage/KnowledgePage.typedefs';
 import { NewKnowledgeBaseDialog } from '@/features/knowledge/containers/NewKnowledgeBaseDialog';
 import { knowledgeBasePath } from '@/features/knowledge/logic/helpers/knowledgeRoute.helpers';
+import type { KnowledgeBase } from '@/features/knowledge/typedefs/knowledgeBase.typedefs';
 import { KnowledgeEmpty } from '@/features/knowledge/view/KnowledgeEmpty';
 import { KnowledgeSourcesEmpty } from '@/features/knowledge/view/KnowledgeSourcesEmpty';
 import { useActiveWorkspace } from '@/features/workspace';
@@ -25,8 +27,11 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
   const { knowledgeBases, loading, failed, retry } = useKnowledgeBases();
   const active = useActiveWorkspace(workspaceId);
   const [creating, setCreating] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<KnowledgeBase | null>(null);
   const canCreate =
     active !== null && can(active.role, PermissionResource.KnowledgeBases, PermissionAction.Edit);
+  const canDelete =
+    active !== null && can(active.role, PermissionResource.KnowledgeBases, PermissionAction.Delete);
   const selected =
     knowledgeBases.find((knowledgeBase) => knowledgeBase.id === selectedKnowledgeBaseId) ??
     knowledgeBases[0] ??
@@ -82,6 +87,13 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
           subtitle={
             selected === null ? t('subtitle') : t('detail.subtitle', { count: selected.chunkCount })
           }
+          actions={
+            selected !== null && canDelete ? (
+              <Button variant={ButtonVariant.Danger} onClick={() => setDeleteTarget(selected)}>
+                {t('delete.action')}
+              </Button>
+            ) : null
+          }
         />
         <div className="px-7 pt-5">
           {failed ? (
@@ -108,6 +120,13 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
       </div>
       {creating && (
         <NewKnowledgeBaseDialog onClose={() => setCreating(false)} onCreated={onCreated} />
+      )}
+      {deleteTarget !== null && (
+        <DeleteKnowledgeBaseDialog
+          workspaceId={workspaceId}
+          knowledgeBase={deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+        />
       )}
     </div>
   );

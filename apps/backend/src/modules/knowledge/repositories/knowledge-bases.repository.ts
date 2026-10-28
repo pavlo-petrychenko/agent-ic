@@ -44,6 +44,18 @@ export class KnowledgeBasesRepository {
     return knowledgeBase ?? null;
   }
 
+  async findByIdForUpdate(
+    workspaceId: string,
+    knowledgeBaseId: string,
+  ): Promise<KnowledgeBase | null> {
+    const [knowledgeBase] = await this.txHost.tx
+      .select()
+      .from(knowledgeBases)
+      .where(this.activeWhere(workspaceId, eq(knowledgeBases.id, knowledgeBaseId)))
+      .for('update');
+    return knowledgeBase ?? null;
+  }
+
   async findByName(workspaceId: string, name: string): Promise<KnowledgeBase | null> {
     const [knowledgeBase] = await this.txHost.tx
       .select()

@@ -85,6 +85,8 @@
     "CANNOT_CHANGE_ADMIN_ROLE": "Лише власник може змінити роль адміністратора.",
     "WRONG_PASSWORD": "Неправильний пароль.",
     "KNOWLEDGE_BASE_NAME_TAKEN": "База знань із такою назвою вже існує.",
+    "KNOWLEDGE_BASE_NOT_FOUND": "Цієї бази знань не існує.",
+    "KNOWLEDGE_BASE_HAS_SOURCES": "Спершу видаліть джерела з цієї бази знань.",
     "PROMPT_NAME_TAKEN": "Промпт із такою назвою вже існує.",
     "PROMPT_FOLDER_NAME_TAKEN": "Папка з такою назвою вже існує.",
     "PROMPT_FOLDER_NOT_EMPTY": "Перенесіть промпти з цієї папки, перш ніж видаляти її.",

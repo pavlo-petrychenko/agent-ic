@@ -441,7 +441,7 @@ Each use case lists the main path, then variations and errors, and the screens i
 6. Check retrieval in the **playground**: query → top sections with source and score.
 7. Attach the KB to an Agent step.
 
-**Deleting a KB** is blocked while any current agent draft or live version uses it; the dialog lists those agents → `Knowledge-Delete`.
+**Deleting a KB** is blocked while it still has sources and while any current agent draft or live version uses it; sources are deleted first, and the dialog lists the agent usages → `Knowledge-Delete`.
 
 ### UC-9 · Connect channels
 **Telegram:**

@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, eq, isNull } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
 import { sources } from '@/modules/knowledge/db/sources.table';
 import type {
   NewSource,
@@ -32,7 +33,7 @@ export class SourcesRepository {
     const [source] = await this.txHost.tx
       .select()
       .from(sources)
-      .where(this.activeWhere(workspaceId, sourceId));
+      .where(this.activeWhere(workspaceId, eq(sources.id, sourceId)));
     return source ?? null;
   }
 
@@ -44,7 +45,7 @@ export class SourcesRepository {
     const [source] = await this.txHost.tx
       .update(sources)
       .set({ ...changes, updatedAt: this.clock.now() })
-      .where(this.activeWhere(workspaceId, sourceId))
+      .where(this.activeWhere(workspaceId, eq(sources.id, sourceId)))
       .returning();
     return source ?? null;
   }
@@ -53,11 +54,16 @@ export class SourcesRepository {
     return (await this.update(workspaceId, sourceId, { deletedAt })) !== null;
   }
 
-  private activeWhere(workspaceId: string, sourceId: string) {
-    return and(
-      eq(sources.workspaceId, workspaceId),
-      eq(sources.id, sourceId),
-      isNull(sources.deletedAt),
-    );
+  async hasActiveByKnowledgeBase(workspaceId: string, knowledgeBaseId: string): Promise<boolean> {
+    const [source] = await this.txHost.tx
+      .select({ id: sources.id })
+      .from(sources)
+      .where(this.activeWhere(workspaceId, eq(sources.kbId, knowledgeBaseId)))
+      .limit(1);
+    return source !== undefined;
+  }
+
+  private activeWhere(workspaceId: string, ...conditions: SQL[]): SQL | undefined {
+    return and(eq(sources.workspaceId, workspaceId), isNull(sources.deletedAt), ...conditions);
   }
 }

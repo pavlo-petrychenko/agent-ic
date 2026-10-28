@@ -52,7 +52,7 @@ Preparing takes time, so it happens in the background. The user sees “Queued�
 - A user can create a knowledge base, upload a PDF or pick Google Docs, and see a clear status until the content is searchable.
 - A customer question with paraphrased wording finds the right passage, while exact names, prices and codes still match.
 - Re-sync never exposes a half-indexed document: the old generation stays searchable until the new one flips.
-- Deleting a knowledge base is impossible while any current agent draft or live version uses it.
+- Deleting a knowledge base is impossible while it still has sources or while any current agent draft or live version uses it.
 - The agent cannot read the whole knowledge base and cannot browse it; each search is focused and bounded.
 
 ---
@@ -596,7 +596,7 @@ A race is theoretically possible: a flow can be published after the delete scan 
 ### 9.3 Delete flow
 
 - **Delete source:** mark the source and its documents `deleted_at`, delete sections, chunks and terms immediately, enqueue a durable `clean-up-knowledge-source-files` job with `{ sourceId }`. The job reads the soft-deleted document keys, deletes the original and Markdown objects, then hard-deletes the documents and source.
-- **Delete knowledge base:** lock the KB, run the usage scan, mark the KB, its sources and documents `deleted_at`, delete sections/chunks/terms, enqueue a durable `clean-up-knowledge-base-files` job with `{ knowledgeBaseId }`. The job deletes every object and then hard-deletes documents, sources and the KB.
+- **Delete knowledge base:** lock the KB and refuse with `KNOWLEDGE_BASE_HAS_SOURCES` while any active source still belongs to it. Sources are deleted one by one, never by deleting their KB. Once the KB has no sources, run the usage scan, mark the KB `deleted_at`, and delete sections/chunks/terms. A KB delete leaves source and document rows and their files alone.
 - **Disconnect Google connection:** blocked while any source row still references it, including a soft-deleted source waiting for cleanup, with `KNOWLEDGE_CONNECTION_IN_USE`. Otherwise the sealed token is deleted with the row.
 - **Delete a document removed by Google:** explicit 404/trashed → `status = 'removed'`, `deleted_at` set, cleanup job deletes its objects. A transient error never does this.
 - **Workspace deletion:** the `workspaceDeletedEvent` listener enqueues a cleanup job for all knowledge files of that workspace, mirroring prompts.
@@ -613,7 +613,7 @@ modules/knowledge/
 ├── index.ts                              KnowledgeModule + KnowledgeSearchService
 ├── graphql/knowledge.graphql
 ├── resolvers/                            knowledge-bases, sources, documents, search, usage, google
-├── processors/                           ingest-knowledge-source, reindex-knowledge-document, clean-up-knowledge-source-files, clean-up-knowledge-base-files
+├── processors/                           ingest-knowledge-source, reindex-knowledge-document, clean-up-knowledge-source-files
 ├── listeners/                            clean-up-workspace
 ├── use-cases/                            create/update/delete KB, upload, sync, schedule, update document summary, Google OAuth
 ├── services/                             search, ingestion, usage, flow-reference-checker, google connections
@@ -1209,7 +1209,6 @@ export const chunkTerms = knowledgeSchema
 | `ingest-knowledge-source` | `ingest` | `{ sourceId }` | yes | Run one source sync: fetch, parse, chunk, embed, index |
 | `reindex-knowledge-document` | `ingest` | `{ documentId }` | yes | Rebuild a document after a summary edit; no summary generation |
 | `clean-up-knowledge-source-files` | `timers` | `{ sourceId }` | yes | Delete S3 objects and hard-delete a soft-deleted source and its documents |
-| `clean-up-knowledge-base-files` | `timers` | `{ knowledgeBaseId }` | yes | Delete S3 objects and hard-delete a soft-deleted KB, sources and documents |
 | `clean-up-knowledge-sync-runs` | `timers` | `{}` | no | Delete sync runs older than 90 days |
 | `clean-up-knowledge-embeddings` | `timers` | `{}` | no | Delete stale embedding-cache rows |
 
@@ -1259,7 +1258,7 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 |---|---|---|
 | `createKnowledgeBase` | edit | Name, description, tool identity |
 | `updateKnowledgeBase` | edit | Rename, description, tool name/description |
-| `deleteKnowledgeBase` | delete | In-use guard |
+| `deleteKnowledgeBase` | delete | Sources and in-use guard |
 | `createUpload` | edit | Returns presigned PUT + document id; optional `sourceId` replaces an upload |
 | `confirmUpload` | edit | Validates object, creates or updates source/document, enqueues |
 | `createGoogleDocsSource` | edit | Validates picked docs, creates source + documents |
@@ -1312,7 +1311,7 @@ Behaviour:
 - **Upload hook:** call `createUpload`, PUT with `XMLHttpRequest` for progress, call `confirmUpload`, then subscribe/refetch. Errors show the server reason.
 - **Document summary:** show the one-line summary with an “AI-generated once” or “Edited by you” badge. Helper text says it is not updated automatically and that editing it re-indexes the document. The edit dialog calls `updateDocumentSummary`; saving shows the document as `indexing` until the new generation is ready.
 - **Google Picker:** load the Google script on demand, call `createGooglePickerSession`, open the Picker filtered to Google Docs, send selected ids to `createGoogleDocsSource`.
-- **Delete dialog:** query usages first; if non-empty, list agents/versions and disable confirmation. The mutation is still the authority.
+- **Delete dialog:** explains that the KB itself is deleted; the mutation refuses a KB that still has sources with `KNOWLEDGE_BASE_HAS_SOURCES` and the dialog tells the user to delete the sources first. Once the usages work is built, the dialog also lists agent usages and disables confirmation; the mutation is still the authority.
 - **Playground:** query input, top results, score bar, source/document/section labels, empty state.
 - **i18n:** every label in `en` and `uk`.
 

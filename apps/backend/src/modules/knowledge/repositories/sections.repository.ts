@@ -55,4 +55,12 @@ export class SectionsRepository {
       .returning({ id: sections.id });
     return deleted.length > 0;
   }
+
+  async deleteByKnowledgeBase(workspaceId: string, knowledgeBaseId: string): Promise<number> {
+    const deleted = await this.txHost.tx
+      .delete(sections)
+      .where(and(eq(sections.workspaceId, workspaceId), eq(sections.kbId, knowledgeBaseId)))
+      .returning({ id: sections.id });
+    return deleted.length;
+  }
 }
