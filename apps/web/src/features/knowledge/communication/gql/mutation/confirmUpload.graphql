@@ -1,0 +1,18 @@
+mutation ConfirmUpload($input: ConfirmUploadInput!) {
+  confirmUpload(input: $input) {
+    id
+    knowledgeBaseId
+    kind
+    title
+    status
+    syncInterval
+    nextSyncAt
+    lastSyncAt
+    lastErrorCode
+    lastErrorMessage
+    documentCount
+    chunkCount
+    createdAt
+    updatedAt
+  }
+}

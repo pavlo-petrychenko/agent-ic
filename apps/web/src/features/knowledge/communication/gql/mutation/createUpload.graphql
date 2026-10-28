@@ -1,0 +1,6 @@
+mutation CreateUpload($input: CreateUploadInput!) {
+  createUpload(input: $input) {
+    documentId
+    uploadUrl
+  }
+}

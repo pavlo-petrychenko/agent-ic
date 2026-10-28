@@ -8,6 +8,7 @@ export interface SelectedKnowledgeFile {
   readonly file: File;
   readonly status: KnowledgeFileStatus;
   readonly reason: KnowledgeFileSkipReason | null;
+  readonly error: string | null;
 }
 
 export interface SelectedKnowledgeFileView {
