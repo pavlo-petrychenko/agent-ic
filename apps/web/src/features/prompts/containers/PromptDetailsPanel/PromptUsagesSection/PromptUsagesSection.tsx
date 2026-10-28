@@ -6,7 +6,12 @@ import type { PromptUsagesSectionProps } from '@/features/prompts/containers/Pro
 import { PromptUsages } from '@/features/prompts/view/PromptUsages';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
-export function PromptUsagesSection({ usages, failed, onRetry }: PromptUsagesSectionProps) {
+export function PromptUsagesSection({
+  usages,
+  failed,
+  onRetry,
+  onOpenUsage,
+}: PromptUsagesSectionProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
 
   const body = () => {
@@ -23,7 +28,7 @@ export function PromptUsagesSection({ usages, failed, onRetry }: PromptUsagesSec
         </Text>
       );
     }
-    return <PromptUsages usages={usages} />;
+    return <PromptUsages usages={usages} onOpenUsage={onOpenUsage} />;
   };
 
   return (

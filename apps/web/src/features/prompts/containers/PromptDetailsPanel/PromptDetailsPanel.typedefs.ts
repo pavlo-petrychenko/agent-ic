@@ -9,6 +9,7 @@ export interface PromptDetailsPanelProps {
   readonly usages: readonly PromptUsageItem[] | null;
   readonly usagesFailed: boolean;
   readonly onRetryUsages: () => void;
+  readonly onOpenUsage: (usage: PromptUsageItem) => void;
   readonly variablePaths: readonly string[];
 }
 
