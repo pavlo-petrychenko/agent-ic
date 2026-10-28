@@ -1,0 +1,6 @@
+mutation StartGoogleConnection {
+  startGoogleConnection {
+    authorizationUrl
+    expiresAt
+  }
+}
