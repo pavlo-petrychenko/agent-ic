@@ -110,7 +110,12 @@
     "ROLE_BASE_INVALID": "Choose an existing role as the base.",
     "ROLE_REPLACEMENT_INVALID": "Members cannot be moved to this role.",
     "KNOWLEDGE_SOURCE_NOT_FOUND": "This source does not exist.",
-    "KNOWLEDGE_SOURCE_NOT_RETRYABLE": "Only failed sources can be retried."
+    "KNOWLEDGE_SOURCE_NOT_RETRYABLE": "Only failed sources can be retried.",
+    "KNOWLEDGE_CONNECTION_NOT_FOUND": "This Google account is no longer connected.",
+    "KNOWLEDGE_CONNECTION_IN_USE": "Disconnect the sources that use this Google account first.",
+    "GOOGLE_OAUTH_NOT_CONFIGURED": "Google Docs is not available right now.",
+    "GOOGLE_OAUTH_STATE_INVALID": "The Google sign-in link has expired. Try connecting again.",
+    "GOOGLE_OAUTH_FAILED": "Google sign-in failed. Try again."
   },
   "code": {
     "NOT_FOUND": "We could not find what you asked for.",

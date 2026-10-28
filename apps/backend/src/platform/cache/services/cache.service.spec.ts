@@ -79,6 +79,14 @@ describe('CacheService', () => {
     expect(await cache.get(entry)).toBeNull();
   });
 
+  it('reads an entry once and removes it', async () => {
+    const entry = profileEntry(randomUUID());
+    await cache.set(entry, PROFILE);
+
+    expect(await cache.take(entry)).toEqual(PROFILE);
+    expect(await cache.get(entry)).toBeNull();
+  });
+
   it('loads a missing value once and serves it from the cache after', async () => {
     const entry = profileEntry(randomUUID());
     const load = vi.fn<() => Promise<Profile>>(() => Promise.resolve(PROFILE));

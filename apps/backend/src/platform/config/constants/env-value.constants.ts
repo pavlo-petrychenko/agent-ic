@@ -12,3 +12,5 @@ export const PUBLIC_URL_PROTOCOL = /^https?$/;
 export const PLATFORM_ADMIN_DEV_ACCESS_IN_PRODUCTION_MESSAGE =
   'platform admin dev access is not allowed in production';
 export const OTEL_ENDPOINT_REQUIRED_MESSAGE = 'is required when OTEL_SDK_DISABLED is false';
+export const GOOGLE_CONFIG_REQUIRED_MESSAGE =
+  'is required when another Google OAuth variable is set';

@@ -66,6 +66,9 @@ export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.SmtpUser]: '',
   [EnvVar.SmtpPassword]: '',
   [EnvVar.ResendApiKey]: 'test-resend-key',
+  [EnvVar.GoogleClientId]: 'test-google-client-id',
+  [EnvVar.GoogleClientSecret]: 'test-google-client-secret',
+  [EnvVar.GoogleOAuthRedirectUri]: 'https://app.agent-ic.test/oauth/google/callback',
 };
 
 export const TEST_ARGV_PREFIX: readonly string[] = ['node', 'main'];

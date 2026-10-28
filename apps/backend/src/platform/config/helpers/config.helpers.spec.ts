@@ -192,6 +192,42 @@ describe('loadAppConfig', () => {
     expect(config.langfuse.mode).toBe(LangfuseMode.Cloud);
   });
 
+  it('reads the Google OAuth settings', () => {
+    const config = loadAppConfig(roleOf(Role.Api), createTestEnv());
+
+    expect(config.google).toEqual({
+      enabled: true,
+      clientId: 'test-google-client-id',
+      clientSecret: 'test-google-client-secret',
+      redirectUri: 'https://app.agent-ic.test/oauth/google/callback',
+    });
+  });
+
+  it('accepts disabled Google OAuth without credentials', () => {
+    const env = createTestEnv({
+      [EnvVar.GoogleClientId]: undefined,
+      [EnvVar.GoogleClientSecret]: undefined,
+      [EnvVar.GoogleOAuthRedirectUri]: undefined,
+    });
+
+    const config = loadAppConfig(roleOf(Role.Api), env);
+
+    expect(config.google).toEqual({ enabled: false });
+  });
+
+  it('requires every Google OAuth variable when one is set', () => {
+    const env = createTestEnv({
+      [EnvVar.GoogleClientSecret]: undefined,
+      [EnvVar.GoogleOAuthRedirectUri]: undefined,
+    });
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+    expect(variablesOf(issues).toSorted()).toEqual(
+      [EnvVar.GoogleClientSecret, EnvVar.GoogleOAuthRedirectUri].toSorted(),
+    );
+  });
+
   it('reads the telemetry resource and sampler settings', () => {
     const env = createTestEnv({ [EnvVar.OtelTracesSamplerArg]: '0.25' });
 

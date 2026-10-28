@@ -1,5 +1,6 @@
 export enum HttpHeader {
   Authorization = 'authorization',
+  Accept = 'accept',
   AcceptLanguage = 'accept-language',
   ContentType = 'content-type',
   Cookie = 'cookie',

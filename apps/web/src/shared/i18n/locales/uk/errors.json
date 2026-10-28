@@ -110,7 +110,12 @@
     "ROLE_BASE_INVALID": "Оберіть наявну роль як основу.",
     "ROLE_REPLACEMENT_INVALID": "Учасників не можна перевести на цю роль.",
     "KNOWLEDGE_SOURCE_NOT_FOUND": "Цього джерела не існує.",
-    "KNOWLEDGE_SOURCE_NOT_RETRYABLE": "Повторити можна лише джерела з помилкою."
+    "KNOWLEDGE_SOURCE_NOT_RETRYABLE": "Повторити можна лише джерела з помилкою.",
+    "KNOWLEDGE_CONNECTION_NOT_FOUND": "Цей обліковий запис Google більше не підключено.",
+    "KNOWLEDGE_CONNECTION_IN_USE": "Спершу від'єднайте джерела, які використовують цей обліковий запис Google.",
+    "GOOGLE_OAUTH_NOT_CONFIGURED": "Google Docs зараз недоступний.",
+    "GOOGLE_OAUTH_STATE_INVALID": "Посилання для входу через Google прострочене. Спробуйте підключитися ще раз.",
+    "GOOGLE_OAUTH_FAILED": "Не вдалося увійти через Google. Спробуйте ще раз."
   },
   "code": {
     "NOT_FOUND": "Не вдалося знайти те, що ви шукаєте.",
