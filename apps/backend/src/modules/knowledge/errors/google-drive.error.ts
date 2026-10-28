@@ -19,3 +19,12 @@ export class GoogleDriveExportTooLargeError extends DomainError {
     super('the selected Google document is too large');
   }
 }
+
+export class GoogleDocsSelectionInvalidError extends DomainError {
+  readonly kind = DomainErrorKind.ValidationFailed;
+  readonly reason = ErrorReason.KnowledgeDocumentInvalid;
+
+  constructor() {
+    super('none of the selected Google documents can be read');
+  }
+}

@@ -19,6 +19,7 @@ extend type Mutation {
     input: DisconnectGoogleConnectionInput!
   ): DisconnectGoogleConnectionPayload!
   createGooglePickerSession(connectionId: ID!): GooglePickerSession!
+  createGoogleDocsSource(input: CreateGoogleDocsSourceInput!): CreateGoogleDocsSourcePayload!
 }
 
 type GooglePickerSession {
@@ -26,6 +27,37 @@ type GooglePickerSession {
   apiKey: String!
   appId: String!
   expiresAt: String!
+}
+
+input GooglePickedDocumentInput {
+  id: String!
+  name: String!
+  mimeType: String!
+  url: String
+  resourceKey: String
+}
+
+input CreateGoogleDocsSourceInput {
+  knowledgeBaseId: ID!
+  connectionId: ID!
+  documents: [GooglePickedDocumentInput!]!
+}
+
+enum GooglePickerSkipReason {
+  unavailable
+  unsupported
+  trashed
+}
+
+type GooglePickerSkippedDocument {
+  id: String!
+  name: String!
+  reason: GooglePickerSkipReason!
+}
+
+type CreateGoogleDocsSourcePayload {
+  source: KnowledgeSource!
+  skipped: [GooglePickerSkippedDocument!]!
 }
 
 type StartGoogleConnectionPayload {

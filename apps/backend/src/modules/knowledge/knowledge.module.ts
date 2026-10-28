@@ -29,6 +29,7 @@ import { RetryKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/retr
 import { DocumentParserService } from '@/modules/knowledge/services/document-parser.service';
 import { DocumentSummaryService } from '@/modules/knowledge/services/document-summary.service';
 import { GoogleConnectionTokenService } from '@/modules/knowledge/services/google-connection-token.service';
+import { GoogleDocsContentService } from '@/modules/knowledge/services/google-docs-content.service';
 import { KnowledgeBaseViewsService } from '@/modules/knowledge/services/knowledge-base-views.service';
 import { KnowledgeConnectionViewsService } from '@/modules/knowledge/services/knowledge-connection-views.service';
 import { KnowledgeDocumentIngestionService } from '@/modules/knowledge/services/knowledge-document-ingestion.service';
@@ -39,6 +40,7 @@ import { CleanUpKnowledgeSourceFilesUseCase } from '@/modules/knowledge/use-case
 import { CleanUpKnowledgeWorkspaceFilesUseCase } from '@/modules/knowledge/use-cases/clean-up-knowledge-workspace-files.use-case';
 import { CompleteGoogleConnectionUseCase } from '@/modules/knowledge/use-cases/complete-google-connection.use-case';
 import { ConfirmUploadUseCase } from '@/modules/knowledge/use-cases/confirm-upload.use-case';
+import { CreateGoogleDocsSourceUseCase } from '@/modules/knowledge/use-cases/create-google-docs-source.use-case';
 import { CreateGooglePickerSessionUseCase } from '@/modules/knowledge/use-cases/create-google-picker-session.use-case';
 import { CreateKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/create-knowledge-base.use-case';
 import { CreateUploadUseCase } from '@/modules/knowledge/use-cases/create-upload.use-case';
@@ -69,6 +71,7 @@ export class KnowledgeModule extends defineModule({
     KnowledgeStatsRepository,
     DocumentParserService,
     DocumentSummaryService,
+    GoogleDocsContentService,
     KnowledgeDocumentIngestionService,
     KnowledgeEmbeddingService,
     KnowledgeBaseViewsService,
@@ -82,6 +85,7 @@ export class KnowledgeModule extends defineModule({
     CleanUpKnowledgeWorkspaceFilesUseCase,
     CompleteGoogleConnectionUseCase,
     ConfirmUploadUseCase,
+    CreateGoogleDocsSourceUseCase,
     CreateGooglePickerSessionUseCase,
     CreateKnowledgeBaseUseCase,
     CreateUploadUseCase,

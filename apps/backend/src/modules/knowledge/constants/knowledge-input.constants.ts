@@ -10,6 +10,7 @@ export enum KnowledgeField {
   Id = 'id',
   KnowledgeBaseId = 'knowledgeBaseId',
   ConnectionId = 'connectionId',
+  Documents = 'documents',
   Name = 'name',
   Description = 'description',
   DocumentId = 'documentId',
@@ -20,6 +21,8 @@ export enum KnowledgeField {
   Title = 'title',
   State = 'state',
   Code = 'code',
+  Url = 'url',
+  ResourceKey = 'resourceKey',
 }
 
 export const KNOWLEDGE_FIELD_PATH_SEPARATOR = '.';
@@ -30,6 +33,7 @@ export const KNOWLEDGE_FIELD_REASON: Readonly<Record<string, ErrorReason>> = {
   [KnowledgeField.Description]: ErrorReason.InvalidRequest,
   [KnowledgeField.KnowledgeBaseId]: ErrorReason.InvalidId,
   [KnowledgeField.ConnectionId]: ErrorReason.InvalidId,
+  [KnowledgeField.Documents]: ErrorReason.InvalidRequest,
   [KnowledgeField.DocumentId]: ErrorReason.InvalidId,
   [KnowledgeField.SourceId]: ErrorReason.InvalidId,
   [KnowledgeField.FileName]: ErrorReason.InvalidRequest,
@@ -38,4 +42,6 @@ export const KNOWLEDGE_FIELD_REASON: Readonly<Record<string, ErrorReason>> = {
   [KnowledgeField.Title]: ErrorReason.InvalidRequest,
   [KnowledgeField.State]: ErrorReason.InvalidRequest,
   [KnowledgeField.Code]: ErrorReason.InvalidRequest,
+  [KnowledgeField.Url]: ErrorReason.InvalidRequest,
+  [KnowledgeField.ResourceKey]: ErrorReason.InvalidRequest,
 };

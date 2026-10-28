@@ -5,3 +5,12 @@ export const GOOGLE_DRIVE_DOCUMENT_MIME_TYPE = 'application/vnd.google-apps.docu
 export const GOOGLE_DRIVE_EXPORT_MIME_TYPE = 'text/markdown';
 export const GOOGLE_DRIVE_RESOURCE_KEY_HEADER = 'X-Goog-Drive-Resource-Keys';
 export const GOOGLE_DRIVE_TIMEOUT_MS = 10_000;
+export const GOOGLE_PICKER_MAX_DOCUMENTS = 50;
+export const GOOGLE_PICKER_SOURCE_TITLE_PREFIX = 'Google Docs';
+export const GOOGLE_DRIVE_DEFAULT_VERSION = 'google';
+
+export enum GooglePickerSkipReason {
+  Unavailable = 'unavailable',
+  Unsupported = 'unsupported',
+  Trashed = 'trashed',
+}
