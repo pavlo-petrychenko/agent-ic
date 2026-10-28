@@ -28,6 +28,7 @@ export interface KnowledgeSourceRowView {
   readonly syncLabel: string;
   readonly syncDetail: string;
   readonly status: KnowledgeSourceStatus;
+  readonly isActive: boolean;
   readonly statusLabel: string;
   readonly statusDetail: string | null;
 }
@@ -37,4 +38,9 @@ export interface UseKnowledgeSourcesResult {
   readonly loading: boolean;
   readonly failed: boolean;
   readonly retry: () => Promise<void>;
+}
+
+export interface UseDeleteKnowledgeSourceResult {
+  readonly deleteKnowledgeSource: (id: string) => Promise<void>;
+  readonly deleting: boolean;
 }

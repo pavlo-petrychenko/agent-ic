@@ -6,6 +6,7 @@ import { GraphQLError } from 'graphql';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { CreateKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/createKnowledgeBase.generated';
 import { DeleteKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/deleteKnowledgeBase.generated';
+import { DeleteSourceDocument } from '@/features/knowledge/communication/gql/mutation/deleteSource.generated';
 import {
   KnowledgeBasesDocument,
   type KnowledgeBasesQuery,
@@ -125,6 +126,11 @@ const buildDeleteKnowledgeBaseMock = (id: string): MockLink.MockedResponse => ({
   result: { data: { deleteKnowledgeBase: { id } } },
 });
 
+const buildDeleteKnowledgeSourceMock = (id: string): MockLink.MockedResponse => ({
+  request: { query: DeleteSourceDocument, variables: { input: { id } } },
+  result: { data: { deleteSource: { id } } },
+});
+
 const buildDeleteKnowledgeBaseFailureMock = (id: string): MockLink.MockedResponse => ({
   request: { query: DeleteKnowledgeBaseDocument, variables: { input: { id } } },
   result: {
@@ -184,6 +190,11 @@ describe('knowledge bases', () => {
     });
 
     await screen.findByRole('heading', { name: SERVICES_KNOWLEDGE_BASE.name });
+    expect(
+      within(screen.getByRole('navigation', { name: 'Breadcrumb' })).getByRole('link', {
+        name: 'Knowledge',
+      }),
+    ).toHaveAttribute('href', knowledgePath);
     await screen.findByText('No sources yet');
     await user.click(screen.getByRole('button', { name: 'Add source' }));
 
@@ -218,6 +229,36 @@ describe('knowledge bases', () => {
       screen.getByText('This document cannot be read. Check the file and try again.'),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Add source' })).toBeInTheDocument();
+  });
+
+  it('deletes a source from the row menu', async () => {
+    const user = userEvent.setup();
+    renderRoute(`${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [READY_SOURCE]),
+        buildDeleteKnowledgeSourceMock(READY_SOURCE.id),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id),
+        buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
+      ],
+    });
+
+    await screen.findByRole('heading', { name: SERVICES_KNOWLEDGE_BASE.name });
+    await user.click(
+      await screen.findByRole('button', { name: `Actions for “${READY_SOURCE.title}”` }),
+    );
+    await user.click(screen.getByRole('option', { name: 'Delete source' }));
+    const dialog = await screen.findByRole('dialog', {
+      name: `Delete “${READY_SOURCE.title}”?`,
+    });
+    await user.click(within(dialog).getByRole('button', { name: 'Delete source' }));
+
+    expect(await screen.findByText(`Source “${READY_SOURCE.title}” deleted.`)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByText(READY_SOURCE.title, { exact: true })).not.toBeInTheDocument(),
+    );
+    expect(await screen.findByText('No sources yet')).toBeInTheDocument();
   });
 
   it('deletes an empty knowledge base and selects the next one', async () => {

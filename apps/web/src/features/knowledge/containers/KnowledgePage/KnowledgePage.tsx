@@ -8,7 +8,10 @@ import { DeleteKnowledgeBaseDialog } from '@/features/knowledge/containers/Delet
 import type { KnowledgePageProps } from '@/features/knowledge/containers/KnowledgePage/KnowledgePage.typedefs';
 import { KnowledgeSourcesSection } from '@/features/knowledge/containers/KnowledgeSourcesSection';
 import { NewKnowledgeBaseDialog } from '@/features/knowledge/containers/NewKnowledgeBaseDialog';
-import { knowledgeBasePath } from '@/features/knowledge/logic/helpers/knowledgeRoute.helpers';
+import {
+  knowledgeBasePath,
+  knowledgePath,
+} from '@/features/knowledge/logic/helpers/knowledgeRoute.helpers';
 import type { KnowledgeBase } from '@/features/knowledge/typedefs/knowledgeBase.typedefs';
 import { KnowledgeEmpty } from '@/features/knowledge/view/KnowledgeEmpty';
 import { useActiveWorkspace } from '@/features/workspace';
@@ -18,6 +21,7 @@ import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
+import { Breadcrumb } from '@/shared/ui/navigation/Breadcrumb';
 import { SecondaryNav } from '@/shared/ui/navigation/SecondaryNav';
 import { HeadingElement } from '@/shared/ui/typography/Heading';
 
@@ -28,7 +32,7 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
   const active = useActiveWorkspace(workspaceId);
   const [creating, setCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<KnowledgeBase | null>(null);
-  const canCreate =
+  const canEdit =
     active !== null && can(active.role, PermissionResource.KnowledgeBases, PermissionAction.Edit);
   const canDelete =
     active !== null && can(active.role, PermissionResource.KnowledgeBases, PermissionAction.Delete);
@@ -59,7 +63,7 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
           },
         ];
 
-  const onCreate = canCreate ? () => setCreating(true) : null;
+  const onCreate = canEdit ? () => setCreating(true) : null;
   const refreshKnowledgeBases = useCallback(() => {
     void retry();
   }, [retry]);
@@ -79,7 +83,7 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
         className="shrink-0"
         title={t('title')}
         ariaLabel={t('nav.label')}
-        action={canCreate ? { label: t('nav.new'), onClick: () => setCreating(true) } : null}
+        action={canEdit ? { label: t('nav.new'), onClick: () => setCreating(true) } : null}
         groups={groups}
         emptyMessage={!loading && !failed && knowledgeBases.length === 0 ? t('empty.title') : null}
         headingAs={HeadingElement.H2}
@@ -87,6 +91,15 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
       <div className="flex min-w-0 flex-1 flex-col overflow-auto pb-8">
         <PageHeader
           title={selected?.name ?? t('title')}
+          crumbs={
+            selected === null ? null : (
+              <Breadcrumb
+                ariaLabel={t('breadcrumb')}
+                moreLabel={t('breadcrumbMore')}
+                items={[{ label: t('title'), to: knowledgePath(workspaceId) }]}
+              />
+            )
+          }
           subtitle={
             selected === null ? t('subtitle') : t('detail.subtitle', { count: selected.chunkCount })
           }
@@ -121,7 +134,8 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
               key={selected.id}
               knowledgeBaseId={selected.id}
               knowledgeBaseName={selected.name}
-              canAddSource={canCreate}
+              canAddSource={canEdit}
+              canDeleteSource={canEdit}
               onCountsChanged={refreshKnowledgeBases}
             />
           )}

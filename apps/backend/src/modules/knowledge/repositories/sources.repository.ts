@@ -37,6 +37,14 @@ export class SourcesRepository {
     return source ?? null;
   }
 
+  async findByIdIncludingDeleted(workspaceId: string, sourceId: string): Promise<Source | null> {
+    const [source] = await this.txHost.tx
+      .select()
+      .from(sources)
+      .where(and(eq(sources.workspaceId, workspaceId), eq(sources.id, sourceId)));
+    return source ?? null;
+  }
+
   async findByIdForUpdate(workspaceId: string, sourceId: string): Promise<Source | null> {
     const [source] = await this.txHost.tx
       .select()

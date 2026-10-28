@@ -75,6 +75,14 @@ export class SectionsRepository {
     return deleted.length;
   }
 
+  async deleteByDocument(workspaceId: string, documentId: string): Promise<number> {
+    const deleted = await this.txHost.tx
+      .delete(sections)
+      .where(and(eq(sections.workspaceId, workspaceId), eq(sections.documentId, documentId)))
+      .returning({ id: sections.id });
+    return deleted.length;
+  }
+
   async deleteByDocumentGeneration(
     workspaceId: string,
     documentId: string,

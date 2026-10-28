@@ -1310,8 +1310,8 @@ Public ids use the `kbs_`, `kso_`, `kdc_` and `kcn_` prefixes. Internal section/
 | `communication/` | GraphQL queries, mutations, subscription, hooks, API-to-UI mappers |
 | `logic/` | upload state machine, schedule helpers, source status labels |
 | `storage/` | no shared store in the MVP; local state is enough |
-| `view/` | KnowledgeList, KnowledgeBase, SourceRow, DocumentRow, DocumentSummary, SummaryEditor, AddSourceDialog, UploadDrop, GooglePickerCard, Playground, DeleteKnowledgeBaseDialog |
-| `containers/` | KnowledgeListPage, KnowledgeBasePage, AddSourceFlow, KnowledgePlayground |
+| `view/` | KnowledgeList, KnowledgeBase, SourceRow, DocumentRow, DocumentSummary, SummaryEditor, AddSourceDialog, UploadDrop, GooglePickerCard, Playground, DeleteKnowledgeBaseDialog, DeleteKnowledgeSourceModal |
+| `containers/` | KnowledgeListPage, KnowledgeBasePage, AddSourceFlow, DeleteKnowledgeSourceDialog, KnowledgePlayground |
 | `index.ts` | the public surface for routes |
 
 Screens from `mvp-scope.md`: `Knowledge-Empty`, `Knowledge`, `Knowledge-AddSource`, `Knowledge-AddSource-Upload`, `Knowledge-Delete`. ClickUp is removed. The knowledge design bundle is not part of the current screens export; the UI section follows the scope until the design pages are attached.
@@ -1319,7 +1319,7 @@ Screens from `mvp-scope.md`: `Knowledge-Empty`, `Knowledge`, `Knowledge-AddSourc
 Behaviour:
 
 - **List page:** empty state, KB cards/rows with status, source count, chunk count, last activity.
-- **Detail page:** header with rename/edit/delete; sources table with type, status, chunks, last sync, next sync, actions; Add source; Sync all; settings for tool name/description; Playground tab or panel.
+- **Detail page:** breadcrumb above the KB name; header with rename/edit/delete; sources table with type, status, chunks, last sync, next sync, and a source actions menu (delete); Add source; Sync all; settings for tool name/description; Playground tab or panel.
 - **Add source:** Upload tab with drop zone and per-file progress; Google tab with Connect, account status and Pick documents.
 - **Upload hook:** call `createUpload`, PUT with `XMLHttpRequest` for progress, call `confirmUpload`, then subscribe/refetch. Errors show the server reason.
 - **Document summary:** show the one-line summary with an “AI-generated once” or “Edited by you” badge. Helper text says it is not updated automatically and that editing it re-indexes the document. The edit dialog calls `updateDocumentSummary`; saving shows the document as `indexing` until the new generation is ready.
