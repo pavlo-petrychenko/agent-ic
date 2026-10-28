@@ -1,12 +1,69 @@
+import { can, PermissionAction, PermissionResource } from '@agent-ic/contracts';
+import { useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useKnowledgeBases } from '@/features/knowledge/communication/hooks/useKnowledgeBases';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
+import type { KnowledgePageProps } from '@/features/knowledge/containers/KnowledgePage/KnowledgePage.typedefs';
+import { NewKnowledgeBaseDialog } from '@/features/knowledge/containers/NewKnowledgeBaseDialog';
+import { knowledgeBasePath } from '@/features/knowledge/logic/helpers/knowledgeRoute.helpers';
 import { KnowledgeEmpty } from '@/features/knowledge/view/KnowledgeEmpty';
+import { KnowledgeSourcesEmpty } from '@/features/knowledge/view/KnowledgeSourcesEmpty';
+import { useActiveWorkspace } from '@/features/workspace';
+import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { Card } from '@/shared/ui/display/Card';
+import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
+import { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
+import { IconName } from '@/shared/ui/foundations/Icon';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
 import { SecondaryNav } from '@/shared/ui/navigation/SecondaryNav';
 import { HeadingElement } from '@/shared/ui/typography/Heading';
 
-export function KnowledgePage() {
+export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: KnowledgePageProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
+  const navigate = useNavigate();
+  const { knowledgeBases, loading, failed, retry } = useKnowledgeBases();
+  const active = useActiveWorkspace(workspaceId);
+  const [creating, setCreating] = useState(false);
+  const canCreate =
+    active !== null && can(active.role, PermissionResource.KnowledgeBases, PermissionAction.Edit);
+  const selected =
+    knowledgeBases.find((knowledgeBase) => knowledgeBase.id === selectedKnowledgeBaseId) ??
+    knowledgeBases[0] ??
+    null;
+  const groups =
+    knowledgeBases.length === 0
+      ? []
+      : [
+          {
+            id: 'knowledge-bases',
+            label: null,
+            action: null,
+            items: knowledgeBases.map((knowledgeBase) => ({
+              id: knowledgeBase.id,
+              to: knowledgeBasePath(workspaceId, knowledgeBase.id),
+              title: knowledgeBase.name,
+              subtitle:
+                knowledgeBase.documentCount === 0
+                  ? t('nav.noSources')
+                  : t('nav.sources', { count: knowledgeBase.documentCount }),
+              monoTitle: false,
+              tile: { icon: IconName.Kb, tone: NodeKind.Kb },
+              selected: knowledgeBase.id === selected?.id,
+            })),
+          },
+        ];
+
+  const onCreate = canCreate ? () => setCreating(true) : null;
+  const onCreated = (knowledgeBaseId: string) => {
+    setCreating(false);
+    void navigate({
+      to: '/w/$workspaceId/knowledge',
+      params: { workspaceId },
+      search: { kb: knowledgeBaseId },
+      replace: true,
+    });
+  };
 
   return (
     <div className="flex h-full min-h-0">
@@ -14,17 +71,44 @@ export function KnowledgePage() {
         className="shrink-0"
         title={t('title')}
         ariaLabel={t('nav.label')}
-        action={null}
-        groups={[]}
-        emptyMessage={t('empty.title')}
+        action={canCreate ? { label: t('nav.new'), onClick: () => setCreating(true) } : null}
+        groups={groups}
+        emptyMessage={!loading && !failed && knowledgeBases.length === 0 ? t('empty.title') : null}
         headingAs={HeadingElement.H2}
       />
       <div className="flex min-w-0 flex-1 flex-col overflow-auto pb-8">
-        <PageHeader title={t('title')} subtitle={t('subtitle')} />
+        <PageHeader
+          title={selected?.name ?? t('title')}
+          subtitle={
+            selected === null ? t('subtitle') : t('detail.subtitle', { count: selected.chunkCount })
+          }
+        />
         <div className="px-7 pt-5">
-          <KnowledgeEmpty />
+          {failed ? (
+            <Card>
+              <EmptyState
+                icon={IconName.Alert}
+                tone={EmptyStateTone.Err}
+                title={t('loadError')}
+                actions={
+                  <Button variant={ButtonVariant.Secondary} onClick={() => void retry()}>
+                    {t('retry')}
+                  </Button>
+                }
+              />
+            </Card>
+          ) : selected === null ? (
+            loading ? null : (
+              <KnowledgeEmpty onCreate={onCreate} />
+            )
+          ) : (
+            <KnowledgeSourcesEmpty />
+          )}
         </div>
       </div>
+      {creating && (
+        <NewKnowledgeBaseDialog onClose={() => setCreating(false)} onCreated={onCreated} />
+      )}
     </div>
   );
 }

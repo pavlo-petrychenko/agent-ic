@@ -23,6 +23,10 @@ export {
 export { ErrorCode, ErrorReason } from '@contracts/errors/errors.constants';
 export { IdPrefix } from '@contracts/ids/id-prefix.constants';
 export {
+  KNOWLEDGE_BASE_DESCRIPTION_MAX_LENGTH,
+  KNOWLEDGE_BASE_NAME_MAX_LENGTH,
+} from '@contracts/knowledge/knowledge.constants';
+export {
   LLM_KEY_MIN_LENGTH,
   LLM_KEY_NAME_MAX_LENGTH,
   LlmKeyVendor,

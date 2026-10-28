@@ -43,12 +43,15 @@ export function SecondaryNav({
         </Text>
       )}
       {groups.map((group) => {
-        const labelId = `${baseId}${SECONDARY_NAV_GROUP_ID_SEPARATOR}${group.id}`;
+        const labelId =
+          group.label === null ? null : `${baseId}${SECONDARY_NAV_GROUP_ID_SEPARATOR}${group.id}`;
 
         return (
           <div key={group.id} className={styles.group}>
-            <NavSectionLabel label={group.label} id={labelId} action={group.action} />
-            <ul aria-labelledby={labelId} className={styles.list}>
+            {group.label !== null && labelId !== null && (
+              <NavSectionLabel label={group.label} id={labelId} action={group.action} />
+            )}
+            <ul aria-labelledby={labelId ?? undefined} className={styles.list}>
               {group.items.map((item) => (
                 <li key={item.id}>
                   <ListItem
