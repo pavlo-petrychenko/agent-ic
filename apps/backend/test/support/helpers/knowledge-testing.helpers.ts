@@ -11,6 +11,9 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { FakeFileStorage } from '@/platform/storage/gateways/file-storage.fake';
+import { FileStorage } from '@/platform/storage/gateways/file-storage.gateway';
+import { StorageModule } from '@/platform/storage/storage.module';
 import { TEST_EDITOR_ID } from '@test/support/constants/agents-testing.constants';
 import { KNOWLEDGE_TEST_START } from '@test/support/constants/knowledge-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
@@ -27,19 +30,24 @@ import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import type { KnowledgeTestbed } from '@test/support/typedefs/knowledge-testing.typedefs';
+import type { ProviderOverride } from '@test/support/typedefs/test-infrastructure.typedefs';
 
-export const createKnowledgeTestbed = async (): Promise<KnowledgeTestbed> => {
+export const createKnowledgeTestbed = async (
+  overrides: readonly ProviderOverride[] = [],
+): Promise<KnowledgeTestbed> => {
   const clock = new ManualClock(KNOWLEDGE_TEST_START);
+  const storage = new FakeFileStorage();
   const module = await createPlatformTestingModule(
     TestRedisPrefix.Knowledge,
-    [KnowledgeModule.forRole(Role.Api)],
-    [{ token: ClockService, value: clock }],
+    [KnowledgeModule.forRole(Role.Api), StorageModule],
+    [{ token: ClockService, value: clock }, { token: FileStorage, value: storage }, ...overrides],
   );
   return {
     module,
     clock,
     tenants: module.get(TenantTransactionService),
     ids: module.get(IdService),
+    storage,
   };
 };
 
