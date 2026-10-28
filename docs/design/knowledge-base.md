@@ -318,6 +318,7 @@ The cost is one summary call per new document, not per sync. Re-syncs and unchan
 - The model and dimensions are stored per KB. The MVP fixes 1024 dimensions; a different model or size means a re-index and a schema migration for a new vector column or table.
 - `EmbeddingGateway.embed` is called in batches (catalog batch size 128). A batch is a single upstream call with a timeout.
 - Before embedding, the pipeline looks up the embedding cache by `(workspace, model, dimensions, content_hash)`. Only misses are embedded, then written back to the cache.
+- Cache reads and writes use short tenant transactions; the embedding call itself runs outside the database transaction.
 - A dimension mismatch is a hard error: the document fails and an alert is emitted; we never write a vector of the wrong size.
 - Embedding failures use the job retry policy. Unchanged text is never re-embedded after a transient failure.
 

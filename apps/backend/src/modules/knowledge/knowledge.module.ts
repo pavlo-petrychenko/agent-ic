@@ -13,6 +13,7 @@ import { KnowledgeBasesResolver } from '@/modules/knowledge/resolvers/knowledge-
 import { DocumentParserService } from '@/modules/knowledge/services/document-parser.service';
 import { DocumentSummaryService } from '@/modules/knowledge/services/document-summary.service';
 import { KnowledgeBaseViewsService } from '@/modules/knowledge/services/knowledge-base-views.service';
+import { KnowledgeEmbeddingService } from '@/modules/knowledge/services/knowledge-embedding.service';
 import { CreateKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/create-knowledge-base.use-case';
 import { DeleteKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/delete-knowledge-base.use-case';
 import { ListKnowledgeBasesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-bases.use-case';
@@ -31,6 +32,7 @@ export class KnowledgeModule extends defineModule({
     EmbeddingCacheRepository,
     DocumentParserService,
     DocumentSummaryService,
+    KnowledgeEmbeddingService,
     KnowledgeBaseViewsService,
     CreateKnowledgeBaseUseCase,
     DeleteKnowledgeBaseUseCase,
