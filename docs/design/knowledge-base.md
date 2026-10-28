@@ -94,7 +94,7 @@ embedding_cache (workspace-scoped, shared by documents)
 | **Connection** | A Google account connected to the workspace. Stores the encrypted refresh token. |
 | **Source** | One thing the user added: an uploaded file, or one Google Picker selection. Holds the optional sync schedule and status. |
 | **Document** | One imported document. An upload source has one document; a Google source has one per picked Google Doc. |
-| **Section** | A heading subtree of a document. Its path is a breadcrumb such as `Pricing › Gift cards`. |
+| **Section** | A heading and the Markdown directly under it, before the next heading. Its path is a breadcrumb such as `Pricing › Gift cards`. |
 | **Chunk** | A self-contained piece of a section. Chunks never cross section boundaries. It is what gets embedded and BM25-indexed. |
 | **Sync run** | One attempt to ingest or re-sync a source. Holds progress counters and the last error. |
 
@@ -266,14 +266,16 @@ The canonical Markdown is stored in object storage. It is the input for re-chunk
 
 Sections come from ATX headings (`#` to `######`) in the Markdown AST. Each section records:
 
-- ordinal among its siblings;
+- ordinal in document order, unique with the document and generation;
 - level 1–6;
 - path as a breadcrumb (`Pricing › Gift cards`);
 - heading text;
-- token count;
-- content hash.
+- token count of the section body;
+- content hash of the section body.
 
-A document's true root section holds any text before the first heading. A tiny section is kept as its own chunk rather than merged across a heading, because the breadcrumb is what makes it understandable.
+Each section stores only the Markdown between its own heading and the next heading. Child sections are separate rows; the breadcrumb carries the ancestry, so chunks never duplicate a parent's content across a heading.
+
+A document's true root section holds any text before the first heading. It uses level 1, an empty path and no heading. A tiny section is kept as its own chunk rather than merged across a heading, because the breadcrumb is what makes it understandable.
 
 ### 5.3 Chunks
 
