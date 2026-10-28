@@ -104,6 +104,11 @@ $reduced-motion-duration: 120ms;
   margin-bottom: var(--space-10);
 }
 
+.flush {
+  padding: 0;
+  overflow: hidden;
+}
+
 .footer {
   display: flex;
   flex-shrink: 0;

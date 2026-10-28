@@ -10,6 +10,7 @@ export interface DialogProps {
   description?: string | null;
   closeLabel: string;
   size?: DialogSize;
+  flush?: boolean;
   footerLeft?: ReactNode;
   footerRight?: ReactNode;
   children?: ReactNode;

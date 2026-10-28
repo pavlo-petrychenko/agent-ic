@@ -118,6 +118,27 @@ describe('knowledge bases', () => {
     );
   });
 
+  it('opens the add source dialog from an empty knowledge base', async () => {
+    const user = userEvent.setup();
+    renderRoute(`${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
+      ],
+    });
+
+    await screen.findByRole('heading', { name: SERVICES_KNOWLEDGE_BASE.name });
+    await user.click(screen.getByRole('button', { name: 'Add source' }));
+
+    const dialog = await screen.findByRole('dialog', {
+      name: `Add source to “${SERVICES_KNOWLEDGE_BASE.name}”`,
+    });
+    expect(
+      within(dialog).getByText('Content is chunked, embedded and indexed after you add it'),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText('Drop files here or')).toBeInTheDocument();
+  });
+
   it('deletes an empty knowledge base and selects the next one', async () => {
     const user = userEvent.setup();
     renderRoute(`${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`, {

@@ -26,6 +26,7 @@ export function Dialog({
   description = null,
   closeLabel,
   size = DialogSize.Md,
+  flush = false,
   footerLeft = null,
   footerRight = null,
   children = null,
@@ -62,7 +63,7 @@ export function Dialog({
               </DialogPrimitive.Close>
             </header>
             {hasBody ? (
-              <div className={styles.body}>
+              <div className={clsx(styles.body, flush && styles.flush)}>
                 {error === null ? null : (
                   <Callout tone={CalloutTone.Err} icon={DIALOG_ERROR_ICON} className={styles.error}>
                     {error}
