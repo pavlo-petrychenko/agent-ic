@@ -4,6 +4,7 @@ import {
   KNOWLEDGE_UPLOAD_MAX_MEGABYTES,
   KnowledgeFileStatus,
 } from '@/features/knowledge/constants/knowledgeUpload.constants';
+import { STATUS_TONES } from '@/features/knowledge/view/AddSourceModal/AddSourceModal.constants';
 import type { AddSourceModalProps } from '@/features/knowledge/view/AddSourceModal/AddSourceModal.typedefs';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
@@ -17,14 +18,6 @@ import styles from '@/features/knowledge/view/AddSourceModal/AddSourceModal.modu
 const UPLOAD_ICON_SIZE = 15;
 const SOURCE_CHECK_ICON_SIZE = 12;
 const SOURCE_CHECK_STROKE_WIDTH = 2.2;
-
-const STATUS_TONES: Readonly<Record<KnowledgeFileStatus, BadgeTone>> = {
-  [KnowledgeFileStatus.Ready]: BadgeTone.Neutral,
-  [KnowledgeFileStatus.Uploading]: BadgeTone.Accent,
-  [KnowledgeFileStatus.Uploaded]: BadgeTone.Ok,
-  [KnowledgeFileStatus.Failed]: BadgeTone.Err,
-  [KnowledgeFileStatus.Skipped]: BadgeTone.Err,
-};
 
 export function AddSourceModal({
   knowledgeBaseName,
