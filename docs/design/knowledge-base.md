@@ -315,7 +315,7 @@ The cost is one summary call per new document, not per sync. Re-syncs and unchan
 
 ### 5.5 Embeddings
 
-- Model: `jina-embeddings-v5-text-small` through LLMAPI, 1024 dimensions, stored as `halfvec(1024)`.
+- Model: `text-embedding-3-small` through LLMAPI, 1024 dimensions, stored as `halfvec(1024)`. The older `jina-embeddings-v5-text-small` ID stays in the catalog for KBs that still reference it; moving a KB to the new model requires a re-index.
 - The model and dimensions are stored per KB. The MVP fixes 1024 dimensions; a different model or size means a re-index and a schema migration for a new vector column or table.
 - `EmbeddingGateway.embed` is called in batches (catalog batch size 128). A batch is a single upstream call with a timeout.
 - Before embedding, the pipeline looks up the embedding cache by `(workspace, model, dimensions, content_hash)`. Only misses are embedded, then written back to the cache.
@@ -1348,7 +1348,7 @@ There is no product-level document or chunk quota in the first version. The work
 
 ### 15.2 Cost
 
-- Embeddings: `jina-embeddings-v5-text-small` is $0.02 per 1M input tokens. A 1M-token KB costs about $0.02 to embed once.
+- Embeddings: `text-embedding-3-small` is $0.02 per 1M input tokens at 1,024 dimensions. A 1M-token KB costs about $0.02 to embed once.
 - Document summaries: one light-model call per new document over the full canonical Markdown, not one per sync. Re-syncs and user edits reuse the stored summary; a user edit costs a re-index, not another summary call. The only repeat call is the retry of a failed, still-empty summary.
 - PDF parsing is local; no per-page OCR cost in the MVP.
 - Re-syncs are nearly free when documents are unchanged because of document hashes and the embedding cache.

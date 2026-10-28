@@ -25,6 +25,7 @@ export enum LlmModelId {
 }
 
 export enum EmbeddingModelId {
+  TextEmbedding3Small = 'text-embedding-3-small',
   JinaEmbeddingsV5TextSmall = 'jina-embeddings-v5-text-small',
 }
 

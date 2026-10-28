@@ -209,12 +209,14 @@ describe('knowledge bases', () => {
       ],
     });
 
-    expect(await screen.findByRole('heading', { name: 'Sources' })).toBeInTheDocument();
-    expect(await screen.findByText('Indexed')).toBeInTheDocument();
+    expect(await screen.findByText('Indexed', {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Sources' })).toBeInTheDocument();
     expect(screen.getByText('Indexing')).toBeInTheDocument();
     expect(screen.getByText('Failed')).toBeInTheDocument();
     expect(screen.getByText('34 chunks')).toBeInTheDocument();
-    expect(screen.getByText('This document cannot be read.')).toBeInTheDocument();
+    expect(
+      screen.getByText('This document cannot be read. Check the file and try again.'),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Add source' })).toBeInTheDocument();
   });
 

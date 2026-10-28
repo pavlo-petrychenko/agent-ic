@@ -128,6 +128,13 @@ export const LLM_DEFAULT_MODEL: Readonly<Record<LlmPurpose, LlmModelId>> = {
 };
 
 export const EMBEDDING_CATALOG: Readonly<Record<EmbeddingModelId, LlmEmbeddingModel>> = {
+  [EmbeddingModelId.TextEmbedding3Small]: {
+    id: EmbeddingModelId.TextEmbedding3Small,
+    vendor: LlmVendor.OpenAi,
+    price: { inputUsdPerMillionTokens: 0.02, outputUsdPerMillionTokens: 0 },
+    dimensions: 1024,
+    batchSize: 128,
+  },
   [EmbeddingModelId.JinaEmbeddingsV5TextSmall]: {
     id: EmbeddingModelId.JinaEmbeddingsV5TextSmall,
     vendor: LlmVendor.Jina,
