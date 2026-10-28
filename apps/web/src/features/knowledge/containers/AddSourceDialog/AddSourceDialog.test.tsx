@@ -6,17 +6,33 @@ import { GraphQLError } from 'graphql';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmUploadDocument } from '@/features/knowledge/communication/gql/mutation/confirmUpload.generated';
 import { CreateUploadDocument } from '@/features/knowledge/communication/gql/mutation/createUpload.generated';
-import { AddSourceDialog } from '@/features/knowledge/containers/AddSourceDialog';
+import { DisconnectGoogleConnectionDocument } from '@/features/knowledge/communication/gql/mutation/disconnectGoogleConnection.generated';
+import { StartGoogleConnectionDocument } from '@/features/knowledge/communication/gql/mutation/startGoogleConnection.generated';
 import {
+  KnowledgeConnectionsDocument,
+  type KnowledgeConnectionsQuery,
+} from '@/features/knowledge/communication/gql/query/knowledgeConnections.generated';
+import { GOOGLE_CONNECTION_RETURN_STORAGE_KEY } from '@/features/knowledge/constants/googleConnection.constants';
+import { AddSourceDialog } from '@/features/knowledge/containers/AddSourceDialog';
+import type * as GoogleConnectionHelpers from '@/features/knowledge/logic/helpers/googleConnection.helpers';
+import { redirectToGoogle } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
+import {
+  KnowledgeConnectionStatus,
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
 } from '@/shared/api/generated/schema.generated';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
+vi.mock('@/features/knowledge/logic/helpers/googleConnection.helpers', async (importOriginal) => {
+  const actual = await importOriginal<typeof GoogleConnectionHelpers>();
+  return { ...actual, redirectToGoogle: vi.fn<() => void>() };
+});
+
 const PDF = new File(['a'], 'services.pdf', { type: 'application/pdf' });
 const XLSX = new File(['b'], 'prices.xlsx', {
   type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 });
+const AUTHORIZATION_URL = 'https://accounts.google.com/o/oauth2/v2/auth?state=state-value';
 
 const SOURCE = {
   id: 'src_services',
@@ -33,6 +49,20 @@ const SOURCE = {
   chunkCount: 0,
   createdAt: '2026-10-26T09:00:00.000Z',
   updatedAt: '2026-10-26T09:00:00.000Z',
+};
+
+type ConnectionFixture = KnowledgeConnectionsQuery['knowledgeConnections'][number];
+
+const ACTIVE_CONNECTION: ConnectionFixture = {
+  id: 'kcn_owner',
+  accountEmail: 'owner@example.com',
+  status: KnowledgeConnectionStatus.Active,
+};
+
+const REVOKED_CONNECTION: ConnectionFixture = {
+  ...ACTIVE_CONNECTION,
+  id: 'kcn_revoked',
+  status: KnowledgeConnectionStatus.Revoked,
 };
 
 const CREATE_UPLOAD_MOCK: MockLink.MockedResponse = {
@@ -77,6 +107,33 @@ const FAILED_CREATE_UPLOAD_MOCK: MockLink.MockedResponse = {
   },
 };
 
+const buildConnectionsMock = (
+  connections: readonly ConnectionFixture[],
+): MockLink.MockedResponse => ({
+  request: { query: KnowledgeConnectionsDocument },
+  result: { data: { knowledgeConnections: connections } },
+});
+
+const START_GOOGLE_CONNECTION_MOCK: MockLink.MockedResponse = {
+  request: { query: StartGoogleConnectionDocument },
+  result: {
+    data: {
+      startGoogleConnection: {
+        authorizationUrl: AUTHORIZATION_URL,
+        expiresAt: '2026-10-26T09:10:00.000Z',
+      },
+    },
+  },
+};
+
+const DISCONNECT_GOOGLE_CONNECTION_MOCK: MockLink.MockedResponse = {
+  request: {
+    query: DisconnectGoogleConnectionDocument,
+    variables: { input: { id: ACTIVE_CONNECTION.id } },
+  },
+  result: { data: { disconnectGoogleConnection: { id: ACTIVE_CONNECTION.id } } },
+};
+
 const renderDialog = (
   mocks: readonly MockLink.MockedResponse[] = [],
   locale: Locale = Locale.En,
@@ -85,6 +142,7 @@ const renderDialog = (
   const onUploaded = vi.fn<() => void>();
   renderWithProviders(
     <AddSourceDialog
+      workspaceId="ws_demo"
       knowledgeBaseId="kbs_services"
       knowledgeBaseName="Services & prices"
       onClose={onClose}
@@ -103,9 +161,15 @@ const fileInput = (): HTMLInputElement => {
   return input;
 };
 
+const openGoogleTab = async (): Promise<void> => {
+  await userEvent.click(screen.getByRole('button', { name: /Google Docs/ }));
+};
+
 describe('AddSourceDialog', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    sessionStorage.clear();
   });
 
   it('uploads valid files, skips unsupported ones and closes after success', async () => {
@@ -182,5 +246,54 @@ describe('AddSourceDialog', () => {
     expect(screen.getByText('Failed')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Retry 1 file' })).toBeEnabled();
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('starts Google OAuth and remembers where to return', async () => {
+    const user = userEvent.setup();
+    const redirect = vi.mocked(redirectToGoogle);
+    redirect.mockClear();
+    renderDialog([buildConnectionsMock([]), START_GOOGLE_CONNECTION_MOCK]);
+
+    await openGoogleTab();
+    expect(await screen.findByText('No Google account is connected yet.')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Connect Google account' }));
+
+    await waitFor(() => expect(redirect).toHaveBeenCalledWith(AUTHORIZATION_URL));
+    expect(
+      JSON.parse(sessionStorage.getItem(GOOGLE_CONNECTION_RETURN_STORAGE_KEY) ?? 'null'),
+    ).toEqual({ workspaceId: 'ws_demo', knowledgeBaseId: 'kbs_services' });
+  });
+
+  it('lists a connected Google account and disconnects it', async () => {
+    const user = userEvent.setup();
+    renderDialog([
+      buildConnectionsMock([ACTIVE_CONNECTION]),
+      DISCONNECT_GOOGLE_CONNECTION_MOCK,
+      buildConnectionsMock([]),
+    ]);
+
+    await openGoogleTab();
+
+    expect(await screen.findByText('owner@example.com')).toBeInTheDocument();
+    expect(screen.getByText('Connected')).toBeInTheDocument();
+    expect(screen.getByText(/Picking documents comes next/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Disconnect' }));
+
+    expect(await screen.findByText('No Google account is connected yet.')).toBeInTheDocument();
+    expect(screen.getByText('Google account disconnected.')).toBeInTheDocument();
+  });
+
+  it('asks to reconnect a revoked Google account', async () => {
+    renderDialog([buildConnectionsMock([REVOKED_CONNECTION])]);
+
+    await openGoogleTab();
+
+    expect(await screen.findByText('Reconnect needed')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Reconnect' })).toBeInTheDocument();
+    expect(
+      screen.getByText('Sources from this account stop syncing until you reconnect.'),
+    ).toBeInTheDocument();
   });
 });

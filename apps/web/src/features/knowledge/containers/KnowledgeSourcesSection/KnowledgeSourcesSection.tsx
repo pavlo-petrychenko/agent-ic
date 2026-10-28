@@ -18,8 +18,10 @@ import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
 export function KnowledgeSourcesSection({
+  workspaceId,
   knowledgeBaseId,
   knowledgeBaseName,
+  initialAddSource,
   canAddSource,
   canManageSources,
   onCountsChanged,
@@ -30,7 +32,7 @@ export function KnowledgeSourcesSection({
   const { sources, loading, failed, retry } = useKnowledgeSources(knowledgeBaseId);
   const { retryKnowledgeSource, retryingSourceId } = useRetryKnowledgeSource(knowledgeBaseId);
   const rows = useKnowledgeSourceRows(sources);
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState(initialAddSource !== null);
   const [renameTarget, setRenameTarget] = useState<KnowledgeSourceRowView | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<KnowledgeSourceRowView | null>(null);
   const active = sources.some(({ status }) => isKnowledgeSourceActive(status));
@@ -117,8 +119,10 @@ export function KnowledgeSourcesSection({
       {content}
       {adding ? (
         <AddSourceDialog
+          workspaceId={workspaceId}
           knowledgeBaseId={knowledgeBaseId}
           knowledgeBaseName={knowledgeBaseName}
+          initialSourceType={initialAddSource ?? undefined}
           onUploaded={refreshSources}
           onClose={() => setAdding(false)}
         />

@@ -3,7 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AuthLayout } from '@/app/layouts/AuthLayout';
 import { useCompleteGoogleConnection } from '@/features/knowledge/communication/hooks/useCompleteGoogleConnection';
-import { GoogleCallbackFailureReason } from '@/features/knowledge/constants/googleConnection.constants';
+import {
+  GoogleCallbackFailureReason,
+  KnowledgeGoogleSearchParam,
+} from '@/features/knowledge/constants/googleConnection.constants';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import type { GoogleCallbackPageProps } from '@/features/knowledge/containers/GoogleCallbackPage/GoogleCallbackPage.typedefs';
 import {
@@ -59,7 +62,10 @@ export function GoogleCallbackPage({ code, state, error }: GoogleCallbackPagePro
         return navigate({
           to: '/w/$workspaceId/knowledge',
           params: { workspaceId: target.workspaceId },
-          search: { kb: target.knowledgeBaseId },
+          search: {
+            kb: target.knowledgeBaseId,
+            google: KnowledgeGoogleSearchParam.Connected,
+          },
           replace: true,
         });
       })
