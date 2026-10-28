@@ -23,6 +23,7 @@ export function KnowledgeSourcesTable({
   loading,
   error,
   onAddSource,
+  onRenameSource,
   onRetrySource,
   onDeleteSource,
   retryingSourceId,
@@ -83,13 +84,22 @@ export function KnowledgeSourcesTable({
   ];
 
   const rowActions: TableRowActions<KnowledgeSourceRowView> | null =
-    onRetrySource === null && onDeleteSource === null
+    onRenameSource === null && onRetrySource === null && onDeleteSource === null
       ? null
       : {
           columnLabel: t('sources.menu.label'),
           menuLabel: t('sources.menu.label'),
           getLabel: (row) => t('sources.menu.trigger', { name: row.title }),
           getItems: (row) => [
+            ...(onRenameSource !== null
+              ? [
+                  {
+                    id: KnowledgeSourceMenuAction.Rename,
+                    label: t('sources.menu.rename'),
+                    leading: <Icon name={IconName.Note} size={14} />,
+                  },
+                ]
+              : []),
             ...(row.canRetry && onRetrySource !== null
               ? [
                   {
@@ -114,6 +124,9 @@ export function KnowledgeSourcesTable({
               : []),
           ],
           onSelect: (row, itemId) => {
+            if (itemId === KnowledgeSourceMenuAction.Rename) {
+              onRenameSource?.(row);
+            }
             if (itemId === KnowledgeSourceMenuAction.Retry) {
               onRetrySource?.(row);
             }

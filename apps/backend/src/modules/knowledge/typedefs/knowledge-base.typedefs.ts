@@ -26,3 +26,8 @@ export interface CreateKnowledgeBaseInput {
 export interface DeleteKnowledgeBaseInput {
   readonly id: string;
 }
+
+export interface RenameKnowledgeBaseInput {
+  readonly id: string;
+  readonly name: string;
+}

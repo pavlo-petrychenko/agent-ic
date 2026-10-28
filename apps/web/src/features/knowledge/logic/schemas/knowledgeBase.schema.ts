@@ -10,3 +10,5 @@ export const createKnowledgeBaseSchema = (message: string) =>
       .min(1, message)
       .max(KNOWLEDGE_BASE_NAME_MAX_LENGTH, message),
   });
+
+export const renameKnowledgeBaseSchema = createKnowledgeBaseSchema;

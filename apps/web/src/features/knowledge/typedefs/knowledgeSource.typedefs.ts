@@ -50,3 +50,13 @@ export interface UseRetryKnowledgeSourceResult {
   readonly retryKnowledgeSource: (id: string) => Promise<void>;
   readonly retryingSourceId: string | null;
 }
+
+export interface RenameKnowledgeSourceValues {
+  readonly id: string;
+  readonly title: string;
+}
+
+export interface UseRenameKnowledgeSourceResult {
+  readonly renameKnowledgeSource: (values: RenameKnowledgeSourceValues) => Promise<void>;
+  readonly renaming: boolean;
+}

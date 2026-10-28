@@ -5,11 +5,18 @@ extend type Query {
 
 extend type Mutation {
   createKnowledgeBase(input: CreateKnowledgeBaseInput!): KnowledgeBase!
+  renameKnowledgeBase(input: RenameKnowledgeBaseInput!): KnowledgeBase!
   deleteKnowledgeBase(input: DeleteKnowledgeBaseInput!): DeleteKnowledgeBasePayload!
   createUpload(input: CreateUploadInput!): CreateUploadPayload!
   confirmUpload(input: ConfirmUploadInput!): KnowledgeSource!
+  renameSource(input: RenameSourceInput!): KnowledgeSource!
   deleteSource(input: DeleteSourceInput!): DeleteSourcePayload!
   retrySource(input: RetrySourceInput!): RetrySourcePayload!
+}
+
+input RenameKnowledgeBaseInput {
+  id: ID!
+  name: String!
 }
 
 input DeleteKnowledgeBaseInput {
@@ -35,6 +42,11 @@ type DeleteSourcePayload {
 
 input RetrySourceInput {
   id: ID!
+}
+
+input RenameSourceInput {
+  id: ID!
+  title: String!
 }
 
 type RetrySourcePayload {

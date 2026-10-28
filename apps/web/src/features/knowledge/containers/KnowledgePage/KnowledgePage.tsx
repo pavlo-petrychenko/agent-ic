@@ -8,6 +8,7 @@ import { DeleteKnowledgeBaseDialog } from '@/features/knowledge/containers/Delet
 import type { KnowledgePageProps } from '@/features/knowledge/containers/KnowledgePage/KnowledgePage.typedefs';
 import { KnowledgeSourcesSection } from '@/features/knowledge/containers/KnowledgeSourcesSection';
 import { NewKnowledgeBaseDialog } from '@/features/knowledge/containers/NewKnowledgeBaseDialog';
+import { RenameKnowledgeBaseDialog } from '@/features/knowledge/containers/RenameKnowledgeBaseDialog';
 import {
   knowledgeBasePath,
   knowledgePath,
@@ -31,6 +32,7 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
   const { knowledgeBases, loading, failed, retry } = useKnowledgeBases();
   const active = useActiveWorkspace(workspaceId);
   const [creating, setCreating] = useState(false);
+  const [renameTarget, setRenameTarget] = useState<KnowledgeBase | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<KnowledgeBase | null>(null);
   const canEdit =
     active !== null && can(active.role, PermissionResource.KnowledgeBases, PermissionAction.Edit);
@@ -104,10 +106,22 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
             selected === null ? t('subtitle') : t('detail.subtitle', { count: selected.chunkCount })
           }
           actions={
-            selected !== null && canDelete ? (
-              <Button variant={ButtonVariant.Danger} onClick={() => setDeleteTarget(selected)}>
-                {t('delete.action')}
-              </Button>
+            selected !== null && (canEdit || canDelete) ? (
+              <>
+                {canEdit ? (
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    onClick={() => setRenameTarget(selected)}
+                  >
+                    {t('rename.action')}
+                  </Button>
+                ) : null}
+                {canDelete ? (
+                  <Button variant={ButtonVariant.Danger} onClick={() => setDeleteTarget(selected)}>
+                    {t('delete.action')}
+                  </Button>
+                ) : null}
+              </>
             ) : null
           }
         />
@@ -143,6 +157,12 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
       </div>
       {creating && (
         <NewKnowledgeBaseDialog onClose={() => setCreating(false)} onCreated={onCreated} />
+      )}
+      {renameTarget !== null && (
+        <RenameKnowledgeBaseDialog
+          knowledgeBase={renameTarget}
+          onClose={() => setRenameTarget(null)}
+        />
       )}
       {deleteTarget !== null && (
         <DeleteKnowledgeBaseDialog

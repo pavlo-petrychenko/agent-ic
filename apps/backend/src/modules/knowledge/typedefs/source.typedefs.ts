@@ -39,3 +39,8 @@ export interface DeleteKnowledgeSourceInput {
 export interface RetryKnowledgeSourceInput {
   readonly id: string;
 }
+
+export interface RenameKnowledgeSourceInput {
+  readonly id: string;
+  readonly title: string;
+}

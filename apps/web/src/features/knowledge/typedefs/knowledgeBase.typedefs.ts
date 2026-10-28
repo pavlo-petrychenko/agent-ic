@@ -26,6 +26,16 @@ export interface UseCreateKnowledgeBaseResult {
   readonly creating: boolean;
 }
 
+export interface RenameKnowledgeBaseValues {
+  readonly id: string;
+  readonly name: string;
+}
+
+export interface UseRenameKnowledgeBaseResult {
+  readonly renameKnowledgeBase: (values: RenameKnowledgeBaseValues) => Promise<void>;
+  readonly renaming: boolean;
+}
+
 export interface UseDeleteKnowledgeBaseResult {
   readonly deleteKnowledgeBase: (id: string) => Promise<void>;
   readonly deleting: boolean;

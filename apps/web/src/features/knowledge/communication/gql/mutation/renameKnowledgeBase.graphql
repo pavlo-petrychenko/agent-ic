@@ -1,0 +1,6 @@
+mutation RenameKnowledgeBase($input: RenameKnowledgeBaseInput!) {
+  renameKnowledgeBase(input: $input) {
+    id
+    name
+  }
+}

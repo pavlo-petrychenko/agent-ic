@@ -24,6 +24,7 @@ export const KNOWLEDGE_SOURCE_DATE_FORMAT: Intl.DateTimeFormatOptions = {
 };
 
 export enum KnowledgeSourceMenuAction {
+  Rename = 'rename',
   Retry = 'retry',
   Delete = 'delete',
 }
