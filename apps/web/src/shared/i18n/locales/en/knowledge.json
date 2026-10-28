@@ -68,7 +68,18 @@
     "submit_other": "Add {{count}} files",
     "retry_one": "Retry {{count}} file",
     "retry_other": "Retry {{count}} files",
-    "submitEmpty": "Add files"
+    "submitEmpty": "Add files",
+    "googleConnection": {
+      "callback": {
+        "title": "Connecting Google Docs",
+        "description": "Finishing the Google sign-in. You will return to the knowledge base.",
+        "failed": "Could not connect Google Docs",
+        "denied": "Google sign-in was cancelled. Nothing changed.",
+        "invalid": "This Google sign-in link is incomplete or expired.",
+        "missingReturn": "The knowledge base for this sign-in is missing. Start again from the knowledge page.",
+        "back": "Back to knowledge"
+      }
+    }
   },
   "sources": {
     "title": "Sources",
