@@ -88,12 +88,6 @@ $mobile-card-width: 220px;
   font: var(--type-title);
 }
 
-.typeTitleRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
-}
-
 .typeDescription {
   color: var(--color-mute);
   font: var(--type-body-small);

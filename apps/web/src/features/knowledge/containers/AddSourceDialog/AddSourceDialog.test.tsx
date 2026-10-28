@@ -259,7 +259,7 @@ describe('AddSourceDialog', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Upload files')).toBeInTheDocument();
     expect(screen.getByText('Google Docs')).toBeInTheDocument();
-    expect(screen.getByText('ClickUp')).toBeInTheDocument();
+    expect(screen.queryByText('ClickUp')).not.toBeInTheDocument();
 
     await user.upload(fileInput(), [PDF, XLSX]);
 
