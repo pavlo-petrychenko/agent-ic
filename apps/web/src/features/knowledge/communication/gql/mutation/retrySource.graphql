@@ -1,0 +1,5 @@
+mutation RetrySource($input: RetrySourceInput!) {
+  retrySource(input: $input) {
+    id
+  }
+}

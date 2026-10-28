@@ -101,6 +101,7 @@ export enum ErrorReason {
   KnowledgeUploadInvalid = 'KNOWLEDGE_UPLOAD_INVALID',
   KnowledgeSourceBusy = 'KNOWLEDGE_SOURCE_BUSY',
   KnowledgeSourceNotFound = 'KNOWLEDGE_SOURCE_NOT_FOUND',
+  KnowledgeSourceNotRetryable = 'KNOWLEDGE_SOURCE_NOT_RETRYABLE',
   KnowledgeDocumentInvalid = 'KNOWLEDGE_DOCUMENT_INVALID',
   PromptNameTaken = 'PROMPT_NAME_TAKEN',
   PromptFolderNameTaken = 'PROMPT_FOLDER_NAME_TAKEN',

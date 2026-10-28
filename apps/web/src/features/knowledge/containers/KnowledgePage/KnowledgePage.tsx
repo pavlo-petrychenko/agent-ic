@@ -135,7 +135,7 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
               knowledgeBaseId={selected.id}
               knowledgeBaseName={selected.name}
               canAddSource={canEdit}
-              canDeleteSource={canEdit}
+              canManageSources={canEdit}
               onCountsChanged={refreshKnowledgeBases}
             />
           )}

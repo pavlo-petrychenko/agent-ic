@@ -9,6 +9,7 @@ extend type Mutation {
   createUpload(input: CreateUploadInput!): CreateUploadPayload!
   confirmUpload(input: ConfirmUploadInput!): KnowledgeSource!
   deleteSource(input: DeleteSourceInput!): DeleteSourcePayload!
+  retrySource(input: RetrySourceInput!): RetrySourcePayload!
 }
 
 input DeleteKnowledgeBaseInput {
@@ -29,6 +30,14 @@ input DeleteSourceInput {
 }
 
 type DeleteSourcePayload {
+  id: ID!
+}
+
+input RetrySourceInput {
+  id: ID!
+}
+
+type RetrySourcePayload {
   id: ID!
 }
 
