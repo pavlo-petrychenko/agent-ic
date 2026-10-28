@@ -18,6 +18,7 @@ import { KnowledgeBaseViewsService } from '@/modules/knowledge/services/knowledg
 import { KnowledgeDocumentIngestionService } from '@/modules/knowledge/services/knowledge-document-ingestion.service';
 import { KnowledgeEmbeddingService } from '@/modules/knowledge/services/knowledge-embedding.service';
 import { CreateKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/create-knowledge-base.use-case';
+import { CreateUploadUseCase } from '@/modules/knowledge/use-cases/create-upload.use-case';
 import { DeleteKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/delete-knowledge-base.use-case';
 import { IngestKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/ingest-knowledge-source.use-case';
 import { ListKnowledgeBasesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-bases.use-case';
@@ -41,6 +42,7 @@ export class KnowledgeModule extends defineModule({
     KnowledgeEmbeddingService,
     KnowledgeBaseViewsService,
     CreateKnowledgeBaseUseCase,
+    CreateUploadUseCase,
     DeleteKnowledgeBaseUseCase,
     IngestKnowledgeSourceUseCase,
     ListKnowledgeBasesUseCase,

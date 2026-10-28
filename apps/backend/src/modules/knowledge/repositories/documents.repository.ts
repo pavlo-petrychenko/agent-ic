@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, asc, eq, isNull } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
 import { documents } from '@/modules/knowledge/db/documents.table';
 import type {
   Document,
@@ -32,7 +33,16 @@ export class DocumentsRepository {
     const [document] = await this.txHost.tx
       .select()
       .from(documents)
-      .where(this.activeWhere(workspaceId, documentId));
+      .where(this.activeWhere(workspaceId, eq(documents.id, documentId)));
+    return document ?? null;
+  }
+
+  async findActiveBySource(workspaceId: string, sourceId: string): Promise<Document | null> {
+    const [document] = await this.txHost.tx
+      .select()
+      .from(documents)
+      .where(this.activeWhere(workspaceId, eq(documents.sourceId, sourceId)))
+      .limit(1);
     return document ?? null;
   }
 
@@ -40,13 +50,7 @@ export class DocumentsRepository {
     return this.txHost.tx
       .select()
       .from(documents)
-      .where(
-        and(
-          eq(documents.workspaceId, workspaceId),
-          eq(documents.sourceId, sourceId),
-          isNull(documents.deletedAt),
-        ),
-      )
+      .where(this.activeWhere(workspaceId, eq(documents.sourceId, sourceId)))
       .orderBy(asc(documents.createdAt), asc(documents.id));
   }
 
@@ -58,7 +62,7 @@ export class DocumentsRepository {
     const [document] = await this.txHost.tx
       .update(documents)
       .set({ ...changes, updatedAt: this.clock.now() })
-      .where(this.activeWhere(workspaceId, documentId))
+      .where(this.activeWhere(workspaceId, eq(documents.id, documentId)))
       .returning();
     return document ?? null;
   }
@@ -67,11 +71,7 @@ export class DocumentsRepository {
     return (await this.update(workspaceId, documentId, { deletedAt })) !== null;
   }
 
-  private activeWhere(workspaceId: string, documentId: string) {
-    return and(
-      eq(documents.workspaceId, workspaceId),
-      eq(documents.id, documentId),
-      isNull(documents.deletedAt),
-    );
+  private activeWhere(workspaceId: string, ...conditions: SQL[]): SQL | undefined {
+    return and(eq(documents.workspaceId, workspaceId), isNull(documents.deletedAt), ...conditions);
   }
 }
