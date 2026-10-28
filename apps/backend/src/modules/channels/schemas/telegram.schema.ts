@@ -18,3 +18,21 @@ export const replaceTelegramTokenInputSchema = z.object({
   [ChannelField.Id]: z.string().min(1),
   [ChannelField.Token]: z.string().trim().regex(TELEGRAM_TOKEN_PATTERN),
 });
+
+const telegramUserResponseSchema = z.looseObject({
+  id: z.number(),
+  first_name: z.string(),
+});
+
+const telegramMessageResponseSchema = z.looseObject({
+  message_id: z.number(),
+  date: z.number(),
+  text: z.string().optional(),
+  chat: z.looseObject({ id: z.number() }),
+  from: telegramUserResponseSchema.optional(),
+});
+
+export const telegramWebhookUpdateSchema = z.looseObject({
+  update_id: z.number(),
+  message: telegramMessageResponseSchema.optional(),
+});

@@ -108,4 +108,12 @@ export interface UpdateChannelSettingsInput {
 export interface ReceiveTelegramUpdateInput {
   readonly channelId: string;
   readonly update: TelegramUpdate;
+  readonly webhookSecret?: string | null;
+}
+
+export interface HandleTelegramWebhookInput {
+  readonly workspacePublicId: string;
+  readonly channelPublicId: string;
+  readonly secret: string | null;
+  readonly body: unknown;
 }
