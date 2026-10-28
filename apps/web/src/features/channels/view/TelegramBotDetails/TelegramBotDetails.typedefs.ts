@@ -13,5 +13,6 @@ export interface TelegramBotDetailsProps {
   readonly onTypingChange: (checked: boolean) => void;
   readonly onReplaceToken: () => void;
   readonly onDisconnect: () => void;
+  readonly onDelete: () => void;
   readonly onSave: () => void;
 }

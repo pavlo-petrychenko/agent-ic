@@ -40,6 +40,7 @@ const renderDetails = (props: Partial<TelegramBotDetailsProps> = {}) => {
       onTypingChange={() => undefined}
       onReplaceToken={() => undefined}
       onDisconnect={onDisconnect}
+      onDelete={() => undefined}
       onSave={() => undefined}
       {...props}
     />,
@@ -58,6 +59,15 @@ describe('TelegramBotDetails', () => {
     expect(screen.getByText('Demo salon · edit in @BotFather')).toBeInTheDocument();
     expect(screen.getByRole('combobox')).toHaveValue('agt_1');
     expect(screen.getByRole('switch')).toBeChecked();
+    expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
+  });
+
+  it('offers delete only for a disconnected bot', () => {
+    renderDetails({
+      channel: { ...connectedChannel, status: TelegramChannelStatus.Disconnected },
+    });
+
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
   });
 
   it('shows the broken state', () => {

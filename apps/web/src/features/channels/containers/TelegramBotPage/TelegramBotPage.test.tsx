@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TelegramBotPage } from '@/features/channels/containers/TelegramBotPage/TelegramBotPage';
 import { MemoryRouter } from '@test/support/components/MemoryRouter';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
@@ -24,6 +24,8 @@ const disconnectTelegram = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Pro
 const updateTelegram = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
 
 const replaceTelegramToken = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
+
+const deleteChannel = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
 
 const NEW_TOKEN = `700000001:${'A'.repeat(35)}`;
 
@@ -80,6 +82,13 @@ vi.mock('@/features/channels/communication/hooks/useReplaceTelegramToken', () =>
   }),
 }));
 
+vi.mock('@/features/channels/communication/hooks/useDeleteChannel', () => ({
+  useDeleteChannel: () => ({
+    deleteChannel,
+    deleting: false,
+  }),
+}));
+
 const renderPage = () =>
   renderWithProviders(
     <MemoryRouter>
@@ -88,6 +97,10 @@ const renderPage = () =>
   );
 
 describe('TelegramBotPage', () => {
+  beforeEach(() => {
+    CHANNEL.status = 'connected';
+  });
+
   it('loads and shows the connected bot', async () => {
     renderPage();
 
@@ -171,6 +184,24 @@ describe('TelegramBotPage', () => {
 
     await waitFor(() => {
       expect(disconnectTelegram).toHaveBeenCalledWith(CHANNEL.id);
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  it('deletes a disconnected bot after typing its name', async () => {
+    deleteChannel.mockClear();
+    CHANNEL.status = 'disconnected';
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Delete' }));
+    const dialog = screen.getByRole('dialog', { name: 'Delete @demo_salon_bot?' });
+    await userEvent.type(within(dialog).getByRole('textbox'), CHANNEL.displayName);
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => {
+      expect(deleteChannel).toHaveBeenCalledWith(CHANNEL.id);
     });
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();

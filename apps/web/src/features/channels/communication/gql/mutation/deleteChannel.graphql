@@ -1,0 +1,3 @@
+mutation DeleteChannel($id: ID!) {
+  deleteChannel(id: $id)
+}

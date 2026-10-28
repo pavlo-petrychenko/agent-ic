@@ -64,6 +64,11 @@ export interface UseReplaceTelegramTokenResult {
   readonly replacing: boolean;
 }
 
+export interface UseDeleteChannelResult {
+  readonly deleteChannel: (id: string) => Promise<void>;
+  readonly deleting: boolean;
+}
+
 export interface TelegramBotStats {
   readonly chats: string;
   readonly messages: string;
