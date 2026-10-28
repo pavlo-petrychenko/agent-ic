@@ -19,6 +19,7 @@ describe('navigation helpers', () => {
     expect(sectionsOf(WorkspaceRole.Owner)).toEqual([
       WorkspaceSection.Agents,
       WorkspaceSection.Prompts,
+      WorkspaceSection.Knowledge,
       WorkspaceSection.Channels,
       WorkspaceSection.Inbox,
       WorkspaceSection.Testing,
@@ -27,6 +28,7 @@ describe('navigation helpers', () => {
     expect(sectionsOf(WorkspaceRole.Builder)).toEqual([
       WorkspaceSection.Agents,
       WorkspaceSection.Prompts,
+      WorkspaceSection.Knowledge,
       WorkspaceSection.Channels,
       WorkspaceSection.Testing,
       WorkspaceSection.Settings,

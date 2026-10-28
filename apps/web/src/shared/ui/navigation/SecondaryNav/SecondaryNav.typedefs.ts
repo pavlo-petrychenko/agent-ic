@@ -29,6 +29,7 @@ export interface SecondaryNavProps {
   ariaLabel: string;
   action: SecondaryNavAction | null;
   groups: readonly SecondaryNavGroup[];
+  emptyMessage?: string | null;
   headingAs?: HeadingElement;
   className?: string;
 }

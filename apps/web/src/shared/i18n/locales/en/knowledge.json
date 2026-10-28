@@ -1,0 +1,11 @@
+{
+  "title": "Knowledge",
+  "subtitle": "Searchable answers from your own documents",
+  "nav": {
+    "label": "Knowledge bases"
+  },
+  "empty": {
+    "title": "No knowledge bases yet",
+    "description": "Knowledge bases you create will appear here. Add files or Google Docs so agents can answer from them."
+  }
+}

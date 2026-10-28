@@ -9,6 +9,7 @@ import { IconName } from '@/shared/ui/foundations/Icon';
 export enum WorkspaceSection {
   Agents = 'agents',
   Prompts = 'prompts',
+  Knowledge = 'knowledge',
   Channels = 'channels',
   Inbox = 'inbox',
   Testing = 'testing',
@@ -31,6 +32,7 @@ export enum NavGroupKey {
 export const WORKSPACE_SECTION_PATHS = {
   [WorkspaceSection.Agents]: '/w/$workspaceId/agents',
   [WorkspaceSection.Prompts]: '/w/$workspaceId/prompts',
+  [WorkspaceSection.Knowledge]: '/w/$workspaceId/knowledge',
   [WorkspaceSection.Channels]: '/w/$workspaceId/channels',
   [WorkspaceSection.Inbox]: '/w/$workspaceId/inbox',
   [WorkspaceSection.Testing]: '/w/$workspaceId/testing',
@@ -47,6 +49,7 @@ export const WORKSPACE_SECTION_PATHS = {
 export const SECTION_RESOURCES: Readonly<Record<WorkspaceSection, PermissionResource | null>> = {
   [WorkspaceSection.Agents]: PermissionResource.Agents,
   [WorkspaceSection.Prompts]: PermissionResource.Prompts,
+  [WorkspaceSection.Knowledge]: PermissionResource.KnowledgeBases,
   [WorkspaceSection.Channels]: PermissionResource.Channels,
   [WorkspaceSection.Inbox]: PermissionResource.Inbox,
   [WorkspaceSection.Testing]: PermissionResource.Testing,
@@ -79,6 +82,11 @@ export const NAV_GROUPS: readonly NavGroupEntry[] = [
         section: WorkspaceSection.Prompts,
         icon: IconName.Compl,
         resource: PermissionResource.Prompts,
+      },
+      {
+        section: WorkspaceSection.Knowledge,
+        icon: IconName.Kb,
+        resource: PermissionResource.KnowledgeBases,
       },
       {
         section: WorkspaceSection.Channels,

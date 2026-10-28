@@ -7,6 +7,7 @@ import { NavSectionLabel } from '@/shared/ui/navigation/NavSectionLabel';
 import { SECONDARY_NAV_GROUP_ID_SEPARATOR } from '@/shared/ui/navigation/SecondaryNav/SecondaryNav.constants';
 import type { SecondaryNavProps } from '@/shared/ui/navigation/SecondaryNav/SecondaryNav.typedefs';
 import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/typography/Heading';
+import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/shared/ui/navigation/SecondaryNav/SecondaryNav.module.scss';
 
 export function SecondaryNav({
@@ -14,6 +15,7 @@ export function SecondaryNav({
   ariaLabel,
   action,
   groups,
+  emptyMessage = null,
   headingAs = HeadingElement.H1,
   className,
 }: SecondaryNavProps) {
@@ -35,6 +37,11 @@ export function SecondaryNav({
           />
         )}
       </header>
+      {groups.length === 0 && emptyMessage !== null && (
+        <Text kind={TextKind.BodySmall} color={TextColor.Mute}>
+          {emptyMessage}
+        </Text>
+      )}
       {groups.map((group) => {
         const labelId = `${baseId}${SECONDARY_NAV_GROUP_ID_SEPARATOR}${group.id}`;
 

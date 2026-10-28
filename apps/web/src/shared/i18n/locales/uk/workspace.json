@@ -8,6 +8,7 @@
     "sections": {
       "agents": "Агенти",
       "prompts": "Промпти",
+      "knowledge": "Знання",
       "channels": "Канали",
       "inbox": "Вхідні",
       "testing": "Тестування",
