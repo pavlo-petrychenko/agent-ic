@@ -282,7 +282,7 @@ A document's true root section holds any text before the first heading. It uses 
 - Target 300–600 tokens; `CHUNK_TARGET_TOKENS` 450, `CHUNK_MAX_TOKENS` 600.
 - Overlap 10–15% inside prose only; never across a heading.
 - Tables are atomic when under 1,000 tokens. A larger table is split by groups of rows with the header repeated.
-- A document under 800 tokens becomes one chunk of its root section.
+- A document with no ATX headings and under 800 tokens becomes one chunk of its root section.
 - Chunk boundaries prefer paragraph breaks and then sentence boundaries.
 - Tokens are counted with `gpt-tokenizer` (cl100k) as a conservative approximation of the embedding model's tokenizer. The embedding model has an 8,192-token input limit, so a 600-token chunk leaves ample room.
 
@@ -291,7 +291,9 @@ Each chunk stores:
 - `content`: the raw chunk text;
 - `index_text`: document title + section breadcrumb + one-line summary + content, which is what gets embedded and BM25-tokenized;
 - `content_hash`: SHA-256 of `index_text`;
-- `token_count`.
+- `token_count`: the cl100k token count of `content`, used as the BM25 chunk-length proxy.
+
+`index_text` and its content hash are composed after the one-time document summary exists. Chunk content and token count do not depend on the summary, so a summary edit rebuilds `index_text` and embeddings without re-chunking.
 
 ### 5.4 Document summary
 
