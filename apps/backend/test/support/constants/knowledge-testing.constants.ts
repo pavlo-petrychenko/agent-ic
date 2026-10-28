@@ -4,6 +4,7 @@ export const KNOWLEDGE_TEST_START = new Date('2026-05-01T09:00:00.000Z');
 export const KNOWLEDGE_TEST_LATER = new Date('2026-05-01T10:00:00.000Z');
 export const TEST_KB_NAME = 'Handbook';
 export const TEST_KB_NEW_NAME = 'Handbook v2';
+export const TEST_KB_DESCRIPTION = 'Team handbook';
 export const TEST_KB_TOOL_NAME = 'search_handbook';
 export const TEST_EMBEDDING_MODEL = 'jina-embeddings-v5-text-small';
 export const TEST_CONNECTION_EMAIL = 'owner@example.com';
