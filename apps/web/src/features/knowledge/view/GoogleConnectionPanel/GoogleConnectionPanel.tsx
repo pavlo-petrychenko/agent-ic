@@ -20,8 +20,10 @@ export function GoogleConnectionPanel({
   errorMessage,
   starting,
   disconnectingId,
+  pickingConnectionId,
   onConnect,
   onDisconnect,
+  onPick,
   onRetry,
 }: GoogleConnectionPanelProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
@@ -47,7 +49,7 @@ export function GoogleConnectionPanel({
           <span className={styles.title}>{t('add.googleConnection.title')}</span>
           <span className={styles.description}>{t('add.googleConnection.description')}</span>
         </div>
-        <Button onClick={onConnect} loading={starting}>
+        <Button onClick={onConnect} loading={starting} disabled={pickingConnectionId !== null}>
           {connections.length === 0
             ? t('add.googleConnection.connect')
             : t('add.googleConnection.connectAnother')}
@@ -92,11 +94,20 @@ export function GoogleConnectionPanel({
                   </span>
                 </div>
                 <div className={styles.actions}>
-                  {active ? null : (
+                  {active ? (
+                    <Button
+                      size={ButtonSize.Sm}
+                      loading={pickingConnectionId === connection.id}
+                      disabled={pickingConnectionId !== null}
+                      onClick={() => onPick(connection)}
+                    >
+                      {t('add.googleConnection.pickDocuments')}
+                    </Button>
+                  ) : (
                     <Button
                       size={ButtonSize.Sm}
                       variant={ButtonVariant.Secondary}
-                      disabled={starting}
+                      disabled={starting || pickingConnectionId !== null}
                       onClick={onConnect}
                     >
                       {t('add.googleConnection.reconnect')}
@@ -106,7 +117,7 @@ export function GoogleConnectionPanel({
                     size={ButtonSize.Sm}
                     variant={ButtonVariant.Danger}
                     loading={disconnectingId === connection.id}
-                    disabled={disconnectingId !== null || starting}
+                    disabled={disconnectingId !== null || starting || pickingConnectionId !== null}
                     onClick={() => onDisconnect(connection)}
                   >
                     {t('add.googleConnection.disconnect')}
@@ -117,7 +128,6 @@ export function GoogleConnectionPanel({
           })}
         </div>
       )}
-      <Callout tone={CalloutTone.Neutral}>{t('add.googleConnection.pickerSoon')}</Callout>
     </div>
   );
 }

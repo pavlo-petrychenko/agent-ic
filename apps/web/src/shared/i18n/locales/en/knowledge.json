@@ -85,7 +85,6 @@
       "statusRevoked": "Reconnect needed",
       "statusError": "Connection problem",
       "errorDetail": "Sources from this account stop syncing until you reconnect.",
-      "pickerSoon": "Picking documents comes next. The connected account is ready for it.",
       "callback": {
         "title": "Connecting Google Docs",
         "description": "Finishing the Google sign-in. You will return to the knowledge base.",
@@ -94,7 +93,11 @@
         "invalid": "This Google sign-in link is incomplete or expired.",
         "missingReturn": "The knowledge base for this sign-in is missing. Start again from the knowledge page.",
         "back": "Back to knowledge"
-      }
+      },
+      "pickDocuments": "Pick documents",
+      "pickerSuccess": "Google Docs source added.",
+      "pickerSkipped": "Some selected documents could not be added.",
+      "pickerLoadError": "Google Picker could not load. Check your connection and try again."
     }
   },
   "sources": {

@@ -5,6 +5,8 @@ import userEvent from '@testing-library/user-event';
 import { GraphQLError } from 'graphql';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmUploadDocument } from '@/features/knowledge/communication/gql/mutation/confirmUpload.generated';
+import { CreateGoogleDocsSourceDocument } from '@/features/knowledge/communication/gql/mutation/createGoogleDocsSource.generated';
+import { CreateGooglePickerSessionDocument } from '@/features/knowledge/communication/gql/mutation/createGooglePickerSession.generated';
 import { CreateUploadDocument } from '@/features/knowledge/communication/gql/mutation/createUpload.generated';
 import { DisconnectGoogleConnectionDocument } from '@/features/knowledge/communication/gql/mutation/disconnectGoogleConnection.generated';
 import { StartGoogleConnectionDocument } from '@/features/knowledge/communication/gql/mutation/startGoogleConnection.generated';
@@ -16,6 +18,8 @@ import { GOOGLE_CONNECTION_RETURN_STORAGE_KEY } from '@/features/knowledge/const
 import { AddSourceDialog } from '@/features/knowledge/containers/AddSourceDialog';
 import type * as GoogleConnectionHelpers from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import { redirectToGoogle } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
+import type * as GooglePickerHelpers from '@/features/knowledge/logic/helpers/googlePicker.helpers';
+import { openGooglePicker } from '@/features/knowledge/logic/helpers/googlePicker.helpers';
 import {
   KnowledgeConnectionStatus,
   KnowledgeSourceKind,
@@ -26,6 +30,11 @@ import { renderWithProviders } from '@test/support/helpers/render.helpers';
 vi.mock('@/features/knowledge/logic/helpers/googleConnection.helpers', async (importOriginal) => {
   const actual = await importOriginal<typeof GoogleConnectionHelpers>();
   return { ...actual, redirectToGoogle: vi.fn<() => void>() };
+});
+
+vi.mock('@/features/knowledge/logic/helpers/googlePicker.helpers', async (importOriginal) => {
+  const actual = await importOriginal<typeof GooglePickerHelpers>();
+  return { ...actual, openGooglePicker: vi.fn<() => Promise<void>>() };
 });
 
 const PDF = new File(['a'], 'services.pdf', { type: 'application/pdf' });
@@ -134,6 +143,72 @@ const DISCONNECT_GOOGLE_CONNECTION_MOCK: MockLink.MockedResponse = {
   result: { data: { disconnectGoogleConnection: { id: ACTIVE_CONNECTION.id } } },
 };
 
+const PICKER_POLICIES = {
+  id: 'gdoc_policies',
+  name: 'Policies',
+  mimeType: 'application/vnd.google-apps.document',
+  url: 'https://docs.google.com/document/d/gdoc_policies',
+  resourceKey: null,
+};
+
+const PICKER_PRICES = {
+  id: 'gdoc_prices',
+  name: 'Prices',
+  mimeType: 'application/vnd.google-apps.document',
+  url: 'https://docs.google.com/document/d/gdoc_prices',
+  resourceKey: null,
+};
+
+const PICKER_DOCUMENTS = [PICKER_POLICIES, PICKER_PRICES];
+
+const CREATE_GOOGLE_PICKER_SESSION_MOCK: MockLink.MockedResponse = {
+  request: {
+    query: CreateGooglePickerSessionDocument,
+    variables: { connectionId: ACTIVE_CONNECTION.id },
+  },
+  result: {
+    data: {
+      createGooglePickerSession: {
+        accessToken: 'google-access-token',
+        apiKey: 'picker-api-key',
+        appId: 'picker-app-id',
+        expiresAt: '2026-10-26T10:00:00.000Z',
+      },
+    },
+  },
+};
+
+const CREATE_GOOGLE_DOCS_SOURCE_MOCK: MockLink.MockedResponse = {
+  request: {
+    query: CreateGoogleDocsSourceDocument,
+    variables: {
+      input: {
+        connectionId: ACTIVE_CONNECTION.id,
+        knowledgeBaseId: 'kbs_services',
+        documents: PICKER_DOCUMENTS,
+      },
+    },
+  },
+  result: {
+    data: {
+      createGoogleDocsSource: {
+        source: {
+          ...SOURCE,
+          kind: KnowledgeSourceKind.GoogleDocs,
+          title: 'Policies',
+        },
+        skipped: [
+          {
+            id: PICKER_PRICES.id,
+            name: PICKER_PRICES.name,
+            reason: 'unsupported',
+          },
+        ],
+      },
+    },
+  },
+};
+
 const renderDialog = (
   mocks: readonly MockLink.MockedResponse[] = [],
   locale: Locale = Locale.En,
@@ -167,6 +242,7 @@ const openGoogleTab = async (): Promise<void> => {
 
 describe('AddSourceDialog', () => {
   afterEach(() => {
+    vi.mocked(openGooglePicker).mockReset();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
     sessionStorage.clear();
@@ -277,7 +353,7 @@ describe('AddSourceDialog', () => {
 
     expect(await screen.findByText('owner@example.com')).toBeInTheDocument();
     expect(screen.getByText('Connected')).toBeInTheDocument();
-    expect(screen.getByText(/Picking documents comes next/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Pick documents' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Disconnect' }));
 
@@ -292,8 +368,37 @@ describe('AddSourceDialog', () => {
 
     expect(await screen.findByText('Reconnect needed')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Reconnect' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Pick documents' })).not.toBeInTheDocument();
     expect(
       screen.getByText('Sources from this account stop syncing until you reconnect.'),
     ).toBeInTheDocument();
+  });
+
+  it('picks Google Docs, creates a source and reports skipped documents', async () => {
+    const user = userEvent.setup();
+    vi.mocked(openGooglePicker).mockImplementation(async ({ onPicked }) => {
+      onPicked(PICKER_DOCUMENTS);
+    });
+    const { onClose, onUploaded } = renderDialog([
+      buildConnectionsMock([ACTIVE_CONNECTION]),
+      CREATE_GOOGLE_PICKER_SESSION_MOCK,
+      CREATE_GOOGLE_DOCS_SOURCE_MOCK,
+    ]);
+
+    await openGoogleTab();
+    await screen.findByText('owner@example.com');
+    await user.click(screen.getByRole('button', { name: 'Pick documents' }));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(onUploaded).toHaveBeenCalled();
+    expect(openGooglePicker).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accessToken: 'google-access-token',
+        apiKey: 'picker-api-key',
+        appId: 'picker-app-id',
+      }),
+    );
+    expect(screen.getByText('Google Docs source added.')).toBeInTheDocument();
+    expect(screen.getByText('Some selected documents could not be added.')).toBeInTheDocument();
   });
 });
