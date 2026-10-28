@@ -1,0 +1,14 @@
+.stacked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.meta {
+  overflow: hidden;
+  color: var(--color-mute);
+  font: var(--type-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

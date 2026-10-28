@@ -11,14 +11,23 @@ import {
   type KnowledgeBasesQuery,
 } from '@/features/knowledge/communication/gql/query/knowledgeBases.generated';
 import {
+  KnowledgeSourcesDocument,
+  type KnowledgeSourcesQuery,
+} from '@/features/knowledge/communication/gql/query/knowledgeSources.generated';
+import {
   buildWorkspaceShellMock,
   DEMO_WORKSPACE,
 } from '@/features/workspace/communication/fixtures/workspaceShell.fixture';
+import {
+  KnowledgeSourceKind,
+  KnowledgeSourceStatus,
+} from '@/shared/api/generated/schema.generated';
 import { setWorkspaceId } from '@/shared/api/helpers/requestContext.helpers';
 import { renderRoute } from '@test/support/helpers/router.helpers';
 import { signInForTest, signOutForTest } from '@test/support/helpers/session.helpers';
 
 type KnowledgeBaseFixture = KnowledgeBasesQuery['knowledgeBases'][number];
+type KnowledgeSourceFixture = KnowledgeSourcesQuery['knowledgeSources'][number];
 
 const SERVICES_KNOWLEDGE_BASE: KnowledgeBaseFixture = {
   id: 'kbs_services',
@@ -46,6 +55,43 @@ const NEW_KNOWLEDGE_BASE: KnowledgeBaseFixture = {
   toolName: 'search_handbook',
 };
 
+const READY_SOURCE: KnowledgeSourceFixture = {
+  id: 'src_services',
+  knowledgeBaseId: SERVICES_KNOWLEDGE_BASE.id,
+  kind: KnowledgeSourceKind.Upload,
+  title: 'services',
+  status: KnowledgeSourceStatus.Ready,
+  syncInterval: null,
+  nextSyncAt: null,
+  lastSyncAt: '2026-10-26T09:10:00.000Z',
+  lastErrorCode: null,
+  lastErrorMessage: null,
+  documentCount: 1,
+  chunkCount: 34,
+  createdAt: '2026-10-26T09:00:00.000Z',
+  updatedAt: '2026-10-26T09:10:00.000Z',
+};
+
+const INDEXING_SOURCE: KnowledgeSourceFixture = {
+  ...READY_SOURCE,
+  id: 'src_handbook',
+  title: 'Handbook',
+  status: KnowledgeSourceStatus.Indexing,
+  lastSyncAt: null,
+  documentCount: 0,
+  chunkCount: 0,
+};
+
+const FAILED_SOURCE: KnowledgeSourceFixture = {
+  ...READY_SOURCE,
+  id: 'src_broken',
+  title: 'Old services',
+  status: KnowledgeSourceStatus.Error,
+  lastErrorCode: ErrorReason.KnowledgeDocumentInvalid,
+  lastErrorMessage: 'This document cannot be read.',
+  chunkCount: 0,
+};
+
 const knowledgePath = `/w/${DEMO_WORKSPACE.id}/knowledge`;
 
 const buildKnowledgeBasesMock = (
@@ -53,6 +99,14 @@ const buildKnowledgeBasesMock = (
 ): MockLink.MockedResponse => ({
   request: { query: KnowledgeBasesDocument },
   result: { data: { knowledgeBases } },
+});
+
+const buildKnowledgeSourcesMock = (
+  knowledgeBaseId: string,
+  knowledgeSources: readonly KnowledgeSourceFixture[] = [],
+): MockLink.MockedResponse => ({
+  request: { query: KnowledgeSourcesDocument, variables: { knowledgeBaseId } },
+  result: { data: { knowledgeSources } },
 });
 
 const buildCreateKnowledgeBaseMock = (
@@ -101,6 +155,7 @@ describe('knowledge bases', () => {
         buildKnowledgeBasesMock([]),
         buildCreateKnowledgeBaseMock('Handbook', NEW_KNOWLEDGE_BASE),
         buildKnowledgeBasesMock([NEW_KNOWLEDGE_BASE]),
+        buildKnowledgeSourcesMock(NEW_KNOWLEDGE_BASE.id),
       ],
     });
 
@@ -124,10 +179,12 @@ describe('knowledge bases', () => {
       mocks: [
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id),
       ],
     });
 
     await screen.findByRole('heading', { name: SERVICES_KNOWLEDGE_BASE.name });
+    await screen.findByText('No sources yet');
     await user.click(screen.getByRole('button', { name: 'Add source' }));
 
     const dialog = await screen.findByRole('dialog', {
@@ -139,14 +196,38 @@ describe('knowledge bases', () => {
     expect(within(dialog).getByText('Drop files here or')).toBeInTheDocument();
   });
 
+  it('shows source indexing status and chunk counts', async () => {
+    renderRoute(`${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [
+          READY_SOURCE,
+          INDEXING_SOURCE,
+          FAILED_SOURCE,
+        ]),
+      ],
+    });
+
+    expect(await screen.findByRole('heading', { name: 'Sources' })).toBeInTheDocument();
+    expect(await screen.findByText('Indexed')).toBeInTheDocument();
+    expect(screen.getByText('Indexing')).toBeInTheDocument();
+    expect(screen.getByText('Failed')).toBeInTheDocument();
+    expect(screen.getByText('34 chunks')).toBeInTheDocument();
+    expect(screen.getByText('This document cannot be read.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add source' })).toBeInTheDocument();
+  });
+
   it('deletes an empty knowledge base and selects the next one', async () => {
     const user = userEvent.setup();
     renderRoute(`${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`, {
       mocks: [
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE, HOURS_KNOWLEDGE_BASE]),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id),
         buildDeleteKnowledgeBaseMock(SERVICES_KNOWLEDGE_BASE.id),
         buildKnowledgeBasesMock([HOURS_KNOWLEDGE_BASE]),
+        buildKnowledgeSourcesMock(HOURS_KNOWLEDGE_BASE.id),
       ],
     });
 
@@ -177,6 +258,7 @@ describe('knowledge bases', () => {
       mocks: [
         buildWorkspaceShellMock([DEMO_WORKSPACE]),
         buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id),
         buildDeleteKnowledgeBaseFailureMock(SERVICES_KNOWLEDGE_BASE.id),
       ],
     });

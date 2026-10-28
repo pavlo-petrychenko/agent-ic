@@ -1,17 +1,16 @@
 import { can, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useKnowledgeBases } from '@/features/knowledge/communication/hooks/useKnowledgeBases';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
-import { AddSourceDialog } from '@/features/knowledge/containers/AddSourceDialog';
 import { DeleteKnowledgeBaseDialog } from '@/features/knowledge/containers/DeleteKnowledgeBaseDialog';
 import type { KnowledgePageProps } from '@/features/knowledge/containers/KnowledgePage/KnowledgePage.typedefs';
+import { KnowledgeSourcesSection } from '@/features/knowledge/containers/KnowledgeSourcesSection';
 import { NewKnowledgeBaseDialog } from '@/features/knowledge/containers/NewKnowledgeBaseDialog';
 import { knowledgeBasePath } from '@/features/knowledge/logic/helpers/knowledgeRoute.helpers';
 import type { KnowledgeBase } from '@/features/knowledge/typedefs/knowledgeBase.typedefs';
 import { KnowledgeEmpty } from '@/features/knowledge/view/KnowledgeEmpty';
-import { KnowledgeSourcesEmpty } from '@/features/knowledge/view/KnowledgeSourcesEmpty';
 import { useActiveWorkspace } from '@/features/workspace';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Card } from '@/shared/ui/display/Card';
@@ -29,7 +28,6 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
   const active = useActiveWorkspace(workspaceId);
   const [creating, setCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<KnowledgeBase | null>(null);
-  const [addingSource, setAddingSource] = useState(false);
   const canCreate =
     active !== null && can(active.role, PermissionResource.KnowledgeBases, PermissionAction.Edit);
   const canDelete =
@@ -62,6 +60,9 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
         ];
 
   const onCreate = canCreate ? () => setCreating(true) : null;
+  const refreshKnowledgeBases = useCallback(() => {
+    void retry();
+  }, [retry]);
   const onCreated = (knowledgeBaseId: string) => {
     setCreating(false);
     void navigate({
@@ -116,20 +117,18 @@ export function KnowledgePage({ workspaceId, selectedKnowledgeBaseId }: Knowledg
               <KnowledgeEmpty onCreate={onCreate} />
             )
           ) : (
-            <KnowledgeSourcesEmpty onAddSource={canCreate ? () => setAddingSource(true) : null} />
+            <KnowledgeSourcesSection
+              key={selected.id}
+              knowledgeBaseId={selected.id}
+              knowledgeBaseName={selected.name}
+              canAddSource={canCreate}
+              onCountsChanged={refreshKnowledgeBases}
+            />
           )}
         </div>
       </div>
       {creating && (
         <NewKnowledgeBaseDialog onClose={() => setCreating(false)} onCreated={onCreated} />
-      )}
-      {addingSource && selected !== null && (
-        <AddSourceDialog
-          knowledgeBaseId={selected.id}
-          knowledgeBaseName={selected.name}
-          onClose={() => setAddingSource(false)}
-          onUploaded={() => void retry()}
-        />
       )}
       {deleteTarget !== null && (
         <DeleteKnowledgeBaseDialog

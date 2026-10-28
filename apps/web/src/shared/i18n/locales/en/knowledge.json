@@ -70,6 +70,39 @@
     "retry_other": "Retry {{count}} files",
     "submitEmpty": "Add files"
   },
+  "sources": {
+    "title": "Sources",
+    "add": "Add source",
+    "tableLabel": "Knowledge sources",
+    "loading": "Loading sources",
+    "loadError": "Could not load sources.",
+    "columns": {
+      "source": "Source",
+      "type": "Type",
+      "sync": "Sync",
+      "status": "Index status"
+    },
+    "kind": {
+      "upload": "Uploaded file",
+      "googleDocs": "Google Docs"
+    },
+    "sync": {
+      "oneTime": "One-time import",
+      "connected": "Connected",
+      "added": "Added {{date}}"
+    },
+    "status": {
+      "queued": "Queued",
+      "indexing": "Indexing",
+      "indexed": "Indexed",
+      "failed": "Failed",
+      "pendingDetail": "Waiting to index",
+      "indexingDetail": "Preparing chunks",
+      "errorDetail": "Indexing failed"
+    },
+    "chunks_one": "{{count}} chunk",
+    "chunks_other": "{{count}} chunks"
+  },
   "delete": {
     "action": "Delete",
     "title": "Delete “{{name}}”?",
