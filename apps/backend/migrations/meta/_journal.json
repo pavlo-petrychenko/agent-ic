@@ -204,6 +204,13 @@
       "when": 1792971470746,
       "tag": "0028_add_updated_by_user_id",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1793128097471,
+      "tag": "0029_knowledge-tables",
+      "breakpoints": true
     }
   ]
 }
