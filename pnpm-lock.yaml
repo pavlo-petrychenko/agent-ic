@@ -729,6 +729,9 @@ importers:
       '@agent-ic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      croner:
+        specifier: ^10.0.1
+        version: 10.0.1
       zod:
         specifier: ^4.6.6
         version: 4.6.7
@@ -6200,6 +6203,10 @@ packages:
   cron-parser@5.10.1:
     resolution: {integrity: sha512-pKRrRagItwk9rGIStcUyMxFX34x56zoX3KDf9HJ4ttwkXIK1qxK63EvXvEDmlxI9AdPJ+Y7TEKRftRlW5eSS7A==}
     engines: {node: '>=18'}
+
+  croner@10.0.1:
+    resolution: {integrity: sha512-ixNtAJndqh173VQ4KodSdJEI6nuioBWI0V1ITNKhZZsO0pEMoDxz539T4FTTbSZ/xIOSuDnzxLVRqBVSvPNE2g==}
+    engines: {node: '>=18.0'}
 
   cross-inspect@1.0.1:
     resolution: {integrity: sha512-Pcw1JTvZLSJH83iiGWt6fRcT+BjZlCDRVwYLbUcHzv/CRpB7r0MlSrGbIyQvVSNyGnbt7G4AXuyCiDR3POvZ1A==}
@@ -14983,6 +14990,8 @@ snapshots:
   cron-parser@5.10.1:
     dependencies:
       luxon: 3.7.2
+
+  croner@10.0.1: {}
 
   cross-inspect@1.0.1:
     dependencies:

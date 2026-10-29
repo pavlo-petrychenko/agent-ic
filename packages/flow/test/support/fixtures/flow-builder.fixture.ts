@@ -40,6 +40,7 @@ import {
   InactivityActivity,
   InactivityRepeatKind,
   InactivityUnit,
+  ChannelType,
   ReplyMode,
   ScheduleKind,
 } from '@flow/nodes/constants/trigger.constants';
@@ -93,7 +94,11 @@ export const scheduleTrigger = (key: string, cron: string | null = null): Trigge
       cron === null
         ? { kind: ScheduleKind.Daily, time: '09:30', timeZone: 'Europe/Kyiv' }
         : { kind: ScheduleKind.Custom, cron, timeZone: 'Europe/Kyiv' },
-    conditions: { silentForHours: null, notEscalated: true, channelTypes: [] },
+    conditions: {
+      silentForHours: null,
+      notEscalated: true,
+      channelTypes: [ChannelType.Telegram, ChannelType.Api],
+    },
     maxConversationsPerRun: 10,
     oncePerConversation: true,
   },

@@ -1,7 +1,12 @@
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
 import { enabledExits, isExitPort } from '@flow/document/helpers/node.helpers';
 import { nodePorts } from '@flow/document/helpers/port.helpers';
-import type { AgentNode, FlowNode } from '@flow/document/typedefs/flow.typedefs';
+import type {
+  AgentNode,
+  FlowNode,
+  TriggerScheduleNode,
+} from '@flow/document/typedefs/flow.typedefs';
+import { MINUTES_PER_HOUR } from '@flow/limits/constants/limit.constants';
 import { EscalationMode } from '@flow/nodes/constants/step.constants';
 import { ReplyMode } from '@flow/nodes/constants/trigger.constants';
 import { outgoingEdges, reachableFrom } from '@flow/scope/helpers/graph.helpers';
@@ -61,6 +66,16 @@ const exitIssues = (context: ValidationContext, node: AgentNode): FlowIssue[] =>
     return issues;
   });
 
+const closesBeforeSilence = (context: ValidationContext, node: TriggerScheduleNode): boolean => {
+  const { autoClose } = context.flow.settings;
+  const { silentForHours } = node.config.conditions;
+  return (
+    autoClose !== null &&
+    silentForHours !== null &&
+    autoClose.afterMinutes < silentForHours * MINUTES_PER_HOUR
+  );
+};
+
 const nodeWarnings = (context: ValidationContext, node: FlowNode): FlowIssue[] => {
   const issues = unconnectedPortIssues(context, node);
   if (node.type === NodeType.Agent) {
@@ -93,6 +108,14 @@ const nodeWarnings = (context: ValidationContext, node: FlowNode): FlowIssue[] =
   ) {
     issues.push(
       createIssue(FlowIssueCode.NoFallbackMessage, { nodeId: node.id, path: ['fallbackMessage'] }),
+    );
+  }
+  if (node.type === NodeType.TriggerSchedule && closesBeforeSilence(context, node)) {
+    issues.push(
+      createIssue(FlowIssueCode.ScheduleClosesBeforeSilence, {
+        nodeId: node.id,
+        path: ['conditions', 'silentForHours'],
+      }),
     );
   }
   return issues;

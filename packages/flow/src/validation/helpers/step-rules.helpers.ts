@@ -11,6 +11,8 @@ import type {
 } from '@flow/document/typedefs/flow.typedefs';
 import {
   MAX_PARALLEL_BRANCHES,
+  MAX_SCHEDULE_CONVERSATIONS_PER_RUN,
+  MAX_SCHEDULE_TICKS_PER_HOUR,
   MIN_PARALLEL_BRANCHES,
 } from '@flow/limits/constants/limit.constants';
 import { FailureMode } from '@flow/nodes/constants/step.constants';
@@ -19,6 +21,7 @@ import {
   AGENT_MESSAGES_FIELD_NAME,
   AGENT_OUTCOME_FIELD_NAMES,
 } from '@flow/outputs/constants/output.constants';
+import { isTooFrequent } from '@flow/schedules/helpers/schedule-tick.helpers';
 import {
   branchNodes,
   branchStarts,
@@ -116,9 +119,10 @@ const eventTriggerIssues = (node: TriggerExternalEventNode): FlowIssue[] => {
 };
 
 const scheduleTriggerIssues = (node: TriggerScheduleNode): FlowIssue[] => {
-  const { schedule } = node.config;
+  const { schedule, conditions, maxConversationsPerRun } = node.config;
   const issues: FlowIssue[] = [];
-  if (schedule.kind === ScheduleKind.Custom && !isValidCron(schedule.cron)) {
+  const validCron = schedule.kind !== ScheduleKind.Custom || isValidCron(schedule.cron);
+  if (!validCron) {
     issues.push(
       createIssue(FlowIssueCode.InvalidCron, {
         nodeId: node.id,
@@ -133,6 +137,32 @@ const scheduleTriggerIssues = (node: TriggerScheduleNode): FlowIssue[] => {
         nodeId: node.id,
         path: ['schedule', 'timeZone'],
         params: { timeZone: schedule.timeZone },
+      }),
+    );
+  }
+  if (validCron && isTooFrequent(schedule)) {
+    issues.push(
+      createIssue(FlowIssueCode.ScheduleTooFrequent, {
+        nodeId: node.id,
+        path: ['schedule'],
+        params: { max: MAX_SCHEDULE_TICKS_PER_HOUR },
+      }),
+    );
+  }
+  if (conditions.channelTypes.length === 0) {
+    issues.push(
+      createIssue(FlowIssueCode.ScheduleNoChannelTypes, {
+        nodeId: node.id,
+        path: ['conditions', 'channelTypes'],
+      }),
+    );
+  }
+  if (maxConversationsPerRun > MAX_SCHEDULE_CONVERSATIONS_PER_RUN) {
+    issues.push(
+      createIssue(FlowIssueCode.ScheduleLimitTooHigh, {
+        nodeId: node.id,
+        path: ['maxConversationsPerRun'],
+        params: { max: MAX_SCHEDULE_CONVERSATIONS_PER_RUN },
       }),
     );
   }
