@@ -6,6 +6,7 @@ enum ConversationActivityKind {
   message_added
   run_started
   run_finished
+  conversation_closed
 }
 
 type ConversationActivityEvent {
@@ -32,6 +33,11 @@ enum ConversationState {
   waiting
   handled
   closed
+}
+
+enum ConversationCloseReason {
+  ended_by_agent
+  inactivity
 }
 
 enum ChannelConversationKind {
@@ -78,6 +84,7 @@ type Conversation {
   channelKind: ChannelConversationKind!
   language: String
   versionId: ID
+  closeReason: ConversationCloseReason
   createdAt: String!
 }
 

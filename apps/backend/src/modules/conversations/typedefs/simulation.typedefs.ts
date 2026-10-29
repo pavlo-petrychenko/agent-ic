@@ -1,6 +1,7 @@
 import type { z } from 'zod';
 import type {
   ChannelKind,
+  CloseReason,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
 import type { MessageAuthor } from '@/modules/conversations/constants/message.constants';
@@ -34,6 +35,7 @@ export interface ConversationView {
   readonly channelKind: ChannelKind;
   readonly language: string | null;
   readonly versionId: string | null;
+  readonly closeReason: CloseReason | null;
   readonly createdAt: Date;
 }
 

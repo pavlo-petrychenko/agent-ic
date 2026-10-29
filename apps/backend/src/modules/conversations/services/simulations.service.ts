@@ -65,8 +65,13 @@ export class SimulationsService {
     });
   }
 
-  close(conversation: Conversation): Promise<void> {
-    return this.conversations.close(conversation.workspaceId, conversation.id, this.clock.now());
+  async close(conversation: Conversation): Promise<void> {
+    await this.conversations.close(
+      conversation.workspaceId,
+      conversation.id,
+      this.clock.now(),
+      null,
+    );
   }
 
   open(key: SimulationKey, setup: SimulationSetup): Promise<Conversation> {
@@ -87,6 +92,7 @@ export class SimulationsService {
       awaySentAt: null,
       lastMessageAt: this.clock.now(),
       closedAt: null,
+      closeReason: null,
     });
   }
 
@@ -124,6 +130,7 @@ export class SimulationsService {
         simulationVersionId === null
           ? null
           : this.ids.toPublic(IdPrefix.AgentVersion, simulationVersionId),
+      closeReason: conversation.closeReason,
       createdAt: conversation.createdAt,
     };
   }

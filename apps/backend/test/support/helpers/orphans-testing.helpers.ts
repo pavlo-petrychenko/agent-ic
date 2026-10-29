@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Locale } from '@agent-ic/contracts';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
 import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { agents } from '@/modules/agents/db/agents.table';
@@ -60,6 +60,26 @@ const conversationRow = (id: string, workspaceId: string, agentId: string) => ({
   createdAt: AGENTS_TEST_START,
 });
 
+const insertConversations = async (
+  db: AppDatabase,
+  rows: readonly (ReturnType<typeof conversationRow> & {
+    readonly activeRunId: string | null;
+    readonly handledBy: string | null;
+  })[],
+): Promise<void> => {
+  for (const row of rows) {
+    await db.execute(sql`
+      insert into conversations.conversations
+        (id, workspace_id, agent_id, mode, channel_kind, end_user_external_id, state,
+         handled_by, active_run_id, last_message_at, created_at)
+      values
+        (${row.id}, ${row.workspaceId}, ${row.agentId}, ${row.mode}, ${row.channelKind},
+         ${row.endUserExternalId}, ${row.state}, ${row.handledBy}, ${row.activeRunId},
+         ${row.lastMessageAt}, ${row.createdAt})
+    `);
+  }
+};
+
 export const seedOrphans = async (db: AppDatabase): Promise<SeededOrphans> => {
   const userId = randomUUID();
   await db.insert(users).values({
@@ -105,13 +125,17 @@ export const seedOrphans = async (db: AppDatabase): Promise<SeededOrphans> => {
     createdAt: AGENTS_TEST_START,
     updatedAt: AGENTS_TEST_START,
   });
-  await db.insert(conversations).values([
+  await insertConversations(db, [
     {
       ...conversationRow(seeded.keptConversationId, workspaceId, seeded.keptAgentId),
       activeRunId: randomUUID(),
       handledBy: randomUUID(),
     },
-    conversationRow(seeded.deletedConversationId, workspaceId, randomUUID()),
+    {
+      ...conversationRow(seeded.deletedConversationId, workspaceId, randomUUID()),
+      activeRunId: null,
+      handledBy: null,
+    },
   ]);
   await db.insert(messages).values({
     id: seeded.deletedMessageId,

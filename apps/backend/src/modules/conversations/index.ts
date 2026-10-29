@@ -2,6 +2,7 @@ export { conversationActivityChannel } from '@/modules/conversations/channels/co
 export { ConversationActivityKind } from '@/modules/conversations/constants/conversation-activity.constants';
 export {
   ChannelKind,
+  CloseReason,
   ConversationMode,
   ConversationState,
   WaitingReason,

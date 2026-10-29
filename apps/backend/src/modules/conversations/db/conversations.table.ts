@@ -5,6 +5,7 @@ import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { agents } from '@/modules/agents/db/agents.table';
 import {
   channelKindEnum,
+  closeReasonEnum,
   conversationModeEnum,
   conversationStateEnum,
   conversationsSchema,
@@ -46,6 +47,7 @@ export const conversations = conversationsSchema
       awaySentAt: timestamp('away_sent_at', { withTimezone: true }),
       lastMessageAt: timestamp('last_message_at', { withTimezone: true }).notNull(),
       closedAt: timestamp('closed_at', { withTimezone: true }),
+      closeReason: closeReasonEnum('close_reason'),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
     },
     (table) => [
