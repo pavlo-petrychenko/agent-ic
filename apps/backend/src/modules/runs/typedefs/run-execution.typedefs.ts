@@ -50,7 +50,14 @@ export interface InactivityTriggerVariables extends TriggerBaseVariables {
   readonly inactivity: InactivityVariables;
 }
 
-export type TriggerVariables = MessageTriggerVariables | InactivityTriggerVariables;
+export interface ScheduleTriggerVariables extends TriggerBaseVariables {
+  readonly conversation: ConversationVariables;
+}
+
+export type TriggerVariables =
+  | MessageTriggerVariables
+  | InactivityTriggerVariables
+  | ScheduleTriggerVariables;
 
 export interface RunWalk {
   readonly ctx: UseCaseCtx;
