@@ -1,6 +1,7 @@
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
+import { enabledExits, isExitPort } from '@flow/document/helpers/node.helpers';
 import { nodePorts } from '@flow/document/helpers/port.helpers';
-import type { FlowNode } from '@flow/document/typedefs/flow.typedefs';
+import type { AgentNode, FlowNode } from '@flow/document/typedefs/flow.typedefs';
 import { EscalationMode } from '@flow/nodes/constants/step.constants';
 import { ReplyMode } from '@flow/nodes/constants/trigger.constants';
 import { outgoingEdges, reachableFrom } from '@flow/scope/helpers/graph.helpers';
@@ -18,6 +19,7 @@ const unconnectedPortIssues = (context: ValidationContext, node: FlowNode): Flow
     .filter((port) => !SKIPPED_PORTS.includes(port))
     .filter((port) => outgoingEdges(context.graph, node.id, port).length === 0)
     .filter((port) => !endsRunSilently(context, node, port))
+    .filter((port) => !isExitPort(node, port))
     .map((port) =>
       createIssue(FlowIssueCode.PortNotConnected, { nodeId: node.id, params: { port } }),
     );
@@ -27,8 +29,42 @@ const canFailUnhandled = (context: ValidationContext, node: FlowNode): boolean =
   !context.inBackground.has(node.id) &&
   outgoingEdges(context.graph, node.id, PortName.Error).length === 0;
 
+const hasCustomerMessage = (node: FlowNode | undefined): boolean =>
+  node?.type === NodeType.Escalation &&
+  node.config.customerMessage !== null &&
+  node.config.customerMessage.trim().length > 0;
+
+const exitIssues = (context: ValidationContext, node: AgentNode): FlowIssue[] =>
+  enabledExits(node).flatMap((exit) => {
+    const issues: FlowIssue[] = [];
+    if (node.config.exits[exit]?.when.trim().length === 0) {
+      issues.push(
+        createIssue(FlowIssueCode.EmptyExitCriterion, {
+          nodeId: node.id,
+          path: ['exits', exit, 'when'],
+          params: { exit },
+        }),
+      );
+    }
+    for (const edge of outgoingEdges(context.graph, node.id, exit)) {
+      if (hasCustomerMessage(context.graph.nodes.get(edge.target))) {
+        issues.push(
+          createIssue(FlowIssueCode.ExitEscalationMessage, {
+            nodeId: node.id,
+            edgeId: edge.id,
+            params: { exit },
+          }),
+        );
+      }
+    }
+    return issues;
+  });
+
 const nodeWarnings = (context: ValidationContext, node: FlowNode): FlowIssue[] => {
   const issues = unconnectedPortIssues(context, node);
+  if (node.type === NodeType.Agent) {
+    issues.push(...exitIssues(context, node));
+  }
   if (canFailUnhandled(context, node)) {
     issues.push(createIssue(FlowIssueCode.NoErrorPath, { nodeId: node.id }));
   }
@@ -58,7 +94,18 @@ const nodeWarnings = (context: ValidationContext, node: FlowNode): FlowIssue[] =
   return issues;
 };
 
-export const warningIssues = (context: ValidationContext): FlowIssue[] =>
-  context.flow.nodes
+const settingsWarnings = ({ flow }: ValidationContext): FlowIssue[] =>
+  flow.settings.handoff !== null && flow.settings.handoff.fallbackMessage.trim().length === 0
+    ? [
+        createIssue(FlowIssueCode.NoFallbackMessage, {
+          path: ['settings', 'handoff', 'fallbackMessage'],
+        }),
+      ]
+    : [];
+
+export const warningIssues = (context: ValidationContext): FlowIssue[] => [
+  ...context.flow.nodes
     .filter((node) => context.reachable.has(node.id))
-    .flatMap((node) => nodeWarnings(context, node));
+    .flatMap((node) => nodeWarnings(context, node)),
+  ...settingsWarnings(context),
+];

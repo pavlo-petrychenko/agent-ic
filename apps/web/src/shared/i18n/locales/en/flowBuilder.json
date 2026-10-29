@@ -307,7 +307,10 @@
     "PORT_NOT_CONNECTED": "“{{port}}” isn’t connected",
     "NO_ERROR_PATH": "Nothing handles a failure of this step",
     "WAIT_FOR_RESULT_WITHOUT_REPLY": "The caller waits for a reply, but no step sends one",
-    "NO_FALLBACK_MESSAGE": "Add a message for the customer while they wait"
+    "NO_FALLBACK_MESSAGE": "Add a message for the customer while they wait",
+    "EXIT_IN_BACKGROUND_BRANCH": "Agent exits can’t run inside a background branch",
+    "EMPTY_EXIT_CRITERION": "Describe when the “{{exit}}” exit applies",
+    "EXIT_ESCALATION_MESSAGE": "The agent already writes the last message; the escalation after “{{exit}}” sends a second one"
   },
   "inspector": {
     "close": "Close inspector",

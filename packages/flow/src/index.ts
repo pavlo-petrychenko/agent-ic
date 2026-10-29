@@ -54,7 +54,7 @@ export type {
   TriggerScheduleNode,
   UnhandledFailureSettings,
 } from '@flow/document/typedefs/flow.typedefs';
-export { isTriggerNode } from '@flow/document/helpers/node.helpers';
+export { enabledExits, isExitPort, isTriggerNode } from '@flow/document/helpers/node.helpers';
 export { nodePorts } from '@flow/document/helpers/port.helpers';
 export { renameNodeKey } from '@flow/document/helpers/rename.helpers';
 export {
@@ -87,6 +87,8 @@ export {
   WAIT_FOR_RESULT_SECONDS,
 } from '@flow/limits/constants/limit.constants';
 export {
+  AGENT_EXIT_KINDS,
+  AgentExitKind,
   DEFAULT_RETRIEVAL_MODE,
   EscalationMode,
   FailureMode,
@@ -109,6 +111,10 @@ export {
 } from '@flow/nodes/constants/trigger.constants';
 export {
   AGENT_MESSAGES_FIELD_NAME,
+  AGENT_OUTCOME_CONTINUE,
+  AGENT_OUTCOME_FIELD_NAME,
+  AGENT_OUTCOME_FIELD_NAMES,
+  AGENT_OUTCOME_REASON_FIELD_NAME,
   OutputFieldType,
 } from '@flow/outputs/constants/output.constants';
 export {

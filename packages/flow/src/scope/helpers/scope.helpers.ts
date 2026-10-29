@@ -1,5 +1,6 @@
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
 import { isTriggerNode } from '@flow/document/helpers/node.helpers';
+import { isExitPort } from '@flow/document/helpers/node.helpers';
 import { nodePorts } from '@flow/document/helpers/port.helpers';
 import type {
   FlowDocument,
@@ -79,6 +80,7 @@ const createPresenceAnalysis = (graph: FlowGraph): ((nodeId: string) => StepPres
         }
         return ports
           .filter((port) => port !== PortName.Error && port !== PortName.Branches)
+          .filter((port) => !isExitPort(node, port))
           .filter((port) => outgoingEdges(graph, id, port).length === 0)
           .map((port) => stateAfter(node, port));
       });

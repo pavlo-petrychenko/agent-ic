@@ -58,6 +58,9 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
   - `handoff`: the default hand-off, shaped like an Escalation step in `escalate` mode without its messages and reason: `notify`, `reminderAfterMinutes`, `fallbackAfterMinutes`, `fallbackMessage`.
   - `onUnhandledFailure`: `null` fails the run as before; `{ action: 'handoff', customerMessage }` apologises and hands off.
   - `autoClose`: `{ afterMinutes }`, from 1 hour to 30 days (`MIN_AUTO_CLOSE_MINUTES`, `MAX_AUTO_CLOSE_MINUTES`).
+- Each exit that is on adds a port named after it (`end`, `handoff`) after `next` and `error`. An exit port left unconnected is not a warning: the Agent step runs the default exit itself.
+- While an exit is on, `nodeOutputFields` adds `outcome` (an enum of `continue` and the exits that are on) and `outcome_reason` (a string) right after `messages`, so later steps can read `{{agent.outcome}}`. The two names are reserved only then: a custom output field with one of them gets `DUPLICATE_OUTPUT_FIELD`.
+- `validateFlow` refuses an exit on an Agent in a background branch (`EXIT_IN_BACKGROUND_BRANCH`) and warns about an empty `when` (`EMPTY_EXIT_CRITERION`), an exit port wired straight to an Escalation with its own customer message (`EXIT_ESCALATION_MESSAGE`, the Agent's `messages` already are the goodbye) and a default hand-off with an empty fallback message (`NO_FALLBACK_MESSAGE` with the path `['settings', 'handoff', 'fallbackMessage']` and no node).
 
 ## Parallel branches
 

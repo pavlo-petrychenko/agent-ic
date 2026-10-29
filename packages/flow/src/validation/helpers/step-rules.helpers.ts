@@ -1,4 +1,5 @@
 import { FIXED_PORT_NAMES, NodeType, PortName } from '@flow/document/constants/flow.constants';
+import { enabledExits } from '@flow/document/helpers/node.helpers';
 import type {
   AgentNode,
   CompletionNode,
@@ -14,7 +15,10 @@ import {
 } from '@flow/limits/constants/limit.constants';
 import { FailureMode } from '@flow/nodes/constants/step.constants';
 import { ScheduleKind } from '@flow/nodes/constants/trigger.constants';
-import { AGENT_MESSAGES_FIELD_NAME } from '@flow/outputs/constants/output.constants';
+import {
+  AGENT_MESSAGES_FIELD_NAME,
+  AGENT_OUTCOME_FIELD_NAMES,
+} from '@flow/outputs/constants/output.constants';
 import {
   branchNodes,
   branchStarts,
@@ -28,6 +32,11 @@ import { createIssue, duplicates } from '@flow/validation/helpers/issue.helpers'
 import { isValidCron, isValidTimeZone } from '@flow/validation/helpers/schedule.helpers';
 import type { FlowIssue, ValidationContext } from '@flow/validation/typedefs/validation.typedefs';
 
+const builtInAgentFields = (node: AgentNode): readonly string[] =>
+  enabledExits(node).length === 0
+    ? [AGENT_MESSAGES_FIELD_NAME]
+    : [AGENT_MESSAGES_FIELD_NAME, ...AGENT_OUTCOME_FIELD_NAMES];
+
 const llmStepIssues = (node: AgentNode | CompletionNode): FlowIssue[] => {
   const issues: FlowIssue[] = [];
   const { prompt } = node.config;
@@ -37,7 +46,7 @@ const llmStepIssues = (node: AgentNode | CompletionNode): FlowIssue[] => {
   if (node.config.model === null) {
     issues.push(createIssue(FlowIssueCode.MissingModel, { nodeId: node.id, path: ['model'] }));
   }
-  const taken = new Set(node.type === NodeType.Agent ? [AGENT_MESSAGES_FIELD_NAME] : []);
+  const taken = new Set(node.type === NodeType.Agent ? builtInAgentFields(node) : []);
   node.config.output.forEach((field, index) => {
     if (taken.has(field.name)) {
       issues.push(
@@ -244,6 +253,15 @@ const branchStepIssue = (context: ValidationContext, node: FlowNode): FlowIssue[
   }
   if (node.type === NodeType.Escalation && context.inBackground.has(node.id)) {
     return [createIssue(FlowIssueCode.EscalationInBackgroundBranch, { nodeId: node.id })];
+  }
+  if (
+    node.type === NodeType.Agent &&
+    context.inBackground.has(node.id) &&
+    enabledExits(node).length > 0
+  ) {
+    return [
+      createIssue(FlowIssueCode.ExitInBackgroundBranch, { nodeId: node.id, path: ['exits'] }),
+    ];
   }
   return [];
 };

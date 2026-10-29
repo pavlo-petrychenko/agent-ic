@@ -1,8 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
 import { FLOW_SCHEMA_VERSION, PortName } from '@flow/document/constants/flow.constants';
-import type { FlowDocument, FlowNode, PromptSource } from '@flow/document/typedefs/flow.typedefs';
-import { FailureMode, WaitFor } from '@flow/nodes/constants/step.constants';
+import type {
+  AgentExits,
+  EscalationNode,
+  FlowDocument,
+  FlowNode,
+  HandoffSettings,
+  PromptSource,
+} from '@flow/document/typedefs/flow.typedefs';
+import {
+  AgentExitKind,
+  EscalationMode,
+  FailureMode,
+  NotifyChannel,
+  RecipientsKind,
+  WaitFor,
+} from '@flow/nodes/constants/step.constants';
 import { ReplyMode } from '@flow/nodes/constants/trigger.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 import {
@@ -30,6 +44,7 @@ import {
   scheduleTrigger,
   sendList,
   sendText,
+  withExits,
 } from '@test/support/fixtures/flow-builder.fixture';
 
 const trigger = messageTrigger('incoming');
@@ -47,6 +62,25 @@ const cleanFlow = (extraNodes: FlowNode[] = [], extraEdges: FlowDocument['edges'
       ...extraEdges,
     ],
   );
+
+const HANDOFF_EXIT = { handoff: { when: 'The customer asks for a person' } };
+
+const exitFlow = (
+  exits: Partial<AgentExits>,
+  extraNodes: FlowNode[] = [],
+  extraEdges: FlowDocument['edges'] = [],
+) => {
+  const talker = withExits(answer, exits);
+  return flowOf(
+    [trigger, talker, reply, handoff, ...extraNodes],
+    [
+      link(trigger, PortName.Next, talker),
+      link(talker, PortName.Next, reply),
+      link(talker, PortName.Error, handoff),
+      ...extraEdges,
+    ],
+  );
+};
 
 const withStep = (step: FlowNode) => cleanFlow([step], [link(reply, PortName.Next, step)]);
 
@@ -214,6 +248,17 @@ const failingFlows: Record<ValidationIssueCode, () => unknown> = {
     const event = eventTrigger('paid', 'order-paid', {}, ReplyMode.WaitForResult);
     const load = apiRequest('load');
     return cleanFlow([event, load], [link(event, PortName.Next, load)]);
+  },
+  [FlowIssueCode.ExitInBackgroundBranch]: () => {
+    const { flow, save } = replyAndScoreFlow();
+    const late = withExits(agent('late'), HANDOFF_EXIT);
+    return flowOf([...flow.nodes, late], [...flow.edges, link(save, PortName.Next, late)]);
+  },
+  [FlowIssueCode.EmptyExitCriterion]: () => exitFlow({ end: { when: '  ' } }),
+  [FlowIssueCode.ExitEscalationMessage]: () => {
+    const base = escalation('person');
+    const person = { ...base, config: { ...base.config, customerMessage: 'A person will reply' } };
+    return exitFlow(HANDOFF_EXIT, [person], [link(answer, AgentExitKind.Handoff, person)]);
   },
   [FlowIssueCode.NoFallbackMessage]: () => {
     const route = router('route', [rule('first', 'today', ConditionOperator.IsNotEmpty)]);
@@ -444,5 +489,117 @@ describe('hasBlockingIssues', () => {
     expect(hasBlockingIssues(validateFlow(cleanFlow()))).toBe(false);
     expect(hasBlockingIssues(validateFlow(failingFlows[FlowIssueCode.NoErrorPath]()))).toBe(false);
     expect(hasBlockingIssues(validateFlow(failingFlows[FlowIssueCode.Cycle]()))).toBe(true);
+  });
+});
+
+describe('agent exits', () => {
+  it('accepts exit ports left unconnected', () => {
+    expect(validateFlow(exitFlow({ end: { when: 'Done' }, ...HANDOFF_EXIT }))).toEqual([]);
+  });
+
+  it('accepts an exit port wired to an escalation without its own customer message', () => {
+    const person = escalation('person');
+    expect(
+      validateFlow(exitFlow(HANDOFF_EXIT, [person], [link(answer, AgentExitKind.Handoff, person)])),
+    ).toEqual([]);
+  });
+
+  it('accepts an exit port wired to an end escalation without a message', () => {
+    const base = escalation('close');
+    const close: EscalationNode = {
+      ...base,
+      config: { mode: EscalationMode.End, customerMessage: null },
+    };
+    expect(
+      codes(exitFlow({ end: { when: 'Done' } }, [close], [link(answer, AgentExitKind.End, close)])),
+    ).toEqual([]);
+  });
+
+  it('refuses an edge from an exit port that is off', () => {
+    const person = escalation('person');
+    expect(codes(exitFlow({}, [person], [link(answer, AgentExitKind.Handoff, person)]))).toContain(
+      FlowIssueCode.EdgeMissingPort,
+    );
+  });
+
+  it('lets later steps read the outcome while an exit is on', () => {
+    const echo = sendText('echo', '{{answer.outcome}} {{answer.outcome_reason}}');
+    const flow = exitFlow(HANDOFF_EXIT, [echo], [link(reply, PortName.Next, echo)]);
+    expect(codes(flow)).toEqual([]);
+    expect(codes(withStep(sendText('echo', '{{answer.outcome}}')))).toContain(
+      FlowIssueCode.UnknownVariable,
+    );
+  });
+
+  it('refuses an output field named like a built-in outcome field only while an exit is on', () => {
+    const custom = { ...answer, config: { ...answer.config, output: [field('outcome')] } };
+    const on = withExits(custom, HANDOFF_EXIT);
+    const flowWith = (node: FlowNode) =>
+      flowOf(
+        [trigger, node, reply, handoff],
+        [
+          link(trigger, PortName.Next, node),
+          link(node, PortName.Next, reply),
+          link(node, PortName.Error, handoff),
+        ],
+      );
+    expect(validateFlow(flowWith(on))).toContainEqual(
+      expect.objectContaining({
+        code: FlowIssueCode.DuplicateOutputField,
+        path: ['output', '0', 'name'],
+      }),
+    );
+    expect(codes(flowWith(custom))).toEqual([]);
+  });
+
+  it('points an empty criterion at its exit', () => {
+    expect(validateFlow(failingFlows[FlowIssueCode.EmptyExitCriterion]())).toContainEqual(
+      expect.objectContaining({
+        code: FlowIssueCode.EmptyExitCriterion,
+        severity: FlowIssueSeverity.Warning,
+        path: ['exits', AgentExitKind.End, 'when'],
+      }),
+    );
+  });
+
+  it('refuses an exit on an agent in a background branch as an error', () => {
+    expect(validateFlow(failingFlows[FlowIssueCode.ExitInBackgroundBranch]())).toContainEqual(
+      expect.objectContaining({
+        code: FlowIssueCode.ExitInBackgroundBranch,
+        severity: FlowIssueSeverity.Error,
+        nodeId: 'n_late',
+      }),
+    );
+  });
+});
+
+describe('flow settings checks', () => {
+  const withHandoff = (fallbackMessage: string): FlowDocument => {
+    const flow = cleanFlow();
+    const handoffSettings: HandoffSettings = {
+      notify: {
+        recipients: { kind: RecipientsKind.Operators },
+        channels: [NotifyChannel.InPlatform],
+      },
+      reminderAfterMinutes: null,
+      fallbackAfterMinutes: null,
+      fallbackMessage,
+    };
+    return { ...flow, settings: { ...flow.settings, handoff: handoffSettings } };
+  };
+
+  it('warns about a default hand-off without a fallback message', () => {
+    expect(validateFlow(withHandoff(' '))).toEqual([
+      expect.objectContaining({
+        code: FlowIssueCode.NoFallbackMessage,
+        severity: FlowIssueSeverity.Warning,
+        nodeId: null,
+        path: ['settings', 'handoff', 'fallbackMessage'],
+      }),
+    ]);
+  });
+
+  it('accepts a default hand-off with a fallback message', () => {
+    expect(validateFlow(withHandoff('We will get back to you'))).toEqual([]);
   });
 });
