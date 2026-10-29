@@ -16,6 +16,7 @@ import { LastSimulationRunResolver } from '@/modules/runs/resolvers/last-simulat
 import { RunFieldsResolver } from '@/modules/runs/resolvers/run-fields.resolver';
 import { RunStepsResolver } from '@/modules/runs/resolvers/run-steps.resolver';
 import { RunResolver } from '@/modules/runs/resolvers/run.resolver';
+import { SimulateSilenceResolver } from '@/modules/runs/resolvers/simulate-silence.resolver';
 import { SimulationRunsResolver } from '@/modules/runs/resolvers/simulation-runs.resolver';
 import { AgentExecutor } from '@/modules/runs/services/agent-executor.service';
 import { ApiRequestExecutor } from '@/modules/runs/services/api-request-executor.service';
@@ -45,6 +46,7 @@ import { GetRunUseCase } from '@/modules/runs/use-cases/get-run.use-case';
 import { ListLastSimulationRunsUseCase } from '@/modules/runs/use-cases/list-last-simulation-runs.use-case';
 import { ListRunStepsUseCase } from '@/modules/runs/use-cases/list-run-steps.use-case';
 import { ListSimulationRunsUseCase } from '@/modules/runs/use-cases/list-simulation-runs.use-case';
+import { SimulateSilenceUseCase } from '@/modules/runs/use-cases/simulate-silence.use-case';
 import { StartRunOnMessageUseCase } from '@/modules/runs/use-cases/start-run-on-message.use-case';
 import { SubscribeToRunStepsUseCase } from '@/modules/runs/use-cases/subscribe-to-run-steps.use-case';
 import { SweepInactivityTimersUseCase } from '@/modules/runs/use-cases/sweep-inactivity-timers.use-case';
@@ -95,6 +97,7 @@ export class RunsModule extends defineModule({
     ArmInactivityOnHandBackUseCase,
     SweepInactivityTimersUseCase,
     FireInactivityTimerUseCase,
+    SimulateSilenceUseCase,
     ExecuteRunUseCase,
     SubscribeToRunStepsUseCase,
     GetRunUseCase,
@@ -109,6 +112,7 @@ export class RunsModule extends defineModule({
     RunFieldsResolver,
     SimulationRunsResolver,
     LastSimulationRunResolver,
+    SimulateSilenceResolver,
   ],
   processors: [
     ExecuteRunProcessor,

@@ -5,6 +5,7 @@ export enum RunGraphqlField {
 export enum RunGraphqlArgument {
   RunId = 'runId',
   Id = 'id',
+  Input = 'input',
 }
 
 export enum RunGraphqlParent {

@@ -5,6 +5,10 @@ export interface GetRunInput {
   readonly id: string;
 }
 
+export interface SimulateSilenceInput {
+  readonly conversationId: string;
+}
+
 export interface RunTotals {
   readonly stepsRun: number;
   readonly stepsInFlow: number;
@@ -19,6 +23,7 @@ export interface RunView extends Omit<
   Run,
   'workspaceId' | 'mode' | 'triggerNodeId' | 'triggerInput' | 'lastCoveredMessageId' | 'traceId'
 > {
+  readonly inactivityAttempt: number | null;
   readonly durationMs: number | null;
 }
 

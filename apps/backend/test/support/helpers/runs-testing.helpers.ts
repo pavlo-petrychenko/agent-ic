@@ -454,6 +454,36 @@ export const seedLiveConversation = async (
   return { conversation, versionId, ctx: workspaceSystemCtx(workspaceId) };
 };
 
+export const seedSimulatedConversation = async (
+  testbed: RunExecutionTestbed,
+  flow: FlowDocument,
+  userId: string,
+  pinned: boolean = true,
+): Promise<LiveConversation> => {
+  const workspaceId = testbed.ids.generate();
+  const live = newConversation(testbed, workspaceId);
+  await ensureWorkspaceRow(testbed.module, workspaceId);
+  await testbed.tenants.run(workspaceId, async () => {
+    await testbed.module.get(AgentsRepository).insert(newAgent(live.agentId, workspaceId));
+    if (!pinned) {
+      await testbed.module
+        .get(AgentVersionsRepository)
+        .insert(newVersion(testbed.ids.generate(), workspaceId, live.agentId, { flow }));
+    }
+  });
+  const versionId = await republish(testbed, { conversation: live }, flow, TEST_PUBLISHED_NUMBER);
+  const conversation = {
+    ...live,
+    mode: ConversationMode.Simulation,
+    endUserExternalId: userId,
+    simulationVersionId: pinned ? versionId : null,
+  };
+  await testbed.tenants.run(workspaceId, () =>
+    testbed.module.get(ConversationsRepository).insert(conversation),
+  );
+  return { conversation, versionId, ctx: workspaceSystemCtx(workspaceId) };
+};
+
 export const changeAgent = async (
   testbed: RunExecutionTestbed,
   { conversation }: LiveConversation,
