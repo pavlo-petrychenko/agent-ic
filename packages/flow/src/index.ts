@@ -48,6 +48,7 @@ export type {
   PromptSource,
   RouterNode,
   RouterRule,
+  Schedule,
   SendMessageNode,
   TriggerExternalEventNode,
   TriggerInactivityNode,
@@ -81,6 +82,8 @@ export {
   MAX_RETRIES,
   MAX_ROUTER_RULES,
   MAX_RULE_CONDITIONS,
+  MAX_SCHEDULE_CONVERSATIONS_PER_RUN,
+  MAX_SCHEDULE_TICKS_PER_HOUR,
   MAX_TEMPLATE_LENGTH,
   MIN_AUTO_CLOSE_MINUTES,
   MIN_INACTIVITY_FIRES,
@@ -89,6 +92,7 @@ export {
   NODE_KEY_MAX_LENGTH,
   NODE_KEY_PATTERN,
   OUTPUT_FIELD_NAME_PATTERN,
+  SCHEDULE_TICK_GRACE_SECONDS,
   TIME_OF_DAY_PATTERN,
   WAIT_FOR_RESULT_SECONDS,
 } from '@flow/limits/constants/limit.constants';
@@ -109,6 +113,14 @@ export {
   RetrievalMode,
   WaitFor,
 } from '@flow/nodes/constants/step.constants';
+export {
+  dueTick,
+  isTooFrequent,
+  latestTick,
+  nextTicks,
+  scheduleCron,
+} from '@flow/schedules/helpers/schedule-tick.helpers';
+export type { DueTick, DueTickInput } from '@flow/schedules/typedefs/schedule-tick.typedefs';
 export {
   ChannelSelectionMode,
   ChannelType,

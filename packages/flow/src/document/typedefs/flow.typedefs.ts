@@ -24,7 +24,10 @@ import type {
   triggerInactivityNodeSchema,
 } from '@flow/nodes/schemas/trigger-inactivity.schema';
 import type { triggerMessageNodeSchema } from '@flow/nodes/schemas/trigger-message.schema';
-import type { triggerScheduleNodeSchema } from '@flow/nodes/schemas/trigger-schedule.schema';
+import type {
+  scheduleSchema,
+  triggerScheduleNodeSchema,
+} from '@flow/nodes/schemas/trigger-schedule.schema';
 import type { outputFieldSchema } from '@flow/outputs/schemas/output-field.schema';
 import type { modelRefSchema } from '@flow/references/schemas/model-ref.schema';
 import type { promptSourceSchema } from '@flow/references/schemas/prompt-source.schema';
@@ -50,6 +53,7 @@ export type TriggerExternalEventNode = z.infer<typeof triggerExternalEventNodeSc
 export type TriggerScheduleNode = z.infer<typeof triggerScheduleNodeSchema>;
 export type TriggerInactivityNode = z.infer<typeof triggerInactivityNodeSchema>;
 export type InactivityDuration = z.infer<typeof inactivityDurationSchema>;
+export type Schedule = z.infer<typeof scheduleSchema>;
 export type AgentNode = z.infer<typeof agentNodeSchema>;
 export type CompletionNode = z.infer<typeof completionNodeSchema>;
 export type RouterNode = z.infer<typeof routerNodeSchema>;

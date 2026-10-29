@@ -4,7 +4,7 @@ The flow contract (D192): the zod schema of the flow document, the `{{…}}` tem
 
 Used by `apps/backend` (flow engine, interpolation, publish) and `apps/web` (builder canvas, inspectors, autocomplete, checks before publish).
 
-Must not hold: execution code that needs I/O, database or framework code, or UI components. dependency-cruiser forbids Node built-ins and every npm package except `zod` in its source; the other workspace import is `@agent-ic/contracts`.
+Must not hold: execution code that needs I/O, database or framework code, or UI components. dependency-cruiser forbids Node built-ins and every npm package except `zod` and `croner` (cron expressions for schedule ticks) in its source; the other workspace import is `@agent-ic/contracts`.
 
 ## What it holds
 
@@ -22,6 +22,7 @@ Each folder under `src/` is a topic, and inside it files sit in a folder per kin
 | `diff/`       | `diffFlows`: what changed between two flows, for comparing versions and the publish dialog                                                               |
 | `validation/` | `validateFlow`, `FlowIssueCode`, `hasBlockingIssues`                                                                                                     |
 | `versions/`   | `parseFlow`: reads a stored flow, upgrades a version 1 or 2 flow and refuses a schema version it does not know (D77)                                     |
+| `schedules/`  | `scheduleCron`, `nextTicks`, `latestTick`, `dueTick`, `isTooFrequent`: Schedule trigger ticks on wall-clock time in a time zone                          |
 | `settings/`   | flow settings: the default hand-off, what an unhandled step failure does, auto-close after inactivity                                                    |
 | `limits/`     | node, edge, rule, branch, output and template limits                                                                                                     |
 
@@ -102,3 +103,11 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 ## Tests
 
 `pnpm --filter @agent-ic/flow test` runs the specs next to each file. `test/support/fixtures/` holds the three example flows (FAQ with hand-off, scheduled follow-up, event notification) and small node builders for specs.
+
+## Schedule ticks
+
+- `scheduleCron(schedule)` turns a Schedule trigger's `daily` or `weekdays` time into a five-field cron (`30 9 * * *`, `30 9 * * 1-5`); a `custom` schedule keeps its cron.
+- Ticks run on wall-clock time in the schedule's IANA time zone (D291). A time in a spring-forward gap fires at the first valid minute after the gap; a time that exists twice on a fall-back day fires once, at its first occurrence. A tick is identified by its UTC instant.
+- `nextTicks(schedule, after, count)` lists the next ticks after an instant, for the builder and the sweep. `latestTick(schedule, at)` is the last tick at or before an instant.
+- `dueTick(schedule, { now, notBefore })` is the latest tick that is not older than `notBefore` (the version's publication), with its lag; `missed` is true when it is more than `SCHEDULE_TICK_GRACE_SECONDS` late, so the caller skips and counts it.
+- Validation: `SCHEDULE_TOO_FREQUENT` (more than `MAX_SCHEDULE_TICKS_PER_HOUR` ticks in an hour), `SCHEDULE_NO_CHANNEL_TYPES`, `SCHEDULE_LIMIT_TOO_HIGH` (more than `MAX_SCHEDULE_CONVERSATIONS_PER_RUN`) block publish; `SCHEDULE_CLOSES_BEFORE_SILENCE` warns when auto-close would close the chat before the silence is reached (D293).

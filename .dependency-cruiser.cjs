@@ -172,9 +172,9 @@ module.exports = {
       { dependencyTypes: ['core'] },
     ),
     forbidden(
-      'flow-imports-only-zod',
+      'flow-imports-only-zod-and-croner',
       { path: '^packages/flow/src/', pathNot: '\\.spec\\.ts$' },
-      { path: 'node_modules/', pathNot: 'node_modules/zod/' },
+      { path: 'node_modules/', pathNot: 'node_modules/(zod|croner)/' },
     ),
   ],
   options: {

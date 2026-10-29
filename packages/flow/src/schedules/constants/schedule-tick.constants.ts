@@ -1,0 +1,14 @@
+export const CRON_EVERY = '*';
+export const CRON_WEEKDAYS = '1-5';
+export const TIME_OF_DAY_SEPARATOR = ':';
+export const SCHEDULE_CRON_MODE = '5-part';
+export const WALL_CLOCK_TIME_ZONE = 'UTC';
+export const WALL_CLOCK_LOCALE = 'en-US';
+export const WALL_CLOCK_HOUR_CYCLE = 'h23';
+export const MILLISECONDS_PER_SECOND = 1000;
+export const MILLISECONDS_PER_MINUTE = 60_000;
+export const MILLISECONDS_PER_HOUR = 3_600_000;
+export const MILLISECONDS_PER_DAY = 86_400_000;
+export const MAX_OFFSET_SHIFT_MILLISECONDS = 3 * MILLISECONDS_PER_HOUR;
+export const FREQUENCY_SAMPLE_SIZE = 25;
+export const FREQUENCY_SAMPLE_START = 0;
