@@ -188,6 +188,7 @@ type FlowDiff {
   addedEdges: [JSON!]!
   removedEdges: [JSON!]!
   changedEdges: [JSON!]!
+  settingsChanges: [FlowFieldChange!]!
   changeCount: Int!
 }
 
