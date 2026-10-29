@@ -1,4 +1,4 @@
-import { ErrorReason } from '@agent-ic/contracts';
+import { ErrorReason, IdPrefix } from '@agent-ic/contracts';
 import {
   ModelProviderKind,
   NodeType,
@@ -28,6 +28,7 @@ import {
   RunStepStatus,
   RunTrigger,
 } from '@/modules/runs/constants/run.constants';
+import { inactivityTriggerInput } from '@/modules/runs/helpers/inactivity-trigger.helpers';
 import { branchKeyOf } from '@/modules/runs/helpers/run-branch.helpers';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
@@ -50,6 +51,7 @@ import {
   FIRST_STEP_KEY,
   FOURTH_STEP_ID,
   FOURTH_STEP_KEY,
+  INACTIVITY_NODE_ID,
   OBSERVER_NODE_ID,
   OBSERVER_NODE_KEY,
   PARALLEL_NODE_ID,
@@ -71,6 +73,8 @@ import {
   TEST_AGENT_REPLY,
   TEST_COMPLETION_PROMPT,
   TEST_RENDERED_FAILURE_APOLOGY,
+  TEST_INACTIVITY_MAX_TIMES,
+  TEST_SILENT_MINUTES,
   TEST_LLM_API_KEY,
   TEST_MOOD,
   TEST_MOOD_FIELD,
@@ -96,6 +100,7 @@ import {
   observerNode,
   parallelNode,
   routerNode,
+  inactivityTriggerNode,
   scheduleTriggerNode,
   sendListNode,
   sendMessageNode,
@@ -486,7 +491,7 @@ describe('RunExecutionService', () => {
     });
   });
 
-  it('starts a triggered run at its own trigger node, not at the message trigger', async () => {
+  it('starts a schedule run at its trigger node with the schedule variables', async () => {
     const flow = stepFlow(
       [scheduleTriggerNode(), agentNode(FIRST_STEP_ID, FIRST_STEP_KEY)],
       [flowEdge(TEST_NODE_ID, FIRST_STEP_ID), flowEdge(SCHEDULE_NODE_ID, FIRST_STEP_ID)],
@@ -496,14 +501,55 @@ describe('RunExecutionService', () => {
       triggerNodeId: SCHEDULE_NODE_ID,
     });
 
-    expect(await execute(seeded)).toBe(RunStatus.Failed);
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
 
-    const { run, steps } = await stored(seeded);
-    expect(run?.error).toMatchObject({
-      reason: ErrorReason.UnsupportedNodeType,
-      nodeId: SCHEDULE_NODE_ID,
+    const { steps } = await stored(seeded);
+    const first = testbed.executor.executions.find(
+      (call) => call.run.id === seeded.run.id && call.node.id === FIRST_STEP_ID,
+    );
+    expect(steps.map((step) => step.nodeId).toSorted()).toEqual(
+      [SCHEDULE_NODE_ID, FIRST_STEP_ID].toSorted(),
+    );
+    expect(first?.scope.variables).toMatchObject({
+      conversation: { id: testbed.ids.toPublic(IdPrefix.Conversation, seeded.run.conversationId) },
+      channel: expect.any(String),
+      history: [expect.objectContaining({ text: TEST_MESSAGE_TEXT })],
+      today: expect.any(String),
     });
-    expect(steps).toEqual([]);
+    expect(first?.scope.variables).not.toHaveProperty('message');
+  });
+
+  it('walks an inactivity run from its trigger with the attempt in scope', async () => {
+    const flow = stepFlow(
+      [inactivityTriggerNode(), agentNode(FIRST_STEP_ID, FIRST_STEP_KEY)],
+      [flowEdge(TEST_NODE_ID, FIRST_STEP_ID), flowEdge(INACTIVITY_NODE_ID, FIRST_STEP_ID)],
+    );
+    const seeded = await seedExecutableRun(testbed, flow, [], ConversationMode.Live, null, {
+      trigger: RunTrigger.Inactivity,
+      triggerNodeId: INACTIVITY_NODE_ID,
+      triggerInput: inactivityTriggerInput({ attempt: 2, silentMinutes: TEST_SILENT_MINUTES }),
+    });
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    const { steps } = await stored(seeded);
+    const agent = testbed.executor.executions.find(
+      (call) => call.run.id === seeded.run.id && call.node.id === FIRST_STEP_ID,
+    );
+    expect(Object.fromEntries(steps.map((step) => [step.nodeId, step.status]))).toEqual({
+      [INACTIVITY_NODE_ID]: RunStepStatus.Succeeded,
+      [FIRST_STEP_ID]: RunStepStatus.Succeeded,
+    });
+    expect(agent?.scope.variables).toMatchObject({
+      conversation: { id: testbed.ids.toPublic(IdPrefix.Conversation, seeded.run.conversationId) },
+      inactivity: {
+        silent_minutes: TEST_SILENT_MINUTES,
+        attempt: 2,
+        max_attempts: TEST_INACTIVITY_MAX_TIMES,
+        last_author: MessageAuthor.Customer,
+      },
+    });
+    expect(agent?.scope.variables).not.toHaveProperty('message');
   });
 
   it('fails a triggered run whose trigger node is gone from the flow', async () => {

@@ -18,6 +18,7 @@ import { ApiRequestExecutor } from '@/modules/runs/services/api-request-executor
 import { CompletionExecutor } from '@/modules/runs/services/completion-executor.service';
 import { ConversationExitService } from '@/modules/runs/services/conversation-exit.service';
 import { EscalationExecutor } from '@/modules/runs/services/escalation-executor.service';
+import { InactivityTriggerExecutor } from '@/modules/runs/services/inactivity-trigger-executor.service';
 import { MessageTriggerExecutor } from '@/modules/runs/services/message-trigger-executor.service';
 import { ParallelExecutor } from '@/modules/runs/services/parallel-executor.service';
 import { RouterExecutor } from '@/modules/runs/services/router-executor.service';
@@ -47,6 +48,7 @@ export class RunsModule extends defineModule({
     RunStepsRepository,
     InactivityTimersRepository,
     MessageTriggerExecutor,
+    InactivityTriggerExecutor,
     RouterExecutor,
     ParallelExecutor,
     ApiRequestExecutor,
@@ -61,6 +63,7 @@ export class RunsModule extends defineModule({
       useFactory: (...executors: readonly StepExecutor[]) => executors,
       inject: [
         MessageTriggerExecutor,
+        InactivityTriggerExecutor,
         RouterExecutor,
         ParallelExecutor,
         ApiRequestExecutor,

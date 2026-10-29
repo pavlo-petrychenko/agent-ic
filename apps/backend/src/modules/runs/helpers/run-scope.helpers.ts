@@ -5,6 +5,7 @@ import { CURRENT_MESSAGE_SEPARATOR, ISO_DATE_LENGTH } from '@/modules/runs/const
 import type {
   MessageTriggerVariables,
   RunWalk,
+  TriggerBaseVariables,
 } from '@/modules/runs/typedefs/run-execution.typedefs';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 
@@ -17,16 +18,24 @@ export const currentMessageText = (history: readonly Message[]): string =>
     .map((message) => message.text)
     .join(CURRENT_MESSAGE_SEPARATOR);
 
+export const triggerBaseVariables = (
+  conversation: Conversation,
+  history: readonly Message[],
+  today: Date,
+): TriggerBaseVariables => ({
+  user: { name: conversation.endUserName, language: conversation.endUserLanguage },
+  channel: conversation.channelKind,
+  history: history.map(({ author, text }) => ({ author, text })),
+  today: today.toISOString().slice(0, ISO_DATE_LENGTH),
+});
+
 export const messageTriggerVariables = (
   conversation: Conversation,
   history: readonly Message[],
   today: Date,
 ): MessageTriggerVariables => ({
   message: { text: currentMessageText(history), attachments: [] },
-  user: { name: conversation.endUserName, language: conversation.endUserLanguage },
-  channel: conversation.channelKind,
-  history: history.map(({ author, text }) => ({ author, text })),
-  today: today.toISOString().slice(0, ISO_DATE_LENGTH),
+  ...triggerBaseVariables(conversation, history, today),
 });
 
 export const stepVariables = (
