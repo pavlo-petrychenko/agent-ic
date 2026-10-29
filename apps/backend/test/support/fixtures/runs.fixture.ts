@@ -386,6 +386,8 @@ export const runConversation = (ids: IdService): Conversation => ({
   simulationVersionId: null,
   awaySentAt: null,
   lastMessageAt: RUNS_TEST_START,
+  lastCustomerMessageAt: null,
+  lastEscalatedAt: null,
   closedAt: null,
   closeReason: null,
   createdAt: RUNS_TEST_START,

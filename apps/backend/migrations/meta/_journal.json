@@ -225,6 +225,13 @@
       "when": 1793229032954,
       "tag": "0031_conversation-close-reason",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793229276652,
+      "tag": "0032_conversation-silence-escalation",
+      "breakpoints": true
     }
   ]
 }

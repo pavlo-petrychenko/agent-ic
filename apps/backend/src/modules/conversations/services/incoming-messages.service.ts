@@ -91,7 +91,11 @@ export class IncomingMessagesService {
         messageId: null,
       };
     }
-    await this.conversations.touch(input.workspaceId, conversation.id, message.createdAt);
+    await this.conversations.recordCustomerMessage(
+      input.workspaceId,
+      conversation.id,
+      message.createdAt,
+    );
     await this.activity.messageAdded(message);
     const activePause = conversation.mode === ConversationMode.Live ? pause : null;
     const outcome = await this.route(ctx, conversation, message, activePause, input.versionId);
