@@ -29,6 +29,7 @@ import {
   ConversationState,
   MessageAuthor,
   RunStatus,
+  RunTrigger,
 } from '@/shared/api/generated/schema.generated';
 
 const CLOSED_AT = '2026-10-11T11:00:00Z';
@@ -42,6 +43,8 @@ const message = (
 
 const run = (id: string, status: RunStatus, createdAt: string): SimulatorRun => ({
   id,
+  trigger: RunTrigger.Message,
+  inactivityAttempt: null,
   status,
   createdAt,
   finishedAt: null,
@@ -80,6 +83,7 @@ describe('toChatItems', () => {
         [{ ...run('r1', RunStatus.Escalated, '2026-10-11T10:00:01Z'), escalationMessageCount: 1 }],
         ConversationState.Waiting,
       ),
+      [],
     );
 
     expect(items[1]).toMatchObject({
@@ -167,6 +171,7 @@ describe('toChatItems', () => {
         ],
         ConversationState.AgentActive,
       ),
+      [],
     );
 
     expect(items.map((item) => [item.kind, item.id])).toEqual([
@@ -191,6 +196,7 @@ describe('toChatItems', () => {
         ],
         ConversationState.AgentActive,
       ),
+      [],
     );
 
     expect(items.map((item) => item.id)).toEqual(['m1', 'r1', 'm2']);
@@ -204,6 +210,7 @@ describe('toChatItems', () => {
         [],
         ConversationState.AgentActive,
       ),
+      [],
     );
 
     expect(items).toMatchObject([{ kind: ChatItemKind.Message, speaker: ChatSpeaker.Agent }]);
@@ -222,7 +229,7 @@ describe('toChatItems', () => {
       },
     ];
     const events = (state: ConversationState) =>
-      eventsOf(toChatItems(conversation(messages, runs, state)));
+      eventsOf(toChatItems(conversation(messages, runs, state), []));
 
     expect(events(ConversationState.Handled)).toEqual([
       [ChatEventKind.Escalated, '2026-10-11T10:00:04Z'],
@@ -241,14 +248,14 @@ describe('toChatItems', () => {
     ];
 
     expect(
-      eventsOf(toChatItems(conversation(escalatedChat, runs, ConversationState.Waiting))),
+      eventsOf(toChatItems(conversation(escalatedChat, runs, ConversationState.Waiting), [])),
     ).toEqual([[ChatEventKind.HandedOff, '2026-10-11T10:00:02Z']]);
   });
 
   it('marks a hand-back that comes without an operator reply', () => {
     const runs = [run('r1', RunStatus.Escalated, '2026-10-11T10:00:01Z')];
     const events = (state: ConversationState) =>
-      eventsOf(toChatItems(conversation(escalatedChat, runs, state))).map(([event]) => event);
+      eventsOf(toChatItems(conversation(escalatedChat, runs, state), [])).map(([event]) => event);
 
     expect(events(ConversationState.Waiting)).toEqual([ChatEventKind.Escalated]);
     expect(events(ConversationState.AgentActive)).toEqual([
@@ -268,6 +275,7 @@ describe('toChatItems', () => {
         [run('r1', RunStatus.Succeeded, '2026-10-11T10:01:01Z')],
         ConversationState.AgentActive,
       ),
+      [],
     );
 
     expect(items.map((item) => item.kind)).toEqual([
@@ -286,7 +294,7 @@ describe('toChatItems', () => {
     ];
     const runs = [run('r1', RunStatus.Succeeded, '2026-10-11T10:00:01Z')];
     const closedBy = (reason: ConversationCloseReason | null) =>
-      toChatItems(conversation(messages, runs, ConversationState.Closed, reason)).at(-1);
+      toChatItems(conversation(messages, runs, ConversationState.Closed, reason), []).at(-1);
 
     expect(closedBy(ConversationCloseReason.EndedByAgent)).toMatchObject({
       event: ChatEventKind.Ended,
@@ -296,6 +304,38 @@ describe('toChatItems', () => {
     expect(closedBy(ConversationCloseReason.Inactivity)).toMatchObject({
       event: ChatEventKind.ClosedInactive,
       at: CLOSED_AT,
+    });
+  });
+});
+
+describe('toChatItems with follow-ups', () => {
+  it('puts the simulated silence before each follow-up turn', () => {
+    const followUp = {
+      ...run('r2', RunStatus.Succeeded, '2026-10-11T12:00:00Z'),
+      trigger: RunTrigger.Inactivity,
+      inactivityAttempt: 2,
+    };
+    const items = toChatItems(
+      conversation(
+        [
+          message('m1', MessageAuthor.Customer, '2026-10-11T10:00:00Z'),
+          message('m2', MessageAuthor.Agent, '2026-10-11T12:00:01Z', 'r2'),
+        ],
+        [followUp],
+        ConversationState.AgentActive,
+      ),
+      [120, 240],
+    );
+
+    expect(items[1]).toMatchObject({
+      kind: ChatItemKind.Event,
+      event: ChatEventKind.Silence,
+      minutes: 240,
+    });
+    expect(items[2]).toMatchObject({
+      kind: ChatItemKind.Turn,
+      trigger: RunTrigger.Inactivity,
+      attempt: 2,
     });
   });
 });

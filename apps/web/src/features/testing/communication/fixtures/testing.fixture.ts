@@ -4,6 +4,9 @@ import {
   EscalationMode,
   FLOW_SCHEMA_VERSION,
   FlowIssueCode,
+  InactivityActivity,
+  InactivityRepeatKind,
+  InactivityUnit,
   NO_FLOW_SETTINGS,
   MessageContentKind,
   NodeType,
@@ -153,6 +156,25 @@ export const testingAgentsMock = (
 export const AUTO_CLOSE_FLOW: FlowDocument = {
   ...TRACE_FLOW,
   settings: { ...NO_FLOW_SETTINGS, autoClose: { afterMinutes: 1440 } },
+};
+
+const TRACE_INACTIVITY: FlowNode = {
+  id: 'node_inactivity',
+  key: 'inactivity',
+  label: 'Inactivity',
+  position: { x: 0, y: 0 },
+  type: NodeType.TriggerInactivity,
+  config: {
+    silence: { amount: 2, unit: InactivityUnit.Hours },
+    activity: InactivityActivity.Any,
+    repeat: { kind: InactivityRepeatKind.Once },
+    conditions: { notEscalated: true, channelTypes: [] },
+  },
+};
+
+export const FOLLOW_UP_FLOW: FlowDocument = {
+  ...AUTO_CLOSE_FLOW,
+  nodes: [...TRACE_FLOW.nodes, TRACE_INACTIVITY],
 };
 
 const BLOCKING_ISSUES = [

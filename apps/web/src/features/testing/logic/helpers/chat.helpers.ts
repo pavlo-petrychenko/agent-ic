@@ -27,6 +27,7 @@ import {
   ConversationState,
   MessageAuthor,
   RunStatus,
+  RunTrigger,
 } from '@/shared/api/generated/schema.generated';
 
 export const turnStatus = (
@@ -66,6 +67,8 @@ const runOutcome = (run: SimulatorRun | null) => ({
   escalationMessageCount: run?.escalationMessageCount ?? 0,
   errorMessage: run?.errorMessage ?? null,
   finishedAt: run?.finishedAt ?? null,
+  trigger: run?.trigger ?? RunTrigger.Message,
+  attempt: run?.inactivityAttempt ?? null,
 });
 
 const isOperatorLine = (item: ChatItem | undefined): boolean =>
@@ -79,6 +82,7 @@ const eventAfter = (anchorId: string, kind: ChatEventKind, at: string | null): C
   id: [anchorId, kind].join(EVENT_ID_SEPARATOR),
   at,
   event: kind,
+  minutes: null,
 });
 
 const turnEnd = (turn: ChatTurnItem): string =>
@@ -115,6 +119,20 @@ const closing = (conversation: ChatConversation): ChatEventItem[] => {
   return [eventAfter(CONVERSATION_EVENT_ID, kind, conversation.closedAt)];
 };
 
+const withSilence = (items: readonly ChatItem[], offsets: readonly number[]): ChatItem[] =>
+  items.flatMap((item) =>
+    item.kind === ChatItemKind.Turn && item.trigger === RunTrigger.Inactivity
+      ? [
+          {
+            ...eventAfter(item.id, ChatEventKind.Silence, item.at),
+            id: [ChatEventKind.Silence, item.id].join(EVENT_ID_SEPARATOR),
+            minutes: item.attempt === null ? null : (offsets.at(item.attempt - 1) ?? null),
+          },
+          item,
+        ]
+      : [item],
+  );
+
 const withHandedBackTurns = (items: readonly ChatItem[]): ChatItem[] =>
   items.map((item, index) => {
     if (item.kind !== ChatItemKind.Turn || !item.escalated) {
@@ -145,11 +163,10 @@ export const composerMode = (state: ConversationState, picked: WriteAs | null): 
   );
 };
 
-export const toChatItems = ({
-  messages,
-  runs,
-  ...conversation
-}: SimulatorConversation): ChatItem[] => {
+export const toChatItems = (
+  { messages, runs, ...conversation }: SimulatorConversation,
+  silenceOffsets: readonly number[],
+): ChatItem[] => {
   const runById = new Map(runs.map((run) => [run.id, run]));
   const items: (ChatMessageItem | ChatTurnItem)[] = [];
   for (const message of messages) {
@@ -187,9 +204,12 @@ export const toChatItems = ({
       ...runOutcome(run),
     }));
   return withHandedBackTurns([
-    ...withEvents(
-      [...items, ...silent].toSorted((a, b) => a.at.localeCompare(b.at)),
-      conversation.state,
+    ...withSilence(
+      withEvents(
+        [...items, ...silent].toSorted((a, b) => a.at.localeCompare(b.at)),
+        conversation.state,
+      ),
+      silenceOffsets,
     ),
     ...closing(conversation),
   ]);
@@ -197,7 +217,7 @@ export const toChatItems = ({
 
 export const handedBackRunIds = (conversation: SimulatorConversation): ReadonlySet<string> =>
   new Set(
-    toChatItems(conversation).flatMap((item) =>
+    toChatItems(conversation, []).flatMap((item) =>
       item.kind === ChatItemKind.Turn && item.handedBack ? [item.id] : [],
     ),
   );

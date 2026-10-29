@@ -7,6 +7,7 @@ import { HandBackDocument } from '@/features/testing/communication/gql/mutation/
 import { ReplyAsOperatorDocument } from '@/features/testing/communication/gql/mutation/replyAsOperator.generated';
 import { RestartSimulationDocument } from '@/features/testing/communication/gql/mutation/restartSimulation.generated';
 import { SendSimulatorMessageDocument } from '@/features/testing/communication/gql/mutation/sendSimulatorMessage.generated';
+import { SimulateSilenceDocument } from '@/features/testing/communication/gql/mutation/simulateSilence.generated';
 import { StartSimulationDocument } from '@/features/testing/communication/gql/mutation/startSimulation.generated';
 import { SimulationDocument } from '@/features/testing/communication/gql/query/simulation.generated';
 import type { ConversationCloseReason } from '@/shared/api/generated/schema.generated';
@@ -15,6 +16,7 @@ import {
   ConversationState,
   MessageAuthor,
   RunStatus,
+  RunTrigger,
 } from '@/shared/api/generated/schema.generated';
 
 export const TEST_CONVERSATION_ID = 'cnv_test';
@@ -109,6 +111,8 @@ export const simulationMock = (
                 {
                   __typename: 'Run',
                   id: TEST_RUN_ID,
+                  trigger: RunTrigger.Message,
+                  inactivityAttempt: null,
                   status: runStatus,
                   createdAt: '2026-10-11T10:00:01Z',
                   finishedAt: '2026-10-11T10:00:03Z',
@@ -190,6 +194,84 @@ export const failedCloseForInactivityMock: MockLink.MockedResponse = {
     errors: [
       new GraphQLError('Auto-close is off', {
         extensions: { code: ErrorCode.Conflict, reason: ErrorReason.AutoCloseOff },
+      }),
+    ],
+  },
+};
+
+export const FOLLOW_UP_RUN_ID = 'run_follow_up';
+export const FOLLOW_UP = {
+  ...message('msg_f', MessageAuthor.Agent, 'Are you still there?', 6),
+  runId: FOLLOW_UP_RUN_ID,
+};
+
+export const followUpSimulationMock: MockLink.MockedResponse = {
+  request: { query: SimulationDocument, variables: { agentId: TEST_AGENT_ID } },
+  result: {
+    data: {
+      simulation: {
+        __typename: 'Simulation',
+        conversation: {
+          __typename: 'Conversation',
+          id: TEST_CONVERSATION_ID,
+          state: ConversationState.AgentActive,
+          closeReason: null,
+          closedAt: null,
+        },
+        messages: [QUESTION, ...ANSWERS, FOLLOW_UP],
+        runs: [
+          {
+            __typename: 'Run',
+            id: TEST_RUN_ID,
+            trigger: RunTrigger.Message,
+            inactivityAttempt: null,
+            status: RunStatus.Succeeded,
+            createdAt: '2026-10-11T10:00:01Z',
+            finishedAt: '2026-10-11T10:00:03Z',
+            error: null,
+            steps: [],
+          },
+          {
+            __typename: 'Run',
+            id: FOLLOW_UP_RUN_ID,
+            trigger: RunTrigger.Inactivity,
+            inactivityAttempt: 1,
+            status: RunStatus.Succeeded,
+            createdAt: '2026-10-11T10:00:05Z',
+            finishedAt: '2026-10-11T10:00:07Z',
+            error: null,
+            steps: [],
+          },
+        ],
+      },
+    },
+  },
+};
+
+const simulateSilenceRequest = {
+  query: SimulateSilenceDocument,
+  variables: { input: { conversationId: TEST_CONVERSATION_ID } },
+};
+
+export const simulateSilenceMock: MockLink.MockedResponse = {
+  request: simulateSilenceRequest,
+  result: {
+    data: {
+      simulateSilence: { __typename: 'Run', id: FOLLOW_UP_RUN_ID, status: RunStatus.Queued },
+    },
+  },
+};
+
+export const refusedSilenceMock: MockLink.MockedResponse = {
+  request: simulateSilenceRequest,
+  result: {
+    errors: [
+      new GraphQLError('Conditions not met', {
+        extensions: {
+          code: ErrorCode.PreconditionFailed,
+          reason: ErrorReason.InactivityConditionsNotMet,
+          details: { outcome: 'escalated' },
+        },
       }),
     ],
   },

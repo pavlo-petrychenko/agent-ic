@@ -3,10 +3,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { ChatEventKind, ChatItemKind } from '@/features/testing/constants/simulator.constants';
 import type { ChatTurnItem } from '@/features/testing/typedefs/simulator.typedefs';
 import { SimulatorChat } from '@/features/testing/view/SimulatorChat/SimulatorChat';
-import { MessageAuthor } from '@/shared/api/generated/schema.generated';
+import { MessageAuthor, RunTrigger } from '@/shared/api/generated/schema.generated';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
 const AGENT_NAME = 'Salon assistant';
+const durationLabel = (minutes: number) => `${minutes} min`;
 
 const turnOf = (escalationMessageCount: number): ChatTurnItem => ({
   kind: ChatItemKind.Turn,
@@ -35,6 +36,8 @@ const turnOf = (escalationMessageCount: number): ChatTurnItem => ({
   escalationMessageCount,
   errorMessage: null,
   finishedAt: null,
+  trigger: RunTrigger.Message,
+  attempt: null,
 });
 
 const renderTurn = (turn: ChatTurnItem) =>
@@ -45,6 +48,7 @@ const renderTurn = (turn: ChatTurnItem) =>
       typing={false}
       selectedRunId={null}
       onSelectRun={vi.fn<(runId: string) => void>()}
+      durationLabel={durationLabel}
     />,
   );
 
@@ -93,12 +97,15 @@ describe('SimulatorChat', () => {
             escalationMessageCount: 0,
             errorMessage: null,
             finishedAt: null,
+            trigger: RunTrigger.Message,
+            attempt: null,
           },
         ]}
         agentName={AGENT_NAME}
         typing={false}
         selectedRunId={null}
         onSelectRun={vi.fn<(runId: string) => void>()}
+        durationLabel={durationLabel}
       />,
     );
 
@@ -114,17 +121,52 @@ describe('SimulatorChat', () => {
             id: 'e1',
             at: '2026-10-11T10:00:00.000Z',
             event: ChatEventKind.Ended,
+            minutes: null,
           },
-          { kind: ChatItemKind.Event, id: 'e2', at: null, event: ChatEventKind.HandedBack },
+          {
+            kind: ChatItemKind.Event,
+            id: 'e2',
+            at: null,
+            event: ChatEventKind.HandedBack,
+            minutes: null,
+          },
         ]}
         agentName={AGENT_NAME}
         typing={false}
         selectedRunId={null}
         onSelectRun={vi.fn<(runId: string) => void>()}
+        durationLabel={durationLabel}
       />,
     );
 
     expect(screen.getByText(/^Ended by the agent · \d{1,2}:\d{2}/)).toBeInTheDocument();
     expect(screen.getByText('Handed back to the agent')).toBeInTheDocument();
+  });
+
+  it('labels a follow-up turn with its attempt and the silence before it', () => {
+    renderWithProviders(
+      <SimulatorChat
+        items={[
+          {
+            kind: ChatItemKind.Event,
+            id: 'e1',
+            at: '2026-10-11T12:00:00.000Z',
+            event: ChatEventKind.Silence,
+            minutes: 120,
+          },
+          { ...turnOf(0), trigger: RunTrigger.Inactivity, attempt: 2, escalated: false },
+        ]}
+        agentName={AGENT_NAME}
+        typing={false}
+        selectedRunId={null}
+        onSelectRun={vi.fn<(runId: string) => void>()}
+        durationLabel={durationLabel}
+      />,
+    );
+
+    expect(screen.getByText(/^120 min of silence simulated · \d{1,2}:\d{2}/)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: `${AGENT_NAME} · inactivity follow-up 2 · 2 messages` }),
+    ).toBeInTheDocument();
   });
 });

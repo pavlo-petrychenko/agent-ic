@@ -5,6 +5,7 @@ import { HandBackDocument } from '@/features/testing/communication/gql/mutation/
 import { ReplyAsOperatorDocument } from '@/features/testing/communication/gql/mutation/replyAsOperator.generated';
 import { RestartSimulationDocument } from '@/features/testing/communication/gql/mutation/restartSimulation.generated';
 import { SendSimulatorMessageDocument } from '@/features/testing/communication/gql/mutation/sendSimulatorMessage.generated';
+import { SimulateSilenceDocument } from '@/features/testing/communication/gql/mutation/simulateSilence.generated';
 import { StartSimulationDocument } from '@/features/testing/communication/gql/mutation/startSimulation.generated';
 import { SimulationDocument } from '@/features/testing/communication/gql/query/simulation.generated';
 import { ConversationActivityDocument } from '@/features/testing/communication/gql/subscription/conversationActivity.generated';
@@ -27,6 +28,8 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
   const [closeSimulation, { loading: closingInactive }] = useMutation(
     CloseSimulationForInactivityDocument,
   );
+  const [simulateSilenceMutation, { loading: simulatingSilence }] =
+    useMutation(SimulateSilenceDocument);
   const key =
     agentId === null
       ? null
@@ -105,6 +108,13 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
     }
   }, [conversationId, refetch, closeSimulation]);
 
+  const simulateSilence = useCallback(async () => {
+    if (conversationId !== null) {
+      await simulateSilenceMutation({ variables: { input: { conversationId } } });
+      await refetch();
+    }
+  }, [conversationId, refetch, simulateSilenceMutation]);
+
   const restart = useCallback(async () => {
     if (agentId !== null) {
       await restartSimulation({ variables: { input: { agentId } } });
@@ -124,11 +134,13 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
     replying,
     handingBack,
     closingInactive,
+    simulatingSilence,
     retry: () => (loadFailed ? void refetch() : setAttempt((value) => value + 1)),
     send,
     restart,
     reply,
     handBack,
     closeForInactivity,
+    simulateSilence,
   };
 }

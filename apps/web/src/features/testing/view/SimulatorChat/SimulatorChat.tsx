@@ -18,6 +18,7 @@ import {
   TURN_ICON_SIZE,
 } from '@/features/testing/view/SimulatorChat/SimulatorChat.constants';
 import type { SimulatorChatProps } from '@/features/testing/view/SimulatorChat/SimulatorChat.typedefs';
+import { RunTrigger } from '@/shared/api/generated/schema.generated';
 import { ChatBubble, ChatBubbleFrom } from '@/shared/ui/chat/ChatBubble';
 import { ChatSystemMessage, ChatSystemMessageTone } from '@/shared/ui/chat/ChatSystemMessage';
 import { TypingIndicator } from '@/shared/ui/chat/TypingIndicator';
@@ -30,6 +31,7 @@ export function SimulatorChat({
   typing,
   selectedRunId,
   onSelectRun,
+  durationLabel,
 }: SimulatorChatProps) {
   const { t } = useTranslation(TESTING_NAMESPACE);
   const listRef = useRef<HTMLOListElement>(null);
@@ -51,7 +53,15 @@ export function SimulatorChat({
         onClick={() => onSelectRun(item.id)}
       >
         <Icon name={IconName.Agent} size={TURN_ICON_SIZE} />
-        {t('chat.turn', { name: agentName, count: item.messages.length })}
+        <span className={styles.turnLabel}>
+          {item.trigger === RunTrigger.Inactivity && item.attempt !== null
+            ? t('chat.followUpTurn', {
+                name: agentName,
+                attempt: item.attempt,
+                count: item.messages.length,
+              })
+            : t('chat.turn', { name: agentName, count: item.messages.length })}
+        </span>
       </button>
       {item.messages.map((message, index) => (
         <Fragment key={message.id}>
@@ -92,7 +102,10 @@ export function SimulatorChat({
   };
 
   const event = (item: ChatEventItem) => {
-    const label = t(`chat.event.${item.event}`);
+    const label =
+      item.minutes === null
+        ? t(`chat.event.${item.event}`)
+        : t('chat.event.silenceFor', { after: durationLabel(item.minutes) });
     return (
       <ChatSystemMessage
         className={styles.event}

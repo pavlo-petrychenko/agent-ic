@@ -20,6 +20,7 @@
   display: inline-flex;
   align-items: center;
   align-self: flex-end;
+  max-width: 100%;
   gap: var(--space-4);
   padding: var(--space-2) var(--space-6);
   border: 0;
@@ -54,4 +55,10 @@
 .event {
   max-width: 100%;
   text-align: center;
+}
+
+.turnLabel {
+  min-width: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
