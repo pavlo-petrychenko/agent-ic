@@ -87,6 +87,25 @@ describe('Dialog', () => {
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 
+  it('leaves the page interactive and stays open on a press outside when not modal', async () => {
+    const onOpenChange = vi.fn<(open: boolean) => void>();
+    render(
+      <Dialog
+        open
+        modal={false}
+        onOpenChange={onOpenChange}
+        title="Pick documents"
+        closeLabel="Close"
+      />,
+    );
+
+    await settleLayers();
+    pressOutside();
+
+    expect(document.body.style.pointerEvents).not.toBe('none');
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
   it('closes on a press outside when not busy', async () => {
     const onOpenChange = vi.fn<(open: boolean) => void>();
     render(<Dialog open onOpenChange={onOpenChange} title="Pause agent" closeLabel="Close" />);
