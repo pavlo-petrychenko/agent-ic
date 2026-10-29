@@ -34,6 +34,7 @@ import { RunLifecycleService } from '@/modules/runs/services/run-lifecycle.servi
 import { RunMessagesService } from '@/modules/runs/services/run-messages.service';
 import { RunMetricsService } from '@/modules/runs/services/run-metrics.service';
 import { RunViewsService } from '@/modules/runs/services/run-views.service';
+import { ScheduleTriggerExecutor } from '@/modules/runs/services/schedule-trigger-executor.service';
 import { SendMessageExecutor } from '@/modules/runs/services/send-message-executor.service';
 import { SimulationTestsReaderService } from '@/modules/runs/services/simulation-tests-reader.service';
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
@@ -70,6 +71,7 @@ export class RunsModule extends defineModule({
     EscalationExecutor,
     CompletionExecutor,
     AgentExecutor,
+    ScheduleTriggerExecutor,
     {
       provide: STEP_EXECUTORS,
       useFactory: (...executors: readonly StepExecutor[]) => executors,
@@ -83,6 +85,7 @@ export class RunsModule extends defineModule({
         EscalationExecutor,
         CompletionExecutor,
         AgentExecutor,
+        ScheduleTriggerExecutor,
       ],
     },
     StepExecutorRegistry,

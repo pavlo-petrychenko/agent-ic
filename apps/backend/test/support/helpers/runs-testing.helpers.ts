@@ -14,7 +14,9 @@ import {
   MessageAuthor,
   messageReceivedEvent,
 } from '@/modules/conversations';
+import { ChannelKind } from '@/modules/conversations';
 import type { MessageReceivedPayload } from '@/modules/conversations';
+import { conversations } from '@/modules/conversations/db/conversations.table';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import type { NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
@@ -41,6 +43,7 @@ import { MessageTriggerExecutor } from '@/modules/runs/services/message-trigger-
 import { ParallelExecutor } from '@/modules/runs/services/parallel-executor.service';
 import { RouterExecutor } from '@/modules/runs/services/router-executor.service';
 import { RunExecutionService } from '@/modules/runs/services/run-execution.service';
+import { ScheduleTriggerExecutor } from '@/modules/runs/services/schedule-trigger-executor.service';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 import type { NewRun, Run } from '@/modules/runs/typedefs/run.typedefs';
 import type { StepExecution } from '@/modules/runs/typedefs/step-executor.typedefs';
@@ -156,6 +159,7 @@ export const createRunsTestbed = async (
         value: [
           new MessageTriggerExecutor(),
           new InactivityTriggerExecutor(),
+          new ScheduleTriggerExecutor(),
           new RouterExecutor(),
           new ParallelExecutor(),
           new ApiRequestExecutor(new NodeOutboundHttpGateway(clock, []), clock),
@@ -619,3 +623,26 @@ export const readRunChat = (
       ),
     ),
   }));
+
+export const markCustomerSilentSince = async (
+  testbed: RunExecutionTestbed,
+  { conversation }: LiveConversation,
+  lastCustomerMessageAt: Date,
+): Promise<void> => {
+  await testbed.module
+    .get(SystemDatabaseService)
+    .db.update(conversations)
+    .set({ channelKind: ChannelKind.Telegram, lastCustomerMessageAt })
+    .where(eq(conversations.id, conversation.id));
+};
+
+export const turnIntoSimulation = async (
+  testbed: RunExecutionTestbed,
+  { conversation, versionId }: LiveConversation,
+): Promise<void> => {
+  await testbed.module
+    .get(SystemDatabaseService)
+    .db.update(conversations)
+    .set({ mode: ConversationMode.Simulation, simulationVersionId: versionId })
+    .where(eq(conversations.id, conversation.id));
+};

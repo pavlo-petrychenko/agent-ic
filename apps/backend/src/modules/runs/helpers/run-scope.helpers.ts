@@ -6,6 +6,7 @@ import type {
   MessageTriggerVariables,
   RunWalk,
   TriggerBaseVariables,
+  ScheduleTriggerVariables,
 } from '@/modules/runs/typedefs/run-execution.typedefs';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 
@@ -36,6 +37,20 @@ export const messageTriggerVariables = (
 ): MessageTriggerVariables => ({
   message: { text: currentMessageText(history), attachments: [] },
   ...triggerBaseVariables(conversation, history, today),
+});
+
+export const scheduleTriggerVariables = (
+  conversation: Conversation,
+  conversationPublicId: string,
+  history: readonly Message[],
+  today: Date,
+): ScheduleTriggerVariables => ({
+  ...triggerBaseVariables(conversation, history, today),
+  conversation: {
+    id: conversationPublicId,
+    started_at: conversation.createdAt.toISOString(),
+    last_message_at: conversation.lastMessageAt.toISOString(),
+  },
 });
 
 export const stepVariables = (
