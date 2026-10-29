@@ -80,6 +80,8 @@ export enum TestRedisPrefix {
   RunEnd = 'run-end:',
   RunTriggered = 'run-triggered:',
   RunInactivity = 'run-inactivity:',
+  RunInactivitySweep = 'run-inactivity-sweep:',
+  RunInactivityFire = 'run-inactivity-fire:',
   RunMessages = 'run-messages:',
   RunEscalation = 'run-escalation:',
   RunConversationExit = 'run-conversation-exit:',

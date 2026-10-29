@@ -114,3 +114,4 @@ export const TEST_SILENCE_HOURS = 2;
 export const TEST_REPEAT_HOURS = 22;
 export const TEST_INACTIVITY_MAX_TIMES = 2;
 export const TEST_SILENT_MINUTES = 120;
+export const INACTIVITY_SWEEP_TEST_START = new Date('2001-01-01T09:00:00.000Z');

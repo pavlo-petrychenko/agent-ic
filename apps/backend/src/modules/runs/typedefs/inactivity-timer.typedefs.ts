@@ -1,5 +1,7 @@
 import type { TriggerInactivityNode } from '@agent-ic/flow';
+import type { InactivityFireOutcome } from '@/modules/runs/constants/inactivity.constants';
 import type { inactivityTimers } from '@/modules/runs/db/inactivity-timers.table';
+import type { NewRun } from '@/modules/runs/typedefs/run.typedefs';
 
 export interface InactivityTimer {
   readonly id: string;
@@ -26,3 +28,21 @@ export interface InactivityTimerPlan {
   readonly attempt: number;
   readonly anchorAt: Date;
 }
+
+export interface InactivityClaim {
+  readonly now: Date;
+  readonly leaseUntil: Date;
+  readonly limit: number;
+  readonly perWorkspace: number;
+}
+
+export type ClaimedInactivityTimer = Pick<InactivityTimer, 'id' | 'workspaceId' | 'dueAt'>;
+
+export interface InactivityFire {
+  readonly outcome: InactivityFireOutcome;
+  readonly run: NewRun | null;
+}
+
+export type InactivityCheck =
+  | { readonly outcome: InactivityFireOutcome }
+  | { readonly versionId: string; readonly node: TriggerInactivityNode };

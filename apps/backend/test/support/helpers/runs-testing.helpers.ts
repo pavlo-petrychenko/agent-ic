@@ -517,6 +517,15 @@ export const markConversationWaiting = async (
   );
 };
 
+export const handConversationBack = async (
+  testbed: RunLifecycleTestbed,
+  { conversation: { workspaceId, id } }: LiveConversation,
+): Promise<void> => {
+  await testbed.tenants.run(workspaceId, () =>
+    testbed.module.get(ConversationsRepository).handBack(workspaceId, id),
+  );
+};
+
 export const recordCustomerMessageAt = async (
   testbed: RunLifecycleTestbed,
   { conversation: { workspaceId, id } }: LiveConversation,

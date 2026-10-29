@@ -5,6 +5,8 @@ export enum RunMetricName {
   QueueWait = 'run_queue_wait_seconds',
   Steps = 'run_steps_total',
   StepDuration = 'run_step_duration_seconds',
+  InactivityFires = 'inactivity_fires_total',
+  InactivityLag = 'inactivity_fire_lag_seconds',
 }
 
 export enum RunMetricHelp {
@@ -14,6 +16,8 @@ export enum RunMetricHelp {
   QueueWait = 'Time a run waited in the queue before it started in seconds',
   Steps = 'Run steps that finished, by node type and status',
   StepDuration = 'Time a run step took in seconds, by node type and status',
+  InactivityFires = 'Due inactivity timers handled, by outcome',
+  InactivityLag = 'Time from the due time of an inactivity timer to its fire in seconds',
 }
 
 export enum RunMetricLabel {
@@ -21,6 +25,7 @@ export enum RunMetricLabel {
   Mode = 'mode',
   Status = 'status',
   NodeType = 'node_type',
+  Outcome = 'outcome',
 }
 
 export const RUN_DURATION_BUCKETS_SECONDS: readonly number[] = [
@@ -32,3 +37,4 @@ export const RUN_QUEUE_WAIT_BUCKETS_SECONDS: readonly number[] = [
 export const RUN_STEP_DURATION_BUCKETS_SECONDS: readonly number[] = [
   0.005, 0.025, 0.1, 0.5, 1, 2.5, 5, 10, 30, 60,
 ];
+export const INACTIVITY_LAG_BUCKETS_SECONDS: readonly number[] = [1, 5, 15, 30, 60, 120, 300, 900];
