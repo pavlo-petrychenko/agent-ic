@@ -10,6 +10,8 @@ export const TELEGRAM_TOKEN_VISIBLE_BOT_ID_LENGTH = 4;
 export const TELEGRAM_TOKEN_VISIBLE_SECRET_LENGTH = 3;
 export const TELEGRAM_TOKEN_MASK_CHARACTER = '•';
 export const TELEGRAM_WEBHOOK_PATH = '/webhooks/telegram';
+export const TELEGRAM_WEBHOOK_WORKSPACE_PARAM = 'workspaceId';
+export const TELEGRAM_WEBHOOK_CHANNEL_PARAM = 'channelId';
 export const TELEGRAM_CALLBACK_DATA_MAX_BYTES = 64;
 
 export enum TelegramChatAction {

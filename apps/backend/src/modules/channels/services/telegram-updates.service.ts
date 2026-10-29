@@ -2,9 +2,12 @@ import { ChannelKind } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { ChannelEventType } from '@/modules/channels/constants/channel-event.constants';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
+import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
+import { TelegramWebhookUnauthorizedError } from '@/modules/channels/errors/telegram-webhook-unauthorized.error';
 import { toIncomingMessageInput } from '@/modules/channels/helpers/telegram-update.helpers';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
+import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import type { ReceiveTelegramUpdateInput } from '@/modules/channels/typedefs/channel.typedefs';
 import { IncomingMessagesService } from '@/modules/conversations';
 import type { IncomingMessageResult } from '@/modules/conversations';
@@ -12,6 +15,7 @@ import { ClockService } from '@/platform/clock/services/clock.service';
 import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
 import { requireSystemActor } from '@/platform/context/helpers/use-case-ctx.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
+import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 
@@ -21,6 +25,8 @@ export class TelegramUpdatesService {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly channels: ChannelsRepository,
     private readonly channelEvents: ChannelEventsRepository,
+    private readonly channelTokens: ChannelTokenService,
+    private readonly secureTokens: SecureTokenService,
     private readonly incoming: IncomingMessagesService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
@@ -37,11 +43,25 @@ export class TelegramUpdatesService {
     }
     return this.tenantTransactions.run(workspaceId, async () => {
       const channel = await this.channels.findById(workspaceId, input.channelId);
-      if (
-        channel === null ||
-        channel.kind !== ChannelKind.Telegram ||
-        channel.status !== ChannelStatus.Connected
-      ) {
+      if (channel === null || channel.kind !== ChannelKind.Telegram) {
+        if (input.webhookSecret !== undefined) {
+          throw new ChannelNotFoundError();
+        }
+        return null;
+      }
+      if (input.webhookSecret !== undefined) {
+        if (input.webhookSecret === null) {
+          throw new TelegramWebhookUnauthorizedError();
+        }
+        const credentials = this.channelTokens.openCredentials(channel.credentialsSealed);
+        if (
+          !('webhookSecretHash' in credentials) ||
+          !this.secureTokens.matches(input.webhookSecret, credentials.webhookSecretHash)
+        ) {
+          throw new TelegramWebhookUnauthorizedError();
+        }
+      }
+      if (channel.status !== ChannelStatus.Connected) {
         return null;
       }
       const message = input.update.message;

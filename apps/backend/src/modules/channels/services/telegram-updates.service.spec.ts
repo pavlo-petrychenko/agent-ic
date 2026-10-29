@@ -1,6 +1,8 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
+import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
+import { TelegramWebhookUnauthorizedError } from '@/modules/channels/errors/telegram-webhook-unauthorized.error';
 import { TelegramUpdatesService } from '@/modules/channels/services/telegram-updates.service';
 import type {
   TelegramMessage,
@@ -8,10 +10,13 @@ import type {
 } from '@/modules/channels/typedefs/telegram.typedefs';
 import { IncomingMessageOutcome, MessageAuthor } from '@/modules/conversations';
 import { SystemActorRequiredError } from '@/platform/context/errors/system-actor-required.error';
+import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
+import { TEST_TELEGRAM_TOKEN } from '@test/support/constants/channel-testing.constants';
 import { newChannel } from '@test/support/fixtures/channel.fixture';
 import { workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
+import { channelEventsFor } from '@test/support/helpers/channel-events.helpers';
 import {
   createChannelsTestbed,
   seedChannelWorkspace,
@@ -21,6 +26,7 @@ import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.ty
 
 const UPDATE_ID = '1000';
 const MESSAGE_ID = '5';
+const WEBHOOK_SECRET = 'webhook-secret';
 
 const telegramUpdate = (overrides: Partial<TelegramMessage> = {}): TelegramUpdate => ({
   updateId: UPDATE_ID,
@@ -38,17 +44,22 @@ const telegramUpdate = (overrides: Partial<TelegramMessage> = {}): TelegramUpdat
 describe('TelegramUpdatesService', () => {
   let testbed: ChannelsTestbed;
   let updates: TelegramUpdatesService;
+  let secureTokens: SecureTokenService;
 
   beforeAll(async () => {
     testbed = await createChannelsTestbed();
     updates = testbed.module.get(TelegramUpdatesService);
+    secureTokens = testbed.module.get(SecureTokenService);
   });
 
   afterAll(async () => {
     await testbed.module.close();
   });
 
-  const seed = async (status: ChannelStatus = ChannelStatus.Connected) => {
+  const seed = async (
+    status: ChannelStatus = ChannelStatus.Connected,
+    webhookSecretHash?: string,
+  ) => {
     const workspace = await seedChannelWorkspace(testbed);
     const agentId = await seedAgent(testbed, workspace.workspaceId);
     const channel = newChannel(testbed, workspace.workspaceId, {
@@ -56,6 +67,14 @@ describe('TelegramUpdatesService', () => {
       agentId,
       status,
       externalId: testbed.ids.generate(),
+      ...(webhookSecretHash === undefined
+        ? {}
+        : {
+            credentialsSealed: testbed.channelTokens.sealCredentials({
+              botToken: TEST_TELEGRAM_TOKEN,
+              webhookSecretHash,
+            }),
+          }),
     });
     await testbed.tenants.run(workspace.workspaceId, () =>
       testbed.channels.insertIfAbsent(channel),
@@ -88,6 +107,63 @@ describe('TelegramUpdatesService', () => {
       author: MessageAuthor.Customer,
       text: 'Hello',
     });
+  });
+
+  it('stores a webhook update with the matching secret', async () => {
+    const { channel, ctx, workspaceId } = await seed(
+      ChannelStatus.Connected,
+      secureTokens.hash(WEBHOOK_SECRET),
+    );
+
+    const result = await updates.handleTelegramUpdate(ctx, {
+      channelId: channel.id,
+      update: telegramUpdate(),
+      webhookSecret: WEBHOOK_SECRET,
+    });
+
+    expect(result?.outcome).toBe(IncomingMessageOutcome.RunRequested);
+    const stored = await testbed.tenants.run(workspaceId, () =>
+      testbed.messages.findByExternalId(workspaceId, result?.conversationId ?? '', MESSAGE_ID),
+    );
+    expect(stored?.text).toBe('Hello');
+  });
+
+  it('refuses a webhook update with a wrong secret', async () => {
+    const { channel, ctx } = await seed(ChannelStatus.Connected, secureTokens.hash(WEBHOOK_SECRET));
+
+    await expect(
+      updates.handleTelegramUpdate(ctx, {
+        channelId: channel.id,
+        update: telegramUpdate(),
+        webhookSecret: 'wrong-secret',
+      }),
+    ).rejects.toBeInstanceOf(TelegramWebhookUnauthorizedError);
+    await expect(channelEventsFor(testbed.module, channel.id)).resolves.toEqual([]);
+  });
+
+  it('refuses a webhook update without a secret', async () => {
+    const { channel, ctx } = await seed(ChannelStatus.Connected, secureTokens.hash(WEBHOOK_SECRET));
+
+    await expect(
+      updates.handleTelegramUpdate(ctx, {
+        channelId: channel.id,
+        update: telegramUpdate(),
+        webhookSecret: null,
+      }),
+    ).rejects.toBeInstanceOf(TelegramWebhookUnauthorizedError);
+    await expect(channelEventsFor(testbed.module, channel.id)).resolves.toEqual([]);
+  });
+
+  it('refuses a webhook update for an unknown channel', async () => {
+    const { ctx } = await seed();
+
+    await expect(
+      updates.handleTelegramUpdate(ctx, {
+        channelId: testbed.ids.generate(),
+        update: telegramUpdate(),
+        webhookSecret: WEBHOOK_SECRET,
+      }),
+    ).rejects.toBeInstanceOf(ChannelNotFoundError);
   });
 
   it('enqueues the run job', async () => {

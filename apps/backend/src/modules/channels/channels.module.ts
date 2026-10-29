@@ -1,5 +1,6 @@
 import { AgentsModule } from '@/modules/agents';
 import { CHANNEL_ADAPTERS } from '@/modules/channels/constants/channel-adapter.constants';
+import { TelegramWebhookController } from '@/modules/channels/controllers/telegram-webhook.controller';
 import type { ChannelAdapter } from '@/modules/channels/gateways/channel-adapter.gateway';
 import { HttpTelegramGateway } from '@/modules/channels/gateways/http-telegram.gateway';
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
@@ -27,6 +28,7 @@ import { DeleteChannelUseCase } from '@/modules/channels/use-cases/delete-channe
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
 import { DisconnectTelegramUseCase } from '@/modules/channels/use-cases/disconnect-telegram.use-case';
 import { GetChannelUseCase } from '@/modules/channels/use-cases/get-channel.use-case';
+import { HandleTelegramWebhookUseCase } from '@/modules/channels/use-cases/handle-telegram-webhook.use-case';
 import { ListChannelsUseCase } from '@/modules/channels/use-cases/list-channels.use-case';
 import { ReplaceTelegramTokenUseCase } from '@/modules/channels/use-cases/replace-telegram-token.use-case';
 import { UpdateTelegramChannelUseCase } from '@/modules/channels/use-cases/update-telegram.use-case';
@@ -69,6 +71,7 @@ export class ChannelsModule extends defineModule({
     ReplaceTelegramTokenUseCase,
     UpdateTelegramChannelUseCase,
     DeliverOutboundMessageUseCase,
+    HandleTelegramWebhookUseCase,
   ],
   resolvers: [
     ChannelResolver,
@@ -78,6 +81,7 @@ export class ChannelsModule extends defineModule({
     ReplaceTelegramTokenResolver,
     UpdateTelegramResolver,
   ],
+  gatewayControllers: [TelegramWebhookController],
   listeners: [DeliverOutboundMessageListener],
   exports: [SimulatedChannelAdapter, TelegramChannelAdapter, ChannelAdapterRegistryService],
 }) {}

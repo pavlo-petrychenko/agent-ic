@@ -1,8 +1,33 @@
 import { ChannelKind } from '@agent-ic/contracts';
 import type { ChannelRecord } from '@/modules/channels/typedefs/channel.typedefs';
-import type { TelegramMessage } from '@/modules/channels/typedefs/telegram.typedefs';
+import type {
+  TelegramMessageResponse,
+  TelegramUpdateResponse,
+} from '@/modules/channels/typedefs/http-telegram-gateway.typedefs';
+import type {
+  TelegramMessage,
+  TelegramUpdate,
+} from '@/modules/channels/typedefs/telegram.typedefs';
 import { ConversationMode } from '@/modules/conversations';
 import type { IncomingMessageInput } from '@/modules/conversations';
+import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
+
+export const toTelegramUpdate = (update: TelegramUpdateResponse): TelegramUpdate => ({
+  updateId: String(update.update_id),
+  message: update.message === undefined ? null : toTelegramMessage(update.message),
+});
+
+export const toTelegramMessage = (message: TelegramMessageResponse): TelegramMessage => {
+  const sender = message.from;
+  return {
+    messageId: String(message.message_id),
+    sentAt: new Date(message.date * MILLISECONDS_PER_SECOND),
+    chatId: String(message.chat.id),
+    senderId: sender === undefined ? null : String(sender.id),
+    senderName: sender?.first_name ?? null,
+    text: message.text ?? null,
+  };
+};
 
 export const toIncomingMessageInput = (
   channel: Pick<ChannelRecord, 'id' | 'workspaceId' | 'agentId'>,

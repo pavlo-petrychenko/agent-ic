@@ -47,7 +47,7 @@ The backend has one binary: `node dist/main.js serve --role=api|gateway|worker`.
 What each role mounts:
 
 - **api:** resolvers and controllers, the GraphQL server, the queue board. Routes sit under `/api`.
-- **gateway:** gateway controllers only. No module declares one yet, so it serves just health and metrics.
+- **gateway:** gateway controllers only. The Telegram webhook at `/webhooks/telegram/...` is one; otherwise it serves health and metrics.
 - **worker:** processors, event listeners and the job workers that take jobs from the queues it was given.
 - **every role:** providers, health checks and `/metrics`.
 
