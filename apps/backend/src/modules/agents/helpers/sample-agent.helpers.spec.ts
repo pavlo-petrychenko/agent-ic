@@ -1,49 +1,44 @@
-import { PortName } from '@agent-ic/flow';
+import { AgentExitKind, NodeType, validateFlow } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
-import { sampleAgentFlow } from '@/modules/agents/helpers/sample-agent.helpers';
-import type { SampleFlowIds } from '@/modules/agents/typedefs/sample-agent.typedefs';
+import { SAMPLE_ANSWER_KEY } from '@/modules/agents/constants/sample-agent.constants';
+import { buildExampleFlow } from '@/modules/agents/helpers/flow-example-nodes.helpers';
+import { sampleAgentExample } from '@/modules/agents/helpers/sample-agent.helpers';
+import { samplePromptRefs } from '@test/support/fixtures/sample-prompt.fixture';
 
-const IDS: SampleFlowIds = {
-  nodes: { trigger: 'n_trigger', route: 'n_route', greeting: 'n_greeting', handOff: 'n_hand_off' },
-  rule: 'r_person',
-  edges: ['e_route', 'e_hand_off', 'e_greeting'],
+const sequentialIds = (): (() => string) => {
+  let next = 0;
+  return () => {
+    next += 1;
+    return `id_${next}`;
+  };
 };
 
-const positionOf = (id: string) => {
-  const node = sampleAgentFlow(IDS).nodes.find((entry) => entry.id === id);
-  if (node === undefined) {
-    throw new Error(`missing node ${id}`);
-  }
-  return node.position;
-};
+const sampleFlow = () => buildExampleFlow(sampleAgentExample(samplePromptRefs()), sequentialIds());
 
-describe('sampleAgentFlow', () => {
+describe('sampleAgentExample', () => {
+  it('validates with no issues', () => {
+    expect(validateFlow(sampleFlow())).toEqual([]);
+  });
+
+  it('hands off through the default exit of its agent, with no keyword router', () => {
+    const flow = sampleFlow();
+    const agent = flow.nodes.find((node) => node.key === SAMPLE_ANSWER_KEY);
+
+    expect(agent?.type === NodeType.Agent ? agent.config.exits.handoff : null).not.toBeNull();
+    expect(
+      flow.edges.filter(
+        (edge) => edge.source === agent?.id && edge.sourcePort === AgentExitKind.Handoff,
+      ),
+    ).toEqual([]);
+    expect(flow.nodes.filter((node) => node.type === NodeType.Router)).toEqual([]);
+  });
+
   it('lays every edge out from top to bottom, as the ports run', () => {
-    const flow = sampleAgentFlow(IDS);
+    const flow = sampleFlow();
+    const yOf = (id: string) => flow.nodes.find((node) => node.id === id)?.position.y ?? 0;
 
     for (const edge of flow.edges) {
-      expect(positionOf(edge.target).y).toBeGreaterThan(positionOf(edge.source).y);
+      expect(yOf(edge.target)).toBeGreaterThan(yOf(edge.source));
     }
-  });
-
-  it('places the branches in the order of the router ports so the edges do not cross', () => {
-    const flow = sampleAgentFlow(IDS);
-    const targetOf = (port: string) =>
-      flow.edges.find((edge) => edge.source === IDS.nodes.route && edge.sourcePort === port)
-        ?.target ?? null;
-    const ruleTarget = targetOf(IDS.rule);
-    const elseTarget = targetOf(PortName.Else);
-
-    expect(ruleTarget).not.toBeNull();
-    expect(elseTarget).not.toBeNull();
-    expect(positionOf(ruleTarget ?? '').x).toBeLessThan(positionOf(elseTarget ?? '').x);
-  });
-
-  it('centres the trigger and the router above the two branches', () => {
-    const left = positionOf(IDS.nodes.handOff).x;
-    const right = positionOf(IDS.nodes.greeting).x;
-
-    expect(positionOf(IDS.nodes.trigger).x).toBe((left + right) / 2);
-    expect(positionOf(IDS.nodes.route).x).toBe((left + right) / 2);
   });
 });

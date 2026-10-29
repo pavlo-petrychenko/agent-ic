@@ -10,7 +10,11 @@ export const seedSampleData = async (app: INestApplicationContext): Promise<Seed
   const logger = app.get(Logger);
   const { userId, workspaceId } = await app.get(SampleWorkspaceService).ensure();
   logger.log({ msg: SeedLogMessage.SampleWorkspaceReady, userId, workspaceId });
-  const agentCreated = await app.get(SampleAgentService).ensure(workspaceId, userId);
+  const samplePromptRefs = await app.get(SamplePromptService).ensure(workspaceId, userId);
+  logger.log({ msg: SeedLogMessage.SamplePromptsReady, workspaceId });
+  const agentCreated = await app
+    .get(SampleAgentService)
+    .ensure(workspaceId, userId, samplePromptRefs);
   logger.log({
     msg: agentCreated ? SeedLogMessage.SampleAgentCreated : SeedLogMessage.SampleAgentExists,
     workspaceId,

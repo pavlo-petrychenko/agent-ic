@@ -25,6 +25,7 @@ import {
   WaitFor,
 } from '@agent-ic/flow';
 import type {
+  AgentExits,
   AgentNode,
   ApiRequestNode,
   CompletionNode,
@@ -110,6 +111,7 @@ export const exampleAgent = (
   at: GridCell,
   prompt: PromptSource,
   output: readonly OutputField[] = [],
+  exits: AgentExits = NO_AGENT_EXITS,
 ): AgentNode => ({
   ...place(key, label, at),
   type: NodeType.Agent,
@@ -121,7 +123,7 @@ export const exampleAgent = (
     retrievalMode: DEFAULT_RETRIEVAL_MODE,
     output: [...output],
     retries: AGENT_DEFAULT_RETRIES,
-    exits: NO_AGENT_EXITS,
+    exits,
   },
 });
 
@@ -256,7 +258,7 @@ export const exampleEndChat = (
   key: string,
   label: string,
   at: GridCell,
-  customerMessage: string,
+  customerMessage: string | null,
 ): EscalationNode => ({
   ...place(key, label, at),
   type: NodeType.Escalation,
@@ -286,6 +288,6 @@ export const buildExampleFlow = (example: FlowExample, nextId: () => string): Fl
       source: idOf(edge.source),
       target: idOf(edge.target),
     })),
-    settings: NO_FLOW_SETTINGS,
+    settings: example.settings ?? NO_FLOW_SETTINGS,
   };
 };
