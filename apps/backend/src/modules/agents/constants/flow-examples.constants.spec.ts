@@ -1,4 +1,4 @@
-import { NodeType, PromptSourceKind, validateFlow } from '@agent-ic/flow';
+import { AgentExitKind, NodeType, PromptSourceKind, validateFlow } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { flowExamples } from '@/modules/agents/constants/flow-examples.constants';
 import { buildExampleFlow } from '@/modules/agents/helpers/flow-example-nodes.helpers';
@@ -54,5 +54,31 @@ describe('flowExamples', () => {
     for (const prompt of prompts) {
       expect(prompt?.kind).toBe(PromptSourceKind.Library);
     }
+  });
+
+  it('shows a default handoff, a customized end exit and auto-close', () => {
+    const flows = EXAMPLES.map((example) => buildExampleFlow(example, sequentialIds()));
+    const exitPorts = flows.flatMap((flow) =>
+      flow.nodes.flatMap((node) =>
+        node.type === NodeType.Agent
+          ? [AgentExitKind.End, AgentExitKind.Handoff].flatMap((kind) =>
+              node.config.exits[kind] === null
+                ? []
+                : [
+                    {
+                      kind,
+                      connected: flow.edges.some(
+                        (edge) => edge.source === node.id && edge.sourcePort === kind,
+                      ),
+                    },
+                  ],
+            )
+          : [],
+      ),
+    );
+
+    expect(exitPorts).toContainEqual({ kind: AgentExitKind.Handoff, connected: false });
+    expect(exitPorts).toContainEqual({ kind: AgentExitKind.End, connected: true });
+    expect(flows.some((flow) => flow.settings.autoClose !== null)).toBe(true);
   });
 });

@@ -1,114 +1,51 @@
-import { WorkspaceRole } from '@agent-ic/contracts';
+import { PortName } from '@agent-ic/flow';
 import {
-  ChannelSelectionMode,
-  ConditionOperator,
-  ESCALATION_DEFAULT_FALLBACK_MINUTES,
-  ESCALATION_DEFAULT_REMINDER_MINUTES,
-  EscalationMode,
-  FLOW_SCHEMA_VERSION,
-  MessageContentKind,
-  NO_FLOW_SETTINGS,
-  NodeType,
-  NotifyChannel,
-  PortName,
-  QuickRepliesKind,
-  RecipientsKind,
-  RuleMatch,
-} from '@agent-ic/flow';
-import type { FlowDocument } from '@agent-ic/flow';
+  EXAMPLE_HANDOFF_EXIT,
+  EXAMPLE_TRIGGER_KEY,
+} from '@/modules/agents/constants/flow-example-nodes.constants';
 import {
-  SAMPLE_GREETING_TEXT,
-  SAMPLE_HAND_OFF_CUSTOMER_MESSAGE,
-  SAMPLE_HAND_OFF_FALLBACK_MESSAGE,
-  SAMPLE_HAND_OFF_PHRASE,
+  SAMPLE_AGENT_DESCRIPTION,
+  SAMPLE_AGENT_NAME,
+  SAMPLE_ANSWER_KEY,
+  SAMPLE_ANSWER_LABEL,
+  SAMPLE_HAND_OFF_KEY,
+  SAMPLE_HAND_OFF_LABEL,
   SAMPLE_HAND_OFF_REASON,
-  SAMPLE_MESSAGE_VARIABLE,
-  SAMPLE_NODE_LABELS,
-  SAMPLE_NODE_POSITIONS,
-  SAMPLE_RULE_LABEL,
-  SampleNodeKey,
+  SAMPLE_REPLY_KEY,
+  SAMPLE_REPLY_LABEL,
+  SAMPLE_REPLY_VARIABLE,
 } from '@/modules/agents/constants/sample-agent.constants';
-import type { SampleFlowIds } from '@/modules/agents/typedefs/sample-agent.typedefs';
+import { SamplePromptKey } from '@/modules/agents/constants/sample-prompt.constants';
+import {
+  exampleAgent,
+  exampleHandOff,
+  examplePrompt,
+  exampleSendReply,
+  exampleTrigger,
+  link,
+} from '@/modules/agents/helpers/flow-example-nodes.helpers';
+import type { FlowExample } from '@/modules/agents/typedefs/flow-example.typedefs';
+import type { SamplePromptRefs } from '@/modules/agents/typedefs/sample-prompt.typedefs';
 
-const nodeBase = (key: SampleNodeKey, id: string) => ({
-  id,
-  key,
-  label: SAMPLE_NODE_LABELS[key],
-  position: { ...SAMPLE_NODE_POSITIONS[key] },
+export const sampleAgentExample = (prompts: SamplePromptRefs): FlowExample => ({
+  name: SAMPLE_AGENT_NAME,
+  description: SAMPLE_AGENT_DESCRIPTION,
+  nodes: [
+    exampleTrigger([0, 0]),
+    exampleAgent(
+      SAMPLE_ANSWER_KEY,
+      SAMPLE_ANSWER_LABEL,
+      [0, 1],
+      examplePrompt(prompts[SamplePromptKey.CafeAssistant]),
+      [],
+      EXAMPLE_HANDOFF_EXIT,
+    ),
+    exampleSendReply(SAMPLE_REPLY_KEY, SAMPLE_REPLY_LABEL, [0, 2], SAMPLE_REPLY_VARIABLE),
+    exampleHandOff(SAMPLE_HAND_OFF_KEY, SAMPLE_HAND_OFF_LABEL, [1, 2], SAMPLE_HAND_OFF_REASON),
+  ],
+  edges: [
+    link(EXAMPLE_TRIGGER_KEY, SAMPLE_ANSWER_KEY),
+    link(SAMPLE_ANSWER_KEY, SAMPLE_REPLY_KEY),
+    link(SAMPLE_ANSWER_KEY, SAMPLE_HAND_OFF_KEY, PortName.Error),
+  ],
 });
-
-export const sampleAgentFlow = (ids: SampleFlowIds): FlowDocument => {
-  const [toRoute, toHandOff, toGreeting] = ids.edges;
-  return {
-    schemaVersion: FLOW_SCHEMA_VERSION,
-    nodes: [
-      {
-        ...nodeBase(SampleNodeKey.Trigger, ids.nodes.trigger),
-        type: NodeType.TriggerMessage,
-        config: { channels: { mode: ChannelSelectionMode.All } },
-      },
-      {
-        ...nodeBase(SampleNodeKey.Route, ids.nodes.route),
-        type: NodeType.Router,
-        config: {
-          rules: [
-            {
-              id: ids.rule,
-              label: SAMPLE_RULE_LABEL,
-              match: RuleMatch.All,
-              conditions: [
-                {
-                  variable: SAMPLE_MESSAGE_VARIABLE,
-                  operator: ConditionOperator.Contains,
-                  value: SAMPLE_HAND_OFF_PHRASE,
-                },
-              ],
-            },
-          ],
-        },
-      },
-      {
-        ...nodeBase(SampleNodeKey.Greeting, ids.nodes.greeting),
-        type: NodeType.SendMessage,
-        config: {
-          content: { kind: MessageContentKind.Text, text: SAMPLE_GREETING_TEXT },
-          typing: true,
-          waitForDelivery: true,
-          quickReplies: { kind: QuickRepliesKind.None },
-        },
-      },
-      {
-        ...nodeBase(SampleNodeKey.HandOff, ids.nodes.handOff),
-        type: NodeType.Escalation,
-        config: {
-          mode: EscalationMode.Escalate,
-          customerMessage: SAMPLE_HAND_OFF_CUSTOMER_MESSAGE,
-          reason: SAMPLE_HAND_OFF_REASON,
-          notify: {
-            recipients: { kind: RecipientsKind.Role, role: WorkspaceRole.Operator },
-            channels: [NotifyChannel.InPlatform],
-          },
-          reminderAfterMinutes: ESCALATION_DEFAULT_REMINDER_MINUTES,
-          fallbackAfterMinutes: ESCALATION_DEFAULT_FALLBACK_MINUTES,
-          fallbackMessage: SAMPLE_HAND_OFF_FALLBACK_MESSAGE,
-        },
-      },
-    ],
-    edges: [
-      {
-        id: toRoute,
-        source: ids.nodes.trigger,
-        sourcePort: PortName.Next,
-        target: ids.nodes.route,
-      },
-      { id: toHandOff, source: ids.nodes.route, sourcePort: ids.rule, target: ids.nodes.handOff },
-      {
-        id: toGreeting,
-        source: ids.nodes.route,
-        sourcePort: PortName.Else,
-        target: ids.nodes.greeting,
-      },
-    ],
-    settings: NO_FLOW_SETTINGS,
-  };
-};

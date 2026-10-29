@@ -3,13 +3,11 @@ import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
 import { EXAMPLE_VERSION_NOTE } from '@/modules/agents/constants/flow-example-nodes.constants';
 import { flowExamples } from '@/modules/agents/constants/flow-examples.constants';
 import {
-  SAMPLE_AGENT_DESCRIPTION,
-  SAMPLE_AGENT_NAME,
   SAMPLE_AGENT_NOTE,
   SAMPLE_FIRST_PAGE_SIZE,
 } from '@/modules/agents/constants/sample-agent.constants';
 import { buildExampleFlow } from '@/modules/agents/helpers/flow-example-nodes.helpers';
-import { sampleAgentFlow } from '@/modules/agents/helpers/sample-agent.helpers';
+import { sampleAgentExample } from '@/modules/agents/helpers/sample-agent.helpers';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
@@ -28,25 +26,17 @@ export class SampleAgentService {
     private readonly ids: IdService,
   ) {}
 
-  ensure(workspaceId: string, authorId: string): Promise<boolean> {
+  ensure(workspaceId: string, authorId: string, promptRefs: SamplePromptRefs): Promise<boolean> {
     return this.tenantTransactions.run(workspaceId, async () => {
       if (await this.hasAgents(workspaceId)) {
         return false;
       }
+      const sample = sampleAgentExample(promptRefs);
       await this.createLive(workspaceId, authorId, {
-        name: SAMPLE_AGENT_NAME,
-        description: SAMPLE_AGENT_DESCRIPTION,
+        name: sample.name,
+        description: sample.description,
         note: SAMPLE_AGENT_NOTE,
-        flow: sampleAgentFlow({
-          nodes: {
-            trigger: this.ids.generate(),
-            route: this.ids.generate(),
-            greeting: this.ids.generate(),
-            handOff: this.ids.generate(),
-          },
-          rule: this.ids.generate(),
-          edges: [this.ids.generate(), this.ids.generate(), this.ids.generate()],
-        }),
+        flow: buildExampleFlow(sample, () => this.ids.generate()),
       });
       return true;
     });

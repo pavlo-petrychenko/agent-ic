@@ -1,5 +1,5 @@
 import { ModelProviderKind } from '@agent-ic/flow';
-import type { ModelRef } from '@agent-ic/flow';
+import type { AgentExits, ModelRef } from '@agent-ic/flow';
 import { LLM_DEFAULT_MODEL } from '@/platform/llm/constants/llm-catalog.constants';
 import { LlmPurpose } from '@/platform/llm/constants/llm-model.constants';
 
@@ -19,4 +19,19 @@ export const EXAMPLE_AGENT_MODEL: ModelRef = {
 export const EXAMPLE_COMPLETION_MODEL: ModelRef = {
   provider: { kind: ModelProviderKind.Platform },
   model: LLM_DEFAULT_MODEL[LlmPurpose.Light],
+};
+
+export const EXAMPLE_HANDOFF_WHEN =
+  'The customer asks for a person, you cannot help after two tries, or it is a complaint, a legal question or a safety issue.';
+export const EXAMPLE_END_WHEN = 'The customer says goodbye or the request is done.';
+export const EXAMPLE_AUTO_CLOSE_MINUTES = 1440;
+
+export const EXAMPLE_HANDOFF_EXIT: AgentExits = {
+  end: null,
+  handoff: { when: EXAMPLE_HANDOFF_WHEN },
+};
+
+export const EXAMPLE_END_EXIT: AgentExits = {
+  end: { when: EXAMPLE_END_WHEN },
+  handoff: null,
 };

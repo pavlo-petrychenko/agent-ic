@@ -22,7 +22,7 @@ How the screenshots and recordings of a pull request are made, with the seeded d
 
 - one confirmed owner. The email and the password are `SAMPLE_USER_EMAIL` and `SAMPLE_USER_PASSWORD` in [sample-workspace.constants.ts](../../apps/backend/src/modules/identity/constants/sample-workspace.constants.ts);
 - one workspace, `Kavarnia Lviv`;
-- one live agent, `Support assistant`, with a flow of four steps: a message trigger, a router that looks for the word "human", a greeting and a hand-off to the team ([sample-agent.helpers.ts](../../apps/backend/src/modules/agents/helpers/sample-agent.helpers.ts));
+- one live agent, `Support assistant`, with a flow of four steps: a message trigger, an Agent step that answers and hands the chat to the team through its default exit, the reply, and a hand-off to the team when the Agent step fails ([sample-agent.helpers.ts](../../apps/backend/src/modules/agents/helpers/sample-agent.helpers.ts));
 - a second workspace, `Flow examples`, with an operator, `Olena`, who signs in with `SAMPLE_OPERATOR_EMAIL` and the same `SAMPLE_USER_PASSWORD`, and eight live agents that show the step combinations people really build: an FAQ agent with a hand-off, an intent router, a complaint check in parallel, a reply with background scoring, two lookups in parallel, a table booking, menu buttons and closing the chat ([flow-examples.constants.ts](../../apps/backend/src/modules/agents/constants/flow-examples.constants.ts)).
 
 Sign in at `https://local.agent-ic.pavlop.dev/auth/login` with that owner. A screen that needs other data, such as an empty list, is made in the UI while you shoot, for example in a second workspace.

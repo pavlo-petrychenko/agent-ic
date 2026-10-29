@@ -13,6 +13,7 @@ import { ChannelsRepository } from '@/modules/channels/repositories/channels.rep
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { SampleWorkspaceService } from '@/modules/identity';
 import { FakeEmailGateway } from '@/modules/notifications/gateways/email.fake';
+import { SamplePromptService } from '@/modules/prompts';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
 import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
@@ -57,7 +58,8 @@ describe('telegram webhook ingress', () => {
     const workspace = await app.get(SampleWorkspaceService).ensure();
     workspaceId = workspace.workspaceId;
     userId = workspace.userId;
-    await app.get(SampleAgentService).ensure(workspaceId, userId);
+    const promptRefs = await app.get(SamplePromptService).ensure(workspaceId, userId);
+    await app.get(SampleAgentService).ensure(workspaceId, userId, promptRefs);
     const agents = await app
       .get(TenantTransactionService)
       .run(workspaceId, () => app.get(AgentsRepository).listPage(workspaceId, null, 10));
