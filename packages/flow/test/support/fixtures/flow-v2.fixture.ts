@@ -5,6 +5,9 @@ import { flowV2DocumentSchema } from '@flow/versions/schemas/flow-v2.schema';
 import type { FlowV2Document, FlowV2Node } from '@flow/versions/typedefs/version.typedefs';
 
 export const toV2Node = (node: FlowNode): FlowV2Node => {
+  if (node.type === NodeType.TriggerInactivity) {
+    throw new Error('a version 2 flow has no inactivity trigger');
+  }
   if (node.type !== NodeType.Agent) {
     return node;
   }

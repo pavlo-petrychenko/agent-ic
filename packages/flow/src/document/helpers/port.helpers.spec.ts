@@ -8,7 +8,7 @@ import {
   faqWithHandOffFlow,
   scheduledFollowUpFlow,
 } from '@test/support/fixtures/example-flow.fixture';
-import { agent, withExits } from '@test/support/fixtures/flow-builder.fixture';
+import { agent, inactivityTrigger, withExits } from '@test/support/fixtures/flow-builder.fixture';
 
 const nodeByKey = (flow: FlowDocument, key: string): FlowNode => {
   const node = flow.nodes.find((candidate) => candidate.key === key);
@@ -23,6 +23,7 @@ describe('nodePorts', () => {
     expect(nodePorts(nodeByKey(faqWithHandOffFlow, 'incoming'))).toEqual([PortName.Next]);
     expect(nodePorts(nodeByKey(scheduledFollowUpFlow, 'every_morning'))).toEqual([PortName.Next]);
     expect(nodePorts(nodeByKey(eventNotificationFlow, 'order_shipped'))).toEqual([PortName.Next]);
+    expect(nodePorts(inactivityTrigger('quiet'))).toEqual([PortName.Next]);
   });
 
   it('gives an agent and a guard next and error', () => {

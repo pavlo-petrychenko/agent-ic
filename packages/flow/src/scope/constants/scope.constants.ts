@@ -24,6 +24,7 @@ export enum Presence {
 }
 
 export const EVENT_ROOT = 'event';
+export const INACTIVITY_ROOT = 'inactivity';
 export const TODAY_VARIABLE = 'today';
 
 const variable = (path: string, type: VariableType, open = false): TriggerVariable => ({
@@ -37,12 +38,21 @@ const USER_VARIABLES: readonly TriggerVariable[] = [
   variable('user.language', VariableType.String),
 ];
 
+const CONVERSATION_VARIABLES: readonly TriggerVariable[] = [
+  variable('conversation.id', VariableType.String),
+  variable('conversation.started_at', VariableType.String),
+  variable('conversation.last_message_at', VariableType.String),
+];
+
 const CHANNEL_VARIABLE = variable('channel', VariableType.String);
 const HISTORY_VARIABLE = variable('history', VariableType.List);
 
 export const TRIGGER_VARIABLES: Readonly<
   Record<
-    NodeType.TriggerMessage | NodeType.TriggerExternalEvent | NodeType.TriggerSchedule,
+    | NodeType.TriggerMessage
+    | NodeType.TriggerExternalEvent
+    | NodeType.TriggerSchedule
+    | NodeType.TriggerInactivity,
     readonly TriggerVariable[]
   >
 > = {
@@ -59,12 +69,20 @@ export const TRIGGER_VARIABLES: Readonly<
     CHANNEL_VARIABLE,
   ],
   [NodeType.TriggerSchedule]: [
-    variable('conversation.id', VariableType.String),
-    variable('conversation.started_at', VariableType.String),
-    variable('conversation.last_message_at', VariableType.String),
+    ...CONVERSATION_VARIABLES,
     ...USER_VARIABLES,
     CHANNEL_VARIABLE,
     HISTORY_VARIABLE,
+  ],
+  [NodeType.TriggerInactivity]: [
+    ...CONVERSATION_VARIABLES,
+    ...USER_VARIABLES,
+    CHANNEL_VARIABLE,
+    HISTORY_VARIABLE,
+    variable(`${INACTIVITY_ROOT}.silent_minutes`, VariableType.Number),
+    variable(`${INACTIVITY_ROOT}.attempt`, VariableType.Number),
+    variable(`${INACTIVITY_ROOT}.max_attempts`, VariableType.Number),
+    variable(`${INACTIVITY_ROOT}.last_author`, VariableType.String),
   ],
 };
 
@@ -76,6 +94,7 @@ export const RESERVED_ROOTS: readonly string[] = [
   EVENT_ROOT,
   'user_id',
   'conversation',
+  INACTIVITY_ROOT,
   TODAY_VARIABLE,
 ];
 

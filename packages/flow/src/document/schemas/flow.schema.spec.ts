@@ -16,7 +16,11 @@ import {
   NotifyChannel,
   RecipientsKind,
 } from '@flow/nodes/constants/step.constants';
-import { ScheduleKind } from '@flow/nodes/constants/trigger.constants';
+import {
+  InactivityRepeatKind,
+  InactivityUnit,
+  ScheduleKind,
+} from '@flow/nodes/constants/trigger.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 import {
   PromptSourceKind,
@@ -33,6 +37,7 @@ import {
   faqWithHandOffFlow,
   scheduledFollowUpFlow,
 } from '@test/support/fixtures/example-flow.fixture';
+import { flowOf, inactivityTrigger } from '@test/support/fixtures/flow-builder.fixture';
 
 const withNode = (flow: FlowDocument, node: unknown): unknown => ({
   ...flow,
@@ -201,6 +206,45 @@ describe('flowDocumentSchema', () => {
       schedule: { kind: ScheduleKind.Daily, time: '25:00', timeZone: 'Europe/Kyiv' },
     });
     expect(flowDocumentSchema.safeParse(flow).success).toBe(false);
+  });
+
+  describe('inactivity trigger', () => {
+    const parse = (config: unknown): boolean =>
+      flowDocumentSchema.safeParse(
+        replaceConfig(flowOf([inactivityTrigger('quiet')], []), NodeType.TriggerInactivity, config),
+      ).success;
+    const config = inactivityTrigger('quiet').config;
+    const repeatEvery = (maxTimes: number) => ({
+      ...config,
+      repeat: {
+        kind: InactivityRepeatKind.Every,
+        every: { amount: 1, unit: InactivityUnit.Days },
+        maxTimes,
+      },
+    });
+
+    it('accepts a single follow-up and a repeating one', () => {
+      expect(flowDocumentSchema.safeParse(flowOf([inactivityTrigger('quiet')], [])).success).toBe(
+        true,
+      );
+      expect(parse(repeatEvery(5))).toBe(true);
+    });
+
+    it('rejects a silence that is not a positive whole number', () => {
+      expect(parse({ ...config, silence: { amount: 0, unit: InactivityUnit.Hours } })).toBe(false);
+      expect(parse({ ...config, silence: { amount: 1.5, unit: InactivityUnit.Hours } })).toBe(
+        false,
+      );
+    });
+
+    it('rejects a repeat with fewer than two or more than five fires', () => {
+      expect(parse(repeatEvery(1))).toBe(false);
+      expect(parse(repeatEvery(6))).toBe(false);
+    });
+
+    it('rejects an unknown unit', () => {
+      expect(parse({ ...config, silence: { amount: 2, unit: 'weeks' } })).toBe(false);
+    });
   });
 
   it('rejects an event name that is not a slug', () => {

@@ -12,6 +12,7 @@ export const nodePorts = (node: FlowNode): readonly string[] => {
     case NodeType.TriggerMessage:
     case NodeType.TriggerExternalEvent:
     case NodeType.TriggerSchedule:
+    case NodeType.TriggerInactivity:
     case NodeType.SendMessage:
       return NEXT_ONLY;
     case NodeType.Agent:

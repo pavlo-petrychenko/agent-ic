@@ -7,6 +7,7 @@ export const NODE_PRESENTATION: Readonly<Record<NodeType, NodePresentation>> = {
   [NodeType.TriggerMessage]: { kind: NodeKind.Trig, icon: IconName.Msg },
   [NodeType.TriggerExternalEvent]: { kind: NodeKind.Trig, icon: IconName.Bolt },
   [NodeType.TriggerSchedule]: { kind: NodeKind.Trig, icon: IconName.Cal },
+  [NodeType.TriggerInactivity]: { kind: NodeKind.Trig, icon: IconName.Wait },
   [NodeType.Agent]: { kind: NodeKind.Agent, icon: IconName.Agent },
   [NodeType.Completion]: { kind: NodeKind.Compl, icon: IconName.Compl },
   [NodeType.Router]: { kind: NodeKind.Router, icon: IconName.Router },

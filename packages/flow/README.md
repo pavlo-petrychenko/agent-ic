@@ -62,6 +62,14 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 - While an exit is on, `nodeOutputFields` adds `outcome` (an enum of `continue` and the exits that are on) and `outcome_reason` (a string) right after `messages`, so later steps can read `{{agent.outcome}}`. The two names are reserved only then: a custom output field with one of them gets `DUPLICATE_OUTPUT_FIELD`.
 - `validateFlow` refuses an exit on an Agent in a background branch (`EXIT_IN_BACKGROUND_BRANCH`) and warns about an empty `when` (`EMPTY_EXIT_CRITERION`), an exit port wired straight to an Escalation with its own customer message (`EXIT_ESCALATION_MESSAGE`, the Agent's `messages` already are the goodbye) and a default hand-off with an empty fallback message (`NO_FALLBACK_MESSAGE` with the path `['settings', 'handoff', 'fallbackMessage']` and no node).
 
+## Inactivity trigger
+
+- `trigger_inactivity` starts a run in one chat after a stretch of silence. It is part of schema v3. It has one `next` port.
+- `silence` and `repeat.every` are `{ amount, unit }` with `unit` `minutes`, `hours` or `days`. `activity` is `any` message or `customer` messages only. `repeat` is `{ kind: 'once' }` or `{ kind: 'every', every, maxTimes }` with `maxTimes` from 2 to 5 (`MIN_INACTIVITY_FIRES`, `MAX_INACTIVITY_FIRES`). `conditions` is `{ notEscalated, channelTypes }`; an empty `channelTypes` means every channel.
+- A duration from 5 minutes to 30 days is the intended range (`MIN_INACTIVITY_MINUTES`, `MAX_INACTIVITY_MINUTES`); the schema only requires a positive whole number.
+- `silenceMinutes(node)` and `fireOffsetsMinutes(node)` give the first fire and every fire as minutes after the anchor.
+- Variables: `conversation.*`, `user.*`, `channel`, `history` and `inactivity.silent_minutes`, `inactivity.attempt`, `inactivity.max_attempts`, `inactivity.last_author`. `inactivity` is a reserved node key.
+
 ## Parallel branches
 
 - Each `branches` edge of a Parallel step starts one branch. By default the join waits for it (`waitFor` is `all` or `first`), and its outputs are visible after the join.
