@@ -52,6 +52,7 @@ import { newConversation, newMessage } from '@test/support/fixtures/conversation
 import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 import { ensureAgentRow, ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import {
+  armOnHandedBack,
   deliverOnOutboundQueued,
   notifyOnNeedsOperator,
   runOnMessageReceived,
@@ -97,7 +98,12 @@ export const createConversationsTestbed = async (
     providers: [
       {
         provide: DOMAIN_EVENT_SUBSCRIPTIONS,
-        useValue: [deliverOnOutboundQueued, notifyOnNeedsOperator, runOnMessageReceived],
+        useValue: [
+          deliverOnOutboundQueued,
+          notifyOnNeedsOperator,
+          runOnMessageReceived,
+          armOnHandedBack,
+        ],
       },
     ],
   })

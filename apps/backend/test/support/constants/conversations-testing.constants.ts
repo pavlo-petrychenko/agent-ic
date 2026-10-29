@@ -22,6 +22,7 @@ export enum ConversationProbeJobName {
   DeliverOutbound = 'probe-deliver-on-outbound-queued',
   NotifyOperator = 'probe-notify-on-needs-operator',
   RequestRun = 'probe-run-on-message-received',
+  ArmOnHandBack = 'probe-arm-on-handed-back',
 }
 
 export const CONVERSATIONS_TESTBED_ROLE = Role.Gateway;

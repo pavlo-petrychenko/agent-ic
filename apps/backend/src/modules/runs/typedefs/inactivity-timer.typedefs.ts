@@ -1,3 +1,4 @@
+import type { TriggerInactivityNode } from '@agent-ic/flow';
 import type { inactivityTimers } from '@/modules/runs/db/inactivity-timers.table';
 
 export interface InactivityTimer {
@@ -18,3 +19,10 @@ export type NewInactivityTimer = Omit<
   typeof inactivityTimers.$inferInsert,
   'leaseUntil' | 'createdAt' | 'updatedAt'
 >;
+
+export interface InactivityTimerPlan {
+  readonly versionId: string;
+  readonly node: TriggerInactivityNode;
+  readonly attempt: number;
+  readonly anchorAt: Date;
+}

@@ -20,6 +20,7 @@ export { ConversationsModule } from '@/modules/conversations/conversations.modul
 export { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 export { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
 export { MessageNotFoundError } from '@/modules/conversations/errors/message-not-found.error';
+export { handedBackEvent } from '@/modules/conversations/events/handed-back.event';
 export { messageReceivedEvent } from '@/modules/conversations/events/message-received.event';
 export { needsOperatorEvent } from '@/modules/conversations/events/needs-operator.event';
 export { outboundQueuedEvent } from '@/modules/conversations/events/outbound-queued.event';
@@ -28,6 +29,7 @@ export { ConversationHistoryService } from '@/modules/conversations/services/con
 export { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
 export { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
 export type {
+  HandedBackPayload,
   MessageReceivedPayload,
   NeedsOperatorPayload,
   OutboundQueuedPayload,

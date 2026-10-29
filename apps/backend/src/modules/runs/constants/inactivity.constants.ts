@@ -1,1 +1,3 @@
 export const FIRST_INACTIVITY_ATTEMPT = 1;
+
+export const NO_INACTIVITY_ATTEMPTS = 0;
