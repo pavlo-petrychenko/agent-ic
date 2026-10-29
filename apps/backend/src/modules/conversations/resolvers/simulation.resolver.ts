@@ -5,6 +5,7 @@ import {
   toGraphqlSimulation,
   toStartSimulationInput,
 } from '@/modules/conversations/helpers/simulation-graphql.helpers';
+import { CloseSimulationForInactivityUseCase } from '@/modules/conversations/use-cases/close-simulation-for-inactivity.use-case';
 import { GetSimulationUseCase } from '@/modules/conversations/use-cases/get-simulation.use-case';
 import { RestartSimulationUseCase } from '@/modules/conversations/use-cases/restart-simulation.use-case';
 import { SendSimulatorMessageUseCase } from '@/modules/conversations/use-cases/send-simulator-message.use-case';
@@ -12,6 +13,7 @@ import { StartSimulationUseCase } from '@/modules/conversations/use-cases/start-
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { GraphqlCtx } from '@/platform/graphql-server/decorators/graphql-ctx.decorator';
 import type {
+  CloseSimulationForInactivityInput,
   Message,
   RestartSimulationInput,
   SendSimulatorMessageInput,
@@ -26,6 +28,7 @@ export class SimulationResolver {
     private readonly startSimulationUseCase: StartSimulationUseCase,
     private readonly restartSimulationUseCase: RestartSimulationUseCase,
     private readonly sendSimulatorMessageUseCase: SendSimulatorMessageUseCase,
+    private readonly closeSimulationForInactivityUseCase: CloseSimulationForInactivityUseCase,
   ) {}
 
   @Query()
@@ -53,6 +56,14 @@ export class SimulationResolver {
     @Args(ConversationGraphqlArgument.Input) input: RestartSimulationInput,
   ): Promise<Simulation> {
     return toGraphqlSimulation(await this.restartSimulationUseCase.execute(ctx, input));
+  }
+
+  @Mutation()
+  async closeSimulationForInactivity(
+    @GraphqlCtx() ctx: UseCaseCtx,
+    @Args(ConversationGraphqlArgument.Input) input: CloseSimulationForInactivityInput,
+  ): Promise<Simulation> {
+    return toGraphqlSimulation(await this.closeSimulationForInactivityUseCase.execute(ctx, input));
   }
 
   @Mutation()

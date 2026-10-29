@@ -1,5 +1,3 @@
-import { NO_FLOW_SETTINGS } from '@agent-ic/flow';
-import type { FlowDocument } from '@agent-ic/flow';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   AgentVersionKind,
@@ -23,7 +21,7 @@ import {
   AUTO_CLOSE_SILENCE_MS,
   AUTO_CLOSE_TEST_MINUTES,
 } from '@test/support/constants/conversations-testing.constants';
-import { emptyFlow, newVersion } from '@test/support/fixtures/agents.fixture';
+import { autoCloseFlow, newVersion } from '@test/support/fixtures/agents.fixture';
 import {
   incomingMessage,
   newConversation,
@@ -54,14 +52,6 @@ describe('CloseInactiveConversationsUseCase', () => {
   let closeInactive: CloseInactiveConversationsUseCase;
   let versions: AgentVersionsRepository;
 
-  const flowClosingAfter = (afterMinutes: number | null): FlowDocument => ({
-    ...emptyFlow(),
-    settings: {
-      ...NO_FLOW_SETTINGS,
-      autoClose: afterMinutes === null ? null : { afterMinutes },
-    },
-  });
-
   const seedAutoCloseAgent = async ({ live, draft }: AutoCloseSetup): Promise<AutoCloseAgent> => {
     const workspaceId = testbed.ids.generate();
     const agentId = await seedAgent(testbed, workspaceId);
@@ -71,14 +61,14 @@ describe('CloseInactiveConversationsUseCase', () => {
         newVersion(publishedVersionId, workspaceId, agentId, {
           kind: AgentVersionKind.Published,
           number: 1,
-          flow: flowClosingAfter(live),
+          flow: autoCloseFlow(live),
           publishedAt: testbed.clock.now(),
         }),
       );
       await testbed.agents.setLiveVersion(workspaceId, agentId, publishedVersionId);
       const draftVersion = await versions.insert(
         newVersion(testbed.ids.generate(), workspaceId, agentId, {
-          flow: flowClosingAfter(draft),
+          flow: autoCloseFlow(draft),
         }),
       );
       await testbed.agents.setDraftVersion(workspaceId, agentId, draftVersion.id);

@@ -23,6 +23,7 @@ extend type Query {
 extend type Mutation {
   startSimulation(input: StartSimulationInput!): Simulation!
   restartSimulation(input: RestartSimulationInput!): Simulation!
+  closeSimulationForInactivity(input: CloseSimulationForInactivityInput!): Simulation!
   sendSimulatorMessage(input: SendSimulatorMessageInput!): Message!
   replyAsOperator(input: ReplyAsOperatorInput!): Message!
   handBack(input: HandBackInput!): Conversation!
@@ -75,6 +76,10 @@ input ReplyAsOperatorInput {
 }
 
 input HandBackInput {
+  conversationId: ID!
+}
+
+input CloseSimulationForInactivityInput {
   conversationId: ID!
 }
 

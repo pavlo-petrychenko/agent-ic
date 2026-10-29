@@ -72,6 +72,8 @@ export enum ErrorReason {
   AwayMessageTooLong = 'AWAY_MESSAGE_TOO_LONG',
   ConversationNotFound = 'CONVERSATION_NOT_FOUND',
   ConversationClosed = 'CONVERSATION_CLOSED',
+  AutoCloseOff = 'AUTO_CLOSE_OFF',
+  ConversationNotAutoClosable = 'CONVERSATION_NOT_AUTO_CLOSABLE',
   MessageNotFound = 'MESSAGE_NOT_FOUND',
   ChannelAdapterNotFound = 'CHANNEL_ADAPTER_NOT_FOUND',
   ChannelNotFound = 'CHANNEL_NOT_FOUND',

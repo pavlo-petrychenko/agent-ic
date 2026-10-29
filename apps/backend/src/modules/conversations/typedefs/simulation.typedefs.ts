@@ -9,6 +9,7 @@ import type {
   operatorConversationSchema,
   operatorReplySchema,
   simulationAgentSchema,
+  simulationConversationSchema,
   simulatorMessageSchema,
   startSimulationSchema,
 } from '@/modules/conversations/schemas/simulation.schema';
@@ -20,6 +21,8 @@ export type SimulatorMessageInput = z.input<typeof simulatorMessageSchema>;
 export type OperatorReplyInput = z.input<typeof operatorReplySchema>;
 
 export type OperatorConversationInput = z.input<typeof operatorConversationSchema>;
+
+export type SimulationConversationInput = z.input<typeof simulationConversationSchema>;
 
 export type StartSimulationInput = z.input<typeof startSimulationSchema>;
 
