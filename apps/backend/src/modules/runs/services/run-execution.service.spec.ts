@@ -16,6 +16,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import {
   ConversationActivityKind,
   ConversationMode,
+  ConversationState,
+  MessageAuthor,
   conversationActivityChannel,
 } from '@/modules/conversations';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
@@ -62,6 +64,7 @@ import {
   TEST_AGENT_PROMPT,
   TEST_AGENT_REPLY,
   TEST_COMPLETION_PROMPT,
+  TEST_RENDERED_FAILURE_APOLOGY,
   TEST_LLM_API_KEY,
   TEST_MOOD,
   TEST_MOOD_FIELD,
@@ -83,6 +86,7 @@ import {
   escalateNode,
   flowEdge,
   flowV1Json,
+  handOffOnFailure,
   observerNode,
   parallelNode,
   routerNode,
@@ -99,6 +103,7 @@ import { startProbeServer } from '@test/support/helpers/outbound-http-testing.he
 import { seedLibraryPrompt } from '@test/support/helpers/prompts-testing.helpers';
 import {
   createRunsTestbed,
+  readConversationChat,
   seedExecutableRun,
   storeFlowJson,
   watchStep,
@@ -108,6 +113,7 @@ import type { MockLlmService } from '@test/support/services/mock-llm.service';
 import type { ProbeServer } from '@test/support/typedefs/outbound-http-testing.typedefs';
 import type {
   ExecutableRun,
+  RunChat,
   RunExecutionTestbed,
 } from '@test/support/typedefs/runs-testing.typedefs';
 
@@ -115,6 +121,11 @@ const MODEL_ATTRIBUTE = 'langfuse.observation.metadata.model';
 const JOB_SPAN_NAME = 'process runs-reactive';
 const REQUEST_SPAN_NAME = 'POST /graphql';
 const SDK_RUNNING = 'false';
+
+const agentTexts = (messages: RunChat['messages']): (string | undefined)[] =>
+  messages
+    .filter((message) => message?.author === MessageAuthor.Agent)
+    .map((message) => message?.text);
 
 const threeSteps = stepFlow(
   [
@@ -280,6 +291,106 @@ describe('RunExecutionService', () => {
 
     const { run } = await stored(seeded);
     expect(run?.error).toMatchObject({ reason: ErrorReason.InvalidId, nodeId: FIRST_STEP_ID });
+  });
+
+  it('hands a failed agent step with no error port to a person when the flow says so', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      handOffOnFailure(
+        stepFlow(
+          [agentNode(FIRST_STEP_ID, FIRST_STEP_KEY)],
+          [flowEdge(TEST_NODE_ID, FIRST_STEP_ID)],
+        ),
+      ),
+    );
+    testbed.executor.script(FIRST_STEP_ID, StepScript.Fail);
+
+    expect(await execute(seeded)).toBe(RunStatus.Failed);
+
+    const { run } = await stored(seeded);
+    expect(run?.error).toMatchObject({ reason: ErrorReason.InvalidId, nodeId: FIRST_STEP_ID });
+    const chat = await readConversationChat(testbed, seeded.run);
+    expect(chat.conversation?.state).toBe(ConversationState.Waiting);
+    expect(agentTexts(chat.messages)).toEqual([TEST_RENDERED_FAILURE_APOLOGY]);
+  });
+
+  it('hands a failed completion step with no error port to a person when the flow says so', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      handOffOnFailure(
+        stepFlow(
+          [observerNode(OBSERVER_NODE_ID, OBSERVER_NODE_KEY)],
+          [flowEdge(TEST_NODE_ID, OBSERVER_NODE_ID)],
+        ),
+      ),
+    );
+    testbed.observer.script(OBSERVER_NODE_ID, StepScript.Fail);
+
+    expect(await execute(seeded)).toBe(RunStatus.Failed);
+
+    const chat = await readConversationChat(testbed, seeded.run);
+    expect(chat.conversation?.state).toBe(ConversationState.Waiting);
+    expect(agentTexts(chat.messages)).toEqual([TEST_RENDERED_FAILURE_APOLOGY]);
+  });
+
+  it('follows a connected error port instead of handing off', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      handOffOnFailure(
+        stepFlow(
+          [agentNode(FIRST_STEP_ID, FIRST_STEP_KEY), agentNode(SECOND_STEP_ID, SECOND_STEP_KEY)],
+          [
+            flowEdge(TEST_NODE_ID, FIRST_STEP_ID),
+            flowEdge(FIRST_STEP_ID, SECOND_STEP_ID, PortName.Error),
+          ],
+        ),
+      ),
+    );
+    testbed.executor.script(FIRST_STEP_ID, StepScript.Fail);
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    const chat = await readConversationChat(testbed, seeded.run);
+    expect(chat.conversation?.state).toBe(ConversationState.AgentActive);
+    expect(agentTexts(chat.messages)).toEqual([]);
+  });
+
+  it('leaves a retryable failure to the job before handing off', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      handOffOnFailure(
+        stepFlow(
+          [agentNode(FIRST_STEP_ID, FIRST_STEP_KEY)],
+          [flowEdge(TEST_NODE_ID, FIRST_STEP_ID)],
+        ),
+      ),
+    );
+    testbed.executor.script(FIRST_STEP_ID, StepScript.Unavailable, StepScript.Unavailable);
+
+    await expect(execute(seeded)).rejects.toBeInstanceOf(SampleUnavailableError);
+    expect((await readConversationChat(testbed, seeded.run)).conversation?.state).toBe(
+      ConversationState.AgentActive,
+    );
+
+    expect(await executeFinal(seeded)).toBe(RunStatus.Failed);
+    const chat = await readConversationChat(testbed, seeded.run);
+    expect(chat.conversation?.state).toBe(ConversationState.Waiting);
+    expect(agentTexts(chat.messages)).toEqual([TEST_RENDERED_FAILURE_APOLOGY]);
+  });
+
+  it('never hands off for a failed step in a background branch', async () => {
+    const scorer = observerNode(OBSERVER_NODE_ID, OBSERVER_NODE_KEY);
+    const seeded = await seedExecutableRun(
+      testbed,
+      handOffOnFailure(parallelFlow(WaitFor.All, scorer, true)),
+    );
+    testbed.observer.script(OBSERVER_NODE_ID, StepScript.Fail);
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    const chat = await readConversationChat(testbed, seeded.run);
+    expect(chat.conversation?.state).toBe(ConversationState.AgentActive);
+    expect(agentTexts(chat.messages)).toEqual([]);
   });
 
   it('fails the step and the run on an upstream error that jobs would not retry', async () => {
