@@ -80,6 +80,27 @@ const insertConversations = async (
   }
 };
 
+export const seedWorkspaceWithAgent = async (
+  db: AppDatabase,
+): Promise<{ readonly workspaceId: string; readonly agentId: string }> => {
+  const userId = randomUUID();
+  await db.insert(users).values({
+    id: userId,
+    email: uniqueEmail(),
+    name: TEST_WORKSPACE_OWNER_NAME,
+    passwordHash: TEST_WORKSPACE_OWNER_PASSWORD_HASH,
+    locale: Locale.En,
+    createdAt: AGENTS_TEST_START,
+    updatedAt: AGENTS_TEST_START,
+  });
+  const workspaceId = await insertWorkspace(db, userId);
+  const agentId = randomUUID();
+  await db
+    .insert(agents)
+    .values({ ...newAgent(agentId, workspaceId), ...rowTimestamps(AGENTS_TEST_START) });
+  return { workspaceId, agentId };
+};
+
 export const seedOrphans = async (db: AppDatabase): Promise<SeededOrphans> => {
   const userId = randomUUID();
   await db.insert(users).values({

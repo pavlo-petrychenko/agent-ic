@@ -161,7 +161,7 @@ export class ConversationsRepository {
   async markWaiting(workspaceId: string, id: string): Promise<boolean> {
     const updated = await this.txHost.tx
       .update(conversations)
-      .set({ state: ConversationState.Waiting })
+      .set({ state: ConversationState.Waiting, lastEscalatedAt: this.clock.now() })
       .where(
         and(
           eq(conversations.workspaceId, workspaceId),
@@ -219,6 +219,13 @@ export class ConversationsRepository {
       )
       .returning({ id: conversations.id });
     return closed.length > 0;
+  }
+
+  async recordCustomerMessage(workspaceId: string, id: string, at: Date): Promise<void> {
+    await this.txHost.tx
+      .update(conversations)
+      .set({ lastMessageAt: at, lastCustomerMessageAt: at })
+      .where(and(eq(conversations.workspaceId, workspaceId), eq(conversations.id, id)));
   }
 
   async touch(workspaceId: string, id: string, lastMessageAt: Date): Promise<void> {

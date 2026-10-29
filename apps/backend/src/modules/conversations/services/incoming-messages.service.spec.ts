@@ -92,6 +92,19 @@ describe('IncomingMessagesService', () => {
     ]);
   });
 
+  it('records when the customer last wrote and leaves the escalation time empty', async () => {
+    const input = await startedBy();
+    await receive(input);
+    const second = await receive(input);
+
+    const stored = await conversationOf(input.workspaceId, second.conversationId);
+
+    expect(stored).toMatchObject({
+      lastCustomerMessageAt: testbed.clock.now(),
+      lastEscalatedAt: null,
+    });
+  });
+
   it('announces each stored customer message to the conversation activity', async () => {
     const input = await startedBy();
     const { conversationId } = await receive(input);

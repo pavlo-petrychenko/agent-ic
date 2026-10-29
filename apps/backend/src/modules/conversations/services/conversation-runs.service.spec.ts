@@ -216,6 +216,15 @@ describe('ConversationRunsService', () => {
     ]);
   });
 
+  it('stamps when the conversation was escalated', async () => {
+    const conversation = await seedConversation(testbed);
+    expect((await stateOf(conversation))?.lastEscalatedAt).toBeNull();
+
+    await markWaiting(conversation);
+
+    expect((await stateOf(conversation))?.lastEscalatedAt).toEqual(testbed.clock.now());
+  });
+
   it('marks a simulation waiting without asking anyone', async () => {
     const workspaceId = testbed.ids.generate();
     const conversation = {

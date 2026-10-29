@@ -12,6 +12,10 @@ export {
   MessageDelivery,
 } from '@/modules/conversations/constants/message.constants';
 export { IncomingMessageOutcome } from '@/modules/conversations/constants/incoming-message.constants';
+export {
+  hasNeverEscalated,
+  neverEscalated,
+} from '@/modules/conversations/helpers/conversation-escalation.helpers';
 export { ConversationsModule } from '@/modules/conversations/conversations.module';
 export { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 export { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
