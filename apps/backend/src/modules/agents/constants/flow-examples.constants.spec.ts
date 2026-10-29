@@ -1,4 +1,14 @@
-import { AgentExitKind, NodeType, PromptSourceKind, validateFlow } from '@agent-ic/flow';
+import {
+  AgentExitKind,
+  ConditionOperator,
+  EscalationMode,
+  InactivityRepeatKind,
+  NodeType,
+  PortName,
+  PromptSourceKind,
+  fireOffsetsMinutes,
+  validateFlow,
+} from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { flowExamples } from '@/modules/agents/constants/flow-examples.constants';
 import { buildExampleFlow } from '@/modules/agents/helpers/flow-example-nodes.helpers';
@@ -80,5 +90,47 @@ describe('flowExamples', () => {
     expect(exitPorts).toContainEqual({ kind: AgentExitKind.Handoff, connected: false });
     expect(exitPorts).toContainEqual({ kind: AgentExitKind.End, connected: true });
     expect(flows.some((flow) => flow.settings.autoClose !== null)).toBe(true);
+  });
+
+  describe('Follow up on silence', () => {
+    const example = EXAMPLES.find((candidate) => candidate.name === 'Follow up on silence');
+    const flow = example === undefined ? null : buildExampleFlow(example, sequentialIds());
+    const nodeOf = (key: string) => flow?.nodes.find((node) => node.key === key);
+
+    it('answers messages and also follows up on silence', () => {
+      expect(flow?.nodes.filter((node) => node.type === NodeType.TriggerMessage)).toHaveLength(1);
+      expect(flow?.nodes.filter((node) => node.type === NodeType.TriggerInactivity)).toHaveLength(
+        1,
+      );
+    });
+
+    it('fires at 2 h and again 22 h later, so the second follow-up lands at 24 h', () => {
+      const trigger = nodeOf('customer_quiet');
+
+      if (trigger?.type !== NodeType.TriggerInactivity) {
+        throw new Error('no inactivity trigger');
+      }
+      expect(trigger.config.repeat.kind).toBe(InactivityRepeatKind.Every);
+      expect(fireOffsetsMinutes(trigger)).toEqual([120, 1440]);
+    });
+
+    it('asks on the first attempt and reminds, then ends the chat, on the second', () => {
+      const router = nodeOf('attempt');
+      const close = nodeOf('close');
+
+      expect(router?.type === NodeType.Router && router.config.rules[0]?.conditions[0]).toEqual({
+        variable: 'inactivity.attempt',
+        operator: ConditionOperator.Eq,
+        value: 1,
+      });
+      expect(close?.type === NodeType.Escalation && close.config.mode).toBe(EscalationMode.End);
+      const route = (from: string, port: string) =>
+        flow?.edges
+          .filter((edge) => edge.source === nodeOf(from)?.id && edge.sourcePort === port)
+          .map((edge) => flow.nodes.find((node) => node.id === edge.target)?.key);
+      expect(route('attempt', 'first')).toEqual(['still_there']);
+      expect(route('attempt', PortName.Else)).toEqual(['reminder']);
+      expect(route('reminder', PortName.Next)).toEqual(['close']);
+    });
   });
 });

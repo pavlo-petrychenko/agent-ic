@@ -1,5 +1,5 @@
-import { ModelProviderKind } from '@agent-ic/flow';
-import type { AgentExits, ModelRef } from '@agent-ic/flow';
+import { InactivityUnit, ModelProviderKind } from '@agent-ic/flow';
+import type { AgentExits, InactivityDuration, ModelRef } from '@agent-ic/flow';
 import { LLM_DEFAULT_MODEL } from '@/platform/llm/constants/llm-catalog.constants';
 import { LlmPurpose } from '@/platform/llm/constants/llm-model.constants';
 
@@ -10,6 +10,19 @@ export const EXAMPLE_TRIGGER_LABEL = 'Customer message';
 export const EXAMPLE_FALLBACK_MESSAGE = 'Sorry, nobody is free right now. We will write back soon.';
 export const EXAMPLE_HAND_OFF_MESSAGE = 'A person from the team will answer you soon.';
 export const EXAMPLE_VERSION_NOTE = 'First version';
+export const EXAMPLE_INACTIVITY_KEY = 'customer_quiet';
+export const EXAMPLE_INACTIVITY_LABEL = 'Customer went quiet';
+export const EXAMPLE_INACTIVITY_MAX_TIMES = 2;
+
+export const EXAMPLE_INACTIVITY_SILENCE: InactivityDuration = {
+  amount: 2,
+  unit: InactivityUnit.Hours,
+};
+
+export const EXAMPLE_INACTIVITY_REPEAT_EVERY: InactivityDuration = {
+  amount: 22,
+  unit: InactivityUnit.Hours,
+};
 
 export const EXAMPLE_AGENT_MODEL: ModelRef = {
   provider: { kind: ModelProviderKind.Platform },
