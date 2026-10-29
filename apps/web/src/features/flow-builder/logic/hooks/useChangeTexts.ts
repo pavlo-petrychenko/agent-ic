@@ -1,8 +1,12 @@
 import type { FlowDocument } from '@agent-ic/flow';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
-import { CHANGE_SIGN } from '@/features/flow-builder/constants/publish.constants';
+import {
+  CHANGE_SIGN,
+  DAY_MINUTES,
+  HOUR_MINUTES,
+} from '@/features/flow-builder/constants/publish.constants';
 import { toChangeLines } from '@/features/flow-builder/logic/helpers/publish.helpers';
 import type { ChangeText, PublishDiff } from '@/features/flow-builder/typedefs/publish.typedefs';
 
@@ -11,6 +15,15 @@ export function useChangeTexts(
   document: FlowDocument,
 ): readonly ChangeText[] {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
+  const duration = useCallback(
+    (minutes: number | null | undefined): string | null =>
+      minutes === null || minutes === undefined
+        ? null
+        : minutes % DAY_MINUTES === 0
+          ? t('publish.duration.days', { count: minutes / DAY_MINUTES })
+          : t('publish.duration.hours', { count: minutes / HOUR_MINUTES }),
+    [t],
+  );
   return useMemo(
     () =>
       diff === null
@@ -26,10 +39,10 @@ export function useChangeTexts(
                   ? ''
                   : t(`publish.field.${line.field}`, { defaultValue: t('publish.field.other') }),
               variable: line.variable ?? '',
-              before: line.before,
-              after: line.after,
+              before: duration(line.beforeMinutes) ?? line.before,
+              after: duration(line.afterMinutes) ?? line.after,
             }),
           })),
-    [diff, document, t],
+    [diff, document, duration, t],
   );
 }

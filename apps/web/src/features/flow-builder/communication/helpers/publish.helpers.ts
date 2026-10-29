@@ -25,6 +25,7 @@ export const toFlowDiff = (diff: PublishPreviewQuery['publishPreview']['diff']):
   addedEdges: parseAll(diffEdgeSchema, diff.addedEdges),
   removedEdges: parseAll(diffEdgeSchema, diff.removedEdges),
   changedEdges: parseAll(diffBranchSchema, diff.changedEdges),
+  settingsChanges: diff.settingsChanges,
   changeCount: diff.changeCount,
 });
 

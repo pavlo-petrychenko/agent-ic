@@ -23,7 +23,25 @@ export enum ChangeSentence {
   Disconnected = 'disconnected',
   BranchInBackground = 'branchInBackground',
   BranchWaited = 'branchWaited',
+  HandoffSetUp = 'handoffSetUp',
+  HandoffReset = 'handoffReset',
+  HandoffChanged = 'handoffChanged',
+  FailureHandsOff = 'failureHandsOff',
+  FailureFailsRun = 'failureFailsRun',
+  ApologyChanged = 'apologyChanged',
+  AutoCloseOn = 'autoCloseOn',
+  AutoCloseOff = 'autoCloseOff',
+  AutoCloseChanged = 'autoCloseChanged',
 }
+
+export enum SettingsField {
+  Handoff = 'handoff',
+  OnUnhandledFailure = 'onUnhandledFailure',
+  AutoClose = 'autoClose',
+}
+
+export const AUTO_CLOSE_MINUTES_FIELD = 'afterMinutes';
+export const DAY_MINUTES = 1440;
 
 export enum PublishBlock {
   Conflict = 'conflict',

@@ -97,6 +97,34 @@ describe('PublishDialog', () => {
     expect(publishButton()).toBeEnabled();
   });
 
+  it('words the flow settings changes', async () => {
+    const change = (path: string[], before: unknown, after: unknown) => ({
+      __typename: 'FlowFieldChange',
+      path,
+      before,
+      after,
+    });
+    renderDialog([
+      publishPreviewMock({
+        settingsChanges: [
+          change(['autoClose'], null, { afterMinutes: 1440 }),
+          change(['onUnhandledFailure'], null, { action: 'handoff', customerMessage: 'Sorry' }),
+          change(['handoff', 'fallbackMessage'], '', 'Back soon'),
+        ],
+      }),
+    ]);
+
+    expect(
+      await screen.findByText('Flow settings: close inactive conversations after 1 day (was off)'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Flow settings: a failed step apologises and hands off (was: fail the run)'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Flow settings: default hand-off fallback text changed'),
+    ).toBeInTheDocument();
+  });
+
   it('counts a server error it cannot read and keeps Publish off', async () => {
     renderDialog([
       publishPreviewMock({ errors: [{ ...MISSING_PROMPT_ERROR, code: UNKNOWN_CODE }] }),
