@@ -33,3 +33,8 @@ export const durationParts = (
       : largestFittingUnit(value, base, units);
   return { amount: value / unitSize(unit, base), unit };
 };
+
+export const formatDuration = (value: number, base: DurationUnit, locale: string): string => {
+  const { amount, unit } = durationParts(value, base, null, unitsFrom(base));
+  return new Intl.NumberFormat(locale, { style: 'unit', unit, unitDisplay: 'long' }).format(amount);
+};

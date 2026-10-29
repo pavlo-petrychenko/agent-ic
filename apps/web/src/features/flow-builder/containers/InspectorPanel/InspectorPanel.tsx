@@ -35,6 +35,7 @@ import {
 } from '@/features/flow-builder/constants/llmStep.constants';
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
+import { InactivityTriggerPanel } from '@/features/flow-builder/containers/InactivityTriggerPanel';
 import type { InspectorPanelProps } from '@/features/flow-builder/containers/InspectorPanel/InspectorPanel.typedefs';
 import { ScheduleTriggerPanel } from '@/features/flow-builder/containers/ScheduleTriggerPanel';
 import {
@@ -285,6 +286,8 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
         );
       case NodeType.TriggerSchedule:
         return <ScheduleTriggerPanel node={current} />;
+      case NodeType.TriggerInactivity:
+        return <InactivityTriggerPanel node={current} />;
       case NodeType.Agent:
         return llmStep(current, {
           type: NodeType.Agent,

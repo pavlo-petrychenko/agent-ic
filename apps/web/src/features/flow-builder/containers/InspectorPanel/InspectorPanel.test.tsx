@@ -4,6 +4,9 @@ import {
   ChannelSelectionMode,
   ChannelType,
   ScheduleKind,
+  InactivityActivity,
+  InactivityRepeatKind,
+  InactivityUnit,
   ConditionOperator,
   EscalationMode,
   FailureMode,
@@ -1051,5 +1054,135 @@ describe('InspectorPanel schedule trigger', () => {
     await user.click(screen.getByRole('switch', { name: 'Skip chats handed to a person' }));
 
     expect(schedule().conditions.notEscalated).toBe(false);
+  });
+});
+
+describe('InspectorPanel inactivity trigger', () => {
+  const INACTIVITY_FLOW: FlowDocument = {
+    ...FLOW,
+    nodes: [
+      ...FLOW.nodes,
+      step('quiet', 'Still there?', NODE_TEMPLATES[NodeType.TriggerInactivity]),
+    ],
+    edges: [
+      ...FLOW.edges,
+      { id: 'e3', source: 'quiet', sourcePort: PortName.Next, target: 'reply' },
+    ],
+  };
+  const openInactivity = (document: FlowDocument = INACTIVITY_FLOW) => open('quiet', document);
+  const inactivity = () => {
+    const found = node('quiet');
+    if (found?.type !== NodeType.TriggerInactivity) {
+      throw new Error('no inactivity trigger');
+    }
+    return found.config;
+  };
+
+  it('shows the silence, the activity, the conditions and the variables', () => {
+    openInactivity();
+
+    const inspector = screen.getByRole('complementary', { name: 'Still there?' });
+    expect(
+      within(inspector).getByText('Starts this branch in one conversation after a silence'),
+    ).toBeVisible();
+    expect(within(inspector).getByLabelText('Silence length')).toHaveValue(2);
+    expect(within(inspector).getByRole('combobox', { name: 'Unit' })).toHaveDisplayValue('hours');
+    expect(within(inspector).getByRole('radio', { name: /Any message/ })).toBeChecked();
+    expect(within(inspector).getByRole('radio', { name: 'Once per silence' })).toBeChecked();
+    expect(within(inspector).getByRole('switch', { name: 'Not escalated' })).toBeChecked();
+    expect(within(inspector).getByRole('checkbox', { name: 'Telegram' })).toBeChecked();
+    expect(within(inspector).getByRole('checkbox', { name: 'API' })).toBeChecked();
+    expect(within(inspector).getByText(/Auto-close is a setting/)).toBeVisible();
+    expect(
+      within(screen.getByRole('list', { name: 'Available in the flow' })).getByText(
+        'inactivity.attempt',
+      ),
+    ).toBeVisible();
+  });
+
+  it('changes the silence length and its unit', async () => {
+    const user = userEvent.setup();
+    openInactivity();
+
+    const length = screen.getByLabelText('Silence length');
+    await user.clear(length);
+    await user.type(length, '3');
+    await user.tab();
+    expect(inactivity().silence).toEqual({ amount: 3, unit: InactivityUnit.Hours });
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Unit' }), 'day');
+
+    expect(inactivity().silence).toEqual({ amount: 3, unit: InactivityUnit.Days });
+  });
+
+  it('explains a silence outside five minutes to thirty days', async () => {
+    const user = userEvent.setup();
+    openInactivity();
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Unit' }), 'minute');
+    const length = screen.getByLabelText('Silence length');
+    await user.clear(length);
+    await user.type(length, '2');
+    await user.tab();
+
+    expect(screen.getByText('Pick a time from 5 minutes to 30 days')).toBeVisible();
+  });
+
+  it('warns when auto-close closes the chat first', () => {
+    openInactivity({
+      ...INACTIVITY_FLOW,
+      settings: { ...NO_FLOW_SETTINGS, autoClose: { afterMinutes: 60 } },
+    });
+
+    expect(
+      screen.getByText(
+        'The conversation is closed after 1 hour of silence, before this timer can finish firing',
+      ),
+    ).toBeVisible();
+  });
+
+  it('counts customer messages only or any message', async () => {
+    const user = userEvent.setup();
+    openInactivity();
+
+    await user.click(screen.getByRole('radio', { name: 'Customer messages only' }));
+
+    expect(inactivity().activity).toBe(InactivityActivity.Customer);
+  });
+
+  it('repeats every so long, up to a number of times, then goes back to once', async () => {
+    const user = userEvent.setup();
+    openInactivity();
+
+    await user.click(screen.getByRole('radio', { name: 'Repeat while the chat stays silent' }));
+    expect(inactivity().repeat).toEqual({
+      kind: InactivityRepeatKind.Every,
+      every: { amount: 2, unit: InactivityUnit.Hours },
+      maxTimes: 3,
+    });
+    const every = screen.getByLabelText('Repeat every');
+    await user.clear(every);
+    await user.type(every, '5');
+    await user.tab();
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Total attempts' }), '4');
+    expect(inactivity().repeat).toEqual({
+      kind: InactivityRepeatKind.Every,
+      every: { amount: 5, unit: InactivityUnit.Hours },
+      maxTimes: 4,
+    });
+    await user.click(screen.getByRole('radio', { name: 'Once per silence' }));
+
+    expect(inactivity().repeat).toEqual({ kind: InactivityRepeatKind.Once });
+    expect(screen.queryByLabelText('Repeat every')).not.toBeInTheDocument();
+  });
+
+  it('skips escalated chats or not, and keeps at least one channel', async () => {
+    const user = userEvent.setup();
+    openInactivity();
+
+    await user.click(screen.getByRole('switch', { name: 'Not escalated' }));
+    expect(inactivity().conditions.notEscalated).toBe(false);
+    await user.click(screen.getByRole('checkbox', { name: 'Telegram' }));
+    expect(inactivity().conditions.channelTypes).toEqual([ChannelType.Api]);
+    expect(screen.getByRole('checkbox', { name: 'API' })).toBeDisabled();
   });
 });
