@@ -47,7 +47,7 @@ export function FlowEditor() {
     useFlowBuilderStore();
   const issues = useFlowIssues();
   const agentExits = usePaletteAgentExits();
-  const { select, setViewport, setDensity } = useFlowBuilderStore();
+  const { select, setViewport, setDensity, settingsOpen, setSettingsOpen } = useFlowBuilderStore();
   const [reveal, setReveal] = useState<readonly string[] | null>(null);
 
   const { models } = useModelOptions(
@@ -229,7 +229,12 @@ export function FlowEditor() {
           )
         }
       />
-      <CanvasToolbar density={density} onDensityChange={setDensity} />
+      <CanvasToolbar
+        density={density}
+        onDensityChange={setDensity}
+        settingsOpen={settingsOpen}
+        onSettingsOpen={() => setSettingsOpen(true)}
+      />
     </div>
   );
 }

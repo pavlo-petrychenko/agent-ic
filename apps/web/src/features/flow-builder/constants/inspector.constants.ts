@@ -106,6 +106,8 @@ export enum IssuePathSegment {
   OnFailure = 'onFailure',
   Exits = 'exits',
   When = 'when',
+  Settings = 'settings',
+  Handoff = 'handoff',
 }
 
 export enum InputType {
