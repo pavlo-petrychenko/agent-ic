@@ -64,6 +64,7 @@ export function CanvasNode({ id, data, selected }: NodeProps<CanvasNodeType>) {
               label={port.label ?? null}
               labelActive={port.labelActive ?? false}
               keyboard={portKeyboard(port.id)}
+              terminal={port.terminal ?? null}
             />
           </Handle>
         ))}

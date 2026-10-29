@@ -1,7 +1,9 @@
 import { NO_AGENT_EXITS, NodeType, isTriggerNode } from '@agent-ic/flow';
-import { useMemo } from 'react';
+import type { AgentExitKind } from '@agent-ic/flow';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModelOptions } from '@/features/flow-builder/communication/hooks/useModelOptions';
+import { EXIT_ICONS } from '@/features/flow-builder/constants/agentExit.constants';
 import { FIRST_STEP_POSITION } from '@/features/flow-builder/constants/flowBuilder.constants';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import { LLM_STEP_TYPES } from '@/features/flow-builder/constants/llmStep.constants';
@@ -10,6 +12,11 @@ import {
   PALETTE_SECTIONS,
   PaletteGroup,
 } from '@/features/flow-builder/constants/palette.constants';
+import {
+  customizeExit,
+  defaultExitPorts,
+  exitKindOf,
+} from '@/features/flow-builder/logic/helpers/agentExit.helpers';
 import { documentToCanvas } from '@/features/flow-builder/logic/helpers/canvas.helpers';
 import { canConnect, connect } from '@/features/flow-builder/logic/helpers/connection.helpers';
 import {
@@ -32,7 +39,7 @@ import { BlankFlowHint } from '@/features/flow-builder/view/BlankFlowHint';
 import { CanvasToolbar } from '@/features/flow-builder/view/CanvasToolbar';
 import { StepNode } from '@/features/flow-builder/view/StepNode';
 import { FlowCanvas } from '@/shared/ui/flow/FlowCanvas';
-import type { FlowCanvasLabels, FlowCanvasNode } from '@/shared/ui/flow/FlowCanvas';
+import type { FlowCanvasLabels, FlowCanvasNode, FlowCanvasPort } from '@/shared/ui/flow/FlowCanvas';
 
 export function FlowEditor() {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
@@ -41,6 +48,7 @@ export function FlowEditor() {
   const issues = useFlowIssues();
   const agentExits = usePaletteAgentExits();
   const { select, setViewport, setDensity } = useFlowBuilderStore();
+  const [reveal, setReveal] = useState<readonly string[] | null>(null);
 
   const { models } = useModelOptions(
     !document.nodes.some((node) => LLM_STEP_TYPES.some((type) => type === node.type)),
@@ -50,21 +58,57 @@ export function FlowEditor() {
     () => documentToCanvas(document, issues, models),
     [document, issues, models],
   );
-  const nodes: FlowCanvasNode[] = model.nodes.map((node) => ({
-    id: node.id,
-    label: node.label,
-    position: node.position,
-    hasInPort: node.hasInPort,
-    outPorts: node.outPorts.map((port, index) => {
-      const label = node.portLabels[index] ?? null;
-      return {
-        id: port,
-        ariaLabel: t('canvas.connectFrom', { name: node.label, port }),
-        label: label === null ? null : 'rule' in label ? label.rule : t(`port.${label.port}`),
-      };
-    }),
-    render: (slots) => <StepNode node={node} slots={slots} density={density} />,
-  }));
+  const customize = (nodeId: string, kind: AgentExitKind) => {
+    const customized = customizeExit(
+      document,
+      nodeId,
+      kind,
+      {
+        send: t(`canvas.exitSteps.${kind}.send`),
+        finish: t(`canvas.exitSteps.${kind}.finish`),
+      },
+      newElementId,
+    );
+    if (customized.nodeIds.length > 0) {
+      apply(customized.document);
+      select({ nodeIds: customized.nodeIds.slice(-1), edgeIds: [] });
+      setReveal([nodeId, ...customized.nodeIds]);
+    }
+  };
+  const nodes: FlowCanvasNode[] = model.nodes.map((node) => {
+    const unconnected = defaultExitPorts(document, node.id);
+    return {
+      id: node.id,
+      label: node.label,
+      position: node.position,
+      hasInPort: node.hasInPort,
+      outPorts: node.outPorts.map((port, index): FlowCanvasPort => {
+        const label = node.portLabels[index] ?? null;
+        const kind = exitKindOf(port);
+        const stack = kind === null ? -1 : unconnected.indexOf(kind);
+        return {
+          id: port,
+          ariaLabel: t('canvas.connectFrom', { name: node.label, port }),
+          label: label === null ? null : 'rule' in label ? label.rule : t(`port.${label.port}`),
+          terminal:
+            kind === null || stack < 0
+              ? null
+              : {
+                  label: t(`canvas.exitDefault.${kind}`),
+                  icon: EXIT_ICONS[kind],
+                  actionLabel: t('canvas.customize'),
+                  actionAriaLabel: t('canvas.customizeExit', {
+                    name: node.label,
+                    exit: t(`port.${kind}`),
+                  }),
+                  stacked: stack > 0,
+                  onAction: () => customize(node.id, kind),
+                },
+        };
+      }),
+      render: (slots) => <StepNode node={node} slots={slots} density={density} />,
+    };
+  });
   const stepItems = PALETTE_SECTIONS.filter((section) => section.group !== PaletteGroup.Triggers)
     .flatMap((section) => section.types)
     .map((type) => ({ id: type, label: t(`step.${type}`), ...NODE_PRESENTATION[type] }));
@@ -136,6 +180,7 @@ export function FlowEditor() {
               }
         }
         edges={model.edges}
+        reveal={reveal}
         selection={selection}
         viewport={viewport}
         labels={labels}

@@ -32,3 +32,9 @@ export const FLOW_PORT_CYCLE_STEPS: Readonly<Partial<Record<string, FlowPortStep
   [FlowPortKey.ArrowUp]: FlowPortStep.Previous,
   [FlowPortKey.ArrowLeft]: FlowPortStep.Previous,
 };
+
+export const FLOW_PORT_TERMINAL_ICON_SIZE = 13;
+
+export const FLOW_PORT_CANVAS_IGNORE_CLASSES = 'nodrag nopan';
+
+export const FLOW_PORT_TERMINAL_ATTRIBUTE = 'data-port-terminal';

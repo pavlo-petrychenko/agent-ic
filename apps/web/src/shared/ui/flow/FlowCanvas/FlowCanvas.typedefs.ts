@@ -1,7 +1,10 @@
 import type { Edge, Node } from '@xyflow/react';
 import type { ReactNode } from 'react';
 import type { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
-import type { FlowPortKeyboard } from '@/shared/ui/flow/FlowPort/FlowPort.typedefs';
+import type {
+  FlowPortKeyboard,
+  FlowPortTerminal,
+} from '@/shared/ui/flow/FlowPort/FlowPort.typedefs';
 import type { ZoomControlLabels } from '@/shared/ui/flow/ZoomControl/ZoomControl.typedefs';
 import type { IconName } from '@/shared/ui/foundations/Icon/Icon.constants';
 
@@ -21,6 +24,7 @@ export interface FlowCanvasPort {
   ariaLabel: string;
   label?: string | null;
   labelActive?: boolean;
+  terminal?: FlowPortTerminal | null;
 }
 
 export interface FlowCanvasNodeSlots {
@@ -132,7 +136,14 @@ export interface FlowCanvasProps {
   onAddStep: (step: FlowCanvasAddStep) => void;
   onAddTrigger: () => void;
   placeholder?: FlowCanvasPlaceholder | null;
+  reveal?: readonly string[] | null;
   className?: string;
+}
+
+export interface FlowCanvasFit {
+  nodeIds: readonly string[] | null;
+  maxZoom: number;
+  onlyWhenHidden: boolean;
 }
 
 export interface KeyboardConnection {
@@ -154,6 +165,7 @@ export interface CanvasEdgeData extends Record<string, unknown> {
   active: boolean;
   inserting: boolean;
   dashed: boolean;
+  turnEarly: boolean;
   deleteLabel: string;
   onDelete: () => void;
 }

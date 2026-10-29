@@ -20,9 +20,20 @@ import {
   RequestBodyKind,
   WaitFor,
 } from '@agent-ic/flow';
+import type { HandoffSettings } from '@agent-ic/flow';
 import type { NodeTemplates } from '@/features/flow-builder/typedefs/graphEdit.typedefs';
 
 export const COMPLETION_DEFAULT_OUTPUT_NAME = 'result';
+
+export const DEFAULT_HANDOFF: HandoffSettings = {
+  notify: {
+    recipients: { kind: RecipientsKind.Operators },
+    channels: [NotifyChannel.InPlatform],
+  },
+  reminderAfterMinutes: ESCALATION_DEFAULT_REMINDER_MINUTES,
+  fallbackAfterMinutes: ESCALATION_DEFAULT_FALLBACK_MINUTES,
+  fallbackMessage: '',
+};
 
 export const NODE_TEMPLATES: NodeTemplates = {
   [NodeType.TriggerMessage]: {
@@ -89,13 +100,7 @@ export const NODE_TEMPLATES: NodeTemplates = {
       mode: EscalationMode.Escalate,
       customerMessage: null,
       reason: '',
-      notify: {
-        recipients: { kind: RecipientsKind.Operators },
-        channels: [NotifyChannel.InPlatform],
-      },
-      reminderAfterMinutes: ESCALATION_DEFAULT_REMINDER_MINUTES,
-      fallbackAfterMinutes: ESCALATION_DEFAULT_FALLBACK_MINUTES,
-      fallbackMessage: '',
+      ...DEFAULT_HANDOFF,
     },
   },
 };
