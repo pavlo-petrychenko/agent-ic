@@ -1,8 +1,12 @@
-import { isNotNull } from 'drizzle-orm';
+import { isNotNull, sql } from 'drizzle-orm';
 import { foreignKey, index, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { agents } from '@/modules/agents/db/agents.table';
+import {
+  ConversationMode,
+  ConversationState,
+} from '@/modules/conversations/constants/conversation.constants';
 import {
   channelKindEnum,
   closeReasonEnum,
@@ -13,6 +17,7 @@ import {
 import { users } from '@/modules/identity/db/users.table';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
 import { runs } from '@/modules/runs/db/runs.table';
+import { toSqlLiteral } from '@/platform/database/helpers/tenant-sql.helpers';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,
@@ -73,6 +78,11 @@ export const conversations = conversationsSchema
       index('conversations_simulation_version_id_idx')
         .on(table.simulationVersionId)
         .where(isNotNull(table.simulationVersionId)),
+      index('conversations_schedule_candidates_idx')
+        .on(table.workspaceId, table.agentId, table.lastCustomerMessageAt)
+        .where(
+          sql`${table.mode} = ${sql.raw(toSqlLiteral(ConversationMode.Live))} and ${table.state} = ${sql.raw(toSqlLiteral(ConversationState.AgentActive))}`,
+        ),
       tenantIsolationPolicy('conversations'),
     ],
   )

@@ -28,6 +28,7 @@ export { ConversationActivityService } from '@/modules/conversations/services/co
 export { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
 export { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
 export { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
+export { ScheduleAudienceService } from '@/modules/conversations/services/schedule-audience.service';
 export type {
   HandedBackPayload,
   MessageReceivedPayload,
@@ -43,6 +44,10 @@ export type {
   OutboundDelivery,
   OutboundMessageInput,
 } from '@/modules/conversations/typedefs/message.typedefs';
+export type {
+  ScheduleAudienceRequest,
+  ScheduleContactRequest,
+} from '@/modules/conversations/typedefs/schedule-audience.typedefs';
 export type {
   IncomingMessageInput,
   IncomingMessageResult,
