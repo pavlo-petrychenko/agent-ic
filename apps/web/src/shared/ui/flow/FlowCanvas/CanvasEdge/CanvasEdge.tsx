@@ -1,6 +1,9 @@
 import { getSmoothStepPath } from '@xyflow/react';
 import type { EdgeProps } from '@xyflow/react';
-import { FLOW_CANVAS_EDGE_CORNER_RADIUS } from '@/shared/ui/flow/FlowCanvas/FlowCanvas.constants';
+import {
+  FLOW_CANVAS_EDGE_CHIP_LANE,
+  FLOW_CANVAS_EDGE_CORNER_RADIUS,
+} from '@/shared/ui/flow/FlowCanvas/FlowCanvas.constants';
 import type { CanvasEdge as CanvasEdgeType } from '@/shared/ui/flow/FlowCanvas/FlowCanvas.typedefs';
 import { FlowEdge } from '@/shared/ui/flow/FlowEdge/FlowEdge';
 
@@ -23,6 +26,9 @@ export function CanvasEdge({
     targetY,
     targetPosition,
     borderRadius: FLOW_CANVAS_EDGE_CORNER_RADIUS,
+    ...(data?.turnEarly === true && targetY > sourceY + FLOW_CANVAS_EDGE_CHIP_LANE
+      ? { centerY: sourceY + FLOW_CANVAS_EDGE_CHIP_LANE }
+      : {}),
   });
 
   return (

@@ -4,8 +4,14 @@ export const FLOW_CANVAS_IN_PORT_ID = 'in';
 export const FLOW_CANVAS_GRID_GAP = 20;
 export const FLOW_CANVAS_GRID_DOT_SIZE = 1;
 export const FLOW_CANVAS_GRID_COLOR = 'var(--color-grid)';
-export const FLOW_CANVAS_FIT_PADDING = 0.2;
+export const FLOW_CANVAS_FIT_PADDING = {
+  top: '48px',
+  right: '48px',
+  bottom: '96px',
+  left: '48px',
+} as const;
 export const FLOW_CANVAS_FIT_MAX_ZOOM = 1;
+export const FLOW_CANVAS_EDGE_CHIP_LANE = 40;
 export const FLOW_CANVAS_PLACEHOLDER_ID = 'flow-canvas-placeholder';
 export const FLOW_CANVAS_MIDDLE_MOUSE_BUTTON = 1;
 export const FLOW_CANVAS_MIN_SELECTION_FOR_BAR = 2;

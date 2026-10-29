@@ -1,5 +1,8 @@
 $port-size: 8px;
 $port-size-active: 12px;
+$terminal-max-width: 240px;
+$terminal-height: 28px;
+$terminal-top: calc(#{$port-size-active} + var(--space-28) + var(--space-16));
 
 .root {
   position: relative;
@@ -84,6 +87,64 @@ $port-size-active: 12px;
 .label {
   align-self: start;
   margin: calc(#{$port-size-active} + var(--space-4)) 0 0;
+}
+
+.terminal {
+  position: absolute;
+  top: $terminal-top;
+  left: calc(50% - #{$port-size-active});
+  z-index: 1;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  width: max-content;
+  max-width: $terminal-max-width;
+  height: $terminal-height;
+  padding: 0 var(--space-10);
+  border: var(--border-width-strong) dashed var(--color-line-dash);
+  border-radius: var(--radius-pill);
+  background: var(--color-panel);
+  color: var(--color-ink-secondary);
+  font: var(--type-caption);
+  white-space: nowrap;
+  cursor: default;
+}
+
+.stacked {
+  top: calc(#{$terminal-top} + #{$terminal-height} + var(--space-8));
+}
+
+.terminalIcon {
+  flex-shrink: 0;
+  color: var(--color-mute);
+}
+
+.terminalLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.terminalAction {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-6);
+  background: transparent;
+  color: var(--color-accent);
+  font: var(--type-caption-strong);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-accent-dark);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
 }
 
 .storyRow {
