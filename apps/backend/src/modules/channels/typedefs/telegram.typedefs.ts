@@ -2,6 +2,7 @@ import type {
   TelegramChatAction,
   TelegramUpdateType,
 } from '@/modules/channels/constants/telegram.constants';
+import type { TelegramChannelIdentity } from '@/modules/channels/typedefs/channel-identity.typedefs';
 
 export interface TelegramBot {
   readonly id: string;
@@ -82,4 +83,11 @@ export interface ConfigureTelegramTransportInput {
   readonly workspaceId: string;
   readonly channelId: string;
   readonly secret: string;
+}
+
+export interface TelegramReconnectPreparation {
+  readonly token: string;
+  readonly identity: TelegramChannelIdentity;
+  readonly sealed: string;
+  readonly webhookSecret: string;
 }

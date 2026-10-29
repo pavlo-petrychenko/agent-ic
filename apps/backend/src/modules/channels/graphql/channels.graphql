@@ -7,6 +7,7 @@ extend type Mutation {
   connectTelegram(input: ConnectTelegramInput!): Channel!
   deleteChannel(id: ID!): Boolean!
   disconnectTelegram(id: ID!): Channel!
+  reconnectTelegram(id: ID!): Channel!
   replaceTelegramToken(input: ReplaceTelegramTokenInput!): Channel!
   updateTelegram(input: UpdateTelegramInput!): Channel!
 }

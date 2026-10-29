@@ -1,15 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ChannelReconnectLogMessage } from '@/modules/channels/constants/channel-reconnect.constants';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelAlreadyConnectedError } from '@/modules/channels/errors/channel-already-connected.error';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { toChannelView } from '@/modules/channels/helpers/channel-view.helpers';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import type {
+  ChannelRecord,
   ChannelView,
   CompleteChannelConnectionInput,
   NewChannel,
   PrepareChannelConnectionInput,
   ReplaceChannelCredentialsInput,
+  StoreReconnectCredentialsInput,
   UpdateChannelSettingsInput,
 } from '@/modules/channels/typedefs/channel.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
@@ -18,6 +21,8 @@ import { IdService } from '@/platform/ids/services/id.service';
 
 @Injectable()
 export class ChannelConnectionService {
+  private readonly logger = new Logger(ChannelConnectionService.name);
+
   constructor(
     private readonly tenantTransactions: TenantTransactionService,
     private readonly channels: ChannelsRepository,
@@ -88,6 +93,63 @@ export class ChannelConnectionService {
       }
       return toChannelView(channel, this.ids);
     });
+  }
+
+  claimReconnect(
+    workspaceId: string,
+    channelId: string,
+    userId: string,
+  ): Promise<ChannelRecord | null> {
+    return this.tenantTransactions.run(workspaceId, () =>
+      this.channels.updateStatusIfCurrent(
+        workspaceId,
+        channelId,
+        ChannelStatus.Disconnected,
+        ChannelStatus.Pending,
+        this.clock.now(),
+        userId,
+      ),
+    );
+  }
+
+  storeReconnectCredentials(input: StoreReconnectCredentialsInput): Promise<void> {
+    return this.tenantTransactions.run(input.workspaceId, async () => {
+      const channel = await this.channels.updateCredentials(input.workspaceId, input.channelId, {
+        status: ChannelStatus.Pending,
+        identity: input.identity,
+        credentialsSealed: input.credentialsSealed,
+        updatedAt: this.clock.now(),
+        updatedByUserId: input.updatedByUserId,
+      });
+      if (channel === null) {
+        throw new ChannelNotFoundError();
+      }
+    });
+  }
+
+  completeReconnect(workspaceId: string, channelId: string, userId: string): Promise<ChannelView> {
+    return this.complete({ workspaceId, channelId, updatedByUserId: userId });
+  }
+
+  async releaseReconnect(workspaceId: string, channelId: string, userId: string): Promise<void> {
+    await this.tenantTransactions
+      .run(workspaceId, () =>
+        this.channels.updateStatusIfCurrent(
+          workspaceId,
+          channelId,
+          ChannelStatus.Pending,
+          ChannelStatus.Disconnected,
+          this.clock.now(),
+          userId,
+        ),
+      )
+      .catch((error: unknown) => {
+        this.logger.error({
+          msg: ChannelReconnectLogMessage.RollbackError,
+          channelId,
+          err: error,
+        });
+      });
   }
 
   updateSettings(input: UpdateChannelSettingsInput): Promise<ChannelView> {

@@ -1,15 +1,18 @@
 import { IdPrefix } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { TELEGRAM_ALLOWED_UPDATES } from '@/modules/channels/constants/telegram.constants';
+import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { TelegramTokenInvalidError } from '@/modules/channels/errors/telegram-token-invalid.error';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { telegramWebhookUrl } from '@/modules/channels/helpers/telegram.helpers';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
+import type { ChannelRecord } from '@/modules/channels/typedefs/channel.typedefs';
 import type {
   ConfigureTelegramTransportInput,
   TelegramBot,
   TelegramConnectionCredentials,
+  TelegramReconnectPreparation,
 } from '@/modules/channels/typedefs/telegram.typedefs';
 import { TelegramTransport } from '@/platform/config/constants/telegram.constants';
 import { ConfigService } from '@/platform/config/services/config.service';
@@ -45,6 +48,26 @@ export class TelegramChannelService {
         webhookSecretHash: secret.hash,
       }),
       webhookSecret: secret.token,
+    };
+  }
+
+  async prepareReconnect(
+    channel: Pick<ChannelRecord, 'externalId' | 'credentialsSealed'>,
+  ): Promise<TelegramReconnectPreparation> {
+    const credentials = this.channelTokens.openCredentials(channel.credentialsSealed);
+    if (!('botToken' in credentials)) {
+      throw new ChannelNotFoundError();
+    }
+    const bot = await this.readBot(credentials.botToken);
+    if (bot.id !== channel.externalId) {
+      throw new TelegramTokenInvalidError();
+    }
+    const next = this.createCredentials(credentials.botToken);
+    return {
+      token: credentials.botToken,
+      identity: { username: bot.username, firstName: bot.firstName },
+      sealed: next.sealed,
+      webhookSecret: next.webhookSecret,
     };
   }
 
