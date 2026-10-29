@@ -80,6 +80,35 @@ describe('StartSimulationUseCase', () => {
     expect(second.conversation.versionId).toBe(versionId);
   });
 
+  it('returns the simulation the agent ended instead of opening a new one', async () => {
+    const { workspaceId, input } = await seed();
+    const first = await start(workspaceId, input);
+    const conversationId = testbed.ids.fromPublic(IdPrefix.Conversation, first.conversation.id);
+    await testbed.tenants.run(workspaceId, () => testbed.runs.close(workspaceId, conversationId));
+
+    const again = await start(workspaceId, input);
+
+    expect(again.conversation).toEqual({
+      ...first.conversation,
+      state: ConversationState.Closed,
+    });
+  });
+
+  it('opens a fresh simulation when the setup differs from the ended one', async () => {
+    const { workspaceId, agentId, input } = await seed();
+    const published = await seedPublishedVersion(testbed.module, workspaceId, agentId);
+    const versionId = testbed.ids.toPublic(IdPrefix.AgentVersion, published);
+    const first = await start(workspaceId, input);
+    const conversationId = testbed.ids.fromPublic(IdPrefix.Conversation, first.conversation.id);
+    await testbed.tenants.run(workspaceId, () => testbed.runs.close(workspaceId, conversationId));
+
+    const second = await start(workspaceId, { ...input, versionId });
+
+    expect(second.conversation.id).not.toBe(first.conversation.id);
+    expect(second.conversation.state).toBe(ConversationState.AgentActive);
+    expect(second.conversation.versionId).toBe(versionId);
+  });
+
   it('refuses an unpublished version, an agent of another workspace and an operator', async () => {
     const { workspaceId, input, draftId: draft } = await seed();
     const other = await seed();
