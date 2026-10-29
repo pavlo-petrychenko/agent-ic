@@ -19,4 +19,5 @@ export const EVENT_ICONS: Readonly<Record<ChatEventKind, IconName>> = {
   [ChatEventKind.Ended]: IconName.Check,
   [ChatEventKind.ClosedInactive]: IconName.Pause,
   [ChatEventKind.Silence]: IconName.Hour,
+  [ChatEventKind.ScheduleRun]: IconName.Cal,
 };

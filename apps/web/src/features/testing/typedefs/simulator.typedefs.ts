@@ -12,6 +12,7 @@ import type {
   MessageAuthor,
   RunStatus,
   RunTrigger,
+  ScheduleConditionKind,
 } from '@/shared/api/generated/schema.generated';
 
 export interface SimulatorSetup {
@@ -91,6 +92,17 @@ export interface ChatConversation {
   closedAt: string | null;
 }
 
+export interface ScheduleCheck {
+  kind: ScheduleConditionKind;
+  met: boolean;
+}
+
+export interface ScheduleRunResult {
+  runId: string;
+  nodeId: string;
+  checks: readonly ScheduleCheck[];
+}
+
 export interface SimulatorResult {
   conversation: SimulatorConversation | null;
   starting: boolean;
@@ -102,6 +114,7 @@ export interface SimulatorResult {
   handingBack: boolean;
   closingInactive: boolean;
   simulatingSilence: boolean;
+  runningSchedule: boolean;
   retry: () => void;
   send: (text: string) => Promise<void>;
   restart: () => Promise<void>;
@@ -109,4 +122,5 @@ export interface SimulatorResult {
   handBack: () => Promise<void>;
   closeForInactivity: () => Promise<void>;
   simulateSilence: () => Promise<void>;
+  runSchedule: (nodeId: string) => Promise<ScheduleRunResult | null>;
 }

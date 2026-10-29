@@ -50,12 +50,19 @@
       "ended": "Ended by the agent",
       "closedInactive": "Closed after inactivity",
       "silence": "Silence simulated",
-      "silenceFor": "{{after}} of silence simulated"
+      "silenceFor": "{{after}} of silence simulated",
+      "scheduleRun": "Schedule run now"
     },
     "eventAt": "{{event}} · {{at, datetime}}",
     "followUpTurn_zero": "{{name}} · inactivity follow-up {{attempt}} · no reply",
     "followUpTurn_one": "{{name}} · inactivity follow-up {{attempt}} · {{count}} message",
-    "followUpTurn_other": "{{name}} · inactivity follow-up {{attempt}} · {{count}} messages"
+    "followUpTurn_other": "{{name}} · inactivity follow-up {{attempt}} · {{count}} messages",
+    "scheduledTurn_zero": "{{name}} · Scheduled · no reply",
+    "scheduledTurn_one": "{{name}} · Scheduled · {{count}} message",
+    "scheduledTurn_other": "{{name}} · Scheduled · {{count}} messages",
+    "scheduledTurnNamed_zero": "{{name}} · Scheduled · {{schedule}} · no reply",
+    "scheduledTurnNamed_one": "{{name}} · Scheduled · {{schedule}} · {{count}} message",
+    "scheduledTurnNamed_other": "{{name}} · Scheduled · {{schedule}} · {{count}} messages"
   },
   "composer": {
     "label": "Message as the test user",
@@ -269,5 +276,29 @@
       "undeliverable": "The last message could not be delivered, so no follow-up runs.",
       "stale": "The silence was interrupted. Send a message and try again."
     }
+  },
+  "schedule": {
+    "tabs": "What starts the next turn",
+    "tab": {
+      "message": "Message",
+      "schedule": "Schedule"
+    },
+    "startWith": "Start with",
+    "description": "Runs the schedule now for this test conversation only. Its conditions are shown as checks; the run goes ahead even when one is not met.",
+    "run": "Run schedule now",
+    "checks": "Schedule conditions",
+    "met": "met",
+    "notMet": "not met",
+    "check": {
+      "customer_wrote": "The customer wrote at least once",
+      "silent_for": "Silent long enough",
+      "silentForHours": "Silent for at least {{hours}} h",
+      "not_escalated": "Never escalated",
+      "channel_type": "The channel type is selected"
+    },
+    "notActive": "The agent is not answering this chat right now.",
+    "needsCustomer": "Send one message as the customer first.",
+    "busy": "The agent is still answering.",
+    "switchHint": "Switch to Message to write as the customer."
   }
 }

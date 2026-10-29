@@ -8,6 +8,7 @@ import {
   EVENT_ID_SEPARATOR,
   MESSAGE_SPEAKERS,
   OPERATOR_STATES,
+  TRIGGER_EVENTS,
 } from '@/features/testing/constants/simulator.constants';
 import { CLOSABLE_RUN_STATUSES, TurnOutcome } from '@/features/testing/constants/trace.constants';
 import type {
@@ -119,18 +120,26 @@ const closing = (conversation: ChatConversation): ChatEventItem[] => {
   return [eventAfter(CONVERSATION_EVENT_ID, kind, conversation.closedAt)];
 };
 
-const withSilence = (items: readonly ChatItem[], offsets: readonly number[]): ChatItem[] =>
-  items.flatMap((item) =>
-    item.kind === ChatItemKind.Turn && item.trigger === RunTrigger.Inactivity
-      ? [
-          {
-            ...eventAfter(item.id, ChatEventKind.Silence, item.at),
-            id: [ChatEventKind.Silence, item.id].join(EVENT_ID_SEPARATOR),
-            minutes: item.attempt === null ? null : (offsets.at(item.attempt - 1) ?? null),
-          },
-          item,
-        ]
-      : [item],
+const triggerEvent = (turn: ChatTurnItem, offsets: readonly number[]): ChatEventItem[] => {
+  const kind = TRIGGER_EVENTS[turn.trigger];
+  if (kind === undefined) {
+    return [];
+  }
+  const { attempt } = turn;
+  const minutes =
+    kind === ChatEventKind.Silence && attempt !== null ? (offsets.at(attempt - 1) ?? null) : null;
+  return [
+    {
+      ...eventAfter(turn.id, kind, turn.at),
+      id: [kind, turn.id].join(EVENT_ID_SEPARATOR),
+      minutes,
+    },
+  ];
+};
+
+const withTriggerEvents = (items: readonly ChatItem[], offsets: readonly number[]): ChatItem[] =>
+  items.flatMap((item): ChatItem[] =>
+    item.kind === ChatItemKind.Turn ? [...triggerEvent(item, offsets), item] : [item],
   );
 
 const withHandedBackTurns = (items: readonly ChatItem[]): ChatItem[] =>
@@ -204,7 +213,7 @@ export const toChatItems = (
       ...runOutcome(run),
     }));
   return withHandedBackTurns([
-    ...withSilence(
+    ...withTriggerEvents(
       withEvents(
         [...items, ...silent].toSorted((a, b) => a.at.localeCompare(b.at)),
         conversation.state,

@@ -4,14 +4,19 @@ import { CloseSimulationForInactivityDocument } from '@/features/testing/communi
 import { HandBackDocument } from '@/features/testing/communication/gql/mutation/handBack.generated';
 import { ReplyAsOperatorDocument } from '@/features/testing/communication/gql/mutation/replyAsOperator.generated';
 import { RestartSimulationDocument } from '@/features/testing/communication/gql/mutation/restartSimulation.generated';
+import { RunSimulatorScheduleDocument } from '@/features/testing/communication/gql/mutation/runSimulatorSchedule.generated';
 import { SendSimulatorMessageDocument } from '@/features/testing/communication/gql/mutation/sendSimulatorMessage.generated';
 import { SimulateSilenceDocument } from '@/features/testing/communication/gql/mutation/simulateSilence.generated';
 import { StartSimulationDocument } from '@/features/testing/communication/gql/mutation/startSimulation.generated';
 import { SimulationDocument } from '@/features/testing/communication/gql/query/simulation.generated';
 import { ConversationActivityDocument } from '@/features/testing/communication/gql/subscription/conversationActivity.generated';
-import { toSimulatorConversation } from '@/features/testing/communication/helpers/simulation.helpers';
+import {
+  toScheduleRunResult,
+  toSimulatorConversation,
+} from '@/features/testing/communication/helpers/simulation.helpers';
 import { SETUP_KEY_SEPARATOR } from '@/features/testing/constants/simulator.constants';
 import type {
+  ScheduleRunResult,
   SimulatorResult,
   SimulatorSetup,
 } from '@/features/testing/typedefs/simulator.typedefs';
@@ -30,6 +35,9 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
   );
   const [simulateSilenceMutation, { loading: simulatingSilence }] =
     useMutation(SimulateSilenceDocument);
+  const [runScheduleMutation, { loading: runningSchedule }] = useMutation(
+    RunSimulatorScheduleDocument,
+  );
   const key =
     agentId === null
       ? null
@@ -115,6 +123,20 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
     }
   }, [conversationId, refetch, simulateSilenceMutation]);
 
+  const runSchedule = useCallback(
+    async (nodeId: string): Promise<ScheduleRunResult | null> => {
+      if (conversationId === null) {
+        return null;
+      }
+      const { data } = await runScheduleMutation({
+        variables: { input: { conversationId, nodeId } },
+      });
+      await refetch();
+      return data === undefined ? null : toScheduleRunResult(nodeId, data.runSimulatorSchedule);
+    },
+    [conversationId, refetch, runScheduleMutation],
+  );
+
   const restart = useCallback(async () => {
     if (agentId !== null) {
       await restartSimulation({ variables: { input: { agentId } } });
@@ -135,6 +157,7 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
     handingBack,
     closingInactive,
     simulatingSilence,
+    runningSchedule,
     retry: () => (loadFailed ? void refetch() : setAttempt((value) => value + 1)),
     send,
     restart,
@@ -142,5 +165,6 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
     handBack,
     closeForInactivity,
     simulateSilence,
+    runSchedule,
   };
 }

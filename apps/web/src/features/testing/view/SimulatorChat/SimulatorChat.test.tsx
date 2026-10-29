@@ -8,6 +8,7 @@ import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
 const AGENT_NAME = 'Salon assistant';
 const durationLabel = (minutes: number) => `${minutes} min`;
+const scheduleName = () => 'Nightly check-in';
 
 const turnOf = (escalationMessageCount: number): ChatTurnItem => ({
   kind: ChatItemKind.Turn,
@@ -49,6 +50,7 @@ const renderTurn = (turn: ChatTurnItem) =>
       selectedRunId={null}
       onSelectRun={vi.fn<(runId: string) => void>()}
       durationLabel={durationLabel}
+      scheduleName={scheduleName}
     />,
   );
 
@@ -106,6 +108,7 @@ describe('SimulatorChat', () => {
         selectedRunId={null}
         onSelectRun={vi.fn<(runId: string) => void>()}
         durationLabel={durationLabel}
+        scheduleName={scheduleName}
       />,
     );
 
@@ -136,6 +139,7 @@ describe('SimulatorChat', () => {
         selectedRunId={null}
         onSelectRun={vi.fn<(runId: string) => void>()}
         durationLabel={durationLabel}
+        scheduleName={scheduleName}
       />,
     );
 
@@ -161,12 +165,43 @@ describe('SimulatorChat', () => {
         selectedRunId={null}
         onSelectRun={vi.fn<(runId: string) => void>()}
         durationLabel={durationLabel}
+        scheduleName={scheduleName}
       />,
     );
 
     expect(screen.getByText(/^120 min of silence simulated · \d{1,2}:\d{2}/)).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: `${AGENT_NAME} · inactivity follow-up 2 · 2 messages` }),
+    ).toBeInTheDocument();
+  });
+
+  it('names the schedule that started a turn and marks the run before it', () => {
+    renderWithProviders(
+      <SimulatorChat
+        items={[
+          {
+            kind: ChatItemKind.Event,
+            id: 'e1',
+            at: '2026-10-11T18:00:00.000Z',
+            event: ChatEventKind.ScheduleRun,
+            minutes: null,
+          },
+          { ...turnOf(0), trigger: RunTrigger.Schedule, escalated: false },
+        ]}
+        agentName={AGENT_NAME}
+        typing={false}
+        selectedRunId={null}
+        onSelectRun={vi.fn<(runId: string) => void>()}
+        durationLabel={durationLabel}
+        scheduleName={scheduleName}
+      />,
+    );
+
+    expect(screen.getByText(/^Schedule run now · \d{1,2}:\d{2}/)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: `${AGENT_NAME} · Scheduled · Nightly check-in · 2 messages`,
+      }),
     ).toBeInTheDocument();
   });
 });
