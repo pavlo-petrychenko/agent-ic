@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { useReplaceTelegramToken } from '@/features/channels/communication/hooks/useReplaceTelegramToken';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
 import { TELEGRAM_TOKEN_PATTERN } from '@/features/channels/constants/telegram.constants';
+import type { TelegramBotReplaceTokenResult } from '@/features/channels/containers/TelegramBotPage/TelegramBotContent/TelegramBotContent.typedefs';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
-export function useTelegramBotReplaceToken(channelId: string) {
+export function useTelegramBotReplaceToken(channelId: string): TelegramBotReplaceTokenResult {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
   const errorMessage = useErrorMessage();
   const { showToast } = useToast();

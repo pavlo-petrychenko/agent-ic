@@ -2,10 +2,14 @@ import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useDisconnectTelegram } from '@/features/channels/communication/hooks/useDisconnectTelegram';
 import { CHANNELS_PATH } from '@/features/channels/constants/route.constants';
+import type { TelegramBotDisconnectResult } from '@/features/channels/containers/TelegramBotPage/TelegramBotContent/TelegramBotContent.typedefs';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 
-export function useTelegramBotDisconnect(channelId: string, workspaceId: string) {
+export function useTelegramBotDisconnect(
+  channelId: string,
+  workspaceId: string,
+): TelegramBotDisconnectResult {
   const navigate = useNavigate();
   const errorMessage = useErrorMessage();
   const { disconnectTelegram, disconnecting } = useDisconnectTelegram();
