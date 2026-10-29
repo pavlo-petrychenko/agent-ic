@@ -1,4 +1,9 @@
-import { ChannelSelectionMode, FLOW_SCHEMA_VERSION, NodeType } from '@agent-ic/flow';
+import {
+  ChannelSelectionMode,
+  FLOW_SCHEMA_VERSION,
+  NO_FLOW_SETTINGS,
+  NodeType,
+} from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import {
   INITIAL_TRIGGER_KEY,
@@ -19,4 +24,5 @@ export const initialAgentFlow = (triggerNodeId: string): FlowDocument => ({
     },
   ],
   edges: [],
+  settings: NO_FLOW_SETTINGS,
 });

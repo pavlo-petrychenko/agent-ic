@@ -3,9 +3,16 @@ import { countFlowChanges, diffFlows } from '@flow/diff/helpers/diff.helpers';
 import type { FlowDiff } from '@flow/diff/typedefs/diff.typedefs';
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
 import { renameNodeKey } from '@flow/document/helpers/rename.helpers';
-import type { TriggerScheduleNode } from '@flow/document/typedefs/flow.typedefs';
-import { WaitFor, MessageContentKind } from '@flow/nodes/constants/step.constants';
+import type { HandoffSettings, TriggerScheduleNode } from '@flow/document/typedefs/flow.typedefs';
+import {
+  MessageContentKind,
+  NotifyChannel,
+  RecipientsKind,
+  WaitFor,
+} from '@flow/nodes/constants/step.constants';
 import { ScheduleKind } from '@flow/nodes/constants/trigger.constants';
+import { NO_FLOW_SETTINGS } from '@flow/settings/constants/settings.constants';
+import { upgradeFlowV2 } from '@flow/versions/helpers/upgrade.helpers';
 import { exampleFlows } from '@test/support/fixtures/example-flow.fixture';
 import {
   agent,
@@ -16,6 +23,7 @@ import {
   scheduleTrigger,
   sendText,
 } from '@test/support/fixtures/flow-builder.fixture';
+import { toFlowV2 } from '@test/support/fixtures/flow-v2.fixture';
 
 const emptyDiff: FlowDiff = {
   addedNodes: [],
@@ -25,6 +33,14 @@ const emptyDiff: FlowDiff = {
   addedEdges: [],
   removedEdges: [],
   changedEdges: [],
+  settingsChanges: [],
+};
+
+const handoff: HandoffSettings = {
+  notify: { recipients: { kind: RecipientsKind.Operators }, channels: [NotifyChannel.InPlatform] },
+  reminderAfterMinutes: null,
+  fallbackAfterMinutes: null,
+  fallbackMessage: '',
 };
 
 describe('diffFlows', () => {
@@ -128,6 +144,32 @@ describe('diffFlows', () => {
     expect(diffFlows(flowOf([fork, helper], [waited]), flagged)).toEqual(emptyDiff);
   });
 
+  it('lists each changed setting with its old and new value', () => {
+    const next = {
+      ...flow,
+      settings: { ...NO_FLOW_SETTINGS, handoff, autoClose: { afterMinutes: 120 } },
+    };
+    const later = { ...next, settings: { ...next.settings, autoClose: { afterMinutes: 240 } } };
+
+    expect(diffFlows(flow, next)).toEqual({
+      ...emptyDiff,
+      settingsChanges: [
+        { path: ['handoff'], before: null, after: handoff },
+        { path: ['autoClose'], before: null, after: { afterMinutes: 120 } },
+      ],
+    });
+    expect(diffFlows(next, later).settingsChanges).toEqual([
+      { path: ['autoClose', 'afterMinutes'], before: 120, after: 240 },
+    ]);
+  });
+
+  it('gives an empty diff between an upgraded flow and itself', () => {
+    const upgraded = upgradeFlowV2(toFlowV2(flow));
+
+    expect(diffFlows(upgraded, structuredClone(upgraded))).toEqual(emptyDiff);
+    expect(diffFlows(flow, upgraded)).toEqual(emptyDiff);
+  });
+
   it('sees a key rename as a rename, not as changed references', () => {
     const diff = diffFlows(flow, renameNodeKey(flow, 'helper', 'assistant'));
 
@@ -213,6 +255,15 @@ describe('countFlowChanges', () => {
     const next = renameNodeKey(edited, 'helper', 'assistant');
 
     expect(countFlowChanges(diffFlows(flow, next))).toBe(6);
+  });
+
+  it('counts each changed setting once', () => {
+    const next = {
+      ...flow,
+      settings: { ...NO_FLOW_SETTINGS, handoff, autoClose: { afterMinutes: 60 } },
+    };
+
+    expect(countFlowChanges(diffFlows(flow, next))).toBe(2);
   });
 
   it('counts nothing for identical flows', () => {

@@ -1,6 +1,7 @@
 import {
   ChannelSelectionMode,
   FLOW_SCHEMA_VERSION,
+  NO_FLOW_SETTINGS,
   MessageContentKind,
   NodeType,
   PortName,
@@ -51,6 +52,7 @@ const TRACE_REPLY: FlowNode = {
 
 const flowOf = (nodes: FlowNode[], edges: FlowDocument['edges']): FlowDocument => ({
   schemaVersion: FLOW_SCHEMA_VERSION,
+  settings: NO_FLOW_SETTINGS,
   nodes,
   edges,
 });

@@ -24,6 +24,7 @@ import {
   FailureMode,
   HttpMethod,
   MessageContentKind,
+  NO_AGENT_EXITS,
   NotifyChannel,
   QuickRepliesKind,
   RecipientsKind,
@@ -38,6 +39,7 @@ import {
   ScheduleKind,
 } from '@flow/nodes/constants/trigger.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
+import { NO_FLOW_SETTINGS } from '@flow/settings/constants/settings.constants';
 import { exampleModel, examplePrompt } from '@test/support/fixtures/example-flow.fixture';
 
 const base = (key: string) => ({
@@ -107,6 +109,7 @@ export const agent = (
     retrievalMode: RetrievalMode.Tools,
     output,
     retries: 2,
+    exits: NO_AGENT_EXITS,
   },
 });
 
@@ -228,6 +231,7 @@ export const flowOf = (nodes: FlowNode[], edges: FlowEdge[]): FlowDocument => ({
   schemaVersion: FLOW_SCHEMA_VERSION,
   nodes,
   edges,
+  settings: NO_FLOW_SETTINGS,
 });
 
 export const replyAndScoreFlow = () => {

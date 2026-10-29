@@ -2,6 +2,7 @@ import {
   ChannelSelectionMode,
   EscalationMode,
   FLOW_SCHEMA_VERSION,
+  NO_FLOW_SETTINGS,
   MessageContentKind,
   NodeType,
   NotifyChannel,
@@ -44,6 +45,7 @@ const TRACE_REPLY: FlowNode = {
 
 export const TRACE_FLOW: FlowDocument = {
   schemaVersion: FLOW_SCHEMA_VERSION,
+  settings: NO_FLOW_SETTINGS,
   nodes: [TRACE_TRIGGER, TRACE_REPLY],
   edges: [
     { id: 'edge_1', source: TRIGGER_NODE_ID, sourcePort: PortName.Next, target: REPLY_NODE_ID },

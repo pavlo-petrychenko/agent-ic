@@ -90,6 +90,7 @@ export const diffFlows = (a: FlowDocument, b: FlowDocument): FlowDiff => {
     addedEdges: edgesMissingFrom(b.edges, a.edges),
     removedEdges: edgesMissingFrom(a.edges, b.edges),
     changedEdges: edgesSwitchedFrom(b.edges, a.edges),
+    settingsChanges: fieldChanges(a.settings, b.settings, []),
   };
 };
 
@@ -100,4 +101,5 @@ export const countFlowChanges = (diff: FlowDiff): number =>
   diff.renamedKeys.length +
   diff.addedEdges.length +
   diff.removedEdges.length +
-  diff.changedEdges.length;
+  diff.changedEdges.length +
+  diff.settingsChanges.length;

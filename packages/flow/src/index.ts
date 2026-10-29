@@ -27,8 +27,11 @@ export {
 } from '@flow/document/constants/flow.constants';
 export { flowDocumentSchema } from '@flow/document/schemas/flow.schema';
 export type {
+  AgentExit,
+  AgentExits,
   AgentNode,
   ApiRequestNode,
+  AutoCloseSettings,
   CompletionNode,
   Condition,
   ConditionValue,
@@ -36,6 +39,8 @@ export type {
   FlowDocument,
   FlowEdge,
   FlowNode,
+  FlowSettings,
+  HandoffSettings,
   ModelRef,
   OutputField,
   ParallelNode,
@@ -47,6 +52,7 @@ export type {
   TriggerMessageNode,
   TriggerNode,
   TriggerScheduleNode,
+  UnhandledFailureSettings,
 } from '@flow/document/typedefs/flow.typedefs';
 export { isTriggerNode } from '@flow/document/helpers/node.helpers';
 export { nodePorts } from '@flow/document/helpers/port.helpers';
@@ -62,6 +68,7 @@ export {
   HEADER_NAME_PATTERN,
   MAX_DESCRIPTION_LENGTH,
   MAX_EDGES,
+  MAX_AUTO_CLOSE_MINUTES,
   MAX_ENUM_VALUES,
   MAX_LABEL_LENGTH,
   MAX_NODES,
@@ -71,6 +78,7 @@ export {
   MAX_ROUTER_RULES,
   MAX_RULE_CONDITIONS,
   MAX_TEMPLATE_LENGTH,
+  MIN_AUTO_CLOSE_MINUTES,
   MIN_PARALLEL_BRANCHES,
   NODE_KEY_MAX_LENGTH,
   NODE_KEY_PATTERN,
@@ -84,6 +92,7 @@ export {
   FailureMode,
   HttpMethod,
   MessageContentKind,
+  NO_AGENT_EXITS,
   NotifyChannel,
   QuickRepliesKind,
   RecipientsKind,
@@ -145,6 +154,10 @@ export type {
   TriggerVariable,
   VisibleVariable,
 } from '@flow/scope/typedefs/scope.typedefs';
+export {
+  NO_FLOW_SETTINGS,
+  UnhandledFailureAction,
+} from '@flow/settings/constants/settings.constants';
 export { nodeTextFields } from '@flow/templates/helpers/node-text.helpers';
 export {
   PROMPT_VARIABLE_CLOSE,
@@ -188,6 +201,7 @@ export {
   FlowV1CompletionRole,
   FlowV1WaitFor,
   ParseFlowFailureKind,
+  SECOND_SCHEMA_VERSION,
 } from '@flow/versions/constants/version.constants';
 export { parseFlow } from '@flow/versions/helpers/version.helpers';
 export type {

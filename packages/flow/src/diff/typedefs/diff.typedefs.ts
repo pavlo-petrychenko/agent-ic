@@ -29,4 +29,5 @@ export interface FlowDiff {
   readonly addedEdges: readonly FlowEdge[];
   readonly removedEdges: readonly FlowEdge[];
   readonly changedEdges: readonly FlowEdge[];
+  readonly settingsChanges: readonly FieldChange[];
 }

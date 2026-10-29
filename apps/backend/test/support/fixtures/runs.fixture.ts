@@ -1,6 +1,7 @@
 import {
   ConditionOperator,
   DEFAULT_RETRIEVAL_MODE,
+  NO_AGENT_EXITS,
   FIRST_SCHEMA_VERSION,
   FlowV1CompletionRole,
   FlowV1WaitFor,
@@ -131,6 +132,7 @@ export const agentNode = (
     output: [],
     retries: 0,
     reasoning: null,
+    exits: NO_AGENT_EXITS,
     ...config,
   },
 });

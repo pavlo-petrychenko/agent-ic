@@ -21,7 +21,8 @@ Each folder under `src/` is a topic, and inside it files sit in a folder per kin
 | `scope/`      | `visibleVariables`, `createScopeLookup`: what a node may use, its type, if it can be missing; `triggerVariables`                                         |
 | `diff/`       | `diffFlows`: what changed between two flows, for comparing versions and the publish dialog                                                               |
 | `validation/` | `validateFlow`, `FlowIssueCode`, `hasBlockingIssues`                                                                                                     |
-| `versions/`   | `parseFlow`: reads a stored flow, upgrades a version 1 flow and refuses a schema version it does not know (D77)                                          |
+| `versions/`   | `parseFlow`: reads a stored flow, upgrades a version 1 or 2 flow and refuses a schema version it does not know (D77)                                     |
+| `settings/`   | flow settings: the default hand-off, what an unhandled step failure does, auto-close after inactivity                                                    |
 | `limits/`     | node, edge, rule, branch, output and template limits                                                                                                     |
 
 ## Use it
@@ -50,6 +51,14 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 - The engine resolves a library prompt through the prompts module: the pinned version, or the latest at run start (D269). A step's prompt is always a library reference (D272).
 - `reasoning` is a `ReasoningLevel` from `@agent-ic/contracts`, or `null` for the model's default. A stored flow without the field parses as `null`.
 
+## Agent exits and flow settings
+
+- An Agent step has `exits: { end, handoff }`. Each exit is `null` (off) or `{ when }`, the business criterion as a template. `NO_AGENT_EXITS` turns both off.
+- A flow has `settings: { handoff, onUnhandledFailure, autoClose }`, each `null` when unset; `NO_FLOW_SETTINGS` is all three unset.
+  - `handoff`: the default hand-off, shaped like an Escalation step in `escalate` mode without its messages and reason: `notify`, `reminderAfterMinutes`, `fallbackAfterMinutes`, `fallbackMessage`.
+  - `onUnhandledFailure`: `null` fails the run as before; `{ action: 'handoff', customerMessage }` apologises and hands off.
+  - `autoClose`: `{ afterMinutes }`, from 1 hour to 30 days (`MIN_AUTO_CLOSE_MINUTES`, `MAX_AUTO_CLOSE_MINUTES`).
+
 ## Parallel branches
 
 - Each `branches` edge of a Parallel step starts one branch. By default the join waits for it (`waitFor` is `all` or `first`), and its outputs are visible after the join.
@@ -65,16 +74,18 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 - `renamedKeys` lists `{ nodeId, from, to }` for each node whose key changed. A rename is not also reported as a change to the templates that refer to the key, so a flow passed through `renameNodeKey` differs only by the rename, and swapped keys are two renames.
 - `changedNodes` lists `{ nodeId, key, type, fields }` for each kept node that changed. Each field is `{ path, before, after }`, with the path under the node (`['config', 'schedule', 'time']`) and the old and new values; a missing value is `null`. Objects are compared field by field, a list is one value. `id` and `key` are never fields.
 - Edges are matched by their ends (`source`, `sourcePort`, `target`), not their `id`. `addedEdges` and `removedEdges` hold the whole edges. `changedEdges` holds the new edge of each branch switched between waited and background.
-- Identical flows give a diff whose seven lists are empty.
-- `countFlowChanges(diff)` adds up the seven lists: the number of changes the publish and restore dialogs show.
+- `settingsChanges` lists each changed flow setting as a field change, with the path under `settings` (`['autoClose', 'afterMinutes']`).
+- Identical flows give a diff whose eight lists are empty.
+- `countFlowChanges(diff)` adds up the eight lists: the number of changes the publish and restore dialogs show.
 - The web writes each change in plain words ("Schedule trigger: 18:00 instead of 09:30") from these values.
 
 ## Change the format
 
-`schemaVersion` is the literal `2`. A change to the format bumps it and adds an upgrade from the previous version in `versions/`, so `parseFlow` keeps reading every stored flow.
+`schemaVersion` is the literal `3`. A change to the format bumps it and adds an upgrade from the previous version in `versions/`, so `parseFlow` keeps reading every stored flow.
 
 - Version 1 had a `role` on each Completion (`guard` or `observer`) and a `guards` value of `waitFor`. `parseFlow` checks a version 1 flow against its own schema and upgrades it with `upgradeFlowV1`: a branch that starts with an observer becomes a background branch, except the first branch of a Parallel whose branches all start with one, which stays waited so the flow keeps a waited branch; `role` is dropped and `guards` becomes `all`.
-- Stored rows are not rewritten. The engine and the builder work on the upgraded flow, and the next draft save stores version 2.
+- Version 2 had no agent exits and no flow settings. `upgradeFlowV2` turns every exit off and leaves every setting unset, so an upgraded flow behaves as before. A version 1 flow goes through `upgradeFlowV1` and then `upgradeFlowV2`. `flow-v2.schema.ts` keeps the version 2 schema.
+- Stored rows are not rewritten. The engine and the builder work on the upgraded flow, and the next draft save stores version 3.
 
 ## Tests
 

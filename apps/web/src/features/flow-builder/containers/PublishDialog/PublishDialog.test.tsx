@@ -1,4 +1,10 @@
-import { ChannelSelectionMode, FLOW_SCHEMA_VERSION, NodeType, PortName } from '@agent-ic/flow';
+import {
+  ChannelSelectionMode,
+  FLOW_SCHEMA_VERSION,
+  NO_FLOW_SETTINGS,
+  NodeType,
+  PortName,
+} from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import type { MockLink } from '@apollo/client/testing';
 import { screen, within } from '@testing-library/react';
@@ -24,6 +30,7 @@ const UNKNOWN_CODE = 'FUTURE_CHECK';
 
 const FLOW: FlowDocument = {
   schemaVersion: FLOW_SCHEMA_VERSION,
+  settings: NO_FLOW_SETTINGS,
   nodes: [
     {
       id: 'trigger',
