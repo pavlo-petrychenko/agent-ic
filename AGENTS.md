@@ -42,6 +42,7 @@ Turborepo behaviour can differ from what you remember. Its docs ship with the in
 | One concept per page, read in order                          | `docs/learn/`                    |
 | What the product does and does not do                        | `docs/design/mvp-scope.md`       |
 | Knowledge base module: sources, ingestion, retrieval, schema | `docs/design/knowledge-base.md`  |
+| Channels module: connection, ingress, delivery, providers    | `docs/design/channels.md`        |
 | Decisions D1 to D287, layout, data flow                      | `docs/design/architecture.md`    |
 | Why a decision was made                                      | `docs/design/adr/`               |
 | Design-system names: design pages vs `shared/ui`             | `docs/design/ui/name-mapping.md` |
