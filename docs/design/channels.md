@@ -156,6 +156,10 @@ durable conversations.message-received
 runs: start-run listener → run of the live version → outbound messages
 ```
 
+![Inbound message flow](https://github.com/pavlo-petrychenko/agent-ic/blob/pr-assets/channels/docs/indound-message-flow.png?raw=true)
+
+*Inbound message flow: from a Telegram update to a run.*
+
 1. **Ingress.** The webhook is `POST /webhooks/telegram/:workspacePublicId/:channelPublicId` on the `gateway` role. In local development the same logic is fed by `TelegramPollerService`, which is started only when `TELEGRAM_TRANSPORT=polling`.
 2. **Channel checks.** The service loads the channel inside a tenant transaction. In webhook mode it compares `x-telegram-bot-api-secret-token` with the sealed webhook secret hash. An unknown channel is `404`, a bad secret is `401`, a body that is not a valid update is `422`. A disconnected channel or a non-message update returns `200` without writing, so Telegram stops retrying.
 3. **De-duplication.** The update is inserted into `channels.channel_events`, unique by `(channel_id, external_id)`. A repeated update is ignored before any conversation work.
@@ -185,6 +189,10 @@ Telegram adapter: load channel, open token, rate limits, typing, sendMessage
    ▼
 message delivered / failed
 ```
+
+![Outbound message flow](https://github.com/pavlo-petrychenko/agent-ic/blob/pr-assets/channels/docs/outbound-message-flow.png?raw=true)
+
+*Outbound message flow: from `recordOutbound` to the provider.*
 
 - Every outgoing message is recorded before delivery. Its key is `run:<run>:node:<node>:<index>` for a flow step, `operator:<id>` for an operator reply, or `away:<conversation>:<paused_at>` for an away message.
 - The delivery use case skips a message already marked `delivered`, so an at-least-once outbox retry does not duplicate it.
@@ -271,6 +279,10 @@ When the flow reaches Escalation in `escalate` mode:
 **What the operator sees today:** only the Testing simulator can reply as an operator and hand back. The live Inbox is not built. The escalation reason is stored in the Escalation step's `run_steps.output`, not in a separate escalation row, and live runs are not exposed through the current run API.
 
 **What is missing:** operator notifications, the Inbox, “take over” as a separate action, reminders after 5 minutes, and the fallback message after 30 minutes. The fields exist in the flow and builder, but no listener or timer reads them. An escalation therefore pauses a real Telegram chat without telling anyone.
+
+![Escalated chat and operator hand-off](https://github.com/pavlo-petrychenko/agent-ic/blob/pr-assets/channels/docs/escalated-chat.png?raw=true)
+
+*Escalation and operator hand-off in the same Telegram chat.*
 
 ### 6.3 End of conversation
 
