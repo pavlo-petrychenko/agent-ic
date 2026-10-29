@@ -4,6 +4,7 @@ import {
   ConversationEventName,
 } from '@/modules/conversations/constants/conversation-event.constants';
 import {
+  CloseReason,
   ConversationMode,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
@@ -144,9 +145,15 @@ export class ConversationRunsService {
     return true;
   }
 
-  async close(workspaceId: string, conversationId: string): Promise<void> {
+  async close(
+    workspaceId: string,
+    conversationId: string,
+    reason: CloseReason | null = null,
+  ): Promise<void> {
     await this.requireConversation(workspaceId, conversationId);
-    await this.conversations.close(workspaceId, conversationId, this.clock.now());
+    if (await this.conversations.close(workspaceId, conversationId, this.clock.now(), reason)) {
+      await this.activity.conversationClosed(conversationId);
+    }
   }
 
   async markDelivery(

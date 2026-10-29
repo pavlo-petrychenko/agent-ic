@@ -1,5 +1,6 @@
 import {
   ChannelKind,
+  CloseReason,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
@@ -17,6 +18,7 @@ import type {
 } from '@/platform/graphql-server/generated/schema.generated';
 import {
   ChannelConversationKind as GraphqlChannelConversationKind,
+  ConversationCloseReason as GraphqlConversationCloseReason,
   ConversationState as GraphqlConversationState,
   MessageAuthor as GraphqlMessageAuthor,
 } from '@/platform/graphql-server/generated/schema.generated';
@@ -26,6 +28,11 @@ const GRAPHQL_CONVERSATION_STATE: Readonly<Record<ConversationState, GraphqlConv
   [ConversationState.Waiting]: GraphqlConversationState.Waiting,
   [ConversationState.Handled]: GraphqlConversationState.Handled,
   [ConversationState.Closed]: GraphqlConversationState.Closed,
+};
+
+const GRAPHQL_CLOSE_REASON: Readonly<Record<CloseReason, GraphqlConversationCloseReason>> = {
+  [CloseReason.EndedByAgent]: GraphqlConversationCloseReason.EndedByAgent,
+  [CloseReason.Inactivity]: GraphqlConversationCloseReason.Inactivity,
 };
 
 const GRAPHQL_CHANNEL_CONVERSATION_KIND: Readonly<
@@ -53,6 +60,8 @@ export const toGraphqlConversation = (conversation: ConversationView): Conversat
   ...conversation,
   state: GRAPHQL_CONVERSATION_STATE[conversation.state],
   channelKind: GRAPHQL_CHANNEL_CONVERSATION_KIND[conversation.channelKind],
+  closeReason:
+    conversation.closeReason === null ? null : GRAPHQL_CLOSE_REASON[conversation.closeReason],
   createdAt: conversation.createdAt.toISOString(),
 });
 

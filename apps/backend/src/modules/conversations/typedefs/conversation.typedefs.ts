@@ -1,5 +1,6 @@
 import type {
   ChannelKind,
+  CloseReason,
   ConversationMode,
   ConversationState,
   WaitingReason,
@@ -23,6 +24,7 @@ export interface Conversation {
   readonly awaySentAt: Date | null;
   readonly lastMessageAt: Date;
   readonly closedAt: Date | null;
+  readonly closeReason: CloseReason | null;
   readonly createdAt: Date;
 }
 

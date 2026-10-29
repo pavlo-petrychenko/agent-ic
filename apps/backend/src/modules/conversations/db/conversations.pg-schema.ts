@@ -1,6 +1,7 @@
 import { CHANNEL_KINDS } from '@agent-ic/contracts';
 import {
   CONVERSATIONS_SCHEMA,
+  CloseReason,
   ConversationMode,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
@@ -22,6 +23,11 @@ export const conversationStateEnum = conversationsSchema.enum('conversation_stat
   ConversationState.Waiting,
   ConversationState.Handled,
   ConversationState.Closed,
+]);
+
+export const closeReasonEnum = conversationsSchema.enum('close_reason', [
+  CloseReason.EndedByAgent,
+  CloseReason.Inactivity,
 ]);
 
 export const channelKindEnum = conversationsSchema.enum('channel_kind', CHANNEL_KINDS);

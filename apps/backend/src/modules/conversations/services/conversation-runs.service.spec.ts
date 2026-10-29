@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ConversationActivityKind } from '@/modules/conversations/constants/conversation-activity.constants';
 import {
+  CloseReason,
   ConversationMode,
   ConversationState,
   WaitingReason,
@@ -82,6 +83,41 @@ describe('ConversationRunsService', () => {
 
   afterAll(async () => {
     await testbed.module.close();
+  });
+
+  it('stores why the conversation closed and announces the close once', async () => {
+    const conversation = await seedConversation(testbed);
+    const activity = await conversationActivity(testbed, conversation.id);
+    const close = () =>
+      inTenant(conversation, () =>
+        testbed.runs.close(conversation.workspaceId, conversation.id, CloseReason.EndedByAgent),
+      );
+
+    await close();
+    await close();
+
+    const announced = await activity.next();
+    await activity.return();
+    expect(announced.value).toEqual({
+      conversationId: conversation.id,
+      kind: ConversationActivityKind.ConversationClosed,
+      messageId: null,
+      runId: null,
+    });
+    expect(await stateOf(conversation)).toMatchObject({
+      state: ConversationState.Closed,
+      closeReason: CloseReason.EndedByAgent,
+    });
+  });
+
+  it('closes without a reason when none is given', async () => {
+    const conversation = await seedConversation(testbed);
+
+    await inTenant(conversation, () =>
+      testbed.runs.close(conversation.workspaceId, conversation.id),
+    );
+
+    expect(await stateOf(conversation)).toMatchObject({ closeReason: null });
   });
 
   it('records one message and one event when the same key is recorded twice', async () => {

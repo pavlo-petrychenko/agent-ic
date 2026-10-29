@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { and, desc, eq, inArray, isNull, lt, ne, or, sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import {
+  CloseReason,
   ConversationMode,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
@@ -200,17 +201,24 @@ export class ConversationsRepository {
     return conversation ?? null;
   }
 
-  async close(workspaceId: string, id: string, closedAt: Date): Promise<void> {
-    await this.txHost.tx
+  async close(
+    workspaceId: string,
+    id: string,
+    closedAt: Date,
+    closeReason: CloseReason | null,
+  ): Promise<boolean> {
+    const closed = await this.txHost.tx
       .update(conversations)
-      .set({ state: ConversationState.Closed, closedAt })
+      .set({ state: ConversationState.Closed, closedAt, closeReason })
       .where(
         and(
           eq(conversations.workspaceId, workspaceId),
           eq(conversations.id, id),
           ne(conversations.state, ConversationState.Closed),
         ),
-      );
+      )
+      .returning({ id: conversations.id });
+    return closed.length > 0;
   }
 
   async touch(workspaceId: string, id: string, lastMessageAt: Date): Promise<void> {
