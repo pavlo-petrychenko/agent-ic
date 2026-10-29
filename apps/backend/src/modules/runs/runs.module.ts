@@ -5,6 +5,7 @@ import { STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import { StartRunOnMessageListener } from '@/modules/runs/listeners/start-run-on-message.listener';
 import { ExecuteProactiveRunProcessor } from '@/modules/runs/processors/execute-proactive-run.processor';
 import { ExecuteRunProcessor } from '@/modules/runs/processors/execute-run.processor';
+import { InactivityTimersRepository } from '@/modules/runs/repositories/inactivity-timers.repository';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { LastSimulationRunResolver } from '@/modules/runs/resolvers/last-simulation-run.resolver';
@@ -44,6 +45,7 @@ export class RunsModule extends defineModule({
   providers: [
     RunsRepository,
     RunStepsRepository,
+    InactivityTimersRepository,
     MessageTriggerExecutor,
     RouterExecutor,
     ParallelExecutor,

@@ -29,6 +29,7 @@ import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
 import { ROOT_BRANCH_KEY, STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import type { RunStepStatus } from '@/modules/runs/constants/run.constants';
 import { startRunOnMessageJob } from '@/modules/runs/jobs/start-run-on-message.job';
+import { InactivityTimersRepository } from '@/modules/runs/repositories/inactivity-timers.repository';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { RunsModule } from '@/modules/runs/runs.module';
@@ -172,6 +173,7 @@ export const createRunsTestbed = async (
     tenants: module.get(TenantTransactionService),
     runs: module.get(RunsRepository),
     steps: module.get(RunStepsRepository),
+    timers: module.get(InactivityTimersRepository),
     execution: module.get(RunExecutionService),
     liveUpdates: module.get(LiveUpdatesService),
   };
