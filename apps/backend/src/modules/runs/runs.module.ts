@@ -6,6 +6,9 @@ import { ArmInactivityOnHandBackListener } from '@/modules/runs/listeners/arm-in
 import { StartRunOnMessageListener } from '@/modules/runs/listeners/start-run-on-message.listener';
 import { ExecuteProactiveRunProcessor } from '@/modules/runs/processors/execute-proactive-run.processor';
 import { ExecuteRunProcessor } from '@/modules/runs/processors/execute-run.processor';
+import { FireInactivityTimerProcessor } from '@/modules/runs/processors/fire-inactivity-timer.processor';
+import { SweepInactivityTimersProcessor } from '@/modules/runs/processors/sweep-inactivity-timers.processor';
+import { InactivitySweepRepository } from '@/modules/runs/repositories/inactivity-sweep.repository';
 import { InactivityTimersRepository } from '@/modules/runs/repositories/inactivity-timers.repository';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
@@ -19,6 +22,7 @@ import { ApiRequestExecutor } from '@/modules/runs/services/api-request-executor
 import { CompletionExecutor } from '@/modules/runs/services/completion-executor.service';
 import { ConversationExitService } from '@/modules/runs/services/conversation-exit.service';
 import { EscalationExecutor } from '@/modules/runs/services/escalation-executor.service';
+import { InactivityFiringService } from '@/modules/runs/services/inactivity-firing.service';
 import { InactivityTimersService } from '@/modules/runs/services/inactivity-timers.service';
 import { InactivityTriggerExecutor } from '@/modules/runs/services/inactivity-trigger-executor.service';
 import { MessageTriggerExecutor } from '@/modules/runs/services/message-trigger-executor.service';
@@ -35,6 +39,7 @@ import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-regi
 import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedefs';
 import { ArmInactivityOnHandBackUseCase } from '@/modules/runs/use-cases/arm-inactivity-on-hand-back.use-case';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
+import { FireInactivityTimerUseCase } from '@/modules/runs/use-cases/fire-inactivity-timer.use-case';
 import { GetRunTotalsUseCase } from '@/modules/runs/use-cases/get-run-totals.use-case';
 import { GetRunUseCase } from '@/modules/runs/use-cases/get-run.use-case';
 import { ListLastSimulationRunsUseCase } from '@/modules/runs/use-cases/list-last-simulation-runs.use-case';
@@ -42,6 +47,7 @@ import { ListRunStepsUseCase } from '@/modules/runs/use-cases/list-run-steps.use
 import { ListSimulationRunsUseCase } from '@/modules/runs/use-cases/list-simulation-runs.use-case';
 import { StartRunOnMessageUseCase } from '@/modules/runs/use-cases/start-run-on-message.use-case';
 import { SubscribeToRunStepsUseCase } from '@/modules/runs/use-cases/subscribe-to-run-steps.use-case';
+import { SweepInactivityTimersUseCase } from '@/modules/runs/use-cases/sweep-inactivity-timers.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class RunsModule extends defineModule({
@@ -50,6 +56,7 @@ export class RunsModule extends defineModule({
     RunsRepository,
     RunStepsRepository,
     InactivityTimersRepository,
+    InactivitySweepRepository,
     MessageTriggerExecutor,
     InactivityTriggerExecutor,
     RouterExecutor,
@@ -80,11 +87,14 @@ export class RunsModule extends defineModule({
     RunMetricsService,
     RunExecutionService,
     InactivityTimersService,
+    InactivityFiringService,
     RunLifecycleService,
     RunViewsService,
     { provide: SimulatorTestsReader, useClass: SimulationTestsReaderService },
     StartRunOnMessageUseCase,
     ArmInactivityOnHandBackUseCase,
+    SweepInactivityTimersUseCase,
+    FireInactivityTimerUseCase,
     ExecuteRunUseCase,
     SubscribeToRunStepsUseCase,
     GetRunUseCase,
@@ -100,6 +110,11 @@ export class RunsModule extends defineModule({
     SimulationRunsResolver,
     LastSimulationRunResolver,
   ],
-  processors: [ExecuteRunProcessor, ExecuteProactiveRunProcessor],
+  processors: [
+    ExecuteRunProcessor,
+    ExecuteProactiveRunProcessor,
+    SweepInactivityTimersProcessor,
+    FireInactivityTimerProcessor,
+  ],
   listeners: [StartRunOnMessageListener, ArmInactivityOnHandBackListener],
 }) {}

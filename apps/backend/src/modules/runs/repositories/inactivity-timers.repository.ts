@@ -39,6 +39,14 @@ export class InactivityTimersRepository {
     );
   }
 
+  async findById(workspaceId: string, id: string): Promise<InactivityTimer | null> {
+    const [timer] = await this.txHost.tx
+      .select()
+      .from(inactivityTimers)
+      .where(and(eq(inactivityTimers.workspaceId, workspaceId), eq(inactivityTimers.id, id)));
+    return timer ?? null;
+  }
+
   async findByConversation(
     workspaceId: string,
     conversationId: string,
