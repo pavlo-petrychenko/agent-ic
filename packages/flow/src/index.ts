@@ -26,6 +26,7 @@ export {
   TRIGGER_NODE_TYPES,
 } from '@flow/document/constants/flow.constants';
 export { flowDocumentSchema } from '@flow/document/schemas/flow.schema';
+export { triggerScheduleNodeSchema } from '@flow/nodes/schemas/trigger-schedule.schema';
 export type {
   AgentExit,
   AgentExits,

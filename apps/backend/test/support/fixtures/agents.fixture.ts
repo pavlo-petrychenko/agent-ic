@@ -1,5 +1,6 @@
 import {
   ChannelSelectionMode,
+  ChannelType,
   FailureMode,
   FLOW_SCHEMA_VERSION,
   HttpMethod,
@@ -10,6 +11,7 @@ import {
   QuickRepliesKind,
   RequestAuthKind,
   RequestBodyKind,
+  ScheduleKind,
 } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
@@ -30,6 +32,13 @@ import {
   TEST_REPLY_NODE_ID,
   TEST_REPLY_NODE_KEY,
   TEST_REPLY_TEXT,
+  TEST_SCHEDULE_EDGE_ID,
+  TEST_SCHEDULE_MAX_CONVERSATIONS,
+  TEST_SCHEDULE_NODE_ID,
+  TEST_SCHEDULE_NODE_KEY,
+  TEST_SCHEDULE_SILENT_HOURS,
+  TEST_SCHEDULE_TIME,
+  TEST_SCHEDULE_TIME_ZONE,
 } from '@test/support/constants/agents-testing.constants';
 
 export const emptyFlow = (): FlowDocument => ({
@@ -85,6 +94,46 @@ export const autoCloseFlow = (
     autoClose: afterMinutes === null ? null : { afterMinutes },
   },
 });
+
+export const scheduleFlow = (): FlowDocument => {
+  const flow = triggerFlow();
+  return {
+    ...flow,
+    nodes: [
+      ...flow.nodes,
+      {
+        id: TEST_SCHEDULE_NODE_ID,
+        key: TEST_SCHEDULE_NODE_KEY,
+        label: TEST_SCHEDULE_NODE_KEY,
+        position: { x: 0, y: 0 },
+        type: NodeType.TriggerSchedule,
+        config: {
+          schedule: {
+            kind: ScheduleKind.Daily,
+            time: TEST_SCHEDULE_TIME,
+            timeZone: TEST_SCHEDULE_TIME_ZONE,
+          },
+          conditions: {
+            silentForHours: TEST_SCHEDULE_SILENT_HOURS,
+            notEscalated: true,
+            channelTypes: [ChannelType.Telegram, ChannelType.Api],
+          },
+          maxConversationsPerRun: TEST_SCHEDULE_MAX_CONVERSATIONS,
+          oncePerConversation: true,
+        },
+      },
+    ],
+    edges: [
+      ...flow.edges,
+      {
+        id: TEST_SCHEDULE_EDGE_ID,
+        source: TEST_SCHEDULE_NODE_ID,
+        sourcePort: PortName.Next,
+        target: TEST_REPLY_NODE_ID,
+      },
+    ],
+  };
+};
 
 export const apiRequestFlow = (url: string): FlowDocument => {
   const flow = triggerFlow();
