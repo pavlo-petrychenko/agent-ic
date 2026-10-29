@@ -12,6 +12,7 @@ export {
   MessageDelivery,
 } from '@/modules/conversations/constants/message.constants';
 export { IncomingMessageOutcome } from '@/modules/conversations/constants/incoming-message.constants';
+export { CHANNEL_KIND_OF_TYPE } from '@/modules/conversations/constants/schedule-audience.constants';
 export {
   hasNeverEscalated,
   neverEscalated,
