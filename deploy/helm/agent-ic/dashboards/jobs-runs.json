@@ -616,13 +616,256 @@
       ]
     },
     {
+      "id": 27,
+      "type": "row",
+      "title": "Schedules",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 42,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 28,
+      "title": "Schedule ticks by outcome",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 43,
+        "w": 8,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "fillOpacity": 30
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (outcome) (rate(schedule_ticks_total{namespace=\"$namespace\"}[$__rate_interval]))",
+          "legendFormat": "{{outcome}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "title": "Schedule tick lag p50 and p95",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 43,
+        "w": 8,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(schedule_tick_lag_seconds_bucket{namespace=\"$namespace\"}[$__rate_interval])))",
+          "legendFormat": "p50",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "exemplar": true
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(schedule_tick_lag_seconds_bucket{namespace=\"$namespace\"}[$__rate_interval])))",
+          "legendFormat": "p95",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "exemplar": true
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "title": "Missed schedule ticks",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 43,
+        "w": 8,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(schedule_ticks_missed_total{namespace=\"$namespace\"}[$__rate_interval]))",
+          "legendFormat": "missed",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "title": "Conversations matched by outcome",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 51,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "fillOpacity": 30
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (outcome) (rate(schedule_matches_total{namespace=\"$namespace\"}[$__rate_interval]))",
+          "legendFormat": "{{outcome}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "title": "Schedule sweeps per minute",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 51,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(schedule_sweeps_total{namespace=\"$namespace\"}[$__rate_interval])) * 60",
+          "legendFormat": "sweeps",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        }
+      ]
+    },
+    {
       "id": 15,
       "type": "row",
       "title": "LLM",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 42,
+        "y": 59,
         "w": 24,
         "h": 1
       },
@@ -638,7 +881,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 43,
+        "y": 60,
         "w": 8,
         "h": 8
       },
@@ -688,7 +931,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 43,
+        "y": 60,
         "w": 8,
         "h": 8
       },
@@ -731,7 +974,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 43,
+        "y": 60,
         "w": 8,
         "h": 8
       },
@@ -774,7 +1017,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 51,
+        "y": 68,
         "w": 12,
         "h": 8
       },
@@ -815,7 +1058,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 51,
+        "y": 68,
         "w": 12,
         "h": 8
       },
@@ -871,7 +1114,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 59,
+        "y": 76,
         "w": 24,
         "h": 1
       },
@@ -887,7 +1130,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 60,
+        "y": 77,
         "w": 8,
         "h": 8
       },
@@ -935,7 +1178,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 60,
+        "y": 77,
         "w": 8,
         "h": 8
       },
@@ -983,7 +1226,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 60,
+        "y": 77,
         "w": 8,
         "h": 8
       },
@@ -1031,7 +1274,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 68,
+        "y": 85,
         "w": 12,
         "h": 8
       },
@@ -1079,7 +1322,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 68,
+        "y": 85,
         "w": 12,
         "h": 8
       },

@@ -319,6 +319,13 @@ prometheusRule:
     seconds: 120
     for: 5m
     severity: warning
+  scheduleSweepStalled:
+    for: 5m
+    severity: critical
+  scheduleTickLag:
+    seconds: 120
+    for: 10m
+    severity: warning
   usageReportFailures:
     for: 5m
     severity: warning

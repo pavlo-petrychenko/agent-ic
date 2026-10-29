@@ -1241,6 +1241,8 @@
         "llmFailureRatio",
         "llmLatency",
         "outboxLag",
+        "scheduleSweepStalled",
+        "scheduleTickLag",
         "usageReportFailures"
       ],
       "properties": {
@@ -1304,6 +1306,12 @@
           "$ref": "#/definitions/secondsAlert"
         },
         "outboxLag": {
+          "$ref": "#/definitions/secondsAlert"
+        },
+        "scheduleSweepStalled": {
+          "$ref": "#/definitions/alertTiming"
+        },
+        "scheduleTickLag": {
           "$ref": "#/definitions/secondsAlert"
         },
         "usageReportFailures": {
