@@ -48,6 +48,7 @@ export interface GooglePickerApi {
   readonly picker: {
     readonly PickerBuilder: new () => GooglePickerBuilder;
     readonly DocsView: new (viewId: string) => GooglePickerDocsView;
+    readonly ViewId: { readonly DOCS: string };
   };
 }
 
