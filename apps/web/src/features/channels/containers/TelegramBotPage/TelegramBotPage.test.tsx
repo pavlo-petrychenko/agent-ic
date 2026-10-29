@@ -23,6 +23,10 @@ const disconnectTelegram = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Pro
 
 const reconnectTelegram = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
 
+const refreshTelegramIdentity = vi.hoisted(() =>
+  vi.fn<() => Promise<void>>(() => Promise.resolve()),
+);
+
 const updateTelegram = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
 
 const replaceTelegramToken = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
@@ -74,6 +78,13 @@ vi.mock('@/features/channels/communication/hooks/useReconnectTelegram', () => ({
   useReconnectTelegram: () => ({
     reconnectTelegram,
     reconnecting: false,
+  }),
+}));
+
+vi.mock('@/features/channels/communication/hooks/useRefreshTelegramIdentity', () => ({
+  useRefreshTelegramIdentity: () => ({
+    refreshTelegramIdentity,
+    refreshing: false,
   }),
 }));
 
@@ -196,6 +207,17 @@ describe('TelegramBotPage', () => {
     });
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  it('refreshes the bot identity', async () => {
+    refreshTelegramIdentity.mockClear();
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Refresh bot name' }));
+
+    await waitFor(() => {
+      expect(refreshTelegramIdentity).toHaveBeenCalledWith(CHANNEL.id);
     });
   });
 

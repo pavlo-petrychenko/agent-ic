@@ -142,6 +142,7 @@
       "saved": "Channel settings saved",
       "deleted": "Channel deleted",
       "reconnected": "Channel reconnected",
+      "refreshed": "Bot info refreshed",
       "tokenReplaced": "Bot token replaced",
       "actions": {
         "connect": "Reconnect",
@@ -200,6 +201,7 @@
         "lastUpdateDate": "{{date}} {{time}} · from {{author}}",
         "botName": "Bot name",
         "botNameValue": "{{name}} · edit in @BotFather",
+        "refresh": "Refresh bot name",
         "alerted": "Alerted",
         "alertedValue": "Owners and admins · email",
         "revokedNote": "Telegram rejected this token on {{date}} at {{time}} — it was revoked or regenerated in @BotFather."

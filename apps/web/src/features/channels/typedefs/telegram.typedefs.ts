@@ -48,6 +48,11 @@ export interface UseReconnectTelegramResult {
   readonly reconnecting: boolean;
 }
 
+export interface UseRefreshTelegramIdentityResult {
+  readonly refreshTelegramIdentity: (id: string) => Promise<void>;
+  readonly refreshing: boolean;
+}
+
 export interface UpdateTelegramVariables {
   readonly id: string;
   readonly agentId: string;

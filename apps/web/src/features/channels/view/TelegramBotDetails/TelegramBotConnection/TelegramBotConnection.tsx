@@ -8,16 +8,20 @@ import {
 } from '@/features/channels/view/TelegramBotDetails/TelegramBotConnection/TelegramBotConnection.constants';
 import type { TelegramBotConnectionProps } from '@/features/channels/view/TelegramBotDetails/TelegramBotConnection/TelegramBotConnection.typedefs';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { IconButton, IconButtonSize, IconButtonVariant } from '@/shared/ui/actions/IconButton';
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { Card, CardGap, CardPad } from '@/shared/ui/display/Card';
 import { CardHeader } from '@/shared/ui/display/CardHeader';
 import { KeyValue, KeyValueLayout } from '@/shared/ui/display/KeyValue';
+import { IconName } from '@/shared/ui/foundations/Icon';
 import { Field } from '@/shared/ui/inputs/Field';
 import { Input } from '@/shared/ui/inputs/Input';
 
 export function TelegramBotConnection({
   channel,
   lastUpdate,
+  refreshing,
+  onRefresh,
   onReplaceToken,
 }: TelegramBotConnectionProps) {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
@@ -83,7 +87,19 @@ export function TelegramBotConnection({
               }
             : {
                 label: t('telegram.bot.connection.botName'),
-                value: t('telegram.bot.connection.botNameValue', { name: botName }),
+                value: (
+                  <span className="flex items-center gap-2">
+                    <span>{t('telegram.bot.connection.botNameValue', { name: botName })}</span>
+                    <IconButton
+                      icon={IconName.Refresh}
+                      label={t('telegram.bot.connection.refresh')}
+                      size={IconButtonSize.Sm}
+                      variant={IconButtonVariant.Ghost}
+                      loading={refreshing}
+                      onClick={onRefresh}
+                    />
+                  </span>
+                ),
               },
         ]}
       />

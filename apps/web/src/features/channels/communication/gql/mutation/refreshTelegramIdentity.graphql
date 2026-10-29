@@ -1,0 +1,13 @@
+mutation RefreshTelegramIdentity($id: ID!) {
+  refreshTelegramIdentity(id: $id) {
+    id
+    kind
+    status
+    agentId
+    displayName
+    firstName
+    showTyping
+    updatedByName
+    updatedAt
+  }
+}

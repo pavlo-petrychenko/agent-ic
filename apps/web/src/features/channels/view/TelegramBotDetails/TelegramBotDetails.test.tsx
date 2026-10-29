@@ -28,6 +28,7 @@ const connectedChannel: TelegramChannelView = {
 const renderDetails = (props: Partial<TelegramBotDetailsProps> = {}) => {
   const onDisconnect = vi.fn<() => void>();
   const onReconnect = vi.fn<() => void>();
+  const onRefreshIdentity = vi.fn<() => void>();
   renderWithProviders(
     <TelegramBotDetails
       channelsLink="/w/ws_1/channels"
@@ -37,18 +38,20 @@ const renderDetails = (props: Partial<TelegramBotDetailsProps> = {}) => {
       typing
       saving={false}
       reconnecting={false}
+      refreshing={false}
       lastUpdate="Today 14:21 · from Demo Owner"
       onAgentChange={() => undefined}
       onTypingChange={() => undefined}
       onReplaceToken={() => undefined}
       onDisconnect={onDisconnect}
       onReconnect={onReconnect}
+      onRefreshIdentity={onRefreshIdentity}
       onDelete={() => undefined}
       onSave={() => undefined}
       {...props}
     />,
   );
-  return { onDisconnect, onReconnect };
+  return { onDisconnect, onReconnect, onRefreshIdentity };
 };
 
 describe('TelegramBotDetails', () => {
@@ -103,5 +106,13 @@ describe('TelegramBotDetails', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
 
     expect(onDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('refreshes the bot identity from the bot name row', async () => {
+    const { onRefreshIdentity } = renderDetails();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Refresh bot name' }));
+
+    expect(onRefreshIdentity).toHaveBeenCalledTimes(1);
   });
 });
