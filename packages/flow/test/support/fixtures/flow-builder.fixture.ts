@@ -17,6 +17,7 @@ import type {
   RouterRule,
   SendMessageNode,
   TriggerExternalEventNode,
+  TriggerInactivityNode,
   TriggerMessageNode,
   TriggerScheduleNode,
 } from '@flow/document/typedefs/flow.typedefs';
@@ -36,6 +37,9 @@ import {
 } from '@flow/nodes/constants/step.constants';
 import {
   ChannelSelectionMode,
+  InactivityActivity,
+  InactivityRepeatKind,
+  InactivityUnit,
   ReplyMode,
   ScheduleKind,
 } from '@flow/nodes/constants/trigger.constants';
@@ -92,6 +96,21 @@ export const scheduleTrigger = (key: string, cron: string | null = null): Trigge
     conditions: { silentForHours: null, notEscalated: true, channelTypes: [] },
     maxConversationsPerRun: 10,
     oncePerConversation: true,
+  },
+});
+
+export const inactivityTrigger = (
+  key: string,
+  repeat: TriggerInactivityNode['config']['repeat'] = { kind: InactivityRepeatKind.Once },
+  silence: TriggerInactivityNode['config']['silence'] = { amount: 2, unit: InactivityUnit.Hours },
+): TriggerInactivityNode => ({
+  ...base(key),
+  type: NodeType.TriggerInactivity,
+  config: {
+    silence,
+    activity: InactivityActivity.Any,
+    repeat,
+    conditions: { notEscalated: true, channelTypes: [] },
   },
 });
 

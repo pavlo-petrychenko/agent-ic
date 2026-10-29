@@ -3,7 +3,7 @@ import type { FlowPoint } from '@/features/flow-builder/typedefs/flowBuilder.typ
 
 export type AddableNodeType = Exclude<
   NodeType,
-  NodeType.TriggerExternalEvent | NodeType.TriggerSchedule
+  NodeType.TriggerExternalEvent | NodeType.TriggerSchedule | NodeType.TriggerInactivity
 >;
 
 export type NodeTemplates = {

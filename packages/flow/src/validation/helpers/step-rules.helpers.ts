@@ -160,6 +160,7 @@ const nodeConfigIssues = (context: ValidationContext, node: FlowNode): FlowIssue
           ]
         : [];
     case NodeType.TriggerMessage:
+    case NodeType.TriggerInactivity:
     case NodeType.Parallel:
     case NodeType.SendMessage:
     case NodeType.Escalation:

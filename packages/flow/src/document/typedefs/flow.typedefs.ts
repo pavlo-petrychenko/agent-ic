@@ -19,6 +19,10 @@ import type { parallelNodeSchema } from '@flow/nodes/schemas/parallel.schema';
 import type { routerNodeSchema } from '@flow/nodes/schemas/router.schema';
 import type { sendMessageNodeSchema } from '@flow/nodes/schemas/send-message.schema';
 import type { triggerExternalEventNodeSchema } from '@flow/nodes/schemas/trigger-external-event.schema';
+import type {
+  inactivityDurationSchema,
+  triggerInactivityNodeSchema,
+} from '@flow/nodes/schemas/trigger-inactivity.schema';
 import type { triggerMessageNodeSchema } from '@flow/nodes/schemas/trigger-message.schema';
 import type { triggerScheduleNodeSchema } from '@flow/nodes/schemas/trigger-schedule.schema';
 import type { outputFieldSchema } from '@flow/outputs/schemas/output-field.schema';
@@ -44,6 +48,8 @@ export type AgentExits = z.infer<typeof agentExitsSchema>;
 export type TriggerMessageNode = z.infer<typeof triggerMessageNodeSchema>;
 export type TriggerExternalEventNode = z.infer<typeof triggerExternalEventNodeSchema>;
 export type TriggerScheduleNode = z.infer<typeof triggerScheduleNodeSchema>;
+export type TriggerInactivityNode = z.infer<typeof triggerInactivityNodeSchema>;
+export type InactivityDuration = z.infer<typeof inactivityDurationSchema>;
 export type AgentNode = z.infer<typeof agentNodeSchema>;
 export type CompletionNode = z.infer<typeof completionNodeSchema>;
 export type RouterNode = z.infer<typeof routerNodeSchema>;
@@ -51,7 +57,11 @@ export type ParallelNode = z.infer<typeof parallelNodeSchema>;
 export type ApiRequestNode = z.infer<typeof apiRequestNodeSchema>;
 export type SendMessageNode = z.infer<typeof sendMessageNodeSchema>;
 export type EscalationNode = z.infer<typeof escalationNodeSchema>;
-export type TriggerNode = TriggerMessageNode | TriggerExternalEventNode | TriggerScheduleNode;
+export type TriggerNode =
+  | TriggerMessageNode
+  | TriggerExternalEventNode
+  | TriggerScheduleNode
+  | TriggerInactivityNode;
 
 export type OutputField = z.infer<typeof outputFieldSchema>;
 export type PromptSource = z.infer<typeof promptSourceSchema>;

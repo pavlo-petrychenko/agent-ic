@@ -20,6 +20,7 @@ import {
   eventTrigger,
   field,
   flowOf,
+  inactivityTrigger,
   link,
   messageTrigger,
   replyAndScoreFlow,
@@ -96,6 +97,24 @@ describe('visibleVariables', () => {
       [link(trigger, PortName.Next, answer), link(answer, PortName.Error, handoff)],
     );
     expect(scopeAt(flow, handoff).has('answer.messages')).toBe(false);
+  });
+
+  it('gives an inactivity trigger the conversation, user and inactivity variables', () => {
+    const trigger = inactivityTrigger('quiet');
+    const answer = agent('answer');
+    const flow = flowOf([trigger, answer], [link(trigger, PortName.Next, answer)]);
+    const types = Object.fromEntries(
+      [...scopeAt(flow, answer)].map(([path, variable]) => [path, variable.type]),
+    );
+    expect(types).toMatchObject({
+      'conversation.id': VariableType.String,
+      'inactivity.silent_minutes': VariableType.Number,
+      'inactivity.attempt': VariableType.Number,
+      'inactivity.max_attempts': VariableType.Number,
+      'inactivity.last_author': VariableType.String,
+      history: VariableType.List,
+    });
+    expect(types).not.toHaveProperty('message.text');
   });
 
   it('makes a trigger variable nullable unless every trigger that reaches the node provides it', () => {

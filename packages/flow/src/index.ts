@@ -41,6 +41,7 @@ export type {
   FlowNode,
   FlowSettings,
   HandoffSettings,
+  InactivityDuration,
   ModelRef,
   OutputField,
   ParallelNode,
@@ -49,6 +50,7 @@ export type {
   RouterRule,
   SendMessageNode,
   TriggerExternalEventNode,
+  TriggerInactivityNode,
   TriggerMessageNode,
   TriggerNode,
   TriggerScheduleNode,
@@ -68,6 +70,8 @@ export {
   HEADER_NAME_PATTERN,
   MAX_DESCRIPTION_LENGTH,
   MAX_EDGES,
+  MAX_INACTIVITY_FIRES,
+  MAX_INACTIVITY_MINUTES,
   MAX_AUTO_CLOSE_MINUTES,
   MAX_ENUM_VALUES,
   MAX_LABEL_LENGTH,
@@ -79,6 +83,8 @@ export {
   MAX_RULE_CONDITIONS,
   MAX_TEMPLATE_LENGTH,
   MIN_AUTO_CLOSE_MINUTES,
+  MIN_INACTIVITY_FIRES,
+  MIN_INACTIVITY_MINUTES,
   MIN_PARALLEL_BRANCHES,
   NODE_KEY_MAX_LENGTH,
   NODE_KEY_PATTERN,
@@ -106,9 +112,18 @@ export {
 export {
   ChannelSelectionMode,
   ChannelType,
+  INACTIVITY_UNIT_MINUTES,
+  InactivityActivity,
+  InactivityRepeatKind,
+  InactivityUnit,
   ReplyMode,
   ScheduleKind,
 } from '@flow/nodes/constants/trigger.constants';
+export {
+  durationMinutes,
+  fireOffsetsMinutes,
+  silenceMinutes,
+} from '@flow/nodes/helpers/inactivity.helpers';
 export {
   AGENT_MESSAGES_FIELD_NAME,
   AGENT_OUTCOME_CONTINUE,
@@ -137,6 +152,7 @@ export type {
 } from '@flow/references/typedefs/prompt-reference.typedefs';
 export {
   API_REQUEST_OUTPUTS,
+  INACTIVITY_ROOT,
   RESERVED_ROOTS,
   VariableSourceKind,
   VariableType,
