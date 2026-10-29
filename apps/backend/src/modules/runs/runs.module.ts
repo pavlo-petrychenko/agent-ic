@@ -14,6 +14,7 @@ import { SimulationRunsResolver } from '@/modules/runs/resolvers/simulation-runs
 import { AgentExecutor } from '@/modules/runs/services/agent-executor.service';
 import { ApiRequestExecutor } from '@/modules/runs/services/api-request-executor.service';
 import { CompletionExecutor } from '@/modules/runs/services/completion-executor.service';
+import { ConversationExitService } from '@/modules/runs/services/conversation-exit.service';
 import { EscalationExecutor } from '@/modules/runs/services/escalation-executor.service';
 import { MessageTriggerExecutor } from '@/modules/runs/services/message-trigger-executor.service';
 import { ParallelExecutor } from '@/modules/runs/services/parallel-executor.service';
@@ -47,6 +48,7 @@ export class RunsModule extends defineModule({
     ParallelExecutor,
     ApiRequestExecutor,
     RunMessagesService,
+    ConversationExitService,
     SendMessageExecutor,
     EscalationExecutor,
     CompletionExecutor,

@@ -80,6 +80,7 @@ export enum TestRedisPrefix {
   RunEnd = 'run-end:',
   RunMessages = 'run-messages:',
   RunEscalation = 'run-escalation:',
+  RunConversationExit = 'run-conversation-exit:',
   RunsWorker = 'runs-worker:',
   SimulatorWorker = 'simulator-worker:',
   Seed = 'seed:',
