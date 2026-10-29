@@ -130,6 +130,21 @@ export class ChannelsRepository {
     return channel ?? null;
   }
 
+  async updateIdentity(
+    workspaceId: string,
+    id: string,
+    identity: ChannelRecord['identity'],
+    updatedAt: Date,
+    updatedByUserId: string,
+  ): Promise<ChannelRecord | null> {
+    const [channel] = await this.txHost.tx
+      .update(channels)
+      .set({ identity, updatedAt, updatedByUserId })
+      .where(and(eq(channels.workspaceId, workspaceId), eq(channels.id, id)))
+      .returning();
+    return channel ?? null;
+  }
+
   async updateCredentials(
     workspaceId: string,
     id: string,

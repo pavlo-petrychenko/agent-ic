@@ -15,6 +15,7 @@ import { ConnectTelegramResolver } from '@/modules/channels/resolvers/connect-te
 import { DeleteChannelResolver } from '@/modules/channels/resolvers/delete-channel.resolver';
 import { DisconnectTelegramResolver } from '@/modules/channels/resolvers/disconnect-telegram.resolver';
 import { ReconnectTelegramResolver } from '@/modules/channels/resolvers/reconnect-telegram.resolver';
+import { RefreshTelegramIdentityResolver } from '@/modules/channels/resolvers/refresh-telegram-identity.resolver';
 import { ReplaceTelegramTokenResolver } from '@/modules/channels/resolvers/replace-telegram-token.resolver';
 import { UpdateTelegramResolver } from '@/modules/channels/resolvers/update-telegram.resolver';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
@@ -32,6 +33,7 @@ import { GetChannelUseCase } from '@/modules/channels/use-cases/get-channel.use-
 import { HandleTelegramWebhookUseCase } from '@/modules/channels/use-cases/handle-telegram-webhook.use-case';
 import { ListChannelsUseCase } from '@/modules/channels/use-cases/list-channels.use-case';
 import { ReconnectTelegramUseCase } from '@/modules/channels/use-cases/reconnect-telegram.use-case';
+import { RefreshTelegramIdentityUseCase } from '@/modules/channels/use-cases/refresh-telegram-identity.use-case';
 import { ReplaceTelegramTokenUseCase } from '@/modules/channels/use-cases/replace-telegram-token.use-case';
 import { UpdateTelegramChannelUseCase } from '@/modules/channels/use-cases/update-telegram.use-case';
 import { ConversationsModule } from '@/modules/conversations';
@@ -71,6 +73,7 @@ export class ChannelsModule extends defineModule({
     GetChannelUseCase,
     ListChannelsUseCase,
     ReconnectTelegramUseCase,
+    RefreshTelegramIdentityUseCase,
     ReplaceTelegramTokenUseCase,
     UpdateTelegramChannelUseCase,
     DeliverOutboundMessageUseCase,
@@ -82,6 +85,7 @@ export class ChannelsModule extends defineModule({
     DeleteChannelResolver,
     DisconnectTelegramResolver,
     ReconnectTelegramResolver,
+    RefreshTelegramIdentityResolver,
     ReplaceTelegramTokenResolver,
     UpdateTelegramResolver,
   ],
