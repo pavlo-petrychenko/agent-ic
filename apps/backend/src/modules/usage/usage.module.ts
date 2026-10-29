@@ -40,5 +40,5 @@ export class UsageModule extends defineModule({
   ],
   resolvers: [UsageStatusResolver, WorkspaceUsageResolver],
   listeners: [CleanUpWorkspaceListener, SendUsageThresholdEmailListener],
-  exports: [UsageCountersService, UsageLimits, UsageReporter],
+  exports: [UsageCountersService, UsageLimitsService, UsageLimits, UsageReporter],
 }) {}
