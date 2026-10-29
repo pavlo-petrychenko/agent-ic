@@ -13,6 +13,8 @@ export const TELEGRAM_WEBHOOK_PATH = '/webhooks/telegram';
 export const TELEGRAM_WEBHOOK_WORKSPACE_PARAM = 'workspaceId';
 export const TELEGRAM_WEBHOOK_CHANNEL_PARAM = 'channelId';
 export const TELEGRAM_CALLBACK_DATA_MAX_BYTES = 64;
+export const TELEGRAM_CALLBACK_DATA_SEPARATOR = ':';
+export const TELEGRAM_QUICK_REPLY_CALLBACK_PREFIX = 'qr';
 
 export enum TelegramChatAction {
   Typing = 'typing',

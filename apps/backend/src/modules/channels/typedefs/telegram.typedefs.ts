@@ -64,6 +64,7 @@ export interface SetTelegramWebhookInput {
 export interface SendTelegramMessageInput {
   readonly token: string;
   readonly chatId: string;
+  readonly messageId: string;
   readonly text: string;
   readonly quickReplies: readonly string[];
 }
