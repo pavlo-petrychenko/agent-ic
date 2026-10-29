@@ -30,6 +30,7 @@ const telegramUpdate = (updateId: number, messageId: number): TelegramUpdate => 
     senderName: 'Moshe',
     text: 'Hello',
   },
+  callbackQuery: null,
 });
 
 describe('TelegramPollerService', () => {
@@ -163,7 +164,7 @@ describe('TelegramPollerService', () => {
 
   it('advances past a non-message update without storing anything', async () => {
     const { pollerChannel, workspaceId, agentId } = await seed();
-    testbed.telegram.updates = [{ updateId: '1000', message: null }];
+    testbed.telegram.updates = [{ updateId: '1000', message: null, callbackQuery: null }];
 
     await poller.pollChannel(pollerChannel);
 

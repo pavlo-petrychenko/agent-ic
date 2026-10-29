@@ -45,7 +45,15 @@ export interface TelegramMessageResponse {
   readonly from?: TelegramUserResponse;
 }
 
+export interface TelegramCallbackQueryResponse {
+  readonly id: string;
+  readonly from: TelegramUserResponse;
+  readonly message?: TelegramMessageResponse;
+  readonly data?: string;
+}
+
 export interface TelegramUpdateResponse {
   readonly update_id: number;
   readonly message?: TelegramMessageResponse;
+  readonly callback_query?: TelegramCallbackQueryResponse;
 }

@@ -26,9 +26,19 @@ export interface TelegramMessage {
   readonly text: string | null;
 }
 
+export interface TelegramCallbackQuery {
+  readonly id: string;
+  readonly chatId: string | null;
+  readonly telegramMessageId: string | null;
+  readonly senderId: string;
+  readonly senderName: string;
+  readonly data: string | null;
+}
+
 export interface TelegramUpdate {
   readonly updateId: string;
   readonly message: TelegramMessage | null;
+  readonly callbackQuery: TelegramCallbackQuery | null;
 }
 
 export interface TelegramPollerChannel {

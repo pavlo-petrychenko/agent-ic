@@ -39,6 +39,7 @@ const telegramUpdate = (overrides: Partial<TelegramMessage> = {}): TelegramUpdat
     text: 'Hello',
     ...overrides,
   },
+  callbackQuery: null,
 });
 
 describe('TelegramUpdatesService', () => {
@@ -206,7 +207,7 @@ describe('TelegramUpdatesService', () => {
     await expect(
       updates.handleTelegramUpdate(ctx, {
         channelId: channel.id,
-        update: { updateId: '1001', message: null },
+        update: { updateId: '1001', message: null, callbackQuery: null },
       }),
     ).resolves.toBeNull();
   });
