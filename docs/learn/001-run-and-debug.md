@@ -149,6 +149,8 @@ The domain metrics (D280):
 | `runs_finished_total`, `run_duration_seconds`                               | `worker`            | `mode`, `status`            |
 | `run_queue_wait_seconds`                                                    | `worker`            | `mode`                      |
 | `run_steps_total`, `run_step_duration_seconds`                              | `worker`            | `node_type`, `status`       |
+| `schedule_sweeps_total`, `schedule_ticks_missed_total`, `schedule_tick_lag_seconds` | `worker`    | none                        |
+| `schedule_ticks_total`, `schedule_matches_total`                            | `worker`            | `outcome`                   |
 | `channel_messages_received_total`                                           | `api`, `gateway`    | `channel_type`, `outcome`   |
 | `channel_messages_sent_total`                                               | `worker`            | `channel_type`, `outcome`   |
 | `email_sends_total`                                                         | `worker`            | `gateway`, `template`, `outcome` |
