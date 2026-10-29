@@ -14,11 +14,16 @@ export { FlowReferenceChecker } from '@/modules/agents/services/flow-reference-c
 export { AgentRuntimeReader } from '@/modules/agents/services/agent-runtime-reader.service';
 export { SimulatorTestsReader } from '@/modules/agents/services/simulator-tests-reader.service';
 export { SampleAgentService } from '@/modules/agents/services/sample-agent.service';
+export { ScheduleTriggerDirectoryService } from '@/modules/agents/services/schedule-trigger-directory.service';
 export type { Agent } from '@/modules/agents/typedefs/agent.typedefs';
 export type { AgentVersion } from '@/modules/agents/typedefs/agent-version.typedefs';
 export type { AutoCloseVersion } from '@/modules/agents/typedefs/auto-close.typedefs';
 export type { CurrentAgentFlow } from '@/modules/agents/typedefs/current-agent-flow.typedefs';
 export type { PauseSettings } from '@/modules/agents/typedefs/pause-settings.typedefs';
+export type {
+  LiveScheduleTrigger,
+  LiveScheduleTriggerState,
+} from '@/modules/agents/typedefs/schedule-trigger.typedefs';
 export type {
   SamplePromptDefinition,
   SamplePromptRefs,

@@ -1,0 +1,2 @@
+ALTER TABLE "agents"."agent_versions" ADD COLUMN "schedule_nodes" jsonb GENERATED ALWAYS AS (jsonb_path_query_array(flow, '$.nodes[*] ? (@.type == "trigger_schedule")')) STORED NOT NULL;--> statement-breakpoint
+CREATE INDEX "agent_versions_schedule_nodes_idx" ON "agents"."agent_versions" USING btree ("id") WHERE "agents"."agent_versions"."schedule_nodes" <> '[]'::jsonb;

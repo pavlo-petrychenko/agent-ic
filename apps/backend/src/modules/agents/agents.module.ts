@@ -2,6 +2,7 @@ import { DiscoveryModule } from '@nestjs/core';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import { AutoCloseVersionsRepository } from '@/modules/agents/repositories/auto-close-versions.repository';
+import { LiveScheduleTriggersRepository } from '@/modules/agents/repositories/live-schedule-triggers.repository';
 import { AgentFieldsResolver } from '@/modules/agents/resolvers/agent-fields.resolver';
 import { AgentsResolver } from '@/modules/agents/resolvers/agents.resolver';
 import { CreateAgentResolver } from '@/modules/agents/resolvers/create-agent.resolver';
@@ -23,6 +24,7 @@ import { AgentRuntimeReader } from '@/modules/agents/services/agent-runtime-read
 import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import { FlowReferenceChecksService } from '@/modules/agents/services/flow-reference-checks.service';
 import { SampleAgentService } from '@/modules/agents/services/sample-agent.service';
+import { ScheduleTriggerDirectoryService } from '@/modules/agents/services/schedule-trigger-directory.service';
 import { SimulatorTestsService } from '@/modules/agents/services/simulator-tests.service';
 import { CompareAgentVersionsUseCase } from '@/modules/agents/use-cases/compare-agent-versions.use-case';
 import { CountAgentsUseCase } from '@/modules/agents/use-cases/count-agents.use-case';
@@ -52,6 +54,8 @@ export class AgentsModule extends defineModule({
     AgentsRepository,
     AgentVersionsRepository,
     AutoCloseVersionsRepository,
+    LiveScheduleTriggersRepository,
+    ScheduleTriggerDirectoryService,
     AgentDraftsService,
     AgentFlowService,
     AgentPublishingService,
@@ -102,5 +106,6 @@ export class AgentsModule extends defineModule({
     AgentVersionsRepository,
     AutoCloseVersionsRepository,
     SampleAgentService,
+    ScheduleTriggerDirectoryService,
   ],
 }) {}
