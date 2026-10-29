@@ -9,6 +9,7 @@ import {
 
 const outbound = (conversationId: string, index: number): ChannelOutboundMessage => ({
   messageId: `${conversationId}:${index}`,
+  workspaceId: 'workspace-1',
   conversationId,
   channelId: null,
   endUserExternalId: TEST_END_USER_EXTERNAL_ID,

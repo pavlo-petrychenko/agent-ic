@@ -12,6 +12,7 @@ export const toChannelOutboundMessage = ({
   conversation,
 }: OutboundDelivery): ChannelOutboundMessage => ({
   messageId: message.id,
+  workspaceId: message.workspaceId,
   conversationId: conversation.id,
   channelId: conversation.channelId,
   endUserExternalId: conversation.endUserExternalId,

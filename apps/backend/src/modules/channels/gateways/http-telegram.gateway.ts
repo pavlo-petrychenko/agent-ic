@@ -8,15 +8,18 @@ import {
 } from '@/modules/channels/constants/telegram.constants';
 import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
+import { telegramReplyMarkup } from '@/modules/channels/helpers/telegram.helpers';
 import type {
   TelegramMeResponse,
   TelegramMessageResponse,
+  TelegramResponse,
   TelegramUpdateResponse,
   TelegramWebhookInfoResponse,
-  TelegramResponse,
 } from '@/modules/channels/typedefs/http-telegram-gateway.typedefs';
 import type {
   GetTelegramUpdatesInput,
+  SendTelegramChatActionInput,
+  SendTelegramMessageInput,
   SetTelegramWebhookInput,
   TelegramBot,
   TelegramMessage,
@@ -88,6 +91,30 @@ export class HttpTelegramGateway extends TelegramGateway {
       input.timeoutSeconds * MILLISECONDS_PER_SECOND + TELEGRAM_API_TIMEOUT_MS,
     );
     return result.map(toTelegramUpdate);
+  }
+
+  async sendMessage(input: SendTelegramMessageInput): Promise<void> {
+    const replyMarkup = telegramReplyMarkup(input.quickReplies);
+    await this.call<TelegramMessageResponse>(input.token, 'sendMessage', {
+      method: 'POST',
+      headers: { [HttpHeader.ContentType]: TELEGRAM_CONTENT_TYPE },
+      body: JSON.stringify({
+        chat_id: input.chatId,
+        text: input.text,
+        ...(replyMarkup === null ? {} : { reply_markup: replyMarkup }),
+      }),
+    });
+  }
+
+  async sendChatAction(input: SendTelegramChatActionInput): Promise<void> {
+    await this.call<boolean>(input.token, 'sendChatAction', {
+      method: 'POST',
+      headers: { [HttpHeader.ContentType]: TELEGRAM_CONTENT_TYPE },
+      body: JSON.stringify({
+        chat_id: input.chatId,
+        action: input.action,
+      }),
+    });
   }
 
   private async call<TResult>(

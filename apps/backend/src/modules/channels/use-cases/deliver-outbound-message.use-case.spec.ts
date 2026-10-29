@@ -41,6 +41,7 @@ describe('DeliverOutboundMessageUseCase', () => {
     expect(testbed.simulated.transcript(conversation.id)).toEqual([
       {
         messageId: message.id,
+        workspaceId: conversation.workspaceId,
         conversationId: conversation.id,
         channelId: null,
         endUserExternalId: TEST_END_USER_EXTERNAL_ID,
@@ -81,7 +82,7 @@ describe('DeliverOutboundMessageUseCase', () => {
 
   it('marks the message failed when no adapter serves the channel', async () => {
     const conversation = await seedChannelConversation(testbed, {
-      channelKind: ChannelKind.Telegram,
+      channelKind: ChannelKind.Api,
     });
     const message = await queueAgentReply(testbed, conversation);
 

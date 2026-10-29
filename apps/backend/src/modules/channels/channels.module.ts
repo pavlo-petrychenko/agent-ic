@@ -3,6 +3,7 @@ import { CHANNEL_ADAPTERS } from '@/modules/channels/constants/channel-adapter.c
 import type { ChannelAdapter } from '@/modules/channels/gateways/channel-adapter.gateway';
 import { HttpTelegramGateway } from '@/modules/channels/gateways/http-telegram.gateway';
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
+import { TelegramChannelAdapter } from '@/modules/channels/gateways/telegram-channel-adapter.gateway';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { DeliverOutboundMessageListener } from '@/modules/channels/listeners/deliver-outbound-message.listener';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
@@ -49,10 +50,14 @@ export class ChannelsModule extends defineModule({
       useClass: HttpTelegramGateway,
     },
     SimulatedChannelAdapter,
+    TelegramChannelAdapter,
     {
       provide: CHANNEL_ADAPTERS,
-      inject: [SimulatedChannelAdapter],
-      useFactory: (simulated: SimulatedChannelAdapter): ChannelAdapter[] => [simulated],
+      inject: [SimulatedChannelAdapter, TelegramChannelAdapter],
+      useFactory: (
+        simulated: SimulatedChannelAdapter,
+        telegram: TelegramChannelAdapter,
+      ): ChannelAdapter[] => [simulated, telegram],
     },
     ChannelAdapterRegistryService,
     ChannelMetricsService,
@@ -74,5 +79,5 @@ export class ChannelsModule extends defineModule({
     UpdateTelegramResolver,
   ],
   listeners: [DeliverOutboundMessageListener],
-  exports: [SimulatedChannelAdapter, ChannelAdapterRegistryService],
+  exports: [SimulatedChannelAdapter, TelegramChannelAdapter, ChannelAdapterRegistryService],
 }) {}

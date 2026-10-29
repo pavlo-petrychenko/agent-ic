@@ -3,6 +3,7 @@ import {
   TELEGRAM_ALLOWED_UPDATES,
   TELEGRAM_API_BASE_URL,
   TELEGRAM_INVALID_RESPONSE_MESSAGE,
+  TelegramChatAction,
 } from '@/modules/channels/constants/telegram.constants';
 import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { HttpTelegramGateway } from '@/modules/channels/gateways/http-telegram.gateway';
@@ -208,6 +209,98 @@ describe('HttpTelegramGateway', () => {
         allowedUpdates: TELEGRAM_ALLOWED_UPDATES,
       }),
     ).resolves.toEqual([]);
+  });
+
+  it('sends a message with its quick replies as an inline keyboard', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({
+        ok: true,
+        result: { message_id: 7, date: 1_760_000_000, chat: { id: 42 }, text: 'Hello' },
+      }),
+    );
+
+    await gateway.sendMessage({
+      token: TEST_TELEGRAM_TOKEN,
+      chatId: '42',
+      text: 'Hello',
+      quickReplies: ['Book a table', 'Call us'],
+    });
+
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe(`${TELEGRAM_API_BASE_URL}/bot${TEST_TELEGRAM_TOKEN}/sendMessage`);
+    expect(init?.method).toBe('POST');
+    expect(requestBody(init)).toEqual({
+      chat_id: '42',
+      text: 'Hello',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: 'Book a table', callback_data: 'Book a table' }],
+          [{ text: 'Call us', callback_data: 'Call us' }],
+        ],
+      },
+    });
+  });
+
+  it('sends a message without a keyboard when it has no quick replies', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({
+        ok: true,
+        result: { message_id: 8, date: 1_760_000_000, chat: { id: 42 }, text: 'Hello' },
+      }),
+    );
+
+    await gateway.sendMessage({
+      token: TEST_TELEGRAM_TOKEN,
+      chatId: '42',
+      text: 'Hello',
+      quickReplies: [],
+    });
+
+    const [, init] = fetchMock.mock.calls[0] ?? [];
+    expect(requestBody(init)).toEqual({ chat_id: '42', text: 'Hello' });
+  });
+
+  it('sends a typing chat action', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json({ ok: true, result: true }));
+
+    await gateway.sendChatAction({
+      token: TEST_TELEGRAM_TOKEN,
+      chatId: '42',
+      action: TelegramChatAction.Typing,
+    });
+
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe(`${TELEGRAM_API_BASE_URL}/bot${TEST_TELEGRAM_TOKEN}/sendChatAction`);
+    expect(init?.method).toBe('POST');
+    expect(requestBody(init)).toEqual({ chat_id: '42', action: 'typing' });
+  });
+
+  it('maps a blocked bot to a non-retryable send error', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json(
+        { ok: false, error_code: 403, description: 'Forbidden: bot was blocked by the user' },
+        { status: 403 },
+      ),
+    );
+
+    const error = await gateway
+      .sendMessage({
+        token: TEST_TELEGRAM_TOKEN,
+        chatId: '42',
+        text: 'Hello',
+        quickReplies: [],
+      })
+      .catch((caught: unknown) => caught);
+
+    if (!(error instanceof TelegramApiError)) {
+      throw error;
+    }
+    expect(error).toMatchObject({
+      method: 'sendMessage',
+      status: 403,
+      retryable: false,
+      description: 'Forbidden: bot was blocked by the user',
+    });
   });
 
   it('maps a rate limit on getUpdates to a retryable error', async () => {

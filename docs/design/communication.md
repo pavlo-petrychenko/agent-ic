@@ -195,7 +195,8 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 3. **Polling transport (local dev):** the `gateway` role runs `TelegramPollerService` only when `TELEGRAM_TRANSPORT=polling`. It lists connected Telegram channels across workspaces, calls `getUpdates` per bot with that channel's offset and `TELEGRAM_POLL_TIMEOUT_SECONDS`, and passes each update to the entry point. The offset advances only after the update is handled; it is kept in memory, and `channel_events` makes a replay after a restart harmless. One consumer per bot: a second poller or a registered webhook gets `409`.
 4. **Settings, replace, disconnect:** `updateTelegram(id, agentId, showTyping)` stores who answers; `replaceTelegramToken(id, token)` validates the new token, requires the same bot, re-registers the transport and seals the new token; `disconnectTelegram(id)` deletes the webhook and sets `disconnected`.
 5. **Delete:** `deleteChannel(id)` removes the webhook (unless the channel is already disconnected), then deletes the row; `channel_events` cascade, while conversations, messages and runs stay. The bot id is freed, so the same bot can be connected again.
-6. **Broken token later:** sends fail with 401, or Telegram stops delivering → status `broken` → email to owners and admins (not built yet).
+6. **Outbound:** `worker-runs` delivers through `TelegramChannelAdapter`: it loads the channel and opens its token, enforces the per-bot and per-chat token buckets, sends `sendChatAction` when `showTyping` is on, then `sendMessage` to the conversation's chat id. The delivery use case marks the message `delivered` or `failed`.
+7. **Broken token later:** sends fail with 401, or Telegram stops delivering → status `broken` → email to owners and admins (not built yet).
 
 The webhook endpoint is not built yet: today only the polling transport delivers updates, and the webhook registration in step 1 waits for it.
 
