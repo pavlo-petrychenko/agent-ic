@@ -1,17 +1,20 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, inArray, isNull, lt, ne, or, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lt, ne, notExists, or, sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import {
   CloseReason,
   ConversationMode,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
+import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import { conversations } from '@/modules/conversations/db/conversations.table';
+import { messages } from '@/modules/conversations/db/messages.table';
 import {
   endUserLockKey,
   simulationLockKey,
 } from '@/modules/conversations/helpers/incoming-message.helpers';
+import type { InactivityScope } from '@/modules/conversations/typedefs/auto-close.typedefs';
 import type {
   Conversation,
   EndUserConversationKey,
@@ -228,11 +231,78 @@ export class ConversationsRepository {
       .where(and(eq(conversations.workspaceId, workspaceId), eq(conversations.id, id)));
   }
 
+  async closeInactive(
+    workspaceId: string,
+    scopes: readonly InactivityScope[],
+    closedAt: Date,
+    limit: number,
+  ): Promise<string[]> {
+    if (scopes.length === 0) {
+      return [];
+    }
+    const locked = await this.txHost.tx
+      .select({ id: conversations.id })
+      .from(conversations)
+      .where(this.inactive(workspaceId, scopes))
+      .limit(limit)
+      .for('update', { skipLocked: true });
+    if (locked.length === 0) {
+      return [];
+    }
+    const closed = await this.txHost.tx
+      .update(conversations)
+      .set({ state: ConversationState.Closed, closedAt, closeReason: CloseReason.Inactivity })
+      .where(
+        and(
+          inArray(
+            conversations.id,
+            locked.map(({ id }) => id),
+          ),
+          this.inactive(workspaceId, scopes),
+        ),
+      )
+      .returning({ id: conversations.id });
+    return closed.map(({ id }) => id);
+  }
+
   async touch(workspaceId: string, id: string, lastMessageAt: Date): Promise<void> {
     await this.txHost.tx
       .update(conversations)
       .set({ lastMessageAt })
       .where(and(eq(conversations.workspaceId, workspaceId), eq(conversations.id, id)));
+  }
+
+  private inactive(workspaceId: string, scopes: readonly InactivityScope[]): SQL | undefined {
+    return and(
+      eq(conversations.workspaceId, workspaceId),
+      eq(conversations.state, ConversationState.AgentActive),
+      isNull(conversations.activeRunId),
+      or(...scopes.map((scope) => this.silentIn(scope))),
+    );
+  }
+
+  private silentIn(scope: InactivityScope): SQL | undefined {
+    return and(
+      eq(conversations.agentId, scope.agentId),
+      eq(conversations.mode, scope.mode),
+      scope.simulationVersionId === null
+        ? isNull(conversations.simulationVersionId)
+        : eq(conversations.simulationVersionId, scope.simulationVersionId),
+      lt(conversations.createdAt, scope.silentSince),
+      notExists(
+        this.txHost.tx
+          .select({ id: messages.id })
+          .from(messages)
+          .where(
+            and(
+              eq(messages.workspaceId, conversations.workspaceId),
+              eq(messages.conversationId, conversations.id),
+              eq(messages.author, MessageAuthor.Customer),
+              gte(messages.createdAt, scope.silentSince),
+            ),
+          ),
+      ),
+    );
   }
 
   private simulationQuery(key: SimulationKey, ...conditions: SQL[]) {

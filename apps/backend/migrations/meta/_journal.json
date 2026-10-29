@@ -232,6 +232,13 @@
       "when": 1793229276652,
       "tag": "0032_conversation-silence-escalation",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793230407235,
+      "tag": "0033_agent-version-auto-close",
+      "breakpoints": true
     }
   ]
 }

@@ -36,6 +36,8 @@ export const NO_PUBLISHED_VERSIONS = 0;
 
 export const FLOW_NODES_FIELD = 'nodes';
 
+export const AUTO_CLOSE_MINUTES_PATH = '{settings,autoClose,afterMinutes}';
+
 export const DRAFT_INITIAL_REVISION = 0;
 
 export enum AgentStatus {

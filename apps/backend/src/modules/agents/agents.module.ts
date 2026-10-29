@@ -1,6 +1,7 @@
 import { DiscoveryModule } from '@nestjs/core';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
+import { AutoCloseVersionsRepository } from '@/modules/agents/repositories/auto-close-versions.repository';
 import { AgentFieldsResolver } from '@/modules/agents/resolvers/agent-fields.resolver';
 import { AgentsResolver } from '@/modules/agents/resolvers/agents.resolver';
 import { CreateAgentResolver } from '@/modules/agents/resolvers/create-agent.resolver';
@@ -50,6 +51,7 @@ export class AgentsModule extends defineModule({
   providers: [
     AgentsRepository,
     AgentVersionsRepository,
+    AutoCloseVersionsRepository,
     AgentDraftsService,
     AgentFlowService,
     AgentPublishingService,
@@ -95,5 +97,10 @@ export class AgentsModule extends defineModule({
     ModelOptionsResolver,
     TestApiRequestResolver,
   ],
-  exports: [AgentRuntimeReader, AgentVersionsRepository, SampleAgentService],
+  exports: [
+    AgentRuntimeReader,
+    AgentVersionsRepository,
+    AutoCloseVersionsRepository,
+    SampleAgentService,
+  ],
 }) {}
