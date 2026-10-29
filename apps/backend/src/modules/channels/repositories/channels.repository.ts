@@ -95,6 +95,28 @@ export class ChannelsRepository {
     return channel ?? null;
   }
 
+  async updateStatusIfCurrent(
+    workspaceId: string,
+    id: string,
+    current: ChannelRecord['status'],
+    next: ChannelRecord['status'],
+    updatedAt: Date,
+    updatedByUserId: string,
+  ): Promise<ChannelRecord | null> {
+    const [channel] = await this.txHost.tx
+      .update(channels)
+      .set({ status: next, updatedAt, updatedByUserId })
+      .where(
+        and(
+          eq(channels.workspaceId, workspaceId),
+          eq(channels.id, id),
+          eq(channels.status, current),
+        ),
+      )
+      .returning();
+    return channel ?? null;
+  }
+
   async updateSettings(
     workspaceId: string,
     id: string,
