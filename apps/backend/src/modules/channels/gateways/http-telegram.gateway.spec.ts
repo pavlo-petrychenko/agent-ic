@@ -153,8 +153,9 @@ describe('HttpTelegramGateway', () => {
           senderName: 'Moshe',
           text: 'Hello',
         },
+        callbackQuery: null,
       },
-      { updateId: '11', message: null },
+      { updateId: '11', message: null, callbackQuery: null },
     ]);
 
     const [url, init] = fetchMock.mock.calls[0] ?? [];
@@ -193,6 +194,54 @@ describe('HttpTelegramGateway', () => {
           senderId: null,
           senderName: null,
           text: null,
+        },
+        callbackQuery: null,
+      },
+    ]);
+  });
+
+  it('maps a callback query update', async () => {
+    const sentAt = 1_760_000_000;
+    fetchMock.mockResolvedValueOnce(
+      Response.json({
+        ok: true,
+        result: [
+          {
+            update_id: 13,
+            callback_query: {
+              id: 'callback-1',
+              from: { id: 900, first_name: 'Moshe' },
+              message: {
+                message_id: 7,
+                date: sentAt,
+                text: 'Choose',
+                chat: { id: 42 },
+              },
+              data: 'qr:msg_1:0',
+            },
+          },
+        ],
+      }),
+    );
+
+    await expect(
+      gateway.getUpdates({
+        token: TEST_TELEGRAM_TOKEN,
+        offset: 0,
+        timeoutSeconds: 20,
+        allowedUpdates: TELEGRAM_ALLOWED_UPDATES,
+      }),
+    ).resolves.toEqual([
+      {
+        updateId: '13',
+        message: null,
+        callbackQuery: {
+          id: 'callback-1',
+          chatId: '42',
+          telegramMessageId: '7',
+          senderId: '900',
+          senderName: 'Moshe',
+          data: 'qr:msg_1:0',
         },
       },
     ]);

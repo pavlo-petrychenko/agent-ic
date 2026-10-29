@@ -1,6 +1,9 @@
 import { ChannelKind } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
-import { toIncomingMessageInput } from '@/modules/channels/helpers/telegram-update.helpers';
+import {
+  toIncomingMessageInput,
+  toTelegramUpdate,
+} from '@/modules/channels/helpers/telegram-update.helpers';
 import { ConversationMode } from '@/modules/conversations';
 
 const CHANNEL = { id: 'chn_1', workspaceId: 'ws_1', agentId: 'agt_1' };
@@ -13,6 +16,73 @@ const MESSAGE = {
   senderName: 'Moshe',
   text: 'Hello',
 };
+
+describe('toTelegramUpdate', () => {
+  it('maps a callback query update', () => {
+    expect(
+      toTelegramUpdate({
+        update_id: 20,
+        callback_query: {
+          id: 'callback-1',
+          from: { id: 900, first_name: 'Moshe' },
+          message: { message_id: 5, date: 1_760_000_000, chat: { id: 42 } },
+          data: 'qr:msg_1:0',
+        },
+      }),
+    ).toEqual({
+      updateId: '20',
+      message: null,
+      callbackQuery: {
+        id: 'callback-1',
+        chatId: '42',
+        telegramMessageId: '5',
+        senderId: '900',
+        senderName: 'Moshe',
+        data: 'qr:msg_1:0',
+      },
+    });
+  });
+
+  it('maps a callback query without a message, sender or data to nulls', () => {
+    expect(toTelegramUpdate({ update_id: 21, callback_query: { id: 'callback-2' } })).toEqual({
+      updateId: '21',
+      message: null,
+      callbackQuery: {
+        id: 'callback-2',
+        chatId: null,
+        telegramMessageId: null,
+        senderId: null,
+        senderName: null,
+        data: null,
+      },
+    });
+  });
+
+  it('leaves the callback query null for a message update', () => {
+    expect(
+      toTelegramUpdate({
+        update_id: 22,
+        message: {
+          message_id: 6,
+          date: 1_760_000_000,
+          text: 'Hello',
+          chat: { id: 42 },
+        },
+      }),
+    ).toEqual({
+      updateId: '22',
+      message: {
+        messageId: '6',
+        sentAt: new Date(1_760_000_000 * 1_000),
+        chatId: '42',
+        senderId: null,
+        senderName: null,
+        text: 'Hello',
+      },
+      callbackQuery: null,
+    });
+  });
+});
 
 describe('toIncomingMessageInput', () => {
   it('maps a telegram message to an incoming message', () => {

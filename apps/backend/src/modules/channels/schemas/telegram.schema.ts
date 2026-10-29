@@ -32,7 +32,15 @@ const telegramMessageResponseSchema = z.looseObject({
   from: telegramUserResponseSchema.optional(),
 });
 
+const telegramCallbackQueryResponseSchema = z.looseObject({
+  id: z.string(),
+  from: telegramUserResponseSchema,
+  message: telegramMessageResponseSchema.optional(),
+  data: z.string().optional(),
+});
+
 export const telegramWebhookUpdateSchema = z.looseObject({
   update_id: z.number(),
   message: telegramMessageResponseSchema.optional(),
+  callback_query: telegramCallbackQueryResponseSchema.optional(),
 });

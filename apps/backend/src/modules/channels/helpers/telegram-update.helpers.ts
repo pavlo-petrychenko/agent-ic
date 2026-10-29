@@ -1,10 +1,12 @@
 import { ChannelKind } from '@agent-ic/contracts';
 import type { ChannelRecord } from '@/modules/channels/typedefs/channel.typedefs';
 import type {
+  TelegramCallbackQueryResponse,
   TelegramMessageResponse,
   TelegramUpdateResponse,
 } from '@/modules/channels/typedefs/http-telegram-gateway.typedefs';
 import type {
+  TelegramCallbackQuery,
   TelegramMessage,
   TelegramUpdate,
 } from '@/modules/channels/typedefs/telegram.typedefs';
@@ -15,6 +17,8 @@ import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constan
 export const toTelegramUpdate = (update: TelegramUpdateResponse): TelegramUpdate => ({
   updateId: String(update.update_id),
   message: update.message === undefined ? null : toTelegramMessage(update.message),
+  callbackQuery:
+    update.callback_query === undefined ? null : toTelegramCallbackQuery(update.callback_query),
 });
 
 export const toTelegramMessage = (message: TelegramMessageResponse): TelegramMessage => {
@@ -26,6 +30,21 @@ export const toTelegramMessage = (message: TelegramMessageResponse): TelegramMes
     senderId: sender === undefined ? null : String(sender.id),
     senderName: sender?.first_name ?? null,
     text: message.text ?? null,
+  };
+};
+
+export const toTelegramCallbackQuery = (
+  query: TelegramCallbackQueryResponse,
+): TelegramCallbackQuery => {
+  const sender = query.from;
+  const message = query.message;
+  return {
+    id: query.id,
+    chatId: message === undefined ? null : String(message.chat.id),
+    telegramMessageId: message === undefined ? null : String(message.message_id),
+    senderId: String(sender.id),
+    senderName: sender.first_name,
+    data: query.data ?? null,
   };
 };
 
