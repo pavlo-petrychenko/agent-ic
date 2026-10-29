@@ -66,7 +66,8 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 
 - `trigger_inactivity` starts a run in one chat after a stretch of silence. It is part of schema v3. It has one `next` port.
 - `silence` and `repeat.every` are `{ amount, unit }` with `unit` `minutes`, `hours` or `days`. `activity` is `any` message or `customer` messages only. `repeat` is `{ kind: 'once' }` or `{ kind: 'every', every, maxTimes }` with `maxTimes` from 2 to 5 (`MIN_INACTIVITY_FIRES`, `MAX_INACTIVITY_FIRES`). `conditions` is `{ notEscalated, channelTypes }`; an empty `channelTypes` means every channel.
-- A duration from 5 minutes to 30 days is the intended range (`MIN_INACTIVITY_MINUTES`, `MAX_INACTIVITY_MINUTES`); the schema only requires a positive whole number.
+- A duration from 5 minutes to 30 days is the intended range (`MIN_INACTIVITY_MINUTES`, `MAX_INACTIVITY_MINUTES`); the schema only requires a positive whole number, and validation refuses a duration outside the range (`INACTIVITY_DURATION_OUT_OF_RANGE`).
+- `validateFlow` refuses a second inactivity trigger (`DUPLICATE_INACTIVITY_TRIGGER`) and a flow with no Incoming message or External event trigger (`INACTIVITY_WITHOUT_CONVERSATION_TRIGGER`). It warns about a trigger with no Send message step after it (`INACTIVITY_NO_REPLY_STEP`) and about any fire that is due after `settings.autoClose.afterMinutes` (`INACTIVITY_AFTER_AUTO_CLOSE`), because auto-close counts from the last customer message and closes the chat first.
 - `silenceMinutes(node)` and `fireOffsetsMinutes(node)` give the first fire and every fire as minutes after the anchor.
 - Variables: `conversation.*`, `user.*`, `channel`, `history` and `inactivity.silent_minutes`, `inactivity.attempt`, `inactivity.max_attempts`, `inactivity.last_author`. `inactivity` is a reserved node key.
 

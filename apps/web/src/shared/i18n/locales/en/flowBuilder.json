@@ -61,7 +61,23 @@
     "connectingTo": "Connect to {{name}}",
     "emptyTitle": "Start with a trigger",
     "emptyDescription": "A trigger decides when this agent runs.",
-    "emptyAction": "Add a trigger"
+    "emptyAction": "Add a trigger",
+    "exitDefault": {
+      "end": "End · default",
+      "handoff": "Hand off · default"
+    },
+    "customize": "Customize",
+    "customizeExit": "Customize the “{{exit}}” exit of {{name}}",
+    "exitSteps": {
+      "end": {
+        "send": "Send goodbye",
+        "finish": "End the chat"
+      },
+      "handoff": {
+        "send": "Send hand-off note",
+        "finish": "Hand to a person"
+      }
+    }
   },
   "summary": {
     "allChannels": "All channels",
@@ -75,12 +91,26 @@
     "text": "{{text}}",
     "request": "{{method}} {{url}}",
     "notifyTeam": "Notifies the team, flow paused until hand-back",
-    "endChat": "Ends the conversation"
+    "endChat": "Ends the conversation",
+    "canEnd": "can end the chat",
+    "canHandOff": "can hand off",
+    "canEndOrHandOff": "can end or hand off",
+    "scheduleDaily": "Daily {{time}}",
+    "scheduleWeekdays": "Weekdays {{time}}",
+    "scheduleCron": "Cron {{cron}}",
+    "timeZone": "{{timeZone}}",
+    "inactivityMinutes": "After {{amount}} min of silence",
+    "inactivityHours": "After {{amount}} h of silence",
+    "inactivityDays": "After {{amount}} d of silence",
+    "inactivityRepeats_one": "up to {{count}}×",
+    "inactivityRepeats_other": "up to {{count}}×"
   },
   "port": {
     "else": "else",
     "error": "on error",
-    "branches": "branches"
+    "branches": "branches",
+    "end": "end",
+    "handoff": "hand off"
   },
   "density": {
     "label": "Node density",
@@ -206,7 +236,16 @@
       "connected": "New connection: {{step}} → {{after}}",
       "disconnected": "Removed connection: {{step}} → {{after}}",
       "branchInBackground": "Branch {{step}} → {{after}} now runs in the background",
-      "branchWaited": "The reply now waits for branch {{step}} → {{after}}"
+      "branchWaited": "The reply now waits for branch {{step}} → {{after}}",
+      "handoffSetUp": "Flow settings: default hand-off set up",
+      "handoffReset": "Flow settings: default hand-off back to the defaults",
+      "handoffChanged": "Flow settings: default hand-off {{field}} changed",
+      "failureHandsOff": "Flow settings: a failed step apologises and hands off (was: fail the run)",
+      "failureFailsRun": "Flow settings: a failed step fails the run (was: apologise and hand off)",
+      "apologyChanged": "Flow settings: apology message changed",
+      "autoCloseOn": "Flow settings: close inactive conversations after {{after}} (was off)",
+      "autoCloseOff": "Flow settings: inactive conversations stay open (was: close after {{before}})",
+      "autoCloseChanged": "Flow settings: close inactive conversations after {{after}} instead of {{before}}"
     },
     "field": {
       "other": "a setting",
@@ -243,7 +282,14 @@
       "eventName": "event name",
       "examplePayload": "example payload",
       "replyMode": "reply mode",
-      "schedule": "schedule"
+      "schedule": "schedule",
+      "exits": "exits"
+    },
+    "duration": {
+      "hours_one": "{{count}} h",
+      "hours_other": "{{count}} h",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days"
     }
   },
   "lastRun": {
@@ -310,8 +356,17 @@
     "WAIT_FOR_RESULT_WITHOUT_REPLY": "The caller waits for a reply, but no step sends one",
     "NO_FALLBACK_MESSAGE": "Add a message for the customer while they wait",
     "EXIT_IN_BACKGROUND_BRANCH": "Agent exits can’t run inside a background branch",
-    "EMPTY_EXIT_CRITERION": "Describe when the “{{exit}}” exit applies",
-    "EXIT_ESCALATION_MESSAGE": "The agent already writes the last message; the escalation after “{{exit}}” sends a second one"
+    "EMPTY_EXIT_CRITERION": "Describe when the “$t(flowBuilder:port.{{exit}})” exit applies",
+    "EXIT_ESCALATION_MESSAGE": "The agent already writes the last message; the escalation after “$t(flowBuilder:port.{{exit}})” sends a second one",
+    "DUPLICATE_INACTIVITY_TRIGGER": "Only one inactivity timer is allowed per flow",
+    "INACTIVITY_WITHOUT_CONVERSATION_TRIGGER": "Add an Incoming message or External event trigger so a conversation exists",
+    "INACTIVITY_DURATION_OUT_OF_RANGE": "Pick a time from {{min}} minutes to 30 days",
+    "INACTIVITY_NO_REPLY_STEP": "Add a step that sends a message after the timer fires",
+    "INACTIVITY_AFTER_AUTO_CLOSE": "The conversation is closed after {{afterMinutes, minutes}} of silence, before this timer can finish firing",
+    "SCHEDULE_TOO_FREQUENT": "A schedule can run at most {{max}} times an hour",
+    "SCHEDULE_NO_CHANNEL_TYPES": "Pick at least one channel type",
+    "SCHEDULE_LIMIT_TOO_HIGH": "A run can reach at most {{max}} conversations",
+    "SCHEDULE_CLOSES_BEFORE_SILENCE": "Auto-close ends the chat before this silence is reached"
   },
   "inspector": {
     "close": "Close inspector",
@@ -338,7 +393,9 @@
       "completion": "One LLM call · no tools · structured output",
       "send_message": "Sends chat messages to the customer",
       "escalation": "Hands the chat to a person or ends it",
-      "api_request": "Calls an external API · no LLM involved"
+      "api_request": "Calls an external API · no LLM involved",
+      "trigger_schedule": "Starts a run on a schedule for the chats that match",
+      "trigger_inactivity": "Starts this branch in one conversation after a silence"
     },
     "renameKey": {
       "title": "Rename the key too?",
@@ -441,7 +498,34 @@
       "retries_one": "after {{count}} retry",
       "retries_other": "after {{count}} retries",
       "failureNote": "Timeouts, provider errors or the usage limit.",
-      "repliesNote": "Replies go out only through a Send message step. Each item in messages becomes its own chat message."
+      "repliesNote": "Replies go out only through a Send message step. Each item in messages becomes its own chat message.",
+      "exits": {
+        "title": "Exits",
+        "noteOn": "decided by the agent",
+        "noteOff": "off",
+        "toggle": {
+          "end": "End conversation",
+          "handoff": "Hand off to a person"
+        },
+        "when": "When",
+        "whenLabel": {
+          "end": "When to end the conversation",
+          "handoff": "When to hand off"
+        },
+        "defaultWhen": {
+          "end": "the customer says goodbye or confirms they have everything they need",
+          "handoff": "the customer asks for a person, you can’t help after 2 tries, or it’s a complaint, a legal or a safety question"
+        },
+        "off": "Off: the agent always continues to Next.",
+        "routes": "Where each exit goes",
+        "default": {
+          "end": "default · close the chat",
+          "handoff": "default · Flow settings hand-off"
+        },
+        "note": "The agent’s messages become the goodbye or hand-off message. An exit with no edge uses the default from Flow settings.",
+        "inBackground": "Exits don’t work here. {{name}} runs in a background Parallel branch: the flow doesn’t wait for it, so it can’t end the chat or hand it off. Turn the exits off, or move the step after the Parallel.",
+        "secondMessage": "The customer gets two messages: the agent’s and the one from {{name}}. Clear one of them."
+      }
     },
     "completion": {
       "input": "Input",
@@ -625,6 +709,103 @@
       "responded": "Status {{status}} · {{ms}} ms",
       "responseBody": "Response body",
       "truncated": "The response is cut short."
+    },
+    "schedule": {
+      "when": "When",
+      "kind": {
+        "daily": "Every day",
+        "weekdays": "Weekdays",
+        "custom": "Custom cron"
+      },
+      "time": "Time",
+      "cron": "Cron expression",
+      "cronHint": "Five fields: minute, hour, day of month, month, weekday. Example: 0 10 * * 1-5",
+      "timeZone": "Time zone",
+      "nextRuns": "Next runs",
+      "nextRunsEmpty": "Fix the schedule to see the next runs.",
+      "conversations": "For which conversations",
+      "silent": "Only chats that went quiet",
+      "silentFor": "Customer silent for at least",
+      "notEscalated": "Skip chats handed to a person",
+      "notEscalatedHint": "A chat that was ever escalated is left out.",
+      "channels": "Channels",
+      "channel": {
+        "telegram": "Telegram",
+        "api": "API"
+      },
+      "telegramNote": "Telegram lets a bot message only people who already wrote to it.",
+      "limits": "Limits",
+      "maxPerRun": "Max conversations per run",
+      "maxPerRunHint": "Up to {{max}} per run.",
+      "oncePerConversation": "Once per conversation",
+      "onceHint": {
+        "true": "Each chat gets this message once.",
+        "false": "A chat can get it again after the customer writes and goes quiet."
+      }
+    },
+    "inactivity": {
+      "silence": "After a silence of",
+      "silenceLength": "Silence length",
+      "activity": "What counts as activity",
+      "activityKind": {
+        "customer": "Customer messages only",
+        "any": "Any message (customer, agent or operator)"
+      },
+      "conditions": "Only when",
+      "notEscalated": "Not escalated",
+      "channels": "Channels",
+      "channel": {
+        "telegram": "Telegram",
+        "api": "API"
+      },
+      "repeat": "Repeat",
+      "repeatKind": {
+        "once": "Once per silence",
+        "every": "Repeat while the chat stays silent"
+      },
+      "repeatEvery": "Repeat every",
+      "times": "Total attempts",
+      "timesOption_one": "{{count}} time",
+      "timesOption_other": "{{count}} times",
+      "attemptHint": "Use inactivity.attempt in a Router to say something different each time.",
+      "compare": "Schedule runs at set times over many chats. Inactivity runs for one chat, a set time after its last message. Auto-close is a setting and runs no steps."
+    }
+  },
+  "settings": {
+    "open": "Flow settings",
+    "kind": "Flow",
+    "title": "Flow settings",
+    "subtitle": "Defaults for every branch of {{name}}",
+    "close": "Close flow settings",
+    "handoff": {
+      "title": "Default hand-off",
+      "note": "exits with no edge",
+      "hint": "Used when an agent hands off through an exit with no edge, and when a failed step hands off."
+    },
+    "failure": {
+      "title": "When a step fails",
+      "note": "error port not connected",
+      "choice": {
+        "fail": "Fail the run",
+        "handoff": "Apologise and hand off"
+      },
+      "failHint": "The run stops with an error and the customer gets no reply. Applies to Agent and Completion steps.",
+      "apology": "Apology message",
+      "defaultApology": "Sorry, something went wrong on our side. I’m passing you to a person.",
+      "handoffHint": "Sent to the customer, then the chat goes to the default hand-off. Applies to Agent and Completion steps."
+    },
+    "autoClose": {
+      "title": "Close inactive conversations",
+      "toggle": "Close after a silence",
+      "length": "Silence length",
+      "unit": "Unit",
+      "units": {
+        "hours": "hours",
+        "days": "days"
+      },
+      "invalid": "Enter a whole number from 1 hour to 30 days.",
+      "onHint": "1 hour to 30 days, counted from the customer’s last message. Closes silently, with no message. The next customer message starts a new conversation.",
+      "offHint": "Conversations stay open until an agent or a person ends them."
     }
   }
 }

@@ -8,7 +8,9 @@ import type {
   FlowNode,
   HandoffSettings,
   PromptSource,
+  TriggerScheduleNode,
 } from '@flow/document/typedefs/flow.typedefs';
+import { MAX_SCHEDULE_CONVERSATIONS_PER_RUN } from '@flow/limits/constants/limit.constants';
 import {
   AgentExitKind,
   EscalationMode,
@@ -17,12 +19,17 @@ import {
   RecipientsKind,
   WaitFor,
 } from '@flow/nodes/constants/step.constants';
-import { ReplyMode } from '@flow/nodes/constants/trigger.constants';
+import {
+  InactivityRepeatKind,
+  InactivityUnit,
+  ReplyMode,
+} from '@flow/nodes/constants/trigger.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 import {
   PromptSourceKind,
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
+import { NO_FLOW_SETTINGS } from '@flow/settings/constants/settings.constants';
 import { FlowIssueCode, FlowIssueSeverity } from '@flow/validation/constants/issue.constants';
 import { hasBlockingIssues, validateFlow } from '@flow/validation/helpers/validation.helpers';
 import { exampleFlows, faqWithHandOffFlow } from '@test/support/fixtures/example-flow.fixture';
@@ -35,6 +42,7 @@ import {
   eventTrigger,
   field,
   flowOf,
+  inactivityTrigger,
   link,
   messageTrigger,
   parallel,
@@ -83,6 +91,20 @@ const exitFlow = (
 };
 
 const withStep = (step: FlowNode) => cleanFlow([step], [link(reply, PortName.Next, step)]);
+
+const nudgeFlow = (
+  quiet = inactivityTrigger('quiet'),
+  afterMinutes: number | null = null,
+): FlowDocument => {
+  const nudge = sendText('nudge', 'Are you still there?');
+  const flow = cleanFlow([quiet, nudge], [link(quiet, PortName.Next, nudge)]);
+  return afterMinutes === null
+    ? flow
+    : { ...flow, settings: { ...NO_FLOW_SETTINGS, autoClose: { afterMinutes } } };
+};
+
+const withSchedule = (schedule: TriggerScheduleNode) =>
+  cleanFlow([schedule], [link(schedule, PortName.Next, answer)]);
 
 const routeOn = (variable: string, operator: ConditionOperator, value: string | number | null) =>
   withStep(router('route', [rule('first', variable, operator, value)]));
@@ -260,6 +282,38 @@ const failingFlows: Record<ValidationIssueCode, () => unknown> = {
     const person = { ...base, config: { ...base.config, customerMessage: 'A person will reply' } };
     return exitFlow(HANDOFF_EXIT, [person], [link(answer, AgentExitKind.Handoff, person)]);
   },
+  [FlowIssueCode.ScheduleTooFrequent]: () => withSchedule(scheduleTrigger('often', '*/10 * * * *')),
+  [FlowIssueCode.ScheduleNoChannelTypes]: () => {
+    const schedule = scheduleTrigger('nightly');
+    return withSchedule({
+      ...schedule,
+      config: {
+        ...schedule.config,
+        conditions: { ...schedule.config.conditions, channelTypes: [] },
+      },
+    });
+  },
+  [FlowIssueCode.ScheduleLimitTooHigh]: () => {
+    const schedule = scheduleTrigger('nightly');
+    return withSchedule({
+      ...schedule,
+      config: {
+        ...schedule.config,
+        maxConversationsPerRun: MAX_SCHEDULE_CONVERSATIONS_PER_RUN + 1,
+      },
+    });
+  },
+  [FlowIssueCode.ScheduleClosesBeforeSilence]: () => {
+    const schedule = scheduleTrigger('nightly');
+    const flow = withSchedule({
+      ...schedule,
+      config: {
+        ...schedule.config,
+        conditions: { ...schedule.config.conditions, silentForHours: 24 },
+      },
+    });
+    return { ...flow, settings: { ...flow.settings, autoClose: { afterMinutes: 120 } } };
+  },
   [FlowIssueCode.NoFallbackMessage]: () => {
     const route = router('route', [rule('first', 'today', ConditionOperator.IsNotEmpty)]);
     const quiet = escalation('quiet', 'help', '  ');
@@ -272,6 +326,23 @@ const failingFlows: Record<ValidationIssueCode, () => unknown> = {
       ],
     );
   },
+  [FlowIssueCode.DuplicateInactivityTrigger]: () => {
+    const second = inactivityTrigger('second');
+    const nudge = sendText('again', 'Hello?');
+    return cleanFlow(
+      [inactivityTrigger('first'), second, nudge],
+      [link(second, PortName.Next, nudge)],
+    );
+  },
+  [FlowIssueCode.InactivityWithoutConversationTrigger]: () => {
+    const quiet = inactivityTrigger('quiet');
+    const nudge = sendText('nudge', 'Are you still there?');
+    return flowOf([quiet, nudge], [link(quiet, PortName.Next, nudge)]);
+  },
+  [FlowIssueCode.InactivityDurationOutOfRange]: () =>
+    nudgeFlow(inactivityTrigger('quiet', undefined, { amount: 1, unit: InactivityUnit.Minutes })),
+  [FlowIssueCode.InactivityNoReplyStep]: () => cleanFlow([inactivityTrigger('quiet')]),
+  [FlowIssueCode.InactivityAfterAutoClose]: () => nudgeFlow(undefined, 120),
 };
 
 const codes = (input: unknown): FlowIssueCode[] => validateFlow(input).map((issue) => issue.code);
@@ -298,6 +369,24 @@ describe('validateFlow', () => {
 
   it.each(validationCodes)('reports %s', (code) => {
     expect(codes(failingFlows[code]())).toContain(code);
+  });
+
+  it('accepts a schedule that fires four times an hour', () => {
+    expect(codes(withSchedule(scheduleTrigger('often', '*/15 * * * *')))).toEqual([]);
+  });
+
+  it('keeps quiet about auto-close that waits longer than the silence', () => {
+    const schedule = scheduleTrigger('nightly');
+    const flow = withSchedule({
+      ...schedule,
+      config: {
+        ...schedule.config,
+        conditions: { ...schedule.config.conditions, silentForHours: 2 },
+      },
+    });
+    expect(
+      codes({ ...flow, settings: { ...flow.settings, autoClose: { afterMinutes: 120 } } }),
+    ).toEqual([]);
   });
 
   it('gives warnings the warning severity', () => {
@@ -348,6 +437,100 @@ describe('validateFlow', () => {
     expect(codes(cleanFlow([sendText('orphan', '{{missing}}')]))).toEqual([
       FlowIssueCode.UnreachableNode,
     ]);
+  });
+});
+
+describe('inactivity trigger', () => {
+  const every = (amount: number, unit: InactivityUnit, maxTimes: number) =>
+    inactivityTrigger(
+      'quiet',
+      { kind: InactivityRepeatKind.Every, every: { amount, unit }, maxTimes },
+      { amount: 2, unit: InactivityUnit.Hours },
+    );
+
+  it('accepts a trigger with a reply and no auto-close', () => {
+    expect(validateFlow(nudgeFlow())).toEqual([]);
+  });
+
+  it('accepts an event trigger as the conversation trigger', () => {
+    const quiet = inactivityTrigger('quiet');
+    const nudge = sendText('nudge', 'Are you still there?');
+    const event = eventTrigger('paid');
+    const flow = flowOf([event, quiet, nudge], [link(quiet, PortName.Next, nudge)]);
+    expect(codes(flow)).not.toContain(FlowIssueCode.InactivityWithoutConversationTrigger);
+  });
+
+  it('points the second trigger, not the first, at the duplicate', () => {
+    const issues = validateFlow(failingFlows[FlowIssueCode.DuplicateInactivityTrigger]()).filter(
+      (issue) => issue.code === FlowIssueCode.DuplicateInactivityTrigger,
+    );
+    expect(issues).toEqual([expect.objectContaining({ nodeId: 'n_second' })]);
+  });
+
+  it('accepts the shortest and the longest silence', () => {
+    for (const silence of [
+      { amount: 5, unit: InactivityUnit.Minutes },
+      { amount: 30, unit: InactivityUnit.Days },
+    ]) {
+      expect(codes(nudgeFlow(inactivityTrigger('quiet', undefined, silence)))).toEqual([]);
+    }
+  });
+
+  it('refuses a silence above 30 days and points at the field', () => {
+    const flow = nudgeFlow(
+      inactivityTrigger('quiet', undefined, { amount: 31, unit: InactivityUnit.Days }),
+    );
+    expect(validateFlow(flow)).toContainEqual(
+      expect.objectContaining({
+        code: FlowIssueCode.InactivityDurationOutOfRange,
+        severity: FlowIssueSeverity.Error,
+        nodeId: 'n_quiet',
+        path: ['silence'],
+      }),
+    );
+  });
+
+  it('refuses a repeat interval below 5 minutes and points at the field', () => {
+    expect(validateFlow(nudgeFlow(every(1, InactivityUnit.Minutes, 3)))).toContainEqual(
+      expect.objectContaining({
+        code: FlowIssueCode.InactivityDurationOutOfRange,
+        path: ['repeat', 'every'],
+      }),
+    );
+  });
+
+  it('warns, without blocking, when no step sends a reply', () => {
+    const issues = validateFlow(failingFlows[FlowIssueCode.InactivityNoReplyStep]());
+    expect(issues).toContainEqual(
+      expect.objectContaining({
+        code: FlowIssueCode.InactivityNoReplyStep,
+        severity: FlowIssueSeverity.Warning,
+        nodeId: 'n_quiet',
+      }),
+    );
+    expect(hasBlockingIssues(issues)).toBe(false);
+  });
+
+  it('warns when auto-close fires at or before the silence', () => {
+    for (const afterMinutes of [60, 120]) {
+      expect(validateFlow(nudgeFlow(undefined, afterMinutes))).toContainEqual(
+        expect.objectContaining({
+          code: FlowIssueCode.InactivityAfterAutoClose,
+          severity: FlowIssueSeverity.Warning,
+          params: { afterMinutes },
+        }),
+      );
+    }
+  });
+
+  it('does not warn when auto-close fires after the silence', () => {
+    expect(codes(nudgeFlow(undefined, 121))).toEqual([]);
+  });
+
+  it('warns when a later repeat falls after auto-close', () => {
+    expect(codes(nudgeFlow(every(1, InactivityUnit.Days, 3), 1440))).toContain(
+      FlowIssueCode.InactivityAfterAutoClose,
+    );
   });
 });
 
