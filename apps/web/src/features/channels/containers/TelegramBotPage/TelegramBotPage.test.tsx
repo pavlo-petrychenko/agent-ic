@@ -204,7 +204,7 @@ describe('TelegramBotPage', () => {
     CHANNEL.status = 'disconnected';
     renderPage();
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Connect' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Reconnect' }));
 
     await waitFor(() => {
       expect(reconnectTelegram).toHaveBeenCalledWith(CHANNEL.id);
