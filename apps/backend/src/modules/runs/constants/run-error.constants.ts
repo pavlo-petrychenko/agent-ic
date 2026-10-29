@@ -13,3 +13,7 @@ export const INACTIVITY_ATTEMPTS_USED_MESSAGE =
 export const INACTIVITY_CONDITIONS_NOT_MET_MESSAGE =
   'The conversation does not meet the inactivity trigger conditions.';
 export const CONVERSATION_BUSY_MESSAGE = 'A run is working on the conversation.';
+export const SCHEDULE_TRIGGER_NOT_FOUND_MESSAGE = 'The flow has no schedule trigger with this id.';
+export const SCHEDULE_NEEDS_CUSTOMER_MESSAGE_MESSAGE =
+  'A schedule run needs one customer message in the conversation first.';
+export const SCHEDULE_RUN_BUSY_MESSAGE = 'The conversation has a run in progress.';

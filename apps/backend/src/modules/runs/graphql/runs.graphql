@@ -4,10 +4,33 @@ extend type Query {
 
 extend type Mutation {
   simulateSilence(input: SimulateSilenceInput!): Run!
+  runSimulatorSchedule(input: RunSimulatorScheduleInput!): SimulatorScheduleRun!
 }
 
 input SimulateSilenceInput {
   conversationId: ID!
+}
+
+input RunSimulatorScheduleInput {
+  conversationId: ID!
+  nodeId: String!
+}
+
+enum ScheduleConditionKind {
+  customer_wrote
+  silent_for
+  not_escalated
+  channel_type
+}
+
+type ScheduleConditionCheck {
+  kind: ScheduleConditionKind!
+  met: Boolean!
+}
+
+type SimulatorScheduleRun {
+  run: Run!
+  conditions: [ScheduleConditionCheck!]!
 }
 
 type Subscription {

@@ -41,3 +41,10 @@ export enum ScheduleMetricLabel {
 export const SCHEDULE_TICK_LAG_BUCKETS_SECONDS: readonly number[] = [
   1, 5, 10, 20, 30, 45, 60, 90, 120, 300, 600,
 ];
+
+export enum ScheduleConditionKind {
+  CustomerWrote = 'customer_wrote',
+  SilentFor = 'silent_for',
+  NotEscalated = 'not_escalated',
+  ChannelType = 'channel_type',
+}
