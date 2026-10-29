@@ -19,6 +19,7 @@ import {
   RequestAuthKind,
   RequestBodyKind,
   RuleMatch,
+  UnhandledFailureAction,
 } from '@agent-ic/flow';
 import type {
   AgentNode,
@@ -69,6 +70,7 @@ import {
   SEND_NODE_KEY,
   TEST_CUSTOMER_NOTICE,
   TEST_ESCALATION_REASON,
+  TEST_FAILURE_APOLOGY,
   TEST_QUICK_REPLIES,
   TEST_REPLIES_VARIABLE,
   TEST_END_USER_NAME,
@@ -426,4 +428,15 @@ export const finishedStep = (
   error: null,
   startedAt: RUNS_TEST_START,
   finishedAt: RUNS_TEST_START,
+});
+
+export const handOffOnFailure = (flow: FlowDocument): FlowDocument => ({
+  ...flow,
+  settings: {
+    ...flow.settings,
+    onUnhandledFailure: {
+      action: UnhandledFailureAction.Handoff,
+      customerMessage: TEST_FAILURE_APOLOGY,
+    },
+  },
 });

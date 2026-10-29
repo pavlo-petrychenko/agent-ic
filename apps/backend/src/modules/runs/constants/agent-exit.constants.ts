@@ -4,6 +4,7 @@ import {
   AGENT_OUTCOME_FIELD_NAME,
   AGENT_OUTCOME_REASON_FIELD_NAME,
   AgentExitKind,
+  NodeType,
 } from '@agent-ic/flow';
 import { RunStatus } from '@/modules/runs/constants/run.constants';
 import type { FinishedRunStatus } from '@/modules/runs/typedefs/run.typedefs';
@@ -29,3 +30,8 @@ export const AGENT_EXIT_RUN_STATUS: Readonly<Record<AgentExitKind, FinishedRunSt
   [AgentExitKind.End]: RunStatus.Succeeded,
   [AgentExitKind.Handoff]: RunStatus.Escalated,
 };
+
+export const HANDOFF_ON_FAILURE_NODE_TYPES: readonly NodeType[] = [
+  NodeType.Agent,
+  NodeType.Completion,
+];

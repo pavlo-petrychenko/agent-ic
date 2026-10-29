@@ -18,7 +18,10 @@ import {
 } from '@/modules/conversations';
 import { PromptFlowReader } from '@/modules/prompts';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
-import { AGENT_EXIT_RUN_STATUS } from '@/modules/runs/constants/agent-exit.constants';
+import {
+  AGENT_EXIT_RUN_STATUS,
+  HANDOFF_ON_FAILURE_NODE_TYPES,
+} from '@/modules/runs/constants/agent-exit.constants';
 import { RunLogMessage } from '@/modules/runs/constants/run-log.constants';
 import {
   ROOT_BRANCH_KEY,
@@ -29,7 +32,7 @@ import {
 import { RunFlowInvalidError } from '@/modules/runs/errors/run-flow-invalid.error';
 import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { UnsupportedNodeTypeError } from '@/modules/runs/errors/unsupported-node-type.error';
-import { listTexts } from '@/modules/runs/helpers/outbound-message.helpers';
+import { listTexts, templateTexts } from '@/modules/runs/helpers/outbound-message.helpers';
 import {
   joinBranches,
   parallelBranches,
@@ -185,13 +188,18 @@ export class RunExecutionService {
       return this.failed(new RunFlowInvalidError(walk.run.versionId, null), null);
     }
     try {
-      return await this.walkFrom(walk, trigger, ROOT_BRANCH_KEY);
+      return await this.walkFrom(walk, trigger, ROOT_BRANCH_KEY, false);
     } finally {
       await this.drain(walk);
     }
   }
 
-  private async walkFrom(walk: RunWalk, start: FlowNode, branchKey: string): Promise<RunEnd> {
+  private async walkFrom(
+    walk: RunWalk,
+    start: FlowNode,
+    branchKey: string,
+    background: boolean,
+  ): Promise<RunEnd> {
     const visited = new Set<string>();
     let node: FlowNode | null = start;
     while (node !== null) {
@@ -206,7 +214,8 @@ export class RunExecutionService {
       if (executor === null) {
         return this.failed(new UnsupportedNodeTypeError(node.id, node.type), node.id);
       }
-      const failedBranch = node.type === NodeType.Parallel ? await this.fork(walk, node) : null;
+      const failedBranch =
+        node.type === NodeType.Parallel ? await this.fork(walk, node, background) : null;
       if (failedBranch !== null) {
         return failedBranch;
       }
@@ -222,7 +231,7 @@ export class RunExecutionService {
       }
       if (step.port === null) {
         return step.status === RunStepStatus.Failed
-          ? { status: RunStatus.Failed, error: step.error, finishedAt: this.clock.now() }
+          ? this.unhandledFailure(walk, node, step, background)
           : this.succeeded();
       }
       node = nextNode(walk.flow, node.id, step.port);
@@ -257,10 +266,43 @@ export class RunExecutionService {
     return walk.ending;
   }
 
-  private async fork(walk: RunWalk, parallel: ParallelNode): Promise<RunEnd | null> {
+  private async unhandledFailure(
+    walk: RunWalk,
+    node: FlowNode,
+    step: RunStep,
+    background: boolean,
+  ): Promise<RunEnd> {
+    const failed: RunEnd = {
+      status: RunStatus.Failed,
+      error: step.error,
+      finishedAt: this.clock.now(),
+    };
+    const settings = walk.flow.settings.onUnhandledFailure;
+    if (background || settings === null || !HANDOFF_ON_FAILURE_NODE_TYPES.includes(node.type)) {
+      return failed;
+    }
+    if (walk.ending !== null) {
+      return walk.ending;
+    }
+    walk.ending = failed;
+    const { ctx, run } = walk;
+    const texts = templateTexts(settings.customerMessage, stepVariables(walk, node.id));
+    await this.tenants.run(run.workspaceId, () =>
+      this.exits.handOff({ ctx, run, nodeId: node.id, texts }),
+    );
+    return failed;
+  }
+
+  private async fork(
+    walk: RunWalk,
+    parallel: ParallelNode,
+    background: boolean,
+  ): Promise<RunEnd | null> {
     const branches = parallelBranches(walk.graph, parallel).map((branch) => ({
       ...branch,
-      settled: settleBranch(this.walkFrom(walk, branch.start, branch.key)),
+      settled: settleBranch(
+        this.walkFrom(walk, branch.start, branch.key, background || branch.background),
+      ),
     }));
     walk.background.push(...branches.map((branch) => branch.settled));
     const joined = await joinBranches(parallel.config.waitFor, branches);
