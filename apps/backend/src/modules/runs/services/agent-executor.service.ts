@@ -1,4 +1,4 @@
-import { NodeType, PortName, nodeOutputFields, outputToZod } from '@agent-ic/flow';
+import { NodeType, nodeOutputFields, outputToZod } from '@agent-ic/flow';
 import type { AgentNode } from '@agent-ic/flow';
 import { Injectable } from '@nestjs/common';
 import {
@@ -7,6 +7,7 @@ import {
   AGENT_PURPOSE,
   AGENT_TOOLS,
 } from '@/modules/runs/constants/llm-step.constants';
+import { agentExitPort, withAgentExits } from '@/modules/runs/helpers/agent-exit.helpers';
 import {
   stepConversation,
   stepModel,
@@ -40,7 +41,11 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
       ...stepModel(id, config.model, AGENT_PURPOSE, run.workspaceId, this.ids),
       purpose: AGENT_PURPOSE,
       ...stepConversation(
-        stepSystemPrompt(id, config.prompt, scope.variables, scope.prompts),
+        withAgentExits(
+          stepSystemPrompt(id, config.prompt, scope.variables, scope.prompts),
+          node,
+          scope.variables,
+        ),
         scope.history,
         AGENT_INCLUDES_CURRENT_MESSAGE,
       ),
@@ -51,7 +56,7 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
       tags: { ...runTraceTags(run), ...stepPromptTags(id, scope.prompts) },
     };
     const { output } = await this.answer(request, config.retries);
-    return { port: PortName.Next, output };
+    return { port: agentExitPort(node, output), output };
   }
 
   private async answer(
