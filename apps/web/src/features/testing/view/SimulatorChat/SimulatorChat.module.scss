@@ -43,3 +43,10 @@
     color: var(--color-accent-dark);
   }
 }
+
+.label {
+  align-self: flex-end;
+  padding: 0 var(--space-6);
+  color: var(--color-mute);
+  font: var(--type-small);
+}

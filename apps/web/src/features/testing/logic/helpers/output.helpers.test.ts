@@ -6,6 +6,7 @@ import {
   inspectStep,
   toOutputView,
   toStepView,
+  withHandBack,
 } from '@/features/testing/logic/helpers/output.helpers';
 import { RunStepStatus } from '@/shared/api/generated/schema.generated';
 
@@ -48,12 +49,21 @@ describe('toOutputView', () => {
       toOutputView({ ...escalation, wouldNotify: ['Pavlo', 'Oksana'] }, 'en', NodeType.Escalation),
     ).toEqual({
       kind: OutputViewKind.Escalation,
+      resumed: false,
       recipients: 'Pavlo, Oksana',
     });
     expect(toOutputView({ ...escalation, wouldNotify: [] }, 'uk', NodeType.Escalation)).toEqual({
       kind: OutputViewKind.Escalation,
+      resumed: false,
       recipients: null,
     });
+  });
+
+  it('marks an escalation as resumed only after a hand back', () => {
+    const view = { kind: OutputViewKind.Escalation, resumed: false, recipients: null } as const;
+
+    expect(withHandBack(view, true)).toEqual({ ...view, resumed: true });
+    expect(withHandBack(view, false)).toBe(view);
   });
 
   it('shows another node output with wouldNotify as JSON, not as an escalation', () => {

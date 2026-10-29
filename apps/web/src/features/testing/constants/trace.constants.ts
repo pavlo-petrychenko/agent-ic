@@ -55,7 +55,12 @@ export enum StepSection {
   Error = 'error',
 }
 
-export const RUN_STATUS_TONES: Readonly<Record<RunStatus, BadgeTone>> = {
+export enum HandedBackStatus {
+  HandedBack = 'handedBack',
+}
+
+export const TURN_STATUS_TONES: Readonly<Record<RunStatus | HandedBackStatus, BadgeTone>> = {
+  [HandedBackStatus.HandedBack]: BadgeTone.Neutral,
   [RunStatus.Queued]: BadgeTone.Neutral,
   [RunStatus.Running]: BadgeTone.Accent,
   [RunStatus.Succeeded]: BadgeTone.Ok,

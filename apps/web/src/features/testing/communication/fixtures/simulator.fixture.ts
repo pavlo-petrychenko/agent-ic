@@ -67,6 +67,15 @@ export const ESCALATION_MESSAGE = message(
   'Bringing in our manager.',
   2,
 );
+export const ESCALATION_STEP = {
+  id: 'step_escalation',
+  nodeId: 'nd_escalation',
+  output: {
+    mode: 'escalate',
+    messageIds: ['00000000-0000-0000-0000-000000000001'],
+    reason: 'help',
+  },
+};
 export const OPERATOR_REPLY = message('msg_o', MessageAuthor.Operator, 'Hi, I am the manager.', 4);
 
 export const simulationMock = (
@@ -74,6 +83,7 @@ export const simulationMock = (
   runStatus: RunStatus | null = RunStatus.Succeeded,
   errorMessage: string | null = null,
   state: ConversationState = ConversationState.AgentActive,
+  steps: readonly { id: string; nodeId: string; output: unknown }[] = [],
 ): MockLink.MockedResponse => ({
   request: { query: SimulationDocument, variables: { agentId: TEST_AGENT_ID } },
   result: {
@@ -99,6 +109,7 @@ export const simulationMock = (
                     errorMessage === null
                       ? null
                       : { __typename: 'RunFailure', message: errorMessage },
+                  steps: steps.map((step) => ({ __typename: 'RunStep', ...step })),
                 },
               ],
       },

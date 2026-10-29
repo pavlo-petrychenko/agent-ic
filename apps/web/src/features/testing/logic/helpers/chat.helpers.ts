@@ -7,22 +7,28 @@ import {
   DIVIDER_ID_SEPARATOR,
   MESSAGE_SPEAKERS,
 } from '@/features/testing/constants/simulator.constants';
+import { HandedBackStatus } from '@/features/testing/constants/trace.constants';
 import type {
   ChatItem,
   SimulatorMessage,
   SimulatorRun,
 } from '@/features/testing/typedefs/simulator.typedefs';
+import type { TurnStatus } from '@/features/testing/typedefs/trace.typedefs';
 import {
   ConversationState,
   MessageAuthor,
   RunStatus,
 } from '@/shared/api/generated/schema.generated';
 
+export const turnStatus = (status: RunStatus, handedBack: boolean): TurnStatus =>
+  status === RunStatus.Escalated && handedBack ? HandedBackStatus.HandedBack : status;
+
 export const isActiveRun = (run: SimulatorRun): boolean => ACTIVE_RUN_STATUSES.has(run.status);
 
 const runOutcome = (run: SimulatorRun | null) => ({
   failed: run?.status === RunStatus.Failed,
   escalated: run?.status === RunStatus.Escalated,
+  escalationMessageCount: run?.escalationMessageCount ?? 0,
   errorMessage: run?.errorMessage ?? null,
 });
 
@@ -52,6 +58,26 @@ const withDividers = (items: readonly ChatItem[], state: ConversationState): Cha
       return [item, divider(item, ChatDividerKind.HandedBack)];
     }
     return [item];
+  });
+
+const startsNewExchange = (item: ChatItem): boolean =>
+  item.kind === ChatItemKind.Turn ||
+  (item.kind === ChatItemKind.Message && item.speaker === ChatSpeaker.User);
+
+const withHandedBackTurns = (items: readonly ChatItem[]): ChatItem[] =>
+  items.map((item, index) => {
+    if (item.kind !== ChatItemKind.Turn || !item.escalated) {
+      return item;
+    }
+    const following = items.slice(index + 1);
+    const end = following.findIndex(startsNewExchange);
+    const exchange = end === -1 ? following : following.slice(0, end);
+    return {
+      ...item,
+      handedBack: exchange.some(
+        (next) => next.kind === ChatItemKind.Divider && next.divider === ChatDividerKind.HandedBack,
+      ),
+    };
   });
 
 export const composerMode = (state: ConversationState, takingOver: boolean): ComposerMode => {
@@ -92,6 +118,7 @@ export const toChatItems = (
         id: message.runId,
         at: message.createdAt,
         messages: [message],
+        handedBack: false,
         ...runOutcome(runById.get(message.runId) ?? null),
       });
     }
@@ -104,13 +131,27 @@ export const toChatItems = (
       id: run.id,
       at: run.createdAt,
       messages: [],
+      handedBack: false,
       ...runOutcome(run),
     }));
-  return withDividers(
-    [...items, ...silent].toSorted((a, b) => a.at.localeCompare(b.at)),
-    state,
+  return withHandedBackTurns(
+    withDividers(
+      [...items, ...silent].toSorted((a, b) => a.at.localeCompare(b.at)),
+      state,
+    ),
   );
 };
+
+export const handedBackRunIds = (
+  messages: readonly SimulatorMessage[],
+  runs: readonly SimulatorRun[],
+  state: ConversationState,
+): ReadonlySet<string> =>
+  new Set(
+    toChatItems(messages, runs, state).flatMap((item) =>
+      item.kind === ChatItemKind.Turn && item.handedBack ? [item.id] : [],
+    ),
+  );
 
 export const latestRunId = (runs: readonly SimulatorRun[]): string | null =>
   runs.toSorted((a, b) => a.createdAt.localeCompare(b.createdAt)).at(-1)?.id ?? null;

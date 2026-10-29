@@ -7,6 +7,7 @@ export interface TracePanelProps {
   flow: FlowDocument | null;
   run: SimulatorRun | null;
   turnNumber: number | null;
+  handedBack: boolean;
   draft: boolean;
   liveNumber: number | null;
   selectedNodeId: string | null;

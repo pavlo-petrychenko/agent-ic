@@ -5,12 +5,15 @@ import {
   ChatSpeaker,
   ComposerMode,
 } from '@/features/testing/constants/simulator.constants';
+import { HandedBackStatus } from '@/features/testing/constants/trace.constants';
 import {
   composerMode,
+  handedBackRunIds,
   isActiveRun,
   latestRunId,
   toChatItems,
   turnNumber,
+  turnStatus,
 } from '@/features/testing/logic/helpers/chat.helpers';
 import type {
   SimulatorMessage,
@@ -34,9 +37,56 @@ const run = (id: string, status: RunStatus, createdAt: string): SimulatorRun => 
   status,
   createdAt,
   errorMessage: null,
+  escalationMessageCount: 0,
 });
 
 describe('toChatItems', () => {
+  it('counts the messages an escalation step sent on the turn', () => {
+    const items = toChatItems(
+      [
+        message('m1', MessageAuthor.Customer, '2026-10-11T10:00:00Z'),
+        message('m2', MessageAuthor.Agent, '2026-10-11T10:00:02Z', 'r1'),
+        message('m3', MessageAuthor.Agent, '2026-10-11T10:00:03Z', 'r1'),
+      ],
+      [{ ...run('r1', RunStatus.Escalated, '2026-10-11T10:00:01Z'), escalationMessageCount: 1 }],
+      ConversationState.Waiting,
+    );
+
+    expect(items[1]).toMatchObject({
+      escalated: true,
+      escalationMessageCount: 1,
+      handedBack: false,
+    });
+  });
+
+  it('marks an escalated turn as handed back once the chat is handed back', () => {
+    const messages = [
+      message('m1', MessageAuthor.Customer, '2026-10-11T10:00:00Z'),
+      message('m2', MessageAuthor.Agent, '2026-10-11T10:00:02Z', 'r1'),
+      message('m3', MessageAuthor.Operator, '2026-10-11T10:01:00Z'),
+    ];
+    const runs = [run('r1', RunStatus.Escalated, '2026-10-11T10:00:01Z')];
+
+    expect(handedBackRunIds(messages, runs, ConversationState.Waiting).size).toBe(0);
+    expect(handedBackRunIds(messages, runs, ConversationState.Handled).size).toBe(0);
+    expect([...handedBackRunIds(messages, runs, ConversationState.AgentActive)]).toEqual(['r1']);
+  });
+
+  it('leaves a turn that escalated again after a hand back as escalated', () => {
+    const messages = [
+      message('m1', MessageAuthor.Customer, '2026-10-11T10:00:00Z'),
+      message('m2', MessageAuthor.Agent, '2026-10-11T10:00:02Z', 'r1'),
+      message('m3', MessageAuthor.Customer, '2026-10-11T10:05:00Z'),
+      message('m4', MessageAuthor.Agent, '2026-10-11T10:05:02Z', 'r2'),
+    ];
+    const runs = [
+      run('r1', RunStatus.Escalated, '2026-10-11T10:00:01Z'),
+      run('r2', RunStatus.Escalated, '2026-10-11T10:05:01Z'),
+    ];
+
+    expect([...handedBackRunIds(messages, runs, ConversationState.Waiting)]).toEqual(['r1']);
+  });
+
   it('groups the agent messages of one run into a turn', () => {
     const items = toChatItems(
       [
@@ -189,5 +239,13 @@ describe('latestRunId', () => {
         run('r1', RunStatus.Succeeded, '2026-10-11T10:00:00Z'),
       ]),
     ).toBe('r2');
+  });
+});
+
+describe('turnStatus', () => {
+  it('turns an escalated run into handed back once the chat is handed back', () => {
+    expect(turnStatus(RunStatus.Escalated, true)).toBe(HandedBackStatus.HandedBack);
+    expect(turnStatus(RunStatus.Escalated, false)).toBe(RunStatus.Escalated);
+    expect(turnStatus(RunStatus.Succeeded, true)).toBe(RunStatus.Succeeded);
   });
 });

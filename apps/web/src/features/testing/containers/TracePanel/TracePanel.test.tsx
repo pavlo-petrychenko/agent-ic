@@ -25,9 +25,10 @@ interface InspectablePanelProps {
   status: RunStatus;
   draft: boolean;
   flow: typeof TRACE_FLOW;
+  handedBack: boolean;
 }
 
-function InspectablePanel({ status, draft, flow }: InspectablePanelProps) {
+function InspectablePanel({ status, draft, flow, handedBack }: InspectablePanelProps) {
   const { selectedNodeId, selectNode } = useNodeInspection(TRACE_RUN_ID);
 
   return (
@@ -35,8 +36,15 @@ function InspectablePanel({ status, draft, flow }: InspectablePanelProps) {
       workspaceId={TEST_WORKSPACE_ID}
       agentId={TEST_AGENT_ID}
       flow={flow}
-      run={{ id: TRACE_RUN_ID, status, createdAt: '2026-10-11T10:00:00Z', errorMessage: null }}
+      run={{
+        id: TRACE_RUN_ID,
+        status,
+        createdAt: '2026-10-11T10:00:00Z',
+        errorMessage: null,
+        escalationMessageCount: 0,
+      }}
       turnNumber={2}
+      handedBack={handedBack}
       draft={draft}
       liveNumber={3}
       selectedNodeId={selectedNodeId}
@@ -50,10 +58,11 @@ const renderPanel = (
   mocks: readonly MockLink.MockedResponse[],
   draft = true,
   flow = TRACE_FLOW,
+  handedBack = false,
 ) =>
   renderWithProviders(
     <MemoryRouter>
-      <InspectablePanel status={status} draft={draft} flow={flow} />
+      <InspectablePanel status={status} draft={draft} flow={flow} handedBack={handedBack} />
     </MemoryRouter>,
     { mocks },
   );
@@ -120,6 +129,21 @@ describe('TracePanel', () => {
     expect(screen.getByText('Escalated')).toBeInTheDocument();
     expect(screen.getByText('Would notify')).toBeInTheDocument();
     expect(screen.getByText('Paused')).toBeInTheDocument();
+  });
+
+  it('follows the conversation after a hand back', async () => {
+    renderPanel(
+      RunStatus.Escalated,
+      [testingRunMock(RunStatus.Escalated, RunStepStatus.Succeeded, ESCALATION_OUTPUT)],
+      true,
+      ESCALATION_TRACE_FLOW,
+      true,
+    );
+
+    expect(await screen.findByText('Resumed')).toBeInTheDocument();
+    expect(screen.getByText('Handed back')).toBeInTheDocument();
+    expect(screen.queryByText('Paused')).not.toBeInTheDocument();
+    expect(screen.queryByText('Escalated')).not.toBeInTheDocument();
   });
 
   it('names the live version under a draft run only', async () => {

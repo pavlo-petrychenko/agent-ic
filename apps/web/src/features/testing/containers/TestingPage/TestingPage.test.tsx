@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   ANSWERS,
   ESCALATION_MESSAGE,
+  ESCALATION_STEP,
   ESCALATION_QUESTION,
   OPERATOR_REPLY,
   QUESTION,
@@ -260,6 +261,7 @@ describe('TestingPage', () => {
         RunStatus.Escalated,
         null,
         state,
+        [ESCALATION_STEP],
       );
     renderPage([
       testingAgentsMock(),
@@ -273,8 +275,9 @@ describe('TestingPage', () => {
     ]);
 
     expect(
-      await screen.findByRole('button', { name: `${TEST_AGENT_NAME} · Escalation message` }),
+      await screen.findByRole('button', { name: `${TEST_AGENT_NAME} · 1 message` }),
     ).toBeInTheDocument();
+    expect(screen.getByText('Escalation message')).toBeInTheDocument();
     expect(
       screen.getByText('Escalated · in live chats operators would be notified'),
     ).toBeInTheDocument();
