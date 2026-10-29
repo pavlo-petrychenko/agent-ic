@@ -39,7 +39,7 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 - Publish refuses a flow with any `error` issue. The builder shows every issue live, and the web turns each `FlowIssueCode` into text through i18n.
 - The engine and the simulator both route with `pickRoute(rules, resolve)`, so they agree.
 - A missing value renders as empty text, and every condition except `is_empty` fails on it.
-- A message-triggered flow must reach a Send message step from each message trigger, or it gets the blocking `NO_REPLY_STEP` issue on that trigger.
+- A message-triggered flow must reach a Send message step, or an Escalation with a customer message, from each message trigger, or it gets the blocking `NO_REPLY_STEP` issue on that trigger.
 - Validation does not check the database: whether a referenced prompt, knowledge base or channel exists is checked by the backend publish use case.
 
 ## Prompts and reasoning in Agent and Completion steps
