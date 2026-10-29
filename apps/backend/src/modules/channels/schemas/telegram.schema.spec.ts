@@ -38,7 +38,19 @@ describe('telegramWebhookUpdateSchema', () => {
     expect(() =>
       telegramWebhookUpdateSchema.parse({
         update_id: 22,
-        callback_query: { data: 'qr:msg_1:0' },
+        callback_query: {
+          from: { id: 900, first_name: 'Moshe' },
+          data: 'qr:msg_1:0',
+        },
+      }),
+    ).toThrow(ZodError);
+  });
+
+  it('rejects a callback query without a sender', () => {
+    expect(() =>
+      telegramWebhookUpdateSchema.parse({
+        update_id: 23,
+        callback_query: { id: 'callback-3', data: 'qr:msg_1:0' },
       }),
     ).toThrow(ZodError);
   });

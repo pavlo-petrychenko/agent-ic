@@ -43,16 +43,24 @@ describe('toTelegramUpdate', () => {
     });
   });
 
-  it('maps a callback query without a message, sender or data to nulls', () => {
-    expect(toTelegramUpdate({ update_id: 21, callback_query: { id: 'callback-2' } })).toEqual({
+  it('maps a callback query without a message or data to nulls', () => {
+    expect(
+      toTelegramUpdate({
+        update_id: 21,
+        callback_query: {
+          id: 'callback-2',
+          from: { id: 900, first_name: 'Moshe' },
+        },
+      }),
+    ).toEqual({
       updateId: '21',
       message: null,
       callbackQuery: {
         id: 'callback-2',
         chatId: null,
         telegramMessageId: null,
-        senderId: null,
-        senderName: null,
+        senderId: '900',
+        senderName: 'Moshe',
         data: null,
       },
     });

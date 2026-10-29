@@ -74,6 +74,13 @@ export interface SendTelegramChatActionInput {
   readonly action: TelegramChatAction;
 }
 
+export interface AnswerTelegramCallbackQueryInput {
+  readonly token: string;
+  readonly callbackQueryId: string;
+  readonly text: string | null;
+  readonly showAlert: boolean;
+}
+
 export interface TelegramInlineKeyboardButton {
   readonly text: string;
   readonly callback_data: string;
