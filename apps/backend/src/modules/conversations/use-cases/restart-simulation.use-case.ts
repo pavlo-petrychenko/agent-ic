@@ -34,11 +34,11 @@ export class RestartSimulationUseCase {
       endUserExternalId: userId,
     };
     return this.tenants.run(workspaceId, async () => {
-      const open = await this.simulations.findOpen(key);
-      if (open === null) {
+      const latest = await this.simulations.findLatest(key);
+      if (latest === null) {
         throw new ConversationNotFoundError(agentId);
       }
-      return this.simulations.view(await this.simulations.restart(open));
+      return this.simulations.view(await this.simulations.restart(latest));
     });
   }
 }

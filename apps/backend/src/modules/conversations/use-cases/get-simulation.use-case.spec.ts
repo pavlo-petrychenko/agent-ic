@@ -1,5 +1,6 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { ConversationState } from '@/modules/conversations/constants/conversation.constants';
 import { GetSimulationUseCase } from '@/modules/conversations/use-cases/get-simulation.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
@@ -30,5 +31,20 @@ describe('GetSimulationUseCase', () => {
     await expect(get({ ...ctx, workspaceRole: WorkspaceRole.Operator })).rejects.toBeInstanceOf(
       PermissionDeniedError,
     );
+  });
+
+  it('keeps returning the simulation after the agent ended it', async () => {
+    const { ctx, workspaceId, conversationId, publicAgentId, simulation } =
+      await startTestSimulation(testbed);
+    await testbed.tenants.run(workspaceId, () => testbed.runs.close(workspaceId, conversationId));
+
+    const ended = await testbed.module
+      .get(GetSimulationUseCase)
+      .execute(ctx, { agentId: publicAgentId });
+
+    expect(ended?.conversation).toEqual({
+      ...simulation.conversation,
+      state: ConversationState.Closed,
+    });
   });
 });

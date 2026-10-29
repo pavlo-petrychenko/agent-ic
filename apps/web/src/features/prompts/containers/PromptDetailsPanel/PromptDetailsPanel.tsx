@@ -16,7 +16,6 @@ export function PromptDetailsPanel({
   usages,
   usagesFailed,
   onRetryUsages,
-  onOpenUsage,
   variablePaths,
 }: PromptDetailsPanelProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
@@ -26,12 +25,7 @@ export function PromptDetailsPanel({
   return (
     <Panel ariaLabel={t('details.panelLabel')} className={styles.panel} side={PanelSide.Left}>
       <div className={styles.content}>
-        <PromptUsagesSection
-          usages={usages}
-          failed={usagesFailed}
-          onRetry={onRetryUsages}
-          onOpenUsage={onOpenUsage}
-        />
+        <PromptUsagesSection usages={usages} failed={usagesFailed} onRetry={onRetryUsages} />
         <PromptVariablesSection paths={variablePaths} />
         <PromptVersionsSection
           versions={versions}

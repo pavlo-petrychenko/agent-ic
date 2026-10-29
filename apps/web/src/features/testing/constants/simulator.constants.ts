@@ -22,6 +22,7 @@ export enum ComposerMode {
   User = 'user',
   Escalated = 'escalated',
   Operator = 'operator',
+  Ended = 'ended',
 }
 
 export const DIVIDER_ID_SEPARATOR = ':';

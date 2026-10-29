@@ -7,6 +7,7 @@ export interface ChatPanelProps extends SimulatorSetupProps {
   simulator: SimulatorResult;
   selectedRunId: string | null;
   onSelectRun: (runId: string) => void;
+  onRestart: () => void;
 }
 
 export interface ChatFailure {

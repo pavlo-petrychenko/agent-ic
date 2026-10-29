@@ -27,6 +27,7 @@ export function ChatPanel({
   simulator,
   selectedRunId,
   onSelectRun,
+  onRestart,
   ...setup
 }: ChatPanelProps) {
   const { t } = useTranslation(TESTING_NAMESPACE);
@@ -114,16 +115,31 @@ export function ChatPanel({
           items={items}
           agentName={agentName}
           typing={conversation?.runs.some(isActiveRun) ?? false}
+          ended={mode === ComposerMode.Ended}
           selectedRunId={selectedRunId}
           onSelectRun={onSelectRun}
         />
       ) : (
         <div className={styles.state}>{notReady}</div>
       )}
-      {mode === ComposerMode.Escalated ? (
+      {mode === ComposerMode.Ended && (
         <div className={styles.footer}>
           <Button
-            className={styles.takeOver}
+            className={styles.action}
+            variant={ButtonVariant.Secondary}
+            icon={IconName.Refresh}
+            loading={simulator.restarting}
+            onClick={onRestart}
+          >
+            {t('ended.restart')}
+          </Button>
+          <p className={styles.hint}>{t('ended.hint')}</p>
+        </div>
+      )}
+      {mode === ComposerMode.Escalated && (
+        <div className={styles.footer}>
+          <Button
+            className={styles.action}
             variant={ButtonVariant.Secondary}
             icon={IconName.Hand}
             onClick={() => setTakenOver(conversation?.conversationId ?? null)}
@@ -132,7 +148,8 @@ export function ChatPanel({
           </Button>
           <p className={styles.hint}>{t('operator.hint')}</p>
         </div>
-      ) : (
+      )}
+      {(mode === ComposerMode.User || operator) && (
         <div className={styles.footer}>
           {operator && (
             <div className={styles.operator}>

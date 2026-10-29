@@ -42,6 +42,7 @@
     "emptyTitle": "Say hi to your agent",
     "emptyDescription": "Messages you send here run the selected version. Customers never see them.",
     "escalationTurn": "{{name}} · Escalation message",
+    "ended": "{{name}} ended the conversation",
     "divider": {
       "escalated": "Escalated · in live chats operators would be notified",
       "handedBack": "Handed back to the agent"
@@ -51,6 +52,10 @@
     "label": "Message as the test user",
     "placeholder": "Write as the test user…",
     "send": "Send"
+  },
+  "ended": {
+    "hint": "The agent closed this chat. Start a new conversation to keep testing.",
+    "restart": "Start new conversation"
   },
   "operator": {
     "reply": "Reply as operator",

@@ -33,8 +33,8 @@ export class GetSimulationUseCase {
       endUserExternalId: userId,
     };
     return this.tenants.run(workspaceId, async () => {
-      const open = await this.simulations.findOpenForRead(key);
-      return open === null ? null : this.simulations.view(open);
+      const latest = await this.simulations.findLatestForRead(key);
+      return latest === null ? null : this.simulations.view(latest);
     });
   }
 }

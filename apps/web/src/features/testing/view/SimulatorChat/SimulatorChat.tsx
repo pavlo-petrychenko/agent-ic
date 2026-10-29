@@ -24,6 +24,7 @@ export function SimulatorChat({
   items,
   agentName,
   typing,
+  ended,
   selectedRunId,
   onSelectRun,
 }: SimulatorChatProps) {
@@ -93,6 +94,11 @@ export function SimulatorChat({
           {render(item)}
         </li>
       ))}
+      {ended && (
+        <li className={styles.item}>
+          <ChatSystemMessage icon={IconName.Check} text={t('chat.ended', { name: agentName })} />
+        </li>
+      )}
       {typing && (
         <li className={styles.item}>
           <TypingIndicator label={t('chat.typing', { name: agentName })} />

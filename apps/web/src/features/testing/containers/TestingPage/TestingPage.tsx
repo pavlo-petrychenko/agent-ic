@@ -245,6 +245,7 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
             onLanguageChange={(value) => isSimulatorLanguage(value) && setLanguage(value)}
             selectedRunId={selectedRunId}
             onSelectRun={selectRun}
+            onRestart={() => void reset()}
           />
           <TracePanel
             workspaceId={workspaceId}

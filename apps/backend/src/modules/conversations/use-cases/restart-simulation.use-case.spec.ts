@@ -42,6 +42,21 @@ describe('RestartSimulationUseCase', () => {
     });
   });
 
+  it('opens a fresh simulation after the agent ended the last one', async () => {
+    const { ctx, workspaceId, conversationId, publicAgentId, simulation } =
+      await startTestSimulation(testbed);
+    await testbed.tenants.run(workspaceId, () => testbed.runs.close(workspaceId, conversationId));
+
+    const fresh = await testbed.module
+      .get(RestartSimulationUseCase)
+      .execute(ctx, { agentId: publicAgentId });
+
+    expect(fresh.conversation).toEqual({
+      ...simulation.conversation,
+      id: expect.not.stringMatching(simulation.conversation.id),
+    });
+  });
+
   it('refuses an agent without an open simulation, another workspace and an operator', async () => {
     const { ctx, publicAgentId } = await startTestSimulation(testbed);
     const restart = testbed.module.get(RestartSimulationUseCase);

@@ -36,8 +36,12 @@ export class SimulationsService {
     return this.conversations.findOpenSimulation(key);
   }
 
-  findOpenForRead(key: SimulationKey): Promise<Conversation | null> {
-    return this.conversations.findOpenSimulationForRead(key);
+  findLatest(key: SimulationKey): Promise<Conversation | null> {
+    return this.conversations.findLatestSimulation(key);
+  }
+
+  findLatestForRead(key: SimulationKey): Promise<Conversation | null> {
+    return this.conversations.findLatestSimulationForRead(key);
   }
 
   async requireOwn(workspaceId: string, userId: string, publicId: string): Promise<Conversation> {

@@ -4,5 +4,4 @@ export interface PromptUsagesSectionProps {
   readonly usages: readonly PromptUsageItem[] | null;
   readonly failed: boolean;
   readonly onRetry: () => void;
-  readonly onOpenUsage: (usage: PromptUsageItem) => void;
 }
