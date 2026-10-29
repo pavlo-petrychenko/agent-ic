@@ -1,6 +1,7 @@
 import {
   AgentExitKind,
   ChannelSelectionMode,
+  ChannelType,
   EscalationMode,
   FLOW_SCHEMA_VERSION,
   FlowIssueCode,
@@ -15,6 +16,7 @@ import {
   QuickRepliesKind,
   RecipientsKind,
   RetrievalMode,
+  ScheduleKind,
 } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import type { MockLink } from '@apollo/client/testing';
@@ -175,6 +177,28 @@ const TRACE_INACTIVITY: FlowNode = {
 export const FOLLOW_UP_FLOW: FlowDocument = {
   ...AUTO_CLOSE_FLOW,
   nodes: [...TRACE_FLOW.nodes, TRACE_INACTIVITY],
+};
+
+export const SCHEDULE_NODE_ID = 'node_schedule';
+export const SCHEDULE_NAME = 'Nightly check-in';
+
+const TRACE_SCHEDULE: FlowNode = {
+  id: SCHEDULE_NODE_ID,
+  key: 'nightly',
+  label: SCHEDULE_NAME,
+  position: { x: 0, y: 0 },
+  type: NodeType.TriggerSchedule,
+  config: {
+    schedule: { kind: ScheduleKind.Daily, time: '18:00', timeZone: 'Europe/Kyiv' },
+    conditions: { silentForHours: 24, notEscalated: true, channelTypes: [ChannelType.Telegram] },
+    maxConversationsPerRun: 50,
+    oncePerConversation: true,
+  },
+};
+
+export const SCHEDULE_FLOW: FlowDocument = {
+  ...TRACE_FLOW,
+  nodes: [...TRACE_FLOW.nodes, TRACE_SCHEDULE],
 };
 
 const BLOCKING_ISSUES = [

@@ -1,9 +1,13 @@
+import type { RunSimulatorScheduleMutation } from '@/features/testing/communication/gql/mutation/runSimulatorSchedule.generated';
 import type { SimulationQuery } from '@/features/testing/communication/gql/query/simulation.generated';
 import {
   escalatedByStep,
   escalationMessageCount,
 } from '@/features/testing/communication/helpers/escalation.helpers';
-import type { SimulatorConversation } from '@/features/testing/typedefs/simulator.typedefs';
+import type {
+  ScheduleRunResult,
+  SimulatorConversation,
+} from '@/features/testing/typedefs/simulator.typedefs';
 
 export const toSimulatorConversation = (
   simulation: SimulationQuery['simulation'],
@@ -33,3 +37,12 @@ export const toSimulatorConversation = (
           },
         ),
       };
+
+export const toScheduleRunResult = (
+  nodeId: string,
+  { run, conditions }: RunSimulatorScheduleMutation['runSimulatorSchedule'],
+): ScheduleRunResult => ({
+  runId: run.id,
+  nodeId,
+  checks: conditions.map(({ kind, met }) => ({ kind, met })),
+});

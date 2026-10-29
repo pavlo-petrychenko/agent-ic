@@ -6,6 +6,7 @@ import { CloseSimulationForInactivityDocument } from '@/features/testing/communi
 import { HandBackDocument } from '@/features/testing/communication/gql/mutation/handBack.generated';
 import { ReplyAsOperatorDocument } from '@/features/testing/communication/gql/mutation/replyAsOperator.generated';
 import { RestartSimulationDocument } from '@/features/testing/communication/gql/mutation/restartSimulation.generated';
+import { RunSimulatorScheduleDocument } from '@/features/testing/communication/gql/mutation/runSimulatorSchedule.generated';
 import { SendSimulatorMessageDocument } from '@/features/testing/communication/gql/mutation/sendSimulatorMessage.generated';
 import { SimulateSilenceDocument } from '@/features/testing/communication/gql/mutation/simulateSilence.generated';
 import { StartSimulationDocument } from '@/features/testing/communication/gql/mutation/startSimulation.generated';
@@ -17,6 +18,7 @@ import {
   MessageAuthor,
   RunStatus,
   RunTrigger,
+  ScheduleConditionKind,
 } from '@/shared/api/generated/schema.generated';
 
 export const TEST_CONVERSATION_ID = 'cnv_test';
@@ -205,7 +207,7 @@ export const FOLLOW_UP = {
   runId: FOLLOW_UP_RUN_ID,
 };
 
-export const followUpSimulationMock: MockLink.MockedResponse = {
+const followUpSimulation = (trigger: RunTrigger): MockLink.MockedResponse => ({
   request: { query: SimulationDocument, variables: { agentId: TEST_AGENT_ID } },
   result: {
     data: {
@@ -234,8 +236,8 @@ export const followUpSimulationMock: MockLink.MockedResponse = {
           {
             __typename: 'Run',
             id: FOLLOW_UP_RUN_ID,
-            trigger: RunTrigger.Inactivity,
-            inactivityAttempt: 1,
+            trigger,
+            inactivityAttempt: trigger === RunTrigger.Inactivity ? 1 : null,
             status: RunStatus.Succeeded,
             createdAt: '2026-10-11T10:00:05Z',
             finishedAt: '2026-10-11T10:00:07Z',
@@ -246,7 +248,10 @@ export const followUpSimulationMock: MockLink.MockedResponse = {
       },
     },
   },
-};
+});
+
+export const followUpSimulationMock = followUpSimulation(RunTrigger.Inactivity);
+export const scheduledSimulationMock = followUpSimulation(RunTrigger.Schedule);
 
 const simulateSilenceRequest = {
   query: SimulateSilenceDocument,
@@ -276,3 +281,43 @@ export const refusedSilenceMock: MockLink.MockedResponse = {
     ],
   },
 };
+
+const runScheduleRequest = (nodeId: string) => ({
+  query: RunSimulatorScheduleDocument,
+  variables: { input: { conversationId: TEST_CONVERSATION_ID, nodeId } },
+});
+
+export const runScheduleMock = (nodeId: string): MockLink.MockedResponse => ({
+  request: runScheduleRequest(nodeId),
+  result: {
+    data: {
+      runSimulatorSchedule: {
+        __typename: 'SimulatorScheduleRun',
+        run: { __typename: 'Run', id: FOLLOW_UP_RUN_ID, status: RunStatus.Queued },
+        conditions: [
+          {
+            __typename: 'ScheduleConditionCheck',
+            kind: ScheduleConditionKind.CustomerWrote,
+            met: true,
+          },
+          {
+            __typename: 'ScheduleConditionCheck',
+            kind: ScheduleConditionKind.SilentFor,
+            met: false,
+          },
+        ],
+      },
+    },
+  },
+});
+
+export const busyScheduleMock = (nodeId: string): MockLink.MockedResponse => ({
+  request: runScheduleRequest(nodeId),
+  result: {
+    errors: [
+      new GraphQLError('Busy', {
+        extensions: { code: ErrorCode.Conflict, reason: ErrorReason.ScheduleRunBusy },
+      }),
+    ],
+  },
+});

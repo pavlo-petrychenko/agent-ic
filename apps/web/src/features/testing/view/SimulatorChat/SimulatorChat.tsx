@@ -32,6 +32,7 @@ export function SimulatorChat({
   selectedRunId,
   onSelectRun,
   durationLabel,
+  scheduleName,
 }: SimulatorChatProps) {
   const { t } = useTranslation(TESTING_NAMESPACE);
   const listRef = useRef<HTMLOListElement>(null);
@@ -44,6 +45,20 @@ export function SimulatorChat({
     }
   }, [lastItemId, typing]);
 
+  const turnLabel = (item: ChatTurnItem) => {
+    const count = item.messages.length;
+    if (item.trigger === RunTrigger.Inactivity && item.attempt !== null) {
+      return t('chat.followUpTurn', { name: agentName, attempt: item.attempt, count });
+    }
+    if (item.trigger === RunTrigger.Schedule) {
+      const schedule = scheduleName(item.id);
+      return schedule === null
+        ? t('chat.scheduledTurn', { name: agentName, count })
+        : t('chat.scheduledTurnNamed', { name: agentName, schedule, count });
+    }
+    return t('chat.turn', { name: agentName, count });
+  };
+
   const turn = (item: ChatTurnItem) => (
     <>
       <button
@@ -53,15 +68,7 @@ export function SimulatorChat({
         onClick={() => onSelectRun(item.id)}
       >
         <Icon name={IconName.Agent} size={TURN_ICON_SIZE} />
-        <span className={styles.turnLabel}>
-          {item.trigger === RunTrigger.Inactivity && item.attempt !== null
-            ? t('chat.followUpTurn', {
-                name: agentName,
-                attempt: item.attempt,
-                count: item.messages.length,
-              })
-            : t('chat.turn', { name: agentName, count: item.messages.length })}
-        </span>
+        <span className={styles.turnLabel}>{turnLabel(item)}</span>
       </button>
       {item.messages.map((message, index) => (
         <Fragment key={message.id}>

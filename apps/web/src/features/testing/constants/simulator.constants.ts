@@ -4,6 +4,7 @@ import {
   ConversationState,
   MessageAuthor,
   RunStatus,
+  RunTrigger,
 } from '@/shared/api/generated/schema.generated';
 
 export const SETUP_KEY_SEPARATOR = '|';
@@ -22,6 +23,12 @@ export enum ChatEventKind {
   Ended = 'ended',
   ClosedInactive = 'closedInactive',
   Silence = 'silence',
+  ScheduleRun = 'scheduleRun',
+}
+
+export enum ComposerTab {
+  Message = 'message',
+  Schedule = 'schedule',
 }
 
 export const CONVERSATION_EVENT_ID = 'conversation';
@@ -67,3 +74,8 @@ export const SIMULATOR_CHANNELS: readonly ChannelConversationKind[] = [
 ];
 
 export const SIMULATOR_LANGUAGES: readonly Locale[] = [Locale.Uk, Locale.En];
+
+export const TRIGGER_EVENTS: Readonly<Partial<Record<RunTrigger, ChatEventKind>>> = {
+  [RunTrigger.Inactivity]: ChatEventKind.Silence,
+  [RunTrigger.Schedule]: ChatEventKind.ScheduleRun,
+};

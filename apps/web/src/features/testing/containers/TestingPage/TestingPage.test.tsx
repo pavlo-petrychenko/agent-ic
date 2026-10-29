@@ -20,16 +20,22 @@ import {
   startSimulationMock,
   TEST_RUN_ID,
   FOLLOW_UP,
+  busyScheduleMock,
   closeForInactivityMock,
   failedCloseForInactivityMock,
   followUpSimulationMock,
   refusedSilenceMock,
+  runScheduleMock,
+  scheduledSimulationMock,
   simulateSilenceMock,
 } from '@/features/testing/communication/fixtures/simulator.fixture';
 import {
   AUTO_CLOSE_FLOW,
   FOLLOW_UP_FLOW,
   REPLY_NODE_ID,
+  SCHEDULE_FLOW,
+  SCHEDULE_NAME,
+  SCHEDULE_NODE_ID,
   TEST_AGENT_ID,
   TEST_AGENT_NAME,
   TEST_WORKSPACE_ID,
@@ -473,5 +479,81 @@ describe('TestingPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'The trigger skips chats that were escalated.',
     );
+  });
+
+  it('runs a schedule now and shows its condition checks', async () => {
+    const user = userEvent.setup();
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(false, 3, SCHEDULE_FLOW),
+      startSimulationMock(),
+      simulationMock([QUESTION, ...ANSWERS]),
+      runScheduleMock(SCHEDULE_NODE_ID),
+      scheduledSimulationMock,
+    ]);
+
+    await user.click(await screen.findByRole('tab', { name: 'Schedule' }));
+    expect(await screen.findByRole('combobox', { name: 'Start with' })).toHaveValue(
+      SCHEDULE_NODE_ID,
+    );
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Run schedule now' }));
+
+    const checks = await screen.findByRole('list', { name: 'Schedule conditions' });
+    expect(within(checks).getByText('The customer wrote at least once')).toBeInTheDocument();
+    expect(within(checks).getByText('Silent for at least 24 h')).toBeInTheDocument();
+    expect(within(checks).getByText('not met')).toBeInTheDocument();
+    expect(await screen.findByText(/^Schedule run now · /)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: `${TEST_AGENT_NAME} · Scheduled · ${SCHEDULE_NAME} · 1 message`,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows why a schedule could not run', async () => {
+    const user = userEvent.setup();
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(false, 3, SCHEDULE_FLOW),
+      startSimulationMock(),
+      simulationMock([QUESTION, ...ANSWERS]),
+      busyScheduleMock(SCHEDULE_NODE_ID),
+    ]);
+
+    await user.click(await screen.findByRole('tab', { name: 'Schedule' }));
+    await user.click(await screen.findByRole('button', { name: 'Run schedule now' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'The agent is still answering. Try again when it finishes.',
+    );
+  });
+
+  it('asks for a customer message before a schedule can run', async () => {
+    const user = userEvent.setup();
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(false, 3, SCHEDULE_FLOW),
+      startSimulationMock(),
+      simulationMock([], null),
+    ]);
+
+    await user.click(await screen.findByRole('tab', { name: 'Schedule' }));
+
+    expect(await screen.findByRole('button', { name: 'Run schedule now' })).toBeDisabled();
+    expect(screen.getByText('Send one message as the customer first.')).toBeInTheDocument();
+  });
+
+  it('offers no schedule tab when the flow has no schedule trigger', async () => {
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(),
+      startSimulationMock(),
+      simulationMock([QUESTION, ...ANSWERS]),
+    ]);
+
+    await screen.findByRole('list', { name: 'Test conversation' });
+
+    expect(screen.queryByRole('tab', { name: 'Schedule' })).not.toBeInTheDocument();
   });
 });

@@ -52,14 +52,25 @@
       "ended": "Агент завершив розмову",
       "closedInactive": "Закрито через неактивність",
       "silence": "Тишу зімітовано",
-      "silenceFor": "Зімітовано {{after}} тиші"
+      "silenceFor": "Зімітовано {{after}} тиші",
+      "scheduleRun": "Розклад запущено вручну"
     },
     "eventAt": "{{event}} · {{at, datetime}}",
     "followUpTurn_zero": "{{name}} · нагадування {{attempt}} · без відповіді",
     "followUpTurn_one": "{{name}} · нагадування {{attempt}} · {{count}} повідомлення",
     "followUpTurn_few": "{{name}} · нагадування {{attempt}} · {{count}} повідомлення",
     "followUpTurn_many": "{{name}} · нагадування {{attempt}} · {{count}} повідомлень",
-    "followUpTurn_other": "{{name}} · нагадування {{attempt}} · {{count}} повідомлення"
+    "followUpTurn_other": "{{name}} · нагадування {{attempt}} · {{count}} повідомлення",
+    "scheduledTurn_zero": "{{name}} · За розкладом · без відповіді",
+    "scheduledTurn_one": "{{name}} · За розкладом · {{count}} повідомлення",
+    "scheduledTurn_few": "{{name}} · За розкладом · {{count}} повідомлення",
+    "scheduledTurn_many": "{{name}} · За розкладом · {{count}} повідомлень",
+    "scheduledTurn_other": "{{name}} · За розкладом · {{count}} повідомлення",
+    "scheduledTurnNamed_zero": "{{name}} · За розкладом · {{schedule}} · без відповіді",
+    "scheduledTurnNamed_one": "{{name}} · За розкладом · {{schedule}} · {{count}} повідомлення",
+    "scheduledTurnNamed_few": "{{name}} · За розкладом · {{schedule}} · {{count}} повідомлення",
+    "scheduledTurnNamed_many": "{{name}} · За розкладом · {{schedule}} · {{count}} повідомлень",
+    "scheduledTurnNamed_other": "{{name}} · За розкладом · {{schedule}} · {{count}} повідомлення"
   },
   "composer": {
     "label": "Повідомлення від тестового користувача",
@@ -281,5 +292,29 @@
       "undeliverable": "Останнє повідомлення не доставлено, тож нагадування не запускається.",
       "stale": "Тишу перервано. Надішліть повідомлення й спробуйте ще раз."
     }
+  },
+  "schedule": {
+    "tabs": "Що запускає наступний хід",
+    "tab": {
+      "message": "Повідомлення",
+      "schedule": "Розклад"
+    },
+    "startWith": "Запустити",
+    "description": "Запускає розклад зараз лише для цієї тестової розмови. Умови показано як перевірки; запуск відбудеться, навіть якщо якусь не виконано.",
+    "run": "Запустити розклад зараз",
+    "checks": "Умови розкладу",
+    "met": "виконано",
+    "notMet": "не виконано",
+    "check": {
+      "customer_wrote": "Клієнт написав хоча б раз",
+      "silent_for": "Тиша достатньо довга",
+      "silentForHours": "Тиша щонайменше {{hours}} год",
+      "not_escalated": "Розмову не передавали людині",
+      "channel_type": "Тип каналу вибрано"
+    },
+    "notActive": "Агент зараз не відповідає в цьому чаті.",
+    "needsCustomer": "Спершу надішліть одне повідомлення як клієнт.",
+    "busy": "Агент ще відповідає.",
+    "switchHint": "Перейдіть на «Повідомлення», щоб писати як клієнт."
   }
 }
