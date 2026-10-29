@@ -1,4 +1,4 @@
-import { NodeType, isTriggerNode } from '@agent-ic/flow';
+import { NO_AGENT_EXITS, NodeType, isTriggerNode } from '@agent-ic/flow';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModelOptions } from '@/features/flow-builder/communication/hooks/useModelOptions';
@@ -25,6 +25,7 @@ import {
   placeStep,
 } from '@/features/flow-builder/logic/helpers/placement.helpers';
 import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues';
+import { usePaletteAgentExits } from '@/features/flow-builder/logic/hooks/usePaletteAgentExits';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { StepPlacement } from '@/features/flow-builder/typedefs/palette.typedefs';
 import { BlankFlowHint } from '@/features/flow-builder/view/BlankFlowHint';
@@ -38,6 +39,7 @@ export function FlowEditor() {
   const { document, selection, viewport, density, apply, preview, undo, redo } =
     useFlowBuilderStore();
   const issues = useFlowIssues();
+  const agentExits = usePaletteAgentExits();
   const { select, setViewport, setDensity } = useFlowBuilderStore();
 
   const { models } = useModelOptions(
@@ -68,10 +70,19 @@ export function FlowEditor() {
     .map((type) => ({ id: type, label: t(`step.${type}`), ...NODE_PRESENTATION[type] }));
   const blank = document.nodes.length > 0 && document.nodes.every((node) => isTriggerNode(node));
   const blankAnchor = blank ? firstTriggerAnchor(document) : null;
-  const place = (value: string, placement: Omit<StepPlacement, 'type' | 'label'>) => {
+  const place = (
+    value: string,
+    placement: Omit<StepPlacement, 'type' | 'label' | 'agentExits'>,
+  ) => {
     const type = toAddableType(PALETTE_SECTIONS, value);
     if (type !== null) {
-      apply(placeStep(document, { type, label: t(`step.${type}`), ...placement }, newElementId));
+      apply(
+        placeStep(
+          document,
+          { type, label: t(`step.${type}`), agentExits, ...placement },
+          newElementId,
+        ),
+      );
     }
   };
 
@@ -166,6 +177,7 @@ export function FlowEditor() {
                 position: FIRST_STEP_POSITION,
                 after: null,
                 splitEdgeId: null,
+                agentExits: NO_AGENT_EXITS,
               },
               newElementId,
             ),

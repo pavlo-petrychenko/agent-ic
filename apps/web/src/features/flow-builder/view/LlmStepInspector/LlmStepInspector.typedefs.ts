@@ -8,6 +8,7 @@ import type {
 
 export interface LlmStepInspectorProps {
   workspaceId: string;
+  stepName: string;
   step: LlmStepView;
   extra: LlmStepExtra;
   onPromptChange: (source: PromptSource) => void;

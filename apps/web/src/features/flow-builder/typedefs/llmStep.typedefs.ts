@@ -9,6 +9,7 @@ import type {
   OutputFieldType,
   PromptSource,
 } from '@agent-ic/flow';
+import type { AgentExitsView } from '@/features/flow-builder/typedefs/agentExit.typedefs';
 import type { PortTarget } from '@/features/flow-builder/typedefs/inspector.typedefs';
 import type { AppError } from '@/shared/api/errors/app.error';
 import type {
@@ -104,6 +105,7 @@ export type LlmStepExtra =
       retries: number;
       onFailure: readonly PortTarget[];
       onRetriesChange: (retries: number) => void;
+      exits: AgentExitsView;
     }
   | {
       type: NodeType.Completion;

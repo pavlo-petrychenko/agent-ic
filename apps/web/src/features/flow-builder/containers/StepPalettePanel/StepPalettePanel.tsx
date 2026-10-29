@@ -8,6 +8,7 @@ import {
   belowLowestNode,
   placeStep,
 } from '@/features/flow-builder/logic/helpers/placement.helpers';
+import { usePaletteAgentExits } from '@/features/flow-builder/logic/hooks/usePaletteAgentExits';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import { StepPalette } from '@/features/flow-builder/view/StepPalette';
 
@@ -15,6 +16,7 @@ export function StepPalettePanel() {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const { document, apply } = useFlowBuilderStore();
   const [query, setQuery] = useState('');
+  const agentExits = usePaletteAgentExits();
 
   return (
     <StepPalette
@@ -31,6 +33,7 @@ export function StepPalettePanel() {
               position: belowLowestNode(document),
               after: null,
               splitEdgeId: null,
+              agentExits,
             },
             newElementId,
           ),

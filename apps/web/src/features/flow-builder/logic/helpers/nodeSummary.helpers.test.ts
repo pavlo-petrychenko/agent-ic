@@ -1,4 +1,5 @@
 import {
+  AgentExitKind,
   ModelProviderKind,
   NodeType,
   PortName,
@@ -10,6 +11,7 @@ import type { FlowNode, ModelRef, PromptSource } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.constants';
 import { SummaryKey } from '@/features/flow-builder/constants/nodeSummary.constants';
+import { withAgentExits } from '@/features/flow-builder/logic/helpers/agentExit.helpers';
 import { addNode } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import { nodeSummary, portLabel } from '@/features/flow-builder/logic/helpers/nodeSummary.helpers';
 import type { AddableNodeType } from '@/features/flow-builder/typedefs/graphEdit.typedefs';
@@ -111,6 +113,19 @@ describe('nodeSummary', () => {
       { key: SummaryKey.LibraryPrompt, params: {} },
     ]);
   });
+
+  it('tells which exits an agent may take', () => {
+    const exit = { when: 'done' };
+    const exitKeys = (end: typeof exit | null, handoff: typeof exit | null) =>
+      nodeSummary(withAgentExits(agentWith(HAIKU.id), { end, handoff }), [HAIKU])
+        .map((part) => part.key)
+        .slice(1);
+
+    expect(exitKeys(null, null)).toEqual([]);
+    expect(exitKeys(exit, null)).toEqual([SummaryKey.CanEnd]);
+    expect(exitKeys(null, exit)).toEqual([SummaryKey.CanHandOff]);
+    expect(exitKeys(exit, exit)).toEqual([SummaryKey.CanEndOrHandOff]);
+  });
 });
 
 describe('portLabel', () => {
@@ -127,5 +142,15 @@ describe('portLabel', () => {
     expect(portLabel(withRules, 'r2')).toBeNull();
     expect(portLabel(withRules, PortName.Else)).toEqual({ port: PortName.Else });
     expect(portLabel(stepOf(NodeType.Agent), PortName.Next)).toBeNull();
+  });
+
+  it('labels the exit ports of an agent', () => {
+    const agent = withAgentExits(stepOf(NodeType.Agent), {
+      end: { when: 'bye' },
+      handoff: { when: 'help' },
+    });
+
+    expect(portLabel(agent, AgentExitKind.End)).toEqual({ port: AgentExitKind.End });
+    expect(portLabel(agent, AgentExitKind.Handoff)).toEqual({ port: AgentExitKind.Handoff });
   });
 });

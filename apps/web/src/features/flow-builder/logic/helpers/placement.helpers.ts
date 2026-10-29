@@ -1,15 +1,29 @@
 import { isTriggerNode, nodePorts } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import { FIRST_STEP_POSITION } from '@/features/flow-builder/constants/flowBuilder.constants';
-import { NEW_STEP_GAP, NODE_FOOTPRINT } from '@/features/flow-builder/constants/palette.constants';
+import {
+  NEW_STEP_GAP,
+  NEW_TRIGGER_GAP,
+  NODE_FOOTPRINT,
+} from '@/features/flow-builder/constants/palette.constants';
+import { withAgentExits } from '@/features/flow-builder/logic/helpers/agentExit.helpers';
 import { connect } from '@/features/flow-builder/logic/helpers/connection.helpers';
 import { addNode, removeElements } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import type { FlowPoint } from '@/features/flow-builder/typedefs/flowBuilder.typedefs';
 import type { StepAnchor, StepPlacement } from '@/features/flow-builder/typedefs/palette.typedefs';
+import { UTC_TIME_ZONE } from '@/shared/forms/constants/timeZone.constants';
 
-const withLabel = (document: FlowDocument, nodeId: string, label: string): FlowDocument => ({
+const withPlacement = (
+  document: FlowDocument,
+  nodeId: string,
+  placement: StepPlacement,
+): FlowDocument => ({
   ...document,
-  nodes: document.nodes.map((node) => (node.id === nodeId ? { ...node, label } : node)),
+  nodes: document.nodes.map((node) =>
+    node.id === nodeId
+      ? withAgentExits({ ...node, label: placement.label }, placement.agentExits)
+      : node,
+  ),
 });
 
 const splitEdge = (
@@ -52,12 +66,13 @@ export const placeStep = (
   document: FlowDocument,
   placement: StepPlacement,
   createId: () => string,
+  timeZone: string = UTC_TIME_ZONE,
 ): FlowDocument => {
   const nodeId = createId();
-  const added = withLabel(
-    addNode(document, placement.type, clearOfNodes(document, placement.position), nodeId),
+  const added = withPlacement(
+    addNode(document, placement.type, clearOfNodes(document, placement.position), nodeId, timeZone),
     nodeId,
-    placement.label,
+    placement,
   );
   if (placement.splitEdgeId !== null) {
     return splitEdge(added, nodeId, placement.splitEdgeId, createId);
@@ -75,6 +90,19 @@ export const belowLowestNode = (document: FlowDocument): FlowPoint => {
   return lowest === null
     ? FIRST_STEP_POSITION
     : { x: lowest.position.x, y: lowest.position.y + NEW_STEP_GAP };
+};
+
+export const nextTriggerPosition = (document: FlowDocument): FlowPoint => {
+  const last = document.nodes
+    .filter((node) => isTriggerNode(node))
+    .reduce<FlowDocument['nodes'][number] | null>(
+      (current, node) =>
+        current === null || node.position.x > current.position.x ? node : current,
+      null,
+    );
+  return last === null
+    ? FIRST_STEP_POSITION
+    : { x: last.position.x + NEW_TRIGGER_GAP, y: last.position.y };
 };
 
 export const firstTriggerAnchor = (document: FlowDocument): StepAnchor | null => {

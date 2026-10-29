@@ -1,5 +1,12 @@
-import { ChannelSelectionMode, EscalationMode, MessageContentKind, NodeType } from '@agent-ic/flow';
-import type { FlowNode, ModelRef, PromptSource } from '@agent-ic/flow';
+import {
+  AgentExitKind,
+  ChannelSelectionMode,
+  EscalationMode,
+  MessageContentKind,
+  NodeType,
+  enabledExits,
+} from '@agent-ic/flow';
+import type { AgentNode, FlowNode, ModelRef, PromptSource } from '@agent-ic/flow';
 import {
   LABELLED_PORTS,
   OUTPUT_FIELDS_SEPARATOR,
@@ -33,6 +40,17 @@ const modelAndPrompt = (
   ...(prompt === null ? [] : [part(SummaryKey.LibraryPrompt)]),
 ];
 
+const exitsSummary = (node: AgentNode): SummaryPart[] => {
+  const exits = enabledExits(node);
+  if (exits.length === 0) {
+    return [];
+  }
+  if (exits.length > 1) {
+    return [part(SummaryKey.CanEndOrHandOff)];
+  }
+  return [part(exits[0] === AgentExitKind.End ? SummaryKey.CanEnd : SummaryKey.CanHandOff)];
+};
+
 export const nodeSummary = (
   node: FlowNode,
   models: readonly ModelChoice[],
@@ -43,7 +61,10 @@ export const nodeSummary = (
         ? [part(SummaryKey.AllChannels)]
         : [part(SummaryKey.SomeChannels, { count: node.config.channels.channelIds.length })];
     case NodeType.Agent:
-      return modelAndPrompt(node.config.model, node.config.prompt, models);
+      return [
+        ...modelAndPrompt(node.config.model, node.config.prompt, models),
+        ...exitsSummary(node),
+      ];
     case NodeType.Completion:
       return [
         part(SummaryKey.Outputs, {

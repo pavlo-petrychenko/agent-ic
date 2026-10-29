@@ -13,6 +13,12 @@ describe('EdgeLabel', () => {
     expect(screen.queryByRole('button')).toBeNull();
   });
 
+  it('carries its text as a title so a truncated label stays readable', () => {
+    render(<EdgeLabel text="у разі помилки" />);
+
+    expect(screen.getByText('у разі помилки')).toHaveAttribute('title', 'у разі помилки');
+  });
+
   it('is a button that reports a click when editable', async () => {
     const onClick = vi.fn<() => void>();
     render(<EdgeLabel text="needs_human" onClick={onClick} />);
