@@ -75,11 +75,7 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
     () =>
       simulator.conversation === null
         ? new Set<string>()
-        : handedBackRunIds(
-            simulator.conversation.messages,
-            simulator.conversation.runs,
-            simulator.conversation.state,
-          ),
+        : handedBackRunIds(simulator.conversation),
     [simulator.conversation],
   );
   const selectedRunId = runs.some((run) => run.id === selected) ? selected : newestRunId;

@@ -52,6 +52,7 @@ describe('CloseSimulationForInactivityUseCase', () => {
       ...started.simulation.conversation,
       state: ConversationState.Closed,
       closeReason: CloseReason.Inactivity,
+      closedAt: testbed.clock.now(),
     });
   });
 

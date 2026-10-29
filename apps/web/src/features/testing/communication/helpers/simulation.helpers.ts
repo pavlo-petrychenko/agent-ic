@@ -1,5 +1,8 @@
 import type { SimulationQuery } from '@/features/testing/communication/gql/query/simulation.generated';
-import { escalationMessageCount } from '@/features/testing/communication/helpers/escalation.helpers';
+import {
+  escalatedByStep,
+  escalationMessageCount,
+} from '@/features/testing/communication/helpers/escalation.helpers';
 import type { SimulatorConversation } from '@/features/testing/typedefs/simulator.typedefs';
 
 export const toSimulatorConversation = (
@@ -10,12 +13,19 @@ export const toSimulatorConversation = (
     : {
         conversationId: simulation.conversation.id,
         state: simulation.conversation.state,
+        closeReason: simulation.conversation.closeReason,
+        closedAt: simulation.conversation.closedAt,
         messages: simulation.messages,
-        runs: simulation.runs.map(({ id, status, createdAt, error, steps }) => ({
-          id,
-          status,
-          createdAt,
-          errorMessage: error?.message ?? null,
-          escalationMessageCount: escalationMessageCount(steps.map((step) => step.output)),
-        })),
+        runs: simulation.runs.map(({ id, status, createdAt, finishedAt, error, steps }) => {
+          const outputs = steps.map((step) => step.output);
+          return {
+            id,
+            status,
+            createdAt,
+            finishedAt,
+            errorMessage: error?.message ?? null,
+            escalationMessageCount: escalationMessageCount(outputs),
+            escalatedByStep: escalatedByStep(outputs),
+          };
+        }),
       };

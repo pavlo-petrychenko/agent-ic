@@ -13,6 +13,7 @@ import {
 } from '@/features/testing/logic/helpers/chat.helpers';
 import { SimulatorChat } from '@/features/testing/view/SimulatorChat';
 import { SimulatorSetup } from '@/features/testing/view/SimulatorSetup';
+import { ConversationCloseReason } from '@/shared/api/generated/schema.generated';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
@@ -37,10 +38,7 @@ export function ChatPanel({
   const [takenOver, setTakenOver] = useState<string | null>(null);
   const { conversation } = simulator;
   const items = useMemo(
-    () =>
-      conversation === null
-        ? []
-        : toChatItems(conversation.messages, conversation.runs, conversation.state),
+    () => (conversation === null ? [] : toChatItems(conversation)),
     [conversation],
   );
   const mode =
@@ -115,7 +113,6 @@ export function ChatPanel({
           items={items}
           agentName={agentName}
           typing={conversation?.runs.some(isActiveRun) ?? false}
-          ended={mode === ComposerMode.Ended}
           selectedRunId={selectedRunId}
           onSelectRun={onSelectRun}
         />
@@ -133,7 +130,13 @@ export function ChatPanel({
           >
             {t('ended.restart')}
           </Button>
-          <p className={styles.hint}>{t('ended.hint')}</p>
+          <p className={styles.hint}>
+            {t(
+              conversation?.closeReason === ConversationCloseReason.Inactivity
+                ? 'ended.inactiveHint'
+                : 'ended.hint',
+            )}
+          </p>
         </div>
       )}
       {mode === ComposerMode.Escalated && (

@@ -131,6 +131,7 @@ export class SimulationsService {
           ? null
           : this.ids.toPublic(IdPrefix.AgentVersion, simulationVersionId),
       closeReason: conversation.closeReason,
+      closedAt: conversation.closedAt,
       createdAt: conversation.createdAt,
     };
   }

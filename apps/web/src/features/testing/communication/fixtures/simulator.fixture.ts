@@ -94,6 +94,8 @@ export const simulationMock = (
           __typename: 'Conversation',
           id: TEST_CONVERSATION_ID,
           state,
+          closeReason: null,
+          closedAt: null,
         },
         messages,
         runs:
@@ -105,6 +107,7 @@ export const simulationMock = (
                   id: TEST_RUN_ID,
                   status: runStatus,
                   createdAt: '2026-10-11T10:00:01Z',
+                  finishedAt: '2026-10-11T10:00:03Z',
                   error:
                     errorMessage === null
                       ? null

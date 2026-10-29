@@ -90,6 +90,7 @@ type Conversation {
   language: String
   versionId: ID
   closeReason: ConversationCloseReason
+  closedAt: String
   createdAt: String!
 }
 

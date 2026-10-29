@@ -243,7 +243,7 @@ describe('TestingPage', () => {
 
     const chat = await screen.findByRole('list', { name: 'Test conversation' });
     expect(within(chat).getByText(QUESTION.text)).toBeInTheDocument();
-    expect(within(chat).getByText(`${TEST_AGENT_NAME} ended the conversation`)).toBeInTheDocument();
+    expect(within(chat).getByText('Ended by the agent')).toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Start new conversation' }));
@@ -278,9 +278,7 @@ describe('TestingPage', () => {
       await screen.findByRole('button', { name: `${TEST_AGENT_NAME} · 1 message` }),
     ).toBeInTheDocument();
     expect(screen.getByText('Escalation message')).toBeInTheDocument();
-    expect(
-      screen.getByText('Escalated · in live chats operators would be notified'),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/^Escalated · \d/)).toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Reply as operator' }));
@@ -290,6 +288,7 @@ describe('TestingPage', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Send' }));
     expect(await screen.findByText('Operator')).toBeInTheDocument();
+    expect(screen.getByText(/^You took over · \d/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Hand back' }));
 
