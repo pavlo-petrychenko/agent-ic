@@ -1,5 +1,4 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { z } from 'zod';
 import {
   GOOGLE_OAUTH_AUTHORIZATION_ENDPOINT,
   GOOGLE_OAUTH_ACCESS_TYPE_OFFLINE,
@@ -20,6 +19,10 @@ import {
 import { GoogleOAuthFailedError } from '@/modules/knowledge/errors/google-oauth-failed.error';
 import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
 import { requireGoogleConfig } from '@/modules/knowledge/helpers/google-oauth.helpers';
+import {
+  googleOAuthTokenResponseSchema,
+  googleOAuthUserInfoSchema,
+} from '@/modules/knowledge/schemas/google-oauth-api.schema';
 import type {
   GoogleAccount,
   GoogleAuthorizationUrlInput,
@@ -34,18 +37,6 @@ import type {
   OutboundHttpResult,
   OutboundHttpRequest,
 } from '@/platform/outbound-http/typedefs/outbound-http.typedefs';
-
-const tokenResponseSchema = z.object({
-  access_token: z.string().min(1),
-  refresh_token: z.string().min(1).optional(),
-  expires_in: z.number().int().positive(),
-  scope: z.string().min(1),
-});
-
-const userInfoSchema = z.object({
-  sub: z.string().min(1),
-  email: z.email(),
-});
 
 @Injectable()
 export class GoogleOAuthApiGateway extends GoogleOAuthGateway {
@@ -91,7 +82,7 @@ export class GoogleOAuthApiGateway extends GoogleOAuthGateway {
       },
       body: body.toString(),
     });
-    const parsed = tokenResponseSchema.safeParse(this.json(result));
+    const parsed = googleOAuthTokenResponseSchema.safeParse(this.json(result));
     if (!parsed.success) {
       throw new GoogleOAuthFailedError({ code: 'token_response_invalid' }, parsed.error);
     }
@@ -112,7 +103,7 @@ export class GoogleOAuthApiGateway extends GoogleOAuthGateway {
       },
       body: null,
     });
-    const parsed = userInfoSchema.safeParse(this.json(result));
+    const parsed = googleOAuthUserInfoSchema.safeParse(this.json(result));
     if (!parsed.success) {
       throw new GoogleOAuthFailedError({ code: 'userinfo_response_invalid' }, parsed.error);
     }
