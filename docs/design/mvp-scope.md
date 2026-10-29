@@ -97,7 +97,7 @@ An agent is a **versioned flow graph** built on a canvas. One agent can have sev
 
 **Triggers**
 - **Incoming message** on any connected channel.
-- **Inactivity timer:** e.g. a follow-up after 2 hours of silence.
+- **Inactivity timer:** e.g. a follow-up after 2 hours of silence in one chat, optionally repeated.
 - **Schedule / cron:** recurring jobs such as daily digests or reminders.
 - **External event:** e.g. "order shipped" from the business's own system. It works as an endpoint or webhook, optionally waiting for the flow's result.
 - **Tool event:** e.g. `create_booking` succeeded, which starts its own linked run.
@@ -270,7 +270,8 @@ It proves the core loop of the vision — **flow + knowledge + channel + human h
 | Trigger: Incoming message | ✅ Yes | |
 | Trigger: External event | ⏳ Waiting on the API channel | Endpoint and webhook merged into one trigger, optional "wait for result". The runtime needs the API channel first ([backlog](../backlog/external-event-trigger.md)) |
 | Trigger: Schedule / cron | ✅ Yes | Covers follow-ups, with conditions like "silent for 24 h" |
-| Triggers: Inactivity timer, Tool event | ❌ Later | Inactivity follow-ups are done with Schedule for now |
+| Trigger: Inactivity timer | ✅ Yes | One chat after N of silence (5 minutes to 30 days), once or repeated up to 5 times; a follow-up never moves the clock |
+| Trigger: Tool event | ❌ Later | |
 | Customer memory | ✅ Partly | Conversation-only. **Later:** contact profiles |
 | Prompt library | ✅ Yes | Folders, versions, pinning, variables |
 | Models and providers | ✅ Yes | A curated list of platform models (the default provider) + bring your own key for OpenAI, Anthropic, Google or any OpenAI-compatible API |
@@ -587,7 +588,7 @@ The run is marked failed, and Agents shows "N runs failed today".
   - Draft (never published)
   - Live vN (+ optional unpublished draft)
   - Paused
-- **Pause options:** the user picks one in the pause dialog: route new messages to the Inbox, or reply with an away message they write, sent once per conversation per pause. Schedules and events are skipped while paused.
+- **Pause options:** the user picks one in the pause dialog: route new messages to the Inbox, or reply with an away message they write, sent once per conversation per pause. Schedules, inactivity timers and events are skipped while paused.
 - **Duplicate** copies the draft flow (not channels).
 - **Delete** removes the flow and versions and leaves conversations readable.
 
@@ -598,6 +599,7 @@ The run is marked failed, and Agents shows "N runs failed today".
 | **Incoming message** | Which channels (of those connected to this agent) | `message.text`, `message.attachments`, `user.name`, `user.language`, `channel`, `history` (the whole conversation) |
 | **External event** | Event name; source API channel; example payload; caller mode "don't wait" / "wait for result" (≤30 s) | `event.*`, `user_id` → conversation |
 | **Schedule / cron** | Every day / weekdays / custom cron; time; time zone; conditions on conversations; max per run; once per conversation | conversation context, `history` |
+| **Inactivity timer** | Silence (5 minutes to 30 days); what counts as activity (any message or customer messages only); repeat once or every X up to 5 times; conditions: not escalated, channel types; one per flow, and the flow also needs a Message trigger | conversation context, `user`, `channel`, `history`, `inactivity.silent_minutes`, `inactivity.attempt`, `inactivity.max_attempts`, `inactivity.last_author` |
 
 - Message types: text runs the flow; photos and files are passed as attachments; voice is ignored.
 - **While a person handles a chat, the message trigger does not run.** Messages go to the Inbox.
