@@ -1,0 +1,11 @@
+mutation ReconnectTelegram($id: ID!) {
+  reconnectTelegram(id: $id) {
+    id
+    kind
+    status
+    agentId
+    displayName
+    showTyping
+    updatedAt
+  }
+}
