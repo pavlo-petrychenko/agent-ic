@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDeleteChannel } from '@/features/channels/communication/hooks/useDeleteChannel';
 import { useDisconnectTelegram } from '@/features/channels/communication/hooks/useDisconnectTelegram';
+import { useReconnectTelegram } from '@/features/channels/communication/hooks/useReconnectTelegram';
 import { useReplaceTelegramToken } from '@/features/channels/communication/hooks/useReplaceTelegramToken';
 import { useUpdateTelegram } from '@/features/channels/communication/hooks/useUpdateTelegram';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
@@ -28,6 +29,7 @@ export function useTelegramBotContent({
   const { showToast } = useToast();
   const { deleteChannel, deleting } = useDeleteChannel();
   const { disconnectTelegram, disconnecting } = useDisconnectTelegram();
+  const { reconnectTelegram, reconnecting } = useReconnectTelegram();
   const { replaceTelegramToken, replacing } = useReplaceTelegramToken();
   const { updateTelegram, saving } = useUpdateTelegram();
 
@@ -65,6 +67,15 @@ export function useTelegramBotContent({
       await navigate({ to: CHANNELS_PATH, params: { workspaceId } });
     } catch (error) {
       setDisconnectError(errorMessage(toAppError(error)));
+    }
+  };
+
+  const reconnectBot = async () => {
+    try {
+      await reconnectTelegram(channel.id);
+      showToast({ message: t('telegram.bot.reconnected'), tone: ToastTone.Ok });
+    } catch (error) {
+      showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
     }
   };
 
@@ -144,6 +155,7 @@ export function useTelegramBotContent({
     disconnectOpen,
     disconnecting,
     disconnectError,
+    reconnecting,
     replaceOpen,
     replacing,
     replaceToken,
@@ -174,6 +186,7 @@ export function useTelegramBotContent({
     },
     onDisconnectCancel: () => setDisconnectOpen(false),
     onDisconnectConfirm: () => void disconnectBot(),
+    onReconnect: () => void reconnectBot(),
     onDelete: openDelete,
     onDeleteOpenChange: (open) => {
       if (!open) {

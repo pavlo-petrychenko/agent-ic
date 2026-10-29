@@ -21,6 +21,8 @@ const CHANNEL = vi.hoisted(() => ({
 
 const disconnectTelegram = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
 
+const reconnectTelegram = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
+
 const updateTelegram = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
 
 const replaceTelegramToken = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
@@ -65,6 +67,13 @@ vi.mock('../../communication/hooks/useDisconnectTelegram', () => ({
   useDisconnectTelegram: () => ({
     disconnectTelegram,
     disconnecting: false,
+  }),
+}));
+
+vi.mock('@/features/channels/communication/hooks/useReconnectTelegram', () => ({
+  useReconnectTelegram: () => ({
+    reconnectTelegram,
+    reconnecting: false,
   }),
 }));
 
@@ -187,6 +196,18 @@ describe('TelegramBotPage', () => {
     });
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  it('reconnects a disconnected bot', async () => {
+    reconnectTelegram.mockClear();
+    CHANNEL.status = 'disconnected';
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Connect' }));
+
+    await waitFor(() => {
+      expect(reconnectTelegram).toHaveBeenCalledWith(CHANNEL.id);
     });
   });
 

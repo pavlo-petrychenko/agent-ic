@@ -43,6 +43,11 @@ export interface UseDisconnectTelegramResult {
   readonly disconnecting: boolean;
 }
 
+export interface UseReconnectTelegramResult {
+  readonly reconnectTelegram: (id: string) => Promise<void>;
+  readonly reconnecting: boolean;
+}
+
 export interface UpdateTelegramVariables {
   readonly id: string;
   readonly agentId: string;
