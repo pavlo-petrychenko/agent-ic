@@ -21,12 +21,14 @@ export function TelegramBotDetails({
   typing,
   saving,
   reconnecting,
+  refreshing,
   lastUpdate,
   onAgentChange,
   onTypingChange,
   onReplaceToken,
   onDisconnect,
   onReconnect,
+  onRefreshIdentity,
   onDelete,
   onSave,
 }: TelegramBotDetailsProps) {
@@ -78,6 +80,8 @@ export function TelegramBotDetails({
           <TelegramBotConnection
             channel={channel}
             lastUpdate={lastUpdate}
+            refreshing={refreshing}
+            onRefresh={onRefreshIdentity}
             onReplaceToken={onReplaceToken}
           />
           <TelegramBotWhoAnswers

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useDeleteChannel } from '@/features/channels/communication/hooks/useDeleteChannel';
 import { useDisconnectTelegram } from '@/features/channels/communication/hooks/useDisconnectTelegram';
 import { useReconnectTelegram } from '@/features/channels/communication/hooks/useReconnectTelegram';
+import { useRefreshTelegramIdentity } from '@/features/channels/communication/hooks/useRefreshTelegramIdentity';
 import { useReplaceTelegramToken } from '@/features/channels/communication/hooks/useReplaceTelegramToken';
 import { useUpdateTelegram } from '@/features/channels/communication/hooks/useUpdateTelegram';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
@@ -30,6 +31,7 @@ export function useTelegramBotContent({
   const { deleteChannel, deleting } = useDeleteChannel();
   const { disconnectTelegram, disconnecting } = useDisconnectTelegram();
   const { reconnectTelegram, reconnecting } = useReconnectTelegram();
+  const { refreshTelegramIdentity, refreshing } = useRefreshTelegramIdentity();
   const { replaceTelegramToken, replacing } = useReplaceTelegramToken();
   const { updateTelegram, saving } = useUpdateTelegram();
 
@@ -74,6 +76,15 @@ export function useTelegramBotContent({
     try {
       await reconnectTelegram(channel.id);
       showToast({ message: t('telegram.bot.reconnected'), tone: ToastTone.Ok });
+    } catch (error) {
+      showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
+    }
+  };
+
+  const refreshBot = async () => {
+    try {
+      await refreshTelegramIdentity(channel.id);
+      showToast({ message: t('telegram.bot.refreshed'), tone: ToastTone.Ok });
     } catch (error) {
       showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
     }
@@ -156,6 +167,7 @@ export function useTelegramBotContent({
     disconnecting,
     disconnectError,
     reconnecting,
+    refreshing,
     replaceOpen,
     replacing,
     replaceToken,
@@ -187,6 +199,7 @@ export function useTelegramBotContent({
     onDisconnectCancel: () => setDisconnectOpen(false),
     onDisconnectConfirm: () => void disconnectBot(),
     onReconnect: () => void reconnectBot(),
+    onRefreshIdentity: () => void refreshBot(),
     onDelete: openDelete,
     onDeleteOpenChange: (open) => {
       if (!open) {

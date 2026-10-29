@@ -18,6 +18,7 @@ export interface UseTelegramBotContentResult {
   readonly disconnecting: boolean;
   readonly disconnectError: string | null;
   readonly reconnecting: boolean;
+  readonly refreshing: boolean;
   readonly replaceOpen: boolean;
   readonly replacing: boolean;
   readonly replaceToken: string;
@@ -41,6 +42,7 @@ export interface UseTelegramBotContentResult {
   readonly onDisconnectCancel: () => void;
   readonly onDisconnectConfirm: () => void;
   readonly onReconnect: () => void;
+  readonly onRefreshIdentity: () => void;
   readonly onDelete: () => void;
   readonly onDeleteOpenChange: (open: boolean) => void;
   readonly onDeleteCancel: () => void;
