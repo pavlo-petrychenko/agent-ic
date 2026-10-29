@@ -55,7 +55,14 @@
   "composer": {
     "label": "Message as the test user",
     "placeholder": "Write as the test user…",
-    "send": "Send"
+    "send": "Send",
+    "writeAs": "Write as",
+    "as": {
+      "user": "Customer",
+      "operator": "Operator"
+    },
+    "waitingHint": "Waiting for a person. Write as the customer to test what they see, or switch to Operator to take over.",
+    "handledHint": "A person handles this chat. Customer messages don’t start a turn until it is handed back."
   },
   "ended": {
     "hint": "The agent closed this chat. Start a new conversation to keep testing.",
@@ -188,7 +195,13 @@
   "brokenDraft": {
     "title": "Fix the flow first",
     "description": "The draft is empty or has errors, so it can't run. Fix it in the flow builder or pick a published version.",
-    "action": "Open in flow builder"
+    "action": "Open in flow builder",
+    "titleStep": "Fix the flow first: {{step}}",
+    "issueDescription": "{{issue}}. The simulator can’t run {{draft}} until every step is valid. Or pick a published version.",
+    "openStep": "Open {{step}}",
+    "openOther": "Open step",
+    "more_one": "{{count}} more issue",
+    "more_other": "{{count}} more issues"
   },
   "versions": {
     "label": "Versions",
@@ -235,6 +248,12 @@
       "introLive": "We copy v{{number}} into a new draft. Customers stay on v{{live}} until you publish.",
       "warning_one": "Your current draft v{{draft}} has {{count}} unpublished change. It'll be replaced.",
       "warning_other": "Your current draft v{{draft}} has {{count}} unpublished changes. They'll be replaced."
+    }
+  },
+  "inactivity": {
+    "simulate": "Simulate inactivity",
+    "next": {
+      "autoClose": "Next: auto-close after {{after}} of silence (Flow settings)"
     }
   }
 }

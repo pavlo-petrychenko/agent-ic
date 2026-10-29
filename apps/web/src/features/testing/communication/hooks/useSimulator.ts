@@ -1,5 +1,6 @@
 import { skipToken, useMutation, useQuery, useSubscription } from '@apollo/client/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CloseSimulationForInactivityDocument } from '@/features/testing/communication/gql/mutation/closeSimulationForInactivity.generated';
 import { HandBackDocument } from '@/features/testing/communication/gql/mutation/handBack.generated';
 import { ReplyAsOperatorDocument } from '@/features/testing/communication/gql/mutation/replyAsOperator.generated';
 import { RestartSimulationDocument } from '@/features/testing/communication/gql/mutation/restartSimulation.generated';
@@ -23,6 +24,9 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
   const [sendMessage, { loading: sending }] = useMutation(SendSimulatorMessageDocument);
   const [replyAsOperator, { loading: replying }] = useMutation(ReplyAsOperatorDocument);
   const [handBackConversation, { loading: handingBack }] = useMutation(HandBackDocument);
+  const [closeSimulation, { loading: closingInactive }] = useMutation(
+    CloseSimulationForInactivityDocument,
+  );
   const key =
     agentId === null
       ? null
@@ -94,6 +98,13 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
     }
   }, [conversationId, refetch, handBackConversation]);
 
+  const closeForInactivity = useCallback(async () => {
+    if (conversationId !== null) {
+      await closeSimulation({ variables: { input: { conversationId } } });
+      await refetch();
+    }
+  }, [conversationId, refetch, closeSimulation]);
+
   const restart = useCallback(async () => {
     if (agentId !== null) {
       await restartSimulation({ variables: { input: { agentId } } });
@@ -112,10 +123,12 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
     restarting,
     replying,
     handingBack,
+    closingInactive,
     retry: () => (loadFailed ? void refetch() : setAttempt((value) => value + 1)),
     send,
     restart,
     reply,
     handBack,
+    closeForInactivity,
   };
 }

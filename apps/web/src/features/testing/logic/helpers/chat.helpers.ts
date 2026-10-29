@@ -7,6 +7,7 @@ import {
   ComposerMode,
   EVENT_ID_SEPARATOR,
   MESSAGE_SPEAKERS,
+  OPERATOR_STATES,
 } from '@/features/testing/constants/simulator.constants';
 import { CLOSABLE_RUN_STATUSES, TurnOutcome } from '@/features/testing/constants/trace.constants';
 import type {
@@ -18,6 +19,7 @@ import type {
   SimulatorConversation,
   SimulatorMessage,
   SimulatorRun,
+  WriteAs,
 } from '@/features/testing/typedefs/simulator.typedefs';
 import type { TurnStatus } from '@/features/testing/typedefs/trace.typedefs';
 import {
@@ -69,6 +71,9 @@ const runOutcome = (run: SimulatorRun | null) => ({
 const isOperatorLine = (item: ChatItem | undefined): boolean =>
   item?.kind === ChatItemKind.Message && item.speaker === ChatSpeaker.Operator;
 
+const isCustomerLine = (item: ChatItem): boolean =>
+  item.kind === ChatItemKind.Message && item.speaker === ChatSpeaker.User;
+
 const eventAfter = (anchorId: string, kind: ChatEventKind, at: string | null): ChatEventItem => ({
   kind: ChatItemKind.Event,
   id: [anchorId, kind].join(EVENT_ID_SEPARATOR),
@@ -81,7 +86,7 @@ const turnEnd = (turn: ChatTurnItem): string =>
 
 const withEvents = (items: readonly ChatItem[], state: ConversationState): ChatItem[] =>
   items.flatMap((item, index) => {
-    const next = items.at(index + 1);
+    const next = items.slice(index + 1).find((later) => !isCustomerLine(later));
     const handedBack =
       next === undefined ? state === ConversationState.AgentActive : !isOperatorLine(next);
     const handBack = handedBack ? [eventAfter(item.id, ChatEventKind.HandedBack, null)] : [];
@@ -110,17 +115,13 @@ const closing = (conversation: ChatConversation): ChatEventItem[] => {
   return [eventAfter(CONVERSATION_EVENT_ID, kind, conversation.closedAt)];
 };
 
-const startsNewExchange = (item: ChatItem): boolean =>
-  item.kind === ChatItemKind.Turn ||
-  (item.kind === ChatItemKind.Message && item.speaker === ChatSpeaker.User);
-
 const withHandedBackTurns = (items: readonly ChatItem[]): ChatItem[] =>
   items.map((item, index) => {
     if (item.kind !== ChatItemKind.Turn || !item.escalated) {
       return item;
     }
     const following = items.slice(index + 1);
-    const end = following.findIndex(startsNewExchange);
+    const end = following.findIndex((later) => later.kind === ChatItemKind.Turn);
     const exchange = end === -1 ? following : following.slice(0, end);
     return {
       ...item,
@@ -130,17 +131,18 @@ const withHandedBackTurns = (items: readonly ChatItem[]): ChatItem[] =>
     };
   });
 
-export const composerMode = (state: ConversationState, takingOver: boolean): ComposerMode => {
+export const canWriteAsOperator = (state: ConversationState): boolean => OPERATOR_STATES.has(state);
+
+export const composerMode = (state: ConversationState, picked: WriteAs | null): ComposerMode => {
   if (state === ConversationState.Closed) {
     return ComposerMode.Ended;
   }
-  if (state === ConversationState.Handled) {
-    return ComposerMode.Operator;
+  if (!canWriteAsOperator(state)) {
+    return ComposerMode.User;
   }
-  if (state === ConversationState.Waiting) {
-    return takingOver ? ComposerMode.Operator : ComposerMode.Escalated;
-  }
-  return ComposerMode.User;
+  return (
+    picked ?? (state === ConversationState.Handled ? ComposerMode.Operator : ComposerMode.User)
+  );
 };
 
 export const toChatItems = ({

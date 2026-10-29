@@ -8,6 +8,7 @@ import {
 import { TurnOutcome } from '@/features/testing/constants/trace.constants';
 import {
   closingOutcome,
+  canWriteAsOperator,
   composerMode,
   handedBackRunIds,
   isActiveRun,
@@ -100,6 +101,38 @@ describe('toChatItems', () => {
     expect(handedBack(ConversationState.Waiting).size).toBe(0);
     expect(handedBack(ConversationState.Handled).size).toBe(0);
     expect([...handedBack(ConversationState.AgentActive)]).toEqual(['r1']);
+  });
+
+  it('does not read a customer message written while waiting as a hand back', () => {
+    const waiting = [
+      ...escalatedChat,
+      message('m3', MessageAuthor.Customer, '2026-10-11T10:01:00Z'),
+    ];
+    const runs = [run('r1', RunStatus.Escalated, '2026-10-11T10:00:01Z')];
+
+    expect(handedBackRunIds(conversation(waiting, runs, ConversationState.Waiting)).size).toBe(0);
+    expect(
+      handedBackRunIds(
+        conversation(
+          [...waiting, message('m4', MessageAuthor.Operator, '2026-10-11T10:02:00Z')],
+          runs,
+          ConversationState.Handled,
+        ),
+      ).size,
+    ).toBe(0);
+  });
+
+  it('marks the turn handed back when the customer wrote while waiting', () => {
+    const messages = [
+      ...escalatedChat,
+      message('m3', MessageAuthor.Customer, '2026-10-11T10:01:00Z'),
+      message('m4', MessageAuthor.Operator, '2026-10-11T10:02:00Z'),
+    ];
+    const runs = [run('r1', RunStatus.Escalated, '2026-10-11T10:00:01Z')];
+
+    expect([
+      ...handedBackRunIds(conversation(messages, runs, ConversationState.AgentActive)),
+    ]).toEqual(['r1']);
   });
 
   it('leaves a turn that escalated again after a hand back as escalated', () => {
@@ -230,9 +263,10 @@ describe('toChatItems', () => {
         [
           message('m1', MessageAuthor.Operator, '2026-10-11T10:00:00Z'),
           message('m2', MessageAuthor.Customer, '2026-10-11T10:01:00Z'),
+          message('m3', MessageAuthor.Agent, '2026-10-11T10:01:02Z', 'r1'),
         ],
-        [],
-        ConversationState.Waiting,
+        [run('r1', RunStatus.Succeeded, '2026-10-11T10:01:01Z')],
+        ConversationState.AgentActive,
       ),
     );
 
@@ -241,6 +275,7 @@ describe('toChatItems', () => {
       ChatItemKind.Message,
       ChatItemKind.Event,
       ChatItemKind.Message,
+      ChatItemKind.Turn,
     ]);
   });
 
@@ -266,15 +301,35 @@ describe('toChatItems', () => {
 });
 
 describe('composerMode', () => {
-  it('offers the operator reply after an escalation until the chat is handed back', () => {
-    expect(composerMode(ConversationState.AgentActive, true)).toBe(ComposerMode.User);
-    expect(composerMode(ConversationState.Waiting, false)).toBe(ComposerMode.Escalated);
-    expect(composerMode(ConversationState.Waiting, true)).toBe(ComposerMode.Operator);
-    expect(composerMode(ConversationState.Handled, false)).toBe(ComposerMode.Operator);
+  it('writes as the customer while the agent answers, whatever was picked', () => {
+    expect(composerMode(ConversationState.AgentActive, ComposerMode.Operator)).toBe(
+      ComposerMode.User,
+    );
+  });
+
+  it('writes as the customer while the chat waits, until Operator is picked', () => {
+    expect(composerMode(ConversationState.Waiting, null)).toBe(ComposerMode.User);
+    expect(composerMode(ConversationState.Waiting, ComposerMode.Operator)).toBe(
+      ComposerMode.Operator,
+    );
+  });
+
+  it('writes as the operator once taken over, until Customer is picked', () => {
+    expect(composerMode(ConversationState.Handled, null)).toBe(ComposerMode.Operator);
+    expect(composerMode(ConversationState.Handled, ComposerMode.User)).toBe(ComposerMode.User);
   });
 
   it('ends the composer once the conversation is closed', () => {
-    expect(composerMode(ConversationState.Closed, true)).toBe(ComposerMode.Ended);
+    expect(composerMode(ConversationState.Closed, ComposerMode.Operator)).toBe(ComposerMode.Ended);
+  });
+});
+
+describe('canWriteAsOperator', () => {
+  it('offers the operator only while a person handles the chat', () => {
+    expect(canWriteAsOperator(ConversationState.Waiting)).toBe(true);
+    expect(canWriteAsOperator(ConversationState.Handled)).toBe(true);
+    expect(canWriteAsOperator(ConversationState.AgentActive)).toBe(false);
+    expect(canWriteAsOperator(ConversationState.Closed)).toBe(false);
   });
 });
 

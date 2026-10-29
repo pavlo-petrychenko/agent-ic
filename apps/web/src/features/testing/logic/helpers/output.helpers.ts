@@ -169,7 +169,7 @@ export const inspectStep = (
   });
 };
 
-const formatMinutes = (minutes: number, locale: string): string => {
+export const formatMinutes = (minutes: number, locale: string): string => {
   const [value, unit] =
     minutes % MINUTES_PER_DAY === 0
       ? [minutes / MINUTES_PER_DAY, 'day']

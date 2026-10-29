@@ -3,6 +3,7 @@ import {
   ChannelSelectionMode,
   EscalationMode,
   FLOW_SCHEMA_VERSION,
+  FlowIssueCode,
   NO_FLOW_SETTINGS,
   MessageContentKind,
   NodeType,
@@ -149,9 +150,36 @@ export const testingAgentsMock = (
   },
 });
 
+export const AUTO_CLOSE_FLOW: FlowDocument = {
+  ...TRACE_FLOW,
+  settings: { ...NO_FLOW_SETTINGS, autoClose: { afterMinutes: 1440 } },
+};
+
+const BLOCKING_ISSUES = [
+  {
+    __typename: 'FlowIssue',
+    code: FlowIssueCode.MissingPrompt,
+    severity: FlowIssueSeverity.Error,
+    nodeId: REPLY_NODE_ID,
+    edgeId: null,
+    path: [],
+    params: {},
+  },
+  {
+    __typename: 'FlowIssue',
+    code: FlowIssueCode.NoTrigger,
+    severity: FlowIssueSeverity.Error,
+    nodeId: null,
+    edgeId: null,
+    path: [],
+    params: {},
+  },
+];
+
 export const testingVersionsMock = (
   draftBroken = false,
   changeCount: number | null = 3,
+  draftFlow: FlowDocument = TRACE_FLOW,
 ): MockLink.MockedResponse => ({
   request: { query: TestingVersionsDocument, variables: { agentId: TEST_AGENT_ID } },
   result: {
@@ -168,8 +196,8 @@ export const testingVersionsMock = (
       ],
       agentDraft: {
         __typename: 'AgentDraft',
-        issues: draftBroken ? [{ __typename: 'FlowIssue', severity: FlowIssueSeverity.Error }] : [],
-        version: { __typename: 'AgentVersion', flow: TRACE_FLOW },
+        issues: draftBroken ? BLOCKING_ISSUES : [],
+        version: { __typename: 'AgentVersion', flow: draftFlow },
       },
     },
   },
