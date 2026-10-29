@@ -1,5 +1,5 @@
-import { EscalationMode, NodeType } from '@agent-ic/flow';
-import type { FlowDocument, FlowNode } from '@agent-ic/flow';
+import { EscalationMode, NodeType, enabledExits } from '@agent-ic/flow';
+import type { AgentExitKind, FlowDocument, FlowNode } from '@agent-ic/flow';
 import { RunStatus } from '@/modules/runs/constants/run.constants';
 import type { FinishedRunStatus } from '@/modules/runs/typedefs/run.typedefs';
 
@@ -17,3 +17,14 @@ export const endStatusOf = (last: FlowNode): FinishedRunStatus =>
   last.type === NodeType.Escalation && last.config.mode === EscalationMode.Escalate
     ? RunStatus.Escalated
     : RunStatus.Succeeded;
+
+export const defaultExitOf = (
+  flow: FlowDocument,
+  node: FlowNode,
+  port: string | null,
+): AgentExitKind | null => {
+  if (node.type !== NodeType.Agent || port === null || nextNode(flow, node.id, port) !== null) {
+    return null;
+  }
+  return enabledExits(node).find((kind) => kind === port) ?? null;
+};

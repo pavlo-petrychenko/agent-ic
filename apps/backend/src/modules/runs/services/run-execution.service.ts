@@ -1,4 +1,12 @@
-import { NodeType, PortName, buildFlowGraph, createScopeLookup, nodePorts } from '@agent-ic/flow';
+import {
+  AGENT_MESSAGES_FIELD_NAME,
+  AgentExitKind,
+  NodeType,
+  PortName,
+  buildFlowGraph,
+  createScopeLookup,
+  nodePorts,
+} from '@agent-ic/flow';
 import type { FlowNode, ParallelNode } from '@agent-ic/flow';
 import { Injectable, Logger } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
@@ -10,6 +18,7 @@ import {
 } from '@/modules/conversations';
 import { PromptFlowReader } from '@/modules/prompts';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
+import { AGENT_EXIT_RUN_STATUS } from '@/modules/runs/constants/agent-exit.constants';
 import { RunLogMessage } from '@/modules/runs/constants/run-log.constants';
 import {
   ROOT_BRANCH_KEY,
@@ -20,13 +29,19 @@ import {
 import { RunFlowInvalidError } from '@/modules/runs/errors/run-flow-invalid.error';
 import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { UnsupportedNodeTypeError } from '@/modules/runs/errors/unsupported-node-type.error';
+import { listTexts } from '@/modules/runs/helpers/outbound-message.helpers';
 import {
   joinBranches,
   parallelBranches,
   settleBranch,
 } from '@/modules/runs/helpers/run-branch.helpers';
 import { runFailureOf } from '@/modules/runs/helpers/run-failure.helpers';
-import { endStatusOf, messageTriggerOf, nextNode } from '@/modules/runs/helpers/run-flow.helpers';
+import {
+  defaultExitOf,
+  endStatusOf,
+  messageTriggerOf,
+  nextNode,
+} from '@/modules/runs/helpers/run-flow.helpers';
 import {
   messageTriggerVariables,
   stepInput,
@@ -35,6 +50,7 @@ import {
 import { runTraceTags, stepTraceMetadata } from '@/modules/runs/helpers/run-tracing.helpers';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
+import { ConversationExitService } from '@/modules/runs/services/conversation-exit.service';
 import { RunMetricsService } from '@/modules/runs/services/run-metrics.service';
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
 import type { BranchSettlement } from '@/modules/runs/typedefs/run-branch.typedefs';
@@ -76,6 +92,7 @@ export class RunExecutionService {
     private readonly ids: IdService,
     private readonly logContext: LogContextService,
     private readonly metrics: RunMetricsService,
+    private readonly exits: ConversationExitService,
   ) {}
 
   async execute(
@@ -198,6 +215,11 @@ export class RunExecutionService {
         walk.ending ??= { status: endStatusOf(node), error: null, finishedAt: this.clock.now() };
         return walk.ending;
       }
+      const exit =
+        step.status === RunStepStatus.Succeeded ? defaultExitOf(walk.flow, node, step.port) : null;
+      if (exit !== null) {
+        return this.defaultExit(walk, node, step, exit);
+      }
       if (step.port === null) {
         return step.status === RunStepStatus.Failed
           ? { status: RunStatus.Failed, error: step.error, finishedAt: this.clock.now() }
@@ -206,6 +228,33 @@ export class RunExecutionService {
       node = nextNode(walk.flow, node.id, step.port);
     }
     return this.succeeded();
+  }
+
+  private async defaultExit(
+    walk: RunWalk,
+    node: FlowNode,
+    step: RunStep,
+    exit: AgentExitKind,
+  ): Promise<RunEnd> {
+    if (walk.ending !== null) {
+      return walk.ending;
+    }
+    walk.ending = {
+      status: AGENT_EXIT_RUN_STATUS[exit],
+      error: null,
+      finishedAt: this.clock.now(),
+    };
+    const { ctx, run } = walk;
+    const target = {
+      ctx,
+      run,
+      nodeId: node.id,
+      texts: listTexts(step.output?.[AGENT_MESSAGES_FIELD_NAME]),
+    };
+    await this.tenants.run(run.workspaceId, () =>
+      exit === AgentExitKind.End ? this.exits.end(target) : this.exits.handOff(target),
+    );
+    return walk.ending;
   }
 
   private async fork(walk: RunWalk, parallel: ParallelNode): Promise<RunEnd | null> {

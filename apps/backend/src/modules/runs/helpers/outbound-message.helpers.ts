@@ -22,6 +22,8 @@ const textsOf = (value: unknown): string[] => {
 const withoutBlanks = (texts: readonly string[]): string[] =>
   texts.filter((text) => text.trim().length > 0);
 
+export const listTexts = (value: unknown): string[] => withoutBlanks(textsOf(value));
+
 export const renderStepText = (template: string, variables: StepData): string =>
   renderTemplate(template, (path) => resolvePath(variables, path));
 
