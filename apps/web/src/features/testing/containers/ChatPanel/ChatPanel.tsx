@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { InactivityAction } from '@/features/testing/constants/inactivity.constants';
 import { ComposerMode, WRITE_AS_MODES } from '@/features/testing/constants/simulator.constants';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
 import type {
@@ -14,7 +15,11 @@ import {
   isActiveRun,
   toChatItems,
 } from '@/features/testing/logic/helpers/chat.helpers';
-import { nextInactivity } from '@/features/testing/logic/helpers/inactivity.helpers';
+import {
+  inactivityOffsets,
+  inactivityRefusal,
+  nextInactivity,
+} from '@/features/testing/logic/helpers/inactivity.helpers';
 import { formatMinutes } from '@/features/testing/logic/helpers/output.helpers';
 import { SimulateInactivity } from '@/features/testing/view/SimulateInactivity';
 import { SimulatorChat } from '@/features/testing/view/SimulatorChat';
@@ -51,9 +56,10 @@ export function ChatPanel({
   const [picked, setPicked] = useState<PickedWriteAs | null>(null);
   const [inactivityFailure, setInactivityFailure] = useState<InactivityFailure | null>(null);
   const { conversation } = simulator;
+  const offsets = useMemo(() => inactivityOffsets(flow), [flow]);
   const items = useMemo(
-    () => (conversation === null ? [] : toChatItems(conversation)),
-    [conversation],
+    () => (conversation === null ? [] : toChatItems(conversation, offsets)),
+    [conversation, offsets],
   );
   const conversationId = conversation?.conversationId ?? null;
   const pickedMode = picked?.conversationId === conversationId ? (picked?.mode ?? null) : null;
@@ -65,13 +71,12 @@ export function ChatPanel({
   const switchable = conversation !== null && canWriteAsOperator(conversation.state);
   const failed = failure?.mode === mode ? failure : null;
   const running = conversation?.runs.some(isActiveRun) ?? false;
-  const next = nextInactivity(flow);
   const inactivity =
-    next !== null &&
-    conversation?.state === ConversationState.AgentActive &&
-    conversation.messages.length > 0
-      ? next
+    conversation?.state === ConversationState.AgentActive && conversation.messages.length > 0
+      ? nextInactivity(flow, conversation)
       : null;
+  const silence = inactivity?.action === InactivityAction.Trigger;
+  const durationLabel = (minutes: number) => formatMinutes(minutes, locale);
 
   const attempt = async (action: () => Promise<void>): Promise<void> => {
     setFailure(null);
@@ -96,12 +101,18 @@ export function ChatPanel({
       setPicked(null);
     });
 
+  const refusalMessage = (error: unknown): string => {
+    const appError = toAppError(error);
+    const refusal = inactivityRefusal(appError);
+    return refusal === null ? errorMessage(appError) : t(`inactivity.refused.${refusal}`);
+  };
+
   const simulateInactivity = async (id: string) => {
     setInactivityFailure(null);
     try {
-      await simulator.closeForInactivity();
+      await (silence ? simulator.simulateSilence() : simulator.closeForInactivity());
     } catch (error) {
-      setInactivityFailure({ conversationId: id, message: errorMessage(toAppError(error)) });
+      setInactivityFailure({ conversationId: id, message: refusalMessage(error) });
     }
   };
 
@@ -160,6 +171,7 @@ export function ChatPanel({
           typing={running}
           selectedRunId={selectedRunId}
           onSelectRun={onSelectRun}
+          durationLabel={durationLabel}
         />
       ) : (
         <div className={styles.state}>{notReady}</div>
@@ -207,10 +219,17 @@ export function ChatPanel({
           )}
           {inactivity !== null && conversationId !== null && (
             <SimulateInactivity
-              hint={t('inactivity.next.autoClose', {
-                after: formatMinutes(inactivity.afterMinutes, locale),
-              })}
-              loading={simulator.closingInactive}
+              hint={
+                inactivity.action === InactivityAction.Trigger
+                  ? t('inactivity.next.trigger', {
+                      after: durationLabel(inactivity.afterMinutes),
+                      attempt: inactivity.attempt,
+                    })
+                  : t('inactivity.next.autoClose', {
+                      after: durationLabel(inactivity.afterMinutes),
+                    })
+              }
+              loading={silence ? simulator.simulatingSilence : simulator.closingInactive}
               disabled={running || simulator.sending}
               error={inactivityError}
               onSimulate={() => void simulateInactivity(conversationId)}

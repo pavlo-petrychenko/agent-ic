@@ -19,11 +19,16 @@ import {
   simulationMock,
   startSimulationMock,
   TEST_RUN_ID,
+  FOLLOW_UP,
   closeForInactivityMock,
   failedCloseForInactivityMock,
+  followUpSimulationMock,
+  refusedSilenceMock,
+  simulateSilenceMock,
 } from '@/features/testing/communication/fixtures/simulator.fixture';
 import {
   AUTO_CLOSE_FLOW,
+  FOLLOW_UP_FLOW,
   REPLY_NODE_ID,
   TEST_AGENT_ID,
   TEST_AGENT_NAME,
@@ -423,5 +428,50 @@ describe('TestingPage', () => {
     await screen.findByRole('list', { name: 'Test conversation' });
 
     expect(screen.queryByRole('button', { name: 'Simulate inactivity' })).not.toBeInTheDocument();
+  });
+
+  it('fires the inactivity trigger first when it is due before auto-close', async () => {
+    const user = userEvent.setup();
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(false, 3, FOLLOW_UP_FLOW),
+      startSimulationMock(),
+      simulationMock([QUESTION, ...ANSWERS]),
+      simulateSilenceMock,
+      followUpSimulationMock,
+    ]);
+
+    expect(
+      await screen.findByText('Next: inactivity follow-up 1 after 2 hours of silence'),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Simulate inactivity' }));
+
+    expect(await screen.findByText(/^2 hours of silence simulated · /)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: `${TEST_AGENT_NAME} · inactivity follow-up 1 · 1 message`,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(FOLLOW_UP.text)).toBeInTheDocument();
+    expect(
+      screen.getByText('Next: auto-close after 1 day of silence (Flow settings)'),
+    ).toBeInTheDocument();
+  });
+
+  it('says which condition stopped a simulated follow-up', async () => {
+    const user = userEvent.setup();
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(false, 3, FOLLOW_UP_FLOW),
+      startSimulationMock(),
+      simulationMock([QUESTION, ...ANSWERS]),
+      refusedSilenceMock,
+    ]);
+
+    await user.click(await screen.findByRole('button', { name: 'Simulate inactivity' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'The trigger skips chats that were escalated.',
+    );
   });
 });

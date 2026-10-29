@@ -11,6 +11,7 @@ import type {
   ConversationState,
   MessageAuthor,
   RunStatus,
+  RunTrigger,
 } from '@/shared/api/generated/schema.generated';
 
 export interface SimulatorSetup {
@@ -31,6 +32,8 @@ export interface SimulatorMessage {
 
 export interface SimulatorRun {
   id: string;
+  trigger: RunTrigger;
+  inactivityAttempt: number | null;
   status: RunStatus;
   createdAt: string;
   finishedAt: string | null;
@@ -61,6 +64,8 @@ export interface ChatTurnItem {
   id: string;
   at: string;
   messages: readonly SimulatorMessage[];
+  trigger: RunTrigger;
+  attempt: number | null;
   failed: boolean;
   escalated: boolean;
   escalatedByStep: boolean;
@@ -75,6 +80,7 @@ export interface ChatEventItem {
   id: string;
   at: string | null;
   event: ChatEventKind;
+  minutes: number | null;
 }
 
 export type ChatItem = ChatMessageItem | ChatTurnItem | ChatEventItem;
@@ -95,10 +101,12 @@ export interface SimulatorResult {
   replying: boolean;
   handingBack: boolean;
   closingInactive: boolean;
+  simulatingSilence: boolean;
   retry: () => void;
   send: (text: string) => Promise<void>;
   restart: () => Promise<void>;
   reply: (text: string) => Promise<void>;
   handBack: () => Promise<void>;
   closeForInactivity: () => Promise<void>;
+  simulateSilence: () => Promise<void>;
 }

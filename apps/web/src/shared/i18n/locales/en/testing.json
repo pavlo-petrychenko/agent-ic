@@ -48,9 +48,14 @@
       "takenOver": "You took over",
       "handedBack": "Handed back to the agent",
       "ended": "Ended by the agent",
-      "closedInactive": "Closed after inactivity"
+      "closedInactive": "Closed after inactivity",
+      "silence": "Silence simulated",
+      "silenceFor": "{{after}} of silence simulated"
     },
-    "eventAt": "{{event}} · {{at, datetime}}"
+    "eventAt": "{{event}} · {{at, datetime}}",
+    "followUpTurn_zero": "{{name}} · inactivity follow-up {{attempt}} · no reply",
+    "followUpTurn_one": "{{name}} · inactivity follow-up {{attempt}} · {{count}} message",
+    "followUpTurn_other": "{{name}} · inactivity follow-up {{attempt}} · {{count}} messages"
   },
   "composer": {
     "label": "Message as the test user",
@@ -253,7 +258,16 @@
   "inactivity": {
     "simulate": "Simulate inactivity",
     "next": {
-      "autoClose": "Next: auto-close after {{after}} of silence (Flow settings)"
+      "autoClose": "Next: auto-close after {{after}} of silence (Flow settings)",
+      "trigger": "Next: inactivity follow-up {{attempt}} after {{after}} of silence"
+    },
+    "refused": {
+      "escalated": "The trigger skips chats that were escalated.",
+      "channel_excluded": "The trigger is off for this channel type.",
+      "over_limit": "The workspace is over its usage limit, so no follow-up runs.",
+      "agent_unavailable": "The agent is paused or deleted, so no follow-up runs.",
+      "undeliverable": "The last message could not be delivered, so no follow-up runs.",
+      "stale": "The silence was interrupted. Send a message and try again."
     }
   }
 }

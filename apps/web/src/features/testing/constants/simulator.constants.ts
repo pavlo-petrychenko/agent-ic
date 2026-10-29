@@ -21,6 +21,7 @@ export enum ChatEventKind {
   HandedBack = 'handedBack',
   Ended = 'ended',
   ClosedInactive = 'closedInactive',
+  Silence = 'silence',
 }
 
 export const CONVERSATION_EVENT_ID = 'conversation';

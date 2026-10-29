@@ -20,7 +20,7 @@ import {
 import { TurnOutcome } from '@/features/testing/constants/trace.constants';
 import { TracePanel } from '@/features/testing/containers/TracePanel/TracePanel';
 import { useNodeInspection } from '@/features/testing/logic/hooks/useNodeInspection';
-import { RunStatus, RunStepStatus } from '@/shared/api/generated/schema.generated';
+import { RunStatus, RunStepStatus, RunTrigger } from '@/shared/api/generated/schema.generated';
 import { MemoryRouter } from '@test/support/components/MemoryRouter';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
@@ -56,6 +56,8 @@ function InspectablePanel({ status, draft, flow, handedBack, ending }: Inspectab
         errorMessage: null,
         escalationMessageCount: ending.escalationMessageCount,
         escalatedByStep: false,
+        trigger: RunTrigger.Message,
+        inactivityAttempt: null,
       }}
       turnNumber={2}
       handedBack={handedBack}

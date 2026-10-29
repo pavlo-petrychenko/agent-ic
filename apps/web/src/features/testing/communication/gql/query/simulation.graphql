@@ -15,6 +15,8 @@ query Simulation($agentId: ID!) {
     }
     runs {
       id
+      trigger
+      inactivityAttempt
       status
       createdAt
       finishedAt

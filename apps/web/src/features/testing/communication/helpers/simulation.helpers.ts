@@ -16,16 +16,20 @@ export const toSimulatorConversation = (
         closeReason: simulation.conversation.closeReason,
         closedAt: simulation.conversation.closedAt,
         messages: simulation.messages,
-        runs: simulation.runs.map(({ id, status, createdAt, finishedAt, error, steps }) => {
-          const outputs = steps.map((step) => step.output);
-          return {
-            id,
-            status,
-            createdAt,
-            finishedAt,
-            errorMessage: error?.message ?? null,
-            escalationMessageCount: escalationMessageCount(outputs),
-            escalatedByStep: escalatedByStep(outputs),
-          };
-        }),
+        runs: simulation.runs.map(
+          ({ id, trigger, inactivityAttempt, status, createdAt, finishedAt, error, steps }) => {
+            const outputs = steps.map((step) => step.output);
+            return {
+              id,
+              trigger,
+              inactivityAttempt,
+              status,
+              createdAt,
+              finishedAt,
+              errorMessage: error?.message ?? null,
+              escalationMessageCount: escalationMessageCount(outputs),
+              escalatedByStep: escalatedByStep(outputs),
+            };
+          },
+        ),
       };
