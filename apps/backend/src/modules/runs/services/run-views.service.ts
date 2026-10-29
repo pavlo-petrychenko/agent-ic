@@ -1,5 +1,6 @@
 import { IdPrefix } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
+import { inactivityAttemptOf } from '@/modules/runs/helpers/inactivity-trigger.helpers';
 import { durationMs } from '@/modules/runs/helpers/run-view.helpers';
 import type { RunStepView, RunView } from '@/modules/runs/typedefs/run-details.typedefs';
 import type { RunStep } from '@/modules/runs/typedefs/run-step.typedefs';
@@ -17,6 +18,7 @@ export class RunViewsService {
       agentId: this.ids.toPublic(IdPrefix.Agent, run.agentId),
       versionId: this.ids.toPublic(IdPrefix.AgentVersion, run.versionId),
       trigger: run.trigger,
+      inactivityAttempt: inactivityAttemptOf(run),
       status: run.status,
       error: run.error,
       createdAt: run.createdAt,

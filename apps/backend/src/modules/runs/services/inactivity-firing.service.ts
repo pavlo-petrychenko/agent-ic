@@ -40,12 +40,17 @@ export class InactivityFiringService {
     private readonly usageLimits: UsageLimits,
   ) {}
 
-  async fire(ctx: UseCaseCtx, timer: InactivityTimer, now: Date): Promise<InactivityFire> {
+  async fire(
+    ctx: UseCaseCtx,
+    timer: InactivityTimer,
+    now: Date,
+    simulatedVersionId: string | null = null,
+  ): Promise<InactivityFire> {
     const conversation = await this.conversations.getConversation(
       timer.workspaceId,
       timer.conversationId,
     );
-    const checked = await this.check(timer, conversation);
+    const checked = await this.check(timer, conversation, simulatedVersionId);
     if ('outcome' in checked) {
       await this.timers.disarm(timer.workspaceId, timer.conversationId);
       return { outcome: checked.outcome, run: null };
@@ -69,6 +74,7 @@ export class InactivityFiringService {
   private async check(
     timer: InactivityTimer,
     conversation: Conversation,
+    simulatedVersionId: string | null,
   ): Promise<InactivityCheck> {
     if (conversation.state !== ConversationState.AgentActive) {
       return { outcome: InactivityFireOutcome.NotActive };
@@ -76,7 +82,7 @@ export class InactivityFiringService {
     if ((conversation.lastCustomerMessageAt?.getTime() ?? 0) > timer.anchorAt.getTime()) {
       return { outcome: InactivityFireOutcome.CustomerWrote };
     }
-    const versionId = await this.answeringVersionId(conversation);
+    const versionId = simulatedVersionId ?? (await this.answeringVersionId(conversation));
     if (versionId === null) {
       return { outcome: InactivityFireOutcome.AgentUnavailable };
     }

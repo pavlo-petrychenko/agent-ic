@@ -2,6 +2,14 @@ extend type Query {
   run(id: ID!): Run!
 }
 
+extend type Mutation {
+  simulateSilence(input: SimulateSilenceInput!): Run!
+}
+
+input SimulateSilenceInput {
+  conversationId: ID!
+}
+
 type Subscription {
   runSteps(runId: ID!): RunStepEvent!
 }
@@ -67,6 +75,7 @@ type Run {
   agentId: ID!
   versionId: ID!
   trigger: RunTrigger!
+  inactivityAttempt: Int
   status: RunStatus!
   error: RunFailure
   createdAt: String!

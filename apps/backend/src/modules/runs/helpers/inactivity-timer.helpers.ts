@@ -33,14 +33,14 @@ export const inactivityAnchor = (
 export const fireOffsetMinutes = (node: TriggerInactivityNode, attempt: number): number | null =>
   fireOffsetsMinutes(node)[attempt] ?? null;
 
+export const addMinutes = (date: Date, minutes: number): Date =>
+  new Date(date.getTime() + minutes * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND);
+
 export const inactivityDueAt = (
   mode: ConversationMode,
   anchor: Date,
   offsetMinutes: number,
-): Date | null =>
-  mode === ConversationMode.Simulation
-    ? null
-    : new Date(anchor.getTime() + offsetMinutes * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND);
+): Date | null => (mode === ConversationMode.Simulation ? null : addMinutes(anchor, offsetMinutes));
 
 export const isInactivityTimerDue = (timer: Pick<InactivityTimer, 'dueAt'>, now: Date): boolean =>
   timer.dueAt !== null && timer.dueAt.getTime() <= now.getTime();
