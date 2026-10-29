@@ -5,6 +5,8 @@ import {
   AGENT_OUTCOME_REASON_FIELD_NAME,
   AgentExitKind,
 } from '@agent-ic/flow';
+import { RunStatus } from '@/modules/runs/constants/run.constants';
+import type { FinishedRunStatus } from '@/modules/runs/typedefs/run.typedefs';
 
 export const AGENT_EXITS_SECTION_SEPARATOR = '\n\n';
 export const AGENT_EXITS_LINE_SEPARATOR = '\n';
@@ -21,4 +23,9 @@ export const AGENT_EXITS_CONTRACT: readonly string[] = [
 export const AGENT_EXIT_CRITERION_LEAD: Readonly<Record<AgentExitKind, string>> = {
   [AgentExitKind.End]: `Set \`${AGENT_OUTCOME_FIELD_NAME}\` to \`${AgentExitKind.End}\` to end the conversation when:`,
   [AgentExitKind.Handoff]: `Set \`${AGENT_OUTCOME_FIELD_NAME}\` to \`${AgentExitKind.Handoff}\` to hand the conversation to a person when:`,
+};
+
+export const AGENT_EXIT_RUN_STATUS: Readonly<Record<AgentExitKind, FinishedRunStatus>> = {
+  [AgentExitKind.End]: RunStatus.Succeeded,
+  [AgentExitKind.Handoff]: RunStatus.Escalated,
 };

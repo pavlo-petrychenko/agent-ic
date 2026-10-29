@@ -513,6 +513,19 @@ export const stepExecutionOf = async <TNode extends FlowNode>(
   return { ctx, run: stored, node, branchKey: ROOT_BRANCH_KEY, scope };
 };
 
+export const readConversationChat = (
+  testbed: RunExecutionTestbed,
+  { workspaceId, conversationId }: Pick<Run, 'workspaceId' | 'conversationId'>,
+): Promise<RunChat> =>
+  testbed.tenants.run(workspaceId, async () => ({
+    conversation: await testbed.module
+      .get(ConversationsRepository)
+      .findById(workspaceId, conversationId),
+    messages: await testbed.module
+      .get(MessagesRepository)
+      .listByConversation(workspaceId, conversationId),
+  }));
+
 export const readRunChat = (
   testbed: RunExecutionTestbed,
   { workspaceId, conversationId }: Pick<Run, 'workspaceId' | 'conversationId'>,
