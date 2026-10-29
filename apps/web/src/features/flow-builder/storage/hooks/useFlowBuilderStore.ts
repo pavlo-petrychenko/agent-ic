@@ -28,6 +28,7 @@ const INITIAL_STATE: FlowBuilderState = {
   issues: [],
   previewOrigin: null,
   density: Density.Comfortable,
+  settingsOpen: false,
 };
 
 const keepConflict = (saveState: SaveState): SaveState =>
@@ -66,9 +67,19 @@ export const useFlowBuilderStore = create<FlowBuilderStore>()((set) => ({
     })),
   undo: () => set((state) => afterStep(state, stepBack(state.history, state.document))),
   redo: () => set((state) => afterStep(state, stepForward(state.history, state.document))),
-  select: (selection) => set({ selection }),
+  select: (selection) =>
+    set((state) => ({
+      selection,
+      settingsOpen:
+        selection.nodeIds.length === 0 && selection.edgeIds.length === 0 && state.settingsOpen,
+    })),
   setViewport: (viewport) => set({ viewport }),
   setDensity: (density) => set({ density }),
+  setSettingsOpen: (settingsOpen) =>
+    set((state) => ({
+      settingsOpen,
+      selection: settingsOpen ? EMPTY_SELECTION : state.selection,
+    })),
   setSaveState: (saveState) => set({ saveState }),
   markSaved: (revision, issues, savedDocument) =>
     set((state) => ({

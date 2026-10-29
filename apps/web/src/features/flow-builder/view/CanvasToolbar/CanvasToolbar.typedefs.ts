@@ -3,4 +3,6 @@ import type { Density } from '@/features/flow-builder/constants/density.constant
 export interface CanvasToolbarProps {
   density: Density;
   onDensityChange: (density: Density) => void;
+  settingsOpen: boolean;
+  onSettingsOpen: () => void;
 }
