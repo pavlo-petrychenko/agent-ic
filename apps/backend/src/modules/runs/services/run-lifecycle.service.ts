@@ -13,6 +13,7 @@ import { runFailureOf } from '@/modules/runs/helpers/run-failure.helpers';
 import { executeProactiveRunJob } from '@/modules/runs/jobs/execute-proactive-run.job';
 import { executeRunJob } from '@/modules/runs/jobs/execute-run.job';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
+import { InactivityTimersService } from '@/modules/runs/services/inactivity-timers.service';
 import { RunMetricsService } from '@/modules/runs/services/run-metrics.service';
 import type { ExecuteRunJobData } from '@/modules/runs/typedefs/run-job.typedefs';
 import type {
@@ -41,6 +42,7 @@ export class RunLifecycleService {
     private readonly ids: IdService,
     private readonly metrics: RunMetricsService,
     private readonly afterCommit: AfterCommitService,
+    private readonly inactivityTimers: InactivityTimersService,
   ) {}
 
   startRun(ctx: UseCaseCtx, start: RunStart): Promise<NewRun | null> {
@@ -136,7 +138,11 @@ export class RunLifecycleService {
       return null;
     }
     const target = { ...run, triggerMessageId: run.lastCoveredMessageId };
-    return this.startCovering(ctx, target, () => this.followUpVersionId(run));
+    const followUp = await this.startCovering(ctx, target, () => this.followUpVersionId(run));
+    if (followUp === null) {
+      await this.inactivityTimers.armAfterRun(run);
+    }
+    return followUp;
   }
 
   async failRun(workspaceId: string, runId: string, error: unknown): Promise<void> {

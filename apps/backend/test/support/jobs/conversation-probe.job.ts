@@ -1,3 +1,4 @@
+import { handedBackEvent } from '@/modules/conversations/events/handed-back.event';
 import { messageReceivedEvent } from '@/modules/conversations/events/message-received.event';
 import { needsOperatorEvent } from '@/modules/conversations/events/needs-operator.event';
 import { outboundQueuedEvent } from '@/modules/conversations/events/outbound-queued.event';
@@ -21,4 +22,10 @@ export const runOnMessageReceived = defineDomainEventSubscription({
   event: messageReceivedEvent,
   queue: QueueName.RunsReactive,
   name: ConversationProbeJobName.RequestRun,
+});
+
+export const armOnHandedBack = defineDomainEventSubscription({
+  event: handedBackEvent,
+  queue: QueueName.RunsReactive,
+  name: ConversationProbeJobName.ArmOnHandBack,
 });

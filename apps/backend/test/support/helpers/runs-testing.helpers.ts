@@ -517,6 +517,16 @@ export const markConversationWaiting = async (
   );
 };
 
+export const recordCustomerMessageAt = async (
+  testbed: RunLifecycleTestbed,
+  { conversation: { workspaceId, id } }: LiveConversation,
+  at: Date,
+): Promise<void> => {
+  await testbed.tenants.run(workspaceId, () =>
+    testbed.module.get(ConversationsRepository).recordCustomerMessage(workspaceId, id, at),
+  );
+};
+
 export const readLifecycle = (
   testbed: RunLifecycleTestbed,
   { conversation: { workspaceId, id } }: LiveConversation,
