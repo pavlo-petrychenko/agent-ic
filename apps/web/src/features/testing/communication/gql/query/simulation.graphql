@@ -18,6 +18,11 @@ query Simulation($agentId: ID!) {
       error {
         message
       }
+      steps {
+        id
+        nodeId
+        output
+      }
     }
   }
 }

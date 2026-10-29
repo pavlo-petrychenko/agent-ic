@@ -43,6 +43,7 @@ export const toOutputView = (
   if (recipients !== null) {
     return {
       kind: OutputViewKind.Escalation,
+      resumed: false,
       recipients:
         recipients.length === 0
           ? null
@@ -61,6 +62,9 @@ export const toOutputView = (
   }
   return { kind: OutputViewKind.Json, code: JSON.stringify(output, null, JSON_INDENT) };
 };
+
+export const withHandBack = (view: OutputView, handedBack: boolean): OutputView =>
+  view.kind === OutputViewKind.Escalation && handedBack ? { ...view, resumed: true } : view;
 
 export const toStepView = (
   step: RunStepView,

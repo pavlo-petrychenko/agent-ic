@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isDraftUnchanged } from '@/features/flow-builder';
 import { useSimulator } from '@/features/testing/communication/hooks/useSimulator';
@@ -18,7 +18,11 @@ import { ChatPanel } from '@/features/testing/containers/ChatPanel';
 import type { TestingPageProps } from '@/features/testing/containers/TestingPage/TestingPage.typedefs';
 import { TracePanel } from '@/features/testing/containers/TracePanel';
 import { pickAgent } from '@/features/testing/logic/helpers/agent.helpers';
-import { latestRunId, turnNumber } from '@/features/testing/logic/helpers/chat.helpers';
+import {
+  handedBackRunIds,
+  latestRunId,
+  turnNumber,
+} from '@/features/testing/logic/helpers/chat.helpers';
 import {
   isSimulatorChannel,
   isSimulatorLanguage,
@@ -67,6 +71,17 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const runs = simulator.conversation?.runs ?? [];
   const newestRunId = latestRunId(runs);
+  const handedBack = useMemo(
+    () =>
+      simulator.conversation === null
+        ? new Set<string>()
+        : handedBackRunIds(
+            simulator.conversation.messages,
+            simulator.conversation.runs,
+            simulator.conversation.state,
+          ),
+    [simulator.conversation],
+  );
   const selectedRunId = runs.some((run) => run.id === selected) ? selected : newestRunId;
   const { selectedNodeId, selectNode } = useNodeInspection(selectedRunId);
   const selectRun = (runId: string) => {
@@ -253,6 +268,7 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
             flow={flow}
             run={runs.find((run) => run.id === selectedRunId) ?? null}
             turnNumber={turnNumber(runs, selectedRunId)}
+            handedBack={selectedRunId !== null && handedBack.has(selectedRunId)}
             draft={versionId === null}
             liveNumber={liveNumber}
             selectedNodeId={selectedNodeId}

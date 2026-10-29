@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChatItemKind, ChatSpeaker } from '@/features/testing/constants/simulator.constants';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
@@ -39,14 +40,17 @@ export function SimulatorChat({
         onClick={() => onSelectRun(item.id)}
       >
         <Icon name={IconName.Agent} size={TURN_ICON_SIZE} />
-        {item.escalated
-          ? t('chat.escalationTurn', { name: agentName })
-          : t('chat.turn', { name: agentName, count: item.messages.length })}
+        {t('chat.turn', { name: agentName, count: item.messages.length })}
       </button>
-      {item.messages.map((message) => (
-        <ChatBubble key={message.id} from={ChatBubbleFrom.Agent} author={null} time={null}>
-          {message.text}
-        </ChatBubble>
+      {item.messages.map((message, index) => (
+        <Fragment key={message.id}>
+          {item.escalated && index === item.messages.length - item.escalationMessageCount && (
+            <span className={styles.label}>{t('chat.escalationMessage')}</span>
+          )}
+          <ChatBubble from={ChatBubbleFrom.Agent} author={null} time={null}>
+            {message.text}
+          </ChatBubble>
+        </Fragment>
       ))}
       {item.failed && (
         <ChatSystemMessage

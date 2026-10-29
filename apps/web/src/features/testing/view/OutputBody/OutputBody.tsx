@@ -45,7 +45,11 @@ export function OutputBody({ view }: OutputBodyProps) {
         {
           id: EscalationRow.Flow,
           name: t('details.flow'),
-          meta: <Badge tone={BadgeTone.Warn}>{t('details.paused')}</Badge>,
+          meta: view.resumed ? (
+            <Badge tone={BadgeTone.Ok}>{t('details.resumed')}</Badge>
+          ) : (
+            <Badge tone={BadgeTone.Warn}>{t('details.paused')}</Badge>
+          ),
         },
       ]}
     />

@@ -6,17 +6,18 @@ import { BUILDER_PATH } from '@/features/testing/constants/testing.constants';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
 import {
   EMPTY_FIELD_VALUE,
-  RUN_STATUS_TONES,
   STEP_STATUS_TONES,
+  TURN_STATUS_TONES,
   TRACE_FALLBACK_WIDTH,
 } from '@/features/testing/constants/trace.constants';
 import { TRACE_LEGEND } from '@/features/testing/containers/TracePanel/TracePanel.constants';
 import type { TracePanelProps } from '@/features/testing/containers/TracePanel/TracePanel.typedefs';
-import { isActiveRun } from '@/features/testing/logic/helpers/chat.helpers';
+import { isActiveRun, turnStatus } from '@/features/testing/logic/helpers/chat.helpers';
 import {
   formatSeconds,
   inspectStep,
   toStepView,
+  withHandBack,
 } from '@/features/testing/logic/helpers/output.helpers';
 import {
   drawTrace,
@@ -42,6 +43,7 @@ export function TracePanel({
   flow,
   run,
   turnNumber,
+  handedBack,
   draft,
   liveNumber,
   selectedNodeId,
@@ -86,7 +88,11 @@ export function TracePanel({
         statusTone={STEP_STATUS_TONES[inspected.status]}
         metrics={[]}
         outputs={inspectStep(inspected, locale, inspectedSlot?.type ?? null).map(
-          ({ section, view }) => ({ id: section, title: t(`details.${section}`), view }),
+          ({ section, view }) => ({
+            id: section,
+            title: t(`details.${section}`),
+            view: withHandBack(view, handedBack),
+          }),
         )}
         action={builderLink}
       />
@@ -135,8 +141,8 @@ export function TracePanel({
         ) : (
           <TurnDetails
             title={t('details.title', { number: turnNumber })}
-            statusLabel={t(`details.status.${turn.status}`)}
-            statusTone={RUN_STATUS_TONES[turn.status]}
+            statusLabel={t(`details.status.${turnStatus(turn.status, handedBack)}`)}
+            statusTone={TURN_STATUS_TONES[turnStatus(turn.status, handedBack)]}
             metrics={[
               {
                 label: t('details.duration'),
@@ -159,7 +165,13 @@ export function TracePanel({
               const view = toStepView(step, locale, slot?.type ?? null);
               return view === null
                 ? []
-                : [{ id: step.id, title: slot?.label ?? step.nodeId, view }];
+                : [
+                    {
+                      id: step.id,
+                      title: slot?.label ?? step.nodeId,
+                      view: withHandBack(view, handedBack),
+                    },
+                  ];
             })}
           />
         )}

@@ -1,9 +1,15 @@
 import type { NodeType } from '@agent-ic/flow';
-import type { OutputViewKind, StepSection } from '@/features/testing/constants/trace.constants';
+import type {
+  HandedBackStatus,
+  OutputViewKind,
+  StepSection,
+} from '@/features/testing/constants/trace.constants';
 import type { RunStatus, RunStepStatus } from '@/shared/api/generated/schema.generated';
 import type { NodeKind } from '@/shared/ui/display/NodeTile';
 import type { RunNodeState } from '@/shared/ui/flow/RunNode';
 import type { IconName } from '@/shared/ui/foundations/Icon';
+
+export type TurnStatus = RunStatus | HandedBackStatus;
 
 export interface RunStepView {
   id: string;
@@ -88,7 +94,7 @@ export type OutputView =
   | { kind: OutputViewKind.Fields; fields: readonly OutputField[] }
   | { kind: OutputViewKind.Json; code: string }
   | { kind: OutputViewKind.Error; message: string | null }
-  | { kind: OutputViewKind.Escalation; recipients: string | null };
+  | { kind: OutputViewKind.Escalation; recipients: string | null; resumed: boolean };
 
 export interface StepSectionView {
   section: StepSection;

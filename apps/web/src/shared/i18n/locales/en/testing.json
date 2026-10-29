@@ -41,7 +41,7 @@
     "failed": "This turn failed",
     "emptyTitle": "Say hi to your agent",
     "emptyDescription": "Messages you send here run the selected version. Customers never see them.",
-    "escalationTurn": "{{name}} · Escalation message",
+    "escalationMessage": "Escalation message",
     "ended": "{{name}} ended the conversation",
     "divider": {
       "escalated": "Escalated · in live chats operators would be notified",
@@ -93,12 +93,14 @@
     "nobody": "Nobody",
     "flow": "Flow",
     "paused": "Paused",
+    "resumed": "Resumed",
     "stepFailed": "This step failed",
     "status": {
       "queued": "Queued",
       "running": "Running",
       "succeeded": "Completed",
       "escalated": "Escalated",
+      "handedBack": "Handed back",
       "failed": "Failed"
     },
     "back": "All steps of turn {{number}}",

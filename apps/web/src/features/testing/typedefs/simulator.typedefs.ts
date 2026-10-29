@@ -30,6 +30,7 @@ export interface SimulatorRun {
   status: RunStatus;
   createdAt: string;
   errorMessage: string | null;
+  escalationMessageCount: number;
 }
 
 export interface SimulatorConversation {
@@ -54,6 +55,8 @@ export interface ChatTurnItem {
   messages: readonly SimulatorMessage[];
   failed: boolean;
   escalated: boolean;
+  handedBack: boolean;
+  escalationMessageCount: number;
   errorMessage: string | null;
 }
 
