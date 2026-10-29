@@ -70,7 +70,7 @@ describe('TelegramBotDetails', () => {
       channel: { ...connectedChannel, status: TelegramChannelStatus.Disconnected },
     });
 
-    expect(screen.getByRole('button', { name: 'Connect' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Reconnect' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Disconnect' })).not.toBeInTheDocument();
   });
@@ -80,7 +80,7 @@ describe('TelegramBotDetails', () => {
       channel: { ...connectedChannel, status: TelegramChannelStatus.Disconnected },
     });
 
-    await userEvent.click(screen.getByRole('button', { name: 'Connect' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Reconnect' }));
 
     expect(onReconnect).toHaveBeenCalledTimes(1);
   });
