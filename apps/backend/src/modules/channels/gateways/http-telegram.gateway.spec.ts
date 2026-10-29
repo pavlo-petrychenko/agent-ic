@@ -324,6 +324,40 @@ describe('HttpTelegramGateway', () => {
     expect(requestBody(init)).toEqual({ chat_id: '42', action: 'typing' });
   });
 
+  it('answers a callback query with an alert', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json({ ok: true, result: true }));
+
+    await gateway.answerCallbackQuery({
+      token: TEST_TELEGRAM_TOKEN,
+      callbackQueryId: 'callback-1',
+      text: 'This button is no longer active',
+      showAlert: true,
+    });
+
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe(`${TELEGRAM_API_BASE_URL}/bot${TEST_TELEGRAM_TOKEN}/answerCallbackQuery`);
+    expect(init?.method).toBe('POST');
+    expect(requestBody(init)).toEqual({
+      callback_query_id: 'callback-1',
+      text: 'This button is no longer active',
+      show_alert: true,
+    });
+  });
+
+  it('answers a callback query without text or an alert', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json({ ok: true, result: true }));
+
+    await gateway.answerCallbackQuery({
+      token: TEST_TELEGRAM_TOKEN,
+      callbackQueryId: 'callback-2',
+      text: null,
+      showAlert: false,
+    });
+
+    const [, init] = fetchMock.mock.calls[0] ?? [];
+    expect(requestBody(init)).toEqual({ callback_query_id: 'callback-2' });
+  });
+
   it('maps a blocked bot to a non-retryable send error', async () => {
     fetchMock.mockResolvedValueOnce(
       Response.json(

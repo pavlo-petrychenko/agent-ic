@@ -1,5 +1,6 @@
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import type {
+  AnswerTelegramCallbackQueryInput,
   GetTelegramUpdatesInput,
   SendTelegramChatActionInput,
   SendTelegramMessageInput,
@@ -25,6 +26,7 @@ export class FakeTelegramGateway extends TelegramGateway {
   readonly getUpdatesCalls: GetTelegramUpdatesInput[] = [];
   readonly sendMessageCalls: SendTelegramMessageInput[] = [];
   readonly sendChatActionCalls: SendTelegramChatActionInput[] = [];
+  readonly answerCallbackQueryCalls: AnswerTelegramCallbackQueryInput[] = [];
   private readonly failures: Error[] = [];
 
   failNext(error: Error): void {
@@ -77,6 +79,11 @@ export class FakeTelegramGateway extends TelegramGateway {
 
   sendChatAction(input: SendTelegramChatActionInput): Promise<void> {
     this.sendChatActionCalls.push(input);
+    return this.respond(undefined);
+  }
+
+  answerCallbackQuery(input: AnswerTelegramCallbackQueryInput): Promise<void> {
+    this.answerCallbackQueryCalls.push(input);
     return this.respond(undefined);
   }
 
