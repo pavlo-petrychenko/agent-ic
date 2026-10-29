@@ -1,12 +1,15 @@
-import { Locale } from '@agent-ic/contracts';
+import { ErrorCode, ErrorReason, Locale } from '@agent-ic/contracts';
 import type { MockLink } from '@apollo/client/testing';
+import { GraphQLError } from 'graphql';
 import { TEST_AGENT_ID } from '@/features/testing/communication/fixtures/testing.fixture';
+import { CloseSimulationForInactivityDocument } from '@/features/testing/communication/gql/mutation/closeSimulationForInactivity.generated';
 import { HandBackDocument } from '@/features/testing/communication/gql/mutation/handBack.generated';
 import { ReplyAsOperatorDocument } from '@/features/testing/communication/gql/mutation/replyAsOperator.generated';
 import { RestartSimulationDocument } from '@/features/testing/communication/gql/mutation/restartSimulation.generated';
 import { SendSimulatorMessageDocument } from '@/features/testing/communication/gql/mutation/sendSimulatorMessage.generated';
 import { StartSimulationDocument } from '@/features/testing/communication/gql/mutation/startSimulation.generated';
 import { SimulationDocument } from '@/features/testing/communication/gql/query/simulation.generated';
+import type { ConversationCloseReason } from '@/shared/api/generated/schema.generated';
 import {
   ChannelConversationKind,
   ConversationState,
@@ -84,6 +87,7 @@ export const simulationMock = (
   errorMessage: string | null = null,
   state: ConversationState = ConversationState.AgentActive,
   steps: readonly { id: string; nodeId: string; output: unknown }[] = [],
+  closeReason: ConversationCloseReason | null = null,
 ): MockLink.MockedResponse => ({
   request: { query: SimulationDocument, variables: { agentId: TEST_AGENT_ID } },
   result: {
@@ -94,8 +98,8 @@ export const simulationMock = (
           __typename: 'Conversation',
           id: TEST_CONVERSATION_ID,
           state,
-          closeReason: null,
-          closedAt: null,
+          closeReason,
+          closedAt: closeReason === null ? null : '2026-10-11T10:00:05Z',
         },
         messages,
         runs:
@@ -156,5 +160,37 @@ export const handBackMock: MockLink.MockedResponse = {
         state: ConversationState.AgentActive,
       },
     },
+  },
+};
+
+const closeForInactivityRequest = {
+  query: CloseSimulationForInactivityDocument,
+  variables: { input: { conversationId: TEST_CONVERSATION_ID } },
+};
+
+export const closeForInactivityMock: MockLink.MockedResponse = {
+  request: closeForInactivityRequest,
+  result: {
+    data: {
+      closeSimulationForInactivity: {
+        __typename: 'Simulation',
+        conversation: {
+          __typename: 'Conversation',
+          id: TEST_CONVERSATION_ID,
+          state: ConversationState.Closed,
+        },
+      },
+    },
+  },
+};
+
+export const failedCloseForInactivityMock: MockLink.MockedResponse = {
+  request: closeForInactivityRequest,
+  result: {
+    errors: [
+      new GraphQLError('Auto-close is off', {
+        extensions: { code: ErrorCode.Conflict, reason: ErrorReason.AutoCloseOff },
+      }),
+    ],
   },
 };

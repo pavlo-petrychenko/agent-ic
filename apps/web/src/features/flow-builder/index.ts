@@ -10,3 +10,6 @@ export { formatTimeAgo } from '@/features/flow-builder/logic/helpers/publish.hel
 export { useChangeTexts } from '@/features/flow-builder/logic/hooks/useChangeTexts';
 export { toFlowDiff } from '@/features/flow-builder/communication/helpers/publish.helpers';
 export type { ChangeText, PublishDiff } from '@/features/flow-builder/typedefs/publish.typedefs';
+export { toFlowIssues } from '@/features/flow-builder/communication/helpers/draft.helpers';
+export { useBlockingIssueTexts } from '@/features/flow-builder/logic/hooks/useBlockingIssueTexts';
+export type { IssueText } from '@/features/flow-builder/typedefs/issueText.typedefs';

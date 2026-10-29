@@ -3,6 +3,7 @@ import type {
   ChatEventKind,
   ChatItemKind,
   ChatSpeaker,
+  WRITE_AS_MODES,
 } from '@/features/testing/constants/simulator.constants';
 import type {
   ChannelConversationKind,
@@ -17,6 +18,8 @@ export interface SimulatorSetup {
   channelKind: ChannelConversationKind;
   language: Locale;
 }
+
+export type WriteAs = (typeof WRITE_AS_MODES)[number];
 
 export interface SimulatorMessage {
   id: string;
@@ -91,9 +94,11 @@ export interface SimulatorResult {
   restarting: boolean;
   replying: boolean;
   handingBack: boolean;
+  closingInactive: boolean;
   retry: () => void;
   send: (text: string) => Promise<void>;
   restart: () => Promise<void>;
   reply: (text: string) => Promise<void>;
   handBack: () => Promise<void>;
+  closeForInactivity: () => Promise<void>;
 }

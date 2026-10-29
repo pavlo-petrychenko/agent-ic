@@ -19,8 +19,12 @@ import {
   simulationMock,
   startSimulationMock,
   TEST_RUN_ID,
+  closeForInactivityMock,
+  failedCloseForInactivityMock,
 } from '@/features/testing/communication/fixtures/simulator.fixture';
 import {
+  AUTO_CLOSE_FLOW,
+  REPLY_NODE_ID,
   TEST_AGENT_ID,
   TEST_AGENT_NAME,
   TEST_WORKSPACE_ID,
@@ -31,6 +35,7 @@ import {
 import { testingRunMock } from '@/features/testing/communication/fixtures/trace.fixture';
 import { TestingPage } from '@/features/testing/containers/TestingPage/TestingPage';
 import {
+  ConversationCloseReason,
   ConversationState,
   RunStatus,
   RunStepStatus,
@@ -127,11 +132,26 @@ describe('TestingPage', () => {
     expect(await screen.findByRole('button', { name: /Version\s+Draft v4/ })).toBeInTheDocument();
   });
 
-  it('asks to fix a broken draft before simulating it', async () => {
-    renderPage([testingAgentsMock(), testingVersionsMock(true)]);
+  it('names the first blocking issue of a broken draft and opens its step', async () => {
+    const user = userEvent.setup();
+    const history = createMemoryHistory();
+    renderPage([testingAgentsMock(), testingVersionsMock(true)], history);
 
-    expect(await screen.findByText('Fix the flow first')).toBeInTheDocument();
+    expect(await screen.findByText('Fix the flow first: Send replies')).toBeInTheDocument();
+    expect(
+      screen.getByText(/^Write a prompt\. The simulator can’t run Draft v4/),
+    ).toBeInTheDocument();
+    expect(screen.getByText('1 more issue')).toBeInTheDocument();
+    expect(screen.getByText('Add a trigger to start the flow')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open in flow builder' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Open Send replies' }));
+
+    await vi.waitFor(() =>
+      expect(history.location.href).toBe(
+        `/w/${TEST_WORKSPACE_ID}/agents/${TEST_AGENT_ID}?node=${REPLY_NODE_ID}`,
+      ),
+    );
   });
 
   it('groups the bot messages per turn and marks the latest turn', async () => {
@@ -199,7 +219,7 @@ describe('TestingPage', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Send' }));
 
-    expect(await screen.findByText('Fix the flow first')).toBeInTheDocument();
+    expect(await screen.findByText('Fix the flow first: Send replies')).toBeInTheDocument();
   });
 
   it('sends a message as the test user and resets the conversation', async () => {
@@ -245,6 +265,7 @@ describe('TestingPage', () => {
     expect(within(chat).getByText(QUESTION.text)).toBeInTheDocument();
     expect(within(chat).getByText('Ended by the agent')).toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Reset conversation' })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Start new conversation' }));
 
@@ -279,16 +300,16 @@ describe('TestingPage', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Escalation message')).toBeInTheDocument();
     expect(screen.getByText(/^Escalated · \d/)).toBeInTheDocument();
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Customer' })).toBeChecked();
 
-    await user.click(screen.getByRole('button', { name: 'Reply as operator' }));
+    await user.click(screen.getByRole('radio', { name: 'Operator' }));
     await user.type(
       screen.getByRole('textbox', { name: 'Reply as operator' }),
       OPERATOR_REPLY.text,
     );
     await user.click(screen.getByRole('button', { name: 'Send' }));
-    expect(await screen.findByText('Operator')).toBeInTheDocument();
-    expect(screen.getByText(/^You took over · \d/)).toBeInTheDocument();
+    expect(await screen.findByText(/^You took over · \d/)).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Operator' })).toBeChecked();
 
     await user.click(screen.getByRole('button', { name: 'Hand back' }));
 
@@ -309,11 +330,98 @@ describe('TestingPage', () => {
       simulationMock(escalated, RunStatus.Escalated, null, ConversationState.AgentActive),
     ]);
 
-    await user.click(await screen.findByRole('button', { name: 'Reply as operator' }));
+    await user.click(await screen.findByRole('radio', { name: 'Operator' }));
     await user.click(screen.getByRole('button', { name: 'Hand back' }));
     await user.click(await screen.findByRole('button', { name: 'Retry' }));
 
     expect(await screen.findByText('Handed back to the agent')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument();
+  });
+
+  it('writes as the customer while the chat waits for a person', async () => {
+    const user = userEvent.setup();
+    const escalated = [ESCALATION_QUESTION, ESCALATION_MESSAGE];
+    const waiting = (messages: typeof escalated) =>
+      simulationMock(messages, RunStatus.Escalated, null, ConversationState.Waiting, [
+        ESCALATION_STEP,
+      ]);
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(),
+      startSimulationMock(),
+      waiting(escalated),
+      sendSimulatorMessageMock(QUESTION.text),
+      waiting([...escalated, { ...QUESTION, createdAt: '2026-10-11T10:00:04Z' }]),
+    ]);
+
+    await screen.findByText(/^Escalated · \d/);
+    expect(screen.getByText(/^Waiting for a person\./)).toBeInTheDocument();
+    await user.type(
+      screen.getByRole('textbox', { name: 'Message as the test user' }),
+      QUESTION.text,
+    );
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+
+    const chat = await screen.findByRole('list', { name: 'Test conversation' });
+    expect(await within(chat).findByText(QUESTION.text)).toBeInTheDocument();
+    expect(screen.queryByText(/^You took over/)).not.toBeInTheDocument();
+  });
+
+  it('closes the chat when inactivity is simulated with auto-close on', async () => {
+    const user = userEvent.setup();
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(false, 3, AUTO_CLOSE_FLOW),
+      startSimulationMock(),
+      simulationMock([QUESTION, ...ANSWERS]),
+      closeForInactivityMock,
+      simulationMock(
+        [QUESTION, ...ANSWERS],
+        RunStatus.Succeeded,
+        null,
+        ConversationState.Closed,
+        [],
+        ConversationCloseReason.Inactivity,
+      ),
+    ]);
+
+    expect(
+      await screen.findByText('Next: auto-close after 1 day of silence (Flow settings)'),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Simulate inactivity' }));
+
+    expect(await screen.findByText(/^Closed after inactivity · /)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start new conversation' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Reset conversation' })).not.toBeInTheDocument();
+  });
+
+  it('shows why inactivity could not be simulated', async () => {
+    const user = userEvent.setup();
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(false, 3, AUTO_CLOSE_FLOW),
+      startSimulationMock(),
+      simulationMock([QUESTION, ...ANSWERS]),
+      failedCloseForInactivityMock,
+    ]);
+
+    await user.click(await screen.findByRole('button', { name: 'Simulate inactivity' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Closing inactive conversations is off for this version.',
+    );
+  });
+
+  it('offers no inactivity shortcut when auto-close is off', async () => {
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(),
+      startSimulationMock(),
+      simulationMock([QUESTION, ...ANSWERS]),
+    ]);
+
+    await screen.findByRole('list', { name: 'Test conversation' });
+
+    expect(screen.queryByRole('button', { name: 'Simulate inactivity' })).not.toBeInTheDocument();
   });
 });

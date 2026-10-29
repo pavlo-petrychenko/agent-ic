@@ -1,6 +1,7 @@
 import { Locale } from '@agent-ic/contracts';
 import {
   ChannelConversationKind,
+  ConversationState,
   MessageAuthor,
   RunStatus,
 } from '@/shared/api/generated/schema.generated';
@@ -26,10 +27,16 @@ export const CONVERSATION_EVENT_ID = 'conversation';
 
 export enum ComposerMode {
   User = 'user',
-  Escalated = 'escalated',
   Operator = 'operator',
   Ended = 'ended',
 }
+
+export const WRITE_AS_MODES = [ComposerMode.User, ComposerMode.Operator] as const;
+
+export const OPERATOR_STATES: ReadonlySet<ConversationState> = new Set([
+  ConversationState.Waiting,
+  ConversationState.Handled,
+]);
 
 export const EVENT_ID_SEPARATOR = ':';
 

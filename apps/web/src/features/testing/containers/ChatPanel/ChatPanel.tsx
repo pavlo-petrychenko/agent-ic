@@ -1,22 +1,33 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ComposerMode } from '@/features/testing/constants/simulator.constants';
+import { ComposerMode, WRITE_AS_MODES } from '@/features/testing/constants/simulator.constants';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
 import type {
   ChatFailure,
   ChatPanelProps,
+  InactivityFailure,
+  PickedWriteAs,
 } from '@/features/testing/containers/ChatPanel/ChatPanel.typedefs';
 import {
+  canWriteAsOperator,
   composerMode,
   isActiveRun,
   toChatItems,
 } from '@/features/testing/logic/helpers/chat.helpers';
+import { nextInactivity } from '@/features/testing/logic/helpers/inactivity.helpers';
+import { formatMinutes } from '@/features/testing/logic/helpers/output.helpers';
+import { SimulateInactivity } from '@/features/testing/view/SimulateInactivity';
 import { SimulatorChat } from '@/features/testing/view/SimulatorChat';
 import { SimulatorSetup } from '@/features/testing/view/SimulatorSetup';
-import { ConversationCloseReason } from '@/shared/api/generated/schema.generated';
+import {
+  ConversationCloseReason,
+  ConversationState,
+} from '@/shared/api/generated/schema.generated';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
+import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
+import { SegmentedControl, SegmentedControlSize } from '@/shared/ui/actions/SegmentedControl';
 import { Composer } from '@/shared/ui/chat/Composer';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { Skeleton } from '@/shared/ui/display/Skeleton';
@@ -25,6 +36,7 @@ import styles from '@/features/testing/containers/ChatPanel/ChatPanel.module.scs
 
 export function ChatPanel({
   agentName,
+  flow,
   simulator,
   selectedRunId,
   onSelectRun,
@@ -32,21 +44,34 @@ export function ChatPanel({
   ...setup
 }: ChatPanelProps) {
   const { t } = useTranslation(TESTING_NAMESPACE);
+  const { locale } = useLocale();
   const errorMessage = useErrorMessage();
   const [text, setText] = useState('');
   const [failure, setFailure] = useState<ChatFailure | null>(null);
-  const [takenOver, setTakenOver] = useState<string | null>(null);
+  const [picked, setPicked] = useState<PickedWriteAs | null>(null);
+  const [inactivityFailure, setInactivityFailure] = useState<InactivityFailure | null>(null);
   const { conversation } = simulator;
   const items = useMemo(
     () => (conversation === null ? [] : toChatItems(conversation)),
     [conversation],
   );
+  const conversationId = conversation?.conversationId ?? null;
+  const pickedMode = picked?.conversationId === conversationId ? (picked?.mode ?? null) : null;
   const mode =
-    conversation === null
-      ? ComposerMode.User
-      : composerMode(conversation.state, takenOver === conversation.conversationId);
+    conversation === null ? ComposerMode.User : composerMode(conversation.state, pickedMode);
+  const inactivityError =
+    inactivityFailure?.conversationId === conversationId ? inactivityFailure.message : null;
   const operator = mode === ComposerMode.Operator;
+  const switchable = conversation !== null && canWriteAsOperator(conversation.state);
   const failed = failure?.mode === mode ? failure : null;
+  const running = conversation?.runs.some(isActiveRun) ?? false;
+  const next = nextInactivity(flow);
+  const inactivity =
+    next !== null &&
+    conversation?.state === ConversationState.AgentActive &&
+    conversation.messages.length > 0
+      ? next
+      : null;
 
   const attempt = async (action: () => Promise<void>): Promise<void> => {
     setFailure(null);
@@ -68,8 +93,28 @@ export function ChatPanel({
   const handBack = () =>
     attempt(async () => {
       await simulator.handBack();
-      setTakenOver(null);
+      setPicked(null);
     });
+
+  const simulateInactivity = async (id: string) => {
+    setInactivityFailure(null);
+    try {
+      await simulator.closeForInactivity();
+    } catch (error) {
+      setInactivityFailure({ conversationId: id, message: errorMessage(toAppError(error)) });
+    }
+  };
+
+  const composerHint = () => {
+    if (operator) {
+      return t('operator.hint');
+    }
+    return t(
+      conversation?.state === ConversationState.Handled
+        ? 'composer.handledHint'
+        : 'composer.waitingHint',
+    );
+  };
 
   const state = () => {
     if (simulator.failed) {
@@ -112,14 +157,14 @@ export function ChatPanel({
         <SimulatorChat
           items={items}
           agentName={agentName}
-          typing={conversation?.runs.some(isActiveRun) ?? false}
+          typing={running}
           selectedRunId={selectedRunId}
           onSelectRun={onSelectRun}
         />
       ) : (
         <div className={styles.state}>{notReady}</div>
       )}
-      {mode === ComposerMode.Ended && (
+      {mode === ComposerMode.Ended ? (
         <div className={styles.footer}>
           <Button
             className={styles.action}
@@ -138,36 +183,38 @@ export function ChatPanel({
             )}
           </p>
         </div>
-      )}
-      {mode === ComposerMode.Escalated && (
+      ) : (
         <div className={styles.footer}>
-          <Button
-            className={styles.action}
-            variant={ButtonVariant.Secondary}
-            icon={IconName.Hand}
-            onClick={() => setTakenOver(conversation?.conversationId ?? null)}
-          >
-            {t('operator.reply')}
-          </Button>
-          <p className={styles.hint}>{t('operator.hint')}</p>
-        </div>
-      )}
-      {(mode === ComposerMode.User || operator) && (
-        <div className={styles.footer}>
-          {operator && (
-            <div className={styles.operator}>
-              <span className={styles.mode}>{t('operator.reply')}</span>
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Sm}
-                icon={IconName.Agent}
-                loading={simulator.handingBack}
-                disabled={simulator.replying}
-                onClick={() => void handBack()}
-              >
-                {t('operator.handBack')}
-              </Button>
-            </div>
+          {switchable && (
+            <>
+              <div className={styles.writeAs}>
+                <span className={styles.mode}>{t('composer.writeAs')}</span>
+                <SegmentedControl
+                  ariaLabel={t('composer.writeAs')}
+                  size={SegmentedControlSize.Sm}
+                  options={WRITE_AS_MODES.map((value) => ({
+                    value,
+                    label: t(`composer.as.${value}`),
+                  }))}
+                  value={operator ? ComposerMode.Operator : ComposerMode.User}
+                  onValueChange={(value) =>
+                    conversationId !== null && setPicked({ conversationId, mode: value })
+                  }
+                />
+              </div>
+              <p className={styles.hint}>{composerHint()}</p>
+            </>
+          )}
+          {inactivity !== null && conversationId !== null && (
+            <SimulateInactivity
+              hint={t('inactivity.next.autoClose', {
+                after: formatMinutes(inactivity.afterMinutes, locale),
+              })}
+              loading={simulator.closingInactive}
+              disabled={running || simulator.sending}
+              error={inactivityError}
+              onSimulate={() => void simulateInactivity(conversationId)}
+            />
           )}
           <Composer
             value={text}
@@ -182,6 +229,19 @@ export function ChatPanel({
             error={failed?.message ?? null}
             disabled={conversation === null}
           />
+          {operator && (
+            <Button
+              className={styles.action}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Sm}
+              icon={IconName.Agent}
+              loading={simulator.handingBack}
+              disabled={simulator.replying}
+              onClick={() => void handBack()}
+            >
+              {t('operator.handBack')}
+            </Button>
+          )}
         </div>
       )}
     </section>
