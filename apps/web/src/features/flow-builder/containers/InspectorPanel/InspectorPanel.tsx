@@ -1,5 +1,7 @@
 import {
+  AGENT_EXIT_KINDS,
   API_REQUEST_OUTPUTS,
+  FlowIssueCode,
   MAX_LABEL_LENGTH,
   MAX_OUTPUT_FIELDS,
   MAX_ROUTER_RULES,
@@ -34,6 +36,10 @@ import {
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import type { InspectorPanelProps } from '@/features/flow-builder/containers/InspectorPanel/InspectorPanel.typedefs';
+import {
+  secondMessageStep,
+  setAgentExit,
+} from '@/features/flow-builder/logic/helpers/agentExit.helpers';
 import {
   bodyOfKind,
   replaceHeader,
@@ -95,6 +101,7 @@ import {
 } from '@/features/flow-builder/logic/helpers/sendMessage.helpers';
 import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
+import type { AgentExitsView } from '@/features/flow-builder/typedefs/agentExit.typedefs';
 import type { KeyRename } from '@/features/flow-builder/typedefs/inspector.typedefs';
 import type {
   LlmKeyChoice,
@@ -180,6 +187,36 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
     );
   };
 
+  const agentExits = (current: AgentNode): AgentExitsView => {
+    const errors = fieldErrors(issues, current.id);
+    return {
+      exits: AGENT_EXIT_KINDS.map((kind) => ({
+        kind,
+        when: current.config.exits[kind]?.when ?? null,
+        whenIssue:
+          errors.get([IssuePathSegment.Exits, kind, IssuePathSegment.When].join(PATH_JOINER)) ??
+          null,
+        secondMessageFrom: secondMessageStep(document, issues, current.id, kind),
+        targets: portTargets(document, current.id, kind),
+      })),
+      inBackground: issues.some(
+        (issue) =>
+          issue.nodeId === current.id && issue.code === FlowIssueCode.ExitInBackgroundBranch,
+      ),
+      onToggle: (kind, on) =>
+        apply(
+          setAgentExit(
+            document,
+            current.id,
+            kind,
+            on ? { when: t(`inspector.agent.exits.defaultWhen.${kind}`) } : null,
+          ),
+        ),
+      onWhenChange: (kind, when) => previewEdit(setAgentExit(document, current.id, kind, { when })),
+      onCommit: commitPreview,
+    };
+  };
+
   const llmStep = (current: AgentNode | CompletionNode, extra: LlmStepExtra) => {
     const errors = fieldErrors(issues, current.id);
     const { prompt, model, reasoning, output } = current.config;
@@ -189,6 +226,7 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
       <LlmStepInspector
         key={current.id}
         workspaceId={workspaceId}
+        stepName={nodeName(current)}
         step={{
           source: prompt,
           variables: variableOptions,
@@ -250,6 +288,7 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
           retries: current.config.retries,
           onFailure: portTargets(document, current.id, PortName.Error),
           onRetriesChange: (retries) => apply(setRetries(document, current.id, retries)),
+          exits: agentExits(current),
         });
       case NodeType.Completion:
         return llmStep(current, {

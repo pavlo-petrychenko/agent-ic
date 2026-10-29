@@ -104,6 +104,8 @@ export enum IssuePathSegment {
   Headers = 'headers',
   Body = 'body',
   OnFailure = 'onFailure',
+  Exits = 'exits',
+  When = 'when',
 }
 
 export enum InputType {

@@ -4,7 +4,9 @@ $port-size-active: 12px;
 .root {
   position: relative;
   display: inline-grid;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 100%;
   grid-template-rows: $port-size-active;
   grid-template-columns: minmax($port-size-active, auto);
   place-items: center;
@@ -81,7 +83,7 @@ $port-size-active: 12px;
 
 .label {
   align-self: start;
-  margin: calc(#{$port-size-active} + var(--space-4)) var(--space-4) 0;
+  margin: calc(#{$port-size-active} + var(--space-4)) 0 0;
 }
 
 .storyRow {

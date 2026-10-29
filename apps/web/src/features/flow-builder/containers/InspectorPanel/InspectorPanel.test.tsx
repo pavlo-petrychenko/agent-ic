@@ -1,5 +1,6 @@
 import { ReasoningLevel } from '@agent-ic/contracts';
 import {
+  AgentExitKind,
   ChannelSelectionMode,
   ConditionOperator,
   EscalationMode,
@@ -556,6 +557,63 @@ describe('InspectorPanel', () => {
     await user.selectOptions(screen.getByRole('combobox', { name: 'Retries' }), '0');
 
     expect(node('agent')).toMatchObject({ config: { retries: 0 } });
+  });
+
+  it('turns an exit on with the default criterion and shows where it goes', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW);
+
+    expect(screen.getByText('Off: the agent always continues to Next.')).toBeVisible();
+    await user.click(screen.getByRole('switch', { name: 'Hand off to a person' }));
+
+    expect(node('agent')).toMatchObject({
+      config: {
+        exits: {
+          [AgentExitKind.End]: null,
+          [AgentExitKind.Handoff]: {
+            when: 'the customer asks for a person, you can’t help after 2 tries, or it’s a complaint, a legal or a safety question',
+          },
+        },
+      },
+    });
+    const routes = screen.getByRole('list', { name: 'Where each exit goes' });
+    expect(within(routes).getByText('hand off')).toBeVisible();
+    expect(within(routes).getByText('default · Flow settings hand-off')).toBeVisible();
+  });
+
+  it('warns about an empty criterion and a second customer message, and drops the edge when off', async () => {
+    const user = userEvent.setup();
+    const flow = withAgent({
+      exits: { [AgentExitKind.End]: { when: '' }, [AgentExitKind.Handoff]: { when: 'help' } },
+    });
+    const escalation = step('notify', 'Hand to a person', {
+      ...NODE_TEMPLATES[NodeType.Escalation],
+      config: { ...NODE_TEMPLATES[NodeType.Escalation].config, customerMessage: 'One moment' },
+    });
+    open('agent', {
+      ...flow,
+      nodes: [...flow.nodes, escalation],
+      edges: [
+        ...flow.edges,
+        { id: 'e9', source: 'agent', sourcePort: AgentExitKind.Handoff, target: 'notify' },
+      ],
+    });
+
+    expect(screen.getByText('Describe when the “end” exit applies')).toBeVisible();
+    expect(
+      screen.getByText(
+        'The customer gets two messages: the agent’s and the one from Hand to a person. Clear one of them.',
+      ),
+    ).toBeVisible();
+    expect(
+      within(screen.getByRole('list', { name: 'Where each exit goes' })).getByText(
+        'Hand to a person',
+      ),
+    ).toBeVisible();
+    await user.click(screen.getByRole('switch', { name: 'Hand off to a person' }));
+
+    expect(node('agent')).toMatchObject({ config: { exits: { [AgentExitKind.Handoff]: null } } });
+    expect(store().document.edges.some((edge) => edge.id === 'e9')).toBe(false);
   });
 
   it('leaves the current message out of a completion', async () => {

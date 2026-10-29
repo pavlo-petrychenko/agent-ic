@@ -1,4 +1,4 @@
-import { PortName } from '@agent-ic/flow';
+import { AgentExitKind, PortName } from '@agent-ic/flow';
 import type { LabelledPort } from '@/features/flow-builder/typedefs/nodeSummary.typedefs';
 
 export enum SummaryKey {
@@ -13,6 +13,9 @@ export enum SummaryKey {
   Request = 'request',
   NotifyTeam = 'notifyTeam',
   EndChat = 'endChat',
+  CanEnd = 'canEnd',
+  CanHandOff = 'canHandOff',
+  CanEndOrHandOff = 'canEndOrHandOff',
 }
 
 export const OUTPUT_FIELDS_SEPARATOR = ', ';
@@ -22,4 +25,6 @@ export const LABELLED_PORTS: readonly LabelledPort[] = [
   PortName.Else,
   PortName.Error,
   PortName.Branches,
+  AgentExitKind.End,
+  AgentExitKind.Handoff,
 ];

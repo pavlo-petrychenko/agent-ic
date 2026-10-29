@@ -1,7 +1,8 @@
-import { NodeType, PortName } from '@agent-ic/flow';
+import { AgentExitKind, NO_AGENT_EXITS, NodeType, PortName } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.constants';
+import { paletteAgentExits } from '@/features/flow-builder/logic/helpers/agentExit.helpers';
 import { addNode } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import {
   belowLowestNode,
@@ -42,6 +43,7 @@ describe('placeStep', () => {
         position: { x: 5, y: 6 },
         after: null,
         splitEdgeId: null,
+        agentExits: NO_AGENT_EXITS,
       },
       ids(),
     );
@@ -52,6 +54,33 @@ describe('placeStep', () => {
     expect(placed.edges).toEqual([]);
   });
 
+  it('gives a new agent the exits of the placement and leaves other steps alone', () => {
+    const exits = paletteAgentExits('the customer asks for a person');
+    const placement: StepPlacement = {
+      type: NodeType.Agent,
+      label: 'Agent',
+      position: { x: 0, y: 0 },
+      after: null,
+      splitEdgeId: null,
+      agentExits: exits,
+    };
+    const placed = placeStep(
+      placeStep(EMPTY_FLOW, placement, ids()),
+      { ...placement, type: NodeType.Completion, label: 'Completion' },
+      () => 'id9',
+    );
+
+    expect(placed.nodes[0]).toMatchObject({
+      config: {
+        exits: {
+          [AgentExitKind.End]: null,
+          [AgentExitKind.Handoff]: { when: 'the customer asks for a person' },
+        },
+      },
+    });
+    expect(placed.nodes[1]?.config).not.toHaveProperty('exits');
+  });
+
   it('titles each new step by its type and keeps the keys unique', () => {
     const placement: StepPlacement = {
       type: NodeType.Agent,
@@ -59,6 +88,7 @@ describe('placeStep', () => {
       position: { x: 0, y: 0 },
       after: null,
       splitEdgeId: null,
+      agentExits: NO_AGENT_EXITS,
     };
     const createId = ids();
     const twice = placeStep(placeStep(EMPTY_FLOW, placement, createId), placement, createId);
@@ -78,6 +108,7 @@ describe('placeStep', () => {
         position: { x: 0, y: 150 },
         after: { source: 's', sourcePort: PortName.Next },
         splitEdgeId: null,
+        agentExits: NO_AGENT_EXITS,
       },
       ids(),
     );
@@ -94,6 +125,7 @@ describe('placeStep', () => {
         position: { x: 0, y: 150 },
         after: null,
         splitEdgeId: 'e',
+        agentExits: NO_AGENT_EXITS,
       },
       ids(),
     );
@@ -110,6 +142,7 @@ describe('placeStep', () => {
         position: { x: 0, y: 150 },
         after: null,
         splitEdgeId: 'e',
+        agentExits: NO_AGENT_EXITS,
       },
       ids(),
     );

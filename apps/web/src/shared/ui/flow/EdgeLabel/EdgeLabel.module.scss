@@ -1,6 +1,9 @@
 .root {
-  display: inline-flex;
-  align-items: center;
+  display: block;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   margin: 0;
   padding: var(--space-2) var(--space-7);
   border: var(--border-width) solid var(--color-line-node);
@@ -9,6 +12,7 @@
   color: var(--color-ink-secondary);
   font: var(--type-mono-xs);
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .active {
