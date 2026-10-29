@@ -17,6 +17,7 @@ export enum LlmTraceMetadata {
   WorkspaceId = 'workspace_id',
   AgentVersionId = 'agent_version_id',
   RunId = 'run_id',
+  Trigger = 'trigger',
   PromptId = 'prompt_id',
   PromptVersion = 'prompt_version',
   Model = 'model',

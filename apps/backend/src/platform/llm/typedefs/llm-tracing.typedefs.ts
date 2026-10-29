@@ -6,6 +6,7 @@ export interface LlmTags {
   readonly sessionId?: string;
   readonly agentVersionId?: string;
   readonly runId?: string;
+  readonly trigger?: string;
   readonly promptId?: string;
   readonly promptVersion?: number;
 }

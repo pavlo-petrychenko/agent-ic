@@ -17,7 +17,7 @@ export interface RunStepView extends Omit<RunStep, 'workspaceId' | 'runId'> {
 
 export interface RunView extends Omit<
   Run,
-  'workspaceId' | 'mode' | 'trigger' | 'lastCoveredMessageId' | 'traceId'
+  'workspaceId' | 'mode' | 'triggerNodeId' | 'triggerInput' | 'lastCoveredMessageId' | 'traceId'
 > {
   readonly durationMs: number | null;
 }

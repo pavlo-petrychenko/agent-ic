@@ -10,6 +10,10 @@ export interface RunFailure {
   readonly nodeId: string | null;
 }
 
+export type RunTriggerInputValue = string | number | boolean | null;
+
+export type RunTriggerInput = Readonly<Record<string, RunTriggerInputValue>>;
+
 export interface Run {
   readonly id: string;
   readonly workspaceId: string;
@@ -18,6 +22,8 @@ export interface Run {
   readonly versionId: string;
   readonly mode: RunMode;
   readonly trigger: RunTrigger;
+  readonly triggerNodeId: string | null;
+  readonly triggerInput: RunTriggerInput | null;
   readonly status: RunStatus;
   readonly lastCoveredMessageId: string;
   readonly error: RunFailure | null;
@@ -28,6 +34,8 @@ export interface Run {
 }
 
 export type NewRun = Omit<typeof runs.$inferInsert, 'createdAt'>;
+
+export type ProactiveRunTrigger = Exclude<RunTrigger, RunTrigger.Message>;
 
 export type FinishedRunStatus = RunStatus.Succeeded | RunStatus.Failed | RunStatus.Escalated;
 

@@ -48,6 +48,7 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
         ),
         scope.history,
         AGENT_INCLUDES_CURRENT_MESSAGE,
+        run.trigger,
       ),
       output: outputToZod(nodeOutputFields(node)),
       ...(config.reasoning === null ? {} : { reasoning: config.reasoning }),

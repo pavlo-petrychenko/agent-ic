@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { context, ROOT_CONTEXT } from '@opentelemetry/api';
 import { z } from 'zod';
 import { getOriginator } from '@/platform/context/helpers/use-case-ctx.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { AfterCommitService } from '@/platform/database/services/after-commit.service';
 import { IdService } from '@/platform/ids/services/id.service';
-import { ENVELOPE_VERSION } from '@/platform/queues/constants/job.constants';
+import {
+  DETACHED_TRACE_CONTEXT,
+  ENVELOPE_VERSION,
+} from '@/platform/queues/constants/job.constants';
 import { outboxJobOptions } from '@/platform/queues/helpers/outbox.helpers';
 import { currentTraceContext } from '@/platform/queues/helpers/queue-telemetry.helpers';
 import { OutboxRepository } from '@/platform/queues/repositories/outbox.repository';
@@ -31,29 +35,33 @@ export class JobsService {
     data: TData,
     options?: JobEnqueueOptions,
   ): Promise<void> {
+    const detached = options?.detachedTrace === true;
     const envelope: JobEnvelope = {
       version: ENVELOPE_VERSION,
       data: definition.schema.parse(data),
       workspaceId: ctx.workspaceId,
       traceId: ctx.traceId,
-      traceContext: currentTraceContext(),
+      traceContext: detached ? DETACHED_TRACE_CONTEXT : currentTraceContext(),
       initiatedBy: getOriginator(ctx),
     };
     const jobId = options?.jobId;
     if (options?.durable === true) {
       const id = jobId === undefined ? this.ids.generate() : z.uuid().parse(jobId);
-      await this.enqueueDurable(definition, envelope, id);
+      await this.enqueueDurable(definition, envelope, id, detached);
       return;
     }
-    await this.afterCommit.schedule(async () => {
-      await this.queues.get(definition.queue).add(definition.name, envelope, { jobId });
-    });
+    await this.afterCommit.schedule(() =>
+      this.inTrace(detached, async () => {
+        await this.queues.get(definition.queue).add(definition.name, envelope, { jobId });
+      }),
+    );
   }
 
   private async enqueueDurable<TData extends JobData>(
     definition: JobDefinition<TData>,
     envelope: JobEnvelope,
     id: string,
+    detached: boolean,
   ): Promise<void> {
     await this.outbox.insert({
       id,
@@ -63,8 +71,14 @@ export class JobsService {
       workspaceId: envelope.workspaceId,
     });
     await this.afterCommit.schedule(async () => {
-      await this.queues.get(definition.queue).add(definition.name, envelope, outboxJobOptions(id));
+      await this.inTrace(detached, () =>
+        this.queues.get(definition.queue).add(definition.name, envelope, outboxJobOptions(id)),
+      );
       await this.outbox.delete(id);
     });
+  }
+
+  private inTrace<T>(detached: boolean, work: () => Promise<T>): Promise<T> {
+    return detached ? context.with(ROOT_CONTEXT, work) : work();
   }
 }

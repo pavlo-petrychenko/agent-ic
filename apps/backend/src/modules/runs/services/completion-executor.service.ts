@@ -34,6 +34,7 @@ export class CompletionExecutor implements StepExecutor<CompletionNode> {
         stepSystemPrompt(id, config.prompt, scope.variables, scope.prompts),
         scope.history,
         config.input.includeCurrentMessage,
+        run.trigger,
       ),
       output: outputToZod(config.output),
       ...(config.reasoning === null ? {} : { reasoning: config.reasoning }),

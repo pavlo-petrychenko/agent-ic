@@ -14,6 +14,12 @@ enum RunStatus {
   escalated
 }
 
+enum RunTrigger {
+  message
+  schedule
+  inactivity
+}
+
 enum RunStepStatus {
   running
   succeeded
@@ -60,6 +66,7 @@ type Run {
   conversationId: ID!
   agentId: ID!
   versionId: ID!
+  trigger: RunTrigger!
   status: RunStatus!
   error: RunFailure
   createdAt: String!

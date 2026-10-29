@@ -42,6 +42,8 @@ export interface RunExecutionTestbed extends RunsTestbed {
   readonly liveUpdates: LiveUpdatesService;
 }
 
+export type RunStartOverrides = Partial<Pick<NewRun, 'trigger' | 'triggerNodeId' | 'triggerInput'>>;
+
 export interface ExecutableRun {
   readonly run: NewRun;
   readonly ctx: UseCaseCtx;

@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { Locale } from '@agent-ic/contracts';
 import { eq, inArray, sql } from 'drizzle-orm';
+import type { AnyColumn } from 'drizzle-orm';
+import type { PgTable } from 'drizzle-orm/pg-core';
 import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
 import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { agents } from '@/modules/agents/db/agents.table';
@@ -46,6 +48,22 @@ const insertWorkspace = async (db: AppDatabase, userId: string): Promise<string>
     updatedAt: AGENTS_TEST_START,
   });
   return workspaceId;
+};
+
+const insertLegacyRow = async (
+  db: AppDatabase,
+  table: PgTable,
+  row: ReadonlyArray<readonly [AnyColumn, unknown]>,
+): Promise<void> => {
+  const columns = sql.join(
+    row.map(([column]) => sql.identifier(column.name)),
+    sql`, `,
+  );
+  const values = sql.join(
+    row.map(([, value]) => sql`${value}`),
+    sql`, `,
+  );
+  await db.execute(sql`insert into ${table} (${columns}) values (${values})`);
 };
 
 const conversationRow = (id: string, workspaceId: string, agentId: string) => ({
@@ -167,18 +185,18 @@ export const seedOrphans = async (db: AppDatabase): Promise<SeededOrphans> => {
     quickReplies: [],
     createdAt: AGENTS_TEST_START,
   });
-  await db.insert(runs).values({
-    id: seeded.deletedRunId,
-    workspaceId,
-    conversationId: seeded.keptConversationId,
-    agentId: seeded.keptAgentId,
-    versionId: randomUUID(),
-    mode: ConversationMode.Live,
-    trigger: RunTrigger.Message,
-    status: RunStatus.Queued,
-    lastCoveredMessageId: randomUUID(),
-    createdAt: AGENTS_TEST_START,
-  });
+  await insertLegacyRow(db, runs, [
+    [runs.id, seeded.deletedRunId],
+    [runs.workspaceId, workspaceId],
+    [runs.conversationId, seeded.keptConversationId],
+    [runs.agentId, seeded.keptAgentId],
+    [runs.versionId, randomUUID()],
+    [runs.mode, ConversationMode.Live],
+    [runs.trigger, RunTrigger.Message],
+    [runs.status, RunStatus.Queued],
+    [runs.lastCoveredMessageId, randomUUID()],
+    [runs.createdAt, AGENTS_TEST_START.toISOString()],
+  ]);
   const otherFolderId = randomUUID();
   await db.insert(promptFolders).values([
     {

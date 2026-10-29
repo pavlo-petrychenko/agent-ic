@@ -8,7 +8,11 @@ import { moduleSchema } from '@/platform/database/helpers/tenant-table.helpers';
 
 export const runsSchema = moduleSchema(RUNS_SCHEMA);
 
-export const runTriggerEnum = runsSchema.enum('run_trigger', [RunTrigger.Message]);
+export const runTriggerEnum = runsSchema.enum('run_trigger', [
+  RunTrigger.Message,
+  RunTrigger.Schedule,
+  RunTrigger.Inactivity,
+]);
 
 export const runStatusEnum = runsSchema.enum('run_status', [
   RunStatus.Queued,

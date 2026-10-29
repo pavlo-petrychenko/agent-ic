@@ -1,0 +1,17 @@
+import { Injectable } from '@nestjs/common';
+import { executeProactiveRunJob } from '@/modules/runs/jobs/execute-proactive-run.job';
+import type { ExecuteRunJobData } from '@/modules/runs/typedefs/run-job.typedefs';
+import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
+import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
+import { ProcessJob } from '@/platform/queues/decorators/process-job.decorator';
+import type { JobAttempt, JobHandler } from '@/platform/queues/typedefs/job.typedefs';
+
+@Injectable()
+@ProcessJob(executeProactiveRunJob)
+export class ExecuteProactiveRunProcessor implements JobHandler<ExecuteRunJobData> {
+  constructor(private readonly executeRun: ExecuteRunUseCase) {}
+
+  async handle(ctx: UseCaseCtx, data: ExecuteRunJobData, attempt: JobAttempt): Promise<void> {
+    await this.executeRun.execute(ctx, data, attempt);
+  }
+}

@@ -20,6 +20,11 @@ import {
   RequestBodyKind,
   RuleMatch,
   UnhandledFailureAction,
+  ScheduleKind,
+  ChannelType,
+  InactivityActivity,
+  InactivityRepeatKind,
+  InactivityUnit,
 } from '@agent-ic/flow';
 import type {
   AgentNode,
@@ -32,6 +37,8 @@ import type {
   ParallelNode,
   RouterNode,
   SendMessageNode,
+  TriggerInactivityNode,
+  TriggerScheduleNode,
   WaitFor,
 } from '@agent-ic/flow';
 import { ChannelKind, ConversationMode, ConversationState } from '@/modules/conversations';
@@ -44,6 +51,7 @@ import {
   RunTrigger,
 } from '@/modules/runs/constants/run.constants';
 import type { EscalationRecipients } from '@/modules/runs/typedefs/escalation.typedefs';
+import type { NewInactivityTimer } from '@/modules/runs/typedefs/inactivity-timer.typedefs';
 import type {
   FinishedRunStepStatus,
   NewRunStep,
@@ -65,7 +73,12 @@ import {
   ESCALATION_NODE_ID,
   ESCALATION_NODE_KEY,
   FIRST_STEP_KEY,
+  INACTIVITY_NODE_ID,
+  INACTIVITY_NODE_KEY,
+  RUNS_TEST_LATER,
   RUNS_TEST_START,
+  SCHEDULE_NODE_ID,
+  SCHEDULE_NODE_KEY,
   SEND_NODE_ID,
   SEND_NODE_KEY,
   TEST_CUSTOMER_NOTICE,
@@ -82,6 +95,12 @@ import {
   TEST_STEP_INPUT,
   TEST_STEP_NODE_ID,
   TEST_STEP_NODE_KEY,
+  TEST_INACTIVITY_MAX_TIMES,
+  TEST_REPEAT_HOURS,
+  TEST_SCHEDULE_LIMIT,
+  TEST_SILENCE_HOURS,
+  TEST_SCHEDULE_TIME,
+  TEST_SCHEDULE_TIME_ZONE,
 } from '@test/support/constants/runs-testing.constants';
 import { triggerFlow } from '@test/support/fixtures/agents.fixture';
 import type { RunsTestbed } from '@test/support/typedefs/runs-testing.typedefs';
@@ -96,6 +115,22 @@ export const newRun = (testbed: Pick<RunsTestbed, 'ids'>, workspaceId: string): 
   trigger: RunTrigger.Message,
   status: RunStatus.Queued,
   lastCoveredMessageId: testbed.ids.generate(),
+});
+
+export const newInactivityTimer = (
+  testbed: Pick<RunsTestbed, 'ids'>,
+  run: NewRun,
+  overrides: Partial<NewInactivityTimer> = {},
+): NewInactivityTimer => ({
+  id: testbed.ids.generate(),
+  workspaceId: run.workspaceId,
+  conversationId: run.conversationId,
+  versionId: run.versionId,
+  nodeId: TEST_STEP_NODE_ID,
+  anchorAt: RUNS_TEST_START,
+  attempt: 0,
+  dueAt: RUNS_TEST_LATER,
+  ...overrides,
 });
 
 export const newRunStep = (
@@ -317,6 +352,49 @@ export const escalateNode = (
     reminderAfterMinutes: null,
     fallbackAfterMinutes: null,
     fallbackMessage: TEST_CUSTOMER_NOTICE,
+  },
+});
+
+export const scheduleTriggerNode = (): TriggerScheduleNode => ({
+  id: SCHEDULE_NODE_ID,
+  key: SCHEDULE_NODE_KEY,
+  label: SCHEDULE_NODE_KEY,
+  position: NODE_POSITION,
+  type: NodeType.TriggerSchedule,
+  config: {
+    schedule: {
+      kind: ScheduleKind.Daily,
+      time: TEST_SCHEDULE_TIME,
+      timeZone: TEST_SCHEDULE_TIME_ZONE,
+    },
+    conditions: {
+      silentForHours: null,
+      notEscalated: true,
+      channelTypes: [ChannelType.Telegram, ChannelType.Api],
+    },
+    maxConversationsPerRun: TEST_SCHEDULE_LIMIT,
+    oncePerConversation: true,
+  },
+});
+
+export const inactivityTriggerNode = (
+  config: Partial<TriggerInactivityNode['config']> = {},
+): TriggerInactivityNode => ({
+  id: INACTIVITY_NODE_ID,
+  key: INACTIVITY_NODE_KEY,
+  label: INACTIVITY_NODE_KEY,
+  position: NODE_POSITION,
+  type: NodeType.TriggerInactivity,
+  config: {
+    silence: { amount: TEST_SILENCE_HOURS, unit: InactivityUnit.Hours },
+    activity: InactivityActivity.Any,
+    repeat: {
+      kind: InactivityRepeatKind.Every,
+      every: { amount: TEST_REPEAT_HOURS, unit: InactivityUnit.Hours },
+      maxTimes: TEST_INACTIVITY_MAX_TIMES,
+    },
+    conditions: { notEscalated: true, channelTypes: [] },
+    ...config,
   },
 });
 
