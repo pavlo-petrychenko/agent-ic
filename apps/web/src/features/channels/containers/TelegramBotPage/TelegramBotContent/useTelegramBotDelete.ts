@@ -4,11 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { useDeleteChannel } from '@/features/channels/communication/hooks/useDeleteChannel';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
 import { CHANNELS_PATH } from '@/features/channels/constants/route.constants';
+import type { TelegramBotDeleteResult } from '@/features/channels/containers/TelegramBotPage/TelegramBotContent/TelegramBotContent.typedefs';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
-export function useTelegramBotDelete(channelId: string, displayName: string, workspaceId: string) {
+export function useTelegramBotDelete(
+  channelId: string,
+  displayName: string,
+  workspaceId: string,
+): TelegramBotDeleteResult {
   const navigate = useNavigate();
   const { t } = useTranslation(CHANNELS_NAMESPACE);
   const errorMessage = useErrorMessage();

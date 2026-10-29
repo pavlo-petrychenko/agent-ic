@@ -2,11 +2,12 @@ import { useTranslation } from 'react-i18next';
 import { useReconnectTelegram } from '@/features/channels/communication/hooks/useReconnectTelegram';
 import { useRefreshTelegramIdentity } from '@/features/channels/communication/hooks/useRefreshTelegramIdentity';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
+import type { TelegramBotActionsResult } from '@/features/channels/containers/TelegramBotPage/TelegramBotContent/TelegramBotContent.typedefs';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
-export function useTelegramBotActions(channelId: string) {
+export function useTelegramBotActions(channelId: string): TelegramBotActionsResult {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
   const errorMessage = useErrorMessage();
   const { showToast } = useToast();
