@@ -173,12 +173,18 @@ const eventNameIssues = ({ flow }: ValidationContext): FlowIssue[] => {
   );
 };
 
+const isReplyStep = (node: FlowNode): boolean =>
+  node.type === NodeType.SendMessage ||
+  (node.type === NodeType.Escalation &&
+    node.config.customerMessage !== null &&
+    node.config.customerMessage.trim().length > 0);
+
 const replyIssues = ({ flow, graph }: ValidationContext): FlowIssue[] =>
   flow.nodes
     .filter((node) => node.type === NodeType.TriggerMessage)
     .filter((trigger) => {
       const reached = reachableFrom(graph, [trigger.id]);
-      return !flow.nodes.some((node) => node.type === NodeType.SendMessage && reached.has(node.id));
+      return !flow.nodes.some((node) => isReplyStep(node) && reached.has(node.id));
     })
     .map((trigger) => createIssue(FlowIssueCode.NoReplyStep, { nodeId: trigger.id }));
 

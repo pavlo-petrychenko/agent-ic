@@ -404,6 +404,41 @@ describe('the reply check', () => {
   });
 });
 
+describe('an escalation as the reply step', () => {
+  const escalationSaying = (customerMessage: string | null) => ({
+    ...handoff,
+    config: { ...handoff.config, customerMessage },
+  });
+  const triggerToEscalation = (customerMessage: string | null) => {
+    const stop = escalationSaying(customerMessage);
+    return flowOf([trigger, stop], [link(trigger, PortName.Next, stop)]);
+  };
+
+  it('counts an escalation with a customer message as a reply', () => {
+    expect(codes(triggerToEscalation('A person will answer soon'))).not.toContain(
+      FlowIssueCode.NoReplyStep,
+    );
+  });
+
+  it('does not count an escalation without a customer message', () => {
+    expect(codes(triggerToEscalation(null))).toContain(FlowIssueCode.NoReplyStep);
+  });
+
+  it('does not count an escalation whose customer message is blank', () => {
+    expect(codes(triggerToEscalation('  '))).toContain(FlowIssueCode.NoReplyStep);
+  });
+
+  it('does not count an escalation that only another trigger reaches', () => {
+    const schedule = scheduleTrigger('nightly');
+    const stop = escalationSaying('Hold on');
+    const flow = flowOf(
+      [trigger, answer, schedule, stop],
+      [link(trigger, PortName.Next, answer), link(schedule, PortName.Next, stop)],
+    );
+    expect(codes(flow)).toContain(FlowIssueCode.NoReplyStep);
+  });
+});
+
 describe('hasBlockingIssues', () => {
   it('is true only when an issue is an error', () => {
     expect(hasBlockingIssues(validateFlow(cleanFlow()))).toBe(false);
