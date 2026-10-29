@@ -5,12 +5,14 @@ import {
   ChatSpeaker,
   ComposerMode,
 } from '@/features/testing/constants/simulator.constants';
-import { HandedBackStatus } from '@/features/testing/constants/trace.constants';
+import { TurnOutcome } from '@/features/testing/constants/trace.constants';
 import {
+  closingOutcome,
   composerMode,
   handedBackRunIds,
   isActiveRun,
   latestRunId,
+  runTexts,
   toChatItems,
   turnNumber,
   turnStatus,
@@ -310,8 +312,42 @@ describe('latestRunId', () => {
 
 describe('turnStatus', () => {
   it('turns an escalated run into handed back once the chat is handed back', () => {
-    expect(turnStatus(RunStatus.Escalated, true)).toBe(HandedBackStatus.HandedBack);
-    expect(turnStatus(RunStatus.Escalated, false)).toBe(RunStatus.Escalated);
-    expect(turnStatus(RunStatus.Succeeded, true)).toBe(RunStatus.Succeeded);
+    expect(turnStatus(RunStatus.Escalated, true, null)).toBe(TurnOutcome.HandedBack);
+    expect(turnStatus(RunStatus.Escalated, false, null)).toBe(RunStatus.Escalated);
+    expect(turnStatus(RunStatus.Succeeded, true, null)).toBe(RunStatus.Succeeded);
+  });
+
+  it('says how the chat closed instead of completed, but keeps a failure', () => {
+    expect(turnStatus(RunStatus.Succeeded, false, TurnOutcome.Ended)).toBe(TurnOutcome.Ended);
+    expect(turnStatus(RunStatus.Escalated, true, TurnOutcome.ClosedInactive)).toBe(
+      TurnOutcome.ClosedInactive,
+    );
+    expect(turnStatus(RunStatus.Failed, false, TurnOutcome.Ended)).toBe(RunStatus.Failed);
+  });
+});
+
+describe('closingOutcome', () => {
+  it('tells an end by the agent from a close for inactivity', () => {
+    const closed = (state: ConversationState, reason: ConversationCloseReason | null) =>
+      closingOutcome(conversation([], [], state, reason));
+
+    expect(closed(ConversationState.AgentActive, null)).toBeNull();
+    expect(closed(ConversationState.Closed, null)).toBe(TurnOutcome.Ended);
+    expect(closed(ConversationState.Closed, ConversationCloseReason.Inactivity)).toBe(
+      TurnOutcome.ClosedInactive,
+    );
+  });
+});
+
+describe('runTexts', () => {
+  it('returns the texts of one run in order', () => {
+    const messages = [
+      message('m1', MessageAuthor.Customer, '2026-10-11T10:00:00Z'),
+      message('m2', MessageAuthor.Agent, '2026-10-11T10:00:02Z', 'r1'),
+      message('m3', MessageAuthor.Agent, '2026-10-11T10:00:03Z', 'r1'),
+    ];
+
+    expect(runTexts(messages, 'r1')).toEqual(['m2', 'm3']);
+    expect(runTexts(messages, null)).toEqual([]);
   });
 });

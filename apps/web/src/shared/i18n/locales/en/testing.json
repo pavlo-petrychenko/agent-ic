@@ -106,7 +106,9 @@
       "succeeded": "Completed",
       "escalated": "Escalated",
       "handedBack": "Handed back",
-      "failed": "Failed"
+      "failed": "Failed",
+      "ended": "Ended",
+      "closedInactive": "Closed (inactive)"
     },
     "back": "All steps of turn {{number}}",
     "input": "Input",
@@ -116,6 +118,48 @@
       "running": "Running",
       "succeeded": "Ran",
       "failed": "Failed"
+    },
+    "exitTitle": "Exit · {{name}}",
+    "flowSettings": "Flow settings",
+    "exit": {
+      "mode": "Mode",
+      "modes": {
+        "escalate": "Escalate to a person",
+        "end": "End the conversation"
+      },
+      "outcome": "Outcome",
+      "outcomes": {
+        "end": "End conversation",
+        "handoff": "Hand off to a person"
+      },
+      "reason": "Reason",
+      "path": "Path",
+      "defaultPath": {
+        "end": "Default exit · message sent, chat closed",
+        "handoff": "Default exit · flow settings hand-off"
+      },
+      "connectedPath": "Connected · goes on to {{name}}",
+      "connectedMessage": "The agent sends nothing here; {{name}} and the steps after it decide what the customer sees.",
+      "recipientsLabel": "Recipients",
+      "recipients": {
+        "operators": "Operators group",
+        "role": "Everyone with the {{role}} role",
+        "users_one": "{{count}} selected person",
+        "users_other": "{{count}} selected people"
+      },
+      "customerMessage": "Message to the customer",
+      "agentMessage": {
+        "end": "Goodbye message",
+        "handoff": "Hand-off message (from the agent)"
+      },
+      "noMessage": "None",
+      "autoClose": {
+        "mode": "Close inactive conversations",
+        "reason": "{{after}} without a customer message",
+        "next": "Next customer message",
+        "newChat": "Starts a new conversation",
+        "silent": "None — closes silently"
+      }
     }
   },
   "reset": "Reset conversation",

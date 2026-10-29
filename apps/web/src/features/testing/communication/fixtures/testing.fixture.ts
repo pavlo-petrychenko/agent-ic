@@ -1,4 +1,5 @@
 import {
+  AgentExitKind,
   ChannelSelectionMode,
   EscalationMode,
   FLOW_SCHEMA_VERSION,
@@ -9,6 +10,7 @@ import {
   PortName,
   QuickRepliesKind,
   RecipientsKind,
+  RetrievalMode,
 } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import type { MockLink } from '@apollo/client/testing';
@@ -75,6 +77,54 @@ const TRACE_ESCALATION: FlowNode = {
 export const ESCALATION_TRACE_FLOW: FlowDocument = {
   ...TRACE_FLOW,
   nodes: [TRACE_TRIGGER, TRACE_ESCALATION],
+};
+
+const AGENT_NODE_ID = 'node_agent';
+
+const TRACE_AGENT: FlowNode = {
+  id: AGENT_NODE_ID,
+  key: 'receptionist',
+  label: 'Receptionist',
+  position: { x: 0, y: 0 },
+  type: NodeType.Agent,
+  config: {
+    prompt: null,
+    model: null,
+    reasoning: null,
+    knowledgeBaseIds: [],
+    retrievalMode: RetrievalMode.Tools,
+    output: [],
+    retries: 0,
+    exits: { end: { when: 'The customer says goodbye' }, handoff: { when: 'Asks for a person' } },
+  },
+};
+
+export const AGENT_EXIT_FLOW: FlowDocument = {
+  ...TRACE_FLOW,
+  settings: {
+    ...NO_FLOW_SETTINGS,
+    handoff: {
+      notify: {
+        recipients: { kind: RecipientsKind.Operators },
+        channels: [NotifyChannel.InPlatform],
+      },
+      reminderAfterMinutes: null,
+      fallbackAfterMinutes: null,
+      fallbackMessage: '',
+    },
+    autoClose: { afterMinutes: 1440 },
+  },
+  nodes: [TRACE_TRIGGER, TRACE_AGENT, TRACE_REPLY],
+  edges: [
+    { id: 'edge_1', source: TRIGGER_NODE_ID, sourcePort: PortName.Next, target: AGENT_NODE_ID },
+    { id: 'edge_2', source: AGENT_NODE_ID, sourcePort: AgentExitKind.End, target: REPLY_NODE_ID },
+  ],
+};
+
+export const AGENT_TRACE_FLOW: FlowDocument = {
+  ...AGENT_EXIT_FLOW,
+  nodes: [TRACE_TRIGGER, { ...TRACE_AGENT, id: REPLY_NODE_ID }],
+  edges: TRACE_FLOW.edges,
 };
 
 export const TEST_AGENT_ID = 'agt_salon';

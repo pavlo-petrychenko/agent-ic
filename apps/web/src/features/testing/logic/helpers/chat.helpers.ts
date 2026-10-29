@@ -8,7 +8,7 @@ import {
   EVENT_ID_SEPARATOR,
   MESSAGE_SPEAKERS,
 } from '@/features/testing/constants/simulator.constants';
-import { HandedBackStatus } from '@/features/testing/constants/trace.constants';
+import { CLOSABLE_RUN_STATUSES, TurnOutcome } from '@/features/testing/constants/trace.constants';
 import type {
   ChatConversation,
   ChatEventItem,
@@ -16,6 +16,7 @@ import type {
   ChatMessageItem,
   ChatTurnItem,
   SimulatorConversation,
+  SimulatorMessage,
   SimulatorRun,
 } from '@/features/testing/typedefs/simulator.typedefs';
 import type { TurnStatus } from '@/features/testing/typedefs/trace.typedefs';
@@ -26,8 +27,33 @@ import {
   RunStatus,
 } from '@/shared/api/generated/schema.generated';
 
-export const turnStatus = (status: RunStatus, handedBack: boolean): TurnStatus =>
-  status === RunStatus.Escalated && handedBack ? HandedBackStatus.HandedBack : status;
+export const turnStatus = (
+  status: RunStatus,
+  handedBack: boolean,
+  closing: TurnOutcome | null,
+): TurnStatus => {
+  if (closing !== null && CLOSABLE_RUN_STATUSES.has(status)) {
+    return closing;
+  }
+  return status === RunStatus.Escalated && handedBack ? TurnOutcome.HandedBack : status;
+};
+
+export const closingOutcome = (conversation: ChatConversation): TurnOutcome | null => {
+  if (conversation.state !== ConversationState.Closed) {
+    return null;
+  }
+  return conversation.closeReason === ConversationCloseReason.Inactivity
+    ? TurnOutcome.ClosedInactive
+    : TurnOutcome.Ended;
+};
+
+export const runTexts = (
+  messages: readonly SimulatorMessage[],
+  runId: string | null,
+): readonly string[] =>
+  runId === null
+    ? []
+    : messages.flatMap((message) => (message.runId === runId ? [message.text] : []));
 
 export const isActiveRun = (run: SimulatorRun): boolean => ACTIVE_RUN_STATUSES.has(run.status);
 

@@ -5,15 +5,19 @@ import { useTestingRun } from '@/features/testing/communication/hooks/useTesting
 import { BUILDER_PATH } from '@/features/testing/constants/testing.constants';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
 import {
+  AUTO_CLOSE_SECTION_ID,
   EMPTY_FIELD_VALUE,
+  EXIT_VIEW_KINDS,
   STEP_STATUS_TONES,
   TURN_STATUS_TONES,
   TRACE_FALLBACK_WIDTH,
+  TurnOutcome,
 } from '@/features/testing/constants/trace.constants';
 import { TRACE_LEGEND } from '@/features/testing/containers/TracePanel/TracePanel.constants';
 import type { TracePanelProps } from '@/features/testing/containers/TracePanel/TracePanel.typedefs';
 import { isActiveRun, turnStatus } from '@/features/testing/logic/helpers/chat.helpers';
 import {
+  autoCloseView,
   formatSeconds,
   inspectStep,
   toStepView,
@@ -27,6 +31,7 @@ import {
   nodeState,
   traceEdges,
 } from '@/features/testing/logic/helpers/trace.helpers';
+import type { OutputView } from '@/features/testing/typedefs/trace.typedefs';
 import { RunTrace } from '@/features/testing/view/RunTrace';
 import { TurnDetails } from '@/features/testing/view/TurnDetails';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
@@ -44,6 +49,8 @@ export function TracePanel({
   run,
   turnNumber,
   handedBack,
+  closing,
+  texts,
   draft,
   liveNumber,
   selectedNodeId,
@@ -69,8 +76,18 @@ export function TracePanel({
   const drawing = drawTrace(cells, edges);
   const node = inspected?.nodeId ?? focusNodeId(details.run);
   const slotById = new Map(slots.map((slot) => [slot.id, slot]));
+  const nodeById = new Map(flow?.nodes.map((flowNode) => [flowNode.id, flowNode]));
   const turn = details.run;
   const inspectedSlot = inspected === null ? null : (slotById.get(inspected.nodeId) ?? null);
+  const escalationCount = run?.escalationMessageCount ?? 0;
+  const contextOf = (nodeId: string) => ({
+    node: nodeById.get(nodeId) ?? null,
+    flow,
+    texts: escalationCount === 0 ? [] : texts.slice(-escalationCount),
+  });
+  const titleOf = (label: string, view: OutputView) =>
+    EXIT_VIEW_KINDS.has(view.kind) ? t('details.exitTitle', { name: label }) : label;
+  const status = turn === null ? null : turnStatus(turn.status, handedBack, closing);
   const builderLink = (
     <TextLink to={BUILDER_PATH} params={{ workspaceId, agentId }} search={{ node }}>
       {t('trace.openInBuilder')}
@@ -87,7 +104,7 @@ export function TracePanel({
         statusLabel={t(`details.stepStatus.${inspected.status}`)}
         statusTone={STEP_STATUS_TONES[inspected.status]}
         metrics={[]}
-        outputs={inspectStep(inspected, locale, inspectedSlot?.type ?? null).map(
+        outputs={inspectStep(inspected, locale, contextOf(inspected.nodeId)).map(
           ({ section, view }) => ({
             id: section,
             title: t(`details.${section}`),
@@ -134,15 +151,15 @@ export function TracePanel({
       <aside className={styles.details} aria-label={t('details.label')}>
         {stepDetails !== null ? (
           stepDetails
-        ) : turn === null || turnNumber === null ? (
+        ) : turn === null || status === null || turnNumber === null ? (
           <div className={styles.empty}>
             <EmptyState icon={IconName.Flask} title={t('details.empty')} />
           </div>
         ) : (
           <TurnDetails
             title={t('details.title', { number: turnNumber })}
-            statusLabel={t(`details.status.${turnStatus(turn.status, handedBack)}`)}
-            statusTone={TURN_STATUS_TONES[turnStatus(turn.status, handedBack)]}
+            statusLabel={t(`details.status.${status}`)}
+            statusTone={TURN_STATUS_TONES[status]}
             metrics={[
               {
                 label: t('details.duration'),
@@ -160,19 +177,29 @@ export function TracePanel({
               },
               { label: t('details.messagesSent'), value: String(turn.totals.messagesSent) },
             ]}
-            outputs={turn.steps.flatMap((step) => {
-              const slot = slotById.get(step.nodeId) ?? null;
-              const view = toStepView(step, locale, slot?.type ?? null);
-              return view === null
-                ? []
-                : [
+            outputs={[
+              ...turn.steps.flatMap((step) => {
+                const view = toStepView(step, locale, contextOf(step.nodeId));
+                return view === null
+                  ? []
+                  : [
+                      {
+                        id: step.id,
+                        title: titleOf(slotById.get(step.nodeId)?.label ?? step.nodeId, view),
+                        view: withHandBack(view, handedBack),
+                      },
+                    ];
+              }),
+              ...(status === TurnOutcome.ClosedInactive
+                ? [
                     {
-                      id: step.id,
-                      title: slot?.label ?? step.nodeId,
-                      view: withHandBack(view, handedBack),
+                      id: AUTO_CLOSE_SECTION_ID,
+                      title: t('details.exitTitle', { name: t('details.flowSettings') }),
+                      view: autoCloseView(flow, locale),
                     },
-                  ];
-            })}
+                  ]
+                : []),
+            ]}
           />
         )}
         {draft && (

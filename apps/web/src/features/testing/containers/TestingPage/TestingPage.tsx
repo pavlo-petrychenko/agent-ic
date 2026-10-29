@@ -19,8 +19,10 @@ import type { TestingPageProps } from '@/features/testing/containers/TestingPage
 import { TracePanel } from '@/features/testing/containers/TracePanel';
 import { pickAgent } from '@/features/testing/logic/helpers/agent.helpers';
 import {
+  closingOutcome,
   handedBackRunIds,
   latestRunId,
+  runTexts,
   turnNumber,
 } from '@/features/testing/logic/helpers/chat.helpers';
 import {
@@ -265,6 +267,12 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
             run={runs.find((run) => run.id === selectedRunId) ?? null}
             turnNumber={turnNumber(runs, selectedRunId)}
             handedBack={selectedRunId !== null && handedBack.has(selectedRunId)}
+            closing={
+              simulator.conversation !== null && selectedRunId === newestRunId
+                ? closingOutcome(simulator.conversation)
+                : null
+            }
+            texts={runTexts(simulator.conversation?.messages ?? [], selectedRunId)}
             draft={versionId === null}
             liveNumber={liveNumber}
             selectedNodeId={selectedNodeId}
