@@ -62,6 +62,16 @@ export enum NotifyChannel {
   Telegram = 'telegram',
 }
 
+export enum AgentExitKind {
+  End = 'end',
+  Handoff = 'handoff',
+}
+
+export const AGENT_EXIT_KINDS: readonly AgentExitKind[] = [
+  AgentExitKind.End,
+  AgentExitKind.Handoff,
+];
+
 export const DEFAULT_RETRIEVAL_MODE = RetrievalMode.Tools;
 
 export const NO_AGENT_EXITS: AgentExits = { end: null, handoff: null };

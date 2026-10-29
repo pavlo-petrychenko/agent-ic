@@ -2,6 +2,7 @@ import { WorkspaceRole } from '@agent-ic/contracts';
 import { ConditionOperator, RuleMatch } from '@flow/conditions/constants/condition.constants';
 import { FLOW_SCHEMA_VERSION, NodeType, PortName } from '@flow/document/constants/flow.constants';
 import type {
+  AgentExits,
   AgentNode,
   ApiRequestNode,
   CompletionNode,
@@ -255,3 +256,8 @@ export const replyAndScoreFlow = () => {
   );
   return { flow, fork, writer, handoff, scorer, save, reply };
 };
+
+export const withExits = (node: AgentNode, exits: Partial<AgentExits>): AgentNode => ({
+  ...node,
+  config: { ...node.config, exits: { ...node.config.exits, ...exits } },
+});

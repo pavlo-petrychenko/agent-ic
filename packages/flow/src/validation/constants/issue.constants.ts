@@ -50,6 +50,9 @@ export enum FlowIssueCode {
   NoErrorPath = 'NO_ERROR_PATH',
   WaitForResultWithoutReply = 'WAIT_FOR_RESULT_WITHOUT_REPLY',
   NoFallbackMessage = 'NO_FALLBACK_MESSAGE',
+  ExitInBackgroundBranch = 'EXIT_IN_BACKGROUND_BRANCH',
+  EmptyExitCriterion = 'EMPTY_EXIT_CRITERION',
+  ExitEscalationMessage = 'EXIT_ESCALATION_MESSAGE',
 }
 
 export const WARNING_CODES: readonly FlowIssueCode[] = [
@@ -57,4 +60,6 @@ export const WARNING_CODES: readonly FlowIssueCode[] = [
   FlowIssueCode.NoErrorPath,
   FlowIssueCode.WaitForResultWithoutReply,
   FlowIssueCode.NoFallbackMessage,
+  FlowIssueCode.EmptyExitCriterion,
+  FlowIssueCode.ExitEscalationMessage,
 ];
