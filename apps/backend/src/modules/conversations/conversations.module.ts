@@ -13,6 +13,7 @@ import { IncomingMessagesService } from '@/modules/conversations/services/incomi
 import { OperatorConversationsService } from '@/modules/conversations/services/operator-conversations.service';
 import { SimulationsService } from '@/modules/conversations/services/simulations.service';
 import { CloseInactiveConversationsUseCase } from '@/modules/conversations/use-cases/close-inactive-conversations.use-case';
+import { CloseSimulationForInactivityUseCase } from '@/modules/conversations/use-cases/close-simulation-for-inactivity.use-case';
 import { GetSimulationUseCase } from '@/modules/conversations/use-cases/get-simulation.use-case';
 import { HandBackUseCase } from '@/modules/conversations/use-cases/hand-back.use-case';
 import { ReplyAsOperatorUseCase } from '@/modules/conversations/use-cases/reply-as-operator.use-case';
@@ -43,6 +44,7 @@ export class ConversationsModule extends defineModule({
     ReplyAsOperatorUseCase,
     HandBackUseCase,
     CloseInactiveConversationsUseCase,
+    CloseSimulationForInactivityUseCase,
   ],
   resolvers: [ConversationActivityResolver, SimulationResolver, OperatorResolver],
   processors: [CloseInactiveConversationsProcessor],

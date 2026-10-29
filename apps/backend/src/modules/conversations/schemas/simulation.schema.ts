@@ -23,3 +23,5 @@ export const startSimulationSchema = z.object({
 export const operatorReplySchema = simulatorMessageSchema;
 
 export const operatorConversationSchema = z.object({ conversationId: publicIdSchema });
+
+export const simulationConversationSchema = z.object({ conversationId: publicIdSchema });

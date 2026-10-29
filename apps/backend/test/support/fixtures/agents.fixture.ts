@@ -75,6 +75,17 @@ export const triggerFlow = (label: string = TEST_NODE_LABEL): FlowDocument => ({
   settings: NO_FLOW_SETTINGS,
 });
 
+export const autoCloseFlow = (
+  afterMinutes: number | null,
+  flow: FlowDocument = emptyFlow(),
+): FlowDocument => ({
+  ...flow,
+  settings: {
+    ...flow.settings,
+    autoClose: afterMinutes === null ? null : { afterMinutes },
+  },
+});
+
 export const apiRequestFlow = (url: string): FlowDocument => {
   const flow = triggerFlow();
   return {
