@@ -154,6 +154,10 @@ describe('composerMode', () => {
     expect(composerMode(ConversationState.Waiting, true)).toBe(ComposerMode.Operator);
     expect(composerMode(ConversationState.Handled, false)).toBe(ComposerMode.Operator);
   });
+
+  it('ends the composer once the conversation is closed', () => {
+    expect(composerMode(ConversationState.Closed, true)).toBe(ComposerMode.Ended);
+  });
 });
 
 describe('isActiveRun', () => {

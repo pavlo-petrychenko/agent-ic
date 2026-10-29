@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, desc, eq, inArray, isNull, lt, ne, or, sql } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
 import {
   ConversationMode,
   ConversationState,
@@ -71,12 +72,23 @@ export class ConversationsRepository {
     await this.txHost.tx.execute(
       sql`select pg_advisory_xact_lock(hashtext(${simulationLockKey(key)}))`,
     );
-    const [conversation] = await this.openSimulationQuery(key).for('update');
+    const [conversation] = await this.simulationQuery(
+      key,
+      ne(conversations.state, ConversationState.Closed),
+    ).for('update');
     return conversation ?? null;
   }
 
-  async findOpenSimulationForRead(key: SimulationKey): Promise<Conversation | null> {
-    const [conversation] = await this.openSimulationQuery(key);
+  async findLatestSimulation(key: SimulationKey): Promise<Conversation | null> {
+    await this.txHost.tx.execute(
+      sql`select pg_advisory_xact_lock(hashtext(${simulationLockKey(key)}))`,
+    );
+    const [conversation] = await this.simulationQuery(key).for('update');
+    return conversation ?? null;
+  }
+
+  async findLatestSimulationForRead(key: SimulationKey): Promise<Conversation | null> {
+    const [conversation] = await this.simulationQuery(key);
     return conversation ?? null;
   }
 
@@ -208,7 +220,7 @@ export class ConversationsRepository {
       .where(and(eq(conversations.workspaceId, workspaceId), eq(conversations.id, id)));
   }
 
-  private openSimulationQuery(key: SimulationKey) {
+  private simulationQuery(key: SimulationKey, ...conditions: SQL[]) {
     return this.txHost.tx
       .select()
       .from(conversations)
@@ -218,7 +230,7 @@ export class ConversationsRepository {
           eq(conversations.agentId, key.agentId),
           eq(conversations.endUserExternalId, key.endUserExternalId),
           eq(conversations.mode, ConversationMode.Simulation),
-          ne(conversations.state, ConversationState.Closed),
+          ...conditions,
         ),
       )
       .orderBy(desc(conversations.createdAt))

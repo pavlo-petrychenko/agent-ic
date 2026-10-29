@@ -1,4 +1,3 @@
-import { useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePromptDetail } from '@/features/prompts/communication/hooks/usePromptDetail';
@@ -6,7 +5,6 @@ import { usePromptLibrary } from '@/features/prompts/communication/hooks/useProm
 import { usePromptUsages } from '@/features/prompts/communication/hooks/usePromptUsages';
 import { usePromptVersions } from '@/features/prompts/communication/hooks/usePromptVersions';
 import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.constants';
-import { AGENT_BUILDER_PATH } from '@/features/prompts/constants/route.constants';
 import { DeletePromptDialog } from '@/features/prompts/containers/DeletePromptDialog';
 import { MovePromptDialog } from '@/features/prompts/containers/MovePromptDialog';
 import { PromptDetailsPanel } from '@/features/prompts/containers/PromptDetailsPanel';
@@ -33,7 +31,6 @@ import { formatPromptVersionDate } from '@/features/prompts/logic/helpers/prompt
 import { usePromptVariables } from '@/features/prompts/logic/hooks/usePromptVariables';
 import { storeLastOpenedPromptId } from '@/features/prompts/storage/helpers/promptLastOpenedStorage.helpers';
 import type { PromptVersion } from '@/features/prompts/typedefs/prompt.typedefs';
-import type { PromptUsageItem } from '@/features/prompts/typedefs/promptUsage.typedefs';
 import { PromptCompare } from '@/features/prompts/view/PromptCompare';
 import type { PromptCompareVersion } from '@/features/prompts/view/PromptCompare';
 import { PromptDraftEditor } from '@/features/prompts/view/PromptDraftEditor';
@@ -58,7 +55,6 @@ const toCompareVersion = (version: PromptVersion, locale: string): PromptCompare
 
 export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
-  const navigate = useNavigate();
   const { locale } = useLocale();
   const active = useActiveWorkspace(workspaceId);
   const { detail, failed, retry } = usePromptDetail(promptId);
@@ -80,14 +76,6 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
     versionNumber: session.editing ? null : (shownVersion?.number ?? null),
     variablePaths: variables.paths,
   });
-
-  const openUsage = (usage: PromptUsageItem) => {
-    void navigate({
-      to: AGENT_BUILDER_PATH,
-      params: { workspaceId, agentId: usage.agentId },
-      search: { node: usage.nodeId },
-    });
-  };
 
   useEffect(() => {
     storeLastOpenedPromptId(workspaceId, promptId);
@@ -306,7 +294,6 @@ export function PromptPage({ workspaceId, promptId }: PromptPageProps) {
           onRetryUsages={() => {
             void retryUsages();
           }}
-          onOpenUsage={openUsage}
           variablePaths={variables.paths}
         />
       )}

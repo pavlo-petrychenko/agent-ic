@@ -229,6 +229,28 @@ describe('TestingPage', () => {
     expect(chat).not.toBeInTheDocument();
   });
 
+  it('keeps a conversation the agent ended and starts a new one', async () => {
+    const user = userEvent.setup();
+    renderPage([
+      testingAgentsMock(),
+      testingVersionsMock(),
+      startSimulationMock(),
+      simulationMock([QUESTION, ...ANSWERS], RunStatus.Succeeded, null, ConversationState.Closed),
+      restartSimulationMock,
+      simulationMock([], null),
+    ]);
+
+    const chat = await screen.findByRole('list', { name: 'Test conversation' });
+    expect(within(chat).getByText(QUESTION.text)).toBeInTheDocument();
+    expect(within(chat).getByText(`${TEST_AGENT_NAME} ended the conversation`)).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Start new conversation' }));
+
+    expect(await screen.findByText('Say hi to your agent')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Message as the test user' })).toBeInTheDocument();
+  });
+
   it('replies as the operator after an escalation, then hands back', async () => {
     const user = userEvent.setup();
     const escalated = [ESCALATION_QUESTION, ESCALATION_MESSAGE];

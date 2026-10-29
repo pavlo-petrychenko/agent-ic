@@ -55,6 +55,9 @@ const withDividers = (items: readonly ChatItem[], state: ConversationState): Cha
   });
 
 export const composerMode = (state: ConversationState, takingOver: boolean): ComposerMode => {
+  if (state === ConversationState.Closed) {
+    return ComposerMode.Ended;
+  }
   if (state === ConversationState.Handled) {
     return ComposerMode.Operator;
   }

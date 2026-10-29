@@ -23,6 +23,7 @@ describe('SimulatorChat', () => {
         ]}
         agentName={AGENT_NAME}
         typing={false}
+        ended={false}
         selectedRunId={null}
         onSelectRun={vi.fn<(runId: string) => void>()}
       />,

@@ -11,25 +11,10 @@
   display: flex;
   align-items: center;
   gap: var(--space-8);
-  width: 100%;
   padding: var(--space-7) var(--space-10);
   border: var(--border-width) solid var(--color-line);
   border-radius: var(--radius-8);
   background: var(--color-card);
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: background-color var(--duration-fast) var(--ease-standard);
-
-  &:hover {
-    background: var(--color-soft);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: var(--shadow-focus-ring);
-  }
 }
 
 .info {

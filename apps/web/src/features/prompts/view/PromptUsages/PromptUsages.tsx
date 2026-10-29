@@ -6,39 +6,32 @@ import { NodeKind, NodeTile, TileSize } from '@/shared/ui/display/NodeTile';
 import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/prompts/view/PromptUsages/PromptUsages.module.scss';
 
-export function PromptUsages({ usages, onOpenUsage }: PromptUsagesProps) {
+export function PromptUsages({ usages }: PromptUsagesProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
 
   return (
     <ul aria-label={t('details.usage.title')} className={styles.root}>
       {usages.map((usage) => (
-        <li key={`${usage.versionId}:${usage.nodeId}`}>
-          <button
-            type="button"
-            aria-label={t('details.usage.openAgent', { agent: usage.agentName })}
-            className={styles.row}
-            onClick={() => onOpenUsage(usage)}
-          >
-            <NodeTile kind={NodeKind.Agent} size={TileSize.Sm} aria-label={usage.nodeLabel} />
-            <span className={styles.info}>
-              <Text as={TextElement.Span} kind={TextKind.BodySmall} className={styles.name}>
-                {usage.agentName}
-              </Text>
-              <Text as={TextElement.Span} kind={TextKind.Caption} color={TextColor.Mute}>
-                {t('details.usage.stepVersion', {
-                  step: usage.nodeLabel,
-                  version: usage.live
-                    ? t('details.usage.versionLive', { number: usage.versionNumber })
-                    : t('details.usage.versionDraft'),
-                })}
-              </Text>
-            </span>
-            <Badge tone={usage.pinned ? BadgeTone.Violet : BadgeTone.Neutral} mono>
-              {usage.pinned
-                ? t('details.usage.pinned', { number: usage.pinNumber })
-                : t('details.usage.followLatest')}
-            </Badge>
-          </button>
+        <li key={`${usage.versionId}:${usage.nodeId}`} className={styles.row}>
+          <NodeTile kind={NodeKind.Agent} size={TileSize.Sm} aria-label={usage.nodeLabel} />
+          <span className={styles.info}>
+            <Text as={TextElement.Span} kind={TextKind.BodySmall} className={styles.name}>
+              {usage.agentName}
+            </Text>
+            <Text as={TextElement.Span} kind={TextKind.Caption} color={TextColor.Mute}>
+              {t('details.usage.stepVersion', {
+                step: usage.nodeLabel,
+                version: usage.live
+                  ? t('details.usage.versionLive', { number: usage.versionNumber })
+                  : t('details.usage.versionDraft'),
+              })}
+            </Text>
+          </span>
+          <Badge tone={usage.pinned ? BadgeTone.Violet : BadgeTone.Neutral} mono>
+            {usage.pinned
+              ? t('details.usage.pinned', { number: usage.pinNumber })
+              : t('details.usage.followLatest')}
+          </Badge>
         </li>
       ))}
     </ul>
