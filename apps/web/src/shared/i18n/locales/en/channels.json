@@ -140,8 +140,10 @@
       "subtitle": "Telegram bot · answered by {{agent}}",
       "unknownAgent": "No agent",
       "saved": "Channel settings saved",
+      "deleted": "Channel deleted",
       "tokenReplaced": "Bot token replaced",
       "actions": {
+        "delete": "Delete",
         "disconnect": "Disconnect",
         "save": "Save"
       },
@@ -153,6 +155,16 @@
         "warning": "Open Telegram chats stay readable in the Inbox, but nobody can reply to them until a bot is connected again.",
         "cancel": "Cancel",
         "confirm": "Disconnect"
+      },
+      "deleteDialog": {
+        "title": "Delete {{username}}?",
+        "description": "Telegram bot · this can’t be undone",
+        "body": "We remove the webhook and delete this channel. Past conversations stay in the Inbox and Langfuse.",
+        "confirmLabel": "Type <strong>{{name}}</strong> to confirm",
+        "confirmInputLabel": "Bot username",
+        "confirmPlaceholder": "{{name}}",
+        "cancel": "Cancel",
+        "confirm": "Delete"
       },
       "replaceDialog": {
         "title": "Replace the token for {{username}}?",

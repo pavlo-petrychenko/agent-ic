@@ -140,8 +140,10 @@
       "subtitle": "Telegram-бот · відповідає {{agent}}",
       "unknownAgent": "Без агента",
       "saved": "Налаштування каналу збережено",
+      "deleted": "Канал видалено",
       "tokenReplaced": "Токен бота замінено",
       "actions": {
+        "delete": "Видалити",
         "disconnect": "Відключити",
         "save": "Зберегти"
       },
@@ -153,6 +155,16 @@
         "warning": "Відкриті чати в Telegram залишаться доступними у Вхідних, але ніхто не зможе відповісти, доки бота не підключать знову.",
         "cancel": "Скасувати",
         "confirm": "Відключити"
+      },
+      "deleteDialog": {
+        "title": "Видалити {{username}}?",
+        "description": "Telegram-бот · це незворотно",
+        "body": "Ми видаляємо вебхук і цей канал. Попередні розмови залишаться у Вхідних і Langfuse.",
+        "confirmLabel": "Введіть <strong>{{name}}</strong>, щоб підтвердити",
+        "confirmInputLabel": "Ім’я користувача бота",
+        "confirmPlaceholder": "{{name}}",
+        "cancel": "Скасувати",
+        "confirm": "Видалити"
       },
       "replaceDialog": {
         "title": "Замінити токен для {{username}}?",

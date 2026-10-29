@@ -656,7 +656,7 @@ The run is marked failed, and Agents shows "N runs failed today".
   - store the token encrypted; show only a masked version;
   - status: receiving / not receiving; last update; 7-day chats, messages and errors;
   - detect a revoked token (webhook errors) → broken state + email to owners and admins;
-  - replace the token, disconnect (removes the webhook).
+  - replace the token, disconnect (removes the webhook), delete the channel (past conversations stay).
 - **API channel:**
   - `POST /v1/channels/{id}/messages` with `Authorization: Bearer <secret>` and body `{ user_id, text }`.
   - **Reply mode:**

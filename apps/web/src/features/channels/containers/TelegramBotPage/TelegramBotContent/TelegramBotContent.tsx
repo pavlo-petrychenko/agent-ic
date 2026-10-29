@@ -5,6 +5,7 @@ import type { TelegramBotContentProps } from '@/features/channels/containers/Tel
 import { useTelegramBotContent } from '@/features/channels/containers/TelegramBotPage/TelegramBotContent/useTelegramBotContent';
 import { lastUpdateLabel } from '@/features/channels/logic/helpers/lastUpdate.helpers';
 import { LastUpdateKind } from '@/features/channels/typedefs/lastUpdate.typedefs';
+import { DeleteTelegramBotDialog } from '@/features/channels/view/DeleteTelegramBotDialog';
 import { DisconnectTelegramBotDialog } from '@/features/channels/view/DisconnectTelegramBotDialog';
 import { ReplaceTelegramTokenDialog } from '@/features/channels/view/ReplaceTelegramTokenDialog';
 import { TelegramBotDetails } from '@/features/channels/view/TelegramBotDetails';
@@ -45,6 +46,7 @@ export function TelegramBotContent({
         onTypingChange={botContent.onTypingChange}
         onReplaceToken={botContent.onReplaceToken}
         onDisconnect={botContent.onDisconnect}
+        onDelete={botContent.onDelete}
         onSave={botContent.onSave}
       />
       {botContent.replaceOpen && (
@@ -70,6 +72,19 @@ export function TelegramBotContent({
           onOpenChange={botContent.onDisconnectOpenChange}
           onCancel={botContent.onDisconnectCancel}
           onConfirm={botContent.onDisconnectConfirm}
+        />
+      )}
+      {botContent.deleteOpen && (
+        <DeleteTelegramBotDialog
+          channelName={botContent.botUsername}
+          typedName={botContent.typedName}
+          confirmed={botContent.deleteConfirmed}
+          busy={botContent.deleting}
+          error={botContent.deleteError}
+          onTypedNameChange={botContent.onTypedNameChange}
+          onOpenChange={botContent.onDeleteOpenChange}
+          onCancel={botContent.onDeleteCancel}
+          onSubmit={botContent.onDeleteConfirm}
         />
       )}
     </>

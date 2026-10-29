@@ -25,6 +25,7 @@ export function TelegramBotDetails({
   onTypingChange,
   onReplaceToken,
   onDisconnect,
+  onDelete,
   onSave,
 }: TelegramBotDetailsProps) {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
@@ -56,6 +57,11 @@ export function TelegramBotDetails({
             <Button disabled={broken || disconnected || saving} onClick={onSave}>
               {t('telegram.bot.actions.save')}
             </Button>
+            {disconnected && (
+              <Button variant={ButtonVariant.Danger} onClick={onDelete}>
+                {t('telegram.bot.actions.delete')}
+              </Button>
+            )}
           </>
         }
       />

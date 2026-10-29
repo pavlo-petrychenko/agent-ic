@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useDeleteChannel } from '@/features/channels/communication/hooks/useDeleteChannel';
 import { useDisconnectTelegram } from '@/features/channels/communication/hooks/useDisconnectTelegram';
 import { useReplaceTelegramToken } from '@/features/channels/communication/hooks/useReplaceTelegramToken';
 import { useUpdateTelegram } from '@/features/channels/communication/hooks/useUpdateTelegram';
@@ -25,6 +26,7 @@ export function useTelegramBotContent({
   const navigate = useNavigate();
   const errorMessage = useErrorMessage();
   const { showToast } = useToast();
+  const { deleteChannel, deleting } = useDeleteChannel();
   const { disconnectTelegram, disconnecting } = useDisconnectTelegram();
   const { replaceTelegramToken, replacing } = useReplaceTelegramToken();
   const { updateTelegram, saving } = useUpdateTelegram();
@@ -37,6 +39,9 @@ export function useTelegramBotContent({
   const [replaceToken, setReplaceToken] = useState('');
   const [replaceTokenError, setReplaceTokenError] = useState<string | null>(null);
   const [replaceError, setReplaceError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [typedName, setTypedName] = useState('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const saveSettings = async () => {
     try {
@@ -97,6 +102,38 @@ export function useTelegramBotContent({
     }
   };
 
+  const openDelete = () => {
+    setTypedName('');
+    setDeleteError(null);
+    setDeleteOpen(true);
+  };
+
+  const closeDelete = () => {
+    setDeleteOpen(false);
+    setTypedName('');
+    setDeleteError(null);
+  };
+
+  const changeTypedName = (value: string) => {
+    setTypedName(value);
+    setDeleteError(null);
+  };
+
+  const deleteBot = async () => {
+    if (typedName !== channel.displayName) {
+      return;
+    }
+    setDeleteError(null);
+    try {
+      await deleteChannel(channel.id);
+      setDeleteOpen(false);
+      showToast({ message: t('telegram.bot.deleted'), tone: ToastTone.Ok });
+      await navigate({ to: CHANNELS_PATH, params: { workspaceId } });
+    } catch (error) {
+      setDeleteError(errorMessage(toAppError(error)));
+    }
+  };
+
   return {
     channelsLink: channelsHref(workspaceId),
     botUsername: channel.displayName,
@@ -112,6 +149,11 @@ export function useTelegramBotContent({
     replaceToken,
     replaceTokenError,
     replaceError,
+    deleteOpen,
+    deleting,
+    deleteError,
+    typedName,
+    deleteConfirmed: typedName === channel.displayName,
     onAgentChange: setAgentId,
     onTypingChange: setTyping,
     onSave: () => void saveSettings(),
@@ -132,5 +174,14 @@ export function useTelegramBotContent({
     },
     onDisconnectCancel: () => setDisconnectOpen(false),
     onDisconnectConfirm: () => void disconnectBot(),
+    onDelete: openDelete,
+    onDeleteOpenChange: (open) => {
+      if (!open) {
+        closeDelete();
+      }
+    },
+    onDeleteCancel: closeDelete,
+    onTypedNameChange: changeTypedName,
+    onDeleteConfirm: () => void deleteBot(),
   };
 }
