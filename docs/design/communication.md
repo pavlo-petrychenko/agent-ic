@@ -45,7 +45,7 @@
 | `gateway` | Redis pub/sub | A | Publish "new customer message"; subscribe to `run:{id}:done` for "wait for result" |
 | `gateway` | Redis cache | S | Channel config lookup, per-channel rate limits |
 | `api` | Postgres | S | Everything the dashboard reads and writes |
-| `api` | Redis queue | A | Enqueue simulator runs, ingest jobs, operator messages (outbound), notification emails; manage cron schedulers on publish |
+| `api` | Redis queue | A | Enqueue simulator runs, ingest jobs, operator messages (outbound), notification emails |
 | `api` | Redis pub/sub | A | Publish operator actions; subscribe to forward events to its WebSocket clients |
 | `api` | Redis cache | S | Sessions, permission cache, rate limits on auth |
 | `api` | Telegram Bot API | S | `getMe` + `setWebhook` / `deleteWebhook` when connecting or disconnecting a bot |
@@ -129,10 +129,19 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 2. Then as B ("wait for result") or C ("don't wait"). The run starts at the matching External event trigger, with `event.*` variables.
 
 ### E. Schedule trigger (follow-ups, digests)
-1. Publish (chain I) → `api` creates or updates a **BullMQ job scheduler** per Schedule trigger (cron + time zone) in Redis.
-2. On each tick, Redis queue ⇢ `worker-runs` (`timers`): query Postgres for conversations that match the conditions (e.g. silent > 24 h, not escalated), limited to N.
-3. For each one: Postgres (create the run, once per conversation) ⇢ queue `runs-proactive`. A per-workspace concurrency cap protects live chats.
-4. Each run is then chain A steps 7–12. Delivery for Telegram is allowed only if the user wrote to the bot before.
+*(ADR 0025, D291 to D293)*
+
+1. Nothing happens on publish, pause or delete: the live Schedule triggers are a query, not Redis state.
+2. A recurring job on `timers` runs every 30 seconds in `worker-runs`. It → Postgres: lists Schedule triggers of live versions whose agent is not paused or deleted (a generated column on `agent_versions`, read by an allow-listed system reader), and computes each trigger's latest due tick in its time zone. Ticks more than 10 minutes late are skipped and counted.
+3. For every due tick: ⇢ queue `runs-proactive` (`fire-schedule-tick`, job id from agent, trigger and tick).
+4. `worker-runs` takes the tick job, then → Postgres, in one transaction:
+   - insert the tick row (unique per agent, trigger and tick; a retry or a second sweeper stops here);
+   - re-check that the live version still has the trigger and that the agent is not paused;
+   - if the workspace is over its usage limit and the flow uses a platform model, mark the tick `skipped_usage_limit` and stop;
+   - select the candidate conversations: live, `agent_active`, no run in progress, customer has written, silent ≥ N hours, never escalated, in the chosen channel types, oldest silence first, up to the limit;
+   - for each, insert the contact marker (unique per conversation and tick, and per conversation when "once per conversation" is on) and a run that starts at the Schedule trigger.
+5. Each run ⇢ queue `runs-proactive` with its own trace, then is chain A steps 7–12. Delivery for Telegram is allowed only because the customer has written to the bot before.
+6. Without "once per conversation" the marker is released when the customer writes, so a conversation is contacted once per silence.
 
 ### F. Escalation → operator → hand back
 1. Escalation step in `worker-runs` → Postgres, in one transaction:
@@ -183,9 +192,8 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 1. Browser → `api` mutation `publish(agentId, note)` → validation with `@agent-ic/flow` → Postgres, in one transaction:
    - a new immutable version;
    - `live_version_id` switches.
-2. `api` → Redis: reconcile Schedule triggers (create / update / remove job schedulers).
-3. `api` ⇢ pub/sub `ws:{id}:agents` → browsers update the status.
-4. Runs already in progress keep their `version_id`. New runs pick up the new live version.
+2. `api` ⇢ pub/sub `ws:{id}:agents` → browsers update the status.
+3. Runs already in progress keep their `version_id`. New runs pick up the new live version.
 
 ### K. Telegram channel lifecycle
 *Production uses webhooks; local dev can use long polling (`TELEGRAM_TRANSPORT=polling`). Both transports feed the same entry point — `handleTelegramUpdate` in `TelegramUpdatesService`: de-duplicate in `channels.channel_events` by `(channel_id, update_id)`, map the update to a message, save it and enqueue the run (ADR 0008).*
