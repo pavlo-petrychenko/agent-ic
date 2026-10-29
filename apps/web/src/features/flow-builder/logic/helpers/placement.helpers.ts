@@ -1,7 +1,7 @@
 import { isTriggerNode, nodePorts } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import { FIRST_STEP_POSITION } from '@/features/flow-builder/constants/flowBuilder.constants';
-import { NEW_STEP_GAP } from '@/features/flow-builder/constants/palette.constants';
+import { NEW_STEP_GAP, NODE_FOOTPRINT } from '@/features/flow-builder/constants/palette.constants';
 import { connect } from '@/features/flow-builder/logic/helpers/connection.helpers';
 import { addNode, removeElements } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import type { FlowPoint } from '@/features/flow-builder/typedefs/flowBuilder.typedefs';
@@ -33,6 +33,21 @@ const splitEdge = (
   return connect(into, { source: nodeId, sourcePort: port, target: edge.target }, createId());
 };
 
+const overlaps = (a: FlowPoint, b: FlowPoint): boolean =>
+  Math.abs(a.x - b.x) < NODE_FOOTPRINT.width && Math.abs(a.y - b.y) < NODE_FOOTPRINT.height;
+
+export const clearOfNodes = (document: FlowDocument, position: FlowPoint): FlowPoint => {
+  let free = position;
+  for (let pass = 0; pass <= document.nodes.length; pass += 1) {
+    const blocker = document.nodes.find((node) => overlaps(node.position, free));
+    if (blocker === undefined) {
+      return free;
+    }
+    free = { x: free.x, y: blocker.position.y + NODE_FOOTPRINT.height };
+  }
+  return free;
+};
+
 export const placeStep = (
   document: FlowDocument,
   placement: StepPlacement,
@@ -40,7 +55,7 @@ export const placeStep = (
 ): FlowDocument => {
   const nodeId = createId();
   const added = withLabel(
-    addNode(document, placement.type, placement.position, nodeId),
+    addNode(document, placement.type, clearOfNodes(document, placement.position), nodeId),
     nodeId,
     placement.label,
   );

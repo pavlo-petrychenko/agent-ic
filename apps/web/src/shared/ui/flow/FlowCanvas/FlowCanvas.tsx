@@ -40,6 +40,8 @@ import {
   FLOW_CANVAS_MIDDLE_MOUSE_BUTTON,
   FLOW_CANVAS_MIN_SELECTION_FOR_BAR,
   FLOW_CANVAS_MULTI_SELECT_KEYS,
+  FLOW_CANVAS_NODE_ID_ATTRIBUTE,
+  FLOW_CANVAS_NODE_SELECTOR,
   FLOW_CANVAS_NODE_TYPE,
   FLOW_CANVAS_PAN_KEY,
   FLOW_CANVAS_PLACEHOLDER_ID,
@@ -123,6 +125,20 @@ const pointerOf = (event: MouseEvent | TouchEvent): { x: number; y: number } | n
     return touch === null ? null : { x: touch.clientX, y: touch.clientY };
   }
   return { x: event.clientX, y: event.clientY };
+};
+
+const nodeAtPoint = (x: number, y: number): string | null => {
+  if (typeof document.elementsFromPoint !== 'function') {
+    return null;
+  }
+  for (const element of document.elementsFromPoint(x, y)) {
+    const node = element.closest(FLOW_CANVAS_NODE_SELECTOR);
+    const id = node?.getAttribute(FLOW_CANVAS_NODE_ID_ATTRIBUTE) ?? null;
+    if (id !== null && id !== FLOW_CANVAS_PLACEHOLDER_ID) {
+      return id;
+    }
+  }
+  return null;
 };
 
 function FlowCanvasSurface({
@@ -298,10 +314,18 @@ function FlowCanvasSurface({
 
   const handleConnectEnd: OnConnectEnd = (event, state) => {
     const pointer = pointerOf(event);
-    if (state.isValid === true || state.fromNode === null || state.toNode !== null) {
+    if (state.isValid === true || state.fromNode === null) {
       return;
     }
     const sourcePort = state.fromHandle?.id ?? null;
+    const target =
+      state.toNode?.id ?? (pointer === null ? null : nodeAtPoint(pointer.x, pointer.y));
+    if (target !== null) {
+      if (sourcePort !== null && canConnect(state.fromNode.id, target)) {
+        onConnect({ source: state.fromNode.id, sourcePort, target });
+      }
+      return;
+    }
     if (pointer === null || sourcePort === null) {
       return;
     }
