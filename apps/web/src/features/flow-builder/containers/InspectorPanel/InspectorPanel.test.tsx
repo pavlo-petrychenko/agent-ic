@@ -2,6 +2,8 @@ import { ReasoningLevel } from '@agent-ic/contracts';
 import {
   AgentExitKind,
   ChannelSelectionMode,
+  ChannelType,
+  ScheduleKind,
   ConditionOperator,
   EscalationMode,
   FailureMode,
@@ -24,7 +26,7 @@ import {
   validateFlow,
 } from '@agent-ic/flow';
 import type { AgentNode, FlowDocument, FlowNode } from '@agent-ic/flow';
-import { act, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -871,5 +873,183 @@ describe('InspectorPanel api request', () => {
     expect(screen.getByText(TEST_RESPONSE_BODY)).toBeVisible();
     await user.selectOptions(screen.getByRole('combobox', { name: 'Method' }), HttpMethod.Post);
     expect(screen.queryByText('Status 200 · 120 ms')).not.toBeInTheDocument();
+  });
+});
+
+describe('InspectorPanel schedule trigger', () => {
+  const SCHEDULE_FLOW: FlowDocument = {
+    ...FLOW,
+    nodes: [
+      ...FLOW.nodes,
+      step('daily', 'Daily follow-up', NODE_TEMPLATES[NodeType.TriggerSchedule]),
+    ],
+    edges: [
+      ...FLOW.edges,
+      { id: 'e3', source: 'daily', sourcePort: PortName.Next, target: 'reply' },
+    ],
+  };
+  const openSchedule = (document: FlowDocument = SCHEDULE_FLOW) => open('daily', document);
+  const schedule = () => {
+    const found = node('daily');
+    if (found?.type !== NodeType.TriggerSchedule) {
+      throw new Error('no schedule trigger');
+    }
+    return found.config;
+  };
+
+  it('shows the schedule, the next three runs, the limits and the variables', () => {
+    openSchedule();
+
+    const inspector = screen.getByRole('complementary', { name: 'Daily follow-up' });
+    expect(
+      within(inspector).getByText('Starts a run on a schedule for the chats that match'),
+    ).toBeVisible();
+    expect(within(inspector).getByRole('radio', { name: 'Every day' })).toBeChecked();
+    expect(within(inspector).getByLabelText('Time')).toHaveValue('10:00');
+    expect(within(inspector).getByRole('button', { name: /Time zone/ })).toHaveTextContent('UTC');
+    expect(
+      within(screen.getByRole('list', { name: 'Next runs' })).getAllByRole('listitem'),
+    ).toHaveLength(3);
+    expect(within(inspector).getByLabelText('Customer silent for at least')).toHaveValue(1);
+    expect(within(inspector).getByRole('combobox', { name: 'Unit' })).toHaveDisplayValue('days');
+    expect(within(inspector).getByRole('checkbox', { name: 'Telegram' })).toBeChecked();
+    expect(within(inspector).getByRole('checkbox', { name: 'API' })).toBeChecked();
+    expect(within(inspector).getByLabelText('Max conversations per run')).toHaveValue(50);
+    expect(
+      within(inspector).getByText(
+        'Telegram lets a bot message only people who already wrote to it.',
+      ),
+    ).toBeVisible();
+    expect(
+      within(screen.getByRole('list', { name: 'Available in the flow' })).getByText(
+        'conversation.id',
+      ),
+    ).toBeVisible();
+  });
+
+  it('switches between daily, weekdays and a custom cron, keeping the time', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    await user.click(screen.getByRole('radio', { name: 'Weekdays' }));
+    expect(schedule().schedule).toEqual({
+      kind: ScheduleKind.Weekdays,
+      time: '10:00',
+      timeZone: 'UTC',
+    });
+    await user.click(screen.getByRole('radio', { name: 'Custom cron' }));
+    expect(schedule().schedule).toEqual({
+      kind: ScheduleKind.Custom,
+      cron: '0 10 * * 1-5',
+      timeZone: 'UTC',
+    });
+    expect(screen.getByRole('textbox', { name: 'Cron expression' })).toHaveValue('0 10 * * 1-5');
+    expect(screen.queryByLabelText('Time')).not.toBeInTheDocument();
+  });
+
+  it('explains a cron that is not valid and lists the runs once it is', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    await user.click(screen.getByRole('radio', { name: 'Custom cron' }));
+    const cron = screen.getByRole('textbox', { name: 'Cron expression' });
+    await user.clear(cron);
+    await user.type(cron, 'soon');
+    await user.tab();
+
+    expect(screen.getByText('“soon” isn’t a valid schedule')).toBeVisible();
+    expect(screen.queryByRole('list', { name: 'Next runs' })).not.toBeInTheDocument();
+    expect(screen.getByText('Fix the schedule to see the next runs.')).toBeVisible();
+    await user.clear(cron);
+    await user.type(cron, '30 8 * * *');
+    await user.tab();
+
+    expect(schedule().schedule).toMatchObject({ cron: '30 8 * * *' });
+    expect(screen.getByRole('list', { name: 'Next runs' })).toBeVisible();
+    expect(screen.queryByText('“soon” isn’t a valid schedule')).not.toBeInTheDocument();
+  });
+
+  it('changes the time and the time zone', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    fireEvent.change(screen.getByLabelText('Time'), { target: { value: '18:30' } });
+    await user.click(screen.getByRole('button', { name: /Time zone/ }));
+    await user.type(screen.getByRole('searchbox', { name: 'Search time zones' }), 'kyiv');
+    await user.click(screen.getByRole('button', { name: 'Europe/Kyiv' }));
+
+    expect(schedule().schedule).toEqual({
+      kind: ScheduleKind.Daily,
+      time: '18:30',
+      timeZone: 'Europe/Kyiv',
+    });
+  });
+
+  it('turns the silence condition off and on, and rescales it', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Unit' }), 'hour');
+    expect(schedule().conditions.silentForHours).toBe(1);
+    await user.click(screen.getByRole('switch', { name: 'Only chats that went quiet' }));
+    expect(schedule().conditions.silentForHours).toBeNull();
+    expect(screen.queryByLabelText('Customer silent for at least')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('switch', { name: 'Only chats that went quiet' }));
+    expect(schedule().conditions.silentForHours).toBe(24);
+  });
+
+  it('warns when auto-close ends the chat before the silence', () => {
+    openSchedule({
+      ...SCHEDULE_FLOW,
+      settings: { ...NO_FLOW_SETTINGS, autoClose: { afterMinutes: 120 } },
+    });
+
+    expect(
+      screen.getByText('Auto-close ends the chat before this silence is reached'),
+    ).toBeVisible();
+  });
+
+  it('needs a channel, and hides the Telegram note without Telegram', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    await user.click(screen.getByRole('checkbox', { name: 'Telegram' }));
+    expect(schedule().conditions.channelTypes).toEqual([ChannelType.Api]);
+    expect(screen.queryByText(/Telegram lets a bot/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('checkbox', { name: 'API' }));
+
+    expect(schedule().conditions.channelTypes).toEqual([]);
+    expect(screen.getByText('Pick at least one channel type')).toBeVisible();
+  });
+
+  it('limits a run and sends each chat the message once or again', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    const max = () => screen.getByLabelText('Max conversations per run');
+    await user.clear(max());
+    await user.type(max(), '250');
+    await user.tab();
+    expect(schedule().maxConversationsPerRun).toBe(250);
+    expect(screen.getByText('A run can reach at most 200 conversations')).toBeVisible();
+    await user.clear(max());
+    await user.tab();
+    expect(max()).toHaveValue(250);
+
+    expect(screen.getByText('Each chat gets this message once.')).toBeVisible();
+    await user.click(screen.getByRole('switch', { name: 'Once per conversation' }));
+    expect(schedule().oncePerConversation).toBe(false);
+    expect(
+      screen.getByText('A chat can get it again after the customer writes and goes quiet.'),
+    ).toBeVisible();
+  });
+
+  it('turns a skipped escalated chat off', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    await user.click(screen.getByRole('switch', { name: 'Skip chats handed to a person' }));
+
+    expect(schedule().conditions.notEscalated).toBe(false);
   });
 });

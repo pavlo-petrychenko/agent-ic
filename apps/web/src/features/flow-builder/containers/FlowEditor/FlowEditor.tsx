@@ -12,6 +12,7 @@ import {
   PALETTE_SECTIONS,
   PaletteGroup,
 } from '@/features/flow-builder/constants/palette.constants';
+import type { FlowEditorProps } from '@/features/flow-builder/containers/FlowEditor/FlowEditor.typedefs';
 import {
   customizeExit,
   defaultExitPorts,
@@ -33,6 +34,7 @@ import {
 } from '@/features/flow-builder/logic/helpers/placement.helpers';
 import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues';
 import { usePaletteAgentExits } from '@/features/flow-builder/logic/hooks/usePaletteAgentExits';
+import { useWorkspaceTimeZone } from '@/features/flow-builder/logic/hooks/useWorkspaceTimeZone';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
 import type { StepPlacement } from '@/features/flow-builder/typedefs/palette.typedefs';
 import { BlankFlowHint } from '@/features/flow-builder/view/BlankFlowHint';
@@ -41,12 +43,13 @@ import { StepNode } from '@/features/flow-builder/view/StepNode';
 import { FlowCanvas } from '@/shared/ui/flow/FlowCanvas';
 import type { FlowCanvasLabels, FlowCanvasNode, FlowCanvasPort } from '@/shared/ui/flow/FlowCanvas';
 
-export function FlowEditor() {
+export function FlowEditor({ workspaceId }: FlowEditorProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const { document, selection, viewport, density, apply, preview, undo, redo } =
     useFlowBuilderStore();
   const issues = useFlowIssues();
   const agentExits = usePaletteAgentExits();
+  const timeZone = useWorkspaceTimeZone(workspaceId);
   const { select, setViewport, setDensity, settingsOpen, setSettingsOpen } = useFlowBuilderStore();
   const [reveal, setReveal] = useState<readonly string[] | null>(null);
 
@@ -125,6 +128,7 @@ export function FlowEditor() {
           document,
           { type, label: t(`step.${type}`), agentExits, ...placement },
           newElementId,
+          timeZone,
         ),
       );
     }

@@ -9,7 +9,10 @@ export enum PaletteGroup {
 }
 
 export const PALETTE_SECTIONS: readonly PaletteSection[] = [
-  { group: PaletteGroup.Triggers, types: [NodeType.TriggerMessage] },
+  {
+    group: PaletteGroup.Triggers,
+    types: [NodeType.TriggerMessage, NodeType.TriggerSchedule, NodeType.TriggerInactivity],
+  },
   { group: PaletteGroup.Ai, types: [NodeType.Agent, NodeType.Completion] },
   { group: PaletteGroup.Flow, types: [NodeType.Router, NodeType.Parallel] },
   {
@@ -21,3 +24,4 @@ export const PALETTE_SECTIONS: readonly PaletteSection[] = [
 export const NEW_STEP_GAP = 120;
 
 export const NODE_FOOTPRINT = { width: 248, height: NEW_STEP_GAP };
+export const NEW_TRIGGER_GAP = 300;

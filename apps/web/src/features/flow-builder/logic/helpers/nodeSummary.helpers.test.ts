@@ -6,8 +6,9 @@ import {
   PromptSourceKind,
   PromptVersionKind,
   RuleMatch,
+  ScheduleKind,
 } from '@agent-ic/flow';
-import type { FlowNode, ModelRef, PromptSource } from '@agent-ic/flow';
+import type { FlowNode, ModelRef, PromptSource, Schedule } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.constants';
 import { SummaryKey } from '@/features/flow-builder/constants/nodeSummary.constants';
@@ -125,6 +126,40 @@ describe('nodeSummary', () => {
     expect(exitKeys(exit, null)).toEqual([SummaryKey.CanEnd]);
     expect(exitKeys(null, exit)).toEqual([SummaryKey.CanHandOff]);
     expect(exitKeys(exit, exit)).toEqual([SummaryKey.CanEndOrHandOff]);
+  });
+});
+
+describe('nodeSummary schedule', () => {
+  const scheduleWith = (schedule: Schedule): FlowNode => {
+    const trigger = stepOf(NodeType.TriggerSchedule);
+    return trigger.type === NodeType.TriggerSchedule
+      ? { ...trigger, config: { ...trigger.config, schedule } }
+      : trigger;
+  };
+
+  it('reads the new trigger as daily at 10:00 in the workspace zone', () => {
+    expect(nodeSummary(stepOf(NodeType.TriggerSchedule), [])).toEqual([
+      { key: SummaryKey.ScheduleDaily, params: { time: '10:00' } },
+      { key: SummaryKey.TimeZone, params: { timeZone: 'UTC' } },
+    ]);
+  });
+
+  it('names weekdays and a custom cron', () => {
+    expect(
+      nodeSummary(
+        scheduleWith({ kind: ScheduleKind.Weekdays, time: '09:15', timeZone: 'Europe/Kyiv' }),
+        [],
+      ),
+    ).toEqual([
+      { key: SummaryKey.ScheduleWeekdays, params: { time: '09:15' } },
+      { key: SummaryKey.TimeZone, params: { timeZone: 'Europe/Kyiv' } },
+    ]);
+    expect(
+      nodeSummary(
+        scheduleWith({ kind: ScheduleKind.Custom, cron: '0 8 * * 1', timeZone: 'UTC' }),
+        [],
+      )[0],
+    ).toEqual({ key: SummaryKey.ScheduleCron, params: { cron: '0 8 * * 1' } });
   });
 });
 

@@ -1,10 +1,7 @@
 import type { FlowDocument, FlowEdge, FlowNode, NodeType } from '@agent-ic/flow';
 import type { FlowPoint } from '@/features/flow-builder/typedefs/flowBuilder.typedefs';
 
-export type AddableNodeType = Exclude<
-  NodeType,
-  NodeType.TriggerExternalEvent | NodeType.TriggerSchedule | NodeType.TriggerInactivity
->;
+export type AddableNodeType = Exclude<NodeType, NodeType.TriggerExternalEvent>;
 
 export type NodeTemplates = {
   readonly [T in AddableNodeType]: Pick<Extract<FlowNode, { type: T }>, 'type' | 'config'>;

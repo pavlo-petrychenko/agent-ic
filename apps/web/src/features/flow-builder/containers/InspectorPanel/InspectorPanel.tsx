@@ -36,6 +36,7 @@ import {
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import type { InspectorPanelProps } from '@/features/flow-builder/containers/InspectorPanel/InspectorPanel.typedefs';
+import { ScheduleTriggerPanel } from '@/features/flow-builder/containers/ScheduleTriggerPanel';
 import {
   secondMessageStep,
   setAgentExit,
@@ -282,6 +283,8 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
             )}
           />
         );
+      case NodeType.TriggerSchedule:
+        return <ScheduleTriggerPanel node={current} />;
       case NodeType.Agent:
         return llmStep(current, {
           type: NodeType.Agent,

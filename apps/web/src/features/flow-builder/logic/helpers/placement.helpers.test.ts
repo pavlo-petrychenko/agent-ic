@@ -8,6 +8,7 @@ import {
   belowLowestNode,
   clearOfNodes,
   firstTriggerAnchor,
+  nextTriggerPosition,
   placeStep,
 } from '@/features/flow-builder/logic/helpers/placement.helpers';
 import type { StepPlacement } from '@/features/flow-builder/typedefs/palette.typedefs';
@@ -159,6 +160,7 @@ describe('placing over existing steps', () => {
     position,
     after: null,
     splitEdgeId: null,
+    agentExits: NO_AGENT_EXITS,
   });
 
   it('moves a step dropped on the trigger below it', () => {
@@ -185,6 +187,62 @@ describe('placing over existing steps', () => {
     const positions = second.nodes.map((node) => `${node.position.x},${node.position.y}`);
 
     expect(new Set(positions).size).toBe(positions.length);
+  });
+});
+
+describe('placing a schedule trigger', () => {
+  const schedule: StepPlacement = {
+    type: NodeType.TriggerSchedule,
+    label: 'Schedule / cron',
+    position: { x: 0, y: 0 },
+    after: null,
+    splitEdgeId: null,
+    agentExits: NO_AGENT_EXITS,
+  };
+
+  it('starts in the zone of the workspace', () => {
+    const placed = placeStep(EMPTY_FLOW, schedule, ids(), 'Europe/Kyiv');
+
+    expect(placed.nodes[0]).toMatchObject({
+      type: NodeType.TriggerSchedule,
+      config: { schedule: { timeZone: 'Europe/Kyiv' } },
+    });
+  });
+
+  it('is not connected to anything and is not put inside an edge', () => {
+    const placed = placeStep(triggerAndReply(), { ...schedule, splitEdgeId: 'e' }, ids());
+
+    expect(links(placed)).toEqual(['t.next>s']);
+  });
+});
+
+describe('nextTriggerPosition', () => {
+  it('starts at the origin, then goes right of the last trigger on the same row', () => {
+    expect(nextTriggerPosition(EMPTY_FLOW)).toEqual({ x: 0, y: 0 });
+    expect(nextTriggerPosition(triggerAndReply())).toEqual({ x: 300, y: 0 });
+    const second = addNode(triggerAndReply(), NodeType.TriggerSchedule, { x: 300, y: 0 }, 't2');
+
+    expect(nextTriggerPosition(second)).toEqual({ x: 600, y: 0 });
+  });
+});
+
+describe('placing an inactivity trigger', () => {
+  it('adds it on its own, without an edge', () => {
+    const placed = placeStep(
+      triggerAndReply(),
+      {
+        type: NodeType.TriggerInactivity,
+        label: 'Inactivity timer',
+        position: { x: 300, y: 0 },
+        after: null,
+        splitEdgeId: 'e',
+        agentExits: NO_AGENT_EXITS,
+      },
+      ids(),
+    );
+
+    expect(links(placed)).toEqual(['t.next>s']);
+    expect(placed.nodes.at(-1)).toMatchObject({ type: NodeType.TriggerInactivity });
   });
 });
 

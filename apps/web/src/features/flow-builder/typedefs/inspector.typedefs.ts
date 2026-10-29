@@ -57,6 +57,7 @@ export interface RouteView {
 
 export type DescribedNodeType =
   | NodeType.TriggerMessage
+  | NodeType.TriggerSchedule
   | NodeType.Agent
   | NodeType.Completion
   | NodeType.Router

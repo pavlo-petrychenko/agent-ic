@@ -27,6 +27,9 @@ describe('filterPalette', () => {
 describe('toAddableType', () => {
   it('accepts a step the palette offers and refuses anything else', () => {
     expect(toAddableType(PALETTE_SECTIONS, NodeType.Agent)).toBe(NodeType.Agent);
-    expect(toAddableType(PALETTE_SECTIONS, NodeType.TriggerSchedule)).toBeNull();
+    expect(toAddableType(PALETTE_SECTIONS, NodeType.TriggerSchedule)).toBe(
+      NodeType.TriggerSchedule,
+    );
+    expect(toAddableType(PALETTE_SECTIONS, NodeType.TriggerExternalEvent)).toBeNull();
   });
 });

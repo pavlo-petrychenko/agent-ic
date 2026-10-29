@@ -807,42 +807,5 @@
       "onHint": "1 hour to 30 days, counted from the customer’s last message. Closes silently, with no message. The next customer message starts a new conversation.",
       "offHint": "Conversations stay open until an agent or a person ends them."
     }
-  },
-  "settings": {
-    "open": "Flow settings",
-    "kind": "Flow",
-    "title": "Flow settings",
-    "subtitle": "Defaults for every branch of {{name}}",
-    "close": "Close flow settings",
-    "handoff": {
-      "title": "Default hand-off",
-      "note": "exits with no edge",
-      "hint": "Used when an agent hands off through an exit with no edge, and when a failed step hands off."
-    },
-    "failure": {
-      "title": "When a step fails",
-      "note": "error port not connected",
-      "choice": {
-        "fail": "Fail the run",
-        "handoff": "Apologise and hand off"
-      },
-      "failHint": "The run stops with an error and the customer gets no reply. Applies to Agent and Completion steps.",
-      "apology": "Apology message",
-      "defaultApology": "Sorry, something went wrong on our side. I’m passing you to a person.",
-      "handoffHint": "Sent to the customer, then the chat goes to the default hand-off. Applies to Agent and Completion steps."
-    },
-    "autoClose": {
-      "title": "Close inactive conversations",
-      "toggle": "Close after a silence",
-      "length": "Silence length",
-      "unit": "Unit",
-      "units": {
-        "hours": "hours",
-        "days": "days"
-      },
-      "invalid": "Enter a whole number from 1 hour to 30 days.",
-      "onHint": "1 hour to 30 days, counted from the customer’s last message. Closes silently, with no message. The next customer message starts a new conversation.",
-      "offHint": "Conversations stay open until an agent or a person ends them."
-    }
   }
 }
