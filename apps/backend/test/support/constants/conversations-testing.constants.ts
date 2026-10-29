@@ -1,3 +1,7 @@
+import {
+  MILLISECONDS_PER_SECOND,
+  SECONDS_PER_MINUTE,
+} from '@/platform/clock/constants/time.constants';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 
 export const CONVERSATIONS_TEST_START = new Date('2026-10-10T09:00:00.000Z');
@@ -22,3 +26,7 @@ export enum ConversationProbeJobName {
 
 export const CONVERSATIONS_TESTBED_ROLE = Role.Gateway;
 export const TEST_END_USER_LANGUAGE = 'uk';
+export const AUTO_CLOSE_TEST_MINUTES = 60;
+export const AUTO_CLOSE_LONGER_TEST_MINUTES = 120;
+export const AUTO_CLOSE_SILENCE_MS =
+  (AUTO_CLOSE_TEST_MINUTES + 1) * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;

@@ -1,4 +1,5 @@
 import { AgentsModule } from '@/modules/agents';
+import { CloseInactiveConversationsProcessor } from '@/modules/conversations/processors/close-inactive-conversations.processor';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import { ConversationActivityResolver } from '@/modules/conversations/resolvers/conversation-activity.resolver';
@@ -11,6 +12,7 @@ import { ConversationRunsService } from '@/modules/conversations/services/conver
 import { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
 import { OperatorConversationsService } from '@/modules/conversations/services/operator-conversations.service';
 import { SimulationsService } from '@/modules/conversations/services/simulations.service';
+import { CloseInactiveConversationsUseCase } from '@/modules/conversations/use-cases/close-inactive-conversations.use-case';
 import { GetSimulationUseCase } from '@/modules/conversations/use-cases/get-simulation.use-case';
 import { HandBackUseCase } from '@/modules/conversations/use-cases/hand-back.use-case';
 import { ReplyAsOperatorUseCase } from '@/modules/conversations/use-cases/reply-as-operator.use-case';
@@ -40,8 +42,10 @@ export class ConversationsModule extends defineModule({
     SendSimulatorMessageUseCase,
     ReplyAsOperatorUseCase,
     HandBackUseCase,
+    CloseInactiveConversationsUseCase,
   ],
   resolvers: [ConversationActivityResolver, SimulationResolver, OperatorResolver],
+  processors: [CloseInactiveConversationsProcessor],
   exports: [
     ConversationActivityService,
     ConversationHistoryService,

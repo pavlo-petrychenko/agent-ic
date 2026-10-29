@@ -14,6 +14,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import {
+  AUTO_CLOSE_MINUTES_PATH,
   AgentVersionKind,
   DRAFT_INITIAL_REVISION,
 } from '@/modules/agents/constants/agent.constants';
@@ -48,6 +49,9 @@ export const agentVersions = agentsSchema
         onDelete: 'set null',
       }),
       publishedAt: timestamp('published_at', { withTimezone: true }),
+      autoCloseMinutes: integer('auto_close_minutes').generatedAlwaysAs(
+        sql`((flow #>> ${sql.raw(toSqlLiteral(AUTO_CLOSE_MINUTES_PATH))})::integer)`,
+      ),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
       updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
     },
@@ -71,6 +75,9 @@ export const agentVersions = agentsSchema
       index('agent_versions_base_version_id_idx')
         .on(table.baseVersionId)
         .where(isNotNull(table.baseVersionId)),
+      index('agent_versions_auto_close_idx')
+        .on(table.agentId)
+        .where(isNotNull(table.autoCloseMinutes)),
       tenantIsolationPolicy('agent_versions'),
     ],
   )

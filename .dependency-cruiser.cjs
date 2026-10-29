@@ -27,6 +27,7 @@ const systemDatabaseAllowList = [
   `${platform}(database|outbox|queues)/`,
   `${modules}identity/repositories/membership-directory\\.repository\\.ts$`,
   `${modules}channels/repositories/telegram-poller\\.repository\\.ts$`,
+  `${modules}agents/repositories/auto-close-versions\\.repository\\.ts$`,
   `${modules}analytics/repositories/`,
 ];
 
