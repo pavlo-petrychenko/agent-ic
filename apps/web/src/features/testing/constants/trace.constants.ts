@@ -39,6 +39,20 @@ export const EXIT_VIEW_KINDS: ReadonlySet<OutputViewKind> = new Set([
   OutputViewKind.AutoClose,
 ]);
 
+export enum TraceExit {
+  Escalated = 'escalated',
+  Ended = 'ended',
+  DefaultHandoff = 'defaultHandoff',
+  DefaultEnd = 'defaultEnd',
+}
+
+export const TRACE_EXIT_STATES: Readonly<Record<TraceExit, RunNodeState>> = {
+  [TraceExit.Escalated]: RunNodeState.Escalated,
+  [TraceExit.Ended]: RunNodeState.Ended,
+  [TraceExit.DefaultHandoff]: RunNodeState.Escalated,
+  [TraceExit.DefaultEnd]: RunNodeState.Ended,
+};
+
 export enum ExitPath {
   Default = 'default',
   Connected = 'connected',

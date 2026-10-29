@@ -84,7 +84,15 @@
       "running": "виконується",
       "waiting": "очікує",
       "skipped": "не дійшло",
-      "failed": "помилка"
+      "failed": "помилка",
+      "escalated": "ескалація",
+      "ended": "завершено"
+    },
+    "exit": {
+      "escalated": "ескалація",
+      "ended": "завершено",
+      "defaultHandoff": "типова передача",
+      "defaultEnd": "типове завершення"
     }
   },
   "details": {

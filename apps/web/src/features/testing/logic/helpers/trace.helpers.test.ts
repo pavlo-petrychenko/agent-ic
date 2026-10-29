@@ -105,6 +105,20 @@ describe('layoutTrace', () => {
     ]);
     expect(layoutTrace(flow)[0]?.type).toBe(NodeType.TriggerMessage);
   });
+
+  it('puts a trigger that leads into placed steps next to the first trigger', () => {
+    const flow = flowOf(
+      [node('t1', TRACE_TRIGGER), node('agent'), node('reply'), node('t2', TRACE_TRIGGER)],
+      [edge('t1', 'agent'), edge('agent', 'reply'), edge('t2', 'agent')],
+    );
+
+    expect(layoutTrace(flow).map(({ id, row, column }) => [id, row, column])).toEqual([
+      ['t1', 0, 0],
+      ['t2', 0, 1],
+      ['agent', 1, 0],
+      ['reply', 2, 0],
+    ]);
+  });
 });
 
 describe('layoutTrace with a parallel', () => {
@@ -158,6 +172,7 @@ describe('layoutTrace with a parallel', () => {
       kind: NodeKind.Agent,
       icon: IconName.Msg,
       state: RunNodeState.Done,
+      exit: null,
       selectable: true,
       selected: false,
     }));
@@ -238,6 +253,7 @@ describe('drawTrace', () => {
     kind: NodeKind.Agent,
     icon: IconName.Msg,
     state: RunNodeState.Done,
+    exit: null,
     selectable: true,
     selected: false,
   }));

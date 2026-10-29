@@ -35,7 +35,9 @@ export function RunTrace({ drawing, scale, onSelectNode }: RunTraceProps) {
               kind={node.kind}
               icon={node.icon}
               state={node.state}
-              stateLabel={t(`trace.state.${node.state}`)}
+              stateLabel={
+                node.exit === null ? t(`trace.state.${node.state}`) : t(`trace.exit.${node.exit}`)
+              }
               className={styles.node}
               style={{ left: node.x, top: node.y, width: TRACE_NODE.width }}
               selected={node.selected}

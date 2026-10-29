@@ -102,6 +102,25 @@ $skipped-opacity: 0.5;
   }
 }
 
+.escalated {
+  border-color: var(--color-warn);
+  background: var(--color-warn-light);
+
+  .statusIcon,
+  .statusLabel {
+    color: var(--color-warn-ink);
+  }
+}
+
+.ended {
+  border-color: var(--color-ink-secondary);
+
+  .statusIcon,
+  .statusLabel {
+    color: var(--color-ink);
+  }
+}
+
 .visuallyHidden {
   position: absolute;
   overflow: hidden;

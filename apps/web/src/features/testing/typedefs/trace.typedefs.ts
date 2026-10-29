@@ -11,6 +11,7 @@ import type {
   ExitPath,
   OutputViewKind,
   StepSection,
+  TraceExit,
   TurnOutcome,
 } from '@/features/testing/constants/trace.constants';
 import type { RunStatus, RunStepStatus } from '@/shared/api/generated/schema.generated';
@@ -76,6 +77,7 @@ export interface TraceCell extends TraceSlot {
   kind: NodeKind;
   icon: IconName;
   state: RunNodeState;
+  exit: TraceExit | null;
   selectable: boolean;
   selected: boolean;
 }
