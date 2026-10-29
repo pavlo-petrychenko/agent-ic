@@ -19,3 +19,5 @@ export const PALETTE_SECTIONS: readonly PaletteSection[] = [
 ];
 
 export const NEW_STEP_GAP = 120;
+
+export const NODE_FOOTPRINT = { width: 248, height: NEW_STEP_GAP };

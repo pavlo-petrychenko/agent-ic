@@ -5,6 +5,7 @@ import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.consta
 import { addNode } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import {
   belowLowestNode,
+  clearOfNodes,
   firstTriggerAnchor,
   placeStep,
 } from '@/features/flow-builder/logic/helpers/placement.helpers';
@@ -115,6 +116,42 @@ describe('placeStep', () => {
 
     expect(links(placed)).toEqual(['t.next>s']);
     expect(placed.nodes).toHaveLength(3);
+  });
+});
+
+describe('placing over existing steps', () => {
+  const agent = (position: { x: number; y: number }): StepPlacement => ({
+    type: NodeType.Agent,
+    label: 'Agent',
+    position,
+    after: null,
+    splitEdgeId: null,
+  });
+
+  it('moves a step dropped on the trigger below it', () => {
+    const placed = placeStep(triggerAndReply(), agent({ x: 20, y: 10 }), ids());
+
+    expect(placed.nodes.at(-1)?.position).toEqual({ x: 20, y: 120 });
+  });
+
+  it('keeps moving down past every step in the way', () => {
+    const stacked = addNode(triggerAndReply(), NodeType.Agent, { x: 0, y: 120 }, 'a');
+
+    expect(clearOfNodes(stacked, { x: 0, y: 0 })).toEqual({ x: 0, y: 420 });
+  });
+
+  it('leaves a free position and a position in another column alone', () => {
+    expect(clearOfNodes(triggerAndReply(), { x: 0, y: 150 })).toEqual({ x: 0, y: 150 });
+    expect(clearOfNodes(triggerAndReply(), { x: 300, y: 0 })).toEqual({ x: 300, y: 0 });
+  });
+
+  it('never lands a second palette step on the first', () => {
+    const createId = ids();
+    const first = placeStep(triggerAndReply(), agent(belowLowestNode(triggerAndReply())), createId);
+    const second = placeStep(first, agent(belowLowestNode(first)), createId);
+    const positions = second.nodes.map((node) => `${node.position.x},${node.position.y}`);
+
+    expect(new Set(positions).size).toBe(positions.length);
   });
 });
 
