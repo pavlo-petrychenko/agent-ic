@@ -1,0 +1,1 @@
+export const FIRST_INACTIVITY_ATTEMPT = 1;

@@ -21,13 +21,36 @@ export interface EndUser {
   readonly language: string | null;
 }
 
-export interface MessageTriggerVariables {
-  readonly message: CurrentMessage;
+export interface TriggerBaseVariables {
   readonly user: EndUser;
   readonly channel: string;
   readonly history: readonly HistoryEntry[];
   readonly today: string;
 }
+
+export interface MessageTriggerVariables extends TriggerBaseVariables {
+  readonly message: CurrentMessage;
+}
+
+export interface ConversationVariables {
+  readonly id: string;
+  readonly started_at: string;
+  readonly last_message_at: string;
+}
+
+export interface InactivityVariables {
+  readonly silent_minutes: number;
+  readonly attempt: number;
+  readonly max_attempts: number;
+  readonly last_author: MessageAuthor | null;
+}
+
+export interface InactivityTriggerVariables extends TriggerBaseVariables {
+  readonly conversation: ConversationVariables;
+  readonly inactivity: InactivityVariables;
+}
+
+export type TriggerVariables = MessageTriggerVariables | InactivityTriggerVariables;
 
 export interface RunWalk {
   readonly ctx: UseCaseCtx;
@@ -36,7 +59,7 @@ export interface RunWalk {
   readonly flow: FlowDocument;
   readonly graph: FlowGraph;
   readonly lookup: ScopeLookup;
-  readonly trigger: MessageTriggerVariables;
+  readonly trigger: TriggerVariables;
   readonly history: readonly Message[];
   readonly today: Date;
   readonly prompts: ResolvedPrompts;

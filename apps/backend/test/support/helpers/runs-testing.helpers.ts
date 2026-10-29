@@ -36,6 +36,7 @@ import { RunsModule } from '@/modules/runs/runs.module';
 import { AgentExecutor } from '@/modules/runs/services/agent-executor.service';
 import { ApiRequestExecutor } from '@/modules/runs/services/api-request-executor.service';
 import { CompletionExecutor } from '@/modules/runs/services/completion-executor.service';
+import { InactivityTriggerExecutor } from '@/modules/runs/services/inactivity-trigger-executor.service';
 import { MessageTriggerExecutor } from '@/modules/runs/services/message-trigger-executor.service';
 import { ParallelExecutor } from '@/modules/runs/services/parallel-executor.service';
 import { RouterExecutor } from '@/modules/runs/services/router-executor.service';
@@ -154,6 +155,7 @@ export const createRunsTestbed = async (
         token: STEP_EXECUTORS,
         value: [
           new MessageTriggerExecutor(),
+          new InactivityTriggerExecutor(),
           new RouterExecutor(),
           new ParallelExecutor(),
           new ApiRequestExecutor(new NodeOutboundHttpGateway(clock, []), clock),
