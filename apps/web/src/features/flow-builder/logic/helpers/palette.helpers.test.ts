@@ -30,6 +30,9 @@ describe('toAddableType', () => {
     expect(toAddableType(PALETTE_SECTIONS, NodeType.TriggerSchedule)).toBe(
       NodeType.TriggerSchedule,
     );
+    expect(toAddableType(PALETTE_SECTIONS, NodeType.TriggerInactivity)).toBe(
+      NodeType.TriggerInactivity,
+    );
     expect(toAddableType(PALETTE_SECTIONS, NodeType.TriggerExternalEvent)).toBeNull();
   });
 });

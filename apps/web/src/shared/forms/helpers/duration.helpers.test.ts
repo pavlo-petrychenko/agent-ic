@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DurationUnit } from '@/shared/forms/constants/duration.constants';
 import {
   durationParts,
+  formatDuration,
   largestFittingUnit,
   toBaseUnits,
   unitsFrom,
@@ -62,5 +63,14 @@ describe('durationParts', () => {
       amount: 30,
       unit: DurationUnit.Hour,
     });
+  });
+});
+
+describe('formatDuration', () => {
+  it('names the largest unit that fits, in the locale', () => {
+    expect(formatDuration(1440, DurationUnit.Minute, 'en')).toBe('1 day');
+    expect(formatDuration(120, DurationUnit.Minute, 'en')).toBe('2 hours');
+    expect(formatDuration(90, DurationUnit.Minute, 'en')).toBe('90 minutes');
+    expect(formatDuration(2880, DurationUnit.Minute, 'uk')).toBe('2 дні');
   });
 });

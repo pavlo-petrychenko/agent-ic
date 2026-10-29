@@ -5,6 +5,8 @@ import {
   PortName,
   PromptSourceKind,
   PromptVersionKind,
+  InactivityRepeatKind,
+  InactivityUnit,
   RuleMatch,
   ScheduleKind,
 } from '@agent-ic/flow';
@@ -16,6 +18,7 @@ import { withAgentExits } from '@/features/flow-builder/logic/helpers/agentExit.
 import { addNode } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import { nodeSummary, portLabel } from '@/features/flow-builder/logic/helpers/nodeSummary.helpers';
 import type { AddableNodeType } from '@/features/flow-builder/typedefs/graphEdit.typedefs';
+import type { InactivityConfig } from '@/features/flow-builder/typedefs/inactivity.typedefs';
 import type { ModelChoice } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 import { ModelSource, ModelVendor } from '@/shared/api/generated/schema.generated';
 
@@ -160,6 +163,43 @@ describe('nodeSummary schedule', () => {
         [],
       )[0],
     ).toEqual({ key: SummaryKey.ScheduleCron, params: { cron: '0 8 * * 1' } });
+  });
+});
+
+describe('nodeSummary inactivity', () => {
+  const inactivityWith = (patch: Partial<InactivityConfig>): FlowNode => {
+    const trigger = stepOf(NodeType.TriggerInactivity);
+    return trigger.type === NodeType.TriggerInactivity
+      ? { ...trigger, config: { ...trigger.config, ...patch } }
+      : trigger;
+  };
+
+  it('reads the new trigger as 2 h of silence, once', () => {
+    expect(nodeSummary(stepOf(NodeType.TriggerInactivity), [])).toEqual([
+      { key: SummaryKey.InactivityHours, params: { amount: 2 } },
+    ]);
+  });
+
+  it('names the unit and the number of repeats', () => {
+    expect(
+      nodeSummary(
+        inactivityWith({
+          silence: { amount: 30, unit: InactivityUnit.Minutes },
+          repeat: {
+            kind: InactivityRepeatKind.Every,
+            every: { amount: 1, unit: InactivityUnit.Days },
+            maxTimes: 3,
+          },
+        }),
+        [],
+      ),
+    ).toEqual([
+      { key: SummaryKey.InactivityMinutes, params: { amount: 30 } },
+      { key: SummaryKey.InactivityRepeats, params: { count: 3 } },
+    ]);
+    expect(
+      nodeSummary(inactivityWith({ silence: { amount: 2, unit: InactivityUnit.Days } }), [])[0],
+    ).toEqual({ key: SummaryKey.InactivityDays, params: { amount: 2 } });
   });
 });
 
