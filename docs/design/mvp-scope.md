@@ -268,7 +268,7 @@ It proves the core loop of the vision — **flow + knowledge + channel + human h
 | Nodes: Wait, Search knowledge, Set/extract variable | ❌ Later | |
 | Structured outputs and routing | ✅ Yes | |
 | Trigger: Incoming message | ✅ Yes | |
-| Trigger: External event | ✅ Yes | Endpoint and webhook merged into one trigger, optional "wait for result" |
+| Trigger: External event | ⏳ Waiting on the API channel | Endpoint and webhook merged into one trigger, optional "wait for result". The runtime needs the API channel first ([backlog](../backlog/external-event-trigger.md)) |
 | Trigger: Schedule / cron | ✅ Yes | Covers follow-ups, with conditions like "silent for 24 h" |
 | Triggers: Inactivity timer, Tool event | ❌ Later | Inactivity follow-ups are done with Schedule for now |
 | Customer memory | ✅ Partly | Conversation-only. **Later:** contact profiles |
