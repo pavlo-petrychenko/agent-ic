@@ -217,7 +217,7 @@ app/
 shared/
 ├── api/      clients/ helpers/ errors/ schemas/ constants/ typedefs/
 ├── config/   helpers/ schemas/ constants/ typedefs/
-├── forms/    hooks/ fields/ contexts/ helpers/ typedefs/
+├── forms/    hooks/ fields/ contexts/ helpers/ constants/ typedefs/
 ├── i18n/     clients/ hooks/ helpers/ locales/ constants/ typedefs/
 ├── theme/    clients/ hooks/ helpers/ constants/ typedefs/ (light, dark or system; applied as data-theme on <html>)
 ├── viewport/ hooks/ helpers/ constants/ typedefs/ (the wide, default, compact or unsupported breakpoint, from media queries)

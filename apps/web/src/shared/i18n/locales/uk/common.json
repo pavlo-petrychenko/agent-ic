@@ -53,7 +53,20 @@
   "ui": {
     "close": "Закрити",
     "showPassword": "Показати",
-    "hidePassword": "Сховати"
+    "hidePassword": "Сховати",
+    "timeZone": {
+      "searchPlaceholder": "Пошук часових поясів",
+      "searchClear": "Очистити пошук часового поясу",
+      "empty": "Часовий пояс не знайдено"
+    },
+    "duration": {
+      "unit": "Одиниця",
+      "units": {
+        "minute": "хвилин",
+        "hour": "годин",
+        "day": "днів"
+      }
+    }
   },
   "legal": {
     "terms": "Умови",

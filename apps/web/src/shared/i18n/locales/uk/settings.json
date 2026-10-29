@@ -91,9 +91,6 @@
       "nameLabel": "Назва",
       "timeZoneLabel": "Часовий пояс",
       "timeZoneHint": "Використовується для розкладів і аналітики",
-      "timeZoneSearchPlaceholder": "Пошук часових поясів",
-      "timeZoneSearchClear": "Очистити пошук часового поясу",
-      "timeZoneEmpty": "Часовий пояс не знайдено",
       "timeZoneSuccess": "Часовий пояс оновлено",
       "save": "Зберегти"
     },

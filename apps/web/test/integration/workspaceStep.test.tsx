@@ -5,7 +5,6 @@ import {
   buildCreateWorkspaceMock,
   buildCurrentUserEmailMock,
 } from '@/features/auth/communication/fixtures/auth.fixture';
-import { browserTimeZone } from '@/features/auth/logic/helpers/timeZone.helpers';
 import {
   buildWorkspaceShellMock,
   DEMO_WORKSPACE,
@@ -13,6 +12,7 @@ import {
 import { getSessionClient } from '@/shared/api/clients/session.client';
 import { SessionStatus } from '@/shared/api/constants/session.constants';
 import { setWorkspaceId } from '@/shared/api/helpers/requestContext.helpers';
+import { browserTimeZone } from '@/shared/forms/helpers/timeZone.helpers';
 import { stubFetchRoutes } from '@test/support/helpers/fetch.helpers';
 import { renderRoute } from '@test/support/helpers/router.helpers';
 import { signInForTest, signOutForTest } from '@test/support/helpers/session.helpers';
