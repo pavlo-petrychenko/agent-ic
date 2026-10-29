@@ -3,6 +3,7 @@ import type { DescribedNodeType } from '@/features/flow-builder/typedefs/inspect
 
 export const DESCRIBED_NODE_TYPES: readonly DescribedNodeType[] = [
   NodeType.TriggerMessage,
+  NodeType.TriggerSchedule,
   NodeType.Agent,
   NodeType.Completion,
   NodeType.Router,

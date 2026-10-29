@@ -16,6 +16,14 @@ export enum SummaryKey {
   CanEnd = 'canEnd',
   CanHandOff = 'canHandOff',
   CanEndOrHandOff = 'canEndOrHandOff',
+  ScheduleDaily = 'scheduleDaily',
+  ScheduleWeekdays = 'scheduleWeekdays',
+  ScheduleCron = 'scheduleCron',
+  TimeZone = 'timeZone',
+  InactivityMinutes = 'inactivityMinutes',
+  InactivityHours = 'inactivityHours',
+  InactivityDays = 'inactivityDays',
+  InactivityRepeats = 'inactivityRepeats',
 }
 
 export const OUTPUT_FIELDS_SEPARATOR = ', ';

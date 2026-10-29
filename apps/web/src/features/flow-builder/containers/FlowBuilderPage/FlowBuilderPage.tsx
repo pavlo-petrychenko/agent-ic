@@ -161,7 +161,7 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
       />
       {draft !== null && (
         <div className="flex min-h-0 flex-1">
-          <StepPalettePanel />
+          <StepPalettePanel workspaceId={workspaceId} />
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             {conflict !== null && (
               <Banner tone={BannerTone.Warn}>
@@ -178,7 +178,7 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
                 </span>
               </Banner>
             )}
-            <FlowEditor />
+            <FlowEditor workspaceId={workspaceId} />
             <IssuesPanel />
             <LastRunBar workspaceId={workspaceId} agentId={agentId} />
           </div>
