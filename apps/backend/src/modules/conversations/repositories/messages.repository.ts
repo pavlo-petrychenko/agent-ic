@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, eq, gt, inArray, lt, lte, or } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, inArray, lt, lte, or } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import type { MessageDelivery } from '@/modules/conversations/constants/message.constants';
@@ -61,6 +61,18 @@ export class MessagesRepository {
           eq(messages.externalId, externalId),
         ),
       );
+    return message ?? null;
+  }
+
+  async findLatest(workspaceId: string, conversationId: string): Promise<Message | null> {
+    const [message] = await this.txHost.tx
+      .select()
+      .from(messages)
+      .where(
+        and(eq(messages.workspaceId, workspaceId), eq(messages.conversationId, conversationId)),
+      )
+      .orderBy(desc(messages.createdAt), desc(messages.id))
+      .limit(1);
     return message ?? null;
   }
 

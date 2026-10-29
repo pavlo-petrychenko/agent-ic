@@ -109,6 +109,7 @@ import type {
   RunChat,
   RunBatch,
   RunLifecycleTestbed,
+  RunStartOverrides,
   RunsTestbed,
   SeededMember,
   StepWatch,
@@ -192,6 +193,7 @@ export const seedExecutableRun = async (
   earlier: readonly Pick<NewMessage, 'author' | 'text'>[] = [],
   mode: ConversationMode = ConversationMode.Live,
   workspaceId: string | null = null,
+  started: RunStartOverrides = {},
 ): Promise<ExecutableRun> => {
   const seededWorkspaceId = workspaceId ?? testbed.ids.generate();
   await ensureWorkspaceRow(testbed.module, seededWorkspaceId);
@@ -209,6 +211,7 @@ export const seedExecutableRun = async (
     conversationId: conversation.id,
     agentId,
     lastCoveredMessageId: message.id,
+    ...started,
   };
   const version = newVersion(run.versionId, seededWorkspaceId, agentId, {
     flow,
@@ -486,6 +489,28 @@ export const receiveMessage = async (
   }
   const { latest } = await readLifecycle(testbed, seeded);
   return { message, run: latest?.lastCoveredMessageId === message.id ? latest : null };
+};
+
+export const addConversationMessage = async (
+  testbed: RunLifecycleTestbed,
+  { conversation }: LiveConversation,
+  author: MessageAuthor,
+): Promise<NewMessage> => {
+  testbed.clock.advanceBy(MESSAGE_SPACING_MS);
+  const message = newMessage(testbed, conversation, { author });
+  await testbed.tenants.run(conversation.workspaceId, () =>
+    testbed.module.get(MessagesRepository).insertIfAbsent(message),
+  );
+  return message;
+};
+
+export const markConversationWaiting = async (
+  testbed: RunLifecycleTestbed,
+  { conversation: { workspaceId, id } }: LiveConversation,
+): Promise<void> => {
+  await testbed.tenants.run(workspaceId, () =>
+    testbed.module.get(ConversationsRepository).markWaiting(workspaceId, id),
+  );
 };
 
 export const readLifecycle = (

@@ -3,6 +3,7 @@ import { ConversationsModule } from '@/modules/conversations';
 import { PromptsModule } from '@/modules/prompts';
 import { STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import { StartRunOnMessageListener } from '@/modules/runs/listeners/start-run-on-message.listener';
+import { ExecuteProactiveRunProcessor } from '@/modules/runs/processors/execute-proactive-run.processor';
 import { ExecuteRunProcessor } from '@/modules/runs/processors/execute-run.processor';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
@@ -89,6 +90,6 @@ export class RunsModule extends defineModule({
     SimulationRunsResolver,
     LastSimulationRunResolver,
   ],
-  processors: [ExecuteRunProcessor],
+  processors: [ExecuteRunProcessor, ExecuteProactiveRunProcessor],
   listeners: [StartRunOnMessageListener],
 }) {}

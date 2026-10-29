@@ -1,13 +1,19 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { RunStatus } from '@/modules/runs/constants/run.constants';
-import type { RunEnd } from '@/modules/runs/typedefs/run.typedefs';
-import { ROW_LEVEL_SECURITY_VIOLATION } from '@test/support/constants/postgres-errors.constants';
+import { RunStatus, RunTrigger } from '@/modules/runs/constants/run.constants';
+import type { NewRun, RunEnd } from '@/modules/runs/typedefs/run.typedefs';
+import {
+  CHECK_VIOLATION,
+  ROW_LEVEL_SECURITY_VIOLATION,
+} from '@test/support/constants/postgres-errors.constants';
 import {
   RUNS_TEST_END,
   RUNS_TEST_LATER,
+  SCHEDULE_NODE_ID,
   TEST_RUN_FAILURE,
+  TEST_TRIGGER_INPUT,
 } from '@test/support/constants/runs-testing.constants';
 import { newRun } from '@test/support/fixtures/runs.fixture';
+import { ensureRunParents } from '@test/support/helpers/parent-rows.helpers';
 import { createRunsTestbed, seedRun } from '@test/support/helpers/runs-testing.helpers';
 import type { RunExecutionTestbed } from '@test/support/typedefs/runs-testing.typedefs';
 
@@ -31,6 +37,8 @@ describe('RunsRepository', () => {
 
     expect(stored).toEqual({
       ...run,
+      triggerNodeId: null,
+      triggerInput: null,
       error: null,
       traceId: null,
       startedAt: null,
@@ -38,6 +46,49 @@ describe('RunsRepository', () => {
       createdAt: testbed.clock.now(),
     });
   });
+
+  it('stores a triggered run with its trigger node and input', async () => {
+    const run: NewRun = {
+      ...newRun(testbed, testbed.ids.generate()),
+      trigger: RunTrigger.Schedule,
+      triggerNodeId: SCHEDULE_NODE_ID,
+      triggerInput: TEST_TRIGGER_INPUT,
+    };
+    await ensureRunParents(testbed.module, run);
+
+    const stored = await testbed.tenants.run(run.workspaceId, async () => {
+      await testbed.runs.insert(run);
+      return testbed.runs.findById(run.workspaceId, run.id);
+    });
+
+    expect(stored).toMatchObject({
+      trigger: RunTrigger.Schedule,
+      triggerNodeId: SCHEDULE_NODE_ID,
+      triggerInput: TEST_TRIGGER_INPUT,
+    });
+  });
+
+  it.each([
+    [RunTrigger.Schedule, null, null],
+    [RunTrigger.Inactivity, null, TEST_TRIGGER_INPUT],
+    [RunTrigger.Message, SCHEDULE_NODE_ID, null],
+    [RunTrigger.Message, null, TEST_TRIGGER_INPUT],
+  ])(
+    'refuses a %s run with trigger node %s and input %o',
+    async (trigger, triggerNodeId, triggerInput) => {
+      const run: NewRun = {
+        ...newRun(testbed, testbed.ids.generate()),
+        trigger,
+        triggerNodeId,
+        triggerInput,
+      };
+      await ensureRunParents(testbed.module, run);
+
+      const write = testbed.tenants.run(run.workspaceId, () => testbed.runs.insert(run));
+
+      await expect(write).rejects.toMatchObject(CHECK_VIOLATION);
+    },
+  );
 
   it('starts a queued run only once', async () => {
     const { id, workspaceId } = await seedRun(testbed);

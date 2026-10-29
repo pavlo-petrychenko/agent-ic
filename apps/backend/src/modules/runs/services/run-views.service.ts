@@ -16,6 +16,7 @@ export class RunViewsService {
       conversationId: this.ids.toPublic(IdPrefix.Conversation, run.conversationId),
       agentId: this.ids.toPublic(IdPrefix.Agent, run.agentId),
       versionId: this.ids.toPublic(IdPrefix.AgentVersion, run.versionId),
+      trigger: run.trigger,
       status: run.status,
       error: run.error,
       createdAt: run.createdAt,

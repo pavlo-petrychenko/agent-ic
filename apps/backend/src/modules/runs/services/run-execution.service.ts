@@ -1,3 +1,4 @@
+import { IdPrefix } from '@agent-ic/contracts';
 import {
   AGENT_MESSAGES_FIELD_NAME,
   AgentExitKind,
@@ -7,7 +8,7 @@ import {
   createScopeLookup,
   nodePorts,
 } from '@agent-ic/flow';
-import type { FlowNode, ParallelNode } from '@agent-ic/flow';
+import type { FlowNode, ParallelNode, TriggerNode } from '@agent-ic/flow';
 import { Injectable, Logger } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
 import {
@@ -27,11 +28,16 @@ import {
   ROOT_BRANCH_KEY,
   RunStatus,
   RunStepStatus,
+  RunTrigger,
   UNFINISHED_RUN_STATUSES,
 } from '@/modules/runs/constants/run.constants';
 import { RunFlowInvalidError } from '@/modules/runs/errors/run-flow-invalid.error';
 import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { UnsupportedNodeTypeError } from '@/modules/runs/errors/unsupported-node-type.error';
+import {
+  inactivityTriggerInputOf,
+  inactivityTriggerVariables,
+} from '@/modules/runs/helpers/inactivity-trigger.helpers';
 import { listTexts, templateTexts } from '@/modules/runs/helpers/outbound-message.helpers';
 import {
   joinBranches,
@@ -42,11 +48,12 @@ import { runFailureOf } from '@/modules/runs/helpers/run-failure.helpers';
 import {
   defaultExitOf,
   endStatusOf,
-  messageTriggerOf,
   nextNode,
+  triggerNodeOf,
 } from '@/modules/runs/helpers/run-flow.helpers';
 import {
   messageTriggerVariables,
+  scheduleTriggerVariables,
   stepInput,
   stepVariables,
 } from '@/modules/runs/helpers/run-scope.helpers';
@@ -56,10 +63,11 @@ import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { ConversationExitService } from '@/modules/runs/services/conversation-exit.service';
 import { RunMetricsService } from '@/modules/runs/services/run-metrics.service';
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
+import type { InactivityScopeSource } from '@/modules/runs/typedefs/inactivity-trigger.typedefs';
 import type { BranchSettlement } from '@/modules/runs/typedefs/run-branch.typedefs';
-import type { RunWalk } from '@/modules/runs/typedefs/run-execution.typedefs';
+import type { RunWalk, TriggerVariables } from '@/modules/runs/typedefs/run-execution.typedefs';
 import type { RunStep, RunStepResult, StepData } from '@/modules/runs/typedefs/run-step.typedefs';
-import type { RunEnd } from '@/modules/runs/typedefs/run.typedefs';
+import type { Run, RunEnd } from '@/modules/runs/typedefs/run.typedefs';
 import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -172,7 +180,11 @@ export class RunExecutionService {
       flow: version.flow,
       graph: buildFlowGraph(version.flow),
       lookup: createScopeLookup(version.flow),
-      trigger: messageTriggerVariables(conversation, history, today),
+      trigger: this.triggerVariables(triggerNodeOf(version.flow, run), run, {
+        conversation,
+        history,
+        today,
+      }),
       history,
       today,
       prompts,
@@ -182,8 +194,33 @@ export class RunExecutionService {
     };
   }
 
+  private triggerVariables(
+    node: TriggerNode | null,
+    run: Run,
+    { conversation, history, today }: Omit<InactivityScopeSource, 'conversationId' | 'input'>,
+  ): TriggerVariables {
+    if (run.trigger === RunTrigger.Schedule) {
+      return scheduleTriggerVariables(
+        conversation,
+        this.ids.toPublic(IdPrefix.Conversation, run.conversationId),
+        history,
+        today,
+      );
+    }
+    if (node?.type !== NodeType.TriggerInactivity) {
+      return messageTriggerVariables(conversation, history, today);
+    }
+    return inactivityTriggerVariables(node, {
+      conversation,
+      conversationId: this.ids.toPublic(IdPrefix.Conversation, run.conversationId),
+      history,
+      today,
+      input: inactivityTriggerInputOf(run.triggerInput),
+    });
+  }
+
   private async walk(walk: RunWalk): Promise<RunEnd> {
-    const trigger = messageTriggerOf(walk.flow);
+    const trigger = triggerNodeOf(walk.flow, walk.run);
     if (trigger === null) {
       return this.failed(new RunFlowInvalidError(walk.run.versionId, null), null);
     }

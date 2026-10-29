@@ -4,7 +4,11 @@ import type { ModelRef, PromptSource } from '@agent-ic/flow';
 import { MessageAuthor } from '@/modules/conversations';
 import type { Message } from '@/modules/conversations';
 import type { ResolvedPrompts } from '@/modules/prompts';
-import { ANSWER_FROM_CONVERSATION_MESSAGE } from '@/modules/runs/constants/llm-step.constants';
+import {
+  ANSWER_FROM_CONVERSATION_MESSAGE,
+  FOLLOW_UP_MESSAGE,
+} from '@/modules/runs/constants/llm-step.constants';
+import { RunTrigger } from '@/modules/runs/constants/run.constants';
 import { StepModelUnknownError } from '@/modules/runs/errors/step-model-unknown.error';
 import { StepPromptUnavailableError } from '@/modules/runs/errors/step-prompt-unavailable.error';
 import { currentMessageStart } from '@/modules/runs/helpers/run-scope.helpers';
@@ -73,17 +77,24 @@ const historyMessages = (
     }),
   );
 
+const systemNote = (trigger: RunTrigger, messages: readonly LlmMessage[]): string | null => {
+  if (trigger !== RunTrigger.Message) {
+    return FOLLOW_UP_MESSAGE;
+  }
+  return messages.at(-1)?.role === LlmMessageRole.User ? null : ANSWER_FROM_CONVERSATION_MESSAGE;
+};
+
 export const stepConversation = (
   system: string,
   history: readonly Message[],
   includeCurrentMessage: boolean,
+  trigger: RunTrigger,
 ): Pick<LlmCompleteRequest<unknown>, 'system' | 'messages'> => {
   const messages = historyMessages(history, includeCurrentMessage);
+  const note = systemNote(trigger, messages);
   return {
     system,
     messages:
-      messages.at(-1)?.role === LlmMessageRole.User
-        ? messages
-        : [...messages, { role: LlmMessageRole.User, content: ANSWER_FROM_CONVERSATION_MESSAGE }],
+      note === null ? messages : [...messages, { role: LlmMessageRole.User, content: note }],
   };
 };

@@ -22,7 +22,12 @@ import {
 } from '@/modules/conversations';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
 import { RUN_TRACE_NAME } from '@/modules/runs/constants/run-tracing.constants';
-import { ROOT_BRANCH_KEY, RunStatus, RunStepStatus } from '@/modules/runs/constants/run.constants';
+import {
+  ROOT_BRANCH_KEY,
+  RunStatus,
+  RunStepStatus,
+  RunTrigger,
+} from '@/modules/runs/constants/run.constants';
 import { branchKeyOf } from '@/modules/runs/helpers/run-branch.helpers';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
@@ -51,6 +56,7 @@ import {
   PARALLEL_NODE_KEY,
   ROUTER_NODE_ID,
   ROUTER_NODE_KEY,
+  SCHEDULE_NODE_ID,
   SCORER_NODE_ID,
   SCORER_NODE_KEY,
   SECOND_STEP_ID,
@@ -90,6 +96,7 @@ import {
   observerNode,
   parallelNode,
   routerNode,
+  scheduleTriggerNode,
   sendListNode,
   sendMessageNode,
   stepFlow,
@@ -476,6 +483,39 @@ describe('RunExecutionService', () => {
     expect(run?.error).toMatchObject({
       reason: ErrorReason.UnsupportedNodeType,
       nodeId: SEND_NODE_ID,
+    });
+  });
+
+  it('starts a triggered run at its own trigger node, not at the message trigger', async () => {
+    const flow = stepFlow(
+      [scheduleTriggerNode(), agentNode(FIRST_STEP_ID, FIRST_STEP_KEY)],
+      [flowEdge(TEST_NODE_ID, FIRST_STEP_ID), flowEdge(SCHEDULE_NODE_ID, FIRST_STEP_ID)],
+    );
+    const seeded = await seedExecutableRun(testbed, flow, [], ConversationMode.Live, null, {
+      trigger: RunTrigger.Schedule,
+      triggerNodeId: SCHEDULE_NODE_ID,
+    });
+
+    expect(await execute(seeded)).toBe(RunStatus.Failed);
+
+    const { run, steps } = await stored(seeded);
+    expect(run?.error).toMatchObject({
+      reason: ErrorReason.UnsupportedNodeType,
+      nodeId: SCHEDULE_NODE_ID,
+    });
+    expect(steps).toEqual([]);
+  });
+
+  it('fails a triggered run whose trigger node is gone from the flow', async () => {
+    const seeded = await seedExecutableRun(testbed, threeSteps, [], ConversationMode.Live, null, {
+      trigger: RunTrigger.Inactivity,
+      triggerNodeId: SCHEDULE_NODE_ID,
+    });
+
+    expect(await execute(seeded)).toBe(RunStatus.Failed);
+
+    expect((await stored(seeded)).run?.error).toMatchObject({
+      reason: ErrorReason.RunFlowInvalid,
     });
   });
 
@@ -895,6 +935,7 @@ describe('RunExecutionService tracing', () => {
       'langfuse.trace.metadata.workspace_id': seeded.run.workspaceId,
       'langfuse.trace.metadata.agent_version_id': seeded.run.versionId,
       'langfuse.trace.metadata.run_id': seeded.run.id,
+      'langfuse.trace.metadata.trigger': RunTrigger.Message,
     });
     expect(steps.map(({ name, attributes }) => [name, attributes])).toEqual([
       [

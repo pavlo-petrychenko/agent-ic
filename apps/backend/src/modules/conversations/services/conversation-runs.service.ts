@@ -70,6 +70,10 @@ export class ConversationRunsService {
     return this.messages.listCustomerAfter(workspaceId, conversationId, first);
   }
 
+  latestMessage(workspaceId: string, conversationId: string): Promise<Message | null> {
+    return this.messages.findLatest(workspaceId, conversationId);
+  }
+
   async countMessagesByRuns(
     workspaceId: string,
     runIds: readonly string[],

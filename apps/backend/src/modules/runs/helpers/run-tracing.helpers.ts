@@ -13,6 +13,7 @@ export const runTraceTags = (run: Run): LlmTags => ({
   sessionId: run.conversationId,
   agentVersionId: run.versionId,
   runId: run.id,
+  trigger: run.trigger,
 });
 
 export const stepPromptTags = (

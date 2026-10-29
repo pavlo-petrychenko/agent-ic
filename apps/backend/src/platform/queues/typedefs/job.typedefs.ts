@@ -51,6 +51,7 @@ export interface EnqueueOptions {
 
 export interface JobEnqueueOptions extends Partial<EnqueueOptions> {
   readonly jobId?: string;
+  readonly detachedTrace?: boolean;
 }
 
 export type TrackedJob = Pick<Job, 'name' | 'timestamp' | 'attemptsMade' | 'opts'>;
