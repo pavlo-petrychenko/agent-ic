@@ -3,6 +3,8 @@ query Simulation($agentId: ID!) {
     conversation {
       id
       state
+      closeReason
+      closedAt
     }
     messages {
       id
@@ -15,6 +17,7 @@ query Simulation($agentId: ID!) {
       id
       status
       createdAt
+      finishedAt
       error {
         message
       }

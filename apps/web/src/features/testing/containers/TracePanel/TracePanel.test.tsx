@@ -40,8 +40,10 @@ function InspectablePanel({ status, draft, flow, handedBack }: InspectablePanelP
         id: TRACE_RUN_ID,
         status,
         createdAt: '2026-10-11T10:00:00Z',
+        finishedAt: null,
         errorMessage: null,
         escalationMessageCount: 0,
+        escalatedByStep: false,
       }}
       turnNumber={2}
       handedBack={handedBack}

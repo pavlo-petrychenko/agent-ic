@@ -91,6 +91,7 @@ describe('StartSimulationUseCase', () => {
     expect(again.conversation).toEqual({
       ...first.conversation,
       state: ConversationState.Closed,
+      closedAt: testbed.clock.now(),
     });
   });
 

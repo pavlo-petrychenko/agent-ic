@@ -1,21 +1,24 @@
-import { Fragment } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChatItemKind, ChatSpeaker } from '@/features/testing/constants/simulator.constants';
+import {
+  ChatItemKind,
+  ChatSpeaker,
+  EVENT_TIME_FORMAT,
+} from '@/features/testing/constants/simulator.constants';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
 import type {
-  ChatDividerItem,
+  ChatEventItem,
   ChatItem,
   ChatMessageItem,
   ChatTurnItem,
 } from '@/features/testing/typedefs/simulator.typedefs';
 import {
-  DIVIDER_ICONS,
+  EVENT_ICONS,
   SPEAKER_BUBBLES,
   TURN_ICON_SIZE,
 } from '@/features/testing/view/SimulatorChat/SimulatorChat.constants';
 import type { SimulatorChatProps } from '@/features/testing/view/SimulatorChat/SimulatorChat.typedefs';
 import { ChatBubble, ChatBubbleFrom } from '@/shared/ui/chat/ChatBubble';
-import { ChatDivider } from '@/shared/ui/chat/ChatDivider';
 import { ChatSystemMessage, ChatSystemMessageTone } from '@/shared/ui/chat/ChatSystemMessage';
 import { TypingIndicator } from '@/shared/ui/chat/TypingIndicator';
 import { Icon, IconName } from '@/shared/ui/foundations/Icon';
@@ -25,11 +28,19 @@ export function SimulatorChat({
   items,
   agentName,
   typing,
-  ended,
   selectedRunId,
   onSelectRun,
 }: SimulatorChatProps) {
   const { t } = useTranslation(TESTING_NAMESPACE);
+  const listRef = useRef<HTMLOListElement>(null);
+  const lastItemId = items.at(-1)?.id ?? null;
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (list !== null) {
+      list.scrollTop = list.scrollHeight;
+    }
+  }, [lastItemId, typing]);
 
   const turn = (item: ChatTurnItem) => (
     <>
@@ -80,29 +91,39 @@ export function SimulatorChat({
     );
   };
 
-  const divider = (item: ChatDividerItem) => (
-    <ChatDivider icon={DIVIDER_ICONS[item.divider]} text={t(`chat.divider.${item.divider}`)} />
-  );
+  const event = (item: ChatEventItem) => {
+    const label = t(`chat.event.${item.event}`);
+    return (
+      <ChatSystemMessage
+        className={styles.event}
+        icon={EVENT_ICONS[item.event]}
+        text={
+          item.at === null
+            ? label
+            : t('chat.eventAt', {
+                event: label,
+                at: Date.parse(item.at),
+                formatParams: { at: EVENT_TIME_FORMAT },
+              })
+        }
+      />
+    );
+  };
 
   const render = (item: ChatItem) => {
     if (item.kind === ChatItemKind.Turn) {
       return turn(item);
     }
-    return item.kind === ChatItemKind.Divider ? divider(item) : line(item);
+    return item.kind === ChatItemKind.Event ? event(item) : line(item);
   };
 
   return (
-    <ol className={styles.root} aria-label={t('chat.label')}>
+    <ol ref={listRef} className={styles.root} aria-label={t('chat.label')}>
       {items.map((item) => (
         <li key={item.id} className={styles.item}>
           {render(item)}
         </li>
       ))}
-      {ended && (
-        <li className={styles.item}>
-          <ChatSystemMessage icon={IconName.Check} text={t('chat.ended', { name: agentName })} />
-        </li>
-      )}
       {typing && (
         <li className={styles.item}>
           <TypingIndicator label={t('chat.typing', { name: agentName })} />

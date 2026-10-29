@@ -62,6 +62,7 @@ export const toGraphqlConversation = (conversation: ConversationView): Conversat
   channelKind: GRAPHQL_CHANNEL_CONVERSATION_KIND[conversation.channelKind],
   closeReason:
     conversation.closeReason === null ? null : GRAPHQL_CLOSE_REASON[conversation.closeReason],
+  closedAt: conversation.closedAt?.toISOString() ?? null,
   createdAt: conversation.createdAt.toISOString(),
 });
 

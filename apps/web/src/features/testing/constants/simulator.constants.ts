@@ -10,13 +10,19 @@ export const SETUP_KEY_SEPARATOR = '|';
 export enum ChatItemKind {
   Message = 'message',
   Turn = 'turn',
-  Divider = 'divider',
+  Event = 'event',
 }
 
-export enum ChatDividerKind {
+export enum ChatEventKind {
   Escalated = 'escalated',
+  HandedOff = 'handedOff',
+  TakenOver = 'takenOver',
   HandedBack = 'handedBack',
+  Ended = 'ended',
+  ClosedInactive = 'closedInactive',
 }
+
+export const CONVERSATION_EVENT_ID = 'conversation';
 
 export enum ComposerMode {
   User = 'user',
@@ -25,7 +31,9 @@ export enum ComposerMode {
   Ended = 'ended',
 }
 
-export const DIVIDER_ID_SEPARATOR = ':';
+export const EVENT_ID_SEPARATOR = ':';
+
+export const EVENT_TIME_FORMAT: Intl.DateTimeFormatOptions = { timeStyle: 'short' };
 
 export enum ChatSpeaker {
   User = 'user',

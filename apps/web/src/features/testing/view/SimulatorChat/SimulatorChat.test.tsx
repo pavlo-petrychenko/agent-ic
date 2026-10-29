@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { ChatItemKind } from '@/features/testing/constants/simulator.constants';
+import { ChatEventKind, ChatItemKind } from '@/features/testing/constants/simulator.constants';
 import type { ChatTurnItem } from '@/features/testing/typedefs/simulator.typedefs';
 import { SimulatorChat } from '@/features/testing/view/SimulatorChat/SimulatorChat';
 import { MessageAuthor } from '@/shared/api/generated/schema.generated';
@@ -30,9 +30,11 @@ const turnOf = (escalationMessageCount: number): ChatTurnItem => ({
   ],
   failed: false,
   escalated: true,
+  escalatedByStep: true,
   handedBack: false,
   escalationMessageCount,
   errorMessage: null,
+  finishedAt: null,
 });
 
 const renderTurn = (turn: ChatTurnItem) =>
@@ -41,7 +43,6 @@ const renderTurn = (turn: ChatTurnItem) =>
       items={[turn]}
       agentName={AGENT_NAME}
       typing={false}
-      ended={false}
       selectedRunId={null}
       onSelectRun={vi.fn<(runId: string) => void>()}
     />,
@@ -62,6 +63,14 @@ describe('SimulatorChat', () => {
     );
   });
 
+  it('scrolls to the latest item', () => {
+    const height = vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(480);
+    renderTurn(turnOf(1));
+
+    expect(screen.getByRole('list', { name: 'Test conversation' }).scrollTop).toBe(480);
+    height.mockRestore();
+  });
+
   it('shows no escalation label when the escalation sent nothing', () => {
     renderTurn(turnOf(0));
 
@@ -79,19 +88,43 @@ describe('SimulatorChat', () => {
             messages: [],
             failed: true,
             escalated: false,
+            escalatedByStep: false,
             handedBack: false,
             escalationMessageCount: 0,
             errorMessage: null,
+            finishedAt: null,
           },
         ]}
         agentName={AGENT_NAME}
         typing={false}
-        ended={false}
         selectedRunId={null}
         onSelectRun={vi.fn<(runId: string) => void>()}
       />,
     );
 
     expect(screen.getByRole('button', { name: `${AGENT_NAME} · no reply` })).toBeInTheDocument();
+  });
+
+  it('shows conversation events as pills, with the time when it is known', () => {
+    renderWithProviders(
+      <SimulatorChat
+        items={[
+          {
+            kind: ChatItemKind.Event,
+            id: 'e1',
+            at: '2026-10-11T10:00:00.000Z',
+            event: ChatEventKind.Ended,
+          },
+          { kind: ChatItemKind.Event, id: 'e2', at: null, event: ChatEventKind.HandedBack },
+        ]}
+        agentName={AGENT_NAME}
+        typing={false}
+        selectedRunId={null}
+        onSelectRun={vi.fn<(runId: string) => void>()}
+      />,
+    );
+
+    expect(screen.getByText(/^Ended by the agent · \d{1,2}:\d{2}/)).toBeInTheDocument();
+    expect(screen.getByText('Handed back to the agent')).toBeInTheDocument();
   });
 });

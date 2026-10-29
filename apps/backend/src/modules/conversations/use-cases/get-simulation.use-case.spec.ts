@@ -45,6 +45,7 @@ describe('GetSimulationUseCase', () => {
     expect(ended?.conversation).toEqual({
       ...simulation.conversation,
       state: ConversationState.Closed,
+      closedAt: testbed.clock.now(),
     });
   });
 });

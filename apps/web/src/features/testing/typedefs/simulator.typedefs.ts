@@ -1,11 +1,12 @@
 import type { Locale } from '@agent-ic/contracts';
 import type {
-  ChatDividerKind,
+  ChatEventKind,
   ChatItemKind,
   ChatSpeaker,
 } from '@/features/testing/constants/simulator.constants';
 import type {
   ChannelConversationKind,
+  ConversationCloseReason,
   ConversationState,
   MessageAuthor,
   RunStatus,
@@ -29,13 +30,17 @@ export interface SimulatorRun {
   id: string;
   status: RunStatus;
   createdAt: string;
+  finishedAt: string | null;
   errorMessage: string | null;
   escalationMessageCount: number;
+  escalatedByStep: boolean;
 }
 
 export interface SimulatorConversation {
   conversationId: string;
   state: ConversationState;
+  closeReason: ConversationCloseReason | null;
+  closedAt: string | null;
   messages: readonly SimulatorMessage[];
   runs: readonly SimulatorRun[];
 }
@@ -55,19 +60,27 @@ export interface ChatTurnItem {
   messages: readonly SimulatorMessage[];
   failed: boolean;
   escalated: boolean;
+  escalatedByStep: boolean;
   handedBack: boolean;
   escalationMessageCount: number;
   errorMessage: string | null;
+  finishedAt: string | null;
 }
 
-export interface ChatDividerItem {
-  kind: ChatItemKind.Divider;
+export interface ChatEventItem {
+  kind: ChatItemKind.Event;
   id: string;
-  at: string;
-  divider: ChatDividerKind;
+  at: string | null;
+  event: ChatEventKind;
 }
 
-export type ChatItem = ChatMessageItem | ChatTurnItem | ChatDividerItem;
+export type ChatItem = ChatMessageItem | ChatTurnItem | ChatEventItem;
+
+export interface ChatConversation {
+  state: ConversationState;
+  closeReason: ConversationCloseReason | null;
+  closedAt: string | null;
+}
 
 export interface SimulatorResult {
   conversation: SimulatorConversation | null;

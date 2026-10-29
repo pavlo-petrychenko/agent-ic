@@ -39,6 +39,7 @@ export interface ConversationView {
   readonly language: string | null;
   readonly versionId: string | null;
   readonly closeReason: CloseReason | null;
+  readonly closedAt: Date | null;
   readonly createdAt: Date;
 }
 

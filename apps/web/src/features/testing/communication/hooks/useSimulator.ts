@@ -31,7 +31,12 @@ export function useSimulator(agentId: string | null, setup: SimulatorSetup): Sim
   const { data, dataState, error, refetch } = useQuery(
     SimulationDocument,
     started && agentId !== null
-      ? { variables: { agentId }, fetchPolicy: 'network-only', notifyOnNetworkStatusChange: true }
+      ? {
+          variables: { agentId },
+          fetchPolicy: 'network-only',
+          notifyOnNetworkStatusChange: true,
+          context: { queryDeduplication: false },
+        }
       : skipToken,
   );
   const loadFailed = started && error !== undefined && dataState !== 'complete';
