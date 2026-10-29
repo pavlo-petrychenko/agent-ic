@@ -6,6 +6,7 @@ import { EscalationMode } from '@flow/nodes/constants/step.constants';
 import { ReplyMode } from '@flow/nodes/constants/trigger.constants';
 import { outgoingEdges, reachableFrom } from '@flow/scope/helpers/graph.helpers';
 import { FlowIssueCode } from '@flow/validation/constants/issue.constants';
+import { inactivityWarnings } from '@flow/validation/helpers/inactivity-rules.helpers';
 import { createIssue } from '@flow/validation/helpers/issue.helpers';
 import type { FlowIssue, ValidationContext } from '@flow/validation/typedefs/validation.typedefs';
 
@@ -81,6 +82,9 @@ const nodeWarnings = (context: ValidationContext, node: FlowNode): FlowIssue[] =
         path: ['replyMode'],
       }),
     );
+  }
+  if (node.type === NodeType.TriggerInactivity) {
+    issues.push(...inactivityWarnings(context, node));
   }
   if (
     node.type === NodeType.Escalation &&

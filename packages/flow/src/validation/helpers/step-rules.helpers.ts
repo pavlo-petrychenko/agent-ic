@@ -28,6 +28,7 @@ import {
   reachableFrom,
 } from '@flow/scope/helpers/graph.helpers';
 import { FlowIssueCode } from '@flow/validation/constants/issue.constants';
+import { inactivityIssues } from '@flow/validation/helpers/inactivity-rules.helpers';
 import { createIssue, duplicates } from '@flow/validation/helpers/issue.helpers';
 import { isValidCron, isValidTimeZone } from '@flow/validation/helpers/schedule.helpers';
 import type { FlowIssue, ValidationContext } from '@flow/validation/typedefs/validation.typedefs';
@@ -201,6 +202,7 @@ const replyIssues = ({ flow, graph }: ValidationContext): FlowIssue[] =>
 export const stepIssues = (context: ValidationContext): FlowIssue[] => [
   ...context.flow.nodes.flatMap((node) => nodeConfigIssues(context, node)),
   ...eventNameIssues(context),
+  ...inactivityIssues(context),
   ...replyIssues(context),
 ];
 

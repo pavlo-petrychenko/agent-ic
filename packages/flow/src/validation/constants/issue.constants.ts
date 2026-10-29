@@ -53,6 +53,15 @@ export enum FlowIssueCode {
   ExitInBackgroundBranch = 'EXIT_IN_BACKGROUND_BRANCH',
   EmptyExitCriterion = 'EMPTY_EXIT_CRITERION',
   ExitEscalationMessage = 'EXIT_ESCALATION_MESSAGE',
+  DuplicateInactivityTrigger = 'DUPLICATE_INACTIVITY_TRIGGER',
+  InactivityWithoutConversationTrigger = 'INACTIVITY_WITHOUT_CONVERSATION_TRIGGER',
+  InactivityDurationOutOfRange = 'INACTIVITY_DURATION_OUT_OF_RANGE',
+  InactivityNoReplyStep = 'INACTIVITY_NO_REPLY_STEP',
+  InactivityAfterAutoClose = 'INACTIVITY_AFTER_AUTO_CLOSE',
+  ScheduleTooFrequent = 'SCHEDULE_TOO_FREQUENT',
+  ScheduleNoChannelTypes = 'SCHEDULE_NO_CHANNEL_TYPES',
+  ScheduleLimitTooHigh = 'SCHEDULE_LIMIT_TOO_HIGH',
+  ScheduleClosesBeforeSilence = 'SCHEDULE_CLOSES_BEFORE_SILENCE',
 }
 
 export const WARNING_CODES: readonly FlowIssueCode[] = [
@@ -62,4 +71,7 @@ export const WARNING_CODES: readonly FlowIssueCode[] = [
   FlowIssueCode.NoFallbackMessage,
   FlowIssueCode.EmptyExitCriterion,
   FlowIssueCode.ExitEscalationMessage,
+  FlowIssueCode.InactivityNoReplyStep,
+  FlowIssueCode.InactivityAfterAutoClose,
+  FlowIssueCode.ScheduleClosesBeforeSilence,
 ];
