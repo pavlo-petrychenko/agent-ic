@@ -10,6 +10,7 @@ import { RateLimitedError } from '@/platform/rate-limit/errors/rate-limited.erro
 import { TEST_TELEGRAM_TOKEN } from '@test/support/constants/channel-testing.constants';
 import {
   AGENT_REPLY_TEXT,
+  QUICK_REPLIES,
   TEST_END_USER_EXTERNAL_ID,
 } from '@test/support/constants/conversations-testing.constants';
 import { newChannel } from '@test/support/fixtures/channel.fixture';
@@ -96,8 +97,9 @@ describe('TelegramChannelAdapter', () => {
       {
         token: TEST_TELEGRAM_TOKEN,
         chatId: TEST_END_USER_EXTERNAL_ID,
+        messageId: message.id,
         text: AGENT_REPLY_TEXT,
-        quickReplies: [],
+        quickReplies: QUICK_REPLIES,
       },
     ]);
     expect((await deliveryOf(testbed, message))?.delivery).toBe(MessageDelivery.Delivered);

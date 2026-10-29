@@ -1,5 +1,6 @@
 import {
-  TELEGRAM_CALLBACK_DATA_MAX_BYTES,
+  TELEGRAM_CALLBACK_DATA_SEPARATOR,
+  TELEGRAM_QUICK_REPLY_CALLBACK_PREFIX,
   TELEGRAM_TOKEN_MASK_CHARACTER,
   TELEGRAM_TOKEN_SEPARATOR,
   TELEGRAM_TOKEN_VISIBLE_BOT_ID_LENGTH,
@@ -11,35 +12,34 @@ import type {
   TelegramReplyMarkup,
 } from '@/modules/channels/typedefs/telegram.typedefs';
 
-const callbackDataEncoder = new TextEncoder();
+export const telegramQuickReplyCallbackData = (messageId: string, index: number): string =>
+  [TELEGRAM_QUICK_REPLY_CALLBACK_PREFIX, messageId, String(index)].join(
+    TELEGRAM_CALLBACK_DATA_SEPARATOR,
+  );
 
-export const telegramCallbackData = (label: string): string => {
-  if (callbackDataEncoder.encode(label).length <= TELEGRAM_CALLBACK_DATA_MAX_BYTES) {
-    return label;
-  }
-  let data = '';
-  for (const character of label) {
-    if (callbackDataEncoder.encode(data + character).length > TELEGRAM_CALLBACK_DATA_MAX_BYTES) {
-      break;
-    }
-    data += character;
-  }
-  return data;
-};
-
-const telegramButton = (label: string): TelegramInlineKeyboardButton => ({
+const telegramButton = (
+  messageId: string,
+  index: number,
+  label: string,
+): TelegramInlineKeyboardButton => ({
   text: label,
-  callback_data: telegramCallbackData(label),
+  callback_data: telegramQuickReplyCallbackData(messageId, index),
 });
 
 export const telegramReplyMarkup = (
+  messageId: string,
   quickReplies: readonly string[],
 ): TelegramReplyMarkup | null => {
-  const buttons = quickReplies.filter((label) => label.trim() !== '');
-  if (buttons.length === 0) {
+  const rows: TelegramInlineKeyboardButton[][] = [];
+  quickReplies.forEach((label, index) => {
+    if (label.trim() !== '') {
+      rows.push([telegramButton(messageId, index, label)]);
+    }
+  });
+  if (rows.length === 0) {
     return null;
   }
-  return { inline_keyboard: buttons.map((label) => [telegramButton(label)]) };
+  return { inline_keyboard: rows };
 };
 
 export const telegramWebhookUrl = (

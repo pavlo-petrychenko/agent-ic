@@ -271,6 +271,7 @@ describe('HttpTelegramGateway', () => {
     await gateway.sendMessage({
       token: TEST_TELEGRAM_TOKEN,
       chatId: '42',
+      messageId: 'message-1',
       text: 'Hello',
       quickReplies: ['Book a table', 'Call us'],
     });
@@ -283,8 +284,8 @@ describe('HttpTelegramGateway', () => {
       text: 'Hello',
       reply_markup: {
         inline_keyboard: [
-          [{ text: 'Book a table', callback_data: 'Book a table' }],
-          [{ text: 'Call us', callback_data: 'Call us' }],
+          [{ text: 'Book a table', callback_data: 'qr:message-1:0' }],
+          [{ text: 'Call us', callback_data: 'qr:message-1:1' }],
         ],
       },
     });
@@ -301,6 +302,7 @@ describe('HttpTelegramGateway', () => {
     await gateway.sendMessage({
       token: TEST_TELEGRAM_TOKEN,
       chatId: '42',
+      messageId: 'message-1',
       text: 'Hello',
       quickReplies: [],
     });
@@ -370,6 +372,7 @@ describe('HttpTelegramGateway', () => {
       .sendMessage({
         token: TEST_TELEGRAM_TOKEN,
         chatId: '42',
+        messageId: 'message-1',
         text: 'Hello',
         quickReplies: [],
       })

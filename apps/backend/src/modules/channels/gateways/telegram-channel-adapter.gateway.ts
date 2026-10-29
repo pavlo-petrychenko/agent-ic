@@ -51,8 +51,9 @@ export class TelegramChannelAdapter extends ChannelAdapter {
     await this.telegram.sendMessage({
       token: credentials.botToken,
       chatId: message.endUserExternalId,
+      messageId: message.messageId,
       text: message.text,
-      quickReplies: [],
+      quickReplies: message.quickReplies,
     });
   }
 

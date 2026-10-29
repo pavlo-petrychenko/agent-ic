@@ -95,7 +95,7 @@ export class HttpTelegramGateway extends TelegramGateway {
   }
 
   async sendMessage(input: SendTelegramMessageInput): Promise<void> {
-    const replyMarkup = telegramReplyMarkup(input.quickReplies);
+    const replyMarkup = telegramReplyMarkup(input.messageId, input.quickReplies);
     await this.call<TelegramMessageResponse>(input.token, 'sendMessage', {
       method: 'POST',
       headers: { [HttpHeader.ContentType]: TELEGRAM_CONTENT_TYPE },
