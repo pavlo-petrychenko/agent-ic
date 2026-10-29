@@ -7,13 +7,17 @@ import { StartRunOnMessageListener } from '@/modules/runs/listeners/start-run-on
 import { ExecuteProactiveRunProcessor } from '@/modules/runs/processors/execute-proactive-run.processor';
 import { ExecuteRunProcessor } from '@/modules/runs/processors/execute-run.processor';
 import { FireInactivityTimerProcessor } from '@/modules/runs/processors/fire-inactivity-timer.processor';
+import { FireScheduleTickProcessor } from '@/modules/runs/processors/fire-schedule-tick.processor';
 import { SweepInactivityTimersProcessor } from '@/modules/runs/processors/sweep-inactivity-timers.processor';
+import { SweepScheduleTriggersProcessor } from '@/modules/runs/processors/sweep-schedule-triggers.processor';
 import { InactivitySweepRepository } from '@/modules/runs/repositories/inactivity-sweep.repository';
 import { InactivityTimersRepository } from '@/modules/runs/repositories/inactivity-timers.repository';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
+import { ScheduleTicksRepository } from '@/modules/runs/repositories/schedule-ticks.repository';
 import { LastSimulationRunResolver } from '@/modules/runs/resolvers/last-simulation-run.resolver';
 import { RunFieldsResolver } from '@/modules/runs/resolvers/run-fields.resolver';
+import { RunSimulatorScheduleResolver } from '@/modules/runs/resolvers/run-simulator-schedule.resolver';
 import { RunStepsResolver } from '@/modules/runs/resolvers/run-steps.resolver';
 import { RunResolver } from '@/modules/runs/resolvers/run.resolver';
 import { SimulateSilenceResolver } from '@/modules/runs/resolvers/simulate-silence.resolver';
@@ -34,6 +38,7 @@ import { RunLifecycleService } from '@/modules/runs/services/run-lifecycle.servi
 import { RunMessagesService } from '@/modules/runs/services/run-messages.service';
 import { RunMetricsService } from '@/modules/runs/services/run-metrics.service';
 import { RunViewsService } from '@/modules/runs/services/run-views.service';
+import { ScheduleMetricsService } from '@/modules/runs/services/schedule-metrics.service';
 import { ScheduleTriggerExecutor } from '@/modules/runs/services/schedule-trigger-executor.service';
 import { SendMessageExecutor } from '@/modules/runs/services/send-message-executor.service';
 import { SimulationTestsReaderService } from '@/modules/runs/services/simulation-tests-reader.service';
@@ -42,15 +47,18 @@ import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedef
 import { ArmInactivityOnHandBackUseCase } from '@/modules/runs/use-cases/arm-inactivity-on-hand-back.use-case';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
 import { FireInactivityTimerUseCase } from '@/modules/runs/use-cases/fire-inactivity-timer.use-case';
+import { FireScheduleTickUseCase } from '@/modules/runs/use-cases/fire-schedule-tick.use-case';
 import { GetRunTotalsUseCase } from '@/modules/runs/use-cases/get-run-totals.use-case';
 import { GetRunUseCase } from '@/modules/runs/use-cases/get-run.use-case';
 import { ListLastSimulationRunsUseCase } from '@/modules/runs/use-cases/list-last-simulation-runs.use-case';
 import { ListRunStepsUseCase } from '@/modules/runs/use-cases/list-run-steps.use-case';
 import { ListSimulationRunsUseCase } from '@/modules/runs/use-cases/list-simulation-runs.use-case';
+import { RunSimulatorScheduleUseCase } from '@/modules/runs/use-cases/run-simulator-schedule.use-case';
 import { SimulateSilenceUseCase } from '@/modules/runs/use-cases/simulate-silence.use-case';
 import { StartRunOnMessageUseCase } from '@/modules/runs/use-cases/start-run-on-message.use-case';
 import { SubscribeToRunStepsUseCase } from '@/modules/runs/use-cases/subscribe-to-run-steps.use-case';
 import { SweepInactivityTimersUseCase } from '@/modules/runs/use-cases/sweep-inactivity-timers.use-case';
+import { SweepScheduleTriggersUseCase } from '@/modules/runs/use-cases/sweep-schedule-triggers.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class RunsModule extends defineModule({
@@ -60,6 +68,8 @@ export class RunsModule extends defineModule({
     RunStepsRepository,
     InactivityTimersRepository,
     InactivitySweepRepository,
+    ScheduleTicksRepository,
+    ScheduleMetricsService,
     MessageTriggerExecutor,
     InactivityTriggerExecutor,
     RouterExecutor,
@@ -108,6 +118,9 @@ export class RunsModule extends defineModule({
     ListRunStepsUseCase,
     GetRunTotalsUseCase,
     ListLastSimulationRunsUseCase,
+    SweepScheduleTriggersUseCase,
+    FireScheduleTickUseCase,
+    RunSimulatorScheduleUseCase,
   ],
   resolvers: [
     RunStepsResolver,
@@ -116,12 +129,15 @@ export class RunsModule extends defineModule({
     SimulationRunsResolver,
     LastSimulationRunResolver,
     SimulateSilenceResolver,
+    RunSimulatorScheduleResolver,
   ],
   processors: [
     ExecuteRunProcessor,
     ExecuteProactiveRunProcessor,
     SweepInactivityTimersProcessor,
     FireInactivityTimerProcessor,
+    SweepScheduleTriggersProcessor,
+    FireScheduleTickProcessor,
   ],
   listeners: [StartRunOnMessageListener, ArmInactivityOnHandBackListener],
 }) {}

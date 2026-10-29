@@ -83,6 +83,8 @@ export enum TestRedisPrefix {
   RunInactivitySweep = 'run-inactivity-sweep:',
   RunInactivityFire = 'run-inactivity-fire:',
   RunSimulateSilence = 'run-simulate-silence:',
+  ScheduleTick = 'schedule-tick:',
+  SimulatorSchedule = 'simulator-schedule:',
   RunMessages = 'run-messages:',
   RunEscalation = 'run-escalation:',
   RunConversationExit = 'run-conversation-exit:',
