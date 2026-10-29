@@ -10,12 +10,14 @@ import {
   EXIT_VIEW_KINDS,
   STEP_STATUS_TONES,
   TURN_STATUS_TONES,
+  TRACE_EXIT_STATES,
   TRACE_FALLBACK_WIDTH,
   TurnOutcome,
 } from '@/features/testing/constants/trace.constants';
 import { TRACE_LEGEND } from '@/features/testing/containers/TracePanel/TracePanel.constants';
 import type { TracePanelProps } from '@/features/testing/containers/TracePanel/TracePanel.typedefs';
 import { isActiveRun, turnStatus } from '@/features/testing/logic/helpers/chat.helpers';
+import { traceExit } from '@/features/testing/logic/helpers/exit.helpers';
 import {
   autoCloseView,
   formatSeconds,
@@ -66,17 +68,22 @@ export function TracePanel({
   const active = run !== null && isActiveRun(run);
   const steps = details.run?.steps ?? [];
   const inspected = steps.findLast((step) => step.nodeId === selectedNodeId) ?? null;
-  const cells = slots.map((slot) => ({
-    ...slot,
-    ...NODE_PRESENTATION[slot.type],
-    state: nodeState(steps, slot.id, active),
-    selectable: steps.some((step) => step.nodeId === slot.id),
-    selected: slot.id === inspected?.nodeId,
-  }));
+  const nodeById = new Map(flow?.nodes.map((flowNode) => [flowNode.id, flowNode]));
+  const cells = slots.map((slot) => {
+    const last = steps.findLast((step) => step.nodeId === slot.id);
+    const exit = last === undefined ? null : traceExit(last, nodeById.get(slot.id) ?? null, flow);
+    return {
+      ...slot,
+      ...NODE_PRESENTATION[slot.type],
+      state: exit === null ? nodeState(steps, slot.id, active) : TRACE_EXIT_STATES[exit],
+      exit,
+      selectable: steps.some((step) => step.nodeId === slot.id),
+      selected: slot.id === inspected?.nodeId,
+    };
+  });
   const drawing = drawTrace(cells, edges);
   const node = inspected?.nodeId ?? focusNodeId(details.run);
   const slotById = new Map(slots.map((slot) => [slot.id, slot]));
-  const nodeById = new Map(flow?.nodes.map((flowNode) => [flowNode.id, flowNode]));
   const turn = details.run;
   const inspectedSlot = inspected === null ? null : (slotById.get(inspected.nodeId) ?? null);
   const escalationCount = run?.escalationMessageCount ?? 0;

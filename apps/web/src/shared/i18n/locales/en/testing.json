@@ -82,7 +82,15 @@
       "running": "running",
       "waiting": "waiting",
       "skipped": "not reached",
-      "failed": "failed"
+      "failed": "failed",
+      "escalated": "escalated",
+      "ended": "ended"
+    },
+    "exit": {
+      "escalated": "escalated",
+      "ended": "ended",
+      "defaultHandoff": "default hand-off",
+      "defaultEnd": "default end"
     }
   },
   "details": {

@@ -19,6 +19,7 @@ export const Default: Story = {};
 export const Warn: Story = { args: { kind: StatusKind.Warn } };
 export const Err: Story = { args: { kind: StatusKind.Err } };
 export const Idle: Story = { args: { kind: StatusKind.Idle } };
+export const Ink: Story = { args: { kind: StatusKind.Ink } };
 export const Running: Story = { args: { kind: StatusKind.Run } };
 export const Labelled: Story = { args: { label: 'Connected' } };
 export const RunningLabelled: Story = { args: { kind: StatusKind.Run, label: 'Indexing' } };

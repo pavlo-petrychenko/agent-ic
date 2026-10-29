@@ -1,6 +1,5 @@
 import {
   AGENT_MESSAGES_FIELD_NAME,
-  AGENT_OUTCOME_FIELD_NAME,
   AGENT_OUTCOME_REASON_FIELD_NAME,
   AgentExitKind,
   EscalationMode,
@@ -22,6 +21,7 @@ import {
   RECIPIENT_LIST_FORMAT,
   StepSection,
 } from '@/features/testing/constants/trace.constants';
+import { agentOutcome, exitEdge, isRecord } from '@/features/testing/logic/helpers/exit.helpers';
 import type {
   ExitRecipients,
   OutputView,
@@ -35,9 +35,6 @@ const NO_STEP_CONTEXT: StepContext = { node: null, flow: null, texts: [] };
 
 const isPlainValue = (value: unknown): value is string | number | boolean | null =>
   value === null || ['string', 'number', 'boolean'].includes(typeof value);
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const textOf = (value: unknown): string | null =>
   typeof value === 'string' && value.trim() !== '' ? value : null;
@@ -81,14 +78,11 @@ const agentExitView = (
   node: AgentNode,
   flow: FlowDocument | null,
 ): OutputView | null => {
-  const outcome = Object.values(AgentExitKind).find(
-    (kind) => kind === output[AGENT_OUTCOME_FIELD_NAME],
-  );
-  if (outcome === undefined) {
+  const outcome = agentOutcome(output);
+  if (outcome === null) {
     return null;
   }
-  const edge =
-    flow?.edges.find((link) => link.source === node.id && link.sourcePort === outcome) ?? null;
+  const edge = exitEdge(flow, node.id, outcome);
   const handoff = flow?.settings.handoff ?? null;
   const fallsBack = edge === null && outcome === AgentExitKind.Handoff && handoff !== null;
   return {

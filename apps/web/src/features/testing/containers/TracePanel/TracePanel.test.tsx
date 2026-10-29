@@ -149,6 +149,7 @@ describe('TracePanel', () => {
     );
 
     expect(await screen.findByText('Pavlo, Oksana')).toBeInTheDocument();
+    expect(await stepState('Hand off to a person')).toBe('escalated');
     expect(screen.getByText('Escalated')).toBeInTheDocument();
     expect(screen.getByText('Would notify')).toBeInTheDocument();
     expect(screen.getByText('Paused')).toBeInTheDocument();
@@ -198,6 +199,13 @@ describe('TracePanel', () => {
     expect(within(details).getByText('Default exit · flow settings hand-off')).toBeInTheDocument();
     expect(within(details).getByText('See you on Friday!')).toBeInTheDocument();
     expect(within(details).getByText('Ended')).toBeInTheDocument();
+    expect(await stepState('Receptionist')).toBe('escalated');
+    expect(
+      within(screen.getByRole('list', { name: 'Steps of the flow' })).getByText('default hand-off'),
+    ).toBeInTheDocument();
+    const legend = screen.getByRole('list', { name: 'Step states' });
+    expect(within(legend).getByText('escalated')).toBeInTheDocument();
+    expect(within(legend).getByText('ended')).toBeInTheDocument();
     expect(within(details).queryByText('Completed')).not.toBeInTheDocument();
   });
 
