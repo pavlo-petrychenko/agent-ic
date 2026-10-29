@@ -7,6 +7,7 @@ import {
   EscalationMode,
   FLOW_SCHEMA_VERSION,
   MessageContentKind,
+  NO_FLOW_SETTINGS,
   NodeType,
   NotifyChannel,
   PortName,
@@ -108,5 +109,6 @@ export const sampleAgentFlow = (ids: SampleFlowIds): FlowDocument => {
         target: ids.nodes.greeting,
       },
     ],
+    settings: NO_FLOW_SETTINGS,
   };
 };

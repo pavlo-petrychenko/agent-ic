@@ -1,3 +1,5 @@
+import type { AgentExits } from '@flow/document/typedefs/flow.typedefs';
+
 export enum RetrievalMode {
   Tools = 'tools',
   Auto = 'auto',
@@ -61,3 +63,5 @@ export enum NotifyChannel {
 }
 
 export const DEFAULT_RETRIEVAL_MODE = RetrievalMode.Tools;
+
+export const NO_AGENT_EXITS: AgentExits = { end: null, handoff: null };

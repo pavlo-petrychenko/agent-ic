@@ -10,6 +10,7 @@ import {
   FailureMode,
   HttpMethod,
   MessageContentKind,
+  NO_AGENT_EXITS,
   NodeType,
   NotifyChannel,
   OutputFieldType,
@@ -38,6 +39,7 @@ export const NODE_TEMPLATES: NodeTemplates = {
       retrievalMode: DEFAULT_RETRIEVAL_MODE,
       output: [],
       retries: AGENT_DEFAULT_RETRIES,
+      exits: NO_AGENT_EXITS,
     },
   },
   [NodeType.Completion]: {

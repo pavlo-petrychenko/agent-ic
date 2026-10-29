@@ -9,6 +9,8 @@ import {
   EscalationMode,
   FLOW_SCHEMA_VERSION,
   MessageContentKind,
+  NO_AGENT_EXITS,
+  NO_FLOW_SETTINGS,
   NodeType,
   NotifyChannel,
   OutputFieldType,
@@ -119,6 +121,7 @@ export const exampleAgent = (
     retrievalMode: DEFAULT_RETRIEVAL_MODE,
     output: [...output],
     retries: AGENT_DEFAULT_RETRIES,
+    exits: NO_AGENT_EXITS,
   },
 });
 
@@ -283,5 +286,6 @@ export const buildExampleFlow = (example: FlowExample, nextId: () => string): Fl
       source: idOf(edge.source),
       target: idOf(edge.target),
     })),
+    settings: NO_FLOW_SETTINGS,
   };
 };

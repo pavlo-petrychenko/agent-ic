@@ -4,14 +4,28 @@ import { ConditionOperator, RuleMatch } from '@flow/conditions/constants/conditi
 import { FLOW_SCHEMA_VERSION, NodeType } from '@flow/document/constants/flow.constants';
 import { flowDocumentSchema } from '@flow/document/schemas/flow.schema';
 import type { FlowDocument, FlowNode } from '@flow/document/typedefs/flow.typedefs';
-import { MAX_NODES, MAX_RETRIES } from '@flow/limits/constants/limit.constants';
-import { EscalationMode } from '@flow/nodes/constants/step.constants';
+import {
+  MAX_AUTO_CLOSE_MINUTES,
+  MAX_NODES,
+  MAX_RETRIES,
+  MIN_AUTO_CLOSE_MINUTES,
+} from '@flow/limits/constants/limit.constants';
+import {
+  EscalationMode,
+  NO_AGENT_EXITS,
+  NotifyChannel,
+  RecipientsKind,
+} from '@flow/nodes/constants/step.constants';
 import { ScheduleKind } from '@flow/nodes/constants/trigger.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 import {
   PromptSourceKind,
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
+import {
+  NO_FLOW_SETTINGS,
+  UnhandledFailureAction,
+} from '@flow/settings/constants/settings.constants';
 import { FIRST_SCHEMA_VERSION } from '@flow/versions/constants/version.constants';
 import {
   eventNotificationFlow,
@@ -53,8 +67,12 @@ describe('flowDocumentSchema', () => {
 
   it('accepts an empty draft', () => {
     expect(
-      flowDocumentSchema.safeParse({ schemaVersion: FLOW_SCHEMA_VERSION, nodes: [], edges: [] })
-        .success,
+      flowDocumentSchema.safeParse({
+        schemaVersion: FLOW_SCHEMA_VERSION,
+        nodes: [],
+        edges: [],
+        settings: NO_FLOW_SETTINGS,
+      }).success,
     ).toBe(true);
   });
 
@@ -100,8 +118,12 @@ describe('flowDocumentSchema', () => {
       key: `trigger_${index}`,
     }));
     expect(
-      flowDocumentSchema.safeParse({ schemaVersion: FLOW_SCHEMA_VERSION, nodes, edges: [] })
-        .success,
+      flowDocumentSchema.safeParse({
+        schemaVersion: FLOW_SCHEMA_VERSION,
+        nodes,
+        edges: [],
+        settings: NO_FLOW_SETTINGS,
+      }).success,
     ).toBe(false);
   });
 
@@ -357,4 +379,79 @@ describe('prompt source and reasoning', () => {
       false,
     );
   });
+});
+
+describe('agent exits', () => {
+  const agent = nodeOf(faqWithHandOffFlow, NodeType.Agent);
+  const withExits = (exits: unknown) =>
+    replaceConfig(faqWithHandOffFlow, NodeType.Agent, { ...agent.config, exits });
+
+  it.each([
+    ['both exits off', NO_AGENT_EXITS],
+    ['an end exit', { end: { when: 'The customer says goodbye' }, handoff: null }],
+    ['both exits on', { end: { when: 'Done' }, handoff: { when: 'Asks for a person' } }],
+  ])('accepts %s', (_name, exits) => {
+    expect(flowDocumentSchema.safeParse(withExits(exits)).success).toBe(true);
+  });
+
+  it.each([
+    ['an agent without exits', undefined],
+    ['an exit without its criterion', { end: {}, handoff: null }],
+    ['a missing exit', { end: null }],
+  ])('rejects %s', (_name, exits) => {
+    expect(flowDocumentSchema.safeParse(withExits(exits)).success).toBe(false);
+  });
+});
+
+describe('flow settings', () => {
+  const withSettings = (changes: Record<string, unknown>): unknown => ({
+    ...faqWithHandOffFlow,
+    settings: { ...NO_FLOW_SETTINGS, ...changes },
+  });
+
+  it('rejects a flow without settings', () => {
+    const { settings: _settings, ...flow } = faqWithHandOffFlow;
+    expect(flowDocumentSchema.safeParse(flow).success).toBe(false);
+  });
+
+  it('accepts a default hand-off shaped like the Escalation step', () => {
+    const handoff = {
+      notify: { recipients: { kind: RecipientsKind.Operators }, channels: [NotifyChannel.Email] },
+      reminderAfterMinutes: null,
+      fallbackAfterMinutes: null,
+      fallbackMessage: '',
+    };
+    expect(flowDocumentSchema.safeParse(withSettings({ handoff })).success).toBe(true);
+  });
+
+  it('accepts a hand-off after an unhandled failure', () => {
+    const onUnhandledFailure = {
+      action: UnhandledFailureAction.Handoff,
+      customerMessage: 'Sorry, something went wrong',
+    };
+    expect(flowDocumentSchema.safeParse(withSettings({ onUnhandledFailure })).success).toBe(true);
+  });
+
+  it('rejects an unknown action after an unhandled failure', () => {
+    const onUnhandledFailure = { action: 'retry', customerMessage: '' };
+    expect(flowDocumentSchema.safeParse(withSettings({ onUnhandledFailure })).success).toBe(false);
+  });
+
+  it.each([MIN_AUTO_CLOSE_MINUTES, MAX_AUTO_CLOSE_MINUTES])(
+    'accepts auto-close after %i minutes',
+    (afterMinutes) => {
+      expect(
+        flowDocumentSchema.safeParse(withSettings({ autoClose: { afterMinutes } })).success,
+      ).toBe(true);
+    },
+  );
+
+  it.each([MIN_AUTO_CLOSE_MINUTES - 1, MAX_AUTO_CLOSE_MINUTES + 1, MIN_AUTO_CLOSE_MINUTES + 0.5])(
+    'rejects auto-close after %d minutes',
+    (afterMinutes) => {
+      expect(
+        flowDocumentSchema.safeParse(withSettings({ autoClose: { afterMinutes } })).success,
+      ).toBe(false);
+    },
+  );
 });

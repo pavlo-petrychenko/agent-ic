@@ -1,4 +1,4 @@
-import { FLOW_SCHEMA_VERSION, FlowIssueSeverity } from '@agent-ic/flow';
+import { FLOW_SCHEMA_VERSION, NO_FLOW_SETTINGS, FlowIssueSeverity } from '@agent-ic/flow';
 import type { FieldChange, FlowDocument, FlowIssue } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { ChangeSentence, PublishBlock } from '@/features/flow-builder/constants/publish.constants';
@@ -26,6 +26,7 @@ const EMPTY_DIFF: PublishDiff = {
 
 const DOCUMENT = {
   schemaVersion: FLOW_SCHEMA_VERSION,
+  settings: NO_FLOW_SETTINGS,
   nodes: [
     { id: 'a', key: 'schedule', label: 'Schedule trigger' },
     { id: 'b', key: 'reply', label: '' },

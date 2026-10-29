@@ -1,4 +1,4 @@
-import { FLOW_SCHEMA_VERSION } from '@agent-ic/flow';
+import { FLOW_SCHEMA_VERSION, NO_FLOW_SETTINGS } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 
 export const AGENTS_SCHEMA = 'agents';
@@ -52,6 +52,7 @@ export const EMPTY_FLOW: FlowDocument = {
   schemaVersion: FLOW_SCHEMA_VERSION,
   nodes: [],
   edges: [],
+  settings: NO_FLOW_SETTINGS,
 };
 
 export enum SimulatorCheckStatus {

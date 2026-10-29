@@ -6,6 +6,7 @@ import {
   FailureMode,
   HttpMethod,
   FLOW_SCHEMA_VERSION,
+  NO_FLOW_SETTINGS,
   MAX_LABEL_LENGTH,
   MAX_OUTPUT_FIELDS,
   ModelProviderKind,
@@ -67,6 +68,7 @@ const RULE = { id: 'refund', label: '', match: RuleMatch.All, conditions: [CONDI
 
 const FLOW: FlowDocument = {
   schemaVersion: FLOW_SCHEMA_VERSION,
+  settings: NO_FLOW_SETTINGS,
   nodes: [
     step('trigger', 'Incoming message', {
       type: NodeType.TriggerMessage,

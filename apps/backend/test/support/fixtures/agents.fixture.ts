@@ -4,6 +4,7 @@ import {
   FLOW_SCHEMA_VERSION,
   HttpMethod,
   MessageContentKind,
+  NO_FLOW_SETTINGS,
   NodeType,
   PortName,
   QuickRepliesKind,
@@ -35,6 +36,7 @@ export const emptyFlow = (): FlowDocument => ({
   schemaVersion: FLOW_SCHEMA_VERSION,
   nodes: [],
   edges: [],
+  settings: NO_FLOW_SETTINGS,
 });
 
 export const triggerFlow = (label: string = TEST_NODE_LABEL): FlowDocument => ({
@@ -70,6 +72,7 @@ export const triggerFlow = (label: string = TEST_NODE_LABEL): FlowDocument => ({
       target: TEST_REPLY_NODE_ID,
     },
   ],
+  settings: NO_FLOW_SETTINGS,
 });
 
 export const apiRequestFlow = (url: string): FlowDocument => {

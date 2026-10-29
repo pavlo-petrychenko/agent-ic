@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { flowEdgeSchema } from '@flow/document/schemas/edge.schema';
 import { MAX_EDGES, MAX_NODES } from '@flow/limits/constants/limit.constants';
-import { agentNodeSchema } from '@flow/nodes/schemas/agent.schema';
 import { apiRequestNodeSchema } from '@flow/nodes/schemas/api-request.schema';
 import {
   completionConfigSchema,
@@ -19,6 +18,7 @@ import {
   FlowV1CompletionRole,
   FlowV1WaitFor,
 } from '@flow/versions/constants/version.constants';
+import { agentV2NodeSchema } from '@flow/versions/schemas/flow-v2.schema';
 
 const completionV1NodeSchema = completionNodeSchema.extend({
   config: completionConfigSchema.extend({ role: z.enum(FlowV1CompletionRole) }),
@@ -32,7 +32,7 @@ export const flowV1NodeSchema = z.discriminatedUnion('type', [
   triggerMessageNodeSchema,
   triggerExternalEventNodeSchema,
   triggerScheduleNodeSchema,
-  agentNodeSchema,
+  agentV2NodeSchema,
   completionV1NodeSchema,
   routerNodeSchema,
   parallelV1NodeSchema,

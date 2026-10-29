@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { PortName } from '@flow/document/constants/flow.constants';
+import { NodeType, PortName } from '@flow/document/constants/flow.constants';
 import type { FlowDocument } from '@flow/document/typedefs/flow.typedefs';
-import { WaitFor } from '@flow/nodes/constants/step.constants';
+import { NO_AGENT_EXITS, WaitFor } from '@flow/nodes/constants/step.constants';
+import { NO_FLOW_SETTINGS } from '@flow/settings/constants/settings.constants';
 import { hasBlockingIssues, validateFlow } from '@flow/validation/helpers/validation.helpers';
-import { FlowV1WaitFor } from '@flow/versions/constants/version.constants';
-import { upgradeFlowV1 } from '@flow/versions/helpers/upgrade.helpers';
-import { faqWithHandOffFlow } from '@test/support/fixtures/example-flow.fixture';
+import { FlowV1WaitFor, SECOND_SCHEMA_VERSION } from '@flow/versions/constants/version.constants';
+import { upgradeFlowV1, upgradeFlowV2 } from '@flow/versions/helpers/upgrade.helpers';
+import type { FlowV1Document } from '@flow/versions/typedefs/version.typedefs';
+import { exampleFlows, faqWithHandOffFlow } from '@test/support/fixtures/example-flow.fixture';
 import {
   agent,
   apiRequest,
@@ -17,8 +19,11 @@ import {
   sendText,
 } from '@test/support/fixtures/flow-builder.fixture';
 import { toFlowV1, toFlowV1Json } from '@test/support/fixtures/flow-v1.fixture';
+import { toFlowV2 } from '@test/support/fixtures/flow-v2.fixture';
 
 const OBSERVERS = { observerKeys: ['topic'] };
+
+const upgradeToLatest = (flow: FlowV1Document): FlowDocument => upgradeFlowV2(upgradeFlowV1(flow));
 
 const LOOKUP_THEN_TAG = { observerKeys: ['tagger'], waitFor: FlowV1WaitFor.Guards };
 
@@ -61,9 +66,15 @@ const tagAndScoreFlow = (): FlowDocument => {
 };
 
 describe('upgradeFlowV1', () => {
+  it('gives a version 2 flow', () => {
+    const v1 = toFlowV1(faqWithHandOffFlow, { ...OBSERVERS, waitFor: FlowV1WaitFor.Guards });
+    expect(upgradeFlowV1(v1)).toEqual(toFlowV2(faqWithHandOffFlow));
+    expect(upgradeFlowV1(v1).schemaVersion).toBe(SECOND_SCHEMA_VERSION);
+  });
+
   it('turns the observer branch of the FAQ into a background branch', () => {
     const v1 = toFlowV1(faqWithHandOffFlow, { ...OBSERVERS, waitFor: FlowV1WaitFor.Guards });
-    expect(upgradeFlowV1(v1)).toEqual(faqWithHandOffFlow);
+    expect(upgradeToLatest(v1)).toEqual(faqWithHandOffFlow);
   });
 
   it.each([
@@ -71,14 +82,16 @@ describe('upgradeFlowV1', () => {
     [FlowV1WaitFor.All, WaitFor.All],
     [FlowV1WaitFor.First, WaitFor.First],
   ])('maps wait for %s to %s', (before, after) => {
-    const upgraded = upgradeFlowV1(toFlowV1(faqWithHandOffFlow, { ...OBSERVERS, waitFor: before }));
+    const upgraded = upgradeToLatest(
+      toFlowV1(faqWithHandOffFlow, { ...OBSERVERS, waitFor: before }),
+    );
     expect(upgraded.nodes.find((node) => node.key === 'checks')?.config).toEqual({
       waitFor: after,
     });
   });
 
   it('keeps a branch waited when its observer comes after another step', () => {
-    const upgraded = upgradeFlowV1(toFlowV1(lookupThenTagFlow(), LOOKUP_THEN_TAG));
+    const upgraded = upgradeToLatest(toFlowV1(lookupThenTagFlow(), LOOKUP_THEN_TAG));
     expect(upgraded.edges.some((edge) => edge.background === true)).toBe(false);
   });
 
@@ -96,7 +109,7 @@ describe('upgradeFlowV1', () => {
       [link(trigger, PortName.Next, tagger), link(tagger, PortName.Next, reply)],
     );
     expect(
-      upgradeFlowV1(toFlowV1(flow, { ...LOOKUP_THEN_TAG, waitFor: FlowV1WaitFor.All })),
+      upgradeToLatest(toFlowV1(flow, { ...LOOKUP_THEN_TAG, waitFor: FlowV1WaitFor.All })),
     ).toEqual(flow);
   });
 
@@ -120,7 +133,7 @@ describe('upgradeFlowV1', () => {
         link(outer, PortName.Next, reply),
       ],
     );
-    const upgraded = upgradeFlowV1(toFlowV1(flow, LOOKUP_THEN_TAG));
+    const upgraded = upgradeToLatest(toFlowV1(flow, LOOKUP_THEN_TAG));
     expect(upgraded.edges.filter((edge) => edge.background === true)).toEqual([
       { ...innerToTagger, background: true },
     ]);
@@ -128,7 +141,7 @@ describe('upgradeFlowV1', () => {
 
   it('keeps the first branch waited when every branch starts with an observer', () => {
     const flow = tagAndScoreFlow();
-    const upgraded = upgradeFlowV1(toFlowV1(flow, TAG_AND_SCORE));
+    const upgraded = upgradeToLatest(toFlowV1(flow, TAG_AND_SCORE));
     expect(upgraded.edges.filter((edge) => edge.background === true)).toEqual([
       { ...flow.edges[2], background: true },
     ]);
@@ -137,5 +150,22 @@ describe('upgradeFlowV1', () => {
   it('accepts a version 1 parallel whose branches are all observers', () => {
     const issues = validateFlow(toFlowV1Json(tagAndScoreFlow(), TAG_AND_SCORE));
     expect(hasBlockingIssues(issues)).toBe(false);
+  });
+});
+
+describe('upgradeFlowV2', () => {
+  it.each(exampleFlows.map((flow, index) => [index, flow]))(
+    'keeps example flow %i as it was, with exits and settings off',
+    (_index, flow) => {
+      expect(upgradeFlowV2(toFlowV2(flow))).toEqual(flow);
+    },
+  );
+
+  it('turns every exit of every agent off and leaves every setting empty', () => {
+    const upgraded = upgradeFlowV2(toFlowV2(faqWithHandOffFlow));
+    const agents = upgraded.nodes.flatMap((node) => (node.type === NodeType.Agent ? [node] : []));
+
+    expect(agents.map((node) => node.config.exits)).toEqual(agents.map(() => NO_AGENT_EXITS));
+    expect(upgraded.settings).toEqual(NO_FLOW_SETTINGS);
   });
 });
