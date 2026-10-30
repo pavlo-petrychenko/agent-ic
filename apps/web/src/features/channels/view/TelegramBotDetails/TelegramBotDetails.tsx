@@ -1,8 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
-import { EMPTY_TELEGRAM_STATS } from '@/features/channels/constants/telegram.constants';
 import { TelegramChannelStatus } from '@/features/channels/typedefs/telegram.typedefs';
-import { TelegramActivityCard } from '@/features/channels/view/TelegramActivityCard';
 import { TelegramBotConnection } from '@/features/channels/view/TelegramBotDetails/TelegramBotConnection';
 import type { TelegramBotDetailsProps } from '@/features/channels/view/TelegramBotDetails/TelegramBotDetails.typedefs';
 import { TelegramBotWhoAnswers } from '@/features/channels/view/TelegramBotDetails/TelegramBotWhoAnswers';
@@ -108,7 +106,6 @@ export function TelegramBotDetails({
           {!broken && !disconnected && (
             <>
               <TelegramConnectHelpCard />
-              <TelegramActivityCard stats={EMPTY_TELEGRAM_STATS} />
             </>
           )}
         </div>

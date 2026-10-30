@@ -8,11 +8,9 @@ import {
   CHANNELS_PATH,
   CHANNELS_TELEGRAM_BOT_PATH,
 } from '@/features/channels/constants/route.constants';
-import { EMPTY_TELEGRAM_STATS } from '@/features/channels/constants/telegram.constants';
 import { TELEGRAM_TOKEN_PATTERN } from '@/features/channels/constants/telegram.constants';
 import type { TelegramConnectPageProps } from '@/features/channels/containers/TelegramConnectPage/TelegramConnectPage.typedefs';
 import { channelsHref } from '@/features/channels/logic/helpers/route.helpers';
-import { TelegramActivityCard } from '@/features/channels/view/TelegramActivityCard';
 import { TelegramConnectForm } from '@/features/channels/view/TelegramConnectForm';
 import { TelegramConnectHelpCard } from '@/features/channels/view/TelegramConnectHelpCard';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
@@ -113,7 +111,6 @@ export function TelegramConnectPage({ workspaceId }: TelegramConnectPageProps) {
         />
         <div className="flex flex-col gap-4">
           <TelegramConnectHelpCard />
-          <TelegramActivityCard stats={EMPTY_TELEGRAM_STATS} />
         </div>
       </div>
     </div>
