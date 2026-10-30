@@ -14,8 +14,14 @@ export function TelegramBotContent({
   workspaceId,
   channel,
   agentOptions,
+  onChannelRefetch,
 }: TelegramBotContentProps) {
-  const botContent = useTelegramBotContent({ workspaceId, channel, agentOptions });
+  const botContent = useTelegramBotContent({
+    workspaceId,
+    channel,
+    agentOptions,
+    onChannelRefetch,
+  });
 
   const { t, i18n } = useTranslation(CHANNELS_NAMESPACE);
 

@@ -7,7 +7,10 @@ import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
-export function useTelegramBotActions(channelId: string): TelegramBotActionsResult {
+export function useTelegramBotActions(
+  channelId: string,
+  onChannelRefetch: () => void,
+): TelegramBotActionsResult {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
   const errorMessage = useErrorMessage();
   const { showToast } = useToast();
@@ -28,6 +31,7 @@ export function useTelegramBotActions(channelId: string): TelegramBotActionsResu
       await refreshTelegramIdentity(channelId);
       showToast({ message: t('telegram.bot.refreshed'), tone: ToastTone.Ok });
     } catch (caught) {
+      onChannelRefetch();
       showToast({ message: errorMessage(toAppError(caught)), tone: ToastTone.Err });
     }
   };

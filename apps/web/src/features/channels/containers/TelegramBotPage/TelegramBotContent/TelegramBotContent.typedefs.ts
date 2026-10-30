@@ -5,6 +5,7 @@ export interface TelegramBotContentProps {
   readonly workspaceId: string;
   readonly channel: TelegramChannelView;
   readonly agentOptions: readonly SelectOption[];
+  readonly onChannelRefetch: () => void;
 }
 
 export interface TelegramBotContentHeader {
