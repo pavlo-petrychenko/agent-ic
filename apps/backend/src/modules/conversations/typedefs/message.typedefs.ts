@@ -38,6 +38,14 @@ export interface OutboundDelivery {
   readonly conversation: Conversation;
 }
 
+export interface QuickReplyTextInput {
+  readonly workspaceId: string;
+  readonly messageId: string;
+  readonly index: number;
+  readonly channelId: string;
+  readonly endUserExternalId: string;
+}
+
 export interface RunMessageCount {
   readonly runId: string | null;
   readonly total: number;
