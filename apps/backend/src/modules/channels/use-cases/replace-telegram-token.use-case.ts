@@ -1,5 +1,6 @@
 import { ChannelKind, IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
+import { CHANNEL_REPLACE_TOKEN_RATE_LIMIT } from '@/modules/channels/constants/channel-rate-limit.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { TelegramTokenInvalidError } from '@/modules/channels/errors/telegram-token-invalid.error';
 import { parseChannelInput } from '@/modules/channels/helpers/channel-input.helpers';
@@ -15,6 +16,7 @@ import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.service';
 
 @Injectable()
 export class ReplaceTelegramTokenUseCase {
@@ -23,12 +25,14 @@ export class ReplaceTelegramTokenUseCase {
     private readonly channels: ChannelsRepository,
     private readonly telegram: TelegramChannelService,
     private readonly connections: ChannelConnectionService,
+    private readonly rateLimits: RateLimitService,
     private readonly ids: IdService,
   ) {}
 
   async execute(ctx: UseCaseCtx, input: ReplaceTelegramTokenInput): Promise<ChannelView> {
     const access = authorize(ctx, PermissionResource.Channels, PermissionAction.Edit);
     const data = parseChannelInput(replaceTelegramTokenInputSchema, input);
+    await this.rateLimits.enforce(CHANNEL_REPLACE_TOKEN_RATE_LIMIT, access.workspaceId);
     const channelId = this.ids.fromPublic(IdPrefix.Channel, data.id);
 
     const channel = await this.tenantTransactions.run(access.workspaceId, () =>
