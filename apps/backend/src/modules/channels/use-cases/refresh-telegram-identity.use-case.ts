@@ -1,6 +1,7 @@
 import { ChannelKind, IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable, Logger } from '@nestjs/common';
 import { ChannelHealthLogMessage } from '@/modules/channels/constants/channel-health.constants';
+import { CHANNEL_REFRESH_IDENTITY_RATE_LIMIT } from '@/modules/channels/constants/channel-rate-limit.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { TelegramTokenInvalidError } from '@/modules/channels/errors/telegram-token-invalid.error';
 import { toChannelView } from '@/modules/channels/helpers/channel-view.helpers';
@@ -19,6 +20,7 @@ import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.service';
 
 @Injectable()
 export class RefreshTelegramIdentityUseCase {
@@ -29,6 +31,7 @@ export class RefreshTelegramIdentityUseCase {
     private readonly channels: ChannelsRepository,
     private readonly telegram: TelegramChannelService,
     private readonly health: ChannelHealthService,
+    private readonly rateLimits: RateLimitService,
     private readonly users: UsersRepository,
     private readonly clock: ClockService,
     private readonly ids: IdService,
@@ -36,6 +39,7 @@ export class RefreshTelegramIdentityUseCase {
 
   async execute(ctx: UseCaseCtx, input: ChannelIdInput): Promise<ChannelView> {
     const access = authorize(ctx, PermissionResource.Channels, PermissionAction.Edit);
+    await this.rateLimits.enforce(CHANNEL_REFRESH_IDENTITY_RATE_LIMIT, access.workspaceId);
     const channelId = this.ids.fromPublic(IdPrefix.Channel, input.id);
     const channel = await this.tenantTransactions.run(access.workspaceId, () =>
       this.channels.findById(access.workspaceId, channelId),
