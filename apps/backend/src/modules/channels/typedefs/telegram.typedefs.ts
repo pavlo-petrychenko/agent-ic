@@ -40,6 +40,13 @@ export interface TelegramQuickReplyCallback {
   readonly index: number;
 }
 
+export interface TelegramTokenHealthResult {
+  readonly checked: number;
+  readonly broken: number;
+}
+
+export type CheckTelegramTokenHealthInput = Readonly<Record<string, never>>;
+
 export interface TelegramUpdate {
   readonly updateId: string;
   readonly message: TelegramMessage | null;

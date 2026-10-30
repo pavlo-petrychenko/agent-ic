@@ -7,6 +7,7 @@ import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-c
 import { TelegramChannelAdapter } from '@/modules/channels/gateways/telegram-channel-adapter.gateway';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { DeliverOutboundMessageListener } from '@/modules/channels/listeners/deliver-outbound-message.listener';
+import { CheckTelegramTokenHealthProcessor } from '@/modules/channels/processors/check-telegram-token-health.processor';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { TelegramPollerRepository } from '@/modules/channels/repositories/telegram-poller.repository';
@@ -25,7 +26,9 @@ import { ChannelMetricsService } from '@/modules/channels/services/channel-metri
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { TelegramChannelService } from '@/modules/channels/services/telegram-channel.service';
 import { TelegramPollerService } from '@/modules/channels/services/telegram-poller.service';
+import { TelegramTokenHealthService } from '@/modules/channels/services/telegram-token-health.service';
 import { TelegramUpdatesService } from '@/modules/channels/services/telegram-updates.service';
+import { CheckTelegramTokenHealthUseCase } from '@/modules/channels/use-cases/check-telegram-token-health.use-case';
 import { ConnectTelegramChannelUseCase } from '@/modules/channels/use-cases/connect-telegram.use-case';
 import { DeleteChannelUseCase } from '@/modules/channels/use-cases/delete-channel.use-case';
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
@@ -52,6 +55,7 @@ export class ChannelsModule extends defineModule({
     ChannelHealthService,
     TelegramChannelService,
     TelegramPollerService,
+    TelegramTokenHealthService,
     TelegramUpdatesService,
     {
       provide: TelegramGateway,
@@ -80,6 +84,7 @@ export class ChannelsModule extends defineModule({
     UpdateTelegramChannelUseCase,
     DeliverOutboundMessageUseCase,
     HandleTelegramWebhookUseCase,
+    CheckTelegramTokenHealthUseCase,
   ],
   resolvers: [
     ChannelResolver,
@@ -93,5 +98,6 @@ export class ChannelsModule extends defineModule({
   ],
   gatewayControllers: [TelegramWebhookController],
   listeners: [DeliverOutboundMessageListener],
+  processors: [CheckTelegramTokenHealthProcessor],
   exports: [SimulatedChannelAdapter, TelegramChannelAdapter, ChannelAdapterRegistryService],
 }) {}
