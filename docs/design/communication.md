@@ -38,7 +38,7 @@
 | Browser | `api` | A | GraphQL subscriptions over WebSocket (Inbox, simulator, KB progress) |
 | Browser | S3 / Silo | S | Upload KB files directly with a presigned URL (up to 20 MB, never streamed through `api`) |
 | Browser | Langfuse UI | S | "Open in Langfuse" links for platform admins only, when Langfuse is on (D47) |
-| Telegram | `gateway` | S | Bot webhooks (customer messages) |
+| Telegram | `gateway` | S | Bot webhooks (customer messages and quick-reply taps) |
 | Business systems | `gateway` | S | `POST /v1/channels/{id}/messages`, `/events` |
 | `gateway` | Postgres | S | Save message + conversation + run in one transaction; de-duplicate; check channel key hash |
 | `gateway` | Redis queue | A | Enqueue `runs-reactive` |
@@ -49,7 +49,7 @@
 | `api` | Redis pub/sub | A | Publish operator actions; subscribe to forward events to its WebSocket clients |
 | `api` | Redis cache | S | Sessions, permission cache, rate limits on auth |
 | `api` | Telegram Bot API | S | `getMe` + `setWebhook` / `deleteWebhook` when connecting or disconnecting a bot |
-| `gateway` | Telegram Bot API | S | `getUpdates` long polling, local-dev transport only (ADR 0008) |
+| `gateway` | Telegram Bot API | S | `getUpdates` long polling, local-dev transport only (ADR 0008); `answerCallbackQuery` for quick-reply taps |
 | `api` | LLM / embedding providers | S | BYOK key check on save; embedding the query in the retrieval playground |
 | `api` | Google OAuth | S | Exchange the OAuth code on the connection callback |
 | Redis queue | `worker-runs` | A | `runs-reactive`, `runs-proactive`, `outbound`, `notify`, `timers` |
@@ -58,7 +58,7 @@
 | `worker-runs` | Redis queue | A | Enqueue follow-ups: outbound, notify, the next run, timers |
 | `worker-runs` | Redis pub/sub | A | Step events (simulator), message events (Inbox), `run:{id}:done` (gateway) |
 | `worker-runs` | LLM providers | S | Agent and Completion steps |
-| `worker-runs` | Telegram Bot API | S | `sendChatAction` (typing), `sendMessage` |
+| `worker-runs` | Telegram Bot API | S | `sendChatAction` (typing), `sendMessage` (text and inline keyboards) |
 | `worker-runs` | Business systems | S | API-channel webhooks (signed); API request steps |
 | `worker-runs` | Email provider, alerts bot | S | Operator alerts, system emails |
 | `worker-runs` | Langfuse | A | Traces via the OTel Collector, only when Langfuse is on (D47) |
@@ -196,15 +196,16 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 3. Runs already in progress keep their `version_id`. New runs pick up the new live version.
 
 ### K. Telegram channel lifecycle
-*Production uses webhooks; local dev can use long polling (`TELEGRAM_TRANSPORT=polling`). Both transports feed the same entry point — `handleTelegramUpdate` in `TelegramUpdatesService`: de-duplicate in `channels.channel_events` by `(channel_id, update_id)`, map the update to a message, save it and enqueue the run (ADR 0008).*
+*Production uses webhooks; local dev can use long polling (`TELEGRAM_TRANSPORT=polling`). Both transports feed the same entry point — `handleTelegramUpdate` in `TelegramUpdatesService`: de-duplicate in `channels.channel_events` by `(channel_id, update_id)`, map a message update to a customer message or a quick-reply `callback_query` to its stored button label, save it and enqueue the run (ADR 0008).*
 
 1. Browser → `api` mutation `connectTelegram(token, agentId)` → Telegram `getMe` (validate) → `setWebhook(url, secret_token)` in webhook mode, `deleteWebhook` in polling mode. Both are synchronous; the user sees errors immediately.
 2. → Postgres: channel with the sealed token and the bot identity; `pending` while the transport is configured, then `connected`.
 3. **Polling transport (local dev):** the `gateway` role runs `TelegramPollerService` only when `TELEGRAM_TRANSPORT=polling`. It lists connected Telegram channels across workspaces, calls `getUpdates` per bot with that channel's offset and `TELEGRAM_POLL_TIMEOUT_SECONDS`, and passes each update to the entry point. The offset advances only after the update is handled; it is kept in memory, and `channel_events` makes a replay after a restart harmless. One consumer per bot: a second poller or a registered webhook gets `409`.
 4. **Settings, replace, disconnect, reconnect, refresh:** `updateTelegram(id, agentId, showTyping)` stores who answers; `replaceTelegramToken(id, token)` validates the new token, requires the same bot, re-registers the transport and seals the new token; `disconnectTelegram(id)` deletes the webhook and sets `disconnected`; `reconnectTelegram(id)` reuses the sealed token, validates the same bot, generates a new webhook secret, re-registers the transport and returns `connected`, without asking for the token again. Reconnect claims `disconnected → pending` first, so two clicks cannot create conflicting secrets. `refreshTelegramIdentity(id)` calls `getMe` and updates only the stored bot username and first name, leaving status, webhook and credentials untouched.
 5. **Delete:** `deleteChannel(id)` removes the webhook (unless the channel is already disconnected), then deletes the row; `channel_events` cascade, while conversations, messages and runs stay. The bot id is freed, so the same bot can be connected again.
-6. **Outbound:** `worker-runs` delivers through `TelegramChannelAdapter`: it loads the channel and opens its token, enforces the per-bot and per-chat token buckets, sends `sendChatAction` when `showTyping` is on, then `sendMessage` to the conversation's chat id. The delivery use case marks the message `delivered` or `failed`.
-7. **Broken token later:** sends fail with 401, or Telegram stops delivering → status `broken` → email to owners and admins (not built yet).
+6. **Outbound:** `worker-runs` delivers through `TelegramChannelAdapter`: it loads the channel and opens its token, enforces the per-bot and per-chat token buckets, sends `sendChatAction` when `showTyping` is on, then `sendMessage` to the conversation's chat id. When the message has quick replies, `sendMessage` carries `reply_markup.inline_keyboard`: each button's `callback_data` is `qr:<internalMessageId>:<index>`, and labels are packed into rows of at most three, then wrapped. The delivery use case marks the message `delivered` or `failed`.
+7. **Quick reply tap:** Telegram sends `callback_query`. `handleTelegramUpdate` opens the bot token, answers with `answerCallbackQuery`, parses `qr:<messageId>:<index>`, and resolves the label through `ConversationRunsService.quickReplyText`, which checks the message, channel and chat. An unknown or stale button answers “This button is no longer active.” and is dropped; a valid one writes a `quick_reply` channel event and passes the label to `IncomingMessagesService` as the customer text, so the Router sees `message.text = label` and the flow continues as if the customer typed it.
+8. **Broken token later:** sends fail with 401, or Telegram stops delivering → status `broken` → email to owners and admins (not built yet).
 
 The webhook endpoint is `POST /webhooks/telegram/{workspacePublicId}/{channelPublicId}`: the gateway checks the `x-telegram-bot-api-secret-token` header against the channel's sealed webhook secret hash, then calls `handleTelegramUpdate`. Local development can keep using the polling transport; the two are mutually exclusive per bot (ADR 0008).
 
