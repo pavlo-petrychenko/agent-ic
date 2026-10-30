@@ -51,8 +51,33 @@ export const toTelegramCallbackQuery = (
 export const toIncomingMessageInput = (
   channel: Pick<ChannelRecord, 'id' | 'workspaceId' | 'agentId'>,
   message: TelegramMessage,
+): IncomingMessageInput | null =>
+  toIncomingMessage(channel, {
+    endUserExternalId: message.chatId,
+    endUserName: message.senderName,
+    externalId: message.messageId,
+    text: message.text ?? '',
+  });
+
+export const toIncomingQuickReplyInput = (
+  channel: Pick<ChannelRecord, 'id' | 'workspaceId' | 'agentId'>,
+  query: TelegramCallbackQuery,
+  text: string,
+): IncomingMessageInput | null =>
+  query.chatId === null
+    ? null
+    : toIncomingMessage(channel, {
+        endUserExternalId: query.chatId,
+        endUserName: query.senderName,
+        externalId: query.id,
+        text,
+      });
+
+const toIncomingMessage = (
+  channel: Pick<ChannelRecord, 'id' | 'workspaceId' | 'agentId'>,
+  fields: Pick<IncomingMessageInput, 'endUserExternalId' | 'endUserName' | 'externalId' | 'text'>,
 ): IncomingMessageInput | null => {
-  if (channel.agentId === null || message.text === null || message.text.trim() === '') {
+  if (channel.agentId === null || fields.text.trim() === '') {
     return null;
   }
   return {
@@ -61,10 +86,7 @@ export const toIncomingMessageInput = (
     mode: ConversationMode.Live,
     channelKind: ChannelKind.Telegram,
     channelId: channel.id,
-    endUserExternalId: message.chatId,
-    endUserName: message.senderName,
-    externalId: message.messageId,
-    text: message.text,
+    ...fields,
     versionId: null,
   };
 };

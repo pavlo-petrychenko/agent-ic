@@ -35,6 +35,11 @@ export interface TelegramCallbackQuery {
   readonly data: string | null;
 }
 
+export interface TelegramQuickReplyCallback {
+  readonly messageId: string;
+  readonly index: number;
+}
+
 export interface TelegramUpdate {
   readonly updateId: string;
   readonly message: TelegramMessage | null;

@@ -1,24 +1,34 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { ChannelEventType } from '@/modules/channels/constants/channel-event.constants';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
+import { TELEGRAM_QUICK_REPLY_EXPIRED_TEXT } from '@/modules/channels/constants/telegram.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { TelegramWebhookUnauthorizedError } from '@/modules/channels/errors/telegram-webhook-unauthorized.error';
+import { telegramQuickReplyCallbackData } from '@/modules/channels/helpers/telegram.helpers';
 import { TelegramUpdatesService } from '@/modules/channels/services/telegram-updates.service';
 import type {
+  TelegramCallbackQuery,
   TelegramMessage,
   TelegramUpdate,
 } from '@/modules/channels/typedefs/telegram.typedefs';
-import { IncomingMessageOutcome, MessageAuthor } from '@/modules/conversations';
+import { ChannelKind, IncomingMessageOutcome, MessageAuthor } from '@/modules/conversations';
 import { SystemActorRequiredError } from '@/platform/context/errors/system-actor-required.error';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { TEST_TELEGRAM_TOKEN } from '@test/support/constants/channel-testing.constants';
+import {
+  QUICK_REPLIES,
+  TEST_END_USER_EXTERNAL_ID,
+} from '@test/support/constants/conversations-testing.constants';
 import { newChannel } from '@test/support/fixtures/channel.fixture';
 import { workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { channelEventsFor } from '@test/support/helpers/channel-events.helpers';
 import {
   createChannelsTestbed,
+  queueAgentReply,
+  seedChannelConversation,
   seedChannelWorkspace,
 } from '@test/support/helpers/channels-testing.helpers';
 import { seedAgent } from '@test/support/helpers/conversations-testing.helpers';
@@ -26,6 +36,8 @@ import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.ty
 
 const UPDATE_ID = '1000';
 const MESSAGE_ID = '5';
+const CALLBACK_ID = 'callback-1';
+const CALLBACK_UPDATE_ID = '2000';
 const WEBHOOK_SECRET = 'webhook-secret';
 
 const telegramUpdate = (overrides: Partial<TelegramMessage> = {}): TelegramUpdate => ({
@@ -42,6 +54,24 @@ const telegramUpdate = (overrides: Partial<TelegramMessage> = {}): TelegramUpdat
   callbackQuery: null,
 });
 
+const callbackUpdate = (
+  messageId: string,
+  overrides: Partial<TelegramCallbackQuery> = {},
+  index = 0,
+): TelegramUpdate => ({
+  updateId: CALLBACK_UPDATE_ID,
+  message: null,
+  callbackQuery: {
+    id: CALLBACK_ID,
+    chatId: TEST_END_USER_EXTERNAL_ID,
+    telegramMessageId: '7',
+    senderId: '900',
+    senderName: 'Moshe',
+    data: telegramQuickReplyCallbackData(messageId, index),
+    ...overrides,
+  },
+});
+
 describe('TelegramUpdatesService', () => {
   let testbed: ChannelsTestbed;
   let updates: TelegramUpdatesService;
@@ -55,6 +85,10 @@ describe('TelegramUpdatesService', () => {
 
   afterAll(async () => {
     await testbed.module.close();
+  });
+
+  beforeEach(() => {
+    testbed.telegram.answerCallbackQueryCalls.length = 0;
   });
 
   const seed = async (
@@ -86,6 +120,18 @@ describe('TelegramUpdatesService', () => {
       channel,
       ctx: workspaceSystemCtx(workspace.workspaceId),
     };
+  };
+
+  const seedQuickReply = async () => {
+    const seeded = await seed();
+    const conversation = await seedChannelConversation(testbed, {
+      workspaceId: seeded.workspaceId,
+      agentId: seeded.agentId,
+      channelKind: ChannelKind.Telegram,
+      channelId: seeded.channel.id,
+    });
+    const message = await queueAgentReply(testbed, conversation);
+    return { ...seeded, conversation, message };
   };
 
   it('stores the message and requests a run', async () => {
@@ -240,6 +286,137 @@ describe('TelegramUpdatesService', () => {
         update: telegramUpdate(),
       }),
     ).resolves.toBeNull();
+  });
+
+  it('stores a quick reply as the customer message', async () => {
+    const { channel, ctx, workspaceId, message } = await seedQuickReply();
+
+    const result = await updates.handleTelegramUpdate(ctx, {
+      channelId: channel.id,
+      update: callbackUpdate(message.id),
+    });
+
+    if (result === null) {
+      throw new Error('Expected a received quick reply');
+    }
+    expect(result.outcome).toBe(IncomingMessageOutcome.RunRequested);
+    const stored = await testbed.tenants.run(workspaceId, () =>
+      testbed.messages.findByExternalId(workspaceId, result.conversationId, CALLBACK_ID),
+    );
+    expect(stored).toMatchObject({
+      author: MessageAuthor.Customer,
+      text: QUICK_REPLIES[0],
+    });
+    await expect(channelEventsFor(testbed.module, channel.id)).resolves.toMatchObject([
+      {
+        type: ChannelEventType.QuickReply,
+        externalId: CALLBACK_UPDATE_ID,
+        senderExternalId: '900',
+        senderName: 'Moshe',
+        text: QUICK_REPLIES[0],
+      },
+    ]);
+    expect(testbed.telegram.answerCallbackQueryCalls).toEqual([
+      {
+        token: TEST_TELEGRAM_TOKEN,
+        callbackQueryId: CALLBACK_ID,
+        text: null,
+        showAlert: false,
+      },
+    ]);
+  });
+
+  it('answers and drops a quick reply outside the stored buttons', async () => {
+    const { channel, ctx, message } = await seedQuickReply();
+
+    const result = await updates.handleTelegramUpdate(ctx, {
+      channelId: channel.id,
+      update: callbackUpdate(message.id, {}, QUICK_REPLIES.length),
+    });
+
+    expect(result).toBeNull();
+    expect(testbed.telegram.answerCallbackQueryCalls).toMatchObject([
+      { callbackQueryId: CALLBACK_ID, text: TELEGRAM_QUICK_REPLY_EXPIRED_TEXT },
+    ]);
+    await expect(channelEventsFor(testbed.module, channel.id)).resolves.toEqual([]);
+  });
+
+  it('answers and drops a quick reply from another chat', async () => {
+    const { channel, ctx, message } = await seedQuickReply();
+
+    const result = await updates.handleTelegramUpdate(ctx, {
+      channelId: channel.id,
+      update: callbackUpdate(message.id, { chatId: 'other-chat' }),
+    });
+
+    expect(result).toBeNull();
+    expect(testbed.telegram.answerCallbackQueryCalls).toMatchObject([
+      { text: TELEGRAM_QUICK_REPLY_EXPIRED_TEXT },
+    ]);
+    await expect(channelEventsFor(testbed.module, channel.id)).resolves.toEqual([]);
+  });
+
+  it('acknowledges a callback that carries no data', async () => {
+    const { channel, ctx } = await seed();
+
+    const result = await updates.handleTelegramUpdate(ctx, {
+      channelId: channel.id,
+      update: callbackUpdate('', { data: null }),
+    });
+
+    expect(result).toBeNull();
+    expect(testbed.telegram.answerCallbackQueryCalls).toEqual([
+      {
+        token: TEST_TELEGRAM_TOKEN,
+        callbackQueryId: CALLBACK_ID,
+        text: null,
+        showAlert: false,
+      },
+    ]);
+    await expect(channelEventsFor(testbed.module, channel.id)).resolves.toEqual([]);
+  });
+
+  it('answers and drops a callback that is not a quick reply', async () => {
+    const { channel, ctx } = await seed();
+
+    const result = await updates.handleTelegramUpdate(ctx, {
+      channelId: channel.id,
+      update: callbackUpdate('', { data: 'Book a table' }),
+    });
+
+    expect(result).toBeNull();
+    expect(testbed.telegram.answerCallbackQueryCalls).toMatchObject([
+      { text: TELEGRAM_QUICK_REPLY_EXPIRED_TEXT },
+    ]);
+    await expect(channelEventsFor(testbed.module, channel.id)).resolves.toEqual([]);
+  });
+
+  it('stores one message for a repeated callback update', async () => {
+    const { channel, ctx, workspaceId, message } = await seedQuickReply();
+    const update = callbackUpdate(message.id);
+
+    const first = await updates.handleTelegramUpdate(ctx, { channelId: channel.id, update });
+    const second = await updates.handleTelegramUpdate(ctx, { channelId: channel.id, update });
+
+    expect(first?.outcome).toBe(IncomingMessageOutcome.RunRequested);
+    expect(second).toBeNull();
+    await expect(channelEventsFor(testbed.module, channel.id)).resolves.toHaveLength(1);
+    const stored = await testbed.tenants.run(workspaceId, () =>
+      testbed.messages.findByExternalId(workspaceId, first?.conversationId ?? '', CALLBACK_ID),
+    );
+    expect(stored?.text).toBe(QUICK_REPLIES[0]);
+  });
+
+  it('stores the quick reply even when the callback acknowledgement fails', async () => {
+    const { channel, ctx, message } = await seedQuickReply();
+    testbed.telegram.failNext(new Error('telegram is down'));
+
+    const result = await updates.handleTelegramUpdate(ctx, {
+      channelId: channel.id,
+      update: callbackUpdate(message.id),
+    });
+
+    expect(result?.outcome).toBe(IncomingMessageOutcome.RunRequested);
   });
 
   it('refuses a user actor', async () => {

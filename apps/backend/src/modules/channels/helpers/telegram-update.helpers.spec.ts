@@ -2,6 +2,7 @@ import { ChannelKind } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
 import {
   toIncomingMessageInput,
+  toIncomingQuickReplyInput,
   toTelegramUpdate,
 } from '@/modules/channels/helpers/telegram-update.helpers';
 import { ConversationMode } from '@/modules/conversations';
@@ -15,6 +16,15 @@ const MESSAGE = {
   senderId: '900',
   senderName: 'Moshe',
   text: 'Hello',
+};
+
+const CALLBACK = {
+  id: 'callback-1',
+  chatId: '42',
+  telegramMessageId: '7',
+  senderId: '900',
+  senderName: 'Moshe',
+  data: 'qr:message-1:0',
 };
 
 describe('toTelegramUpdate', () => {
@@ -115,5 +125,31 @@ describe('toIncomingMessageInput', () => {
   it('returns null without text to answer', () => {
     expect(toIncomingMessageInput(CHANNEL, { ...MESSAGE, text: null })).toBeNull();
     expect(toIncomingMessageInput(CHANNEL, { ...MESSAGE, text: '   ' })).toBeNull();
+  });
+});
+
+describe('toIncomingQuickReplyInput', () => {
+  it('maps a resolved button label to a customer message', () => {
+    expect(toIncomingQuickReplyInput(CHANNEL, CALLBACK, 'Hours')).toEqual({
+      workspaceId: 'ws_1',
+      agentId: 'agt_1',
+      mode: ConversationMode.Live,
+      channelKind: ChannelKind.Telegram,
+      channelId: 'chn_1',
+      endUserExternalId: '42',
+      endUserName: 'Moshe',
+      externalId: 'callback-1',
+      text: 'Hours',
+      versionId: null,
+    });
+  });
+
+  it('returns null without a chat or an agent', () => {
+    expect(toIncomingQuickReplyInput(CHANNEL, { ...CALLBACK, chatId: null }, 'Hours')).toBeNull();
+    expect(toIncomingQuickReplyInput({ ...CHANNEL, agentId: null }, CALLBACK, 'Hours')).toBeNull();
+  });
+
+  it('returns null for a blank label', () => {
+    expect(toIncomingQuickReplyInput(CHANNEL, CALLBACK, '  ')).toBeNull();
   });
 });

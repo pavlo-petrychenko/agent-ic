@@ -284,8 +284,10 @@ describe('HttpTelegramGateway', () => {
       text: 'Hello',
       reply_markup: {
         inline_keyboard: [
-          [{ text: 'Book a table', callback_data: 'qr:message-1:0' }],
-          [{ text: 'Call us', callback_data: 'qr:message-1:1' }],
+          [
+            { text: 'Book a table', callback_data: 'qr:message-1:0' },
+            { text: 'Call us', callback_data: 'qr:message-1:1' },
+          ],
         ],
       },
     });
