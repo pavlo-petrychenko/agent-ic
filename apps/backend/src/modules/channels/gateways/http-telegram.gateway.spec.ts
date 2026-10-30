@@ -362,6 +362,30 @@ describe('HttpTelegramGateway', () => {
     expect(requestBody(init)).toEqual({ callback_query_id: 'callback-2' });
   });
 
+  it('removes the inline keyboard from a message', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({
+        ok: true,
+        result: { message_id: 7, date: 1_760_000_000, chat: { id: 42 }, text: 'Hello' },
+      }),
+    );
+
+    await gateway.removeInlineKeyboard({
+      token: TEST_TELEGRAM_TOKEN,
+      chatId: '42',
+      messageId: '7',
+    });
+
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe(`${TELEGRAM_API_BASE_URL}/bot${TEST_TELEGRAM_TOKEN}/editMessageReplyMarkup`);
+    expect(init?.method).toBe('POST');
+    expect(requestBody(init)).toEqual({
+      chat_id: '42',
+      message_id: '7',
+      reply_markup: { inline_keyboard: [] },
+    });
+  });
+
   it('maps a blocked bot to a non-retryable send error', async () => {
     fetchMock.mockResolvedValueOnce(
       Response.json(
