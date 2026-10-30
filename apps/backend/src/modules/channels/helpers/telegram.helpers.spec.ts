@@ -54,7 +54,7 @@ describe('parseTelegramQuickReplyCallbackData', () => {
 });
 
 describe('telegramReplyMarkup', () => {
-  it('packs short quick replies into one row', () => {
+  it('puts two short quick replies in one row', () => {
     expect(telegramReplyMarkup(MESSAGE_ID, ['Book', 'Call'])).toEqual({
       inline_keyboard: [
         [
@@ -65,39 +65,24 @@ describe('telegramReplyMarkup', () => {
     });
   });
 
-  it('packs the three menu buttons into one row', () => {
-    expect(telegramReplyMarkup(MESSAGE_ID, ['Menu', 'Hours', 'Talk to a person'])).toEqual({
+  it('puts a third short button on the next row', () => {
+    expect(telegramReplyMarkup(MESSAGE_ID, ['Book', 'Call', 'Menu'])).toEqual({
       inline_keyboard: [
         [
-          { text: 'Menu', callback_data: `qr:${MESSAGE_ID}:0` },
-          { text: 'Hours', callback_data: `qr:${MESSAGE_ID}:1` },
-          { text: 'Talk to a person', callback_data: `qr:${MESSAGE_ID}:2` },
+          { text: 'Book', callback_data: `qr:${MESSAGE_ID}:0` },
+          { text: 'Call', callback_data: `qr:${MESSAGE_ID}:1` },
         ],
+        [{ text: 'Menu', callback_data: `qr:${MESSAGE_ID}:2` }],
       ],
     });
   });
 
-  it('starts a new row when the labels no longer fit', () => {
-    expect(telegramReplyMarkup(MESSAGE_ID, ['Book a table', 'Call us', 'Opening hours'])).toEqual({
+  it('gives a wide label its own row', () => {
+    expect(telegramReplyMarkup(MESSAGE_ID, ['Menu', 'Talk to a person', 'Hours'])).toEqual({
       inline_keyboard: [
-        [
-          { text: 'Book a table', callback_data: `qr:${MESSAGE_ID}:0` },
-          { text: 'Call us', callback_data: `qr:${MESSAGE_ID}:1` },
-        ],
-        [{ text: 'Opening hours', callback_data: `qr:${MESSAGE_ID}:2` }],
-      ],
-    });
-  });
-
-  it('puts a fourth button on the next row', () => {
-    expect(telegramReplyMarkup(MESSAGE_ID, ['A', 'B', 'C', 'D'])).toEqual({
-      inline_keyboard: [
-        [
-          { text: 'A', callback_data: `qr:${MESSAGE_ID}:0` },
-          { text: 'B', callback_data: `qr:${MESSAGE_ID}:1` },
-          { text: 'C', callback_data: `qr:${MESSAGE_ID}:2` },
-        ],
-        [{ text: 'D', callback_data: `qr:${MESSAGE_ID}:3` }],
+        [{ text: 'Menu', callback_data: `qr:${MESSAGE_ID}:0` }],
+        [{ text: 'Talk to a person', callback_data: `qr:${MESSAGE_ID}:1` }],
+        [{ text: 'Hours', callback_data: `qr:${MESSAGE_ID}:2` }],
       ],
     });
   });
