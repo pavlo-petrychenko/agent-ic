@@ -1,5 +1,5 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChannelEventType } from '@/modules/channels/constants/channel-event.constants';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { TELEGRAM_QUICK_REPLY_EXPIRED_TEXT } from '@/modules/channels/constants/telegram.constants';
@@ -87,8 +87,13 @@ describe('TelegramUpdatesService', () => {
     await testbed.module.close();
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   beforeEach(() => {
     testbed.telegram.answerCallbackQueryCalls.length = 0;
+    testbed.telegram.removeInlineKeyboardCalls.length = 0;
   });
 
   const seed = async (
@@ -324,6 +329,13 @@ describe('TelegramUpdatesService', () => {
         showAlert: false,
       },
     ]);
+    expect(testbed.telegram.removeInlineKeyboardCalls).toEqual([
+      {
+        token: TEST_TELEGRAM_TOKEN,
+        chatId: TEST_END_USER_EXTERNAL_ID,
+        messageId: '7',
+      },
+    ]);
   });
 
   it('answers and drops a quick reply outside the stored buttons', async () => {
@@ -338,6 +350,7 @@ describe('TelegramUpdatesService', () => {
     expect(testbed.telegram.answerCallbackQueryCalls).toMatchObject([
       { callbackQueryId: CALLBACK_ID, text: TELEGRAM_QUICK_REPLY_EXPIRED_TEXT },
     ]);
+    expect(testbed.telegram.removeInlineKeyboardCalls).toHaveLength(1);
     await expect(channelEventsFor(testbed.module, channel.id)).resolves.toEqual([]);
   });
 
@@ -353,6 +366,7 @@ describe('TelegramUpdatesService', () => {
     expect(testbed.telegram.answerCallbackQueryCalls).toMatchObject([
       { text: TELEGRAM_QUICK_REPLY_EXPIRED_TEXT },
     ]);
+    expect(testbed.telegram.removeInlineKeyboardCalls).toHaveLength(1);
     await expect(channelEventsFor(testbed.module, channel.id)).resolves.toEqual([]);
   });
 
@@ -373,6 +387,7 @@ describe('TelegramUpdatesService', () => {
         showAlert: false,
       },
     ]);
+    expect(testbed.telegram.removeInlineKeyboardCalls).toEqual([]);
     await expect(channelEventsFor(testbed.module, channel.id)).resolves.toEqual([]);
   });
 
@@ -388,6 +403,7 @@ describe('TelegramUpdatesService', () => {
     expect(testbed.telegram.answerCallbackQueryCalls).toMatchObject([
       { text: TELEGRAM_QUICK_REPLY_EXPIRED_TEXT },
     ]);
+    expect(testbed.telegram.removeInlineKeyboardCalls).toHaveLength(1);
     await expect(channelEventsFor(testbed.module, channel.id)).resolves.toEqual([]);
   });
 
@@ -409,7 +425,9 @@ describe('TelegramUpdatesService', () => {
 
   it('stores the quick reply even when the callback acknowledgement fails', async () => {
     const { channel, ctx, message } = await seedQuickReply();
-    testbed.telegram.failNext(new Error('telegram is down'));
+    vi.spyOn(testbed.telegram, 'answerCallbackQuery').mockRejectedValueOnce(
+      new Error('telegram is down'),
+    );
 
     const result = await updates.handleTelegramUpdate(ctx, {
       channelId: channel.id,

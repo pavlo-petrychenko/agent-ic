@@ -94,6 +94,12 @@ export interface AnswerTelegramCallbackQueryInput {
   readonly showAlert: boolean;
 }
 
+export interface RemoveTelegramInlineKeyboardInput {
+  readonly token: string;
+  readonly chatId: string;
+  readonly messageId: string;
+}
+
 export interface TelegramInlineKeyboardButton {
   readonly text: string;
   readonly callback_data: string;
