@@ -44,6 +44,7 @@ export type {
   Message,
   OutboundDelivery,
   OutboundMessageInput,
+  QuickReplyTextInput,
 } from '@/modules/conversations/typedefs/message.typedefs';
 export type {
   ScheduleAudienceRequest,
