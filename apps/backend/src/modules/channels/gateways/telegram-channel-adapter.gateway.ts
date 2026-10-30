@@ -8,6 +8,7 @@ import { TelegramChatAction } from '@/modules/channels/constants/telegram.consta
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { ChannelAdapter } from '@/modules/channels/gateways/channel-adapter.gateway';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
+import { isTelegramTokenInvalid } from '@/modules/channels/helpers/telegram-error.helpers';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import type { ChannelOutboundMessage } from '@/modules/channels/typedefs/channel-message.typedefs';
@@ -55,6 +56,10 @@ export class TelegramChannelAdapter extends ChannelAdapter {
       text: message.text,
       quickReplies: message.quickReplies,
     });
+  }
+
+  isChannelBroken(error: unknown): boolean {
+    return isTelegramTokenInvalid(error);
   }
 
   private async loadChannel(message: ChannelOutboundMessage): Promise<ChannelRecord> {
