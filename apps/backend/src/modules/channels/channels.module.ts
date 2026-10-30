@@ -20,6 +20,7 @@ import { ReplaceTelegramTokenResolver } from '@/modules/channels/resolvers/repla
 import { UpdateTelegramResolver } from '@/modules/channels/resolvers/update-telegram.resolver';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
 import { ChannelConnectionService } from '@/modules/channels/services/channel-connection.service';
+import { ChannelHealthService } from '@/modules/channels/services/channel-health.service';
 import { ChannelMetricsService } from '@/modules/channels/services/channel-metrics.service';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { TelegramChannelService } from '@/modules/channels/services/telegram-channel.service';
@@ -48,6 +49,7 @@ export class ChannelsModule extends defineModule({
     TelegramPollerRepository,
     ChannelTokenService,
     ChannelConnectionService,
+    ChannelHealthService,
     TelegramChannelService,
     TelegramPollerService,
     TelegramUpdatesService,

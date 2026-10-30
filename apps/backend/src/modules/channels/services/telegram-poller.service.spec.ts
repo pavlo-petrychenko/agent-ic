@@ -129,12 +129,16 @@ describe('TelegramPollerService', () => {
     expect(testbed.telegram.getUpdatesCalls.map((call) => call.offset)).toEqual([0, 1001]);
   });
 
-  it('keeps polling after a telegram failure', async () => {
-    const { pollerChannel } = await seed();
+  it('marks the channel broken after a 401 and keeps polling', async () => {
+    const { pollerChannel, workspaceId, channel } = await seed();
     testbed.telegram.failNext(new TelegramApiError({ method: 'getUpdates', status: 401 }));
 
     await expect(poller.pollChannel(pollerChannel)).resolves.toBeUndefined();
     expect(testbed.telegram.getUpdatesCalls).toHaveLength(1);
+    const stored = await testbed.tenants.run(workspaceId, () =>
+      testbed.channels.findById(workspaceId, channel.id),
+    );
+    expect(stored?.status).toBe(ChannelStatus.Broken);
   });
 
   it('handles every update in a batch and advances past the last one', async () => {

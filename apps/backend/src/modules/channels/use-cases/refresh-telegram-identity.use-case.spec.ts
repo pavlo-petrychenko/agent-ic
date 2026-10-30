@@ -94,6 +94,7 @@ describe('RefreshTelegramIdentityUseCase', () => {
       testbed.channels.findById(workspaceId, channel.id),
     );
     expect(stored?.identity).toEqual({ username: 'old_bot', firstName: 'Old bot' });
+    expect(stored?.status).toBe(ChannelStatus.Broken);
   });
 
   it('refuses a token that belongs to another bot', async () => {
@@ -106,6 +107,7 @@ describe('RefreshTelegramIdentityUseCase', () => {
       testbed.channels.findById(workspaceId, channel.id),
     );
     expect(stored?.identity).toEqual({ username: 'old_bot', firstName: 'Old bot' });
+    expect(stored?.status).toBe(ChannelStatus.Broken);
   });
 
   it('refuses a channel from another workspace', async () => {

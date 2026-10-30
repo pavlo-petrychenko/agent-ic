@@ -27,6 +27,12 @@ const sendMany = async (
 };
 
 describe('SimulatedChannelAdapter', () => {
+  it('never reports a broken channel', () => {
+    const adapter = new SimulatedChannelAdapter();
+
+    expect(adapter.isChannelBroken(new Error('boom'))).toBe(false);
+  });
+
   it('forgets the conversation that was sent to least recently', async () => {
     const adapter = new SimulatedChannelAdapter();
     const conversationIds = Array.from(
