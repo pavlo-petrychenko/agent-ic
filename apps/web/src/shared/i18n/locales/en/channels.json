@@ -130,12 +130,6 @@
       "stepName": "Pick a name and a username ending in “bot”",
       "stepCopy": "Copy the token and paste it here"
     },
-    "stats": {
-      "title": "Last 7 days",
-      "chats": "Chats",
-      "messages": "Messages",
-      "errors": "Errors"
-    },
     "bot": {
       "subtitle": "Telegram bot · answered by {{agent}}",
       "unknownAgent": "No agent",
