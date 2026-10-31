@@ -8,6 +8,7 @@ import { TelegramChannelAdapter } from '@/modules/channels/gateways/telegram-cha
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { DeliverOutboundMessageListener } from '@/modules/channels/listeners/deliver-outbound-message.listener';
 import { CheckTelegramTokenHealthProcessor } from '@/modules/channels/processors/check-telegram-token-health.processor';
+import { ApiChannelIngressRepository } from '@/modules/channels/repositories/api-channel-ingress.repository';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { TelegramPollerRepository } from '@/modules/channels/repositories/telegram-poller.repository';
@@ -21,6 +22,7 @@ import { RefreshTelegramIdentityResolver } from '@/modules/channels/resolvers/re
 import { ReplaceTelegramTokenResolver } from '@/modules/channels/resolvers/replace-telegram-token.resolver';
 import { RotateApiChannelKeyResolver } from '@/modules/channels/resolvers/rotate-api-channel-key.resolver';
 import { UpdateChannelResolver } from '@/modules/channels/resolvers/update-channel.resolver';
+import { ApiChannelIngressService } from '@/modules/channels/services/api-channel-ingress.service';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
 import { ChannelConnectionService } from '@/modules/channels/services/channel-connection.service';
 import { ChannelHealthService } from '@/modules/channels/services/channel-health.service';
@@ -54,8 +56,10 @@ export class ChannelsModule extends defineModule({
     ChannelsRepository,
     ChannelEventsRepository,
     TelegramPollerRepository,
+    ApiChannelIngressRepository,
     ChannelTokenService,
     ChannelConnectionService,
+    ApiChannelIngressService,
     ChannelHealthService,
     TelegramChannelService,
     TelegramPollerService,

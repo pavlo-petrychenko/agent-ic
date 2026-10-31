@@ -11,6 +11,11 @@ export type ChannelRecord = typeof channels.$inferSelect;
 
 export type NewChannel = typeof channels.$inferInsert;
 
+export type ApiChannelIngressRecord = Pick<
+  ChannelRecord,
+  'id' | 'workspaceId' | 'agentId' | 'identity' | 'status' | 'credentialsSealed'
+>;
+
 export type { ChannelCredentials, ChannelIdentity };
 
 export interface ChannelPatch {
