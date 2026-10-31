@@ -79,12 +79,6 @@ export interface UseDeleteChannelResult {
   readonly deleting: boolean;
 }
 
-export interface TelegramBotStats {
-  readonly chats: string;
-  readonly messages: string;
-  readonly errors: string;
-}
-
 export interface TelegramBotMock {
   readonly id: string;
   readonly username: string;
@@ -100,5 +94,4 @@ export interface TelegramBotMock {
   readonly publishedVersion: number | null;
   readonly agentIsDraft: boolean;
   readonly typingIndicator: boolean;
-  readonly stats: TelegramBotStats | null;
 }

@@ -448,7 +448,7 @@ Each use case lists the main path, then variations and errors, and the screens i
 **Telegram:**
 1. Paste the BotFather token → `Channels-Telegram-New`. We validate it and register our webhook.
 2. Pick the answering agent → `Channels`.
-3. See the webhook status, last update and 7-day stats.
+3. See the webhook status and last update.
 4. If the token is revoked or regenerated, the channel shows `Channels-Telegram-Broken` and owners and admins get an email; the fix is to replace the token.
 5. Disconnecting asks for confirmation → `Channels-Telegram-Disconnect`.
 
@@ -656,7 +656,7 @@ The run is marked failed, and Agents shows "N runs failed today".
 - **Telegram bot:**
   - validate the token with Telegram; set the webhook to our endpoint;
   - store the token encrypted; show only a masked version;
-  - status: receiving / not receiving; last update; 7-day chats, messages and errors;
+  - status: receiving / not receiving; last update;
   - quick-reply buttons are sent as an inline keyboard; a tap becomes a customer message with the button label, so the flow router handles it;
   - detect a revoked token (webhook errors) → broken state + email to owners and admins;
   - replace the token, disconnect (removes the webhook), reconnect with the stored token, refresh the bot name and username from Telegram, delete the channel (past conversations stay).
