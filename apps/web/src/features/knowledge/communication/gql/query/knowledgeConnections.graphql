@@ -1,0 +1,7 @@
+query KnowledgeConnections {
+  knowledgeConnections {
+    id
+    accountEmail
+    status
+  }
+}
