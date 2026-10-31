@@ -54,7 +54,7 @@ export function ApiChannelContent({ workspaceId, channel, agents }: ApiChannelCo
       await updateChannel({
         id: channel.id,
         agentId,
-        showTyping: channel.showTyping,
+        showTyping: null,
         replyMode,
         webhook: webhook.trim() === '' ? null : webhook.trim(),
       });

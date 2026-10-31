@@ -132,7 +132,7 @@ describe('ApiChannelPage', () => {
       expect(updateChannel).toHaveBeenCalledWith({
         id: 'website',
         agentId: 'agent_gift',
-        showTyping: false,
+        showTyping: null,
         replyMode: ApiReplyMode.Response,
         webhook: null,
       });
