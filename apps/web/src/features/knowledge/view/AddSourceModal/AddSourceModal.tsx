@@ -8,7 +8,7 @@ import {
 import { STATUS_TONES } from '@/features/knowledge/view/AddSourceModal/AddSourceModal.constants';
 import type { AddSourceModalProps } from '@/features/knowledge/view/AddSourceModal/AddSourceModal.typedefs';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
-import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
+import { Badge } from '@/shared/ui/display/Badge';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { FileRow, FileRowList } from '@/shared/ui/display/FileRow';
 import { Icon, IconName } from '@/shared/ui/foundations/Icon';
@@ -159,18 +159,6 @@ export function AddSourceModal({
                   />
                 </span>
               )}
-            </button>
-            <button type="button" className={styles.typeCard} disabled>
-              <span className={styles.typeIcon}>
-                <Icon name={IconName.Note} size={UPLOAD_ICON_SIZE} />
-              </span>
-              <span className={styles.typeText}>
-                <span className={styles.typeTitleRow}>
-                  <span className={styles.typeTitle}>{t('add.clickUpTitle')}</span>
-                  <Badge tone={BadgeTone.Outline}>{t('add.soon')}</Badge>
-                </span>
-                <span className={styles.typeDescription}>{t('add.clickUpDescription')}</span>
-              </span>
             </button>
           </div>
         </aside>

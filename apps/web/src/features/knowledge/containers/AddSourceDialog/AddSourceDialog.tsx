@@ -13,10 +13,12 @@ import {
 } from '@/features/knowledge/constants/knowledgeUpload.constants';
 import type { AddSourceDialogProps } from '@/features/knowledge/containers/AddSourceDialog/AddSourceDialog.typedefs';
 import { useAddSourceFiles } from '@/features/knowledge/containers/AddSourceDialog/useAddSourceFiles';
+import { useGooglePicker } from '@/features/knowledge/containers/AddSourceDialog/useGooglePicker';
 import {
   redirectToGoogle,
   saveGoogleConnectionReturn,
 } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
+import { GooglePickerLoadError } from '@/features/knowledge/logic/helpers/googlePicker.helpers';
 import {
   formatKnowledgeFileSize,
   knowledgeFileMimeType,
@@ -56,6 +58,7 @@ export function AddSourceDialog({
   } = useKnowledgeConnections(googleEnabled);
   const { startGoogleConnection, starting } = useStartGoogleConnection();
   const { disconnectGoogleConnection, disconnectingId } = useDisconnectGoogleConnection();
+  const { pickDocuments, pickingConnectionId } = useGooglePicker();
   const {
     files,
     readyCount,
@@ -157,6 +160,36 @@ export function AddSourceDialog({
     }
   };
 
+  const pick = (connection: GoogleConnection) => {
+    void pickDocuments({
+      connectionId: connection.id,
+      knowledgeBaseId,
+      onCreated: (result) => {
+        showToast({
+          message: t('add.googleConnection.pickerSuccess'),
+          tone: ToastTone.Ok,
+        });
+        if (result.skipped.length > 0) {
+          showToast({
+            message: t('add.googleConnection.pickerSkipped'),
+            tone: ToastTone.Info,
+          });
+        }
+        onUploaded();
+        onClose();
+      },
+      onError: (failure) => {
+        showToast({
+          message:
+            failure instanceof GooglePickerLoadError
+              ? t('add.googleConnection.pickerLoadError')
+              : errorMessage(toAppError(failure)),
+          tone: ToastTone.Err,
+        });
+      },
+    });
+  };
+
   return (
     <AddSourceModal
       knowledgeBaseName={knowledgeBaseName}
@@ -176,8 +209,10 @@ export function AddSourceDialog({
           errorMessage={connectionError}
           starting={starting}
           disconnectingId={disconnectingId}
+          pickingConnectionId={pickingConnectionId}
           onConnect={() => void connect()}
           onDisconnect={(connection) => void disconnect(connection)}
+          onPick={pick}
           onRetry={() => void retryConnections()}
         />
       }

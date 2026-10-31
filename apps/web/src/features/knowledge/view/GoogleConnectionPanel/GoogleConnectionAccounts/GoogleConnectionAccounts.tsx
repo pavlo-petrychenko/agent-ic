@@ -14,11 +14,15 @@ export function GoogleConnectionAccounts({
   failed,
   starting,
   disconnectingId,
+  pickingConnectionId,
   onConnect,
   onDisconnect,
+  onPick,
   onRetry,
 }: GoogleConnectionAccountsProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
+  const pickingDisabled = pickingConnectionId !== null;
+  const disconnectDisabled = disconnectingId !== null || starting || pickingDisabled;
 
   if (loading) {
     return (
@@ -56,9 +60,12 @@ export function GoogleConnectionAccounts({
           connection={connection}
           starting={starting}
           disconnecting={disconnectingId === connection.id}
-          disconnectDisabled={disconnectingId !== null || starting}
+          picking={pickingConnectionId === connection.id}
+          pickingDisabled={pickingDisabled}
+          disconnectDisabled={disconnectDisabled}
           onConnect={onConnect}
           onDisconnect={onDisconnect}
+          onPick={onPick}
         />
       ))}
     </div>

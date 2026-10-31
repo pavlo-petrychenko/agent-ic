@@ -10,9 +10,12 @@ export function GoogleConnectionAccount({
   connection,
   starting,
   disconnecting,
+  picking,
+  pickingDisabled,
   disconnectDisabled,
   onConnect,
   onDisconnect,
+  onPick,
 }: GoogleConnectionAccountProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
   const active = connection.status === KnowledgeConnectionStatus.Active;
@@ -27,11 +30,20 @@ export function GoogleConnectionAccount({
         </span>
       </div>
       <div className={styles.actions}>
-        {!active && (
+        {active ? (
+          <Button
+            size={ButtonSize.Sm}
+            loading={picking}
+            disabled={pickingDisabled}
+            onClick={() => onPick(connection)}
+          >
+            {t('add.googleConnection.pickDocuments')}
+          </Button>
+        ) : (
           <Button
             size={ButtonSize.Sm}
             variant={ButtonVariant.Secondary}
-            disabled={starting}
+            disabled={starting || pickingDisabled}
             onClick={onConnect}
           >
             {t('add.googleConnection.reconnect')}

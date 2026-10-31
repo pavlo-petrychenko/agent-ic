@@ -1,5 +1,3 @@
-import { useTranslation } from 'react-i18next';
-import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import { GoogleConnectionAccounts } from '@/features/knowledge/view/GoogleConnectionPanel/GoogleConnectionAccounts';
 import { GoogleConnectionIntro } from '@/features/knowledge/view/GoogleConnectionPanel/GoogleConnectionIntro';
 import type { GoogleConnectionPanelProps } from '@/features/knowledge/view/GoogleConnectionPanel/GoogleConnectionPanel.typedefs';
@@ -13,17 +11,18 @@ export function GoogleConnectionPanel({
   errorMessage,
   starting,
   disconnectingId,
+  pickingConnectionId,
   onConnect,
   onDisconnect,
+  onPick,
   onRetry,
 }: GoogleConnectionPanelProps) {
-  const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
-
   return (
     <div className={styles.root}>
       <GoogleConnectionIntro
         hasConnections={connections.length > 0}
         starting={starting}
+        picking={pickingConnectionId !== null}
         onConnect={onConnect}
       />
       {errorMessage !== null && <Callout tone={CalloutTone.Err}>{errorMessage}</Callout>}
@@ -33,11 +32,12 @@ export function GoogleConnectionPanel({
         failed={failed}
         starting={starting}
         disconnectingId={disconnectingId}
+        pickingConnectionId={pickingConnectionId}
         onConnect={onConnect}
         onDisconnect={onDisconnect}
+        onPick={onPick}
         onRetry={onRetry}
       />
-      <Callout tone={CalloutTone.Neutral}>{t('add.googleConnection.pickerSoon')}</Callout>
     </div>
   );
 }

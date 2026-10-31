@@ -9,7 +9,7 @@ const meta = {
   args: {
     icon: IconName.Kb,
     title: 'No sources yet',
-    description: 'Upload files or connect Google Docs or ClickUp.',
+    description: 'Upload files or connect Google Docs.',
   },
   argTypes: {
     tone: { control: 'select', options: Object.values(EmptyStateTone) },
