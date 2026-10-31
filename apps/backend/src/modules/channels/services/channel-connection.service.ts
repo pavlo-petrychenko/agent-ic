@@ -13,7 +13,6 @@ import type {
   PrepareChannelConnectionInput,
   ReplaceChannelCredentialsInput,
   StoreReconnectCredentialsInput,
-  UpdateChannelSettingsInput,
 } from '@/modules/channels/typedefs/channel.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -150,21 +149,6 @@ export class ChannelConnectionService {
           err: error,
         });
       });
-  }
-
-  updateSettings(input: UpdateChannelSettingsInput): Promise<ChannelView> {
-    return this.tenantTransactions.run(input.workspaceId, async () => {
-      const channel = await this.channels.updateSettings(input.workspaceId, input.channelId, {
-        agentId: input.agentId,
-        showTyping: input.showTyping,
-        updatedAt: this.clock.now(),
-        updatedByUserId: input.updatedByUserId,
-      });
-      if (channel === null) {
-        throw new ChannelNotFoundError();
-      }
-      return toChannelView(channel, this.ids);
-    });
   }
 
   replaceCredentials(input: ReplaceChannelCredentialsInput): Promise<ChannelView> {
