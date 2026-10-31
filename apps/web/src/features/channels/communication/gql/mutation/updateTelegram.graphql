@@ -1,9 +1,0 @@
-mutation UpdateTelegram($input: UpdateTelegramInput!) {
-  updateTelegram(input: $input) {
-    id
-    agentId
-    showTyping
-    updatedAt
-    updatedByName
-  }
-}

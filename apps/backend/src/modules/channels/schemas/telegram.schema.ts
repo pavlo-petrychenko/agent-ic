@@ -8,12 +8,6 @@ export const connectTelegramInputSchema = z.object({
   [ChannelField.ShowTyping]: z.boolean().default(true),
 });
 
-export const updateTelegramInputSchema = z.object({
-  [ChannelField.Id]: z.string().min(1),
-  [ChannelField.AgentId]: z.string().min(1),
-  [ChannelField.ShowTyping]: z.boolean(),
-});
-
 export const replaceTelegramTokenInputSchema = z.object({
   [ChannelField.Id]: z.string().min(1),
   [ChannelField.Token]: z.string().trim().regex(TELEGRAM_TOKEN_PATTERN),
