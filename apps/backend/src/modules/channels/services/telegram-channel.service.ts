@@ -2,9 +2,9 @@ import { IdPrefix } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { TELEGRAM_ALLOWED_UPDATES } from '@/modules/channels/constants/telegram.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
-import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { TelegramTokenInvalidError } from '@/modules/channels/errors/telegram-token-invalid.error';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
+import { isTelegramTokenInvalid } from '@/modules/channels/helpers/telegram-error.helpers';
 import { telegramWebhookUrl } from '@/modules/channels/helpers/telegram.helpers';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import type { TelegramChannelIdentity } from '@/modules/channels/typedefs/channel-identity.typedefs';
@@ -34,7 +34,7 @@ export class TelegramChannelService {
     try {
       return await this.telegram.getMe(token);
     } catch (error) {
-      if (error instanceof TelegramApiError && (error.status === 401 || error.status === 404)) {
+      if (isTelegramTokenInvalid(error)) {
         throw new TelegramTokenInvalidError();
       }
       throw error;

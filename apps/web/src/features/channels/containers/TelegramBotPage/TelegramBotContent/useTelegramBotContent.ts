@@ -15,11 +15,12 @@ export function useTelegramBotContent({
   workspaceId,
   channel,
   agentOptions,
+  onChannelRefetch,
 }: TelegramBotContentProps): UseTelegramBotContentResult {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
   const settings = useTelegramBotSettings(channel, agentOptions);
   const disconnect = useTelegramBotDisconnect(channel.id, workspaceId);
-  const actions = useTelegramBotActions(channel.id);
+  const actions = useTelegramBotActions(channel.id, onChannelRefetch);
   const replace = useTelegramBotReplaceToken(channel.id);
   const remove = useTelegramBotDelete(channel.id, channel.displayName, workspaceId);
 

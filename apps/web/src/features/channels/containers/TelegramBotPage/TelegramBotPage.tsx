@@ -40,6 +40,11 @@ export function TelegramBotPage({ workspaceId, botId }: TelegramBotPageProps) {
       : agents.map((agent) => ({ value: agent.id, label: agent.name }));
 
   return (
-    <TelegramBotContent workspaceId={workspaceId} channel={channel} agentOptions={agentOptions} />
+    <TelegramBotContent
+      workspaceId={workspaceId}
+      channel={channel}
+      agentOptions={agentOptions}
+      onChannelRefetch={retry}
+    />
   );
 }

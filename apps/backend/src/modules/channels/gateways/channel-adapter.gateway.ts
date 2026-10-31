@@ -5,4 +5,6 @@ export abstract class ChannelAdapter {
   abstract readonly kind: ChannelKind;
 
   abstract send(message: ChannelOutboundMessage): Promise<void>;
+
+  abstract isChannelBroken(error: unknown): boolean;
 }
