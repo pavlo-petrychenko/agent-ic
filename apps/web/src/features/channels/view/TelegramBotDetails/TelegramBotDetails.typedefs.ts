@@ -8,11 +8,13 @@ export interface TelegramBotDetailsProps {
   readonly agentId: string;
   readonly typing: boolean;
   readonly saving: boolean;
+  readonly reconnecting: boolean;
   readonly lastUpdate: string;
   readonly onAgentChange: (value: string) => void;
   readonly onTypingChange: (checked: boolean) => void;
   readonly onReplaceToken: () => void;
   readonly onDisconnect: () => void;
+  readonly onReconnect: () => void;
   readonly onDelete: () => void;
   readonly onSave: () => void;
 }

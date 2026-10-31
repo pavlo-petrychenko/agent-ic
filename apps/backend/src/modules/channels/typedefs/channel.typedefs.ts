@@ -105,6 +105,14 @@ export interface UpdateChannelSettingsInput {
   readonly updatedByUserId: string;
 }
 
+export interface StoreReconnectCredentialsInput {
+  readonly workspaceId: string;
+  readonly channelId: string;
+  readonly identity: ChannelIdentity;
+  readonly credentialsSealed: string;
+  readonly updatedByUserId: string;
+}
+
 export interface ReceiveTelegramUpdateInput {
   readonly channelId: string;
   readonly update: TelegramUpdate;

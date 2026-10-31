@@ -141,8 +141,10 @@
       "unknownAgent": "No agent",
       "saved": "Channel settings saved",
       "deleted": "Channel deleted",
+      "reconnected": "Channel reconnected",
       "tokenReplaced": "Bot token replaced",
       "actions": {
+        "connect": "Reconnect",
         "delete": "Delete",
         "disconnect": "Disconnect",
         "save": "Save"

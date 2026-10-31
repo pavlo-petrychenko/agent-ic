@@ -20,11 +20,13 @@ export function TelegramBotDetails({
   agentId,
   typing,
   saving,
+  reconnecting,
   lastUpdate,
   onAgentChange,
   onTypingChange,
   onReplaceToken,
   onDisconnect,
+  onReconnect,
   onDelete,
   onSave,
 }: TelegramBotDetailsProps) {
@@ -51,14 +53,20 @@ export function TelegramBotDetails({
         }
         actions={
           <>
-            <Button variant={ButtonVariant.Danger} disabled={disconnected} onClick={onDisconnect}>
-              {t('telegram.bot.actions.disconnect')}
-            </Button>
+            {disconnected ? (
+              <Button loading={reconnecting} onClick={onReconnect}>
+                {t('telegram.bot.actions.connect')}
+              </Button>
+            ) : (
+              <Button variant={ButtonVariant.Danger} onClick={onDisconnect}>
+                {t('telegram.bot.actions.disconnect')}
+              </Button>
+            )}
             <Button disabled={broken || disconnected || saving} onClick={onSave}>
               {t('telegram.bot.actions.save')}
             </Button>
             {disconnected && (
-              <Button variant={ButtonVariant.Danger} onClick={onDelete}>
+              <Button variant={ButtonVariant.Danger} disabled={reconnecting} onClick={onDelete}>
                 {t('telegram.bot.actions.delete')}
               </Button>
             )}
