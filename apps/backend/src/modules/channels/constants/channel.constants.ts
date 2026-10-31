@@ -6,3 +6,8 @@ export enum ChannelStatus {
   Broken = 'broken',
   Disconnected = 'disconnected',
 }
+
+export enum ApiReplyMode {
+  Response = 'response',
+  Webhook = 'webhook',
+}
