@@ -1,3 +1,4 @@
+import { IdPrefix } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
@@ -38,6 +39,9 @@ describe('HandleApiChannelMessageUseCase', () => {
       clientIp: null,
     });
 
+  const internalConversationId = (publicId: string): string =>
+    testbed.ids.fromPublic(IdPrefix.Conversation, publicId);
+
   it('creates a conversation and a customer message', async () => {
     const seeded = await seedApiChannel(testbed);
 
@@ -47,8 +51,12 @@ describe('HandleApiChannelMessageUseCase', () => {
     });
 
     const messages = await testbed.tenants.run(seeded.workspaceId, () =>
-      testbed.messages.listByConversation(seeded.workspaceId, result.conversationId),
+      testbed.messages.listByConversation(
+        seeded.workspaceId,
+        internalConversationId(result.conversationId),
+      ),
     );
+    expect(result.conversationId).toMatch(/^cnv_/);
     expect(messages).toHaveLength(1);
     expect(messages[0]).toMatchObject({
       text: 'Do you ship to Poland?',
@@ -71,7 +79,10 @@ describe('HandleApiChannelMessageUseCase', () => {
 
     expect(second.conversationId).toBe(first.conversationId);
     const messages = await testbed.tenants.run(seeded.workspaceId, () =>
-      testbed.messages.listByConversation(seeded.workspaceId, first.conversationId),
+      testbed.messages.listByConversation(
+        seeded.workspaceId,
+        internalConversationId(first.conversationId),
+      ),
     );
     expect(messages).toHaveLength(2);
   });
@@ -107,7 +118,10 @@ describe('HandleApiChannelMessageUseCase', () => {
 
     expect(second.conversationId).toBe(first.conversationId);
     const messages = await testbed.tenants.run(seeded.workspaceId, () =>
-      testbed.messages.listByConversation(seeded.workspaceId, first.conversationId),
+      testbed.messages.listByConversation(
+        seeded.workspaceId,
+        internalConversationId(first.conversationId),
+      ),
     );
     expect(messages).toHaveLength(1);
   });

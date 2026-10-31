@@ -1,3 +1,4 @@
+import { IdPrefix } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
@@ -58,6 +59,8 @@ export class HandleApiChannelMessageUseCase {
       versionId: null,
     });
 
-    return { conversationId: result.conversationId };
+    return {
+      conversationId: this.ids.toPublic(IdPrefix.Conversation, result.conversationId),
+    };
   }
 }

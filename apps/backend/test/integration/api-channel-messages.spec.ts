@@ -89,7 +89,7 @@ describe('api channel message ingress', () => {
     const response = await post();
 
     expect(response.status).toBe(202);
-    expect(response.body.conversation_id).toEqual(expect.any(String));
+    expect(response.body.conversation_id).toMatch(/^cnv_/);
   });
 
   it('rejects a missing key', async () => {
@@ -121,7 +121,10 @@ describe('api channel message ingress', () => {
     expect(first.status).toBe(202);
     expect(second.status).toBe(202);
     expect(second.body.conversation_id).toBe(first.body.conversation_id);
-    const conversationId = first.body.conversation_id as string;
+    const publicConversationId = first.body.conversation_id as string;
+    const conversationId = app
+      .get(IdService)
+      .fromPublic(IdPrefix.Conversation, publicConversationId);
     const messages = await app
       .get(TenantTransactionService)
       .run(workspaceId, () =>
