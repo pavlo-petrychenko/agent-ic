@@ -33,6 +33,7 @@ import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.r
 import { createGoogleDocsSourceInputSchema } from '@/modules/knowledge/schemas/google-picker.schema';
 import { GoogleConnectionTokenService } from '@/modules/knowledge/services/google-connection-token.service';
 import { KnowledgeSourceViewsService } from '@/modules/knowledge/services/knowledge-source-views.service';
+import type { Connection } from '@/modules/knowledge/typedefs/connection.typedefs';
 import type { GoogleDriveFile } from '@/modules/knowledge/typedefs/google-drive.typedefs';
 import type {
   CreateGoogleDocsSourceInput,
@@ -40,6 +41,8 @@ import type {
   GooglePickedDocument,
   GooglePickerSkippedDocument,
 } from '@/modules/knowledge/typedefs/google-picker.typedefs';
+import type { KnowledgeBase } from '@/modules/knowledge/typedefs/knowledge-base.typedefs';
+import type { Source } from '@/modules/knowledge/typedefs/source.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -51,6 +54,19 @@ interface PreparedDocument {
   readonly documentId: string;
   readonly picked: GooglePickedDocument;
   readonly file: GoogleDriveFile;
+}
+
+interface PreparedSelection {
+  readonly prepared: readonly PreparedDocument[];
+  readonly skipped: readonly GooglePickerSkippedDocument[];
+}
+
+interface CreateSourceInput {
+  readonly workspaceId: string;
+  readonly userId: string;
+  readonly knowledgeBaseId: string;
+  readonly connection: Connection;
+  readonly prepared: readonly PreparedDocument[];
 }
 
 @Injectable()
@@ -82,96 +98,173 @@ export class CreateGoogleDocsSourceUseCase {
     const parsed = parseKnowledgeInput(createGoogleDocsSourceInputSchema, input);
     const knowledgeBaseId = this.ids.fromPublic(IdPrefix.KnowledgeBase, parsed.knowledgeBaseId);
     const connectionId = this.ids.fromPublic(IdPrefix.KnowledgeConnection, parsed.connectionId);
+    const connection = await this.loadConnection(workspaceId, connectionId);
+    const token = await this.tokens.accessToken(connection);
+    const { prepared, skipped } = await this.prepareDocuments(token.accessToken, parsed.documents);
+    if (prepared.length === 0) {
+      throw new GoogleDocsSelectionInvalidError();
+    }
+    const source = await this.createSource(ctx, {
+      workspaceId,
+      userId,
+      knowledgeBaseId,
+      connection,
+      prepared,
+    });
+    return { source: this.views.view(source), skipped };
+  }
+
+  private async loadConnection(workspaceId: string, connectionId: string): Promise<Connection> {
     const connection = await this.tenants.run(workspaceId, () =>
       this.connections.findById(workspaceId, connectionId),
     );
     if (connection === null) {
       throw new KnowledgeConnectionNotFoundError();
     }
-    const token = await this.tokens.accessToken(connection);
+    return connection;
+  }
+
+  private async prepareDocuments(
+    accessToken: string,
+    pickedDocuments: readonly GooglePickedDocument[],
+  ): Promise<PreparedSelection> {
     const prepared: PreparedDocument[] = [];
     const skipped: GooglePickerSkippedDocument[] = [];
-
-    for (const picked of parsed.documents) {
-      try {
-        const file = await this.drive.file(token.accessToken, picked.id, picked.resourceKey);
-        if (file.trashed) {
-          skipped.push(this.skip(picked, GooglePickerSkipReason.Trashed));
-          continue;
-        }
-        if (file.mimeType !== GOOGLE_DRIVE_DOCUMENT_MIME_TYPE) {
-          skipped.push(this.skip(picked, GooglePickerSkipReason.Unsupported));
-          continue;
-        }
-        prepared.push({ documentId: this.ids.generate(), picked, file });
-      } catch (error) {
-        if (error instanceof GoogleDriveFileUnavailableError) {
-          skipped.push(this.skip(picked, GooglePickerSkipReason.Unavailable));
-          continue;
-        }
-        throw error;
+    for (const picked of pickedDocuments) {
+      const file = await this.loadDriveFile(accessToken, picked);
+      if (file === null) {
+        skipped.push(this.skip(picked, GooglePickerSkipReason.Unavailable));
+        continue;
       }
+      const reason = this.fileSkipReason(file);
+      if (reason !== null) {
+        skipped.push(this.skip(picked, reason));
+        continue;
+      }
+      prepared.push({ documentId: this.ids.generate(), picked, file });
     }
+    return { prepared, skipped };
+  }
 
-    if (prepared.length === 0) {
-      throw new GoogleDocsSelectionInvalidError();
+  private async loadDriveFile(
+    accessToken: string,
+    picked: GooglePickedDocument,
+  ): Promise<GoogleDriveFile | null> {
+    try {
+      return await this.drive.file(accessToken, picked.id, picked.resourceKey);
+    } catch (error) {
+      if (error instanceof GoogleDriveFileUnavailableError) {
+        return null;
+      }
+      throw error;
     }
+  }
 
-    const source = await this.tenants.run(workspaceId, async () => {
-      const knowledgeBase = await this.knowledgeBases.findByIdForUpdate(
+  private fileSkipReason(file: GoogleDriveFile): GooglePickerSkipReason | null {
+    if (file.trashed) {
+      return GooglePickerSkipReason.Trashed;
+    }
+    if (file.mimeType !== GOOGLE_DRIVE_DOCUMENT_MIME_TYPE) {
+      return GooglePickerSkipReason.Unsupported;
+    }
+    return null;
+  }
+
+  private async createSource(ctx: UseCaseCtx, input: CreateSourceInput): Promise<Source> {
+    const { workspaceId, userId, knowledgeBaseId, connection, prepared } = input;
+    return this.tenants.run(workspaceId, async () => {
+      const knowledgeBase = await this.lockKnowledgeBase(workspaceId, knowledgeBaseId);
+      const source = await this.insertSource(
         workspaceId,
-        knowledgeBaseId,
+        userId,
+        knowledgeBase,
+        connection,
+        prepared,
       );
-      if (knowledgeBase === null) {
-        throw new KnowledgeBaseNotFoundError();
-      }
-      const source = await this.sources.insert({
-        id: this.ids.generate(),
-        workspaceId,
-        kbId: knowledgeBase.id,
-        connectionId: connection.id,
-        kind: KnowledgeSourceKind.GoogleDocs,
-        title: googleDocsSourceTitle(prepared.map((document) => document.file)),
-        status: KnowledgeSourceStatus.Pending,
-        createdByUserId: userId,
-      });
-      for (const document of prepared) {
-        await this.documents.insert({
-          id: document.documentId,
-          workspaceId,
-          kbId: knowledgeBase.id,
-          sourceId: source.id,
-          externalId: document.file.id,
-          externalResourceKey: document.picked.resourceKey,
-          providerVersion: document.file.version,
-          providerModifiedAt: googleDriveDate(document.file.modifiedTime),
-          title: googleDocsDocumentTitle(document.file),
-          mimeType: document.file.mimeType,
-          sourceUrl: document.file.webViewLink ?? document.picked.url,
-          status: KnowledgeDocumentStatus.Pending,
-        });
-      }
-      const syncRunId = this.ids.generate();
-      await this.syncRuns.insert({
-        id: syncRunId,
-        workspaceId,
-        sourceId: source.id,
-        trigger: KnowledgeSyncTrigger.Initial,
-        status: KnowledgeSyncStatus.Queued,
-        documentsTotal: prepared.length,
-      });
-      await this.jobs.enqueue(
-        ctx,
-        ingestKnowledgeSourceJob,
-        { sourceId: source.id, syncRunId },
-        { durable: true, jobId: syncRunId },
-      );
+      await this.insertDocuments(workspaceId, knowledgeBase.id, source.id, prepared);
+      await this.queueInitialSync(ctx, workspaceId, source.id, prepared.length);
       await this.connections.update(workspaceId, connection.id, {
         lastUsedAt: this.clock.now(),
       });
       return source;
     });
-    return { source: this.views.view(source), skipped };
+  }
+
+  private async lockKnowledgeBase(
+    workspaceId: string,
+    knowledgeBaseId: string,
+  ): Promise<KnowledgeBase> {
+    const knowledgeBase = await this.knowledgeBases.findByIdForUpdate(workspaceId, knowledgeBaseId);
+    if (knowledgeBase === null) {
+      throw new KnowledgeBaseNotFoundError();
+    }
+    return knowledgeBase;
+  }
+
+  private async insertSource(
+    workspaceId: string,
+    userId: string,
+    knowledgeBase: KnowledgeBase,
+    connection: Connection,
+    prepared: readonly PreparedDocument[],
+  ): Promise<Source> {
+    return this.sources.insert({
+      id: this.ids.generate(),
+      workspaceId,
+      kbId: knowledgeBase.id,
+      connectionId: connection.id,
+      kind: KnowledgeSourceKind.GoogleDocs,
+      title: googleDocsSourceTitle(prepared.map((document) => document.file)),
+      status: KnowledgeSourceStatus.Pending,
+      createdByUserId: userId,
+    });
+  }
+
+  private async insertDocuments(
+    workspaceId: string,
+    knowledgeBaseId: string,
+    sourceId: string,
+    prepared: readonly PreparedDocument[],
+  ): Promise<void> {
+    for (const document of prepared) {
+      await this.documents.insert({
+        id: document.documentId,
+        workspaceId,
+        kbId: knowledgeBaseId,
+        sourceId,
+        externalId: document.file.id,
+        externalResourceKey: document.picked.resourceKey,
+        providerVersion: document.file.version,
+        providerModifiedAt: googleDriveDate(document.file.modifiedTime),
+        title: googleDocsDocumentTitle(document.file),
+        mimeType: document.file.mimeType,
+        sourceUrl: document.file.webViewLink ?? document.picked.url,
+        status: KnowledgeDocumentStatus.Pending,
+      });
+    }
+  }
+
+  private async queueInitialSync(
+    ctx: UseCaseCtx,
+    workspaceId: string,
+    sourceId: string,
+    documentsTotal: number,
+  ): Promise<void> {
+    const syncRunId = this.ids.generate();
+    await this.syncRuns.insert({
+      id: syncRunId,
+      workspaceId,
+      sourceId,
+      trigger: KnowledgeSyncTrigger.Initial,
+      status: KnowledgeSyncStatus.Queued,
+      documentsTotal,
+    });
+    await this.jobs.enqueue(
+      ctx,
+      ingestKnowledgeSourceJob,
+      { sourceId, syncRunId },
+      { durable: true, jobId: syncRunId },
+    );
   }
 
   private skip(
