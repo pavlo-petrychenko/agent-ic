@@ -1,6 +1,10 @@
 import { ChannelKind } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
-import { toIncomingMessageInput } from '@/modules/channels/helpers/telegram-update.helpers';
+import {
+  toIncomingMessageInput,
+  toIncomingQuickReplyInput,
+  toTelegramUpdate,
+} from '@/modules/channels/helpers/telegram-update.helpers';
 import { ConversationMode } from '@/modules/conversations';
 
 const CHANNEL = { id: 'chn_1', workspaceId: 'ws_1', agentId: 'agt_1' };
@@ -13,6 +17,90 @@ const MESSAGE = {
   senderName: 'Moshe',
   text: 'Hello',
 };
+
+const CALLBACK = {
+  id: 'callback-1',
+  chatId: '42',
+  telegramMessageId: '7',
+  senderId: '900',
+  senderName: 'Moshe',
+  data: 'qr:message-1:0',
+};
+
+describe('toTelegramUpdate', () => {
+  it('maps a callback query update', () => {
+    expect(
+      toTelegramUpdate({
+        update_id: 20,
+        callback_query: {
+          id: 'callback-1',
+          from: { id: 900, first_name: 'Moshe' },
+          message: { message_id: 5, date: 1_760_000_000, chat: { id: 42 } },
+          data: 'qr:msg_1:0',
+        },
+      }),
+    ).toEqual({
+      updateId: '20',
+      message: null,
+      callbackQuery: {
+        id: 'callback-1',
+        chatId: '42',
+        telegramMessageId: '5',
+        senderId: '900',
+        senderName: 'Moshe',
+        data: 'qr:msg_1:0',
+      },
+    });
+  });
+
+  it('maps a callback query without a message or data to nulls', () => {
+    expect(
+      toTelegramUpdate({
+        update_id: 21,
+        callback_query: {
+          id: 'callback-2',
+          from: { id: 900, first_name: 'Moshe' },
+        },
+      }),
+    ).toEqual({
+      updateId: '21',
+      message: null,
+      callbackQuery: {
+        id: 'callback-2',
+        chatId: null,
+        telegramMessageId: null,
+        senderId: '900',
+        senderName: 'Moshe',
+        data: null,
+      },
+    });
+  });
+
+  it('leaves the callback query null for a message update', () => {
+    expect(
+      toTelegramUpdate({
+        update_id: 22,
+        message: {
+          message_id: 6,
+          date: 1_760_000_000,
+          text: 'Hello',
+          chat: { id: 42 },
+        },
+      }),
+    ).toEqual({
+      updateId: '22',
+      message: {
+        messageId: '6',
+        sentAt: new Date(1_760_000_000 * 1_000),
+        chatId: '42',
+        senderId: null,
+        senderName: null,
+        text: 'Hello',
+      },
+      callbackQuery: null,
+    });
+  });
+});
 
 describe('toIncomingMessageInput', () => {
   it('maps a telegram message to an incoming message', () => {
@@ -37,5 +125,31 @@ describe('toIncomingMessageInput', () => {
   it('returns null without text to answer', () => {
     expect(toIncomingMessageInput(CHANNEL, { ...MESSAGE, text: null })).toBeNull();
     expect(toIncomingMessageInput(CHANNEL, { ...MESSAGE, text: '   ' })).toBeNull();
+  });
+});
+
+describe('toIncomingQuickReplyInput', () => {
+  it('maps a resolved button label to a customer message', () => {
+    expect(toIncomingQuickReplyInput(CHANNEL, CALLBACK, 'Hours')).toEqual({
+      workspaceId: 'ws_1',
+      agentId: 'agt_1',
+      mode: ConversationMode.Live,
+      channelKind: ChannelKind.Telegram,
+      channelId: 'chn_1',
+      endUserExternalId: '42',
+      endUserName: 'Moshe',
+      externalId: 'callback-1',
+      text: 'Hours',
+      versionId: null,
+    });
+  });
+
+  it('returns null without a chat or an agent', () => {
+    expect(toIncomingQuickReplyInput(CHANNEL, { ...CALLBACK, chatId: null }, 'Hours')).toBeNull();
+    expect(toIncomingQuickReplyInput({ ...CHANNEL, agentId: null }, CALLBACK, 'Hours')).toBeNull();
+  });
+
+  it('returns null for a blank label', () => {
+    expect(toIncomingQuickReplyInput(CHANNEL, CALLBACK, '  ')).toBeNull();
   });
 });

@@ -1,4 +1,5 @@
 import type {
+  AnswerTelegramCallbackQueryInput,
   GetTelegramUpdatesInput,
   SendTelegramChatActionInput,
   SendTelegramMessageInput,
@@ -22,4 +23,6 @@ export abstract class TelegramGateway {
   abstract sendMessage(input: SendTelegramMessageInput): Promise<void>;
 
   abstract sendChatAction(input: SendTelegramChatActionInput): Promise<void>;
+
+  abstract answerCallbackQuery(input: AnswerTelegramCallbackQueryInput): Promise<void>;
 }
