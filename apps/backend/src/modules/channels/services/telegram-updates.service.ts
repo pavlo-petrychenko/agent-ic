@@ -125,6 +125,7 @@ export class TelegramUpdatesService {
     if (!('botToken' in credentials)) {
       throw new ChannelNotFoundError();
     }
+    await this.clearInlineKeyboard(credentials.botToken, query);
     if (query.data === null || query.chatId === null) {
       return this.dropCallbackQuery(credentials.botToken, query, null);
     }
@@ -173,6 +174,25 @@ export class TelegramUpdatesService {
   ): Promise<null> {
     await this.answerCallbackQuery(token, query, text);
     return null;
+  }
+
+  private async clearInlineKeyboard(token: string, query: TelegramCallbackQuery): Promise<void> {
+    if (query.data === null || query.chatId === null || query.telegramMessageId === null) {
+      return;
+    }
+    await this.telegram
+      .removeInlineKeyboard({
+        token,
+        chatId: query.chatId,
+        messageId: query.telegramMessageId,
+      })
+      .catch((error: unknown) => {
+        this.logger.warn({
+          msg: ChannelUpdatesLogMessage.ClearKeyboardFailed,
+          callbackQueryId: query.id,
+          err: error,
+        });
+      });
   }
 
   private async answerCallbackQuery(

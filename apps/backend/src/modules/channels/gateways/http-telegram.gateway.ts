@@ -20,6 +20,7 @@ import type {
 import type {
   AnswerTelegramCallbackQueryInput,
   GetTelegramUpdatesInput,
+  RemoveTelegramInlineKeyboardInput,
   SendTelegramChatActionInput,
   SendTelegramMessageInput,
   SetTelegramWebhookInput,
@@ -126,6 +127,18 @@ export class HttpTelegramGateway extends TelegramGateway {
         callback_query_id: input.callbackQueryId,
         ...(input.text === null ? {} : { text: input.text }),
         ...(input.showAlert ? { show_alert: true } : {}),
+      }),
+    });
+  }
+
+  async removeInlineKeyboard(input: RemoveTelegramInlineKeyboardInput): Promise<void> {
+    await this.call<TelegramMessageResponse>(input.token, 'editMessageReplyMarkup', {
+      method: 'POST',
+      headers: { [HttpHeader.ContentType]: TELEGRAM_CONTENT_TYPE },
+      body: JSON.stringify({
+        chat_id: input.chatId,
+        message_id: input.messageId,
+        reply_markup: { inline_keyboard: [] },
       }),
     });
   }
