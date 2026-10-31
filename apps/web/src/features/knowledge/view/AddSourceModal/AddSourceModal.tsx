@@ -30,6 +30,7 @@ export function AddSourceModal({
   failedCount,
   skippedCount,
   uploading,
+  picking,
   googleContent,
   onSourceTypeChange,
   onFiles,
@@ -79,6 +80,7 @@ export function AddSourceModal({
     <Dialog
       open
       busy={uploading}
+      modal={!picking}
       onOpenChange={(open) => {
         if (!open) {
           onClose();

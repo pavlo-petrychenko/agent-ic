@@ -21,6 +21,7 @@ export function Dialog({
   open,
   onOpenChange,
   busy = false,
+  modal = true,
   error = null,
   title,
   description = null,
@@ -37,7 +38,7 @@ export function Dialog({
   const hasFooter = footerLeft !== null || footerRight !== null;
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange} modal={modal}>
       <NestedPortalContainerProvider value={portalContainer}>
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className={styles.overlay} />
@@ -47,6 +48,7 @@ export function Dialog({
             aria-busy={busy || undefined}
             onEscapeKeyDown={busy ? preventDismiss : undefined}
             onPointerDownOutside={busy ? preventDismiss : undefined}
+            onInteractOutside={modal ? undefined : preventDismiss}
             {...describedByOverride}
           >
             <header className={styles.header}>

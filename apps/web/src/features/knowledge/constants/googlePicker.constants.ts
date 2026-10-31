@@ -2,7 +2,6 @@ export const GOOGLE_PICKER_SCRIPT_ID = 'google-api-script';
 export const GOOGLE_PICKER_SCRIPT_URL = 'https://apis.google.com/js/api.js';
 export const GOOGLE_PICKER_LIBRARY = 'picker';
 export const GOOGLE_DOCUMENT_MIME_TYPE = 'application/vnd.google-apps.document';
-export const GOOGLE_PICKER_DOCS_VIEW = 'docs';
 export const GOOGLE_PICKER_MULTISELECT_FEATURE = 'MULTISELECT_ENABLED';
 export const GOOGLE_PICKER_ACTION_PICKED = 'picked';
 export const GOOGLE_PICKER_ACTION_CANCEL = 'cancel';

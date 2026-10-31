@@ -2,7 +2,6 @@ import {
   GOOGLE_DOCUMENT_MIME_TYPE,
   GOOGLE_PICKER_ACTION_CANCEL,
   GOOGLE_PICKER_ACTION_PICKED,
-  GOOGLE_PICKER_DOCS_VIEW,
   GOOGLE_PICKER_LIBRARY,
   GOOGLE_PICKER_LOAD_FAILED_MESSAGE,
   GOOGLE_PICKER_MULTISELECT_FEATURE,
@@ -12,6 +11,7 @@ import {
 import type {
   GooglePickerApi,
   GooglePickerCallbackData,
+  GooglePickerDocsView,
   GooglePickerDocument,
   GooglePickerWindow,
   OpenGooglePickerInput,
@@ -92,6 +92,15 @@ const toPickedDocument = (document: GooglePickerDocument): GooglePickerDocument 
   resourceKey: document.resourceKey ?? null,
 });
 
+const documentsView = (api: GooglePickerApi, sharedDrives: boolean): GooglePickerDocsView => {
+  const view = new api.picker.DocsView(api.picker.ViewId.DOCS)
+    .setMimeTypes(GOOGLE_DOCUMENT_MIME_TYPE)
+    .setIncludeFolders(false)
+    .setSelectFolderEnabled(false);
+  view.setEnableDrives?.(sharedDrives);
+  return view;
+};
+
 export const openGooglePicker = async ({
   accessToken,
   apiKey,
@@ -100,13 +109,9 @@ export const openGooglePicker = async ({
   onCancel,
 }: OpenGooglePickerInput): Promise<void> => {
   const api = await loadGooglePicker();
-  const view = new api.picker.DocsView(GOOGLE_PICKER_DOCS_VIEW)
-    .setMimeTypes(GOOGLE_DOCUMENT_MIME_TYPE)
-    .setIncludeFolders(false)
-    .setSelectFolderEnabled(false);
-  view.setEnableDrives?.(true);
   const picker = new api.picker.PickerBuilder()
-    .addView(view)
+    .addView(documentsView(api, false))
+    .addView(documentsView(api, true))
     .enableFeature(GOOGLE_PICKER_MULTISELECT_FEATURE)
     .setOAuthToken(accessToken)
     .setDeveloperKey(apiKey)

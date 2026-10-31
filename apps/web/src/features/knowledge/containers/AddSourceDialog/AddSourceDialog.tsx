@@ -201,6 +201,7 @@ export function AddSourceDialog({
       failedCount={failedCount}
       skippedCount={skippedCount}
       uploading={uploading}
+      picking={pickingConnectionId !== null}
       googleContent={
         <GoogleConnectionPanel
           connections={connections}

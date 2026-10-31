@@ -12,6 +12,7 @@ export interface AddSourceModalProps {
   readonly failedCount: number;
   readonly skippedCount: number;
   readonly uploading: boolean;
+  readonly picking: boolean;
   readonly googleContent: ReactNode;
   readonly onSourceTypeChange: (sourceType: AddSourceType) => void;
   readonly onFiles: (files: readonly File[]) => void;
