@@ -658,7 +658,7 @@ The run is marked failed, and Agents shows "N runs failed today".
   - store the token encrypted; show only a masked version;
   - status: receiving / not receiving; last update;
   - quick-reply buttons are sent as an inline keyboard; a tap becomes a customer message with the button label, so the flow router handles it;
-  - detect a revoked token from a Telegram 401/404 → broken state; email to owners and admins is later;
+  - detect a revoked token from a Telegram 401/404 → broken state; webhook bots are checked every 30 minutes; email to owners and admins is later;
   - replace the token, disconnect (removes the webhook), reconnect with the stored token, refresh the bot name and username from Telegram, delete the channel (past conversations stay).
 - **API channel:**
   - `POST /v1/channels/{id}/messages` with `Authorization: Bearer <secret>` and body `{ user_id, text }`.
