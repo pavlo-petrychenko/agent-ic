@@ -31,3 +31,7 @@ export const clearGoogleConnectionReturn = (): void => {
     return;
   }
 };
+
+export const redirectToGoogle = (authorizationUrl: string): void => {
+  window.location.assign(authorizationUrl);
+};

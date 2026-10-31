@@ -28,12 +28,6 @@ $mobile-card-width: 220px;
   gap: var(--space-6);
 }
 
-.groupHeading {
-  display: flex;
-  align-items: center;
-  gap: var(--space-8);
-}
-
 .groupLabel {
   color: var(--color-mute);
   font: var(--type-overline);
@@ -92,6 +86,12 @@ $mobile-card-width: 220px;
 
 .typeTitle {
   font: var(--type-title);
+}
+
+.typeTitleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
 }
 
 .typeDescription {

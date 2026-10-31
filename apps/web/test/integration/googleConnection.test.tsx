@@ -6,6 +6,10 @@ import {
   KnowledgeBasesDocument,
   type KnowledgeBasesQuery,
 } from '@/features/knowledge/communication/gql/query/knowledgeBases.generated';
+import {
+  KnowledgeConnectionsDocument,
+  type KnowledgeConnectionsQuery,
+} from '@/features/knowledge/communication/gql/query/knowledgeConnections.generated';
 import { KnowledgeSourcesDocument } from '@/features/knowledge/communication/gql/query/knowledgeSources.generated';
 import { GOOGLE_CONNECTION_RETURN_STORAGE_KEY } from '@/features/knowledge/constants/googleConnection.constants';
 import { buildRememberWorkspaceMock } from '@/features/workspace/communication/fixtures/rememberWorkspace.fixture';
@@ -13,11 +17,13 @@ import {
   buildWorkspaceShellMock,
   DEMO_WORKSPACE,
 } from '@/features/workspace/communication/fixtures/workspaceShell.fixture';
+import { KnowledgeConnectionStatus } from '@/shared/api/generated/schema.generated';
 import { setWorkspaceId } from '@/shared/api/helpers/requestContext.helpers';
 import { renderRoute } from '@test/support/helpers/router.helpers';
 import { signInForTest, signOutForTest } from '@test/support/helpers/session.helpers';
 
 type KnowledgeBaseFixture = KnowledgeBasesQuery['knowledgeBases'][number];
+type ConnectionFixture = KnowledgeConnectionsQuery['knowledgeConnections'][number];
 
 const SERVICES_KNOWLEDGE_BASE: KnowledgeBaseFixture = {
   id: 'kbs_services',
@@ -29,6 +35,12 @@ const SERVICES_KNOWLEDGE_BASE: KnowledgeBaseFixture = {
   chunkCount: 0,
   createdAt: '2026-10-25T09:00:00.000Z',
   updatedAt: '2026-10-25T09:00:00.000Z',
+};
+
+const CONNECTED_ACCOUNT: ConnectionFixture = {
+  id: 'kcn_owner',
+  accountEmail: 'owner@example.com',
+  status: KnowledgeConnectionStatus.Active,
 };
 
 const buildKnowledgeBasesMock = (): MockLink.MockedResponse => ({
@@ -44,12 +56,17 @@ const buildKnowledgeSourcesMock = (): MockLink.MockedResponse => ({
   result: { data: { knowledgeSources: [] } },
 });
 
+const buildConnectionsMock = (): MockLink.MockedResponse => ({
+  request: { query: KnowledgeConnectionsDocument },
+  result: { data: { knowledgeConnections: [] } },
+});
+
 const COMPLETE_CONNECTION_MOCK: MockLink.MockedResponse = {
   request: {
     query: CompleteGoogleConnectionDocument,
     variables: { input: { code: 'code-value', state: 'state-value' } },
   },
-  result: { data: { completeGoogleConnection: { id: 'kcn_owner' } } },
+  result: { data: { completeGoogleConnection: { id: CONNECTED_ACCOUNT.id } } },
 };
 
 describe('Google connection callback', () => {
@@ -65,7 +82,7 @@ describe('Google connection callback', () => {
     await signOutForTest();
   });
 
-  it('completes the connection and returns to the knowledge base', async () => {
+  it('completes the connection and reopens the Google source tab', async () => {
     sessionStorage.setItem(
       GOOGLE_CONNECTION_RETURN_STORAGE_KEY,
       JSON.stringify({
@@ -80,13 +97,16 @@ describe('Google connection callback', () => {
         COMPLETE_CONNECTION_MOCK,
         buildKnowledgeBasesMock(),
         buildKnowledgeSourcesMock(),
+        buildConnectionsMock(),
       ],
     });
 
-    expect(
-      await screen.findByRole('heading', { name: SERVICES_KNOWLEDGE_BASE.name }),
-    ).toBeInTheDocument();
+    const dialog = await screen.findByRole('dialog', {
+      name: `Add source to “${SERVICES_KNOWLEDGE_BASE.name}”`,
+    });
+    expect(await screen.findByText('No Google account is connected yet.')).toBeInTheDocument();
     expect(sessionStorage.getItem(GOOGLE_CONNECTION_RETURN_STORAGE_KEY)).toBeNull();
+    expect(dialog).toBeInTheDocument();
   });
 
   it('shows a cancellation message when Google returns an error', async () => {
