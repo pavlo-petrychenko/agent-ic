@@ -16,6 +16,7 @@ export function CreateApiChannelDialog({
   agentOptions,
   replyMode,
   webhook,
+  submitting,
   onOpenChange,
   onNameChange,
   onAgentChange,
@@ -39,7 +40,9 @@ export function CreateApiChannelDialog({
           <Button variant={ButtonVariant.Secondary} onClick={onCancel}>
             {t('api.create.cancel')}
           </Button>
-          <Button onClick={onCreate}>{t('api.create.submit')}</Button>
+          <Button disabled={submitting || agentId === ''} onClick={onCreate}>
+            {t('api.create.submit')}
+          </Button>
         </>
       }
     >

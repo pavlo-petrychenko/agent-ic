@@ -63,6 +63,11 @@
     "channel": {
       "breadcrumbApi": "API",
       "subtitle": "API channel · answered by {{agent}}",
+      "loading": "Loading the API channel",
+      "loadError": "The API channel could not be loaded.",
+      "notFound": "That API channel was not found.",
+      "retry": "Try again",
+      "saved": "Changes saved",
       "actions": {
         "delete": "Delete",
         "save": "Save"

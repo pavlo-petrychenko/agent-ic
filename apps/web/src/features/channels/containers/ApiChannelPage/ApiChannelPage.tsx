@@ -1,55 +1,37 @@
-import { useState } from 'react';
-import { API_CHANNEL_AGENT_OPTIONS } from '@/features/channels/constants/apiChannel.constants';
-import {
-  API_CHANNEL_MOCKS,
-  DEFAULT_API_CHANNEL,
-} from '@/features/channels/constants/channelMocks.constants';
+import { useTranslation } from 'react-i18next';
+import { useAgents } from '@/features/agents';
+import { useApiChannel } from '@/features/channels/communication/hooks/useApiChannel';
+import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
+import { ApiChannelContent } from '@/features/channels/containers/ApiChannelPage/ApiChannelContent';
 import type { ApiChannelPageProps } from '@/features/channels/containers/ApiChannelPage/ApiChannelPage.typedefs';
-import { channelsHref } from '@/features/channels/logic/helpers/route.helpers';
-import { ApiChannelDetails } from '@/features/channels/view/ApiChannelDetails';
-import { DeleteApiChannelDialog } from '@/features/channels/view/DeleteApiChannelDialog';
+import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
+import { Skeleton } from '@/shared/ui/display/Skeleton';
+import { IconName } from '@/shared/ui/foundations/Icon';
 
 export function ApiChannelPage({ workspaceId, channelId }: ApiChannelPageProps) {
-  const channel = API_CHANNEL_MOCKS.find((item) => item.id === channelId) ?? DEFAULT_API_CHANNEL;
-  const [agentId, setAgentId] = useState(channel.agentId);
-  const [replyMode, setReplyMode] = useState(channel.replyMode);
-  const [webhook, setWebhook] = useState(channel.webhook);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [typedName, setTypedName] = useState('');
-  const noop = () => undefined;
+  const { t } = useTranslation(CHANNELS_NAMESPACE);
+  const { agents } = useAgents();
+  const { channel, loading, failed, retry } = useApiChannel(channelId, agents);
 
-  const closeDelete = () => {
-    setDeleteOpen(false);
-    setTypedName('');
-  };
+  if (loading) {
+    return <Skeleton label={t('api.channel.loading')} />;
+  }
 
-  return (
-    <>
-      <ApiChannelDetails
-        channelsLink={channelsHref(workspaceId)}
-        channel={channel}
-        agentOptions={API_CHANNEL_AGENT_OPTIONS}
-        agentId={agentId}
-        replyMode={replyMode}
-        webhook={webhook}
-        onAgentChange={setAgentId}
-        onReplyModeChange={setReplyMode}
-        onWebhookChange={setWebhook}
-        onSave={noop}
-        onDelete={() => setDeleteOpen(true)}
-        onRotate={noop}
+  if (failed || channel === null) {
+    return (
+      <EmptyState
+        icon={IconName.Alert}
+        tone={EmptyStateTone.Err}
+        title={t(failed ? 'api.channel.loadError' : 'api.channel.notFound')}
+        actions={
+          <Button variant={ButtonVariant.Secondary} onClick={retry}>
+            {t('api.channel.retry')}
+          </Button>
+        }
       />
-      {deleteOpen && (
-        <DeleteApiChannelDialog
-          channelName={channel.name}
-          agentName={channel.agentName}
-          typedName={typedName}
-          confirmed={typedName === channel.name}
-          onTypedNameChange={setTypedName}
-          onSubmit={closeDelete}
-          onClose={closeDelete}
-        />
-      )}
-    </>
-  );
+    );
+  }
+
+  return <ApiChannelContent workspaceId={workspaceId} channel={channel} agents={agents} />;
 }

@@ -22,6 +22,9 @@ export function ApiChannelDetails({
   agentId,
   replyMode,
   webhook,
+  saving,
+  rotating,
+  deleting,
   onAgentChange,
   onReplyModeChange,
   onWebhookChange,
@@ -48,10 +51,12 @@ export function ApiChannelDetails({
         }
         actions={
           <>
-            <Button variant={ButtonVariant.Danger} onClick={onDelete}>
+            <Button variant={ButtonVariant.Danger} disabled={deleting} onClick={onDelete}>
               {t('api.channel.actions.delete')}
             </Button>
-            <Button onClick={onSave}>{t('api.channel.actions.save')}</Button>
+            <Button disabled={saving} onClick={onSave}>
+              {t('api.channel.actions.save')}
+            </Button>
           </>
         }
       />
@@ -77,7 +82,7 @@ export function ApiChannelDetails({
                     mono
                     className="min-w-0 flex-1"
                   />
-                  <Button variant={ButtonVariant.Secondary} onClick={onRotate}>
+                  <Button variant={ButtonVariant.Secondary} disabled={rotating} onClick={onRotate}>
                     {t('api.channel.endpoint.rotate')}
                   </Button>
                 </div>
