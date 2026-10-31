@@ -26,6 +26,10 @@ export const databaseUrlSchema = z.url({ protocol: DATABASE_URL_PROTOCOL });
 export const poolSizeSchema = z.coerce.number().int().min(POOL_SIZE_MIN);
 export const redisUrlSchema = z.url({ protocol: REDIS_URL_PROTOCOL });
 export const publicUrlSchema = z.url({ protocol: PUBLIC_URL_PROTOCOL });
+export const optionalPublicUrlSchema = z
+  .union([publicUrlSchema, z.literal('')])
+  .optional()
+  .transform((value) => (value === undefined || value === '' ? null : value));
 export const concurrencySchema = z.coerce.number().int().min(WORKER_CONCURRENCY_MIN);
 export const usageLimitSchema = z.coerce.number().int().min(USAGE_LIMIT_MIN);
 export const telegramTimeoutSchema = z.coerce

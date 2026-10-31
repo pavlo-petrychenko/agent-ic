@@ -34,6 +34,13 @@ export class CacheService {
     await this.redis.connection.del(entry.key);
   }
 
+  async take<TValue>(entry: CacheEntry<TValue>): Promise<TValue | null> {
+    const raw = await this.redis.connection.getdel(entry.key);
+    const value = raw === null ? null : parseCachedValue(entry.schema, raw);
+    this.metrics.requested(entry.name, value === null ? CacheResult.Miss : CacheResult.Hit);
+    return value;
+  }
+
   async getOrLoad<TValue>(entry: CacheEntry<TValue>, load: () => Promise<TValue>): Promise<TValue> {
     const cached = await this.get(entry);
     if (cached !== null) {

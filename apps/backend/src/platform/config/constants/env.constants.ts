@@ -60,4 +60,7 @@ export enum EnvVar {
   ResendApiKey = 'RESEND_API_KEY',
   TelegramTransport = 'TELEGRAM_TRANSPORT',
   TelegramPollTimeoutSeconds = 'TELEGRAM_POLL_TIMEOUT_SECONDS',
+  GoogleClientId = 'GOOGLE_CLIENT_ID',
+  GoogleClientSecret = 'GOOGLE_CLIENT_SECRET',
+  GoogleOAuthRedirectUri = 'GOOGLE_OAUTH_REDIRECT_URI',
 }

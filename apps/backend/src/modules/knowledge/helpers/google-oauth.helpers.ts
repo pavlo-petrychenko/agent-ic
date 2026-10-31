@@ -1,0 +1,22 @@
+import { createHash } from 'node:crypto';
+import {
+  GOOGLE_OAUTH_CHALLENGE_ALGORITHM,
+  GOOGLE_OAUTH_CHALLENGE_ENCODING,
+} from '@/modules/knowledge/constants/google-oauth.constants';
+import { GoogleOAuthNotConfiguredError } from '@/modules/knowledge/errors/google-oauth-not-configured.error';
+import type {
+  GoogleConfig,
+  GoogleEnabledConfig,
+} from '@/platform/config/typedefs/app-config.typedefs';
+
+export const googleCodeChallenge = (verifier: string): string =>
+  createHash(GOOGLE_OAUTH_CHALLENGE_ALGORITHM)
+    .update(verifier)
+    .digest(GOOGLE_OAUTH_CHALLENGE_ENCODING);
+
+export const requireGoogleConfig = (config: GoogleConfig): GoogleEnabledConfig => {
+  if (!config.enabled) {
+    throw new GoogleOAuthNotConfiguredError();
+  }
+  return config;
+};
