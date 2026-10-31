@@ -1,5 +1,6 @@
 import { ChannelKind, ErrorReason, IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { CHANNEL_REPLACE_TOKEN_RATE_LIMIT } from '@/modules/channels/constants/channel-rate-limit.constants';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { InvalidChannelInputError } from '@/modules/channels/errors/invalid-channel-input.error';
@@ -8,6 +9,8 @@ import { TelegramTokenInvalidError } from '@/modules/channels/errors/telegram-to
 import { ReplaceTelegramTokenUseCase } from '@/modules/channels/use-cases/replace-telegram-token.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
+import { RateLimitedError } from '@/platform/rate-limit/errors/rate-limited.error';
+import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.service';
 import {
   TEST_TELEGRAM_BOT_ID,
   TEST_TELEGRAM_BOT_NAME,
@@ -150,6 +153,22 @@ describe('ReplaceTelegramTokenUseCase', () => {
     await expect(
       replace.execute(ctx, { id: publicId, token: 'not-a-token' }),
     ).rejects.toBeInstanceOf(InvalidChannelInputError);
+    expect(testbed.telegram.getMeCalls).toHaveLength(0);
+  });
+
+  it('refuses a workspace that has used up its replacement attempts', async () => {
+    const { ctx, publicId, workspaceId } = await seedChannel();
+    await testbed.module
+      .get(RateLimitService)
+      .consume(
+        CHANNEL_REPLACE_TOKEN_RATE_LIMIT,
+        workspaceId,
+        CHANNEL_REPLACE_TOKEN_RATE_LIMIT.capacity,
+      );
+
+    await expect(replace.execute(ctx, { id: publicId, token: NEW_TOKEN })).rejects.toBeInstanceOf(
+      RateLimitedError,
+    );
     expect(testbed.telegram.getMeCalls).toHaveLength(0);
   });
 

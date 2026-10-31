@@ -1,11 +1,14 @@
 import { ChannelKind, IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { CHANNEL_REFRESH_IDENTITY_RATE_LIMIT } from '@/modules/channels/constants/channel-rate-limit.constants';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { TelegramTokenInvalidError } from '@/modules/channels/errors/telegram-token-invalid.error';
 import { RefreshTelegramIdentityUseCase } from '@/modules/channels/use-cases/refresh-telegram-identity.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
+import { RateLimitedError } from '@/platform/rate-limit/errors/rate-limited.error';
+import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.service';
 import { TEST_TELEGRAM_TOKEN } from '@test/support/constants/channel-testing.constants';
 import { newChannel } from '@test/support/fixtures/channel.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
@@ -108,6 +111,20 @@ describe('RefreshTelegramIdentityUseCase', () => {
     );
     expect(stored?.identity).toEqual({ username: 'old_bot', firstName: 'Old bot' });
     expect(stored?.status).toBe(ChannelStatus.Broken);
+  });
+
+  it('refuses a workspace that has used up its refresh attempts', async () => {
+    const { ctx, id, workspaceId } = await seed();
+    await testbed.module
+      .get(RateLimitService)
+      .consume(
+        CHANNEL_REFRESH_IDENTITY_RATE_LIMIT,
+        workspaceId,
+        CHANNEL_REFRESH_IDENTITY_RATE_LIMIT.capacity,
+      );
+
+    await expect(refresh.execute(ctx, { id })).rejects.toBeInstanceOf(RateLimitedError);
+    expect(testbed.telegram.getMeCalls).toHaveLength(0);
   });
 
   it('refuses a channel from another workspace', async () => {

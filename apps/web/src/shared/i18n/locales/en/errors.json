@@ -68,6 +68,7 @@
     "CHANNEL_ADAPTER_NOT_FOUND": "This channel cannot send messages yet.",
     "CHANNEL_NOT_FOUND": "This channel was not found.",
     "CHANNEL_ALREADY_CONNECTED": "This Telegram bot is already connected.",
+    "CHANNEL_BROKEN": "This channel is broken. Replace its token to send messages again.",
     "TELEGRAM_TOKEN_INVALID": "Telegram rejected this bot token. Check it and try again.",
     "RUN_NOT_FOUND": "This run was not found.",
     "UNSUPPORTED_NODE_TYPE": "This flow has a step the agent cannot run yet.",

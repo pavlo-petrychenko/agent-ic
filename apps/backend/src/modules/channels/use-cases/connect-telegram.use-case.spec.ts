@@ -1,5 +1,6 @@
 import { ChannelKind, ErrorReason, IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { CHANNEL_CONNECT_RATE_LIMIT } from '@/modules/channels/constants/channel-rate-limit.constants';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelAlreadyConnectedError } from '@/modules/channels/errors/channel-already-connected.error';
 import { InvalidChannelInputError } from '@/modules/channels/errors/invalid-channel-input.error';
@@ -8,6 +9,8 @@ import { TelegramTokenInvalidError } from '@/modules/channels/errors/telegram-to
 import { ConnectTelegramChannelUseCase } from '@/modules/channels/use-cases/connect-telegram.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
+import { RateLimitedError } from '@/platform/rate-limit/errors/rate-limited.error';
+import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.service';
 import {
   TEST_TELEGRAM_BOT_NAME,
   TEST_TELEGRAM_BOT_USERNAME,
@@ -145,6 +148,17 @@ describe('ConnectTelegramChannelUseCase', () => {
     await expect(execute(workspaceId, agentId, 'not-a-token')).rejects.toBeInstanceOf(
       InvalidChannelInputError,
     );
+    expect(testbed.telegram.getMeCalls).toHaveLength(0);
+  });
+
+  it('refuses a workspace that has used up its connection attempts', async () => {
+    const workspaceId = workspace();
+    const agentId = await seedAgent(testbed, workspaceId);
+    await testbed.module
+      .get(RateLimitService)
+      .consume(CHANNEL_CONNECT_RATE_LIMIT, workspaceId, CHANNEL_CONNECT_RATE_LIMIT.capacity);
+
+    await expect(execute(workspaceId, agentId)).rejects.toBeInstanceOf(RateLimitedError);
     expect(testbed.telegram.getMeCalls).toHaveLength(0);
   });
 
