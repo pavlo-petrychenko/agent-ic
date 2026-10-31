@@ -57,7 +57,7 @@ export const WEBSITE_API_CHANNEL: ApiChannelMock = {
   agentName: 'Gift card FAQ',
   sendsEvents: false,
   endpoint: 'POST https://api.agents.example/v1/channels/ch_7Hk2/messages',
-  secretMasked: 'demo_secret_••••••••••••••••Q4',
+  secretMasked: 'sk_live_••••••••••••••••Q4',
   replyMode: ApiReplyMode.Response,
   webhook: 'https://demo-salon.example/hooks/agent',
   exampleRequest: `curl -X POST https://api.agents.example/v1/channels/ch_7Hk2/messages \\
@@ -78,7 +78,7 @@ export const SALON_CRM_API_CHANNEL: ApiChannelMock = {
   agentName: 'Salon assistant',
   sendsEvents: true,
   endpoint: 'POST https://api.agents.example/v1/channels/ch_9Pq4/messages',
-  secretMasked: 'demo_secret_••••••••••••••••R7',
+  secretMasked: 'sk_live_••••••••••••••••R7',
   replyMode: ApiReplyMode.Webhook,
   webhook: 'https://demo-salon.example/hooks/crm',
   exampleRequest: `curl -X POST https://api.agents.example/v1/channels/ch_9Pq4/messages \\

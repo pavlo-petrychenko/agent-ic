@@ -13,7 +13,7 @@ describe('ApiChannelPage', () => {
     expect(
       screen.getByText('POST https://api.agents.example/v1/channels/ch_7Hk2/messages'),
     ).toBeInTheDocument();
-    expect(screen.getByDisplayValue('demo_secret_••••••••••••••••Q4')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('sk_live_••••••••••••••••Q4')).toBeInTheDocument();
     expect(screen.getByLabelText('Agent')).toHaveValue('agent_gift');
     expect(screen.getByText('In the response')).toBeInTheDocument();
     expect(screen.getByText(/curl -X POST/)).toBeInTheDocument();
