@@ -37,11 +37,10 @@ export const toTelegramChannelSettings = (
 export const toApiChannelSettings = (
   data: ParsedUpdateChannelInput,
 ): {
-  readonly showTyping: boolean;
   readonly replyMode: ApiReplyMode;
   readonly webhook: string | null;
 } => {
-  if (data.showTyping === null || data.showTyping === undefined) {
+  if (data.showTyping !== null && data.showTyping !== undefined) {
     return invalidField(ChannelField.ShowTyping);
   }
   if (data.replyMode === null || data.replyMode === undefined) {
@@ -50,5 +49,5 @@ export const toApiChannelSettings = (
   if (data.replyMode === ApiReplyMode.Webhook && data.webhook === null) {
     return invalidField(ChannelField.Webhook);
   }
-  return { showTyping: data.showTyping, replyMode: data.replyMode, webhook: data.webhook };
+  return { replyMode: data.replyMode, webhook: data.webhook };
 };

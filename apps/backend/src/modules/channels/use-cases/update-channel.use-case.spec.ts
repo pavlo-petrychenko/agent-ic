@@ -116,7 +116,7 @@ describe('UpdateChannelUseCase', () => {
     ).rejects.toBeInstanceOf(InvalidChannelInputError);
   });
 
-  it('updates an api channel agent, typing setting, reply mode and webhook', async () => {
+  it('updates an api channel agent, reply mode and webhook', async () => {
     const seeded = await seedApiChannel(testbed);
     const { id } = publicIds(seeded);
     const nextAgentId = await seedAgent(testbed, seeded.workspaceId);
@@ -124,7 +124,7 @@ describe('UpdateChannelUseCase', () => {
     const view = await update.execute(seeded.ctx, {
       id,
       agentId: testbed.ids.toPublic(IdPrefix.Agent, nextAgentId),
-      showTyping: true,
+      showTyping: null,
       replyMode: ApiReplyMode.Webhook,
       webhook: WEBHOOK,
     });
@@ -134,7 +134,7 @@ describe('UpdateChannelUseCase', () => {
       kind: ChannelKind.Api,
       status: ChannelStatus.Connected,
       agentId: testbed.ids.toPublic(IdPrefix.Agent, nextAgentId),
-      showTyping: true,
+      showTyping: false,
       replyMode: ApiReplyMode.Webhook,
       webhook: WEBHOOK,
       tokenMasked: 'old…hash',
@@ -150,10 +150,10 @@ describe('UpdateChannelUseCase', () => {
       webhook: WEBHOOK,
     });
     expect(stored?.agentId).toBe(nextAgentId);
-    expect(stored?.showTyping).toBe(true);
+    expect(stored?.showTyping).toBe(false);
   });
 
-  it('refuses an api update without showTyping', async () => {
+  it('refuses showTyping on an api channel', async () => {
     const seeded = await seedApiChannel(testbed);
     const { id, agentId } = publicIds(seeded);
 
@@ -161,7 +161,7 @@ describe('UpdateChannelUseCase', () => {
       update.execute(seeded.ctx, {
         id,
         agentId,
-        showTyping: null,
+        showTyping: true,
         replyMode: ApiReplyMode.Response,
         webhook: null,
       }),
@@ -176,7 +176,7 @@ describe('UpdateChannelUseCase', () => {
       update.execute(seeded.ctx, {
         id,
         agentId,
-        showTyping: true,
+        showTyping: null,
         replyMode: ApiReplyMode.Webhook,
         webhook: null,
       }),
@@ -206,7 +206,7 @@ describe('UpdateChannelUseCase', () => {
       update.execute(workspaceCtx(seeded.userId, seeded.workspaceId, WorkspaceRole.Operator), {
         id,
         agentId,
-        showTyping: true,
+        showTyping: null,
         replyMode: ApiReplyMode.Response,
         webhook: null,
       }),

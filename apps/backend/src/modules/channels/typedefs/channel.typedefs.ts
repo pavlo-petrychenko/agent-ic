@@ -25,13 +25,12 @@ export interface ChannelPatch {
 
 interface ChannelSettingsBase {
   readonly agentId: string;
-  readonly showTyping: boolean;
   readonly updatedAt: Date;
   readonly updatedByUserId: string;
 }
 
 export type ChannelSettingsPatch =
-  | ChannelSettingsBase
+  | (ChannelSettingsBase & { readonly showTyping: boolean })
   | (ChannelSettingsBase & { readonly identity: ApiChannelIdentity });
 
 export interface ChannelCredentialsPatch {

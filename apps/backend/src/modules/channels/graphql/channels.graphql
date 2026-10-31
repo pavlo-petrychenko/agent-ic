@@ -70,7 +70,7 @@ input CreateApiChannelInput {
 input UpdateChannelInput {
   id: ID!
   agentId: ID!
-  showTyping: Boolean!
+  showTyping: Boolean
   replyMode: ApiReplyMode
   webhook: String
 }

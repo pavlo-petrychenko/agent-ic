@@ -101,7 +101,6 @@ export class UpdateChannelUseCase {
     const settings = toApiChannelSettings(data);
     const updated = await this.channels.updateSettings(access.workspaceId, channel.id, {
       agentId,
-      showTyping: settings.showTyping,
       identity: {
         name: channel.identity.name,
         replyMode: settings.replyMode,

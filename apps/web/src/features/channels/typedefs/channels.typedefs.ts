@@ -32,7 +32,7 @@ export interface UseChannelResult {
 export interface UpdateChannelVariables {
   readonly id: string;
   readonly agentId: string;
-  readonly showTyping: boolean;
+  readonly showTyping: boolean | null;
   readonly replyMode: ApiReplyMode | null;
   readonly webhook: string | null;
 }
