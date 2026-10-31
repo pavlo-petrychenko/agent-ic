@@ -1,0 +1,42 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--space-12) var(--space-14);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-8);
+  background: var(--color-card);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.email {
+  overflow: hidden;
+  font: var(--type-title);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.error {
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-6);
+}

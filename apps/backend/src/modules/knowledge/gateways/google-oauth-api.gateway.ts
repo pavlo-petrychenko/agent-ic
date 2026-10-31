@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { z } from 'zod';
 import {
   GOOGLE_OAUTH_AUTHORIZATION_ENDPOINT,
   GOOGLE_OAUTH_ACCESS_TYPE_OFFLINE,
@@ -21,6 +20,11 @@ import {
 import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
 import { googleHttpRequest, googleJson } from '@/modules/knowledge/helpers/google-http.helpers';
 import { requireGoogleConfig } from '@/modules/knowledge/helpers/google-oauth.helpers';
+import {
+  googleOAuthRefreshResponseSchema,
+  googleOAuthTokenResponseSchema,
+  googleOAuthUserInfoSchema,
+} from '@/modules/knowledge/schemas/google-oauth-api.schema';
 import type {
   GoogleAccessToken,
   GoogleAccount,
@@ -31,23 +35,6 @@ import type {
 import { ConfigService } from '@/platform/config/services/config.service';
 import { HttpHeader } from '@/platform/http/constants/http-header.constants';
 import { OutboundHttpGateway } from '@/platform/outbound-http/gateways/outbound-http.gateway';
-
-const tokenResponseSchema = z.object({
-  access_token: z.string().min(1),
-  refresh_token: z.string().min(1).optional(),
-  expires_in: z.number().int().positive(),
-  scope: z.string().min(1),
-});
-
-const refreshResponseSchema = z.object({
-  access_token: z.string().min(1),
-  expires_in: z.number().int().positive(),
-});
-
-const userInfoSchema = z.object({
-  sub: z.string().min(1),
-  email: z.email(),
-});
 
 @Injectable()
 export class GoogleOAuthApiGateway extends GoogleOAuthGateway {
@@ -95,7 +82,7 @@ export class GoogleOAuthApiGateway extends GoogleOAuthGateway {
       body: body.toString(),
       timeoutMs: GOOGLE_OAUTH_TIMEOUT_MS,
     });
-    const parsed = googleJson(result, tokenResponseSchema);
+    const parsed = googleJson(result, googleOAuthTokenResponseSchema);
     return {
       accessToken: parsed.access_token,
       refreshToken: parsed.refresh_token ?? null,
@@ -122,7 +109,7 @@ export class GoogleOAuthApiGateway extends GoogleOAuthGateway {
       body: body.toString(),
       timeoutMs: GOOGLE_OAUTH_TIMEOUT_MS,
     });
-    const parsed = googleJson(result, refreshResponseSchema);
+    const parsed = googleJson(result, googleOAuthRefreshResponseSchema);
     return {
       accessToken: parsed.access_token,
       expiresInSeconds: parsed.expires_in,
@@ -140,7 +127,7 @@ export class GoogleOAuthApiGateway extends GoogleOAuthGateway {
       body: null,
       timeoutMs: GOOGLE_OAUTH_TIMEOUT_MS,
     });
-    const parsed = googleJson(result, userInfoSchema);
+    const parsed = googleJson(result, googleOAuthUserInfoSchema);
     return { subject: parsed.sub, email: parsed.email };
   }
 }
