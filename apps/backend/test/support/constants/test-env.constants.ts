@@ -69,6 +69,8 @@ export const TEST_ENV: Readonly<Record<EnvVar, string>> = {
   [EnvVar.GoogleClientId]: 'test-google-client-id',
   [EnvVar.GoogleClientSecret]: 'test-google-client-secret',
   [EnvVar.GoogleOAuthRedirectUri]: 'https://app.agent-ic.test/oauth/google/callback',
+  [EnvVar.GooglePickerApiKey]: 'test-google-picker-api-key',
+  [EnvVar.GooglePickerAppId]: '1234567890',
 };
 
 export const TEST_ARGV_PREFIX: readonly string[] = ['node', 'main'];

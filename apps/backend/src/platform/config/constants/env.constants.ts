@@ -63,4 +63,6 @@ export enum EnvVar {
   GoogleClientId = 'GOOGLE_CLIENT_ID',
   GoogleClientSecret = 'GOOGLE_CLIENT_SECRET',
   GoogleOAuthRedirectUri = 'GOOGLE_OAUTH_REDIRECT_URI',
+  GooglePickerApiKey = 'GOOGLE_PICKER_API_KEY',
+  GooglePickerAppId = 'GOOGLE_PICKER_APP_ID',
 }

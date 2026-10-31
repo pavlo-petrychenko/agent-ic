@@ -200,6 +200,11 @@ describe('loadAppConfig', () => {
       clientId: 'test-google-client-id',
       clientSecret: 'test-google-client-secret',
       redirectUri: 'https://app.agent-ic.test/oauth/google/callback',
+      picker: {
+        enabled: true,
+        apiKey: 'test-google-picker-api-key',
+        appId: '1234567890',
+      },
     });
   });
 
@@ -226,6 +231,28 @@ describe('loadAppConfig', () => {
     expect(variablesOf(issues).toSorted()).toEqual(
       [EnvVar.GoogleClientSecret, EnvVar.GoogleOAuthRedirectUri].toSorted(),
     );
+  });
+
+  it('keeps Google Picker disabled without its pair', () => {
+    const env = createTestEnv({
+      [EnvVar.GooglePickerApiKey]: undefined,
+      [EnvVar.GooglePickerAppId]: undefined,
+    });
+
+    const config = loadAppConfig(roleOf(Role.Api), env);
+
+    expect(config.google).toMatchObject({
+      enabled: true,
+      picker: { enabled: false },
+    });
+  });
+
+  it('requires both Google Picker variables when one is set', () => {
+    const env = createTestEnv({ [EnvVar.GooglePickerAppId]: undefined });
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+    expect(variablesOf(issues)).toEqual([EnvVar.GooglePickerAppId]);
   });
 
   it('reads the telemetry resource and sampler settings', () => {

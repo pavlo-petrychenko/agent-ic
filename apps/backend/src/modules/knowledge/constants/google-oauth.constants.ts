@@ -13,6 +13,7 @@ export enum GoogleOAuthParam {
   Code = 'code',
   GrantType = 'grant_type',
   CodeVerifier = 'code_verifier',
+  RefreshToken = 'refresh_token',
 }
 
 export const GOOGLE_OAUTH_AUTHORIZATION_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -36,6 +37,7 @@ export const GOOGLE_OAUTH_PROMPT_CONSENT = 'consent';
 export const GOOGLE_OAUTH_INCLUDE_GRANTED_SCOPES = 'true';
 export const GOOGLE_OAUTH_CODE_CHALLENGE_METHOD = 'S256';
 export const GOOGLE_OAUTH_GRANT_TYPE_AUTHORIZATION_CODE = 'authorization_code';
+export const GOOGLE_OAUTH_GRANT_TYPE_REFRESH_TOKEN = 'refresh_token';
 export const GOOGLE_OAUTH_FORM_CONTENT_TYPE = 'application/x-www-form-urlencoded';
 export const GOOGLE_OAUTH_JSON_CONTENT_TYPE = 'application/json';
 export const GOOGLE_OAUTH_CACHE_NAME = 'knowledge-google-oauth-state';

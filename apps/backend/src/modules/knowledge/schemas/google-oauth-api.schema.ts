@@ -7,6 +7,11 @@ export const googleOAuthTokenResponseSchema = z.object({
   scope: z.string().min(1),
 });
 
+export const googleOAuthRefreshResponseSchema = z.object({
+  access_token: z.string().min(1),
+  expires_in: z.number().int().positive(),
+});
+
 export const googleOAuthUserInfoSchema = z.object({
   sub: z.string().min(1),
   email: z.email(),

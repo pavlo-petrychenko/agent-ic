@@ -115,7 +115,8 @@
     "KNOWLEDGE_CONNECTION_IN_USE": "Спершу від'єднайте джерела, які використовують цей обліковий запис Google.",
     "GOOGLE_OAUTH_NOT_CONFIGURED": "Google Docs зараз недоступний.",
     "GOOGLE_OAUTH_STATE_INVALID": "Посилання для входу через Google прострочене. Спробуйте підключитися ще раз.",
-    "GOOGLE_OAUTH_FAILED": "Не вдалося увійти через Google. Спробуйте ще раз."
+    "GOOGLE_OAUTH_FAILED": "Не вдалося увійти через Google. Спробуйте ще раз.",
+    "GOOGLE_PICKER_NOT_CONFIGURED": "Вибір документів Google зараз недоступний."
   },
   "code": {
     "NOT_FOUND": "Не вдалося знайти те, що ви шукаєте.",

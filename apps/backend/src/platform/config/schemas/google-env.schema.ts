@@ -5,34 +5,53 @@ import {
   optionalPublicUrlSchema,
   optionalTextSchema,
 } from '@/platform/config/schemas/env-value.schema';
-import type { GoogleConfig } from '@/platform/config/typedefs/app-config.typedefs';
+import type {
+  GoogleConfig,
+  GooglePickerConfig,
+} from '@/platform/config/typedefs/app-config.typedefs';
 
-const googleVariables = [
+const oauthVariables = [
   EnvVar.GoogleClientId,
   EnvVar.GoogleClientSecret,
   EnvVar.GoogleOAuthRedirectUri,
 ] as const;
+
+const pickerVariables = [EnvVar.GooglePickerApiKey, EnvVar.GooglePickerAppId] as const;
+
+const requirePair = (
+  variables: readonly EnvVar[],
+  env: Readonly<Record<string, string | null>>,
+  context: z.RefinementCtx,
+): void => {
+  const configured = variables.filter((variable) => env[variable] !== null).length;
+  if (configured === 0 || configured === variables.length) {
+    return;
+  }
+  for (const variable of variables) {
+    if (env[variable] === null) {
+      context.addIssue({
+        code: 'custom',
+        message: GOOGLE_CONFIG_REQUIRED_MESSAGE,
+        path: [variable],
+      });
+    }
+  }
+};
+
+const pickerConfig = (apiKey: string | null, appId: string | null): GooglePickerConfig =>
+  apiKey === null || appId === null ? { enabled: false } : { enabled: true, apiKey, appId };
 
 export const googleEnvSchema = z
   .object({
     [EnvVar.GoogleClientId]: optionalTextSchema,
     [EnvVar.GoogleClientSecret]: optionalTextSchema,
     [EnvVar.GoogleOAuthRedirectUri]: optionalPublicUrlSchema,
+    [EnvVar.GooglePickerApiKey]: optionalTextSchema,
+    [EnvVar.GooglePickerAppId]: optionalTextSchema,
   })
   .superRefine((env, context) => {
-    const configured = googleVariables.filter((variable) => env[variable] !== null).length;
-    if (configured === 0 || configured === googleVariables.length) {
-      return;
-    }
-    for (const variable of googleVariables) {
-      if (env[variable] === null) {
-        context.addIssue({
-          code: 'custom',
-          message: GOOGLE_CONFIG_REQUIRED_MESSAGE,
-          path: [variable],
-        });
-      }
-    }
+    requirePair(oauthVariables, env, context);
+    requirePair(pickerVariables, env, context);
   })
   .transform((env): GoogleConfig => {
     const clientId = env[EnvVar.GoogleClientId];
@@ -41,5 +60,11 @@ export const googleEnvSchema = z
     if (clientId === null || clientSecret === null || redirectUri === null) {
       return { enabled: false };
     }
-    return { enabled: true, clientId, clientSecret, redirectUri };
+    return {
+      enabled: true,
+      clientId,
+      clientSecret,
+      redirectUri,
+      picker: pickerConfig(env[EnvVar.GooglePickerApiKey], env[EnvVar.GooglePickerAppId]),
+    };
   });

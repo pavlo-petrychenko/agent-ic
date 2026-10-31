@@ -181,7 +181,7 @@ The alternatives and why they are not in the MVP:
 
 The API callback is deliberately a web route plus a GraphQL mutation: the token exchange stays server-side, and the API does not need a REST controller for a non-cookie redirect.
 
-Configuration uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_OAUTH_REDIRECT_URI`. When none of them is set, Google Docs is disabled and every other knowledge feature keeps working; setting only some of them is a configuration error.
+Configuration uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_OAUTH_REDIRECT_URI`. When none of them is set, Google Docs is disabled and every other knowledge feature keeps working; setting only some of them is a configuration error. Picker adds the optional pair `GOOGLE_PICKER_API_KEY` and `GOOGLE_PICKER_APP_ID`; without it, connecting an account still works and only the document picker is unavailable.
 
 **Google Picker.**
 

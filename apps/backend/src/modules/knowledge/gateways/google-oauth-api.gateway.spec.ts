@@ -91,6 +91,27 @@ describe('GoogleOAuthApiGateway', () => {
     expect(body.get(GoogleOAuthParam.GrantType)).toBe('authorization_code');
   });
 
+  it('refreshes the access token from the stored refresh token', async () => {
+    const http = new FakeOutboundHttpGateway().respond(
+      HttpStatus.OK,
+      JSON.stringify({ access_token: TEST_GOOGLE_ACCESS_TOKEN, expires_in: 3600 }),
+    );
+    const gateway = gatewayOf(http);
+
+    await expect(gateway.refreshAccessToken(TEST_GOOGLE_REFRESH_TOKEN)).resolves.toEqual({
+      accessToken: TEST_GOOGLE_ACCESS_TOKEN,
+      expiresInSeconds: 3600,
+    });
+    const request = http.requests[0];
+    if (request === undefined) {
+      throw new Error('the gateway did not send a request');
+    }
+    const body = new URLSearchParams(request.body ?? '');
+    expect(body.get(GoogleOAuthParam.RefreshToken)).toBe(TEST_GOOGLE_REFRESH_TOKEN);
+    expect(body.get(GoogleOAuthParam.GrantType)).toBe('refresh_token');
+    expect(body.get(GoogleOAuthParam.ClientSecret)).toBe('test-google-client-secret');
+  });
+
   it('reads the account identity with the access token', async () => {
     const http = new FakeOutboundHttpGateway().respond(
       HttpStatus.OK,
