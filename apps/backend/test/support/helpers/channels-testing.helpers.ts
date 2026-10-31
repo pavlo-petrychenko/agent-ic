@@ -1,10 +1,13 @@
+import { ChannelKind, WorkspaceRole } from '@agent-ic/contracts';
 import { ChannelsModule } from '@/modules/channels/channels.module';
+import { ApiReplyMode, ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
 import { FakeTelegramGateway } from '@/modules/channels/gateways/telegram.fake';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
+import type { NewChannel } from '@/modules/channels/typedefs/channel.typedefs';
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
@@ -18,7 +21,9 @@ import {
   TEST_IDEMPOTENCY_KEY,
 } from '@test/support/constants/conversations-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { newChannel } from '@test/support/fixtures/channel.fixture';
 import { newConversation, workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
+import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createConversationsTestbed } from '@test/support/helpers/conversations-testing.helpers';
 import {
   ensureAgentRow,
@@ -74,6 +79,41 @@ export const seedChannelWorkspace = async (
   await ensureWorkspaceRow(testbed.module, workspaceId);
   await ensureUserRow(testbed.module, userId);
   return { workspaceId, userId };
+};
+
+export const seedApiChannel = async (
+  testbed: ChannelsTestbed,
+  overrides: Partial<NewChannel> = {},
+) => {
+  const workspace = await seedChannelWorkspace(testbed);
+  const agentId = testbed.ids.generate();
+  await ensureAgentRow(testbed.module, workspace.workspaceId, agentId);
+  const channel = newChannel(testbed, workspace.workspaceId, {
+    createdByUserId: workspace.userId,
+    status: ChannelStatus.Connected,
+    kind: ChannelKind.Api,
+    agentId,
+    identity: {
+      name: 'Website',
+      replyMode: ApiReplyMode.Response,
+      webhook: null,
+    },
+    showTyping: false,
+    credentialsSealed: testbed.channelTokens.sealCredentials({
+      secretKeyHash: 'old-secret-hash',
+      secretKeyHint: 'old…hash',
+      previousSecretKeyHash: null,
+      previousKeyExpiresAt: null,
+    }),
+    ...overrides,
+  });
+  await testbed.tenants.run(workspace.workspaceId, () => testbed.channels.insertIfAbsent(channel));
+  return {
+    ...workspace,
+    agentId,
+    channel,
+    ctx: workspaceCtx(workspace.userId, workspace.workspaceId, WorkspaceRole.Owner),
+  };
 };
 
 export const seedChannelConversation = async (

@@ -156,7 +156,12 @@ describe('TelegramTokenHealthService', () => {
     const telegram = { getWebhookInfo: webhookInfoMock() };
     const health = { markBroken: markBrokenMock() };
     const tokens = {
-      openCredentials: () => ({ secretKeyHash: 'hash' }),
+      openCredentials: () => ({
+        secretKeyHash: 'hash',
+        secretKeyHint: 'abcd…wxyz',
+        previousSecretKeyHash: null,
+        previousKeyExpiresAt: null,
+      }),
     };
 
     const service = serviceFor(

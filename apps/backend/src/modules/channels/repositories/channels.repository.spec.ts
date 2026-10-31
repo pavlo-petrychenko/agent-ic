@@ -147,7 +147,7 @@ describe('Channels repositories across tenants', () => {
         channelPatch(channel, {
           status: ChannelStatus.Connected,
           agentId,
-          identity: { name: 'Changed', username: 'changed_bot' },
+          identity: { name: 'Changed', username: 'changed_bot', firstName: 'Changed' },
           showTyping: false,
           credentialsSealed,
           updatedAt: at,
