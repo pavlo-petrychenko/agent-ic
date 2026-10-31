@@ -96,6 +96,15 @@ export class SourcesRepository {
     return source !== undefined;
   }
 
+  async hasAnyByConnection(workspaceId: string, connectionId: string): Promise<boolean> {
+    const [source] = await this.txHost.tx
+      .select({ id: sources.id })
+      .from(sources)
+      .where(and(eq(sources.workspaceId, workspaceId), eq(sources.connectionId, connectionId)))
+      .limit(1);
+    return source !== undefined;
+  }
+
   private activeWhere(workspaceId: string, ...conditions: SQL[]): SQL | undefined {
     return and(eq(sources.workspaceId, workspaceId), isNull(sources.deletedAt), ...conditions);
   }

@@ -1,6 +1,7 @@
 extend type Query {
   knowledgeBases: [KnowledgeBase!]!
   knowledgeSources(knowledgeBaseId: ID!): [KnowledgeSource!]!
+  knowledgeConnections: [GoogleConnection!]!
 }
 
 extend type Mutation {
@@ -12,6 +13,52 @@ extend type Mutation {
   renameSource(input: RenameSourceInput!): KnowledgeSource!
   deleteSource(input: DeleteSourceInput!): DeleteSourcePayload!
   retrySource(input: RetrySourceInput!): RetrySourcePayload!
+  startGoogleConnection: StartGoogleConnectionPayload!
+  completeGoogleConnection(input: CompleteGoogleConnectionInput!): GoogleConnection!
+  disconnectGoogleConnection(
+    input: DisconnectGoogleConnectionInput!
+  ): DisconnectGoogleConnectionPayload!
+}
+
+type StartGoogleConnectionPayload {
+  authorizationUrl: String!
+  expiresAt: String!
+}
+
+input CompleteGoogleConnectionInput {
+  state: String!
+  code: String!
+}
+
+input DisconnectGoogleConnectionInput {
+  id: ID!
+}
+
+type DisconnectGoogleConnectionPayload {
+  id: ID!
+}
+
+enum KnowledgeConnectionProvider {
+  google_docs
+}
+
+enum KnowledgeConnectionStatus {
+  active
+  revoked
+  error
+}
+
+type GoogleConnection {
+  id: ID!
+  provider: KnowledgeConnectionProvider!
+  accountEmail: String!
+  status: KnowledgeConnectionStatus!
+  scopes: [String!]!
+  lastErrorCode: String
+  lastErrorMessage: String
+  lastUsedAt: String
+  createdAt: String!
+  updatedAt: String!
 }
 
 input RenameKnowledgeBaseInput {
