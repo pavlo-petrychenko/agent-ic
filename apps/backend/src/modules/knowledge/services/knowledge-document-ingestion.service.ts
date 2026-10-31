@@ -220,24 +220,37 @@ export class KnowledgeDocumentIngestionService {
   }
 
   private async loadOriginal(input: DocumentIngestionInput): Promise<DocumentOriginalContent> {
-    const { workspaceId, document, connection } = input;
-    const storedKey = document.pendingOriginalStorageKey ?? document.originalStorageKey;
+    const storedKey = input.document.pendingOriginalStorageKey ?? input.document.originalStorageKey;
     if (storedKey !== null) {
-      const stored = await this.storage.head(storedKey);
-      if (stored === null) {
-        throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
-      }
-      if (stored.size > KNOWLEDGE_DOCUMENT_MAX_BYTES) {
-        throw new DocumentParseError(DocumentParseErrorCode.TooLarge);
-      }
-      return {
-        storageKey: storedKey,
-        fileName: basename(storedKey),
-        mimeType: document.mimeType,
-        bytes: await readStream(await this.storage.get(storedKey)),
-        googleFile: null,
-      };
+      return this.loadStoredOriginal(input, storedKey);
     }
+    return this.loadGoogleDocsOriginal(input);
+  }
+
+  private async loadStoredOriginal(
+    input: DocumentIngestionInput,
+    storageKey: string,
+  ): Promise<DocumentOriginalContent> {
+    const stored = await this.storage.head(storageKey);
+    if (stored === null) {
+      throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
+    }
+    if (stored.size > KNOWLEDGE_DOCUMENT_MAX_BYTES) {
+      throw new DocumentParseError(DocumentParseErrorCode.TooLarge);
+    }
+    return {
+      storageKey,
+      fileName: basename(storageKey),
+      mimeType: input.document.mimeType,
+      bytes: await readStream(await this.storage.get(storageKey)),
+      googleFile: null,
+    };
+  }
+
+  private async loadGoogleDocsOriginal(
+    input: DocumentIngestionInput,
+  ): Promise<DocumentOriginalContent> {
+    const { workspaceId, document, connection } = input;
     if (connection === null || document.externalId === null) {
       throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
     }
@@ -251,14 +264,18 @@ export class KnowledgeDocumentIngestionService {
         googleFile: content.file,
       };
     } catch (error) {
-      if (error instanceof GoogleDriveFileUnavailableError) {
-        throw DocumentParseError.unreadable(error);
-      }
-      if (error instanceof GoogleDriveExportTooLargeError) {
-        throw new DocumentParseError(DocumentParseErrorCode.TooLarge);
-      }
-      throw error;
+      throw this.googleDocsParseError(error);
     }
+  }
+
+  private googleDocsParseError(error: unknown): unknown {
+    if (error instanceof GoogleDriveFileUnavailableError) {
+      return DocumentParseError.unreadable(error);
+    }
+    if (error instanceof GoogleDriveExportTooLargeError) {
+      return new DocumentParseError(DocumentParseErrorCode.TooLarge);
+    }
+    return error;
   }
 
   private async summaryFor(

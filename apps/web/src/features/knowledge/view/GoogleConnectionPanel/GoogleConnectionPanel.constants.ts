@@ -10,3 +10,8 @@ export const GOOGLE_CONNECTION_STATUS_TONES: Readonly<
   [KnowledgeConnectionStatus.Revoked]: BadgeTone.Err,
   [KnowledgeConnectionStatus.Error]: BadgeTone.Warn,
 };
+export const GOOGLE_CONNECTION_STATUS_LABEL_KEYS = {
+  [KnowledgeConnectionStatus.Active]: 'add.googleConnection.statusActive',
+  [KnowledgeConnectionStatus.Revoked]: 'add.googleConnection.statusRevoked',
+  [KnowledgeConnectionStatus.Error]: 'add.googleConnection.statusError',
+} as const satisfies Readonly<Record<KnowledgeConnectionStatus, string>>;
