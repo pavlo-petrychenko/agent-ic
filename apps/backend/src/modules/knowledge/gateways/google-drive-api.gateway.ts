@@ -1,6 +1,5 @@
 import { KNOWLEDGE_DOCUMENT_MAX_BYTES } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
-import { z } from 'zod';
 import {
   GOOGLE_DRIVE_API_BASE,
   GOOGLE_DRIVE_EXPORT_MIME_TYPE,
@@ -9,28 +8,14 @@ import {
   GOOGLE_DRIVE_RESOURCE_KEY_HEADER,
   GOOGLE_DRIVE_TIMEOUT_MS,
 } from '@/modules/knowledge/constants/google-drive.constants';
-import {
-  GoogleDriveExportTooLargeError,
-  GoogleDriveFileUnavailableError,
-} from '@/modules/knowledge/errors/google-drive.error';
+import { GoogleDriveExportTooLargeError } from '@/modules/knowledge/errors/google-drive.error';
 import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.gateway';
+import { googleDriveFileErrorForStatus } from '@/modules/knowledge/helpers/google-drive.helpers';
 import { googleHttpRequest, googleJson } from '@/modules/knowledge/helpers/google-http.helpers';
+import { googleDriveFileSchema } from '@/modules/knowledge/schemas/google-drive.schema';
 import type { GoogleDriveFile } from '@/modules/knowledge/typedefs/google-drive.typedefs';
 import { HttpHeader } from '@/platform/http/constants/http-header.constants';
 import { OutboundHttpGateway } from '@/platform/outbound-http/gateways/outbound-http.gateway';
-
-const fileSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  mimeType: z.string().min(1),
-  webViewLink: z.string().nullable().optional(),
-  modifiedTime: z.string().nullable().optional(),
-  version: z.string().nullable().optional(),
-  trashed: z.boolean().optional(),
-});
-
-const unavailableForStatus = (status: number): Error | null =>
-  status === 403 || status === 404 ? new GoogleDriveFileUnavailableError() : null;
 
 @Injectable()
 export class GoogleDriveApiGateway extends GoogleDriveGateway {
@@ -56,9 +41,9 @@ export class GoogleDriveApiGateway extends GoogleDriveGateway {
         body: null,
         timeoutMs: GOOGLE_DRIVE_TIMEOUT_MS,
       },
-      { onStatus: unavailableForStatus },
+      { onStatus: googleDriveFileErrorForStatus },
     );
-    const parsed = googleJson(result, fileSchema);
+    const parsed = googleJson(result, googleDriveFileSchema);
     return {
       id: parsed.id,
       name: parsed.name,
@@ -87,7 +72,7 @@ export class GoogleDriveApiGateway extends GoogleDriveGateway {
         maxBodyBytes: KNOWLEDGE_DOCUMENT_MAX_BYTES,
       },
       {
-        onStatus: unavailableForStatus,
+        onStatus: googleDriveFileErrorForStatus,
         onTruncated: () => new GoogleDriveExportTooLargeError(),
       },
     );
