@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useUpdateTelegram } from '@/features/channels/communication/hooks/useUpdateTelegram';
+import { useUpdateChannel } from '@/features/channels/communication/hooks/useUpdateChannel';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
 import type { TelegramBotSettingsResult } from '@/features/channels/containers/TelegramBotPage/TelegramBotContent/TelegramBotContent.typedefs';
 import type { TelegramChannelView } from '@/features/channels/typedefs/telegram.typedefs';
@@ -16,13 +16,19 @@ export function useTelegramBotSettings(
   const { t } = useTranslation(CHANNELS_NAMESPACE);
   const errorMessage = useErrorMessage();
   const { showToast } = useToast();
-  const { updateTelegram, saving } = useUpdateTelegram();
+  const { updateChannel, saving } = useUpdateChannel();
   const [agentId, setAgentId] = useState(channel.agentId ?? agentOptions[0]?.value ?? '');
   const [typing, setTyping] = useState(channel.showTyping);
 
   const save = async () => {
     try {
-      await updateTelegram({ id: channel.id, agentId, showTyping: typing });
+      await updateChannel({
+        id: channel.id,
+        agentId,
+        showTyping: typing,
+        replyMode: null,
+        webhook: null,
+      });
       showToast({ message: t('telegram.bot.saved'), tone: ToastTone.Ok });
     } catch (error) {
       showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });

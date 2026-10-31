@@ -1,0 +1,9 @@
+mutation UpdateChannel($input: UpdateChannelInput!) {
+  updateChannel(input: $input) {
+    id
+    agentId
+    showTyping
+    updatedAt
+    updatedByName
+  }
+}

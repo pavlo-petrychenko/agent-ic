@@ -27,7 +27,7 @@ const refreshTelegramIdentity = vi.hoisted(() =>
   vi.fn<() => Promise<void>>(() => Promise.resolve()),
 );
 
-const updateTelegram = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
+const updateChannel = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
 
 const replaceTelegramToken = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
 
@@ -88,9 +88,9 @@ vi.mock('@/features/channels/communication/hooks/useRefreshTelegramIdentity', ()
   }),
 }));
 
-vi.mock('@/features/channels/communication/hooks/useUpdateTelegram', () => ({
-  useUpdateTelegram: () => ({
-    updateTelegram,
+vi.mock('@/features/channels/communication/hooks/useUpdateChannel', () => ({
+  useUpdateChannel: () => ({
+    updateChannel,
     saving: false,
   }),
 }));
@@ -133,16 +133,18 @@ describe('TelegramBotPage', () => {
   });
 
   it('saves the bot settings', async () => {
-    updateTelegram.mockClear();
+    updateChannel.mockClear();
     renderPage();
 
     await userEvent.click(await screen.findByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
-      expect(updateTelegram).toHaveBeenCalledWith({
+      expect(updateChannel).toHaveBeenCalledWith({
         id: CHANNEL.id,
         agentId: 'agt_1',
         showTyping: true,
+        replyMode: null,
+        webhook: null,
       });
     });
   });
