@@ -16,9 +16,14 @@ import {
   KnowledgeSummarySource,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { DocumentParseError } from '@/modules/knowledge/errors/document-parse.error';
+import {
+  GoogleDriveExportTooLargeError,
+  GoogleDriveFileUnavailableError,
+} from '@/modules/knowledge/errors/google-drive.error';
 import { bm25TermFrequencies } from '@/modules/knowledge/helpers/bm25.helpers';
 import { buildIndexedChunks } from '@/modules/knowledge/helpers/chunk-index.helpers';
 import { buildDocumentChunks } from '@/modules/knowledge/helpers/chunking.helpers';
+import { googleDriveDate } from '@/modules/knowledge/helpers/google-picker.helpers';
 import { knowledgeEmbeddingModel } from '@/modules/knowledge/helpers/knowledge-embedding.helpers';
 import { knowledgeContentStorageKey } from '@/modules/knowledge/helpers/knowledge-storage.helpers';
 import { buildDocumentSections } from '@/modules/knowledge/helpers/section-tree.helpers';
@@ -28,6 +33,7 @@ import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.
 import { SectionsRepository } from '@/modules/knowledge/repositories/sections.repository';
 import { DocumentParserService } from '@/modules/knowledge/services/document-parser.service';
 import { DocumentSummaryService } from '@/modules/knowledge/services/document-summary.service';
+import { GoogleDocsContentService } from '@/modules/knowledge/services/google-docs-content.service';
 import { KnowledgeEmbeddingService } from '@/modules/knowledge/services/knowledge-embedding.service';
 import type { NewChunkTerm } from '@/modules/knowledge/typedefs/chunk-term.typedefs';
 import type { NewChunk } from '@/modules/knowledge/typedefs/chunk.typedefs';
@@ -37,6 +43,7 @@ import type { KnowledgeDocumentWarning } from '@/modules/knowledge/typedefs/docu
 import type {
   DocumentIngestionInput,
   DocumentIngestionResult,
+  DocumentOriginalContent,
 } from '@/modules/knowledge/typedefs/knowledge-ingestion.typedefs';
 import type { NewSection } from '@/modules/knowledge/typedefs/section.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
@@ -54,6 +61,7 @@ export class KnowledgeDocumentIngestionService {
     private readonly storage: FileStorage,
     private readonly parser: DocumentParserService,
     private readonly summary: DocumentSummaryService,
+    private readonly googleDocs: GoogleDocsContentService,
     private readonly embeddings: KnowledgeEmbeddingService,
     private readonly documents: DocumentsRepository,
     private readonly sections: SectionsRepository,
@@ -65,22 +73,11 @@ export class KnowledgeDocumentIngestionService {
 
   async ingest(input: DocumentIngestionInput): Promise<DocumentIngestionResult> {
     const { workspaceId, knowledgeBase, document } = input;
-    const originalKey = document.pendingOriginalStorageKey ?? document.originalStorageKey;
-    if (originalKey === null) {
-      throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
-    }
-    const original = await this.storage.head(originalKey);
-    if (original === null) {
-      throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
-    }
-    if (original.size > KNOWLEDGE_DOCUMENT_MAX_BYTES) {
-      throw new DocumentParseError(DocumentParseErrorCode.TooLarge);
-    }
-    const bytes = await readStream(await this.storage.get(originalKey));
+    const original = await this.loadOriginal(input);
     const parsed = await this.parser.parse({
-      bytes,
-      fileName: basename(originalKey),
-      mimeType: document.mimeType,
+      bytes: original.bytes,
+      fileName: original.fileName,
+      mimeType: original.mimeType,
       title: document.title,
     });
     const sections = buildDocumentSections(parsed.markdown);
@@ -90,7 +87,7 @@ export class KnowledgeDocumentIngestionService {
       document.contentStorageKey !== null;
     const summary = await this.summaryFor(document, parsed, sections, unchanged);
     if (unchanged && summary === null) {
-      await this.adoptPendingOriginal(workspaceId, document, originalKey);
+      await this.adoptPendingOriginal(workspaceId, document, original.storageKey);
       return { skipped: true };
     }
 
@@ -179,8 +176,9 @@ export class KnowledgeDocumentIngestionService {
       await this.chunkTerms.insertMany(termRows);
       const updated = await this.documents.update(workspaceId, document.id, {
         title: parsed.title,
-        originalStorageKey: originalKey,
+        originalStorageKey: original.storageKey,
         pendingOriginalStorageKey: null,
+        sizeBytes: original.bytes.length,
         contentStorageKey,
         contentHash: parsed.contentHash,
         warnings: this.warnings(parsed, summary),
@@ -191,6 +189,13 @@ export class KnowledgeDocumentIngestionService {
         lastIndexedAt: now,
         errorCode: null,
         errorMessage: null,
+        ...(original.googleFile === null
+          ? {}
+          : {
+              sourceUrl: original.googleFile.webViewLink ?? document.sourceUrl,
+              providerVersion: original.googleFile.version,
+              providerModifiedAt: googleDriveDate(original.googleFile.modifiedTime),
+            }),
         ...(summary?.generated === true
           ? {
               summary: summary.summary,
@@ -209,9 +214,68 @@ export class KnowledgeDocumentIngestionService {
       );
     });
 
-    await this.deleteObjectIfChanged(document.originalStorageKey, originalKey);
+    await this.deleteObjectIfChanged(document.originalStorageKey, original.storageKey);
     await this.deleteObjectIfChanged(document.contentStorageKey, contentStorageKey);
     return { skipped: false };
+  }
+
+  private async loadOriginal(input: DocumentIngestionInput): Promise<DocumentOriginalContent> {
+    const storedKey = input.document.pendingOriginalStorageKey ?? input.document.originalStorageKey;
+    if (storedKey !== null) {
+      return this.loadStoredOriginal(input, storedKey);
+    }
+    return this.loadGoogleDocsOriginal(input);
+  }
+
+  private async loadStoredOriginal(
+    input: DocumentIngestionInput,
+    storageKey: string,
+  ): Promise<DocumentOriginalContent> {
+    const stored = await this.storage.head(storageKey);
+    if (stored === null) {
+      throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
+    }
+    if (stored.size > KNOWLEDGE_DOCUMENT_MAX_BYTES) {
+      throw new DocumentParseError(DocumentParseErrorCode.TooLarge);
+    }
+    return {
+      storageKey,
+      fileName: basename(storageKey),
+      mimeType: input.document.mimeType,
+      bytes: await readStream(await this.storage.get(storageKey)),
+      googleFile: null,
+    };
+  }
+
+  private async loadGoogleDocsOriginal(
+    input: DocumentIngestionInput,
+  ): Promise<DocumentOriginalContent> {
+    const { workspaceId, document, connection } = input;
+    if (connection === null || document.externalId === null) {
+      throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
+    }
+    try {
+      const content = await this.googleDocs.export({ workspaceId, document, connection });
+      return {
+        storageKey: content.storageKey,
+        fileName: content.fileName,
+        mimeType: content.mimeType,
+        bytes: content.bytes,
+        googleFile: content.file,
+      };
+    } catch (error) {
+      throw this.googleDocsParseError(error);
+    }
+  }
+
+  private googleDocsParseError(error: unknown): unknown {
+    if (error instanceof GoogleDriveFileUnavailableError) {
+      return DocumentParseError.unreadable(error);
+    }
+    if (error instanceof GoogleDriveExportTooLargeError) {
+      return new DocumentParseError(DocumentParseErrorCode.TooLarge);
+    }
+    return error;
   }
 
   private async summaryFor(

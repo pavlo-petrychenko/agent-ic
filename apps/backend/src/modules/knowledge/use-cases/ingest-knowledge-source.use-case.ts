@@ -10,6 +10,7 @@ import {
   isDocumentFailure,
   knowledgeFailure,
 } from '@/modules/knowledge/helpers/knowledge-ingestion.helpers';
+import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
 import { KnowledgeStatsRepository } from '@/modules/knowledge/repositories/knowledge-stats.repository';
@@ -35,6 +36,7 @@ export class IngestKnowledgeSourceUseCase {
   constructor(
     private readonly tenants: TenantTransactionService,
     private readonly sources: SourcesRepository,
+    private readonly connections: ConnectionsRepository,
     private readonly documents: DocumentsRepository,
     private readonly syncRuns: SyncRunsRepository,
     private readonly knowledgeBases: KnowledgeBasesRepository,
@@ -70,6 +72,7 @@ export class IngestKnowledgeSourceUseCase {
             workspaceId,
             knowledgeBase: started.knowledgeBase,
             document,
+            connection: started.connection,
           });
           if (result.skipped) {
             skipped += 1;
@@ -183,6 +186,10 @@ export class IngestKnowledgeSourceUseCase {
         return null;
       }
       const documents = await this.documents.listBySource(workspaceId, source.id);
+      const connection =
+        source.connectionId === null
+          ? null
+          : await this.connections.findById(workspaceId, source.connectionId);
       await this.sources.update(workspaceId, sourceId, {
         status: KnowledgeSourceStatus.Indexing,
         lastErrorCode: null,
@@ -200,7 +207,7 @@ export class IngestKnowledgeSourceUseCase {
         errorCode: null,
         errorMessage: null,
       });
-      return { knowledgeBase, documents, syncRunId: syncRun.id };
+      return { knowledgeBase, documents, connection, syncRunId: syncRun.id };
     });
   }
 
