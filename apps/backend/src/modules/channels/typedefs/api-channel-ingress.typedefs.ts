@@ -12,3 +12,12 @@ export interface ApiChannelKeyVerificationResult {
   readonly channel: ApiChannelIngressRecord;
   readonly ctx: UseCaseCtx;
 }
+
+export interface ApiChannelMessageInput {
+  readonly body: unknown;
+  readonly idempotencyKey: string | null;
+}
+
+export interface ApiChannelMessageResult {
+  readonly conversationId: string;
+}

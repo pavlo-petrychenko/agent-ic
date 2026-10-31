@@ -10,4 +10,5 @@ export enum HttpHeader {
   PlatformAdminRoute = 'x-agent-ic-admin-route',
   WorkspaceId = 'x-workspace-id',
   TelegramSecretToken = 'x-telegram-bot-api-secret-token',
+  IdempotencyKey = 'idempotency-key',
 }

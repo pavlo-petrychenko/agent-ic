@@ -1,5 +1,6 @@
 import { AgentsModule } from '@/modules/agents';
 import { CHANNEL_ADAPTERS } from '@/modules/channels/constants/channel-adapter.constants';
+import { ApiChannelMessagesController } from '@/modules/channels/controllers/api-channel-messages.controller';
 import { TelegramWebhookController } from '@/modules/channels/controllers/telegram-webhook.controller';
 import type { ChannelAdapter } from '@/modules/channels/gateways/channel-adapter.gateway';
 import { HttpTelegramGateway } from '@/modules/channels/gateways/http-telegram.gateway';
@@ -41,6 +42,7 @@ import { DeleteChannelUseCase } from '@/modules/channels/use-cases/delete-channe
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
 import { DisconnectTelegramUseCase } from '@/modules/channels/use-cases/disconnect-telegram.use-case';
 import { GetChannelUseCase } from '@/modules/channels/use-cases/get-channel.use-case';
+import { HandleApiChannelMessageUseCase } from '@/modules/channels/use-cases/handle-api-channel-message.use-case';
 import { HandleTelegramWebhookUseCase } from '@/modules/channels/use-cases/handle-telegram-webhook.use-case';
 import { ListChannelsUseCase } from '@/modules/channels/use-cases/list-channels.use-case';
 import { ReconnectTelegramUseCase } from '@/modules/channels/use-cases/reconnect-telegram.use-case';
@@ -95,6 +97,7 @@ export class ChannelsModule extends defineModule({
     ReplaceTelegramTokenUseCase,
     DeliverOutboundMessageUseCase,
     HandleTelegramWebhookUseCase,
+    HandleApiChannelMessageUseCase,
     CheckTelegramTokenHealthUseCase,
     CreateApiChannelUseCase,
     RotateApiChannelKeyUseCase,
@@ -112,7 +115,7 @@ export class ChannelsModule extends defineModule({
     RotateApiChannelKeyResolver,
     UpdateChannelResolver,
   ],
-  gatewayControllers: [TelegramWebhookController],
+  gatewayControllers: [TelegramWebhookController, ApiChannelMessagesController],
   listeners: [DeliverOutboundMessageListener],
   processors: [CheckTelegramTokenHealthProcessor],
   exports: [SimulatedChannelAdapter, TelegramChannelAdapter, ChannelAdapterRegistryService],
