@@ -7,6 +7,7 @@ import { TelegramTokenInvalidError } from '@/modules/channels/errors/telegram-to
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { telegramWebhookUrl } from '@/modules/channels/helpers/telegram.helpers';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
+import type { TelegramChannelIdentity } from '@/modules/channels/typedefs/channel-identity.typedefs';
 import type { ChannelRecord } from '@/modules/channels/typedefs/channel.typedefs';
 import type {
   ConfigureTelegramTransportInput,
@@ -51,9 +52,29 @@ export class TelegramChannelService {
     };
   }
 
+  async readIdentity(
+    channel: Pick<ChannelRecord, 'externalId' | 'credentialsSealed'>,
+  ): Promise<TelegramChannelIdentity> {
+    const { bot } = await this.openBot(channel);
+    return { username: bot.username, firstName: bot.firstName };
+  }
+
   async prepareReconnect(
     channel: Pick<ChannelRecord, 'externalId' | 'credentialsSealed'>,
   ): Promise<TelegramReconnectPreparation> {
+    const { token, bot } = await this.openBot(channel);
+    const next = this.createCredentials(token);
+    return {
+      token,
+      identity: { username: bot.username, firstName: bot.firstName },
+      sealed: next.sealed,
+      webhookSecret: next.webhookSecret,
+    };
+  }
+
+  private async openBot(
+    channel: Pick<ChannelRecord, 'externalId' | 'credentialsSealed'>,
+  ): Promise<{ token: string; bot: TelegramBot }> {
     const credentials = this.channelTokens.openCredentials(channel.credentialsSealed);
     if (!('botToken' in credentials)) {
       throw new ChannelNotFoundError();
@@ -62,13 +83,7 @@ export class TelegramChannelService {
     if (bot.id !== channel.externalId) {
       throw new TelegramTokenInvalidError();
     }
-    const next = this.createCredentials(credentials.botToken);
-    return {
-      token: credentials.botToken,
-      identity: { username: bot.username, firstName: bot.firstName },
-      sealed: next.sealed,
-      webhookSecret: next.webhookSecret,
-    };
+    return { token: credentials.botToken, bot };
   }
 
   async configureTransport(input: ConfigureTelegramTransportInput): Promise<void> {

@@ -9,12 +9,14 @@ export interface TelegramBotDetailsProps {
   readonly typing: boolean;
   readonly saving: boolean;
   readonly reconnecting: boolean;
+  readonly refreshing: boolean;
   readonly lastUpdate: string;
   readonly onAgentChange: (value: string) => void;
   readonly onTypingChange: (checked: boolean) => void;
   readonly onReplaceToken: () => void;
   readonly onDisconnect: () => void;
   readonly onReconnect: () => void;
+  readonly onRefreshIdentity: () => void;
   readonly onDelete: () => void;
   readonly onSave: () => void;
 }

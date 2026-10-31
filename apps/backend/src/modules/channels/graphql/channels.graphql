@@ -8,6 +8,7 @@ extend type Mutation {
   deleteChannel(id: ID!): Boolean!
   disconnectTelegram(id: ID!): Channel!
   reconnectTelegram(id: ID!): Channel!
+  refreshTelegramIdentity(id: ID!): Channel!
   replaceTelegramToken(input: ReplaceTelegramTokenInput!): Channel!
   updateTelegram(input: UpdateTelegramInput!): Channel!
 }
