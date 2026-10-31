@@ -149,6 +149,22 @@ describe('UseCaseCtxService workspace resolution', () => {
     await expect(attempt).rejects.toBeInstanceOf(InvalidIdError);
   });
 
+  it('gives the API channel actor a workspace but no role', () => {
+    const channelId = randomUUID();
+    const ctx = contextsWith(memberAccess).apiChannel({
+      channelId,
+      workspaceId,
+      traceId: TRACE_ID,
+      clientIp: '127.0.0.1',
+    });
+
+    expect(ctx.actor).toEqual({ kind: ActorKind.ApiChannel, channelId });
+    expect(ctx.workspaceId).toBe(workspaceId);
+    expect(ctx.workspaceRole).toBeNull();
+    expect(ctx.permissions).toEqual(new Set());
+    expect(ctx.clientIp).toBe('127.0.0.1');
+  });
+
   it('gives the system actor a workspace but no role', () => {
     const ctx = contextsWith(memberAccess).system({
       reason: SystemReason.Job,

@@ -8,6 +8,7 @@ import { AuthenticatorService } from '@/platform/context/services/authenticator.
 import { WorkspaceAccessService } from '@/platform/context/services/workspace-access.service';
 import type { Actor } from '@/platform/context/typedefs/actor.typedefs';
 import type {
+  ApiChannelCtxInit,
   SystemCtxInit,
   TransportRequest,
   UseCaseCtx,
@@ -54,6 +55,19 @@ export class UseCaseCtxService {
       traceId: init.traceId,
       locale: DEFAULT_LOCALE,
       clientIp: null,
+    };
+  }
+
+  apiChannel(init: ApiChannelCtxInit): UseCaseCtx {
+    return {
+      actor: { kind: ActorKind.ApiChannel, channelId: init.channelId },
+      initiatedBy: null,
+      workspaceId: init.workspaceId,
+      workspaceRole: null,
+      permissions: new Set(),
+      traceId: init.traceId,
+      locale: DEFAULT_LOCALE,
+      clientIp: init.clientIp,
     };
   }
 

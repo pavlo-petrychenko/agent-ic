@@ -6,6 +6,7 @@ import { HttpTelegramGateway } from '@/modules/channels/gateways/http-telegram.g
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
 import { TelegramChannelAdapter } from '@/modules/channels/gateways/telegram-channel-adapter.gateway';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
+import { ApiChannelKeyGuard } from '@/modules/channels/guards/api-channel-key.guard';
 import { DeliverOutboundMessageListener } from '@/modules/channels/listeners/deliver-outbound-message.listener';
 import { CheckTelegramTokenHealthProcessor } from '@/modules/channels/processors/check-telegram-token-health.processor';
 import { ApiChannelIngressRepository } from '@/modules/channels/repositories/api-channel-ingress.repository';
@@ -23,6 +24,7 @@ import { ReplaceTelegramTokenResolver } from '@/modules/channels/resolvers/repla
 import { RotateApiChannelKeyResolver } from '@/modules/channels/resolvers/rotate-api-channel-key.resolver';
 import { UpdateChannelResolver } from '@/modules/channels/resolvers/update-channel.resolver';
 import { ApiChannelIngressService } from '@/modules/channels/services/api-channel-ingress.service';
+import { ApiChannelKeyVerifierService } from '@/modules/channels/services/api-channel-key-verifier.service';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
 import { ChannelConnectionService } from '@/modules/channels/services/channel-connection.service';
 import { ChannelHealthService } from '@/modules/channels/services/channel-health.service';
@@ -60,6 +62,8 @@ export class ChannelsModule extends defineModule({
     ChannelTokenService,
     ChannelConnectionService,
     ApiChannelIngressService,
+    ApiChannelKeyVerifierService,
+    ApiChannelKeyGuard,
     ChannelHealthService,
     TelegramChannelService,
     TelegramPollerService,
