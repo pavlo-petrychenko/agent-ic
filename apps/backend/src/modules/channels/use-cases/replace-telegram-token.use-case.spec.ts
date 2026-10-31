@@ -1,7 +1,7 @@
 import { ChannelKind, ErrorReason, IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { CHANNEL_REPLACE_TOKEN_RATE_LIMIT } from '@/modules/channels/constants/channel-rate-limit.constants';
-import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
+import { ApiReplyMode, ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { InvalidChannelInputError } from '@/modules/channels/errors/invalid-channel-input.error';
 import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
@@ -134,7 +134,7 @@ describe('ReplaceTelegramTokenUseCase', () => {
     const channel = newChannel(testbed, workspaceId, {
       createdByUserId: userId,
       kind: ChannelKind.Api,
-      identity: { name: 'Booking widget' },
+      identity: { name: 'Booking widget', replyMode: ApiReplyMode.Response, webhook: null },
       externalId: testbed.ids.generate(),
     });
     await testbed.tenants.run(workspaceId, () => testbed.channels.insertIfAbsent(channel));
