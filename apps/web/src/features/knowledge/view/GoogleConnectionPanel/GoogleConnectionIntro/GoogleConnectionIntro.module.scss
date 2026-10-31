@@ -1,0 +1,39 @@
+.root {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+  padding: var(--space-14);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-card);
+}
+
+.icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-tile-md);
+  height: var(--size-tile-md);
+  border-radius: var(--radius-8);
+  background: var(--color-soft);
+  color: var(--color-ink-secondary);
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.title {
+  font: var(--type-title);
+}
+
+.description {
+  color: var(--color-mute);
+  font: var(--type-body-small);
+  line-height: var(--leading-relaxed);
+}
