@@ -5,12 +5,24 @@ extend type Query {
 
 extend type Mutation {
   connectTelegram(input: ConnectTelegramInput!): Channel!
+  createApiChannel(input: CreateApiChannelInput!): ApiChannelSecret!
   deleteChannel(id: ID!): Boolean!
   disconnectTelegram(id: ID!): Channel!
   reconnectTelegram(id: ID!): Channel!
   refreshTelegramIdentity(id: ID!): Channel!
   replaceTelegramToken(input: ReplaceTelegramTokenInput!): Channel!
-  updateTelegram(input: UpdateTelegramInput!): Channel!
+  rotateApiChannelKey(id: ID!): ApiChannelSecret!
+  updateChannel(input: UpdateChannelInput!): Channel!
+}
+
+enum ApiReplyMode {
+  response
+  webhook
+}
+
+type ApiChannelSecret {
+  channel: Channel!
+  secret: String!
 }
 
 enum ChannelStatus {
@@ -35,6 +47,9 @@ type Channel {
   tokenMasked: String
   updatedByName: String
   showTyping: Boolean!
+  replyMode: ApiReplyMode
+  webhook: String
+  endpoint: String
   createdAt: String!
   updatedAt: String!
 }
@@ -45,10 +60,19 @@ input ConnectTelegramInput {
   showTyping: Boolean
 }
 
-input UpdateTelegramInput {
+input CreateApiChannelInput {
+  name: String!
+  agentId: ID!
+  replyMode: ApiReplyMode!
+  webhook: String
+}
+
+input UpdateChannelInput {
   id: ID!
   agentId: ID!
   showTyping: Boolean!
+  replyMode: ApiReplyMode
+  webhook: String
 }
 
 input ReplaceTelegramTokenInput {
