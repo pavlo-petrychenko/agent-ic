@@ -1,0 +1,13 @@
+mutation CreateApiChannel($input: CreateApiChannelInput!) {
+  createApiChannel(input: $input) {
+    secret
+    channel {
+      id
+      displayName
+      endpoint
+      tokenMasked
+      replyMode
+      webhook
+    }
+  }
+}
