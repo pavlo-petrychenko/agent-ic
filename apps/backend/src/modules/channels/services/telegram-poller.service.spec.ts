@@ -72,12 +72,13 @@ describe('TelegramPollerService', () => {
     return { ...workspace, agentId, channel, pollerChannel };
   };
 
-  const conversationOf = (workspaceId: string, agentId: string) =>
+  const conversationOf = (workspaceId: string, agentId: string, channelId: string) =>
     testbed.tenants.run(workspaceId, () =>
       testbed.conversations.findOpenForUpdate({
         workspaceId,
         agentId,
         channelKind: ChannelKind.Telegram,
+        channelId,
         endUserExternalId: '42',
         mode: ConversationMode.Live,
       }),
@@ -97,7 +98,7 @@ describe('TelegramPollerService', () => {
         allowedUpdates: TELEGRAM_ALLOWED_UPDATES,
       },
     ]);
-    const conversation = await conversationOf(workspaceId, agentId);
+    const conversation = await conversationOf(workspaceId, agentId, pollerChannel.id);
     if (conversation === null) {
       throw new Error('Expected a conversation');
     }
@@ -148,7 +149,7 @@ describe('TelegramPollerService', () => {
 
     await poller.pollChannel(pollerChannel);
 
-    const conversation = await conversationOf(workspaceId, agentId);
+    const conversation = await conversationOf(workspaceId, agentId, pollerChannel.id);
     if (conversation === null) {
       throw new Error('Expected a conversation');
     }
@@ -173,7 +174,7 @@ describe('TelegramPollerService', () => {
 
     await poller.pollChannel(pollerChannel);
 
-    await expect(conversationOf(workspaceId, agentId)).resolves.toBeNull();
+    await expect(conversationOf(workspaceId, agentId, pollerChannel.id)).resolves.toBeNull();
 
     await poller.pollChannel(pollerChannel);
 

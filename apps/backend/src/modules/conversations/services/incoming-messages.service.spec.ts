@@ -149,6 +149,24 @@ describe('IncomingMessagesService', () => {
     expect(runs).toHaveLength(1);
   });
 
+  it('keeps one conversation per channel for the same user', async () => {
+    const input = await startedBy();
+
+    const first = await receive({ ...input, channelId: 'channel-a' });
+    const second = await receive({ ...input, channelId: 'channel-a' });
+
+    expect(second.conversationId).toBe(first.conversationId);
+  });
+
+  it('opens a separate conversation when the channel changes', async () => {
+    const input = await startedBy();
+
+    const first = await receive({ ...input, channelId: 'channel-a' });
+    const second = await receive({ ...input, channelId: 'channel-b' });
+
+    expect(second.conversationId).not.toBe(first.conversationId);
+  });
+
   it('starts a new conversation after the last one was closed', async () => {
     const input = await startedBy();
     const first = await receive(input);
