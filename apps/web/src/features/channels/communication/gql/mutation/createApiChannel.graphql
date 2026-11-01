@@ -1,6 +1,7 @@
 mutation CreateApiChannel($input: CreateApiChannelInput!) {
   createApiChannel(input: $input) {
     secret
+    webhookSecret
     channel {
       id
       displayName

@@ -23,6 +23,7 @@ export interface ApiChannelCredentials {
   readonly secretKeyHint: string;
   readonly previousSecretKeyHash: string | null;
   readonly previousKeyExpiresAt: string | null;
+  readonly webhookSigningSecret: string;
 }
 
 export type ChannelCredentials = TelegramChannelCredentials | ApiChannelCredentials;

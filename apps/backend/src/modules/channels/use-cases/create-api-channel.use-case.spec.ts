@@ -81,6 +81,9 @@ describe('CreateApiChannelUseCase', () => {
     expect(credentials.secretKeyHint).toBe(apiChannelSecretHint(result.secret));
     expect(credentials.previousSecretKeyHash).toBeNull();
     expect(credentials.previousKeyExpiresAt).toBeNull();
+    expect(credentials.webhookSigningSecret).toBe(result.webhookSecret);
+    expect(result.webhookSecret).not.toBe('');
+    expect(stored.credentialsSealed).not.toContain(result.webhookSecret);
   });
 
   it('requires a webhook when replies go to a webhook', async () => {

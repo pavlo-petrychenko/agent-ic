@@ -46,6 +46,7 @@ export class RotateApiChannelKeyUseCase {
 
     const now = this.clock.now();
     const secret = this.secureTokens.generate();
+    const webhookSecret = credentials.webhookSigningSecret || this.secureTokens.generate().token;
     const updated = await this.tenantTransactions.run(access.workspaceId, () =>
       this.channels.updateCredentials(access.workspaceId, channelId, {
         status: channel.status,
@@ -57,6 +58,7 @@ export class RotateApiChannelKeyUseCase {
           previousKeyExpiresAt: new Date(
             now.getTime() + API_CHANNEL_PREVIOUS_KEY_TTL_MS,
           ).toISOString(),
+          webhookSigningSecret: webhookSecret,
         }),
         updatedAt: now,
         updatedByUserId: access.userId,
@@ -75,6 +77,7 @@ export class RotateApiChannelKeyUseCase {
         ),
       }),
       secret: secret.token,
+      webhookSecret,
     };
   }
 }

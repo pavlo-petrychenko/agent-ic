@@ -121,7 +121,7 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 
 ### C. API channel, "reply to my webhook"
 1. As B.1, then ⇢ enqueue the run → `202 Accepted` immediately.
-2. Chain A steps 7–9 run. `outbound` jobs → the business webhook (`POST`, HMAC-signed), retried with backoff.
+2. Chain A steps 7–9 run. `outbound` jobs → the business webhook (`POST`, HMAC-SHA256 over `timestamp.rawBody` with the channel's webhook signing secret), retried with backoff.
 3. Operator replies and follow-ups for API conversations always arrive this way.
 
 ### D. External event trigger

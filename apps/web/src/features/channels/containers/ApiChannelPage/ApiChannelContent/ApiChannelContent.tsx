@@ -119,6 +119,7 @@ export function ApiChannelContent({ workspaceId, channel, agents }: ApiChannelCo
         <ApiSecretKeyDialog
           channelName={rotated.name}
           secret={rotated.secret}
+          webhookSecret={rotated.webhookSecret}
           endpoint={rotated.endpoint}
           onOpenChange={(open) => {
             if (!open) {
@@ -126,6 +127,7 @@ export function ApiChannelContent({ workspaceId, channel, agents }: ApiChannelCo
             }
           }}
           onCopy={() => copySecret(rotated.secret)}
+          onCopyWebhook={() => copySecret(rotated.webhookSecret)}
           onDone={() => setRotated(null)}
         />
       )}

@@ -25,11 +25,13 @@ export interface ApiChannelView extends ApiChannelSummary {
 export interface CreatedApiChannel {
   readonly name: string;
   readonly secret: string;
+  readonly webhookSecret: string;
   readonly endpoint: string;
 }
 
 export interface RotatedApiChannel {
   readonly name: string;
   readonly secret: string;
+  readonly webhookSecret: string;
   readonly endpoint: string;
 }

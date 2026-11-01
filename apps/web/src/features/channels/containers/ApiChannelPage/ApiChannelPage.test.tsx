@@ -28,7 +28,12 @@ const state = vi.hoisted(() => ({
 const updateChannel = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));
 const rotateApiChannelKey = vi.hoisted(() =>
   vi.fn<() => Promise<RotatedApiChannel | null>>(() =>
-    Promise.resolve({ name: 'Website', secret: 'new-secret', endpoint: 'POST /new' }),
+    Promise.resolve({
+      name: 'Website',
+      secret: 'new-secret',
+      webhookSecret: 'webhook-secret',
+      endpoint: 'POST /new',
+    }),
   ),
 );
 const deleteChannel = vi.hoisted(() => vi.fn<() => Promise<void>>(() => Promise.resolve()));

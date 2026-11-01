@@ -161,6 +161,7 @@ describe('TelegramTokenHealthService', () => {
         secretKeyHint: 'abcd…wxyz',
         previousSecretKeyHash: null,
         previousKeyExpiresAt: null,
+        webhookSigningSecret: 'webhook-secret',
       }),
     };
 

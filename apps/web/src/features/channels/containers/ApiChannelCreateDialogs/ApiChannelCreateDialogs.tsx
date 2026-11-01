@@ -66,14 +66,23 @@ export function ApiChannelCreateDialogs({ onClose }: ApiChannelCreateDialogsProp
     void navigator.clipboard.writeText(created.secret);
   };
 
+  const onCopyWebhook = () => {
+    if (created === null || typeof navigator.clipboard === 'undefined') {
+      return;
+    }
+    void navigator.clipboard.writeText(created.webhookSecret);
+  };
+
   if (created !== null) {
     return (
       <ApiSecretKeyDialog
         channelName={created.name}
         secret={created.secret}
+        webhookSecret={created.webhookSecret}
         endpoint={created.endpoint}
         onOpenChange={onOpenChange}
         onCopy={onCopy}
+        onCopyWebhook={onCopyWebhook}
         onDone={onClose}
       />
     );

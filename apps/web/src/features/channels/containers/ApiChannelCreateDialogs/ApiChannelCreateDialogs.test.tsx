@@ -8,17 +8,24 @@ import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
 const mock = vi.hoisted(() => ({
   secret: 'sk_live_abcdefghijklmnopQ4',
+  webhookSecret: 'whsec_abcdefghijklmnopQ4',
   endpoint: 'POST https://api.agents.example/v1/channels/chn_1/messages',
   createApiChannel: vi.fn<() => Promise<CreatedApiChannel | null>>(() =>
     Promise.resolve({
       name: 'Booking widget',
       secret: 'sk_live_abcdefghijklmnopQ4',
+      webhookSecret: 'whsec_abcdefghijklmnopQ4',
       endpoint: 'POST https://api.agents.example/v1/channels/chn_1/messages',
     }),
   ),
 }));
 
-const { secret: SECRET, endpoint: ENDPOINT, createApiChannel } = mock;
+const {
+  secret: SECRET,
+  webhookSecret: WEBHOOK_SECRET,
+  endpoint: ENDPOINT,
+  createApiChannel,
+} = mock;
 
 vi.mock('@/features/agents', () => ({
   useAgents: () => ({
@@ -53,6 +60,7 @@ describe('ApiChannelCreateDialogs', () => {
     );
     expect(screen.getByRole('dialog', { name: 'Your secret key' })).toBeInTheDocument();
     expect(screen.getByText(SECRET)).toBeInTheDocument();
+    expect(screen.getByText(WEBHOOK_SECRET)).toBeInTheDocument();
     expect(screen.getByText(ENDPOINT)).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'I’ve copied it' }));
