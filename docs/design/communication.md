@@ -113,14 +113,14 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 - **A step fails:** BullMQ retries the job, and already finished steps are skipped thanks to `run_steps`. After the last retry, the fallback runs (escalate). The run is marked failed → metrics + "Needs attention".
 
 ### B. API channel, "reply in the response"
-1. Business system → `gateway`: `POST /v1/channels/{id}/messages` with `Bearer <secret>` → Postgres (compare the key hash, save message + run).
-2. `gateway` **subscribes** to pub/sub `run:{runId}:done` **first**, then ⇢ enqueues the run, so it can't miss a fast result.
-3. Chain A steps 7–9 run, but the Send-message step for an API channel in this mode **doesn't use `outbound`**. The messages go into the `run:{id}:done` event.
-4. `gateway` gets the event → responds `{ conversation_id, messages[], status: answered | escalated }`.
-5. No result within 30 s → respond `status: pending`. The rest is delivered to the channel's webhook (chain C).
+1. Business system → `gateway`: `POST /v1/channels/{id}/messages` with `Bearer <secret>` → Postgres (compare the key hash). The gateway generates the run id, subscribes to `run:{runId}:done`, then saves the message and the run in one transaction and enqueues the run after commit.
+2. The reply-capture flag is written to Redis with a 30-second TTL, keyed by the run id. No database column is added.
+3. Chain A steps 7–9 run. The Send-message step sees the capture flag and stores the replies as already delivered without emitting `outbound-queued`. Those replies are not sent through `outbound`.
+4. On `run:{runId}:done` the gateway loads the run's agent messages through `ConversationRunsService` and responds `{ conversation_id, messages[], status: answered | escalated }`.
+5. No result within 30 s → respond `status: pending`. The capture flag expires, so replies created after the window go through `outbound` to the channel's webhook (chain C).
 
 ### C. API channel, "reply to my webhook"
-1. As B.1, then ⇢ enqueue the run → `202 Accepted` immediately.
+1. As B.1, then the run starts through the same message event → `202 Accepted` immediately.
 2. Chain A steps 7–9 run. `outbound` jobs → the business webhook (`POST`, HMAC-SHA256 over `timestamp.rawBody` with the channel's webhook signing secret), retried with backoff.
 3. Operator replies and follow-ups for API conversations always arrive this way.
 
