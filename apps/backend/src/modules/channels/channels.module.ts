@@ -27,6 +27,7 @@ import { RotateApiChannelKeyResolver } from '@/modules/channels/resolvers/rotate
 import { UpdateChannelResolver } from '@/modules/channels/resolvers/update-channel.resolver';
 import { ApiChannelIngressService } from '@/modules/channels/services/api-channel-ingress.service';
 import { ApiChannelKeyVerifierService } from '@/modules/channels/services/api-channel-key-verifier.service';
+import { ApiChannelReplyService } from '@/modules/channels/services/api-channel-reply.service';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
 import { ChannelConnectionService } from '@/modules/channels/services/channel-connection.service';
 import { ChannelHealthService } from '@/modules/channels/services/channel-health.service';
@@ -52,11 +53,12 @@ import { ReplaceTelegramTokenUseCase } from '@/modules/channels/use-cases/replac
 import { RotateApiChannelKeyUseCase } from '@/modules/channels/use-cases/rotate-api-channel-key.use-case';
 import { UpdateChannelUseCase } from '@/modules/channels/use-cases/update-channel.use-case';
 import { ConversationsModule } from '@/modules/conversations';
+import { RunsModule } from '@/modules/runs';
 import { CryptoModule } from '@/platform/crypto/crypto.module';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class ChannelsModule extends defineModule({
-  imports: [AgentsModule, ConversationsModule, CryptoModule],
+  imports: [AgentsModule, ConversationsModule, RunsModule, CryptoModule],
   providers: [
     ChannelsRepository,
     ChannelEventsRepository,
@@ -66,6 +68,7 @@ export class ChannelsModule extends defineModule({
     ChannelConnectionService,
     ApiChannelIngressService,
     ApiChannelKeyVerifierService,
+    ApiChannelReplyService,
     ApiChannelKeyGuard,
     ChannelHealthService,
     TelegramChannelService,

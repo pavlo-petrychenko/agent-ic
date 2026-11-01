@@ -1,15 +1,23 @@
 import { IdPrefix } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
-import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
+import { ApiReplyMode, ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { parseChannelInput } from '@/modules/channels/helpers/channel-input.helpers';
+import { channelReplyMode } from '@/modules/channels/helpers/channel.helpers';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { apiChannelMessageInputSchema } from '@/modules/channels/schemas/api-channel-message.schema';
+import { ApiChannelReplyService } from '@/modules/channels/services/api-channel-reply.service';
 import type {
   ApiChannelMessageInput,
   ApiChannelMessageResult,
 } from '@/modules/channels/typedefs/api-channel-ingress.typedefs';
-import { ChannelKind, ConversationMode, IncomingMessagesService } from '@/modules/conversations';
+import {
+  ChannelKind,
+  ConversationMode,
+  IncomingMessageOutcome,
+  IncomingMessagesService,
+} from '@/modules/conversations';
+import { MessageRunService } from '@/modules/runs';
 import { ActorKind } from '@/platform/context/constants/actor.constants';
 import { AuthenticationRequiredError } from '@/platform/context/errors/authentication-required.error';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -22,6 +30,8 @@ export class HandleApiChannelMessageUseCase {
     private readonly tenantTransactions: TenantTransactionService,
     private readonly channels: ChannelsRepository,
     private readonly incoming: IncomingMessagesService,
+    private readonly messageRuns: MessageRunService,
+    private readonly replies: ApiChannelReplyService,
     private readonly ids: IdService,
   ) {}
 
@@ -44,23 +54,60 @@ export class HandleApiChannelMessageUseCase {
     ) {
       throw new ChannelNotFoundError();
     }
-
+    const agentId = channel.agentId;
     const idempotencyKey = input.idempotencyKey?.trim() ?? '';
-    const result = await this.incoming.handleIncomingMessage(ctx, {
-      workspaceId,
-      agentId: channel.agentId,
-      mode: ConversationMode.Live,
-      channelKind: ChannelKind.Api,
-      channelId: channel.id,
-      endUserExternalId: data.user_id,
-      endUserName: null,
-      externalId: idempotencyKey === '' ? this.ids.generate() : idempotencyKey,
-      text: data.text,
-      versionId: null,
-    });
+    const externalId = idempotencyKey === '' ? this.ids.generate() : idempotencyKey;
 
-    return {
-      conversationId: this.ids.toPublic(IdPrefix.Conversation, result.conversationId),
-    };
+    if (channelReplyMode(channel.identity) !== ApiReplyMode.Response) {
+      const result = await this.incoming.handleIncomingMessage(ctx, {
+        workspaceId,
+        agentId,
+        mode: ConversationMode.Live,
+        channelKind: ChannelKind.Api,
+        channelId: channel.id,
+        endUserExternalId: data.user_id,
+        endUserName: null,
+        externalId,
+        text: data.text,
+        versionId: null,
+      });
+      return {
+        conversationId: this.ids.toPublic(IdPrefix.Conversation, result.conversationId),
+        reply: null,
+      };
+    }
+
+    const runId = this.ids.generate();
+    return this.replies.wait(workspaceId, runId, () =>
+      this.tenantTransactions.run(workspaceId, async () => {
+        const result = await this.incoming.handleIncomingMessage(ctx, {
+          workspaceId,
+          agentId,
+          mode: ConversationMode.Live,
+          channelKind: ChannelKind.Api,
+          channelId: channel.id,
+          endUserExternalId: data.user_id,
+          endUserName: null,
+          externalId,
+          text: data.text,
+          versionId: null,
+          runId,
+        });
+        const conversationId = this.ids.toPublic(IdPrefix.Conversation, result.conversationId);
+        if (result.outcome !== IncomingMessageOutcome.RunRequested || result.messageId === null) {
+          return { conversationId, runStarted: false };
+        }
+        const run = await this.messageRuns.start(ctx, {
+          workspaceId,
+          conversationId: result.conversationId,
+          messageId: result.messageId,
+          agentId,
+          mode: ConversationMode.Live,
+          versionId: null,
+          runId,
+        });
+        return { conversationId, runStarted: run !== null };
+      }),
+    );
   }
 }

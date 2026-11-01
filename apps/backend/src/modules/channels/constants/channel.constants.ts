@@ -11,3 +11,9 @@ export enum ApiReplyMode {
   Response = 'response',
   Webhook = 'webhook',
 }
+
+export enum ApiChannelReplyStatus {
+  Answered = 'answered',
+  Escalated = 'escalated',
+  Pending = 'pending',
+}
