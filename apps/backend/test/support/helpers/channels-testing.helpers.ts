@@ -13,6 +13,8 @@ import { MessageAuthor } from '@/modules/conversations/constants/message.constan
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type { Message } from '@/modules/conversations/typedefs/message.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { FakeOutboundHttpGateway } from '@/platform/outbound-http/gateways/outbound-http.fake';
+import { OutboundHttpGateway } from '@/platform/outbound-http/gateways/outbound-http.gateway';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
 import {
   AGENT_REPLY_TEXT,
@@ -35,17 +37,22 @@ import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.ty
 
 export const createChannelsTestbed = async (): Promise<ChannelsTestbed> => {
   const telegram = new FakeTelegramGateway();
+  const outbound = new FakeOutboundHttpGateway();
   const testbed = await createConversationsTestbed(
     ChannelsModule.forRole(CONVERSATIONS_TESTBED_ROLE),
     TestRedisPrefix.Channels,
     { role: CONVERSATIONS_TESTBED_ROLE, queues: [] },
-    [{ token: TelegramGateway, value: telegram }],
+    [
+      { token: TelegramGateway, value: telegram },
+      { token: OutboundHttpGateway, value: outbound },
+    ],
   );
   return {
     ...testbed,
     deliver: testbed.module.get(DeliverOutboundMessageUseCase),
     simulated: testbed.module.get(SimulatedChannelAdapter),
     telegram,
+    outbound,
     channels: testbed.module.get(ChannelsRepository),
     channelEvents: testbed.module.get(ChannelEventsRepository),
     channelTokens: testbed.module.get(ChannelTokenService),
@@ -54,17 +61,22 @@ export const createChannelsTestbed = async (): Promise<ChannelsTestbed> => {
 
 export const createChannelsWorkerTestbed = async (): Promise<ChannelsTestbed> => {
   const telegram = new FakeTelegramGateway();
+  const outbound = new FakeOutboundHttpGateway();
   const testbed = await createConversationsTestbed(
     ChannelsModule.forRole(Role.Worker),
     TestRedisPrefix.ChannelsWorker,
     { role: Role.Worker, queues: [QueueName.Outbound] },
-    [{ token: TelegramGateway, value: telegram }],
+    [
+      { token: TelegramGateway, value: telegram },
+      { token: OutboundHttpGateway, value: outbound },
+    ],
   );
   return {
     ...testbed,
     deliver: testbed.module.get(DeliverOutboundMessageUseCase),
     simulated: testbed.module.get(SimulatedChannelAdapter),
     telegram,
+    outbound,
     channels: testbed.module.get(ChannelsRepository),
     channelEvents: testbed.module.get(ChannelEventsRepository),
     channelTokens: testbed.module.get(ChannelTokenService),
