@@ -113,7 +113,7 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 - **A step fails:** BullMQ retries the job, and already finished steps are skipped thanks to `run_steps`. After the last retry, the fallback runs (escalate). The run is marked failed → metrics + "Needs attention".
 
 ### B. API channel, "reply in the response"
-1. Business system → `gateway`: `POST /v1/channels/{id}/messages` with `Bearer <secret>` → Postgres (compare the key hash). The gateway generates the run id, subscribes to `run:{runId}:done`, then saves the message and the run in one transaction and enqueues the run after commit.
+1. Business system → `gateway`: `POST /v1/channels/{id}/messages` with `Bearer <secret>` → Postgres (compare the key hash). Once the key resolves a connected channel, the workspace, client-IP and channel rate-limit buckets are consumed before the body is parsed (D303); a refusal is `429` and stores nothing. The gateway generates the run id, subscribes to `run:{runId}:done`, then saves the message and the run in one transaction and enqueues the run after commit.
 2. The reply-capture flag is written to Redis with a 30-second TTL, keyed by the run id. No database column is added.
 3. Chain A steps 7–9 run. The Send-message step sees the capture flag and stores the replies as already delivered without emitting `outbound-queued`. Those replies are not sent through `outbound`.
 4. On `run:{runId}:done` the gateway loads the run's agent messages through `ConversationRunsService` and responds `{ conversation_id, messages[], status: answered | escalated }`.

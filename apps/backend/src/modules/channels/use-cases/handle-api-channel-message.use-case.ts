@@ -6,6 +6,7 @@ import { parseChannelInput } from '@/modules/channels/helpers/channel-input.help
 import { channelReplyMode } from '@/modules/channels/helpers/channel.helpers';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { apiChannelMessageInputSchema } from '@/modules/channels/schemas/api-channel-message.schema';
+import { ApiChannelRateLimiterService } from '@/modules/channels/services/api-channel-rate-limiter.service';
 import { ApiChannelReplyService } from '@/modules/channels/services/api-channel-reply.service';
 import type {
   ApiChannelMessageInput,
@@ -32,6 +33,7 @@ export class HandleApiChannelMessageUseCase {
     private readonly incoming: IncomingMessagesService,
     private readonly messageRuns: MessageRunService,
     private readonly replies: ApiChannelReplyService,
+    private readonly rateLimiter: ApiChannelRateLimiterService,
     private readonly ids: IdService,
   ) {}
 
@@ -42,7 +44,6 @@ export class HandleApiChannelMessageUseCase {
       throw new AuthenticationRequiredError();
     }
 
-    const data = parseChannelInput(apiChannelMessageInputSchema, input.body);
     const channel = await this.tenantTransactions.run(workspaceId, () =>
       this.channels.findById(workspaceId, actor.channelId),
     );
@@ -54,6 +55,8 @@ export class HandleApiChannelMessageUseCase {
     ) {
       throw new ChannelNotFoundError();
     }
+    await this.rateLimiter.enforce(ctx, workspaceId, channel.id);
+    const data = parseChannelInput(apiChannelMessageInputSchema, input.body);
     const agentId = channel.agentId;
     const idempotencyKey = input.idempotencyKey?.trim() ?? '';
     const externalId = idempotencyKey === '' ? this.ids.generate() : idempotencyKey;

@@ -27,6 +27,7 @@ import { RotateApiChannelKeyResolver } from '@/modules/channels/resolvers/rotate
 import { UpdateChannelResolver } from '@/modules/channels/resolvers/update-channel.resolver';
 import { ApiChannelIngressService } from '@/modules/channels/services/api-channel-ingress.service';
 import { ApiChannelKeyVerifierService } from '@/modules/channels/services/api-channel-key-verifier.service';
+import { ApiChannelRateLimiterService } from '@/modules/channels/services/api-channel-rate-limiter.service';
 import { ApiChannelReplyService } from '@/modules/channels/services/api-channel-reply.service';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
 import { ChannelConnectionService } from '@/modules/channels/services/channel-connection.service';
@@ -68,6 +69,7 @@ export class ChannelsModule extends defineModule({
     ChannelConnectionService,
     ApiChannelIngressService,
     ApiChannelKeyVerifierService,
+    ApiChannelRateLimiterService,
     ApiChannelReplyService,
     ApiChannelKeyGuard,
     ChannelHealthService,
