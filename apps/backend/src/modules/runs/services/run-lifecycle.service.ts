@@ -46,13 +46,14 @@ export class RunLifecycleService {
   ) {}
 
   startRun(ctx: UseCaseCtx, start: RunStart): Promise<NewRun | null> {
-    return this.startCovering(ctx, start, () => Promise.resolve(start.versionId));
+    return this.startCovering(ctx, start, () => Promise.resolve(start.versionId), start.id ?? null);
   }
 
   private async startCovering(
     ctx: UseCaseCtx,
     target: RunTarget,
     resolveVersion: () => Promise<string | null>,
+    runId: string | null,
   ): Promise<NewRun | null> {
     const { workspaceId, conversationId } = target;
     const conversation = await this.conversations.getConversation(workspaceId, conversationId);
@@ -68,7 +69,7 @@ export class RunLifecycleService {
       return null;
     }
     const run: NewRun = {
-      id: this.ids.generate(),
+      id: runId ?? this.ids.generate(),
       workspaceId,
       conversationId,
       agentId: conversation.agentId,
@@ -138,7 +139,7 @@ export class RunLifecycleService {
       return null;
     }
     const target = { ...run, triggerMessageId: run.lastCoveredMessageId };
-    const followUp = await this.startCovering(ctx, target, () => this.followUpVersionId(run));
+    const followUp = await this.startCovering(ctx, target, () => this.followUpVersionId(run), null);
     if (followUp === null) {
       await this.inactivityTimers.armAfterRun(run);
     }

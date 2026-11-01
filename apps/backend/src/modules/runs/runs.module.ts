@@ -30,13 +30,16 @@ import { EscalationExecutor } from '@/modules/runs/services/escalation-executor.
 import { InactivityFiringService } from '@/modules/runs/services/inactivity-firing.service';
 import { InactivityTimersService } from '@/modules/runs/services/inactivity-timers.service';
 import { InactivityTriggerExecutor } from '@/modules/runs/services/inactivity-trigger-executor.service';
+import { MessageRunService } from '@/modules/runs/services/message-run.service';
 import { MessageTriggerExecutor } from '@/modules/runs/services/message-trigger-executor.service';
 import { ParallelExecutor } from '@/modules/runs/services/parallel-executor.service';
 import { RouterExecutor } from '@/modules/runs/services/router-executor.service';
+import { RunCompletionService } from '@/modules/runs/services/run-completion.service';
 import { RunExecutionService } from '@/modules/runs/services/run-execution.service';
 import { RunLifecycleService } from '@/modules/runs/services/run-lifecycle.service';
 import { RunMessagesService } from '@/modules/runs/services/run-messages.service';
 import { RunMetricsService } from '@/modules/runs/services/run-metrics.service';
+import { RunReplyCaptureService } from '@/modules/runs/services/run-reply-capture.service';
 import { RunViewsService } from '@/modules/runs/services/run-views.service';
 import { ScheduleMetricsService } from '@/modules/runs/services/schedule-metrics.service';
 import { ScheduleTriggerExecutor } from '@/modules/runs/services/schedule-trigger-executor.service';
@@ -59,10 +62,11 @@ import { StartRunOnMessageUseCase } from '@/modules/runs/use-cases/start-run-on-
 import { SubscribeToRunStepsUseCase } from '@/modules/runs/use-cases/subscribe-to-run-steps.use-case';
 import { SweepInactivityTimersUseCase } from '@/modules/runs/use-cases/sweep-inactivity-timers.use-case';
 import { SweepScheduleTriggersUseCase } from '@/modules/runs/use-cases/sweep-schedule-triggers.use-case';
+import { CacheModule } from '@/platform/cache/cache.module';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class RunsModule extends defineModule({
-  imports: [AgentsModule, ConversationsModule, PromptsModule],
+  imports: [AgentsModule, ConversationsModule, PromptsModule, CacheModule],
   providers: [
     RunsRepository,
     RunStepsRepository,
@@ -76,6 +80,9 @@ export class RunsModule extends defineModule({
     ParallelExecutor,
     ApiRequestExecutor,
     RunMessagesService,
+    RunReplyCaptureService,
+    RunCompletionService,
+    MessageRunService,
     ConversationExitService,
     SendMessageExecutor,
     EscalationExecutor,
@@ -140,4 +147,5 @@ export class RunsModule extends defineModule({
     FireScheduleTickProcessor,
   ],
   listeners: [StartRunOnMessageListener, ArmInactivityOnHandBackListener],
+  exports: [MessageRunService, RunCompletionService, RunReplyCaptureService],
 }) {}

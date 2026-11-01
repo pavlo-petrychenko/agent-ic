@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { AgentRuntimeReader } from '@/modules/agents';
 import type { MessageReceivedPayload } from '@/modules/conversations';
 import { runWorkspaceOf } from '@/modules/runs/helpers/run-ctx.helpers';
-import { InactivityTimersService } from '@/modules/runs/services/inactivity-timers.service';
-import { RunLifecycleService } from '@/modules/runs/services/run-lifecycle.service';
+import { MessageRunService } from '@/modules/runs/services/message-run.service';
 import type { NewRun } from '@/modules/runs/typedefs/run.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -12,28 +10,21 @@ import { TenantTransactionService } from '@/platform/database/services/tenant-tr
 export class StartRunOnMessageUseCase {
   constructor(
     private readonly tenants: TenantTransactionService,
-    private readonly agents: AgentRuntimeReader,
-    private readonly lifecycle: RunLifecycleService,
-    private readonly inactivityTimers: InactivityTimersService,
+    private readonly messageRuns: MessageRunService,
   ) {}
 
   execute(ctx: UseCaseCtx, message: MessageReceivedPayload): Promise<NewRun | null> {
     const workspaceId = runWorkspaceOf(ctx);
-    return this.tenants.run(workspaceId, async () => {
-      await this.inactivityTimers.disarm(workspaceId, message.conversationId);
-      const versionId =
-        message.versionId ??
-        (await this.agents.findAnsweringVersionId(workspaceId, message.agentId));
-      if (versionId === null) {
-        return null;
-      }
-      return this.lifecycle.startRun(ctx, {
+    return this.tenants.run(workspaceId, () =>
+      this.messageRuns.start(ctx, {
         workspaceId,
         conversationId: message.conversationId,
-        versionId,
+        messageId: message.messageId,
+        agentId: message.agentId,
         mode: message.mode,
-        triggerMessageId: message.messageId,
-      });
-    });
+        versionId: message.versionId ?? null,
+        runId: message.runId ?? null,
+      }),
+    );
   }
 }

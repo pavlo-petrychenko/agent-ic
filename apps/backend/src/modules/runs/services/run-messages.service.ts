@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { ConversationRunsService } from '@/modules/conversations';
 import { outboundMessages } from '@/modules/runs/helpers/outbound-message.helpers';
+import { RunReplyCaptureService } from '@/modules/runs/services/run-reply-capture.service';
 import type { Run } from '@/modules/runs/typedefs/run.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 
 @Injectable()
 export class RunMessagesService {
-  constructor(private readonly conversations: ConversationRunsService) {}
+  constructor(
+    private readonly conversations: ConversationRunsService,
+    private readonly capture: RunReplyCaptureService,
+  ) {}
 
   async send(
     ctx: UseCaseCtx,
@@ -15,9 +19,12 @@ export class RunMessagesService {
     texts: readonly string[],
     quickReplies: readonly string[] = [],
   ): Promise<string[]> {
+    const captures = await this.capture.captures(run.id);
     const messageIds: string[] = [];
     for (const message of outboundMessages(run, nodeId, texts, quickReplies)) {
-      messageIds.push((await this.conversations.recordOutbound(ctx, message)).id);
+      messageIds.push(
+        (await this.conversations.recordOutbound(ctx, message, { capture: captures })).id,
+      );
     }
     return messageIds;
   }
