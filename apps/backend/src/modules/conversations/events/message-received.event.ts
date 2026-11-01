@@ -11,5 +11,6 @@ export const messageReceivedEvent = defineDomainEvent({
     agentId: z.uuid(),
     mode: z.enum(ConversationMode),
     versionId: z.uuid().optional(),
+    runId: z.uuid().optional(),
   }),
 });

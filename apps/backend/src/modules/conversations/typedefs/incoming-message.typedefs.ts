@@ -15,6 +15,7 @@ export interface IncomingMessageInput {
   readonly externalId: string | null;
   readonly text: string;
   readonly versionId: string | null;
+  readonly runId?: string | null;
 }
 
 export interface IncomingMessageResult {
