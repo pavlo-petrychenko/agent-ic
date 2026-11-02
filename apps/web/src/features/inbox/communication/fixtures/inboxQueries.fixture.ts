@@ -28,6 +28,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     id: 'cnv_olena',
     state: ConversationState.Handled,
     handledByMe: true,
+    handledByName: 'Demo Owner',
     channelKind: ChannelConversationKind.Telegram,
     agentId: 'agt_salon',
     agentName: 'Salon assistant',
@@ -44,6 +45,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     id: 'cnv_marta',
     state: ConversationState.Waiting,
     handledByMe: false,
+    handledByName: null,
     channelKind: ChannelConversationKind.Telegram,
     agentId: 'agt_salon',
     agentName: 'Salon assistant',
@@ -60,6 +62,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     id: 'cnv_andri',
     state: ConversationState.Handled,
     handledByMe: false,
+    handledByName: 'Olena',
     channelKind: ChannelConversationKind.Api,
     agentId: 'agt_gift',
     agentName: 'Gift card FAQ',
@@ -76,6 +79,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     id: 'cnv_kateryna',
     state: ConversationState.AgentActive,
     handledByMe: false,
+    handledByName: null,
     channelKind: ChannelConversationKind.Telegram,
     agentId: 'agt_salon',
     agentName: 'Salon assistant',
@@ -92,6 +96,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     id: 'cnv_site',
     state: ConversationState.AgentActive,
     handledByMe: false,
+    handledByName: null,
     channelKind: ChannelConversationKind.Api,
     agentId: 'agt_gift',
     agentName: 'Gift card FAQ',
@@ -108,6 +113,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     id: 'cnv_taras',
     state: ConversationState.Closed,
     handledByMe: false,
+    handledByName: null,
     channelKind: ChannelConversationKind.Telegram,
     agentId: 'agt_salon',
     agentName: 'Salon assistant',
@@ -126,6 +132,7 @@ type InboxMessageFixture = {
   readonly id: string;
   readonly author: MessageAuthor;
   readonly authorId: string | null;
+  readonly authorName: string | null;
   readonly text: string;
   readonly quickReplies: readonly string[];
   readonly runId: string | null;
@@ -138,10 +145,12 @@ const message = (
   text: string,
   createdAt: string,
   authorId: string | null = null,
+  authorName: string | null = null,
 ): InboxMessageFixture => ({
   id,
   author,
   authorId,
+  authorName,
   text,
   quickReplies: [],
   runId: null,
@@ -189,6 +198,8 @@ const messagesById: Readonly<Record<string, readonly InboxMessageFixture[]>> = {
       MessageAuthor.Operator,
       'Hi Andri, could you tell me the last 4 digits?',
       '2026-11-01T14:20:00.000Z',
+      null,
+      'Olena',
     ),
   ],
   cnv_kateryna: [

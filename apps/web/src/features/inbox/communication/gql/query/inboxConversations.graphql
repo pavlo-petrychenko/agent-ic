@@ -3,6 +3,7 @@ query InboxConversations($limit: Int) {
     id
     state
     handledByMe
+    handledByName
     channelKind
     agentId
     agentName

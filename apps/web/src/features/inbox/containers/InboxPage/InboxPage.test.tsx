@@ -54,6 +54,15 @@ describe('InboxPage', () => {
     expect(screen.getByText(/Demo Owner \(you\)/)).toBeInTheDocument();
   });
 
+  it("shows another operator's name on the chat and their messages", async () => {
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: /Andri P\./ }));
+
+    expect(await screen.findByRole('button', { name: 'Take over from Olena' })).toBeInTheDocument();
+    expect(screen.getByText(/^Olena ·/)).toBeInTheDocument();
+  });
+
   it('takes over a waiting conversation to reply', async () => {
     renderPage();
 

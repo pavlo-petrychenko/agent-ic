@@ -61,7 +61,8 @@ export const toInboxConversation = (
 ): InboxConversation => {
   const name = summary.endUserName ?? summary.endUserExternalId;
   const replyState = replyStateOf(summary);
-  const operator = replyState === InboxReplyState.Operator ? operatorLabel : null;
+  const operator =
+    replyState === InboxReplyState.Operator ? (summary.handledByName ?? operatorLabel) : null;
   return {
     id: summary.id,
     name,
@@ -101,7 +102,7 @@ const authorOf = (
     return conversation.agentName;
   }
   if (message.author === 'operator') {
-    return operatorLabel;
+    return message.authorName ?? operatorLabel;
   }
   return conversation.name;
 };
