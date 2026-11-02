@@ -12,6 +12,7 @@ export function GoogleConnectionPanel({
   starting,
   disconnectingId,
   pickingConnectionId,
+  disabled,
   onConnect,
   onDisconnect,
   onPick,
@@ -23,6 +24,7 @@ export function GoogleConnectionPanel({
         hasConnections={connections.length > 0}
         starting={starting}
         picking={pickingConnectionId !== null}
+        disabled={disabled}
         onConnect={onConnect}
       />
       {errorMessage !== null && <Callout tone={CalloutTone.Err}>{errorMessage}</Callout>}
@@ -33,6 +35,7 @@ export function GoogleConnectionPanel({
         starting={starting}
         disconnectingId={disconnectingId}
         pickingConnectionId={pickingConnectionId}
+        disabled={disabled}
         onConnect={onConnect}
         onDisconnect={onDisconnect}
         onPick={onPick}

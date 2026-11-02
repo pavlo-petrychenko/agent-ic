@@ -187,7 +187,7 @@ Configuration uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_OAUTH_
 
 - The web app calls `createGooglePickerSession` on the backend: a short-lived access token minted from the refresh token, the public API key and the app id.
 - The Picker is filtered to `application/vnd.google-apps.document`. Multi-select is enabled. Shared drives are supported.
-- The selected documents' `id`, `name`, `mimeType`, `url`, `resourceKey` and `lastEditedUtc` are sent to `createGoogleDocsSource`.
+- A Pick selection returns to the Add source dialog for review: the user can pick more, remove a document or add the final selection. Only then are the selected documents' `id`, `name`, `mimeType`, `url`, `resourceKey` and `lastEditedUtc` sent to `createGoogleDocsSource`.
 - The backend verifies each document with `files.get` using the connection. Unsupported or inaccessible files are skipped with a reason; if none are valid, the mutation fails.
 - One mutation creates one source and one document row per picked Google Doc. The source title is generated from the selection.
 - A Google Doc is identified by its Drive file ID (`documents.external_id`). The same file can be active only once per knowledge base: a selection that contains an already-added document skips it with `alreadyAdded`, and a selection with no new documents fails with `KNOWLEDGE_DOCUMENTS_ALREADY_ADDED`. The same file may be added to a different knowledge base, where it is indexed separately.
@@ -1334,7 +1334,7 @@ Behaviour:
 - **Add source:** Upload tab with drop zone and per-file progress; Google tab with Connect, account status and Pick documents.
 - **Upload hook:** call `createUpload`, PUT with `XMLHttpRequest` for progress, call `confirmUpload`, then subscribe/refetch. Errors show the server reason.
 - **Document summary:** show the one-line summary with an “AI-generated once” or “Edited by you” badge. Helper text says it is not updated automatically and that editing it re-indexes the document. The edit dialog calls `updateDocumentSummary`; saving shows the document as `indexing` until the new generation is ready.
-- **Google Picker:** load the Google script on demand, call `createGooglePickerSession`, open the Picker filtered to Google Docs, send selected ids to `createGoogleDocsSource`.
+- **Google Picker:** load the Google script on demand, call `createGooglePickerSession`, open the Picker filtered to Google Docs, review the picked documents in the dialog and send the final ids to `createGoogleDocsSource`.
 - **Delete dialog:** explains that the KB itself is deleted; the mutation refuses a KB that still has sources with `KNOWLEDGE_BASE_HAS_SOURCES` and the dialog tells the user to delete the sources first. Once the usages work is built, the dialog also lists agent usages and disables confirmation; the mutation is still the authority.
 - **Playground:** query input, top results, score bar, source/document/section labels, empty state.
 - **i18n:** every label in `en` and `uk`.

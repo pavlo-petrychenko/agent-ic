@@ -15,13 +15,14 @@ export function GoogleConnectionAccounts({
   starting,
   disconnectingId,
   pickingConnectionId,
+  disabled,
   onConnect,
   onDisconnect,
   onPick,
   onRetry,
 }: GoogleConnectionAccountsProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
-  const pickingDisabled = pickingConnectionId !== null;
+  const pickingDisabled = disabled || pickingConnectionId !== null;
   const disconnectDisabled = disconnectingId !== null || starting || pickingDisabled;
 
   if (loading) {
@@ -38,7 +39,12 @@ export function GoogleConnectionAccounts({
       <Callout
         tone={CalloutTone.Err}
         action={
-          <Button size={ButtonSize.Sm} variant={ButtonVariant.Secondary} onClick={onRetry}>
+          <Button
+            size={ButtonSize.Sm}
+            variant={ButtonVariant.Secondary}
+            disabled={disabled}
+            onClick={onRetry}
+          >
             {t('retry')}
           </Button>
         }

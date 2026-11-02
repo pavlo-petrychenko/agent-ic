@@ -31,16 +31,26 @@ export function AddSourceModal({
   skippedCount,
   uploading,
   picking,
+  googleDocuments,
+  addingGoogleDocs,
   googleContent,
   onSourceTypeChange,
   onFiles,
   onRemoveFile,
+  onRemoveGoogleDocument,
+  onAddGoogleDocs,
   onSubmit,
   onClose,
 }: AddSourceModalProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
   const isUpload = sourceType === AddSourceType.Upload;
+  const busy = uploading || addingGoogleDocs;
   const actionCount = readyCount + failedCount;
+  const googleCount = googleDocuments.length;
+  const googleSummary =
+    googleCount === 0 ? t('add.noDocuments') : t('add.documentsSelected', { count: googleCount });
+  const googleSubmitLabel =
+    googleCount === 0 ? t('add.addDocumentsEmpty') : t('add.addDocuments', { count: googleCount });
   const summary =
     files.length === 0
       ? t('add.noFiles')
@@ -79,7 +89,7 @@ export function AddSourceModal({
   return (
     <Dialog
       open
-      busy={uploading}
+      busy={busy}
       modal={!picking}
       onOpenChange={(open) => {
         if (!open) {
@@ -91,7 +101,7 @@ export function AddSourceModal({
       closeLabel={t('dialog.close')}
       size={DialogSize.Xl}
       flush
-      footerLeft={isUpload ? <span className={styles.summary}>{summary}</span> : null}
+      footerLeft={<span className={styles.summary}>{isUpload ? summary : googleSummary}</span>}
       footerRight={
         isUpload ? (
           <>
@@ -103,9 +113,18 @@ export function AddSourceModal({
             </Button>
           </>
         ) : (
-          <Button variant={ButtonVariant.Secondary} onClick={onClose}>
-            {t('dialog.close')}
-          </Button>
+          <>
+            <Button variant={ButtonVariant.Secondary} disabled={addingGoogleDocs} onClick={onClose}>
+              {t('dialog.cancel')}
+            </Button>
+            <Button
+              loading={addingGoogleDocs}
+              disabled={googleCount === 0}
+              onClick={onAddGoogleDocs}
+            >
+              {googleSubmitLabel}
+            </Button>
+          </>
         )
       }
     >
@@ -116,7 +135,7 @@ export function AddSourceModal({
             <button
               type="button"
               className={isUpload ? styles.typeCardSelected : styles.typeCard}
-              disabled={uploading}
+              disabled={busy}
               onClick={() => onSourceTypeChange(AddSourceType.Upload)}
             >
               <span className={styles.typeIcon}>
@@ -142,7 +161,7 @@ export function AddSourceModal({
             <button
               type="button"
               className={isUpload ? styles.typeCard : styles.typeCardSelected}
-              disabled={uploading}
+              disabled={busy}
               onClick={() => onSourceTypeChange(AddSourceType.GoogleDocs)}
             >
               <span className={styles.typeIcon}>
@@ -212,7 +231,33 @@ export function AddSourceModal({
               <Callout tone={CalloutTone.Neutral}>{t('add.info')}</Callout>
             </>
           ) : (
-            googleContent
+            <>
+              {googleContent}
+              {googleDocuments.length === 0 ? null : (
+                <div className={styles.files}>
+                  <span className={styles.filesTitle}>{t('add.selectedDocuments')}</span>
+                  <FileRowList aria-label={t('add.selectedDocuments')} className={styles.fileList}>
+                    {googleDocuments.map((document) => (
+                      <FileRow
+                        key={document.id}
+                        icon={
+                          <Icon
+                            name={IconName.Note}
+                            size={UPLOAD_ICON_SIZE}
+                            className={styles.fileIcon}
+                          />
+                        }
+                        name={document.name}
+                        subtitle={t('add.googleDoc')}
+                        disabled={addingGoogleDocs}
+                        removeLabel={t('add.remove')}
+                        onRemove={() => onRemoveGoogleDocument(document.id)}
+                      />
+                    ))}
+                  </FileRowList>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

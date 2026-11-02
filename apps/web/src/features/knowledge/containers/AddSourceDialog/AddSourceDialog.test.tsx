@@ -396,7 +396,7 @@ describe('AddSourceDialog', () => {
     ).toBeInTheDocument();
   });
 
-  it('picks Google Docs, creates a source and reports skipped documents', async () => {
+  it('picks Google Docs, reviews them and creates a source with the selection', async () => {
     const user = userEvent.setup();
     vi.mocked(openGooglePicker).mockImplementation(async ({ onPicked }) => {
       onPicked(PICKER_DOCUMENTS);
@@ -410,6 +410,15 @@ describe('AddSourceDialog', () => {
     await openGoogleTab();
     await screen.findByText('owner@example.com');
     await user.click(screen.getByRole('button', { name: 'Pick documents' }));
+
+    expect(await screen.findByText('Selected documents')).toBeInTheDocument();
+    expect(screen.getByText(PICKER_POLICIES.name)).toBeInTheDocument();
+    expect(screen.getByText(PICKER_PRICES.name)).toBeInTheDocument();
+    expect(screen.getByText('2 documents selected')).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(onUploaded).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Add 2 documents' }));
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(onUploaded).toHaveBeenCalled();
@@ -438,6 +447,9 @@ describe('AddSourceDialog', () => {
     await openGoogleTab();
     await screen.findByText('owner@example.com');
     await user.click(screen.getByRole('button', { name: 'Pick documents' }));
+
+    expect(await screen.findByText(PICKER_POLICIES.name)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Add 2 documents' }));
 
     expect(
       await screen.findByText('These Google Docs are already in this knowledge base.'),
