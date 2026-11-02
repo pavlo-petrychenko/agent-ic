@@ -90,7 +90,9 @@ export function AddSourceModal({
     <Dialog
       open
       busy={busy}
-      modal={!picking}
+      modal={false}
+      scrim
+      trapFocus={!picking}
       onOpenChange={(open) => {
         if (!open) {
           onClose();

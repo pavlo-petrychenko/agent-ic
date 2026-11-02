@@ -6,6 +6,8 @@ export interface DialogProps {
   onOpenChange: (open: boolean) => void;
   busy?: boolean;
   modal?: boolean;
+  scrim?: boolean;
+  trapFocus?: boolean;
   error?: string | null;
   title: string;
   description?: string | null;

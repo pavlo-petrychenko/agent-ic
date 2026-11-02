@@ -455,6 +455,35 @@ describe('AddSourceDialog', () => {
     expect(screen.getByText('Some selected documents could not be added.')).toBeInTheDocument();
   });
 
+  it('keeps the dialog mounted while the Google Picker is open', async () => {
+    const user = userEvent.setup();
+    let pickerReady = false;
+    let finishPicking = (): void => undefined;
+    vi.mocked(openGooglePicker).mockImplementation(
+      async ({ onPicked }) =>
+        new Promise<void>((resolve) => {
+          finishPicking = () => {
+            onPicked(PICKER_DOCUMENTS);
+            resolve();
+          };
+          pickerReady = true;
+        }),
+    );
+    renderDialog([buildConnectionsMock([ACTIVE_CONNECTION]), CREATE_GOOGLE_PICKER_SESSION_MOCK]);
+
+    await openGoogleTab();
+    await screen.findByText('owner@example.com');
+    const dialog = screen.getByRole('dialog', { name: 'Add source to “Services & prices”' });
+    await user.click(screen.getByRole('button', { name: 'Pick documents' }));
+    await waitFor(() => expect(pickerReady).toBe(true));
+
+    expect(screen.getByRole('dialog', { name: 'Add source to “Services & prices”' })).toBe(dialog);
+
+    finishPicking();
+    expect(await screen.findByText('Selected documents')).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Add source to “Services & prices”' })).toBe(dialog);
+  });
+
   it('reports Google Docs that are already in the knowledge base', async () => {
     const user = userEvent.setup();
     vi.mocked(openGooglePicker).mockImplementation(async ({ onPicked }) => {
