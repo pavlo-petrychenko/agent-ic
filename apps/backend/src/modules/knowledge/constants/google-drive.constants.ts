@@ -13,4 +13,5 @@ export enum GooglePickerSkipReason {
   Unavailable = 'unavailable',
   Unsupported = 'unsupported',
   Trashed = 'trashed',
+  AlreadyAdded = 'already_added',
 }

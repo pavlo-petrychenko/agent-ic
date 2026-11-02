@@ -103,13 +103,14 @@ export const publicKnowledgeDocumentId = (testbed: KnowledgeTestbed, documentId:
 export const seedKnowledgeBase = async (
   testbed: KnowledgeTestbed,
   workspaceId: string,
+  overrides: Partial<ReturnType<typeof newKnowledgeBase>> = {},
 ): Promise<string> => {
   await ensureWorkspaceRow(testbed.module, workspaceId);
   const knowledgeBaseId = testbed.ids.generate();
   await testbed.tenants.run(workspaceId, () =>
     testbed.module
       .get(KnowledgeBasesRepository)
-      .insert(newKnowledgeBase(knowledgeBaseId, workspaceId)),
+      .insert({ ...newKnowledgeBase(knowledgeBaseId, workspaceId), ...overrides }),
   );
   return knowledgeBaseId;
 };

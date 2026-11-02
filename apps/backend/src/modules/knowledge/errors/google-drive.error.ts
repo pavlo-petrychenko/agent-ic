@@ -28,3 +28,12 @@ export class GoogleDocsSelectionInvalidError extends DomainError {
     super('none of the selected Google documents can be read');
   }
 }
+
+export class GoogleDocsSelectionAlreadyAddedError extends DomainError {
+  readonly kind = DomainErrorKind.ValidationFailed;
+  readonly reason = ErrorReason.KnowledgeDocumentsAlreadyAdded;
+
+  constructor() {
+    super('the selected Google documents are already in this knowledge base');
+  }
+}

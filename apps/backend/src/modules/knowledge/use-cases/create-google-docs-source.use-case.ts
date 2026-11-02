@@ -12,6 +12,7 @@ import {
   KnowledgeSyncTrigger,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import {
+  GoogleDocsSelectionAlreadyAddedError,
   GoogleDocsSelectionInvalidError,
   GoogleDriveFileUnavailableError,
 } from '@/modules/knowledge/errors/google-drive.error';
@@ -69,6 +70,11 @@ interface CreateSourceInput {
   readonly prepared: readonly PreparedDocument[];
 }
 
+interface CreatedSource {
+  readonly source: Source;
+  readonly skipped: readonly GooglePickerSkippedDocument[];
+}
+
 @Injectable()
 export class CreateGoogleDocsSourceUseCase {
   constructor(
@@ -104,14 +110,17 @@ export class CreateGoogleDocsSourceUseCase {
     if (prepared.length === 0) {
       throw new GoogleDocsSelectionInvalidError();
     }
-    const source = await this.createSource(ctx, {
+    const created = await this.createSource(ctx, {
       workspaceId,
       userId,
       knowledgeBaseId,
       connection,
       prepared,
     });
-    return { source: this.views.view(source), skipped };
+    return {
+      source: this.views.view(created.source),
+      skipped: [...skipped, ...created.skipped],
+    };
   }
 
   private async loadConnection(workspaceId: string, connectionId: string): Promise<Connection> {
@@ -170,24 +179,52 @@ export class CreateGoogleDocsSourceUseCase {
     return null;
   }
 
-  private async createSource(ctx: UseCaseCtx, input: CreateSourceInput): Promise<Source> {
+  private async createSource(ctx: UseCaseCtx, input: CreateSourceInput): Promise<CreatedSource> {
     const { workspaceId, userId, knowledgeBaseId, connection, prepared } = input;
     return this.tenants.run(workspaceId, async () => {
       const knowledgeBase = await this.lockKnowledgeBase(workspaceId, knowledgeBaseId);
+      const selection = await this.excludeAlreadyAdded(workspaceId, knowledgeBase.id, prepared);
+      if (selection.prepared.length === 0) {
+        throw new GoogleDocsSelectionAlreadyAddedError();
+      }
       const source = await this.insertSource(
         workspaceId,
         userId,
         knowledgeBase,
         connection,
-        prepared,
+        selection.prepared,
       );
-      await this.insertDocuments(workspaceId, knowledgeBase.id, source.id, prepared);
-      await this.queueInitialSync(ctx, workspaceId, source.id, prepared.length);
+      await this.insertDocuments(workspaceId, knowledgeBase.id, source.id, selection.prepared);
+      await this.queueInitialSync(ctx, workspaceId, source.id, selection.prepared.length);
       await this.connections.update(workspaceId, connection.id, {
         lastUsedAt: this.clock.now(),
       });
-      return source;
+      return { source, skipped: selection.skipped };
     });
+  }
+
+  private async excludeAlreadyAdded(
+    workspaceId: string,
+    knowledgeBaseId: string,
+    prepared: readonly PreparedDocument[],
+  ): Promise<PreparedSelection> {
+    const existingIds = new Set(
+      await this.documents.listActiveExternalIds(
+        workspaceId,
+        knowledgeBaseId,
+        prepared.map((document) => document.file.id),
+      ),
+    );
+    const fresh: PreparedDocument[] = [];
+    const skipped: GooglePickerSkippedDocument[] = [];
+    for (const document of prepared) {
+      if (existingIds.has(document.file.id)) {
+        skipped.push(this.skip(document.picked, GooglePickerSkipReason.AlreadyAdded));
+        continue;
+      }
+      fresh.push(document);
+    }
+    return { prepared: fresh, skipped };
   }
 
   private async lockKnowledgeBase(

@@ -209,6 +209,28 @@ const CREATE_GOOGLE_DOCS_SOURCE_MOCK: MockLink.MockedResponse = {
   },
 };
 
+const CREATE_GOOGLE_DOCS_SOURCE_ALREADY_ADDED_MOCK: MockLink.MockedResponse = {
+  request: CREATE_GOOGLE_DOCS_SOURCE_MOCK.request,
+  result: {
+    data: {
+      createGoogleDocsSource: {
+        source: {
+          ...SOURCE,
+          kind: KnowledgeSourceKind.GoogleDocs,
+          title: 'Policies',
+        },
+        skipped: [
+          {
+            id: PICKER_PRICES.id,
+            name: PICKER_PRICES.name,
+            reason: 'alreadyAdded',
+          },
+        ],
+      },
+    },
+  },
+};
+
 const renderDialog = (
   mocks: readonly MockLink.MockedResponse[] = [],
   locale: Locale = Locale.En,
@@ -400,5 +422,25 @@ describe('AddSourceDialog', () => {
     );
     expect(screen.getByText('Google Docs source added.')).toBeInTheDocument();
     expect(screen.getByText('Some selected documents could not be added.')).toBeInTheDocument();
+  });
+
+  it('reports Google Docs that are already in the knowledge base', async () => {
+    const user = userEvent.setup();
+    vi.mocked(openGooglePicker).mockImplementation(async ({ onPicked }) => {
+      onPicked(PICKER_DOCUMENTS);
+    });
+    renderDialog([
+      buildConnectionsMock([ACTIVE_CONNECTION]),
+      CREATE_GOOGLE_PICKER_SESSION_MOCK,
+      CREATE_GOOGLE_DOCS_SOURCE_ALREADY_ADDED_MOCK,
+    ]);
+
+    await openGoogleTab();
+    await screen.findByText('owner@example.com');
+    await user.click(screen.getByRole('button', { name: 'Pick documents' }));
+
+    expect(
+      await screen.findByText('These Google Docs are already in this knowledge base.'),
+    ).toBeInTheDocument();
   });
 });

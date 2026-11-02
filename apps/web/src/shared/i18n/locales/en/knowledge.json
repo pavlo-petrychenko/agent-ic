@@ -94,6 +94,7 @@
       "pickDocuments": "Pick documents",
       "pickerSuccess": "Google Docs source added.",
       "pickerSkipped": "Some selected documents could not be added.",
+      "pickerAlreadyAdded": "These Google Docs are already in this knowledge base.",
       "pickerLoadError": "Google Picker could not load. Check your connection and try again."
     }
   },

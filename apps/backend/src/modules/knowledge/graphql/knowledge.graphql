@@ -47,6 +47,7 @@ enum GooglePickerSkipReason {
   unavailable
   unsupported
   trashed
+  alreadyAdded
 }
 
 type GooglePickerSkippedDocument {

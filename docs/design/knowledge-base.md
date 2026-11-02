@@ -190,6 +190,7 @@ Configuration uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_OAUTH_
 - The selected documents' `id`, `name`, `mimeType`, `url`, `resourceKey` and `lastEditedUtc` are sent to `createGoogleDocsSource`.
 - The backend verifies each document with `files.get` using the connection. Unsupported or inaccessible files are skipped with a reason; if none are valid, the mutation fails.
 - One mutation creates one source and one document row per picked Google Doc. The source title is generated from the selection.
+- A Google Doc is identified by its Drive file ID (`documents.external_id`). The same file can be active only once per knowledge base: a selection that contains an already-added document skips it with `alreadyAdded`, and a selection with no new documents fails with `KNOWLEDGE_DOCUMENTS_ALREADY_ADDED`. The same file may be added to a different knowledge base, where it is indexed separately.
 
 **Sync.**
 
@@ -1003,6 +1004,7 @@ Constraints and indexes:
 - FK `(workspace_id, source_id)` → `sources`;
 - partial unique `(workspace_id, source_id, external_id)` where `external_id is not null and deleted_at is null`;
 - partial unique `(workspace_id, source_id)` where `external_id is null and deleted_at is null`;
+- `createGoogleDocsSource` also enforces one active document per `(workspace_id, kb_id, external_id)` under the knowledge-base lock, so the same Drive file cannot be added twice to one KB;
 - `index (workspace_id, kb_id, status)`;
 - `index (workspace_id, source_id)`;
 - GIN trigram index on `title` (`gin_trgm_ops`);
@@ -1400,6 +1402,7 @@ There is no product-level document or chunk quota in the first version. The work
 | Worker crash before flip | New generation orphaned; old remains active | Retry; orphan cleanup |
 | Google token revoked | Connection `revoked`; source `error` | Reconnect, then sync |
 | Google doc trashed | Document `removed`; object cleanup | Nothing; it is gone at the provider |
+| Google doc already in the KB | The duplicate is skipped with `alreadyAdded`; no second document or sync is created | Pick another document or delete the existing source |
 | Google transient error | Document unchanged | Retry; wipe protection |
 | KB in use | `KNOWLEDGE_BASE_IN_USE` with usages | Detach from agents first |
 | Delete race on a referenced KB | Lock + publish check | At worst a flow fails validation and is fixed |

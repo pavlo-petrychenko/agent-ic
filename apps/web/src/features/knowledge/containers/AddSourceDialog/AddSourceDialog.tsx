@@ -31,6 +31,7 @@ import type {
 } from '@/features/knowledge/typedefs/knowledgeUpload.typedefs';
 import { AddSourceModal } from '@/features/knowledge/view/AddSourceModal';
 import { GoogleConnectionPanel } from '@/features/knowledge/view/GoogleConnectionPanel';
+import { GooglePickerSkipReason } from '@/shared/api/generated/schema.generated';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
@@ -169,7 +170,14 @@ export function AddSourceDialog({
           message: t('add.googleConnection.pickerSuccess'),
           tone: ToastTone.Ok,
         });
-        if (result.skipped.length > 0) {
+        if (
+          result.skipped.some((document) => document.reason === GooglePickerSkipReason.AlreadyAdded)
+        ) {
+          showToast({
+            message: t('add.googleConnection.pickerAlreadyAdded'),
+            tone: ToastTone.Info,
+          });
+        } else if (result.skipped.length > 0) {
           showToast({
             message: t('add.googleConnection.pickerSkipped'),
             tone: ToastTone.Info,

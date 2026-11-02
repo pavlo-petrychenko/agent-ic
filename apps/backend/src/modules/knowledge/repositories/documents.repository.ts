@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, isNull } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { documents } from '@/modules/knowledge/db/documents.table';
 import type {
@@ -54,6 +54,27 @@ export class DocumentsRepository {
       .where(this.activeWhere(workspaceId, eq(documents.sourceId, sourceId)))
       .limit(1);
     return document ?? null;
+  }
+
+  async listActiveExternalIds(
+    workspaceId: string,
+    knowledgeBaseId: string,
+    externalIds: readonly string[],
+  ): Promise<string[]> {
+    if (externalIds.length === 0) {
+      return [];
+    }
+    const rows = await this.txHost.tx
+      .select({ externalId: documents.externalId })
+      .from(documents)
+      .where(
+        this.activeWhere(
+          workspaceId,
+          eq(documents.kbId, knowledgeBaseId),
+          inArray(documents.externalId, [...externalIds]),
+        ),
+      );
+    return rows.flatMap((row) => (row.externalId === null ? [] : [row.externalId]));
   }
 
   async listBySource(workspaceId: string, sourceId: string): Promise<Document[]> {

@@ -6,7 +6,10 @@ import {
   KnowledgeSourceStatus,
   KnowledgeSyncStatus,
 } from '@/modules/knowledge/constants/knowledge.constants';
-import { GoogleDocsSelectionInvalidError } from '@/modules/knowledge/errors/google-drive.error';
+import {
+  GoogleDocsSelectionAlreadyAddedError,
+  GoogleDocsSelectionInvalidError,
+} from '@/modules/knowledge/errors/google-drive.error';
 import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.gateway';
 import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
 import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
@@ -47,6 +50,14 @@ const file = (overrides: Partial<GoogleDriveFile> = {}): GoogleDriveFile => ({
   version: TEST_GOOGLE_DOC_VERSION,
   trashed: false,
   ...overrides,
+});
+
+const picked = (id: string, name: string) => ({
+  id,
+  name,
+  mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+  url: null,
+  resourceKey: null,
 });
 
 describe('CreateGoogleDocsSourceUseCase', () => {
@@ -187,6 +198,85 @@ describe('CreateGoogleDocsSourceUseCase', () => {
       status: KnowledgeSyncStatus.Queued,
       documentsTotal: 2,
     });
+  });
+
+  it('skips a Google Doc that is already active in the knowledge base', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedConnection(workspaceId);
+    drive.addFile(file({ id: 'google-doc-existing', name: 'Existing' }), '# Existing');
+    drive.addFile(file({ id: 'google-doc-fresh', name: 'Fresh' }), '# Fresh');
+
+    await createSource.execute(knowledgeCtx(workspaceId), {
+      knowledgeBaseId: publicKnowledgeBaseId(testbed, knowledgeBaseId),
+      connectionId: publicKnowledgeConnectionId(testbed, connectionId),
+      documents: [picked('google-doc-existing', 'Existing')],
+    });
+
+    const result = await createSource.execute(knowledgeCtx(workspaceId), {
+      knowledgeBaseId: publicKnowledgeBaseId(testbed, knowledgeBaseId),
+      connectionId: publicKnowledgeConnectionId(testbed, connectionId),
+      documents: [picked('google-doc-existing', 'Existing'), picked('google-doc-fresh', 'Fresh')],
+    });
+
+    expect(result.skipped).toEqual([
+      { id: 'google-doc-existing', name: 'Existing', reason: 'already_added' },
+    ]);
+    expect(result.source).toMatchObject({ title: 'Fresh' });
+    const sourceId = testbed.ids.fromPublic(IdPrefix.KnowledgeSource, result.source.id);
+    const stored = await testbed.tenants.run(workspaceId, async () => ({
+      sources: await sources.listByKnowledgeBase(workspaceId, knowledgeBaseId),
+      documents: await documents.listBySource(workspaceId, sourceId),
+    }));
+    expect(stored.sources).toHaveLength(2);
+    expect(stored.documents.map((document) => document.externalId)).toEqual(['google-doc-fresh']);
+  });
+
+  it('fails when every selected Google Doc is already in the knowledge base', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedConnection(workspaceId);
+    drive.addFile(file({ id: 'google-doc-existing', name: 'Existing' }), '# Existing');
+    const input = {
+      knowledgeBaseId: publicKnowledgeBaseId(testbed, knowledgeBaseId),
+      connectionId: publicKnowledgeConnectionId(testbed, connectionId),
+      documents: [picked('google-doc-existing', 'Existing')],
+    };
+    await createSource.execute(knowledgeCtx(workspaceId), input);
+
+    await expect(createSource.execute(knowledgeCtx(workspaceId), input)).rejects.toBeInstanceOf(
+      GoogleDocsSelectionAlreadyAddedError,
+    );
+    const stored = await testbed.tenants.run(workspaceId, () =>
+      sources.listByKnowledgeBase(workspaceId, knowledgeBaseId),
+    );
+    expect(stored).toHaveLength(1);
+  });
+
+  it('allows the same Google Doc in a different knowledge base', async () => {
+    const workspaceId = testbed.ids.generate();
+    const firstKnowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const secondKnowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId, {
+      name: 'Second handbook',
+      toolName: 'search_second_handbook',
+    });
+    const connectionId = await seedConnection(workspaceId);
+    drive.addFile(file({ id: 'google-doc-shared', name: 'Shared' }), '# Shared');
+
+    await createSource.execute(knowledgeCtx(workspaceId), {
+      knowledgeBaseId: publicKnowledgeBaseId(testbed, firstKnowledgeBaseId),
+      connectionId: publicKnowledgeConnectionId(testbed, connectionId),
+      documents: [picked('google-doc-shared', 'Shared')],
+    });
+
+    const result = await createSource.execute(knowledgeCtx(workspaceId), {
+      knowledgeBaseId: publicKnowledgeBaseId(testbed, secondKnowledgeBaseId),
+      connectionId: publicKnowledgeConnectionId(testbed, connectionId),
+      documents: [picked('google-doc-shared', 'Shared')],
+    });
+
+    expect(result.skipped).toEqual([]);
+    expect(result.source).toMatchObject({ title: 'Shared' });
   });
 
   it('fails when none of the selected documents can be read', async () => {
