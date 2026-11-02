@@ -23,6 +23,7 @@ import {
   inboxFooter,
   inboxMessages,
 } from '@/features/inbox/logic/helpers/inboxConversation.helpers';
+import { inboxDetails } from '@/features/inbox/logic/helpers/inboxDetails.helpers';
 import {
   inboxEmptyState,
   inboxListItem,
@@ -136,7 +137,7 @@ export function useInboxPage(): InboxPageModel {
             messages: inboxMessages(selected, sent[selected.id] ?? [], t),
             footer: inboxFooter(selected, footerContext, t),
           },
-    details: null,
+    details: selected === null ? null : inboxDetails(selected, providerLabels, t),
     emptyTitle: t('empty.detailTitle'),
     emptyDescription: t('empty.detailDescription'),
   };

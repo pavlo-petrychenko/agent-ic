@@ -1,0 +1,145 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  box-sizing: border-box;
+  flex-shrink: 0;
+  width: var(--size-inspector-width);
+  height: 100%;
+  padding: var(--space-18) var(--space-16);
+  overflow-y: auto;
+  border-left: var(--border-width) solid var(--color-line);
+  background: var(--color-panel);
+}
+
+.title {
+  margin: 0;
+  color: var(--color-ink);
+  font: var(--type-h3);
+}
+
+.card {
+  flex-shrink: 0;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.iconTile {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--size-tile-lg);
+  height: var(--size-tile-lg);
+  border-radius: var(--radius-8);
+  background: var(--color-soft);
+  color: var(--color-ink-secondary);
+}
+
+.cardTitle {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--color-ink);
+  font: var(--type-body-small-strong);
+}
+
+.cardLink {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-4);
+  background: transparent;
+  color: var(--color-accent-dark);
+  font: var(--type-caption-strong);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.guardCode {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  padding: var(--space-10);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-8);
+  background: var(--color-panel);
+  color: var(--color-ink-secondary);
+  font: var(--type-mono-sm);
+  overflow-wrap: anywhere;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.stepIcon {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--size-tile-sm);
+  height: var(--size-tile-sm);
+  border-radius: var(--radius-6);
+  background: var(--color-soft);
+  color: var(--color-ink-secondary);
+}
+
+.stepLabel {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-ink-secondary);
+  font: var(--type-caption);
+}
+
+.stepValue {
+  flex-shrink: 0;
+  max-width: 50%;
+  color: var(--color-mute);
+  font: var(--type-mono-xs);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.runFooter {
+  margin: 0;
+  padding-top: var(--space-8);
+  border-top: var(--border-width) solid var(--color-line-row);
+  color: var(--color-mute);
+  font: var(--type-mono-xs);
+}
+
+.sessionLink {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-4);
+  background: transparent;
+  color: var(--color-accent-dark);
+  font: var(--type-caption-strong);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
