@@ -23,6 +23,7 @@ import { MessagesRepository } from '@/modules/conversations/repositories/message
 import { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
 import { ConversationMetricsService } from '@/modules/conversations/services/conversation-metrics.service';
 import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
+import { InboxActivityService } from '@/modules/conversations/services/inbox-activity.service';
 import type { Conversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type {
   IncomingMessageInput,
@@ -44,6 +45,7 @@ export class IncomingMessagesService {
     private readonly messages: MessagesRepository,
     private readonly conversationRuns: ConversationRunsService,
     private readonly activity: ConversationActivityService,
+    private readonly inboxActivity: InboxActivityService,
     private readonly agents: AgentRuntimeReader,
     private readonly domainEvents: DomainEventsService,
     private readonly usage: UsageCountersService,
@@ -73,8 +75,8 @@ export class IncomingMessagesService {
     input: IncomingMessageInput,
   ): Promise<IncomingMessageResult> {
     const pause = await this.agents.getPauseSettings(input.workspaceId, input.agentId);
-    const conversation =
-      (await this.conversations.findOpenForUpdate(input)) ?? (await this.open(input));
+    const existing = await this.conversations.findOpenForUpdate(input);
+    const conversation = existing ?? (await this.open(input));
     const message = await this.messages.insertIfAbsent({
       id: this.ids.generate(),
       workspaceId: input.workspaceId,
@@ -106,6 +108,11 @@ export class IncomingMessagesService {
       input.versionId,
       input.runId ?? null,
     );
+    if (conversation.mode === ConversationMode.Live) {
+      await (existing === null
+        ? this.inboxActivity.conversationCreated(input.workspaceId, conversation.id)
+        : this.inboxActivity.conversationUpdated(input.workspaceId, conversation.id));
+    }
     return { outcome, conversationId: conversation.id, messageId: message.id };
   }
 

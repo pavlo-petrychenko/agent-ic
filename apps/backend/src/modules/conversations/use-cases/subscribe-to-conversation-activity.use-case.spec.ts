@@ -71,10 +71,35 @@ describe('SubscribeToConversationActivityUseCase', () => {
     await expect(attempt).rejects.toBeInstanceOf(ConversationNotFoundError);
   });
 
-  it('does not stream a live conversation, which belongs to the Inbox', async () => {
+  it('streams a live conversation for an inbox operator', async () => {
+    const conversation = await seed(ConversationMode.Live);
+    const runId = await seedRunRow(testbed.module, conversation);
+    const activity = await subscribe(
+      conversation,
+      conversation.workspaceId,
+      WorkspaceRole.Operator,
+    );
+
+    await testbed.tenants.run(conversation.workspaceId, () =>
+      testbed.module.get(ConversationActivityService).runStarted(conversation.id, runId),
+    );
+
+    const received = await activity.next();
+    await activity.return();
+    expect(received.value).toEqual({
+      conversationId: testbed.ids.toPublic(IdPrefix.Conversation, conversation.id),
+      kind: ConversationActivityKind.RunStarted,
+      messageId: null,
+      runId: testbed.ids.toPublic(IdPrefix.Run, runId),
+    });
+  });
+
+  it('keeps a Builder out of a live conversation', async () => {
     const conversation = await seed(ConversationMode.Live);
 
-    await expect(subscribe(conversation)).rejects.toBeInstanceOf(ConversationNotFoundError);
+    await expect(
+      subscribe(conversation, conversation.workspaceId, WorkspaceRole.Builder),
+    ).rejects.toBeInstanceOf(PermissionDeniedError);
   });
 
   it('refuses an operator', async () => {

@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import {
   and,
   asc,
+  count,
   desc,
   eq,
   gte,
@@ -79,6 +80,20 @@ export class ConversationsRepository {
       )
       .orderBy(desc(conversations.lastMessageAt), desc(conversations.id))
       .limit(limit);
+  }
+
+  async countNeedsYou(workspaceId: string): Promise<number> {
+    const [row] = await this.txHost.tx
+      .select({ total: count() })
+      .from(conversations)
+      .where(
+        and(
+          eq(conversations.workspaceId, workspaceId),
+          eq(conversations.mode, ConversationMode.Live),
+          inArray(conversations.state, [ConversationState.Waiting, ConversationState.Handled]),
+        ),
+      );
+    return row?.total ?? 0;
   }
 
   async findOpenForUpdate(key: EndUserConversationKey): Promise<Conversation | null> {

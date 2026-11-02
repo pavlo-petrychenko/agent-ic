@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import type { PauseSettings } from '@/modules/agents/typedefs/pause-settings.typedefs';
 import { conversationActivityChannel } from '@/modules/conversations/channels/conversation-activity.channel';
+import { inboxActivityChannel } from '@/modules/conversations/channels/inbox-activity.channel';
 import { ConversationsModule } from '@/modules/conversations/conversations.module';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
@@ -11,6 +12,7 @@ import { ConversationRunsService } from '@/modules/conversations/services/conver
 import { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
 import type { ConversationActivity } from '@/modules/conversations/typedefs/conversation-activity.typedefs';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
+import type { InboxActivity } from '@/modules/conversations/typedefs/inbox-activity.typedefs';
 import type { Message, NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
 import { ClockModule } from '@/platform/clock/clock.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
@@ -142,6 +144,12 @@ export const conversationActivity = (
   conversationId: string,
 ): Promise<ChannelStream<ConversationActivity>> =>
   testbed.liveUpdates.subscribe(channelFor(conversationActivityChannel, conversationId));
+
+export const inboxActivity = (
+  testbed: ConversationsTestbed,
+  workspaceId: string,
+): Promise<ChannelStream<InboxActivity>> =>
+  testbed.liveUpdates.subscribe(channelFor(inboxActivityChannel, workspaceId));
 
 export const seedConversation = async (
   testbed: ConversationsTestbed,

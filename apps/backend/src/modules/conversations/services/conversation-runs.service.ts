@@ -17,6 +17,7 @@ import { outboundQueuedEvent } from '@/modules/conversations/events/outbound-que
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
+import { InboxActivityService } from '@/modules/conversations/services/inbox-activity.service';
 import type {
   Conversation,
   WaitingRequest,
@@ -40,6 +41,7 @@ export class ConversationRunsService {
     private readonly messages: MessagesRepository,
     private readonly domainEvents: DomainEventsService,
     private readonly activity: ConversationActivityService,
+    private readonly inboxActivity: InboxActivityService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
@@ -138,6 +140,9 @@ export class ConversationRunsService {
     }
     await this.conversations.touch(input.workspaceId, input.conversationId, created.createdAt);
     await this.activity.messageAdded(created);
+    if (conversation.mode === ConversationMode.Live) {
+      await this.inboxActivity.conversationUpdated(input.workspaceId, conversation.id);
+    }
     if (!options.capture) {
       await this.domainEvents.emit(
         ctx,
@@ -168,6 +173,7 @@ export class ConversationRunsService {
     if (conversation.mode === ConversationMode.Simulation) {
       return true;
     }
+    await this.inboxActivity.conversationUpdated(conversation.workspaceId, conversation.id);
     await this.domainEvents.emit(
       ctx,
       needsOperatorEvent,
@@ -187,9 +193,12 @@ export class ConversationRunsService {
     conversationId: string,
     reason: CloseReason | null = null,
   ): Promise<void> {
-    await this.requireConversation(workspaceId, conversationId);
+    const conversation = await this.requireConversation(workspaceId, conversationId);
     if (await this.conversations.close(workspaceId, conversationId, this.clock.now(), reason)) {
       await this.activity.conversationClosed(conversationId);
+      if (conversation.mode === ConversationMode.Live) {
+        await this.inboxActivity.conversationClosed(workspaceId, conversation.id);
+      }
     }
   }
 

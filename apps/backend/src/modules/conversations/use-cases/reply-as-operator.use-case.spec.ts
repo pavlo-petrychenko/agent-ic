@@ -1,6 +1,7 @@
 import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ConversationState } from '@/modules/conversations/constants/conversation.constants';
+import { InboxActivityKind } from '@/modules/conversations/constants/inbox-activity.constants';
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
 import { ReplyAsOperatorUseCase } from '@/modules/conversations/use-cases/reply-as-operator.use-case';
@@ -11,6 +12,7 @@ import { AGENT_REPLY_TEXT } from '@test/support/constants/conversations-testing.
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import {
   createConversationsTestbed,
+  inboxActivity,
   queuedEventsFor,
   seedConversation,
 } from '@test/support/helpers/conversations-testing.helpers';
@@ -56,10 +58,17 @@ describe('ReplyAsOperatorUseCase', () => {
   it('lets the Inbox answer a live chat, and keeps Builders out of it', async () => {
     const live = await seedConversation(testbed);
     const as = (role: WorkspaceRole) => workspaceCtx(TEST_EDITOR_ID, live.workspaceId, role);
+    const activity = await inboxActivity(testbed, live.workspaceId);
 
     const message = await reply(as(WorkspaceRole.Operator), live.id);
 
+    const received = await activity.next();
+    await activity.return();
     expect(message.author).toBe(MessageAuthor.Operator);
+    expect(received.value).toEqual({
+      conversationId: live.id,
+      kind: InboxActivityKind.ConversationUpdated,
+    });
     await expect(reply(as(WorkspaceRole.Builder), live.id)).rejects.toBeInstanceOf(
       PermissionDeniedError,
     );

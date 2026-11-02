@@ -23,5 +23,15 @@ export const authorizeOperator = (ctx: UseCaseCtx): WorkspaceAccess => {
   return authorize(ctx, resource ?? PermissionResource.Inbox, PermissionAction.Edit);
 };
 
+export const authorizeConversationView = (ctx: UseCaseCtx): WorkspaceAccess => {
+  const permissions =
+    ctx.permissions ??
+    (ctx.workspaceRole === null ? new Set<string>() : permissionsForRole(ctx.workspaceRole));
+  const resource = Object.values(OPERATOR_RESOURCE).find((candidate) =>
+    hasPermission(permissions, candidate, PermissionAction.View),
+  );
+  return authorize(ctx, resource ?? PermissionResource.Inbox, PermissionAction.View);
+};
+
 export const operatorMessageKey = (messageId: string): string =>
   [OPERATOR_MESSAGE_KEY_PREFIX, messageId].join(OPERATOR_MESSAGE_KEY_SEPARATOR);
