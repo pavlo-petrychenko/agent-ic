@@ -1,5 +1,7 @@
+import { skipToken, useSubscription } from '@apollo/client/react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { InboxConversationActivityDocument } from '@/features/inbox/communication/gql/subscription/inboxConversationActivity.generated';
 import { withInboxDetail } from '@/features/inbox/communication/helpers/inboxApi.helpers';
 import { useInboxConversation } from '@/features/inbox/communication/hooks/useInboxConversation';
 import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants';
@@ -19,6 +21,12 @@ export function useInboxThread(
 ): InboxThreadState {
   const { t, i18n } = useTranslation(INBOX_NAMESPACE);
   const { detail, loading, failed, retry } = useInboxConversation(selectedId);
+  useSubscription(
+    InboxConversationActivityDocument,
+    selectedId === null
+      ? skipToken
+      : { variables: { conversationId: selectedId }, onData: () => void retry() },
+  );
 
   const conversation = useMemo(() => {
     const base = conversations.find((item) => item.id === selectedId) ?? null;

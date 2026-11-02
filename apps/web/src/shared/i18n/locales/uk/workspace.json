@@ -5,6 +5,12 @@
       "build": "Створення",
       "operate": "Робота"
     },
+    "badge": {
+      "inbox_one": "{{count}} чат потребує вас",
+      "inbox_few": "{{count}} чати потребують вас",
+      "inbox_many": "{{count}} чатів потребують вас",
+      "inbox_other": "{{count}} чату потребують вас"
+    },
     "sections": {
       "agents": "Агенти",
       "prompts": "Промпти",

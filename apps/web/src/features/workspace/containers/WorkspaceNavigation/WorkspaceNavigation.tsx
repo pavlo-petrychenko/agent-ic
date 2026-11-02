@@ -2,8 +2,9 @@ import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useApplyAccountLocale, useLogOut } from '@/features/auth';
+import { useInboxNeedsYouCount } from '@/features/inbox';
 import { useWorkspaceShell } from '@/features/workspace/communication/hooks/useWorkspaceShell';
-import { NavGroupKey } from '@/features/workspace/constants/navigation.constants';
+import { NavGroupKey, WorkspaceSection } from '@/features/workspace/constants/navigation.constants';
 import { WorkspaceNavForm } from '@/features/workspace/constants/navigationForm.constants';
 import {
   WORKSPACE_HOME_PATH,
@@ -12,6 +13,7 @@ import {
 import { WORKSPACE_NAMESPACE } from '@/features/workspace/constants/workspaceI18n.constants';
 import type { WorkspaceNavigationProps } from '@/features/workspace/containers/WorkspaceNavigation/WorkspaceNavigation.typedefs';
 import {
+  canOpenSection,
   sectionHref,
   visibleNavGroups,
 } from '@/features/workspace/logic/helpers/navigation.helpers';
@@ -34,6 +36,9 @@ export function WorkspaceNavigation({
   const [menuOpen, setMenuOpen] = useState(false);
   const { data } = useWorkspaceShell(workspaceId);
   const active = data?.active ?? null;
+  const inboxCount = useInboxNeedsYouCount(
+    active !== null && canOpenSection(active.permissions, WorkspaceSection.Inbox),
+  );
   const groups =
     active === null
       ? []
@@ -44,6 +49,11 @@ export function WorkspaceNavigation({
             section: entry.section,
             icon: entry.icon,
             label: t(`nav.sections.${entry.section}`),
+            badgeCount: entry.section === WorkspaceSection.Inbox ? inboxCount : null,
+            badgeLabel:
+              entry.section === WorkspaceSection.Inbox && inboxCount !== null
+                ? t('nav.badge.inbox', { count: inboxCount })
+                : null,
           })),
         }));
 
@@ -59,8 +69,8 @@ export function WorkspaceNavigation({
     to: sectionHref(item.section, workspaceId),
     label: item.label,
     icon: item.icon,
-    badgeCount: null,
-    badgeLabel: null,
+    badgeCount: item.badgeCount,
+    badgeLabel: item.badgeLabel,
   });
 
   const switcher = (

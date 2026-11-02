@@ -8,6 +8,8 @@ export interface SidebarItem {
   readonly section: WorkspaceSection;
   readonly label: string;
   readonly icon: IconName;
+  readonly badgeCount: number | null;
+  readonly badgeLabel: string | null;
 }
 
 export interface SidebarGroup {
