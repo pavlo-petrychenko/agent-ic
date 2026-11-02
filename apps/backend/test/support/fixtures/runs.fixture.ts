@@ -480,6 +480,7 @@ export const historyMessage = (
   workspaceId: conversation.workspaceId,
   conversationId: conversation.id,
   author,
+  authorUserId: null,
   text,
   quickReplies: [],
   externalId: null,

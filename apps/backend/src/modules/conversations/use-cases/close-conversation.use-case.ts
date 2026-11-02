@@ -41,6 +41,7 @@ export class CloseConversationUseCase {
           conversationId: conversation.id,
           key: operatorMessageKey(this.ids.generate()),
           author: MessageAuthor.Operator,
+          authorUserId: access.userId,
           text: message,
           quickReplies: [],
           runId: null,

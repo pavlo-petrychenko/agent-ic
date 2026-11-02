@@ -41,6 +41,7 @@ export class ReplyAsOperatorUseCase {
         conversationId: conversation.id,
         key: operatorMessageKey(this.ids.generate()),
         author: MessageAuthor.Operator,
+        authorUserId: userId,
         text,
         quickReplies: [],
         runId: null,

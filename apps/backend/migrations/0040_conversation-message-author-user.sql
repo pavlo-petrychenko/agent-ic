@@ -1,0 +1,3 @@
+ALTER TABLE "conversations"."messages" ADD COLUMN "author_user_id" uuid;--> statement-breakpoint
+ALTER TABLE "conversations"."messages" ADD CONSTRAINT "messages_author_user_id_users_id_fk" FOREIGN KEY ("author_user_id") REFERENCES "identity"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "messages_author_user_id_idx" ON "conversations"."messages" USING btree ("author_user_id") WHERE "conversations"."messages"."author_user_id" is not null;

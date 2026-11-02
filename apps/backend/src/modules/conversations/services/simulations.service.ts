@@ -140,6 +140,10 @@ export class SimulationsService {
     return {
       id: this.ids.toPublic(IdPrefix.Message, message.id),
       author: message.author,
+      authorId:
+        message.authorUserId === null
+          ? null
+          : this.ids.toPublic(IdPrefix.User, message.authorUserId),
       text: message.text,
       quickReplies: message.quickReplies,
       runId: message.runId === null ? null : this.ids.toPublic(IdPrefix.Run, message.runId),

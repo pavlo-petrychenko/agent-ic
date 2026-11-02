@@ -44,7 +44,11 @@ describe('ReplyAsOperatorUseCase', () => {
       testbed.conversations.findById(workspaceId, conversationId),
     );
     const queued = await queuedEventsFor(testbed, deliverOnOutboundQueued, conversationId);
-    expect(message).toMatchObject({ author: MessageAuthor.Operator, runId: null });
+    expect(message).toMatchObject({
+      author: MessageAuthor.Operator,
+      authorId: testbed.ids.toPublic(IdPrefix.User, TEST_EDITOR_ID),
+      runId: null,
+    });
     expect(conversation?.state).toBe(ConversationState.Handled);
     expect(queued).toHaveLength(1);
   });
