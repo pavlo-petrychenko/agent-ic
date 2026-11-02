@@ -24,4 +24,14 @@ export const operatorReplySchema = simulatorMessageSchema;
 
 export const operatorConversationSchema = z.object({ conversationId: publicIdSchema });
 
+export const closeConversationSchema = z.object({
+  conversationId: publicIdSchema,
+  message: z
+    .string()
+    .trim()
+    .max(SIMULATOR_MESSAGE_MAX_LENGTH)
+    .nullish()
+    .transform((value) => (value === '' ? null : (value ?? null))),
+});
+
 export const simulationConversationSchema = z.object({ conversationId: publicIdSchema });

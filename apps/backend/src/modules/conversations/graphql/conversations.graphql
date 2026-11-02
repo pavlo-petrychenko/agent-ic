@@ -28,6 +28,7 @@ extend type Mutation {
   replyAsOperator(input: ReplyAsOperatorInput!): Message!
   takeOver(input: TakeOverInput!): Conversation!
   handBack(input: HandBackInput!): Conversation!
+  closeConversation(input: CloseConversationInput!): Conversation!
 }
 
 enum ConversationState {
@@ -40,6 +41,7 @@ enum ConversationState {
 enum ConversationCloseReason {
   ended_by_agent
   inactivity
+  closed_by_operator
 }
 
 enum ChannelConversationKind {
@@ -82,6 +84,11 @@ input TakeOverInput {
 
 input HandBackInput {
   conversationId: ID!
+}
+
+input CloseConversationInput {
+  conversationId: ID!
+  message: String
 }
 
 input CloseSimulationForInactivityInput {
