@@ -8,6 +8,7 @@ export enum Namespace {
   Prompts = 'prompts',
   Knowledge = 'knowledge',
   Channels = 'channels',
+  Inbox = 'inbox',
   FlowBuilder = 'flowBuilder',
   Testing = 'testing',
 }
