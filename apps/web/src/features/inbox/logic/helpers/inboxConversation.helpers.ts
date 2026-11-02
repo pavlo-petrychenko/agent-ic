@@ -16,35 +16,13 @@ import type {
   InboxFooterContext,
   InboxFooterResolver,
   InboxMessage,
-  InboxStoredDividerMessage,
   InboxStoredMessage,
   InboxTranslate,
+  InboxStoredDivider
 } from '@/features/inbox/typedefs/inbox.typedefs';
 import { ButtonVariant } from '@/shared/ui/actions/Button';
 import { BannerTone } from '@/shared/ui/display/Banner';
 import { IconName } from '@/shared/ui/foundations/Icon';
-
-const CLOSE_ACTION_ID = 'close';
-const HAND_BACK_ACTION_ID = 'hand-back';
-const TAKE_OVER_ACTION_ID = 'take-over';
-
-interface InboxActionSpec {
-  readonly id: string;
-  readonly variant: ButtonVariant;
-  readonly icon: IconName | null;
-  readonly label: (conversation: InboxConversation, t: InboxTranslate) => string;
-}
-
-type InboxBannerResolver = (
-  conversation: InboxConversation,
-  t: InboxTranslate,
-) => InboxConversationBanner | null;
-
-type InboxFooterResolver = (
-  conversation: InboxConversation,
-  context: InboxFooterContext,
-  t: InboxTranslate,
-) => InboxConversationFooter;
 
 const action = (
   id: InboxActionId,
@@ -136,7 +114,7 @@ const INBOX_FOOTERS: Readonly<Record<InboxReplyState, InboxFooterResolver>> = {
   }),
 };
 
-const dividerText = (message: InboxStoredDividerMessage, t: InboxTranslate): string => {
+const dividerText = (message: InboxStoredDivider, t: InboxTranslate): string => {
   switch (message.divider) {
     case InboxDividerKind.FlowPaused:
       return t('divider.flowPaused', {

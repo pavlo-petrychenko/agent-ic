@@ -1,6 +1,9 @@
 import clsx from 'clsx';
 import { InboxRowStatusKind } from '@/features/inbox/constants/inbox.constants';
-import type { InboxListProps, InboxRowStatus } from '@/features/inbox/typedefs/inbox.typedefs';
+import type {
+  InboxListProps,
+  RowStatusProps,
+} from '@/features/inbox/view/InboxList/InboxList.typedefs';
 import { FilterChip } from '@/shared/ui/actions/FilterChip';
 import { Avatar, AvatarSize } from '@/shared/ui/display/Avatar';
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
@@ -9,7 +12,7 @@ import { StatusDot, StatusKind } from '@/shared/ui/display/StatusDot';
 import { SearchInput } from '@/shared/ui/inputs/SearchInput';
 import styles from '@/features/inbox/view/InboxList/InboxList.module.scss';
 
-function RowStatus({ status }: { readonly status: InboxRowStatus }) {
+function RowStatus({ status }: RowStatusProps) {
   if (status.kind === InboxRowStatusKind.Waiting) {
     return <StatusDot kind={StatusKind.Warn} label={status.label} className={styles.waiting} />;
   }

@@ -16,6 +16,7 @@ import {
   InboxTab,
 } from '@/features/inbox/constants/inbox.constants';
 import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants';
+import type { InboxPageModel } from '@/features/inbox/containers/InboxPage/InboxPage.typedefs';
 import {
   countConversationsByTab,
   firstConversationId,
@@ -37,7 +38,6 @@ import {
 import type {
   InboxComposerState,
   InboxFooterContext,
-  InboxPageModel,
   InboxProviderLabels,
 } from '@/features/inbox/typedefs/inbox.typedefs';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';

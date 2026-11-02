@@ -1,5 +1,5 @@
-import type { InboxConversationProps } from '@/features/inbox/typedefs/inbox.typedefs';
 import { ConversationFooter } from '@/features/inbox/view/InboxConversation/ConversationFooter';
+import type { InboxConversationProps } from '@/features/inbox/view/InboxConversation/InboxConversation.typedefs';
 import { ThreadMessage } from '@/features/inbox/view/InboxConversation/ThreadMessage';
 import { Button } from '@/shared/ui/actions/Button';
 import { Avatar, AvatarSize } from '@/shared/ui/display/Avatar';

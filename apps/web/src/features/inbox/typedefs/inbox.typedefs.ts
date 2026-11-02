@@ -16,7 +16,7 @@ import type { BannerTone } from '@/shared/ui/display/Banner';
 import type { EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import type { IconName } from '@/shared/ui/foundations/Icon';
 
-export interface InboxTextMessage {
+interface InboxTextMessage {
   readonly kind: InboxMessageKind.Customer | InboxMessageKind.Agent | InboxMessageKind.Operator;
   readonly id: string;
   readonly author: string;
@@ -24,14 +24,14 @@ export interface InboxTextMessage {
   readonly text: string;
 }
 
-export interface InboxDividerMessage {
+interface InboxDividerMessage {
   readonly kind: InboxMessageKind.Divider;
   readonly id: string;
   readonly text: string;
   readonly icon: IconName | null;
 }
 
-export interface InboxEscalationMessage {
+interface InboxEscalationMessage {
   readonly kind: InboxMessageKind.Escalation;
   readonly id: string;
   readonly title: string;
@@ -42,7 +42,7 @@ export interface InboxEscalationMessage {
 
 export type InboxMessage = InboxTextMessage | InboxDividerMessage | InboxEscalationMessage;
 
-export interface InboxStoredTextMessage {
+interface InboxStoredTextMessage {
   readonly kind: InboxMessageKind.Customer | InboxMessageKind.Agent | InboxMessageKind.Operator;
   readonly id: string;
   readonly author: string;
@@ -51,7 +51,7 @@ export interface InboxStoredTextMessage {
   readonly text: string;
 }
 
-export interface InboxStoredDividerMessage {
+interface InboxStoredDividerMessage {
   readonly kind: InboxMessageKind.Divider;
   readonly id: string;
   readonly divider: InboxDividerKind;
@@ -61,7 +61,7 @@ export interface InboxStoredDividerMessage {
   readonly tookAt: string | null;
 }
 
-export interface InboxStoredEscalationMessage {
+interface InboxStoredEscalationMessage {
   readonly kind: InboxMessageKind.Escalation;
   readonly id: string;
   readonly detail: string;
@@ -73,24 +73,26 @@ export type InboxStoredMessage =
   | InboxStoredDividerMessage
   | InboxStoredEscalationMessage;
 
+export type InboxStoredDivider = Extract<InboxStoredMessage, { readonly kind: InboxMessageKind.Divider }>;
+
 export interface InboxGuard {
   readonly reason: string;
 }
 
-export interface InboxRunStep {
+interface InboxRunStep {
   readonly id: string;
   readonly kind: InboxRunStepKind;
   readonly value: string | null;
 }
 
-export interface InboxRun {
+interface InboxRun {
   readonly id: string;
   readonly time: string;
   readonly duration: string;
   readonly steps: readonly InboxRunStep[];
 }
 
-export interface InboxConversationFacts {
+interface InboxConversationFacts {
   readonly channel: string;
   readonly startedAt: string | null;
   readonly escalatedAt: string | null;
@@ -147,23 +149,6 @@ export interface InboxEmptyState {
   readonly description: string;
   readonly icon: IconName;
   readonly tone: EmptyStateTone;
-}
-
-export interface InboxListProps {
-  readonly title: string;
-  readonly tabs: readonly InboxTabItem[];
-  readonly activeTab: InboxTab;
-  readonly onTabChange: (tab: InboxTab) => void;
-  readonly search: string;
-  readonly onSearchChange: (value: string) => void;
-  readonly searchLabel: string;
-  readonly searchPlaceholder: string;
-  readonly searchClearLabel: string;
-  readonly channelFilterLabel: string;
-  readonly agentFilterLabel: string;
-  readonly items: readonly InboxListItem[];
-  readonly empty: InboxEmptyState;
-  readonly onSelect: (id: string) => void;
 }
 
 export interface InboxConversationAction {
@@ -264,7 +249,7 @@ export interface InboxConversationDetailsView {
   readonly rows: readonly InboxDetailRow[];
 }
 
-export interface InboxDetailsProps {
+export interface InboxDetailsView {
   readonly label: string;
   readonly title: string;
   readonly guard: InboxGuardView | null;
@@ -289,12 +274,4 @@ export interface InboxFooterContext {
   readonly composer: InboxComposerState;
   readonly currentUserName: string;
   readonly onTakeOver: () => void;
-}
-
-export interface InboxPageModel {
-  readonly list: InboxListProps;
-  readonly conversation: InboxConversationProps | null;
-  readonly details: InboxDetailsProps | null;
-  readonly emptyTitle: string;
-  readonly emptyDescription: string;
 }
