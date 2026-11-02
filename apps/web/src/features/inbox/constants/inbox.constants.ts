@@ -68,6 +68,10 @@ export enum InboxFooterKind {
 
 export const INBOX_MINUTES_PER_DAY = 1440;
 
+export const INBOX_CONVERSATIONS_FETCH_LIMIT = 100;
+
+export const INBOX_CURRENT_USER = 'Pavlo';
+
 export const INBOX_CHAT_FROM: Readonly<
   Record<
     InboxMessageKind.Customer | InboxMessageKind.Agent | InboxMessageKind.Operator,

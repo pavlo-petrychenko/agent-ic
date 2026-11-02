@@ -72,7 +72,9 @@ const inboxDetailRows = (
     detailRow(
       'channel',
       t('details.channel'),
-      `${providerLabels[conversation.provider]} · ${facts.channel}`,
+      facts.channel === ''
+        ? providerLabels[conversation.provider]
+        : `${providerLabels[conversation.provider]} · ${facts.channel}`,
     ),
   ];
   addRow(rows, facts.replyTarget, (value) =>
