@@ -6,10 +6,7 @@ import {
   KnowledgeSourceStatus,
   KnowledgeSyncStatus,
 } from '@/modules/knowledge/constants/knowledge.constants';
-import {
-  GoogleDocsSelectionAlreadyAddedError,
-  GoogleDocsSelectionInvalidError,
-} from '@/modules/knowledge/errors/google-drive.error';
+import { GoogleDocsSelectionInvalidError } from '@/modules/knowledge/errors/google-drive.error';
 import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.gateway';
 import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
 import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
@@ -160,7 +157,11 @@ describe('CreateGoogleDocsSourceUseCase', () => {
       ],
     });
 
-    expect(result.source).toMatchObject({
+    const source = result.source;
+    if (source === null) {
+      throw new Error('the source was not created');
+    }
+    expect(source).toMatchObject({
       knowledgeBaseId: publicKnowledgeBaseId(testbed, knowledgeBaseId),
       kind: KnowledgeSourceKind.GoogleDocs,
       status: KnowledgeSourceStatus.Pending,
@@ -171,7 +172,7 @@ describe('CreateGoogleDocsSourceUseCase', () => {
       'trashed',
       'unavailable',
     ]);
-    const sourceId = testbed.ids.fromPublic(IdPrefix.KnowledgeSource, result.source.id);
+    const sourceId = testbed.ids.fromPublic(IdPrefix.KnowledgeSource, source.id);
     const stored = await testbed.tenants.run(workspaceId, async () => ({
       sources: await sources.listByKnowledgeBase(workspaceId, knowledgeBaseId),
       documents: await documents.listBySource(workspaceId, sourceId),
@@ -222,8 +223,12 @@ describe('CreateGoogleDocsSourceUseCase', () => {
     expect(result.skipped).toEqual([
       { id: 'google-doc-existing', name: 'Existing', reason: 'already_added' },
     ]);
-    expect(result.source).toMatchObject({ title: 'Fresh' });
-    const sourceId = testbed.ids.fromPublic(IdPrefix.KnowledgeSource, result.source.id);
+    const source = result.source;
+    if (source === null) {
+      throw new Error('the source was not created');
+    }
+    expect(source).toMatchObject({ title: 'Fresh' });
+    const sourceId = testbed.ids.fromPublic(IdPrefix.KnowledgeSource, source.id);
     const stored = await testbed.tenants.run(workspaceId, async () => ({
       sources: await sources.listByKnowledgeBase(workspaceId, knowledgeBaseId),
       documents: await documents.listBySource(workspaceId, sourceId),
@@ -232,7 +237,7 @@ describe('CreateGoogleDocsSourceUseCase', () => {
     expect(stored.documents.map((document) => document.externalId)).toEqual(['google-doc-fresh']);
   });
 
-  it('fails when every selected Google Doc is already in the knowledge base', async () => {
+  it('returns no source when every selected Google Doc is already in the knowledge base', async () => {
     const workspaceId = testbed.ids.generate();
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
     const connectionId = await seedConnection(workspaceId);
@@ -244,9 +249,12 @@ describe('CreateGoogleDocsSourceUseCase', () => {
     };
     await createSource.execute(knowledgeCtx(workspaceId), input);
 
-    await expect(createSource.execute(knowledgeCtx(workspaceId), input)).rejects.toBeInstanceOf(
-      GoogleDocsSelectionAlreadyAddedError,
-    );
+    const result = await createSource.execute(knowledgeCtx(workspaceId), input);
+
+    expect(result).toEqual({
+      source: null,
+      skipped: [{ id: 'google-doc-existing', name: 'Existing', reason: 'already_added' }],
+    });
     const stored = await testbed.tenants.run(workspaceId, () =>
       sources.listByKnowledgeBase(workspaceId, knowledgeBaseId),
     );

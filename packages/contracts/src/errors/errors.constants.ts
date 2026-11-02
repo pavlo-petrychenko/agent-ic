@@ -113,7 +113,6 @@ export enum ErrorReason {
   KnowledgeSourceNotFound = 'KNOWLEDGE_SOURCE_NOT_FOUND',
   KnowledgeSourceNotRetryable = 'KNOWLEDGE_SOURCE_NOT_RETRYABLE',
   KnowledgeDocumentInvalid = 'KNOWLEDGE_DOCUMENT_INVALID',
-  KnowledgeDocumentsAlreadyAdded = 'KNOWLEDGE_DOCUMENTS_ALREADY_ADDED',
   KnowledgeConnectionNotFound = 'KNOWLEDGE_CONNECTION_NOT_FOUND',
   KnowledgeConnectionInUse = 'KNOWLEDGE_CONNECTION_IN_USE',
   GoogleOAuthNotConfigured = 'GOOGLE_OAUTH_NOT_CONFIGURED',

@@ -240,10 +240,12 @@ export function AddSourceDialog({
         knowledgeBaseId,
         documents: selectedGoogleDocs.documents,
       });
-      showToast({
-        message: t('add.googleConnection.pickerSuccess'),
-        tone: ToastTone.Ok,
-      });
+      if (result.source !== null) {
+        showToast({
+          message: t('add.googleConnection.pickerSuccess'),
+          tone: ToastTone.Ok,
+        });
+      }
       if (
         result.skipped.some((document) => document.reason === GooglePickerSkipReason.AlreadyAdded)
       ) {
@@ -258,7 +260,9 @@ export function AddSourceDialog({
         });
       }
       setSelectedGoogleDocs(null);
-      onUploaded();
+      if (result.source !== null) {
+        onUploaded();
+      }
       onClose();
     } catch (failure) {
       showToast({ message: errorMessage(toAppError(failure)), tone: ToastTone.Err });

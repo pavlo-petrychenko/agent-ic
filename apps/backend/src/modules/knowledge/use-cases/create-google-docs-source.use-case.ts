@@ -12,7 +12,6 @@ import {
   KnowledgeSyncTrigger,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import {
-  GoogleDocsSelectionAlreadyAddedError,
   GoogleDocsSelectionInvalidError,
   GoogleDriveFileUnavailableError,
 } from '@/modules/knowledge/errors/google-drive.error';
@@ -71,7 +70,7 @@ interface CreateSourceInput {
 }
 
 interface CreatedSource {
-  readonly source: Source;
+  readonly source: Source | null;
   readonly skipped: readonly GooglePickerSkippedDocument[];
 }
 
@@ -118,7 +117,7 @@ export class CreateGoogleDocsSourceUseCase {
       prepared,
     });
     return {
-      source: this.views.view(created.source),
+      source: created.source === null ? null : this.views.view(created.source),
       skipped: [...skipped, ...created.skipped],
     };
   }
@@ -185,7 +184,7 @@ export class CreateGoogleDocsSourceUseCase {
       const knowledgeBase = await this.lockKnowledgeBase(workspaceId, knowledgeBaseId);
       const selection = await this.excludeAlreadyAdded(workspaceId, knowledgeBase.id, prepared);
       if (selection.prepared.length === 0) {
-        throw new GoogleDocsSelectionAlreadyAddedError();
+        return { source: null, skipped: selection.skipped };
       }
       const source = await this.insertSource(
         workspaceId,
