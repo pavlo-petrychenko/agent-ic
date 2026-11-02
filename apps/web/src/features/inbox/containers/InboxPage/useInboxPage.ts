@@ -16,6 +16,7 @@ import {
   InboxTab,
 } from '@/features/inbox/constants/inbox.constants';
 import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants';
+import type { CloseChatDialogProps } from '@/features/inbox/containers/CloseChatDialog';
 import type { InboxPageModel } from '@/features/inbox/containers/InboxPage/InboxPage.typedefs';
 import {
   countConversationsByTab,
@@ -55,6 +56,7 @@ export function useInboxPage(): InboxPageModel {
   const [activeTab, setActiveTab] = useState<InboxTab>(InboxTab.NeedsYou);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [closingId, setClosingId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
 
   const conversations = useMemo(
@@ -117,7 +119,11 @@ export function useInboxPage(): InboxPageModel {
   };
 
   const runAction = (id: InboxActionId) => {
-    if (selected === null || id === InboxActionId.Close) {
+    if (selected === null) {
+      return;
+    }
+    if (id === InboxActionId.Close) {
+      setClosingId(selected.id);
       return;
     }
     setSelectedId(selected.id);
@@ -142,6 +148,20 @@ export function useInboxPage(): InboxPageModel {
     currentUserName: INBOX_CURRENT_USER,
     onTakeOver: () => runAction(InboxActionId.TakeOver),
   };
+
+  const closing = conversations.find((conversation) => conversation.id === closingId) ?? null;
+  const closeDialog: CloseChatDialogProps | null =
+    closing === null
+      ? null
+      : {
+          conversationId: closing.id,
+          conversationName: closing.name,
+          onClose: () => setClosingId(null),
+          onClosed: () => {
+            setClosingId(null);
+            setSelectedId(null);
+          },
+        };
 
   return {
     list: {
@@ -176,6 +196,7 @@ export function useInboxPage(): InboxPageModel {
             onAction: runAction,
           },
     details: selected === null ? null : inboxDetails(selected, providerLabels, t),
+    closeDialog,
     emptyTitle: t('empty.detailTitle'),
     emptyDescription: t('empty.detailDescription'),
   };

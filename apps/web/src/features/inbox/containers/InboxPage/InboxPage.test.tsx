@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { buildInboxMocks } from '@/features/inbox/communication/fixtures/inboxQueries.fixture';
@@ -60,6 +60,31 @@ describe('InboxPage', () => {
 
     expect(await screen.findByLabelText('Write a message...')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Hand back to agent' })).toBeInTheDocument();
+  });
+
+  it('closes the chat with an optional message', async () => {
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Close chat' }));
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.type(
+      within(dialog).getByLabelText('Closing message (optional)'),
+      'Thanks, bye',
+    );
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Close chat' }));
+
+    expect(await screen.findByRole('tab', { name: 'Closed · 2' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('closes the chat without a message', async () => {
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Close chat' }));
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Close chat' }));
+
+    expect(await screen.findByRole('tab', { name: 'Closed · 2' })).toBeInTheDocument();
   });
 
   it('hands the conversation back to the agent', async () => {

@@ -1,3 +1,4 @@
+import { CloseChatDialog } from '@/features/inbox/containers/CloseChatDialog';
 import { useInboxPage } from '@/features/inbox/containers/InboxPage/useInboxPage';
 import { InboxConversation as InboxConversationView } from '@/features/inbox/view/InboxConversation';
 import { InboxDetails } from '@/features/inbox/view/InboxDetails';
@@ -7,7 +8,7 @@ import { IconName } from '@/shared/ui/foundations/Icon';
 import styles from '@/features/inbox/containers/InboxPage/InboxPage.module.scss';
 
 export function InboxPage() {
-  const { list, conversation, details, emptyTitle, emptyDescription } = useInboxPage();
+  const { list, conversation, details, closeDialog, emptyTitle, emptyDescription } = useInboxPage();
 
   return (
     <div className="flex h-full min-h-0">
@@ -22,6 +23,7 @@ export function InboxPage() {
           <InboxDetails {...details} />
         </>
       )}
+      {closeDialog === null ? null : <CloseChatDialog {...closeDialog} />}
     </div>
   );
 }

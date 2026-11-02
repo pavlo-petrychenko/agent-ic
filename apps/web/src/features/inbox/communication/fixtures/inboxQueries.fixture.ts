@@ -1,4 +1,5 @@
 import type { MockLink } from '@apollo/client/testing';
+import { InboxCloseConversationDocument } from '@/features/inbox/communication/gql/mutation/inboxCloseConversation.generated';
 import { InboxHandBackDocument } from '@/features/inbox/communication/gql/mutation/inboxHandBack.generated';
 import { InboxReplyAsOperatorDocument } from '@/features/inbox/communication/gql/mutation/inboxReplyAsOperator.generated';
 import { InboxTakeOverDocument } from '@/features/inbox/communication/gql/mutation/inboxTakeOver.generated';
@@ -197,6 +198,8 @@ const messagesById: Readonly<Record<string, readonly InboxMessageFixture[]>> = {
 
 const REPLY_TEXT = 'See you at 10';
 const REPLY_CREATED_AT = '2026-11-01T14:08:00.000Z';
+const CLOSING_TEXT = 'Thanks, bye';
+const CLOSED_AT = '2026-11-01T14:10:00.000Z';
 
 export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
   let summaries = inboxSummaries;
@@ -207,6 +210,23 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
     update: (summary: InboxSummaryFixture) => InboxSummaryFixture,
   ) => {
     summaries = summaries.map((summary) => (summary.id === id ? update(summary) : summary));
+  };
+
+  const closeResult = () => {
+    updateSummary('cnv_olena', (summary) => ({
+      ...summary,
+      state: ConversationState.Closed,
+      handledByMe: false,
+      closedAt: CLOSED_AT,
+    }));
+    return {
+      data: {
+        closeConversation: withTypename('Conversation', {
+          id: 'cnv_olena',
+          state: ConversationState.Closed,
+        }),
+      },
+    };
   };
 
   return [
@@ -269,6 +289,20 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
           },
         };
       },
+    },
+    {
+      request: {
+        query: InboxCloseConversationDocument,
+        variables: { input: { conversationId: 'cnv_olena', message: null } },
+      },
+      result: closeResult,
+    },
+    {
+      request: {
+        query: InboxCloseConversationDocument,
+        variables: { input: { conversationId: 'cnv_olena', message: CLOSING_TEXT } },
+      },
+      result: closeResult,
     },
     {
       request: {
