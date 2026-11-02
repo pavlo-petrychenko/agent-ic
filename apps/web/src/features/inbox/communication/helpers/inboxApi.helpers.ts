@@ -7,6 +7,7 @@ import {
 } from '@/features/inbox/constants/inbox.constants';
 import type {
   InboxConversation,
+  InboxCurrentUser,
   InboxStoredMessage,
 } from '@/features/inbox/typedefs/inbox.typedefs';
 import { toInitials } from '@/shared/i18n/helpers/initials.helpers';
@@ -110,15 +111,18 @@ const toStoredMessage = (
   conversation: InboxConversation,
   locale: string,
   operatorLabel: string,
+  currentUser: InboxCurrentUser | null,
 ): InboxStoredMessage | null => {
   if (message.author === 'system') {
     return null;
   }
+  const self =
+    message.author === 'operator' && currentUser !== null && message.authorId === currentUser.id;
   return {
     kind: MESSAGE_KIND[message.author],
     id: message.id,
-    author: authorOf(message, conversation, operatorLabel),
-    self: false,
+    author: self ? currentUser.name : authorOf(message, conversation, operatorLabel),
+    self,
     time: messageTime(message.createdAt, locale),
     text: message.text,
   };
@@ -129,10 +133,11 @@ export const withInboxDetail = (
   detail: ApiDetail,
   locale: string,
   operatorLabel: string,
+  currentUser: InboxCurrentUser | null,
 ): InboxConversation => ({
   ...conversation,
   messages: detail.messages.flatMap((message) => {
-    const stored = toStoredMessage(message, conversation, locale, operatorLabel);
+    const stored = toStoredMessage(message, conversation, locale, operatorLabel, currentUser);
     return stored === null ? [] : [stored];
   }),
 });

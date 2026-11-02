@@ -6,6 +6,7 @@ query InboxConversation($id: ID!) {
     messages {
       id
       author
+      authorId
       text
       quickReplies
       runId

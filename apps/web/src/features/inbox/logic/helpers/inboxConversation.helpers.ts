@@ -97,6 +97,7 @@ const INBOX_FOOTERS: Readonly<Record<InboxReplyState, InboxFooterResolver>> = {
   [InboxReplyState.Waiting]: (_conversation, context, t) => ({
     kind: InboxFooterKind.TakeOver,
     label: t('footer.takeOver'),
+    disabled: context.takeOverPending,
     onTakeOver: context.onTakeOver,
   }),
   [InboxReplyState.Operator]: (conversation, _context, t) => ({
@@ -179,12 +180,14 @@ export const inboxBanner = (
 export const inboxActions = (
   conversation: InboxConversation,
   t: InboxTranslate,
+  pendingAction: InboxActionId | null,
 ): readonly InboxConversationAction[] =>
   INBOX_ACTIONS[conversation.replyState].map((spec) => ({
     id: spec.id,
     label: spec.label(conversation, t),
     variant: spec.variant,
     icon: spec.icon,
+    disabled: pendingAction !== null,
   }));
 
 export const inboxFooter = (

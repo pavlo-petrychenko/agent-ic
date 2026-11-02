@@ -159,6 +159,18 @@ export interface InboxConversationAction {
   readonly label: string;
   readonly variant: ButtonVariant;
   readonly icon: IconName | null;
+  readonly disabled: boolean;
+}
+
+export interface InboxLoadError {
+  readonly title: string;
+  readonly retryLabel: string;
+  readonly onRetry: () => void;
+}
+
+export interface InboxCurrentUser {
+  readonly id: string;
+  readonly name: string;
 }
 
 export interface InboxConversationBanner {
@@ -186,6 +198,7 @@ export interface InboxNoteFooter {
 export interface InboxTakeOverFooter {
   readonly kind: InboxFooterKind.TakeOver;
   readonly label: string;
+  readonly disabled: boolean;
   readonly onTakeOver: () => void;
 }
 
@@ -276,5 +289,6 @@ export interface InboxFooterContext {
   readonly providerLabels: InboxProviderLabels;
   readonly composer: InboxComposerState;
   readonly currentUserName: string;
+  readonly takeOverPending: boolean;
   readonly onTakeOver: () => void;
 }

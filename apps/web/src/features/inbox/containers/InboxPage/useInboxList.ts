@@ -20,7 +20,7 @@ import type { InboxProviderLabels } from '@/features/inbox/typedefs/inbox.typede
 
 export function useInboxList(): InboxListResult {
   const { t, i18n } = useTranslation(INBOX_NAMESPACE);
-  const { summaries } = useInboxConversations();
+  const { summaries, loading, failed, retry } = useInboxConversations();
   const [activeTab, setActiveTab] = useState<InboxTab>(InboxTab.NeedsYou);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -86,6 +86,15 @@ export function useInboxList(): InboxListResult {
         inboxListItem(conversation, effectiveSelectedId, providerLabels, t),
       ),
       empty: inboxEmptyState(activeTab, t),
+      loading,
+      loadingLabel: t('loading'),
+      loadError: failed
+        ? {
+            title: t('loadError'),
+            retryLabel: t('retry'),
+            onRetry: () => void retry(),
+          }
+        : null,
       onSelect: setSelectedId,
     },
   };

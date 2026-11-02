@@ -11,7 +11,12 @@ export function ConversationFooter({ footer }: ConversationFooterProps) {
       return <p className={styles.note}>{footer.text}</p>;
     case InboxFooterKind.TakeOver:
       return (
-        <Button fullWidth icon={IconName.Hand} onClick={footer.onTakeOver}>
+        <Button
+          fullWidth
+          icon={IconName.Hand}
+          disabled={footer.disabled}
+          onClick={footer.onTakeOver}
+        >
           {footer.label}
         </Button>
       );

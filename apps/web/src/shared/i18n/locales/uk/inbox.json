@@ -17,6 +17,13 @@
   "minutesAgo": "{{count}} хв",
   "daysAgo": "{{count}} дн",
   "now": "зараз",
+  "loading": "Завантаження розмов",
+  "loadError": "Не вдалося завантажити розмови",
+  "retry": "Спробувати ще раз",
+  "thread": {
+    "loading": "Завантаження повідомлень",
+    "loadError": "Не вдалося завантажити повідомлення"
+  },
   "provider": {
     "telegram": "Telegram",
     "api": "API"

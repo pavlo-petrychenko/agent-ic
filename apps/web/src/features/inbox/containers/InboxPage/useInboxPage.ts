@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { INBOX_CURRENT_USER, InboxActionId } from '@/features/inbox/constants/inbox.constants';
+import { useInboxCurrentUser } from '@/features/inbox/communication/hooks/useInboxCurrentUser';
+import { InboxActionId } from '@/features/inbox/constants/inbox.constants';
 import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants';
 import type { InboxPageModel } from '@/features/inbox/containers/InboxPage/InboxPage.typedefs';
 import { useInboxActions } from '@/features/inbox/containers/InboxPage/useInboxActions';
@@ -11,8 +12,15 @@ import type { InboxFooterContext } from '@/features/inbox/typedefs/inbox.typedef
 
 export function useInboxPage(): InboxPageModel {
   const { t } = useTranslation(INBOX_NAMESPACE);
+  const currentUser = useInboxCurrentUser();
+  const currentUserName = currentUser?.name ?? '';
   const list = useInboxList();
-  const thread = useInboxThread(list.conversations, list.effectiveSelectedId, list.providerLabels);
+  const thread = useInboxThread(
+    list.conversations,
+    list.effectiveSelectedId,
+    list.providerLabels,
+    currentUser,
+  );
   const composer = useInboxComposer(thread.conversation?.id ?? null);
   const actions = useInboxActions({
     conversations: list.conversations,
@@ -24,13 +32,17 @@ export function useInboxPage(): InboxPageModel {
   const footerContext: InboxFooterContext = {
     providerLabels: list.providerLabels,
     composer,
-    currentUserName: INBOX_CURRENT_USER,
+    currentUserName,
+    takeOverPending: actions.pendingAction !== null,
     onTakeOver: () => actions.onAction(InboxActionId.TakeOver),
   };
   const conversation = useInboxConversationView(
     thread.conversation,
     list.providerLabels,
     footerContext,
+    thread.loading,
+    thread.loadError,
+    actions.pendingAction,
     actions.onAction,
   );
 

@@ -18,6 +18,7 @@ describe('InboxPage', () => {
     expect(await screen.findByRole('button', { name: 'Close chat' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Hand back to agent' })).toBeInTheDocument();
     expect(screen.getByLabelText('Write a message...')).toBeInTheDocument();
+    expect(screen.getByText('Reply as Demo Owner · sent to Telegram')).toBeInTheDocument();
   });
 
   it('shows the conversation facts for the selected conversation', async () => {
@@ -48,8 +49,9 @@ describe('InboxPage', () => {
     await userEvent.type(await screen.findByLabelText('Write a message...'), 'See you at 10');
     await userEvent.click(screen.getByRole('button', { name: 'Send message' }));
 
-    expect(await screen.findByText('See you at 10')).toBeInTheDocument();
     await waitFor(() => expect(screen.getByLabelText('Write a message...')).toHaveValue(''));
+    expect((await screen.findAllByText('See you at 10')).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Demo Owner \(you\)/)).toBeInTheDocument();
   });
 
   it('takes over a waiting conversation to reply', async () => {

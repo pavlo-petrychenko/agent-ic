@@ -8,6 +8,7 @@ import {
   InboxConversationsDocument,
   type InboxConversationsQuery,
 } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
+import { InboxCurrentUserDocument } from '@/features/inbox/communication/gql/query/inboxCurrentUser.generated';
 import { INBOX_CONVERSATIONS_FETCH_LIMIT } from '@/features/inbox/constants/inbox.constants';
 import {
   ChannelConversationKind,
@@ -124,6 +125,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
 type InboxMessageFixture = {
   readonly id: string;
   readonly author: MessageAuthor;
+  readonly authorId: string | null;
   readonly text: string;
   readonly quickReplies: readonly string[];
   readonly runId: string | null;
@@ -135,7 +137,16 @@ const message = (
   author: InboxMessageFixture['author'],
   text: string,
   createdAt: string,
-): InboxMessageFixture => ({ id, author, text, quickReplies: [], runId: null, createdAt });
+  authorId: string | null = null,
+): InboxMessageFixture => ({
+  id,
+  author,
+  authorId,
+  text,
+  quickReplies: [],
+  runId: null,
+  createdAt,
+});
 
 const messagesById: Readonly<Record<string, readonly InboxMessageFixture[]>> = {
   cnv_olena: [
@@ -231,12 +242,27 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
 
   return [
     {
+      request: { query: InboxCurrentUserDocument },
+      result: {
+        data: {
+          me: withTypename('User', { id: 'usr_demo', name: 'Demo Owner' }),
+        },
+      },
+      maxUsageCount: Number.POSITIVE_INFINITY,
+    },
+    {
       request: {
         query: InboxReplyAsOperatorDocument,
         variables: { input: { conversationId: 'cnv_olena', text: REPLY_TEXT } },
       },
       result: () => {
-        const reply = message('msg_reply', MessageAuthor.Operator, REPLY_TEXT, REPLY_CREATED_AT);
+        const reply = message(
+          'msg_reply',
+          MessageAuthor.Operator,
+          REPLY_TEXT,
+          REPLY_CREATED_AT,
+          'usr_demo',
+        );
         messages = { ...messages, cnv_olena: [...(messages.cnv_olena ?? []), reply] };
         updateSummary('cnv_olena', (summary) => ({
           ...summary,

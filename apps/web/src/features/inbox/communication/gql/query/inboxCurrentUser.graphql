@@ -1,0 +1,6 @@
+query InboxCurrentUser {
+  me {
+    id
+    name
+  }
+}

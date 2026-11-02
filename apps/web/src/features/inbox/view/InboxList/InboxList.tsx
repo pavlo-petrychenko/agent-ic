@@ -4,12 +4,15 @@ import type {
   InboxListProps,
   RowStatusProps,
 } from '@/features/inbox/view/InboxList/InboxList.typedefs';
+import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { FilterChip } from '@/shared/ui/actions/FilterChip';
 import { Avatar, AvatarSize } from '@/shared/ui/display/Avatar';
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
-import { EmptyState } from '@/shared/ui/display/EmptyState';
+import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { StatusDot, StatusKind } from '@/shared/ui/display/StatusDot';
+import { IconName } from '@/shared/ui/foundations/Icon';
 import { SearchInput } from '@/shared/ui/inputs/SearchInput';
+import { ConversationRowsSkeleton } from '@/shared/ui/runs/ConversationRow';
 import styles from '@/features/inbox/view/InboxList/InboxList.module.scss';
 
 function RowStatus({ status }: RowStatusProps) {
@@ -33,6 +36,9 @@ export function InboxList({
   agentFilterLabel,
   items,
   empty,
+  loading,
+  loadingLabel,
+  loadError,
   onSelect,
 }: InboxListProps) {
   return (
@@ -81,7 +87,22 @@ export function InboxList({
           onChange={(event) => onSearchChange(event.target.value)}
         />
       </div>
-      {items.length === 0 ? (
+      {items.length === 0 && loadError !== null ? (
+        <div className={styles.empty}>
+          <EmptyState
+            icon={IconName.Alert}
+            tone={EmptyStateTone.Err}
+            title={loadError.title}
+            actions={
+              <Button variant={ButtonVariant.Secondary} onClick={loadError.onRetry}>
+                {loadError.retryLabel}
+              </Button>
+            }
+          />
+        </div>
+      ) : items.length === 0 && loading ? (
+        <ConversationRowsSkeleton label={loadingLabel} />
+      ) : items.length === 0 ? (
         <div className={styles.empty}>
           <EmptyState
             icon={empty.icon}

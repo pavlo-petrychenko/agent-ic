@@ -17,6 +17,13 @@
   "minutesAgo": "{{count}} min",
   "daysAgo": "{{count}} d",
   "now": "now",
+  "loading": "Loading conversations",
+  "loadError": "Could not load conversations",
+  "retry": "Retry",
+  "thread": {
+    "loading": "Loading messages",
+    "loadError": "Could not load messages"
+  },
   "provider": {
     "telegram": "Telegram",
     "api": "API"

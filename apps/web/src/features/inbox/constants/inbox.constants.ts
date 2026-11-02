@@ -79,8 +79,6 @@ export const INBOX_CONVERSATIONS_FETCH_LIMIT = 100;
 
 export const INBOX_CLOSING_MESSAGE_MAX_LENGTH = SIMULATOR_MESSAGE_MAX_LENGTH;
 
-export const INBOX_CURRENT_USER = 'Pavlo';
-
 export const INBOX_CHAT_FROM: Readonly<
   Record<
     InboxMessageKind.Customer | InboxMessageKind.Agent | InboxMessageKind.Operator,
