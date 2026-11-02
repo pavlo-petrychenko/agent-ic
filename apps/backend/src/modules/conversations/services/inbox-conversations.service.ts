@@ -8,6 +8,7 @@ import { SimulationsService } from '@/modules/conversations/services/simulations
 import type { Conversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type { InboxDetail, InboxSummary } from '@/modules/conversations/typedefs/inbox.typedefs';
 import type { Message } from '@/modules/conversations/typedefs/message.typedefs';
+import { UsersRepository } from '@/modules/identity';
 import { IdService } from '@/platform/ids/services/id.service';
 
 interface InboxAgentInfo {
@@ -21,6 +22,7 @@ export class InboxConversationsService {
     private readonly conversations: ConversationsRepository,
     private readonly messages: MessagesRepository,
     private readonly agentRuntime: AgentRuntimeReader,
+    private readonly users: UsersRepository,
     private readonly simulations: SimulationsService,
     private readonly ids: IdService,
   ) {}
@@ -30,18 +32,19 @@ export class InboxConversationsService {
     if (rows.length === 0) {
       return [];
     }
-    const [previews, agents] = await Promise.all([
+    const [previews, agents, names] = await Promise.all([
       this.messages.latestByConversationIds(
         workspaceId,
         rows.map((row) => row.id),
       ),
       this.agentInfo(workspaceId, rows),
+      this.userNames(rows.map((row) => row.handledBy)),
     ]);
     const previewByConversation = new Map(
       previews.map((message) => [message.conversationId, message]),
     );
     return rows.map((row) =>
-      this.summaryOf(row, previewByConversation.get(row.id) ?? null, agents, userId),
+      this.summaryOf(row, previewByConversation.get(row.id) ?? null, agents, userId, names),
     );
   }
 
@@ -55,9 +58,18 @@ export class InboxConversationsService {
       this.messages.listByConversation(workspaceId, conversation.id),
       this.agentInfo(workspaceId, [conversation]),
     ]);
+    const names = await this.userNames([
+      conversation.handledBy,
+      ...messages.map((message) => message.authorUserId),
+    ]);
     return {
-      summary: this.summaryOf(conversation, messages.at(-1) ?? null, agents, userId),
-      messages: messages.map((message) => this.simulations.messageView(message)),
+      summary: this.summaryOf(conversation, messages.at(-1) ?? null, agents, userId, names),
+      messages: messages.map((message) =>
+        this.simulations.messageView(
+          message,
+          message.authorUserId === null ? null : (names.get(message.authorUserId) ?? null),
+        ),
+      ),
     };
   }
 
@@ -79,17 +91,26 @@ export class InboxConversationsService {
     return new Map(entries);
   }
 
+  private async userNames(ids: readonly (string | null)[]): Promise<ReadonlyMap<string, string>> {
+    const unique = [...new Set(ids.filter((id): id is string => id !== null))];
+    const users = await this.users.findNames(unique);
+    return new Map(users.map((user) => [user.id, user.name]));
+  }
+
   private summaryOf(
     conversation: Conversation,
     preview: Message | null,
     agents: ReadonlyMap<string, InboxAgentInfo>,
     userId: string,
+    names: ReadonlyMap<string, string>,
   ): InboxSummary {
     const agent = agents.get(conversation.agentId);
     return {
       id: this.ids.toPublic(IdPrefix.Conversation, conversation.id),
       state: conversation.state,
       handledByMe: conversation.handledBy === userId,
+      handledByName:
+        conversation.handledBy === null ? null : (names.get(conversation.handledBy) ?? null),
       channelKind: conversation.channelKind,
       agentId: this.ids.toPublic(IdPrefix.Agent, conversation.agentId),
       agentName: agent?.name ?? '',

@@ -33,11 +33,12 @@ import { SendSimulatorMessageUseCase } from '@/modules/conversations/use-cases/s
 import { StartSimulationUseCase } from '@/modules/conversations/use-cases/start-simulation.use-case';
 import { SubscribeToConversationActivityUseCase } from '@/modules/conversations/use-cases/subscribe-to-conversation-activity.use-case';
 import { TakeOverUseCase } from '@/modules/conversations/use-cases/take-over.use-case';
+import { IdentityModule } from '@/modules/identity';
 import { UsageModule } from '@/modules/usage';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class ConversationsModule extends defineModule({
-  imports: [AgentsModule, UsageModule],
+  imports: [AgentsModule, IdentityModule, UsageModule],
   providers: [
     ConversationsRepository,
     MessagesRepository,

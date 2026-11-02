@@ -15,6 +15,7 @@ type InboxConversationSummary {
   id: ID!
   state: ConversationState!
   handledByMe: Boolean!
+  handledByName: String
   channelKind: ChannelConversationKind!
   agentId: ID!
   agentName: String!
