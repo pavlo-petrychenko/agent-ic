@@ -1,0 +1,9 @@
+.empty {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 100%;
+  background: var(--color-bg);
+}
