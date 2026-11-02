@@ -1,4 +1,5 @@
 import {
+  InboxActionId,
   InboxDividerKind,
   InboxFooterKind,
   InboxMessageKind,
@@ -27,22 +28,40 @@ const CLOSE_ACTION_ID = 'close';
 const HAND_BACK_ACTION_ID = 'hand-back';
 const TAKE_OVER_ACTION_ID = 'take-over';
 
+interface InboxActionSpec {
+  readonly id: string;
+  readonly variant: ButtonVariant;
+  readonly icon: IconName | null;
+  readonly label: (conversation: InboxConversation, t: InboxTranslate) => string;
+}
+
+type InboxBannerResolver = (
+  conversation: InboxConversation,
+  t: InboxTranslate,
+) => InboxConversationBanner | null;
+
+type InboxFooterResolver = (
+  conversation: InboxConversation,
+  context: InboxFooterContext,
+  t: InboxTranslate,
+) => InboxConversationFooter;
+
 const action = (
-  id: string,
+  id: InboxActionId,
   variant: ButtonVariant,
   icon: IconName | null,
   label: InboxActionSpec['label'],
 ): InboxActionSpec => ({ id, variant, icon, label });
 
 const takeOver = (variant: ButtonVariant, label: InboxActionSpec['label']): InboxActionSpec =>
-  action(TAKE_OVER_ACTION_ID, variant, IconName.Hand, label);
+  action(InboxActionId.TakeOver, variant, IconName.Hand, label);
 
 const INBOX_ACTIONS: Readonly<Record<InboxReplyState, readonly InboxActionSpec[]>> = {
   [InboxReplyState.Mine]: [
-    action(CLOSE_ACTION_ID, ButtonVariant.Secondary, null, (_conversation, t) =>
+    action(InboxActionId.Close, ButtonVariant.Secondary, null, (_conversation, t) =>
       t('header.closeChat'),
     ),
-    action(HAND_BACK_ACTION_ID, ButtonVariant.Primary, IconName.Hand, (_conversation, t) =>
+    action(InboxActionId.HandBack, ButtonVariant.Primary, IconName.Hand, (_conversation, t) =>
       t('header.handBack'),
     ),
   ],
@@ -93,12 +112,14 @@ const INBOX_FOOTERS: Readonly<Record<InboxReplyState, InboxFooterResolver>> = {
     placeholder: t('footer.placeholder'),
     sendLabel: t('footer.send'),
     value: context.composer.value,
+    sending: context.composer.sending,
     onChange: context.composer.onChange,
     onSend: context.composer.onSend,
   }),
-  [InboxReplyState.Waiting]: (_conversation, _context, t) => ({
+  [InboxReplyState.Waiting]: (_conversation, context, t) => ({
     kind: InboxFooterKind.TakeOver,
     label: t('footer.takeOver'),
+    onTakeOver: context.onTakeOver,
   }),
   [InboxReplyState.Operator]: (conversation, _context, t) => ({
     kind: InboxFooterKind.Note,
@@ -169,12 +190,8 @@ const inboxMessage = (message: InboxStoredMessage, t: InboxTranslate): InboxMess
 
 export const inboxMessages = (
   conversation: InboxConversation,
-  sent: readonly InboxMessage[],
   t: InboxTranslate,
-): readonly InboxMessage[] => [
-  ...conversation.messages.map((message) => inboxMessage(message, t)),
-  ...sent,
-];
+): readonly InboxMessage[] => conversation.messages.map((message) => inboxMessage(message, t));
 
 export const inboxBanner = (
   conversation: InboxConversation,

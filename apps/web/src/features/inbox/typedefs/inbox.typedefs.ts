@@ -1,5 +1,6 @@
 import type { TFunction } from 'i18next';
 import type {
+  InboxActionId,
   InboxDividerKind,
   InboxFooterKind,
   InboxMessageKind,
@@ -166,7 +167,7 @@ export interface InboxListProps {
 }
 
 export interface InboxConversationAction {
-  readonly id: string;
+  readonly id: InboxActionId;
   readonly label: string;
   readonly variant: ButtonVariant;
   readonly icon: IconName | null;
@@ -184,6 +185,7 @@ export interface InboxComposerFooter {
   readonly placeholder: string;
   readonly sendLabel: string;
   readonly value: string;
+  readonly sending: boolean;
   readonly onChange: (value: string) => void;
   readonly onSend: () => void;
 }
@@ -196,12 +198,13 @@ export interface InboxNoteFooter {
 export interface InboxTakeOverFooter {
   readonly kind: InboxFooterKind.TakeOver;
   readonly label: string;
+  readonly onTakeOver: () => void;
 }
 
 export type InboxConversationFooter = InboxComposerFooter | InboxNoteFooter | InboxTakeOverFooter;
 
 export interface InboxActionSpec {
-  readonly id: string;
+  readonly id: InboxActionId;
   readonly variant: ButtonVariant;
   readonly icon: IconName | null;
   readonly label: (conversation: InboxConversation, t: InboxTranslate) => string;
@@ -226,6 +229,7 @@ export interface InboxConversationProps {
   readonly banner: InboxConversationBanner | null;
   readonly messages: readonly InboxMessage[];
   readonly footer: InboxConversationFooter;
+  readonly onAction: (id: InboxActionId) => void;
 }
 
 export interface InboxGuardView {
@@ -275,6 +279,7 @@ export type InboxProviderLabels = Readonly<Record<InboxProvider, string>>;
 
 export interface InboxComposerState {
   readonly value: string;
+  readonly sending: boolean;
   readonly onChange: (value: string) => void;
   readonly onSend: () => void;
 }
@@ -283,6 +288,7 @@ export interface InboxFooterContext {
   readonly providerLabels: InboxProviderLabels;
   readonly composer: InboxComposerState;
   readonly currentUserName: string;
+  readonly onTakeOver: () => void;
 }
 
 export interface InboxPageModel {

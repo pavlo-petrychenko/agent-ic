@@ -14,6 +14,7 @@ export function InboxConversation({
   banner,
   messages,
   footer,
+  onAction,
 }: InboxConversationProps) {
   return (
     <section className={styles.root} aria-label={name}>
@@ -26,7 +27,12 @@ export function InboxConversation({
         {actions.length === 0 ? null : (
           <div className={styles.actions}>
             {actions.map((action) => (
-              <Button key={action.id} variant={action.variant} icon={action.icon}>
+              <Button
+                key={action.id}
+                variant={action.variant}
+                icon={action.icon}
+                onClick={() => onAction(action.id)}
+              >
                 {action.label}
               </Button>
             ))}

@@ -1,0 +1,6 @@
+mutation InboxHandBack($input: HandBackInput!) {
+  handBack(input: $input) {
+    id
+    state
+  }
+}
