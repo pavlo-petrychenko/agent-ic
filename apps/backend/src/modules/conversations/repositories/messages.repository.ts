@@ -91,6 +91,25 @@ export class MessagesRepository {
     return this.listWhere(workspaceId, conversationId, undefined);
   }
 
+  async latestByConversationIds(
+    workspaceId: string,
+    conversationIds: readonly string[],
+  ): Promise<Message[]> {
+    if (conversationIds.length === 0) {
+      return [];
+    }
+    return this.txHost.tx
+      .selectDistinctOn([messages.conversationId])
+      .from(messages)
+      .where(
+        and(
+          eq(messages.workspaceId, workspaceId),
+          inArray(messages.conversationId, [...conversationIds]),
+        ),
+      )
+      .orderBy(messages.conversationId, desc(messages.createdAt), desc(messages.id));
+  }
+
   listByRun(workspaceId: string, runId: string): Promise<Message[]> {
     return this.txHost.tx
       .select()

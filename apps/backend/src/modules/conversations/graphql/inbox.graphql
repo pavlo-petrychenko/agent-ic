@@ -1,0 +1,34 @@
+extend type Query {
+  inboxConversations(input: InboxConversationsInput!): [InboxConversationSummary!]!
+  inboxConversation(input: InboxConversationInput!): InboxConversationDetail!
+}
+
+input InboxConversationsInput {
+  limit: Int
+}
+
+input InboxConversationInput {
+  id: ID!
+}
+
+type InboxConversationSummary {
+  id: ID!
+  state: ConversationState!
+  handledByMe: Boolean!
+  channelKind: ChannelConversationKind!
+  agentId: ID!
+  agentName: String!
+  agentVersion: Int!
+  endUserName: String
+  endUserExternalId: String!
+  preview: String!
+  createdAt: String!
+  lastMessageAt: String!
+  lastEscalatedAt: String
+  closedAt: String
+}
+
+type InboxConversationDetail {
+  summary: InboxConversationSummary!
+  messages: [Message!]!
+}
