@@ -141,7 +141,7 @@ export class ConversationRunsService {
     await this.conversations.touch(input.workspaceId, input.conversationId, created.createdAt);
     await this.activity.messageAdded(created);
     if (conversation.mode === ConversationMode.Live) {
-      await this.inboxActivity.conversationUpdated(input.workspaceId, conversation.id);
+      await this.inboxActivity.conversationChanged(input.workspaceId, conversation.id);
     }
     if (!options.capture) {
       await this.domainEvents.emit(
@@ -173,7 +173,7 @@ export class ConversationRunsService {
     if (conversation.mode === ConversationMode.Simulation) {
       return true;
     }
-    await this.inboxActivity.conversationUpdated(conversation.workspaceId, conversation.id);
+    await this.inboxActivity.conversationChanged(conversation.workspaceId, conversation.id);
     await this.domainEvents.emit(
       ctx,
       needsOperatorEvent,
@@ -197,7 +197,7 @@ export class ConversationRunsService {
     if (await this.conversations.close(workspaceId, conversationId, this.clock.now(), reason)) {
       await this.activity.conversationClosed(conversationId);
       if (conversation.mode === ConversationMode.Live) {
-        await this.inboxActivity.conversationClosed(workspaceId, conversation.id);
+        await this.inboxActivity.conversationChanged(workspaceId, conversation.id);
       }
     }
   }

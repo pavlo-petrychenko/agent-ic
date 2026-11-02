@@ -47,7 +47,7 @@ export class CloseInactiveConversationsUseCase {
         );
         for (const id of ids) {
           await this.activity.conversationClosed(id);
-          await this.inboxActivity.conversationClosed(workspaceId, id);
+          await this.inboxActivity.conversationChanged(workspaceId, id);
         }
         return ids.length;
       });

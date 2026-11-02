@@ -35,7 +35,7 @@ export class TakeOverUseCase {
         access.userId,
       );
       if (takenOver !== null && conversation.mode === ConversationMode.Live) {
-        await this.inboxActivity.conversationUpdated(access.workspaceId, conversation.id);
+        await this.inboxActivity.conversationChanged(access.workspaceId, conversation.id);
       }
       return this.views.conversationView(takenOver ?? conversation);
     });

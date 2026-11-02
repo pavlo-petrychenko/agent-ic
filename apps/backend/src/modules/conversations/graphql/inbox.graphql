@@ -9,9 +9,7 @@ extend type Subscription {
 }
 
 enum InboxActivityKind {
-  conversation_created
-  conversation_updated
-  conversation_closed
+  conversation_changed
 }
 
 type InboxActivityEvent {

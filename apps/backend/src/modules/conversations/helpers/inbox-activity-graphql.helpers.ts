@@ -4,9 +4,7 @@ import type { InboxActivityEvent } from '@/platform/graphql-server/generated/sch
 import { InboxActivityKind as GraphqlInboxActivityKind } from '@/platform/graphql-server/generated/schema.generated';
 
 const GRAPHQL_INBOX_ACTIVITY_KIND: Readonly<Record<InboxActivityKind, GraphqlInboxActivityKind>> = {
-  [InboxActivityKind.ConversationCreated]: GraphqlInboxActivityKind.ConversationCreated,
-  [InboxActivityKind.ConversationUpdated]: GraphqlInboxActivityKind.ConversationUpdated,
-  [InboxActivityKind.ConversationClosed]: GraphqlInboxActivityKind.ConversationClosed,
+  [InboxActivityKind.ConversationChanged]: GraphqlInboxActivityKind.ConversationChanged,
 };
 
 export const toGraphqlInboxActivity = (activity: InboxActivity): InboxActivityEvent => ({

@@ -9,26 +9,10 @@ import { LiveUpdatesService } from '@/platform/live-updates/services/live-update
 export class InboxActivityService {
   constructor(private readonly liveUpdates: LiveUpdatesService) {}
 
-  conversationCreated(workspaceId: string, conversationId: string): Promise<void> {
-    return this.publish(workspaceId, conversationId, InboxActivityKind.ConversationCreated);
-  }
-
-  conversationUpdated(workspaceId: string, conversationId: string): Promise<void> {
-    return this.publish(workspaceId, conversationId, InboxActivityKind.ConversationUpdated);
-  }
-
-  conversationClosed(workspaceId: string, conversationId: string): Promise<void> {
-    return this.publish(workspaceId, conversationId, InboxActivityKind.ConversationClosed);
-  }
-
-  private publish(
-    workspaceId: string,
-    conversationId: string,
-    kind: InboxActivityKind,
-  ): Promise<void> {
+  conversationChanged(workspaceId: string, conversationId: string): Promise<void> {
     return this.liveUpdates.publish(channelFor(inboxActivityChannel, workspaceId), {
       conversationId,
-      kind,
+      kind: InboxActivityKind.ConversationChanged,
     } satisfies InboxActivity);
   }
 }

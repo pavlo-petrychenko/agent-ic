@@ -75,8 +75,8 @@ export class IncomingMessagesService {
     input: IncomingMessageInput,
   ): Promise<IncomingMessageResult> {
     const pause = await this.agents.getPauseSettings(input.workspaceId, input.agentId);
-    const existing = await this.conversations.findOpenForUpdate(input);
-    const conversation = existing ?? (await this.open(input));
+    const conversation =
+      (await this.conversations.findOpenForUpdate(input)) ?? (await this.open(input));
     const message = await this.messages.insertIfAbsent({
       id: this.ids.generate(),
       workspaceId: input.workspaceId,
@@ -109,9 +109,7 @@ export class IncomingMessagesService {
       input.runId ?? null,
     );
     if (conversation.mode === ConversationMode.Live) {
-      await (existing === null
-        ? this.inboxActivity.conversationCreated(input.workspaceId, conversation.id)
-        : this.inboxActivity.conversationUpdated(input.workspaceId, conversation.id));
+      await this.inboxActivity.conversationChanged(input.workspaceId, conversation.id);
     }
     return { outcome, conversationId: conversation.id, messageId: message.id };
   }

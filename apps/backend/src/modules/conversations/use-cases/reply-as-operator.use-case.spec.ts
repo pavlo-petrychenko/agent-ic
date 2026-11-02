@@ -67,7 +67,7 @@ describe('ReplyAsOperatorUseCase', () => {
     expect(message.author).toBe(MessageAuthor.Operator);
     expect(received.value).toEqual({
       conversationId: live.id,
-      kind: InboxActivityKind.ConversationUpdated,
+      kind: InboxActivityKind.ConversationChanged,
     });
     await expect(reply(as(WorkspaceRole.Builder), live.id)).rejects.toBeInstanceOf(
       PermissionDeniedError,
