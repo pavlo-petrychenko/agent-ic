@@ -1,0 +1,6 @@
+mutation InboxTakeOver($input: TakeOverInput!) {
+  takeOver(input: $input) {
+    id
+    state
+  }
+}

@@ -260,8 +260,8 @@ export class ConversationsRepository {
     return updated.length > 0;
   }
 
-  async takeOver(workspaceId: string, id: string, userId: string): Promise<void> {
-    await this.txHost.tx
+  async takeOver(workspaceId: string, id: string, userId: string): Promise<Conversation | null> {
+    const [conversation] = await this.txHost.tx
       .update(conversations)
       .set({ state: ConversationState.Handled, handledBy: userId })
       .where(
@@ -270,7 +270,9 @@ export class ConversationsRepository {
           eq(conversations.id, id),
           ne(conversations.state, ConversationState.Closed),
         ),
-      );
+      )
+      .returning();
+    return conversation ?? null;
   }
 
   async handBack(workspaceId: string, id: string): Promise<Conversation | null> {
