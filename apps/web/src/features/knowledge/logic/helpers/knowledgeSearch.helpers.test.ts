@@ -3,6 +3,7 @@ import { KnowledgeSourceKind } from '@/features/knowledge/constants/knowledgeSou
 import {
   isKnowledgeSearchTextLong,
   knowledgeSearchLocation,
+  knowledgeSearchPreviewText,
   knowledgeSearchScoreLabel,
   knowledgeSearchScorePercent,
   toPlaygroundResults,
@@ -34,6 +35,14 @@ describe('knowledge search helpers', () => {
     expect(knowledgeSearchScorePercent(0.02, 0)).toBe(0);
   });
 
+  it('cleans Markdown artifacts for the playground preview', () => {
+    expect(
+      knowledgeSearchPreviewText(
+        '* **Classic Pedicure** — \\$45\n*\n\n* *Foot soak, nail shaping.*\n*',
+      ),
+    ).toBe('• Classic Pedicure — $45\n\n• Foot soak, nail shaping.');
+  });
+
   it('detects long section text for the expand control', () => {
     expect(isKnowledgeSearchTextLong('short')).toBe(false);
     expect(isKnowledgeSearchTextLong('a'.repeat(300))).toBe(true);
@@ -53,7 +62,6 @@ describe('knowledge search helpers', () => {
 
     expect(views[0]).toEqual({
       key: 'kdc_document-Refunds-0',
-      sourceKind: KnowledgeSourceKind.Upload,
       sourceTitle: 'Policies',
       scoreLabel: '1.00',
       scorePercent: 100,

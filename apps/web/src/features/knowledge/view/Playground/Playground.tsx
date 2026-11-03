@@ -2,30 +2,23 @@ import clsx from 'clsx';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
-import {
-  KNOWLEDGE_SEARCH_KIND_LABEL_KEY,
-  KNOWLEDGE_SEARCH_QUERY_MAX_LENGTH,
-  KNOWLEDGE_SEARCH_TOP_K_OPTIONS,
-} from '@/features/knowledge/constants/knowledgeSearch.constants';
+import { KNOWLEDGE_SEARCH_QUERY_MAX_LENGTH } from '@/features/knowledge/constants/knowledgeSearch.constants';
 import type { PlaygroundProps } from '@/features/knowledge/view/Playground/Playground.typedefs';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { Card, CardGap, CardPad } from '@/shared/ui/display/Card';
 import { SearchInput } from '@/shared/ui/inputs/SearchInput';
-import { Select, SelectSize } from '@/shared/ui/inputs/Select';
 import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/knowledge/view/Playground/Playground.module.scss';
 
 export function Playground({
   query,
-  topK,
   canSearch,
   loading,
   searched,
   results,
   errorMessage,
   onQueryChange,
-  onTopKChange,
   onSearch,
   onRetry,
   onClear,
@@ -40,23 +33,9 @@ export function Playground({
       gap={CardGap.Sm}
       className={styles.panel}
     >
-      <div className={styles.header}>
-        <Text kind={TextKind.BodySmall} as={TextElement.Span} className={styles.title}>
-          {t('playground.title')}
-        </Text>
-        <div className={styles.topKControl}>
-          <Select
-            size={SelectSize.Sm}
-            aria-label={t('playground.topKLabel')}
-            value={String(topK)}
-            options={KNOWLEDGE_SEARCH_TOP_K_OPTIONS.map((count) => ({
-              value: String(count),
-              label: t('playground.topKOption', { count }),
-            }))}
-            onChange={(event) => onTopKChange(Number(event.target.value))}
-          />
-        </div>
-      </div>
+      <Text kind={TextKind.BodySmall} as={TextElement.Span} className={styles.title}>
+        {t('playground.title')}
+      </Text>
       <form
         className={styles.form}
         onSubmit={(event) => {
@@ -98,13 +77,7 @@ export function Playground({
           {results.map((result) => (
             <li key={result.key} className={styles.result}>
               <div className={styles.resultHeader}>
-                <span className={styles.source}>
-                  {result.sourceTitle}
-                  <span className={styles.kind}>
-                    {' · '}
-                    {t(KNOWLEDGE_SEARCH_KIND_LABEL_KEY[result.sourceKind])}
-                  </span>
-                </span>
+                <span className={styles.source}>{result.sourceTitle}</span>
                 <span className={styles.score} title={t('playground.scoreTitle')}>
                   {result.scoreLabel}
                 </span>

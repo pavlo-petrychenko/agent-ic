@@ -14,7 +14,6 @@ export interface KnowledgeSearchResult {
 
 export interface PlaygroundResultView {
   readonly key: string;
-  readonly sourceKind: KnowledgeSourceKind;
   readonly sourceTitle: string;
   readonly scoreLabel: string;
   readonly scorePercent: number;

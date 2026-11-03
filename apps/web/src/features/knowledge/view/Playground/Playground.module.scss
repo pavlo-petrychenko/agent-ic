@@ -2,20 +2,8 @@
   align-self: start;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-8);
-}
-
 .title {
   font: var(--type-body-small-strong);
-}
-
-.topKControl {
-  flex: 0 0 auto;
-  width: max-content;
 }
 
 .form {
@@ -60,11 +48,6 @@
   font: var(--type-body-small-strong);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.kind {
-  color: var(--color-mute);
-  font: var(--type-caption);
 }
 
 .score {

@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
 import { describe, expect, it, vi } from 'vitest';
-import { KnowledgeSourceKind } from '@/features/knowledge/constants/knowledgeSource.constants';
 import type { PlaygroundResultView } from '@/features/knowledge/typedefs/knowledgeSearch.typedefs';
 import { Playground } from '@/features/knowledge/view/Playground/Playground';
 import type { PlaygroundProps } from '@/features/knowledge/view/Playground/Playground.typedefs';
@@ -11,7 +10,6 @@ import { createI18n } from '@/shared/i18n/clients/i18n.client';
 
 const RESULT: PlaygroundResultView = {
   key: 'kdc_document-Refunds-0',
-  sourceKind: KnowledgeSourceKind.GoogleDocs,
   sourceTitle: 'Policies',
   scoreLabel: '1.00',
   scorePercent: 100,
@@ -22,14 +20,12 @@ const RESULT: PlaygroundResultView = {
 
 const props = (overrides: Partial<PlaygroundProps> = {}): PlaygroundProps => ({
   query: 'refund',
-  topK: 3,
   canSearch: true,
   loading: false,
   searched: false,
   results: [],
   errorMessage: null,
   onQueryChange: vi.fn<(query: string) => void>(),
-  onTopKChange: vi.fn<(topK: number) => void>(),
   onSearch: vi.fn<() => void>(),
   onRetry: vi.fn<() => void>(),
   onClear: vi.fn<() => void>(),
@@ -49,7 +45,6 @@ describe('Playground', () => {
 
     expect(screen.getByText('Retrieval playground')).toBeInTheDocument();
     expect(screen.getByText('Policies')).toBeInTheDocument();
-    expect(screen.getByText(/Google Docs/)).toBeInTheDocument();
     expect(screen.getByText('1.00')).toBeInTheDocument();
     expect(screen.getByText('Refund policy · Refunds')).toBeInTheDocument();
     expect(screen.getByText(RESULT.text)).toBeInTheDocument();
@@ -72,16 +67,13 @@ describe('Playground', () => {
     ).toBeInTheDocument();
   });
 
-  it('hands the query to the caller and lets the user pick top-k', async () => {
+  it('hands the query to the caller', async () => {
     const onSearch = vi.fn<() => void>();
-    const onTopKChange = vi.fn<(topK: number) => void>();
-    renderPlayground({ onSearch, onTopKChange });
+    renderPlayground({ onSearch });
 
     await userEvent.click(screen.getByRole('button', { name: 'Search' }));
-    await userEvent.selectOptions(screen.getByRole('combobox'), '5');
 
     expect(onSearch).toHaveBeenCalledTimes(1);
-    expect(onTopKChange).toHaveBeenCalledWith(5);
   });
 
   it('shows a failed search with a retry action', async () => {

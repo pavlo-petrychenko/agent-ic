@@ -7,27 +7,21 @@ import { Playground } from '@/features/knowledge/view/Playground';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 
-interface SearchRequest {
-  readonly query: string;
-  readonly topK: number;
-}
-
 export function KnowledgePlayground({ knowledgeBaseId }: KnowledgePlaygroundProps) {
   const { results, loading, failed, error, searched, search } = useKnowledgeSearch(knowledgeBaseId);
   const [query, setQuery] = useState('');
-  const [topK, setTopK] = useState(KNOWLEDGE_SEARCH_DEFAULT_TOP_K);
-  const [lastSearch, setLastSearch] = useState<SearchRequest | null>(null);
+  const [lastSearch, setLastSearch] = useState<string | null>(null);
   const errorMessage = useErrorMessage();
   const viewResults = useMemo(() => toPlaygroundResults(results), [results]);
 
   const runSearch = useCallback(
-    (value: string, count: number) => {
+    (value: string) => {
       const trimmed = value.trim();
       if (trimmed.length === 0) {
         return;
       }
-      setLastSearch({ query: trimmed, topK: count });
-      void search(trimmed, count);
+      setLastSearch(trimmed);
+      void search(trimmed, KNOWLEDGE_SEARCH_DEFAULT_TOP_K);
     },
     [search],
   );
@@ -35,18 +29,16 @@ export function KnowledgePlayground({ knowledgeBaseId }: KnowledgePlaygroundProp
   return (
     <Playground
       query={query}
-      topK={topK}
       canSearch={query.trim().length > 0 && !loading}
       loading={loading}
       searched={searched}
       results={viewResults}
       errorMessage={failed && error !== null ? errorMessage(toAppError(error)) : null}
       onQueryChange={setQuery}
-      onTopKChange={setTopK}
-      onSearch={() => runSearch(query, topK)}
+      onSearch={() => runSearch(query)}
       onRetry={() => {
         if (lastSearch !== null) {
-          runSearch(lastSearch.query, lastSearch.topK);
+          runSearch(lastSearch);
         }
       }}
       onClear={() => setQuery('')}
