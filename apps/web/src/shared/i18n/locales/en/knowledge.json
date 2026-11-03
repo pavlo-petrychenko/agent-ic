@@ -129,7 +129,9 @@
       "added": "Added {{date}}",
       "lastSynced": "Synced {{date}}",
       "failed": "Failed {{date}}",
-      "started": "Checking “{{name}}” for changes…"
+      "started": "Checking “{{name}}” for changes…",
+      "finished": "Sync finished for “{{name}}”.",
+      "resultFailed": "Sync failed for “{{name}}”: {{reason}}"
     },
     "status": {
       "queued": "Queued",
@@ -192,7 +194,9 @@
       "success": "Source “{{name}}” deleted."
     },
     "retry": {
-      "success": "Retrying “{{name}}”…"
+      "success": "Retrying “{{name}}”…",
+      "finished": "Retry finished for “{{name}}”.",
+      "resultFailed": "Retry failed for “{{name}}”: {{reason}}"
     }
   },
   "delete": {

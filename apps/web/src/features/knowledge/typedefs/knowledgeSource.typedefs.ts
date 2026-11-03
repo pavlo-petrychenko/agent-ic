@@ -44,6 +44,14 @@ export interface KnowledgeSourceTarget {
   readonly title: string;
 }
 
+export type KnowledgeSourceAction = 'sync' | 'retry';
+
+export interface KnowledgeSourceActionResult {
+  readonly action: KnowledgeSourceAction;
+  readonly source: KnowledgeSource;
+  readonly succeeded: boolean;
+}
+
 export interface KnowledgeSourceDocument {
   readonly id: string;
   readonly title: string;
