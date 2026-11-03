@@ -4,6 +4,8 @@ import {
   KNOWLEDGE_EMBEDDING_MISSING_MESSAGE,
   KNOWLEDGE_EMBEDDING_TRACE_NAME,
 } from '@/modules/knowledge/constants/knowledge-embedding.constants';
+import { KNOWLEDGE_SEARCH_TRACE_NAME } from '@/modules/knowledge/constants/knowledge-search.constants';
+import { knowledgeEmbeddingModel } from '@/modules/knowledge/helpers/knowledge-embedding.helpers';
 import { EmbeddingCacheRepository } from '@/modules/knowledge/repositories/embedding-cache.repository';
 import type { IndexedDocumentChunk } from '@/modules/knowledge/typedefs/chunk-index.typedefs';
 import type {
@@ -11,6 +13,7 @@ import type {
   KnowledgeEmbeddingInput,
   KnowledgeEmbeddingResult,
 } from '@/modules/knowledge/typedefs/knowledge-embedding.typedefs';
+import type { KnowledgeEmbeddingQueryInput } from '@/modules/knowledge/typedefs/knowledge-search.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { EmbeddingDimensionMismatchError } from '@/platform/llm/errors/embedding-dimension-mismatch.error';
 import { EmbeddingGateway } from '@/platform/llm/gateways/embedding.gateway';
@@ -22,6 +25,27 @@ export class KnowledgeEmbeddingService {
     private readonly cache: EmbeddingCacheRepository,
     private readonly tenants: TenantTransactionService,
   ) {}
+
+  async embedQuery(input: KnowledgeEmbeddingQueryInput): Promise<readonly number[]> {
+    const result = await this.gateway.embed([input.query], {
+      model: knowledgeEmbeddingModel(input.model),
+      tags: {
+        traceName: KNOWLEDGE_SEARCH_TRACE_NAME,
+        workspaceId: input.workspaceId,
+      },
+    });
+    if (result.vectors.length !== 1) {
+      throw new Error(KNOWLEDGE_EMBEDDING_COUNT_MISMATCH_MESSAGE);
+    }
+    if (result.dimensions !== input.dimensions) {
+      throw new EmbeddingDimensionMismatchError(result.model, input.dimensions, result.dimensions);
+    }
+    const embedding = result.vectors[0];
+    if (embedding === undefined) {
+      throw new Error(KNOWLEDGE_EMBEDDING_MISSING_MESSAGE);
+    }
+    return embedding;
+  }
 
   async embed(input: KnowledgeEmbeddingInput): Promise<KnowledgeEmbeddingResult> {
     if (input.chunks.length === 0) {

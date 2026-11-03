@@ -3,6 +3,25 @@ extend type Query {
   knowledgeSources(knowledgeBaseId: ID!): [KnowledgeSource!]!
   knowledgeSource(id: ID!): KnowledgeSourceDetail!
   knowledgeConnections: [GoogleConnection!]!
+  searchKnowledge(input: SearchKnowledgeInput!): [KnowledgeSearchResult!]!
+}
+
+input SearchKnowledgeInput {
+  knowledgeBaseId: ID!
+  query: String!
+  topK: Int
+}
+
+type KnowledgeSearchResult {
+  documentId: ID!
+  documentTitle: String!
+  sourceId: ID!
+  sourceTitle: String!
+  sourceKind: KnowledgeSourceKind!
+  path: String!
+  text: String!
+  score: Float!
+  url: String
 }
 
 extend type Mutation {

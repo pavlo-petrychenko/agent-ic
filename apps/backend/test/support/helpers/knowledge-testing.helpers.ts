@@ -17,6 +17,7 @@ import { TenantTransactionService } from '@/platform/database/services/tenant-tr
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { QueuesModule } from '@/platform/queues/queues.module';
+import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
 import { SecretsModule } from '@/platform/secrets/secrets.module';
 import { FakeFileStorage } from '@/platform/storage/gateways/file-storage.fake';
@@ -56,6 +57,7 @@ export const createKnowledgeTestbed = async (
       CryptoModule,
       SecretsModule,
       QueuesModule.forRole(Role.Api),
+      RateLimitModule,
     ],
     [{ token: ClockService, value: clock }, { token: FileStorage, value: storage }, ...overrides],
   );

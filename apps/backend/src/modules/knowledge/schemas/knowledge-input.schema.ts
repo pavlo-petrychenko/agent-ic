@@ -8,6 +8,12 @@ import {
 import { z } from 'zod';
 import { KnowledgeField } from '@/modules/knowledge/constants/knowledge-input.constants';
 import {
+  KNOWLEDGE_SEARCH_DEFAULT_TOP_K,
+  KNOWLEDGE_SEARCH_MAX_TOP_K,
+  KNOWLEDGE_SEARCH_MIN_TOP_K,
+  KNOWLEDGE_SEARCH_QUERY_MAX_LENGTH,
+} from '@/modules/knowledge/constants/knowledge-search.constants';
+import {
   KNOWLEDGE_UPLOAD_FILE_NAME_MAX_LENGTH,
   KNOWLEDGE_UPLOAD_MIME_TYPE_MAX_LENGTH,
 } from '@/modules/knowledge/constants/knowledge-upload.constants';
@@ -89,4 +95,20 @@ export const confirmUploadInputSchema = z.object({
 
 export const listKnowledgeSourcesInputSchema = z.object({
   [KnowledgeField.KnowledgeBaseId]: recordIdSchema,
+});
+
+export const searchKnowledgeInputSchema = z.object({
+  [KnowledgeField.KnowledgeBaseId]: recordIdSchema,
+  [KnowledgeField.Query]: z
+    .string()
+    .trim()
+    .min(1)
+    .transform((value) => value.slice(0, KNOWLEDGE_SEARCH_QUERY_MAX_LENGTH)),
+  [KnowledgeField.TopK]: z
+    .number()
+    .int()
+    .min(KNOWLEDGE_SEARCH_MIN_TOP_K)
+    .max(KNOWLEDGE_SEARCH_MAX_TOP_K)
+    .nullish()
+    .transform((value) => value ?? KNOWLEDGE_SEARCH_DEFAULT_TOP_K),
 });

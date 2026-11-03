@@ -23,6 +23,8 @@ export enum KnowledgeField {
   Summary = 'summary',
   State = 'state',
   Code = 'code',
+  Query = 'query',
+  TopK = 'topK',
   Url = 'url',
   ResourceKey = 'resourceKey',
   SyncInterval = 'syncInterval',
@@ -51,6 +53,8 @@ export const KNOWLEDGE_FIELD_REASON: Readonly<Record<string, ErrorReason>> = {
   [KnowledgeField.SyncWeekday]: ErrorReason.InvalidRequest,
   [KnowledgeField.State]: ErrorReason.InvalidRequest,
   [KnowledgeField.Code]: ErrorReason.InvalidRequest,
+  [KnowledgeField.Query]: ErrorReason.InvalidRequest,
+  [KnowledgeField.TopK]: ErrorReason.InvalidRequest,
   [KnowledgeField.Url]: ErrorReason.InvalidRequest,
   [KnowledgeField.ResourceKey]: ErrorReason.InvalidRequest,
 };

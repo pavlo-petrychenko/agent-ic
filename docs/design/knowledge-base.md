@@ -282,6 +282,7 @@ Sections come from ATX headings (`#` to `######`) in the Markdown AST. Each sect
 - level 1–6;
 - path as a breadcrumb (`Pricing › Gift cards`);
 - heading text;
+- content: the section body Markdown, stored for retrieval expansion (rows indexed before this column existed have `null`, and retrieval falls back to their chunks);
 - token count of the section body;
 - content hash of the section body.
 
@@ -507,7 +508,8 @@ The query is a repository method with raw SQL; it is the only place where BM25 l
 - Results are grouped by section. If a matched section is at most 1,500 tokens, the whole section is returned as one block; otherwise the matching chunk plus its immediate neighbours are returned.
 - A document under 800 tokens may be returned whole.
 - At most 6 results, capped at 4,000 tokens total. Results are deduplicated by document and section.
-- Each result carries: document public id, document title, source public id, source title, section path, text, RRF score and the Google/web URL when one exists.
+- Each result carries: document public id, document title, source public id, source title, source kind, section path, text, RRF score and the Google/web URL when one exists.
+- Result text is truncated to 12,000 characters as a safety net for legacy sections whose stored content is missing; the token cap still decides which results are returned.
 
 Scores are relative relevance, not a percentage; the playground shows a bar and the raw score, not “87% match”.
 
@@ -549,11 +551,11 @@ Reasons: predictable cost, focused answers, no accidental leakage of unrelated d
 
 The retrieval playground is a screen on the KB page:
 
-- input: query, optional top-k;
-- output: the same results the agent tool would receive, with document, source, section, score and text;
+- input: query (capped at 1,000 characters), optional top-k (1–6, default 3; the panel offers 3, 5 and 6);
+- output: the same results the agent tool would receive, with document, source, source kind, section, score and text;
 - no answer generation, no LLM: it shows retrieval, not chat;
 - useful for tuning chunking and for answering “why didn't it find this?”;
-- rate-limited per workspace to protect the embedding budget.
+- rate-limited to 30 searches per minute per workspace to protect the embedding budget.
 
 ---
 
@@ -1363,7 +1365,8 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 - `KnowledgeBase`: id, name, description, toolName, toolDescription, documentCount, chunkCount, status, createdAt, updatedAt.
 - `KnowledgeSource`: id, kind, title, status, syncInterval, syncTime, syncWeekday, timezone, nextSyncAt, lastSyncAt, lastError, documentCount, chunkCount, documents (Relay connection).
 - `KnowledgeDocument`: id, title, mimeType, sourceUrl, status, sizeBytes, tokenCount, chunkCount, summary, summarySource, summaryUpdatedAt, lastIndexedAt, error.
-- `KnowledgeSearchResult`: documentId, documentTitle, sourceId, sourceTitle, path, text, score, url.
+- `SearchKnowledgeInput`: knowledgeBaseId, query, topK.
+- `KnowledgeSearchResult`: documentId, documentTitle, sourceId, sourceTitle, sourceKind, path, text, score, url.
 - `KnowledgeBaseUsage`: agentId, agentName, versionId, versionKind, versionNumber, nodeId, nodeKey, nodeLabel.
 
 Public ids use the `kbs_`, `kso_`, `kdc_` and `kcn_` prefixes. Internal section/chunk ids are never exposed.
