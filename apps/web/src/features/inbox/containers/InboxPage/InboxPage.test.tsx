@@ -17,6 +17,15 @@ describe('InboxPage', () => {
     expect(screen.getByLabelText('Write a message...')).toBeInTheDocument();
   });
 
+  it('shows the escalation details for the selected conversation', () => {
+    renderWithProviders(<InboxPage />);
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Why escalated' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Conversation' })).toBeInTheDocument();
+    expect(screen.getByText('needs_human: true')).toBeInTheDocument();
+    expect(screen.getByText('Path in this run')).toBeInTheDocument();
+  });
+
   it('opens the first live conversation when the tab changes', async () => {
     renderWithProviders(<InboxPage />);
 
