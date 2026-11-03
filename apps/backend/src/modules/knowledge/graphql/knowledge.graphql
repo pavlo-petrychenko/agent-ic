@@ -28,6 +28,7 @@ type KnowledgeSearchResult {
 extend type Mutation {
   createKnowledgeBase(input: CreateKnowledgeBaseInput!): KnowledgeBase!
   renameKnowledgeBase(input: RenameKnowledgeBaseInput!): KnowledgeBase!
+  updateKnowledgeBaseTool(input: UpdateKnowledgeBaseToolInput!): KnowledgeBase!
   deleteKnowledgeBase(input: DeleteKnowledgeBaseInput!): DeleteKnowledgeBasePayload!
   createUpload(input: CreateUploadInput!): CreateUploadPayload!
   confirmUpload(input: ConfirmUploadInput!): KnowledgeSource!
@@ -133,6 +134,12 @@ type GoogleConnection {
 input RenameKnowledgeBaseInput {
   id: ID!
   name: String!
+}
+
+input UpdateKnowledgeBaseToolInput {
+  id: ID!
+  toolName: String!
+  toolDescription: String
 }
 
 input DeleteKnowledgeBaseInput {

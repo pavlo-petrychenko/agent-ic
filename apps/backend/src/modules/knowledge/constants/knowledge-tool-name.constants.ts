@@ -1,4 +1,3 @@
-export const KNOWLEDGE_TOOL_NAME_MAX_LENGTH = 64;
 export const KNOWLEDGE_TOOL_NAME_PREFIX = 'search';
 export const KNOWLEDGE_TOOL_NAME_SEPARATOR = '_';
 export const KNOWLEDGE_TOOL_NAME_FALLBACK = 'knowledge';

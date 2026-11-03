@@ -108,6 +108,7 @@ export enum ErrorReason {
   KnowledgeBaseNameTaken = 'KNOWLEDGE_BASE_NAME_TAKEN',
   KnowledgeBaseNotFound = 'KNOWLEDGE_BASE_NOT_FOUND',
   KnowledgeBaseHasSources = 'KNOWLEDGE_BASE_HAS_SOURCES',
+  KnowledgeToolNameTaken = 'KNOWLEDGE_TOOL_NAME_TAKEN',
   KnowledgeUploadInvalid = 'KNOWLEDGE_UPLOAD_INVALID',
   KnowledgeSourceBusy = 'KNOWLEDGE_SOURCE_BUSY',
   KnowledgeSourceNotFound = 'KNOWLEDGE_SOURCE_NOT_FOUND',

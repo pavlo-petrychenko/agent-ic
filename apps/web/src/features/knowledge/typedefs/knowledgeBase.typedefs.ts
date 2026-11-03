@@ -31,6 +31,12 @@ export interface RenameKnowledgeBaseValues {
   readonly name: string;
 }
 
+export interface UpdateKnowledgeBaseToolValues {
+  readonly id: string;
+  readonly toolName: string;
+  readonly toolDescription: string | null;
+}
+
 export interface KnowledgeBaseUsage {
   readonly agentId: string;
   readonly agentName: string;
@@ -47,6 +53,13 @@ export interface UseKnowledgeBaseUsagesResult {
   readonly loading: boolean;
   readonly failed: boolean;
   readonly retry: () => Promise<void>;
+}
+
+export interface UseUpdateKnowledgeBaseToolResult {
+  readonly updateKnowledgeBaseTool: (
+    values: UpdateKnowledgeBaseToolValues,
+  ) => Promise<KnowledgeBase>;
+  readonly updating: boolean;
 }
 
 export interface UseRenameKnowledgeBaseResult {

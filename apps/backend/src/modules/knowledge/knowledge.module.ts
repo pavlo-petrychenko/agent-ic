@@ -38,6 +38,7 @@ import { RetryKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/retr
 import { SearchKnowledgeResolver } from '@/modules/knowledge/resolvers/search-knowledge.resolver';
 import { SyncKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/sync-knowledge-source.resolver';
 import { UpdateDocumentSummaryResolver } from '@/modules/knowledge/resolvers/update-document-summary.resolver';
+import { UpdateKnowledgeBaseToolResolver } from '@/modules/knowledge/resolvers/update-knowledge-base-tool.resolver';
 import { UpdateKnowledgeSourceScheduleResolver } from '@/modules/knowledge/resolvers/update-knowledge-source-schedule.resolver';
 import { DocumentParserService } from '@/modules/knowledge/services/document-parser.service';
 import { DocumentSummaryService } from '@/modules/knowledge/services/document-summary.service';
@@ -81,6 +82,7 @@ import { SearchKnowledgeUseCase } from '@/modules/knowledge/use-cases/search-kno
 import { StartGoogleConnectionUseCase } from '@/modules/knowledge/use-cases/start-google-connection.use-case';
 import { SyncKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/sync-knowledge-source.use-case';
 import { UpdateDocumentSummaryUseCase } from '@/modules/knowledge/use-cases/update-document-summary.use-case';
+import { UpdateKnowledgeBaseToolUseCase } from '@/modules/knowledge/use-cases/update-knowledge-base-tool.use-case';
 import { UpdateKnowledgeSourceScheduleUseCase } from '@/modules/knowledge/use-cases/update-knowledge-source-schedule.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
@@ -144,6 +146,7 @@ export class KnowledgeModule extends defineModule({
     StartGoogleConnectionUseCase,
     SyncKnowledgeSourceUseCase,
     UpdateDocumentSummaryUseCase,
+    UpdateKnowledgeBaseToolUseCase,
     UpdateKnowledgeSourceScheduleUseCase,
   ],
   resolvers: [
@@ -163,6 +166,7 @@ export class KnowledgeModule extends defineModule({
     SearchKnowledgeResolver,
     SyncKnowledgeSourceResolver,
     UpdateDocumentSummaryResolver,
+    UpdateKnowledgeBaseToolResolver,
     UpdateKnowledgeSourceScheduleResolver,
   ],
   processors: [

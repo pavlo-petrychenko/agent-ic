@@ -2,4 +2,5 @@ import type { KnowledgeBase } from '@/features/knowledge/typedefs/knowledgeBase.
 
 export interface KnowledgeAgentAccessSectionProps {
   readonly knowledgeBase: KnowledgeBase;
+  readonly canEdit: boolean;
 }

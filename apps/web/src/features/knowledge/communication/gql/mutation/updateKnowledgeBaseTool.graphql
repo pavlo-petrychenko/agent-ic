@@ -1,0 +1,13 @@
+mutation UpdateKnowledgeBaseTool($input: UpdateKnowledgeBaseToolInput!) {
+  updateKnowledgeBaseTool(input: $input) {
+    id
+    name
+    description
+    toolName
+    toolDescription
+    documentCount
+    chunkCount
+    createdAt
+    updatedAt
+  }
+}
