@@ -432,6 +432,7 @@ describe('InspectorPanel', () => {
     open('agent', AI_FLOW, [modelOptionsFailedMock(), modelOptionsMock(), llmKeyOptionsMock()]);
 
     expect(await screen.findByText('The models couldn’t be loaded.')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Retry loading knowledge bases' })).toBeVisible();
     await user.click(screen.getByRole('button', { name: 'Try again' }));
 
     await waitFor(() =>
