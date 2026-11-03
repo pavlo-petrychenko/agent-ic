@@ -17,7 +17,4 @@ CREATE INDEX "source_documents_workspace_id_source_id_idx" ON "knowledge"."sourc
 CREATE INDEX "source_documents_workspace_id_document_id_idx" ON "knowledge"."source_documents" USING btree ("workspace_id","document_id");--> statement-breakpoint
 CREATE INDEX "source_documents_workspace_id_kb_id_idx" ON "knowledge"."source_documents" USING btree ("workspace_id","kb_id");--> statement-breakpoint
 CREATE POLICY "source_documents_tenant_isolation" ON "knowledge"."source_documents" AS PERMISSIVE FOR ALL TO public USING ("workspace_id" = nullif(current_setting('app.workspace_id', true), '')::uuid) WITH CHECK ("workspace_id" = nullif(current_setting('app.workspace_id', true), '')::uuid);--> statement-breakpoint
-INSERT INTO "knowledge"."source_documents" ("workspace_id", "kb_id", "source_id", "document_id", "created_at", "updated_at")
-SELECT "workspace_id", "kb_id", "source_id", "id", "created_at", "updated_at"
-FROM "knowledge"."documents";--> statement-breakpoint
 ALTER TABLE "knowledge"."source_documents" FORCE ROW LEVEL SECURITY;
