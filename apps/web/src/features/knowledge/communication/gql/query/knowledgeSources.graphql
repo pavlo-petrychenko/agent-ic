@@ -2,6 +2,7 @@ query KnowledgeSources($knowledgeBaseId: ID!) {
   knowledgeSources(knowledgeBaseId: $knowledgeBaseId) {
     id
     knowledgeBaseId
+    connectionId
     kind
     title
     status

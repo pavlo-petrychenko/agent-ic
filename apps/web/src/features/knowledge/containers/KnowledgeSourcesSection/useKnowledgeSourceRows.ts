@@ -1,3 +1,4 @@
+import { ErrorReason } from '@agent-ic/contracts';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
@@ -5,12 +6,14 @@ import {
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
 } from '@/features/knowledge/constants/knowledgeSource.constants';
+import { isGoogleConnectionActive } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import {
   formatKnowledgeSourceDate,
   isKnowledgeSourceActive,
   isKnowledgeSourceRetryable,
 } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
 import { useKnowledgeFailureSummary } from '@/features/knowledge/logic/hooks/useKnowledgeFailureSummary';
+import type { GoogleConnection } from '@/features/knowledge/typedefs/googleConnection.typedefs';
 import type {
   KnowledgeSource,
   KnowledgeSourceRowView,
@@ -18,6 +21,7 @@ import type {
 
 export function useKnowledgeSourceRows(
   sources: readonly KnowledgeSource[],
+  connectionStatuses: ReadonlyMap<string, GoogleConnection['status']> = new Map(),
 ): readonly KnowledgeSourceRowView[] {
   const { t, i18n } = useTranslation(KNOWLEDGE_NAMESPACE);
   const failureSummary = useKnowledgeFailureSummary();
@@ -45,6 +49,14 @@ export function useKnowledgeSourceRows(
       }
     };
 
+    const connectionActive = (source: KnowledgeSource): boolean => {
+      if (source.connectionId === null) {
+        return source.kind !== KnowledgeSourceKind.GoogleDocs;
+      }
+      const status = connectionStatuses.get(source.connectionId);
+      return status !== undefined && isGoogleConnectionActive(status);
+    };
+
     const statusDetail = (source: KnowledgeSource): string | null => {
       switch (source.status) {
         case KnowledgeSourceStatus.Pending:
@@ -54,6 +66,12 @@ export function useKnowledgeSourceRows(
         case KnowledgeSourceStatus.Ready:
           return t('sources.chunks', { count: source.chunkCount });
         case KnowledgeSourceStatus.Error:
+          if (
+            source.lastErrorCode === ErrorReason.GoogleReconnectRequired &&
+            connectionActive(source)
+          ) {
+            return t('sources.status.retryNeeded');
+          }
           return failureSummary(source.lastErrorCode) ?? t('sources.status.errorDetail');
       }
     };
@@ -71,9 +89,10 @@ export function useKnowledgeSourceRows(
       }),
       status: source.status,
       isActive: isKnowledgeSourceActive(source.status),
-      canRetry: isKnowledgeSourceRetryable(source.status, source.lastErrorCode),
+      canRetry:
+        isKnowledgeSourceRetryable(source.status, source.lastErrorCode) && connectionActive(source),
       statusLabel: statusLabel(source.status),
       statusDetail: statusDetail(source),
     }));
-  }, [failureSummary, i18n.language, sources, t]);
+  }, [connectionStatuses, failureSummary, i18n.language, sources, t]);
 }

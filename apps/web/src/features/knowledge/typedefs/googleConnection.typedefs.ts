@@ -29,6 +29,11 @@ export interface UseStartGoogleConnectionResult {
   readonly starting: boolean;
 }
 
+export interface UseGoogleReconnectResult {
+  readonly reconnect: () => Promise<void>;
+  readonly starting: boolean;
+}
+
 export interface UseCompleteGoogleConnectionResult {
   readonly completeGoogleConnection: (input: {
     readonly code: string;

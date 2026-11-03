@@ -136,7 +136,8 @@
       "removed": "Removed",
       "pendingDetail": "Waiting to index",
       "indexingDetail": "Preparing chunks",
-      "errorDetail": "Indexing failed"
+      "errorDetail": "Indexing failed",
+      "retryNeeded": "Retry needed"
     },
     "chunks_one": "{{count}} chunk",
     "chunks_other": "{{count}} chunks",
@@ -157,7 +158,12 @@
       "summaryPending": "The summary is generated after indexing.",
       "summaryEmpty": "No summary available.",
       "sourceFailed": "This source could not be indexed.",
-      "documentFailed": "This document could not be indexed."
+      "documentFailed": "This document could not be indexed.",
+      "reconnected": "Google account reconnected. Retry to finish indexing."
+    },
+    "reconnect": {
+      "message": "Sources from {{email}} stopped syncing. Reconnect the account to resume.",
+      "action": "Reconnect account"
     },
     "menu": {
       "label": "Source actions",

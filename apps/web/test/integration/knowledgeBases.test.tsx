@@ -62,6 +62,7 @@ const NEW_KNOWLEDGE_BASE: KnowledgeBaseFixture = {
 const READY_SOURCE: KnowledgeSourceFixture = {
   id: 'src_services',
   knowledgeBaseId: SERVICES_KNOWLEDGE_BASE.id,
+  connectionId: null,
   kind: KnowledgeSourceKind.Upload,
   title: 'services',
   status: KnowledgeSourceStatus.Ready,
