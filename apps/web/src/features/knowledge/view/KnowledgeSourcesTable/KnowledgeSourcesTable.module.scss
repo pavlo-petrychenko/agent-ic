@@ -5,16 +5,14 @@
   min-width: 0;
 }
 
-.badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-}
-
 .meta {
   overflow: hidden;
   color: var(--color-mute);
   font: var(--type-caption);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.stale {
+  color: var(--color-warn-ink);
 }

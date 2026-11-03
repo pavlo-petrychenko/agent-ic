@@ -47,6 +47,25 @@ describe('useKnowledgeSourceRows', () => {
     expect(result.current[0]?.canRetry).toBe(true);
   });
 
+  it('warns that a ready source has a stale document', () => {
+    const { result } = renderHook(
+      () =>
+        useKnowledgeSourceRows([
+          {
+            ...SOURCE,
+            status: KnowledgeSourceStatus.Ready,
+            lastErrorCode: null,
+            lastErrorMessage: null,
+            staleDocumentCount: 1,
+            chunkCount: 4,
+          },
+        ]),
+      { wrapper: wrapperFor(Locale.En) },
+    );
+
+    expect(result.current[0]?.statusDetail).toBe('1 stale document');
+  });
+
   it('translates a permanent document failure and hides retry', () => {
     const { result } = renderHook(
       () =>
