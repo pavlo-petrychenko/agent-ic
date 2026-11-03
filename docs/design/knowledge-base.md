@@ -1440,6 +1440,7 @@ There is no product-level document or chunk quota in the first version. The work
 | Worker crash before flip | New generation orphaned; old remains active | Retry; orphan cleanup |
 | Google token revoked | Connection `revoked`; source `error` | Reconnect, then sync |
 | Google doc trashed | Document `removed`; object cleanup | Nothing; it is gone at the provider |
+| Google export exceeds the export limit | Document `error` with `DOCUMENT_TOO_LARGE`; source `error`; retry is not offered | Split the document or upload a smaller file |
 | Google doc already in the KB | The duplicate is reported with `alreadyAdded`; the new source links the existing document and no second document or sync is created. A source with only already-added documents starts from their current state | Nothing; both sources reference the same indexed document |
 | Google transient error | Document unchanged | Retry; wipe protection |
 | KB in use | `KNOWLEDGE_BASE_IN_USE` with usages | Detach from agents first |

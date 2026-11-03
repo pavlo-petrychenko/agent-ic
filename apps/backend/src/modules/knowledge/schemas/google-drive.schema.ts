@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+export const googleDriveErrorSchema = z.object({
+  error: z.object({
+    errors: z.array(z.object({ reason: z.string().optional() })).optional(),
+  }),
+});
+
 export const googleDriveFileSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),

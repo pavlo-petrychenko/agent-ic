@@ -80,6 +80,33 @@ describe('GoogleDriveApiGateway', () => {
     ).rejects.toBeInstanceOf(GoogleDriveFileUnavailableError);
   });
 
+  it('reports a forbidden file as unavailable', async () => {
+    const http = new FakeOutboundHttpGateway().respond(HttpStatus.FORBIDDEN, '{}');
+    const gateway = new GoogleDriveApiGateway(http);
+
+    await expect(
+      gateway.file(TEST_GOOGLE_ACCESS_TOKEN, TEST_GOOGLE_DOC_ID, null),
+    ).rejects.toBeInstanceOf(GoogleDriveFileUnavailableError);
+  });
+
+  it('reports the Google export size limit as a large document', async () => {
+    const http = new FakeOutboundHttpGateway().respond(
+      HttpStatus.FORBIDDEN,
+      JSON.stringify({
+        error: {
+          code: HttpStatus.FORBIDDEN,
+          message: 'This file is too large to be exported.',
+          errors: [{ reason: 'exportSizeLimitExceeded' }],
+        },
+      }),
+    );
+    const gateway = new GoogleDriveApiGateway(http);
+
+    await expect(
+      gateway.exportMarkdown(TEST_GOOGLE_ACCESS_TOKEN, TEST_GOOGLE_DOC_ID, null),
+    ).rejects.toBeInstanceOf(GoogleDriveExportTooLargeError);
+  });
+
   it('reports an export that exceeds the document limit', async () => {
     const http = new FakeOutboundHttpGateway().respond(
       HttpStatus.OK,

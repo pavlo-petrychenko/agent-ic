@@ -9,7 +9,7 @@ import type {
 } from '@/platform/outbound-http/typedefs/outbound-http.typedefs';
 
 export interface GoogleHttpRequestOptions {
-  readonly onStatus?: (status: number) => Error | null;
+  readonly onStatus?: (status: number, body: string | null) => Error | null;
   readonly onTruncated?: () => Error;
 }
 
@@ -24,7 +24,7 @@ export const googleHttpRequest = async (
   }
   const status = result.status;
   if (status === null || status < HttpStatus.OK || status >= HttpStatus.AMBIGUOUS) {
-    const statusError = status === null ? null : options.onStatus?.(status);
+    const statusError = status === null ? null : options.onStatus?.(status, result.body);
     throw statusError ?? new GoogleOAuthFailedError({ status });
   }
   if (result.body === null) {
