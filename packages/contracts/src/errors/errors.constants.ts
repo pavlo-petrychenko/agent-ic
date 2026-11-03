@@ -78,6 +78,7 @@ export enum ErrorReason {
   ChannelAdapterNotFound = 'CHANNEL_ADAPTER_NOT_FOUND',
   ChannelNotFound = 'CHANNEL_NOT_FOUND',
   ChannelAlreadyConnected = 'CHANNEL_ALREADY_CONNECTED',
+  ChannelBroken = 'CHANNEL_BROKEN',
   TelegramTokenInvalid = 'TELEGRAM_TOKEN_INVALID',
   RunNotFound = 'RUN_NOT_FOUND',
   UnsupportedNodeType = 'UNSUPPORTED_NODE_TYPE',

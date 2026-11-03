@@ -2,11 +2,14 @@ import { ChannelKind } from '@agent-ic/contracts';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { TelegramChatAction } from '@/modules/channels/constants/telegram.constants';
+import { ChannelBrokenError } from '@/modules/channels/errors/channel-broken.error';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { TelegramChannelAdapter } from '@/modules/channels/gateways/telegram-channel-adapter.gateway';
 import type { ChannelOutboundMessage } from '@/modules/channels/typedefs/channel-message.typedefs';
 import { MessageDelivery } from '@/modules/conversations';
+import { JobFailureAction } from '@/platform/errors/constants/job-failure.constants';
+import { jobFailureActionFor } from '@/platform/errors/helpers/job-failure.helpers';
 import { RateLimitedError } from '@/platform/rate-limit/errors/rate-limited.error';
 import { TEST_TELEGRAM_TOKEN } from '@test/support/constants/channel-testing.constants';
 import {
@@ -28,13 +31,13 @@ import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.ty
 
 const seedTelegramChannel = async (
   testbed: ChannelsTestbed,
-  overrides: { readonly showTyping?: boolean } = {},
+  overrides: { readonly showTyping?: boolean; readonly status?: ChannelStatus } = {},
 ) => {
   const workspace = await seedChannelWorkspace(testbed);
   const agentId = testbed.ids.generate();
   const channel = newChannel(testbed, workspace.workspaceId, {
     createdByUserId: workspace.userId,
-    status: ChannelStatus.Connected,
+    status: overrides.status ?? ChannelStatus.Connected,
     agentId,
     externalId: testbed.ids.generate(),
     showTyping: overrides.showTyping ?? true,
@@ -120,6 +123,28 @@ describe('TelegramChannelAdapter', () => {
     ]);
     expect((await deliveryOf(testbed, message))?.delivery).toBe(MessageDelivery.Delivered);
     expect(testbed.telegram.deleteWebhookCalls).toHaveLength(0);
+  });
+
+  it('does not call Telegram when the channel is broken', async () => {
+    const { workspace, channel, conversation } = await seedTelegramChannel(testbed, {
+      status: ChannelStatus.Broken,
+    });
+    const message = await queueAgentReply(testbed, conversation);
+
+    const error = await deliverOutbound(testbed, conversation, message).catch(
+      (caught: unknown) => caught,
+    );
+
+    expect(error).toBeInstanceOf(ChannelBrokenError);
+    expect(jobFailureActionFor(error)).toBe(JobFailureAction.GiveUp);
+    expect(testbed.telegram.sendChatActionCalls).toHaveLength(0);
+    expect(testbed.telegram.sendMessageCalls).toHaveLength(0);
+    expect((await deliveryOf(testbed, message))?.delivery).toBe(MessageDelivery.Failed);
+
+    const stored = await testbed.tenants.run(workspace.workspaceId, () =>
+      testbed.channels.findById(workspace.workspaceId, channel.id),
+    );
+    expect(stored?.status).toBe(ChannelStatus.Broken);
   });
 
   it('does not send typing when the channel turns it off', async () => {

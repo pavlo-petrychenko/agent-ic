@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import {
   TELEGRAM_BOT_RATE_LIMIT,
   TELEGRAM_CHAT_RATE_LIMIT,
   TELEGRAM_RATE_LIMIT_SUBJECT_SEPARATOR,
 } from '@/modules/channels/constants/telegram-rate-limit.constants';
 import { TelegramChatAction } from '@/modules/channels/constants/telegram.constants';
+import { ChannelBrokenError } from '@/modules/channels/errors/channel-broken.error';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { ChannelAdapter } from '@/modules/channels/gateways/channel-adapter.gateway';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
@@ -33,6 +35,9 @@ export class TelegramChannelAdapter extends ChannelAdapter {
 
   async send(message: ChannelOutboundMessage): Promise<void> {
     const channel = await this.loadChannel(message);
+    if (channel.status === ChannelStatus.Broken) {
+      throw new ChannelBrokenError(channel.id);
+    }
     const credentials = this.channelTokens.openCredentials(channel.credentialsSealed);
     if (!('botToken' in credentials)) {
       throw new ChannelNotFoundError();
