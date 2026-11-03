@@ -201,11 +201,11 @@ Configuration uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_OAUTH_
 - A document is re-exported only when `version` or `modifiedTime` differs from the stored value, or when it has never been indexed.
 - Export uses `files.export` with `text/markdown`. Google caps an export at 10 MB; a larger document fails with a reason.
 - A document is marked `removed` only on an explicit 404 or `trashed: true`. A transient network error, a 429 or a 5xx never removes anything (wipe protection).
-- `401`, `403`, or a `400 invalid_grant` marks the connection `revoked`, sets the source to `error` and asks the user to reconnect. Reconnecting clears the error and the next sync continues.
-- `429` and `5xx` are retried with exponential backoff by the job. Drive quota errors are treated as upstream errors.
+- A `401` from Drive or a `400 invalid_grant` from the token endpoint marks the connection `revoked`, sets the source to `error` with `GOOGLE_RECONNECT_REQUIRED`, and asks the user to reconnect. A generic `403` remains a document access failure, not a revoked connection. Reconnecting clears the connection error; the source shows Retry and continues after the user retries.
+- `429` and `5xx` are retried with exponential backoff by the job and surface as `UPSTREAM_FAILED`, not as a failed sign-in. Drive quota errors are treated as upstream errors.
 - Schedules are evaluated in the workspace timezone. The source stores the next run time and the schedule fields; the scheduler is a per-source BullMQ job scheduler.
 
-**What the user sees.** The connection row shows the Google account email and whether it is active. A revoked connection shows “Reconnect”. Each Google source shows the document count, chunk count, last sync and next sync. Opening a source shows its documents with their status and generated summary, plus the rename, retry and delete actions. A failed document shows the full localized reason in the document list, and the source row shows a short reason so the table is useful at a glance. Retry is offered only for failures that a retry can change.
+**What the user sees.** The connection row shows the Google account email and whether it is active. A revoked connection shows “Reconnect” in the Add source dialog and as a persistent banner on the knowledge page. Each Google source shows the document count, chunk count, last sync and next sync. Opening a source shows its documents with their status and generated summary, plus the rename, retry and delete actions. A failed document shows the full localized reason in the document list, and the source row shows a short reason so the table is useful at a glance. A source whose Google account needs reconnecting shows Reconnect in its drawer instead of Retry; after reconnecting, the source shows Retry. Retry is offered only for failures that a retry can change.
 
 ### 4.3 Explicitly out of scope
 
@@ -1438,7 +1438,7 @@ There is no product-level document or chunk quota in the first version. The work
 | Embedding provider 429/5xx | Job retries with backoff | Automatic; old generation stays active |
 | Embedding dimension mismatch | Document `error`; alert | Fix model/config, re-index |
 | Worker crash before flip | New generation orphaned; old remains active | Retry; orphan cleanup |
-| Google token revoked | Connection `revoked`; source `error` | Reconnect, then sync |
+| Google token revoked | Connection `revoked`; source `error` with `GOOGLE_RECONNECT_REQUIRED`; Retry is blocked | Reconnect from the page banner or source drawer, then retry the source |
 | Google doc trashed | Document `removed`; object cleanup | Nothing; it is gone at the provider |
 | Google export exceeds the export limit | Document `error` with `DOCUMENT_TOO_LARGE`; source `error`; retry is not offered | Split the document or upload a smaller file |
 | Google doc already in the KB | The duplicate is reported with `alreadyAdded`; the new source links the existing document and no second document or sync is created. A source with only already-added documents starts from their current state | Nothing; both sources reference the same indexed document |
