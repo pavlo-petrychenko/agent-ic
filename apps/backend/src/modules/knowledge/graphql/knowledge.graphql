@@ -1,6 +1,7 @@
 extend type Query {
   knowledgeBases: [KnowledgeBase!]!
   knowledgeSources(knowledgeBaseId: ID!): [KnowledgeSource!]!
+  knowledgeSource(id: ID!): KnowledgeSourceDetail!
   knowledgeConnections: [GoogleConnection!]!
 }
 
@@ -170,6 +171,14 @@ enum KnowledgeSourceStatus {
   error
 }
 
+enum KnowledgeDocumentStatus {
+  pending
+  indexing
+  indexed
+  error
+  removed
+}
+
 enum KnowledgeSyncInterval {
   hourly
   daily
@@ -188,6 +197,24 @@ type KnowledgeSource {
   lastErrorCode: String
   lastErrorMessage: String
   documentCount: Int!
+  chunkCount: Int!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type KnowledgeSourceDetail {
+  source: KnowledgeSource!
+  documents: [KnowledgeSourceDocument!]!
+}
+
+type KnowledgeSourceDocument {
+  id: ID!
+  title: String!
+  status: KnowledgeDocumentStatus!
+  summary: String
+  errorCode: String
+  errorMessage: String
+  tokenCount: Int!
   chunkCount: Int!
   createdAt: String!
   updatedAt: String!

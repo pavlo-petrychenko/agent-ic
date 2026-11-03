@@ -1,3 +1,4 @@
+import type { KnowledgeDocumentStatus } from '@/features/knowledge/constants/knowledgeDocument.constants';
 import type {
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
@@ -32,6 +33,36 @@ export interface KnowledgeSourceRowView {
   readonly canRetry: boolean;
   readonly statusLabel: string;
   readonly statusDetail: string | null;
+}
+
+export interface KnowledgeSourceTarget {
+  readonly id: string;
+  readonly title: string;
+}
+
+export interface KnowledgeSourceDocument {
+  readonly id: string;
+  readonly title: string;
+  readonly status: KnowledgeDocumentStatus;
+  readonly summary: string | null;
+  readonly errorCode: string | null;
+  readonly errorMessage: string | null;
+  readonly tokenCount: number;
+  readonly chunkCount: number;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface KnowledgeSourceDetail {
+  readonly source: KnowledgeSource;
+  readonly documents: readonly KnowledgeSourceDocument[];
+}
+
+export interface UseKnowledgeSourceDetailResult {
+  readonly detail: KnowledgeSourceDetail | null;
+  readonly loading: boolean;
+  readonly failed: boolean;
+  readonly retry: () => Promise<void>;
 }
 
 export interface UseKnowledgeSourcesResult {

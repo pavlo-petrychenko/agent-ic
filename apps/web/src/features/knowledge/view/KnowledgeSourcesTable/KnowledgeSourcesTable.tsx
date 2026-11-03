@@ -22,7 +22,9 @@ export function KnowledgeSourcesTable({
   rows,
   loading,
   error,
+  currentSourceId,
   onAddSource,
+  onOpenSource,
   onRenameSource,
   onRetrySource,
   onDeleteSource,
@@ -143,6 +145,9 @@ export function KnowledgeSourcesTable({
       rowActions={rowActions}
       rows={rows}
       getRowId={(row) => row.id}
+      currentRowId={currentSourceId}
+      onRowOpen={onOpenSource}
+      getOpenLabel={(row) => t('sources.details.open', { name: row.title })}
       ariaLabel={t('sources.tableLabel')}
       title={t('sources.title')}
       padding={TablePadding.Comfortable}

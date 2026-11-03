@@ -6,7 +6,7 @@ import { useRenameKnowledgeSource } from '@/features/knowledge/communication/hoo
 import { KnowledgeFormField } from '@/features/knowledge/constants/knowledgeForm.constants';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import { renameKnowledgeSourceSchema } from '@/features/knowledge/logic/schemas/knowledgeSource.schema';
-import type { KnowledgeSourceRowView } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import type { KnowledgeSourceTarget } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useAppForm } from '@/shared/forms/hooks/useAppForm';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
@@ -14,7 +14,7 @@ import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
 export function useRenameKnowledgeSourceForm(
   knowledgeBaseId: string,
-  source: KnowledgeSourceRowView,
+  source: KnowledgeSourceTarget,
   onClose: () => void,
 ) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);

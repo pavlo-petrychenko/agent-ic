@@ -1,0 +1,32 @@
+query KnowledgeSourceDetail($id: ID!) {
+  knowledgeSource(id: $id) {
+    source {
+      id
+      knowledgeBaseId
+      kind
+      title
+      status
+      syncInterval
+      nextSyncAt
+      lastSyncAt
+      lastErrorCode
+      lastErrorMessage
+      documentCount
+      chunkCount
+      createdAt
+      updatedAt
+    }
+    documents {
+      id
+      title
+      status
+      summary
+      errorCode
+      errorMessage
+      tokenCount
+      chunkCount
+      createdAt
+      updatedAt
+    }
+  }
+}

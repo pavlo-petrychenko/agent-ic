@@ -43,6 +43,10 @@ export const deleteKnowledgeBaseInputSchema = z.object({
   [KnowledgeField.Id]: recordIdSchema,
 });
 
+export const getKnowledgeSourceInputSchema = z.object({
+  [KnowledgeField.Id]: recordIdSchema,
+});
+
 export const deleteKnowledgeSourceInputSchema = z.object({
   [KnowledgeField.Id]: recordIdSchema,
 });
