@@ -43,6 +43,7 @@ export interface EndUserConversationKey {
   readonly agentId: string;
   readonly mode: ConversationMode;
   readonly channelKind: ChannelKind;
+  readonly channelId: string | null;
   readonly endUserExternalId: string;
 }
 

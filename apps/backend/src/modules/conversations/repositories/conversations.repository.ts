@@ -79,6 +79,9 @@ export class ConversationsRepository {
           eq(conversations.workspaceId, key.workspaceId),
           eq(conversations.agentId, key.agentId),
           eq(conversations.channelKind, key.channelKind),
+          key.channelId === null
+            ? isNull(conversations.channelId)
+            : eq(conversations.channelId, key.channelId),
           eq(conversations.endUserExternalId, key.endUserExternalId),
           eq(conversations.mode, key.mode),
           ne(conversations.state, ConversationState.Closed),

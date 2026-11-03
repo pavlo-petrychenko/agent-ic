@@ -1,7 +1,8 @@
-import { ChannelKind, IdPrefix } from '@agent-ic/contracts';
+import { ChannelKind, ErrorCode, IdPrefix } from '@agent-ic/contracts';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { API_CHANNEL_MESSAGE_RATE_LIMIT } from '@/modules/channels/constants/api-channel-rate-limit.constants';
 import { ApiReplyMode, ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
@@ -13,6 +14,7 @@ import { TenantTransactionService } from '@/platform/database/services/tenant-tr
 import { HttpHeader } from '@/platform/http/constants/http-header.constants';
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.service';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import type { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { newChannel } from '@test/support/fixtures/channel.fixture';
@@ -136,5 +138,20 @@ describe('api channel message ingress', () => {
         app.get(MessagesRepository).listByConversation(workspaceId, conversationId),
       );
     expect(messages).toHaveLength(1);
+  });
+
+  it('rejects a message after the channel bucket is empty', async () => {
+    const ids = app.get(IdService);
+    const channelId = ids.fromPublic(IdPrefix.Channel, channelPublicId);
+    const rateLimits = app.get(RateLimitService);
+    let decision = await rateLimits.consume(API_CHANNEL_MESSAGE_RATE_LIMIT, channelId);
+    while (decision.allowed) {
+      decision = await rateLimits.consume(API_CHANNEL_MESSAGE_RATE_LIMIT, channelId);
+    }
+
+    const response = await post();
+
+    expect(response.status).toBe(429);
+    expect(response.body).toMatchObject({ code: ErrorCode.LimitReached });
   });
 });
