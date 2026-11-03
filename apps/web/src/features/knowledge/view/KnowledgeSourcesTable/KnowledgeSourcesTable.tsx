@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import {
@@ -80,18 +81,17 @@ export function KnowledgeSourcesTable({
       render: (row) => (
         <TableCell>
           <span className={styles.stacked}>
-            <span className={styles.badges}>
-              <Badge tone={STATUS_TONES[row.status]} dot>
-                {row.statusLabel}
-              </Badge>
-              {row.staleDocumentCount > 0 ? (
-                <Badge tone={BadgeTone.Warn} dot>
-                  {t('sources.status.stale', { count: row.staleDocumentCount })}
-                </Badge>
-              ) : null}
-            </span>
+            <Badge
+              tone={row.staleDocumentCount > 0 ? BadgeTone.Warn : STATUS_TONES[row.status]}
+              dot
+            >
+              {row.statusLabel}
+            </Badge>
             {row.statusDetail === null ? null : (
-              <span className={styles.meta} title={row.statusDetail}>
+              <span
+                className={clsx(styles.meta, row.staleDocumentCount > 0 && styles.stale)}
+                title={row.statusDetail}
+              >
                 {row.statusDetail}
               </span>
             )}
