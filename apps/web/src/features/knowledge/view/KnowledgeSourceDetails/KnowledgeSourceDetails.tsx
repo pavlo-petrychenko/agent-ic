@@ -48,6 +48,7 @@ export function KnowledgeSourceDetails({
   onRetry,
   onDelete,
   onEditSummary,
+  onRemoveDocument,
 }: KnowledgeSourceDetailsProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
   const source = detail?.source ?? null;
@@ -128,6 +129,14 @@ export function KnowledgeSourceDetails({
     (document.summary?.trim() ?? '').length === 0
       ? t('sources.summary.add')
       : t('sources.summary.edit');
+
+  const canRemoveDocument = (document: KnowledgeSourceDocumentView): boolean =>
+    source !== null &&
+    source.kind === KnowledgeSourceKind.GoogleDocs &&
+    documentCount > 1 &&
+    !active &&
+    document.status !== KnowledgeDocumentStatus.Pending &&
+    document.status !== KnowledgeDocumentStatus.Indexing;
 
   return (
     <div className={styles.root}>
@@ -317,6 +326,18 @@ export function KnowledgeSourceDetails({
                       ) : null}
                       {document.stale ? (
                         <p className={styles.documentStale}>{documentStaleMessage(document)}</p>
+                      ) : null}
+                      {onRemoveDocument !== null && canRemoveDocument(document) ? (
+                        <div className={styles.documentActions}>
+                          <Button
+                            variant={ButtonVariant.Danger}
+                            size={ButtonSize.Sm}
+                            icon={IconName.X}
+                            onClick={() => onRemoveDocument(document)}
+                          >
+                            {t('sources.removeDocument.action')}
+                          </Button>
+                        </div>
                       ) : null}
                     </li>
                   ))}

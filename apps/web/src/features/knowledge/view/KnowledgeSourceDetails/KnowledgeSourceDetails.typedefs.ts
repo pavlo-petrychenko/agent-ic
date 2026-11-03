@@ -26,4 +26,5 @@ export interface KnowledgeSourceDetailsProps {
   readonly onRetry: (() => void) | null;
   readonly onDelete: (() => void) | null;
   readonly onEditSummary: ((document: KnowledgeSourceDocumentView) => void) | null;
+  readonly onRemoveDocument: ((document: KnowledgeSourceDocumentView) => void) | null;
 }

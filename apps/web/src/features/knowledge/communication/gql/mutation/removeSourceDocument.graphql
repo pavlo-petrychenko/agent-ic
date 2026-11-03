@@ -1,0 +1,6 @@
+mutation RemoveSourceDocument($input: RemoveSourceDocumentInput!) {
+  removeSourceDocument(input: $input) {
+    sourceId
+    documentId
+  }
+}
