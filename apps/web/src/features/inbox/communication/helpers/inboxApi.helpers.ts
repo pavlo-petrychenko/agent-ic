@@ -2,15 +2,25 @@ import type { InboxConversationQuery } from '@/features/inbox/communication/gql/
 import type { InboxConversationsQuery } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
 import {
   InboxDividerKind,
+  InboxGuardKind,
   InboxMessageKind,
+  InboxNotifyChannel,
   InboxProvider,
   InboxReplyState,
+  InboxReplyTarget,
 } from '@/features/inbox/constants/inbox.constants';
 import type {
   InboxConversation,
   InboxCurrentUser,
+  InboxNotified,
+  InboxRun,
   InboxStoredMessage,
 } from '@/features/inbox/typedefs/inbox.typedefs';
+import {
+  ApiReplyMode,
+  InboxNotifyChannel as ApiInboxNotifyChannel,
+  InboxRunNodeType,
+} from '@/shared/api/generated/schema.generated';
 import type { MessageSystemEvent } from '@/shared/api/generated/schema.generated';
 import { toInitials } from '@/shared/i18n/helpers/initials.helpers';
 import { IconName } from '@/shared/ui/foundations/Icon';
@@ -18,8 +28,14 @@ import { IconName } from '@/shared/ui/foundations/Icon';
 type ApiSummary = InboxConversationsQuery['inboxConversations'][number];
 type ApiDetail = InboxConversationQuery['inboxConversation'];
 type ApiMessage = ApiDetail['messages'][number];
+type ApiDetails = ApiDetail['details'];
+type ApiNotified = ApiDetails['notified'];
 
 type InboxStoredDivider = Extract<InboxStoredMessage, { readonly kind: InboxMessageKind.Divider }>;
+
+const MILLISECONDS_PER_MINUTE = 60_000;
+const MILLISECONDS_PER_SECOND = 1_000;
+const MILLISECONDS_PER_DAY = 86_400_000;
 
 const mergeEscalationTakeover = (messages: readonly InboxStoredMessage[]): InboxStoredMessage[] =>
   messages.reduce<InboxStoredMessage[]>((merged, message) => {
@@ -48,8 +64,6 @@ const INBOX_PROVIDER: Readonly<Record<ApiSummary['channelKind'], InboxProvider>>
   simulated: InboxProvider.Api,
 };
 
-const MILLISECONDS_PER_MINUTE = 60_000;
-
 const MESSAGE_KIND = {
   customer: InboxMessageKind.Customer,
   agent: InboxMessageKind.Agent,
@@ -68,6 +82,37 @@ const SYSTEM_DIVIDER_ICON: Readonly<Record<MessageSystemEvent, IconName>> = {
   handed_back: IconName.Hand,
 };
 
+const RUN_NODE_ICON: Readonly<Record<InboxRunNodeType, IconName>> = {
+  trigger_message: IconName.Msg,
+  trigger_external_event: IconName.Bolt,
+  trigger_schedule: IconName.Cal,
+  trigger_inactivity: IconName.Hour,
+  agent: IconName.Agent,
+  completion: IconName.Compl,
+  router: IconName.Router,
+  parallel: IconName.Par,
+  api_request: IconName.Api,
+  send_message: IconName.Send,
+  escalation: IconName.Hand,
+};
+
+const REPLY_TARGET: Readonly<Record<ApiReplyMode, InboxReplyTarget>> = {
+  [ApiReplyMode.Response]: InboxReplyTarget.Response,
+  [ApiReplyMode.Webhook]: InboxReplyTarget.Webhook,
+};
+
+const NOTIFY_CHANNEL: Readonly<Record<ApiInboxNotifyChannel, InboxNotifyChannel>> = {
+  [ApiInboxNotifyChannel.InPlatform]: InboxNotifyChannel.InPlatform,
+  [ApiInboxNotifyChannel.Email]: InboxNotifyChannel.Email,
+  [ApiInboxNotifyChannel.Telegram]: InboxNotifyChannel.Telegram,
+};
+
+const GUARD_KIND: Readonly<Partial<Record<InboxRunNodeType, InboxGuardKind>>> = {
+  [InboxRunNodeType.Completion]: InboxGuardKind.Completion,
+  [InboxRunNodeType.Agent]: InboxGuardKind.Agent,
+  [InboxRunNodeType.Escalation]: InboxGuardKind.Escalation,
+};
+
 const replyStateOf = (summary: ApiSummary): InboxReplyState => {
   if (summary.state === 'waiting') {
     return InboxReplyState.Waiting;
@@ -84,13 +129,72 @@ const replyStateOf = (summary: ApiSummary): InboxReplyState => {
 const minutesAgo = (iso: string): number =>
   Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / MILLISECONDS_PER_MINUTE));
 
+const startOfDay = (date: Date): number =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+
+const relativeDay = (iso: string, locale: string): string => {
+  const date = new Date(iso);
+  const days = Math.round((startOfDay(new Date()) - startOfDay(date)) / MILLISECONDS_PER_DAY);
+  if (days === 0 || days === 1) {
+    const relative = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(-days, 'day');
+    return relative.charAt(0).toLocaleUpperCase(locale) + relative.slice(1);
+  }
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(date);
+};
+
 const dateTime = (iso: string, locale: string): string =>
-  new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(
-    new Date(iso),
-  );
+  `${relativeDay(iso, locale)}, ${messageTime(iso, locale)}`;
 
 const messageTime = (iso: string, locale: string): string =>
   new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+
+const duration = (durationMs: number | null, locale: string): string =>
+  durationMs === null
+    ? '—'
+    : `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(durationMs / MILLISECONDS_PER_SECOND)} s`;
+
+const runTime = (startedAt: string | null, locale: string): string =>
+  startedAt === null ? '—' : messageTime(startedAt, locale);
+
+const guardOf = (
+  guard: ApiDetails['guard'],
+): {
+  readonly label: string;
+  readonly kind: InboxGuardKind;
+  readonly reason: string | null;
+} | null =>
+  guard === null
+    ? null
+    : {
+        label: guard.label,
+        kind: GUARD_KIND[guard.nodeType] ?? InboxGuardKind.Completion,
+        reason: guard.reason,
+      };
+
+const notifiedOf = (notified: ApiNotified): InboxNotified | null =>
+  notified === null
+    ? null
+    : {
+        names: notified.names,
+        allOperators: notified.allOperators,
+        channels: notified.channels.map((channel) => NOTIFY_CHANNEL[channel]),
+      };
+
+const runOf = (details: ApiDetails, locale: string): InboxRun | null =>
+  details.run === null
+    ? null
+    : {
+        id: details.run.id,
+        agentVersion: details.run.agentVersion,
+        time: runTime(details.run.startedAt, locale),
+        duration: duration(details.run.durationMs, locale),
+        steps: details.run.steps.map((step) => ({
+          id: step.id,
+          icon: step.nodeType === null ? IconName.Box : RUN_NODE_ICON[step.nodeType],
+          label: step.label,
+          value: step.value,
+        })),
+      };
 
 export const toInboxConversation = (
   summary: ApiSummary,
@@ -125,6 +229,7 @@ export const toInboxConversation = (
       runs: null,
       handledBy: operator,
       handledSince: null,
+      handledUntil: null,
       replyTarget: null,
       closedAt: summary.closedAt === null ? null : dateTime(summary.closedAt, locale),
       agentAnswering: summary.state === 'agent_active',
@@ -189,12 +294,33 @@ export const withInboxDetail = (
   locale: string,
   operatorLabel: string,
   currentUser: InboxCurrentUser | null,
-): InboxConversation => ({
-  ...conversation,
-  messages: mergeEscalationTakeover(
-    detail.messages.flatMap((message) => {
-      const stored = toStoredMessage(message, conversation, locale, operatorLabel, currentUser);
-      return stored === null ? [] : [stored];
-    }),
-  ),
-});
+): InboxConversation => {
+  const { details } = detail;
+  return {
+    ...conversation,
+    guard: guardOf(details.guard),
+    run: runOf(details, locale),
+    facts: {
+      ...conversation.facts,
+      channel: details.channelName ?? '',
+      replyTarget: details.replyTarget === null ? null : REPLY_TARGET[details.replyTarget],
+      notified: notifiedOf(details.notified),
+      runs: details.runsCount,
+      handledBy: details.handled?.name ?? conversation.facts.handledBy,
+      handledSince:
+        details.handled?.since === null || details.handled === null
+          ? null
+          : messageTime(details.handled.since, locale),
+      handledUntil:
+        details.handled?.until === null || details.handled === null
+          ? null
+          : messageTime(details.handled.until, locale),
+    },
+    messages: mergeEscalationTakeover(
+      detail.messages.flatMap((message) => {
+        const stored = toStoredMessage(message, conversation, locale, operatorLabel, currentUser);
+        return stored === null ? [] : [stored];
+      }),
+    ),
+  };
+};

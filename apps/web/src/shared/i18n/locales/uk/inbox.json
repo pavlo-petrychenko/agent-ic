@@ -96,33 +96,37 @@
   },
   "details": {
     "label": "Деталі розмови",
-    "whyEscalated": "Чому ескальовано",
+    "whyEscalated": "Чому це ескальовано",
     "guard": "Conversation guard",
     "completion": "Завершення",
+    "escalation": "Ескалація",
     "needsHuman": "needs_human: true",
     "reason": "reason: \"{{reason}}\"",
     "pathInRun": "Шлях у запуску",
     "openInLangfuse": "Відкрити в Langfuse",
+    "openRunInLangfuse": "Відкрити запуск у Langfuse",
     "openSessionInLangfuse": "Відкрити сесію в Langfuse",
     "conversation": "Розмова",
     "agent": "Агент",
     "channel": "Канал",
     "repliesGoTo": "Відповіді надходять",
+    "yourWebhook": "Ваш webhook",
+    "theApiCaller": "Виклик API",
     "started": "Почато",
     "escalated": "Ескальовано",
     "notified": "Сповіщено",
+    "allOperators": "Усі оператори",
     "handledBy": "Обробляє",
+    "since": "з {{time}}",
     "runs": "Запусків",
     "status": "Статус",
     "agentAnswering": "Агент відповідає",
     "closed": "Закрито",
-    "runMeta": "Запуск {{id}} · {{time}} · {{duration}}"
-  },
-  "steps": {
-    "incomingMessage": "Вхідне повідомлення",
-    "parallel": "Паралельно",
-    "guard": "Conversation guard",
-    "needsPerson": "Потрібна людина?",
-    "notifyOperator": "Сповістити оператора"
+    "runMeta": "Запуск {{id}} · {{time}} · {{duration}}",
+    "notifyChannels": {
+      "inPlatform": "У застосунку",
+      "email": "Email",
+      "telegram": "Telegram"
+    }
   }
 }

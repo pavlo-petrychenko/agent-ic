@@ -3,11 +3,13 @@ import type {
   InboxActionId,
   InboxDividerKind,
   InboxFooterKind,
+  InboxGuardKind,
   InboxMessageKind,
+  InboxNotifyChannel,
   InboxProvider,
   InboxReplyState,
+  InboxReplyTarget,
   InboxRowStatusKind,
-  InboxRunStepKind,
   InboxTab,
 } from '@/features/inbox/constants/inbox.constants';
 import type { Namespace } from '@/shared/i18n/constants/namespace.constants';
@@ -79,31 +81,42 @@ export type InboxStoredDivider = Extract<
 >;
 
 export interface InboxGuard {
-  readonly reason: string;
+  readonly label: string;
+  readonly kind: InboxGuardKind;
+  readonly reason: string | null;
 }
 
 interface InboxRunStep {
   readonly id: string;
-  readonly kind: InboxRunStepKind;
+  readonly icon: IconName;
+  readonly label: string;
   readonly value: string | null;
 }
 
-interface InboxRun {
+export interface InboxRun {
   readonly id: string;
+  readonly agentVersion: number | null;
   readonly time: string;
   readonly duration: string;
   readonly steps: readonly InboxRunStep[];
 }
 
-interface InboxConversationFacts {
+export interface InboxNotified {
+  readonly names: readonly string[];
+  readonly allOperators: boolean;
+  readonly channels: readonly InboxNotifyChannel[];
+}
+
+export interface InboxConversationFacts {
   readonly channel: string;
   readonly startedAt: string | null;
   readonly escalatedAt: string | null;
-  readonly notified: string | null;
+  readonly notified: InboxNotified | null;
   readonly runs: number | null;
   readonly handledBy: string | null;
   readonly handledSince: string | null;
-  readonly replyTarget: string | null;
+  readonly handledUntil: string | null;
+  readonly replyTarget: InboxReplyTarget | null;
   readonly closedAt: string | null;
   readonly agentAnswering: boolean;
 }

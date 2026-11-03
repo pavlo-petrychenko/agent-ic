@@ -30,6 +30,46 @@ describe('InboxPage', () => {
     expect(screen.getByText('Salon assistant · v3')).toBeInTheDocument();
   });
 
+  it('shows why a waiting chat escalated without the run path', async () => {
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: /Marta S\./ }));
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Why it escalated' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Conversation guard' }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('Agent').length).toBeGreaterThan(0);
+    expect(screen.getByText('reason: "Customer asks to be called back"')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Path in this run' })).not.toBeInTheDocument();
+    expect(screen.getByText('Telegram · @demo_salon_bot')).toBeInTheDocument();
+    expect(screen.getByText('All operators · Telegram, Email')).toBeInTheDocument();
+  });
+
+  it('shows the path in the run for a chat I handle', async () => {
+    renderPage();
+
+    expect(
+      await screen.findByRole('heading', { level: 3, name: 'Path in this run' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('needs_human = true')).toBeInTheDocument();
+    expect(screen.getByText('→ yes')).toBeInTheDocument();
+    expect(screen.getByText('Started')).toBeInTheDocument();
+    expect(screen.getByText('Runs so far')).toBeInTheDocument();
+  });
+
+  it('shows the reply target and the handling window', async () => {
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: /Andri P\./ }));
+
+    expect(await screen.findByText('API · Website')).toBeInTheDocument();
+    expect(screen.getByText('Your webhook')).toBeInTheDocument();
+    expect(screen.getByText('Olena · since 02:19 PM')).toBeInTheDocument();
+  });
+
   it('opens the first live conversation when the tab changes', async () => {
     renderPage();
 
@@ -72,7 +112,7 @@ describe('InboxPage', () => {
     expect(
       screen.getByText('Escalated at 02:18 PM · Olena took over at 02:19 PM'),
     ).toBeInTheDocument();
-    expect(await screen.findByText(/^Olena ·/)).toBeInTheDocument();
+    expect((await screen.findAllByText(/^Olena ·/)).length).toBeGreaterThan(0);
   });
 
   it('takes over a waiting conversation to reply', async () => {

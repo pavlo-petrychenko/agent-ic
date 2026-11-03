@@ -20,7 +20,7 @@ export function InboxDetails({
         <Card className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.iconTile}>
-              <Icon name={IconName.Msg} size={14} />
+              <Icon name={IconName.Compl} size={14} />
             </span>
             <h3 className={styles.cardTitle}>{guard.title}</h3>
             <Badge tone={BadgeTone.Neutral}>{guard.badge}</Badge>

@@ -3,6 +3,40 @@ query InboxConversation($id: ID!) {
     summary {
       id
     }
+    details {
+      guard {
+        label
+        nodeType
+        reason
+      }
+      run {
+        id
+        agentVersion
+        startedAt
+        durationMs
+        steps {
+          id
+          nodeId
+          label
+          nodeType
+          status
+          value
+        }
+      }
+      channelName
+      replyTarget
+      notified {
+        names
+        allOperators
+        channels
+      }
+      handled {
+        name
+        since
+        until
+      }
+      runsCount
+    }
     messages {
       id
       author
