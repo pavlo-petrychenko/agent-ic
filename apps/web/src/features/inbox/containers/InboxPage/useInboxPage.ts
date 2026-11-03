@@ -2,9 +2,14 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   INBOX_CONVERSATIONS,
+  INBOX_CURRENT_USER,
   INBOX_DEFAULT_CONVERSATION_ID,
 } from '@/features/inbox/communication/fixtures/inbox.fixture';
-import { InboxProvider, InboxTab } from '@/features/inbox/constants/inbox.constants';
+import {
+  InboxMessageKind,
+  InboxProvider,
+  InboxTab,
+} from '@/features/inbox/constants/inbox.constants';
 import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants';
 import {
   countConversationsByTab,
@@ -13,17 +18,31 @@ import {
   visibleConversations,
 } from '@/features/inbox/logic/helpers/inbox.helpers';
 import {
+  inboxActions,
+  inboxBanner,
+  inboxFooter,
+  inboxMessages,
+} from '@/features/inbox/logic/helpers/inboxConversation.helpers';
+import {
   inboxEmptyState,
   inboxListItem,
   inboxTabItems,
 } from '@/features/inbox/logic/helpers/inboxList.helpers';
-import type { InboxPageModel, InboxProviderLabels } from '@/features/inbox/typedefs/inbox.typedefs';
+import type {
+  InboxComposerState,
+  InboxFooterContext,
+  InboxMessage,
+  InboxPageModel,
+  InboxProviderLabels,
+} from '@/features/inbox/typedefs/inbox.typedefs';
 
 export function useInboxPage(): InboxPageModel {
   const { t } = useTranslation(INBOX_NAMESPACE);
   const [activeTab, setActiveTab] = useState<InboxTab>(InboxTab.NeedsYou);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(INBOX_DEFAULT_CONVERSATION_ID);
+  const [draft, setDraft] = useState('');
+  const [sent, setSent] = useState<Readonly<Record<string, readonly InboxMessage[]>>>({});
 
   const providerLabels = useMemo<InboxProviderLabels>(
     () => ({
@@ -45,11 +64,45 @@ export function useInboxPage(): InboxPageModel {
     setActiveTab(tab);
     if (selected === null || inboxTabOf(selected) !== tab) {
       setSelectedId(firstConversationId(INBOX_CONVERSATIONS, tab));
+      setDraft('');
     }
   };
 
   const selectConversation = (id: string) => {
     setSelectedId(id);
+    setDraft('');
+  };
+
+  const send = () => {
+    const text = draft.trim();
+    if (text === '' || selected === null) {
+      return;
+    }
+    const existing = sent[selected.id] ?? [];
+    const message: InboxMessage = {
+      kind: InboxMessageKind.Operator,
+      id: `local-${existing.length + 1}`,
+      author: t('authorYou', { name: INBOX_CURRENT_USER }),
+      time: t('now'),
+      text,
+    };
+    setSent((previous) => ({
+      ...previous,
+      [selected.id]: [...(previous[selected.id] ?? []), message],
+    }));
+    setDraft('');
+  };
+
+  const composer: InboxComposerState = {
+    value: draft,
+    onChange: setDraft,
+    onSend: send,
+  };
+
+  const footerContext: InboxFooterContext = {
+    providerLabels,
+    composer,
+    currentUserName: INBOX_CURRENT_USER,
   };
 
   return {
@@ -71,7 +124,18 @@ export function useInboxPage(): InboxPageModel {
       empty: inboxEmptyState(activeTab, t),
       onSelect: selectConversation,
     },
-    conversation: null,
+    conversation:
+      selected === null
+        ? null
+        : {
+            name: selected.name,
+            initials: selected.initials,
+            subtitle: `${providerLabels[selected.provider]} · ${selected.agentName} v${selected.agentVersion}`,
+            actions: inboxActions(selected, t),
+            banner: inboxBanner(selected, t),
+            messages: inboxMessages(selected, sent[selected.id] ?? [], t),
+            footer: inboxFooter(selected, footerContext, t),
+          },
     details: null,
     emptyTitle: t('empty.detailTitle'),
     emptyDescription: t('empty.detailDescription'),
