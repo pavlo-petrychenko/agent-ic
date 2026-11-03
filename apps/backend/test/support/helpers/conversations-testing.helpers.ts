@@ -18,7 +18,6 @@ import { ConfigModule } from '@/platform/config/config.module';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import type { RoleSelection } from '@/platform/config/typedefs/app-config.typedefs';
 import { ContextModule } from '@/platform/context/context.module';
-import { CryptoModule } from '@/platform/crypto/crypto.module';
 import { DatabaseModule } from '@/platform/database/database.module';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { DOMAIN_EVENT_SUBSCRIPTIONS } from '@/platform/domain-events/constants/domain-event.constants';
@@ -83,7 +82,6 @@ export const createConversationsTestbed = async (
     imports: [
       ConfigModule.register(config),
       ContextModule,
-      CryptoModule,
       ErrorsModule,
       DatabaseModule,
       ClockModule,

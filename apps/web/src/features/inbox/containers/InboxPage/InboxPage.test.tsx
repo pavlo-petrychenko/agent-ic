@@ -60,7 +60,7 @@ describe('InboxPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Andri P\./ }));
 
     expect(await screen.findByRole('button', { name: 'Take over from Olena' })).toBeInTheDocument();
-    expect(screen.getByText(/^Olena ·/)).toBeInTheDocument();
+    expect(await screen.findByText(/^Olena ·/)).toBeInTheDocument();
   });
 
   it('takes over a waiting conversation to reply', async () => {

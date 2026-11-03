@@ -86,10 +86,12 @@ import { UpdateMyNameUseCase } from '@/modules/identity/use-cases/update-my-name
 import { UpdateRolePermissionsUseCase } from '@/modules/identity/use-cases/update-role-permissions.use-case';
 import { UpdateTimeZoneUseCase } from '@/modules/identity/use-cases/update-time-zone.use-case';
 import { WorkspaceAccessService } from '@/platform/context/services/workspace-access.service';
+import { CryptoModule } from '@/platform/crypto/crypto.module';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class IdentityModule extends defineModule({
   global: true,
+  imports: [CryptoModule],
   providers: [
     UsersRepository,
     SessionsRepository,
