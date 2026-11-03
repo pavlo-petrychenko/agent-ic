@@ -78,3 +78,8 @@ export interface RenameKnowledgeSourceInput {
   readonly id: string;
   readonly title: string;
 }
+
+export interface RemoveSourceDocumentInput {
+  readonly sourceId: string;
+  readonly documentId: string;
+}

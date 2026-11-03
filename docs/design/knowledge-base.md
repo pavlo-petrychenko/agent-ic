@@ -209,7 +209,7 @@ Configuration uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_OAUTH_
 - `429` and `5xx` are retried with exponential backoff by the job and surface as `UPSTREAM_FAILED`, not as a failed sign-in. Drive quota errors are treated as upstream errors.
 - Schedules are evaluated in the workspace timezone. The source stores the next run time and the schedule fields; the scheduler is a per-source BullMQ job scheduler.
 
-**What the user sees.** The connection row shows the Google account email and whether it is active. A revoked connection shows “Reconnect” in the Add source dialog and as a persistent banner on the knowledge page. Each Google source shows the document count, chunk count, last sync and next sync. Opening a source shows its documents with their status and generated summary, plus Sync now for a ready Google source, and the rename, retry and delete actions. Sync now is also available from the source row actions menu. A failed document shows the full localized reason in the document list, and the source row shows a short reason so the table is useful at a glance. A stale document shows a warning badge and a message that it will not be updated while its last indexed copy stays searchable; the source row shows the stale count and the drawer shows a warning callout. A source whose Google account needs reconnecting shows Reconnect in its drawer instead of Retry; after reconnecting, the source shows Retry. Retry is offered only for failures that a retry can change; stale documents are refreshed with Sync now or the schedule.
+**What the user sees.** The connection row shows the Google account email and whether it is active. A revoked connection shows “Reconnect” in the Add source dialog and as a persistent banner on the knowledge page. Each Google source shows the document count, chunk count, last sync and next sync. Opening a source shows its documents with their status and generated summary, plus Sync now for a ready Google source, and the rename, retry and delete actions. A Google source with more than one document offers “Remove document” on each document: removing the link keeps the document and its index while another source uses it, and otherwise marks it `removed`, deletes its chunks and objects, and enqueues cleanup. The last document cannot be removed; the user deletes the source instead. Sync now is also available from the source row actions menu. A failed document shows the full localized reason in the document list, and the source row shows a short reason so the table is useful at a glance. A stale document shows a warning badge and a message that it will not be updated while its last indexed copy stays searchable; the source row shows the stale count and the drawer shows a warning callout. A source whose Google account needs reconnecting shows Reconnect in its drawer instead of Retry; after reconnecting, the source shows Retry. Retry is offered only for failures that a retry can change; stale documents are refreshed with Sync now or the schedule.
 
 ### 4.3 Explicitly out of scope
 
@@ -618,6 +618,7 @@ A race is theoretically possible: a flow can be published after the delete scan 
 ### 9.3 Delete flow
 
 - **Delete source:** remove its `source_documents` links. For each document it owns, move ownership to another source that references it; if none does, mark the document `deleted_at` and delete its sections, chunks and terms immediately. Then mark the source `deleted_at` and enqueue a durable `clean-up-knowledge-source-files` job with `{ sourceId }`. The job reads the remaining soft-deleted document keys, deletes the original and Markdown objects, then hard-deletes the documents and source. A shared document and its files survive while another source references it.
+- **Remove a document from a Google source:** delete only its `source_documents` link. If another active source still references it, keep the document, its chunks and its files; move `documents.source_id` to another linked source when the removed source owned it. If it was the last source, set `status = 'removed'` and `deleted_at`, delete its sections, chunks and terms, and enqueue a durable `clean-up-knowledge-document-files` job with `{ documentId }`, which deletes the original and Markdown objects and then hard-deletes the document. The last document cannot be removed; the user deletes the source instead. The source status, counts and auto-generated title are recomputed after the removal.
 - **Delete knowledge base:** lock the KB and refuse with `KNOWLEDGE_BASE_HAS_SOURCES` while any active source still belongs to it. Sources are deleted one by one, never by deleting their KB. Once the KB has no sources, run the usage scan, mark the KB `deleted_at`, and delete sections/chunks/terms. A KB delete leaves source and document rows and their files alone.
 - **Disconnect Google connection:** blocked while any source row still references it, including a soft-deleted source waiting for cleanup, with `KNOWLEDGE_CONNECTION_IN_USE`. Otherwise the sealed token is deleted with the row.
 - **Google no longer returns a document:** `404`, `410` or `trashed: true` on an indexed document → set `stale_at`/`stale_reason`; keep `status = 'indexed'`, chunks, objects and the source link. The source stays `ready` with a stale warning. A transient error never does this. An explicit user removal may later set `status = 'removed'`, `deleted_at` and delete the objects.
@@ -635,7 +636,7 @@ modules/knowledge/
 ├── index.ts                              KnowledgeModule + KnowledgeSearchService
 ├── graphql/knowledge.graphql
 ├── resolvers/                            knowledge-bases, sources, documents, search, usage, google
-├── processors/                           ingest-knowledge-source, reindex-knowledge-document, clean-up-knowledge-source-files
+├── processors/                           ingest-knowledge-source, reindex-knowledge-document, clean-up-knowledge-document-files, clean-up-knowledge-source-files
 ├── listeners/                            clean-up-workspace
 ├── use-cases/                            create/update/delete KB, upload, sync, schedule, update document summary, Google OAuth
 ├── services/                             search, ingestion, usage, flow-reference-checker, google connections
@@ -1279,6 +1280,7 @@ export const chunkTerms = knowledgeSchema
 |---|---|---|---|---|
 | `ingest-knowledge-source` | `ingest` | `{ sourceId, syncRunId }` | yes | Run one source sync: fetch, parse, chunk, embed, index |
 | `reindex-knowledge-document` | `ingest` | `{ documentId }` | yes | Rebuild a document after a summary edit; no summary generation |
+| `clean-up-knowledge-document-files` | `timers` | `{ documentId }` | yes | Delete S3 objects and hard-delete a removed document |
 | `clean-up-knowledge-source-files` | `timers` | `{ sourceId }` | yes | Delete S3 objects and hard-delete a soft-deleted source and its documents |
 | `clean-up-knowledge-workspace-files` | `timers` | `{ workspaceId }` | yes | Delete every stored knowledge file after its workspace is deleted |
 | `clean-up-knowledge-sync-runs` | `timers` | `{}` | no | Delete sync runs older than 90 days |
@@ -1342,6 +1344,7 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 | `updateDocumentSummary` | edit | Sets a user summary and re-indexes the document |
 | `updateSourceSchedule` | edit | Interval, time, weekday; clearing the interval turns automatic sync off |
 | `renameSource` | edit | Renames the display title only; documents and index text stay unchanged |
+| `removeSourceDocument` | edit | Removes one document from a Google source; deletes its index only when no other source uses it |
 | `retrySource` | edit | Creates a manual sync run for the failed documents of a source and reuses the stored original |
 | `deleteSource` | edit | Soft delete + cleanup |
 | `startGoogleConnection` | edit | Returns Google authorization URL |
@@ -1385,6 +1388,7 @@ Behaviour:
 - **List page:** empty state, KB cards/rows with status, source count, chunk count, last activity.
 - **Detail page:** breadcrumb above the KB name; header with rename/edit/delete; sources table with type, status, chunks, last sync, next sync, and a source actions menu (Sync now for a ready Google source, rename, retry, delete); Add source; Sync all; settings for tool name/description; Playground tab or panel.
 - **Add source:** Upload tab with drop zone and per-file progress; Google tab with Connect, account status and Pick documents, plus a note that Google Docs summaries are generated once and are not updated automatically.
+- **Source documents:** each document row shows status, chunks, summary and, for a Google source with more than one document, a Remove document action. The action is hidden while the source or document is indexing, and for the last document. The confirmation explains whether the document is shared with another source.
 - **Upload hook:** call `createUpload`, PUT with `XMLHttpRequest` for progress, call `confirmUpload`, then subscribe/refetch. Errors show the server reason.
 - **Document summary:** Google Docs documents show the one-line summary with an edit action. The Add source dialog explains that summaries are generated once and are not updated automatically. The edit dialog calls `updateDocumentSummary`; saving shows the document as `indexing` until the new generation is ready. Uploaded documents do not show the editor.
 - **Google Picker:** load the Google script on demand, call `createGooglePickerSession`, open the Picker filtered to Google Docs, review the picked documents in the dialog and send the final ids to `createGoogleDocsSource`.

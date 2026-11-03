@@ -3,6 +3,7 @@ import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.ga
 import { GoogleOAuthApiGateway } from '@/modules/knowledge/gateways/google-oauth-api.gateway';
 import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
 import { CleanUpWorkspaceListener } from '@/modules/knowledge/listeners/clean-up-workspace.listener';
+import { CleanUpKnowledgeDocumentFilesProcessor } from '@/modules/knowledge/processors/clean-up-knowledge-document-files.processor';
 import { CleanUpKnowledgeSourceFilesProcessor } from '@/modules/knowledge/processors/clean-up-knowledge-source-files.processor';
 import { IngestKnowledgeSourceProcessor } from '@/modules/knowledge/processors/ingest-knowledge-source.processor';
 import { ReindexKnowledgeDocumentProcessor } from '@/modules/knowledge/processors/reindex-knowledge-document.processor';
@@ -25,6 +26,7 @@ import { KnowledgeConnectionsResolver } from '@/modules/knowledge/resolvers/know
 import { KnowledgePickerResolver } from '@/modules/knowledge/resolvers/knowledge-picker.resolver';
 import { KnowledgeSourcesResolver } from '@/modules/knowledge/resolvers/knowledge-sources.resolver';
 import { KnowledgeUploadResolver } from '@/modules/knowledge/resolvers/knowledge-upload.resolver';
+import { RemoveSourceDocumentResolver } from '@/modules/knowledge/resolvers/remove-source-document.resolver';
 import { RenameKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/rename-knowledge-base.resolver';
 import { RenameKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/rename-knowledge-source.resolver';
 import { RetryKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/retry-knowledge-source.resolver';
@@ -42,6 +44,7 @@ import { KnowledgeEmbeddingService } from '@/modules/knowledge/services/knowledg
 import { KnowledgeSourceSyncService } from '@/modules/knowledge/services/knowledge-source-sync.service';
 import { KnowledgeSourceViewsService } from '@/modules/knowledge/services/knowledge-source-views.service';
 import { KnowledgeUploadTargetsService } from '@/modules/knowledge/services/knowledge-upload-targets.service';
+import { CleanUpKnowledgeDocumentFilesUseCase } from '@/modules/knowledge/use-cases/clean-up-knowledge-document-files.use-case';
 import { CleanUpKnowledgeSourceFilesUseCase } from '@/modules/knowledge/use-cases/clean-up-knowledge-source-files.use-case';
 import { CleanUpKnowledgeWorkspaceFilesUseCase } from '@/modules/knowledge/use-cases/clean-up-knowledge-workspace-files.use-case';
 import { CompleteGoogleConnectionUseCase } from '@/modules/knowledge/use-cases/complete-google-connection.use-case';
@@ -59,6 +62,7 @@ import { ListGoogleConnectionsUseCase } from '@/modules/knowledge/use-cases/list
 import { ListKnowledgeBasesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-bases.use-case';
 import { ListKnowledgeSourcesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-sources.use-case';
 import { ReindexKnowledgeDocumentUseCase } from '@/modules/knowledge/use-cases/reindex-knowledge-document.use-case';
+import { RemoveSourceDocumentUseCase } from '@/modules/knowledge/use-cases/remove-source-document.use-case';
 import { RenameKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/rename-knowledge-base.use-case';
 import { RenameKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/rename-knowledge-source.use-case';
 import { RetryKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/retry-knowledge-source.use-case';
@@ -94,6 +98,7 @@ export class KnowledgeModule extends defineModule({
     GoogleConnectionTokenService,
     { provide: GoogleOAuthGateway, useClass: GoogleOAuthApiGateway },
     { provide: GoogleDriveGateway, useClass: GoogleDriveApiGateway },
+    CleanUpKnowledgeDocumentFilesUseCase,
     CleanUpKnowledgeSourceFilesUseCase,
     CleanUpKnowledgeWorkspaceFilesUseCase,
     CompleteGoogleConnectionUseCase,
@@ -112,6 +117,7 @@ export class KnowledgeModule extends defineModule({
     ListKnowledgeSourcesUseCase,
     RenameKnowledgeBaseUseCase,
     RenameKnowledgeSourceUseCase,
+    RemoveSourceDocumentUseCase,
     RetryKnowledgeSourceUseCase,
     ReindexKnowledgeDocumentUseCase,
     StartGoogleConnectionUseCase,
@@ -129,11 +135,13 @@ export class KnowledgeModule extends defineModule({
     KnowledgeUploadResolver,
     RenameKnowledgeBaseResolver,
     RenameKnowledgeSourceResolver,
+    RemoveSourceDocumentResolver,
     RetryKnowledgeSourceResolver,
     SyncKnowledgeSourceResolver,
     UpdateDocumentSummaryResolver,
   ],
   processors: [
+    CleanUpKnowledgeDocumentFilesProcessor,
     CleanUpKnowledgeSourceFilesProcessor,
     IngestKnowledgeSourceProcessor,
     ReindexKnowledgeDocumentProcessor,

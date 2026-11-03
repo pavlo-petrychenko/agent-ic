@@ -48,6 +48,17 @@ export class DocumentsRepository {
     return document ?? null;
   }
 
+  async findByIdIncludingDeleted(
+    workspaceId: string,
+    documentId: string,
+  ): Promise<Document | null> {
+    const [document] = await this.txHost.tx
+      .select()
+      .from(documents)
+      .where(and(eq(documents.workspaceId, workspaceId), eq(documents.id, documentId)));
+    return document ?? null;
+  }
+
   async findByIdForUpdate(workspaceId: string, documentId: string): Promise<Document | null> {
     const [document] = await this.txHost.tx
       .select()
@@ -140,6 +151,14 @@ export class DocumentsRepository {
 
   async softDelete(workspaceId: string, documentId: string, deletedAt: Date): Promise<boolean> {
     return (await this.update(workspaceId, documentId, { deletedAt })) !== null;
+  }
+
+  async deleteById(workspaceId: string, documentId: string): Promise<boolean> {
+    const deleted = await this.txHost.tx
+      .delete(documents)
+      .where(and(eq(documents.workspaceId, workspaceId), eq(documents.id, documentId)))
+      .returning({ id: documents.id });
+    return deleted.length > 0;
   }
 
   private activeWhere(workspaceId: string, ...conditions: SQL[]): SQL | undefined {
