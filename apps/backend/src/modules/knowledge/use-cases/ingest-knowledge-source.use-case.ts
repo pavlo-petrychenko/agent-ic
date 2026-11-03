@@ -199,7 +199,8 @@ export class IngestKnowledgeSourceUseCase {
       }
       const ownedDocuments = await this.documents.listOwnedBySource(workspaceId, source.id);
       const candidateDocuments =
-        ownedDocuments.length === 0 && syncRun.trigger === KnowledgeSyncTrigger.Manual
+        documentIds !== undefined ||
+        (ownedDocuments.length === 0 && syncRun.trigger === KnowledgeSyncTrigger.Manual)
           ? await this.documents.listBySource(workspaceId, source.id)
           : ownedDocuments;
       const selectedIds = documentIds === undefined ? null : new Set(documentIds);

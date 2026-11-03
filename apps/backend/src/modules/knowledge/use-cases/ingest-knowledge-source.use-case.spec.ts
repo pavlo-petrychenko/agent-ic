@@ -411,16 +411,21 @@ describe('IngestKnowledgeSourceUseCase', () => {
       kind: KnowledgeSourceKind.GoogleDocs,
       connectionId,
     });
+    const ownerSourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId, {
+      externalId: 'owned-document',
+    });
     const selectedDocumentId = await seedKnowledgeDocument(
       testbed,
       workspaceId,
       knowledgeBaseId,
-      sourceId,
+      ownerSourceId,
       { externalId: 'selected-document' },
     );
-    await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId, {
-      externalId: 'other-document',
-    });
+    await seedSourceDocument(testbed, workspaceId, knowledgeBaseId, sourceId, selectedDocumentId);
     const ingestionService = testbed.module.get(KnowledgeDocumentIngestionService);
     const ingestSpy = vi.spyOn(ingestionService, 'ingest').mockResolvedValue({ skipped: true });
     const syncRunId = testbed.ids.generate();
