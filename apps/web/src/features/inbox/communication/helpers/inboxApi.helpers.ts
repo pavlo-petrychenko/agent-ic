@@ -109,6 +109,7 @@ export const toInboxConversation = (
     agentName: summary.agentName,
     agentVersion: summary.agentVersion,
     replyState,
+    hasBeenHandled: summary.hasBeenHandled,
     assigneeName: operator,
     preview: summary.preview,
     minutesAgo: minutesAgo(summary.lastMessageAt),

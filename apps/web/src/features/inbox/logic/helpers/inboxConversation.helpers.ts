@@ -52,7 +52,9 @@ const INBOX_ACTIONS: Readonly<Record<InboxReplyState, readonly InboxActionSpec[]
     ),
   ],
   [InboxReplyState.Agent]: [
-    takeOver(ButtonVariant.Secondary, (_conversation, t) => t('header.takeOverAgain')),
+    takeOver(ButtonVariant.Secondary, (conversation, t) =>
+      conversation.hasBeenHandled ? t('header.takeOverAgain') : t('header.takeOver'),
+    ),
   ],
   [InboxReplyState.Closed]: [],
 };

@@ -2,7 +2,10 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, asc, count, desc, eq, gt, inArray, lt, lte, ne, or } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
-import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
+import {
+  MessageAuthor,
+  MessageSystemEvent,
+} from '@/modules/conversations/constants/message.constants';
 import type { MessageDelivery } from '@/modules/conversations/constants/message.constants';
 import { messages } from '@/modules/conversations/db/messages.table';
 import type {
@@ -109,6 +112,29 @@ export class MessagesRepository {
         ),
       )
       .orderBy(messages.conversationId, desc(messages.createdAt), desc(messages.id));
+  }
+
+  async conversationIdsWithOperatorHistory(
+    workspaceId: string,
+    conversationIds: readonly string[],
+  ): Promise<string[]> {
+    if (conversationIds.length === 0) {
+      return [];
+    }
+    const rows = await this.txHost.tx
+      .selectDistinct({ conversationId: messages.conversationId })
+      .from(messages)
+      .where(
+        and(
+          eq(messages.workspaceId, workspaceId),
+          inArray(messages.conversationId, [...conversationIds]),
+          or(
+            eq(messages.author, MessageAuthor.Operator),
+            eq(messages.systemEvent, MessageSystemEvent.TookOver),
+          ),
+        ),
+      );
+    return rows.map((row) => row.conversationId);
   }
 
   listByRun(workspaceId: string, runId: string): Promise<Message[]> {

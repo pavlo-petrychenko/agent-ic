@@ -4,6 +4,7 @@ query InboxConversations($limit: Int) {
     state
     handledByMe
     handledByName
+    hasBeenHandled
     channelKind
     agentId
     agentName

@@ -116,6 +116,7 @@ export interface InboxConversation {
   readonly agentName: string;
   readonly agentVersion: number;
   readonly replyState: InboxReplyState;
+  readonly hasBeenHandled: boolean;
   readonly assigneeName: string | null;
   readonly preview: string;
   readonly minutesAgo: number;
