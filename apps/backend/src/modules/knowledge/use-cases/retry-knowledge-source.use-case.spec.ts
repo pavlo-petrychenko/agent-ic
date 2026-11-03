@@ -25,6 +25,7 @@ import {
   seedKnowledgeConnection,
   seedKnowledgeDocument,
   seedKnowledgeSource,
+  seedSourceDocument,
 } from '@test/support/helpers/knowledge-testing.helpers';
 import type { KnowledgeTestbed } from '@test/support/typedefs/knowledge-testing.typedefs';
 
@@ -110,6 +111,69 @@ describe('RetryKnowledgeSourceUseCase', () => {
     });
     expect(jobs.enqueued).toHaveLength(1);
     expect(jobs.enqueued[0]).toMatchObject({
+      name: 'ingest-knowledge-source',
+      data: { sourceId, syncRunId: run?.id },
+    });
+  });
+
+  it('queues a failed source that only references documents and resets them', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    const ownerSourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+      status: KnowledgeSourceStatus.Ready,
+    });
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+      status: KnowledgeSourceStatus.Error,
+      lastErrorCode: 'UPSTREAM_FAILED',
+    });
+    const documentId = await seedKnowledgeDocument(
+      testbed,
+      workspaceId,
+      knowledgeBaseId,
+      ownerSourceId,
+    );
+    await seedSourceDocument(testbed, workspaceId, knowledgeBaseId, sourceId, documentId);
+    await testbed.tenants.run(workspaceId, () =>
+      documents.update(workspaceId, documentId, {
+        status: KnowledgeDocumentStatus.Error,
+        errorCode: 'UPSTREAM_FAILED',
+        errorMessage: 'An external service failed.',
+      }),
+    );
+
+    await retryKnowledgeSource.execute(knowledgeCtx(workspaceId), {
+      id: publicKnowledgeSourceId(testbed, sourceId),
+    });
+
+    const source = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    const document = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    const run = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findLatestBySource(workspaceId, sourceId),
+    );
+
+    expect(source).toMatchObject({
+      status: KnowledgeSourceStatus.Pending,
+      lastErrorCode: null,
+    });
+    expect(document).toMatchObject({
+      status: KnowledgeDocumentStatus.Pending,
+      errorCode: null,
+    });
+    expect(run).toMatchObject({
+      status: KnowledgeSyncStatus.Queued,
+      trigger: KnowledgeSyncTrigger.Manual,
+      documentsTotal: 1,
+    });
+    expect(jobs.enqueued.at(-1)).toMatchObject({
       name: 'ingest-knowledge-source',
       data: { sourceId, syncRunId: run?.id },
     });

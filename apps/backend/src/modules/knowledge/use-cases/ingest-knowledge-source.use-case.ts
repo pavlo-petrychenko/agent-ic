@@ -6,6 +6,7 @@ import {
   KnowledgeDocumentStatus,
   KnowledgeSourceStatus,
   KnowledgeSyncStatus,
+  KnowledgeSyncTrigger,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import {
   isConnectionFailure,
@@ -200,7 +201,11 @@ export class IngestKnowledgeSourceUseCase {
         });
         return null;
       }
-      const documents = await this.documents.listOwnedBySource(workspaceId, source.id);
+      const ownedDocuments = await this.documents.listOwnedBySource(workspaceId, source.id);
+      const documents =
+        ownedDocuments.length === 0 && syncRun.trigger === KnowledgeSyncTrigger.Manual
+          ? await this.documents.listBySource(workspaceId, source.id)
+          : ownedDocuments;
       const connection =
         source.connectionId === null
           ? null
