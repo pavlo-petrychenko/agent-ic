@@ -11,6 +11,7 @@ query KnowledgeSources($knowledgeBaseId: ID!) {
     lastSyncAt
     lastErrorCode
     lastErrorMessage
+    staleDocumentCount
     documentCount
     chunkCount
     createdAt

@@ -92,15 +92,29 @@ export function KnowledgeSourcesSection({
   const onActionResult = useCallback(
     ({ action, source, succeeded }: KnowledgeSourceActionResult) => {
       const reason = failureMessage(source.lastErrorCode) ?? t('sources.status.errorDetail');
-      const message =
-        action === 'sync'
-          ? succeeded
-            ? t('sources.sync.finished', { name: source.title })
-            : t('sources.sync.resultFailed', { name: source.title, reason })
-          : succeeded
-            ? t('sources.retry.finished', { name: source.title })
+      const staleCount = source.staleDocumentCount;
+      let message: string;
+      let tone: ToastTone;
+      if (!succeeded) {
+        message =
+          action === 'sync'
+            ? t('sources.sync.resultFailed', { name: source.title, reason })
             : t('sources.retry.resultFailed', { name: source.title, reason });
-      showToast({ message, tone: succeeded ? ToastTone.Ok : ToastTone.Err });
+        tone = ToastTone.Err;
+      } else if (staleCount > 0) {
+        message =
+          action === 'sync'
+            ? t('sources.sync.finishedStale', { name: source.title, count: staleCount })
+            : t('sources.retry.finishedStale', { name: source.title, count: staleCount });
+        tone = ToastTone.Info;
+      } else {
+        message =
+          action === 'sync'
+            ? t('sources.sync.finished', { name: source.title })
+            : t('sources.retry.finished', { name: source.title });
+        tone = ToastTone.Ok;
+      }
+      showToast({ message, tone });
     },
     [failureMessage, showToast, t],
   );

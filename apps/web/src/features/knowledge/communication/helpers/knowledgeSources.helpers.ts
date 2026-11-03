@@ -1,6 +1,9 @@
 import type { KnowledgeSourceDetailQuery } from '@/features/knowledge/communication/gql/query/knowledgeSourceDetail.generated';
 import type { KnowledgeSourcesQuery } from '@/features/knowledge/communication/gql/query/knowledgeSources.generated';
-import { KnowledgeDocumentStatus } from '@/features/knowledge/constants/knowledgeDocument.constants';
+import {
+  KnowledgeDocumentStaleReason,
+  KnowledgeDocumentStatus,
+} from '@/features/knowledge/constants/knowledgeDocument.constants';
 import {
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
@@ -12,6 +15,7 @@ import type {
   KnowledgeSourceDocument,
 } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import {
+  KnowledgeDocumentStaleReason as GraphqlKnowledgeDocumentStaleReason,
   KnowledgeDocumentStatus as GraphqlKnowledgeDocumentStatus,
   KnowledgeSourceKind as GraphqlKnowledgeSourceKind,
   KnowledgeSourceStatus as GraphqlKnowledgeSourceStatus,
@@ -45,6 +49,14 @@ const DOCUMENT_STATUS: Readonly<Record<GraphqlKnowledgeDocumentStatus, Knowledge
   [GraphqlKnowledgeDocumentStatus.Removed]: KnowledgeDocumentStatus.Removed,
 };
 
+const STALE_REASON: Readonly<
+  Record<GraphqlKnowledgeDocumentStaleReason, KnowledgeDocumentStaleReason>
+> = {
+  [GraphqlKnowledgeDocumentStaleReason.Missing]: KnowledgeDocumentStaleReason.Missing,
+  [GraphqlKnowledgeDocumentStaleReason.Trashed]: KnowledgeDocumentStaleReason.Trashed,
+  [GraphqlKnowledgeDocumentStaleReason.Gone]: KnowledgeDocumentStaleReason.Gone,
+};
+
 export const toKnowledgeSource = (source: GraphqlKnowledgeSource): KnowledgeSource => ({
   ...source,
   kind: KIND[source.kind],
@@ -60,6 +72,7 @@ const toKnowledgeSourceDocument = (
 ): KnowledgeSourceDocument => ({
   ...document,
   status: DOCUMENT_STATUS[document.status],
+  staleReason: document.staleReason === null ? null : STALE_REASON[document.staleReason],
 });
 
 export const toKnowledgeSourceDetail = (

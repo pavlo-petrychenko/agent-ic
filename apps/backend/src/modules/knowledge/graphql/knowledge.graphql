@@ -188,6 +188,12 @@ enum KnowledgeDocumentStatus {
   removed
 }
 
+enum KnowledgeDocumentStaleReason {
+  missing
+  trashed
+  gone
+}
+
 enum KnowledgeSyncInterval {
   hourly
   daily
@@ -206,6 +212,7 @@ type KnowledgeSource {
   lastSyncAt: String
   lastErrorCode: String
   lastErrorMessage: String
+  staleDocumentCount: Int!
   documentCount: Int!
   chunkCount: Int!
   createdAt: String!
@@ -222,6 +229,8 @@ type KnowledgeSourceDocument {
   id: ID!
   title: String!
   status: KnowledgeDocumentStatus!
+  stale: Boolean!
+  staleReason: KnowledgeDocumentStaleReason
   summary: String
   errorCode: String
   errorMessage: String

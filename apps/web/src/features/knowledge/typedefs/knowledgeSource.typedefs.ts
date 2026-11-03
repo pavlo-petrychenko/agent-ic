@@ -1,4 +1,7 @@
-import type { KnowledgeDocumentStatus } from '@/features/knowledge/constants/knowledgeDocument.constants';
+import type {
+  KnowledgeDocumentStaleReason,
+  KnowledgeDocumentStatus,
+} from '@/features/knowledge/constants/knowledgeDocument.constants';
 import type {
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
@@ -18,6 +21,7 @@ export interface KnowledgeSource {
   readonly lastSyncAt: string | null;
   readonly lastErrorCode: string | null;
   readonly lastErrorMessage: string | null;
+  readonly staleDocumentCount: number;
   readonly documentCount: number;
   readonly chunkCount: number;
   readonly createdAt: string;
@@ -37,6 +41,7 @@ export interface KnowledgeSourceRowView {
   readonly canSync: boolean;
   readonly statusLabel: string;
   readonly statusDetail: string | null;
+  readonly staleDocumentCount: number;
 }
 
 export interface KnowledgeSourceTarget {
@@ -56,6 +61,8 @@ export interface KnowledgeSourceDocument {
   readonly id: string;
   readonly title: string;
   readonly status: KnowledgeDocumentStatus;
+  readonly stale: boolean;
+  readonly staleReason: KnowledgeDocumentStaleReason | null;
   readonly summary: string | null;
   readonly errorCode: string | null;
   readonly errorMessage: string | null;

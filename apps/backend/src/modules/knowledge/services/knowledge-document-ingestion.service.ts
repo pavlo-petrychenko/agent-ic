@@ -12,12 +12,15 @@ import {
   KNOWLEDGE_STORAGE_DELETE_FAILED_MESSAGE,
 } from '@/modules/knowledge/constants/knowledge-storage.constants';
 import {
+  KnowledgeDocumentIngestionOutcome,
   KnowledgeDocumentStatus,
+  KnowledgeDocumentStaleReason,
   KnowledgeSummarySource,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { DocumentParseError } from '@/modules/knowledge/errors/document-parse.error';
 import {
   GoogleDriveExportTooLargeError,
+  GoogleDriveFileRemovedError,
   GoogleDriveFileUnavailableError,
 } from '@/modules/knowledge/errors/google-drive.error';
 import { bm25TermFrequencies } from '@/modules/knowledge/helpers/bm25.helpers';
@@ -74,8 +77,23 @@ export class KnowledgeDocumentIngestionService {
   ) {}
 
   async ingest(input: DocumentIngestionInput): Promise<DocumentIngestionResult> {
-    const { workspaceId, knowledgeBase, document } = input;
+    try {
+      return await this.ingestDocument(input);
+    } catch (error) {
+      if (error instanceof GoogleDriveFileRemovedError) {
+        return this.markStale(input, error.staleReason);
+      }
+      throw error;
+    }
+  }
+
+  private async ingestDocument(input: DocumentIngestionInput): Promise<DocumentIngestionResult> {
+    const { workspaceId, knowledgeBase } = input;
+    let document = input.document;
     const googleSnapshot = await this.loadGoogleDocsSnapshot(input);
+    if (googleSnapshot !== null && document.staleAt !== null) {
+      document = (await this.clearStale(workspaceId, document)) ?? document;
+    }
     const providerUnchanged =
       googleSnapshot !== null && googleDocsProviderUnchanged(document, googleSnapshot.file);
     if (
@@ -83,7 +101,7 @@ export class KnowledgeDocumentIngestionService {
       document.status === KnowledgeDocumentStatus.Indexed &&
       this.hasSummary(document)
     ) {
-      return { skipped: true };
+      return { outcome: KnowledgeDocumentIngestionOutcome.Skipped };
     }
     const original = await this.loadOriginal(input, googleSnapshot, providerUnchanged);
     const parsed = await this.parser.parse({
@@ -101,7 +119,7 @@ export class KnowledgeDocumentIngestionService {
     const summary = await this.summaryFor(document, parsed, sections, unchanged);
     if (unchanged && summary === null) {
       await this.adoptSkippedOriginal(workspaceId, document, original);
-      return { skipped: true };
+      return { outcome: KnowledgeDocumentIngestionOutcome.Skipped };
     }
 
     await input.onIndexing();
@@ -201,6 +219,8 @@ export class KnowledgeDocumentIngestionService {
         status: KnowledgeDocumentStatus.Indexed,
         activeGeneration: generation,
         lastIndexedAt: now,
+        staleAt: null,
+        staleReason: null,
         errorCode: null,
         errorMessage: null,
         ...(original.googleFile === null
@@ -230,7 +250,45 @@ export class KnowledgeDocumentIngestionService {
 
     await this.deleteObjectIfChanged(document.originalStorageKey, original.storageKey);
     await this.deleteObjectIfChanged(document.contentStorageKey, contentStorageKey);
-    return { skipped: false };
+    return { outcome: KnowledgeDocumentIngestionOutcome.Indexed };
+  }
+
+  private async markStale(
+    input: DocumentIngestionInput,
+    reason: KnowledgeDocumentStaleReason,
+  ): Promise<DocumentIngestionResult> {
+    const { workspaceId, document } = input;
+    if (
+      document.status !== KnowledgeDocumentStatus.Indexed ||
+      document.activeGeneration <= 0 ||
+      document.contentStorageKey === null
+    ) {
+      throw DocumentParseError.unreadable(new GoogleDriveFileRemovedError(reason));
+    }
+    const updated = await this.tenants.run(workspaceId, () =>
+      this.documents.update(workspaceId, document.id, {
+        staleAt: document.staleAt ?? this.clock.now(),
+        staleReason: reason,
+        errorCode: null,
+        errorMessage: null,
+      }),
+    );
+    if (updated === null) {
+      throw new GoogleDriveFileRemovedError(reason);
+    }
+    return { outcome: KnowledgeDocumentIngestionOutcome.Stale };
+  }
+
+  private async clearStale(
+    workspaceId: string,
+    document: DocumentIngestionInput['document'],
+  ): Promise<DocumentIngestionInput['document'] | null> {
+    return this.tenants.run(workspaceId, () =>
+      this.documents.update(workspaceId, document.id, {
+        staleAt: null,
+        staleReason: null,
+      }),
+    );
   }
 
   private async loadOriginal(
@@ -315,6 +373,9 @@ export class KnowledgeDocumentIngestionService {
   }
 
   private googleDocsParseError(error: unknown): unknown {
+    if (error instanceof GoogleDriveFileRemovedError) {
+      return error;
+    }
     if (error instanceof GoogleDriveFileUnavailableError) {
       return DocumentParseError.unreadable(error);
     }

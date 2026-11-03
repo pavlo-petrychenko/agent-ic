@@ -54,6 +54,7 @@ const SOURCE = {
   lastSyncAt: null,
   lastErrorCode: null,
   lastErrorMessage: null,
+  staleDocumentCount: 0,
   documentCount: 0,
   chunkCount: 0,
   createdAt: '2026-10-26T09:00:00.000Z',

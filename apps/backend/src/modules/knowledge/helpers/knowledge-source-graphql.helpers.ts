@@ -1,4 +1,5 @@
 import {
+  KnowledgeDocumentStaleReason,
   KnowledgeDocumentStatus,
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
@@ -11,6 +12,7 @@ import type {
   KnowledgeSourceView,
 } from '@/modules/knowledge/typedefs/source.typedefs';
 import {
+  KnowledgeDocumentStaleReason as GraphqlKnowledgeDocumentStaleReason,
   KnowledgeDocumentStatus as GraphqlKnowledgeDocumentStatus,
   KnowledgeSourceKind as GraphqlKnowledgeSourceKind,
   KnowledgeSourceStatus as GraphqlKnowledgeSourceStatus,
@@ -48,6 +50,14 @@ const DOCUMENT_STATUS: Readonly<Record<KnowledgeDocumentStatus, GraphqlKnowledge
   [KnowledgeDocumentStatus.Removed]: GraphqlKnowledgeDocumentStatus.Removed,
 };
 
+const STALE_REASON: Readonly<
+  Record<KnowledgeDocumentStaleReason, GraphqlKnowledgeDocumentStaleReason>
+> = {
+  [KnowledgeDocumentStaleReason.Missing]: GraphqlKnowledgeDocumentStaleReason.Missing,
+  [KnowledgeDocumentStaleReason.Trashed]: GraphqlKnowledgeDocumentStaleReason.Trashed,
+  [KnowledgeDocumentStaleReason.Gone]: GraphqlKnowledgeDocumentStaleReason.Gone,
+};
+
 export const toGraphqlKnowledgeSource = (source: KnowledgeSourceView): GraphqlKnowledgeSource => ({
   id: source.id,
   knowledgeBaseId: source.knowledgeBaseId,
@@ -60,6 +70,7 @@ export const toGraphqlKnowledgeSource = (source: KnowledgeSourceView): GraphqlKn
   lastSyncAt: source.lastSyncAt?.toISOString() ?? null,
   lastErrorCode: source.lastErrorCode,
   lastErrorMessage: source.lastErrorMessage,
+  staleDocumentCount: source.staleDocumentCount,
   documentCount: source.documentCount,
   chunkCount: source.chunkCount,
   createdAt: source.createdAt.toISOString(),
@@ -76,6 +87,8 @@ export const toGraphqlKnowledgeSourceDocument = (
   id: document.id,
   title: document.title,
   status: DOCUMENT_STATUS[document.status],
+  stale: document.stale,
+  staleReason: document.staleReason === null ? null : STALE_REASON[document.staleReason],
   summary: document.summary,
   errorCode: document.errorCode,
   errorMessage: document.errorMessage,

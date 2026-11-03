@@ -2,8 +2,10 @@ import { KNOWLEDGE_DOCUMENT_MAX_BYTES } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { GOOGLE_DRIVE_DOCUMENT_MIME_TYPE } from '@/modules/knowledge/constants/google-drive.constants';
 import { KNOWLEDGE_CANONICAL_MARKDOWN_MIME_TYPE } from '@/modules/knowledge/constants/knowledge-storage.constants';
+import { KnowledgeDocumentStaleReason } from '@/modules/knowledge/constants/knowledge.constants';
 import {
   GoogleDriveExportTooLargeError,
+  GoogleDriveFileRemovedError,
   GoogleDriveFileUnavailableError,
 } from '@/modules/knowledge/errors/google-drive.error';
 import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.gateway';
@@ -36,7 +38,10 @@ export class GoogleDocsContentService {
       document.externalId,
       document.externalResourceKey,
     );
-    if (file.trashed || file.mimeType !== GOOGLE_DRIVE_DOCUMENT_MIME_TYPE) {
+    if (file.trashed) {
+      throw new GoogleDriveFileRemovedError(KnowledgeDocumentStaleReason.Trashed);
+    }
+    if (file.mimeType !== GOOGLE_DRIVE_DOCUMENT_MIME_TYPE) {
       throw new GoogleDriveFileUnavailableError();
     }
     return { file, accessToken };

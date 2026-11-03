@@ -12,6 +12,7 @@ query KnowledgeSourceDetail($id: ID!) {
       lastSyncAt
       lastErrorCode
       lastErrorMessage
+      staleDocumentCount
       documentCount
       chunkCount
       createdAt
@@ -26,6 +27,8 @@ query KnowledgeSourceDetail($id: ID!) {
       id
       title
       status
+      stale
+      staleReason
       summary
       errorCode
       errorMessage

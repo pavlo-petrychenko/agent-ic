@@ -1,5 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { KnowledgeDocumentStatus } from '@/features/knowledge/constants/knowledgeDocument.constants';
+import {
+  KnowledgeDocumentStaleReason,
+  KnowledgeDocumentStatus,
+} from '@/features/knowledge/constants/knowledgeDocument.constants';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import {
   KnowledgeSourceKind,
@@ -14,7 +17,7 @@ import { STATUS_TONES } from '@/features/knowledge/view/KnowledgeSourcesTable/Kn
 import { KnowledgeConnectionStatus } from '@/shared/api/generated/schema.generated';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { IconButton, IconButtonSize, IconButtonVariant } from '@/shared/ui/actions/IconButton';
-import { Badge } from '@/shared/ui/display/Badge';
+import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { Skeleton } from '@/shared/ui/display/Skeleton';
 import { Icon, IconName } from '@/shared/ui/foundations/Icon';
@@ -114,6 +117,11 @@ export function KnowledgeSourceDetails({
     }
     return t('sources.details.summaryEmpty');
   };
+
+  const documentStaleMessage = (document: KnowledgeSourceDocumentView): string =>
+    document.staleReason === KnowledgeDocumentStaleReason.Trashed
+      ? t('sources.details.staleTrashed')
+      : t('sources.details.staleMissing');
 
   return (
     <div className={styles.root}>
@@ -232,6 +240,14 @@ export function KnowledgeSourceDetails({
                   {sourceFailureMessage ?? t('sources.details.sourceFailed')}
                 </Callout>
               ) : null}
+
+              {source.staleDocumentCount > 0 ? (
+                <Callout tone={CalloutTone.Warn}>
+                  {t('sources.details.staleNotice', {
+                    count: source.staleDocumentCount,
+                  })}
+                </Callout>
+              ) : null}
             </section>
 
             <section className={styles.documentsSection}>
@@ -255,8 +271,15 @@ export function KnowledgeSourceDetails({
                           <Icon name={IconName.Note} size={DOCUMENT_ICON_SIZE} />
                           <span>{document.title}</span>
                         </span>
-                        <Badge tone={DOCUMENT_STATUS_TONES[document.status]} dot>
-                          {documentStatusLabel(document.status)}
+                        <Badge
+                          tone={
+                            document.stale ? BadgeTone.Warn : DOCUMENT_STATUS_TONES[document.status]
+                          }
+                          dot
+                        >
+                          {document.stale
+                            ? t('sources.status.staleLabel')
+                            : documentStatusLabel(document.status)}
                         </Badge>
                       </div>
                       <div className={styles.documentMeta}>
@@ -272,6 +295,9 @@ export function KnowledgeSourceDetails({
                       >
                         {documentSummary(document)}
                       </p>
+                      {document.stale ? (
+                        <p className={styles.documentStale}>{documentStaleMessage(document)}</p>
+                      ) : null}
                     </li>
                   ))}
                 </ul>

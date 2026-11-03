@@ -13,6 +13,7 @@ import {
 } from '@/modules/knowledge/constants/knowledge.constants';
 import {
   GoogleDocsSelectionInvalidError,
+  GoogleDriveFileRemovedError,
   GoogleDriveFileUnavailableError,
 } from '@/modules/knowledge/errors/google-drive.error';
 import { KnowledgeBaseNotFoundError } from '@/modules/knowledge/errors/knowledge-base-not-found.error';
@@ -168,7 +169,10 @@ export class CreateGoogleDocsSourceUseCase {
     try {
       return await this.drive.file(accessToken, picked.id, picked.resourceKey);
     } catch (error) {
-      if (error instanceof GoogleDriveFileUnavailableError) {
+      if (
+        error instanceof GoogleDriveFileUnavailableError ||
+        error instanceof GoogleDriveFileRemovedError
+      ) {
         return null;
       }
       throw error;

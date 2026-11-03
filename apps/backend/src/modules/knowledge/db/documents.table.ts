@@ -13,6 +13,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
+import type { KnowledgeDocumentStaleReason } from '@/modules/knowledge/constants/knowledge.constants';
 import { knowledgeBases } from '@/modules/knowledge/db/knowledge-bases.table';
 import {
   knowledgeDocumentStatusEnum,
@@ -60,6 +61,8 @@ export const documents = knowledgeSchema
       status: knowledgeDocumentStatusEnum('status').notNull(),
       activeGeneration: integer('active_generation').notNull().default(0),
       lastIndexedAt: timestamp('last_indexed_at', { withTimezone: true }),
+      staleAt: timestamp('stale_at', { withTimezone: true }),
+      staleReason: text('stale_reason').$type<KnowledgeDocumentStaleReason>(),
       errorCode: text('error_code'),
       errorMessage: text('error_message'),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),

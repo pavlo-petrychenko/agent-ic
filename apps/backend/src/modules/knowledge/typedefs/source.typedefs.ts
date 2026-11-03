@@ -1,4 +1,5 @@
 import type {
+  KnowledgeDocumentStaleReason,
   KnowledgeDocumentStatus,
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
@@ -25,6 +26,7 @@ export interface KnowledgeSourceView {
   readonly lastSyncAt: Date | null;
   readonly lastErrorCode: string | null;
   readonly lastErrorMessage: string | null;
+  readonly staleDocumentCount: number;
   readonly documentCount: number;
   readonly chunkCount: number;
   readonly createdAt: Date;
@@ -43,6 +45,8 @@ export interface KnowledgeSourceDocumentView {
   readonly id: string;
   readonly title: string;
   readonly status: KnowledgeDocumentStatus;
+  readonly stale: boolean;
+  readonly staleReason: KnowledgeDocumentStaleReason | null;
   readonly summary: string | null;
   readonly errorCode: string | null;
   readonly errorMessage: string | null;

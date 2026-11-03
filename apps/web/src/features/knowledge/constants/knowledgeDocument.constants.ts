@@ -5,3 +5,9 @@ export enum KnowledgeDocumentStatus {
   Error = 'error',
   Removed = 'removed',
 }
+
+export enum KnowledgeDocumentStaleReason {
+  Missing = 'missing',
+  Trashed = 'trashed',
+  Gone = 'gone',
+}

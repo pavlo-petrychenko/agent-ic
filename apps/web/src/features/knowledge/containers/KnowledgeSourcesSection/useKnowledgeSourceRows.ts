@@ -111,6 +111,7 @@ export function useKnowledgeSourceRows(
       canSync: canSyncKnowledgeSource(source, connectionActive(source)),
       statusLabel: statusLabel(source.status),
       statusDetail: statusDetail(source),
+      staleDocumentCount: source.staleDocumentCount,
     }));
   }, [connectionStatuses, failureSummary, i18n.language, sources, t]);
 }
