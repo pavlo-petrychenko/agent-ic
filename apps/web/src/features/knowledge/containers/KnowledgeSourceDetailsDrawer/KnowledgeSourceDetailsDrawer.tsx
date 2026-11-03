@@ -2,11 +2,15 @@ import { ErrorReason } from '@agent-ic/contracts';
 import { useTranslation } from 'react-i18next';
 import { useKnowledgeSourceDetail } from '@/features/knowledge/communication/hooks/useKnowledgeSourceDetail';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
-import { KnowledgeSourceKind } from '@/features/knowledge/constants/knowledgeSource.constants';
+import {
+  KnowledgeSourceKind,
+  KnowledgeSourceStatus,
+} from '@/features/knowledge/constants/knowledgeSource.constants';
 import { KNOWLEDGE_SOURCE_DETAILS_DRAWER_WIDTH } from '@/features/knowledge/containers/KnowledgeSourceDetailsDrawer/KnowledgeSourceDetailsDrawer.constants';
 import type { KnowledgeSourceDetailsDrawerProps } from '@/features/knowledge/containers/KnowledgeSourceDetailsDrawer/KnowledgeSourceDetailsDrawer.typedefs';
 import { isGoogleConnectionActive } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import {
+  canSyncKnowledgeSource,
   formatKnowledgeSourceDate,
   isKnowledgeSourceRetryable,
 } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
@@ -22,7 +26,9 @@ export function KnowledgeSourceDetailsDrawer({
   sourceId,
   canManage,
   retrying,
+  syncing,
   onClose,
+  onSync,
   onRename,
   onRetry,
   onDelete,
@@ -62,12 +68,25 @@ export function KnowledgeSourceDetailsDrawer({
     detail !== null &&
     connectionActive &&
     isKnowledgeSourceRetryable(detail.source.status, detail.source.lastErrorCode);
+  const canSync = detail !== null && canSyncKnowledgeSource(detail.source, connectionActive);
   const addedLabel =
     detail === null
       ? null
       : t('sources.sync.added', {
           date: formatKnowledgeSourceDate(detail.source.createdAt, i18n.language),
         });
+  const lastSyncedLabel =
+    detail === null ||
+    detail.source.kind !== KnowledgeSourceKind.GoogleDocs ||
+    detail.source.lastSyncAt === null
+      ? null
+      : detail.source.status === KnowledgeSourceStatus.Error
+        ? t('sources.sync.failed', {
+            date: formatKnowledgeSourceDate(detail.source.lastSyncAt, i18n.language),
+          })
+        : t('sources.sync.lastSynced', {
+            date: formatKnowledgeSourceDate(detail.source.lastSyncAt, i18n.language),
+          });
 
   return (
     <Drawer
@@ -97,11 +116,15 @@ export function KnowledgeSourceDetailsDrawer({
         loading={loading}
         failed={failed}
         retrying={retrying}
+        syncing={syncing}
         canManage={canManage}
         canRetry={canRetry}
+        canSync={canSync}
         addedLabel={addedLabel}
+        lastSyncedLabel={lastSyncedLabel}
         onReload={() => void retry()}
         onClose={onClose}
+        onSync={canManage && canSync && target !== null ? () => onSync?.(target) : null}
         onRename={canManage && target !== null ? () => onRename(target) : null}
         onRetry={canManage && canRetry && target !== null ? () => onRetry(target) : null}
         onDelete={canManage && target !== null ? () => onDelete(target) : null}

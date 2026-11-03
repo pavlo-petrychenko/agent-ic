@@ -126,7 +126,10 @@
     "sync": {
       "oneTime": "One-time import",
       "connected": "Connected",
-      "added": "Added {{date}}"
+      "added": "Added {{date}}",
+      "lastSynced": "Synced {{date}}",
+      "failed": "Failed {{date}}",
+      "started": "Checking “{{name}}” for changes…"
     },
     "status": {
       "queued": "Queued",
@@ -168,6 +171,7 @@
     "menu": {
       "label": "Source actions",
       "trigger": "Actions for “{{name}}”",
+      "syncNow": "Sync now",
       "rename": "Rename",
       "delete": "Delete source",
       "deleteBusy": "Wait for indexing to finish",

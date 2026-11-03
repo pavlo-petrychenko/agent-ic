@@ -8,6 +8,7 @@ import {
 } from '@/features/knowledge/constants/knowledgeSource.constants';
 import { isGoogleConnectionActive } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import {
+  canSyncKnowledgeSource,
   formatKnowledgeSourceDate,
   isKnowledgeSourceActive,
   isKnowledgeSourceRetryable,
@@ -76,21 +77,38 @@ export function useKnowledgeSourceRows(
       }
     };
 
+    const syncDetail = (source: KnowledgeSource): string => {
+      const date = (iso: string): string => formatKnowledgeSourceDate(iso, i18n.language);
+      if (source.status === KnowledgeSourceStatus.Error) {
+        return t('sources.sync.failed', {
+          date: date(source.lastSyncAt ?? source.createdAt),
+        });
+      }
+      if (source.kind === KnowledgeSourceKind.Upload || source.lastSyncAt === null) {
+        return t('sources.sync.added', {
+          date: date(source.createdAt),
+        });
+      }
+      return t('sources.sync.lastSynced', {
+        date: date(source.lastSyncAt),
+      });
+    };
+
     return sources.map((source) => ({
       id: source.id,
       title: source.title,
+      kind: source.kind,
       kindLabel: kindLabel(source.kind),
       syncLabel:
         source.kind === KnowledgeSourceKind.Upload
           ? t('sources.sync.oneTime')
           : t('sources.sync.connected'),
-      syncDetail: t('sources.sync.added', {
-        date: formatKnowledgeSourceDate(source.createdAt, i18n.language),
-      }),
+      syncDetail: syncDetail(source),
       status: source.status,
       isActive: isKnowledgeSourceActive(source.status),
       canRetry:
         isKnowledgeSourceRetryable(source.status, source.lastErrorCode) && connectionActive(source),
+      canSync: canSyncKnowledgeSource(source, connectionActive(source)),
       statusLabel: statusLabel(source.status),
       statusDetail: statusDetail(source),
     }));
