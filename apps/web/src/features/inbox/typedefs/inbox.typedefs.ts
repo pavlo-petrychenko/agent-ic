@@ -200,6 +200,24 @@ export interface InboxTakeOverFooter {
 
 export type InboxConversationFooter = InboxComposerFooter | InboxNoteFooter | InboxTakeOverFooter;
 
+export interface InboxActionSpec {
+  readonly id: string;
+  readonly variant: ButtonVariant;
+  readonly icon: IconName | null;
+  readonly label: (conversation: InboxConversation, t: InboxTranslate) => string;
+}
+
+export type InboxBannerResolver = (
+  conversation: InboxConversation,
+  t: InboxTranslate,
+) => InboxConversationBanner | null;
+
+export type InboxFooterResolver = (
+  conversation: InboxConversation,
+  context: InboxFooterContext,
+  t: InboxTranslate,
+) => InboxConversationFooter;
+
 export interface InboxConversationProps {
   readonly name: string;
   readonly initials: string;

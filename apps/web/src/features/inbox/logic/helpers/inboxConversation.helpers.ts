@@ -6,11 +6,14 @@ import {
   InboxReplyState,
 } from '@/features/inbox/constants/inbox.constants';
 import type {
+  InboxActionSpec,
+  InboxBannerResolver,
   InboxConversation,
   InboxConversationAction,
   InboxConversationBanner,
   InboxConversationFooter,
   InboxFooterContext,
+  InboxFooterResolver,
   InboxMessage,
   InboxStoredDividerMessage,
   InboxStoredMessage,
@@ -23,24 +26,6 @@ import { IconName } from '@/shared/ui/foundations/Icon';
 const CLOSE_ACTION_ID = 'close';
 const HAND_BACK_ACTION_ID = 'hand-back';
 const TAKE_OVER_ACTION_ID = 'take-over';
-
-interface InboxActionSpec {
-  readonly id: string;
-  readonly variant: ButtonVariant;
-  readonly icon: IconName | null;
-  readonly label: (conversation: InboxConversation, t: InboxTranslate) => string;
-}
-
-type InboxBannerResolver = (
-  conversation: InboxConversation,
-  t: InboxTranslate,
-) => InboxConversationBanner | null;
-
-type InboxFooterResolver = (
-  conversation: InboxConversation,
-  context: InboxFooterContext,
-  t: InboxTranslate,
-) => InboxConversationFooter;
 
 const action = (
   id: string,
