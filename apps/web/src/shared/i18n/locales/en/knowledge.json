@@ -253,6 +253,22 @@
       "resultFailed": "Retry failed for “{{name}}”: {{reason}}"
     }
   },
+  "playground": {
+    "title": "Retrieval playground",
+    "topKLabel": "Number of results",
+    "topKOption_one": "Top {{count}} result",
+    "topKOption_other": "Top {{count}} results",
+    "queryLabel": "Search query",
+    "placeholder": "Ask what a customer would ask",
+    "search": "Search",
+    "clear": "Clear query",
+    "hint": "Search this knowledge base to see what an agent would receive.",
+    "empty": "No matching sections. Try different wording or add a source.",
+    "scoreTitle": "Relative relevance",
+    "showMore": "Show full section",
+    "showLess": "Show less",
+    "note": "This is what an agent gets back when it searches this knowledge base with the query."
+  },
   "delete": {
     "action": "Delete",
     "title": "Delete “{{name}}”?",
