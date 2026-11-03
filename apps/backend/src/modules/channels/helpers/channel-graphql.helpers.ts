@@ -59,6 +59,7 @@ export const toGraphqlApiChannelSecret = (
 ): GraphqlApiChannelSecret => ({
   channel: toGraphqlChannel(result.channel),
   secret: result.secret,
+  webhookSecret: result.webhookSecret,
 });
 
 export const toConnectTelegramInput = (

@@ -45,6 +45,7 @@ export class CreateApiChannelUseCase {
     );
 
     const secret = this.secureTokens.generate();
+    const webhookSecret = this.secureTokens.generate();
     const now = this.clock.now();
     const channelId = this.ids.generate();
     const channel: NewChannel = {
@@ -65,6 +66,7 @@ export class CreateApiChannelUseCase {
         secretKeyHint: apiChannelSecretHint(secret.token),
         previousSecretKeyHash: null,
         previousKeyExpiresAt: null,
+        webhookSigningSecret: webhookSecret.token,
       }),
       createdByUserId: access.userId,
       updatedByUserId: access.userId,
@@ -89,6 +91,7 @@ export class CreateApiChannelUseCase {
         endpoint: this.endpoint(channelId),
       }),
       secret: secret.token,
+      webhookSecret: webhookSecret.token,
     };
   }
 

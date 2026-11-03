@@ -52,6 +52,7 @@ describe('ApiChannelKeyVerifierService', () => {
                 options.previousExpiresAt ??
                 new Date(testbed.clock.now().getTime() + PREVIOUS_KEY_TTL_MS)
               ).toISOString(),
+        webhookSigningSecret: 'webhook-secret',
       }),
     });
     return { ...seeded, current, previous };

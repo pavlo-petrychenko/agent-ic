@@ -54,6 +54,8 @@
       "description": "{{name}} · API channel",
       "copyWarning": "Copy it now — we only show a key once. If you lose it, rotate it.",
       "keyLabel": "Secret key",
+      "webhookKeyLabel": "Webhook signing secret",
+      "webhookHint": "Use it to verify the X-Agent-IC-Signature header on webhook deliveries.",
       "copy": "Copy",
       "endpointLabel": "Endpoint",
       "rotationHint": "After a rotation the previous key keeps working for 24 h.",

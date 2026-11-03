@@ -10,9 +10,11 @@ import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/T
 export function ApiSecretKeyDialog({
   channelName,
   secret,
+  webhookSecret,
   endpoint,
   onOpenChange,
   onCopy,
+  onCopyWebhook,
   onDone,
 }: ApiSecretKeyDialogProps) {
   const { t } = useTranslation(CHANNELS_NAMESPACE);
@@ -40,6 +42,20 @@ export function ApiSecretKeyDialog({
             </ReadonlyValue>
             <Button onClick={onCopy}>{t('api.secret.copy')}</Button>
           </div>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Text as={TextElement.Span} kind={TextKind.Caption} color={TextColor.Mute}>
+            {t('api.secret.webhookKeyLabel')}
+          </Text>
+          <div className="flex items-start gap-2">
+            <ReadonlyValue mono className="min-w-0 flex-1">
+              {webhookSecret}
+            </ReadonlyValue>
+            <Button onClick={onCopyWebhook}>{t('api.secret.copy')}</Button>
+          </div>
+          <Text kind={TextKind.Small} color={TextColor.Mute}>
+            {t('api.secret.webhookHint')}
+          </Text>
         </div>
         <div className="flex flex-col gap-1.5">
           <Text as={TextElement.Span} kind={TextKind.Caption} color={TextColor.Mute}>

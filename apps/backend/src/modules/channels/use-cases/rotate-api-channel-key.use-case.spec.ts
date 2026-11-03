@@ -61,6 +61,8 @@ describe('RotateApiChannelKeyUseCase', () => {
     expect(credentials.previousKeyExpiresAt).toBe(
       new Date(testbed.clock.now().getTime() + API_CHANNEL_PREVIOUS_KEY_TTL_MS).toISOString(),
     );
+    expect(credentials.webhookSigningSecret).toBe('old-webhook-secret');
+    expect(result.webhookSecret).toBe('old-webhook-secret');
   });
 
   it('refuses a channel that is not an api channel', async () => {

@@ -65,6 +65,7 @@ describe('api channel message ingress', () => {
         secretKeyHint: 'hint',
         previousSecretKeyHash: null,
         previousKeyExpiresAt: null,
+        webhookSigningSecret: 'webhook-secret',
       }),
     });
     await app

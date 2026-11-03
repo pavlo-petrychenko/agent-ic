@@ -24,6 +24,7 @@ export function useCreateApiChannel(): UseCreateApiChannelResult {
       return {
         name: payload.channel.displayName,
         secret: payload.secret,
+        webhookSecret: payload.webhookSecret,
         endpoint:
           payload.channel.endpoint === null
             ? ''

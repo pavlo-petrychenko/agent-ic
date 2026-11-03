@@ -104,6 +104,7 @@ export const seedApiChannel = async (
       secretKeyHint: 'old…hash',
       previousSecretKeyHash: null,
       previousKeyExpiresAt: null,
+      webhookSigningSecret: 'old-webhook-secret',
     }),
     ...overrides,
   });

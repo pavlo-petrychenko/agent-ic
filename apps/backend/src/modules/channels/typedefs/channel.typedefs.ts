@@ -87,6 +87,7 @@ export interface UpdateChannelInput {
 export interface ApiChannelSecretResult {
   readonly channel: ChannelView;
   readonly secret: string;
+  readonly webhookSecret: string;
 }
 
 export interface ChannelIdInput {

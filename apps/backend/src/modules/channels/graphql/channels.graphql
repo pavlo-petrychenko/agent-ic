@@ -23,6 +23,7 @@ enum ApiReplyMode {
 type ApiChannelSecret {
   channel: Channel!
   secret: String!
+  webhookSecret: String!
 }
 
 enum ChannelStatus {
