@@ -64,6 +64,7 @@ export enum TestRedisPrefix {
   Channels = 'channels:',
   ChannelsWorker = 'channels-worker:',
   TelegramWebhook = 'telegram-webhook:',
+  ApiChannelIngress = 'api-channel-ingress:',
   Runs = 'runs:',
   RunExecution = 'run-execution:',
   RunBackgroundBranches = 'run-background-branches:',

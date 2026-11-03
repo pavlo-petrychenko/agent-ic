@@ -1,13 +1,16 @@
 import { AgentsModule } from '@/modules/agents';
 import { CHANNEL_ADAPTERS } from '@/modules/channels/constants/channel-adapter.constants';
+import { ApiChannelMessagesController } from '@/modules/channels/controllers/api-channel-messages.controller';
 import { TelegramWebhookController } from '@/modules/channels/controllers/telegram-webhook.controller';
 import type { ChannelAdapter } from '@/modules/channels/gateways/channel-adapter.gateway';
 import { HttpTelegramGateway } from '@/modules/channels/gateways/http-telegram.gateway';
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
 import { TelegramChannelAdapter } from '@/modules/channels/gateways/telegram-channel-adapter.gateway';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
+import { ApiChannelKeyGuard } from '@/modules/channels/guards/api-channel-key.guard';
 import { DeliverOutboundMessageListener } from '@/modules/channels/listeners/deliver-outbound-message.listener';
 import { CheckTelegramTokenHealthProcessor } from '@/modules/channels/processors/check-telegram-token-health.processor';
+import { ApiChannelIngressRepository } from '@/modules/channels/repositories/api-channel-ingress.repository';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { TelegramPollerRepository } from '@/modules/channels/repositories/telegram-poller.repository';
@@ -21,6 +24,8 @@ import { RefreshTelegramIdentityResolver } from '@/modules/channels/resolvers/re
 import { ReplaceTelegramTokenResolver } from '@/modules/channels/resolvers/replace-telegram-token.resolver';
 import { RotateApiChannelKeyResolver } from '@/modules/channels/resolvers/rotate-api-channel-key.resolver';
 import { UpdateChannelResolver } from '@/modules/channels/resolvers/update-channel.resolver';
+import { ApiChannelIngressService } from '@/modules/channels/services/api-channel-ingress.service';
+import { ApiChannelKeyVerifierService } from '@/modules/channels/services/api-channel-key-verifier.service';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
 import { ChannelConnectionService } from '@/modules/channels/services/channel-connection.service';
 import { ChannelHealthService } from '@/modules/channels/services/channel-health.service';
@@ -37,6 +42,7 @@ import { DeleteChannelUseCase } from '@/modules/channels/use-cases/delete-channe
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
 import { DisconnectTelegramUseCase } from '@/modules/channels/use-cases/disconnect-telegram.use-case';
 import { GetChannelUseCase } from '@/modules/channels/use-cases/get-channel.use-case';
+import { HandleApiChannelMessageUseCase } from '@/modules/channels/use-cases/handle-api-channel-message.use-case';
 import { HandleTelegramWebhookUseCase } from '@/modules/channels/use-cases/handle-telegram-webhook.use-case';
 import { ListChannelsUseCase } from '@/modules/channels/use-cases/list-channels.use-case';
 import { ReconnectTelegramUseCase } from '@/modules/channels/use-cases/reconnect-telegram.use-case';
@@ -54,8 +60,12 @@ export class ChannelsModule extends defineModule({
     ChannelsRepository,
     ChannelEventsRepository,
     TelegramPollerRepository,
+    ApiChannelIngressRepository,
     ChannelTokenService,
     ChannelConnectionService,
+    ApiChannelIngressService,
+    ApiChannelKeyVerifierService,
+    ApiChannelKeyGuard,
     ChannelHealthService,
     TelegramChannelService,
     TelegramPollerService,
@@ -87,6 +97,7 @@ export class ChannelsModule extends defineModule({
     ReplaceTelegramTokenUseCase,
     DeliverOutboundMessageUseCase,
     HandleTelegramWebhookUseCase,
+    HandleApiChannelMessageUseCase,
     CheckTelegramTokenHealthUseCase,
     CreateApiChannelUseCase,
     RotateApiChannelKeyUseCase,
@@ -104,7 +115,7 @@ export class ChannelsModule extends defineModule({
     RotateApiChannelKeyResolver,
     UpdateChannelResolver,
   ],
-  gatewayControllers: [TelegramWebhookController],
+  gatewayControllers: [TelegramWebhookController, ApiChannelMessagesController],
   listeners: [DeliverOutboundMessageListener],
   processors: [CheckTelegramTokenHealthProcessor],
   exports: [SimulatedChannelAdapter, TelegramChannelAdapter, ChannelAdapterRegistryService],

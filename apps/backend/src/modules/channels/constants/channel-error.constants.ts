@@ -6,3 +6,4 @@ export const TELEGRAM_TOKEN_INVALID_MESSAGE = 'Telegram rejected the bot token.'
 export const TELEGRAM_WEBHOOK_UNAUTHORIZED_MESSAGE = 'The Telegram webhook secret is not valid.';
 export const CHANNEL_RECONNECT_IN_PROGRESS_MESSAGE = 'This channel is already connecting.';
 export const INVALID_CHANNEL_INPUT_MESSAGE = 'Some channel fields are not valid.';
+export const API_CHANNEL_KEY_INVALID_MESSAGE = 'The API channel key is not valid.';
