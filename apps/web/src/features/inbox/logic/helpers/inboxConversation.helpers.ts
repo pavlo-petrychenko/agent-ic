@@ -52,7 +52,9 @@ const INBOX_ACTIONS: Readonly<Record<InboxReplyState, readonly InboxActionSpec[]
     ),
   ],
   [InboxReplyState.Agent]: [
-    takeOver(ButtonVariant.Secondary, (_conversation, t) => t('header.takeOverAgain')),
+    takeOver(ButtonVariant.Secondary, (conversation, t) =>
+      conversation.hasBeenHandled ? t('header.takeOverAgain') : t('header.takeOver'),
+    ),
   ],
   [InboxReplyState.Closed]: [],
 };
@@ -124,13 +126,18 @@ const dividerText = (message: InboxStoredDivider, t: InboxTranslate): string => 
         tookAt: message.tookAt ?? '',
       });
     case InboxDividerKind.Escalated:
-      return t('divider.escalated', { name: message.name, time: message.time });
+      return t('divider.escalated', { time: message.time });
     case InboxDividerKind.TookOver:
-      return t('divider.tookOver', {
-        name: message.name,
-        time: message.time,
-        tookAt: message.tookAt ?? '',
-      });
+      return message.tookAt === null
+        ? t('divider.tookOver', {
+            name: message.name,
+            time: message.time,
+          })
+        : t('divider.tookOverEscalated', {
+            name: message.name,
+            time: message.time,
+            tookAt: message.tookAt,
+          });
     case InboxDividerKind.HandedBack:
       return t('divider.handedBack', { name: message.name, time: message.time });
   }

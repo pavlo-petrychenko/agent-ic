@@ -481,6 +481,7 @@ export const historyMessage = (
   conversationId: conversation.id,
   author,
   authorUserId: null,
+  systemEvent: null,
   text,
   quickReplies: [],
   externalId: null,

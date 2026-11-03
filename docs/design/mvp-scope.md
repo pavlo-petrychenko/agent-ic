@@ -694,7 +694,7 @@ The run is marked failed, and Agents shows "N runs failed today".
 
 ### 12.10 Inbox
 - **Tabs:**
-  - Needs you (waiting + taken by me)
+  - Needs you (waiting + taken by me + taken by another operator, read-only)
   - Live (agent answering)
   - Closed
 - Filter by channel and agent; search.
@@ -707,7 +707,8 @@ The run is marked failed, and Agents shows "N runs failed today".
   - close with an optional closing message
   - take over from another operator
 - Only one operator handles a chat at a time; others see it read-only.
-- The Inbox count in the navigation = chats in "Needs you".
+- A chat taken by another operator stays in **Needs you**, read-only, until they hand it back or close it.
+- The Inbox count in the navigation = chats in "Needs you", including those read-only chats.
 
 ### 12.11 Notifications
 - Triggered by Escalation steps (and reminders); recipients come from the step config.

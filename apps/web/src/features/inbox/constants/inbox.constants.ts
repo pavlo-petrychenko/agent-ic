@@ -73,6 +73,8 @@ export enum InboxFooterKind {
   TakeOver = 'takeOver',
 }
 
+export const INBOX_MINUTES_PER_HOUR = 60;
+
 export const INBOX_MINUTES_PER_DAY = 1440;
 
 export const INBOX_CONVERSATIONS_FETCH_LIMIT = 100;

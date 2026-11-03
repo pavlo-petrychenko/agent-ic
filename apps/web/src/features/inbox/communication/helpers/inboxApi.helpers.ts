@@ -1,6 +1,7 @@
 import type { InboxConversationQuery } from '@/features/inbox/communication/gql/query/inboxConversation.generated';
 import type { InboxConversationsQuery } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
 import {
+  InboxDividerKind,
   InboxMessageKind,
   InboxProvider,
   InboxReplyState,
@@ -10,11 +11,36 @@ import type {
   InboxCurrentUser,
   InboxStoredMessage,
 } from '@/features/inbox/typedefs/inbox.typedefs';
+import type { MessageSystemEvent } from '@/shared/api/generated/schema.generated';
 import { toInitials } from '@/shared/i18n/helpers/initials.helpers';
+import { IconName } from '@/shared/ui/foundations/Icon';
 
 type ApiSummary = InboxConversationsQuery['inboxConversations'][number];
 type ApiDetail = InboxConversationQuery['inboxConversation'];
 type ApiMessage = ApiDetail['messages'][number];
+
+type InboxStoredDivider = Extract<InboxStoredMessage, { readonly kind: InboxMessageKind.Divider }>;
+
+const mergeEscalationTakeover = (messages: readonly InboxStoredMessage[]): InboxStoredMessage[] =>
+  messages.reduce<InboxStoredMessage[]>((merged, message) => {
+    const previous = merged.at(-1);
+    if (
+      previous?.kind === InboxMessageKind.Divider &&
+      previous.divider === InboxDividerKind.Escalated &&
+      message.kind === InboxMessageKind.Divider &&
+      message.divider === InboxDividerKind.TookOver
+    ) {
+      merged[merged.length - 1] = {
+        ...message,
+        id: previous.id,
+        time: previous.time,
+        tookAt: message.time,
+      };
+      return merged;
+    }
+    merged.push(message);
+    return merged;
+  }, []);
 
 const INBOX_PROVIDER: Readonly<Record<ApiSummary['channelKind'], InboxProvider>> = {
   telegram: InboxProvider.Telegram,
@@ -29,6 +55,18 @@ const MESSAGE_KIND = {
   agent: InboxMessageKind.Agent,
   operator: InboxMessageKind.Operator,
 } as const;
+
+const SYSTEM_DIVIDER: Readonly<Record<MessageSystemEvent, InboxDividerKind>> = {
+  escalated: InboxDividerKind.Escalated,
+  took_over: InboxDividerKind.TookOver,
+  handed_back: InboxDividerKind.HandedBack,
+};
+
+const SYSTEM_DIVIDER_ICON: Readonly<Record<MessageSystemEvent, IconName>> = {
+  escalated: IconName.Pause,
+  took_over: IconName.Hand,
+  handed_back: IconName.Hand,
+};
 
 const replyStateOf = (summary: ApiSummary): InboxReplyState => {
   if (summary.state === 'waiting') {
@@ -71,6 +109,7 @@ export const toInboxConversation = (
     agentName: summary.agentName,
     agentVersion: summary.agentVersion,
     replyState,
+    hasBeenHandled: summary.hasBeenHandled,
     assigneeName: operator,
     preview: summary.preview,
     minutesAgo: minutesAgo(summary.lastMessageAt),
@@ -107,6 +146,21 @@ const authorOf = (
   return conversation.name;
 };
 
+const toStoredDivider = (message: ApiMessage, locale: string): InboxStoredDivider | null => {
+  if (message.systemEvent === null) {
+    return null;
+  }
+  return {
+    kind: InboxMessageKind.Divider,
+    id: message.id,
+    divider: SYSTEM_DIVIDER[message.systemEvent],
+    icon: SYSTEM_DIVIDER_ICON[message.systemEvent],
+    name: message.authorName ?? '',
+    time: messageTime(message.createdAt, locale),
+    tookAt: null,
+  };
+};
+
 const toStoredMessage = (
   message: ApiMessage,
   conversation: InboxConversation,
@@ -115,7 +169,7 @@ const toStoredMessage = (
   currentUser: InboxCurrentUser | null,
 ): InboxStoredMessage | null => {
   if (message.author === 'system') {
-    return null;
+    return message.systemEvent === null ? null : toStoredDivider(message, locale);
   }
   const self =
     message.author === 'operator' && currentUser !== null && message.authorId === currentUser.id;
@@ -137,8 +191,10 @@ export const withInboxDetail = (
   currentUser: InboxCurrentUser | null,
 ): InboxConversation => ({
   ...conversation,
-  messages: detail.messages.flatMap((message) => {
-    const stored = toStoredMessage(message, conversation, locale, operatorLabel, currentUser);
-    return stored === null ? [] : [stored];
-  }),
+  messages: mergeEscalationTakeover(
+    detail.messages.flatMap((message) => {
+      const stored = toStoredMessage(message, conversation, locale, operatorLabel, currentUser);
+      return stored === null ? [] : [stored];
+    }),
+  ),
 });

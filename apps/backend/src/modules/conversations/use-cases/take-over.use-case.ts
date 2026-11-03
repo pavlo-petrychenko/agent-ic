@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { ConversationMode } from '@/modules/conversations/constants/conversation.constants';
+import {
+  ConversationMode,
+  ConversationState,
+} from '@/modules/conversations/constants/conversation.constants';
+import { MessageSystemEvent } from '@/modules/conversations/constants/message.constants';
 import { parseConversationInput } from '@/modules/conversations/helpers/conversation-input.helpers';
 import { authorizeOperator } from '@/modules/conversations/helpers/operator.helpers';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { operatorConversationSchema } from '@/modules/conversations/schemas/simulation.schema';
+import { ConversationTimelineService } from '@/modules/conversations/services/conversation-timeline.service';
 import { InboxActivityService } from '@/modules/conversations/services/inbox-activity.service';
 import { OperatorConversationsService } from '@/modules/conversations/services/operator-conversations.service';
 import { SimulationsService } from '@/modules/conversations/services/simulations.service';
@@ -21,6 +26,7 @@ export class TakeOverUseCase {
     private readonly operated: OperatorConversationsService,
     private readonly conversations: ConversationsRepository,
     private readonly inboxActivity: InboxActivityService,
+    private readonly timeline: ConversationTimelineService,
     private readonly views: SimulationsService,
   ) {}
 
@@ -35,6 +41,12 @@ export class TakeOverUseCase {
         access.userId,
       );
       if (takenOver !== null && conversation.mode === ConversationMode.Live) {
+        if (
+          conversation.state !== ConversationState.Handled ||
+          conversation.handledBy !== access.userId
+        ) {
+          await this.timeline.record(conversation, MessageSystemEvent.TookOver, access.userId);
+        }
         await this.inboxActivity.conversationChanged(access.workspaceId, conversation.id);
       }
       return this.views.conversationView(takenOver ?? conversation);

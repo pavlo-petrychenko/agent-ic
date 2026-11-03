@@ -9,6 +9,7 @@ import {
 import {
   MessageAuthor,
   MessageDelivery,
+  MessageSystemEvent,
 } from '@/modules/conversations/constants/message.constants';
 import { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 import { MessageNotFoundError } from '@/modules/conversations/errors/message-not-found.error';
@@ -234,7 +235,13 @@ describe('ConversationRunsService', () => {
     await markWaiting(conversation);
 
     const events = await queuedEventsFor(testbed, notifyOnNeedsOperator, conversation.id);
+    const timeline = await inTenant(conversation, () =>
+      testbed.messages.listByConversation(conversation.workspaceId, conversation.id),
+    );
     expect((await stateOf(conversation))?.state).toBe(ConversationState.Waiting);
+    expect(
+      timeline.filter((message) => message.systemEvent === MessageSystemEvent.Escalated),
+    ).toHaveLength(1);
     expect(events).toEqual([
       {
         conversationId: conversation.id,

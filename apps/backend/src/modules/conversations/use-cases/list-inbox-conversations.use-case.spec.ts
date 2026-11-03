@@ -57,11 +57,16 @@ describe('ListInboxConversationsUseCase', () => {
     expect(handledSummary).toMatchObject({
       handledByMe: true,
       handledByName: TEST_WORKSPACE_OWNER_NAME,
+      hasBeenHandled: true,
       preview: 'Handled message',
     });
     expect(handledSummary?.agentName).not.toBe('');
     const waitingSummary = summaries.find((summary) => summary.id === publicId(waiting.id));
-    expect(waitingSummary).toMatchObject({ handledByMe: false, preview: 'Waiting message' });
+    expect(waitingSummary).toMatchObject({
+      handledByMe: false,
+      hasBeenHandled: false,
+      preview: 'Waiting message',
+    });
   });
 
   it('applies the limit', async () => {

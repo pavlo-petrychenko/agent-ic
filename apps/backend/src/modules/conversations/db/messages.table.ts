@@ -5,6 +5,7 @@ import {
   conversationsSchema,
   messageAuthorEnum,
   messageDeliveryEnum,
+  messageSystemEventEnum,
 } from '@/modules/conversations/db/conversations.pg-schema';
 import { conversations } from '@/modules/conversations/db/conversations.table';
 import { users } from '@/modules/identity/db/users.table';
@@ -28,6 +29,7 @@ export const messages = conversationsSchema
       authorUserId: uuid('author_user_id').references((): AnyPgColumn => users.id, {
         onDelete: 'set null',
       }),
+      systemEvent: messageSystemEventEnum('system_event'),
       text: text('text').notNull(),
       quickReplies: text('quick_replies').array().notNull(),
       externalId: text('external_id'),

@@ -8,7 +8,10 @@ import {
   ConversationMode,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
-import { MessageDelivery } from '@/modules/conversations/constants/message.constants';
+import {
+  MessageDelivery,
+  MessageSystemEvent,
+} from '@/modules/conversations/constants/message.constants';
 import { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 import { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
 import { MessageNotFoundError } from '@/modules/conversations/errors/message-not-found.error';
@@ -17,6 +20,7 @@ import { outboundQueuedEvent } from '@/modules/conversations/events/outbound-que
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
+import { ConversationTimelineService } from '@/modules/conversations/services/conversation-timeline.service';
 import { InboxActivityService } from '@/modules/conversations/services/inbox-activity.service';
 import type {
   Conversation,
@@ -42,6 +46,7 @@ export class ConversationRunsService {
     private readonly domainEvents: DomainEventsService,
     private readonly activity: ConversationActivityService,
     private readonly inboxActivity: InboxActivityService,
+    private readonly timeline: ConversationTimelineService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
@@ -173,6 +178,7 @@ export class ConversationRunsService {
     if (conversation.mode === ConversationMode.Simulation) {
       return true;
     }
+    await this.timeline.record(conversation, MessageSystemEvent.Escalated, null);
     await this.inboxActivity.conversationChanged(conversation.workspaceId, conversation.id);
     await this.domainEvents.emit(
       ctx,

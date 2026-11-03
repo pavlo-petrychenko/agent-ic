@@ -43,6 +43,15 @@ describe('InboxPage', () => {
     ).toBeInTheDocument();
   });
 
+  it('says Take over for an agent chat that was never handled', async () => {
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('tab', { name: 'Live · 2' }));
+    await userEvent.click(await screen.findByRole('button', { name: /site-8812/ }));
+
+    expect(await screen.findByRole('button', { name: 'Take over' })).toBeInTheDocument();
+  });
+
   it('sends an operator reply and shows it in the thread', async () => {
     renderPage();
 
@@ -60,6 +69,9 @@ describe('InboxPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Andri P\./ }));
 
     expect(await screen.findByRole('button', { name: 'Take over from Olena' })).toBeInTheDocument();
+    expect(
+      screen.getByText('Escalated at 02:18 PM · Olena took over at 02:19 PM'),
+    ).toBeInTheDocument();
     expect(await screen.findByText(/^Olena ·/)).toBeInTheDocument();
   });
 

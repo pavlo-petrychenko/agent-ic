@@ -3,7 +3,10 @@ import {
   CloseReason,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
-import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
+import {
+  MessageAuthor,
+  MessageSystemEvent,
+} from '@/modules/conversations/constants/message.constants';
 import type {
   ConversationView,
   MessageView,
@@ -21,6 +24,7 @@ import {
   ConversationCloseReason as GraphqlConversationCloseReason,
   ConversationState as GraphqlConversationState,
   MessageAuthor as GraphqlMessageAuthor,
+  MessageSystemEvent as GraphqlMessageSystemEvent,
 } from '@/platform/graphql-server/generated/schema.generated';
 
 const GRAPHQL_CONVERSATION_STATE: Readonly<Record<ConversationState, GraphqlConversationState>> = {
@@ -57,6 +61,14 @@ const GRAPHQL_MESSAGE_AUTHOR: Readonly<Record<MessageAuthor, GraphqlMessageAutho
   [MessageAuthor.System]: GraphqlMessageAuthor.System,
 };
 
+const GRAPHQL_MESSAGE_SYSTEM_EVENT: Readonly<
+  Record<MessageSystemEvent, GraphqlMessageSystemEvent>
+> = {
+  [MessageSystemEvent.Escalated]: GraphqlMessageSystemEvent.Escalated,
+  [MessageSystemEvent.TookOver]: GraphqlMessageSystemEvent.TookOver,
+  [MessageSystemEvent.HandedBack]: GraphqlMessageSystemEvent.HandedBack,
+};
+
 export const toGraphqlConversation = (conversation: ConversationView): Conversation => ({
   ...conversation,
   state: GRAPHQL_CONVERSATION_STATE[conversation.state],
@@ -79,6 +91,8 @@ export const toStartSimulationInput = (
 export const toGraphqlMessage = (message: MessageView): Message => ({
   ...message,
   author: GRAPHQL_MESSAGE_AUTHOR[message.author],
+  systemEvent:
+    message.systemEvent === null ? null : GRAPHQL_MESSAGE_SYSTEM_EVENT[message.systemEvent],
   createdAt: message.createdAt.toISOString(),
 });
 

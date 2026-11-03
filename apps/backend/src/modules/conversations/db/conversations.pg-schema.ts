@@ -8,6 +8,7 @@ import {
 import {
   MessageAuthor,
   MessageDelivery,
+  MessageSystemEvent,
 } from '@/modules/conversations/constants/message.constants';
 import { moduleSchema } from '@/platform/database/helpers/tenant-table.helpers';
 
@@ -44,4 +45,10 @@ export const messageDeliveryEnum = conversationsSchema.enum('message_delivery', 
   MessageDelivery.Pending,
   MessageDelivery.Delivered,
   MessageDelivery.Failed,
+]);
+
+export const messageSystemEventEnum = conversationsSchema.enum('message_system_event', [
+  MessageSystemEvent.Escalated,
+  MessageSystemEvent.TookOver,
+  MessageSystemEvent.HandedBack,
 ]);

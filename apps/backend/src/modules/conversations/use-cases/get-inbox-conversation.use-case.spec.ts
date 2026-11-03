@@ -51,6 +51,7 @@ describe('GetInboxConversationUseCase', () => {
 
     expect(detail.summary.id).toBe(publicId);
     expect(detail.summary.handledByName).toBe(TEST_WORKSPACE_OWNER_NAME);
+    expect(detail.summary.hasBeenHandled).toBe(true);
     expect(detail.messages.map((message) => message.text)).toEqual([
       'Customer question',
       'Operator answer',

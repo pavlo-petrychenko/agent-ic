@@ -14,6 +14,7 @@ import {
   ChannelConversationKind,
   ConversationState,
   MessageAuthor,
+  MessageSystemEvent,
 } from '@/shared/api/generated/schema.generated';
 
 type InboxSummaryFixture = InboxConversationsQuery['inboxConversations'][number];
@@ -29,6 +30,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     state: ConversationState.Handled,
     handledByMe: true,
     handledByName: 'Demo Owner',
+    hasBeenHandled: true,
     channelKind: ChannelConversationKind.Telegram,
     agentId: 'agt_salon',
     agentName: 'Salon assistant',
@@ -46,6 +48,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     state: ConversationState.Waiting,
     handledByMe: false,
     handledByName: null,
+    hasBeenHandled: false,
     channelKind: ChannelConversationKind.Telegram,
     agentId: 'agt_salon',
     agentName: 'Salon assistant',
@@ -63,6 +66,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     state: ConversationState.Handled,
     handledByMe: false,
     handledByName: 'Olena',
+    hasBeenHandled: true,
     channelKind: ChannelConversationKind.Api,
     agentId: 'agt_gift',
     agentName: 'Gift card FAQ',
@@ -80,6 +84,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     state: ConversationState.AgentActive,
     handledByMe: false,
     handledByName: null,
+    hasBeenHandled: true,
     channelKind: ChannelConversationKind.Telegram,
     agentId: 'agt_salon',
     agentName: 'Salon assistant',
@@ -97,6 +102,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     state: ConversationState.AgentActive,
     handledByMe: false,
     handledByName: null,
+    hasBeenHandled: false,
     channelKind: ChannelConversationKind.Api,
     agentId: 'agt_gift',
     agentName: 'Gift card FAQ',
@@ -114,6 +120,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     state: ConversationState.Closed,
     handledByMe: false,
     handledByName: null,
+    hasBeenHandled: true,
     channelKind: ChannelConversationKind.Telegram,
     agentId: 'agt_salon',
     agentName: 'Salon assistant',
@@ -133,6 +140,7 @@ type InboxMessageFixture = {
   readonly author: MessageAuthor;
   readonly authorId: string | null;
   readonly authorName: string | null;
+  readonly systemEvent: MessageSystemEvent | null;
   readonly text: string;
   readonly quickReplies: readonly string[];
   readonly runId: string | null;
@@ -146,11 +154,13 @@ const message = (
   createdAt: string,
   authorId: string | null = null,
   authorName: string | null = null,
+  systemEvent: MessageSystemEvent | null = null,
 ): InboxMessageFixture => ({
   id,
   author,
   authorId,
   authorName,
+  systemEvent,
   text,
   quickReplies: [],
   runId: null,
@@ -193,6 +203,24 @@ const messagesById: Readonly<Record<string, readonly InboxMessageFixture[]>> = {
     ),
   ],
   cnv_andri: [
+    message(
+      'msg_escalated',
+      MessageAuthor.System,
+      '',
+      '2026-11-01T14:18:00.000Z',
+      null,
+      null,
+      MessageSystemEvent.Escalated,
+    ),
+    message(
+      'msg_system',
+      MessageAuthor.System,
+      '',
+      '2026-11-01T14:19:00.000Z',
+      null,
+      'Olena',
+      MessageSystemEvent.TookOver,
+    ),
     message(
       'msg_6',
       MessageAuthor.Operator,

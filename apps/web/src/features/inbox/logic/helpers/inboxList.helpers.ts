@@ -1,5 +1,6 @@
 import {
   INBOX_MINUTES_PER_DAY,
+  INBOX_MINUTES_PER_HOUR,
   INBOX_TABS,
   InboxReplyState,
   InboxRowStatusKind,
@@ -79,6 +80,10 @@ const inboxUpdatedLabel = (minutesAgo: number, t: InboxTranslate): string => {
   const days = Math.floor(minutesAgo / INBOX_MINUTES_PER_DAY);
   if (days > 0) {
     return t('daysAgo', { count: days });
+  }
+  const hours = Math.floor(minutesAgo / INBOX_MINUTES_PER_HOUR);
+  if (hours > 0) {
+    return t('hoursAgo', { count: hours });
   }
   return minutesAgo === 0 ? t('now') : t('minutesAgo', { count: minutesAgo });
 };

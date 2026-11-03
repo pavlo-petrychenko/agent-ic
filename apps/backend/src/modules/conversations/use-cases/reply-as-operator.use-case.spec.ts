@@ -2,7 +2,10 @@ import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ConversationState } from '@/modules/conversations/constants/conversation.constants';
 import { InboxActivityKind } from '@/modules/conversations/constants/inbox-activity.constants';
-import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
+import {
+  MessageAuthor,
+  MessageSystemEvent,
+} from '@/modules/conversations/constants/message.constants';
 import { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
 import { ReplyAsOperatorUseCase } from '@/modules/conversations/use-cases/reply-as-operator.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
@@ -64,7 +67,11 @@ describe('ReplyAsOperatorUseCase', () => {
 
     const received = await activity.next();
     await activity.return();
+    const timeline = await testbed.tenants.run(live.workspaceId, () =>
+      testbed.messages.listByConversation(live.workspaceId, live.id),
+    );
     expect(message.author).toBe(MessageAuthor.Operator);
+    expect(timeline.some((entry) => entry.systemEvent === MessageSystemEvent.TookOver)).toBe(true);
     expect(received.value).toEqual({
       conversationId: live.id,
       kind: InboxActivityKind.ConversationChanged,

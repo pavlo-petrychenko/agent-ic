@@ -30,6 +30,7 @@ type InboxConversationSummary {
   state: ConversationState!
   handledByMe: Boolean!
   handledByName: String
+  hasBeenHandled: Boolean!
   channelKind: ChannelConversationKind!
   agentId: ID!
   agentName: String!

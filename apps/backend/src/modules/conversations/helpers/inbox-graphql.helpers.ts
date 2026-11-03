@@ -31,6 +31,7 @@ export const toGraphqlInboxSummary = (summary: InboxSummary): InboxConversationS
   state: GRAPHQL_CONVERSATION_STATE[summary.state],
   handledByMe: summary.handledByMe,
   handledByName: summary.handledByName,
+  hasBeenHandled: summary.hasBeenHandled,
   channelKind: GRAPHQL_CHANNEL_KIND[summary.channelKind],
   agentId: summary.agentId,
   agentName: summary.agentName,
