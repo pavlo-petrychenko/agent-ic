@@ -104,6 +104,7 @@ export class KnowledgeDocumentIngestionService {
       return { skipped: true };
     }
 
+    await input.onIndexing();
     const chunks = buildDocumentChunks(sections);
     const indexedChunks = buildIndexedChunks({
       title: parsed.title,

@@ -8,6 +8,7 @@ import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowl
 import { SectionsRepository } from '@/modules/knowledge/repositories/sections.repository';
 import { SourceDocumentsRepository } from '@/modules/knowledge/repositories/source-documents.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
+import type { NewDocument } from '@/modules/knowledge/typedefs/document.typedefs';
 import { CacheModule } from '@/platform/cache/cache.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -136,12 +137,14 @@ export const seedKnowledgeDocument = async (
   workspaceId: string,
   knowledgeBaseId: string,
   sourceId: string,
+  overrides: Partial<NewDocument> = {},
 ): Promise<string> => {
   const documentId = testbed.ids.generate();
   await testbed.tenants.run(workspaceId, async () => {
-    await testbed.module
-      .get(DocumentsRepository)
-      .insert(newDocument(documentId, workspaceId, knowledgeBaseId, sourceId));
+    await testbed.module.get(DocumentsRepository).insert({
+      ...newDocument(documentId, workspaceId, knowledgeBaseId, sourceId),
+      ...overrides,
+    });
     await testbed.module
       .get(SourceDocumentsRepository)
       .insertMany(workspaceId, knowledgeBaseId, sourceId, [documentId]);

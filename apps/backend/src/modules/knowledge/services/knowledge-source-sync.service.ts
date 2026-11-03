@@ -83,7 +83,7 @@ export class KnowledgeSourceSyncService {
     await this.jobs.enqueue(
       ctx,
       ingestKnowledgeSourceJob,
-      { sourceId: source.id, syncRunId },
+      { sourceId: source.id, syncRunId, documentIds: documents.map((document) => document.id) },
       { durable: true, jobId: syncRunId },
     );
     return syncRunId;
