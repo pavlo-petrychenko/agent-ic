@@ -1,0 +1,1 @@
+ALTER TABLE "knowledge"."sections" ADD COLUMN "content" text;

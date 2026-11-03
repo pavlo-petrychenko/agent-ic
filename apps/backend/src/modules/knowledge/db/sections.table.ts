@@ -42,6 +42,7 @@ export const sections = knowledgeSchema
       level: smallint('level').notNull(),
       path: text('path').notNull(),
       heading: text('heading'),
+      content: text('content'),
       tokenCount: integer('token_count').notNull(),
       contentHash: text('content_hash').notNull(),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),

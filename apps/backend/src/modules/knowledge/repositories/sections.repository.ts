@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 import { KNOWLEDGE_WRITE_BATCH_SIZE } from '@/modules/knowledge/constants/knowledge.constants';
 import { sections } from '@/modules/knowledge/db/sections.table';
 import type {
@@ -36,6 +36,22 @@ export class SectionsRepository {
         .insert(sections)
         .values(batch.map((section) => ({ ...section, createdAt })));
     }
+  }
+
+  async findContentsByIds(
+    workspaceId: string,
+    sectionIds: readonly string[],
+  ): Promise<ReadonlyMap<string, Pick<Section, 'content' | 'tokenCount'>>> {
+    if (sectionIds.length === 0) {
+      return new Map();
+    }
+    const rows = await this.txHost.tx
+      .select({ id: sections.id, content: sections.content, tokenCount: sections.tokenCount })
+      .from(sections)
+      .where(and(eq(sections.workspaceId, workspaceId), inArray(sections.id, [...sectionIds])));
+    return new Map(
+      rows.map((row) => [row.id, { content: row.content, tokenCount: row.tokenCount }]),
+    );
   }
 
   async findById(workspaceId: string, sectionId: string): Promise<Section | null> {

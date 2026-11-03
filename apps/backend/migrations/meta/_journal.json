@@ -316,6 +316,13 @@
       "when": 1793730438383,
       "tag": "0044_stormy_harrier",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1793886151340,
+      "tag": "0045_skinny_power_pack",
+      "breakpoints": true
     }
   ]
 }

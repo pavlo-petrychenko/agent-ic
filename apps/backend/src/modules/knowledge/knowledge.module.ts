@@ -15,6 +15,7 @@ import { ConnectionsRepository } from '@/modules/knowledge/repositories/connecti
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { EmbeddingCacheRepository } from '@/modules/knowledge/repositories/embedding-cache.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
+import { KnowledgeSearchRepository } from '@/modules/knowledge/repositories/knowledge-search.repository';
 import { KnowledgeStatsRepository } from '@/modules/knowledge/repositories/knowledge-stats.repository';
 import { SectionsRepository } from '@/modules/knowledge/repositories/sections.repository';
 import { SourceDocumentsRepository } from '@/modules/knowledge/repositories/source-documents.repository';
@@ -86,6 +87,7 @@ export class KnowledgeModule extends defineModule({
     SectionsRepository,
     ChunksRepository,
     ChunkTermsRepository,
+    KnowledgeSearchRepository,
     SyncRunsRepository,
     EmbeddingCacheRepository,
     WorkspacesRepository,
