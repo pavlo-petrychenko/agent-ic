@@ -2,7 +2,10 @@ import clsx from 'clsx';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
-import { KNOWLEDGE_SEARCH_QUERY_MAX_LENGTH } from '@/features/knowledge/constants/knowledgeSearch.constants';
+import {
+  KNOWLEDGE_SEARCH_DEFAULT_TOP_K,
+  KNOWLEDGE_SEARCH_QUERY_MAX_LENGTH,
+} from '@/features/knowledge/constants/knowledgeSearch.constants';
 import type { PlaygroundProps } from '@/features/knowledge/view/Playground/Playground.typedefs';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
@@ -33,9 +36,19 @@ export function Playground({
       gap={CardGap.Sm}
       className={styles.panel}
     >
-      <Text kind={TextKind.BodySmall} as={TextElement.Span} className={styles.title}>
-        {t('playground.title')}
-      </Text>
+      <div className={styles.header}>
+        <Text kind={TextKind.BodySmall} as={TextElement.Span} className={styles.title}>
+          {t('playground.title')}
+        </Text>
+        <Text
+          kind={TextKind.Small}
+          color={TextColor.Mute}
+          as={TextElement.Span}
+          className={styles.resultCount}
+        >
+          {t('playground.topKOption', { count: KNOWLEDGE_SEARCH_DEFAULT_TOP_K })}
+        </Text>
+      </div>
       <form
         className={styles.form}
         onSubmit={(event) => {
@@ -97,7 +110,6 @@ export function Playground({
                   {expanded === result.key ? t('playground.showLess') : t('playground.showMore')}
                 </button>
               ) : null}
-              <span className={styles.location}>{result.location}</span>
             </li>
           ))}
         </ol>

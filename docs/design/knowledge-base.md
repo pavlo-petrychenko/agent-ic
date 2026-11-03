@@ -1399,7 +1399,7 @@ Behaviour:
 - **Document summary:** Google Docs documents show the one-line summary with an edit action. The Add source dialog explains that summaries are generated once and are not updated automatically. The edit dialog calls `updateDocumentSummary`; saving shows the document as `indexing` until the new generation is ready. Uploaded documents do not show the editor.
 - **Google Picker:** load the Google script on demand, call `createGooglePickerSession`, open the Picker filtered to Google Docs, review the picked documents in the dialog and send the final ids to `createGoogleDocsSource`.
 - **Delete dialog:** explains that the KB itself is deleted; the mutation refuses a KB that still has sources with `KNOWLEDGE_BASE_HAS_SOURCES` and the dialog tells the user to delete the sources first. Once the usages work is built, the dialog also lists agent usages and disables confirmation; the mutation is still the authority.
-- **Playground:** query input, three results, score bar, document/section labels, empty state; the preview strips Markdown syntax for readability while the API keeps the raw text.
+- **Playground:** query input, static “Top 3 results” note, score bar, source title, empty state; the preview strips Markdown syntax for readability while the API keeps the raw text.
 - **i18n:** every label in `en` and `uk`.
 
 ---

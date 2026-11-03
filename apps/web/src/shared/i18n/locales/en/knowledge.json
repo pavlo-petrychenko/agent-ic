@@ -255,6 +255,8 @@
   },
   "playground": {
     "title": "Retrieval playground",
+    "topKOption_one": "Top {{count}} result",
+    "topKOption_other": "Top {{count}} results",
     "queryLabel": "Search query",
     "placeholder": "Ask what a customer would ask",
     "search": "Search",

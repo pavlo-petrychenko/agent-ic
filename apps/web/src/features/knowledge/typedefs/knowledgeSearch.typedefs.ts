@@ -19,7 +19,6 @@ export interface PlaygroundResultView {
   readonly scorePercent: number;
   readonly text: string;
   readonly isLong: boolean;
-  readonly location: string;
 }
 
 export interface UseKnowledgeSearchResult {

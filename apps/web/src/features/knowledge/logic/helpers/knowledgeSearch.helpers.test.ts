@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { KnowledgeSourceKind } from '@/features/knowledge/constants/knowledgeSource.constants';
 import {
   isKnowledgeSearchTextLong,
-  knowledgeSearchLocation,
   knowledgeSearchPreviewText,
   knowledgeSearchScoreLabel,
   knowledgeSearchScorePercent,
@@ -48,12 +47,6 @@ describe('knowledge search helpers', () => {
     expect(isKnowledgeSearchTextLong('a'.repeat(300))).toBe(true);
   });
 
-  it('builds the document location without repeating the title', () => {
-    expect(knowledgeSearchLocation(result())).toBe('Refund policy · Refunds');
-    expect(knowledgeSearchLocation(result({ path: '' }))).toBe('Refund policy');
-    expect(knowledgeSearchLocation(result({ path: 'Refund policy' }))).toBe('Refund policy');
-  });
-
   it('maps results to playground view data', () => {
     const views = toPlaygroundResults([
       result(),
@@ -67,10 +60,8 @@ describe('knowledge search helpers', () => {
       scorePercent: 100,
       text: 'Refunds are processed within five days.',
       isLong: false,
-      location: 'Refund policy · Refunds',
     });
     expect(views[1]?.scorePercent).toBeCloseTo((0.025 / 0.049) * 100);
     expect(views[1]?.isLong).toBe(true);
-    expect(views[1]?.location).toBe('Refund policy');
   });
 });

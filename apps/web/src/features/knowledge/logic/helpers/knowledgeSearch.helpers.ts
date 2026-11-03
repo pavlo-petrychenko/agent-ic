@@ -36,11 +36,6 @@ export const knowledgeSearchPreviewText = (text: string): string =>
 export const isKnowledgeSearchTextLong = (text: string): boolean =>
   text.length > KNOWLEDGE_SEARCH_TEXT_PREVIEW_LENGTH;
 
-export const knowledgeSearchLocation = (result: KnowledgeSearchResult): string =>
-  result.path.length === 0 || result.path === result.documentTitle
-    ? result.documentTitle
-    : `${result.documentTitle} · ${result.path}`;
-
 export const toPlaygroundResults = (
   results: readonly KnowledgeSearchResult[],
 ): PlaygroundResultView[] => {
@@ -54,7 +49,6 @@ export const toPlaygroundResults = (
       scorePercent: knowledgeSearchScorePercent(result.score, maxScore),
       text,
       isLong: isKnowledgeSearchTextLong(text),
-      location: knowledgeSearchLocation(result),
     };
   });
 };

@@ -15,7 +15,6 @@ const RESULT: PlaygroundResultView = {
   scorePercent: 100,
   text: 'Refunds are processed within five days.',
   isLong: false,
-  location: 'Refund policy · Refunds',
 };
 
 const props = (overrides: Partial<PlaygroundProps> = {}): PlaygroundProps => ({
@@ -44,9 +43,9 @@ describe('Playground', () => {
     renderPlayground({ searched: true, results: [RESULT] });
 
     expect(screen.getByText('Retrieval playground')).toBeInTheDocument();
+    expect(screen.getByText('Top 3 results')).toBeInTheDocument();
     expect(screen.getByText('Policies')).toBeInTheDocument();
     expect(screen.getByText('1.00')).toBeInTheDocument();
-    expect(screen.getByText('Refund policy · Refunds')).toBeInTheDocument();
     expect(screen.getByText(RESULT.text)).toBeInTheDocument();
   });
 

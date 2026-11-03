@@ -295,6 +295,10 @@
   },
   "playground": {
     "title": "Перевірка пошуку",
+    "topKOption_one": "Топ {{count}} результат",
+    "topKOption_few": "Топ {{count}} результати",
+    "topKOption_many": "Топ {{count}} результатів",
+    "topKOption_other": "Топ {{count}} результату",
     "queryLabel": "Пошуковий запит",
     "placeholder": "Запитайте так, як запитав би клієнт",
     "search": "Знайти",

@@ -2,8 +2,20 @@
   align-self: start;
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
 .title {
   font: var(--type-body-small-strong);
+}
+
+.resultCount {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .form {
@@ -102,14 +114,6 @@
 
 .toggle:hover {
   text-decoration: underline;
-}
-
-.location {
-  overflow: hidden;
-  color: var(--color-mute);
-  font: var(--type-hint);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .empty {
