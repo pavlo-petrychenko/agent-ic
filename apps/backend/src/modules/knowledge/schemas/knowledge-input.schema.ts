@@ -13,6 +13,7 @@ import {
 
 const nameSchema = z.string().trim().min(1).max(KNOWLEDGE_BASE_NAME_MAX_LENGTH);
 const recordIdSchema = z.string().min(1);
+const sourceIdInputSchema = z.object({ [KnowledgeField.Id]: recordIdSchema });
 const sourceTitleSchema = z.string().trim().min(1).max(KNOWLEDGE_SOURCE_TITLE_MAX_LENGTH);
 
 const descriptionSchema = z
@@ -43,17 +44,13 @@ export const deleteKnowledgeBaseInputSchema = z.object({
   [KnowledgeField.Id]: recordIdSchema,
 });
 
-export const getKnowledgeSourceInputSchema = z.object({
-  [KnowledgeField.Id]: recordIdSchema,
-});
+export const getKnowledgeSourceInputSchema = sourceIdInputSchema;
 
-export const deleteKnowledgeSourceInputSchema = z.object({
-  [KnowledgeField.Id]: recordIdSchema,
-});
+export const deleteKnowledgeSourceInputSchema = sourceIdInputSchema;
 
-export const retryKnowledgeSourceInputSchema = z.object({
-  [KnowledgeField.Id]: recordIdSchema,
-});
+export const retryKnowledgeSourceInputSchema = sourceIdInputSchema;
+
+export const syncKnowledgeSourceInputSchema = sourceIdInputSchema;
 
 export const createUploadInputSchema = z.object({
   [KnowledgeField.KnowledgeBaseId]: recordIdSchema,

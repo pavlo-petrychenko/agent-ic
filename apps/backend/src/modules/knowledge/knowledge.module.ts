@@ -27,6 +27,7 @@ import { KnowledgeUploadResolver } from '@/modules/knowledge/resolvers/knowledge
 import { RenameKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/rename-knowledge-base.resolver';
 import { RenameKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/rename-knowledge-source.resolver';
 import { RetryKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/retry-knowledge-source.resolver';
+import { SyncKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/sync-knowledge-source.resolver';
 import { DocumentParserService } from '@/modules/knowledge/services/document-parser.service';
 import { DocumentSummaryService } from '@/modules/knowledge/services/document-summary.service';
 import { GoogleConnectionTokenService } from '@/modules/knowledge/services/google-connection-token.service';
@@ -35,6 +36,7 @@ import { KnowledgeBaseViewsService } from '@/modules/knowledge/services/knowledg
 import { KnowledgeConnectionViewsService } from '@/modules/knowledge/services/knowledge-connection-views.service';
 import { KnowledgeDocumentIngestionService } from '@/modules/knowledge/services/knowledge-document-ingestion.service';
 import { KnowledgeEmbeddingService } from '@/modules/knowledge/services/knowledge-embedding.service';
+import { KnowledgeSourceSyncService } from '@/modules/knowledge/services/knowledge-source-sync.service';
 import { KnowledgeSourceViewsService } from '@/modules/knowledge/services/knowledge-source-views.service';
 import { KnowledgeUploadTargetsService } from '@/modules/knowledge/services/knowledge-upload-targets.service';
 import { CleanUpKnowledgeSourceFilesUseCase } from '@/modules/knowledge/use-cases/clean-up-knowledge-source-files.use-case';
@@ -57,6 +59,7 @@ import { RenameKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/rename
 import { RenameKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/rename-knowledge-source.use-case';
 import { RetryKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/retry-knowledge-source.use-case';
 import { StartGoogleConnectionUseCase } from '@/modules/knowledge/use-cases/start-google-connection.use-case';
+import { SyncKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/sync-knowledge-source.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class KnowledgeModule extends defineModule({
@@ -77,6 +80,7 @@ export class KnowledgeModule extends defineModule({
     GoogleDocsContentService,
     KnowledgeDocumentIngestionService,
     KnowledgeEmbeddingService,
+    KnowledgeSourceSyncService,
     KnowledgeBaseViewsService,
     KnowledgeSourceViewsService,
     KnowledgeConnectionViewsService,
@@ -104,6 +108,7 @@ export class KnowledgeModule extends defineModule({
     RenameKnowledgeSourceUseCase,
     RetryKnowledgeSourceUseCase,
     StartGoogleConnectionUseCase,
+    SyncKnowledgeSourceUseCase,
   ],
   resolvers: [
     CreateKnowledgeBaseResolver,
@@ -117,6 +122,7 @@ export class KnowledgeModule extends defineModule({
     RenameKnowledgeBaseResolver,
     RenameKnowledgeSourceResolver,
     RetryKnowledgeSourceResolver,
+    SyncKnowledgeSourceResolver,
   ],
   processors: [CleanUpKnowledgeSourceFilesProcessor, IngestKnowledgeSourceProcessor],
   listeners: [CleanUpWorkspaceListener],

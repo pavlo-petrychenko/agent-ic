@@ -14,6 +14,7 @@ extend type Mutation {
   renameSource(input: RenameSourceInput!): KnowledgeSource!
   deleteSource(input: DeleteSourceInput!): DeleteSourcePayload!
   retrySource(input: RetrySourceInput!): RetrySourcePayload!
+  syncSource(input: SyncSourceInput!): SyncSourcePayload!
   startGoogleConnection: StartGoogleConnectionPayload!
   completeGoogleConnection(input: CompleteGoogleConnectionInput!): GoogleConnection!
   disconnectGoogleConnection(
@@ -133,12 +134,20 @@ input RetrySourceInput {
   id: ID!
 }
 
+input SyncSourceInput {
+  id: ID!
+}
+
 input RenameSourceInput {
   id: ID!
   title: String!
 }
 
 type RetrySourcePayload {
+  id: ID!
+}
+
+type SyncSourcePayload {
   id: ID!
 }
 
