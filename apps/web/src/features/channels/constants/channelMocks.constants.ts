@@ -24,7 +24,6 @@ export const CONNECTED_TELEGRAM_BOT: TelegramBotMock = {
   publishedVersion: 3,
   agentIsDraft: false,
   typingIndicator: true,
-  stats: { chats: '1,470', messages: '9,812', errors: '0' },
 };
 
 export const REVOKED_TELEGRAM_BOT: TelegramBotMock = {
@@ -42,7 +41,6 @@ export const REVOKED_TELEGRAM_BOT: TelegramBotMock = {
   publishedVersion: null,
   agentIsDraft: true,
   typingIndicator: false,
-  stats: null,
 };
 
 export const TELEGRAM_BOTS: readonly TelegramBotMock[] = [
