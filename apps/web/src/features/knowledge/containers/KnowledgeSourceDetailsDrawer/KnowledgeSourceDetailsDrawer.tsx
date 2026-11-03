@@ -134,7 +134,11 @@ export function KnowledgeSourceDetailsDrawer({
           onRetry={canManage && canRetry && target !== null ? () => onRetry(target) : null}
           onDelete={canManage && target !== null ? () => onDelete(target) : null}
           onEditSummary={
-            canManage && detail !== null && detail.source.kind === KnowledgeSourceKind.GoogleDocs
+            canManage &&
+            detail !== null &&
+            detail.source.kind === KnowledgeSourceKind.GoogleDocs &&
+            detail.source.status !== KnowledgeSourceStatus.Pending &&
+            detail.source.status !== KnowledgeSourceStatus.Indexing
               ? (document) => setSummaryTarget(document)
               : null
           }
