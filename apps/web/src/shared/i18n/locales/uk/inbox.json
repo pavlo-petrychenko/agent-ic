@@ -1,0 +1,109 @@
+{
+  "title": "Вхідні",
+  "tabs": {
+    "needsYou": "Потрібні ви",
+    "live": "Активні",
+    "closed": "Закриті"
+  },
+  "filters": {
+    "channel": "Канал",
+    "agent": "Агент"
+  },
+  "search": {
+    "label": "Пошук розмов",
+    "placeholder": "Пошук розмов",
+    "clear": "Очистити пошук"
+  },
+  "minutesAgo": "{{count}} хв",
+  "daysAgo": "{{count}} дн",
+  "now": "зараз",
+  "provider": {
+    "telegram": "Telegram",
+    "api": "API"
+  },
+  "status": {
+    "waiting": "Очікує",
+    "you": "Ви",
+    "operator": "Оператор",
+    "agent": "Агент"
+  },
+  "authorYou": "{{name}} (ви)",
+  "header": {
+    "closeChat": "Закрити чат",
+    "handBack": "Повернути агенту",
+    "takeOver": "Взяти чат",
+    "takeOverFrom": "Взяти чат у {{name}}",
+    "takeOverAgain": "Взяти чат знову"
+  },
+  "banner": {
+    "mine": "Ви ведете цей чат. Агент призупинений, доки ви не повернете чат йому.",
+    "waiting": "Очікує на людину вже {{count}} хв. Агент призупинений; ніхто ще не взяв цей чат.",
+    "other": "{{name}} веде цей чат з {{time}}. Ви можете читати; відповідає вона, доки не поверне чат."
+  },
+  "footer": {
+    "replyAs": "Відповідаєте як {{name}} · надсилається в {{channel}}",
+    "apiWebhook": "Відповіді в цьому чаті надходять на сайт через ваш API-вебхук.",
+    "telegram": "Відповіді в цьому чаті надходять клієнту через Telegram.",
+    "agentAnswering": "Агент відповідає. Візьміть чат, щоб відповідати самому — на цей час агент призупиняється.",
+    "closed": "Цей чат закрито.",
+    "takeOver": "Взяти чат, щоб відповісти",
+    "placeholder": "Напишіть повідомлення...",
+    "send": "Надіслати повідомлення"
+  },
+  "escalation": {
+    "title": "Ескалація від Conversation guard"
+  },
+  "divider": {
+    "flowPaused": "Сценарій призупинено з {{time}} · {{name}} взяв чат о {{tookAt}}",
+    "escalated": "Ескальовано о {{time}} · {{name}} отримав сповіщення",
+    "tookOver": "Ескальовано о {{time}} · {{name}} взяв чат о {{tookAt}}",
+    "handedBack": "{{name}} повернув чат агенту · {{time}}"
+  },
+  "empty": {
+    "needsYou": {
+      "title": "Нічого не потребує вас",
+      "description": "Ескальовані чати з'являться тут. Ви отримаєте сповіщення електронною поштою та в Telegram."
+    },
+    "live": {
+      "title": "Немає активних чатів",
+      "description": "Чати, на які відповідає агент, з'являться тут."
+    },
+    "closed": {
+      "title": "Немає закритих чатів",
+      "description": "Чати, які ви закриєте, з'являться тут."
+    },
+    "detailTitle": "Усе опрацьовано",
+    "detailDescription": "Коли guard або крок ескалації передає чат людині, він з'являється тут, і ви отримуєте сповіщення."
+  },
+  "details": {
+    "label": "Деталі розмови",
+    "whyEscalated": "Чому ескальовано",
+    "guard": "Conversation guard",
+    "completion": "Завершення",
+    "needsHuman": "needs_human: true",
+    "reason": "reason: \"{{reason}}\"",
+    "pathInRun": "Шлях у запуску",
+    "openInLangfuse": "Відкрити в Langfuse",
+    "openSessionInLangfuse": "Відкрити сесію в Langfuse",
+    "conversation": "Розмова",
+    "agent": "Агент",
+    "channel": "Канал",
+    "repliesGoTo": "Відповіді надходять",
+    "started": "Почато",
+    "escalated": "Ескальовано",
+    "notified": "Сповіщено",
+    "handledBy": "Обробляє",
+    "runs": "Запусків",
+    "status": "Статус",
+    "agentAnswering": "Агент відповідає",
+    "closed": "Закрито",
+    "runMeta": "Запуск {{id}} · {{time}} · {{duration}}"
+  },
+  "steps": {
+    "incomingMessage": "Вхідне повідомлення",
+    "parallel": "Паралельно",
+    "guard": "Conversation guard",
+    "needsPerson": "Потрібна людина?",
+    "notifyOperator": "Сповістити оператора"
+  }
+}

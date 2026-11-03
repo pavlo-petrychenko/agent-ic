@@ -1,0 +1,109 @@
+{
+  "title": "Inbox",
+  "tabs": {
+    "needsYou": "Needs you",
+    "live": "Live",
+    "closed": "Closed"
+  },
+  "filters": {
+    "channel": "Channel",
+    "agent": "Agent"
+  },
+  "search": {
+    "label": "Search conversations",
+    "placeholder": "Search conversations",
+    "clear": "Clear search"
+  },
+  "minutesAgo": "{{count}} min",
+  "daysAgo": "{{count}} d",
+  "now": "now",
+  "provider": {
+    "telegram": "Telegram",
+    "api": "API"
+  },
+  "status": {
+    "waiting": "Waiting",
+    "you": "You",
+    "operator": "Operator",
+    "agent": "Agent"
+  },
+  "authorYou": "{{name}} (you)",
+  "header": {
+    "closeChat": "Close chat",
+    "handBack": "Hand back to agent",
+    "takeOver": "Take over",
+    "takeOverFrom": "Take over from {{name}}",
+    "takeOverAgain": "Take over again"
+  },
+  "banner": {
+    "mine": "You're handling this chat. The agent stays paused until you hand it back.",
+    "waiting": "Waiting for a person for {{count}} min. The agent is paused; nobody has taken this chat yet.",
+    "other": "{{name}} is handling this chat since {{time}}. You can read along; replies are hers until she hands it back."
+  },
+  "footer": {
+    "replyAs": "Reply as {{name}} · sent to {{channel}}",
+    "apiWebhook": "Replies in this chat reach the website through your API webhook.",
+    "telegram": "Replies in this chat reach the customer through Telegram.",
+    "agentAnswering": "The agent is answering. Take over to reply yourself — the agent pauses while you do.",
+    "closed": "This chat is closed.",
+    "takeOver": "Take over to reply",
+    "placeholder": "Write a message...",
+    "send": "Send message"
+  },
+  "escalation": {
+    "title": "Escalated by Conversation guard"
+  },
+  "divider": {
+    "flowPaused": "Flow paused since {{time}} · {{name}} took over at {{tookAt}}",
+    "escalated": "Escalated at {{time}} · {{name}} notified",
+    "tookOver": "Escalated at {{time}} · {{name}} took over at {{tookAt}}",
+    "handedBack": "{{name}} handed the chat back to the agent · {{time}}"
+  },
+  "empty": {
+    "needsYou": {
+      "title": "Nothing needs you",
+      "description": "Escalated chats show up here. You'll get alerts by email and Telegram."
+    },
+    "live": {
+      "title": "No live chats",
+      "description": "Chats the agent is answering show up here."
+    },
+    "closed": {
+      "title": "No closed chats",
+      "description": "Chats you close show up here."
+    },
+    "detailTitle": "All caught up",
+    "detailDescription": "When a guard or an escalation step hands a chat to a person, it appears here and you get an alert."
+  },
+  "details": {
+    "label": "Conversation details",
+    "whyEscalated": "Why escalated",
+    "guard": "Conversation guard",
+    "completion": "Completion",
+    "needsHuman": "needs_human: true",
+    "reason": "reason: \"{{reason}}\"",
+    "pathInRun": "Path in this run",
+    "openInLangfuse": "Open in Langfuse",
+    "openSessionInLangfuse": "Open session in Langfuse",
+    "conversation": "Conversation",
+    "agent": "Agent",
+    "channel": "Channel",
+    "repliesGoTo": "Replies go to",
+    "started": "Started",
+    "escalated": "Escalated",
+    "notified": "Notified",
+    "handledBy": "Handled by",
+    "runs": "Runs so far",
+    "status": "Status",
+    "agentAnswering": "Agent answering",
+    "closed": "Closed",
+    "runMeta": "Run {{id}} · {{time}} · {{duration}}"
+  },
+  "steps": {
+    "incomingMessage": "Incoming message",
+    "parallel": "Parallel",
+    "guard": "Conversation guard",
+    "needsPerson": "Needs a person?",
+    "notifyOperator": "Notify operator"
+  }
+}
