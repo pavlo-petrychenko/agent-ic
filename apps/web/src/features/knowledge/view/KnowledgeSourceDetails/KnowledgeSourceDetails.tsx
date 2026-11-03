@@ -99,6 +99,9 @@ export function KnowledgeSourceDetails({
   };
 
   const documentSummary = (document: KnowledgeSourceDocumentView): string => {
+    if (document.status === KnowledgeDocumentStatus.Error) {
+      return document.failureMessage ?? t('sources.details.documentFailed');
+    }
     const summary = document.summary?.trim() ?? '';
     if (summary.length > 0) {
       return summary;
@@ -108,9 +111,6 @@ export function KnowledgeSourceDetails({
       document.status === KnowledgeDocumentStatus.Indexing
     ) {
       return t('sources.details.summaryPending');
-    }
-    if (document.status === KnowledgeDocumentStatus.Error) {
-      return document.failureMessage ?? t('sources.details.documentFailed');
     }
     return t('sources.details.summaryEmpty');
   };
@@ -161,11 +161,9 @@ export function KnowledgeSourceDetails({
               <div className={styles.meta}>
                 <span>{t('sources.details.documentsCount', { count: documentCount })}</span>
                 <span>{t('sources.chunks', { count: source.chunkCount })}</span>
-                <span>
-                  {source.kind === KnowledgeSourceKind.Upload
-                    ? t('sources.sync.oneTime')
-                    : t('sources.sync.connected')}
-                </span>
+                {source.kind === KnowledgeSourceKind.Upload ? (
+                  <span>{t('sources.sync.oneTime')}</span>
+                ) : null}
                 {addedLabel === null ? null : <span>{addedLabel}</span>}
                 {lastSyncedLabel === null ? null : <span>{lastSyncedLabel}</span>}
               </div>
