@@ -316,9 +316,7 @@ describe('knowledge bases', () => {
     expect(screen.getByText('Indexing')).toBeInTheDocument();
     expect(screen.getByText('Failed')).toBeInTheDocument();
     expect(screen.getByText('34 chunks')).toBeInTheDocument();
-    expect(
-      screen.getByText('This document cannot be read. Check the file and try again.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Invalid document')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Add source' })).toBeInTheDocument();
   });
 

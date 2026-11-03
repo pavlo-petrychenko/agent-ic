@@ -35,14 +35,12 @@ const wrapperFor =
   );
 
 describe('useKnowledgeSourceRows', () => {
-  it('translates a known source error code into Ukrainian', () => {
+  it('translates a known source error code into a short Ukrainian reason', () => {
     const { result } = renderHook(() => useKnowledgeSourceRows([SOURCE]), {
       wrapper: wrapperFor(Locale.Uk),
     });
 
-    expect(result.current[0]?.statusDetail).toBe(
-      'Зовнішній сервіс не відповідає. Спробуйте за мить.',
-    );
+    expect(result.current[0]?.statusDetail).toBe('Сервіс недоступний');
     expect(result.current[0]?.canRetry).toBe(true);
   });
 
