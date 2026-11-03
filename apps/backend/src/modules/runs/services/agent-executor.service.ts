@@ -1,11 +1,11 @@
 import { NodeType, nodeOutputFields, outputToZod } from '@agent-ic/flow';
 import type { AgentNode } from '@agent-ic/flow';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { KnowledgeToolsService } from '@/modules/knowledge';
 import {
   AGENT_INCLUDES_CURRENT_MESSAGE,
   AGENT_MAX_TOOL_ROUNDS,
   AGENT_PURPOSE,
-  AGENT_TOOLS,
 } from '@/modules/runs/constants/llm-step.constants';
 import { agentExitPort, withAgentExits } from '@/modules/runs/helpers/agent-exit.helpers';
 import {
@@ -33,10 +33,15 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
   constructor(
     private readonly llm: LlmGateway,
     private readonly ids: IdService,
+    @Inject(KnowledgeToolsService) private readonly knowledgeTools: KnowledgeToolsService | null,
   ) {}
 
   async execute({ run, node, scope }: StepExecution<AgentNode>): Promise<StepOutcome> {
     const { id, config } = node;
+    const tools =
+      this.knowledgeTools === null
+        ? {}
+        : await this.knowledgeTools.toolsFor(run.workspaceId, config.knowledgeBaseIds);
     const request: LlmAgentRequest<StepData> = {
       ...stepModel(id, config.model, AGENT_PURPOSE, run.workspaceId, this.ids),
       purpose: AGENT_PURPOSE,
@@ -52,7 +57,7 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
       ),
       output: outputToZod(nodeOutputFields(node)),
       ...(config.reasoning === null ? {} : { reasoning: config.reasoning }),
-      tools: AGENT_TOOLS,
+      tools,
       maxToolRounds: AGENT_MAX_TOOL_ROUNDS,
       tags: { ...runTraceTags(run), ...stepPromptTags(id, scope.prompts) },
     };

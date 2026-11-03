@@ -53,6 +53,7 @@ import { KnowledgeFlowReferenceChecker } from '@/modules/knowledge/services/know
 import { KnowledgeSearchService } from '@/modules/knowledge/services/knowledge-search.service';
 import { KnowledgeSourceSyncService } from '@/modules/knowledge/services/knowledge-source-sync.service';
 import { KnowledgeSourceViewsService } from '@/modules/knowledge/services/knowledge-source-views.service';
+import { KnowledgeToolsService } from '@/modules/knowledge/services/knowledge-tools.service';
 import { KnowledgeUploadTargetsService } from '@/modules/knowledge/services/knowledge-upload-targets.service';
 import { KnowledgeUsageService } from '@/modules/knowledge/services/knowledge-usage.service';
 import { CleanUpKnowledgeDocumentFilesUseCase } from '@/modules/knowledge/use-cases/clean-up-knowledge-document-files.use-case';
@@ -111,6 +112,7 @@ export class KnowledgeModule extends defineModule({
     KnowledgeEmbeddingService,
     KnowledgeSearchService,
     KnowledgeSourceSyncService,
+    KnowledgeToolsService,
     KnowledgeBaseViewsService,
     KnowledgeSourceViewsService,
     KnowledgeConnectionViewsService,
@@ -183,4 +185,5 @@ export class KnowledgeModule extends defineModule({
     ScheduledKnowledgeSourceSyncProcessor,
   ],
   listeners: [CleanUpWorkspaceListener],
+  exports: [KnowledgeToolsService],
 }) {}

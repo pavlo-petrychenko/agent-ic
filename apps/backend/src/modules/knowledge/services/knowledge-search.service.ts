@@ -66,6 +66,7 @@ export class KnowledgeSearchService {
         knowledgeBase.embeddingDimensions,
         embedding,
         KNOWLEDGE_SEARCH_VECTOR_LIMIT,
+        input,
       ),
       bm25: await this.searchRepository.bm25Candidates(
         input.workspaceId,
@@ -74,6 +75,7 @@ export class KnowledgeSearchService {
         knowledgeBase.embeddingDimensions,
         terms,
         KNOWLEDGE_SEARCH_BM25_LIMIT,
+        input,
       ),
       trigram: await this.searchRepository.trigramCandidates(
         input.workspaceId,
@@ -82,6 +84,7 @@ export class KnowledgeSearchService {
         knowledgeBase.embeddingDimensions,
         query,
         KNOWLEDGE_SEARCH_TRIGRAM_LIMIT,
+        input,
       ),
     }));
     const matches = fuseKnowledgeSearch(lists);
