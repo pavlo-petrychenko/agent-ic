@@ -1,4 +1,5 @@
 import {
+  InboxActionId,
   InboxDividerKind,
   InboxFooterKind,
   InboxMessageKind,
@@ -15,34 +16,30 @@ import type {
   InboxFooterContext,
   InboxFooterResolver,
   InboxMessage,
-  InboxStoredDividerMessage,
   InboxStoredMessage,
   InboxTranslate,
+  InboxStoredDivider,
 } from '@/features/inbox/typedefs/inbox.typedefs';
 import { ButtonVariant } from '@/shared/ui/actions/Button';
 import { BannerTone } from '@/shared/ui/display/Banner';
 import { IconName } from '@/shared/ui/foundations/Icon';
 
-const CLOSE_ACTION_ID = 'close';
-const HAND_BACK_ACTION_ID = 'hand-back';
-const TAKE_OVER_ACTION_ID = 'take-over';
-
 const action = (
-  id: string,
+  id: InboxActionId,
   variant: ButtonVariant,
   icon: IconName | null,
   label: InboxActionSpec['label'],
 ): InboxActionSpec => ({ id, variant, icon, label });
 
 const takeOver = (variant: ButtonVariant, label: InboxActionSpec['label']): InboxActionSpec =>
-  action(TAKE_OVER_ACTION_ID, variant, IconName.Hand, label);
+  action(InboxActionId.TakeOver, variant, IconName.Hand, label);
 
 const INBOX_ACTIONS: Readonly<Record<InboxReplyState, readonly InboxActionSpec[]>> = {
   [InboxReplyState.Mine]: [
-    action(CLOSE_ACTION_ID, ButtonVariant.Secondary, null, (_conversation, t) =>
+    action(InboxActionId.Close, ButtonVariant.Secondary, null, (_conversation, t) =>
       t('header.closeChat'),
     ),
-    action(HAND_BACK_ACTION_ID, ButtonVariant.Primary, IconName.Hand, (_conversation, t) =>
+    action(InboxActionId.HandBack, ButtonVariant.Primary, IconName.Hand, (_conversation, t) =>
       t('header.handBack'),
     ),
   ],
@@ -93,12 +90,14 @@ const INBOX_FOOTERS: Readonly<Record<InboxReplyState, InboxFooterResolver>> = {
     placeholder: t('footer.placeholder'),
     sendLabel: t('footer.send'),
     value: context.composer.value,
+    sending: context.composer.sending,
     onChange: context.composer.onChange,
     onSend: context.composer.onSend,
   }),
-  [InboxReplyState.Waiting]: (_conversation, _context, t) => ({
+  [InboxReplyState.Waiting]: (_conversation, context, t) => ({
     kind: InboxFooterKind.TakeOver,
     label: t('footer.takeOver'),
+    onTakeOver: context.onTakeOver,
   }),
   [InboxReplyState.Operator]: (conversation, _context, t) => ({
     kind: InboxFooterKind.Note,
@@ -115,7 +114,7 @@ const INBOX_FOOTERS: Readonly<Record<InboxReplyState, InboxFooterResolver>> = {
   }),
 };
 
-const dividerText = (message: InboxStoredDividerMessage, t: InboxTranslate): string => {
+const dividerText = (message: InboxStoredDivider, t: InboxTranslate): string => {
   switch (message.divider) {
     case InboxDividerKind.FlowPaused:
       return t('divider.flowPaused', {
@@ -169,12 +168,8 @@ const inboxMessage = (message: InboxStoredMessage, t: InboxTranslate): InboxMess
 
 export const inboxMessages = (
   conversation: InboxConversation,
-  sent: readonly InboxMessage[],
   t: InboxTranslate,
-): readonly InboxMessage[] => [
-  ...conversation.messages.map((message) => inboxMessage(message, t)),
-  ...sent,
-];
+): readonly InboxMessage[] => conversation.messages.map((message) => inboxMessage(message, t));
 
 export const inboxBanner = (
   conversation: InboxConversation,

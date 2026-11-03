@@ -26,6 +26,7 @@ extend type Mutation {
   closeSimulationForInactivity(input: CloseSimulationForInactivityInput!): Simulation!
   sendSimulatorMessage(input: SendSimulatorMessageInput!): Message!
   replyAsOperator(input: ReplyAsOperatorInput!): Message!
+  takeOver(input: TakeOverInput!): Conversation!
   handBack(input: HandBackInput!): Conversation!
 }
 
@@ -73,6 +74,10 @@ input SendSimulatorMessageInput {
 input ReplyAsOperatorInput {
   conversationId: ID!
   text: String!
+}
+
+input TakeOverInput {
+  conversationId: ID!
 }
 
 input HandBackInput {

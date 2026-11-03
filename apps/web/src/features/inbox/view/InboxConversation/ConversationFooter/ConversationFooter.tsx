@@ -11,7 +11,7 @@ export function ConversationFooter({ footer }: ConversationFooterProps) {
       return <p className={styles.note}>{footer.text}</p>;
     case InboxFooterKind.TakeOver:
       return (
-        <Button fullWidth icon={IconName.Hand}>
+        <Button fullWidth icon={IconName.Hand} onClick={footer.onTakeOver}>
           {footer.label}
         </Button>
       );
@@ -28,6 +28,7 @@ export function ConversationFooter({ footer }: ConversationFooterProps) {
             placeholder={footer.placeholder}
             label={footer.placeholder}
             sendLabel={footer.sendLabel}
+            sending={footer.sending}
           />
         </>
       );

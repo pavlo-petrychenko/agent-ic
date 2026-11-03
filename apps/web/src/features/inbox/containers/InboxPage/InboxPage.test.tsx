@@ -1,11 +1,11 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { inboxMocks } from '@/features/inbox/communication/fixtures/inboxQueries.fixture';
+import { buildInboxMocks } from '@/features/inbox/communication/fixtures/inboxQueries.fixture';
 import { InboxPage } from '@/features/inbox/containers/InboxPage/InboxPage';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
-const renderPage = () => renderWithProviders(<InboxPage />, { mocks: inboxMocks });
+const renderPage = () => renderWithProviders(<InboxPage />, { mocks: buildInboxMocks() });
 
 describe('InboxPage', () => {
   it('shows the three queues and the selected conversation', async () => {
@@ -42,13 +42,36 @@ describe('InboxPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('adds a typed reply to the thread', async () => {
+  it('sends an operator reply and shows it in the thread', async () => {
     renderPage();
 
     await userEvent.type(await screen.findByLabelText('Write a message...'), 'See you at 10');
     await userEvent.click(screen.getByRole('button', { name: 'Send message' }));
 
-    expect(screen.getByText('See you at 10')).toBeInTheDocument();
-    expect(screen.getByLabelText('Write a message...')).toHaveValue('');
+    expect(await screen.findByText('See you at 10')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByLabelText('Write a message...')).toHaveValue(''));
+  });
+
+  it('takes over a waiting conversation to reply', async () => {
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: /Marta S\./ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Take over to reply' }));
+
+    expect(await screen.findByLabelText('Write a message...')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Hand back to agent' })).toBeInTheDocument();
+  });
+
+  it('hands the conversation back to the agent', async () => {
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Hand back to agent' }));
+
+    expect(await screen.findByRole('button', { name: 'Take over again' })).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'The agent is answering. Take over to reply yourself — the agent pauses while you do.',
+      ),
+    ).toBeInTheDocument();
   });
 });

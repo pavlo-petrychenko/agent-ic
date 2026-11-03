@@ -1,4 +1,7 @@
 import type { MockLink } from '@apollo/client/testing';
+import { InboxHandBackDocument } from '@/features/inbox/communication/gql/mutation/inboxHandBack.generated';
+import { InboxReplyAsOperatorDocument } from '@/features/inbox/communication/gql/mutation/inboxReplyAsOperator.generated';
+import { InboxTakeOverDocument } from '@/features/inbox/communication/gql/mutation/inboxTakeOver.generated';
 import { InboxConversationDocument } from '@/features/inbox/communication/gql/query/inboxConversation.generated';
 import {
   InboxConversationsDocument,
@@ -192,31 +195,109 @@ const messagesById: Readonly<Record<string, readonly InboxMessageFixture[]>> = {
   ],
 };
 
-export const inboxMocks: readonly MockLink.MockedResponse[] = [
-  {
-    request: {
-      query: InboxConversationsDocument,
-      variables: { limit: INBOX_CONVERSATIONS_FETCH_LIMIT },
-    },
-    result: {
-      data: {
-        inboxConversations: inboxSummaries.map((summary) =>
-          withTypename('InboxConversationSummary', summary),
-        ),
+const REPLY_TEXT = 'See you at 10';
+const REPLY_CREATED_AT = '2026-11-01T14:08:00.000Z';
+
+export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
+  let summaries = inboxSummaries;
+  let messages = messagesById;
+
+  const updateSummary = (
+    id: string,
+    update: (summary: InboxSummaryFixture) => InboxSummaryFixture,
+  ) => {
+    summaries = summaries.map((summary) => (summary.id === id ? update(summary) : summary));
+  };
+
+  return [
+    {
+      request: {
+        query: InboxReplyAsOperatorDocument,
+        variables: { input: { conversationId: 'cnv_olena', text: REPLY_TEXT } },
+      },
+      result: () => {
+        const reply = message('msg_reply', MessageAuthor.Operator, REPLY_TEXT, REPLY_CREATED_AT);
+        messages = { ...messages, cnv_olena: [...(messages.cnv_olena ?? []), reply] };
+        updateSummary('cnv_olena', (summary) => ({
+          ...summary,
+          state: ConversationState.Handled,
+          handledByMe: true,
+          preview: REPLY_TEXT,
+          lastMessageAt: REPLY_CREATED_AT,
+        }));
+        return { data: { replyAsOperator: withTypename('Message', reply) } };
       },
     },
-  },
-  ...inboxSummaries.map((summary) => ({
-    request: { query: InboxConversationDocument, variables: { id: summary.id } },
-    result: {
-      data: {
-        inboxConversation: withTypename('InboxConversationDetail', {
-          summary: withTypename('InboxConversationSummary', summary),
-          messages: (messagesById[summary.id] ?? []).map((message) =>
-            withTypename('Message', message),
+    {
+      request: {
+        query: InboxTakeOverDocument,
+        variables: { input: { conversationId: 'cnv_marta' } },
+      },
+      result: () => {
+        updateSummary('cnv_marta', (summary) => ({
+          ...summary,
+          state: ConversationState.Handled,
+          handledByMe: true,
+        }));
+        return {
+          data: {
+            takeOver: withTypename('Conversation', {
+              id: 'cnv_marta',
+              state: ConversationState.Handled,
+            }),
+          },
+        };
+      },
+    },
+    {
+      request: {
+        query: InboxHandBackDocument,
+        variables: { input: { conversationId: 'cnv_olena' } },
+      },
+      result: () => {
+        updateSummary('cnv_olena', (summary) => ({
+          ...summary,
+          state: ConversationState.AgentActive,
+          handledByMe: false,
+        }));
+        return {
+          data: {
+            handBack: withTypename('Conversation', {
+              id: 'cnv_olena',
+              state: ConversationState.AgentActive,
+            }),
+          },
+        };
+      },
+    },
+    {
+      request: {
+        query: InboxConversationsDocument,
+        variables: { limit: INBOX_CONVERSATIONS_FETCH_LIMIT },
+      },
+      result: () => ({
+        data: {
+          inboxConversations: summaries.map((summary) =>
+            withTypename('InboxConversationSummary', summary),
           ),
-        }),
-      },
+        },
+      }),
+      maxUsageCount: Number.POSITIVE_INFINITY,
     },
-  })),
-];
+    ...inboxSummaries.map((summary) => ({
+      request: { query: InboxConversationDocument, variables: { id: summary.id } },
+      result: () => ({
+        data: {
+          inboxConversation: withTypename('InboxConversationDetail', {
+            summary: withTypename(
+              'InboxConversationSummary',
+              summaries.find((current) => current.id === summary.id) ?? summary,
+            ),
+            messages: (messages[summary.id] ?? []).map((item) => withTypename('Message', item)),
+          }),
+        },
+      }),
+      maxUsageCount: Number.POSITIVE_INFINITY,
+    })),
+  ];
+};

@@ -2,7 +2,7 @@ import { INBOX_RUN_STEP_ICON } from '@/features/inbox/constants/inbox.constants'
 import type {
   InboxConversation,
   InboxDetailRow,
-  InboxDetailsProps,
+  InboxDetailsView,
   InboxGuardView,
   InboxProviderLabels,
   InboxRunView,
@@ -96,7 +96,7 @@ export const inboxDetails = (
   conversation: InboxConversation,
   providerLabels: InboxProviderLabels,
   t: InboxTranslate,
-): InboxDetailsProps => ({
+): InboxDetailsView => ({
   label: t('details.label'),
   title: t('details.whyEscalated'),
   guard: guardView(conversation, t),

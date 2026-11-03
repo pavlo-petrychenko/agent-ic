@@ -1,0 +1,10 @@
+mutation InboxReplyAsOperator($input: ReplyAsOperatorInput!) {
+  replyAsOperator(input: $input) {
+    id
+    author
+    text
+    quickReplies
+    runId
+    createdAt
+  }
+}

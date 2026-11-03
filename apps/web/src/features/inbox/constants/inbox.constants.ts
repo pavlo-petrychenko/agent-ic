@@ -53,6 +53,12 @@ export enum InboxRunStepKind {
   NotifyOperator = 'notifyOperator',
 }
 
+export enum InboxActionId {
+  Close = 'close',
+  HandBack = 'hand-back',
+  TakeOver = 'take-over',
+}
+
 export enum InboxRowStatusKind {
   Waiting = 'waiting',
   Mine = 'mine',

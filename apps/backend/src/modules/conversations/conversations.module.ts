@@ -4,10 +4,12 @@ import { ConversationsRepository } from '@/modules/conversations/repositories/co
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import { ScheduleContactsRepository } from '@/modules/conversations/repositories/schedule-contacts.repository';
 import { ConversationActivityResolver } from '@/modules/conversations/resolvers/conversation-activity.resolver';
+import { HandBackResolver } from '@/modules/conversations/resolvers/hand-back.resolver';
 import { InboxConversationResolver } from '@/modules/conversations/resolvers/inbox-conversation.resolver';
 import { InboxConversationsResolver } from '@/modules/conversations/resolvers/inbox-conversations.resolver';
-import { OperatorResolver } from '@/modules/conversations/resolvers/operator.resolver';
+import { ReplyAsOperatorResolver } from '@/modules/conversations/resolvers/reply-as-operator.resolver';
 import { SimulationResolver } from '@/modules/conversations/resolvers/simulation.resolver';
+import { TakeOverResolver } from '@/modules/conversations/resolvers/take-over.resolver';
 import { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
 import { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
 import { ConversationMetricsService } from '@/modules/conversations/services/conversation-metrics.service';
@@ -28,6 +30,7 @@ import { RestartSimulationUseCase } from '@/modules/conversations/use-cases/rest
 import { SendSimulatorMessageUseCase } from '@/modules/conversations/use-cases/send-simulator-message.use-case';
 import { StartSimulationUseCase } from '@/modules/conversations/use-cases/start-simulation.use-case';
 import { SubscribeToConversationActivityUseCase } from '@/modules/conversations/use-cases/subscribe-to-conversation-activity.use-case';
+import { TakeOverUseCase } from '@/modules/conversations/use-cases/take-over.use-case';
 import { UsageModule } from '@/modules/usage';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
@@ -54,6 +57,7 @@ export class ConversationsModule extends defineModule({
     RestartSimulationUseCase,
     SendSimulatorMessageUseCase,
     ReplyAsOperatorUseCase,
+    TakeOverUseCase,
     HandBackUseCase,
     CloseInactiveConversationsUseCase,
     CloseSimulationForInactivityUseCase,
@@ -63,7 +67,9 @@ export class ConversationsModule extends defineModule({
     InboxConversationResolver,
     InboxConversationsResolver,
     SimulationResolver,
-    OperatorResolver,
+    TakeOverResolver,
+    HandBackResolver,
+    ReplyAsOperatorResolver,
   ],
   processors: [CloseInactiveConversationsProcessor],
   exports: [

@@ -4,15 +4,19 @@ import {
   toInboxConversation,
   withInboxDetail,
 } from '@/features/inbox/communication/helpers/inboxApi.helpers';
+import { useHandBack } from '@/features/inbox/communication/hooks/useHandBack';
 import { useInboxConversation } from '@/features/inbox/communication/hooks/useInboxConversation';
 import { useInboxConversations } from '@/features/inbox/communication/hooks/useInboxConversations';
+import { useReplyAsOperator } from '@/features/inbox/communication/hooks/useReplyAsOperator';
+import { useTakeOver } from '@/features/inbox/communication/hooks/useTakeOver';
 import {
   INBOX_CURRENT_USER,
-  InboxMessageKind,
+  InboxActionId,
   InboxProvider,
   InboxTab,
 } from '@/features/inbox/constants/inbox.constants';
 import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants';
+import type { InboxPageModel } from '@/features/inbox/containers/InboxPage/InboxPage.typedefs';
 import {
   countConversationsByTab,
   firstConversationId,
@@ -34,19 +38,24 @@ import {
 import type {
   InboxComposerState,
   InboxFooterContext,
-  InboxMessage,
-  InboxPageModel,
   InboxProviderLabels,
 } from '@/features/inbox/typedefs/inbox.typedefs';
+import { toAppError } from '@/shared/api/helpers/appError.helpers';
+import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
+import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
 export function useInboxPage(): InboxPageModel {
   const { t, i18n } = useTranslation(INBOX_NAMESPACE);
   const { summaries } = useInboxConversations();
+  const { replyAsOperator, sending } = useReplyAsOperator();
+  const { takeOver } = useTakeOver();
+  const { handBack } = useHandBack();
+  const { showToast } = useToast();
+  const errorMessage = useErrorMessage();
   const [activeTab, setActiveTab] = useState<InboxTab>(InboxTab.NeedsYou);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
-  const [sent, setSent] = useState<Readonly<Record<string, readonly InboxMessage[]>>>({});
 
   const conversations = useMemo(
     () =>
@@ -69,7 +78,7 @@ export function useInboxPage(): InboxPageModel {
   );
 
   const effectiveSelectedId =
-    selectedId !== null && visible.some((conversation) => conversation.id === selectedId)
+    selectedId !== null && conversations.some((conversation) => conversation.id === selectedId)
       ? selectedId
       : (visible[0]?.id ?? null);
   const { detail } = useInboxConversation(effectiveSelectedId);
@@ -94,36 +103,44 @@ export function useInboxPage(): InboxPageModel {
     setDraft('');
   };
 
-  const send = () => {
+  const send = async () => {
     const text = draft.trim();
     if (text === '' || selected === null) {
       return;
     }
-    const existing = sent[selected.id] ?? [];
-    const message: InboxMessage = {
-      kind: InboxMessageKind.Operator,
-      id: `local-${existing.length + 1}`,
-      author: t('authorYou', { name: INBOX_CURRENT_USER }),
-      time: t('now'),
-      text,
-    };
-    setSent((previous) => ({
-      ...previous,
-      [selected.id]: [...(previous[selected.id] ?? []), message],
-    }));
-    setDraft('');
+    try {
+      await replyAsOperator(selected.id, text);
+      setDraft('');
+    } catch (caught) {
+      showToast({ message: errorMessage(toAppError(caught)), tone: ToastTone.Err });
+    }
+  };
+
+  const runAction = (id: InboxActionId) => {
+    if (selected === null || id === InboxActionId.Close) {
+      return;
+    }
+    setSelectedId(selected.id);
+    const perform = id === InboxActionId.HandBack ? handBack : takeOver;
+    void perform(selected.id).catch((caught: unknown) => {
+      showToast({ message: errorMessage(toAppError(caught)), tone: ToastTone.Err });
+    });
   };
 
   const composer: InboxComposerState = {
     value: draft,
+    sending,
     onChange: setDraft,
-    onSend: send,
+    onSend: () => {
+      void send();
+    },
   };
 
   const footerContext: InboxFooterContext = {
     providerLabels,
     composer,
     currentUserName: INBOX_CURRENT_USER,
+    onTakeOver: () => runAction(InboxActionId.TakeOver),
   };
 
   return {
@@ -154,8 +171,9 @@ export function useInboxPage(): InboxPageModel {
             subtitle: `${providerLabels[selected.provider]} · ${selected.agentName} v${selected.agentVersion}`,
             actions: inboxActions(selected, t),
             banner: inboxBanner(selected, t),
-            messages: inboxMessages(selected, sent[selected.id] ?? [], t),
+            messages: inboxMessages(selected, t),
             footer: inboxFooter(selected, footerContext, t),
+            onAction: runAction,
           },
     details: selected === null ? null : inboxDetails(selected, providerLabels, t),
     emptyTitle: t('empty.detailTitle'),

@@ -1,4 +1,4 @@
-import type { InboxDetailsProps } from '@/features/inbox/typedefs/inbox.typedefs';
+import type { InboxDetailsProps } from '@/features/inbox/view/InboxDetails/InboxDetails.typedefs';
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { Card } from '@/shared/ui/display/Card';
 import { KeyValue } from '@/shared/ui/display/KeyValue';
