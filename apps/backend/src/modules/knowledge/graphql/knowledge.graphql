@@ -57,7 +57,7 @@ type GooglePickerSkippedDocument {
 }
 
 type CreateGoogleDocsSourcePayload {
-  source: KnowledgeSource
+  source: KnowledgeSource!
   skipped: [GooglePickerSkippedDocument!]!
 }
 

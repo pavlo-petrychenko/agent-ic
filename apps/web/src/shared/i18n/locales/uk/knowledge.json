@@ -128,7 +128,7 @@
       "pickDocuments": "Вибрати документи",
       "pickerSuccess": "Джерело Google Docs додано.",
       "pickerSkipped": "Деякі вибрані документи не вдалося додати.",
-      "pickerAlreadyAdded": "Ці документи Google уже є в цій базі знань.",
+      "pickerAlreadyAdded": "Ці документи Google уже були в цій базі знань і приєднані до нового джерела.",
       "pickerLoadError": "Не вдалося завантажити вибір документів Google. Перевірте з’єднання та спробуйте ще раз.",
       "pickerDifferentAccount": "Вибирайте документи з одного облікового запису Google за раз."
     }

@@ -13,6 +13,7 @@ import { EmbeddingCacheRepository } from '@/modules/knowledge/repositories/embed
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
 import { KnowledgeStatsRepository } from '@/modules/knowledge/repositories/knowledge-stats.repository';
 import { SectionsRepository } from '@/modules/knowledge/repositories/sections.repository';
+import { SourceDocumentsRepository } from '@/modules/knowledge/repositories/source-documents.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
 import { CreateKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/create-knowledge-base.resolver';
@@ -62,6 +63,7 @@ export class KnowledgeModule extends defineModule({
     KnowledgeBasesRepository,
     ConnectionsRepository,
     SourcesRepository,
+    SourceDocumentsRepository,
     DocumentsRepository,
     SectionsRepository,
     ChunksRepository,

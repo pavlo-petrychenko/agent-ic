@@ -29,6 +29,6 @@ export interface CreateGoogleDocsSourceInput {
 }
 
 export interface CreateGoogleDocsSourceResult {
-  readonly source: KnowledgeSourceView | null;
+  readonly source: KnowledgeSourceView;
   readonly skipped: readonly GooglePickerSkippedDocument[];
 }

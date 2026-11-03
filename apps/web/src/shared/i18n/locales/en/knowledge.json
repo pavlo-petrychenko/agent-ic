@@ -102,7 +102,7 @@
       "pickDocuments": "Pick documents",
       "pickerSuccess": "Google Docs source added.",
       "pickerSkipped": "Some selected documents could not be added.",
-      "pickerAlreadyAdded": "These Google Docs are already in this knowledge base.",
+      "pickerAlreadyAdded": "These Google Docs were already in this knowledge base and are linked to the new source.",
       "pickerLoadError": "Google Picker could not load. Check your connection and try again.",
       "pickerDifferentAccount": "Pick documents from one Google account at a time."
     }

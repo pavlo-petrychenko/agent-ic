@@ -79,11 +79,10 @@ Preparing takes time, so it happens in the background. The user sees “Queued�
 ## 3. Domain model
 
 ```
-knowledge_bases 1 ── n sources 1 ── n documents 1 ── n sections 1 ── n chunks
-                         │                    │                         │
-                         │                    │                         └── n chunk_terms
-                         │                    └── n sync_runs
-                         └── n connections (Google accounts)
+knowledge_bases 1 ── n sources 1 ── n source_documents n ── 1 documents
+knowledge_bases 1 ── n connections 1 ── n sources (Google accounts)
+documents 1 ── n sections 1 ── n chunks 1 ── n chunk_terms
+sources 1 ── n sync_runs
 
 embedding_cache (workspace-scoped, shared by documents)
 ```
@@ -93,7 +92,7 @@ embedding_cache (workspace-scoped, shared by documents)
 | **Knowledge base** | A named collection plus the search-tool name and description the LLM sees. Belongs to one workspace. |
 | **Connection** | A Google account connected to the workspace. Stores the encrypted refresh token. |
 | **Source** | One thing the user added: an uploaded file, or one Google Picker selection. Holds the optional sync schedule and status. |
-| **Document** | One imported document. An upload source has one document; a Google source has one per picked Google Doc. |
+| **Document** | One imported document. An upload source has one document; a Google source has one per picked Google Doc. A document may be referenced by more than one source through `source_documents`. |
 | **Section** | A heading and the Markdown directly under it, before the next heading. Its path is a breadcrumb such as `Pricing › Gift cards`. |
 | **Chunk** | A self-contained piece of a section. Chunks never cross section boundaries. It is what gets embedded and BM25-indexed. |
 | **Sync run** | One attempt to ingest or re-sync a source. Holds progress counters and the last error. |
@@ -103,6 +102,8 @@ embedding_cache (workspace-scoped, shared by documents)
 The source is the unit the user sees and manages: it has a status, a sync schedule, a re-sync button and a delete action. The document is the unit that gets parsed and indexed.
 
 For an upload they are 1:1. For a Google selection one source may contain five Google Docs; each document gets its own status and generation, so one broken document does not block the other four. This also keeps the door open for a future folder source that expands into many documents.
+
+A document may be referenced by several sources. `documents.source_id` names the owner: the source that syncs the document and owns its files. `source_documents` records every source–document reference. A new Google source that selects an already-added document links the existing row instead of creating a second one, so the document is indexed once. Deleting a referencing source removes only its link; deleting the owner moves ownership to another referencing source before cleanup.
 
 Titles are display metadata. Renaming a source changes only `sources.title`; `documents.title` and `index_text` stay as they are, so a rename never re-indexes. Renaming a knowledge base changes only its name, not its `toolName` or its sources.
 
@@ -189,13 +190,14 @@ Configuration uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_OAUTH_
 - The Picker is filtered to `application/vnd.google-apps.document`. Multi-select is enabled. Shared drives are supported.
 - A Pick selection returns to the Add source dialog for review: the user can pick more, remove a document or add the final selection. Only then are the selected documents' `id`, `name`, `mimeType`, `url`, `resourceKey` and `lastEditedUtc` sent to `createGoogleDocsSource`.
 - The backend verifies each document with `files.get` using the connection. Unsupported or inaccessible files are skipped with a reason; if none are valid, the mutation fails.
-- One mutation creates one source and one document row per picked Google Doc. The source title is generated from the selection.
-- A Google Doc is identified by its Drive file ID (`documents.external_id`). The same file can be active only once per knowledge base: a selection that contains an already-added document skips it with `alreadyAdded`; when no new documents remain, the mutation creates no source (`source: null`) and leaves the existing indexed document untouched. The same file may be added to a different knowledge base, where it is indexed separately.
+- One mutation creates one source. New Google Docs get a document row; already-active Google Docs are linked to the source through `source_documents`. The source title is generated from the whole selection.
+- A Google Doc is identified by its Drive file ID (`documents.external_id`). The same file can be active only once per knowledge base: a selection that contains an already-added document reports it with `alreadyAdded` and links it to the new source instead of creating another document. A source with only already-added documents starts from their current state (`ready` when they are indexed) and has no sync run. The same file may be added to a different knowledge base, where it gets its own document and is indexed separately.
 
 **Sync.**
 
 - On creation the source is synced once (`initial`). A Google source can later be synced with the “Sync now” button or by its optional schedule. An upload is updated by replacing the file.
-- Each sync asks Drive for the metadata of every active document in the source (`id`, `name`, `mimeType`, `modifiedTime`, `version`, `trashed`, `webViewLink`, `resourceKey`).
+- A sync processes only the documents the source owns (`documents.source_id`); documents it merely references stay with their owner and are not indexed again.
+- Each sync asks Drive for the metadata of every active document owned by the source (`id`, `name`, `mimeType`, `modifiedTime`, `version`, `trashed`, `webViewLink`, `resourceKey`).
 - A document is re-exported only when `version` or `modifiedTime` differs from the stored value, or when it has never been indexed.
 - Export uses `files.export` with `text/markdown`. Google caps an export at 10 MB; a larger document fails with a reason.
 - A document is marked `removed` only on an explicit 404 or `trashed: true`. A transient network error, a 429 or a 5xx never removes anything (wipe protection).
@@ -608,11 +610,11 @@ A race is theoretically possible: a flow can be published after the delete scan 
 
 ### 9.3 Delete flow
 
-- **Delete source:** mark the source and its documents `deleted_at`, delete sections, chunks and terms immediately, enqueue a durable `clean-up-knowledge-source-files` job with `{ sourceId }`. The job reads the soft-deleted document keys, deletes the original and Markdown objects, then hard-deletes the documents and source.
+- **Delete source:** remove its `source_documents` links. For each document it owns, move ownership to another source that references it; if none does, mark the document `deleted_at` and delete its sections, chunks and terms immediately. Then mark the source `deleted_at` and enqueue a durable `clean-up-knowledge-source-files` job with `{ sourceId }`. The job reads the remaining soft-deleted document keys, deletes the original and Markdown objects, then hard-deletes the documents and source. A shared document and its files survive while another source references it.
 - **Delete knowledge base:** lock the KB and refuse with `KNOWLEDGE_BASE_HAS_SOURCES` while any active source still belongs to it. Sources are deleted one by one, never by deleting their KB. Once the KB has no sources, run the usage scan, mark the KB `deleted_at`, and delete sections/chunks/terms. A KB delete leaves source and document rows and their files alone.
 - **Disconnect Google connection:** blocked while any source row still references it, including a soft-deleted source waiting for cleanup, with `KNOWLEDGE_CONNECTION_IN_USE`. Otherwise the sealed token is deleted with the row.
 - **Delete a document removed by Google:** explicit 404/trashed → `status = 'removed'`, `deleted_at` set, cleanup job deletes its objects. A transient error never does this.
-- **Workspace deletion:** deleting the workspace row hard-deletes every knowledge-base, connection, source, document, section, chunk, term, sync-run and embedding-cache row through the `workspace_id` cascade. The `workspaceDeletedEvent` listener then enqueues a durable `clean-up-knowledge-workspace-files` job, which deletes every stored object under `workspaces/{workspaceId}/knowledge/`.
+- **Workspace deletion:** deleting the workspace row hard-deletes every knowledge-base, connection, source, source-document link, document, section, chunk, term, sync-run and embedding-cache row through the `workspace_id` cascade. The `workspaceDeletedEvent` listener then enqueues a durable `clean-up-knowledge-workspace-files` job, which deletes every stored object under `workspaces/{workspaceId}/knowledge/`.
 
 The cleanup job is durable and idempotent: a missing object is not an error, and a retry deletes the rows only after storage succeeds. If the job is lost, the soft-deleted rows remain hidden from all reads and a future sweep can retry.
 
@@ -729,6 +731,15 @@ erDiagram
         timestamptz deleted_at
     }
 
+    source_documents {
+        uuid workspace_id
+        uuid kb_id
+        uuid source_id PK
+        uuid document_id PK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
     documents {
         uuid id PK
         uuid workspace_id
@@ -834,7 +845,8 @@ erDiagram
     knowledge_bases ||--o{ sources : "has"
     knowledge_bases ||--o{ documents : "owns"
     connections |o--o{ sources : "authorizes"
-    sources ||--o{ documents : "contains"
+    sources ||--o{ source_documents : "references"
+    documents ||--o{ source_documents : "referenced by"
     documents ||--o{ sections : "has"
     documents ||--o{ chunks : "has"
     sections ||--o{ chunks : "groups"
@@ -850,9 +862,10 @@ Reading the diagram:
 - `text_array` is `text[]`.
 - Enum types (`source_kind`, `source_status`, `sync_interval`, `sync_trigger`, `sync_status`, `document_status`, `summary_source`, `connection_provider`, `connection_status`) are defined in 11.3.
 - `chunk_terms` has a composite primary key `(chunk_id, term)`; the relationship line is also its foreign key to `chunks`.
+- `source_documents` has a composite primary key `(source_id, document_id)`; the relationship lines are also its foreign keys to `sources` and `documents`.
 - `embedding_cache` has a composite primary key `(workspace_id, model, dimensions, text_hash)` and is workspace-scoped, not linked to a KB.
 - The diagram does not encode nullability. `sources.connection_id` is null for uploads, `documents.external_id` is null for uploads, and `sources.sync_*` are null unless the source is scheduled.
-- `sections.kb_id`, `chunks.kb_id` and `chunk_terms.kb_id` are denormalized for filtering, but still reference `knowledge_bases(workspace_id, id)` with `on delete cascade`; the document and chunk keys are authoritative.
+- `sections.kb_id`, `chunks.kb_id`, `chunk_terms.kb_id` and `source_documents.kb_id` are denormalized for filtering, but still reference `knowledge_bases(workspace_id, id)` with `on delete cascade`; the document and chunk keys are authoritative.
 
 ### 11.3 Enums
 
@@ -964,6 +977,29 @@ Constraints and indexes:
 - partial `index (workspace_id, next_sync_at)` where `deleted_at is null and sync_interval is not null`;
 - RLS.
 
+`document_count` and `chunk_count` count the active documents and chunks linked through `source_documents`. A shared document counts in every source that references it; the knowledge-base count counts it once.
+
+#### `knowledge.source_documents`
+
+| Column | Type | Notes |
+|---|---|---|
+| `workspace_id` | uuid | not null, RLS |
+| `kb_id` | uuid | not null |
+| `source_id` | uuid | not null |
+| `document_id` | uuid | not null |
+| `created_at`, `updated_at` | timestamptz | not null |
+
+Constraints and indexes:
+
+- primary key `(source_id, document_id)`;
+- FK `(workspace_id, source_id)` → `sources (workspace_id, id)`;
+- FK `(workspace_id, document_id)` → `documents (workspace_id, id)`;
+- FK `(workspace_id, kb_id)` → `knowledge_bases (workspace_id, id)`;
+- `index (workspace_id, source_id)`;
+- `index (workspace_id, document_id)`;
+- `index (workspace_id, kb_id)`;
+- RLS.
+
 #### `knowledge.documents`
 
 | Column | Type | Notes |
@@ -971,7 +1007,7 @@ Constraints and indexes:
 | `id` | uuid | PK |
 | `workspace_id` | uuid | not null, RLS |
 | `kb_id` | uuid | not null |
-| `source_id` | uuid | not null |
+| `source_id` | uuid | not null; the owner source for sync and file cleanup |
 | `external_id` | text | Google file id, null for uploads |
 | `external_resource_key` | text | Google resource key, nullable |
 | `provider_version` | text | Google `version`, nullable |
@@ -1004,7 +1040,7 @@ Constraints and indexes:
 - FK `(workspace_id, source_id)` → `sources`;
 - partial unique `(workspace_id, source_id, external_id)` where `external_id is not null and deleted_at is null`;
 - partial unique `(workspace_id, source_id)` where `external_id is null and deleted_at is null`;
-- `createGoogleDocsSource` also enforces one active document per `(workspace_id, kb_id, external_id)` under the knowledge-base lock, so the same Drive file cannot be added twice to one KB;
+- `createGoogleDocsSource` also enforces one active document per `(workspace_id, kb_id, external_id)` under the knowledge-base lock, so the same Drive file cannot be added twice to one KB; `source_documents` links that one document to every source that references it;
 - `index (workspace_id, kb_id, status)`;
 - `index (workspace_id, source_id)`;
 - GIN trigram index on `title` (`gin_trgm_ops`);
@@ -1119,6 +1155,8 @@ Constraints and indexes:
 - `index (workspace_id, source_id)`;
 - `index (source_id, created_at desc)`;
 - RLS.
+
+`documents_total` and the other document counters count the documents owned by the source that this run processes; a source's referenced documents are not included.
 
 #### `knowledge.embedding_cache`
 
@@ -1402,7 +1440,7 @@ There is no product-level document or chunk quota in the first version. The work
 | Worker crash before flip | New generation orphaned; old remains active | Retry; orphan cleanup |
 | Google token revoked | Connection `revoked`; source `error` | Reconnect, then sync |
 | Google doc trashed | Document `removed`; object cleanup | Nothing; it is gone at the provider |
-| Google doc already in the KB | The duplicate is skipped with `alreadyAdded`; no second document or sync is created. If nothing new remains, no source is created and the mutation returns `source: null` | Pick another document or delete the existing source |
+| Google doc already in the KB | The duplicate is reported with `alreadyAdded`; the new source links the existing document and no second document or sync is created. A source with only already-added documents starts from their current state | Nothing; both sources reference the same indexed document |
 | Google transient error | Document unchanged | Retry; wipe protection |
 | KB in use | `KNOWLEDGE_BASE_IN_USE` with usages | Detach from agents first |
 | Delete race on a referenced KB | Lock + publish check | At worst a flow fails validation and is fixed |

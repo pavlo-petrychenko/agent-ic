@@ -6,6 +6,7 @@ import { ConnectionsRepository } from '@/modules/knowledge/repositories/connecti
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
 import { SectionsRepository } from '@/modules/knowledge/repositories/sections.repository';
+import { SourceDocumentsRepository } from '@/modules/knowledge/repositories/source-documents.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { CacheModule } from '@/platform/cache/cache.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
@@ -137,12 +138,29 @@ export const seedKnowledgeDocument = async (
   sourceId: string,
 ): Promise<string> => {
   const documentId = testbed.ids.generate();
+  await testbed.tenants.run(workspaceId, async () => {
+    await testbed.module
+      .get(DocumentsRepository)
+      .insert(newDocument(documentId, workspaceId, knowledgeBaseId, sourceId));
+    await testbed.module
+      .get(SourceDocumentsRepository)
+      .insertMany(workspaceId, knowledgeBaseId, sourceId, [documentId]);
+  });
+  return documentId;
+};
+
+export const seedSourceDocument = async (
+  testbed: KnowledgeTestbed,
+  workspaceId: string,
+  knowledgeBaseId: string,
+  sourceId: string,
+  documentId: string,
+): Promise<void> => {
   await testbed.tenants.run(workspaceId, () =>
     testbed.module
-      .get(DocumentsRepository)
-      .insert(newDocument(documentId, workspaceId, knowledgeBaseId, sourceId)),
+      .get(SourceDocumentsRepository)
+      .insertMany(workspaceId, knowledgeBaseId, sourceId, [documentId]),
   );
-  return documentId;
 };
 
 export const seedKnowledgeSection = async (

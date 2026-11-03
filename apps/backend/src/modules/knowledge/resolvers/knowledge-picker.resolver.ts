@@ -40,7 +40,7 @@ export class KnowledgePickerResolver {
   ): Promise<CreateGoogleDocsSourcePayload> {
     const result = await this.createSourceUseCase.execute(ctx, input);
     return {
-      source: result.source === null ? null : toGraphqlKnowledgeSource(result.source),
+      source: toGraphqlKnowledgeSource(result.source),
       skipped: toGraphqlGooglePickerSkippedDocuments(result.skipped),
     };
   }

@@ -295,6 +295,13 @@
       "when": 1793663885679,
       "tag": "0041_conversation-system-events",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1793697345351,
+      "tag": "0042_knowledge-source-documents",
+      "breakpoints": true
     }
   ]
 }

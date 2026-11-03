@@ -2,6 +2,7 @@ import { ErrorReason } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   KnowledgeDocumentStatus,
+  KnowledgeSourceKind,
   KnowledgeSourceStatus,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { KnowledgeSourceBusyError } from '@/modules/knowledge/errors/knowledge-source-busy.error';
@@ -26,9 +27,11 @@ import {
   seedKnowledgeBase,
   seedKnowledgeChunk,
   seedKnowledgeChunkTerm,
+  seedKnowledgeConnection,
   seedKnowledgeDocument,
   seedKnowledgeSection,
   seedKnowledgeSource,
+  seedSourceDocument,
 } from '@test/support/helpers/knowledge-testing.helpers';
 import type { KnowledgeTestbed } from '@test/support/typedefs/knowledge-testing.typedefs';
 
@@ -136,6 +139,133 @@ describe('DeleteKnowledgeSourceUseCase', () => {
     expect(cleaned).toBeNull();
     await expect(testbed.storage.head(originalKey)).resolves.toBeNull();
     await expect(testbed.storage.head(pendingKey)).resolves.toBeNull();
+    await expect(testbed.storage.head(contentKey)).resolves.toBeNull();
+  });
+
+  it('keeps a shared document and moves its owner when the owning source is deleted', async () => {
+    const workspaceId = ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    const ownerSourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    const referencingSourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    const documentId = await seedKnowledgeDocument(
+      testbed,
+      workspaceId,
+      knowledgeBaseId,
+      ownerSourceId,
+    );
+    await seedSourceDocument(
+      testbed,
+      workspaceId,
+      knowledgeBaseId,
+      referencingSourceId,
+      documentId,
+    );
+    const sectionId = await seedKnowledgeSection(testbed, workspaceId, knowledgeBaseId, documentId);
+    const chunkId = await seedKnowledgeChunk(
+      testbed,
+      workspaceId,
+      knowledgeBaseId,
+      documentId,
+      sectionId,
+    );
+    const originalKey = `workspaces/${workspaceId}/knowledge/documents/${documentId}/original.md`;
+    const contentKey = `workspaces/${workspaceId}/knowledge/documents/${documentId}/content.md`;
+    await testbed.storage.put(originalKey, Buffer.from('shared'), 'text/markdown');
+    await testbed.storage.put(contentKey, Buffer.from('shared'), 'text/markdown');
+    await tenants.run(workspaceId, async () => {
+      await sources.update(workspaceId, ownerSourceId, {
+        status: KnowledgeSourceStatus.Ready,
+        documentCount: 1,
+        chunkCount: 1,
+      });
+      await sources.update(workspaceId, referencingSourceId, {
+        status: KnowledgeSourceStatus.Ready,
+        documentCount: 1,
+        chunkCount: 1,
+      });
+      await documents.update(workspaceId, documentId, {
+        status: KnowledgeDocumentStatus.Indexed,
+        originalStorageKey: originalKey,
+        contentStorageKey: contentKey,
+        activeGeneration: 1,
+      });
+      await chunks.update(workspaceId, chunkId, { generation: 1 });
+      await knowledgeBases.update(workspaceId, knowledgeBaseId, {
+        documentCount: 1,
+        chunkCount: 1,
+      });
+    });
+
+    await deleteKnowledgeSource.execute(knowledgeCtx(workspaceId), {
+      id: publicKnowledgeSourceId(testbed, ownerSourceId),
+    });
+
+    const afterOwnerDelete = await tenants.run(workspaceId, async () => ({
+      ownerSource: await sources.findById(workspaceId, ownerSourceId),
+      deletedOwnerSource: await sources.findByIdIncludingDeleted(workspaceId, ownerSourceId),
+      referencingSource: await sources.findById(workspaceId, referencingSourceId),
+      document: await documents.findById(workspaceId, documentId),
+      ownerDocuments: await documents.listBySource(workspaceId, ownerSourceId),
+      referencingDocuments: await documents.listBySource(workspaceId, referencingSourceId),
+      section: await sections.findById(workspaceId, sectionId),
+      chunk: await chunks.findById(workspaceId, chunkId),
+      knowledgeBase: await knowledgeBases.findById(workspaceId, knowledgeBaseId),
+    }));
+    expect(afterOwnerDelete.ownerSource).toBeNull();
+    expect(afterOwnerDelete.deletedOwnerSource).not.toBeNull();
+    expect(afterOwnerDelete.referencingSource).not.toBeNull();
+    expect(afterOwnerDelete.document).toMatchObject({
+      sourceId: referencingSourceId,
+      status: KnowledgeDocumentStatus.Indexed,
+    });
+    expect(afterOwnerDelete.ownerDocuments).toEqual([]);
+    expect(afterOwnerDelete.referencingDocuments.map((document) => document.id)).toEqual([
+      documentId,
+    ]);
+    expect(afterOwnerDelete.section).not.toBeNull();
+    expect(afterOwnerDelete.chunk).not.toBeNull();
+    expect(afterOwnerDelete.knowledgeBase).toMatchObject({ documentCount: 1, chunkCount: 1 });
+    await expect(testbed.storage.head(originalKey)).resolves.not.toBeNull();
+    await expect(testbed.storage.head(contentKey)).resolves.not.toBeNull();
+
+    await cleanUpKnowledgeSourceFiles.execute(workspaceSystemCtx(workspaceId), {
+      sourceId: ownerSourceId,
+    });
+
+    const afterOwnerCleanup = await tenants.run(workspaceId, async () => ({
+      deletedOwnerSource: await sources.findByIdIncludingDeleted(workspaceId, ownerSourceId),
+      document: await documents.findById(workspaceId, documentId),
+    }));
+    expect(afterOwnerCleanup.deletedOwnerSource).toBeNull();
+    expect(afterOwnerCleanup.document).not.toBeNull();
+    await expect(testbed.storage.head(originalKey)).resolves.not.toBeNull();
+    await expect(testbed.storage.head(contentKey)).resolves.not.toBeNull();
+
+    await deleteKnowledgeSource.execute(knowledgeCtx(workspaceId), {
+      id: publicKnowledgeSourceId(testbed, referencingSourceId),
+    });
+    await cleanUpKnowledgeSourceFiles.execute(workspaceSystemCtx(workspaceId), {
+      sourceId: referencingSourceId,
+    });
+
+    const afterReferenceDelete = await tenants.run(workspaceId, async () => ({
+      document: await documents.findById(workspaceId, documentId),
+      section: await sections.findById(workspaceId, sectionId),
+      chunk: await chunks.findById(workspaceId, chunkId),
+      knowledgeBase: await knowledgeBases.findById(workspaceId, knowledgeBaseId),
+    }));
+    expect(afterReferenceDelete.document).toBeNull();
+    expect(afterReferenceDelete.section).toBeNull();
+    expect(afterReferenceDelete.chunk).toBeNull();
+    expect(afterReferenceDelete.knowledgeBase).toMatchObject({ documentCount: 0, chunkCount: 0 });
+    await expect(testbed.storage.head(originalKey)).resolves.toBeNull();
     await expect(testbed.storage.head(contentKey)).resolves.toBeNull();
   });
 

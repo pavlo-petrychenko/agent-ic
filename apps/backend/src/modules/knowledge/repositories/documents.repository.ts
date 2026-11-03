@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { documents } from '@/modules/knowledge/db/documents.table';
+import { sourceDocuments } from '@/modules/knowledge/db/source-documents.table';
 import type {
   Document,
   DocumentChanges,
@@ -56,16 +57,16 @@ export class DocumentsRepository {
     return document ?? null;
   }
 
-  async listActiveExternalIds(
+  async listActiveByExternalIds(
     workspaceId: string,
     knowledgeBaseId: string,
     externalIds: readonly string[],
-  ): Promise<string[]> {
+  ): Promise<Document[]> {
     if (externalIds.length === 0) {
       return [];
     }
-    const rows = await this.txHost.tx
-      .select({ externalId: documents.externalId })
+    return this.txHost.tx
+      .select()
       .from(documents)
       .where(
         this.activeWhere(
@@ -73,11 +74,33 @@ export class DocumentsRepository {
           eq(documents.kbId, knowledgeBaseId),
           inArray(documents.externalId, [...externalIds]),
         ),
-      );
-    return rows.flatMap((row) => (row.externalId === null ? [] : [row.externalId]));
+      )
+      .orderBy(asc(documents.createdAt), asc(documents.id));
   }
 
   async listBySource(workspaceId: string, sourceId: string): Promise<Document[]> {
+    const rows = await this.txHost.tx
+      .select({ document: documents })
+      .from(sourceDocuments)
+      .innerJoin(
+        documents,
+        and(
+          eq(documents.workspaceId, sourceDocuments.workspaceId),
+          eq(documents.id, sourceDocuments.documentId),
+        ),
+      )
+      .where(
+        and(
+          eq(sourceDocuments.workspaceId, workspaceId),
+          eq(sourceDocuments.sourceId, sourceId),
+          isNull(documents.deletedAt),
+        ),
+      )
+      .orderBy(asc(documents.createdAt), asc(documents.id));
+    return rows.map((row) => row.document);
+  }
+
+  async listOwnedBySource(workspaceId: string, sourceId: string): Promise<Document[]> {
     return this.txHost.tx
       .select()
       .from(documents)

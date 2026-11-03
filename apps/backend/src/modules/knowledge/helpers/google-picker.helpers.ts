@@ -14,13 +14,13 @@ const truncated = (value: string, maxLength: number): string =>
 export const googleDocsDocumentTitle = (file: GoogleDriveFile): string =>
   truncated(file.name, KNOWLEDGE_DOCUMENT_TITLE_MAX_LENGTH);
 
-export const googleDocsSourceTitle = (files: readonly GoogleDriveFile[]): string => {
-  const first = files[0];
+export const googleDocsSourceTitleFromNames = (names: readonly string[]): string => {
+  const first = names[0];
   if (first === undefined) {
     return GOOGLE_PICKER_SOURCE_TITLE_PREFIX;
   }
   const title =
-    files.length === 1 ? first.name : `${GOOGLE_PICKER_SOURCE_TITLE_PREFIX} (${files.length})`;
+    names.length === 1 ? first : `${GOOGLE_PICKER_SOURCE_TITLE_PREFIX} (${names.length})`;
   return truncated(title, KNOWLEDGE_SOURCE_TITLE_MAX_LENGTH);
 };
 

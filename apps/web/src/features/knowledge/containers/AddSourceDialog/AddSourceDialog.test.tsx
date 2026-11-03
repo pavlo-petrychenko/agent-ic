@@ -236,7 +236,13 @@ const CREATE_GOOGLE_DOCS_SOURCE_ALL_DUPLICATE_MOCK: MockLink.MockedResponse = {
   result: {
     data: {
       createGoogleDocsSource: {
-        source: null,
+        source: {
+          ...SOURCE,
+          kind: KnowledgeSourceKind.GoogleDocs,
+          title: 'Google Docs (2)',
+          status: KnowledgeSourceStatus.Ready,
+          documentCount: 2,
+        },
         skipped: PICKER_DOCUMENTS.map((document) => ({
           id: document.id,
           name: document.name,
@@ -468,11 +474,13 @@ describe('AddSourceDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Add 2 documents' }));
 
     expect(
-      await screen.findByText('These Google Docs are already in this knowledge base.'),
+      await screen.findByText(
+        'These Google Docs were already in this knowledge base and are linked to the new source.',
+      ),
     ).toBeInTheDocument();
   });
 
-  it('closes without a source when every Google Doc is already in the knowledge base', async () => {
+  it('creates a source that references Google Docs already in the knowledge base', async () => {
     const user = userEvent.setup();
     vi.mocked(openGooglePicker).mockImplementation(async ({ onPicked }) => {
       onPicked(PICKER_DOCUMENTS);
@@ -490,10 +498,12 @@ describe('AddSourceDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Add 2 documents' }));
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
-    expect(onUploaded).not.toHaveBeenCalled();
+    expect(onUploaded).toHaveBeenCalled();
+    expect(screen.getByText('Google Docs source added.')).toBeInTheDocument();
     expect(
-      screen.getByText('These Google Docs are already in this knowledge base.'),
+      screen.getByText(
+        'These Google Docs were already in this knowledge base and are linked to the new source.',
+      ),
     ).toBeInTheDocument();
-    expect(screen.queryByText('Google Docs source added.')).not.toBeInTheDocument();
   });
 });

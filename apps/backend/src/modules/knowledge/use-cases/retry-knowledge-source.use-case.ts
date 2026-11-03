@@ -62,7 +62,7 @@ export class RetryKnowledgeSourceUseCase {
         throw new KnowledgeSourceNotRetryableError();
       }
 
-      const documents = await this.documents.listBySource(workspaceId, source.id);
+      const documents = await this.documents.listOwnedBySource(workspaceId, source.id);
       if (documents.length === 0) {
         throw new KnowledgeSourceNotRetryableError();
       }
