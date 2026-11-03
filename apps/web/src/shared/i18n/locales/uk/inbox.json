@@ -72,8 +72,8 @@
   },
   "divider": {
     "flowPaused": "Сценарій призупинено з {{time}} · {{name}} взяв чат о {{tookAt}}",
-    "escalated": "Ескальовано о {{time}} · {{name}} отримав сповіщення",
-    "tookOver": "Ескальовано о {{time}} · {{name}} взяв чат о {{tookAt}}",
+    "escalated": "Ескальовано о {{time}}",
+    "tookOver": "{{name}} взяв чат · {{time}}",
     "handedBack": "{{name}} повернув чат агенту · {{time}}"
   },
   "empty": {

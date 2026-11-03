@@ -72,8 +72,8 @@
   },
   "divider": {
     "flowPaused": "Flow paused since {{time}} · {{name}} took over at {{tookAt}}",
-    "escalated": "Escalated at {{time}} · {{name}} notified",
-    "tookOver": "Escalated at {{time}} · {{name}} took over at {{tookAt}}",
+    "escalated": "Escalated at {{time}}",
+    "tookOver": "{{name}} took over · {{time}}",
     "handedBack": "{{name}} handed the chat back to the agent · {{time}}"
   },
   "empty": {

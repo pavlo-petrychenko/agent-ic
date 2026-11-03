@@ -60,6 +60,7 @@ describe('InboxPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Andri P\./ }));
 
     expect(await screen.findByRole('button', { name: 'Take over from Olena' })).toBeInTheDocument();
+    expect(screen.getByText('Olena took over · 02:19 PM')).toBeInTheDocument();
     expect(await screen.findByText(/^Olena ·/)).toBeInTheDocument();
   });
 
