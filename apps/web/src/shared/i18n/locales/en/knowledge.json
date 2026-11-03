@@ -45,6 +45,7 @@
     "empty": "No knowledge base attached yet.",
     "loading": "Loading knowledge bases…",
     "loadError": "Could not load knowledge bases.",
+    "retry": "Retry loading knowledge bases",
     "attach": "Attach knowledge base",
     "remove": "Remove {{name}}",
     "removeMissing": "Remove missing knowledge base",

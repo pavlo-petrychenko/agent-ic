@@ -26,7 +26,12 @@ export function KnowledgeBaseField({
           <Text kind={TextKind.Caption} color={TextColor.Err}>
             {t('agentField.loadError')}
           </Text>
-          <Button variant={ButtonVariant.Ghost} size={ButtonSize.Sm} onClick={onRetry}>
+          <Button
+            variant={ButtonVariant.Ghost}
+            size={ButtonSize.Sm}
+            aria-label={t('agentField.retry')}
+            onClick={onRetry}
+          >
             {t('retry')}
           </Button>
         </div>
