@@ -10,7 +10,7 @@
     "search": "Search steps and triggers",
     "clearSearch": "Clear search",
     "nothingFound": "No steps match your search",
-    "knowledgeNote": "Knowledge bases are attached to an agent in its settings, not placed on the canvas.",
+    "knowledgeNote": "Attach knowledge bases inside an Agent step, not on the canvas.",
     "group": {
       "triggers": "Triggers",
       "ai": "AI",
@@ -491,6 +491,8 @@
       "addField": "Add field"
     },
     "agent": {
+      "knowledge": "Knowledge",
+      "knowledgeNote": "searched by the agent",
       "onFailure": "If the model fails",
       "runFails": "The run fails",
       "goesTo": "Goes to {{name}}",

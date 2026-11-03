@@ -16,6 +16,7 @@ import type { ModelOption } from '@/features/flow-builder/typedefs/llmStep.typed
 import { AgentExitsSection } from '@/features/flow-builder/view/AgentExitsSection';
 import type { LlmStepInspectorProps } from '@/features/flow-builder/view/LlmStepInspector/LlmStepInspector.typedefs';
 import { OutputFieldRow } from '@/features/flow-builder/view/LlmStepInspector/OutputFieldRow';
+import { KnowledgeBaseField } from '@/features/knowledge';
 import { PromptField } from '@/features/prompts';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
@@ -162,6 +163,18 @@ export function LlmStepInspector({
           </Field>
         )}
       </InspectorSection>
+      {extra.type === NodeType.Agent && (
+        <InspectorSection
+          title={t('inspector.agent.knowledge')}
+          note={t('inspector.agent.knowledgeNote')}
+        >
+          <KnowledgeBaseField
+            selectedIds={extra.knowledgeBaseIds}
+            error={extra.knowledgeIssue === null ? null : message(extra.knowledgeIssue)}
+            onChange={extra.onKnowledgeBaseIdsChange}
+          />
+        </InspectorSection>
+      )}
       {extra.type === NodeType.Completion && (
         <InspectorSection title={t('inspector.completion.input')}>
           <RowList

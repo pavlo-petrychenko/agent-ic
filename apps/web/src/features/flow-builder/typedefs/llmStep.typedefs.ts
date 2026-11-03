@@ -103,6 +103,9 @@ export type LlmStepExtra =
   | {
       type: NodeType.Agent;
       retries: number;
+      knowledgeBaseIds: readonly string[];
+      knowledgeIssue: FlowIssue | null;
+      onKnowledgeBaseIdsChange: (ids: readonly string[]) => void;
       onFailure: readonly PortTarget[];
       onRetriesChange: (retries: number) => void;
       exits: AgentExitsView;

@@ -93,6 +93,7 @@ export enum IssuePathSegment {
   Prompt = 'prompt',
   Text = 'text',
   Model = 'model',
+  KnowledgeBaseIds = 'knowledgeBaseIds',
   Output = 'output',
   Name = 'name',
   Content = 'content',
