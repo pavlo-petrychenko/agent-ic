@@ -2,6 +2,7 @@ import { AgentsModule } from '@/modules/agents';
 import { CHANNEL_ADAPTERS } from '@/modules/channels/constants/channel-adapter.constants';
 import { ApiChannelMessagesController } from '@/modules/channels/controllers/api-channel-messages.controller';
 import { TelegramWebhookController } from '@/modules/channels/controllers/telegram-webhook.controller';
+import { ApiChannelAdapter } from '@/modules/channels/gateways/api-channel-adapter.gateway';
 import type { ChannelAdapter } from '@/modules/channels/gateways/channel-adapter.gateway';
 import { HttpTelegramGateway } from '@/modules/channels/gateways/http-telegram.gateway';
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
@@ -77,13 +78,15 @@ export class ChannelsModule extends defineModule({
     },
     SimulatedChannelAdapter,
     TelegramChannelAdapter,
+    ApiChannelAdapter,
     {
       provide: CHANNEL_ADAPTERS,
-      inject: [SimulatedChannelAdapter, TelegramChannelAdapter],
+      inject: [SimulatedChannelAdapter, TelegramChannelAdapter, ApiChannelAdapter],
       useFactory: (
         simulated: SimulatedChannelAdapter,
         telegram: TelegramChannelAdapter,
-      ): ChannelAdapter[] => [simulated, telegram],
+        api: ApiChannelAdapter,
+      ): ChannelAdapter[] => [simulated, telegram, api],
     },
     ChannelAdapterRegistryService,
     ChannelMetricsService,

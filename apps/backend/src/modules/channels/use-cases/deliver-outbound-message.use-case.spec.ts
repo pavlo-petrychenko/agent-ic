@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
-import { ChannelAdapterNotFoundError } from '@/modules/channels/errors/channel-adapter-not-found.error';
+import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { ChannelKind, ConversationMode, MessageDelivery } from '@/modules/conversations';
 import { SystemActorRequiredError } from '@/platform/context/errors/system-actor-required.error';
@@ -144,14 +144,14 @@ describe('DeliverOutboundMessageUseCase', () => {
     expect((await statusOf(workspaceId, channel.id))?.status).toBe(ChannelStatus.Connected);
   });
 
-  it('marks the message failed when no adapter serves the channel', async () => {
+  it('marks the message failed when the API channel is missing', async () => {
     const conversation = await seedChannelConversation(testbed, {
       channelKind: ChannelKind.Api,
     });
     const message = await queueAgentReply(testbed, conversation);
 
     await expect(deliverOutbound(testbed, conversation, message)).rejects.toBeInstanceOf(
-      ChannelAdapterNotFoundError,
+      ChannelNotFoundError,
     );
     expect((await deliveryOf(testbed, message))?.delivery).toBe(MessageDelivery.Failed);
   });
