@@ -29,6 +29,7 @@ export {
   KNOWLEDGE_DOCUMENT_MAX_TOKENS,
   KNOWLEDGE_DOCUMENT_TITLE_MAX_LENGTH,
   KNOWLEDGE_SOURCE_TITLE_MAX_LENGTH,
+  KnowledgeDocumentFailureCode,
   KnowledgeDocumentFormat,
 } from '@contracts/knowledge/knowledge.constants';
 export {

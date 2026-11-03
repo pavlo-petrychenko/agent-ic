@@ -11,3 +11,13 @@ export enum KnowledgeDocumentFormat {
   Txt = 'txt',
   Markdown = 'md',
 }
+
+export enum KnowledgeDocumentFailureCode {
+  UnsupportedType = 'UNSUPPORTED_DOCUMENT_TYPE',
+  TooLarge = 'DOCUMENT_TOO_LARGE',
+  TooManyTokens = 'DOCUMENT_TOO_MANY_TOKENS',
+  Empty = 'DOCUMENT_EMPTY',
+  Unreadable = 'DOCUMENT_UNREADABLE',
+  SignatureMismatch = 'DOCUMENT_SIGNATURE_MISMATCH',
+  PdfHasNoText = 'PDF_HAS_NO_TEXT',
+}
