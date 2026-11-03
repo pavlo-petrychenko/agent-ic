@@ -1,5 +1,3 @@
-import type { KnowledgeBaseUsage } from '@/features/knowledge/typedefs/knowledgeBase.typedefs';
-
 export interface KnowledgeAgentAccessProps {
   readonly knowledgeBase: {
     readonly id: string;
@@ -7,7 +5,7 @@ export interface KnowledgeAgentAccessProps {
     readonly toolName: string;
     readonly toolDescription: string | null;
   };
-  readonly usages: readonly KnowledgeBaseUsage[];
+  readonly agents: readonly string[];
   readonly loading: boolean;
   readonly failed: boolean;
   readonly onRetry: () => void;
