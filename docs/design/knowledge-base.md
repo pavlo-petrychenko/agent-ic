@@ -28,7 +28,7 @@ The module does **not** let the agent read a whole knowledge base or browse its 
 
 A knowledge base is a prepared library, not a folder the agent reads.
 
-You give us a file or pick Google Docs. We keep the originals, then a background helper reads each document, breaks it into section-sized pieces, writes a one-time summary you can edit, gives every piece a meaning fingerprint and records its important words. The pieces go into a searchable catalog.
+You give us a file or pick Google Docs. We keep the originals, then a background helper reads each document, breaks it into section-sized pieces, writes a one-time summary for each Google Doc that you can edit, gives every piece a meaning fingerprint and records its important words. The pieces go into a searchable catalog.
 
 When a customer asks a question, the agent asks the catalog for the few most relevant pieces and answers from them. It never receives the whole library.
 
@@ -1384,7 +1384,7 @@ Behaviour:
 
 - **List page:** empty state, KB cards/rows with status, source count, chunk count, last activity.
 - **Detail page:** breadcrumb above the KB name; header with rename/edit/delete; sources table with type, status, chunks, last sync, next sync, and a source actions menu (Sync now for a ready Google source, rename, retry, delete); Add source; Sync all; settings for tool name/description; Playground tab or panel.
-- **Add source:** Upload tab with drop zone and per-file progress; Google tab with Connect, account status and Pick documents.
+- **Add source:** Upload tab with drop zone and per-file progress; Google tab with Connect, account status and Pick documents, plus a note that Google Docs summaries are generated once and are not updated automatically.
 - **Upload hook:** call `createUpload`, PUT with `XMLHttpRequest` for progress, call `confirmUpload`, then subscribe/refetch. Errors show the server reason.
 - **Document summary:** Google Docs documents show the one-line summary with an edit action. The Add source dialog explains that summaries are generated once and are not updated automatically. The edit dialog calls `updateDocumentSummary`; saving shows the document as `indexing` until the new generation is ready. Uploaded documents do not show the editor.
 - **Google Picker:** load the Google script on demand, call `createGooglePickerSession`, open the Picker filtered to Google Docs, review the picked documents in the dialog and send the final ids to `createGoogleDocsSource`.
