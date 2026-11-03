@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  INBOX_CONVERSATIONS,
-  INBOX_CURRENT_USER,
-  INBOX_DEFAULT_CONVERSATION_ID,
-} from '@/features/inbox/communication/fixtures/inbox.fixture';
+  toInboxConversation,
+  withInboxDetail,
+} from '@/features/inbox/communication/helpers/inboxApi.helpers';
+import { useInboxConversation } from '@/features/inbox/communication/hooks/useInboxConversation';
+import { useInboxConversations } from '@/features/inbox/communication/hooks/useInboxConversations';
 import {
+  INBOX_CURRENT_USER,
   InboxMessageKind,
   InboxProvider,
   InboxTab,
@@ -38,12 +40,19 @@ import type {
 } from '@/features/inbox/typedefs/inbox.typedefs';
 
 export function useInboxPage(): InboxPageModel {
-  const { t } = useTranslation(INBOX_NAMESPACE);
+  const { t, i18n } = useTranslation(INBOX_NAMESPACE);
+  const { summaries } = useInboxConversations();
   const [activeTab, setActiveTab] = useState<InboxTab>(InboxTab.NeedsYou);
   const [search, setSearch] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(INBOX_DEFAULT_CONVERSATION_ID);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [sent, setSent] = useState<Readonly<Record<string, readonly InboxMessage[]>>>({});
+
+  const conversations = useMemo(
+    () =>
+      summaries.map((summary) => toInboxConversation(summary, i18n.language, t('status.operator'))),
+    [summaries, i18n.language, t],
+  );
 
   const providerLabels = useMemo<InboxProviderLabels>(
     () => ({
@@ -53,18 +62,29 @@ export function useInboxPage(): InboxPageModel {
     [t],
   );
 
-  const counts = useMemo(() => countConversationsByTab(INBOX_CONVERSATIONS), []);
+  const counts = useMemo(() => countConversationsByTab(conversations), [conversations]);
   const visible = useMemo(
-    () => visibleConversations(INBOX_CONVERSATIONS, activeTab, search, providerLabels),
-    [activeTab, search, providerLabels],
+    () => visibleConversations(conversations, activeTab, search, providerLabels),
+    [conversations, activeTab, search, providerLabels],
   );
+
+  const effectiveSelectedId =
+    selectedId !== null && visible.some((conversation) => conversation.id === selectedId)
+      ? selectedId
+      : (visible[0]?.id ?? null);
+  const { detail } = useInboxConversation(effectiveSelectedId);
+
+  const selectedBase =
+    conversations.find((conversation) => conversation.id === effectiveSelectedId) ?? null;
   const selected =
-    INBOX_CONVERSATIONS.find((conversation) => conversation.id === selectedId) ?? null;
+    selectedBase === null || detail === null || detail.summary.id !== effectiveSelectedId
+      ? selectedBase
+      : withInboxDetail(selectedBase, detail, i18n.language, t('status.operator'));
 
   const changeTab = (tab: InboxTab) => {
     setActiveTab(tab);
-    if (selected === null || inboxTabOf(selected) !== tab) {
-      setSelectedId(firstConversationId(INBOX_CONVERSATIONS, tab));
+    if (selectedBase === null || inboxTabOf(selectedBase) !== tab) {
+      setSelectedId(firstConversationId(conversations, tab));
       setDraft('');
     }
   };
@@ -120,7 +140,7 @@ export function useInboxPage(): InboxPageModel {
       channelFilterLabel: t('filters.channel'),
       agentFilterLabel: t('filters.agent'),
       items: visible.map((conversation) =>
-        inboxListItem(conversation, selectedId, providerLabels, t),
+        inboxListItem(conversation, effectiveSelectedId, providerLabels, t),
       ),
       empty: inboxEmptyState(activeTab, t),
       onSelect: selectConversation,

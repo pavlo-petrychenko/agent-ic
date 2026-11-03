@@ -1,0 +1,106 @@
+import { IdPrefix } from '@agent-ic/contracts';
+import { Injectable } from '@nestjs/common';
+import { AgentRuntimeReader } from '@/modules/agents';
+import { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
+import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
+import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
+import { SimulationsService } from '@/modules/conversations/services/simulations.service';
+import type { Conversation } from '@/modules/conversations/typedefs/conversation.typedefs';
+import type { InboxDetail, InboxSummary } from '@/modules/conversations/typedefs/inbox.typedefs';
+import type { Message } from '@/modules/conversations/typedefs/message.typedefs';
+import { IdService } from '@/platform/ids/services/id.service';
+
+interface InboxAgentInfo {
+  readonly name: string;
+  readonly version: number;
+}
+
+@Injectable()
+export class InboxConversationsService {
+  constructor(
+    private readonly conversations: ConversationsRepository,
+    private readonly messages: MessagesRepository,
+    private readonly agentRuntime: AgentRuntimeReader,
+    private readonly simulations: SimulationsService,
+    private readonly ids: IdService,
+  ) {}
+
+  async list(workspaceId: string, userId: string, limit: number): Promise<readonly InboxSummary[]> {
+    const rows = await this.conversations.listLive(workspaceId, limit);
+    if (rows.length === 0) {
+      return [];
+    }
+    const [previews, agents] = await Promise.all([
+      this.messages.latestByConversationIds(
+        workspaceId,
+        rows.map((row) => row.id),
+      ),
+      this.agentInfo(workspaceId, rows),
+    ]);
+    const previewByConversation = new Map(
+      previews.map((message) => [message.conversationId, message]),
+    );
+    return rows.map((row) =>
+      this.summaryOf(row, previewByConversation.get(row.id) ?? null, agents, userId),
+    );
+  }
+
+  async get(workspaceId: string, userId: string, publicId: string): Promise<InboxDetail> {
+    const id = this.ids.fromPublic(IdPrefix.Conversation, publicId);
+    const conversation = await this.conversations.findById(workspaceId, id);
+    if (conversation === null) {
+      throw new ConversationNotFoundError(publicId);
+    }
+    const [messages, agents] = await Promise.all([
+      this.messages.listByConversation(workspaceId, conversation.id),
+      this.agentInfo(workspaceId, [conversation]),
+    ]);
+    return {
+      summary: this.summaryOf(conversation, messages.at(-1) ?? null, agents, userId),
+      messages: messages.map((message) => this.simulations.messageView(message)),
+    };
+  }
+
+  private async agentInfo(
+    workspaceId: string,
+    rows: readonly Conversation[],
+  ): Promise<ReadonlyMap<string, InboxAgentInfo>> {
+    const ids = [...new Set(rows.map((row) => row.agentId))];
+    const entries = await Promise.all(
+      ids.map(async (agentId) => {
+        const agent = await this.agentRuntime.getAgent(workspaceId, agentId);
+        const version =
+          agent.liveVersionId === null
+            ? null
+            : await this.agentRuntime.getVersion(workspaceId, agent.liveVersionId);
+        return [agentId, { name: agent.name, version: version?.number ?? 0 }] as const;
+      }),
+    );
+    return new Map(entries);
+  }
+
+  private summaryOf(
+    conversation: Conversation,
+    preview: Message | null,
+    agents: ReadonlyMap<string, InboxAgentInfo>,
+    userId: string,
+  ): InboxSummary {
+    const agent = agents.get(conversation.agentId);
+    return {
+      id: this.ids.toPublic(IdPrefix.Conversation, conversation.id),
+      state: conversation.state,
+      handledByMe: conversation.handledBy === userId,
+      channelKind: conversation.channelKind,
+      agentId: this.ids.toPublic(IdPrefix.Agent, conversation.agentId),
+      agentName: agent?.name ?? '',
+      agentVersion: agent?.version ?? 0,
+      endUserName: conversation.endUserName,
+      endUserExternalId: conversation.endUserExternalId,
+      preview: preview?.text ?? '',
+      createdAt: conversation.createdAt,
+      lastMessageAt: conversation.lastMessageAt,
+      lastEscalatedAt: conversation.lastEscalatedAt,
+      closedAt: conversation.closedAt,
+    };
+  }
+}

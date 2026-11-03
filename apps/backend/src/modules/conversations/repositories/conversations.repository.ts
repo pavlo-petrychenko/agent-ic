@@ -67,6 +67,20 @@ export class ConversationsRepository {
     return conversation ?? null;
   }
 
+  listLive(workspaceId: string, limit: number): Promise<Conversation[]> {
+    return this.txHost.tx
+      .select()
+      .from(conversations)
+      .where(
+        and(
+          eq(conversations.workspaceId, workspaceId),
+          eq(conversations.mode, ConversationMode.Live),
+        ),
+      )
+      .orderBy(desc(conversations.lastMessageAt), desc(conversations.id))
+      .limit(limit);
+  }
+
   async findOpenForUpdate(key: EndUserConversationKey): Promise<Conversation | null> {
     await this.txHost.tx.execute(
       sql`select pg_advisory_xact_lock(hashtext(${endUserLockKey(key)}))`,
