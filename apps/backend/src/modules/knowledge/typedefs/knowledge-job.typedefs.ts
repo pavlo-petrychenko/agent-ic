@@ -1,6 +1,7 @@
 import type { z } from 'zod';
 import type { cleanUpKnowledgeSourceFilesJob } from '@/modules/knowledge/jobs/clean-up-knowledge-source-files.job';
 import type { ingestKnowledgeSourceJob } from '@/modules/knowledge/jobs/ingest-knowledge-source.job';
+import type { reindexKnowledgeDocumentJob } from '@/modules/knowledge/jobs/reindex-knowledge-document.job';
 
 export interface KnowledgeFailure {
   readonly code: string;
@@ -8,6 +9,8 @@ export interface KnowledgeFailure {
 }
 
 export type IngestKnowledgeSourceJobData = z.infer<typeof ingestKnowledgeSourceJob.schema>;
+
+export type ReindexKnowledgeDocumentJobData = z.infer<typeof reindexKnowledgeDocumentJob.schema>;
 
 export type CleanUpKnowledgeSourceFilesJobData = z.infer<
   typeof cleanUpKnowledgeSourceFilesJob.schema

@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { KNOWLEDGE_WRITE_BATCH_SIZE } from '@/modules/knowledge/constants/knowledge.constants';
 import { sections } from '@/modules/knowledge/db/sections.table';
 import type {
@@ -44,6 +44,24 @@ export class SectionsRepository {
       .from(sections)
       .where(and(eq(sections.workspaceId, workspaceId), eq(sections.id, sectionId)));
     return section ?? null;
+  }
+
+  async listByDocumentGeneration(
+    workspaceId: string,
+    documentId: string,
+    generation: number,
+  ): Promise<Section[]> {
+    return this.txHost.tx
+      .select()
+      .from(sections)
+      .where(
+        and(
+          eq(sections.workspaceId, workspaceId),
+          eq(sections.documentId, documentId),
+          eq(sections.generation, generation),
+        ),
+      )
+      .orderBy(asc(sections.ordinal));
   }
 
   async update(

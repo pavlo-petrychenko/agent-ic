@@ -24,3 +24,8 @@ export interface DocumentSummaryResult {
   readonly generated: boolean;
   readonly warnings: readonly DocumentSummaryWarning[];
 }
+
+export interface UpdateDocumentSummaryInput {
+  readonly id: string;
+  readonly summary: string;
+}

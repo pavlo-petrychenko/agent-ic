@@ -12,6 +12,7 @@ extend type Mutation {
   createUpload(input: CreateUploadInput!): CreateUploadPayload!
   confirmUpload(input: ConfirmUploadInput!): KnowledgeSource!
   renameSource(input: RenameSourceInput!): KnowledgeSource!
+  updateDocumentSummary(input: UpdateDocumentSummaryInput!): KnowledgeSourceDocument!
   deleteSource(input: DeleteSourceInput!): DeleteSourcePayload!
   retrySource(input: RetrySourceInput!): RetrySourcePayload!
   syncSource(input: SyncSourceInput!): SyncSourcePayload!
@@ -141,6 +142,11 @@ input SyncSourceInput {
 input RenameSourceInput {
   id: ID!
   title: String!
+}
+
+input UpdateDocumentSummaryInput {
+  id: ID!
+  summary: String!
 }
 
 type RetrySourcePayload {
