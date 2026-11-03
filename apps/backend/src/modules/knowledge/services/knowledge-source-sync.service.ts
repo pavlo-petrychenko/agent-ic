@@ -32,12 +32,27 @@ export class KnowledgeSourceSyncService {
       return ownedDocuments;
     }
     const linkedDocuments = await this.documents.listBySource(workspaceId, source.id);
-    if (linkedDocuments.length === 0) {
-      return linkedDocuments;
-    }
-    const ownerSourceIds = new Set(linkedDocuments.map((document) => document.sourceId));
+    await this.assertOwnerRunsIdle(workspaceId, source.id, linkedDocuments);
+    return linkedDocuments;
+  }
+
+  async failedDocumentsForRetry(workspaceId: string, source: Source): Promise<readonly Document[]> {
+    const documents = await this.documents.listBySource(workspaceId, source.id);
+    const failedDocuments = documents.filter(
+      (document) => document.status === KnowledgeDocumentStatus.Error,
+    );
+    await this.assertOwnerRunsIdle(workspaceId, source.id, failedDocuments);
+    return failedDocuments;
+  }
+
+  private async assertOwnerRunsIdle(
+    workspaceId: string,
+    sourceId: string,
+    documents: readonly Document[],
+  ): Promise<void> {
+    const ownerSourceIds = new Set(documents.map((document) => document.sourceId));
     for (const ownerSourceId of ownerSourceIds) {
-      if (ownerSourceId === source.id) {
+      if (ownerSourceId === sourceId) {
         continue;
       }
       const ownerRun = await this.syncRuns.findActiveBySource(workspaceId, ownerSourceId);
@@ -45,7 +60,6 @@ export class KnowledgeSourceSyncService {
         throw new KnowledgeSourceBusyError();
       }
     }
-    return linkedDocuments;
   }
 
   async queue({
