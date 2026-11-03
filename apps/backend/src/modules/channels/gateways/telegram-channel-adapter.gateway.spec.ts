@@ -3,6 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { TelegramChatAction } from '@/modules/channels/constants/telegram.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
+import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { TelegramChannelAdapter } from '@/modules/channels/gateways/telegram-channel-adapter.gateway';
 import type { ChannelOutboundMessage } from '@/modules/channels/typedefs/channel-message.typedefs';
 import { MessageDelivery } from '@/modules/conversations';
@@ -78,6 +79,21 @@ describe('TelegramChannelAdapter', () => {
   beforeEach(() => {
     testbed.telegram.sendMessageCalls.length = 0;
     testbed.telegram.sendChatActionCalls.length = 0;
+  });
+
+  it('reports a revoked telegram token as a broken channel', () => {
+    const adapter = testbed.module.get(TelegramChannelAdapter);
+
+    expect(
+      adapter.isChannelBroken(new TelegramApiError({ method: 'sendMessage', status: 401 })),
+    ).toBe(true);
+    expect(
+      adapter.isChannelBroken(new TelegramApiError({ method: 'sendMessage', status: 404 })),
+    ).toBe(true);
+    expect(
+      adapter.isChannelBroken(new TelegramApiError({ method: 'sendMessage', status: 403 })),
+    ).toBe(false);
+    expect(adapter.isChannelBroken(new Error('boom'))).toBe(false);
   });
 
   it('sends the text with typing to the Telegram chat', async () => {

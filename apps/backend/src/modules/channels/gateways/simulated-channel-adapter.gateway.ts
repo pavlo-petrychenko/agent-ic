@@ -17,6 +17,10 @@ export class SimulatedChannelAdapter extends ChannelAdapter {
     return Promise.resolve();
   }
 
+  isChannelBroken(_error: unknown): boolean {
+    return false;
+  }
+
   transcript(conversationId: string): readonly ChannelOutboundMessage[] {
     return this.transcripts.get(conversationId) ?? [];
   }

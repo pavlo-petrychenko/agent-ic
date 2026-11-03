@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { BeforeApplicationShutdown, OnApplicationBootstrap } from '@nestjs/common';
+import { ChannelHealthLogMessage } from '@/modules/channels/constants/channel-health.constants';
 import {
   ChannelPollerLogMessage,
   TELEGRAM_POLL_IDLE_MS,
@@ -7,7 +8,9 @@ import {
 import { TELEGRAM_ALLOWED_UPDATES } from '@/modules/channels/constants/telegram.constants';
 import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
+import { isTelegramTokenInvalid } from '@/modules/channels/helpers/telegram-error.helpers';
 import { TelegramPollerRepository } from '@/modules/channels/repositories/telegram-poller.repository';
+import { ChannelHealthService } from '@/modules/channels/services/channel-health.service';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { TelegramUpdatesService } from '@/modules/channels/services/telegram-updates.service';
 import type {
@@ -34,6 +37,7 @@ export class TelegramPollerService implements OnApplicationBootstrap, BeforeAppl
     private readonly configService: ConfigService,
     private readonly pollerChannels: TelegramPollerRepository,
     private readonly channelTokens: ChannelTokenService,
+    private readonly channelHealth: ChannelHealthService,
     private readonly telegram: TelegramGateway,
     private readonly updates: TelegramUpdatesService,
     private readonly contexts: UseCaseCtxService,
@@ -73,6 +77,17 @@ export class TelegramPollerService implements OnApplicationBootstrap, BeforeAppl
         allowedUpdates: TELEGRAM_ALLOWED_UPDATES,
       });
     } catch (error) {
+      if (isTelegramTokenInvalid(error)) {
+        await this.channelHealth
+          .markBroken(channel.workspaceId, channel.id)
+          .catch((markError: unknown) => {
+            this.logger.error({
+              msg: ChannelHealthLogMessage.MarkBrokenError,
+              channelId: channel.id,
+              err: markError,
+            });
+          });
+      }
       this.logger.warn({
         msg: ChannelPollerLogMessage.PollFailed,
         channelId: channel.id,
