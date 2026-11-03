@@ -8,6 +8,7 @@ export interface InboxSummary {
   readonly id: string;
   readonly state: ConversationState;
   readonly handledByMe: boolean;
+  readonly handledByName: string | null;
   readonly channelKind: ChannelKind;
   readonly agentId: string;
   readonly agentName: string;

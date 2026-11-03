@@ -1,9 +1,12 @@
 import { ConversationFooter } from '@/features/inbox/view/InboxConversation/ConversationFooter';
 import type { InboxConversationProps } from '@/features/inbox/view/InboxConversation/InboxConversation.typedefs';
 import { ThreadMessage } from '@/features/inbox/view/InboxConversation/ThreadMessage';
-import { Button } from '@/shared/ui/actions/Button';
+import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Avatar, AvatarSize } from '@/shared/ui/display/Avatar';
 import { Banner } from '@/shared/ui/display/Banner';
+import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
+import { Skeleton } from '@/shared/ui/display/Skeleton';
+import { IconName } from '@/shared/ui/foundations/Icon';
 import styles from '@/features/inbox/view/InboxConversation/InboxConversation.module.scss';
 
 export function InboxConversation({
@@ -13,6 +16,9 @@ export function InboxConversation({
   actions,
   banner,
   messages,
+  loading,
+  loadingLabel,
+  loadError,
   footer,
   onAction,
 }: InboxConversationProps) {
@@ -31,6 +37,7 @@ export function InboxConversation({
                 key={action.id}
                 variant={action.variant}
                 icon={action.icon}
+                disabled={action.disabled}
                 onClick={() => onAction(action.id)}
               >
                 {action.label}
@@ -45,9 +52,26 @@ export function InboxConversation({
         </Banner>
       )}
       <div className={styles.thread}>
-        {messages.map((message) => (
-          <ThreadMessage key={message.id} message={message} />
-        ))}
+        {loadError !== null ? (
+          <div className={styles.threadState}>
+            <EmptyState
+              icon={IconName.Alert}
+              tone={EmptyStateTone.Err}
+              title={loadError.title}
+              actions={
+                <Button variant={ButtonVariant.Secondary} onClick={loadError.onRetry}>
+                  {loadError.retryLabel}
+                </Button>
+              }
+            />
+          </div>
+        ) : loading && messages.length === 0 ? (
+          <div className={styles.threadState}>
+            <Skeleton label={loadingLabel} />
+          </div>
+        ) : (
+          messages.map((message) => <ThreadMessage key={message.id} message={message} />)
+        )}
       </div>
       <footer className={styles.footer}>
         <ConversationFooter footer={footer} />

@@ -21,6 +21,7 @@ export function useInboxActions({
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
   const [closingId, setClosingId] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<InboxActionId | null>(null);
 
   const onAction = (id: InboxActionId) => {
     if (conversation === null) {
@@ -32,9 +33,16 @@ export function useInboxActions({
     }
     onSelect(conversation.id);
     const perform = id === InboxActionId.HandBack ? handBack : takeOver;
-    void perform(conversation.id).catch((caught: unknown) => {
-      showToast({ message: errorMessage(toAppError(caught)), tone: ToastTone.Err });
-    });
+    setPendingAction(id);
+    void (async () => {
+      try {
+        await perform(conversation.id);
+      } catch (caught) {
+        showToast({ message: errorMessage(toAppError(caught)), tone: ToastTone.Err });
+      } finally {
+        setPendingAction(null);
+      }
+    })();
   };
 
   const closing = conversations.find((item) => item.id === closingId) ?? null;
@@ -51,5 +59,5 @@ export function useInboxActions({
           },
         };
 
-  return { onAction, closeDialog };
+  return { onAction, closeDialog, pendingAction };
 }

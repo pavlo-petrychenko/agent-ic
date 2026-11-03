@@ -4,6 +4,7 @@ import { MessageAuthor } from '@/modules/conversations/constants/message.constan
 import { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
 import { GetInboxConversationUseCase } from '@/modules/conversations/use-cases/get-inbox-conversation.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
+import { TEST_WORKSPACE_OWNER_NAME } from '@test/support/constants/workspace-testing.constants';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import {
   createConversationsTestbed,
@@ -39,16 +40,22 @@ describe('GetInboxConversationUseCase', () => {
     await seedMessage(testbed, conversation, {
       text: 'Operator answer',
       author: MessageAuthor.Operator,
+      authorUserId: userId,
     });
+    await testbed.tenants.run(workspaceId, () =>
+      testbed.conversations.takeOver(workspaceId, conversation.id, userId),
+    );
     const publicId = testbed.ids.toPublic(IdPrefix.Conversation, conversation.id);
 
     const detail = await get(workspaceCtx(userId, workspaceId, WorkspaceRole.Operator), publicId);
 
     expect(detail.summary.id).toBe(publicId);
+    expect(detail.summary.handledByName).toBe(TEST_WORKSPACE_OWNER_NAME);
     expect(detail.messages.map((message) => message.text)).toEqual([
       'Customer question',
       'Operator answer',
     ]);
+    expect(detail.messages.at(-1)?.authorName).toBe(TEST_WORKSPACE_OWNER_NAME);
   });
 
   it('refuses an unknown conversation', async () => {

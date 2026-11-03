@@ -176,15 +176,15 @@ export const seedOrphans = async (db: AppDatabase): Promise<SeededOrphans> => {
       handledBy: null,
     },
   ]);
-  await db.insert(messages).values({
-    id: seeded.deletedMessageId,
-    workspaceId,
-    conversationId: seeded.deletedConversationId,
-    author: MessageAuthor.Customer,
-    text: ORPHAN_TEXT,
-    quickReplies: [],
-    createdAt: AGENTS_TEST_START,
-  });
+  await insertLegacyRow(db, messages, [
+    [messages.id, seeded.deletedMessageId],
+    [messages.workspaceId, workspaceId],
+    [messages.conversationId, seeded.deletedConversationId],
+    [messages.author, MessageAuthor.Customer],
+    [messages.text, ORPHAN_TEXT],
+    [messages.quickReplies, sql`'{}'::text[]`],
+    [messages.createdAt, AGENTS_TEST_START.toISOString()],
+  ]);
   await insertLegacyRow(db, runs, [
     [runs.id, seeded.deletedRunId],
     [runs.workspaceId, workspaceId],

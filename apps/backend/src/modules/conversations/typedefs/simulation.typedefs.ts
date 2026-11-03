@@ -49,6 +49,8 @@ export interface ConversationView {
 export interface MessageView {
   readonly id: string;
   readonly author: MessageAuthor;
+  readonly authorId: string | null;
+  readonly authorName: string | null;
   readonly text: string;
   readonly quickReplies: readonly string[];
   readonly runId: string | null;

@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import { ListInboxConversationsUseCase } from '@/modules/conversations/use-cases/list-inbox-conversations.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
+import { TEST_WORKSPACE_OWNER_NAME } from '@test/support/constants/workspace-testing.constants';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import {
   createConversationsTestbed,
@@ -55,6 +56,7 @@ describe('ListInboxConversationsUseCase', () => {
     const handledSummary = summaries.find((summary) => summary.id === publicId(handled.id));
     expect(handledSummary).toMatchObject({
       handledByMe: true,
+      handledByName: TEST_WORKSPACE_OWNER_NAME,
       preview: 'Handled message',
     });
     expect(handledSummary?.agentName).not.toBe('');

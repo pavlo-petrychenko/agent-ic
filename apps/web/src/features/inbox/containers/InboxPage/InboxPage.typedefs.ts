@@ -2,6 +2,7 @@ import type { InboxActionId, InboxTab } from '@/features/inbox/constants/inbox.c
 import type { CloseChatDialogProps } from '@/features/inbox/containers/CloseChatDialog';
 import type {
   InboxConversation,
+  InboxLoadError,
   InboxProviderLabels,
 } from '@/features/inbox/typedefs/inbox.typedefs';
 import type { InboxConversationProps } from '@/features/inbox/view/InboxConversation';
@@ -38,6 +39,8 @@ export interface InboxListResult extends InboxListState {
 export interface InboxThreadState {
   readonly conversation: InboxConversation | null;
   readonly details: InboxDetailsProps | null;
+  readonly loading: boolean;
+  readonly loadError: InboxLoadError | null;
 }
 
 export interface UseInboxActionsOptions {
@@ -50,4 +53,5 @@ export interface UseInboxActionsOptions {
 export interface UseInboxActionsResult {
   readonly onAction: (id: InboxActionId) => void;
   readonly closeDialog: CloseChatDialogProps | null;
+  readonly pendingAction: InboxActionId | null;
 }

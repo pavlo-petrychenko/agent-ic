@@ -109,6 +109,8 @@ type Conversation {
 type Message {
   id: ID!
   author: MessageAuthor!
+  authorId: ID
+  authorName: String
   text: String!
   quickReplies: [String!]!
   runId: ID

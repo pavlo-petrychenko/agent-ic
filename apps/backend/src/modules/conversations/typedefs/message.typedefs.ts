@@ -10,6 +10,7 @@ export interface Message {
   readonly workspaceId: string;
   readonly conversationId: string;
   readonly author: MessageAuthor;
+  readonly authorUserId: string | null;
   readonly text: string;
   readonly quickReplies: readonly string[];
   readonly externalId: string | null;
@@ -28,6 +29,7 @@ export interface OutboundMessageInput {
   readonly conversationId: string;
   readonly key: string;
   readonly author: MessageAuthor;
+  readonly authorUserId?: string | null;
   readonly text: string;
   readonly quickReplies: readonly string[];
   readonly runId: string | null;

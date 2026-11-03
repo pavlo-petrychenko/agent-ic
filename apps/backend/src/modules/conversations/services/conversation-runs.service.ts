@@ -126,6 +126,7 @@ export class ConversationRunsService {
       workspaceId: input.workspaceId,
       conversationId: input.conversationId,
       author: input.author,
+      authorUserId: input.authorUserId ?? null,
       text: input.text,
       quickReplies: [...input.quickReplies],
       idempotencyKey: input.key,
