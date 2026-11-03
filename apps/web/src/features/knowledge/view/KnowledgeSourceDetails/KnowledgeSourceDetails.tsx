@@ -32,11 +32,15 @@ export function KnowledgeSourceDetails({
   loading,
   failed,
   retrying,
+  syncing,
   canManage,
   canRetry,
+  canSync,
   addedLabel,
+  lastSyncedLabel,
   onReload,
   onClose,
+  onSync,
   onRename,
   onRetry,
   onDelete,
@@ -163,10 +167,24 @@ export function KnowledgeSourceDetails({
                     : t('sources.sync.connected')}
                 </span>
                 {addedLabel === null ? null : <span>{addedLabel}</span>}
+                {lastSyncedLabel === null ? null : <span>{lastSyncedLabel}</span>}
               </div>
 
-              {canManage && (onRename !== null || onRetry !== null || onDelete !== null) ? (
+              {canManage &&
+              (onSync !== null || onRename !== null || onRetry !== null || onDelete !== null) ? (
                 <div className={styles.actions}>
+                  {onSync === null ? null : (
+                    <Button
+                      variant={ButtonVariant.Secondary}
+                      size={ButtonSize.Sm}
+                      icon={IconName.Refresh}
+                      loading={syncing}
+                      disabled={!canSync || syncing}
+                      onClick={onSync}
+                    >
+                      {t('sources.menu.syncNow')}
+                    </Button>
+                  )}
                   {onRename === null ? null : (
                     <Button
                       variant={ButtonVariant.Secondary}
@@ -194,7 +212,7 @@ export function KnowledgeSourceDetails({
                       variant={ButtonVariant.Danger}
                       size={ButtonSize.Sm}
                       icon={IconName.X}
-                      disabled={active || retrying}
+                      disabled={active || retrying || syncing}
                       onClick={onDelete}
                     >
                       {t('sources.menu.delete')}

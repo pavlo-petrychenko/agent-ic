@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useKnowledgeConnections } from '@/features/knowledge/communication/hooks/useKnowledgeConnections';
 import { useKnowledgeSources } from '@/features/knowledge/communication/hooks/useKnowledgeSources';
 import { useRetryKnowledgeSource } from '@/features/knowledge/communication/hooks/useRetryKnowledgeSource';
+import { useSyncKnowledgeSource } from '@/features/knowledge/communication/hooks/useSyncKnowledgeSource';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import { AddSourceDialog } from '@/features/knowledge/containers/AddSourceDialog';
 import { DeleteKnowledgeSourceDialog } from '@/features/knowledge/containers/DeleteKnowledgeSourceDialog';
@@ -37,6 +38,7 @@ export function KnowledgeSourcesSection({
   const errorMessage = useErrorMessage();
   const { sources, loading, failed, retry } = useKnowledgeSources(knowledgeBaseId);
   const { retryKnowledgeSource, retryingSourceId } = useRetryKnowledgeSource(knowledgeBaseId);
+  const { syncKnowledgeSource, syncingSourceId } = useSyncKnowledgeSource(knowledgeBaseId);
   const { connections, retry: retryConnections } = useKnowledgeConnections(canManageSources);
   const { reconnect, starting: reconnecting } = useGoogleReconnect(workspaceId, knowledgeBaseId);
   const connectionStatuses = useMemo(
@@ -84,6 +86,21 @@ export function KnowledgeSourcesSection({
   const onAddSource = canAddSource ? () => setAdding(true) : null;
   const onOpenSource = (source: KnowledgeSourceTarget) => setDetailsSourceId(source.id);
   const onRenameSource = canManageSources ? setRenameTarget : null;
+  const onSyncSource = canManageSources
+    ? (source: KnowledgeSourceTarget) => {
+        void (async () => {
+          try {
+            await syncKnowledgeSource(source.id);
+            showToast({
+              message: t('sources.sync.started', { name: source.title }),
+              tone: ToastTone.Ok,
+            });
+          } catch (failure) {
+            showToast({ message: errorMessage(toAppError(failure)), tone: ToastTone.Err });
+          }
+        })();
+      }
+    : null;
   const onRetrySource = canManageSources
     ? (source: KnowledgeSourceTarget) => {
         void (async () => {
@@ -117,10 +134,12 @@ export function KnowledgeSourcesSection({
         currentSourceId={null}
         onAddSource={onAddSource}
         onOpenSource={null}
+        onSyncSource={null}
         onRenameSource={null}
         onRetrySource={null}
         onDeleteSource={null}
         retryingSourceId={null}
+        syncingSourceId={null}
       />
     ) : sources.length === 0 ? (
       loading ? (
@@ -131,10 +150,12 @@ export function KnowledgeSourcesSection({
           currentSourceId={null}
           onAddSource={null}
           onOpenSource={null}
+          onSyncSource={null}
           onRenameSource={null}
           onRetrySource={null}
           onDeleteSource={null}
           retryingSourceId={null}
+          syncingSourceId={null}
         />
       ) : (
         <KnowledgeSourcesEmpty onAddSource={onAddSource} />
@@ -155,10 +176,12 @@ export function KnowledgeSourcesSection({
           currentSourceId={detailsSourceId}
           onAddSource={onAddSource}
           onOpenSource={onOpenSource}
+          onSyncSource={onSyncSource}
           onRenameSource={onRenameSource}
           onRetrySource={onRetrySource}
           onDeleteSource={onDeleteSource}
           retryingSourceId={retryingSourceId}
+          syncingSourceId={syncingSourceId}
         />
         <Callout tone={CalloutTone.Neutral}>{t('detail.agentsNote')}</Callout>
       </div>
@@ -202,7 +225,9 @@ export function KnowledgeSourcesSection({
           sourceId={detailsSourceId}
           canManage={canManageSources}
           retrying={retryingSourceId === detailsSourceId}
+          syncing={syncingSourceId === detailsSourceId}
           onClose={() => setDetailsSourceId(null)}
+          onSync={onSyncSource}
           onRename={setRenameTarget}
           onRetry={(source) => onRetrySource?.(source)}
           onDelete={setDeleteTarget}
