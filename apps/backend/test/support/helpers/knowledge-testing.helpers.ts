@@ -39,6 +39,7 @@ import {
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
 import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
+import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.module';
 import type { KnowledgeTestbed } from '@test/support/typedefs/knowledge-testing.typedefs';
 import type { ProviderOverride } from '@test/support/typedefs/test-infrastructure.typedefs';
 
@@ -58,6 +59,7 @@ export const createKnowledgeTestbed = async (
       SecretsModule,
       QueuesModule.forRole(Role.Api),
       RateLimitModule,
+      AgentsNeighboursModule.forRole(Role.Api),
     ],
     [{ token: ClockService, value: clock }, { token: FileStorage, value: storage }, ...overrides],
   );
