@@ -28,6 +28,7 @@ export const conversationStateEnum = conversationsSchema.enum('conversation_stat
 export const closeReasonEnum = conversationsSchema.enum('close_reason', [
   CloseReason.EndedByAgent,
   CloseReason.Inactivity,
+  CloseReason.ClosedByOperator,
 ]);
 
 export const channelKindEnum = conversationsSchema.enum('channel_kind', CHANNEL_KINDS);

@@ -33,6 +33,7 @@ const GRAPHQL_CONVERSATION_STATE: Readonly<Record<ConversationState, GraphqlConv
 const GRAPHQL_CLOSE_REASON: Readonly<Record<CloseReason, GraphqlConversationCloseReason>> = {
   [CloseReason.EndedByAgent]: GraphqlConversationCloseReason.EndedByAgent,
   [CloseReason.Inactivity]: GraphqlConversationCloseReason.Inactivity,
+  [CloseReason.ClosedByOperator]: GraphqlConversationCloseReason.ClosedByOperator,
 };
 
 const GRAPHQL_CHANNEL_CONVERSATION_KIND: Readonly<

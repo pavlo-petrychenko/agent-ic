@@ -1,3 +1,4 @@
+import { SIMULATOR_MESSAGE_MAX_LENGTH } from '@agent-ic/contracts';
 import { ChatBubbleFrom } from '@/shared/ui/chat/ChatBubble';
 import { IconName } from '@/shared/ui/foundations/Icon';
 
@@ -75,6 +76,8 @@ export enum InboxFooterKind {
 export const INBOX_MINUTES_PER_DAY = 1440;
 
 export const INBOX_CONVERSATIONS_FETCH_LIMIT = 100;
+
+export const INBOX_CLOSING_MESSAGE_MAX_LENGTH = SIMULATOR_MESSAGE_MAX_LENGTH;
 
 export const INBOX_CURRENT_USER = 'Pavlo';
 

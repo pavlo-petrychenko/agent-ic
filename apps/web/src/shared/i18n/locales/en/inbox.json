@@ -35,6 +35,16 @@
     "takeOverFrom": "Take over from {{name}}",
     "takeOverAgain": "Take over again"
   },
+  "closeChat": {
+    "title": "Close {{name}}'s chat?",
+    "description": "The customer can start a new conversation by writing again.",
+    "messageLabel": "Closing message (optional)",
+    "messageHint": "Up to {{max}} characters.",
+    "submit": "Close chat",
+    "cancel": "Cancel",
+    "dismiss": "Close dialog",
+    "success": "Chat closed"
+  },
   "banner": {
     "mine": "You're handling this chat. The agent stays paused until you hand it back.",
     "waiting": "Waiting for a person for {{count}} min. The agent is paused; nobody has taken this chat yet.",

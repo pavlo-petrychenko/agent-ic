@@ -1,0 +1,6 @@
+mutation InboxCloseConversation($input: CloseConversationInput!) {
+  closeConversation(input: $input) {
+    id
+    state
+  }
+}

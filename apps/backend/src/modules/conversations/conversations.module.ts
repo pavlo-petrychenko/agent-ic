@@ -3,6 +3,7 @@ import { CloseInactiveConversationsProcessor } from '@/modules/conversations/pro
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import { ScheduleContactsRepository } from '@/modules/conversations/repositories/schedule-contacts.repository';
+import { CloseConversationResolver } from '@/modules/conversations/resolvers/close-conversation.resolver';
 import { ConversationActivityResolver } from '@/modules/conversations/resolvers/conversation-activity.resolver';
 import { HandBackResolver } from '@/modules/conversations/resolvers/hand-back.resolver';
 import { InboxConversationResolver } from '@/modules/conversations/resolvers/inbox-conversation.resolver';
@@ -19,6 +20,7 @@ import { IncomingMessagesService } from '@/modules/conversations/services/incomi
 import { OperatorConversationsService } from '@/modules/conversations/services/operator-conversations.service';
 import { ScheduleAudienceService } from '@/modules/conversations/services/schedule-audience.service';
 import { SimulationsService } from '@/modules/conversations/services/simulations.service';
+import { CloseConversationUseCase } from '@/modules/conversations/use-cases/close-conversation.use-case';
 import { CloseInactiveConversationsUseCase } from '@/modules/conversations/use-cases/close-inactive-conversations.use-case';
 import { CloseSimulationForInactivityUseCase } from '@/modules/conversations/use-cases/close-simulation-for-inactivity.use-case';
 import { GetInboxConversationUseCase } from '@/modules/conversations/use-cases/get-inbox-conversation.use-case';
@@ -59,6 +61,7 @@ export class ConversationsModule extends defineModule({
     ReplyAsOperatorUseCase,
     TakeOverUseCase,
     HandBackUseCase,
+    CloseConversationUseCase,
     CloseInactiveConversationsUseCase,
     CloseSimulationForInactivityUseCase,
   ],
@@ -70,6 +73,7 @@ export class ConversationsModule extends defineModule({
     TakeOverResolver,
     HandBackResolver,
     ReplyAsOperatorResolver,
+    CloseConversationResolver,
   ],
   processors: [CloseInactiveConversationsProcessor],
   exports: [

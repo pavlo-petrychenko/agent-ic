@@ -1,0 +1,1 @@
+ALTER TYPE "conversations"."close_reason" ADD VALUE 'closed_by_operator';
