@@ -6,6 +6,8 @@ import {
 } from '@/modules/knowledge/constants/document-parser.constants';
 import {
   KnowledgeConnectionStatus,
+  KnowledgeDocumentIngestionOutcome,
+  KnowledgeDocumentStaleReason,
   KnowledgeDocumentStatus,
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
@@ -341,7 +343,9 @@ describe('IngestKnowledgeSourceUseCase', () => {
     );
     await seedSourceDocument(testbed, workspaceId, knowledgeBaseId, sourceId, selectedDocumentId);
     const ingestionService = testbed.module.get(KnowledgeDocumentIngestionService);
-    const ingestSpy = vi.spyOn(ingestionService, 'ingest').mockResolvedValue({ skipped: true });
+    const ingestSpy = vi
+      .spyOn(ingestionService, 'ingest')
+      .mockResolvedValue({ outcome: KnowledgeDocumentIngestionOutcome.Skipped });
     const syncRunId = testbed.ids.generate();
     await testbed.tenants.run(workspaceId, () =>
       syncRuns.insert({
@@ -394,7 +398,7 @@ describe('IngestKnowledgeSourceUseCase', () => {
         sources.findById(workspaceId, linkedSourceId),
       );
       linkedStatus = linkedSource?.status ?? null;
-      return { skipped: true };
+      return { outcome: KnowledgeDocumentIngestionOutcome.Skipped };
     });
     const syncRunId = testbed.ids.generate();
     await testbed.tenants.run(workspaceId, () =>
@@ -549,6 +553,193 @@ describe('IngestKnowledgeSourceUseCase', () => {
     });
     expect(drive.exportRequests).toEqual([TEST_GOOGLE_DOC_ID]);
     expect(embedding.calls).toHaveLength(2);
+  });
+
+  it('keeps an indexed Google Doc and marks it stale when Drive no longer returns it', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    await testbed.tenants.run(workspaceId, () =>
+      connections.update(workspaceId, connectionId, {
+        sealedRefreshToken: secrets.seal(TEST_GOOGLE_REFRESH_TOKEN),
+      }),
+    );
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
+    const file = {
+      id: TEST_GOOGLE_DOC_ID,
+      name: TEST_GOOGLE_DOC_NAME,
+      mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+      webViewLink: TEST_GOOGLE_DOC_URL,
+      modifiedTime: TEST_GOOGLE_DOC_MODIFIED_AT,
+      version: TEST_GOOGLE_DOC_VERSION,
+      trashed: false,
+    };
+    drive.addFile(file, TEST_GOOGLE_DOC_MARKDOWN);
+    await testbed.tenants.run(workspaceId, () =>
+      documents.update(workspaceId, documentId, {
+        externalId: TEST_GOOGLE_DOC_ID,
+        title: TEST_GOOGLE_DOC_NAME,
+        mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+      }),
+    );
+
+    const initialRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(initialRunId, workspaceId, sourceId)),
+    );
+    await ingest.execute(workspaceSystemCtx(workspaceId), {
+      sourceId,
+      syncRunId: initialRunId,
+    });
+
+    const indexed = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    if (indexed === null || indexed.contentStorageKey === null) {
+      throw new Error('the initial sync did not generate content');
+    }
+
+    drive.removeFile(TEST_GOOGLE_DOC_ID);
+    const staleRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(staleRunId, workspaceId, sourceId)),
+    );
+    await ingest.execute(workspaceSystemCtx(workspaceId), {
+      sourceId,
+      syncRunId: staleRunId,
+    });
+
+    const staleDocument = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    const staleSource = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    const staleRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, staleRunId),
+    );
+    expect(staleDocument).toMatchObject({
+      status: KnowledgeDocumentStatus.Indexed,
+      activeGeneration: indexed.activeGeneration,
+      chunkCount: indexed.chunkCount,
+      contentStorageKey: indexed.contentStorageKey,
+      staleReason: KnowledgeDocumentStaleReason.Missing,
+    });
+    expect(staleDocument?.staleAt).toBeInstanceOf(Date);
+    expect(testbed.storage.objects.get(indexed.contentStorageKey)?.body.toString().trimEnd()).toBe(
+      TEST_GOOGLE_DOC_MARKDOWN,
+    );
+    expect(staleSource).toMatchObject({
+      status: KnowledgeSourceStatus.Ready,
+      staleDocumentCount: 1,
+      documentCount: 1,
+      chunkCount: indexed.chunkCount,
+    });
+    expect(staleRun).toMatchObject({
+      status: KnowledgeSyncStatus.Succeeded,
+      documentsTotal: 1,
+      documentsIndexed: 0,
+      documentsSkipped: 0,
+      documentsFailed: 0,
+      documentsStale: 1,
+    });
+
+    drive.addFile(file, TEST_GOOGLE_DOC_MARKDOWN);
+    const restoredRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(restoredRunId, workspaceId, sourceId)),
+    );
+    await ingest.execute(workspaceSystemCtx(workspaceId), {
+      sourceId,
+      syncRunId: restoredRunId,
+    });
+
+    const restoredDocument = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    const restoredSource = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    const restoredRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, restoredRunId),
+    );
+    expect(restoredDocument).toMatchObject({
+      status: KnowledgeDocumentStatus.Indexed,
+      staleAt: null,
+      staleReason: null,
+      activeGeneration: indexed.activeGeneration,
+    });
+    expect(restoredSource).toMatchObject({
+      status: KnowledgeSourceStatus.Ready,
+      staleDocumentCount: 0,
+    });
+    expect(restoredRun).toMatchObject({
+      status: KnowledgeSyncStatus.Succeeded,
+      documentsSkipped: 1,
+      documentsStale: 0,
+    });
+  });
+
+  it('fails a Google Doc with no local copy when Drive no longer returns it', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    await testbed.tenants.run(workspaceId, () =>
+      connections.update(workspaceId, connectionId, {
+        sealedRefreshToken: secrets.seal(TEST_GOOGLE_REFRESH_TOKEN),
+      }),
+    );
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    const documentId = await seedKnowledgeDocument(
+      testbed,
+      workspaceId,
+      knowledgeBaseId,
+      sourceId,
+      {
+        externalId: TEST_GOOGLE_DOC_ID,
+        title: TEST_GOOGLE_DOC_NAME,
+        mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+      },
+    );
+    drive.removeFile(TEST_GOOGLE_DOC_ID);
+    const syncRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(syncRunId, workspaceId, sourceId)),
+    );
+
+    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId });
+
+    const document = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    const source = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    const syncRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, syncRunId),
+    );
+    expect(document).toMatchObject({
+      status: KnowledgeDocumentStatus.Error,
+      staleAt: null,
+      staleReason: null,
+      errorCode: 'DOCUMENT_UNREADABLE',
+    });
+    expect(source).toMatchObject({
+      status: KnowledgeSourceStatus.Error,
+      staleDocumentCount: 0,
+    });
+    expect(syncRun).toMatchObject({
+      status: KnowledgeSyncStatus.Failed,
+      documentsFailed: 1,
+      documentsStale: 0,
+    });
   });
 
   it('revokes the connection and fails the source when Google requires a reconnect', async () => {

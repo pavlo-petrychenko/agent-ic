@@ -1,6 +1,8 @@
 import { HttpStatus } from '@nestjs/common';
+import { KnowledgeDocumentStaleReason } from '@/modules/knowledge/constants/knowledge.constants';
 import {
   GoogleDriveExportTooLargeError,
+  GoogleDriveFileRemovedError,
   GoogleDriveFileUnavailableError,
 } from '@/modules/knowledge/errors/google-drive.error';
 import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
@@ -35,7 +37,10 @@ export const googleDriveFileErrorForStatus = (
       : new GoogleDriveFileUnavailableError();
   }
   if (status === HttpStatus.NOT_FOUND) {
-    return new GoogleDriveFileUnavailableError();
+    return new GoogleDriveFileRemovedError(KnowledgeDocumentStaleReason.Missing);
+  }
+  if (status === HttpStatus.GONE) {
+    return new GoogleDriveFileRemovedError(KnowledgeDocumentStaleReason.Gone);
   }
   return null;
 };

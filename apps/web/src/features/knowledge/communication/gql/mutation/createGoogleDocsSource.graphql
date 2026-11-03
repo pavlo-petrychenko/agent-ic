@@ -11,6 +11,7 @@ mutation CreateGoogleDocsSource($input: CreateGoogleDocsSourceInput!) {
       lastSyncAt
       lastErrorCode
       lastErrorMessage
+      staleDocumentCount
       documentCount
       chunkCount
       createdAt

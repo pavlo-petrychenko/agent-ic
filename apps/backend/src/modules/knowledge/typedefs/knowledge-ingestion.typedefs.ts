@@ -1,3 +1,4 @@
+import type { KnowledgeDocumentIngestionOutcome } from '@/modules/knowledge/constants/knowledge.constants';
 import type { Connection } from '@/modules/knowledge/typedefs/connection.typedefs';
 import type { Document } from '@/modules/knowledge/typedefs/document.typedefs';
 import type { GoogleDriveFile } from '@/modules/knowledge/typedefs/google-drive.typedefs';
@@ -6,6 +7,10 @@ import type { KnowledgeBase } from '@/modules/knowledge/typedefs/knowledge-base.
 export interface KnowledgeCounts {
   readonly documentCount: number;
   readonly chunkCount: number;
+}
+
+export interface KnowledgeSourceCounts extends KnowledgeCounts {
+  readonly staleDocumentCount: number;
 }
 
 export interface DocumentIngestionInput {
@@ -17,7 +22,7 @@ export interface DocumentIngestionInput {
 }
 
 export interface DocumentIngestionResult {
-  readonly skipped: boolean;
+  readonly outcome: KnowledgeDocumentIngestionOutcome;
 }
 
 export interface SourceIngestionStart {

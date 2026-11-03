@@ -10,6 +10,7 @@ mutation ConfirmUpload($input: ConfirmUploadInput!) {
     lastSyncAt
     lastErrorCode
     lastErrorMessage
+    staleDocumentCount
     documentCount
     chunkCount
     createdAt

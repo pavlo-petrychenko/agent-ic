@@ -6,6 +6,7 @@ import {
 } from '@/modules/knowledge/constants/google-drive.constants';
 import {
   GoogleDriveExportTooLargeError,
+  GoogleDriveFileRemovedError,
   GoogleDriveFileUnavailableError,
 } from '@/modules/knowledge/errors/google-drive.error';
 import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
@@ -72,13 +73,22 @@ describe('GoogleDriveApiGateway', () => {
     expect(request.url).toContain('mimeType=text%2Fmarkdown');
   });
 
-  it('reports an inaccessible file', async () => {
+  it('reports a removed file', async () => {
     const http = new FakeOutboundHttpGateway().respond(HttpStatus.NOT_FOUND, '{}');
     const gateway = new GoogleDriveApiGateway(http);
 
     await expect(
       gateway.file(TEST_GOOGLE_ACCESS_TOKEN, TEST_GOOGLE_DOC_ID, null),
-    ).rejects.toBeInstanceOf(GoogleDriveFileUnavailableError);
+    ).rejects.toBeInstanceOf(GoogleDriveFileRemovedError);
+  });
+
+  it('reports a permanently gone file', async () => {
+    const http = new FakeOutboundHttpGateway().respond(HttpStatus.GONE, '{}');
+    const gateway = new GoogleDriveApiGateway(http);
+
+    await expect(
+      gateway.file(TEST_GOOGLE_ACCESS_TOKEN, TEST_GOOGLE_DOC_ID, null),
+    ).rejects.toBeInstanceOf(GoogleDriveFileRemovedError);
   });
 
   it('asks for a reconnect when Google rejects the access token', async () => {

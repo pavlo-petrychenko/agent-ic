@@ -52,6 +52,18 @@ export enum KnowledgeDocumentStatus {
   Removed = 'removed',
 }
 
+export enum KnowledgeDocumentStaleReason {
+  Missing = 'missing',
+  Trashed = 'trashed',
+  Gone = 'gone',
+}
+
+export enum KnowledgeDocumentIngestionOutcome {
+  Indexed = 'indexed',
+  Skipped = 'skipped',
+  Stale = 'stale',
+}
+
 export enum KnowledgeSummarySource {
   Auto = 'auto',
   User = 'user',

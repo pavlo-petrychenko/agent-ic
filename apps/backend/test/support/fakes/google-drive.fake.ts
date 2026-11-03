@@ -1,5 +1,7 @@
+import { KnowledgeDocumentStaleReason } from '@/modules/knowledge/constants/knowledge.constants';
 import {
   GoogleDriveExportTooLargeError,
+  GoogleDriveFileRemovedError,
   GoogleDriveFileUnavailableError,
 } from '@/modules/knowledge/errors/google-drive.error';
 import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.gateway';
@@ -9,12 +11,20 @@ export class FakeGoogleDriveGateway extends GoogleDriveGateway {
   private readonly files = new Map<string, GoogleDriveFile>();
   private readonly markdown = new Map<string, string>();
   private readonly unavailable = new Set<string>();
+  private readonly removed = new Set<string>();
   private readonly tooLarge = new Set<string>();
   readonly exportRequests: string[] = [];
 
   addFile(file: GoogleDriveFile, markdown: string): void {
     this.files.set(file.id, file);
     this.markdown.set(file.id, markdown);
+    this.removed.delete(file.id);
+  }
+
+  removeFile(fileId: string): void {
+    this.files.delete(fileId);
+    this.markdown.delete(fileId);
+    this.removed.add(fileId);
   }
 
   setUnavailable(fileId: string): void {
@@ -33,6 +43,9 @@ export class FakeGoogleDriveGateway extends GoogleDriveGateway {
     if (this.unavailable.has(fileId)) {
       throw new GoogleDriveFileUnavailableError();
     }
+    if (this.removed.has(fileId)) {
+      throw new GoogleDriveFileRemovedError(KnowledgeDocumentStaleReason.Missing);
+    }
     const file = this.files.get(fileId);
     if (file === undefined) {
       throw new GoogleDriveFileUnavailableError();
@@ -48,6 +61,9 @@ export class FakeGoogleDriveGateway extends GoogleDriveGateway {
     this.exportRequests.push(fileId);
     if (this.tooLarge.has(fileId)) {
       throw new GoogleDriveExportTooLargeError();
+    }
+    if (this.removed.has(fileId)) {
+      throw new GoogleDriveFileRemovedError(KnowledgeDocumentStaleReason.Missing);
     }
     const markdown = this.markdown.get(fileId);
     if (markdown === undefined) {

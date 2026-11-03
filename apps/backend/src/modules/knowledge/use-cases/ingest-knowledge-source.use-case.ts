@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { KNOWLEDGE_SOURCE_BUSY_MESSAGE } from '@/modules/knowledge/constants/knowledge-error.constants';
 import {
   KnowledgeConnectionStatus,
+  KnowledgeDocumentIngestionOutcome,
   KnowledgeDocumentStatus,
   KnowledgeSourceStatus,
   KnowledgeSyncStatus,
@@ -68,6 +69,7 @@ export class IngestKnowledgeSourceUseCase {
 
     let indexed = 0;
     let skipped = 0;
+    let stale = 0;
     let failed = 0;
     let failure: KnowledgeFailure | null = null;
     try {
@@ -81,7 +83,9 @@ export class IngestKnowledgeSourceUseCase {
             onIndexing: () =>
               this.markDocument(workspaceId, document.id, KnowledgeDocumentStatus.Indexing, null),
           });
-          if (result.skipped) {
+          if (result.outcome === KnowledgeDocumentIngestionOutcome.Stale) {
+            stale += 1;
+          } else if (result.outcome === KnowledgeDocumentIngestionOutcome.Skipped) {
             skipped += 1;
           } else {
             indexed += 1;
@@ -118,6 +122,7 @@ export class IngestKnowledgeSourceUseCase {
           documentsIndexed: indexed,
           documentsSkipped: skipped,
           documentsFailed: failed,
+          documentsStale: stale,
         });
       }
 
@@ -138,6 +143,7 @@ export class IngestKnowledgeSourceUseCase {
           documentsIndexed: indexed,
           documentsSkipped: skipped,
           documentsFailed: failed,
+          documentsStale: stale,
         },
         failure,
       });
@@ -155,6 +161,7 @@ export class IngestKnowledgeSourceUseCase {
             documentsIndexed: indexed,
             documentsSkipped: skipped,
             documentsFailed: failed,
+            documentsStale: stale,
           },
           failure: thrownFailure,
         });
@@ -231,6 +238,7 @@ export class IngestKnowledgeSourceUseCase {
         documentsSkipped: 0,
         documentsFailed: 0,
         documentsRemoved: 0,
+        documentsStale: 0,
         errorCode: null,
         errorMessage: null,
       });
@@ -279,6 +287,7 @@ export class IngestKnowledgeSourceUseCase {
       readonly documentsIndexed: number;
       readonly documentsSkipped: number;
       readonly documentsFailed: number;
+      readonly documentsStale: number;
     },
   ): Promise<void> {
     await this.tenants.run(workspaceId, () =>
@@ -315,6 +324,7 @@ export class IngestKnowledgeSourceUseCase {
         readonly documentsIndexed: number;
         readonly documentsSkipped: number;
         readonly documentsFailed: number;
+        readonly documentsStale: number;
       };
       readonly failure: KnowledgeFailure | null;
     },

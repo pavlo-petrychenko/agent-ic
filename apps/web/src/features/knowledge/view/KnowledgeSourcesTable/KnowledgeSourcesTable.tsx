@@ -16,7 +16,7 @@ import {
   TableCellLeadKind,
   TableCellLeadSize,
 } from '@/shared/ui/data/TableCellLead';
-import { Badge } from '@/shared/ui/display/Badge';
+import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
 import { Icon, IconName } from '@/shared/ui/foundations/Icon';
 import styles from '@/features/knowledge/view/KnowledgeSourcesTable/KnowledgeSourcesTable.module.scss';
@@ -80,9 +80,16 @@ export function KnowledgeSourcesTable({
       render: (row) => (
         <TableCell>
           <span className={styles.stacked}>
-            <Badge tone={STATUS_TONES[row.status]} dot>
-              {row.statusLabel}
-            </Badge>
+            <span className={styles.badges}>
+              <Badge tone={STATUS_TONES[row.status]} dot>
+                {row.statusLabel}
+              </Badge>
+              {row.staleDocumentCount > 0 ? (
+                <Badge tone={BadgeTone.Warn} dot>
+                  {t('sources.status.stale', { count: row.staleDocumentCount })}
+                </Badge>
+              ) : null}
+            </span>
             {row.statusDetail === null ? null : (
               <span className={styles.meta} title={row.statusDetail}>
                 {row.statusDetail}
