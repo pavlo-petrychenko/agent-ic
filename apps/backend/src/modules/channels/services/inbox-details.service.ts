@@ -10,11 +10,12 @@ import {
   notifiedOf,
   runOf,
 } from '@/modules/channels/helpers/inbox-details.helpers';
-import type { EscalationNotify } from '@/modules/channels/helpers/inbox-details.helpers';
 import { ChannelDirectoryService } from '@/modules/channels/services/channel-directory.service';
 import type {
   InboxDetails,
   InboxDetailsNotified,
+  RunSnapshot,
+  EscalationNotify,
 } from '@/modules/channels/typedefs/inbox-details.typedefs';
 import {
   ConversationNotFoundError,
@@ -25,13 +26,6 @@ import { MembershipsRepository, UsersRepository } from '@/modules/identity';
 import { RunStatus, RunStepsRepository, RunsRepository } from '@/modules/runs';
 import type { Run, RunStep } from '@/modules/runs';
 import { IdService } from '@/platform/ids/services/id.service';
-
-interface RunSnapshot {
-  readonly run: Run;
-  readonly versionNumber: number | null;
-  readonly steps: readonly RunStep[];
-  readonly flow: FlowDocument;
-}
 
 @Injectable()
 export class InboxDetailsService {

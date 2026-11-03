@@ -1,6 +1,12 @@
-import type { NodeType, NotifyChannel } from '@agent-ic/flow';
+import type {
+  EscalationNode,
+  NodeType,
+  NotifyChannel,
+  EscalationMode,
+  FlowDocument,
+} from '@agent-ic/flow';
 import type { ApiReplyMode } from '@/modules/channels/constants/channel.constants';
-import type { RunStepStatus } from '@/modules/runs';
+import type { RunStepStatus, Run, RunStep } from '@/modules/runs';
 
 export interface InboxDetailsGuard {
   readonly label: string;
@@ -49,4 +55,16 @@ export interface InboxDetails {
 
 export interface InboxDetailsInput {
   readonly conversationId: string;
+}
+
+export type EscalationNotify = Extract<
+  EscalationNode['config'],
+  { readonly mode: EscalationMode.Escalate }
+>['notify'];
+
+export interface RunSnapshot {
+  readonly run: Run;
+  readonly versionNumber: number | null;
+  readonly steps: readonly RunStep[];
+  readonly flow: FlowDocument;
 }

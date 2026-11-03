@@ -6,24 +6,20 @@ import {
   NodeType,
   RecipientsKind,
 } from '@agent-ic/flow';
-import type { EscalationNode, FlowDocument, FlowNode } from '@agent-ic/flow';
+import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import type {
   InboxDetailsGuard,
   InboxDetailsHandler,
   InboxDetailsNotified,
   InboxDetailsRun,
   InboxDetailsRunStep,
+  EscalationNotify,
 } from '@/modules/channels/typedefs/inbox-details.typedefs';
 import { MessageSystemEvent } from '@/modules/conversations';
 import type { Message } from '@/modules/conversations';
 import { RunStepStatus } from '@/modules/runs';
 import type { Run, RunStep } from '@/modules/runs';
 import type { IdService } from '@/platform/ids/services/id.service';
-
-export type EscalationNotify = Extract<
-  EscalationNode['config'],
-  { readonly mode: EscalationMode.Escalate }
->['notify'];
 
 const nodeOf = (flow: FlowDocument, step: RunStep): FlowNode | null =>
   flow.nodes.find((node) => node.id === step.nodeId) ?? null;
