@@ -153,8 +153,9 @@ describe('HttpTelegramGateway', () => {
           senderName: 'Moshe',
           text: 'Hello',
         },
+        callbackQuery: null,
       },
-      { updateId: '11', message: null },
+      { updateId: '11', message: null, callbackQuery: null },
     ]);
 
     const [url, init] = fetchMock.mock.calls[0] ?? [];
@@ -194,6 +195,54 @@ describe('HttpTelegramGateway', () => {
           senderName: null,
           text: null,
         },
+        callbackQuery: null,
+      },
+    ]);
+  });
+
+  it('maps a callback query update', async () => {
+    const sentAt = 1_760_000_000;
+    fetchMock.mockResolvedValueOnce(
+      Response.json({
+        ok: true,
+        result: [
+          {
+            update_id: 13,
+            callback_query: {
+              id: 'callback-1',
+              from: { id: 900, first_name: 'Moshe' },
+              message: {
+                message_id: 7,
+                date: sentAt,
+                text: 'Choose',
+                chat: { id: 42 },
+              },
+              data: 'qr:msg_1:0',
+            },
+          },
+        ],
+      }),
+    );
+
+    await expect(
+      gateway.getUpdates({
+        token: TEST_TELEGRAM_TOKEN,
+        offset: 0,
+        timeoutSeconds: 20,
+        allowedUpdates: TELEGRAM_ALLOWED_UPDATES,
+      }),
+    ).resolves.toEqual([
+      {
+        updateId: '13',
+        message: null,
+        callbackQuery: {
+          id: 'callback-1',
+          chatId: '42',
+          telegramMessageId: '7',
+          senderId: '900',
+          senderName: 'Moshe',
+          data: 'qr:msg_1:0',
+        },
       },
     ]);
   });
@@ -222,6 +271,7 @@ describe('HttpTelegramGateway', () => {
     await gateway.sendMessage({
       token: TEST_TELEGRAM_TOKEN,
       chatId: '42',
+      messageId: 'message-1',
       text: 'Hello',
       quickReplies: ['Book a table', 'Call us'],
     });
@@ -234,8 +284,10 @@ describe('HttpTelegramGateway', () => {
       text: 'Hello',
       reply_markup: {
         inline_keyboard: [
-          [{ text: 'Book a table', callback_data: 'Book a table' }],
-          [{ text: 'Call us', callback_data: 'Call us' }],
+          [
+            { text: 'Book a table', callback_data: 'qr:message-1:0' },
+            { text: 'Call us', callback_data: 'qr:message-1:1' },
+          ],
         ],
       },
     });
@@ -252,6 +304,7 @@ describe('HttpTelegramGateway', () => {
     await gateway.sendMessage({
       token: TEST_TELEGRAM_TOKEN,
       chatId: '42',
+      messageId: 'message-1',
       text: 'Hello',
       quickReplies: [],
     });
@@ -275,6 +328,40 @@ describe('HttpTelegramGateway', () => {
     expect(requestBody(init)).toEqual({ chat_id: '42', action: 'typing' });
   });
 
+  it('answers a callback query with an alert', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json({ ok: true, result: true }));
+
+    await gateway.answerCallbackQuery({
+      token: TEST_TELEGRAM_TOKEN,
+      callbackQueryId: 'callback-1',
+      text: 'This button is no longer active',
+      showAlert: true,
+    });
+
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe(`${TELEGRAM_API_BASE_URL}/bot${TEST_TELEGRAM_TOKEN}/answerCallbackQuery`);
+    expect(init?.method).toBe('POST');
+    expect(requestBody(init)).toEqual({
+      callback_query_id: 'callback-1',
+      text: 'This button is no longer active',
+      show_alert: true,
+    });
+  });
+
+  it('answers a callback query without text or an alert', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json({ ok: true, result: true }));
+
+    await gateway.answerCallbackQuery({
+      token: TEST_TELEGRAM_TOKEN,
+      callbackQueryId: 'callback-2',
+      text: null,
+      showAlert: false,
+    });
+
+    const [, init] = fetchMock.mock.calls[0] ?? [];
+    expect(requestBody(init)).toEqual({ callback_query_id: 'callback-2' });
+  });
+
   it('maps a blocked bot to a non-retryable send error', async () => {
     fetchMock.mockResolvedValueOnce(
       Response.json(
@@ -287,6 +374,7 @@ describe('HttpTelegramGateway', () => {
       .sendMessage({
         token: TEST_TELEGRAM_TOKEN,
         chatId: '42',
+        messageId: 'message-1',
         text: 'Hello',
         quickReplies: [],
       })

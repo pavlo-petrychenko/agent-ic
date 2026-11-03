@@ -26,9 +26,24 @@ export interface TelegramMessage {
   readonly text: string | null;
 }
 
+export interface TelegramCallbackQuery {
+  readonly id: string;
+  readonly chatId: string | null;
+  readonly telegramMessageId: string | null;
+  readonly senderId: string;
+  readonly senderName: string;
+  readonly data: string | null;
+}
+
+export interface TelegramQuickReplyCallback {
+  readonly messageId: string;
+  readonly index: number;
+}
+
 export interface TelegramUpdate {
   readonly updateId: string;
   readonly message: TelegramMessage | null;
+  readonly callbackQuery: TelegramCallbackQuery | null;
 }
 
 export interface TelegramPollerChannel {
@@ -54,6 +69,7 @@ export interface SetTelegramWebhookInput {
 export interface SendTelegramMessageInput {
   readonly token: string;
   readonly chatId: string;
+  readonly messageId: string;
   readonly text: string;
   readonly quickReplies: readonly string[];
 }
@@ -62,6 +78,13 @@ export interface SendTelegramChatActionInput {
   readonly token: string;
   readonly chatId: string;
   readonly action: TelegramChatAction;
+}
+
+export interface AnswerTelegramCallbackQueryInput {
+  readonly token: string;
+  readonly callbackQueryId: string;
+  readonly text: string | null;
+  readonly showAlert: boolean;
 }
 
 export interface TelegramInlineKeyboardButton {

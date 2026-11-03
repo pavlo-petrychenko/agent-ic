@@ -13,7 +13,10 @@ import {
 import { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 import { MessageNotFoundError } from '@/modules/conversations/errors/message-not-found.error';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
-import type { OutboundMessageInput } from '@/modules/conversations/typedefs/message.typedefs';
+import type {
+  OutboundMessageInput,
+  QuickReplyTextInput,
+} from '@/modules/conversations/typedefs/message.typedefs';
 import {
   AGENT_REPLY_TEXT,
   QUICK_REPLIES,
@@ -75,6 +78,32 @@ describe('ConversationRunsService', () => {
   const stateOf = async (conversation: NewConversation) =>
     inTenant(conversation, () =>
       testbed.conversations.findById(conversation.workspaceId, conversation.id),
+    );
+
+  const seedQuickReplyConversation = async () => {
+    const workspaceId = testbed.ids.generate();
+    const channelId = testbed.ids.generate();
+    const conversation = { ...newConversation(testbed, workspaceId), channelId };
+    await ensureAgentRow(testbed.module, workspaceId, conversation.agentId);
+    await inTenant(conversation, () => testbed.conversations.insert(conversation));
+    return { conversation, channelId };
+  };
+
+  const resolveQuickReply = (
+    conversation: NewConversation,
+    channelId: string,
+    messageId: string,
+    overrides: Partial<QuickReplyTextInput> = {},
+  ): Promise<string | null> =>
+    inTenant(conversation, () =>
+      testbed.runs.quickReplyText({
+        workspaceId: conversation.workspaceId,
+        messageId,
+        index: 0,
+        channelId,
+        endUserExternalId: conversation.endUserExternalId,
+        ...overrides,
+      }),
     );
 
   beforeAll(async () => {
@@ -256,5 +285,48 @@ describe('ConversationRunsService', () => {
     );
     expect(stored?.delivery).toBe(MessageDelivery.Delivered);
     await expect(markDelivery(testbed.ids.generate())).rejects.toBeInstanceOf(MessageNotFoundError);
+  });
+
+  it('resolves the stored quick reply for its message and chat', async () => {
+    const { conversation, channelId } = await seedQuickReplyConversation();
+    const message = await recordOutbound(conversation);
+
+    expect(await resolveQuickReply(conversation, channelId, message.id)).toBe(QUICK_REPLIES[0]);
+    expect(await resolveQuickReply(conversation, channelId, message.id, { index: 1 })).toBe(
+      QUICK_REPLIES[1],
+    );
+  });
+
+  it('refuses a quick reply from an unknown message or an index outside it', async () => {
+    const { conversation, channelId } = await seedQuickReplyConversation();
+    const message = await recordOutbound(conversation);
+
+    expect(await resolveQuickReply(conversation, channelId, testbed.ids.generate())).toBeNull();
+    expect(
+      await resolveQuickReply(conversation, channelId, message.id, {
+        index: QUICK_REPLIES.length,
+      }),
+    ).toBeNull();
+  });
+
+  it('refuses a quick reply from another channel or chat', async () => {
+    const { conversation, channelId } = await seedQuickReplyConversation();
+    const message = await recordOutbound(conversation);
+
+    expect(await resolveQuickReply(conversation, testbed.ids.generate(), message.id)).toBeNull();
+    expect(
+      await resolveQuickReply(conversation, channelId, message.id, {
+        endUserExternalId: `${conversation.endUserExternalId}-other`,
+      }),
+    ).toBeNull();
+  });
+
+  it('refuses a blank quick reply but keeps the next index', async () => {
+    const { conversation, channelId } = await seedQuickReplyConversation();
+    const input = { ...(await outbound(conversation)), quickReplies: ['  ', 'Call'] };
+    const message = await recordOutbound(conversation, input);
+
+    expect(await resolveQuickReply(conversation, channelId, message.id)).toBeNull();
+    expect(await resolveQuickReply(conversation, channelId, message.id, { index: 1 })).toBe('Call');
   });
 });

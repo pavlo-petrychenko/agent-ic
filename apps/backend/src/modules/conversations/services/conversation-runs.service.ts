@@ -25,6 +25,7 @@ import type {
   Message,
   OutboundDelivery,
   OutboundMessageInput,
+  QuickReplyTextInput,
 } from '@/modules/conversations/typedefs/message.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -80,6 +81,26 @@ export class ConversationRunsService {
   ): Promise<ReadonlyMap<string | null, number>> {
     const counts = await this.messages.countByRuns(workspaceId, runIds);
     return new Map(counts.map(({ runId, total }) => [runId, total]));
+  }
+
+  async quickReplyText(input: QuickReplyTextInput): Promise<string | null> {
+    const message = await this.messages.findById(input.workspaceId, input.messageId);
+    if (message === null) {
+      return null;
+    }
+    const conversation = await this.conversations.findById(
+      input.workspaceId,
+      message.conversationId,
+    );
+    if (
+      conversation === null ||
+      conversation.channelId !== input.channelId ||
+      conversation.endUserExternalId !== input.endUserExternalId
+    ) {
+      return null;
+    }
+    const label = message.quickReplies[input.index];
+    return label === undefined || label.trim() === '' ? null : label;
   }
 
   async recordOutbound(ctx: UseCaseCtx, input: OutboundMessageInput): Promise<Message> {

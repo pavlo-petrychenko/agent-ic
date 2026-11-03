@@ -18,6 +18,7 @@ import type {
   TelegramWebhookInfoResponse,
 } from '@/modules/channels/typedefs/http-telegram-gateway.typedefs';
 import type {
+  AnswerTelegramCallbackQueryInput,
   GetTelegramUpdatesInput,
   SendTelegramChatActionInput,
   SendTelegramMessageInput,
@@ -94,7 +95,7 @@ export class HttpTelegramGateway extends TelegramGateway {
   }
 
   async sendMessage(input: SendTelegramMessageInput): Promise<void> {
-    const replyMarkup = telegramReplyMarkup(input.quickReplies);
+    const replyMarkup = telegramReplyMarkup(input.messageId, input.quickReplies);
     await this.call<TelegramMessageResponse>(input.token, 'sendMessage', {
       method: 'POST',
       headers: { [HttpHeader.ContentType]: TELEGRAM_CONTENT_TYPE },
@@ -113,6 +114,18 @@ export class HttpTelegramGateway extends TelegramGateway {
       body: JSON.stringify({
         chat_id: input.chatId,
         action: input.action,
+      }),
+    });
+  }
+
+  async answerCallbackQuery(input: AnswerTelegramCallbackQueryInput): Promise<void> {
+    await this.call<boolean>(input.token, 'answerCallbackQuery', {
+      method: 'POST',
+      headers: { [HttpHeader.ContentType]: TELEGRAM_CONTENT_TYPE },
+      body: JSON.stringify({
+        callback_query_id: input.callbackQueryId,
+        ...(input.text === null ? {} : { text: input.text }),
+        ...(input.showAlert ? { show_alert: true } : {}),
       }),
     });
   }
