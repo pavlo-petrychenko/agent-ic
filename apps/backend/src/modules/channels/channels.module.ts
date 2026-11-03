@@ -14,6 +14,7 @@ import { ChannelResolver } from '@/modules/channels/resolvers/channel.resolver';
 import { ConnectTelegramResolver } from '@/modules/channels/resolvers/connect-telegram.resolver';
 import { DeleteChannelResolver } from '@/modules/channels/resolvers/delete-channel.resolver';
 import { DisconnectTelegramResolver } from '@/modules/channels/resolvers/disconnect-telegram.resolver';
+import { ReconnectTelegramResolver } from '@/modules/channels/resolvers/reconnect-telegram.resolver';
 import { ReplaceTelegramTokenResolver } from '@/modules/channels/resolvers/replace-telegram-token.resolver';
 import { UpdateTelegramResolver } from '@/modules/channels/resolvers/update-telegram.resolver';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
@@ -30,6 +31,7 @@ import { DisconnectTelegramUseCase } from '@/modules/channels/use-cases/disconne
 import { GetChannelUseCase } from '@/modules/channels/use-cases/get-channel.use-case';
 import { HandleTelegramWebhookUseCase } from '@/modules/channels/use-cases/handle-telegram-webhook.use-case';
 import { ListChannelsUseCase } from '@/modules/channels/use-cases/list-channels.use-case';
+import { ReconnectTelegramUseCase } from '@/modules/channels/use-cases/reconnect-telegram.use-case';
 import { ReplaceTelegramTokenUseCase } from '@/modules/channels/use-cases/replace-telegram-token.use-case';
 import { UpdateTelegramChannelUseCase } from '@/modules/channels/use-cases/update-telegram.use-case';
 import { ConversationsModule } from '@/modules/conversations';
@@ -68,6 +70,7 @@ export class ChannelsModule extends defineModule({
     DisconnectTelegramUseCase,
     GetChannelUseCase,
     ListChannelsUseCase,
+    ReconnectTelegramUseCase,
     ReplaceTelegramTokenUseCase,
     UpdateTelegramChannelUseCase,
     DeliverOutboundMessageUseCase,
@@ -78,6 +81,7 @@ export class ChannelsModule extends defineModule({
     ConnectTelegramResolver,
     DeleteChannelResolver,
     DisconnectTelegramResolver,
+    ReconnectTelegramResolver,
     ReplaceTelegramTokenResolver,
     UpdateTelegramResolver,
   ],
