@@ -13,7 +13,7 @@ import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { Card, CardGap, CardPad } from '@/shared/ui/display/Card';
 import { SearchInput } from '@/shared/ui/inputs/SearchInput';
 import { Select, SelectSize } from '@/shared/ui/inputs/Select';
-import { Text, TextColor, TextElement, TextKind } from '@/shared/ui/typography/Text';
+import { Text, TextElement, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/knowledge/view/Playground/Playground.module.scss';
 
 export function Playground({
@@ -90,11 +90,6 @@ export function Playground({
           {errorMessage}
         </Callout>
       )}
-      {errorMessage === null && !searched && !loading ? (
-        <Text kind={TextKind.Small} color={TextColor.Mute}>
-          {t('playground.hint')}
-        </Text>
-      ) : null}
       {errorMessage === null && searched && !loading && results.length === 0 ? (
         <div className={styles.empty}>{t('playground.empty')}</div>
       ) : null}
@@ -134,9 +129,6 @@ export function Playground({
           ))}
         </ol>
       ) : null}
-      <Text kind={TextKind.Small} color={TextColor.Mute} className={styles.note}>
-        {t('playground.note')}
-      </Text>
     </Card>
   );
 }

@@ -262,12 +262,10 @@
     "placeholder": "Ask what a customer would ask",
     "search": "Search",
     "clear": "Clear query",
-    "hint": "Search this knowledge base to see what an agent would receive.",
     "empty": "No matching sections. Try different wording or add a source.",
     "scoreTitle": "Relative relevance",
     "showMore": "Show full section",
-    "showLess": "Show less",
-    "note": "This is what an agent gets back when it searches this knowledge base with the query."
+    "showLess": "Show less"
   },
   "delete": {
     "action": "Delete",
