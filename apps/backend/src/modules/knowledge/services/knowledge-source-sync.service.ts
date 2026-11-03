@@ -27,13 +27,9 @@ export class KnowledgeSourceSyncService {
   ) {}
 
   async documentsForManualSync(workspaceId: string, source: Source): Promise<readonly Document[]> {
-    const ownedDocuments = await this.documents.listOwnedBySource(workspaceId, source.id);
-    if (ownedDocuments.length > 0) {
-      return ownedDocuments;
-    }
-    const linkedDocuments = await this.documents.listBySource(workspaceId, source.id);
-    await this.assertOwnerRunsIdle(workspaceId, source.id, linkedDocuments);
-    return linkedDocuments;
+    const documents = await this.documents.listBySource(workspaceId, source.id);
+    await this.assertOwnerRunsIdle(workspaceId, source.id, documents);
+    return documents;
   }
 
   async failedDocumentsForRetry(workspaceId: string, source: Source): Promise<readonly Document[]> {
