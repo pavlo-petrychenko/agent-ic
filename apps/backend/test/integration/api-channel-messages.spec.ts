@@ -90,7 +90,11 @@ describe('api channel message ingress', () => {
     const response = await post();
 
     expect(response.status).toBe(202);
-    expect(response.body.conversation_id).toMatch(/^cnv_/);
+    expect(response.body).toMatchObject({
+      conversation_id: expect.stringMatching(/^cnv_/),
+      messages: [],
+      status: 'pending',
+    });
   });
 
   it('rejects a missing key', async () => {

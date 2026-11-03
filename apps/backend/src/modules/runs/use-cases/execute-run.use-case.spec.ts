@@ -1,6 +1,6 @@
 import { ErrorReason } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { RunStatus } from '@/modules/runs/constants/run.constants';
+import { RunStatus, runDoneChannelFor } from '@/modules/runs';
 import { RunLifecycleService } from '@/modules/runs/services/run-lifecycle.service';
 import { TEST_NODE_ID } from '@test/support/constants/agents-testing.constants';
 import { FINAL_ATTEMPT, RETRYABLE_ATTEMPT } from '@test/support/constants/async-jobs.constants';
@@ -108,6 +108,23 @@ describe('ExecuteRunUseCase', () => {
       error: { reason: ErrorReason.UpstreamFailed, nodeId: FIRST_STEP_ID },
     });
     expect(after.conversation?.activeRunId).toBeNull();
+  });
+
+  it('publishes the run-done event after the run finishes', async () => {
+    const seeded = await seedLiveConversation(testbed, oneStep(FIRST_STEP_ID, FIRST_STEP_KEY));
+    const { run } = await receiveMessage(testbed, seeded);
+    const runId = String(run?.id);
+    const events = await testbed.liveUpdates.subscribe(runDoneChannelFor(runId));
+
+    await testbed.executeRun.execute(seeded.ctx, { runId }, RETRYABLE_ATTEMPT);
+
+    const event = await events.next();
+    await events.return();
+    expect(event.value).toMatchObject({
+      runId,
+      conversationId: seeded.conversation.id,
+      status: RunStatus.Succeeded,
+    });
   });
 
   it('keeps the pinned version when the agent is published mid-run', async () => {

@@ -13,6 +13,7 @@ import type {
   TelegramUpdate,
 } from '@/modules/channels/typedefs/telegram.typedefs';
 import { ChannelKind, IncomingMessageOutcome, MessageAuthor } from '@/modules/conversations';
+import { startRunOnMessageJob } from '@/modules/runs';
 import { SystemActorRequiredError } from '@/platform/context/errors/system-actor-required.error';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
@@ -230,7 +231,9 @@ describe('TelegramUpdatesService', () => {
       await testbed.queues
         .get(QueueName.RunsReactive)
         .getJobs(['waiting', 'prioritized', 'delayed', 'active'])
-    ).filter((job) => job.data.workspaceId === workspaceId);
+    ).filter(
+      (job) => job.data.workspaceId === workspaceId && job.name === startRunOnMessageJob.name,
+    );
     expect(jobs).toHaveLength(1);
   });
 

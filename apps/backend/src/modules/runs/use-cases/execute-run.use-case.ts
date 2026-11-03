@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { runWorkspaceOf } from '@/modules/runs/helpers/run-ctx.helpers';
+import { RunCompletionService } from '@/modules/runs/services/run-completion.service';
 import { RunExecutionService } from '@/modules/runs/services/run-execution.service';
 import { RunLifecycleService } from '@/modules/runs/services/run-lifecycle.service';
 import type { ExecuteRunJobData } from '@/modules/runs/typedefs/run-job.typedefs';
@@ -16,6 +17,7 @@ export class ExecuteRunUseCase {
     private readonly tenants: TenantTransactionService,
     private readonly execution: RunExecutionService,
     private readonly lifecycle: RunLifecycleService,
+    private readonly completion: RunCompletionService,
   ) {}
 
   async execute(
@@ -32,9 +34,14 @@ export class ExecuteRunUseCase {
           await this.lifecycle.failRun(workspaceId, runId, error);
           await this.lifecycle.endRun(ctx, workspaceId, runId);
         });
+        await this.completion.publishFinished(workspaceId, runId);
       }
       throw error;
     }
-    return this.tenants.run(workspaceId, () => this.lifecycle.endRun(ctx, workspaceId, runId));
+    const followUp = await this.tenants.run(workspaceId, () =>
+      this.lifecycle.endRun(ctx, workspaceId, runId),
+    );
+    await this.completion.publishFinished(workspaceId, runId);
+    return followUp;
   }
 }

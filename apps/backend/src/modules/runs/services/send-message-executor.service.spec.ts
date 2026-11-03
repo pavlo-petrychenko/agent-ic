@@ -1,6 +1,7 @@
 import { PortName } from '@agent-ic/flow';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { MessageAuthor, outboundQueuedEvent } from '@/modules/conversations';
+import { MessageAuthor, MessageDelivery, outboundQueuedEvent } from '@/modules/conversations';
+import { RunReplyCaptureService } from '@/modules/runs';
 import { outboundMessageKey } from '@/modules/runs/helpers/outbound-message.helpers';
 import { SendMessageExecutor } from '@/modules/runs/services/send-message-executor.service';
 import { DomainEventsService } from '@/platform/domain-events/services/domain-events.service';
@@ -77,5 +78,40 @@ describe('SendMessageExecutor', () => {
     emit.mockRestore();
     expect(retried).toEqual(first);
     expect(queued).toHaveLength(TEST_SENT_REPLIES.length);
+  });
+
+  it('captures replies without queueing outbound delivery', async () => {
+    const execution = await sendReplies();
+    const capture = testbed.module.get(RunReplyCaptureService);
+    await capture.start(execution.run.id);
+    const emit = vi.spyOn(testbed.module.get(DomainEventsService), 'emit');
+
+    const outcome = await executor.execute(execution);
+
+    const queued = emit.mock.calls.filter(([, event]) => event === outboundQueuedEvent);
+    emit.mockRestore();
+    const { messages } = await readRunChat(testbed, execution.run, outcome.output['messageIds']);
+    expect(queued).toHaveLength(0);
+    expect(messages).toEqual(
+      TEST_SENT_REPLIES.map(() => expect.objectContaining({ delivery: MessageDelivery.Delivered })),
+    );
+  });
+
+  it('queues outbound delivery after the capture window closes', async () => {
+    const execution = await sendReplies();
+    const capture = testbed.module.get(RunReplyCaptureService);
+    await capture.start(execution.run.id);
+    await capture.stop(execution.run.id);
+    const emit = vi.spyOn(testbed.module.get(DomainEventsService), 'emit');
+
+    const outcome = await executor.execute(execution);
+
+    const queued = emit.mock.calls.filter(([, event]) => event === outboundQueuedEvent);
+    emit.mockRestore();
+    const { messages } = await readRunChat(testbed, execution.run, outcome.output['messageIds']);
+    expect(queued).toHaveLength(TEST_SENT_REPLIES.length);
+    expect(messages).toEqual(
+      TEST_SENT_REPLIES.map(() => expect.objectContaining({ delivery: MessageDelivery.Pending })),
+    );
   });
 });

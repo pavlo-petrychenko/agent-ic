@@ -28,7 +28,7 @@ import { users } from '@/modules/identity/db/users.table';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
 import { defaultPermissionsFor } from '@/modules/identity/helpers/role-permission.helpers';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
-import { ROOT_BRANCH_KEY, STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
+import { ROOT_BRANCH_KEY, RunStatus, STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import type { RunStepStatus } from '@/modules/runs/constants/run.constants';
 import { startRunOnMessageJob } from '@/modules/runs/jobs/start-run-on-message.job';
 import { InactivityTimersRepository } from '@/modules/runs/repositories/inactivity-timers.repository';
@@ -183,6 +183,21 @@ export const createRunsTestbed = async (
     execution: module.get(RunExecutionService),
     liveUpdates: module.get(LiveUpdatesService),
   };
+};
+
+export const finishRun = async (
+  testbed: Pick<RunsTestbed, 'module' | 'tenants'> & { readonly clock: { now(): Date } },
+  workspaceId: string,
+  runId: string,
+  status: RunStatus.Succeeded | RunStatus.Escalated,
+): Promise<void> => {
+  await testbed.tenants.run(workspaceId, () =>
+    testbed.module.get(RunsRepository).finish(workspaceId, runId, {
+      status,
+      error: null,
+      finishedAt: testbed.clock.now(),
+    }),
+  );
 };
 
 export const seedRun = async (

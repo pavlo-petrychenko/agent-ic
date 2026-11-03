@@ -25,6 +25,7 @@ import type {
   Message,
   OutboundDelivery,
   OutboundMessageInput,
+  OutboundRecordOptions,
   QuickReplyTextInput,
 } from '@/modules/conversations/typedefs/message.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
@@ -75,6 +76,10 @@ export class ConversationRunsService {
     return this.messages.findLatest(workspaceId, conversationId);
   }
 
+  messagesByRun(workspaceId: string, runId: string): Promise<Message[]> {
+    return this.messages.listByRun(workspaceId, runId);
+  }
+
   async countMessagesByRuns(
     workspaceId: string,
     runIds: readonly string[],
@@ -103,7 +108,11 @@ export class ConversationRunsService {
     return label === undefined || label.trim() === '' ? null : label;
   }
 
-  async recordOutbound(ctx: UseCaseCtx, input: OutboundMessageInput): Promise<Message> {
+  async recordOutbound(
+    ctx: UseCaseCtx,
+    input: OutboundMessageInput,
+    options: OutboundRecordOptions = { capture: false },
+  ): Promise<Message> {
     const recorded = await this.messages.findByIdempotencyKey(input.workspaceId, input.key);
     if (recorded !== null) {
       return recorded;
@@ -120,7 +129,7 @@ export class ConversationRunsService {
       text: input.text,
       quickReplies: [...input.quickReplies],
       idempotencyKey: input.key,
-      delivery: MessageDelivery.Pending,
+      delivery: options.capture ? MessageDelivery.Delivered : MessageDelivery.Pending,
       runId: input.runId,
     });
     if (created === null) {
@@ -128,17 +137,19 @@ export class ConversationRunsService {
     }
     await this.conversations.touch(input.workspaceId, input.conversationId, created.createdAt);
     await this.activity.messageAdded(created);
-    await this.domainEvents.emit(
-      ctx,
-      outboundQueuedEvent,
-      {
-        conversationId: conversation.id,
-        messageId: created.id,
-        channelKind: conversation.channelKind,
-        mode: conversation.mode,
-      },
-      CONVERSATION_EVENT_EMIT_OPTIONS[ConversationEventName.OutboundQueued],
-    );
+    if (!options.capture) {
+      await this.domainEvents.emit(
+        ctx,
+        outboundQueuedEvent,
+        {
+          conversationId: conversation.id,
+          messageId: created.id,
+          channelKind: conversation.channelKind,
+          mode: conversation.mode,
+        },
+        CONVERSATION_EVENT_EMIT_OPTIONS[ConversationEventName.OutboundQueued],
+      );
+    }
     return created;
   }
 

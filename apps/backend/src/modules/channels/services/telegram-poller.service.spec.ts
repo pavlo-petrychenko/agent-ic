@@ -9,6 +9,7 @@ import type {
   TelegramUpdate,
 } from '@/modules/channels/typedefs/telegram.typedefs';
 import { ConversationMode } from '@/modules/conversations';
+import { startRunOnMessageJob } from '@/modules/runs';
 import { ActorKind, SystemReason } from '@/platform/context/constants/actor.constants';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { TEST_TELEGRAM_TOKEN } from '@test/support/constants/channel-testing.constants';
@@ -189,7 +190,9 @@ describe('TelegramPollerService', () => {
       await testbed.queues
         .get(QueueName.RunsReactive)
         .getJobs(['waiting', 'prioritized', 'delayed', 'active'])
-    ).filter((job) => job.data.workspaceId === workspaceId);
+    ).filter(
+      (job) => job.data.workspaceId === workspaceId && job.name === startRunOnMessageJob.name,
+    );
     expect(jobs).toHaveLength(1);
     expect(jobs[0]?.data.initiatedBy).toEqual({
       kind: ActorKind.System,

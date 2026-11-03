@@ -1,3 +1,4 @@
+import type { ApiReplyMode } from '@/modules/channels/constants/channel.constants';
 import type { ChannelIdentity } from '@/modules/channels/typedefs/channel-identity.typedefs';
 import type { ChannelRecord } from '@/modules/channels/typedefs/channel.typedefs';
 
@@ -8,6 +9,9 @@ export const channelDisplayName = (identity: ChannelIdentity, fallback: string):
 
 export const channelFirstName = (identity: ChannelIdentity): string | null =>
   'firstName' in identity && typeof identity.firstName === 'string' ? identity.firstName : null;
+
+export const channelReplyMode = (identity: ChannelIdentity): ApiReplyMode | null =>
+  'replyMode' in identity ? identity.replyMode : null;
 
 export const channelUpdaterId = (
   channel: Pick<ChannelRecord, 'createdByUserId' | 'updatedByUserId'>,

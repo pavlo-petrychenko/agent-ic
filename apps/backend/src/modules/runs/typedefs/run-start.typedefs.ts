@@ -7,6 +7,7 @@ import type {
 } from '@/modules/runs/typedefs/run.typedefs';
 
 export interface RunStart {
+  readonly id?: string;
   readonly workspaceId: string;
   readonly conversationId: string;
   readonly versionId: string;
@@ -14,7 +15,7 @@ export interface RunStart {
   readonly triggerMessageId: string;
 }
 
-export type RunTarget = Omit<RunStart, 'versionId'>;
+export type RunTarget = Omit<RunStart, 'id' | 'versionId'>;
 
 export interface TriggeredRunStart {
   readonly workspaceId: string;

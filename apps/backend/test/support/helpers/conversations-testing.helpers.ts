@@ -30,6 +30,7 @@ import { channelFor } from '@/platform/live-updates/helpers/channel.helpers';
 import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
 import { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';
 import type { ChannelStream } from '@/platform/live-updates/typedefs/channel.typedefs';
+import { LlmModule } from '@/platform/llm/llm.module';
 import { ObservabilityModule } from '@/platform/observability/observability.module';
 import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
@@ -58,7 +59,9 @@ import {
   runOnMessageReceived,
 } from '@test/support/jobs/conversation-probe.job';
 import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.module';
+import { LlmNeighboursModule } from '@test/support/modules/llm-neighbours.module';
 import { UsageNeighboursModule } from '@test/support/modules/usage-neighbours.module';
+import { UsageSeamsFakeModule } from '@test/support/modules/usage-seams-fake.module';
 import type {
   ConversationsTestbed,
   TiedMessages,
@@ -91,8 +94,11 @@ export const createConversationsTestbed = async (
       ObservabilityModule.forRole(selection.role),
       OutboundHttpModule,
       SecretsModule,
+      LlmModule,
       AgentsNeighboursModule.forRole(selection.role),
+      LlmNeighboursModule.forRole(selection.role),
       UsageNeighboursModule.forRole(selection.role),
+      UsageSeamsFakeModule,
       domainModule,
     ],
     providers: [

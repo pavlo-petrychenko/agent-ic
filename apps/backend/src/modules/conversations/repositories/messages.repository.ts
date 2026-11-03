@@ -91,6 +91,14 @@ export class MessagesRepository {
     return this.listWhere(workspaceId, conversationId, undefined);
   }
 
+  listByRun(workspaceId: string, runId: string): Promise<Message[]> {
+    return this.txHost.tx
+      .select()
+      .from(messages)
+      .where(and(eq(messages.workspaceId, workspaceId), eq(messages.runId, runId)))
+      .orderBy(asc(messages.createdAt), asc(messages.id));
+  }
+
   listThrough(
     workspaceId: string,
     conversationId: string,

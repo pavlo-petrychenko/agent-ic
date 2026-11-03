@@ -98,7 +98,14 @@ export class IncomingMessagesService {
     );
     await this.activity.messageAdded(message);
     const activePause = conversation.mode === ConversationMode.Live ? pause : null;
-    const outcome = await this.route(ctx, conversation, message, activePause, input.versionId);
+    const outcome = await this.route(
+      ctx,
+      conversation,
+      message,
+      activePause,
+      input.versionId,
+      input.runId ?? null,
+    );
     return { outcome, conversationId: conversation.id, messageId: message.id };
   }
 
@@ -133,12 +140,13 @@ export class IncomingMessagesService {
     message: Message,
     pause: PauseSettings | null,
     versionId: string | null,
+    runId: string | null,
   ): Promise<IncomingMessageOutcome> {
     if (STORE_ONLY_STATES.has(conversation.state)) {
       return IncomingMessageOutcome.Stored;
     }
     if (pause === null) {
-      await this.requestRun(ctx, conversation, message, versionId);
+      await this.requestRun(ctx, conversation, message, versionId, runId);
       return IncomingMessageOutcome.RunRequested;
     }
     if (pause.mode === PauseMode.Inbox) {
@@ -157,6 +165,7 @@ export class IncomingMessagesService {
     conversation: Conversation,
     message: Message,
     versionId: string | null,
+    runId: string | null,
   ): Promise<void> {
     await this.domainEvents.emit(
       ctx,
@@ -167,6 +176,7 @@ export class IncomingMessagesService {
         agentId: conversation.agentId,
         mode: conversation.mode,
         ...(versionId === null ? {} : { versionId }),
+        ...(runId === null ? {} : { runId }),
       },
       CONVERSATION_EVENT_EMIT_OPTIONS[ConversationEventName.MessageReceived],
     );

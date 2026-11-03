@@ -38,6 +38,10 @@ export interface OutboundDelivery {
   readonly conversation: Conversation;
 }
 
+export interface OutboundRecordOptions {
+  readonly capture: boolean;
+}
+
 export interface QuickReplyTextInput {
   readonly workspaceId: string;
   readonly messageId: string;
