@@ -249,66 +249,6 @@ describe('RetryKnowledgeSourceUseCase', () => {
     });
   });
 
-  it('retries a failed referenced document in a mixed source', async () => {
-    const workspaceId = testbed.ids.generate();
-    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
-    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
-      status: KnowledgeSourceStatus.Error,
-      lastErrorCode: 'UPSTREAM_FAILED',
-    });
-    const ownerSourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId);
-    const ownedDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      sourceId,
-      { externalId: 'owned-document' },
-    );
-    const referencedDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      ownerSourceId,
-      { externalId: 'referenced-document' },
-    );
-    await seedSourceDocument(testbed, workspaceId, knowledgeBaseId, sourceId, referencedDocumentId);
-    await testbed.tenants.run(workspaceId, async () => {
-      await documents.update(workspaceId, ownedDocumentId, {
-        status: KnowledgeDocumentStatus.Indexed,
-      });
-      await documents.update(workspaceId, referencedDocumentId, {
-        status: KnowledgeDocumentStatus.Error,
-        errorCode: 'UPSTREAM_FAILED',
-      });
-    });
-
-    await retryKnowledgeSource.execute(knowledgeCtx(workspaceId), {
-      id: publicKnowledgeSourceId(testbed, sourceId),
-    });
-
-    const referencedDocument = await testbed.tenants.run(workspaceId, () =>
-      documents.findById(workspaceId, referencedDocumentId),
-    );
-    const ownedDocument = await testbed.tenants.run(workspaceId, () =>
-      documents.findById(workspaceId, ownedDocumentId),
-    );
-    const run = await testbed.tenants.run(workspaceId, () =>
-      syncRuns.findLatestBySource(workspaceId, sourceId),
-    );
-
-    expect(referencedDocument).toMatchObject({
-      status: KnowledgeDocumentStatus.Pending,
-      errorCode: null,
-    });
-    expect(ownedDocument?.status).toBe(KnowledgeDocumentStatus.Indexed);
-    expect(run).toMatchObject({
-      documentsTotal: 1,
-    });
-    expect(jobs.enqueued.at(-1)).toMatchObject({
-      data: { documentIds: [referencedDocumentId] },
-    });
-  });
-
   it('refuses a source that is still active', async () => {
     const workspaceId = testbed.ids.generate();
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);

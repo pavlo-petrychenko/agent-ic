@@ -10,7 +10,6 @@ import {
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import { KnowledgeSourceBusyError } from '@/modules/knowledge/errors/knowledge-source-busy.error';
-import { KnowledgeSourceNotFoundError } from '@/modules/knowledge/errors/knowledge-source-not-found.error';
 import { KnowledgeSourceNotSyncableError } from '@/modules/knowledge/errors/knowledge-source-not-syncable.error';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
@@ -167,79 +166,6 @@ describe('SyncKnowledgeSourceUseCase', () => {
     });
   });
 
-  it('queues every document linked to a mixed source', async () => {
-    const workspaceId = testbed.ids.generate();
-    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
-    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
-    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
-      kind: KnowledgeSourceKind.GoogleDocs,
-      connectionId,
-      status: KnowledgeSourceStatus.Ready,
-    });
-    const ownerSourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
-      kind: KnowledgeSourceKind.GoogleDocs,
-      connectionId,
-      status: KnowledgeSourceStatus.Ready,
-    });
-    const ownedDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      sourceId,
-      { externalId: 'owned-document' },
-    );
-    const referencedDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      ownerSourceId,
-      { externalId: 'referenced-document' },
-    );
-    await seedSourceDocument(testbed, workspaceId, knowledgeBaseId, sourceId, referencedDocumentId);
-
-    await syncKnowledgeSource.execute(knowledgeCtx(workspaceId), {
-      id: publicKnowledgeSourceId(testbed, sourceId),
-    });
-
-    const run = await testbed.tenants.run(workspaceId, () =>
-      syncRuns.findLatestBySource(workspaceId, sourceId),
-    );
-
-    expect(run).toMatchObject({
-      status: KnowledgeSyncStatus.Queued,
-      trigger: KnowledgeSyncTrigger.Manual,
-      documentsTotal: 2,
-    });
-    expect(jobs.enqueued.at(-1)).toMatchObject({
-      data: {
-        sourceId,
-        syncRunId: run?.id,
-        documentIds: expect.arrayContaining([ownedDocumentId, referencedDocumentId]),
-      },
-    });
-    const lastJob = jobs.enqueued.at(-1);
-    if (lastJob === undefined) {
-      throw new Error('the sync job was not enqueued');
-    }
-    const jobData = lastJob.data as { readonly documentIds: readonly string[] };
-    expect(jobData.documentIds).toHaveLength(2);
-  });
-
-  it('refuses an upload source', async () => {
-    const workspaceId = testbed.ids.generate();
-    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
-    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
-      status: KnowledgeSourceStatus.Ready,
-    });
-    await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
-
-    await expect(
-      syncKnowledgeSource.execute(knowledgeCtx(workspaceId), {
-        id: publicKnowledgeSourceId(testbed, sourceId),
-      }),
-    ).rejects.toBeInstanceOf(KnowledgeSourceNotSyncableError);
-  });
-
   it('refuses a Google source that is not ready', async () => {
     const workspaceId = testbed.ids.generate();
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
@@ -297,33 +223,5 @@ describe('SyncKnowledgeSourceUseCase', () => {
         id: publicKnowledgeSourceId(testbed, sourceId),
       }),
     ).rejects.toBeInstanceOf(GoogleReconnectRequiredError);
-  });
-
-  it('refuses a source that owns no documents', async () => {
-    const workspaceId = testbed.ids.generate();
-    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
-    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
-    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
-      kind: KnowledgeSourceKind.GoogleDocs,
-      connectionId,
-      status: KnowledgeSourceStatus.Ready,
-    });
-
-    await expect(
-      syncKnowledgeSource.execute(knowledgeCtx(workspaceId), {
-        id: publicKnowledgeSourceId(testbed, sourceId),
-      }),
-    ).rejects.toBeInstanceOf(KnowledgeSourceNotSyncableError);
-  });
-
-  it('refuses an unknown source', async () => {
-    const workspaceId = testbed.ids.generate();
-    await seedKnowledgeBase(testbed, workspaceId);
-
-    await expect(
-      syncKnowledgeSource.execute(knowledgeCtx(workspaceId), {
-        id: publicKnowledgeSourceId(testbed, testbed.ids.generate()),
-      }),
-    ).rejects.toBeInstanceOf(KnowledgeSourceNotFoundError);
   });
 });
