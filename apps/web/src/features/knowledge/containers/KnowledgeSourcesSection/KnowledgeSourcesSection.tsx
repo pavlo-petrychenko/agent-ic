@@ -11,11 +11,16 @@ import { DeleteKnowledgeSourceDialog } from '@/features/knowledge/containers/Del
 import { KnowledgeSourceDetailsDrawer } from '@/features/knowledge/containers/KnowledgeSourceDetailsDrawer';
 import type { KnowledgeSourcesSectionProps } from '@/features/knowledge/containers/KnowledgeSourcesSection/KnowledgeSourcesSection.typedefs';
 import { useGoogleReconnect } from '@/features/knowledge/containers/KnowledgeSourcesSection/useGoogleReconnect';
+import { useKnowledgeSourceActionResults } from '@/features/knowledge/containers/KnowledgeSourcesSection/useKnowledgeSourceActionResults';
 import { useKnowledgeSourceRows } from '@/features/knowledge/containers/KnowledgeSourcesSection/useKnowledgeSourceRows';
 import { RenameKnowledgeSourceDialog } from '@/features/knowledge/containers/RenameKnowledgeSourceDialog';
 import { isGoogleConnectionActive } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import { isKnowledgeSourceActive } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
-import type { KnowledgeSourceTarget } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import { useKnowledgeFailureMessage } from '@/features/knowledge/logic/hooks/useKnowledgeFailureMessage';
+import type {
+  KnowledgeSourceActionResult,
+  KnowledgeSourceTarget,
+} from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import { GoogleConnectionBanner } from '@/features/knowledge/view/GoogleConnectionBanner';
 import { KnowledgeSourcesEmpty } from '@/features/knowledge/view/KnowledgeSourcesEmpty';
 import { KnowledgeSourcesTable } from '@/features/knowledge/view/KnowledgeSourcesTable';
@@ -36,6 +41,7 @@ export function KnowledgeSourcesSection({
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
+  const failureMessage = useKnowledgeFailureMessage();
   const { sources, loading, failed, retry } = useKnowledgeSources(knowledgeBaseId);
   const { retryKnowledgeSource, retryingSourceId } = useRetryKnowledgeSource(knowledgeBaseId);
   const { syncKnowledgeSource, syncingSourceId } = useSyncKnowledgeSource(knowledgeBaseId);
@@ -83,11 +89,28 @@ export function KnowledgeSourcesSection({
     void retryConnections();
   }, [canManageSources, reconnectFailure, retryConnections]);
 
+  const onActionResult = useCallback(
+    ({ action, source, succeeded }: KnowledgeSourceActionResult) => {
+      const reason = failureMessage(source.lastErrorCode) ?? t('sources.status.errorDetail');
+      const message =
+        action === 'sync'
+          ? succeeded
+            ? t('sources.sync.finished', { name: source.title })
+            : t('sources.sync.resultFailed', { name: source.title, reason })
+          : succeeded
+            ? t('sources.retry.finished', { name: source.title })
+            : t('sources.retry.resultFailed', { name: source.title, reason });
+      showToast({ message, tone: succeeded ? ToastTone.Ok : ToastTone.Err });
+    },
+    [failureMessage, showToast, t],
+  );
+  const trackAction = useKnowledgeSourceActionResults(sources, onActionResult);
   const onAddSource = canAddSource ? () => setAdding(true) : null;
   const onOpenSource = (source: KnowledgeSourceTarget) => setDetailsSourceId(source.id);
   const onRenameSource = canManageSources ? setRenameTarget : null;
   const onSyncSource = canManageSources
     ? (source: KnowledgeSourceTarget) => {
+        const cancel = trackAction(source, 'sync');
         void (async () => {
           try {
             await syncKnowledgeSource(source.id);
@@ -96,6 +119,7 @@ export function KnowledgeSourcesSection({
               tone: ToastTone.Ok,
             });
           } catch (failure) {
+            cancel();
             showToast({ message: errorMessage(toAppError(failure)), tone: ToastTone.Err });
           }
         })();
@@ -103,6 +127,7 @@ export function KnowledgeSourcesSection({
     : null;
   const onRetrySource = canManageSources
     ? (source: KnowledgeSourceTarget) => {
+        const cancel = trackAction(source, 'retry');
         void (async () => {
           try {
             await retryKnowledgeSource(source.id);
@@ -111,6 +136,7 @@ export function KnowledgeSourcesSection({
               tone: ToastTone.Ok,
             });
           } catch (failure) {
+            cancel();
             showToast({ message: errorMessage(toAppError(failure)), tone: ToastTone.Err });
           }
         })();
