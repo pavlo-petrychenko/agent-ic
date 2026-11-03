@@ -97,6 +97,7 @@
     "KNOWLEDGE_BASE_NAME_TAKEN": "A knowledge base with this name already exists.",
     "KNOWLEDGE_BASE_NOT_FOUND": "This knowledge base does not exist.",
     "KNOWLEDGE_BASE_HAS_SOURCES": "Delete the sources in this knowledge base first.",
+    "KNOWLEDGE_BASE_IN_USE": "This knowledge base is attached to an agent. Detach it first.",
     "KNOWLEDGE_TOOL_NAME_TAKEN": "Another knowledge base already uses this search name.",
     "KNOWLEDGE_UPLOAD_INVALID": "This upload is invalid or has expired. Choose the file again.",
     "KNOWLEDGE_DOCUMENT_INVALID": "This document cannot be read. Check the file and try again.",

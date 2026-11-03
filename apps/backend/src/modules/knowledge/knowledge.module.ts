@@ -1,4 +1,4 @@
-import { AgentsModule } from '@/modules/agents';
+import { AgentsModule, FLOW_REFERENCE_CHECKER } from '@/modules/agents';
 import { WorkspacesRepository } from '@/modules/identity';
 import { GoogleDriveApiGateway } from '@/modules/knowledge/gateways/google-drive-api.gateway';
 import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.gateway';
@@ -49,6 +49,7 @@ import { KnowledgeConnectionViewsService } from '@/modules/knowledge/services/kn
 import { KnowledgeDocumentIngestionService } from '@/modules/knowledge/services/knowledge-document-ingestion.service';
 import { KnowledgeDocumentReindexService } from '@/modules/knowledge/services/knowledge-document-reindex.service';
 import { KnowledgeEmbeddingService } from '@/modules/knowledge/services/knowledge-embedding.service';
+import { KnowledgeFlowReferenceChecker } from '@/modules/knowledge/services/knowledge-flow-reference-checker.service';
 import { KnowledgeSearchService } from '@/modules/knowledge/services/knowledge-search.service';
 import { KnowledgeSourceSyncService } from '@/modules/knowledge/services/knowledge-source-sync.service';
 import { KnowledgeSourceViewsService } from '@/modules/knowledge/services/knowledge-source-views.service';
@@ -114,6 +115,11 @@ export class KnowledgeModule extends defineModule({
     KnowledgeSourceViewsService,
     KnowledgeConnectionViewsService,
     KnowledgeUsageService,
+    KnowledgeFlowReferenceChecker,
+    {
+      provide: FLOW_REFERENCE_CHECKER,
+      useExisting: KnowledgeFlowReferenceChecker,
+    },
     KnowledgeUploadTargetsService,
     GoogleConnectionTokenService,
     { provide: GoogleOAuthGateway, useClass: GoogleOAuthApiGateway },

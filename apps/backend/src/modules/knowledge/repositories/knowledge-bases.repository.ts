@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { knowledgeBases } from '@/modules/knowledge/db/knowledge-bases.table';
 import { knowledgeNamesLockKey } from '@/modules/knowledge/helpers/knowledge-names.helpers';
@@ -42,6 +42,19 @@ export class KnowledgeBasesRepository {
       .from(knowledgeBases)
       .where(this.activeWhere(workspaceId, eq(knowledgeBases.id, knowledgeBaseId)));
     return knowledgeBase ?? null;
+  }
+
+  async findByIds(
+    workspaceId: string,
+    knowledgeBaseIds: readonly string[],
+  ): Promise<KnowledgeBase[]> {
+    if (knowledgeBaseIds.length === 0) {
+      return [];
+    }
+    return this.txHost.tx
+      .select()
+      .from(knowledgeBases)
+      .where(this.activeWhere(workspaceId, inArray(knowledgeBases.id, [...knowledgeBaseIds])));
   }
 
   async findByIdForUpdate(
