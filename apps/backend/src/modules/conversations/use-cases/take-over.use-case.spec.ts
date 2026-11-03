@@ -1,6 +1,10 @@
 import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ConversationState } from '@/modules/conversations/constants/conversation.constants';
+import {
+  MessageAuthor,
+  MessageSystemEvent,
+} from '@/modules/conversations/constants/message.constants';
 import { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 import { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
 import { TakeOverUseCase } from '@/modules/conversations/use-cases/take-over.use-case';
@@ -43,6 +47,14 @@ describe('TakeOverUseCase', () => {
     expect(stored).toMatchObject({
       state: ConversationState.Handled,
       handledBy: TEST_EDITOR_ID,
+    });
+    const timeline = await testbed.tenants.run(live.workspaceId, () =>
+      testbed.messages.listByConversation(live.workspaceId, live.id),
+    );
+    expect(timeline.at(-1)).toMatchObject({
+      author: MessageAuthor.System,
+      authorUserId: TEST_EDITOR_ID,
+      systemEvent: MessageSystemEvent.TookOver,
     });
   });
 

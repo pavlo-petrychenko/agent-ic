@@ -10,3 +10,9 @@ export enum MessageDelivery {
   Delivered = 'delivered',
   Failed = 'failed',
 }
+
+export enum MessageSystemEvent {
+  Escalated = 'escalated',
+  TookOver = 'took_over',
+  HandedBack = 'handed_back',
+}

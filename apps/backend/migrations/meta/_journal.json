@@ -288,6 +288,13 @@
       "when": 1793657223032,
       "tag": "0040_conversation-message-author-user",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1793663885679,
+      "tag": "0041_conversation-system-events",
+      "breakpoints": true
     }
   ]
 }

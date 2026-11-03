@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, desc, eq, gt, inArray, lt, lte, or } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, inArray, lt, lte, ne, or } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import type { MessageDelivery } from '@/modules/conversations/constants/message.constants';
@@ -105,6 +105,7 @@ export class MessagesRepository {
         and(
           eq(messages.workspaceId, workspaceId),
           inArray(messages.conversationId, [...conversationIds]),
+          ne(messages.author, MessageAuthor.System),
         ),
       )
       .orderBy(messages.conversationId, desc(messages.createdAt), desc(messages.id));

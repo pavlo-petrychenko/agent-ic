@@ -145,6 +145,7 @@ export class SimulationsService {
           ? null
           : this.ids.toPublic(IdPrefix.User, message.authorUserId),
       authorName,
+      systemEvent: message.systemEvent,
       text: message.text,
       quickReplies: message.quickReplies,
       runId: message.runId === null ? null : this.ids.toPublic(IdPrefix.Run, message.runId),

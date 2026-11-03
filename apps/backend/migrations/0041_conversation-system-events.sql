@@ -1,0 +1,2 @@
+CREATE TYPE "conversations"."message_system_event" AS ENUM('escalated', 'took_over', 'handed_back');--> statement-breakpoint
+ALTER TABLE "conversations"."messages" ADD COLUMN "system_event" "conversations"."message_system_event";

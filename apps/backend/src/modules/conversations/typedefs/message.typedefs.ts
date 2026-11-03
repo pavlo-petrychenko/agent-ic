@@ -1,6 +1,7 @@
 import type {
   MessageAuthor,
   MessageDelivery,
+  MessageSystemEvent,
 } from '@/modules/conversations/constants/message.constants';
 import type { messages } from '@/modules/conversations/db/messages.table';
 import type { Conversation } from '@/modules/conversations/typedefs/conversation.typedefs';
@@ -11,6 +12,7 @@ export interface Message {
   readonly conversationId: string;
   readonly author: MessageAuthor;
   readonly authorUserId: string | null;
+  readonly systemEvent: MessageSystemEvent | null;
   readonly text: string;
   readonly quickReplies: readonly string[];
   readonly externalId: string | null;

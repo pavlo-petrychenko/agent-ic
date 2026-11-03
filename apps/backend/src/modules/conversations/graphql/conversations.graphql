@@ -57,6 +57,12 @@ enum MessageAuthor {
   system
 }
 
+enum MessageSystemEvent {
+  escalated
+  took_over
+  handed_back
+}
+
 input StartSimulationInput {
   agentId: ID!
   versionId: ID
@@ -111,6 +117,7 @@ type Message {
   author: MessageAuthor!
   authorId: ID
   authorName: String
+  systemEvent: MessageSystemEvent
   text: String!
   quickReplies: [String!]!
   runId: ID

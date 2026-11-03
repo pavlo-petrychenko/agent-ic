@@ -16,6 +16,7 @@ import { ConversationActivityService } from '@/modules/conversations/services/co
 import { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
 import { ConversationMetricsService } from '@/modules/conversations/services/conversation-metrics.service';
 import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
+import { ConversationTimelineService } from '@/modules/conversations/services/conversation-timeline.service';
 import { InboxActivityService } from '@/modules/conversations/services/inbox-activity.service';
 import { InboxConversationsService } from '@/modules/conversations/services/inbox-conversations.service';
 import { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
@@ -51,6 +52,7 @@ export class ConversationsModule extends defineModule({
     ConversationActivityService,
     ConversationHistoryService,
     ConversationRunsService,
+    ConversationTimelineService,
     ConversationMetricsService,
     IncomingMessagesService,
     InboxActivityService,

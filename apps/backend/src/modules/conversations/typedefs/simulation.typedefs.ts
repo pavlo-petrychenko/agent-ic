@@ -4,7 +4,10 @@ import type {
   CloseReason,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
-import type { MessageAuthor } from '@/modules/conversations/constants/message.constants';
+import type {
+  MessageAuthor,
+  MessageSystemEvent,
+} from '@/modules/conversations/constants/message.constants';
 import type {
   closeConversationSchema,
   operatorConversationSchema,
@@ -51,6 +54,7 @@ export interface MessageView {
   readonly author: MessageAuthor;
   readonly authorId: string | null;
   readonly authorName: string | null;
+  readonly systemEvent: MessageSystemEvent | null;
   readonly text: string;
   readonly quickReplies: readonly string[];
   readonly runId: string | null;
