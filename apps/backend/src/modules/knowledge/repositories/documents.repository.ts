@@ -48,6 +48,15 @@ export class DocumentsRepository {
     return document ?? null;
   }
 
+  async findByIdForUpdate(workspaceId: string, documentId: string): Promise<Document | null> {
+    const [document] = await this.txHost.tx
+      .select()
+      .from(documents)
+      .where(this.activeWhere(workspaceId, eq(documents.id, documentId)))
+      .for('update');
+    return document ?? null;
+  }
+
   async findActiveBySource(workspaceId: string, sourceId: string): Promise<Document | null> {
     const [document] = await this.txHost.tx
       .select()

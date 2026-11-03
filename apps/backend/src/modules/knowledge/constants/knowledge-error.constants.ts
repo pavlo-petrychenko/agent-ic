@@ -16,4 +16,8 @@ export const GOOGLE_RECONNECT_REQUIRED_MESSAGE = 'the Google account must be rec
 export const KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE = 'knowledge document original is missing';
 export const KNOWLEDGE_DOCUMENT_UPDATE_MISSING_MESSAGE =
   'knowledge document disappeared during ingestion';
+export const KNOWLEDGE_DOCUMENT_BUSY_MESSAGE = 'the knowledge document is being indexed';
+export const KNOWLEDGE_DOCUMENT_NOT_EDITABLE_MESSAGE =
+  'the knowledge document cannot be edited in its current state';
+export const KNOWLEDGE_DOCUMENT_NOT_FOUND_MESSAGE = 'knowledge document not found';
 export const KNOWLEDGE_INGESTION_FAILED_MESSAGE = 'knowledge source ingestion failed';

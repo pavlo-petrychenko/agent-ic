@@ -309,16 +309,16 @@ Each chunk stores:
 
 ### 5.4 Document summary
 
-A document gets one summary when it is first indexed. The call uses `LlmGateway.complete` with `LlmPurpose.Light`, a strict structured output and the full canonical Markdown. It returns one sentence, for example “A salon price list with services, prices and gift-card rules.”
+A Google Doc gets one summary when it is first indexed. The call uses `LlmGateway.complete` with `LlmPurpose.Light`, a strict structured output and the full canonical Markdown. It returns one short sentence of at most 200 characters, for example “A salon price list with services, prices and gift-card rules.”
 
 - The summary is generated once per document, at the first successful index. A retry of the same index reuses a stored summary; scheduled and manual re-syncs do not regenerate it.
 - A failed summary is retried on the next sync even when the content is unchanged, but only while `summary` is still null. Once a summary exists, a sync never regenerates it.
-- Replacing an uploaded file does not regenerate the summary either; the UI keeps it and invites an edit.
-- A user can edit the summary from the document view. The edit stores `summary_source = 'user'`; automatic generation never overwrites a user edit. A generated summary uses `summary_source = 'auto'`. If the user writes one before the first index, the worker uses it and skips the model call. While the document is indexing, the editor is disabled and the mutation returns `KNOWLEDGE_DOCUMENT_BUSY`.
+- Summaries are editable only for Google Docs. Uploaded files keep their one-time summary; the editor is hidden for them.
+- A user can edit the summary from the document view. The edit stores `summary_source = 'user'`; automatic generation never overwrites a user edit. A generated summary uses `summary_source = 'auto'`. The editor is available only for indexed, non-stale documents. While the document or its source is indexing, the editor is disabled and the mutation returns `KNOWLEDGE_DOCUMENT_BUSY` or `KNOWLEDGE_SOURCE_BUSY`.
 - The summary is used in every chunk's `index_text`. Changing it changes every chunk's embedding and BM25 text, so an edit enqueues `reindex-knowledge-document` and rebuilds the document under a new generation. The old generation stays searchable until the flip.
-- The UI labels an auto summary as AI-generated once, says that it is not updated automatically, and explains that editing it re-indexes the document. A user-edited summary is labelled as edited by the user.
+- The Add source dialog tells the user that Google Docs summaries are generated once and are not updated automatically. The edit dialog repeats that rule and explains that saving a changed summary re-indexes the document.
 - If the summary call fails, the document is still indexed without a summary. The UI shows “Add a summary” and the user can write one; a summary is helpful, not a gate.
-- The summary input is capped at `SUMMARY_MAX_INPUT_TOKENS` (60,000). If the canonical Markdown is longer than the cap, the pipeline sends the largest fitting prefix plus the heading outline and records a warning. The normal path is the whole document.
+- The summary output is capped at `KNOWLEDGE_SUMMARY_MAX_LENGTH` (200 characters). The input to the summary model is capped at `SUMMARY_MAX_INPUT_TOKENS` (60,000). If the canonical Markdown is longer than the input cap, the pipeline sends the largest fitting prefix plus the heading outline and records a warning. The normal path is the whole document.
 - `summary_updated_at` records when the summary was generated or last edited.
 - The call is traced and tagged like any other LLM call.
 
@@ -1386,7 +1386,7 @@ Behaviour:
 - **Detail page:** breadcrumb above the KB name; header with rename/edit/delete; sources table with type, status, chunks, last sync, next sync, and a source actions menu (Sync now for a ready Google source, rename, retry, delete); Add source; Sync all; settings for tool name/description; Playground tab or panel.
 - **Add source:** Upload tab with drop zone and per-file progress; Google tab with Connect, account status and Pick documents.
 - **Upload hook:** call `createUpload`, PUT with `XMLHttpRequest` for progress, call `confirmUpload`, then subscribe/refetch. Errors show the server reason.
-- **Document summary:** show the one-line summary with an “AI-generated once” or “Edited by you” badge. Helper text says it is not updated automatically and that editing it re-indexes the document. The edit dialog calls `updateDocumentSummary`; saving shows the document as `indexing` until the new generation is ready.
+- **Document summary:** Google Docs documents show the one-line summary with an edit action. The Add source dialog explains that summaries are generated once and are not updated automatically. The edit dialog calls `updateDocumentSummary`; saving shows the document as `indexing` until the new generation is ready. Uploaded documents do not show the editor.
 - **Google Picker:** load the Google script on demand, call `createGooglePickerSession`, open the Picker filtered to Google Docs, review the picked documents in the dialog and send the final ids to `createGoogleDocsSource`.
 - **Delete dialog:** explains that the KB itself is deleted; the mutation refuses a KB that still has sources with `KNOWLEDGE_BASE_HAS_SOURCES` and the dialog tells the user to delete the sources first. Once the usages work is built, the dialog also lists agent usages and disables confirmation; the mutation is still the authority.
 - **Playground:** query input, top results, score bar, source/document/section labels, empty state.
@@ -1449,7 +1449,7 @@ There is no product-level document or chunk quota in the first version. The work
 | Scanned PDF | Document `error` with `PDF_HAS_NO_TEXT` | Upload a text PDF/DOCX, or wait for OCR |
 | Parser crash | Document `error`; other documents continue | Retry the source from its row menu |
 | Summary model fails | Document indexes without a summary; UI offers “Add a summary” | Retry on the next sync while the summary is null, or edit manually |
-| Summary edit re-index fails | Old generation stays searchable; document `error` | Retry the re-index; the summary is already saved |
+| Summary edit re-index fails | Old generation stays searchable; document `error`; owning source `error` | Retry the source from its row menu; the summary is already saved |
 | Embedding provider 429/5xx | Job retries with backoff | Automatic; old generation stays active |
 | Embedding dimension mismatch | Document `error`; alert | Fix model/config, re-index |
 | Worker crash before flip | New generation orphaned; old remains active | Retry; orphan cleanup |

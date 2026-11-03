@@ -4,7 +4,7 @@ import type { DocumentSection } from '@/modules/knowledge/typedefs/document-sect
 export interface ChunkIndexInput {
   readonly title: string;
   readonly summary?: string | null;
-  readonly sections: readonly DocumentSection[];
+  readonly sections: readonly Pick<DocumentSection, 'ordinal' | 'path'>[];
   readonly chunks: readonly DocumentChunk[];
 }
 

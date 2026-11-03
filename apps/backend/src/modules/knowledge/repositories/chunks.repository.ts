@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { KNOWLEDGE_WRITE_BATCH_SIZE } from '@/modules/knowledge/constants/knowledge.constants';
 import { chunks } from '@/modules/knowledge/db/chunks.table';
 import type { Chunk, ChunkChanges, NewChunk } from '@/modules/knowledge/typedefs/chunk.typedefs';
@@ -38,6 +38,24 @@ export class ChunksRepository {
       .from(chunks)
       .where(and(eq(chunks.workspaceId, workspaceId), eq(chunks.id, chunkId)));
     return chunk ?? null;
+  }
+
+  async listByDocumentGeneration(
+    workspaceId: string,
+    documentId: string,
+    generation: number,
+  ): Promise<Chunk[]> {
+    return this.txHost.tx
+      .select()
+      .from(chunks)
+      .where(
+        and(
+          eq(chunks.workspaceId, workspaceId),
+          eq(chunks.documentId, documentId),
+          eq(chunks.generation, generation),
+        ),
+      )
+      .orderBy(asc(chunks.ordinal));
   }
 
   async update(workspaceId: string, chunkId: string, changes: ChunkChanges): Promise<Chunk | null> {
