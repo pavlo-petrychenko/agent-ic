@@ -83,7 +83,7 @@ export function KnowledgeBasePickerDialog({
           </Text>
         ) : null}
         {!failed && filtered.length > 0 ? (
-          <ul className="flex flex-col gap-2">
+          <ul className="m-0 flex list-none flex-col gap-2 p-0">
             {filtered.map((knowledgeBase) => (
               <li key={knowledgeBase.id}>
                 <Checkbox
