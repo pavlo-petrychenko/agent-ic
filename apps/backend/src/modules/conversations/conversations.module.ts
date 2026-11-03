@@ -93,5 +93,7 @@ export class ConversationsModule extends defineModule({
     ConversationRunsService,
     IncomingMessagesService,
     ScheduleAudienceService,
+    ConversationsRepository,
+    MessagesRepository,
   ],
 }) {}

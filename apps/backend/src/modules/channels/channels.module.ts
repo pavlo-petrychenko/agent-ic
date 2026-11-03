@@ -20,6 +20,7 @@ import { ConnectTelegramResolver } from '@/modules/channels/resolvers/connect-te
 import { CreateApiChannelResolver } from '@/modules/channels/resolvers/create-api-channel.resolver';
 import { DeleteChannelResolver } from '@/modules/channels/resolvers/delete-channel.resolver';
 import { DisconnectTelegramResolver } from '@/modules/channels/resolvers/disconnect-telegram.resolver';
+import { InboxDetailsResolver } from '@/modules/channels/resolvers/inbox-details.resolver';
 import { ReconnectTelegramResolver } from '@/modules/channels/resolvers/reconnect-telegram.resolver';
 import { RefreshTelegramIdentityResolver } from '@/modules/channels/resolvers/refresh-telegram-identity.resolver';
 import { ReplaceTelegramTokenResolver } from '@/modules/channels/resolvers/replace-telegram-token.resolver';
@@ -31,9 +32,11 @@ import { ApiChannelRateLimiterService } from '@/modules/channels/services/api-ch
 import { ApiChannelReplyService } from '@/modules/channels/services/api-channel-reply.service';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
 import { ChannelConnectionService } from '@/modules/channels/services/channel-connection.service';
+import { ChannelDirectoryService } from '@/modules/channels/services/channel-directory.service';
 import { ChannelHealthService } from '@/modules/channels/services/channel-health.service';
 import { ChannelMetricsService } from '@/modules/channels/services/channel-metrics.service';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
+import { InboxDetailsService } from '@/modules/channels/services/inbox-details.service';
 import { TelegramChannelService } from '@/modules/channels/services/telegram-channel.service';
 import { TelegramPollerService } from '@/modules/channels/services/telegram-poller.service';
 import { TelegramTokenHealthService } from '@/modules/channels/services/telegram-token-health.service';
@@ -45,6 +48,7 @@ import { DeleteChannelUseCase } from '@/modules/channels/use-cases/delete-channe
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
 import { DisconnectTelegramUseCase } from '@/modules/channels/use-cases/disconnect-telegram.use-case';
 import { GetChannelUseCase } from '@/modules/channels/use-cases/get-channel.use-case';
+import { GetInboxDetailsUseCase } from '@/modules/channels/use-cases/get-inbox-details.use-case';
 import { HandleApiChannelMessageUseCase } from '@/modules/channels/use-cases/handle-api-channel-message.use-case';
 import { HandleTelegramWebhookUseCase } from '@/modules/channels/use-cases/handle-telegram-webhook.use-case';
 import { ListChannelsUseCase } from '@/modules/channels/use-cases/list-channels.use-case';
@@ -73,6 +77,7 @@ export class ChannelsModule extends defineModule({
     ApiChannelReplyService,
     ApiChannelKeyGuard,
     ChannelHealthService,
+    InboxDetailsService,
     TelegramChannelService,
     TelegramPollerService,
     TelegramTokenHealthService,
@@ -94,11 +99,13 @@ export class ChannelsModule extends defineModule({
       ): ChannelAdapter[] => [simulated, telegram, api],
     },
     ChannelAdapterRegistryService,
+    ChannelDirectoryService,
     ChannelMetricsService,
     ConnectTelegramChannelUseCase,
     DeleteChannelUseCase,
     DisconnectTelegramUseCase,
     GetChannelUseCase,
+    GetInboxDetailsUseCase,
     ListChannelsUseCase,
     ReconnectTelegramUseCase,
     RefreshTelegramIdentityUseCase,
@@ -113,6 +120,7 @@ export class ChannelsModule extends defineModule({
   ],
   resolvers: [
     ChannelResolver,
+    InboxDetailsResolver,
     ConnectTelegramResolver,
     CreateApiChannelResolver,
     DeleteChannelResolver,
@@ -126,5 +134,10 @@ export class ChannelsModule extends defineModule({
   gatewayControllers: [TelegramWebhookController, ApiChannelMessagesController],
   listeners: [DeliverOutboundMessageListener],
   processors: [CheckTelegramTokenHealthProcessor],
-  exports: [SimulatedChannelAdapter, TelegramChannelAdapter, ChannelAdapterRegistryService],
+  exports: [
+    SimulatedChannelAdapter,
+    TelegramChannelAdapter,
+    ChannelAdapterRegistryService,
+    ChannelDirectoryService,
+  ],
 }) {}

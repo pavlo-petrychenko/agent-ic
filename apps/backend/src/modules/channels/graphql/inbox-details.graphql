@@ -1,0 +1,68 @@
+extend type InboxConversationDetail {
+  details: InboxConversationDetails!
+}
+
+type InboxConversationDetails {
+  guard: InboxConversationGuard
+  run: InboxConversationRun
+  channelName: String
+  replyTarget: ApiReplyMode
+  notified: InboxConversationNotified
+  handled: InboxConversationHandler
+  runsCount: Int!
+}
+
+type InboxConversationGuard {
+  label: String!
+  nodeType: InboxRunNodeType!
+  reason: String
+}
+
+type InboxConversationRun {
+  id: ID!
+  agentVersion: Int
+  startedAt: String
+  durationMs: Int
+  steps: [InboxConversationRunStep!]!
+}
+
+type InboxConversationRunStep {
+  id: ID!
+  nodeId: String!
+  label: String!
+  nodeType: InboxRunNodeType
+  status: RunStepStatus!
+  value: String
+}
+
+type InboxConversationNotified {
+  names: [String!]!
+  allOperators: Boolean!
+  channels: [InboxNotifyChannel!]!
+}
+
+type InboxConversationHandler {
+  name: String!
+  since: String
+  until: String
+}
+
+enum InboxRunNodeType {
+  trigger_message
+  trigger_external_event
+  trigger_schedule
+  trigger_inactivity
+  agent
+  completion
+  router
+  parallel
+  api_request
+  send_message
+  escalation
+}
+
+enum InboxNotifyChannel {
+  in_platform
+  email
+  telegram
+}

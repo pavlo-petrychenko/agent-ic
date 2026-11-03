@@ -10,6 +10,7 @@ export {
 export {
   MessageAuthor,
   MessageDelivery,
+  MessageSystemEvent,
 } from '@/modules/conversations/constants/message.constants';
 export { IncomingMessageOutcome } from '@/modules/conversations/constants/incoming-message.constants';
 export { CHANNEL_KIND_OF_TYPE } from '@/modules/conversations/constants/schedule-audience.constants';
@@ -25,6 +26,8 @@ export { handedBackEvent } from '@/modules/conversations/events/handed-back.even
 export { messageReceivedEvent } from '@/modules/conversations/events/message-received.event';
 export { needsOperatorEvent } from '@/modules/conversations/events/needs-operator.event';
 export { outboundQueuedEvent } from '@/modules/conversations/events/outbound-queued.event';
+export { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
+export { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 export { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
 export { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
 export { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
@@ -40,6 +43,8 @@ export type {
   Conversation,
   WaitingRequest,
 } from '@/modules/conversations/typedefs/conversation.typedefs';
+export type { InboxConversationDetailParent } from '@/modules/conversations/typedefs/inbox-graphql.typedefs';
+export type { InboxDetail, InboxSummary } from '@/modules/conversations/typedefs/inbox.typedefs';
 export type {
   Message,
   OutboundDelivery,
