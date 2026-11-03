@@ -265,7 +265,8 @@
     "empty": "No matching sections. Try different wording or add a source.",
     "scoreTitle": "Relative relevance",
     "showMore": "Show full section",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "note": "This is what an agent gets back when it searches this knowledge base with the query."
   },
   "delete": {
     "action": "Delete",

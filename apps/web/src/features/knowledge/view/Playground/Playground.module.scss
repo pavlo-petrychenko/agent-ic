@@ -94,6 +94,11 @@
   white-space: pre-line;
 }
 
+.note {
+  padding-top: var(--space-8);
+  border-top: var(--border-width) solid var(--color-line-row);
+}
+
 .clamped {
   display: -webkit-box;
   overflow: hidden;
