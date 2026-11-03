@@ -128,6 +128,7 @@ const REFERENCE_CHECKER_CODES = [
   FlowIssueCode.MissingPromptVersion,
   FlowIssueCode.PromptVariableUnmapped,
   FlowIssueCode.MissingProviderKey,
+  FlowIssueCode.MissingKnowledgeBase,
 ] as const;
 type ValidationIssueCode = Exclude<FlowIssueCode, (typeof REFERENCE_CHECKER_CODES)[number]>;
 
