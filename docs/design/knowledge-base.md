@@ -366,6 +366,9 @@ If the worker crashes before the flip, the new generation is orphaned. The next 
 - The use case creates a `sync_runs` row with status `queued` before enqueueing. The processor sets it to `running` and updates counters as each document finishes.
 - A source is `indexing` while a run is `running`. It becomes `ready` when every active document is indexed, or `error` when the run failed or any document failed; a run with some successes is recorded as `partial`, and the source shows how many documents failed.
 - Progress is `documents_indexed / documents_total`; the UI can show a percentage without polling the worker.
+- A retry enqueues only the failed documents; a manual sync enqueues every document in the source. The job carries the selected document ids, so the worker never processes an unselected document.
+- A document is marked `indexing` only after the change check decides to reindex it. An unchanged document stays `indexed`.
+- Every source that references a document is marked `indexing` when its run starts, not only the owner, so both drawers show live progress.
 - Status changes are published to the `knowledge-source-status` channel after commit. The web client refetches the source or document list.
 - One sync per source at a time. A manual sync while the source is `indexing` fails with `KNOWLEDGE_SOURCE_BUSY`; the UI disables the button. A manual sync of a referencing source waits while any owner of its documents has an active run.
 - BullMQ retries transient failures five times with exponential backoff. A parse error, unsupported type or scanned PDF is a `GiveUp` for that document; the run records it and continues with the other documents.
@@ -1156,7 +1159,7 @@ Constraints and indexes:
 - `index (source_id, created_at desc)`;
 - RLS.
 
-`documents_total` and the other document counters count the documents owned by the source that this run processes; a source's referenced documents are not included.
+`documents_total` and the other document counters count the documents selected for this run: all owned documents for a sync, only the failed documents for a retry, and the referenced documents for a manual sync of a source that owns none.
 
 #### `knowledge.embedding_cache`
 
@@ -1327,7 +1330,7 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 | `updateDocumentSummary` | edit | Sets a user summary and re-indexes the document |
 | `updateSourceSchedule` | edit | Interval, time, weekday; clearing the interval turns automatic sync off |
 | `renameSource` | edit | Renames the display title only; documents and index text stay unchanged |
-| `retrySource` | edit | Creates a manual sync run for a failed source and reuses the stored original |
+| `retrySource` | edit | Creates a manual sync run for the failed documents of a source and reuses the stored original |
 | `deleteSource` | edit | Soft delete + cleanup |
 | `startGoogleConnection` | edit | Returns Google authorization URL |
 | `completeGoogleConnection` | edit | Exchanges code, stores sealed token |

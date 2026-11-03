@@ -13,6 +13,7 @@ export interface DocumentIngestionInput {
   readonly knowledgeBase: KnowledgeBase;
   readonly document: Document;
   readonly connection: Connection | null;
+  readonly onIndexing: () => Promise<void>;
 }
 
 export interface DocumentIngestionResult {

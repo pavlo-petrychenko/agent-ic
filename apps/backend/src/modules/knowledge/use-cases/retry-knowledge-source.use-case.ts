@@ -2,6 +2,7 @@ import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contra
 import { Injectable } from '@nestjs/common';
 import {
   KnowledgeConnectionStatus,
+  KnowledgeDocumentStatus,
   KnowledgeSourceStatus,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
@@ -66,7 +67,10 @@ export class RetryKnowledgeSourceUseCase {
         }
       }
 
-      const documents = await this.sync.documentsForManualSync(workspaceId, source);
+      const sourceDocuments = await this.sync.documentsForManualSync(workspaceId, source);
+      const documents = sourceDocuments.filter(
+        (document) => document.status === KnowledgeDocumentStatus.Error,
+      );
       if (documents.length === 0) {
         throw new KnowledgeSourceNotRetryableError();
       }
