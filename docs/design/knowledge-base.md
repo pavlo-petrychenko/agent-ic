@@ -196,7 +196,7 @@ Configuration uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_OAUTH_
 **Sync.**
 
 - On creation the source is synced once (`initial`). A Google source can later be synced with the “Sync now” button or by its optional schedule. An upload is updated by replacing the file.
-- A scheduled sync processes only the documents the source owns (`documents.source_id`). A manual sync of a source that only references documents processes those referenced documents, so the source can be refreshed and receives its own `lastSyncAt`; the document rows keep their original owner.
+- A scheduled sync processes only the documents the source owns (`documents.source_id`). A manual sync processes every document linked to the source, including referenced documents, so the whole source can be refreshed; the document rows keep their original owner.
 - Each sync asks Drive for the metadata of every active document owned by the source (`id`, `name`, `mimeType`, `modifiedTime`, `version`, `trashed`, `webViewLink`, `resourceKey`).
 - A document is re-exported only when `version` or `modifiedTime` differs from the stored value, or when it has never been indexed.
 - Export uses `files.export` with `text/markdown`. Google caps an export at 10 MB; a larger document fails with a reason.
@@ -1159,7 +1159,7 @@ Constraints and indexes:
 - `index (source_id, created_at desc)`;
 - RLS.
 
-`documents_total` and the other document counters count the documents selected for this run: all owned documents for a sync, only the failed documents for a retry, and the referenced documents for a manual sync of a source that owns none.
+`documents_total` and the other document counters count the documents selected for this run: every linked document for a manual sync, only the failed documents for a retry, and the owned documents for a scheduled sync.
 
 #### `knowledge.embedding_cache`
 

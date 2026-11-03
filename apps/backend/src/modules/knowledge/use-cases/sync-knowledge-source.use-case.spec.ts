@@ -167,6 +167,64 @@ describe('SyncKnowledgeSourceUseCase', () => {
     });
   });
 
+  it('queues every document linked to a mixed source', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+      status: KnowledgeSourceStatus.Ready,
+    });
+    const ownerSourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+      status: KnowledgeSourceStatus.Ready,
+    });
+    const ownedDocumentId = await seedKnowledgeDocument(
+      testbed,
+      workspaceId,
+      knowledgeBaseId,
+      sourceId,
+      { externalId: 'owned-document' },
+    );
+    const referencedDocumentId = await seedKnowledgeDocument(
+      testbed,
+      workspaceId,
+      knowledgeBaseId,
+      ownerSourceId,
+      { externalId: 'referenced-document' },
+    );
+    await seedSourceDocument(testbed, workspaceId, knowledgeBaseId, sourceId, referencedDocumentId);
+
+    await syncKnowledgeSource.execute(knowledgeCtx(workspaceId), {
+      id: publicKnowledgeSourceId(testbed, sourceId),
+    });
+
+    const run = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findLatestBySource(workspaceId, sourceId),
+    );
+
+    expect(run).toMatchObject({
+      status: KnowledgeSyncStatus.Queued,
+      trigger: KnowledgeSyncTrigger.Manual,
+      documentsTotal: 2,
+    });
+    expect(jobs.enqueued.at(-1)).toMatchObject({
+      data: {
+        sourceId,
+        syncRunId: run?.id,
+        documentIds: expect.arrayContaining([ownedDocumentId, referencedDocumentId]),
+      },
+    });
+    const lastJob = jobs.enqueued.at(-1);
+    if (lastJob === undefined) {
+      throw new Error('the sync job was not enqueued');
+    }
+    const jobData = lastJob.data as { readonly documentIds: readonly string[] };
+    expect(jobData.documentIds).toHaveLength(2);
+  });
+
   it('refuses an upload source', async () => {
     const workspaceId = testbed.ids.generate();
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
