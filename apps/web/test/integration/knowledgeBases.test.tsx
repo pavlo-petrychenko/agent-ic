@@ -15,6 +15,10 @@ import {
   type KnowledgeBasesQuery,
 } from '@/features/knowledge/communication/gql/query/knowledgeBases.generated';
 import {
+  KnowledgeSourceDetailDocument,
+  type KnowledgeSourceDetailQuery,
+} from '@/features/knowledge/communication/gql/query/knowledgeSourceDetail.generated';
+import {
   KnowledgeSourcesDocument,
   type KnowledgeSourcesQuery,
 } from '@/features/knowledge/communication/gql/query/knowledgeSources.generated';
@@ -149,6 +153,22 @@ const buildRetryKnowledgeSourceMock = (id: string): MockLink.MockedResponse => (
   request: { query: RetrySourceDocument, variables: { input: { id } } },
   result: { data: { retrySource: { id } } },
 });
+
+const buildKnowledgeSourceDetailMock = (
+  source: KnowledgeSourceFixture,
+): MockLink.MockedResponse => {
+  const data: KnowledgeSourceDetailQuery = {
+    knowledgeSource: {
+      source,
+      connection: null,
+      documents: [],
+    },
+  };
+  return {
+    request: { query: KnowledgeSourceDetailDocument, variables: { id: source.id } },
+    result: { data },
+  };
+};
 
 const buildDeleteKnowledgeBaseFailureMock = (id: string): MockLink.MockedResponse => ({
   request: { query: DeleteKnowledgeBaseDocument, variables: { input: { id } } },
@@ -335,6 +355,7 @@ describe('knowledge bases', () => {
         buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
         buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [FAILED_SOURCE]),
         buildRetryKnowledgeSourceMock(FAILED_SOURCE.id),
+        buildKnowledgeSourceDetailMock(FAILED_SOURCE),
         buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [pendingSource]),
       ],
     });
