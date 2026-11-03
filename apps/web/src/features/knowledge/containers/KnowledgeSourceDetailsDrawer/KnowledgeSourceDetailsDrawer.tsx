@@ -9,6 +9,7 @@ import {
 } from '@/features/knowledge/constants/knowledgeSource.constants';
 import { KNOWLEDGE_SOURCE_DETAILS_DRAWER_WIDTH } from '@/features/knowledge/containers/KnowledgeSourceDetailsDrawer/KnowledgeSourceDetailsDrawer.constants';
 import type { KnowledgeSourceDetailsDrawerProps } from '@/features/knowledge/containers/KnowledgeSourceDetailsDrawer/KnowledgeSourceDetailsDrawer.typedefs';
+import { RemoveSourceDocumentDialog } from '@/features/knowledge/containers/RemoveSourceDocumentDialog';
 import { SummaryEditorDialog } from '@/features/knowledge/containers/SummaryEditorDialog';
 import { isGoogleConnectionActive } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import {
@@ -40,6 +41,7 @@ export function KnowledgeSourceDetailsDrawer({
 }: KnowledgeSourceDetailsDrawerProps) {
   const { t, i18n } = useTranslation(KNOWLEDGE_NAMESPACE);
   const [summaryTarget, setSummaryTarget] = useState<KnowledgeSourceDocumentView | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<KnowledgeSourceDocumentView | null>(null);
   const { detail, loading, failed, retry } = useKnowledgeSourceDetail(sourceId);
   const failureMessage = useKnowledgeFailureMessage();
   const target: KnowledgeSourceTarget | null =
@@ -142,6 +144,7 @@ export function KnowledgeSourceDetailsDrawer({
               ? (document) => setSummaryTarget(document)
               : null
           }
+          onRemoveDocument={canManage ? (document) => setRemoveTarget(document) : null}
         />
       </Drawer>
       {summaryTarget !== null && detail !== null ? (
@@ -149,6 +152,16 @@ export function KnowledgeSourceDetailsDrawer({
           sourceId={detail.source.id}
           document={summaryTarget}
           onClose={() => setSummaryTarget(null)}
+        />
+      ) : null}
+      {removeTarget !== null && detail !== null ? (
+        <RemoveSourceDocumentDialog
+          knowledgeBaseId={detail.source.knowledgeBaseId}
+          sourceId={detail.source.id}
+          sourceName={detail.source.title}
+          document={removeTarget}
+          onRemoved={() => setRemoveTarget(null)}
+          onClose={() => setRemoveTarget(null)}
         />
       ) : null}
     </>

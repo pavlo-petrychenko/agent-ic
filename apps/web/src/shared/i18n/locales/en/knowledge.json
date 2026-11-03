@@ -216,6 +216,13 @@
       "submit": "Delete source",
       "success": "Source “{{name}}” deleted."
     },
+    "removeDocument": {
+      "action": "Remove document",
+      "title": "Remove “{{name}}”?",
+      "description": "This removes the document from “{{source}}”. If another source uses it, it stays available there. Otherwise its indexed content is deleted. This cannot be undone.",
+      "submit": "Remove document",
+      "success": "Document “{{name}}” removed."
+    },
     "retry": {
       "success": "Retrying “{{name}}”…",
       "finished": "Retry finished for “{{name}}”.",
