@@ -100,4 +100,18 @@ export class SourceDocumentsRepository {
         and(eq(sourceDocuments.workspaceId, workspaceId), eq(sourceDocuments.sourceId, sourceId)),
       );
   }
+
+  async deleteLink(workspaceId: string, sourceId: string, documentId: string): Promise<boolean> {
+    const deleted = await this.txHost.tx
+      .delete(sourceDocuments)
+      .where(
+        and(
+          eq(sourceDocuments.workspaceId, workspaceId),
+          eq(sourceDocuments.sourceId, sourceId),
+          eq(sourceDocuments.documentId, documentId),
+        ),
+      )
+      .returning({ documentId: sourceDocuments.documentId });
+    return deleted.length > 0;
+  }
 }
