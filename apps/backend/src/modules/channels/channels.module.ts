@@ -13,12 +13,14 @@ import { ChannelsRepository } from '@/modules/channels/repositories/channels.rep
 import { TelegramPollerRepository } from '@/modules/channels/repositories/telegram-poller.repository';
 import { ChannelResolver } from '@/modules/channels/resolvers/channel.resolver';
 import { ConnectTelegramResolver } from '@/modules/channels/resolvers/connect-telegram.resolver';
+import { CreateApiChannelResolver } from '@/modules/channels/resolvers/create-api-channel.resolver';
 import { DeleteChannelResolver } from '@/modules/channels/resolvers/delete-channel.resolver';
 import { DisconnectTelegramResolver } from '@/modules/channels/resolvers/disconnect-telegram.resolver';
 import { ReconnectTelegramResolver } from '@/modules/channels/resolvers/reconnect-telegram.resolver';
 import { RefreshTelegramIdentityResolver } from '@/modules/channels/resolvers/refresh-telegram-identity.resolver';
 import { ReplaceTelegramTokenResolver } from '@/modules/channels/resolvers/replace-telegram-token.resolver';
-import { UpdateTelegramResolver } from '@/modules/channels/resolvers/update-telegram.resolver';
+import { RotateApiChannelKeyResolver } from '@/modules/channels/resolvers/rotate-api-channel-key.resolver';
+import { UpdateChannelResolver } from '@/modules/channels/resolvers/update-channel.resolver';
 import { ChannelAdapterRegistryService } from '@/modules/channels/services/channel-adapter-registry.service';
 import { ChannelConnectionService } from '@/modules/channels/services/channel-connection.service';
 import { ChannelHealthService } from '@/modules/channels/services/channel-health.service';
@@ -30,6 +32,7 @@ import { TelegramTokenHealthService } from '@/modules/channels/services/telegram
 import { TelegramUpdatesService } from '@/modules/channels/services/telegram-updates.service';
 import { CheckTelegramTokenHealthUseCase } from '@/modules/channels/use-cases/check-telegram-token-health.use-case';
 import { ConnectTelegramChannelUseCase } from '@/modules/channels/use-cases/connect-telegram.use-case';
+import { CreateApiChannelUseCase } from '@/modules/channels/use-cases/create-api-channel.use-case';
 import { DeleteChannelUseCase } from '@/modules/channels/use-cases/delete-channel.use-case';
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
 import { DisconnectTelegramUseCase } from '@/modules/channels/use-cases/disconnect-telegram.use-case';
@@ -39,7 +42,8 @@ import { ListChannelsUseCase } from '@/modules/channels/use-cases/list-channels.
 import { ReconnectTelegramUseCase } from '@/modules/channels/use-cases/reconnect-telegram.use-case';
 import { RefreshTelegramIdentityUseCase } from '@/modules/channels/use-cases/refresh-telegram-identity.use-case';
 import { ReplaceTelegramTokenUseCase } from '@/modules/channels/use-cases/replace-telegram-token.use-case';
-import { UpdateTelegramChannelUseCase } from '@/modules/channels/use-cases/update-telegram.use-case';
+import { RotateApiChannelKeyUseCase } from '@/modules/channels/use-cases/rotate-api-channel-key.use-case';
+import { UpdateChannelUseCase } from '@/modules/channels/use-cases/update-channel.use-case';
 import { ConversationsModule } from '@/modules/conversations';
 import { CryptoModule } from '@/platform/crypto/crypto.module';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
@@ -81,20 +85,24 @@ export class ChannelsModule extends defineModule({
     ReconnectTelegramUseCase,
     RefreshTelegramIdentityUseCase,
     ReplaceTelegramTokenUseCase,
-    UpdateTelegramChannelUseCase,
     DeliverOutboundMessageUseCase,
     HandleTelegramWebhookUseCase,
     CheckTelegramTokenHealthUseCase,
+    CreateApiChannelUseCase,
+    RotateApiChannelKeyUseCase,
+    UpdateChannelUseCase,
   ],
   resolvers: [
     ChannelResolver,
     ConnectTelegramResolver,
+    CreateApiChannelResolver,
     DeleteChannelResolver,
     DisconnectTelegramResolver,
     ReconnectTelegramResolver,
     RefreshTelegramIdentityResolver,
     ReplaceTelegramTokenResolver,
-    UpdateTelegramResolver,
+    RotateApiChannelKeyResolver,
+    UpdateChannelResolver,
   ],
   gatewayControllers: [TelegramWebhookController],
   listeners: [DeliverOutboundMessageListener],

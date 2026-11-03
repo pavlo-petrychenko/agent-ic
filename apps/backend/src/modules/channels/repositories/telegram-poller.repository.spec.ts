@@ -1,6 +1,6 @@
 import { ChannelKind } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
+import { ApiReplyMode, ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { TelegramPollerRepository } from '@/modules/channels/repositories/telegram-poller.repository';
 import type { NewChannel } from '@/modules/channels/typedefs/channel.typedefs';
 import { newChannel } from '@test/support/fixtures/channel.fixture';
@@ -42,7 +42,7 @@ describe('TelegramPollerRepository', () => {
     const pending = await seed({ status: ChannelStatus.Pending });
     const api = await seed({
       kind: ChannelKind.Api,
-      identity: { name: 'API channel' },
+      identity: { name: 'API channel', replyMode: ApiReplyMode.Response, webhook: null },
       status: ChannelStatus.Connected,
     });
 

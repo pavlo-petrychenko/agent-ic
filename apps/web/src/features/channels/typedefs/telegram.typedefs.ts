@@ -53,17 +53,6 @@ export interface UseRefreshTelegramIdentityResult {
   readonly refreshing: boolean;
 }
 
-export interface UpdateTelegramVariables {
-  readonly id: string;
-  readonly agentId: string;
-  readonly showTyping: boolean;
-}
-
-export interface UseUpdateTelegramResult {
-  readonly updateTelegram: (variables: UpdateTelegramVariables) => Promise<void>;
-  readonly saving: boolean;
-}
-
 export interface ReplaceTelegramTokenVariables {
   readonly id: string;
   readonly token: string;

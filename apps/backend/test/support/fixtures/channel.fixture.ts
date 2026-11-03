@@ -21,7 +21,11 @@ export const newChannel = (
   status: ChannelStatus.Pending,
   agentId: null,
   externalId: testbed.ids.generate(),
-  identity: { name: TEST_CHANNEL_NAME, username: TEST_TELEGRAM_BOT_USERNAME },
+  identity: {
+    name: TEST_CHANNEL_NAME,
+    username: TEST_TELEGRAM_BOT_USERNAME,
+    firstName: TEST_CHANNEL_NAME,
+  },
   showTyping: true,
   credentialsSealed: testbed.channelTokens.sealCredentials({
     botToken: TEST_TELEGRAM_TOKEN,
