@@ -73,7 +73,10 @@ export type InboxStoredMessage =
   | InboxStoredDividerMessage
   | InboxStoredEscalationMessage;
 
-export type InboxStoredDivider = Extract<InboxStoredMessage, { readonly kind: InboxMessageKind.Divider }>;
+export type InboxStoredDivider = Extract<
+  InboxStoredMessage,
+  { readonly kind: InboxMessageKind.Divider }
+>;
 
 export interface InboxGuard {
   readonly reason: string;
