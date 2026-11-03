@@ -8,6 +8,7 @@ import {
   GoogleDriveExportTooLargeError,
   GoogleDriveFileUnavailableError,
 } from '@/modules/knowledge/errors/google-drive.error';
+import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import { GoogleDriveApiGateway } from '@/modules/knowledge/gateways/google-drive-api.gateway';
 import { HttpHeader } from '@/platform/http/constants/http-header.constants';
 import { FakeOutboundHttpGateway } from '@/platform/outbound-http/gateways/outbound-http.fake';
@@ -78,6 +79,15 @@ describe('GoogleDriveApiGateway', () => {
     await expect(
       gateway.file(TEST_GOOGLE_ACCESS_TOKEN, TEST_GOOGLE_DOC_ID, null),
     ).rejects.toBeInstanceOf(GoogleDriveFileUnavailableError);
+  });
+
+  it('asks for a reconnect when Google rejects the access token', async () => {
+    const http = new FakeOutboundHttpGateway().respond(HttpStatus.UNAUTHORIZED, '{}');
+    const gateway = new GoogleDriveApiGateway(http);
+
+    await expect(
+      gateway.file(TEST_GOOGLE_ACCESS_TOKEN, TEST_GOOGLE_DOC_ID, null),
+    ).rejects.toBeInstanceOf(GoogleReconnectRequiredError);
   });
 
   it('reports a forbidden file as unavailable', async () => {

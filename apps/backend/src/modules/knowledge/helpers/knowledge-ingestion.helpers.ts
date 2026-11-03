@@ -1,6 +1,7 @@
 import { ErrorReason } from '@agent-ic/contracts';
 import { KNOWLEDGE_INGESTION_FAILED_MESSAGE } from '@/modules/knowledge/constants/knowledge-error.constants';
 import { DocumentParseError } from '@/modules/knowledge/errors/document-parse.error';
+import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import type { KnowledgeFailure } from '@/modules/knowledge/typedefs/knowledge-job.typedefs';
 import { JobFailureAction } from '@/platform/errors/constants/job-failure.constants';
 import { DomainError } from '@/platform/errors/errors/domain.error';
@@ -20,5 +21,9 @@ export const knowledgeFailure = (error: unknown): KnowledgeFailure => {
   return { code: ErrorReason.Internal, message: KNOWLEDGE_INGESTION_FAILED_MESSAGE };
 };
 
+export const isConnectionFailure = (error: unknown): boolean =>
+  error instanceof GoogleReconnectRequiredError;
+
 export const isDocumentFailure = (error: unknown): boolean =>
-  error instanceof DocumentParseError || jobFailureActionFor(error) === JobFailureAction.GiveUp;
+  error instanceof DocumentParseError ||
+  (jobFailureActionFor(error) === JobFailureAction.GiveUp && !isConnectionFailure(error));

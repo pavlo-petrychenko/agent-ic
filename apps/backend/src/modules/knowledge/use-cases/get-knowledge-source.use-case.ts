@@ -2,9 +2,11 @@ import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contra
 import { Injectable } from '@nestjs/common';
 import { KnowledgeSourceNotFoundError } from '@/modules/knowledge/errors/knowledge-source-not-found.error';
 import { parseKnowledgeInput } from '@/modules/knowledge/helpers/knowledge-input.helpers';
+import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { getKnowledgeSourceInputSchema } from '@/modules/knowledge/schemas/knowledge-input.schema';
+import { KnowledgeConnectionViewsService } from '@/modules/knowledge/services/knowledge-connection-views.service';
 import { KnowledgeSourceViewsService } from '@/modules/knowledge/services/knowledge-source-views.service';
 import type {
   GetKnowledgeSourceInput,
@@ -20,8 +22,10 @@ export class GetKnowledgeSourceUseCase {
   constructor(
     private readonly tenants: TenantTransactionService,
     private readonly sources: SourcesRepository,
+    private readonly connections: ConnectionsRepository,
     private readonly documents: DocumentsRepository,
     private readonly views: KnowledgeSourceViewsService,
+    private readonly connectionViews: KnowledgeConnectionViewsService,
     private readonly ids: IdService,
   ) {}
 
@@ -42,9 +46,14 @@ export class GetKnowledgeSourceUseCase {
       if (source === null) {
         throw new KnowledgeSourceNotFoundError();
       }
+      const connection =
+        source.connectionId === null
+          ? null
+          : await this.connections.findById(workspaceId, source.connectionId);
       const documents = await this.documents.listBySource(workspaceId, source.id);
       return {
         source: this.views.view(source),
+        connection: connection === null ? null : this.connectionViews.view(connection),
         documents: this.views.documentViews(documents),
       };
     });

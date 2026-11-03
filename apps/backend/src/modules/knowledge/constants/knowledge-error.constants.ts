@@ -11,6 +11,7 @@ export const GOOGLE_OAUTH_NOT_CONFIGURED_MESSAGE = 'Google OAuth is not configur
 export const GOOGLE_PICKER_NOT_CONFIGURED_MESSAGE = 'Google Picker is not configured';
 export const GOOGLE_OAUTH_STATE_INVALID_MESSAGE = 'the Google OAuth state is invalid or expired';
 export const GOOGLE_OAUTH_FAILED_MESSAGE = 'the Google sign-in failed';
+export const GOOGLE_RECONNECT_REQUIRED_MESSAGE = 'the Google account must be reconnected';
 export const KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE = 'knowledge document original is missing';
 export const KNOWLEDGE_DOCUMENT_UPDATE_MISSING_MESSAGE =
   'knowledge document disappeared during ingestion';

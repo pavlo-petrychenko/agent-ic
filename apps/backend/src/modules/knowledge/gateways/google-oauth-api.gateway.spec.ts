@@ -12,6 +12,7 @@ import {
 } from '@/modules/knowledge/constants/google-oauth.constants';
 import { GoogleOAuthFailedError } from '@/modules/knowledge/errors/google-oauth-failed.error';
 import { GoogleOAuthNotConfiguredError } from '@/modules/knowledge/errors/google-oauth-not-configured.error';
+import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import { GoogleOAuthApiGateway } from '@/modules/knowledge/gateways/google-oauth-api.gateway';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { loadAppConfig } from '@/platform/config/helpers/config.helpers';
@@ -112,6 +113,30 @@ describe('GoogleOAuthApiGateway', () => {
     expect(body.get(GoogleOAuthParam.ClientSecret)).toBe('test-google-client-secret');
   });
 
+  it('asks for a reconnect when the refresh token is revoked', async () => {
+    const http = new FakeOutboundHttpGateway().respond(
+      HttpStatus.BAD_REQUEST,
+      JSON.stringify({ error: 'invalid_grant', error_description: 'Token has been revoked.' }),
+    );
+    const gateway = gatewayOf(http);
+
+    await expect(gateway.refreshAccessToken(TEST_GOOGLE_REFRESH_TOKEN)).rejects.toBeInstanceOf(
+      GoogleReconnectRequiredError,
+    );
+  });
+
+  it('reports a temporary Google outage as an upstream failure', async () => {
+    const http = new FakeOutboundHttpGateway().respond(
+      HttpStatus.SERVICE_UNAVAILABLE,
+      JSON.stringify({ error: 'backend_error' }),
+    );
+    const gateway = gatewayOf(http);
+
+    await expect(gateway.refreshAccessToken(TEST_GOOGLE_REFRESH_TOKEN)).rejects.toMatchObject({
+      reason: 'UPSTREAM_FAILED',
+    });
+  });
+
   it('reads the account identity with the access token', async () => {
     const http = new FakeOutboundHttpGateway().respond(
       HttpStatus.OK,
@@ -146,7 +171,7 @@ describe('GoogleOAuthApiGateway', () => {
 
     await expect(
       gateway.exchangeCode({ code: 'code-value', codeVerifier: 'verifier' }),
-    ).rejects.toMatchObject({ reason: 'GOOGLE_OAUTH_FAILED' });
+    ).rejects.toMatchObject({ reason: 'UPSTREAM_FAILED' });
   });
 
   it('rejects a token response without a refresh token field', async () => {

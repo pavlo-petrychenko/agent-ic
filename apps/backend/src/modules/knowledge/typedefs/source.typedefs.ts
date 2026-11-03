@@ -5,6 +5,7 @@ import type {
   KnowledgeSyncInterval,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import type { sources } from '@/modules/knowledge/db/sources.table';
+import type { KnowledgeConnectionView } from '@/modules/knowledge/typedefs/connection.typedefs';
 
 export type Source = typeof sources.$inferSelect;
 
@@ -15,6 +16,7 @@ export type SourceChanges = Partial<Omit<NewSource, 'id' | 'workspaceId'>>;
 export interface KnowledgeSourceView {
   readonly id: string;
   readonly knowledgeBaseId: string;
+  readonly connectionId: string | null;
   readonly kind: KnowledgeSourceKind;
   readonly title: string;
   readonly status: KnowledgeSourceStatus;
@@ -52,6 +54,7 @@ export interface KnowledgeSourceDocumentView {
 
 export interface KnowledgeSourceDetailView {
   readonly source: KnowledgeSourceView;
+  readonly connection: KnowledgeConnectionView | null;
   readonly documents: readonly KnowledgeSourceDocumentView[];
 }
 

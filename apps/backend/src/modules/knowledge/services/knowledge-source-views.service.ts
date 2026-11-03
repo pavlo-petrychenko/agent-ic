@@ -16,6 +16,10 @@ export class KnowledgeSourceViewsService {
     return {
       id: this.ids.toPublic(IdPrefix.KnowledgeSource, source.id),
       knowledgeBaseId: this.ids.toPublic(IdPrefix.KnowledgeBase, source.kbId),
+      connectionId:
+        source.connectionId === null
+          ? null
+          : this.ids.toPublic(IdPrefix.KnowledgeConnection, source.connectionId),
       kind: source.kind,
       title: source.title,
       status: source.status,

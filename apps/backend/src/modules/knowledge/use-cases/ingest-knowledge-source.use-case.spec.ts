@@ -5,6 +5,7 @@ import {
   DocumentParseWarningCode,
 } from '@/modules/knowledge/constants/document-parser.constants';
 import {
+  KnowledgeConnectionStatus,
   KnowledgeDocumentStatus,
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
@@ -12,6 +13,7 @@ import {
   KnowledgeSyncStatus,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { KNOWLEDGE_EMBEDDING_DIMENSIONS } from '@/modules/knowledge/constants/knowledge.constants';
+import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.gateway';
 import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
 import {
@@ -108,6 +110,7 @@ describe('IngestKnowledgeSourceUseCase', () => {
   let llm: FakeLlmGateway;
   let embedding: FakeEmbeddingGateway;
   let drive: FakeGoogleDriveGateway;
+  let oauth: FakeGoogleOAuthGateway;
   let ingest: IngestKnowledgeSourceUseCase;
   let documents: DocumentsRepository;
   let sources: SourcesRepository;
@@ -120,10 +123,11 @@ describe('IngestKnowledgeSourceUseCase', () => {
     llm = new FakeLlmGateway();
     embedding = new FakeEmbeddingGateway();
     drive = new FakeGoogleDriveGateway();
+    oauth = new FakeGoogleOAuthGateway();
     testbed = await createKnowledgeTestbed([
       { token: LlmGateway, value: llm },
       { token: EmbeddingGateway, value: embedding },
-      { token: GoogleOAuthGateway, value: new FakeGoogleOAuthGateway() },
+      { token: GoogleOAuthGateway, value: oauth },
       { token: GoogleDriveGateway, value: drive },
     ]);
     ingest = testbed.module.get(IngestKnowledgeSourceUseCase);
@@ -143,6 +147,7 @@ describe('IngestKnowledgeSourceUseCase', () => {
 
   afterEach(() => {
     llm.fail = false;
+    oauth.clearFailure();
   });
 
   afterAll(async () => {
@@ -305,6 +310,67 @@ describe('IngestKnowledgeSourceUseCase', () => {
       documentCount: 1,
     });
     expect(drive.exportRequests).toEqual([TEST_GOOGLE_DOC_ID]);
+  });
+
+  it('revokes the connection and fails the source when Google requires a reconnect', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    await testbed.tenants.run(workspaceId, () =>
+      connections.update(workspaceId, connectionId, {
+        sealedRefreshToken: secrets.seal(TEST_GOOGLE_REFRESH_TOKEN),
+      }),
+    );
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
+    const syncRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, async () => {
+      await documents.update(workspaceId, documentId, {
+        externalId: TEST_GOOGLE_DOC_ID,
+        title: TEST_GOOGLE_DOC_NAME,
+        mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+      });
+      await syncRuns.insert(newSyncRun(syncRunId, workspaceId, sourceId));
+    });
+    oauth.failWith(new GoogleReconnectRequiredError());
+
+    await expect(
+      ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId }),
+    ).rejects.toBeInstanceOf(GoogleReconnectRequiredError);
+
+    const connection = await testbed.tenants.run(workspaceId, () =>
+      connections.findById(workspaceId, connectionId),
+    );
+    const source = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    const document = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    const syncRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, syncRunId),
+    );
+
+    expect(connection).toMatchObject({
+      status: KnowledgeConnectionStatus.Revoked,
+      lastErrorCode: 'GOOGLE_RECONNECT_REQUIRED',
+    });
+    expect(source).toMatchObject({
+      status: KnowledgeSourceStatus.Error,
+      lastErrorCode: 'GOOGLE_RECONNECT_REQUIRED',
+    });
+    expect(document).toMatchObject({
+      status: KnowledgeDocumentStatus.Error,
+      errorCode: 'GOOGLE_RECONNECT_REQUIRED',
+    });
+    expect(syncRun).toMatchObject({
+      status: KnowledgeSyncStatus.Failed,
+      documentsFailed: 1,
+      errorCode: 'GOOGLE_RECONNECT_REQUIRED',
+    });
   });
 
   it('keeps the document searchable when the summary call fails', async () => {

@@ -19,7 +19,10 @@ import {
 } from '@/modules/knowledge/constants/google-oauth.constants';
 import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
 import { googleHttpRequest, googleJson } from '@/modules/knowledge/helpers/google-http.helpers';
-import { requireGoogleConfig } from '@/modules/knowledge/helpers/google-oauth.helpers';
+import {
+  googleOAuthRefreshErrorForStatus,
+  requireGoogleConfig,
+} from '@/modules/knowledge/helpers/google-oauth.helpers';
 import {
   googleOAuthRefreshResponseSchema,
   googleOAuthTokenResponseSchema,
@@ -99,16 +102,20 @@ export class GoogleOAuthApiGateway extends GoogleOAuthGateway {
       [GoogleOAuthParam.RefreshToken]: refreshToken,
       [GoogleOAuthParam.GrantType]: GOOGLE_OAUTH_GRANT_TYPE_REFRESH_TOKEN,
     });
-    const result = await googleHttpRequest(this.http, {
-      method: 'POST',
-      url: GOOGLE_OAUTH_TOKEN_ENDPOINT,
-      headers: {
-        [HttpHeader.ContentType]: GOOGLE_OAUTH_FORM_CONTENT_TYPE,
-        [HttpHeader.Accept]: GOOGLE_OAUTH_JSON_CONTENT_TYPE,
+    const result = await googleHttpRequest(
+      this.http,
+      {
+        method: 'POST',
+        url: GOOGLE_OAUTH_TOKEN_ENDPOINT,
+        headers: {
+          [HttpHeader.ContentType]: GOOGLE_OAUTH_FORM_CONTENT_TYPE,
+          [HttpHeader.Accept]: GOOGLE_OAUTH_JSON_CONTENT_TYPE,
+        },
+        body: body.toString(),
+        timeoutMs: GOOGLE_OAUTH_TIMEOUT_MS,
       },
-      body: body.toString(),
-      timeoutMs: GOOGLE_OAUTH_TIMEOUT_MS,
-    });
+      { onStatus: googleOAuthRefreshErrorForStatus },
+    );
     const parsed = googleJson(result, googleOAuthRefreshResponseSchema);
     return {
       accessToken: parsed.access_token,

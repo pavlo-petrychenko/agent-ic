@@ -2,11 +2,13 @@ import { ErrorReason } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { KNOWLEDGE_SOURCE_BUSY_MESSAGE } from '@/modules/knowledge/constants/knowledge-error.constants';
 import {
+  KnowledgeConnectionStatus,
   KnowledgeDocumentStatus,
   KnowledgeSourceStatus,
   KnowledgeSyncStatus,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import {
+  isConnectionFailure,
   isDocumentFailure,
   knowledgeFailure,
 } from '@/modules/knowledge/helpers/knowledge-ingestion.helpers';
@@ -91,13 +93,21 @@ export class IngestKnowledgeSourceUseCase {
         } catch (error) {
           failure = knowledgeFailure(error);
           const documentFailure = isDocumentFailure(error);
-          if (documentFailure || this.isFinalAttempt(ctx)) {
+          const connectionFailure = isConnectionFailure(error);
+          if (documentFailure || connectionFailure || this.isFinalAttempt(ctx)) {
             await this.markDocument(
               workspaceId,
               document.id,
               KnowledgeDocumentStatus.Error,
               failure,
             );
+          }
+          if (connectionFailure) {
+            failed += 1;
+            if (started.connection !== null) {
+              await this.markConnectionRevoked(workspaceId, started.connection.id, failure);
+            }
+            throw error;
           }
           if (!documentFailure) {
             if (this.isFinalAttempt(ctx)) {
@@ -236,6 +246,20 @@ export class IngestKnowledgeSourceUseCase {
   ): Promise<void> {
     await this.tenants.run(workspaceId, () =>
       this.syncRuns.update(workspaceId, syncRunId, counters),
+    );
+  }
+
+  private async markConnectionRevoked(
+    workspaceId: string,
+    connectionId: string,
+    failure: KnowledgeFailure,
+  ): Promise<void> {
+    await this.tenants.run(workspaceId, () =>
+      this.connections.update(workspaceId, connectionId, {
+        status: KnowledgeConnectionStatus.Revoked,
+        lastErrorCode: failure.code,
+        lastErrorMessage: failure.message,
+      }),
     );
   }
 

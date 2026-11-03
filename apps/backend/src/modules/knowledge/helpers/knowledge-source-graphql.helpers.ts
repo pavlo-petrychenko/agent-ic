@@ -4,6 +4,7 @@ import {
   KnowledgeSourceStatus,
   KnowledgeSyncInterval,
 } from '@/modules/knowledge/constants/knowledge.constants';
+import { toGraphqlGoogleConnection } from '@/modules/knowledge/helpers/knowledge-connection-graphql.helpers';
 import type {
   KnowledgeSourceDetailView,
   KnowledgeSourceDocumentView,
@@ -50,6 +51,7 @@ const DOCUMENT_STATUS: Readonly<Record<KnowledgeDocumentStatus, GraphqlKnowledge
 export const toGraphqlKnowledgeSource = (source: KnowledgeSourceView): GraphqlKnowledgeSource => ({
   id: source.id,
   knowledgeBaseId: source.knowledgeBaseId,
+  connectionId: source.connectionId,
   kind: KIND[source.kind],
   title: source.title,
   status: STATUS[source.status],
@@ -87,5 +89,6 @@ export const toGraphqlKnowledgeSourceDetail = (
   detail: KnowledgeSourceDetailView,
 ): GraphqlKnowledgeSourceDetail => ({
   source: toGraphqlKnowledgeSource(detail.source),
+  connection: detail.connection === null ? null : toGraphqlGoogleConnection(detail.connection),
   documents: detail.documents.map(toGraphqlKnowledgeSourceDocument),
 });

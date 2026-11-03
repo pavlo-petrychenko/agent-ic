@@ -188,6 +188,7 @@ enum KnowledgeSyncInterval {
 type KnowledgeSource {
   id: ID!
   knowledgeBaseId: ID!
+  connectionId: ID
   kind: KnowledgeSourceKind!
   title: String!
   status: KnowledgeSourceStatus!
@@ -204,6 +205,7 @@ type KnowledgeSource {
 
 type KnowledgeSourceDetail {
   source: KnowledgeSource!
+  connection: GoogleConnection
   documents: [KnowledgeSourceDocument!]!
 }
 
