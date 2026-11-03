@@ -557,6 +557,15 @@ The retrieval playground is a screen on the KB page:
 - useful for tuning chunking and for answering “why didn't it find this?”;
 - rate-limited to 30 searches per minute per workspace to protect the embedding budget.
 
+### 7.9 Agent access card
+
+The KB page shows a “How agents see this knowledge base” card in the main column below the sources table. It is not an attachment control; attachment belongs to the Agent step.
+
+- **Search name** is the KB's `tool_name`, in monospace.
+- **Description** is `tool_description`; when it is empty, the card shows the same generated fallback the agent tool uses.
+- **Attached to** lists the agents whose current draft or live version references the KB through `config.knowledgeBaseIds`; snapshots and older published versions are ignored.
+- The card replaces the old “Agents only answer from knowledge bases attached to them” callout.
+
 ---
 
 ## 8. Sync and scheduling

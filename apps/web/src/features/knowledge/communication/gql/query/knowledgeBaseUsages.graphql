@@ -1,0 +1,12 @@
+query KnowledgeBaseUsages($knowledgeBaseId: ID!) {
+  knowledgeBaseUsages(knowledgeBaseId: $knowledgeBaseId) {
+    agentId
+    agentName
+    versionId
+    versionKind
+    versionNumber
+    nodeId
+    nodeKey
+    nodeLabel
+  }
+}

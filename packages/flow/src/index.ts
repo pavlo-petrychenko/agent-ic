@@ -156,7 +156,9 @@ export {
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
 export { modelReferences } from '@flow/references/helpers/model-reference.helpers';
+export { knowledgeBaseReferences } from '@flow/references/helpers/knowledge-base-reference.helpers';
 export { promptReferences } from '@flow/references/helpers/prompt-reference.helpers';
+export type { KnowledgeBaseReference } from '@flow/references/typedefs/knowledge-base-reference.typedefs';
 export type { ModelReference } from '@flow/references/typedefs/model-reference.typedefs';
 export type {
   PromptBindings,

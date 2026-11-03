@@ -97,6 +97,10 @@ export const listKnowledgeSourcesInputSchema = z.object({
   [KnowledgeField.KnowledgeBaseId]: recordIdSchema,
 });
 
+export const listKnowledgeBaseUsagesInputSchema = z.object({
+  [KnowledgeField.KnowledgeBaseId]: recordIdSchema,
+});
+
 export const searchKnowledgeInputSchema = z.object({
   [KnowledgeField.KnowledgeBaseId]: recordIdSchema,
   [KnowledgeField.Query]: z
