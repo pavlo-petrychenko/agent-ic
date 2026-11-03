@@ -42,12 +42,14 @@ export function TelegramBotContent({
         typing={botContent.typing}
         saving={botContent.saving}
         reconnecting={botContent.reconnecting}
+        refreshing={botContent.refreshing}
         lastUpdate={lastUpdate}
         onAgentChange={botContent.onAgentChange}
         onTypingChange={botContent.onTypingChange}
         onReplaceToken={botContent.onReplaceToken}
         onDisconnect={botContent.onDisconnect}
         onReconnect={botContent.onReconnect}
+        onRefreshIdentity={botContent.onRefreshIdentity}
         onDelete={botContent.onDelete}
         onSave={botContent.onSave}
       />

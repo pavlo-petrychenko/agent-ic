@@ -142,6 +142,7 @@
       "saved": "Налаштування каналу збережено",
       "deleted": "Канал видалено",
       "reconnected": "Канал підключено",
+      "refreshed": "Дані бота оновлено",
       "tokenReplaced": "Токен бота замінено",
       "actions": {
         "connect": "Перепідключити",
@@ -200,6 +201,7 @@
         "lastUpdateDate": "{{date}} {{time}} · від {{author}}",
         "botName": "Назва бота",
         "botNameValue": "{{name}} · змініть у @BotFather",
+        "refresh": "Оновити назву бота",
         "alerted": "Сповіщено",
         "alertedValue": "Власники та адміністратори · email",
         "revokedNote": "Telegram відхилив цей токен {{date}} о {{time}} — його відкликали або перегенерували в @BotFather."
