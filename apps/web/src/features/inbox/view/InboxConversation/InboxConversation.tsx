@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { ConversationFooter } from '@/features/inbox/view/InboxConversation/ConversationFooter';
 import type { InboxConversationProps } from '@/features/inbox/view/InboxConversation/InboxConversation.typedefs';
 import { ThreadMessage } from '@/features/inbox/view/InboxConversation/ThreadMessage';
@@ -10,6 +11,7 @@ import { IconName } from '@/shared/ui/foundations/Icon';
 import styles from '@/features/inbox/view/InboxConversation/InboxConversation.module.scss';
 
 export function InboxConversation({
+  conversationId,
   name,
   initials,
   subtitle,
@@ -22,6 +24,16 @@ export function InboxConversation({
   footer,
   onAction,
 }: InboxConversationProps) {
+  const threadRef = useRef<HTMLDivElement | null>(null);
+  const lastMessageId = messages.at(-1)?.id ?? null;
+
+  useEffect(() => {
+    const thread = threadRef.current;
+    if (thread !== null) {
+      thread.scrollTop = thread.scrollHeight;
+    }
+  }, [conversationId, lastMessageId]);
+
   return (
     <section className={styles.root} aria-label={name}>
       <header className={styles.header}>
@@ -51,7 +63,7 @@ export function InboxConversation({
           {banner.text}
         </Banner>
       )}
-      <div className={styles.thread}>
+      <div className={styles.thread} ref={threadRef}>
         {loadError !== null ? (
           <div className={styles.threadState}>
             <EmptyState

@@ -31,6 +31,7 @@ export function useInboxConversationView(
   }
 
   return {
+    conversationId: conversation.id,
     name: conversation.name,
     initials: conversation.initials,
     subtitle: `${providerLabels[conversation.provider]} · ${conversation.agentName} v${conversation.agentVersion}`,

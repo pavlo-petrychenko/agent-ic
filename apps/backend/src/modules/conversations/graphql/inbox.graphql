@@ -1,6 +1,20 @@
 extend type Query {
   inboxConversations(input: InboxConversationsInput!): [InboxConversationSummary!]!
   inboxConversation(input: InboxConversationInput!): InboxConversationDetail!
+  inboxNeedsYouCount: Int!
+}
+
+extend type Subscription {
+  inboxActivity: InboxActivityEvent!
+}
+
+enum InboxActivityKind {
+  conversation_changed
+}
+
+type InboxActivityEvent {
+  conversationId: ID!
+  kind: InboxActivityKind!
 }
 
 input InboxConversationsInput {

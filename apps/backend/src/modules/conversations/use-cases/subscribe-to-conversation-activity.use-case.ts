@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { conversationActivityChannel } from '@/modules/conversations/channels/conversation-activity.channel';
 import { ConversationMode } from '@/modules/conversations/constants/conversation.constants';
 import { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
+import { authorizeConversationView } from '@/modules/conversations/helpers/operator.helpers';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import type {
   ConversationActivity,
@@ -30,13 +31,20 @@ export class SubscribeToConversationActivityUseCase {
     ctx: UseCaseCtx,
     input: ConversationActivityInput,
   ): Promise<ChannelStream<ConversationActivity>> {
-    const { workspaceId } = authorize(ctx, PermissionResource.Testing, PermissionAction.View);
+    const { workspaceId } = authorizeConversationView(ctx);
     const conversationId = this.ids.fromPublic(IdPrefix.Conversation, input.conversationId);
     await this.tenants.run(workspaceId, async () => {
       const conversation = await this.conversations.findById(workspaceId, conversationId);
-      if (conversation?.mode !== ConversationMode.Simulation) {
+      if (conversation === null) {
         throw new ConversationNotFoundError(input.conversationId);
       }
+      authorize(
+        ctx,
+        conversation.mode === ConversationMode.Simulation
+          ? PermissionResource.Testing
+          : PermissionResource.Inbox,
+        PermissionAction.View,
+      );
     });
     const events = await this.liveUpdates.subscribe(
       channelFor(conversationActivityChannel, conversationId),

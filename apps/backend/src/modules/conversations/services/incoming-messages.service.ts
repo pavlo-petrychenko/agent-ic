@@ -23,6 +23,7 @@ import { MessagesRepository } from '@/modules/conversations/repositories/message
 import { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
 import { ConversationMetricsService } from '@/modules/conversations/services/conversation-metrics.service';
 import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
+import { InboxActivityService } from '@/modules/conversations/services/inbox-activity.service';
 import type { Conversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type {
   IncomingMessageInput,
@@ -44,6 +45,7 @@ export class IncomingMessagesService {
     private readonly messages: MessagesRepository,
     private readonly conversationRuns: ConversationRunsService,
     private readonly activity: ConversationActivityService,
+    private readonly inboxActivity: InboxActivityService,
     private readonly agents: AgentRuntimeReader,
     private readonly domainEvents: DomainEventsService,
     private readonly usage: UsageCountersService,
@@ -106,6 +108,9 @@ export class IncomingMessagesService {
       input.versionId,
       input.runId ?? null,
     );
+    if (conversation.mode === ConversationMode.Live) {
+      await this.inboxActivity.conversationChanged(input.workspaceId, conversation.id);
+    }
     return { outcome, conversationId: conversation.id, messageId: message.id };
   }
 

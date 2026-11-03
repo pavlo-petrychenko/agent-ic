@@ -3,11 +3,13 @@ import {
   CONVERSATION_EVENT_EMIT_OPTIONS,
   ConversationEventName,
 } from '@/modules/conversations/constants/conversation-event.constants';
+import { ConversationMode } from '@/modules/conversations/constants/conversation.constants';
 import { handedBackEvent } from '@/modules/conversations/events/handed-back.event';
 import { parseConversationInput } from '@/modules/conversations/helpers/conversation-input.helpers';
 import { authorizeOperator } from '@/modules/conversations/helpers/operator.helpers';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { operatorConversationSchema } from '@/modules/conversations/schemas/simulation.schema';
+import { InboxActivityService } from '@/modules/conversations/services/inbox-activity.service';
 import { OperatorConversationsService } from '@/modules/conversations/services/operator-conversations.service';
 import { SimulationsService } from '@/modules/conversations/services/simulations.service';
 import type {
@@ -25,6 +27,7 @@ export class HandBackUseCase {
     private readonly operated: OperatorConversationsService,
     private readonly conversations: ConversationsRepository,
     private readonly views: SimulationsService,
+    private readonly inboxActivity: InboxActivityService,
     private readonly domainEvents: DomainEventsService,
   ) {}
 
@@ -36,6 +39,9 @@ export class HandBackUseCase {
       const handedBack = await this.conversations.handBack(access.workspaceId, conversation.id);
       if (handedBack === null) {
         return this.views.conversationView(conversation);
+      }
+      if (conversation.mode === ConversationMode.Live) {
+        await this.inboxActivity.conversationChanged(access.workspaceId, conversation.id);
       }
       await this.domainEvents.emit(
         ctx,

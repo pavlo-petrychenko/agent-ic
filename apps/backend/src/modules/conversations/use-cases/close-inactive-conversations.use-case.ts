@@ -4,6 +4,7 @@ import { AUTO_CLOSE_BATCH_SIZE } from '@/modules/conversations/constants/convers
 import { inactivityScopesByWorkspace } from '@/modules/conversations/helpers/auto-close.helpers';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
+import { InboxActivityService } from '@/modules/conversations/services/inbox-activity.service';
 import type { InactivityScope } from '@/modules/conversations/typedefs/auto-close.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { requireSystemActor } from '@/platform/context/helpers/use-case-ctx.helpers';
@@ -17,6 +18,7 @@ export class CloseInactiveConversationsUseCase {
     private readonly autoCloseVersions: AutoCloseVersionsRepository,
     private readonly conversations: ConversationsRepository,
     private readonly activity: ConversationActivityService,
+    private readonly inboxActivity: InboxActivityService,
     private readonly clock: ClockService,
   ) {}
 
@@ -45,6 +47,7 @@ export class CloseInactiveConversationsUseCase {
         );
         for (const id of ids) {
           await this.activity.conversationClosed(id);
+          await this.inboxActivity.conversationChanged(workspaceId, id);
         }
         return ids.length;
       });

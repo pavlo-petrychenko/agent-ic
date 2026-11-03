@@ -8,6 +8,7 @@ import type {
 } from '@/features/inbox/typedefs/inbox.typedefs';
 
 export interface InboxConversationProps {
+  readonly conversationId: string;
   readonly name: string;
   readonly initials: string;
   readonly subtitle: string;
