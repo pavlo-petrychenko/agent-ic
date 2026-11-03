@@ -77,7 +77,9 @@ describe('RemoveSourceDocumentUseCase', () => {
     knowledgeBaseId: string,
     title: string = 'Google Docs (2)',
   ): Promise<string> => {
-    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId, {
+      accountSubject: testbed.ids.generate(),
+    });
     return seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
       kind: KnowledgeSourceKind.GoogleDocs,
       connectionId,
@@ -85,6 +87,17 @@ describe('RemoveSourceDocumentUseCase', () => {
       status: KnowledgeSourceStatus.Ready,
     });
   };
+
+  const seedGoogleDocument = async (
+    workspaceId: string,
+    knowledgeBaseId: string,
+    sourceId: string,
+    overrides: Parameters<typeof seedKnowledgeDocument>[4] = {},
+  ): Promise<string> =>
+    seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId, {
+      externalId: testbed.ids.generate(),
+      ...overrides,
+    });
 
   const markIndexed = async (
     workspaceId: string,
@@ -105,15 +118,10 @@ describe('RemoveSourceDocumentUseCase', () => {
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
     const ownerSourceId = await seedGoogleSource(workspaceId, knowledgeBaseId);
     const referencingSourceId = await seedGoogleSource(workspaceId, knowledgeBaseId, 'Policies');
-    const sharedDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      ownerSourceId,
-      { title: 'Prices' },
-    );
-    const remainingDocumentId = await seedKnowledgeDocument(
-      testbed,
+    const sharedDocumentId = await seedGoogleDocument(workspaceId, knowledgeBaseId, ownerSourceId, {
+      title: 'Prices',
+    });
+    const remainingDocumentId = await seedGoogleDocument(
       workspaceId,
       knowledgeBaseId,
       ownerSourceId,
@@ -195,14 +203,8 @@ describe('RemoveSourceDocumentUseCase', () => {
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
     const ownerSourceId = await seedGoogleSource(workspaceId, knowledgeBaseId);
     const referencingSourceId = await seedGoogleSource(workspaceId, knowledgeBaseId, 'Google Docs');
-    const sharedDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      ownerSourceId,
-    );
-    const remainingDocumentId = await seedKnowledgeDocument(
-      testbed,
+    const sharedDocumentId = await seedGoogleDocument(workspaceId, knowledgeBaseId, ownerSourceId);
+    const remainingDocumentId = await seedGoogleDocument(
       workspaceId,
       knowledgeBaseId,
       referencingSourceId,
@@ -253,20 +255,12 @@ describe('RemoveSourceDocumentUseCase', () => {
     const workspaceId = testbed.ids.generate();
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
     const sourceId = await seedGoogleSource(workspaceId, knowledgeBaseId);
-    const removedDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      sourceId,
-      { title: 'Prices' },
-    );
-    const remainingDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      sourceId,
-      { title: 'Services' },
-    );
+    const removedDocumentId = await seedGoogleDocument(workspaceId, knowledgeBaseId, sourceId, {
+      title: 'Prices',
+    });
+    const remainingDocumentId = await seedGoogleDocument(workspaceId, knowledgeBaseId, sourceId, {
+      title: 'Services',
+    });
     const sectionId = await seedKnowledgeSection(
       testbed,
       workspaceId,
@@ -331,18 +325,8 @@ describe('RemoveSourceDocumentUseCase', () => {
     const workspaceId = testbed.ids.generate();
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
     const sourceId = await seedGoogleSource(workspaceId, knowledgeBaseId, 'Custom title');
-    const firstDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      sourceId,
-    );
-    const secondDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      sourceId,
-    );
+    const firstDocumentId = await seedGoogleDocument(workspaceId, knowledgeBaseId, sourceId);
+    const secondDocumentId = await seedGoogleDocument(workspaceId, knowledgeBaseId, sourceId);
     await markIndexed(workspaceId, [firstDocumentId, secondDocumentId]);
     await testbed.tenants.run(workspaceId, () =>
       sources.update(workspaceId, sourceId, {
@@ -366,7 +350,7 @@ describe('RemoveSourceDocumentUseCase', () => {
     const workspaceId = testbed.ids.generate();
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
     const sourceId = await seedGoogleSource(workspaceId, knowledgeBaseId);
-    const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
+    const documentId = await seedGoogleDocument(workspaceId, knowledgeBaseId, sourceId);
     await markIndexed(workspaceId, [documentId]);
 
     await expect(
@@ -382,24 +366,9 @@ describe('RemoveSourceDocumentUseCase', () => {
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
     const sourceId = await seedGoogleSource(workspaceId, knowledgeBaseId);
     const otherSourceId = await seedGoogleSource(workspaceId, knowledgeBaseId);
-    const firstDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      sourceId,
-    );
-    const secondDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      sourceId,
-    );
-    const foreignDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      otherSourceId,
-    );
+    const firstDocumentId = await seedGoogleDocument(workspaceId, knowledgeBaseId, sourceId);
+    const secondDocumentId = await seedGoogleDocument(workspaceId, knowledgeBaseId, sourceId);
+    const foreignDocumentId = await seedGoogleDocument(workspaceId, knowledgeBaseId, otherSourceId);
     await markIndexed(workspaceId, [firstDocumentId, secondDocumentId, foreignDocumentId]);
     await testbed.tenants.run(workspaceId, async () => {
       await sources.update(workspaceId, sourceId, {
@@ -424,7 +393,7 @@ describe('RemoveSourceDocumentUseCase', () => {
     const workspaceId = testbed.ids.generate();
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
     const sourceId = await seedGoogleSource(workspaceId, knowledgeBaseId);
-    const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
+    const documentId = await seedGoogleDocument(workspaceId, knowledgeBaseId, sourceId);
     await markIndexed(workspaceId, [documentId]);
     await testbed.tenants.run(workspaceId, () =>
       sources.update(workspaceId, sourceId, { status: KnowledgeSourceStatus.Indexing }),
@@ -442,18 +411,8 @@ describe('RemoveSourceDocumentUseCase', () => {
     const workspaceId = testbed.ids.generate();
     const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
     const sourceId = await seedGoogleSource(workspaceId, knowledgeBaseId);
-    const firstDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      sourceId,
-    );
-    const secondDocumentId = await seedKnowledgeDocument(
-      testbed,
-      workspaceId,
-      knowledgeBaseId,
-      sourceId,
-    );
+    const firstDocumentId = await seedGoogleDocument(workspaceId, knowledgeBaseId, sourceId);
+    const secondDocumentId = await seedGoogleDocument(workspaceId, knowledgeBaseId, sourceId);
     await markIndexed(workspaceId, [firstDocumentId]);
     await testbed.tenants.run(workspaceId, async () => {
       await documents.update(workspaceId, secondDocumentId, {
