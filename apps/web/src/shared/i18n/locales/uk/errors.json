@@ -120,6 +120,7 @@
     "ROLE_REPLACEMENT_INVALID": "Учасників не можна перевести на цю роль.",
     "KNOWLEDGE_SOURCE_NOT_FOUND": "Цього джерела не існує.",
     "KNOWLEDGE_SOURCE_NOT_RETRYABLE": "Повторити можна лише джерела з помилкою.",
+    "KNOWLEDGE_SOURCE_NOT_SYNCABLE": "Синхронізувати можна лише готові джерела Google Docs із документами. Для джерела з помилкою скористайтеся повторною спробою.",
     "KNOWLEDGE_CONNECTION_NOT_FOUND": "Цей обліковий запис Google більше не підключено.",
     "KNOWLEDGE_CONNECTION_IN_USE": "Спершу від'єднайте джерела, які використовують цей обліковий запис Google.",
     "GOOGLE_OAUTH_NOT_CONFIGURED": "Google Docs зараз недоступний.",
