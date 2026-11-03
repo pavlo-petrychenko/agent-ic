@@ -126,10 +126,16 @@ const dividerText = (message: InboxStoredDivider, t: InboxTranslate): string => 
     case InboxDividerKind.Escalated:
       return t('divider.escalated', { time: message.time });
     case InboxDividerKind.TookOver:
-      return t('divider.tookOver', {
-        name: message.name,
-        time: message.time,
-      });
+      return message.tookAt === null
+        ? t('divider.tookOver', {
+            name: message.name,
+            time: message.time,
+          })
+        : t('divider.tookOverEscalated', {
+            name: message.name,
+            time: message.time,
+            tookAt: message.tookAt,
+          });
     case InboxDividerKind.HandedBack:
       return t('divider.handedBack', { name: message.name, time: message.time });
   }

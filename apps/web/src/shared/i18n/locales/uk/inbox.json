@@ -15,6 +15,7 @@
     "clear": "Очистити пошук"
   },
   "minutesAgo": "{{count}} хв",
+  "hoursAgo": "{{count}} год",
   "daysAgo": "{{count}} дн",
   "now": "зараз",
   "loading": "Завантаження розмов",
@@ -74,6 +75,7 @@
     "flowPaused": "Сценарій призупинено з {{time}} · {{name}} взяв чат о {{tookAt}}",
     "escalated": "Ескальовано о {{time}}",
     "tookOver": "{{name}} взяв чат · {{time}}",
+    "tookOverEscalated": "Ескальовано о {{time}} · {{name}} взяв чат о {{tookAt}}",
     "handedBack": "{{name}} повернув чат агенту · {{time}}"
   },
   "empty": {

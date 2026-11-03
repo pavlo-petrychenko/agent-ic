@@ -198,6 +198,15 @@ const messagesById: Readonly<Record<string, readonly InboxMessageFixture[]>> = {
   ],
   cnv_andri: [
     message(
+      'msg_escalated',
+      MessageAuthor.System,
+      '',
+      '2026-11-01T14:18:00.000Z',
+      null,
+      null,
+      MessageSystemEvent.Escalated,
+    ),
+    message(
       'msg_system',
       MessageAuthor.System,
       '',

@@ -21,6 +21,27 @@ type ApiMessage = ApiDetail['messages'][number];
 
 type InboxStoredDivider = Extract<InboxStoredMessage, { readonly kind: InboxMessageKind.Divider }>;
 
+const mergeEscalationTakeover = (messages: readonly InboxStoredMessage[]): InboxStoredMessage[] =>
+  messages.reduce<InboxStoredMessage[]>((merged, message) => {
+    const previous = merged.at(-1);
+    if (
+      previous?.kind === InboxMessageKind.Divider &&
+      previous.divider === InboxDividerKind.Escalated &&
+      message.kind === InboxMessageKind.Divider &&
+      message.divider === InboxDividerKind.TookOver
+    ) {
+      merged[merged.length - 1] = {
+        ...message,
+        id: previous.id,
+        time: previous.time,
+        tookAt: message.time,
+      };
+      return merged;
+    }
+    merged.push(message);
+    return merged;
+  }, []);
+
 const INBOX_PROVIDER: Readonly<Record<ApiSummary['channelKind'], InboxProvider>> = {
   telegram: InboxProvider.Telegram,
   api: InboxProvider.Api,
@@ -169,8 +190,10 @@ export const withInboxDetail = (
   currentUser: InboxCurrentUser | null,
 ): InboxConversation => ({
   ...conversation,
-  messages: detail.messages.flatMap((message) => {
-    const stored = toStoredMessage(message, conversation, locale, operatorLabel, currentUser);
-    return stored === null ? [] : [stored];
-  }),
+  messages: mergeEscalationTakeover(
+    detail.messages.flatMap((message) => {
+      const stored = toStoredMessage(message, conversation, locale, operatorLabel, currentUser);
+      return stored === null ? [] : [stored];
+    }),
+  ),
 });

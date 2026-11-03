@@ -15,6 +15,7 @@
     "clear": "Clear search"
   },
   "minutesAgo": "{{count}} min",
+  "hoursAgo": "{{count}} h",
   "daysAgo": "{{count}} d",
   "now": "now",
   "loading": "Loading conversations",
@@ -74,6 +75,7 @@
     "flowPaused": "Flow paused since {{time}} · {{name}} took over at {{tookAt}}",
     "escalated": "Escalated at {{time}}",
     "tookOver": "{{name}} took over · {{time}}",
+    "tookOverEscalated": "Escalated at {{time}} · {{name}} took over at {{tookAt}}",
     "handedBack": "{{name}} handed the chat back to the agent · {{time}}"
   },
   "empty": {
