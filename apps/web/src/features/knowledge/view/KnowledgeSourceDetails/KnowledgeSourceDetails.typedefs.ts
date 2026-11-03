@@ -1,5 +1,8 @@
 import type { GoogleConnection } from '@/features/knowledge/typedefs/googleConnection.typedefs';
-import type { KnowledgeSourceDetailView } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import type {
+  KnowledgeSourceDetailView,
+  KnowledgeSourceDocumentView,
+} from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 
 export interface KnowledgeSourceDetailsProps {
   readonly detail: KnowledgeSourceDetailView | null;
@@ -22,4 +25,5 @@ export interface KnowledgeSourceDetailsProps {
   readonly onRename: (() => void) | null;
   readonly onRetry: (() => void) | null;
   readonly onDelete: (() => void) | null;
+  readonly onEditSummary: ((document: KnowledgeSourceDocumentView) => void) | null;
 }

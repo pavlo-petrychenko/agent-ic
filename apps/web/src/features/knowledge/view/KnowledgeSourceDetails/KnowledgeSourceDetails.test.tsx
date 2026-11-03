@@ -1,5 +1,6 @@
 import { Locale } from '@agent-ic/contracts';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
 import { describe, expect, it, vi } from 'vitest';
 import {
@@ -10,7 +11,10 @@ import {
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
 } from '@/features/knowledge/constants/knowledgeSource.constants';
-import type { KnowledgeSource } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import type {
+  KnowledgeSource,
+  KnowledgeSourceDocumentView,
+} from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import { KnowledgeSourceDetails } from '@/features/knowledge/view/KnowledgeSourceDetails/KnowledgeSourceDetails';
 import { createI18n } from '@/shared/i18n/clients/i18n.client';
 
@@ -77,6 +81,7 @@ describe('KnowledgeSourceDetails', () => {
           onRename={null}
           onRetry={null}
           onDelete={null}
+          onEditSummary={null}
         />
       </I18nextProvider>,
     );
@@ -135,6 +140,7 @@ describe('KnowledgeSourceDetails', () => {
           onRename={null}
           onRetry={null}
           onDelete={null}
+          onEditSummary={null}
         />
       </I18nextProvider>,
     );
@@ -149,5 +155,65 @@ describe('KnowledgeSourceDetails', () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByText('Refunds are processed within five days.')).toBeInTheDocument();
+  });
+
+  it('offers the summary editor for an indexed Google Docs document', async () => {
+    const user = userEvent.setup();
+    const onEditSummary = vi.fn<(document: KnowledgeSourceDocumentView) => void>();
+    render(
+      <I18nextProvider i18n={createI18n(Locale.En)}>
+        <KnowledgeSourceDetails
+          detail={{
+            source: {
+              ...SOURCE,
+              status: KnowledgeSourceStatus.Ready,
+              lastErrorCode: null,
+              lastErrorMessage: null,
+            },
+            documents: [
+              {
+                id: 'doc_1',
+                title: 'Policies',
+                status: KnowledgeDocumentStatus.Indexed,
+                stale: false,
+                staleReason: null,
+                summary: 'Refunds are processed within five days.',
+                failureMessage: null,
+                errorCode: null,
+                errorMessage: null,
+                tokenCount: 10,
+                chunkCount: 2,
+                createdAt: '2026-11-02T15:33:47.940Z',
+                updatedAt: '2026-11-03T14:54:06.778Z',
+              },
+            ],
+          }}
+          sourceFailureMessage={null}
+          connection={null}
+          reconnecting={false}
+          onReconnect={null}
+          loading={false}
+          failed={false}
+          retrying={false}
+          syncing={false}
+          canManage
+          canRetry={false}
+          canSync={false}
+          addedLabel={null}
+          lastSyncedLabel={null}
+          onReload={vi.fn<() => void>()}
+          onClose={vi.fn<() => void>()}
+          onSync={null}
+          onRename={null}
+          onRetry={null}
+          onDelete={null}
+          onEditSummary={onEditSummary}
+        />
+      </I18nextProvider>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Edit summary' }));
+
+    expect(onEditSummary).toHaveBeenCalledTimes(1);
   });
 });

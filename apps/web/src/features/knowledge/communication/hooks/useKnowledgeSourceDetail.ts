@@ -2,6 +2,7 @@ import { useQuery } from '@apollo/client/react';
 import { useCallback, useEffect, useMemo } from 'react';
 import { KnowledgeSourceDetailDocument } from '@/features/knowledge/communication/gql/query/knowledgeSourceDetail.generated';
 import { toKnowledgeSourceDetail } from '@/features/knowledge/communication/helpers/knowledgeSources.helpers';
+import { KnowledgeDocumentStatus } from '@/features/knowledge/constants/knowledgeDocument.constants';
 import {
   KNOWLEDGE_SOURCE_POLL_INTERVAL_MS,
   KnowledgeSourceStatus,
@@ -20,7 +21,12 @@ export function useKnowledgeSourceDetail(sourceId: string): UseKnowledgeSourceDe
   const active =
     detail !== null &&
     (detail.source.status === KnowledgeSourceStatus.Pending ||
-      detail.source.status === KnowledgeSourceStatus.Indexing);
+      detail.source.status === KnowledgeSourceStatus.Indexing ||
+      detail.documents.some(
+        (document) =>
+          document.status === KnowledgeDocumentStatus.Pending ||
+          document.status === KnowledgeDocumentStatus.Indexing,
+      ));
 
   useEffect(() => {
     if (!active) {

@@ -47,6 +47,7 @@ export function KnowledgeSourceDetails({
   onRename,
   onRetry,
   onDelete,
+  onEditSummary,
 }: KnowledgeSourceDetailsProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
   const source = detail?.source ?? null;
@@ -122,6 +123,11 @@ export function KnowledgeSourceDetails({
     document.staleReason === KnowledgeDocumentStaleReason.Trashed
       ? t('sources.details.staleTrashed')
       : t('sources.details.staleMissing');
+
+  const documentSummaryAction = (document: KnowledgeSourceDocumentView): string =>
+    (document.summary?.trim() ?? '').length === 0
+      ? t('sources.summary.add')
+      : t('sources.summary.edit');
 
   return (
     <div className={styles.root}>
@@ -295,6 +301,20 @@ export function KnowledgeSourceDetails({
                       >
                         {documentSummary(document)}
                       </p>
+                      {onEditSummary !== null &&
+                      document.status === KnowledgeDocumentStatus.Indexed &&
+                      !document.stale ? (
+                        <div className={styles.summaryActions}>
+                          <Button
+                            variant={ButtonVariant.Ghost}
+                            size={ButtonSize.Sm}
+                            icon={IconName.Note}
+                            onClick={() => onEditSummary(document)}
+                          >
+                            {documentSummaryAction(document)}
+                          </Button>
+                        </div>
+                      ) : null}
                       {document.stale ? (
                         <p className={styles.documentStale}>{documentStaleMessage(document)}</p>
                       ) : null}

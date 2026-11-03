@@ -125,3 +125,25 @@ export interface UseRenameKnowledgeSourceResult {
   readonly renameKnowledgeSource: (values: RenameKnowledgeSourceValues) => Promise<void>;
   readonly renaming: boolean;
 }
+
+export interface UpdateDocumentSummaryValues {
+  readonly id: string;
+  readonly summary: string;
+}
+
+export interface UpdatedDocumentSummary {
+  readonly id: string;
+  readonly summary: string | null;
+  readonly status: KnowledgeDocumentStatus;
+}
+
+export interface UpdateDocumentSummaryResult {
+  readonly document: UpdatedDocumentSummary;
+}
+
+export interface UseUpdateDocumentSummaryResult {
+  readonly updateDocumentSummary: (
+    values: UpdateDocumentSummaryValues,
+  ) => Promise<UpdateDocumentSummaryResult>;
+  readonly updating: boolean;
+}

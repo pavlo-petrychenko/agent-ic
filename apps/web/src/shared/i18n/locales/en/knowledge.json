@@ -41,6 +41,7 @@
     "selectedFiles": "Selected files",
     "selectedDocuments": "Selected documents",
     "googleDoc": "Google Doc",
+    "googleDocsSummaryNote": "Google Docs summaries are generated once, when a document is first indexed. They are not updated when the document changes — edit a summary from the source if needed.",
     "statusReady": "Ready",
     "statusUploading": "Uploading",
     "statusUploaded": "Uploaded",
@@ -166,7 +167,7 @@
       "tokens_other": "{{count}} tokens",
       "noDocuments": "No documents in this source yet.",
       "summaryPending": "The summary is generated after indexing.",
-      "summaryEmpty": "No summary available.",
+      "summaryEmpty": "No summary yet. Add one so search can find this document.",
       "sourceFailed": "This source could not be indexed.",
       "documentFailed": "This document could not be indexed.",
       "staleNotice_one": "{{count}} document is no longer available in Google Drive. It won't be updated; the last indexed copy is still searchable.",
@@ -174,6 +175,19 @@
       "staleMissing": "Google Drive no longer returns this document. It won't be updated; the last indexed copy is still searchable.",
       "staleTrashed": "This document is in Google Drive trash. It won't be updated; the last indexed copy is still searchable.",
       "reconnected": "Google account reconnected. Retry to finish indexing."
+    },
+    "summary": {
+      "edit": "Edit summary",
+      "add": "Add a summary",
+      "editorTitle": "Edit summary for “{{name}}”",
+      "editorTitleAdd": "Add a summary for “{{name}}”",
+      "editorDescription": "Google Docs summaries are generated once, when a document is first indexed. They are not updated when the document changes. Saving a changed summary re-indexes the document; the previous version stays searchable until it finishes.",
+      "label": "Summary",
+      "hint": "Up to {{count}} characters. One short sentence works best.",
+      "invalid": "Enter a summary up to {{count}} characters.",
+      "submit": "Save summary",
+      "success": "Summary saved for “{{name}}”.",
+      "successReindexing": "Summary saved. Re-indexing “{{name}}”…"
     },
     "reconnect": {
       "message": "Sources from {{email}} stopped syncing. Reconnect the account to resume.",

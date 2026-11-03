@@ -398,6 +398,7 @@ describe('AddSourceDialog', () => {
 
     expect(await screen.findByText('owner@example.com')).toBeInTheDocument();
     expect(screen.getByText('Connected')).toBeInTheDocument();
+    expect(screen.getByText(/Google Docs summaries are generated once/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Pick documents' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Disconnect' }));
