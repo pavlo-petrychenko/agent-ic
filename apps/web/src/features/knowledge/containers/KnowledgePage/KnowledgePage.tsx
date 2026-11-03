@@ -163,7 +163,7 @@ export function KnowledgePage({
               <KnowledgeEmpty onCreate={onCreate} />
             )
           ) : (
-            <div className="grid gap-5 wide:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="grid gap-5 default:grid-cols-[minmax(0,1fr)_300px] wide:grid-cols-[minmax(0,1fr)_320px]">
               <div className="min-w-0">
                 <KnowledgeSourcesSection
                   key={selected.id}

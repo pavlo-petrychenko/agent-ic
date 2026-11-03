@@ -58,7 +58,7 @@ export function KnowledgeSourcesTable({
     {
       id: 'type',
       header: t('sources.columns.type'),
-      width: '150px',
+      width: '90px',
       render: (row) => <TableCell tone={TableCellTone.Secondary}>{row.kindLabel}</TableCell>,
     },
     {
