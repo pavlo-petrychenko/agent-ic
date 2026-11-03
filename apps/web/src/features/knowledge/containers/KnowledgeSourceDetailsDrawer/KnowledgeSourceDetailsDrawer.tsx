@@ -44,6 +44,8 @@ export function KnowledgeSourceDetailsDrawer({
       }}
       ariaLabel={t('sources.details.panelLabel')}
       width={KNOWLEDGE_SOURCE_DETAILS_DRAWER_WIDTH}
+      top={0}
+      scrim
     >
       <KnowledgeSourceDetails
         detail={detail}
