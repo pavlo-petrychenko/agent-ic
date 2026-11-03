@@ -13,7 +13,7 @@ const RESULT: PlaygroundResultView = {
   key: 'kdc_document-Refunds-0',
   sourceKind: KnowledgeSourceKind.GoogleDocs,
   sourceTitle: 'Policies',
-  scoreLabel: '0.049',
+  scoreLabel: '1.00',
   scorePercent: 100,
   text: 'Refunds are processed within five days.',
   isLong: false,
@@ -50,7 +50,7 @@ describe('Playground', () => {
     expect(screen.getByText('Retrieval playground')).toBeInTheDocument();
     expect(screen.getByText('Policies')).toBeInTheDocument();
     expect(screen.getByText(/Google Docs/)).toBeInTheDocument();
-    expect(screen.getByText('0.049')).toBeInTheDocument();
+    expect(screen.getByText('1.00')).toBeInTheDocument();
     expect(screen.getByText('Refund policy · Refunds')).toBeInTheDocument();
     expect(screen.getByText(RESULT.text)).toBeInTheDocument();
   });

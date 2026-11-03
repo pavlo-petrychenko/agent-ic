@@ -511,7 +511,7 @@ The query is a repository method with raw SQL; it is the only place where BM25 l
 - Each result carries: document public id, document title, source public id, source title, source kind, section path, text, RRF score and the Google/web URL when one exists.
 - Result text is truncated to 12,000 characters as a safety net for legacy sections whose stored content is missing; the token cap still decides which results are returned.
 
-Scores are relative relevance, not a percentage; the playground shows a bar and the raw score, not “87% match”.
+The API returns the raw RRF score. The playground shows a bar and that score normalized to the best result (best = `1.00`), not a percentage or a probability; the raw score stays available for debugging and the agent tool.
 
 ### 7.5 The agent tool
 

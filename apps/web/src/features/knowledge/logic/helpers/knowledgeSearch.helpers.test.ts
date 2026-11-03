@@ -23,9 +23,9 @@ const result = (overrides: Partial<KnowledgeSearchResult> = {}): KnowledgeSearch
 });
 
 describe('knowledge search helpers', () => {
-  it('formats the raw relevance score with fixed precision', () => {
-    expect(knowledgeSearchScoreLabel(0.049)).toBe('0.049');
-    expect(knowledgeSearchScoreLabel(0.0166)).toBe('0.017');
+  it('formats the score relative to the best result', () => {
+    expect(knowledgeSearchScoreLabel(0.049, 0.049)).toBe('1.00');
+    expect(knowledgeSearchScoreLabel(0.0166, 0.049)).toBe('0.34');
   });
 
   it('turns a score into a percentage of the best result', () => {
@@ -55,7 +55,7 @@ describe('knowledge search helpers', () => {
       key: 'kdc_document-Refunds-0',
       sourceKind: KnowledgeSourceKind.Upload,
       sourceTitle: 'Policies',
-      scoreLabel: '0.049',
+      scoreLabel: '1.00',
       scorePercent: 100,
       text: 'Refunds are processed within five days.',
       isLong: false,
