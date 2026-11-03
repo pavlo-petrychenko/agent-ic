@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { useAgents } from '@/features/agents';
 import { useChannels } from '@/features/channels/communication/hooks/useChannels';
 import { ChannelKind } from '@/features/channels/constants/channel.constants';
-import { API_CHANNEL_MOCKS } from '@/features/channels/constants/channelMocks.constants';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
 import {
   CHANNELS_API_CHANNEL_PATH,
@@ -15,6 +14,10 @@ import { ApiChannelCreateDialogs } from '@/features/channels/containers/ApiChann
 import { TELEGRAM_NAV_STATUS_KEY } from '@/features/channels/containers/ChannelsShell/ChannelsShell.constants';
 import type { ChannelsShellProps } from '@/features/channels/containers/ChannelsShell/ChannelsShell.typedefs';
 import { apiChannelHref, telegramBotHref } from '@/features/channels/logic/helpers/route.helpers';
+import {
+  ApiReplyMode,
+  type ApiChannelSummary,
+} from '@/features/channels/typedefs/apiChannel.typedefs';
 import type { TelegramChannelSummary } from '@/features/channels/typedefs/telegram.typedefs';
 import type { ChannelsNavGroup, ChannelsNavItem } from '@/features/channels/view/ChannelsNav';
 import { ChannelsNav } from '@/features/channels/view/ChannelsNav';
@@ -25,7 +28,7 @@ export function ChannelsShell({ workspaceId, children }: ChannelsShellProps) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { agents } = useAgents();
-  const { channels } = useChannels(agents);
+  const { channels, apiChannels } = useChannels(agents);
   const [apiCreateOpen, setApiCreateOpen] = useState(false);
   const openApiCreate = () => setApiCreateOpen(true);
 
@@ -33,6 +36,15 @@ export function ChannelsShell({ workspaceId, children }: ChannelsShellProps) {
     const agent = channel.agentName ?? t('nav.noAgent');
     const statusKey = TELEGRAM_NAV_STATUS_KEY[channel.status];
     return statusKey === null ? agent : `${agent} · ${t(statusKey)}`;
+  };
+
+  const subtitleOfApi = (channel: ApiChannelSummary): string => {
+    const agent = channel.agentName ?? t('nav.noAgent');
+    const mode =
+      channel.replyMode === ApiReplyMode.Webhook
+        ? t('api.channel.whoAnswers.replyWebhook')
+        : t('api.channel.whoAnswers.replyResponse');
+    return `${agent} · ${mode}`;
   };
 
   const telegramItems: readonly ChannelsNavItem[] = channels.map((channel) => ({
@@ -45,12 +57,10 @@ export function ChannelsShell({ workspaceId, children }: ChannelsShellProps) {
     params: { workspaceId, botId: channel.id },
   }));
 
-  const apiItems: readonly ChannelsNavItem[] = API_CHANNEL_MOCKS.map((channel) => ({
+  const apiItems: readonly ChannelsNavItem[] = apiChannels.map((channel) => ({
     id: channel.id,
     title: channel.name,
-    subtitle: channel.sendsEvents
-      ? `${channel.agentName} · ${t('nav.messagesAndEvents')}`
-      : channel.agentName,
+    subtitle: subtitleOfApi(channel),
     icon: IconName.Api,
     selected: pathname === apiChannelHref(workspaceId, channel.id),
     to: CHANNELS_API_CHANNEL_PATH,

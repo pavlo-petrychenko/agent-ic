@@ -7,6 +7,7 @@ export interface CreateApiChannelDialogProps {
   readonly agentOptions: readonly SelectOption[];
   readonly replyMode: ApiReplyMode;
   readonly webhook: string;
+  readonly submitting: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly onNameChange: (value: string) => void;
   readonly onAgentChange: (value: string) => void;

@@ -9,6 +9,9 @@ query Channel($id: ID!) {
     tokenMasked
     updatedByName
     showTyping
+    replyMode
+    webhook
+    endpoint
     updatedAt
   }
 }

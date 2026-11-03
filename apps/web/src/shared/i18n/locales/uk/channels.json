@@ -63,6 +63,11 @@
     "channel": {
       "breadcrumbApi": "API",
       "subtitle": "API-канал · відповідає {{agent}}",
+      "loading": "Завантаження API-каналу",
+      "loadError": "Не вдалося завантажити API-канал.",
+      "notFound": "Такий API-канал не знайдено.",
+      "retry": "Спробувати знову",
+      "saved": "Зміни збережено",
       "actions": {
         "delete": "Видалити",
         "save": "Зберегти"

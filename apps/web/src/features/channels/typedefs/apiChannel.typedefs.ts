@@ -3,22 +3,33 @@ export enum ApiReplyMode {
   Webhook = 'webhook',
 }
 
+export interface ApiChannelSummary {
+  readonly id: string;
+  readonly name: string;
+  readonly agentId: string | null;
+  readonly agentName: string | null;
+  readonly replyMode: ApiReplyMode;
+}
+
+export interface ApiChannelView extends ApiChannelSummary {
+  readonly endpoint: string;
+  readonly secretMasked: string;
+  readonly showTyping: boolean;
+  readonly webhook: string | null;
+  readonly updatedAt: string;
+  readonly updatedByName: string | null;
+  readonly exampleRequest: string;
+  readonly exampleResponse: string;
+}
+
 export interface CreatedApiChannel {
   readonly name: string;
   readonly secret: string;
   readonly endpoint: string;
 }
 
-export interface ApiChannelMock {
-  readonly id: string;
+export interface RotatedApiChannel {
   readonly name: string;
-  readonly agentId: string;
-  readonly agentName: string;
-  readonly sendsEvents: boolean;
+  readonly secret: string;
   readonly endpoint: string;
-  readonly secretMasked: string;
-  readonly replyMode: ApiReplyMode;
-  readonly webhook: string;
-  readonly exampleRequest: string;
-  readonly exampleResponse: string;
 }
