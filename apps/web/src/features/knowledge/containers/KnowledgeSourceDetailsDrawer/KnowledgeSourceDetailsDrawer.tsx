@@ -7,7 +7,11 @@ import {
   formatKnowledgeSourceDate,
   isKnowledgeSourceRetryable,
 } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
-import type { KnowledgeSourceTarget } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import { useKnowledgeFailureMessage } from '@/features/knowledge/logic/hooks/useKnowledgeFailureMessage';
+import type {
+  KnowledgeSourceDetailView,
+  KnowledgeSourceTarget,
+} from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import { KnowledgeSourceDetails } from '@/features/knowledge/view/KnowledgeSourceDetails';
 import { Drawer } from '@/shared/ui/overlays/Drawer';
 
@@ -22,8 +26,19 @@ export function KnowledgeSourceDetailsDrawer({
 }: KnowledgeSourceDetailsDrawerProps) {
   const { t, i18n } = useTranslation(KNOWLEDGE_NAMESPACE);
   const { detail, loading, failed, retry } = useKnowledgeSourceDetail(sourceId);
+  const failureMessage = useKnowledgeFailureMessage();
   const target: KnowledgeSourceTarget | null =
     detail === null ? null : { id: detail.source.id, title: detail.source.title };
+  const detailView: KnowledgeSourceDetailView | null =
+    detail === null
+      ? null
+      : {
+          source: detail.source,
+          documents: detail.documents.map((document) => ({
+            ...document,
+            failureMessage: failureMessage(document.errorCode),
+          })),
+        };
   const canRetry =
     detail !== null &&
     isKnowledgeSourceRetryable(detail.source.status, detail.source.lastErrorCode);
@@ -48,7 +63,8 @@ export function KnowledgeSourceDetailsDrawer({
       scrim
     >
       <KnowledgeSourceDetails
-        detail={detail}
+        detail={detailView}
+        sourceFailureMessage={detail === null ? null : failureMessage(detail.source.lastErrorCode)}
         loading={loading}
         failed={failed}
         retrying={retrying}

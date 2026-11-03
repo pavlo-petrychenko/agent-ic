@@ -205,7 +205,7 @@ Configuration uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_OAUTH_
 - `429` and `5xx` are retried with exponential backoff by the job. Drive quota errors are treated as upstream errors.
 - Schedules are evaluated in the workspace timezone. The source stores the next run time and the schedule fields; the scheduler is a per-source BullMQ job scheduler.
 
-**What the user sees.** The connection row shows the Google account email and whether it is active. A revoked connection shows “Reconnect”. Each Google source shows the document count, chunk count, last sync and next sync. Opening a source shows its documents with their status and generated summary, plus the rename, retry and delete actions. Per-document errors are visible in the same document list.
+**What the user sees.** The connection row shows the Google account email and whether it is active. A revoked connection shows “Reconnect”. Each Google source shows the document count, chunk count, last sync and next sync. Opening a source shows its documents with their status and generated summary, plus the rename, retry and delete actions. A failed document shows the full localized reason in the document list, and the source row shows a short reason so the table is useful at a glance. Retry is offered only for failures that a retry can change.
 
 ### 4.3 Explicitly out of scope
 

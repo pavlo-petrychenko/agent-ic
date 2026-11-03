@@ -58,6 +58,15 @@ export interface KnowledgeSourceDetail {
   readonly documents: readonly KnowledgeSourceDocument[];
 }
 
+export interface KnowledgeSourceDocumentView extends KnowledgeSourceDocument {
+  readonly failureMessage: string | null;
+}
+
+export interface KnowledgeSourceDetailView {
+  readonly source: KnowledgeSource;
+  readonly documents: readonly KnowledgeSourceDocumentView[];
+}
+
 export interface UseKnowledgeSourceDetailResult {
   readonly detail: KnowledgeSourceDetail | null;
   readonly loading: boolean;

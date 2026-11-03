@@ -1,4 +1,4 @@
-import { ErrorReason, Locale } from '@agent-ic/contracts';
+import { ErrorReason, KnowledgeDocumentFailureCode, Locale } from '@agent-ic/contracts';
 import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
@@ -46,18 +46,35 @@ describe('useKnowledgeSourceRows', () => {
     expect(result.current[0]?.canRetry).toBe(true);
   });
 
-  it('does not offer retry for a permanent document failure', () => {
+  it('translates a permanent document failure and hides retry', () => {
     const { result } = renderHook(
-      () => useKnowledgeSourceRows([{ ...SOURCE, lastErrorCode: 'PDF_HAS_NO_TEXT' }]),
+      () =>
+        useKnowledgeSourceRows([
+          { ...SOURCE, lastErrorCode: KnowledgeDocumentFailureCode.TooLarge },
+        ]),
       { wrapper: wrapperFor(Locale.En) },
     );
 
+    expect(result.current[0]?.statusDetail).toBe('File too large');
     expect(result.current[0]?.canRetry).toBe(false);
+  });
+
+  it('translates an unreadable document and offers retry', () => {
+    const { result } = renderHook(
+      () =>
+        useKnowledgeSourceRows([
+          { ...SOURCE, lastErrorCode: KnowledgeDocumentFailureCode.Unreadable },
+        ]),
+      { wrapper: wrapperFor(Locale.En) },
+    );
+
+    expect(result.current[0]?.statusDetail).toBe('Could not read');
+    expect(result.current[0]?.canRetry).toBe(true);
   });
 
   it('falls back to the localized generic message for an unknown error code', () => {
     const { result } = renderHook(
-      () => useKnowledgeSourceRows([{ ...SOURCE, lastErrorCode: 'DOCUMENT_UNREADABLE' }]),
+      () => useKnowledgeSourceRows([{ ...SOURCE, lastErrorCode: 'UNKNOWN_FAILURE' }]),
       { wrapper: wrapperFor(Locale.Uk) },
     );
 

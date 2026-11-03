@@ -8,20 +8,19 @@ import {
 import {
   formatKnowledgeSourceDate,
   isKnowledgeSourceActive,
-  isKnowledgeSourceErrorReason,
   isKnowledgeSourceRetryable,
 } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
+import { useKnowledgeFailureSummary } from '@/features/knowledge/logic/hooks/useKnowledgeFailureSummary';
 import type {
   KnowledgeSource,
   KnowledgeSourceRowView,
 } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
-import { Namespace } from '@/shared/i18n/constants/namespace.constants';
 
 export function useKnowledgeSourceRows(
   sources: readonly KnowledgeSource[],
 ): readonly KnowledgeSourceRowView[] {
   const { t, i18n } = useTranslation(KNOWLEDGE_NAMESPACE);
-  const { t: tErrors } = useTranslation(Namespace.Errors);
+  const failureSummary = useKnowledgeFailureSummary();
 
   return useMemo(() => {
     const kindLabel = (kind: KnowledgeSourceKind): string => {
@@ -55,9 +54,7 @@ export function useKnowledgeSourceRows(
         case KnowledgeSourceStatus.Ready:
           return t('sources.chunks', { count: source.chunkCount });
         case KnowledgeSourceStatus.Error:
-          return source.lastErrorCode !== null && isKnowledgeSourceErrorReason(source.lastErrorCode)
-            ? tErrors(`reason.${source.lastErrorCode}`)
-            : t('sources.status.errorDetail');
+          return failureSummary(source.lastErrorCode) ?? t('sources.status.errorDetail');
       }
     };
 
@@ -78,5 +75,5 @@ export function useKnowledgeSourceRows(
       statusLabel: statusLabel(source.status),
       statusDetail: statusDetail(source),
     }));
-  }, [i18n.language, sources, t, tErrors]);
+  }, [failureSummary, i18n.language, sources, t]);
 }

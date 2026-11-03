@@ -1,3 +1,5 @@
+import { ErrorReason, KnowledgeDocumentFailureCode } from '@agent-ic/contracts';
+
 export enum KnowledgeSourceKind {
   Upload = 'upload',
   GoogleDocs = 'google_docs',
@@ -30,10 +32,12 @@ export enum KnowledgeSourceMenuAction {
 }
 
 export const KNOWLEDGE_SOURCE_NON_RETRYABLE_CODES: ReadonlySet<string> = new Set([
-  'UNSUPPORTED_DOCUMENT_TYPE',
-  'DOCUMENT_TOO_LARGE',
-  'DOCUMENT_TOO_MANY_TOKENS',
-  'DOCUMENT_EMPTY',
-  'DOCUMENT_SIGNATURE_MISMATCH',
-  'PDF_HAS_NO_TEXT',
+  KnowledgeDocumentFailureCode.UnsupportedType,
+  KnowledgeDocumentFailureCode.TooLarge,
+  KnowledgeDocumentFailureCode.TooManyTokens,
+  KnowledgeDocumentFailureCode.Empty,
+  KnowledgeDocumentFailureCode.SignatureMismatch,
+  KnowledgeDocumentFailureCode.PdfHasNoText,
+  ErrorReason.EmbeddingDimensionMismatch,
+  ErrorReason.KnowledgeConnectionNotFound,
 ]);
