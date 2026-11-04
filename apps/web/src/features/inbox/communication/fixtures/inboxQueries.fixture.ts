@@ -12,6 +12,7 @@ import {
   type InboxConversationsQuery,
 } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
 import { InboxCurrentUserDocument } from '@/features/inbox/communication/gql/query/inboxCurrentUser.generated';
+import { InboxNeedsYouCountDocument } from '@/features/inbox/communication/gql/query/inboxNeedsYouCount.generated';
 import { INBOX_CONVERSATIONS_FETCH_LIMIT } from '@/features/inbox/constants/inbox.constants';
 import {
   ApiReplyMode,
@@ -508,6 +509,11 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
         variables: { input: { conversationId: 'cnv_olena', message: CLOSING_TEXT } },
       },
       result: closeResult,
+    },
+    {
+      request: { query: InboxNeedsYouCountDocument },
+      result: { data: { inboxNeedsYouCount: 0 } },
+      maxUsageCount: Number.POSITIVE_INFINITY,
     },
     {
       request: {
