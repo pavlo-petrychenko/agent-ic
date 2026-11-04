@@ -7,15 +7,17 @@ import {
   InboxTab,
 } from '@/features/inbox/constants/inbox.constants';
 import type {
-  InboxConversation,
+  InboxProviderLabels,
+  InboxTranslate,
+} from '@/features/inbox/typedefs/common.typedefs';
+import type { InboxConversation } from '@/features/inbox/typedefs/conversation.typedefs';
+import type {
   InboxEmptyState,
   InboxEmptyStateResolver,
   InboxListItem,
-  InboxProviderLabels,
   InboxRowStatusResolver,
   InboxTabItem,
-  InboxTranslate,
-} from '@/features/inbox/typedefs/inbox.typedefs';
+} from '@/features/inbox/typedefs/list.typedefs';
 import { EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { IconName } from '@/shared/ui/foundations/Icon';
 

@@ -1,4 +1,3 @@
-import type { InboxConversationQuery } from '@/features/inbox/communication/gql/query/inboxConversation.generated';
 import {
   guardOf,
   notifiedOf,
@@ -7,17 +6,15 @@ import {
 } from '@/features/inbox/communication/helpers/inboxDetailsApi.helpers';
 import { messageTime } from '@/features/inbox/communication/helpers/inboxFormat.helpers';
 import { InboxDividerKind, InboxMessageKind } from '@/features/inbox/constants/inbox.constants';
+import type { ApiDetail, ApiMessage } from '@/features/inbox/typedefs/api.typedefs';
+import type { InboxCurrentUser } from '@/features/inbox/typedefs/common.typedefs';
+import type { InboxConversation } from '@/features/inbox/typedefs/conversation.typedefs';
 import type {
-  InboxConversation,
-  InboxCurrentUser,
   InboxStoredDividerMessage,
   InboxStoredMessage,
-} from '@/features/inbox/typedefs/inbox.typedefs';
+} from '@/features/inbox/typedefs/message.typedefs';
 import type { MessageSystemEvent } from '@/shared/api/generated/schema.generated';
 import { IconName } from '@/shared/ui/foundations/Icon';
-
-type ApiDetail = InboxConversationQuery['inboxConversation'];
-type ApiMessage = ApiDetail['messages'][number];
 
 const MESSAGE_KIND = {
   customer: InboxMessageKind.Customer,

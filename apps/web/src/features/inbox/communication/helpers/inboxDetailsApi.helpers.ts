@@ -1,20 +1,21 @@
-import type { InboxConversationQuery } from '@/features/inbox/communication/gql/query/inboxConversation.generated';
 import { duration, runTime } from '@/features/inbox/communication/helpers/inboxFormat.helpers';
 import {
   InboxGuardKind,
   InboxNotifyChannel,
   InboxReplyTarget,
 } from '@/features/inbox/constants/inbox.constants';
-import type { InboxGuard, InboxNotified, InboxRun } from '@/features/inbox/typedefs/inbox.typedefs';
+import type { ApiDetails, ApiNotified } from '@/features/inbox/typedefs/api.typedefs';
+import type {
+  InboxGuard,
+  InboxNotified,
+  InboxRun,
+} from '@/features/inbox/typedefs/conversation.typedefs';
 import {
   ApiReplyMode,
   InboxNotifyChannel as ApiInboxNotifyChannel,
   InboxRunNodeType,
 } from '@/shared/api/generated/schema.generated';
 import { IconName } from '@/shared/ui/foundations/Icon';
-
-type ApiDetails = InboxConversationQuery['inboxConversation']['details'];
-type ApiNotified = ApiDetails['notified'];
 
 const RUN_NODE_ICON: Readonly<Record<InboxRunNodeType, IconName>> = {
   trigger_message: IconName.Msg,

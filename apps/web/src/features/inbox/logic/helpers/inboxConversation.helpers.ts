@@ -6,20 +6,22 @@ import {
   InboxProvider,
   InboxReplyState,
 } from '@/features/inbox/constants/inbox.constants';
+import type { InboxTranslate } from '@/features/inbox/typedefs/common.typedefs';
+import type { InboxConversation } from '@/features/inbox/typedefs/conversation.typedefs';
 import type {
   InboxActionSpec,
   InboxBannerResolver,
-  InboxConversation,
   InboxConversationAction,
   InboxConversationBanner,
   InboxConversationFooter,
   InboxFooterContext,
   InboxFooterResolver,
+} from '@/features/inbox/typedefs/conversationUi.typedefs';
+import type {
   InboxMessage,
   InboxStoredDividerMessage,
   InboxStoredMessage,
-  InboxTranslate,
-} from '@/features/inbox/typedefs/inbox.typedefs';
+} from '@/features/inbox/typedefs/message.typedefs';
 import { ButtonVariant } from '@/shared/ui/actions/Button';
 import { BannerTone } from '@/shared/ui/display/Banner';
 import { IconName } from '@/shared/ui/foundations/Icon';

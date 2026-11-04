@@ -4,7 +4,7 @@ import {
   type InboxProvider,
   type InboxTab,
 } from '@/features/inbox/constants/inbox.constants';
-import type { InboxConversation } from '@/features/inbox/typedefs/inbox.typedefs';
+import type { InboxConversation } from '@/features/inbox/typedefs/conversation.typedefs';
 
 export const inboxTabOf = (conversation: InboxConversation): InboxTab =>
   INBOX_TAB_BY_REPLY_STATE[conversation.replyState];

@@ -8,7 +8,7 @@ import { useInboxComposer } from '@/features/inbox/containers/InboxPage/useInbox
 import { useInboxConversationView } from '@/features/inbox/containers/InboxPage/useInboxConversationView';
 import { useInboxList } from '@/features/inbox/containers/InboxPage/useInboxList';
 import { useInboxThread } from '@/features/inbox/containers/InboxPage/useInboxThread';
-import type { InboxFooterContext } from '@/features/inbox/typedefs/inbox.typedefs';
+import type { InboxFooterContext } from '@/features/inbox/typedefs/conversationUi.typedefs';
 
 export function useInboxPage(): InboxPageModel {
   const { t } = useTranslation(INBOX_NAMESPACE);

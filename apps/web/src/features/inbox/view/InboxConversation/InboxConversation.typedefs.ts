@@ -1,11 +1,11 @@
 import type { InboxActionId } from '@/features/inbox/constants/inbox.constants';
+import type { InboxLoadError } from '@/features/inbox/typedefs/common.typedefs';
 import type {
   InboxConversationAction,
   InboxConversationBanner,
   InboxConversationFooter,
-  InboxLoadError,
-  InboxMessage,
-} from '@/features/inbox/typedefs/inbox.typedefs';
+} from '@/features/inbox/typedefs/conversationUi.typedefs';
+import type { InboxMessage } from '@/features/inbox/typedefs/message.typedefs';
 
 export interface InboxConversationProps {
   readonly conversationId: string;

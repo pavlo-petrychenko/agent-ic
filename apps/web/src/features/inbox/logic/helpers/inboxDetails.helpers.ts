@@ -5,16 +5,20 @@ import {
   InboxReplyTarget,
 } from '@/features/inbox/constants/inbox.constants';
 import type {
+  InboxProviderLabels,
+  InboxTranslate,
+} from '@/features/inbox/typedefs/common.typedefs';
+import type {
   InboxConversation,
   InboxConversationFacts,
+  InboxNotified,
+} from '@/features/inbox/typedefs/conversation.typedefs';
+import type {
   InboxDetailRow,
   InboxDetailsView,
   InboxGuardView,
-  InboxNotified,
-  InboxProviderLabels,
   InboxRunView,
-  InboxTranslate,
-} from '@/features/inbox/typedefs/inbox.typedefs';
+} from '@/features/inbox/typedefs/details.typedefs';
 
 const detailRow = (
   id: string,

@@ -16,7 +16,7 @@ import {
   inboxListItem,
   inboxTabItems,
 } from '@/features/inbox/logic/helpers/inboxList.helpers';
-import type { InboxProviderLabels } from '@/features/inbox/typedefs/inbox.typedefs';
+import type { InboxProviderLabels } from '@/features/inbox/typedefs/common.typedefs';
 
 export function useInboxList(): InboxListResult {
   const { t, i18n } = useTranslation(INBOX_NAMESPACE);

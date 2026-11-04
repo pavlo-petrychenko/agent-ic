@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useReplyAsOperator } from '@/features/inbox/communication/hooks/useReplyAsOperator';
 import type { InboxComposerDraft } from '@/features/inbox/containers/InboxPage/InboxPage.typedefs';
-import type { InboxComposerState } from '@/features/inbox/typedefs/inbox.typedefs';
+import type { InboxComposerState } from '@/features/inbox/typedefs/conversationUi.typedefs';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
