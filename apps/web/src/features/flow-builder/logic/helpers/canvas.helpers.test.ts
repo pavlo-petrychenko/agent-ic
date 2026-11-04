@@ -9,6 +9,7 @@ import {
 import type { FlowDocument, FlowIssue } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.constants';
+import { NODE_TEMPLATES } from '@/features/flow-builder/constants/nodeTemplate.constants';
 import { documentToCanvas } from '@/features/flow-builder/logic/helpers/canvas.helpers';
 
 const ORIGIN = { x: 0, y: 0 };
@@ -81,5 +82,29 @@ describe('documentToCanvas', () => {
       { ...EDGE, dashed: false },
       { ...branch, dashed: true },
     ]);
+  });
+
+  it('shows attached knowledge base names as agent node chips', () => {
+    const agent = NODE_TEMPLATES[NodeType.Agent];
+    const canvas = documentToCanvas(
+      {
+        ...EMPTY_FLOW,
+        nodes: [
+          {
+            ...agent,
+            id: 'a',
+            key: 'answer',
+            label: 'Answer',
+            position: ORIGIN,
+            config: { ...agent.config, knowledgeBaseIds: ['kb_services', 'kb_missing'] },
+          },
+        ],
+      },
+      [],
+      [],
+      [{ id: 'kb_services', name: 'Services & prices' }],
+    );
+
+    expect(canvas.nodes[0]?.chips).toEqual([{ id: 'kb_services', label: 'Services & prices' }]);
   });
 });

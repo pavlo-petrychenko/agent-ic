@@ -536,7 +536,7 @@ output:      {
              }
 ```
 
-- The Agent step inspector has a **Knowledge** section with an **Attach knowledge base** picker. The picker is a multi-select over the workspace's KBs and writes the chosen public IDs to `config.knowledgeBaseIds`; there is no separate attachment table and no global KB tool.
+- The Agent step inspector has a **Knowledge** section with an **Attach knowledge base** picker. The picker is a multi-select over the workspace's KBs and writes the chosen public IDs to `config.knowledgeBaseIds`; there is no separate attachment table and no global KB tool. The Agent node on the canvas shows the attached KB names as chips.
 - `AgentExecutor` builds the tool map for the Agent step from `config.knowledgeBaseIds`. It calls `KnowledgeToolsService`, exported by the knowledge module, which resolves each KB and creates exactly one tool with that KB's name and description.
 - `source_id` and `document_id` are optional narrowers inside one KB, not a way to reach another KB. Both IDs must belong to the KB; a source and document used together must match. A bad scope returns `scope_not_found`, not an empty result.
 - `score` is the raw RRF score. The tool returns the public ids, titles, path, raw result text and URL the model needs to cite or explain where the answer came from.

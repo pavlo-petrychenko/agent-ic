@@ -27,6 +27,16 @@ export interface HistoryStep {
   history: FlowHistory;
 }
 
+export interface CanvasNodeChip {
+  id: string;
+  label: string;
+}
+
+export interface CanvasKnowledgeBase {
+  id: string;
+  name: string;
+}
+
 export interface CanvasNodeModel {
   id: string;
   key: string;
@@ -37,6 +47,7 @@ export interface CanvasNodeModel {
   outPorts: readonly string[];
   portLabels: readonly (PortLabel | null)[];
   summary: readonly SummaryPart[];
+  chips: readonly CanvasNodeChip[];
   issues: readonly FlowIssue[];
   blocking: FlowIssue | null;
 }
