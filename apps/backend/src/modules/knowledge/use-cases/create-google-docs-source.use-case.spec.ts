@@ -10,12 +10,15 @@ import {
 import { GoogleDocsSelectionInvalidError } from '@/modules/knowledge/errors/google-drive.error';
 import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.gateway';
 import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
+import { knowledgeSyncSchedulerId } from '@/modules/knowledge/helpers/knowledge-schedule.helpers';
 import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
 import type { GoogleDriveFile } from '@/modules/knowledge/typedefs/google-drive.typedefs';
 import { CreateGoogleDocsSourceUseCase } from '@/modules/knowledge/use-cases/create-google-docs-source.use-case';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
+import { QueuesService } from '@/platform/queues/services/queues.service';
 import { SecretBoxService } from '@/platform/secrets/services/secret-box.service';
 import {
   TEST_GOOGLE_DOC_ID,
@@ -211,6 +214,11 @@ describe('CreateGoogleDocsSourceUseCase', () => {
       documents: [picked(TEST_GOOGLE_DOC_ID, TEST_GOOGLE_DOC_NAME)],
       syncInterval: KnowledgeSyncInterval.Hourly,
     });
+    const sourceId = testbed.ids.fromPublic(IdPrefix.KnowledgeSource, result.source.id);
+    const queue = testbed.module.get(QueuesService).get(QueueName.Ingest);
+    await queue.removeJobScheduler(knowledgeSyncSchedulerId(sourceId));
+    await queue.drain();
+    await queue.clean(0, 0, 'delayed');
 
     expect(result.source).toMatchObject({
       syncInterval: KnowledgeSyncInterval.Hourly,
