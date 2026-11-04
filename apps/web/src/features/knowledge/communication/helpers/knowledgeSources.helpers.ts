@@ -41,6 +41,12 @@ const INTERVAL: Readonly<Record<GraphqlKnowledgeSyncInterval, KnowledgeSyncInter
   [GraphqlKnowledgeSyncInterval.Weekly]: KnowledgeSyncInterval.Weekly,
 };
 
+const GRAPHQL_INTERVAL: Readonly<Record<KnowledgeSyncInterval, GraphqlKnowledgeSyncInterval>> = {
+  [KnowledgeSyncInterval.Hourly]: GraphqlKnowledgeSyncInterval.Hourly,
+  [KnowledgeSyncInterval.Daily]: GraphqlKnowledgeSyncInterval.Daily,
+  [KnowledgeSyncInterval.Weekly]: GraphqlKnowledgeSyncInterval.Weekly,
+};
+
 const DOCUMENT_STATUS: Readonly<Record<GraphqlKnowledgeDocumentStatus, KnowledgeDocumentStatus>> = {
   [GraphqlKnowledgeDocumentStatus.Pending]: KnowledgeDocumentStatus.Pending,
   [GraphqlKnowledgeDocumentStatus.Indexing]: KnowledgeDocumentStatus.Indexing,
@@ -66,6 +72,10 @@ export const toKnowledgeSource = (source: GraphqlKnowledgeSource): KnowledgeSour
 
 export const toKnowledgeSources = (data: KnowledgeSourcesQuery): KnowledgeSource[] =>
   data.knowledgeSources.map(toKnowledgeSource);
+
+export const toGraphqlKnowledgeSyncInterval = (
+  interval: KnowledgeSyncInterval | null,
+): GraphqlKnowledgeSyncInterval | null => (interval === null ? null : GRAPHQL_INTERVAL[interval]);
 
 const toKnowledgeSourceDocument = (
   document: KnowledgeSourceDetailQuery['knowledgeSource']['documents'][number],
