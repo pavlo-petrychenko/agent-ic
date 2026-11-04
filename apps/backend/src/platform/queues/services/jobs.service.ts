@@ -9,6 +9,8 @@ import {
   DETACHED_TRACE_CONTEXT,
   ENVELOPE_VERSION,
 } from '@/platform/queues/constants/job.constants';
+import type { QueueName } from '@/platform/queues/constants/queue.constants';
+import { scheduledEnvelope } from '@/platform/queues/helpers/job.helpers';
 import { outboxJobOptions } from '@/platform/queues/helpers/outbox.helpers';
 import { currentTraceContext } from '@/platform/queues/helpers/queue-telemetry.helpers';
 import { OutboxRepository } from '@/platform/queues/repositories/outbox.repository';
@@ -18,6 +20,7 @@ import type {
   JobDefinition,
   JobEnqueueOptions,
   JobEnvelope,
+  JobSchedulerRepeat,
 } from '@/platform/queues/typedefs/job.typedefs';
 
 @Injectable()
@@ -55,6 +58,27 @@ export class JobsService {
         await this.queues.get(definition.queue).add(definition.name, envelope, { jobId });
       }),
     );
+  }
+
+  async upsertScheduler<TData extends JobData>(
+    ctx: UseCaseCtx,
+    definition: JobDefinition<TData>,
+    schedulerId: string,
+    repeat: JobSchedulerRepeat,
+    data: TData,
+  ): Promise<void> {
+    const envelope = scheduledEnvelope(ctx.workspaceId, definition.schema.parse(data), ctx.traceId);
+    await this.afterCommit.schedule(async () => {
+      await this.queues
+        .get(definition.queue)
+        .upsertJobScheduler(schedulerId, repeat, { name: definition.name, data: envelope });
+    });
+  }
+
+  async removeScheduler(queue: QueueName, schedulerId: string): Promise<void> {
+    await this.afterCommit.schedule(async () => {
+      await this.queues.get(queue).removeJobScheduler(schedulerId);
+    });
   }
 
   private async enqueueDurable<TData extends JobData>(

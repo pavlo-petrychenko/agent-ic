@@ -8,6 +8,7 @@ import { CleanUpKnowledgeDocumentFilesProcessor } from '@/modules/knowledge/proc
 import { CleanUpKnowledgeSourceFilesProcessor } from '@/modules/knowledge/processors/clean-up-knowledge-source-files.processor';
 import { IngestKnowledgeSourceProcessor } from '@/modules/knowledge/processors/ingest-knowledge-source.processor';
 import { ReindexKnowledgeDocumentProcessor } from '@/modules/knowledge/processors/reindex-knowledge-document.processor';
+import { ScheduledKnowledgeSourceSyncProcessor } from '@/modules/knowledge/processors/scheduled-knowledge-source-sync.processor';
 import { ChunkTermsRepository } from '@/modules/knowledge/repositories/chunk-terms.repository';
 import { ChunksRepository } from '@/modules/knowledge/repositories/chunks.repository';
 import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
@@ -68,6 +69,7 @@ import { RemoveSourceDocumentUseCase } from '@/modules/knowledge/use-cases/remov
 import { RenameKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/rename-knowledge-base.use-case';
 import { RenameKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/rename-knowledge-source.use-case';
 import { RetryKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/retry-knowledge-source.use-case';
+import { ScheduledKnowledgeSourceSyncUseCase } from '@/modules/knowledge/use-cases/scheduled-knowledge-source-sync.use-case';
 import { StartGoogleConnectionUseCase } from '@/modules/knowledge/use-cases/start-google-connection.use-case';
 import { SyncKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/sync-knowledge-source.use-case';
 import { UpdateDocumentSummaryUseCase } from '@/modules/knowledge/use-cases/update-document-summary.use-case';
@@ -124,6 +126,7 @@ export class KnowledgeModule extends defineModule({
     RemoveSourceDocumentUseCase,
     RetryKnowledgeSourceUseCase,
     ReindexKnowledgeDocumentUseCase,
+    ScheduledKnowledgeSourceSyncUseCase,
     StartGoogleConnectionUseCase,
     SyncKnowledgeSourceUseCase,
     UpdateDocumentSummaryUseCase,
@@ -151,6 +154,7 @@ export class KnowledgeModule extends defineModule({
     CleanUpKnowledgeSourceFilesProcessor,
     IngestKnowledgeSourceProcessor,
     ReindexKnowledgeDocumentProcessor,
+    ScheduledKnowledgeSourceSyncProcessor,
   ],
   listeners: [CleanUpWorkspaceListener],
 }) {}

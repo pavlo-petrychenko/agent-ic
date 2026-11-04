@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import {
   KnowledgeConnectionStatus,
   KnowledgeSourceStatus,
+  KnowledgeSyncTrigger,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import { KnowledgeSourceBusyError } from '@/modules/knowledge/errors/knowledge-source-busy.error';
@@ -77,6 +78,7 @@ export class RetryKnowledgeSourceUseCase {
         source,
         documents,
         resetFailedDocuments: true,
+        trigger: KnowledgeSyncTrigger.Manual,
       });
     });
 

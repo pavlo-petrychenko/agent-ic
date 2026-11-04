@@ -26,9 +26,14 @@ import {
   googleDriveDate,
 } from '@/modules/knowledge/helpers/google-picker.helpers';
 import { parseKnowledgeInput } from '@/modules/knowledge/helpers/knowledge-input.helpers';
-import { sourceScheduleFields } from '@/modules/knowledge/helpers/knowledge-schedule.helpers';
+import {
+  knowledgeScheduleRepeat,
+  knowledgeSyncSchedulerId,
+  sourceScheduleFields,
+} from '@/modules/knowledge/helpers/knowledge-schedule.helpers';
 import { knowledgeSourceStateForDocuments } from '@/modules/knowledge/helpers/knowledge-source-state.helpers';
 import { ingestKnowledgeSourceJob } from '@/modules/knowledge/jobs/ingest-knowledge-source.job';
+import { scheduledKnowledgeSourceSyncJob } from '@/modules/knowledge/jobs/scheduled-knowledge-source-sync.job';
 import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
@@ -231,10 +236,20 @@ export class CreateGoogleDocsSourceUseCase {
       if (selection.prepared.length > 0) {
         await this.queueInitialSync(ctx, workspaceId, source.id, selection.prepared.length);
       }
+      const saved = updated ?? source;
+      if (saved.syncInterval !== null) {
+        await this.jobs.upsertScheduler(
+          ctx,
+          scheduledKnowledgeSourceSyncJob,
+          knowledgeSyncSchedulerId(saved.id),
+          knowledgeScheduleRepeat(saved),
+          { sourceId: saved.id },
+        );
+      }
       await this.connections.update(workspaceId, connection.id, {
         lastUsedAt: this.clock.now(),
       });
-      return { source: updated ?? source, skipped: selection.skipped };
+      return { source: saved, skipped: selection.skipped };
     });
   }
 
