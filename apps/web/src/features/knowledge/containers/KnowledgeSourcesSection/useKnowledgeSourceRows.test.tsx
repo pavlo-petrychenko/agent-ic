@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
+  KnowledgeSyncInterval,
 } from '@/features/knowledge/constants/knowledgeSource.constants';
 import { useKnowledgeSourceRows } from '@/features/knowledge/containers/KnowledgeSourcesSection/useKnowledgeSourceRows';
 import type { KnowledgeSource } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
@@ -20,6 +21,9 @@ const SOURCE: KnowledgeSource = {
   title: 'Unavailable source',
   status: KnowledgeSourceStatus.Error,
   syncInterval: null,
+  syncTime: null,
+  syncWeekday: null,
+  timezone: null,
   nextSyncAt: null,
   lastSyncAt: null,
   lastErrorCode: ErrorReason.UpstreamFailed,
@@ -163,6 +167,30 @@ describe('useKnowledgeSourceRows', () => {
     expect(result.current[0]?.canSync).toBe(true);
     expect(result.current[0]?.canRetry).toBe(false);
     expect(result.current[0]?.syncDetail).toBe('Synced Oct 26');
+  });
+
+  it('shows the schedule preset in the sync column', () => {
+    const { result } = renderHook(
+      () =>
+        useKnowledgeSourceRows(
+          [
+            {
+              ...SOURCE,
+              connectionId: 'cnn_google',
+              kind: KnowledgeSourceKind.GoogleDocs,
+              status: KnowledgeSourceStatus.Ready,
+              lastErrorCode: null,
+              syncInterval: KnowledgeSyncInterval.Daily,
+              syncTime: '06:00',
+              timezone: 'Europe/Kyiv',
+            },
+          ],
+          new Map([['cnn_google', KnowledgeConnectionStatus.Active]]),
+        ),
+      { wrapper: wrapperFor(Locale.En) },
+    );
+
+    expect(result.current[0]?.syncLabel).toBe('Scheduled · daily 06:00');
   });
 
   it('offers retry instead of sync for a failed Google source', () => {

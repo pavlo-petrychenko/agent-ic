@@ -50,6 +50,9 @@ const SOURCE = {
   title: 'services',
   status: KnowledgeSourceStatus.Pending,
   syncInterval: null,
+  syncTime: null,
+  syncWeekday: null,
+  timezone: null,
   nextSyncAt: null,
   lastSyncAt: null,
   lastErrorCode: null,
@@ -208,6 +211,38 @@ const CREATE_GOOGLE_DOCS_SOURCE_MOCK: MockLink.MockedResponse = {
             reason: 'unsupported',
           },
         ],
+      },
+    },
+  },
+};
+
+const CREATE_GOOGLE_DOCS_SOURCE_SCHEDULED_MOCK: MockLink.MockedResponse = {
+  request: {
+    query: CreateGoogleDocsSourceDocument,
+    variables: {
+      input: {
+        connectionId: ACTIVE_CONNECTION.id,
+        knowledgeBaseId: 'kbs_services',
+        documents: PICKER_DOCUMENTS,
+        syncInterval: 'weekly',
+        syncTime: '06:00',
+        syncWeekday: 1,
+      },
+    },
+  },
+  result: {
+    data: {
+      createGoogleDocsSource: {
+        source: {
+          ...SOURCE,
+          kind: KnowledgeSourceKind.GoogleDocs,
+          title: 'Policies',
+          syncInterval: 'weekly',
+          syncTime: '06:00',
+          syncWeekday: 1,
+          timezone: 'Europe/Kyiv',
+        },
+        skipped: [],
       },
     },
   },
@@ -458,6 +493,28 @@ describe('AddSourceDialog', () => {
     );
     expect(screen.getByText('Google Docs source added.')).toBeInTheDocument();
     expect(screen.getByText('Some selected documents could not be added.')).toBeInTheDocument();
+  });
+
+  it('creates a scheduled Google Docs source with the weekly preset', async () => {
+    const user = userEvent.setup();
+    vi.mocked(openGooglePicker).mockImplementation(async ({ onPicked }) => {
+      onPicked(PICKER_DOCUMENTS);
+    });
+    const { onClose } = renderDialog([
+      buildConnectionsMock([ACTIVE_CONNECTION]),
+      CREATE_GOOGLE_PICKER_SESSION_MOCK,
+      CREATE_GOOGLE_DOCS_SOURCE_SCHEDULED_MOCK,
+    ]);
+
+    await openGoogleTab();
+    await screen.findByText('owner@example.com');
+    await user.click(screen.getByRole('button', { name: 'Pick documents' }));
+    await screen.findByText('Selected documents');
+    await user.click(screen.getByRole('radio', { name: 'Scheduled re-sync' }));
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Schedule' }), 'weekly');
+    await user.click(screen.getByRole('button', { name: 'Add 2 documents' }));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
   it('keeps the dialog mounted while the Google Picker is open', async () => {

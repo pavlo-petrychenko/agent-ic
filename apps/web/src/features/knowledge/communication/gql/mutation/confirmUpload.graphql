@@ -6,6 +6,9 @@ mutation ConfirmUpload($input: ConfirmUploadInput!) {
     title
     status
     syncInterval
+    syncTime
+    syncWeekday
+    timezone
     nextSyncAt
     lastSyncAt
     lastErrorCode

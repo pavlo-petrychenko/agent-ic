@@ -134,7 +134,24 @@
       "finished": "Sync finished for “{{name}}”.",
       "finishedStale_one": "Sync finished for “{{name}}”. {{count}} document is stale and won't be updated.",
       "finishedStale_other": "Sync finished for “{{name}}”. {{count}} documents are stale and won't be updated.",
-      "resultFailed": "Sync failed for “{{name}}”: {{reason}}"
+      "resultFailed": "Sync failed for “{{name}}”: {{reason}}",
+      "manual": "Manual",
+      "scheduledHourly": "Scheduled · hourly",
+      "scheduledDaily": "Scheduled · daily {{time}}",
+      "scheduledWeekly": "Scheduled · weekly"
+    },
+    "schedule": {
+      "title": "Keep it up to date",
+      "manual": "Manual re-sync",
+      "manualDescription": "Sync only when you press Sync now.",
+      "scheduled": "Scheduled re-sync",
+      "scheduledDescription": "Re-index on a schedule.",
+      "label": "Schedule",
+      "presets": {
+        "daily": "Daily at 06:00",
+        "weekly": "Weekly on Monday",
+        "hourly": "Every hour"
+      }
     },
     "status": {
       "queued": "Queued",
