@@ -9,6 +9,11 @@ import type { InboxConversationProps } from '@/features/inbox/view/InboxConversa
 import type { InboxDetailsProps } from '@/features/inbox/view/InboxDetails';
 import type { InboxListProps } from '@/features/inbox/view/InboxList';
 
+export interface InboxComposerDraft {
+  readonly conversationId: string | null;
+  readonly text: string;
+}
+
 export interface InboxPageModel {
   readonly list: InboxListProps;
   readonly conversation: InboxConversationProps | null;

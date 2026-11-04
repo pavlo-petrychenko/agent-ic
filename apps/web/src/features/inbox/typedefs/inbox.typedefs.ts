@@ -53,7 +53,7 @@ interface InboxStoredTextMessage {
   readonly text: string;
 }
 
-interface InboxStoredDividerMessage {
+export interface InboxStoredDividerMessage {
   readonly kind: InboxMessageKind.Divider;
   readonly id: string;
   readonly divider: InboxDividerKind;
@@ -150,6 +150,11 @@ export interface InboxRowStatus {
   readonly label: string;
 }
 
+export type InboxRowStatusResolver = (
+  conversation: InboxConversation,
+  t: InboxTranslate,
+) => InboxRowStatus | null;
+
 export interface InboxListItem {
   readonly id: string;
   readonly name: string;
@@ -167,6 +172,8 @@ export interface InboxEmptyState {
   readonly icon: IconName;
   readonly tone: EmptyStateTone;
 }
+
+export type InboxEmptyStateResolver = (t: InboxTranslate) => InboxEmptyState;
 
 export interface InboxConversationAction {
   readonly id: InboxActionId;
@@ -235,17 +242,6 @@ export type InboxFooterResolver = (
   context: InboxFooterContext,
   t: InboxTranslate,
 ) => InboxConversationFooter;
-
-export interface InboxConversationProps {
-  readonly name: string;
-  readonly initials: string;
-  readonly subtitle: string;
-  readonly actions: readonly InboxConversationAction[];
-  readonly banner: InboxConversationBanner | null;
-  readonly messages: readonly InboxMessage[];
-  readonly footer: InboxConversationFooter;
-  readonly onAction: (id: InboxActionId) => void;
-}
 
 export interface InboxGuardView {
   readonly title: string;

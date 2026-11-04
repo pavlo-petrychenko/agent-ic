@@ -1,20 +1,16 @@
 import { useState } from 'react';
 import { useReplyAsOperator } from '@/features/inbox/communication/hooks/useReplyAsOperator';
+import type { InboxComposerDraft } from '@/features/inbox/containers/InboxPage/InboxPage.typedefs';
 import type { InboxComposerState } from '@/features/inbox/typedefs/inbox.typedefs';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
-interface InboxDraft {
-  readonly conversationId: string | null;
-  readonly text: string;
-}
-
 export function useInboxComposer(conversationId: string | null): InboxComposerState {
   const { replyAsOperator, sending } = useReplyAsOperator();
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
-  const [draft, setDraft] = useState<InboxDraft>({ conversationId: null, text: '' });
+  const [draft, setDraft] = useState<InboxComposerDraft>({ conversationId: null, text: '' });
 
   const value = draft.conversationId === conversationId ? draft.text : '';
 

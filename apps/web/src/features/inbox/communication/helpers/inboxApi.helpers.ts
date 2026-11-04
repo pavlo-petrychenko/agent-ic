@@ -14,6 +14,7 @@ import type {
   InboxCurrentUser,
   InboxNotified,
   InboxRun,
+  InboxStoredDividerMessage,
   InboxStoredMessage,
 } from '@/features/inbox/typedefs/inbox.typedefs';
 import {
@@ -30,8 +31,6 @@ type ApiDetail = InboxConversationQuery['inboxConversation'];
 type ApiMessage = ApiDetail['messages'][number];
 type ApiDetails = ApiDetail['details'];
 type ApiNotified = ApiDetails['notified'];
-
-type InboxStoredDivider = Extract<InboxStoredMessage, { readonly kind: InboxMessageKind.Divider }>;
 
 const MILLISECONDS_PER_MINUTE = 60_000;
 const MILLISECONDS_PER_SECOND = 1_000;
@@ -251,7 +250,7 @@ const authorOf = (
   return conversation.name;
 };
 
-const toStoredDivider = (message: ApiMessage, locale: string): InboxStoredDivider | null => {
+const toStoredDivider = (message: ApiMessage, locale: string): InboxStoredDividerMessage | null => {
   if (message.systemEvent === null) {
     return null;
   }

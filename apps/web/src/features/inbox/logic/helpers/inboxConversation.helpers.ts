@@ -16,6 +16,7 @@ import type {
   InboxFooterContext,
   InboxFooterResolver,
   InboxMessage,
+  InboxStoredDividerMessage,
   InboxStoredMessage,
   InboxTranslate,
   InboxStoredDivider,
@@ -117,7 +118,7 @@ const INBOX_FOOTERS: Readonly<Record<InboxReplyState, InboxFooterResolver>> = {
   }),
 };
 
-const dividerText = (message: InboxStoredDivider, t: InboxTranslate): string => {
+const dividerText = (message: InboxStoredDividerMessage, t: InboxTranslate): string => {
   switch (message.divider) {
     case InboxDividerKind.FlowPaused:
       return t('divider.flowPaused', {

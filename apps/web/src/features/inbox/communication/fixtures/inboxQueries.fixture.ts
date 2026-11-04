@@ -21,7 +21,6 @@ import {
   InboxRunNodeType,
   MessageAuthor,
   MessageSystemEvent,
-  RunStepStatus,
 } from '@/shared/api/generated/schema.generated';
 
 type InboxSummaryFixture = InboxConversationsQuery['inboxConversations'][number];
@@ -151,10 +150,8 @@ const runStep = (
   value: string | null,
 ): InboxRunStepFixture => ({
   id,
-  nodeId: id,
   label,
   nodeType,
-  status: RunStepStatus.Succeeded,
   value,
 });
 

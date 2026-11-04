@@ -9,21 +9,15 @@ import {
 import type {
   InboxConversation,
   InboxEmptyState,
+  InboxEmptyStateResolver,
   InboxListItem,
   InboxProviderLabels,
-  InboxRowStatus,
+  InboxRowStatusResolver,
   InboxTabItem,
   InboxTranslate,
 } from '@/features/inbox/typedefs/inbox.typedefs';
 import { EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { IconName } from '@/shared/ui/foundations/Icon';
-
-type InboxRowStatusResolver = (
-  conversation: InboxConversation,
-  t: InboxTranslate,
-) => InboxRowStatus | null;
-
-type InboxEmptyStateResolver = (t: InboxTranslate) => InboxEmptyState;
 
 const INBOX_ROW_STATUS: Readonly<Record<InboxReplyState, InboxRowStatusResolver>> = {
   [InboxReplyState.Waiting]: (_conversation, t) => ({

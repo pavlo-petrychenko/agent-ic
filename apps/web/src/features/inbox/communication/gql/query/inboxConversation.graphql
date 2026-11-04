@@ -16,10 +16,8 @@ query InboxConversation($id: ID!) {
         durationMs
         steps {
           id
-          nodeId
           label
           nodeType
-          status
           value
         }
       }
@@ -44,8 +42,6 @@ query InboxConversation($id: ID!) {
       authorName
       systemEvent
       text
-      quickReplies
-      runId
       createdAt
     }
   }
