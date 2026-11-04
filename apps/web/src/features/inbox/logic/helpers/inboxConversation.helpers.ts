@@ -19,7 +19,6 @@ import type {
   InboxStoredDividerMessage,
   InboxStoredMessage,
   InboxTranslate,
-  InboxStoredDivider,
 } from '@/features/inbox/typedefs/inbox.typedefs';
 import { ButtonVariant } from '@/shared/ui/actions/Button';
 import { BannerTone } from '@/shared/ui/display/Banner';
