@@ -12,6 +12,7 @@ extend type Mutation {
   createUpload(input: CreateUploadInput!): CreateUploadPayload!
   confirmUpload(input: ConfirmUploadInput!): KnowledgeSource!
   renameSource(input: RenameSourceInput!): KnowledgeSource!
+  updateSourceSchedule(input: UpdateSourceScheduleInput!): KnowledgeSource!
   updateDocumentSummary(input: UpdateDocumentSummaryInput!): KnowledgeSourceDocument!
   removeSourceDocument(input: RemoveSourceDocumentInput!): RemoveSourceDocumentPayload!
   deleteSource(input: DeleteSourceInput!): DeleteSourcePayload!
@@ -45,6 +46,9 @@ input CreateGoogleDocsSourceInput {
   knowledgeBaseId: ID!
   connectionId: ID!
   documents: [GooglePickedDocumentInput!]!
+  syncInterval: KnowledgeSyncInterval
+  syncTime: String
+  syncWeekday: Int
 }
 
 enum GooglePickerSkipReason {
@@ -145,6 +149,13 @@ input RenameSourceInput {
   title: String!
 }
 
+input UpdateSourceScheduleInput {
+  id: ID!
+  syncInterval: KnowledgeSyncInterval
+  syncTime: String
+  syncWeekday: Int
+}
+
 input UpdateDocumentSummaryInput {
   id: ID!
   summary: String!
@@ -225,6 +236,9 @@ type KnowledgeSource {
   title: String!
   status: KnowledgeSourceStatus!
   syncInterval: KnowledgeSyncInterval
+  syncTime: String
+  syncWeekday: Int
+  timezone: String
   nextSyncAt: String
   lastSyncAt: String
   lastErrorCode: String

@@ -1,4 +1,5 @@
 import type { GooglePickerSkipReason } from '@/modules/knowledge/constants/google-drive.constants';
+import type { KnowledgeSyncInterval } from '@/modules/knowledge/constants/knowledge.constants';
 import type { KnowledgeSourceView } from '@/modules/knowledge/typedefs/source.typedefs';
 
 export interface GooglePickerSessionResult {
@@ -26,6 +27,9 @@ export interface CreateGoogleDocsSourceInput {
   readonly knowledgeBaseId: string;
   readonly connectionId: string;
   readonly documents: readonly GooglePickedDocument[];
+  readonly syncInterval?: KnowledgeSyncInterval | null;
+  readonly syncTime?: string | null;
+  readonly syncWeekday?: number | null;
 }
 
 export interface CreateGoogleDocsSourceResult {
