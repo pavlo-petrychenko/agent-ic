@@ -83,6 +83,53 @@ describe('PromptField', () => {
     });
   });
 
+  it('changes the selected prompt', async () => {
+    const onChange = renderField(
+      {
+        kind: PromptSourceKind.Library,
+        promptRef: RECEPTIONIST_PROMPT.id,
+        pin: { kind: PromptVersionKind.Latest },
+        bindings: {},
+      },
+      [],
+      [library, buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS)],
+    );
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: `Change prompt: ${RECEPTIONIST_PROMPT.name}` }),
+    );
+    await userEvent.click(await screen.findByRole('button', { name: 'Gift card answers' }));
+
+    expect(onChange).toHaveBeenCalledWith({
+      kind: PromptSourceKind.Library,
+      promptRef: GIFT_CARD_PROMPT.id,
+      pin: { kind: PromptVersionKind.Latest },
+      bindings: {},
+    });
+  });
+
+  it('pins the shown prompt version', async () => {
+    const onChange = renderField(
+      {
+        kind: PromptSourceKind.Library,
+        promptRef: RECEPTIONIST_PROMPT.id,
+        pin: { kind: PromptVersionKind.Latest },
+        bindings: {},
+      },
+      [],
+      [library, buildPromptVersionsMock(RECEPTIONIST_PROMPT, RECEPTIONIST_VERSIONS)],
+    );
+
+    await userEvent.click(await screen.findByRole('radio', { name: 'Pin v4' }));
+
+    expect(onChange).toHaveBeenCalledWith({
+      kind: PromptSourceKind.Library,
+      promptRef: RECEPTIONIST_PROMPT.id,
+      pin: { kind: PromptVersionKind.Pinned, number: 4 },
+      bindings: {},
+    });
+  });
+
   it('fills an exact prompt variable after the prompt is picked', async () => {
     const onChange = renderControlledField(
       [{ id: 'contact.name', label: 'contact.name', group: 'User' }],

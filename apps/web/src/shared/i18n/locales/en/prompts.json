@@ -209,11 +209,16 @@
     "open": "View v{{number}}",
     "compare": "Compare",
     "empty": "No versions yet. Saving creates v1.",
+    "loading": "Loading versions",
     "loadError": "The versions couldn’t be loaded."
   },
   "field": {
     "useLibrary": "Use a library prompt",
-    "openInLibrary": "Open in library",
+    "openInLibrary": "Open in prompt library",
+    "library": "Library",
+    "libraryVersion": "Library · v{{number}}",
+    "pinVersion": "Pin v{{number}}",
+    "changeNamed": "Change prompt: {{name}}",
     "version": "Version",
     "followLatest": "Follow latest",
     "empty": "This step has no prompt yet. Pick one from the library.",

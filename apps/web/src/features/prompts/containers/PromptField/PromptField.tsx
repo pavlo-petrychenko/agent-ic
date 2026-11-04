@@ -26,6 +26,7 @@ export function PromptField({ workspaceId, source, variables, error, onChange }:
           onAutoFilled={clearAutoFill}
           error={error}
           onChange={onChange}
+          onChangePrompt={() => setPicking(true)}
         />
       ) : (
         <>
