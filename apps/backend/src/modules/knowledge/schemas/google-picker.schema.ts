@@ -2,6 +2,10 @@ import { KNOWLEDGE_DOCUMENT_TITLE_MAX_LENGTH } from '@agent-ic/contracts';
 import { z } from 'zod';
 import { GOOGLE_PICKER_MAX_DOCUMENTS } from '@/modules/knowledge/constants/google-drive.constants';
 import { KnowledgeField } from '@/modules/knowledge/constants/knowledge-input.constants';
+import {
+  knowledgeScheduleInputShape,
+  requireScheduleFields,
+} from '@/modules/knowledge/schemas/knowledge-schedule.schema';
 
 const recordIdSchema = z.string().min(1);
 const nullableTextSchema = z
@@ -25,15 +29,18 @@ export const createGooglePickerSessionInputSchema = z.object({
   [KnowledgeField.ConnectionId]: recordIdSchema,
 });
 
-export const createGoogleDocsSourceInputSchema = z.object({
-  [KnowledgeField.KnowledgeBaseId]: recordIdSchema,
-  [KnowledgeField.ConnectionId]: recordIdSchema,
-  [KnowledgeField.Documents]: z
-    .array(pickedDocumentSchema)
-    .min(1)
-    .max(GOOGLE_PICKER_MAX_DOCUMENTS)
-    .refine(
-      (documents) => new Set(documents.map((document) => document.id)).size === documents.length,
-      { message: 'the selected documents contain duplicates' },
-    ),
-});
+export const createGoogleDocsSourceInputSchema = z
+  .object({
+    [KnowledgeField.KnowledgeBaseId]: recordIdSchema,
+    [KnowledgeField.ConnectionId]: recordIdSchema,
+    [KnowledgeField.Documents]: z
+      .array(pickedDocumentSchema)
+      .min(1)
+      .max(GOOGLE_PICKER_MAX_DOCUMENTS)
+      .refine(
+        (documents) => new Set(documents.map((document) => document.id)).size === documents.length,
+        { message: 'the selected documents contain duplicates' },
+      ),
+  })
+  .extend(knowledgeScheduleInputShape)
+  .superRefine(requireScheduleFields);

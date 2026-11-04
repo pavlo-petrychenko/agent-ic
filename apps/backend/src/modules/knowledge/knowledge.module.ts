@@ -32,6 +32,7 @@ import { RenameKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/ren
 import { RetryKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/retry-knowledge-source.resolver';
 import { SyncKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/sync-knowledge-source.resolver';
 import { UpdateDocumentSummaryResolver } from '@/modules/knowledge/resolvers/update-document-summary.resolver';
+import { UpdateKnowledgeSourceScheduleResolver } from '@/modules/knowledge/resolvers/update-knowledge-source-schedule.resolver';
 import { DocumentParserService } from '@/modules/knowledge/services/document-parser.service';
 import { DocumentSummaryService } from '@/modules/knowledge/services/document-summary.service';
 import { GoogleConnectionTokenService } from '@/modules/knowledge/services/google-connection-token.service';
@@ -69,6 +70,7 @@ import { RetryKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/retry
 import { StartGoogleConnectionUseCase } from '@/modules/knowledge/use-cases/start-google-connection.use-case';
 import { SyncKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/sync-knowledge-source.use-case';
 import { UpdateDocumentSummaryUseCase } from '@/modules/knowledge/use-cases/update-document-summary.use-case';
+import { UpdateKnowledgeSourceScheduleUseCase } from '@/modules/knowledge/use-cases/update-knowledge-source-schedule.use-case';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class KnowledgeModule extends defineModule({
@@ -123,6 +125,7 @@ export class KnowledgeModule extends defineModule({
     StartGoogleConnectionUseCase,
     SyncKnowledgeSourceUseCase,
     UpdateDocumentSummaryUseCase,
+    UpdateKnowledgeSourceScheduleUseCase,
   ],
   resolvers: [
     CreateKnowledgeBaseResolver,
@@ -139,6 +142,7 @@ export class KnowledgeModule extends defineModule({
     RetryKnowledgeSourceResolver,
     SyncKnowledgeSourceResolver,
     UpdateDocumentSummaryResolver,
+    UpdateKnowledgeSourceScheduleResolver,
   ],
   processors: [
     CleanUpKnowledgeDocumentFilesProcessor,

@@ -10,6 +10,7 @@ import type {
   KnowledgeSourceDetailView,
   KnowledgeSourceDocumentView,
   KnowledgeSourceView,
+  UpdateKnowledgeSourceScheduleInput,
 } from '@/modules/knowledge/typedefs/source.typedefs';
 import {
   KnowledgeDocumentStaleReason as GraphqlKnowledgeDocumentStaleReason,
@@ -22,6 +23,7 @@ import type {
   KnowledgeSource as GraphqlKnowledgeSource,
   KnowledgeSourceDetail as GraphqlKnowledgeSourceDetail,
   KnowledgeSourceDocument as GraphqlKnowledgeSourceDocument,
+  UpdateSourceScheduleInput as GraphqlUpdateSourceScheduleInput,
 } from '@/platform/graphql-server/generated/schema.generated';
 
 const KIND: Readonly<Record<KnowledgeSourceKind, GraphqlKnowledgeSourceKind>> = {
@@ -40,6 +42,14 @@ const INTERVAL: Readonly<Record<KnowledgeSyncInterval, GraphqlKnowledgeSyncInter
   [KnowledgeSyncInterval.Hourly]: GraphqlKnowledgeSyncInterval.Hourly,
   [KnowledgeSyncInterval.Daily]: GraphqlKnowledgeSyncInterval.Daily,
   [KnowledgeSyncInterval.Weekly]: GraphqlKnowledgeSyncInterval.Weekly,
+};
+
+const KNOWLEDGE_SYNC_INTERVAL: Readonly<
+  Record<GraphqlKnowledgeSyncInterval, KnowledgeSyncInterval>
+> = {
+  [GraphqlKnowledgeSyncInterval.Hourly]: KnowledgeSyncInterval.Hourly,
+  [GraphqlKnowledgeSyncInterval.Daily]: KnowledgeSyncInterval.Daily,
+  [GraphqlKnowledgeSyncInterval.Weekly]: KnowledgeSyncInterval.Weekly,
 };
 
 const DOCUMENT_STATUS: Readonly<Record<KnowledgeDocumentStatus, GraphqlKnowledgeDocumentStatus>> = {
@@ -66,6 +76,9 @@ export const toGraphqlKnowledgeSource = (source: KnowledgeSourceView): GraphqlKn
   title: source.title,
   status: STATUS[source.status],
   syncInterval: source.syncInterval === null ? null : INTERVAL[source.syncInterval],
+  syncTime: source.syncTime,
+  syncWeekday: source.syncWeekday,
+  timezone: source.timezone,
   nextSyncAt: source.nextSyncAt?.toISOString() ?? null,
   lastSyncAt: source.lastSyncAt?.toISOString() ?? null,
   lastErrorCode: source.lastErrorCode,
@@ -80,6 +93,15 @@ export const toGraphqlKnowledgeSource = (source: KnowledgeSourceView): GraphqlKn
 export const toGraphqlKnowledgeSources = (
   sources: readonly KnowledgeSourceView[],
 ): GraphqlKnowledgeSource[] => sources.map(toGraphqlKnowledgeSource);
+
+export const toUpdateKnowledgeSourceScheduleInput = (
+  input: GraphqlUpdateSourceScheduleInput,
+): UpdateKnowledgeSourceScheduleInput => ({
+  id: input.id,
+  syncInterval: input.syncInterval === null ? null : KNOWLEDGE_SYNC_INTERVAL[input.syncInterval],
+  syncTime: input.syncTime ?? null,
+  syncWeekday: input.syncWeekday ?? null,
+});
 
 export const toGraphqlKnowledgeSourceDocument = (
   document: KnowledgeSourceDocumentView,

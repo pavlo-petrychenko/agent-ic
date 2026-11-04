@@ -1,5 +1,6 @@
 import { IdPrefix } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
+import { knowledgeScheduleTime } from '@/modules/knowledge/helpers/knowledge-schedule.helpers';
 import type { Document } from '@/modules/knowledge/typedefs/document.typedefs';
 import type {
   KnowledgeSourceDocumentView,
@@ -24,6 +25,9 @@ export class KnowledgeSourceViewsService {
       title: source.title,
       status: source.status,
       syncInterval: source.syncInterval,
+      syncTime: knowledgeScheduleTime(source.syncTime),
+      syncWeekday: source.syncWeekday,
+      timezone: source.timezone,
       nextSyncAt: source.nextSyncAt,
       lastSyncAt: source.lastSyncAt,
       lastErrorCode: source.lastErrorCode,

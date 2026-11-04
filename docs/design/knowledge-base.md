@@ -567,7 +567,7 @@ The retrieval playground is a screen on the KB page:
 - Every source is imported once when it is created. The run trigger is `initial`.
 - A ready Google source has a “Sync now” action in its row actions menu and in its detail drawer. It is a run trigger, not a stored mode, and it does not change the scheduled `next_sync_at`. A failed source offers Retry instead; Sync now is not shown while the source is pending, indexing or failed.
 - A source has an automatic schedule only when `sync_interval` is set. The schedule stores `sync_interval`, `sync_time` (for daily/weekly), `sync_weekday` (for weekly), `next_sync_at` and the schedule's timezone.
-- There is no `one-time` or `manual` mode: “no automatic sync” is simply `sync_interval = null`.
+- There is no stored `one-time` or `manual` mode: “no automatic sync” is simply `sync_interval = null`; the UI presents it as manual re-sync.
 
 The timezone is copied onto the source when the schedule is saved. Changing the workspace timezone does not rewrite existing source schedules; re-saving the source applies the new timezone. A future workspace-timezone event can reschedule them automatically.
 
@@ -1338,7 +1338,7 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 | `deleteKnowledgeBase` | delete | Sources and in-use guard |
 | `createUpload` | edit | Returns presigned PUT + document id; optional `sourceId` replaces an upload |
 | `confirmUpload` | edit | Validates object, creates or updates source/document, enqueues |
-| `createGoogleDocsSource` | edit | Validates picked docs; creates a source + documents when at least one is new |
+| `createGoogleDocsSource` | edit | Validates picked docs; creates a source + documents when at least one is new; accepts an optional schedule |
 | `syncSource` | edit | Manual sync for a ready Google source; checks provider metadata and re-exports only changed documents |
 | `syncKnowledgeBase` | edit | Sync all sources of a KB |
 | `updateDocumentSummary` | edit | Sets a user summary and re-indexes the document |
@@ -1359,7 +1359,7 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 ### 13.4 Types
 
 - `KnowledgeBase`: id, name, description, toolName, toolDescription, documentCount, chunkCount, status, createdAt, updatedAt.
-- `KnowledgeSource`: id, kind, title, status, syncInterval, nextSyncAt, lastSyncAt, lastError, documentCount, chunkCount, documents (Relay connection).
+- `KnowledgeSource`: id, kind, title, status, syncInterval, syncTime, syncWeekday, timezone, nextSyncAt, lastSyncAt, lastError, documentCount, chunkCount, documents (Relay connection).
 - `KnowledgeDocument`: id, title, mimeType, sourceUrl, status, sizeBytes, tokenCount, chunkCount, summary, summarySource, summaryUpdatedAt, lastIndexedAt, error.
 - `KnowledgeSearchResult`: documentId, documentTitle, sourceId, sourceTitle, path, text, score, url.
 - `KnowledgeBaseUsage`: agentId, agentName, versionId, versionKind, versionNumber, nodeId, nodeKey, nodeLabel.
