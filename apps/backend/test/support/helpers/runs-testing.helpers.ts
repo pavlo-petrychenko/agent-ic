@@ -48,7 +48,9 @@ import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 import type { NewRun, Run } from '@/modules/runs/typedefs/run.typedefs';
 import type { StepExecution } from '@/modules/runs/typedefs/step-executor.typedefs';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
+import { CacheModule } from '@/platform/cache/cache.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
+import { CryptoModule } from '@/platform/crypto/crypto.module';
 import { SystemDatabaseService } from '@/platform/database/services/system-database.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
@@ -69,6 +71,8 @@ import { JobHandlersService } from '@/platform/queues/services/job-handlers.serv
 import { QueuesService } from '@/platform/queues/services/queues.service';
 import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
+import { SecretsModule } from '@/platform/secrets/secrets.module';
+import { StorageModule } from '@/platform/storage/storage.module';
 import { TEST_AWAY_MESSAGE } from '@test/support/constants/agents-testing.constants';
 import { RETRYABLE_ATTEMPT } from '@test/support/constants/async-jobs.constants';
 import { MESSAGE_SPACING_MS } from '@test/support/constants/conversations-testing.constants';
@@ -143,6 +147,10 @@ export const createRunsTestbed = async (
       LiveUpdatesModule.forRole(ROLE),
       RedisModule,
       RateLimitModule,
+      CacheModule,
+      CryptoModule,
+      SecretsModule,
+      StorageModule,
       LlmTracesProbeModule.forRole(ROLE),
       OutboundHttpModule,
       AgentsNeighboursModule.forRole(ROLE),
