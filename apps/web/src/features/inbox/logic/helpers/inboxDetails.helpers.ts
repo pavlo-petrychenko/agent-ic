@@ -3,6 +3,7 @@ import {
   InboxNotifyChannel,
   InboxReplyState,
   InboxReplyTarget,
+  InboxTone,
 } from '@/features/inbox/constants/inbox.constants';
 import type {
   InboxProviderLabels,
@@ -19,6 +20,7 @@ import type {
   InboxGuardView,
   InboxRunView,
 } from '@/features/inbox/typedefs/details.typedefs';
+import { IconName } from '@/shared/ui/foundations/Icon';
 
 const detailRow = (
   id: string,
@@ -49,6 +51,18 @@ const GUARD_BADGE_KEY = {
   [InboxGuardKind.Agent]: 'details.agent',
   [InboxGuardKind.Escalation]: 'details.escalation',
 } as const;
+
+const GUARD_ICON: Readonly<Record<InboxGuardKind, IconName>> = {
+  [InboxGuardKind.Completion]: IconName.Compl,
+  [InboxGuardKind.Agent]: IconName.Agent,
+  [InboxGuardKind.Escalation]: IconName.Hand,
+};
+
+const GUARD_TONE: Readonly<Record<InboxGuardKind, InboxTone>> = {
+  [InboxGuardKind.Completion]: InboxTone.Accent,
+  [InboxGuardKind.Agent]: InboxTone.Violet,
+  [InboxGuardKind.Escalation]: InboxTone.Err,
+};
 
 const notifiedValue = (notified: InboxNotified, t: InboxTranslate): string => {
   const names = notified.allOperators ? t('details.allOperators') : notified.names.join(', ');
@@ -81,6 +95,8 @@ const guardView = (conversation: InboxConversation, t: InboxTranslate): InboxGua
   return {
     title: guard.label === '' ? t('details.guard') : guard.label,
     badge: t(GUARD_BADGE_KEY[guard.kind]),
+    icon: GUARD_ICON[guard.kind],
+    tone: GUARD_TONE[guard.kind],
     lines: [t('details.needsHuman'), ...reason],
   };
 };
@@ -96,6 +112,7 @@ const runView = (conversation: InboxConversation, t: InboxTranslate): InboxRunVi
     steps: run.steps.map((step) => ({
       id: step.id,
       icon: step.icon,
+      tone: step.tone,
       label: step.label,
       value: step.value,
     })),

@@ -35,8 +35,8 @@
   width: var(--size-tile-lg);
   height: var(--size-tile-lg);
   border-radius: var(--radius-8);
-  background: var(--color-soft);
-  color: var(--color-ink-secondary);
+  background: var(--tile-bg);
+  color: var(--tile-fg);
 }
 
 .cardTitle {
@@ -100,8 +100,50 @@
   width: var(--size-tile-sm);
   height: var(--size-tile-sm);
   border-radius: var(--radius-6);
-  background: var(--color-soft);
-  color: var(--color-ink-secondary);
+  background: var(--tile-bg);
+  color: var(--tile-fg);
+}
+
+.iconTile,
+.stepIcon {
+  --tile-bg: var(--color-soft);
+  --tile-fg: var(--color-ink-secondary);
+}
+
+.iconTile[data-tone='dark'],
+.stepIcon[data-tone='dark'] {
+  --tile-bg: var(--color-dark);
+  --tile-fg: var(--color-on-dark);
+}
+
+.iconTile[data-tone='accent'],
+.stepIcon[data-tone='accent'] {
+  --tile-bg: var(--color-accent-light);
+  --tile-fg: var(--color-accent-dark);
+}
+
+.iconTile[data-tone='violet'],
+.stepIcon[data-tone='violet'] {
+  --tile-bg: var(--color-violet-light);
+  --tile-fg: var(--color-violet);
+}
+
+.iconTile[data-tone='ok'],
+.stepIcon[data-tone='ok'] {
+  --tile-bg: var(--color-ok-light);
+  --tile-fg: var(--color-ok);
+}
+
+.iconTile[data-tone='warn'],
+.stepIcon[data-tone='warn'] {
+  --tile-bg: var(--color-warn-light);
+  --tile-fg: var(--color-warn);
+}
+
+.iconTile[data-tone='err'],
+.stepIcon[data-tone='err'] {
+  --tile-bg: var(--color-err-light);
+  --tile-fg: var(--color-err);
 }
 
 .stepLabel {

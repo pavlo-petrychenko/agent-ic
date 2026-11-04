@@ -1,14 +1,18 @@
+import type { InboxTone } from '@/features/inbox/constants/inbox.constants';
 import type { IconName } from '@/shared/ui/foundations/Icon';
 
 export interface InboxGuardView {
   readonly title: string;
   readonly badge: string;
+  readonly icon: IconName;
+  readonly tone: InboxTone;
   readonly lines: readonly string[];
 }
 
 export interface InboxRunStepView {
   readonly id: string;
   readonly icon: IconName;
+  readonly tone: InboxTone;
   readonly label: string;
   readonly value: string | null;
 }

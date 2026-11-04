@@ -36,6 +36,16 @@ export enum InboxGuardKind {
   Escalation = 'escalation',
 }
 
+export enum InboxTone {
+  Neutral = 'neutral',
+  Dark = 'dark',
+  Accent = 'accent',
+  Violet = 'violet',
+  Ok = 'ok',
+  Warn = 'warn',
+  Err = 'err',
+}
+
 export enum InboxDividerKind {
   FlowPaused = 'flowPaused',
   Escalated = 'escalated',

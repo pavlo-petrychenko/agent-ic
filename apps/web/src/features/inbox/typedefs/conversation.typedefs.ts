@@ -4,6 +4,7 @@ import type {
   InboxProvider,
   InboxReplyState,
   InboxReplyTarget,
+  InboxTone,
 } from '@/features/inbox/constants/inbox.constants';
 import type { InboxStoredMessage } from '@/features/inbox/typedefs/message.typedefs';
 import type { IconName } from '@/shared/ui/foundations/Icon';
@@ -17,6 +18,7 @@ export interface InboxGuard {
 export interface InboxRunStep {
   readonly id: string;
   readonly icon: IconName;
+  readonly tone: InboxTone;
   readonly label: string;
   readonly value: string | null;
 }

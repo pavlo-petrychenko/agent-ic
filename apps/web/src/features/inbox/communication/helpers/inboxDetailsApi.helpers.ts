@@ -3,6 +3,7 @@ import {
   InboxGuardKind,
   InboxNotifyChannel,
   InboxReplyTarget,
+  InboxTone,
 } from '@/features/inbox/constants/inbox.constants';
 import type { ApiDetails, ApiNotified } from '@/features/inbox/typedefs/api.typedefs';
 import type {
@@ -29,6 +30,20 @@ const RUN_NODE_ICON: Readonly<Record<InboxRunNodeType, IconName>> = {
   api_request: IconName.Api,
   send_message: IconName.Send,
   escalation: IconName.Hand,
+};
+
+const RUN_NODE_TONE: Readonly<Record<InboxRunNodeType, InboxTone>> = {
+  trigger_message: InboxTone.Dark,
+  trigger_external_event: InboxTone.Dark,
+  trigger_schedule: InboxTone.Dark,
+  trigger_inactivity: InboxTone.Dark,
+  agent: InboxTone.Violet,
+  completion: InboxTone.Accent,
+  router: InboxTone.Warn,
+  parallel: InboxTone.Ok,
+  api_request: InboxTone.Neutral,
+  send_message: InboxTone.Accent,
+  escalation: InboxTone.Err,
 };
 
 const REPLY_TARGET: Readonly<Record<ApiReplyMode, InboxReplyTarget>> = {
@@ -80,6 +95,7 @@ export const runOf = (details: ApiDetails, locale: string): InboxRun | null =>
         steps: details.run.steps.map((step) => ({
           id: step.id,
           icon: step.nodeType === null ? IconName.Box : RUN_NODE_ICON[step.nodeType],
+          tone: step.nodeType === null ? InboxTone.Neutral : RUN_NODE_TONE[step.nodeType],
           label: step.label,
           value: step.value,
         })),

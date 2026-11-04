@@ -2,7 +2,7 @@ import type { InboxDetailsProps } from '@/features/inbox/view/InboxDetails/Inbox
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { Card } from '@/shared/ui/display/Card';
 import { KeyValue } from '@/shared/ui/display/KeyValue';
-import { Icon, IconName } from '@/shared/ui/foundations/Icon';
+import { Icon } from '@/shared/ui/foundations/Icon';
 import styles from '@/features/inbox/view/InboxDetails/InboxDetails.module.scss';
 
 export function InboxDetails({
@@ -19,8 +19,8 @@ export function InboxDetails({
       {guard === null ? null : (
         <Card className={styles.card}>
           <div className={styles.cardHeader}>
-            <span className={styles.iconTile}>
-              <Icon name={IconName.Compl} size={14} />
+            <span className={styles.iconTile} data-tone={guard.tone}>
+              <Icon name={guard.icon} size={14} />
             </span>
             <h3 className={styles.cardTitle}>{guard.title}</h3>
             <Badge tone={BadgeTone.Neutral}>{guard.badge}</Badge>
@@ -43,7 +43,7 @@ export function InboxDetails({
           <ol className={styles.steps}>
             {run.steps.map((step) => (
               <li key={step.id} className={styles.step}>
-                <span className={styles.stepIcon}>
+                <span className={styles.stepIcon} data-tone={step.tone}>
                   <Icon name={step.icon} size={12} />
                 </span>
                 <span className={styles.stepLabel}>{step.label}</span>

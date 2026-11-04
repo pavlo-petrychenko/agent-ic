@@ -60,6 +60,18 @@ describe('InboxPage', () => {
     expect(screen.getByText('Runs so far')).toBeInTheDocument();
   });
 
+  it('colors the guard and the run path icons by node type', async () => {
+    const { container } = renderPage();
+
+    await screen.findByRole('heading', { level: 3, name: 'Path in this run' });
+
+    expect(
+      Array.from(container.querySelectorAll('[data-tone]')).map((node) =>
+        node.getAttribute('data-tone'),
+      ),
+    ).toEqual(['accent', 'dark', 'ok', 'accent', 'warn', 'err', 'violet']);
+  });
+
   it('shows the reply target and the handling window', async () => {
     renderPage();
 
