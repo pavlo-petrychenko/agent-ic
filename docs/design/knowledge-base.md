@@ -574,9 +574,10 @@ The timezone is copied onto the source when the schedule is saved. Changing the 
 Scheduling uses a per-source BullMQ job scheduler:
 
 - scheduler id `knowledge-sync:{sourceId}`;
-- the scheduler tick creates a `sync_runs` row and enqueues `ingest-knowledge-source` with `{ sourceId, syncRunId }`; it is not implemented yet;
-- hourly → `every` one hour;
+- the scheduler tick is `scheduled-knowledge-source-sync` in the ingest queue; it creates a `sync_runs` row and enqueues `ingest-knowledge-source` with `{ sourceId, syncRunId }`;
+- hourly → the `0 * * * *` cron, so it runs on the hour;
 - daily/weekly → a cron pattern with the workspace's IANA timezone;
+- the tick advances `next_sync_at` before it returns, including when it is skipped;
 - the envelope carries the workspace id, so the processor runs as that workspace's system actor;
 - creating or updating a source upserts the scheduler after commit;
 - deleting a source removes it;
@@ -585,7 +586,7 @@ Scheduling uses a per-source BullMQ job scheduler:
 Concurrency and idempotency:
 
 - one sync per source at a time: the processor locks the source row and checks for another active `sync_runs` row;
-- a scheduled sync that arrives while a manual one runs is skipped and logged;
+- a scheduled sync that arrives while a manual one runs is skipped and logged, and `next_sync_at` moves to the next occurrence;
 - the job is safe to repeat: content hashes skip unchanged documents, and a repeated generation write is overwritten before the flip;
 - the manual sync use case creates the `sync_runs` row and enqueues a durable job; it does not change the scheduled `next_sync_at`. The UI does not block on the result; it polls the source and reports completion or failure.
 
@@ -1279,6 +1280,7 @@ export const chunkTerms = knowledgeSchema
 | Job | Queue | Payload | Durable | Purpose |
 |---|---|---|---|---|
 | `ingest-knowledge-source` | `ingest` | `{ sourceId, syncRunId }` | yes | Run one source sync: fetch, parse, chunk, embed, index |
+| `scheduled-knowledge-source-sync` | `ingest` | `{ sourceId }` | no | Per-source scheduler tick: creates a sync run and enqueues ingestion |
 | `reindex-knowledge-document` | `ingest` | `{ documentId }` | yes | Rebuild a document after a summary edit; no summary generation |
 | `clean-up-knowledge-document-files` | `timers` | `{ documentId }` | yes | Delete S3 objects and hard-delete a removed document |
 | `clean-up-knowledge-source-files` | `timers` | `{ sourceId }` | yes | Delete S3 objects and hard-delete a soft-deleted source and its documents |
@@ -1288,7 +1290,7 @@ export const chunkTerms = knowledgeSchema
 
 - The processor runs on `worker-ingest` for `ingest`; `timers` runs on `worker-runs`.
 - Payloads hold ids only. The envelope adds `workspaceId`, `traceId` and `initiatedBy`.
-- A scheduled sync follows the same path: it creates a sync run first and then enqueues the job; this path is not implemented yet.
+- A scheduled sync follows the same path: the scheduler tick creates a sync run and then enqueues `ingest-knowledge-source`.
 - `sync_runs` is created by the use case before enqueue; the processor loads it by `syncRunId`, locks the source, and updates progress. `syncRunId` is also the BullMQ job id.
 - A retryable failure on a non-final attempt leaves the run `running` and the source `indexing`, so the same `syncRunId` can retry. The final attempt or a non-retryable error closes the run and source with the failure.
 - A summary edit locks the document, sets it to `indexing` and enqueues `reindex-knowledge-document`. The job rebuilds `index_text`, embeddings and terms, then flips the generation; it never calls the summary model.

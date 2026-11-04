@@ -1,4 +1,7 @@
+import { ActorKind, SystemReason } from '@/platform/context/constants/actor.constants';
 import {
+  DETACHED_TRACE_CONTEXT,
+  ENVELOPE_VERSION,
   HANDLE_METHOD,
   JOB_CURRENT_ATTEMPT,
   JOB_DEFAULT_ATTEMPTS,
@@ -10,6 +13,7 @@ import type {
   JobAttempt,
   JobData,
   JobDefinition,
+  JobEnvelope,
   JobHandler,
   JobSchedule,
 } from '@/platform/queues/typedefs/job.typedefs';
@@ -33,4 +37,17 @@ export const isJobHandler = (value: unknown): value is JobHandler<JobData> =>
 
 export const jobAttemptOf = ({ attemptsMade, opts }: AttemptedJob): JobAttempt => ({
   final: attemptsMade + JOB_CURRENT_ATTEMPT >= (opts.attempts ?? JOB_DEFAULT_ATTEMPTS),
+});
+
+export const scheduledEnvelope = (
+  workspaceId: string | null,
+  data: JobData,
+  traceId: string,
+): JobEnvelope => ({
+  version: ENVELOPE_VERSION,
+  data,
+  workspaceId,
+  traceId,
+  traceContext: DETACHED_TRACE_CONTEXT,
+  initiatedBy: { kind: ActorKind.System, reason: SystemReason.Schedule },
 });
