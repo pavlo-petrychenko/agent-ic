@@ -1,3 +1,4 @@
+import { WorkspacesRepository } from '@/modules/identity';
 import { GoogleDriveApiGateway } from '@/modules/knowledge/gateways/google-drive-api.gateway';
 import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.gateway';
 import { GoogleOAuthApiGateway } from '@/modules/knowledge/gateways/google-oauth-api.gateway';
@@ -85,6 +86,7 @@ export class KnowledgeModule extends defineModule({
     ChunkTermsRepository,
     SyncRunsRepository,
     EmbeddingCacheRepository,
+    WorkspacesRepository,
     KnowledgeStatsRepository,
     DocumentParserService,
     DocumentSummaryService,
