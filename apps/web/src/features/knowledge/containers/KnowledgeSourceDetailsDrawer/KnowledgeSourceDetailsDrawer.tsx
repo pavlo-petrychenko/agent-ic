@@ -11,6 +11,7 @@ import { KNOWLEDGE_SOURCE_DETAILS_DRAWER_WIDTH } from '@/features/knowledge/cont
 import type { KnowledgeSourceDetailsDrawerProps } from '@/features/knowledge/containers/KnowledgeSourceDetailsDrawer/KnowledgeSourceDetailsDrawer.typedefs';
 import { RemoveSourceDocumentDialog } from '@/features/knowledge/containers/RemoveSourceDocumentDialog';
 import { SummaryEditorDialog } from '@/features/knowledge/containers/SummaryEditorDialog';
+import { UpdateSourceScheduleDialog } from '@/features/knowledge/containers/UpdateSourceScheduleDialog';
 import { isGoogleConnectionActive } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import {
   canSyncKnowledgeSource,
@@ -18,6 +19,7 @@ import {
   isKnowledgeSourceRetryable,
 } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
 import { useKnowledgeFailureMessage } from '@/features/knowledge/logic/hooks/useKnowledgeFailureMessage';
+import { useKnowledgeScheduleLabel } from '@/features/knowledge/logic/hooks/useKnowledgeScheduleLabel';
 import type {
   KnowledgeSourceDetailView,
   KnowledgeSourceDocumentView,
@@ -42,8 +44,10 @@ export function KnowledgeSourceDetailsDrawer({
   const { t, i18n } = useTranslation(KNOWLEDGE_NAMESPACE);
   const [summaryTarget, setSummaryTarget] = useState<KnowledgeSourceDocumentView | null>(null);
   const [removeTarget, setRemoveTarget] = useState<KnowledgeSourceDocumentView | null>(null);
+  const [editingSchedule, setEditingSchedule] = useState(false);
   const { detail, loading, failed, retry } = useKnowledgeSourceDetail(sourceId);
   const failureMessage = useKnowledgeFailureMessage();
+  const scheduleLabel = useKnowledgeScheduleLabel();
   const target: KnowledgeSourceTarget | null =
     detail === null ? null : { id: detail.source.id, title: detail.source.title };
   const connectionActive =
@@ -129,10 +133,20 @@ export function KnowledgeSourceDetailsDrawer({
           canSync={canSync}
           addedLabel={addedLabel}
           lastSyncedLabel={lastSyncedLabel}
+          scheduleLabel={
+            detail !== null && detail.source.kind === KnowledgeSourceKind.GoogleDocs
+              ? scheduleLabel(detail.source)
+              : null
+          }
           onReload={() => void retry()}
           onClose={onClose}
           onSync={canManage && canSync && target !== null ? () => onSync?.(target) : null}
           onRename={canManage && target !== null ? () => onRename(target) : null}
+          onEditSchedule={
+            canManage && detail !== null && detail.source.kind === KnowledgeSourceKind.GoogleDocs
+              ? () => setEditingSchedule(true)
+              : null
+          }
           onRetry={canManage && canRetry && target !== null ? () => onRetry(target) : null}
           onDelete={canManage && target !== null ? () => onDelete(target) : null}
           onEditSummary={
@@ -162,6 +176,13 @@ export function KnowledgeSourceDetailsDrawer({
           document={removeTarget}
           onRemoved={() => setRemoveTarget(null)}
           onClose={() => setRemoveTarget(null)}
+        />
+      ) : null}
+      {editingSchedule && detail !== null ? (
+        <UpdateSourceScheduleDialog
+          knowledgeBaseId={detail.source.knowledgeBaseId}
+          source={detail.source}
+          onClose={() => setEditingSchedule(false)}
         />
       ) : null}
     </>

@@ -74,10 +74,12 @@ describe('KnowledgeSourceDetails', () => {
           canSync={false}
           addedLabel={null}
           lastSyncedLabel={null}
+          scheduleLabel={null}
           onReload={vi.fn<() => void>()}
           onClose={vi.fn<() => void>()}
           onSync={null}
           onRename={null}
+          onEditSchedule={null}
           onRetry={null}
           onDelete={null}
           onEditSummary={null}
@@ -134,10 +136,12 @@ describe('KnowledgeSourceDetails', () => {
           canSync={false}
           addedLabel={null}
           lastSyncedLabel={null}
+          scheduleLabel={null}
           onReload={vi.fn<() => void>()}
           onClose={vi.fn<() => void>()}
           onSync={null}
           onRename={null}
+          onEditSchedule={null}
           onRetry={null}
           onDelete={null}
           onEditSummary={null}

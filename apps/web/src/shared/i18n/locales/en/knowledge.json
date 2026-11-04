@@ -151,7 +151,12 @@
         "daily": "Daily at 06:00",
         "weekly": "Weekly on Monday",
         "hourly": "Every hour"
-      }
+      },
+      "edit": "Edit schedule",
+      "dialogTitle": "Edit schedule for “{{name}}”",
+      "dialogDescription": "Choose manual sync or a schedule preset. Schedules use the workspace timezone.",
+      "save": "Save schedule",
+      "success": "Schedule updated for “{{name}}”."
     },
     "status": {
       "queued": "Queued",

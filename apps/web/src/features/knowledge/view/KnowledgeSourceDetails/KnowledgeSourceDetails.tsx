@@ -41,10 +41,12 @@ export function KnowledgeSourceDetails({
   canSync,
   addedLabel,
   lastSyncedLabel,
+  scheduleLabel,
   onReload,
   onClose,
   onSync,
   onRename,
+  onEditSchedule,
   onRetry,
   onDelete,
   onEditSummary,
@@ -187,12 +189,19 @@ export function KnowledgeSourceDetails({
                 {source.kind === KnowledgeSourceKind.Upload ? (
                   <span>{t('sources.sync.oneTime')}</span>
                 ) : null}
+                {source.kind === KnowledgeSourceKind.GoogleDocs && scheduleLabel !== null ? (
+                  <span>{scheduleLabel}</span>
+                ) : null}
                 {addedLabel === null ? null : <span>{addedLabel}</span>}
                 {lastSyncedLabel === null ? null : <span>{lastSyncedLabel}</span>}
               </div>
 
               {canManage &&
-              (onSync !== null || onRename !== null || onRetry !== null || onDelete !== null) ? (
+              (onSync !== null ||
+                onRename !== null ||
+                onEditSchedule !== null ||
+                onRetry !== null ||
+                onDelete !== null) ? (
                 <div className={styles.actions}>
                   {onSync === null ? null : (
                     <Button
@@ -214,6 +223,16 @@ export function KnowledgeSourceDetails({
                       onClick={onRename}
                     >
                       {t('sources.menu.rename')}
+                    </Button>
+                  )}
+                  {onEditSchedule === null ? null : (
+                    <Button
+                      variant={ButtonVariant.Secondary}
+                      size={ButtonSize.Sm}
+                      icon={IconName.Hour}
+                      onClick={onEditSchedule}
+                    >
+                      {t('sources.schedule.edit')}
                     </Button>
                   )}
                   {onRetry === null ? null : (
