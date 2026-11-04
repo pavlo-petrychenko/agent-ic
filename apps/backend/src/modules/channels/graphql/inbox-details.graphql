@@ -28,10 +28,8 @@ type InboxConversationRun {
 
 type InboxConversationRunStep {
   id: ID!
-  nodeId: String!
   label: String!
   nodeType: InboxRunNodeType
-  status: RunStepStatus!
   value: String
 }
 

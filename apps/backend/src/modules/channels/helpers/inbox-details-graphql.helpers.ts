@@ -1,7 +1,6 @@
 import { NodeType, NotifyChannel } from '@agent-ic/flow';
 import { toGraphqlApiReplyMode } from '@/modules/channels/helpers/channel-graphql.helpers';
 import type { InboxDetails } from '@/modules/channels/typedefs/inbox-details.typedefs';
-import { toGraphqlRunStepStatus } from '@/modules/runs';
 import type {
   InboxConversationDetails,
   InboxNotifyChannel as GraphqlInboxNotifyChannel,
@@ -51,10 +50,8 @@ export const toGraphqlInboxDetails = (details: InboxDetails): InboxConversationD
           durationMs: details.run.durationMs,
           steps: details.run.steps.map((step) => ({
             id: step.id,
-            nodeId: step.nodeId,
             label: step.label,
             nodeType: step.nodeType === null ? null : GRAPHQL_NODE_TYPE[step.nodeType],
-            status: toGraphqlRunStepStatus(step.status),
             value: step.value,
           })),
         },

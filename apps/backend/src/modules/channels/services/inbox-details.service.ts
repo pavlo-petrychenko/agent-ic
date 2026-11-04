@@ -12,10 +12,10 @@ import {
 } from '@/modules/channels/helpers/inbox-details.helpers';
 import { ChannelDirectoryService } from '@/modules/channels/services/channel-directory.service';
 import type {
+  EscalationNotify,
   InboxDetails,
   InboxDetailsNotified,
-  RunSnapshot,
-  EscalationNotify,
+  InboxDetailsRunSnapshot,
 } from '@/modules/channels/typedefs/inbox-details.typedefs';
 import {
   ConversationNotFoundError,
@@ -76,7 +76,7 @@ export class InboxDetailsService {
     };
   }
 
-  private async snapshotOf(workspaceId: string, run: Run): Promise<RunSnapshot> {
+  private async snapshotOf(workspaceId: string, run: Run): Promise<InboxDetailsRunSnapshot> {
     const [steps, version] = await Promise.all([
       this.runSteps.listByRun(workspaceId, run.id),
       this.agentRuntime.getVersion(workspaceId, run.versionId),

@@ -10,7 +10,6 @@ export { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
 export { RUN_REPLY_CAPTURE_TTL_SECONDS } from '@/modules/runs/constants/run-reply.constants';
 export { RunEventName } from '@/modules/runs/constants/run-event.constants';
 export { runEscalatedEvent } from '@/modules/runs/events/run-escalated.event';
-export { toGraphqlRunStepStatus } from '@/modules/runs/helpers/run-step-graphql.helpers';
 export { RunFlowInvalidError } from '@/modules/runs/errors/run-flow-invalid.error';
 export { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 export { UnsupportedNodeTypeError } from '@/modules/runs/errors/unsupported-node-type.error';

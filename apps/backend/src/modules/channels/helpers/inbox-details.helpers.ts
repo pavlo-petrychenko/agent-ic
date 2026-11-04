@@ -8,12 +8,12 @@ import {
 } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import type {
+  EscalationNotify,
   InboxDetailsGuard,
   InboxDetailsHandler,
   InboxDetailsNotified,
   InboxDetailsRun,
   InboxDetailsRunStep,
-  EscalationNotify,
 } from '@/modules/channels/typedefs/inbox-details.typedefs';
 import { MessageSystemEvent } from '@/modules/conversations';
 import type { Message } from '@/modules/conversations';
@@ -114,10 +114,8 @@ const runStepOf = (step: RunStep, flow: FlowDocument, ids: IdService): InboxDeta
   const node = nodeOf(flow, step);
   return {
     id: ids.toPublic(IdPrefix.RunStep, step.id),
-    nodeId: step.nodeId,
     label: node?.label === undefined || node.label === '' ? step.nodeKey : node.label,
     nodeType: node?.type ?? null,
-    status: step.status,
     value: stepValue(step, node),
   };
 };
