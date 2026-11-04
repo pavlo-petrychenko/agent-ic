@@ -239,6 +239,9 @@ export function AddSourceDialog({
         connectionId: selectedGoogleDocs.connectionId,
         knowledgeBaseId,
         documents: selectedGoogleDocs.documents,
+        syncInterval: null,
+        syncTime: null,
+        syncWeekday: null,
       });
       showToast({
         message: t('add.googleConnection.pickerSuccess'),
