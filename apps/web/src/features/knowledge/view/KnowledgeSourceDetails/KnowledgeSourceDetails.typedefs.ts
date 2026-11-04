@@ -19,10 +19,12 @@ export interface KnowledgeSourceDetailsProps {
   readonly canSync: boolean;
   readonly addedLabel: string | null;
   readonly lastSyncedLabel: string | null;
+  readonly scheduleLabel: string | null;
   readonly onReload: () => void;
   readonly onClose: () => void;
   readonly onSync: (() => void) | null;
   readonly onRename: (() => void) | null;
+  readonly onEditSchedule: (() => void) | null;
   readonly onRetry: (() => void) | null;
   readonly onDelete: (() => void) | null;
   readonly onEditSummary: ((document: KnowledgeSourceDocumentView) => void) | null;

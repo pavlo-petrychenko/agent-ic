@@ -153,6 +153,20 @@ export interface UseRenameKnowledgeSourceResult {
   readonly renaming: boolean;
 }
 
+export interface UpdateKnowledgeSourceScheduleValues {
+  readonly id: string;
+  readonly syncInterval: KnowledgeSyncInterval | null;
+  readonly syncTime: string | null;
+  readonly syncWeekday: number | null;
+}
+
+export interface UseUpdateKnowledgeSourceScheduleResult {
+  readonly updateKnowledgeSourceSchedule: (
+    values: UpdateKnowledgeSourceScheduleValues,
+  ) => Promise<void>;
+  readonly updating: boolean;
+}
+
 export interface UpdateDocumentSummaryValues {
   readonly id: string;
   readonly summary: string;

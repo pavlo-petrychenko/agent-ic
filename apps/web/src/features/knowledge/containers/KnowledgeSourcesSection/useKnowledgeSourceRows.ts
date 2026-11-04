@@ -3,10 +3,8 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import {
-  KNOWLEDGE_SCHEDULE_DEFAULT_TIME,
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
-  KnowledgeSyncInterval,
 } from '@/features/knowledge/constants/knowledgeSource.constants';
 import { isGoogleConnectionActive } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import {
@@ -16,6 +14,7 @@ import {
   isKnowledgeSourceRetryable,
 } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
 import { useKnowledgeFailureSummary } from '@/features/knowledge/logic/hooks/useKnowledgeFailureSummary';
+import { useKnowledgeScheduleLabel } from '@/features/knowledge/logic/hooks/useKnowledgeScheduleLabel';
 import type { GoogleConnection } from '@/features/knowledge/typedefs/googleConnection.typedefs';
 import type {
   KnowledgeSource,
@@ -28,6 +27,7 @@ export function useKnowledgeSourceRows(
 ): readonly KnowledgeSourceRowView[] {
   const { t, i18n } = useTranslation(KNOWLEDGE_NAMESPACE);
   const failureSummary = useKnowledgeFailureSummary();
+  const scheduleLabel = useKnowledgeScheduleLabel();
 
   return useMemo(() => {
     const kindLabel = (kind: KnowledgeSourceKind): string => {
@@ -81,25 +81,6 @@ export function useKnowledgeSourceRows(
       }
     };
 
-    const syncLabel = (source: KnowledgeSource): string => {
-      if (source.kind === KnowledgeSourceKind.Upload) {
-        return t('sources.sync.oneTime');
-      }
-      if (source.syncInterval === null) {
-        return t('sources.sync.manual');
-      }
-      switch (source.syncInterval) {
-        case KnowledgeSyncInterval.Hourly:
-          return t('sources.sync.scheduledHourly');
-        case KnowledgeSyncInterval.Daily:
-          return t('sources.sync.scheduledDaily', {
-            time: source.syncTime ?? KNOWLEDGE_SCHEDULE_DEFAULT_TIME,
-          });
-        case KnowledgeSyncInterval.Weekly:
-          return t('sources.sync.scheduledWeekly');
-      }
-    };
-
     const syncDetail = (source: KnowledgeSource): string => {
       const date = (iso: string): string => formatKnowledgeSourceDate(iso, i18n.language);
       if (source.status === KnowledgeSourceStatus.Error) {
@@ -122,7 +103,7 @@ export function useKnowledgeSourceRows(
       title: source.title,
       kind: source.kind,
       kindLabel: kindLabel(source.kind),
-      syncLabel: syncLabel(source),
+      syncLabel: scheduleLabel(source),
       syncDetail: syncDetail(source),
       status: source.status,
       isActive: isKnowledgeSourceActive(source.status),
@@ -133,5 +114,5 @@ export function useKnowledgeSourceRows(
       statusDetail: statusDetail(source),
       staleDocumentCount: source.staleDocumentCount,
     }));
-  }, [connectionStatuses, failureSummary, i18n.language, sources, t]);
+  }, [connectionStatuses, failureSummary, i18n.language, scheduleLabel, sources, t]);
 }

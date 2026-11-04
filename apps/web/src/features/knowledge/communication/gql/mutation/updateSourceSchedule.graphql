@@ -1,0 +1,10 @@
+mutation UpdateSourceSchedule($input: UpdateSourceScheduleInput!) {
+  updateSourceSchedule(input: $input) {
+    id
+    syncInterval
+    syncTime
+    syncWeekday
+    timezone
+    nextSyncAt
+  }
+}
