@@ -2,7 +2,7 @@ import { skipToken, useSubscription } from '@apollo/client/react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InboxConversationActivityDocument } from '@/features/inbox/communication/gql/subscription/inboxConversationActivity.generated';
-import { withInboxDetail } from '@/features/inbox/communication/helpers/inboxApi.helpers';
+import { withInboxDetail } from '@/features/inbox/communication/helpers/inboxThreadApi.helpers';
 import { useInboxConversation } from '@/features/inbox/communication/hooks/useInboxConversation';
 import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants';
 import type { InboxThreadState } from '@/features/inbox/containers/InboxPage/InboxPage.typedefs';
