@@ -86,6 +86,14 @@ $avatar-column: 32px;
   list-style: none;
 }
 
+.loadMore {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: center;
+  padding: var(--space-12) var(--space-16);
+  border-top: var(--border-width) solid var(--color-line-row);
+}
+
 .row {
   display: grid;
   grid-template-columns: $avatar-column minmax(0, 1fr);
