@@ -2,6 +2,7 @@ import { ErrorReason } from '@agent-ic/contracts';
 
 export enum KnowledgeGraphqlArgument {
   Input = 'input',
+  Id = 'id',
   KnowledgeBaseId = 'knowledgeBaseId',
   ConnectionId = 'connectionId',
 }

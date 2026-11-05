@@ -38,6 +38,31 @@
   }
 }
 
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-drawer) - 1);
+  background: var(--overlay-backdrop);
+
+  &[data-state='open'] {
+    animation: fade-in var(--duration-slow) var(--ease-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: fade-out calc(var(--duration-slow) * 0.8) var(--ease-exit) forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &[data-state='open'] {
+      animation: fade-in var(--duration-fast) var(--ease-enter);
+    }
+
+    &[data-state='closed'] {
+      animation: fade-out var(--duration-fast) var(--ease-exit) forwards;
+    }
+  }
+}
+
 .root {
   position: fixed;
   top: var(--drawer-top, var(--size-topbar-height));

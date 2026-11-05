@@ -1,15 +1,25 @@
 import {
+  KnowledgeDocumentStatus,
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
   KnowledgeSyncInterval,
 } from '@/modules/knowledge/constants/knowledge.constants';
-import type { KnowledgeSourceView } from '@/modules/knowledge/typedefs/source.typedefs';
+import type {
+  KnowledgeSourceDetailView,
+  KnowledgeSourceDocumentView,
+  KnowledgeSourceView,
+} from '@/modules/knowledge/typedefs/source.typedefs';
 import {
+  KnowledgeDocumentStatus as GraphqlKnowledgeDocumentStatus,
   KnowledgeSourceKind as GraphqlKnowledgeSourceKind,
   KnowledgeSourceStatus as GraphqlKnowledgeSourceStatus,
   KnowledgeSyncInterval as GraphqlKnowledgeSyncInterval,
 } from '@/platform/graphql-server/generated/schema.generated';
-import type { KnowledgeSource as GraphqlKnowledgeSource } from '@/platform/graphql-server/generated/schema.generated';
+import type {
+  KnowledgeSource as GraphqlKnowledgeSource,
+  KnowledgeSourceDetail as GraphqlKnowledgeSourceDetail,
+  KnowledgeSourceDocument as GraphqlKnowledgeSourceDocument,
+} from '@/platform/graphql-server/generated/schema.generated';
 
 const KIND: Readonly<Record<KnowledgeSourceKind, GraphqlKnowledgeSourceKind>> = {
   [KnowledgeSourceKind.Upload]: GraphqlKnowledgeSourceKind.Upload,
@@ -27,6 +37,14 @@ const INTERVAL: Readonly<Record<KnowledgeSyncInterval, GraphqlKnowledgeSyncInter
   [KnowledgeSyncInterval.Hourly]: GraphqlKnowledgeSyncInterval.Hourly,
   [KnowledgeSyncInterval.Daily]: GraphqlKnowledgeSyncInterval.Daily,
   [KnowledgeSyncInterval.Weekly]: GraphqlKnowledgeSyncInterval.Weekly,
+};
+
+const DOCUMENT_STATUS: Readonly<Record<KnowledgeDocumentStatus, GraphqlKnowledgeDocumentStatus>> = {
+  [KnowledgeDocumentStatus.Pending]: GraphqlKnowledgeDocumentStatus.Pending,
+  [KnowledgeDocumentStatus.Indexing]: GraphqlKnowledgeDocumentStatus.Indexing,
+  [KnowledgeDocumentStatus.Indexed]: GraphqlKnowledgeDocumentStatus.Indexed,
+  [KnowledgeDocumentStatus.Error]: GraphqlKnowledgeDocumentStatus.Error,
+  [KnowledgeDocumentStatus.Removed]: GraphqlKnowledgeDocumentStatus.Removed,
 };
 
 export const toGraphqlKnowledgeSource = (source: KnowledgeSourceView): GraphqlKnowledgeSource => ({
@@ -49,3 +67,25 @@ export const toGraphqlKnowledgeSource = (source: KnowledgeSourceView): GraphqlKn
 export const toGraphqlKnowledgeSources = (
   sources: readonly KnowledgeSourceView[],
 ): GraphqlKnowledgeSource[] => sources.map(toGraphqlKnowledgeSource);
+
+export const toGraphqlKnowledgeSourceDocument = (
+  document: KnowledgeSourceDocumentView,
+): GraphqlKnowledgeSourceDocument => ({
+  id: document.id,
+  title: document.title,
+  status: DOCUMENT_STATUS[document.status],
+  summary: document.summary,
+  errorCode: document.errorCode,
+  errorMessage: document.errorMessage,
+  tokenCount: document.tokenCount,
+  chunkCount: document.chunkCount,
+  createdAt: document.createdAt.toISOString(),
+  updatedAt: document.updatedAt.toISOString(),
+});
+
+export const toGraphqlKnowledgeSourceDetail = (
+  detail: KnowledgeSourceDetailView,
+): GraphqlKnowledgeSourceDetail => ({
+  source: toGraphqlKnowledgeSource(detail.source),
+  documents: detail.documents.map(toGraphqlKnowledgeSourceDocument),
+});

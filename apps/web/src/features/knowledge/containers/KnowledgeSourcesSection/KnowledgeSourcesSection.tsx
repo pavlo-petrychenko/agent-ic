@@ -5,11 +5,12 @@ import { useRetryKnowledgeSource } from '@/features/knowledge/communication/hook
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import { AddSourceDialog } from '@/features/knowledge/containers/AddSourceDialog';
 import { DeleteKnowledgeSourceDialog } from '@/features/knowledge/containers/DeleteKnowledgeSourceDialog';
+import { KnowledgeSourceDetailsDrawer } from '@/features/knowledge/containers/KnowledgeSourceDetailsDrawer';
 import type { KnowledgeSourcesSectionProps } from '@/features/knowledge/containers/KnowledgeSourcesSection/KnowledgeSourcesSection.typedefs';
 import { useKnowledgeSourceRows } from '@/features/knowledge/containers/KnowledgeSourcesSection/useKnowledgeSourceRows';
 import { RenameKnowledgeSourceDialog } from '@/features/knowledge/containers/RenameKnowledgeSourceDialog';
 import { isKnowledgeSourceActive } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
-import type { KnowledgeSourceRowView } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import type { KnowledgeSourceTarget } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import { KnowledgeSourcesEmpty } from '@/features/knowledge/view/KnowledgeSourcesEmpty';
 import { KnowledgeSourcesTable } from '@/features/knowledge/view/KnowledgeSourcesTable';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
@@ -33,8 +34,9 @@ export function KnowledgeSourcesSection({
   const { retryKnowledgeSource, retryingSourceId } = useRetryKnowledgeSource(knowledgeBaseId);
   const rows = useKnowledgeSourceRows(sources);
   const [adding, setAdding] = useState(initialAddSource !== null);
-  const [renameTarget, setRenameTarget] = useState<KnowledgeSourceRowView | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<KnowledgeSourceRowView | null>(null);
+  const [detailsSourceId, setDetailsSourceId] = useState<string | null>(null);
+  const [renameTarget, setRenameTarget] = useState<KnowledgeSourceTarget | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<KnowledgeSourceTarget | null>(null);
   const active = sources.some(({ status }) => isKnowledgeSourceActive(status));
   const previousActive = useRef(active);
 
@@ -46,9 +48,10 @@ export function KnowledgeSourcesSection({
   }, [active, onCountsChanged]);
 
   const onAddSource = canAddSource ? () => setAdding(true) : null;
+  const onOpenSource = (source: KnowledgeSourceTarget) => setDetailsSourceId(source.id);
   const onRenameSource = canManageSources ? setRenameTarget : null;
   const onRetrySource = canManageSources
-    ? (source: KnowledgeSourceRowView) => {
+    ? (source: KnowledgeSourceTarget) => {
         void (async () => {
           try {
             await retryKnowledgeSource(source.id);
@@ -77,7 +80,9 @@ export function KnowledgeSourcesSection({
           retryLabel: t('retry'),
           onRetry: refreshSources,
         }}
+        currentSourceId={null}
         onAddSource={onAddSource}
+        onOpenSource={null}
         onRenameSource={null}
         onRetrySource={null}
         onDeleteSource={null}
@@ -89,7 +94,9 @@ export function KnowledgeSourcesSection({
           rows={[]}
           loading
           error={null}
+          currentSourceId={null}
           onAddSource={null}
+          onOpenSource={null}
           onRenameSource={null}
           onRetrySource={null}
           onDeleteSource={null}
@@ -104,7 +111,9 @@ export function KnowledgeSourcesSection({
           rows={rows}
           loading={false}
           error={null}
+          currentSourceId={detailsSourceId}
           onAddSource={onAddSource}
+          onOpenSource={onOpenSource}
           onRenameSource={onRenameSource}
           onRetrySource={onRetrySource}
           onDeleteSource={onDeleteSource}
@@ -138,8 +147,24 @@ export function KnowledgeSourcesSection({
         <DeleteKnowledgeSourceDialog
           knowledgeBaseId={knowledgeBaseId}
           source={deleteTarget}
-          onDeleted={() => setDeleteTarget(null)}
+          onDeleted={() => {
+            if (deleteTarget.id === detailsSourceId) {
+              setDetailsSourceId(null);
+            }
+            setDeleteTarget(null);
+          }}
           onClose={() => setDeleteTarget(null)}
+        />
+      ) : null}
+      {detailsSourceId !== null ? (
+        <KnowledgeSourceDetailsDrawer
+          sourceId={detailsSourceId}
+          canManage={canManageSources}
+          retrying={retryingSourceId === detailsSourceId}
+          onClose={() => setDetailsSourceId(null)}
+          onRename={setRenameTarget}
+          onRetry={(source) => onRetrySource?.(source)}
+          onDelete={setDeleteTarget}
         />
       ) : null}
     </>

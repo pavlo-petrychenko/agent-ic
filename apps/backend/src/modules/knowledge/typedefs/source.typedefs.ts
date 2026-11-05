@@ -1,4 +1,5 @@
 import type {
+  KnowledgeDocumentStatus,
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
   KnowledgeSyncInterval,
@@ -30,6 +31,28 @@ export interface KnowledgeSourceView {
 
 export interface ListKnowledgeSourcesInput {
   readonly knowledgeBaseId: string;
+}
+
+export interface GetKnowledgeSourceInput {
+  readonly id: string;
+}
+
+export interface KnowledgeSourceDocumentView {
+  readonly id: string;
+  readonly title: string;
+  readonly status: KnowledgeDocumentStatus;
+  readonly summary: string | null;
+  readonly errorCode: string | null;
+  readonly errorMessage: string | null;
+  readonly tokenCount: number;
+  readonly chunkCount: number;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+export interface KnowledgeSourceDetailView {
+  readonly source: KnowledgeSourceView;
+  readonly documents: readonly KnowledgeSourceDocumentView[];
 }
 
 export interface DeleteKnowledgeSourceInput {

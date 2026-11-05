@@ -48,6 +48,7 @@ import { CreateUploadUseCase } from '@/modules/knowledge/use-cases/create-upload
 import { DeleteKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/delete-knowledge-base.use-case';
 import { DeleteKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/delete-knowledge-source.use-case';
 import { DisconnectGoogleConnectionUseCase } from '@/modules/knowledge/use-cases/disconnect-google-connection.use-case';
+import { GetKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/get-knowledge-source.use-case';
 import { IngestKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/ingest-knowledge-source.use-case';
 import { ListGoogleConnectionsUseCase } from '@/modules/knowledge/use-cases/list-google-connections.use-case';
 import { ListKnowledgeBasesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-bases.use-case';
@@ -94,6 +95,7 @@ export class KnowledgeModule extends defineModule({
     DeleteKnowledgeBaseUseCase,
     DeleteKnowledgeSourceUseCase,
     DisconnectGoogleConnectionUseCase,
+    GetKnowledgeSourceUseCase,
     IngestKnowledgeSourceUseCase,
     ListGoogleConnectionsUseCase,
     ListKnowledgeBasesUseCase,
