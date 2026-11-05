@@ -3,11 +3,9 @@ import {
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
 import { toGraphqlMessage } from '@/modules/conversations/helpers/simulation-graphql.helpers';
+import type { InboxConversationDetailParent } from '@/modules/conversations/typedefs/inbox-graphql.typedefs';
 import type { InboxDetail, InboxSummary } from '@/modules/conversations/typedefs/inbox.typedefs';
-import type {
-  InboxConversationDetail,
-  InboxConversationSummary,
-} from '@/platform/graphql-server/generated/schema.generated';
+import type { InboxConversationSummary } from '@/platform/graphql-server/generated/schema.generated';
 import {
   ChannelConversationKind as GraphqlChannelConversationKind,
   ConversationState as GraphqlConversationState,
@@ -45,7 +43,7 @@ export const toGraphqlInboxSummary = (summary: InboxSummary): InboxConversationS
   closedAt: summary.closedAt?.toISOString() ?? null,
 });
 
-export const toGraphqlInboxDetail = (detail: InboxDetail): InboxConversationDetail => ({
+export const toGraphqlInboxDetail = (detail: InboxDetail): InboxConversationDetailParent => ({
   summary: toGraphqlInboxSummary(detail.summary),
   messages: detail.messages.map(toGraphqlMessage),
 });

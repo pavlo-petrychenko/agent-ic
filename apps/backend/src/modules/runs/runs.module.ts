@@ -147,5 +147,11 @@ export class RunsModule extends defineModule({
     FireScheduleTickProcessor,
   ],
   listeners: [StartRunOnMessageListener, ArmInactivityOnHandBackListener],
-  exports: [MessageRunService, RunCompletionService, RunReplyCaptureService],
+  exports: [
+    MessageRunService,
+    RunCompletionService,
+    RunReplyCaptureService,
+    RunsRepository,
+    RunStepsRepository,
+  ],
 }) {}

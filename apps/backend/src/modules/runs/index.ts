@@ -16,6 +16,8 @@ export { UnsupportedNodeTypeError } from '@/modules/runs/errors/unsupported-node
 export { executeRunJob } from '@/modules/runs/jobs/execute-run.job';
 export { startRunOnMessageJob } from '@/modules/runs/jobs/start-run-on-message.job';
 export { RunsModule } from '@/modules/runs/runs.module';
+export { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
+export { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 export { MessageRunService } from '@/modules/runs/services/message-run.service';
 export { RunCompletionService } from '@/modules/runs/services/run-completion.service';
 export { RunReplyCaptureService } from '@/modules/runs/services/run-reply-capture.service';

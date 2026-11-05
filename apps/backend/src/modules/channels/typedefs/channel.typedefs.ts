@@ -63,6 +63,11 @@ export interface ChannelView {
   readonly updatedAt: Date;
 }
 
+export interface ChannelSummary {
+  readonly name: string;
+  readonly replyTarget: ApiReplyMode | null;
+}
+
 export interface ConnectTelegramInput {
   readonly token: string;
   readonly agentId: string;

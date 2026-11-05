@@ -45,11 +45,14 @@ const API_REPLY_MODE: Readonly<Record<GraphqlApiReplyMode, ApiReplyMode>> = {
   [GraphqlApiReplyMode.Webhook]: ApiReplyMode.Webhook,
 };
 
+export const toGraphqlApiReplyMode = (mode: ApiReplyMode): GraphqlApiReplyMode =>
+  GRAPHQL_API_REPLY_MODE[mode];
+
 export const toGraphqlChannel = (channel: ChannelView): GraphqlChannel => ({
   ...channel,
   kind: GRAPHQL_CHANNEL_KIND[channel.kind],
   status: GRAPHQL_CHANNEL_STATUS[channel.status],
-  replyMode: channel.replyMode === null ? null : GRAPHQL_API_REPLY_MODE[channel.replyMode],
+  replyMode: channel.replyMode === null ? null : toGraphqlApiReplyMode(channel.replyMode),
   createdAt: channel.createdAt.toISOString(),
   updatedAt: channel.updatedAt.toISOString(),
 });
