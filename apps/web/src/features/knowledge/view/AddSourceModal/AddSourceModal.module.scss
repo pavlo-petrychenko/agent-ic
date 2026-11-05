@@ -150,12 +150,6 @@ $mobile-card-width: 220px;
   gap: var(--space-5);
 }
 
-.scheduleOptions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-}
-
 @media (max-width: $mobile-breakpoint) {
   .layout {
     grid-template-columns: minmax(0, 1fr);
