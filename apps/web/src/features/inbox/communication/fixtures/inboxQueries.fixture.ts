@@ -14,7 +14,7 @@ import {
 } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
 import { InboxCurrentUserDocument } from '@/features/inbox/communication/gql/query/inboxCurrentUser.generated';
 import { InboxNeedsYouCountDocument } from '@/features/inbox/communication/gql/query/inboxNeedsYouCount.generated';
-import { INBOX_CONVERSATIONS_FETCH_LIMIT } from '@/features/inbox/constants/inbox.constants';
+import { INBOX_CONVERSATIONS_PAGE_SIZE } from '@/features/inbox/constants/inbox.constants';
 import {
   ApiReplyMode,
   ChannelConversationKind,
@@ -539,7 +539,7 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
     {
       request: {
         query: InboxConversationsDocument,
-        variables: { limit: INBOX_CONVERSATIONS_FETCH_LIMIT },
+        variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null },
       },
       result: () => ({
         data: {
