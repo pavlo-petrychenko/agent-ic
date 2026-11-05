@@ -13,6 +13,7 @@ export function useReplyAsOperator() {
         refetchQueries: [
           { query: InboxConversationDocument, variables: { id: conversationId } },
           'InboxConversations',
+          'InboxCounts',
         ],
         awaitRefetchQueries: true,
       });

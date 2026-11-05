@@ -1,0 +1,7 @@
+query InboxCounts {
+  inboxCounts {
+    needsYou
+    live
+    closed
+  }
+}

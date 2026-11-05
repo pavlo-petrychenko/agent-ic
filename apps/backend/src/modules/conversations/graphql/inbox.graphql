@@ -2,6 +2,19 @@ extend type Query {
   inboxConversations(input: InboxConversationsInput!): [InboxConversationSummary!]!
   inboxConversation(input: InboxConversationInput!): InboxConversationDetail!
   inboxNeedsYouCount: Int!
+  inboxCounts: InboxCounts!
+}
+
+enum InboxQueue {
+  needs_you
+  live
+  closed
+}
+
+type InboxCounts {
+  needsYou: Int!
+  live: Int!
+  closed: Int!
 }
 
 extend type Subscription {
@@ -20,6 +33,7 @@ type InboxActivityEvent {
 input InboxConversationsInput {
   limit: Int
   after: InboxConversationsCursor
+  queue: InboxQueue!
 }
 
 input InboxConversationsCursor {

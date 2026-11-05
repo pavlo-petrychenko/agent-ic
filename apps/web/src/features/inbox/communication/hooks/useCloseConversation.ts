@@ -10,7 +10,11 @@ export function useCloseConversation() {
     async (conversationId: string, message: string | null) => {
       await closeConversationMutation({
         variables: { input: { conversationId, message } },
-        refetchQueries: [{ query: InboxNeedsYouCountDocument }, 'InboxConversations'],
+        refetchQueries: [
+          { query: InboxNeedsYouCountDocument },
+          'InboxConversations',
+          'InboxCounts',
+        ],
         awaitRefetchQueries: true,
       });
     },

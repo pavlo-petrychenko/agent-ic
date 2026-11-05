@@ -2,6 +2,7 @@ import type {
   ChannelKind,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
+import type { InboxQueue } from '@/modules/conversations/constants/inbox.constants';
 import type { MessageView } from '@/modules/conversations/typedefs/simulation.typedefs';
 
 export interface InboxSummary {
@@ -38,6 +39,13 @@ export interface InboxConversationsCursor {
 export interface InboxConversationsInput {
   readonly limit: number | null;
   readonly after?: InboxConversationsCursor | null;
+  readonly queue: InboxQueue;
+}
+
+export interface InboxCounts {
+  readonly needsYou: number;
+  readonly live: number;
+  readonly closed: number;
 }
 
 export interface InboxConversationInput {
