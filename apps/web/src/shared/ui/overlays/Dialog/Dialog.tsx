@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { Dialog as DialogPrimitive } from 'radix-ui';
+import { FocusScope } from 'radix-ui/internal';
 import { type ReactNode, useState } from 'react';
 import { IconButton } from '@/shared/ui/actions/IconButton';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
@@ -22,6 +23,8 @@ export function Dialog({
   onOpenChange,
   busy = false,
   modal = true,
+  scrim = false,
+  trapFocus = false,
   error = null,
   title,
   description = null,
@@ -36,51 +39,70 @@ export function Dialog({
   const describedByOverride = description === null ? { 'aria-describedby': undefined } : {};
   const hasBody = error !== null || rendersContent(children);
   const hasFooter = footerLeft !== null || footerRight !== null;
+  const showsScrim = scrim && !modal;
+
+  const content = (
+    <DialogPrimitive.Content
+      ref={setPortalContainer}
+      className={clsx(styles.content, styles[size])}
+      aria-busy={busy || undefined}
+      aria-modal={showsScrim && trapFocus ? true : undefined}
+      onEscapeKeyDown={busy ? preventDismiss : undefined}
+      onPointerDownOutside={busy ? preventDismiss : undefined}
+      onInteractOutside={modal || trapFocus ? undefined : preventDismiss}
+      {...describedByOverride}
+    >
+      <header className={styles.header}>
+        <div className={styles.heading}>
+          <DialogPrimitive.Title className={styles.title}>{title}</DialogPrimitive.Title>
+          {description === null ? null : (
+            <DialogPrimitive.Description className={styles.description}>
+              {description}
+            </DialogPrimitive.Description>
+          )}
+        </div>
+        <DialogPrimitive.Close asChild>
+          <IconButton icon={IconName.X} label={closeLabel} disabled={busy} />
+        </DialogPrimitive.Close>
+      </header>
+      {hasBody ? (
+        <div className={clsx(styles.body, flush && styles.flush)}>
+          {error === null ? null : (
+            <Callout tone={CalloutTone.Err} icon={DIALOG_ERROR_ICON} className={styles.error}>
+              {error}
+            </Callout>
+          )}
+          {children}
+        </div>
+      ) : null}
+      {hasFooter ? (
+        <footer className={styles.footer}>
+          <div className={styles.footerLeft}>{footerLeft}</div>
+          <div className={styles.footerRight}>{footerRight}</div>
+        </footer>
+      ) : null}
+    </DialogPrimitive.Content>
+  );
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange} modal={modal}>
       <NestedPortalContainerProvider value={portalContainer}>
         <DialogPrimitive.Portal>
-          <DialogPrimitive.Overlay className={styles.overlay} />
-          <DialogPrimitive.Content
-            ref={setPortalContainer}
-            className={clsx(styles.content, styles[size])}
-            aria-busy={busy || undefined}
-            onEscapeKeyDown={busy ? preventDismiss : undefined}
-            onPointerDownOutside={busy ? preventDismiss : undefined}
-            onInteractOutside={modal ? undefined : preventDismiss}
-            {...describedByOverride}
-          >
-            <header className={styles.header}>
-              <div className={styles.heading}>
-                <DialogPrimitive.Title className={styles.title}>{title}</DialogPrimitive.Title>
-                {description === null ? null : (
-                  <DialogPrimitive.Description className={styles.description}>
-                    {description}
-                  </DialogPrimitive.Description>
-                )}
-              </div>
-              <DialogPrimitive.Close asChild>
-                <IconButton icon={IconName.X} label={closeLabel} disabled={busy} />
-              </DialogPrimitive.Close>
-            </header>
-            {hasBody ? (
-              <div className={clsx(styles.body, flush && styles.flush)}>
-                {error === null ? null : (
-                  <Callout tone={CalloutTone.Err} icon={DIALOG_ERROR_ICON} className={styles.error}>
-                    {error}
-                  </Callout>
-                )}
-                {children}
-              </div>
-            ) : null}
-            {hasFooter ? (
-              <footer className={styles.footer}>
-                <div className={styles.footerLeft}>{footerLeft}</div>
-                <div className={styles.footerRight}>{footerRight}</div>
-              </footer>
-            ) : null}
-          </DialogPrimitive.Content>
+          {modal ? <DialogPrimitive.Overlay className={styles.overlay} /> : null}
+          {showsScrim ? (
+            <div
+              className={styles.overlay}
+              data-state={open ? 'open' : 'closed'}
+              aria-hidden="true"
+            />
+          ) : null}
+          {showsScrim ? (
+            <FocusScope.Root asChild loop trapped={trapFocus}>
+              {content}
+            </FocusScope.Root>
+          ) : (
+            content
+          )}
         </DialogPrimitive.Portal>
       </NestedPortalContainerProvider>
     </DialogPrimitive.Root>
