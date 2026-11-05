@@ -33,6 +33,7 @@ import { RemoveSourceDocumentResolver } from '@/modules/knowledge/resolvers/remo
 import { RenameKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/rename-knowledge-base.resolver';
 import { RenameKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/rename-knowledge-source.resolver';
 import { RetryKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/retry-knowledge-source.resolver';
+import { SearchKnowledgeResolver } from '@/modules/knowledge/resolvers/search-knowledge.resolver';
 import { SyncKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/sync-knowledge-source.resolver';
 import { UpdateDocumentSummaryResolver } from '@/modules/knowledge/resolvers/update-document-summary.resolver';
 import { UpdateKnowledgeSourceScheduleResolver } from '@/modules/knowledge/resolvers/update-knowledge-source-schedule.resolver';
@@ -45,6 +46,7 @@ import { KnowledgeConnectionViewsService } from '@/modules/knowledge/services/kn
 import { KnowledgeDocumentIngestionService } from '@/modules/knowledge/services/knowledge-document-ingestion.service';
 import { KnowledgeDocumentReindexService } from '@/modules/knowledge/services/knowledge-document-reindex.service';
 import { KnowledgeEmbeddingService } from '@/modules/knowledge/services/knowledge-embedding.service';
+import { KnowledgeSearchService } from '@/modules/knowledge/services/knowledge-search.service';
 import { KnowledgeSourceSyncService } from '@/modules/knowledge/services/knowledge-source-sync.service';
 import { KnowledgeSourceViewsService } from '@/modules/knowledge/services/knowledge-source-views.service';
 import { KnowledgeUploadTargetsService } from '@/modules/knowledge/services/knowledge-upload-targets.service';
@@ -71,6 +73,7 @@ import { RenameKnowledgeBaseUseCase } from '@/modules/knowledge/use-cases/rename
 import { RenameKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/rename-knowledge-source.use-case';
 import { RetryKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/retry-knowledge-source.use-case';
 import { ScheduledKnowledgeSourceSyncUseCase } from '@/modules/knowledge/use-cases/scheduled-knowledge-source-sync.use-case';
+import { SearchKnowledgeUseCase } from '@/modules/knowledge/use-cases/search-knowledge.use-case';
 import { StartGoogleConnectionUseCase } from '@/modules/knowledge/use-cases/start-google-connection.use-case';
 import { SyncKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/sync-knowledge-source.use-case';
 import { UpdateDocumentSummaryUseCase } from '@/modules/knowledge/use-cases/update-document-summary.use-case';
@@ -98,6 +101,7 @@ export class KnowledgeModule extends defineModule({
     KnowledgeDocumentIngestionService,
     KnowledgeDocumentReindexService,
     KnowledgeEmbeddingService,
+    KnowledgeSearchService,
     KnowledgeSourceSyncService,
     KnowledgeBaseViewsService,
     KnowledgeSourceViewsService,
@@ -127,6 +131,7 @@ export class KnowledgeModule extends defineModule({
     RenameKnowledgeSourceUseCase,
     RemoveSourceDocumentUseCase,
     RetryKnowledgeSourceUseCase,
+    SearchKnowledgeUseCase,
     ReindexKnowledgeDocumentUseCase,
     ScheduledKnowledgeSourceSyncUseCase,
     StartGoogleConnectionUseCase,
@@ -147,6 +152,7 @@ export class KnowledgeModule extends defineModule({
     RenameKnowledgeSourceResolver,
     RemoveSourceDocumentResolver,
     RetryKnowledgeSourceResolver,
+    SearchKnowledgeResolver,
     SyncKnowledgeSourceResolver,
     UpdateDocumentSummaryResolver,
     UpdateKnowledgeSourceScheduleResolver,
