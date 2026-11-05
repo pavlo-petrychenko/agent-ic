@@ -511,7 +511,7 @@ The query is a repository method with raw SQL; it is the only place where BM25 l
 - Each result carries: document public id, document title, source public id, source title, source kind, section path, text, RRF score and the Google/web URL when one exists.
 - Result text is truncated to 12,000 characters as a safety net for legacy sections whose stored content is missing; the token cap still decides which results are returned.
 
-Scores are relative relevance, not a percentage; the playground shows a bar and the raw score, not “87% match”.
+The API returns the raw RRF score. The playground shows a bar and that score normalized to the best result (best = `1.00`), not a percentage or a probability; the raw score stays available for debugging and the agent tool.
 
 ### 7.5 The agent tool
 
@@ -551,7 +551,7 @@ Reasons: predictable cost, focused answers, no accidental leakage of unrelated d
 
 The retrieval playground is a screen on the KB page:
 
-- input: query (capped at 1,000 characters), optional top-k (1–6, default 3; the panel offers 3, 5 and 6);
+- input: query (capped at 1,000 characters), optional top-k (1–6, default 3; the panel always requests 3);
 - output: the same results the agent tool would receive, with document, source, source kind, section, score and text;
 - no answer generation, no LLM: it shows retrieval, not chat;
 - useful for tuning chunking and for answering “why didn't it find this?”;
@@ -1399,7 +1399,7 @@ Behaviour:
 - **Document summary:** Google Docs documents show the one-line summary with an edit action. The Add source dialog explains that summaries are generated once and are not updated automatically. The edit dialog calls `updateDocumentSummary`; saving shows the document as `indexing` until the new generation is ready. Uploaded documents do not show the editor.
 - **Google Picker:** load the Google script on demand, call `createGooglePickerSession`, open the Picker filtered to Google Docs, review the picked documents in the dialog and send the final ids to `createGoogleDocsSource`.
 - **Delete dialog:** explains that the KB itself is deleted; the mutation refuses a KB that still has sources with `KNOWLEDGE_BASE_HAS_SOURCES` and the dialog tells the user to delete the sources first. Once the usages work is built, the dialog also lists agent usages and disables confirmation; the mutation is still the authority.
-- **Playground:** query input, top results, score bar, source/document/section labels, empty state.
+- **Playground:** query input, static “Top 3 results” note, score bar, source title, empty state; the preview strips Markdown syntax for readability while the API keeps the raw text.
 - **i18n:** every label in `en` and `uk`.
 
 ---

@@ -7,6 +7,7 @@ import { AddSourceType } from '@/features/knowledge/constants/googleConnection.c
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import { DeleteKnowledgeBaseDialog } from '@/features/knowledge/containers/DeleteKnowledgeBaseDialog';
 import type { KnowledgePageProps } from '@/features/knowledge/containers/KnowledgePage/KnowledgePage.typedefs';
+import { KnowledgePlayground } from '@/features/knowledge/containers/KnowledgePlayground';
 import { KnowledgeSourcesSection } from '@/features/knowledge/containers/KnowledgeSourcesSection';
 import { NewKnowledgeBaseDialog } from '@/features/knowledge/containers/NewKnowledgeBaseDialog';
 import { RenameKnowledgeBaseDialog } from '@/features/knowledge/containers/RenameKnowledgeBaseDialog';
@@ -162,16 +163,21 @@ export function KnowledgePage({
               <KnowledgeEmpty onCreate={onCreate} />
             )
           ) : (
-            <KnowledgeSourcesSection
-              key={selected.id}
-              workspaceId={workspaceId}
-              knowledgeBaseId={selected.id}
-              knowledgeBaseName={selected.name}
-              initialAddSource={googleConnected && canEdit ? AddSourceType.GoogleDocs : null}
-              canAddSource={canEdit}
-              canManageSources={canEdit}
-              onCountsChanged={refreshKnowledgeBases}
-            />
+            <div className="grid gap-5 default:grid-cols-[minmax(0,1fr)_300px] wide:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="min-w-0">
+                <KnowledgeSourcesSection
+                  key={selected.id}
+                  workspaceId={workspaceId}
+                  knowledgeBaseId={selected.id}
+                  knowledgeBaseName={selected.name}
+                  initialAddSource={googleConnected && canEdit ? AddSourceType.GoogleDocs : null}
+                  canAddSource={canEdit}
+                  canManageSources={canEdit}
+                  onCountsChanged={refreshKnowledgeBases}
+                />
+              </div>
+              <KnowledgePlayground key={selected.id} knowledgeBaseId={selected.id} />
+            </div>
           )}
         </div>
       </div>

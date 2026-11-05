@@ -1,0 +1,13 @@
+query SearchKnowledge($input: SearchKnowledgeInput!) {
+  searchKnowledge(input: $input) {
+    documentId
+    documentTitle
+    sourceId
+    sourceTitle
+    sourceKind
+    path
+    text
+    score
+    url
+  }
+}

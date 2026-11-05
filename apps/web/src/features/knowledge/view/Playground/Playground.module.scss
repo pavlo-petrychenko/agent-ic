@@ -1,0 +1,125 @@
+.panel {
+  align-self: start;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.title {
+  font: var(--type-body-small-strong);
+}
+
+.resultCount {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.form > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-10);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-8);
+  background: var(--color-panel);
+}
+
+.resultHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.source {
+  overflow: hidden;
+  font: var(--type-body-small-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.score {
+  flex-shrink: 0;
+  color: var(--color-mute);
+  font: var(--type-mono-xs);
+}
+
+.bar {
+  display: block;
+  overflow: hidden;
+  height: var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-soft);
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+}
+
+.text {
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font: var(--type-body-small);
+  white-space: pre-line;
+}
+
+.note {
+  padding-top: var(--space-8);
+  border-top: var(--border-width) solid var(--color-line-row);
+}
+
+.clamped {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.toggle {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: var(--type-caption-strong);
+  text-align: left;
+}
+
+.toggle:hover {
+  text-decoration: underline;
+}
+
+.empty {
+  padding: var(--space-12);
+  border: var(--border-width-dash) dashed var(--color-line-dash);
+  border-radius: var(--radius-8);
+  color: var(--color-mute);
+  font: var(--type-body-small);
+}
