@@ -5,6 +5,7 @@ import {
   type InboxTab,
 } from '@/features/inbox/constants/inbox.constants';
 import type { InboxConversation } from '@/features/inbox/typedefs/conversation.typedefs';
+import type { InboxFilters } from '@/features/inbox/typedefs/list.typedefs';
 
 export const inboxTabOf = (conversation: InboxConversation): InboxTab =>
   INBOX_TAB_BY_REPLY_STATE[conversation.replyState];
@@ -18,6 +19,14 @@ export const countConversationsByTab = (
   }
   return counts;
 };
+
+export const matchesInboxFilters = (
+  conversation: InboxConversation,
+  filters: InboxFilters,
+): boolean =>
+  (filters.channelIds.length === 0 ||
+    (conversation.channelId !== null && filters.channelIds.includes(conversation.channelId))) &&
+  (filters.agentIds.length === 0 || filters.agentIds.includes(conversation.agentId));
 
 export const matchesConversationQuery = (
   conversation: InboxConversation,
@@ -51,9 +60,3 @@ export const visibleConversations = (
       inboxTabOf(conversation) === tab &&
       matchesConversationQuery(conversation, query, providerLabels),
   );
-
-export const firstConversationId = (
-  conversations: readonly InboxConversation[],
-  tab: InboxTab,
-): string | null =>
-  conversations.find((conversation) => inboxTabOf(conversation) === tab)?.id ?? null;
