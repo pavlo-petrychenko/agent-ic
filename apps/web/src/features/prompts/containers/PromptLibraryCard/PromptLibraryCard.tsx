@@ -5,17 +5,18 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePromptLibrary } from '@/features/prompts/communication/hooks/usePromptLibrary';
 import { usePromptVersions } from '@/features/prompts/communication/hooks/usePromptVersions';
-import { PROMPT_PIN_LATEST } from '@/features/prompts/constants/promptField.constants';
+import {
+  PROMPT_PIN_LATEST,
+  PROMPT_VERSION_CHEVRON_SIZE,
+  PROMPT_VERSION_RADIO_NAME,
+} from '@/features/prompts/constants/promptField.constants';
 import { PROMPTS_NAMESPACE } from '@/features/prompts/constants/promptsI18n.constants';
 import { PROMPT_PATH } from '@/features/prompts/constants/route.constants';
 import { PromptBindings } from '@/features/prompts/containers/PromptLibraryCard/PromptBindings';
 import type { PromptLibraryCardProps } from '@/features/prompts/containers/PromptLibraryCard/PromptLibraryCard.typedefs';
-import { findFolderName } from '@/features/prompts/logic/helpers/promptFolder.helpers';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
-import { Card, CardGap } from '@/shared/ui/display/Card';
-import { IconName } from '@/shared/ui/foundations/Icon';
-import { Field } from '@/shared/ui/inputs/Field';
-import { Select } from '@/shared/ui/inputs/Select';
+import { Icon, IconName } from '@/shared/ui/foundations/Icon';
+import { Radio } from '@/shared/ui/inputs/Radio';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
 const NO_BINDINGS: PromptBindingsMap = {};
@@ -28,13 +29,13 @@ export function PromptLibraryCard({
   onAutoFilled = null,
   error,
   onChange,
+  onChangePrompt,
 }: PromptLibraryCardProps) {
   const { t } = useTranslation(PROMPTS_NAMESPACE);
   const navigate = useNavigate();
-  const { folders, prompts } = usePromptLibrary();
+  const { prompts } = usePromptLibrary();
   const { versions, failed, retry } = usePromptVersions(source.promptRef);
   const prompt = prompts.find((item) => item.id === source.promptRef) ?? null;
-  const folderName = prompt === null ? null : findFolderName(folders, prompt.folderId);
   const pinned = source.pin.kind === PromptVersionKind.Pinned ? source.pin.number : null;
   const shownVersion =
     versions === null
@@ -45,6 +46,20 @@ export function PromptLibraryCard({
   const bindings = source.bindings ?? NO_BINDINGS;
   const autoFilled = useRef<string | null>(null);
   const autoKey = `${source.promptRef}:${shownVersion?.number ?? 'none'}`;
+  const promptName = prompt?.name ?? source.promptRef;
+  const displayVersion = shownVersion?.number ?? pinned;
+  const libraryLabel =
+    displayVersion === null
+      ? t('field.library')
+      : t('field.libraryVersion', { number: displayVersion });
+  const pinNumber = pinned ?? shownVersion?.number ?? null;
+  const pinValue = pinned === null ? PROMPT_PIN_LATEST : String(pinned);
+  const pinOptions = [
+    ...(pinNumber === null
+      ? []
+      : [{ value: String(pinNumber), label: t('field.pinVersion', { number: pinNumber }) }]),
+    { value: PROMPT_PIN_LATEST, label: t('field.followLatest') },
+  ];
 
   useEffect(() => {
     if (!autoFill || shownVersion === null || autoFilled.current === autoKey) {
@@ -68,64 +83,59 @@ export function PromptLibraryCard({
     onAutoFilled?.();
   }, [autoFill, autoKey, bindings, onChange, onAutoFilled, shownVersion, source, variables]);
 
-  const numbers = versions?.map((version) => version.number) ?? [];
-  const options = [
-    { value: PROMPT_PIN_LATEST, label: t('field.followLatest') },
-    ...numbers.map((number) => ({
-      value: String(number),
-      label: t('versions.number', { number }),
-    })),
-    ...(pinned !== null && !numbers.includes(pinned)
-      ? [{ value: String(pinned), label: t('versions.number', { number: pinned }) }]
-      : []),
-  ];
-
   return (
-    <Card gap={CardGap.Sm} className="min-w-0">
-      <div className="flex min-w-0 items-start justify-between gap-2">
-        <span className="flex min-w-0 flex-col gap-1">
-          <Text kind={TextKind.BodySmall}>{prompt?.name ?? source.promptRef}</Text>
-          {folderName !== null && (
+    <div className="flex min-w-0 flex-col gap-2">
+      <Button
+        fullWidth
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Md}
+        className="justify-between [&>span]:flex [&>span]:w-full [&>span]:items-center"
+        aria-label={t('field.changeNamed', { name: promptName })}
+        onClick={onChangePrompt}
+      >
+        <span className="flex min-w-0 flex-1 items-center justify-between gap-2">
+          <span className="truncate">{promptName}</span>
+          <span className="flex shrink-0 items-center gap-1">
             <Text kind={TextKind.Caption} color={TextColor.Mute}>
-              {folderName}
+              {libraryLabel}
             </Text>
-          )}
+            <Icon name={IconName.ChevronDown} size={PROMPT_VERSION_CHEVRON_SIZE} />
+          </span>
         </span>
-        <Button
-          variant={ButtonVariant.Ghost}
-          size={ButtonSize.Sm}
-          icon={IconName.Compl}
-          onClick={() => {
-            void navigate({
-              to: PROMPT_PATH,
-              params: { workspaceId, promptId: source.promptRef },
+      </Button>
+      <Button
+        className="self-start"
+        variant={ButtonVariant.Ghost}
+        size={ButtonSize.Sm}
+        onClick={() => {
+          void navigate({
+            to: PROMPT_PATH,
+            params: { workspaceId, promptId: source.promptRef },
+          });
+        }}
+      >
+        {t('field.openInLibrary')}
+      </Button>
+      {pinNumber !== null && (
+        <Radio
+          name={`${PROMPT_VERSION_RADIO_NAME}-${source.promptRef}`}
+          value={pinValue}
+          onValueChange={(next) => {
+            onChange({
+              ...source,
+              pin:
+                next === PROMPT_PIN_LATEST
+                  ? { kind: PromptVersionKind.Latest }
+                  : { kind: PromptVersionKind.Pinned, number: Number(next) },
             });
           }}
-        >
-          {t('field.openInLibrary')}
-        </Button>
-      </div>
-      <Field label={t('field.version')}>
-        {(control) => (
-          <Select
-            {...control}
-            value={pinned === null ? PROMPT_PIN_LATEST : String(pinned)}
-            options={options}
-            onChange={(event) =>
-              onChange({
-                ...source,
-                pin:
-                  event.target.value === PROMPT_PIN_LATEST
-                    ? { kind: PromptVersionKind.Latest }
-                    : { kind: PromptVersionKind.Pinned, number: Number(event.target.value) },
-              })
-            }
-          />
-        )}
-      </Field>
+          options={pinOptions}
+          ariaLabel={t('field.version')}
+        />
+      )}
       {versions === null && (
         <Text kind={TextKind.Caption} color={failed ? TextColor.Err : TextColor.Mute}>
-          {failed ? t('versions.loadError') : t('field.variables.loading')}
+          {failed ? t('versions.loadError') : t('versions.loading')}
         </Text>
       )}
       {failed && (
@@ -149,6 +159,6 @@ export function PromptLibraryCard({
           {error}
         </Text>
       )}
-    </Card>
+    </div>
   );
 }

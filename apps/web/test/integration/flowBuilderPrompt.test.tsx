@@ -93,16 +93,12 @@ describe('flow builder prompt picker', () => {
     });
 
     expect(await within(inspector).findByText('Receptionist')).toBeVisible();
-    expect(within(inspector).getByText('Q&A')).toBeVisible();
-    await within(inspector).findByRole('option', { name: 'v2' });
+    expect(await within(inspector).findByText('Library · v4')).toBeVisible();
 
-    await userEvent.selectOptions(
-      within(inspector).getByRole('combobox', { name: 'Version' }),
-      '2',
-    );
+    await userEvent.click(await within(inspector).findByRole('radio', { name: 'Pin v4' }));
 
     expect(step()?.config).toMatchObject({
-      prompt: { pin: { kind: PromptVersionKind.Pinned, number: 2 } },
+      prompt: { pin: { kind: PromptVersionKind.Pinned, number: 4 } },
     });
   });
 });

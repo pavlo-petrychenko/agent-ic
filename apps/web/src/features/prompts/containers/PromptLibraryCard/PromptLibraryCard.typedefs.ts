@@ -9,4 +9,5 @@ export interface PromptLibraryCardProps {
   readonly onAutoFilled?: (() => void) | null;
   readonly error: string | null;
   readonly onChange: (source: PromptSource) => void;
+  readonly onChangePrompt: () => void;
 }
