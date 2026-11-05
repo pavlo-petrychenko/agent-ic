@@ -524,6 +524,7 @@ input:       { query: string (1..1000), top_k?: integer (1..20) }
 output:      { found: boolean, results: [{ text, document, section, source, score }] }
 ```
 
+- The Agent step inspector has a **Knowledge** section with an **Attach knowledge base** picker. The picker is a multi-select over the workspace's KBs and writes the chosen public IDs to `config.knowledgeBaseIds`; there is no separate attachment table and no global KB tool.
 - `AgentExecutor` builds the tool map for the Agent step from `config.knowledgeBaseIds`. It calls `KnowledgeSearchService`, exported by the knowledge module.
 - The tool description tells the model to ask a natural-language question (“how long does delivery take?”) rather than a list of keywords. The implementation still uses BM25 and trigram, so exact names and prices also work.
 - The tool returns whole small sections, not isolated sentences. This is the “small-to-big” expansion.

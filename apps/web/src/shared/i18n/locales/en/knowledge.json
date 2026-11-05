@@ -40,6 +40,25 @@
     "save": "Save",
     "saved": "Knowledge base access updated."
   },
+  "agentField": {
+    "selectedLabel": "Knowledge bases attached to this step",
+    "empty": "No knowledge base attached yet.",
+    "loading": "Loading knowledge bases…",
+    "loadError": "Could not load knowledge bases.",
+    "retry": "Retry loading knowledge bases",
+    "attach": "Attach knowledge base",
+    "remove": "Remove {{name}}",
+    "removeMissing": "Remove missing knowledge base",
+    "missing": "This knowledge base no longer exists",
+    "pickerTitle": "Attach knowledge bases",
+    "pickerDescription": "Each selected knowledge base becomes a search tool for this step.",
+    "search": "Search knowledge bases",
+    "clearSearch": "Clear search",
+    "noKnowledgeBases": "No knowledge bases yet",
+    "noKnowledgeBasesNote": "Create a knowledge base in Knowledge first.",
+    "noMatch": "No knowledge base matches “{{query}}”.",
+    "done": "Done"
+  },
   "add": {
     "action": "Add source",
     "title": "Add source to “{{name}}”",

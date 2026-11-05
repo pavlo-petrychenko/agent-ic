@@ -1,5 +1,7 @@
 export { KnowledgePage } from '@/features/knowledge/containers/KnowledgePage';
 export type { KnowledgePageProps } from '@/features/knowledge/containers/KnowledgePage/KnowledgePage.typedefs';
+export { KnowledgeBaseField } from '@/features/knowledge/containers/KnowledgeBaseField';
+export type { KnowledgeBaseFieldProps } from '@/features/knowledge/containers/KnowledgeBaseField/KnowledgeBaseField.typedefs';
 export { GoogleCallbackPage } from '@/features/knowledge/containers/GoogleCallbackPage';
 export {
   AddSourceType,

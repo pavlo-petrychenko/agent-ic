@@ -76,6 +76,7 @@ import {
   removeOutputField,
   selectModel,
   setIncludeCurrentMessage,
+  setKnowledgeBaseIds,
   setRetries,
   updateLlmStep,
   updateOutputField,
@@ -292,6 +293,11 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
         return llmStep(current, {
           type: NodeType.Agent,
           retries: current.config.retries,
+          knowledgeBaseIds: current.config.knowledgeBaseIds,
+          knowledgeIssue:
+            fieldErrors(issues, current.id).get(IssuePathSegment.KnowledgeBaseIds) ?? null,
+          onKnowledgeBaseIdsChange: (knowledgeBaseIds) =>
+            apply(setKnowledgeBaseIds(document, current.id, knowledgeBaseIds)),
           onFailure: portTargets(document, current.id, PortName.Error),
           onRetriesChange: (retries) => apply(setRetries(document, current.id, retries)),
           exits: agentExits(current),

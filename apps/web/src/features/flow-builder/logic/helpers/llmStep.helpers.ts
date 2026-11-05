@@ -38,6 +38,17 @@ export const setRetries = (document: FlowDocument, nodeId: string, retries: numb
     node.type === NodeType.Agent ? { ...node, config: { ...node.config, retries } } : node,
   );
 
+export const setKnowledgeBaseIds = (
+  document: FlowDocument,
+  nodeId: string,
+  knowledgeBaseIds: readonly string[],
+): FlowDocument =>
+  updateNode(document, nodeId, (node) =>
+    node.type === NodeType.Agent
+      ? { ...node, config: { ...node.config, knowledgeBaseIds: [...knowledgeBaseIds] } }
+      : node,
+  );
+
 export const setIncludeCurrentMessage = (
   document: FlowDocument,
   nodeId: string,
