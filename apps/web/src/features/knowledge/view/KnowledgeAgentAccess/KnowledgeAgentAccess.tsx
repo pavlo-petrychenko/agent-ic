@@ -2,6 +2,7 @@ import { knowledgeToolFallbackDescription } from '@agent-ic/contracts';
 import { useTranslation } from 'react-i18next';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import type { KnowledgeAgentAccessProps } from '@/features/knowledge/view/KnowledgeAgentAccess/KnowledgeAgentAccess.typedefs';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import styles from '@/features/knowledge/view/KnowledgeAgentAccess/KnowledgeAgentAccess.module.scss';
 
 export function KnowledgeAgentAccess({
@@ -9,6 +10,8 @@ export function KnowledgeAgentAccess({
   agents,
   loading,
   failed,
+  canEdit,
+  onEdit,
   onRetry,
 }: KnowledgeAgentAccessProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
@@ -21,6 +24,11 @@ export function KnowledgeAgentAccess({
         <h3 id="knowledge-agent-access-title" className={styles.title}>
           {t('agentAccess.title')}
         </h3>
+        {canEdit && onEdit !== null ? (
+          <Button size={ButtonSize.Sm} variant={ButtonVariant.Secondary} onClick={onEdit}>
+            {t('agentAccess.edit')}
+          </Button>
+        ) : null}
       </div>
       <dl className={styles.details}>
         <dt>{t('agentAccess.searchName')}</dt>

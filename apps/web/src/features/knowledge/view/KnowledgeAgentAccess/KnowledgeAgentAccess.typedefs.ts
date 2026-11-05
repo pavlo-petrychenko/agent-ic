@@ -8,5 +8,7 @@ export interface KnowledgeAgentAccessProps {
   readonly agents: readonly string[];
   readonly loading: boolean;
   readonly failed: boolean;
+  readonly canEdit: boolean;
+  readonly onEdit: (() => void) | null;
   readonly onRetry: () => void;
 }

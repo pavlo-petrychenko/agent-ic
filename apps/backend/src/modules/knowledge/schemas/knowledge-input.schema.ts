@@ -1,9 +1,13 @@
 import {
+  AGENT_RESERVED_TOOL_NAMES,
   KNOWLEDGE_BASE_DESCRIPTION_MAX_LENGTH,
   KNOWLEDGE_BASE_NAME_MAX_LENGTH,
   KNOWLEDGE_DOCUMENT_MAX_BYTES,
   KNOWLEDGE_SOURCE_TITLE_MAX_LENGTH,
   KNOWLEDGE_SUMMARY_MAX_LENGTH,
+  KNOWLEDGE_TOOL_DESCRIPTION_MAX_LENGTH,
+  KNOWLEDGE_TOOL_NAME_MAX_LENGTH,
+  KNOWLEDGE_TOOL_NAME_PATTERN,
 } from '@agent-ic/contracts';
 import { z } from 'zod';
 import { KnowledgeField } from '@/modules/knowledge/constants/knowledge-input.constants';
@@ -27,6 +31,21 @@ const recordIdSchema = z.string().min(1);
 const sourceIdInputSchema = z.object({ [KnowledgeField.Id]: recordIdSchema });
 const sourceTitleSchema = z.string().trim().min(1).max(KNOWLEDGE_SOURCE_TITLE_MAX_LENGTH);
 const documentSummarySchema = z.string().trim().min(1).max(KNOWLEDGE_SUMMARY_MAX_LENGTH);
+const toolNameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(KNOWLEDGE_TOOL_NAME_MAX_LENGTH)
+  .regex(KNOWLEDGE_TOOL_NAME_PATTERN)
+  .refine((value) => !AGENT_RESERVED_TOOL_NAMES.some((name) => name === value));
+const toolDescriptionSchema = z
+  .string()
+  .trim()
+  .max(KNOWLEDGE_TOOL_DESCRIPTION_MAX_LENGTH)
+  .nullish()
+  .transform((value) =>
+    value === null || value === undefined || value.length === 0 ? null : value,
+  );
 
 const descriptionSchema = z
   .string()
@@ -45,6 +64,12 @@ export const createKnowledgeBaseInputSchema = z.object({
 export const renameKnowledgeBaseInputSchema = z.object({
   [KnowledgeField.Id]: recordIdSchema,
   [KnowledgeField.Name]: nameSchema,
+});
+
+export const updateKnowledgeBaseToolInputSchema = z.object({
+  [KnowledgeField.Id]: recordIdSchema,
+  [KnowledgeField.ToolName]: toolNameSchema,
+  [KnowledgeField.ToolDescription]: toolDescriptionSchema,
 });
 
 export const renameKnowledgeSourceInputSchema = z.object({

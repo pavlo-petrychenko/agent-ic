@@ -32,6 +32,12 @@ export interface RenameKnowledgeBaseInput {
   readonly name: string;
 }
 
+export interface UpdateKnowledgeBaseToolInput {
+  readonly id: string;
+  readonly toolName: string;
+  readonly toolDescription?: string | null;
+}
+
 export interface ListKnowledgeBaseUsagesInput {
   readonly knowledgeBaseId: string;
 }

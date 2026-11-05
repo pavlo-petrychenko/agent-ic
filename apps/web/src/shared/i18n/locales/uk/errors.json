@@ -97,6 +97,7 @@
     "KNOWLEDGE_BASE_NAME_TAKEN": "База знань із такою назвою вже існує.",
     "KNOWLEDGE_BASE_NOT_FOUND": "Цієї бази знань не існує.",
     "KNOWLEDGE_BASE_HAS_SOURCES": "Спершу видаліть джерела з цієї бази знань.",
+    "KNOWLEDGE_TOOL_NAME_TAKEN": "Інша база знань уже використовує цю назву пошуку.",
     "KNOWLEDGE_UPLOAD_INVALID": "Це завантаження недійсне або прострочене. Виберіть файл ще раз.",
     "KNOWLEDGE_DOCUMENT_INVALID": "Цей документ не вдається прочитати. Перевірте файл і спробуйте ще раз.",
     "KNOWLEDGE_DOCUMENT_NOT_FOUND": "Цього документа не існує.",

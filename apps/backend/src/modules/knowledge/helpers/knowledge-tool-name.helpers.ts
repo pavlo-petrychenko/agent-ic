@@ -1,6 +1,6 @@
+import { KNOWLEDGE_TOOL_NAME_MAX_LENGTH } from '@agent-ic/contracts';
 import {
   KNOWLEDGE_TOOL_NAME_FALLBACK,
-  KNOWLEDGE_TOOL_NAME_MAX_LENGTH,
   KNOWLEDGE_TOOL_NAME_PREFIX,
   KNOWLEDGE_TOOL_NAME_SEPARATOR,
 } from '@/modules/knowledge/constants/knowledge-tool-name.constants';

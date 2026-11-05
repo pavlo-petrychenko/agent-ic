@@ -176,7 +176,7 @@ export function KnowledgePage({
                   canManageSources={canEdit}
                   onCountsChanged={refreshKnowledgeBases}
                 />
-                <KnowledgeAgentAccessSection knowledgeBase={selected} />
+                <KnowledgeAgentAccessSection knowledgeBase={selected} canEdit={canEdit} />
               </div>
               <KnowledgePlayground key={selected.id} knowledgeBaseId={selected.id} />
             </div>

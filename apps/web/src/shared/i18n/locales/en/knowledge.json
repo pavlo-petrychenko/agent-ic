@@ -21,12 +21,24 @@
   },
   "agentAccess": {
     "title": "How agents see this knowledge base",
+    "edit": "Edit",
+    "editTitle": "How agents see this knowledge base",
+    "editDescription": "The search name and description the model sees. Changes apply to attached agents on their next run.",
+    "editDescriptionAttached": "This knowledge base is attached to an agent. Changes apply on that agent’s next run without republishing.",
     "searchName": "Search name",
     "description": "Description",
     "attachedTo": "Attached to",
     "attachedEmpty": "Not attached to any agent yet.",
     "attachedLoading": "Loading agents…",
-    "attachedFailed": "Could not load agent usage."
+    "attachedFailed": "Could not load agent usage.",
+    "nameHint": "Lowercase letters, numbers and underscores. This is the tool name the model calls.",
+    "descriptionHint": "Tell the model what this knowledge base covers and when to search it.",
+    "nameInvalid": "Use lowercase letters, numbers and underscores, up to 64 characters.",
+    "nameReserved": "This search name is reserved.",
+    "nameTaken": "Another knowledge base already uses this search name.",
+    "descriptionInvalid": "Keep the description under 500 characters.",
+    "save": "Save",
+    "saved": "Knowledge base access updated."
   },
   "add": {
     "action": "Add source",

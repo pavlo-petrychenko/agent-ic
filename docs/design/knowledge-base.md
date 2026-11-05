@@ -564,6 +564,7 @@ The KB page shows a “How agents see this knowledge base” card in the main co
 - **Search name** is the KB's `tool_name`, in monospace.
 - **Description** is `tool_description`; when it is empty, the card shows the same generated fallback the agent tool uses.
 - **Attached to** lists the agents whose current draft or live version references the KB through `config.knowledgeBaseIds`; snapshots and older published versions are ignored.
+- **Edit** updates the search name and description. The name is lowercase snake case, at most 64 characters and unique per workspace; `reply` is reserved. Changes apply to attached agents on their next run and do not require a flow republish.
 - The card replaces the old “Agents only answer from knowledge bases attached to them” callout.
 
 ---
