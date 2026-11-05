@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import {
@@ -16,7 +17,7 @@ import {
   TableCellLeadKind,
   TableCellLeadSize,
 } from '@/shared/ui/data/TableCellLead';
-import { Badge } from '@/shared/ui/display/Badge';
+import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
 import { Icon, IconName } from '@/shared/ui/foundations/Icon';
 import styles from '@/features/knowledge/view/KnowledgeSourcesTable/KnowledgeSourcesTable.module.scss';
@@ -80,11 +81,17 @@ export function KnowledgeSourcesTable({
       render: (row) => (
         <TableCell>
           <span className={styles.stacked}>
-            <Badge tone={STATUS_TONES[row.status]} dot>
+            <Badge
+              tone={row.staleDocumentCount > 0 ? BadgeTone.Warn : STATUS_TONES[row.status]}
+              dot
+            >
               {row.statusLabel}
             </Badge>
             {row.statusDetail === null ? null : (
-              <span className={styles.meta} title={row.statusDetail}>
+              <span
+                className={clsx(styles.meta, row.staleDocumentCount > 0 && styles.stale)}
+                title={row.statusDetail}
+              >
                 {row.statusDetail}
               </span>
             )}

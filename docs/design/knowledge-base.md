@@ -112,9 +112,11 @@ Titles are display metadata. Renaming a source changes only `sources.title`; `do
 | Entity | Statuses | Meaning |
 |---|---|---|
 | Source | `pending`, `indexing`, `ready`, `error` | Aggregated from its documents and the last sync run |
-| Document | `pending`, `indexing`, `indexed`, `error`, `removed` | `removed` means the provider says the document is gone; `error` carries a reason |
+| Document | `pending`, `indexing`, `indexed`, `error`, `removed` | `removed` is reserved for an explicit local removal; a document that Drive no longer returns stays `indexed` and becomes stale (`stale_at`, `stale_reason`) |
 | Sync run | `queued`, `running`, `succeeded`, `partial`, `failed` | Progress and outcome of one attempt |
 | Connection | `active`, `revoked`, `error` | A revoked token needs a reconnect |
+
+`stale_at` and `stale_reason` are availability metadata, not a status. They say that the provider no longer returns a document while its last indexed copy is still searchable. A stale document keeps its chunks, objects and `indexed` status, so it does not flicker to `indexing`, does not fail the source and does not disappear from the knowledge base. The source stays `ready` and shows a warning with the stale document count.
 
 The knowledge base has no stored status. Its view is derived from its sources: any source indexing → indexing; otherwise any error → error; otherwise any content → ready; otherwise empty. The GraphQL status therefore has four values: `empty`, `indexing`, `ready`, `error`.
 
@@ -200,12 +202,14 @@ Configuration uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_OAUTH_
 - Each sync asks Drive for the metadata of every active document owned by the source (`id`, `name`, `mimeType`, `modifiedTime`, `version`, `trashed`, `webViewLink`, `resourceKey`).
 - A document is re-exported only when `version` or `modifiedTime` differs from the stored value, or when it has never been indexed.
 - Export uses `files.export` with `text/markdown`. Google caps an export at 10 MB; a larger document fails with a reason.
-- A document is marked `removed` only on an explicit 404 or `trashed: true`. A transient network error, a 429 or a 5xx never removes anything (wipe protection).
+- When Drive returns `404`, `410` or `trashed: true` for an already indexed document, the document is marked stale and kept: its status stays `indexed`, its chunks and objects stay, and the source stays `ready` with a warning. The warning says that the document will not be updated and that the last indexed copy is still searchable. A document with no local indexed copy is a normal document error.
+- A stale document is checked again on every sync. If Drive returns it again, the stale marker is cleared; it is skipped when unchanged, or reindexed when its version or content changed.
+- A transient network error, a 429 or a 5xx never marks anything stale or removes anything (wipe protection). A `403` remains an access error, not a stale marker.
 - A `401` from Drive or a `400 invalid_grant` from the token endpoint marks the connection `revoked`, sets the source to `error` with `GOOGLE_RECONNECT_REQUIRED`, and asks the user to reconnect. A generic `403` remains a document access failure, not a revoked connection. Reconnecting clears the connection error; the source shows Retry and continues after the user retries.
 - `429` and `5xx` are retried with exponential backoff by the job and surface as `UPSTREAM_FAILED`, not as a failed sign-in. Drive quota errors are treated as upstream errors.
 - Schedules are evaluated in the workspace timezone. The source stores the next run time and the schedule fields; the scheduler is a per-source BullMQ job scheduler.
 
-**What the user sees.** The connection row shows the Google account email and whether it is active. A revoked connection shows “Reconnect” in the Add source dialog and as a persistent banner on the knowledge page. Each Google source shows the document count, chunk count, last sync and next sync. Opening a source shows its documents with their status and generated summary, plus Sync now for a ready Google source, and the rename, retry and delete actions. Sync now is also available from the source row actions menu. A failed document shows the full localized reason in the document list, and the source row shows a short reason so the table is useful at a glance. A source whose Google account needs reconnecting shows Reconnect in its drawer instead of Retry; after reconnecting, the source shows Retry. Retry is offered only for failures that a retry can change.
+**What the user sees.** The connection row shows the Google account email and whether it is active. A revoked connection shows “Reconnect” in the Add source dialog and as a persistent banner on the knowledge page. Each Google source shows the document count, chunk count, last sync and next sync. Opening a source shows its documents with their status and generated summary, plus Sync now for a ready Google source, and the rename, retry and delete actions. Sync now is also available from the source row actions menu. A failed document shows the full localized reason in the document list, and the source row shows a short reason so the table is useful at a glance. A stale document shows a warning badge and a message that it will not be updated while its last indexed copy stays searchable; the source row shows the stale count and the drawer shows a warning callout. A source whose Google account needs reconnecting shows Reconnect in its drawer instead of Retry; after reconnecting, the source shows Retry. Retry is offered only for failures that a retry can change; stale documents are refreshed with Sync now or the schedule.
 
 ### 4.3 Explicitly out of scope
 
@@ -616,7 +620,7 @@ A race is theoretically possible: a flow can be published after the delete scan 
 - **Delete source:** remove its `source_documents` links. For each document it owns, move ownership to another source that references it; if none does, mark the document `deleted_at` and delete its sections, chunks and terms immediately. Then mark the source `deleted_at` and enqueue a durable `clean-up-knowledge-source-files` job with `{ sourceId }`. The job reads the remaining soft-deleted document keys, deletes the original and Markdown objects, then hard-deletes the documents and source. A shared document and its files survive while another source references it.
 - **Delete knowledge base:** lock the KB and refuse with `KNOWLEDGE_BASE_HAS_SOURCES` while any active source still belongs to it. Sources are deleted one by one, never by deleting their KB. Once the KB has no sources, run the usage scan, mark the KB `deleted_at`, and delete sections/chunks/terms. A KB delete leaves source and document rows and their files alone.
 - **Disconnect Google connection:** blocked while any source row still references it, including a soft-deleted source waiting for cleanup, with `KNOWLEDGE_CONNECTION_IN_USE`. Otherwise the sealed token is deleted with the row.
-- **Delete a document removed by Google:** explicit 404/trashed → `status = 'removed'`, `deleted_at` set, cleanup job deletes its objects. A transient error never does this.
+- **Google no longer returns a document:** `404`, `410` or `trashed: true` on an indexed document → set `stale_at`/`stale_reason`; keep `status = 'indexed'`, chunks, objects and the source link. The source stays `ready` with a stale warning. A transient error never does this. An explicit user removal may later set `status = 'removed'`, `deleted_at` and delete the objects.
 - **Workspace deletion:** deleting the workspace row hard-deletes every knowledge-base, connection, source, source-document link, document, section, chunk, term, sync-run and embedding-cache row through the `workspace_id` cascade. The `workspaceDeletedEvent` listener then enqueues a durable `clean-up-knowledge-workspace-files` job, which deletes every stored object under `workspaces/{workspaceId}/knowledge/`.
 
 The cleanup job is durable and idempotent: a missing object is not an error, and a retry deletes the rows only after storage succeeds. If the job is lost, the soft-deleted rows remain hidden from all reads and a future sweep can retry.
@@ -726,6 +730,7 @@ erDiagram
         timestamptz last_sync_at
         text last_error_code
         text last_error_message
+        int stale_document_count
         int document_count
         int chunk_count
         uuid created_by_user_id
@@ -769,6 +774,8 @@ erDiagram
         document_status status
         int active_generation
         timestamptz last_indexed_at
+        timestamptz stale_at
+        text stale_reason
         text error_code
         text error_message
         timestamptz created_at
@@ -830,6 +837,7 @@ erDiagram
         int documents_skipped
         int documents_failed
         int documents_removed
+        int documents_stale
         text error_code
         text error_message
         timestamptz created_at
@@ -955,6 +963,7 @@ Constraints and indexes:
 | `next_sync_at` | timestamptz | nullable |
 | `last_sync_at` | timestamptz | nullable |
 | `last_error_code`, `last_error_message` | text | nullable |
+| `stale_document_count` | integer | not null, default 0; linked documents with `stale_at` set |
 | `document_count` | integer | not null, default 0 |
 | `chunk_count` | integer | not null, default 0 |
 | `created_by_user_id` | uuid | nullable |
@@ -1029,9 +1038,11 @@ Constraints and indexes:
 | `summary_updated_at` | timestamptz | nullable; generation or last edit |
 | `token_count` | integer | not null, default 0 |
 | `chunk_count` | integer | not null, default 0 |
-| `status` | enum | `pending`, `indexing`, `indexed`, `error`, `removed` |
+| `status` | enum | `pending`, `indexing`, `indexed`, `error`, `removed`; provider unavailability uses the stale fields, not `removed` |
 | `active_generation` | integer | not null, default 0 |
 | `last_indexed_at` | timestamptz | nullable |
+| `stale_at` | timestamptz | nullable; first sync that found the provider no longer returns the document |
+| `stale_reason` | text | nullable; `missing`, `trashed` or `gone` |
 | `error_code`, `error_message` | text | nullable |
 | `created_at`, `updated_at` | timestamptz | not null |
 | `deleted_at` | timestamptz | nullable |
@@ -1147,7 +1158,8 @@ This is the table that makes true BM25 portable. The trade-off is write amplific
 | `documents_indexed` | integer | not null, default 0 |
 | `documents_skipped` | integer | not null, default 0 |
 | `documents_failed` | integer | not null, default 0 |
-| `documents_removed` | integer | not null, default 0 |
+| `documents_removed` | integer | not null, default 0; reserved for explicit local removal |
+| `documents_stale` | integer | not null, default 0; documents found unavailable at the provider but kept locally |
 | `error_code`, `error_message` | text | nullable |
 | `created_at` | timestamptz | not null |
 
@@ -1442,7 +1454,7 @@ There is no product-level document or chunk quota in the first version. The work
 | Embedding dimension mismatch | Document `error`; alert | Fix model/config, re-index |
 | Worker crash before flip | New generation orphaned; old remains active | Retry; orphan cleanup |
 | Google token revoked | Connection `revoked`; source `error` with `GOOGLE_RECONNECT_REQUIRED`; Retry is blocked | Reconnect from the page banner or source drawer, then retry the source |
-| Google doc trashed | Document `removed`; object cleanup | Nothing; it is gone at the provider |
+| Google doc trashed or no longer returned | Document stays `indexed` and is marked stale; source stays `ready` with a warning; last indexed copy stays searchable | Restore it in Drive and Sync now, or delete the source to remove the local copy |
 | Google export exceeds the export limit | Document `error` with `DOCUMENT_TOO_LARGE`; source `error`; retry is not offered | Split the document or upload a smaller file |
 | Google doc already in the KB | The duplicate is reported with `alreadyAdded`; the new source links the existing document and no second document or sync is created. A source with only already-added documents starts from their current state and can be refreshed with “Sync now” | Nothing; both sources reference the same indexed document |
 | Google transient error | Document unchanged | Retry; wipe protection |

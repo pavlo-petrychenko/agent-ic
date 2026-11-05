@@ -22,6 +22,7 @@ const SOURCE: KnowledgeSource = {
   lastSyncAt: '2026-10-26T09:00:00.000Z',
   lastErrorCode: null,
   lastErrorMessage: null,
+  staleDocumentCount: 0,
   documentCount: 1,
   chunkCount: 1,
   createdAt: '2026-10-26T09:00:00.000Z',

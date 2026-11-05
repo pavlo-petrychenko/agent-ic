@@ -65,7 +65,9 @@ export function useKnowledgeSourceRows(
         case KnowledgeSourceStatus.Indexing:
           return t('sources.status.indexingDetail');
         case KnowledgeSourceStatus.Ready:
-          return t('sources.chunks', { count: source.chunkCount });
+          return source.staleDocumentCount > 0
+            ? t('sources.status.staleDetail', { count: source.staleDocumentCount })
+            : t('sources.chunks', { count: source.chunkCount });
         case KnowledgeSourceStatus.Error:
           if (
             source.lastErrorCode === ErrorReason.GoogleReconnectRequired &&
@@ -111,6 +113,7 @@ export function useKnowledgeSourceRows(
       canSync: canSyncKnowledgeSource(source, connectionActive(source)),
       statusLabel: statusLabel(source.status),
       statusDetail: statusDetail(source),
+      staleDocumentCount: source.staleDocumentCount,
     }));
   }, [connectionStatuses, failureSummary, i18n.language, sources, t]);
 }

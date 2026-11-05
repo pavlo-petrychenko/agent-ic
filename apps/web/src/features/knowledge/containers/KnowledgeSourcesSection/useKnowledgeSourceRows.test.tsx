@@ -24,6 +24,7 @@ const SOURCE: KnowledgeSource = {
   lastSyncAt: null,
   lastErrorCode: ErrorReason.UpstreamFailed,
   lastErrorMessage: 'An upstream service failed.',
+  staleDocumentCount: 0,
   documentCount: 0,
   chunkCount: 0,
   createdAt: '2026-10-26T09:00:00.000Z',
@@ -44,6 +45,25 @@ describe('useKnowledgeSourceRows', () => {
 
     expect(result.current[0]?.statusDetail).toBe('Сервіс недоступний');
     expect(result.current[0]?.canRetry).toBe(true);
+  });
+
+  it('warns that a ready source has a stale document', () => {
+    const { result } = renderHook(
+      () =>
+        useKnowledgeSourceRows([
+          {
+            ...SOURCE,
+            status: KnowledgeSourceStatus.Ready,
+            lastErrorCode: null,
+            lastErrorMessage: null,
+            staleDocumentCount: 1,
+            chunkCount: 4,
+          },
+        ]),
+      { wrapper: wrapperFor(Locale.En) },
+    );
+
+    expect(result.current[0]?.statusDetail).toBe('1 stale document');
   });
 
   it('translates a permanent document failure and hides retry', () => {

@@ -1,22 +1,28 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, count, countDistinct, eq, gt, isNull } from 'drizzle-orm';
+import { and, count, countDistinct, eq, gt, isNull, sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { chunks } from '@/modules/knowledge/db/chunks.table';
 import { documents } from '@/modules/knowledge/db/documents.table';
 import { sourceDocuments } from '@/modules/knowledge/db/source-documents.table';
-import type { KnowledgeCounts } from '@/modules/knowledge/typedefs/knowledge-ingestion.typedefs';
+import type {
+  KnowledgeCounts,
+  KnowledgeSourceCounts,
+} from '@/modules/knowledge/typedefs/knowledge-ingestion.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 @Injectable()
 export class KnowledgeStatsRepository {
   constructor(private readonly txHost: TransactionHost<AppTransactionAdapter>) {}
 
-  async sourceCounts(workspaceId: string, sourceId: string): Promise<KnowledgeCounts> {
+  async sourceCounts(workspaceId: string, sourceId: string): Promise<KnowledgeSourceCounts> {
     const [row] = await this.txHost.tx
       .select({
         documentCount: countDistinct(documents.id),
         chunkCount: count(chunks.id),
+        staleDocumentCount: countDistinct(
+          sql`case when ${documents.staleAt} is not null then ${documents.id} end`,
+        ),
       })
       .from(documents)
       .innerJoin(
@@ -45,6 +51,7 @@ export class KnowledgeStatsRepository {
     return {
       documentCount: row?.documentCount ?? 0,
       chunkCount: row?.chunkCount ?? 0,
+      staleDocumentCount: row?.staleDocumentCount ?? 0,
     };
   }
 
