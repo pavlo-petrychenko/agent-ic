@@ -1,0 +1,12 @@
+mutation RunSimulatorSchedule($input: RunSimulatorScheduleInput!) {
+  runSimulatorSchedule(input: $input) {
+    run {
+      id
+      status
+    }
+    conditions {
+      kind
+      met
+    }
+  }
+}

@@ -26,9 +26,13 @@ export {
   TRIGGER_NODE_TYPES,
 } from '@flow/document/constants/flow.constants';
 export { flowDocumentSchema } from '@flow/document/schemas/flow.schema';
+export { triggerScheduleNodeSchema } from '@flow/nodes/schemas/trigger-schedule.schema';
 export type {
+  AgentExit,
+  AgentExits,
   AgentNode,
   ApiRequestNode,
+  AutoCloseSettings,
   CompletionNode,
   Condition,
   ConditionValue,
@@ -36,19 +40,25 @@ export type {
   FlowDocument,
   FlowEdge,
   FlowNode,
+  FlowSettings,
+  HandoffSettings,
+  InactivityDuration,
   ModelRef,
   OutputField,
   ParallelNode,
   PromptSource,
   RouterNode,
   RouterRule,
+  Schedule,
   SendMessageNode,
   TriggerExternalEventNode,
+  TriggerInactivityNode,
   TriggerMessageNode,
   TriggerNode,
   TriggerScheduleNode,
+  UnhandledFailureSettings,
 } from '@flow/document/typedefs/flow.typedefs';
-export { isTriggerNode } from '@flow/document/helpers/node.helpers';
+export { enabledExits, isExitPort, isTriggerNode } from '@flow/document/helpers/node.helpers';
 export { nodePorts } from '@flow/document/helpers/port.helpers';
 export { renameNodeKey } from '@flow/document/helpers/rename.helpers';
 export {
@@ -62,6 +72,9 @@ export {
   HEADER_NAME_PATTERN,
   MAX_DESCRIPTION_LENGTH,
   MAX_EDGES,
+  MAX_INACTIVITY_FIRES,
+  MAX_INACTIVITY_MINUTES,
+  MAX_AUTO_CLOSE_MINUTES,
   MAX_ENUM_VALUES,
   MAX_LABEL_LENGTH,
   MAX_NODES,
@@ -70,20 +83,29 @@ export {
   MAX_RETRIES,
   MAX_ROUTER_RULES,
   MAX_RULE_CONDITIONS,
+  MAX_SCHEDULE_CONVERSATIONS_PER_RUN,
+  MAX_SCHEDULE_TICKS_PER_HOUR,
   MAX_TEMPLATE_LENGTH,
+  MIN_AUTO_CLOSE_MINUTES,
+  MIN_INACTIVITY_FIRES,
+  MIN_INACTIVITY_MINUTES,
   MIN_PARALLEL_BRANCHES,
   NODE_KEY_MAX_LENGTH,
   NODE_KEY_PATTERN,
   OUTPUT_FIELD_NAME_PATTERN,
+  SCHEDULE_TICK_GRACE_SECONDS,
   TIME_OF_DAY_PATTERN,
   WAIT_FOR_RESULT_SECONDS,
 } from '@flow/limits/constants/limit.constants';
 export {
+  AGENT_EXIT_KINDS,
+  AgentExitKind,
   DEFAULT_RETRIEVAL_MODE,
   EscalationMode,
   FailureMode,
   HttpMethod,
   MessageContentKind,
+  NO_AGENT_EXITS,
   NotifyChannel,
   QuickRepliesKind,
   RecipientsKind,
@@ -93,13 +115,34 @@ export {
   WaitFor,
 } from '@flow/nodes/constants/step.constants';
 export {
+  dueTick,
+  isTooFrequent,
+  latestTick,
+  nextTicks,
+  scheduleCron,
+} from '@flow/schedules/helpers/schedule-tick.helpers';
+export type { DueTick, DueTickInput } from '@flow/schedules/typedefs/schedule-tick.typedefs';
+export {
   ChannelSelectionMode,
   ChannelType,
+  INACTIVITY_UNIT_MINUTES,
+  InactivityActivity,
+  InactivityRepeatKind,
+  InactivityUnit,
   ReplyMode,
   ScheduleKind,
 } from '@flow/nodes/constants/trigger.constants';
 export {
+  durationMinutes,
+  fireOffsetsMinutes,
+  silenceMinutes,
+} from '@flow/nodes/helpers/inactivity.helpers';
+export {
   AGENT_MESSAGES_FIELD_NAME,
+  AGENT_OUTCOME_CONTINUE,
+  AGENT_OUTCOME_FIELD_NAME,
+  AGENT_OUTCOME_FIELD_NAMES,
+  AGENT_OUTCOME_REASON_FIELD_NAME,
   OutputFieldType,
 } from '@flow/outputs/constants/output.constants';
 export {
@@ -122,6 +165,7 @@ export type {
 } from '@flow/references/typedefs/prompt-reference.typedefs';
 export {
   API_REQUEST_OUTPUTS,
+  INACTIVITY_ROOT,
   RESERVED_ROOTS,
   VariableSourceKind,
   VariableType,
@@ -145,6 +189,10 @@ export type {
   TriggerVariable,
   VisibleVariable,
 } from '@flow/scope/typedefs/scope.typedefs';
+export {
+  NO_FLOW_SETTINGS,
+  UnhandledFailureAction,
+} from '@flow/settings/constants/settings.constants';
 export { nodeTextFields } from '@flow/templates/helpers/node-text.helpers';
 export {
   PROMPT_VARIABLE_CLOSE,
@@ -188,6 +236,7 @@ export {
   FlowV1CompletionRole,
   FlowV1WaitFor,
   ParseFlowFailureKind,
+  SECOND_SCHEMA_VERSION,
 } from '@flow/versions/constants/version.constants';
 export { parseFlow } from '@flow/versions/helpers/version.helpers';
 export type {

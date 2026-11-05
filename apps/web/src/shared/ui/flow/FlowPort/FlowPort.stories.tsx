@@ -2,7 +2,11 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { FlowPort } from '@/shared/ui/flow/FlowPort/FlowPort';
 import { FlowPortDirection, FlowPortState } from '@/shared/ui/flow/FlowPort/FlowPort.constants';
-import type { FlowPortKeyboard } from '@/shared/ui/flow/FlowPort/FlowPort.typedefs';
+import type {
+  FlowPortKeyboard,
+  FlowPortTerminal,
+} from '@/shared/ui/flow/FlowPort/FlowPort.typedefs';
+import { IconName } from '@/shared/ui/foundations/Icon/Icon.constants';
 import styles from '@/shared/ui/flow/FlowPort/FlowPort.module.scss';
 
 const noop = () => undefined;
@@ -12,6 +16,15 @@ const keyboard: FlowPortKeyboard = {
   onCycle: noop,
   onConfirm: noop,
   onCancel: noop,
+};
+
+const handoffChip: FlowPortTerminal = {
+  label: 'Hand off · default',
+  icon: IconName.Hand,
+  actionLabel: 'Customize',
+  actionAriaLabel: 'Customize the hand off exit',
+  stacked: false,
+  onAction: noop,
 };
 
 const meta = {
@@ -36,6 +49,30 @@ export const ValidTarget: Story = {
 export const Connected: Story = { args: { connected: true } };
 export const Labelled: Story = { args: { label: 'needs_human', onLabelClick: noop } };
 export const LabelledActive: Story = { args: { label: 'else', labelActive: true } };
+export const TerminalChip: Story = {
+  args: { label: 'hand off', terminal: handoffChip },
+};
+export const TerminalChipStacked: Story = {
+  render: (args) => (
+    <div className={styles.storyRow}>
+      <FlowPort
+        {...args}
+        label="end"
+        terminal={{ ...handoffChip, label: 'End · default', icon: IconName.Esc }}
+      />
+      <FlowPort {...args} label="hand off" terminal={{ ...handoffChip, stacked: true }} />
+    </div>
+  ),
+};
+export const TerminalChipLongLabel: Story = {
+  args: {
+    label: 'передати',
+    terminal: { ...handoffChip, label: 'Передати людині · типово з налаштувань флоу' },
+  },
+};
+export const TerminalChipHiddenWhenConnected: Story = {
+  args: { label: 'hand off', connected: true, terminal: handoffChip },
+};
 export const RevealedByNode: Story = {
   args: { state: FlowPortState.Hidden },
   render: (args) => (

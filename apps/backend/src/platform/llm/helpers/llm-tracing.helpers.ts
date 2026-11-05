@@ -22,6 +22,7 @@ export const langfuseTraceAttributes = (tags: LlmTags): Attributes => ({
   [traceMetadata(LlmTraceMetadata.WorkspaceId)]: tags.workspaceId,
   [traceMetadata(LlmTraceMetadata.AgentVersionId)]: tags.agentVersionId,
   [traceMetadata(LlmTraceMetadata.RunId)]: tags.runId,
+  [traceMetadata(LlmTraceMetadata.Trigger)]: tags.trigger,
   [traceMetadata(LlmTraceMetadata.PromptId)]: tags.promptId,
   [traceMetadata(LlmTraceMetadata.PromptVersion)]: tags.promptVersion,
 });

@@ -1,4 +1,9 @@
-import { ChannelSelectionMode, FLOW_SCHEMA_VERSION, NodeType } from '@agent-ic/flow';
+import {
+  ChannelSelectionMode,
+  FLOW_SCHEMA_VERSION,
+  NO_FLOW_SETTINGS,
+  NodeType,
+} from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import type { MockLink } from '@apollo/client/testing';
 import { DescribeAgentDocument } from '@/features/flow-builder/communication/gql/mutation/describeAgent.generated';
@@ -11,6 +16,7 @@ export const DEMO_WORKSPACE_ID = 'ws_demo';
 
 export const TRIGGER_ONLY_FLOW: FlowDocument = {
   schemaVersion: FLOW_SCHEMA_VERSION,
+  settings: NO_FLOW_SETTINGS,
   nodes: [
     {
       id: 'trigger',

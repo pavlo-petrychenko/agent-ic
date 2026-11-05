@@ -37,6 +37,15 @@ export class ConversationActivityService {
     });
   }
 
+  conversationClosed(conversationId: string): Promise<void> {
+    return this.publish({
+      conversationId,
+      kind: ConversationActivityKind.ConversationClosed,
+      messageId: null,
+      runId: null,
+    });
+  }
+
   private publish({ conversationId, kind, messageId, runId }: ConversationActivity): Promise<void> {
     return this.liveUpdates.publish(channelFor(conversationActivityChannel, conversationId), {
       conversationId,

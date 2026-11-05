@@ -27,7 +27,11 @@ const systemDatabaseAllowList = [
   `${platform}(database|outbox|queues)/`,
   `${modules}identity/repositories/membership-directory\\.repository\\.ts$`,
   `${modules}channels/repositories/telegram-poller\\.repository\\.ts$`,
+  `${modules}channels/repositories/api-channel-ingress\\.repository\\.ts$`,
+  `${modules}agents/repositories/auto-close-versions\\.repository\\.ts$`,
+  `${modules}agents/repositories/live-schedule-triggers\\.repository\\.ts$`,
   `${modules}analytics/repositories/`,
+  `${modules}runs/repositories/inactivity-sweep\\.repository\\.ts$`,
 ];
 
 const forbidden = (name, from, to) => ({
@@ -170,9 +174,9 @@ module.exports = {
       { dependencyTypes: ['core'] },
     ),
     forbidden(
-      'flow-imports-only-zod',
+      'flow-imports-only-zod-and-croner',
       { path: '^packages/flow/src/', pathNot: '\\.spec\\.ts$' },
-      { path: 'node_modules/', pathNot: 'node_modules/zod/' },
+      { path: 'node_modules/', pathNot: 'node_modules/(zod|croner)/' },
     ),
   ],
   options: {

@@ -4,4 +4,5 @@ export enum StatusKind {
   Err = 'err',
   Idle = 'idle',
   Run = 'run',
+  Ink = 'ink',
 }

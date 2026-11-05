@@ -6,6 +6,7 @@ import enChannels from '@/shared/i18n/locales/en/channels.json';
 import enCommon from '@/shared/i18n/locales/en/common.json';
 import enErrors from '@/shared/i18n/locales/en/errors.json';
 import enFlowBuilder from '@/shared/i18n/locales/en/flowBuilder.json';
+import enInbox from '@/shared/i18n/locales/en/inbox.json';
 import enKnowledge from '@/shared/i18n/locales/en/knowledge.json';
 import enPrompts from '@/shared/i18n/locales/en/prompts.json';
 import enSettings from '@/shared/i18n/locales/en/settings.json';
@@ -17,6 +18,7 @@ import ukChannels from '@/shared/i18n/locales/uk/channels.json';
 import ukCommon from '@/shared/i18n/locales/uk/common.json';
 import ukErrors from '@/shared/i18n/locales/uk/errors.json';
 import ukFlowBuilder from '@/shared/i18n/locales/uk/flowBuilder.json';
+import ukInbox from '@/shared/i18n/locales/uk/inbox.json';
 import ukKnowledge from '@/shared/i18n/locales/uk/knowledge.json';
 import ukPrompts from '@/shared/i18n/locales/uk/prompts.json';
 import ukSettings from '@/shared/i18n/locales/uk/settings.json';
@@ -32,6 +34,7 @@ export const resources = {
     [Namespace.Settings]: enSettings,
     [Namespace.Agents]: enAgents,
     [Namespace.Channels]: enChannels,
+    [Namespace.Inbox]: enInbox,
     [Namespace.FlowBuilder]: enFlowBuilder,
     [Namespace.Prompts]: enPrompts,
     [Namespace.Knowledge]: enKnowledge,
@@ -45,6 +48,7 @@ export const resources = {
     [Namespace.Settings]: ukSettings,
     [Namespace.Agents]: ukAgents,
     [Namespace.Channels]: ukChannels,
+    [Namespace.Inbox]: ukInbox,
     [Namespace.FlowBuilder]: ukFlowBuilder,
     [Namespace.Prompts]: ukPrompts,
     [Namespace.Knowledge]: ukKnowledge,

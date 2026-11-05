@@ -5,14 +5,13 @@ import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.c
 import { DangerZonePanel } from '@/features/settings/containers/DangerZonePanel';
 import type { GeneralPageProps } from '@/features/settings/containers/GeneralPage/GeneralPage.typedefs';
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
-import {
-  canonicalTimeZone,
-  timeZoneChoices,
-} from '@/features/settings/logic/helpers/timeZone.helpers';
 import { createWorkspaceSchema } from '@/features/settings/logic/schemas/workspace.schema';
 import { WorkspaceCard } from '@/features/settings/view/WorkspaceCard';
 import { useActiveWorkspace } from '@/features/workspace';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
+import { TimeZoneField } from '@/shared/forms/fields/TimeZoneField';
+import { firstErrorMessage } from '@/shared/forms/helpers/fieldError.helpers';
+import { canonicalTimeZone } from '@/shared/forms/helpers/timeZone.helpers';
 import { useAppForm } from '@/shared/forms/hooks/useAppForm';
 import { Namespace } from '@/shared/i18n/constants/namespace.constants';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
@@ -29,11 +28,6 @@ export function GeneralPage({ workspaceId }: GeneralPageProps) {
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
   const currentTimeZone = canonicalTimeZone(workspace?.timeZone ?? '');
-  const timeZoneOptions = timeZoneChoices(currentTimeZone).map((timeZone) => ({
-    value: timeZone,
-    label: timeZone,
-  }));
-  const timeZoneSearchPlaceholder = t('general.workspace.timeZoneSearchPlaceholder');
 
   const form = useAppForm({
     defaultValues: {
@@ -94,14 +88,15 @@ export function GeneralPage({ workspaceId }: GeneralPageProps) {
             </form.AppField>
             <form.AppField name="timeZone">
               {(field) => (
-                <field.ComboboxField
+                <TimeZoneField
                   label={t('general.workspace.timeZoneLabel')}
                   hint={t('general.workspace.timeZoneHint')}
-                  placeholder={timeZoneSearchPlaceholder}
-                  searchLabel={timeZoneSearchPlaceholder}
-                  searchClearLabel={t('general.workspace.timeZoneSearchClear')}
-                  emptyLabel={t('general.workspace.timeZoneEmpty')}
-                  options={timeZoneOptions}
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                  onBlur={field.handleBlur}
+                  error={
+                    field.state.meta.isTouched ? firstErrorMessage(field.state.meta.errors) : null
+                  }
                 />
               )}
             </form.AppField>

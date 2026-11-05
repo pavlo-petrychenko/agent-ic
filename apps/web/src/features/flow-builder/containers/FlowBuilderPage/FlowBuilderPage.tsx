@@ -10,6 +10,7 @@ import { BuilderPublishDialog } from '@/features/flow-builder/containers/Builder
 import type { FlowBuilderPageProps } from '@/features/flow-builder/containers/FlowBuilderPage/FlowBuilderPage.typedefs';
 import { useDraftAutosave } from '@/features/flow-builder/containers/FlowBuilderPage/useDraftAutosave';
 import { FlowEditor } from '@/features/flow-builder/containers/FlowEditor';
+import { FlowSettingsPanel } from '@/features/flow-builder/containers/FlowSettingsPanel';
 import { InspectorPanel } from '@/features/flow-builder/containers/InspectorPanel';
 import { IssuesPanel } from '@/features/flow-builder/containers/IssuesPanel';
 import { LastRunBar } from '@/features/flow-builder/containers/LastRunBar';
@@ -160,7 +161,7 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
       />
       {draft !== null && (
         <div className="flex min-h-0 flex-1">
-          <StepPalettePanel />
+          <StepPalettePanel workspaceId={workspaceId} />
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             {conflict !== null && (
               <Banner tone={BannerTone.Warn}>
@@ -177,11 +178,12 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
                 </span>
               </Banner>
             )}
-            <FlowEditor />
+            <FlowEditor workspaceId={workspaceId} />
             <IssuesPanel />
             <LastRunBar workspaceId={workspaceId} agentId={agentId} />
           </div>
           <InspectorPanel workspaceId={workspaceId} agentId={agentId} />
+          <FlowSettingsPanel agentName={agentName ?? ''} />
           <LeaveGuard />
           {publishing && (
             <BuilderPublishDialog

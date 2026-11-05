@@ -23,10 +23,12 @@ export function useTestingVersions(agentId: string | null): TestingVersionsResul
     () => (data === undefined ? null : toFlow(data.agentDraft.version.flow)),
     [data],
   );
+  const draftIssues = useMemo(() => data?.agentDraft.issues ?? [], [data]);
   const retry = useCallback(() => void refetch(), [refetch]);
   return {
     versions,
     draftFlow,
+    draftIssues,
     draftBroken: data !== undefined && hasBlockingIssues(data.agentDraft),
     draftChangeCount: data?.agent.draftChangeCount ?? null,
     loading: agentId !== null && data === undefined && (loading || error === undefined),

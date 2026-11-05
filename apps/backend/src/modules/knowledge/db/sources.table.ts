@@ -58,6 +58,7 @@ export const sources = knowledgeSchema
       lastSyncAt: timestamp('last_sync_at', { withTimezone: true }),
       lastErrorCode: text('last_error_code'),
       lastErrorMessage: text('last_error_message'),
+      staleDocumentCount: integer('stale_document_count').notNull().default(0),
       documentCount: integer('document_count').notNull().default(0),
       chunkCount: integer('chunk_count').notNull().default(0),
       createdByUserId: uuid('created_by_user_id').references((): AnyPgColumn => users.id, {

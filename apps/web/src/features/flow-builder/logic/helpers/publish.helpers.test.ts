@@ -1,4 +1,4 @@
-import { FLOW_SCHEMA_VERSION, FlowIssueSeverity } from '@agent-ic/flow';
+import { FLOW_SCHEMA_VERSION, NO_FLOW_SETTINGS, FlowIssueSeverity } from '@agent-ic/flow';
 import type { FieldChange, FlowDocument, FlowIssue } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { ChangeSentence, PublishBlock } from '@/features/flow-builder/constants/publish.constants';
@@ -21,11 +21,13 @@ const EMPTY_DIFF: PublishDiff = {
   addedEdges: [],
   removedEdges: [],
   changedEdges: [],
+  settingsChanges: [],
   changeCount: 0,
 };
 
 const DOCUMENT = {
   schemaVersion: FLOW_SCHEMA_VERSION,
+  settings: NO_FLOW_SETTINGS,
   nodes: [
     { id: 'a', key: 'schedule', label: 'Schedule trigger' },
     { id: 'b', key: 'reply', label: '' },
@@ -132,6 +134,42 @@ describe('toChangeLines', () => {
       [ChangeSentence.StepRenamed, 'reply', 'answer', null],
       [ChangeSentence.StepRemoved, 'old', null, null],
       [ChangeSentence.Connected, 'Schedule trigger', null, 'reply'],
+    ]);
+  });
+
+  it('words each flow settings change', () => {
+    const lines = toChangeLines(
+      {
+        ...EMPTY_DIFF,
+        settingsChanges: [
+          { path: ['handoff'], before: null, after: {} },
+          { path: ['handoff', 'notify', 'channels'], before: [], after: [] },
+          { path: ['onUnhandledFailure'], before: {}, after: null },
+          { path: ['onUnhandledFailure', 'customerMessage'], before: 'a', after: 'b' },
+          { path: ['autoClose'], before: null, after: { afterMinutes: 120 } },
+          { path: ['autoClose', 'afterMinutes'], before: 120, after: 2880 },
+          { path: ['autoClose'], before: { afterMinutes: 2880 }, after: null },
+          { path: ['unknown'], before: 1, after: 2 },
+        ],
+      },
+      DOCUMENT,
+    );
+
+    expect(
+      lines.map(({ sentence, field, beforeMinutes, afterMinutes }) => [
+        sentence,
+        field,
+        beforeMinutes ?? null,
+        afterMinutes ?? null,
+      ]),
+    ).toEqual([
+      [ChangeSentence.HandoffSetUp, null, null, null],
+      [ChangeSentence.HandoffChanged, 'notify', null, null],
+      [ChangeSentence.FailureFailsRun, null, null, null],
+      [ChangeSentence.ApologyChanged, null, null, null],
+      [ChangeSentence.AutoCloseOn, null, null, 120],
+      [ChangeSentence.AutoCloseChanged, null, 120, 2880],
+      [ChangeSentence.AutoCloseOff, null, 2880, null],
     ]);
   });
 

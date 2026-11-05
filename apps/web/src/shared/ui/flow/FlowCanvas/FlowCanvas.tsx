@@ -5,6 +5,7 @@ import {
   ReactFlowProvider,
   SelectionMode,
   useReactFlow,
+  useStore,
 } from '@xyflow/react';
 import type {
   Connection,
@@ -32,7 +33,6 @@ import { CanvasNode as CanvasNodeView } from '@/shared/ui/flow/FlowCanvas/Canvas
 import {
   FLOW_CANVAS_EDGE_TYPE,
   FLOW_CANVAS_FIT_MAX_ZOOM,
-  FLOW_CANVAS_FIT_PADDING,
   FLOW_CANVAS_GRID_COLOR,
   FLOW_CANVAS_GRID_DOT_SIZE,
   FLOW_CANVAS_GRID_GAP,
@@ -40,6 +40,8 @@ import {
   FLOW_CANVAS_MIDDLE_MOUSE_BUTTON,
   FLOW_CANVAS_MIN_SELECTION_FOR_BAR,
   FLOW_CANVAS_MULTI_SELECT_KEYS,
+  FLOW_CANVAS_NODE_ID_ATTRIBUTE,
+  FLOW_CANVAS_NODE_SELECTOR,
   FLOW_CANVAS_NODE_TYPE,
   FLOW_CANVAS_PAN_KEY,
   FLOW_CANVAS_PLACEHOLDER_ID,
@@ -58,6 +60,7 @@ import type {
   FlowCanvasSelection,
 } from '@/shared/ui/flow/FlowCanvas/FlowCanvas.typedefs';
 import { useCanvasShortcuts } from '@/shared/ui/flow/FlowCanvas/useCanvasShortcuts';
+import { useFitContent } from '@/shared/ui/flow/FlowCanvas/useFitContent';
 import { useKeyboardConnection } from '@/shared/ui/flow/FlowCanvas/useKeyboardConnection';
 import { usePaletteDrop } from '@/shared/ui/flow/FlowCanvas/usePaletteDrop';
 import { ZoomControl } from '@/shared/ui/flow/ZoomControl/ZoomControl';
@@ -117,12 +120,37 @@ const applySelection = (
   return [...next];
 };
 
+const showsTerminal = (
+  nodes: readonly FlowCanvasNode[],
+  connectedPorts: ReadonlyMap<string, ReadonlySet<string>>,
+  nodeId: string,
+): boolean => {
+  const connected = connectedPorts.get(nodeId) ?? NO_PORTS;
+  return (nodes.find((node) => node.id === nodeId)?.outPorts ?? []).some(
+    (port) => port.terminal !== undefined && port.terminal !== null && !connected.has(port.id),
+  );
+};
+
 const pointerOf = (event: MouseEvent | TouchEvent): { x: number; y: number } | null => {
   if ('changedTouches' in event) {
     const touch = event.changedTouches.item(0);
     return touch === null ? null : { x: touch.clientX, y: touch.clientY };
   }
   return { x: event.clientX, y: event.clientY };
+};
+
+const nodeAtPoint = (x: number, y: number): string | null => {
+  if (typeof document.elementsFromPoint !== 'function') {
+    return null;
+  }
+  for (const element of document.elementsFromPoint(x, y)) {
+    const node = element.closest(FLOW_CANVAS_NODE_SELECTOR);
+    const id = node?.getAttribute(FLOW_CANVAS_NODE_ID_ATTRIBUTE) ?? null;
+    if (id !== null && id !== FLOW_CANVAS_PLACEHOLDER_ID) {
+      return id;
+    }
+  }
+  return null;
 };
 
 function FlowCanvasSurface({
@@ -146,13 +174,20 @@ function FlowCanvasSurface({
   onAddStep,
   onAddTrigger,
   placeholder = null,
+  reveal = null,
   className,
 }: FlowCanvasProps) {
-  const { zoomIn, zoomOut, fitView, screenToFlowPosition } = useReactFlow();
+  const { zoomIn, zoomOut, screenToFlowPosition } = useReactFlow();
   const { showToast } = useToast();
   const rootRef = useRef<HTMLElement>(null);
   const selectionRef = useRef(selection);
   const fittedRef = useRef(false);
+  const [ready, setReady] = useState(false);
+  const revealedRef = useRef<readonly string[] | null>(null);
+  const pendingRevealRef = useRef<readonly string[] | null>(null);
+  const paneWidth = useStore((state) => state.width);
+  const paneHeight = useStore((state) => state.height);
+  const fitContent = useFitContent(rootRef);
   const [measured, setMeasured] = useState<ReadonlyMap<string, { width: number; height: number }>>(
     new Map(),
   );
@@ -216,14 +251,27 @@ function FlowCanvasSurface({
     };
   });
 
-  const everyNodeMeasured = rfNodes.length > 0 && rfNodes.every((node) => measured.has(node.id));
+  const everyNodeMeasured =
+    ready && rfNodes.length > 0 && rfNodes.every((node) => measured.has(node.id));
 
   useEffect(() => {
     if (everyNodeMeasured && !fittedRef.current) {
       fittedRef.current = true;
-      void fitView({ padding: FLOW_CANVAS_FIT_PADDING, maxZoom: FLOW_CANVAS_FIT_MAX_ZOOM });
+      fitContent({ nodeIds: null, maxZoom: FLOW_CANVAS_FIT_MAX_ZOOM, onlyWhenHidden: false });
     }
-  }, [everyNodeMeasured, fitView]);
+  }, [everyNodeMeasured, fitContent]);
+
+  useEffect(() => {
+    if (reveal !== revealedRef.current) {
+      revealedRef.current = reveal;
+      pendingRevealRef.current = reveal;
+    }
+    const pending = pendingRevealRef.current;
+    if (!ready || pending === null || !pending.every((id) => measured.has(id))) {
+      return;
+    }
+    fitContent({ nodeIds: pending, maxZoom: viewport.zoom, onlyWhenHidden: true });
+  }, [ready, reveal, measured, fitContent, viewport.zoom, paneWidth, paneHeight]);
 
   const rfEdges: CanvasEdge[] = edges.map((edge) => ({
     id: edge.id,
@@ -237,6 +285,7 @@ function FlowCanvasSurface({
       active: edge.active ?? false,
       inserting: edge.id === insertEdgeId,
       dashed: edge.dashed ?? false,
+      turnEarly: showsTerminal(nodes, connectedPorts, edge.source),
       deleteLabel: labels.deleteConnection,
       onDelete: () => deleteSelection({ nodeIds: [], edgeIds: [edge.id] }),
     },
@@ -298,10 +347,18 @@ function FlowCanvasSurface({
 
   const handleConnectEnd: OnConnectEnd = (event, state) => {
     const pointer = pointerOf(event);
-    if (state.isValid === true || state.fromNode === null || state.toNode !== null) {
+    if (state.isValid === true || state.fromNode === null) {
       return;
     }
     const sourcePort = state.fromHandle?.id ?? null;
+    const target =
+      state.toNode?.id ?? (pointer === null ? null : nodeAtPoint(pointer.x, pointer.y));
+    if (target !== null) {
+      if (sourcePort !== null && canConnect(state.fromNode.id, target)) {
+        onConnect({ source: state.fromNode.id, sourcePort, target });
+      }
+      return;
+    }
     if (pointer === null || sourcePort === null) {
       return;
     }
@@ -394,6 +451,12 @@ function FlowCanvasSurface({
         edgeTypes={EDGE_TYPES}
         viewport={viewport}
         onViewportChange={onViewportChange}
+        onInit={() => setReady(true)}
+        onMoveStart={(event) => {
+          if (event !== null) {
+            pendingRevealRef.current = null;
+          }
+        }}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
@@ -524,9 +587,18 @@ function FlowCanvasSurface({
         zoom={viewport.zoom}
         labels={labels.zoom}
         className={styles.zoom}
-        onZoomIn={() => void zoomIn()}
-        onZoomOut={() => void zoomOut()}
-        onFit={() => void fitView({ padding: FLOW_CANVAS_FIT_PADDING })}
+        onZoomIn={() => {
+          pendingRevealRef.current = null;
+          void zoomIn();
+        }}
+        onZoomOut={() => {
+          pendingRevealRef.current = null;
+          void zoomOut();
+        }}
+        onFit={() => {
+          pendingRevealRef.current = null;
+          fitContent({ nodeIds: null, maxZoom: ZOOM_MAX, onlyWhenHidden: false });
+        }}
       />
       <span aria-live="polite" className={styles.visuallyHidden}>
         {keyboard.targetLabel === null ? '' : labels.connectingTo(keyboard.targetLabel)}

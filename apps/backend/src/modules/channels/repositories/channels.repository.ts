@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, asc, eq } from 'drizzle-orm';
+import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { channels } from '@/modules/channels/db/channels.table';
 import type {
   ChannelCredentialsPatch,
@@ -95,6 +96,43 @@ export class ChannelsRepository {
     return channel ?? null;
   }
 
+  async updateStatusIfCurrent(
+    workspaceId: string,
+    id: string,
+    current: ChannelRecord['status'],
+    next: ChannelRecord['status'],
+    updatedAt: Date,
+    updatedByUserId: string,
+  ): Promise<ChannelRecord | null> {
+    const [channel] = await this.txHost.tx
+      .update(channels)
+      .set({ status: next, updatedAt, updatedByUserId })
+      .where(
+        and(
+          eq(channels.workspaceId, workspaceId),
+          eq(channels.id, id),
+          eq(channels.status, current),
+        ),
+      )
+      .returning();
+    return channel ?? null;
+  }
+
+  async markBroken(workspaceId: string, id: string, updatedAt: Date): Promise<boolean> {
+    const updated = await this.txHost.tx
+      .update(channels)
+      .set({ status: ChannelStatus.Broken, updatedAt, updatedByUserId: null })
+      .where(
+        and(
+          eq(channels.workspaceId, workspaceId),
+          eq(channels.id, id),
+          eq(channels.status, ChannelStatus.Connected),
+        ),
+      )
+      .returning({ id: channels.id });
+    return updated.length > 0;
+  }
+
   async updateSettings(
     workspaceId: string,
     id: string,
@@ -103,6 +141,21 @@ export class ChannelsRepository {
     const [channel] = await this.txHost.tx
       .update(channels)
       .set(patch)
+      .where(and(eq(channels.workspaceId, workspaceId), eq(channels.id, id)))
+      .returning();
+    return channel ?? null;
+  }
+
+  async updateIdentity(
+    workspaceId: string,
+    id: string,
+    identity: ChannelRecord['identity'],
+    updatedAt: Date,
+    updatedByUserId: string,
+  ): Promise<ChannelRecord | null> {
+    const [channel] = await this.txHost.tx
+      .update(channels)
+      .set({ identity, updatedAt, updatedByUserId })
       .where(and(eq(channels.workspaceId, workspaceId), eq(channels.id, id)))
       .returning();
     return channel ?? null;

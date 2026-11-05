@@ -11,12 +11,12 @@ import {
   WorkspaceSetupChoice,
   WorkspaceStepField,
 } from '@/features/auth/constants/workspaceStep.constants';
-import { browserTimeZone } from '@/features/auth/logic/helpers/timeZone.helpers';
 import { useLogOut } from '@/features/auth/logic/hooks/useLogOut';
 import { useServerErrors } from '@/features/auth/logic/hooks/useServerErrors';
 import { createWorkspaceStepSchema } from '@/features/auth/logic/schemas/workspaceStep.schema';
 import { AuthForm } from '@/features/auth/view/AuthForm';
 import { AuthPanel } from '@/features/auth/view/AuthPanel';
+import { browserTimeZone } from '@/shared/forms/helpers/timeZone.helpers';
 import { useAppForm } from '@/shared/forms/hooks/useAppForm';
 import { Namespace } from '@/shared/i18n/constants/namespace.constants';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';

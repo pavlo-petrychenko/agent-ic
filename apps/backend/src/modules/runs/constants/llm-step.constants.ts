@@ -9,3 +9,6 @@ export const AGENT_INCLUDES_CURRENT_MESSAGE = true;
 
 export const ANSWER_FROM_CONVERSATION_MESSAGE =
   'This note is from the system, not from the customer. Answer from the conversation so far.';
+
+export const FOLLOW_UP_MESSAGE =
+  'This note is from the system, not from the customer. The customer has not written anything new. Write a follow-up message to the customer from the conversation so far.';

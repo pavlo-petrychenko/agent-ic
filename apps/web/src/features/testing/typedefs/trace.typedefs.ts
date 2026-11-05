@@ -1,9 +1,25 @@
-import type { NodeType } from '@agent-ic/flow';
-import type { OutputViewKind, StepSection } from '@/features/testing/constants/trace.constants';
+import type { WorkspaceRole } from '@agent-ic/contracts';
+import type {
+  AgentExitKind,
+  EscalationMode,
+  FlowDocument,
+  FlowNode,
+  NodeType,
+  RecipientsKind,
+} from '@agent-ic/flow';
+import type {
+  ExitPath,
+  OutputViewKind,
+  StepSection,
+  TraceExit,
+  TurnOutcome,
+} from '@/features/testing/constants/trace.constants';
 import type { RunStatus, RunStepStatus } from '@/shared/api/generated/schema.generated';
 import type { NodeKind } from '@/shared/ui/display/NodeTile';
 import type { RunNodeState } from '@/shared/ui/flow/RunNode';
 import type { IconName } from '@/shared/ui/foundations/Icon';
+
+export type TurnStatus = RunStatus | TurnOutcome;
 
 export interface RunStepView {
   id: string;
@@ -61,6 +77,7 @@ export interface TraceCell extends TraceSlot {
   kind: NodeKind;
   icon: IconName;
   state: RunNodeState;
+  exit: TraceExit | null;
   selectable: boolean;
   selected: boolean;
 }
@@ -88,7 +105,40 @@ export type OutputView =
   | { kind: OutputViewKind.Fields; fields: readonly OutputField[] }
   | { kind: OutputViewKind.Json; code: string }
   | { kind: OutputViewKind.Error; message: string | null }
-  | { kind: OutputViewKind.Escalation; recipients: string | null };
+  | EscalationView
+  | AgentExitView
+  | { kind: OutputViewKind.AutoClose; after: string | null };
+
+export type ExitRecipients =
+  | { kind: RecipientsKind.Operators }
+  | { kind: RecipientsKind.Role; role: WorkspaceRole }
+  | { kind: RecipientsKind.Users; count: number };
+
+export interface EscalationView {
+  kind: OutputViewKind.Escalation;
+  mode: EscalationMode;
+  reason: string | null;
+  recipients: ExitRecipients | null;
+  wouldNotify: string | null;
+  message: string | null;
+  resumed: boolean;
+}
+
+export interface AgentExitView {
+  kind: OutputViewKind.AgentExit;
+  outcome: AgentExitKind;
+  reason: string | null;
+  path: ExitPath;
+  next: string | null;
+  recipients: ExitRecipients | null;
+  message: string | null;
+}
+
+export interface StepContext {
+  node: FlowNode | null;
+  flow: FlowDocument | null;
+  texts: readonly string[];
+}
 
 export interface StepSectionView {
   section: StepSection;

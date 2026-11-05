@@ -1,24 +1,34 @@
 import { KNOWLEDGE_DOCUMENT_TITLE_MAX_LENGTH } from '@agent-ic/contracts';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   DOCUMENT_TITLE_TRUNCATED_MESSAGE,
   DocumentParseWarningCode,
 } from '@/modules/knowledge/constants/document-parser.constants';
 import {
+  KnowledgeConnectionStatus,
+  KnowledgeDocumentIngestionOutcome,
+  KnowledgeDocumentStaleReason,
   KnowledgeDocumentStatus,
+  KnowledgeSourceKind,
   KnowledgeSourceStatus,
   KnowledgeSummarySource,
   KnowledgeSyncStatus,
+  KnowledgeSyncTrigger,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { KNOWLEDGE_EMBEDDING_DIMENSIONS } from '@/modules/knowledge/constants/knowledge.constants';
+import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
+import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.gateway';
+import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
 import {
   knowledgeContentStorageKey,
   knowledgeOriginalStorageKey,
 } from '@/modules/knowledge/helpers/knowledge-storage.helpers';
+import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
+import { KnowledgeDocumentIngestionService } from '@/modules/knowledge/services/knowledge-document-ingestion.service';
 import { IngestKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/ingest-knowledge-source.use-case';
 import { LlmUnavailableError } from '@/platform/llm/errors/llm-unavailable.error';
 import { EmbeddingGateway } from '@/platform/llm/gateways/embedding.gateway';
@@ -33,14 +43,30 @@ import type {
   LlmCompletion,
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 import { JOB_ATTEMPTS } from '@/platform/queues/constants/queue.constants';
-import { TEST_EMBEDDING_VECTOR } from '@test/support/constants/knowledge-testing.constants';
+import { SecretBoxService } from '@/platform/secrets/services/secret-box.service';
+import {
+  TEST_EMBEDDING_VECTOR,
+  TEST_GOOGLE_DOC_ID,
+  TEST_GOOGLE_DOC_MARKDOWN,
+  TEST_GOOGLE_DOC_MIME_TYPE,
+  TEST_GOOGLE_DOC_MODIFIED_AT,
+  TEST_GOOGLE_DOC_NAME,
+  TEST_GOOGLE_DOC_URL,
+  TEST_GOOGLE_DOC_VERSION,
+  TEST_GOOGLE_REFRESH_TOKEN,
+  KNOWLEDGE_TEST_LATER,
+} from '@test/support/constants/knowledge-testing.constants';
+import { FakeGoogleDriveGateway } from '@test/support/fakes/google-drive.fake';
+import { FakeGoogleOAuthGateway } from '@test/support/fakes/google-oauth.fake';
 import { workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import { newSyncRun } from '@test/support/fixtures/knowledge.fixture';
 import {
   createKnowledgeTestbed,
   seedKnowledgeBase,
+  seedKnowledgeConnection,
   seedKnowledgeDocument,
   seedKnowledgeSource,
+  seedSourceDocument,
 } from '@test/support/helpers/knowledge-testing.helpers';
 import type { KnowledgeTestbed } from '@test/support/typedefs/knowledge-testing.typedefs';
 
@@ -89,24 +115,34 @@ describe('IngestKnowledgeSourceUseCase', () => {
   let testbed: KnowledgeTestbed;
   let llm: FakeLlmGateway;
   let embedding: FakeEmbeddingGateway;
+  let drive: FakeGoogleDriveGateway;
+  let oauth: FakeGoogleOAuthGateway;
   let ingest: IngestKnowledgeSourceUseCase;
   let documents: DocumentsRepository;
   let sources: SourcesRepository;
   let knowledgeBases: KnowledgeBasesRepository;
   let syncRuns: SyncRunsRepository;
+  let connections: ConnectionsRepository;
+  let secrets: SecretBoxService;
 
   beforeAll(async () => {
     llm = new FakeLlmGateway();
     embedding = new FakeEmbeddingGateway();
+    drive = new FakeGoogleDriveGateway();
+    oauth = new FakeGoogleOAuthGateway();
     testbed = await createKnowledgeTestbed([
       { token: LlmGateway, value: llm },
       { token: EmbeddingGateway, value: embedding },
+      { token: GoogleOAuthGateway, value: oauth },
+      { token: GoogleDriveGateway, value: drive },
     ]);
     ingest = testbed.module.get(IngestKnowledgeSourceUseCase);
     documents = testbed.module.get(DocumentsRepository);
     sources = testbed.module.get(SourcesRepository);
     knowledgeBases = testbed.module.get(KnowledgeBasesRepository);
     syncRuns = testbed.module.get(SyncRunsRepository);
+    connections = testbed.module.get(ConnectionsRepository);
+    secrets = testbed.module.get(SecretBoxService);
   });
 
   beforeEach(() => {
@@ -117,6 +153,8 @@ describe('IngestKnowledgeSourceUseCase', () => {
 
   afterEach(() => {
     llm.fail = false;
+    oauth.clearFailure();
+    vi.restoreAllMocks();
   });
 
   afterAll(async () => {
@@ -212,6 +250,556 @@ describe('IngestKnowledgeSourceUseCase', () => {
       status: KnowledgeSyncStatus.Succeeded,
       documentsSkipped: 1,
       documentsIndexed: 0,
+    });
+  });
+
+  it('exports a picked Google Doc in the worker before indexing it', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    await testbed.tenants.run(workspaceId, () =>
+      connections.update(workspaceId, connectionId, {
+        sealedRefreshToken: secrets.seal(TEST_GOOGLE_REFRESH_TOKEN),
+      }),
+    );
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
+    drive.exportRequests.length = 0;
+    drive.addFile(
+      {
+        id: TEST_GOOGLE_DOC_ID,
+        name: TEST_GOOGLE_DOC_NAME,
+        mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+        webViewLink: TEST_GOOGLE_DOC_URL,
+        modifiedTime: TEST_GOOGLE_DOC_MODIFIED_AT,
+        version: TEST_GOOGLE_DOC_VERSION,
+        trashed: false,
+      },
+      TEST_GOOGLE_DOC_MARKDOWN,
+    );
+    const syncRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, async () => {
+      await documents.update(workspaceId, documentId, {
+        externalId: TEST_GOOGLE_DOC_ID,
+        title: TEST_GOOGLE_DOC_NAME,
+        mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+      });
+      await syncRuns.insert(newSyncRun(syncRunId, workspaceId, sourceId));
+    });
+
+    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId });
+
+    const document = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    if (document?.originalStorageKey === null || document?.originalStorageKey === undefined) {
+      throw new Error('the worker did not store the Google Doc original');
+    }
+    const source = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    expect(document).toMatchObject({
+      status: KnowledgeDocumentStatus.Indexed,
+      title: TEST_GOOGLE_DOC_NAME,
+      sizeBytes: Buffer.byteLength(TEST_GOOGLE_DOC_MARKDOWN),
+      sourceUrl: TEST_GOOGLE_DOC_URL,
+      providerVersion: TEST_GOOGLE_DOC_VERSION,
+      providerModifiedAt: new Date(TEST_GOOGLE_DOC_MODIFIED_AT),
+    });
+    expect(testbed.storage.objects.get(document.originalStorageKey)?.body.toString()).toBe(
+      TEST_GOOGLE_DOC_MARKDOWN,
+    );
+    expect(source).toMatchObject({
+      status: KnowledgeSourceStatus.Ready,
+      documentCount: 1,
+    });
+    expect(drive.exportRequests).toEqual([TEST_GOOGLE_DOC_ID]);
+  });
+
+  it('processes only the documents selected by the sync job', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    const ownerSourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId, {
+      externalId: 'owned-document',
+    });
+    const selectedDocumentId = await seedKnowledgeDocument(
+      testbed,
+      workspaceId,
+      knowledgeBaseId,
+      ownerSourceId,
+      { externalId: 'selected-document' },
+    );
+    await seedSourceDocument(testbed, workspaceId, knowledgeBaseId, sourceId, selectedDocumentId);
+    const ingestionService = testbed.module.get(KnowledgeDocumentIngestionService);
+    const ingestSpy = vi
+      .spyOn(ingestionService, 'ingest')
+      .mockResolvedValue({ outcome: KnowledgeDocumentIngestionOutcome.Skipped });
+    const syncRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert({
+        ...newSyncRun(syncRunId, workspaceId, sourceId),
+        trigger: KnowledgeSyncTrigger.Manual,
+      }),
+    );
+
+    await ingest.execute(workspaceSystemCtx(workspaceId), {
+      sourceId,
+      syncRunId,
+      documentIds: [selectedDocumentId],
+    });
+
+    const run = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, syncRunId),
+    );
+    expect(ingestSpy).toHaveBeenCalledTimes(1);
+    expect(ingestSpy.mock.calls[0]?.[0].document.id).toBe(selectedDocumentId);
+    expect(run).toMatchObject({
+      documentsTotal: 1,
+      documentsSkipped: 1,
+    });
+  });
+
+  it('marks linked sources as indexing while a shared document is processed', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    const ownerSourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    const linkedSourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+      status: KnowledgeSourceStatus.Ready,
+    });
+    const documentId = await seedKnowledgeDocument(
+      testbed,
+      workspaceId,
+      knowledgeBaseId,
+      ownerSourceId,
+    );
+    await seedSourceDocument(testbed, workspaceId, knowledgeBaseId, linkedSourceId, documentId);
+    const ingestionService = testbed.module.get(KnowledgeDocumentIngestionService);
+    let linkedStatus: KnowledgeSourceStatus | null = null;
+    vi.spyOn(ingestionService, 'ingest').mockImplementation(async () => {
+      const linkedSource = await testbed.tenants.run(workspaceId, () =>
+        sources.findById(workspaceId, linkedSourceId),
+      );
+      linkedStatus = linkedSource?.status ?? null;
+      return { outcome: KnowledgeDocumentIngestionOutcome.Skipped };
+    });
+    const syncRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert({
+        ...newSyncRun(syncRunId, workspaceId, ownerSourceId),
+        trigger: KnowledgeSyncTrigger.Manual,
+      }),
+    );
+
+    await ingest.execute(workspaceSystemCtx(workspaceId), {
+      sourceId: ownerSourceId,
+      syncRunId,
+      documentIds: [documentId],
+    });
+
+    expect(linkedStatus).toBe(KnowledgeSourceStatus.Indexing);
+  });
+
+  it('skips unchanged Google Docs and reindexes changed content', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    await testbed.tenants.run(workspaceId, () =>
+      connections.update(workspaceId, connectionId, {
+        sealedRefreshToken: secrets.seal(TEST_GOOGLE_REFRESH_TOKEN),
+      }),
+    );
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
+    const file = {
+      id: TEST_GOOGLE_DOC_ID,
+      name: TEST_GOOGLE_DOC_NAME,
+      mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+      webViewLink: TEST_GOOGLE_DOC_URL,
+      modifiedTime: TEST_GOOGLE_DOC_MODIFIED_AT,
+      version: TEST_GOOGLE_DOC_VERSION,
+      trashed: false,
+    };
+    drive.addFile(file, TEST_GOOGLE_DOC_MARKDOWN);
+    await testbed.tenants.run(workspaceId, () =>
+      documents.update(workspaceId, documentId, {
+        externalId: TEST_GOOGLE_DOC_ID,
+        title: TEST_GOOGLE_DOC_NAME,
+        mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+      }),
+    );
+
+    const initialRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(initialRunId, workspaceId, sourceId)),
+    );
+    await ingest.execute(workspaceSystemCtx(workspaceId), {
+      sourceId,
+      syncRunId: initialRunId,
+    });
+
+    drive.exportRequests.length = 0;
+    const beforeUnchanged = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    const unchangedRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(unchangedRunId, workspaceId, sourceId)),
+    );
+    await ingest.execute(workspaceSystemCtx(workspaceId), {
+      sourceId,
+      syncRunId: unchangedRunId,
+    });
+
+    const unchangedDocument = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    const unchangedRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, unchangedRunId),
+    );
+    expect(unchangedDocument).toMatchObject({
+      status: KnowledgeDocumentStatus.Indexed,
+      activeGeneration: 1,
+      providerVersion: TEST_GOOGLE_DOC_VERSION,
+    });
+    expect(unchangedDocument?.updatedAt).toEqual(beforeUnchanged?.updatedAt);
+    expect(unchangedRun).toMatchObject({
+      status: KnowledgeSyncStatus.Succeeded,
+      documentsIndexed: 0,
+      documentsSkipped: 1,
+    });
+    expect(drive.exportRequests).toEqual([]);
+    expect(llm.calls).toBe(1);
+    expect(embedding.calls).toHaveLength(1);
+
+    const changedMarkdown = '# Policies\n\nRefunds are processed within seven days.';
+    drive.addFile(
+      {
+        ...file,
+        version: '43',
+        modifiedTime: KNOWLEDGE_TEST_LATER.toISOString(),
+      },
+      changedMarkdown,
+    );
+    drive.exportRequests.length = 0;
+    const changedRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(changedRunId, workspaceId, sourceId)),
+    );
+    await ingest.execute(workspaceSystemCtx(workspaceId), {
+      sourceId,
+      syncRunId: changedRunId,
+    });
+
+    const changedDocument = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    expect(changedDocument).toMatchObject({
+      status: KnowledgeDocumentStatus.Indexed,
+      activeGeneration: 2,
+      providerVersion: '43',
+      providerModifiedAt: KNOWLEDGE_TEST_LATER,
+    });
+    expect(drive.exportRequests).toEqual([TEST_GOOGLE_DOC_ID]);
+    expect(llm.calls).toBe(1);
+    expect(embedding.calls).toHaveLength(2);
+
+    drive.addFile(
+      {
+        ...file,
+        version: '44',
+        modifiedTime: KNOWLEDGE_TEST_LATER.toISOString(),
+      },
+      changedMarkdown,
+    );
+    drive.exportRequests.length = 0;
+    const sameContentRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(sameContentRunId, workspaceId, sourceId)),
+    );
+    await ingest.execute(workspaceSystemCtx(workspaceId), {
+      sourceId,
+      syncRunId: sameContentRunId,
+    });
+
+    const sameContentDocument = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    expect(sameContentDocument).toMatchObject({
+      status: KnowledgeDocumentStatus.Indexed,
+      activeGeneration: 2,
+      providerVersion: '44',
+      providerModifiedAt: KNOWLEDGE_TEST_LATER,
+    });
+    expect(drive.exportRequests).toEqual([TEST_GOOGLE_DOC_ID]);
+    expect(embedding.calls).toHaveLength(2);
+  });
+
+  it('keeps an indexed Google Doc and marks it stale when Drive no longer returns it', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    await testbed.tenants.run(workspaceId, () =>
+      connections.update(workspaceId, connectionId, {
+        sealedRefreshToken: secrets.seal(TEST_GOOGLE_REFRESH_TOKEN),
+      }),
+    );
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
+    const file = {
+      id: TEST_GOOGLE_DOC_ID,
+      name: TEST_GOOGLE_DOC_NAME,
+      mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+      webViewLink: TEST_GOOGLE_DOC_URL,
+      modifiedTime: TEST_GOOGLE_DOC_MODIFIED_AT,
+      version: TEST_GOOGLE_DOC_VERSION,
+      trashed: false,
+    };
+    drive.addFile(file, TEST_GOOGLE_DOC_MARKDOWN);
+    await testbed.tenants.run(workspaceId, () =>
+      documents.update(workspaceId, documentId, {
+        externalId: TEST_GOOGLE_DOC_ID,
+        title: TEST_GOOGLE_DOC_NAME,
+        mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+      }),
+    );
+
+    const initialRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(initialRunId, workspaceId, sourceId)),
+    );
+    await ingest.execute(workspaceSystemCtx(workspaceId), {
+      sourceId,
+      syncRunId: initialRunId,
+    });
+
+    const indexed = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    if (indexed === null || indexed.contentStorageKey === null) {
+      throw new Error('the initial sync did not generate content');
+    }
+
+    drive.removeFile(TEST_GOOGLE_DOC_ID);
+    const staleRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(staleRunId, workspaceId, sourceId)),
+    );
+    await ingest.execute(workspaceSystemCtx(workspaceId), {
+      sourceId,
+      syncRunId: staleRunId,
+    });
+
+    const staleDocument = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    const staleSource = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    const staleRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, staleRunId),
+    );
+    expect(staleDocument).toMatchObject({
+      status: KnowledgeDocumentStatus.Indexed,
+      activeGeneration: indexed.activeGeneration,
+      chunkCount: indexed.chunkCount,
+      contentStorageKey: indexed.contentStorageKey,
+      staleReason: KnowledgeDocumentStaleReason.Missing,
+    });
+    expect(staleDocument?.staleAt).toBeInstanceOf(Date);
+    expect(testbed.storage.objects.get(indexed.contentStorageKey)?.body.toString().trimEnd()).toBe(
+      TEST_GOOGLE_DOC_MARKDOWN,
+    );
+    expect(staleSource).toMatchObject({
+      status: KnowledgeSourceStatus.Ready,
+      staleDocumentCount: 1,
+      documentCount: 1,
+      chunkCount: indexed.chunkCount,
+    });
+    expect(staleRun).toMatchObject({
+      status: KnowledgeSyncStatus.Succeeded,
+      documentsTotal: 1,
+      documentsIndexed: 0,
+      documentsSkipped: 0,
+      documentsFailed: 0,
+      documentsStale: 1,
+    });
+
+    drive.addFile(file, TEST_GOOGLE_DOC_MARKDOWN);
+    const restoredRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(restoredRunId, workspaceId, sourceId)),
+    );
+    await ingest.execute(workspaceSystemCtx(workspaceId), {
+      sourceId,
+      syncRunId: restoredRunId,
+    });
+
+    const restoredDocument = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    const restoredSource = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    const restoredRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, restoredRunId),
+    );
+    expect(restoredDocument).toMatchObject({
+      status: KnowledgeDocumentStatus.Indexed,
+      staleAt: null,
+      staleReason: null,
+      activeGeneration: indexed.activeGeneration,
+    });
+    expect(restoredSource).toMatchObject({
+      status: KnowledgeSourceStatus.Ready,
+      staleDocumentCount: 0,
+    });
+    expect(restoredRun).toMatchObject({
+      status: KnowledgeSyncStatus.Succeeded,
+      documentsSkipped: 1,
+      documentsStale: 0,
+    });
+  });
+
+  it('fails a Google Doc with no local copy when Drive no longer returns it', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    await testbed.tenants.run(workspaceId, () =>
+      connections.update(workspaceId, connectionId, {
+        sealedRefreshToken: secrets.seal(TEST_GOOGLE_REFRESH_TOKEN),
+      }),
+    );
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    const documentId = await seedKnowledgeDocument(
+      testbed,
+      workspaceId,
+      knowledgeBaseId,
+      sourceId,
+      {
+        externalId: TEST_GOOGLE_DOC_ID,
+        title: TEST_GOOGLE_DOC_NAME,
+        mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+      },
+    );
+    drive.removeFile(TEST_GOOGLE_DOC_ID);
+    const syncRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(syncRunId, workspaceId, sourceId)),
+    );
+
+    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId });
+
+    const document = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    const source = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    const syncRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, syncRunId),
+    );
+    expect(document).toMatchObject({
+      status: KnowledgeDocumentStatus.Error,
+      staleAt: null,
+      staleReason: null,
+      errorCode: 'DOCUMENT_UNREADABLE',
+    });
+    expect(source).toMatchObject({
+      status: KnowledgeSourceStatus.Error,
+      staleDocumentCount: 0,
+    });
+    expect(syncRun).toMatchObject({
+      status: KnowledgeSyncStatus.Failed,
+      documentsFailed: 1,
+      documentsStale: 0,
+    });
+  });
+
+  it('revokes the connection and fails the source when Google requires a reconnect', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    await testbed.tenants.run(workspaceId, () =>
+      connections.update(workspaceId, connectionId, {
+        sealedRefreshToken: secrets.seal(TEST_GOOGLE_REFRESH_TOKEN),
+      }),
+    );
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    const documentId = await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
+    const syncRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, async () => {
+      await documents.update(workspaceId, documentId, {
+        externalId: TEST_GOOGLE_DOC_ID,
+        title: TEST_GOOGLE_DOC_NAME,
+        mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+      });
+      await syncRuns.insert(newSyncRun(syncRunId, workspaceId, sourceId));
+    });
+    oauth.failWith(new GoogleReconnectRequiredError());
+
+    await expect(
+      ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId }),
+    ).rejects.toBeInstanceOf(GoogleReconnectRequiredError);
+
+    const connection = await testbed.tenants.run(workspaceId, () =>
+      connections.findById(workspaceId, connectionId),
+    );
+    const source = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    const document = await testbed.tenants.run(workspaceId, () =>
+      documents.findById(workspaceId, documentId),
+    );
+    const syncRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, syncRunId),
+    );
+
+    expect(connection).toMatchObject({
+      status: KnowledgeConnectionStatus.Revoked,
+      lastErrorCode: 'GOOGLE_RECONNECT_REQUIRED',
+    });
+    expect(source).toMatchObject({
+      status: KnowledgeSourceStatus.Error,
+      lastErrorCode: 'GOOGLE_RECONNECT_REQUIRED',
+    });
+    expect(document).toMatchObject({
+      status: KnowledgeDocumentStatus.Error,
+      errorCode: 'GOOGLE_RECONNECT_REQUIRED',
+    });
+    expect(syncRun).toMatchObject({
+      status: KnowledgeSyncStatus.Failed,
+      documentsFailed: 1,
+      errorCode: 'GOOGLE_RECONNECT_REQUIRED',
     });
   });
 

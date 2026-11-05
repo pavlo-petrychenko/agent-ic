@@ -1,7 +1,7 @@
-import type { KnowledgeSourceRowView } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import type { KnowledgeSourceTarget } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 
 export interface RenameKnowledgeSourceDialogProps {
   readonly knowledgeBaseId: string;
-  readonly source: KnowledgeSourceRowView;
+  readonly source: KnowledgeSourceTarget;
   readonly onClose: () => void;
 }

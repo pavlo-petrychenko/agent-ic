@@ -1,6 +1,7 @@
 import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
+import { ConversationState } from '@/modules/conversations/constants/conversation.constants';
 import { parseConversationInput } from '@/modules/conversations/helpers/conversation-input.helpers';
 import { hasSimulationSetup } from '@/modules/conversations/helpers/simulation.helpers';
 import { startSimulationSchema } from '@/modules/conversations/schemas/simulation.schema';
@@ -41,12 +42,12 @@ export class StartSimulationUseCase {
       if (pinned !== null) {
         await this.agents.getPublishedVersion(workspaceId, agentId, pinned);
       }
-      const open = await this.simulations.findOpen(key);
-      if (open !== null && hasSimulationSetup(open, setup)) {
-        return this.simulations.view(open);
+      const latest = await this.simulations.findLatest(key);
+      if (latest !== null && hasSimulationSetup(latest, setup)) {
+        return this.simulations.view(latest);
       }
-      if (open !== null) {
-        await this.simulations.close(open);
+      if (latest !== null && latest.state !== ConversationState.Closed) {
+        await this.simulations.close(latest);
       }
       return this.simulations.view(await this.simulations.open(key, setup));
     });

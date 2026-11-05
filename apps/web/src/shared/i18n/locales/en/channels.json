@@ -54,6 +54,8 @@
       "description": "{{name}} · API channel",
       "copyWarning": "Copy it now — we only show a key once. If you lose it, rotate it.",
       "keyLabel": "Secret key",
+      "webhookKeyLabel": "Webhook signing secret",
+      "webhookHint": "Use it to verify the X-Agent-IC-Signature header on webhook deliveries.",
       "copy": "Copy",
       "endpointLabel": "Endpoint",
       "rotationHint": "After a rotation the previous key keeps working for 24 h.",
@@ -63,6 +65,11 @@
     "channel": {
       "breadcrumbApi": "API",
       "subtitle": "API channel · answered by {{agent}}",
+      "loading": "Loading the API channel",
+      "loadError": "The API channel could not be loaded.",
+      "notFound": "That API channel was not found.",
+      "retry": "Try again",
+      "saved": "Changes saved",
       "actions": {
         "delete": "Delete",
         "save": "Save"
@@ -130,19 +137,16 @@
       "stepName": "Pick a name and a username ending in “bot”",
       "stepCopy": "Copy the token and paste it here"
     },
-    "stats": {
-      "title": "Last 7 days",
-      "chats": "Chats",
-      "messages": "Messages",
-      "errors": "Errors"
-    },
     "bot": {
       "subtitle": "Telegram bot · answered by {{agent}}",
       "unknownAgent": "No agent",
       "saved": "Channel settings saved",
       "deleted": "Channel deleted",
+      "reconnected": "Channel reconnected",
+      "refreshed": "Bot info refreshed",
       "tokenReplaced": "Bot token replaced",
       "actions": {
+        "connect": "Reconnect",
         "delete": "Delete",
         "disconnect": "Disconnect",
         "save": "Save"
@@ -198,6 +202,7 @@
         "lastUpdateDate": "{{date}} {{time}} · from {{author}}",
         "botName": "Bot name",
         "botNameValue": "{{name}} · edit in @BotFather",
+        "refresh": "Refresh bot name",
         "alerted": "Alerted",
         "alertedValue": "Owners and admins · email",
         "revokedNote": "Telegram rejected this token on {{date}} at {{time}} — it was revoked or regenerated in @BotFather."

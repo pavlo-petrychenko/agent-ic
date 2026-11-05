@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { FLOW_SCHEMA_VERSION, PortName } from '@flow/document/constants/flow.constants';
-import type { FlowDocument, PromptSource } from '@flow/document/typedefs/flow.typedefs';
+import { PortName } from '@flow/document/constants/flow.constants';
+import type { PromptSource } from '@flow/document/typedefs/flow.typedefs';
 import {
   PromptSourceKind,
   PromptVersionKind,
@@ -10,6 +10,7 @@ import {
   agent,
   completion,
   field,
+  flowOf,
   link,
   messageTrigger,
   sendText,
@@ -45,16 +46,15 @@ describe('promptReferences', () => {
     };
     const latest = completion('latest', [field('verdict')], library(LATEST_REF));
     const reply = sendText('reply', 'Hello');
-    const flow: FlowDocument = {
-      schemaVersion: FLOW_SCHEMA_VERSION,
-      nodes: [trigger, bare, pinned, latest, reply],
-      edges: [
+    const flow = flowOf(
+      [trigger, bare, pinned, latest, reply],
+      [
         link(trigger, PortName.Next, bare),
         link(bare, PortName.Next, pinned),
         link(pinned, PortName.Next, latest),
         link(latest, PortName.Next, reply),
       ],
-    };
+    );
 
     expect(promptReferences(flow)).toEqual([
       {
@@ -79,11 +79,7 @@ describe('promptReferences', () => {
   it('lists nothing for steps without a prompt', () => {
     const trigger = messageTrigger('incoming');
     const bare = agent('bare', [], null);
-    const flow: FlowDocument = {
-      schemaVersion: FLOW_SCHEMA_VERSION,
-      nodes: [trigger, bare],
-      edges: [link(trigger, PortName.Next, bare)],
-    };
+    const flow = flowOf([trigger, bare], [link(trigger, PortName.Next, bare)]);
 
     expect(promptReferences(flow)).toEqual([]);
   });

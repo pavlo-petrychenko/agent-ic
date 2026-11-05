@@ -2,14 +2,19 @@ query KnowledgeSources($knowledgeBaseId: ID!) {
   knowledgeSources(knowledgeBaseId: $knowledgeBaseId) {
     id
     knowledgeBaseId
+    connectionId
     kind
     title
     status
     syncInterval
+    syncTime
+    syncWeekday
+    timezone
     nextSyncAt
     lastSyncAt
     lastErrorCode
     lastErrorMessage
+    staleDocumentCount
     documentCount
     chunkCount
     createdAt

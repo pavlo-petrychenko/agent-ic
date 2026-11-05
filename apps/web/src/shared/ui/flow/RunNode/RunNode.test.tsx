@@ -42,6 +42,20 @@ describe('RunNode', () => {
     expect(container.querySelector('[data-icon="alert"]')).toBeInTheDocument();
   });
 
+  it('shows which exit a terminal step took, with its label visible', () => {
+    const { container } = renderNode(RunNodeState.Escalated, 'escalated');
+
+    expect(container.querySelector('[data-icon="esc"]')).toBeInTheDocument();
+    expect(screen.getByText('escalated')).toHaveClass(cssClass(styles.statusLabel));
+  });
+
+  it('shows a check and a visible label when the step ended the chat', () => {
+    const { container } = renderNode(RunNodeState.Ended, 'default end');
+
+    expect(container.querySelector('[data-icon="check"]')).toBeInTheDocument();
+    expect(screen.getByText('default end')).toHaveClass(cssClass(styles.statusLabel));
+  });
+
   it.each(Object.values(RunNodeState))('draws the %s state', (state) => {
     renderNode(state, state);
 

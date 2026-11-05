@@ -1,5 +1,5 @@
 import { EscalationMode, NodeType, RecipientsKind } from '@agent-ic/flow';
-import type { EscalationNode, FlowDocument, NotifyChannel } from '@agent-ic/flow';
+import type { EscalationNode, FlowDocument, HandoffSettings, NotifyChannel } from '@agent-ic/flow';
 import {
   OFFERED_NOTIFY_CHANNELS,
   RECIPIENT_ROLES,
@@ -54,13 +54,13 @@ export const updateEscalate = (
     config.mode === EscalationMode.Escalate ? { ...config, ...patch } : config,
   );
 
-export const recipientsValue = (config: EscalationNode['config']): string => {
-  if (config.mode === EscalationMode.End) {
-    return RecipientsKind.Operators;
-  }
-  const { recipients } = config.notify;
+export const handoffRecipientsValue = (handoff: HandoffSettings): string => {
+  const { recipients } = handoff.notify;
   return recipients.kind === RecipientsKind.Role ? recipients.role : recipients.kind;
 };
+
+export const recipientsValue = (config: EscalationNode['config']): string =>
+  config.mode === EscalationMode.End ? RecipientsKind.Operators : handoffRecipientsValue(config);
 
 export const recipientsFromValue = (value: string): EscalationRecipients | null => {
   if (value === RecipientsKind.Operators) {
@@ -70,20 +70,31 @@ export const recipientsFromValue = (value: string): EscalationRecipients | null 
   return role === undefined ? null : { kind: RecipientsKind.Role, role };
 };
 
+export const withRecipients = <T extends HandoffSettings>(handoff: T, value: string): T => {
+  const recipients = recipientsFromValue(value);
+  return recipients === null ? handoff : { ...handoff, notify: { ...handoff.notify, recipients } };
+};
+
+export const withChannel = <T extends HandoffSettings>(
+  handoff: T,
+  channel: NotifyChannel,
+  on: boolean,
+): T => {
+  const others = handoff.notify.channels.filter((current) => current !== channel);
+  const channels = on ? [...others, channel] : others;
+  return OFFERED_NOTIFY_CHANNELS.some((offered) => channels.includes(offered))
+    ? { ...handoff, notify: { ...handoff.notify, channels } }
+    : handoff;
+};
+
 export const setRecipients = (
   document: FlowDocument,
   nodeId: string,
   value: string,
-): FlowDocument => {
-  const recipients = recipientsFromValue(value);
-  return recipients === null
-    ? document
-    : updateEscalation(document, nodeId, (config) =>
-        config.mode === EscalationMode.Escalate
-          ? { ...config, notify: { ...config.notify, recipients } }
-          : config,
-      );
-};
+): FlowDocument =>
+  updateEscalation(document, nodeId, (config) =>
+    config.mode === EscalationMode.Escalate ? withRecipients(config, value) : config,
+  );
 
 export const setChannel = (
   document: FlowDocument,
@@ -91,13 +102,6 @@ export const setChannel = (
   channel: NotifyChannel,
   on: boolean,
 ): FlowDocument =>
-  updateEscalation(document, nodeId, (config) => {
-    if (config.mode !== EscalationMode.Escalate) {
-      return config;
-    }
-    const others = config.notify.channels.filter((current) => current !== channel);
-    const channels = on ? [...others, channel] : others;
-    return OFFERED_NOTIFY_CHANNELS.some((offered) => channels.includes(offered))
-      ? { ...config, notify: { ...config.notify, channels } }
-      : config;
-  });
+  updateEscalation(document, nodeId, (config) =>
+    config.mode === EscalationMode.Escalate ? withChannel(config, channel, on) : config,
+  );

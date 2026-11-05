@@ -1,5 +1,6 @@
 export enum ConversationGraphqlField {
   ConversationActivity = 'conversationActivity',
+  InboxActivity = 'inboxActivity',
 }
 
 export enum ConversationGraphqlArgument {

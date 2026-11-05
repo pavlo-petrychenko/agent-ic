@@ -9,6 +9,7 @@ import type {
   TelegramUpdate,
 } from '@/modules/channels/typedefs/telegram.typedefs';
 import { ConversationMode } from '@/modules/conversations';
+import { startRunOnMessageJob } from '@/modules/runs';
 import { ActorKind, SystemReason } from '@/platform/context/constants/actor.constants';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { TEST_TELEGRAM_TOKEN } from '@test/support/constants/channel-testing.constants';
@@ -30,6 +31,7 @@ const telegramUpdate = (updateId: number, messageId: number): TelegramUpdate => 
     senderName: 'Moshe',
     text: 'Hello',
   },
+  callbackQuery: null,
 });
 
 describe('TelegramPollerService', () => {
@@ -70,12 +72,13 @@ describe('TelegramPollerService', () => {
     return { ...workspace, agentId, channel, pollerChannel };
   };
 
-  const conversationOf = (workspaceId: string, agentId: string) =>
+  const conversationOf = (workspaceId: string, agentId: string, channelId: string) =>
     testbed.tenants.run(workspaceId, () =>
       testbed.conversations.findOpenForUpdate({
         workspaceId,
         agentId,
         channelKind: ChannelKind.Telegram,
+        channelId,
         endUserExternalId: '42',
         mode: ConversationMode.Live,
       }),
@@ -95,7 +98,7 @@ describe('TelegramPollerService', () => {
         allowedUpdates: TELEGRAM_ALLOWED_UPDATES,
       },
     ]);
-    const conversation = await conversationOf(workspaceId, agentId);
+    const conversation = await conversationOf(workspaceId, agentId, pollerChannel.id);
     if (conversation === null) {
       throw new Error('Expected a conversation');
     }
@@ -128,12 +131,16 @@ describe('TelegramPollerService', () => {
     expect(testbed.telegram.getUpdatesCalls.map((call) => call.offset)).toEqual([0, 1001]);
   });
 
-  it('keeps polling after a telegram failure', async () => {
-    const { pollerChannel } = await seed();
+  it('marks the channel broken after a 401 and keeps polling', async () => {
+    const { pollerChannel, workspaceId, channel } = await seed();
     testbed.telegram.failNext(new TelegramApiError({ method: 'getUpdates', status: 401 }));
 
     await expect(poller.pollChannel(pollerChannel)).resolves.toBeUndefined();
     expect(testbed.telegram.getUpdatesCalls).toHaveLength(1);
+    const stored = await testbed.tenants.run(workspaceId, () =>
+      testbed.channels.findById(workspaceId, channel.id),
+    );
+    expect(stored?.status).toBe(ChannelStatus.Broken);
   });
 
   it('handles every update in a batch and advances past the last one', async () => {
@@ -142,7 +149,7 @@ describe('TelegramPollerService', () => {
 
     await poller.pollChannel(pollerChannel);
 
-    const conversation = await conversationOf(workspaceId, agentId);
+    const conversation = await conversationOf(workspaceId, agentId, pollerChannel.id);
     if (conversation === null) {
       throw new Error('Expected a conversation');
     }
@@ -163,11 +170,11 @@ describe('TelegramPollerService', () => {
 
   it('advances past a non-message update without storing anything', async () => {
     const { pollerChannel, workspaceId, agentId } = await seed();
-    testbed.telegram.updates = [{ updateId: '1000', message: null }];
+    testbed.telegram.updates = [{ updateId: '1000', message: null, callbackQuery: null }];
 
     await poller.pollChannel(pollerChannel);
 
-    await expect(conversationOf(workspaceId, agentId)).resolves.toBeNull();
+    await expect(conversationOf(workspaceId, agentId, pollerChannel.id)).resolves.toBeNull();
 
     await poller.pollChannel(pollerChannel);
 
@@ -184,7 +191,9 @@ describe('TelegramPollerService', () => {
       await testbed.queues
         .get(QueueName.RunsReactive)
         .getJobs(['waiting', 'prioritized', 'delayed', 'active'])
-    ).filter((job) => job.data.workspaceId === workspaceId);
+    ).filter(
+      (job) => job.data.workspaceId === workspaceId && job.name === startRunOnMessageJob.name,
+    );
     expect(jobs).toHaveLength(1);
     expect(jobs[0]?.data.initiatedBy).toEqual({
       kind: ActorKind.System,

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { createEvent, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { FlowPort } from '@/shared/ui/flow/FlowPort/FlowPort';
@@ -7,7 +7,11 @@ import {
   FlowPortState,
   FlowPortStep,
 } from '@/shared/ui/flow/FlowPort/FlowPort.constants';
-import type { FlowPortKeyboard } from '@/shared/ui/flow/FlowPort/FlowPort.typedefs';
+import type {
+  FlowPortKeyboard,
+  FlowPortTerminal,
+} from '@/shared/ui/flow/FlowPort/FlowPort.typedefs';
+import { IconName } from '@/shared/ui/foundations/Icon/Icon.constants';
 
 const PORT_NAME = 'Connect from Receptionist';
 
@@ -113,5 +117,37 @@ describe('FlowPort', () => {
     await userEvent.click(screen.getByRole('button', { name: 'needs_human' }));
 
     expect(onLabelClick).toHaveBeenCalledOnce();
+  });
+
+  describe('terminal chip', () => {
+    const terminal = (onAction: () => void): FlowPortTerminal => ({
+      label: 'Hand off · default',
+      icon: IconName.Hand,
+      actionLabel: 'Customize',
+      actionAriaLabel: 'Customize the hand off exit',
+      stacked: false,
+      onAction,
+    });
+
+    it('shows the default exit on an unconnected port and runs its action', async () => {
+      const onAction = vi.fn<() => void>();
+      render(<FlowPort direction={FlowPortDirection.Out} terminal={terminal(onAction)} />);
+      const action = screen.getByRole('button', { name: 'Customize the hand off exit' });
+      const press = createEvent.mouseDown(action);
+      const stop = vi.spyOn(press, 'stopPropagation');
+
+      expect(screen.getByText('Hand off · default')).toHaveAttribute('title', 'Hand off · default');
+      fireEvent(action, press);
+      await userEvent.click(action);
+
+      expect(stop).toHaveBeenCalled();
+      expect(onAction).toHaveBeenCalledOnce();
+    });
+
+    it('hides the chip once the port is connected', () => {
+      render(<FlowPort direction={FlowPortDirection.Out} connected terminal={terminal(vi.fn())} />);
+
+      expect(screen.queryByText('Hand off · default')).toBeNull();
+    });
   });
 });

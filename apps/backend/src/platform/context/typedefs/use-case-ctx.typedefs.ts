@@ -28,3 +28,10 @@ export interface SystemCtxInit {
   readonly traceId: string;
   readonly initiatedBy: Actor | null;
 }
+
+export interface ApiChannelCtxInit {
+  readonly channelId: string;
+  readonly workspaceId: string;
+  readonly traceId: string;
+  readonly clientIp: string | null;
+}

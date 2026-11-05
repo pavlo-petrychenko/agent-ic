@@ -4,10 +4,14 @@ import {
   ConversationEventName,
 } from '@/modules/conversations/constants/conversation-event.constants';
 import {
+  CloseReason,
   ConversationMode,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
-import { MessageDelivery } from '@/modules/conversations/constants/message.constants';
+import {
+  MessageDelivery,
+  MessageSystemEvent,
+} from '@/modules/conversations/constants/message.constants';
 import { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 import { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
 import { MessageNotFoundError } from '@/modules/conversations/errors/message-not-found.error';
@@ -16,6 +20,8 @@ import { outboundQueuedEvent } from '@/modules/conversations/events/outbound-que
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
 import { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
+import { ConversationTimelineService } from '@/modules/conversations/services/conversation-timeline.service';
+import { InboxActivityService } from '@/modules/conversations/services/inbox-activity.service';
 import type {
   Conversation,
   WaitingRequest,
@@ -24,6 +30,8 @@ import type {
   Message,
   OutboundDelivery,
   OutboundMessageInput,
+  OutboundRecordOptions,
+  QuickReplyTextInput,
 } from '@/modules/conversations/typedefs/message.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -37,6 +45,8 @@ export class ConversationRunsService {
     private readonly messages: MessagesRepository,
     private readonly domainEvents: DomainEventsService,
     private readonly activity: ConversationActivityService,
+    private readonly inboxActivity: InboxActivityService,
+    private readonly timeline: ConversationTimelineService,
     private readonly clock: ClockService,
     private readonly ids: IdService,
   ) {}
@@ -69,6 +79,14 @@ export class ConversationRunsService {
     return this.messages.listCustomerAfter(workspaceId, conversationId, first);
   }
 
+  latestMessage(workspaceId: string, conversationId: string): Promise<Message | null> {
+    return this.messages.findLatest(workspaceId, conversationId);
+  }
+
+  messagesByRun(workspaceId: string, runId: string): Promise<Message[]> {
+    return this.messages.listByRun(workspaceId, runId);
+  }
+
   async countMessagesByRuns(
     workspaceId: string,
     runIds: readonly string[],
@@ -77,7 +95,31 @@ export class ConversationRunsService {
     return new Map(counts.map(({ runId, total }) => [runId, total]));
   }
 
-  async recordOutbound(ctx: UseCaseCtx, input: OutboundMessageInput): Promise<Message> {
+  async quickReplyText(input: QuickReplyTextInput): Promise<string | null> {
+    const message = await this.messages.findById(input.workspaceId, input.messageId);
+    if (message === null) {
+      return null;
+    }
+    const conversation = await this.conversations.findById(
+      input.workspaceId,
+      message.conversationId,
+    );
+    if (
+      conversation === null ||
+      conversation.channelId !== input.channelId ||
+      conversation.endUserExternalId !== input.endUserExternalId
+    ) {
+      return null;
+    }
+    const label = message.quickReplies[input.index];
+    return label === undefined || label.trim() === '' ? null : label;
+  }
+
+  async recordOutbound(
+    ctx: UseCaseCtx,
+    input: OutboundMessageInput,
+    options: OutboundRecordOptions = { capture: false },
+  ): Promise<Message> {
     const recorded = await this.messages.findByIdempotencyKey(input.workspaceId, input.key);
     if (recorded !== null) {
       return recorded;
@@ -91,10 +133,11 @@ export class ConversationRunsService {
       workspaceId: input.workspaceId,
       conversationId: input.conversationId,
       author: input.author,
+      authorUserId: input.authorUserId ?? null,
       text: input.text,
       quickReplies: [...input.quickReplies],
       idempotencyKey: input.key,
-      delivery: MessageDelivery.Pending,
+      delivery: options.capture ? MessageDelivery.Delivered : MessageDelivery.Pending,
       runId: input.runId,
     });
     if (created === null) {
@@ -102,17 +145,22 @@ export class ConversationRunsService {
     }
     await this.conversations.touch(input.workspaceId, input.conversationId, created.createdAt);
     await this.activity.messageAdded(created);
-    await this.domainEvents.emit(
-      ctx,
-      outboundQueuedEvent,
-      {
-        conversationId: conversation.id,
-        messageId: created.id,
-        channelKind: conversation.channelKind,
-        mode: conversation.mode,
-      },
-      CONVERSATION_EVENT_EMIT_OPTIONS[ConversationEventName.OutboundQueued],
-    );
+    if (conversation.mode === ConversationMode.Live) {
+      await this.inboxActivity.conversationChanged(input.workspaceId, conversation.id);
+    }
+    if (!options.capture) {
+      await this.domainEvents.emit(
+        ctx,
+        outboundQueuedEvent,
+        {
+          conversationId: conversation.id,
+          messageId: created.id,
+          channelKind: conversation.channelKind,
+          mode: conversation.mode,
+        },
+        CONVERSATION_EVENT_EMIT_OPTIONS[ConversationEventName.OutboundQueued],
+      );
+    }
     return created;
   }
 
@@ -130,6 +178,8 @@ export class ConversationRunsService {
     if (conversation.mode === ConversationMode.Simulation) {
       return true;
     }
+    await this.timeline.record(conversation, MessageSystemEvent.Escalated, null);
+    await this.inboxActivity.conversationChanged(conversation.workspaceId, conversation.id);
     await this.domainEvents.emit(
       ctx,
       needsOperatorEvent,
@@ -144,9 +194,18 @@ export class ConversationRunsService {
     return true;
   }
 
-  async close(workspaceId: string, conversationId: string): Promise<void> {
-    await this.requireConversation(workspaceId, conversationId);
-    await this.conversations.close(workspaceId, conversationId, this.clock.now());
+  async close(
+    workspaceId: string,
+    conversationId: string,
+    reason: CloseReason | null = null,
+  ): Promise<void> {
+    const conversation = await this.requireConversation(workspaceId, conversationId);
+    if (await this.conversations.close(workspaceId, conversationId, this.clock.now(), reason)) {
+      await this.activity.conversationClosed(conversationId);
+      if (conversation.mode === ConversationMode.Live) {
+        await this.inboxActivity.conversationChanged(workspaceId, conversation.id);
+      }
+    }
   }
 
   async markDelivery(

@@ -13,6 +13,7 @@ import {
   UNSET_OPTION,
 } from '@/features/flow-builder/constants/llmStep.constants';
 import type { ModelOption } from '@/features/flow-builder/typedefs/llmStep.typedefs';
+import { AgentExitsSection } from '@/features/flow-builder/view/AgentExitsSection';
 import type { LlmStepInspectorProps } from '@/features/flow-builder/view/LlmStepInspector/LlmStepInspector.typedefs';
 import { OutputFieldRow } from '@/features/flow-builder/view/LlmStepInspector/OutputFieldRow';
 import { PromptField } from '@/features/prompts';
@@ -29,6 +30,7 @@ import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 
 export function LlmStepInspector({
   workspaceId,
+  stepName,
   step,
   extra,
   onPromptChange,
@@ -219,6 +221,7 @@ export function LlmStepInspector({
       </InspectorSection>
       {extra.type === NodeType.Agent && (
         <>
+          <AgentExitsSection stepName={stepName} view={extra.exits} variables={step.variables} />
           <InspectorSection title={t('inspector.agent.onFailure')}>
             <div className="flex items-center gap-2">
               <Text kind={TextKind.Small} className="min-w-0 flex-1">

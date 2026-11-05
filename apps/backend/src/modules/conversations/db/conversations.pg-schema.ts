@@ -1,12 +1,14 @@
 import { CHANNEL_KINDS } from '@agent-ic/contracts';
 import {
   CONVERSATIONS_SCHEMA,
+  CloseReason,
   ConversationMode,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
 import {
   MessageAuthor,
   MessageDelivery,
+  MessageSystemEvent,
 } from '@/modules/conversations/constants/message.constants';
 import { moduleSchema } from '@/platform/database/helpers/tenant-table.helpers';
 
@@ -24,6 +26,12 @@ export const conversationStateEnum = conversationsSchema.enum('conversation_stat
   ConversationState.Closed,
 ]);
 
+export const closeReasonEnum = conversationsSchema.enum('close_reason', [
+  CloseReason.EndedByAgent,
+  CloseReason.Inactivity,
+  CloseReason.ClosedByOperator,
+]);
+
 export const channelKindEnum = conversationsSchema.enum('channel_kind', CHANNEL_KINDS);
 
 export const messageAuthorEnum = conversationsSchema.enum('message_author', [
@@ -37,4 +45,10 @@ export const messageDeliveryEnum = conversationsSchema.enum('message_delivery', 
   MessageDelivery.Pending,
   MessageDelivery.Delivered,
   MessageDelivery.Failed,
+]);
+
+export const messageSystemEventEnum = conversationsSchema.enum('message_system_event', [
+  MessageSystemEvent.Escalated,
+  MessageSystemEvent.TookOver,
+  MessageSystemEvent.HandedBack,
 ]);

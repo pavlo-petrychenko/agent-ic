@@ -3,6 +3,8 @@ import type { DescribedNodeType } from '@/features/flow-builder/typedefs/inspect
 
 export const DESCRIBED_NODE_TYPES: readonly DescribedNodeType[] = [
   NodeType.TriggerMessage,
+  NodeType.TriggerSchedule,
+  NodeType.TriggerInactivity,
   NodeType.Agent,
   NodeType.Completion,
   NodeType.Router,
@@ -104,6 +106,10 @@ export enum IssuePathSegment {
   Headers = 'headers',
   Body = 'body',
   OnFailure = 'onFailure',
+  Exits = 'exits',
+  When = 'when',
+  Settings = 'settings',
+  Handoff = 'handoff',
 }
 
 export enum InputType {

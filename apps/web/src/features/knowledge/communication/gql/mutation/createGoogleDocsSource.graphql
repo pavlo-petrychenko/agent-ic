@@ -1,0 +1,29 @@
+mutation CreateGoogleDocsSource($input: CreateGoogleDocsSourceInput!) {
+  createGoogleDocsSource(input: $input) {
+    source {
+      id
+      knowledgeBaseId
+      kind
+      title
+      status
+      syncInterval
+      syncTime
+      syncWeekday
+      timezone
+      nextSyncAt
+      lastSyncAt
+      lastErrorCode
+      lastErrorMessage
+      staleDocumentCount
+      documentCount
+      chunkCount
+      createdAt
+      updatedAt
+    }
+    skipped {
+      id
+      name
+      reason
+    }
+  }
+}

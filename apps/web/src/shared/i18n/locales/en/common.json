@@ -45,7 +45,20 @@
   "ui": {
     "close": "Close",
     "showPassword": "Show",
-    "hidePassword": "Hide"
+    "hidePassword": "Hide",
+    "timeZone": {
+      "searchPlaceholder": "Search time zones",
+      "searchClear": "Clear time zone search",
+      "empty": "No time zone found"
+    },
+    "duration": {
+      "unit": "Unit",
+      "units": {
+        "minute": "minutes",
+        "hour": "hours",
+        "day": "days"
+      }
+    }
   },
   "legal": {
     "terms": "Terms",

@@ -1,76 +1,183 @@
 import {
   ACTIVE_RUN_STATUSES,
-  ChatDividerKind,
+  CONVERSATION_EVENT_ID,
+  ChatEventKind,
   ChatItemKind,
   ChatSpeaker,
   ComposerMode,
-  DIVIDER_ID_SEPARATOR,
+  EVENT_ID_SEPARATOR,
   MESSAGE_SPEAKERS,
+  OPERATOR_STATES,
+  TRIGGER_EVENTS,
 } from '@/features/testing/constants/simulator.constants';
+import { CLOSABLE_RUN_STATUSES, TurnOutcome } from '@/features/testing/constants/trace.constants';
 import type {
+  ChatConversation,
+  ChatEventItem,
   ChatItem,
+  ChatMessageItem,
+  ChatTurnItem,
+  SimulatorConversation,
   SimulatorMessage,
   SimulatorRun,
+  WriteAs,
 } from '@/features/testing/typedefs/simulator.typedefs';
+import type { TurnStatus } from '@/features/testing/typedefs/trace.typedefs';
 import {
+  ConversationCloseReason,
   ConversationState,
   MessageAuthor,
   RunStatus,
+  RunTrigger,
 } from '@/shared/api/generated/schema.generated';
+
+export const turnStatus = (
+  status: RunStatus,
+  handedBack: boolean,
+  closing: TurnOutcome | null,
+): TurnStatus => {
+  if (closing !== null && CLOSABLE_RUN_STATUSES.has(status)) {
+    return closing;
+  }
+  return status === RunStatus.Escalated && handedBack ? TurnOutcome.HandedBack : status;
+};
+
+export const closingOutcome = (conversation: ChatConversation): TurnOutcome | null => {
+  if (conversation.state !== ConversationState.Closed) {
+    return null;
+  }
+  return conversation.closeReason === ConversationCloseReason.Inactivity
+    ? TurnOutcome.ClosedInactive
+    : TurnOutcome.Ended;
+};
+
+export const runTexts = (
+  messages: readonly SimulatorMessage[],
+  runId: string | null,
+): readonly string[] =>
+  runId === null
+    ? []
+    : messages.flatMap((message) => (message.runId === runId ? [message.text] : []));
 
 export const isActiveRun = (run: SimulatorRun): boolean => ACTIVE_RUN_STATUSES.has(run.status);
 
 const runOutcome = (run: SimulatorRun | null) => ({
   failed: run?.status === RunStatus.Failed,
   escalated: run?.status === RunStatus.Escalated,
+  escalatedByStep: run?.escalatedByStep ?? false,
+  escalationMessageCount: run?.escalationMessageCount ?? 0,
   errorMessage: run?.errorMessage ?? null,
+  finishedAt: run?.finishedAt ?? null,
+  trigger: run?.trigger ?? RunTrigger.Message,
+  attempt: run?.inactivityAttempt ?? null,
 });
 
 const isOperatorLine = (item: ChatItem | undefined): boolean =>
   item?.kind === ChatItemKind.Message && item.speaker === ChatSpeaker.Operator;
 
-const divider = (item: ChatItem, kind: ChatDividerKind): ChatItem => ({
-  kind: ChatItemKind.Divider,
-  id: [item.id, kind].join(DIVIDER_ID_SEPARATOR),
-  at: item.at,
-  divider: kind,
+const isCustomerLine = (item: ChatItem): boolean =>
+  item.kind === ChatItemKind.Message && item.speaker === ChatSpeaker.User;
+
+const eventAfter = (anchorId: string, kind: ChatEventKind, at: string | null): ChatEventItem => ({
+  kind: ChatItemKind.Event,
+  id: [anchorId, kind].join(EVENT_ID_SEPARATOR),
+  at,
+  event: kind,
+  minutes: null,
 });
 
-const withDividers = (items: readonly ChatItem[], state: ConversationState): ChatItem[] =>
+const turnEnd = (turn: ChatTurnItem): string =>
+  turn.finishedAt ?? turn.messages.at(-1)?.createdAt ?? turn.at;
+
+const withEvents = (items: readonly ChatItem[], state: ConversationState): ChatItem[] =>
   items.flatMap((item, index) => {
-    const next = items.at(index + 1);
+    const next = items.slice(index + 1).find((later) => !isCustomerLine(later));
     const handedBack =
       next === undefined ? state === ConversationState.AgentActive : !isOperatorLine(next);
-    const escalated = item.kind === ChatItemKind.Turn && item.escalated;
-    if (escalated) {
-      const escalation = divider(item, ChatDividerKind.Escalated);
-      return handedBack
-        ? [item, escalation, divider(item, ChatDividerKind.HandedBack)]
-        : [item, escalation];
+    const handBack = handedBack ? [eventAfter(item.id, ChatEventKind.HandedBack, null)] : [];
+    if (item.kind === ChatItemKind.Turn && item.escalated) {
+      const kind = item.escalatedByStep ? ChatEventKind.Escalated : ChatEventKind.HandedOff;
+      return [item, eventAfter(item.id, kind, turnEnd(item)), ...handBack];
     }
-    if (isOperatorLine(item) && handedBack) {
-      return [item, divider(item, ChatDividerKind.HandedBack)];
+    if (isOperatorLine(item)) {
+      const takeOver =
+        index > 0 && isOperatorLine(items.at(index - 1))
+          ? []
+          : [eventAfter(item.id, ChatEventKind.TakenOver, item.at)];
+      return [...takeOver, item, ...handBack];
     }
     return [item];
   });
 
-export const composerMode = (state: ConversationState, takingOver: boolean): ComposerMode => {
-  if (state === ConversationState.Handled) {
-    return ComposerMode.Operator;
+const closing = (conversation: ChatConversation): ChatEventItem[] => {
+  if (conversation.state !== ConversationState.Closed) {
+    return [];
   }
-  if (state === ConversationState.Waiting) {
-    return takingOver ? ComposerMode.Operator : ComposerMode.Escalated;
+  const kind =
+    conversation.closeReason === ConversationCloseReason.Inactivity
+      ? ChatEventKind.ClosedInactive
+      : ChatEventKind.Ended;
+  return [eventAfter(CONVERSATION_EVENT_ID, kind, conversation.closedAt)];
+};
+
+const triggerEvent = (turn: ChatTurnItem, offsets: readonly number[]): ChatEventItem[] => {
+  const kind = TRIGGER_EVENTS[turn.trigger];
+  if (kind === undefined) {
+    return [];
   }
-  return ComposerMode.User;
+  const { attempt } = turn;
+  const minutes =
+    kind === ChatEventKind.Silence && attempt !== null ? (offsets.at(attempt - 1) ?? null) : null;
+  return [
+    {
+      ...eventAfter(turn.id, kind, turn.at),
+      id: [kind, turn.id].join(EVENT_ID_SEPARATOR),
+      minutes,
+    },
+  ];
+};
+
+const withTriggerEvents = (items: readonly ChatItem[], offsets: readonly number[]): ChatItem[] =>
+  items.flatMap((item): ChatItem[] =>
+    item.kind === ChatItemKind.Turn ? [...triggerEvent(item, offsets), item] : [item],
+  );
+
+const withHandedBackTurns = (items: readonly ChatItem[]): ChatItem[] =>
+  items.map((item, index) => {
+    if (item.kind !== ChatItemKind.Turn || !item.escalated) {
+      return item;
+    }
+    const following = items.slice(index + 1);
+    const end = following.findIndex((later) => later.kind === ChatItemKind.Turn);
+    const exchange = end === -1 ? following : following.slice(0, end);
+    return {
+      ...item,
+      handedBack: exchange.some(
+        (next) => next.kind === ChatItemKind.Event && next.event === ChatEventKind.HandedBack,
+      ),
+    };
+  });
+
+export const canWriteAsOperator = (state: ConversationState): boolean => OPERATOR_STATES.has(state);
+
+export const composerMode = (state: ConversationState, picked: WriteAs | null): ComposerMode => {
+  if (state === ConversationState.Closed) {
+    return ComposerMode.Ended;
+  }
+  if (!canWriteAsOperator(state)) {
+    return ComposerMode.User;
+  }
+  return (
+    picked ?? (state === ConversationState.Handled ? ComposerMode.Operator : ComposerMode.User)
+  );
 };
 
 export const toChatItems = (
-  messages: readonly SimulatorMessage[],
-  runs: readonly SimulatorRun[],
-  state: ConversationState,
+  { messages, runs, ...conversation }: SimulatorConversation,
+  silenceOffsets: readonly number[],
 ): ChatItem[] => {
   const runById = new Map(runs.map((run) => [run.id, run]));
-  const items: ChatItem[] = [];
+  const items: (ChatMessageItem | ChatTurnItem)[] = [];
   for (const message of messages) {
     const last = items.at(-1);
     if (message.author !== MessageAuthor.Agent || message.runId === null) {
@@ -89,25 +196,40 @@ export const toChatItems = (
         id: message.runId,
         at: message.createdAt,
         messages: [message],
+        handedBack: false,
         ...runOutcome(runById.get(message.runId) ?? null),
       });
     }
   }
   const grouped = new Set(items.map((item) => item.id));
-  const silent: ChatItem[] = runs
+  const silent: ChatTurnItem[] = runs
     .filter((run) => !grouped.has(run.id) && !isActiveRun(run))
     .map((run) => ({
       kind: ChatItemKind.Turn,
       id: run.id,
       at: run.createdAt,
       messages: [],
+      handedBack: false,
       ...runOutcome(run),
     }));
-  return withDividers(
-    [...items, ...silent].toSorted((a, b) => a.at.localeCompare(b.at)),
-    state,
-  );
+  return withHandedBackTurns([
+    ...withTriggerEvents(
+      withEvents(
+        [...items, ...silent].toSorted((a, b) => a.at.localeCompare(b.at)),
+        conversation.state,
+      ),
+      silenceOffsets,
+    ),
+    ...closing(conversation),
+  ]);
 };
+
+export const handedBackRunIds = (conversation: SimulatorConversation): ReadonlySet<string> =>
+  new Set(
+    toChatItems(conversation, []).flatMap((item) =>
+      item.kind === ChatItemKind.Turn && item.handedBack ? [item.id] : [],
+    ),
+  );
 
 export const latestRunId = (runs: readonly SimulatorRun[]): string | null =>
   runs.toSorted((a, b) => a.createdAt.localeCompare(b.createdAt)).at(-1)?.id ?? null;

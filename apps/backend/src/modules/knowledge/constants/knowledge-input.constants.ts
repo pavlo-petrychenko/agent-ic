@@ -2,12 +2,16 @@ import { ErrorReason } from '@agent-ic/contracts';
 
 export enum KnowledgeGraphqlArgument {
   Input = 'input',
+  Id = 'id',
   KnowledgeBaseId = 'knowledgeBaseId',
+  ConnectionId = 'connectionId',
 }
 
 export enum KnowledgeField {
   Id = 'id',
   KnowledgeBaseId = 'knowledgeBaseId',
+  ConnectionId = 'connectionId',
+  Documents = 'documents',
   Name = 'name',
   Description = 'description',
   DocumentId = 'documentId',
@@ -16,6 +20,14 @@ export enum KnowledgeField {
   MimeType = 'mimeType',
   SizeBytes = 'sizeBytes',
   Title = 'title',
+  Summary = 'summary',
+  State = 'state',
+  Code = 'code',
+  Url = 'url',
+  ResourceKey = 'resourceKey',
+  SyncInterval = 'syncInterval',
+  SyncTime = 'syncTime',
+  SyncWeekday = 'syncWeekday',
 }
 
 export const KNOWLEDGE_FIELD_PATH_SEPARATOR = '.';
@@ -25,10 +37,20 @@ export const KNOWLEDGE_FIELD_REASON: Readonly<Record<string, ErrorReason>> = {
   [KnowledgeField.Name]: ErrorReason.InvalidRequest,
   [KnowledgeField.Description]: ErrorReason.InvalidRequest,
   [KnowledgeField.KnowledgeBaseId]: ErrorReason.InvalidId,
+  [KnowledgeField.ConnectionId]: ErrorReason.InvalidId,
+  [KnowledgeField.Documents]: ErrorReason.InvalidRequest,
   [KnowledgeField.DocumentId]: ErrorReason.InvalidId,
   [KnowledgeField.SourceId]: ErrorReason.InvalidId,
   [KnowledgeField.FileName]: ErrorReason.InvalidRequest,
   [KnowledgeField.MimeType]: ErrorReason.InvalidRequest,
   [KnowledgeField.SizeBytes]: ErrorReason.InvalidRequest,
   [KnowledgeField.Title]: ErrorReason.InvalidRequest,
+  [KnowledgeField.Summary]: ErrorReason.InvalidRequest,
+  [KnowledgeField.SyncInterval]: ErrorReason.InvalidRequest,
+  [KnowledgeField.SyncTime]: ErrorReason.InvalidRequest,
+  [KnowledgeField.SyncWeekday]: ErrorReason.InvalidRequest,
+  [KnowledgeField.State]: ErrorReason.InvalidRequest,
+  [KnowledgeField.Code]: ErrorReason.InvalidRequest,
+  [KnowledgeField.Url]: ErrorReason.InvalidRequest,
+  [KnowledgeField.ResourceKey]: ErrorReason.InvalidRequest,
 };

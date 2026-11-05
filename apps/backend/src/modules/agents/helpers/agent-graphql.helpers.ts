@@ -1,5 +1,9 @@
 import { countFlowChanges, FlowIssueSeverity } from '@agent-ic/flow';
-import type { FlowIssue as DomainFlowIssue, FlowDiff as DomainFlowDiff } from '@agent-ic/flow';
+import type {
+  FieldChange as DomainFieldChange,
+  FlowDiff as DomainFlowDiff,
+  FlowIssue as DomainFlowIssue,
+} from '@agent-ic/flow';
 import {
   AgentStatus,
   AgentVersionStatus,
@@ -26,6 +30,7 @@ import type {
   AgentDraft,
   AgentVersion,
   FlowDiff,
+  FlowFieldChange,
   FlowIssue,
   PauseAgentInput as GraphqlPauseAgentInput,
   PublishPreview,
@@ -132,6 +137,12 @@ export const toPauseAgentInput = (input: GraphqlPauseAgentInput): PauseAgentInpu
   awayMessage: input.awayMessage,
 });
 
+const toGraphqlFieldChange = (field: DomainFieldChange): FlowFieldChange => ({
+  path: [...field.path],
+  before: field.before,
+  after: field.after,
+});
+
 export const toGraphqlFlowDiff = (diff: DomainFlowDiff): FlowDiff => ({
   addedNodes: [...diff.addedNodes],
   removedNodes: [...diff.removedNodes],
@@ -139,16 +150,13 @@ export const toGraphqlFlowDiff = (diff: DomainFlowDiff): FlowDiff => ({
     nodeId: change.nodeId,
     key: change.key,
     type: change.type,
-    fields: change.fields.map((field) => ({
-      path: [...field.path],
-      before: field.before,
-      after: field.after,
-    })),
+    fields: change.fields.map(toGraphqlFieldChange),
   })),
   renamedKeys: [...diff.renamedKeys],
   addedEdges: [...diff.addedEdges],
   removedEdges: [...diff.removedEdges],
   changedEdges: [...diff.changedEdges],
+  settingsChanges: diff.settingsChanges.map(toGraphqlFieldChange),
   changeCount: countFlowChanges(diff),
 });
 

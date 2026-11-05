@@ -1,0 +1,27 @@
+import { useMutation } from '@apollo/client/react';
+import { useCallback } from 'react';
+import { InboxCloseConversationDocument } from '@/features/inbox/communication/gql/mutation/inboxCloseConversation.generated';
+import { InboxConversationsDocument } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
+import { INBOX_CONVERSATIONS_FETCH_LIMIT } from '@/features/inbox/constants/inbox.constants';
+
+export function useCloseConversation() {
+  const [closeConversationMutation, { loading }] = useMutation(InboxCloseConversationDocument);
+
+  const closeConversation = useCallback(
+    async (conversationId: string, message: string | null) => {
+      await closeConversationMutation({
+        variables: { input: { conversationId, message } },
+        refetchQueries: [
+          {
+            query: InboxConversationsDocument,
+            variables: { limit: INBOX_CONVERSATIONS_FETCH_LIMIT },
+          },
+        ],
+        awaitRefetchQueries: true,
+      });
+    },
+    [closeConversationMutation],
+  );
+
+  return { closeConversation, closing: loading };
+}

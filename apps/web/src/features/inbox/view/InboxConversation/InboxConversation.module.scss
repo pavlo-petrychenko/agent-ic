@@ -1,0 +1,138 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  background: var(--color-bg);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  box-sizing: border-box;
+  min-height: var(--size-pane-header-height-chat);
+  padding: var(--space-10) var(--space-20);
+  border-bottom: var(--border-width) solid var(--color-line);
+  background: var(--color-panel);
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  color: var(--color-ink);
+  font: var(--type-h3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitle {
+  overflow: hidden;
+  color: var(--color-mute);
+  font: var(--type-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-8);
+}
+
+.banner {
+  margin: var(--space-14) var(--space-20) 0;
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-16) var(--space-20) var(--space-24);
+  overflow-y: auto;
+}
+
+.threadState {
+  width: 100%;
+  margin: auto;
+}
+
+.divider {
+  margin: var(--space-4) 0;
+}
+
+.escalation {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  padding: var(--space-10) var(--space-12);
+  border-radius: var(--radius-8);
+  background: var(--color-err-light);
+  color: var(--color-err-ink);
+  font: var(--type-caption);
+}
+
+.escalationIcon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.escalationText {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  line-height: var(--leading-relaxed);
+
+  strong {
+    font: var(--type-caption-strong);
+  }
+}
+
+.escalationLink {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-4);
+  background: transparent;
+  color: var(--color-accent-dark);
+  font: var(--type-caption-strong);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.footer {
+  flex-shrink: 0;
+  padding: var(--space-12) var(--space-20);
+  border-top: var(--border-width) solid var(--color-line);
+  background: var(--color-panel);
+}
+
+.replyNote {
+  margin: 0 0 var(--space-8);
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.note {
+  margin: 0;
+  padding: var(--space-6) 0;
+  color: var(--color-mute);
+  font: var(--type-caption);
+  text-align: center;
+}

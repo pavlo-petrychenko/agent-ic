@@ -5,6 +5,10 @@
       "build": "Build",
       "operate": "Operate"
     },
+    "badge": {
+      "inbox_one": "{{count}} chat needs you",
+      "inbox_other": "{{count}} chats need you"
+    },
     "sections": {
       "agents": "Agents",
       "prompts": "Prompts",

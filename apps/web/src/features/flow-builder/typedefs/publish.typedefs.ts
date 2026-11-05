@@ -35,6 +35,7 @@ export interface PublishDiff {
   addedEdges: readonly DiffEdge[];
   removedEdges: readonly DiffEdge[];
   changedEdges: readonly DiffBranch[];
+  settingsChanges: readonly FieldChange[];
   changeCount: number;
 }
 
@@ -57,6 +58,8 @@ export interface ChangeLine {
   variable?: string | null;
   before: string | null;
   after: string | null;
+  beforeMinutes?: number | null;
+  afterMinutes?: number | null;
 }
 
 export interface ChangeText {

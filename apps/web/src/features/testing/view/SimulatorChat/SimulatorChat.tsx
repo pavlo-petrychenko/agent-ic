@@ -1,20 +1,25 @@
+import { Fragment, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChatItemKind, ChatSpeaker } from '@/features/testing/constants/simulator.constants';
+import {
+  ChatItemKind,
+  ChatSpeaker,
+  EVENT_TIME_FORMAT,
+} from '@/features/testing/constants/simulator.constants';
 import { TESTING_NAMESPACE } from '@/features/testing/constants/testingI18n.constants';
 import type {
-  ChatDividerItem,
+  ChatEventItem,
   ChatItem,
   ChatMessageItem,
   ChatTurnItem,
 } from '@/features/testing/typedefs/simulator.typedefs';
 import {
-  DIVIDER_ICONS,
+  EVENT_ICONS,
   SPEAKER_BUBBLES,
   TURN_ICON_SIZE,
 } from '@/features/testing/view/SimulatorChat/SimulatorChat.constants';
 import type { SimulatorChatProps } from '@/features/testing/view/SimulatorChat/SimulatorChat.typedefs';
+import { RunTrigger } from '@/shared/api/generated/schema.generated';
 import { ChatBubble, ChatBubbleFrom } from '@/shared/ui/chat/ChatBubble';
-import { ChatDivider } from '@/shared/ui/chat/ChatDivider';
 import { ChatSystemMessage, ChatSystemMessageTone } from '@/shared/ui/chat/ChatSystemMessage';
 import { TypingIndicator } from '@/shared/ui/chat/TypingIndicator';
 import { Icon, IconName } from '@/shared/ui/foundations/Icon';
@@ -26,8 +31,33 @@ export function SimulatorChat({
   typing,
   selectedRunId,
   onSelectRun,
+  durationLabel,
+  scheduleName,
 }: SimulatorChatProps) {
   const { t } = useTranslation(TESTING_NAMESPACE);
+  const listRef = useRef<HTMLOListElement>(null);
+  const lastItemId = items.at(-1)?.id ?? null;
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (list !== null) {
+      list.scrollTop = list.scrollHeight;
+    }
+  }, [lastItemId, typing]);
+
+  const turnLabel = (item: ChatTurnItem) => {
+    const count = item.messages.length;
+    if (item.trigger === RunTrigger.Inactivity && item.attempt !== null) {
+      return t('chat.followUpTurn', { name: agentName, attempt: item.attempt, count });
+    }
+    if (item.trigger === RunTrigger.Schedule) {
+      const schedule = scheduleName(item.id);
+      return schedule === null
+        ? t('chat.scheduledTurn', { name: agentName, count })
+        : t('chat.scheduledTurnNamed', { name: agentName, schedule, count });
+    }
+    return t('chat.turn', { name: agentName, count });
+  };
 
   const turn = (item: ChatTurnItem) => (
     <>
@@ -38,14 +68,17 @@ export function SimulatorChat({
         onClick={() => onSelectRun(item.id)}
       >
         <Icon name={IconName.Agent} size={TURN_ICON_SIZE} />
-        {item.escalated
-          ? t('chat.escalationTurn', { name: agentName })
-          : t('chat.turn', { name: agentName, count: item.messages.length })}
+        <span className={styles.turnLabel}>{turnLabel(item)}</span>
       </button>
-      {item.messages.map((message) => (
-        <ChatBubble key={message.id} from={ChatBubbleFrom.Agent} author={null} time={null}>
-          {message.text}
-        </ChatBubble>
+      {item.messages.map((message, index) => (
+        <Fragment key={message.id}>
+          {item.escalated && index === item.messages.length - item.escalationMessageCount && (
+            <span className={styles.label}>{t('chat.escalationMessage')}</span>
+          )}
+          <ChatBubble from={ChatBubbleFrom.Agent} author={null} time={null}>
+            {message.text}
+          </ChatBubble>
+        </Fragment>
       ))}
       {item.failed && (
         <ChatSystemMessage
@@ -75,19 +108,37 @@ export function SimulatorChat({
     );
   };
 
-  const divider = (item: ChatDividerItem) => (
-    <ChatDivider icon={DIVIDER_ICONS[item.divider]} text={t(`chat.divider.${item.divider}`)} />
-  );
+  const event = (item: ChatEventItem) => {
+    const label =
+      item.minutes === null
+        ? t(`chat.event.${item.event}`)
+        : t('chat.event.silenceFor', { after: durationLabel(item.minutes) });
+    return (
+      <ChatSystemMessage
+        className={styles.event}
+        icon={EVENT_ICONS[item.event]}
+        text={
+          item.at === null
+            ? label
+            : t('chat.eventAt', {
+                event: label,
+                at: Date.parse(item.at),
+                formatParams: { at: EVENT_TIME_FORMAT },
+              })
+        }
+      />
+    );
+  };
 
   const render = (item: ChatItem) => {
     if (item.kind === ChatItemKind.Turn) {
       return turn(item);
     }
-    return item.kind === ChatItemKind.Divider ? divider(item) : line(item);
+    return item.kind === ChatItemKind.Event ? event(item) : line(item);
   };
 
   return (
-    <ol className={styles.root} aria-label={t('chat.label')}>
+    <ol ref={listRef} className={styles.root} aria-label={t('chat.label')}>
       {items.map((item) => (
         <li key={item.id} className={styles.item}>
           {render(item)}

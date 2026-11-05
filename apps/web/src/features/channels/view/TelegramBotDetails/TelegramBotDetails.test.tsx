@@ -27,6 +27,8 @@ const connectedChannel: TelegramChannelView = {
 
 const renderDetails = (props: Partial<TelegramBotDetailsProps> = {}) => {
   const onDisconnect = vi.fn<() => void>();
+  const onReconnect = vi.fn<() => void>();
+  const onRefreshIdentity = vi.fn<() => void>();
   renderWithProviders(
     <TelegramBotDetails
       channelsLink="/w/ws_1/channels"
@@ -35,17 +37,21 @@ const renderDetails = (props: Partial<TelegramBotDetailsProps> = {}) => {
       agentId="agt_1"
       typing
       saving={false}
+      reconnecting={false}
+      refreshing={false}
       lastUpdate="Today 14:21 · from Demo Owner"
       onAgentChange={() => undefined}
       onTypingChange={() => undefined}
       onReplaceToken={() => undefined}
       onDisconnect={onDisconnect}
+      onReconnect={onReconnect}
+      onRefreshIdentity={onRefreshIdentity}
       onDelete={() => undefined}
       onSave={() => undefined}
       {...props}
     />,
   );
-  return { onDisconnect };
+  return { onDisconnect, onReconnect, onRefreshIdentity };
 };
 
 describe('TelegramBotDetails', () => {
@@ -62,12 +68,24 @@ describe('TelegramBotDetails', () => {
     expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
   });
 
-  it('offers delete only for a disconnected bot', () => {
+  it('offers connect and delete only for a disconnected bot', () => {
     renderDetails({
       channel: { ...connectedChannel, status: TelegramChannelStatus.Disconnected },
     });
 
+    expect(screen.getByRole('button', { name: 'Reconnect' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Disconnect' })).not.toBeInTheDocument();
+  });
+
+  it('starts the reconnect flow', async () => {
+    const { onReconnect } = renderDetails({
+      channel: { ...connectedChannel, status: TelegramChannelStatus.Disconnected },
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Reconnect' }));
+
+    expect(onReconnect).toHaveBeenCalledTimes(1);
   });
 
   it('shows the broken state', () => {
@@ -88,5 +106,13 @@ describe('TelegramBotDetails', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
 
     expect(onDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('refreshes the bot identity from the bot name row', async () => {
+    const { onRefreshIdentity } = renderDetails();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Refresh bot name' }));
+
+    expect(onRefreshIdentity).toHaveBeenCalledTimes(1);
   });
 });

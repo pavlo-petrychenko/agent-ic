@@ -1,4 +1,4 @@
-import type { PortName } from '@agent-ic/flow';
+import type { AgentExitKind, PortName } from '@agent-ic/flow';
 import type { SummaryKey } from '@/features/flow-builder/constants/nodeSummary.constants';
 
 export interface SummaryPart {
@@ -6,6 +6,6 @@ export interface SummaryPart {
   params: Readonly<Record<string, string | number>>;
 }
 
-export type LabelledPort = PortName.Else | PortName.Error | PortName.Branches;
+export type LabelledPort = PortName.Else | PortName.Error | PortName.Branches | AgentExitKind;
 
 export type PortLabel = { rule: string } | { port: LabelledPort };

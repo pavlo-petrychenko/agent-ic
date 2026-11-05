@@ -104,6 +104,22 @@ spec:
             severity: {{ $rule.llmLatency.severity }}
           annotations:
             summary: {{ "p95 duration of the {{ $labels.operation }} LLM calls is {{ $value | humanizeDuration }}" | quote }}
+    - name: {{ include "agent-ic.fullname" . }}.schedules
+      rules:
+        - alert: AgentIcScheduleSweepStalled
+          expr: {{ printf "sum(increase(schedule_sweeps_total{%s}[%s])) == 0" $namespace $window | quote }}
+          for: {{ $rule.scheduleSweepStalled.for }}
+          labels:
+            severity: {{ $rule.scheduleSweepStalled.severity }}
+          annotations:
+            summary: "No sweep looked for due schedule triggers, so scheduled messages are not sent"
+        - alert: AgentIcScheduleTickLagHigh
+          expr: {{ printf "histogram_quantile(0.95, sum by (le) (rate(schedule_tick_lag_seconds_bucket{%s}[%s]))) > %v" $namespace $window $rule.scheduleTickLag.seconds | quote }}
+          for: {{ $rule.scheduleTickLag.for }}
+          labels:
+            severity: {{ $rule.scheduleTickLag.severity }}
+          annotations:
+            summary: {{ "p95 delay from a schedule tick to its run is {{ $value | humanizeDuration }}" | quote }}
     - name: {{ include "agent-ic.fullname" . }}.usage
       rules:
         - alert: AgentIcUsageReportFailing

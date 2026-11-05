@@ -14,8 +14,14 @@ export function TelegramBotContent({
   workspaceId,
   channel,
   agentOptions,
+  onChannelRefetch,
 }: TelegramBotContentProps) {
-  const botContent = useTelegramBotContent({ workspaceId, channel, agentOptions });
+  const botContent = useTelegramBotContent({
+    workspaceId,
+    channel,
+    agentOptions,
+    onChannelRefetch,
+  });
 
   const { t, i18n } = useTranslation(CHANNELS_NAMESPACE);
 
@@ -41,11 +47,15 @@ export function TelegramBotContent({
         agentId={botContent.agentId}
         typing={botContent.typing}
         saving={botContent.saving}
+        reconnecting={botContent.reconnecting}
+        refreshing={botContent.refreshing}
         lastUpdate={lastUpdate}
         onAgentChange={botContent.onAgentChange}
         onTypingChange={botContent.onTypingChange}
         onReplaceToken={botContent.onReplaceToken}
         onDisconnect={botContent.onDisconnect}
+        onReconnect={botContent.onReconnect}
+        onRefreshIdentity={botContent.onRefreshIdentity}
         onDelete={botContent.onDelete}
         onSave={botContent.onSave}
       />

@@ -1,9 +1,13 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ChannelsPage } from '@/features/channels/containers/ChannelsPage/ChannelsPage';
 import { MemoryRouter } from '@test/support/components/MemoryRouter';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
+
+vi.mock('@/features/agents', () => ({
+  useAgents: () => ({ agents: [], loading: false, failed: false }),
+}));
 
 describe('ChannelsPage', () => {
   it('shows both ways to connect a first channel', async () => {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ApiReplyMode } from '@/modules/channels/constants/channel.constants';
 import { channelDisplayName, channelFirstName } from '@/modules/channels/helpers/channel.helpers';
 
 describe('channelDisplayName', () => {
@@ -9,7 +10,12 @@ describe('channelDisplayName', () => {
   });
 
   it('uses the API channel name', () => {
-    expect(channelDisplayName({ name: 'Website' }, 'fallback')).toBe('Website');
+    expect(
+      channelDisplayName(
+        { name: 'Website', replyMode: ApiReplyMode.Response, webhook: null },
+        'fallback',
+      ),
+    ).toBe('Website');
   });
 
   it('falls back when no display value exists', () => {
@@ -23,6 +29,8 @@ describe('channelFirstName', () => {
   });
 
   it('returns null for an API channel', () => {
-    expect(channelFirstName({ name: 'Website' })).toBeNull();
+    expect(
+      channelFirstName({ name: 'Website', replyMode: ApiReplyMode.Response, webhook: null }),
+    ).toBeNull();
   });
 });

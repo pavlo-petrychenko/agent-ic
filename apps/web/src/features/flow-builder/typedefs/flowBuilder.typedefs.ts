@@ -66,6 +66,7 @@ export interface FlowBuilderState {
   issues: readonly FlowIssue[];
   previewOrigin: FlowDocument | null;
   density: Density;
+  settingsOpen: boolean;
 }
 
 export interface FlowBuilderActions {
@@ -78,6 +79,7 @@ export interface FlowBuilderActions {
   select: (selection: FlowSelection) => void;
   setViewport: (viewport: FlowViewport) => void;
   setDensity: (density: Density) => void;
+  setSettingsOpen: (open: boolean) => void;
   setSaveState: (saveState: SaveState) => void;
   markSaved: (revision: number, issues: readonly FlowIssue[], savedDocument: FlowDocument) => void;
 }

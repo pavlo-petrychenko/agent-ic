@@ -52,7 +52,7 @@ $story-width: 420px;
   .row {
     display: grid;
     grid-template-columns: $deflist-label-width 1fr;
-    align-items: center;
+    align-items: baseline;
     column-gap: var(--space-14);
   }
 }

@@ -22,15 +22,19 @@ export const escalationNotifySchema = z.object({
 
 const minutesSchema = z.int().positive().nullable();
 
+export const handoffShape = {
+  notify: escalationNotifySchema,
+  reminderAfterMinutes: minutesSchema,
+  fallbackAfterMinutes: minutesSchema,
+  fallbackMessage: templateSchema,
+};
+
 export const escalationConfigSchema = z.discriminatedUnion('mode', [
   z.object({
     mode: z.literal(EscalationMode.Escalate),
     customerMessage: templateSchema.nullable(),
     reason: templateSchema,
-    notify: escalationNotifySchema,
-    reminderAfterMinutes: minutesSchema,
-    fallbackAfterMinutes: minutesSchema,
-    fallbackMessage: templateSchema,
+    ...handoffShape,
   }),
   z.object({
     mode: z.literal(EscalationMode.End),

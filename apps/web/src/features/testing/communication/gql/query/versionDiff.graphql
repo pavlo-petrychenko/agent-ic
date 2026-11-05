@@ -19,6 +19,11 @@ query VersionDiff($agentId: ID!, $fromId: ID!, $toId: ID!) {
     addedEdges
     removedEdges
     changedEdges
+    settingsChanges {
+      path
+      before
+      after
+    }
     changeCount
   }
 }

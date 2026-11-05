@@ -219,7 +219,7 @@ export const WEB_SHARED_GENERIC_KINDS: readonly string[] = [
 export const WEB_SHARED_KINDS: Readonly<Record<string, readonly string[]>> = {
   api: ['clients', 'helpers', 'errors', 'schemas', 'constants', 'typedefs'],
   config: ['helpers', 'schemas', 'constants', 'typedefs'],
-  forms: ['hooks', 'fields', 'contexts', 'helpers', 'typedefs'],
+  forms: ['hooks', 'fields', 'contexts', 'helpers', 'constants', 'typedefs'],
   i18n: ['clients', 'hooks', 'helpers', 'locales', 'constants', 'typedefs'],
 };
 

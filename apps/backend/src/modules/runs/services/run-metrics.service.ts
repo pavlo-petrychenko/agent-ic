@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Counter, Histogram } from 'prom-client';
+import type { InactivityFireOutcome } from '@/modules/runs/constants/inactivity.constants';
 import {
+  INACTIVITY_LAG_BUCKETS_SECONDS,
   RUN_DURATION_BUCKETS_SECONDS,
   RUN_QUEUE_WAIT_BUCKETS_SECONDS,
   RUN_STEP_DURATION_BUCKETS_SECONDS,
@@ -25,6 +27,8 @@ export class RunMetricsService {
   private readonly queueWait: Histogram<RunMetricLabel>;
   private readonly steps: Counter<RunMetricLabel>;
   private readonly stepDuration: Histogram<RunMetricLabel>;
+  private readonly inactivityFires: Counter<RunMetricLabel>;
+  private readonly inactivityLag: Histogram<RunMetricLabel>;
 
   constructor(metrics: MetricsService) {
     const registers = [metrics.registry];
@@ -72,6 +76,25 @@ export class RunMetricsService {
       enableExemplars: true,
       registers,
     });
+    this.inactivityFires = new Counter({
+      name: RunMetricName.InactivityFires,
+      help: RunMetricHelp.InactivityFires,
+      labelNames: [RunMetricLabel.Outcome],
+      registers,
+    });
+    this.inactivityLag = new Histogram({
+      name: RunMetricName.InactivityLag,
+      help: RunMetricHelp.InactivityLag,
+      buckets: [...INACTIVITY_LAG_BUCKETS_SECONDS],
+      registers,
+    });
+  }
+
+  inactivityFired(outcome: InactivityFireOutcome, dueAt: Date | null, firedAt: Date): void {
+    this.inactivityFires.inc({ [RunMetricLabel.Outcome]: outcome });
+    if (dueAt !== null) {
+      this.inactivityLag.observe(secondsBetween(dueAt, firedAt));
+    }
   }
 
   runCreated(run: Pick<Run, 'trigger' | 'mode'>): void {

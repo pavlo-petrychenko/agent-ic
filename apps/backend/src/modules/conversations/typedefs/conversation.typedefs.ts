@@ -1,5 +1,6 @@
 import type {
   ChannelKind,
+  CloseReason,
   ConversationMode,
   ConversationState,
   WaitingReason,
@@ -22,7 +23,10 @@ export interface Conversation {
   readonly simulationVersionId: string | null;
   readonly awaySentAt: Date | null;
   readonly lastMessageAt: Date;
+  readonly lastCustomerMessageAt: Date | null;
+  readonly lastEscalatedAt: Date | null;
   readonly closedAt: Date | null;
+  readonly closeReason: CloseReason | null;
   readonly createdAt: Date;
 }
 
@@ -39,6 +43,7 @@ export interface EndUserConversationKey {
   readonly agentId: string;
   readonly mode: ConversationMode;
   readonly channelKind: ChannelKind;
+  readonly channelId: string | null;
   readonly endUserExternalId: string;
 }
 

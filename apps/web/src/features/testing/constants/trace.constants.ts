@@ -29,12 +29,39 @@ export enum OutputViewKind {
   Json = 'json',
   Error = 'error',
   Escalation = 'escalation',
+  AgentExit = 'agentExit',
+  AutoClose = 'autoClose',
 }
 
-export enum EscalationRow {
-  Recipients = 'recipients',
-  Flow = 'flow',
+export const EXIT_VIEW_KINDS: ReadonlySet<OutputViewKind> = new Set([
+  OutputViewKind.Escalation,
+  OutputViewKind.AgentExit,
+  OutputViewKind.AutoClose,
+]);
+
+export enum TraceExit {
+  Escalated = 'escalated',
+  Ended = 'ended',
+  DefaultHandoff = 'defaultHandoff',
+  DefaultEnd = 'defaultEnd',
 }
+
+export const TRACE_EXIT_STATES: Readonly<Record<TraceExit, RunNodeState>> = {
+  [TraceExit.Escalated]: RunNodeState.Escalated,
+  [TraceExit.Ended]: RunNodeState.Ended,
+  [TraceExit.DefaultHandoff]: RunNodeState.Escalated,
+  [TraceExit.DefaultEnd]: RunNodeState.Ended,
+};
+
+export enum ExitPath {
+  Default = 'default',
+  Connected = 'connected',
+}
+
+export const AUTO_CLOSE_SECTION_ID = 'autoClose';
+export const EXIT_MESSAGE_SEPARATOR = '\n\n';
+export const MINUTES_PER_HOUR = 60;
+export const MINUTES_PER_DAY = 1440;
 
 export const RECIPIENT_LIST_FORMAT: Intl.ListFormatOptions = { type: 'unit', style: 'short' };
 
@@ -55,7 +82,21 @@ export enum StepSection {
   Error = 'error',
 }
 
-export const RUN_STATUS_TONES: Readonly<Record<RunStatus, BadgeTone>> = {
+export enum TurnOutcome {
+  HandedBack = 'handedBack',
+  Ended = 'ended',
+  ClosedInactive = 'closedInactive',
+}
+
+export const CLOSABLE_RUN_STATUSES: ReadonlySet<RunStatus> = new Set([
+  RunStatus.Succeeded,
+  RunStatus.Escalated,
+]);
+
+export const TURN_STATUS_TONES: Readonly<Record<RunStatus | TurnOutcome, BadgeTone>> = {
+  [TurnOutcome.HandedBack]: BadgeTone.Neutral,
+  [TurnOutcome.Ended]: BadgeTone.Neutral,
+  [TurnOutcome.ClosedInactive]: BadgeTone.Neutral,
   [RunStatus.Queued]: BadgeTone.Neutral,
   [RunStatus.Running]: BadgeTone.Accent,
   [RunStatus.Succeeded]: BadgeTone.Ok,

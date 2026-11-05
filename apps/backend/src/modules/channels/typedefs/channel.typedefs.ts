@@ -1,5 +1,7 @@
+import type { ApiReplyMode } from '@/modules/channels/constants/channel.constants';
 import type { channels } from '@/modules/channels/db/channels.table';
 import type {
+  ApiChannelIdentity,
   ChannelCredentials,
   ChannelIdentity,
 } from '@/modules/channels/typedefs/channel-identity.typedefs';
@@ -8,6 +10,11 @@ import type { TelegramUpdate } from '@/modules/channels/typedefs/telegram.typede
 export type ChannelRecord = typeof channels.$inferSelect;
 
 export type NewChannel = typeof channels.$inferInsert;
+
+export type ApiChannelIngressRecord = Pick<
+  ChannelRecord,
+  'id' | 'workspaceId' | 'agentId' | 'identity' | 'status' | 'credentialsSealed'
+>;
 
 export type { ChannelCredentials, ChannelIdentity };
 
@@ -21,12 +28,15 @@ export interface ChannelPatch {
   readonly updatedByUserId: string;
 }
 
-export interface ChannelSettingsPatch {
+interface ChannelSettingsBase {
   readonly agentId: string;
-  readonly showTyping: boolean;
   readonly updatedAt: Date;
   readonly updatedByUserId: string;
 }
+
+export type ChannelSettingsPatch =
+  | (ChannelSettingsBase & { readonly showTyping: boolean })
+  | (ChannelSettingsBase & { readonly identity: ApiChannelIdentity });
 
 export interface ChannelCredentialsPatch {
   readonly status: ChannelRecord['status'];
@@ -46,6 +56,9 @@ export interface ChannelView {
   readonly tokenMasked: string | null;
   readonly updatedByName: string | null;
   readonly showTyping: boolean;
+  readonly replyMode: ApiReplyMode | null;
+  readonly webhook: string | null;
+  readonly endpoint: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -54,6 +67,27 @@ export interface ConnectTelegramInput {
   readonly token: string;
   readonly agentId: string;
   readonly showTyping: boolean;
+}
+
+export interface CreateApiChannelInput {
+  readonly name: string;
+  readonly agentId: string;
+  readonly replyMode: ApiReplyMode;
+  readonly webhook: string | null;
+}
+
+export interface UpdateChannelInput {
+  readonly id: string;
+  readonly agentId: string;
+  readonly showTyping: boolean | null;
+  readonly replyMode: ApiReplyMode | null;
+  readonly webhook: string | null;
+}
+
+export interface ApiChannelSecretResult {
+  readonly channel: ChannelView;
+  readonly secret: string;
+  readonly webhookSecret: string;
 }
 
 export interface ChannelIdInput {
@@ -78,12 +112,6 @@ export interface CompleteChannelConnectionInput {
   readonly updatedByUserId: string;
 }
 
-export interface UpdateTelegramChannelInput {
-  readonly id: string;
-  readonly agentId: string;
-  readonly showTyping: boolean;
-}
-
 export interface ReplaceTelegramTokenInput {
   readonly id: string;
   readonly token: string;
@@ -97,11 +125,11 @@ export interface ReplaceChannelCredentialsInput {
   readonly updatedByUserId: string;
 }
 
-export interface UpdateChannelSettingsInput {
+export interface StoreReconnectCredentialsInput {
   readonly workspaceId: string;
   readonly channelId: string;
-  readonly agentId: string;
-  readonly showTyping: boolean;
+  readonly identity: ChannelIdentity;
+  readonly credentialsSealed: string;
   readonly updatedByUserId: string;
 }
 

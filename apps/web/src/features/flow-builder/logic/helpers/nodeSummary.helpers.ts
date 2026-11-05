@@ -1,5 +1,15 @@
-import { ChannelSelectionMode, EscalationMode, MessageContentKind, NodeType } from '@agent-ic/flow';
-import type { FlowNode, ModelRef, PromptSource } from '@agent-ic/flow';
+import {
+  AgentExitKind,
+  ChannelSelectionMode,
+  EscalationMode,
+  InactivityRepeatKind,
+  MessageContentKind,
+  NodeType,
+  ScheduleKind,
+  enabledExits,
+} from '@agent-ic/flow';
+import type { AgentNode, FlowNode, ModelRef, PromptSource, Schedule } from '@agent-ic/flow';
+import { INACTIVITY_SUMMARY_KEYS } from '@/features/flow-builder/constants/inactivity.constants';
 import {
   LABELLED_PORTS,
   OUTPUT_FIELDS_SEPARATOR,
@@ -33,6 +43,28 @@ const modelAndPrompt = (
   ...(prompt === null ? [] : [part(SummaryKey.LibraryPrompt)]),
 ];
 
+const exitsSummary = (node: AgentNode): SummaryPart[] => {
+  const exits = enabledExits(node);
+  if (exits.length === 0) {
+    return [];
+  }
+  if (exits.length > 1) {
+    return [part(SummaryKey.CanEndOrHandOff)];
+  }
+  return [part(exits[0] === AgentExitKind.End ? SummaryKey.CanEnd : SummaryKey.CanHandOff)];
+};
+
+const schedulePart = (schedule: Schedule): SummaryPart => {
+  switch (schedule.kind) {
+    case ScheduleKind.Daily:
+      return part(SummaryKey.ScheduleDaily, { time: schedule.time });
+    case ScheduleKind.Weekdays:
+      return part(SummaryKey.ScheduleWeekdays, { time: schedule.time });
+    case ScheduleKind.Custom:
+      return part(SummaryKey.ScheduleCron, { cron: schedule.cron });
+  }
+};
+
 export const nodeSummary = (
   node: FlowNode,
   models: readonly ModelChoice[],
@@ -42,8 +74,25 @@ export const nodeSummary = (
       return node.config.channels.mode === ChannelSelectionMode.All
         ? [part(SummaryKey.AllChannels)]
         : [part(SummaryKey.SomeChannels, { count: node.config.channels.channelIds.length })];
+    case NodeType.TriggerSchedule:
+      return [
+        schedulePart(node.config.schedule),
+        part(SummaryKey.TimeZone, { timeZone: node.config.schedule.timeZone }),
+      ];
+    case NodeType.TriggerInactivity: {
+      const { silence, repeat } = node.config;
+      return [
+        part(INACTIVITY_SUMMARY_KEYS[silence.unit], { amount: silence.amount }),
+        ...(repeat.kind === InactivityRepeatKind.Every
+          ? [part(SummaryKey.InactivityRepeats, { count: repeat.maxTimes })]
+          : []),
+      ];
+    }
     case NodeType.Agent:
-      return modelAndPrompt(node.config.model, node.config.prompt, models);
+      return [
+        ...modelAndPrompt(node.config.model, node.config.prompt, models),
+        ...exitsSummary(node),
+      ];
     case NodeType.Completion:
       return [
         part(SummaryKey.Outputs, {

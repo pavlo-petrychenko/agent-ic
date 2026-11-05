@@ -1,11 +1,18 @@
 import { ReasoningLevel } from '@agent-ic/contracts';
 import {
+  AgentExitKind,
   ChannelSelectionMode,
+  ChannelType,
+  ScheduleKind,
+  InactivityActivity,
+  InactivityRepeatKind,
+  InactivityUnit,
   ConditionOperator,
   EscalationMode,
   FailureMode,
   HttpMethod,
   FLOW_SCHEMA_VERSION,
+  NO_FLOW_SETTINGS,
   MAX_LABEL_LENGTH,
   MAX_OUTPUT_FIELDS,
   ModelProviderKind,
@@ -22,7 +29,7 @@ import {
   validateFlow,
 } from '@agent-ic/flow';
 import type { AgentNode, FlowDocument, FlowNode } from '@agent-ic/flow';
-import { act, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -67,6 +74,7 @@ const RULE = { id: 'refund', label: '', match: RuleMatch.All, conditions: [CONDI
 
 const FLOW: FlowDocument = {
   schemaVersion: FLOW_SCHEMA_VERSION,
+  settings: NO_FLOW_SETTINGS,
   nodes: [
     step('trigger', 'Incoming message', {
       type: NodeType.TriggerMessage,
@@ -556,6 +564,63 @@ describe('InspectorPanel', () => {
     expect(node('agent')).toMatchObject({ config: { retries: 0 } });
   });
 
+  it('turns an exit on with the default criterion and shows where it goes', async () => {
+    const user = userEvent.setup();
+    open('agent', AI_FLOW);
+
+    expect(screen.getByText('Off: the agent always continues to Next.')).toBeVisible();
+    await user.click(screen.getByRole('switch', { name: 'Hand off to a person' }));
+
+    expect(node('agent')).toMatchObject({
+      config: {
+        exits: {
+          [AgentExitKind.End]: null,
+          [AgentExitKind.Handoff]: {
+            when: 'the customer asks for a person, you can’t help after 2 tries, or it’s a complaint, a legal or a safety question',
+          },
+        },
+      },
+    });
+    const routes = screen.getByRole('list', { name: 'Where each exit goes' });
+    expect(within(routes).getByText('hand off')).toBeVisible();
+    expect(within(routes).getByText('default · Flow settings hand-off')).toBeVisible();
+  });
+
+  it('warns about an empty criterion and a second customer message, and drops the edge when off', async () => {
+    const user = userEvent.setup();
+    const flow = withAgent({
+      exits: { [AgentExitKind.End]: { when: '' }, [AgentExitKind.Handoff]: { when: 'help' } },
+    });
+    const escalation = step('notify', 'Hand to a person', {
+      ...NODE_TEMPLATES[NodeType.Escalation],
+      config: { ...NODE_TEMPLATES[NodeType.Escalation].config, customerMessage: 'One moment' },
+    });
+    open('agent', {
+      ...flow,
+      nodes: [...flow.nodes, escalation],
+      edges: [
+        ...flow.edges,
+        { id: 'e9', source: 'agent', sourcePort: AgentExitKind.Handoff, target: 'notify' },
+      ],
+    });
+
+    expect(screen.getByText('Describe when the “end” exit applies')).toBeVisible();
+    expect(
+      screen.getByText(
+        'The customer gets two messages: the agent’s and the one from Hand to a person. Clear one of them.',
+      ),
+    ).toBeVisible();
+    expect(
+      within(screen.getByRole('list', { name: 'Where each exit goes' })).getByText(
+        'Hand to a person',
+      ),
+    ).toBeVisible();
+    await user.click(screen.getByRole('switch', { name: 'Hand off to a person' }));
+
+    expect(node('agent')).toMatchObject({ config: { exits: { [AgentExitKind.Handoff]: null } } });
+    expect(store().document.edges.some((edge) => edge.id === 'e9')).toBe(false);
+  });
+
   it('leaves the current message out of a completion', async () => {
     const user = userEvent.setup();
     open('tagger', AI_FLOW);
@@ -811,5 +876,313 @@ describe('InspectorPanel api request', () => {
     expect(screen.getByText(TEST_RESPONSE_BODY)).toBeVisible();
     await user.selectOptions(screen.getByRole('combobox', { name: 'Method' }), HttpMethod.Post);
     expect(screen.queryByText('Status 200 · 120 ms')).not.toBeInTheDocument();
+  });
+});
+
+describe('InspectorPanel schedule trigger', () => {
+  const SCHEDULE_FLOW: FlowDocument = {
+    ...FLOW,
+    nodes: [
+      ...FLOW.nodes,
+      step('daily', 'Daily follow-up', NODE_TEMPLATES[NodeType.TriggerSchedule]),
+    ],
+    edges: [
+      ...FLOW.edges,
+      { id: 'e3', source: 'daily', sourcePort: PortName.Next, target: 'reply' },
+    ],
+  };
+  const openSchedule = (document: FlowDocument = SCHEDULE_FLOW) => open('daily', document);
+  const schedule = () => {
+    const found = node('daily');
+    if (found?.type !== NodeType.TriggerSchedule) {
+      throw new Error('no schedule trigger');
+    }
+    return found.config;
+  };
+
+  it('shows the schedule, the next three runs, the limits and the variables', () => {
+    openSchedule();
+
+    const inspector = screen.getByRole('complementary', { name: 'Daily follow-up' });
+    expect(
+      within(inspector).getByText('Starts a run on a schedule for the chats that match'),
+    ).toBeVisible();
+    expect(within(inspector).getByRole('radio', { name: 'Every day' })).toBeChecked();
+    expect(within(inspector).getByLabelText('Time')).toHaveValue('10:00');
+    expect(within(inspector).getByRole('button', { name: /Time zone/ })).toHaveTextContent('UTC');
+    expect(
+      within(screen.getByRole('list', { name: 'Next runs' })).getAllByRole('listitem'),
+    ).toHaveLength(3);
+    expect(within(inspector).getByLabelText('Customer silent for at least')).toHaveValue(1);
+    expect(within(inspector).getByRole('combobox', { name: 'Unit' })).toHaveDisplayValue('days');
+    expect(within(inspector).getByRole('checkbox', { name: 'Telegram' })).toBeChecked();
+    expect(within(inspector).getByRole('checkbox', { name: 'API' })).toBeChecked();
+    expect(within(inspector).getByLabelText('Max conversations per run')).toHaveValue(50);
+    expect(
+      within(inspector).getByText(
+        'Telegram lets a bot message only people who already wrote to it.',
+      ),
+    ).toBeVisible();
+    expect(
+      within(screen.getByRole('list', { name: 'Available in the flow' })).getByText(
+        'conversation.id',
+      ),
+    ).toBeVisible();
+  });
+
+  it('switches between daily, weekdays and a custom cron, keeping the time', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    await user.click(screen.getByRole('radio', { name: 'Weekdays' }));
+    expect(schedule().schedule).toEqual({
+      kind: ScheduleKind.Weekdays,
+      time: '10:00',
+      timeZone: 'UTC',
+    });
+    await user.click(screen.getByRole('radio', { name: 'Custom cron' }));
+    expect(schedule().schedule).toEqual({
+      kind: ScheduleKind.Custom,
+      cron: '0 10 * * 1-5',
+      timeZone: 'UTC',
+    });
+    expect(screen.getByRole('textbox', { name: 'Cron expression' })).toHaveValue('0 10 * * 1-5');
+    expect(screen.queryByLabelText('Time')).not.toBeInTheDocument();
+  });
+
+  it('explains a cron that is not valid and lists the runs once it is', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    await user.click(screen.getByRole('radio', { name: 'Custom cron' }));
+    const cron = screen.getByRole('textbox', { name: 'Cron expression' });
+    await user.clear(cron);
+    await user.type(cron, 'soon');
+    await user.tab();
+
+    expect(screen.getByText('“soon” isn’t a valid schedule')).toBeVisible();
+    expect(screen.queryByRole('list', { name: 'Next runs' })).not.toBeInTheDocument();
+    expect(screen.getByText('Fix the schedule to see the next runs.')).toBeVisible();
+    await user.clear(cron);
+    await user.type(cron, '30 8 * * *');
+    await user.tab();
+
+    expect(schedule().schedule).toMatchObject({ cron: '30 8 * * *' });
+    expect(screen.getByRole('list', { name: 'Next runs' })).toBeVisible();
+    expect(screen.queryByText('“soon” isn’t a valid schedule')).not.toBeInTheDocument();
+  });
+
+  it('changes the time and the time zone', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    fireEvent.change(screen.getByLabelText('Time'), { target: { value: '18:30' } });
+    await user.click(screen.getByRole('button', { name: /Time zone/ }));
+    await user.type(screen.getByRole('searchbox', { name: 'Search time zones' }), 'kyiv');
+    await user.click(screen.getByRole('button', { name: 'Europe/Kyiv' }));
+
+    expect(schedule().schedule).toEqual({
+      kind: ScheduleKind.Daily,
+      time: '18:30',
+      timeZone: 'Europe/Kyiv',
+    });
+  });
+
+  it('turns the silence condition off and on, and rescales it', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Unit' }), 'hour');
+    expect(schedule().conditions.silentForHours).toBe(1);
+    await user.click(screen.getByRole('switch', { name: 'Only chats that went quiet' }));
+    expect(schedule().conditions.silentForHours).toBeNull();
+    expect(screen.queryByLabelText('Customer silent for at least')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('switch', { name: 'Only chats that went quiet' }));
+    expect(schedule().conditions.silentForHours).toBe(24);
+  });
+
+  it('warns when auto-close ends the chat before the silence', () => {
+    openSchedule({
+      ...SCHEDULE_FLOW,
+      settings: { ...NO_FLOW_SETTINGS, autoClose: { afterMinutes: 120 } },
+    });
+
+    expect(
+      screen.getByText('Auto-close ends the chat before this silence is reached'),
+    ).toBeVisible();
+  });
+
+  it('needs a channel, and hides the Telegram note without Telegram', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    await user.click(screen.getByRole('checkbox', { name: 'Telegram' }));
+    expect(schedule().conditions.channelTypes).toEqual([ChannelType.Api]);
+    expect(screen.queryByText(/Telegram lets a bot/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('checkbox', { name: 'API' }));
+
+    expect(schedule().conditions.channelTypes).toEqual([]);
+    expect(screen.getByText('Pick at least one channel type')).toBeVisible();
+  });
+
+  it('limits a run and sends each chat the message once or again', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    const max = () => screen.getByLabelText('Max conversations per run');
+    await user.clear(max());
+    await user.type(max(), '250');
+    await user.tab();
+    expect(schedule().maxConversationsPerRun).toBe(250);
+    expect(screen.getByText('A run can reach at most 200 conversations')).toBeVisible();
+    await user.clear(max());
+    await user.tab();
+    expect(max()).toHaveValue(250);
+
+    expect(screen.getByText('Each chat gets this message once.')).toBeVisible();
+    await user.click(screen.getByRole('switch', { name: 'Once per conversation' }));
+    expect(schedule().oncePerConversation).toBe(false);
+    expect(
+      screen.getByText('A chat can get it again after the customer writes and goes quiet.'),
+    ).toBeVisible();
+  });
+
+  it('turns a skipped escalated chat off', async () => {
+    const user = userEvent.setup();
+    openSchedule();
+
+    await user.click(screen.getByRole('switch', { name: 'Skip chats handed to a person' }));
+
+    expect(schedule().conditions.notEscalated).toBe(false);
+  });
+});
+
+describe('InspectorPanel inactivity trigger', () => {
+  const INACTIVITY_FLOW: FlowDocument = {
+    ...FLOW,
+    nodes: [
+      ...FLOW.nodes,
+      step('quiet', 'Still there?', NODE_TEMPLATES[NodeType.TriggerInactivity]),
+    ],
+    edges: [
+      ...FLOW.edges,
+      { id: 'e3', source: 'quiet', sourcePort: PortName.Next, target: 'reply' },
+    ],
+  };
+  const openInactivity = (document: FlowDocument = INACTIVITY_FLOW) => open('quiet', document);
+  const inactivity = () => {
+    const found = node('quiet');
+    if (found?.type !== NodeType.TriggerInactivity) {
+      throw new Error('no inactivity trigger');
+    }
+    return found.config;
+  };
+
+  it('shows the silence, the activity, the conditions and the variables', () => {
+    openInactivity();
+
+    const inspector = screen.getByRole('complementary', { name: 'Still there?' });
+    expect(
+      within(inspector).getByText('Starts this branch in one conversation after a silence'),
+    ).toBeVisible();
+    expect(within(inspector).getByLabelText('Silence length')).toHaveValue(2);
+    expect(within(inspector).getByRole('combobox', { name: 'Unit' })).toHaveDisplayValue('hours');
+    expect(within(inspector).getByRole('radio', { name: /Any message/ })).toBeChecked();
+    expect(within(inspector).getByRole('radio', { name: 'Once per silence' })).toBeChecked();
+    expect(within(inspector).getByRole('switch', { name: 'Not escalated' })).toBeChecked();
+    expect(within(inspector).getByRole('checkbox', { name: 'Telegram' })).toBeChecked();
+    expect(within(inspector).getByRole('checkbox', { name: 'API' })).toBeChecked();
+    expect(within(inspector).getByText(/Auto-close is a setting/)).toBeVisible();
+    expect(
+      within(screen.getByRole('list', { name: 'Available in the flow' })).getByText(
+        'inactivity.attempt',
+      ),
+    ).toBeVisible();
+  });
+
+  it('changes the silence length and its unit', async () => {
+    const user = userEvent.setup();
+    openInactivity();
+
+    const length = screen.getByLabelText('Silence length');
+    await user.clear(length);
+    await user.type(length, '3');
+    await user.tab();
+    expect(inactivity().silence).toEqual({ amount: 3, unit: InactivityUnit.Hours });
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Unit' }), 'day');
+
+    expect(inactivity().silence).toEqual({ amount: 3, unit: InactivityUnit.Days });
+  });
+
+  it('explains a silence outside five minutes to thirty days', async () => {
+    const user = userEvent.setup();
+    openInactivity();
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Unit' }), 'minute');
+    const length = screen.getByLabelText('Silence length');
+    await user.clear(length);
+    await user.type(length, '2');
+    await user.tab();
+
+    expect(screen.getByText('Pick a time from 5 minutes to 30 days')).toBeVisible();
+  });
+
+  it('warns when auto-close closes the chat first', () => {
+    openInactivity({
+      ...INACTIVITY_FLOW,
+      settings: { ...NO_FLOW_SETTINGS, autoClose: { afterMinutes: 60 } },
+    });
+
+    expect(
+      screen.getByText(
+        'The conversation is closed after 1 hour of silence, before this timer can finish firing',
+      ),
+    ).toBeVisible();
+  });
+
+  it('counts customer messages only or any message', async () => {
+    const user = userEvent.setup();
+    openInactivity();
+
+    await user.click(screen.getByRole('radio', { name: 'Customer messages only' }));
+
+    expect(inactivity().activity).toBe(InactivityActivity.Customer);
+  });
+
+  it('repeats every so long, up to a number of times, then goes back to once', async () => {
+    const user = userEvent.setup();
+    openInactivity();
+
+    await user.click(screen.getByRole('radio', { name: 'Repeat while the chat stays silent' }));
+    expect(inactivity().repeat).toEqual({
+      kind: InactivityRepeatKind.Every,
+      every: { amount: 2, unit: InactivityUnit.Hours },
+      maxTimes: 3,
+    });
+    const every = screen.getByLabelText('Repeat every');
+    await user.clear(every);
+    await user.type(every, '5');
+    await user.tab();
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Total attempts' }), '4');
+    expect(inactivity().repeat).toEqual({
+      kind: InactivityRepeatKind.Every,
+      every: { amount: 5, unit: InactivityUnit.Hours },
+      maxTimes: 4,
+    });
+    await user.click(screen.getByRole('radio', { name: 'Once per silence' }));
+
+    expect(inactivity().repeat).toEqual({ kind: InactivityRepeatKind.Once });
+    expect(screen.queryByLabelText('Repeat every')).not.toBeInTheDocument();
+  });
+
+  it('skips escalated chats or not, and keeps at least one channel', async () => {
+    const user = userEvent.setup();
+    openInactivity();
+
+    await user.click(screen.getByRole('switch', { name: 'Not escalated' }));
+    expect(inactivity().conditions.notEscalated).toBe(false);
+    await user.click(screen.getByRole('checkbox', { name: 'Telegram' }));
+    expect(inactivity().conditions.channelTypes).toEqual([ChannelType.Api]);
+    expect(screen.getByRole('checkbox', { name: 'API' })).toBeDisabled();
   });
 });

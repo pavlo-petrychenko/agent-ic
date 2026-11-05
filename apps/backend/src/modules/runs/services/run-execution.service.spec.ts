@@ -1,4 +1,4 @@
-import { ErrorReason } from '@agent-ic/contracts';
+import { ErrorReason, IdPrefix } from '@agent-ic/contracts';
 import {
   ModelProviderKind,
   NodeType,
@@ -16,11 +16,19 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import {
   ConversationActivityKind,
   ConversationMode,
+  ConversationState,
+  MessageAuthor,
   conversationActivityChannel,
 } from '@/modules/conversations';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
 import { RUN_TRACE_NAME } from '@/modules/runs/constants/run-tracing.constants';
-import { ROOT_BRANCH_KEY, RunStatus, RunStepStatus } from '@/modules/runs/constants/run.constants';
+import {
+  ROOT_BRANCH_KEY,
+  RunStatus,
+  RunStepStatus,
+  RunTrigger,
+} from '@/modules/runs/constants/run.constants';
+import { inactivityTriggerInput } from '@/modules/runs/helpers/inactivity-trigger.helpers';
 import { branchKeyOf } from '@/modules/runs/helpers/run-branch.helpers';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import { LangfuseMode } from '@/platform/config/constants/langfuse.constants';
@@ -43,12 +51,14 @@ import {
   FIRST_STEP_KEY,
   FOURTH_STEP_ID,
   FOURTH_STEP_KEY,
+  INACTIVITY_NODE_ID,
   OBSERVER_NODE_ID,
   OBSERVER_NODE_KEY,
   PARALLEL_NODE_ID,
   PARALLEL_NODE_KEY,
   ROUTER_NODE_ID,
   ROUTER_NODE_KEY,
+  SCHEDULE_NODE_ID,
   SCORER_NODE_ID,
   SCORER_NODE_KEY,
   SECOND_STEP_ID,
@@ -62,6 +72,9 @@ import {
   TEST_AGENT_PROMPT,
   TEST_AGENT_REPLY,
   TEST_COMPLETION_PROMPT,
+  TEST_RENDERED_FAILURE_APOLOGY,
+  TEST_INACTIVITY_MAX_TIMES,
+  TEST_SILENT_MINUTES,
   TEST_LLM_API_KEY,
   TEST_MOOD,
   TEST_MOOD_FIELD,
@@ -83,9 +96,12 @@ import {
   escalateNode,
   flowEdge,
   flowV1Json,
+  handOffOnFailure,
   observerNode,
   parallelNode,
   routerNode,
+  inactivityTriggerNode,
+  scheduleTriggerNode,
   sendListNode,
   sendMessageNode,
   stepFlow,
@@ -99,6 +115,7 @@ import { startProbeServer } from '@test/support/helpers/outbound-http-testing.he
 import { seedLibraryPrompt } from '@test/support/helpers/prompts-testing.helpers';
 import {
   createRunsTestbed,
+  readConversationChat,
   seedExecutableRun,
   storeFlowJson,
   watchStep,
@@ -108,6 +125,7 @@ import type { MockLlmService } from '@test/support/services/mock-llm.service';
 import type { ProbeServer } from '@test/support/typedefs/outbound-http-testing.typedefs';
 import type {
   ExecutableRun,
+  RunChat,
   RunExecutionTestbed,
 } from '@test/support/typedefs/runs-testing.typedefs';
 
@@ -115,6 +133,11 @@ const MODEL_ATTRIBUTE = 'langfuse.observation.metadata.model';
 const JOB_SPAN_NAME = 'process runs-reactive';
 const REQUEST_SPAN_NAME = 'POST /graphql';
 const SDK_RUNNING = 'false';
+
+const agentTexts = (messages: RunChat['messages']): (string | undefined)[] =>
+  messages
+    .filter((message) => message?.author === MessageAuthor.Agent)
+    .map((message) => message?.text);
 
 const threeSteps = stepFlow(
   [
@@ -282,6 +305,106 @@ describe('RunExecutionService', () => {
     expect(run?.error).toMatchObject({ reason: ErrorReason.InvalidId, nodeId: FIRST_STEP_ID });
   });
 
+  it('hands a failed agent step with no error port to a person when the flow says so', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      handOffOnFailure(
+        stepFlow(
+          [agentNode(FIRST_STEP_ID, FIRST_STEP_KEY)],
+          [flowEdge(TEST_NODE_ID, FIRST_STEP_ID)],
+        ),
+      ),
+    );
+    testbed.executor.script(FIRST_STEP_ID, StepScript.Fail);
+
+    expect(await execute(seeded)).toBe(RunStatus.Failed);
+
+    const { run } = await stored(seeded);
+    expect(run?.error).toMatchObject({ reason: ErrorReason.InvalidId, nodeId: FIRST_STEP_ID });
+    const chat = await readConversationChat(testbed, seeded.run);
+    expect(chat.conversation?.state).toBe(ConversationState.Waiting);
+    expect(agentTexts(chat.messages)).toEqual([TEST_RENDERED_FAILURE_APOLOGY]);
+  });
+
+  it('hands a failed completion step with no error port to a person when the flow says so', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      handOffOnFailure(
+        stepFlow(
+          [observerNode(OBSERVER_NODE_ID, OBSERVER_NODE_KEY)],
+          [flowEdge(TEST_NODE_ID, OBSERVER_NODE_ID)],
+        ),
+      ),
+    );
+    testbed.observer.script(OBSERVER_NODE_ID, StepScript.Fail);
+
+    expect(await execute(seeded)).toBe(RunStatus.Failed);
+
+    const chat = await readConversationChat(testbed, seeded.run);
+    expect(chat.conversation?.state).toBe(ConversationState.Waiting);
+    expect(agentTexts(chat.messages)).toEqual([TEST_RENDERED_FAILURE_APOLOGY]);
+  });
+
+  it('follows a connected error port instead of handing off', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      handOffOnFailure(
+        stepFlow(
+          [agentNode(FIRST_STEP_ID, FIRST_STEP_KEY), agentNode(SECOND_STEP_ID, SECOND_STEP_KEY)],
+          [
+            flowEdge(TEST_NODE_ID, FIRST_STEP_ID),
+            flowEdge(FIRST_STEP_ID, SECOND_STEP_ID, PortName.Error),
+          ],
+        ),
+      ),
+    );
+    testbed.executor.script(FIRST_STEP_ID, StepScript.Fail);
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    const chat = await readConversationChat(testbed, seeded.run);
+    expect(chat.conversation?.state).toBe(ConversationState.AgentActive);
+    expect(agentTexts(chat.messages)).toEqual([]);
+  });
+
+  it('leaves a retryable failure to the job before handing off', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      handOffOnFailure(
+        stepFlow(
+          [agentNode(FIRST_STEP_ID, FIRST_STEP_KEY)],
+          [flowEdge(TEST_NODE_ID, FIRST_STEP_ID)],
+        ),
+      ),
+    );
+    testbed.executor.script(FIRST_STEP_ID, StepScript.Unavailable, StepScript.Unavailable);
+
+    await expect(execute(seeded)).rejects.toBeInstanceOf(SampleUnavailableError);
+    expect((await readConversationChat(testbed, seeded.run)).conversation?.state).toBe(
+      ConversationState.AgentActive,
+    );
+
+    expect(await executeFinal(seeded)).toBe(RunStatus.Failed);
+    const chat = await readConversationChat(testbed, seeded.run);
+    expect(chat.conversation?.state).toBe(ConversationState.Waiting);
+    expect(agentTexts(chat.messages)).toEqual([TEST_RENDERED_FAILURE_APOLOGY]);
+  });
+
+  it('never hands off for a failed step in a background branch', async () => {
+    const scorer = observerNode(OBSERVER_NODE_ID, OBSERVER_NODE_KEY);
+    const seeded = await seedExecutableRun(
+      testbed,
+      handOffOnFailure(parallelFlow(WaitFor.All, scorer, true)),
+    );
+    testbed.observer.script(OBSERVER_NODE_ID, StepScript.Fail);
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    const chat = await readConversationChat(testbed, seeded.run);
+    expect(chat.conversation?.state).toBe(ConversationState.AgentActive);
+    expect(agentTexts(chat.messages)).toEqual([]);
+  });
+
   it('fails the step and the run on an upstream error that jobs would not retry', async () => {
     const seeded = await seedExecutableRun(
       testbed,
@@ -365,6 +488,80 @@ describe('RunExecutionService', () => {
     expect(run?.error).toMatchObject({
       reason: ErrorReason.UnsupportedNodeType,
       nodeId: SEND_NODE_ID,
+    });
+  });
+
+  it('starts a schedule run at its trigger node with the schedule variables', async () => {
+    const flow = stepFlow(
+      [scheduleTriggerNode(), agentNode(FIRST_STEP_ID, FIRST_STEP_KEY)],
+      [flowEdge(TEST_NODE_ID, FIRST_STEP_ID), flowEdge(SCHEDULE_NODE_ID, FIRST_STEP_ID)],
+    );
+    const seeded = await seedExecutableRun(testbed, flow, [], ConversationMode.Live, null, {
+      trigger: RunTrigger.Schedule,
+      triggerNodeId: SCHEDULE_NODE_ID,
+    });
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    const { steps } = await stored(seeded);
+    const first = testbed.executor.executions.find(
+      (call) => call.run.id === seeded.run.id && call.node.id === FIRST_STEP_ID,
+    );
+    expect(steps.map((step) => step.nodeId).toSorted()).toEqual(
+      [SCHEDULE_NODE_ID, FIRST_STEP_ID].toSorted(),
+    );
+    expect(first?.scope.variables).toMatchObject({
+      conversation: { id: testbed.ids.toPublic(IdPrefix.Conversation, seeded.run.conversationId) },
+      channel: expect.any(String),
+      history: [expect.objectContaining({ text: TEST_MESSAGE_TEXT })],
+      today: expect.any(String),
+    });
+    expect(first?.scope.variables).not.toHaveProperty('message');
+  });
+
+  it('walks an inactivity run from its trigger with the attempt in scope', async () => {
+    const flow = stepFlow(
+      [inactivityTriggerNode(), agentNode(FIRST_STEP_ID, FIRST_STEP_KEY)],
+      [flowEdge(TEST_NODE_ID, FIRST_STEP_ID), flowEdge(INACTIVITY_NODE_ID, FIRST_STEP_ID)],
+    );
+    const seeded = await seedExecutableRun(testbed, flow, [], ConversationMode.Live, null, {
+      trigger: RunTrigger.Inactivity,
+      triggerNodeId: INACTIVITY_NODE_ID,
+      triggerInput: inactivityTriggerInput({ attempt: 2, silentMinutes: TEST_SILENT_MINUTES }),
+    });
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    const { steps } = await stored(seeded);
+    const agent = testbed.executor.executions.find(
+      (call) => call.run.id === seeded.run.id && call.node.id === FIRST_STEP_ID,
+    );
+    expect(Object.fromEntries(steps.map((step) => [step.nodeId, step.status]))).toEqual({
+      [INACTIVITY_NODE_ID]: RunStepStatus.Succeeded,
+      [FIRST_STEP_ID]: RunStepStatus.Succeeded,
+    });
+    expect(agent?.scope.variables).toMatchObject({
+      conversation: { id: testbed.ids.toPublic(IdPrefix.Conversation, seeded.run.conversationId) },
+      inactivity: {
+        silent_minutes: TEST_SILENT_MINUTES,
+        attempt: 2,
+        max_attempts: TEST_INACTIVITY_MAX_TIMES,
+        last_author: MessageAuthor.Customer,
+      },
+    });
+    expect(agent?.scope.variables).not.toHaveProperty('message');
+  });
+
+  it('fails a triggered run whose trigger node is gone from the flow', async () => {
+    const seeded = await seedExecutableRun(testbed, threeSteps, [], ConversationMode.Live, null, {
+      trigger: RunTrigger.Inactivity,
+      triggerNodeId: SCHEDULE_NODE_ID,
+    });
+
+    expect(await execute(seeded)).toBe(RunStatus.Failed);
+
+    expect((await stored(seeded)).run?.error).toMatchObject({
+      reason: ErrorReason.RunFlowInvalid,
     });
   });
 
@@ -784,6 +981,7 @@ describe('RunExecutionService tracing', () => {
       'langfuse.trace.metadata.workspace_id': seeded.run.workspaceId,
       'langfuse.trace.metadata.agent_version_id': seeded.run.versionId,
       'langfuse.trace.metadata.run_id': seeded.run.id,
+      'langfuse.trace.metadata.trigger': RunTrigger.Message,
     });
     expect(steps.map(({ name, attributes }) => [name, attributes])).toEqual([
       [

@@ -1,0 +1,18 @@
+query InboxConversation($id: ID!) {
+  inboxConversation(input: { id: $id }) {
+    summary {
+      id
+    }
+    messages {
+      id
+      author
+      authorId
+      authorName
+      systemEvent
+      text
+      quickReplies
+      runId
+      createdAt
+    }
+  }
+}

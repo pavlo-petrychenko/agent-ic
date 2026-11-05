@@ -88,6 +88,7 @@ export const nodeTextFields = (node: FlowNode): readonly NodeTextField[] => {
     case NodeType.TriggerMessage:
     case NodeType.TriggerExternalEvent:
     case NodeType.TriggerSchedule:
+    case NodeType.TriggerInactivity:
     case NodeType.Parallel:
       return [];
   }
@@ -173,6 +174,7 @@ export const mapNodeText = (node: FlowNode, mappers: NodeTextMappers): FlowNode 
     case NodeType.TriggerMessage:
     case NodeType.TriggerExternalEvent:
     case NodeType.TriggerSchedule:
+    case NodeType.TriggerInactivity:
     case NodeType.Parallel:
       return node;
   }

@@ -1,5 +1,6 @@
 import type { FieldChange, FlowDocument } from '@agent-ic/flow';
 import {
+  AUTO_CLOSE_MINUTES_FIELD,
   ChangeKind,
   ChangeSentence,
   CONFIG_FIELD,
@@ -10,6 +11,7 @@ import {
   MAX_INLINE_VALUE_LENGTH,
   MINUTE_MS,
   PublishBlock,
+  SettingsField,
 } from '@/features/flow-builder/constants/publish.constants';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import { stepNameOf } from '@/features/flow-builder/logic/helpers/issue.helpers';
@@ -79,6 +81,67 @@ const promptBindingLine = (
     after,
   };
 };
+
+const autoCloseMinutes = (value: unknown, nested: boolean): number | null => {
+  if (nested) {
+    return typeof value === 'number' ? value : null;
+  }
+  if (typeof value === 'object' && value !== null && AUTO_CLOSE_MINUTES_FIELD in value) {
+    const minutes: unknown = value[AUTO_CLOSE_MINUTES_FIELD];
+    return typeof minutes === 'number' ? minutes : null;
+  }
+  return null;
+};
+
+const settingsLine = (change: FieldChange): Omit<ChangeLine, 'id' | 'kind'> | null => {
+  const [root, field] = change.path;
+  const nested = field !== undefined;
+  const line = { step: '', field: null, before: null, after: null };
+  switch (root) {
+    case SettingsField.Handoff:
+      if (nested) {
+        return { ...line, sentence: ChangeSentence.HandoffChanged, field };
+      }
+      return {
+        ...line,
+        sentence: change.after === null ? ChangeSentence.HandoffReset : ChangeSentence.HandoffSetUp,
+      };
+    case SettingsField.OnUnhandledFailure:
+      if (nested) {
+        return { ...line, sentence: ChangeSentence.ApologyChanged };
+      }
+      return {
+        ...line,
+        sentence:
+          change.after === null ? ChangeSentence.FailureFailsRun : ChangeSentence.FailureHandsOff,
+      };
+    case SettingsField.AutoClose: {
+      const beforeMinutes = autoCloseMinutes(change.before, nested);
+      const afterMinutes = autoCloseMinutes(change.after, nested);
+      return {
+        ...line,
+        sentence:
+          afterMinutes === null
+            ? ChangeSentence.AutoCloseOff
+            : beforeMinutes === null
+              ? ChangeSentence.AutoCloseOn
+              : ChangeSentence.AutoCloseChanged,
+        beforeMinutes,
+        afterMinutes,
+      };
+    }
+    default:
+      return null;
+  }
+};
+
+const settingsLines = (changes: readonly FieldChange[]): ChangeLine[] =>
+  changes.flatMap((change) => {
+    const line = settingsLine(change);
+    return line === null
+      ? []
+      : [{ id: `settings-${change.path.join('.')}`, kind: ChangeKind.Changed, ...line }];
+  });
 
 export const toChangeLines = (
   diff: PublishPreview['diff'],
@@ -163,6 +226,7 @@ export const toChangeLines = (
       before: null,
       after: stepName(edge.target, edge.target),
     })),
+    ...settingsLines(diff.settingsChanges),
   ];
 };
 

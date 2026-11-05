@@ -1,0 +1,6 @@
+mutation SimulateSilence($input: SimulateSilenceInput!) {
+  simulateSilence(input: $input) {
+    id
+    status
+  }
+}

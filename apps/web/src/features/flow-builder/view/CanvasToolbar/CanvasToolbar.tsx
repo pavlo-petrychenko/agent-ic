@@ -4,6 +4,7 @@ import { Density } from '@/features/flow-builder/constants/density.constants';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import { CanvasShortcut } from '@/features/flow-builder/constants/shortcut.constants';
 import type { CanvasToolbarProps } from '@/features/flow-builder/view/CanvasToolbar/CanvasToolbar.typedefs';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { IconButton, IconButtonSize } from '@/shared/ui/actions/IconButton';
 import { SegmentedControl, SegmentedControlSize } from '@/shared/ui/actions/SegmentedControl';
 import { KeyValue } from '@/shared/ui/display/KeyValue';
@@ -11,7 +12,12 @@ import { IconName } from '@/shared/ui/foundations/Icon';
 import { Popover, PopoverAlign } from '@/shared/ui/overlays/Popover';
 import styles from '@/features/flow-builder/view/CanvasToolbar/CanvasToolbar.module.scss';
 
-export function CanvasToolbar({ density, onDensityChange }: CanvasToolbarProps) {
+export function CanvasToolbar({
+  density,
+  onDensityChange,
+  settingsOpen,
+  onSettingsOpen,
+}: CanvasToolbarProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
   const [open, setOpen] = useState(false);
 
@@ -45,6 +51,15 @@ export function CanvasToolbar({ density, onDensityChange }: CanvasToolbarProps) 
         onValueChange={onDensityChange}
         options={Object.values(Density).map((value) => ({ value, label: t(`density.${value}`) }))}
       />
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Sm}
+        icon={IconName.Gear}
+        aria-pressed={settingsOpen}
+        onClick={onSettingsOpen}
+      >
+        {t('settings.open')}
+      </Button>
     </div>
   );
 }

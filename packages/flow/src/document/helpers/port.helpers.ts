@@ -1,4 +1,5 @@
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
+import { enabledExits } from '@flow/document/helpers/node.helpers';
 import type { FlowNode } from '@flow/document/typedefs/flow.typedefs';
 import { FailureMode } from '@flow/nodes/constants/step.constants';
 
@@ -11,9 +12,11 @@ export const nodePorts = (node: FlowNode): readonly string[] => {
     case NodeType.TriggerMessage:
     case NodeType.TriggerExternalEvent:
     case NodeType.TriggerSchedule:
+    case NodeType.TriggerInactivity:
     case NodeType.SendMessage:
       return NEXT_ONLY;
     case NodeType.Agent:
+      return [...STEP_PORTS, ...enabledExits(node)];
     case NodeType.Completion:
       return STEP_PORTS;
     case NodeType.Router:

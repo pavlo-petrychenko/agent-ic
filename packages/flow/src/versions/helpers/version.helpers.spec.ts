@@ -9,6 +9,7 @@ import { parseFlow } from '@flow/versions/helpers/version.helpers';
 import { flowV1DocumentSchema } from '@flow/versions/schemas/flow-v1.schema';
 import { exampleFlows, faqWithHandOffFlow } from '@test/support/fixtures/example-flow.fixture';
 import { toFlowV1Json } from '@test/support/fixtures/flow-v1.fixture';
+import { toFlowV2, toFlowV2Json } from '@test/support/fixtures/flow-v2.fixture';
 
 const TOPIC_ID = 'n_topic';
 
@@ -19,6 +20,21 @@ describe('parseFlow', () => {
     for (const flow of exampleFlows) {
       expect(parseFlow(roundTrip(flow))).toEqual({ ok: true, flow });
     }
+  });
+
+  it('reads every example flow stored as version 2 as the upgraded flow', () => {
+    for (const flow of exampleFlows) {
+      expect(parseFlow(roundTrip(toFlowV2Json(flow)))).toEqual({ ok: true, flow });
+    }
+  });
+
+  it('lists the issues of a version 2 flow against the version 2 schema', () => {
+    const result = parseFlow({ ...toFlowV2(faqWithHandOffFlow), nodes: [{ id: 'n_1' }] });
+    expect(result.ok).toBe(false);
+    if (result.ok || result.failure.kind !== ParseFlowFailureKind.InvalidDocument) {
+      throw new Error('expected an invalid document');
+    }
+    expect(result.failure.issues.map((issue) => issue.path)).toContainEqual(['nodes', 0, 'type']);
   });
 
   it('reads a version 1 flow as the upgraded flow', () => {

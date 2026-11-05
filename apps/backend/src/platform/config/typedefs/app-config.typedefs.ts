@@ -97,6 +97,32 @@ export interface TelegramConfig {
   readonly pollTimeoutSeconds: number;
 }
 
+export interface GoogleDisabledConfig {
+  readonly enabled: false;
+}
+
+export interface GooglePickerDisabledConfig {
+  readonly enabled: false;
+}
+
+export interface GooglePickerEnabledConfig {
+  readonly enabled: true;
+  readonly apiKey: string;
+  readonly appId: string;
+}
+
+export type GooglePickerConfig = GooglePickerDisabledConfig | GooglePickerEnabledConfig;
+
+export interface GoogleEnabledConfig {
+  readonly enabled: true;
+  readonly clientId: string;
+  readonly clientSecret: string;
+  readonly redirectUri: string;
+  readonly picker: GooglePickerConfig;
+}
+
+export type GoogleConfig = GoogleDisabledConfig | GoogleEnabledConfig;
+
 export interface SmtpCredentials {
   readonly user: string;
   readonly password: string;
@@ -145,6 +171,7 @@ export interface BaseConfig {
   readonly usage: UsageConfig;
   readonly email: EmailConfig;
   readonly telegram: TelegramConfig;
+  readonly google: GoogleConfig;
 }
 
 export interface ApiConfig extends BaseConfig {

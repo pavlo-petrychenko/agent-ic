@@ -12,6 +12,12 @@ export enum ConversationState {
   Closed = 'closed',
 }
 
+export enum CloseReason {
+  EndedByAgent = 'ended_by_agent',
+  Inactivity = 'inactivity',
+  ClosedByOperator = 'closed_by_operator',
+}
+
 export enum WaitingReason {
   AgentPaused = 'agent_paused',
   Escalated = 'escalated',

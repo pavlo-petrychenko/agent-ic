@@ -34,6 +34,10 @@ export const Done: Story = { args: { state: RunNodeState.Done, stateLabel: 'done
 export const Failed: Story = { args: { state: RunNodeState.Failed, stateLabel: 'failed' } };
 export const Waiting: Story = { args: { state: RunNodeState.Waiting, stateLabel: 'waiting' } };
 export const Skipped: Story = { args: { state: RunNodeState.Skipped, stateLabel: 'not reached' } };
+export const Escalated: Story = {
+  args: { state: RunNodeState.Escalated, stateLabel: 'escalated' },
+};
+export const Ended: Story = { args: { state: RunNodeState.Ended, stateLabel: 'default end' } };
 export const LiveRun: Story = {
   render: () => (
     <>

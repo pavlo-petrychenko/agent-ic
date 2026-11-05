@@ -30,6 +30,7 @@ import { uploadTitle } from '@/modules/knowledge/helpers/knowledge-upload.helper
 import { ingestKnowledgeSourceJob } from '@/modules/knowledge/jobs/ingest-knowledge-source.job';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
+import { SourceDocumentsRepository } from '@/modules/knowledge/repositories/source-documents.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
 import { confirmUploadInputSchema } from '@/modules/knowledge/schemas/knowledge-input.schema';
@@ -59,6 +60,7 @@ export class ConfirmUploadUseCase {
     private readonly knowledgeBases: KnowledgeBasesRepository,
     private readonly targets: KnowledgeUploadTargetsService,
     private readonly sources: SourcesRepository,
+    private readonly sourceDocuments: SourceDocumentsRepository,
     private readonly documents: DocumentsRepository,
     private readonly syncRuns: SyncRunsRepository,
     private readonly views: KnowledgeSourceViewsService,
@@ -255,6 +257,9 @@ export class ConfirmUploadUseCase {
       }
       return { ...existing, discardedStorageKeys: [] };
     }
+    await this.sourceDocuments.insertMany(workspaceId, ticket.knowledgeBaseId, source.id, [
+      document.id,
+    ]);
     await this.enqueueIngestion(
       workspaceId,
       ctx,

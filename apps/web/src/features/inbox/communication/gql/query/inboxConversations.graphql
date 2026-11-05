@@ -1,0 +1,20 @@
+query InboxConversations($limit: Int) {
+  inboxConversations(input: { limit: $limit }) {
+    id
+    state
+    handledByMe
+    handledByName
+    hasBeenHandled
+    channelKind
+    agentId
+    agentName
+    agentVersion
+    endUserName
+    endUserExternalId
+    preview
+    createdAt
+    lastMessageAt
+    lastEscalatedAt
+    closedAt
+  }
+}

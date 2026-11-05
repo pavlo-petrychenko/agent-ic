@@ -6,6 +6,8 @@ export enum RunNodeState {
   Waiting = 'waiting',
   Skipped = 'skipped',
   Failed = 'failed',
+  Escalated = 'escalated',
+  Ended = 'ended',
 }
 
 export const RUN_NODE_STATUS_ICON_SIZE = 13;
@@ -16,8 +18,12 @@ export const RUN_NODE_STATUS_ICONS: Readonly<Record<RunNodeState, IconName | nul
   [RunNodeState.Waiting]: null,
   [RunNodeState.Skipped]: null,
   [RunNodeState.Failed]: IconName.Alert,
+  [RunNodeState.Escalated]: IconName.Esc,
+  [RunNodeState.Ended]: IconName.Check,
 };
 
 export const RUN_NODE_VISIBLE_LABEL_STATES: ReadonlySet<RunNodeState> = new Set([
   RunNodeState.Running,
+  RunNodeState.Escalated,
+  RunNodeState.Ended,
 ]);

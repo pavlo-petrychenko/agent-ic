@@ -1,8 +1,10 @@
 import { Locale } from '@agent-ic/contracts';
 import {
   ChannelConversationKind,
+  ConversationState,
   MessageAuthor,
   RunStatus,
+  RunTrigger,
 } from '@/shared/api/generated/schema.generated';
 
 export const SETUP_KEY_SEPARATOR = '|';
@@ -10,21 +12,43 @@ export const SETUP_KEY_SEPARATOR = '|';
 export enum ChatItemKind {
   Message = 'message',
   Turn = 'turn',
-  Divider = 'divider',
+  Event = 'event',
 }
 
-export enum ChatDividerKind {
+export enum ChatEventKind {
   Escalated = 'escalated',
+  HandedOff = 'handedOff',
+  TakenOver = 'takenOver',
   HandedBack = 'handedBack',
+  Ended = 'ended',
+  ClosedInactive = 'closedInactive',
+  Silence = 'silence',
+  ScheduleRun = 'scheduleRun',
 }
+
+export enum ComposerTab {
+  Message = 'message',
+  Schedule = 'schedule',
+}
+
+export const CONVERSATION_EVENT_ID = 'conversation';
 
 export enum ComposerMode {
   User = 'user',
-  Escalated = 'escalated',
   Operator = 'operator',
+  Ended = 'ended',
 }
 
-export const DIVIDER_ID_SEPARATOR = ':';
+export const WRITE_AS_MODES = [ComposerMode.User, ComposerMode.Operator] as const;
+
+export const OPERATOR_STATES: ReadonlySet<ConversationState> = new Set([
+  ConversationState.Waiting,
+  ConversationState.Handled,
+]);
+
+export const EVENT_ID_SEPARATOR = ':';
+
+export const EVENT_TIME_FORMAT: Intl.DateTimeFormatOptions = { timeStyle: 'short' };
 
 export enum ChatSpeaker {
   User = 'user',
@@ -50,3 +74,8 @@ export const SIMULATOR_CHANNELS: readonly ChannelConversationKind[] = [
 ];
 
 export const SIMULATOR_LANGUAGES: readonly Locale[] = [Locale.Uk, Locale.En];
+
+export const TRIGGER_EVENTS: Readonly<Partial<Record<RunTrigger, ChatEventKind>>> = {
+  [RunTrigger.Inactivity]: ChatEventKind.Silence,
+  [RunTrigger.Schedule]: ChatEventKind.ScheduleRun,
+};

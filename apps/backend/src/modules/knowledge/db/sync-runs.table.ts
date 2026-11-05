@@ -43,6 +43,7 @@ export const syncRuns = knowledgeSchema
       documentsSkipped: integer('documents_skipped').notNull().default(0),
       documentsFailed: integer('documents_failed').notNull().default(0),
       documentsRemoved: integer('documents_removed').notNull().default(0),
+      documentsStale: integer('documents_stale').notNull().default(0),
       errorCode: text('error_code'),
       errorMessage: text('error_message'),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
@@ -73,6 +74,10 @@ export const syncRuns = knowledgeSchema
       check(
         'sync_runs_documents_removed_nonnegative',
         sql`${table.documentsRemoved} >= ${minDocumentCount}`,
+      ),
+      check(
+        'sync_runs_documents_stale_nonnegative',
+        sql`${table.documentsStale} >= ${minDocumentCount}`,
       ),
       index('sync_runs_workspace_id_source_id_idx').on(table.workspaceId, table.sourceId),
       index('sync_runs_source_id_created_at_idx').on(table.sourceId, table.createdAt),

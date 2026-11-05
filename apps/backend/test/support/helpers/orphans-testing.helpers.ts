@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { Locale } from '@agent-ic/contracts';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
+import type { AnyColumn } from 'drizzle-orm';
+import type { PgTable } from 'drizzle-orm/pg-core';
 import { AgentVersionKind } from '@/modules/agents/constants/agent.constants';
 import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { agents } from '@/modules/agents/db/agents.table';
@@ -48,6 +50,22 @@ const insertWorkspace = async (db: AppDatabase, userId: string): Promise<string>
   return workspaceId;
 };
 
+const insertLegacyRow = async (
+  db: AppDatabase,
+  table: PgTable,
+  row: ReadonlyArray<readonly [AnyColumn, unknown]>,
+): Promise<void> => {
+  const columns = sql.join(
+    row.map(([column]) => sql.identifier(column.name)),
+    sql`, `,
+  );
+  const values = sql.join(
+    row.map(([, value]) => sql`${value}`),
+    sql`, `,
+  );
+  await db.execute(sql`insert into ${table} (${columns}) values (${values})`);
+};
+
 const conversationRow = (id: string, workspaceId: string, agentId: string) => ({
   id,
   workspaceId,
@@ -59,6 +77,47 @@ const conversationRow = (id: string, workspaceId: string, agentId: string) => ({
   lastMessageAt: AGENTS_TEST_START,
   createdAt: AGENTS_TEST_START,
 });
+
+const insertConversations = async (
+  db: AppDatabase,
+  rows: readonly (ReturnType<typeof conversationRow> & {
+    readonly activeRunId: string | null;
+    readonly handledBy: string | null;
+  })[],
+): Promise<void> => {
+  for (const row of rows) {
+    await db.execute(sql`
+      insert into conversations.conversations
+        (id, workspace_id, agent_id, mode, channel_kind, end_user_external_id, state,
+         handled_by, active_run_id, last_message_at, created_at)
+      values
+        (${row.id}, ${row.workspaceId}, ${row.agentId}, ${row.mode}, ${row.channelKind},
+         ${row.endUserExternalId}, ${row.state}, ${row.handledBy}, ${row.activeRunId},
+         ${row.lastMessageAt}, ${row.createdAt})
+    `);
+  }
+};
+
+export const seedWorkspaceWithAgent = async (
+  db: AppDatabase,
+): Promise<{ readonly workspaceId: string; readonly agentId: string }> => {
+  const userId = randomUUID();
+  await db.insert(users).values({
+    id: userId,
+    email: uniqueEmail(),
+    name: TEST_WORKSPACE_OWNER_NAME,
+    passwordHash: TEST_WORKSPACE_OWNER_PASSWORD_HASH,
+    locale: Locale.En,
+    createdAt: AGENTS_TEST_START,
+    updatedAt: AGENTS_TEST_START,
+  });
+  const workspaceId = await insertWorkspace(db, userId);
+  const agentId = randomUUID();
+  await db
+    .insert(agents)
+    .values({ ...newAgent(agentId, workspaceId), ...rowTimestamps(AGENTS_TEST_START) });
+  return { workspaceId, agentId };
+};
 
 export const seedOrphans = async (db: AppDatabase): Promise<SeededOrphans> => {
   const userId = randomUUID();
@@ -105,35 +164,39 @@ export const seedOrphans = async (db: AppDatabase): Promise<SeededOrphans> => {
     createdAt: AGENTS_TEST_START,
     updatedAt: AGENTS_TEST_START,
   });
-  await db.insert(conversations).values([
+  await insertConversations(db, [
     {
       ...conversationRow(seeded.keptConversationId, workspaceId, seeded.keptAgentId),
       activeRunId: randomUUID(),
       handledBy: randomUUID(),
     },
-    conversationRow(seeded.deletedConversationId, workspaceId, randomUUID()),
+    {
+      ...conversationRow(seeded.deletedConversationId, workspaceId, randomUUID()),
+      activeRunId: null,
+      handledBy: null,
+    },
   ]);
-  await db.insert(messages).values({
-    id: seeded.deletedMessageId,
-    workspaceId,
-    conversationId: seeded.deletedConversationId,
-    author: MessageAuthor.Customer,
-    text: ORPHAN_TEXT,
-    quickReplies: [],
-    createdAt: AGENTS_TEST_START,
-  });
-  await db.insert(runs).values({
-    id: seeded.deletedRunId,
-    workspaceId,
-    conversationId: seeded.keptConversationId,
-    agentId: seeded.keptAgentId,
-    versionId: randomUUID(),
-    mode: ConversationMode.Live,
-    trigger: RunTrigger.Message,
-    status: RunStatus.Queued,
-    lastCoveredMessageId: randomUUID(),
-    createdAt: AGENTS_TEST_START,
-  });
+  await insertLegacyRow(db, messages, [
+    [messages.id, seeded.deletedMessageId],
+    [messages.workspaceId, workspaceId],
+    [messages.conversationId, seeded.deletedConversationId],
+    [messages.author, MessageAuthor.Customer],
+    [messages.text, ORPHAN_TEXT],
+    [messages.quickReplies, sql`'{}'::text[]`],
+    [messages.createdAt, AGENTS_TEST_START.toISOString()],
+  ]);
+  await insertLegacyRow(db, runs, [
+    [runs.id, seeded.deletedRunId],
+    [runs.workspaceId, workspaceId],
+    [runs.conversationId, seeded.keptConversationId],
+    [runs.agentId, seeded.keptAgentId],
+    [runs.versionId, randomUUID()],
+    [runs.mode, ConversationMode.Live],
+    [runs.trigger, RunTrigger.Message],
+    [runs.status, RunStatus.Queued],
+    [runs.lastCoveredMessageId, randomUUID()],
+    [runs.createdAt, AGENTS_TEST_START.toISOString()],
+  ]);
   const otherFolderId = randomUUID();
   await db.insert(promptFolders).values([
     {

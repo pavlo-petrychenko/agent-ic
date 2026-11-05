@@ -97,7 +97,7 @@ An agent is a **versioned flow graph** built on a canvas. One agent can have sev
 
 **Triggers**
 - **Incoming message** on any connected channel.
-- **Inactivity timer:** e.g. a follow-up after 2 hours of silence.
+- **Inactivity timer:** e.g. a follow-up after 2 hours of silence in one chat, optionally repeated.
 - **Schedule / cron:** recurring jobs such as daily digests or reminders.
 - **External event:** e.g. "order shipped" from the business's own system. It works as an endpoint or webhook, optionally waiting for the flow's result.
 - **Tool event:** e.g. `create_booking` succeeded, which starts its own linked run.
@@ -123,7 +123,7 @@ Workspace-level resources, attached to agents many-to-many.
 
 **Sync** per source:
 - an initial import when the source is created;
-- an always-available “Sync now” action for Google Docs;
+- a “Sync now” action for an indexed Google Docs source; a failed source offers Retry instead;
 - an optional schedule (hourly, daily or weekly at a time in the workspace timezone).
 
 Uploads do not have a schedule; replacing the file re-indexes it. Real-time sync is later.
@@ -268,9 +268,10 @@ It proves the core loop of the vision — **flow + knowledge + channel + human h
 | Nodes: Wait, Search knowledge, Set/extract variable | ❌ Later | |
 | Structured outputs and routing | ✅ Yes | |
 | Trigger: Incoming message | ✅ Yes | |
-| Trigger: External event | ✅ Yes | Endpoint and webhook merged into one trigger, optional "wait for result" |
+| Trigger: External event | ⏳ Waiting on the API channel | Endpoint and webhook merged into one trigger, optional "wait for result". The runtime needs the API channel first ([backlog](../backlog/external-event-trigger.md)) |
 | Trigger: Schedule / cron | ✅ Yes | Covers follow-ups, with conditions like "silent for 24 h" |
-| Triggers: Inactivity timer, Tool event | ❌ Later | Inactivity follow-ups are done with Schedule for now |
+| Trigger: Inactivity timer | ✅ Yes | One chat after N of silence (5 minutes to 30 days), once or repeated up to 5 times; a follow-up never moves the clock |
+| Trigger: Tool event | ❌ Later | |
 | Customer memory | ✅ Partly | Conversation-only. **Later:** contact profiles |
 | Prompt library | ✅ Yes | Folders, versions, pinning, variables |
 | Models and providers | ✅ Yes | A curated list of platform models (the default provider) + bring your own key for OpenAI, Anthropic, Google or any OpenAI-compatible API |
@@ -432,7 +433,7 @@ Each use case lists the main path, then variations and errors, and the screens i
 2. Add sources (`Knowledge-AddSource*`):
    - **Upload:** PDF, DOCX, TXT, MD, up to 20 MB each. Unsupported files are skipped with a reason. Uploads don't sync; uploading a new version replaces the old chunks.
    - **Google Docs:** connect an account (read-only per-file access), pick documents with Google Picker. Folder import is later.
-   - **Sync** per source: an initial import, an always-available “Sync now” button, and an optional schedule (hourly, daily or weekly at a time). Uploads have no schedule; real-time sync is later.
+   - **Sync** per source: an initial import, a “Sync now” button for an indexed Google source, and an optional schedule (hourly, daily or weekly at a time). A failed source offers Retry instead. Uploads have no schedule; real-time sync is later.
 3. Watch the index status for each source (`Knowledge`):
    - indexed with N chunks, indexing %, or an error such as "access revoked" → reconnect;
    - re-sync one source or all.
@@ -447,7 +448,7 @@ Each use case lists the main path, then variations and errors, and the screens i
 **Telegram:**
 1. Paste the BotFather token → `Channels-Telegram-New`. We validate it and register our webhook.
 2. Pick the answering agent → `Channels`.
-3. See the webhook status, last update and 7-day stats.
+3. See the webhook status and last update.
 4. If the token is revoked or regenerated, the channel shows `Channels-Telegram-Broken` and owners and admins get an email; the fix is to replace the token.
 5. Disconnecting asks for confirmation → `Channels-Telegram-Disconnect`.
 
@@ -587,7 +588,7 @@ The run is marked failed, and Agents shows "N runs failed today".
   - Draft (never published)
   - Live vN (+ optional unpublished draft)
   - Paused
-- **Pause options:** the user picks one in the pause dialog: route new messages to the Inbox, or reply with an away message they write, sent once per conversation per pause. Schedules and events are skipped while paused.
+- **Pause options:** the user picks one in the pause dialog: route new messages to the Inbox, or reply with an away message they write, sent once per conversation per pause. Schedules, inactivity timers and events are skipped while paused.
 - **Duplicate** copies the draft flow (not channels).
 - **Delete** removes the flow and versions and leaves conversations readable.
 
@@ -598,6 +599,7 @@ The run is marked failed, and Agents shows "N runs failed today".
 | **Incoming message** | Which channels (of those connected to this agent) | `message.text`, `message.attachments`, `user.name`, `user.language`, `channel`, `history` (the whole conversation) |
 | **External event** | Event name; source API channel; example payload; caller mode "don't wait" / "wait for result" (≤30 s) | `event.*`, `user_id` → conversation |
 | **Schedule / cron** | Every day / weekdays / custom cron; time; time zone; conditions on conversations; max per run; once per conversation | conversation context, `history` |
+| **Inactivity timer** | Silence (5 minutes to 30 days); what counts as activity (any message or customer messages only); repeat once or every X up to 5 times; conditions: not escalated, channel types; one per flow, and the flow also needs a Message trigger | conversation context, `user`, `channel`, `history`, `inactivity.silent_minutes`, `inactivity.attempt`, `inactivity.max_attempts`, `inactivity.last_author` |
 
 - Message types: text runs the flow; photos and files are passed as attachments; voice is ignored.
 - **While a person handles a chat, the message trigger does not run.** Messages go to the Inbox.
@@ -635,7 +637,7 @@ The run is marked failed, and Agents shows "N runs failed today".
   - ClickUp and Google Drive folders are later.
 - **Sync:**
   - initial import;
-  - “Sync now” button;
+  - “Sync now” button for an indexed Google source;
   - optional schedule (hourly / daily / weekly at a time).
 
   Uploads have no schedule. Real-time sync is later.
@@ -654,9 +656,10 @@ The run is marked failed, and Agents shows "N runs failed today".
 - **Telegram bot:**
   - validate the token with Telegram; set the webhook to our endpoint;
   - store the token encrypted; show only a masked version;
-  - status: receiving / not receiving; last update; 7-day chats, messages and errors;
-  - detect a revoked token (webhook errors) → broken state + email to owners and admins;
-  - replace the token, disconnect (removes the webhook), delete the channel (past conversations stay).
+  - status: receiving / not receiving; last update;
+  - quick-reply buttons are sent as an inline keyboard; a tap becomes a customer message with the button label, so the flow router handles it;
+  - detect a revoked token from a Telegram 401/404 → broken state; webhook bots are checked every 30 minutes; email to owners and admins is later;
+  - replace the token, disconnect (removes the webhook), reconnect with the stored token, refresh the bot name and username from Telegram, delete the channel (past conversations stay).
 - **API channel:**
   - `POST /v1/channels/{id}/messages` with `Authorization: Bearer <secret>` and body `{ user_id, text }`.
   - **Reply mode:**
@@ -691,7 +694,7 @@ The run is marked failed, and Agents shows "N runs failed today".
 
 ### 12.10 Inbox
 - **Tabs:**
-  - Needs you (waiting + taken by me)
+  - Needs you (waiting + taken by me + taken by another operator, read-only)
   - Live (agent answering)
   - Closed
 - Filter by channel and agent; search.
@@ -704,7 +707,8 @@ The run is marked failed, and Agents shows "N runs failed today".
   - close with an optional closing message
   - take over from another operator
 - Only one operator handles a chat at a time; others see it read-only.
-- The Inbox count in the navigation = chats in "Needs you".
+- A chat taken by another operator stays in **Needs you**, read-only, until they hand it back or close it.
+- The Inbox count in the navigation = chats in "Needs you", including those read-only chats.
 
 ### 12.11 Notifications
 - Triggered by Escalation steps (and reminders); recipients come from the step config.

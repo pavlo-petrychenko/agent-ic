@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
+import {
+  ConversationMode,
+  ConversationState,
+} from '@/modules/conversations/constants/conversation.constants';
+import {
+  MessageAuthor,
+  MessageSystemEvent,
+} from '@/modules/conversations/constants/message.constants';
 import { parseConversationInput } from '@/modules/conversations/helpers/conversation-input.helpers';
 import {
   authorizeOperator,
@@ -8,6 +15,7 @@ import {
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { operatorReplySchema } from '@/modules/conversations/schemas/simulation.schema';
 import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
+import { ConversationTimelineService } from '@/modules/conversations/services/conversation-timeline.service';
 import { OperatorConversationsService } from '@/modules/conversations/services/operator-conversations.service';
 import { SimulationsService } from '@/modules/conversations/services/simulations.service';
 import type {
@@ -25,6 +33,7 @@ export class ReplyAsOperatorUseCase {
     private readonly operated: OperatorConversationsService,
     private readonly conversations: ConversationsRepository,
     private readonly outbound: ConversationRunsService,
+    private readonly timeline: ConversationTimelineService,
     private readonly views: SimulationsService,
     private readonly ids: IdService,
   ) {}
@@ -35,12 +44,18 @@ export class ReplyAsOperatorUseCase {
     const { workspaceId, userId } = access;
     return this.tenants.run(workspaceId, async () => {
       const conversation = await this.operated.requireOperable(ctx, access, conversationId);
+      const alreadyMine =
+        conversation.state === ConversationState.Handled && conversation.handledBy === userId;
       await this.conversations.takeOver(workspaceId, conversation.id, userId);
+      if (conversation.mode === ConversationMode.Live && !alreadyMine) {
+        await this.timeline.record(conversation, MessageSystemEvent.TookOver, userId);
+      }
       const message = await this.outbound.recordOutbound(ctx, {
         workspaceId,
         conversationId: conversation.id,
         key: operatorMessageKey(this.ids.generate()),
         author: MessageAuthor.Operator,
+        authorUserId: userId,
         text,
         quickReplies: [],
         runId: null,

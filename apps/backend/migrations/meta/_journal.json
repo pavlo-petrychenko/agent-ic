@@ -218,6 +218,104 @@
       "when": 1793141779500,
       "tag": "0030_knowledge-upload-hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793229032954,
+      "tag": "0031_conversation-close-reason",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793229276652,
+      "tag": "0032_conversation-silence-escalation",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793230407235,
+      "tag": "0033_agent-version-auto-close",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793230491365,
+      "tag": "0034_runs-trigger-node",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793230763667,
+      "tag": "0035_inactivity-timers",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793232061221,
+      "tag": "0036_agent-versions-schedule-nodes",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1793232441759,
+      "tag": "0037_conversation-schedule-contacts",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793233250096,
+      "tag": "0038_runs-schedule-ticks",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1793652493109,
+      "tag": "0039_conversation-close-reason-operator",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1793657223032,
+      "tag": "0040_conversation-message-author-user",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1793663885679,
+      "tag": "0041_conversation-system-events",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1793697345351,
+      "tag": "0042_knowledge-source-documents",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1793698497792,
+      "tag": "0043_knowledge-source-document-backfill",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1793730438383,
+      "tag": "0044_stormy_harrier",
+      "breakpoints": true
     }
   ]
 }

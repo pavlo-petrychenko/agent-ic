@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { FLOW_SCHEMA_VERSION, PortName } from '@flow/document/constants/flow.constants';
-import type { FlowDocument, ModelRef } from '@flow/document/typedefs/flow.typedefs';
+import { PortName } from '@flow/document/constants/flow.constants';
+import type { ModelRef } from '@flow/document/typedefs/flow.typedefs';
 import { ModelProviderKind } from '@flow/references/constants/reference.constants';
 import { modelReferences } from '@flow/references/helpers/model-reference.helpers';
 import {
   agent,
   completion,
   field,
+  flowOf,
   link,
   messageTrigger,
   sendText,
@@ -42,16 +43,15 @@ describe('modelReferences', () => {
     const judge = completion('judge', [field('verdict')]);
     const platform = { ...judge, config: { ...judge.config, model: platformModel } };
     const reply = sendText('reply', 'Hello');
-    const flow: FlowDocument = {
-      schemaVersion: FLOW_SCHEMA_VERSION,
-      nodes: [trigger, unset, keyed, platform, reply],
-      edges: [
+    const flow = flowOf(
+      [trigger, unset, keyed, platform, reply],
+      [
         link(trigger, PortName.Next, unset),
         link(unset, PortName.Next, keyed),
         link(keyed, PortName.Next, platform),
         link(platform, PortName.Next, reply),
       ],
-    };
+    );
 
     expect(modelReferences(flow)).toEqual([
       {
@@ -75,11 +75,7 @@ describe('modelReferences', () => {
     const trigger = messageTrigger('incoming');
     const bare = agent('bare');
     const unset = { ...bare, config: { ...bare.config, model: null } };
-    const flow: FlowDocument = {
-      schemaVersion: FLOW_SCHEMA_VERSION,
-      nodes: [trigger, unset],
-      edges: [link(trigger, PortName.Next, unset)],
-    };
+    const flow = flowOf([trigger, unset], [link(trigger, PortName.Next, unset)]);
 
     expect(modelReferences(flow)).toEqual([]);
   });

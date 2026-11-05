@@ -1,8 +1,11 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, eq, gt, inArray, lt, lte, or } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, inArray, lt, lte, ne, or } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
-import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
+import {
+  MessageAuthor,
+  MessageSystemEvent,
+} from '@/modules/conversations/constants/message.constants';
 import type { MessageDelivery } from '@/modules/conversations/constants/message.constants';
 import { messages } from '@/modules/conversations/db/messages.table';
 import type {
@@ -64,6 +67,18 @@ export class MessagesRepository {
     return message ?? null;
   }
 
+  async findLatest(workspaceId: string, conversationId: string): Promise<Message | null> {
+    const [message] = await this.txHost.tx
+      .select()
+      .from(messages)
+      .where(
+        and(eq(messages.workspaceId, workspaceId), eq(messages.conversationId, conversationId)),
+      )
+      .orderBy(desc(messages.createdAt), desc(messages.id))
+      .limit(1);
+    return message ?? null;
+  }
+
   async countByRuns(workspaceId: string, runIds: readonly string[]): Promise<RunMessageCount[]> {
     if (runIds.length === 0) {
       return [];
@@ -77,6 +92,57 @@ export class MessagesRepository {
 
   listByConversation(workspaceId: string, conversationId: string): Promise<Message[]> {
     return this.listWhere(workspaceId, conversationId, undefined);
+  }
+
+  async latestByConversationIds(
+    workspaceId: string,
+    conversationIds: readonly string[],
+  ): Promise<Message[]> {
+    if (conversationIds.length === 0) {
+      return [];
+    }
+    return this.txHost.tx
+      .selectDistinctOn([messages.conversationId])
+      .from(messages)
+      .where(
+        and(
+          eq(messages.workspaceId, workspaceId),
+          inArray(messages.conversationId, [...conversationIds]),
+          ne(messages.author, MessageAuthor.System),
+        ),
+      )
+      .orderBy(messages.conversationId, desc(messages.createdAt), desc(messages.id));
+  }
+
+  async conversationIdsWithOperatorHistory(
+    workspaceId: string,
+    conversationIds: readonly string[],
+  ): Promise<string[]> {
+    if (conversationIds.length === 0) {
+      return [];
+    }
+    const rows = await this.txHost.tx
+      .selectDistinct({ conversationId: messages.conversationId })
+      .from(messages)
+      .where(
+        and(
+          eq(messages.workspaceId, workspaceId),
+          inArray(messages.conversationId, [...conversationIds]),
+          or(
+            eq(messages.author, MessageAuthor.Operator),
+            eq(messages.systemEvent, MessageSystemEvent.TookOver),
+          ),
+        ),
+      );
+    return rows.map((row) => row.conversationId);
+  }
+
+  listByRun(workspaceId: string, runId: string): Promise<Message[]> {
+    return this.txHost.tx
+      .select()
+      .from(messages)
+      .where(and(eq(messages.workspaceId, workspaceId), eq(messages.runId, runId)))
+      .orderBy(asc(messages.createdAt), asc(messages.id));
   }
 
   listThrough(

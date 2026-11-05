@@ -4,6 +4,7 @@ export enum ConversationEventName {
   MessageReceived = 'conversations.message-received',
   OutboundQueued = 'conversations.outbound-queued',
   NeedsOperator = 'conversations.needs-operator',
+  HandedBack = 'conversations.handed-back',
 }
 
 export const CONVERSATION_EVENT_EMIT_OPTIONS: Readonly<
@@ -12,4 +13,5 @@ export const CONVERSATION_EVENT_EMIT_OPTIONS: Readonly<
   [ConversationEventName.MessageReceived]: { durable: true },
   [ConversationEventName.OutboundQueued]: { durable: true },
   [ConversationEventName.NeedsOperator]: { durable: false },
+  [ConversationEventName.HandedBack]: { durable: true },
 };

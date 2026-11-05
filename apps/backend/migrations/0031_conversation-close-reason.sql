@@ -1,0 +1,2 @@
+CREATE TYPE "conversations"."close_reason" AS ENUM('ended_by_agent', 'inactivity');--> statement-breakpoint
+ALTER TABLE "conversations"."conversations" ADD COLUMN "close_reason" "conversations"."close_reason";

@@ -1,3 +1,4 @@
+import type { AgentExits } from '@agent-ic/flow';
 import type { PaletteGroup } from '@/features/flow-builder/constants/palette.constants';
 import type { FlowPoint } from '@/features/flow-builder/typedefs/flowBuilder.typedefs';
 import type { AddableNodeType } from '@/features/flow-builder/typedefs/graphEdit.typedefs';
@@ -18,4 +19,5 @@ export interface StepPlacement {
   position: FlowPoint;
   after: StepAnchor | null;
   splitEdgeId: string | null;
+  agentExits: AgentExits;
 }

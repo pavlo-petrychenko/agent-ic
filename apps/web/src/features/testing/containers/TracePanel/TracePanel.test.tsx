@@ -3,6 +3,8 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import {
+  AGENT_EXIT_FLOW,
+  AGENT_TRACE_FLOW,
   ESCALATION_TRACE_FLOW,
   REPLY_NODE_ID,
   TEST_AGENT_ID,
@@ -15,19 +17,30 @@ import {
   TRACE_RUN_ID,
   testingRunMock,
 } from '@/features/testing/communication/fixtures/trace.fixture';
+import { TurnOutcome } from '@/features/testing/constants/trace.constants';
 import { TracePanel } from '@/features/testing/containers/TracePanel/TracePanel';
 import { useNodeInspection } from '@/features/testing/logic/hooks/useNodeInspection';
-import { RunStatus, RunStepStatus } from '@/shared/api/generated/schema.generated';
+import { RunStatus, RunStepStatus, RunTrigger } from '@/shared/api/generated/schema.generated';
 import { MemoryRouter } from '@test/support/components/MemoryRouter';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
+
+interface PanelEnding {
+  closing: TurnOutcome | null;
+  texts: readonly string[];
+  escalationMessageCount: number;
+}
 
 interface InspectablePanelProps {
   status: RunStatus;
   draft: boolean;
   flow: typeof TRACE_FLOW;
+  handedBack: boolean;
+  ending: PanelEnding;
 }
 
-function InspectablePanel({ status, draft, flow }: InspectablePanelProps) {
+const NO_ENDING: PanelEnding = { closing: null, texts: [], escalationMessageCount: 0 };
+
+function InspectablePanel({ status, draft, flow, handedBack, ending }: InspectablePanelProps) {
   const { selectedNodeId, selectNode } = useNodeInspection(TRACE_RUN_ID);
 
   return (
@@ -35,8 +48,21 @@ function InspectablePanel({ status, draft, flow }: InspectablePanelProps) {
       workspaceId={TEST_WORKSPACE_ID}
       agentId={TEST_AGENT_ID}
       flow={flow}
-      run={{ id: TRACE_RUN_ID, status, createdAt: '2026-10-11T10:00:00Z', errorMessage: null }}
+      run={{
+        id: TRACE_RUN_ID,
+        status,
+        createdAt: '2026-10-11T10:00:00Z',
+        finishedAt: null,
+        errorMessage: null,
+        escalationMessageCount: ending.escalationMessageCount,
+        escalatedByStep: false,
+        trigger: RunTrigger.Message,
+        inactivityAttempt: null,
+      }}
       turnNumber={2}
+      handedBack={handedBack}
+      closing={ending.closing}
+      texts={ending.texts}
       draft={draft}
       liveNumber={3}
       selectedNodeId={selectedNodeId}
@@ -50,10 +76,18 @@ const renderPanel = (
   mocks: readonly MockLink.MockedResponse[],
   draft = true,
   flow = TRACE_FLOW,
+  handedBack = false,
+  ending = NO_ENDING,
 ) =>
   renderWithProviders(
     <MemoryRouter>
-      <InspectablePanel status={status} draft={draft} flow={flow} />
+      <InspectablePanel
+        status={status}
+        draft={draft}
+        flow={flow}
+        handedBack={handedBack}
+        ending={ending}
+      />
     </MemoryRouter>,
     { mocks },
   );
@@ -117,9 +151,98 @@ describe('TracePanel', () => {
     );
 
     expect(await screen.findByText('Pavlo, Oksana')).toBeInTheDocument();
+    expect(await stepState('Hand off to a person')).toBe('escalated');
     expect(screen.getByText('Escalated')).toBeInTheDocument();
     expect(screen.getByText('Would notify')).toBeInTheDocument();
     expect(screen.getByText('Paused')).toBeInTheDocument();
+  });
+
+  it('reads an escalation without raw JSON: mode, reason, recipients and the message sent', async () => {
+    renderPanel(
+      RunStatus.Escalated,
+      [testingRunMock(RunStatus.Escalated, RunStepStatus.Succeeded, ESCALATION_OUTPUT)],
+      true,
+      ESCALATION_TRACE_FLOW,
+      false,
+      { closing: null, texts: ['Got it.', 'Bringing in our manager.'], escalationMessageCount: 1 },
+    );
+    const details = await screen.findByRole('complementary', { name: 'Turn details' });
+
+    expect(
+      await within(details).findByRole('heading', { name: 'Exit · Hand off to a person' }),
+    ).toBeInTheDocument();
+    expect(within(details).getByText('Escalate to a person')).toBeInTheDocument();
+    expect(within(details).getByText('Asks for a manager')).toBeInTheDocument();
+    expect(within(details).getByText('Operators group')).toBeInTheDocument();
+    expect(within(details).getByText('Bringing in our manager.')).toBeInTheDocument();
+    expect(within(details).queryByText('Got it.')).not.toBeInTheDocument();
+    expect(within(details).queryByText(/messageIds/)).not.toBeInTheDocument();
+  });
+
+  it('reads the default exit an agent took and says the chat ended', async () => {
+    renderPanel(
+      RunStatus.Succeeded,
+      [
+        testingRunMock(RunStatus.Succeeded, RunStepStatus.Succeeded, {
+          messages: ['See you on Friday!'],
+          outcome: 'handoff',
+          outcome_reason: 'Wants a refund',
+        }),
+      ],
+      true,
+      AGENT_TRACE_FLOW,
+      false,
+      { ...NO_ENDING, closing: TurnOutcome.Ended },
+    );
+    const details = await screen.findByRole('complementary', { name: 'Turn details' });
+
+    expect(await within(details).findByText('Hand off to a person')).toBeInTheDocument();
+    expect(within(details).getByText('Wants a refund')).toBeInTheDocument();
+    expect(within(details).getByText('Default exit · flow settings hand-off')).toBeInTheDocument();
+    expect(within(details).getByText('See you on Friday!')).toBeInTheDocument();
+    expect(within(details).getByText('Ended')).toBeInTheDocument();
+    expect(await stepState('Receptionist')).toBe('escalated');
+    expect(
+      within(screen.getByRole('list', { name: 'Steps of the flow' })).getByText('default hand-off'),
+    ).toBeInTheDocument();
+    const legend = screen.getByRole('list', { name: 'Step states' });
+    expect(within(legend).getByText('escalated')).toBeInTheDocument();
+    expect(within(legend).getByText('ended')).toBeInTheDocument();
+    expect(within(details).queryByText('Completed')).not.toBeInTheDocument();
+  });
+
+  it('explains a chat that auto-close closed after the turn', async () => {
+    renderPanel(
+      RunStatus.Succeeded,
+      [testingRunMock(RunStatus.Succeeded, null)],
+      true,
+      AGENT_EXIT_FLOW,
+      false,
+      { ...NO_ENDING, closing: TurnOutcome.ClosedInactive },
+    );
+    const details = await screen.findByRole('complementary', { name: 'Turn details' });
+
+    expect(await within(details).findByText('Closed (inactive)')).toBeInTheDocument();
+    expect(
+      within(details).getByRole('heading', { name: 'Exit · Flow settings' }),
+    ).toBeInTheDocument();
+    expect(within(details).getByText('1 day without a customer message')).toBeInTheDocument();
+    expect(within(details).getByText('None — closes silently')).toBeInTheDocument();
+  });
+
+  it('follows the conversation after a hand back', async () => {
+    renderPanel(
+      RunStatus.Escalated,
+      [testingRunMock(RunStatus.Escalated, RunStepStatus.Succeeded, ESCALATION_OUTPUT)],
+      true,
+      ESCALATION_TRACE_FLOW,
+      true,
+    );
+
+    expect(await screen.findByText('Resumed')).toBeInTheDocument();
+    expect(screen.getByText('Handed back')).toBeInTheDocument();
+    expect(screen.queryByText('Paused')).not.toBeInTheDocument();
+    expect(screen.queryByText('Escalated')).not.toBeInTheDocument();
   });
 
   it('names the live version under a draft run only', async () => {

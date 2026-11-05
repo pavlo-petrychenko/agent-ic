@@ -43,15 +43,14 @@ export interface UseDisconnectTelegramResult {
   readonly disconnecting: boolean;
 }
 
-export interface UpdateTelegramVariables {
-  readonly id: string;
-  readonly agentId: string;
-  readonly showTyping: boolean;
+export interface UseReconnectTelegramResult {
+  readonly reconnectTelegram: (id: string) => Promise<void>;
+  readonly reconnecting: boolean;
 }
 
-export interface UseUpdateTelegramResult {
-  readonly updateTelegram: (variables: UpdateTelegramVariables) => Promise<void>;
-  readonly saving: boolean;
+export interface UseRefreshTelegramIdentityResult {
+  readonly refreshTelegramIdentity: (id: string) => Promise<void>;
+  readonly refreshing: boolean;
 }
 
 export interface ReplaceTelegramTokenVariables {
@@ -69,12 +68,6 @@ export interface UseDeleteChannelResult {
   readonly deleting: boolean;
 }
 
-export interface TelegramBotStats {
-  readonly chats: string;
-  readonly messages: string;
-  readonly errors: string;
-}
-
 export interface TelegramBotMock {
   readonly id: string;
   readonly username: string;
@@ -90,5 +83,4 @@ export interface TelegramBotMock {
   readonly publishedVersion: number | null;
   readonly agentIsDraft: boolean;
   readonly typingIndicator: boolean;
-  readonly stats: TelegramBotStats | null;
 }

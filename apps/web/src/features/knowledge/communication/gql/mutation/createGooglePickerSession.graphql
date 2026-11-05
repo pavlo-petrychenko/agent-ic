@@ -1,0 +1,8 @@
+mutation CreateGooglePickerSession($connectionId: ID!) {
+  createGooglePickerSession(connectionId: $connectionId) {
+    accessToken
+    apiKey
+    appId
+    expiresAt
+  }
+}

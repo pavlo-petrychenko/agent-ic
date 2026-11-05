@@ -2,7 +2,7 @@
 
 One file per decision. ADRs are never edited after they are accepted, except for their status. A changed decision gets a new ADR that supersedes the old one.
 
-Smaller decisions, and amendments to these ADRs, are rows D1 to D287 in section 1 of [architecture.md](../architecture.md). The Status column below summarises the status line of each file.
+Smaller decisions, and amendments to these ADRs, are rows D1 to D295 in section 1 of [architecture.md](../architecture.md). The Status column below summarises the status line of each file.
 
 | # | Decision | Status |
 |---|---|---|
@@ -30,6 +30,7 @@ Smaller decisions, and amendments to these ADRs, are rows D1 to D287 in section 
 | [0022](0022-foreign-keys-for-every-reference.md) | A foreign key for every reference | Accepted |
 | [0023](0023-node-postgres-for-observability.md) | node-postgres for observability | Accepted |
 | [0024](0024-knowledge-sources-storage-and-sync.md) | Knowledge sources, storage and sync | Accepted; refines 0011 |
+| [0025](0025-schedule-triggers-postgres-sweep.md) | Schedule triggers fire from a Postgres sweep | Accepted; replaces the scheduler design of communication.md chain E |
 
 ## Template
 

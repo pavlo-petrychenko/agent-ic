@@ -37,6 +37,10 @@ $halo-spread-low: 1px;
   --status-dot-color: var(--color-line-dash);
 }
 
+.ink {
+  --status-dot-color: var(--color-ink-secondary);
+}
+
 .run {
   --status-dot-color: var(--color-accent);
 

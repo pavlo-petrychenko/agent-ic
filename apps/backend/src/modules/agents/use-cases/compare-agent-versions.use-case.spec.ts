@@ -1,4 +1,5 @@
 import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
+import { MIN_AUTO_CLOSE_MINUTES, type FlowDocument } from '@agent-ic/flow';
 import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DRAFT_INITIAL_REVISION } from '@/modules/agents/constants/agent.constants';
@@ -31,7 +32,11 @@ describe('CompareAgentVersionsUseCase', () => {
   let compareVersions: CompareAgentVersionsUseCase;
   let ids: IdService;
 
-  const publishThenEdit = async (workspaceId: string, seeded: SeededAgent): Promise<string> =>
+  const publishThenEdit = async (
+    workspaceId: string,
+    seeded: SeededAgent,
+    flow: FlowDocument = triggerFlow(TEST_NODE_NEW_LABEL),
+  ): Promise<string> =>
     testingModule.get(TenantTransactionService).run(workspaceId, async () => {
       const published = await testingModule
         .get(AgentPublishingService)
@@ -39,7 +44,7 @@ describe('CompareAgentVersionsUseCase', () => {
       await testingModule
         .get(AgentVersionsRepository)
         .updateDraft(workspaceId, seeded.draftId, DRAFT_INITIAL_REVISION, {
-          flow: triggerFlow(TEST_NODE_NEW_LABEL),
+          flow,
           note: null,
           authorId: TEST_EDITOR_ID,
         });
@@ -77,6 +82,26 @@ describe('CompareAgentVersionsUseCase', () => {
       }),
     ]);
     expect(diff.addedNodes).toEqual([]);
+  });
+
+  it('lists the flow settings that changed', async () => {
+    const workspaceId = ids.generate();
+    const seeded = await seedAgentWithDraft(testingModule, workspaceId);
+    const flow = triggerFlow();
+    const autoClose = { afterMinutes: MIN_AUTO_CLOSE_MINUTES };
+    const fromId = await publishThenEdit(workspaceId, seeded, {
+      ...flow,
+      settings: { ...flow.settings, autoClose },
+    });
+
+    const diff = await compareVersions.execute(agentsCtx(testingModule, workspaceId), {
+      agentId: publicAgentId(testingModule, seeded.agentId),
+      fromId,
+      toId: ids.toPublic(IdPrefix.AgentVersion, seeded.draftId),
+    });
+
+    expect(diff.settingsChanges).toEqual([{ path: ['autoClose'], before: null, after: autoClose }]);
+    expect(diff.changedNodes).toEqual([]);
   });
 
   it('does not find a version of another agent', async () => {

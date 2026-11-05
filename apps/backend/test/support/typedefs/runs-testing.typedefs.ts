@@ -12,6 +12,7 @@ import type {
   NewConversation,
 } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type { Message, NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
+import type { InactivityTimersRepository } from '@/modules/runs/repositories/inactivity-timers.repository';
 import type { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import type { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import type { RunExecutionService } from '@/modules/runs/services/run-execution.service';
@@ -32,6 +33,7 @@ export interface RunsTestbed {
   readonly tenants: TenantTransactionService;
   readonly runs: RunsRepository;
   readonly steps: RunStepsRepository;
+  readonly timers: InactivityTimersRepository;
 }
 
 export interface RunExecutionTestbed extends RunsTestbed {
@@ -41,6 +43,8 @@ export interface RunExecutionTestbed extends RunsTestbed {
   readonly observer: ScriptedStepExecutor;
   readonly liveUpdates: LiveUpdatesService;
 }
+
+export type RunStartOverrides = Partial<Pick<NewRun, 'trigger' | 'triggerNodeId' | 'triggerInput'>>;
 
 export interface ExecutableRun {
   readonly run: NewRun;

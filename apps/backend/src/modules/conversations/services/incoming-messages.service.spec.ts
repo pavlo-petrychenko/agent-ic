@@ -92,6 +92,19 @@ describe('IncomingMessagesService', () => {
     ]);
   });
 
+  it('records when the customer last wrote and leaves the escalation time empty', async () => {
+    const input = await startedBy();
+    await receive(input);
+    const second = await receive(input);
+
+    const stored = await conversationOf(input.workspaceId, second.conversationId);
+
+    expect(stored).toMatchObject({
+      lastCustomerMessageAt: testbed.clock.now(),
+      lastEscalatedAt: null,
+    });
+  });
+
   it('announces each stored customer message to the conversation activity', async () => {
     const input = await startedBy();
     const { conversationId } = await receive(input);
@@ -134,6 +147,24 @@ describe('IncomingMessagesService', () => {
     expect([first.outcome, second.outcome]).toContain(IncomingMessageOutcome.Duplicate);
     const runs = await queuedEventsFor(testbed, runOnMessageReceived, first.conversationId);
     expect(runs).toHaveLength(1);
+  });
+
+  it('keeps one conversation per channel for the same user', async () => {
+    const input = await startedBy();
+
+    const first = await receive({ ...input, channelId: 'channel-a' });
+    const second = await receive({ ...input, channelId: 'channel-a' });
+
+    expect(second.conversationId).toBe(first.conversationId);
+  });
+
+  it('opens a separate conversation when the channel changes', async () => {
+    const input = await startedBy();
+
+    const first = await receive({ ...input, channelId: 'channel-a' });
+    const second = await receive({ ...input, channelId: 'channel-b' });
+
+    expect(second.conversationId).not.toBe(first.conversationId);
   });
 
   it('starts a new conversation after the last one was closed', async () => {

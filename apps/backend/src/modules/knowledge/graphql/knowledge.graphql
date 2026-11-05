@@ -1,6 +1,8 @@
 extend type Query {
   knowledgeBases: [KnowledgeBase!]!
   knowledgeSources(knowledgeBaseId: ID!): [KnowledgeSource!]!
+  knowledgeSource(id: ID!): KnowledgeSourceDetail!
+  knowledgeConnections: [GoogleConnection!]!
 }
 
 extend type Mutation {
@@ -10,8 +12,102 @@ extend type Mutation {
   createUpload(input: CreateUploadInput!): CreateUploadPayload!
   confirmUpload(input: ConfirmUploadInput!): KnowledgeSource!
   renameSource(input: RenameSourceInput!): KnowledgeSource!
+  updateSourceSchedule(input: UpdateSourceScheduleInput!): KnowledgeSource!
+  updateDocumentSummary(input: UpdateDocumentSummaryInput!): KnowledgeSourceDocument!
+  removeSourceDocument(input: RemoveSourceDocumentInput!): RemoveSourceDocumentPayload!
   deleteSource(input: DeleteSourceInput!): DeleteSourcePayload!
   retrySource(input: RetrySourceInput!): RetrySourcePayload!
+  syncSource(input: SyncSourceInput!): SyncSourcePayload!
+  startGoogleConnection: StartGoogleConnectionPayload!
+  completeGoogleConnection(input: CompleteGoogleConnectionInput!): GoogleConnection!
+  disconnectGoogleConnection(
+    input: DisconnectGoogleConnectionInput!
+  ): DisconnectGoogleConnectionPayload!
+  createGooglePickerSession(connectionId: ID!): GooglePickerSession!
+  createGoogleDocsSource(input: CreateGoogleDocsSourceInput!): CreateGoogleDocsSourcePayload!
+}
+
+type GooglePickerSession {
+  accessToken: String!
+  apiKey: String!
+  appId: String!
+  expiresAt: String!
+}
+
+input GooglePickedDocumentInput {
+  id: String!
+  name: String!
+  mimeType: String!
+  url: String
+  resourceKey: String
+}
+
+input CreateGoogleDocsSourceInput {
+  knowledgeBaseId: ID!
+  connectionId: ID!
+  documents: [GooglePickedDocumentInput!]!
+  syncInterval: KnowledgeSyncInterval
+  syncTime: String
+  syncWeekday: Int
+}
+
+enum GooglePickerSkipReason {
+  unavailable
+  unsupported
+  trashed
+  alreadyAdded
+}
+
+type GooglePickerSkippedDocument {
+  id: String!
+  name: String!
+  reason: GooglePickerSkipReason!
+}
+
+type CreateGoogleDocsSourcePayload {
+  source: KnowledgeSource!
+  skipped: [GooglePickerSkippedDocument!]!
+}
+
+type StartGoogleConnectionPayload {
+  authorizationUrl: String!
+  expiresAt: String!
+}
+
+input CompleteGoogleConnectionInput {
+  state: String!
+  code: String!
+}
+
+input DisconnectGoogleConnectionInput {
+  id: ID!
+}
+
+type DisconnectGoogleConnectionPayload {
+  id: ID!
+}
+
+enum KnowledgeConnectionProvider {
+  google_docs
+}
+
+enum KnowledgeConnectionStatus {
+  active
+  revoked
+  error
+}
+
+type GoogleConnection {
+  id: ID!
+  provider: KnowledgeConnectionProvider!
+  accountEmail: String!
+  status: KnowledgeConnectionStatus!
+  scopes: [String!]!
+  lastErrorCode: String
+  lastErrorMessage: String
+  lastUsedAt: String
+  createdAt: String!
+  updatedAt: String!
 }
 
 input RenameKnowledgeBaseInput {
@@ -44,12 +140,42 @@ input RetrySourceInput {
   id: ID!
 }
 
+input SyncSourceInput {
+  id: ID!
+}
+
 input RenameSourceInput {
   id: ID!
   title: String!
 }
 
+input UpdateSourceScheduleInput {
+  id: ID!
+  syncInterval: KnowledgeSyncInterval
+  syncTime: String
+  syncWeekday: Int
+}
+
+input UpdateDocumentSummaryInput {
+  id: ID!
+  summary: String!
+}
+
+input RemoveSourceDocumentInput {
+  sourceId: ID!
+  documentId: ID!
+}
+
+type RemoveSourceDocumentPayload {
+  sourceId: ID!
+  documentId: ID!
+}
+
 type RetrySourcePayload {
+  id: ID!
+}
+
+type SyncSourcePayload {
   id: ID!
 }
 
@@ -82,6 +208,20 @@ enum KnowledgeSourceStatus {
   error
 }
 
+enum KnowledgeDocumentStatus {
+  pending
+  indexing
+  indexed
+  error
+  removed
+}
+
+enum KnowledgeDocumentStaleReason {
+  missing
+  trashed
+  gone
+}
+
 enum KnowledgeSyncInterval {
   hourly
   daily
@@ -91,15 +231,41 @@ enum KnowledgeSyncInterval {
 type KnowledgeSource {
   id: ID!
   knowledgeBaseId: ID!
+  connectionId: ID
   kind: KnowledgeSourceKind!
   title: String!
   status: KnowledgeSourceStatus!
   syncInterval: KnowledgeSyncInterval
+  syncTime: String
+  syncWeekday: Int
+  timezone: String
   nextSyncAt: String
   lastSyncAt: String
   lastErrorCode: String
   lastErrorMessage: String
+  staleDocumentCount: Int!
   documentCount: Int!
+  chunkCount: Int!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type KnowledgeSourceDetail {
+  source: KnowledgeSource!
+  connection: GoogleConnection
+  documents: [KnowledgeSourceDocument!]!
+}
+
+type KnowledgeSourceDocument {
+  id: ID!
+  title: String!
+  status: KnowledgeDocumentStatus!
+  stale: Boolean!
+  staleReason: KnowledgeDocumentStaleReason
+  summary: String
+  errorCode: String
+  errorMessage: String
+  tokenCount: Int!
   chunkCount: Int!
   createdAt: String!
   updatedAt: String!

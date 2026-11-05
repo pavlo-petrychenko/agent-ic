@@ -1,4 +1,5 @@
 import { FIXED_PORT_NAMES, NodeType, PortName } from '@flow/document/constants/flow.constants';
+import { enabledExits } from '@flow/document/helpers/node.helpers';
 import type {
   AgentNode,
   CompletionNode,
@@ -10,11 +11,17 @@ import type {
 } from '@flow/document/typedefs/flow.typedefs';
 import {
   MAX_PARALLEL_BRANCHES,
+  MAX_SCHEDULE_CONVERSATIONS_PER_RUN,
+  MAX_SCHEDULE_TICKS_PER_HOUR,
   MIN_PARALLEL_BRANCHES,
 } from '@flow/limits/constants/limit.constants';
 import { FailureMode } from '@flow/nodes/constants/step.constants';
 import { ScheduleKind } from '@flow/nodes/constants/trigger.constants';
-import { AGENT_MESSAGES_FIELD_NAME } from '@flow/outputs/constants/output.constants';
+import {
+  AGENT_MESSAGES_FIELD_NAME,
+  AGENT_OUTCOME_FIELD_NAMES,
+} from '@flow/outputs/constants/output.constants';
+import { isTooFrequent } from '@flow/schedules/helpers/schedule-tick.helpers';
 import {
   branchNodes,
   branchStarts,
@@ -24,9 +31,15 @@ import {
   reachableFrom,
 } from '@flow/scope/helpers/graph.helpers';
 import { FlowIssueCode } from '@flow/validation/constants/issue.constants';
+import { inactivityIssues } from '@flow/validation/helpers/inactivity-rules.helpers';
 import { createIssue, duplicates } from '@flow/validation/helpers/issue.helpers';
 import { isValidCron, isValidTimeZone } from '@flow/validation/helpers/schedule.helpers';
 import type { FlowIssue, ValidationContext } from '@flow/validation/typedefs/validation.typedefs';
+
+const builtInAgentFields = (node: AgentNode): readonly string[] =>
+  enabledExits(node).length === 0
+    ? [AGENT_MESSAGES_FIELD_NAME]
+    : [AGENT_MESSAGES_FIELD_NAME, ...AGENT_OUTCOME_FIELD_NAMES];
 
 const llmStepIssues = (node: AgentNode | CompletionNode): FlowIssue[] => {
   const issues: FlowIssue[] = [];
@@ -37,7 +50,7 @@ const llmStepIssues = (node: AgentNode | CompletionNode): FlowIssue[] => {
   if (node.config.model === null) {
     issues.push(createIssue(FlowIssueCode.MissingModel, { nodeId: node.id, path: ['model'] }));
   }
-  const taken = new Set(node.type === NodeType.Agent ? [AGENT_MESSAGES_FIELD_NAME] : []);
+  const taken = new Set(node.type === NodeType.Agent ? builtInAgentFields(node) : []);
   node.config.output.forEach((field, index) => {
     if (taken.has(field.name)) {
       issues.push(
@@ -106,9 +119,10 @@ const eventTriggerIssues = (node: TriggerExternalEventNode): FlowIssue[] => {
 };
 
 const scheduleTriggerIssues = (node: TriggerScheduleNode): FlowIssue[] => {
-  const { schedule } = node.config;
+  const { schedule, conditions, maxConversationsPerRun } = node.config;
   const issues: FlowIssue[] = [];
-  if (schedule.kind === ScheduleKind.Custom && !isValidCron(schedule.cron)) {
+  const validCron = schedule.kind !== ScheduleKind.Custom || isValidCron(schedule.cron);
+  if (!validCron) {
     issues.push(
       createIssue(FlowIssueCode.InvalidCron, {
         nodeId: node.id,
@@ -123,6 +137,32 @@ const scheduleTriggerIssues = (node: TriggerScheduleNode): FlowIssue[] => {
         nodeId: node.id,
         path: ['schedule', 'timeZone'],
         params: { timeZone: schedule.timeZone },
+      }),
+    );
+  }
+  if (validCron && isTooFrequent(schedule)) {
+    issues.push(
+      createIssue(FlowIssueCode.ScheduleTooFrequent, {
+        nodeId: node.id,
+        path: ['schedule'],
+        params: { max: MAX_SCHEDULE_TICKS_PER_HOUR },
+      }),
+    );
+  }
+  if (conditions.channelTypes.length === 0) {
+    issues.push(
+      createIssue(FlowIssueCode.ScheduleNoChannelTypes, {
+        nodeId: node.id,
+        path: ['conditions', 'channelTypes'],
+      }),
+    );
+  }
+  if (maxConversationsPerRun > MAX_SCHEDULE_CONVERSATIONS_PER_RUN) {
+    issues.push(
+      createIssue(FlowIssueCode.ScheduleLimitTooHigh, {
+        nodeId: node.id,
+        path: ['maxConversationsPerRun'],
+        params: { max: MAX_SCHEDULE_CONVERSATIONS_PER_RUN },
       }),
     );
   }
@@ -151,6 +191,7 @@ const nodeConfigIssues = (context: ValidationContext, node: FlowNode): FlowIssue
           ]
         : [];
     case NodeType.TriggerMessage:
+    case NodeType.TriggerInactivity:
     case NodeType.Parallel:
     case NodeType.SendMessage:
     case NodeType.Escalation:
@@ -173,18 +214,25 @@ const eventNameIssues = ({ flow }: ValidationContext): FlowIssue[] => {
   );
 };
 
+const isReplyStep = (node: FlowNode): boolean =>
+  node.type === NodeType.SendMessage ||
+  (node.type === NodeType.Escalation &&
+    node.config.customerMessage !== null &&
+    node.config.customerMessage.trim().length > 0);
+
 const replyIssues = ({ flow, graph }: ValidationContext): FlowIssue[] =>
   flow.nodes
     .filter((node) => node.type === NodeType.TriggerMessage)
     .filter((trigger) => {
       const reached = reachableFrom(graph, [trigger.id]);
-      return !flow.nodes.some((node) => node.type === NodeType.SendMessage && reached.has(node.id));
+      return !flow.nodes.some((node) => isReplyStep(node) && reached.has(node.id));
     })
     .map((trigger) => createIssue(FlowIssueCode.NoReplyStep, { nodeId: trigger.id }));
 
 export const stepIssues = (context: ValidationContext): FlowIssue[] => [
   ...context.flow.nodes.flatMap((node) => nodeConfigIssues(context, node)),
   ...eventNameIssues(context),
+  ...inactivityIssues(context),
   ...replyIssues(context),
 ];
 
@@ -238,6 +286,15 @@ const branchStepIssue = (context: ValidationContext, node: FlowNode): FlowIssue[
   }
   if (node.type === NodeType.Escalation && context.inBackground.has(node.id)) {
     return [createIssue(FlowIssueCode.EscalationInBackgroundBranch, { nodeId: node.id })];
+  }
+  if (
+    node.type === NodeType.Agent &&
+    context.inBackground.has(node.id) &&
+    enabledExits(node).length > 0
+  ) {
+    return [
+      createIssue(FlowIssueCode.ExitInBackgroundBranch, { nodeId: node.id, path: ['exits'] }),
+    ];
   }
   return [];
 };

@@ -3,17 +3,12 @@ import type { OnApplicationBootstrap } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
 import { ConfigService } from '@/platform/config/services/config.service';
-import { ActorKind, SystemReason } from '@/platform/context/constants/actor.constants';
 import { TraceIdService } from '@/platform/context/services/trace-id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
-import {
-  DETACHED_TRACE_CONTEXT,
-  ENVELOPE_VERSION,
-} from '@/platform/queues/constants/job.constants';
 import { QueueLogMessage } from '@/platform/queues/constants/queue.constants';
 import { ProcessJob } from '@/platform/queues/decorators/process-job.decorator';
 import { ScheduleJob } from '@/platform/queues/decorators/schedule-job.decorator';
-import { jobKey } from '@/platform/queues/helpers/job.helpers';
+import { jobKey, scheduledEnvelope } from '@/platform/queues/helpers/job.helpers';
 import { QueuesService } from '@/platform/queues/services/queues.service';
 import type { JobData, JobEnvelope, JobSchedule } from '@/platform/queues/typedefs/job.typedefs';
 
@@ -53,14 +48,11 @@ export class JobSchedulesService implements OnApplicationBootstrap {
 
   private async register(schedule: JobSchedule<JobData>): Promise<void> {
     const { job } = schedule;
-    const envelope: JobEnvelope = {
-      version: ENVELOPE_VERSION,
-      data: job.schema.parse(schedule.data),
-      workspaceId: null,
-      traceId: this.traceIds.current(),
-      traceContext: DETACHED_TRACE_CONTEXT,
-      initiatedBy: { kind: ActorKind.System, reason: SystemReason.Schedule },
-    };
+    const envelope: JobEnvelope = scheduledEnvelope(
+      null,
+      job.schema.parse(schedule.data),
+      this.traceIds.current(),
+    );
     await this.queues
       .get(job.queue)
       .upsertJobScheduler(

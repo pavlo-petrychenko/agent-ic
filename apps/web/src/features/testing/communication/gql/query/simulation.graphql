@@ -3,6 +3,8 @@ query Simulation($agentId: ID!) {
     conversation {
       id
       state
+      closeReason
+      closedAt
     }
     messages {
       id
@@ -13,10 +15,18 @@ query Simulation($agentId: ID!) {
     }
     runs {
       id
+      trigger
+      inactivityAttempt
       status
       createdAt
+      finishedAt
       error {
         message
+      }
+      steps {
+        id
+        nodeId
+        output
       }
     }
   }

@@ -148,6 +148,30 @@ describe('job tracing', () => {
     expect(traceIdsOf(probeId)).toEqual([request.traceId]);
   });
 
+  it.each([false, true])(
+    'runs a job with a detached trace (durable: %s) outside the trace of the request',
+    async (durable) => {
+      const probeId = randomUUID();
+      const detached = { durable, detachedTrace: true };
+
+      const request = await inSpan(REQUEST_SPAN_NAME, () =>
+        txHost.withTransaction(() =>
+          jobs.enqueue(
+            { ...userCtx(), workspaceId: randomUUID() },
+            recordProbeJob,
+            { probeId },
+            detached,
+          ),
+        ),
+      );
+      await vi.waitFor(() => expect(traceIdsOf(probeId)).toHaveLength(1), WAIT);
+
+      expect(spansOf(request.traceId, SpanKind.PRODUCER)).toEqual([]);
+      expect(spansOf(request.traceId, SpanKind.CONSUMER)).toEqual([]);
+      expect(traceIdsOf(probeId)).toEqual([PROBE_TRACE_ID]);
+    },
+  );
+
   it('starts no trace for a job enqueued outside one', async () => {
     const probeId = randomUUID();
     exporter.reset();

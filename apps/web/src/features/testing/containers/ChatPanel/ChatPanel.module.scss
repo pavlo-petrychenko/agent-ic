@@ -28,7 +28,7 @@ $chat-panel-width: 400px;
   border-top: var(--border-width) solid var(--color-line);
 }
 
-.takeOver {
+.action {
   align-self: flex-start;
 }
 
@@ -38,11 +38,12 @@ $chat-panel-width: 400px;
   font: var(--type-caption);
 }
 
-.operator {
+.writeAs {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-8);
+  min-width: 0;
 }
 
 .mode {

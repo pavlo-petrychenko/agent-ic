@@ -1,17 +1,24 @@
-import { Locale } from '@agent-ic/contracts';
+import { ErrorCode, ErrorReason, Locale } from '@agent-ic/contracts';
 import type { MockLink } from '@apollo/client/testing';
+import { GraphQLError } from 'graphql';
 import { TEST_AGENT_ID } from '@/features/testing/communication/fixtures/testing.fixture';
+import { CloseSimulationForInactivityDocument } from '@/features/testing/communication/gql/mutation/closeSimulationForInactivity.generated';
 import { HandBackDocument } from '@/features/testing/communication/gql/mutation/handBack.generated';
 import { ReplyAsOperatorDocument } from '@/features/testing/communication/gql/mutation/replyAsOperator.generated';
 import { RestartSimulationDocument } from '@/features/testing/communication/gql/mutation/restartSimulation.generated';
+import { RunSimulatorScheduleDocument } from '@/features/testing/communication/gql/mutation/runSimulatorSchedule.generated';
 import { SendSimulatorMessageDocument } from '@/features/testing/communication/gql/mutation/sendSimulatorMessage.generated';
+import { SimulateSilenceDocument } from '@/features/testing/communication/gql/mutation/simulateSilence.generated';
 import { StartSimulationDocument } from '@/features/testing/communication/gql/mutation/startSimulation.generated';
 import { SimulationDocument } from '@/features/testing/communication/gql/query/simulation.generated';
+import type { ConversationCloseReason } from '@/shared/api/generated/schema.generated';
 import {
   ChannelConversationKind,
   ConversationState,
   MessageAuthor,
   RunStatus,
+  RunTrigger,
+  ScheduleConditionKind,
 } from '@/shared/api/generated/schema.generated';
 
 export const TEST_CONVERSATION_ID = 'cnv_test';
@@ -67,6 +74,15 @@ export const ESCALATION_MESSAGE = message(
   'Bringing in our manager.',
   2,
 );
+export const ESCALATION_STEP = {
+  id: 'step_escalation',
+  nodeId: 'nd_escalation',
+  output: {
+    mode: 'escalate',
+    messageIds: ['00000000-0000-0000-0000-000000000001'],
+    reason: 'help',
+  },
+};
 export const OPERATOR_REPLY = message('msg_o', MessageAuthor.Operator, 'Hi, I am the manager.', 4);
 
 export const simulationMock = (
@@ -74,6 +90,8 @@ export const simulationMock = (
   runStatus: RunStatus | null = RunStatus.Succeeded,
   errorMessage: string | null = null,
   state: ConversationState = ConversationState.AgentActive,
+  steps: readonly { id: string; nodeId: string; output: unknown }[] = [],
+  closeReason: ConversationCloseReason | null = null,
 ): MockLink.MockedResponse => ({
   request: { query: SimulationDocument, variables: { agentId: TEST_AGENT_ID } },
   result: {
@@ -84,6 +102,8 @@ export const simulationMock = (
           __typename: 'Conversation',
           id: TEST_CONVERSATION_ID,
           state,
+          closeReason,
+          closedAt: closeReason === null ? null : '2026-10-11T10:00:05Z',
         },
         messages,
         runs:
@@ -93,12 +113,16 @@ export const simulationMock = (
                 {
                   __typename: 'Run',
                   id: TEST_RUN_ID,
+                  trigger: RunTrigger.Message,
+                  inactivityAttempt: null,
                   status: runStatus,
                   createdAt: '2026-10-11T10:00:01Z',
+                  finishedAt: '2026-10-11T10:00:03Z',
                   error:
                     errorMessage === null
                       ? null
                       : { __typename: 'RunFailure', message: errorMessage },
+                  steps: steps.map((step) => ({ __typename: 'RunStep', ...step })),
                 },
               ],
       },
@@ -144,3 +168,156 @@ export const handBackMock: MockLink.MockedResponse = {
     },
   },
 };
+
+const closeForInactivityRequest = {
+  query: CloseSimulationForInactivityDocument,
+  variables: { input: { conversationId: TEST_CONVERSATION_ID } },
+};
+
+export const closeForInactivityMock: MockLink.MockedResponse = {
+  request: closeForInactivityRequest,
+  result: {
+    data: {
+      closeSimulationForInactivity: {
+        __typename: 'Simulation',
+        conversation: {
+          __typename: 'Conversation',
+          id: TEST_CONVERSATION_ID,
+          state: ConversationState.Closed,
+        },
+      },
+    },
+  },
+};
+
+export const failedCloseForInactivityMock: MockLink.MockedResponse = {
+  request: closeForInactivityRequest,
+  result: {
+    errors: [
+      new GraphQLError('Auto-close is off', {
+        extensions: { code: ErrorCode.Conflict, reason: ErrorReason.AutoCloseOff },
+      }),
+    ],
+  },
+};
+
+export const FOLLOW_UP_RUN_ID = 'run_follow_up';
+export const FOLLOW_UP = {
+  ...message('msg_f', MessageAuthor.Agent, 'Are you still there?', 6),
+  runId: FOLLOW_UP_RUN_ID,
+};
+
+const followUpSimulation = (trigger: RunTrigger): MockLink.MockedResponse => ({
+  request: { query: SimulationDocument, variables: { agentId: TEST_AGENT_ID } },
+  result: {
+    data: {
+      simulation: {
+        __typename: 'Simulation',
+        conversation: {
+          __typename: 'Conversation',
+          id: TEST_CONVERSATION_ID,
+          state: ConversationState.AgentActive,
+          closeReason: null,
+          closedAt: null,
+        },
+        messages: [QUESTION, ...ANSWERS, FOLLOW_UP],
+        runs: [
+          {
+            __typename: 'Run',
+            id: TEST_RUN_ID,
+            trigger: RunTrigger.Message,
+            inactivityAttempt: null,
+            status: RunStatus.Succeeded,
+            createdAt: '2026-10-11T10:00:01Z',
+            finishedAt: '2026-10-11T10:00:03Z',
+            error: null,
+            steps: [],
+          },
+          {
+            __typename: 'Run',
+            id: FOLLOW_UP_RUN_ID,
+            trigger,
+            inactivityAttempt: trigger === RunTrigger.Inactivity ? 1 : null,
+            status: RunStatus.Succeeded,
+            createdAt: '2026-10-11T10:00:05Z',
+            finishedAt: '2026-10-11T10:00:07Z',
+            error: null,
+            steps: [],
+          },
+        ],
+      },
+    },
+  },
+});
+
+export const followUpSimulationMock = followUpSimulation(RunTrigger.Inactivity);
+export const scheduledSimulationMock = followUpSimulation(RunTrigger.Schedule);
+
+const simulateSilenceRequest = {
+  query: SimulateSilenceDocument,
+  variables: { input: { conversationId: TEST_CONVERSATION_ID } },
+};
+
+export const simulateSilenceMock: MockLink.MockedResponse = {
+  request: simulateSilenceRequest,
+  result: {
+    data: {
+      simulateSilence: { __typename: 'Run', id: FOLLOW_UP_RUN_ID, status: RunStatus.Queued },
+    },
+  },
+};
+
+export const refusedSilenceMock: MockLink.MockedResponse = {
+  request: simulateSilenceRequest,
+  result: {
+    errors: [
+      new GraphQLError('Conditions not met', {
+        extensions: {
+          code: ErrorCode.PreconditionFailed,
+          reason: ErrorReason.InactivityConditionsNotMet,
+          details: { outcome: 'escalated' },
+        },
+      }),
+    ],
+  },
+};
+
+const runScheduleRequest = (nodeId: string) => ({
+  query: RunSimulatorScheduleDocument,
+  variables: { input: { conversationId: TEST_CONVERSATION_ID, nodeId } },
+});
+
+export const runScheduleMock = (nodeId: string): MockLink.MockedResponse => ({
+  request: runScheduleRequest(nodeId),
+  result: {
+    data: {
+      runSimulatorSchedule: {
+        __typename: 'SimulatorScheduleRun',
+        run: { __typename: 'Run', id: FOLLOW_UP_RUN_ID, status: RunStatus.Queued },
+        conditions: [
+          {
+            __typename: 'ScheduleConditionCheck',
+            kind: ScheduleConditionKind.CustomerWrote,
+            met: true,
+          },
+          {
+            __typename: 'ScheduleConditionCheck',
+            kind: ScheduleConditionKind.SilentFor,
+            met: false,
+          },
+        ],
+      },
+    },
+  },
+});
+
+export const busyScheduleMock = (nodeId: string): MockLink.MockedResponse => ({
+  request: runScheduleRequest(nodeId),
+  result: {
+    errors: [
+      new GraphQLError('Busy', {
+        extensions: { code: ErrorCode.Conflict, reason: ErrorReason.ScheduleRunBusy },
+      }),
+    ],
+  },
+});

@@ -29,12 +29,14 @@ interface PreviewOptions {
   errors?: readonly unknown[];
   warnings?: readonly unknown[];
   testedAt?: string | null;
+  settingsChanges?: readonly unknown[];
 }
 
 export const publishPreviewMock = ({
   errors = [],
   warnings = [],
   testedAt = null,
+  settingsChanges = [],
 }: PreviewOptions = {}): MockLink.MockedResponse => ({
   request: { query: PublishPreviewDocument, variables: { agentId: DEMO_AGENT_ID } },
   result: {
@@ -65,6 +67,7 @@ export const publishPreviewMock = ({
           addedEdges: [],
           removedEdges: [],
           changedEdges: [],
+          settingsChanges,
           changeCount: 2,
         },
         errors,

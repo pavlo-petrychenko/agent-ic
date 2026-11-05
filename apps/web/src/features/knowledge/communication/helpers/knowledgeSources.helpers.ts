@@ -1,15 +1,27 @@
+import type { KnowledgeSourceDetailQuery } from '@/features/knowledge/communication/gql/query/knowledgeSourceDetail.generated';
 import type { KnowledgeSourcesQuery } from '@/features/knowledge/communication/gql/query/knowledgeSources.generated';
+import {
+  KnowledgeDocumentStaleReason,
+  KnowledgeDocumentStatus,
+} from '@/features/knowledge/constants/knowledgeDocument.constants';
 import {
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
   KnowledgeSyncInterval,
 } from '@/features/knowledge/constants/knowledgeSource.constants';
-import type { KnowledgeSource } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import type {
+  KnowledgeSource,
+  KnowledgeSourceDetail,
+  KnowledgeSourceDocument,
+} from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import {
+  KnowledgeDocumentStaleReason as GraphqlKnowledgeDocumentStaleReason,
+  KnowledgeDocumentStatus as GraphqlKnowledgeDocumentStatus,
   KnowledgeSourceKind as GraphqlKnowledgeSourceKind,
   KnowledgeSourceStatus as GraphqlKnowledgeSourceStatus,
   KnowledgeSyncInterval as GraphqlKnowledgeSyncInterval,
 } from '@/shared/api/generated/schema.generated';
+import type { KnowledgeSource as GraphqlKnowledgeSource } from '@/shared/api/generated/schema.generated';
 
 const KIND: Readonly<Record<GraphqlKnowledgeSourceKind, KnowledgeSourceKind>> = {
   [GraphqlKnowledgeSourceKind.Upload]: KnowledgeSourceKind.Upload,
@@ -29,9 +41,29 @@ const INTERVAL: Readonly<Record<GraphqlKnowledgeSyncInterval, KnowledgeSyncInter
   [GraphqlKnowledgeSyncInterval.Weekly]: KnowledgeSyncInterval.Weekly,
 };
 
-export const toKnowledgeSource = (
-  source: KnowledgeSourcesQuery['knowledgeSources'][number],
-): KnowledgeSource => ({
+const GRAPHQL_INTERVAL: Readonly<Record<KnowledgeSyncInterval, GraphqlKnowledgeSyncInterval>> = {
+  [KnowledgeSyncInterval.Hourly]: GraphqlKnowledgeSyncInterval.Hourly,
+  [KnowledgeSyncInterval.Daily]: GraphqlKnowledgeSyncInterval.Daily,
+  [KnowledgeSyncInterval.Weekly]: GraphqlKnowledgeSyncInterval.Weekly,
+};
+
+const DOCUMENT_STATUS: Readonly<Record<GraphqlKnowledgeDocumentStatus, KnowledgeDocumentStatus>> = {
+  [GraphqlKnowledgeDocumentStatus.Pending]: KnowledgeDocumentStatus.Pending,
+  [GraphqlKnowledgeDocumentStatus.Indexing]: KnowledgeDocumentStatus.Indexing,
+  [GraphqlKnowledgeDocumentStatus.Indexed]: KnowledgeDocumentStatus.Indexed,
+  [GraphqlKnowledgeDocumentStatus.Error]: KnowledgeDocumentStatus.Error,
+  [GraphqlKnowledgeDocumentStatus.Removed]: KnowledgeDocumentStatus.Removed,
+};
+
+const STALE_REASON: Readonly<
+  Record<GraphqlKnowledgeDocumentStaleReason, KnowledgeDocumentStaleReason>
+> = {
+  [GraphqlKnowledgeDocumentStaleReason.Missing]: KnowledgeDocumentStaleReason.Missing,
+  [GraphqlKnowledgeDocumentStaleReason.Trashed]: KnowledgeDocumentStaleReason.Trashed,
+  [GraphqlKnowledgeDocumentStaleReason.Gone]: KnowledgeDocumentStaleReason.Gone,
+};
+
+export const toKnowledgeSource = (source: GraphqlKnowledgeSource): KnowledgeSource => ({
   ...source,
   kind: KIND[source.kind],
   status: STATUS[source.status],
@@ -40,3 +72,23 @@ export const toKnowledgeSource = (
 
 export const toKnowledgeSources = (data: KnowledgeSourcesQuery): KnowledgeSource[] =>
   data.knowledgeSources.map(toKnowledgeSource);
+
+export const toGraphqlKnowledgeSyncInterval = (
+  interval: KnowledgeSyncInterval | null,
+): GraphqlKnowledgeSyncInterval | null => (interval === null ? null : GRAPHQL_INTERVAL[interval]);
+
+const toKnowledgeSourceDocument = (
+  document: KnowledgeSourceDetailQuery['knowledgeSource']['documents'][number],
+): KnowledgeSourceDocument => ({
+  ...document,
+  status: DOCUMENT_STATUS[document.status],
+  staleReason: document.staleReason === null ? null : STALE_REASON[document.staleReason],
+});
+
+export const toKnowledgeSourceDetail = (
+  data: KnowledgeSourceDetailQuery,
+): KnowledgeSourceDetail => ({
+  source: toKnowledgeSource(data.knowledgeSource.source),
+  connection: data.knowledgeSource.connection,
+  documents: data.knowledgeSource.documents.map(toKnowledgeSourceDocument),
+});

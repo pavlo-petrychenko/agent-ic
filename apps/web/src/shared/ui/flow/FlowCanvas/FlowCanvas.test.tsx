@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NodeKind } from '@/shared/ui/display/NodeTile/NodeTile.constants';
@@ -204,6 +204,63 @@ describe('FlowCanvas', () => {
 
     expect(screen.queryByText('Connect to Receptionist')).toBeNull();
     expect(props.onConnect).not.toHaveBeenCalled();
+  });
+});
+
+describe('FlowCanvas drop on a step', () => {
+  const NODE_SIZE = { width: 200, height: 80 };
+  const DROP_POINT = { clientX: 40, clientY: 240 };
+
+  beforeEach(() => measureFlowNodes(NODE_SIZE));
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    Reflect.deleteProperty(document, 'elementsFromPoint');
+  });
+
+  const dragFromTrigger = async (props: FlowCanvasProps, target: string | null) => {
+    renderCanvas(props);
+    const handle = (await screen.findByLabelText('Connect from Incoming message')).closest(
+      '.react-flow__handle',
+    );
+    const body = target === null ? [] : [screen.getByLabelText(target)];
+    document.elementsFromPoint = () => body;
+    if (handle !== null) {
+      fireEvent.mouseDown(handle, { clientX: 0, clientY: 0, button: 0 });
+    }
+    fireEvent.mouseMove(document, DROP_POINT);
+    fireEvent.mouseUp(document, DROP_POINT);
+  };
+
+  it('connects when a connection is dropped on the body of a step', async () => {
+    const props = createProps();
+    await dragFromTrigger(props, 'Receptionist');
+
+    expect(props.onConnect).toHaveBeenCalledWith({
+      source: 'trigger',
+      sourcePort: OUT,
+      target: 'agent',
+    });
+    expect(screen.queryByRole('listbox', { name: 'Add step' })).toBeNull();
+  });
+
+  it('does nothing when the step under the drop cannot accept the connection', async () => {
+    const props = createProps({ canConnect: () => false });
+    await dragFromTrigger(props, 'Receptionist');
+
+    expect(props.onConnect).not.toHaveBeenCalled();
+    expect(screen.queryByRole('listbox', { name: 'Add step' })).toBeNull();
+  });
+
+  it('offers the add step menu when the drop lands on empty canvas', async () => {
+    const props = createProps({
+      addStepItems: [{ id: 'agent', label: 'Agent', kind: NodeKind.Agent }],
+    });
+    await dragFromTrigger(props, null);
+
+    expect(props.onConnect).not.toHaveBeenCalled();
+    expect(await screen.findByRole('listbox', { name: 'Add step' })).toBeInTheDocument();
   });
 });
 

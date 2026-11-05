@@ -1,0 +1,13 @@
+import { ErrorReason } from '@agent-ic/contracts';
+import { SCHEDULE_NEEDS_CUSTOMER_MESSAGE_MESSAGE } from '@/modules/runs/constants/run-error.constants';
+import { DomainErrorKind } from '@/platform/errors/constants/domain-error.constants';
+import { DomainError } from '@/platform/errors/errors/domain.error';
+
+export class ScheduleNeedsCustomerMessageError extends DomainError {
+  readonly kind = DomainErrorKind.PreconditionFailed;
+  readonly reason = ErrorReason.ScheduleNeedsCustomerMessage;
+
+  constructor() {
+    super(SCHEDULE_NEEDS_CUSTOMER_MESSAGE_MESSAGE);
+  }
+}

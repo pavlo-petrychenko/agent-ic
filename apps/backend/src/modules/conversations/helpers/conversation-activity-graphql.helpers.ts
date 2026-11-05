@@ -9,6 +9,7 @@ const GRAPHQL_ACTIVITY_KIND: Readonly<
   [ConversationActivityKind.MessageAdded]: GraphqlConversationActivityKind.MessageAdded,
   [ConversationActivityKind.RunStarted]: GraphqlConversationActivityKind.RunStarted,
   [ConversationActivityKind.RunFinished]: GraphqlConversationActivityKind.RunFinished,
+  [ConversationActivityKind.ConversationClosed]: GraphqlConversationActivityKind.ConversationClosed,
 };
 
 export const toGraphqlConversationActivity = (

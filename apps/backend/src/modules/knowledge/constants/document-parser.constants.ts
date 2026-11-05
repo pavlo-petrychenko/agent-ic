@@ -1,15 +1,7 @@
-import { KnowledgeDocumentFormat } from '@agent-ic/contracts';
+import { KnowledgeDocumentFailureCode, KnowledgeDocumentFormat } from '@agent-ic/contracts';
 import type { DocumentFormatDefinition } from '@/modules/knowledge/typedefs/document-parser.typedefs';
 
-export enum DocumentParseErrorCode {
-  UnsupportedType = 'UNSUPPORTED_DOCUMENT_TYPE',
-  TooLarge = 'DOCUMENT_TOO_LARGE',
-  TooManyTokens = 'DOCUMENT_TOO_MANY_TOKENS',
-  Empty = 'DOCUMENT_EMPTY',
-  Unreadable = 'DOCUMENT_UNREADABLE',
-  SignatureMismatch = 'DOCUMENT_SIGNATURE_MISMATCH',
-  PdfHasNoText = 'PDF_HAS_NO_TEXT',
-}
+export { KnowledgeDocumentFailureCode as DocumentParseErrorCode } from '@agent-ic/contracts';
 
 export enum DocumentParseWarningCode {
   TitleTruncated = 'DOCUMENT_TITLE_TRUNCATED',
@@ -17,16 +9,17 @@ export enum DocumentParseWarningCode {
   DocxConversion = 'DOCX_CONVERSION_WARNING',
 }
 
-export const DOCUMENT_PARSE_ERROR_MESSAGE: Readonly<Record<DocumentParseErrorCode, string>> = {
-  [DocumentParseErrorCode.UnsupportedType]: 'The document type is not supported.',
-  [DocumentParseErrorCode.TooLarge]: 'The document is too large.',
-  [DocumentParseErrorCode.TooManyTokens]: 'The document has too many tokens.',
-  [DocumentParseErrorCode.Empty]: 'The document has no extractable text.',
-  [DocumentParseErrorCode.Unreadable]: 'The document could not be read.',
-  [DocumentParseErrorCode.SignatureMismatch]:
-    'The file contents do not match the declared document type.',
-  [DocumentParseErrorCode.PdfHasNoText]: 'The PDF contains no extractable text.',
-};
+export const DOCUMENT_PARSE_ERROR_MESSAGE: Readonly<Record<KnowledgeDocumentFailureCode, string>> =
+  {
+    [KnowledgeDocumentFailureCode.UnsupportedType]: 'The document type is not supported.',
+    [KnowledgeDocumentFailureCode.TooLarge]: 'The document is too large.',
+    [KnowledgeDocumentFailureCode.TooManyTokens]: 'The document has too many tokens.',
+    [KnowledgeDocumentFailureCode.Empty]: 'The document has no extractable text.',
+    [KnowledgeDocumentFailureCode.Unreadable]: 'The document could not be read.',
+    [KnowledgeDocumentFailureCode.SignatureMismatch]:
+      'The file contents do not match the declared document type.',
+    [KnowledgeDocumentFailureCode.PdfHasNoText]: 'The PDF contains no extractable text.',
+  };
 
 export const DOCUMENT_TITLE_TRUNCATED_MESSAGE = 'The document title was shortened.';
 export const PDF_PAGES_WITHOUT_TEXT_MESSAGE = 'Some PDF pages contain no extractable text.';

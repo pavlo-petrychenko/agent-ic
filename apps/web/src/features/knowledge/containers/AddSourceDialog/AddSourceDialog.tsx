@@ -1,7 +1,19 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toGraphqlKnowledgeSyncInterval } from '@/features/knowledge/communication/helpers/knowledgeSources.helpers';
+import { useCreateGoogleDocsSource } from '@/features/knowledge/communication/hooks/useCreateGoogleDocsSource';
+import { useDisconnectGoogleConnection } from '@/features/knowledge/communication/hooks/useDisconnectGoogleConnection';
+import { useKnowledgeConnections } from '@/features/knowledge/communication/hooks/useKnowledgeConnections';
+import { useStartGoogleConnection } from '@/features/knowledge/communication/hooks/useStartGoogleConnection';
 import { useUploadKnowledgeSource } from '@/features/knowledge/communication/hooks/useUploadKnowledgeSource';
+import { AddSourceType } from '@/features/knowledge/constants/googleConnection.constants';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
+import {
+  KNOWLEDGE_SCHEDULE_DEFAULT_TIME,
+  KNOWLEDGE_SCHEDULE_DEFAULT_WEEKDAY,
+  KnowledgeScheduleMode,
+  KnowledgeSyncInterval,
+} from '@/features/knowledge/constants/knowledgeSource.constants';
 import {
   KNOWLEDGE_UPLOAD_MAX_MEGABYTES,
   KnowledgeFileSkipReason,
@@ -9,28 +21,68 @@ import {
 } from '@/features/knowledge/constants/knowledgeUpload.constants';
 import type { AddSourceDialogProps } from '@/features/knowledge/containers/AddSourceDialog/AddSourceDialog.typedefs';
 import { useAddSourceFiles } from '@/features/knowledge/containers/AddSourceDialog/useAddSourceFiles';
+import { useGooglePicker } from '@/features/knowledge/containers/AddSourceDialog/useGooglePicker';
+import {
+  redirectToGoogle,
+  saveGoogleConnectionReturn,
+} from '@/features/knowledge/logic/helpers/googleConnection.helpers';
+import { GooglePickerLoadError } from '@/features/knowledge/logic/helpers/googlePicker.helpers';
+import { knowledgeScheduleInput } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
 import {
   formatKnowledgeFileSize,
   knowledgeFileMimeType,
   knowledgeFileTypeLabel,
 } from '@/features/knowledge/logic/helpers/knowledgeUpload.helpers';
+import type { GoogleConnection } from '@/features/knowledge/typedefs/googleConnection.typedefs';
+import type {
+  GooglePickerDocument,
+  SelectedGoogleDocs,
+} from '@/features/knowledge/typedefs/googlePicker.typedefs';
+import type { KnowledgeSourceSchedule } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import type {
   SelectedKnowledgeFile,
   SelectedKnowledgeFileView,
 } from '@/features/knowledge/typedefs/knowledgeUpload.typedefs';
 import { AddSourceModal } from '@/features/knowledge/view/AddSourceModal';
+import { GoogleConnectionPanel } from '@/features/knowledge/view/GoogleConnectionPanel';
+import { GooglePickerSkipReason } from '@/shared/api/generated/schema.generated';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
+import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
 export function AddSourceDialog({
+  workspaceId,
   knowledgeBaseId,
   knowledgeBaseName,
+  initialSourceType = AddSourceType.Upload,
   onClose,
   onUploaded,
 }: AddSourceDialogProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
+  const { showToast } = useToast();
   const errorMessage = useErrorMessage();
   const { uploadKnowledgeSource } = useUploadKnowledgeSource();
+  const { createGoogleDocsSource } = useCreateGoogleDocsSource();
+  const [sourceType, setSourceType] = useState<AddSourceType>(initialSourceType);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [selectedGoogleDocs, setSelectedGoogleDocs] = useState<SelectedGoogleDocs | null>(null);
+  const [addingGoogleDocs, setAddingGoogleDocs] = useState(false);
+  const [schedule, setSchedule] = useState<KnowledgeSourceSchedule>({
+    mode: KnowledgeScheduleMode.Manual,
+    preset: KnowledgeSyncInterval.Daily,
+    time: KNOWLEDGE_SCHEDULE_DEFAULT_TIME,
+    weekday: KNOWLEDGE_SCHEDULE_DEFAULT_WEEKDAY,
+  });
+  const googleEnabled = sourceType === AddSourceType.GoogleDocs;
+  const {
+    connections,
+    loading: connectionsLoading,
+    failed: connectionsFailed,
+    retry: retryConnections,
+  } = useKnowledgeConnections(googleEnabled);
+  const { startGoogleConnection, starting } = useStartGoogleConnection();
+  const { disconnectGoogleConnection, disconnectingId } = useDisconnectGoogleConnection();
+  const { pickDocuments, pickingConnectionId } = useGooglePicker();
   const {
     files,
     readyCount,
@@ -108,9 +160,136 @@ export function AddSourceDialog({
     }
   };
 
+  const connect = async () => {
+    setConnectionError(null);
+    try {
+      const authorizationUrl = await startGoogleConnection();
+      saveGoogleConnectionReturn({ workspaceId, knowledgeBaseId });
+      redirectToGoogle(authorizationUrl);
+    } catch (failure) {
+      setConnectionError(errorMessage(toAppError(failure)));
+    }
+  };
+
+  const disconnect = async (connection: GoogleConnection) => {
+    setConnectionError(null);
+    try {
+      await disconnectGoogleConnection(connection.id);
+      if (selectedGoogleDocs?.connectionId === connection.id) {
+        setSelectedGoogleDocs(null);
+      }
+      showToast({
+        message: t('add.googleConnection.disconnectSuccess'),
+        tone: ToastTone.Ok,
+      });
+    } catch (failure) {
+      showToast({ message: errorMessage(toAppError(failure)), tone: ToastTone.Err });
+    }
+  };
+
+  const addPickedDocuments = (connectionId: string, documents: readonly GooglePickerDocument[]) => {
+    if (selectedGoogleDocs !== null && selectedGoogleDocs.connectionId !== connectionId) {
+      showToast({
+        message: t('add.googleConnection.pickerDifferentAccount'),
+        tone: ToastTone.Info,
+      });
+      return;
+    }
+    setSelectedGoogleDocs((current) => {
+      if (current !== null && current.connectionId !== connectionId) {
+        return current;
+      }
+      const currentDocuments = current?.documents ?? [];
+      const existing = new Set(currentDocuments.map((document) => document.id));
+      const freshDocuments = documents.filter((document) => {
+        if (existing.has(document.id)) {
+          return false;
+        }
+        existing.add(document.id);
+        return true;
+      });
+      if (freshDocuments.length === 0) {
+        return current;
+      }
+      return {
+        connectionId,
+        documents: [...currentDocuments, ...freshDocuments],
+      };
+    });
+  };
+
+  const removeGoogleDocument = (id: string) => {
+    setSelectedGoogleDocs((current) => {
+      if (current === null) {
+        return null;
+      }
+      const documents = current.documents.filter((document) => document.id !== id);
+      return documents.length === 0 ? null : { ...current, documents };
+    });
+  };
+
+  const pick = (connection: GoogleConnection) => {
+    void pickDocuments({
+      connectionId: connection.id,
+      onPicked: (documents) => addPickedDocuments(connection.id, documents),
+      onError: (failure) => {
+        showToast({
+          message:
+            failure instanceof GooglePickerLoadError
+              ? t('add.googleConnection.pickerLoadError')
+              : errorMessage(toAppError(failure)),
+          tone: ToastTone.Err,
+        });
+      },
+    });
+  };
+
+  const addGoogleDocs = async () => {
+    if (addingGoogleDocs || selectedGoogleDocs === null) {
+      return;
+    }
+    setAddingGoogleDocs(true);
+    try {
+      const scheduleInput = knowledgeScheduleInput(schedule);
+      const result = await createGoogleDocsSource({
+        connectionId: selectedGoogleDocs.connectionId,
+        knowledgeBaseId,
+        documents: selectedGoogleDocs.documents,
+        syncInterval: toGraphqlKnowledgeSyncInterval(scheduleInput.syncInterval),
+        syncTime: scheduleInput.syncTime,
+        syncWeekday: scheduleInput.syncWeekday,
+      });
+      showToast({
+        message: t('add.googleConnection.pickerSuccess'),
+        tone: ToastTone.Ok,
+      });
+      if (
+        result.skipped.some((document) => document.reason === GooglePickerSkipReason.AlreadyAdded)
+      ) {
+        showToast({
+          message: t('add.googleConnection.pickerAlreadyAdded'),
+          tone: ToastTone.Info,
+        });
+      } else if (result.skipped.length > 0) {
+        showToast({
+          message: t('add.googleConnection.pickerSkipped'),
+          tone: ToastTone.Info,
+        });
+      }
+      setSelectedGoogleDocs(null);
+      onUploaded();
+      onClose();
+    } catch (failure) {
+      showToast({ message: errorMessage(toAppError(failure)), tone: ToastTone.Err });
+    } finally {
+      setAddingGoogleDocs(false);
+    }
+  };
+
   return (
     <AddSourceModal
       knowledgeBaseName={knowledgeBaseName}
+      sourceType={sourceType}
       files={viewFiles}
       readyCount={readyCount}
       uploadingCount={uploadingCount}
@@ -118,8 +297,32 @@ export function AddSourceDialog({
       failedCount={failedCount}
       skippedCount={skippedCount}
       uploading={uploading}
+      picking={pickingConnectionId !== null}
+      googleDocuments={selectedGoogleDocs?.documents ?? []}
+      addingGoogleDocs={addingGoogleDocs}
+      schedule={schedule}
+      googleContent={
+        <GoogleConnectionPanel
+          connections={connections}
+          loading={connectionsLoading}
+          failed={connectionsFailed}
+          errorMessage={connectionError}
+          starting={starting}
+          disconnectingId={disconnectingId}
+          pickingConnectionId={pickingConnectionId}
+          disabled={addingGoogleDocs}
+          onConnect={() => void connect()}
+          onDisconnect={(connection) => void disconnect(connection)}
+          onPick={pick}
+          onRetry={() => void retryConnections()}
+        />
+      }
+      onSourceTypeChange={setSourceType}
       onFiles={addFiles}
       onRemoveFile={removeFile}
+      onRemoveGoogleDocument={removeGoogleDocument}
+      onScheduleChange={setSchedule}
+      onAddGoogleDocs={() => void addGoogleDocs()}
       onSubmit={() => void submit()}
       onClose={onClose}
     />

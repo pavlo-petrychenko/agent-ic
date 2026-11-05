@@ -192,6 +192,69 @@ describe('loadAppConfig', () => {
     expect(config.langfuse.mode).toBe(LangfuseMode.Cloud);
   });
 
+  it('reads the Google OAuth settings', () => {
+    const config = loadAppConfig(roleOf(Role.Api), createTestEnv());
+
+    expect(config.google).toEqual({
+      enabled: true,
+      clientId: 'test-google-client-id',
+      clientSecret: 'test-google-client-secret',
+      redirectUri: 'https://app.agent-ic.test/oauth/google/callback',
+      picker: {
+        enabled: true,
+        apiKey: 'test-google-picker-api-key',
+        appId: '1234567890',
+      },
+    });
+  });
+
+  it('accepts disabled Google OAuth without credentials', () => {
+    const env = createTestEnv({
+      [EnvVar.GoogleClientId]: undefined,
+      [EnvVar.GoogleClientSecret]: undefined,
+      [EnvVar.GoogleOAuthRedirectUri]: undefined,
+    });
+
+    const config = loadAppConfig(roleOf(Role.Api), env);
+
+    expect(config.google).toEqual({ enabled: false });
+  });
+
+  it('requires every Google OAuth variable when one is set', () => {
+    const env = createTestEnv({
+      [EnvVar.GoogleClientSecret]: undefined,
+      [EnvVar.GoogleOAuthRedirectUri]: undefined,
+    });
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+    expect(variablesOf(issues).toSorted()).toEqual(
+      [EnvVar.GoogleClientSecret, EnvVar.GoogleOAuthRedirectUri].toSorted(),
+    );
+  });
+
+  it('keeps Google Picker disabled without its pair', () => {
+    const env = createTestEnv({
+      [EnvVar.GooglePickerApiKey]: undefined,
+      [EnvVar.GooglePickerAppId]: undefined,
+    });
+
+    const config = loadAppConfig(roleOf(Role.Api), env);
+
+    expect(config.google).toMatchObject({
+      enabled: true,
+      picker: { enabled: false },
+    });
+  });
+
+  it('requires both Google Picker variables when one is set', () => {
+    const env = createTestEnv({ [EnvVar.GooglePickerAppId]: undefined });
+
+    const issues = issuesOf(() => loadAppConfig(roleOf(Role.Api), env));
+
+    expect(variablesOf(issues)).toEqual([EnvVar.GooglePickerAppId]);
+  });
+
   it('reads the telemetry resource and sampler settings', () => {
     const env = createTestEnv({ [EnvVar.OtelTracesSamplerArg]: '0.25' });
 

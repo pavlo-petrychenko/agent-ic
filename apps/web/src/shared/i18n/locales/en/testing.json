@@ -41,16 +41,45 @@
     "failed": "This turn failed",
     "emptyTitle": "Say hi to your agent",
     "emptyDescription": "Messages you send here run the selected version. Customers never see them.",
-    "escalationTurn": "{{name}} · Escalation message",
-    "divider": {
-      "escalated": "Escalated · in live chats operators would be notified",
-      "handedBack": "Handed back to the agent"
-    }
+    "escalationMessage": "Escalation message",
+    "event": {
+      "escalated": "Escalated",
+      "handedOff": "Handed off by the agent",
+      "takenOver": "You took over",
+      "handedBack": "Handed back to the agent",
+      "ended": "Ended by the agent",
+      "closedInactive": "Closed after inactivity",
+      "silence": "Silence simulated",
+      "silenceFor": "{{after}} of silence simulated",
+      "scheduleRun": "Schedule run now"
+    },
+    "eventAt": "{{event}} · {{at, datetime}}",
+    "followUpTurn_zero": "{{name}} · inactivity follow-up {{attempt}} · no reply",
+    "followUpTurn_one": "{{name}} · inactivity follow-up {{attempt}} · {{count}} message",
+    "followUpTurn_other": "{{name}} · inactivity follow-up {{attempt}} · {{count}} messages",
+    "scheduledTurn_zero": "{{name}} · Scheduled · no reply",
+    "scheduledTurn_one": "{{name}} · Scheduled · {{count}} message",
+    "scheduledTurn_other": "{{name}} · Scheduled · {{count}} messages",
+    "scheduledTurnNamed_zero": "{{name}} · Scheduled · {{schedule}} · no reply",
+    "scheduledTurnNamed_one": "{{name}} · Scheduled · {{schedule}} · {{count}} message",
+    "scheduledTurnNamed_other": "{{name}} · Scheduled · {{schedule}} · {{count}} messages"
   },
   "composer": {
     "label": "Message as the test user",
     "placeholder": "Write as the test user…",
-    "send": "Send"
+    "send": "Send",
+    "writeAs": "Write as",
+    "as": {
+      "user": "Customer",
+      "operator": "Operator"
+    },
+    "waitingHint": "Waiting for a person. Write as the customer to test what they see, or switch to Operator to take over.",
+    "handledHint": "A person handles this chat. Customer messages don’t start a turn until it is handed back."
+  },
+  "ended": {
+    "hint": "The agent closed this chat. Start a new conversation to keep testing.",
+    "inactiveHint": "Closed after inactivity. In live chats the customer's next message starts a new conversation.",
+    "restart": "Start new conversation"
   },
   "operator": {
     "reply": "Reply as operator",
@@ -72,7 +101,15 @@
       "running": "running",
       "waiting": "waiting",
       "skipped": "not reached",
-      "failed": "failed"
+      "failed": "failed",
+      "escalated": "escalated",
+      "ended": "ended"
+    },
+    "exit": {
+      "escalated": "escalated",
+      "ended": "ended",
+      "defaultHandoff": "default hand-off",
+      "defaultEnd": "default end"
     }
   },
   "details": {
@@ -88,13 +125,17 @@
     "nobody": "Nobody",
     "flow": "Flow",
     "paused": "Paused",
+    "resumed": "Resumed",
     "stepFailed": "This step failed",
     "status": {
       "queued": "Queued",
       "running": "Running",
       "succeeded": "Completed",
       "escalated": "Escalated",
-      "failed": "Failed"
+      "handedBack": "Handed back",
+      "failed": "Failed",
+      "ended": "Ended",
+      "closedInactive": "Closed (inactive)"
     },
     "back": "All steps of turn {{number}}",
     "input": "Input",
@@ -104,6 +145,48 @@
       "running": "Running",
       "succeeded": "Ran",
       "failed": "Failed"
+    },
+    "exitTitle": "Exit · {{name}}",
+    "flowSettings": "Flow settings",
+    "exit": {
+      "mode": "Mode",
+      "modes": {
+        "escalate": "Escalate to a person",
+        "end": "End the conversation"
+      },
+      "outcome": "Outcome",
+      "outcomes": {
+        "end": "End conversation",
+        "handoff": "Hand off to a person"
+      },
+      "reason": "Reason",
+      "path": "Path",
+      "defaultPath": {
+        "end": "Default exit · message sent, chat closed",
+        "handoff": "Default exit · flow settings hand-off"
+      },
+      "connectedPath": "Connected · goes on to {{name}}",
+      "connectedMessage": "The agent sends nothing here; {{name}} and the steps after it decide what the customer sees.",
+      "recipientsLabel": "Recipients",
+      "recipients": {
+        "operators": "Operators group",
+        "role": "Everyone with the {{role}} role",
+        "users_one": "{{count}} selected person",
+        "users_other": "{{count}} selected people"
+      },
+      "customerMessage": "Message to the customer",
+      "agentMessage": {
+        "end": "Goodbye message",
+        "handoff": "Hand-off message (from the agent)"
+      },
+      "noMessage": "None",
+      "autoClose": {
+        "mode": "Close inactive conversations",
+        "reason": "{{after}} without a customer message",
+        "next": "Next customer message",
+        "newChat": "Starts a new conversation",
+        "silent": "None — closes silently"
+      }
     }
   },
   "reset": "Reset conversation",
@@ -124,7 +207,13 @@
   "brokenDraft": {
     "title": "Fix the flow first",
     "description": "The draft is empty or has errors, so it can't run. Fix it in the flow builder or pick a published version.",
-    "action": "Open in flow builder"
+    "action": "Open in flow builder",
+    "titleStep": "Fix the flow first: {{step}}",
+    "issueDescription": "{{issue}}. The simulator can’t run {{draft}} until every step is valid. Or pick a published version.",
+    "openStep": "Open {{step}}",
+    "openOther": "Open step",
+    "more_one": "{{count}} more issue",
+    "more_other": "{{count}} more issues"
   },
   "versions": {
     "label": "Versions",
@@ -172,5 +261,44 @@
       "warning_one": "Your current draft v{{draft}} has {{count}} unpublished change. It'll be replaced.",
       "warning_other": "Your current draft v{{draft}} has {{count}} unpublished changes. They'll be replaced."
     }
+  },
+  "inactivity": {
+    "simulate": "Simulate inactivity",
+    "next": {
+      "autoClose": "Next: auto-close after {{after}} of silence (Flow settings)",
+      "trigger": "Next: inactivity follow-up {{attempt}} after {{after}} of silence"
+    },
+    "refused": {
+      "escalated": "The trigger skips chats that were escalated.",
+      "channel_excluded": "The trigger is off for this channel type.",
+      "over_limit": "The workspace is over its usage limit, so no follow-up runs.",
+      "agent_unavailable": "The agent is paused or deleted, so no follow-up runs.",
+      "undeliverable": "The last message could not be delivered, so no follow-up runs.",
+      "stale": "The silence was interrupted. Send a message and try again."
+    }
+  },
+  "schedule": {
+    "tabs": "What starts the next turn",
+    "tab": {
+      "message": "Message",
+      "schedule": "Schedule"
+    },
+    "startWith": "Start with",
+    "description": "Runs the schedule now for this test conversation only. Its conditions are shown as checks; the run goes ahead even when one is not met.",
+    "run": "Run schedule now",
+    "checks": "Schedule conditions",
+    "met": "met",
+    "notMet": "not met",
+    "check": {
+      "customer_wrote": "The customer wrote at least once",
+      "silent_for": "Silent long enough",
+      "silentForHours": "Silent for at least {{hours}} h",
+      "not_escalated": "Never escalated",
+      "channel_type": "The channel type is selected"
+    },
+    "notActive": "The agent is not answering this chat right now.",
+    "needsCustomer": "Send one message as the customer first.",
+    "busy": "The agent is still answering.",
+    "switchHint": "Switch to Message to write as the customer."
   }
 }

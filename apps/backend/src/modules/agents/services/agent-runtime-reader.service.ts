@@ -4,11 +4,13 @@ import { AgentNotFoundError } from '@/modules/agents/errors/agent-not-found.erro
 import { AgentVersionNotFoundError } from '@/modules/agents/errors/agent-version-not-found.error';
 import { copyDraftToVersion } from '@/modules/agents/helpers/agent-version.helpers';
 import { pauseSettingsOf } from '@/modules/agents/helpers/pause-settings.helpers';
+import { scheduleNodeOf } from '@/modules/agents/helpers/schedule-trigger.helpers';
 import { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import type { AgentVersion } from '@/modules/agents/typedefs/agent-version.typedefs';
 import type { Agent } from '@/modules/agents/typedefs/agent.typedefs';
 import type { PauseSettings } from '@/modules/agents/typedefs/pause-settings.typedefs';
+import type { LiveScheduleTriggerState } from '@/modules/agents/typedefs/schedule-trigger.typedefs';
 import { IdService } from '@/platform/ids/services/id.service';
 
 @Injectable()
@@ -71,6 +73,32 @@ export class AgentRuntimeReader {
   async findAnsweringVersionId(workspaceId: string, agentId: string): Promise<string | null> {
     const agent = await this.agents.findById(workspaceId, agentId);
     return agent === null || pauseSettingsOf(agent) !== null ? null : agent.liveVersionId;
+  }
+
+  async findLiveScheduleTrigger(
+    workspaceId: string,
+    agentId: string,
+    nodeId: string,
+  ): Promise<LiveScheduleTriggerState | null> {
+    const agent = await this.agents.findById(workspaceId, agentId);
+    if (agent === null || agent.liveVersionId === null) {
+      return null;
+    }
+    const version = await this.versions.findById(workspaceId, agent.liveVersionId);
+    const node = version === null ? null : scheduleNodeOf(version.flow, nodeId);
+    if (version === null || version.publishedAt === null || node === null) {
+      return null;
+    }
+    return {
+      trigger: {
+        workspaceId,
+        agentId,
+        versionId: version.id,
+        publishedAt: version.publishedAt,
+        node,
+      },
+      paused: pauseSettingsOf(agent) !== null,
+    };
   }
 
   async snapshotDraft(workspaceId: string, agentId: string): Promise<AgentVersion> {

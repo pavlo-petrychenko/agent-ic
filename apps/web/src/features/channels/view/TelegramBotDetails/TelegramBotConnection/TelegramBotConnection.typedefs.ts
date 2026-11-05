@@ -3,5 +3,7 @@ import type { TelegramChannelView } from '@/features/channels/typedefs/telegram.
 export interface TelegramBotConnectionProps {
   readonly channel: TelegramChannelView;
   readonly lastUpdate: string;
+  readonly refreshing: boolean;
+  readonly onRefresh: () => void;
   readonly onReplaceToken: () => void;
 }

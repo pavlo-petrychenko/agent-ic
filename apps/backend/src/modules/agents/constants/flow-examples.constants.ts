@@ -1,11 +1,19 @@
 import {
+  AgentExitKind,
   ConditionOperator,
   FailureMode,
   HttpMethod,
+  NO_FLOW_SETTINGS,
   OutputFieldType,
   PortName,
 } from '@agent-ic/flow';
-import { EXAMPLE_TRIGGER_KEY as START } from '@/modules/agents/constants/flow-example-nodes.constants';
+import {
+  EXAMPLE_AUTO_CLOSE_MINUTES,
+  EXAMPLE_END_EXIT,
+  EXAMPLE_HANDOFF_EXIT,
+  EXAMPLE_INACTIVITY_KEY as INACTIVITY_START,
+  EXAMPLE_TRIGGER_KEY as START,
+} from '@/modules/agents/constants/flow-example-nodes.constants';
 import { SamplePromptKey } from '@/modules/agents/constants/sample-prompt.constants';
 import {
   backgroundLink,
@@ -16,6 +24,7 @@ import {
   exampleEnumField,
   exampleField,
   exampleHandOff,
+  exampleInactivityTrigger,
   exampleParallel,
   examplePrompt,
   exampleRouter,
@@ -31,12 +40,16 @@ import type { SamplePromptRefs } from '@/modules/agents/typedefs/sample-prompt.t
 const ECHO_GET_URL = 'https://postman-echo.com/get';
 const ECHO_POST_URL = 'https://postman-echo.com/post';
 const PRICE_LIST = 'Espresso 45 UAH, cappuccino 65 UAH, syrnyky 120 UAH, lviv cheesecake 95 UAH.';
+const STILL_THERE_MESSAGE = 'Are you still there? Write to me whenever you are ready.';
+const REMINDER_MESSAGE = 'Just a reminder: I am here whenever you want to carry on.';
+const CLOSING_MESSAGE = 'I am closing this chat for now. Write any time to start a new one.';
 const MENU_BUTTONS = ['Menu', 'Hours', 'Talk to a person'] as const;
 const [MENU_BUTTON, HOURS_BUTTON, PERSON_BUTTON] = MENU_BUTTONS;
 
 const faqAssistant = (prompts: SamplePromptRefs): FlowExample => ({
   name: 'FAQ assistant',
-  description: 'An agent answers; when it fails, a person takes over.',
+  description:
+    'An agent answers and hands the chat to a person when it should; when it fails, a person takes over too.',
   nodes: [
     exampleTrigger([0, 0]),
     exampleAgent(
@@ -44,6 +57,8 @@ const faqAssistant = (prompts: SamplePromptRefs): FlowExample => ({
       'Answer the question',
       [0, 1],
       examplePrompt(prompts[SamplePromptKey.CafeAssistant]),
+      [],
+      EXAMPLE_HANDOFF_EXIT,
     ),
     exampleSendReply('reply', 'Send the answer', [0, 2], 'faq.messages'),
     exampleHandOff('hand_off', 'Hand off to the team', [1, 2], 'The assistant could not answer.'),
@@ -340,40 +355,73 @@ const menuButtons = (prompts: SamplePromptRefs): FlowExample => ({
 
 const closeTheChat = (prompts: SamplePromptRefs): FlowExample => ({
   name: 'Close the chat',
-  description: 'When the customer is done, the chat ends with a goodbye.',
+  description:
+    'The agent ends the chat when the customer is done: the chat is logged, then closed with its goodbye. A chat with no reply for a day closes by itself.',
   nodes: [
     exampleTrigger([0, 0]),
-    exampleCompletion(
-      'finished',
-      'Is the customer done?',
-      [0, 1],
-      examplePrompt(prompts[SamplePromptKey.GoodbyeCheck]),
-      [exampleField('done', OutputFieldType.Boolean, 'The customer has nothing more to ask')],
-    ),
-    exampleRouter(
-      'check',
-      'Done?',
-      [-0.5, 2],
-      [exampleRule('done', 'Done', 'finished.done', ConditionOperator.IsTrue)],
-    ),
-    exampleEndChat('goodbye', 'End the chat', [-1.5, 3], 'Glad we could help. Have a nice day!'),
     exampleAgent(
       'assistant',
-      'Keep helping',
-      [1, 3],
+      'Help the customer',
+      [0, 1],
       examplePrompt(prompts[SamplePromptKey.CafeAssistant]),
+      [],
+      EXAMPLE_END_EXIT,
     ),
-    exampleSendReply('reply', 'Send the answer', [1, 4], 'assistant.messages'),
-    exampleHandOff('hand_off', 'Hand off to the team', [2, 4], 'The assistant could not answer.'),
+    exampleApiRequest('log_chat', 'Log the chat', [1, 2], {
+      method: HttpMethod.Post,
+      url: ECHO_POST_URL,
+      body: '{"customer": "{{user.name}}", "reason": "{{assistant.outcome_reason}}"}',
+      onFailure: FailureMode.Continue,
+    }),
+    exampleSendReply('goodbye', 'Say goodbye', [1, 3], 'assistant.messages'),
+    exampleEndChat('end_chat', 'End the chat', [1, 4], null),
+    exampleSendReply('reply', 'Send the answer', [-1, 2], 'assistant.messages'),
+    exampleHandOff('hand_off', 'Hand off to the team', [0, 2], 'The assistant could not answer.'),
   ],
   edges: [
-    link(START, 'finished'),
-    link('finished', 'check'),
-    link('finished', 'assistant', PortName.Error),
-    link('check', 'goodbye', 'done'),
-    link('check', 'assistant', PortName.Else),
+    link(START, 'assistant'),
     link('assistant', 'reply'),
     link('assistant', 'hand_off', PortName.Error),
+    link('assistant', 'log_chat', AgentExitKind.End),
+    link('log_chat', 'goodbye'),
+    link('goodbye', 'end_chat'),
+  ],
+  settings: { ...NO_FLOW_SETTINGS, autoClose: { afterMinutes: EXAMPLE_AUTO_CLOSE_MINUTES } },
+});
+
+const followUpOnSilence = (prompts: SamplePromptRefs): FlowExample => ({
+  name: 'Follow up on silence',
+  description:
+    'After 2 hours of silence the agent asks if the customer is still there; a day later it reminds them and ends the chat.',
+  nodes: [
+    exampleTrigger([-1, 0]),
+    exampleAgent(
+      'assistant',
+      'Answer the question',
+      [-1, 1],
+      examplePrompt(prompts[SamplePromptKey.CafeAssistant]),
+    ),
+    exampleSendReply('reply', 'Send the answer', [-1, 2], 'assistant.messages'),
+    exampleHandOff('hand_off', 'Hand off to the team', [0, 2], 'The assistant could not answer.'),
+    exampleInactivityTrigger([2, 0]),
+    exampleRouter(
+      'attempt',
+      'Which attempt?',
+      [2, 1],
+      [exampleRule('first', 'First check-in', 'inactivity.attempt', ConditionOperator.Eq, 1)],
+    ),
+    exampleSendText('still_there', 'Ask if they are still there', [1, 2], STILL_THERE_MESSAGE),
+    exampleSendText('reminder', 'Send a reminder', [3, 2], REMINDER_MESSAGE),
+    exampleEndChat('close', 'End the chat', [3, 3], CLOSING_MESSAGE),
+  ],
+  edges: [
+    link(START, 'assistant'),
+    link('assistant', 'reply'),
+    link('assistant', 'hand_off', PortName.Error),
+    link(INACTIVITY_START, 'attempt'),
+    link('attempt', 'still_there', 'first'),
+    link('attempt', 'reminder', PortName.Else),
+    link('reminder', 'close'),
   ],
 });
 
@@ -386,4 +434,5 @@ export const flowExamples = (prompts: SamplePromptRefs): readonly FlowExample[] 
   tableBooking(prompts),
   menuButtons(prompts),
   closeTheChat(prompts),
+  followUpOnSilence(prompts),
 ];

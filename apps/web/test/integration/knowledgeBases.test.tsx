@@ -7,13 +7,19 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { CreateKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/createKnowledgeBase.generated';
 import { DeleteKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/deleteKnowledgeBase.generated';
 import { DeleteSourceDocument } from '@/features/knowledge/communication/gql/mutation/deleteSource.generated';
+import { RemoveSourceDocumentDocument } from '@/features/knowledge/communication/gql/mutation/removeSourceDocument.generated';
 import { RenameKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/renameKnowledgeBase.generated';
 import { RenameSourceDocument } from '@/features/knowledge/communication/gql/mutation/renameSource.generated';
 import { RetrySourceDocument } from '@/features/knowledge/communication/gql/mutation/retrySource.generated';
+import { UpdateDocumentSummaryDocument } from '@/features/knowledge/communication/gql/mutation/updateDocumentSummary.generated';
 import {
   KnowledgeBasesDocument,
   type KnowledgeBasesQuery,
 } from '@/features/knowledge/communication/gql/query/knowledgeBases.generated';
+import {
+  KnowledgeSourceDetailDocument,
+  type KnowledgeSourceDetailQuery,
+} from '@/features/knowledge/communication/gql/query/knowledgeSourceDetail.generated';
 import {
   KnowledgeSourcesDocument,
   type KnowledgeSourcesQuery,
@@ -23,6 +29,7 @@ import {
   DEMO_WORKSPACE,
 } from '@/features/workspace/communication/fixtures/workspaceShell.fixture';
 import {
+  KnowledgeDocumentStatus,
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
 } from '@/shared/api/generated/schema.generated';
@@ -32,6 +39,7 @@ import { signInForTest, signOutForTest } from '@test/support/helpers/session.hel
 
 type KnowledgeBaseFixture = KnowledgeBasesQuery['knowledgeBases'][number];
 type KnowledgeSourceFixture = KnowledgeSourcesQuery['knowledgeSources'][number];
+type KnowledgeDocumentFixture = KnowledgeSourceDetailQuery['knowledgeSource']['documents'][number];
 
 const SERVICES_KNOWLEDGE_BASE: KnowledgeBaseFixture = {
   id: 'kbs_services',
@@ -62,14 +70,19 @@ const NEW_KNOWLEDGE_BASE: KnowledgeBaseFixture = {
 const READY_SOURCE: KnowledgeSourceFixture = {
   id: 'src_services',
   knowledgeBaseId: SERVICES_KNOWLEDGE_BASE.id,
+  connectionId: null,
   kind: KnowledgeSourceKind.Upload,
   title: 'services',
   status: KnowledgeSourceStatus.Ready,
   syncInterval: null,
+  syncTime: null,
+  syncWeekday: null,
+  timezone: null,
   nextSyncAt: null,
   lastSyncAt: '2026-10-26T09:10:00.000Z',
   lastErrorCode: null,
   lastErrorMessage: null,
+  staleDocumentCount: 0,
   documentCount: 1,
   chunkCount: 34,
   createdAt: '2026-10-26T09:00:00.000Z',
@@ -86,6 +99,29 @@ const INDEXING_SOURCE: KnowledgeSourceFixture = {
   chunkCount: 0,
 };
 
+const GOOGLE_SOURCE: KnowledgeSourceFixture = {
+  ...READY_SOURCE,
+  id: 'src_policies',
+  connectionId: 'cnn_owner',
+  kind: KnowledgeSourceKind.GoogleDocs,
+  title: 'Policies',
+};
+
+const GOOGLE_DOCUMENT: KnowledgeDocumentFixture = {
+  id: 'doc_policies',
+  title: 'Policies',
+  status: KnowledgeDocumentStatus.Indexed,
+  stale: false,
+  staleReason: null,
+  summary: 'A refund policy with a five-day processing window.',
+  errorCode: null,
+  errorMessage: null,
+  tokenCount: 120,
+  chunkCount: 3,
+  createdAt: '2026-10-26T09:00:00.000Z',
+  updatedAt: '2026-10-26T09:10:00.000Z',
+};
+
 const FAILED_SOURCE: KnowledgeSourceFixture = {
   ...READY_SOURCE,
   id: 'src_broken',
@@ -94,6 +130,34 @@ const FAILED_SOURCE: KnowledgeSourceFixture = {
   lastErrorCode: ErrorReason.KnowledgeDocumentInvalid,
   lastErrorMessage: 'This document cannot be read.',
   chunkCount: 0,
+};
+
+const GOOGLE_SOURCE_MULTI: KnowledgeSourceFixture = {
+  ...GOOGLE_SOURCE,
+  documentCount: 2,
+  chunkCount: 2,
+};
+
+const GOOGLE_DOCUMENT_PRICES: KnowledgeDocumentFixture = {
+  id: 'doc_prices',
+  title: 'Prices',
+  status: KnowledgeDocumentStatus.Indexed,
+  stale: false,
+  staleReason: null,
+  summary: 'A price list with services and gift-card rules.',
+  errorCode: null,
+  errorMessage: null,
+  tokenCount: 120,
+  chunkCount: 1,
+  createdAt: '2026-10-26T09:00:00.000Z',
+  updatedAt: '2026-10-26T09:10:00.000Z',
+};
+
+const GOOGLE_DOCUMENT_SERVICES: KnowledgeDocumentFixture = {
+  ...GOOGLE_DOCUMENT_PRICES,
+  id: 'doc_services',
+  title: 'Services',
+  summary: 'A list of salon services.',
 };
 
 const knowledgePath = `/w/${DEMO_WORKSPACE.id}/knowledge`;
@@ -147,6 +211,46 @@ const buildDeleteKnowledgeSourceMock = (id: string): MockLink.MockedResponse => 
 const buildRetryKnowledgeSourceMock = (id: string): MockLink.MockedResponse => ({
   request: { query: RetrySourceDocument, variables: { input: { id } } },
   result: { data: { retrySource: { id } } },
+});
+
+const buildKnowledgeSourceDetailMock = (
+  source: KnowledgeSourceFixture,
+  documents: readonly KnowledgeDocumentFixture[] = [],
+): MockLink.MockedResponse => {
+  const data: KnowledgeSourceDetailQuery = {
+    knowledgeSource: {
+      source,
+      connection: null,
+      documents,
+    },
+  };
+  return {
+    request: { query: KnowledgeSourceDetailDocument, variables: { id: source.id } },
+    result: { data },
+  };
+};
+
+const buildUpdateDocumentSummaryMock = (
+  id: string,
+  summary: string,
+  document: KnowledgeDocumentFixture,
+): MockLink.MockedResponse => ({
+  request: {
+    query: UpdateDocumentSummaryDocument,
+    variables: { input: { id, summary } },
+  },
+  result: { data: { updateDocumentSummary: document } },
+});
+
+const buildRemoveSourceDocumentMock = (
+  sourceId: string,
+  documentId: string,
+): MockLink.MockedResponse => ({
+  request: {
+    query: RemoveSourceDocumentDocument,
+    variables: { input: { sourceId, documentId } },
+  },
+  result: { data: { removeSourceDocument: { sourceId, documentId } } },
 });
 
 const buildDeleteKnowledgeBaseFailureMock = (id: string): MockLink.MockedResponse => ({
@@ -316,9 +420,7 @@ describe('knowledge bases', () => {
     expect(screen.getByText('Indexing')).toBeInTheDocument();
     expect(screen.getByText('Failed')).toBeInTheDocument();
     expect(screen.getByText('34 chunks')).toBeInTheDocument();
-    expect(
-      screen.getByText('This document cannot be read. Check the file and try again.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Invalid document')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Add source' })).toBeInTheDocument();
   });
 
@@ -336,6 +438,7 @@ describe('knowledge bases', () => {
         buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
         buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [FAILED_SOURCE]),
         buildRetryKnowledgeSourceMock(FAILED_SOURCE.id),
+        buildKnowledgeSourceDetailMock(FAILED_SOURCE),
         buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [pendingSource]),
       ],
     });
@@ -378,6 +481,60 @@ describe('knowledge bases', () => {
       expect(screen.queryByText(READY_SOURCE.title, { exact: true })).not.toBeInTheDocument(),
     );
     expect(await screen.findByText('No sources yet')).toBeInTheDocument();
+  });
+
+  it('removes one document from a multi-document Google source', async () => {
+    const user = userEvent.setup();
+    const updatedSource: KnowledgeSourceFixture = {
+      ...GOOGLE_SOURCE_MULTI,
+      documentCount: 1,
+      chunkCount: 1,
+    };
+    const updatedKnowledgeBase: KnowledgeBaseFixture = {
+      ...SERVICES_KNOWLEDGE_BASE,
+      documentCount: 1,
+      chunkCount: 1,
+    };
+    renderRoute(`${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [GOOGLE_SOURCE_MULTI]),
+        buildKnowledgeSourceDetailMock(GOOGLE_SOURCE_MULTI, [
+          GOOGLE_DOCUMENT_PRICES,
+          GOOGLE_DOCUMENT_SERVICES,
+        ]),
+        buildRemoveSourceDocumentMock(GOOGLE_SOURCE_MULTI.id, GOOGLE_DOCUMENT_PRICES.id),
+        buildKnowledgeSourceDetailMock(updatedSource, [GOOGLE_DOCUMENT_SERVICES]),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [updatedSource]),
+        buildKnowledgeBasesMock([updatedKnowledgeBase]),
+      ],
+    });
+
+    await screen.findByRole('heading', { name: SERVICES_KNOWLEDGE_BASE.name });
+    await user.click(
+      await screen.findByRole('button', { name: `Open ${GOOGLE_SOURCE_MULTI.title}` }),
+    );
+    expect(await screen.findByText(GOOGLE_DOCUMENT_PRICES.title)).toBeInTheDocument();
+
+    const actions = screen.getAllByRole('button', { name: 'Remove document' });
+    const [firstAction] = actions;
+    if (firstAction === undefined) {
+      throw new Error('the remove action is missing');
+    }
+    await user.click(firstAction);
+    const dialog = await screen.findByRole('dialog', {
+      name: `Remove “${GOOGLE_DOCUMENT_PRICES.title}”?`,
+    });
+    await user.click(within(dialog).getByRole('button', { name: 'Remove document' }));
+
+    expect(
+      await screen.findByText(`Document “${GOOGLE_DOCUMENT_PRICES.title}” removed.`),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByText(GOOGLE_DOCUMENT_PRICES.title)).not.toBeInTheDocument(),
+    );
+    expect(screen.getByText(GOOGLE_DOCUMENT_SERVICES.title)).toBeInTheDocument();
   });
 
   it('deletes an empty knowledge base and selects the next one', async () => {
@@ -441,5 +598,42 @@ describe('knowledge bases', () => {
     expect(
       screen.queryByText(`Knowledge base “${SERVICES_KNOWLEDGE_BASE.name}” deleted.`),
     ).not.toBeInTheDocument();
+  });
+
+  it('edits a Google Docs summary from the source details drawer', async () => {
+    const user = userEvent.setup();
+    const nextSummary = 'A refund policy with a ten-day processing window.';
+    const updatedDocument: KnowledgeDocumentFixture = {
+      ...GOOGLE_DOCUMENT,
+      summary: nextSummary,
+    };
+    renderRoute(`${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [GOOGLE_SOURCE]),
+        buildKnowledgeSourceDetailMock(GOOGLE_SOURCE, [GOOGLE_DOCUMENT]),
+        buildUpdateDocumentSummaryMock(GOOGLE_DOCUMENT.id, nextSummary, updatedDocument),
+        buildKnowledgeSourceDetailMock(GOOGLE_SOURCE, [updatedDocument]),
+      ],
+    });
+
+    await screen.findByRole('heading', { name: SERVICES_KNOWLEDGE_BASE.name });
+    await user.click(await screen.findByRole('button', { name: `Open ${GOOGLE_SOURCE.title}` }));
+    expect(await screen.findByText(GOOGLE_DOCUMENT.summary ?? '')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Edit summary' }));
+    const dialog = await screen.findByRole('dialog', {
+      name: `Edit summary for “${GOOGLE_DOCUMENT.title}”`,
+    });
+    const summary = within(dialog).getByLabelText('Summary');
+    await user.clear(summary);
+    await user.type(summary, nextSummary);
+    await user.click(within(dialog).getByRole('button', { name: 'Save summary' }));
+
+    expect(
+      await screen.findByText(`Summary saved for “${GOOGLE_DOCUMENT.title}”.`),
+    ).toBeInTheDocument();
+    expect(await screen.findByText(nextSummary)).toBeInTheDocument();
   });
 });

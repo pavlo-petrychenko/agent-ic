@@ -1,0 +1,5 @@
+mutation CompleteGoogleConnection($input: CompleteGoogleConnectionInput!) {
+  completeGoogleConnection(input: $input) {
+    id
+  }
+}

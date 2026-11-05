@@ -1,8 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { CHANNELS_NAMESPACE } from '@/features/channels/constants/channelsI18n.constants';
-import { EMPTY_TELEGRAM_STATS } from '@/features/channels/constants/telegram.constants';
 import { TelegramChannelStatus } from '@/features/channels/typedefs/telegram.typedefs';
-import { TelegramActivityCard } from '@/features/channels/view/TelegramActivityCard';
 import { TelegramBotConnection } from '@/features/channels/view/TelegramBotDetails/TelegramBotConnection';
 import type { TelegramBotDetailsProps } from '@/features/channels/view/TelegramBotDetails/TelegramBotDetails.typedefs';
 import { TelegramBotWhoAnswers } from '@/features/channels/view/TelegramBotDetails/TelegramBotWhoAnswers';
@@ -20,11 +18,15 @@ export function TelegramBotDetails({
   agentId,
   typing,
   saving,
+  reconnecting,
+  refreshing,
   lastUpdate,
   onAgentChange,
   onTypingChange,
   onReplaceToken,
   onDisconnect,
+  onReconnect,
+  onRefreshIdentity,
   onDelete,
   onSave,
 }: TelegramBotDetailsProps) {
@@ -51,14 +53,20 @@ export function TelegramBotDetails({
         }
         actions={
           <>
-            <Button variant={ButtonVariant.Danger} disabled={disconnected} onClick={onDisconnect}>
-              {t('telegram.bot.actions.disconnect')}
-            </Button>
+            {disconnected ? (
+              <Button loading={reconnecting} onClick={onReconnect}>
+                {t('telegram.bot.actions.connect')}
+              </Button>
+            ) : (
+              <Button variant={ButtonVariant.Danger} onClick={onDisconnect}>
+                {t('telegram.bot.actions.disconnect')}
+              </Button>
+            )}
             <Button disabled={broken || disconnected || saving} onClick={onSave}>
               {t('telegram.bot.actions.save')}
             </Button>
             {disconnected && (
-              <Button variant={ButtonVariant.Danger} onClick={onDelete}>
+              <Button variant={ButtonVariant.Danger} disabled={reconnecting} onClick={onDelete}>
                 {t('telegram.bot.actions.delete')}
               </Button>
             )}
@@ -70,6 +78,8 @@ export function TelegramBotDetails({
           <TelegramBotConnection
             channel={channel}
             lastUpdate={lastUpdate}
+            refreshing={refreshing}
+            onRefresh={onRefreshIdentity}
             onReplaceToken={onReplaceToken}
           />
           <TelegramBotWhoAnswers
@@ -96,7 +106,6 @@ export function TelegramBotDetails({
           {!broken && !disconnected && (
             <>
               <TelegramConnectHelpCard />
-              <TelegramActivityCard stats={EMPTY_TELEGRAM_STATS} />
             </>
           )}
         </div>

@@ -96,6 +96,21 @@ describe('Drawer', () => {
     expect(screen.getByRole('button', { name: 'Canvas' })).toHaveFocus();
   });
 
+  it('closes when the scrim is clicked', async () => {
+    const onOpenChange = vi.fn<(open: boolean) => void>();
+    const { container } = render(
+      <Drawer open scrim onOpenChange={onOpenChange} ariaLabel="Settings">
+        <p>Content</p>
+      </Drawer>,
+    );
+    const scrim = container.querySelector('[data-drawer-scrim]');
+
+    expect(scrim).not.toBeNull();
+    await userEvent.click(scrim as HTMLElement);
+
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+  });
+
   it('leaves focus where the user put it when it closes', async () => {
     render(<Harness />);
 

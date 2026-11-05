@@ -1,18 +1,24 @@
 import {
+  AgentExitKind,
   ModelProviderKind,
   NodeType,
   PortName,
   PromptSourceKind,
   PromptVersionKind,
+  InactivityRepeatKind,
+  InactivityUnit,
   RuleMatch,
+  ScheduleKind,
 } from '@agent-ic/flow';
-import type { FlowNode, ModelRef, PromptSource } from '@agent-ic/flow';
+import type { FlowNode, ModelRef, PromptSource, Schedule } from '@agent-ic/flow';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_FLOW } from '@/features/flow-builder/constants/flowBuilder.constants';
 import { SummaryKey } from '@/features/flow-builder/constants/nodeSummary.constants';
+import { withAgentExits } from '@/features/flow-builder/logic/helpers/agentExit.helpers';
 import { addNode } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
 import { nodeSummary, portLabel } from '@/features/flow-builder/logic/helpers/nodeSummary.helpers';
 import type { AddableNodeType } from '@/features/flow-builder/typedefs/graphEdit.typedefs';
+import type { InactivityConfig } from '@/features/flow-builder/typedefs/inactivity.typedefs';
 import type { ModelChoice } from '@/features/flow-builder/typedefs/llmStep.typedefs';
 import { ModelSource, ModelVendor } from '@/shared/api/generated/schema.generated';
 
@@ -111,6 +117,90 @@ describe('nodeSummary', () => {
       { key: SummaryKey.LibraryPrompt, params: {} },
     ]);
   });
+
+  it('tells which exits an agent may take', () => {
+    const exit = { when: 'done' };
+    const exitKeys = (end: typeof exit | null, handoff: typeof exit | null) =>
+      nodeSummary(withAgentExits(agentWith(HAIKU.id), { end, handoff }), [HAIKU])
+        .map((part) => part.key)
+        .slice(1);
+
+    expect(exitKeys(null, null)).toEqual([]);
+    expect(exitKeys(exit, null)).toEqual([SummaryKey.CanEnd]);
+    expect(exitKeys(null, exit)).toEqual([SummaryKey.CanHandOff]);
+    expect(exitKeys(exit, exit)).toEqual([SummaryKey.CanEndOrHandOff]);
+  });
+});
+
+describe('nodeSummary schedule', () => {
+  const scheduleWith = (schedule: Schedule): FlowNode => {
+    const trigger = stepOf(NodeType.TriggerSchedule);
+    return trigger.type === NodeType.TriggerSchedule
+      ? { ...trigger, config: { ...trigger.config, schedule } }
+      : trigger;
+  };
+
+  it('reads the new trigger as daily at 10:00 in the workspace zone', () => {
+    expect(nodeSummary(stepOf(NodeType.TriggerSchedule), [])).toEqual([
+      { key: SummaryKey.ScheduleDaily, params: { time: '10:00' } },
+      { key: SummaryKey.TimeZone, params: { timeZone: 'UTC' } },
+    ]);
+  });
+
+  it('names weekdays and a custom cron', () => {
+    expect(
+      nodeSummary(
+        scheduleWith({ kind: ScheduleKind.Weekdays, time: '09:15', timeZone: 'Europe/Kyiv' }),
+        [],
+      ),
+    ).toEqual([
+      { key: SummaryKey.ScheduleWeekdays, params: { time: '09:15' } },
+      { key: SummaryKey.TimeZone, params: { timeZone: 'Europe/Kyiv' } },
+    ]);
+    expect(
+      nodeSummary(
+        scheduleWith({ kind: ScheduleKind.Custom, cron: '0 8 * * 1', timeZone: 'UTC' }),
+        [],
+      )[0],
+    ).toEqual({ key: SummaryKey.ScheduleCron, params: { cron: '0 8 * * 1' } });
+  });
+});
+
+describe('nodeSummary inactivity', () => {
+  const inactivityWith = (patch: Partial<InactivityConfig>): FlowNode => {
+    const trigger = stepOf(NodeType.TriggerInactivity);
+    return trigger.type === NodeType.TriggerInactivity
+      ? { ...trigger, config: { ...trigger.config, ...patch } }
+      : trigger;
+  };
+
+  it('reads the new trigger as 2 h of silence, once', () => {
+    expect(nodeSummary(stepOf(NodeType.TriggerInactivity), [])).toEqual([
+      { key: SummaryKey.InactivityHours, params: { amount: 2 } },
+    ]);
+  });
+
+  it('names the unit and the number of repeats', () => {
+    expect(
+      nodeSummary(
+        inactivityWith({
+          silence: { amount: 30, unit: InactivityUnit.Minutes },
+          repeat: {
+            kind: InactivityRepeatKind.Every,
+            every: { amount: 1, unit: InactivityUnit.Days },
+            maxTimes: 3,
+          },
+        }),
+        [],
+      ),
+    ).toEqual([
+      { key: SummaryKey.InactivityMinutes, params: { amount: 30 } },
+      { key: SummaryKey.InactivityRepeats, params: { count: 3 } },
+    ]);
+    expect(
+      nodeSummary(inactivityWith({ silence: { amount: 2, unit: InactivityUnit.Days } }), [])[0],
+    ).toEqual({ key: SummaryKey.InactivityDays, params: { amount: 2 } });
+  });
 });
 
 describe('portLabel', () => {
@@ -127,5 +217,15 @@ describe('portLabel', () => {
     expect(portLabel(withRules, 'r2')).toBeNull();
     expect(portLabel(withRules, PortName.Else)).toEqual({ port: PortName.Else });
     expect(portLabel(stepOf(NodeType.Agent), PortName.Next)).toBeNull();
+  });
+
+  it('labels the exit ports of an agent', () => {
+    const agent = withAgentExits(stepOf(NodeType.Agent), {
+      end: { when: 'bye' },
+      handoff: { when: 'help' },
+    });
+
+    expect(portLabel(agent, AgentExitKind.End)).toEqual({ port: AgentExitKind.End });
+    expect(portLabel(agent, AgentExitKind.Handoff)).toEqual({ port: AgentExitKind.Handoff });
   });
 });

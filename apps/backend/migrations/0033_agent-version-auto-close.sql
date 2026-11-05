@@ -1,0 +1,2 @@
+ALTER TABLE "agents"."agent_versions" ADD COLUMN "auto_close_minutes" integer GENERATED ALWAYS AS (((flow #>> '{settings,autoClose,afterMinutes}')::integer)) STORED;--> statement-breakpoint
+CREATE INDEX "agent_versions_auto_close_idx" ON "agents"."agent_versions" USING btree ("agent_id") WHERE "agents"."agent_versions"."auto_close_minutes" is not null;

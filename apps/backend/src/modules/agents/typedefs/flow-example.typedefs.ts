@@ -1,4 +1,4 @@
-import type { FailureMode, FlowEdge, FlowNode, HttpMethod } from '@agent-ic/flow';
+import type { FailureMode, FlowEdge, FlowNode, FlowSettings, HttpMethod } from '@agent-ic/flow';
 
 export type GridCell = readonly [column: number, row: number];
 
@@ -9,6 +9,7 @@ export interface FlowExample {
   readonly description: string;
   readonly nodes: readonly FlowNode[];
   readonly edges: readonly FlowExampleEdge[];
+  readonly settings?: FlowSettings;
 }
 
 export interface ExampleRequest {

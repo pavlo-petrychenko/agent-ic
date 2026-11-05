@@ -6,11 +6,20 @@ export function EdgeLabel({ text, active = false, onClick = null, className }: E
   const classes = clsx(styles.root, active && styles.active, className);
 
   if (onClick === null) {
-    return <span className={classes}>{text}</span>;
+    return (
+      <span className={classes} title={text}>
+        {text}
+      </span>
+    );
   }
 
   return (
-    <button type="button" className={clsx(classes, styles.interactive)} onClick={onClick}>
+    <button
+      type="button"
+      title={text}
+      className={clsx(classes, styles.interactive)}
+      onClick={onClick}
+    >
       {text}
     </button>
   );

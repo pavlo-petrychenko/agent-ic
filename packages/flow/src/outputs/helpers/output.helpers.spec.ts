@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { AgentExitKind } from '@flow/nodes/constants/step.constants';
 import {
   AGENT_MESSAGES_FIELD_NAME,
+  AGENT_OUTCOME_CONTINUE,
+  AGENT_OUTCOME_FIELD_NAME,
+  AGENT_OUTCOME_REASON_FIELD_NAME,
   OutputFieldType,
 } from '@flow/outputs/constants/output.constants';
 import {
@@ -8,12 +12,55 @@ import {
   outputFieldTypes,
   outputToZod,
 } from '@flow/outputs/helpers/output.helpers';
-import { agent, completion, field, router } from '@test/support/fixtures/flow-builder.fixture';
+import {
+  agent,
+  completion,
+  field,
+  router,
+  withExits,
+} from '@test/support/fixtures/flow-builder.fixture';
 
 describe('nodeOutputFields', () => {
   it('puts the built-in messages field first on an agent', () => {
     const names = nodeOutputFields(agent('answer', [field('intent')])).map((output) => output.name);
     expect(names).toEqual([AGENT_MESSAGES_FIELD_NAME, 'intent']);
+  });
+
+  it('adds the outcome and its reason next to messages while an exit is on', () => {
+    const node = withExits(agent('answer', [field('intent')]), { end: { when: 'Done' } });
+
+    expect(nodeOutputFields(node)).toEqual([
+      expect.objectContaining({ name: AGENT_MESSAGES_FIELD_NAME }),
+      {
+        name: AGENT_OUTCOME_FIELD_NAME,
+        type: OutputFieldType.Enum,
+        description: '',
+        required: true,
+        values: [AGENT_OUTCOME_CONTINUE, AgentExitKind.End],
+      },
+      expect.objectContaining({
+        name: AGENT_OUTCOME_REASON_FIELD_NAME,
+        type: OutputFieldType.String,
+        required: true,
+      }),
+      expect.objectContaining({ name: 'intent' }),
+    ]);
+  });
+
+  it('lists every exit that is on as an outcome value', () => {
+    const node = withExits(agent('answer'), {
+      end: { when: 'Done' },
+      handoff: { when: 'Asks for a person' },
+    });
+
+    expect(
+      outputToZod(nodeOutputFields(node)).shape[AGENT_OUTCOME_FIELD_NAME]?.safeParse(
+        AgentExitKind.Handoff,
+      ).success,
+    ).toBe(true);
+    expect(nodeOutputFields(node)[1]).toMatchObject({
+      values: [AGENT_OUTCOME_CONTINUE, AgentExitKind.End, AgentExitKind.Handoff],
+    });
   });
 
   it('gives a completion its own fields and a router none', () => {

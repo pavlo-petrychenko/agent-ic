@@ -1,0 +1,8 @@
+mutation CloseSimulationForInactivity($input: CloseSimulationForInactivityInput!) {
+  closeSimulationForInactivity(input: $input) {
+    conversation {
+      id
+      state
+    }
+  }
+}

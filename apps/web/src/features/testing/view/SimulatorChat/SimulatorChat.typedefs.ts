@@ -6,4 +6,6 @@ export interface SimulatorChatProps {
   typing: boolean;
   selectedRunId: string | null;
   onSelectRun: (runId: string) => void;
+  durationLabel: (minutes: number) => string;
+  scheduleName: (runId: string) => string | null;
 }

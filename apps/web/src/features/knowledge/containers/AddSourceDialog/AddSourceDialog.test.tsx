@@ -5,18 +5,43 @@ import userEvent from '@testing-library/user-event';
 import { GraphQLError } from 'graphql';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmUploadDocument } from '@/features/knowledge/communication/gql/mutation/confirmUpload.generated';
+import { CreateGoogleDocsSourceDocument } from '@/features/knowledge/communication/gql/mutation/createGoogleDocsSource.generated';
+import { CreateGooglePickerSessionDocument } from '@/features/knowledge/communication/gql/mutation/createGooglePickerSession.generated';
 import { CreateUploadDocument } from '@/features/knowledge/communication/gql/mutation/createUpload.generated';
-import { AddSourceDialog } from '@/features/knowledge/containers/AddSourceDialog';
+import { DisconnectGoogleConnectionDocument } from '@/features/knowledge/communication/gql/mutation/disconnectGoogleConnection.generated';
+import { StartGoogleConnectionDocument } from '@/features/knowledge/communication/gql/mutation/startGoogleConnection.generated';
 import {
+  KnowledgeConnectionsDocument,
+  type KnowledgeConnectionsQuery,
+} from '@/features/knowledge/communication/gql/query/knowledgeConnections.generated';
+import { GOOGLE_CONNECTION_RETURN_STORAGE_KEY } from '@/features/knowledge/constants/googleConnection.constants';
+import { AddSourceDialog } from '@/features/knowledge/containers/AddSourceDialog';
+import type * as GoogleConnectionHelpers from '@/features/knowledge/logic/helpers/googleConnection.helpers';
+import { redirectToGoogle } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
+import type * as GooglePickerHelpers from '@/features/knowledge/logic/helpers/googlePicker.helpers';
+import { openGooglePicker } from '@/features/knowledge/logic/helpers/googlePicker.helpers';
+import {
+  KnowledgeConnectionStatus,
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
 } from '@/shared/api/generated/schema.generated';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
+vi.mock('@/features/knowledge/logic/helpers/googleConnection.helpers', async (importOriginal) => {
+  const actual = await importOriginal<typeof GoogleConnectionHelpers>();
+  return { ...actual, redirectToGoogle: vi.fn<() => void>() };
+});
+
+vi.mock('@/features/knowledge/logic/helpers/googlePicker.helpers', async (importOriginal) => {
+  const actual = await importOriginal<typeof GooglePickerHelpers>();
+  return { ...actual, openGooglePicker: vi.fn<() => Promise<void>>() };
+});
+
 const PDF = new File(['a'], 'services.pdf', { type: 'application/pdf' });
 const XLSX = new File(['b'], 'prices.xlsx', {
   type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 });
+const AUTHORIZATION_URL = 'https://accounts.google.com/o/oauth2/v2/auth?state=state-value';
 
 const SOURCE = {
   id: 'src_services',
@@ -25,14 +50,32 @@ const SOURCE = {
   title: 'services',
   status: KnowledgeSourceStatus.Pending,
   syncInterval: null,
+  syncTime: null,
+  syncWeekday: null,
+  timezone: null,
   nextSyncAt: null,
   lastSyncAt: null,
   lastErrorCode: null,
   lastErrorMessage: null,
+  staleDocumentCount: 0,
   documentCount: 0,
   chunkCount: 0,
   createdAt: '2026-10-26T09:00:00.000Z',
   updatedAt: '2026-10-26T09:00:00.000Z',
+};
+
+type ConnectionFixture = KnowledgeConnectionsQuery['knowledgeConnections'][number];
+
+const ACTIVE_CONNECTION: ConnectionFixture = {
+  id: 'kcn_owner',
+  accountEmail: 'owner@example.com',
+  status: KnowledgeConnectionStatus.Active,
+};
+
+const REVOKED_CONNECTION: ConnectionFixture = {
+  ...ACTIVE_CONNECTION,
+  id: 'kcn_revoked',
+  status: KnowledgeConnectionStatus.Revoked,
 };
 
 const CREATE_UPLOAD_MOCK: MockLink.MockedResponse = {
@@ -77,6 +120,178 @@ const FAILED_CREATE_UPLOAD_MOCK: MockLink.MockedResponse = {
   },
 };
 
+const buildConnectionsMock = (
+  connections: readonly ConnectionFixture[],
+): MockLink.MockedResponse => ({
+  request: { query: KnowledgeConnectionsDocument },
+  result: { data: { knowledgeConnections: connections } },
+});
+
+const START_GOOGLE_CONNECTION_MOCK: MockLink.MockedResponse = {
+  request: { query: StartGoogleConnectionDocument },
+  result: {
+    data: {
+      startGoogleConnection: {
+        authorizationUrl: AUTHORIZATION_URL,
+        expiresAt: '2026-10-26T09:10:00.000Z',
+      },
+    },
+  },
+};
+
+const DISCONNECT_GOOGLE_CONNECTION_MOCK: MockLink.MockedResponse = {
+  request: {
+    query: DisconnectGoogleConnectionDocument,
+    variables: { input: { id: ACTIVE_CONNECTION.id } },
+  },
+  result: { data: { disconnectGoogleConnection: { id: ACTIVE_CONNECTION.id } } },
+};
+
+const PICKER_POLICIES = {
+  id: 'gdoc_policies',
+  name: 'Policies',
+  mimeType: 'application/vnd.google-apps.document',
+  url: 'https://docs.google.com/document/d/gdoc_policies',
+  resourceKey: null,
+};
+
+const PICKER_PRICES = {
+  id: 'gdoc_prices',
+  name: 'Prices',
+  mimeType: 'application/vnd.google-apps.document',
+  url: 'https://docs.google.com/document/d/gdoc_prices',
+  resourceKey: null,
+};
+
+const PICKER_DOCUMENTS = [PICKER_POLICIES, PICKER_PRICES];
+
+const CREATE_GOOGLE_PICKER_SESSION_MOCK: MockLink.MockedResponse = {
+  request: {
+    query: CreateGooglePickerSessionDocument,
+    variables: { connectionId: ACTIVE_CONNECTION.id },
+  },
+  result: {
+    data: {
+      createGooglePickerSession: {
+        accessToken: 'google-access-token',
+        apiKey: 'picker-api-key',
+        appId: 'picker-app-id',
+        expiresAt: '2026-10-26T10:00:00.000Z',
+      },
+    },
+  },
+};
+
+const CREATE_GOOGLE_DOCS_SOURCE_MOCK: MockLink.MockedResponse = {
+  request: {
+    query: CreateGoogleDocsSourceDocument,
+    variables: {
+      input: {
+        connectionId: ACTIVE_CONNECTION.id,
+        knowledgeBaseId: 'kbs_services',
+        documents: PICKER_DOCUMENTS,
+        syncInterval: null,
+        syncTime: null,
+        syncWeekday: null,
+      },
+    },
+  },
+  result: {
+    data: {
+      createGoogleDocsSource: {
+        source: {
+          ...SOURCE,
+          kind: KnowledgeSourceKind.GoogleDocs,
+          title: 'Policies',
+        },
+        skipped: [
+          {
+            id: PICKER_PRICES.id,
+            name: PICKER_PRICES.name,
+            reason: 'unsupported',
+          },
+        ],
+      },
+    },
+  },
+};
+
+const CREATE_GOOGLE_DOCS_SOURCE_SCHEDULED_MOCK: MockLink.MockedResponse = {
+  request: {
+    query: CreateGoogleDocsSourceDocument,
+    variables: {
+      input: {
+        connectionId: ACTIVE_CONNECTION.id,
+        knowledgeBaseId: 'kbs_services',
+        documents: PICKER_DOCUMENTS,
+        syncInterval: 'weekly',
+        syncTime: '06:00',
+        syncWeekday: 1,
+      },
+    },
+  },
+  result: {
+    data: {
+      createGoogleDocsSource: {
+        source: {
+          ...SOURCE,
+          kind: KnowledgeSourceKind.GoogleDocs,
+          title: 'Policies',
+          syncInterval: 'weekly',
+          syncTime: '06:00',
+          syncWeekday: 1,
+          timezone: 'Europe/Kyiv',
+        },
+        skipped: [],
+      },
+    },
+  },
+};
+
+const CREATE_GOOGLE_DOCS_SOURCE_ALREADY_ADDED_MOCK: MockLink.MockedResponse = {
+  request: CREATE_GOOGLE_DOCS_SOURCE_MOCK.request,
+  result: {
+    data: {
+      createGoogleDocsSource: {
+        source: {
+          ...SOURCE,
+          kind: KnowledgeSourceKind.GoogleDocs,
+          title: 'Policies',
+        },
+        skipped: [
+          {
+            id: PICKER_PRICES.id,
+            name: PICKER_PRICES.name,
+            reason: 'alreadyAdded',
+          },
+        ],
+      },
+    },
+  },
+};
+
+const CREATE_GOOGLE_DOCS_SOURCE_ALL_DUPLICATE_MOCK: MockLink.MockedResponse = {
+  request: CREATE_GOOGLE_DOCS_SOURCE_MOCK.request,
+  result: {
+    data: {
+      createGoogleDocsSource: {
+        source: {
+          ...SOURCE,
+          kind: KnowledgeSourceKind.GoogleDocs,
+          title: 'Google Docs (2)',
+          status: KnowledgeSourceStatus.Ready,
+          documentCount: 2,
+        },
+        skipped: PICKER_DOCUMENTS.map((document) => ({
+          id: document.id,
+          name: document.name,
+          reason: 'alreadyAdded',
+        })),
+      },
+    },
+  },
+};
+
 const renderDialog = (
   mocks: readonly MockLink.MockedResponse[] = [],
   locale: Locale = Locale.En,
@@ -85,6 +300,7 @@ const renderDialog = (
   const onUploaded = vi.fn<() => void>();
   renderWithProviders(
     <AddSourceDialog
+      workspaceId="ws_demo"
       knowledgeBaseId="kbs_services"
       knowledgeBaseName="Services & prices"
       onClose={onClose}
@@ -103,9 +319,16 @@ const fileInput = (): HTMLInputElement => {
   return input;
 };
 
+const openGoogleTab = async (): Promise<void> => {
+  await userEvent.click(screen.getByRole('button', { name: /Google Docs/ }));
+};
+
 describe('AddSourceDialog', () => {
   afterEach(() => {
+    vi.mocked(openGooglePicker).mockReset();
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    sessionStorage.clear();
   });
 
   it('uploads valid files, skips unsupported ones and closes after success', async () => {
@@ -119,7 +342,7 @@ describe('AddSourceDialog', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Upload files')).toBeInTheDocument();
     expect(screen.getByText('Google Docs')).toBeInTheDocument();
-    expect(screen.getByText('ClickUp')).toBeInTheDocument();
+    expect(screen.queryByText('ClickUp')).not.toBeInTheDocument();
 
     await user.upload(fileInput(), [PDF, XLSX]);
 
@@ -182,5 +405,196 @@ describe('AddSourceDialog', () => {
     expect(screen.getByText('Failed')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Retry 1 file' })).toBeEnabled();
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('starts Google OAuth and remembers where to return', async () => {
+    const user = userEvent.setup();
+    const redirect = vi.mocked(redirectToGoogle);
+    redirect.mockClear();
+    renderDialog([buildConnectionsMock([]), START_GOOGLE_CONNECTION_MOCK]);
+
+    await openGoogleTab();
+    expect(await screen.findByText('No Google account is connected yet.')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Connect Google account' }));
+
+    await waitFor(() => expect(redirect).toHaveBeenCalledWith(AUTHORIZATION_URL));
+    expect(
+      JSON.parse(sessionStorage.getItem(GOOGLE_CONNECTION_RETURN_STORAGE_KEY) ?? 'null'),
+    ).toEqual({ workspaceId: 'ws_demo', knowledgeBaseId: 'kbs_services' });
+  });
+
+  it('lists a connected Google account and disconnects it', async () => {
+    const user = userEvent.setup();
+    renderDialog([
+      buildConnectionsMock([ACTIVE_CONNECTION]),
+      DISCONNECT_GOOGLE_CONNECTION_MOCK,
+      buildConnectionsMock([]),
+    ]);
+
+    await openGoogleTab();
+
+    expect(await screen.findByText('owner@example.com')).toBeInTheDocument();
+    expect(screen.getByText('Connected')).toBeInTheDocument();
+    expect(screen.getByText(/Google Docs summaries are generated once/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Pick documents' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Disconnect' }));
+
+    expect(await screen.findByText('No Google account is connected yet.')).toBeInTheDocument();
+    expect(screen.getByText('Google account disconnected.')).toBeInTheDocument();
+  });
+
+  it('asks to reconnect a revoked Google account', async () => {
+    renderDialog([buildConnectionsMock([REVOKED_CONNECTION])]);
+
+    await openGoogleTab();
+
+    expect(await screen.findByText('Reconnect needed')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Reconnect' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Pick documents' })).not.toBeInTheDocument();
+    expect(
+      screen.getByText('Sources from this account stop syncing until you reconnect.'),
+    ).toBeInTheDocument();
+  });
+
+  it('picks Google Docs, reviews them and creates a source with the selection', async () => {
+    const user = userEvent.setup();
+    vi.mocked(openGooglePicker).mockImplementation(async ({ onPicked }) => {
+      onPicked(PICKER_DOCUMENTS);
+    });
+    const { onClose, onUploaded } = renderDialog([
+      buildConnectionsMock([ACTIVE_CONNECTION]),
+      CREATE_GOOGLE_PICKER_SESSION_MOCK,
+      CREATE_GOOGLE_DOCS_SOURCE_MOCK,
+    ]);
+
+    await openGoogleTab();
+    await screen.findByText('owner@example.com');
+    await user.click(screen.getByRole('button', { name: 'Pick documents' }));
+
+    expect(await screen.findByText('Selected documents')).toBeInTheDocument();
+    expect(screen.getByText(PICKER_POLICIES.name)).toBeInTheDocument();
+    expect(screen.getByText(PICKER_PRICES.name)).toBeInTheDocument();
+    expect(screen.getByText('2 documents selected')).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(onUploaded).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Add 2 documents' }));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(onUploaded).toHaveBeenCalled();
+    expect(openGooglePicker).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accessToken: 'google-access-token',
+        apiKey: 'picker-api-key',
+        appId: 'picker-app-id',
+      }),
+    );
+    expect(screen.getByText('Google Docs source added.')).toBeInTheDocument();
+    expect(screen.getByText('Some selected documents could not be added.')).toBeInTheDocument();
+  });
+
+  it('creates a scheduled Google Docs source with the weekly preset', async () => {
+    const user = userEvent.setup();
+    vi.mocked(openGooglePicker).mockImplementation(async ({ onPicked }) => {
+      onPicked(PICKER_DOCUMENTS);
+    });
+    const { onClose } = renderDialog([
+      buildConnectionsMock([ACTIVE_CONNECTION]),
+      CREATE_GOOGLE_PICKER_SESSION_MOCK,
+      CREATE_GOOGLE_DOCS_SOURCE_SCHEDULED_MOCK,
+    ]);
+
+    await openGoogleTab();
+    await screen.findByText('owner@example.com');
+    await user.click(screen.getByRole('button', { name: 'Pick documents' }));
+    await screen.findByText('Selected documents');
+    await user.click(screen.getByRole('radio', { name: 'Scheduled re-sync' }));
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Schedule' }), 'weekly');
+    await user.click(screen.getByRole('button', { name: 'Add 2 documents' }));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+
+  it('keeps the dialog mounted while the Google Picker is open', async () => {
+    const user = userEvent.setup();
+    let pickerReady = false;
+    let finishPicking = (): void => undefined;
+    vi.mocked(openGooglePicker).mockImplementation(
+      async ({ onPicked }) =>
+        new Promise<void>((resolve) => {
+          finishPicking = () => {
+            onPicked(PICKER_DOCUMENTS);
+            resolve();
+          };
+          pickerReady = true;
+        }),
+    );
+    renderDialog([buildConnectionsMock([ACTIVE_CONNECTION]), CREATE_GOOGLE_PICKER_SESSION_MOCK]);
+
+    await openGoogleTab();
+    await screen.findByText('owner@example.com');
+    const dialog = screen.getByRole('dialog', { name: 'Add source to “Services & prices”' });
+    await user.click(screen.getByRole('button', { name: 'Pick documents' }));
+    await waitFor(() => expect(pickerReady).toBe(true));
+
+    expect(screen.getByRole('dialog', { name: 'Add source to “Services & prices”' })).toBe(dialog);
+
+    finishPicking();
+    expect(await screen.findByText('Selected documents')).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Add source to “Services & prices”' })).toBe(dialog);
+  });
+
+  it('reports Google Docs that are already in the knowledge base', async () => {
+    const user = userEvent.setup();
+    vi.mocked(openGooglePicker).mockImplementation(async ({ onPicked }) => {
+      onPicked(PICKER_DOCUMENTS);
+    });
+    renderDialog([
+      buildConnectionsMock([ACTIVE_CONNECTION]),
+      CREATE_GOOGLE_PICKER_SESSION_MOCK,
+      CREATE_GOOGLE_DOCS_SOURCE_ALREADY_ADDED_MOCK,
+    ]);
+
+    await openGoogleTab();
+    await screen.findByText('owner@example.com');
+    await user.click(screen.getByRole('button', { name: 'Pick documents' }));
+
+    expect(await screen.findByText(PICKER_POLICIES.name)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Add 2 documents' }));
+
+    expect(
+      await screen.findByText(
+        'These Google Docs were already in this knowledge base and are linked to the new source.',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('creates a source that references Google Docs already in the knowledge base', async () => {
+    const user = userEvent.setup();
+    vi.mocked(openGooglePicker).mockImplementation(async ({ onPicked }) => {
+      onPicked(PICKER_DOCUMENTS);
+    });
+    const { onClose, onUploaded } = renderDialog([
+      buildConnectionsMock([ACTIVE_CONNECTION]),
+      CREATE_GOOGLE_PICKER_SESSION_MOCK,
+      CREATE_GOOGLE_DOCS_SOURCE_ALL_DUPLICATE_MOCK,
+    ]);
+
+    await openGoogleTab();
+    await screen.findByText('owner@example.com');
+    await user.click(screen.getByRole('button', { name: 'Pick documents' }));
+    expect(await screen.findByText(PICKER_POLICIES.name)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Add 2 documents' }));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(onUploaded).toHaveBeenCalled();
+    expect(screen.getByText('Google Docs source added.')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'These Google Docs were already in this knowledge base and are linked to the new source.',
+      ),
+    ).toBeInTheDocument();
   });
 });

@@ -14,6 +14,7 @@ import {
   FailureMode,
   HttpMethod,
   MessageContentKind,
+  NO_AGENT_EXITS,
   NotifyChannel,
   QuickRepliesKind,
   RecipientsKind,
@@ -34,6 +35,7 @@ import {
   PromptSourceKind,
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
+import { NO_FLOW_SETTINGS } from '@flow/settings/constants/settings.constants';
 
 const at = { x: 0, y: 0 };
 const EXAMPLE_PROMPT_REF = 'prm_example';
@@ -151,6 +153,7 @@ export const faqWithHandOffFlow: FlowDocument = {
         retrievalMode: RetrievalMode.Tools,
         output: [],
         retries: AGENT_DEFAULT_RETRIES,
+        exits: NO_AGENT_EXITS,
       },
     },
     {
@@ -202,6 +205,7 @@ export const faqWithHandOffFlow: FlowDocument = {
     { id: 'e7', source: 'n_answer', sourcePort: PortName.Next, target: 'n_reply' },
     { id: 'e8', source: 'n_answer', sourcePort: PortName.Error, target: 'n_handoff' },
   ],
+  settings: NO_FLOW_SETTINGS,
 };
 
 export const scheduledFollowUpFlow: FlowDocument = {
@@ -250,6 +254,7 @@ export const scheduledFollowUpFlow: FlowDocument = {
           },
         ],
         retries: AGENT_DEFAULT_RETRIES,
+        exits: NO_AGENT_EXITS,
       },
     },
     {
@@ -304,6 +309,7 @@ export const scheduledFollowUpFlow: FlowDocument = {
     { id: 'e4', source: 'n_decide', sourcePort: 'rule_send', target: 'n_send' },
     { id: 'e5', source: 'n_decide', sourcePort: PortName.Else, target: 'n_close' },
   ],
+  settings: NO_FLOW_SETTINGS,
 };
 
 export const eventNotificationFlow: FlowDocument = {
@@ -360,6 +366,7 @@ export const eventNotificationFlow: FlowDocument = {
     { id: 'e1', source: 'n_event', sourcePort: PortName.Next, target: 'n_load' },
     { id: 'e2', source: 'n_load', sourcePort: PortName.Next, target: 'n_notify' },
   ],
+  settings: NO_FLOW_SETTINGS,
 };
 
 export const exampleFlows: readonly FlowDocument[] = [

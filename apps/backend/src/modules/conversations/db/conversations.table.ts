@@ -1,10 +1,15 @@
-import { isNotNull } from 'drizzle-orm';
+import { isNotNull, sql } from 'drizzle-orm';
 import { foreignKey, index, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { agentVersions } from '@/modules/agents/db/agent-versions.table';
 import { agents } from '@/modules/agents/db/agents.table';
 import {
+  ConversationMode,
+  ConversationState,
+} from '@/modules/conversations/constants/conversation.constants';
+import {
   channelKindEnum,
+  closeReasonEnum,
   conversationModeEnum,
   conversationStateEnum,
   conversationsSchema,
@@ -12,6 +17,7 @@ import {
 import { users } from '@/modules/identity/db/users.table';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
 import { runs } from '@/modules/runs/db/runs.table';
+import { toSqlLiteral } from '@/platform/database/helpers/tenant-sql.helpers';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,
@@ -45,7 +51,10 @@ export const conversations = conversationsSchema
       ),
       awaySentAt: timestamp('away_sent_at', { withTimezone: true }),
       lastMessageAt: timestamp('last_message_at', { withTimezone: true }).notNull(),
+      lastCustomerMessageAt: timestamp('last_customer_message_at', { withTimezone: true }),
+      lastEscalatedAt: timestamp('last_escalated_at', { withTimezone: true }),
       closedAt: timestamp('closed_at', { withTimezone: true }),
+      closeReason: closeReasonEnum('close_reason'),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
     },
     (table) => [
@@ -69,6 +78,11 @@ export const conversations = conversationsSchema
       index('conversations_simulation_version_id_idx')
         .on(table.simulationVersionId)
         .where(isNotNull(table.simulationVersionId)),
+      index('conversations_schedule_candidates_idx')
+        .on(table.workspaceId, table.agentId, table.lastCustomerMessageAt)
+        .where(
+          sql`${table.mode} = ${sql.raw(toSqlLiteral(ConversationMode.Live))} and ${table.state} = ${sql.raw(toSqlLiteral(ConversationState.AgentActive))}`,
+        ),
       tenantIsolationPolicy('conversations'),
     ],
   )

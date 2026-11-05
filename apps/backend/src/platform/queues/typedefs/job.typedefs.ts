@@ -23,6 +23,16 @@ export interface JobSchedule<TData extends JobData> {
   readonly data: TData;
 }
 
+export type JobSchedulerRepeat =
+  | {
+      readonly every: number;
+      readonly tz?: string;
+    }
+  | {
+      readonly pattern: string;
+      readonly tz: string;
+    };
+
 export interface JobEnvelope {
   readonly version: typeof ENVELOPE_VERSION;
   readonly data: JobData;
@@ -51,6 +61,7 @@ export interface EnqueueOptions {
 
 export interface JobEnqueueOptions extends Partial<EnqueueOptions> {
   readonly jobId?: string;
+  readonly detachedTrace?: boolean;
 }
 
 export type TrackedJob = Pick<Job, 'name' | 'timestamp' | 'attemptsMade' | 'opts'>;

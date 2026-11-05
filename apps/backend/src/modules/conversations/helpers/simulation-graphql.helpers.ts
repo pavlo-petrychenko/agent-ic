@@ -1,8 +1,12 @@
 import {
   ChannelKind,
+  CloseReason,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
-import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
+import {
+  MessageAuthor,
+  MessageSystemEvent,
+} from '@/modules/conversations/constants/message.constants';
 import type {
   ConversationView,
   MessageView,
@@ -17,8 +21,10 @@ import type {
 } from '@/platform/graphql-server/generated/schema.generated';
 import {
   ChannelConversationKind as GraphqlChannelConversationKind,
+  ConversationCloseReason as GraphqlConversationCloseReason,
   ConversationState as GraphqlConversationState,
   MessageAuthor as GraphqlMessageAuthor,
+  MessageSystemEvent as GraphqlMessageSystemEvent,
 } from '@/platform/graphql-server/generated/schema.generated';
 
 const GRAPHQL_CONVERSATION_STATE: Readonly<Record<ConversationState, GraphqlConversationState>> = {
@@ -26,6 +32,12 @@ const GRAPHQL_CONVERSATION_STATE: Readonly<Record<ConversationState, GraphqlConv
   [ConversationState.Waiting]: GraphqlConversationState.Waiting,
   [ConversationState.Handled]: GraphqlConversationState.Handled,
   [ConversationState.Closed]: GraphqlConversationState.Closed,
+};
+
+const GRAPHQL_CLOSE_REASON: Readonly<Record<CloseReason, GraphqlConversationCloseReason>> = {
+  [CloseReason.EndedByAgent]: GraphqlConversationCloseReason.EndedByAgent,
+  [CloseReason.Inactivity]: GraphqlConversationCloseReason.Inactivity,
+  [CloseReason.ClosedByOperator]: GraphqlConversationCloseReason.ClosedByOperator,
 };
 
 const GRAPHQL_CHANNEL_CONVERSATION_KIND: Readonly<
@@ -49,10 +61,21 @@ const GRAPHQL_MESSAGE_AUTHOR: Readonly<Record<MessageAuthor, GraphqlMessageAutho
   [MessageAuthor.System]: GraphqlMessageAuthor.System,
 };
 
+const GRAPHQL_MESSAGE_SYSTEM_EVENT: Readonly<
+  Record<MessageSystemEvent, GraphqlMessageSystemEvent>
+> = {
+  [MessageSystemEvent.Escalated]: GraphqlMessageSystemEvent.Escalated,
+  [MessageSystemEvent.TookOver]: GraphqlMessageSystemEvent.TookOver,
+  [MessageSystemEvent.HandedBack]: GraphqlMessageSystemEvent.HandedBack,
+};
+
 export const toGraphqlConversation = (conversation: ConversationView): Conversation => ({
   ...conversation,
   state: GRAPHQL_CONVERSATION_STATE[conversation.state],
   channelKind: GRAPHQL_CHANNEL_CONVERSATION_KIND[conversation.channelKind],
+  closeReason:
+    conversation.closeReason === null ? null : GRAPHQL_CLOSE_REASON[conversation.closeReason],
+  closedAt: conversation.closedAt?.toISOString() ?? null,
   createdAt: conversation.createdAt.toISOString(),
 });
 
@@ -68,6 +91,8 @@ export const toStartSimulationInput = (
 export const toGraphqlMessage = (message: MessageView): Message => ({
   ...message,
   author: GRAPHQL_MESSAGE_AUTHOR[message.author],
+  systemEvent:
+    message.systemEvent === null ? null : GRAPHQL_MESSAGE_SYSTEM_EVENT[message.systemEvent],
   createdAt: message.createdAt.toISOString(),
 });
 

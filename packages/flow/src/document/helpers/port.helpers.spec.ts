@@ -2,12 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { NodeType, PortName } from '@flow/document/constants/flow.constants';
 import { nodePorts } from '@flow/document/helpers/port.helpers';
 import type { FlowDocument, FlowNode } from '@flow/document/typedefs/flow.typedefs';
-import { FailureMode } from '@flow/nodes/constants/step.constants';
+import { AgentExitKind, FailureMode } from '@flow/nodes/constants/step.constants';
 import {
   eventNotificationFlow,
   faqWithHandOffFlow,
   scheduledFollowUpFlow,
 } from '@test/support/fixtures/example-flow.fixture';
+import { agent, inactivityTrigger, withExits } from '@test/support/fixtures/flow-builder.fixture';
 
 const nodeByKey = (flow: FlowDocument, key: string): FlowNode => {
   const node = flow.nodes.find((candidate) => candidate.key === key);
@@ -22,6 +23,7 @@ describe('nodePorts', () => {
     expect(nodePorts(nodeByKey(faqWithHandOffFlow, 'incoming'))).toEqual([PortName.Next]);
     expect(nodePorts(nodeByKey(scheduledFollowUpFlow, 'every_morning'))).toEqual([PortName.Next]);
     expect(nodePorts(nodeByKey(eventNotificationFlow, 'order_shipped'))).toEqual([PortName.Next]);
+    expect(nodePorts(inactivityTrigger('quiet'))).toEqual([PortName.Next]);
   });
 
   it('gives an agent and a guard next and error', () => {
@@ -33,6 +35,22 @@ describe('nodePorts', () => {
       PortName.Next,
       PortName.Error,
     ]);
+  });
+
+  it('adds a port for each exit an agent has on', () => {
+    const both = withExits(agent('answer'), {
+      end: { when: 'Done' },
+      handoff: { when: 'Asks for a person' },
+    });
+    const handoffOnly = withExits(agent('answer'), { handoff: { when: 'Asks for a person' } });
+
+    expect(nodePorts(both)).toEqual([
+      PortName.Next,
+      PortName.Error,
+      AgentExitKind.End,
+      AgentExitKind.Handoff,
+    ]);
+    expect(nodePorts(handoffOnly)).toEqual([PortName.Next, PortName.Error, AgentExitKind.Handoff]);
   });
 
   it('gives an escalation no ports', () => {

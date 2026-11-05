@@ -15,9 +15,14 @@ export const awayMessageKey = (conversationId: string, pausedAt: Date): string =
   );
 
 export const endUserLockKey = (key: EndUserConversationKey): string =>
-  [key.workspaceId, key.agentId, key.mode, key.channelKind, key.endUserExternalId].join(
-    END_USER_LOCK_KEY_SEPARATOR,
-  );
+  [
+    key.workspaceId,
+    key.agentId,
+    key.mode,
+    key.channelKind,
+    key.channelId ?? '',
+    key.endUserExternalId,
+  ].join(END_USER_LOCK_KEY_SEPARATOR);
 
 export const simulationLockKey = (key: SimulationKey): string =>
   [key.workspaceId, key.agentId, ConversationMode.Simulation, key.endUserExternalId].join(

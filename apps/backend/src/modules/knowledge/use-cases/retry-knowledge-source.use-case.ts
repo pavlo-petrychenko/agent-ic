@@ -1,35 +1,34 @@
 import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import {
-  KnowledgeDocumentStatus,
+  KnowledgeConnectionStatus,
   KnowledgeSourceStatus,
-  KnowledgeSyncStatus,
   KnowledgeSyncTrigger,
 } from '@/modules/knowledge/constants/knowledge.constants';
+import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import { KnowledgeSourceBusyError } from '@/modules/knowledge/errors/knowledge-source-busy.error';
 import { KnowledgeSourceNotFoundError } from '@/modules/knowledge/errors/knowledge-source-not-found.error';
 import { KnowledgeSourceNotRetryableError } from '@/modules/knowledge/errors/knowledge-source-not-retryable.error';
 import { parseKnowledgeInput } from '@/modules/knowledge/helpers/knowledge-input.helpers';
-import { ingestKnowledgeSourceJob } from '@/modules/knowledge/jobs/ingest-knowledge-source.job';
-import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
+import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
 import { retryKnowledgeSourceInputSchema } from '@/modules/knowledge/schemas/knowledge-input.schema';
+import { KnowledgeSourceSyncService } from '@/modules/knowledge/services/knowledge-source-sync.service';
 import type { RetryKnowledgeSourceInput } from '@/modules/knowledge/typedefs/source.typedefs';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
-import { JobsService } from '@/platform/queues/services/jobs.service';
 
 @Injectable()
 export class RetryKnowledgeSourceUseCase {
   constructor(
     private readonly tenants: TenantTransactionService,
     private readonly sources: SourcesRepository,
-    private readonly documents: DocumentsRepository,
+    private readonly connections: ConnectionsRepository,
     private readonly syncRuns: SyncRunsRepository,
-    private readonly jobs: JobsService,
+    private readonly sync: KnowledgeSourceSyncService,
     private readonly ids: IdService,
   ) {}
 
@@ -61,41 +60,26 @@ export class RetryKnowledgeSourceUseCase {
       if (source.status !== KnowledgeSourceStatus.Error) {
         throw new KnowledgeSourceNotRetryableError();
       }
+      if (source.connectionId !== null) {
+        const connection = await this.connections.findById(workspaceId, source.connectionId);
+        if (connection === null || connection.status !== KnowledgeConnectionStatus.Active) {
+          throw new GoogleReconnectRequiredError();
+        }
+      }
 
-      const documents = await this.documents.listBySource(workspaceId, source.id);
+      const documents = await this.sync.failedDocumentsForRetry(workspaceId, source);
       if (documents.length === 0) {
         throw new KnowledgeSourceNotRetryableError();
       }
 
-      const syncRunId = this.ids.generate();
-      await this.sources.update(workspaceId, source.id, {
-        status: KnowledgeSourceStatus.Pending,
-        lastErrorCode: null,
-        lastErrorMessage: null,
-      });
-      for (const document of documents) {
-        if (document.status === KnowledgeDocumentStatus.Error) {
-          await this.documents.update(workspaceId, document.id, {
-            status: KnowledgeDocumentStatus.Pending,
-            errorCode: null,
-            errorMessage: null,
-          });
-        }
-      }
-      await this.syncRuns.insert({
-        id: syncRunId,
-        workspaceId,
-        sourceId: source.id,
-        trigger: KnowledgeSyncTrigger.Manual,
-        status: KnowledgeSyncStatus.Queued,
-        documentsTotal: documents.length,
-      });
-      await this.jobs.enqueue(
+      await this.sync.queue({
         ctx,
-        ingestKnowledgeSourceJob,
-        { sourceId: source.id, syncRunId },
-        { durable: true, jobId: syncRunId },
-      );
+        workspaceId,
+        source,
+        documents,
+        resetFailedDocuments: true,
+        trigger: KnowledgeSyncTrigger.Manual,
+      });
     });
 
     return { id: parsed.id };

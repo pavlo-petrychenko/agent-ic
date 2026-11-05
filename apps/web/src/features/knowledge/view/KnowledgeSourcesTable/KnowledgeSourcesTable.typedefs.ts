@@ -10,9 +10,13 @@ export interface KnowledgeSourcesTableProps {
   readonly rows: readonly KnowledgeSourceRowView[];
   readonly loading: boolean;
   readonly error: KnowledgeSourcesTableError | null;
+  readonly currentSourceId: string | null;
   readonly onAddSource: (() => void) | null;
+  readonly onOpenSource: ((row: KnowledgeSourceRowView) => void) | null;
+  readonly onSyncSource: ((row: KnowledgeSourceRowView) => void) | null;
   readonly onRenameSource: ((row: KnowledgeSourceRowView) => void) | null;
   readonly onRetrySource: ((row: KnowledgeSourceRowView) => void) | null;
   readonly onDeleteSource: ((row: KnowledgeSourceRowView) => void) | null;
   readonly retryingSourceId: string | null;
+  readonly syncingSourceId: string | null;
 }

@@ -1,15 +1,20 @@
+import { ChannelKind, WorkspaceRole } from '@agent-ic/contracts';
 import { ChannelsModule } from '@/modules/channels/channels.module';
+import { ApiReplyMode, ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
 import { FakeTelegramGateway } from '@/modules/channels/gateways/telegram.fake';
 import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
+import type { NewChannel } from '@/modules/channels/typedefs/channel.typedefs';
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type { Message } from '@/modules/conversations/typedefs/message.typedefs';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { FakeOutboundHttpGateway } from '@/platform/outbound-http/gateways/outbound-http.fake';
+import { OutboundHttpGateway } from '@/platform/outbound-http/gateways/outbound-http.gateway';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
 import {
   AGENT_REPLY_TEXT,
@@ -18,7 +23,9 @@ import {
   TEST_IDEMPOTENCY_KEY,
 } from '@test/support/constants/conversations-testing.constants';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
+import { newChannel } from '@test/support/fixtures/channel.fixture';
 import { newConversation, workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
+import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 import { createConversationsTestbed } from '@test/support/helpers/conversations-testing.helpers';
 import {
   ensureAgentRow,
@@ -30,17 +37,22 @@ import type { ChannelsTestbed } from '@test/support/typedefs/channels-testing.ty
 
 export const createChannelsTestbed = async (): Promise<ChannelsTestbed> => {
   const telegram = new FakeTelegramGateway();
+  const outbound = new FakeOutboundHttpGateway();
   const testbed = await createConversationsTestbed(
     ChannelsModule.forRole(CONVERSATIONS_TESTBED_ROLE),
     TestRedisPrefix.Channels,
     { role: CONVERSATIONS_TESTBED_ROLE, queues: [] },
-    [{ token: TelegramGateway, value: telegram }],
+    [
+      { token: TelegramGateway, value: telegram },
+      { token: OutboundHttpGateway, value: outbound },
+    ],
   );
   return {
     ...testbed,
     deliver: testbed.module.get(DeliverOutboundMessageUseCase),
     simulated: testbed.module.get(SimulatedChannelAdapter),
     telegram,
+    outbound,
     channels: testbed.module.get(ChannelsRepository),
     channelEvents: testbed.module.get(ChannelEventsRepository),
     channelTokens: testbed.module.get(ChannelTokenService),
@@ -49,17 +61,22 @@ export const createChannelsTestbed = async (): Promise<ChannelsTestbed> => {
 
 export const createChannelsWorkerTestbed = async (): Promise<ChannelsTestbed> => {
   const telegram = new FakeTelegramGateway();
+  const outbound = new FakeOutboundHttpGateway();
   const testbed = await createConversationsTestbed(
     ChannelsModule.forRole(Role.Worker),
     TestRedisPrefix.ChannelsWorker,
     { role: Role.Worker, queues: [QueueName.Outbound] },
-    [{ token: TelegramGateway, value: telegram }],
+    [
+      { token: TelegramGateway, value: telegram },
+      { token: OutboundHttpGateway, value: outbound },
+    ],
   );
   return {
     ...testbed,
     deliver: testbed.module.get(DeliverOutboundMessageUseCase),
     simulated: testbed.module.get(SimulatedChannelAdapter),
     telegram,
+    outbound,
     channels: testbed.module.get(ChannelsRepository),
     channelEvents: testbed.module.get(ChannelEventsRepository),
     channelTokens: testbed.module.get(ChannelTokenService),
@@ -74,6 +91,42 @@ export const seedChannelWorkspace = async (
   await ensureWorkspaceRow(testbed.module, workspaceId);
   await ensureUserRow(testbed.module, userId);
   return { workspaceId, userId };
+};
+
+export const seedApiChannel = async (
+  testbed: ChannelsTestbed,
+  overrides: Partial<NewChannel> = {},
+) => {
+  const workspace = await seedChannelWorkspace(testbed);
+  const agentId = testbed.ids.generate();
+  await ensureAgentRow(testbed.module, workspace.workspaceId, agentId);
+  const channel = newChannel(testbed, workspace.workspaceId, {
+    createdByUserId: workspace.userId,
+    status: ChannelStatus.Connected,
+    kind: ChannelKind.Api,
+    agentId,
+    identity: {
+      name: 'Website',
+      replyMode: ApiReplyMode.Response,
+      webhook: null,
+    },
+    showTyping: false,
+    credentialsSealed: testbed.channelTokens.sealCredentials({
+      secretKeyHash: 'old-secret-hash',
+      secretKeyHint: 'old…hash',
+      previousSecretKeyHash: null,
+      previousKeyExpiresAt: null,
+      webhookSigningSecret: 'old-webhook-secret',
+    }),
+    ...overrides,
+  });
+  await testbed.tenants.run(workspace.workspaceId, () => testbed.channels.insertIfAbsent(channel));
+  return {
+    ...workspace,
+    agentId,
+    channel,
+    ctx: workspaceCtx(workspace.userId, workspace.workspaceId, WorkspaceRole.Owner),
+  };
 };
 
 export const seedChannelConversation = async (

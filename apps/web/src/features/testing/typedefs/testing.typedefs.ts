@@ -22,6 +22,7 @@ export interface TestingAgentsResult {
 
 export interface TestingVersionsResult {
   versions: readonly TestingVersion[];
+  draftIssues: readonly unknown[];
   draftBroken: boolean;
   draftChangeCount: number | null;
   draftFlow: FlowDocument | null;

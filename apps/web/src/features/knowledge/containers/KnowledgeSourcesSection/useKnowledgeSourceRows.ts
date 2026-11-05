@@ -1,3 +1,4 @@
+import { ErrorReason } from '@agent-ic/contracts';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
@@ -5,23 +6,28 @@ import {
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
 } from '@/features/knowledge/constants/knowledgeSource.constants';
+import { isGoogleConnectionActive } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import {
+  canSyncKnowledgeSource,
   formatKnowledgeSourceDate,
   isKnowledgeSourceActive,
-  isKnowledgeSourceErrorReason,
   isKnowledgeSourceRetryable,
 } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
+import { useKnowledgeFailureSummary } from '@/features/knowledge/logic/hooks/useKnowledgeFailureSummary';
+import { useKnowledgeScheduleLabel } from '@/features/knowledge/logic/hooks/useKnowledgeScheduleLabel';
+import type { GoogleConnection } from '@/features/knowledge/typedefs/googleConnection.typedefs';
 import type {
   KnowledgeSource,
   KnowledgeSourceRowView,
 } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
-import { Namespace } from '@/shared/i18n/constants/namespace.constants';
 
 export function useKnowledgeSourceRows(
   sources: readonly KnowledgeSource[],
+  connectionStatuses: ReadonlyMap<string, GoogleConnection['status']> = new Map(),
 ): readonly KnowledgeSourceRowView[] {
   const { t, i18n } = useTranslation(KNOWLEDGE_NAMESPACE);
-  const { t: tErrors } = useTranslation(Namespace.Errors);
+  const failureSummary = useKnowledgeFailureSummary();
+  const scheduleLabel = useKnowledgeScheduleLabel();
 
   return useMemo(() => {
     const kindLabel = (kind: KnowledgeSourceKind): string => {
@@ -46,6 +52,14 @@ export function useKnowledgeSourceRows(
       }
     };
 
+    const connectionActive = (source: KnowledgeSource): boolean => {
+      if (source.connectionId === null) {
+        return source.kind !== KnowledgeSourceKind.GoogleDocs;
+      }
+      const status = connectionStatuses.get(source.connectionId);
+      return status !== undefined && isGoogleConnectionActive(status);
+    };
+
     const statusDetail = (source: KnowledgeSource): string | null => {
       switch (source.status) {
         case KnowledgeSourceStatus.Pending:
@@ -53,30 +67,52 @@ export function useKnowledgeSourceRows(
         case KnowledgeSourceStatus.Indexing:
           return t('sources.status.indexingDetail');
         case KnowledgeSourceStatus.Ready:
-          return t('sources.chunks', { count: source.chunkCount });
+          return source.staleDocumentCount > 0
+            ? t('sources.status.staleDetail', { count: source.staleDocumentCount })
+            : t('sources.chunks', { count: source.chunkCount });
         case KnowledgeSourceStatus.Error:
-          return source.lastErrorCode !== null && isKnowledgeSourceErrorReason(source.lastErrorCode)
-            ? tErrors(`reason.${source.lastErrorCode}`)
-            : t('sources.status.errorDetail');
+          if (
+            source.lastErrorCode === ErrorReason.GoogleReconnectRequired &&
+            connectionActive(source)
+          ) {
+            return t('sources.status.retryNeeded');
+          }
+          return failureSummary(source.lastErrorCode) ?? t('sources.status.errorDetail');
       }
+    };
+
+    const syncDetail = (source: KnowledgeSource): string => {
+      const date = (iso: string): string => formatKnowledgeSourceDate(iso, i18n.language);
+      if (source.status === KnowledgeSourceStatus.Error) {
+        return t('sources.sync.failed', {
+          date: date(source.lastSyncAt ?? source.createdAt),
+        });
+      }
+      if (source.kind === KnowledgeSourceKind.Upload || source.lastSyncAt === null) {
+        return t('sources.sync.added', {
+          date: date(source.createdAt),
+        });
+      }
+      return t('sources.sync.lastSynced', {
+        date: date(source.lastSyncAt),
+      });
     };
 
     return sources.map((source) => ({
       id: source.id,
       title: source.title,
+      kind: source.kind,
       kindLabel: kindLabel(source.kind),
-      syncLabel:
-        source.kind === KnowledgeSourceKind.Upload
-          ? t('sources.sync.oneTime')
-          : t('sources.sync.connected'),
-      syncDetail: t('sources.sync.added', {
-        date: formatKnowledgeSourceDate(source.createdAt, i18n.language),
-      }),
+      syncLabel: scheduleLabel(source),
+      syncDetail: syncDetail(source),
       status: source.status,
       isActive: isKnowledgeSourceActive(source.status),
-      canRetry: isKnowledgeSourceRetryable(source.status, source.lastErrorCode),
+      canRetry:
+        isKnowledgeSourceRetryable(source.status, source.lastErrorCode) && connectionActive(source),
+      canSync: canSyncKnowledgeSource(source, connectionActive(source)),
       statusLabel: statusLabel(source.status),
       statusDetail: statusDetail(source),
+      staleDocumentCount: source.staleDocumentCount,
     }));
-  }, [i18n.language, sources, t, tErrors]);
+  }, [connectionStatuses, failureSummary, i18n.language, scheduleLabel, sources, t]);
 }

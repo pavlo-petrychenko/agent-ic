@@ -1,7 +1,12 @@
+import type { ReactNode } from 'react';
+import type { AddSourceType } from '@/features/knowledge/constants/googleConnection.constants';
+import type { GooglePickerDocument } from '@/features/knowledge/typedefs/googlePicker.typedefs';
+import type { KnowledgeSourceSchedule } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import type { SelectedKnowledgeFileView } from '@/features/knowledge/typedefs/knowledgeUpload.typedefs';
 
 export interface AddSourceModalProps {
   readonly knowledgeBaseName: string;
+  readonly sourceType: AddSourceType;
   readonly files: readonly SelectedKnowledgeFileView[];
   readonly readyCount: number;
   readonly uploadingCount: number;
@@ -9,8 +14,17 @@ export interface AddSourceModalProps {
   readonly failedCount: number;
   readonly skippedCount: number;
   readonly uploading: boolean;
+  readonly picking: boolean;
+  readonly googleDocuments: readonly GooglePickerDocument[];
+  readonly addingGoogleDocs: boolean;
+  readonly schedule: KnowledgeSourceSchedule;
+  readonly googleContent: ReactNode;
+  readonly onSourceTypeChange: (sourceType: AddSourceType) => void;
   readonly onFiles: (files: readonly File[]) => void;
   readonly onRemoveFile: (id: string) => void;
+  readonly onRemoveGoogleDocument: (id: string) => void;
+  readonly onScheduleChange: (schedule: KnowledgeSourceSchedule) => void;
+  readonly onAddGoogleDocs: () => void;
   readonly onSubmit: () => void;
   readonly onClose: () => void;
 }

@@ -9,6 +9,8 @@ export const SCHEMA_VERSION_FIELD = 'schemaVersion';
 
 export const FIRST_SCHEMA_VERSION = 1;
 
+export const SECOND_SCHEMA_VERSION = 2;
+
 export enum FlowV1CompletionRole {
   Guard = 'guard',
   Observer = 'observer',

@@ -1,13 +1,19 @@
 import type { z } from 'zod';
 import type {
   ChannelKind,
+  CloseReason,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
-import type { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import type {
+  MessageAuthor,
+  MessageSystemEvent,
+} from '@/modules/conversations/constants/message.constants';
+import type {
+  closeConversationSchema,
   operatorConversationSchema,
   operatorReplySchema,
   simulationAgentSchema,
+  simulationConversationSchema,
   simulatorMessageSchema,
   startSimulationSchema,
 } from '@/modules/conversations/schemas/simulation.schema';
@@ -19,6 +25,10 @@ export type SimulatorMessageInput = z.input<typeof simulatorMessageSchema>;
 export type OperatorReplyInput = z.input<typeof operatorReplySchema>;
 
 export type OperatorConversationInput = z.input<typeof operatorConversationSchema>;
+
+export type CloseConversationInput = z.input<typeof closeConversationSchema>;
+
+export type SimulationConversationInput = z.input<typeof simulationConversationSchema>;
 
 export type StartSimulationInput = z.input<typeof startSimulationSchema>;
 
@@ -34,12 +44,17 @@ export interface ConversationView {
   readonly channelKind: ChannelKind;
   readonly language: string | null;
   readonly versionId: string | null;
+  readonly closeReason: CloseReason | null;
+  readonly closedAt: Date | null;
   readonly createdAt: Date;
 }
 
 export interface MessageView {
   readonly id: string;
   readonly author: MessageAuthor;
+  readonly authorId: string | null;
+  readonly authorName: string | null;
+  readonly systemEvent: MessageSystemEvent | null;
   readonly text: string;
   readonly quickReplies: readonly string[];
   readonly runId: string | null;

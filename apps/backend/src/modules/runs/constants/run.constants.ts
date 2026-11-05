@@ -14,7 +14,16 @@ export enum RunStepStatus {
 
 export enum RunTrigger {
   Message = 'message',
+  Schedule = 'schedule',
+  Inactivity = 'inactivity',
 }
+
+export enum TriggeredRunOutcome {
+  Started = 'started',
+  Busy = 'busy',
+}
+
+export const RUN_TRIGGER_INPUT_JSON_TYPE = 'object';
 
 export const ROOT_BRANCH_KEY = 'root';
 

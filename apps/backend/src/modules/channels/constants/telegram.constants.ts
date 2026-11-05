@@ -13,6 +13,12 @@ export const TELEGRAM_WEBHOOK_PATH = '/webhooks/telegram';
 export const TELEGRAM_WEBHOOK_WORKSPACE_PARAM = 'workspaceId';
 export const TELEGRAM_WEBHOOK_CHANNEL_PARAM = 'channelId';
 export const TELEGRAM_CALLBACK_DATA_MAX_BYTES = 64;
+export const TELEGRAM_CALLBACK_DATA_SEPARATOR = ':';
+export const TELEGRAM_QUICK_REPLY_CALLBACK_PREFIX = 'qr';
+export const TELEGRAM_QUICK_REPLY_INDEX_PATTERN = /^\d+$/;
+export const TELEGRAM_QUICK_REPLY_EXPIRED_TEXT = 'This button is no longer active.';
+export const TELEGRAM_INLINE_KEYBOARD_COLUMNS = 2;
+export const TELEGRAM_INLINE_KEYBOARD_MAX_COLUMN_LABEL_LENGTH = 14;
 
 export enum TelegramChatAction {
   Typing = 'typing',

@@ -7,6 +7,7 @@ import { parallelNodeSchema } from '@flow/nodes/schemas/parallel.schema';
 import { routerNodeSchema } from '@flow/nodes/schemas/router.schema';
 import { sendMessageNodeSchema } from '@flow/nodes/schemas/send-message.schema';
 import { triggerExternalEventNodeSchema } from '@flow/nodes/schemas/trigger-external-event.schema';
+import { triggerInactivityNodeSchema } from '@flow/nodes/schemas/trigger-inactivity.schema';
 import { triggerMessageNodeSchema } from '@flow/nodes/schemas/trigger-message.schema';
 import { triggerScheduleNodeSchema } from '@flow/nodes/schemas/trigger-schedule.schema';
 
@@ -14,6 +15,7 @@ export const flowNodeSchema = z.discriminatedUnion('type', [
   triggerMessageNodeSchema,
   triggerExternalEventNodeSchema,
   triggerScheduleNodeSchema,
+  triggerInactivityNodeSchema,
   agentNodeSchema,
   completionNodeSchema,
   routerNodeSchema,

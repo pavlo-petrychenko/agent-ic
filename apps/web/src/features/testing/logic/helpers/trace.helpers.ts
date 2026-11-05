@@ -59,7 +59,12 @@ export const layoutTrace = (flow: FlowDocument): TraceSlot[] => {
       deepest,
     );
   };
-  for (const node of [...flow.nodes.filter(isTriggerNode), ...flow.nodes]) {
+  const joinsPlacedSteps = (id: string): boolean =>
+    (graph.outgoing.get(id) ?? []).some((edge) => cells.has(edge.target));
+  for (const trigger of flow.nodes.filter(isTriggerNode)) {
+    place(trigger.id, joinsPlacedSteps(trigger.id) ? 0 : bottom + 1, 0);
+  }
+  for (const node of flow.nodes) {
     place(node.id, bottom + 1, 0);
   }
   return flow.nodes

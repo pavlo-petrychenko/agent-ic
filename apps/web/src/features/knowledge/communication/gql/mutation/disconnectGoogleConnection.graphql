@@ -1,0 +1,5 @@
+mutation DisconnectGoogleConnection($input: DisconnectGoogleConnectionInput!) {
+  disconnectGoogleConnection(input: $input) {
+    id
+  }
+}

@@ -2,6 +2,7 @@ import { WorkspaceRole } from '@agent-ic/contracts';
 import { ConditionOperator, RuleMatch } from '@flow/conditions/constants/condition.constants';
 import { FLOW_SCHEMA_VERSION, NodeType, PortName } from '@flow/document/constants/flow.constants';
 import type {
+  AgentExits,
   AgentNode,
   ApiRequestNode,
   CompletionNode,
@@ -16,6 +17,7 @@ import type {
   RouterRule,
   SendMessageNode,
   TriggerExternalEventNode,
+  TriggerInactivityNode,
   TriggerMessageNode,
   TriggerScheduleNode,
 } from '@flow/document/typedefs/flow.typedefs';
@@ -24,6 +26,7 @@ import {
   FailureMode,
   HttpMethod,
   MessageContentKind,
+  NO_AGENT_EXITS,
   NotifyChannel,
   QuickRepliesKind,
   RecipientsKind,
@@ -34,10 +37,15 @@ import {
 } from '@flow/nodes/constants/step.constants';
 import {
   ChannelSelectionMode,
+  InactivityActivity,
+  InactivityRepeatKind,
+  InactivityUnit,
+  ChannelType,
   ReplyMode,
   ScheduleKind,
 } from '@flow/nodes/constants/trigger.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
+import { NO_FLOW_SETTINGS } from '@flow/settings/constants/settings.constants';
 import { exampleModel, examplePrompt } from '@test/support/fixtures/example-flow.fixture';
 
 const base = (key: string) => ({
@@ -86,9 +94,28 @@ export const scheduleTrigger = (key: string, cron: string | null = null): Trigge
       cron === null
         ? { kind: ScheduleKind.Daily, time: '09:30', timeZone: 'Europe/Kyiv' }
         : { kind: ScheduleKind.Custom, cron, timeZone: 'Europe/Kyiv' },
-    conditions: { silentForHours: null, notEscalated: true, channelTypes: [] },
+    conditions: {
+      silentForHours: null,
+      notEscalated: true,
+      channelTypes: [ChannelType.Telegram, ChannelType.Api],
+    },
     maxConversationsPerRun: 10,
     oncePerConversation: true,
+  },
+});
+
+export const inactivityTrigger = (
+  key: string,
+  repeat: TriggerInactivityNode['config']['repeat'] = { kind: InactivityRepeatKind.Once },
+  silence: TriggerInactivityNode['config']['silence'] = { amount: 2, unit: InactivityUnit.Hours },
+): TriggerInactivityNode => ({
+  ...base(key),
+  type: NodeType.TriggerInactivity,
+  config: {
+    silence,
+    activity: InactivityActivity.Any,
+    repeat,
+    conditions: { notEscalated: true, channelTypes: [] },
   },
 });
 
@@ -107,6 +134,7 @@ export const agent = (
     retrievalMode: RetrievalMode.Tools,
     output,
     retries: 2,
+    exits: NO_AGENT_EXITS,
   },
 });
 
@@ -228,6 +256,7 @@ export const flowOf = (nodes: FlowNode[], edges: FlowEdge[]): FlowDocument => ({
   schemaVersion: FLOW_SCHEMA_VERSION,
   nodes,
   edges,
+  settings: NO_FLOW_SETTINGS,
 });
 
 export const replyAndScoreFlow = () => {
@@ -251,3 +280,8 @@ export const replyAndScoreFlow = () => {
   );
   return { flow, fork, writer, handoff, scorer, save, reply };
 };
+
+export const withExits = (node: AgentNode, exits: Partial<AgentExits>): AgentNode => ({
+  ...node,
+  config: { ...node.config, exits: { ...node.config.exits, ...exits } },
+});

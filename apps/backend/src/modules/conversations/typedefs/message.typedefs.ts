@@ -1,6 +1,7 @@
 import type {
   MessageAuthor,
   MessageDelivery,
+  MessageSystemEvent,
 } from '@/modules/conversations/constants/message.constants';
 import type { messages } from '@/modules/conversations/db/messages.table';
 import type { Conversation } from '@/modules/conversations/typedefs/conversation.typedefs';
@@ -10,6 +11,8 @@ export interface Message {
   readonly workspaceId: string;
   readonly conversationId: string;
   readonly author: MessageAuthor;
+  readonly authorUserId: string | null;
+  readonly systemEvent: MessageSystemEvent | null;
   readonly text: string;
   readonly quickReplies: readonly string[];
   readonly externalId: string | null;
@@ -28,6 +31,7 @@ export interface OutboundMessageInput {
   readonly conversationId: string;
   readonly key: string;
   readonly author: MessageAuthor;
+  readonly authorUserId?: string | null;
   readonly text: string;
   readonly quickReplies: readonly string[];
   readonly runId: string | null;
@@ -36,6 +40,18 @@ export interface OutboundMessageInput {
 export interface OutboundDelivery {
   readonly message: Message;
   readonly conversation: Conversation;
+}
+
+export interface OutboundRecordOptions {
+  readonly capture: boolean;
+}
+
+export interface QuickReplyTextInput {
+  readonly workspaceId: string;
+  readonly messageId: string;
+  readonly index: number;
+  readonly channelId: string;
+  readonly endUserExternalId: string;
 }
 
 export interface RunMessageCount {

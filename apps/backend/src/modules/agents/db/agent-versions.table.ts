@@ -14,8 +14,11 @@ import {
 } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import {
+  AUTO_CLOSE_MINUTES_PATH,
   AgentVersionKind,
   DRAFT_INITIAL_REVISION,
+  NO_SCHEDULE_NODES,
+  SCHEDULE_NODES_PATH,
 } from '@/modules/agents/constants/agent.constants';
 import { agentVersionKindEnum, agentsSchema } from '@/modules/agents/db/agents.pg-schema';
 import { agents } from '@/modules/agents/db/agents.table';
@@ -39,6 +42,12 @@ export const agentVersions = agentsSchema
       kind: agentVersionKindEnum('kind').notNull(),
       number: integer('number'),
       flow: jsonb('flow').$type<FlowDocument>().notNull(),
+      scheduleNodes: jsonb('schedule_nodes')
+        .$type<unknown[]>()
+        .notNull()
+        .generatedAlwaysAs(
+          sql`jsonb_path_query_array(flow, ${sql.raw(toSqlLiteral(SCHEDULE_NODES_PATH))})`,
+        ),
       note: text('note'),
       authorId: uuid('author_id').references((): AnyPgColumn => users.id, {
         onDelete: 'set null',
@@ -48,6 +57,9 @@ export const agentVersions = agentsSchema
         onDelete: 'set null',
       }),
       publishedAt: timestamp('published_at', { withTimezone: true }),
+      autoCloseMinutes: integer('auto_close_minutes').generatedAlwaysAs(
+        sql`((flow #>> ${sql.raw(toSqlLiteral(AUTO_CLOSE_MINUTES_PATH))})::integer)`,
+      ),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
       updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
     },
@@ -71,6 +83,12 @@ export const agentVersions = agentsSchema
       index('agent_versions_base_version_id_idx')
         .on(table.baseVersionId)
         .where(isNotNull(table.baseVersionId)),
+      index('agent_versions_auto_close_idx')
+        .on(table.agentId)
+        .where(isNotNull(table.autoCloseMinutes)),
+      index('agent_versions_schedule_nodes_idx')
+        .on(table.id)
+        .where(sql`${table.scheduleNodes} <> ${sql.raw(toSqlLiteral(NO_SCHEDULE_NODES))}::jsonb`),
       tenantIsolationPolicy('agent_versions'),
     ],
   )

@@ -1,0 +1,6 @@
+subscription InboxActivity {
+  inboxActivity {
+    conversationId
+    kind
+  }
+}

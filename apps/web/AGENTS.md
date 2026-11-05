@@ -75,7 +75,7 @@ features/status/
 shared/
 ├── api/      clients/ helpers/ errors/ schemas/ constants/ typedefs/
 ├── config/   helpers/ schemas/ constants/ typedefs/
-├── forms/    hooks/ fields/ contexts/ helpers/ typedefs/
+├── forms/    hooks/ fields/ contexts/ helpers/ constants/ typedefs/
 ├── i18n/     clients/ hooks/ helpers/ locales/ constants/ typedefs/
 ├── theme/    clients/ hooks/ helpers/ constants/ typedefs/
 ├── viewport/ hooks/ helpers/ constants/ typedefs/

@@ -1,14 +1,18 @@
 import type { Locale } from '@agent-ic/contracts';
 import type {
-  ChatDividerKind,
+  ChatEventKind,
   ChatItemKind,
   ChatSpeaker,
+  WRITE_AS_MODES,
 } from '@/features/testing/constants/simulator.constants';
 import type {
   ChannelConversationKind,
+  ConversationCloseReason,
   ConversationState,
   MessageAuthor,
   RunStatus,
+  RunTrigger,
+  ScheduleConditionKind,
 } from '@/shared/api/generated/schema.generated';
 
 export interface SimulatorSetup {
@@ -16,6 +20,8 @@ export interface SimulatorSetup {
   channelKind: ChannelConversationKind;
   language: Locale;
 }
+
+export type WriteAs = (typeof WRITE_AS_MODES)[number];
 
 export interface SimulatorMessage {
   id: string;
@@ -27,14 +33,21 @@ export interface SimulatorMessage {
 
 export interface SimulatorRun {
   id: string;
+  trigger: RunTrigger;
+  inactivityAttempt: number | null;
   status: RunStatus;
   createdAt: string;
+  finishedAt: string | null;
   errorMessage: string | null;
+  escalationMessageCount: number;
+  escalatedByStep: boolean;
 }
 
 export interface SimulatorConversation {
   conversationId: string;
   state: ConversationState;
+  closeReason: ConversationCloseReason | null;
+  closedAt: string | null;
   messages: readonly SimulatorMessage[];
   runs: readonly SimulatorRun[];
 }
@@ -52,19 +65,43 @@ export interface ChatTurnItem {
   id: string;
   at: string;
   messages: readonly SimulatorMessage[];
+  trigger: RunTrigger;
+  attempt: number | null;
   failed: boolean;
   escalated: boolean;
+  escalatedByStep: boolean;
+  handedBack: boolean;
+  escalationMessageCount: number;
   errorMessage: string | null;
+  finishedAt: string | null;
 }
 
-export interface ChatDividerItem {
-  kind: ChatItemKind.Divider;
+export interface ChatEventItem {
+  kind: ChatItemKind.Event;
   id: string;
-  at: string;
-  divider: ChatDividerKind;
+  at: string | null;
+  event: ChatEventKind;
+  minutes: number | null;
 }
 
-export type ChatItem = ChatMessageItem | ChatTurnItem | ChatDividerItem;
+export type ChatItem = ChatMessageItem | ChatTurnItem | ChatEventItem;
+
+export interface ChatConversation {
+  state: ConversationState;
+  closeReason: ConversationCloseReason | null;
+  closedAt: string | null;
+}
+
+export interface ScheduleCheck {
+  kind: ScheduleConditionKind;
+  met: boolean;
+}
+
+export interface ScheduleRunResult {
+  runId: string;
+  nodeId: string;
+  checks: readonly ScheduleCheck[];
+}
 
 export interface SimulatorResult {
   conversation: SimulatorConversation | null;
@@ -75,9 +112,15 @@ export interface SimulatorResult {
   restarting: boolean;
   replying: boolean;
   handingBack: boolean;
+  closingInactive: boolean;
+  simulatingSilence: boolean;
+  runningSchedule: boolean;
   retry: () => void;
   send: (text: string) => Promise<void>;
   restart: () => Promise<void>;
   reply: (text: string) => Promise<void>;
   handBack: () => Promise<void>;
+  closeForInactivity: () => Promise<void>;
+  simulateSilence: () => Promise<void>;
+  runSchedule: (nodeId: string) => Promise<ScheduleRunResult | null>;
 }

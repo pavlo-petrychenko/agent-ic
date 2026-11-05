@@ -3,12 +3,17 @@ import {
   API_REQUEST_DEFAULT_RETRIES,
   API_REQUEST_DEFAULT_TIMEOUT_SECONDS,
   ChannelSelectionMode,
+  ChannelType,
   DEFAULT_RETRIEVAL_MODE,
   ESCALATION_DEFAULT_FALLBACK_MINUTES,
   ESCALATION_DEFAULT_REMINDER_MINUTES,
   EscalationMode,
   FLOW_SCHEMA_VERSION,
+  InactivityActivity,
+  InactivityRepeatKind,
   MessageContentKind,
+  NO_AGENT_EXITS,
+  NO_FLOW_SETTINGS,
   NodeType,
   NotifyChannel,
   OutputFieldType,
@@ -23,6 +28,7 @@ import {
   WaitFor,
 } from '@agent-ic/flow';
 import type {
+  AgentExits,
   AgentNode,
   ApiRequestNode,
   CompletionNode,
@@ -36,6 +42,7 @@ import type {
   RouterNode,
   RouterRule,
   SendMessageNode,
+  TriggerInactivityNode,
   TriggerMessageNode,
 } from '@agent-ic/flow';
 import {
@@ -44,6 +51,11 @@ import {
   EXAMPLE_COMPLETION_MODEL,
   EXAMPLE_FALLBACK_MESSAGE,
   EXAMPLE_HAND_OFF_MESSAGE,
+  EXAMPLE_INACTIVITY_KEY,
+  EXAMPLE_INACTIVITY_LABEL,
+  EXAMPLE_INACTIVITY_MAX_TIMES,
+  EXAMPLE_INACTIVITY_REPEAT_EVERY,
+  EXAMPLE_INACTIVITY_SILENCE,
   EXAMPLE_ROW_HEIGHT,
   EXAMPLE_TRIGGER_KEY,
   EXAMPLE_TRIGGER_LABEL,
@@ -102,12 +114,28 @@ export const exampleTrigger = (at: GridCell): TriggerMessageNode => ({
   config: { channels: { mode: ChannelSelectionMode.All } },
 });
 
+export const exampleInactivityTrigger = (at: GridCell): TriggerInactivityNode => ({
+  ...place(EXAMPLE_INACTIVITY_KEY, EXAMPLE_INACTIVITY_LABEL, at),
+  type: NodeType.TriggerInactivity,
+  config: {
+    silence: EXAMPLE_INACTIVITY_SILENCE,
+    activity: InactivityActivity.Any,
+    repeat: {
+      kind: InactivityRepeatKind.Every,
+      every: EXAMPLE_INACTIVITY_REPEAT_EVERY,
+      maxTimes: EXAMPLE_INACTIVITY_MAX_TIMES,
+    },
+    conditions: { notEscalated: true, channelTypes: [ChannelType.Telegram, ChannelType.Api] },
+  },
+});
+
 export const exampleAgent = (
   key: string,
   label: string,
   at: GridCell,
   prompt: PromptSource,
   output: readonly OutputField[] = [],
+  exits: AgentExits = NO_AGENT_EXITS,
 ): AgentNode => ({
   ...place(key, label, at),
   type: NodeType.Agent,
@@ -119,6 +147,7 @@ export const exampleAgent = (
     retrievalMode: DEFAULT_RETRIEVAL_MODE,
     output: [...output],
     retries: AGENT_DEFAULT_RETRIES,
+    exits,
   },
 });
 
@@ -253,7 +282,7 @@ export const exampleEndChat = (
   key: string,
   label: string,
   at: GridCell,
-  customerMessage: string,
+  customerMessage: string | null,
 ): EscalationNode => ({
   ...place(key, label, at),
   type: NodeType.Escalation,
@@ -283,5 +312,6 @@ export const buildExampleFlow = (example: FlowExample, nextId: () => string): Fl
       source: idOf(edge.source),
       target: idOf(edge.target),
     })),
+    settings: example.settings ?? NO_FLOW_SETTINGS,
   };
 };

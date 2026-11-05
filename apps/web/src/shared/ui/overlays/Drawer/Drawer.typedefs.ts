@@ -5,6 +5,8 @@ export interface DrawerProps {
   onOpenChange: (open: boolean) => void;
   ariaLabel: string;
   width?: number | null;
+  top?: number | null;
+  scrim?: boolean;
   className?: string;
   children: ReactNode;
 }

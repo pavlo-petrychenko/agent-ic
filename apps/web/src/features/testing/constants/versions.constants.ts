@@ -1,4 +1,4 @@
-import { FLOW_SCHEMA_VERSION } from '@agent-ic/flow';
+import { FLOW_SCHEMA_VERSION, NO_FLOW_SETTINGS } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 import { BadgeTone } from '@/shared/ui/display/Badge';
 
@@ -22,6 +22,7 @@ export const VERSION_META_SEPARATOR = ' · ';
 
 export const EMPTY_DOCUMENT: FlowDocument = {
   schemaVersion: FLOW_SCHEMA_VERSION,
+  settings: NO_FLOW_SETTINGS,
   nodes: [],
   edges: [],
 };

@@ -54,6 +54,8 @@
       "description": "{{name}} · API-канал",
       "copyWarning": "Скопіюйте зараз — ми показуємо ключ лише один раз. Якщо загубите, оновіть його.",
       "keyLabel": "Секретний ключ",
+      "webhookKeyLabel": "Секрет підпису вебхука",
+      "webhookHint": "Використовуйте його для перевірки заголовка X-Agent-IC-Signature у вебхуках.",
       "copy": "Копіювати",
       "endpointLabel": "Endpoint",
       "rotationHint": "Після оновлення попередній ключ працює ще 24 год.",
@@ -63,6 +65,11 @@
     "channel": {
       "breadcrumbApi": "API",
       "subtitle": "API-канал · відповідає {{agent}}",
+      "loading": "Завантаження API-каналу",
+      "loadError": "Не вдалося завантажити API-канал.",
+      "notFound": "Такий API-канал не знайдено.",
+      "retry": "Спробувати знову",
+      "saved": "Зміни збережено",
       "actions": {
         "delete": "Видалити",
         "save": "Зберегти"
@@ -130,19 +137,16 @@
       "stepName": "Виберіть назву та ім’я користувача, що закінчується на “bot”",
       "stepCopy": "Скопіюйте токен і вставте його сюди"
     },
-    "stats": {
-      "title": "Останні 7 днів",
-      "chats": "Чати",
-      "messages": "Повідомлення",
-      "errors": "Помилки"
-    },
     "bot": {
       "subtitle": "Telegram-бот · відповідає {{agent}}",
       "unknownAgent": "Без агента",
       "saved": "Налаштування каналу збережено",
       "deleted": "Канал видалено",
+      "reconnected": "Канал підключено",
+      "refreshed": "Дані бота оновлено",
       "tokenReplaced": "Токен бота замінено",
       "actions": {
+        "connect": "Перепідключити",
         "delete": "Видалити",
         "disconnect": "Відключити",
         "save": "Зберегти"
@@ -198,6 +202,7 @@
         "lastUpdateDate": "{{date}} {{time}} · від {{author}}",
         "botName": "Назва бота",
         "botNameValue": "{{name}} · змініть у @BotFather",
+        "refresh": "Оновити назву бота",
         "alerted": "Сповіщено",
         "alertedValue": "Власники та адміністратори · email",
         "revokedNote": "Telegram відхилив цей токен {{date}} о {{time}} — його відкликали або перегенерували в @BotFather."

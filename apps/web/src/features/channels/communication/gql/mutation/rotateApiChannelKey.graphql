@@ -1,0 +1,14 @@
+mutation RotateApiChannelKey($id: ID!) {
+  rotateApiChannelKey(id: $id) {
+    secret
+    webhookSecret
+    channel {
+      id
+      displayName
+      endpoint
+      tokenMasked
+      replyMode
+      webhook
+    }
+  }
+}

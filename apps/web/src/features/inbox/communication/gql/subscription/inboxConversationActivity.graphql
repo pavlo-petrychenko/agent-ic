@@ -1,0 +1,6 @@
+subscription InboxConversationActivity($conversationId: ID!) {
+  conversationActivity(conversationId: $conversationId) {
+    conversationId
+    kind
+  }
+}

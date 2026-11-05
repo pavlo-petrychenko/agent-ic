@@ -11,7 +11,12 @@ query TestingVersions($agentId: ID!) {
   }
   agentDraft(agentId: $agentId) {
     issues {
+      code
       severity
+      nodeId
+      edgeId
+      path
+      params
     }
     version {
       flow

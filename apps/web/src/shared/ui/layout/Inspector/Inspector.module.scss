@@ -43,6 +43,10 @@ $kinds:
   }
 }
 
+.trig {
+  --kicker-color: var(--hue-neutral-fg);
+}
+
 .accent {
   --kicker-color: var(--color-accent);
 }

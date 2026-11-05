@@ -5,8 +5,10 @@ import {
   conversationsSchema,
   messageAuthorEnum,
   messageDeliveryEnum,
+  messageSystemEventEnum,
 } from '@/modules/conversations/db/conversations.pg-schema';
 import { conversations } from '@/modules/conversations/db/conversations.table';
+import { users } from '@/modules/identity/db/users.table';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
 import { runs } from '@/modules/runs/db/runs.table';
 import {
@@ -24,6 +26,10 @@ export const messages = conversationsSchema
       }),
       conversationId: uuid('conversation_id').notNull(),
       author: messageAuthorEnum('author').notNull(),
+      authorUserId: uuid('author_user_id').references((): AnyPgColumn => users.id, {
+        onDelete: 'set null',
+      }),
+      systemEvent: messageSystemEventEnum('system_event'),
       text: text('text').notNull(),
       quickReplies: text('quick_replies').array().notNull(),
       externalId: text('external_id'),
@@ -54,6 +60,9 @@ export const messages = conversationsSchema
         table.id,
       ),
       index('messages_run_id_idx').on(table.runId).where(isNotNull(table.runId)),
+      index('messages_author_user_id_idx')
+        .on(table.authorUserId)
+        .where(isNotNull(table.authorUserId)),
       tenantIsolationPolicy('messages'),
     ],
   )

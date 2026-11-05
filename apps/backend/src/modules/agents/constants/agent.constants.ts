@@ -1,4 +1,4 @@
-import { FLOW_SCHEMA_VERSION } from '@agent-ic/flow';
+import { FLOW_SCHEMA_VERSION, NO_FLOW_SETTINGS, NodeType } from '@agent-ic/flow';
 import type { FlowDocument } from '@agent-ic/flow';
 
 export const AGENTS_SCHEMA = 'agents';
@@ -36,6 +36,12 @@ export const NO_PUBLISHED_VERSIONS = 0;
 
 export const FLOW_NODES_FIELD = 'nodes';
 
+export const AUTO_CLOSE_MINUTES_PATH = '{settings,autoClose,afterMinutes}';
+
+export const SCHEDULE_NODES_PATH = `$.${FLOW_NODES_FIELD}[*] ? (@.type == "${NodeType.TriggerSchedule}")`;
+
+export const NO_SCHEDULE_NODES = '[]';
+
 export const DRAFT_INITIAL_REVISION = 0;
 
 export enum AgentStatus {
@@ -52,6 +58,7 @@ export const EMPTY_FLOW: FlowDocument = {
   schemaVersion: FLOW_SCHEMA_VERSION,
   nodes: [],
   edges: [],
+  settings: NO_FLOW_SETTINGS,
 };
 
 export enum SimulatorCheckStatus {

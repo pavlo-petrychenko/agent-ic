@@ -1,8 +1,12 @@
 import { z } from 'zod';
 import { NodeType } from '@flow/document/constants/flow.constants';
-import type { FlowNode, OutputField } from '@flow/document/typedefs/flow.typedefs';
+import { enabledExits } from '@flow/document/helpers/node.helpers';
+import type { AgentNode, FlowNode, OutputField } from '@flow/document/typedefs/flow.typedefs';
 import {
   AGENT_MESSAGES_FIELD_NAME,
+  AGENT_OUTCOME_CONTINUE,
+  AGENT_OUTCOME_FIELD_NAME,
+  AGENT_OUTCOME_REASON_FIELD_NAME,
   OutputFieldType,
 } from '@flow/outputs/constants/output.constants';
 
@@ -13,11 +17,35 @@ const AGENT_MESSAGES_FIELD: OutputField = {
   required: true,
 };
 
+const AGENT_OUTCOME_REASON_FIELD: OutputField = {
+  name: AGENT_OUTCOME_REASON_FIELD_NAME,
+  type: OutputFieldType.String,
+  description: '',
+  required: true,
+};
+
 const NO_FIELDS: readonly OutputField[] = [];
+
+const outcomeFields = (node: AgentNode): readonly OutputField[] => {
+  const exits = enabledExits(node);
+  if (exits.length === 0) {
+    return NO_FIELDS;
+  }
+  return [
+    {
+      name: AGENT_OUTCOME_FIELD_NAME,
+      type: OutputFieldType.Enum,
+      description: '',
+      required: true,
+      values: [AGENT_OUTCOME_CONTINUE, ...exits],
+    },
+    AGENT_OUTCOME_REASON_FIELD,
+  ];
+};
 
 export const nodeOutputFields = (node: FlowNode): readonly OutputField[] => {
   if (node.type === NodeType.Agent) {
-    return [AGENT_MESSAGES_FIELD, ...node.config.output];
+    return [AGENT_MESSAGES_FIELD, ...outcomeFields(node), ...node.config.output];
   }
   if (node.type === NodeType.Completion) {
     return node.config.output;

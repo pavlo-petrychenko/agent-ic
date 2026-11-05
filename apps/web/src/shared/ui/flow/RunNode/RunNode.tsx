@@ -29,7 +29,9 @@ export function RunNode({
   const content = (
     <>
       <NodeTile kind={kind} icon={icon} size={TileSize.Xs} />
-      <span className={styles.name}>{name}</span>{' '}
+      <span className={styles.name} title={name}>
+        {name}
+      </span>{' '}
       <span className={styles.status}>
         {statusIcon !== null && (
           <Icon name={statusIcon} size={RUN_NODE_STATUS_ICON_SIZE} className={styles.statusIcon} />

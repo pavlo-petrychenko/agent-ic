@@ -1,3 +1,5 @@
+import { ErrorReason, KnowledgeDocumentFailureCode } from '@agent-ic/contracts';
+
 export enum KnowledgeSourceKind {
   Upload = 'upload',
   GoogleDocs = 'google_docs',
@@ -16,6 +18,19 @@ export enum KnowledgeSyncInterval {
   Weekly = 'weekly',
 }
 
+export enum KnowledgeScheduleMode {
+  Manual = 'manual',
+  Scheduled = 'scheduled',
+}
+
+export const KNOWLEDGE_SCHEDULE_DEFAULT_TIME = '06:00';
+export const KNOWLEDGE_SCHEDULE_DEFAULT_WEEKDAY = 1;
+export const KNOWLEDGE_SCHEDULE_PRESETS: readonly KnowledgeSyncInterval[] = [
+  KnowledgeSyncInterval.Daily,
+  KnowledgeSyncInterval.Weekly,
+  KnowledgeSyncInterval.Hourly,
+];
+
 export const KNOWLEDGE_SOURCE_POLL_INTERVAL_MS = 2000;
 
 export const KNOWLEDGE_SOURCE_DATE_FORMAT: Intl.DateTimeFormatOptions = {
@@ -24,16 +39,19 @@ export const KNOWLEDGE_SOURCE_DATE_FORMAT: Intl.DateTimeFormatOptions = {
 };
 
 export enum KnowledgeSourceMenuAction {
+  Sync = 'sync',
   Rename = 'rename',
   Retry = 'retry',
   Delete = 'delete',
 }
 
 export const KNOWLEDGE_SOURCE_NON_RETRYABLE_CODES: ReadonlySet<string> = new Set([
-  'UNSUPPORTED_DOCUMENT_TYPE',
-  'DOCUMENT_TOO_LARGE',
-  'DOCUMENT_TOO_MANY_TOKENS',
-  'DOCUMENT_EMPTY',
-  'DOCUMENT_SIGNATURE_MISMATCH',
-  'PDF_HAS_NO_TEXT',
+  KnowledgeDocumentFailureCode.UnsupportedType,
+  KnowledgeDocumentFailureCode.TooLarge,
+  KnowledgeDocumentFailureCode.TooManyTokens,
+  KnowledgeDocumentFailureCode.Empty,
+  KnowledgeDocumentFailureCode.SignatureMismatch,
+  KnowledgeDocumentFailureCode.PdfHasNoText,
+  ErrorReason.EmbeddingDimensionMismatch,
+  ErrorReason.KnowledgeConnectionNotFound,
 ]);

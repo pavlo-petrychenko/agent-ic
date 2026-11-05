@@ -5,6 +5,7 @@ import {
 } from '@/features/workspace/constants/navigation.constants';
 import type { WorkspaceSidebarProps } from '@/features/workspace/view/WorkspaceSidebar/WorkspaceSidebar.typedefs';
 import { Avatar, AvatarSize, AvatarTone } from '@/shared/ui/display/Avatar';
+import { CountBadge } from '@/shared/ui/display/CountBadge';
 import { NavGroup } from '@/shared/ui/navigation/NavGroup';
 import { NavItem } from '@/shared/ui/navigation/NavItem';
 import styles from '@/features/workspace/view/WorkspaceSidebar/WorkspaceSidebar.module.scss';
@@ -32,6 +33,11 @@ export function WorkspaceSidebar({
               to={WORKSPACE_SECTION_PATHS[item.section]}
               params={{ workspaceId }}
               icon={item.icon}
+              meta={
+                item.badgeCount === null ? null : (
+                  <CountBadge count={item.badgeCount} aria-label={item.badgeLabel ?? undefined} />
+                )
+              }
             >
               {item.label}
             </NavItem>

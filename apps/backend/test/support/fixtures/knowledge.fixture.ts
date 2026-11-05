@@ -45,7 +45,11 @@ export const newKnowledgeBase = (id: string, workspaceId: string): NewKnowledgeB
   embeddingDimensions: KNOWLEDGE_EMBEDDING_DIMENSIONS,
 });
 
-export const newConnection = (id: string, workspaceId: string): NewConnection => ({
+export const newConnection = (
+  id: string,
+  workspaceId: string,
+  overrides: Partial<NewConnection> = {},
+): NewConnection => ({
   id,
   workspaceId,
   provider: KnowledgeConnectionProvider.GoogleDocs,
@@ -53,15 +57,22 @@ export const newConnection = (id: string, workspaceId: string): NewConnection =>
   accountSubject: TEST_CONNECTION_SUBJECT,
   sealedRefreshToken: TEST_CONNECTION_SEALED_TOKEN,
   status: KnowledgeConnectionStatus.Active,
+  ...overrides,
 });
 
-export const newSource = (id: string, workspaceId: string, kbId: string): NewSource => ({
+export const newSource = (
+  id: string,
+  workspaceId: string,
+  kbId: string,
+  overrides: Partial<NewSource> = {},
+): NewSource => ({
   id,
   workspaceId,
   kbId,
   kind: KnowledgeSourceKind.Upload,
   title: TEST_SOURCE_TITLE,
   status: KnowledgeSourceStatus.Pending,
+  ...overrides,
 });
 
 export const newDocument = (

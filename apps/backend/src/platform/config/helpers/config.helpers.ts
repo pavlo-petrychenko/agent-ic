@@ -3,6 +3,7 @@ import { toConfigIssues } from '@/platform/config/helpers/config-issue.helpers';
 import { authEnvSchema } from '@/platform/config/schemas/auth-env.schema';
 import { commonEnvSchema } from '@/platform/config/schemas/common-env.schema';
 import { emailEnvSchema } from '@/platform/config/schemas/email-env.schema';
+import { googleEnvSchema } from '@/platform/config/schemas/google-env.schema';
 import { langfuseEnvSchema } from '@/platform/config/schemas/langfuse-env.schema';
 import { llmEnvSchema } from '@/platform/config/schemas/llm-env.schema';
 import { migrationEnvSchema } from '@/platform/config/schemas/migration-env.schema';
@@ -30,6 +31,7 @@ export const loadAppConfig = (
   const llm = llmEnvSchema.safeParse(env);
   const usage = usageEnvSchema.safeParse(env);
   const email = emailEnvSchema.safeParse(env);
+  const google = googleEnvSchema.safeParse(env);
   const roleEnvironment = roleEnvSchemas[selection.role].safeParse(env);
 
   if (
@@ -41,6 +43,7 @@ export const loadAppConfig = (
     !llm.success ||
     !usage.success ||
     !email.success ||
+    !google.success ||
     !roleEnvironment.success
   ) {
     const results = [
@@ -52,6 +55,7 @@ export const loadAppConfig = (
       llm,
       usage,
       email,
+      google,
       roleEnvironment,
     ];
     throw new ConfigError(
@@ -77,6 +81,7 @@ export const loadAppConfig = (
     usage: usage.data,
     email: email.data,
     telegram: common.data.telegram,
+    google: google.data,
   };
 
   switch (environment.role) {

@@ -1,5 +1,14 @@
-import { NodeType, PortName, buildFlowGraph, createScopeLookup, nodePorts } from '@agent-ic/flow';
-import type { FlowNode, ParallelNode } from '@agent-ic/flow';
+import { IdPrefix } from '@agent-ic/contracts';
+import {
+  AGENT_MESSAGES_FIELD_NAME,
+  AgentExitKind,
+  NodeType,
+  PortName,
+  buildFlowGraph,
+  createScopeLookup,
+  nodePorts,
+} from '@agent-ic/flow';
+import type { FlowNode, ParallelNode, TriggerNode } from '@agent-ic/flow';
 import { Injectable, Logger } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
 import {
@@ -10,37 +19,55 @@ import {
 } from '@/modules/conversations';
 import { PromptFlowReader } from '@/modules/prompts';
 import { runStepsChannel } from '@/modules/runs/channels/run-steps.channel';
+import {
+  AGENT_EXIT_RUN_STATUS,
+  HANDOFF_ON_FAILURE_NODE_TYPES,
+} from '@/modules/runs/constants/agent-exit.constants';
 import { RunLogMessage } from '@/modules/runs/constants/run-log.constants';
 import {
   ROOT_BRANCH_KEY,
   RunStatus,
   RunStepStatus,
+  RunTrigger,
   UNFINISHED_RUN_STATUSES,
 } from '@/modules/runs/constants/run.constants';
 import { RunFlowInvalidError } from '@/modules/runs/errors/run-flow-invalid.error';
 import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { UnsupportedNodeTypeError } from '@/modules/runs/errors/unsupported-node-type.error';
 import {
+  inactivityTriggerInputOf,
+  inactivityTriggerVariables,
+} from '@/modules/runs/helpers/inactivity-trigger.helpers';
+import { listTexts, templateTexts } from '@/modules/runs/helpers/outbound-message.helpers';
+import {
   joinBranches,
   parallelBranches,
   settleBranch,
 } from '@/modules/runs/helpers/run-branch.helpers';
 import { runFailureOf } from '@/modules/runs/helpers/run-failure.helpers';
-import { endStatusOf, messageTriggerOf, nextNode } from '@/modules/runs/helpers/run-flow.helpers';
+import {
+  defaultExitOf,
+  endStatusOf,
+  nextNode,
+  triggerNodeOf,
+} from '@/modules/runs/helpers/run-flow.helpers';
 import {
   messageTriggerVariables,
+  scheduleTriggerVariables,
   stepInput,
   stepVariables,
 } from '@/modules/runs/helpers/run-scope.helpers';
 import { runTraceTags, stepTraceMetadata } from '@/modules/runs/helpers/run-tracing.helpers';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
+import { ConversationExitService } from '@/modules/runs/services/conversation-exit.service';
 import { RunMetricsService } from '@/modules/runs/services/run-metrics.service';
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
+import type { InactivityScopeSource } from '@/modules/runs/typedefs/inactivity-trigger.typedefs';
 import type { BranchSettlement } from '@/modules/runs/typedefs/run-branch.typedefs';
-import type { RunWalk } from '@/modules/runs/typedefs/run-execution.typedefs';
+import type { RunWalk, TriggerVariables } from '@/modules/runs/typedefs/run-execution.typedefs';
 import type { RunStep, RunStepResult, StepData } from '@/modules/runs/typedefs/run-step.typedefs';
-import type { RunEnd } from '@/modules/runs/typedefs/run.typedefs';
+import type { Run, RunEnd } from '@/modules/runs/typedefs/run.typedefs';
 import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -76,6 +103,7 @@ export class RunExecutionService {
     private readonly ids: IdService,
     private readonly logContext: LogContextService,
     private readonly metrics: RunMetricsService,
+    private readonly exits: ConversationExitService,
   ) {}
 
   async execute(
@@ -152,7 +180,11 @@ export class RunExecutionService {
       flow: version.flow,
       graph: buildFlowGraph(version.flow),
       lookup: createScopeLookup(version.flow),
-      trigger: messageTriggerVariables(conversation, history, today),
+      trigger: this.triggerVariables(triggerNodeOf(version.flow, run), run, {
+        conversation,
+        history,
+        today,
+      }),
       history,
       today,
       prompts,
@@ -162,19 +194,49 @@ export class RunExecutionService {
     };
   }
 
+  private triggerVariables(
+    node: TriggerNode | null,
+    run: Run,
+    { conversation, history, today }: Omit<InactivityScopeSource, 'conversationId' | 'input'>,
+  ): TriggerVariables {
+    if (run.trigger === RunTrigger.Schedule) {
+      return scheduleTriggerVariables(
+        conversation,
+        this.ids.toPublic(IdPrefix.Conversation, run.conversationId),
+        history,
+        today,
+      );
+    }
+    if (node?.type !== NodeType.TriggerInactivity) {
+      return messageTriggerVariables(conversation, history, today);
+    }
+    return inactivityTriggerVariables(node, {
+      conversation,
+      conversationId: this.ids.toPublic(IdPrefix.Conversation, run.conversationId),
+      history,
+      today,
+      input: inactivityTriggerInputOf(run.triggerInput),
+    });
+  }
+
   private async walk(walk: RunWalk): Promise<RunEnd> {
-    const trigger = messageTriggerOf(walk.flow);
+    const trigger = triggerNodeOf(walk.flow, walk.run);
     if (trigger === null) {
       return this.failed(new RunFlowInvalidError(walk.run.versionId, null), null);
     }
     try {
-      return await this.walkFrom(walk, trigger, ROOT_BRANCH_KEY);
+      return await this.walkFrom(walk, trigger, ROOT_BRANCH_KEY, false);
     } finally {
       await this.drain(walk);
     }
   }
 
-  private async walkFrom(walk: RunWalk, start: FlowNode, branchKey: string): Promise<RunEnd> {
+  private async walkFrom(
+    walk: RunWalk,
+    start: FlowNode,
+    branchKey: string,
+    background: boolean,
+  ): Promise<RunEnd> {
     const visited = new Set<string>();
     let node: FlowNode | null = start;
     while (node !== null) {
@@ -189,7 +251,8 @@ export class RunExecutionService {
       if (executor === null) {
         return this.failed(new UnsupportedNodeTypeError(node.id, node.type), node.id);
       }
-      const failedBranch = node.type === NodeType.Parallel ? await this.fork(walk, node) : null;
+      const failedBranch =
+        node.type === NodeType.Parallel ? await this.fork(walk, node, background) : null;
       if (failedBranch !== null) {
         return failedBranch;
       }
@@ -198,9 +261,14 @@ export class RunExecutionService {
         walk.ending ??= { status: endStatusOf(node), error: null, finishedAt: this.clock.now() };
         return walk.ending;
       }
+      const exit =
+        step.status === RunStepStatus.Succeeded ? defaultExitOf(walk.flow, node, step.port) : null;
+      if (exit !== null) {
+        return this.defaultExit(walk, node, step, exit);
+      }
       if (step.port === null) {
         return step.status === RunStepStatus.Failed
-          ? { status: RunStatus.Failed, error: step.error, finishedAt: this.clock.now() }
+          ? this.unhandledFailure(walk, node, step, background)
           : this.succeeded();
       }
       node = nextNode(walk.flow, node.id, step.port);
@@ -208,10 +276,70 @@ export class RunExecutionService {
     return this.succeeded();
   }
 
-  private async fork(walk: RunWalk, parallel: ParallelNode): Promise<RunEnd | null> {
+  private async defaultExit(
+    walk: RunWalk,
+    node: FlowNode,
+    step: RunStep,
+    exit: AgentExitKind,
+  ): Promise<RunEnd> {
+    if (walk.ending !== null) {
+      return walk.ending;
+    }
+    walk.ending = {
+      status: AGENT_EXIT_RUN_STATUS[exit],
+      error: null,
+      finishedAt: this.clock.now(),
+    };
+    const { ctx, run } = walk;
+    const target = {
+      ctx,
+      run,
+      nodeId: node.id,
+      texts: listTexts(step.output?.[AGENT_MESSAGES_FIELD_NAME]),
+    };
+    await this.tenants.run(run.workspaceId, () =>
+      exit === AgentExitKind.End ? this.exits.end(target) : this.exits.handOff(target),
+    );
+    return walk.ending;
+  }
+
+  private async unhandledFailure(
+    walk: RunWalk,
+    node: FlowNode,
+    step: RunStep,
+    background: boolean,
+  ): Promise<RunEnd> {
+    const failed: RunEnd = {
+      status: RunStatus.Failed,
+      error: step.error,
+      finishedAt: this.clock.now(),
+    };
+    const settings = walk.flow.settings.onUnhandledFailure;
+    if (background || settings === null || !HANDOFF_ON_FAILURE_NODE_TYPES.includes(node.type)) {
+      return failed;
+    }
+    if (walk.ending !== null) {
+      return walk.ending;
+    }
+    walk.ending = failed;
+    const { ctx, run } = walk;
+    const texts = templateTexts(settings.customerMessage, stepVariables(walk, node.id));
+    await this.tenants.run(run.workspaceId, () =>
+      this.exits.handOff({ ctx, run, nodeId: node.id, texts }),
+    );
+    return failed;
+  }
+
+  private async fork(
+    walk: RunWalk,
+    parallel: ParallelNode,
+    background: boolean,
+  ): Promise<RunEnd | null> {
     const branches = parallelBranches(walk.graph, parallel).map((branch) => ({
       ...branch,
-      settled: settleBranch(this.walkFrom(walk, branch.start, branch.key)),
+      settled: settleBranch(
+        this.walkFrom(walk, branch.start, branch.key, background || branch.background),
+      ),
     }));
     walk.background.push(...branches.map((branch) => branch.settled));
     const joined = await joinBranches(parallel.config.waitFor, branches);

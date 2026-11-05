@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { isDraftUnchanged } from '@/features/flow-builder';
+import { isDraftUnchanged, toFlowIssues, useBlockingIssueTexts } from '@/features/flow-builder';
 import { useSimulator } from '@/features/testing/communication/hooks/useSimulator';
 import { useTestingAgents } from '@/features/testing/communication/hooks/useTestingAgents';
 import { useTestingVersions } from '@/features/testing/communication/hooks/useTestingVersions';
@@ -18,14 +18,24 @@ import { ChatPanel } from '@/features/testing/containers/ChatPanel';
 import type { TestingPageProps } from '@/features/testing/containers/TestingPage/TestingPage.typedefs';
 import { TracePanel } from '@/features/testing/containers/TracePanel';
 import { pickAgent } from '@/features/testing/logic/helpers/agent.helpers';
-import { latestRunId, turnNumber } from '@/features/testing/logic/helpers/chat.helpers';
+import {
+  closingOutcome,
+  handedBackRunIds,
+  latestRunId,
+  runTexts,
+  turnNumber,
+} from '@/features/testing/logic/helpers/chat.helpers';
 import {
   isSimulatorChannel,
   isSimulatorLanguage,
 } from '@/features/testing/logic/helpers/setup.helpers';
 import { useDraftRefresh } from '@/features/testing/logic/hooks/useDraftRefresh';
 import { useNodeInspection } from '@/features/testing/logic/hooks/useNodeInspection';
-import { ChannelConversationKind } from '@/shared/api/generated/schema.generated';
+import { BrokenDraft } from '@/features/testing/view/BrokenDraft';
+import {
+  ChannelConversationKind,
+  ConversationState,
+} from '@/shared/api/generated/schema.generated';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
@@ -53,8 +63,11 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
     draftBroken,
     draftChangeCount,
     draftFlow,
+    draftIssues,
     loading: versionsLoading,
   } = versionsResult;
+  const parsedIssues = useMemo(() => toFlowIssues(draftIssues), [draftIssues]);
+  const blockingIssues = useBlockingIssueTexts(parsedIssues, draftFlow);
   const blocked = versionId === null && draftBroken;
   const { locale } = useLocale();
   const [channelKind, setChannelKind] = useState(ChannelConversationKind.Simulated);
@@ -67,6 +80,13 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const runs = simulator.conversation?.runs ?? [];
   const newestRunId = latestRunId(runs);
+  const handedBack = useMemo(
+    () =>
+      simulator.conversation === null
+        ? new Set<string>()
+        : handedBackRunIds(simulator.conversation),
+    [simulator.conversation],
+  );
   const selectedRunId = runs.some((run) => run.id === selected) ? selected : newestRunId;
   const { selectedNodeId, selectNode } = useNodeInspection(selectedRunId);
   const selectRun = (runId: string) => {
@@ -85,6 +105,7 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
   const liveNumber = versions.find((version) => version.live)?.number ?? null;
   const errorMessage = useErrorMessage();
   const { showToast } = useToast();
+  const closed = simulator.conversation?.state === ConversationState.Closed;
 
   const reset = async () => {
     try {
@@ -149,19 +170,15 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
     }
     if (blocked) {
       return (
-        <EmptyState
-          icon={IconName.Alert}
-          tone={EmptyStateTone.Warn}
-          title={t('brokenDraft.title')}
-          description={t('brokenDraft.description')}
-          actions={
-            <Button
-              onClick={() =>
-                void navigate({ to: BUILDER_PATH, params: { workspaceId, agentId: agent.id } })
-              }
-            >
-              {t('brokenDraft.action')}
-            </Button>
+        <BrokenDraft
+          draftName={t('picker.draft', { number: agent.draftNumber })}
+          issues={blockingIssues}
+          onOpen={(nodeId) =>
+            void navigate({
+              to: BUILDER_PATH,
+              params: { workspaceId, agentId: agent.id },
+              search: { node: nodeId },
+            })
           }
         />
       );
@@ -202,16 +219,18 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
                 selectedId={versionChoice}
                 onSelect={(id) => setChoice({ agentId: agent.id, versionId: id })}
               />
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Sm}
-                icon={IconName.Refresh}
-                loading={simulator.restarting}
-                disabled={simulator.conversation === null}
-                onClick={() => void reset()}
-              >
-                {t('reset')}
-              </Button>
+              {!closed && (
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Sm}
+                  icon={IconName.Refresh}
+                  loading={simulator.restarting}
+                  disabled={simulator.conversation === null}
+                  onClick={() => void reset()}
+                >
+                  {t('reset')}
+                </Button>
+              )}
             </div>
           )
         }
@@ -238,6 +257,7 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
         <div className={styles.body}>
           <ChatPanel
             agentName={agent.name}
+            flow={flow}
             simulator={simulator}
             channelKind={channelKind}
             language={language}
@@ -245,6 +265,7 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
             onLanguageChange={(value) => isSimulatorLanguage(value) && setLanguage(value)}
             selectedRunId={selectedRunId}
             onSelectRun={selectRun}
+            onRestart={() => void reset()}
           />
           <TracePanel
             workspaceId={workspaceId}
@@ -252,6 +273,13 @@ export function TestingPage({ workspaceId, agentId }: TestingPageProps) {
             flow={flow}
             run={runs.find((run) => run.id === selectedRunId) ?? null}
             turnNumber={turnNumber(runs, selectedRunId)}
+            handedBack={selectedRunId !== null && handedBack.has(selectedRunId)}
+            closing={
+              simulator.conversation !== null && selectedRunId === newestRunId
+                ? closingOutcome(simulator.conversation)
+                : null
+            }
+            texts={runTexts(simulator.conversation?.messages ?? [], selectedRunId)}
             draft={versionId === null}
             liveNumber={liveNumber}
             selectedNodeId={selectedNodeId}

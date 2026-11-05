@@ -50,7 +50,11 @@ export function TriggerNode({
           />
         )}
       </span>
-      {subtitle !== null && <span className={styles.subtitle}>{subtitle}</span>}
+      {subtitle !== null && (
+        <span className={styles.subtitle} title={subtitle}>
+          {subtitle}
+        </span>
+      )}
       {outPort !== null && <span className={styles.outPort}>{outPort}</span>}
     </div>
   );

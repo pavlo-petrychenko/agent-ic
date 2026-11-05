@@ -1,4 +1,4 @@
-import { renameNodeKey } from '@agent-ic/flow';
+import { NodeType, renameNodeKey } from '@agent-ic/flow';
 import type { FlowDocument, FlowNode } from '@agent-ic/flow';
 import { DUPLICATE_OFFSET } from '@/features/flow-builder/constants/graphEdit.constants';
 import { NODE_TEMPLATES } from '@/features/flow-builder/constants/nodeTemplate.constants';
@@ -11,20 +11,33 @@ import type {
   AddableNodeType,
   FlowDuplicate,
   FlowNodeMove,
+  NodeTemplates,
 } from '@/features/flow-builder/typedefs/graphEdit.typedefs';
+import { UTC_TIME_ZONE } from '@/shared/forms/constants/timeZone.constants';
+
+const templateFor = (type: AddableNodeType, timeZone: string): NodeTemplates[AddableNodeType] => {
+  const template = structuredClone(NODE_TEMPLATES[type]);
+  return template.type === NodeType.TriggerSchedule
+    ? {
+        ...template,
+        config: { ...template.config, schedule: { ...template.config.schedule, timeZone } },
+      }
+    : template;
+};
 
 export const addNode = (
   document: FlowDocument,
   type: AddableNodeType,
   position: FlowPoint,
   id: string,
+  timeZone: string = UTC_TIME_ZONE,
 ): FlowDocument => {
   const node: FlowNode = {
     id,
     key: uniqueNodeKey(document, type),
     label: '',
     position,
-    ...structuredClone(NODE_TEMPLATES[type]),
+    ...templateFor(type, timeZone),
   };
   return { ...document, nodes: [...document.nodes, node] };
 };

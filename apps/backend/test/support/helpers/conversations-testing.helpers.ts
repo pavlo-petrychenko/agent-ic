@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 import type { PauseSettings } from '@/modules/agents/typedefs/pause-settings.typedefs';
 import { conversationActivityChannel } from '@/modules/conversations/channels/conversation-activity.channel';
+import { inboxActivityChannel } from '@/modules/conversations/channels/inbox-activity.channel';
 import { ConversationsModule } from '@/modules/conversations/conversations.module';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
@@ -11,6 +12,7 @@ import { ConversationRunsService } from '@/modules/conversations/services/conver
 import { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
 import type { ConversationActivity } from '@/modules/conversations/typedefs/conversation-activity.typedefs';
 import type { NewConversation } from '@/modules/conversations/typedefs/conversation.typedefs';
+import type { InboxActivity } from '@/modules/conversations/typedefs/inbox-activity.typedefs';
 import type { Message, NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
 import { ClockModule } from '@/platform/clock/clock.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
@@ -30,6 +32,7 @@ import { channelFor } from '@/platform/live-updates/helpers/channel.helpers';
 import { LiveUpdatesModule } from '@/platform/live-updates/live-updates.module';
 import { LiveUpdatesService } from '@/platform/live-updates/services/live-updates.service';
 import type { ChannelStream } from '@/platform/live-updates/typedefs/channel.typedefs';
+import { LlmModule } from '@/platform/llm/llm.module';
 import { ObservabilityModule } from '@/platform/observability/observability.module';
 import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { QueuesModule } from '@/platform/queues/queues.module';
@@ -52,12 +55,15 @@ import { newConversation, newMessage } from '@test/support/fixtures/conversation
 import { createIntegrationConfig } from '@test/support/fixtures/integration-env.fixture';
 import { ensureAgentRow, ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 import {
+  armOnHandedBack,
   deliverOnOutboundQueued,
   notifyOnNeedsOperator,
   runOnMessageReceived,
 } from '@test/support/jobs/conversation-probe.job';
 import { AgentsNeighboursModule } from '@test/support/modules/agents-neighbours.module';
+import { LlmNeighboursModule } from '@test/support/modules/llm-neighbours.module';
 import { UsageNeighboursModule } from '@test/support/modules/usage-neighbours.module';
+import { UsageSeamsFakeModule } from '@test/support/modules/usage-seams-fake.module';
 import type {
   ConversationsTestbed,
   TiedMessages,
@@ -90,14 +96,22 @@ export const createConversationsTestbed = async (
       ObservabilityModule.forRole(selection.role),
       OutboundHttpModule,
       SecretsModule,
+      LlmModule,
       AgentsNeighboursModule.forRole(selection.role),
+      LlmNeighboursModule.forRole(selection.role),
       UsageNeighboursModule.forRole(selection.role),
+      UsageSeamsFakeModule,
       domainModule,
     ],
     providers: [
       {
         provide: DOMAIN_EVENT_SUBSCRIPTIONS,
-        useValue: [deliverOnOutboundQueued, notifyOnNeedsOperator, runOnMessageReceived],
+        useValue: [
+          deliverOnOutboundQueued,
+          notifyOnNeedsOperator,
+          runOnMessageReceived,
+          armOnHandedBack,
+        ],
       },
     ],
   })
@@ -130,6 +144,12 @@ export const conversationActivity = (
   conversationId: string,
 ): Promise<ChannelStream<ConversationActivity>> =>
   testbed.liveUpdates.subscribe(channelFor(conversationActivityChannel, conversationId));
+
+export const inboxActivity = (
+  testbed: ConversationsTestbed,
+  workspaceId: string,
+): Promise<ChannelStream<InboxActivity>> =>
+  testbed.liveUpdates.subscribe(channelFor(inboxActivityChannel, workspaceId));
 
 export const seedConversation = async (
   testbed: ConversationsTestbed,
