@@ -294,6 +294,19 @@
     "submit": "Delete knowledge base",
     "success": "Knowledge base “{{name}}” deleted."
   },
+  "deleteInUse": {
+    "title": "Cannot delete “{{name}}” yet",
+    "description_one": "This knowledge base is attached to {{count}} agent step. Detach it first.",
+    "description_other": "This knowledge base is attached to {{count}} agent steps. Detach it first.",
+    "warning_one": "Remove this knowledge base from {{count}} Agent step before deleting it.",
+    "warning_other": "Remove this knowledge base from {{count}} Agent steps before deleting it.",
+    "usageLabel": "Agent steps using this knowledge base",
+    "agentVersion": "{{agent}} · {{version}}",
+    "versionDraft": "Draft",
+    "versionLive": "Live v{{number}}",
+    "published": "Published",
+    "openStep": "Open step"
+  },
   "new": {
     "title": "New knowledge base",
     "description": "Give your knowledge base a name. You can add sources next.",
