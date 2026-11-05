@@ -1,4 +1,5 @@
 import type { InboxTone } from '@/features/inbox/constants/inbox.constants';
+import type { InboxRunStep } from '@/features/inbox/typedefs/conversation.typedefs';
 import type { IconName } from '@/shared/ui/foundations/Icon';
 
 export interface InboxGuardView {
@@ -9,18 +10,10 @@ export interface InboxGuardView {
   readonly lines: readonly string[];
 }
 
-export interface InboxRunStepView {
-  readonly id: string;
-  readonly icon: IconName;
-  readonly tone: InboxTone;
-  readonly label: string;
-  readonly value: string | null;
-}
-
 export interface InboxRunView {
   readonly title: string;
   readonly linkLabel: string;
-  readonly steps: readonly InboxRunStepView[];
+  readonly steps: readonly InboxRunStep[];
   readonly footer: string;
 }
 
@@ -31,7 +24,7 @@ export interface InboxDetailRow {
   readonly badge: string | null;
 }
 
-export interface InboxConversationDetailsView {
+interface InboxConversationDetailsView {
   readonly title: string;
   readonly rows: readonly InboxDetailRow[];
 }

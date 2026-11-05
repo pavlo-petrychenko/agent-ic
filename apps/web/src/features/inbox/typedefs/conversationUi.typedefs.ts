@@ -22,7 +22,7 @@ export interface InboxConversationBanner {
   readonly text: string;
 }
 
-export interface InboxComposerFooter {
+interface InboxComposerFooter {
   readonly kind: InboxFooterKind.Composer;
   readonly note: string;
   readonly placeholder: string;
@@ -33,12 +33,12 @@ export interface InboxComposerFooter {
   readonly onSend: () => void;
 }
 
-export interface InboxNoteFooter {
+interface InboxNoteFooter {
   readonly kind: InboxFooterKind.Note;
   readonly text: string;
 }
 
-export interface InboxTakeOverFooter {
+interface InboxTakeOverFooter {
   readonly kind: InboxFooterKind.TakeOver;
   readonly label: string;
   readonly disabled: boolean;

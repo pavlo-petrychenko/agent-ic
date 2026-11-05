@@ -1,10 +1,8 @@
-import type { InboxConversationsQuery } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
 import { dateTime, minutesAgo } from '@/features/inbox/communication/helpers/inboxFormat.helpers';
 import { InboxProvider, InboxReplyState } from '@/features/inbox/constants/inbox.constants';
+import type { ApiSummary } from '@/features/inbox/typedefs/api.typedefs';
 import type { InboxConversation } from '@/features/inbox/typedefs/conversation.typedefs';
 import { toInitials } from '@/shared/i18n/helpers/initials.helpers';
-
-type ApiSummary = InboxConversationsQuery['inboxConversations'][number];
 
 const INBOX_PROVIDER: Readonly<Record<ApiSummary['channelKind'], InboxProvider>> = {
   telegram: InboxProvider.Telegram,
