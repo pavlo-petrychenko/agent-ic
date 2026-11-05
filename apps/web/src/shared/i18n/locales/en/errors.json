@@ -120,6 +120,7 @@
     "ROLE_REPLACEMENT_INVALID": "Members cannot be moved to this role.",
     "KNOWLEDGE_SOURCE_NOT_FOUND": "This source does not exist.",
     "KNOWLEDGE_SOURCE_NOT_RETRYABLE": "Only failed sources can be retried.",
+    "KNOWLEDGE_SOURCE_NOT_SYNCABLE": "Only ready Google Docs sources with documents can be synced. Retry a failed source instead.",
     "KNOWLEDGE_CONNECTION_NOT_FOUND": "This Google account is no longer connected.",
     "KNOWLEDGE_CONNECTION_IN_USE": "Disconnect the sources that use this Google account first.",
     "GOOGLE_OAUTH_NOT_CONFIGURED": "Google Docs is not available right now.",

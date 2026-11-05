@@ -23,6 +23,7 @@ import {
 import { bm25TermFrequencies } from '@/modules/knowledge/helpers/bm25.helpers';
 import { buildIndexedChunks } from '@/modules/knowledge/helpers/chunk-index.helpers';
 import { buildDocumentChunks } from '@/modules/knowledge/helpers/chunking.helpers';
+import { googleDocsProviderUnchanged } from '@/modules/knowledge/helpers/google-docs.helpers';
 import { googleDriveDate } from '@/modules/knowledge/helpers/google-picker.helpers';
 import { knowledgeEmbeddingModel } from '@/modules/knowledge/helpers/knowledge-embedding.helpers';
 import { knowledgeContentStorageKey } from '@/modules/knowledge/helpers/knowledge-storage.helpers';
@@ -40,6 +41,7 @@ import type { NewChunk } from '@/modules/knowledge/typedefs/chunk.typedefs';
 import type { ParsedDocument } from '@/modules/knowledge/typedefs/document-parser.typedefs';
 import type { DocumentSummaryResult } from '@/modules/knowledge/typedefs/document-summary.typedefs';
 import type { KnowledgeDocumentWarning } from '@/modules/knowledge/typedefs/document-warning.typedefs';
+import type { GoogleDocsFileSnapshot } from '@/modules/knowledge/typedefs/google-docs-content.typedefs';
 import type {
   DocumentIngestionInput,
   DocumentIngestionResult,
@@ -73,7 +75,17 @@ export class KnowledgeDocumentIngestionService {
 
   async ingest(input: DocumentIngestionInput): Promise<DocumentIngestionResult> {
     const { workspaceId, knowledgeBase, document } = input;
-    const original = await this.loadOriginal(input);
+    const googleSnapshot = await this.loadGoogleDocsSnapshot(input);
+    const providerUnchanged =
+      googleSnapshot !== null && googleDocsProviderUnchanged(document, googleSnapshot.file);
+    if (
+      providerUnchanged &&
+      document.status === KnowledgeDocumentStatus.Indexed &&
+      this.hasSummary(document)
+    ) {
+      return { skipped: true };
+    }
+    const original = await this.loadOriginal(input, googleSnapshot, providerUnchanged);
     const parsed = await this.parser.parse({
       bytes: original.bytes,
       fileName: original.fileName,
@@ -82,15 +94,17 @@ export class KnowledgeDocumentIngestionService {
     });
     const sections = buildDocumentSections(parsed.markdown);
     const unchanged =
+      (document.externalId === null || document.status === KnowledgeDocumentStatus.Indexed) &&
       document.contentHash === parsed.contentHash &&
       document.activeGeneration > 0 &&
       document.contentStorageKey !== null;
     const summary = await this.summaryFor(document, parsed, sections, unchanged);
     if (unchanged && summary === null) {
-      await this.adoptPendingOriginal(workspaceId, document, original.storageKey);
+      await this.adoptSkippedOriginal(workspaceId, document, original);
       return { skipped: true };
     }
 
+    await input.onIndexing();
     const chunks = buildDocumentChunks(sections);
     const indexedChunks = buildIndexedChunks({
       title: parsed.title,
@@ -219,12 +233,42 @@ export class KnowledgeDocumentIngestionService {
     return { skipped: false };
   }
 
-  private async loadOriginal(input: DocumentIngestionInput): Promise<DocumentOriginalContent> {
+  private async loadOriginal(
+    input: DocumentIngestionInput,
+    googleSnapshot: GoogleDocsFileSnapshot | null,
+    providerUnchanged: boolean,
+  ): Promise<DocumentOriginalContent> {
+    if (input.document.externalId !== null) {
+      if (googleSnapshot === null) {
+        throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
+      }
+      if (providerUnchanged && input.document.originalStorageKey !== null) {
+        return this.loadStoredOriginal(input, input.document.originalStorageKey);
+      }
+      return this.loadGoogleDocsOriginal(input, googleSnapshot);
+    }
     const storedKey = input.document.pendingOriginalStorageKey ?? input.document.originalStorageKey;
     if (storedKey !== null) {
       return this.loadStoredOriginal(input, storedKey);
     }
-    return this.loadGoogleDocsOriginal(input);
+    throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
+  }
+
+  private async loadGoogleDocsSnapshot(
+    input: DocumentIngestionInput,
+  ): Promise<GoogleDocsFileSnapshot | null> {
+    const { workspaceId, document, connection } = input;
+    if (document.externalId === null) {
+      return null;
+    }
+    if (connection === null) {
+      throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
+    }
+    try {
+      return await this.googleDocs.inspect({ workspaceId, document, connection });
+    } catch (error) {
+      throw this.googleDocsParseError(error);
+    }
   }
 
   private async loadStoredOriginal(
@@ -249,13 +293,15 @@ export class KnowledgeDocumentIngestionService {
 
   private async loadGoogleDocsOriginal(
     input: DocumentIngestionInput,
+    snapshot: GoogleDocsFileSnapshot,
   ): Promise<DocumentOriginalContent> {
-    const { workspaceId, document, connection } = input;
-    if (connection === null || document.externalId === null) {
-      throw DocumentParseError.unreadable(new Error(KNOWLEDGE_DOCUMENT_ORIGINAL_MISSING_MESSAGE));
-    }
+    const { workspaceId, document } = input;
     try {
-      const content = await this.googleDocs.export({ workspaceId, document, connection });
+      const content = await this.googleDocs.export({
+        workspaceId,
+        document,
+        snapshot,
+      });
       return {
         storageKey: content.storageKey,
         fileName: content.fileName,
@@ -284,8 +330,7 @@ export class KnowledgeDocumentIngestionService {
     sections: ReturnType<typeof buildDocumentSections>,
     unchanged: boolean,
   ): Promise<DocumentSummaryResult | null> {
-    const hasSummary = (document.summary?.trim() ?? '').length > 0;
-    if (unchanged && hasSummary) {
+    if (unchanged && this.hasSummary(document)) {
       return null;
     }
     try {
@@ -304,6 +349,36 @@ export class KnowledgeDocumentIngestionService {
       });
       return null;
     }
+  }
+
+  private hasSummary(document: DocumentIngestionInput['document']): boolean {
+    return (document.summary?.trim() ?? '').length > 0;
+  }
+
+  private async adoptSkippedOriginal(
+    workspaceId: string,
+    document: DocumentIngestionInput['document'],
+    original: DocumentOriginalContent,
+  ): Promise<void> {
+    if (original.googleFile !== null) {
+      const file = original.googleFile;
+      const updated = await this.tenants.run(workspaceId, () =>
+        this.documents.update(workspaceId, document.id, {
+          originalStorageKey: original.storageKey,
+          pendingOriginalStorageKey: null,
+          sizeBytes: original.bytes.length,
+          sourceUrl: file.webViewLink ?? document.sourceUrl,
+          providerVersion: file.version,
+          providerModifiedAt: googleDriveDate(file.modifiedTime),
+        }),
+      );
+      if (updated === null) {
+        return;
+      }
+      await this.deleteObjectIfChanged(document.originalStorageKey, original.storageKey);
+      return;
+    }
+    await this.adoptPendingOriginal(workspaceId, document, original.storageKey);
   }
 
   private async adoptPendingOriginal(

@@ -69,7 +69,7 @@ Preparing takes time, so it happens in the background. The user sees “Queued�
 | K6 | Re-index writes a new per-document generation and flips `documents.active_generation` in one transaction. Old results stay live until the flip. | ADR 0024 (refines ADR 0011) |
 | K7 | The agent gets one `search_knowledge` tool per attached KB, with the KB's editable tool name and description. No browse/read tools and no whole-KB prompt. | ADR 0024 (amends ADR 0011) |
 | K8 | Retrieval is vector + true BM25 + trigram, fused with RRF and expanded to sections. BM25 uses a term-frequency table, not `tsvector` scoring. | ADR 0024 (refines ADR 0011) |
-| K9 | A source is imported once on creation. “Sync now” is always available. Google Docs can also have an hourly, daily or weekly schedule; uploads have no schedule. Manual re-sync is a run trigger, not a stored mode. | ADR 0024 |
+| K9 | A source is imported once on creation. A ready Google source has “Sync now”; a failed source offers Retry instead. Google Docs can also have an hourly, daily or weekly schedule; uploads have no schedule. Manual re-sync is a run trigger, not a stored mode. | ADR 0024 |
 | K10 | Deleting a KB is blocked while any current agent draft or live version references it. | ADR 0024 |
 | K11 | The module stores everything in Postgres with RLS; no second search store. Exact vector search is scoped to the KB. | ADR 0011, ADR 0024 |
 | K12 | The parser, Google client, S3 client and embedding gateway sit behind abstractions with fakes. | ADR 0011 |
@@ -103,7 +103,7 @@ The source is the unit the user sees and manages: it has a status, a sync schedu
 
 For an upload they are 1:1. For a Google selection one source may contain five Google Docs; each document gets its own status and generation, so one broken document does not block the other four. This also keeps the door open for a future folder source that expands into many documents.
 
-A document may be referenced by several sources. `documents.source_id` names the owner: the source that syncs the document and owns its files. `source_documents` records every source–document reference. A new Google source that selects an already-added document links the existing row instead of creating a second one, so the document is indexed once. Deleting a referencing source removes only its link; deleting the owner moves ownership to another referencing source before cleanup.
+A document may be referenced by several sources. `documents.source_id` names the owner: the source that schedules syncs for the document and owns its files. `source_documents` records every source–document reference. A new Google source that selects an already-added document links the existing row instead of creating a second one, so the document is indexed once. Deleting a referencing source removes only its link; deleting the owner moves ownership to another referencing source before cleanup.
 
 Titles are display metadata. Renaming a source changes only `sources.title`; `documents.title` and `index_text` stay as they are, so a rename never re-indexes. Renaming a knowledge base changes only its name, not its `toolName` or its sources.
 
@@ -191,12 +191,12 @@ Configuration uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_OAUTH_
 - A Pick selection returns to the Add source dialog for review: the user can pick more, remove a document or add the final selection. Only then are the selected documents' `id`, `name`, `mimeType`, `url`, `resourceKey` and `lastEditedUtc` sent to `createGoogleDocsSource`.
 - The backend verifies each document with `files.get` using the connection. Unsupported or inaccessible files are skipped with a reason; if none are valid, the mutation fails.
 - One mutation creates one source. New Google Docs get a document row; already-active Google Docs are linked to the source through `source_documents`. The source title is generated from the whole selection.
-- A Google Doc is identified by its Drive file ID (`documents.external_id`). The same file can be active only once per knowledge base: a selection that contains an already-added document reports it with `alreadyAdded` and links it to the new source instead of creating another document. A source with only already-added documents starts from their current state (`ready` when they are indexed) and has no sync run. The same file may be added to a different knowledge base, where it gets its own document and is indexed separately.
+- A Google Doc is identified by its Drive file ID (`documents.external_id`). The same file can be active only once per knowledge base: a selection that contains an already-added document reports it with `alreadyAdded` and links it to the new source instead of creating another document. A source with only already-added documents starts from their current state (`ready` when they are indexed) and has no initial sync run; the user can still refresh it with “Sync now”. The same file may be added to a different knowledge base, where it gets its own document and is indexed separately.
 
 **Sync.**
 
 - On creation the source is synced once (`initial`). A Google source can later be synced with the “Sync now” button or by its optional schedule. An upload is updated by replacing the file.
-- A sync processes only the documents the source owns (`documents.source_id`); documents it merely references stay with their owner and are not indexed again.
+- A scheduled sync processes only the documents the source owns (`documents.source_id`). A manual sync processes every document linked to the source, including referenced documents, so the whole source can be refreshed; the document rows keep their original owner.
 - Each sync asks Drive for the metadata of every active document owned by the source (`id`, `name`, `mimeType`, `modifiedTime`, `version`, `trashed`, `webViewLink`, `resourceKey`).
 - A document is re-exported only when `version` or `modifiedTime` differs from the stored value, or when it has never been indexed.
 - Export uses `files.export` with `text/markdown`. Google caps an export at 10 MB; a larger document fails with a reason.
@@ -205,7 +205,7 @@ Configuration uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_OAUTH_
 - `429` and `5xx` are retried with exponential backoff by the job and surface as `UPSTREAM_FAILED`, not as a failed sign-in. Drive quota errors are treated as upstream errors.
 - Schedules are evaluated in the workspace timezone. The source stores the next run time and the schedule fields; the scheduler is a per-source BullMQ job scheduler.
 
-**What the user sees.** The connection row shows the Google account email and whether it is active. A revoked connection shows “Reconnect” in the Add source dialog and as a persistent banner on the knowledge page. Each Google source shows the document count, chunk count, last sync and next sync. Opening a source shows its documents with their status and generated summary, plus the rename, retry and delete actions. A failed document shows the full localized reason in the document list, and the source row shows a short reason so the table is useful at a glance. A source whose Google account needs reconnecting shows Reconnect in its drawer instead of Retry; after reconnecting, the source shows Retry. Retry is offered only for failures that a retry can change.
+**What the user sees.** The connection row shows the Google account email and whether it is active. A revoked connection shows “Reconnect” in the Add source dialog and as a persistent banner on the knowledge page. Each Google source shows the document count, chunk count, last sync and next sync. Opening a source shows its documents with their status and generated summary, plus Sync now for a ready Google source, and the rename, retry and delete actions. Sync now is also available from the source row actions menu. A failed document shows the full localized reason in the document list, and the source row shows a short reason so the table is useful at a glance. A source whose Google account needs reconnecting shows Reconnect in its drawer instead of Retry; after reconnecting, the source shows Retry. Retry is offered only for failures that a retry can change.
 
 ### 4.3 Explicitly out of scope
 
@@ -366,8 +366,11 @@ If the worker crashes before the flip, the new generation is orphaned. The next 
 - The use case creates a `sync_runs` row with status `queued` before enqueueing. The processor sets it to `running` and updates counters as each document finishes.
 - A source is `indexing` while a run is `running`. It becomes `ready` when every active document is indexed, or `error` when the run failed or any document failed; a run with some successes is recorded as `partial`, and the source shows how many documents failed.
 - Progress is `documents_indexed / documents_total`; the UI can show a percentage without polling the worker.
+- A retry enqueues only the failed documents; a manual sync enqueues every document in the source. The job carries the selected document ids, so the worker never processes an unselected document.
+- A document is marked `indexing` only after the change check decides to reindex it. An unchanged document stays `indexed`.
+- Every source that references a document is marked `indexing` when its run starts, not only the owner, so both drawers show live progress.
 - Status changes are published to the `knowledge-source-status` channel after commit. The web client refetches the source or document list.
-- One sync per source at a time. A manual sync while the source is `indexing` fails with `KNOWLEDGE_SOURCE_BUSY`; the UI disables the button.
+- One sync per source at a time. A manual sync while the source is `indexing` fails with `KNOWLEDGE_SOURCE_BUSY`; the UI disables the button. A manual sync of a referencing source waits while any owner of its documents has an active run.
 - BullMQ retries transient failures five times with exponential backoff. A parse error, unsupported type or scanned PDF is a `GiveUp` for that document; the run records it and continues with the other documents.
 - A source-level Google auth failure stops the run and keeps every existing document in place.
 - `sync_runs` is retained for 90 days and cleaned by a scheduled job.
@@ -558,7 +561,7 @@ The retrieval playground is a screen on the KB page:
 | Google Docs | Optional: hourly, daily or weekly | Sync now |
 
 - Every source is imported once when it is created. The run trigger is `initial`.
-- A Google source always has a “Sync now” action. It is a run trigger, not a stored mode, and it does not change the scheduled `next_sync_at`.
+- A ready Google source has a “Sync now” action in its row actions menu and in its detail drawer. It is a run trigger, not a stored mode, and it does not change the scheduled `next_sync_at`. A failed source offers Retry instead; Sync now is not shown while the source is pending, indexing or failed.
 - A source has an automatic schedule only when `sync_interval` is set. The schedule stores `sync_interval`, `sync_time` (for daily/weekly), `sync_weekday` (for weekly), `next_sync_at` and the schedule's timezone.
 - There is no `one-time` or `manual` mode: “no automatic sync” is simply `sync_interval = null`.
 
@@ -1156,7 +1159,7 @@ Constraints and indexes:
 - `index (source_id, created_at desc)`;
 - RLS.
 
-`documents_total` and the other document counters count the documents owned by the source that this run processes; a source's referenced documents are not included.
+`documents_total` and the other document counters count the documents selected for this run: every linked document for a manual sync, only the failed documents for a retry, and the owned documents for a scheduled sync.
 
 #### `knowledge.embedding_cache`
 
@@ -1322,12 +1325,12 @@ Lists are small enough for simple arrays in the MVP; documents inside a source u
 | `createUpload` | edit | Returns presigned PUT + document id; optional `sourceId` replaces an upload |
 | `confirmUpload` | edit | Validates object, creates or updates source/document, enqueues |
 | `createGoogleDocsSource` | edit | Validates picked docs; creates a source + documents when at least one is new |
-| `syncSource` | edit | Manual sync |
+| `syncSource` | edit | Manual sync for a ready Google source; checks provider metadata and re-exports only changed documents |
 | `syncKnowledgeBase` | edit | Sync all sources of a KB |
 | `updateDocumentSummary` | edit | Sets a user summary and re-indexes the document |
 | `updateSourceSchedule` | edit | Interval, time, weekday; clearing the interval turns automatic sync off |
 | `renameSource` | edit | Renames the display title only; documents and index text stay unchanged |
-| `retrySource` | edit | Creates a manual sync run for a failed source and reuses the stored original |
+| `retrySource` | edit | Creates a manual sync run for the failed documents of a source and reuses the stored original |
 | `deleteSource` | edit | Soft delete + cleanup |
 | `startGoogleConnection` | edit | Returns Google authorization URL |
 | `completeGoogleConnection` | edit | Exchanges code, stores sealed token |
@@ -1368,7 +1371,7 @@ Screens from `mvp-scope.md`: `Knowledge-Empty`, `Knowledge`, `Knowledge-AddSourc
 Behaviour:
 
 - **List page:** empty state, KB cards/rows with status, source count, chunk count, last activity.
-- **Detail page:** breadcrumb above the KB name; header with rename/edit/delete; sources table with type, status, chunks, last sync, next sync, and a source actions menu (rename, retry, delete); Add source; Sync all; settings for tool name/description; Playground tab or panel.
+- **Detail page:** breadcrumb above the KB name; header with rename/edit/delete; sources table with type, status, chunks, last sync, next sync, and a source actions menu (Sync now for a ready Google source, rename, retry, delete); Add source; Sync all; settings for tool name/description; Playground tab or panel.
 - **Add source:** Upload tab with drop zone and per-file progress; Google tab with Connect, account status and Pick documents.
 - **Upload hook:** call `createUpload`, PUT with `XMLHttpRequest` for progress, call `confirmUpload`, then subscribe/refetch. Errors show the server reason.
 - **Document summary:** show the one-line summary with an “AI-generated once” or “Edited by you” badge. Helper text says it is not updated automatically and that editing it re-indexes the document. The edit dialog calls `updateDocumentSummary`; saving shows the document as `indexing` until the new generation is ready.
@@ -1441,7 +1444,7 @@ There is no product-level document or chunk quota in the first version. The work
 | Google token revoked | Connection `revoked`; source `error` with `GOOGLE_RECONNECT_REQUIRED`; Retry is blocked | Reconnect from the page banner or source drawer, then retry the source |
 | Google doc trashed | Document `removed`; object cleanup | Nothing; it is gone at the provider |
 | Google export exceeds the export limit | Document `error` with `DOCUMENT_TOO_LARGE`; source `error`; retry is not offered | Split the document or upload a smaller file |
-| Google doc already in the KB | The duplicate is reported with `alreadyAdded`; the new source links the existing document and no second document or sync is created. A source with only already-added documents starts from their current state | Nothing; both sources reference the same indexed document |
+| Google doc already in the KB | The duplicate is reported with `alreadyAdded`; the new source links the existing document and no second document or sync is created. A source with only already-added documents starts from their current state and can be refreshed with “Sync now” | Nothing; both sources reference the same indexed document |
 | Google transient error | Document unchanged | Retry; wipe protection |
 | KB in use | `KNOWLEDGE_BASE_IN_USE` with usages | Detach from agents first |
 | Delete race on a referenced KB | Lock + publish check | At worst a flow fails validation and is fixed |

@@ -123,7 +123,7 @@ Workspace-level resources, attached to agents many-to-many.
 
 **Sync** per source:
 - an initial import when the source is created;
-- an always-available “Sync now” action for Google Docs;
+- a “Sync now” action for an indexed Google Docs source; a failed source offers Retry instead;
 - an optional schedule (hourly, daily or weekly at a time in the workspace timezone).
 
 Uploads do not have a schedule; replacing the file re-indexes it. Real-time sync is later.
@@ -433,7 +433,7 @@ Each use case lists the main path, then variations and errors, and the screens i
 2. Add sources (`Knowledge-AddSource*`):
    - **Upload:** PDF, DOCX, TXT, MD, up to 20 MB each. Unsupported files are skipped with a reason. Uploads don't sync; uploading a new version replaces the old chunks.
    - **Google Docs:** connect an account (read-only per-file access), pick documents with Google Picker. Folder import is later.
-   - **Sync** per source: an initial import, an always-available “Sync now” button, and an optional schedule (hourly, daily or weekly at a time). Uploads have no schedule; real-time sync is later.
+   - **Sync** per source: an initial import, a “Sync now” button for an indexed Google source, and an optional schedule (hourly, daily or weekly at a time). A failed source offers Retry instead. Uploads have no schedule; real-time sync is later.
 3. Watch the index status for each source (`Knowledge`):
    - indexed with N chunks, indexing %, or an error such as "access revoked" → reconnect;
    - re-sync one source or all.
@@ -637,7 +637,7 @@ The run is marked failed, and Agents shows "N runs failed today".
   - ClickUp and Google Drive folders are later.
 - **Sync:**
   - initial import;
-  - “Sync now” button;
+  - “Sync now” button for an indexed Google source;
   - optional schedule (hourly / daily / weekly at a time).
 
   Uploads have no schedule. Real-time sync is later.

@@ -6,6 +6,7 @@ import {
   KnowledgeDocumentStatus,
   KnowledgeSourceStatus,
   KnowledgeSyncStatus,
+  KnowledgeSyncTrigger,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import {
   isConnectionFailure,
@@ -52,7 +53,7 @@ export class IngestKnowledgeSourceUseCase {
 
   async execute(
     ctx: UseCaseCtx,
-    { sourceId, syncRunId }: IngestKnowledgeSourceJobData,
+    { sourceId, syncRunId, documentIds }: IngestKnowledgeSourceJobData,
   ): Promise<void> {
     requireSystemActor(ctx);
     const workspaceId = ctx.workspaceId;
@@ -60,7 +61,7 @@ export class IngestKnowledgeSourceUseCase {
       throw new WorkspaceAccessDeniedError();
     }
     const startedAt = this.clock.now();
-    const started = await this.start(workspaceId, sourceId, syncRunId, startedAt);
+    const started = await this.start(workspaceId, sourceId, syncRunId, documentIds, startedAt);
     if (started === null) {
       return;
     }
@@ -71,22 +72,17 @@ export class IngestKnowledgeSourceUseCase {
     let failure: KnowledgeFailure | null = null;
     try {
       for (const document of started.documents) {
-        await this.markDocument(workspaceId, document.id, KnowledgeDocumentStatus.Indexing, null);
         try {
           const result = await this.ingestion.ingest({
             workspaceId,
             knowledgeBase: started.knowledgeBase,
             document,
             connection: started.connection,
+            onIndexing: () =>
+              this.markDocument(workspaceId, document.id, KnowledgeDocumentStatus.Indexing, null),
           });
           if (result.skipped) {
             skipped += 1;
-            await this.markDocument(
-              workspaceId,
-              document.id,
-              KnowledgeDocumentStatus.Indexed,
-              null,
-            );
           } else {
             indexed += 1;
           }
@@ -171,6 +167,7 @@ export class IngestKnowledgeSourceUseCase {
     workspaceId: string,
     sourceId: string,
     syncRunId: string,
+    documentIds: readonly string[] | undefined,
     startedAt: Date,
   ): Promise<SourceIngestionStart | null> {
     return this.tenants.run(workspaceId, async () => {
@@ -200,7 +197,17 @@ export class IngestKnowledgeSourceUseCase {
         });
         return null;
       }
-      const documents = await this.documents.listOwnedBySource(workspaceId, source.id);
+      const ownedDocuments = await this.documents.listOwnedBySource(workspaceId, source.id);
+      const candidateDocuments =
+        documentIds !== undefined ||
+        (ownedDocuments.length === 0 && syncRun.trigger === KnowledgeSyncTrigger.Manual)
+          ? await this.documents.listBySource(workspaceId, source.id)
+          : ownedDocuments;
+      const selectedIds = documentIds === undefined ? null : new Set(documentIds);
+      const documents =
+        selectedIds === null
+          ? candidateDocuments
+          : candidateDocuments.filter((document) => selectedIds.has(document.id));
       const connection =
         source.connectionId === null
           ? null
@@ -210,6 +217,11 @@ export class IngestKnowledgeSourceUseCase {
         lastErrorCode: null,
         lastErrorMessage: null,
       });
+      await this.markLinkedSourcesIndexing(
+        workspaceId,
+        sourceId,
+        documents.map((document) => document.id),
+      );
       await this.syncRuns.update(workspaceId, syncRun.id, {
         status: KnowledgeSyncStatus.Running,
         startedAt,
@@ -224,6 +236,31 @@ export class IngestKnowledgeSourceUseCase {
       });
       return { knowledgeBase, documents, connection, syncRunId: syncRun.id };
     });
+  }
+
+  private async markLinkedSourcesIndexing(
+    workspaceId: string,
+    sourceId: string,
+    documentIds: readonly string[],
+  ): Promise<void> {
+    const linkedSourceIds = await this.sourceDocuments.listSourceIdsByDocumentIds(
+      workspaceId,
+      documentIds,
+    );
+    for (const linkedSourceId of linkedSourceIds) {
+      if (linkedSourceId === sourceId) {
+        continue;
+      }
+      const activeRun = await this.syncRuns.findActiveBySource(workspaceId, linkedSourceId);
+      if (activeRun !== null) {
+        continue;
+      }
+      await this.sources.update(workspaceId, linkedSourceId, {
+        status: KnowledgeSourceStatus.Indexing,
+        lastErrorCode: null,
+        lastErrorMessage: null,
+      });
+    }
   }
 
   private isFinalAttempt(ctx: UseCaseCtx): boolean {
