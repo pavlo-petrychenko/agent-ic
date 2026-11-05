@@ -259,6 +259,7 @@ export function AddSourceModal({
                   </FileRowList>
                 </div>
               )}
+              <Callout tone={CalloutTone.Neutral}>{t('add.googleDocsSummaryNote')}</Callout>
             </>
           )}
         </div>

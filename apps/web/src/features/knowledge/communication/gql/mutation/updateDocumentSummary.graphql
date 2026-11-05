@@ -1,0 +1,7 @@
+mutation UpdateDocumentSummary($input: UpdateDocumentSummaryInput!) {
+  updateDocumentSummary(input: $input) {
+    id
+    summary
+    status
+  }
+}

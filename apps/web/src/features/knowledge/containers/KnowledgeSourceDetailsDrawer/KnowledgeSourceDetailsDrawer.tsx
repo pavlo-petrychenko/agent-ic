@@ -1,4 +1,5 @@
 import { ErrorReason } from '@agent-ic/contracts';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useKnowledgeSourceDetail } from '@/features/knowledge/communication/hooks/useKnowledgeSourceDetail';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
@@ -8,6 +9,7 @@ import {
 } from '@/features/knowledge/constants/knowledgeSource.constants';
 import { KNOWLEDGE_SOURCE_DETAILS_DRAWER_WIDTH } from '@/features/knowledge/containers/KnowledgeSourceDetailsDrawer/KnowledgeSourceDetailsDrawer.constants';
 import type { KnowledgeSourceDetailsDrawerProps } from '@/features/knowledge/containers/KnowledgeSourceDetailsDrawer/KnowledgeSourceDetailsDrawer.typedefs';
+import { SummaryEditorDialog } from '@/features/knowledge/containers/SummaryEditorDialog';
 import { isGoogleConnectionActive } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import {
   canSyncKnowledgeSource,
@@ -17,6 +19,7 @@ import {
 import { useKnowledgeFailureMessage } from '@/features/knowledge/logic/hooks/useKnowledgeFailureMessage';
 import type {
   KnowledgeSourceDetailView,
+  KnowledgeSourceDocumentView,
   KnowledgeSourceTarget,
 } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import { KnowledgeSourceDetails } from '@/features/knowledge/view/KnowledgeSourceDetails';
@@ -36,6 +39,7 @@ export function KnowledgeSourceDetailsDrawer({
   reconnecting,
 }: KnowledgeSourceDetailsDrawerProps) {
   const { t, i18n } = useTranslation(KNOWLEDGE_NAMESPACE);
+  const [summaryTarget, setSummaryTarget] = useState<KnowledgeSourceDocumentView | null>(null);
   const { detail, loading, failed, retry } = useKnowledgeSourceDetail(sourceId);
   const failureMessage = useKnowledgeFailureMessage();
   const target: KnowledgeSourceTarget | null =
@@ -89,46 +93,64 @@ export function KnowledgeSourceDetailsDrawer({
           });
 
   return (
-    <Drawer
-      open
-      onOpenChange={(open) => {
-        if (!open) {
-          onClose();
-        }
-      }}
-      ariaLabel={t('sources.details.panelLabel')}
-      width={KNOWLEDGE_SOURCE_DETAILS_DRAWER_WIDTH}
-      top={0}
-      scrim
-    >
-      <KnowledgeSourceDetails
-        detail={detailView}
-        sourceFailureMessage={
-          detail === null
-            ? null
-            : reconnected
-              ? reconnectedMessage
-              : failureMessage(detail.source.lastErrorCode)
-        }
-        connection={detail === null ? null : detail.connection}
-        reconnecting={reconnecting}
-        onReconnect={onReconnect}
-        loading={loading}
-        failed={failed}
-        retrying={retrying}
-        syncing={syncing}
-        canManage={canManage}
-        canRetry={canRetry}
-        canSync={canSync}
-        addedLabel={addedLabel}
-        lastSyncedLabel={lastSyncedLabel}
-        onReload={() => void retry()}
-        onClose={onClose}
-        onSync={canManage && canSync && target !== null ? () => onSync?.(target) : null}
-        onRename={canManage && target !== null ? () => onRename(target) : null}
-        onRetry={canManage && canRetry && target !== null ? () => onRetry(target) : null}
-        onDelete={canManage && target !== null ? () => onDelete(target) : null}
-      />
-    </Drawer>
+    <>
+      <Drawer
+        open
+        onOpenChange={(open) => {
+          if (!open) {
+            onClose();
+          }
+        }}
+        ariaLabel={t('sources.details.panelLabel')}
+        width={KNOWLEDGE_SOURCE_DETAILS_DRAWER_WIDTH}
+        top={0}
+        scrim
+      >
+        <KnowledgeSourceDetails
+          detail={detailView}
+          sourceFailureMessage={
+            detail === null
+              ? null
+              : reconnected
+                ? reconnectedMessage
+                : failureMessage(detail.source.lastErrorCode)
+          }
+          connection={detail === null ? null : detail.connection}
+          reconnecting={reconnecting}
+          onReconnect={onReconnect}
+          loading={loading}
+          failed={failed}
+          retrying={retrying}
+          syncing={syncing}
+          canManage={canManage}
+          canRetry={canRetry}
+          canSync={canSync}
+          addedLabel={addedLabel}
+          lastSyncedLabel={lastSyncedLabel}
+          onReload={() => void retry()}
+          onClose={onClose}
+          onSync={canManage && canSync && target !== null ? () => onSync?.(target) : null}
+          onRename={canManage && target !== null ? () => onRename(target) : null}
+          onRetry={canManage && canRetry && target !== null ? () => onRetry(target) : null}
+          onDelete={canManage && target !== null ? () => onDelete(target) : null}
+          onEditSummary={
+            canManage &&
+            detail !== null &&
+            detail.source.kind === KnowledgeSourceKind.GoogleDocs &&
+            detail.source.status !== KnowledgeSourceStatus.Pending &&
+            detail.source.status !== KnowledgeSourceStatus.Indexing
+              ? (document) => setSummaryTarget(document)
+              : null
+          }
+        />
+      </Drawer>
+      {summaryTarget !== null && detail !== null ? (
+        <SummaryEditorDialog
+          sourceId={detail.source.id}
+          document={summaryTarget}
+          onClose={() => setSummaryTarget(null)}
+        />
+      ) : null}
+    </>
   );
 }

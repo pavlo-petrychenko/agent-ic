@@ -3,11 +3,12 @@ import { fieldContext, formContext } from '@/shared/forms/contexts/form.context'
 import { ComboboxField } from '@/shared/forms/fields/ComboboxField';
 import { PasswordField } from '@/shared/forms/fields/PasswordField';
 import { SubmitButton } from '@/shared/forms/fields/SubmitButton';
+import { TextareaField } from '@/shared/forms/fields/TextareaField';
 import { TextField } from '@/shared/forms/fields/TextField';
 
 export const { useAppForm, withForm } = createFormHook({
   fieldContext,
   formContext,
-  fieldComponents: { TextField, PasswordField, ComboboxField },
+  fieldComponents: { TextField, PasswordField, ComboboxField, TextareaField },
   formComponents: { SubmitButton },
 });
