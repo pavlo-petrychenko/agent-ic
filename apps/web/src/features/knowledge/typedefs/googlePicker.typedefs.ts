@@ -69,10 +69,14 @@ export interface OpenGooglePickerInput {
   readonly onCancel: () => void;
 }
 
+export interface SelectedGoogleDocs {
+  readonly connectionId: string;
+  readonly documents: readonly GooglePickerDocument[];
+}
+
 export interface PickGoogleDocumentsInput {
   readonly connectionId: string;
-  readonly knowledgeBaseId: string;
-  readonly onCreated: (result: GooglePickerCreatedSource) => void;
+  readonly onPicked: (documents: readonly GooglePickerDocument[]) => void;
   readonly onError: (error: unknown) => void;
 }
 

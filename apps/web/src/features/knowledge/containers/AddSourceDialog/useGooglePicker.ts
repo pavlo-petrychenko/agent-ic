@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { useCreateGoogleDocsSource } from '@/features/knowledge/communication/hooks/useCreateGoogleDocsSource';
 import { useCreateGooglePickerSession } from '@/features/knowledge/communication/hooks/useCreateGooglePickerSession';
 import { openGooglePicker } from '@/features/knowledge/logic/helpers/googlePicker.helpers';
 import type {
@@ -9,16 +8,10 @@ import type {
 
 export function useGooglePicker(): UseGooglePickerResult {
   const { createGooglePickerSession } = useCreateGooglePickerSession();
-  const { createGoogleDocsSource } = useCreateGoogleDocsSource();
   const [pickingConnectionId, setPickingConnectionId] = useState<string | null>(null);
 
   const pickDocuments = useCallback(
-    async ({
-      connectionId,
-      knowledgeBaseId,
-      onCreated,
-      onError,
-    }: PickGoogleDocumentsInput): Promise<void> => {
+    async ({ connectionId, onPicked, onError }: PickGoogleDocumentsInput): Promise<void> => {
       setPickingConnectionId(connectionId);
       try {
         const session = await createGooglePickerSession(connectionId);
@@ -28,14 +21,10 @@ export function useGooglePicker(): UseGooglePickerResult {
           appId: session.appId,
           onCancel: () => setPickingConnectionId(null),
           onPicked: (documents) => {
-            if (documents.length === 0) {
-              setPickingConnectionId(null);
-              return;
+            setPickingConnectionId(null);
+            if (documents.length > 0) {
+              onPicked(documents);
             }
-            void createGoogleDocsSource({ connectionId, knowledgeBaseId, documents })
-              .then(onCreated)
-              .catch(onError)
-              .finally(() => setPickingConnectionId(null));
           },
         });
       } catch (failure) {
@@ -43,7 +32,7 @@ export function useGooglePicker(): UseGooglePickerResult {
         onError(failure);
       }
     },
-    [createGoogleDocsSource, createGooglePickerSession],
+    [createGooglePickerSession],
   );
 
   return { pickDocuments, pickingConnectionId };

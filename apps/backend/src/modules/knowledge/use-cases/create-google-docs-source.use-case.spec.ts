@@ -49,6 +49,14 @@ const file = (overrides: Partial<GoogleDriveFile> = {}): GoogleDriveFile => ({
   ...overrides,
 });
 
+const picked = (id: string, name: string) => ({
+  id,
+  name,
+  mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+  url: null,
+  resourceKey: null,
+});
+
 describe('CreateGoogleDocsSourceUseCase', () => {
   let testbed: KnowledgeTestbed;
   let drive: FakeGoogleDriveGateway;
@@ -149,7 +157,8 @@ describe('CreateGoogleDocsSourceUseCase', () => {
       ],
     });
 
-    expect(result.source).toMatchObject({
+    const source = result.source;
+    expect(source).toMatchObject({
       knowledgeBaseId: publicKnowledgeBaseId(testbed, knowledgeBaseId),
       kind: KnowledgeSourceKind.GoogleDocs,
       status: KnowledgeSourceStatus.Pending,
@@ -160,7 +169,7 @@ describe('CreateGoogleDocsSourceUseCase', () => {
       'trashed',
       'unavailable',
     ]);
-    const sourceId = testbed.ids.fromPublic(IdPrefix.KnowledgeSource, result.source.id);
+    const sourceId = testbed.ids.fromPublic(IdPrefix.KnowledgeSource, source.id);
     const stored = await testbed.tenants.run(workspaceId, async () => ({
       sources: await sources.listByKnowledgeBase(workspaceId, knowledgeBaseId),
       documents: await documents.listBySource(workspaceId, sourceId),
@@ -187,6 +196,124 @@ describe('CreateGoogleDocsSourceUseCase', () => {
       status: KnowledgeSyncStatus.Queued,
       documentsTotal: 2,
     });
+  });
+
+  it('links a Google Doc that is already active to the new source without a new document', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedConnection(workspaceId);
+    drive.addFile(file({ id: 'google-doc-existing', name: 'Existing' }), '# Existing');
+    drive.addFile(file({ id: 'google-doc-fresh', name: 'Fresh' }), '# Fresh');
+
+    const initial = await createSource.execute(knowledgeCtx(workspaceId), {
+      knowledgeBaseId: publicKnowledgeBaseId(testbed, knowledgeBaseId),
+      connectionId: publicKnowledgeConnectionId(testbed, connectionId),
+      documents: [picked('google-doc-existing', 'Existing')],
+    });
+    const firstSourceId = testbed.ids.fromPublic(IdPrefix.KnowledgeSource, initial.source.id);
+
+    const result = await createSource.execute(knowledgeCtx(workspaceId), {
+      knowledgeBaseId: publicKnowledgeBaseId(testbed, knowledgeBaseId),
+      connectionId: publicKnowledgeConnectionId(testbed, connectionId),
+      documents: [picked('google-doc-existing', 'Existing'), picked('google-doc-fresh', 'Fresh')],
+    });
+
+    expect(result.skipped).toEqual([
+      { id: 'google-doc-existing', name: 'Existing', reason: 'already_added' },
+    ]);
+    expect(result.source).toMatchObject({ title: 'Google Docs (2)' });
+    const sourceId = testbed.ids.fromPublic(IdPrefix.KnowledgeSource, result.source.id);
+    const stored = await testbed.tenants.run(workspaceId, async () => ({
+      sources: await sources.listByKnowledgeBase(workspaceId, knowledgeBaseId),
+      documents: await documents.listBySource(workspaceId, sourceId),
+      runs: await syncRuns.findLatestBySource(workspaceId, sourceId),
+    }));
+    expect(stored.sources).toHaveLength(2);
+    expect(
+      stored.documents
+        .map((document) => document.externalId)
+        .toSorted((left, right) => String(left).localeCompare(String(right))),
+    ).toEqual(['google-doc-existing', 'google-doc-fresh']);
+    expect(
+      stored.documents.find((document) => document.externalId === 'google-doc-existing'),
+    ).toMatchObject({ sourceId: firstSourceId });
+    expect(stored.runs).toMatchObject({
+      status: KnowledgeSyncStatus.Queued,
+      documentsTotal: 1,
+    });
+  });
+
+  it('creates a source that references every selected Google Doc already in the knowledge base', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedConnection(workspaceId);
+    drive.addFile(file({ id: 'google-doc-existing', name: 'Existing' }), '# Existing');
+    const input = {
+      knowledgeBaseId: publicKnowledgeBaseId(testbed, knowledgeBaseId),
+      connectionId: publicKnowledgeConnectionId(testbed, connectionId),
+      documents: [picked('google-doc-existing', 'Existing')],
+    };
+    const initial = await createSource.execute(knowledgeCtx(workspaceId), input);
+    const firstSourceId = testbed.ids.fromPublic(IdPrefix.KnowledgeSource, initial.source.id);
+    const existingDocumentId = await testbed.tenants.run(workspaceId, async () => {
+      const [existing] = await documents.listBySource(workspaceId, firstSourceId);
+      if (existing === undefined) {
+        throw new Error('the initial source has no document');
+      }
+      await documents.update(workspaceId, existing.id, {
+        status: KnowledgeDocumentStatus.Indexed,
+        activeGeneration: 1,
+      });
+      return existing.id;
+    });
+
+    const result = await createSource.execute(knowledgeCtx(workspaceId), input);
+
+    expect(result.skipped).toEqual([
+      { id: 'google-doc-existing', name: 'Existing', reason: 'already_added' },
+    ]);
+    expect(result.source).toMatchObject({
+      title: 'Existing',
+      status: KnowledgeSourceStatus.Ready,
+      documentCount: 1,
+      chunkCount: 0,
+    });
+    const secondSourceId = testbed.ids.fromPublic(IdPrefix.KnowledgeSource, result.source.id);
+    const stored = await testbed.tenants.run(workspaceId, async () => ({
+      sources: await sources.listByKnowledgeBase(workspaceId, knowledgeBaseId),
+      documents: await documents.listBySource(workspaceId, secondSourceId),
+      runs: await syncRuns.findLatestBySource(workspaceId, secondSourceId),
+    }));
+    expect(stored.sources).toHaveLength(2);
+    expect(stored.documents.map((document) => document.id)).toEqual([existingDocumentId]);
+    expect(stored.documents[0]).toMatchObject({ sourceId: firstSourceId });
+    expect(stored.runs).toBeNull();
+  });
+
+  it('allows the same Google Doc in a different knowledge base', async () => {
+    const workspaceId = testbed.ids.generate();
+    const firstKnowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const secondKnowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId, {
+      name: 'Second handbook',
+      toolName: 'search_second_handbook',
+    });
+    const connectionId = await seedConnection(workspaceId);
+    drive.addFile(file({ id: 'google-doc-shared', name: 'Shared' }), '# Shared');
+
+    await createSource.execute(knowledgeCtx(workspaceId), {
+      knowledgeBaseId: publicKnowledgeBaseId(testbed, firstKnowledgeBaseId),
+      connectionId: publicKnowledgeConnectionId(testbed, connectionId),
+      documents: [picked('google-doc-shared', 'Shared')],
+    });
+
+    const result = await createSource.execute(knowledgeCtx(workspaceId), {
+      knowledgeBaseId: publicKnowledgeBaseId(testbed, secondKnowledgeBaseId),
+      connectionId: publicKnowledgeConnectionId(testbed, connectionId),
+      documents: [picked('google-doc-shared', 'Shared')],
+    });
+
+    expect(result.skipped).toEqual([]);
+    expect(result.source).toMatchObject({ title: 'Shared' });
   });
 
   it('fails when none of the selected documents can be read', async () => {

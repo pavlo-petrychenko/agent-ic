@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { AddSourceType } from '@/features/knowledge/constants/googleConnection.constants';
+import type { GooglePickerDocument } from '@/features/knowledge/typedefs/googlePicker.typedefs';
 import type { SelectedKnowledgeFileView } from '@/features/knowledge/typedefs/knowledgeUpload.typedefs';
 
 export interface AddSourceModalProps {
@@ -13,10 +14,14 @@ export interface AddSourceModalProps {
   readonly skippedCount: number;
   readonly uploading: boolean;
   readonly picking: boolean;
+  readonly googleDocuments: readonly GooglePickerDocument[];
+  readonly addingGoogleDocs: boolean;
   readonly googleContent: ReactNode;
   readonly onSourceTypeChange: (sourceType: AddSourceType) => void;
   readonly onFiles: (files: readonly File[]) => void;
   readonly onRemoveFile: (id: string) => void;
+  readonly onRemoveGoogleDocument: (id: string) => void;
+  readonly onAddGoogleDocs: () => void;
   readonly onSubmit: () => void;
   readonly onClose: () => void;
 }

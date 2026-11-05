@@ -10,6 +10,7 @@ import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
 import { KnowledgeStatsRepository } from '@/modules/knowledge/repositories/knowledge-stats.repository';
 import { SectionsRepository } from '@/modules/knowledge/repositories/sections.repository';
+import { SourceDocumentsRepository } from '@/modules/knowledge/repositories/source-documents.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
 import { deleteKnowledgeSourceInputSchema } from '@/modules/knowledge/schemas/knowledge-input.schema';
@@ -26,6 +27,7 @@ export class DeleteKnowledgeSourceUseCase {
   constructor(
     private readonly tenants: TenantTransactionService,
     private readonly sources: SourcesRepository,
+    private readonly sourceDocuments: SourceDocumentsRepository,
     private readonly documents: DocumentsRepository,
     private readonly sections: SectionsRepository,
     private readonly chunks: ChunksRepository,
@@ -64,12 +66,25 @@ export class DeleteKnowledgeSourceUseCase {
       }
 
       const deletedAt = this.clock.now();
-      const documents = await this.documents.listAllBySource(workspaceId, source.id);
+      const documents = await this.documents.listBySource(workspaceId, source.id);
       for (const document of documents) {
+        if (document.sourceId !== source.id) {
+          continue;
+        }
+        const [nextOwnerSourceId] = await this.sourceDocuments.listOtherSourceIds(
+          workspaceId,
+          document.id,
+          source.id,
+        );
+        if (nextOwnerSourceId !== undefined) {
+          await this.documents.update(workspaceId, document.id, { sourceId: nextOwnerSourceId });
+          continue;
+        }
         await this.documents.softDelete(workspaceId, document.id, deletedAt);
         await this.chunks.deleteByDocument(workspaceId, document.id);
         await this.sections.deleteByDocument(workspaceId, document.id);
       }
+      await this.sourceDocuments.deleteBySource(workspaceId, source.id);
       await this.sources.softDelete(workspaceId, source.id, deletedAt);
       await this.knowledgeBases.update(
         workspaceId,

@@ -39,6 +39,8 @@
     "filesSelected_one": "{{count}} file selected",
     "filesSelected_other": "{{count}} files selected",
     "selectedFiles": "Selected files",
+    "selectedDocuments": "Selected documents",
+    "googleDoc": "Google Doc",
     "statusReady": "Ready",
     "statusUploading": "Uploading",
     "statusUploaded": "Uploaded",
@@ -51,6 +53,12 @@
     "uploadFailed": "Upload failed. Try again.",
     "info": "Uploaded files don’t sync. To update one, upload the new version — it replaces the old chunks.",
     "noFiles": "No files selected",
+    "noDocuments": "No documents selected",
+    "documentsSelected_one": "{{count}} document selected",
+    "documentsSelected_other": "{{count}} documents selected",
+    "addDocuments_one": "Add {{count}} document",
+    "addDocuments_other": "Add {{count}} documents",
+    "addDocumentsEmpty": "Add documents",
     "ready_one": "{{count}} ready",
     "ready_other": "{{count}} ready",
     "uploading_one": "{{count}} uploading",
@@ -94,7 +102,9 @@
       "pickDocuments": "Pick documents",
       "pickerSuccess": "Google Docs source added.",
       "pickerSkipped": "Some selected documents could not be added.",
-      "pickerLoadError": "Google Picker could not load. Check your connection and try again."
+      "pickerAlreadyAdded": "These Google Docs were already in this knowledge base and are linked to the new source.",
+      "pickerLoadError": "Google Picker could not load. Check your connection and try again.",
+      "pickerDifferentAccount": "Pick documents from one Google account at a time."
     }
   },
   "sources": {

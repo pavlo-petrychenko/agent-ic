@@ -47,6 +47,8 @@
     "filesSelected_many": "Вибрано {{count}} файлів",
     "filesSelected_other": "Вибрано {{count}} файлу",
     "selectedFiles": "Обрані файли",
+    "selectedDocuments": "Вибрані документи",
+    "googleDoc": "Документ Google",
     "statusReady": "Готово",
     "statusUploading": "Завантажується",
     "statusUploaded": "Завантажено",
@@ -59,6 +61,16 @@
     "uploadFailed": "Не вдалося завантажити. Спробуйте ще раз.",
     "info": "Завантажені файли не синхронізуються. Щоб оновити файл, завантажте нову версію — вона замінить старі фрагменти.",
     "noFiles": "Файли не вибрано",
+    "noDocuments": "Документи не вибрано",
+    "documentsSelected_one": "{{count}} документ вибрано",
+    "documentsSelected_few": "{{count}} документи вибрано",
+    "documentsSelected_many": "{{count}} документів вибрано",
+    "documentsSelected_other": "{{count}} документа вибрано",
+    "addDocuments_one": "Додати {{count}} документ",
+    "addDocuments_few": "Додати {{count}} документи",
+    "addDocuments_many": "Додати {{count}} документів",
+    "addDocuments_other": "Додати {{count}} документа",
+    "addDocumentsEmpty": "Додати документи",
     "ready_one": "{{count}} готовий",
     "ready_few": "{{count}} готові",
     "ready_many": "{{count}} готових",
@@ -116,7 +128,9 @@
       "pickDocuments": "Вибрати документи",
       "pickerSuccess": "Джерело Google Docs додано.",
       "pickerSkipped": "Деякі вибрані документи не вдалося додати.",
-      "pickerLoadError": "Не вдалося завантажити вибір документів Google. Перевірте з’єднання та спробуйте ще раз."
+      "pickerAlreadyAdded": "Ці документи Google уже були в цій базі знань і приєднані до нового джерела.",
+      "pickerLoadError": "Не вдалося завантажити вибір документів Google. Перевірте з’єднання та спробуйте ще раз.",
+      "pickerDifferentAccount": "Вибирайте документи з одного облікового запису Google за раз."
     }
   },
   "sources": {

@@ -10,10 +10,12 @@ import {
   isDocumentFailure,
   knowledgeFailure,
 } from '@/modules/knowledge/helpers/knowledge-ingestion.helpers';
+import { knowledgeSourceStateForDocuments } from '@/modules/knowledge/helpers/knowledge-source-state.helpers';
 import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
 import { KnowledgeStatsRepository } from '@/modules/knowledge/repositories/knowledge-stats.repository';
+import { SourceDocumentsRepository } from '@/modules/knowledge/repositories/source-documents.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
 import { KnowledgeDocumentIngestionService } from '@/modules/knowledge/services/knowledge-document-ingestion.service';
@@ -37,6 +39,7 @@ export class IngestKnowledgeSourceUseCase {
     private readonly tenants: TenantTransactionService,
     private readonly sources: SourcesRepository,
     private readonly connections: ConnectionsRepository,
+    private readonly sourceDocuments: SourceDocumentsRepository,
     private readonly documents: DocumentsRepository,
     private readonly syncRuns: SyncRunsRepository,
     private readonly knowledgeBases: KnowledgeBasesRepository,
@@ -123,6 +126,7 @@ export class IngestKnowledgeSourceUseCase {
         status: runStatus,
         sourceStatus: failed === 0 ? KnowledgeSourceStatus.Ready : KnowledgeSourceStatus.Error,
         finishedAt,
+        documentIds: started.documents.map((document) => document.id),
         counters: {
           documentsTotal: started.documents.length,
           documentsIndexed: indexed,
@@ -139,6 +143,7 @@ export class IngestKnowledgeSourceUseCase {
           status: KnowledgeSyncStatus.Failed,
           sourceStatus: KnowledgeSourceStatus.Error,
           finishedAt,
+          documentIds: started.documents.map((document) => document.id),
           counters: {
             documentsTotal: started.documents.length,
             documentsIndexed: indexed,
@@ -185,7 +190,7 @@ export class IngestKnowledgeSourceUseCase {
         });
         return null;
       }
-      const documents = await this.documents.listBySource(workspaceId, source.id);
+      const documents = await this.documents.listOwnedBySource(workspaceId, source.id);
       const connection =
         source.connectionId === null
           ? null
@@ -243,6 +248,7 @@ export class IngestKnowledgeSourceUseCase {
       readonly status: KnowledgeSyncStatus;
       readonly sourceStatus: KnowledgeSourceStatus;
       readonly finishedAt: Date;
+      readonly documentIds: readonly string[];
       readonly counters: {
         readonly documentsTotal: number;
         readonly documentsIndexed: number;
@@ -253,11 +259,21 @@ export class IngestKnowledgeSourceUseCase {
     },
   ): Promise<void> {
     await this.tenants.run(workspaceId, async () => {
+      const linkedDocuments = await this.documents.listBySource(workspaceId, sourceId);
+      const state =
+        linkedDocuments.length === 0
+          ? {
+              status: input.sourceStatus,
+              lastErrorCode: input.failure?.code ?? null,
+              lastErrorMessage: input.failure?.message ?? null,
+            }
+          : knowledgeSourceStateForDocuments(linkedDocuments);
+      const failed = input.sourceStatus === KnowledgeSourceStatus.Error;
       await this.sources.update(workspaceId, sourceId, {
-        status: input.sourceStatus,
+        status: failed ? KnowledgeSourceStatus.Error : state.status,
         lastSyncAt: input.finishedAt,
-        lastErrorCode: input.failure?.code ?? null,
-        lastErrorMessage: input.failure?.message ?? null,
+        lastErrorCode: failed ? (input.failure?.code ?? null) : state.lastErrorCode,
+        lastErrorMessage: failed ? (input.failure?.message ?? null) : state.lastErrorMessage,
         ...(await this.stats.sourceCounts(workspaceId, sourceId)),
       });
       await this.knowledgeBases.update(workspaceId, knowledgeBaseId, {
@@ -270,7 +286,40 @@ export class IngestKnowledgeSourceUseCase {
         errorCode: input.failure?.code ?? null,
         errorMessage: input.failure?.message ?? null,
       });
+      await this.refreshLinkedSources(workspaceId, sourceId, input.documentIds);
     });
+  }
+
+  private async refreshLinkedSources(
+    workspaceId: string,
+    sourceId: string,
+    documentIds: readonly string[],
+  ): Promise<void> {
+    const linkedSourceIds = await this.sourceDocuments.listSourceIdsByDocumentIds(
+      workspaceId,
+      documentIds,
+    );
+    for (const linkedSourceId of linkedSourceIds) {
+      if (linkedSourceId === sourceId) {
+        continue;
+      }
+      const documents = await this.documents.listBySource(workspaceId, linkedSourceId);
+      if (documents.length === 0) {
+        continue;
+      }
+      const state = knowledgeSourceStateForDocuments(documents);
+      const activeRun = await this.syncRuns.findActiveBySource(workspaceId, linkedSourceId);
+      await this.sources.update(workspaceId, linkedSourceId, {
+        ...(activeRun === null
+          ? {
+              status: state.status,
+              lastErrorCode: state.lastErrorCode,
+              lastErrorMessage: state.lastErrorMessage,
+            }
+          : {}),
+        ...(await this.stats.sourceCounts(workspaceId, linkedSourceId)),
+      });
+    }
   }
 
   private async markDocument(

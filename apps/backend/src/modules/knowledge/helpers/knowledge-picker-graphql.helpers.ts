@@ -9,6 +9,7 @@ const SKIP_REASON: Readonly<Record<GooglePickerSkipReason, GraphqlGooglePickerSk
   [GooglePickerSkipReason.Unavailable]: GraphqlGooglePickerSkipReason.Unavailable,
   [GooglePickerSkipReason.Unsupported]: GraphqlGooglePickerSkipReason.Unsupported,
   [GooglePickerSkipReason.Trashed]: GraphqlGooglePickerSkipReason.Trashed,
+  [GooglePickerSkipReason.AlreadyAdded]: GraphqlGooglePickerSkipReason.AlreadyAdded,
 };
 
 export const toGraphqlGooglePickerSkippedDocument = (

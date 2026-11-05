@@ -10,6 +10,7 @@ export function GoogleConnectionIntro({
   hasConnections,
   starting,
   picking,
+  disabled,
   onConnect,
 }: GoogleConnectionIntroProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
@@ -26,7 +27,7 @@ export function GoogleConnectionIntro({
         <span className={styles.title}>{t('add.googleConnection.title')}</span>
         <span className={styles.description}>{t('add.googleConnection.description')}</span>
       </div>
-      <Button onClick={onConnect} loading={starting} disabled={picking}>
+      <Button onClick={onConnect} loading={starting} disabled={picking || disabled}>
         {connectLabel}
       </Button>
     </div>
