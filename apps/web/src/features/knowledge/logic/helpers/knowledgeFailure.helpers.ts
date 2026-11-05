@@ -18,6 +18,8 @@ const SUMMARY_CODES: ReadonlySet<string> = new Set([
   ErrorReason.LlmUnavailable,
   ErrorReason.LlmNotConfigured,
   ErrorReason.EmbeddingDimensionMismatch,
+  ErrorReason.GoogleReconnectRequired,
+  ErrorReason.GoogleOAuthFailed,
   ErrorReason.KnowledgeConnectionNotFound,
   ErrorReason.KnowledgeDocumentInvalid,
 ]);

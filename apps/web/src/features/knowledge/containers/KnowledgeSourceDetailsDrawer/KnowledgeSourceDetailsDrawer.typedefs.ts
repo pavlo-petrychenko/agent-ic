@@ -8,4 +8,6 @@ export interface KnowledgeSourceDetailsDrawerProps {
   readonly onRename: (source: KnowledgeSourceTarget) => void;
   readonly onRetry: (source: KnowledgeSourceTarget) => void;
   readonly onDelete: (source: KnowledgeSourceTarget) => void;
+  readonly onReconnect: (() => void) | null;
+  readonly reconnecting: boolean;
 }

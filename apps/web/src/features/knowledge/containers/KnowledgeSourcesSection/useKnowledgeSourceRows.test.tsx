@@ -9,11 +9,13 @@ import {
 } from '@/features/knowledge/constants/knowledgeSource.constants';
 import { useKnowledgeSourceRows } from '@/features/knowledge/containers/KnowledgeSourcesSection/useKnowledgeSourceRows';
 import type { KnowledgeSource } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import { KnowledgeConnectionStatus } from '@/shared/api/generated/schema.generated';
 import { createI18n } from '@/shared/i18n/clients/i18n.client';
 
 const SOURCE: KnowledgeSource = {
   id: 'src_upstream',
   knowledgeBaseId: 'kbs_services',
+  connectionId: null,
   kind: KnowledgeSourceKind.Upload,
   title: 'Unavailable source',
   status: KnowledgeSourceStatus.Error,
@@ -67,6 +69,46 @@ describe('useKnowledgeSourceRows', () => {
     );
 
     expect(result.current[0]?.statusDetail).toBe('Could not read');
+    expect(result.current[0]?.canRetry).toBe(true);
+  });
+
+  it('asks for a reconnect while the Google connection is revoked', () => {
+    const { result } = renderHook(
+      () =>
+        useKnowledgeSourceRows(
+          [
+            {
+              ...SOURCE,
+              connectionId: 'cnn_google',
+              lastErrorCode: ErrorReason.GoogleReconnectRequired,
+            },
+          ],
+          new Map([['cnn_google', KnowledgeConnectionStatus.Revoked]]),
+        ),
+      { wrapper: wrapperFor(Locale.En) },
+    );
+
+    expect(result.current[0]?.statusDetail).toBe('Reconnect needed');
+    expect(result.current[0]?.canRetry).toBe(false);
+  });
+
+  it('offers a retry after the Google connection is restored', () => {
+    const { result } = renderHook(
+      () =>
+        useKnowledgeSourceRows(
+          [
+            {
+              ...SOURCE,
+              connectionId: 'cnn_google',
+              lastErrorCode: ErrorReason.GoogleReconnectRequired,
+            },
+          ],
+          new Map([['cnn_google', KnowledgeConnectionStatus.Active]]),
+        ),
+      { wrapper: wrapperFor(Locale.En) },
+    );
+
+    expect(result.current[0]?.statusDetail).toBe('Retry needed');
     expect(result.current[0]?.canRetry).toBe(true);
   });
 

@@ -1,5 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { KnowledgeDocumentStatus } from '@/modules/knowledge/constants/knowledge.constants';
+import {
+  KnowledgeConnectionStatus,
+  KnowledgeDocumentStatus,
+  KnowledgeSourceKind,
+} from '@/modules/knowledge/constants/knowledge.constants';
 import { KnowledgeSourceNotFoundError } from '@/modules/knowledge/errors/knowledge-source-not-found.error';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { GetKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/get-knowledge-source.use-case';
@@ -10,6 +14,7 @@ import {
   publicKnowledgeDocumentId,
   publicKnowledgeSourceId,
   seedKnowledgeBase,
+  seedKnowledgeConnection,
   seedKnowledgeDocument,
   seedKnowledgeSource,
 } from '@test/support/helpers/knowledge-testing.helpers';
@@ -59,6 +64,27 @@ describe('GetKnowledgeSourceUseCase', () => {
         chunkCount: 2,
       }),
     ]);
+  });
+
+  it('returns the Google connection with a source detail', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId, {
+      status: KnowledgeConnectionStatus.Revoked,
+    });
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+
+    const detail = await getKnowledgeSource.execute(knowledgeCtx(workspaceId), {
+      id: publicKnowledgeSourceId(testbed, sourceId),
+    });
+
+    expect(detail.connection).toMatchObject({
+      accountEmail: 'owner@example.com',
+      status: KnowledgeConnectionStatus.Revoked,
+    });
   });
 
   it('throws when the source does not exist', async () => {

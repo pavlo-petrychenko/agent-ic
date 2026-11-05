@@ -1,10 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
+  KnowledgeConnectionStatus,
   KnowledgeDocumentStatus,
+  KnowledgeSourceKind,
   KnowledgeSourceStatus,
   KnowledgeSyncStatus,
   KnowledgeSyncTrigger,
 } from '@/modules/knowledge/constants/knowledge.constants';
+import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import { KnowledgeSourceBusyError } from '@/modules/knowledge/errors/knowledge-source-busy.error';
 import { KnowledgeSourceNotFoundError } from '@/modules/knowledge/errors/knowledge-source-not-found.error';
 import { KnowledgeSourceNotRetryableError } from '@/modules/knowledge/errors/knowledge-source-not-retryable.error';
@@ -19,6 +22,7 @@ import {
   knowledgeCtx,
   publicKnowledgeSourceId,
   seedKnowledgeBase,
+  seedKnowledgeConnection,
   seedKnowledgeDocument,
   seedKnowledgeSource,
 } from '@test/support/helpers/knowledge-testing.helpers';
@@ -156,6 +160,27 @@ describe('RetryKnowledgeSourceUseCase', () => {
         id: publicKnowledgeSourceId(testbed, sourceId),
       }),
     ).rejects.toBeInstanceOf(KnowledgeSourceNotRetryableError);
+  });
+
+  it('refuses to retry a source whose Google connection was revoked', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId, {
+      status: KnowledgeConnectionStatus.Revoked,
+    });
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+      status: KnowledgeSourceStatus.Error,
+      lastErrorCode: 'GOOGLE_RECONNECT_REQUIRED',
+    });
+    await seedKnowledgeDocument(testbed, workspaceId, knowledgeBaseId, sourceId);
+
+    await expect(
+      retryKnowledgeSource.execute(knowledgeCtx(workspaceId), {
+        id: publicKnowledgeSourceId(testbed, sourceId),
+      }),
+    ).rejects.toBeInstanceOf(GoogleReconnectRequiredError);
   });
 
   it('refuses an unknown source', async () => {

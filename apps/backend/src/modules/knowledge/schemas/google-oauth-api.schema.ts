@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+export const googleOAuthErrorSchema = z.object({
+  error: z.string().min(1).optional(),
+  error_description: z.string().optional(),
+});
+
 export const googleOAuthTokenResponseSchema = z.object({
   access_token: z.string().min(1),
   refresh_token: z.string().min(1).optional(),

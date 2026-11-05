@@ -1,16 +1,19 @@
 import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import {
+  KnowledgeConnectionStatus,
   KnowledgeDocumentStatus,
   KnowledgeSourceStatus,
   KnowledgeSyncStatus,
   KnowledgeSyncTrigger,
 } from '@/modules/knowledge/constants/knowledge.constants';
+import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import { KnowledgeSourceBusyError } from '@/modules/knowledge/errors/knowledge-source-busy.error';
 import { KnowledgeSourceNotFoundError } from '@/modules/knowledge/errors/knowledge-source-not-found.error';
 import { KnowledgeSourceNotRetryableError } from '@/modules/knowledge/errors/knowledge-source-not-retryable.error';
 import { parseKnowledgeInput } from '@/modules/knowledge/helpers/knowledge-input.helpers';
 import { ingestKnowledgeSourceJob } from '@/modules/knowledge/jobs/ingest-knowledge-source.job';
+import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
@@ -27,6 +30,7 @@ export class RetryKnowledgeSourceUseCase {
   constructor(
     private readonly tenants: TenantTransactionService,
     private readonly sources: SourcesRepository,
+    private readonly connections: ConnectionsRepository,
     private readonly documents: DocumentsRepository,
     private readonly syncRuns: SyncRunsRepository,
     private readonly jobs: JobsService,
@@ -60,6 +64,12 @@ export class RetryKnowledgeSourceUseCase {
       }
       if (source.status !== KnowledgeSourceStatus.Error) {
         throw new KnowledgeSourceNotRetryableError();
+      }
+      if (source.connectionId !== null) {
+        const connection = await this.connections.findById(workspaceId, source.connectionId);
+        if (connection === null || connection.status !== KnowledgeConnectionStatus.Active) {
+          throw new GoogleReconnectRequiredError();
+        }
       }
 
       const documents = await this.documents.listOwnedBySource(workspaceId, source.id);

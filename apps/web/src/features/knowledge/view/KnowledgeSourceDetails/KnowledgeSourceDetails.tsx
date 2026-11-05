@@ -5,10 +5,13 @@ import {
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
 } from '@/features/knowledge/constants/knowledgeSource.constants';
+import type { GoogleConnection } from '@/features/knowledge/typedefs/googleConnection.typedefs';
 import type { KnowledgeSourceDocumentView } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import { GoogleConnectionBanner } from '@/features/knowledge/view/GoogleConnectionBanner';
 import { DOCUMENT_STATUS_TONES } from '@/features/knowledge/view/KnowledgeSourceDetails/KnowledgeSourceDetails.constants';
 import type { KnowledgeSourceDetailsProps } from '@/features/knowledge/view/KnowledgeSourceDetails/KnowledgeSourceDetails.typedefs';
 import { STATUS_TONES } from '@/features/knowledge/view/KnowledgeSourcesTable/KnowledgeSourcesTable.constants';
+import { KnowledgeConnectionStatus } from '@/shared/api/generated/schema.generated';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { IconButton, IconButtonSize, IconButtonVariant } from '@/shared/ui/actions/IconButton';
 import { Badge } from '@/shared/ui/display/Badge';
@@ -23,6 +26,9 @@ const DOCUMENT_ICON_SIZE = 15;
 export function KnowledgeSourceDetails({
   detail,
   sourceFailureMessage,
+  connection,
+  reconnecting,
+  onReconnect,
   loading,
   failed,
   retrying,
@@ -43,8 +49,13 @@ export function KnowledgeSourceDetails({
     source !== null &&
     (source.status === KnowledgeSourceStatus.Pending ||
       source.status === KnowledgeSourceStatus.Indexing);
+  const reconnectConnection: GoogleConnection | null =
+    connection !== null && connection.status !== KnowledgeConnectionStatus.Active
+      ? connection
+      : null;
   const showSourceFailure =
     source !== null &&
+    reconnectConnection === null &&
     source.status === KnowledgeSourceStatus.Error &&
     !documents.some(
       (document) =>
@@ -191,6 +202,14 @@ export function KnowledgeSourceDetails({
                   )}
                 </div>
               ) : null}
+
+              {reconnectConnection === null ? null : (
+                <GoogleConnectionBanner
+                  connections={[reconnectConnection]}
+                  reconnecting={reconnecting}
+                  onReconnect={onReconnect}
+                />
+              )}
 
               {showSourceFailure ? (
                 <Callout tone={CalloutTone.Err} icon={IconName.Alert}>

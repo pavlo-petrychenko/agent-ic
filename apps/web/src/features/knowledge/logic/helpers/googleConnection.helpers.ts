@@ -1,6 +1,10 @@
 import { GOOGLE_CONNECTION_RETURN_STORAGE_KEY } from '@/features/knowledge/constants/googleConnection.constants';
 import { googleConnectionReturnSchema } from '@/features/knowledge/logic/schemas/googleConnection.schema';
 import type { GoogleConnectionReturn } from '@/features/knowledge/typedefs/googleConnection.typedefs';
+import { KnowledgeConnectionStatus } from '@/shared/api/generated/schema.generated';
+
+export const isGoogleConnectionActive = (status: KnowledgeConnectionStatus): boolean =>
+  status === KnowledgeConnectionStatus.Active;
 
 export const saveGoogleConnectionReturn = (value: GoogleConnectionReturn): void => {
   sessionStorage.setItem(GOOGLE_CONNECTION_RETURN_STORAGE_KEY, JSON.stringify(value));

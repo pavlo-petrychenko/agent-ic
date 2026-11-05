@@ -75,6 +75,10 @@ export class FakeGoogleOAuthGateway extends GoogleOAuthGateway {
     this.failure = error;
   }
 
+  clearFailure(): void {
+    this.failure = null;
+  }
+
   private throwWhenFailed(): void {
     if (this.failure !== null) {
       throw this.failure;

@@ -4,10 +4,12 @@ import type {
   KnowledgeSourceStatus,
   KnowledgeSyncInterval,
 } from '@/features/knowledge/constants/knowledgeSource.constants';
+import type { GoogleConnection } from '@/features/knowledge/typedefs/googleConnection.typedefs';
 
 export interface KnowledgeSource {
   readonly id: string;
   readonly knowledgeBaseId: string;
+  readonly connectionId: string | null;
   readonly kind: KnowledgeSourceKind;
   readonly title: string;
   readonly status: KnowledgeSourceStatus;
@@ -55,6 +57,7 @@ export interface KnowledgeSourceDocument {
 
 export interface KnowledgeSourceDetail {
   readonly source: KnowledgeSource;
+  readonly connection: GoogleConnection | null;
   readonly documents: readonly KnowledgeSourceDocument[];
 }
 

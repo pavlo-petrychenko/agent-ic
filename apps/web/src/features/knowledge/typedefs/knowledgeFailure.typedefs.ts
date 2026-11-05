@@ -10,6 +10,8 @@ export type KnowledgeFailureSummaryCode =
   | ErrorReason.LlmUnavailable
   | ErrorReason.LlmNotConfigured
   | ErrorReason.EmbeddingDimensionMismatch
+  | ErrorReason.GoogleReconnectRequired
+  | ErrorReason.GoogleOAuthFailed
   | ErrorReason.KnowledgeConnectionNotFound
   | ErrorReason.KnowledgeDocumentInvalid;
 

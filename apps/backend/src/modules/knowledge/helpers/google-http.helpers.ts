@@ -1,6 +1,8 @@
 import { HttpStatus } from '@nestjs/common';
 import type { z } from 'zod';
 import { GoogleOAuthFailedError } from '@/modules/knowledge/errors/google-oauth-failed.error';
+import { UpstreamError } from '@/platform/errors/errors/upstream.error';
+import { isRetryableUpstreamStatus } from '@/platform/errors/helpers/upstream.helpers';
 import { OutboundHttpOutcome } from '@/platform/outbound-http/constants/outbound-http.constants';
 import { OutboundHttpGateway } from '@/platform/outbound-http/gateways/outbound-http.gateway';
 import type {
@@ -20,12 +22,23 @@ export const googleHttpRequest = async (
 ): Promise<OutboundHttpResult> => {
   const result = await http.send(request);
   if (result.outcome !== OutboundHttpOutcome.Responded) {
-    throw new GoogleOAuthFailedError({ outcome: result.outcome });
+    throw new UpstreamError('google', {
+      retryable: true,
+      cause: new Error(result.outcome),
+    });
   }
   const status = result.status;
-  if (status === null || status < HttpStatus.OK || status >= HttpStatus.AMBIGUOUS) {
-    const statusError = status === null ? null : options.onStatus?.(status, result.body);
-    throw statusError ?? new GoogleOAuthFailedError({ status });
+  if (status === null) {
+    throw new GoogleOAuthFailedError({ code: 'response_missing_status' });
+  }
+  if (status < HttpStatus.OK || status >= HttpStatus.AMBIGUOUS) {
+    const statusError = options.onStatus?.(status, result.body);
+    throw (
+      statusError ??
+      (isRetryableUpstreamStatus(status)
+        ? UpstreamError.fromStatus('google', status)
+        : new GoogleOAuthFailedError({ status }))
+    );
   }
   if (result.body === null) {
     throw new GoogleOAuthFailedError({ code: 'response_missing' });

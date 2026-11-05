@@ -66,5 +66,6 @@ export const toKnowledgeSourceDetail = (
   data: KnowledgeSourceDetailQuery,
 ): KnowledgeSourceDetail => ({
   source: toKnowledgeSource(data.knowledgeSource.source),
+  connection: data.knowledgeSource.connection,
   documents: data.knowledgeSource.documents.map(toKnowledgeSourceDocument),
 });

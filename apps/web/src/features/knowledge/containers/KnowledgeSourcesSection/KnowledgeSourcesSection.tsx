@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { ErrorReason } from '@agent-ic/contracts';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useKnowledgeConnections } from '@/features/knowledge/communication/hooks/useKnowledgeConnections';
 import { useKnowledgeSources } from '@/features/knowledge/communication/hooks/useKnowledgeSources';
 import { useRetryKnowledgeSource } from '@/features/knowledge/communication/hooks/useRetryKnowledgeSource';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
@@ -7,10 +9,13 @@ import { AddSourceDialog } from '@/features/knowledge/containers/AddSourceDialog
 import { DeleteKnowledgeSourceDialog } from '@/features/knowledge/containers/DeleteKnowledgeSourceDialog';
 import { KnowledgeSourceDetailsDrawer } from '@/features/knowledge/containers/KnowledgeSourceDetailsDrawer';
 import type { KnowledgeSourcesSectionProps } from '@/features/knowledge/containers/KnowledgeSourcesSection/KnowledgeSourcesSection.typedefs';
+import { useGoogleReconnect } from '@/features/knowledge/containers/KnowledgeSourcesSection/useGoogleReconnect';
 import { useKnowledgeSourceRows } from '@/features/knowledge/containers/KnowledgeSourcesSection/useKnowledgeSourceRows';
 import { RenameKnowledgeSourceDialog } from '@/features/knowledge/containers/RenameKnowledgeSourceDialog';
+import { isGoogleConnectionActive } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import { isKnowledgeSourceActive } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
 import type { KnowledgeSourceTarget } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import { GoogleConnectionBanner } from '@/features/knowledge/view/GoogleConnectionBanner';
 import { KnowledgeSourcesEmpty } from '@/features/knowledge/view/KnowledgeSourcesEmpty';
 import { KnowledgeSourcesTable } from '@/features/knowledge/view/KnowledgeSourcesTable';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
@@ -32,13 +37,27 @@ export function KnowledgeSourcesSection({
   const errorMessage = useErrorMessage();
   const { sources, loading, failed, retry } = useKnowledgeSources(knowledgeBaseId);
   const { retryKnowledgeSource, retryingSourceId } = useRetryKnowledgeSource(knowledgeBaseId);
-  const rows = useKnowledgeSourceRows(sources);
+  const { connections, retry: retryConnections } = useKnowledgeConnections(canManageSources);
+  const { reconnect, starting: reconnecting } = useGoogleReconnect(workspaceId, knowledgeBaseId);
+  const connectionStatuses = useMemo(
+    () => new Map(connections.map((connection) => [connection.id, connection.status])),
+    [connections],
+  );
+  const reconnectableConnections = useMemo(
+    () => connections.filter((connection) => !isGoogleConnectionActive(connection.status)),
+    [connections],
+  );
+  const rows = useKnowledgeSourceRows(sources, connectionStatuses);
   const [adding, setAdding] = useState(initialAddSource !== null);
   const [detailsSourceId, setDetailsSourceId] = useState<string | null>(null);
   const [renameTarget, setRenameTarget] = useState<KnowledgeSourceTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<KnowledgeSourceTarget | null>(null);
   const active = sources.some(({ status }) => isKnowledgeSourceActive(status));
+  const reconnectFailure = sources.some(
+    (source) => source.lastErrorCode === ErrorReason.GoogleReconnectRequired,
+  );
   const previousActive = useRef(active);
+  const refreshedReconnect = useRef(false);
 
   useEffect(() => {
     if (previousActive.current && !active) {
@@ -46,6 +65,21 @@ export function KnowledgeSourcesSection({
     }
     previousActive.current = active;
   }, [active, onCountsChanged]);
+
+  useEffect(() => {
+    if (!canManageSources) {
+      return;
+    }
+    if (!reconnectFailure) {
+      refreshedReconnect.current = false;
+      return;
+    }
+    if (refreshedReconnect.current) {
+      return;
+    }
+    refreshedReconnect.current = true;
+    void retryConnections();
+  }, [canManageSources, reconnectFailure, retryConnections]);
 
   const onAddSource = canAddSource ? () => setAdding(true) : null;
   const onOpenSource = (source: KnowledgeSourceTarget) => setDetailsSourceId(source.id);
@@ -107,6 +141,13 @@ export function KnowledgeSourcesSection({
       )
     ) : (
       <div className="flex flex-col gap-4">
+        {canManageSources ? (
+          <GoogleConnectionBanner
+            connections={reconnectableConnections}
+            reconnecting={reconnecting}
+            onReconnect={() => void reconnect()}
+          />
+        ) : null}
         <KnowledgeSourcesTable
           rows={rows}
           loading={false}
@@ -165,6 +206,8 @@ export function KnowledgeSourcesSection({
           onRename={setRenameTarget}
           onRetry={(source) => onRetrySource?.(source)}
           onDelete={setDeleteTarget}
+          onReconnect={canManageSources ? () => void reconnect() : null}
+          reconnecting={reconnecting}
         />
       ) : null}
     </>

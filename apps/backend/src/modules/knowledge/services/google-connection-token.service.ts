@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { KnowledgeConnectionStatus } from '@/modules/knowledge/constants/knowledge.constants';
-import { GoogleOAuthFailedError } from '@/modules/knowledge/errors/google-oauth-failed.error';
+import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
 import { requireGoogleConfig } from '@/modules/knowledge/helpers/google-oauth.helpers';
 import type { Connection } from '@/modules/knowledge/typedefs/connection.typedefs';
@@ -19,7 +19,7 @@ export class GoogleConnectionTokenService {
   async accessToken(connection: Connection): Promise<GoogleAccessToken> {
     requireGoogleConfig(this.config.config.google);
     if (connection.status !== KnowledgeConnectionStatus.Active) {
-      throw new GoogleOAuthFailedError({ code: 'connection_inactive' });
+      throw new GoogleReconnectRequiredError();
     }
     return this.gateway.refreshAccessToken(this.secrets.open(connection.sealedRefreshToken));
   }

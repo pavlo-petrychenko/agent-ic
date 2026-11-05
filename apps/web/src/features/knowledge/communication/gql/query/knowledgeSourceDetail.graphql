@@ -3,6 +3,7 @@ query KnowledgeSourceDetail($id: ID!) {
     source {
       id
       knowledgeBaseId
+      connectionId
       kind
       title
       status
@@ -15,6 +16,11 @@ query KnowledgeSourceDetail($id: ID!) {
       chunkCount
       createdAt
       updatedAt
+    }
+    connection {
+      id
+      accountEmail
+      status
     }
     documents {
       id

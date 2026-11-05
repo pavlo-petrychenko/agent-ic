@@ -1,8 +1,11 @@
+import { ErrorReason } from '@agent-ic/contracts';
 import { useTranslation } from 'react-i18next';
 import { useKnowledgeSourceDetail } from '@/features/knowledge/communication/hooks/useKnowledgeSourceDetail';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
+import { KnowledgeSourceKind } from '@/features/knowledge/constants/knowledgeSource.constants';
 import { KNOWLEDGE_SOURCE_DETAILS_DRAWER_WIDTH } from '@/features/knowledge/containers/KnowledgeSourceDetailsDrawer/KnowledgeSourceDetailsDrawer.constants';
 import type { KnowledgeSourceDetailsDrawerProps } from '@/features/knowledge/containers/KnowledgeSourceDetailsDrawer/KnowledgeSourceDetailsDrawer.typedefs';
+import { isGoogleConnectionActive } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import {
   formatKnowledgeSourceDate,
   isKnowledgeSourceRetryable,
@@ -23,12 +26,25 @@ export function KnowledgeSourceDetailsDrawer({
   onRename,
   onRetry,
   onDelete,
+  onReconnect,
+  reconnecting,
 }: KnowledgeSourceDetailsDrawerProps) {
   const { t, i18n } = useTranslation(KNOWLEDGE_NAMESPACE);
   const { detail, loading, failed, retry } = useKnowledgeSourceDetail(sourceId);
   const failureMessage = useKnowledgeFailureMessage();
   const target: KnowledgeSourceTarget | null =
     detail === null ? null : { id: detail.source.id, title: detail.source.title };
+  const connectionActive =
+    detail === null
+      ? false
+      : detail.connection === null
+        ? detail.source.kind !== KnowledgeSourceKind.GoogleDocs
+        : isGoogleConnectionActive(detail.connection.status);
+  const reconnected =
+    detail !== null &&
+    connectionActive &&
+    detail.source.lastErrorCode === ErrorReason.GoogleReconnectRequired;
+  const reconnectedMessage = t('sources.details.reconnected');
   const detailView: KnowledgeSourceDetailView | null =
     detail === null
       ? null
@@ -36,11 +52,15 @@ export function KnowledgeSourceDetailsDrawer({
           source: detail.source,
           documents: detail.documents.map((document) => ({
             ...document,
-            failureMessage: failureMessage(document.errorCode),
+            failureMessage:
+              reconnected && document.errorCode === ErrorReason.GoogleReconnectRequired
+                ? reconnectedMessage
+                : failureMessage(document.errorCode),
           })),
         };
   const canRetry =
     detail !== null &&
+    connectionActive &&
     isKnowledgeSourceRetryable(detail.source.status, detail.source.lastErrorCode);
   const addedLabel =
     detail === null
@@ -64,7 +84,16 @@ export function KnowledgeSourceDetailsDrawer({
     >
       <KnowledgeSourceDetails
         detail={detailView}
-        sourceFailureMessage={detail === null ? null : failureMessage(detail.source.lastErrorCode)}
+        sourceFailureMessage={
+          detail === null
+            ? null
+            : reconnected
+              ? reconnectedMessage
+              : failureMessage(detail.source.lastErrorCode)
+        }
+        connection={detail === null ? null : detail.connection}
+        reconnecting={reconnecting}
+        onReconnect={onReconnect}
         loading={loading}
         failed={failed}
         retrying={retrying}
