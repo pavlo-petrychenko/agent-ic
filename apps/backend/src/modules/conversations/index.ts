@@ -43,7 +43,10 @@ export type {
   Conversation,
   WaitingRequest,
 } from '@/modules/conversations/typedefs/conversation.typedefs';
-export type { InboxConversationDetailParent } from '@/modules/conversations/typedefs/inbox-graphql.typedefs';
+export type {
+  InboxConversationDetailParent,
+  InboxSummaryParent,
+} from '@/modules/conversations/typedefs/inbox-graphql.typedefs';
 export type { InboxDetail, InboxSummary } from '@/modules/conversations/typedefs/inbox.typedefs';
 export type {
   Message,

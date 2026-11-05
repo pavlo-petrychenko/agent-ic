@@ -21,6 +21,7 @@ import { CreateApiChannelResolver } from '@/modules/channels/resolvers/create-ap
 import { DeleteChannelResolver } from '@/modules/channels/resolvers/delete-channel.resolver';
 import { DisconnectTelegramResolver } from '@/modules/channels/resolvers/disconnect-telegram.resolver';
 import { InboxDetailsResolver } from '@/modules/channels/resolvers/inbox-details.resolver';
+import { InboxSummaryFieldsResolver } from '@/modules/channels/resolvers/inbox-summary-fields.resolver';
 import { ReconnectTelegramResolver } from '@/modules/channels/resolvers/reconnect-telegram.resolver';
 import { RefreshTelegramIdentityResolver } from '@/modules/channels/resolvers/refresh-telegram-identity.resolver';
 import { ReplaceTelegramTokenResolver } from '@/modules/channels/resolvers/replace-telegram-token.resolver';
@@ -47,6 +48,7 @@ import { CreateApiChannelUseCase } from '@/modules/channels/use-cases/create-api
 import { DeleteChannelUseCase } from '@/modules/channels/use-cases/delete-channel.use-case';
 import { DeliverOutboundMessageUseCase } from '@/modules/channels/use-cases/deliver-outbound-message.use-case';
 import { DisconnectTelegramUseCase } from '@/modules/channels/use-cases/disconnect-telegram.use-case';
+import { GetChannelNamesUseCase } from '@/modules/channels/use-cases/get-channel-names.use-case';
 import { GetChannelUseCase } from '@/modules/channels/use-cases/get-channel.use-case';
 import { GetInboxDetailsUseCase } from '@/modules/channels/use-cases/get-inbox-details.use-case';
 import { HandleApiChannelMessageUseCase } from '@/modules/channels/use-cases/handle-api-channel-message.use-case';
@@ -106,6 +108,7 @@ export class ChannelsModule extends defineModule({
     DisconnectTelegramUseCase,
     GetChannelUseCase,
     GetInboxDetailsUseCase,
+    GetChannelNamesUseCase,
     ListChannelsUseCase,
     ReconnectTelegramUseCase,
     RefreshTelegramIdentityUseCase,
@@ -121,6 +124,7 @@ export class ChannelsModule extends defineModule({
   resolvers: [
     ChannelResolver,
     InboxDetailsResolver,
+    InboxSummaryFieldsResolver,
     ConnectTelegramResolver,
     CreateApiChannelResolver,
     DeleteChannelResolver,

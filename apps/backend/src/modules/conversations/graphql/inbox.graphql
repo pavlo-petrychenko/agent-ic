@@ -32,6 +32,8 @@ type InboxConversationSummary {
   handledByName: String
   hasBeenHandled: Boolean!
   channelKind: ChannelConversationKind!
+  channelId: ID
+  channelName: String
   agentId: ID!
   agentName: String!
   agentVersion: Int!
