@@ -159,7 +159,8 @@
   white-space: pre-wrap;
 }
 
-.summaryActions {
+.summaryActions,
+.documentActions {
   display: flex;
   justify-content: flex-start;
 }

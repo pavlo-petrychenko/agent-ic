@@ -78,6 +78,7 @@ describe('KnowledgeSourceDetails', () => {
           onRetry={null}
           onDelete={null}
           onEditSummary={null}
+          onRemoveDocument={null}
         />
       </I18nextProvider>,
     );
@@ -137,6 +138,7 @@ describe('KnowledgeSourceDetails', () => {
           onRetry={null}
           onDelete={null}
           onEditSummary={null}
+          onRemoveDocument={null}
         />
       </I18nextProvider>,
     );

@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { CreateKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/createKnowledgeBase.generated';
 import { DeleteKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/deleteKnowledgeBase.generated';
 import { DeleteSourceDocument } from '@/features/knowledge/communication/gql/mutation/deleteSource.generated';
+import { RemoveSourceDocumentDocument } from '@/features/knowledge/communication/gql/mutation/removeSourceDocument.generated';
 import { RenameKnowledgeBaseDocument } from '@/features/knowledge/communication/gql/mutation/renameKnowledgeBase.generated';
 import { RenameSourceDocument } from '@/features/knowledge/communication/gql/mutation/renameSource.generated';
 import { RetrySourceDocument } from '@/features/knowledge/communication/gql/mutation/retrySource.generated';
@@ -128,6 +129,34 @@ const FAILED_SOURCE: KnowledgeSourceFixture = {
   chunkCount: 0,
 };
 
+const GOOGLE_SOURCE_MULTI: KnowledgeSourceFixture = {
+  ...GOOGLE_SOURCE,
+  documentCount: 2,
+  chunkCount: 2,
+};
+
+const GOOGLE_DOCUMENT_PRICES: KnowledgeDocumentFixture = {
+  id: 'doc_prices',
+  title: 'Prices',
+  status: KnowledgeDocumentStatus.Indexed,
+  stale: false,
+  staleReason: null,
+  summary: 'A price list with services and gift-card rules.',
+  errorCode: null,
+  errorMessage: null,
+  tokenCount: 120,
+  chunkCount: 1,
+  createdAt: '2026-10-26T09:00:00.000Z',
+  updatedAt: '2026-10-26T09:10:00.000Z',
+};
+
+const GOOGLE_DOCUMENT_SERVICES: KnowledgeDocumentFixture = {
+  ...GOOGLE_DOCUMENT_PRICES,
+  id: 'doc_services',
+  title: 'Services',
+  summary: 'A list of salon services.',
+};
+
 const knowledgePath = `/w/${DEMO_WORKSPACE.id}/knowledge`;
 
 const buildKnowledgeBasesMock = (
@@ -208,6 +237,17 @@ const buildUpdateDocumentSummaryMock = (
     variables: { input: { id, summary } },
   },
   result: { data: { updateDocumentSummary: document } },
+});
+
+const buildRemoveSourceDocumentMock = (
+  sourceId: string,
+  documentId: string,
+): MockLink.MockedResponse => ({
+  request: {
+    query: RemoveSourceDocumentDocument,
+    variables: { input: { sourceId, documentId } },
+  },
+  result: { data: { removeSourceDocument: { sourceId, documentId } } },
 });
 
 const buildDeleteKnowledgeBaseFailureMock = (id: string): MockLink.MockedResponse => ({
@@ -438,6 +478,60 @@ describe('knowledge bases', () => {
       expect(screen.queryByText(READY_SOURCE.title, { exact: true })).not.toBeInTheDocument(),
     );
     expect(await screen.findByText('No sources yet')).toBeInTheDocument();
+  });
+
+  it('removes one document from a multi-document Google source', async () => {
+    const user = userEvent.setup();
+    const updatedSource: KnowledgeSourceFixture = {
+      ...GOOGLE_SOURCE_MULTI,
+      documentCount: 1,
+      chunkCount: 1,
+    };
+    const updatedKnowledgeBase: KnowledgeBaseFixture = {
+      ...SERVICES_KNOWLEDGE_BASE,
+      documentCount: 1,
+      chunkCount: 1,
+    };
+    renderRoute(`${knowledgePath}?kb=${SERVICES_KNOWLEDGE_BASE.id}`, {
+      mocks: [
+        buildWorkspaceShellMock([DEMO_WORKSPACE]),
+        buildKnowledgeBasesMock([SERVICES_KNOWLEDGE_BASE]),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [GOOGLE_SOURCE_MULTI]),
+        buildKnowledgeSourceDetailMock(GOOGLE_SOURCE_MULTI, [
+          GOOGLE_DOCUMENT_PRICES,
+          GOOGLE_DOCUMENT_SERVICES,
+        ]),
+        buildRemoveSourceDocumentMock(GOOGLE_SOURCE_MULTI.id, GOOGLE_DOCUMENT_PRICES.id),
+        buildKnowledgeSourceDetailMock(updatedSource, [GOOGLE_DOCUMENT_SERVICES]),
+        buildKnowledgeSourcesMock(SERVICES_KNOWLEDGE_BASE.id, [updatedSource]),
+        buildKnowledgeBasesMock([updatedKnowledgeBase]),
+      ],
+    });
+
+    await screen.findByRole('heading', { name: SERVICES_KNOWLEDGE_BASE.name });
+    await user.click(
+      await screen.findByRole('button', { name: `Open ${GOOGLE_SOURCE_MULTI.title}` }),
+    );
+    expect(await screen.findByText(GOOGLE_DOCUMENT_PRICES.title)).toBeInTheDocument();
+
+    const actions = screen.getAllByRole('button', { name: 'Remove document' });
+    const [firstAction] = actions;
+    if (firstAction === undefined) {
+      throw new Error('the remove action is missing');
+    }
+    await user.click(firstAction);
+    const dialog = await screen.findByRole('dialog', {
+      name: `Remove “${GOOGLE_DOCUMENT_PRICES.title}”?`,
+    });
+    await user.click(within(dialog).getByRole('button', { name: 'Remove document' }));
+
+    expect(
+      await screen.findByText(`Document “${GOOGLE_DOCUMENT_PRICES.title}” removed.`),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByText(GOOGLE_DOCUMENT_PRICES.title)).not.toBeInTheDocument(),
+    );
+    expect(screen.getByText(GOOGLE_DOCUMENT_SERVICES.title)).toBeInTheDocument();
   });
 
   it('deletes an empty knowledge base and selects the next one', async () => {

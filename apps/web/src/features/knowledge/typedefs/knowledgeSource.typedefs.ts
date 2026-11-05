@@ -106,6 +106,16 @@ export interface UseDeleteKnowledgeSourceResult {
   readonly deleting: boolean;
 }
 
+export interface RemoveSourceDocumentValues {
+  readonly sourceId: string;
+  readonly documentId: string;
+}
+
+export interface UseRemoveSourceDocumentResult {
+  readonly removeSourceDocument: (values: RemoveSourceDocumentValues) => Promise<void>;
+  readonly removing: boolean;
+}
+
 export interface UseRetryKnowledgeSourceResult {
   readonly retryKnowledgeSource: (id: string) => Promise<void>;
   readonly retryingSourceId: string | null;
