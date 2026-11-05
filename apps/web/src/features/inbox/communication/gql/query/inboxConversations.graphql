@@ -6,6 +6,8 @@ query InboxConversations($limit: Int) {
     handledByName
     hasBeenHandled
     channelKind
+    channelId
+    channelName
     agentId
     agentName
     agentVersion

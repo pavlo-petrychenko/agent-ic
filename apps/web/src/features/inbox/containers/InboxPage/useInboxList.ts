@@ -7,11 +7,12 @@ import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants'
 import type { InboxListResult } from '@/features/inbox/containers/InboxPage/InboxPage.typedefs';
 import {
   countConversationsByTab,
-  firstConversationId,
-  inboxTabOf,
+  matchesInboxFilters,
   visibleConversations,
 } from '@/features/inbox/logic/helpers/inbox.helpers';
 import {
+  inboxAgentOptions,
+  inboxChannelOptions,
   inboxEmptyState,
   inboxListItem,
   inboxTabItems,
@@ -23,6 +24,8 @@ export function useInboxList(): InboxListResult {
   const { summaries, loading, failed, retry } = useInboxConversations();
   const [activeTab, setActiveTab] = useState<InboxTab>(InboxTab.NeedsYou);
   const [search, setSearch] = useState('');
+  const [channelIds, setChannelIds] = useState<string[]>([]);
+  const [agentIds, setAgentIds] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const conversations = useMemo(
@@ -39,23 +42,58 @@ export function useInboxList(): InboxListResult {
     [t],
   );
 
-  const counts = useMemo(() => countConversationsByTab(conversations), [conversations]);
-  const visible = useMemo(
-    () => visibleConversations(conversations, activeTab, search, providerLabels),
-    [conversations, activeTab, search, providerLabels],
+  const filtered = useMemo(
+    () =>
+      conversations.filter((conversation) =>
+        matchesInboxFilters(conversation, { channelIds, agentIds }),
+      ),
+    [conversations, channelIds, agentIds],
   );
+  const counts = useMemo(() => countConversationsByTab(filtered), [filtered]);
+  const visible = useMemo(
+    () => visibleConversations(filtered, activeTab, search, providerLabels),
+    [filtered, activeTab, search, providerLabels],
+  );
+
+  const channelOptions = useMemo(
+    () => inboxChannelOptions(conversations, providerLabels),
+    [conversations, providerLabels],
+  );
+  const agentOptions = useMemo(() => inboxAgentOptions(conversations), [conversations]);
+
+  const selectFirstMatching = (
+    nextChannelIds: readonly string[],
+    nextAgentIds: readonly string[],
+    tab: InboxTab,
+    query: string,
+  ) => {
+    const nextFiltered = conversations.filter((conversation) =>
+      matchesInboxFilters(conversation, { channelIds: nextChannelIds, agentIds: nextAgentIds }),
+    );
+    const nextVisible = visibleConversations(nextFiltered, tab, query, providerLabels);
+    setSelectedId((current) =>
+      current !== null && nextVisible.some((conversation) => conversation.id === current)
+        ? current
+        : (nextVisible[0]?.id ?? null),
+    );
+  };
 
   const effectiveSelectedId =
     selectedId !== null && conversations.some((conversation) => conversation.id === selectedId)
       ? selectedId
       : (visible[0]?.id ?? null);
-
+  const filtersApplied = search.trim() !== '' || channelIds.length > 0 || agentIds.length > 0;
   const onTabChange = (tab: InboxTab) => {
     setActiveTab(tab);
-    const current = conversations.find((conversation) => conversation.id === effectiveSelectedId);
-    if (current === undefined || inboxTabOf(current) !== tab) {
-      setSelectedId(firstConversationId(conversations, tab));
-    }
+    selectFirstMatching(channelIds, agentIds, tab, search);
+  };
+  const onChannelIdsChange = (ids: string[]) => {
+    setChannelIds(ids);
+    selectFirstMatching(ids, agentIds, activeTab, search);
+  };
+  const onAgentIdsChange = (ids: string[]) => {
+    setAgentIds(ids);
+    selectFirstMatching(channelIds, ids, activeTab, search);
   };
 
   return {
@@ -65,8 +103,12 @@ export function useInboxList(): InboxListResult {
     visible,
     activeTab,
     search,
+    channelIds,
+    agentIds,
     effectiveSelectedId,
     onSearchChange: setSearch,
+    onChannelIdsChange,
+    onAgentIdsChange,
     onTabChange,
     onSelect: setSelectedId,
     onClearSelection: () => setSelectedId(null),
@@ -80,12 +122,34 @@ export function useInboxList(): InboxListResult {
       searchLabel: t('search.label'),
       searchPlaceholder: t('search.placeholder'),
       searchClearLabel: t('search.clear'),
-      channelFilterLabel: t('filters.channel'),
-      agentFilterLabel: t('filters.agent'),
+      channelFilter: {
+        label: t('filters.channel'),
+        options: channelOptions,
+        selectedIds: channelIds,
+        onSelectedIdsChange: onChannelIdsChange,
+        clearLabel: t('filters.clearChannel'),
+        ariaLabel: t('filters.channels'),
+        search: null,
+        disabled: loading,
+      },
+      agentFilter: {
+        label: t('filters.agent'),
+        options: agentOptions,
+        selectedIds: agentIds,
+        onSelectedIdsChange: onAgentIdsChange,
+        clearLabel: t('filters.clearAgent'),
+        ariaLabel: t('filters.agents'),
+        search: {
+          label: t('filters.searchAgents'),
+          clearLabel: t('filters.clearAgentSearch'),
+          placeholder: t('filters.searchAgents'),
+        },
+        disabled: loading,
+      },
       items: visible.map((conversation) =>
         inboxListItem(conversation, effectiveSelectedId, providerLabels, t),
       ),
-      empty: inboxEmptyState(activeTab, t),
+      empty: inboxEmptyState(activeTab, t, filtersApplied),
       loading,
       loadingLabel: t('loading'),
       loadError: failed

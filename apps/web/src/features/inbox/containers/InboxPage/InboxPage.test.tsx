@@ -21,6 +21,51 @@ describe('InboxPage', () => {
     expect(screen.getByText('Reply as Demo Owner · sent to Telegram')).toBeInTheDocument();
   });
 
+  it('filters the list by channel and clears the filter', async () => {
+    renderPage();
+
+    await screen.findByRole('button', { name: /Marta S\./ });
+    await userEvent.click(screen.getByRole('button', { name: 'Channel' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Channels' });
+    expect(within(dialog).getByRole('checkbox', { name: '@demo_salon_bot' })).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole('checkbox', { name: 'Website' }));
+
+    expect(await screen.findByRole('button', { name: /Andri P\./ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Marta S\./ })).not.toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Needs you · 1' })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Clear channel filter' }));
+
+    expect(await screen.findByRole('button', { name: /Marta S\./ })).toBeInTheDocument();
+  });
+
+  it('filters the list and the tab counts by agent', async () => {
+    renderPage();
+
+    await screen.findByRole('button', { name: /Marta S\./ });
+    await userEvent.click(screen.getByRole('button', { name: 'Agent' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Agents' });
+    await userEvent.click(within(dialog).getByRole('checkbox', { name: 'Gift card FAQ' }));
+
+    expect(await screen.findByRole('button', { name: /Andri P\./ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Marta S\./ })).not.toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Needs you · 1' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Live · 1' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Closed · 0' })).toBeInTheDocument();
+  });
+
+  it('shows the filtered empty state when no chat matches', async () => {
+    renderPage();
+
+    await screen.findByRole('button', { name: /Marta S\./ });
+    await userEvent.click(screen.getByRole('tab', { name: 'Closed · 1' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Channel' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Channels' });
+    await userEvent.click(within(dialog).getByRole('checkbox', { name: 'Website' }));
+
+    expect(await screen.findByText('No matching chats')).toBeInTheDocument();
+  });
+
   it('shows the conversation facts for the selected conversation', async () => {
     renderPage();
 
@@ -122,7 +167,7 @@ describe('InboxPage', () => {
 
     expect(await screen.findByRole('button', { name: 'Take over from Olena' })).toBeInTheDocument();
     expect(
-      screen.getByText('Escalated at 02:18 PM · Olena took over at 02:19 PM'),
+      await screen.findByText('Escalated at 02:18 PM · Olena took over at 02:19 PM'),
     ).toBeInTheDocument();
     expect((await screen.findAllByText(/^Olena ·/)).length).toBeGreaterThan(0);
   });

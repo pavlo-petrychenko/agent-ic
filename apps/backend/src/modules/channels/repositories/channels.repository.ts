@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { channels } from '@/modules/channels/db/channels.table';
 import type {
@@ -49,6 +49,15 @@ export class ChannelsRepository {
       .from(channels)
       .where(and(eq(channels.workspaceId, workspaceId), eq(channels.id, id)));
     return channel ?? null;
+  }
+
+  findByIds(workspaceId: string, ids: readonly string[]): Promise<ChannelRecord[]> {
+    return ids.length === 0
+      ? Promise.resolve([])
+      : this.txHost.tx
+          .select()
+          .from(channels)
+          .where(and(eq(channels.workspaceId, workspaceId), inArray(channels.id, [...ids])));
   }
 
   async findByIdForUpdate(workspaceId: string, id: string): Promise<ChannelRecord | null> {

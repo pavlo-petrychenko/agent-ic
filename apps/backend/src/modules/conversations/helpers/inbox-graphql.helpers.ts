@@ -3,9 +3,11 @@ import {
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
 import { toGraphqlMessage } from '@/modules/conversations/helpers/simulation-graphql.helpers';
-import type { InboxConversationDetailParent } from '@/modules/conversations/typedefs/inbox-graphql.typedefs';
+import type {
+  InboxConversationDetailParent,
+  InboxSummaryParent,
+} from '@/modules/conversations/typedefs/inbox-graphql.typedefs';
 import type { InboxDetail, InboxSummary } from '@/modules/conversations/typedefs/inbox.typedefs';
-import type { InboxConversationSummary } from '@/platform/graphql-server/generated/schema.generated';
 import {
   ChannelConversationKind as GraphqlChannelConversationKind,
   ConversationState as GraphqlConversationState,
@@ -24,13 +26,15 @@ const GRAPHQL_CHANNEL_KIND: Readonly<Record<ChannelKind, GraphqlChannelConversat
   [ChannelKind.Api]: GraphqlChannelConversationKind.Api,
 };
 
-export const toGraphqlInboxSummary = (summary: InboxSummary): InboxConversationSummary => ({
+export const toGraphqlInboxSummary = (summary: InboxSummary): InboxSummaryParent => ({
   id: summary.id,
   state: GRAPHQL_CONVERSATION_STATE[summary.state],
   handledByMe: summary.handledByMe,
   handledByName: summary.handledByName,
   hasBeenHandled: summary.hasBeenHandled,
   channelKind: GRAPHQL_CHANNEL_KIND[summary.channelKind],
+  channelId: summary.channelId,
+  channelRef: summary.channelRef,
   agentId: summary.agentId,
   agentName: summary.agentName,
   agentVersion: summary.agentVersion,

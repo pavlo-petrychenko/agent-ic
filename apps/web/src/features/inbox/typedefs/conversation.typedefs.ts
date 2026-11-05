@@ -56,6 +56,9 @@ export interface InboxConversation {
   readonly name: string;
   readonly initials: string;
   readonly provider: InboxProvider;
+  readonly channelId: string | null;
+  readonly channelName: string | null;
+  readonly agentId: string;
   readonly agentName: string;
   readonly agentVersion: number;
   readonly replyState: InboxReplyState;

@@ -11,6 +11,8 @@ export interface InboxSummary {
   readonly handledByName: string | null;
   readonly hasBeenHandled: boolean;
   readonly channelKind: ChannelKind;
+  readonly channelId: string | null;
+  readonly channelRef: string | null;
   readonly agentId: string;
   readonly agentName: string;
   readonly agentVersion: number;
