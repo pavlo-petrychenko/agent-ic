@@ -63,8 +63,14 @@
   },
   "banner": {
     "mine": "You're handling this chat. The agent stays paused until you hand it back.",
-    "waiting": "Waiting for a person for {{count}} min. The agent is paused; nobody has taken this chat yet.",
-    "other": "{{name}} is handling this chat since {{time}}. You can read along; replies are hers until she hands it back."
+    "waiting": "Waiting for a person for {{duration}}. The agent is paused; nobody has taken this chat yet.",
+    "other": "{{name}} is handling this chat since {{time}}. You can read along; replies are hers until she hands it back.",
+    "duration": {
+      "minutes": "{{minutes}} min",
+      "hours": "{{hours}} h",
+      "hoursMinutes": "{{hours}} h {{minutes}} min",
+      "days": "{{days}} d"
+    }
   },
   "footer": {
     "replyAs": "Reply as {{name}} · sent to {{channel}}",
