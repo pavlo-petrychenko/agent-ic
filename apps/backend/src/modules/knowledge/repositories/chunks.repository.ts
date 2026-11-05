@@ -1,6 +1,6 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, gte, lte } from 'drizzle-orm';
 import { KNOWLEDGE_WRITE_BATCH_SIZE } from '@/modules/knowledge/constants/knowledge.constants';
 import { chunks } from '@/modules/knowledge/db/chunks.table';
 import type { Chunk, ChunkChanges, NewChunk } from '@/modules/knowledge/typedefs/chunk.typedefs';
@@ -30,6 +30,26 @@ export class ChunksRepository {
     for (const batch of rowBatches(chunksToInsert, KNOWLEDGE_WRITE_BATCH_SIZE)) {
       await this.txHost.tx.insert(chunks).values(batch.map((chunk) => ({ ...chunk, createdAt })));
     }
+  }
+
+  async findBySection(
+    workspaceId: string,
+    sectionId: string,
+    ordinalRange: { readonly from: number; readonly to: number } | null = null,
+  ): Promise<Chunk[]> {
+    return this.txHost.tx
+      .select()
+      .from(chunks)
+      .where(
+        and(
+          eq(chunks.workspaceId, workspaceId),
+          eq(chunks.sectionId, sectionId),
+          ...(ordinalRange === null
+            ? []
+            : [gte(chunks.ordinal, ordinalRange.from), lte(chunks.ordinal, ordinalRange.to)]),
+        ),
+      )
+      .orderBy(asc(chunks.ordinal));
   }
 
   async findById(workspaceId: string, chunkId: string): Promise<Chunk | null> {
