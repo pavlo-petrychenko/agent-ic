@@ -1,5 +1,6 @@
 import { AgentsModule, SimulatorTestsReader } from '@/modules/agents';
 import { ConversationsModule } from '@/modules/conversations';
+import { KnowledgeModule } from '@/modules/knowledge';
 import { PromptsModule } from '@/modules/prompts';
 import { STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import { ArmInactivityOnHandBackListener } from '@/modules/runs/listeners/arm-inactivity-on-hand-back.listener';
@@ -66,7 +67,7 @@ import { CacheModule } from '@/platform/cache/cache.module';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class RunsModule extends defineModule({
-  imports: [AgentsModule, ConversationsModule, PromptsModule, CacheModule],
+  imports: [AgentsModule, ConversationsModule, KnowledgeModule, PromptsModule, CacheModule],
   providers: [
     RunsRepository,
     RunStepsRepository,

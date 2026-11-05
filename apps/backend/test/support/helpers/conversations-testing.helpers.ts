@@ -41,6 +41,7 @@ import type { JobData } from '@/platform/queues/typedefs/job.typedefs';
 import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
 import { SecretsModule } from '@/platform/secrets/secrets.module';
+import { StorageModule } from '@/platform/storage/storage.module';
 import {
   CONCURRENT_POOL_SIZE,
   CONVERSATIONS_TEST_START,
@@ -96,6 +97,7 @@ export const createConversationsTestbed = async (
       ObservabilityModule.forRole(selection.role),
       OutboundHttpModule,
       SecretsModule,
+      StorageModule,
       LlmModule,
       AgentsNeighboursModule.forRole(selection.role),
       LlmNeighboursModule.forRole(selection.role),

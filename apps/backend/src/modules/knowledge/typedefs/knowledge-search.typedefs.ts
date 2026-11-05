@@ -52,7 +52,12 @@ export interface KnowledgeSearchInput {
   readonly topK?: number | null;
 }
 
-export interface KnowledgeSearchQueryInput {
+export interface KnowledgeSearchScope {
+  readonly sourceId?: string | null;
+  readonly documentId?: string | null;
+}
+
+export interface KnowledgeSearchQueryInput extends KnowledgeSearchScope {
   readonly workspaceId: string;
   readonly knowledgeBaseId: string;
   readonly query: string;

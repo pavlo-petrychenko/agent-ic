@@ -8,7 +8,10 @@ import {
   KNOWLEDGE_SEARCH_TRIGRAM_THRESHOLD,
 } from '@/modules/knowledge/constants/knowledge-search.constants';
 import type { KnowledgeSourceKind } from '@/modules/knowledge/constants/knowledge.constants';
-import type { KnowledgeSearchCandidate } from '@/modules/knowledge/typedefs/knowledge-search.typedefs';
+import type {
+  KnowledgeSearchCandidate,
+  KnowledgeSearchScope,
+} from '@/modules/knowledge/typedefs/knowledge-search.typedefs';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
 
 interface SearchRow extends Record<string, unknown> {
@@ -57,16 +60,27 @@ const candidateWhere = (
   knowledgeBaseId: string,
   model: string,
   dimensions: number,
-): SQL => sql`
-  c.workspace_id = ${workspaceId}
-  AND c.kb_id = ${knowledgeBaseId}
-  AND c.generation = d.active_generation
-  AND sec.generation = c.generation
-  AND c.embedding_model = ${model}
-  AND c.embedding_dimensions = ${dimensions}
-  AND d.deleted_at IS NULL
-  AND s.deleted_at IS NULL
-`;
+  scope: KnowledgeSearchScope,
+): SQL => {
+  const scopeConditions: SQL[] = [];
+  if (scope.sourceId !== undefined && scope.sourceId !== null) {
+    scopeConditions.push(sql`d.source_id = ${scope.sourceId}`);
+  }
+  if (scope.documentId !== undefined && scope.documentId !== null) {
+    scopeConditions.push(sql`d.id = ${scope.documentId}`);
+  }
+  return sql`
+    c.workspace_id = ${workspaceId}
+    AND c.kb_id = ${knowledgeBaseId}
+    AND c.generation = d.active_generation
+    AND sec.generation = c.generation
+    AND c.embedding_model = ${model}
+    AND c.embedding_dimensions = ${dimensions}
+    AND d.deleted_at IS NULL
+    AND s.deleted_at IS NULL
+    ${scopeConditions.length === 0 ? sql`` : sql`AND ${sql.join(scopeConditions, sql` AND `)}`}
+  `;
+};
 
 const toCandidate = (row: SearchRow): KnowledgeSearchCandidate => ({
   chunkId: row.chunk_id,
@@ -95,6 +109,7 @@ export class KnowledgeSearchRepository {
     dimensions: number,
     embedding: readonly number[],
     limit: number,
+    scope: KnowledgeSearchScope = {},
   ): Promise<KnowledgeSearchCandidate[]> {
     const { rows } = await this.txHost.tx.execute<SearchRow>(sql`
       WITH query AS (
@@ -104,7 +119,7 @@ export class KnowledgeSearchRepository {
       FROM knowledge.chunks c
       CROSS JOIN query
       ${CANDIDATE_JOINS}
-      WHERE ${candidateWhere(workspaceId, knowledgeBaseId, model, dimensions)}
+      WHERE ${candidateWhere(workspaceId, knowledgeBaseId, model, dimensions, scope)}
       ORDER BY c.embedding <=> query.embedding, c.ordinal ASC, c.id ASC
       LIMIT ${limit}
     `);
@@ -118,6 +133,7 @@ export class KnowledgeSearchRepository {
     dimensions: number,
     terms: readonly string[],
     limit: number,
+    scope: KnowledgeSearchScope = {},
   ): Promise<KnowledgeSearchCandidate[]> {
     if (terms.length === 0) {
       return [];
@@ -127,7 +143,7 @@ export class KnowledgeSearchRepository {
         SELECT c.id, c.token_count
         FROM knowledge.chunks c
         ${CANDIDATE_JOINS}
-        WHERE ${candidateWhere(workspaceId, knowledgeBaseId, model, dimensions)}
+        WHERE ${candidateWhere(workspaceId, knowledgeBaseId, model, dimensions, scope)}
       ),
       stats AS (
         SELECT
@@ -172,7 +188,7 @@ export class KnowledgeSearchRepository {
       JOIN knowledge.chunks c
         ON c.workspace_id = ${workspaceId} AND c.id = scored.chunk_id
       ${CANDIDATE_JOINS}
-      WHERE ${candidateWhere(workspaceId, knowledgeBaseId, model, dimensions)}
+      WHERE ${candidateWhere(workspaceId, knowledgeBaseId, model, dimensions, scope)}
       ORDER BY scored.score DESC, c.ordinal ASC, c.id ASC
       LIMIT ${limit}
     `);
@@ -186,6 +202,7 @@ export class KnowledgeSearchRepository {
     dimensions: number,
     query: string,
     limit: number,
+    scope: KnowledgeSearchScope = {},
   ): Promise<KnowledgeSearchCandidate[]> {
     const { rows } = await this.txHost.tx.execute<SearchRow>(sql`
       WITH search_query AS (
@@ -195,7 +212,7 @@ export class KnowledgeSearchRepository {
       FROM knowledge.chunks c
       CROSS JOIN search_query
       ${CANDIDATE_JOINS}
-      WHERE ${candidateWhere(workspaceId, knowledgeBaseId, model, dimensions)}
+      WHERE ${candidateWhere(workspaceId, knowledgeBaseId, model, dimensions, scope)}
         AND similarity(d.title, search_query.query_text) > ${KNOWLEDGE_SEARCH_TRIGRAM_THRESHOLD}
       ORDER BY similarity(d.title, search_query.query_text) DESC, c.ordinal ASC, c.id ASC
       LIMIT ${limit}

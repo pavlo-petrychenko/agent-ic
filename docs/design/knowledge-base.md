@@ -520,16 +520,30 @@ Each attached KB becomes one tool:
 ```
 name:        the KB's tool_name, unique per workspace, default search_<slug>
 description: the KB's tool_description, written for the LLM
-input:       { query: string (1..1000), top_k?: integer (1..20) }
-output:      { found: boolean, results: [{ text, document, section, source, score }] }
+input:       {
+               query: string (1..1000),
+               top_k?: integer (1..6, default 3),
+               source_id?: public source id,
+               document_id?: public document id
+             }
+output:      {
+               found: boolean,
+               results: [{
+                 document_id, document_title, source_id, source_title,
+                 path, text, score, url
+               }],
+               error?: { code, message }
+             }
 ```
 
 - The Agent step inspector has a **Knowledge** section with an **Attach knowledge base** picker. The picker is a multi-select over the workspace's KBs and writes the chosen public IDs to `config.knowledgeBaseIds`; there is no separate attachment table and no global KB tool.
-- `AgentExecutor` builds the tool map for the Agent step from `config.knowledgeBaseIds`. It calls `KnowledgeSearchService`, exported by the knowledge module.
+- `AgentExecutor` builds the tool map for the Agent step from `config.knowledgeBaseIds`. It calls `KnowledgeToolsService`, exported by the knowledge module, which resolves each KB and creates exactly one tool with that KB's name and description.
+- `source_id` and `document_id` are optional narrowers inside one KB, not a way to reach another KB. Both IDs must belong to the KB; a source and document used together must match. A bad scope returns `scope_not_found`, not an empty result.
+- `score` is the raw RRF score. The tool returns the public ids, titles, path, raw result text and URL the model needs to cite or explain where the answer came from.
 - The tool description tells the model to ask a natural-language question (“how long does delivery take?”) rather than a list of keywords. The implementation still uses BM25 and trigram, so exact names and prices also work.
 - The tool returns whole small sections, not isolated sentences. This is the “small-to-big” expansion.
-- If nothing is found, the result says so explicitly; the model must not claim knowledge it did not receive.
-- If the search itself fails (embedding provider down), the tool returns an explicit error result; the run does not silently pretend the KB has no answer.
+- If nothing is found, `found` is false with an empty `results` list; that is not an error. The model must not claim knowledge it did not receive.
+- If search fails (embedding provider down), the tool returns `search_unavailable`; a KB deleted between validation and the call returns `knowledge_base_missing`. The run does not silently pretend the KB has no answer.
 - A KB that is missing or deleted at run time produces no tool. Publish validation prevents a flow from referencing a missing KB, and deletion is blocked while the flow uses it.
 - Tool names are unique per workspace. Built-in tool names are reserved; a KB name that collides with a built-in is rejected when saved. If two KBs on one agent had the same tool name, the flow would be ambiguous; the workspace uniqueness prevents it.
 
@@ -553,7 +567,7 @@ Reasons: predictable cost, focused answers, no accidental leakage of unrelated d
 The retrieval playground is a screen on the KB page:
 
 - input: query (capped at 1,000 characters), optional top-k (1–6, default 3; the panel always requests 3);
-- output: the same results the agent tool would receive, with document, source, source kind, section, score and text;
+- output: the same results the agent tool would receive, with document and source titles, path, raw text, raw RRF score and URL;
 - no answer generation, no LLM: it shows retrieval, not chat;
 - useful for tuning chunking and for answering “why didn't it find this?”;
 - rate-limited to 30 searches per minute per workspace to protect the embedding budget.
@@ -647,13 +661,13 @@ The cleanup job is durable and idempotent: a missing object is not an error, and
 ```
 modules/knowledge/
 ├── knowledge.module.ts
-├── index.ts                              KnowledgeModule + KnowledgeSearchService
+├── index.ts                              KnowledgeModule + KnowledgeSearchService + KnowledgeToolsService
 ├── graphql/knowledge.graphql
 ├── resolvers/                            knowledge-bases, sources, documents, search, usage, google
 ├── processors/                           ingest-knowledge-source, reindex-knowledge-document, clean-up-knowledge-document-files, clean-up-knowledge-source-files
 ├── listeners/                            clean-up-workspace
 ├── use-cases/                            create/update/delete KB, upload, sync, schedule, update document summary, Google OAuth
-├── services/                             search, ingestion, usage, flow-reference-checker, google connections
+├── services/                             search, agent tools, ingestion, usage, flow-reference-checker, google connections
 ├── repositories/                         knowledge-bases, sources, documents, sections, chunks, chunk-terms, sync-runs, connections
 ├── gateways/                             google-oauth.*, google-drive.*, fakes
 ├── db/                                   one table per file
@@ -662,7 +676,7 @@ modules/knowledge/
 ```
 
 - No `controllers/` in the first version. Google OAuth returns to the web route and completes through a GraphQL mutation.
-- `KnowledgeSearchService` is the only export runs needs. `KnowledgeModule` imports `AgentsModule` for the flow checker and usage scan; agents never imports knowledge.
+- `KnowledgeToolsService` is the only export runs needs; it builds the per-KB LLM tools and calls `KnowledgeSearchService`. `KnowledgeModule` imports `AgentsModule` for the flow checker and usage scan; agents never imports knowledge.
 - Parsers are helpers with a registry service; they are not gateways because they wrap local libraries, not external systems.
 - `FileStorage`, `GoogleOAuthGateway`, `GoogleDriveGateway` and `EmbeddingGateway` are abstractions with fakes.
 
