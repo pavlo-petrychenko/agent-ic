@@ -156,6 +156,7 @@
       "noDocuments": "No documents in this source yet.",
       "summaryPending": "The summary is generated after indexing.",
       "summaryEmpty": "No summary available.",
+      "sourceFailed": "This source could not be indexed.",
       "documentFailed": "This document could not be indexed."
     },
     "menu": {

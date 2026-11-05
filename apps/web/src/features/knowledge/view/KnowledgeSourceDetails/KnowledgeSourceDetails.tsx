@@ -5,7 +5,7 @@ import {
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
 } from '@/features/knowledge/constants/knowledgeSource.constants';
-import type { KnowledgeSourceDocument } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import type { KnowledgeSourceDocumentView } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import { DOCUMENT_STATUS_TONES } from '@/features/knowledge/view/KnowledgeSourceDetails/KnowledgeSourceDetails.constants';
 import type { KnowledgeSourceDetailsProps } from '@/features/knowledge/view/KnowledgeSourceDetails/KnowledgeSourceDetails.typedefs';
 import { STATUS_TONES } from '@/features/knowledge/view/KnowledgeSourcesTable/KnowledgeSourcesTable.constants';
@@ -22,6 +22,7 @@ const DOCUMENT_ICON_SIZE = 15;
 
 export function KnowledgeSourceDetails({
   detail,
+  sourceFailureMessage,
   loading,
   failed,
   retrying,
@@ -42,6 +43,14 @@ export function KnowledgeSourceDetails({
     source !== null &&
     (source.status === KnowledgeSourceStatus.Pending ||
       source.status === KnowledgeSourceStatus.Indexing);
+  const showSourceFailure =
+    source !== null &&
+    source.status === KnowledgeSourceStatus.Error &&
+    !documents.some(
+      (document) =>
+        document.status === KnowledgeDocumentStatus.Error &&
+        document.errorCode === source.lastErrorCode,
+    );
 
   const kindLabel = (kind: KnowledgeSourceKind): string =>
     kind === KnowledgeSourceKind.Upload ? t('sources.kind.upload') : t('sources.kind.googleDocs');
@@ -74,7 +83,7 @@ export function KnowledgeSourceDetails({
     }
   };
 
-  const documentSummary = (document: KnowledgeSourceDocument): string => {
+  const documentSummary = (document: KnowledgeSourceDocumentView): string => {
     const summary = document.summary?.trim() ?? '';
     if (summary.length > 0) {
       return summary;
@@ -86,7 +95,7 @@ export function KnowledgeSourceDetails({
       return t('sources.details.summaryPending');
     }
     if (document.status === KnowledgeDocumentStatus.Error) {
-      return t('sources.details.documentFailed');
+      return document.failureMessage ?? t('sources.details.documentFailed');
     }
     return t('sources.details.summaryEmpty');
   };
@@ -181,6 +190,12 @@ export function KnowledgeSourceDetails({
                     </Button>
                   )}
                 </div>
+              ) : null}
+
+              {showSourceFailure ? (
+                <Callout tone={CalloutTone.Err} icon={IconName.Alert}>
+                  {sourceFailureMessage ?? t('sources.details.sourceFailed')}
+                </Callout>
               ) : null}
             </section>
 
