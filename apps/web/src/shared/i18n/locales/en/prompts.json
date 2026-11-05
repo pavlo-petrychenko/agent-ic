@@ -25,6 +25,7 @@
     "panelLabel": "Prompt details",
     "usage": {
       "title": "Where it’s used",
+      "openAgent": "Open the {{agent}} flow",
       "empty": "No step uses this prompt yet.",
       "loadError": "The usages couldn’t be loaded.",
       "note": "Pinned steps keep their version until you change the pin. Steps on “Follow latest” get each new version when you save.",
