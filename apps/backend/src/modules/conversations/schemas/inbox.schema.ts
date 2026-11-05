@@ -4,12 +4,19 @@ import {
   INBOX_CONVERSATIONS_MAX_LIMIT,
 } from '@/modules/conversations/constants/inbox.constants';
 
+const inboxConversationsCursorSchema = z.object({
+  lastMessageAt: z.iso.datetime(),
+  id: z.string().min(1),
+});
+
 export const inboxConversationsInputSchema = z
   .object({
     limit: z.number().int().min(1).max(INBOX_CONVERSATIONS_MAX_LIMIT).nullable().default(null),
+    after: inboxConversationsCursorSchema.nullable().default(null),
   })
-  .transform(({ limit }) => ({
+  .transform(({ limit, after }) => ({
     limit: limit ?? INBOX_CONVERSATIONS_DEFAULT_LIMIT,
+    after,
   }));
 
 export const inboxConversationInputSchema = z.object({

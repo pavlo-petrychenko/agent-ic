@@ -17,6 +17,25 @@ describe('ConversationsRepository', () => {
     await testbed.module.close();
   });
 
+  it('pages the live list by last message time and id', async () => {
+    const first = await seedConversation(testbed);
+    testbed.clock.advanceBy(1000);
+    const second = await seedConversation(testbed, first.workspaceId);
+    testbed.clock.advanceBy(1000);
+    const third = await seedConversation(testbed, first.workspaceId);
+
+    const page = await testbed.tenants.run(first.workspaceId, () =>
+      testbed.conversations.listLive(first.workspaceId, 2, null),
+    );
+    expect(page.map((conversation) => conversation.id)).toEqual([third.id, second.id]);
+
+    const cursor = page[1];
+    const next = await testbed.tenants.run(first.workspaceId, () =>
+      testbed.conversations.listLive(first.workspaceId, 2, cursor ?? null),
+    );
+    expect(next.map((conversation) => conversation.id)).toEqual([first.id]);
+  });
+
   it('lets only one of two concurrent claims win', async () => {
     const conversation = await seedConversation(testbed);
     const { id, workspaceId } = conversation;
