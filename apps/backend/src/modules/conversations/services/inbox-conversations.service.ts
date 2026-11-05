@@ -146,6 +146,11 @@ export class InboxConversationsService {
         conversation.handledBy === null ? null : (names.get(conversation.handledBy) ?? null),
       hasBeenHandled,
       channelKind: conversation.channelKind,
+      channelId:
+        conversation.channelId === null
+          ? null
+          : this.ids.toPublic(IdPrefix.Channel, conversation.channelId),
+      channelRef: conversation.channelId,
       agentId: this.ids.toPublic(IdPrefix.Agent, conversation.agentId),
       agentName: agent?.name ?? '',
       agentVersion: agent?.version ?? 0,

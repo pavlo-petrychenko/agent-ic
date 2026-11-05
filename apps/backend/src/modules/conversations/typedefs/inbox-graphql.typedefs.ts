@@ -1,4 +1,12 @@
-import type { InboxConversationDetail } from '@/platform/graphql-server/generated/schema.generated';
-import type { GraphqlParent } from '@/platform/graphql-server/typedefs/graphql-loader.typedefs';
+import type {
+  InboxConversationDetail,
+  InboxConversationSummary,
+} from '@/platform/graphql-server/generated/schema.generated';
 
-export type InboxConversationDetailParent = GraphqlParent<InboxConversationDetail, 'details'>;
+export type InboxSummaryParent = Omit<InboxConversationSummary, 'channelName'> & {
+  readonly channelRef: string | null;
+};
+
+export type InboxConversationDetailParent = Omit<InboxConversationDetail, 'details' | 'summary'> & {
+  readonly summary: InboxSummaryParent;
+};
