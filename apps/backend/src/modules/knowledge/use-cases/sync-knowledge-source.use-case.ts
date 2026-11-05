@@ -4,6 +4,7 @@ import {
   KnowledgeConnectionStatus,
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
+  KnowledgeSyncTrigger,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import { KnowledgeSourceBusyError } from '@/modules/knowledge/errors/knowledge-source-busy.error';
@@ -80,6 +81,7 @@ export class SyncKnowledgeSourceUseCase {
         source,
         documents,
         resetFailedDocuments: false,
+        trigger: KnowledgeSyncTrigger.Manual,
       });
     });
 

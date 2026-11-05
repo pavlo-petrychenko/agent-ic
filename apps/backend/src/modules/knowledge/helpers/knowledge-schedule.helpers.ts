@@ -15,6 +15,7 @@ import type {
   KnowledgeScheduleInput,
   SourceScheduleFields,
 } from '@/modules/knowledge/typedefs/source-schedule.typedefs';
+import type { Source } from '@/modules/knowledge/typedefs/source.typedefs';
 
 interface SourceSchedule {
   readonly interval: KnowledgeSyncInterval;
@@ -33,6 +34,41 @@ export const knowledgeSyncSchedulerId = (sourceId: string): string =>
 
 export const knowledgeScheduleTime = (time: string | null): string | null =>
   time === null ? null : time.slice(0, 5);
+
+export const knowledgeScheduleRepeat = (
+  source: Source,
+): { readonly pattern: string; readonly tz: string } => {
+  if (source.syncInterval === null || source.timezone === null) {
+    throw new InvalidKnowledgeInputError([
+      { path: KnowledgeField.SyncInterval, reason: ErrorReason.InvalidRequest },
+    ]);
+  }
+  return {
+    pattern: knowledgeScheduleCron({
+      interval: source.syncInterval,
+      time: source.syncTime,
+      weekday: source.syncWeekday,
+    }),
+    tz: source.timezone,
+  };
+};
+
+export const nextSourceSyncAt = (source: Source, after: Date): Date => {
+  if (source.syncInterval === null || source.timezone === null) {
+    throw new InvalidKnowledgeInputError([
+      { path: KnowledgeField.SyncInterval, reason: ErrorReason.InvalidRequest },
+    ]);
+  }
+  return nextScheduleAt(
+    {
+      interval: source.syncInterval,
+      time: source.syncTime,
+      weekday: source.syncWeekday,
+      timezone: source.timezone,
+    },
+    after,
+  );
+};
 
 export const knowledgeScheduleCron = ({
   interval,

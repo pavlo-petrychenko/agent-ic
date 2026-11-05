@@ -3,7 +3,6 @@ import {
   KnowledgeDocumentStatus,
   KnowledgeSourceStatus,
   KnowledgeSyncStatus,
-  KnowledgeSyncTrigger,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { KnowledgeSourceBusyError } from '@/modules/knowledge/errors/knowledge-source-busy.error';
 import { ingestKnowledgeSourceJob } from '@/modules/knowledge/jobs/ingest-knowledge-source.job';
@@ -30,6 +29,13 @@ export class KnowledgeSourceSyncService {
     const documents = await this.documents.listBySource(workspaceId, source.id);
     await this.assertOwnerRunsIdle(workspaceId, source.id, documents);
     return documents;
+  }
+
+  async documentsForScheduledSync(
+    workspaceId: string,
+    source: Source,
+  ): Promise<readonly Document[]> {
+    return this.documents.listOwnedBySource(workspaceId, source.id);
   }
 
   async failedDocumentsForRetry(workspaceId: string, source: Source): Promise<readonly Document[]> {
@@ -64,6 +70,7 @@ export class KnowledgeSourceSyncService {
     source,
     documents,
     resetFailedDocuments,
+    trigger,
   }: QueueKnowledgeSourceSyncInput): Promise<string> {
     const syncRunId = this.ids.generate();
     await this.sources.update(workspaceId, source.id, {
@@ -86,7 +93,7 @@ export class KnowledgeSourceSyncService {
       id: syncRunId,
       workspaceId,
       sourceId: source.id,
-      trigger: KnowledgeSyncTrigger.Manual,
+      trigger,
       status: KnowledgeSyncStatus.Queued,
       documentsTotal: documents.length,
     });

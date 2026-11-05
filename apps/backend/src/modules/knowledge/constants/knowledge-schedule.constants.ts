@@ -9,3 +9,10 @@ export const KNOWLEDGE_SCHEDULE_CRON_EVERY = '*';
 export const KNOWLEDGE_SCHEDULE_SCHEDULER_PREFIX = 'knowledge-sync';
 export const KNOWLEDGE_SCHEDULE_TIME_REQUIRED_MESSAGE = 'the schedule time is required';
 export const KNOWLEDGE_SCHEDULE_WEEKDAY_REQUIRED_MESSAGE = 'the schedule weekday is required';
+
+export enum KnowledgeScheduledSyncSkipReason {
+  Busy = 'busy',
+  NotReady = 'not_ready',
+  ConnectionInactive = 'connection_inactive',
+  NoDocuments = 'no_documents',
+}

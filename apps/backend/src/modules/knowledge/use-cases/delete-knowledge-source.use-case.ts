@@ -4,6 +4,7 @@ import { KnowledgeSourceStatus } from '@/modules/knowledge/constants/knowledge.c
 import { KnowledgeSourceBusyError } from '@/modules/knowledge/errors/knowledge-source-busy.error';
 import { KnowledgeSourceNotFoundError } from '@/modules/knowledge/errors/knowledge-source-not-found.error';
 import { parseKnowledgeInput } from '@/modules/knowledge/helpers/knowledge-input.helpers';
+import { knowledgeSyncSchedulerId } from '@/modules/knowledge/helpers/knowledge-schedule.helpers';
 import { cleanUpKnowledgeSourceFilesJob } from '@/modules/knowledge/jobs/clean-up-knowledge-source-files.job';
 import { ChunksRepository } from '@/modules/knowledge/repositories/chunks.repository';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
@@ -20,6 +21,7 @@ import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { JobsService } from '@/platform/queues/services/jobs.service';
 
 @Injectable()
@@ -86,6 +88,7 @@ export class DeleteKnowledgeSourceUseCase {
       }
       await this.sourceDocuments.deleteBySource(workspaceId, source.id);
       await this.sources.softDelete(workspaceId, source.id, deletedAt);
+      await this.jobs.removeScheduler(QueueName.Ingest, knowledgeSyncSchedulerId(source.id));
       await this.knowledgeBases.update(
         workspaceId,
         source.kbId,
