@@ -1,4 +1,5 @@
 import { SIMULATOR_MESSAGE_MAX_LENGTH } from '@agent-ic/contracts';
+import { ConversationState, InboxQueue } from '@/shared/api/generated/schema.generated';
 import { ChatBubbleFrom } from '@/shared/ui/chat/ChatBubble';
 
 export enum InboxTab {
@@ -8,6 +9,19 @@ export enum InboxTab {
 }
 
 export const INBOX_TABS: readonly InboxTab[] = [InboxTab.NeedsYou, InboxTab.Live, InboxTab.Closed];
+
+export const INBOX_QUEUE_BY_TAB: Readonly<Record<InboxTab, InboxQueue>> = {
+  [InboxTab.NeedsYou]: InboxQueue.NeedsYou,
+  [InboxTab.Live]: InboxQueue.Live,
+  [InboxTab.Closed]: InboxQueue.Closed,
+};
+
+export const INBOX_TAB_BY_STATE: Readonly<Record<ConversationState, InboxTab>> = {
+  [ConversationState.Waiting]: InboxTab.NeedsYou,
+  [ConversationState.Handled]: InboxTab.NeedsYou,
+  [ConversationState.AgentActive]: InboxTab.Live,
+  [ConversationState.Closed]: InboxTab.Closed,
+};
 
 export enum InboxProvider {
   Telegram = 'telegram',

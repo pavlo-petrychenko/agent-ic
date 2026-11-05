@@ -2,16 +2,23 @@ import {
   ChannelKind,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
+import { InboxQueue } from '@/modules/conversations/constants/inbox.constants';
 import { toGraphqlMessage } from '@/modules/conversations/helpers/simulation-graphql.helpers';
 import type {
   InboxConversationDetailParent,
   InboxSummaryParent,
 } from '@/modules/conversations/typedefs/inbox-graphql.typedefs';
-import type { InboxDetail, InboxSummary } from '@/modules/conversations/typedefs/inbox.typedefs';
+import type {
+  InboxConversationsInput,
+  InboxDetail,
+  InboxSummary,
+} from '@/modules/conversations/typedefs/inbox.typedefs';
 import {
   ChannelConversationKind as GraphqlChannelConversationKind,
   ConversationState as GraphqlConversationState,
+  InboxQueue as GraphqlInboxQueue,
 } from '@/platform/graphql-server/generated/schema.generated';
+import type { InboxConversationsInput as GraphqlInboxConversationsInput } from '@/platform/graphql-server/generated/schema.generated';
 
 const GRAPHQL_CONVERSATION_STATE: Readonly<Record<ConversationState, GraphqlConversationState>> = {
   [ConversationState.AgentActive]: GraphqlConversationState.AgentActive,
@@ -25,6 +32,20 @@ const GRAPHQL_CHANNEL_KIND: Readonly<Record<ChannelKind, GraphqlChannelConversat
   [ChannelKind.Telegram]: GraphqlChannelConversationKind.Telegram,
   [ChannelKind.Api]: GraphqlChannelConversationKind.Api,
 };
+
+const INBOX_QUEUE_FROM_GRAPHQL: Readonly<Record<GraphqlInboxQueue, InboxQueue>> = {
+  [GraphqlInboxQueue.NeedsYou]: InboxQueue.NeedsYou,
+  [GraphqlInboxQueue.Live]: InboxQueue.Live,
+  [GraphqlInboxQueue.Closed]: InboxQueue.Closed,
+};
+
+export const toInboxConversationsInput = (
+  input: GraphqlInboxConversationsInput,
+): InboxConversationsInput => ({
+  limit: input.limit,
+  after: input.after ?? null,
+  queue: INBOX_QUEUE_FROM_GRAPHQL[input.queue],
+});
 
 export const toGraphqlInboxSummary = (summary: InboxSummary): InboxSummaryParent => ({
   id: summary.id,

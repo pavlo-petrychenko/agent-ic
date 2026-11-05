@@ -9,7 +9,7 @@ export function useTakeOver() {
     async (conversationId: string) => {
       await takeOverConversation({
         variables: { input: { conversationId } },
-        refetchQueries: ['InboxConversations'],
+        refetchQueries: ['InboxConversations', 'InboxCounts'],
         awaitRefetchQueries: true,
       });
     },

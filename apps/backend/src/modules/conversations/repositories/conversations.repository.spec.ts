@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { ConversationState } from '@/modules/conversations';
 import {
   createConversationsTestbed,
   seedConversation,
@@ -25,15 +26,58 @@ describe('ConversationsRepository', () => {
     const third = await seedConversation(testbed, first.workspaceId);
 
     const page = await testbed.tenants.run(first.workspaceId, () =>
-      testbed.conversations.listLive(first.workspaceId, 2, null),
+      testbed.conversations.listLive(first.workspaceId, [ConversationState.AgentActive], 2, null),
     );
     expect(page.map((conversation) => conversation.id)).toEqual([third.id, second.id]);
 
     const cursor = page[1];
     const next = await testbed.tenants.run(first.workspaceId, () =>
-      testbed.conversations.listLive(first.workspaceId, 2, cursor ?? null),
+      testbed.conversations.listLive(
+        first.workspaceId,
+        [ConversationState.AgentActive],
+        2,
+        cursor ?? null,
+      ),
     );
     expect(next.map((conversation) => conversation.id)).toEqual([first.id]);
+  });
+
+  it('lists only the conversations of the requested queue and counts every state', async () => {
+    const waiting = await seedConversation(testbed);
+    testbed.clock.advanceBy(1000);
+    const active = await seedConversation(testbed, waiting.workspaceId);
+    testbed.clock.advanceBy(1000);
+    const closed = await seedConversation(testbed, waiting.workspaceId);
+    await testbed.tenants.run(waiting.workspaceId, async () => {
+      await testbed.conversations.markWaiting(waiting.workspaceId, waiting.id);
+      await testbed.conversations.close(waiting.workspaceId, closed.id, testbed.clock.now(), null);
+    });
+
+    const outcome = await testbed.tenants.run(waiting.workspaceId, async () => ({
+      needsYou: await testbed.conversations.listLive(
+        waiting.workspaceId,
+        [ConversationState.Waiting, ConversationState.Handled],
+        10,
+        null,
+      ),
+      live: await testbed.conversations.listLive(
+        waiting.workspaceId,
+        [ConversationState.AgentActive],
+        10,
+        null,
+      ),
+      counts: await testbed.conversations.countByState(waiting.workspaceId),
+    }));
+
+    expect(outcome.needsYou.map((conversation) => conversation.id)).toEqual([waiting.id]);
+    expect(outcome.live.map((conversation) => conversation.id)).toEqual([active.id]);
+    expect(new Map(outcome.counts.map((row) => [row.state, row.total]))).toEqual(
+      new Map([
+        [ConversationState.Waiting, 1],
+        [ConversationState.AgentActive, 1],
+        [ConversationState.Closed, 1],
+      ]),
+    );
   });
 
   it('lets only one of two concurrent claims win', async () => {

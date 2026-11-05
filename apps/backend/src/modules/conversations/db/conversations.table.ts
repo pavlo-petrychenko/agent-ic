@@ -78,6 +78,12 @@ export const conversations = conversationsSchema
       index('conversations_simulation_version_id_idx')
         .on(table.simulationVersionId)
         .where(isNotNull(table.simulationVersionId)),
+      index('conversations_inbox_idx')
+        .on(table.workspaceId, table.lastMessageAt.desc(), table.id.desc())
+        .where(sql`${table.mode} = ${sql.raw(toSqlLiteral(ConversationMode.Live))}`),
+      index('conversations_inbox_state_idx')
+        .on(table.workspaceId, table.state)
+        .where(sql`${table.mode} = ${sql.raw(toSqlLiteral(ConversationMode.Live))}`),
       index('conversations_schedule_candidates_idx')
         .on(table.workspaceId, table.agentId, table.lastCustomerMessageAt)
         .where(
