@@ -6,6 +6,11 @@ export const KNOWLEDGE_SOURCE_BUSY_MESSAGE = 'the knowledge source is busy';
 export const KNOWLEDGE_SOURCE_NOT_FOUND_MESSAGE = 'knowledge source not found';
 export const KNOWLEDGE_SOURCE_NOT_RETRYABLE_MESSAGE = 'the knowledge source cannot be retried';
 export const KNOWLEDGE_SOURCE_NOT_SYNCABLE_MESSAGE = 'the knowledge source cannot be synced';
+export const KNOWLEDGE_SOURCE_LAST_DOCUMENT_MESSAGE = 'the knowledge source has only one document';
+export const KNOWLEDGE_DOCUMENT_NOT_IN_SOURCE_MESSAGE =
+  'the knowledge document is not part of the source';
+export const KNOWLEDGE_DOCUMENT_NOT_REMOVABLE_MESSAGE =
+  'the knowledge document is being indexed and cannot be removed';
 export const KNOWLEDGE_CONNECTION_NOT_FOUND_MESSAGE = 'knowledge connection not found';
 export const KNOWLEDGE_CONNECTION_IN_USE_MESSAGE = 'the knowledge connection is in use';
 export const GOOGLE_OAUTH_NOT_CONFIGURED_MESSAGE = 'Google OAuth is not configured';

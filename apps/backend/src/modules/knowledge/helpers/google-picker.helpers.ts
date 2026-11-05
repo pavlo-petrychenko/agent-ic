@@ -24,6 +24,15 @@ export const googleDocsSourceTitleFromNames = (names: readonly string[]): string
   return truncated(title, KNOWLEDGE_SOURCE_TITLE_MAX_LENGTH);
 };
 
+export const googleDocsSourceTitleAfterRemoval = (
+  sourceTitle: string,
+  previousNames: readonly string[],
+  remainingNames: readonly string[],
+): string | null =>
+  sourceTitle === googleDocsSourceTitleFromNames(previousNames)
+    ? googleDocsSourceTitleFromNames(remainingNames)
+    : null;
+
 export const googleDriveVersion = (file: GoogleDriveFile): string =>
   (file.version ?? file.modifiedTime ?? GOOGLE_DRIVE_DEFAULT_VERSION).replace(
     /[^a-zA-Z0-9._-]/g,

@@ -13,6 +13,7 @@ extend type Mutation {
   confirmUpload(input: ConfirmUploadInput!): KnowledgeSource!
   renameSource(input: RenameSourceInput!): KnowledgeSource!
   updateDocumentSummary(input: UpdateDocumentSummaryInput!): KnowledgeSourceDocument!
+  removeSourceDocument(input: RemoveSourceDocumentInput!): RemoveSourceDocumentPayload!
   deleteSource(input: DeleteSourceInput!): DeleteSourcePayload!
   retrySource(input: RetrySourceInput!): RetrySourcePayload!
   syncSource(input: SyncSourceInput!): SyncSourcePayload!
@@ -147,6 +148,16 @@ input RenameSourceInput {
 input UpdateDocumentSummaryInput {
   id: ID!
   summary: String!
+}
+
+input RemoveSourceDocumentInput {
+  sourceId: ID!
+  documentId: ID!
+}
+
+type RemoveSourceDocumentPayload {
+  sourceId: ID!
+  documentId: ID!
 }
 
 type RetrySourcePayload {
