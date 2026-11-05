@@ -20,7 +20,7 @@ export class ListInboxConversationsUseCase {
 
   async execute(ctx: UseCaseCtx, input: InboxConversationsInput): Promise<readonly InboxSummary[]> {
     const { workspaceId, userId } = authorize(ctx, PermissionResource.Inbox, PermissionAction.View);
-    const { limit } = parseConversationInput(inboxConversationsInputSchema, input);
-    return this.tenants.run(workspaceId, () => this.inbox.list(workspaceId, userId, limit));
+    const { limit, after } = parseConversationInput(inboxConversationsInputSchema, input);
+    return this.tenants.run(workspaceId, () => this.inbox.list(workspaceId, userId, limit, after));
   }
 }

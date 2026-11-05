@@ -26,8 +26,13 @@ export interface InboxListProps {
   readonly empty: InboxEmptyState;
   readonly loading: boolean;
   readonly loadingLabel: string;
+  readonly hasMore: boolean;
+  readonly loadingMore: boolean;
+  readonly loadMoreLabel: string;
+  readonly loadingMoreLabel: string;
   readonly loadError: InboxLoadError | null;
   readonly onSelect: (id: string) => void;
+  readonly onLoadMore: () => void;
 }
 
 export interface RowStatusProps {

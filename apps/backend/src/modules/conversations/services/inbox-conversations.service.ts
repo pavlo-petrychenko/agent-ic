@@ -31,8 +31,20 @@ export class InboxConversationsService {
     private readonly ids: IdService,
   ) {}
 
-  async list(workspaceId: string, userId: string, limit: number): Promise<readonly InboxSummary[]> {
-    const rows = await this.conversations.listLive(workspaceId, limit);
+  async list(
+    workspaceId: string,
+    userId: string,
+    limit: number,
+    after: { readonly lastMessageAt: string; readonly id: string } | null,
+  ): Promise<readonly InboxSummary[]> {
+    const cursor =
+      after === null
+        ? null
+        : {
+            lastMessageAt: new Date(after.lastMessageAt),
+            id: this.ids.fromPublic(IdPrefix.Conversation, after.id),
+          };
+    const rows = await this.conversations.listLive(workspaceId, limit, cursor);
     if (rows.length === 0) {
       return [];
     }

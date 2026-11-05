@@ -33,12 +33,15 @@ export interface InboxListState {
   readonly channelIds: readonly string[];
   readonly agentIds: readonly string[];
   readonly effectiveSelectedId: string | null;
+  readonly hasMore: boolean;
+  readonly loadingMore: boolean;
   readonly onSearchChange: (value: string) => void;
   readonly onChannelIdsChange: (ids: string[]) => void;
   readonly onAgentIdsChange: (ids: string[]) => void;
   readonly onTabChange: (tab: InboxTab) => void;
   readonly onSelect: (id: string) => void;
   readonly onClearSelection: () => void;
+  readonly onLoadMore: () => void;
 }
 
 export interface InboxListResult extends InboxListState {

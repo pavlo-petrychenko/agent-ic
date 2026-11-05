@@ -21,7 +21,8 @@ import type { InboxProviderLabels } from '@/features/inbox/typedefs/common.typed
 
 export function useInboxList(): InboxListResult {
   const { t, i18n } = useTranslation(INBOX_NAMESPACE);
-  const { summaries, loading, failed, retry } = useInboxConversations();
+  const { summaries, loading, failed, retry, loadMore, loadingMore, hasMore } =
+    useInboxConversations();
   const [activeTab, setActiveTab] = useState<InboxTab>(InboxTab.NeedsYou);
   const [search, setSearch] = useState('');
   const [channelIds, setChannelIds] = useState<string[]>([]);
@@ -106,12 +107,15 @@ export function useInboxList(): InboxListResult {
     channelIds,
     agentIds,
     effectiveSelectedId,
+    hasMore,
+    loadingMore,
     onSearchChange: setSearch,
     onChannelIdsChange,
     onAgentIdsChange,
     onTabChange,
     onSelect: setSelectedId,
     onClearSelection: () => setSelectedId(null),
+    onLoadMore: () => void loadMore(),
     view: {
       title: t('title'),
       tabs: inboxTabItems(counts, t),
@@ -152,6 +156,11 @@ export function useInboxList(): InboxListResult {
       empty: inboxEmptyState(activeTab, t, filtersApplied),
       loading,
       loadingLabel: t('loading'),
+      hasMore,
+      loadingMore,
+      loadMoreLabel: t('loadMore'),
+      loadingMoreLabel: t('loadingMore'),
+      onLoadMore: () => void loadMore(),
       loadError: failed
         ? {
             title: t('loadError'),
