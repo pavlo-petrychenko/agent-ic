@@ -40,6 +40,7 @@ import type { StepPlacement } from '@/features/flow-builder/typedefs/palette.typ
 import { BlankFlowHint } from '@/features/flow-builder/view/BlankFlowHint';
 import { CanvasToolbar } from '@/features/flow-builder/view/CanvasToolbar';
 import { StepNode } from '@/features/flow-builder/view/StepNode';
+import { useKnowledgeBases } from '@/features/knowledge';
 import { FlowCanvas } from '@/shared/ui/flow/FlowCanvas';
 import type { FlowCanvasLabels, FlowCanvasNode, FlowCanvasPort } from '@/shared/ui/flow/FlowCanvas';
 
@@ -50,6 +51,7 @@ export function FlowEditor({ workspaceId }: FlowEditorProps) {
   const issues = useFlowIssues();
   const agentExits = usePaletteAgentExits();
   const timeZone = useWorkspaceTimeZone(workspaceId);
+  const { knowledgeBases } = useKnowledgeBases();
   const { select, setViewport, setDensity, settingsOpen, setSettingsOpen } = useFlowBuilderStore();
   const [reveal, setReveal] = useState<readonly string[] | null>(null);
 
@@ -58,8 +60,8 @@ export function FlowEditor({ workspaceId }: FlowEditorProps) {
   );
 
   const model = useMemo(
-    () => documentToCanvas(document, issues, models),
-    [document, issues, models],
+    () => documentToCanvas(document, issues, models, knowledgeBases),
+    [document, issues, knowledgeBases, models],
   );
   const customize = (nodeId: string, kind: AgentExitKind) => {
     const customized = customizeExit(

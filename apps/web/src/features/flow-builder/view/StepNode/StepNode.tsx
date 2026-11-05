@@ -4,6 +4,7 @@ import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBu
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
 import { SUMMARY_SEPARATOR } from '@/features/flow-builder/constants/nodeSummary.constants';
 import type { StepNodeProps } from '@/features/flow-builder/view/StepNode/StepNode.typedefs';
+import { TagKind } from '@/shared/ui/display/Tag';
 import { CompactNode, CompactNodeShape } from '@/shared/ui/flow/CompactNode';
 import { FlowNode } from '@/shared/ui/flow/FlowNode';
 import { TriggerNode } from '@/shared/ui/flow/TriggerNode';
@@ -42,6 +43,7 @@ export function StepNode({ node, slots, density }: StepNodeProps) {
       overline={t(`step.${node.type}`)}
       name={node.label}
       meta={summary === '' ? null : summary}
+      chips={node.chips.map((chip) => ({ ...chip, kind: TagKind.Kb }))}
       invalidLabel={invalidLabel}
       selected={slots.selected}
       faded={slots.faded}
