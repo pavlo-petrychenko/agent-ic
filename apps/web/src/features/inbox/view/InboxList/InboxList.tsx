@@ -5,7 +5,7 @@ import type {
   RowStatusProps,
 } from '@/features/inbox/view/InboxList/InboxList.typedefs';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
-import { FilterChip } from '@/shared/ui/actions/FilterChip';
+import { FilterPicker } from '@/shared/ui/data/FilterBar/FilterPicker';
 import { Avatar, AvatarSize } from '@/shared/ui/display/Avatar';
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
@@ -32,8 +32,8 @@ export function InboxList({
   searchLabel,
   searchPlaceholder,
   searchClearLabel,
-  channelFilterLabel,
-  agentFilterLabel,
+  channelFilter,
+  agentFilter,
   items,
   empty,
   loading,
@@ -61,22 +61,8 @@ export function InboxList({
           ))}
         </div>
         <div className={styles.filters}>
-          <FilterChip
-            label={channelFilterLabel}
-            value={null}
-            applied={false}
-            clearLabel={channelFilterLabel}
-            onOpen={() => undefined}
-            onClear={() => undefined}
-          />
-          <FilterChip
-            label={agentFilterLabel}
-            value={null}
-            applied={false}
-            clearLabel={agentFilterLabel}
-            onOpen={() => undefined}
-            onClear={() => undefined}
-          />
+          <FilterPicker {...channelFilter} />
+          <FilterPicker {...agentFilter} />
         </div>
         <SearchInput
           value={search}

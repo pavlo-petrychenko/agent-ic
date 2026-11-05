@@ -4,6 +4,11 @@ import type { InboxConversation } from '@/features/inbox/typedefs/conversation.t
 import type { EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import type { IconName } from '@/shared/ui/foundations/Icon';
 
+export interface InboxFilters {
+  readonly channelIds: readonly string[];
+  readonly agentIds: readonly string[];
+}
+
 export interface InboxTabItem {
   readonly id: InboxTab;
   readonly label: string;

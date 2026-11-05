@@ -7,7 +7,13 @@
   },
   "filters": {
     "channel": "Channel",
-    "agent": "Agent"
+    "agent": "Agent",
+    "channels": "Channels",
+    "agents": "Agents",
+    "clearChannel": "Clear channel filter",
+    "clearAgent": "Clear agent filter",
+    "searchAgents": "Search agents",
+    "clearAgentSearch": "Clear agent search"
   },
   "search": {
     "label": "Search conversations",
@@ -90,6 +96,10 @@
     "closed": {
       "title": "No closed chats",
       "description": "Chats you close show up here."
+    },
+    "filtered": {
+      "title": "No matching chats",
+      "description": "Try another search or clear the filters."
     },
     "detailTitle": "All caught up",
     "detailDescription": "When a guard or an escalation step hands a chat to a person, it appears here and you get an alert."
