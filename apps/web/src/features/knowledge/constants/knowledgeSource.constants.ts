@@ -18,6 +18,19 @@ export enum KnowledgeSyncInterval {
   Weekly = 'weekly',
 }
 
+export enum KnowledgeScheduleMode {
+  Manual = 'manual',
+  Scheduled = 'scheduled',
+}
+
+export const KNOWLEDGE_SCHEDULE_DEFAULT_TIME = '06:00';
+export const KNOWLEDGE_SCHEDULE_DEFAULT_WEEKDAY = 1;
+export const KNOWLEDGE_SCHEDULE_PRESETS: readonly KnowledgeSyncInterval[] = [
+  KnowledgeSyncInterval.Daily,
+  KnowledgeSyncInterval.Weekly,
+  KnowledgeSyncInterval.Hourly,
+];
+
 export const KNOWLEDGE_SOURCE_POLL_INTERVAL_MS = 2000;
 
 export const KNOWLEDGE_SOURCE_DATE_FORMAT: Intl.DateTimeFormatOptions = {

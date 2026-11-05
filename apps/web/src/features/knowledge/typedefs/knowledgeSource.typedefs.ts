@@ -7,6 +7,7 @@ import type {
   KnowledgeSourceStatus,
   KnowledgeSyncInterval,
 } from '@/features/knowledge/constants/knowledgeSource.constants';
+import type { KnowledgeScheduleMode } from '@/features/knowledge/constants/knowledgeSource.constants';
 import type { GoogleConnection } from '@/features/knowledge/typedefs/googleConnection.typedefs';
 
 export interface KnowledgeSource {
@@ -17,6 +18,9 @@ export interface KnowledgeSource {
   readonly title: string;
   readonly status: KnowledgeSourceStatus;
   readonly syncInterval: KnowledgeSyncInterval | null;
+  readonly syncTime: string | null;
+  readonly syncWeekday: number | null;
+  readonly timezone: string | null;
   readonly nextSyncAt: string | null;
   readonly lastSyncAt: string | null;
   readonly lastErrorCode: string | null;
@@ -26,6 +30,19 @@ export interface KnowledgeSource {
   readonly chunkCount: number;
   readonly createdAt: string;
   readonly updatedAt: string;
+}
+
+export interface KnowledgeSourceSchedule {
+  readonly mode: KnowledgeScheduleMode;
+  readonly preset: KnowledgeSyncInterval;
+  readonly time: string;
+  readonly weekday: number;
+}
+
+export interface KnowledgeSourceScheduleInput {
+  readonly syncInterval: KnowledgeSyncInterval | null;
+  readonly syncTime: string | null;
+  readonly syncWeekday: number | null;
 }
 
 export interface KnowledgeSourceRowView {

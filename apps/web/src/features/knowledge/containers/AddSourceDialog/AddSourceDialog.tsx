@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toGraphqlKnowledgeSyncInterval } from '@/features/knowledge/communication/helpers/knowledgeSources.helpers';
 import { useCreateGoogleDocsSource } from '@/features/knowledge/communication/hooks/useCreateGoogleDocsSource';
 import { useDisconnectGoogleConnection } from '@/features/knowledge/communication/hooks/useDisconnectGoogleConnection';
 import { useKnowledgeConnections } from '@/features/knowledge/communication/hooks/useKnowledgeConnections';
@@ -7,6 +8,12 @@ import { useStartGoogleConnection } from '@/features/knowledge/communication/hoo
 import { useUploadKnowledgeSource } from '@/features/knowledge/communication/hooks/useUploadKnowledgeSource';
 import { AddSourceType } from '@/features/knowledge/constants/googleConnection.constants';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
+import {
+  KNOWLEDGE_SCHEDULE_DEFAULT_TIME,
+  KNOWLEDGE_SCHEDULE_DEFAULT_WEEKDAY,
+  KnowledgeScheduleMode,
+  KnowledgeSyncInterval,
+} from '@/features/knowledge/constants/knowledgeSource.constants';
 import {
   KNOWLEDGE_UPLOAD_MAX_MEGABYTES,
   KnowledgeFileSkipReason,
@@ -20,6 +27,7 @@ import {
   saveGoogleConnectionReturn,
 } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import { GooglePickerLoadError } from '@/features/knowledge/logic/helpers/googlePicker.helpers';
+import { knowledgeScheduleInput } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
 import {
   formatKnowledgeFileSize,
   knowledgeFileMimeType,
@@ -30,6 +38,7 @@ import type {
   GooglePickerDocument,
   SelectedGoogleDocs,
 } from '@/features/knowledge/typedefs/googlePicker.typedefs';
+import type { KnowledgeSourceSchedule } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import type {
   SelectedKnowledgeFile,
   SelectedKnowledgeFileView,
@@ -58,6 +67,12 @@ export function AddSourceDialog({
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [selectedGoogleDocs, setSelectedGoogleDocs] = useState<SelectedGoogleDocs | null>(null);
   const [addingGoogleDocs, setAddingGoogleDocs] = useState(false);
+  const [schedule, setSchedule] = useState<KnowledgeSourceSchedule>({
+    mode: KnowledgeScheduleMode.Manual,
+    preset: KnowledgeSyncInterval.Daily,
+    time: KNOWLEDGE_SCHEDULE_DEFAULT_TIME,
+    weekday: KNOWLEDGE_SCHEDULE_DEFAULT_WEEKDAY,
+  });
   const googleEnabled = sourceType === AddSourceType.GoogleDocs;
   const {
     connections,
@@ -235,13 +250,14 @@ export function AddSourceDialog({
     }
     setAddingGoogleDocs(true);
     try {
+      const scheduleInput = knowledgeScheduleInput(schedule);
       const result = await createGoogleDocsSource({
         connectionId: selectedGoogleDocs.connectionId,
         knowledgeBaseId,
         documents: selectedGoogleDocs.documents,
-        syncInterval: null,
-        syncTime: null,
-        syncWeekday: null,
+        syncInterval: toGraphqlKnowledgeSyncInterval(scheduleInput.syncInterval),
+        syncTime: scheduleInput.syncTime,
+        syncWeekday: scheduleInput.syncWeekday,
       });
       showToast({
         message: t('add.googleConnection.pickerSuccess'),
@@ -284,6 +300,7 @@ export function AddSourceDialog({
       picking={pickingConnectionId !== null}
       googleDocuments={selectedGoogleDocs?.documents ?? []}
       addingGoogleDocs={addingGoogleDocs}
+      schedule={schedule}
       googleContent={
         <GoogleConnectionPanel
           connections={connections}
@@ -304,6 +321,7 @@ export function AddSourceDialog({
       onFiles={addFiles}
       onRemoveFile={removeFile}
       onRemoveGoogleDocument={removeGoogleDocument}
+      onScheduleChange={setSchedule}
       onAddGoogleDocs={() => void addGoogleDocs()}
       onSubmit={() => void submit()}
       onClose={onClose}

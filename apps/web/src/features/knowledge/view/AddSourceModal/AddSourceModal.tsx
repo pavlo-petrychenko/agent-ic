@@ -1,6 +1,11 @@
+import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AddSourceType } from '@/features/knowledge/constants/googleConnection.constants';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
+import {
+  KNOWLEDGE_SCHEDULE_PRESETS,
+  KnowledgeScheduleMode,
+} from '@/features/knowledge/constants/knowledgeSource.constants';
 import {
   KNOWLEDGE_UPLOAD_MAX_MEGABYTES,
   KnowledgeFileStatus,
@@ -13,6 +18,9 @@ import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { FileRow, FileRowList } from '@/shared/ui/display/FileRow';
 import { Icon, IconName } from '@/shared/ui/foundations/Icon';
 import { DropZone } from '@/shared/ui/inputs/DropZone';
+import { Field } from '@/shared/ui/inputs/Field';
+import { OptionCard } from '@/shared/ui/inputs/OptionCard';
+import { Select } from '@/shared/ui/inputs/Select';
 import { Dialog, DialogSize } from '@/shared/ui/overlays/Dialog';
 import styles from '@/features/knowledge/view/AddSourceModal/AddSourceModal.module.scss';
 
@@ -33,20 +41,28 @@ export function AddSourceModal({
   picking,
   googleDocuments,
   addingGoogleDocs,
+  schedule,
   googleContent,
   onSourceTypeChange,
   onFiles,
   onRemoveFile,
   onRemoveGoogleDocument,
+  onScheduleChange,
   onAddGoogleDocs,
   onSubmit,
   onClose,
 }: AddSourceModalProps) {
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
+  const scheduleName = useId();
   const isUpload = sourceType === AddSourceType.Upload;
   const busy = uploading || addingGoogleDocs;
   const actionCount = readyCount + failedCount;
   const googleCount = googleDocuments.length;
+  const scheduled = schedule.mode === KnowledgeScheduleMode.Scheduled;
+  const scheduleOptions = KNOWLEDGE_SCHEDULE_PRESETS.map((preset) => ({
+    value: preset,
+    label: t(`sources.schedule.presets.${preset}`),
+  }));
   const googleSummary =
     googleCount === 0 ? t('add.noDocuments') : t('add.documentsSelected', { count: googleCount });
   const googleSubmitLabel =
@@ -259,6 +275,52 @@ export function AddSourceModal({
                   </FileRowList>
                 </div>
               )}
+              <div className={styles.schedule}>
+                <span className={styles.filesTitle}>{t('sources.schedule.title')}</span>
+                <div className={styles.scheduleOptions}>
+                  <OptionCard
+                    name={scheduleName}
+                    value={KnowledgeScheduleMode.Manual}
+                    checked={!scheduled}
+                    title={t('sources.schedule.manual')}
+                    description={t('sources.schedule.manualDescription')}
+                    onSelect={() =>
+                      onScheduleChange({ ...schedule, mode: KnowledgeScheduleMode.Manual })
+                    }
+                  />
+                  <OptionCard
+                    name={scheduleName}
+                    value={KnowledgeScheduleMode.Scheduled}
+                    checked={scheduled}
+                    title={t('sources.schedule.scheduled')}
+                    description={t('sources.schedule.scheduledDescription')}
+                    onSelect={() =>
+                      onScheduleChange({ ...schedule, mode: KnowledgeScheduleMode.Scheduled })
+                    }
+                  >
+                    {scheduled ? (
+                      <Field label={t('sources.schedule.label')}>
+                        {(control) => (
+                          <Select
+                            {...control}
+                            value={schedule.preset}
+                            options={scheduleOptions}
+                            disabled={addingGoogleDocs}
+                            onChange={(event) => {
+                              const preset = KNOWLEDGE_SCHEDULE_PRESETS.find(
+                                (candidate) => candidate === event.target.value,
+                              );
+                              if (preset !== undefined) {
+                                onScheduleChange({ ...schedule, preset });
+                              }
+                            }}
+                          />
+                        )}
+                      </Field>
+                    ) : null}
+                  </OptionCard>
+                </div>
+              </div>
               <Callout tone={CalloutTone.Neutral}>{t('add.googleDocsSummaryNote')}</Callout>
             </>
           )}
