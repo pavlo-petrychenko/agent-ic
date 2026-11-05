@@ -27,12 +27,14 @@ export interface KnowledgeSource {
 export interface KnowledgeSourceRowView {
   readonly id: string;
   readonly title: string;
+  readonly kind: KnowledgeSourceKind;
   readonly kindLabel: string;
   readonly syncLabel: string;
   readonly syncDetail: string;
   readonly status: KnowledgeSourceStatus;
   readonly isActive: boolean;
   readonly canRetry: boolean;
+  readonly canSync: boolean;
   readonly statusLabel: string;
   readonly statusDetail: string | null;
 }
@@ -40,6 +42,14 @@ export interface KnowledgeSourceRowView {
 export interface KnowledgeSourceTarget {
   readonly id: string;
   readonly title: string;
+}
+
+export type KnowledgeSourceAction = 'sync' | 'retry';
+
+export interface KnowledgeSourceActionResult {
+  readonly action: KnowledgeSourceAction;
+  readonly source: KnowledgeSource;
+  readonly succeeded: boolean;
 }
 
 export interface KnowledgeSourceDocument {
@@ -92,6 +102,11 @@ export interface UseDeleteKnowledgeSourceResult {
 export interface UseRetryKnowledgeSourceResult {
   readonly retryKnowledgeSource: (id: string) => Promise<void>;
   readonly retryingSourceId: string | null;
+}
+
+export interface UseSyncKnowledgeSourceResult {
+  readonly syncKnowledgeSource: (id: string) => Promise<void>;
+  readonly syncingSourceId: string | null;
 }
 
 export interface RenameKnowledgeSourceValues {

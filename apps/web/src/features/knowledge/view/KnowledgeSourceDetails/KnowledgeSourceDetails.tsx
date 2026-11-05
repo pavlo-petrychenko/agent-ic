@@ -32,11 +32,15 @@ export function KnowledgeSourceDetails({
   loading,
   failed,
   retrying,
+  syncing,
   canManage,
   canRetry,
+  canSync,
   addedLabel,
+  lastSyncedLabel,
   onReload,
   onClose,
+  onSync,
   onRename,
   onRetry,
   onDelete,
@@ -95,6 +99,9 @@ export function KnowledgeSourceDetails({
   };
 
   const documentSummary = (document: KnowledgeSourceDocumentView): string => {
+    if (document.status === KnowledgeDocumentStatus.Error) {
+      return document.failureMessage ?? t('sources.details.documentFailed');
+    }
     const summary = document.summary?.trim() ?? '';
     if (summary.length > 0) {
       return summary;
@@ -104,9 +111,6 @@ export function KnowledgeSourceDetails({
       document.status === KnowledgeDocumentStatus.Indexing
     ) {
       return t('sources.details.summaryPending');
-    }
-    if (document.status === KnowledgeDocumentStatus.Error) {
-      return document.failureMessage ?? t('sources.details.documentFailed');
     }
     return t('sources.details.summaryEmpty');
   };
@@ -157,16 +161,28 @@ export function KnowledgeSourceDetails({
               <div className={styles.meta}>
                 <span>{t('sources.details.documentsCount', { count: documentCount })}</span>
                 <span>{t('sources.chunks', { count: source.chunkCount })}</span>
-                <span>
-                  {source.kind === KnowledgeSourceKind.Upload
-                    ? t('sources.sync.oneTime')
-                    : t('sources.sync.connected')}
-                </span>
+                {source.kind === KnowledgeSourceKind.Upload ? (
+                  <span>{t('sources.sync.oneTime')}</span>
+                ) : null}
                 {addedLabel === null ? null : <span>{addedLabel}</span>}
+                {lastSyncedLabel === null ? null : <span>{lastSyncedLabel}</span>}
               </div>
 
-              {canManage && (onRename !== null || onRetry !== null || onDelete !== null) ? (
+              {canManage &&
+              (onSync !== null || onRename !== null || onRetry !== null || onDelete !== null) ? (
                 <div className={styles.actions}>
+                  {onSync === null ? null : (
+                    <Button
+                      variant={ButtonVariant.Secondary}
+                      size={ButtonSize.Sm}
+                      icon={IconName.Refresh}
+                      loading={syncing}
+                      disabled={!canSync || syncing}
+                      onClick={onSync}
+                    >
+                      {t('sources.menu.syncNow')}
+                    </Button>
+                  )}
                   {onRename === null ? null : (
                     <Button
                       variant={ButtonVariant.Secondary}
@@ -194,7 +210,7 @@ export function KnowledgeSourceDetails({
                       variant={ButtonVariant.Danger}
                       size={ButtonSize.Sm}
                       icon={IconName.X}
-                      disabled={active || retrying}
+                      disabled={active || retrying || syncing}
                       onClick={onDelete}
                     >
                       {t('sources.menu.delete')}

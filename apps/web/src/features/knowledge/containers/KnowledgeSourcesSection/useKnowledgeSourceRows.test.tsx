@@ -120,4 +120,96 @@ describe('useKnowledgeSourceRows', () => {
 
     expect(result.current[0]?.statusDetail).toBe('Не вдалося проіндексувати');
   });
+
+  it('offers a sync for a ready Google source with an active connection', () => {
+    const { result } = renderHook(
+      () =>
+        useKnowledgeSourceRows(
+          [
+            {
+              ...SOURCE,
+              connectionId: 'cnn_google',
+              kind: KnowledgeSourceKind.GoogleDocs,
+              status: KnowledgeSourceStatus.Ready,
+              lastErrorCode: null,
+              lastSyncAt: '2026-10-26T12:00:00.000Z',
+            },
+          ],
+          new Map([['cnn_google', KnowledgeConnectionStatus.Active]]),
+        ),
+      { wrapper: wrapperFor(Locale.En) },
+    );
+
+    expect(result.current[0]?.canSync).toBe(true);
+    expect(result.current[0]?.canRetry).toBe(false);
+    expect(result.current[0]?.syncDetail).toBe('Synced Oct 26');
+  });
+
+  it('offers retry instead of sync for a failed Google source', () => {
+    const { result } = renderHook(
+      () =>
+        useKnowledgeSourceRows(
+          [
+            {
+              ...SOURCE,
+              connectionId: 'cnn_google',
+              kind: KnowledgeSourceKind.GoogleDocs,
+              status: KnowledgeSourceStatus.Error,
+              lastErrorCode: ErrorReason.UpstreamFailed,
+            },
+          ],
+          new Map([['cnn_google', KnowledgeConnectionStatus.Active]]),
+        ),
+      { wrapper: wrapperFor(Locale.En) },
+    );
+
+    expect(result.current[0]?.canSync).toBe(false);
+    expect(result.current[0]?.canRetry).toBe(true);
+    expect(result.current[0]?.syncDetail).toBe('Failed Oct 26');
+  });
+
+  it('offers a sync for a ready Google source that has not synced yet', () => {
+    const { result } = renderHook(
+      () =>
+        useKnowledgeSourceRows(
+          [
+            {
+              ...SOURCE,
+              connectionId: 'cnn_google',
+              kind: KnowledgeSourceKind.GoogleDocs,
+              status: KnowledgeSourceStatus.Ready,
+              lastErrorCode: null,
+              lastSyncAt: null,
+            },
+          ],
+          new Map([['cnn_google', KnowledgeConnectionStatus.Active]]),
+        ),
+      { wrapper: wrapperFor(Locale.En) },
+    );
+
+    expect(result.current[0]?.canSync).toBe(true);
+    expect(result.current[0]?.syncDetail).toBe('Added Oct 26');
+  });
+
+  it('does not offer a sync when the Google connection is revoked', () => {
+    const { result } = renderHook(
+      () =>
+        useKnowledgeSourceRows(
+          [
+            {
+              ...SOURCE,
+              connectionId: 'cnn_google',
+              kind: KnowledgeSourceKind.GoogleDocs,
+              status: KnowledgeSourceStatus.Ready,
+              lastErrorCode: null,
+            },
+          ],
+          new Map([['cnn_google', KnowledgeConnectionStatus.Revoked]]),
+        ),
+      { wrapper: wrapperFor(Locale.En) },
+    );
+
+    expect(result.current[0]?.canSync).toBe(false);
+    expect(result.current[0]?.syncDetail).toBe('Added Oct 26');
+  });
 });

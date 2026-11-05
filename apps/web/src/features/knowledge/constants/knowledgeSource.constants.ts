@@ -26,6 +26,7 @@ export const KNOWLEDGE_SOURCE_DATE_FORMAT: Intl.DateTimeFormatOptions = {
 };
 
 export enum KnowledgeSourceMenuAction {
+  Sync = 'sync',
   Rename = 'rename',
   Retry = 'retry',
   Delete = 'delete',

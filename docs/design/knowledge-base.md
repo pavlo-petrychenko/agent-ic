@@ -583,7 +583,7 @@ Concurrency and idempotency:
 - one sync per source at a time: the processor locks the source row and checks for another active `sync_runs` row;
 - a scheduled sync that arrives while a manual one runs is skipped and logged;
 - the job is safe to repeat: content hashes skip unchanged documents, and a repeated generation write is overwritten before the flip;
-- the manual sync use case creates the `sync_runs` row and enqueues a durable job; it does not change the scheduled `next_sync_at`. The UI does not wait for the result.
+- the manual sync use case creates the `sync_runs` row and enqueues a durable job; it does not change the scheduled `next_sync_at`. The UI does not block on the result; it polls the source and reports completion or failure.
 
 ---
 

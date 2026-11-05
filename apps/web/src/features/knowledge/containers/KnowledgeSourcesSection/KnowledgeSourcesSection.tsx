@@ -4,17 +4,23 @@ import { useTranslation } from 'react-i18next';
 import { useKnowledgeConnections } from '@/features/knowledge/communication/hooks/useKnowledgeConnections';
 import { useKnowledgeSources } from '@/features/knowledge/communication/hooks/useKnowledgeSources';
 import { useRetryKnowledgeSource } from '@/features/knowledge/communication/hooks/useRetryKnowledgeSource';
+import { useSyncKnowledgeSource } from '@/features/knowledge/communication/hooks/useSyncKnowledgeSource';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import { AddSourceDialog } from '@/features/knowledge/containers/AddSourceDialog';
 import { DeleteKnowledgeSourceDialog } from '@/features/knowledge/containers/DeleteKnowledgeSourceDialog';
 import { KnowledgeSourceDetailsDrawer } from '@/features/knowledge/containers/KnowledgeSourceDetailsDrawer';
 import type { KnowledgeSourcesSectionProps } from '@/features/knowledge/containers/KnowledgeSourcesSection/KnowledgeSourcesSection.typedefs';
 import { useGoogleReconnect } from '@/features/knowledge/containers/KnowledgeSourcesSection/useGoogleReconnect';
+import { useKnowledgeSourceActionResults } from '@/features/knowledge/containers/KnowledgeSourcesSection/useKnowledgeSourceActionResults';
 import { useKnowledgeSourceRows } from '@/features/knowledge/containers/KnowledgeSourcesSection/useKnowledgeSourceRows';
 import { RenameKnowledgeSourceDialog } from '@/features/knowledge/containers/RenameKnowledgeSourceDialog';
 import { isGoogleConnectionActive } from '@/features/knowledge/logic/helpers/googleConnection.helpers';
 import { isKnowledgeSourceActive } from '@/features/knowledge/logic/helpers/knowledgeSource.helpers';
-import type { KnowledgeSourceTarget } from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
+import { useKnowledgeFailureMessage } from '@/features/knowledge/logic/hooks/useKnowledgeFailureMessage';
+import type {
+  KnowledgeSourceActionResult,
+  KnowledgeSourceTarget,
+} from '@/features/knowledge/typedefs/knowledgeSource.typedefs';
 import { GoogleConnectionBanner } from '@/features/knowledge/view/GoogleConnectionBanner';
 import { KnowledgeSourcesEmpty } from '@/features/knowledge/view/KnowledgeSourcesEmpty';
 import { KnowledgeSourcesTable } from '@/features/knowledge/view/KnowledgeSourcesTable';
@@ -35,8 +41,10 @@ export function KnowledgeSourcesSection({
   const { t } = useTranslation(KNOWLEDGE_NAMESPACE);
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
+  const failureMessage = useKnowledgeFailureMessage();
   const { sources, loading, failed, retry } = useKnowledgeSources(knowledgeBaseId);
   const { retryKnowledgeSource, retryingSourceId } = useRetryKnowledgeSource(knowledgeBaseId);
+  const { syncKnowledgeSource, syncingSourceId } = useSyncKnowledgeSource(knowledgeBaseId);
   const { connections, retry: retryConnections } = useKnowledgeConnections(canManageSources);
   const { reconnect, starting: reconnecting } = useGoogleReconnect(workspaceId, knowledgeBaseId);
   const connectionStatuses = useMemo(
@@ -81,11 +89,45 @@ export function KnowledgeSourcesSection({
     void retryConnections();
   }, [canManageSources, reconnectFailure, retryConnections]);
 
+  const onActionResult = useCallback(
+    ({ action, source, succeeded }: KnowledgeSourceActionResult) => {
+      const reason = failureMessage(source.lastErrorCode) ?? t('sources.status.errorDetail');
+      const message =
+        action === 'sync'
+          ? succeeded
+            ? t('sources.sync.finished', { name: source.title })
+            : t('sources.sync.resultFailed', { name: source.title, reason })
+          : succeeded
+            ? t('sources.retry.finished', { name: source.title })
+            : t('sources.retry.resultFailed', { name: source.title, reason });
+      showToast({ message, tone: succeeded ? ToastTone.Ok : ToastTone.Err });
+    },
+    [failureMessage, showToast, t],
+  );
+  const trackAction = useKnowledgeSourceActionResults(sources, onActionResult);
   const onAddSource = canAddSource ? () => setAdding(true) : null;
   const onOpenSource = (source: KnowledgeSourceTarget) => setDetailsSourceId(source.id);
   const onRenameSource = canManageSources ? setRenameTarget : null;
+  const onSyncSource = canManageSources
+    ? (source: KnowledgeSourceTarget) => {
+        const cancel = trackAction(source, 'sync');
+        void (async () => {
+          try {
+            await syncKnowledgeSource(source.id);
+            showToast({
+              message: t('sources.sync.started', { name: source.title }),
+              tone: ToastTone.Ok,
+            });
+          } catch (failure) {
+            cancel();
+            showToast({ message: errorMessage(toAppError(failure)), tone: ToastTone.Err });
+          }
+        })();
+      }
+    : null;
   const onRetrySource = canManageSources
     ? (source: KnowledgeSourceTarget) => {
+        const cancel = trackAction(source, 'retry');
         void (async () => {
           try {
             await retryKnowledgeSource(source.id);
@@ -94,6 +136,7 @@ export function KnowledgeSourcesSection({
               tone: ToastTone.Ok,
             });
           } catch (failure) {
+            cancel();
             showToast({ message: errorMessage(toAppError(failure)), tone: ToastTone.Err });
           }
         })();
@@ -117,10 +160,12 @@ export function KnowledgeSourcesSection({
         currentSourceId={null}
         onAddSource={onAddSource}
         onOpenSource={null}
+        onSyncSource={null}
         onRenameSource={null}
         onRetrySource={null}
         onDeleteSource={null}
         retryingSourceId={null}
+        syncingSourceId={null}
       />
     ) : sources.length === 0 ? (
       loading ? (
@@ -131,10 +176,12 @@ export function KnowledgeSourcesSection({
           currentSourceId={null}
           onAddSource={null}
           onOpenSource={null}
+          onSyncSource={null}
           onRenameSource={null}
           onRetrySource={null}
           onDeleteSource={null}
           retryingSourceId={null}
+          syncingSourceId={null}
         />
       ) : (
         <KnowledgeSourcesEmpty onAddSource={onAddSource} />
@@ -155,10 +202,12 @@ export function KnowledgeSourcesSection({
           currentSourceId={detailsSourceId}
           onAddSource={onAddSource}
           onOpenSource={onOpenSource}
+          onSyncSource={onSyncSource}
           onRenameSource={onRenameSource}
           onRetrySource={onRetrySource}
           onDeleteSource={onDeleteSource}
           retryingSourceId={retryingSourceId}
+          syncingSourceId={syncingSourceId}
         />
         <Callout tone={CalloutTone.Neutral}>{t('detail.agentsNote')}</Callout>
       </div>
@@ -202,7 +251,9 @@ export function KnowledgeSourcesSection({
           sourceId={detailsSourceId}
           canManage={canManageSources}
           retrying={retryingSourceId === detailsSourceId}
+          syncing={syncingSourceId === detailsSourceId}
           onClose={() => setDetailsSourceId(null)}
+          onSync={onSyncSource}
           onRename={setRenameTarget}
           onRetry={(source) => onRetrySource?.(source)}
           onDelete={setDeleteTarget}
