@@ -1,4 +1,5 @@
 import { SIMULATOR_MESSAGE_MAX_LENGTH } from '@agent-ic/contracts';
+import type { InboxTabCounts } from '@/features/inbox/typedefs/counts.typedefs';
 import { InboxQueue } from '@/shared/api/generated/schema.generated';
 import { ChatBubbleFrom } from '@/shared/ui/chat/ChatBubble';
 
@@ -14,6 +15,12 @@ export const INBOX_QUEUE_BY_TAB: Readonly<Record<InboxTab, InboxQueue>> = {
   [InboxTab.NeedsYou]: InboxQueue.NeedsYou,
   [InboxTab.Live]: InboxQueue.Live,
   [InboxTab.Closed]: InboxQueue.Closed,
+};
+
+export const EMPTY_INBOX_COUNTS: InboxTabCounts = {
+  [InboxTab.NeedsYou]: 0,
+  [InboxTab.Live]: 0,
+  [InboxTab.Closed]: 0,
 };
 
 export enum InboxProvider {

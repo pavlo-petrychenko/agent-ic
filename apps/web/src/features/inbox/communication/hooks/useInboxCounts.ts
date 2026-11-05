@@ -1,15 +1,8 @@
 import { useQuery, useSubscription } from '@apollo/client/react';
 import { InboxCountsDocument } from '@/features/inbox/communication/gql/query/inboxCounts.generated';
 import { InboxActivityDocument } from '@/features/inbox/communication/gql/subscription/inboxActivity.generated';
-import { InboxTab } from '@/features/inbox/constants/inbox.constants';
-
-export type InboxTabCounts = Readonly<Record<InboxTab, number>>;
-
-export const EMPTY_INBOX_COUNTS: InboxTabCounts = {
-  [InboxTab.NeedsYou]: 0,
-  [InboxTab.Live]: 0,
-  [InboxTab.Closed]: 0,
-};
+import { InboxTab, EMPTY_INBOX_COUNTS } from '@/features/inbox/constants/inbox.constants';
+import type { InboxTabCounts } from '@/features/inbox/typedefs/counts.typedefs';
 
 export function useInboxCounts(): InboxTabCounts {
   const { data, refetch } = useQuery(InboxCountsDocument, {
