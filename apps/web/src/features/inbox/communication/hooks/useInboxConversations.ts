@@ -4,20 +4,32 @@ import { InboxConversationsDocument } from '@/features/inbox/communication/gql/q
 import type { InboxConversationsQuery } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
 import { InboxActivityDocument } from '@/features/inbox/communication/gql/subscription/inboxActivity.generated';
 import { INBOX_CONVERSATIONS_PAGE_SIZE } from '@/features/inbox/constants/inbox.constants';
+import type { InboxQueue } from '@/shared/api/generated/schema.generated';
 
 type InboxSummary = InboxConversationsQuery['inboxConversations'][number];
 
 const NO_SUMMARIES: readonly InboxSummary[] = [];
 
-export function useInboxConversations() {
-  const [older, setOlder] = useState<readonly InboxSummary[]>([]);
-  const [lastPageSize, setLastPageSize] = useState(INBOX_CONVERSATIONS_PAGE_SIZE);
+interface InboxPages {
+  readonly key: InboxQueue;
+  readonly older: readonly InboxSummary[];
+  readonly lastPageSize: number;
+}
+
+export function useInboxConversations(queue: InboxQueue) {
+  const [pages, setPages] = useState<InboxPages>({
+    key: queue,
+    older: [],
+    lastPageSize: INBOX_CONVERSATIONS_PAGE_SIZE,
+  });
   const [loadingMore, setLoadingMore] = useState(false);
   const { data, loading, error, refetch, fetchMore } = useQuery(InboxConversationsDocument, {
-    variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null },
+    variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null, queue },
     fetchPolicy: 'cache-and-network',
   });
   const firstPage = data?.inboxConversations ?? NO_SUMMARIES;
+  const older = pages.key === queue ? pages.older : NO_SUMMARIES;
+  const lastPageSize = pages.key === queue ? pages.lastPageSize : INBOX_CONVERSATIONS_PAGE_SIZE;
   const summaries = useMemo(() => {
     const seen = new Set<string>();
     return [...firstPage, ...older].filter((summary) => {
@@ -47,19 +59,24 @@ export function useInboxConversations() {
         variables: {
           limit: INBOX_CONVERSATIONS_PAGE_SIZE,
           after: { lastMessageAt: last.lastMessageAt, id: last.id },
+          queue,
         },
         updateQuery: (previous) => previous,
       });
       const next = result.data?.inboxConversations ?? NO_SUMMARIES;
-      setOlder((current) => {
-        const seen = new Set([...firstPage, ...current].map((summary) => summary.id));
-        return [...current, ...next.filter((summary) => !seen.has(summary.id))];
+      setPages((current) => {
+        const base = current.key === queue ? current.older : NO_SUMMARIES;
+        const seen = new Set([...firstPage, ...base].map((summary) => summary.id));
+        return {
+          key: queue,
+          older: [...base, ...next.filter((summary) => !seen.has(summary.id))],
+          lastPageSize: next.length,
+        };
       });
-      setLastPageSize(next.length);
     } finally {
       setLoadingMore(false);
     }
-  }, [fetchMore, firstPage, hasMore, loadingMore, summaries]);
+  }, [fetchMore, firstPage, hasMore, loadingMore, queue, summaries]);
 
   return {
     summaries,

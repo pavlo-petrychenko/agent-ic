@@ -11,6 +11,7 @@ import {
   InboxConversationsDocument,
   type InboxConversationsQuery,
 } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
+import { InboxCountsDocument } from '@/features/inbox/communication/gql/query/inboxCounts.generated';
 import { InboxCurrentUserDocument } from '@/features/inbox/communication/gql/query/inboxCurrentUser.generated';
 import { InboxNeedsYouCountDocument } from '@/features/inbox/communication/gql/query/inboxNeedsYouCount.generated';
 import { INBOX_CONVERSATIONS_PAGE_SIZE } from '@/features/inbox/constants/inbox.constants';
@@ -32,6 +33,12 @@ const withTypename = <T extends object>(
   typename: string,
   value: T,
 ): T & { readonly __typename: string } => ({ __typename: typename, ...value });
+
+const INBOX_QUEUE_STATES: Readonly<Record<string, readonly ConversationState[]>> = {
+  needs_you: [ConversationState.Waiting, ConversationState.Handled],
+  live: [ConversationState.AgentActive],
+  closed: [ConversationState.Closed],
+};
 
 export const inboxSummaries: readonly InboxSummaryFixture[] = [
   {
@@ -528,19 +535,37 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
       maxUsageCount: Number.POSITIVE_INFINITY,
     },
     {
-      request: {
-        query: InboxConversationsDocument,
-        variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null },
-      },
+      request: { query: InboxCountsDocument },
       result: () => ({
         data: {
-          inboxConversations: summaries.map((summary) =>
-            withTypename('InboxConversationSummary', summary),
-          ),
+          inboxCounts: {
+            needsYou: summaries.filter((summary) =>
+              INBOX_QUEUE_STATES.needs_you?.includes(summary.state),
+            ).length,
+            live: summaries.filter((summary) => INBOX_QUEUE_STATES.live?.includes(summary.state))
+              .length,
+            closed: summaries.filter((summary) =>
+              INBOX_QUEUE_STATES.closed?.includes(summary.state),
+            ).length,
+          },
         },
       }),
       maxUsageCount: Number.POSITIVE_INFINITY,
     },
+    ...Object.keys(INBOX_QUEUE_STATES).map((queue) => ({
+      request: {
+        query: InboxConversationsDocument,
+        variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null, queue },
+      },
+      result: () => ({
+        data: {
+          inboxConversations: summaries
+            .filter((summary) => INBOX_QUEUE_STATES[queue]?.includes(summary.state))
+            .map((summary) => withTypename('InboxConversationSummary', summary)),
+        },
+      }),
+      maxUsageCount: Number.POSITIVE_INFINITY,
+    })),
     ...inboxSummaries.map((summary) => ({
       request: { query: InboxConversationDocument, variables: { id: summary.id } },
       result: () => ({

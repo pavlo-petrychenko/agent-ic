@@ -2,11 +2,15 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toInboxConversation } from '@/features/inbox/communication/helpers/inboxConversationApi.helpers';
 import { useInboxConversations } from '@/features/inbox/communication/hooks/useInboxConversations';
-import { InboxProvider, InboxTab } from '@/features/inbox/constants/inbox.constants';
+import { useInboxCounts } from '@/features/inbox/communication/hooks/useInboxCounts';
+import {
+  INBOX_QUEUE_BY_TAB,
+  InboxProvider,
+  InboxTab,
+} from '@/features/inbox/constants/inbox.constants';
 import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants';
 import type { InboxListResult } from '@/features/inbox/containers/InboxPage/InboxPage.typedefs';
 import {
-  countConversationsByTab,
   matchesInboxFilters,
   visibleConversations,
 } from '@/features/inbox/logic/helpers/inbox.helpers';
@@ -21,9 +25,10 @@ import type { InboxProviderLabels } from '@/features/inbox/typedefs/common.typed
 
 export function useInboxList(): InboxListResult {
   const { t, i18n } = useTranslation(INBOX_NAMESPACE);
-  const { summaries, loading, failed, retry, loadMore, loadingMore, hasMore } =
-    useInboxConversations();
   const [activeTab, setActiveTab] = useState<InboxTab>(InboxTab.NeedsYou);
+  const { summaries, loading, failed, retry, loadMore, loadingMore, hasMore } =
+    useInboxConversations(INBOX_QUEUE_BY_TAB[activeTab]);
+  const counts = useInboxCounts();
   const [search, setSearch] = useState('');
   const [channelIds, setChannelIds] = useState<string[]>([]);
   const [agentIds, setAgentIds] = useState<string[]>([]);
@@ -50,7 +55,6 @@ export function useInboxList(): InboxListResult {
       ),
     [conversations, channelIds, agentIds],
   );
-  const counts = useMemo(() => countConversationsByTab(filtered), [filtered]);
   const visible = useMemo(
     () => visibleConversations(filtered, activeTab, search, providerLabels),
     [filtered, activeTab, search, providerLabels],
@@ -79,10 +83,7 @@ export function useInboxList(): InboxListResult {
     );
   };
 
-  const effectiveSelectedId =
-    selectedId !== null && conversations.some((conversation) => conversation.id === selectedId)
-      ? selectedId
-      : (visible[0]?.id ?? null);
+  const effectiveSelectedId = selectedId ?? visible[0]?.id ?? null;
   const filtersApplied = search.trim() !== '' || channelIds.length > 0 || agentIds.length > 0;
   const onTabChange = (tab: InboxTab) => {
     setActiveTab(tab);
