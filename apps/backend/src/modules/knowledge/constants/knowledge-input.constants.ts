@@ -25,6 +25,9 @@ export enum KnowledgeField {
   Code = 'code',
   Url = 'url',
   ResourceKey = 'resourceKey',
+  SyncInterval = 'syncInterval',
+  SyncTime = 'syncTime',
+  SyncWeekday = 'syncWeekday',
 }
 
 export const KNOWLEDGE_FIELD_PATH_SEPARATOR = '.';
@@ -43,6 +46,9 @@ export const KNOWLEDGE_FIELD_REASON: Readonly<Record<string, ErrorReason>> = {
   [KnowledgeField.SizeBytes]: ErrorReason.InvalidRequest,
   [KnowledgeField.Title]: ErrorReason.InvalidRequest,
   [KnowledgeField.Summary]: ErrorReason.InvalidRequest,
+  [KnowledgeField.SyncInterval]: ErrorReason.InvalidRequest,
+  [KnowledgeField.SyncTime]: ErrorReason.InvalidRequest,
+  [KnowledgeField.SyncWeekday]: ErrorReason.InvalidRequest,
   [KnowledgeField.State]: ErrorReason.InvalidRequest,
   [KnowledgeField.Code]: ErrorReason.InvalidRequest,
   [KnowledgeField.Url]: ErrorReason.InvalidRequest,

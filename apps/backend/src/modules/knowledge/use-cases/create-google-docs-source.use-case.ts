@@ -1,5 +1,6 @@
 import { IdPrefix, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
+import { WorkspacesRepository } from '@/modules/identity';
 import {
   GOOGLE_DRIVE_DOCUMENT_MIME_TYPE,
   GooglePickerSkipReason,
@@ -25,6 +26,7 @@ import {
   googleDriveDate,
 } from '@/modules/knowledge/helpers/google-picker.helpers';
 import { parseKnowledgeInput } from '@/modules/knowledge/helpers/knowledge-input.helpers';
+import { sourceScheduleFields } from '@/modules/knowledge/helpers/knowledge-schedule.helpers';
 import { knowledgeSourceStateForDocuments } from '@/modules/knowledge/helpers/knowledge-source-state.helpers';
 import { ingestKnowledgeSourceJob } from '@/modules/knowledge/jobs/ingest-knowledge-source.job';
 import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
@@ -47,8 +49,13 @@ import type {
   GooglePickerSkippedDocument,
 } from '@/modules/knowledge/typedefs/google-picker.typedefs';
 import type { KnowledgeBase } from '@/modules/knowledge/typedefs/knowledge-base.typedefs';
+import type {
+  KnowledgeScheduleInput,
+  SourceScheduleFields,
+} from '@/modules/knowledge/typedefs/source-schedule.typedefs';
 import type { Source } from '@/modules/knowledge/typedefs/source.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
+import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -73,6 +80,7 @@ interface CreateSourceInput {
   readonly knowledgeBaseId: string;
   readonly connection: Connection;
   readonly prepared: readonly PreparedDocument[];
+  readonly scheduleInput: KnowledgeScheduleInput;
 }
 
 interface CreatedSource {
@@ -91,6 +99,7 @@ export class CreateGoogleDocsSourceUseCase {
     private readonly documents: DocumentsRepository,
     private readonly stats: KnowledgeStatsRepository,
     private readonly syncRuns: SyncRunsRepository,
+    private readonly workspaces: WorkspacesRepository,
     private readonly views: KnowledgeSourceViewsService,
     private readonly jobs: JobsService,
     private readonly clock: ClockService,
@@ -123,6 +132,7 @@ export class CreateGoogleDocsSourceUseCase {
       knowledgeBaseId,
       connection,
       prepared,
+      scheduleInput: parsed,
     });
     return {
       source: this.views.view(created.source),
@@ -190,9 +200,10 @@ export class CreateGoogleDocsSourceUseCase {
   }
 
   private async createSource(ctx: UseCaseCtx, input: CreateSourceInput): Promise<CreatedSource> {
-    const { workspaceId, userId, knowledgeBaseId, connection, prepared } = input;
+    const { workspaceId, userId, knowledgeBaseId, connection, prepared, scheduleInput } = input;
     return this.tenants.run(workspaceId, async () => {
       const knowledgeBase = await this.lockKnowledgeBase(workspaceId, knowledgeBaseId);
+      const schedule = await this.scheduleFor(workspaceId, scheduleInput);
       const selection = await this.resolveSelection(workspaceId, knowledgeBase.id, prepared);
       const source = await this.insertSource(
         workspaceId,
@@ -201,6 +212,7 @@ export class CreateGoogleDocsSourceUseCase {
         connection,
         selection.prepared,
         selection.referenced,
+        schedule,
       );
       await this.insertDocuments(workspaceId, knowledgeBase.id, source.id, selection.prepared);
       await this.sourceDocuments.insertMany(workspaceId, knowledgeBase.id, source.id, [
@@ -274,6 +286,17 @@ export class CreateGoogleDocsSourceUseCase {
     return knowledgeBase;
   }
 
+  private async scheduleFor(
+    workspaceId: string,
+    input: KnowledgeScheduleInput,
+  ): Promise<SourceScheduleFields> {
+    const workspace = await this.workspaces.findById(workspaceId);
+    if (workspace === null) {
+      throw new WorkspaceAccessDeniedError();
+    }
+    return sourceScheduleFields(input, workspace.timeZone, this.clock.now());
+  }
+
   private async insertSource(
     workspaceId: string,
     userId: string,
@@ -281,6 +304,7 @@ export class CreateGoogleDocsSourceUseCase {
     connection: Connection,
     prepared: readonly PreparedDocument[],
     referenced: readonly Document[],
+    schedule: SourceScheduleFields,
   ): Promise<Source> {
     return this.sources.insert({
       id: this.ids.generate(),
@@ -294,6 +318,7 @@ export class CreateGoogleDocsSourceUseCase {
       ]),
       status: KnowledgeSourceStatus.Pending,
       createdByUserId: userId,
+      ...schedule,
     });
   }
 

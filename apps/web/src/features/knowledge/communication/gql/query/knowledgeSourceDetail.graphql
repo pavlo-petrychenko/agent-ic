@@ -8,6 +8,9 @@ query KnowledgeSourceDetail($id: ID!) {
       title
       status
       syncInterval
+      syncTime
+      syncWeekday
+      timezone
       nextSyncAt
       lastSyncAt
       lastErrorCode

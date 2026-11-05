@@ -11,6 +11,10 @@ import {
   KNOWLEDGE_UPLOAD_FILE_NAME_MAX_LENGTH,
   KNOWLEDGE_UPLOAD_MIME_TYPE_MAX_LENGTH,
 } from '@/modules/knowledge/constants/knowledge-upload.constants';
+import {
+  knowledgeScheduleInputShape,
+  requireScheduleFields,
+} from '@/modules/knowledge/schemas/knowledge-schedule.schema';
 
 const nameSchema = z.string().trim().min(1).max(KNOWLEDGE_BASE_NAME_MAX_LENGTH);
 const recordIdSchema = z.string().min(1);
@@ -63,6 +67,13 @@ export const removeSourceDocumentInputSchema = z.object({
   [KnowledgeField.SourceId]: recordIdSchema,
   [KnowledgeField.DocumentId]: recordIdSchema,
 });
+
+export const updateKnowledgeSourceScheduleInputSchema = z
+  .object({
+    [KnowledgeField.Id]: recordIdSchema,
+    ...knowledgeScheduleInputShape,
+  })
+  .superRefine(requireScheduleFields);
 
 export const createUploadInputSchema = z.object({
   [KnowledgeField.KnowledgeBaseId]: recordIdSchema,

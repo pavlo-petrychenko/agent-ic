@@ -7,6 +7,7 @@ import type {
 } from '@/modules/knowledge/constants/knowledge.constants';
 import type { sources } from '@/modules/knowledge/db/sources.table';
 import type { KnowledgeConnectionView } from '@/modules/knowledge/typedefs/connection.typedefs';
+import type { KnowledgeScheduleInput } from '@/modules/knowledge/typedefs/source-schedule.typedefs';
 
 export type Source = typeof sources.$inferSelect;
 
@@ -22,6 +23,9 @@ export interface KnowledgeSourceView {
   readonly title: string;
   readonly status: KnowledgeSourceStatus;
   readonly syncInterval: KnowledgeSyncInterval | null;
+  readonly syncTime: string | null;
+  readonly syncWeekday: number | null;
+  readonly timezone: string | null;
   readonly nextSyncAt: Date | null;
   readonly lastSyncAt: Date | null;
   readonly lastErrorCode: string | null;
@@ -82,4 +86,8 @@ export interface RenameKnowledgeSourceInput {
 export interface RemoveSourceDocumentInput {
   readonly sourceId: string;
   readonly documentId: string;
+}
+
+export interface UpdateKnowledgeSourceScheduleInput extends KnowledgeScheduleInput {
+  readonly id: string;
 }

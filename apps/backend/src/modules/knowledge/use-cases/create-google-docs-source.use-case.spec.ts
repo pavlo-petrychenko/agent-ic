@@ -4,6 +4,7 @@ import {
   KnowledgeDocumentStatus,
   KnowledgeSourceKind,
   KnowledgeSourceStatus,
+  KnowledgeSyncInterval,
   KnowledgeSyncStatus,
 } from '@/modules/knowledge/constants/knowledge.constants';
 import { GoogleDocsSelectionInvalidError } from '@/modules/knowledge/errors/google-drive.error';
@@ -195,6 +196,28 @@ describe('CreateGoogleDocsSourceUseCase', () => {
     expect(stored.runs).toMatchObject({
       status: KnowledgeSyncStatus.Queued,
       documentsTotal: 2,
+    });
+  });
+
+  it('stores an hourly schedule with the next run on the hour', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedConnection(workspaceId);
+    drive.addFile(file(), TEST_GOOGLE_DOC_MARKDOWN);
+
+    const result = await createSource.execute(knowledgeCtx(workspaceId), {
+      knowledgeBaseId: publicKnowledgeBaseId(testbed, knowledgeBaseId),
+      connectionId: publicKnowledgeConnectionId(testbed, connectionId),
+      documents: [picked(TEST_GOOGLE_DOC_ID, TEST_GOOGLE_DOC_NAME)],
+      syncInterval: KnowledgeSyncInterval.Hourly,
+    });
+
+    expect(result.source).toMatchObject({
+      syncInterval: KnowledgeSyncInterval.Hourly,
+      syncTime: null,
+      syncWeekday: null,
+      timezone: 'Europe/Kyiv',
+      nextSyncAt: new Date('2026-05-01T10:00:00.000Z'),
     });
   });
 
