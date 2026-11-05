@@ -17,8 +17,16 @@
     "subtitle_one": "Workspace knowledge base · {{count}} chunk indexed",
     "subtitle_other": "Workspace knowledge base · {{count}} chunks indexed",
     "sourcesTitle": "No sources yet",
-    "sourcesDescription": "Upload files or connect Google Docs. We split them into chunks so agents can search them.",
-    "agentsNote": "Agents only answer from knowledge bases attached to them. Attach this one in the agent step after adding sources."
+    "sourcesDescription": "Upload files or connect Google Docs. We split them into chunks so agents can search them."
+  },
+  "agentAccess": {
+    "title": "How agents see this knowledge base",
+    "searchName": "Search name",
+    "description": "Description",
+    "attachedTo": "Attached to",
+    "attachedEmpty": "Not attached to any agent yet.",
+    "attachedLoading": "Loading agents…",
+    "attachedFailed": "Could not load agent usage."
   },
   "add": {
     "action": "Add source",

@@ -1,3 +1,4 @@
+import { AgentsModule } from '@/modules/agents';
 import { WorkspacesRepository } from '@/modules/identity';
 import { GoogleDriveApiGateway } from '@/modules/knowledge/gateways/google-drive-api.gateway';
 import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.gateway';
@@ -24,6 +25,7 @@ import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.r
 import { CreateKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/create-knowledge-base.resolver';
 import { DeleteKnowledgeBaseResolver } from '@/modules/knowledge/resolvers/delete-knowledge-base.resolver';
 import { DeleteKnowledgeSourceResolver } from '@/modules/knowledge/resolvers/delete-knowledge-source.resolver';
+import { KnowledgeBaseUsagesResolver } from '@/modules/knowledge/resolvers/knowledge-base-usages.resolver';
 import { KnowledgeBasesResolver } from '@/modules/knowledge/resolvers/knowledge-bases.resolver';
 import { KnowledgeConnectionsResolver } from '@/modules/knowledge/resolvers/knowledge-connections.resolver';
 import { KnowledgePickerResolver } from '@/modules/knowledge/resolvers/knowledge-picker.resolver';
@@ -50,6 +52,7 @@ import { KnowledgeSearchService } from '@/modules/knowledge/services/knowledge-s
 import { KnowledgeSourceSyncService } from '@/modules/knowledge/services/knowledge-source-sync.service';
 import { KnowledgeSourceViewsService } from '@/modules/knowledge/services/knowledge-source-views.service';
 import { KnowledgeUploadTargetsService } from '@/modules/knowledge/services/knowledge-upload-targets.service';
+import { KnowledgeUsageService } from '@/modules/knowledge/services/knowledge-usage.service';
 import { CleanUpKnowledgeDocumentFilesUseCase } from '@/modules/knowledge/use-cases/clean-up-knowledge-document-files.use-case';
 import { CleanUpKnowledgeSourceFilesUseCase } from '@/modules/knowledge/use-cases/clean-up-knowledge-source-files.use-case';
 import { CleanUpKnowledgeWorkspaceFilesUseCase } from '@/modules/knowledge/use-cases/clean-up-knowledge-workspace-files.use-case';
@@ -65,6 +68,7 @@ import { DisconnectGoogleConnectionUseCase } from '@/modules/knowledge/use-cases
 import { GetKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/get-knowledge-source.use-case';
 import { IngestKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/ingest-knowledge-source.use-case';
 import { ListGoogleConnectionsUseCase } from '@/modules/knowledge/use-cases/list-google-connections.use-case';
+import { ListKnowledgeBaseUsagesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-base-usages.use-case';
 import { ListKnowledgeBasesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-bases.use-case';
 import { ListKnowledgeSourcesUseCase } from '@/modules/knowledge/use-cases/list-knowledge-sources.use-case';
 import { ReindexKnowledgeDocumentUseCase } from '@/modules/knowledge/use-cases/reindex-knowledge-document.use-case';
@@ -81,6 +85,7 @@ import { UpdateKnowledgeSourceScheduleUseCase } from '@/modules/knowledge/use-ca
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class KnowledgeModule extends defineModule({
+  imports: [AgentsModule],
   providers: [
     KnowledgeBasesRepository,
     ConnectionsRepository,
@@ -106,6 +111,7 @@ export class KnowledgeModule extends defineModule({
     KnowledgeBaseViewsService,
     KnowledgeSourceViewsService,
     KnowledgeConnectionViewsService,
+    KnowledgeUsageService,
     KnowledgeUploadTargetsService,
     GoogleConnectionTokenService,
     { provide: GoogleOAuthGateway, useClass: GoogleOAuthApiGateway },
@@ -126,6 +132,7 @@ export class KnowledgeModule extends defineModule({
     IngestKnowledgeSourceUseCase,
     ListGoogleConnectionsUseCase,
     ListKnowledgeBasesUseCase,
+    ListKnowledgeBaseUsagesUseCase,
     ListKnowledgeSourcesUseCase,
     RenameKnowledgeBaseUseCase,
     RenameKnowledgeSourceUseCase,
@@ -144,6 +151,7 @@ export class KnowledgeModule extends defineModule({
     DeleteKnowledgeBaseResolver,
     DeleteKnowledgeSourceResolver,
     KnowledgeBasesResolver,
+    KnowledgeBaseUsagesResolver,
     KnowledgeConnectionsResolver,
     KnowledgePickerResolver,
     KnowledgeSourcesResolver,

@@ -31,6 +31,24 @@ export interface RenameKnowledgeBaseValues {
   readonly name: string;
 }
 
+export interface KnowledgeBaseUsage {
+  readonly agentId: string;
+  readonly agentName: string;
+  readonly versionId: string;
+  readonly versionKind: 'draft' | 'live';
+  readonly versionNumber: number | null;
+  readonly nodeId: string;
+  readonly nodeKey: string;
+  readonly nodeLabel: string;
+}
+
+export interface UseKnowledgeBaseUsagesResult {
+  readonly usages: readonly KnowledgeBaseUsage[];
+  readonly loading: boolean;
+  readonly failed: boolean;
+  readonly retry: () => Promise<void>;
+}
+
 export interface UseRenameKnowledgeBaseResult {
   readonly renameKnowledgeBase: (values: RenameKnowledgeBaseValues) => Promise<void>;
   readonly renaming: boolean;

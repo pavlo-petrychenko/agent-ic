@@ -3,6 +3,7 @@ extend type Query {
   knowledgeSources(knowledgeBaseId: ID!): [KnowledgeSource!]!
   knowledgeSource(id: ID!): KnowledgeSourceDetail!
   knowledgeConnections: [GoogleConnection!]!
+  knowledgeBaseUsages(knowledgeBaseId: ID!): [KnowledgeBaseUsage!]!
   searchKnowledge(input: SearchKnowledgeInput!): [KnowledgeSearchResult!]!
 }
 
@@ -300,4 +301,20 @@ type KnowledgeBase {
   chunkCount: Int!
   createdAt: String!
   updatedAt: String!
+}
+
+enum KnowledgeBaseUsageVersionKind {
+  draft
+  live
+}
+
+type KnowledgeBaseUsage {
+  agentId: ID!
+  agentName: String!
+  versionId: ID!
+  versionKind: KnowledgeBaseUsageVersionKind!
+  versionNumber: Int
+  nodeId: String!
+  nodeKey: String!
+  nodeLabel: String!
 }

@@ -33,6 +33,7 @@ export {
   KnowledgeDocumentFailureCode,
   KnowledgeDocumentFormat,
 } from '@contracts/knowledge/knowledge.constants';
+export { knowledgeToolFallbackDescription } from '@contracts/knowledge/knowledge.helpers';
 export {
   LLM_KEY_MIN_LENGTH,
   LLM_KEY_NAME_MAX_LENGTH,

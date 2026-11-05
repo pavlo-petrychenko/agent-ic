@@ -6,6 +6,7 @@ import { useKnowledgeBases } from '@/features/knowledge/communication/hooks/useK
 import { AddSourceType } from '@/features/knowledge/constants/googleConnection.constants';
 import { KNOWLEDGE_NAMESPACE } from '@/features/knowledge/constants/knowledgeI18n.constants';
 import { DeleteKnowledgeBaseDialog } from '@/features/knowledge/containers/DeleteKnowledgeBaseDialog';
+import { KnowledgeAgentAccessSection } from '@/features/knowledge/containers/KnowledgeAgentAccessSection';
 import type { KnowledgePageProps } from '@/features/knowledge/containers/KnowledgePage/KnowledgePage.typedefs';
 import { KnowledgePlayground } from '@/features/knowledge/containers/KnowledgePlayground';
 import { KnowledgeSourcesSection } from '@/features/knowledge/containers/KnowledgeSourcesSection';
@@ -164,7 +165,7 @@ export function KnowledgePage({
             )
           ) : (
             <div className="grid gap-5 default:grid-cols-[minmax(0,1fr)_300px] wide:grid-cols-[minmax(0,1fr)_320px]">
-              <div className="min-w-0">
+              <div className="flex min-w-0 flex-col gap-5">
                 <KnowledgeSourcesSection
                   key={selected.id}
                   workspaceId={workspaceId}
@@ -175,6 +176,7 @@ export function KnowledgePage({
                   canManageSources={canEdit}
                   onCountsChanged={refreshKnowledgeBases}
                 />
+                <KnowledgeAgentAccessSection knowledgeBase={selected} />
               </div>
               <KnowledgePlayground key={selected.id} knowledgeBaseId={selected.id} />
             </div>

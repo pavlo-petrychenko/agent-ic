@@ -26,7 +26,6 @@ import { KnowledgeSourcesEmpty } from '@/features/knowledge/view/KnowledgeSource
 import { KnowledgeSourcesTable } from '@/features/knowledge/view/KnowledgeSourcesTable';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
-import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
 export function KnowledgeSourcesSection({
@@ -223,7 +222,6 @@ export function KnowledgeSourcesSection({
           retryingSourceId={retryingSourceId}
           syncingSourceId={syncingSourceId}
         />
-        <Callout tone={CalloutTone.Neutral}>{t('detail.agentsNote')}</Callout>
       </div>
     );
 
