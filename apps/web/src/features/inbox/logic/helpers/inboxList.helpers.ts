@@ -7,23 +7,19 @@ import {
   InboxTab,
 } from '@/features/inbox/constants/inbox.constants';
 import type {
-  InboxConversation,
-  InboxEmptyState,
-  InboxListItem,
   InboxProviderLabels,
-  InboxRowStatus,
-  InboxTabItem,
   InboxTranslate,
-} from '@/features/inbox/typedefs/inbox.typedefs';
+} from '@/features/inbox/typedefs/common.typedefs';
+import type { InboxConversation } from '@/features/inbox/typedefs/conversation.typedefs';
+import type {
+  InboxEmptyState,
+  InboxEmptyStateResolver,
+  InboxListItem,
+  InboxRowStatusResolver,
+  InboxTabItem,
+} from '@/features/inbox/typedefs/list.typedefs';
 import { EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { IconName } from '@/shared/ui/foundations/Icon';
-
-type InboxRowStatusResolver = (
-  conversation: InboxConversation,
-  t: InboxTranslate,
-) => InboxRowStatus | null;
-
-type InboxEmptyStateResolver = (t: InboxTranslate) => InboxEmptyState;
 
 const INBOX_ROW_STATUS: Readonly<Record<InboxReplyState, InboxRowStatusResolver>> = {
   [InboxReplyState.Waiting]: (_conversation, t) => ({

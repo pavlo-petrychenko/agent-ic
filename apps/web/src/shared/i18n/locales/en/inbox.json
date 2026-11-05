@@ -96,33 +96,37 @@
   },
   "details": {
     "label": "Conversation details",
-    "whyEscalated": "Why escalated",
+    "whyEscalated": "Why it escalated",
     "guard": "Conversation guard",
     "completion": "Completion",
+    "escalation": "Escalation",
     "needsHuman": "needs_human: true",
     "reason": "reason: \"{{reason}}\"",
     "pathInRun": "Path in this run",
     "openInLangfuse": "Open in Langfuse",
+    "openRunInLangfuse": "Open run in Langfuse",
     "openSessionInLangfuse": "Open session in Langfuse",
     "conversation": "Conversation",
     "agent": "Agent",
     "channel": "Channel",
     "repliesGoTo": "Replies go to",
+    "yourWebhook": "Your webhook",
+    "theApiCaller": "The API caller",
     "started": "Started",
     "escalated": "Escalated",
     "notified": "Notified",
+    "allOperators": "All operators",
     "handledBy": "Handled by",
+    "since": "since {{time}}",
     "runs": "Runs so far",
     "status": "Status",
     "agentAnswering": "Agent answering",
     "closed": "Closed",
-    "runMeta": "Run {{id}} · {{time}} · {{duration}}"
-  },
-  "steps": {
-    "incomingMessage": "Incoming message",
-    "parallel": "Parallel",
-    "guard": "Conversation guard",
-    "needsPerson": "Needs a person?",
-    "notifyOperator": "Notify operator"
+    "runMeta": "Run {{id}} · {{time}} · {{duration}}",
+    "notifyChannels": {
+      "inPlatform": "In-app",
+      "email": "Email",
+      "telegram": "Telegram"
+    }
   }
 }

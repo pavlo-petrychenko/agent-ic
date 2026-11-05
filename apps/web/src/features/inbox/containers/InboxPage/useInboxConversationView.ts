@@ -8,11 +8,11 @@ import {
   inboxMessages,
 } from '@/features/inbox/logic/helpers/inboxConversation.helpers';
 import type {
-  InboxConversation,
-  InboxFooterContext,
   InboxLoadError,
   InboxProviderLabels,
-} from '@/features/inbox/typedefs/inbox.typedefs';
+} from '@/features/inbox/typedefs/common.typedefs';
+import type { InboxConversation } from '@/features/inbox/typedefs/conversation.typedefs';
+import type { InboxFooterContext } from '@/features/inbox/typedefs/conversationUi.typedefs';
 import type { InboxConversationProps } from '@/features/inbox/view/InboxConversation';
 
 export function useInboxConversationView(

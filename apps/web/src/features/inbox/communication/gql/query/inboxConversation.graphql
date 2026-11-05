@@ -3,6 +3,38 @@ query InboxConversation($id: ID!) {
     summary {
       id
     }
+    details {
+      guard {
+        label
+        nodeType
+        reason
+      }
+      run {
+        id
+        agentVersion
+        startedAt
+        durationMs
+        steps {
+          id
+          label
+          nodeType
+          value
+        }
+      }
+      channelName
+      replyTarget
+      notified {
+        names
+        allOperators
+        channels
+      }
+      handled {
+        name
+        since
+        until
+      }
+      runsCount
+    }
     messages {
       id
       author
@@ -10,8 +42,6 @@ query InboxConversation($id: ID!) {
       authorName
       systemEvent
       text
-      quickReplies
-      runId
       createdAt
     }
   }

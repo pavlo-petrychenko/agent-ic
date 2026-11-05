@@ -3,21 +3,30 @@ import { InboxCloseConversationDocument } from '@/features/inbox/communication/g
 import { InboxHandBackDocument } from '@/features/inbox/communication/gql/mutation/inboxHandBack.generated';
 import { InboxReplyAsOperatorDocument } from '@/features/inbox/communication/gql/mutation/inboxReplyAsOperator.generated';
 import { InboxTakeOverDocument } from '@/features/inbox/communication/gql/mutation/inboxTakeOver.generated';
-import { InboxConversationDocument } from '@/features/inbox/communication/gql/query/inboxConversation.generated';
+import {
+  InboxConversationDocument,
+  type InboxConversationQuery,
+} from '@/features/inbox/communication/gql/query/inboxConversation.generated';
 import {
   InboxConversationsDocument,
   type InboxConversationsQuery,
 } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
 import { InboxCurrentUserDocument } from '@/features/inbox/communication/gql/query/inboxCurrentUser.generated';
+import { InboxNeedsYouCountDocument } from '@/features/inbox/communication/gql/query/inboxNeedsYouCount.generated';
 import { INBOX_CONVERSATIONS_FETCH_LIMIT } from '@/features/inbox/constants/inbox.constants';
 import {
+  ApiReplyMode,
   ChannelConversationKind,
   ConversationState,
+  InboxNotifyChannel,
+  InboxRunNodeType,
   MessageAuthor,
   MessageSystemEvent,
 } from '@/shared/api/generated/schema.generated';
 
 type InboxSummaryFixture = InboxConversationsQuery['inboxConversations'][number];
+type InboxDetailsFixture = InboxConversationQuery['inboxConversation']['details'];
+type InboxRunStepFixture = NonNullable<InboxDetailsFixture['run']>['steps'][number];
 
 const withTypename = <T extends object>(
   typename: string,
@@ -134,6 +143,138 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     closedAt: '2026-10-31T18:40:00.000Z',
   },
 ];
+
+const runStep = (
+  id: string,
+  label: string,
+  nodeType: InboxRunNodeType,
+  value: string | null,
+): InboxRunStepFixture => ({
+  id,
+  label,
+  nodeType,
+  value,
+});
+
+const escalatedRun: NonNullable<InboxDetailsFixture['run']> = {
+  id: 'run_8f3a21',
+  agentVersion: 3,
+  startedAt: '2026-11-01T14:03:00.000Z',
+  durationMs: 600,
+  steps: [
+    runStep('step_1', 'Incoming message', InboxRunNodeType.TriggerMessage, null),
+    runStep('step_2', 'Parallel', InboxRunNodeType.Parallel, null),
+    runStep('step_3', 'Conversation guard', InboxRunNodeType.Completion, 'needs_human = true'),
+    runStep('step_4', 'Needs a person?', InboxRunNodeType.Router, '→ yes'),
+    runStep('step_5', 'Notify operator', InboxRunNodeType.Escalation, null),
+  ],
+};
+
+const emptyDetails: InboxDetailsFixture = {
+  guard: null,
+  run: null,
+  channelName: null,
+  replyTarget: null,
+  notified: null,
+  handled: null,
+  runsCount: 0,
+};
+
+const detailsById: Readonly<Record<string, InboxDetailsFixture>> = {
+  cnv_olena: {
+    guard: {
+      label: 'Conversation guard',
+      nodeType: InboxRunNodeType.Completion,
+      reason: 'Customer asks for a manager',
+    },
+    run: {
+      ...escalatedRun,
+      steps: [...escalatedRun.steps, runStep('step_6', 'Agent', InboxRunNodeType.Agent, null)],
+    },
+    channelName: '@demo_salon_bot',
+    replyTarget: null,
+    notified: {
+      names: ['Pavlo'],
+      allOperators: false,
+      channels: [InboxNotifyChannel.Telegram, InboxNotifyChannel.Email],
+    },
+    handled: {
+      name: 'Demo Owner',
+      since: '2026-11-01T14:05:00.000Z',
+      until: null,
+    },
+    runsCount: 2,
+  },
+  cnv_marta: {
+    guard: {
+      label: '',
+      nodeType: InboxRunNodeType.Agent,
+      reason: 'Customer asks to be called back',
+    },
+    run: escalatedRun,
+    channelName: '@demo_salon_bot',
+    replyTarget: null,
+    notified: {
+      names: [],
+      allOperators: true,
+      channels: [InboxNotifyChannel.Telegram, InboxNotifyChannel.Email],
+    },
+    handled: null,
+    runsCount: 1,
+  },
+  cnv_andri: {
+    guard: {
+      label: 'Conversation guard',
+      nodeType: InboxRunNodeType.Completion,
+      reason: "Payment problem the agent can't solve",
+    },
+    run: escalatedRun,
+    channelName: 'Website',
+    replyTarget: ApiReplyMode.Webhook,
+    notified: {
+      names: ['Olena'],
+      allOperators: false,
+      channels: [InboxNotifyChannel.Telegram, InboxNotifyChannel.Email],
+    },
+    handled: {
+      name: 'Olena',
+      since: '2026-11-01T14:19:00.000Z',
+      until: null,
+    },
+    runsCount: 2,
+  },
+  cnv_kateryna: {
+    guard: null,
+    run: null,
+    channelName: '@demo_salon_bot',
+    replyTarget: null,
+    notified: null,
+    handled: {
+      name: 'Pavlo',
+      since: '2026-11-01T14:05:00.000Z',
+      until: '2026-11-01T14:10:00.000Z',
+    },
+    runsCount: 1,
+  },
+  cnv_site: {
+    guard: null,
+    run: null,
+    channelName: 'Website',
+    replyTarget: ApiReplyMode.Response,
+    notified: null,
+    handled: null,
+    runsCount: 1,
+  },
+  cnv_taras: {
+    guard: null,
+    run: null,
+    channelName: '@demo_salon_bot',
+    replyTarget: null,
+    notified: null,
+    handled: null,
+    runsCount: 1,
+  },
+};
 
 type InboxMessageFixture = {
   readonly id: string;
@@ -370,6 +511,11 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
       result: closeResult,
     },
     {
+      request: { query: InboxNeedsYouCountDocument },
+      result: { data: { inboxNeedsYouCount: 0 } },
+      maxUsageCount: Number.POSITIVE_INFINITY,
+    },
+    {
       request: {
         query: InboxConversationsDocument,
         variables: { limit: INBOX_CONVERSATIONS_FETCH_LIMIT },
@@ -391,6 +537,10 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
             summary: withTypename(
               'InboxConversationSummary',
               summaries.find((current) => current.id === summary.id) ?? summary,
+            ),
+            details: withTypename(
+              'InboxConversationDetails',
+              detailsById[summary.id] ?? emptyDetails,
             ),
             messages: (messages[summary.id] ?? []).map((item) => withTypename('Message', item)),
           }),

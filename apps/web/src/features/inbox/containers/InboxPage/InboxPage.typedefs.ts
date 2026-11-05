@@ -1,13 +1,18 @@
 import type { InboxActionId, InboxTab } from '@/features/inbox/constants/inbox.constants';
 import type { CloseChatDialogProps } from '@/features/inbox/containers/CloseChatDialog';
 import type {
-  InboxConversation,
   InboxLoadError,
   InboxProviderLabels,
-} from '@/features/inbox/typedefs/inbox.typedefs';
+} from '@/features/inbox/typedefs/common.typedefs';
+import type { InboxConversation } from '@/features/inbox/typedefs/conversation.typedefs';
 import type { InboxConversationProps } from '@/features/inbox/view/InboxConversation';
 import type { InboxDetailsProps } from '@/features/inbox/view/InboxDetails';
 import type { InboxListProps } from '@/features/inbox/view/InboxList';
+
+export interface InboxComposerDraft {
+  readonly conversationId: string | null;
+  readonly text: string;
+}
 
 export interface InboxPageModel {
   readonly list: InboxListProps;

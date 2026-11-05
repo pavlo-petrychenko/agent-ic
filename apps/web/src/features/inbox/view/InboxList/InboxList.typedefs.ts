@@ -1,11 +1,11 @@
 import type { InboxTab } from '@/features/inbox/constants/inbox.constants';
+import type { InboxLoadError } from '@/features/inbox/typedefs/common.typedefs';
 import type {
   InboxEmptyState,
   InboxListItem,
-  InboxLoadError,
   InboxRowStatus,
   InboxTabItem,
-} from '@/features/inbox/typedefs/inbox.typedefs';
+} from '@/features/inbox/typedefs/list.typedefs';
 
 export interface InboxListProps {
   readonly title: string;

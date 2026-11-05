@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toInboxConversation } from '@/features/inbox/communication/helpers/inboxApi.helpers';
+import { toInboxConversation } from '@/features/inbox/communication/helpers/inboxConversationApi.helpers';
 import { useInboxConversations } from '@/features/inbox/communication/hooks/useInboxConversations';
 import { InboxProvider, InboxTab } from '@/features/inbox/constants/inbox.constants';
 import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants';
@@ -16,7 +16,7 @@ import {
   inboxListItem,
   inboxTabItems,
 } from '@/features/inbox/logic/helpers/inboxList.helpers';
-import type { InboxProviderLabels } from '@/features/inbox/typedefs/inbox.typedefs';
+import type { InboxProviderLabels } from '@/features/inbox/typedefs/common.typedefs';
 
 export function useInboxList(): InboxListResult {
   const { t, i18n } = useTranslation(INBOX_NAMESPACE);

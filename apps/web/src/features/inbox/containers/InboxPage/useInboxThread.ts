@@ -2,16 +2,16 @@ import { skipToken, useSubscription } from '@apollo/client/react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InboxConversationActivityDocument } from '@/features/inbox/communication/gql/subscription/inboxConversationActivity.generated';
-import { withInboxDetail } from '@/features/inbox/communication/helpers/inboxApi.helpers';
+import { withInboxDetail } from '@/features/inbox/communication/helpers/inboxThreadApi.helpers';
 import { useInboxConversation } from '@/features/inbox/communication/hooks/useInboxConversation';
 import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants';
 import type { InboxThreadState } from '@/features/inbox/containers/InboxPage/InboxPage.typedefs';
 import { inboxDetails } from '@/features/inbox/logic/helpers/inboxDetails.helpers';
 import type {
-  InboxConversation,
   InboxCurrentUser,
   InboxProviderLabels,
-} from '@/features/inbox/typedefs/inbox.typedefs';
+} from '@/features/inbox/typedefs/common.typedefs';
+import type { InboxConversation } from '@/features/inbox/typedefs/conversation.typedefs';
 
 export function useInboxThread(
   conversations: readonly InboxConversation[],
