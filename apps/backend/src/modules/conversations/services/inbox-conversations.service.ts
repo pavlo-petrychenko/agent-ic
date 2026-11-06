@@ -1,7 +1,11 @@
 import { IdPrefix } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { AgentRuntimeReader } from '@/modules/agents';
-import { INBOX_QUEUE_STATES, InboxQueue } from '@/modules/conversations/constants/inbox.constants';
+import {
+  INBOX_CONVERSATIONS_DEFAULT_LIMIT,
+  INBOX_QUEUE_STATES,
+  InboxQueue,
+} from '@/modules/conversations/constants/inbox.constants';
 import {
   MessageAuthor,
   MessageSystemEvent,
@@ -12,8 +16,12 @@ import { MessagesRepository } from '@/modules/conversations/repositories/message
 import { SimulationsService } from '@/modules/conversations/services/simulations.service';
 import type { Conversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import type {
+  InboxConversationsInput,
   InboxCounts,
+  InboxCountsInput,
   InboxDetail,
+  InboxFilter,
+  InboxFilterOptions,
   InboxSummary,
 } from '@/modules/conversations/typedefs/inbox.typedefs';
 import type { Message } from '@/modules/conversations/typedefs/message.typedefs';
@@ -39,21 +47,19 @@ export class InboxConversationsService {
   async list(
     workspaceId: string,
     userId: string,
-    queue: InboxQueue,
-    limit: number,
-    after: { readonly lastMessageAt: string; readonly id: string } | null,
+    input: InboxConversationsInput,
   ): Promise<readonly InboxSummary[]> {
     const cursor =
-      after === null
+      input.after === null || input.after === undefined
         ? null
         : {
-            lastMessageAt: new Date(after.lastMessageAt),
-            id: this.ids.fromPublic(IdPrefix.Conversation, after.id),
+            lastMessageAt: new Date(input.after.lastMessageAt),
+            id: this.ids.fromPublic(IdPrefix.Conversation, input.after.id),
           };
     const rows = await this.conversations.listLive(
       workspaceId,
-      INBOX_QUEUE_STATES[queue],
-      limit,
+      { ...this.internalFilter(input), states: INBOX_QUEUE_STATES[input.queue] },
+      input.limit ?? INBOX_CONVERSATIONS_DEFAULT_LIMIT,
       cursor,
     );
     if (rows.length === 0) {
@@ -91,8 +97,8 @@ export class InboxConversationsService {
     return this.conversations.countNeedsYou(workspaceId);
   }
 
-  async counts(workspaceId: string): Promise<InboxCounts> {
-    const rows = await this.conversations.countByState(workspaceId);
+  async counts(workspaceId: string, filter: InboxCountsInput): Promise<InboxCounts> {
+    const rows = await this.conversations.countByState(workspaceId, this.internalFilter(filter));
     const totals = new Map(rows.map((row) => [row.state, row.total]));
     const totalOf = (queue: InboxQueue): number =>
       INBOX_QUEUE_STATES[queue].reduce((total, state) => total + (totals.get(state) ?? 0), 0);
@@ -100,6 +106,18 @@ export class InboxConversationsService {
       needsYou: totalOf(InboxQueue.NeedsYou),
       live: totalOf(InboxQueue.Live),
       closed: totalOf(InboxQueue.Closed),
+    };
+  }
+
+  filterOptions(workspaceId: string): Promise<InboxFilterOptions> {
+    return this.conversations.listFilterRefs(workspaceId);
+  }
+
+  private internalFilter(filter: InboxFilter): InboxFilter {
+    return {
+      channelIds: filter.channelIds.map((id) => this.ids.fromPublic(IdPrefix.Channel, id)),
+      agentIds: filter.agentIds.map((id) => this.ids.fromPublic(IdPrefix.Agent, id)),
+      search: filter.search,
     };
   }
 

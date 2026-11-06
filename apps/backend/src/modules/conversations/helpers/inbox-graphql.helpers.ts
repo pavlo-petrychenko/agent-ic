@@ -10,6 +10,7 @@ import type {
 } from '@/modules/conversations/typedefs/inbox-graphql.typedefs';
 import type {
   InboxConversationsInput,
+  InboxCountsInput,
   InboxDetail,
   InboxSummary,
 } from '@/modules/conversations/typedefs/inbox.typedefs';
@@ -18,7 +19,10 @@ import {
   ConversationState as GraphqlConversationState,
   InboxQueue as GraphqlInboxQueue,
 } from '@/platform/graphql-server/generated/schema.generated';
-import type { InboxConversationsInput as GraphqlInboxConversationsInput } from '@/platform/graphql-server/generated/schema.generated';
+import type {
+  InboxConversationsInput as GraphqlInboxConversationsInput,
+  InboxCountsInput as GraphqlInboxCountsInput,
+} from '@/platform/graphql-server/generated/schema.generated';
 
 const GRAPHQL_CONVERSATION_STATE: Readonly<Record<ConversationState, GraphqlConversationState>> = {
   [ConversationState.AgentActive]: GraphqlConversationState.AgentActive,
@@ -45,6 +49,15 @@ export const toInboxConversationsInput = (
   limit: input.limit,
   after: input.after ?? null,
   queue: INBOX_QUEUE_FROM_GRAPHQL[input.queue],
+  channelIds: input.channelIds ?? [],
+  agentIds: input.agentIds ?? [],
+  search: input.search ?? null,
+});
+
+export const toInboxCountsInput = (input: GraphqlInboxCountsInput | null): InboxCountsInput => ({
+  channelIds: input?.channelIds ?? [],
+  agentIds: input?.agentIds ?? [],
+  search: input?.search ?? null,
 });
 
 export const toGraphqlInboxSummary = (summary: InboxSummary): InboxSummaryParent => ({

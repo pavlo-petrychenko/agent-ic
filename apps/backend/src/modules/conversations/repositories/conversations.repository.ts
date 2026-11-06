@@ -7,6 +7,7 @@ import {
   desc,
   eq,
   gte,
+  ilike,
   inArray,
   isNotNull,
   isNull,
@@ -28,6 +29,7 @@ import { conversations } from '@/modules/conversations/db/conversations.table';
 import { messages } from '@/modules/conversations/db/messages.table';
 import { scheduleContacts } from '@/modules/conversations/db/schedule-contacts.table';
 import { neverEscalated } from '@/modules/conversations/helpers/conversation-escalation.helpers';
+import { inboxSearchPattern } from '@/modules/conversations/helpers/inbox-search.helpers';
 import {
   endUserLockKey,
   simulationLockKey,
@@ -39,6 +41,11 @@ import type {
   NewConversation,
   SimulationKey,
 } from '@/modules/conversations/typedefs/conversation.typedefs';
+import type {
+  InboxFilter,
+  InboxFilterOptions,
+  InboxListFilter,
+} from '@/modules/conversations/typedefs/inbox.typedefs';
 import type { ScheduleCandidateQuery } from '@/modules/conversations/typedefs/schedule-audience.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
@@ -70,7 +77,7 @@ export class ConversationsRepository {
 
   listLive(
     workspaceId: string,
-    states: readonly ConversationState[],
+    filter: InboxListFilter,
     limit: number,
     after: { readonly lastMessageAt: Date; readonly id: string } | null,
   ): Promise<Conversation[]> {
@@ -91,7 +98,8 @@ export class ConversationsRepository {
         and(
           eq(conversations.workspaceId, workspaceId),
           eq(conversations.mode, ConversationMode.Live),
-          inArray(conversations.state, [...states]),
+          inArray(conversations.state, [...filter.states]),
+          ...this.filterConditions(filter),
           cursor,
         ),
       )
@@ -99,7 +107,10 @@ export class ConversationsRepository {
       .limit(limit);
   }
 
-  countByState(workspaceId: string): Promise<Array<{ state: ConversationState; total: number }>> {
+  countByState(
+    workspaceId: string,
+    filter: InboxFilter,
+  ): Promise<Array<{ state: ConversationState; total: number }>> {
     return this.txHost.tx
       .select({ state: conversations.state, total: count() })
       .from(conversations)
@@ -107,9 +118,46 @@ export class ConversationsRepository {
         and(
           eq(conversations.workspaceId, workspaceId),
           eq(conversations.mode, ConversationMode.Live),
+          ...this.filterConditions(filter),
         ),
       )
       .groupBy(conversations.state);
+  }
+
+  async listFilterRefs(workspaceId: string): Promise<InboxFilterOptions> {
+    const live = and(
+      eq(conversations.workspaceId, workspaceId),
+      eq(conversations.mode, ConversationMode.Live),
+    );
+    const [channelRows, agentRows] = await Promise.all([
+      this.txHost.tx
+        .selectDistinct({ id: conversations.channelId })
+        .from(conversations)
+        .where(and(live, isNotNull(conversations.channelId))),
+      this.txHost.tx.selectDistinct({ id: conversations.agentId }).from(conversations).where(live),
+    ]);
+    return {
+      channelRefs: channelRows.flatMap((row) => (row.id === null ? [] : [row.id])),
+      agentRefs: agentRows.map((row) => row.id),
+    };
+  }
+
+  private filterConditions(filter: InboxFilter): SQL[] {
+    const conditions = [
+      filter.channelIds.length === 0
+        ? undefined
+        : inArray(conversations.channelId, [...filter.channelIds]),
+      filter.agentIds.length === 0
+        ? undefined
+        : inArray(conversations.agentId, [...filter.agentIds]),
+      filter.search === null
+        ? undefined
+        : or(
+            ilike(conversations.endUserName, inboxSearchPattern(filter.search)),
+            ilike(conversations.endUserExternalId, inboxSearchPattern(filter.search)),
+          ),
+    ];
+    return conditions.filter((condition): condition is SQL => condition !== undefined);
   }
 
   async countNeedsYou(workspaceId: string): Promise<number> {
