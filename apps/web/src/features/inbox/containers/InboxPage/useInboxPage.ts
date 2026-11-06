@@ -15,13 +15,16 @@ import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
-export function useInboxPage(): InboxPageModel {
+export function useInboxPage(
+  initialConversationId: string | null,
+  onConversationChange?: (conversationId: string | null) => void,
+): InboxPageModel {
   const { t } = useTranslation(INBOX_NAMESPACE);
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
   const currentUser = useInboxCurrentUser();
   const currentUserName = currentUser?.name ?? '';
-  const list = useInboxList();
+  const list = useInboxList(initialConversationId, onConversationChange);
   const thread = useInboxThread(
     list.conversations,
     list.effectiveSelectedId,

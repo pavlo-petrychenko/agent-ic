@@ -1,4 +1,4 @@
-import { Locale } from '@agent-ic/contracts';
+import { IdPrefix, Locale } from '@agent-ic/contracts';
 import type { ChannelKind } from '@agent-ic/contracts';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AgentsRepository } from '@/modules/agents';
@@ -90,7 +90,9 @@ describe('DeliverNotificationUseCase', () => {
     toPublic.mockReset();
     run.mockImplementation((_workspaceId, work) => work());
     now.mockReturnValue(NOW);
-    toPublic.mockReturnValue('cnv_public');
+    toPublic.mockImplementation((prefix) =>
+      prefix === IdPrefix.Workspace ? 'ws_public' : 'cnv_public',
+    );
     findNotification.mockResolvedValue(notification);
     findDelivery.mockResolvedValue(pendingDelivery);
     describeSettings.mockResolvedValue({
@@ -176,6 +178,11 @@ describe('DeliverNotificationUseCase', () => {
       html: expect.stringContaining('The customer asked for a person.'),
       text: expect.stringContaining('Can someone call me?'),
     });
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        html: expect.stringContaining('https://app.test/w/ws_public/inbox?conversation=cnv_public'),
+      }),
+    );
     expect(markDelivered).toHaveBeenCalledWith('workspace-1', 'delivery-1', NOW);
     expect(markFailed).not.toHaveBeenCalled();
   });

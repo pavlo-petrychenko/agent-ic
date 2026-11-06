@@ -175,7 +175,7 @@ export class DeliverNotificationUseCase {
           : await this.messages.findLatestCustomerMessage(workspaceId, conversationId)
         : await this.messages.findById(workspaceId, notification.lastCustomerMessageId);
     const workspace = await this.workspaces.findById(workspaceId);
-    const link = this.inboxLink(workspace?.workspaceId ?? null, conversationId);
+    const link = this.inboxLink(workspaceId, conversationId);
     return {
       delivery,
       to: email,
@@ -200,12 +200,16 @@ export class DeliverNotificationUseCase {
     }).format(at);
   }
 
-  private inboxLink(workspacePublicId: string | null, conversationId: string | null): string {
+  private inboxLink(workspaceId: string, conversationId: string | null): string {
     const base = this.config.config.publicUrl;
-    const conversation =
-      conversationId === null ? '' : this.ids.toPublic(IdPrefix.Conversation, conversationId);
-    const path = workspacePublicId === null ? '/w' : `/w/${workspacePublicId}/inbox`;
-    const url = new URL(conversation === '' ? path : `${path}/${conversation}`, base);
+    const workspacePublicId = this.ids.toPublic(IdPrefix.Workspace, workspaceId);
+    const url = new URL(`/w/${workspacePublicId}/inbox`, base);
+    if (conversationId !== null) {
+      url.searchParams.set(
+        'conversation',
+        this.ids.toPublic(IdPrefix.Conversation, conversationId),
+      );
+    }
     return url.toString();
   }
 

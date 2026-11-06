@@ -5,7 +5,10 @@ import { buildInboxMocks } from '@/features/inbox/communication/fixtures/inboxQu
 import { InboxPage } from '@/features/inbox/containers/InboxPage/InboxPage';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
-const renderPage = () => renderWithProviders(<InboxPage />, { mocks: buildInboxMocks() });
+const renderPage = (conversationId: string | null = null) =>
+  renderWithProviders(<InboxPage conversationId={conversationId} />, {
+    mocks: buildInboxMocks(),
+  });
 
 describe('InboxPage', () => {
   it('shows the three queues and the selected conversation', async () => {
@@ -19,6 +22,15 @@ describe('InboxPage', () => {
     expect(screen.getByRole('button', { name: 'Hand back to agent' })).toBeInTheDocument();
     expect(screen.getByLabelText('Write a message...')).toBeInTheDocument();
     expect(screen.getByText('Reply as Demo Owner · sent to Telegram')).toBeInTheDocument();
+  });
+
+  it('opens the conversation from the search param', async () => {
+    renderPage('cnv_kateryna');
+
+    expect(
+      await screen.findByRole('tab', { name: 'Live · 2', selected: true }),
+    ).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Kateryna D.' })).toBeInTheDocument();
   });
 
   it('shows the conversation facts for the selected conversation', async () => {

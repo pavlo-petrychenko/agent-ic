@@ -16,7 +16,7 @@ const props = {
   lastMessage: 'Can someone call me back please?',
   time: '14:17',
   workspaceName: 'Demo salon',
-  link: 'https://local.agent-ic.pavlop.dev/w/ws_demo/inbox/cnv_1',
+  link: 'https://local.agent-ic.pavlop.dev/w/ws_demo/inbox?conversation=cnv_1',
 };
 
 describe('escalation email', () => {
