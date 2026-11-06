@@ -27,7 +27,8 @@
   },
   "provider": {
     "telegram": "Telegram",
-    "api": "API"
+    "api": "API",
+    "other": "Чат"
   },
   "status": {
     "waiting": "Очікує",
@@ -39,7 +40,9 @@
   "browser": {
     "title": "{{name}} потребує людини",
     "titleFallback": "Чат потребує людини",
-    "bodyFallback": "Чат передали вам."
+    "bodyFallback": "Чат передали вам.",
+    "subtitle": "{{channel}} · очікує {{time}}",
+    "open": "Відкрити"
   },
   "header": {
     "closeChat": "Закрити чат",

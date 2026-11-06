@@ -2,7 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useApplyAccountLocale, useLogOut } from '@/features/auth';
-import { useBrowserNotifications, useInboxNeedsYouCount } from '@/features/inbox';
+import { InboxBrowserNotifications, useInboxNeedsYouCount } from '@/features/inbox';
 import { useWorkspaceShell } from '@/features/workspace/communication/hooks/useWorkspaceShell';
 import { NavGroupKey, WorkspaceSection } from '@/features/workspace/constants/navigation.constants';
 import { WorkspaceNavForm } from '@/features/workspace/constants/navigationForm.constants';
@@ -49,7 +49,9 @@ export function WorkspaceNavigation({
     },
     [navigate, workspaceId],
   );
-  useBrowserNotifications(inboxEnabled, openInboxConversation);
+  const notifications = (
+    <InboxBrowserNotifications enabled={inboxEnabled} onOpen={openInboxConversation} />
+  );
   const groups =
     active === null
       ? []
@@ -119,35 +121,41 @@ export function WorkspaceNavigation({
 
   if (form === WorkspaceNavForm.Rail) {
     return (
-      <Rail
-        ariaLabel={t('nav.label')}
-        logo={switcher}
-        groups={groups
-          .filter((group) => group.key !== NavGroupKey.Footer)
-          .map((group) => group.items.map(toRailItem))}
-        footerItems={groups
-          .filter((group) => group.key === NavGroupKey.Footer)
-          .flatMap((group) => group.items.map(toRailItem))}
-      />
+      <>
+        <Rail
+          ariaLabel={t('nav.label')}
+          logo={switcher}
+          groups={groups
+            .filter((group) => group.key !== NavGroupKey.Footer)
+            .map((group) => group.items.map(toRailItem))}
+          footerItems={groups
+            .filter((group) => group.key === NavGroupKey.Footer)
+            .flatMap((group) => group.items.map(toRailItem))}
+        />
+        {notifications}
+      </>
     );
   }
 
   return (
-    <WorkspaceSidebar
-      workspaceId={workspaceId}
-      navLabel={t('nav.label')}
-      header={switcher}
-      groups={groups}
-      user={
-        data === null
-          ? null
-          : {
-              name: data.user.name,
-              initials: toInitials(data.user.name),
-              roleLabel: active === null ? null : tCommon(`roles.name.${active.role}`),
-            }
-      }
-      footerAction={footerAction}
-    />
+    <>
+      <WorkspaceSidebar
+        workspaceId={workspaceId}
+        navLabel={t('nav.label')}
+        header={switcher}
+        groups={groups}
+        user={
+          data === null
+            ? null
+            : {
+                name: data.user.name,
+                initials: toInitials(data.user.name),
+                roleLabel: active === null ? null : tCommon(`roles.name.${active.role}`),
+              }
+        }
+        footerAction={footerAction}
+      />
+      {notifications}
+    </>
   );
 }
