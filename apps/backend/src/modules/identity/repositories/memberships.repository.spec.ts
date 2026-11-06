@@ -44,12 +44,13 @@ describe('MembershipsRepository across tenants', () => {
       count: await repository.countByWorkspace(workspaceA.workspaceId),
       member: await repository.findByUser(workspaceA.workspaceId, memberOfA),
       names: await repository.listNames(workspaceA.workspaceId, { userIds: [memberOfA] }),
+      userIds: await repository.listUserIds(workspaceA.workspaceId, { userIds: [memberOfA] }),
     }));
     const ownFromA = await tenants.run(workspaceA.workspaceId, () =>
       repository.listPage(workspaceA.workspaceId, null, PAGE_LIMIT),
     );
 
-    expect(seenFromB).toEqual({ page: [], count: 0, member: null, names: [] });
+    expect(seenFromB).toEqual({ page: [], count: 0, member: null, names: [], userIds: [] });
     expect(ownFromA.map((row) => row.userId).sort()).toEqual(
       [workspaceA.ownerId, memberOfA].sort(),
     );
@@ -63,6 +64,17 @@ describe('MembershipsRepository across tenants', () => {
     ]);
 
     expect(names).toEqual([[TEST_USER_NAME], [TEST_USER_NAME], []]);
+  });
+
+  it('lists the user ids of a role or a list of users', async () => {
+    const ids = await tenants.run(workspaceA.workspaceId, async () => [
+      await repository.listUserIds(workspaceA.workspaceId, { role: WorkspaceRole.Owner }),
+      await repository.listUserIds(workspaceA.workspaceId, { userIds: [memberOfA] }),
+      await repository.listUserIds(workspaceA.workspaceId, { role: WorkspaceRole.Admin }),
+      await repository.listUserIds(workspaceA.workspaceId, { userIds: [] }),
+    ]);
+
+    expect(ids).toEqual([[workspaceA.ownerId], [memberOfA], [], []]);
   });
 
   it('shows nothing without a tenant', async () => {

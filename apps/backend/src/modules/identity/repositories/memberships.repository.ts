@@ -100,6 +100,26 @@ export class MembershipsRepository {
     return rows.map(({ name }) => name);
   }
 
+  async listUserIds(workspaceId: string, selection: MemberSelection): Promise<string[]> {
+    if ('userIds' in selection && selection.userIds.length === 0) {
+      return [];
+    }
+    const rows = await this.txHost.tx
+      .select({ userId: memberships.userId })
+      .from(memberships)
+      .innerJoin(roles, eq(roles.id, memberships.roleId))
+      .where(
+        and(
+          eq(memberships.workspaceId, workspaceId),
+          'role' in selection
+            ? eq(roles.key, selection.role)
+            : inArray(memberships.userId, [...selection.userIds]),
+        ),
+      )
+      .orderBy(asc(memberships.userId));
+    return rows.map(({ userId }) => userId);
+  }
+
   listPage(workspaceId: string, afterId: string | null, limit: number): Promise<MemberRow[]> {
     const inWorkspace = eq(memberships.workspaceId, workspaceId);
     return this.txHost.tx
