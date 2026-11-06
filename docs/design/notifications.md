@@ -1,6 +1,6 @@
 # Notifications module
 
-**Status:** settings storage and API, November 2026. The `notifications` schema and the personal settings read/write API exist. There is no notification producer, delivery worker, in-app notification list or Telegram linking flow yet. Email delivery still uses the existing `EmailGateway` for system mail.
+**Status:** settings storage and API, plus recipient resolution, November 2026. The `notifications` schema, the personal settings read/write API and the handoff recipient resolver exist. There is no notification producer, delivery worker, in-app notification list or Telegram linking flow yet. Email delivery still uses the existing `EmailGateway` for system mail.
 
 **Decisions:** D307 (notification storage), D85 (Resend), D167 (email gateway). Product requirements: `mvp-scope.md` §12.11, `communication.md` chain F.
 
@@ -34,6 +34,15 @@ The personal settings slice is built:
 - `updateNotificationEmail` stores an alert address.
 
 Reads return defaults without writing a row: platform and email on, Telegram off until it is linked. The first update creates the settings row and one channel row per channel.
+
+Recipient resolution is built. `NotificationRecipientsService.recipientsFor(workspaceId, versionId, nodeId)` turns a handoff step into `{ userId, channels }[]`:
+
+- an Escalation node in `escalate` mode uses `node.config.notify`; an Agent or failure handoff uses `flow.settings.handoff.notify`;
+- `operators` means the Operator role, `role` the chosen role, `users` the listed members;
+- the requested flow channels are intersected with each user's enabled channels, and Telegram is dropped until it is linked;
+- a user with no remaining channels is left out.
+
+It does not create a notification yet; that is the producer's job.
 
 ## 2. Schema
 
@@ -224,7 +233,7 @@ The current schema has no retry metadata yet: no `attempts`, `next_attempt_at`, 
 
 ## 6. What is still missing
 
-- A producer: nothing creates `notifications` or `notification_deliveries` yet. The intended trigger is `runs.escalated`, which carries the handoff `runStepId`; the listener reads `run_steps.output` once it exists, otherwise it retries.
+- A producer: the resolver is built, but nothing creates `notifications` or `notification_deliveries` yet. The intended trigger is `runs.escalated`, which carries the handoff `runStepId`; the listener reads `run_steps.output` once it exists, otherwise it retries.
 - A delivery worker and a sweeper; the `pending`/`failed` rows are the source.
 - Telegram alerts bot and the linking flow (`chat_id`, hashed code, 10-minute expiry). The settings API already returns `linked` and `linkedAt`, but nothing can link yet.
 - Browser notifications and the in-app notification list. The settings page now reads and writes the three channel toggles, but no notification is created.
