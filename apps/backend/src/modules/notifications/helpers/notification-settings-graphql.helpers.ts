@@ -54,6 +54,7 @@ export const toGraphqlNotificationAlert = (
   id: alert.id,
   conversationId: alert.conversationId,
   customerName: alert.customerName,
+  channelKind: alert.channelKind,
   reason: alert.reason,
   createdAt: alert.createdAt.toISOString(),
 });

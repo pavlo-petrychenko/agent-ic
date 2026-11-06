@@ -3,6 +3,7 @@ query LatestUnreadNotification {
     id
     conversationId
     customerName
+    channelKind
     reason
     createdAt
   }

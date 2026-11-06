@@ -55,6 +55,7 @@ type NotificationAlert {
   id: ID!
   conversationId: ID!
   customerName: String
+  channelKind: String
   reason: String
   createdAt: String!
 }
