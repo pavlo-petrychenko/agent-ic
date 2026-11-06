@@ -1,9 +1,11 @@
 import { AgentsModule, SimulatorTestsReader } from '@/modules/agents';
 import { ConversationsModule } from '@/modules/conversations';
 import { KnowledgeModule } from '@/modules/knowledge';
+import { NotificationsModule } from '@/modules/notifications';
 import { PromptsModule } from '@/modules/prompts';
 import { STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import { ArmInactivityOnHandBackListener } from '@/modules/runs/listeners/arm-inactivity-on-hand-back.listener';
+import { CreateEscalationNotificationsListener } from '@/modules/runs/listeners/create-escalation-notifications.listener';
 import { StartRunOnMessageListener } from '@/modules/runs/listeners/start-run-on-message.listener';
 import { ExecuteProactiveRunProcessor } from '@/modules/runs/processors/execute-proactive-run.processor';
 import { ExecuteRunProcessor } from '@/modules/runs/processors/execute-run.processor';
@@ -49,6 +51,7 @@ import { SimulationTestsReaderService } from '@/modules/runs/services/simulation
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
 import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedefs';
 import { ArmInactivityOnHandBackUseCase } from '@/modules/runs/use-cases/arm-inactivity-on-hand-back.use-case';
+import { CreateEscalationNotificationsUseCase } from '@/modules/runs/use-cases/create-escalation-notifications.use-case';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
 import { FireInactivityTimerUseCase } from '@/modules/runs/use-cases/fire-inactivity-timer.use-case';
 import { FireScheduleTickUseCase } from '@/modules/runs/use-cases/fire-schedule-tick.use-case';
@@ -67,7 +70,14 @@ import { CacheModule } from '@/platform/cache/cache.module';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class RunsModule extends defineModule({
-  imports: [AgentsModule, ConversationsModule, KnowledgeModule, PromptsModule, CacheModule],
+  imports: [
+    AgentsModule,
+    ConversationsModule,
+    KnowledgeModule,
+    NotificationsModule,
+    PromptsModule,
+    CacheModule,
+  ],
   providers: [
     RunsRepository,
     RunStepsRepository,
@@ -115,6 +125,7 @@ export class RunsModule extends defineModule({
     RunViewsService,
     { provide: SimulatorTestsReader, useClass: SimulationTestsReaderService },
     StartRunOnMessageUseCase,
+    CreateEscalationNotificationsUseCase,
     ArmInactivityOnHandBackUseCase,
     SweepInactivityTimersUseCase,
     FireInactivityTimerUseCase,
@@ -147,7 +158,11 @@ export class RunsModule extends defineModule({
     SweepScheduleTriggersProcessor,
     FireScheduleTickProcessor,
   ],
-  listeners: [StartRunOnMessageListener, ArmInactivityOnHandBackListener],
+  listeners: [
+    StartRunOnMessageListener,
+    ArmInactivityOnHandBackListener,
+    CreateEscalationNotificationsListener,
+  ],
   exports: [
     MessageRunService,
     RunCompletionService,

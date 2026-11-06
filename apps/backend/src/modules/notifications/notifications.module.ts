@@ -5,6 +5,7 @@ import { SendConfirmationEmailListener } from '@/modules/notifications/listeners
 import { SendEmailChangeEmailListener } from '@/modules/notifications/listeners/send-email-change-email.listener';
 import { SendPasswordResetEmailListener } from '@/modules/notifications/listeners/send-password-reset-email.listener';
 import { NotificationSettingsRepository } from '@/modules/notifications/repositories/notification-settings.repository';
+import { NotificationsRepository } from '@/modules/notifications/repositories/notifications.repository';
 import { NotificationSettingsResolver } from '@/modules/notifications/resolvers/notification-settings.resolver';
 import { NotificationMetricsService } from '@/modules/notifications/services/notification-metrics.service';
 import { NotificationRecipientsService } from '@/modules/notifications/services/notification-recipients.service';
@@ -30,6 +31,7 @@ export class NotificationsModule extends defineModule({
     },
     NotificationMetricsService,
     NotificationSettingsRepository,
+    NotificationsRepository,
     NotificationSettingsService,
     NotificationRecipientsService,
     GetNotificationSettingsUseCase,
@@ -45,5 +47,5 @@ export class NotificationsModule extends defineModule({
     SendPasswordResetEmailListener,
     SendEmailChangeEmailListener,
   ],
-  exports: [EmailGateway],
+  exports: [EmailGateway, NotificationsRepository, NotificationRecipientsService],
 }) {}
