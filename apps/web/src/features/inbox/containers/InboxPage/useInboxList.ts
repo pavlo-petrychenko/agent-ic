@@ -4,26 +4,25 @@ import { toInboxConversation } from '@/features/inbox/communication/helpers/inbo
 import { useInboxConversation } from '@/features/inbox/communication/hooks/useInboxConversation';
 import { useInboxConversations } from '@/features/inbox/communication/hooks/useInboxConversations';
 import { useInboxCounts } from '@/features/inbox/communication/hooks/useInboxCounts';
+import { useInboxFilterOptions } from '@/features/inbox/communication/hooks/useInboxFilterOptions';
 import {
   INBOX_QUEUE_BY_TAB,
   INBOX_TAB_BY_STATE,
+  INBOX_SEARCH_DEBOUNCE_MS,
   InboxProvider,
   InboxTab,
 } from '@/features/inbox/constants/inbox.constants';
 import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants';
 import type { InboxListResult } from '@/features/inbox/containers/InboxPage/InboxPage.typedefs';
 import {
-  matchesInboxFilters,
-  visibleConversations,
-} from '@/features/inbox/logic/helpers/inbox.helpers';
-import {
-  inboxAgentOptions,
-  inboxChannelOptions,
   inboxEmptyState,
+  inboxFilterOptions,
   inboxListItem,
   inboxTabItems,
 } from '@/features/inbox/logic/helpers/inboxList.helpers';
+import { useDebouncedValue } from '@/features/inbox/logic/hooks/useDebouncedValue';
 import type { InboxProviderLabels } from '@/features/inbox/typedefs/common.typedefs';
+import type { InboxQueryFilters } from '@/features/inbox/typedefs/filters.typedefs';
 
 export function useInboxList(
   initialConversationId: string | null,
@@ -37,13 +36,24 @@ export function useInboxList(
       ? null
       : INBOX_TAB_BY_STATE[initialConversation.detail.summary.state];
   const activeTab = selectedTab ?? initialTab ?? InboxTab.NeedsYou;
-  const { summaries, loading, failed, retry, loadMore, loadingMore, hasMore } =
-    useInboxConversations(INBOX_QUEUE_BY_TAB[activeTab]);
-  const counts = useInboxCounts();
   const [search, setSearch] = useState('');
   const [channelIds, setChannelIds] = useState<string[]>([]);
   const [agentIds, setAgentIds] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(initialConversationId);
+  const debouncedSearch = useDebouncedValue(search, INBOX_SEARCH_DEBOUNCE_MS);
+  const filters = useMemo<InboxQueryFilters>(
+    () => ({
+      queue: INBOX_QUEUE_BY_TAB[activeTab],
+      channelIds,
+      agentIds,
+      search: debouncedSearch,
+    }),
+    [activeTab, channelIds, agentIds, debouncedSearch],
+  );
+  const { summaries, loading, failed, retry, loadMore, loadingMore, hasMore } =
+    useInboxConversations(filters);
+  const counts = useInboxCounts(filters);
+  const filterOptions = useInboxFilterOptions();
 
   const conversations = useMemo(
     () =>
@@ -59,66 +69,30 @@ export function useInboxList(
     [t],
   );
 
-  const filtered = useMemo(
-    () =>
-      conversations.filter((conversation) =>
-        matchesInboxFilters(conversation, { channelIds, agentIds }),
-      ),
-    [conversations, channelIds, agentIds],
-  );
-  const visible = useMemo(
-    () => visibleConversations(filtered, activeTab, search, providerLabels),
-    [filtered, activeTab, search, providerLabels],
-  );
-
   const channelOptions = useMemo(
-    () => inboxChannelOptions(conversations, providerLabels),
-    [conversations, providerLabels],
+    () => inboxFilterOptions(filterOptions.channels),
+    [filterOptions.channels],
   );
-  const agentOptions = useMemo(() => inboxAgentOptions(conversations), [conversations]);
+  const agentOptions = useMemo(
+    () => inboxFilterOptions(filterOptions.agents),
+    [filterOptions.agents],
+  );
 
-  const selectFirstMatching = (
-    nextChannelIds: readonly string[],
-    nextAgentIds: readonly string[],
-    tab: InboxTab,
-    query: string,
-  ) => {
-    const nextFiltered = conversations.filter((conversation) =>
-      matchesInboxFilters(conversation, { channelIds: nextChannelIds, agentIds: nextAgentIds }),
-    );
-    const nextVisible = visibleConversations(nextFiltered, tab, query, providerLabels);
-    setSelectedId((current) =>
-      current !== null && nextVisible.some((conversation) => conversation.id === current)
-        ? current
-        : (nextVisible[0]?.id ?? null),
-    );
-  };
-
-  const effectiveSelectedId = selectedId ?? visible[0]?.id ?? null;
+  const effectiveSelectedId =
+    selectedId !== null && conversations.some((conversation) => conversation.id === selectedId)
+      ? selectedId
+      : (conversations[0]?.id ?? null);
   const filtersApplied = search.trim() !== '' || channelIds.length > 0 || agentIds.length > 0;
   const selectConversation = (conversationId: string | null) => {
     setSelectedId(conversationId);
     onConversationChange?.(conversationId);
   };
 
-  const onTabChange = (tab: InboxTab) => {
-    setSelectedTab(tab);
-    selectFirstMatching(channelIds, agentIds, tab, search);
-  };
-  const onChannelIdsChange = (ids: string[]) => {
-    setChannelIds(ids);
-    selectFirstMatching(ids, agentIds, activeTab, search);
-  };
-  const onAgentIdsChange = (ids: string[]) => {
-    setAgentIds(ids);
-    selectFirstMatching(channelIds, ids, activeTab, search);
-  };
-
   return {
     conversations,
     providerLabels,
     counts,
-    visible,
+    visible: conversations,
     activeTab,
     search,
     channelIds,
@@ -127,9 +101,9 @@ export function useInboxList(
     hasMore,
     loadingMore,
     onSearchChange: setSearch,
-    onChannelIdsChange,
-    onAgentIdsChange,
-    onTabChange,
+    onChannelIdsChange: setChannelIds,
+    onAgentIdsChange: setAgentIds,
+    onTabChange: setSelectedTab,
     onSelect: selectConversation,
     onClearSelection: () => selectConversation(null),
     onLoadMore: () => void loadMore(),
@@ -137,7 +111,7 @@ export function useInboxList(
       title: t('title'),
       tabs: inboxTabItems(counts, t),
       activeTab,
-      onTabChange,
+      onTabChange: setSelectedTab,
       search,
       onSearchChange: setSearch,
       searchLabel: t('search.label'),
@@ -147,7 +121,7 @@ export function useInboxList(
         label: t('filters.channel'),
         options: channelOptions,
         selectedIds: channelIds,
-        onSelectedIdsChange: onChannelIdsChange,
+        onSelectedIdsChange: setChannelIds,
         clearLabel: t('filters.clearChannel'),
         ariaLabel: t('filters.channels'),
         search: null,
@@ -157,7 +131,7 @@ export function useInboxList(
         label: t('filters.agent'),
         options: agentOptions,
         selectedIds: agentIds,
-        onSelectedIdsChange: onAgentIdsChange,
+        onSelectedIdsChange: setAgentIds,
         clearLabel: t('filters.clearAgent'),
         ariaLabel: t('filters.agents'),
         search: {
@@ -167,7 +141,7 @@ export function useInboxList(
         },
         disabled: loading,
       },
-      items: visible.map((conversation) =>
+      items: conversations.map((conversation) =>
         inboxListItem(conversation, effectiveSelectedId, providerLabels, t),
       ),
       empty: inboxEmptyState(activeTab, t, filtersApplied),

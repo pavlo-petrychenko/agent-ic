@@ -44,14 +44,14 @@ describe('InboxPage', () => {
 
     expect(await screen.findByRole('button', { name: /Andri P\./ })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Marta S\./ })).not.toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Needs you · 3' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Needs you · 1' })).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Clear channel filter' }));
 
     expect(await screen.findByRole('button', { name: /Marta S\./ })).toBeInTheDocument();
   });
 
-  it('filters the list by agent without changing the tab totals', async () => {
+  it('filters the list and the tab counts by agent', async () => {
     renderPage();
 
     await screen.findByRole('button', { name: /Marta S\./ });
@@ -61,9 +61,9 @@ describe('InboxPage', () => {
 
     expect(await screen.findByRole('button', { name: /Andri P\./ })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Marta S\./ })).not.toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Needs you · 3' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Live · 2' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Closed · 1' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Needs you · 1' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Live · 1' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Closed · 0' })).toBeInTheDocument();
   });
 
   it('shows the filtered empty state when no chat matches', async () => {

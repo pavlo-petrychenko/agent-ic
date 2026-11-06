@@ -11,6 +11,7 @@ import type {
   InboxTranslate,
 } from '@/features/inbox/typedefs/common.typedefs';
 import type { InboxConversation } from '@/features/inbox/typedefs/conversation.typedefs';
+import type { InboxFilterOption } from '@/features/inbox/typedefs/filters.typedefs';
 import type {
   InboxEmptyState,
   InboxEmptyStateResolver,
@@ -101,41 +102,12 @@ export const inboxListItem = (
   selected: conversation.id === selectedId,
 });
 
-export const inboxChannelOptions = (
-  conversations: readonly InboxConversation[],
-  providerLabels: InboxProviderLabels,
-): readonly FilterOption[] => {
-  const counts = new Map<string, { readonly label: string; count: number }>();
-  for (const conversation of conversations) {
-    if (conversation.channelId === null) {
-      continue;
-    }
-    const current = counts.get(conversation.channelId);
-    counts.set(conversation.channelId, {
-      label: conversation.channelName ?? providerLabels[conversation.provider],
-      count: (current?.count ?? 0) + 1,
-    });
-  }
-  return [...counts.entries()]
-    .map(([id, { label, count }]) => ({ id, label, count: String(count) }))
+export const inboxFilterOptions = (
+  options: readonly InboxFilterOption[],
+): readonly FilterOption[] =>
+  options
+    .map((option) => ({ id: option.id, label: option.name, count: null }))
     .sort((left, right) => left.label.localeCompare(right.label));
-};
-
-export const inboxAgentOptions = (
-  conversations: readonly InboxConversation[],
-): readonly FilterOption[] => {
-  const counts = new Map<string, { readonly label: string; count: number }>();
-  for (const conversation of conversations) {
-    const current = counts.get(conversation.agentId);
-    counts.set(conversation.agentId, {
-      label: conversation.agentName,
-      count: (current?.count ?? 0) + 1,
-    });
-  }
-  return [...counts.entries()]
-    .map(([id, { label, count }]) => ({ id, label, count: String(count) }))
-    .sort((left, right) => left.label.localeCompare(right.label));
-};
 
 export const inboxEmptyState = (
   tab: InboxTab,
