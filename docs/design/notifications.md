@@ -1,6 +1,6 @@
 # Notifications module
 
-**Status:** database schema only, November 2026. The `notifications` Postgres schema and its six tables exist; there is no repository, use case, GraphQL API, listener or delivery worker yet. Email delivery still uses the existing `EmailGateway` for system mail.
+**Status:** settings storage and API, November 2026. The `notifications` schema and the personal settings read/write API exist. There is no notification producer, delivery worker, in-app notification list or Telegram linking flow yet. Email delivery still uses the existing `EmailGateway` for system mail.
 
 **Decisions:** D307 (notification storage), D85 (Resend), D167 (email gateway). Product requirements: `mvp-scope.md` §12.11, `communication.md` chain F.
 
@@ -26,6 +26,14 @@ One Postgres schema, `notifications`, with six tables:
 There is **no `escalations` table**. The escalation is the `runs.run_steps` row that handed off. The reason is already stored in that step's output, and the last customer message is referenced by id.
 
 The trigger is the durable `runs.escalated` domain event. It fires for three handoffs: an Escalation node in `escalate` mode, an Agent or Completion exit set to hand off, and a step that fails with the flow's `onUnhandledFailure` set to hand off. The payload carries `runStepId`, the id of the `runs.run_steps` row that handed off, so the producer references the exact step even when the same node runs in parallel branches. Simulations emit the event too; the producer skips `mode = simulation`.
+
+The personal settings slice is built:
+
+- `notificationSettings` returns the effective settings for the signed-in user in the current workspace;
+- `updateNotificationChannel` toggles `platform`, `email` or `telegram`;
+- `updateNotificationEmail` stores an alert address.
+
+Reads return defaults without writing a row: platform and email on, Telegram off until it is linked. The first update creates the settings row and one channel row per channel.
 
 ## 2. Schema
 
@@ -217,10 +225,9 @@ The current schema has no retry metadata yet: no `attempts`, `next_attempt_at`, 
 ## 6. What is still missing
 
 - A producer: nothing creates `notifications` or `notification_deliveries` yet. The intended trigger is `runs.escalated`, which carries the handoff `runStepId`; the listener reads `run_steps.output` once it exists, otherwise it retries.
-- A `notifications` repository, use cases, GraphQL API and settings UI wiring.
 - A delivery worker and a sweeper; the `pending`/`failed` rows are the source.
-- Telegram alerts bot and the linking flow (`chat_id`, hashed code, 10-minute expiry).
-- Browser notifications and the in-app notification list.
+- Telegram alerts bot and the linking flow (`chat_id`, hashed code, 10-minute expiry). The settings API already returns `linked` and `linkedAt`, but nothing can link yet.
+- Browser notifications and the in-app notification list. The settings page now reads and writes the three channel toggles, but no notification is created.
 - Reminder and fallback timers.
 - `notification_settings.enabled`, working hours and time zone. Today the only switch is per channel.
 - Provider-specific retry policy and rate limits.

@@ -1,23 +1,14 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  TELEGRAM_BOT_HANDLE,
-  TELEGRAM_BOT_URL,
-  TELEGRAM_CODE_TTL_MINUTES,
-  TELEGRAM_LINK_CODE,
-  TELEGRAM_LINKED_ACCOUNT,
-  TELEGRAM_LINKED_AT,
-} from '@/features/settings/constants/notifications.constants';
+import { useNotificationSettings } from '@/features/settings/communication/hooks/useNotificationSettings';
+import { useUpdateNotificationChannel } from '@/features/settings/communication/hooks/useUpdateNotificationChannel';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { NotificationsPageProps } from '@/features/settings/containers/NotificationsPage/NotificationsPage.typedefs';
-import { copyText } from '@/features/settings/logic/helpers/clipboard.helpers';
-import { formatDate } from '@/features/settings/logic/helpers/format.helpers';
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
 import { useActiveWorkspace, useWorkspaceShell } from '@/features/workspace';
-import { useLocale } from '@/shared/i18n/hooks/useLocale';
-import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
-import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
+import { NotificationChannel } from '@/shared/api/generated/schema.generated';
+import { toAppError } from '@/shared/api/helpers/appError.helpers';
+import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { Card } from '@/shared/ui/display/Card';
 import { Switch } from '@/shared/ui/inputs/Switch';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
@@ -29,23 +20,20 @@ import styles from '@/features/settings/containers/NotificationsPage/Notificatio
 
 export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
-  const { locale } = useLocale();
   const { showToast } = useToast();
+  const { settings, loading } = useNotificationSettings();
+  const updateChannel = useUpdateNotificationChannel();
+  const errorMessage = useErrorMessage();
   const user = useWorkspaceShell(workspaceId).data?.user ?? null;
   const active = useActiveWorkspace(workspaceId);
 
-  const [inPlatform, setInPlatform] = useState(true);
-  const [email, setEmail] = useState(true);
-  const [telegramUnlinked, setTelegramUnlinked] = useState(false);
-
   const isOperator = active?.role === WorkspaceRole.Operator;
-  const telegramLinked = !isOperator && !telegramUnlinked;
   const name = user?.name ?? '';
-  const linkedOn = formatDate(TELEGRAM_LINKED_AT, locale, { month: 'short', day: 'numeric' });
 
-  const copyCode = async () => {
-    await copyText(TELEGRAM_LINK_CODE);
-    showToast({ message: t('notifications.link.copied'), tone: ToastTone.Ok });
+  const changeChannel = (channel: NotificationChannel, enabled: boolean) => {
+    void updateChannel(channel, enabled).catch((error: unknown) => {
+      showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
+    });
   };
 
   return (
@@ -82,8 +70,9 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
                 </Text>
               </div>
               <Switch
-                checked={inPlatform}
-                onCheckedChange={setInPlatform}
+                checked={settings.platformEnabled}
+                onCheckedChange={(enabled) => changeChannel(NotificationChannel.Platform, enabled)}
+                disabled={loading}
                 aria-label={t('notifications.card.inPlatform')}
               />
             </li>
@@ -91,12 +80,13 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
               <div className={styles.text}>
                 <Text>{t('notifications.card.email')}</Text>
                 <Text kind={TextKind.Caption} color={TextColor.Mute}>
-                  {user?.email ?? ''}
+                  {settings.email ?? user?.email ?? ''}
                 </Text>
               </div>
               <Switch
-                checked={email}
-                onCheckedChange={setEmail}
+                checked={settings.emailEnabled}
+                onCheckedChange={(enabled) => changeChannel(NotificationChannel.Email, enabled)}
+                disabled={loading}
                 aria-label={t('notifications.card.email')}
               />
             </li>
@@ -104,57 +94,19 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
               <div className={styles.text}>
                 <Text>{t('notifications.card.telegram')}</Text>
                 <Text kind={TextKind.Caption} color={TextColor.Mute}>
-                  {telegramLinked
-                    ? t('notifications.card.telegramLinked', {
-                        account: TELEGRAM_LINKED_ACCOUNT,
-                        bot: TELEGRAM_BOT_HANDLE,
-                      })
+                  {settings.telegramLinked
+                    ? t('notifications.card.telegramLinkedShort')
                     : t('notifications.card.telegramNotLinked')}
                 </Text>
               </div>
-              {telegramLinked ? (
-                <Switch
-                  checked
-                  onCheckedChange={() => setTelegramUnlinked(true)}
-                  aria-label={t('notifications.card.telegram')}
-                />
-              ) : (
-                <Badge tone={BadgeTone.Warn} dot>
-                  {t('notifications.card.waitingForCode')}
-                </Badge>
-              )}
+              <Switch
+                checked={settings.telegramEnabled}
+                onCheckedChange={(enabled) => changeChannel(NotificationChannel.Telegram, enabled)}
+                disabled={loading || !settings.telegramLinked}
+                aria-label={t('notifications.card.telegram')}
+              />
             </li>
           </ul>
-          {telegramLinked ? (
-            <div className={styles.telegramMeta}>
-              <Button variant={ButtonVariant.Secondary} onClick={() => setTelegramUnlinked(true)}>
-                {t('notifications.card.unlinkTelegram')}
-              </Button>
-              <Text kind={TextKind.Caption} color={TextColor.Mute}>
-                {t('notifications.card.linkedOn', { date: linkedOn })}
-              </Text>
-            </div>
-          ) : (
-            <div className={styles.linkCard}>
-              <Text>{t('notifications.link.title')}</Text>
-              <ul className={styles.steps}>
-                <li>{t('notifications.link.openBot', { bot: TELEGRAM_BOT_HANDLE })}</li>
-                <li>{t('notifications.link.sendCode', { minutes: TELEGRAM_CODE_TTL_MINUTES })}</li>
-              </ul>
-              <div className={styles.codeRow}>
-                <span className={styles.code}>{TELEGRAM_LINK_CODE}</span>
-                <Button variant={ButtonVariant.Secondary} onClick={() => void copyCode()}>
-                  {t('notifications.link.copy')}
-                </Button>
-                <Button href={TELEGRAM_BOT_URL} target="_blank" rel="noopener noreferrer">
-                  {t('notifications.link.open')}
-                </Button>
-              </div>
-              <Text kind={TextKind.Caption} color={TextColor.Mute}>
-                {t('notifications.link.hint')}
-              </Text>
-            </div>
-          )}
           <div className={styles.footer}>
             <Text kind={TextKind.Caption} color={TextColor.Mute}>
               {t('notifications.card.footer')}
