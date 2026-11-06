@@ -1,6 +1,6 @@
 # Notifications module
 
-**Status:** schema, settings API, recipient resolver, producer and in-app read state, November 2026. The `notifications` schema, the personal settings read/write API, the handoff recipient resolver, the escalation producer and the platform read state exist. There is no delivery worker, browser notification, in-app notification list or Telegram linking flow yet. Email delivery still uses the existing `EmailGateway` for system mail.
+**Status:** schema, settings API, recipient resolver, producer, read state and email delivery, November 2026. The `notifications` schema, the personal settings read/write API, the handoff recipient resolver, the escalation producer, the platform read state and the email delivery worker exist. There is no sweeper, retry metadata, Telegram delivery, browser notification, in-app notification list or reminder/fallback timer yet. Email delivery still uses the existing `EmailGateway` for system mail.
 
 **Decisions:** D307 (notification storage), D85 (Resend), D167 (email gateway). Product requirements: `mvp-scope.md` §12.11, `communication.md` chain F.
 
@@ -53,6 +53,10 @@ The producer is a `runs` listener on `runs.escalated`, not a notifications liste
 - skips `mode = simulation`.
 
 The delivery worker and sweeper are still missing.
+
+The email delivery worker is built. The producer enqueues a `deliver-notification` job for each `email` delivery after the transaction commits. The worker loads the notification, delivery, user, run step and last message in one tenant transaction, renders the escalation email, sends it through `EmailGateway` outside the transaction, then marks the delivery `delivered` or `failed`. A provider failure rethrows so BullMQ retries; without retry metadata, the row stays `failed` and the job attempt count is BullMQ's only bound.
+
+Telegram deliveries stay `pending` and are not enqueued yet.
 
 The platform read state is built. `unreadNotificationCount` counts the signed-in user's platform deliveries whose status is not `read`, and `markNotificationsRead` sets them to `read` with `read_at` when the operator opens that conversation. The Inbox page calls it when the selected conversation changes. Email and Telegram deliveries are never counted and never marked read.
 
@@ -247,8 +251,8 @@ The current schema has no retry metadata yet: no `attempts`, `next_attempt_at`, 
 
 ## 6. What is still missing
 
-- A delivery worker and a sweeper; the `pending`/`failed` rows are the source. The producer already writes them.
-- Telegram alerts bot and the linking flow (`chat_id`, hashed code, 10-minute expiry). The settings API already returns `linked` and `linkedAt`, but nothing can link yet.
+- A sweeper; the email worker is built. No retry metadata or scheduled recovery for `pending`/`failed` rows.
+- Telegram delivery and the alerts bot linking flow (`chat_id`, hashed code, 10-minute expiry). Telegram deliveries stay `pending`.
 - Browser notifications and the in-app notification list. The personal unread count and mark-read API exist, but the Inbox navigation badge still uses `inboxNeedsYouCount`.
 - Reminder and fallback timers.
 - `notification_settings.enabled`, working hours and time zone. Today the only switch is per channel.
