@@ -29,6 +29,7 @@ import { ErrorsModule } from '@/platform/errors/errors.module';
 import { IdsModule } from '@/platform/ids/ids.module';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { ObservabilityModule } from '@/platform/observability/observability.module';
+import { OutboundHttpModule } from '@/platform/outbound-http/outbound-http.module';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
 import { QueuesModule } from '@/platform/queues/queues.module';
 import { QueuesService } from '@/platform/queues/services/queues.service';
@@ -72,6 +73,7 @@ export const createIdentityTestbed = async (
       CryptoModule,
       QueuesModule.forRole(ROLE),
       DomainEventsModule.forRole(ROLE),
+      OutboundHttpModule,
       IdentityModule.forRole(ROLE),
       NotificationsModule.forRole(ROLE),
     ],
