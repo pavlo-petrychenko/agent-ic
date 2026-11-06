@@ -1,3 +1,4 @@
+import { ChannelKind } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   NotificationChannel,
@@ -141,6 +142,7 @@ describe('NotificationsRepository read state', () => {
     expect(alert).toMatchObject({
       conversationId: seeded.run.conversationId,
       customerName: null,
+      channelKind: ChannelKind.Simulated,
       reason: 'Customer asks to be called back.',
     });
 

@@ -30,6 +30,7 @@ type LatestUnreadRow = Readonly<{
   id: string;
   conversation_id: string;
   end_user_name: string | null;
+  channel_kind: string | null;
   reason: string | null;
   created_at: Date;
 }>;
@@ -170,6 +171,7 @@ export class NotificationsRepository {
       select n.id,
              r.conversation_id,
              c.end_user_name,
+             c.channel_kind,
              coalesce(rs.output->>'reason', rs.output->>'outcome_reason', rs.error->>'message') as reason,
              n.created_at
       from ${sql.identifier(NOTIFICATIONS_SCHEMA)}.${sql.identifier(NOTIFICATIONS_TABLE)} n
@@ -195,6 +197,7 @@ export class NotificationsRepository {
           id: row.id,
           conversationId: row.conversation_id,
           customerName: row.end_user_name,
+          channelKind: row.channel_kind,
           reason: row.reason,
           createdAt: row.created_at,
         };
