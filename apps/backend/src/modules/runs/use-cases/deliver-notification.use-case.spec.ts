@@ -1,6 +1,8 @@
 import { Locale } from '@agent-ic/contracts';
+import type { ChannelKind } from '@agent-ic/contracts';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Message, MessagesRepository } from '@/modules/conversations';
+import type { AgentsRepository } from '@/modules/agents';
+import type { ConversationsRepository, Message, MessagesRepository } from '@/modules/conversations';
 import type { UsersRepository, WorkspacesRepository } from '@/modules/identity';
 import {
   EmailGateway,
@@ -58,6 +60,8 @@ describe('DeliverNotificationUseCase', () => {
   const send = vi.fn<EmailGateway['send']>();
   const findUser = vi.fn<UsersRepository['findById']>();
   const findWorkspace = vi.fn<WorkspacesRepository['findById']>();
+  const findAgent = vi.fn<AgentsRepository['findById']>();
+  const findConversation = vi.fn<ConversationsRepository['findById']>();
   const findStep = vi.fn<RunStepsRepository['findById']>();
   const findRun = vi.fn<RunsRepository['findById']>();
   const findMessage = vi.fn<MessagesRepository['findById']>();
@@ -76,6 +80,8 @@ describe('DeliverNotificationUseCase', () => {
     send.mockReset();
     findUser.mockReset();
     findWorkspace.mockReset();
+    findAgent.mockReset();
+    findConversation.mockReset();
     findStep.mockReset();
     findRun.mockReset();
     findMessage.mockReset();
@@ -100,7 +106,18 @@ describe('DeliverNotificationUseCase', () => {
     } as unknown as Awaited<ReturnType<UsersRepository['findById']>>);
     findWorkspace.mockResolvedValue({
       workspaceId: 'ws_public',
+      name: 'Demo salon',
+      timeZone: 'Europe/Kyiv',
     } as unknown as Awaited<ReturnType<WorkspacesRepository['findById']>>);
+    findAgent.mockResolvedValue({
+      id: 'agent-1',
+      name: 'Salon assistant',
+    } as unknown as Awaited<ReturnType<AgentsRepository['findById']>>);
+    findConversation.mockResolvedValue({
+      id: 'conversation-1',
+      endUserName: 'Marta S.',
+      channelKind: 'telegram' as ChannelKind,
+    } as unknown as Awaited<ReturnType<ConversationsRepository['findById']>>);
     findStep.mockResolvedValue({
       id: 'step-1',
       runId: 'run-1',
@@ -129,6 +146,8 @@ describe('DeliverNotificationUseCase', () => {
       { send } as unknown as EmailGateway,
       { findById: findUser } as unknown as UsersRepository,
       { findById: findWorkspace } as unknown as WorkspacesRepository,
+      { findById: findAgent } as unknown as AgentsRepository,
+      { findById: findConversation } as unknown as ConversationsRepository,
       { findById: findStep } as unknown as RunStepsRepository,
       { findById: findRun } as unknown as RunsRepository,
       {
@@ -153,7 +172,7 @@ describe('DeliverNotificationUseCase', () => {
     expect(send).toHaveBeenCalledWith({
       template: EmailTemplate.Escalation,
       to: 'alerts@example.com',
-      subject: escalationEmailSubject(Locale.En),
+      subject: escalationEmailSubject(Locale.En, 'Marta S.'),
       html: expect.stringContaining('The customer asked for a person.'),
       text: expect.stringContaining('Can someone call me?'),
     });

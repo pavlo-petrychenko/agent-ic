@@ -1,6 +1,8 @@
 import { IdPrefix, Locale } from '@agent-ic/contracts';
+import type { ChannelKind } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
-import { MessagesRepository } from '@/modules/conversations';
+import { AgentsRepository } from '@/modules/agents';
+import { ConversationsRepository, MessagesRepository } from '@/modules/conversations';
 import type { Message } from '@/modules/conversations';
 import { UsersRepository, WorkspacesRepository } from '@/modules/identity';
 import {
@@ -34,10 +36,14 @@ interface DeliverNotificationInput {
 interface DeliveryContent {
   readonly delivery: NotificationDeliveryRecord;
   readonly to: string;
-  readonly name: string;
+  readonly customerName: string | null;
+  readonly agentName: string | null;
+  readonly channelKind: ChannelKind | null;
   readonly locale: Locale;
   readonly reason: string | null;
   readonly lastMessage: string | null;
+  readonly time: string;
+  readonly workspaceName: string | null;
   readonly link: string;
 }
 
@@ -55,6 +61,8 @@ export class DeliverNotificationUseCase {
     private readonly email: EmailGateway,
     private readonly users: UsersRepository,
     private readonly workspaces: WorkspacesRepository,
+    private readonly agents: AgentsRepository,
+    private readonly conversations: ConversationsRepository,
     private readonly steps: RunStepsRepository,
     private readonly runs: RunsRepository,
     private readonly messages: MessagesRepository,
@@ -83,9 +91,14 @@ export class DeliverNotificationUseCase {
     const rendered = await renderEmail(
       escalationEmailElement({
         locale: content.locale,
-        name: content.name,
+        customerName: content.customerName,
+        agentName: content.agentName,
+        recipientEmail: content.to,
+        channelKind: content.channelKind,
         reason: content.reason,
         lastMessage: content.lastMessage,
+        time: content.time,
+        workspaceName: content.workspaceName,
         link: content.link,
       }),
     );
@@ -93,7 +106,7 @@ export class DeliverNotificationUseCase {
       await this.email.send({
         template: EmailTemplate.Escalation,
         to: content.to,
-        subject: escalationEmailSubject(content.locale),
+        subject: escalationEmailSubject(content.locale, content.customerName),
         ...rendered,
       });
     } catch (error) {
@@ -152,6 +165,9 @@ export class DeliverNotificationUseCase {
     const step = await this.steps.findById(workspaceId, notification.runStepId);
     const run = step === null ? null : await this.runs.findById(workspaceId, step.runId);
     const conversationId = run?.conversationId ?? null;
+    const agent = run === null ? null : await this.agents.findById(workspaceId, run.agentId);
+    const conversation =
+      run === null ? null : await this.conversations.findById(workspaceId, run.conversationId);
     const lastMessage: Message | null =
       notification.lastCustomerMessageId === null
         ? conversationId === null
@@ -163,12 +179,25 @@ export class DeliverNotificationUseCase {
     return {
       delivery,
       to: email,
-      name: user.name,
+      customerName: conversation?.endUserName ?? null,
+      agentName: agent?.name ?? null,
+      channelKind: conversation?.channelKind ?? null,
       locale: user.locale,
       reason: notificationReasonOf(step),
       lastMessage: lastMessage?.text ?? null,
+      time: this.timeOf(notification.createdAt, user.locale, workspace?.timeZone ?? null),
+      workspaceName: workspace?.name ?? null,
       link,
     };
+  }
+
+  private timeOf(at: Date, locale: Locale, timeZone: string | null): string {
+    return new Intl.DateTimeFormat(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      ...(timeZone === null ? {} : { timeZone }),
+    }).format(at);
   }
 
   private inboxLink(workspacePublicId: string | null, conversationId: string | null): string {

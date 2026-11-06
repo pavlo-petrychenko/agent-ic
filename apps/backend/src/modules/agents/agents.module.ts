@@ -103,6 +103,7 @@ export class AgentsModule extends defineModule({
   ],
   exports: [
     AgentRuntimeReader,
+    AgentsRepository,
     AgentVersionsRepository,
     AutoCloseVersionsRepository,
     SampleAgentService,

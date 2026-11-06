@@ -1,5 +1,6 @@
 export { AgentsModule } from '@/modules/agents/agents.module';
 export { AgentVersionKind, PauseMode } from '@/modules/agents/constants/agent.constants';
+export { AgentsRepository } from '@/modules/agents/repositories/agents.repository';
 export { AgentVersionsRepository } from '@/modules/agents/repositories/agent-versions.repository';
 export { AutoCloseVersionsRepository } from '@/modules/agents/repositories/auto-close-versions.repository';
 export { FLOW_REFERENCE_CHECKER } from '@/modules/agents/constants/flow-reference.constants';
