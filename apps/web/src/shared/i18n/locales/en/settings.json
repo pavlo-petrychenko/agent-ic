@@ -24,6 +24,7 @@
       "email": "Email",
       "telegram": "Telegram",
       "telegramLinked": "Linked to {{account}} · via {{bot}}",
+      "telegramLinkedShort": "Linked to Telegram",
       "telegramNotLinked": "Not linked yet",
       "waitingForCode": "Waiting for code",
       "unlinkTelegram": "Unlink Telegram",
