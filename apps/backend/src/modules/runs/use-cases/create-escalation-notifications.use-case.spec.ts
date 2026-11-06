@@ -26,7 +26,7 @@ describe('CreateEscalationNotificationsUseCase', () => {
   const recipientsFor = vi.fn<NotificationRecipientsService['recipientsFor']>();
   const insertIfAbsent = vi.fn<NotificationsRepository['insertIfAbsent']>();
   const insertDeliveryIfAbsent = vi.fn<NotificationsRepository['insertDeliveryIfAbsent']>();
-  const findLatestCustomer = vi.fn<MessagesRepository['findLatestCustomer']>();
+  const findLatestCustomerMessage = vi.fn<MessagesRepository['findLatestCustomerMessage']>();
   const now = vi.fn<ClockService['now']>();
   const generate = vi.fn<IdService['generate']>();
   let service: CreateEscalationNotificationsUseCase;
@@ -46,7 +46,7 @@ describe('CreateEscalationNotificationsUseCase', () => {
     recipientsFor.mockReset();
     insertIfAbsent.mockReset();
     insertDeliveryIfAbsent.mockReset();
-    findLatestCustomer.mockReset();
+    findLatestCustomerMessage.mockReset();
     now.mockReset();
     generate.mockReset();
     run.mockImplementation((_workspaceId, work) => work());
@@ -60,7 +60,7 @@ describe('CreateEscalationNotificationsUseCase', () => {
       { run } as unknown as TenantTransactionService,
       { recipientsFor } as unknown as NotificationRecipientsService,
       { insertIfAbsent, insertDeliveryIfAbsent } as unknown as NotificationsRepository,
-      { findLatestCustomer } as unknown as MessagesRepository,
+      { findLatestCustomerMessage } as unknown as MessagesRepository,
       { now } as unknown as ClockService,
       { generate } as unknown as IdService,
     );
@@ -74,7 +74,7 @@ describe('CreateEscalationNotificationsUseCase', () => {
       },
       { userId: 'user-2', channels: [NotificationChannel.Email] },
     ]);
-    findLatestCustomer.mockResolvedValue({ id: 'message-1' } as unknown as Message);
+    findLatestCustomerMessage.mockResolvedValue({ id: 'message-1' } as unknown as Message);
     insertIfAbsent.mockImplementation(
       async (notification) => `notification-${notification.userId}`,
     );
@@ -83,7 +83,7 @@ describe('CreateEscalationNotificationsUseCase', () => {
 
     expect(run).toHaveBeenCalledWith('workspace-1', expect.any(Function));
     expect(recipientsFor).toHaveBeenCalledWith('workspace-1', 'version-1', 'node-1');
-    expect(findLatestCustomer).toHaveBeenCalledWith('workspace-1', 'conversation-1');
+    expect(findLatestCustomerMessage).toHaveBeenCalledWith('workspace-1', 'conversation-1');
     expect(insertIfAbsent).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
@@ -145,7 +145,7 @@ describe('CreateEscalationNotificationsUseCase', () => {
 
     await service.execute(workspaceSystemCtx('workspace-1'), payload());
 
-    expect(findLatestCustomer).not.toHaveBeenCalled();
+    expect(findLatestCustomerMessage).not.toHaveBeenCalled();
     expect(insertIfAbsent).not.toHaveBeenCalled();
   });
 

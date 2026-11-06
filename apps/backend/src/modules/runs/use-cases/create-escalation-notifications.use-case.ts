@@ -47,7 +47,7 @@ export class CreateEscalationNotificationsUseCase {
     if (recipients.length === 0) {
       return;
     }
-    const lastCustomerMessage = await this.messages.findLatestCustomer(
+    const lastCustomerMessage = await this.messages.findLatestCustomerMessage(
       workspaceId,
       payload.conversationId,
     );

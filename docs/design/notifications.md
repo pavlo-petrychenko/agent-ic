@@ -47,7 +47,7 @@ It does not create a notification yet; that is the producer's job.
 The producer is a `runs` listener on `runs.escalated`, not a notifications listener. `notifications` cannot import `runs` or `conversations` without a cycle through `usage`; `runs` already imports both. For a live handoff the listener:
 
 - calls `NotificationRecipientsService.recipientsFor`;
-- reads the last customer message through `MessagesRepository.findLatestCustomer`;
+- reads the last customer message through `MessagesRepository.findLatestCustomerMessage`;
 - writes one `notifications` row per recipient and one `notification_deliveries` row per channel, idempotently on the existing unique keys;
 - marks platform deliveries `delivered` with `sent_at`, and leaves email and Telegram `pending` for the delivery worker;
 - skips `mode = simulation`.
