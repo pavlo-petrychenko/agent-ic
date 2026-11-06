@@ -10,12 +10,14 @@ import type {
   NotificationsRepository,
   NotificationRecipientsService,
 } from '@/modules/notifications';
+import { deliverNotificationJob } from '@/modules/runs/jobs/deliver-notification.job';
 import type { RunEscalatedPayload } from '@/modules/runs/typedefs/run-event.typedefs';
 import { CreateEscalationNotificationsUseCase } from '@/modules/runs/use-cases/create-escalation-notifications.use-case';
 import type { ClockService } from '@/platform/clock/services/clock.service';
 import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
 import type { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import type { IdService } from '@/platform/ids/services/id.service';
+import type { JobsService } from '@/platform/queues/services/jobs.service';
 import { workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import { systemCtx } from '@test/support/fixtures/identity.fixture';
 
@@ -29,6 +31,7 @@ describe('CreateEscalationNotificationsUseCase', () => {
   const findLatestCustomerMessage = vi.fn<MessagesRepository['findLatestCustomerMessage']>();
   const now = vi.fn<ClockService['now']>();
   const generate = vi.fn<IdService['generate']>();
+  const enqueue = vi.fn<JobsService['enqueue']>();
   let service: CreateEscalationNotificationsUseCase;
 
   const payload = (mode: ConversationMode = ConversationMode.Live): RunEscalatedPayload => ({
@@ -49,8 +52,10 @@ describe('CreateEscalationNotificationsUseCase', () => {
     findLatestCustomerMessage.mockReset();
     now.mockReset();
     generate.mockReset();
+    enqueue.mockReset();
     run.mockImplementation((_workspaceId, work) => work());
     now.mockReturnValue(NOW);
+    enqueue.mockResolvedValue(undefined);
     let sequence = 0;
     generate.mockImplementation(() => {
       sequence += 1;
@@ -63,6 +68,7 @@ describe('CreateEscalationNotificationsUseCase', () => {
       { findLatestCustomerMessage } as unknown as MessagesRepository,
       { now } as unknown as ClockService,
       { generate } as unknown as IdService,
+      { enqueue } as unknown as JobsService,
     );
   });
 
@@ -130,6 +136,15 @@ describe('CreateEscalationNotificationsUseCase', () => {
         sentAt: null,
       }),
     );
+    expect(enqueue).toHaveBeenCalledTimes(2);
+    expect(enqueue).toHaveBeenCalledWith(expect.anything(), deliverNotificationJob, {
+      notificationId: 'notification-user-1',
+      channel: NotificationChannel.Email,
+    });
+    expect(enqueue).toHaveBeenCalledWith(expect.anything(), deliverNotificationJob, {
+      notificationId: 'notification-user-2',
+      channel: NotificationChannel.Email,
+    });
   });
 
   it('does nothing for a simulation handoff', async () => {
@@ -138,6 +153,7 @@ describe('CreateEscalationNotificationsUseCase', () => {
     expect(run).not.toHaveBeenCalled();
     expect(recipientsFor).not.toHaveBeenCalled();
     expect(insertIfAbsent).not.toHaveBeenCalled();
+    expect(enqueue).not.toHaveBeenCalled();
   });
 
   it('does not read the last message when nobody should be notified', async () => {
@@ -147,6 +163,7 @@ describe('CreateEscalationNotificationsUseCase', () => {
 
     expect(findLatestCustomerMessage).not.toHaveBeenCalled();
     expect(insertIfAbsent).not.toHaveBeenCalled();
+    expect(enqueue).not.toHaveBeenCalled();
   });
 
   it('refuses a system actor without a workspace', async () => {
