@@ -20,7 +20,7 @@ export class ConversationExitService {
     return messageIds;
   }
 
-  async handOff({ ctx, run, nodeId, texts }: ConversationExit): Promise<string[]> {
+  async handOff({ ctx, run, runStepId, nodeId, texts }: ConversationExit): Promise<string[]> {
     const { workspaceId, conversationId } = run;
     const messageIds = await this.messages.send(ctx, run, nodeId, texts);
     const reason = WaitingReason.Escalated;
@@ -30,6 +30,7 @@ export class ConversationExitService {
         runEscalatedEvent,
         {
           runId: run.id,
+          runStepId,
           conversationId,
           agentId: run.agentId,
           versionId: run.versionId,

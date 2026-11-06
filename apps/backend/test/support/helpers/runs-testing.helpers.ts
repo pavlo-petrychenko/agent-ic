@@ -615,7 +615,14 @@ export const stepExecutionOf = async <TNode extends FlowNode>(
     throw new MissingTestDataError(run.id);
   }
   const scope = { variables, history: [], today: RUNS_TEST_START, prompts: new Map() };
-  return { ctx, run: stored, node, branchKey: ROOT_BRANCH_KEY, scope };
+  return {
+    ctx,
+    run: stored,
+    stepId: testbed.ids.generate(),
+    node,
+    branchKey: ROOT_BRANCH_KEY,
+    scope,
+  };
 };
 
 export const readConversationChat = (

@@ -30,8 +30,14 @@ describe('ConversationExitService', () => {
 
   const exitOf = async () => {
     const seeded = await seedExecutableRun(testbed, triggerOnlyFlow());
-    const { ctx, run } = await stepExecutionOf(testbed, seeded, escalateNode(), {});
-    return { ctx, run, nodeId: ESCALATION_NODE_ID, texts: [TEST_CUSTOMER_NOTICE] };
+    const { ctx, run, stepId } = await stepExecutionOf(testbed, seeded, escalateNode(), {});
+    return {
+      ctx,
+      run,
+      runStepId: stepId,
+      nodeId: ESCALATION_NODE_ID,
+      texts: [TEST_CUSTOMER_NOTICE],
+    };
   };
 
   const emitted = (event: unknown) =>
@@ -76,7 +82,12 @@ describe('ConversationExitService', () => {
     expect(chat.conversation?.state).toBe(ConversationState.Waiting);
     expect(emitted(needsOperatorEvent)).toMatchObject([{ mode: ConversationMode.Live }]);
     expect(emitted(runEscalatedEvent)).toMatchObject([
-      { runId: exit.run.id, nodeId: ESCALATION_NODE_ID, mode: ConversationMode.Live },
+      {
+        runId: exit.run.id,
+        runStepId: exit.runStepId,
+        nodeId: ESCALATION_NODE_ID,
+        mode: ConversationMode.Live,
+      },
     ]);
   });
 });
