@@ -36,6 +36,11 @@
     "agent": "Agent"
   },
   "authorYou": "{{name}} (you)",
+  "browser": {
+    "title": "{{name}} needs a person",
+    "titleFallback": "A chat needs a person",
+    "bodyFallback": "A chat was escalated to you."
+  },
   "header": {
     "closeChat": "Close chat",
     "handBack": "Hand back to agent",

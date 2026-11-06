@@ -1,8 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useApplyAccountLocale, useLogOut } from '@/features/auth';
-import { useInboxNeedsYouCount } from '@/features/inbox';
+import { useBrowserNotifications, useInboxNeedsYouCount } from '@/features/inbox';
 import { useWorkspaceShell } from '@/features/workspace/communication/hooks/useWorkspaceShell';
 import { NavGroupKey, WorkspaceSection } from '@/features/workspace/constants/navigation.constants';
 import { WorkspaceNavForm } from '@/features/workspace/constants/navigationForm.constants';
@@ -36,9 +36,20 @@ export function WorkspaceNavigation({
   const [menuOpen, setMenuOpen] = useState(false);
   const { data } = useWorkspaceShell(workspaceId);
   const active = data?.active ?? null;
-  const inboxCount = useInboxNeedsYouCount(
-    active !== null && canOpenSection(active.permissions, WorkspaceSection.Inbox),
+  const inboxEnabled =
+    active !== null && canOpenSection(active.permissions, WorkspaceSection.Inbox);
+  const inboxCount = useInboxNeedsYouCount(inboxEnabled);
+  const openInboxConversation = useCallback(
+    (conversationId: string) => {
+      void navigate({
+        to: '/w/$workspaceId/inbox',
+        params: { workspaceId },
+        search: { conversation: conversationId },
+      });
+    },
+    [navigate, workspaceId],
   );
+  useBrowserNotifications(inboxEnabled, openInboxConversation);
   const groups =
     active === null
       ? []

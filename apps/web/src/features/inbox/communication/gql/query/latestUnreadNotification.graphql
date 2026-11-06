@@ -1,0 +1,9 @@
+query LatestUnreadNotification {
+  latestUnreadNotification {
+    id
+    conversationId
+    customerName
+    reason
+    createdAt
+  }
+}

@@ -36,6 +36,11 @@
     "agent": "Агент"
   },
   "authorYou": "{{name}} (ви)",
+  "browser": {
+    "title": "{{name}} потребує людини",
+    "titleFallback": "Чат потребує людини",
+    "bodyFallback": "Чат передали вам."
+  },
   "header": {
     "closeChat": "Закрити чат",
     "handBack": "Повернути агенту",
