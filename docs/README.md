@@ -87,6 +87,7 @@ Tests are optional during the MVP. Write them where they help. Existing tests mu
 
 ## More
 
+- [Notifications design](design/notifications.md): the notification tables, delivery state and what is still missing.
 - [CONTRIBUTING.md](../CONTRIBUTING.md): setup, branches, pull requests and review.
 - [apps/backend/AGENTS.md](../apps/backend/AGENTS.md): backend module anatomy, commands and roles.
 - [apps/web/AGENTS.md](../apps/web/AGENTS.md): web feature anatomy.
