@@ -32,7 +32,7 @@ type LatestUnreadRow = Readonly<{
   end_user_name: string | null;
   channel_kind: string | null;
   reason: string | null;
-  created_at: Date;
+  created_at: Date | string;
 }>;
 
 @Injectable()
@@ -199,7 +199,7 @@ export class NotificationsRepository {
           customerName: row.end_user_name,
           channelKind: row.channel_kind,
           reason: row.reason,
-          createdAt: row.created_at,
+          createdAt: new Date(row.created_at),
         };
   }
 
