@@ -1,0 +1,17 @@
+query NotificationSettings {
+  notificationSettings {
+    platform {
+      enabled
+    }
+    email {
+      enabled
+      email
+      verifiedAt
+    }
+    telegram {
+      enabled
+      linked
+      linkedAt
+    }
+  }
+}

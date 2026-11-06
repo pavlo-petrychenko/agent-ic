@@ -24,6 +24,7 @@
       "email": "Пошта",
       "telegram": "Telegram",
       "telegramLinked": "Прив'язано до {{account}} · через {{bot}}",
+      "telegramLinkedShort": "Підключено до Telegram",
       "telegramNotLinked": "Ще не прив'язано",
       "waitingForCode": "Очікує коду",
       "unlinkTelegram": "Відв'язати Telegram",
