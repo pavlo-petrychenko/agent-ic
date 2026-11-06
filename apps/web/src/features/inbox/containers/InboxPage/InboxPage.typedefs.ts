@@ -14,6 +14,11 @@ export interface InboxComposerDraft {
   readonly text: string;
 }
 
+export interface InboxPageProps {
+  readonly conversationId: string | null;
+  readonly onConversationChange?: (conversationId: string | null) => void;
+}
+
 export interface InboxPageModel {
   readonly list: InboxListProps;
   readonly conversation: InboxConversationProps | null;
