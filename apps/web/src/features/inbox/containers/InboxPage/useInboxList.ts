@@ -18,18 +18,28 @@ import {
 } from '@/features/inbox/logic/helpers/inboxList.helpers';
 import type { InboxProviderLabels } from '@/features/inbox/typedefs/common.typedefs';
 
-export function useInboxList(): InboxListResult {
+export function useInboxList(
+  initialConversationId: string | null,
+  onConversationChange?: (conversationId: string | null) => void,
+): InboxListResult {
   const { t, i18n } = useTranslation(INBOX_NAMESPACE);
   const { summaries, loading, failed, retry } = useInboxConversations();
-  const [activeTab, setActiveTab] = useState<InboxTab>(InboxTab.NeedsYou);
+  const [selectedTab, setSelectedTab] = useState<InboxTab | null>(null);
   const [search, setSearch] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialConversationId);
 
   const conversations = useMemo(
     () =>
       summaries.map((summary) => toInboxConversation(summary, i18n.language, t('status.operator'))),
     [summaries, i18n.language, t],
   );
+
+  const initialConversation = conversations.find(
+    (conversation) => conversation.id === initialConversationId,
+  );
+  const activeTab =
+    selectedTab ??
+    (initialConversation === undefined ? InboxTab.NeedsYou : inboxTabOf(initialConversation));
 
   const providerLabels = useMemo<InboxProviderLabels>(
     () => ({
@@ -50,11 +60,16 @@ export function useInboxList(): InboxListResult {
       ? selectedId
       : (visible[0]?.id ?? null);
 
+  const selectConversation = (conversationId: string | null) => {
+    setSelectedId(conversationId);
+    onConversationChange?.(conversationId);
+  };
+
   const onTabChange = (tab: InboxTab) => {
-    setActiveTab(tab);
+    setSelectedTab(tab);
     const current = conversations.find((conversation) => conversation.id === effectiveSelectedId);
     if (current === undefined || inboxTabOf(current) !== tab) {
-      setSelectedId(firstConversationId(conversations, tab));
+      selectConversation(firstConversationId(conversations, tab));
     }
   };
 
@@ -68,8 +83,8 @@ export function useInboxList(): InboxListResult {
     effectiveSelectedId,
     onSearchChange: setSearch,
     onTabChange,
-    onSelect: setSelectedId,
-    onClearSelection: () => setSelectedId(null),
+    onSelect: selectConversation,
+    onClearSelection: () => selectConversation(null),
     view: {
       title: t('title'),
       tabs: inboxTabItems(counts, t),
@@ -95,7 +110,7 @@ export function useInboxList(): InboxListResult {
             onRetry: () => void retry(),
           }
         : null,
-      onSelect: setSelectedId,
+      onSelect: selectConversation,
     },
   };
 }

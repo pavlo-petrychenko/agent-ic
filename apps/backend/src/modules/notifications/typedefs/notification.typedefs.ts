@@ -2,7 +2,13 @@ import type {
   NotificationDeliveryStatus,
   NotificationKind,
 } from '@/modules/notifications/constants/notification.constants';
+import type { notificationDeliveries } from '@/modules/notifications/db/notification-deliveries.table';
+import type { notifications } from '@/modules/notifications/db/notifications.table';
 import type { NotificationChannelValue } from '@/modules/notifications/typedefs/notification-settings.typedefs';
+
+export type NotificationRecord = typeof notifications.$inferSelect;
+
+export type NotificationDeliveryRecord = typeof notificationDeliveries.$inferSelect;
 
 export interface NewNotificationRecord {
   readonly id: string;

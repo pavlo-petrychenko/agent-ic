@@ -12,6 +12,8 @@ import { NotificationUnavailableError } from '@/modules/notifications/errors/not
 import type {
   NewNotificationDeliveryRecord,
   NewNotificationRecord,
+  NotificationDeliveryRecord,
+  NotificationRecord,
 } from '@/modules/notifications/typedefs/notification.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
@@ -64,6 +66,67 @@ export class NotificationsRepository {
       .onConflictDoNothing({
         target: [notificationDeliveries.notificationId, notificationDeliveries.channel],
       });
+  }
+
+  async findById(workspaceId: string, id: string): Promise<NotificationRecord | null> {
+    const [notification] = await this.txHost.tx
+      .select()
+      .from(notifications)
+      .where(and(eq(notifications.workspaceId, workspaceId), eq(notifications.id, id)));
+    return notification ?? null;
+  }
+
+  async findDelivery(
+    workspaceId: string,
+    notificationId: string,
+    channel: NotificationChannel,
+  ): Promise<NotificationDeliveryRecord | null> {
+    const [delivery] = await this.txHost.tx
+      .select()
+      .from(notificationDeliveries)
+      .where(
+        and(
+          eq(notificationDeliveries.workspaceId, workspaceId),
+          eq(notificationDeliveries.notificationId, notificationId),
+          eq(notificationDeliveries.channel, channel),
+        ),
+      );
+    return delivery ?? null;
+  }
+
+  async markDeliveryDelivered(
+    workspaceId: string,
+    deliveryId: string,
+    sentAt: Date,
+  ): Promise<void> {
+    await this.txHost.tx
+      .update(notificationDeliveries)
+      .set({
+        status: NotificationDeliveryStatus.Delivered,
+        sentAt,
+        updatedAt: this.clock.now(),
+      })
+      .where(
+        and(
+          eq(notificationDeliveries.workspaceId, workspaceId),
+          eq(notificationDeliveries.id, deliveryId),
+          ne(notificationDeliveries.status, NotificationDeliveryStatus.Read),
+        ),
+      );
+  }
+
+  async markDeliveryFailed(workspaceId: string, deliveryId: string): Promise<void> {
+    await this.txHost.tx
+      .update(notificationDeliveries)
+      .set({ status: NotificationDeliveryStatus.Failed, updatedAt: this.clock.now() })
+      .where(
+        and(
+          eq(notificationDeliveries.workspaceId, workspaceId),
+          eq(notificationDeliveries.id, deliveryId),
+          ne(notificationDeliveries.status, NotificationDeliveryStatus.Delivered),
+          ne(notificationDeliveries.status, NotificationDeliveryStatus.Read),
+        ),
+      );
   }
 
   async countUnreadPlatform(workspaceId: string, userId: string): Promise<number> {
