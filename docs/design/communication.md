@@ -54,7 +54,7 @@
 | `api` | Google OAuth | S | Exchange the OAuth code on the connection callback |
 | Redis queue | `worker-runs` | A | `runs-reactive`, `runs-proactive`, `outbound`, `notify`, `timers` |
 | Redis queue | `worker-ingest` | A | `ingest` |
-| `worker-runs` | Postgres | S | Load the flow version, prompts and history; save run steps, messages, escalations; vector search |
+| `worker-runs` | Postgres | S | Load the flow version, prompts and history; save run steps, messages and conversation state; vector search |
 | `worker-runs` | Redis queue | A | Enqueue follow-ups: outbound, notify, the next run, timers |
 | `worker-runs` | Redis pub/sub | A | Step events (simulator), message events (Inbox), `run:{id}:done` (gateway) |
 | `worker-runs` | LLM providers | S | Agent and Completion steps |
@@ -144,12 +144,12 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
 6. Without "once per conversation" the marker is released when the customer writes, so a conversation is contacted once per silence.
 
 ### F. Escalation → operator → hand back
-1. Escalation step in `worker-runs` → Postgres, in one transaction:
+1. A hand-off in `worker-runs` (an Escalation step, an Agent exit, or a failure set to hand off) → Postgres, in one transaction:
    - conversation `waiting`;
-   - an escalation row (reason, guard output);
+   - the escalated `run_steps` row (reason, guard or exit output); there is no separate escalation table;
    - an outbox row "notify".
 2. ⇢ queue `outbound`: the message to the customer ("a person will reply soon").
-3. ⇢ queue `notify`: alerts per recipient's settings → email provider / alerts bot. In-platform alerts → Postgres (notification) ⇢ pub/sub `ws:{id}:inbox` → browsers: "Needs you" badge.
+3. ⇢ queue `notify`: `runs.escalated` carries the handoff `runStepId`; alerts per recipient's settings → email provider / alerts bot. In-platform alerts → Postgres (notification) ⇢ pub/sub `ws:{id}:inbox` → browsers: "Needs you" badge.
 4. ⇢ queue `timers`: **delayed** jobs — a reminder in 5 min and a fallback in 30 min.
 5. Operator clicks **Take over**: browser → `api` mutation → Postgres conditional update (`waiting → handled_by me`; the update fails if someone else was faster) → cancel the delayed jobs ⇢ pub/sub → other operators see "taken by X".
 6. Operator **replies**: browser → `api` mutation → Postgres (message, author = operator) ⇢ queue `outbound` → `worker-runs` → Telegram or the business webhook. This is the same delivery path as the agent's messages, with the same rate limits and retries.

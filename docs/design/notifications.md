@@ -18,12 +18,14 @@ One Postgres schema, `notifications`, with six tables:
 | `notification_channels` | one row per enabled/disabled channel; `platform`, `email`, `telegram` |
 | `email_notification_channels` | email-specific configuration, 1:1 with a channel |
 | `telegram_notification_channels` | Telegram-specific configuration, 1:1 with a channel |
-| `notifications` | one row per person per escalation step; the in-app notification |
+| `notifications` | one row per person per handoff step; the in-app notification |
 | `notification_deliveries` | one row per notification and channel; delivery state |
 
 `platform` is a `notification_channels` row with no detail table. Email and Telegram have a detail row because their configuration differs.
 
-There is **no `escalations` table**. The escalation is the `runs.run_steps` row that executed the Escalation step. The reason is already stored in `run_steps.output->>'reason'`, and the last customer message is referenced by id.
+There is **no `escalations` table**. The escalation is the `runs.run_steps` row that handed off. The reason is already stored in that step's output, and the last customer message is referenced by id.
+
+The trigger is the durable `runs.escalated` domain event. It fires for three handoffs: an Escalation node in `escalate` mode, an Agent or Completion exit set to hand off, and a step that fails with the flow's `onUnhandledFailure` set to hand off. The payload carries `runStepId`, the id of the `runs.run_steps` row that handed off, so the producer references the exact step even when the same node runs in parallel branches. Simulations emit the event too; the producer skips `mode = simulation`.
 
 ## 2. Schema
 
@@ -163,7 +165,7 @@ Every table has `workspace_id`, `ENABLE ROW LEVEL SECURITY`, `FORCE ROW LEVEL SE
 ### `notifications`
 
 - unique `(workspace_id, id)` — the target of the deliveries' composite FK;
-- unique `(run_step_id, user_id, kind)` — one notification per person per escalation step per kind, so a retry does not duplicate;
+- unique `(run_step_id, user_id, kind)` — one notification per person per handoff step per kind, so a retry does not duplicate;
 - index `(workspace_id, user_id, created_at desc)` for the in-app list;
 - index `(workspace_id, run_step_id)`;
 - index `(user_id)`;
@@ -185,7 +187,7 @@ Every table has `workspace_id`, `ENABLE ROW LEVEL SECURITY`, `FORCE ROW LEVEL SE
 
 | Content | Source |
 | --- | --- |
-| reason | `runs.run_steps.output->>'reason'` for `notifications.run_step_id` |
+| reason | the handoff step's output: `reason` on an Escalation step, `outcome_reason` on an Agent exit, or the step error on a failure handoff, with the flow's handoff reason as fallback |
 | run, conversation, agent, version | `run_steps.run_id` → `runs` → `conversations` |
 | who receives | `notifications.user_id` → `identity.users` |
 | greeting name and locale | `identity.users.name`, `identity.users.locale` |
@@ -214,7 +216,7 @@ The current schema has no retry metadata yet: no `attempts`, `next_attempt_at`, 
 
 ## 6. What is still missing
 
-- A producer: nothing creates `notifications` or `notification_deliveries` yet. The intended trigger is `runs.escalated`, after `run_steps.output` exists; otherwise the listener retries.
+- A producer: nothing creates `notifications` or `notification_deliveries` yet. The intended trigger is `runs.escalated`, which carries the handoff `runStepId`; the listener reads `run_steps.output` once it exists, otherwise it retries.
 - A `notifications` repository, use cases, GraphQL API and settings UI wiring.
 - A delivery worker and a sweeper; the `pending`/`failed` rows are the source.
 - Telegram alerts bot and the linking flow (`chat_id`, hashed code, 10-minute expiry).
