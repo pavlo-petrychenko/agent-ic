@@ -1,4 +1,4 @@
-import type { Locale } from '@agent-ic/contracts';
+import type { ChannelKind, Locale } from '@agent-ic/contracts';
 import type { EmailTemplate } from '@/modules/notifications/constants/notification-metrics.constants';
 
 export interface EmailMessage {
@@ -31,21 +31,32 @@ export interface ActionEmailProps {
 
 export interface EscalationEmailProps {
   readonly locale: Locale;
-  readonly name: string;
+  readonly customerName: string | null;
+  readonly agentName: string | null;
+  readonly recipientEmail: string;
+  readonly channelKind: ChannelKind | null;
   readonly reason: string | null;
   readonly lastMessage: string | null;
+  readonly time: string;
+  readonly workspaceName: string | null;
   readonly link: string;
 }
 
 export interface EscalationEmailCopy {
   readonly subject: string;
-  readonly greeting: string;
+  readonly body: string;
   readonly reasonLabel: string;
-  readonly messageLabel: string;
   readonly emptyReason: string;
   readonly emptyMessage: string;
   readonly action: string;
   readonly footer: string;
+  readonly metaTo: string;
+  readonly customerFallback: string;
+  readonly agentFallback: string;
+  readonly workspaceFallback: string;
+  readonly channelTelegram: string;
+  readonly channelApi: string;
+  readonly channelFallback: string;
 }
 
 export interface ResendEmailRequest {
