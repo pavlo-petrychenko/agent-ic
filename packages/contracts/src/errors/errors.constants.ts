@@ -72,6 +72,7 @@ export enum ErrorReason {
   AwayMessageTooLong = 'AWAY_MESSAGE_TOO_LONG',
   ConversationNotFound = 'CONVERSATION_NOT_FOUND',
   ConversationClosed = 'CONVERSATION_CLOSED',
+  ConversationTaken = 'CONVERSATION_TAKEN',
   AutoCloseOff = 'AUTO_CLOSE_OFF',
   ConversationNotAutoClosable = 'CONVERSATION_NOT_AUTO_CLOSABLE',
   MessageNotFound = 'MESSAGE_NOT_FOUND',

@@ -353,7 +353,16 @@ export class ConversationsRepository {
     return updated.length > 0;
   }
 
-  async takeOver(workspaceId: string, id: string, userId: string): Promise<Conversation | null> {
+  async takeOver(
+    workspaceId: string,
+    id: string,
+    userId: string,
+    expected: { readonly state: ConversationState; readonly handledBy: string | null },
+  ): Promise<Conversation | null> {
+    const holder =
+      expected.handledBy === null
+        ? isNull(conversations.handledBy)
+        : eq(conversations.handledBy, expected.handledBy);
     const [conversation] = await this.txHost.tx
       .update(conversations)
       .set({ state: ConversationState.Handled, handledBy: userId })
@@ -361,6 +370,8 @@ export class ConversationsRepository {
         and(
           eq(conversations.workspaceId, workspaceId),
           eq(conversations.id, id),
+          eq(conversations.state, expected.state),
+          holder,
           ne(conversations.state, ConversationState.Closed),
         ),
       )
