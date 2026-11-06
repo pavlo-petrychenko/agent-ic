@@ -8,6 +8,7 @@ import {
   NotificationRecipientsService,
 } from '@/modules/notifications';
 import { deliverNotificationJob } from '@/modules/runs/jobs/deliver-notification.job';
+import type { DeliveryJobData } from '@/modules/runs/typedefs/notification-delivery.typedefs';
 import type { RunEscalatedPayload } from '@/modules/runs/typedefs/run-event.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
@@ -16,11 +17,6 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { JobsService } from '@/platform/queues/services/jobs.service';
-
-type DeliveryJobData = Readonly<{
-  notificationId: string;
-  channel: NotificationChannel;
-}>;
 
 @Injectable()
 export class CreateEscalationNotificationsUseCase {
