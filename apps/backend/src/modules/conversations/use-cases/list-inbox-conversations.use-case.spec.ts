@@ -21,7 +21,14 @@ describe('ListInboxConversationsUseCase', () => {
     ctx: ReturnType<typeof workspaceCtx>,
     limit: number | null = null,
     queue: InboxQueue = InboxQueue.NeedsYou,
-  ) => testbed.module.get(ListInboxConversationsUseCase).execute(ctx, { limit, queue });
+  ) =>
+    testbed.module.get(ListInboxConversationsUseCase).execute(ctx, {
+      limit,
+      queue,
+      channelIds: [],
+      agentIds: [],
+      search: null,
+    });
 
   beforeAll(async () => {
     testbed = await createConversationsTestbed();

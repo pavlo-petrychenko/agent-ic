@@ -36,10 +36,27 @@ export interface InboxConversationsCursor {
   readonly id: string;
 }
 
-export interface InboxConversationsInput {
+export interface InboxFilter {
+  readonly channelIds: readonly string[];
+  readonly agentIds: readonly string[];
+  readonly search: string | null;
+}
+
+export interface InboxListFilter extends InboxFilter {
+  readonly states: readonly ConversationState[];
+}
+
+export interface InboxConversationsInput extends InboxFilter {
   readonly limit: number | null;
   readonly after?: InboxConversationsCursor | null;
   readonly queue: InboxQueue;
+}
+
+export type InboxCountsInput = InboxFilter;
+
+export interface InboxFilterOptions {
+  readonly channelRefs: readonly string[];
+  readonly agentRefs: readonly string[];
 }
 
 export interface InboxCounts {

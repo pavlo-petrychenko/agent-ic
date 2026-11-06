@@ -1,5 +1,5 @@
-query InboxCounts {
-  inboxCounts {
+query InboxCounts($input: InboxCountsInput) {
+  inboxCounts(input: $input) {
     needsYou
     live
     closed

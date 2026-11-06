@@ -2,7 +2,8 @@ extend type Query {
   inboxConversations(input: InboxConversationsInput!): [InboxConversationSummary!]!
   inboxConversation(input: InboxConversationInput!): InboxConversationDetail!
   inboxNeedsYouCount: Int!
-  inboxCounts: InboxCounts!
+  inboxCounts(input: InboxCountsInput): InboxCounts!
+  inboxFilterOptions: InboxFilterOptions!
 }
 
 enum InboxQueue {
@@ -34,6 +35,25 @@ input InboxConversationsInput {
   limit: Int
   after: InboxConversationsCursor
   queue: InboxQueue!
+  channelIds: [ID!]
+  agentIds: [ID!]
+  search: String
+}
+
+input InboxCountsInput {
+  channelIds: [ID!]
+  agentIds: [ID!]
+  search: String
+}
+
+type InboxFilterOptions {
+  channels: [InboxFilterOption!]!
+  agents: [InboxFilterOption!]!
+}
+
+type InboxFilterOption {
+  id: ID!
+  name: String!
 }
 
 input InboxConversationsCursor {
