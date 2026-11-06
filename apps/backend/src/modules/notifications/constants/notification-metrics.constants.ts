@@ -16,6 +16,7 @@ export enum EmailTemplate {
   Confirmation = 'confirmation',
   PasswordReset = 'password_reset',
   EmailChange = 'email_change',
+  Escalation = 'escalation',
   UsageThreshold = 'usage_threshold',
 }
 

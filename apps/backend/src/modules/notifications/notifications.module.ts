@@ -52,5 +52,10 @@ export class NotificationsModule extends defineModule({
     SendPasswordResetEmailListener,
     SendEmailChangeEmailListener,
   ],
-  exports: [EmailGateway, NotificationsRepository, NotificationRecipientsService],
+  exports: [
+    EmailGateway,
+    NotificationsRepository,
+    NotificationRecipientsService,
+    NotificationSettingsService,
+  ],
 }) {}

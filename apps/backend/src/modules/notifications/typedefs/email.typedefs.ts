@@ -29,6 +29,25 @@ export interface ActionEmailProps {
   readonly link: string;
 }
 
+export interface EscalationEmailProps {
+  readonly locale: Locale;
+  readonly name: string;
+  readonly reason: string | null;
+  readonly lastMessage: string | null;
+  readonly link: string;
+}
+
+export interface EscalationEmailCopy {
+  readonly subject: string;
+  readonly greeting: string;
+  readonly reasonLabel: string;
+  readonly messageLabel: string;
+  readonly emptyReason: string;
+  readonly emptyMessage: string;
+  readonly action: string;
+  readonly footer: string;
+}
+
 export interface ResendEmailRequest {
   readonly from: string;
   readonly to: readonly string[];
