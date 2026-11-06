@@ -7,6 +7,7 @@ export const runEscalatedEvent = defineDomainEvent({
   name: RunEventName.Escalated,
   schema: z.object({
     runId: z.uuid(),
+    runStepId: z.uuid(),
     conversationId: z.uuid(),
     agentId: z.uuid(),
     versionId: z.uuid(),

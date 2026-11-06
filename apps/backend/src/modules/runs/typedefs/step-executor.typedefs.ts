@@ -15,6 +15,7 @@ export interface StepScope {
 export interface StepExecution<TNode extends FlowNode> {
   readonly ctx: UseCaseCtx;
   readonly run: Run;
+  readonly stepId: string;
   readonly node: TNode;
   readonly branchKey: string;
   readonly scope: StepScope;

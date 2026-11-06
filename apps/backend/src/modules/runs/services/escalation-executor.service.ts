@@ -35,7 +35,7 @@ export class EscalationExecutor implements StepExecutor<EscalationNode> {
     const { config } = node;
     const { workspaceId } = run;
     const texts = templateTexts(config.customerMessage, scope.variables);
-    const exit = { ctx, run, nodeId: node.id, texts };
+    const exit = { ctx, run, runStepId: execution.stepId, nodeId: node.id, texts };
     if (config.mode === EscalationMode.End) {
       const messageIds = await this.exits.end(exit);
       return { port: null, output: { mode: config.mode, messageIds } };

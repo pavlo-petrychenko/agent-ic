@@ -294,6 +294,7 @@ export class RunExecutionService {
     const target = {
       ctx,
       run,
+      runStepId: step.id,
       nodeId: node.id,
       texts: listTexts(step.output?.[AGENT_MESSAGES_FIELD_NAME]),
     };
@@ -325,7 +326,7 @@ export class RunExecutionService {
     const { ctx, run } = walk;
     const texts = templateTexts(settings.customerMessage, stepVariables(walk, node.id));
     await this.tenants.run(run.workspaceId, () =>
-      this.exits.handOff({ ctx, run, nodeId: node.id, texts }),
+      this.exits.handOff({ ctx, run, runStepId: step.id, nodeId: node.id, texts }),
     );
     return failed;
   }
@@ -388,7 +389,7 @@ export class RunExecutionService {
     if (started === null) {
       return this.reloadStep(walk, node, branchKey);
     }
-    const result = await this.outcome(walk, node, executor, variables, branchKey);
+    const result = await this.outcome(walk, node, executor, variables, branchKey, started.id);
     const step = { ...started, ...result };
     await this.tenants.run(workspaceId, async () => {
       if (await this.steps.finish(workspaceId, started.id, result)) {
@@ -406,6 +407,7 @@ export class RunExecutionService {
     executor: StepExecutor,
     variables: StepData,
     branchKey: string,
+    stepId: string,
   ): Promise<RunStepResult> {
     try {
       const { port, output } = await this.traces.span(
@@ -415,6 +417,7 @@ export class RunExecutionService {
           executor.execute({
             ctx: walk.ctx,
             run: walk.run,
+            stepId,
             node,
             branchKey: branchKey,
             scope: {
