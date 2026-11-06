@@ -1,7 +1,8 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, count, eq, inArray, ne } from 'drizzle-orm';
+import { and, count, eq, ne, sql } from 'drizzle-orm';
 import {
+  NOTIFICATIONS_SCHEMA,
   NotificationChannel,
   NotificationDeliveryStatus,
 } from '@/modules/notifications/constants/notification.constants';
@@ -12,10 +13,13 @@ import type {
   NewNotificationDeliveryRecord,
   NewNotificationRecord,
 } from '@/modules/notifications/typedefs/notification.typedefs';
-import { runSteps } from '@/modules/runs/db/run-steps.table';
-import { runs } from '@/modules/runs/db/runs.table';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
+
+const RUNS_SCHEMA = 'runs';
+const RUN_STEPS_TABLE = 'run_steps';
+const RUNS_TABLE = 'runs';
+const NOTIFICATIONS_TABLE = 'notifications';
 
 @Injectable()
 export class NotificationsRepository {
@@ -90,27 +94,6 @@ export class NotificationsRepository {
     conversationId: string,
     readAt: Date,
   ): Promise<number> {
-    const notificationIds = await this.txHost.tx
-      .select({ id: notifications.id })
-      .from(notifications)
-      .innerJoin(
-        runSteps,
-        and(
-          eq(runSteps.workspaceId, notifications.workspaceId),
-          eq(runSteps.id, notifications.runStepId),
-        ),
-      )
-      .innerJoin(runs, and(eq(runs.workspaceId, runSteps.workspaceId), eq(runs.id, runSteps.runId)))
-      .where(
-        and(
-          eq(notifications.workspaceId, workspaceId),
-          eq(notifications.userId, userId),
-          eq(runs.conversationId, conversationId),
-        ),
-      );
-    if (notificationIds.length === 0) {
-      return 0;
-    }
     const updated = await this.txHost.tx
       .update(notificationDeliveries)
       .set({
@@ -123,10 +106,18 @@ export class NotificationsRepository {
           eq(notificationDeliveries.workspaceId, workspaceId),
           eq(notificationDeliveries.channel, NotificationChannel.Platform),
           ne(notificationDeliveries.status, NotificationDeliveryStatus.Read),
-          inArray(
-            notificationDeliveries.notificationId,
-            notificationIds.map(({ id }) => id),
-          ),
+          sql`exists (
+            select 1
+            from ${sql.identifier(NOTIFICATIONS_SCHEMA)}.${sql.identifier(NOTIFICATIONS_TABLE)} n
+            join ${sql.identifier(RUNS_SCHEMA)}.${sql.identifier(RUN_STEPS_TABLE)} rs
+              on rs.id = n.run_step_id and rs.workspace_id = n.workspace_id
+            join ${sql.identifier(RUNS_SCHEMA)}.${sql.identifier(RUNS_TABLE)} r
+              on r.id = rs.run_id and r.workspace_id = rs.workspace_id
+            where n.id = ${notificationDeliveries.notificationId}
+              and n.workspace_id = ${workspaceId}
+              and n.user_id = ${userId}
+              and r.conversation_id = ${conversationId}
+          )`,
         ),
       )
       .returning({ id: notificationDeliveries.id });
