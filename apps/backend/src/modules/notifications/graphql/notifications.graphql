@@ -1,0 +1,45 @@
+extend type Query {
+  notificationSettings: NotificationSettings!
+}
+
+extend type Mutation {
+  updateNotificationChannel(input: UpdateNotificationChannelInput!): NotificationSettings!
+  updateNotificationEmail(input: UpdateNotificationEmailInput!): NotificationSettings!
+}
+
+enum NotificationChannel {
+  platform
+  email
+  telegram
+}
+
+type NotificationSettings {
+  platform: PlatformNotificationChannelSetting!
+  email: EmailNotificationChannelSetting!
+  telegram: TelegramNotificationChannelSetting!
+}
+
+type PlatformNotificationChannelSetting {
+  enabled: Boolean!
+}
+
+type EmailNotificationChannelSetting {
+  enabled: Boolean!
+  email: String
+  verifiedAt: String
+}
+
+type TelegramNotificationChannelSetting {
+  enabled: Boolean!
+  linked: Boolean!
+  linkedAt: String
+}
+
+input UpdateNotificationChannelInput {
+  channel: NotificationChannel!
+  enabled: Boolean!
+}
+
+input UpdateNotificationEmailInput {
+  email: String!
+}
