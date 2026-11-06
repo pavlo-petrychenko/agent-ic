@@ -1,5 +1,4 @@
 import { IdPrefix, Locale } from '@agent-ic/contracts';
-import type { ChannelKind } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { AgentsRepository } from '@/modules/agents';
 import { ConversationsRepository, MessagesRepository } from '@/modules/conversations';
@@ -20,6 +19,11 @@ import type { NotificationDeliveryRecord, NotificationRecord } from '@/modules/n
 import { notificationReasonOf } from '@/modules/runs/helpers/notification-content.helpers';
 import { RunStepsRepository } from '@/modules/runs/repositories/run-steps.repository';
 import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
+import type {
+  DeliverNotificationInput,
+  DeliveryContent,
+  SkippedDelivery,
+} from '@/modules/runs/typedefs/notification-delivery.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { ConfigService } from '@/platform/config/services/config.service';
 import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
@@ -27,30 +31,6 @@ import { requireSystemActor } from '@/platform/context/helpers/use-case-ctx.help
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
-
-interface DeliverNotificationInput {
-  readonly notificationId: string;
-  readonly channel: NotificationChannel;
-}
-
-interface DeliveryContent {
-  readonly delivery: NotificationDeliveryRecord;
-  readonly to: string;
-  readonly customerName: string | null;
-  readonly agentName: string | null;
-  readonly channelKind: ChannelKind | null;
-  readonly locale: Locale;
-  readonly reason: string | null;
-  readonly lastMessage: string | null;
-  readonly time: string;
-  readonly workspaceName: string | null;
-  readonly link: string;
-}
-
-interface SkippedDelivery {
-  readonly delivery: NotificationDeliveryRecord;
-  readonly to: null;
-}
 
 @Injectable()
 export class DeliverNotificationUseCase {
