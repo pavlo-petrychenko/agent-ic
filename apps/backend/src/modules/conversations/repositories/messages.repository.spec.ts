@@ -107,7 +107,7 @@ describe('MessagesRepository', () => {
     );
 
     const latest = await testbed.tenants.run(conversation.workspaceId, () =>
-      testbed.messages.findLatestCustomer(conversation.workspaceId, conversation.id),
+      testbed.messages.findLatestCustomerMessage(conversation.workspaceId, conversation.id),
     );
 
     expect(latest?.id).toBe(customer.id);

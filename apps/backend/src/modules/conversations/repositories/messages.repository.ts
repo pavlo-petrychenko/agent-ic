@@ -79,7 +79,10 @@ export class MessagesRepository {
     return message ?? null;
   }
 
-  async findLatestCustomer(workspaceId: string, conversationId: string): Promise<Message | null> {
+  async findLatestCustomerMessage(
+    workspaceId: string,
+    conversationId: string,
+  ): Promise<Message | null> {
     const [message] = await this.txHost.tx
       .select()
       .from(messages)
