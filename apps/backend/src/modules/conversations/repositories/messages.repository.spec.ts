@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import type { NewMessage } from '@/modules/conversations/typedefs/message.typedefs';
 import {
   OTHER_MESSAGE_TEXT,
@@ -91,5 +92,24 @@ describe('MessagesRepository', () => {
     );
 
     expect(fromOther).toBeNull();
+  });
+
+  it('finds the latest customer message and skips later agent messages', async () => {
+    const conversation = await seedConversation(testbed);
+    const customer = newMessage(testbed, conversation);
+    await testbed.tenants.run(conversation.workspaceId, () =>
+      testbed.messages.insertIfAbsent(customer),
+    );
+    testbed.clock.advanceBy(1_000);
+    const agent = newMessage(testbed, conversation, { author: MessageAuthor.Agent });
+    await testbed.tenants.run(conversation.workspaceId, () =>
+      testbed.messages.insertIfAbsent(agent),
+    );
+
+    const latest = await testbed.tenants.run(conversation.workspaceId, () =>
+      testbed.messages.findLatestCustomer(conversation.workspaceId, conversation.id),
+    );
+
+    expect(latest?.id).toBe(customer.id);
   });
 });
