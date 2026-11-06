@@ -3,6 +3,7 @@ import { InboxCloseConversationDocument } from '@/features/inbox/communication/g
 import { InboxHandBackDocument } from '@/features/inbox/communication/gql/mutation/inboxHandBack.generated';
 import { InboxReplyAsOperatorDocument } from '@/features/inbox/communication/gql/mutation/inboxReplyAsOperator.generated';
 import { InboxTakeOverDocument } from '@/features/inbox/communication/gql/mutation/inboxTakeOver.generated';
+import { MarkNotificationsReadDocument } from '@/features/inbox/communication/gql/mutation/markNotificationsRead.generated';
 import {
   InboxConversationDocument,
   type InboxConversationQuery,
@@ -428,6 +429,14 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
           me: withTypename('User', { id: 'usr_demo', name: 'Demo Owner' }),
         },
       },
+      maxUsageCount: Number.POSITIVE_INFINITY,
+    },
+    {
+      request: {
+        query: MarkNotificationsReadDocument,
+        variables: () => true,
+      },
+      result: { data: { markNotificationsRead: 1 } },
       maxUsageCount: Number.POSITIVE_INFINITY,
     },
     {
