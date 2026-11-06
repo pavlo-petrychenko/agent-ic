@@ -7,6 +7,7 @@ import {
 } from '@/modules/conversations/constants/message.constants';
 import { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 import { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
+import { ConversationTakenError } from '@/modules/conversations/errors/conversation-taken.error';
 import { TakeOverUseCase } from '@/modules/conversations/use-cases/take-over.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -16,14 +17,16 @@ import {
   createConversationsTestbed,
   seedConversation,
 } from '@test/support/helpers/conversations-testing.helpers';
+import { ensureUserRow } from '@test/support/helpers/parent-rows.helpers';
 import type { ConversationsTestbed } from '@test/support/typedefs/conversations-testing.typedefs';
 
 describe('TakeOverUseCase', () => {
   let testbed: ConversationsTestbed;
 
-  const takeOver = (ctx: UseCaseCtx, conversationId: string) =>
+  const takeOver = (ctx: UseCaseCtx, conversationId: string, fromOperator = false) =>
     testbed.module.get(TakeOverUseCase).execute(ctx, {
       conversationId: testbed.ids.toPublic(IdPrefix.Conversation, conversationId),
+      fromOperator,
     });
 
   beforeAll(async () => {
@@ -72,5 +75,31 @@ describe('TakeOverUseCase', () => {
       testbed.conversations.close(live.workspaceId, live.id, testbed.clock.now(), null),
     );
     await expect(takeOver(ctx, live.id)).rejects.toBeInstanceOf(ConversationClosedError);
+  });
+
+  it('requires the explicit path to take over from another operator', async () => {
+    const conversation = await seedConversation(testbed);
+    const { workspaceId } = conversation;
+    const firstUser = testbed.ids.generate();
+    const secondUser = testbed.ids.generate();
+    await ensureUserRow(testbed.module, firstUser);
+    await ensureUserRow(testbed.module, secondUser);
+    await testbed.tenants.run(workspaceId, () =>
+      testbed.conversations.markWaiting(workspaceId, conversation.id),
+    );
+    const first = workspaceCtx(firstUser, workspaceId, WorkspaceRole.Operator);
+    const second = workspaceCtx(secondUser, workspaceId, WorkspaceRole.Operator);
+
+    await takeOver(first, conversation.id);
+    await expect(takeOver(second, conversation.id)).rejects.toBeInstanceOf(ConversationTakenError);
+    await takeOver(second, conversation.id, true);
+
+    const stored = await testbed.tenants.run(workspaceId, () =>
+      testbed.conversations.findById(workspaceId, conversation.id),
+    );
+    expect(stored).toMatchObject({
+      state: ConversationState.Handled,
+      handledBy: secondUser,
+    });
   });
 });

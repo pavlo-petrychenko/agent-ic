@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { parseConversationInput } from '@/modules/conversations/helpers/conversation-input.helpers';
 import { authorizeOperator } from '@/modules/conversations/helpers/operator.helpers';
-import { operatorConversationSchema } from '@/modules/conversations/schemas/simulation.schema';
+import { takeOverSchema } from '@/modules/conversations/schemas/simulation.schema';
 import { ConversationTakeOverService } from '@/modules/conversations/services/conversation-take-over.service';
 import type {
   ConversationView,
-  OperatorConversationInput,
+  TakeOverInput,
 } from '@/modules/conversations/typedefs/simulation.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 
@@ -13,9 +13,9 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 export class TakeOverUseCase {
   constructor(private readonly takeOvers: ConversationTakeOverService) {}
 
-  async execute(ctx: UseCaseCtx, input: OperatorConversationInput): Promise<ConversationView> {
+  async execute(ctx: UseCaseCtx, input: TakeOverInput): Promise<ConversationView> {
     const access = authorizeOperator(ctx);
-    const { conversationId } = parseConversationInput(operatorConversationSchema, input);
-    return this.takeOvers.takeOver(ctx, access, conversationId);
+    const { conversationId, fromOperator } = parseConversationInput(takeOverSchema, input);
+    return this.takeOvers.takeOver(ctx, access, conversationId, fromOperator);
   }
 }

@@ -7,12 +7,12 @@ import {
   MessageAuthor,
   MessageSystemEvent,
 } from '@/modules/conversations/constants/message.constants';
+import { ConversationTakenError } from '@/modules/conversations/errors/conversation-taken.error';
 import { parseConversationInput } from '@/modules/conversations/helpers/conversation-input.helpers';
 import {
   authorizeOperator,
   operatorMessageKey,
 } from '@/modules/conversations/helpers/operator.helpers';
-import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { operatorReplySchema } from '@/modules/conversations/schemas/simulation.schema';
 import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
 import { ConversationTimelineService } from '@/modules/conversations/services/conversation-timeline.service';
@@ -31,7 +31,6 @@ export class ReplyAsOperatorUseCase {
   constructor(
     private readonly tenants: TenantTransactionService,
     private readonly operated: OperatorConversationsService,
-    private readonly conversations: ConversationsRepository,
     private readonly outbound: ConversationRunsService,
     private readonly timeline: ConversationTimelineService,
     private readonly views: SimulationsService,
@@ -46,7 +45,10 @@ export class ReplyAsOperatorUseCase {
       const conversation = await this.operated.requireOperable(ctx, access, conversationId);
       const alreadyMine =
         conversation.state === ConversationState.Handled && conversation.handledBy === userId;
-      await this.conversations.takeOver(workspaceId, conversation.id, userId);
+      if (conversation.state === ConversationState.Handled && !alreadyMine) {
+        throw new ConversationTakenError(conversation.id);
+      }
+      await this.operated.takeOver(conversation, userId);
       if (conversation.mode === ConversationMode.Live && !alreadyMine) {
         await this.timeline.record(conversation, MessageSystemEvent.TookOver, userId);
       }
