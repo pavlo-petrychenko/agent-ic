@@ -5,7 +5,7 @@ import {
   NotificationKind,
 } from '@/modules/notifications/constants/notification.constants';
 import { NotificationsRepository } from '@/modules/notifications/repositories/notifications.repository';
-import { ROOT_BRANCH_KEY } from '@/modules/runs';
+import { ROOT_BRANCH_KEY, RunStepStatus } from '@/modules/runs';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { triggerOnlyFlow } from '@test/support/fixtures/runs.fixture';
 import { ensureUserRow } from '@test/support/helpers/parent-rows.helpers';
@@ -30,6 +30,7 @@ describe('NotificationsRepository read state', () => {
   const seedNotification = async (
     seeded: Awaited<ReturnType<typeof seedExecutableRun>>,
     userId: string,
+    reason: string | null = null,
   ): Promise<string> => {
     const step = await testbed.tenants.run(seeded.run.workspaceId, () =>
       testbed.steps.start({
@@ -45,6 +46,17 @@ describe('NotificationsRepository read state', () => {
     );
     if (step === null) {
       throw new Error('Expected a stored run step');
+    }
+    if (reason !== null) {
+      await testbed.tenants.run(seeded.run.workspaceId, () =>
+        testbed.steps.finish(seeded.run.workspaceId, step.id, {
+          status: RunStepStatus.Succeeded,
+          output: { reason },
+          port: null,
+          error: null,
+          finishedAt: testbed.clock.now(),
+        }),
+      );
     }
     const notificationId = await testbed.tenants.run(seeded.run.workspaceId, () =>
       notifications.insertIfAbsent({
@@ -114,6 +126,37 @@ describe('NotificationsRepository read state', () => {
         ),
       ),
     ).toBe(0);
+  });
+
+  it('returns the latest unread platform notification', async () => {
+    const seeded = await seedExecutableRun(testbed, triggerOnlyFlow());
+    const user = testbed.ids.generate();
+    await ensureUserRow(testbed.module, user);
+    await seedNotification(seeded, user, 'Customer asks to be called back.');
+
+    const alert = await testbed.tenants.run(seeded.run.workspaceId, () =>
+      notifications.findLatestUnreadPlatform(seeded.run.workspaceId, user),
+    );
+
+    expect(alert).toMatchObject({
+      conversationId: seeded.run.conversationId,
+      customerName: null,
+      reason: 'Customer asks to be called back.',
+    });
+
+    await testbed.tenants.run(seeded.run.workspaceId, () =>
+      notifications.markPlatformReadForConversation(
+        seeded.run.workspaceId,
+        user,
+        seeded.run.conversationId,
+        READ_AT,
+      ),
+    );
+    expect(
+      await testbed.tenants.run(seeded.run.workspaceId, () =>
+        notifications.findLatestUnreadPlatform(seeded.run.workspaceId, user),
+      ),
+    ).toBeNull();
   });
 
   it('does not mark another user or another conversation read', async () => {
