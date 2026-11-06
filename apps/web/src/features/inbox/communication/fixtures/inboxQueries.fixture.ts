@@ -550,7 +550,7 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
     {
       request: {
         query: InboxTakeOverDocument,
-        variables: { input: { conversationId: 'cnv_marta' } },
+        variables: { input: { conversationId: 'cnv_marta', fromOperator: false } },
       },
       result: () => {
         updateSummary('cnv_marta', (summary) => ({
@@ -562,6 +562,28 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
           data: {
             takeOver: withTypename('Conversation', {
               id: 'cnv_marta',
+              state: ConversationState.Handled,
+            }),
+          },
+        };
+      },
+    },
+    {
+      request: {
+        query: InboxTakeOverDocument,
+        variables: { input: { conversationId: 'cnv_andri', fromOperator: true } },
+      },
+      result: () => {
+        updateSummary('cnv_andri', (summary) => ({
+          ...summary,
+          state: ConversationState.Handled,
+          handledByMe: true,
+          handledByName: 'Demo Owner',
+        }));
+        return {
+          data: {
+            takeOver: withTypename('Conversation', {
+              id: 'cnv_andri',
               state: ConversationState.Handled,
             }),
           },

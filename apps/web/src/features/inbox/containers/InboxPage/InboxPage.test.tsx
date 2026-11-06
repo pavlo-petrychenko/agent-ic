@@ -168,6 +168,10 @@ describe('InboxPage', () => {
       await screen.findByText('Escalated at 02:18 PM · Olena took over at 02:19 PM'),
     ).toBeInTheDocument();
     expect((await screen.findAllByText(/^Olena ·/)).length).toBeGreaterThan(0);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Take over from Olena' }));
+
+    expect(await screen.findByRole('button', { name: 'Hand back to agent' })).toBeInTheDocument();
   });
 
   it('takes over a waiting conversation to reply', async () => {

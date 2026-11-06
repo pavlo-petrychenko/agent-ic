@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useHandBack } from '@/features/inbox/communication/hooks/useHandBack';
 import { useTakeOver } from '@/features/inbox/communication/hooks/useTakeOver';
-import { InboxActionId } from '@/features/inbox/constants/inbox.constants';
+import { InboxActionId, InboxReplyState } from '@/features/inbox/constants/inbox.constants';
 import type {
   UseInboxActionsOptions,
   UseInboxActionsResult,
@@ -32,11 +32,14 @@ export function useInboxActions({
       return;
     }
     onSelect(conversation.id);
-    const perform = id === InboxActionId.HandBack ? handBack : takeOver;
     setPendingAction(id);
     void (async () => {
       try {
-        await perform(conversation.id);
+        if (id === InboxActionId.HandBack) {
+          await handBack(conversation.id);
+        } else {
+          await takeOver(conversation.id, conversation.replyState === InboxReplyState.Operator);
+        }
       } catch (caught) {
         showToast({ message: errorMessage(toAppError(caught)), tone: ToastTone.Err });
       } finally {

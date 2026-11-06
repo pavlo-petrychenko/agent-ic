@@ -6,9 +6,9 @@ export function useTakeOver() {
   const [takeOverConversation, { loading }] = useMutation(InboxTakeOverDocument);
 
   const takeOver = useCallback(
-    async (conversationId: string) => {
+    async (conversationId: string, fromOperator = false) => {
       await takeOverConversation({
-        variables: { input: { conversationId } },
+        variables: { input: { conversationId, fromOperator } },
         refetchQueries: ['InboxConversations', 'InboxCounts'],
         awaitRefetchQueries: true,
       });
