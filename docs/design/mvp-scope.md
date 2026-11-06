@@ -717,6 +717,7 @@ The run is marked failed, and Agents shows "N runs failed today".
   - **Email:** reason, last customer message, "Open in Inbox".
   - **Telegram:** a shared alerts bot. The user links their Telegram with a 10-minute one-time code; the message has "Open in Inbox".
 - System emails: confirmation, reset, usage at 80/100%, Telegram token revoked.
+- Storage: [notifications.md](notifications.md) — settings, channels, notification and delivery tables.
 
 ### 12.12 Testing and release
 - The simulator has three tabs:
