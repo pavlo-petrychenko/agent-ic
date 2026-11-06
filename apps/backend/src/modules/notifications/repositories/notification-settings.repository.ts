@@ -74,6 +74,7 @@ export class NotificationSettingsRepository {
   ): Promise<NotificationChannelSettingRecord[]> {
     return this.txHost.tx
       .select({
+        id: notificationChannels.id,
         channel: notificationChannels.channel,
         enabled: notificationChannels.enabled,
         email: emailNotificationChannels.email,

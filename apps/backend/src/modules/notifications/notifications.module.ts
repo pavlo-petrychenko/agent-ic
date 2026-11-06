@@ -3,7 +3,9 @@ import { createEmailGateway } from '@/modules/notifications/helpers/email-gatewa
 import { SendConfirmationEmailListener } from '@/modules/notifications/listeners/send-confirmation-email.listener';
 import { SendEmailChangeEmailListener } from '@/modules/notifications/listeners/send-email-change-email.listener';
 import { SendPasswordResetEmailListener } from '@/modules/notifications/listeners/send-password-reset-email.listener';
+import { NotificationSettingsRepository } from '@/modules/notifications/repositories/notification-settings.repository';
 import { NotificationMetricsService } from '@/modules/notifications/services/notification-metrics.service';
+import { NotificationSettingsService } from '@/modules/notifications/services/notification-settings.service';
 import { SendConfirmationEmailUseCase } from '@/modules/notifications/use-cases/send-confirmation-email.use-case';
 import { SendEmailChangeEmailUseCase } from '@/modules/notifications/use-cases/send-email-change-email.use-case';
 import { SendPasswordResetEmailUseCase } from '@/modules/notifications/use-cases/send-password-reset-email.use-case';
@@ -20,6 +22,8 @@ export class NotificationsModule extends defineModule({
         createEmailGateway(config.email, metrics),
     },
     NotificationMetricsService,
+    NotificationSettingsRepository,
+    NotificationSettingsService,
     SendConfirmationEmailUseCase,
     SendPasswordResetEmailUseCase,
     SendEmailChangeEmailUseCase,
