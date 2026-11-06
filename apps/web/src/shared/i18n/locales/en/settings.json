@@ -31,6 +31,14 @@
       "linkedOn": "Linked {{date}}",
       "footer": "You get alerts for escalations from every agent you can access in the Inbox."
     },
+    "browser": {
+      "title": "Browser notifications",
+      "hint": "Get a desktop notification when a chat is escalated to you.",
+      "enable": "Enable",
+      "enabled": "Browser notifications are on",
+      "denied": "Blocked in your browser settings",
+      "unsupported": "This browser does not support notifications"
+    },
     "link": {
       "title": "Link your Telegram",
       "openBot": "Open {{bot}} in Telegram",
