@@ -145,6 +145,7 @@ describe('NotificationsRepository read state', () => {
       channelKind: ChannelKind.Simulated,
       reason: 'Customer asks to be called back.',
     });
+    expect(alert?.createdAt).toBeInstanceOf(Date);
 
     await testbed.tenants.run(seeded.run.workspaceId, () =>
       notifications.markPlatformReadForConversation(
