@@ -7,6 +7,7 @@ import { STEP_EXECUTORS } from '@/modules/runs/constants/run.constants';
 import { ArmInactivityOnHandBackListener } from '@/modules/runs/listeners/arm-inactivity-on-hand-back.listener';
 import { CreateEscalationNotificationsListener } from '@/modules/runs/listeners/create-escalation-notifications.listener';
 import { StartRunOnMessageListener } from '@/modules/runs/listeners/start-run-on-message.listener';
+import { DeliverNotificationProcessor } from '@/modules/runs/processors/deliver-notification.processor';
 import { ExecuteProactiveRunProcessor } from '@/modules/runs/processors/execute-proactive-run.processor';
 import { ExecuteRunProcessor } from '@/modules/runs/processors/execute-run.processor';
 import { FireInactivityTimerProcessor } from '@/modules/runs/processors/fire-inactivity-timer.processor';
@@ -52,6 +53,7 @@ import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-regi
 import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedefs';
 import { ArmInactivityOnHandBackUseCase } from '@/modules/runs/use-cases/arm-inactivity-on-hand-back.use-case';
 import { CreateEscalationNotificationsUseCase } from '@/modules/runs/use-cases/create-escalation-notifications.use-case';
+import { DeliverNotificationUseCase } from '@/modules/runs/use-cases/deliver-notification.use-case';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
 import { FireInactivityTimerUseCase } from '@/modules/runs/use-cases/fire-inactivity-timer.use-case';
 import { FireScheduleTickUseCase } from '@/modules/runs/use-cases/fire-schedule-tick.use-case';
@@ -126,6 +128,7 @@ export class RunsModule extends defineModule({
     { provide: SimulatorTestsReader, useClass: SimulationTestsReaderService },
     StartRunOnMessageUseCase,
     CreateEscalationNotificationsUseCase,
+    DeliverNotificationUseCase,
     ArmInactivityOnHandBackUseCase,
     SweepInactivityTimersUseCase,
     FireInactivityTimerUseCase,
@@ -157,6 +160,7 @@ export class RunsModule extends defineModule({
     FireInactivityTimerProcessor,
     SweepScheduleTriggersProcessor,
     FireScheduleTickProcessor,
+    DeliverNotificationProcessor,
   ],
   listeners: [
     StartRunOnMessageListener,
