@@ -95,4 +95,5 @@ export enum TestRedisPrefix {
   IsolationFirst = 'isolation-first:',
   IsolationSecond = 'isolation-second:',
   NotificationSettings = 'notification-settings:',
+  NotificationReadPath = 'notification-read-path:',
 }

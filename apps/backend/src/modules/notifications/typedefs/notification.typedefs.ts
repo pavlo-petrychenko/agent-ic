@@ -22,3 +22,7 @@ export interface NewNotificationDeliveryRecord {
   readonly sentAt: Date | null;
   readonly readAt: Date | null;
 }
+
+export interface MarkNotificationsReadInput {
+  readonly conversationId: string;
+}

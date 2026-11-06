@@ -1,10 +1,12 @@
 extend type Query {
   notificationSettings: NotificationSettings!
+  unreadNotificationCount: Int!
 }
 
 extend type Mutation {
   updateNotificationChannel(input: UpdateNotificationChannelInput!): NotificationSettings!
   updateNotificationEmail(input: UpdateNotificationEmailInput!): NotificationSettings!
+  markNotificationsRead(input: MarkNotificationsReadInput!): Int!
 }
 
 enum NotificationChannel {
@@ -42,4 +44,8 @@ input UpdateNotificationChannelInput {
 
 input UpdateNotificationEmailInput {
   email: String!
+}
+
+input MarkNotificationsReadInput {
+  conversationId: ID!
 }
