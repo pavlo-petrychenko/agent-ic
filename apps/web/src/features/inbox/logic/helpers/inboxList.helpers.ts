@@ -72,7 +72,7 @@ export const inboxTabItems = (
     count: counts[tab],
   }));
 
-const inboxUpdatedLabel = (minutesAgo: number, t: InboxTranslate): string => {
+export const inboxUpdatedLabel = (minutesAgo: number, t: InboxTranslate): string => {
   const days = Math.floor(minutesAgo / INBOX_MINUTES_PER_DAY);
   if (days > 0) {
     return t('daysAgo', { count: days });

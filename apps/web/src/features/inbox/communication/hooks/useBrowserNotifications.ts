@@ -1,5 +1,5 @@
 import { skipToken, useQuery, useSubscription } from '@apollo/client/react';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LatestUnreadNotificationDocument } from '@/features/inbox/communication/gql/query/latestUnreadNotification.generated';
 import { InboxActivityDocument } from '@/features/inbox/communication/gql/subscription/inboxActivity.generated';
@@ -7,11 +7,17 @@ import { showBrowserNotification } from '@/features/inbox/communication/helpers/
 import { useBrowserNotificationPermission } from '@/features/inbox/communication/hooks/useBrowserNotificationPermission';
 import { useRefetchOnFocus } from '@/features/inbox/communication/hooks/useRefetchOnFocus';
 import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants';
+import type { BrowserNotificationAlert } from '@/features/inbox/typedefs/browserNotification.typedefs';
+
+export interface UseBrowserNotificationsResult {
+  readonly cardAlert: BrowserNotificationAlert | null;
+  readonly dismiss: () => void;
+}
 
 export function useBrowserNotifications(
   enabled: boolean,
   onOpen: (conversationId: string) => void,
-): void {
+): UseBrowserNotificationsResult {
   const { t } = useTranslation(INBOX_NAMESPACE);
   const { permission } = useBrowserNotificationPermission();
   const { data, refetch } = useQuery(LatestUnreadNotificationDocument, {
@@ -20,14 +26,29 @@ export function useBrowserNotifications(
   });
   useSubscription(InboxActivityDocument, enabled ? { onData: () => void refetch() } : skipToken);
   useRefetchOnFocus(refetch, enabled);
-  const shown = useRef(new Set<string>());
-  const alert = data?.latestUnreadNotification ?? null;
+  const nativeShown = useRef(new Set<string>());
+  const [dismissed, setDismissed] = useState<ReadonlySet<string>>(() => new Set());
+  const [visible, setVisible] = useState(() => document.visibilityState === 'visible');
+  const alert: BrowserNotificationAlert | null = data?.latestUnreadNotification ?? null;
+  const cardAlert = enabled && visible && alert !== null && !dismissed.has(alert.id) ? alert : null;
 
   useEffect(() => {
-    if (!enabled || permission !== 'granted' || alert === null || shown.current.has(alert.id)) {
+    const update = () => setVisible(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', update);
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
+
+  useEffect(() => {
+    if (
+      !enabled ||
+      visible ||
+      alert === null ||
+      permission !== 'granted' ||
+      nativeShown.current.has(alert.id)
+    ) {
       return;
     }
-    shown.current.add(alert.id);
+    nativeShown.current.add(alert.id);
     showBrowserNotification({
       title:
         alert.customerName === null
@@ -35,7 +56,26 @@ export function useBrowserNotifications(
           : t('browser.title', { name: alert.customerName }),
       body: alert.reason ?? t('browser.bodyFallback'),
       tag: alert.id,
-      onClick: () => onOpen(alert.conversationId),
+      onClick: () => {
+        setDismissed((current) => new Set(current).add(alert.id));
+        onOpen(alert.conversationId);
+      },
     });
-  }, [alert, enabled, onOpen, permission, t]);
+  }, [alert, enabled, onOpen, permission, t, visible]);
+
+  const dismiss = useCallback(() => {
+    if (alert === null) {
+      return;
+    }
+    setDismissed((current) => {
+      if (current.has(alert.id)) {
+        return current;
+      }
+      const next = new Set(current);
+      next.add(alert.id);
+      return next;
+    });
+  }, [alert]);
+
+  return { cardAlert, dismiss };
 }

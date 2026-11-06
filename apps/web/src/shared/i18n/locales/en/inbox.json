@@ -27,7 +27,8 @@
   },
   "provider": {
     "telegram": "Telegram",
-    "api": "API"
+    "api": "API",
+    "other": "Chat"
   },
   "status": {
     "waiting": "Waiting",
@@ -39,7 +40,9 @@
   "browser": {
     "title": "{{name}} needs a person",
     "titleFallback": "A chat needs a person",
-    "bodyFallback": "A chat was escalated to you."
+    "bodyFallback": "A chat was escalated to you.",
+    "subtitle": "{{channel}} · waiting {{time}}",
+    "open": "Open"
   },
   "header": {
     "closeChat": "Close chat",
