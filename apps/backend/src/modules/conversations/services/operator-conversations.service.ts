@@ -7,6 +7,7 @@ import {
 import { OPERATOR_RESOURCE } from '@/modules/conversations/constants/operator.constants';
 import { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
 import { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
+import { ConversationTakenError } from '@/modules/conversations/errors/conversation-taken.error';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import type { Conversation } from '@/modules/conversations/typedefs/conversation.typedefs';
 import { authorize } from '@/platform/context/helpers/authorize.helpers';
@@ -42,5 +43,18 @@ export class OperatorConversationsService {
       throw new ConversationClosedError(publicId);
     }
     return conversation;
+  }
+
+  async takeOver(conversation: Conversation, userId: string): Promise<Conversation> {
+    const taken = await this.conversations.takeOver(
+      conversation.workspaceId,
+      conversation.id,
+      userId,
+      { state: conversation.state, handledBy: conversation.handledBy },
+    );
+    if (taken === null) {
+      throw new ConversationTakenError(conversation.id);
+    }
+    return taken;
   }
 }

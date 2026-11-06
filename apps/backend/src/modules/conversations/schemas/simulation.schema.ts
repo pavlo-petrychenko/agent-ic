@@ -24,6 +24,13 @@ export const operatorReplySchema = simulatorMessageSchema;
 
 export const operatorConversationSchema = z.object({ conversationId: publicIdSchema });
 
+export const takeOverSchema = operatorConversationSchema.extend({
+  fromOperator: z
+    .boolean()
+    .nullish()
+    .transform((value) => value ?? false),
+});
+
 export const closeConversationSchema = z.object({
   conversationId: publicIdSchema,
   message: z

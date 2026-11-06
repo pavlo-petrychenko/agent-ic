@@ -46,7 +46,10 @@ describe('ListInboxConversationsUseCase', () => {
     const handled = await seedConversation(testbed, workspaceId);
     await seedMessage(testbed, handled, { text: 'Handled message' });
     await testbed.tenants.run(workspaceId, () =>
-      testbed.conversations.takeOver(workspaceId, handled.id, userId),
+      testbed.conversations.takeOver(workspaceId, handled.id, userId, {
+        state: handled.state,
+        handledBy: handled.handledBy ?? null,
+      }),
     );
 
     const waiting = await seedConversation(testbed, workspaceId);
