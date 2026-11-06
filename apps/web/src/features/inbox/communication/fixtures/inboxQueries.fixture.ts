@@ -10,11 +10,15 @@ import {
 import {
   InboxConversationsDocument,
   type InboxConversationsQuery,
+  type InboxConversationsQueryVariables,
 } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
-import { InboxCountsDocument } from '@/features/inbox/communication/gql/query/inboxCounts.generated';
+import {
+  InboxCountsDocument,
+  type InboxCountsQueryVariables,
+} from '@/features/inbox/communication/gql/query/inboxCounts.generated';
 import { InboxCurrentUserDocument } from '@/features/inbox/communication/gql/query/inboxCurrentUser.generated';
+import { InboxFilterOptionsDocument } from '@/features/inbox/communication/gql/query/inboxFilterOptions.generated';
 import { InboxNeedsYouCountDocument } from '@/features/inbox/communication/gql/query/inboxNeedsYouCount.generated';
-import { INBOX_CONVERSATIONS_PAGE_SIZE } from '@/features/inbox/constants/inbox.constants';
 import {
   ApiReplyMode,
   ChannelConversationKind,
@@ -38,6 +42,76 @@ const INBOX_QUEUE_STATES: Readonly<Record<string, readonly ConversationState[]>>
   needs_you: [ConversationState.Waiting, ConversationState.Handled],
   live: [ConversationState.AgentActive],
   closed: [ConversationState.Closed],
+};
+
+type IdFilter = string | number | readonly (string | number)[] | null | undefined;
+
+interface SummaryFilter {
+  readonly channelIds?: IdFilter;
+  readonly agentIds?: IdFilter;
+  readonly search?: string | null;
+}
+
+const normalizeIds = (value: IdFilter): readonly string[] => {
+  if (value === null || value === undefined) {
+    return [];
+  }
+  return Array.isArray(value) ? value.map((item) => String(item)) : [String(value)];
+};
+
+const matchesSummary = (summary: InboxSummaryFixture, filter: SummaryFilter): boolean => {
+  const channelIds = normalizeIds(filter.channelIds);
+  const agentIds = normalizeIds(filter.agentIds);
+  const search = (filter.search ?? '').trim().toLocaleLowerCase();
+  return (
+    (channelIds.length === 0 ||
+      (summary.channelId !== null && channelIds.includes(summary.channelId))) &&
+    (agentIds.length === 0 || agentIds.includes(summary.agentId)) &&
+    (search === '' ||
+      `${summary.endUserName ?? ''} ${summary.endUserExternalId}`
+        .toLocaleLowerCase()
+        .includes(search))
+  );
+};
+
+const summariesFor = (
+  summaries: readonly InboxSummaryFixture[],
+  variables: InboxConversationsQueryVariables,
+): readonly InboxSummaryFixture[] =>
+  summaries.filter(
+    (summary) =>
+      INBOX_QUEUE_STATES[variables.queue]?.includes(summary.state) &&
+      matchesSummary(summary, variables),
+  );
+
+const countsOf = (
+  summaries: readonly InboxSummaryFixture[],
+  filter: SummaryFilter,
+): { readonly needsYou: number; readonly live: number; readonly closed: number } => {
+  const matching = summaries.filter((summary) => matchesSummary(summary, filter));
+  const countOf = (states: readonly ConversationState[]): number =>
+    matching.filter((summary) => states.includes(summary.state)).length;
+  return {
+    needsYou: countOf(INBOX_QUEUE_STATES.needs_you ?? []),
+    live: countOf(INBOX_QUEUE_STATES.live ?? []),
+    closed: countOf(INBOX_QUEUE_STATES.closed ?? []),
+  };
+};
+
+const filterOptionsOf = (summaries: readonly InboxSummaryFixture[]) => {
+  const channels = new Map<string, string>();
+  const agents = new Map<string, string>();
+  for (const summary of summaries) {
+    if (summary.channelId !== null) {
+      channels.set(summary.channelId, summary.channelName ?? summary.channelId);
+    }
+    agents.set(summary.agentId, summary.agentName);
+  }
+  const options = (values: ReadonlyMap<string, string>) =>
+    [...values.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+  return { channels: options(channels), agents: options(agents) };
 };
 
 export const inboxSummaries: readonly InboxSummaryFixture[] = [
@@ -535,37 +609,30 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
       maxUsageCount: Number.POSITIVE_INFINITY,
     },
     {
-      request: { query: InboxCountsDocument },
+      request: { query: InboxFilterOptionsDocument },
       result: () => ({
+        data: { inboxFilterOptions: filterOptionsOf(summaries) },
+      }),
+      maxUsageCount: Number.POSITIVE_INFINITY,
+    },
+    {
+      request: { query: InboxCountsDocument, variables: () => true },
+      result: (variables: InboxCountsQueryVariables) => ({
+        data: { inboxCounts: countsOf(summaries, variables.input ?? {}) },
+      }),
+      maxUsageCount: Number.POSITIVE_INFINITY,
+    },
+    {
+      request: { query: InboxConversationsDocument, variables: () => true },
+      result: (variables: InboxConversationsQueryVariables) => ({
         data: {
-          inboxCounts: {
-            needsYou: summaries.filter((summary) =>
-              INBOX_QUEUE_STATES.needs_you?.includes(summary.state),
-            ).length,
-            live: summaries.filter((summary) => INBOX_QUEUE_STATES.live?.includes(summary.state))
-              .length,
-            closed: summaries.filter((summary) =>
-              INBOX_QUEUE_STATES.closed?.includes(summary.state),
-            ).length,
-          },
+          inboxConversations: summariesFor(summaries, variables).map((summary) =>
+            withTypename('InboxConversationSummary', summary),
+          ),
         },
       }),
       maxUsageCount: Number.POSITIVE_INFINITY,
     },
-    ...Object.keys(INBOX_QUEUE_STATES).map((queue) => ({
-      request: {
-        query: InboxConversationsDocument,
-        variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null, queue },
-      },
-      result: () => ({
-        data: {
-          inboxConversations: summaries
-            .filter((summary) => INBOX_QUEUE_STATES[queue]?.includes(summary.state))
-            .map((summary) => withTypename('InboxConversationSummary', summary)),
-        },
-      }),
-      maxUsageCount: Number.POSITIVE_INFINITY,
-    })),
     ...inboxSummaries.map((summary) => ({
       request: { query: InboxConversationDocument, variables: { id: summary.id } },
       result: () => ({
