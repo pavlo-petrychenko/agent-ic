@@ -2,7 +2,7 @@ import type { notificationChannels } from '@/modules/notifications/db/notificati
 
 export type NotificationChannelValue = (typeof notificationChannels.$inferSelect)['channel'];
 
-export interface NotificationSettingsHeader {
+interface NotificationSettingsHeader {
   readonly id: string;
   readonly workspaceId: string;
   readonly userId: string;
@@ -30,17 +30,17 @@ export interface NewNotificationChannelRecord {
   readonly enabled: boolean;
 }
 
-export interface PlatformNotificationSettingView {
+interface PlatformNotificationSettingView {
   readonly enabled: boolean;
 }
 
-export interface EmailNotificationSettingView {
+interface EmailNotificationSettingView {
   readonly enabled: boolean;
   readonly email: string | null;
   readonly verifiedAt: Date | null;
 }
 
-export interface TelegramNotificationSettingView {
+interface TelegramNotificationSettingView {
   readonly enabled: boolean;
   readonly linked: boolean;
   readonly linkedAt: Date | null;
