@@ -6,7 +6,7 @@ import type { UseNotificationSettingsResult } from '@/features/settings/typedefs
 
 export function useNotificationSettings(): UseNotificationSettingsResult {
   const { data, loading } = useQuery(NotificationSettingsDocument, {
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'network-only',
   });
   const settings = useMemo(() => toNotificationSettingsView(data), [data]);
   return { settings, loading };
