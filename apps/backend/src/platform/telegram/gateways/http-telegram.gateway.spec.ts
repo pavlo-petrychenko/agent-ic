@@ -243,7 +243,6 @@ describe('HttpTelegramGateway', () => {
           telegramMessageId: '7',
           senderId: '900',
           senderName: 'Moshe',
-          senderUsername: null,
           data: 'qr:msg_1:0',
         },
       },

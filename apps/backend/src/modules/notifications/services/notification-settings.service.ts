@@ -20,13 +20,13 @@ export class NotificationSettingsService {
   constructor(
     private readonly settings: NotificationSettingsRepository,
     private readonly ids: IdService,
-    private readonly config: ConfigService,
+    private readonly configService: ConfigService,
   ) {}
 
   async describe(workspaceId: string, userId: string): Promise<NotificationSettingsView> {
     return toNotificationSettingsView(
       await this.settings.findByUser(workspaceId, userId),
-      this.config.config.telegram.alertsBotUsername,
+      this.configService.config.telegram.alertsBotUsername,
     );
   }
 

@@ -69,7 +69,6 @@ const callbackUpdate = (
     telegramMessageId: '7',
     senderId: '900',
     senderName: 'Moshe',
-    senderUsername: null,
     data: telegramQuickReplyCallbackData(messageId, index),
     ...overrides,
   },

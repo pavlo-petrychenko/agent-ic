@@ -26,13 +26,13 @@ export class CreateTelegramNotificationLinkUseCase {
     private readonly settings: NotificationSettingsService,
     private readonly settingsRepository: NotificationSettingsRepository,
     private readonly secureTokens: SecureTokenService,
-    private readonly config: ConfigService,
+    private readonly configService: ConfigService,
     private readonly clock: ClockService,
   ) {}
 
   execute(ctx: UseCaseCtx): Promise<TelegramNotificationLinkView> {
     const { workspaceId, userId } = notificationActorOf(ctx);
-    const { alertsBotToken, alertsBotUsername } = this.config.config.telegram;
+    const { alertsBotToken, alertsBotUsername } = this.configService.config.telegram;
     if (alertsBotToken === null || alertsBotUsername === null) {
       throw new TelegramAlertsNotConfiguredError();
     }

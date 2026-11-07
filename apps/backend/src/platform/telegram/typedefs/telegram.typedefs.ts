@@ -33,7 +33,6 @@ export interface TelegramCallbackQuery {
   readonly telegramMessageId: string | null;
   readonly senderId: string;
   readonly senderName: string;
-  readonly senderUsername: string | null;
   readonly data: string | null;
 }
 
