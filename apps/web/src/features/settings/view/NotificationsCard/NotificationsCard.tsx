@@ -1,4 +1,3 @@
-import { NotificationPreferenceRow } from '@/features/settings/view/NotificationsCard/NotificationPreferenceRow';
 import type { NotificationsCardProps } from '@/features/settings/view/NotificationsCard/NotificationsCard.typedefs';
 import { Card } from '@/shared/ui/display/Card';
 import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/typography/Heading';
@@ -8,7 +7,6 @@ import styles from '@/features/settings/view/NotificationsCard/NotificationsCard
 export function NotificationsCard({
   title,
   description,
-  rows,
   footer,
   children,
 }: NotificationsCardProps) {
@@ -22,11 +20,6 @@ export function NotificationsCard({
           {description}
         </Text>
       </div>
-      <ul className={styles.preferences}>
-        {rows.map((row) => (
-          <NotificationPreferenceRow key={row.id} row={row} />
-        ))}
-      </ul>
       {children}
       <div className={styles.footer}>
         <Text kind={TextKind.Caption} color={TextColor.Mute}>
