@@ -25,6 +25,7 @@ export const toTelegramMessage = (message: TelegramMessageResponse): TelegramMes
     chatId: String(message.chat.id),
     senderId: sender === undefined ? null : String(sender.id),
     senderName: sender?.first_name ?? null,
+    senderUsername: sender?.username ?? null,
     text: message.text ?? null,
   };
 };
@@ -40,6 +41,7 @@ export const toTelegramCallbackQuery = (
     telegramMessageId: message === undefined ? null : String(message.message_id),
     senderId: String(sender.id),
     senderName: sender.first_name,
+    senderUsername: sender.username ?? null,
     data: query.data ?? null,
   };
 };

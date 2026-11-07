@@ -95,6 +95,9 @@ export interface UsageConfig {
 export interface TelegramConfig {
   readonly transport: TelegramTransport;
   readonly pollTimeoutSeconds: number;
+  readonly alertsBotToken: string | null;
+  readonly alertsBotUsername: string | null;
+  readonly alertsWebhookSecret: string | null;
 }
 
 export interface GoogleDisabledConfig {

@@ -18,6 +18,7 @@ export const telegramNotificationChannels = notificationsSchema
         onDelete: 'cascade',
       }),
       chatId: text('chat_id'),
+      username: text('username'),
       linkedAt: timestamp('linked_at', { withTimezone: true }),
       linkCodeHash: text('link_code_hash'),
       linkCodeExpiresAt: timestamp('link_code_expires_at', { withTimezone: true }),
