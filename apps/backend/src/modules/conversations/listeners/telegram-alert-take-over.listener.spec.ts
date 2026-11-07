@@ -1,3 +1,4 @@
+import { Locale } from '@agent-ic/contracts';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TelegramAlertTakeOverListener } from '@/modules/conversations/listeners/telegram-alert-take-over.listener';
 import { TakeOverFromTelegramUseCase } from '@/modules/conversations/use-cases/take-over-from-telegram.use-case';
@@ -8,6 +9,8 @@ const INPUT = {
   conversationPublicId: 'cnv_public',
   chatId: '42',
   messageId: '7',
+  callbackQueryId: 'callback-1',
+  locale: Locale.En,
 };
 
 describe('TelegramAlertTakeOverListener', () => {

@@ -162,8 +162,9 @@ export class TelegramAlertsService {
       conversationPublicId: parsed.conversationPublicId,
       chatId,
       messageId: callback.telegramMessageId,
+      callbackQueryId: callback.id,
+      locale: target.locale,
     });
-    await this.answerCallback(callback.id, TELEGRAM_ALERT_TAKE_OVER_COPY[target.locale].started);
   }
 
   private async answerCallback(callbackQueryId: string, text: string): Promise<void> {
