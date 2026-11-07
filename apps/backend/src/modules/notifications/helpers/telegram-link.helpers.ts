@@ -9,8 +9,19 @@ import { TelegramLinkStatus } from '@/modules/notifications/typedefs/telegram-li
 
 const TELEGRAM_LINK_CODE_PATTERN = /^\d{6}$/;
 const START_COMMAND = '/start';
+const POSTGRES_UNIQUE_VIOLATION = '23505';
+const LINK_CODE_HASH_CONSTRAINT = 'telegram_notification_channels_link_code_hash_key';
 
 const normalizeCode = (value: string): string => value.replace(/\s+/g, '');
+
+export const isTelegramLinkCodeConflict = (error: unknown): boolean => {
+  if (typeof error !== 'object' || error === null) {
+    return false;
+  }
+  const code = 'code' in error ? error.code : null;
+  const constraint = 'constraint' in error ? error.constraint : null;
+  return code === POSTGRES_UNIQUE_VIOLATION && constraint === LINK_CODE_HASH_CONSTRAINT;
+};
 
 export const telegramLinkCodeFromMessage = (text: string): string | null => {
   const trimmed = text.trim();
