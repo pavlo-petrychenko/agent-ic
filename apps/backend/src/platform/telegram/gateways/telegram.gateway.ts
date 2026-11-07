@@ -1,5 +1,6 @@
 import type {
   AnswerTelegramCallbackQueryInput,
+  EditTelegramMessageReplyMarkupInput,
   GetTelegramUpdatesInput,
   RemoveTelegramInlineKeyboardInput,
   SendTelegramChatActionInput,
@@ -28,4 +29,6 @@ export abstract class TelegramGateway {
   abstract answerCallbackQuery(input: AnswerTelegramCallbackQueryInput): Promise<void>;
 
   abstract removeInlineKeyboard(input: RemoveTelegramInlineKeyboardInput): Promise<void>;
+
+  abstract editMessageReplyMarkup(input: EditTelegramMessageReplyMarkupInput): Promise<void>;
 }

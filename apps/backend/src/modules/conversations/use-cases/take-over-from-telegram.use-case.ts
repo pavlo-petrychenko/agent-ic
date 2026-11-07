@@ -5,6 +5,7 @@ import { authorizeOperator } from '@/modules/conversations/helpers/operator.help
 import { ConversationTakeOverService } from '@/modules/conversations/services/conversation-take-over.service';
 import { MembershipsRepository } from '@/modules/identity';
 import {
+  escalationTelegramReplyMarkup,
   NotificationLogMessage,
   TELEGRAM_ALERT_TAKE_OVER_COPY,
   type TelegramAlertTakeOverInput,
@@ -41,7 +42,7 @@ export class TakeOverFromTelegramUseCase {
     );
     if (role === null) {
       await this.answer(input, copy.unavailable, true);
-      await this.removeKeyboard(input);
+      await this.showInboxButton(input);
       return;
     }
     const userCtx: UseCaseCtx = {
@@ -63,7 +64,7 @@ export class TakeOverFromTelegramUseCase {
         err: error,
       });
       await this.answer(input, copy.unavailable, true);
-      await this.removeKeyboard(input);
+      await this.showInboxButton(input);
       return;
     }
     try {
@@ -98,7 +99,7 @@ export class TakeOverFromTelegramUseCase {
       });
       await this.answer(input, copy.unavailable, true);
     }
-    await this.removeKeyboard(input);
+    await this.showInboxButton(input);
   }
 
   private async answer(
@@ -126,16 +127,20 @@ export class TakeOverFromTelegramUseCase {
     }
   }
 
-  private async removeKeyboard(input: TelegramAlertTakeOverInput): Promise<void> {
+  private async showInboxButton(input: TelegramAlertTakeOverInput): Promise<void> {
     const token = this.config.config.telegram.alertsBotToken;
     if (token === null || input.messageId === null) {
       return;
     }
     try {
-      await this.telegram.removeInlineKeyboard({
+      await this.telegram.editMessageReplyMarkup({
         token,
         chatId: input.chatId,
         messageId: input.messageId,
+        replyMarkup: escalationTelegramReplyMarkup(input.locale, {
+          inboxUrl: input.inboxUrl,
+          takeOverCallbackData: null,
+        }),
       });
     } catch (error) {
       this.logger.warn({

@@ -11,6 +11,7 @@ const INPUT = {
   messageId: '7',
   callbackQueryId: 'callback-1',
   locale: Locale.En,
+  inboxUrl: 'https://app.test/w/ws_public/inbox?conversation=cnv_public',
 };
 
 describe('TelegramAlertTakeOverListener', () => {

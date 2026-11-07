@@ -18,6 +18,7 @@ const INPUT = {
   messageId: '7',
   callbackQueryId: 'callback-1',
   locale: Locale.En,
+  inboxUrl: 'https://app.test/w/ws_public/inbox?conversation=cnv_public',
 };
 
 const VIEW = {
@@ -44,6 +45,7 @@ describe('TakeOverFromTelegramUseCase', () => {
     takeOverForTelegram.mockReset();
     telegram.answerCallbackQueryCalls.length = 0;
     telegram.removeInlineKeyboardCalls.length = 0;
+    telegram.editMessageReplyMarkupCalls.length = 0;
     run.mockImplementation((_workspaceId, work) => work());
     findRole.mockResolvedValue(WorkspaceRole.Operator);
     takeOverForTelegram.mockResolvedValue({
@@ -90,9 +92,24 @@ describe('TakeOverFromTelegramUseCase', () => {
         showAlert: false,
       },
     ]);
-    expect(telegram.removeInlineKeyboardCalls).toEqual([
-      { token: 'alerts-token', chatId: '42', messageId: '7' },
+    expect(telegram.editMessageReplyMarkupCalls).toEqual([
+      {
+        token: 'alerts-token',
+        chatId: '42',
+        messageId: '7',
+        replyMarkup: {
+          inline_keyboard: [
+            [
+              {
+                text: 'Open in Inbox',
+                url: 'https://app.test/w/ws_public/inbox?conversation=cnv_public',
+              },
+            ],
+          ],
+        },
+      },
     ]);
+    expect(telegram.removeInlineKeyboardCalls).toHaveLength(0);
   });
 
   it('tells the same operator that the chat is already theirs', async () => {
@@ -104,7 +121,8 @@ describe('TakeOverFromTelegramUseCase', () => {
       text: 'You already have this chat.',
       showAlert: true,
     });
-    expect(telegram.removeInlineKeyboardCalls).toHaveLength(1);
+    expect(telegram.editMessageReplyMarkupCalls).toHaveLength(1);
+    expect(telegram.removeInlineKeyboardCalls).toHaveLength(0);
   });
 
   it('names the operator who already took the chat', async () => {
@@ -119,6 +137,7 @@ describe('TakeOverFromTelegramUseCase', () => {
       text: 'This chat is already taken over by Olena.',
       showAlert: true,
     });
+    expect(telegram.editMessageReplyMarkupCalls).toHaveLength(1);
   });
 
   it('tells the operator when the chat is closed', async () => {
@@ -130,6 +149,7 @@ describe('TakeOverFromTelegramUseCase', () => {
       text: 'This chat is closed.',
       showAlert: true,
     });
+    expect(telegram.editMessageReplyMarkupCalls).toHaveLength(1);
   });
 
   it('answers in Ukrainian', async () => {
@@ -150,5 +170,6 @@ describe('TakeOverFromTelegramUseCase', () => {
       text: 'This chat can no longer be taken over.',
       showAlert: true,
     });
+    expect(telegram.editMessageReplyMarkupCalls).toHaveLength(1);
   });
 });

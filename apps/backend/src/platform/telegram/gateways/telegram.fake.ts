@@ -1,6 +1,7 @@
 import { TelegramGateway } from '@/platform/telegram/gateways/telegram.gateway';
 import type {
   AnswerTelegramCallbackQueryInput,
+  EditTelegramMessageReplyMarkupInput,
   GetTelegramUpdatesInput,
   RemoveTelegramInlineKeyboardInput,
   SendTelegramChatActionInput,
@@ -29,6 +30,7 @@ export class FakeTelegramGateway extends TelegramGateway {
   readonly sendChatActionCalls: SendTelegramChatActionInput[] = [];
   readonly answerCallbackQueryCalls: AnswerTelegramCallbackQueryInput[] = [];
   readonly removeInlineKeyboardCalls: RemoveTelegramInlineKeyboardInput[] = [];
+  readonly editMessageReplyMarkupCalls: EditTelegramMessageReplyMarkupInput[] = [];
   private readonly failures: Error[] = [];
 
   failNext(error: Error): void {
@@ -91,6 +93,11 @@ export class FakeTelegramGateway extends TelegramGateway {
 
   removeInlineKeyboard(input: RemoveTelegramInlineKeyboardInput): Promise<void> {
     this.removeInlineKeyboardCalls.push(input);
+    return this.respond(undefined);
+  }
+
+  editMessageReplyMarkup(input: EditTelegramMessageReplyMarkupInput): Promise<void> {
+    this.editMessageReplyMarkupCalls.push(input);
     return this.respond(undefined);
   }
 

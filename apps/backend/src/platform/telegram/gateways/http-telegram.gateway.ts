@@ -20,6 +20,7 @@ import type {
 } from '@/platform/telegram/typedefs/http-telegram-gateway.typedefs';
 import type {
   AnswerTelegramCallbackQueryInput,
+  EditTelegramMessageReplyMarkupInput,
   GetTelegramUpdatesInput,
   RemoveTelegramInlineKeyboardInput,
   SendTelegramChatActionInput,
@@ -133,13 +134,20 @@ export class HttpTelegramGateway extends TelegramGateway {
   }
 
   async removeInlineKeyboard(input: RemoveTelegramInlineKeyboardInput): Promise<void> {
+    await this.editMessageReplyMarkup({
+      ...input,
+      replyMarkup: { inline_keyboard: [] },
+    });
+  }
+
+  async editMessageReplyMarkup(input: EditTelegramMessageReplyMarkupInput): Promise<void> {
     await this.call<TelegramMessageResponse>(input.token, 'editMessageReplyMarkup', {
       method: 'POST',
       headers: { [HttpHeader.ContentType]: TELEGRAM_CONTENT_TYPE },
       body: JSON.stringify({
         chat_id: input.chatId,
         message_id: input.messageId,
-        reply_markup: { inline_keyboard: [] },
+        reply_markup: input.replyMarkup,
       }),
     });
   }

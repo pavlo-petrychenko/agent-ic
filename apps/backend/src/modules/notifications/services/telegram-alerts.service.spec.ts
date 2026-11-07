@@ -65,7 +65,10 @@ describe('TelegramAlertsService', () => {
       {} as unknown as TelegramLinkRepository,
       {} as unknown as SecureTokenService,
       {
-        config: { telegram: { alertsBotToken: 'alerts-token' } },
+        config: {
+          publicUrl: 'https://app.test',
+          telegram: { alertsBotToken: 'alerts-token' },
+        },
       } as unknown as ConfigService,
       { now: () => new Date('2026-11-07T21:00:00.000Z') } as unknown as ClockService,
       {
@@ -93,6 +96,7 @@ describe('TelegramAlertsService', () => {
         messageId: '7',
         callbackQueryId: 'callback-1',
         locale: Locale.En,
+        inboxUrl: 'https://app.test/w/ws_public/inbox?conversation=cnv_public',
       },
     );
     expect(telegram.answerCallbackQueryCalls).toHaveLength(0);

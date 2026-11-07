@@ -12,6 +12,7 @@ export const telegramAlertTakeOverRequestedEvent = defineDomainEvent({
     messageId: z.string().min(1).nullable(),
     callbackQueryId: z.string().min(1),
     locale: z.enum(Locale),
+    inboxUrl: z.url(),
   }),
 });
 

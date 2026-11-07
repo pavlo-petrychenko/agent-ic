@@ -83,6 +83,13 @@ export interface RemoveTelegramInlineKeyboardInput {
   readonly messageId: string;
 }
 
+export interface EditTelegramMessageReplyMarkupInput {
+  readonly token: string;
+  readonly chatId: string;
+  readonly messageId: string;
+  readonly replyMarkup: TelegramReplyMarkup;
+}
+
 export type TelegramInlineKeyboardButton =
   | {
       readonly text: string;
