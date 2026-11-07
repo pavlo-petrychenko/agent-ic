@@ -12,6 +12,7 @@ mutation UnlinkTelegramNotification {
       enabled
       linked
       username
+      botUsername
       linkedAt
     }
   }

@@ -12,6 +12,7 @@ import type { NotificationsPageProps } from '@/features/settings/containers/Noti
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
 import {
   formatTelegramLinkCode,
+  formatTelegramLinkedAt,
   telegramLinkMinutesLeft,
 } from '@/features/settings/logic/helpers/telegramLink.helpers';
 import type { TelegramNotificationLink } from '@/features/settings/typedefs/telegramLink.typedefs';
@@ -31,7 +32,7 @@ import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/settings/containers/NotificationsPage/NotificationsPage.module.scss';
 
 export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
-  const { t } = useTranslation(SETTINGS_NAMESPACE);
+  const { t, i18n } = useTranslation(SETTINGS_NAMESPACE);
   const { showToast } = useToast();
   const [telegramLink, setTelegramLink] = useState<TelegramNotificationLink | null>(null);
   const [awaitingTelegramLink, setAwaitingTelegramLink] = useState(false);
@@ -174,11 +175,16 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
                 <Text>{t('notifications.card.telegram')}</Text>
                 <Text kind={TextKind.Caption} color={TextColor.Mute}>
                   {settings.telegramLinked
-                    ? settings.telegramUsername === null
-                      ? t('notifications.card.telegramLinkedShort')
-                      : t('notifications.card.telegramLinkedAs', {
-                          username: settings.telegramUsername,
+                    ? settings.telegramUsername !== null && settings.telegramBotUsername !== null
+                      ? t('notifications.card.telegramLinked', {
+                          account: `@${settings.telegramUsername}`,
+                          bot: `@${settings.telegramBotUsername}`,
                         })
+                      : settings.telegramUsername === null
+                        ? t('notifications.card.telegramLinkedShort')
+                        : t('notifications.card.telegramLinkedAs', {
+                            username: settings.telegramUsername,
+                          })
                     : t('notifications.card.telegramNotLinked')}
                 </Text>
               </div>
@@ -188,22 +194,14 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
                     {t('notifications.card.waitingForCode')}
                   </Badge>
                 ) : settings.telegramLinked ? (
-                  <>
-                    <Switch
-                      checked={settings.telegramEnabled}
-                      onCheckedChange={(enabled) =>
-                        changeChannel(NotificationChannel.Telegram, enabled)
-                      }
-                      disabled={loading}
-                      aria-label={t('notifications.card.telegram')}
-                    />
-                    <Button
-                      variant={ButtonVariant.Ghost}
-                      onClick={() => void unlinkTelegramAccount()}
-                    >
-                      {t('notifications.card.unlinkTelegram')}
-                    </Button>
-                  </>
+                  <Switch
+                    checked={settings.telegramEnabled}
+                    onCheckedChange={(enabled) =>
+                      changeChannel(NotificationChannel.Telegram, enabled)
+                    }
+                    disabled={loading}
+                    aria-label={t('notifications.card.telegram')}
+                  />
                 ) : (
                   <Button
                     variant={ButtonVariant.Secondary}
@@ -216,16 +214,24 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
               </div>
             </li>
           </ul>
-          {telegramLink === null ? null : settings.telegramLinked ? (
-            <div className={styles.linkCard}>
-              <div className={styles.linkSuccess}>
-                <Text>{t('notifications.link.linked')}</Text>
-                <Button variant={ButtonVariant.Secondary} onClick={closeTelegramLink}>
-                  {t('notifications.link.close')}
-                </Button>
-              </div>
+          {settings.telegramLinked ? (
+            <div className={styles.telegramFooter}>
+              <Button
+                variant={ButtonVariant.Secondary}
+                onClick={() => void unlinkTelegramAccount()}
+              >
+                {t('notifications.card.unlinkTelegram')}
+              </Button>
+              {settings.telegramLinkedAt === null ? null : (
+                <Text kind={TextKind.Caption} color={TextColor.Mute}>
+                  {t('notifications.card.linkedOn', {
+                    date: formatTelegramLinkedAt(settings.telegramLinkedAt, i18n.language),
+                  })}
+                </Text>
+              )}
             </div>
-          ) : (
+          ) : null}
+          {telegramLink === null || settings.telegramLinked ? null : (
             <div className={styles.linkCard}>
               <Heading size={HeadingSize.H3} as={HeadingElement.H4}>
                 {t('notifications.link.title')}

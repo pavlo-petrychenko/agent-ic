@@ -12,6 +12,7 @@ query NotificationSettings {
       enabled
       linked
       username
+      botUsername
       linkedAt
     }
   }

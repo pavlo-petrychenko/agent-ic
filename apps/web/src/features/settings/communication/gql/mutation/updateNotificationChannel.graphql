@@ -12,6 +12,7 @@ mutation UpdateNotificationChannel($input: UpdateNotificationChannelInput!) {
       enabled
       linked
       username
+      botUsername
       linkedAt
     }
   }

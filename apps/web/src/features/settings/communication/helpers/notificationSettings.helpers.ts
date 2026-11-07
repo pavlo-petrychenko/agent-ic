@@ -8,6 +8,7 @@ export const EMPTY_NOTIFICATION_SETTINGS: NotificationSettingsView = {
   telegramEnabled: false,
   telegramLinked: false,
   telegramUsername: null,
+  telegramBotUsername: null,
   telegramLinkedAt: null,
 };
 
@@ -25,6 +26,7 @@ export const toNotificationSettingsView = (
     telegramEnabled: settings.telegram.enabled,
     telegramLinked: settings.telegram.linked,
     telegramUsername: settings.telegram.username,
+    telegramBotUsername: settings.telegram.botUsername,
     telegramLinkedAt: settings.telegram.linkedAt,
   };
 };

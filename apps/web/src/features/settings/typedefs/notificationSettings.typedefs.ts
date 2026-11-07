@@ -5,6 +5,7 @@ export interface NotificationSettingsView {
   readonly telegramEnabled: boolean;
   readonly telegramLinked: boolean;
   readonly telegramUsername: string | null;
+  readonly telegramBotUsername: string | null;
   readonly telegramLinkedAt: string | null;
 }
 

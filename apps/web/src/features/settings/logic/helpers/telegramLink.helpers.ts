@@ -8,3 +8,6 @@ export const formatTelegramLinkCode = (code: string): string =>
   code.length === CODE_GROUP_LENGTH * 2
     ? `${code.slice(0, CODE_GROUP_LENGTH)} ${code.slice(CODE_GROUP_LENGTH)}`
     : code;
+
+export const formatTelegramLinkedAt = (linkedAt: string, locale: string): string =>
+  new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }).format(new Date(linkedAt));

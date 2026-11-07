@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatTelegramLinkCode,
+  formatTelegramLinkedAt,
   telegramLinkMinutesLeft,
 } from '@/features/settings/logic/helpers/telegramLink.helpers';
 
@@ -23,5 +24,11 @@ describe('formatTelegramLinkCode', () => {
 
   it('leaves another value alone', () => {
     expect(formatTelegramLinkCode('12345')).toBe('12345');
+  });
+});
+
+describe('formatTelegramLinkedAt', () => {
+  it('formats the month and day', () => {
+    expect(formatTelegramLinkedAt('2026-09-20T10:00:00.000Z', 'en')).toBe('Sep 20');
   });
 });
