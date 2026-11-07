@@ -62,7 +62,7 @@ The platform read state is built. `unreadNotificationCount` counts the signed-in
 
 The existing Inbox navigation badge still uses the workspace-level `inboxNeedsYouCount`; it now refetches on focus, on visibility and every 30 seconds so a missed live event does not leave it stale.
 
-Browser notifications are built. `latestUnreadNotification` returns the signed-in user’s newest unread platform notification with its conversation, customer name, channel and reason. The workspace shell watches it and refetches on `inboxActivity`. When the tab is visible it shows an in-app card with the customer, the channel and the waiting time; when the tab is hidden and the browser permission is granted it shows a desktop notification instead. Clicking either opens `/inbox?conversation=...`. Permission is requested from Settings, Notifications. This works only while the app is open; there is no service worker or background push.
+Browser notifications are built. `latestUnreadNotification` returns the signed-in user’s newest unread platform notification with its conversation, customer name, channel and reason, but only while that conversation is still `waiting`. A conversation that is closed or taken over no longer produces a card, even if its delivery was never marked read. The workspace shell watches the notification and refetches on `inboxActivity`. When the tab is visible it shows an in-app card with the customer, the channel and the waiting time; when the tab is hidden and the browser permission is granted it shows a desktop notification instead. Clicking either opens `/inbox?conversation=...`. Permission is requested from Settings, Notifications. This works only while the app is open; there is no service worker or background push.
 
 ## 2. Schema
 

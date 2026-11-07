@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { browserNotificationPermission } from '@/features/inbox/communication/helpers/browserNotification.helpers';
 import { BROWSER_NOTIFICATION_PERMISSION_EVENT } from '@/features/inbox/constants/browserNotification.constants';
-import type { BrowserNotificationPermission } from '@/features/inbox/typedefs/browserNotification.typedefs';
-
-export interface UseBrowserNotificationPermissionResult {
-  readonly permission: BrowserNotificationPermission;
-  readonly request: () => Promise<void>;
-}
+import type {
+  BrowserNotificationPermission,
+  UseBrowserNotificationPermissionResult,
+} from '@/features/inbox/typedefs/browserNotification.typedefs';
 
 export function useBrowserNotificationPermission(): UseBrowserNotificationPermissionResult {
   const [permission, setPermission] = useState<BrowserNotificationPermission>(

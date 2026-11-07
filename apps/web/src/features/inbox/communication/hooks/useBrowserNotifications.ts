@@ -7,12 +7,10 @@ import { showBrowserNotification } from '@/features/inbox/communication/helpers/
 import { useBrowserNotificationPermission } from '@/features/inbox/communication/hooks/useBrowserNotificationPermission';
 import { useRefetchOnFocus } from '@/features/inbox/communication/hooks/useRefetchOnFocus';
 import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants';
-import type { BrowserNotificationAlert } from '@/features/inbox/typedefs/browserNotification.typedefs';
-
-export interface UseBrowserNotificationsResult {
-  readonly cardAlert: BrowserNotificationAlert | null;
-  readonly dismiss: () => void;
-}
+import type {
+  BrowserNotificationAlert,
+  UseBrowserNotificationsResult,
+} from '@/features/inbox/typedefs/browserNotification.typedefs';
 
 export function useBrowserNotifications(
   enabled: boolean,

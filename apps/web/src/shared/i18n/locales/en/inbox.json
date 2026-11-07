@@ -42,7 +42,8 @@
     "titleFallback": "A chat needs a person",
     "bodyFallback": "A chat was escalated to you.",
     "subtitle": "{{channel}} · waiting {{time}}",
-    "open": "Open"
+    "open": "Open",
+    "close": "Close notification"
   },
   "header": {
     "closeChat": "Close chat",

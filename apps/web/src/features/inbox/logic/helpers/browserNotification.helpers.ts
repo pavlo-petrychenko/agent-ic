@@ -25,4 +25,5 @@ export const inboxNotificationCardText = (
     time: inboxUpdatedLabel(Math.max(1, minutes), t),
   }),
   openLabel: t('browser.open'),
+  closeLabel: t('browser.close'),
 });

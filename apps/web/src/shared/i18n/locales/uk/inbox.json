@@ -42,7 +42,8 @@
     "titleFallback": "Чат потребує людини",
     "bodyFallback": "Чат передали вам.",
     "subtitle": "{{channel}} · очікує {{time}}",
-    "open": "Відкрити"
+    "open": "Відкрити",
+    "close": "Закрити сповіщення"
   },
   "header": {
     "closeChat": "Закрити чат",
