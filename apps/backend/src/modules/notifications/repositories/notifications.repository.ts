@@ -25,6 +25,7 @@ const RUNS_TABLE = 'runs';
 const NOTIFICATIONS_TABLE = 'notifications';
 const CONVERSATIONS_SCHEMA = 'conversations';
 const CONVERSATIONS_TABLE = 'conversations';
+const NEEDS_PERSON_CONVERSATION_FILTER = sql`c.mode = 'live' and c.state = 'waiting'`;
 
 type LatestUnreadRow = Readonly<{
   id: string;
@@ -187,6 +188,7 @@ export class NotificationsRepository {
         and n.user_id = ${userId}
         and d.channel = ${NotificationChannel.Platform}
         and d.status <> ${NotificationDeliveryStatus.Read}
+        and ${NEEDS_PERSON_CONVERSATION_FILTER}
       order by n.created_at desc
       limit 1
     `);

@@ -10,7 +10,9 @@ describe('InboxNotificationCard', () => {
         title="Marta S. needs a person"
         subtitle="Telegram · waiting 1 min"
         openLabel="Open"
+        closeLabel="Close notification"
         onOpen={vi.fn<() => void>()}
+        onClose={vi.fn<() => void>()}
       />,
     );
 
@@ -25,7 +27,9 @@ describe('InboxNotificationCard', () => {
         title="Marta S. needs a person"
         subtitle="Telegram · waiting 1 min"
         openLabel="Open"
+        closeLabel="Close notification"
         onOpen={onOpen}
+        onClose={vi.fn<() => void>()}
       />,
     );
 
@@ -34,13 +38,33 @@ describe('InboxNotificationCard', () => {
     expect(onOpen).toHaveBeenCalledOnce();
   });
 
+  it('closes the card when the close action is clicked', async () => {
+    const onClose = vi.fn<() => void>();
+    render(
+      <InboxNotificationCard
+        title="Marta S. needs a person"
+        subtitle="Telegram · waiting 1 min"
+        openLabel="Open"
+        closeLabel="Close notification"
+        onOpen={vi.fn<() => void>()}
+        onClose={onClose}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Close notification' }));
+
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
   it('describes the action by the title so its name carries context', () => {
     render(
       <InboxNotificationCard
         title="Marta S. needs a person"
         subtitle="Telegram · waiting 1 min"
         openLabel="Open"
+        closeLabel="Close notification"
         onOpen={vi.fn<() => void>()}
+        onClose={vi.fn<() => void>()}
       />,
     );
 

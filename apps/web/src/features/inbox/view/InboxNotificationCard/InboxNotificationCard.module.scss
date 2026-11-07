@@ -61,6 +61,11 @@ $icon-size: 32px;
   flex-shrink: 0;
 }
 
+.close {
+  flex-shrink: 0;
+  margin-left: calc(-1 * var(--space-4));
+}
+
 @keyframes enter {
   from {
     transform: translateY(var(--space-8));

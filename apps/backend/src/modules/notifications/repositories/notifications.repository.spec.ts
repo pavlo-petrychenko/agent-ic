@@ -1,5 +1,6 @@
 import { ChannelKind } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { ConversationsRepository } from '@/modules/conversations';
 import {
   NotificationChannel,
   NotificationDeliveryStatus,
@@ -134,6 +135,11 @@ describe('NotificationsRepository read state', () => {
     const user = testbed.ids.generate();
     await ensureUserRow(testbed.module, user);
     await seedNotification(seeded, user, 'Customer asks to be called back.');
+    await testbed.tenants.run(seeded.run.workspaceId, () =>
+      testbed.module
+        .get(ConversationsRepository)
+        .markWaiting(seeded.run.workspaceId, seeded.run.conversationId),
+    );
 
     const alert = await testbed.tenants.run(seeded.run.workspaceId, () =>
       notifications.findLatestUnreadPlatform(seeded.run.workspaceId, user),
@@ -155,6 +161,24 @@ describe('NotificationsRepository read state', () => {
         READ_AT,
       ),
     );
+    expect(
+      await testbed.tenants.run(seeded.run.workspaceId, () =>
+        notifications.findLatestUnreadPlatform(seeded.run.workspaceId, user),
+      ),
+    ).toBeNull();
+  });
+
+  it('ignores unread notifications for conversations that no longer need a person', async () => {
+    const seeded = await seedExecutableRun(testbed, triggerOnlyFlow());
+    const user = testbed.ids.generate();
+    await ensureUserRow(testbed.module, user);
+    await seedNotification(seeded, user);
+    await testbed.tenants.run(seeded.run.workspaceId, async () => {
+      const conversations = testbed.module.get(ConversationsRepository);
+      await conversations.markWaiting(seeded.run.workspaceId, seeded.run.conversationId);
+      await conversations.close(seeded.run.workspaceId, seeded.run.conversationId, READ_AT, null);
+    });
+
     expect(
       await testbed.tenants.run(seeded.run.workspaceId, () =>
         notifications.findLatestUnreadPlatform(seeded.run.workspaceId, user),
