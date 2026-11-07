@@ -54,6 +54,7 @@ interface TelegramNotificationSettingView {
   readonly enabled: boolean;
   readonly linked: boolean;
   readonly username: string | null;
+  readonly botUsername: string | null;
   readonly linkedAt: Date | null;
 }
 

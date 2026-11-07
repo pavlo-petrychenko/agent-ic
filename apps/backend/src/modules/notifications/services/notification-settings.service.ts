@@ -12,6 +12,7 @@ import type {
   NotificationSettingsRecord,
   NotificationSettingsView,
 } from '@/modules/notifications/typedefs/notification-settings.typedefs';
+import { ConfigService } from '@/platform/config/services/config.service';
 import { IdService } from '@/platform/ids/services/id.service';
 
 @Injectable()
@@ -19,10 +20,14 @@ export class NotificationSettingsService {
   constructor(
     private readonly settings: NotificationSettingsRepository,
     private readonly ids: IdService,
+    private readonly config: ConfigService,
   ) {}
 
   async describe(workspaceId: string, userId: string): Promise<NotificationSettingsView> {
-    return toNotificationSettingsView(await this.settings.findByUser(workspaceId, userId));
+    return toNotificationSettingsView(
+      await this.settings.findByUser(workspaceId, userId),
+      this.config.config.telegram.alertsBotUsername,
+    );
   }
 
   async channelsFor(

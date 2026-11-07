@@ -98,7 +98,13 @@ describe('DeliverNotificationUseCase', () => {
     describeSettings.mockResolvedValue({
       platform: { enabled: true },
       email: { enabled: true, email: 'alerts@example.com', verifiedAt: null },
-      telegram: { enabled: false, linked: false, username: null, linkedAt: null },
+      telegram: {
+        enabled: false,
+        linked: false,
+        username: null,
+        botUsername: null,
+        linkedAt: null,
+      },
     });
     findUser.mockResolvedValue({
       id: 'user-1',
@@ -203,7 +209,13 @@ describe('DeliverNotificationUseCase', () => {
     describeSettings.mockResolvedValue({
       platform: { enabled: true },
       email: { enabled: false, email: null, verifiedAt: null },
-      telegram: { enabled: false, linked: false, username: null, linkedAt: null },
+      telegram: {
+        enabled: false,
+        linked: false,
+        username: null,
+        botUsername: null,
+        linkedAt: null,
+      },
     });
 
     await execute();
