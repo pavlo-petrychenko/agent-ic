@@ -25,6 +25,7 @@
       "telegram": "Telegram",
       "telegramLinked": "Linked to {{account}} · via {{bot}}",
       "telegramLinkedShort": "Linked to Telegram",
+      "telegramLinkedAs": "Linked as @{{username}}",
       "telegramNotLinked": "Not linked yet",
       "waitingForCode": "Waiting for code",
       "unlinkTelegram": "Unlink Telegram",
@@ -41,11 +42,14 @@
     },
     "link": {
       "title": "Link your Telegram",
+      "action": "Link Telegram",
       "openBot": "Open {{bot}} in Telegram",
       "sendCode": "Send this code — it works for {{minutes}} minutes",
       "copy": "Copy",
       "copied": "Code copied",
       "open": "Open Telegram",
+      "close": "Close",
+      "linked": "Telegram is linked. Alerts will arrive here.",
       "hint": "This page updates as soon as the bot gets the code."
     }
   },

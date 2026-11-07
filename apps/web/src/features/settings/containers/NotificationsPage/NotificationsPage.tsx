@@ -1,16 +1,26 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBrowserNotificationPermission } from '@/features/inbox';
+import { useCreateTelegramNotificationLink } from '@/features/settings/communication/hooks/useCreateTelegramNotificationLink';
 import { useNotificationSettings } from '@/features/settings/communication/hooks/useNotificationSettings';
+import { useUnlinkTelegramNotification } from '@/features/settings/communication/hooks/useUnlinkTelegramNotification';
 import { useUpdateNotificationChannel } from '@/features/settings/communication/hooks/useUpdateNotificationChannel';
+import { TELEGRAM_LINK_POLL_INTERVAL_MS } from '@/features/settings/constants/notifications.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { NotificationsPageProps } from '@/features/settings/containers/NotificationsPage/NotificationsPage.typedefs';
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
+import {
+  formatTelegramLinkCode,
+  telegramLinkMinutesLeft,
+} from '@/features/settings/logic/helpers/telegramLink.helpers';
+import type { TelegramNotificationLink } from '@/features/settings/typedefs/telegramLink.typedefs';
 import { useActiveWorkspace, useWorkspaceShell } from '@/features/workspace';
 import { NotificationChannel } from '@/shared/api/generated/schema.generated';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { Card } from '@/shared/ui/display/Card';
 import { Switch } from '@/shared/ui/inputs/Switch';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
@@ -23,8 +33,14 @@ import styles from '@/features/settings/containers/NotificationsPage/Notificatio
 export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
   const { showToast } = useToast();
-  const { settings, loading } = useNotificationSettings();
+  const [telegramLink, setTelegramLink] = useState<TelegramNotificationLink | null>(null);
+  const [awaitingTelegramLink, setAwaitingTelegramLink] = useState(false);
+  const { settings, loading } = useNotificationSettings(
+    awaitingTelegramLink ? TELEGRAM_LINK_POLL_INTERVAL_MS : 0,
+  );
   const updateChannel = useUpdateNotificationChannel();
+  const { createLink, creating } = useCreateTelegramNotificationLink();
+  const unlinkTelegram = useUnlinkTelegramNotification();
   const errorMessage = useErrorMessage();
   const browser = useBrowserNotificationPermission();
   const user = useWorkspaceShell(workspaceId).data?.user ?? null;
@@ -46,6 +62,44 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
     void updateChannel(channel, enabled).catch((error: unknown) => {
       showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
     });
+  };
+
+  const startTelegramLink = async () => {
+    try {
+      const link = await createLink();
+      if (link !== null) {
+        setTelegramLink(link);
+        setAwaitingTelegramLink(true);
+      }
+    } catch (error) {
+      showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
+    }
+  };
+
+  const closeTelegramLink = () => {
+    setTelegramLink(null);
+    setAwaitingTelegramLink(false);
+  };
+
+  const unlinkTelegramAccount = async () => {
+    try {
+      await unlinkTelegram();
+      closeTelegramLink();
+    } catch (error) {
+      showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
+    }
+  };
+
+  const copyTelegramCode = async () => {
+    if (telegramLink === null) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(telegramLink.code);
+      showToast({ message: t('notifications.link.copied'), tone: ToastTone.Ok });
+    } catch (error) {
+      showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
+    }
   };
 
   return (
@@ -120,18 +174,95 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
                 <Text>{t('notifications.card.telegram')}</Text>
                 <Text kind={TextKind.Caption} color={TextColor.Mute}>
                   {settings.telegramLinked
-                    ? t('notifications.card.telegramLinkedShort')
+                    ? settings.telegramUsername === null
+                      ? t('notifications.card.telegramLinkedShort')
+                      : t('notifications.card.telegramLinkedAs', {
+                          username: settings.telegramUsername,
+                        })
                     : t('notifications.card.telegramNotLinked')}
                 </Text>
               </div>
-              <Switch
-                checked={settings.telegramEnabled}
-                onCheckedChange={(enabled) => changeChannel(NotificationChannel.Telegram, enabled)}
-                disabled={loading || !settings.telegramLinked}
-                aria-label={t('notifications.card.telegram')}
-              />
+              <div className={styles.actions}>
+                {telegramLink !== null && !settings.telegramLinked ? (
+                  <Badge tone={BadgeTone.Warn} dot>
+                    {t('notifications.card.waitingForCode')}
+                  </Badge>
+                ) : settings.telegramLinked ? (
+                  <>
+                    <Switch
+                      checked={settings.telegramEnabled}
+                      onCheckedChange={(enabled) =>
+                        changeChannel(NotificationChannel.Telegram, enabled)
+                      }
+                      disabled={loading}
+                      aria-label={t('notifications.card.telegram')}
+                    />
+                    <Button
+                      variant={ButtonVariant.Ghost}
+                      onClick={() => void unlinkTelegramAccount()}
+                    >
+                      {t('notifications.card.unlinkTelegram')}
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    loading={creating}
+                    onClick={() => void startTelegramLink()}
+                  >
+                    {t('notifications.link.action')}
+                  </Button>
+                )}
+              </div>
             </li>
           </ul>
+          {telegramLink === null ? null : settings.telegramLinked ? (
+            <div className={styles.linkCard}>
+              <div className={styles.linkSuccess}>
+                <Text>{t('notifications.link.linked')}</Text>
+                <Button variant={ButtonVariant.Secondary} onClick={closeTelegramLink}>
+                  {t('notifications.link.close')}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.linkCard}>
+              <Heading size={HeadingSize.H3} as={HeadingElement.H4}>
+                {t('notifications.link.title')}
+              </Heading>
+              <ul className={styles.linkSteps}>
+                <li>
+                  {t('notifications.link.openBot', {
+                    bot: `@${telegramLink.botUsername}`,
+                  })}
+                </li>
+                <li>
+                  {t('notifications.link.sendCode', {
+                    minutes: telegramLinkMinutesLeft(telegramLink.expiresAt),
+                  })}
+                </li>
+              </ul>
+              <div className={styles.codeRow}>
+                <code className={styles.code}>{formatTelegramLinkCode(telegramLink.code)}</code>
+                <div className={styles.codeActions}>
+                  <Button variant={ButtonVariant.Secondary} onClick={() => void copyTelegramCode()}>
+                    {t('notifications.link.copy')}
+                  </Button>
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    href={`https://t.me/${telegramLink.botUsername}?start=${telegramLink.code}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t('notifications.link.open')}
+                  </Button>
+                </div>
+              </div>
+              <Text kind={TextKind.Caption} color={TextColor.Mute}>
+                {t('notifications.link.hint')}
+              </Text>
+            </div>
+          )}
           <div className={styles.footer}>
             <Text kind={TextKind.Caption} color={TextColor.Mute}>
               {t('notifications.card.footer')}

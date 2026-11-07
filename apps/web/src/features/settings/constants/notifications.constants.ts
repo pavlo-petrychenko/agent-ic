@@ -1,0 +1,1 @@
+export const TELEGRAM_LINK_POLL_INTERVAL_MS = 2_000;

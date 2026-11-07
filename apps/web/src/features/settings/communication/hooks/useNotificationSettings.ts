@@ -4,10 +4,11 @@ import { NotificationSettingsDocument } from '@/features/settings/communication/
 import { toNotificationSettingsView } from '@/features/settings/communication/helpers/notificationSettings.helpers';
 import type { UseNotificationSettingsResult } from '@/features/settings/typedefs/notificationSettings.typedefs';
 
-export function useNotificationSettings(): UseNotificationSettingsResult {
-  const { data, loading } = useQuery(NotificationSettingsDocument, {
+export function useNotificationSettings(pollInterval = 0): UseNotificationSettingsResult {
+  const { data, loading, refetch } = useQuery(NotificationSettingsDocument, {
     fetchPolicy: 'network-only',
+    pollInterval,
   });
   const settings = useMemo(() => toNotificationSettingsView(data), [data]);
-  return { settings, loading };
+  return { settings, loading, refetch };
 }

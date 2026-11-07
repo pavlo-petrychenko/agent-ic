@@ -1,0 +1,7 @@
+mutation CreateTelegramNotificationLink {
+  createTelegramNotificationLink {
+    code
+    botUsername
+    expiresAt
+  }
+}
