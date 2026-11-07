@@ -1,3 +1,4 @@
+import { permissionsForRole } from '@agent-ic/contracts';
 import { Injectable, Logger } from '@nestjs/common';
 import { authorizeOperator } from '@/modules/conversations/helpers/operator.helpers';
 import { ConversationTakeOverService } from '@/modules/conversations/services/conversation-take-over.service';
@@ -41,6 +42,7 @@ export class TakeOverFromTelegramUseCase {
       initiatedBy: ctx.actor,
       workspaceId,
       workspaceRole: role,
+      permissions: permissionsForRole(role),
       clientIp: null,
     };
     const access = authorizeOperator(userCtx);

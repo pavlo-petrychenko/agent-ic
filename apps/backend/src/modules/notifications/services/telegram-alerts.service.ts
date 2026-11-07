@@ -1,11 +1,11 @@
-import { IdPrefix } from '@agent-ic/contracts';
+import { IdPrefix, Locale } from '@agent-ic/contracts';
 import { Injectable, Logger } from '@nestjs/common';
+import { UsersRepository } from '@/modules/identity';
 import { NotificationLogMessage } from '@/modules/notifications/constants/notification-log.constants';
 import { NotificationChannel } from '@/modules/notifications/constants/notification.constants';
 import {
   TELEGRAM_ALERTS_LINK_INSTRUCTIONS,
-  TELEGRAM_ALERT_TAKE_OVER_INVALID,
-  TELEGRAM_ALERT_TAKE_OVER_STARTED,
+  TELEGRAM_ALERT_TAKE_OVER_COPY,
 } from '@/modules/notifications/constants/telegram-alert.constants';
 import { telegramAlertTakeOverRequestedEvent } from '@/modules/notifications/events/telegram-alert-take-over-requested.event';
 import { parseTelegramTakeOverCallback } from '@/modules/notifications/helpers/telegram-alert-callback.helpers';
@@ -43,6 +43,7 @@ export class TelegramAlertsService {
     private readonly tenants: TenantTransactionService,
     private readonly settings: NotificationSettingsService,
     private readonly settingsRepository: NotificationSettingsRepository,
+    private readonly users: UsersRepository,
     private readonly links: TelegramLinkRepository,
     private readonly secureTokens: SecureTokenService,
     private readonly configService: ConfigService,
@@ -131,7 +132,7 @@ export class TelegramAlertsService {
   private async handleCallback(ctx: UseCaseCtx, callback: TelegramCallbackQuery): Promise<void> {
     const parsed = parseTelegramTakeOverCallback(callback.data);
     if (parsed === null) {
-      await this.answerCallback(callback.id, TELEGRAM_ALERT_TAKE_OVER_INVALID);
+      await this.answerCallback(callback.id, TELEGRAM_ALERT_TAKE_OVER_COPY[Locale.En].invalid);
       return;
     }
     const workspaceId = this.ids.tryFromPublic(IdPrefix.Workspace, parsed.workspacePublicId);
@@ -141,23 +142,28 @@ export class TelegramAlertsService {
     );
     const chatId = callback.chatId;
     if (workspaceId === null || conversationId === null || chatId === null) {
-      await this.answerCallback(callback.id, TELEGRAM_ALERT_TAKE_OVER_INVALID);
+      await this.answerCallback(callback.id, TELEGRAM_ALERT_TAKE_OVER_COPY[Locale.En].invalid);
       return;
     }
-    const linked = await this.tenants.run(workspaceId, () =>
-      this.settingsRepository.findTelegramLinkByChat(workspaceId, chatId),
-    );
-    if (linked === null) {
-      await this.answerCallback(callback.id, TELEGRAM_ALERT_TAKE_OVER_INVALID);
+    const target = await this.tenants.run(workspaceId, async () => {
+      const link = await this.settingsRepository.findTelegramLinkByChat(workspaceId, chatId);
+      if (link === null) {
+        return null;
+      }
+      const user = await this.users.findById(link.userId);
+      return { link, locale: user?.locale ?? Locale.En };
+    });
+    if (target === null) {
+      await this.answerCallback(callback.id, TELEGRAM_ALERT_TAKE_OVER_COPY[Locale.En].invalid);
       return;
     }
     await this.events.emit({ ...ctx, workspaceId }, telegramAlertTakeOverRequestedEvent, {
-      userId: linked.userId,
+      userId: target.link.userId,
       conversationPublicId: parsed.conversationPublicId,
       chatId,
       messageId: callback.telegramMessageId,
     });
-    await this.answerCallback(callback.id, TELEGRAM_ALERT_TAKE_OVER_STARTED);
+    await this.answerCallback(callback.id, TELEGRAM_ALERT_TAKE_OVER_COPY[target.locale].started);
   }
 
   private async answerCallback(callbackQueryId: string, text: string): Promise<void> {

@@ -1,5 +1,6 @@
-import { IdPrefix } from '@agent-ic/contracts';
+import { IdPrefix, Locale } from '@agent-ic/contracts';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { UsersRepository } from '@/modules/identity';
 import { telegramAlertTakeOverRequestedEvent } from '@/modules/notifications/events/telegram-alert-take-over-requested.event';
 import { NotificationSettingsRepository } from '@/modules/notifications/repositories/notification-settings.repository';
 import { TelegramLinkRepository } from '@/modules/notifications/repositories/telegram-link.repository';
@@ -31,6 +32,7 @@ const CALLBACK = {
 describe('TelegramAlertsService', () => {
   const run = vi.fn<(workspaceId: string, work: () => Promise<unknown>) => Promise<unknown>>();
   const findTelegramLinkByChat = vi.fn<NotificationSettingsRepository['findTelegramLinkByChat']>();
+  const findUser = vi.fn<UsersRepository['findById']>();
   const emit = vi.fn<DomainEventsService['emit']>();
   const telegram = new FakeTelegramGateway();
   let service: TelegramAlertsService;
@@ -38,6 +40,7 @@ describe('TelegramAlertsService', () => {
   beforeEach(() => {
     run.mockReset();
     findTelegramLinkByChat.mockReset();
+    findUser.mockReset();
     emit.mockReset();
     telegram.answerCallbackQueryCalls.length = 0;
     run.mockImplementation((_workspaceId, work) => work());
@@ -49,11 +52,16 @@ describe('TelegramAlertsService', () => {
       chatId: '42',
       linkCodeExpiresAt: null,
     });
+    findUser.mockResolvedValue({
+      id: 'user-1',
+      locale: Locale.En,
+    } as unknown as Awaited<ReturnType<UsersRepository['findById']>>);
     emit.mockResolvedValue(undefined);
     service = new TelegramAlertsService(
       { run } as unknown as TenantTransactionService,
       {} as unknown as NotificationSettingsService,
       { findTelegramLinkByChat } as unknown as NotificationSettingsRepository,
+      { findById: findUser } as unknown as UsersRepository,
       {} as unknown as TelegramLinkRepository,
       {} as unknown as SecureTokenService,
       {
@@ -93,6 +101,17 @@ describe('TelegramAlertsService', () => {
         showAlert: false,
       },
     ]);
+  });
+
+  it('answers in the linked user locale', async () => {
+    findUser.mockResolvedValue({
+      id: 'user-1',
+      locale: Locale.Uk,
+    } as unknown as Awaited<ReturnType<UsersRepository['findById']>>);
+
+    await service.handleUpdate(ctx(), CALLBACK);
+
+    expect(telegram.answerCallbackQueryCalls[0]?.text).toBe('Беру чат…');
   });
 
   it('rejects a malformed callback without an event', async () => {
