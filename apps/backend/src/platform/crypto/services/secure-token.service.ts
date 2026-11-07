@@ -1,4 +1,4 @@
-import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import {
   HASH_ALGORITHM,
@@ -13,6 +13,10 @@ export class SecureTokenService {
   generate(): SecureToken {
     const token = randomBytes(SECURE_TOKEN_BYTES).toString(SECURE_TOKEN_ENCODING);
     return { token, hash: this.hash(token) };
+  }
+
+  generateDigits(length: number): string {
+    return Array.from({ length }, () => randomInt(0, 10)).join('');
   }
 
   hash(token: string): string {

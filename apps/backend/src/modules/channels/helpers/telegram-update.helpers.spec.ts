@@ -15,6 +15,7 @@ const MESSAGE = {
   chatId: '42',
   senderId: '900',
   senderName: 'Moshe',
+  senderUsername: null,
   text: 'Hello',
 };
 
@@ -24,6 +25,7 @@ const CALLBACK = {
   telegramMessageId: '7',
   senderId: '900',
   senderName: 'Moshe',
+  senderUsername: null,
   data: 'qr:message-1:0',
 };
 
@@ -48,6 +50,7 @@ describe('toTelegramUpdate', () => {
         telegramMessageId: '5',
         senderId: '900',
         senderName: 'Moshe',
+        senderUsername: null,
         data: 'qr:msg_1:0',
       },
     });
@@ -71,6 +74,7 @@ describe('toTelegramUpdate', () => {
         telegramMessageId: null,
         senderId: '900',
         senderName: 'Moshe',
+        senderUsername: null,
         data: null,
       },
     });
@@ -95,6 +99,7 @@ describe('toTelegramUpdate', () => {
         chatId: '42',
         senderId: null,
         senderName: null,
+        senderUsername: null,
         text: 'Hello',
       },
       callbackQuery: null,

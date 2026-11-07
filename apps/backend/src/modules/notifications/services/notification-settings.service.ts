@@ -32,6 +32,19 @@ export class NotificationSettingsService {
     return enabledNotificationChannels(await this.describe(workspaceId, userId));
   }
 
+  async channelIdFor(
+    workspaceId: string,
+    userId: string,
+    channel: NotificationChannelValue,
+  ): Promise<string> {
+    const settings = await this.ensure(workspaceId, userId);
+    const row = settings.channels.find((candidate) => candidate.channel === channel);
+    if (row === undefined) {
+      throw new NotificationSettingsUnavailableError();
+    }
+    return row.id;
+  }
+
   async setChannelEnabled(
     workspaceId: string,
     userId: string,

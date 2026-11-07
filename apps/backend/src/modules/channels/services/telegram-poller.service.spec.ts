@@ -27,6 +27,7 @@ const telegramUpdate = (updateId: number, messageId: number): TelegramUpdate => 
     chatId: '42',
     senderId: '900',
     senderName: 'Moshe',
+    senderUsername: null,
     text: 'Hello',
   },
   callbackQuery: null,

@@ -50,6 +50,7 @@ export const toNotificationSettingsView = (
       enabled:
         telegram?.enabled ?? NOTIFICATION_CHANNEL_ENABLED_BY_DEFAULT[NotificationChannel.Telegram],
       linked: telegram !== null && telegram.chatId !== null,
+      username: telegram?.telegramUsername ?? null,
       linkedAt: telegram?.linkedAt ?? null,
     },
   };

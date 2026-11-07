@@ -1,10 +1,10 @@
 # Notifications module
 
-**Status:** schema, settings API, recipient resolver, producer, read state, email delivery and browser notifications, November 2026. The `notifications` schema, the personal settings read/write API, the handoff recipient resolver, the escalation producer, the platform read state, the email delivery worker and in-app browser notifications exist. There is no background push/service worker, Telegram delivery, in-app notification list or reminder/fallback timer yet.
+**Status:** schema, settings API, recipient resolver, producer, read state, email delivery, browser notifications and Telegram alerts bot linking, November 2026. The `notifications` schema, the personal settings read/write API, the handoff recipient resolver, the escalation producer, the platform read state, the email delivery worker, in-app browser notifications and the Telegram alerts bot linking flow exist. There is no background push/service worker, Telegram delivery, in-app notification list or reminder/fallback timer yet.
 
-**Decisions:** D307 (notification storage), D85 (Resend), D167 (email gateway). Product requirements: `mvp-scope.md` §12.11, `communication.md` chain F.
+**Decisions:** D307 (notification storage), D85 (Resend), D167 (email gateway), D311 (Telegram alerts bot linking). Product requirements: `mvp-scope.md` §12.11, `communication.md` chain F.
 
-**Scope:** per-person notification settings, per-channel configuration, the notification record for an escalation, and the per-channel delivery state. It does not implement the escalation producer, the alerts bot, browser notifications, reminders or the fallback message.
+**Scope:** per-person notification settings, per-channel configuration, the notification record for an escalation, and the per-channel delivery state. It does not implement the escalation producer, Telegram delivery, reminders or the fallback message.
 
 ---
 
@@ -56,7 +56,7 @@ The delivery worker and sweeper are still missing.
 
 The email delivery worker is built. The producer enqueues a `deliver-notification` job for each `email` delivery after the transaction commits. The worker loads the notification, delivery, user, run step and last message in one tenant transaction, renders the escalation email, sends it through `EmailGateway` outside the transaction, then marks the delivery `delivered` or `failed`. A provider failure rethrows so BullMQ retries; without retry metadata, the row stays `failed` and the job attempt count is BullMQ's only bound.
 
-Telegram deliveries stay `pending` and are not enqueued yet.
+The Telegram alerts bot link flow is built. Settings calls `createTelegramNotificationLink`, which stores only a hash of a 10-minute code made from the workspace public id and a short random token. The global alerts bot receives `/start <code>` or a pasted code over its webhook or local poller, hashes it, finds the Telegram notification channel in that workspace, checks expiry, stores `chat_id`, `username` and `linked_at`, clears the code, enables the Telegram channel and replies to the chat. `telegram_notification_channels` has a `username` column for the linked Telegram account. Telegram deliveries are still `pending` and are not enqueued yet.
 
 The platform read state is built. `unreadNotificationCount` counts the signed-in user's platform deliveries whose status is not `read`, and `markNotificationsRead` sets them to `read` with `read_at` when the operator opens that conversation. The Inbox page calls it when the selected conversation changes. Email and Telegram deliveries are never counted and never marked read.
 
@@ -254,7 +254,7 @@ The current schema has no retry metadata yet: no `attempts`, `next_attempt_at`, 
 ## 6. What is still missing
 
 - A sweeper; the email worker is built. No retry metadata or scheduled recovery for `pending`/`failed` rows.
-- Telegram delivery and the alerts bot linking flow (`chat_id`, hashed code, 10-minute expiry). Telegram deliveries stay `pending`.
+- Telegram delivery. The alerts bot linking flow (`chat_id`, `username`, hashed code, 10-minute expiry) is built; Telegram deliveries stay `pending`.
 - Background browser push and a service worker. Browser notifications work only while the app is open.
 - The in-app notification list. The personal unread count and mark-read API exist, but the Inbox navigation badge still uses `inboxNeedsYouCount`.
 - Reminder and fallback timers.
