@@ -1,5 +1,14 @@
 export { NAME_PLACEHOLDER } from '@/modules/notifications/constants/action-email.constants';
 export {
+  DELIVERY_LAST_ERROR_MAX_LENGTH,
+  DELIVERY_LEASE_SECONDS,
+  DELIVERY_MAX_ATTEMPTS,
+  DELIVERY_RETRY_BASE_SECONDS,
+  DELIVERY_RETRY_MAX_SECONDS,
+  DELIVERY_SWEEP_INTERVAL_SECONDS,
+  DELIVERY_SWEEP_LIMIT,
+} from '@/modules/notifications/constants/notification-delivery.constants';
+export {
   NotificationChannel,
   NotificationDeliveryStatus,
   NotificationKind,
@@ -25,6 +34,7 @@ export {
 } from '@/modules/notifications/helpers/escalation-telegram.helpers';
 export { telegramTakeOverCallbackData } from '@/modules/notifications/helpers/telegram-alert-callback.helpers';
 export { NotificationsModule } from '@/modules/notifications/notifications.module';
+export { NotificationDeliverySweepRepository } from '@/modules/notifications/repositories/notification-delivery-sweep.repository';
 export { NotificationsRepository } from '@/modules/notifications/repositories/notifications.repository';
 export { NotificationRecipientsService } from '@/modules/notifications/services/notification-recipients.service';
 export { NotificationSettingsService } from '@/modules/notifications/services/notification-settings.service';

@@ -6,6 +6,7 @@ import { SendConfirmationEmailListener } from '@/modules/notifications/listeners
 import { SendEmailChangeEmailListener } from '@/modules/notifications/listeners/send-email-change-email.listener';
 import { SendPasswordResetEmailListener } from '@/modules/notifications/listeners/send-password-reset-email.listener';
 import { ClearExpiredTelegramLinksProcessor } from '@/modules/notifications/processors/clear-expired-telegram-links.processor';
+import { NotificationDeliverySweepRepository } from '@/modules/notifications/repositories/notification-delivery-sweep.repository';
 import { NotificationSettingsRepository } from '@/modules/notifications/repositories/notification-settings.repository';
 import { NotificationsRepository } from '@/modules/notifications/repositories/notifications.repository';
 import { TelegramLinkRepository } from '@/modules/notifications/repositories/telegram-link.repository';
@@ -44,6 +45,7 @@ export class NotificationsModule extends defineModule({
         createEmailGateway(config.email, metrics),
     },
     NotificationMetricsService,
+    NotificationDeliverySweepRepository,
     NotificationSettingsRepository,
     NotificationsRepository,
     TelegramLinkRepository,
@@ -75,6 +77,7 @@ export class NotificationsModule extends defineModule({
   processors: [ClearExpiredTelegramLinksProcessor],
   exports: [
     EmailGateway,
+    NotificationDeliverySweepRepository,
     NotificationsRepository,
     NotificationRecipientsService,
     NotificationSettingsService,

@@ -216,11 +216,14 @@ Every table has `workspace_id`, `ENABLE ROW LEVEL SECURITY`, `FORCE ROW LEVEL SE
 ### `notification_deliveries`
 
 - unique `(notification_id, channel)` — idempotent delivery; a retry updates the row;
-- index `(workspace_id, status, created_at)` for the pending/failed sweeper;
+- index `(workspace_id, status, created_at)`;
+- index `(status, next_attempt_at)` for the retry sweeper;
 - index `(workspace_id, notification_id)`;
 - composite FK `(workspace_id, notification_id) -> notifications(workspace_id, id)` cascade;
 - FK `workspace_id -> identity.workspaces(id)` cascade;
-- `status` defaults to `pending`.
+- `status` defaults to `pending`;
+- `attempts` defaults to `0`;
+- `next_attempt_at`, `locked_until` and `last_error` start null.
 
 ## 4. How the notification content is derived
 
@@ -248,14 +251,20 @@ pending -> delivered
 
 - `pending` is the row written before any provider call. This is the durable "should be sent" record.
 - `delivered` means the provider accepted the message (email/Telegram) or the in-app row is visible (platform).
-- `failed` means the provider call failed; the row stays for a retry.
+- `failed` means the provider call failed; `next_attempt_at` says whether and when the row may be retried.
 - `read` is the in-app read state. It is stored on the delivery row in the current model, together with `read_at`.
 
-The current schema has no retry metadata yet: no `attempts`, `next_attempt_at`, `locked_until` or `last_error`. A sweeper cannot bound retries without them. They should be added before the first delivery worker.
+### Delivery retries
+
+Before a provider call, the worker claims the row in a tenant transaction: `attempts` increases, `locked_until` becomes now + 60 seconds and the row is returned only when it is `pending`/`failed`, has attempts left, its `next_attempt_at` is due and its lock is free. A second job or a sweeper tick therefore does not send the same delivery twice.
+
+On a provider failure the row becomes `failed` with `last_error` (at most 1,000 characters) and a `next_attempt_at`. The delay is exponential from 30 seconds up to 1 hour; a Telegram `429` uses its `retry_after` instead. After five attempts `next_attempt_at` is null and the row is not retried again. A disabled channel or missing destination is failed with no retry.
+
+A `timers` job every 60 seconds reads up to 100 due rows across workspaces through the allow-listed `NotificationDeliverySweepRepository` and enqueues one `deliver-notification` job per row. The sweeper does not send; the worker claim is still the only place that does.
 
 ## 6. What is still missing
 
-- A sweeper; the email and Telegram workers are built. No retry metadata or scheduled recovery for `pending`/`failed` rows.
+- Dead-letter handling and alerting after a delivery runs out of attempts. The retry metadata and the sweeper are built.
 - Background browser push and a service worker. Browser notifications work only while the app is open.
 - The in-app notification list. The personal unread count and mark-read API exist, but the Inbox navigation badge still uses `inboxNeedsYouCount`.
 - Reminder and fallback timers.

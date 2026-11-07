@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, count, eq, ne, sql } from 'drizzle-orm';
+import { and, count, eq, inArray, isNull, lt, lte, ne, or, sql } from 'drizzle-orm';
+import { DELIVERY_MAX_ATTEMPTS } from '@/modules/notifications/constants/notification-delivery.constants';
 import {
   NOTIFICATIONS_SCHEMA,
   NotificationChannel,
@@ -107,6 +108,44 @@ export class NotificationsRepository {
     return delivery ?? null;
   }
 
+  async claimDelivery(
+    workspaceId: string,
+    notificationId: string,
+    channel: NotificationChannel,
+    now: Date,
+    lockedUntil: Date,
+  ): Promise<NotificationDeliveryRecord | null> {
+    const [delivery] = await this.txHost.tx
+      .update(notificationDeliveries)
+      .set({
+        attempts: sql`${notificationDeliveries.attempts} + 1`,
+        lockedUntil,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(notificationDeliveries.workspaceId, workspaceId),
+          eq(notificationDeliveries.notificationId, notificationId),
+          eq(notificationDeliveries.channel, channel),
+          inArray(notificationDeliveries.status, [
+            NotificationDeliveryStatus.Pending,
+            NotificationDeliveryStatus.Failed,
+          ]),
+          lt(notificationDeliveries.attempts, DELIVERY_MAX_ATTEMPTS),
+          or(
+            isNull(notificationDeliveries.nextAttemptAt),
+            lte(notificationDeliveries.nextAttemptAt, now),
+          ),
+          or(
+            isNull(notificationDeliveries.lockedUntil),
+            lte(notificationDeliveries.lockedUntil, now),
+          ),
+        ),
+      )
+      .returning();
+    return delivery ?? null;
+  }
+
   async markDeliveryDelivered(
     workspaceId: string,
     deliveryId: string,
@@ -117,6 +156,9 @@ export class NotificationsRepository {
       .set({
         status: NotificationDeliveryStatus.Delivered,
         sentAt,
+        nextAttemptAt: null,
+        lockedUntil: null,
+        lastError: null,
         updatedAt: this.clock.now(),
       })
       .where(
@@ -128,10 +170,20 @@ export class NotificationsRepository {
       );
   }
 
-  async markDeliveryFailed(workspaceId: string, deliveryId: string): Promise<void> {
+  async markDeliveryFailed(
+    workspaceId: string,
+    deliveryId: string,
+    failure: { readonly nextAttemptAt: Date | null; readonly lastError: string | null },
+  ): Promise<void> {
     await this.txHost.tx
       .update(notificationDeliveries)
-      .set({ status: NotificationDeliveryStatus.Failed, updatedAt: this.clock.now() })
+      .set({
+        status: NotificationDeliveryStatus.Failed,
+        nextAttemptAt: failure.nextAttemptAt,
+        lockedUntil: null,
+        lastError: failure.lastError,
+        updatedAt: this.clock.now(),
+      })
       .where(
         and(
           eq(notificationDeliveries.workspaceId, workspaceId),

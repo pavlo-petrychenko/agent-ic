@@ -79,6 +79,10 @@ describe('NotificationsRepository read state', () => {
         status: NotificationDeliveryStatus.Delivered,
         sentAt: testbed.clock.now(),
         readAt: null,
+        attempts: 0,
+        nextAttemptAt: null,
+        lockedUntil: null,
+        lastError: null,
       });
       await notifications.insertDeliveryIfAbsent({
         id: testbed.ids.generate(),
@@ -88,6 +92,10 @@ describe('NotificationsRepository read state', () => {
         status: NotificationDeliveryStatus.Pending,
         sentAt: null,
         readAt: null,
+        attempts: 0,
+        nextAttemptAt: testbed.clock.now(),
+        lockedUntil: null,
+        lastError: null,
       });
     });
     return notificationId;

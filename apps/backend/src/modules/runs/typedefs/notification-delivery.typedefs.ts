@@ -33,3 +33,5 @@ export type DeliveryJobData = Readonly<{
   notificationId: string;
   channel: NotificationChannel;
 }>;
+
+export type SweepNotificationDeliveriesInput = Readonly<Record<string, never>>;

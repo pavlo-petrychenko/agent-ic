@@ -27,6 +27,17 @@ export interface NewNotificationDeliveryRecord {
   readonly status: NotificationDeliveryStatus;
   readonly sentAt: Date | null;
   readonly readAt: Date | null;
+  readonly attempts: number;
+  readonly nextAttemptAt: Date | null;
+  readonly lockedUntil: Date | null;
+  readonly lastError: string | null;
+}
+
+export interface NotificationDeliverySweepRow {
+  readonly id: string;
+  readonly workspaceId: string;
+  readonly notificationId: string;
+  readonly channel: NotificationChannelValue;
 }
 
 export interface MarkNotificationsReadInput {

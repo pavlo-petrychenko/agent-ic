@@ -1,4 +1,4 @@
-import { foreignKey, index, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
+import { foreignKey, index, integer, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
 import { NotificationDeliveryStatus } from '@/modules/notifications/constants/notification.constants';
@@ -28,6 +28,10 @@ export const notificationDeliveries = notificationsSchema
         .default(NotificationDeliveryStatus.Pending),
       sentAt: timestamp('sent_at', { withTimezone: true }),
       readAt: timestamp('read_at', { withTimezone: true }),
+      attempts: integer('attempts').notNull().default(0),
+      nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }),
+      lockedUntil: timestamp('locked_until', { withTimezone: true }),
+      lastError: text('last_error'),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
       updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
     },
@@ -50,6 +54,7 @@ export const notificationDeliveries = notificationsSchema
         table.workspaceId,
         table.notificationId,
       ),
+      index('notification_deliveries_retry_idx').on(table.status, table.nextAttemptAt),
       tenantIsolationPolicy('notification_deliveries'),
     ],
   )

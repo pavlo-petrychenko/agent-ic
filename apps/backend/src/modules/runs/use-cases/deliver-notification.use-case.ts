@@ -5,6 +5,11 @@ import { ConversationsRepository, MessagesRepository } from '@/modules/conversat
 import type { Message } from '@/modules/conversations';
 import { UsersRepository, WorkspacesRepository } from '@/modules/identity';
 import {
+  DELIVERY_LAST_ERROR_MAX_LENGTH,
+  DELIVERY_LEASE_SECONDS,
+  DELIVERY_MAX_ATTEMPTS,
+  DELIVERY_RETRY_BASE_SECONDS,
+  DELIVERY_RETRY_MAX_SECONDS,
   EmailGateway,
   EmailTemplate,
   escalationEmailElement,
@@ -12,7 +17,6 @@ import {
   escalationTelegramReplyMarkup,
   escalationTelegramText,
   NotificationChannel,
-  NotificationDeliveryStatus,
   NotificationsRepository,
   NotificationSettingsService,
   renderEmail,
@@ -28,6 +32,7 @@ import type {
   DeliveryContent,
   SkippedDelivery,
 } from '@/modules/runs/typedefs/notification-delivery.typedefs';
+import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { ConfigService } from '@/platform/config/services/config.service';
 import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
@@ -36,6 +41,7 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { TelegramParseMode } from '@/platform/telegram/constants/telegram.constants';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
 import { TelegramGateway } from '@/platform/telegram/gateways/telegram.gateway';
 
 @Injectable()
@@ -75,7 +81,7 @@ export class DeliverNotificationUseCase {
       return;
     }
     if (content.to === null) {
-      await this.fail(workspaceId, content.delivery.id);
+      await this.fail(workspaceId, content.delivery, null, false);
       return;
     }
     try {
@@ -85,7 +91,7 @@ export class DeliverNotificationUseCase {
         await this.sendEmail(content);
       }
     } catch (error) {
-      await this.fail(workspaceId, content.delivery.id);
+      await this.fail(workspaceId, content.delivery, error, true);
       throw error;
     }
     await this.tenants.run(workspaceId, () =>
@@ -151,16 +157,15 @@ export class DeliverNotificationUseCase {
     if (notification === null) {
       return null;
     }
-    const delivery = await this.notifications.findDelivery(
+    const now = this.clock.now();
+    const delivery = await this.notifications.claimDelivery(
       workspaceId,
       notification.id,
       input.channel,
+      now,
+      new Date(now.getTime() + DELIVERY_LEASE_SECONDS * MILLISECONDS_PER_SECOND),
     );
-    if (
-      delivery === null ||
-      delivery.status === NotificationDeliveryStatus.Delivered ||
-      delivery.status === NotificationDeliveryStatus.Read
-    ) {
+    if (delivery === null) {
       return null;
     }
     const user = await this.users.findById(notification.userId);
@@ -248,9 +253,34 @@ export class DeliverNotificationUseCase {
     return url.toString();
   }
 
-  private async fail(workspaceId: string, deliveryId: string): Promise<void> {
+  private async fail(
+    workspaceId: string,
+    delivery: NotificationDeliveryRecord,
+    error: unknown,
+    retry: boolean,
+  ): Promise<void> {
+    const now = this.clock.now();
+    const exhausted = !retry || delivery.attempts >= DELIVERY_MAX_ATTEMPTS;
+    const nextAttemptAt = exhausted
+      ? null
+      : new Date(now.getTime() + this.retryDelayMs(delivery.attempts, error));
     await this.tenants.run(workspaceId, () =>
-      this.notifications.markDeliveryFailed(workspaceId, deliveryId),
+      this.notifications.markDeliveryFailed(workspaceId, delivery.id, {
+        nextAttemptAt,
+        lastError:
+          error instanceof Error ? error.message.slice(0, DELIVERY_LAST_ERROR_MAX_LENGTH) : null,
+      }),
+    );
+  }
+
+  private retryDelayMs(attempts: number, error: unknown): number {
+    if (error instanceof TelegramApiError && error.retryAfterSeconds !== null) {
+      return error.retryAfterSeconds * MILLISECONDS_PER_SECOND;
+    }
+    const exponent = Math.max(0, attempts - 1);
+    return (
+      Math.min(DELIVERY_RETRY_BASE_SECONDS * 2 ** exponent, DELIVERY_RETRY_MAX_SECONDS) *
+      MILLISECONDS_PER_SECOND
     );
   }
 }

@@ -62,6 +62,7 @@ export class CreateEscalationNotificationsUseCase {
       payload.conversationId,
     );
     const lastCustomerMessageId = lastCustomerMessage?.id ?? null;
+    const now = this.clock.now();
     const deliveries: DeliveryJobData[] = [];
     for (const recipient of recipients) {
       const notificationId = await this.notifications.insertIfAbsent({
@@ -80,8 +81,12 @@ export class CreateEscalationNotificationsUseCase {
           notificationId,
           channel,
           status: sent ? NotificationDeliveryStatus.Delivered : NotificationDeliveryStatus.Pending,
-          sentAt: sent ? this.clock.now() : null,
+          sentAt: sent ? now : null,
           readAt: null,
+          attempts: 0,
+          nextAttemptAt: sent ? null : now,
+          lockedUntil: null,
+          lastError: null,
         });
         if (channel === NotificationChannel.Email || channel === NotificationChannel.Telegram) {
           deliveries.push({ notificationId, channel });
