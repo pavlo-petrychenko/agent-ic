@@ -5,7 +5,7 @@ import type {
   ChannelCredentials,
   ChannelIdentity,
 } from '@/modules/channels/typedefs/channel-identity.typedefs';
-import type { TelegramUpdate } from '@/modules/channels/typedefs/telegram.typedefs';
+import type { TelegramUpdate } from '@/platform/telegram/typedefs/telegram.typedefs';
 
 export type ChannelRecord = typeof channels.$inferSelect;
 

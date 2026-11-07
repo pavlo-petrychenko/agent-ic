@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
   toIncomingMessageInput,
   toIncomingQuickReplyInput,
-  toTelegramUpdate,
 } from '@/modules/channels/helpers/telegram-update.helpers';
 import { ConversationMode } from '@/modules/conversations';
+import { toTelegramUpdate } from '@/platform/telegram/helpers/telegram-update.helpers';
 
 const CHANNEL = { id: 'chn_1', workspaceId: 'ws_1', agentId: 'agt_1' };
 

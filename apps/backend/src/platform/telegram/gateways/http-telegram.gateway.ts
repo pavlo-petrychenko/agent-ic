@@ -1,22 +1,23 @@
 import { Injectable } from '@nestjs/common';
+import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
+import { HttpHeader } from '@/platform/http/constants/http-header.constants';
 import {
   TELEGRAM_API_BASE_URL,
   TELEGRAM_API_TIMEOUT_MS,
   TELEGRAM_CONTENT_TYPE,
   TELEGRAM_DROP_PENDING_UPDATES,
   TELEGRAM_INVALID_RESPONSE_MESSAGE,
-} from '@/modules/channels/constants/telegram.constants';
-import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
-import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
-import { toTelegramUpdate } from '@/modules/channels/helpers/telegram-update.helpers';
-import { telegramReplyMarkup } from '@/modules/channels/helpers/telegram.helpers';
+} from '@/platform/telegram/constants/telegram.constants';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
+import { TelegramGateway } from '@/platform/telegram/gateways/telegram.gateway';
+import { toTelegramUpdate } from '@/platform/telegram/helpers/telegram-update.helpers';
 import type {
   TelegramMeResponse,
   TelegramMessageResponse,
   TelegramResponse,
   TelegramUpdateResponse,
   TelegramWebhookInfoResponse,
-} from '@/modules/channels/typedefs/http-telegram-gateway.typedefs';
+} from '@/platform/telegram/typedefs/http-telegram-gateway.typedefs';
 import type {
   AnswerTelegramCallbackQueryInput,
   GetTelegramUpdatesInput,
@@ -27,9 +28,7 @@ import type {
   TelegramBot,
   TelegramUpdate,
   TelegramWebhookInfo,
-} from '@/modules/channels/typedefs/telegram.typedefs';
-import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
-import { HttpHeader } from '@/platform/http/constants/http-header.constants';
+} from '@/platform/telegram/typedefs/telegram.typedefs';
 
 @Injectable()
 export class HttpTelegramGateway extends TelegramGateway {
@@ -96,14 +95,16 @@ export class HttpTelegramGateway extends TelegramGateway {
   }
 
   async sendMessage(input: SendTelegramMessageInput): Promise<void> {
-    const replyMarkup = telegramReplyMarkup(input.messageId, input.quickReplies);
     await this.call<TelegramMessageResponse>(input.token, 'sendMessage', {
       method: 'POST',
       headers: { [HttpHeader.ContentType]: TELEGRAM_CONTENT_TYPE },
       body: JSON.stringify({
         chat_id: input.chatId,
         text: input.text,
-        ...(replyMarkup === null ? {} : { reply_markup: replyMarkup }),
+        ...(input.parseMode === undefined || input.parseMode === null
+          ? {}
+          : { parse_mode: input.parseMode }),
+        ...(input.replyMarkup === null ? {} : { reply_markup: input.replyMarkup }),
       }),
     });
   }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { isTelegramTokenInvalid } from '@/modules/channels/helpers/telegram-error.helpers';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
 
 describe('isTelegramTokenInvalid', () => {
   it('is true for 401 and 404', () => {

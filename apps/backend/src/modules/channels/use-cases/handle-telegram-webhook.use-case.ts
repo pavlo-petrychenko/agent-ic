@@ -2,7 +2,6 @@ import { IdPrefix } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { parseChannelInput } from '@/modules/channels/helpers/channel-input.helpers';
-import { toTelegramUpdate } from '@/modules/channels/helpers/telegram-update.helpers';
 import { telegramWebhookUpdateSchema } from '@/modules/channels/schemas/telegram.schema';
 import { TelegramUpdatesService } from '@/modules/channels/services/telegram-updates.service';
 import type { HandleTelegramWebhookInput } from '@/modules/channels/typedefs/channel.typedefs';
@@ -11,6 +10,7 @@ import { ConfigService } from '@/platform/config/services/config.service';
 import { SystemReason } from '@/platform/context/constants/actor.constants';
 import { UseCaseCtxService } from '@/platform/context/services/use-case-ctx.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { toTelegramUpdate } from '@/platform/telegram/helpers/telegram-update.helpers';
 
 @Injectable()
 export class HandleTelegramWebhookUseCase {

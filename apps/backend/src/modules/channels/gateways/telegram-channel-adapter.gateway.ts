@@ -5,12 +5,11 @@ import {
   TELEGRAM_CHAT_RATE_LIMIT,
   TELEGRAM_RATE_LIMIT_SUBJECT_SEPARATOR,
 } from '@/modules/channels/constants/telegram-rate-limit.constants';
-import { TelegramChatAction } from '@/modules/channels/constants/telegram.constants';
 import { ChannelBrokenError } from '@/modules/channels/errors/channel-broken.error';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { ChannelAdapter } from '@/modules/channels/gateways/channel-adapter.gateway';
-import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { isTelegramTokenInvalid } from '@/modules/channels/helpers/telegram-error.helpers';
+import { telegramReplyMarkup } from '@/modules/channels/helpers/telegram.helpers';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import type { ChannelOutboundMessage } from '@/modules/channels/typedefs/channel-message.typedefs';
@@ -18,6 +17,8 @@ import type { ChannelRecord } from '@/modules/channels/typedefs/channel.typedefs
 import { ChannelKind } from '@/modules/conversations';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.service';
+import { TelegramChatAction } from '@/platform/telegram/constants/telegram.constants';
+import { TelegramGateway } from '@/platform/telegram/gateways/telegram.gateway';
 
 @Injectable()
 export class TelegramChannelAdapter extends ChannelAdapter {
@@ -57,9 +58,8 @@ export class TelegramChannelAdapter extends ChannelAdapter {
     await this.telegram.sendMessage({
       token: credentials.botToken,
       chatId: message.endUserExternalId,
-      messageId: message.messageId,
       text: message.text,
-      quickReplies: message.quickReplies,
+      replyMarkup: telegramReplyMarkup(message.messageId, message.quickReplies),
     });
   }
 

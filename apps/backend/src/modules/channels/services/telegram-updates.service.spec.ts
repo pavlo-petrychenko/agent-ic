@@ -7,16 +7,16 @@ import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-foun
 import { TelegramWebhookUnauthorizedError } from '@/modules/channels/errors/telegram-webhook-unauthorized.error';
 import { telegramQuickReplyCallbackData } from '@/modules/channels/helpers/telegram.helpers';
 import { TelegramUpdatesService } from '@/modules/channels/services/telegram-updates.service';
-import type {
-  TelegramCallbackQuery,
-  TelegramMessage,
-  TelegramUpdate,
-} from '@/modules/channels/typedefs/telegram.typedefs';
 import { ChannelKind, IncomingMessageOutcome, MessageAuthor } from '@/modules/conversations';
 import { startRunOnMessageJob } from '@/modules/runs';
 import { SystemActorRequiredError } from '@/platform/context/errors/system-actor-required.error';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
+import type {
+  TelegramCallbackQuery,
+  TelegramMessage,
+  TelegramUpdate,
+} from '@/platform/telegram/typedefs/telegram.typedefs';
 import { TEST_TELEGRAM_TOKEN } from '@test/support/constants/channel-testing.constants';
 import {
   QUICK_REPLIES,

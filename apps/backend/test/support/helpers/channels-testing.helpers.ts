@@ -2,8 +2,6 @@ import { ChannelKind, WorkspaceRole } from '@agent-ic/contracts';
 import { ChannelsModule } from '@/modules/channels/channels.module';
 import { ApiReplyMode, ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
-import { FakeTelegramGateway } from '@/modules/channels/gateways/telegram.fake';
-import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
@@ -16,6 +14,8 @@ import { Role } from '@/platform/module-roles/constants/role.constants';
 import { FakeOutboundHttpGateway } from '@/platform/outbound-http/gateways/outbound-http.fake';
 import { OutboundHttpGateway } from '@/platform/outbound-http/gateways/outbound-http.gateway';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
+import { FakeTelegramGateway } from '@/platform/telegram/gateways/telegram.fake';
+import { TelegramGateway } from '@/platform/telegram/gateways/telegram.gateway';
 import {
   AGENT_REPLY_TEXT,
   CONVERSATIONS_TESTBED_ROLE,
