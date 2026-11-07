@@ -20,6 +20,8 @@ export interface DeliveryContent {
   readonly time: string;
   readonly workspaceName: string | null;
   readonly link: string;
+  readonly workspacePublicId: string;
+  readonly conversationPublicId: string | null;
 }
 
 export interface SkippedDelivery {

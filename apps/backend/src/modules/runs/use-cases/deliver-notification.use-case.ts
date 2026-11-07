@@ -9,12 +9,14 @@ import {
   EmailTemplate,
   escalationEmailElement,
   escalationEmailSubject,
+  escalationTelegramReplyMarkup,
   escalationTelegramText,
   NotificationChannel,
   NotificationDeliveryStatus,
   NotificationsRepository,
   NotificationSettingsService,
   renderEmail,
+  telegramTakeOverCallbackData,
   TelegramAlertsNotConfiguredError,
 } from '@/modules/notifications';
 import type { NotificationDeliveryRecord, NotificationRecord } from '@/modules/notifications';
@@ -131,7 +133,13 @@ export class DeliverNotificationUseCase {
         lastMessage: content.lastMessage,
       }),
       parseMode: TelegramParseMode.Html,
-      replyMarkup: null,
+      replyMarkup: escalationTelegramReplyMarkup(content.locale, {
+        inboxUrl: content.link,
+        takeOverCallbackData:
+          content.conversationPublicId === null
+            ? null
+            : telegramTakeOverCallbackData(content.workspacePublicId, content.conversationPublicId),
+      }),
     });
   }
 
@@ -201,7 +209,10 @@ export class DeliverNotificationUseCase {
           : await this.messages.findLatestCustomerMessage(workspaceId, conversationId)
         : await this.messages.findById(workspaceId, notification.lastCustomerMessageId);
     const workspace = await this.workspaces.findById(workspaceId);
-    const link = this.inboxLink(workspaceId, conversationId);
+    const workspacePublicId = this.ids.toPublic(IdPrefix.Workspace, workspaceId);
+    const conversationPublicId =
+      conversationId === null ? null : this.ids.toPublic(IdPrefix.Conversation, conversationId);
+    const link = this.inboxLink(workspacePublicId, conversationPublicId);
     return {
       delivery,
       to: destination,
@@ -214,6 +225,8 @@ export class DeliverNotificationUseCase {
       time: this.timeOf(notification.createdAt, user.locale, workspace?.timeZone ?? null),
       workspaceName: workspace?.name ?? null,
       link,
+      workspacePublicId,
+      conversationPublicId,
     };
   }
 
@@ -226,15 +239,11 @@ export class DeliverNotificationUseCase {
     }).format(at);
   }
 
-  private inboxLink(workspaceId: string, conversationId: string | null): string {
+  private inboxLink(workspacePublicId: string, conversationPublicId: string | null): string {
     const base = this.config.config.publicUrl;
-    const workspacePublicId = this.ids.toPublic(IdPrefix.Workspace, workspaceId);
     const url = new URL(`/w/${workspacePublicId}/inbox`, base);
-    if (conversationId !== null) {
-      url.searchParams.set(
-        'conversation',
-        this.ids.toPublic(IdPrefix.Conversation, conversationId),
-      );
+    if (conversationPublicId !== null) {
+      url.searchParams.set('conversation', conversationPublicId);
     }
     return url.toString();
   }

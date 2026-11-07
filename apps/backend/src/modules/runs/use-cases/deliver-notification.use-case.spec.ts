@@ -276,7 +276,17 @@ describe('DeliverNotificationUseCase', () => {
         '<b>Reason:</b> The customer asked for a person.',
       ].join('\n'),
       parseMode: TelegramParseMode.Html,
-      replyMarkup: null,
+      replyMarkup: {
+        inline_keyboard: [
+          [
+            {
+              text: 'Open in Inbox',
+              url: 'https://app.test/w/ws_public/inbox?conversation=cnv_public',
+            },
+            { text: 'Take over', callback_data: 'to:ws_public:cnv_public' },
+          ],
+        ],
+      },
     });
     expect(send).not.toHaveBeenCalled();
     expect(markDelivered).toHaveBeenCalledWith('workspace-1', 'delivery-2', NOW);
