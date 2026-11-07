@@ -1,6 +1,7 @@
 extend type Query {
   notificationSettings: NotificationSettings!
   unreadNotificationCount: Int!
+  latestUnreadNotification: NotificationAlert
 }
 
 extend type Mutation {
@@ -48,4 +49,13 @@ input UpdateNotificationEmailInput {
 
 input MarkNotificationsReadInput {
   conversationId: ID!
+}
+
+type NotificationAlert {
+  id: ID!
+  conversationId: ID!
+  customerName: String
+  channelKind: String
+  reason: String
+  createdAt: String!
 }

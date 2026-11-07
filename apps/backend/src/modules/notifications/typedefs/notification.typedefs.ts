@@ -32,3 +32,21 @@ export interface NewNotificationDeliveryRecord {
 export interface MarkNotificationsReadInput {
   readonly conversationId: string;
 }
+
+export interface NotificationAlertRecord {
+  readonly id: string;
+  readonly conversationId: string;
+  readonly customerName: string | null;
+  readonly channelKind: string | null;
+  readonly reason: string | null;
+  readonly createdAt: Date;
+}
+
+export interface NotificationAlertView {
+  readonly id: string;
+  readonly conversationId: string;
+  readonly customerName: string | null;
+  readonly channelKind: string | null;
+  readonly reason: string | null;
+  readonly createdAt: Date;
+}

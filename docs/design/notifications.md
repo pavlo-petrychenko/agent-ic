@@ -1,6 +1,6 @@
 # Notifications module
 
-**Status:** schema, settings API, recipient resolver, producer, read state and email delivery, November 2026. The `notifications` schema, the personal settings read/write API, the handoff recipient resolver, the escalation producer, the platform read state and the email delivery worker exist. There is no sweeper, retry metadata, Telegram delivery, browser notification, in-app notification list or reminder/fallback timer yet. Email delivery still uses the existing `EmailGateway` for system mail.
+**Status:** schema, settings API, recipient resolver, producer, read state, email delivery and browser notifications, November 2026. The `notifications` schema, the personal settings read/write API, the handoff recipient resolver, the escalation producer, the platform read state, the email delivery worker and in-app browser notifications exist. There is no background push/service worker, Telegram delivery, in-app notification list or reminder/fallback timer yet.
 
 **Decisions:** D307 (notification storage), D85 (Resend), D167 (email gateway). Product requirements: `mvp-scope.md` §12.11, `communication.md` chain F.
 
@@ -60,7 +60,9 @@ Telegram deliveries stay `pending` and are not enqueued yet.
 
 The platform read state is built. `unreadNotificationCount` counts the signed-in user's platform deliveries whose status is not `read`, and `markNotificationsRead` sets them to `read` with `read_at` when the operator opens that conversation. The Inbox page calls it when the selected conversation changes. Email and Telegram deliveries are never counted and never marked read.
 
-The existing Inbox navigation badge still uses the workspace-level `inboxNeedsYouCount`; the personal unread count is ready for browser notifications, which are not built.
+The existing Inbox navigation badge still uses the workspace-level `inboxNeedsYouCount`; it now refetches on focus, on visibility and every 30 seconds so a missed live event does not leave it stale.
+
+Browser notifications are built. `latestUnreadNotification` returns the signed-in user’s newest unread platform notification with its conversation, customer name, channel and reason, but only while that conversation is still `waiting`. A conversation that is closed or taken over no longer produces a card, even if its delivery was never marked read. The workspace shell watches the notification and refetches on `inboxActivity`. When the tab is visible it shows an in-app card with the customer, the channel and the waiting time; when the tab is hidden and the browser permission is granted it shows a desktop notification instead. Clicking either opens `/inbox?conversation=...`. Permission is requested from Settings, Notifications. This works only while the app is open; there is no service worker or background push.
 
 ## 2. Schema
 
@@ -253,7 +255,8 @@ The current schema has no retry metadata yet: no `attempts`, `next_attempt_at`, 
 
 - A sweeper; the email worker is built. No retry metadata or scheduled recovery for `pending`/`failed` rows.
 - Telegram delivery and the alerts bot linking flow (`chat_id`, hashed code, 10-minute expiry). Telegram deliveries stay `pending`.
-- Browser notifications and the in-app notification list. The personal unread count and mark-read API exist, but the Inbox navigation badge still uses `inboxNeedsYouCount`.
+- Background browser push and a service worker. Browser notifications work only while the app is open.
+- The in-app notification list. The personal unread count and mark-read API exist, but the Inbox navigation badge still uses `inboxNeedsYouCount`.
 - Reminder and fallback timers.
 - `notification_settings.enabled`, working hours and time zone. Today the only switch is per channel.
 - Provider-specific retry policy and rate limits.

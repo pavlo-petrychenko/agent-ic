@@ -1,11 +1,13 @@
+import { ChannelKind } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { ConversationsRepository } from '@/modules/conversations';
 import {
   NotificationChannel,
   NotificationDeliveryStatus,
   NotificationKind,
 } from '@/modules/notifications/constants/notification.constants';
 import { NotificationsRepository } from '@/modules/notifications/repositories/notifications.repository';
-import { ROOT_BRANCH_KEY } from '@/modules/runs';
+import { ROOT_BRANCH_KEY, RunStepStatus } from '@/modules/runs';
 import { TestRedisPrefix } from '@test/support/constants/test-infrastructure.constants';
 import { triggerOnlyFlow } from '@test/support/fixtures/runs.fixture';
 import { ensureUserRow } from '@test/support/helpers/parent-rows.helpers';
@@ -30,6 +32,7 @@ describe('NotificationsRepository read state', () => {
   const seedNotification = async (
     seeded: Awaited<ReturnType<typeof seedExecutableRun>>,
     userId: string,
+    reason: string | null = null,
   ): Promise<string> => {
     const step = await testbed.tenants.run(seeded.run.workspaceId, () =>
       testbed.steps.start({
@@ -45,6 +48,17 @@ describe('NotificationsRepository read state', () => {
     );
     if (step === null) {
       throw new Error('Expected a stored run step');
+    }
+    if (reason !== null) {
+      await testbed.tenants.run(seeded.run.workspaceId, () =>
+        testbed.steps.finish(seeded.run.workspaceId, step.id, {
+          status: RunStepStatus.Succeeded,
+          output: { reason },
+          port: null,
+          error: null,
+          finishedAt: testbed.clock.now(),
+        }),
+      );
     }
     const notificationId = await testbed.tenants.run(seeded.run.workspaceId, () =>
       notifications.insertIfAbsent({
@@ -114,6 +128,62 @@ describe('NotificationsRepository read state', () => {
         ),
       ),
     ).toBe(0);
+  });
+
+  it('returns the latest unread platform notification', async () => {
+    const seeded = await seedExecutableRun(testbed, triggerOnlyFlow());
+    const user = testbed.ids.generate();
+    await ensureUserRow(testbed.module, user);
+    await seedNotification(seeded, user, 'Customer asks to be called back.');
+    await testbed.tenants.run(seeded.run.workspaceId, () =>
+      testbed.module
+        .get(ConversationsRepository)
+        .markWaiting(seeded.run.workspaceId, seeded.run.conversationId),
+    );
+
+    const alert = await testbed.tenants.run(seeded.run.workspaceId, () =>
+      notifications.findLatestUnreadPlatform(seeded.run.workspaceId, user),
+    );
+
+    expect(alert).toMatchObject({
+      conversationId: seeded.run.conversationId,
+      customerName: null,
+      channelKind: ChannelKind.Simulated,
+      reason: 'Customer asks to be called back.',
+    });
+    expect(alert?.createdAt).toBeInstanceOf(Date);
+
+    await testbed.tenants.run(seeded.run.workspaceId, () =>
+      notifications.markPlatformReadForConversation(
+        seeded.run.workspaceId,
+        user,
+        seeded.run.conversationId,
+        READ_AT,
+      ),
+    );
+    expect(
+      await testbed.tenants.run(seeded.run.workspaceId, () =>
+        notifications.findLatestUnreadPlatform(seeded.run.workspaceId, user),
+      ),
+    ).toBeNull();
+  });
+
+  it('ignores unread notifications for conversations that no longer need a person', async () => {
+    const seeded = await seedExecutableRun(testbed, triggerOnlyFlow());
+    const user = testbed.ids.generate();
+    await ensureUserRow(testbed.module, user);
+    await seedNotification(seeded, user);
+    await testbed.tenants.run(seeded.run.workspaceId, async () => {
+      const conversations = testbed.module.get(ConversationsRepository);
+      await conversations.markWaiting(seeded.run.workspaceId, seeded.run.conversationId);
+      await conversations.close(seeded.run.workspaceId, seeded.run.conversationId, READ_AT, null);
+    });
+
+    expect(
+      await testbed.tenants.run(seeded.run.workspaceId, () =>
+        notifications.findLatestUnreadPlatform(seeded.run.workspaceId, user),
+      ),
+    ).toBeNull();
   });
 
   it('does not mark another user or another conversation read', async () => {

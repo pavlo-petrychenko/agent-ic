@@ -12,6 +12,7 @@ import { NotificationMetricsService } from '@/modules/notifications/services/not
 import { NotificationRecipientsService } from '@/modules/notifications/services/notification-recipients.service';
 import { NotificationSettingsService } from '@/modules/notifications/services/notification-settings.service';
 import { CountUnreadNotificationsUseCase } from '@/modules/notifications/use-cases/count-unread-notifications.use-case';
+import { GetLatestUnreadNotificationUseCase } from '@/modules/notifications/use-cases/get-latest-unread-notification.use-case';
 import { GetNotificationSettingsUseCase } from '@/modules/notifications/use-cases/get-notification-settings.use-case';
 import { MarkNotificationsReadUseCase } from '@/modules/notifications/use-cases/mark-notifications-read.use-case';
 import { SendConfirmationEmailUseCase } from '@/modules/notifications/use-cases/send-confirmation-email.use-case';
@@ -38,6 +39,7 @@ export class NotificationsModule extends defineModule({
     NotificationSettingsService,
     NotificationRecipientsService,
     GetNotificationSettingsUseCase,
+    GetLatestUnreadNotificationUseCase,
     UpdateNotificationChannelUseCase,
     UpdateNotificationEmailUseCase,
     CountUnreadNotificationsUseCase,

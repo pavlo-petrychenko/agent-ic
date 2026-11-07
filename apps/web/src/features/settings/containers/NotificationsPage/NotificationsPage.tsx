@@ -1,5 +1,6 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
 import { useTranslation } from 'react-i18next';
+import { useBrowserNotificationPermission } from '@/features/inbox';
 import { useNotificationSettings } from '@/features/settings/communication/hooks/useNotificationSettings';
 import { useUpdateNotificationChannel } from '@/features/settings/communication/hooks/useUpdateNotificationChannel';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
@@ -9,6 +10,7 @@ import { useActiveWorkspace, useWorkspaceShell } from '@/features/workspace';
 import { NotificationChannel } from '@/shared/api/generated/schema.generated';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
+import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Card } from '@/shared/ui/display/Card';
 import { Switch } from '@/shared/ui/inputs/Switch';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
@@ -24,11 +26,21 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
   const { settings, loading } = useNotificationSettings();
   const updateChannel = useUpdateNotificationChannel();
   const errorMessage = useErrorMessage();
+  const browser = useBrowserNotificationPermission();
   const user = useWorkspaceShell(workspaceId).data?.user ?? null;
   const active = useActiveWorkspace(workspaceId);
 
   const isOperator = active?.role === WorkspaceRole.Operator;
   const name = user?.name ?? '';
+
+  const browserHint =
+    browser.permission === 'granted'
+      ? t('notifications.browser.enabled')
+      : browser.permission === 'denied'
+        ? t('notifications.browser.denied')
+        : browser.permission === 'unsupported'
+          ? t('notifications.browser.unsupported')
+          : t('notifications.browser.hint');
 
   const changeChannel = (channel: NotificationChannel, enabled: boolean) => {
     void updateChannel(channel, enabled).catch((error: unknown) => {
@@ -75,6 +87,19 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
                 disabled={loading}
                 aria-label={t('notifications.card.inPlatform')}
               />
+            </li>
+            <li className={styles.row}>
+              <div className={styles.text}>
+                <Text>{t('notifications.browser.title')}</Text>
+                <Text kind={TextKind.Caption} color={TextColor.Mute}>
+                  {browserHint}
+                </Text>
+              </div>
+              {browser.permission === 'default' ? (
+                <Button variant={ButtonVariant.Secondary} onClick={() => void browser.request()}>
+                  {t('notifications.browser.enable')}
+                </Button>
+              ) : null}
             </li>
             <li className={styles.row}>
               <div className={styles.text}>

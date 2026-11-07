@@ -5,7 +5,9 @@ import type {
   UpdateNotificationChannelInput,
   UpdateNotificationEmailInput,
 } from '@/modules/notifications/typedefs/notification-settings.typedefs';
+import type { NotificationAlertView } from '@/modules/notifications/typedefs/notification.typedefs';
 import type {
+  NotificationAlert as GraphqlNotificationAlert,
   NotificationSettings as GraphqlNotificationSettings,
   UpdateNotificationChannelInput as GraphqlUpdateNotificationChannelInput,
   UpdateNotificationEmailInput as GraphqlUpdateNotificationEmailInput,
@@ -45,3 +47,14 @@ export const toUpdateNotificationChannelInput = (
 export const toUpdateNotificationEmailInput = (
   input: GraphqlUpdateNotificationEmailInput,
 ): UpdateNotificationEmailInput => ({ email: input.email });
+
+export const toGraphqlNotificationAlert = (
+  alert: NotificationAlertView,
+): GraphqlNotificationAlert => ({
+  id: alert.id,
+  conversationId: alert.conversationId,
+  customerName: alert.customerName,
+  channelKind: alert.channelKind,
+  reason: alert.reason,
+  createdAt: alert.createdAt.toISOString(),
+});
