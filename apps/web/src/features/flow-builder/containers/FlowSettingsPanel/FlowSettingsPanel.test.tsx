@@ -63,12 +63,13 @@ describe('FlowSettingsPanel', () => {
     await within(recipients).findByRole('option', { name: 'Owners · 1 person' });
     await user.selectOptions(recipients, 'owner');
     await user.click(screen.getByRole('checkbox', { name: 'Email' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Telegram' }));
 
     expect(settings().handoff).toEqual({
       ...DEFAULT_HANDOFF,
       notify: {
         recipients: { kind: RecipientsKind.Role, role: 'owner' },
-        channels: [NotifyChannel.InPlatform, NotifyChannel.Email],
+        channels: [NotifyChannel.InPlatform, NotifyChannel.Email, NotifyChannel.Telegram],
       },
     });
   });

@@ -642,7 +642,8 @@
       "people_other": "{{name}} · {{count}} people",
       "channel": {
         "in_platform": "In the platform",
-        "email": "Email"
+        "email": "Email",
+        "telegram": "Telegram"
       },
       "notifyHint": "Each person can turn channels off in their notification settings.",
       "reason": "Reason shown in the Inbox",

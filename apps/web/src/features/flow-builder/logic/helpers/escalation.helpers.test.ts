@@ -43,8 +43,15 @@ describe('escalation helpers', () => {
     const document = flow();
 
     expect(setChannel(document, 'e', NotifyChannel.InPlatform, false)).toEqual(document);
-    const hidden = setChannel(document, 'e', NotifyChannel.Telegram, true);
-    expect(setChannel(hidden, 'e', NotifyChannel.InPlatform, false)).toEqual(hidden);
+    const telegram = setChannel(document, 'e', NotifyChannel.Telegram, true);
+    expect(config(telegram)).toMatchObject({
+      notify: { channels: [NotifyChannel.InPlatform, NotifyChannel.Telegram] },
+    });
+    const onlyTelegram = setChannel(telegram, 'e', NotifyChannel.InPlatform, false);
+    expect(config(onlyTelegram)).toMatchObject({
+      notify: { channels: [NotifyChannel.Telegram] },
+    });
+    expect(setChannel(onlyTelegram, 'e', NotifyChannel.Telegram, false)).toEqual(onlyTelegram);
     expect(config(setChannel(document, 'e', NotifyChannel.Email, true))).toMatchObject({
       notify: { channels: [NotifyChannel.InPlatform, NotifyChannel.Email] },
     });

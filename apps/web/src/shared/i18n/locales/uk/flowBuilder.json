@@ -662,7 +662,8 @@
       "people_other": "{{name}} · {{count}} людини",
       "channel": {
         "in_platform": "На платформі",
-        "email": "Email"
+        "email": "Email",
+        "telegram": "Telegram"
       },
       "notifyHint": "Кожен може вимкнути канали у своїх налаштуваннях сповіщень.",
       "reason": "Причина, яку видно у Вхідних",

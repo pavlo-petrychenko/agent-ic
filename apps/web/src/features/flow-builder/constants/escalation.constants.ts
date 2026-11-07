@@ -29,4 +29,5 @@ export const RECIPIENT_ROLES: readonly RecipientRole[] = [
 export const OFFERED_NOTIFY_CHANNELS: readonly OfferedChannel[] = [
   NotifyChannel.InPlatform,
   NotifyChannel.Email,
+  NotifyChannel.Telegram,
 ];
