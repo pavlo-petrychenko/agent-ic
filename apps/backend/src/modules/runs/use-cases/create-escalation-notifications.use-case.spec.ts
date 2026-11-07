@@ -76,7 +76,11 @@ describe('CreateEscalationNotificationsUseCase', () => {
     recipientsFor.mockResolvedValue([
       {
         userId: 'user-1',
-        channels: [NotificationChannel.Platform, NotificationChannel.Email],
+        channels: [
+          NotificationChannel.Platform,
+          NotificationChannel.Email,
+          NotificationChannel.Telegram,
+        ],
       },
       { userId: 'user-2', channels: [NotificationChannel.Email] },
     ]);
@@ -108,7 +112,7 @@ describe('CreateEscalationNotificationsUseCase', () => {
         lastCustomerMessageId: 'message-1',
       }),
     );
-    expect(insertDeliveryIfAbsent).toHaveBeenCalledTimes(3);
+    expect(insertDeliveryIfAbsent).toHaveBeenCalledTimes(4);
     expect(insertDeliveryIfAbsent).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
@@ -130,16 +134,29 @@ describe('CreateEscalationNotificationsUseCase', () => {
     expect(insertDeliveryIfAbsent).toHaveBeenNthCalledWith(
       3,
       expect.objectContaining({
+        notificationId: 'notification-user-1',
+        channel: NotificationChannel.Telegram,
+        status: NotificationDeliveryStatus.Pending,
+        sentAt: null,
+      }),
+    );
+    expect(insertDeliveryIfAbsent).toHaveBeenNthCalledWith(
+      4,
+      expect.objectContaining({
         notificationId: 'notification-user-2',
         channel: NotificationChannel.Email,
         status: NotificationDeliveryStatus.Pending,
         sentAt: null,
       }),
     );
-    expect(enqueue).toHaveBeenCalledTimes(2);
+    expect(enqueue).toHaveBeenCalledTimes(3);
     expect(enqueue).toHaveBeenCalledWith(expect.anything(), deliverNotificationJob, {
       notificationId: 'notification-user-1',
       channel: NotificationChannel.Email,
+    });
+    expect(enqueue).toHaveBeenCalledWith(expect.anything(), deliverNotificationJob, {
+      notificationId: 'notification-user-1',
+      channel: NotificationChannel.Telegram,
     });
     expect(enqueue).toHaveBeenCalledWith(expect.anything(), deliverNotificationJob, {
       notificationId: 'notification-user-2',

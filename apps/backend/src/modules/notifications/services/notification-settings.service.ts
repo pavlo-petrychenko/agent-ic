@@ -79,6 +79,17 @@ export class NotificationSettingsService {
     return this.describe(workspaceId, userId);
   }
 
+  async telegramChatId(workspaceId: string, userId: string): Promise<string | null> {
+    const settings = await this.settings.findByUser(workspaceId, userId);
+    const telegram = settings?.channels.find(
+      (channel) => channel.channel === NotificationChannel.Telegram,
+    );
+    if (telegram === undefined || !telegram.enabled || telegram.chatId === null) {
+      return null;
+    }
+    return telegram.chatId;
+  }
+
   private async ensure(workspaceId: string, userId: string): Promise<NotificationSettingsRecord> {
     const settingsId = await this.settings.insertIfAbsent(workspaceId, userId, this.ids.generate());
     if (settingsId === null) {

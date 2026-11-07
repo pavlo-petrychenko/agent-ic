@@ -9,11 +9,13 @@ import {
   EmailTemplate,
   escalationEmailElement,
   escalationEmailSubject,
+  escalationTelegramText,
   NotificationChannel,
   NotificationDeliveryStatus,
   NotificationsRepository,
   NotificationSettingsService,
   renderEmail,
+  TelegramAlertsNotConfiguredError,
 } from '@/modules/notifications';
 import type { NotificationDeliveryRecord, NotificationRecord } from '@/modules/notifications';
 import { notificationReasonOf } from '@/modules/runs/helpers/notification-content.helpers';
@@ -31,6 +33,8 @@ import { requireSystemActor } from '@/platform/context/helpers/use-case-ctx.help
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { TelegramParseMode } from '@/platform/telegram/constants/telegram.constants';
+import { TelegramGateway } from '@/platform/telegram/gateways/telegram.gateway';
 
 @Injectable()
 export class DeliverNotificationUseCase {
@@ -39,6 +43,7 @@ export class DeliverNotificationUseCase {
     private readonly notifications: NotificationsRepository,
     private readonly settings: NotificationSettingsService,
     private readonly email: EmailGateway,
+    private readonly telegram: TelegramGateway,
     private readonly users: UsersRepository,
     private readonly workspaces: WorkspacesRepository,
     private readonly agents: AgentsRepository,
@@ -53,7 +58,10 @@ export class DeliverNotificationUseCase {
 
   async execute(ctx: UseCaseCtx, input: DeliverNotificationInput): Promise<void> {
     requireSystemActor(ctx);
-    if (input.channel !== NotificationChannel.Email) {
+    if (
+      input.channel !== NotificationChannel.Email &&
+      input.channel !== NotificationChannel.Telegram
+    ) {
       return;
     }
     const workspaceId = ctx.workspaceId;
@@ -68,6 +76,22 @@ export class DeliverNotificationUseCase {
       await this.fail(workspaceId, content.delivery.id);
       return;
     }
+    try {
+      if (content.delivery.channel === NotificationChannel.Telegram) {
+        await this.sendTelegram(content);
+      } else {
+        await this.sendEmail(content);
+      }
+    } catch (error) {
+      await this.fail(workspaceId, content.delivery.id);
+      throw error;
+    }
+    await this.tenants.run(workspaceId, () =>
+      this.notifications.markDeliveryDelivered(workspaceId, content.delivery.id, this.clock.now()),
+    );
+  }
+
+  private async sendEmail(content: DeliveryContent): Promise<void> {
     const rendered = await renderEmail(
       escalationEmailElement({
         locale: content.locale,
@@ -82,20 +106,33 @@ export class DeliverNotificationUseCase {
         link: content.link,
       }),
     );
-    try {
-      await this.email.send({
-        template: EmailTemplate.Escalation,
-        to: content.to,
-        subject: escalationEmailSubject(content.locale, content.customerName),
-        ...rendered,
-      });
-    } catch (error) {
-      await this.fail(workspaceId, content.delivery.id);
-      throw error;
+    await this.email.send({
+      template: EmailTemplate.Escalation,
+      to: content.to,
+      subject: escalationEmailSubject(content.locale, content.customerName),
+      ...rendered,
+    });
+  }
+
+  private async sendTelegram(content: DeliveryContent): Promise<void> {
+    const token = this.config.config.telegram.alertsBotToken;
+    if (token === null) {
+      throw new TelegramAlertsNotConfiguredError();
     }
-    await this.tenants.run(workspaceId, () =>
-      this.notifications.markDeliveryDelivered(workspaceId, content.delivery.id, this.clock.now()),
-    );
+    await this.telegram.sendMessage({
+      token,
+      chatId: content.to,
+      text: escalationTelegramText({
+        locale: content.locale,
+        customerName: content.customerName,
+        agentName: content.agentName,
+        channelKind: content.channelKind,
+        reason: content.reason,
+        lastMessage: content.lastMessage,
+      }),
+      parseMode: TelegramParseMode.Html,
+      replyMarkup: null,
+    });
   }
 
   private async load(
@@ -109,7 +146,7 @@ export class DeliverNotificationUseCase {
     const delivery = await this.notifications.findDelivery(
       workspaceId,
       notification.id,
-      NotificationChannel.Email,
+      input.channel,
     );
     if (
       delivery === null ||
@@ -118,9 +155,18 @@ export class DeliverNotificationUseCase {
     ) {
       return null;
     }
-    const settings = await this.settings.describe(workspaceId, notification.userId);
     const user = await this.users.findById(notification.userId);
-    if (!settings.email.enabled || user === null) {
+    if (user === null) {
+      return { delivery, to: null };
+    }
+    if (input.channel === NotificationChannel.Telegram) {
+      const chatId = await this.settings.telegramChatId(workspaceId, notification.userId);
+      return chatId === null
+        ? { delivery, to: null }
+        : this.content(workspaceId, notification, delivery, user, chatId);
+    }
+    const settings = await this.settings.describe(workspaceId, notification.userId);
+    if (!settings.email.enabled) {
       return { delivery, to: null };
     }
     return this.content(
@@ -137,7 +183,7 @@ export class DeliverNotificationUseCase {
     notification: NotificationRecord,
     delivery: NotificationDeliveryRecord,
     user: Awaited<ReturnType<UsersRepository['findById']>>,
-    email: string,
+    destination: string,
   ): Promise<DeliveryContent | SkippedDelivery> {
     if (user === null) {
       return { delivery, to: null };
@@ -158,7 +204,7 @@ export class DeliverNotificationUseCase {
     const link = this.inboxLink(workspaceId, conversationId);
     return {
       delivery,
-      to: email,
+      to: destination,
       customerName: conversation?.endUserName ?? null,
       agentName: agent?.name ?? null,
       channelKind: conversation?.channelKind ?? null,

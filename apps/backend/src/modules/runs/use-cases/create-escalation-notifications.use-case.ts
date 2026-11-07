@@ -83,7 +83,7 @@ export class CreateEscalationNotificationsUseCase {
           sentAt: sent ? this.clock.now() : null,
           readAt: null,
         });
-        if (channel === NotificationChannel.Email) {
+        if (channel === NotificationChannel.Email || channel === NotificationChannel.Telegram) {
           deliveries.push({ notificationId, channel });
         }
       }

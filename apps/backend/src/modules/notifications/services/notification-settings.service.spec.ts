@@ -151,6 +151,13 @@ describe('NotificationSettingsService', () => {
         username: 'olena',
         linkedAt,
       });
+
+      await tenants.run(workspaceId, () =>
+        settings.setChannelEnabled(workspaceId, userId, NotificationChannel.Telegram, true),
+      );
+      expect(
+        await tenants.run(workspaceId, () => settings.telegramChatId(workspaceId, userId)),
+      ).toBe('42');
     });
   });
 
