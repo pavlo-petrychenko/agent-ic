@@ -62,6 +62,11 @@ render google \
   --set secrets.google.keys.GOOGLE_CLIENT_SECRET=clientSecret \
   --set secrets.google.keys.GOOGLE_PICKER_API_KEY=pickerApiKey \
   --set secrets.google.keys.GOOGLE_PICKER_APP_ID=pickerAppId
+render telegram-alerts \
+  --set secrets.telegramAlerts.enabled=true \
+  --set secrets.telegramAlerts.name=app-telegram-alerts \
+  --set secrets.telegramAlerts.keys.TELEGRAM_ALERTS_BOT_TOKEN=TELEGRAM_ALERTS_BOT_TOKEN \
+  --set secrets.telegramAlerts.keys.TELEGRAM_ALERTS_WEBHOOK_SECRET=TELEGRAM_ALERTS_WEBHOOK_SECRET
 render langfuse \
   --set config.langfuse.mode=self-hosted \
   --set config.langfuse.host=http://langfuse-web.langfuse.svc.example.test:3000
@@ -168,6 +173,24 @@ test "$(smtp_env SMTP_REQUIRE_TLS .value smtp-tls)" = "true"
 test "$(smtp_env SMTP_USER .valueFrom.secretKeyRef.name smtp-tls)" = "app-smtp"
 test "$(smtp_env SMTP_PASSWORD .valueFrom.secretKeyRef.key smtp-tls)" = "password"
 echo "smtp-tls: secure, requireTls and credentials from app-smtp"
+
+echo "== Telegram transport and alerts env reach every backend workload"
+telegram_env() {
+  yq -N "select(.kind == \"Deployment\" and .metadata.name != \"agent-ic-web\") | .spec.template.spec.containers[0].env[] | select(.name == \"$1\") | $2" "$rendered/$3.yaml"
+}
+test "$(telegram_env TELEGRAM_TRANSPORT .value default | sort -u)" = "webhook"
+test "$(telegram_env TELEGRAM_POLL_TIMEOUT_SECONDS .value default | sort -u)" = "20"
+test "$(telegram_env TELEGRAM_ALERTS_BOT_USERNAME .value default | sort -u)" = "agent_ic_alerts_bot"
+telegram_transport_count="$(telegram_env TELEGRAM_TRANSPORT .name default | wc -l | tr -d ' ')"
+test "$telegram_transport_count" = "$backend_count"
+if grep -qE 'TELEGRAM_ALERTS_BOT_TOKEN|TELEGRAM_ALERTS_WEBHOOK_SECRET' "$rendered/default.yaml"; then
+  echo "Telegram alerts secrets referenced while disabled" >&2
+  exit 1
+fi
+test "$(telegram_env TELEGRAM_ALERTS_BOT_TOKEN .valueFrom.secretKeyRef.name telegram-alerts | sort -u)" = "app-telegram-alerts"
+test "$(telegram_env TELEGRAM_ALERTS_WEBHOOK_SECRET .valueFrom.secretKeyRef.key telegram-alerts | sort -u)" = "TELEGRAM_ALERTS_WEBHOOK_SECRET"
+test "$(telegram_env TELEGRAM_ALERTS_BOT_TOKEN .valueFrom.secretKeyRef.optional telegram-alerts | sort -u)" = "true"
+echo "webhook | 20 | agent_ic_alerts_bot | optional secrets from app-telegram-alerts"
 
 echo "== the admin header is added on the admin route and stripped on every public route"
 header_name="$(yq -r '.ingress.admin.requestHeader.name' "$chart/values.yaml")"
