@@ -1,17 +1,15 @@
 import { ChannelKind } from '@agent-ic/contracts';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
-import { TELEGRAM_ALLOWED_UPDATES } from '@/modules/channels/constants/telegram.constants';
-import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { TelegramPollerService } from '@/modules/channels/services/telegram-poller.service';
-import type {
-  TelegramPollerChannel,
-  TelegramUpdate,
-} from '@/modules/channels/typedefs/telegram.typedefs';
+import type { TelegramPollerChannel } from '@/modules/channels/typedefs/telegram.typedefs';
 import { ConversationMode } from '@/modules/conversations';
 import { startRunOnMessageJob } from '@/modules/runs';
 import { ActorKind, SystemReason } from '@/platform/context/constants/actor.constants';
 import { QueueName } from '@/platform/queues/constants/queue.constants';
+import { TELEGRAM_ALLOWED_UPDATES } from '@/platform/telegram/constants/telegram.constants';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
+import type { TelegramUpdate } from '@/platform/telegram/typedefs/telegram.typedefs';
 import { TEST_TELEGRAM_TOKEN } from '@test/support/constants/channel-testing.constants';
 import { newChannel } from '@test/support/fixtures/channel.fixture';
 import {

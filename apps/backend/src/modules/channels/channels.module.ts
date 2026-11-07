@@ -4,10 +4,8 @@ import { ApiChannelMessagesController } from '@/modules/channels/controllers/api
 import { TelegramWebhookController } from '@/modules/channels/controllers/telegram-webhook.controller';
 import { ApiChannelAdapter } from '@/modules/channels/gateways/api-channel-adapter.gateway';
 import type { ChannelAdapter } from '@/modules/channels/gateways/channel-adapter.gateway';
-import { HttpTelegramGateway } from '@/modules/channels/gateways/http-telegram.gateway';
 import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
 import { TelegramChannelAdapter } from '@/modules/channels/gateways/telegram-channel-adapter.gateway';
-import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { ApiChannelKeyGuard } from '@/modules/channels/guards/api-channel-key.guard';
 import { DeliverOutboundMessageListener } from '@/modules/channels/listeners/deliver-outbound-message.listener';
 import { CheckTelegramTokenHealthProcessor } from '@/modules/channels/processors/check-telegram-token-health.processor';
@@ -61,9 +59,10 @@ import { ConversationsModule } from '@/modules/conversations';
 import { RunsModule } from '@/modules/runs';
 import { CryptoModule } from '@/platform/crypto/crypto.module';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
+import { TelegramModule } from '@/platform/telegram/telegram.module';
 
 export class ChannelsModule extends defineModule({
-  imports: [AgentsModule, ConversationsModule, RunsModule, CryptoModule],
+  imports: [AgentsModule, ConversationsModule, RunsModule, CryptoModule, TelegramModule],
   providers: [
     ChannelsRepository,
     ChannelEventsRepository,
@@ -82,10 +81,6 @@ export class ChannelsModule extends defineModule({
     TelegramPollerService,
     TelegramTokenHealthService,
     TelegramUpdatesService,
-    {
-      provide: TelegramGateway,
-      useClass: HttpTelegramGateway,
-    },
     SimulatedChannelAdapter,
     TelegramChannelAdapter,
     ApiChannelAdapter,

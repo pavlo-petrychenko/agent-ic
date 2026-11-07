@@ -4,9 +4,9 @@ import {
   TELEGRAM_API_BASE_URL,
   TELEGRAM_INVALID_RESPONSE_MESSAGE,
   TelegramChatAction,
-} from '@/modules/channels/constants/telegram.constants';
-import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
-import { HttpTelegramGateway } from '@/modules/channels/gateways/http-telegram.gateway';
+} from '@/platform/telegram/constants/telegram.constants';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
+import { HttpTelegramGateway } from '@/platform/telegram/gateways/http-telegram.gateway';
 import {
   TEST_TELEGRAM_BOT_ID,
   TEST_TELEGRAM_BOT_NAME,
@@ -260,7 +260,7 @@ describe('HttpTelegramGateway', () => {
     ).resolves.toEqual([]);
   });
 
-  it('sends a message with its quick replies as an inline keyboard', async () => {
+  it('sends a message with its reply markup', async () => {
     fetchMock.mockResolvedValueOnce(
       Response.json({
         ok: true,
@@ -271,9 +271,15 @@ describe('HttpTelegramGateway', () => {
     await gateway.sendMessage({
       token: TEST_TELEGRAM_TOKEN,
       chatId: '42',
-      messageId: 'message-1',
       text: 'Hello',
-      quickReplies: ['Book a table', 'Call us'],
+      replyMarkup: {
+        inline_keyboard: [
+          [
+            { text: 'Book a table', callback_data: 'qr:message-1:0' },
+            { text: 'Call us', callback_data: 'qr:message-1:1' },
+          ],
+        ],
+      },
     });
 
     const [url, init] = fetchMock.mock.calls[0] ?? [];
@@ -293,7 +299,7 @@ describe('HttpTelegramGateway', () => {
     });
   });
 
-  it('sends a message without a keyboard when it has no quick replies', async () => {
+  it('sends a message without a keyboard when it has no reply markup', async () => {
     fetchMock.mockResolvedValueOnce(
       Response.json({
         ok: true,
@@ -304,9 +310,8 @@ describe('HttpTelegramGateway', () => {
     await gateway.sendMessage({
       token: TEST_TELEGRAM_TOKEN,
       chatId: '42',
-      messageId: 'message-1',
       text: 'Hello',
-      quickReplies: [],
+      replyMarkup: null,
     });
 
     const [, init] = fetchMock.mock.calls[0] ?? [];
@@ -398,9 +403,8 @@ describe('HttpTelegramGateway', () => {
       .sendMessage({
         token: TEST_TELEGRAM_TOKEN,
         chatId: '42',
-        messageId: 'message-1',
         text: 'Hello',
-        quickReplies: [],
+        replyMarkup: null,
       })
       .catch((caught: unknown) => caught);
 

@@ -1,16 +1,17 @@
 import { ChannelKind } from '@agent-ic/contracts';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
-import { TelegramChatAction } from '@/modules/channels/constants/telegram.constants';
 import { ChannelBrokenError } from '@/modules/channels/errors/channel-broken.error';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
-import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { TelegramChannelAdapter } from '@/modules/channels/gateways/telegram-channel-adapter.gateway';
+import { telegramReplyMarkup } from '@/modules/channels/helpers/telegram.helpers';
 import type { ChannelOutboundMessage } from '@/modules/channels/typedefs/channel-message.typedefs';
 import { MessageDelivery } from '@/modules/conversations';
 import { JobFailureAction } from '@/platform/errors/constants/job-failure.constants';
 import { jobFailureActionFor } from '@/platform/errors/helpers/job-failure.helpers';
 import { RateLimitedError } from '@/platform/rate-limit/errors/rate-limited.error';
+import { TelegramChatAction } from '@/platform/telegram/constants/telegram.constants';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
 import { TEST_TELEGRAM_TOKEN } from '@test/support/constants/channel-testing.constants';
 import {
   AGENT_REPLY_TEXT,
@@ -116,9 +117,8 @@ describe('TelegramChannelAdapter', () => {
       {
         token: TEST_TELEGRAM_TOKEN,
         chatId: TEST_END_USER_EXTERNAL_ID,
-        messageId: message.id,
         text: AGENT_REPLY_TEXT,
-        quickReplies: QUICK_REPLIES,
+        replyMarkup: telegramReplyMarkup(message.id, QUICK_REPLIES),
       },
     ]);
     expect((await deliveryOf(testbed, message))?.delivery).toBe(MessageDelivery.Delivered);

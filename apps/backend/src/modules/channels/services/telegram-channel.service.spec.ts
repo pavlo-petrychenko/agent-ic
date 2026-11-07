@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { FakeTelegramGateway } from '@/modules/channels/gateways/telegram.fake';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { TelegramChannelService } from '@/modules/channels/services/telegram-channel.service';
 import { EnvVar } from '@/platform/config/constants/env.constants';
@@ -10,6 +9,7 @@ import { SecureTokenService } from '@/platform/crypto/services/secure-token.serv
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
 import { SecretBoxService } from '@/platform/secrets/services/secret-box.service';
+import { FakeTelegramGateway } from '@/platform/telegram/gateways/telegram.fake';
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { createTestEnv } from '@test/support/fixtures/test-env.fixture';
 

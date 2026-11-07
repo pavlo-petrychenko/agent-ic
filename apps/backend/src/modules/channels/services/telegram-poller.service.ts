@@ -5,18 +5,12 @@ import {
   ChannelPollerLogMessage,
   TELEGRAM_POLL_IDLE_MS,
 } from '@/modules/channels/constants/channel-poller.constants';
-import { TELEGRAM_ALLOWED_UPDATES } from '@/modules/channels/constants/telegram.constants';
-import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
-import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { isTelegramTokenInvalid } from '@/modules/channels/helpers/telegram-error.helpers';
 import { TelegramPollerRepository } from '@/modules/channels/repositories/telegram-poller.repository';
 import { ChannelHealthService } from '@/modules/channels/services/channel-health.service';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { TelegramUpdatesService } from '@/modules/channels/services/telegram-updates.service';
-import type {
-  TelegramPollerChannel,
-  TelegramUpdate,
-} from '@/modules/channels/typedefs/telegram.typedefs';
+import type { TelegramPollerChannel } from '@/modules/channels/typedefs/telegram.typedefs';
 import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { TelegramTransport } from '@/platform/config/constants/telegram.constants';
@@ -25,6 +19,10 @@ import { SystemReason } from '@/platform/context/constants/actor.constants';
 import { UseCaseCtxService } from '@/platform/context/services/use-case-ctx.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { Role } from '@/platform/module-roles/constants/role.constants';
+import { TELEGRAM_ALLOWED_UPDATES } from '@/platform/telegram/constants/telegram.constants';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
+import { TelegramGateway } from '@/platform/telegram/gateways/telegram.gateway';
+import type { TelegramUpdate } from '@/platform/telegram/typedefs/telegram.typedefs';
 
 @Injectable()
 export class TelegramPollerService implements OnApplicationBootstrap, BeforeApplicationShutdown {

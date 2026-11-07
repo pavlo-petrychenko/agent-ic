@@ -6,7 +6,6 @@ import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { TELEGRAM_QUICK_REPLY_EXPIRED_TEXT } from '@/modules/channels/constants/telegram.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { TelegramWebhookUnauthorizedError } from '@/modules/channels/errors/telegram-webhook-unauthorized.error';
-import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import {
   toIncomingMessageInput,
   toIncomingQuickReplyInput,
@@ -17,7 +16,6 @@ import { ChannelsRepository } from '@/modules/channels/repositories/channels.rep
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import type { ChannelRecord } from '@/modules/channels/typedefs/channel.typedefs';
 import type { ReceiveTelegramUpdateInput } from '@/modules/channels/typedefs/channel.typedefs';
-import type { TelegramCallbackQuery } from '@/modules/channels/typedefs/telegram.typedefs';
 import { ConversationRunsService, IncomingMessagesService } from '@/modules/conversations';
 import type { IncomingMessageResult } from '@/modules/conversations';
 import { ClockService } from '@/platform/clock/services/clock.service';
@@ -27,6 +25,8 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { TelegramGateway } from '@/platform/telegram/gateways/telegram.gateway';
+import type { TelegramCallbackQuery } from '@/platform/telegram/typedefs/telegram.typedefs';
 
 @Injectable()
 export class TelegramUpdatesService {

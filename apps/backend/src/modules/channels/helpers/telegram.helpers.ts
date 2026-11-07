@@ -1,5 +1,4 @@
 import {
-  TELEGRAM_CALLBACK_DATA_SEPARATOR,
   TELEGRAM_INLINE_KEYBOARD_COLUMNS,
   TELEGRAM_INLINE_KEYBOARD_MAX_COLUMN_LABEL_LENGTH,
   TELEGRAM_QUICK_REPLY_CALLBACK_PREFIX,
@@ -10,11 +9,12 @@ import {
   TELEGRAM_TOKEN_VISIBLE_SECRET_LENGTH,
   TELEGRAM_WEBHOOK_PATH,
 } from '@/modules/channels/constants/telegram.constants';
+import type { TelegramQuickReplyCallback } from '@/modules/channels/typedefs/telegram.typedefs';
+import { TELEGRAM_CALLBACK_DATA_SEPARATOR } from '@/platform/telegram/constants/telegram.constants';
 import type {
   TelegramInlineKeyboardButton,
-  TelegramQuickReplyCallback,
   TelegramReplyMarkup,
-} from '@/modules/channels/typedefs/telegram.typedefs';
+} from '@/platform/telegram/typedefs/telegram.typedefs';
 
 export const telegramQuickReplyCallbackData = (messageId: string, index: number): string =>
   [TELEGRAM_QUICK_REPLY_CALLBACK_PREFIX, messageId, String(index)].join(

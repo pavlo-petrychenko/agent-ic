@@ -8,7 +8,7 @@ import type {
   TelegramBot,
   TelegramUpdate,
   TelegramWebhookInfo,
-} from '@/modules/channels/typedefs/telegram.typedefs';
+} from '@/platform/telegram/typedefs/telegram.typedefs';
 
 export abstract class TelegramGateway {
   abstract getMe(token: string): Promise<TelegramBot>;

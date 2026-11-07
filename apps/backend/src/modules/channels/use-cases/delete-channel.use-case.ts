@@ -2,7 +2,6 @@ import { ChannelKind, IdPrefix, PermissionAction, PermissionResource } from '@ag
 import { Injectable } from '@nestjs/common';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
-import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { ChannelsRepository } from '@/modules/channels/repositories/channels.repository';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { TelegramChannelService } from '@/modules/channels/services/telegram-channel.service';
@@ -11,6 +10,7 @@ import { authorize } from '@/platform/context/helpers/authorize.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
 
 @Injectable()
 export class DeleteChannelUseCase {
