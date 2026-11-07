@@ -23,6 +23,7 @@ export interface TelegramMessage {
   readonly chatId: string;
   readonly senderId: string | null;
   readonly senderName: string | null;
+  readonly senderUsername: string | null;
   readonly text: string | null;
 }
 

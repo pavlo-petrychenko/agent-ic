@@ -24,6 +24,10 @@ config:
     smtp:
       host: smtp.example.test
       port: 1025
+  telegram:
+    transport: webhook
+    pollTimeoutSeconds: 20
+    alertsBotUsername: agent_ic_alerts_bot
 
 connections:
   database:

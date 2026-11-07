@@ -61,7 +61,13 @@ describe('NotificationSettingsService', () => {
     expect(view).toEqual({
       platform: { enabled: true },
       email: { enabled: true, email: null, verifiedAt: null },
-      telegram: { enabled: false, linked: false, linkedAt: null },
+      telegram: {
+        enabled: false,
+        linked: false,
+        username: null,
+        botUsername: null,
+        linkedAt: null,
+      },
     });
     expect(
       await tenants.run(workspaceId, () => repository.findByUser(workspaceId, userId)),
@@ -114,6 +120,37 @@ describe('NotificationSettingsService', () => {
       expect(
         await tenants.run(workspaceId, () => settings.channelsFor(workspaceId, userId)),
       ).toEqual([NotificationChannel.Email]);
+    });
+  });
+
+  it('stores a Telegram link code and consumes it into a chat', async () => {
+    const { workspaceId, userId } = await seed();
+    const linkedAt = new Date('2026-11-07T10:00:00.000Z');
+    const expiresAt = new Date('2026-11-07T10:10:00.000Z');
+
+    await transactions.rollback(async () => {
+      const channelId = await tenants.run(workspaceId, () =>
+        settings.channelIdFor(workspaceId, userId, NotificationChannel.Telegram),
+      );
+      await tenants.run(workspaceId, () =>
+        repository.setTelegramLinkCode(workspaceId, channelId, 'code-hash', expiresAt),
+      );
+
+      const link = await tenants.run(workspaceId, () =>
+        repository.findTelegramLinkByCodeHash(workspaceId, 'code-hash'),
+      );
+      expect(link).toMatchObject({ channelId, userId, chatId: null, linkCodeExpiresAt: expiresAt });
+
+      await tenants.run(workspaceId, () =>
+        repository.linkTelegramChat(workspaceId, channelId, '42', 'olena', linkedAt),
+      );
+      const view = await tenants.run(workspaceId, () => settings.describe(workspaceId, userId));
+      expect(view.telegram).toMatchObject({
+        enabled: false,
+        linked: true,
+        username: 'olena',
+        linkedAt,
+      });
     });
   });
 

@@ -1,6 +1,7 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, asc, eq } from 'drizzle-orm';
+import { NotificationChannel } from '@/modules/notifications/constants/notification.constants';
 import { emailNotificationChannels } from '@/modules/notifications/db/email-notification-channels.table';
 import { notificationChannels } from '@/modules/notifications/db/notification-channels.table';
 import { notificationSettings } from '@/modules/notifications/db/notification-settings.table';
@@ -10,6 +11,7 @@ import type {
   NotificationChannelSettingRecord,
   NotificationChannelValue,
   NotificationSettingsRecord,
+  TelegramLinkRecord,
 } from '@/modules/notifications/typedefs/notification-settings.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
@@ -80,6 +82,7 @@ export class NotificationSettingsRepository {
         email: emailNotificationChannels.email,
         verifiedAt: emailNotificationChannels.verifiedAt,
         chatId: telegramNotificationChannels.chatId,
+        telegramUsername: telegramNotificationChannels.username,
         linkedAt: telegramNotificationChannels.linkedAt,
       })
       .from(notificationChannels)
@@ -155,5 +158,113 @@ export class NotificationSettingsRepository {
         target: emailNotificationChannels.channelId,
         set: { email, verifiedAt: null, updatedAt: now },
       });
+  }
+
+  async setTelegramLinkCode(
+    workspaceId: string,
+    channelId: string,
+    linkCodeHash: string,
+    linkCodeExpiresAt: Date,
+  ): Promise<void> {
+    const now = this.clock.now();
+    await this.txHost.tx
+      .insert(telegramNotificationChannels)
+      .values({
+        channelId,
+        workspaceId,
+        chatId: null,
+        username: null,
+        linkedAt: null,
+        linkCodeHash,
+        linkCodeExpiresAt,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: telegramNotificationChannels.channelId,
+        set: { linkCodeHash, linkCodeExpiresAt, updatedAt: now },
+      });
+  }
+
+  async findTelegramLinkByCodeHash(
+    workspaceId: string,
+    linkCodeHash: string,
+  ): Promise<TelegramLinkRecord | null> {
+    const [row] = await this.txHost.tx
+      .select({
+        workspaceId: telegramNotificationChannels.workspaceId,
+        channelId: telegramNotificationChannels.channelId,
+        settingsId: notificationChannels.settingsId,
+        userId: notificationSettings.userId,
+        chatId: telegramNotificationChannels.chatId,
+        linkCodeExpiresAt: telegramNotificationChannels.linkCodeExpiresAt,
+      })
+      .from(telegramNotificationChannels)
+      .innerJoin(
+        notificationChannels,
+        and(
+          eq(notificationChannels.workspaceId, workspaceId),
+          eq(notificationChannels.id, telegramNotificationChannels.channelId),
+        ),
+      )
+      .innerJoin(
+        notificationSettings,
+        and(
+          eq(notificationSettings.workspaceId, workspaceId),
+          eq(notificationSettings.id, notificationChannels.settingsId),
+        ),
+      )
+      .where(
+        and(
+          eq(telegramNotificationChannels.workspaceId, workspaceId),
+          eq(telegramNotificationChannels.linkCodeHash, linkCodeHash),
+          eq(notificationChannels.channel, NotificationChannel.Telegram),
+        ),
+      );
+    return row ?? null;
+  }
+
+  async linkTelegramChat(
+    workspaceId: string,
+    channelId: string,
+    chatId: string,
+    username: string | null,
+    linkedAt: Date,
+  ): Promise<void> {
+    await this.txHost.tx
+      .update(telegramNotificationChannels)
+      .set({
+        chatId,
+        username,
+        linkedAt,
+        linkCodeHash: null,
+        linkCodeExpiresAt: null,
+        updatedAt: this.clock.now(),
+      })
+      .where(
+        and(
+          eq(telegramNotificationChannels.workspaceId, workspaceId),
+          eq(telegramNotificationChannels.channelId, channelId),
+        ),
+      );
+  }
+
+  async unlinkTelegramChat(workspaceId: string, channelId: string): Promise<void> {
+    await this.txHost.tx
+      .update(telegramNotificationChannels)
+      .set({
+        chatId: null,
+        username: null,
+        linkedAt: null,
+        linkCodeHash: null,
+        linkCodeExpiresAt: null,
+        updatedAt: this.clock.now(),
+      })
+      .where(
+        and(
+          eq(telegramNotificationChannels.workspaceId, workspaceId),
+          eq(telegramNotificationChannels.channelId, channelId),
+        ),
+      );
   }
 }

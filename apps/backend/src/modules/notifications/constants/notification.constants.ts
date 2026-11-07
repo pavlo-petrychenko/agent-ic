@@ -31,3 +31,7 @@ export const NOTIFICATION_CHANNEL_ENABLED_BY_DEFAULT: Readonly<
   [NotificationChannel.Email]: true,
   [NotificationChannel.Telegram]: false,
 };
+
+export const TELEGRAM_ALERTS_WEBHOOK_PATH = '/webhooks/telegram-alerts';
+export const TELEGRAM_LINK_CODE_LENGTH = 6;
+export const TELEGRAM_LINK_CODE_TTL_MINUTES = 10;

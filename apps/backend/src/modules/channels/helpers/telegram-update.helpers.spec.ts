@@ -15,6 +15,7 @@ const MESSAGE = {
   chatId: '42',
   senderId: '900',
   senderName: 'Moshe',
+  senderUsername: null,
   text: 'Hello',
 };
 
@@ -95,6 +96,7 @@ describe('toTelegramUpdate', () => {
         chatId: '42',
         senderId: null,
         senderName: null,
+        senderUsername: null,
         text: 'Hello',
       },
       callbackQuery: null,

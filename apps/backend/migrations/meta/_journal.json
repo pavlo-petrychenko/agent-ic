@@ -330,6 +330,13 @@
       "when": 1793975001808,
       "tag": "0046_notifications-tables",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1794051099662,
+      "tag": "0047_telegram_notifications_username",
+      "breakpoints": true
     }
   ]
 }
