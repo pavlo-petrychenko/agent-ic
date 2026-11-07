@@ -16,20 +16,20 @@ import {
   telegramLinkMinutesLeft,
 } from '@/features/settings/logic/helpers/telegramLink.helpers';
 import type { TelegramNotificationLink } from '@/features/settings/typedefs/telegramLink.typedefs';
+import { BrowserNotificationAction } from '@/features/settings/view/BrowserNotificationAction';
+import { NotificationsCard } from '@/features/settings/view/NotificationsCard';
+import type { NotificationPreferenceRowModel } from '@/features/settings/view/NotificationsCard';
+import { TelegramLinkCard } from '@/features/settings/view/TelegramLinkCard';
+import { TelegramLinkedFooter } from '@/features/settings/view/TelegramLinkedFooter';
+import { TelegramPreferenceAction } from '@/features/settings/view/TelegramPreferenceAction';
 import { useActiveWorkspace, useWorkspaceShell } from '@/features/workspace';
 import { NotificationChannel } from '@/shared/api/generated/schema.generated';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
-import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
-import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
-import { Card } from '@/shared/ui/display/Card';
 import { Switch } from '@/shared/ui/inputs/Switch';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
 import { Breadcrumb } from '@/shared/ui/navigation/Breadcrumb';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
-import { Heading, HeadingElement, HeadingSize } from '@/shared/ui/typography/Heading';
-import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
-import styles from '@/features/settings/containers/NotificationsPage/NotificationsPage.module.scss';
 
 export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
   const { t, i18n } = useTranslation(SETTINGS_NAMESPACE);
@@ -58,6 +58,19 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
         : browser.permission === 'unsupported'
           ? t('notifications.browser.unsupported')
           : t('notifications.browser.hint');
+
+  const telegramDescription = !settings.telegramLinked
+    ? t('notifications.card.telegramNotLinked')
+    : settings.telegramUsername === null
+      ? t('notifications.card.telegramLinkedShort')
+      : settings.telegramBotUsername === null
+        ? t('notifications.card.telegramLinkedAs', {
+            username: settings.telegramUsername,
+          })
+        : t('notifications.card.telegramLinked', {
+            account: `@${settings.telegramUsername}`,
+            bot: `@${settings.telegramBotUsername}`,
+          });
 
   const changeChannel = (channel: NotificationChannel, enabled: boolean) => {
     void updateChannel(channel, enabled).catch((error: unknown) => {
@@ -103,6 +116,62 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
     }
   };
 
+  const rows: readonly NotificationPreferenceRowModel[] = [
+    {
+      id: 'platform',
+      title: t('notifications.card.inPlatform'),
+      description: t('notifications.card.inPlatformHint'),
+      action: (
+        <Switch
+          checked={settings.platformEnabled}
+          onCheckedChange={(enabled) => changeChannel(NotificationChannel.Platform, enabled)}
+          disabled={loading}
+          aria-label={t('notifications.card.inPlatform')}
+        />
+      ),
+    },
+    {
+      id: 'browser',
+      title: t('notifications.browser.title'),
+      description: browserHint,
+      action: (
+        <BrowserNotificationAction
+          state={browser.permission}
+          onRequest={() => void browser.request()}
+        />
+      ),
+    },
+    {
+      id: 'email',
+      title: t('notifications.card.email'),
+      description: settings.email ?? user?.email ?? '',
+      action: (
+        <Switch
+          checked={settings.emailEnabled}
+          onCheckedChange={(enabled) => changeChannel(NotificationChannel.Email, enabled)}
+          disabled={loading}
+          aria-label={t('notifications.card.email')}
+        />
+      ),
+    },
+    {
+      id: 'telegram',
+      title: t('notifications.card.telegram'),
+      description: telegramDescription,
+      action: (
+        <TelegramPreferenceAction
+          linked={settings.telegramLinked}
+          enabled={settings.telegramEnabled}
+          waiting={telegramLink !== null && !settings.telegramLinked}
+          creating={creating}
+          disabled={loading}
+          onStart={() => void startTelegramLink()}
+          onToggle={(enabled) => changeChannel(NotificationChannel.Telegram, enabled)}
+        />
+      ),
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-5 pb-8">
       <PageHeader
@@ -117,164 +186,36 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
         }
       />
       <div className="flex flex-col gap-4 px-7">
-        <Card>
-          <div className="flex flex-col gap-0.5">
-            <Heading size={HeadingSize.H3} as={HeadingElement.H3}>
-              {t('notifications.card.title')}
-            </Heading>
-            <Text kind={TextKind.Caption} color={TextColor.Mute}>
-              {isOperator
-                ? t('notifications.card.personal', { name })
-                : t('notifications.card.personalOperators', { name })}
-            </Text>
-          </div>
-          <ul className={styles.preferences}>
-            <li className={styles.row}>
-              <div className={styles.text}>
-                <Text>{t('notifications.card.inPlatform')}</Text>
-                <Text kind={TextKind.Caption} color={TextColor.Mute}>
-                  {t('notifications.card.inPlatformHint')}
-                </Text>
-              </div>
-              <Switch
-                checked={settings.platformEnabled}
-                onCheckedChange={(enabled) => changeChannel(NotificationChannel.Platform, enabled)}
-                disabled={loading}
-                aria-label={t('notifications.card.inPlatform')}
-              />
-            </li>
-            <li className={styles.row}>
-              <div className={styles.text}>
-                <Text>{t('notifications.browser.title')}</Text>
-                <Text kind={TextKind.Caption} color={TextColor.Mute}>
-                  {browserHint}
-                </Text>
-              </div>
-              {browser.permission === 'default' ? (
-                <Button variant={ButtonVariant.Secondary} onClick={() => void browser.request()}>
-                  {t('notifications.browser.enable')}
-                </Button>
-              ) : null}
-            </li>
-            <li className={styles.row}>
-              <div className={styles.text}>
-                <Text>{t('notifications.card.email')}</Text>
-                <Text kind={TextKind.Caption} color={TextColor.Mute}>
-                  {settings.email ?? user?.email ?? ''}
-                </Text>
-              </div>
-              <Switch
-                checked={settings.emailEnabled}
-                onCheckedChange={(enabled) => changeChannel(NotificationChannel.Email, enabled)}
-                disabled={loading}
-                aria-label={t('notifications.card.email')}
-              />
-            </li>
-            <li className={styles.row}>
-              <div className={styles.text}>
-                <Text>{t('notifications.card.telegram')}</Text>
-                <Text kind={TextKind.Caption} color={TextColor.Mute}>
-                  {settings.telegramLinked
-                    ? settings.telegramUsername !== null && settings.telegramBotUsername !== null
-                      ? t('notifications.card.telegramLinked', {
-                          account: `@${settings.telegramUsername}`,
-                          bot: `@${settings.telegramBotUsername}`,
-                        })
-                      : settings.telegramUsername === null
-                        ? t('notifications.card.telegramLinkedShort')
-                        : t('notifications.card.telegramLinkedAs', {
-                            username: settings.telegramUsername,
-                          })
-                    : t('notifications.card.telegramNotLinked')}
-                </Text>
-              </div>
-              <div className={styles.actions}>
-                {telegramLink !== null && !settings.telegramLinked ? (
-                  <Badge tone={BadgeTone.Warn} dot>
-                    {t('notifications.card.waitingForCode')}
-                  </Badge>
-                ) : settings.telegramLinked ? (
-                  <Switch
-                    checked={settings.telegramEnabled}
-                    onCheckedChange={(enabled) =>
-                      changeChannel(NotificationChannel.Telegram, enabled)
-                    }
-                    disabled={loading}
-                    aria-label={t('notifications.card.telegram')}
-                  />
-                ) : (
-                  <Button
-                    variant={ButtonVariant.Secondary}
-                    loading={creating}
-                    onClick={() => void startTelegramLink()}
-                  >
-                    {t('notifications.link.action')}
-                  </Button>
-                )}
-              </div>
-            </li>
-          </ul>
+        <NotificationsCard
+          title={t('notifications.card.title')}
+          description={
+            isOperator
+              ? t('notifications.card.personal', { name })
+              : t('notifications.card.personalOperators', { name })
+          }
+          rows={rows}
+          footer={t('notifications.card.footer')}
+        >
           {settings.telegramLinked ? (
-            <div className={styles.telegramFooter}>
-              <Button
-                variant={ButtonVariant.Secondary}
-                onClick={() => void unlinkTelegramAccount()}
-              >
-                {t('notifications.card.unlinkTelegram')}
-              </Button>
-              {settings.telegramLinkedAt === null ? null : (
-                <Text kind={TextKind.Caption} color={TextColor.Mute}>
-                  {t('notifications.card.linkedOn', {
-                    date: formatTelegramLinkedAt(settings.telegramLinkedAt, i18n.language),
-                  })}
-                </Text>
-              )}
-            </div>
+            <TelegramLinkedFooter
+              linkedOn={
+                settings.telegramLinkedAt === null
+                  ? null
+                  : formatTelegramLinkedAt(settings.telegramLinkedAt, i18n.language)
+              }
+              onUnlink={() => void unlinkTelegramAccount()}
+            />
           ) : null}
           {telegramLink === null || settings.telegramLinked ? null : (
-            <div className={styles.linkCard}>
-              <Heading size={HeadingSize.H3} as={HeadingElement.H4}>
-                {t('notifications.link.title')}
-              </Heading>
-              <ul className={styles.linkSteps}>
-                <li>
-                  {t('notifications.link.openBot', {
-                    bot: `@${telegramLink.botUsername}`,
-                  })}
-                </li>
-                <li>
-                  {t('notifications.link.sendCode', {
-                    minutes: telegramLinkMinutesLeft(telegramLink.expiresAt),
-                  })}
-                </li>
-              </ul>
-              <div className={styles.codeRow}>
-                <code className={styles.code}>{formatTelegramLinkCode(telegramLink.code)}</code>
-                <div className={styles.codeActions}>
-                  <Button variant={ButtonVariant.Secondary} onClick={() => void copyTelegramCode()}>
-                    {t('notifications.link.copy')}
-                  </Button>
-                  <Button
-                    variant={ButtonVariant.Primary}
-                    href={`https://t.me/${telegramLink.botUsername}?start=${telegramLink.code}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {t('notifications.link.open')}
-                  </Button>
-                </div>
-              </div>
-              <Text kind={TextKind.Caption} color={TextColor.Mute}>
-                {t('notifications.link.hint')}
-              </Text>
-            </div>
+            <TelegramLinkCard
+              code={telegramLink.code}
+              formattedCode={formatTelegramLinkCode(telegramLink.code)}
+              botUsername={telegramLink.botUsername}
+              minutesLeft={telegramLinkMinutesLeft(telegramLink.expiresAt)}
+              onCopy={() => void copyTelegramCode()}
+            />
           )}
-          <div className={styles.footer}>
-            <Text kind={TextKind.Caption} color={TextColor.Mute}>
-              {t('notifications.card.footer')}
-            </Text>
-          </div>
-        </Card>
+        </NotificationsCard>
       </div>
     </div>
   );
