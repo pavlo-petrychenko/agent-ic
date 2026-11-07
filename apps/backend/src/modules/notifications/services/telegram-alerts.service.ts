@@ -70,6 +70,7 @@ export class TelegramAlertsService {
         link.linkCodeExpiresAt === null ||
         link.linkCodeExpiresAt.getTime() < this.clock.now().getTime()
       ) {
+        await this.settingsRepository.clearTelegramLinkCode(located.workspaceId, link.channelId);
         return { status: TelegramLinkStatus.Expired, username: null } satisfies TelegramLinkResult;
       }
       if (link.chatId !== null && link.chatId !== message.chatId) {

@@ -5,6 +5,7 @@ import { createEmailGateway } from '@/modules/notifications/helpers/email-gatewa
 import { SendConfirmationEmailListener } from '@/modules/notifications/listeners/send-confirmation-email.listener';
 import { SendEmailChangeEmailListener } from '@/modules/notifications/listeners/send-email-change-email.listener';
 import { SendPasswordResetEmailListener } from '@/modules/notifications/listeners/send-password-reset-email.listener';
+import { ClearExpiredTelegramLinksProcessor } from '@/modules/notifications/processors/clear-expired-telegram-links.processor';
 import { NotificationSettingsRepository } from '@/modules/notifications/repositories/notification-settings.repository';
 import { NotificationsRepository } from '@/modules/notifications/repositories/notifications.repository';
 import { TelegramLinkRepository } from '@/modules/notifications/repositories/telegram-link.repository';
@@ -15,6 +16,7 @@ import { NotificationRecipientsService } from '@/modules/notifications/services/
 import { NotificationSettingsService } from '@/modules/notifications/services/notification-settings.service';
 import { TelegramAlertsPollerService } from '@/modules/notifications/services/telegram-alerts-poller.service';
 import { TelegramAlertsService } from '@/modules/notifications/services/telegram-alerts.service';
+import { ClearExpiredTelegramLinksUseCase } from '@/modules/notifications/use-cases/clear-expired-telegram-links.use-case';
 import { CountUnreadNotificationsUseCase } from '@/modules/notifications/use-cases/count-unread-notifications.use-case';
 import { CreateTelegramNotificationLinkUseCase } from '@/modules/notifications/use-cases/create-telegram-notification-link.use-case';
 import { GetLatestUnreadNotificationUseCase } from '@/modules/notifications/use-cases/get-latest-unread-notification.use-case';
@@ -53,6 +55,7 @@ export class NotificationsModule extends defineModule({
     GetLatestUnreadNotificationUseCase,
     UpdateNotificationChannelUseCase,
     UpdateNotificationEmailUseCase,
+    ClearExpiredTelegramLinksUseCase,
     CountUnreadNotificationsUseCase,
     CreateTelegramNotificationLinkUseCase,
     HandleTelegramAlertsUpdateUseCase,
@@ -69,6 +72,7 @@ export class NotificationsModule extends defineModule({
     SendPasswordResetEmailListener,
     SendEmailChangeEmailListener,
   ],
+  processors: [ClearExpiredTelegramLinksProcessor],
   exports: [
     EmailGateway,
     NotificationsRepository,

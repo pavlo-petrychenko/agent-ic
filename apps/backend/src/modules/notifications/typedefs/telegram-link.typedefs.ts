@@ -21,3 +21,5 @@ export interface HandleTelegramAlertsWebhookInput {
   readonly secret: string | undefined;
   readonly body: unknown;
 }
+
+export type ClearExpiredTelegramLinksInput = Readonly<Record<string, never>>;
