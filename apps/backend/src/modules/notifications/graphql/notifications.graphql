@@ -38,6 +38,7 @@ type TelegramNotificationChannelSetting {
   enabled: Boolean!
   linked: Boolean!
   username: String
+  botUsername: String
   linkedAt: String
 }
 

@@ -36,6 +36,7 @@ export const toGraphqlNotificationSettings = (
     enabled: view.telegram.enabled,
     linked: view.telegram.linked,
     username: view.telegram.username,
+    botUsername: view.telegram.botUsername,
     linkedAt: view.telegram.linkedAt?.toISOString() ?? null,
   },
 });

@@ -61,7 +61,13 @@ describe('NotificationSettingsService', () => {
     expect(view).toEqual({
       platform: { enabled: true },
       email: { enabled: true, email: null, verifiedAt: null },
-      telegram: { enabled: false, linked: false, username: null, linkedAt: null },
+      telegram: {
+        enabled: false,
+        linked: false,
+        username: null,
+        botUsername: null,
+        linkedAt: null,
+      },
     });
     expect(
       await tenants.run(workspaceId, () => repository.findByUser(workspaceId, userId)),

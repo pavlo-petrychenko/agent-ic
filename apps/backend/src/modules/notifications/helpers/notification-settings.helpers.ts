@@ -32,6 +32,7 @@ const channelOf = (
 
 export const toNotificationSettingsView = (
   record: NotificationSettingsRecord | null,
+  botUsername: string | null,
 ): NotificationSettingsView => {
   const platform = channelOf(record, NotificationChannel.Platform);
   const email = channelOf(record, NotificationChannel.Email);
@@ -51,6 +52,7 @@ export const toNotificationSettingsView = (
         telegram?.enabled ?? NOTIFICATION_CHANNEL_ENABLED_BY_DEFAULT[NotificationChannel.Telegram],
       linked: telegram !== null && telegram.chatId !== null,
       username: telegram?.telegramUsername ?? null,
+      botUsername,
       linkedAt: telegram?.linkedAt ?? null,
     },
   };
