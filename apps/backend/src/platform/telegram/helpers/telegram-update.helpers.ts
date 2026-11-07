@@ -41,7 +41,6 @@ export const toTelegramCallbackQuery = (
     telegramMessageId: message === undefined ? null : String(message.message_id),
     senderId: String(sender.id),
     senderName: sender.first_name,
-    senderUsername: sender.username ?? null,
     data: query.data ?? null,
   };
 };

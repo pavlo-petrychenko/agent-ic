@@ -32,7 +32,7 @@ export class TelegramAlertsService {
     private readonly settingsRepository: NotificationSettingsRepository,
     private readonly links: TelegramLinkRepository,
     private readonly secureTokens: SecureTokenService,
-    private readonly config: ConfigService,
+    private readonly configService: ConfigService,
     private readonly clock: ClockService,
     private readonly telegram: TelegramGateway,
   ) {}
@@ -101,7 +101,7 @@ export class TelegramAlertsService {
   }
 
   private async reply(chatId: string, text: string): Promise<void> {
-    const token = this.config.config.telegram.alertsBotToken;
+    const token = this.configService.config.telegram.alertsBotToken;
     if (token === null) {
       return;
     }

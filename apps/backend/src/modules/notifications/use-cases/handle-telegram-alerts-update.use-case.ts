@@ -15,14 +15,14 @@ import { telegramWebhookUpdateSchema } from '@/platform/telegram/schemas/telegra
 @Injectable()
 export class HandleTelegramAlertsUpdateUseCase {
   constructor(
-    private readonly config: ConfigService,
+    private readonly configService: ConfigService,
     private readonly contexts: UseCaseCtxService,
     private readonly ids: IdService,
     private readonly alerts: TelegramAlertsService,
   ) {}
 
   async execute(input: HandleTelegramAlertsWebhookInput): Promise<TelegramLinkResult | null> {
-    const { alertsBotToken, alertsWebhookSecret } = this.config.config.telegram;
+    const { alertsBotToken, alertsWebhookSecret } = this.configService.config.telegram;
     if (
       alertsBotToken === null ||
       alertsWebhookSecret === null ||
