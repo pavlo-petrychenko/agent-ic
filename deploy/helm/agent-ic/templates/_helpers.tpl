@@ -93,6 +93,14 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | replace 
   value: {{ include "agent-ic.backendTag" $root | quote }}
 - name: PUBLIC_URL
   value: {{ $config.publicUrl | quote }}
+- name: TELEGRAM_TRANSPORT
+  value: {{ $config.telegram.transport | quote }}
+- name: TELEGRAM_POLL_TIMEOUT_SECONDS
+  value: {{ $config.telegram.pollTimeoutSeconds | quote }}
+{{- with $config.telegram.alertsBotUsername }}
+- name: TELEGRAM_ALERTS_BOT_USERNAME
+  value: {{ . | quote }}
+{{- end }}
 - name: LOG_LEVEL
   value: {{ $config.logLevel | quote }}
 - name: HTTP_HOST
@@ -175,6 +183,9 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | replace 
 {{- end }}
 {{- if $secrets.llm.enabled }}
 {{- include "agent-ic.secretKeysEnv" (dict "secret" $secrets.llm "optional" true) }}
+{{- end }}
+{{- if $secrets.telegramAlerts.enabled }}
+{{- include "agent-ic.secretKeysEnv" (dict "secret" $secrets.telegramAlerts "optional" true) }}
 {{- end }}
 {{- if ne $langfuse.mode "off" }}
 - name: LANGFUSE_HOST

@@ -31,6 +31,10 @@ config:
     creditsLimit: 1000
     conversationsLimit: 10000
     chunksLimit: 5000
+  telegram:
+    transport: webhook
+    pollTimeoutSeconds: 20
+    alertsBotUsername: ''
 
 connections:
   database:
@@ -47,6 +51,8 @@ secrets:
   smtp:
     enabled: false
   llm:
+    enabled: false
+  telegramAlerts:
     enabled: false
 
 extraEnv: []
