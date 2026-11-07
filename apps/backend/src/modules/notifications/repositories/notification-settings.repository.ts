@@ -186,6 +186,22 @@ export class NotificationSettingsRepository {
       });
   }
 
+  async clearTelegramLinkCode(workspaceId: string, channelId: string): Promise<void> {
+    await this.txHost.tx
+      .update(telegramNotificationChannels)
+      .set({
+        linkCodeHash: null,
+        linkCodeExpiresAt: null,
+        updatedAt: this.clock.now(),
+      })
+      .where(
+        and(
+          eq(telegramNotificationChannels.workspaceId, workspaceId),
+          eq(telegramNotificationChannels.channelId, channelId),
+        ),
+      );
+  }
+
   async findTelegramLinkByCodeHash(
     workspaceId: string,
     linkCodeHash: string,
