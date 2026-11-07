@@ -28,6 +28,7 @@ import { RateLimitModule } from '@/platform/rate-limit/rate-limit.module';
 import { RedisModule } from '@/platform/redis/redis.module';
 import { SecretsModule } from '@/platform/secrets/secrets.module';
 import { StorageModule } from '@/platform/storage/storage.module';
+import { TelegramModule } from '@/platform/telegram/telegram.module';
 
 export const PLATFORM_MODULES: readonly ModuleImport[] = [
   ContextModule,
@@ -44,6 +45,7 @@ export const PLATFORM_MODULES: readonly ModuleImport[] = [
   CryptoModule,
   SecretsModule,
   LlmModule,
+  TelegramModule,
   StorageModule,
   OutboundHttpModule,
   ObservabilityModule,

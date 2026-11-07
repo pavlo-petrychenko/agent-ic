@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { TELEGRAM_CALLBACK_DATA_MAX_BYTES } from '@/modules/channels/constants/telegram.constants';
 import {
   maskTelegramToken,
   parseTelegramQuickReplyCallbackData,
   telegramQuickReplyCallbackData,
   telegramReplyMarkup,
 } from '@/modules/channels/helpers/telegram.helpers';
+import { TELEGRAM_CALLBACK_DATA_MAX_BYTES } from '@/platform/telegram/constants/telegram.constants';
 
 const MESSAGE_ID = '3f0c2a9e-6b7d-4c1a-9f2e-8d5b1a7c4e10';
 

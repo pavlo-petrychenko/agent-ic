@@ -1,9 +1,9 @@
 import { ChannelKind, IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
-import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { DisconnectTelegramUseCase } from '@/modules/channels/use-cases/disconnect-telegram.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
 import { TEST_TELEGRAM_TOKEN } from '@test/support/constants/channel-testing.constants';
 import { newChannel } from '@test/support/fixtures/channel.fixture';
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';

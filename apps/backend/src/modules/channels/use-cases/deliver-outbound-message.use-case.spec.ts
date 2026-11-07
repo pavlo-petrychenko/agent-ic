@@ -1,12 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
-import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { ChannelKind, ConversationMode, MessageDelivery } from '@/modules/conversations';
 import { SystemActorRequiredError } from '@/platform/context/errors/system-actor-required.error';
 import { JobFailureAction } from '@/platform/errors/constants/job-failure.constants';
 import { UpstreamError } from '@/platform/errors/errors/upstream.error';
 import { jobFailureActionFor } from '@/platform/errors/helpers/job-failure.helpers';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
 import {
   AGENT_REPLY_TEXT,
   QUICK_REPLIES,
