@@ -1,0 +1,23 @@
+query Notifications($first: Int, $after: String, $unreadOnly: Boolean) {
+  notifications(first: $first, after: $after, unreadOnly: $unreadOnly) {
+    edges {
+      cursor
+      node {
+        id
+        conversationId
+        kind
+        waitingMinutes
+        customerName
+        channelKind
+        reason
+        createdAt
+        read
+        readAt
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
