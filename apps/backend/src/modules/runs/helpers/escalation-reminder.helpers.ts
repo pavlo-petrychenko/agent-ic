@@ -63,7 +63,7 @@ export const escalationFallbackNodeId = (runStepId: string): string =>
   `${ESCALATION_FALLBACK_NODE_PREFIX}:${runStepId}`;
 
 export const escalationReminderJobId = (runStepId: string): string =>
-  `${ESCALATION_REMINDER_JOB_PREFIX}:${runStepId}`;
+  `${ESCALATION_REMINDER_JOB_PREFIX}-${runStepId}`;
 
 export const escalationFallbackJobId = (runStepId: string): string =>
-  `${ESCALATION_FALLBACK_JOB_PREFIX}:${runStepId}`;
+  `${ESCALATION_FALLBACK_JOB_PREFIX}-${runStepId}`;

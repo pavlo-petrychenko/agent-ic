@@ -101,7 +101,7 @@ describe('handoffTimingOf', () => {
 
 describe('escalation timer job ids', () => {
   it('derives stable ids from the run step', () => {
-    expect(escalationReminderJobId('step-1')).toBe('escalation-reminder:step-1');
-    expect(escalationFallbackJobId('step-1')).toBe('escalation-fallback:step-1');
+    expect(escalationReminderJobId('step-1')).toBe('escalation-reminder-step-1');
+    expect(escalationFallbackJobId('step-1')).toBe('escalation-fallback-step-1');
   });
 });
