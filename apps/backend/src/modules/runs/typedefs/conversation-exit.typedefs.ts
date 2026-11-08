@@ -7,4 +7,6 @@ export interface ConversationExit {
   readonly runStepId: string;
   readonly nodeId: string;
   readonly texts: readonly string[];
+  readonly reminderAfterMinutes: number | null;
+  readonly fallbackAfterMinutes: number | null;
 }

@@ -1,7 +1,7 @@
 import { Locale } from '@agent-ic/contracts';
 import type { ChannelKind } from '@agent-ic/contracts';
 import { NotificationChannel } from '@/modules/notifications';
-import type { NotificationDeliveryRecord } from '@/modules/notifications';
+import type { NotificationDeliveryRecord, NotificationKind } from '@/modules/notifications';
 
 export interface DeliverNotificationInput {
   readonly notificationId: string;
@@ -33,5 +33,13 @@ export type DeliveryJobData = Readonly<{
   notificationId: string;
   channel: NotificationChannel;
 }>;
+
+export interface EscalationNotificationInput {
+  readonly runStepId: string;
+  readonly conversationId: string;
+  readonly versionId: string;
+  readonly nodeId: string;
+  readonly kind: NotificationKind;
+}
 
 export type SweepNotificationDeliveriesInput = Readonly<Record<string, never>>;

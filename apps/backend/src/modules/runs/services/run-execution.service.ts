@@ -35,6 +35,10 @@ import { RunFlowInvalidError } from '@/modules/runs/errors/run-flow-invalid.erro
 import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { UnsupportedNodeTypeError } from '@/modules/runs/errors/unsupported-node-type.error';
 import {
+  NO_HANDOFF_TIMING,
+  handoffTimingOf,
+} from '@/modules/runs/helpers/escalation-reminder.helpers';
+import {
   inactivityTriggerInputOf,
   inactivityTriggerVariables,
 } from '@/modules/runs/helpers/inactivity-trigger.helpers';
@@ -297,6 +301,9 @@ export class RunExecutionService {
       runStepId: step.id,
       nodeId: node.id,
       texts: listTexts(step.output?.[AGENT_MESSAGES_FIELD_NAME]),
+      ...(exit === AgentExitKind.Handoff
+        ? handoffTimingOf(walk.flow.settings.handoff)
+        : NO_HANDOFF_TIMING),
     };
     await this.tenants.run(run.workspaceId, () =>
       exit === AgentExitKind.End ? this.exits.end(target) : this.exits.handOff(target),
@@ -326,7 +333,14 @@ export class RunExecutionService {
     const { ctx, run } = walk;
     const texts = templateTexts(settings.customerMessage, stepVariables(walk, node.id));
     await this.tenants.run(run.workspaceId, () =>
-      this.exits.handOff({ ctx, run, runStepId: step.id, nodeId: node.id, texts }),
+      this.exits.handOff({
+        ctx,
+        run,
+        runStepId: step.id,
+        nodeId: node.id,
+        texts,
+        ...handoffTimingOf(walk.flow.settings.handoff),
+      }),
     );
     return failed;
   }

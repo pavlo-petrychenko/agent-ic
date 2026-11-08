@@ -6,6 +6,7 @@ import {
   NOTIFICATIONS_SCHEMA,
   NotificationChannel,
   NotificationDeliveryStatus,
+  NotificationKind,
 } from '@/modules/notifications/constants/notification.constants';
 import { notificationDeliveries } from '@/modules/notifications/db/notification-deliveries.table';
 import { notifications } from '@/modules/notifications/db/notifications.table';
@@ -88,6 +89,25 @@ export class NotificationsRepository {
       .from(notifications)
       .where(and(eq(notifications.workspaceId, workspaceId), eq(notifications.id, id)));
     return notification ?? null;
+  }
+
+  async existsForRunStepKind(
+    workspaceId: string,
+    runStepId: string,
+    kind: NotificationKind,
+  ): Promise<boolean> {
+    const [notification] = await this.txHost.tx
+      .select({ id: notifications.id })
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.workspaceId, workspaceId),
+          eq(notifications.runStepId, runStepId),
+          eq(notifications.kind, kind),
+        ),
+      )
+      .limit(1);
+    return notification !== undefined;
   }
 
   async findDelivery(
