@@ -284,7 +284,6 @@ It proves the core loop of the vision — **flow + knowledge + channel + human h
 | Channel: API | ✅ Yes | Per-channel secret key; replies in the response or to a webhook; external events |
 | Channels: Viber, WhatsApp, web widget, custom adapters | ❌ Later | Built on the same adapter layer, which exists internally from day one |
 | Inbox: take over, hand back, why escalated | ✅ Yes | |
-| Inbox: trace view, contact profile | ❌ Later | "Open in Langfuse" for platform admins instead of a trace view |
 | Contacts | ❌ Later | |
 | Operator notifications | ✅ Yes | In-platform, email, Telegram |
 | Simulator | ✅ Yes | Messages, events and schedules; step-by-step path; Langfuse link for platform admins |
@@ -483,7 +482,7 @@ The run is marked failed, and Agents shows "N runs failed today".
    - the alert includes the reason, e.g. `{{guard.reason}}`.
 2. The chat waits in Inbox → **Needs you** → `Inbox-Waiting`.
 3. An operator clicks **Take over** → `Inbox`.
-   - They see why it escalated (guard output, the path of the run, who was notified; platform admins also get a link to Langfuse).
+   - They see why it escalated (guard output, the path of the run, who was notified).
    - They reply; for API chats, replies go to the channel's webhook.
 4. **Hand back** to the agent: the flow resumes on the next customer message → `Inbox-HandedBack`.
 5. Or **close** the chat, with an optional closing message → `Inbox-Close`. The next message from the customer starts a new conversation with the agent → `Inbox-Empty`.
@@ -699,7 +698,7 @@ The run is marked failed, and Agents shows "N runs failed today".
   - Closed
 - Filter by channel and agent; search.
 - Conversation view: messages with author (customer / agent / operator), system dividers (escalated, taken over, handed back).
-- Details panel: the escalation reason and guard output, the path of the run, agent and version, channel, who was notified, Langfuse link (platform admins only).
+- Details panel: the escalation reason and guard output, the path of the run, agent and version, channel, who was notified.
 - **Actions:**
   - take over (pauses the agent)
   - reply
