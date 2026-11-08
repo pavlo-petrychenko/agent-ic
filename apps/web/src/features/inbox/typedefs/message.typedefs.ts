@@ -25,7 +25,6 @@ interface InboxEscalationMessage {
   readonly title: string;
   readonly detail: string;
   readonly time: string;
-  readonly linkLabel: string;
 }
 
 export type InboxMessage = InboxTextMessage | InboxDividerMessage | InboxEscalationMessage;

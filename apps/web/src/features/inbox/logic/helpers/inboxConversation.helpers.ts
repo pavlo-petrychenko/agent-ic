@@ -180,7 +180,6 @@ const inboxMessage = (message: InboxStoredMessage, t: InboxTranslate): InboxMess
         title: t('escalation.title'),
         detail: message.detail,
         time: message.time,
-        linkLabel: t('details.openInLangfuse'),
       };
     case InboxMessageKind.Customer:
     case InboxMessageKind.Agent:
