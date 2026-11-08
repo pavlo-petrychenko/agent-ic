@@ -1,5 +1,4 @@
 import { IdPrefix } from '@agent-ic/contracts';
-import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { UsersRepository, WorkspacesRepository } from '@/modules/identity';
 import { EmailTemplate } from '@/modules/notifications/constants/notification-metrics.constants';
@@ -24,13 +23,13 @@ import { ActorKind } from '@/platform/context/constants/actor.constants';
 import { getOriginator, requireSystemActor } from '@/platform/context/helpers/use-case-ctx.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
-import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
+import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 
 @Injectable()
 export class SendNotificationEmailVerificationUseCase {
   constructor(
-    private readonly txHost: TransactionHost<AppTransactionAdapter>,
+    private readonly tenants: TenantTransactionService,
     private readonly settings: NotificationSettingsService,
     private readonly settingsRepository: NotificationSettingsRepository,
     private readonly users: UsersRepository,
@@ -48,7 +47,7 @@ export class SendNotificationEmailVerificationUseCase {
     if (initiator.kind !== ActorKind.User || initiator.userId !== input.userId) {
       return;
     }
-    const prepared = await this.txHost.withTransaction(async () => {
+    const prepared = await this.tenants.run(input.workspaceId, async () => {
       const channelId = await this.settings.channelIdFor(
         input.workspaceId,
         input.userId,

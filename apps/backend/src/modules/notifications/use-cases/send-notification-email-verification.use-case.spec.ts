@@ -1,5 +1,4 @@
 import { Locale } from '@agent-ic/contracts';
-import { TransactionHost } from '@nestjs-cls/transactional';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UsersRepository, WorkspacesRepository } from '@/modules/identity';
 import { EmailTemplate } from '@/modules/notifications/constants/notification-metrics.constants';
@@ -13,7 +12,7 @@ import { ActorKind } from '@/platform/context/constants/actor.constants';
 import { SystemActorRequiredError } from '@/platform/context/errors/system-actor-required.error';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
-import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
+import type { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import { systemCtx } from '@test/support/fixtures/identity.fixture';
 
@@ -75,8 +74,8 @@ describe('SendNotificationEmailVerificationUseCase', () => {
     toPublic.mockReturnValue('ws_public');
     useCase = new SendNotificationEmailVerificationUseCase(
       {
-        withTransaction: <T>(work: () => Promise<T>): Promise<T> => work(),
-      } as unknown as TransactionHost<AppTransactionAdapter>,
+        run: <T>(_workspaceId: string, work: () => Promise<T>): Promise<T> => work(),
+      } as unknown as TenantTransactionService,
       { channelIdFor, describe: describeSettings } as unknown as NotificationSettingsService,
       { setEmailVerificationToken } as unknown as NotificationSettingsRepository,
       { findById: findUser } as unknown as UsersRepository,
