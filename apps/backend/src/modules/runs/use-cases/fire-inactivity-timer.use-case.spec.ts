@@ -136,7 +136,7 @@ describe('FireInactivityTimerUseCase', () => {
     [
       InactivityFireOutcome.Escalated,
       async (seeded: LiveConversation) => {
-        await markConversationWaiting(testbed, seeded);
+        await markConversationWaiting(testbed, seeded, true);
         await handConversationBack(testbed, seeded);
       },
     ],
