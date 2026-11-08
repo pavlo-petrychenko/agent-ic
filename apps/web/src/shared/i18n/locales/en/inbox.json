@@ -37,6 +37,16 @@
     "agent": "Agent"
   },
   "authorYou": "{{name}} (you)",
+  "notifications": {
+    "title": "Notifications",
+    "bell": "Notifications",
+    "empty": "No notifications yet.",
+    "loading": "Loading notifications",
+    "markAllRead": "Mark all read",
+    "unread": "Unread",
+    "kindEscalation": "Escalation",
+    "kindReminder": "Reminder"
+  },
   "browser": {
     "title": "{{name}} needs a person",
     "titleFallback": "A chat needs a person",

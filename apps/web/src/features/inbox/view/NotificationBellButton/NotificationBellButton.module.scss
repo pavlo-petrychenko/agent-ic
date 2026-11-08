@@ -1,0 +1,31 @@
+.root {
+  position: relative;
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--size-control-md);
+  height: var(--size-control-md);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-8);
+  background: transparent;
+  color: var(--color-mute);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-soft);
+    color: var(--color-ink);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.badge {
+  position: absolute;
+  top: calc(-1 * var(--space-4));
+  right: calc(-1 * var(--space-4));
+  pointer-events: none;
+}

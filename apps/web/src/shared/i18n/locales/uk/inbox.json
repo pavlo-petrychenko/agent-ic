@@ -37,6 +37,16 @@
     "agent": "Агент"
   },
   "authorYou": "{{name}} (ви)",
+  "notifications": {
+    "title": "Сповіщення",
+    "bell": "Сповіщення",
+    "empty": "Сповіщень ще немає.",
+    "loading": "Завантаження сповіщень",
+    "markAllRead": "Позначити всі прочитаними",
+    "unread": "Непрочитане",
+    "kindEscalation": "Ескалація",
+    "kindReminder": "Нагадування"
+  },
   "browser": {
     "title": "{{name}} потребує людини",
     "titleFallback": "Чат потребує людини",
