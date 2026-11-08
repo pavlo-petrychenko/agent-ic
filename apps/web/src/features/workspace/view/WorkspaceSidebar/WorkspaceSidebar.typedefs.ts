@@ -5,6 +5,7 @@ export interface WorkspaceSidebarProps {
   workspaceId: string;
   navLabel: string;
   header: ReactNode;
+  headerAction: ReactNode;
   groups: readonly SidebarGroup[];
   user: SidebarUser | null;
   footerAction: ReactNode;
