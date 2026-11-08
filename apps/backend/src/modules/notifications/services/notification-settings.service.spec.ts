@@ -106,6 +106,80 @@ describe('NotificationSettingsService', () => {
     });
   });
 
+  it('stores an alert email verification token and consumes it once', async () => {
+    const { workspaceId, userId } = await seed();
+    const email = 'alerts@example.com';
+    const expiresAt = new Date('2026-11-09T10:00:00.000Z');
+    const verifiedAt = new Date('2026-11-08T10:00:00.000Z');
+
+    await transactions.rollback(async () => {
+      await tenants.run(workspaceId, () => settings.setEmail(workspaceId, userId, email));
+      const channelId = await tenants.run(workspaceId, () =>
+        settings.channelIdFor(workspaceId, userId, NotificationChannel.Email),
+      );
+
+      await tenants.run(workspaceId, () =>
+        repository.setEmailVerificationToken(workspaceId, channelId, 'token-hash', expiresAt),
+      );
+      await expect(
+        tenants.run(workspaceId, () =>
+          repository.findEmailVerification(workspaceId, userId, 'token-hash'),
+        ),
+      ).resolves.toMatchObject({
+        channelId,
+        email,
+        verificationExpiresAt: expiresAt,
+        verifiedAt: null,
+      });
+
+      await tenants.run(workspaceId, () =>
+        repository.markEmailVerified(workspaceId, channelId, 'token-hash', verifiedAt),
+      );
+      const view = await tenants.run(workspaceId, () => settings.describe(workspaceId, userId));
+      expect(view.email.verifiedAt).toEqual(verifiedAt);
+      await expect(
+        tenants.run(workspaceId, () =>
+          repository.findEmailVerification(workspaceId, userId, 'token-hash'),
+        ),
+      ).resolves.toBeNull();
+    });
+  });
+
+  it('clears verification and the open token when the address changes', async () => {
+    const { workspaceId, userId } = await seed();
+    const expiresAt = new Date('2026-11-09T10:00:00.000Z');
+    const verifiedAt = new Date('2026-11-08T10:00:00.000Z');
+
+    await transactions.rollback(async () => {
+      await tenants.run(workspaceId, () =>
+        settings.setEmail(workspaceId, userId, 'first@example.com'),
+      );
+      const channelId = await tenants.run(workspaceId, () =>
+        settings.channelIdFor(workspaceId, userId, NotificationChannel.Email),
+      );
+      await tenants.run(workspaceId, () =>
+        repository.setEmailVerificationToken(workspaceId, channelId, 'token-hash', expiresAt),
+      );
+      await tenants.run(workspaceId, () =>
+        repository.markEmailVerified(workspaceId, channelId, 'token-hash', verifiedAt),
+      );
+
+      const view = await tenants.run(workspaceId, () =>
+        settings.setEmail(workspaceId, userId, 'second@example.com'),
+      );
+
+      expect(view.email).toMatchObject({
+        email: 'second@example.com',
+        verifiedAt: null,
+      });
+      await expect(
+        tenants.run(workspaceId, () =>
+          repository.findEmailVerification(workspaceId, userId, 'token-hash'),
+        ),
+      ).resolves.toBeNull();
+    });
+  });
+
   it('lists only enabled and reachable channels', async () => {
     const { workspaceId, userId } = await seed();
 

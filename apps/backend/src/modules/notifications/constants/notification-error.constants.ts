@@ -1,5 +1,9 @@
 export const NOTIFICATION_SETTINGS_UNAVAILABLE_MESSAGE = 'Notification settings are unavailable.';
 export const INVALID_NOTIFICATION_EMAIL_MESSAGE = 'Enter a valid email address.';
+export const NOTIFICATION_EMAIL_VERIFICATION_INVALID_MESSAGE =
+  'This notification email verification link is not valid.';
+export const NOTIFICATION_EMAIL_VERIFICATION_EXPIRED_MESSAGE =
+  'This notification email verification link has expired.';
 export const NOTIFICATION_UNAVAILABLE_MESSAGE = 'The notification could not be stored.';
 export const TELEGRAM_ALERTS_NOT_CONFIGURED_MESSAGE = 'Telegram alerts are not configured.';
 export const TELEGRAM_LINK_CODE_UNAVAILABLE_MESSAGE =

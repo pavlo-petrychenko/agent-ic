@@ -199,13 +199,11 @@ export class DeliverNotificationUseCase {
     if (!settings.email.enabled) {
       return { delivery, to: null };
     }
-    return this.content(
-      workspaceId,
-      notification,
-      delivery,
-      user,
-      settings.email.email ?? user.email,
-    );
+    const verifiedEmail =
+      settings.email.email !== null && settings.email.verifiedAt !== null
+        ? settings.email.email
+        : user.email;
+    return this.content(workspaceId, notification, delivery, user, verifiedEmail);
   }
 
   private async content(

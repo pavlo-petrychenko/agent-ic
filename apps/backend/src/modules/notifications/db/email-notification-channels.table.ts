@@ -1,4 +1,5 @@
-import { foreignKey, index, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { isNotNull } from 'drizzle-orm';
+import { foreignKey, index, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { workspaces } from '@/modules/identity/db/workspaces.table';
 import { notificationChannels } from '@/modules/notifications/db/notification-channels.table';
@@ -18,6 +19,8 @@ export const emailNotificationChannels = notificationsSchema
       }),
       email: text('email'),
       verifiedAt: timestamp('verified_at', { withTimezone: true }),
+      verificationTokenHash: text('verification_token_hash'),
+      verificationExpiresAt: timestamp('verification_expires_at', { withTimezone: true }),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
       updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
     },
@@ -31,6 +34,9 @@ export const emailNotificationChannels = notificationsSchema
         table.workspaceId,
         table.channelId,
       ),
+      uniqueIndex('email_notification_channels_verification_token_hash_key')
+        .on(table.verificationTokenHash)
+        .where(isNotNull(table.verificationTokenHash)),
       tenantIsolationPolicy('email_notification_channels'),
     ],
   )

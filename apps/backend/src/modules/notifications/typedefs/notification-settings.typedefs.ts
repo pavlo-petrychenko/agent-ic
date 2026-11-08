@@ -23,6 +23,13 @@ export interface NotificationSettingsRecord extends NotificationSettingsHeader {
   readonly channels: readonly NotificationChannelSettingRecord[];
 }
 
+export interface EmailVerificationRecord {
+  readonly channelId: string;
+  readonly email: string | null;
+  readonly verificationExpiresAt: Date | null;
+  readonly verifiedAt: Date | null;
+}
+
 export interface TelegramLinkRecord {
   readonly workspaceId: string;
   readonly channelId: string;
@@ -71,4 +78,8 @@ export interface UpdateNotificationChannelInput {
 
 export interface UpdateNotificationEmailInput {
   readonly email: string;
+}
+
+export interface VerifyNotificationEmailInput {
+  readonly token: string;
 }

@@ -4,6 +4,7 @@ import type {
   NotificationSettingsView,
   UpdateNotificationChannelInput,
   UpdateNotificationEmailInput,
+  VerifyNotificationEmailInput,
 } from '@/modules/notifications/typedefs/notification-settings.typedefs';
 import type { NotificationAlertView } from '@/modules/notifications/typedefs/notification.typedefs';
 import type { TelegramNotificationLinkView } from '@/modules/notifications/typedefs/telegram-link.typedefs';
@@ -13,6 +14,7 @@ import type {
   TelegramNotificationLink as GraphqlTelegramNotificationLink,
   UpdateNotificationChannelInput as GraphqlUpdateNotificationChannelInput,
   UpdateNotificationEmailInput as GraphqlUpdateNotificationEmailInput,
+  VerifyNotificationEmailInput as GraphqlVerifyNotificationEmailInput,
 } from '@/platform/graphql-server/generated/schema.generated';
 import { NotificationChannel as GraphqlNotificationChannel } from '@/platform/graphql-server/generated/schema.generated';
 
@@ -51,6 +53,10 @@ export const toUpdateNotificationChannelInput = (
 export const toUpdateNotificationEmailInput = (
   input: GraphqlUpdateNotificationEmailInput,
 ): UpdateNotificationEmailInput => ({ email: input.email });
+
+export const toVerifyNotificationEmailInput = (
+  input: GraphqlVerifyNotificationEmailInput,
+): VerifyNotificationEmailInput => ({ token: input.token });
 
 export const toGraphqlTelegramNotificationLink = (
   link: TelegramNotificationLinkView,

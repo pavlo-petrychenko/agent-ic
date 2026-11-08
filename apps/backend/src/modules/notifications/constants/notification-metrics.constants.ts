@@ -20,6 +20,7 @@ export enum EmailTemplate {
   Reminder = 'reminder',
   UsageThreshold = 'usage_threshold',
   TelegramTokenRevoked = 'telegram_token_revoked',
+  NotificationEmailVerification = 'notification_email_verification',
 }
 
 export enum EmailSendOutcome {

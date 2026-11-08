@@ -5,6 +5,7 @@ export enum NotificationJobName {
   SendConfirmationEmail = 'send-confirmation-email',
   SendPasswordResetEmail = 'send-password-reset-email',
   SendEmailChangeEmail = 'send-email-change-email',
+  SendEmailVerificationEmail = 'send-email-verification-email',
   SweepNotificationDeliveries = 'sweep-notification-deliveries',
   TelegramAlertTakeOver = 'telegram-alert-take-over',
 }
