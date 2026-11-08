@@ -1,10 +1,15 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, stripSearchParams, useNavigate } from '@tanstack/react-router';
 import { useCallback } from 'react';
-import { NotificationsPage, notificationsSearchSchema } from '@/features/settings';
+import {
+  NOTIFICATIONS_SEARCH_DEFAULTS,
+  NotificationsPage,
+  notificationsSearchSchema,
+} from '@/features/settings';
 import { SectionGate, WorkspaceSection } from '@/features/workspace';
 
 export const Route = createFileRoute('/w/$workspaceId/settings/notifications')({
   validateSearch: notificationsSearchSchema,
+  search: { middlewares: [stripSearchParams(NOTIFICATIONS_SEARCH_DEFAULTS)] },
   component: NotificationsRoute,
 });
 
