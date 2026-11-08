@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Icon } from '@/shared/ui/foundations/Icon/Icon';
 import { ICON_SHAPES, IconName } from '@/shared/ui/foundations/Icon/Icon.constants';
 
-const DESIGNED_ICON_COUNT = 61;
+const DESIGNED_ICON_COUNT = 62;
 
 describe('Icon', () => {
   it('is decorative and hidden from assistive technology without a title', () => {
