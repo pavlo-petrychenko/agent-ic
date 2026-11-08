@@ -19,11 +19,11 @@ import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
 export function NotificationBell({ enabled, onOpenConversation }: NotificationBellProps) {
   const { t } = useTranslation(INBOX_NAMESPACE);
-  const { items, loading, refetch: refetchList } = useNotifications(enabled);
+  const [open, setOpen] = useState(false);
+  const { items, loading, refetch: refetchList } = useNotifications(enabled && open);
   const { count, refetch: refetchCount } = useUnreadNotificationCount(enabled);
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
-  const [open, setOpen] = useState(false);
   const [markingAll, setMarkingAll] = useState(false);
   const { showToast } = useToast();
   const errorMessage = useErrorMessage();
