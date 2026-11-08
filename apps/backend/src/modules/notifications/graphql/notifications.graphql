@@ -61,9 +61,16 @@ input MarkNotificationsReadInput {
   conversationId: ID!
 }
 
+enum NotificationKind {
+  escalation
+  reminder
+}
+
 type NotificationAlert {
   id: ID!
   conversationId: ID!
+  kind: NotificationKind!
+  waitingMinutes: Int!
   customerName: String
   channelKind: String
   reason: String

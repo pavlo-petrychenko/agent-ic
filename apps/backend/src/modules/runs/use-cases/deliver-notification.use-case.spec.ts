@@ -9,6 +9,7 @@ import {
   EmailTemplate,
   escalationEmailSubject,
   NotificationChannel,
+  reminderEmailSubject,
   NotificationDeliveryStatus,
   NotificationKind,
   NotificationsRepository,
@@ -30,6 +31,7 @@ import { FakeTelegramGateway } from '@/platform/telegram/gateways/telegram.fake'
 import { workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 
 const NOW = new Date('2026-11-06T12:00:00.000Z');
+const REMINDER_AT = new Date(NOW.getTime() + 5 * 60_000);
 
 const notification: NotificationRecord = {
   id: 'notification-1',
@@ -39,6 +41,12 @@ const notification: NotificationRecord = {
   kind: NotificationKind.Escalation,
   lastCustomerMessageId: 'message-1',
   createdAt: NOW,
+};
+
+const reminderNotification: NotificationRecord = {
+  ...notification,
+  kind: NotificationKind.Reminder,
+  createdAt: REMINDER_AT,
 };
 
 const pendingDelivery: NotificationDeliveryRecord = {
@@ -155,6 +163,7 @@ describe('DeliverNotificationUseCase', () => {
       id: 'conversation-1',
       endUserName: 'Marta S.',
       channelKind: 'telegram' as ChannelKind,
+      lastEscalatedAt: NOW,
     } as unknown as Awaited<ReturnType<ConversationsRepository['findById']>>);
     findStep.mockResolvedValue({
       id: 'step-1',
@@ -237,6 +246,22 @@ describe('DeliverNotificationUseCase', () => {
     );
     expect(markDelivered).toHaveBeenCalledWith('workspace-1', 'delivery-1', NOW);
     expect(markFailed).not.toHaveBeenCalled();
+  });
+
+  it('sends a reminder email with the waiting time instead of the escalation copy', async () => {
+    findNotification.mockResolvedValue(reminderNotification);
+
+    await execute();
+
+    expect(send).toHaveBeenCalledWith({
+      template: EmailTemplate.Reminder,
+      to: 'alerts@example.com',
+      subject: reminderEmailSubject(Locale.En, 'Marta S.', 5),
+      html: expect.stringContaining('Marta S. has been waiting for a person for 5 minutes'),
+      text: expect.stringContaining(
+        'The chat was escalated 5 minutes ago and has not been taken yet.',
+      ),
+    });
   });
 
   it('does not send an already delivered or locked notification', async () => {
@@ -330,6 +355,28 @@ describe('DeliverNotificationUseCase', () => {
     expect(send).not.toHaveBeenCalled();
     expect(markDelivered).toHaveBeenCalledWith('workspace-1', 'delivery-2', NOW);
     expect(markFailed).not.toHaveBeenCalled();
+  });
+
+  it('sends a reminder Telegram alert with the waiting time', async () => {
+    findNotification.mockResolvedValue(reminderNotification);
+    claimDelivery.mockResolvedValue(claimedTelegramDelivery);
+    telegramChatId.mockResolvedValue('42');
+
+    await execute(NotificationChannel.Telegram);
+
+    expect(telegram.sendMessageCalls[0]?.text).toBe(
+      [
+        '<b>Still waiting · 5 min</b>',
+        '',
+        '<b>Marta S.</b> · Telegram · Salon assistant',
+        '',
+        'Escalated 5 minutes ago; still unassigned.',
+        '',
+        '<i>“Can someone call me?”</i>',
+        '',
+        '<b>Reason:</b> The customer asked for a person.',
+      ].join('\n'),
+    );
   });
 
   it('fails the Telegram delivery without sending when the chat is not linked', async () => {

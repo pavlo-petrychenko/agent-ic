@@ -5,9 +5,11 @@ export const ESCALATION_CUSTOMER_PLACEHOLDER = '{customer}';
 export const ESCALATION_AGENT_PLACEHOLDER = '{agent}';
 export const ESCALATION_CHANNEL_PLACEHOLDER = '{channel}';
 export const ESCALATION_WORKSPACE_PLACEHOLDER = '{workspace}';
+export const ESCALATION_MINUTES_PLACEHOLDER = '{minutes}';
 
 export const ESCALATION_EMAIL_COPY: Readonly<Record<Locale, EscalationEmailCopy>> = {
   [Locale.En]: {
+    title: `${ESCALATION_CUSTOMER_PLACEHOLDER} needs a person`,
     subject: `${ESCALATION_CUSTOMER_PLACEHOLDER} needs a person`,
     body: `${ESCALATION_AGENT_PLACEHOLDER} handed a ${ESCALATION_CHANNEL_PLACEHOLDER} to your team.`,
     reasonLabel: 'Reason:',
@@ -24,6 +26,7 @@ export const ESCALATION_EMAIL_COPY: Readonly<Record<Locale, EscalationEmailCopy>
     channelFallback: 'chat',
   },
   [Locale.Uk]: {
+    title: `${ESCALATION_CUSTOMER_PLACEHOLDER} потребує людини`,
     subject: `${ESCALATION_CUSTOMER_PLACEHOLDER} потребує людини`,
     body: `${ESCALATION_AGENT_PLACEHOLDER} передав ${ESCALATION_CHANNEL_PLACEHOLDER} вашій команді.`,
     reasonLabel: 'Причина:',

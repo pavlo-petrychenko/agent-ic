@@ -17,8 +17,12 @@ import {
   escalationTelegramReplyMarkup,
   escalationTelegramText,
   NotificationChannel,
+  NotificationKind,
   NotificationsRepository,
   NotificationSettingsService,
+  reminderEmailElement,
+  reminderEmailSubject,
+  reminderTelegramText,
   renderEmail,
   telegramTakeOverCallbackData,
   TelegramAlertsNotConfiguredError,
@@ -32,7 +36,10 @@ import type {
   DeliveryContent,
   SkippedDelivery,
 } from '@/modules/runs/typedefs/notification-delivery.typedefs';
-import { MILLISECONDS_PER_SECOND } from '@/platform/clock/constants/time.constants';
+import {
+  MILLISECONDS_PER_SECOND,
+  SECONDS_PER_MINUTE,
+} from '@/platform/clock/constants/time.constants';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { ConfigService } from '@/platform/config/services/config.service';
 import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
@@ -100,24 +107,29 @@ export class DeliverNotificationUseCase {
   }
 
   private async sendEmail(content: DeliveryContent): Promise<void> {
+    const reminder = content.kind === NotificationKind.Reminder;
+    const props = {
+      locale: content.locale,
+      customerName: content.customerName,
+      agentName: content.agentName,
+      recipientEmail: content.to,
+      channelKind: content.channelKind,
+      reason: content.reason,
+      lastMessage: content.lastMessage,
+      time: content.time,
+      workspaceName: content.workspaceName,
+      link: content.link,
+      waitingMinutes: content.waitingMinutes,
+    };
     const rendered = await renderEmail(
-      escalationEmailElement({
-        locale: content.locale,
-        customerName: content.customerName,
-        agentName: content.agentName,
-        recipientEmail: content.to,
-        channelKind: content.channelKind,
-        reason: content.reason,
-        lastMessage: content.lastMessage,
-        time: content.time,
-        workspaceName: content.workspaceName,
-        link: content.link,
-      }),
+      reminder ? reminderEmailElement(props) : escalationEmailElement(props),
     );
     await this.email.send({
-      template: EmailTemplate.Escalation,
+      template: reminder ? EmailTemplate.Reminder : EmailTemplate.Escalation,
       to: content.to,
-      subject: escalationEmailSubject(content.locale, content.customerName),
+      subject: reminder
+        ? reminderEmailSubject(content.locale, content.customerName, content.waitingMinutes)
+        : escalationEmailSubject(content.locale, content.customerName),
       ...rendered,
     });
   }
@@ -127,17 +139,22 @@ export class DeliverNotificationUseCase {
     if (token === null) {
       throw new TelegramAlertsNotConfiguredError();
     }
+    const props = {
+      locale: content.locale,
+      customerName: content.customerName,
+      agentName: content.agentName,
+      channelKind: content.channelKind,
+      reason: content.reason,
+      lastMessage: content.lastMessage,
+      waitingMinutes: content.waitingMinutes,
+    };
     await this.telegram.sendMessage({
       token,
       chatId: content.to,
-      text: escalationTelegramText({
-        locale: content.locale,
-        customerName: content.customerName,
-        agentName: content.agentName,
-        channelKind: content.channelKind,
-        reason: content.reason,
-        lastMessage: content.lastMessage,
-      }),
+      text:
+        content.kind === NotificationKind.Reminder
+          ? reminderTelegramText(props)
+          : escalationTelegramText(props),
       parseMode: TelegramParseMode.Html,
       replyMarkup: escalationTelegramReplyMarkup(content.locale, {
         inboxUrl: content.link,
@@ -220,6 +237,7 @@ export class DeliverNotificationUseCase {
     const link = this.inboxLink(workspacePublicId, conversationPublicId);
     return {
       delivery,
+      kind: notification.kind,
       to: destination,
       customerName: conversation?.endUserName ?? null,
       agentName: agent?.name ?? null,
@@ -232,7 +250,18 @@ export class DeliverNotificationUseCase {
       link,
       workspacePublicId,
       conversationPublicId,
+      waitingMinutes: this.waitingMinutes(notification, conversation?.lastEscalatedAt ?? null),
     };
+  }
+
+  private waitingMinutes(notification: NotificationRecord, escalatedAt: Date | null): number {
+    if (escalatedAt === null) {
+      return 0;
+    }
+    const minutes =
+      (notification.createdAt.getTime() - escalatedAt.getTime()) /
+      (SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND);
+    return Math.max(1, Math.round(minutes));
   }
 
   private timeOf(at: Date, locale: Locale, timeZone: string | null): string {

@@ -2,6 +2,8 @@ query LatestUnreadNotification {
   latestUnreadNotification {
     id
     conversationId
+    kind
+    waitingMinutes
     customerName
     channelKind
     reason

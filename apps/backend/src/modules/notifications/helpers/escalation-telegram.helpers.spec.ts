@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   escalationTelegramReplyMarkup,
   escalationTelegramText,
+  reminderTelegramText,
 } from '@/modules/notifications/helpers/escalation-telegram.helpers';
 
 const props = {
@@ -12,7 +13,32 @@ const props = {
   channelKind: ChannelKind.Telegram,
   reason: 'Customer asks to be called back',
   lastMessage: 'Can someone call me back please?',
+  waitingMinutes: 0,
 };
+
+describe('reminderTelegramText', () => {
+  it('renders the waiting time and an unassigned line', () => {
+    expect(reminderTelegramText({ ...props, waitingMinutes: 5 })).toBe(
+      [
+        '<b>Still waiting · 5 min</b>',
+        '',
+        '<b>Marta S.</b> · Telegram · Salon assistant',
+        '',
+        'Escalated 5 minutes ago; still unassigned.',
+        '',
+        '<i>“Can someone call me back please?”</i>',
+        '',
+        '<b>Reason:</b> Customer asks to be called back',
+      ].join('\n'),
+    );
+  });
+
+  it('localizes the reminder', () => {
+    expect(reminderTelegramText({ ...props, locale: Locale.Uk, waitingMinutes: 5 })).toContain(
+      '<b>Досі чекає · 5 хв</b>',
+    );
+  });
+});
 
 describe('escalationTelegramText', () => {
   it('renders the title, customer line, message and reason', () => {

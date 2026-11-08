@@ -65,6 +65,8 @@ export const toGraphqlNotificationAlert = (
 ): GraphqlNotificationAlert => ({
   id: alert.id,
   conversationId: alert.conversationId,
+  kind: alert.kind,
+  waitingMinutes: alert.waitingMinutes,
   customerName: alert.customerName,
   channelKind: alert.channelKind,
   reason: alert.reason,

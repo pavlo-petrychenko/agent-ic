@@ -1,9 +1,12 @@
 import { Locale } from '@agent-ic/contracts';
 import type { EscalationTelegramCopy } from '@/modules/notifications/typedefs/escalation-telegram.typedefs';
 
+export const ESCALATION_TELEGRAM_MINUTES_PLACEHOLDER = '{minutes}';
+
 export const ESCALATION_TELEGRAM_COPY: Readonly<Record<Locale, EscalationTelegramCopy>> = {
   [Locale.En]: {
     title: 'Chat needs a person',
+    waitingLine: '',
     reasonLabel: 'Reason:',
     emptyReason: 'A chat was escalated to your team.',
     emptyMessage: 'No customer message is available.',
@@ -17,6 +20,7 @@ export const ESCALATION_TELEGRAM_COPY: Readonly<Record<Locale, EscalationTelegra
   },
   [Locale.Uk]: {
     title: 'Чат потребує людини',
+    waitingLine: '',
     reasonLabel: 'Причина:',
     emptyReason: 'Чат передали вашій команді.',
     emptyMessage: 'Повідомлення клієнта недоступне.',

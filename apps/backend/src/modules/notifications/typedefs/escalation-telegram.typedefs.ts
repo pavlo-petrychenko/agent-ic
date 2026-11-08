@@ -7,10 +7,12 @@ export interface EscalationTelegramProps {
   readonly channelKind: ChannelKind | null;
   readonly reason: string | null;
   readonly lastMessage: string | null;
+  readonly waitingMinutes: number;
 }
 
 export interface EscalationTelegramCopy {
   readonly title: string;
+  readonly waitingLine: string;
   readonly reasonLabel: string;
   readonly emptyReason: string;
   readonly emptyMessage: string;

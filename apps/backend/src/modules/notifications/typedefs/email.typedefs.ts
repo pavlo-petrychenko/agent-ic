@@ -40,9 +40,11 @@ export interface EscalationEmailProps {
   readonly time: string;
   readonly workspaceName: string | null;
   readonly link: string;
+  readonly waitingMinutes: number;
 }
 
 export interface EscalationEmailCopy {
+  readonly title: string;
   readonly subject: string;
   readonly body: string;
   readonly reasonLabel: string;
