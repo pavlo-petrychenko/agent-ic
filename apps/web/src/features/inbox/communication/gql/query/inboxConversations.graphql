@@ -33,6 +33,7 @@ query InboxConversations(
     createdAt
     lastMessageAt
     lastEscalatedAt
+    waitingSince
     closedAt
   }
 }

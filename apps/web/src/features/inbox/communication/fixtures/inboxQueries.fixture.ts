@@ -134,6 +134,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     createdAt: '2026-11-01T14:02:00.000Z',
     lastMessageAt: '2026-11-01T14:07:00.000Z',
     lastEscalatedAt: '2026-11-01T14:03:00.000Z',
+    waitingSince: null,
     closedAt: null,
   },
   {
@@ -154,6 +155,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     createdAt: '2026-11-01T14:12:00.000Z',
     lastMessageAt: '2026-11-01T14:17:00.000Z',
     lastEscalatedAt: '2026-11-01T14:17:00.000Z',
+    waitingSince: '2026-11-01T14:17:00.000Z',
     closedAt: null,
   },
   {
@@ -174,6 +176,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     createdAt: '2026-11-01T14:18:00.000Z',
     lastMessageAt: '2026-11-01T14:20:00.000Z',
     lastEscalatedAt: '2026-11-01T14:18:00.000Z',
+    waitingSince: null,
     closedAt: null,
   },
   {
@@ -194,6 +197,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     createdAt: '2026-11-01T14:02:00.000Z',
     lastMessageAt: '2026-11-01T14:21:00.000Z',
     lastEscalatedAt: '2026-11-01T14:05:00.000Z',
+    waitingSince: null,
     closedAt: null,
   },
   {
@@ -214,6 +218,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     createdAt: '2026-11-01T14:11:00.000Z',
     lastMessageAt: '2026-11-01T14:19:00.000Z',
     lastEscalatedAt: '2026-11-01T14:11:00.000Z',
+    waitingSince: null,
     closedAt: null,
   },
   {
@@ -234,6 +239,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     createdAt: '2026-10-31T18:19:00.000Z',
     lastMessageAt: '2026-10-31T18:22:00.000Z',
     lastEscalatedAt: null,
+    waitingSince: null,
     closedAt: '2026-10-31T18:40:00.000Z',
   },
 ];

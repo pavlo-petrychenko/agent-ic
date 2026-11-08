@@ -155,6 +155,7 @@
     "theApiCaller": "The API caller",
     "started": "Started",
     "escalated": "Escalated",
+    "waitingSince": "Waiting since",
     "notified": "Notified",
     "allOperators": "All operators",
     "handledBy": "Handled by",

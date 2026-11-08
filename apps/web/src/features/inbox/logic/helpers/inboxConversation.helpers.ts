@@ -87,7 +87,9 @@ const INBOX_BANNERS: Readonly<Record<InboxReplyState, InboxBannerResolver>> = {
   [InboxReplyState.Waiting]: (conversation, t) => ({
     tone: BannerTone.Warn,
     icon: IconName.Pause,
-    text: t('banner.waiting', { duration: waitingDuration(conversation.minutesAgo, t) }),
+    text: t('banner.waiting', {
+      duration: waitingDuration(conversation.waitingMinutes ?? conversation.minutesAgo, t),
+    }),
   }),
   [InboxReplyState.Operator]: (conversation, t) => ({
     tone: BannerTone.Info,

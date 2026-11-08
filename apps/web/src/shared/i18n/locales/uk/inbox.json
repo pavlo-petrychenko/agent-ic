@@ -155,6 +155,7 @@
     "theApiCaller": "Виклик API",
     "started": "Почато",
     "escalated": "Ескальовано",
+    "waitingSince": "Очікує з",
     "notified": "Сповіщено",
     "allOperators": "Усі оператори",
     "handledBy": "Обробляє",
