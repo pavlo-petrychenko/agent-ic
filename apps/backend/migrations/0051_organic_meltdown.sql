@@ -1,0 +1,1 @@
+ALTER TABLE "conversations"."conversations" ADD COLUMN "waiting_since" timestamp with time zone;

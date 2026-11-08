@@ -25,6 +25,7 @@ export interface Conversation {
   readonly lastMessageAt: Date;
   readonly lastCustomerMessageAt: Date | null;
   readonly lastEscalatedAt: Date | null;
+  readonly waitingSince: Date | null;
   readonly closedAt: Date | null;
   readonly closeReason: CloseReason | null;
   readonly createdAt: Date;
