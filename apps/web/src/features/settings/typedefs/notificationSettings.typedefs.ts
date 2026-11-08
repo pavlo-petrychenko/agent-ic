@@ -2,6 +2,7 @@ export interface NotificationSettingsView {
   readonly platformEnabled: boolean;
   readonly emailEnabled: boolean;
   readonly email: string | null;
+  readonly emailVerifiedAt: string | null;
   readonly telegramEnabled: boolean;
   readonly telegramLinked: boolean;
   readonly telegramUsername: string | null;

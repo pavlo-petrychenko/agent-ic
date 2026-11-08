@@ -1,3 +1,4 @@
+import type { NotificationEmailFieldProps } from '@/features/settings/view/NotificationEmailField';
 import type { NotificationPreferencesProps } from '@/features/settings/view/NotificationPreferences';
 
 export interface TelegramLinkCardModel {
@@ -12,6 +13,7 @@ export interface UseNotificationsPageResult {
   readonly cardDescription: string;
   readonly cardFooter: string;
   readonly preferences: NotificationPreferencesProps;
+  readonly emailField: NotificationEmailFieldProps;
   readonly telegramLinked: boolean;
   readonly telegramLinkedOn: string | null;
   readonly telegramLink: TelegramLinkCardModel | null;
@@ -21,4 +23,6 @@ export interface UseNotificationsPageResult {
 
 export interface NotificationsPageProps {
   readonly workspaceId: string;
+  readonly verificationToken: string | null;
+  readonly onVerificationHandled: () => void;
 }

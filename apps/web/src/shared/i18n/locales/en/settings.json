@@ -32,6 +32,18 @@
       "linkedOn": "Linked {{date}}",
       "footer": "You get alerts for escalations from every agent you can access in the Inbox."
     },
+    "email": {
+      "title": "Alert email",
+      "description": "Hand-off alerts are sent to this address.",
+      "placeholder": "alerts@example.com",
+      "usingAccount": "Using your account email · {{email}}",
+      "verified": "Verified",
+      "pending": "Verification pending",
+      "save": "Save",
+      "resend": "Resend verification",
+      "verificationSent": "Verification email sent to {{email}}",
+      "verifiedSuccess": "Alert email verified"
+    },
     "browser": {
       "title": "Browser notifications",
       "hint": "Get a desktop notification when a chat is escalated to you.",

@@ -1,11 +1,14 @@
 import { WorkspaceRole } from '@agent-ic/contracts';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBrowserNotificationPermission } from '@/features/inbox';
 import { useCreateTelegramNotificationLink } from '@/features/settings/communication/hooks/useCreateTelegramNotificationLink';
 import { useNotificationSettings } from '@/features/settings/communication/hooks/useNotificationSettings';
+import { useResendNotificationEmailVerification } from '@/features/settings/communication/hooks/useResendNotificationEmailVerification';
 import { useUnlinkTelegramNotification } from '@/features/settings/communication/hooks/useUnlinkTelegramNotification';
 import { useUpdateNotificationChannel } from '@/features/settings/communication/hooks/useUpdateNotificationChannel';
+import { useUpdateNotificationEmail } from '@/features/settings/communication/hooks/useUpdateNotificationEmail';
+import { useVerifyNotificationEmail } from '@/features/settings/communication/hooks/useVerifyNotificationEmail';
 import { TELEGRAM_LINK_POLL_INTERVAL_MS } from '@/features/settings/constants/notifications.constants';
 import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.constants';
 import type { UseNotificationsPageResult } from '@/features/settings/containers/NotificationsPage/NotificationsPage.typedefs';
@@ -26,7 +29,11 @@ import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
-export function useNotificationsPage(workspaceId: string): UseNotificationsPageResult {
+export function useNotificationsPage(
+  workspaceId: string,
+  verificationToken: string | null,
+  onVerificationHandled: () => void,
+): UseNotificationsPageResult {
   const { t, i18n } = useTranslation(SETTINGS_NAMESPACE);
   const { showToast } = useToast();
   const user = useWorkspaceShell(workspaceId).data?.user ?? null;
@@ -42,10 +49,17 @@ export function useNotificationsPage(workspaceId: string): UseNotificationsPageR
     awaitingTelegramLink && telegramLink !== null ? TELEGRAM_LINK_POLL_INTERVAL_MS : 0,
   );
   const updateChannel = useUpdateNotificationChannel();
+  const updateEmail = useUpdateNotificationEmail();
+  const resendEmailVerification = useResendNotificationEmailVerification();
+  const verifyEmail = useVerifyNotificationEmail();
   const { createLink, creating } = useCreateTelegramNotificationLink();
   const unlinkTelegram = useUnlinkTelegramNotification();
   const errorMessage = useErrorMessage();
   const browser = useBrowserNotificationPermission();
+  const [emailDraft, setEmailDraft] = useState<string | null>(null);
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const verificationStarted = useRef(false);
 
   useEffect(() => {
     if (userId === null || telegramLink === null) {
@@ -70,8 +84,28 @@ export function useNotificationsPage(workspaceId: string): UseNotificationsPageR
     }
   }, [workspaceId, userId, settings.telegramLinked]);
 
+  useEffect(() => {
+    if (verificationToken === null || verificationStarted.current) {
+      return;
+    }
+    verificationStarted.current = true;
+    void verifyEmail(verificationToken)
+      .then(() => {
+        showToast({ message: t('notifications.email.verifiedSuccess'), tone: ToastTone.Ok });
+      })
+      .catch((error: unknown) => {
+        showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
+      })
+      .finally(onVerificationHandled);
+  }, [verificationToken, verifyEmail, onVerificationHandled, showToast, t, errorMessage]);
+
   const isOperator = active?.role === WorkspaceRole.Operator;
   const name = user?.name ?? '';
+  const accountEmail = user?.email ?? '';
+  const savedEmail = settings.email ?? accountEmail;
+  const usingAccountEmail = settings.email === null;
+  const emailVerified = usingAccountEmail || settings.emailVerifiedAt !== null;
+  const emailValue = emailDraft ?? savedEmail;
 
   const browserHint =
     browser.permission === 'granted'
@@ -99,6 +133,41 @@ export function useNotificationsPage(workspaceId: string): UseNotificationsPageR
     void updateChannel(channel, enabled).catch((error: unknown) => {
       showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
     });
+  };
+
+  const saveEmail = async () => {
+    const nextEmail = emailValue.trim();
+    if (nextEmail === '' || (nextEmail === savedEmail && (usingAccountEmail || emailVerified))) {
+      return;
+    }
+    setSavingEmail(true);
+    try {
+      await updateEmail(nextEmail);
+      setEmailDraft(null);
+      showToast({
+        message: t('notifications.email.verificationSent', { email: nextEmail }),
+        tone: ToastTone.Ok,
+      });
+    } catch (error) {
+      showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  const resendVerification = async () => {
+    setResendingVerification(true);
+    try {
+      await resendEmailVerification();
+      showToast({
+        message: t('notifications.email.verificationSent', { email: savedEmail }),
+        tone: ToastTone.Ok,
+      });
+    } catch (error) {
+      showToast({ message: errorMessage(toAppError(error)), tone: ToastTone.Err });
+    } finally {
+      setResendingVerification(false);
+    }
   };
 
   const startTelegramLink = async () => {
@@ -172,6 +241,17 @@ export function useNotificationsPage(workspaceId: string): UseNotificationsPageR
       onToggleEmail: (enabled) => changeChannel(NotificationChannel.Email, enabled),
       onStartTelegram: () => void startTelegramLink(),
       onToggleTelegram: (enabled) => changeChannel(NotificationChannel.Telegram, enabled),
+    },
+    emailField: {
+      value: emailValue,
+      verified: emailVerified,
+      usingAccountEmail,
+      accountEmail,
+      saving: savingEmail,
+      resending: resendingVerification,
+      onChange: (value) => setEmailDraft(value),
+      onSave: () => void saveEmail(),
+      onResend: () => void resendVerification(),
     },
     telegramLinked: settings.telegramLinked,
     telegramLinkedOn:
