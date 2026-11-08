@@ -194,6 +194,118 @@ describe('NotificationsRepository read state', () => {
     ).toBeNull();
   });
 
+  it('lists platform notifications newest first with read state and cursor pagination', async () => {
+    const workspaceId = testbed.ids.generate();
+    const user = testbed.ids.generate();
+    await ensureUserRow(testbed.module, user);
+    const first = await seedExecutableRun(testbed, triggerOnlyFlow(), [], undefined, workspaceId);
+    const firstId = await seedNotification(first, user, 'first');
+    testbed.clock.advanceBy(60_000);
+    const second = await seedExecutableRun(testbed, triggerOnlyFlow(), [], undefined, workspaceId);
+    const secondId = await seedNotification(second, user, 'second');
+    testbed.clock.advanceBy(60_000);
+    const third = await seedExecutableRun(testbed, triggerOnlyFlow(), [], undefined, workspaceId);
+    const thirdId = await seedNotification(third, user, 'third');
+
+    const page = await testbed.tenants.run(workspaceId, () =>
+      notifications.listForUser(workspaceId, user, {
+        afterId: null,
+        limit: 2,
+        unreadOnly: false,
+      }),
+    );
+
+    expect(page.map((row) => row.id)).toEqual([thirdId, secondId]);
+    expect(page[0]).toMatchObject({
+      conversationId: third.run.conversationId,
+      reason: 'third',
+      read: false,
+      readAt: null,
+    });
+    expect(page[0]?.createdAt).toBeInstanceOf(Date);
+
+    const next = await testbed.tenants.run(workspaceId, () =>
+      notifications.listForUser(workspaceId, user, {
+        afterId: secondId,
+        limit: 2,
+        unreadOnly: false,
+      }),
+    );
+
+    expect(next.map((row) => row.id)).toEqual([firstId]);
+  });
+
+  it('marks one notification read without touching another user', async () => {
+    const seeded = await seedExecutableRun(testbed, triggerOnlyFlow());
+    const user = testbed.ids.generate();
+    const other = testbed.ids.generate();
+    await ensureUserRow(testbed.module, user);
+    await ensureUserRow(testbed.module, other);
+    const notificationId = await seedNotification(seeded, user);
+    await seedNotification(seeded, other);
+
+    const marked = await testbed.tenants.run(seeded.run.workspaceId, () =>
+      notifications.markPlatformRead(seeded.run.workspaceId, user, notificationId, READ_AT),
+    );
+
+    expect(marked).toBe(1);
+    expect(
+      await testbed.tenants.run(seeded.run.workspaceId, () =>
+        notifications.markPlatformRead(seeded.run.workspaceId, other, notificationId, READ_AT),
+      ),
+    ).toBe(0);
+
+    const [row] = await testbed.tenants.run(seeded.run.workspaceId, () =>
+      notifications.listForUser(seeded.run.workspaceId, user, {
+        afterId: null,
+        limit: 10,
+        unreadOnly: false,
+      }),
+    );
+
+    expect(row).toMatchObject({ id: notificationId, read: true, readAt: READ_AT });
+    expect(
+      await testbed.tenants.run(seeded.run.workspaceId, () =>
+        notifications.countUnreadPlatform(seeded.run.workspaceId, other),
+      ),
+    ).toBe(1);
+  });
+
+  it('marks every platform notification read for one user', async () => {
+    const workspaceId = testbed.ids.generate();
+    const user = testbed.ids.generate();
+    const other = testbed.ids.generate();
+    await ensureUserRow(testbed.module, user);
+    await ensureUserRow(testbed.module, other);
+    const first = await seedExecutableRun(testbed, triggerOnlyFlow(), [], undefined, workspaceId);
+    await seedNotification(first, user);
+    const second = await seedExecutableRun(testbed, triggerOnlyFlow(), [], undefined, workspaceId);
+    await seedNotification(second, user);
+    const third = await seedExecutableRun(testbed, triggerOnlyFlow(), [], undefined, workspaceId);
+    await seedNotification(third, other);
+
+    const marked = await testbed.tenants.run(workspaceId, () =>
+      notifications.markAllPlatformRead(workspaceId, user, READ_AT),
+    );
+
+    expect(marked).toBe(2);
+    expect(
+      await testbed.tenants.run(workspaceId, () =>
+        notifications.countUnreadPlatform(workspaceId, user),
+      ),
+    ).toBe(0);
+    expect(
+      await testbed.tenants.run(workspaceId, () =>
+        notifications.countUnreadPlatform(workspaceId, other),
+      ),
+    ).toBe(1);
+    expect(
+      await testbed.tenants.run(workspaceId, () =>
+        notifications.markAllPlatformRead(workspaceId, user, READ_AT),
+      ),
+    ).toBe(0);
+  });
+
   it('does not mark another user or another conversation read', async () => {
     const first = await seedExecutableRun(testbed, triggerOnlyFlow());
     const second = await seedExecutableRun(

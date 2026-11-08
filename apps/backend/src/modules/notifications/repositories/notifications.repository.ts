@@ -16,6 +16,8 @@ import type {
   NewNotificationRecord,
   NotificationAlertRecord,
   NotificationDeliveryRecord,
+  NotificationListItemRecord,
+  NotificationListQuery,
   NotificationRecord,
 } from '@/modules/notifications/typedefs/notification.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
@@ -39,6 +41,12 @@ type LatestUnreadRow = Readonly<{
   reason: string | null;
   created_at: Date | string;
 }>;
+
+type NotificationListRow = LatestUnreadRow &
+  Readonly<{
+    read: boolean;
+    read_at: Date | string | null;
+  }>;
 
 @Injectable()
 export class NotificationsRepository {
@@ -287,6 +295,125 @@ export class NotificationsRepository {
           reason: row.reason,
           createdAt: new Date(row.created_at),
         };
+  }
+
+  async listForUser(
+    workspaceId: string,
+    userId: string,
+    query: NotificationListQuery,
+  ): Promise<NotificationListItemRecord[]> {
+    const { rows } = await this.txHost.tx.execute<NotificationListRow>(sql`
+      select n.id,
+             r.conversation_id,
+             n.kind,
+             case
+               when c.last_escalated_at is null then 0
+               else greatest(1, round(extract(epoch from (n.created_at - c.last_escalated_at)) / 60))
+             end as waiting_minutes,
+             c.end_user_name,
+             c.channel_kind,
+             coalesce(rs.output->>'reason', rs.output->>'outcome_reason', rs.error->>'message') as reason,
+             d.status = 'read' as read,
+             d.read_at,
+             n.created_at
+      from ${sql.identifier(NOTIFICATIONS_SCHEMA)}.${sql.identifier(NOTIFICATIONS_TABLE)} n
+      join ${sql.identifier(NOTIFICATIONS_SCHEMA)}.${sql.identifier('notification_deliveries')} d
+        on d.notification_id = n.id
+       and d.workspace_id = n.workspace_id
+       and d.channel = ${NotificationChannel.Platform}
+      join ${sql.identifier(RUNS_SCHEMA)}.${sql.identifier(RUN_STEPS_TABLE)} rs
+        on rs.id = n.run_step_id and rs.workspace_id = n.workspace_id
+      join ${sql.identifier(RUNS_SCHEMA)}.${sql.identifier(RUNS_TABLE)} r
+        on r.id = rs.run_id and r.workspace_id = rs.workspace_id
+      join ${sql.identifier(CONVERSATIONS_SCHEMA)}.${sql.identifier(CONVERSATIONS_TABLE)} c
+        on c.id = r.conversation_id and c.workspace_id = r.workspace_id
+      where n.workspace_id = ${workspaceId}
+        and n.user_id = ${userId}
+        and (
+          ${query.afterId}::uuid is null
+          or (n.created_at, n.id) < (
+            select n2.created_at, n2.id
+            from ${sql.identifier(NOTIFICATIONS_SCHEMA)}.${sql.identifier(NOTIFICATIONS_TABLE)} n2
+            where n2.workspace_id = ${workspaceId} and n2.id = ${query.afterId}::uuid
+          )
+        )
+        and (${query.unreadOnly} = false or d.status <> 'read')
+      order by n.created_at desc, n.id desc
+      limit ${query.limit}
+    `);
+    return rows.map((row) => ({
+      id: row.id,
+      conversationId: row.conversation_id,
+      kind:
+        row.kind === NotificationKind.Reminder
+          ? NotificationKind.Reminder
+          : NotificationKind.Escalation,
+      waitingMinutes: Number(row.waiting_minutes),
+      customerName: row.end_user_name,
+      channelKind: row.channel_kind,
+      reason: row.reason,
+      createdAt: new Date(row.created_at),
+      read: row.read,
+      readAt: row.read_at === null ? null : new Date(row.read_at),
+    }));
+  }
+
+  async markPlatformRead(
+    workspaceId: string,
+    userId: string,
+    notificationId: string,
+    readAt: Date,
+  ): Promise<number> {
+    const updated = await this.txHost.tx
+      .update(notificationDeliveries)
+      .set({
+        status: NotificationDeliveryStatus.Read,
+        readAt,
+        updatedAt: this.clock.now(),
+      })
+      .where(
+        and(
+          eq(notificationDeliveries.workspaceId, workspaceId),
+          eq(notificationDeliveries.notificationId, notificationId),
+          eq(notificationDeliveries.channel, NotificationChannel.Platform),
+          ne(notificationDeliveries.status, NotificationDeliveryStatus.Read),
+          sql`exists (
+            select 1
+            from ${sql.identifier(NOTIFICATIONS_SCHEMA)}.${sql.identifier(NOTIFICATIONS_TABLE)} n
+            where n.id = ${notificationDeliveries.notificationId}
+              and n.workspace_id = ${workspaceId}
+              and n.user_id = ${userId}
+          )`,
+        ),
+      )
+      .returning({ id: notificationDeliveries.id });
+    return updated.length;
+  }
+
+  async markAllPlatformRead(workspaceId: string, userId: string, readAt: Date): Promise<number> {
+    const updated = await this.txHost.tx
+      .update(notificationDeliveries)
+      .set({
+        status: NotificationDeliveryStatus.Read,
+        readAt,
+        updatedAt: this.clock.now(),
+      })
+      .where(
+        and(
+          eq(notificationDeliveries.workspaceId, workspaceId),
+          eq(notificationDeliveries.channel, NotificationChannel.Platform),
+          ne(notificationDeliveries.status, NotificationDeliveryStatus.Read),
+          sql`exists (
+            select 1
+            from ${sql.identifier(NOTIFICATIONS_SCHEMA)}.${sql.identifier(NOTIFICATIONS_TABLE)} n
+            where n.id = ${notificationDeliveries.notificationId}
+              and n.workspace_id = ${workspaceId}
+              and n.user_id = ${userId}
+          )`,
+        ),
+      )
+      .returning({ id: notificationDeliveries.id });
+    return updated.length;
   }
 
   async markPlatformReadForConversation(

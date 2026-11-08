@@ -23,6 +23,9 @@ import { CreateTelegramNotificationLinkUseCase } from '@/modules/notifications/u
 import { GetLatestUnreadNotificationUseCase } from '@/modules/notifications/use-cases/get-latest-unread-notification.use-case';
 import { GetNotificationSettingsUseCase } from '@/modules/notifications/use-cases/get-notification-settings.use-case';
 import { HandleTelegramAlertsUpdateUseCase } from '@/modules/notifications/use-cases/handle-telegram-alerts-update.use-case';
+import { ListNotificationsUseCase } from '@/modules/notifications/use-cases/list-notifications.use-case';
+import { MarkAllNotificationsReadUseCase } from '@/modules/notifications/use-cases/mark-all-notifications-read.use-case';
+import { MarkNotificationReadUseCase } from '@/modules/notifications/use-cases/mark-notification-read.use-case';
 import { MarkNotificationsReadUseCase } from '@/modules/notifications/use-cases/mark-notifications-read.use-case';
 import { SendConfirmationEmailUseCase } from '@/modules/notifications/use-cases/send-confirmation-email.use-case';
 import { SendEmailChangeEmailUseCase } from '@/modules/notifications/use-cases/send-email-change-email.use-case';
@@ -55,6 +58,9 @@ export class NotificationsModule extends defineModule({
     TelegramAlertsService,
     GetNotificationSettingsUseCase,
     GetLatestUnreadNotificationUseCase,
+    ListNotificationsUseCase,
+    MarkAllNotificationsReadUseCase,
+    MarkNotificationReadUseCase,
     UpdateNotificationChannelUseCase,
     UpdateNotificationEmailUseCase,
     ClearExpiredTelegramLinksUseCase,
