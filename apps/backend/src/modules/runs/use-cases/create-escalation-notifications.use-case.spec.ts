@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConversationMode } from '@/modules/conversations';
+import type { InboxActivityService } from '@/modules/conversations';
 import { NotificationChannel, NotificationKind } from '@/modules/notifications';
 import { EscalationTimerKind } from '@/modules/runs/constants/escalation-reminder.constants';
 import {
@@ -22,6 +23,7 @@ const MINUTE_MS = 60_000;
 describe('CreateEscalationNotificationsUseCase', () => {
   const run = vi.fn<(workspaceId: string, work: () => Promise<unknown>) => Promise<unknown>>();
   const create = vi.fn<EscalationNotificationService['create']>();
+  const conversationChanged = vi.fn<InboxActivityService['conversationChanged']>();
   const enqueue = vi.fn<JobsService['enqueue']>();
   let service: CreateEscalationNotificationsUseCase;
 
@@ -40,15 +42,18 @@ describe('CreateEscalationNotificationsUseCase', () => {
   beforeEach(() => {
     run.mockReset();
     create.mockReset();
+    conversationChanged.mockReset();
     enqueue.mockReset();
     run.mockImplementation((_workspaceId, work) => work());
     create.mockResolvedValue([
       { notificationId: 'notification-1', channel: NotificationChannel.Email },
     ]);
+    conversationChanged.mockResolvedValue(undefined);
     enqueue.mockResolvedValue(undefined);
     service = new CreateEscalationNotificationsUseCase(
       { run } as unknown as TenantTransactionService,
       { create } as unknown as EscalationNotificationService,
+      { conversationChanged } as unknown as InboxActivityService,
       { enqueue } as unknown as JobsService,
     );
   });
@@ -64,6 +69,7 @@ describe('CreateEscalationNotificationsUseCase', () => {
       nodeId: 'node-1',
       kind: NotificationKind.Escalation,
     });
+    expect(conversationChanged).toHaveBeenCalledWith('workspace-1', 'conversation-1');
     expect(enqueue).toHaveBeenCalledWith(
       expect.anything(),
       fireEscalationTimerJob,
@@ -107,6 +113,7 @@ describe('CreateEscalationNotificationsUseCase', () => {
 
     expect(run).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
+    expect(conversationChanged).not.toHaveBeenCalled();
     expect(enqueue).not.toHaveBeenCalled();
   });
 

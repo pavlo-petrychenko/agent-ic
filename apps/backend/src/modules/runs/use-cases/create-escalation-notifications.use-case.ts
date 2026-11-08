@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ConversationMode } from '@/modules/conversations';
+import { ConversationMode, InboxActivityService } from '@/modules/conversations';
 import { NotificationKind } from '@/modules/notifications';
 import { EscalationTimerKind } from '@/modules/runs/constants/escalation-reminder.constants';
 import {
@@ -25,6 +25,7 @@ export class CreateEscalationNotificationsUseCase {
   constructor(
     private readonly tenants: TenantTransactionService,
     private readonly notifications: EscalationNotificationService,
+    private readonly inboxActivity: InboxActivityService,
     private readonly jobs: JobsService,
   ) {}
 
@@ -45,6 +46,7 @@ export class CreateEscalationNotificationsUseCase {
         nodeId: payload.nodeId,
         kind: NotificationKind.Escalation,
       });
+      await this.inboxActivity.conversationChanged(workspaceId, payload.conversationId);
       await this.scheduleTimers(ctx, payload);
       return created;
     });

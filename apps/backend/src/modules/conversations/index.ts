@@ -31,6 +31,7 @@ export { MessagesRepository } from '@/modules/conversations/repositories/message
 export { ConversationActivityService } from '@/modules/conversations/services/conversation-activity.service';
 export { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
 export { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
+export { InboxActivityService } from '@/modules/conversations/services/inbox-activity.service';
 export { IncomingMessagesService } from '@/modules/conversations/services/incoming-messages.service';
 export { ScheduleAudienceService } from '@/modules/conversations/services/schedule-audience.service';
 export type {
