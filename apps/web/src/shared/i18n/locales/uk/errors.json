@@ -54,6 +54,7 @@
     "AGENT_NOT_FOUND": "Цього агента не існує.",
     "AGENT_VERSION_NOT_FOUND": "Цієї версії агента не існує.",
     "AGENT_VERSION_IMMUTABLE": "Опубліковану версію не можна змінити.",
+    "AGENT_VERSION_ALREADY_LIVE": "Ця версія вже працює.",
     "DRAFT_CONFLICT": "Цю чернетку зберіг хтось інший. Перезавантажте, щоб продовжити.",
     "STORED_FLOW_UNREADABLE": "Цю версію схеми не вдається прочитати. Зверніться в підтримку.",
     "AGENT_FLOW_HAS_BLOCKING_ISSUES": "Виправте помилки в схемі перед публікацією.",

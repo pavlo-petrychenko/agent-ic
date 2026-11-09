@@ -1,3 +1,4 @@
+import { PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { useNavigate } from '@tanstack/react-router';
 import { useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +7,7 @@ import { useSaveAgentDetails } from '@/features/flow-builder/communication/hooks
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import { VERSIONS_PATH } from '@/features/flow-builder/constants/publish.constants';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
+import { VersionAction } from '@/features/flow-builder/constants/versions.constants';
 import { BuilderPublishDialog } from '@/features/flow-builder/containers/BuilderPublishDialog';
 import type { FlowBuilderPageProps } from '@/features/flow-builder/containers/FlowBuilderPage/FlowBuilderPage.typedefs';
 import { useDraftAutosave } from '@/features/flow-builder/containers/FlowBuilderPage/useDraftAutosave';
@@ -16,6 +18,7 @@ import { IssuesPanel } from '@/features/flow-builder/containers/IssuesPanel';
 import { LastRunBar } from '@/features/flow-builder/containers/LastRunBar';
 import { LeaveGuard } from '@/features/flow-builder/containers/LeaveGuard';
 import { StepPalettePanel } from '@/features/flow-builder/containers/StepPalettePanel';
+import { VersionsDrawer } from '@/features/flow-builder/containers/VersionsDrawer';
 import {
   normalizeAgentDetails,
   sameAgentDetails,
@@ -31,8 +34,10 @@ import { AgentDetailsPopover } from '@/features/flow-builder/view/AgentDetailsPo
 import { DraftBadge } from '@/features/flow-builder/view/DraftBadge';
 import { PublishButton } from '@/features/flow-builder/view/PublishButton';
 import { SaveStatus } from '@/features/flow-builder/view/SaveStatus';
+import { VersionsButton } from '@/features/flow-builder/view/VersionsButton';
 import { useActiveWorkspace } from '@/features/workspace';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
+import { hasPermission } from '@/shared/api/helpers/permission.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
 import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
@@ -44,6 +49,8 @@ import { Topbar } from '@/shared/ui/layout/Topbar';
 import { BREADCRUMB_SEPARATOR } from '@/shared/ui/navigation/Breadcrumb';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
+import { isCompactBreakpoint } from '@/shared/viewport/helpers/viewport.helpers';
+import { useBreakpoint } from '@/shared/viewport/hooks/useBreakpoint';
 
 export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPageProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
@@ -69,6 +76,14 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
   const { conflict, retry: retrySave } = useDraftAutosave(agentId);
   const navigate = useNavigate();
   const [publishing, setPublishing] = useState(false);
+  const [versionsOpen, setVersionsOpen] = useState(false);
+  const compact = isCompactBreakpoint(useBreakpoint());
+  const permissions = workspace?.permissions ?? null;
+  const canEdit =
+    permissions !== null &&
+    hasPermission(permissions, PermissionResource.Agents, PermissionAction.Edit);
+  const canRollback =
+    canEdit && hasPermission(permissions, PermissionResource.Agents, PermissionAction.Publish);
   const errorCount = useFlowIssues().filter(isBlocking).length;
 
   const saveDetails = async (current: AgentDetails, edited: AgentDetails) => {
@@ -87,6 +102,16 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
     } finally {
       setSavingDetails(false);
     }
+  };
+  const onVersionChanged = (action: VersionAction, number: number | null) => {
+    retry();
+    showToast({
+      message:
+        action === VersionAction.Rollback
+          ? t('versions.rollback.success', { version: number })
+          : t('versions.restore.success', { number }),
+      tone: ToastTone.Ok,
+    });
   };
   const load = useFlowBuilderStore((state) => state.load);
   const select = useFlowBuilderStore((state) => state.select);
@@ -146,6 +171,11 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
           draft === null ? null : (
             <div className="flex items-center gap-3">
               <SaveStatus saveState={saveState} onRetry={retrySave} />
+              <VersionsButton
+                label={t('versions.open')}
+                compact={compact}
+                onClick={() => setVersionsOpen(true)}
+              />
               <PublishButton
                 label={
                   draftNumber === null
@@ -185,6 +215,24 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
           <InspectorPanel workspaceId={workspaceId} agentId={agentId} />
           <FlowSettingsPanel agentName={agentName ?? ''} />
           <LeaveGuard />
+          <VersionsDrawer
+            agentId={agentId}
+            open={versionsOpen}
+            liveNumber={liveVersion}
+            nextNumber={draftNumber}
+            changeCount={unchanged ? 0 : draftChangeCount}
+            canRollback={canRollback}
+            canRestore={canEdit}
+            onCompare={() =>
+              void navigate({
+                to: VERSIONS_PATH,
+                params: { workspaceId },
+                search: { agent: agentId },
+              })
+            }
+            onChanged={onVersionChanged}
+            onClose={() => setVersionsOpen(false)}
+          />
           {publishing && (
             <BuilderPublishDialog
               agentId={agentId}

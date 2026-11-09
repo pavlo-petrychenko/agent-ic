@@ -39,3 +39,5 @@ export const TEST_SCHEDULE_SILENT_HOURS = 24;
 export const TEST_SCHEDULE_MAX_CONVERSATIONS = 50;
 export const TEST_TEMPLATE_AGENT_NAME = 'Lviv café bot';
 export const TEST_UNKNOWN_KNOWLEDGE_BASE_ID = 'kbs_unknown';
+export const TEST_ROLLBACK_NOTE = 'Back to the short greeting';
+export const TEST_DEFAULT_ROLLBACK_NOTE = 'Rolled back to version 1';

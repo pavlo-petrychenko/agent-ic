@@ -19,6 +19,7 @@ extend type Mutation {
   pauseAgent(input: PauseAgentInput!): Agent!
   resumeAgent(input: ResumeAgentInput!): Agent!
   restoreAgentVersion(input: RestoreAgentVersionInput!): AgentDraft!
+  rollbackAgent(input: RollbackAgentInput!): RollbackAgentPayload!
 }
 
 enum AgentStatus {
@@ -119,6 +120,12 @@ input RestoreAgentVersionInput {
   revision: Int!
 }
 
+input RollbackAgentInput {
+  versionId: ID!
+  revision: Int!
+  note: String
+}
+
 enum FlowIssueSeverity {
   error
   warning
@@ -159,6 +166,12 @@ type AgentDraft {
 type PublishAgentPayload {
   agent: Agent!
   version: AgentVersion!
+}
+
+type RollbackAgentPayload {
+  agent: Agent!
+  version: AgentVersion!
+  draft: AgentDraft!
 }
 
 type FlowFieldChange {

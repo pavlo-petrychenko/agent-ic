@@ -64,6 +64,7 @@ export enum ErrorReason {
   AgentNotFound = 'AGENT_NOT_FOUND',
   AgentVersionNotFound = 'AGENT_VERSION_NOT_FOUND',
   AgentVersionImmutable = 'AGENT_VERSION_IMMUTABLE',
+  AgentVersionAlreadyLive = 'AGENT_VERSION_ALREADY_LIVE',
   DraftConflict = 'DRAFT_CONFLICT',
   AgentFlowHasBlockingIssues = 'AGENT_FLOW_HAS_BLOCKING_ISSUES',
   AgentTemplateWithoutKnowledge = 'AGENT_TEMPLATE_WITHOUT_KNOWLEDGE',

@@ -4,6 +4,8 @@ import {
   AgentVersionKind,
   AgentVersionStatus,
   DRAFT_INITIAL_REVISION,
+  ROLLBACK_NOTE_PREFIX,
+  ROLLBACK_NOTE_UNNUMBERED,
 } from '@/modules/agents/constants/agent.constants';
 import { StoredFlowUnreadableError } from '@/modules/agents/errors/stored-flow-unreadable.error';
 import type {
@@ -84,3 +86,6 @@ export const toAgentVersionSummary = ({
     live === null ||
     !isDeepStrictEqual(readStoredFlow(draft), readStoredFlow(live)),
 });
+
+export const rollbackNoteOf = (version: AgentVersion): string =>
+  version.number === null ? ROLLBACK_NOTE_UNNUMBERED : `${ROLLBACK_NOTE_PREFIX}${version.number}`;
