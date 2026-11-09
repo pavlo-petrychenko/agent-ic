@@ -62,6 +62,26 @@ export { enabledExits, isExitPort, isTriggerNode } from '@flow/document/helpers/
 export { nodePorts } from '@flow/document/helpers/port.helpers';
 export { renameNodeKey } from '@flow/document/helpers/rename.helpers';
 export {
+  AgentExampleCategory,
+  AgentExampleId,
+  AgentExampleLevel,
+  AgentExamplePromptKey,
+} from '@flow/examples/constants/agent-example.constants';
+export {
+  agentExample,
+  agentExampleNodeTypes,
+  agentExamples,
+  agentExamplesUsing,
+  buildAgentExample,
+} from '@flow/examples/helpers/agent-example.helpers';
+export type {
+  AgentExample,
+  AgentExampleModels,
+  AgentExampleOptions,
+  AgentExamplePrompt,
+  LocalizedText,
+} from '@flow/examples/typedefs/agent-example.typedefs';
+export {
   AGENT_DEFAULT_RETRIES,
   API_REQUEST_DEFAULT_RETRIES,
   API_REQUEST_DEFAULT_TIMEOUT_SECONDS,

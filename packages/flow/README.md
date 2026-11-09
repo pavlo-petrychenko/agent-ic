@@ -25,6 +25,7 @@ Each folder under `src/` is a topic, and inside it files sit in a folder per kin
 | `schedules/`  | `scheduleCron`, `nextTicks`, `latestTick`, `dueTick`, `isTooFrequent`: Schedule trigger ticks on wall-clock time in a time zone                          |
 | `settings/`   | flow settings: the default hand-off, what an unhandled step failure does, auto-close after inactivity                                                    |
 | `limits/`     | node, edge, rule, branch, output and template limits                                                                                                     |
+| `examples/`   | the agent example catalog: `agentExamples`, `buildAgentExample`, `agentExampleNodeTypes`, `agentExamplesUsing`                                           |
 
 ## Use it
 
@@ -79,6 +80,16 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 - A missing `background` means the join waits for the branch.
 - `validateFlow` refuses a Send message step in any branch, an Escalation in a background branch (`ESCALATION_IN_BACKGROUND_BRANCH`), `background` on an edge that is not a `branches` edge (`BACKGROUND_OUTSIDE_BRANCHES`) and a Parallel step whose branches all run in the background (`NO_WAITED_BRANCH`). An Escalation in a waited branch is allowed: it ends the run, so its path never reaches the join.
 
+## Agent examples
+
+`examples/` holds ten ready-made agents a user can start from. They are pure data in `en` and `uk`, so the web shows them without an API call and the backend creates an agent from one by id.
+
+- `agentExamples` lists every `AgentExample`, from `starter` to `advanced`: `id` (`AgentExampleId`), `category`, `level`, `name`, `description`, two or three `highlights` and the `prompts` it needs. `agentExample(id)` returns one. Each text is a `LocalizedText`, a string per `Locale`.
+- Each prompt has a `key` (`AgentExamplePromptKey`), a `name` and a `text`. A key means the same prompt in every example that uses it. No prompt declares a variable, so no step needs a binding.
+- `buildAgentExample(id, { locale, promptRefs, knowledgeBaseIds, timeZone, models, nextId })` returns a `FlowDocument` with labels and messages in `locale`. Every node and edge id comes from `nextId`; node keys stay the same snake_case in every locale. `promptRefs` maps a prompt key to a library prompt id (`prm_…`); a key without one leaves the step's prompt `null`. `knowledgeBaseIds` go only to the Agent step of an example with `usesKnowledge`. A Schedule trigger runs in `timeZone`. `models` names the platform model of Agent steps (`agent`) and Completion steps (`completion`).
+- With every prompt given, each example validates with no issue at all. Nodes sit on a grid that reads top to bottom, with no overlap and no edge drawn through a node.
+- `agentExampleNodeTypes(id)` lists the node types an example uses, in palette order; `agentExamplesUsing(nodeType)` lists the examples that use a node type. Together the examples use every node type in the palette.
+
 ## Compare two flows
 
 `diffFlows(a, b)` returns a `FlowDiff`: what changed from `a` (the older flow) to `b`.
@@ -102,7 +113,7 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 
 ## Tests
 
-`pnpm --filter @agent-ic/flow test` runs the specs next to each file. `test/support/fixtures/` holds the three example flows (FAQ with hand-off, scheduled follow-up, event notification) and small node builders for specs.
+`pnpm --filter @agent-ic/flow test` runs the specs next to each file. `test/support/fixtures/` holds the three example flows (FAQ with hand-off, scheduled follow-up, event notification), small node builders for specs and the options for building the agent examples. `test/support/helpers/flow-layout.helpers.ts` checks an example's layout: overlapping nodes, edges through a node and edges drawn over each other.
 
 ## Schedule ticks
 
