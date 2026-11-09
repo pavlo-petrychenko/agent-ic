@@ -5,12 +5,6 @@ export { AgentVersionsRepository } from '@/modules/agents/repositories/agent-ver
 export { AutoCloseVersionsRepository } from '@/modules/agents/repositories/auto-close-versions.repository';
 export { TEMPLATE_PROMPT_WRITER } from '@/modules/agents/constants/agent-template.constants';
 export { FLOW_REFERENCE_CHECKER } from '@/modules/agents/constants/flow-reference.constants';
-export {
-  SAMPLE_PROMPTS,
-  SAMPLE_PROMPT_FOLDER_NAME,
-  SAMPLE_PROMPT_NOTE,
-  SamplePromptKey,
-} from '@/modules/agents/constants/sample-prompt.constants';
 export { toOutboundRequest } from '@/modules/agents/helpers/api-request-test.helpers';
 export { TemplatePromptWriter } from '@/modules/agents/services/template-prompt-writer.service';
 export { FlowReferenceChecker } from '@/modules/agents/services/flow-reference-checker.service';
@@ -32,7 +26,3 @@ export type {
   LiveScheduleTrigger,
   LiveScheduleTriggerState,
 } from '@/modules/agents/typedefs/schedule-trigger.typedefs';
-export type {
-  SamplePromptDefinition,
-  SamplePromptRefs,
-} from '@/modules/agents/typedefs/sample-prompt.typedefs';
