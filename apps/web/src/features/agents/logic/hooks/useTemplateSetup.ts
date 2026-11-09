@@ -1,5 +1,6 @@
 import type { AgentTemplateKey } from '@agent-ic/flow';
 import { useState } from 'react';
+import { TemplateKnowledgeMode } from '@/features/agents/constants/agentTemplate.constants';
 import type {
   TemplateSetup,
   TemplateSetupDraft,
@@ -17,6 +18,7 @@ export function useTemplateSetup(
       setDraft({
         templateKey,
         name: current?.name ?? null,
+        knowledgeMode: current?.knowledgeMode ?? TemplateKnowledgeMode.CreateNew,
         knowledgeBaseIds: current?.knowledgeBaseIds ?? [],
         ...change,
       });
@@ -25,8 +27,10 @@ export function useTemplateSetup(
 
   return {
     name: current?.name ?? defaultName,
+    knowledgeMode: current?.knowledgeMode ?? TemplateKnowledgeMode.CreateNew,
     knowledgeBaseIds: current?.knowledgeBaseIds ?? [],
     setName: (name) => update({ name }),
+    setKnowledgeMode: (knowledgeMode) => update({ knowledgeMode }),
     setKnowledgeBaseIds: (knowledgeBaseIds) => update({ knowledgeBaseIds }),
   };
 }

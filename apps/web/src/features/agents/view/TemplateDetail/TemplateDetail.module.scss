@@ -86,10 +86,18 @@ $knowledge-list-max-height: 220px;
   font: var(--type-body-small-strong);
 }
 
-.optional {
-  margin-left: var(--space-6);
-  color: var(--color-mute);
-  font: var(--type-caption);
+.newNames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.newNames > li {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .hint {

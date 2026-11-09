@@ -10,6 +10,7 @@ const build = (key: AgentTemplateKey, locale: Locale = Locale.En) => {
     locale,
     promptRefs: {},
     knowledgeBaseIds: [],
+    knowledgeBases: {},
     timeZone: 'Europe/Kyiv',
     models: { agent: 'agent-model', completion: 'completion-model' },
     nextId: () => {

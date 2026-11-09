@@ -38,6 +38,21 @@ const openGallery = async (user: ReturnType<typeof userEvent.setup>) => {
   return screen.findByRole('dialog', { name: GALLERY_TITLE });
 };
 
+const openExamples = async (user: ReturnType<typeof userEvent.setup>) => {
+  const gallery = await openGallery(user);
+  await user.click(within(gallery).getByRole('tab', { name: /Big examples/ }));
+  return gallery;
+};
+
+const useExistingKnowledge = async (
+  user: ReturnType<typeof userEvent.setup>,
+  gallery: HTMLElement,
+) => {
+  await user.click(
+    await within(gallery).findByRole('radio', { name: 'Use existing knowledge bases' }),
+  );
+};
+
 describe('template gallery', () => {
   beforeEach(() => signInForTest());
 
@@ -46,32 +61,41 @@ describe('template gallery', () => {
     await signOutForTest();
   });
 
-  it('opens from the header with the blank flow first and the two templates', async () => {
+  it('opens from the header on the templates, then big examples, small examples and blank', async () => {
     const user = userEvent.setup();
     renderRoute(agentsPath, { mocks: [shellMock, buildAgentsMock([SALON_ASSISTANT])] });
 
     const gallery = await openGallery(user);
-    const buttons = within(gallery).getAllByRole('button');
-    const blankIndex = buttons.findIndex((button) => button.textContent?.includes('Blank flow'));
-    const cafeIndex = buttons.findIndex((button) =>
-      button.textContent?.includes(nameOf(AgentTemplateKey.CafeSupport)),
-    );
 
-    expect(blankIndex).toBeGreaterThan(-1);
-    expect(blankIndex).toBeLessThan(cafeIndex);
+    expect(
+      within(gallery)
+        .getAllByRole('tab')
+        .map((tab) => tab.textContent?.replace(/\s*\d+$/u, '')),
+    ).toEqual(['Templates', 'Big examples', 'Small examples', 'Blank']);
     expect(within(gallery).getByRole('tab', { name: /Templates/ })).toHaveAttribute(
       'aria-selected',
       'true',
     );
+    for (const key of [
+      AgentTemplateKey.FaqFromDocuments,
+      AgentTemplateKey.LeadHandling,
+      AgentTemplateKey.AppointmentBooking,
+      AgentTemplateKey.RouteToSpecialists,
+    ]) {
+      expect(within(gallery).getByRole('button', { name: nameOf(key) })).toBeInTheDocument();
+    }
+    expect(
+      within(gallery).queryByRole('button', { name: nameOf(AgentTemplateKey.CafeSupport) }),
+    ).not.toBeInTheDocument();
+
+    await user.click(within(gallery).getByRole('tab', { name: /Big examples/ }));
+
     expect(
       within(gallery).getByRole('button', { name: nameOf(AgentTemplateKey.CafeSupport) }),
     ).toBeInTheDocument();
     expect(
       within(gallery).getByRole('button', { name: nameOf(AgentTemplateKey.StoreSales) }),
     ).toBeInTheDocument();
-    expect(
-      within(gallery).queryByRole('button', { name: nameOf(AgentTemplateKey.MenuButtons) }),
-    ).not.toBeInTheDocument();
   });
 
   it('starts a blank flow from the gallery', async () => {
@@ -81,6 +105,7 @@ describe('template gallery', () => {
     });
 
     const gallery = await openGallery(user);
+    await user.click(within(gallery).getByRole('tab', { name: /Blank/ }));
     await user.click(within(gallery).getByRole('button', { name: /Blank flow/ }));
 
     await waitFor(() => expect(history.location.pathname).toBe(`${agentsPath}/${NEW_AGENT_ID}`));
@@ -128,7 +153,7 @@ describe('template gallery', () => {
       mocks: [shellMock, buildAgentsMock([SALON_ASSISTANT]), buildTemplateKnowledgeBasesMock([])],
     });
 
-    const gallery = await openGallery(user);
+    const gallery = await openExamples(user);
     await user.click(
       within(gallery).getByRole('button', { name: nameOf(AgentTemplateKey.CafeSupport) }),
     );
@@ -161,11 +186,16 @@ describe('template gallery', () => {
       ],
     });
 
-    const gallery = await openGallery(user);
+    const gallery = await openExamples(user);
     await user.click(
       within(gallery).getByRole('button', { name: nameOf(AgentTemplateKey.CafeSupport) }),
     );
 
+    expect(
+      await within(gallery).findByRole('radio', { name: 'Create 4 new knowledge bases' }),
+    ).toBeChecked();
+    expect(within(gallery).getByText('Café support — menu')).toBeInTheDocument();
+    await useExistingKnowledge(user, gallery);
     expect(await within(gallery).findByRole('checkbox', { name: /Café FAQ/ })).toBeInTheDocument();
     expect(within(gallery).getByRole('checkbox', { name: /Price list/ })).toBeInTheDocument();
 
@@ -186,10 +216,11 @@ describe('template gallery', () => {
       mocks: [shellMock, buildAgentsMock([SALON_ASSISTANT]), buildTemplateKnowledgeBasesMock([])],
     });
 
-    const gallery = await openGallery(user);
+    const gallery = await openExamples(user);
     await user.click(
       within(gallery).getByRole('button', { name: nameOf(AgentTemplateKey.StoreSales) }),
     );
+    await useExistingKnowledge(user, gallery);
 
     expect(await within(gallery).findByText(/You have no knowledge bases yet/)).toBeInTheDocument();
     const link = within(gallery).getByRole('link', { name: 'Open Knowledge' });
@@ -211,10 +242,11 @@ describe('template gallery', () => {
       ],
     });
 
-    const gallery = await openGallery(user);
+    const gallery = await openExamples(user);
     await user.click(
       within(gallery).getByRole('button', { name: nameOf(AgentTemplateKey.CafeSupport) }),
     );
+    await useExistingKnowledge(user, gallery);
     expect(await within(gallery).findByText('Could not load knowledge bases.')).toBeInTheDocument();
 
     await user.click(within(gallery).getByRole('button', { name: 'Try again' }));
@@ -235,10 +267,11 @@ describe('template gallery', () => {
       ],
     });
 
-    const gallery = await openGallery(user);
+    const gallery = await openExamples(user);
     await user.click(
       within(gallery).getByRole('button', { name: nameOf(AgentTemplateKey.CafeSupport) }),
     );
+    await useExistingKnowledge(user, gallery);
     await user.click(await within(gallery).findByRole('checkbox', { name: /Café FAQ/ }));
     const name = within(gallery).getByRole('textbox', { name: /Agent name/ });
     await user.clear(name);
@@ -248,6 +281,45 @@ describe('template gallery', () => {
     await waitFor(() =>
       expect(history.location.pathname).toBe(`${agentsPath}/${NEW_TEMPLATE_AGENT_ID}`),
     );
+  });
+
+  it('creates a template with a new empty knowledge base and points to it', async () => {
+    const user = userEvent.setup();
+    const { history } = renderRoute(agentsPath, {
+      mocks: [
+        shellMock,
+        buildAgentsMock([SALON_ASSISTANT]),
+        buildTemplateKnowledgeBasesMock([CAFE_FAQ_KB]),
+        buildCreateAgentFromTemplateMock(
+          ApiAgentTemplateKey.FaqFromDocuments,
+          'Shop',
+          [],
+          [{ role: null, name: 'Shop — documents' }],
+        ),
+      ],
+    });
+
+    const gallery = await openGallery(user);
+    await user.click(
+      within(gallery).getByRole('button', { name: nameOf(AgentTemplateKey.FaqFromDocuments) }),
+    );
+    const name = await within(gallery).findByRole('textbox', { name: /Agent name/ });
+    await user.clear(name);
+    await user.type(name, 'Shop');
+
+    expect(
+      within(gallery).getByRole('radio', { name: 'Create a new knowledge base' }),
+    ).toBeChecked();
+    expect(within(gallery).getByText('Shop — documents')).toBeInTheDocument();
+    await user.click(within(gallery).getByRole('button', { name: 'Create agent' }));
+
+    await waitFor(() =>
+      expect(history.location.pathname).toBe(`${agentsPath}/${NEW_TEMPLATE_AGENT_ID}`),
+    );
+    expect(await screen.findByText(/An empty knowledge base was created/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Upload files' }));
+
+    await waitFor(() => expect(history.location.pathname).toContain('/knowledge'));
   });
 
   it('creates a small example without knowledge bases', async () => {
@@ -360,9 +432,10 @@ describe('template gallery', () => {
 
     expect(
       within(gallery).getByRole('button', {
-        name: nameOf(AgentTemplateKey.CafeSupport, Locale.Uk),
+        name: nameOf(AgentTemplateKey.FaqFromDocuments, Locale.Uk),
       }),
     ).toBeInTheDocument();
+    expect(within(gallery).getByRole('tab', { name: /Великі приклади/ })).toBeInTheDocument();
     expect(within(gallery).getByRole('tab', { name: /Невеликі приклади/ })).toBeInTheDocument();
   });
 
@@ -389,6 +462,7 @@ describe('template gallery', () => {
     const gallery = await openGallery(user);
     expect(history.location.search).toContain('templates=open');
 
+    await user.click(within(gallery).getByRole('tab', { name: /Big examples/ }));
     await user.click(
       within(gallery).getByRole('button', { name: nameOf(AgentTemplateKey.CafeSupport) }),
     );

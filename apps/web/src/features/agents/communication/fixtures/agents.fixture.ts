@@ -19,6 +19,7 @@ import { AGENTS_PAGE_SIZE } from '@/features/agents/constants/agentList.constant
 import {
   AgentStatus,
   type AgentTemplateKey,
+  type NewTemplateKnowledgeBaseInput,
   type PauseMode,
 } from '@/shared/api/generated/schema.generated';
 
@@ -235,10 +236,13 @@ export const buildCreateAgentFromTemplateMock = (
   templateKey: AgentTemplateKey,
   name: string,
   knowledgeBaseIds: readonly string[] = [],
+  newKnowledgeBases: readonly NewTemplateKnowledgeBaseInput[] = [],
 ): MockLink.MockedResponse => ({
   request: {
     query: CreateAgentFromTemplateDocument,
-    variables: { input: { templateKey, name, knowledgeBaseIds } },
+    variables: {
+      input: { templateKey, name, knowledgeBaseIds, knowledgeBases: null, newKnowledgeBases },
+    },
   },
   result: {
     data: { createAgentFromTemplate: { __typename: 'Agent', id: NEW_TEMPLATE_AGENT_ID } },
@@ -252,7 +256,15 @@ export const buildCreateAgentFromTemplateReasonFailureMock = (
 ): MockLink.MockedResponse => ({
   request: {
     query: CreateAgentFromTemplateDocument,
-    variables: { input: { templateKey, name, knowledgeBaseIds: [] } },
+    variables: {
+      input: {
+        templateKey,
+        name,
+        knowledgeBaseIds: [],
+        knowledgeBases: null,
+        newKnowledgeBases: [],
+      },
+    },
   },
   result: {
     errors: [

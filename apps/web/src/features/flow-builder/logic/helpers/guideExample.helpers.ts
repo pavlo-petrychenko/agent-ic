@@ -20,6 +20,7 @@ const buildExampleFlow = (key: AgentTemplateKey, locale: Locale): FlowDocument =
     locale,
     promptRefs: {},
     knowledgeBaseIds: [],
+    knowledgeBases: {},
     timeZone: GUIDE_EXAMPLE_TIME_ZONE,
     models: GUIDE_EXAMPLE_MODELS,
     nextId: () => {
@@ -29,11 +30,11 @@ const buildExampleFlow = (key: AgentTemplateKey, locale: Locale): FlowDocument =
   });
 };
 
-const keysOfKind = (nodeType: NodeType, kind: AgentTemplateKind): AgentTemplateKey[] =>
-  agentTemplatesUsing(nodeType).filter((key) => agentTemplate(key).kind === kind);
+const keysOfKinds = (nodeType: NodeType, kinds: readonly AgentTemplateKind[]): AgentTemplateKey[] =>
+  agentTemplatesUsing(nodeType).filter((key) => kinds.includes(agentTemplate(key).kind));
 
 export const buildGuideExample = (nodeType: NodeType, locale: Locale): GuideExample | null => {
-  const candidates = keysOfKind(nodeType, AgentTemplateKind.Snippet).map((key) => ({
+  const candidates = keysOfKinds(nodeType, [AgentTemplateKind.Snippet]).map((key) => ({
     key,
     flow: buildExampleFlow(key, locale),
   }));
@@ -51,9 +52,11 @@ export const buildGuideExample = (nodeType: NodeType, locale: Locale): GuideExam
     name: template.name[locale],
     description: template.description[locale],
     graph: toFlowThumbnail(focused.flow, nodeType),
-    alsoIn: keysOfKind(nodeType, AgentTemplateKind.Template).map((key) => ({
-      key,
-      name: agentTemplate(key).name[locale],
-    })),
+    alsoIn: keysOfKinds(nodeType, [AgentTemplateKind.Template, AgentTemplateKind.Example]).map(
+      (key) => ({
+        key,
+        name: agentTemplate(key).name[locale],
+      }),
+    ),
   };
 };
