@@ -7,6 +7,7 @@ import {
   MessageSystemEvent,
 } from '@/modules/conversations/constants/message.constants';
 import { ConversationNotFoundError } from '@/modules/conversations/errors/conversation-not-found.error';
+import { ConversationTakenError } from '@/modules/conversations/errors/conversation-taken.error';
 import { ReplyAsOperatorUseCase } from '@/modules/conversations/use-cases/reply-as-operator.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -19,6 +20,7 @@ import {
   queuedEventsFor,
   seedConversation,
 } from '@test/support/helpers/conversations-testing.helpers';
+import { ensureUserRow } from '@test/support/helpers/parent-rows.helpers';
 import { startTestSimulation } from '@test/support/helpers/simulator-testing.helpers';
 import { deliverOnOutboundQueued } from '@test/support/jobs/conversation-probe.job';
 import type { ConversationsTestbed } from '@test/support/typedefs/conversations-testing.typedefs';
@@ -79,6 +81,31 @@ describe('ReplyAsOperatorUseCase', () => {
     await expect(reply(as(WorkspaceRole.Builder), live.id)).rejects.toBeInstanceOf(
       PermissionDeniedError,
     );
+  });
+
+  it('rejects a reply when another operator holds the chat', async () => {
+    const live = await seedConversation(testbed);
+    const { workspaceId } = live;
+    const secondUser = testbed.ids.generate();
+    await ensureUserRow(testbed.module, secondUser);
+    await testbed.tenants.run(workspaceId, () =>
+      testbed.conversations.markWaiting(workspaceId, live.id),
+    );
+    await testbed.tenants.run(workspaceId, () =>
+      testbed.conversations.takeOver(workspaceId, live.id, TEST_EDITOR_ID, {
+        state: ConversationState.Waiting,
+        handledBy: null,
+      }),
+    );
+
+    await expect(
+      reply(workspaceCtx(secondUser, workspaceId, WorkspaceRole.Operator), live.id),
+    ).rejects.toBeInstanceOf(ConversationTakenError);
+
+    const timeline = await testbed.tenants.run(workspaceId, () =>
+      testbed.messages.listByConversation(workspaceId, live.id),
+    );
+    expect(timeline.some((entry) => entry.author === MessageAuthor.Operator)).toBe(false);
   });
 
   it("keeps an Operator out of a simulation, and a Builder out of another's", async () => {

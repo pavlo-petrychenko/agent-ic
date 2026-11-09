@@ -12,6 +12,7 @@ import type {
   closeConversationSchema,
   operatorConversationSchema,
   operatorReplySchema,
+  takeOverSchema,
   simulationAgentSchema,
   simulationConversationSchema,
   simulatorMessageSchema,
@@ -25,6 +26,8 @@ export type SimulatorMessageInput = z.input<typeof simulatorMessageSchema>;
 export type OperatorReplyInput = z.input<typeof operatorReplySchema>;
 
 export type OperatorConversationInput = z.input<typeof operatorConversationSchema>;
+
+export type TakeOverInput = z.input<typeof takeOverSchema>;
 
 export type CloseConversationInput = z.input<typeof closeConversationSchema>;
 

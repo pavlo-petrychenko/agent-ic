@@ -86,6 +86,7 @@ input ReplyAsOperatorInput {
 
 input TakeOverInput {
   conversationId: ID!
+  fromOperator: Boolean
 }
 
 input HandBackInput {

@@ -4,7 +4,7 @@ import {
   createConversationsTestbed,
   seedConversation,
 } from '@test/support/helpers/conversations-testing.helpers';
-import { seedRunRow } from '@test/support/helpers/parent-rows.helpers';
+import { ensureUserRow, seedRunRow } from '@test/support/helpers/parent-rows.helpers';
 import type { ConversationsTestbed } from '@test/support/typedefs/conversations-testing.typedefs';
 
 describe('ConversationsRepository', () => {
@@ -132,6 +132,61 @@ describe('ConversationsRepository', () => {
 
     expect(byChannel.map((conversation) => conversation.id)).toEqual([other.id]);
     expect(bySearch.map((conversation) => conversation.id)).toEqual([other.id]);
+  });
+
+  it('lets only one of two take-overs of a waiting conversation win', async () => {
+    const conversation = await seedConversation(testbed);
+    const { workspaceId } = conversation;
+    const firstUser = testbed.ids.generate();
+    const secondUser = testbed.ids.generate();
+    await ensureUserRow(testbed.module, firstUser);
+    await ensureUserRow(testbed.module, secondUser);
+    await testbed.tenants.run(workspaceId, () =>
+      testbed.conversations.markWaiting(workspaceId, conversation.id),
+    );
+    const expected = { state: ConversationState.Waiting, handledBy: null };
+
+    const results = await Promise.all(
+      [firstUser, secondUser].map((userId) =>
+        testbed.tenants.run(workspaceId, () =>
+          testbed.conversations.takeOver(workspaceId, conversation.id, userId, expected),
+        ),
+      ),
+    );
+
+    expect(results.filter((row) => row !== null)).toHaveLength(1);
+  });
+
+  it('takes over only from the holder the caller saw', async () => {
+    const conversation = await seedConversation(testbed);
+    const { workspaceId } = conversation;
+    const firstUser = testbed.ids.generate();
+    const secondUser = testbed.ids.generate();
+    await ensureUserRow(testbed.module, firstUser);
+    await ensureUserRow(testbed.module, secondUser);
+    const taken = await testbed.tenants.run(workspaceId, () =>
+      testbed.conversations.takeOver(workspaceId, conversation.id, firstUser, {
+        state: conversation.state,
+        handledBy: conversation.handledBy ?? null,
+      }),
+    );
+    expect(taken?.handledBy).toBe(firstUser);
+
+    const fromFirst = await testbed.tenants.run(workspaceId, () =>
+      testbed.conversations.takeOver(workspaceId, conversation.id, secondUser, {
+        state: ConversationState.Handled,
+        handledBy: firstUser,
+      }),
+    );
+    const stale = await testbed.tenants.run(workspaceId, () =>
+      testbed.conversations.takeOver(workspaceId, conversation.id, secondUser, {
+        state: ConversationState.Handled,
+        handledBy: firstUser,
+      }),
+    );
+
+    expect(fromFirst?.handledBy).toBe(secondUser);
+    expect(stale).toBeNull();
   });
 
   it('lets only one of two concurrent claims win', async () => {
