@@ -1,10 +1,11 @@
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
+import { and, asc, count, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
 import type { ConversationMode } from '@/modules/conversations';
 import { FIRST_STEP_ATTEMPT, RunStepStatus } from '@/modules/runs/constants/run.constants';
 import { runSteps } from '@/modules/runs/db/run-steps.table';
 import { runs } from '@/modules/runs/db/runs.table';
+import type { StepTranscript } from '@/modules/runs/typedefs/agent-transcript.typedefs';
 import type {
   NewRunStep,
   RunStep,
@@ -55,6 +56,34 @@ export class RunStepsRepository {
       .from(runSteps)
       .where(and(eq(runSteps.workspaceId, workspaceId), eq(runSteps.id, id)));
     return step ?? null;
+  }
+
+  async listTranscriptsByRuns(
+    workspaceId: string,
+    runIds: readonly string[],
+  ): Promise<StepTranscript[]> {
+    if (runIds.length === 0) {
+      return [];
+    }
+    const rows = await this.txHost.tx
+      .select({
+        runId: runSteps.runId,
+        nodeId: runSteps.nodeId,
+        transcript: runSteps.transcript,
+        output: runSteps.output,
+      })
+      .from(runSteps)
+      .where(
+        and(
+          eq(runSteps.workspaceId, workspaceId),
+          inArray(runSteps.runId, [...runIds]),
+          isNotNull(runSteps.transcript),
+        ),
+      )
+      .orderBy(asc(runSteps.startedAt), asc(runSteps.id));
+    return rows.flatMap(({ runId, nodeId, transcript, output }) =>
+      transcript === null ? [] : [{ runId, nodeId, transcript, output }],
+    );
   }
 
   listByRun(workspaceId: string, runId: string): Promise<RunStep[]> {

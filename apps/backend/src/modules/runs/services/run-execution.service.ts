@@ -34,6 +34,7 @@ import {
 import { RunFlowInvalidError } from '@/modules/runs/errors/run-flow-invalid.error';
 import { RunNotFoundError } from '@/modules/runs/errors/run-not-found.error';
 import { UnsupportedNodeTypeError } from '@/modules/runs/errors/unsupported-node-type.error';
+import { earlierRunIds, stepTraceColumns } from '@/modules/runs/helpers/agent-transcript.helpers';
 import {
   NO_HANDOFF_TIMING,
   handoffTimingOf,
@@ -67,13 +68,13 @@ import { RunsRepository } from '@/modules/runs/repositories/runs.repository';
 import { ConversationExitService } from '@/modules/runs/services/conversation-exit.service';
 import { RunMetricsService } from '@/modules/runs/services/run-metrics.service';
 import { StepExecutorRegistry } from '@/modules/runs/services/step-executor-registry.service';
+import type { StepTrace } from '@/modules/runs/typedefs/agent-transcript.typedefs';
 import type { InactivityScopeSource } from '@/modules/runs/typedefs/inactivity-trigger.typedefs';
 import type { BranchSettlement } from '@/modules/runs/typedefs/run-branch.typedefs';
 import type { RunWalk, TriggerVariables } from '@/modules/runs/typedefs/run-execution.typedefs';
 import type { RunStep, RunStepResult, StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 import type { Run, RunEnd } from '@/modules/runs/typedefs/run.typedefs';
 import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedefs';
-import type { RunToolCall } from '@/modules/runs/typedefs/tool-call.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -175,6 +176,10 @@ export class RunExecutionService {
       run.conversationId,
       run.lastCoveredMessageId,
     );
+    const transcripts = await this.steps.listTranscriptsByRuns(
+      workspaceId,
+      earlierRunIds(history, runId),
+    );
     const finished = (await this.steps.listByRun(workspaceId, runId)).filter(
       (step) => step.status !== RunStepStatus.Running,
     );
@@ -191,6 +196,7 @@ export class RunExecutionService {
         today,
       }),
       history,
+      transcripts,
       today,
       prompts,
       steps: new Map(finished.map((step) => [step.nodeId, step])),
@@ -424,7 +430,7 @@ export class RunExecutionService {
     branchKey: string,
     stepId: string,
   ): Promise<RunStepResult> {
-    let toolCalls: readonly RunToolCall[] | null = null;
+    let trace: StepTrace | null = null;
     try {
       const { port, output } = await this.traces.span(
         node.key,
@@ -439,11 +445,12 @@ export class RunExecutionService {
             scope: {
               variables,
               history: walk.history,
+              transcripts: walk.transcripts,
               today: walk.today,
               prompts: walk.prompts,
             },
-            onToolCalls: (calls) => {
-              toolCalls = calls;
+            onTrace: (next) => {
+              trace = next;
             },
           }),
       );
@@ -452,7 +459,7 @@ export class RunExecutionService {
         output,
         port,
         error: null,
-        toolCalls,
+        ...stepTraceColumns(trace),
         finishedAt: this.clock.now(),
       };
     } catch (error) {
@@ -474,7 +481,7 @@ export class RunExecutionService {
         output: null,
         port: errorPort ? PortName.Error : null,
         error: runFailureOf(error, node.id),
-        toolCalls,
+        ...stepTraceColumns(trace),
         finishedAt: this.clock.now(),
       };
     }

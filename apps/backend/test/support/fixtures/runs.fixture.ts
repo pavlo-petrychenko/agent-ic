@@ -512,6 +512,7 @@ export const finishedStep = (
   port,
   error: null,
   toolCalls: null,
+  transcript: null,
   startedAt: RUNS_TEST_START,
   finishedAt: RUNS_TEST_START,
 });

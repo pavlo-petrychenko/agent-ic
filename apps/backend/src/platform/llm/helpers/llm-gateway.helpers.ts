@@ -40,11 +40,12 @@ import {
   LlmProviderKind,
 } from '@/platform/llm/constants/llm-provider.constants';
 import { profileFor } from '@/platform/llm/helpers/llm-model-profile.helpers';
+import { replayTranscript } from '@/platform/llm/helpers/llm-transcript.helpers';
 import { jsonTextSchema } from '@/platform/llm/schemas/llm-output.schema';
 import type {
   LlmAgentProgress,
   LlmAgentRequest,
-  LlmCompleteRequest,
+  LlmRequest,
   LlmMessage,
   LlmModelRun,
   LlmRunState,
@@ -56,9 +57,28 @@ import type {
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 import type { LlmModelProfile } from '@/platform/llm/typedefs/llm-model.typedefs';
 import type { LlmModelHop, LlmResolvedSource } from '@/platform/llm/typedefs/llm-provider.typedefs';
+import type {
+  LlmTranscript,
+  LlmTranscriptMessage,
+} from '@/platform/llm/typedefs/llm-transcript.typedefs';
 
-export const toModelMessages = (messages: readonly LlmMessage[]): ModelMessage[] =>
-  messages.map(({ role, content }) => ({ role, content }));
+export const isTranscript = (message: LlmMessage): message is LlmTranscript =>
+  'transcript' in message;
+
+export const toModelMessages = (
+  messages: readonly LlmMessage[],
+  toolNames: ReadonlySet<string>,
+): ModelMessage[] => {
+  let nextIndex = 0;
+  return messages.flatMap((message): ModelMessage[] => {
+    if (!isTranscript(message)) {
+      return [{ role: message.role, content: message.content }];
+    }
+    const replay = replayTranscript(message.transcript, toolNames, nextIndex);
+    nextIndex = replay.nextIndex;
+    return replay.messages;
+  });
+};
 
 export const structuredOutput = (
   model: LlmModelProfile,
@@ -153,26 +173,39 @@ export const invalidReplyMessage = (toolCallId: string, error: z.ZodError): Tool
   ],
 });
 
-export const initialRunState = (messages: readonly LlmMessage[], rounds: number): LlmRunState => ({
-  messages: toModelMessages(messages),
-  roundsLeft: rounds,
-  retriesLeft: LLM_OUTPUT_RETRIES,
-  nudgesLeft: LLM_REPLY_NUDGES,
-  usage: LLM_NO_USAGE,
-  toolCalls: [],
-});
+export const initialRunState = (
+  messages: readonly LlmMessage[],
+  rounds: number,
+  toolNames: ReadonlySet<string> = new Set(),
+): LlmRunState => {
+  const modelMessages = toModelMessages(messages, toolNames);
+  return {
+    messages: modelMessages,
+    roundsLeft: rounds,
+    retriesLeft: LLM_OUTPUT_RETRIES,
+    nudgesLeft: LLM_REPLY_NUDGES,
+    usage: LLM_NO_USAGE,
+    toolCalls: [],
+    transcriptStart: modelMessages.length,
+  };
+};
+
+export const stateTranscript = (state: LlmRunState): LlmTranscriptMessage[] =>
+  state.messages.slice(state.transcriptStart);
 
 export const agentRunState = <T>({
   messages,
+  tools,
   maxToolRounds,
   resumeFrom,
 }: LlmAgentRequest<T>): LlmRunState =>
   resumeFrom === undefined
-    ? initialRunState(messages, maxToolRounds)
+    ? initialRunState(messages, maxToolRounds, new Set(Object.keys(tools)))
     : {
         ...initialRunState([], maxToolRounds - resumeFrom.roundsUsed),
         messages: resumeFrom.messages,
         toolCalls: resumeFrom.toolCalls,
+        transcriptStart: resumeFrom.messages.length - resumeFrom.transcript.length,
       };
 
 export const continuedRunState = (state: LlmRunState): LlmRunState => ({
@@ -185,6 +218,7 @@ export const agentProgress = (maxToolRounds: number, state: LlmRunState): LlmAge
   messages: state.messages,
   roundsUsed: maxToolRounds - state.roundsLeft,
   toolCalls: state.toolCalls,
+  transcript: stateTranscript(state),
 });
 
 export const untrackedRunState: LlmRunTracker = (state) => state;
@@ -244,7 +278,7 @@ export const withMessage = (state: LlmRunState, message: ModelMessage): LlmRunSt
 });
 
 export const modelsToTry = <T>(
-  request: LlmCompleteRequest<T>,
+  request: LlmRequest<T>,
   source: LlmResolvedSource,
 ): readonly LlmModelHop[] => {
   const requested: LlmModelHop = { source, model: request.model };

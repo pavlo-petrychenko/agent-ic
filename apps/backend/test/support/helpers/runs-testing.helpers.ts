@@ -615,7 +615,13 @@ export const stepExecutionOf = async <TNode extends FlowNode>(
   if (stored === null) {
     throw new MissingTestDataError(run.id);
   }
-  const scope = { variables, history: [], today: RUNS_TEST_START, prompts: new Map() };
+  const scope = {
+    variables,
+    history: [],
+    transcripts: [],
+    today: RUNS_TEST_START,
+    prompts: new Map(),
+  };
   return {
     ctx,
     run: stored,

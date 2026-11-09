@@ -73,7 +73,7 @@ const UNSAMPLED_PARENT = {
 };
 
 const routeSchema = z.object({ intent: z.string() });
-const request: LlmAgentRequest<z.infer<typeof routeSchema>> = {
+const request = {
   provider: { kind: LlmProviderKind.Platform },
   model: PRIMARY,
   purpose: LlmPurpose.Conversation,
@@ -84,7 +84,7 @@ const request: LlmAgentRequest<z.infer<typeof routeSchema>> = {
   tags: TAGS,
   tools: {},
   maxToolRounds: 2,
-};
+} satisfies LlmAgentRequest<z.infer<typeof routeSchema>>;
 
 describe('LLM tracing', () => {
   const exporter = new tracing.InMemorySpanExporter();

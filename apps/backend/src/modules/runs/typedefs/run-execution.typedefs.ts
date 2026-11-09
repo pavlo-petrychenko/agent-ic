@@ -1,6 +1,7 @@
 import type { FlowDocument, FlowGraph, ScopeLookup } from '@agent-ic/flow';
 import type { Message, MessageAuthor } from '@/modules/conversations';
 import type { ResolvedPrompts } from '@/modules/prompts';
+import type { StepTranscript } from '@/modules/runs/typedefs/agent-transcript.typedefs';
 import type { BranchSettlement } from '@/modules/runs/typedefs/run-branch.typedefs';
 import type { RunStep } from '@/modules/runs/typedefs/run-step.typedefs';
 import type { Run, RunEnd } from '@/modules/runs/typedefs/run.typedefs';
@@ -68,6 +69,7 @@ export interface RunWalk {
   readonly lookup: ScopeLookup;
   readonly trigger: TriggerVariables;
   readonly history: readonly Message[];
+  readonly transcripts: readonly StepTranscript[];
   readonly today: Date;
   readonly prompts: ResolvedPrompts;
   readonly steps: Map<string, RunStep>;

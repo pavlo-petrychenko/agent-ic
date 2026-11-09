@@ -78,6 +78,8 @@ const LOOKUP_TOOL = 'lookup';
 const LOOKUP_INPUT = { day: 'sunday' };
 const LOOKUP_OUTPUT = { delivers: true };
 const LOOKUP_ERROR = 'The delivery calendar is down';
+const FOLLOW_UP_QUESTION = 'And on Mondays?';
+const REPLAYED_ID = 'call00000';
 const MAX_TOOL_ROUNDS = 4;
 const WEATHER = { intent: 'weather' };
 const TOOL_RESULT_ROLE = '"role":"tool"';
@@ -333,6 +335,53 @@ describe('AiSdkLlmGateway.runAgent', () => {
 
     expect(result.output).toEqual(OTHER);
     expect(JSON.stringify(mock.body(1).messages)).toContain(LLM_OUTPUT_INVALID_FEEDBACK);
+  });
+
+  it('returns the transcript of the turn: the tool round and the final message', async () => {
+    mock.toolCall(LOOKUP_TOOL, LOOKUP_INPUT).json(DELIVERY);
+
+    const { transcript } = await gateway.runAgent(agentRequest());
+
+    expect(transcript.map(({ role }) => role)).toEqual(['assistant', 'tool', 'assistant']);
+    expect(JSON.stringify(transcript)).toContain(JSON.stringify(LOOKUP_OUTPUT));
+    expect(JSON.stringify(transcript.at(-1))).toContain('delivery');
+  });
+
+  it('keeps the reply call in the transcript of a reply-tool turn', async () => {
+    mock.reply(DELIVERY);
+
+    const { transcript } = await gateway.runAgent(agentRequest({ model: LlmModelId.MimoV26Flash }));
+
+    expect(transcript).toMatchObject([
+      { role: 'assistant', content: [{ type: 'tool-call', toolName: LLM_REPLY_TOOL_NAME }] },
+    ]);
+  });
+
+  it.each([
+    ['chat completions', LlmModelId.Ministral14b],
+    ['the messages API', LlmModelId.ClaudeHaiku55],
+    ['a reply-tool model', LlmModelId.MimoV26Flash],
+  ])('replays an earlier transcript with paired tool ids on %s', async (_path, model) => {
+    mock.toolCall(LOOKUP_TOOL, LOOKUP_INPUT).json(DELIVERY);
+    const earlier = await gateway.runAgent(agentRequest());
+    mock.reset();
+    mock.json(OTHER).reply(OTHER);
+
+    const result = await gateway.runAgent(
+      agentRequest({
+        model,
+        messages: [
+          { role: LlmMessageRole.User, content: QUESTION },
+          { transcript: earlier.transcript },
+          { role: LlmMessageRole.User, content: FOLLOW_UP_QUESTION },
+        ],
+      }),
+    );
+
+    const sent = JSON.stringify(mock.body(0));
+    expect(result.output).toEqual(OTHER);
+    expect(sent.split(REPLAYED_ID).length - 1).toBe(2);
+    expect(sent).toContain(JSON.stringify(JSON.stringify(LOOKUP_OUTPUT)).slice(1, -1));
   });
 
   it('runs Claude through the messages API with tools and its native output format', async () => {

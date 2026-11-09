@@ -19,6 +19,7 @@ import {
   tenantIsolationPolicy,
   workspaceIdColumn,
 } from '@/platform/database/helpers/tenant-table.helpers';
+import type { LlmTranscriptMessage } from '@/platform/llm/typedefs/llm-transcript.typedefs';
 
 export const runSteps = runsSchema
   .table(
@@ -39,6 +40,7 @@ export const runSteps = runsSchema
       port: text('port'),
       error: jsonb('error').$type<RunFailure>(),
       toolCalls: jsonb('tool_calls').$type<readonly RunToolCall[]>(),
+      transcript: jsonb('transcript').$type<readonly LlmTranscriptMessage[]>(),
       startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
       finishedAt: timestamp('finished_at', { withTimezone: true }),
     },

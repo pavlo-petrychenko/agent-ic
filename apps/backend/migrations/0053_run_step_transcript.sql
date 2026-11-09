@@ -1,0 +1,1 @@
+ALTER TABLE "runs"."run_steps" ADD COLUMN "transcript" jsonb;

@@ -9,7 +9,11 @@ import {
 } from '@/modules/runs/constants/llm-step.constants';
 import { RunTrigger } from '@/modules/runs/constants/run.constants';
 import { StepModelUnknownError } from '@/modules/runs/errors/step-model-unknown.error';
-import { stepConversation, stepModel } from '@/modules/runs/helpers/llm-step.helpers';
+import {
+  agentConversation,
+  stepConversation,
+  stepModel,
+} from '@/modules/runs/helpers/llm-step.helpers';
 import { InvalidIdError } from '@/platform/ids/errors/invalid-id.error';
 import { IdService } from '@/platform/ids/services/id.service';
 import { LLM_DEFAULT_MODEL } from '@/platform/llm/constants/llm-catalog.constants';
@@ -127,4 +131,85 @@ describe('stepConversation', () => {
       ]);
     },
   );
+});
+
+describe('agentConversation', () => {
+  const conversation = runConversation(new IdService(new ManualClock(RUNS_TEST_START)));
+  const AGENT_NODE = 'node-agent';
+  const OTHER_NODE = 'node-other';
+  const FIRST_RUN = 'run-first';
+  const SECOND_RUN = 'run-second';
+  const FOLLOW_UP = 'And on Mondays?';
+  const GREETING = 'Hello from the flow.';
+  const SECOND_ANSWER = 'Mondays too.';
+  const firstTranscript = [
+    { role: 'assistant' as const, content: JSON.stringify({ messages: [ANSWER] }) },
+  ];
+  const otherTranscript = [{ role: 'assistant' as const, content: 'Other agent.' }];
+  const fromRun = (author: MessageAuthor, text: string, runId: string | null) => ({
+    ...historyMessage(conversation, author, text),
+    runId,
+  });
+  const question = fromRun(MessageAuthor.Customer, QUESTION, null);
+  const greeting = fromRun(MessageAuthor.Agent, GREETING, FIRST_RUN);
+  const answer = fromRun(MessageAuthor.Agent, ANSWER, FIRST_RUN);
+  const followUp = fromRun(MessageAuthor.Customer, FOLLOW_UP, null);
+  const secondAnswer = fromRun(MessageAuthor.Agent, SECOND_ANSWER, SECOND_RUN);
+  const steps = [
+    {
+      runId: FIRST_RUN,
+      nodeId: AGENT_NODE,
+      transcript: firstTranscript,
+      output: { messages: [ANSWER] },
+    },
+    { runId: FIRST_RUN, nodeId: OTHER_NODE, transcript: otherTranscript, output: null },
+  ];
+
+  it('puts the transcript of the node in place of the messages it sent, at the first message of its run', () => {
+    expect(
+      agentConversation(
+        SYSTEM,
+        [question, greeting, answer, followUp, secondAnswer, followUp],
+        true,
+        RunTrigger.Message,
+        steps,
+        AGENT_NODE,
+      ).messages,
+    ).toEqual([
+      { role: LlmMessageRole.User, content: QUESTION },
+      { transcript: firstTranscript },
+      { role: LlmMessageRole.Assistant, content: GREETING },
+      { role: LlmMessageRole.User, content: FOLLOW_UP },
+      { role: LlmMessageRole.Assistant, content: SECOND_ANSWER },
+      { role: LlmMessageRole.User, content: FOLLOW_UP },
+    ]);
+  });
+
+  it('keeps plain texts when the node has no transcript', () => {
+    expect(
+      agentConversation(
+        SYSTEM,
+        [question, answer, followUp],
+        true,
+        RunTrigger.Message,
+        [],
+        AGENT_NODE,
+      ).messages,
+    ).toEqual([
+      { role: LlmMessageRole.User, content: QUESTION },
+      { role: LlmMessageRole.Assistant, content: ANSWER },
+      { role: LlmMessageRole.User, content: FOLLOW_UP },
+    ]);
+  });
+
+  it('asks to answer from the conversation when the history ends on a transcript', () => {
+    expect(
+      agentConversation(SYSTEM, [question, answer], true, RunTrigger.Message, steps, AGENT_NODE)
+        .messages,
+    ).toEqual([
+      { role: LlmMessageRole.User, content: QUESTION },
+      { transcript: firstTranscript },
+      { role: LlmMessageRole.User, content: ANSWER_FROM_CONVERSATION_MESSAGE },
+    ]);
+  });
 });

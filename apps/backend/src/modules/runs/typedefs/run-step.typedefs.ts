@@ -2,6 +2,7 @@ import type { RunStepStatus } from '@/modules/runs/constants/run.constants';
 import type { runSteps } from '@/modules/runs/db/run-steps.table';
 import type { RunFailure } from '@/modules/runs/typedefs/run.typedefs';
 import type { RunToolCall } from '@/modules/runs/typedefs/tool-call.typedefs';
+import type { LlmTranscriptMessage } from '@/platform/llm/typedefs/llm-transcript.typedefs';
 
 export type StepData = Readonly<Record<string, unknown>>;
 
@@ -19,13 +20,14 @@ export interface RunStep {
   readonly port: string | null;
   readonly error: RunFailure | null;
   readonly toolCalls: readonly RunToolCall[] | null;
+  readonly transcript: readonly LlmTranscriptMessage[] | null;
   readonly startedAt: Date;
   readonly finishedAt: Date | null;
 }
 
 export type NewRunStep = Omit<
   typeof runSteps.$inferInsert,
-  'status' | 'attempt' | 'output' | 'port' | 'error' | 'toolCalls' | 'finishedAt'
+  'status' | 'attempt' | 'output' | 'port' | 'error' | 'toolCalls' | 'transcript' | 'finishedAt'
 >;
 
 export type FinishedRunStepStatus = RunStepStatus.Succeeded | RunStepStatus.Failed;
@@ -36,6 +38,7 @@ export interface RunStepResult {
   readonly port: string | null;
   readonly error: RunFailure | null;
   readonly toolCalls: readonly RunToolCall[] | null;
+  readonly transcript: readonly LlmTranscriptMessage[] | null;
   readonly finishedAt: Date;
 }
 

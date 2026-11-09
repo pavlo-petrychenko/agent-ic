@@ -57,6 +57,7 @@ describe('NotificationsRepository read state', () => {
           port: null,
           error: null,
           toolCalls: null,
+          transcript: null,
           finishedAt: testbed.clock.now(),
         }),
       );
