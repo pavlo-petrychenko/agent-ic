@@ -10,6 +10,7 @@ export enum SystemReason {
   Schedule = 'schedule',
   Metering = 'metering',
   ChannelIngress = 'channel_ingress',
+  ChannelHealth = 'channel_health',
   TelegramAlertsIngress = 'telegram_alerts_ingress',
 }
 

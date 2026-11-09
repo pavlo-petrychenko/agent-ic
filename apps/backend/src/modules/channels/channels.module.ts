@@ -8,6 +8,7 @@ import { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-c
 import { TelegramChannelAdapter } from '@/modules/channels/gateways/telegram-channel-adapter.gateway';
 import { ApiChannelKeyGuard } from '@/modules/channels/guards/api-channel-key.guard';
 import { DeliverOutboundMessageListener } from '@/modules/channels/listeners/deliver-outbound-message.listener';
+import { SendTelegramTokenRevokedEmailListener } from '@/modules/channels/listeners/send-telegram-token-revoked-email.listener';
 import { CheckTelegramTokenHealthProcessor } from '@/modules/channels/processors/check-telegram-token-health.processor';
 import { ApiChannelIngressRepository } from '@/modules/channels/repositories/api-channel-ingress.repository';
 import { ChannelEventsRepository } from '@/modules/channels/repositories/channel-events.repository';
@@ -54,6 +55,7 @@ import { ReconnectTelegramUseCase } from '@/modules/channels/use-cases/reconnect
 import { RefreshTelegramIdentityUseCase } from '@/modules/channels/use-cases/refresh-telegram-identity.use-case';
 import { ReplaceTelegramTokenUseCase } from '@/modules/channels/use-cases/replace-telegram-token.use-case';
 import { RotateApiChannelKeyUseCase } from '@/modules/channels/use-cases/rotate-api-channel-key.use-case';
+import { SendTelegramTokenRevokedEmailUseCase } from '@/modules/channels/use-cases/send-telegram-token-revoked-email.use-case';
 import { UpdateChannelUseCase } from '@/modules/channels/use-cases/update-channel.use-case';
 import { ConversationsModule } from '@/modules/conversations';
 import { RunsModule } from '@/modules/runs';
@@ -105,6 +107,7 @@ export class ChannelsModule extends defineModule({
     ReconnectTelegramUseCase,
     RefreshTelegramIdentityUseCase,
     ReplaceTelegramTokenUseCase,
+    SendTelegramTokenRevokedEmailUseCase,
     DeliverOutboundMessageUseCase,
     HandleTelegramWebhookUseCase,
     HandleApiChannelMessageUseCase,
@@ -127,7 +130,7 @@ export class ChannelsModule extends defineModule({
     UpdateChannelResolver,
   ],
   gatewayControllers: [TelegramWebhookController, ApiChannelMessagesController],
-  listeners: [DeliverOutboundMessageListener],
+  listeners: [DeliverOutboundMessageListener, SendTelegramTokenRevokedEmailListener],
   processors: [CheckTelegramTokenHealthProcessor],
   exports: [
     SimulatedChannelAdapter,

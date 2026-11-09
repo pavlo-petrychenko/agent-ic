@@ -19,6 +19,7 @@ export enum EmailTemplate {
   Escalation = 'escalation',
   Reminder = 'reminder',
   UsageThreshold = 'usage_threshold',
+  TelegramTokenRevoked = 'telegram_token_revoked',
 }
 
 export enum EmailSendOutcome {

@@ -1,5 +1,7 @@
 export { ChannelsModule } from '@/modules/channels/channels.module';
 export { ChannelAdapterNotFoundError } from '@/modules/channels/errors/channel-adapter-not-found.error';
+export { telegramTokenRevokedEvent } from '@/modules/channels/events/telegram-token-revoked.event';
+export type { TelegramTokenRevokedInput } from '@/modules/channels/events/telegram-token-revoked.event';
 export { ChannelAdapter } from '@/modules/channels/gateways/channel-adapter.gateway';
 export { SimulatedChannelAdapter } from '@/modules/channels/gateways/simulated-channel-adapter.gateway';
 export { TelegramChannelAdapter } from '@/modules/channels/gateways/telegram-channel-adapter.gateway';

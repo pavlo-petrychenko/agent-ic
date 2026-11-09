@@ -1,6 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
+import { telegramTokenRevokedEvent } from '@/modules/channels/events/telegram-token-revoked.event';
 import { ChannelHealthService } from '@/modules/channels/services/channel-health.service';
+import { DomainEventsService } from '@/platform/domain-events/services/domain-events.service';
 import { newChannel } from '@test/support/fixtures/channel.fixture';
 import {
   createChannelsTestbed,
@@ -19,6 +21,10 @@ describe('ChannelHealthService', () => {
 
   afterAll(async () => {
     await testbed.module.close();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   const seed = async (status: ChannelStatus) => {
@@ -47,6 +53,26 @@ describe('ChannelHealthService', () => {
       updatedAt: testbed.clock.now(),
       updatedByUserId: null,
     });
+  });
+
+  it('emits the token revoked event only when it breaks a connected channel', async () => {
+    const connected = await seed(ChannelStatus.Connected);
+    const broken = await seed(ChannelStatus.Broken);
+    const emit = vi.spyOn(testbed.module.get(DomainEventsService), 'emit');
+
+    await health.markBroken(connected.workspaceId, connected.channel.id);
+
+    expect(emit).toHaveBeenCalledExactlyOnceWith(
+      expect.anything(),
+      telegramTokenRevokedEvent,
+      { workspaceId: connected.workspaceId, channelId: connected.channel.id },
+      { durable: true },
+    );
+
+    emit.mockClear();
+    await health.markBroken(broken.workspaceId, broken.channel.id);
+
+    expect(emit).not.toHaveBeenCalled();
   });
 
   it('does nothing for a channel that is not connected', async () => {

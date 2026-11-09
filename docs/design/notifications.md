@@ -70,6 +70,8 @@ The existing Inbox navigation badge still uses the workspace-level `inboxNeedsYo
 
 Browser notifications are built. `latestUnreadNotification` returns the signed-in user’s newest unread platform notification with its conversation, customer name, channel and reason, but only while that conversation is still `waiting`. A conversation that is closed or taken over no longer produces a card, even if its delivery was never marked read. The workspace shell watches the notification and refetches on `inboxActivity`. When the tab is visible it shows an in-app card with the customer, the channel and the waiting time; when the tab is hidden and the browser permission is granted it shows a desktop notification instead. Clicking either opens `/inbox?conversation=...`. Permission is requested from Settings, Notifications. This works only while the app is open; there is no service worker or background push.
 
+System emails cover confirmation, password reset, email change, the 80/100% usage thresholds and a revoked Telegram token. The last one is produced by the durable `channels.telegram-token-revoked` event when `ChannelHealthService.markBroken` moves a connected channel to `broken`. A `channels` listener sends the localized email to every owner and admin of the workspace with a link to the Telegram channel page.
+
 ## 2. Schema
 
 ```mermaid
