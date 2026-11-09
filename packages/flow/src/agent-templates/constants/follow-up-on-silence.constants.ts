@@ -113,7 +113,7 @@ const draft = (options: AgentTemplateOptions) => {
       ),
       sendText(
         REMINDER_KEY,
-        t({ en: 'Send a last reminder', uk: 'Надіслати останнє нагадування' }),
+        t({ en: 'Send a last reminder', uk: 'Останнє нагадування' }),
         [3, 2],
         t({
           en: 'Just a friendly reminder: we are here if you still need anything.',

@@ -9,6 +9,7 @@ import type { FlowDocument } from '@flow/document/typedefs/flow.typedefs';
 
 export const TEMPLATE_TIME_ZONE = 'Europe/Kyiv';
 export const TEMPLATE_KNOWLEDGE_BASE_IDS: readonly string[] = ['kb_faq', 'kb_prices'];
+export const TEMPLATE_KNOWLEDGE_CHOICES: readonly boolean[] = [true, false];
 export const TEMPLATE_AGENT_MODEL = 'agent-model';
 export const TEMPLATE_COMPLETION_MODEL = 'completion-model';
 export const TEMPLATE_ID_PREFIX = 'id_';
@@ -27,16 +28,20 @@ export const sequentialIds = (): (() => string) => {
 export const templateOptions = (
   key: AgentTemplateKey,
   locale: Locale = Locale.En,
+  knowledgeBaseIds: readonly string[] = TEMPLATE_KNOWLEDGE_BASE_IDS,
 ): AgentTemplateOptions => ({
   locale,
   promptRefs: Object.fromEntries(
     agentTemplate(key).prompts.map((prompt) => [prompt.key, templatePromptRef(prompt.key)]),
   ),
-  knowledgeBaseIds: TEMPLATE_KNOWLEDGE_BASE_IDS,
+  knowledgeBaseIds,
   timeZone: TEMPLATE_TIME_ZONE,
   models: { agent: TEMPLATE_AGENT_MODEL, completion: TEMPLATE_COMPLETION_MODEL },
   nextId: sequentialIds(),
 });
 
-export const builtTemplate = (key: AgentTemplateKey, locale: Locale = Locale.En): FlowDocument =>
-  buildAgentTemplate(key, templateOptions(key, locale));
+export const builtTemplate = (
+  key: AgentTemplateKey,
+  locale: Locale = Locale.En,
+  knowledgeBaseIds: readonly string[] = TEMPLATE_KNOWLEDGE_BASE_IDS,
+): FlowDocument => buildAgentTemplate(key, templateOptions(key, locale, knowledgeBaseIds));

@@ -36,7 +36,7 @@ const ASSISTANT_KEY = 'assistant';
 const REPLY_KEY = 'reply';
 
 const ANSWER_LABEL: LocalizedText = {
-  en: 'Answer from the knowledge base',
+  en: 'Answer from knowledge',
   uk: 'Відповісти з бази знань',
 };
 
@@ -53,12 +53,12 @@ const draft = (options: AgentTemplateOptions) => {
         exits: handoffExit(t(HANDOFF_WHEN)),
         knowledge: true,
       }),
-      sendMessages(REPLY_KEY, t(SEND_ANSWER_LABEL), [0, 2], ASSISTANT_KEY),
+      sendMessages(REPLY_KEY, t(SEND_ANSWER_LABEL), [-0.6, 2], ASSISTANT_KEY),
       handOff(
         options,
         AGENT_TEMPLATE_HAND_OFF_KEY,
         t(HAND_OFF_LABEL),
-        [1, 2],
+        [1.33, 2],
         t(ASSISTANT_FAILED_REASON),
       ),
     ],
