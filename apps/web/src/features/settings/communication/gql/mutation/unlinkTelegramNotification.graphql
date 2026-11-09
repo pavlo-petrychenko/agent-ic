@@ -1,0 +1,19 @@
+mutation UnlinkTelegramNotification {
+  unlinkTelegramNotification {
+    platform {
+      enabled
+    }
+    email {
+      enabled
+      email
+      verifiedAt
+    }
+    telegram {
+      enabled
+      linked
+      username
+      botUsername
+      linkedAt
+    }
+  }
+}

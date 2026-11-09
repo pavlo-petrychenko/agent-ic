@@ -11,6 +11,8 @@ mutation UpdateNotificationChannel($input: UpdateNotificationChannelInput!) {
     telegram {
       enabled
       linked
+      username
+      botUsername
       linkedAt
     }
   }

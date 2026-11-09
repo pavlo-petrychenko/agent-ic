@@ -11,6 +11,8 @@ query NotificationSettings {
     telegram {
       enabled
       linked
+      username
+      botUsername
       linkedAt
     }
   }

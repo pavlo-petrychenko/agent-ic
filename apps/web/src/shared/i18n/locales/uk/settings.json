@@ -25,6 +25,7 @@
       "telegram": "Telegram",
       "telegramLinked": "Прив'язано до {{account}} · через {{bot}}",
       "telegramLinkedShort": "Підключено до Telegram",
+      "telegramLinkedAs": "Прив'язано як @{{username}}",
       "telegramNotLinked": "Ще не прив'язано",
       "waitingForCode": "Очікує коду",
       "unlinkTelegram": "Відв'язати Telegram",
@@ -41,11 +42,14 @@
     },
     "link": {
       "title": "Прив'яжіть свій Telegram",
+      "action": "Прив'язати Telegram",
       "openBot": "Відкрийте {{bot}} у Telegram",
       "sendCode": "Надішліть цей код — він діє {{minutes}} хвилин",
       "copy": "Копіювати",
       "copied": "Код скопійовано",
       "open": "Відкрити Telegram",
+      "close": "Закрити",
+      "linked": "Telegram прив'язано. Сповіщення надходитимуть сюди.",
       "hint": "Сторінка оновиться, щойно бот отримає код."
     }
   },
