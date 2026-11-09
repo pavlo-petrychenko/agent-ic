@@ -1,4 +1,4 @@
-import { AgentsModule, FLOW_REFERENCE_CHECKER } from '@/modules/agents';
+import { AgentsModule, FLOW_REFERENCE_CHECKER, TEMPLATE_PROMPT_WRITER } from '@/modules/agents';
 import { PromptFoldersRepository } from '@/modules/prompts/repositories/prompt-folders.repository';
 import { PromptVersionsRepository } from '@/modules/prompts/repositories/prompt-versions.repository';
 import { PromptsRepository } from '@/modules/prompts/repositories/prompts.repository';
@@ -19,6 +19,7 @@ import { PromptFlowReader } from '@/modules/prompts/services/prompt-flow-reader.
 import { PromptFlowReferenceChecker } from '@/modules/prompts/services/prompt-flow-reference-checker.service';
 import { PromptFolderViewsService } from '@/modules/prompts/services/prompt-folder-views.service';
 import { PromptImportService } from '@/modules/prompts/services/prompt-import.service';
+import { PromptTemplateWriter } from '@/modules/prompts/services/prompt-template-writer.service';
 import { PromptUsageService } from '@/modules/prompts/services/prompt-usage.service';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
 import { SamplePromptService } from '@/modules/prompts/services/sample-prompt.service';
@@ -51,6 +52,11 @@ export class PromptsModule extends defineModule({
     {
       provide: FLOW_REFERENCE_CHECKER,
       useExisting: PromptFlowReferenceChecker,
+    },
+    PromptTemplateWriter,
+    {
+      provide: TEMPLATE_PROMPT_WRITER,
+      useExisting: PromptTemplateWriter,
     },
     PromptFolderViewsService,
     PromptFlowReader,
