@@ -9,7 +9,7 @@ import {
 } from '@/modules/runs/constants/llm-step.constants';
 import { agentExitPort, withAgentExits } from '@/modules/runs/helpers/agent-exit.helpers';
 import {
-  stepConversation,
+  agentConversation,
   stepModel,
   stepSystemPrompt,
 } from '@/modules/runs/helpers/llm-step.helpers';
@@ -28,7 +28,7 @@ import { LlmGateway } from '@/platform/llm/gateways/llm.gateway';
 import type {
   LlmAgentRequest,
   LlmAgentResult,
-  LlmToolCall,
+  LlmAgentTrace,
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
 
 @Injectable()
@@ -41,7 +41,7 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
     @Inject(KnowledgeToolsService) private readonly knowledgeTools: KnowledgeToolsService | null,
   ) {}
 
-  async execute({ run, node, scope, onToolCalls }: StepExecution<AgentNode>): Promise<StepOutcome> {
+  async execute({ run, node, scope, onTrace }: StepExecution<AgentNode>): Promise<StepOutcome> {
     const { id, config } = node;
     const tools =
       this.knowledgeTools === null
@@ -50,7 +50,7 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
     const request: LlmAgentRequest<StepData> = {
       ...stepModel(id, config.model, AGENT_PURPOSE, run.workspaceId, this.ids),
       purpose: AGENT_PURPOSE,
-      ...stepConversation(
+      ...agentConversation(
         withAgentExits(
           stepSystemPrompt(id, config.prompt, scope.variables, scope.prompts),
           node,
@@ -59,6 +59,8 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
         scope.history,
         AGENT_INCLUDES_CURRENT_MESSAGE,
         run.trigger,
+        scope.transcripts,
+        id,
       ),
       output: outputToZod(nodeOutputFields(node)),
       ...(config.reasoning === null ? {} : { reasoning: config.reasoning }),
@@ -66,9 +68,10 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
       maxToolRounds: AGENT_MAX_TOOL_ROUNDS,
       tags: { ...runTraceTags(run), ...stepPromptTags(id, scope.prompts) },
     };
-    const report = (calls: readonly LlmToolCall[]) => onToolCalls?.(toRunToolCalls(calls));
+    const report = ({ toolCalls, transcript }: LlmAgentTrace) =>
+      onTrace?.({ toolCalls: toRunToolCalls(toolCalls), transcript });
     const answer = await this.answer(request, config.retries, report);
-    report(answer.toolCalls);
+    report(answer);
     const output = withoutEmptyOutputs(answer.output);
     return { port: agentExitPort(node, output), output };
   }
@@ -76,7 +79,7 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
   private async answer(
     request: LlmAgentRequest<StepData>,
     retriesLeft: number,
-    report: (calls: readonly LlmToolCall[]) => void,
+    report: (trace: LlmAgentTrace) => void,
   ): Promise<LlmAgentResult<StepData>> {
     let progress = request.resumeFrom;
     try {
@@ -84,7 +87,7 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
         ...request,
         onProgress: (next) => {
           progress = next;
-          report(next.toolCalls);
+          report(next);
         },
       });
     } catch (error) {

@@ -18,21 +18,30 @@ import type {
   LlmResolvedSource,
 } from '@/platform/llm/typedefs/llm-provider.typedefs';
 import type { LlmTags } from '@/platform/llm/typedefs/llm-tracing.typedefs';
+import type {
+  LlmTranscript,
+  LlmTranscriptMessage,
+} from '@/platform/llm/typedefs/llm-transcript.typedefs';
 
-export interface LlmMessage {
+export interface LlmTextMessage {
   readonly role: LlmMessageRole;
   readonly content: string;
 }
 
-export interface LlmCompleteRequest<T> {
+export type LlmMessage = LlmTextMessage | LlmTranscript;
+
+export interface LlmRequest<T> {
   readonly provider: LlmProviderSource;
   readonly model: string;
   readonly purpose: LlmPurpose;
   readonly system: string;
-  readonly messages: readonly LlmMessage[];
   readonly output: z.ZodType<T>;
   readonly reasoning?: ReasoningLevel;
   readonly tags: LlmTags;
+}
+
+export interface LlmCompleteRequest<T> extends LlmRequest<T> {
+  readonly messages: readonly LlmTextMessage[];
 }
 
 export interface LlmTool {
@@ -44,13 +53,13 @@ export interface LlmTool {
 
 export type LlmTools = Readonly<Record<string, LlmTool>>;
 
-export interface LlmAgentProgress {
+export interface LlmAgentProgress extends LlmAgentTrace {
   readonly messages: readonly ModelMessage[];
   readonly roundsUsed: number;
-  readonly toolCalls: readonly LlmToolCall[];
 }
 
-export interface LlmAgentRequest<T> extends LlmCompleteRequest<T> {
+export interface LlmAgentRequest<T> extends LlmRequest<T> {
+  readonly messages: readonly LlmMessage[];
   readonly tools: LlmTools;
   readonly maxToolRounds: number;
   readonly resumeFrom?: LlmAgentProgress;
@@ -89,9 +98,12 @@ export interface LlmModelRun {
 
 export type LlmStepTimeouts = Readonly<Record<LlmPurpose, number>>;
 
-export interface LlmAgentResult<T> extends LlmCompletion<T> {
+export interface LlmAgentTrace {
   readonly toolCalls: readonly LlmToolCall[];
+  readonly transcript: readonly LlmTranscriptMessage[];
 }
+
+export interface LlmAgentResult<T> extends LlmCompletion<T>, LlmAgentTrace {}
 
 export interface LlmRunState {
   readonly messages: readonly ModelMessage[];
@@ -100,6 +112,7 @@ export interface LlmRunState {
   readonly nudgesLeft: number;
   readonly usage: LlmUsage;
   readonly toolCalls: readonly LlmToolCall[];
+  readonly transcriptStart: number;
 }
 
 export type LlmRunTracker = (state: LlmRunState) => LlmRunState;

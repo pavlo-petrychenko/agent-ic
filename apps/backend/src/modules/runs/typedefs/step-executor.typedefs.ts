@@ -1,14 +1,15 @@
 import type { FlowNode } from '@agent-ic/flow';
 import type { Message } from '@/modules/conversations';
 import type { ResolvedPrompts } from '@/modules/prompts';
+import type { StepTrace, StepTranscript } from '@/modules/runs/typedefs/agent-transcript.typedefs';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 import type { Run } from '@/modules/runs/typedefs/run.typedefs';
-import type { RunToolCall } from '@/modules/runs/typedefs/tool-call.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 
 export interface StepScope {
   readonly variables: StepData;
   readonly history: readonly Message[];
+  readonly transcripts: readonly StepTranscript[];
   readonly today: Date;
   readonly prompts: ResolvedPrompts;
 }
@@ -20,7 +21,7 @@ export interface StepExecution<TNode extends FlowNode> {
   readonly node: TNode;
   readonly branchKey: string;
   readonly scope: StepScope;
-  readonly onToolCalls?: (toolCalls: readonly RunToolCall[]) => void;
+  readonly onTrace?: (trace: StepTrace) => void;
 }
 
 export interface StepOutcome {

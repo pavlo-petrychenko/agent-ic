@@ -25,6 +25,7 @@ const SUCCEEDED: RunStepResult = {
   port: TEST_STEP_PORT,
   error: null,
   toolCalls: null,
+  transcript: null,
   finishedAt: RUNS_TEST_END,
 };
 
@@ -34,6 +35,7 @@ const FAILED: RunStepResult = {
   port: TEST_ERROR_PORT,
   error: TEST_RUN_FAILURE,
   toolCalls: null,
+  transcript: null,
   finishedAt: RUNS_TEST_END,
 };
 
@@ -68,6 +70,7 @@ describe('RunStepsRepository', () => {
       port: null,
       error: null,
       toolCalls: null,
+      transcript: null,
       finishedAt: null,
     });
   });

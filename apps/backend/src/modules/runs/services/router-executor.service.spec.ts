@@ -17,6 +17,7 @@ const routeWith = (answer: string | null) =>
     scope: {
       variables: answer === null ? {} : { [FIRST_STEP_KEY]: { answer } },
       history: [],
+      transcripts: [],
       today: RUNS_TEST_START,
       prompts: new Map(),
     },

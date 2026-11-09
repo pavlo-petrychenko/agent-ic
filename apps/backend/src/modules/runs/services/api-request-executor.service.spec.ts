@@ -39,6 +39,7 @@ describe('ApiRequestExecutor', () => {
       scope: {
         variables: { message: { text: TEST_MESSAGE_TEXT } },
         history: [],
+        transcripts: [],
         today: RUNS_TEST_START,
         prompts: new Map(),
       },

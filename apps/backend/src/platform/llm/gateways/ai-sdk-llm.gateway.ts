@@ -30,6 +30,7 @@ import {
   replyNudgeMessage,
   replyTool,
   runCallSettings,
+  stateTranscript,
   structuredOutput,
   toToolSet,
   toUpstreamFailure,
@@ -49,6 +50,7 @@ import type {
   LlmAgentRequest,
   LlmAgentResult,
   LlmCompleteRequest,
+  LlmRequest,
   LlmCompletion,
   LlmModelRun,
   LlmRounds,
@@ -105,7 +107,7 @@ export class AiSdkLlmGateway extends LlmGateway {
 
   private async withFallback<T, R>(
     operation: LlmOperation,
-    request: LlmCompleteRequest<T>,
+    request: LlmRequest<T>,
     attempt: (run: LlmModelRun) => Promise<R>,
   ): Promise<R> {
     const source = await this.providers.resolve(request.provider);
@@ -115,7 +117,7 @@ export class AiSdkLlmGateway extends LlmGateway {
   }
 
   private async tryModels<T, R>(
-    request: LlmCompleteRequest<T>,
+    request: LlmRequest<T>,
     source: LlmResolvedSource,
     attempt: (run: LlmModelRun) => Promise<R>,
   ): Promise<R> {
@@ -148,7 +150,7 @@ export class AiSdkLlmGateway extends LlmGateway {
   }
 
   private async modelRun<T>(
-    request: LlmCompleteRequest<T>,
+    request: LlmRequest<T>,
     { source, model }: LlmModelHop,
     fallbackHop: number,
   ): Promise<LlmModelRun> {
@@ -193,6 +195,7 @@ export class AiSdkLlmGateway extends LlmGateway {
         model: run.model.id,
         usage: next.usage,
         toolCalls: next.toolCalls,
+        transcript: stateTranscript(next),
       };
     }
     const corrected = track(withMessage(next, outputFeedbackMessage(checked.error)));
@@ -249,6 +252,7 @@ export class AiSdkLlmGateway extends LlmGateway {
         model: run.model.id,
         usage: next.usage,
         toolCalls: next.toolCalls,
+        transcript: stateTranscript(next),
       };
     }
     const corrected = track(
@@ -287,7 +291,7 @@ export class AiSdkLlmGateway extends LlmGateway {
   }
 
   private async report<T>(
-    request: LlmCompleteRequest<T>,
+    request: LlmRequest<T>,
     run: LlmModelRun,
     usage: LlmUsage,
   ): Promise<void> {
