@@ -27,6 +27,7 @@ const summary = (index: number) => ({
   createdAt: '2026-11-01T14:00:00.000Z',
   lastMessageAt: new Date(Date.UTC(2026, 10, 1, 14, 0, 0) - index * 60_000).toISOString(),
   lastEscalatedAt: null,
+  waitingSince: null,
   closedAt: null,
 });
 

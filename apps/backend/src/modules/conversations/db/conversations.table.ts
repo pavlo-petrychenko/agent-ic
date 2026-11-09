@@ -53,6 +53,7 @@ export const conversations = conversationsSchema
       lastMessageAt: timestamp('last_message_at', { withTimezone: true }).notNull(),
       lastCustomerMessageAt: timestamp('last_customer_message_at', { withTimezone: true }),
       lastEscalatedAt: timestamp('last_escalated_at', { withTimezone: true }),
+      waitingSince: timestamp('waiting_since', { withTimezone: true }),
       closedAt: timestamp('closed_at', { withTimezone: true }),
       closeReason: closeReasonEnum('close_reason'),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),

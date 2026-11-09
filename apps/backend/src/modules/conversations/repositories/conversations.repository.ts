@@ -338,10 +338,15 @@ export class ConversationsRepository {
     return released.length > 0;
   }
 
-  async markWaiting(workspaceId: string, id: string): Promise<boolean> {
+  async markWaiting(workspaceId: string, id: string, escalated = false): Promise<boolean> {
+    const now = this.clock.now();
     const updated = await this.txHost.tx
       .update(conversations)
-      .set({ state: ConversationState.Waiting, lastEscalatedAt: this.clock.now() })
+      .set({
+        state: ConversationState.Waiting,
+        waitingSince: now,
+        ...(escalated ? { lastEscalatedAt: now } : {}),
+      })
       .where(
         and(
           eq(conversations.workspaceId, workspaceId),
@@ -384,7 +389,7 @@ export class ConversationsRepository {
         : eq(conversations.handledBy, expected.handledBy);
     const [conversation] = await this.txHost.tx
       .update(conversations)
-      .set({ state: ConversationState.Handled, handledBy: userId })
+      .set({ state: ConversationState.Handled, handledBy: userId, waitingSince: null })
       .where(
         and(
           eq(conversations.workspaceId, workspaceId),
@@ -401,7 +406,7 @@ export class ConversationsRepository {
   async handBack(workspaceId: string, id: string): Promise<Conversation | null> {
     const [conversation] = await this.txHost.tx
       .update(conversations)
-      .set({ state: ConversationState.AgentActive, handledBy: null })
+      .set({ state: ConversationState.AgentActive, handledBy: null, waitingSince: null })
       .where(
         and(
           eq(conversations.workspaceId, workspaceId),
@@ -421,7 +426,7 @@ export class ConversationsRepository {
   ): Promise<boolean> {
     const closed = await this.txHost.tx
       .update(conversations)
-      .set({ state: ConversationState.Closed, closedAt, closeReason })
+      .set({ state: ConversationState.Closed, closedAt, closeReason, waitingSince: null })
       .where(
         and(
           eq(conversations.workspaceId, workspaceId),
@@ -453,7 +458,12 @@ export class ConversationsRepository {
     }
     const closed = await this.txHost.tx
       .update(conversations)
-      .set({ state: ConversationState.Closed, closedAt, closeReason: CloseReason.Inactivity })
+      .set({
+        state: ConversationState.Closed,
+        closedAt,
+        closeReason: CloseReason.Inactivity,
+        waitingSince: null,
+      })
       .where(
         and(
           inArray(

@@ -568,9 +568,10 @@ export const addConversationMessage = async (
 export const markConversationWaiting = async (
   testbed: RunLifecycleTestbed,
   { conversation: { workspaceId, id } }: LiveConversation,
+  escalated = false,
 ): Promise<void> => {
   await testbed.tenants.run(workspaceId, () =>
-    testbed.module.get(ConversationsRepository).markWaiting(workspaceId, id),
+    testbed.module.get(ConversationsRepository).markWaiting(workspaceId, id, escalated),
   );
 };
 

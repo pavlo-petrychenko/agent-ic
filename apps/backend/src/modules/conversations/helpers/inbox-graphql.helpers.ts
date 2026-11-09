@@ -78,6 +78,7 @@ export const toGraphqlInboxSummary = (summary: InboxSummary): InboxSummaryParent
   createdAt: summary.createdAt.toISOString(),
   lastMessageAt: summary.lastMessageAt.toISOString(),
   lastEscalatedAt: summary.lastEscalatedAt?.toISOString() ?? null,
+  waitingSince: summary.waitingSince?.toISOString() ?? null,
   closedAt: summary.closedAt?.toISOString() ?? null,
 });
 

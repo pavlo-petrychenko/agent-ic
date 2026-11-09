@@ -467,6 +467,7 @@ export const runConversation = (ids: IdService): Conversation => ({
   lastMessageAt: RUNS_TEST_START,
   lastCustomerMessageAt: null,
   lastEscalatedAt: null,
+  waitingSince: null,
   closedAt: null,
   closeReason: null,
   createdAt: RUNS_TEST_START,

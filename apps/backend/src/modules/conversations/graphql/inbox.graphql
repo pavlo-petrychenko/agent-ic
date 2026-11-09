@@ -83,6 +83,7 @@ type InboxConversationSummary {
   createdAt: String!
   lastMessageAt: String!
   lastEscalatedAt: String
+  waitingSince: String
   closedAt: String
 }
 

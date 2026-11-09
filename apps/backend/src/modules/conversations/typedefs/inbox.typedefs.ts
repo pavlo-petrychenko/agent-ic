@@ -23,6 +23,7 @@ export interface InboxSummary {
   readonly createdAt: Date;
   readonly lastMessageAt: Date;
   readonly lastEscalatedAt: Date | null;
+  readonly waitingSince: Date | null;
   readonly closedAt: Date | null;
 }
 

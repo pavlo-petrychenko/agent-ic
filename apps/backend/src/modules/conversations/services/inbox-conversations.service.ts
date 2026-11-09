@@ -213,6 +213,7 @@ export class InboxConversationsService {
       createdAt: conversation.createdAt,
       lastMessageAt: conversation.lastMessageAt,
       lastEscalatedAt: conversation.lastEscalatedAt,
+      waitingSince: conversation.waitingSince,
       closedAt: conversation.closedAt,
     };
   }

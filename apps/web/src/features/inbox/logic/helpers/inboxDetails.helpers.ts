@@ -158,9 +158,9 @@ const waitingRows = (
   push(rows, replyTargetRow(facts, t));
   push(
     rows,
-    facts.escalatedAt === null
+    facts.waitingSince === null
       ? null
-      : detailRow('escalated', t('details.escalated'), facts.escalatedAt),
+      : detailRow('waiting-since', t('details.waitingSince'), facts.waitingSince),
   );
   push(
     rows,
