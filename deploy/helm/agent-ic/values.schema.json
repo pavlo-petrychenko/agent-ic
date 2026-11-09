@@ -536,6 +536,42 @@
         "required": ["name", "redirectUri", "keys"]
       }
     },
+    "telegramAlertsSecret": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "keys": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["TELEGRAM_ALERTS_BOT_TOKEN", "TELEGRAM_ALERTS_WEBHOOK_SECRET"],
+          "properties": {
+            "TELEGRAM_ALERTS_BOT_TOKEN": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "TELEGRAM_ALERTS_WEBHOOK_SECRET": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "if": {
+        "properties": {
+          "enabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": ["name", "keys"]
+      }
+    },
     "langfuseSecret": {
       "type": "object",
       "additionalProperties": false,
@@ -656,7 +692,8 @@
         "llm",
         "usage",
         "secretBox",
-        "email"
+        "email",
+        "telegram"
       ],
       "properties": {
         "nodeEnv": {
@@ -849,6 +886,25 @@
           "then": {
             "required": ["smtp"]
           }
+        },
+        "telegram": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["transport", "pollTimeoutSeconds", "alertsBotUsername"],
+          "properties": {
+            "transport": {
+              "type": "string",
+              "enum": ["webhook", "polling"]
+            },
+            "pollTimeoutSeconds": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            },
+            "alertsBotUsername": {
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -906,7 +962,8 @@
         "smtp",
         "llm",
         "google",
-        "langfuse"
+        "langfuse",
+        "telegramAlerts"
       ],
       "properties": {
         "databaseApp": {
@@ -944,6 +1001,9 @@
         },
         "langfuse": {
           "$ref": "#/definitions/langfuseSecret"
+        },
+        "telegramAlerts": {
+          "$ref": "#/definitions/telegramAlertsSecret"
         }
       }
     },

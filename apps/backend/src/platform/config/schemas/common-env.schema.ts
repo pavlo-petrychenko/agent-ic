@@ -39,6 +39,9 @@ export const commonEnvSchema = z
     [EnvVar.RedisCacheUrl]: redisUrlSchema,
     [EnvVar.TelegramTransport]: z.enum(TelegramTransport).default(TelegramTransport.Webhook),
     [EnvVar.TelegramPollTimeoutSeconds]: telegramTimeoutSchema,
+    [EnvVar.TelegramAlertsBotToken]: optionalTextSchema,
+    [EnvVar.TelegramAlertsBotUsername]: optionalTextSchema,
+    [EnvVar.TelegramAlertsWebhookSecret]: optionalTextSchema,
   })
   .refine((env) => env[EnvVar.OtelSdkDisabled] || env[EnvVar.OtelExporterEndpoint] !== undefined, {
     message: OTEL_ENDPOINT_REQUIRED_MESSAGE,
@@ -72,5 +75,8 @@ export const commonEnvSchema = z
     telegram: {
       transport: env[EnvVar.TelegramTransport],
       pollTimeoutSeconds: env[EnvVar.TelegramPollTimeoutSeconds],
+      alertsBotToken: env[EnvVar.TelegramAlertsBotToken],
+      alertsBotUsername: env[EnvVar.TelegramAlertsBotUsername],
+      alertsWebhookSecret: env[EnvVar.TelegramAlertsWebhookSecret],
     },
   }));

@@ -25,6 +25,7 @@ export const toTelegramMessage = (message: TelegramMessageResponse): TelegramMes
     chatId: String(message.chat.id),
     senderId: sender === undefined ? null : String(sender.id),
     senderName: sender?.first_name ?? null,
+    senderUsername: sender?.username ?? null,
     text: message.text ?? null,
   };
 };

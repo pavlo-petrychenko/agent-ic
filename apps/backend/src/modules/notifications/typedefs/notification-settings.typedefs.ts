@@ -15,11 +15,21 @@ export interface NotificationChannelSettingRecord {
   readonly email: string | null;
   readonly verifiedAt: Date | null;
   readonly chatId: string | null;
+  readonly telegramUsername: string | null;
   readonly linkedAt: Date | null;
 }
 
 export interface NotificationSettingsRecord extends NotificationSettingsHeader {
   readonly channels: readonly NotificationChannelSettingRecord[];
+}
+
+export interface TelegramLinkRecord {
+  readonly workspaceId: string;
+  readonly channelId: string;
+  readonly settingsId: string;
+  readonly userId: string;
+  readonly chatId: string | null;
+  readonly linkCodeExpiresAt: Date | null;
 }
 
 export interface NewNotificationChannelRecord {
@@ -43,6 +53,8 @@ interface EmailNotificationSettingView {
 interface TelegramNotificationSettingView {
   readonly enabled: boolean;
   readonly linked: boolean;
+  readonly username: string | null;
+  readonly botUsername: string | null;
   readonly linkedAt: Date | null;
 }
 

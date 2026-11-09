@@ -1,0 +1,1 @@
+ALTER TABLE "notifications"."telegram_notification_channels" ADD COLUMN "username" text;

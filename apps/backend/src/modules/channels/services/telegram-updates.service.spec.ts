@@ -49,6 +49,7 @@ const telegramUpdate = (overrides: Partial<TelegramMessage> = {}): TelegramUpdat
     chatId: '42',
     senderId: '900',
     senderName: 'Moshe',
+    senderUsername: null,
     text: 'Hello',
     ...overrides,
   },

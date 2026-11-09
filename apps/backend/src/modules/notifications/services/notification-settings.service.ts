@@ -12,6 +12,7 @@ import type {
   NotificationSettingsRecord,
   NotificationSettingsView,
 } from '@/modules/notifications/typedefs/notification-settings.typedefs';
+import { ConfigService } from '@/platform/config/services/config.service';
 import { IdService } from '@/platform/ids/services/id.service';
 
 @Injectable()
@@ -19,10 +20,14 @@ export class NotificationSettingsService {
   constructor(
     private readonly settings: NotificationSettingsRepository,
     private readonly ids: IdService,
+    private readonly configService: ConfigService,
   ) {}
 
   async describe(workspaceId: string, userId: string): Promise<NotificationSettingsView> {
-    return toNotificationSettingsView(await this.settings.findByUser(workspaceId, userId));
+    return toNotificationSettingsView(
+      await this.settings.findByUser(workspaceId, userId),
+      this.configService.config.telegram.alertsBotUsername,
+    );
   }
 
   async channelsFor(
@@ -30,6 +35,19 @@ export class NotificationSettingsService {
     userId: string,
   ): Promise<readonly NotificationChannelValue[]> {
     return enabledNotificationChannels(await this.describe(workspaceId, userId));
+  }
+
+  async channelIdFor(
+    workspaceId: string,
+    userId: string,
+    channel: NotificationChannelValue,
+  ): Promise<string> {
+    const settings = await this.ensure(workspaceId, userId);
+    const row = settings.channels.find((candidate) => candidate.channel === channel);
+    if (row === undefined) {
+      throw new NotificationSettingsUnavailableError();
+    }
+    return row.id;
   }
 
   async setChannelEnabled(
