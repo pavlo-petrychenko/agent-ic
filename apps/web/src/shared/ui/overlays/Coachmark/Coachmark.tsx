@@ -45,6 +45,7 @@ export function Coachmark({
   const cardRef = useRef<HTMLDivElement>(null);
   const primaryRef = useRef<HTMLButtonElement>(null);
   const onDismissRef = useRef(onDismiss);
+  const focusedTitleRef = useRef<string | null>(null);
 
   const rect = useTargetRect(target, open);
   const spotlight = useMemo(() => (rect === null ? null : padRect(rect)), [rect]);
@@ -68,10 +69,11 @@ export function Coachmark({
   }, [open]);
 
   useEffect(() => {
-    if (open) {
+    if (open && focusedTitleRef.current !== title) {
+      focusedTitleRef.current = title;
       primaryRef.current?.focus({ preventScroll: true });
     }
-  }, [open, target, title]);
+  }, [open, title]);
 
   if (!open) {
     return null;
