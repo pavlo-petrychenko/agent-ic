@@ -16,9 +16,6 @@ export function ThreadMessage({ message }: ThreadMessageProps) {
           <p className={styles.escalationText}>
             <strong>{message.title}</strong> {message.detail} · {message.time}
           </p>
-          <button type="button" className={styles.escalationLink}>
-            {message.linkLabel}
-          </button>
         </div>
       );
     case InboxMessageKind.Customer:

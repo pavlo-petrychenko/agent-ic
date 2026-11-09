@@ -5,14 +5,7 @@ import { KeyValue } from '@/shared/ui/display/KeyValue';
 import { Icon } from '@/shared/ui/foundations/Icon';
 import styles from '@/features/inbox/view/InboxDetails/InboxDetails.module.scss';
 
-export function InboxDetails({
-  label,
-  title,
-  guard,
-  run,
-  conversation,
-  sessionLinkLabel,
-}: InboxDetailsProps) {
+export function InboxDetails({ label, title, guard, run, conversation }: InboxDetailsProps) {
   return (
     <aside className={styles.root} aria-label={label}>
       {guard === null && run === null ? null : <h2 className={styles.title}>{title}</h2>}
@@ -36,9 +29,6 @@ export function InboxDetails({
         <Card className={styles.card}>
           <div className={styles.cardHeader}>
             <h3 className={styles.cardTitle}>{run.title}</h3>
-            <button type="button" className={styles.cardLink}>
-              {run.linkLabel}
-            </button>
           </div>
           <ol className={styles.steps}>
             {run.steps.map((step) => (
@@ -65,11 +55,6 @@ export function InboxDetails({
           }))}
         />
       </Card>
-      {sessionLinkLabel === null ? null : (
-        <button type="button" className={styles.sessionLink}>
-          {sessionLinkLabel}
-        </button>
-      )}
     </aside>
   );
 }
