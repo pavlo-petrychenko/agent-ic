@@ -62,7 +62,7 @@ Three constraints shape the rest:
 
 ### Retrieval and agent tools
 
-- The agent gets **one `search_knowledge` tool per attached KB**, using the KB's editable tool name and description. It takes a natural-language question, an optional `top_k` (1–6, default 3), and optional `source_id`/`document_id` narrowers that must belong to that KB. A bad scope returns `scope_not_found`; search failure and a missing KB return `search_unavailable` and `knowledge_base_missing`.
+- The agent gets **one `search_knowledge` tool per attached KB**, using the KB's editable tool name and description. It takes a natural-language question, an optional `top_k` (1–6, default 3), and optional, nullable `source_id`/`document_id` narrowers inside that KB. A scope that is empty, malformed or not in that KB is ignored and the whole KB is searched; search failure and a missing KB return `search_unavailable` and `knowledge_base_missing`.
 - No `browse_documents`, no `read_document`, no whole-KB prompt and no small-KB mode. The agent answers from the returned sections.
 - `RetrievalMode.Auto` stays in the flow schema but is not implemented in the MVP; the builder does not offer it. A flow that carries it is treated as `Tools` until the automatic path is built.
 - Retrieval fuses three lists with RRF (`k = 60`):
