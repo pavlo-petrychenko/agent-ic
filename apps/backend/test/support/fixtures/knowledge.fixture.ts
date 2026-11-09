@@ -30,6 +30,7 @@ import {
   TEST_EMBEDDING_MODEL,
   TEST_EMBEDDING_TEXT_HASH,
   TEST_EMBEDDING_VECTOR,
+  TEST_GOOGLE_SCOPE,
   TEST_KB_NAME,
   TEST_KB_TOOL_NAME,
   TEST_SECTION_PATH,
@@ -56,6 +57,7 @@ export const newConnection = (
   accountEmail: TEST_CONNECTION_EMAIL,
   accountSubject: TEST_CONNECTION_SUBJECT,
   sealedRefreshToken: TEST_CONNECTION_SEALED_TOKEN,
+  scopes: TEST_GOOGLE_SCOPE.split(' '),
   status: KnowledgeConnectionStatus.Active,
   ...overrides,
 });
