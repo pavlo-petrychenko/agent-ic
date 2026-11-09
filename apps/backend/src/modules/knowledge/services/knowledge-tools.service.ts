@@ -6,17 +6,20 @@ import {
 import { Injectable, Logger } from '@nestjs/common';
 import {
   KNOWLEDGE_TOOL_KNOWLEDGE_BASE_MISSING_MESSAGE,
-  KNOWLEDGE_TOOL_SCOPE_NOT_FOUND_MESSAGE,
   KNOWLEDGE_TOOL_SEARCH_UNAVAILABLE_MESSAGE,
   KnowledgeToolErrorCode,
   knowledgeToolInputSchema,
 } from '@/modules/knowledge/constants/knowledge-tool.constants';
 import { KnowledgeBaseNotFoundError } from '@/modules/knowledge/errors/knowledge-base-not-found.error';
+import { presentScopeId } from '@/modules/knowledge/helpers/knowledge-tool.helpers';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { KnowledgeSearchService } from '@/modules/knowledge/services/knowledge-search.service';
-import type { KnowledgeToolOutput } from '@/modules/knowledge/typedefs/knowledge-tool.typedefs';
+import type {
+  KnowledgeToolOutput,
+  KnowledgeToolScope,
+} from '@/modules/knowledge/typedefs/knowledge-tool.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import { IdService } from '@/platform/ids/services/id.service';
 import type { LlmTool, LlmTools } from '@/platform/llm/typedefs/llm-gateway.typedefs';
@@ -72,32 +75,17 @@ export class KnowledgeToolsService {
     input: unknown,
   ): Promise<KnowledgeToolOutput> {
     const parsed = knowledgeToolInputSchema.parse(input);
-    const sourceId = this.internalId(IdPrefix.KnowledgeSource, parsed.source_id);
-    const documentId = this.internalId(IdPrefix.KnowledgeDocument, parsed.document_id);
-    if (sourceId === null || documentId === null) {
-      return this.error(
-        KnowledgeToolErrorCode.ScopeNotFound,
-        KNOWLEDGE_TOOL_SCOPE_NOT_FOUND_MESSAGE,
-      );
-    }
-    if (
-      !(await this.tenants.run(workspaceId, () =>
-        this.scopeBelongs(workspaceId, knowledgeBaseId, sourceId, documentId),
-      ))
-    ) {
-      return this.error(
-        KnowledgeToolErrorCode.ScopeNotFound,
-        KNOWLEDGE_TOOL_SCOPE_NOT_FOUND_MESSAGE,
-      );
-    }
+    const scope = await this.tenants.run(workspaceId, () =>
+      this.resolveScope(workspaceId, knowledgeBaseId, knowledgeBaseName, parsed),
+    );
     try {
       const results = await this.search.search({
         workspaceId,
         knowledgeBaseId,
         query: parsed.query,
         topK: parsed.top_k,
-        ...(sourceId === undefined ? {} : { sourceId }),
-        ...(documentId === undefined ? {} : { documentId }),
+        ...(scope.sourceId === null ? {} : { sourceId: scope.sourceId }),
+        ...(scope.documentId === null ? {} : { documentId: scope.documentId }),
       });
       return {
         found: results.length > 0,
@@ -131,36 +119,75 @@ export class KnowledgeToolsService {
     }
   }
 
-  private internalId(prefix: IdPrefix, publicId: string | undefined): string | null | undefined {
-    if (publicId === undefined) {
-      return undefined;
-    }
-    return this.ids.tryFromPublic(prefix, publicId);
-  }
-
-  private async scopeBelongs(
+  private async resolveScope(
     workspaceId: string,
     knowledgeBaseId: string,
-    sourceId: string | undefined,
-    documentId: string | undefined,
-  ): Promise<boolean> {
-    if (sourceId !== undefined) {
-      const source = await this.sources.findById(workspaceId, sourceId);
-      if (source === null || source.kbId !== knowledgeBaseId) {
-        return false;
-      }
+    knowledgeBaseName: string,
+    input: { readonly source_id?: string | null; readonly document_id?: string | null },
+  ): Promise<KnowledgeToolScope> {
+    const sourceId = await this.resolveSourceId(
+      workspaceId,
+      knowledgeBaseId,
+      knowledgeBaseName,
+      presentScopeId(input.source_id),
+    );
+    const documentId = await this.resolveDocumentId(
+      workspaceId,
+      knowledgeBaseId,
+      knowledgeBaseName,
+      presentScopeId(input.document_id),
+      sourceId,
+    );
+    return { sourceId, documentId };
+  }
+
+  private async resolveSourceId(
+    workspaceId: string,
+    knowledgeBaseId: string,
+    knowledgeBaseName: string,
+    publicId: string | null,
+  ): Promise<string | null> {
+    if (publicId === null) {
+      return null;
     }
-    if (documentId !== undefined) {
-      const document = await this.documents.findById(workspaceId, documentId);
-      if (
-        document === null ||
-        document.kbId !== knowledgeBaseId ||
-        (sourceId !== undefined && document.sourceId !== sourceId)
-      ) {
-        return false;
-      }
+    const sourceId = this.ids.tryFromPublic(IdPrefix.KnowledgeSource, publicId);
+    const source = sourceId === null ? null : await this.sources.findById(workspaceId, sourceId);
+    if (sourceId === null || source === null || source.kbId !== knowledgeBaseId) {
+      this.logIgnoredScope(knowledgeBaseName, 'source_id', publicId);
+      return null;
     }
-    return true;
+    return sourceId;
+  }
+
+  private async resolveDocumentId(
+    workspaceId: string,
+    knowledgeBaseId: string,
+    knowledgeBaseName: string,
+    publicId: string | null,
+    sourceId: string | null,
+  ): Promise<string | null> {
+    if (publicId === null) {
+      return null;
+    }
+    const documentId = this.ids.tryFromPublic(IdPrefix.KnowledgeDocument, publicId);
+    const document =
+      documentId === null ? null : await this.documents.findById(workspaceId, documentId);
+    if (
+      documentId === null ||
+      document === null ||
+      document.kbId !== knowledgeBaseId ||
+      (sourceId !== null && document.sourceId !== sourceId)
+    ) {
+      this.logIgnoredScope(knowledgeBaseName, 'document_id', publicId);
+      return null;
+    }
+    return documentId;
+  }
+
+  private logIgnoredScope(knowledgeBaseName: string, field: string, value: string): void {
+    this.logger.warn(
+      `knowledge search on "${knowledgeBaseName}" ignored ${field} "${value}": not in this knowledge base`,
+    );
   }
 
   private error(code: KnowledgeToolErrorCode, message: string): KnowledgeToolOutput {

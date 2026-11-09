@@ -1,5 +1,10 @@
 import type { KnowledgeToolErrorCode } from '@/modules/knowledge/constants/knowledge-tool.constants';
 
+export interface KnowledgeToolScope {
+  readonly sourceId: string | null;
+  readonly documentId: string | null;
+}
+
 export interface KnowledgeToolError {
   readonly code: KnowledgeToolErrorCode;
   readonly message: string;
