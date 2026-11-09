@@ -26,7 +26,12 @@ describe('ConversationsRepository', () => {
     const third = await seedConversation(testbed, first.workspaceId);
 
     const page = await testbed.tenants.run(first.workspaceId, () =>
-      testbed.conversations.listLive(first.workspaceId, [ConversationState.AgentActive], 2, null),
+      testbed.conversations.listLive(
+        first.workspaceId,
+        { states: [ConversationState.AgentActive], channelIds: [], agentIds: [], search: null },
+        2,
+        null,
+      ),
     );
     expect(page.map((conversation) => conversation.id)).toEqual([third.id, second.id]);
 
@@ -34,7 +39,7 @@ describe('ConversationsRepository', () => {
     const next = await testbed.tenants.run(first.workspaceId, () =>
       testbed.conversations.listLive(
         first.workspaceId,
-        [ConversationState.AgentActive],
+        { states: [ConversationState.AgentActive], channelIds: [], agentIds: [], search: null },
         2,
         cursor ?? null,
       ),
@@ -56,17 +61,26 @@ describe('ConversationsRepository', () => {
     const outcome = await testbed.tenants.run(waiting.workspaceId, async () => ({
       needsYou: await testbed.conversations.listLive(
         waiting.workspaceId,
-        [ConversationState.Waiting, ConversationState.Handled],
+        {
+          states: [ConversationState.Waiting, ConversationState.Handled],
+          channelIds: [],
+          agentIds: [],
+          search: null,
+        },
         10,
         null,
       ),
       live: await testbed.conversations.listLive(
         waiting.workspaceId,
-        [ConversationState.AgentActive],
+        { states: [ConversationState.AgentActive], channelIds: [], agentIds: [], search: null },
         10,
         null,
       ),
-      counts: await testbed.conversations.countByState(waiting.workspaceId),
+      counts: await testbed.conversations.countByState(waiting.workspaceId, {
+        channelIds: [],
+        agentIds: [],
+        search: null,
+      }),
     }));
 
     expect(outcome.needsYou.map((conversation) => conversation.id)).toEqual([waiting.id]);
@@ -78,6 +92,46 @@ describe('ConversationsRepository', () => {
         [ConversationState.Closed, 1],
       ]),
     );
+  });
+
+  it('filters the live list by channel and search', async () => {
+    const base = await seedConversation(testbed);
+    testbed.clock.advanceBy(1000);
+    const other = await testbed.tenants.run(base.workspaceId, () =>
+      testbed.conversations.insert({
+        ...base,
+        id: testbed.ids.generate(),
+        channelId: 'chn_api',
+        endUserName: 'Searchable Customer',
+        endUserExternalId: 'searchable-customer',
+      }),
+    );
+    const filter = {
+      states: [ConversationState.AgentActive],
+      agentIds: [],
+      channelIds: [],
+      search: null,
+    };
+
+    const byChannel = await testbed.tenants.run(base.workspaceId, () =>
+      testbed.conversations.listLive(
+        base.workspaceId,
+        { ...filter, channelIds: ['chn_api'] },
+        10,
+        null,
+      ),
+    );
+    const bySearch = await testbed.tenants.run(base.workspaceId, () =>
+      testbed.conversations.listLive(
+        base.workspaceId,
+        { ...filter, search: 'searchable' },
+        10,
+        null,
+      ),
+    );
+
+    expect(byChannel.map((conversation) => conversation.id)).toEqual([other.id]);
+    expect(bySearch.map((conversation) => conversation.id)).toEqual([other.id]);
   });
 
   it('lets only one of two concurrent claims win', async () => {

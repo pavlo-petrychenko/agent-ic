@@ -48,7 +48,6 @@ export type {
   InboxConversationDetailParent,
   InboxSummaryParent,
 } from '@/modules/conversations/typedefs/inbox-graphql.typedefs';
-export type { InboxDetail, InboxSummary } from '@/modules/conversations/typedefs/inbox.typedefs';
 export type {
   Message,
   OutboundDelivery,

@@ -30,6 +30,7 @@ import { CloseInactiveConversationsUseCase } from '@/modules/conversations/use-c
 import { CloseSimulationForInactivityUseCase } from '@/modules/conversations/use-cases/close-simulation-for-inactivity.use-case';
 import { GetInboxConversationUseCase } from '@/modules/conversations/use-cases/get-inbox-conversation.use-case';
 import { GetInboxCountsUseCase } from '@/modules/conversations/use-cases/get-inbox-counts.use-case';
+import { GetInboxFilterOptionsUseCase } from '@/modules/conversations/use-cases/get-inbox-filter-options.use-case';
 import { GetInboxNeedsYouCountUseCase } from '@/modules/conversations/use-cases/get-inbox-needs-you-count.use-case';
 import { GetSimulationUseCase } from '@/modules/conversations/use-cases/get-simulation.use-case';
 import { HandBackUseCase } from '@/modules/conversations/use-cases/hand-back.use-case';
@@ -68,6 +69,7 @@ export class ConversationsModule extends defineModule({
     ListInboxConversationsUseCase,
     GetInboxConversationUseCase,
     GetInboxCountsUseCase,
+    GetInboxFilterOptionsUseCase,
     GetInboxNeedsYouCountUseCase,
     SubscribeToConversationActivityUseCase,
     SubscribeToInboxActivityUseCase,

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { InboxConversationsDocument } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
 import { useInboxConversations } from '@/features/inbox/communication/hooks/useInboxConversations';
 import { INBOX_CONVERSATIONS_PAGE_SIZE } from '@/features/inbox/constants/inbox.constants';
+import type { InboxQueryFilters } from '@/features/inbox/typedefs/filters.typedefs';
 import { InboxQueue } from '@/shared/api/generated/schema.generated';
 
 const summary = (index: number) => ({
@@ -38,8 +39,24 @@ if (last === undefined) {
 }
 const secondPage = [summary(INBOX_CONVERSATIONS_PAGE_SIZE)];
 
+const filters = (queue: InboxQueue): InboxQueryFilters => ({
+  queue,
+  channelIds: [],
+  agentIds: [],
+  search: '',
+});
+
+const listVariables = (queue: InboxQueue, after: unknown = null) => ({
+  limit: INBOX_CONVERSATIONS_PAGE_SIZE,
+  after,
+  queue,
+  channelIds: [],
+  agentIds: [],
+  search: null,
+});
+
 function Harness({ queue }: { readonly queue: InboxQueue }) {
-  const { summaries, loadMore, loadingMore, hasMore } = useInboxConversations(queue);
+  const { summaries, loadMore, loadingMore, hasMore } = useInboxConversations(filters(queue));
   return (
     <div>
       <span>{summaries.length}</span>
@@ -59,18 +76,17 @@ describe('useInboxConversations', () => {
           {
             request: {
               query: InboxConversationsDocument,
-              variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null, queue: 'needs_you' },
+              variables: listVariables(InboxQueue.NeedsYou),
             },
             result: { data: { inboxConversations: firstPage } },
           },
           {
             request: {
               query: InboxConversationsDocument,
-              variables: {
-                limit: INBOX_CONVERSATIONS_PAGE_SIZE,
-                after: { lastMessageAt: last.lastMessageAt, id: last.id },
-                queue: 'needs_you',
-              },
+              variables: listVariables(InboxQueue.NeedsYou, {
+                lastMessageAt: last.lastMessageAt,
+                id: last.id,
+              }),
             },
             result: { data: { inboxConversations: secondPage } },
           },
@@ -91,14 +107,14 @@ describe('useInboxConversations', () => {
     expect(screen.getByText('done')).toBeInTheDocument();
   });
 
-  it('drops the older pages when the queue changes', async () => {
+  it('drops the older pages when the filters change', async () => {
     const view = render(
       <MockedProvider
         mocks={[
           {
             request: {
               query: InboxConversationsDocument,
-              variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null, queue: 'needs_you' },
+              variables: listVariables(InboxQueue.NeedsYou),
             },
             result: { data: { inboxConversations: firstPage } },
             maxUsageCount: Number.POSITIVE_INFINITY,
@@ -106,11 +122,10 @@ describe('useInboxConversations', () => {
           {
             request: {
               query: InboxConversationsDocument,
-              variables: {
-                limit: INBOX_CONVERSATIONS_PAGE_SIZE,
-                after: { lastMessageAt: last.lastMessageAt, id: last.id },
-                queue: 'needs_you',
-              },
+              variables: listVariables(InboxQueue.NeedsYou, {
+                lastMessageAt: last.lastMessageAt,
+                id: last.id,
+              }),
             },
             result: { data: { inboxConversations: secondPage } },
             maxUsageCount: Number.POSITIVE_INFINITY,
@@ -118,7 +133,7 @@ describe('useInboxConversations', () => {
           {
             request: {
               query: InboxConversationsDocument,
-              variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null, queue: 'live' },
+              variables: listVariables(InboxQueue.Live),
             },
             result: { data: { inboxConversations: [summary(99)] } },
             maxUsageCount: Number.POSITIVE_INFINITY,
@@ -141,7 +156,7 @@ describe('useInboxConversations', () => {
           {
             request: {
               query: InboxConversationsDocument,
-              variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null, queue: 'live' },
+              variables: listVariables(InboxQueue.Live),
             },
             result: { data: { inboxConversations: [summary(99)] } },
             maxUsageCount: Number.POSITIVE_INFINITY,

@@ -30,6 +30,8 @@ export const EMPTY_INBOX_COUNTS: InboxTabCounts = {
   [InboxTab.Closed]: 0,
 };
 
+export const INBOX_SEARCH_DEBOUNCE_MS = 300;
+
 export enum InboxProvider {
   Telegram = 'telegram',
   Api = 'api',
