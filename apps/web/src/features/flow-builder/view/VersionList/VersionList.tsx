@@ -45,13 +45,17 @@ export function VersionList({
             {(showRollback || showRestore) && (
               <div className={styles.actions}>
                 {showRollback && (
-                  <Button size={ButtonSize.Sm} onClick={() => onRollback(item.id)}>
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Sm}
+                    onClick={() => onRollback(item.id)}
+                  >
                     {t('versions.rollback.action')}
                   </Button>
                 )}
                 {showRestore && (
                   <Button
-                    variant={ButtonVariant.Secondary}
+                    variant={ButtonVariant.Ghost}
                     size={ButtonSize.Sm}
                     onClick={() => onRestore(item.id)}
                   >
