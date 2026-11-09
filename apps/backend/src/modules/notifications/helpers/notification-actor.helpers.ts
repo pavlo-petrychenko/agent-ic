@@ -1,11 +1,7 @@
+import type { NotificationActor } from '@/modules/notifications/typedefs/notification-actor.typedefs';
 import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
 import { requireUserActor } from '@/platform/context/helpers/use-case-ctx.helpers';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
-
-export interface NotificationActor {
-  readonly userId: string;
-  readonly workspaceId: string;
-}
 
 export const notificationActorOf = (ctx: UseCaseCtx): NotificationActor => {
   const actor = requireUserActor(ctx);

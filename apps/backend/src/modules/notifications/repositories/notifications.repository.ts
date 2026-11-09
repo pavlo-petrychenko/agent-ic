@@ -3,6 +3,15 @@ import { Injectable } from '@nestjs/common';
 import { and, count, eq, inArray, isNull, lt, lte, ne, or, sql } from 'drizzle-orm';
 import { DELIVERY_MAX_ATTEMPTS } from '@/modules/notifications/constants/notification-delivery.constants';
 import {
+  RUNS_SCHEMA,
+  RUN_STEPS_TABLE,
+  RUNS_TABLE,
+  NOTIFICATIONS_TABLE,
+  CONVERSATIONS_SCHEMA,
+  CONVERSATIONS_TABLE,
+  NEEDS_PERSON_CONVERSATION_FILTER,
+} from '@/modules/notifications/constants/notification-repository.constants';
+import {
   NOTIFICATIONS_SCHEMA,
   NotificationChannel,
   NotificationDeliveryStatus,
@@ -22,14 +31,6 @@ import type {
 } from '@/modules/notifications/typedefs/notification.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { AppTransactionAdapter } from '@/platform/database/typedefs/transaction.typedefs';
-
-const RUNS_SCHEMA = 'runs';
-const RUN_STEPS_TABLE = 'run_steps';
-const RUNS_TABLE = 'runs';
-const NOTIFICATIONS_TABLE = 'notifications';
-const CONVERSATIONS_SCHEMA = 'conversations';
-const CONVERSATIONS_TABLE = 'conversations';
-const NEEDS_PERSON_CONVERSATION_FILTER = sql`c.mode = 'live' and c.state = 'waiting'`;
 
 type LatestUnreadRow = Readonly<{
   id: string;
