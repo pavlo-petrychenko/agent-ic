@@ -35,6 +35,14 @@ describe('FlowNode', () => {
     expect(screen.getByText('reply')).toBeInTheDocument();
   });
 
+  it('keeps the full meta text as the hover title', () => {
+    const meta =
+      'Thanks for your order. We will call you within the hour to confirm the delivery time.';
+    renderNode({ meta });
+
+    expect(screen.getByText(meta)).toHaveAttribute('title', meta);
+  });
+
   it('shows a callout with its tone role', () => {
     renderNode({ callout: { tone: CalloutTone.Err, text: 'Model unavailable' } });
 

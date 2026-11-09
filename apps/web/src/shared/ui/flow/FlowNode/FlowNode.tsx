@@ -54,7 +54,11 @@ export function FlowNode({
         icon={icon}
         invalidLabel={invalidLabel}
       />
-      {full && meta !== null && <p className={styles.meta}>{meta}</p>}
+      {full && meta !== null && (
+        <p className={styles.meta} title={meta}>
+          {meta}
+        </p>
+      )}
       {full && chips.length > 0 && (
         <span className={styles.chips}>
           {chips.map((chip) => (
