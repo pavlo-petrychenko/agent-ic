@@ -1,6 +1,6 @@
 # Notifications module
 
-**Status:** settings storage and API, plus recipient resolution, November 2026. The `notifications` schema, the personal settings read/write API and the handoff recipient resolver exist. There is no notification producer, delivery worker, in-app notification list or Telegram linking flow yet. Email delivery still uses the existing `EmailGateway` for system mail.
+**Status:** schema, settings API, recipient resolver and producer, November 2026. The `notifications` schema, the personal settings read/write API, the handoff recipient resolver and the escalation producer exist. There is no delivery worker, in-app notification list or Telegram linking flow yet. Email delivery still uses the existing `EmailGateway` for system mail.
 
 **Decisions:** D307 (notification storage), D85 (Resend), D167 (email gateway). Product requirements: `mvp-scope.md` §12.11, `communication.md` chain F.
 
@@ -43,6 +43,16 @@ Recipient resolution is built. `NotificationRecipientsService.recipientsFor(work
 - a user with no remaining channels is left out.
 
 It does not create a notification yet; that is the producer's job.
+
+The producer is a `runs` listener on `runs.escalated`, not a notifications listener. `notifications` cannot import `runs` or `conversations` without a cycle through `usage`; `runs` already imports both. For a live handoff the listener:
+
+- calls `NotificationRecipientsService.recipientsFor`;
+- reads the last customer message through `MessagesRepository.findLatestCustomerMessage`;
+- writes one `notifications` row per recipient and one `notification_deliveries` row per channel, idempotently on the existing unique keys;
+- marks platform deliveries `delivered` with `sent_at`, and leaves email and Telegram `pending` for the delivery worker;
+- skips `mode = simulation`.
+
+The delivery worker and sweeper are still missing.
 
 ## 2. Schema
 
@@ -233,8 +243,7 @@ The current schema has no retry metadata yet: no `attempts`, `next_attempt_at`, 
 
 ## 6. What is still missing
 
-- A producer: the resolver is built, but nothing creates `notifications` or `notification_deliveries` yet. The intended trigger is `runs.escalated`, which carries the handoff `runStepId`; the listener reads `run_steps.output` once it exists, otherwise it retries.
-- A delivery worker and a sweeper; the `pending`/`failed` rows are the source.
+- A delivery worker and a sweeper; the `pending`/`failed` rows are the source. The producer already writes them.
 - Telegram alerts bot and the linking flow (`chat_id`, hashed code, 10-minute expiry). The settings API already returns `linked` and `linkedAt`, but nothing can link yet.
 - Browser notifications and the in-app notification list. The settings page now reads and writes the three channel toggles, but no notification is created.
 - Reminder and fallback timers.

@@ -79,6 +79,25 @@ export class MessagesRepository {
     return message ?? null;
   }
 
+  async findLatestCustomerMessage(
+    workspaceId: string,
+    conversationId: string,
+  ): Promise<Message | null> {
+    const [message] = await this.txHost.tx
+      .select()
+      .from(messages)
+      .where(
+        and(
+          eq(messages.workspaceId, workspaceId),
+          eq(messages.conversationId, conversationId),
+          eq(messages.author, MessageAuthor.Customer),
+        ),
+      )
+      .orderBy(desc(messages.createdAt), desc(messages.id))
+      .limit(1);
+    return message ?? null;
+  }
+
   async countByRuns(workspaceId: string, runIds: readonly string[]): Promise<RunMessageCount[]> {
     if (runIds.length === 0) {
       return [];
