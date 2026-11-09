@@ -57,6 +57,10 @@ $kinds:
   font: var(--type-caption);
 }
 
+.action {
+  margin-top: var(--space-2);
+}
+
 .body {
   display: flex;
   flex: 1 1 auto;

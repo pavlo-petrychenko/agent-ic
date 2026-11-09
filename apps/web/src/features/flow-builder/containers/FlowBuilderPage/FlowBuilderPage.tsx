@@ -13,6 +13,7 @@ import type { FlowBuilderPageProps } from '@/features/flow-builder/containers/Fl
 import { useDraftAutosave } from '@/features/flow-builder/containers/FlowBuilderPage/useDraftAutosave';
 import { FlowEditor } from '@/features/flow-builder/containers/FlowEditor';
 import { FlowSettingsPanel } from '@/features/flow-builder/containers/FlowSettingsPanel';
+import { GuidesDrawer } from '@/features/flow-builder/containers/GuidesDrawer';
 import { InspectorPanel } from '@/features/flow-builder/containers/InspectorPanel';
 import { IssuesPanel } from '@/features/flow-builder/containers/IssuesPanel';
 import { LastRunBar } from '@/features/flow-builder/containers/LastRunBar';
@@ -213,6 +214,7 @@ export function FlowBuilderPage({ workspaceId, agentId, nodeId }: FlowBuilderPag
             <LastRunBar workspaceId={workspaceId} agentId={agentId} />
           </div>
           <InspectorPanel workspaceId={workspaceId} agentId={agentId} />
+          <GuidesDrawer workspaceId={workspaceId} agentId={agentId} />
           <FlowSettingsPanel agentName={agentName ?? ''} />
           <LeaveGuard />
           <VersionsDrawer

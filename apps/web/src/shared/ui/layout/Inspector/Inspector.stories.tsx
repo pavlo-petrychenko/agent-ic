@@ -1,7 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { ResolvedTheme } from '@/shared/theme/constants/theme.constants';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { NodeKind } from '@/shared/ui/display/NodeTile';
+import { IconName } from '@/shared/ui/foundations/Icon';
 import { Field } from '@/shared/ui/inputs/Field';
 import { Input } from '@/shared/ui/inputs/Input';
 import { Switch } from '@/shared/ui/inputs/Switch';
@@ -67,6 +69,15 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const SendMessage: Story = {};
+export const WithHeaderAction: Story = {
+  args: {
+    headerAction: (
+      <Button variant={ButtonVariant.Ghost} size={ButtonSize.Sm} icon={IconName.Info}>
+        How it works
+      </Button>
+    ),
+  },
+};
 export const WithoutSubtitle: Story = { args: { subtitle: null } };
 export const AgentKind: Story = {
   args: { kind: { label: 'Agent', kind: NodeKind.Agent }, title: 'Support agent' },

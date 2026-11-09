@@ -3,6 +3,33 @@ $ghost-rotation: -1.5deg;
 $ghost-offscreen: -10000px;
 $story-width: 232px;
 
+.item {
+  position: relative;
+}
+
+.info {
+  position: absolute;
+  top: 50%;
+  right: var(--space-4);
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity var(--duration-fast) var(--ease-standard);
+
+  .item:hover &,
+  .item:focus-within &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+.withInfo .root {
+  padding-right: calc(var(--size-control-xs) + var(--space-6));
+}
+
 .root {
   display: flex;
   align-items: center;
@@ -87,7 +114,8 @@ $story-width: 232px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .root {
+  .root,
+  .info {
     transition: none;
   }
 }

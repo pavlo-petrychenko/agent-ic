@@ -847,5 +847,273 @@
       "introLive": "We copy v{{number}} into the draft so you can edit it. Customers stay on v{{live}} until you publish.",
       "success": "v{{number}} is in the draft"
     }
+  },
+  "guide": {
+    "title": "Guides",
+    "open": "Guides",
+    "close": "Close guides",
+    "back": "All guides",
+    "search": "Search guides",
+    "clearSearch": "Clear search",
+    "nothingFound": "No guides match your search",
+    "howItWorks": "How it works",
+    "paletteInfo": "How {{name}} works",
+    "group": {
+      "concepts": "Concepts"
+    },
+    "kind": {
+      "component": "Step guide",
+      "concept": "Concept"
+    },
+    "section": {
+      "does": "What it does",
+      "when": "When to use it",
+      "tips": "Good to know",
+      "points": "The main ideas",
+      "links": "Open in the app",
+      "example": "Example"
+    },
+    "example": {
+      "ariaLabel": "Flow of the example “{{name}}”, with the {{step}} highlighted",
+      "use": "Use as a new agent",
+      "alsoIn": "Also in",
+      "alsoInOpen": "Open the “{{name}}” template"
+    },
+    "link": {
+      "knowledge": "Knowledge",
+      "channels": "Channels",
+      "inbox": "Inbox",
+      "notifications": "Settings · Notifications",
+      "testing": "Testing this agent",
+      "versions": "Versions of this agent"
+    },
+    "items": {
+      "trigger_message": {
+        "summary": "Starts the flow every time a customer writes to the agent.",
+        "does": "Each customer message on a connected channel starts a run from this trigger. The run gets the message, who wrote it and the whole conversation so far. Photos and files come as attachments; voice messages are ignored.",
+        "when": [
+          "Every agent that answers customers needs one.",
+          "Limit it to some channels when a flow should not answer everywhere.",
+          "Add a second flow branch with its own trigger for a different job, such as a follow-up."
+        ],
+        "tips": [
+          "It provides <code>{{messageText}}</code>, <code>{{userName}}</code>, <code>{{channelVar}}</code> and <code>{{historyVar}}</code> to every step after it.",
+          "While a person handles a chat, this trigger does not run. New messages wait in the Inbox.",
+          "From this trigger the flow must reach a Send message step, or an Escalation with a message for the customer. Otherwise it cannot be published."
+        ]
+      },
+      "trigger_schedule": {
+        "summary": "Starts the flow on a timer, for the chats that match your rules.",
+        "does": "At the set time (every day, on weekdays or by a custom cron) the trigger looks for chats that match your conditions and starts the flow once in each one. The time follows the time zone you choose.",
+        "when": [
+          "A daily check-in with customers who went quiet.",
+          "A reminder about a booking or an order.",
+          "A morning follow-up that must not depend on a new message."
+        ],
+        "tips": [
+          "Choose which channel types it may use, and keep the number of chats per run low.",
+          "A schedule that fires too often cannot be published.",
+          "A run that is long overdue is skipped, not sent late.",
+          "It provides the conversation and <code>{{historyVar}}</code>. It has no customer message, so write the first message yourself with a Send message step."
+        ]
+      },
+      "trigger_inactivity": {
+        "summary": "Starts a branch in one chat after the customer has gone quiet.",
+        "does": "After a stretch of silence, from 5 minutes to 30 days, the trigger starts in that one conversation. It can fire once, or repeat up to 5 times. Use it to nudge, remind or close the chat politely.",
+        "when": [
+          "Check in after 2 hours without a reply.",
+          "Send a last reminder a day later, then end the chat.",
+          "Ask whether the customer still needs help."
+        ],
+        "tips": [
+          "The flow also needs an Incoming message trigger, and it can have only one inactivity trigger.",
+          "Choose what counts as activity: any message, or only the customer’s.",
+          "It provides <code>{{silentMinutes}}</code> and <code>{{attemptVar}}</code>, so a message can sound different on the last try.",
+          "Auto-close counts from the last customer message. Keep every follow-up earlier than the auto-close time."
+        ]
+      },
+      "agent": {
+        "summary": "An AI that reads the conversation and decides what to say, using your prompt and knowledge bases.",
+        "does": "The Agent step runs once for each customer message. It follows a prompt from your library, can search the knowledge bases you attach, and returns reply texts plus the fields you define. It never writes to the customer itself: a Send message step does that.",
+        "when": [
+          "Answer questions from your documents.",
+          "Collect details such as a name and a phone number in a chat.",
+          "Decide that the customer needs a person, with the “Hand off to a person” exit.",
+          "Draft a reply that other steps check before it is sent."
+        ],
+        "tips": [
+          "The replies are in <code>{{agentMessages}}</code>. Pass them to a Send message step.",
+          "Add output fields to get structured data, such as <code>{{agentIntent}}</code>, for a Router.",
+          "Turn on the “End conversation” and “Hand off to a person” exits to let the agent finish or call a person. They add <code>{{agentOutcome}}</code> for later steps.",
+          "If the model fails, the step retries. If it still fails, the run follows the “on error” path, or your flow setting for failures."
+        ]
+      },
+      "completion": {
+        "summary": "One AI call for a small task: classify, extract, rewrite or judge.",
+        "does": "A Completion step sends the conversation to the model once, with no tools, and returns the fields you define. It is quicker and cheaper than an Agent. Use it to prepare data for a Router or to check a reply.",
+        "when": [
+          "Sort a message by intent before routing it.",
+          "Pull a name or an order number out of free text.",
+          "Check a draft reply for safety before sending it.",
+          "Rate a conversation in a background branch."
+        ],
+        "tips": [
+          "Define its output fields. The model always returns valid data for them.",
+          "A Router reads those fields, for example <code>{{triageIntent}}</code>.",
+          "It has no tools and no knowledge bases. For those, use an Agent.",
+          "In a background branch its result is not visible after the join, and it cannot stop the flow."
+        ]
+      },
+      "router": {
+        "summary": "Sends the chat down one path, based on rules you write.",
+        "does": "A Router checks its rules from top to bottom. The first rule that matches picks the path. When no rule matches, the else path runs. A rule compares a variable from the trigger or an earlier step with a value.",
+        "when": [
+          "Send questions, bookings and complaints down different paths.",
+          "Hand off to a person when an earlier check finds an upset customer.",
+          "React to an API result, such as found or not found.",
+          "Branch on the button the customer pressed."
+        ],
+        "tips": [
+          "Order matters. The first match wins, so put the most specific rule first.",
+          "Connect every route and the else path, or some chats reach a dead end.",
+          "A rule can read only what an earlier step provides, such as an Agent or Completion output field.",
+          "Fields from background branches are not available."
+        ]
+      },
+      "parallel": {
+        "summary": "Runs several branches at the same time.",
+        "does": "A Parallel step starts all its branches together. Each branch is either waited for or runs in the background. The flow continues when the waited branches are done: all of them, or just the first.",
+        "when": [
+          "Check a message for safety while a reply is drafted.",
+          "Record a score or a tag without slowing the reply.",
+          "Load data from two systems at once."
+        ],
+        "tips": [
+          "At least one branch must be waited for.",
+          "A background branch does not delay the reply, and its results are not visible after the join. The run ends when it finishes.",
+          "Send message is not allowed inside a branch. Send after the join.",
+          "An Escalation is allowed in a waited branch, but not in a background one."
+        ]
+      },
+      "send_message": {
+        "summary": "The step that writes to the customer.",
+        "does": "Send message is the only step that talks to the customer. It sends text with variables, or one chat message for each item of a list, such as an Agent’s replies. It can add quick reply buttons, and it shows “typing…” before each message.",
+        "when": [
+          "Deliver the Agent’s answer.",
+          "Show menu buttons.",
+          "Send a fixed notice, a confirmation or a follow-up."
+        ],
+        "tips": [
+          "Pick the list <code>{{agentMessages}}</code> to send each reply of an Agent as its own message.",
+          "Quick reply buttons can be fixed, or built from an output field. A tap arrives as the customer’s next message.",
+          "A flow that starts with a message must reach a Send message step, or an Escalation with a message, to be published."
+        ]
+      },
+      "api_request": {
+        "summary": "Calls your own system or a web service, with no AI involved.",
+        "does": "An API request sends an HTTP request with the method, URL, headers and body you set. Variables can go in any of them. The answer is available to later steps as the status and the body. It has a timeout and retries.",
+        "when": [
+          "Save a lead or a booking in your system.",
+          "Look up an order by its number.",
+          "Tell another tool that a chat is closed."
+        ],
+        "tips": [
+          "Read the answer with <code>{{apiStatus}}</code> and <code>{{apiBody}}</code>.",
+          "Defaults: a 5 second timeout and 2 retries with a growing pause.",
+          "Choose what happens on failure: continue without the data, or follow the “on error” path.",
+          "Use the test button in the step to try the call before you publish."
+        ]
+      },
+      "escalation": {
+        "summary": "Hands the chat to a person, or ends the conversation.",
+        "does": "An Escalation step hands the chat to your team, with a message for the customer if you like. People are notified in the app, by email or in Telegram, and continue the chat from the Inbox. In end mode it closes the conversation instead.",
+        "when": [
+          "The customer asks for a person, or is upset.",
+          "A safety check finds a sensitive topic.",
+          "The agent cannot answer.",
+          "Close the chat after a goodbye."
+        ],
+        "tips": [
+          "Choose who is notified, operators or a role, and through which channels.",
+          "The reason you set shows in the Inbox, so the person knows why the chat arrived.",
+          "Set a reminder and a fallback message for the case that nobody replies in time.",
+          "While a person has the chat, the agent is paused. It resumes when they hand the chat back."
+        ]
+      },
+      "variables": {
+        "title": "Variables and outputs",
+        "summary": "Every step can pass data to the steps after it.",
+        "points": [
+          "Write a variable as <code>{{stepField}}</code>: the key of a step, a dot and a field name. For example <code>{{triageIntent}}</code>.",
+          "An Agent or a Completion declares output fields, and the model always returns valid values for them. A Router can read them: “intent is booking”, “score above 7”.",
+          "In any text field of a step, type <code>{{openBraces}}</code> to pick from the variables you can use there.",
+          "A trigger provides its own variables, such as <code>{{messageText}}</code>, <code>{{userName}}</code>, <code>{{channelVar}}</code>, <code>{{historyVar}}</code> and <code>{{todayVar}}</code>.",
+          "Steps in a background branch keep their output to themselves. Steps after the join cannot read it."
+        ]
+      },
+      "knowledge_bases": {
+        "title": "Knowledge bases",
+        "summary": "The documents your agent can search when it answers.",
+        "points": [
+          "Create a knowledge base on the Knowledge page and add your documents to it.",
+          "Attach one or more knowledge bases inside an Agent step. The canvas has no knowledge step.",
+          "The agent searches them by itself while it answers.",
+          "Say in the prompt what to do when nothing is found, for example “say so and offer a person”.",
+          "Answers are only as good as the documents, so keep them up to date."
+        ]
+      },
+      "channels": {
+        "title": "Channels",
+        "summary": "Where customers talk to your agent.",
+        "points": [
+          "Connect a Telegram bot or an API channel on the Channels page.",
+          "One agent can run on several channels at the same time.",
+          "The Incoming message trigger can be limited to some channels.",
+          "The same steps work on every channel, so you build the flow once."
+        ]
+      },
+      "hand_off": {
+        "title": "Hand-off",
+        "summary": "Passing a chat from the agent to a person.",
+        "points": [
+          "Three things can hand off: an Escalation step, an exit of an Agent step, and a failed step that is set to hand off.",
+          "Set the default hand-off for the whole flow in Flow settings: who is notified, reminders and a fallback message.",
+          "While a person has the chat, the agent is paused and new messages go to the Inbox.",
+          "The person hands the chat back, or closes it, from the Inbox."
+        ]
+      },
+      "inbox_notifications": {
+        "title": "Inbox and notifications",
+        "summary": "Where people pick up the chats the agent hands off.",
+        "points": [
+          "Every hand-off lands in the Inbox under “Needs you”, with the reason.",
+          "Each person chooses to be alerted in the app, by email or in Telegram.",
+          "Turn those channels on in Settings, under Notifications. Link Telegram with a one-time code.",
+          "Only one person handles a chat at a time. The others see it read-only.",
+          "The number on the Inbox item counts the chats that need you."
+        ]
+      },
+      "testing_traces": {
+        "title": "Testing and traces",
+        "summary": "Try the flow before real customers do.",
+        "points": [
+          "The simulator chats with your draft as a test customer on a channel you pick.",
+          "Each turn has a trace: the steps that ran, what each returned, how long it took and which knowledge was used.",
+          "You can also run a schedule or an event trigger, and reply as an operator to test the hand-back.",
+          "Test after every change. The bar under the canvas shows whether the current draft was tested."
+        ]
+      },
+      "publishing": {
+        "title": "Publishing, versions and rollback",
+        "summary": "Your changes stay private until you publish them.",
+        "points": [
+          "You edit a draft. Customers talk to the live version only.",
+          "Publish checks the flow, shows what changed and makes a new numbered version. Chats in progress finish on the old one.",
+          "Fix every blocking error first. Warnings can wait.",
+          "Every version is kept. On the Versions page you can compare two versions and restore an old one into your draft.",
+          "Rolling back the live agent to an earlier version is done from the same page."
+        ]
+      }
+    }
   }
 }

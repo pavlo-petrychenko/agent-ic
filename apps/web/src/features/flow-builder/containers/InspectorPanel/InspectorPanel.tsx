@@ -56,6 +56,7 @@ import {
   updateEscalate,
 } from '@/features/flow-builder/logic/helpers/escalation.helpers';
 import { renameKey } from '@/features/flow-builder/logic/helpers/graphEdit.helpers';
+import { guideOfNodeType } from '@/features/flow-builder/logic/helpers/guide.helpers';
 import { newElementId } from '@/features/flow-builder/logic/helpers/id.helpers';
 import {
   backgroundStepNames,
@@ -104,6 +105,7 @@ import {
 } from '@/features/flow-builder/logic/helpers/sendMessage.helpers';
 import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
+import { useGuideStore } from '@/features/flow-builder/storage/hooks/useGuideStore';
 import type { AgentExitsView } from '@/features/flow-builder/typedefs/agentExit.typedefs';
 import type { KeyRename } from '@/features/flow-builder/typedefs/inspector.typedefs';
 import type {
@@ -119,7 +121,8 @@ import { ParallelInspector } from '@/features/flow-builder/view/ParallelInspecto
 import { RouterInspector } from '@/features/flow-builder/view/RouterInspector';
 import { SendMessageInspector } from '@/features/flow-builder/view/SendMessageInspector';
 import { TriggerInspector } from '@/features/flow-builder/view/TriggerInspector';
-import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
+import { IconName } from '@/shared/ui/foundations/Icon';
 import { Inspector } from '@/shared/ui/layout/Inspector';
 import { Dialog } from '@/shared/ui/overlays/Dialog';
 
@@ -132,6 +135,7 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
   const apply = useFlowBuilderStore((state) => state.apply);
   const previewEdit = useFlowBuilderStore((state) => state.previewEdit);
   const select = useFlowBuilderStore((state) => state.select);
+  const openGuide = useGuideStore((state) => state.openGuide);
   const issues = useFlowIssues();
   const [keyRename, setKeyRename] = useState<KeyRename | null>(null);
   const [nodeId] = selection.nodeIds.length === 1 ? selection.nodeIds : [null];
@@ -463,6 +467,7 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
   const inspector = (current: FlowNode) => {
     const name = nodeName(current);
     const described = DESCRIBED_NODE_TYPES.find((type) => type === current.type) ?? null;
+    const guideId = guideOfNodeType(current.type);
     return (
       <Inspector
         kind={{ label: t(`inspector.kind.${current.type}`), ...NODE_PRESENTATION[current.type] }}
@@ -486,6 +491,18 @@ export function InspectorPanel({ workspaceId, agentId }: InspectorPanelProps) {
               setKeyRename(proposeKeyRename(renamed, current.id, label));
             }}
           />
+        }
+        headerAction={
+          guideId === null ? null : (
+            <Button
+              variant={ButtonVariant.Ghost}
+              size={ButtonSize.Sm}
+              icon={IconName.Info}
+              onClick={() => openGuide(guideId)}
+            >
+              {t('guide.howItWorks')}
+            </Button>
+          )
         }
         closeLabel={t('inspector.close')}
         onClose={() => select(EMPTY_SELECTION)}

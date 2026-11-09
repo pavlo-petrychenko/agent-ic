@@ -9,7 +9,7 @@ import { NavSectionLabel } from '@/shared/ui/navigation/NavSectionLabel';
 import { Text, TextColor, TextKind } from '@/shared/ui/typography/Text';
 import styles from '@/features/flow-builder/view/StepPalette/StepPalette.module.scss';
 
-export function StepPalette({ sections, query, onQueryChange, onAdd }: StepPaletteProps) {
+export function StepPalette({ sections, query, onQueryChange, onAdd, onGuide }: StepPaletteProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
 
   return (
@@ -56,6 +56,8 @@ export function StepPalette({ sections, query, onQueryChange, onAdd }: StepPalet
                 icon={NODE_PRESENTATION[type].icon}
                 dragData={type}
                 onSelect={() => onAdd(type)}
+                onInfo={() => onGuide(type)}
+                infoLabel={t('guide.paletteInfo', { name: t(`step.${type}`) })}
               />
             ))}
           </div>

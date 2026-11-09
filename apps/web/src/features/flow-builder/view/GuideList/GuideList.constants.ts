@@ -1,0 +1,1 @@
+export const GUIDE_LIST_CHEVRON_SIZE = 14;

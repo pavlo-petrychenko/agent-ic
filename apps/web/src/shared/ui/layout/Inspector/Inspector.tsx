@@ -13,6 +13,7 @@ export function Inspector({
   title,
   subtitle = null,
   heading = null,
+  headerAction = null,
   closeLabel,
   onClose,
   className,
@@ -41,6 +42,7 @@ export function Inspector({
             {heading ?? title}
           </Heading>
           {subtitle !== null && <p className={styles.subtitle}>{subtitle}</p>}
+          {headerAction !== null && <div className={styles.action}>{headerAction}</div>}
         </div>
         <IconButton
           icon={IconName.X}
