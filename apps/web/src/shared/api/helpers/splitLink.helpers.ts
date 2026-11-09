@@ -35,7 +35,7 @@ export const buildWebSocketUrl = (
 export const buildConnectionParams = ({
   accessToken,
   workspaceId,
-}: Readonly<RequestContextState>): Record<string, string> => ({
+}: Readonly<Pick<RequestContextState, 'accessToken' | 'workspaceId'>>): Record<string, string> => ({
   ...(accessToken === null
     ? {}
     : { [ConnectionParam.Authorization]: `${BEARER_SCHEME} ${accessToken}` }),

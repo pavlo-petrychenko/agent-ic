@@ -1,4 +1,5 @@
 export enum RequestHeader {
+  AcceptLanguage = 'accept-language',
   Authorization = 'authorization',
   ContentType = 'content-type',
   WorkspaceId = 'x-workspace-id',

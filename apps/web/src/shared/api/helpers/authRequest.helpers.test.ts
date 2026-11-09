@@ -1,8 +1,9 @@
-import { ErrorCode, ErrorReason } from '@agent-ic/contracts';
+import { DEFAULT_LOCALE, ErrorCode, ErrorReason, Locale } from '@agent-ic/contracts';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AuthEndpoint } from '@/shared/api/constants/authApi.constants';
 import { ClientErrorCode } from '@/shared/api/constants/clientError.constants';
 import { postAuthRequest } from '@/shared/api/helpers/authRequest.helpers';
+import { setRequestLocale } from '@/shared/api/helpers/requestContext.helpers';
 
 const stubFetch = (response: Response | Error) => {
   const fetchMock = vi.fn<typeof fetch>(() =>
@@ -13,7 +14,10 @@ const stubFetch = (response: Response | Error) => {
 };
 
 describe('postAuthRequest', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    setRequestLocale(DEFAULT_LOCALE);
+  });
 
   it('posts JSON to the same origin with cookies, even without a body', async () => {
     const fetchMock = stubFetch(new Response(null, { status: 204 }));
@@ -24,9 +28,18 @@ describe('postAuthRequest', () => {
       method: 'POST',
       mode: 'same-origin',
       credentials: 'include',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'accept-language': DEFAULT_LOCALE },
       body: '{}',
     });
+  });
+
+  it('sends the language the person picked in the app', async () => {
+    const fetchMock = stubFetch(new Response(null, { status: 204 }));
+    setRequestLocale(Locale.Uk);
+
+    await postAuthRequest(AuthEndpoint.Logout);
+
+    expect(fetchMock.mock.calls[0]?.[1]?.headers).toMatchObject({ 'accept-language': Locale.Uk });
   });
 
   it('returns the parsed JSON body', async () => {
