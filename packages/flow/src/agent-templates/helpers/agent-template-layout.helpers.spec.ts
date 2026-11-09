@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { agentTemplates } from '@flow/agent-templates/helpers/agent-template.helpers';
 import type { FlowDocument } from '@flow/document/typedefs/flow.typedefs';
-import { agentExamples } from '@flow/examples/helpers/agent-example.helpers';
-import { builtExample, EXAMPLE_LOCALES } from '@test/support/fixtures/agent-example.fixture';
+import { builtTemplate, TEMPLATE_LOCALES } from '@test/support/fixtures/agent-template.fixture';
 import {
-  exampleEdgeOverlaps,
-  exampleNodeHits,
-  exampleNodeOverlaps,
+  layoutEdgeOverlaps,
+  layoutNodeHits,
+  layoutNodeOverlaps,
 } from '@test/support/helpers/flow-layout.helpers';
 
 const keyOf = (flow: FlowDocument, nodeId: string | undefined): string =>
@@ -16,43 +16,43 @@ const edgeName = (flow: FlowDocument, edgeId: string): string => {
   return `${keyOf(flow, edge?.source)}.${edge?.sourcePort ?? '?'} -> ${keyOf(flow, edge?.target)}`;
 };
 
-const CASES = agentExamples.flatMap((example) =>
-  EXAMPLE_LOCALES.map((locale) => [example.id, locale] as const),
+const CASES = agentTemplates.flatMap((template) =>
+  TEMPLATE_LOCALES.map((locale) => [template.key, locale] as const),
 );
 
-describe('agent example layout', () => {
-  it.each(CASES)('%s (%s) has no overlapping nodes', (id, locale) => {
-    const flow = builtExample(id, locale);
+describe('agent template layout', () => {
+  it.each(CASES)('%s (%s) has no overlapping nodes', (key, locale) => {
+    const flow = builtTemplate(key, locale);
 
-    const overlaps = exampleNodeOverlaps(flow).map(
+    const overlaps = layoutNodeOverlaps(flow).map(
       (pair) => `${keyOf(flow, pair.first)} over ${keyOf(flow, pair.second)}`,
     );
 
     expect(overlaps).toEqual([]);
   });
 
-  it.each(CASES)('%s (%s) has no edge running through a node', (id, locale) => {
-    const flow = builtExample(id, locale);
+  it.each(CASES)('%s (%s) has no edge running through a node', (key, locale) => {
+    const flow = builtTemplate(key, locale);
 
-    const hits = exampleNodeHits(flow).map(
+    const hits = layoutNodeHits(flow).map(
       (hit) => `${edgeName(flow, hit.edgeId)} through ${keyOf(flow, hit.nodeId)}`,
     );
 
     expect(hits).toEqual([]);
   });
 
-  it.each(CASES)('%s (%s) has no edges drawn over each other', (id, locale) => {
-    const flow = builtExample(id, locale);
+  it.each(CASES)('%s (%s) has no edges drawn over each other', (key, locale) => {
+    const flow = builtTemplate(key, locale);
 
-    const overlaps = exampleEdgeOverlaps(flow).map(
+    const overlaps = layoutEdgeOverlaps(flow).map(
       (pair) => `${edgeName(flow, pair.first)} over ${edgeName(flow, pair.second)}`,
     );
 
     expect(overlaps).toEqual([]);
   });
 
-  it.each(CASES)('%s (%s) reads top to bottom', (id, locale) => {
-    const flow = builtExample(id, locale);
+  it.each(CASES)('%s (%s) reads top to bottom', (key, locale) => {
+    const flow = builtTemplate(key, locale);
     const rows = new Map(flow.nodes.map((node) => [node.id, node.position.y]));
 
     const upward = flow.edges

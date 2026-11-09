@@ -1,23 +1,22 @@
-import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
-import { PortName } from '@flow/document/constants/flow.constants';
-import { AGENT_EXAMPLE_PROMPTS } from '@flow/examples/constants/agent-example-prompts.constants';
+import { AGENT_TEMPLATE_PROMPTS } from '@flow/agent-templates/constants/agent-template-prompts.constants';
 import {
   HAND_OFF_LABEL,
   SEND_ANSWER_LABEL,
-} from '@flow/examples/constants/agent-example-texts.constants';
+} from '@flow/agent-templates/constants/agent-template-texts.constants';
 import {
-  AGENT_EXAMPLE_HAND_OFF_KEY,
-  AGENT_EXAMPLE_TRIGGER_KEY,
-  AgentExampleCategory,
-  AgentExampleId,
-  AgentExampleLevel,
-  AgentExamplePromptKey,
-} from '@flow/examples/constants/agent-example.constants';
+  AGENT_TEMPLATE_HAND_OFF_KEY,
+  AGENT_TEMPLATE_TRIGGER_KEY,
+  AgentTemplateCategory,
+  AgentTemplateKind,
+  AgentTemplateKey,
+  AgentTemplateLevel,
+  AgentTemplatePromptKey,
+} from '@flow/agent-templates/constants/agent-template.constants';
 import {
   agentStep,
   completionStep,
-  exampleEnumField,
-  exampleRule,
+  templateEnumField,
+  templateRule,
   handOff,
   link,
   localizer,
@@ -25,12 +24,14 @@ import {
   routerStep,
   sendMessages,
   sendText,
-} from '@flow/examples/helpers/agent-example-nodes.helpers';
+} from '@flow/agent-templates/helpers/agent-template-nodes.helpers';
 import type {
-  AgentExampleDefinition,
-  AgentExampleOptions,
+  AgentTemplateDefinition,
+  AgentTemplateOptions,
   LocalizedText,
-} from '@flow/examples/typedefs/agent-example.typedefs';
+} from '@flow/agent-templates/typedefs/agent-template.typedefs';
+import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
+import { PortName } from '@flow/document/constants/flow.constants';
 import { NO_FLOW_SETTINGS } from '@flow/settings/constants/settings.constants';
 
 enum Intent {
@@ -52,7 +53,7 @@ const HOURS_TEXT: LocalizedText = {
   uk: 'Ми працюємо з понеділка по п’ятницю з 9:00 до 19:00 і в суботу з 10:00 до 16:00. Неділя — вихідний.',
 };
 
-const draft = (options: AgentExampleOptions) => {
+const draft = (options: AgentTemplateOptions) => {
   const t = localizer(options.locale);
   return {
     nodes: [
@@ -61,9 +62,9 @@ const draft = (options: AgentExampleOptions) => {
         key: CLASSIFY_KEY,
         label: t({ en: 'What does the customer want?', uk: 'Чого хоче клієнт?' }),
         at: [0, 1],
-        prompt: AgentExamplePromptKey.IntentClassifier,
+        prompt: AgentTemplatePromptKey.IntentClassifier,
         output: [
-          exampleEnumField(
+          templateEnumField(
             INTENT_FIELD,
             t({
               en: 'What the customer wants in the latest message',
@@ -78,14 +79,14 @@ const draft = (options: AgentExampleOptions) => {
         t({ en: 'Route by intent', uk: 'Маршрут за наміром' }),
         [-0.5, 2],
         [
-          exampleRule(
+          templateRule(
             HOURS_KEY,
             t({ en: 'Opening hours', uk: 'Години роботи' }),
             INTENT_VARIABLE,
             ConditionOperator.Eq,
             Intent.OpeningHours,
           ),
-          exampleRule(
+          templateRule(
             Intent.TalkToPerson,
             t({ en: 'Talk to a person', uk: 'Поговорити з людиною' }),
             INTENT_VARIABLE,
@@ -104,12 +105,12 @@ const draft = (options: AgentExampleOptions) => {
         key: ASSISTANT_KEY,
         label: t({ en: 'Answer the question', uk: 'Відповісти на питання' }),
         at: [0.5, 3],
-        prompt: AgentExamplePromptKey.SupportAssistant,
+        prompt: AgentTemplatePromptKey.SupportAssistant,
       }),
       sendMessages(REPLY_KEY, t(SEND_ANSWER_LABEL), [0.3623, 4], ASSISTANT_KEY),
       handOff(
         options,
-        AGENT_EXAMPLE_HAND_OFF_KEY,
+        AGENT_TEMPLATE_HAND_OFF_KEY,
         t(HAND_OFF_LABEL),
         [-0.5, 4],
         t({
@@ -119,23 +120,24 @@ const draft = (options: AgentExampleOptions) => {
       ),
     ],
     edges: [
-      link(AGENT_EXAMPLE_TRIGGER_KEY, CLASSIFY_KEY),
+      link(AGENT_TEMPLATE_TRIGGER_KEY, CLASSIFY_KEY),
       link(CLASSIFY_KEY, ROUTER_KEY),
       link(CLASSIFY_KEY, ASSISTANT_KEY, PortName.Error),
       link(ROUTER_KEY, HOURS_KEY, HOURS_KEY),
-      link(ROUTER_KEY, AGENT_EXAMPLE_HAND_OFF_KEY, Intent.TalkToPerson),
+      link(ROUTER_KEY, AGENT_TEMPLATE_HAND_OFF_KEY, Intent.TalkToPerson),
       link(ROUTER_KEY, ASSISTANT_KEY, PortName.Else),
       link(ASSISTANT_KEY, REPLY_KEY),
-      link(ASSISTANT_KEY, AGENT_EXAMPLE_HAND_OFF_KEY, PortName.Error),
+      link(ASSISTANT_KEY, AGENT_TEMPLATE_HAND_OFF_KEY, PortName.Error),
     ],
     settings: NO_FLOW_SETTINGS,
   };
 };
 
-export const INTENT_ROUTER_EXAMPLE: AgentExampleDefinition = {
-  id: AgentExampleId.IntentRouter,
-  category: AgentExampleCategory.Support,
-  level: AgentExampleLevel.Intermediate,
+export const INTENT_ROUTER_SNIPPET: AgentTemplateDefinition = {
+  key: AgentTemplateKey.IntentRouter,
+  kind: AgentTemplateKind.Snippet,
+  category: AgentTemplateCategory.Support,
+  level: AgentTemplateLevel.Intermediate,
   name: { en: 'Intent router', uk: 'Маршрутизація за наміром' },
   description: {
     en: 'A quick AI check sorts each message, then a Router sends it to a fixed answer, a person or the assistant.',
@@ -157,8 +159,8 @@ export const INTENT_ROUTER_EXAMPLE: AgentExampleDefinition = {
   ],
   usesKnowledge: false,
   prompts: [
-    AGENT_EXAMPLE_PROMPTS[AgentExamplePromptKey.IntentClassifier],
-    AGENT_EXAMPLE_PROMPTS[AgentExamplePromptKey.SupportAssistant],
+    AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.IntentClassifier],
+    AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.SupportAssistant],
   ],
   draft,
 };

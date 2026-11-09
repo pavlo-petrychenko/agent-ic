@@ -1,19 +1,19 @@
-import { PortName } from '@flow/document/constants/flow.constants';
-import { AGENT_EXAMPLE_PROMPTS } from '@flow/examples/constants/agent-example-prompts.constants';
+import { AGENT_TEMPLATE_PROMPTS } from '@flow/agent-templates/constants/agent-template-prompts.constants';
 import {
   ASSISTANT_FAILED_REASON,
   HAND_OFF_LABEL,
   SEND_ANSWER_LABEL,
-} from '@flow/examples/constants/agent-example-texts.constants';
+} from '@flow/agent-templates/constants/agent-template-texts.constants';
 import {
-  AGENT_EXAMPLE_HAND_OFF_KEY,
-  AGENT_EXAMPLE_SCHEDULE_KEY,
-  AGENT_EXAMPLE_TRIGGER_KEY,
-  AgentExampleCategory,
-  AgentExampleId,
-  AgentExampleLevel,
-  AgentExamplePromptKey,
-} from '@flow/examples/constants/agent-example.constants';
+  AGENT_TEMPLATE_HAND_OFF_KEY,
+  AGENT_TEMPLATE_SCHEDULE_KEY,
+  AGENT_TEMPLATE_TRIGGER_KEY,
+  AgentTemplateCategory,
+  AgentTemplateKind,
+  AgentTemplateKey,
+  AgentTemplateLevel,
+  AgentTemplatePromptKey,
+} from '@flow/agent-templates/constants/agent-template.constants';
 import {
   agentStep,
   handOff,
@@ -23,11 +23,12 @@ import {
   scheduleTrigger,
   sendMessages,
   sendText,
-} from '@flow/examples/helpers/agent-example-nodes.helpers';
+} from '@flow/agent-templates/helpers/agent-template-nodes.helpers';
 import type {
-  AgentExampleDefinition,
-  AgentExampleOptions,
-} from '@flow/examples/typedefs/agent-example.typedefs';
+  AgentTemplateDefinition,
+  AgentTemplateOptions,
+} from '@flow/agent-templates/typedefs/agent-template.typedefs';
+import { PortName } from '@flow/document/constants/flow.constants';
 import { ChannelType, ScheduleKind } from '@flow/nodes/constants/trigger.constants';
 import { NO_FLOW_SETTINGS } from '@flow/settings/constants/settings.constants';
 
@@ -38,7 +39,7 @@ const CHECK_IN_TIME = '10:00';
 const SILENT_FOR_HOURS = 72;
 const MAX_CONVERSATIONS_PER_RUN = 50;
 
-const draft = (options: AgentExampleOptions) => {
+const draft = (options: AgentTemplateOptions) => {
   const t = localizer(options.locale);
   return {
     nodes: [
@@ -47,18 +48,18 @@ const draft = (options: AgentExampleOptions) => {
         key: ASSISTANT_KEY,
         label: t({ en: 'Answer the question', uk: 'Відповісти на питання' }),
         at: [0, 1],
-        prompt: AgentExamplePromptKey.SupportAssistant,
+        prompt: AgentTemplatePromptKey.SupportAssistant,
       }),
       sendMessages(REPLY_KEY, t(SEND_ANSWER_LABEL), [0, 2], ASSISTANT_KEY),
       handOff(
         options,
-        AGENT_EXAMPLE_HAND_OFF_KEY,
+        AGENT_TEMPLATE_HAND_OFF_KEY,
         t(HAND_OFF_LABEL),
         [1, 2],
         t(ASSISTANT_FAILED_REASON),
       ),
       scheduleTrigger(
-        AGENT_EXAMPLE_SCHEDULE_KEY,
+        AGENT_TEMPLATE_SCHEDULE_KEY,
         t({ en: 'Weekdays at 10:00', uk: 'Будні о 10:00' }),
         [2.5, 0],
         {
@@ -91,19 +92,20 @@ const draft = (options: AgentExampleOptions) => {
       ),
     ],
     edges: [
-      link(AGENT_EXAMPLE_TRIGGER_KEY, ASSISTANT_KEY),
+      link(AGENT_TEMPLATE_TRIGGER_KEY, ASSISTANT_KEY),
       link(ASSISTANT_KEY, REPLY_KEY),
-      link(ASSISTANT_KEY, AGENT_EXAMPLE_HAND_OFF_KEY, PortName.Error),
-      link(AGENT_EXAMPLE_SCHEDULE_KEY, CHECK_IN_KEY),
+      link(ASSISTANT_KEY, AGENT_TEMPLATE_HAND_OFF_KEY, PortName.Error),
+      link(AGENT_TEMPLATE_SCHEDULE_KEY, CHECK_IN_KEY),
     ],
     settings: NO_FLOW_SETTINGS,
   };
 };
 
-export const SCHEDULED_CHECK_IN_EXAMPLE: AgentExampleDefinition = {
-  id: AgentExampleId.ScheduledCheckIn,
-  category: AgentExampleCategory.FollowUp,
-  level: AgentExampleLevel.Intermediate,
+export const SCHEDULED_CHECK_IN_SNIPPET: AgentTemplateDefinition = {
+  key: AgentTemplateKey.ScheduledCheckIn,
+  kind: AgentTemplateKind.Snippet,
+  category: AgentTemplateCategory.FollowUp,
+  level: AgentTemplateLevel.Intermediate,
   name: { en: 'Scheduled check-in', uk: 'Нагадування за розкладом' },
   description: {
     en: 'On weekday mornings the agent checks in once with customers who have been quiet for three days.',
@@ -124,6 +126,6 @@ export const SCHEDULED_CHECK_IN_EXAMPLE: AgentExampleDefinition = {
     },
   ],
   usesKnowledge: false,
-  prompts: [AGENT_EXAMPLE_PROMPTS[AgentExamplePromptKey.SupportAssistant]],
+  prompts: [AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.SupportAssistant]],
   draft,
 };

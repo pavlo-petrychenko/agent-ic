@@ -1,21 +1,20 @@
-import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
-import { PortName } from '@flow/document/constants/flow.constants';
-import { AGENT_EXAMPLE_PROMPTS } from '@flow/examples/constants/agent-example-prompts.constants';
-import { HAND_OFF_LABEL } from '@flow/examples/constants/agent-example-texts.constants';
+import { AGENT_TEMPLATE_PROMPTS } from '@flow/agent-templates/constants/agent-template-prompts.constants';
+import { HAND_OFF_LABEL } from '@flow/agent-templates/constants/agent-template-texts.constants';
 import {
-  AGENT_EXAMPLE_ECHO_URL,
-  AGENT_EXAMPLE_HAND_OFF_KEY,
-  AGENT_EXAMPLE_TRIGGER_KEY,
-  AgentExampleCategory,
-  AgentExampleId,
-  AgentExampleLevel,
-  AgentExamplePromptKey,
-} from '@flow/examples/constants/agent-example.constants';
+  AGENT_TEMPLATE_ECHO_URL,
+  AGENT_TEMPLATE_HAND_OFF_KEY,
+  AGENT_TEMPLATE_TRIGGER_KEY,
+  AgentTemplateCategory,
+  AgentTemplateKind,
+  AgentTemplateKey,
+  AgentTemplateLevel,
+  AgentTemplatePromptKey,
+} from '@flow/agent-templates/constants/agent-template.constants';
 import {
   agentStep,
   apiRequestStep,
-  exampleField,
-  exampleRule,
+  templateField,
+  templateRule,
   handOff,
   link,
   localizer,
@@ -23,11 +22,13 @@ import {
   routerStep,
   sendMessages,
   sendText,
-} from '@flow/examples/helpers/agent-example-nodes.helpers';
+} from '@flow/agent-templates/helpers/agent-template-nodes.helpers';
 import type {
-  AgentExampleDefinition,
-  AgentExampleOptions,
-} from '@flow/examples/typedefs/agent-example.typedefs';
+  AgentTemplateDefinition,
+  AgentTemplateOptions,
+} from '@flow/agent-templates/typedefs/agent-template.typedefs';
+import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
+import { PortName } from '@flow/document/constants/flow.constants';
 import { FailureMode } from '@flow/nodes/constants/step.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 import { NO_FLOW_SETTINGS } from '@flow/settings/constants/settings.constants';
@@ -44,7 +45,7 @@ const REQUEST_FIELD = 'request';
 
 const LEAD_BODY = `{"name": "{{${LEAD_KEY}.${NAME_FIELD}}}", "phone": "{{${LEAD_KEY}.${PHONE_FIELD}}}", "request": "{{${LEAD_KEY}.${REQUEST_FIELD}}}"}`;
 
-const draft = (options: AgentExampleOptions) => {
+const draft = (options: AgentTemplateOptions) => {
   const t = localizer(options.locale);
   return {
     nodes: [
@@ -53,15 +54,15 @@ const draft = (options: AgentExampleOptions) => {
         key: LEAD_KEY,
         label: t({ en: 'Collect the request', uk: 'Зібрати заявку' }),
         at: [0, 1],
-        prompt: AgentExamplePromptKey.LeadCollector,
+        prompt: AgentTemplatePromptKey.LeadCollector,
         output: [
-          exampleField(
+          templateField(
             NAME_FIELD,
             OutputFieldType.String,
             t({ en: 'The customer’s name', uk: 'Ім’я клієнта' }),
             false,
           ),
-          exampleField(
+          templateField(
             PHONE_FIELD,
             OutputFieldType.String,
             t({
@@ -70,7 +71,7 @@ const draft = (options: AgentExampleOptions) => {
             }),
             false,
           ),
-          exampleField(
+          templateField(
             REQUEST_FIELD,
             OutputFieldType.String,
             t({
@@ -86,7 +87,7 @@ const draft = (options: AgentExampleOptions) => {
         t({ en: 'Has a phone number?', uk: 'Є номер телефону?' }),
         [-0.5, 2],
         [
-          exampleRule(
+          templateRule(
             NO_PHONE_RULE,
             t({ en: 'No phone yet', uk: 'Номера ще немає' }),
             `${LEAD_KEY}.${PHONE_FIELD}`,
@@ -101,7 +102,7 @@ const draft = (options: AgentExampleOptions) => {
         LEAD_KEY,
       ),
       apiRequestStep(SAVE_KEY, t({ en: 'Save the lead', uk: 'Зберегти заявку' }), [0, 3], {
-        url: AGENT_EXAMPLE_ECHO_URL,
+        url: AGENT_TEMPLATE_ECHO_URL,
         body: LEAD_BODY,
         onFailure: FailureMode.ErrorPort,
       }),
@@ -120,7 +121,7 @@ const draft = (options: AgentExampleOptions) => {
       ),
       handOff(
         options,
-        AGENT_EXAMPLE_HAND_OFF_KEY,
+        AGENT_TEMPLATE_HAND_OFF_KEY,
         t(HAND_OFF_LABEL),
         [1, 4],
         t({
@@ -130,22 +131,23 @@ const draft = (options: AgentExampleOptions) => {
       ),
     ],
     edges: [
-      link(AGENT_EXAMPLE_TRIGGER_KEY, LEAD_KEY),
+      link(AGENT_TEMPLATE_TRIGGER_KEY, LEAD_KEY),
       link(LEAD_KEY, CHECK_KEY),
-      link(LEAD_KEY, AGENT_EXAMPLE_HAND_OFF_KEY, PortName.Error),
+      link(LEAD_KEY, AGENT_TEMPLATE_HAND_OFF_KEY, PortName.Error),
       link(CHECK_KEY, ASK_KEY, NO_PHONE_RULE),
       link(CHECK_KEY, SAVE_KEY, PortName.Else),
       link(SAVE_KEY, CONFIRM_KEY),
-      link(SAVE_KEY, AGENT_EXAMPLE_HAND_OFF_KEY, PortName.Error),
+      link(SAVE_KEY, AGENT_TEMPLATE_HAND_OFF_KEY, PortName.Error),
     ],
     settings: NO_FLOW_SETTINGS,
   };
 };
 
-export const LEAD_CAPTURE_EXAMPLE: AgentExampleDefinition = {
-  id: AgentExampleId.LeadCapture,
-  category: AgentExampleCategory.Sales,
-  level: AgentExampleLevel.Intermediate,
+export const LEAD_CAPTURE_SNIPPET: AgentTemplateDefinition = {
+  key: AgentTemplateKey.LeadCapture,
+  kind: AgentTemplateKind.Snippet,
+  category: AgentTemplateCategory.Sales,
+  level: AgentTemplateLevel.Intermediate,
   name: { en: 'Lead capture', uk: 'Збір заявок' },
   description: {
     en: 'An assistant collects the name, phone and request, then an API request sends the lead to your system.',
@@ -166,6 +168,6 @@ export const LEAD_CAPTURE_EXAMPLE: AgentExampleDefinition = {
     },
   ],
   usesKnowledge: false,
-  prompts: [AGENT_EXAMPLE_PROMPTS[AgentExamplePromptKey.LeadCollector]],
+  prompts: [AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.LeadCollector]],
   draft,
 };

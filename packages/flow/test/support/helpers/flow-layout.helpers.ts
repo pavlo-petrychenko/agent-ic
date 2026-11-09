@@ -7,15 +7,15 @@ import {
   LAYOUT_OVERLAP_TOLERANCE,
 } from '@test/support/constants/flow-layout.constants';
 import type {
-  ExampleBox,
-  ExampleEdgeOverlap,
-  ExampleEdgePath,
-  ExampleNodeHit,
-  ExamplePoint,
-  ExampleSegment,
+  LayoutBox,
+  LayoutEdgeOverlap,
+  LayoutEdgePath,
+  LayoutNodeHit,
+  LayoutPoint,
+  LayoutSegment,
 } from '@test/support/typedefs/flow-layout.typedefs';
 
-const nodeBox = (node: FlowNode, margin: number): ExampleBox => ({
+const nodeBox = (node: FlowNode, margin: number): LayoutBox => ({
   id: node.id,
   left: node.position.x - margin,
   top: node.position.y - margin,
@@ -23,7 +23,7 @@ const nodeBox = (node: FlowNode, margin: number): ExampleBox => ({
   bottom: node.position.y + LAYOUT_NODE_HEIGHT + margin,
 });
 
-const sourcePoint = (node: FlowNode, port: string): ExamplePoint => {
+const sourcePoint = (node: FlowNode, port: string): LayoutPoint => {
   const ports = nodePorts(node);
   const index = Math.max(ports.indexOf(port), 0);
   return {
@@ -32,22 +32,22 @@ const sourcePoint = (node: FlowNode, port: string): ExamplePoint => {
   };
 };
 
-const targetPoint = (node: FlowNode): ExamplePoint => ({
+const targetPoint = (node: FlowNode): LayoutPoint => ({
   x: node.position.x + LAYOUT_NODE_WIDTH / 2,
   y: node.position.y,
 });
 
-const isEmpty = ({ from, to }: ExampleSegment): boolean => from.x === to.x && from.y === to.y;
+const isEmpty = ({ from, to }: LayoutSegment): boolean => from.x === to.x && from.y === to.y;
 
-export const exampleEdgePath = (
+export const layoutEdgePath = (
   edge: FlowEdge,
   source: FlowNode,
   target: FlowNode,
-): ExampleEdgePath => {
+): LayoutEdgePath => {
   const start = sourcePoint(source, edge.sourcePort);
   const end = targetPoint(target);
   const middle = (start.y + end.y) / 2;
-  const corners: readonly ExamplePoint[] = [
+  const corners: readonly LayoutPoint[] = [
     start,
     { x: start.x, y: middle },
     { x: end.x, y: middle },
@@ -55,7 +55,7 @@ export const exampleEdgePath = (
   ];
   const segments = corners
     .slice(1)
-    .map((to, index): ExampleSegment => ({ from: corners[index] ?? start, to, last: false }))
+    .map((to, index): LayoutSegment => ({ from: corners[index] ?? start, to, last: false }))
     .filter((segment) => !isEmpty(segment));
   return {
     edgeId: edge.id,
@@ -69,25 +69,25 @@ export const exampleEdgePath = (
   };
 };
 
-export const exampleEdgePaths = (flow: FlowDocument): readonly ExampleEdgePath[] => {
+export const layoutEdgePaths = (flow: FlowDocument): readonly LayoutEdgePath[] => {
   const nodes = new Map(flow.nodes.map((node) => [node.id, node]));
   return flow.edges.flatMap((edge) => {
     const source = nodes.get(edge.source);
     const target = nodes.get(edge.target);
     return source === undefined || target === undefined
       ? []
-      : [exampleEdgePath(edge, source, target)];
+      : [layoutEdgePath(edge, source, target)];
   });
 };
 
-const segmentCrossesBox = ({ from, to }: ExampleSegment, box: ExampleBox): boolean =>
+const segmentCrossesBox = ({ from, to }: LayoutSegment, box: LayoutBox): boolean =>
   Math.max(from.x, to.x) > box.left &&
   Math.min(from.x, to.x) < box.right &&
   Math.max(from.y, to.y) > box.top &&
   Math.min(from.y, to.y) < box.bottom;
 
-export const exampleNodeHits = (flow: FlowDocument): readonly ExampleNodeHit[] =>
-  exampleEdgePaths(flow).flatMap((path) =>
+export const layoutNodeHits = (flow: FlowDocument): readonly LayoutNodeHit[] =>
+  layoutEdgePaths(flow).flatMap((path) =>
     flow.nodes.flatMap((node) => {
       const own = node.id === path.source || node.id === path.target;
       const box = nodeBox(node, own ? 0 : LAYOUT_NODE_CLEARANCE);
@@ -100,7 +100,7 @@ export const exampleNodeHits = (flow: FlowDocument): readonly ExampleNodeHit[] =
 const sharedLength = (aMin: number, aMax: number, bMin: number, bMax: number): number =>
   Math.min(aMax, bMax) - Math.max(aMin, bMin);
 
-const segmentsOverlap = (a: ExampleSegment, b: ExampleSegment): boolean => {
+const segmentsOverlap = (a: LayoutSegment, b: LayoutSegment): boolean => {
   const vertical = a.from.x === a.to.x && b.from.x === b.to.x && a.from.x === b.from.x;
   const horizontal = a.from.y === a.to.y && b.from.y === b.to.y && a.from.y === b.from.y;
   if (vertical) {
@@ -124,7 +124,7 @@ const segmentsOverlap = (a: ExampleSegment, b: ExampleSegment): boolean => {
   );
 };
 
-const pathsOverlap = (a: ExampleEdgePath, b: ExampleEdgePath): boolean => {
+const pathsOverlap = (a: LayoutEdgePath, b: LayoutEdgePath): boolean => {
   if (a.source === b.source && a.sourcePort === b.sourcePort) {
     return false;
   }
@@ -136,8 +136,8 @@ const pathsOverlap = (a: ExampleEdgePath, b: ExampleEdgePath): boolean => {
   );
 };
 
-export const exampleEdgeOverlaps = (flow: FlowDocument): readonly ExampleEdgeOverlap[] => {
-  const paths = exampleEdgePaths(flow);
+export const layoutEdgeOverlaps = (flow: FlowDocument): readonly LayoutEdgeOverlap[] => {
+  const paths = layoutEdgePaths(flow);
   return paths.flatMap((first, index) =>
     paths
       .slice(index + 1)
@@ -146,10 +146,10 @@ export const exampleEdgeOverlaps = (flow: FlowDocument): readonly ExampleEdgeOve
   );
 };
 
-const boxesOverlap = (a: ExampleBox, b: ExampleBox): boolean =>
+const boxesOverlap = (a: LayoutBox, b: LayoutBox): boolean =>
   a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
 
-export const exampleNodeOverlaps = (flow: FlowDocument): readonly ExampleEdgeOverlap[] =>
+export const layoutNodeOverlaps = (flow: FlowDocument): readonly LayoutEdgeOverlap[] =>
   flow.nodes.flatMap((first, index) =>
     flow.nodes
       .slice(index + 1)

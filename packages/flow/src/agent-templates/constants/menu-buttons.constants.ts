@@ -1,21 +1,20 @@
-import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
-import { PortName } from '@flow/document/constants/flow.constants';
-import { AGENT_EXAMPLE_PROMPTS } from '@flow/examples/constants/agent-example-prompts.constants';
+import { AGENT_TEMPLATE_PROMPTS } from '@flow/agent-templates/constants/agent-template-prompts.constants';
 import {
   HAND_OFF_LABEL,
   SEND_ANSWER_LABEL,
-} from '@flow/examples/constants/agent-example-texts.constants';
+} from '@flow/agent-templates/constants/agent-template-texts.constants';
 import {
-  AGENT_EXAMPLE_HAND_OFF_KEY,
-  AGENT_EXAMPLE_TRIGGER_KEY,
-  AgentExampleCategory,
-  AgentExampleId,
-  AgentExampleLevel,
-  AgentExamplePromptKey,
-} from '@flow/examples/constants/agent-example.constants';
+  AGENT_TEMPLATE_HAND_OFF_KEY,
+  AGENT_TEMPLATE_TRIGGER_KEY,
+  AgentTemplateCategory,
+  AgentTemplateKind,
+  AgentTemplateKey,
+  AgentTemplateLevel,
+  AgentTemplatePromptKey,
+} from '@flow/agent-templates/constants/agent-template.constants';
 import {
   agentStep,
-  exampleRule,
+  templateRule,
   handOff,
   link,
   localizer,
@@ -23,12 +22,14 @@ import {
   routerStep,
   sendMessages,
   sendText,
-} from '@flow/examples/helpers/agent-example-nodes.helpers';
+} from '@flow/agent-templates/helpers/agent-template-nodes.helpers';
 import type {
-  AgentExampleDefinition,
-  AgentExampleOptions,
+  AgentTemplateDefinition,
+  AgentTemplateOptions,
   LocalizedText,
-} from '@flow/examples/typedefs/agent-example.typedefs';
+} from '@flow/agent-templates/typedefs/agent-template.typedefs';
+import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
+import { PortName } from '@flow/document/constants/flow.constants';
 import { NO_FLOW_SETTINGS } from '@flow/settings/constants/settings.constants';
 
 const ROUTER_KEY = 'pressed';
@@ -54,7 +55,7 @@ const DELIVERY_TEXT: LocalizedText = {
   uk: 'Ми доставляємо протягом 1–2 робочих днів. Надішліть адресу, і ми скажемо точну вартість.',
 };
 
-const draft = (options: AgentExampleOptions) => {
+const draft = (options: AgentTemplateOptions) => {
   const t = localizer(options.locale);
   const buttons = MENU_BUTTONS.map(t);
   return {
@@ -65,21 +66,21 @@ const draft = (options: AgentExampleOptions) => {
         t({ en: 'Which button?', uk: 'Яка кнопка?' }),
         [0, 1],
         [
-          exampleRule(
+          templateRule(
             HOURS_KEY,
             t(HOURS_BUTTON),
             MESSAGE_TEXT,
             ConditionOperator.Eq,
             t(HOURS_BUTTON),
           ),
-          exampleRule(
+          templateRule(
             DELIVERY_KEY,
             t(DELIVERY_BUTTON),
             MESSAGE_TEXT,
             ConditionOperator.Eq,
             t(DELIVERY_BUTTON),
           ),
-          exampleRule(
+          templateRule(
             PERSON_RULE,
             t(PERSON_BUTTON),
             MESSAGE_TEXT,
@@ -104,7 +105,7 @@ const draft = (options: AgentExampleOptions) => {
       ),
       handOff(
         options,
-        AGENT_EXAMPLE_HAND_OFF_KEY,
+        AGENT_TEMPLATE_HAND_OFF_KEY,
         t(HAND_OFF_LABEL),
         [0.5, 3],
         t({
@@ -116,27 +117,28 @@ const draft = (options: AgentExampleOptions) => {
         key: ASSISTANT_KEY,
         label: t({ en: 'Answer anything else', uk: 'Відповісти на інше' }),
         at: [1.5, 2],
-        prompt: AgentExamplePromptKey.MenuAssistant,
+        prompt: AgentTemplatePromptKey.MenuAssistant,
       }),
       sendMessages(REPLY_KEY, t(SEND_ANSWER_LABEL), [1.36, 3], ASSISTANT_KEY, buttons),
     ],
     edges: [
-      link(AGENT_EXAMPLE_TRIGGER_KEY, ROUTER_KEY),
+      link(AGENT_TEMPLATE_TRIGGER_KEY, ROUTER_KEY),
       link(ROUTER_KEY, HOURS_KEY, HOURS_KEY),
       link(ROUTER_KEY, DELIVERY_KEY, DELIVERY_KEY),
-      link(ROUTER_KEY, AGENT_EXAMPLE_HAND_OFF_KEY, PERSON_RULE),
+      link(ROUTER_KEY, AGENT_TEMPLATE_HAND_OFF_KEY, PERSON_RULE),
       link(ROUTER_KEY, ASSISTANT_KEY, PortName.Else),
       link(ASSISTANT_KEY, REPLY_KEY),
-      link(ASSISTANT_KEY, AGENT_EXAMPLE_HAND_OFF_KEY, PortName.Error),
+      link(ASSISTANT_KEY, AGENT_TEMPLATE_HAND_OFF_KEY, PortName.Error),
     ],
     settings: NO_FLOW_SETTINGS,
   };
 };
 
-export const MENU_BUTTONS_EXAMPLE: AgentExampleDefinition = {
-  id: AgentExampleId.MenuButtons,
-  category: AgentExampleCategory.Support,
-  level: AgentExampleLevel.Starter,
+export const MENU_BUTTONS_SNIPPET: AgentTemplateDefinition = {
+  key: AgentTemplateKey.MenuButtons,
+  kind: AgentTemplateKind.Snippet,
+  category: AgentTemplateCategory.Support,
+  level: AgentTemplateLevel.Starter,
   name: { en: 'Menu buttons', uk: 'Кнопки меню' },
   description: {
     en: 'Quick reply buttons lead to fixed answers, a person or an assistant for anything else.',
@@ -157,6 +159,6 @@ export const MENU_BUTTONS_EXAMPLE: AgentExampleDefinition = {
     },
   ],
   usesKnowledge: false,
-  prompts: [AGENT_EXAMPLE_PROMPTS[AgentExamplePromptKey.MenuAssistant]],
+  prompts: [AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.MenuAssistant]],
   draft,
 };

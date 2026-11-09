@@ -1,4 +1,4 @@
-import type { LocalizedText } from '@flow/examples/typedefs/agent-example.typedefs';
+import type { LocalizedText } from '@flow/agent-templates/typedefs/agent-template.typedefs';
 
 export const CUSTOMER_MESSAGE_LABEL: LocalizedText = {
   en: 'Customer message',
@@ -38,4 +38,14 @@ export const HANDOFF_WHEN: LocalizedText = {
 export const END_WHEN: LocalizedText = {
   en: 'The customer says goodbye, thanks you to finish, or says they have no more questions.',
   uk: 'Клієнт прощається, дякує на завершення або каже, що питань більше немає.',
+};
+
+export const APOLOGY_MESSAGE: LocalizedText = {
+  en: 'Sorry, something went wrong on our side. A person from our team will reply here shortly.',
+  uk: 'Вибачте, у нас щось пішло не так. Людина з нашої команди скоро відповість вам тут.',
+};
+
+export const TALK_TO_PERSON_BUTTON: LocalizedText = {
+  en: 'Talk to a person',
+  uk: 'Поговорити з людиною',
 };

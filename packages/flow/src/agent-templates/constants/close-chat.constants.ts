@@ -1,21 +1,21 @@
-import { PortName } from '@flow/document/constants/flow.constants';
-import { AGENT_EXAMPLE_PROMPTS } from '@flow/examples/constants/agent-example-prompts.constants';
+import { AGENT_TEMPLATE_PROMPTS } from '@flow/agent-templates/constants/agent-template-prompts.constants';
 import {
   ASSISTANT_FAILED_REASON,
   END_WHEN,
   HAND_OFF_LABEL,
   SEND_ANSWER_LABEL,
-} from '@flow/examples/constants/agent-example-texts.constants';
+} from '@flow/agent-templates/constants/agent-template-texts.constants';
 import {
-  AGENT_EXAMPLE_AUTO_CLOSE_MINUTES,
-  AGENT_EXAMPLE_ECHO_URL,
-  AGENT_EXAMPLE_HAND_OFF_KEY,
-  AGENT_EXAMPLE_TRIGGER_KEY,
-  AgentExampleCategory,
-  AgentExampleId,
-  AgentExampleLevel,
-  AgentExamplePromptKey,
-} from '@flow/examples/constants/agent-example.constants';
+  AGENT_TEMPLATE_AUTO_CLOSE_MINUTES,
+  AGENT_TEMPLATE_ECHO_URL,
+  AGENT_TEMPLATE_HAND_OFF_KEY,
+  AGENT_TEMPLATE_TRIGGER_KEY,
+  AgentTemplateCategory,
+  AgentTemplateKind,
+  AgentTemplateKey,
+  AgentTemplateLevel,
+  AgentTemplatePromptKey,
+} from '@flow/agent-templates/constants/agent-template.constants';
 import {
   agentStep,
   apiRequestStep,
@@ -26,11 +26,12 @@ import {
   localizer,
   messageTrigger,
   sendMessages,
-} from '@flow/examples/helpers/agent-example-nodes.helpers';
+} from '@flow/agent-templates/helpers/agent-template-nodes.helpers';
 import type {
-  AgentExampleDefinition,
-  AgentExampleOptions,
-} from '@flow/examples/typedefs/agent-example.typedefs';
+  AgentTemplateDefinition,
+  AgentTemplateOptions,
+} from '@flow/agent-templates/typedefs/agent-template.typedefs';
+import { PortName } from '@flow/document/constants/flow.constants';
 import { AgentExitKind, FailureMode } from '@flow/nodes/constants/step.constants';
 import { AGENT_OUTCOME_REASON_FIELD_NAME } from '@flow/outputs/constants/output.constants';
 import { NO_FLOW_SETTINGS } from '@flow/settings/constants/settings.constants';
@@ -43,7 +44,7 @@ const END_KEY = 'end_chat';
 
 const LOG_BODY = `{"customer": "{{user.name}}", "channel": "{{channel}}", "reason": "{{${ASSISTANT_KEY}.${AGENT_OUTCOME_REASON_FIELD_NAME}}}"}`;
 
-const draft = (options: AgentExampleOptions) => {
+const draft = (options: AgentTemplateOptions) => {
   const t = localizer(options.locale);
   return {
     nodes: [
@@ -52,13 +53,13 @@ const draft = (options: AgentExampleOptions) => {
         key: ASSISTANT_KEY,
         label: t({ en: 'Help the customer', uk: 'Допомогти клієнту' }),
         at: [0, 1],
-        prompt: AgentExamplePromptKey.ClosingAssistant,
+        prompt: AgentTemplatePromptKey.ClosingAssistant,
         exits: endExit(t(END_WHEN)),
       }),
       sendMessages(REPLY_KEY, t(SEND_ANSWER_LABEL), [-1, 2], ASSISTANT_KEY),
       handOff(
         options,
-        AGENT_EXAMPLE_HAND_OFF_KEY,
+        AGENT_TEMPLATE_HAND_OFF_KEY,
         t(HAND_OFF_LABEL),
         [0, 2],
         t(ASSISTANT_FAILED_REASON),
@@ -68,7 +69,7 @@ const draft = (options: AgentExampleOptions) => {
         t({ en: 'Log the finished chat', uk: 'Записати завершений чат' }),
         [1, 2],
         {
-          url: AGENT_EXAMPLE_ECHO_URL,
+          url: AGENT_TEMPLATE_ECHO_URL,
           body: LOG_BODY,
           onFailure: FailureMode.Continue,
         },
@@ -77,24 +78,25 @@ const draft = (options: AgentExampleOptions) => {
       endChat(END_KEY, t({ en: 'End the chat', uk: 'Завершити чат' }), [1, 4], null),
     ],
     edges: [
-      link(AGENT_EXAMPLE_TRIGGER_KEY, ASSISTANT_KEY),
+      link(AGENT_TEMPLATE_TRIGGER_KEY, ASSISTANT_KEY),
       link(ASSISTANT_KEY, REPLY_KEY),
-      link(ASSISTANT_KEY, AGENT_EXAMPLE_HAND_OFF_KEY, PortName.Error),
+      link(ASSISTANT_KEY, AGENT_TEMPLATE_HAND_OFF_KEY, PortName.Error),
       link(ASSISTANT_KEY, LOG_KEY, AgentExitKind.End),
       link(LOG_KEY, GOODBYE_KEY),
       link(GOODBYE_KEY, END_KEY),
     ],
     settings: {
       ...NO_FLOW_SETTINGS,
-      autoClose: { afterMinutes: AGENT_EXAMPLE_AUTO_CLOSE_MINUTES },
+      autoClose: { afterMinutes: AGENT_TEMPLATE_AUTO_CLOSE_MINUTES },
     },
   };
 };
 
-export const CLOSE_CHAT_EXAMPLE: AgentExampleDefinition = {
-  id: AgentExampleId.CloseChat,
-  category: AgentExampleCategory.Support,
-  level: AgentExampleLevel.Intermediate,
+export const CLOSE_CHAT_SNIPPET: AgentTemplateDefinition = {
+  key: AgentTemplateKey.CloseChat,
+  kind: AgentTemplateKind.Snippet,
+  category: AgentTemplateCategory.Support,
+  level: AgentTemplateLevel.Intermediate,
   name: { en: 'Close the chat', uk: 'Завершення чату' },
   description: {
     en: 'When the customer is done, the agent logs the chat, says goodbye and closes it. A chat quiet for a day closes by itself.',
@@ -115,6 +117,6 @@ export const CLOSE_CHAT_EXAMPLE: AgentExampleDefinition = {
     },
   ],
   usesKnowledge: false,
-  prompts: [AGENT_EXAMPLE_PROMPTS[AgentExamplePromptKey.ClosingAssistant]],
+  prompts: [AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.ClosingAssistant]],
   draft,
 };

@@ -1,21 +1,20 @@
-import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
-import { PortName } from '@flow/document/constants/flow.constants';
-import { AGENT_EXAMPLE_PROMPTS } from '@flow/examples/constants/agent-example-prompts.constants';
-import { HAND_OFF_LABEL } from '@flow/examples/constants/agent-example-texts.constants';
+import { AGENT_TEMPLATE_PROMPTS } from '@flow/agent-templates/constants/agent-template-prompts.constants';
+import { HAND_OFF_LABEL } from '@flow/agent-templates/constants/agent-template-texts.constants';
 import {
-  AGENT_EXAMPLE_HAND_OFF_KEY,
-  AGENT_EXAMPLE_TRIGGER_KEY,
-  AgentExampleCategory,
-  AgentExampleId,
-  AgentExampleLevel,
-  AgentExamplePromptKey,
-} from '@flow/examples/constants/agent-example.constants';
+  AGENT_TEMPLATE_HAND_OFF_KEY,
+  AGENT_TEMPLATE_TRIGGER_KEY,
+  AgentTemplateCategory,
+  AgentTemplateKind,
+  AgentTemplateKey,
+  AgentTemplateLevel,
+  AgentTemplatePromptKey,
+} from '@flow/agent-templates/constants/agent-template.constants';
 import {
   agentStep,
   branchLink,
   completionStep,
-  exampleField,
-  exampleRule,
+  templateField,
+  templateRule,
   handOff,
   link,
   localizer,
@@ -23,11 +22,13 @@ import {
   parallelStep,
   routerStep,
   sendMessages,
-} from '@flow/examples/helpers/agent-example-nodes.helpers';
+} from '@flow/agent-templates/helpers/agent-template-nodes.helpers';
 import type {
-  AgentExampleDefinition,
-  AgentExampleOptions,
-} from '@flow/examples/typedefs/agent-example.typedefs';
+  AgentTemplateDefinition,
+  AgentTemplateOptions,
+} from '@flow/agent-templates/typedefs/agent-template.typedefs';
+import { ConditionOperator } from '@flow/conditions/constants/condition.constants';
+import { PortName } from '@flow/document/constants/flow.constants';
 import { OutputFieldType } from '@flow/outputs/constants/output.constants';
 import { NO_FLOW_SETTINGS } from '@flow/settings/constants/settings.constants';
 
@@ -41,7 +42,7 @@ const NEEDS_PERSON_FIELD = 'needs_person';
 const REASON_FIELD = 'reason';
 const SEND_KEY = 'send_draft';
 
-const draft = (options: AgentExampleOptions) => {
+const draft = (options: AgentTemplateOptions) => {
   const t = localizer(options.locale);
   return {
     nodes: [
@@ -55,9 +56,9 @@ const draft = (options: AgentExampleOptions) => {
         key: GUARD_KEY,
         label: t({ en: 'Does it need a person?', uk: 'Потрібна людина?' }),
         at: [-1, 2],
-        prompt: AgentExamplePromptKey.ReplyGuard,
+        prompt: AgentTemplatePromptKey.ReplyGuard,
         output: [
-          exampleField(
+          templateField(
             NEEDS_PERSON_FIELD,
             OutputFieldType.Boolean,
             t({
@@ -65,7 +66,7 @@ const draft = (options: AgentExampleOptions) => {
               uk: 'True, коли має відповісти людина з команди',
             }),
           ),
-          exampleField(
+          templateField(
             REASON_FIELD,
             OutputFieldType.String,
             t({ en: 'Why, in one short sentence', uk: 'Чому, одним коротким реченням' }),
@@ -76,7 +77,7 @@ const draft = (options: AgentExampleOptions) => {
         key: DRAFT_KEY,
         label: t({ en: 'Draft a reply', uk: 'Підготувати відповідь' }),
         at: [1, 2],
-        prompt: AgentExamplePromptKey.SupportAssistant,
+        prompt: AgentTemplatePromptKey.SupportAssistant,
       }),
       handOff(
         options,
@@ -103,7 +104,7 @@ const draft = (options: AgentExampleOptions) => {
         t({ en: 'Needs a person?', uk: 'Потрібна людина?' }),
         [0, 3],
         [
-          exampleRule(
+          templateRule(
             NEEDS_PERSON_FIELD,
             t({ en: 'Needs a person', uk: 'Потрібна людина' }),
             `${GUARD_KEY}.${NEEDS_PERSON_FIELD}`,
@@ -113,7 +114,7 @@ const draft = (options: AgentExampleOptions) => {
       ),
       handOff(
         options,
-        AGENT_EXAMPLE_HAND_OFF_KEY,
+        AGENT_TEMPLATE_HAND_OFF_KEY,
         t(HAND_OFF_LABEL),
         [-0.5, 4],
         `{{${GUARD_KEY}.${REASON_FIELD}}}`,
@@ -126,23 +127,24 @@ const draft = (options: AgentExampleOptions) => {
       ),
     ],
     edges: [
-      link(AGENT_EXAMPLE_TRIGGER_KEY, TOGETHER_KEY),
+      link(AGENT_TEMPLATE_TRIGGER_KEY, TOGETHER_KEY),
       branchLink(TOGETHER_KEY, GUARD_KEY),
       branchLink(TOGETHER_KEY, DRAFT_KEY),
       link(GUARD_KEY, GUARD_FAILED_KEY, PortName.Error),
       link(DRAFT_KEY, DRAFT_FAILED_KEY, PortName.Error),
       link(TOGETHER_KEY, DECIDE_KEY),
-      link(DECIDE_KEY, AGENT_EXAMPLE_HAND_OFF_KEY, NEEDS_PERSON_FIELD),
+      link(DECIDE_KEY, AGENT_TEMPLATE_HAND_OFF_KEY, NEEDS_PERSON_FIELD),
       link(DECIDE_KEY, SEND_KEY, PortName.Else),
     ],
     settings: NO_FLOW_SETTINGS,
   };
 };
 
-export const GUARDED_REPLY_EXAMPLE: AgentExampleDefinition = {
-  id: AgentExampleId.GuardedReply,
-  category: AgentExampleCategory.Quality,
-  level: AgentExampleLevel.Advanced,
+export const GUARDED_REPLY_SNIPPET: AgentTemplateDefinition = {
+  key: AgentTemplateKey.GuardedReply,
+  kind: AgentTemplateKind.Snippet,
+  category: AgentTemplateCategory.Quality,
+  level: AgentTemplateLevel.Advanced,
   name: { en: 'Guarded reply', uk: 'Відповідь із перевіркою' },
   description: {
     en: 'A safety check and a drafted reply run at the same time; sensitive chats go to a person instead of the draft.',
@@ -164,8 +166,8 @@ export const GUARDED_REPLY_EXAMPLE: AgentExampleDefinition = {
   ],
   usesKnowledge: false,
   prompts: [
-    AGENT_EXAMPLE_PROMPTS[AgentExamplePromptKey.ReplyGuard],
-    AGENT_EXAMPLE_PROMPTS[AgentExamplePromptKey.SupportAssistant],
+    AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.ReplyGuard],
+    AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.SupportAssistant],
   ],
   draft,
 };
