@@ -94,4 +94,5 @@ export enum TestRedisPrefix {
   Seed = 'seed:',
   IsolationFirst = 'isolation-first:',
   IsolationSecond = 'isolation-second:',
+  NotificationSettings = 'notification-settings:',
 }
