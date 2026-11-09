@@ -65,7 +65,10 @@ describe('TelegramAlertsService', () => {
       {} as unknown as TelegramLinkRepository,
       {} as unknown as SecureTokenService,
       {
-        config: { telegram: { alertsBotToken: 'alerts-token' } },
+        config: {
+          publicUrl: 'https://app.test',
+          telegram: { alertsBotToken: 'alerts-token' },
+        },
       } as unknown as ConfigService,
       { now: () => new Date('2026-11-07T21:00:00.000Z') } as unknown as ClockService,
       {
@@ -79,7 +82,7 @@ describe('TelegramAlertsService', () => {
 
   const ctx = (): UseCaseCtx => systemCtx();
 
-  it('requests a takeover for the linked chat and answers the callback', async () => {
+  it('requests a takeover for the linked chat', async () => {
     await service.handleUpdate(ctx(), CALLBACK);
 
     expect(findTelegramLinkByChat).toHaveBeenCalledWith('workspace-1', '42');
@@ -91,19 +94,15 @@ describe('TelegramAlertsService', () => {
         conversationPublicId: 'cnv_public',
         chatId: '42',
         messageId: '7',
+        callbackQueryId: 'callback-1',
+        locale: Locale.En,
+        inboxUrl: 'https://app.test/w/ws_public/inbox?conversation=cnv_public',
       },
     );
-    expect(telegram.answerCallbackQueryCalls).toEqual([
-      {
-        token: 'alerts-token',
-        callbackQueryId: 'callback-1',
-        text: 'Taking over…',
-        showAlert: false,
-      },
-    ]);
+    expect(telegram.answerCallbackQueryCalls).toHaveLength(0);
   });
 
-  it('answers in the linked user locale', async () => {
+  it('passes the linked user locale to the takeover job', async () => {
     findUser.mockResolvedValue({
       id: 'user-1',
       locale: Locale.Uk,
@@ -111,7 +110,12 @@ describe('TelegramAlertsService', () => {
 
     await service.handleUpdate(ctx(), CALLBACK);
 
-    expect(telegram.answerCallbackQueryCalls[0]?.text).toBe('Беру чат…');
+    expect(emit).toHaveBeenCalledWith(
+      expect.anything(),
+      telegramAlertTakeOverRequestedEvent,
+      expect.objectContaining({ locale: Locale.Uk }),
+    );
+    expect(telegram.answerCallbackQueryCalls).toHaveLength(0);
   });
 
   it('rejects a malformed callback without an event', async () => {

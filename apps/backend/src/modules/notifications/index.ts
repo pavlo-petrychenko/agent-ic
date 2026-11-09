@@ -7,6 +7,7 @@ export {
 export { NotificationEventName } from '@/modules/notifications/constants/notification-event.constants';
 export { NotificationJobName } from '@/modules/notifications/constants/notification-job.constants';
 export { NotificationLogMessage } from '@/modules/notifications/constants/notification-log.constants';
+export { TELEGRAM_ALERT_TAKE_OVER_COPY } from '@/modules/notifications/constants/telegram-alert.constants';
 export { EmailTemplate } from '@/modules/notifications/constants/notification-metrics.constants';
 export { telegramAlertTakeOverRequestedEvent } from '@/modules/notifications/events/telegram-alert-take-over-requested.event';
 export type { TelegramAlertTakeOverInput } from '@/modules/notifications/events/telegram-alert-take-over-requested.event';

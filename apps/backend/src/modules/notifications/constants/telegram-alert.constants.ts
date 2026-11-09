@@ -4,15 +4,39 @@ export const TELEGRAM_ALERTS_POLL_IDLE_MS = 1_000;
 export const TELEGRAM_LINK_SWEEP_INTERVAL_SECONDS = 60;
 export const TELEGRAM_ALERT_LAST_MESSAGE_MAX_LENGTH = 500;
 export const TELEGRAM_ALERT_TAKE_OVER_COPY: Readonly<
-  Record<Locale, { readonly started: string; readonly invalid: string }>
+  Record<
+    Locale,
+    {
+      readonly invalid: string;
+      readonly takenOver: string;
+      readonly alreadyYours: string;
+      readonly alreadyOther: string;
+      readonly closed: string;
+      readonly unavailable: string;
+      readonly otherFallback: string;
+      readonly openInInbox: string;
+    }
+  >
 > = {
   [Locale.En]: {
-    started: 'Taking over…',
     invalid: 'This button is no longer active.',
+    takenOver: 'Chat taken over. Open it in the Inbox to reply.',
+    alreadyYours: 'You already have this chat.',
+    alreadyOther: 'This chat is already taken over by {name}.',
+    closed: 'This chat is closed.',
+    unavailable: 'This chat can no longer be taken over.',
+    otherFallback: 'another operator',
+    openInInbox: 'Open in Inbox',
   },
   [Locale.Uk]: {
-    started: 'Беру чат…',
     invalid: 'Ця кнопка вже неактивна.',
+    takenOver: 'Чат взято. Відкрийте його у Вхідних, щоб відповісти.',
+    alreadyYours: 'Цей чат уже у вас.',
+    alreadyOther: 'Цей чат уже взяв {name}.',
+    closed: 'Цей чат закрито.',
+    unavailable: 'Цей чат більше не можна взяти.',
+    otherFallback: 'інший оператор',
+    openInInbox: 'Відкрити у Вхідних',
   },
 };
 export const TELEGRAM_ALERTS_LINK_INSTRUCTIONS =

@@ -1,3 +1,4 @@
+import { Locale } from '@agent-ic/contracts';
 import { z } from 'zod';
 import { NotificationEventName } from '@/modules/notifications/constants/notification-event.constants';
 import { defineDomainEvent } from '@/platform/domain-events/helpers/domain-event.helpers';
@@ -9,6 +10,9 @@ export const telegramAlertTakeOverRequestedEvent = defineDomainEvent({
     conversationPublicId: z.string().min(1),
     chatId: z.string().min(1),
     messageId: z.string().min(1).nullable(),
+    callbackQueryId: z.string().min(1),
+    locale: z.enum(Locale),
+    inboxUrl: z.url(),
   }),
 });
 

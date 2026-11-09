@@ -275,6 +275,25 @@ export class ConversationsRepository {
     return updated.length > 0;
   }
 
+  async takeOverIfUnhandled(
+    workspaceId: string,
+    id: string,
+    userId: string,
+  ): Promise<Conversation | null> {
+    const [conversation] = await this.txHost.tx
+      .update(conversations)
+      .set({ state: ConversationState.Handled, handledBy: userId })
+      .where(
+        and(
+          eq(conversations.workspaceId, workspaceId),
+          eq(conversations.id, id),
+          inArray(conversations.state, [ConversationState.AgentActive, ConversationState.Waiting]),
+        ),
+      )
+      .returning();
+    return conversation ?? null;
+  }
+
   async takeOver(workspaceId: string, id: string, userId: string): Promise<Conversation | null> {
     const [conversation] = await this.txHost.tx
       .update(conversations)

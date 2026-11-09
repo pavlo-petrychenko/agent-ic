@@ -157,13 +157,20 @@ export class TelegramAlertsService {
       await this.answerCallback(callback.id, TELEGRAM_ALERT_TAKE_OVER_COPY[Locale.En].invalid);
       return;
     }
+    const inboxUrl = new URL(
+      `/w/${parsed.workspacePublicId}/inbox`,
+      this.configService.config.publicUrl,
+    );
+    inboxUrl.searchParams.set('conversation', parsed.conversationPublicId);
     await this.events.emit({ ...ctx, workspaceId }, telegramAlertTakeOverRequestedEvent, {
       userId: target.link.userId,
       conversationPublicId: parsed.conversationPublicId,
       chatId,
       messageId: callback.telegramMessageId,
+      callbackQueryId: callback.id,
+      locale: target.locale,
+      inboxUrl: inboxUrl.toString(),
     });
-    await this.answerCallback(callback.id, TELEGRAM_ALERT_TAKE_OVER_COPY[target.locale].started);
   }
 
   private async answerCallback(callbackQueryId: string, text: string): Promise<void> {
