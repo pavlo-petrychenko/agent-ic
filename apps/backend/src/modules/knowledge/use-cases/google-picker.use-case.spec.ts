@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
 import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
 import { CreateGooglePickerSessionUseCase } from '@/modules/knowledge/use-cases/create-google-picker-session.use-case';
@@ -57,5 +58,19 @@ describe('CreateGooglePickerSessionUseCase', () => {
       expiresAt: new Date(testbed.clock.now().getTime() + 3_600_000),
     });
     expect(oauth.refreshInputs.at(-1)).toBe(TEST_GOOGLE_REFRESH_TOKEN);
+  });
+
+  it('requires reconnect when the connection lacks the Drive scope', async () => {
+    const workspaceId = testbed.ids.generate();
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId, {
+      scopes: ['openid', 'email'],
+    });
+
+    await expect(
+      session.execute(
+        knowledgeCtx(workspaceId),
+        publicKnowledgeConnectionId(testbed, connectionId),
+      ),
+    ).rejects.toBeInstanceOf(GoogleReconnectRequiredError);
   });
 });

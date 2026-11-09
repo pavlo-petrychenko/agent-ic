@@ -19,11 +19,8 @@ export enum GoogleOAuthParam {
 export const GOOGLE_OAUTH_AUTHORIZATION_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
 export const GOOGLE_OAUTH_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 export const GOOGLE_OAUTH_USERINFO_ENDPOINT = 'https://openidconnect.googleapis.com/v1/userinfo';
-export const GOOGLE_OAUTH_SCOPES = [
-  'openid',
-  'email',
-  'https://www.googleapis.com/auth/drive.file',
-] as const;
+export const GOOGLE_OAUTH_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+export const GOOGLE_OAUTH_SCOPES = ['openid', 'email', GOOGLE_OAUTH_DRIVE_SCOPE] as const;
 export const GOOGLE_OAUTH_SCOPE_SEPARATOR = ' ';
 export const GOOGLE_OAUTH_STATE_TTL_SECONDS = 10 * 60;
 export const GOOGLE_OAUTH_TIMEOUT_MS = 10_000;
