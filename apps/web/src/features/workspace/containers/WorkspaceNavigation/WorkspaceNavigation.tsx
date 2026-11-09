@@ -1,8 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useApplyAccountLocale, useLogOut } from '@/features/auth';
-import { useInboxNeedsYouCount } from '@/features/inbox';
+import { InboxBrowserNotifications, useInboxNeedsYouCount } from '@/features/inbox';
 import { useWorkspaceShell } from '@/features/workspace/communication/hooks/useWorkspaceShell';
 import { NavGroupKey, WorkspaceSection } from '@/features/workspace/constants/navigation.constants';
 import { WorkspaceNavForm } from '@/features/workspace/constants/navigationForm.constants';
@@ -36,8 +36,21 @@ export function WorkspaceNavigation({
   const [menuOpen, setMenuOpen] = useState(false);
   const { data } = useWorkspaceShell(workspaceId);
   const active = data?.active ?? null;
-  const inboxCount = useInboxNeedsYouCount(
-    active !== null && canOpenSection(active.permissions, WorkspaceSection.Inbox),
+  const inboxEnabled =
+    active !== null && canOpenSection(active.permissions, WorkspaceSection.Inbox);
+  const inboxCount = useInboxNeedsYouCount(inboxEnabled);
+  const openInboxConversation = useCallback(
+    (conversationId: string) => {
+      void navigate({
+        to: '/w/$workspaceId/inbox',
+        params: { workspaceId },
+        search: { conversation: conversationId },
+      });
+    },
+    [navigate, workspaceId],
+  );
+  const notifications = (
+    <InboxBrowserNotifications enabled={inboxEnabled} onOpen={openInboxConversation} />
   );
   const groups =
     active === null
@@ -108,35 +121,41 @@ export function WorkspaceNavigation({
 
   if (form === WorkspaceNavForm.Rail) {
     return (
-      <Rail
-        ariaLabel={t('nav.label')}
-        logo={switcher}
-        groups={groups
-          .filter((group) => group.key !== NavGroupKey.Footer)
-          .map((group) => group.items.map(toRailItem))}
-        footerItems={groups
-          .filter((group) => group.key === NavGroupKey.Footer)
-          .flatMap((group) => group.items.map(toRailItem))}
-      />
+      <>
+        <Rail
+          ariaLabel={t('nav.label')}
+          logo={switcher}
+          groups={groups
+            .filter((group) => group.key !== NavGroupKey.Footer)
+            .map((group) => group.items.map(toRailItem))}
+          footerItems={groups
+            .filter((group) => group.key === NavGroupKey.Footer)
+            .flatMap((group) => group.items.map(toRailItem))}
+        />
+        {notifications}
+      </>
     );
   }
 
   return (
-    <WorkspaceSidebar
-      workspaceId={workspaceId}
-      navLabel={t('nav.label')}
-      header={switcher}
-      groups={groups}
-      user={
-        data === null
-          ? null
-          : {
-              name: data.user.name,
-              initials: toInitials(data.user.name),
-              roleLabel: active === null ? null : tCommon(`roles.name.${active.role}`),
-            }
-      }
-      footerAction={footerAction}
-    />
+    <>
+      <WorkspaceSidebar
+        workspaceId={workspaceId}
+        navLabel={t('nav.label')}
+        header={switcher}
+        groups={groups}
+        user={
+          data === null
+            ? null
+            : {
+                name: data.user.name,
+                initials: toInitials(data.user.name),
+                roleLabel: active === null ? null : tCommon(`roles.name.${active.role}`),
+              }
+        }
+        footerAction={footerAction}
+      />
+      {notifications}
+    </>
   );
 }

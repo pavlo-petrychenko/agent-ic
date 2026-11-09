@@ -2,6 +2,7 @@ import { useQuery, useSubscription } from '@apollo/client/react';
 import { useCallback } from 'react';
 import { InboxConversationsDocument } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
 import { InboxActivityDocument } from '@/features/inbox/communication/gql/subscription/inboxActivity.generated';
+import { useRefetchOnFocus } from '@/features/inbox/communication/hooks/useRefetchOnFocus';
 import { INBOX_CONVERSATIONS_FETCH_LIMIT } from '@/features/inbox/constants/inbox.constants';
 
 export function useInboxConversations() {
@@ -11,6 +12,7 @@ export function useInboxConversations() {
   });
   const retry = useCallback(() => refetch().then(() => undefined), [refetch]);
   useSubscription(InboxActivityDocument, { onData: () => void refetch() });
+  useRefetchOnFocus(refetch);
 
   return {
     summaries: data?.inboxConversations ?? [],

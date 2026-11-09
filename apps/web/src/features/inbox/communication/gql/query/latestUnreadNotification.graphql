@@ -1,0 +1,10 @@
+query LatestUnreadNotification {
+  latestUnreadNotification {
+    id
+    conversationId
+    customerName
+    channelKind
+    reason
+    createdAt
+  }
+}
