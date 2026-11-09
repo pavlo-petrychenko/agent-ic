@@ -711,7 +711,7 @@ The run is marked failed, and Agents shows "N runs failed today".
 - The Inbox count in the navigation = chats in "Needs you", including those read-only chats.
 
 ### 12.11 Notifications
-- Triggered by Escalation steps (and reminders); recipients come from the step config.
+- Triggered by any hand-off — an Escalation step, an Agent exit, or a failure set to hand off (and reminders); recipients come from the step or the flow hand-off settings.
 - **Per-person channel toggles:**
   - **In-platform:** Inbox badge + browser notification.
   - **Email:** reason, last customer message, "Open in Inbox".

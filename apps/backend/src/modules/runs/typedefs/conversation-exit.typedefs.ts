@@ -4,6 +4,7 @@ import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typede
 export interface ConversationExit {
   readonly ctx: UseCaseCtx;
   readonly run: Run;
+  readonly runStepId: string;
   readonly nodeId: string;
   readonly texts: readonly string[];
 }
