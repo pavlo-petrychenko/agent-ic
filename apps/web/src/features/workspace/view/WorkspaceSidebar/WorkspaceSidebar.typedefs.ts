@@ -7,6 +7,7 @@ export interface WorkspaceSidebarProps {
   header: ReactNode;
   headerAction: ReactNode;
   groups: readonly SidebarGroup[];
+  footerExtra: ReactNode;
   user: SidebarUser | null;
   footerAction: ReactNode;
 }

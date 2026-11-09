@@ -11,4 +11,5 @@ export enum Namespace {
   Inbox = 'inbox',
   FlowBuilder = 'flowBuilder',
   Testing = 'testing',
+  Onboarding = 'onboarding',
 }

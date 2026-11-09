@@ -5,6 +5,7 @@ import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBu
 import { GUIDES_TOOLBAR_ICON } from '@/features/flow-builder/constants/guide.constants';
 import { CanvasShortcut } from '@/features/flow-builder/constants/shortcut.constants';
 import type { CanvasToolbarProps } from '@/features/flow-builder/view/CanvasToolbar/CanvasToolbar.typedefs';
+import { TourAnchor, tourAnchor } from '@/features/onboarding';
 import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { IconButton, IconButtonSize, IconButtonVariant } from '@/shared/ui/actions/IconButton';
 import { SegmentedControl, SegmentedControlSize } from '@/shared/ui/actions/SegmentedControl';
@@ -56,6 +57,7 @@ export function CanvasToolbar({
       />
       {compact ? (
         <IconButton
+          {...tourAnchor(TourAnchor.BuilderGuides)}
           icon={GUIDES_TOOLBAR_ICON}
           label={t('guide.open')}
           size={IconButtonSize.Sm}
@@ -64,6 +66,7 @@ export function CanvasToolbar({
         />
       ) : (
         <Button
+          {...tourAnchor(TourAnchor.BuilderGuides)}
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Sm}
           icon={GUIDES_TOOLBAR_ICON}

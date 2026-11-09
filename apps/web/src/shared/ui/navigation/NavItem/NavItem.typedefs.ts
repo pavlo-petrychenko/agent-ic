@@ -10,6 +10,8 @@ export interface NavItemAnchorProps extends ComponentProps<'a'> {
   disabled?: boolean;
 }
 
+export type NavItemDataAttributes = Readonly<Record<`data-${string}`, string>>;
+
 export interface NavItemData {
   id: string;
   to: string;
@@ -18,4 +20,5 @@ export interface NavItemData {
   badgeCount: number | null;
   badgeLabel: string | null;
   disabled?: boolean;
+  dataAttributes?: NavItemDataAttributes;
 }

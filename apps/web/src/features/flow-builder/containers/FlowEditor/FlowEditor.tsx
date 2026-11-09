@@ -42,6 +42,7 @@ import { BlankFlowHint } from '@/features/flow-builder/view/BlankFlowHint';
 import { CanvasToolbar } from '@/features/flow-builder/view/CanvasToolbar';
 import { StepNode } from '@/features/flow-builder/view/StepNode';
 import { useKnowledgeBases } from '@/features/knowledge';
+import { TourAnchor, tourAnchor } from '@/features/onboarding';
 import { FlowCanvas } from '@/shared/ui/flow/FlowCanvas';
 import type { FlowCanvasLabels, FlowCanvasNode, FlowCanvasPort } from '@/shared/ui/flow/FlowCanvas';
 import { Breakpoint } from '@/shared/viewport/constants/viewport.constants';
@@ -168,7 +169,7 @@ export function FlowEditor({ workspaceId }: FlowEditorProps) {
   };
 
   return (
-    <div className="relative min-h-0 min-w-0 flex-1">
+    <div {...tourAnchor(TourAnchor.BuilderCanvas)} className="relative min-h-0 min-w-0 flex-1">
       <FlowCanvas
         nodes={nodes}
         placeholder={

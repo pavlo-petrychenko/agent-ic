@@ -1,8 +1,10 @@
 import { PermissionAction } from '@agent-ic/contracts';
 import type { ResourcePermissions } from '@agent-ic/contracts';
+import { tourAnchor } from '@/features/onboarding';
 import {
   NAV_GROUPS,
   SECTION_RESOURCES,
+  SECTION_TOUR_ANCHORS,
   SETTINGS_NAV_ENTRY,
   WORKSPACE_SECTION_PATHS,
   type WorkspaceSection,
@@ -10,6 +12,7 @@ import {
 import { WORKSPACE_ID_PARAM } from '@/features/workspace/constants/route.constants';
 import type { NavEntry, NavGroupEntry } from '@/features/workspace/typedefs/navigation.typedefs';
 import { hasPermission } from '@/shared/api/helpers/permission.helpers';
+import type { NavItemDataAttributes } from '@/shared/ui/navigation/NavItem';
 
 const isVisible = (permissions: ResourcePermissions, entry: NavEntry): boolean =>
   entry.resource === null || hasPermission(permissions, entry.resource, PermissionAction.View);
@@ -36,3 +39,8 @@ export const homeSection = (permissions: ResourcePermissions): WorkspaceSection 
 
 export const sectionHref = (section: WorkspaceSection, workspaceId: string): string =>
   WORKSPACE_SECTION_PATHS[section].replace(WORKSPACE_ID_PARAM, encodeURIComponent(workspaceId));
+
+export const sectionTourAttributes = (section: WorkspaceSection): NavItemDataAttributes => {
+  const anchor = SECTION_TOUR_ANCHORS[section];
+  return anchor === undefined ? {} : tourAnchor(anchor);
+};

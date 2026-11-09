@@ -1,0 +1,116 @@
+{
+  "welcome": {
+    "title": "Welcome to agent-ic",
+    "body": "Build a chat agent that answers your customers, give it your documents and publish it to Telegram or the API.",
+    "reopen": "You can reopen the tour any time from Help → Product tour.",
+    "start": "Take the tour (about 3 minutes)",
+    "skip": "Skip for now"
+  },
+  "progress": "{{current}} of {{total}}",
+  "actions": {
+    "next": "Next",
+    "back": "Back",
+    "skipStep": "Skip step",
+    "skipTour": "Skip tour",
+    "close": "Close tour",
+    "finish": "Finish",
+    "openTemplates": "Open templates"
+  },
+  "goThere": {
+    "agents": "Go to Agents",
+    "builder": "Open the builder",
+    "testing": "Open Testing"
+  },
+  "offPage": {
+    "agents": "This step is on the Agents page.",
+    "builder": "This step is in the agent builder.",
+    "builderNoAgent": "This step is in the agent builder. Start an agent from a template first.",
+    "testing": "This step is on the Testing page."
+  },
+  "steps": {
+    "agents": {
+      "title": "Agents",
+      "body": "An agent is a flow graph that answers your customers. Each agent has a live version and a draft you edit."
+    },
+    "prompts": {
+      "title": "Prompts",
+      "body": "Keep your prompts in one library. Every change is a new version, so you can compare and go back."
+    },
+    "knowledge": {
+      "title": "Knowledge",
+      "body": "Upload documents or connect Google Drive. Agents use them to answer with your own facts."
+    },
+    "channels": {
+      "title": "Channels",
+      "body": "Connect a Telegram bot or the API so customers can talk to your agent."
+    },
+    "inbox": {
+      "title": "Inbox",
+      "body": "When an agent hands a chat to a person, it lands here. Get alerts in the app, by email or in Telegram from Settings → Notifications."
+    },
+    "testing": {
+      "title": "Testing",
+      "body": "Chat with any agent in the simulator and see the trace of every step it ran."
+    },
+    "build": {
+      "title": "Build your first agent",
+      "body": "Start from a ready-made template, or create an empty agent with New agent."
+    },
+    "canvas": {
+      "title": "Your flow",
+      "body": "This is your flow: triggers at the top, steps below. Click a step to edit it in the inspector."
+    },
+    "palette": {
+      "title": "Add steps",
+      "body": "Drag a step onto the canvas, or click it to add it below the selected step."
+    },
+    "guides": {
+      "title": "Guides",
+      "body": "Every step has a guide with a working example. Open them here or from the info button of a step."
+    },
+    "publish": {
+      "title": "Publish",
+      "body": "Publishing makes this version live on your channels. Customers keep talking to the live version while you edit the draft."
+    },
+    "test": {
+      "title": "Test it",
+      "body": "Chat as a customer and see the trace of each step."
+    },
+    "done": {
+      "title": "You're set",
+      "body": "That's the tour. Here is what to do next:"
+    }
+  },
+  "links": {
+    "telegram": "Connect Telegram",
+    "team": "Invite your team",
+    "templates": "Browse templates",
+    "guides": "Open the guides"
+  },
+  "help": {
+    "label": "Help",
+    "menu": "Help menu",
+    "productTour": "Product tour",
+    "resume": "Resume at step {{current}} of {{total}}",
+    "gettingStarted": "Getting started",
+    "templates": "Templates",
+    "guides": "Guides"
+  },
+  "checklist": {
+    "title": "Getting started",
+    "description": "Click a step to open it in the tour.",
+    "close": "Close",
+    "restart": "Restart the tour",
+    "groups": {
+      "explore": "Explore",
+      "build": "Build",
+      "publish": "Publish",
+      "test": "Test"
+    },
+    "status": {
+      "done": "Done",
+      "skipped": "Skipped",
+      "todo": "Not done yet"
+    }
+  }
+}

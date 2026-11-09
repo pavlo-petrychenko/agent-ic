@@ -29,6 +29,7 @@ function renderRailItems(items: readonly NavItemData[]) {
       {items.map((item) => (
         <li key={item.id}>
           <NavItem
+            {...item.dataAttributes}
             to={item.to}
             icon={item.icon}
             layout={NavItemLayout.Rail}

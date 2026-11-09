@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { TourAnchor, tourAnchor } from '@/features/onboarding';
 import { InactivityAction } from '@/features/testing/constants/inactivity.constants';
 import {
   ComposerMode,
@@ -175,7 +176,11 @@ export function ChatPanel({
   const notReady = state();
 
   return (
-    <section className={styles.root} aria-label={t('chat.label')}>
+    <section
+      {...tourAnchor(TourAnchor.TestingSimulator)}
+      className={styles.root}
+      aria-label={t('chat.label')}
+    >
       <div className={styles.setup}>
         <SimulatorSetup {...setup} />
       </div>

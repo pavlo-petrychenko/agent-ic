@@ -1,9 +1,11 @@
 import { useMatches } from '@tanstack/react-router';
 import { LocaleSwitcher } from '@/app/components/LocaleSwitcher';
 import type { WorkspaceLayoutProps } from '@/app/layouts/WorkspaceLayout/WorkspaceLayout.typedefs';
+import { ProductTour } from '@/features/onboarding';
 import { UsageLimitBanner } from '@/features/settings';
 import {
   useUpdateMyLocale,
+  useWorkspaceShell,
   WorkspaceAccess,
   WorkspaceNavForm,
   WorkspaceNavigation,
@@ -12,6 +14,7 @@ import styles from '@/app/layouts/WorkspaceLayout/WorkspaceLayout.module.scss';
 
 export function WorkspaceLayout({ workspaceId, children }: WorkspaceLayoutProps) {
   const saveLocale = useUpdateMyLocale();
+  const { data: shell } = useWorkspaceShell(workspaceId);
   const navForm = useMatches({
     select: (matches) =>
       matches.findLast((match) => match.staticData.navForm !== undefined)?.staticData.navForm ??
@@ -35,6 +38,11 @@ export function WorkspaceLayout({ workspaceId, children }: WorkspaceLayoutProps)
           <WorkspaceAccess workspaceId={workspaceId}>{children}</WorkspaceAccess>
         </div>
       </main>
+      <ProductTour
+        workspaceId={workspaceId}
+        userId={shell?.user.userId ?? null}
+        permissions={shell?.active?.permissions ?? null}
+      />
     </div>
   );
 }

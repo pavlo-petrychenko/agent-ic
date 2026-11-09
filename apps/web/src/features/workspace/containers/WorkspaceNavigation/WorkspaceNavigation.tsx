@@ -7,6 +7,7 @@ import {
   NotificationBell,
   useInboxNeedsYouCount,
 } from '@/features/inbox';
+import { HelpMenu } from '@/features/onboarding';
 import { useWorkspaceShell } from '@/features/workspace/communication/hooks/useWorkspaceShell';
 import { NavGroupKey, WorkspaceSection } from '@/features/workspace/constants/navigation.constants';
 import { WorkspaceNavForm } from '@/features/workspace/constants/navigationForm.constants';
@@ -19,6 +20,7 @@ import type { WorkspaceNavigationProps } from '@/features/workspace/containers/W
 import {
   canOpenSection,
   sectionHref,
+  sectionTourAttributes,
   visibleNavGroups,
 } from '@/features/workspace/logic/helpers/navigation.helpers';
 import type { SidebarItem } from '@/features/workspace/typedefs/sidebar.typedefs';
@@ -74,6 +76,7 @@ export function WorkspaceNavigation({
               entry.section === WorkspaceSection.Inbox && inboxCount !== null
                 ? t('nav.badge.inbox', { count: inboxCount })
                 : null,
+            dataAttributes: sectionTourAttributes(entry.section),
           })),
         }));
 
@@ -91,6 +94,7 @@ export function WorkspaceNavigation({
     icon: item.icon,
     badgeCount: item.badgeCount,
     badgeLabel: item.badgeLabel,
+    dataAttributes: item.dataAttributes,
   });
 
   const switcher = (
@@ -138,7 +142,12 @@ export function WorkspaceNavigation({
           footerItems={groups
             .filter((group) => group.key === NavGroupKey.Footer)
             .flatMap((group) => group.items.map(toRailItem))}
-          account={notificationBell}
+          account={
+            <div className="flex flex-col items-center gap-1">
+              <HelpMenu workspaceId={workspaceId} compact />
+              {notificationBell}
+            </div>
+          }
         />
         {notifications}
       </>
@@ -153,6 +162,7 @@ export function WorkspaceNavigation({
         header={switcher}
         headerAction={notificationBell}
         groups={groups}
+        footerExtra={<HelpMenu workspaceId={workspaceId} />}
         user={
           data === null
             ? null
