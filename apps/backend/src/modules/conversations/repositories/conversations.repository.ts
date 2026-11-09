@@ -7,6 +7,7 @@ import {
   desc,
   eq,
   gte,
+  ilike,
   inArray,
   isNotNull,
   isNull,
@@ -28,6 +29,7 @@ import { conversations } from '@/modules/conversations/db/conversations.table';
 import { messages } from '@/modules/conversations/db/messages.table';
 import { scheduleContacts } from '@/modules/conversations/db/schedule-contacts.table';
 import { neverEscalated } from '@/modules/conversations/helpers/conversation-escalation.helpers';
+import { inboxSearchPattern } from '@/modules/conversations/helpers/inbox-search.helpers';
 import {
   endUserLockKey,
   simulationLockKey,
@@ -39,6 +41,11 @@ import type {
   NewConversation,
   SimulationKey,
 } from '@/modules/conversations/typedefs/conversation.typedefs';
+import type {
+  InboxFilter,
+  InboxFilterOptions,
+  InboxListFilter,
+} from '@/modules/conversations/typedefs/inbox.typedefs';
 import type { ScheduleCandidateQuery } from '@/modules/conversations/typedefs/schedule-audience.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import { storedRow } from '@/platform/database/helpers/stored-row.helpers';
@@ -68,7 +75,22 @@ export class ConversationsRepository {
     return conversation ?? null;
   }
 
-  listLive(workspaceId: string, limit: number): Promise<Conversation[]> {
+  listLive(
+    workspaceId: string,
+    filter: InboxListFilter,
+    limit: number,
+    after: { readonly lastMessageAt: Date; readonly id: string } | null,
+  ): Promise<Conversation[]> {
+    const cursor =
+      after === null
+        ? undefined
+        : or(
+            lt(conversations.lastMessageAt, after.lastMessageAt),
+            and(
+              eq(conversations.lastMessageAt, after.lastMessageAt),
+              lt(conversations.id, after.id),
+            ),
+          );
     return this.txHost.tx
       .select()
       .from(conversations)
@@ -76,10 +98,66 @@ export class ConversationsRepository {
         and(
           eq(conversations.workspaceId, workspaceId),
           eq(conversations.mode, ConversationMode.Live),
+          inArray(conversations.state, [...filter.states]),
+          ...this.filterConditions(filter),
+          cursor,
         ),
       )
       .orderBy(desc(conversations.lastMessageAt), desc(conversations.id))
       .limit(limit);
+  }
+
+  countByState(
+    workspaceId: string,
+    filter: InboxFilter,
+  ): Promise<Array<{ state: ConversationState; total: number }>> {
+    return this.txHost.tx
+      .select({ state: conversations.state, total: count() })
+      .from(conversations)
+      .where(
+        and(
+          eq(conversations.workspaceId, workspaceId),
+          eq(conversations.mode, ConversationMode.Live),
+          ...this.filterConditions(filter),
+        ),
+      )
+      .groupBy(conversations.state);
+  }
+
+  async listFilterRefs(workspaceId: string): Promise<InboxFilterOptions> {
+    const live = and(
+      eq(conversations.workspaceId, workspaceId),
+      eq(conversations.mode, ConversationMode.Live),
+    );
+    const [channelRows, agentRows] = await Promise.all([
+      this.txHost.tx
+        .selectDistinct({ id: conversations.channelId })
+        .from(conversations)
+        .where(and(live, isNotNull(conversations.channelId))),
+      this.txHost.tx.selectDistinct({ id: conversations.agentId }).from(conversations).where(live),
+    ]);
+    return {
+      channelRefs: channelRows.flatMap((row) => (row.id === null ? [] : [row.id])),
+      agentRefs: agentRows.map((row) => row.id),
+    };
+  }
+
+  private filterConditions(filter: InboxFilter): SQL[] {
+    const conditions = [
+      filter.channelIds.length === 0
+        ? undefined
+        : inArray(conversations.channelId, [...filter.channelIds]),
+      filter.agentIds.length === 0
+        ? undefined
+        : inArray(conversations.agentId, [...filter.agentIds]),
+      filter.search === null
+        ? undefined
+        : or(
+            ilike(conversations.endUserName, inboxSearchPattern(filter.search)),
+            ilike(conversations.endUserExternalId, inboxSearchPattern(filter.search)),
+          ),
+    ];
+    return conditions.filter((condition): condition is SQL => condition !== undefined);
   }
 
   async countNeedsYou(workspaceId: string): Promise<number> {
@@ -260,10 +338,15 @@ export class ConversationsRepository {
     return released.length > 0;
   }
 
-  async markWaiting(workspaceId: string, id: string): Promise<boolean> {
+  async markWaiting(workspaceId: string, id: string, escalated = false): Promise<boolean> {
+    const now = this.clock.now();
     const updated = await this.txHost.tx
       .update(conversations)
-      .set({ state: ConversationState.Waiting, lastEscalatedAt: this.clock.now() })
+      .set({
+        state: ConversationState.Waiting,
+        waitingSince: now,
+        ...(escalated ? { lastEscalatedAt: now } : {}),
+      })
       .where(
         and(
           eq(conversations.workspaceId, workspaceId),
@@ -294,14 +377,25 @@ export class ConversationsRepository {
     return conversation ?? null;
   }
 
-  async takeOver(workspaceId: string, id: string, userId: string): Promise<Conversation | null> {
+  async takeOver(
+    workspaceId: string,
+    id: string,
+    userId: string,
+    expected: { readonly state: ConversationState; readonly handledBy: string | null },
+  ): Promise<Conversation | null> {
+    const holder =
+      expected.handledBy === null
+        ? isNull(conversations.handledBy)
+        : eq(conversations.handledBy, expected.handledBy);
     const [conversation] = await this.txHost.tx
       .update(conversations)
-      .set({ state: ConversationState.Handled, handledBy: userId })
+      .set({ state: ConversationState.Handled, handledBy: userId, waitingSince: null })
       .where(
         and(
           eq(conversations.workspaceId, workspaceId),
           eq(conversations.id, id),
+          eq(conversations.state, expected.state),
+          holder,
           ne(conversations.state, ConversationState.Closed),
         ),
       )
@@ -312,7 +406,7 @@ export class ConversationsRepository {
   async handBack(workspaceId: string, id: string): Promise<Conversation | null> {
     const [conversation] = await this.txHost.tx
       .update(conversations)
-      .set({ state: ConversationState.AgentActive, handledBy: null })
+      .set({ state: ConversationState.AgentActive, handledBy: null, waitingSince: null })
       .where(
         and(
           eq(conversations.workspaceId, workspaceId),
@@ -332,7 +426,7 @@ export class ConversationsRepository {
   ): Promise<boolean> {
     const closed = await this.txHost.tx
       .update(conversations)
-      .set({ state: ConversationState.Closed, closedAt, closeReason })
+      .set({ state: ConversationState.Closed, closedAt, closeReason, waitingSince: null })
       .where(
         and(
           eq(conversations.workspaceId, workspaceId),
@@ -364,7 +458,12 @@ export class ConversationsRepository {
     }
     const closed = await this.txHost.tx
       .update(conversations)
-      .set({ state: ConversationState.Closed, closedAt, closeReason: CloseReason.Inactivity })
+      .set({
+        state: ConversationState.Closed,
+        closedAt,
+        closeReason: CloseReason.Inactivity,
+        waitingSince: null,
+      })
       .where(
         and(
           inArray(

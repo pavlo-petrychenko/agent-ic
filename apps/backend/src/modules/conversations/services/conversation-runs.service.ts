@@ -7,6 +7,7 @@ import {
   CloseReason,
   ConversationMode,
   ConversationState,
+  WaitingReason,
 } from '@/modules/conversations/constants/conversation.constants';
 import {
   MessageDelivery,
@@ -172,7 +173,8 @@ export class ConversationRunsService {
     if (conversation.state === ConversationState.Closed) {
       throw new ConversationClosedError(conversation.id);
     }
-    if (!(await this.conversations.markWaiting(request.workspaceId, conversation.id))) {
+    const escalated = request.reason === WaitingReason.Escalated;
+    if (!(await this.conversations.markWaiting(request.workspaceId, conversation.id, escalated))) {
       return false;
     }
     if (conversation.mode === ConversationMode.Simulation) {

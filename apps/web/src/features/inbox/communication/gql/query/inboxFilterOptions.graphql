@@ -1,0 +1,12 @@
+query InboxFilterOptions {
+  inboxFilterOptions {
+    channels {
+      id
+      name
+    }
+    agents {
+      id
+      name
+    }
+  }
+}

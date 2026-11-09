@@ -1,4 +1,6 @@
 import {
+  INBOX_MINUTES_PER_DAY,
+  INBOX_MINUTES_PER_HOUR,
   InboxActionId,
   InboxDividerKind,
   InboxFooterKind,
@@ -61,6 +63,21 @@ const INBOX_ACTIONS: Readonly<Record<InboxReplyState, readonly InboxActionSpec[]
   [InboxReplyState.Closed]: [],
 };
 
+const waitingDuration = (minutesAgo: number, t: InboxTranslate): string => {
+  const days = Math.floor(minutesAgo / INBOX_MINUTES_PER_DAY);
+  if (days > 0) {
+    return t('banner.duration.days', { days });
+  }
+  const hours = Math.floor(minutesAgo / INBOX_MINUTES_PER_HOUR);
+  if (hours === 0) {
+    return t('banner.duration.minutes', { minutes: minutesAgo });
+  }
+  const minutes = minutesAgo % INBOX_MINUTES_PER_HOUR;
+  return minutes === 0
+    ? t('banner.duration.hours', { hours })
+    : t('banner.duration.hoursMinutes', { hours, minutes });
+};
+
 const INBOX_BANNERS: Readonly<Record<InboxReplyState, InboxBannerResolver>> = {
   [InboxReplyState.Mine]: (_conversation, t) => ({
     tone: BannerTone.Info,
@@ -70,7 +87,9 @@ const INBOX_BANNERS: Readonly<Record<InboxReplyState, InboxBannerResolver>> = {
   [InboxReplyState.Waiting]: (conversation, t) => ({
     tone: BannerTone.Warn,
     icon: IconName.Pause,
-    text: t('banner.waiting', { count: conversation.minutesAgo }),
+    text: t('banner.waiting', {
+      duration: waitingDuration(conversation.waitingMinutes ?? conversation.minutesAgo, t),
+    }),
   }),
   [InboxReplyState.Operator]: (conversation, t) => ({
     tone: BannerTone.Info,
@@ -161,7 +180,6 @@ const inboxMessage = (message: InboxStoredMessage, t: InboxTranslate): InboxMess
         title: t('escalation.title'),
         detail: message.detail,
         time: message.time,
-        linkLabel: t('details.openInLangfuse'),
       };
     case InboxMessageKind.Customer:
     case InboxMessageKind.Agent:

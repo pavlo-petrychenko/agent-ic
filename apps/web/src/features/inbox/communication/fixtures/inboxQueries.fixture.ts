@@ -11,10 +11,15 @@ import {
 import {
   InboxConversationsDocument,
   type InboxConversationsQuery,
+  type InboxConversationsQueryVariables,
 } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
+import {
+  InboxCountsDocument,
+  type InboxCountsQueryVariables,
+} from '@/features/inbox/communication/gql/query/inboxCounts.generated';
 import { InboxCurrentUserDocument } from '@/features/inbox/communication/gql/query/inboxCurrentUser.generated';
+import { InboxFilterOptionsDocument } from '@/features/inbox/communication/gql/query/inboxFilterOptions.generated';
 import { InboxNeedsYouCountDocument } from '@/features/inbox/communication/gql/query/inboxNeedsYouCount.generated';
-import { INBOX_CONVERSATIONS_FETCH_LIMIT } from '@/features/inbox/constants/inbox.constants';
 import {
   ApiReplyMode,
   ChannelConversationKind,
@@ -34,6 +39,82 @@ const withTypename = <T extends object>(
   value: T,
 ): T & { readonly __typename: string } => ({ __typename: typename, ...value });
 
+const INBOX_QUEUE_STATES: Readonly<Record<string, readonly ConversationState[]>> = {
+  needs_you: [ConversationState.Waiting, ConversationState.Handled],
+  live: [ConversationState.AgentActive],
+  closed: [ConversationState.Closed],
+};
+
+type IdFilter = string | number | readonly (string | number)[] | null | undefined;
+
+interface SummaryFilter {
+  readonly channelIds?: IdFilter;
+  readonly agentIds?: IdFilter;
+  readonly search?: string | null;
+}
+
+const normalizeIds = (value: IdFilter): readonly string[] => {
+  if (value === null || value === undefined) {
+    return [];
+  }
+  return Array.isArray(value) ? value.map((item) => String(item)) : [String(value)];
+};
+
+const matchesSummary = (summary: InboxSummaryFixture, filter: SummaryFilter): boolean => {
+  const channelIds = normalizeIds(filter.channelIds);
+  const agentIds = normalizeIds(filter.agentIds);
+  const search = (filter.search ?? '').trim().toLocaleLowerCase();
+  return (
+    (channelIds.length === 0 ||
+      (summary.channelId !== null && channelIds.includes(summary.channelId))) &&
+    (agentIds.length === 0 || agentIds.includes(summary.agentId)) &&
+    (search === '' ||
+      `${summary.endUserName ?? ''} ${summary.endUserExternalId}`
+        .toLocaleLowerCase()
+        .includes(search))
+  );
+};
+
+const summariesFor = (
+  summaries: readonly InboxSummaryFixture[],
+  variables: InboxConversationsQueryVariables,
+): readonly InboxSummaryFixture[] =>
+  summaries.filter(
+    (summary) =>
+      INBOX_QUEUE_STATES[variables.queue]?.includes(summary.state) &&
+      matchesSummary(summary, variables),
+  );
+
+const countsOf = (
+  summaries: readonly InboxSummaryFixture[],
+  filter: SummaryFilter,
+): { readonly needsYou: number; readonly live: number; readonly closed: number } => {
+  const matching = summaries.filter((summary) => matchesSummary(summary, filter));
+  const countOf = (states: readonly ConversationState[]): number =>
+    matching.filter((summary) => states.includes(summary.state)).length;
+  return {
+    needsYou: countOf(INBOX_QUEUE_STATES.needs_you ?? []),
+    live: countOf(INBOX_QUEUE_STATES.live ?? []),
+    closed: countOf(INBOX_QUEUE_STATES.closed ?? []),
+  };
+};
+
+const filterOptionsOf = (summaries: readonly InboxSummaryFixture[]) => {
+  const channels = new Map<string, string>();
+  const agents = new Map<string, string>();
+  for (const summary of summaries) {
+    if (summary.channelId !== null) {
+      channels.set(summary.channelId, summary.channelName ?? summary.channelId);
+    }
+    agents.set(summary.agentId, summary.agentName);
+  }
+  const options = (values: ReadonlyMap<string, string>) =>
+    [...values.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+  return { channels: options(channels), agents: options(agents) };
+};
+
 export const inboxSummaries: readonly InboxSummaryFixture[] = [
   {
     id: 'cnv_olena',
@@ -42,6 +123,8 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     handledByName: 'Demo Owner',
     hasBeenHandled: true,
     channelKind: ChannelConversationKind.Telegram,
+    channelId: 'chn_telegram',
+    channelName: '@demo_salon_bot',
     agentId: 'agt_salon',
     agentName: 'Salon assistant',
     agentVersion: 3,
@@ -51,6 +134,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     createdAt: '2026-11-01T14:02:00.000Z',
     lastMessageAt: '2026-11-01T14:07:00.000Z',
     lastEscalatedAt: '2026-11-01T14:03:00.000Z',
+    waitingSince: null,
     closedAt: null,
   },
   {
@@ -60,6 +144,8 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     handledByName: null,
     hasBeenHandled: false,
     channelKind: ChannelConversationKind.Telegram,
+    channelId: 'chn_telegram',
+    channelName: '@demo_salon_bot',
     agentId: 'agt_salon',
     agentName: 'Salon assistant',
     agentVersion: 3,
@@ -69,6 +155,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     createdAt: '2026-11-01T14:12:00.000Z',
     lastMessageAt: '2026-11-01T14:17:00.000Z',
     lastEscalatedAt: '2026-11-01T14:17:00.000Z',
+    waitingSince: '2026-11-01T14:17:00.000Z',
     closedAt: null,
   },
   {
@@ -78,6 +165,8 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     handledByName: 'Olena',
     hasBeenHandled: true,
     channelKind: ChannelConversationKind.Api,
+    channelId: 'chn_api',
+    channelName: 'Website',
     agentId: 'agt_gift',
     agentName: 'Gift card FAQ',
     agentVersion: 5,
@@ -87,6 +176,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     createdAt: '2026-11-01T14:18:00.000Z',
     lastMessageAt: '2026-11-01T14:20:00.000Z',
     lastEscalatedAt: '2026-11-01T14:18:00.000Z',
+    waitingSince: null,
     closedAt: null,
   },
   {
@@ -96,6 +186,8 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     handledByName: null,
     hasBeenHandled: true,
     channelKind: ChannelConversationKind.Telegram,
+    channelId: 'chn_telegram',
+    channelName: '@demo_salon_bot',
     agentId: 'agt_salon',
     agentName: 'Salon assistant',
     agentVersion: 3,
@@ -105,6 +197,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     createdAt: '2026-11-01T14:02:00.000Z',
     lastMessageAt: '2026-11-01T14:21:00.000Z',
     lastEscalatedAt: '2026-11-01T14:05:00.000Z',
+    waitingSince: null,
     closedAt: null,
   },
   {
@@ -114,6 +207,8 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     handledByName: null,
     hasBeenHandled: false,
     channelKind: ChannelConversationKind.Api,
+    channelId: 'chn_api',
+    channelName: 'Website',
     agentId: 'agt_gift',
     agentName: 'Gift card FAQ',
     agentVersion: 5,
@@ -123,6 +218,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     createdAt: '2026-11-01T14:11:00.000Z',
     lastMessageAt: '2026-11-01T14:19:00.000Z',
     lastEscalatedAt: '2026-11-01T14:11:00.000Z',
+    waitingSince: null,
     closedAt: null,
   },
   {
@@ -132,6 +228,8 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     handledByName: null,
     hasBeenHandled: true,
     channelKind: ChannelConversationKind.Telegram,
+    channelId: 'chn_telegram',
+    channelName: '@demo_salon_bot',
     agentId: 'agt_salon',
     agentName: 'Salon assistant',
     agentVersion: 3,
@@ -141,6 +239,7 @@ export const inboxSummaries: readonly InboxSummaryFixture[] = [
     createdAt: '2026-10-31T18:19:00.000Z',
     lastMessageAt: '2026-10-31T18:22:00.000Z',
     lastEscalatedAt: null,
+    waitingSince: null,
     closedAt: '2026-10-31T18:40:00.000Z',
   },
 ];
@@ -466,7 +565,7 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
     {
       request: {
         query: InboxTakeOverDocument,
-        variables: { input: { conversationId: 'cnv_marta' } },
+        variables: { input: { conversationId: 'cnv_marta', fromOperator: false } },
       },
       result: () => {
         updateSummary('cnv_marta', (summary) => ({
@@ -478,6 +577,28 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
           data: {
             takeOver: withTypename('Conversation', {
               id: 'cnv_marta',
+              state: ConversationState.Handled,
+            }),
+          },
+        };
+      },
+    },
+    {
+      request: {
+        query: InboxTakeOverDocument,
+        variables: { input: { conversationId: 'cnv_andri', fromOperator: true } },
+      },
+      result: () => {
+        updateSummary('cnv_andri', (summary) => ({
+          ...summary,
+          state: ConversationState.Handled,
+          handledByMe: true,
+          handledByName: 'Demo Owner',
+        }));
+        return {
+          data: {
+            takeOver: withTypename('Conversation', {
+              id: 'cnv_andri',
               state: ConversationState.Handled,
             }),
           },
@@ -525,13 +646,24 @@ export const buildInboxMocks = (): readonly MockLink.MockedResponse[] => {
       maxUsageCount: Number.POSITIVE_INFINITY,
     },
     {
-      request: {
-        query: InboxConversationsDocument,
-        variables: { limit: INBOX_CONVERSATIONS_FETCH_LIMIT },
-      },
+      request: { query: InboxFilterOptionsDocument },
       result: () => ({
+        data: { inboxFilterOptions: filterOptionsOf(summaries) },
+      }),
+      maxUsageCount: Number.POSITIVE_INFINITY,
+    },
+    {
+      request: { query: InboxCountsDocument, variables: () => true },
+      result: (variables: InboxCountsQueryVariables) => ({
+        data: { inboxCounts: countsOf(summaries, variables.input ?? {}) },
+      }),
+      maxUsageCount: Number.POSITIVE_INFINITY,
+    },
+    {
+      request: { query: InboxConversationsDocument, variables: () => true },
+      result: (variables: InboxConversationsQueryVariables) => ({
         data: {
-          inboxConversations: summaries.map((summary) =>
+          inboxConversations: summariesFor(summaries, variables).map((summary) =>
             withTypename('InboxConversationSummary', summary),
           ),
         },

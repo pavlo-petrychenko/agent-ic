@@ -1,11 +1,29 @@
-query InboxConversations($limit: Int) {
-  inboxConversations(input: { limit: $limit }) {
+query InboxConversations(
+  $limit: Int
+  $after: InboxConversationsCursor
+  $queue: InboxQueue!
+  $channelIds: [ID!]
+  $agentIds: [ID!]
+  $search: String
+) {
+  inboxConversations(
+    input: {
+      limit: $limit
+      after: $after
+      queue: $queue
+      channelIds: $channelIds
+      agentIds: $agentIds
+      search: $search
+    }
+  ) {
     id
     state
     handledByMe
     handledByName
     hasBeenHandled
     channelKind
+    channelId
+    channelName
     agentId
     agentName
     agentVersion
@@ -15,6 +33,7 @@ query InboxConversations($limit: Int) {
     createdAt
     lastMessageAt
     lastEscalatedAt
+    waitingSince
     closedAt
   }
 }

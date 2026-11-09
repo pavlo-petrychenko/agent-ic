@@ -1,9 +1,11 @@
+import { DiscoveryModule } from '@nestjs/core';
 import { CleanUpWorkspaceListener } from '@/modules/usage/listeners/clean-up-workspace.listener';
 import { SendUsageThresholdEmailListener } from '@/modules/usage/listeners/send-usage-threshold-email.listener';
 import { UsageCountersRepository } from '@/modules/usage/repositories/usage-counters.repository';
 import { WorkspaceLimitsRepository } from '@/modules/usage/repositories/workspace-limits.repository';
 import { UsageStatusResolver } from '@/modules/usage/resolvers/usage-status.resolver';
 import { WorkspaceUsageResolver } from '@/modules/usage/resolvers/workspace-usage.resolver';
+import { KnowledgeChunksService } from '@/modules/usage/services/knowledge-chunks.service';
 import { UsageCountersService } from '@/modules/usage/services/usage-counters.service';
 import { UsageLimitsReader } from '@/modules/usage/services/usage-limits-reader.service';
 import { UsageLimitsService } from '@/modules/usage/services/usage-limits.service';
@@ -21,12 +23,14 @@ import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpe
 
 export class UsageModule extends defineModule({
   global: true,
+  imports: [DiscoveryModule],
   providers: [
     UsageCountersRepository,
     WorkspaceLimitsRepository,
     UsagePeriodService,
     UsageLimitsReader,
     UsageMetricsService,
+    KnowledgeChunksService,
     UsageCountersService,
     UsageViewsService,
     UsageLimitsService,

@@ -4,10 +4,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { InboxCloseConversationDocument } from '@/features/inbox/communication/gql/mutation/inboxCloseConversation.generated';
-import { InboxConversationsDocument } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
 import { InboxNeedsYouCountDocument } from '@/features/inbox/communication/gql/query/inboxNeedsYouCount.generated';
 import { useCloseConversation } from '@/features/inbox/communication/hooks/useCloseConversation';
-import { INBOX_CONVERSATIONS_FETCH_LIMIT } from '@/features/inbox/constants/inbox.constants';
 
 function Harness() {
   const { data } = useQuery(InboxNeedsYouCountDocument);
@@ -43,13 +41,6 @@ describe('useCloseConversation', () => {
                 },
               },
             },
-          },
-          {
-            request: {
-              query: InboxConversationsDocument,
-              variables: { limit: INBOX_CONVERSATIONS_FETCH_LIMIT },
-            },
-            result: { data: { inboxConversations: [] } },
           },
           {
             request: { query: InboxNeedsYouCountDocument },

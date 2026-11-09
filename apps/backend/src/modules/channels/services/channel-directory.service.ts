@@ -11,4 +11,12 @@ export class ChannelDirectoryService {
     const channel = await this.channels.findById(workspaceId, id);
     return channel === null ? null : channelSummaryOf(channel);
   }
+
+  async findSummaries(
+    workspaceId: string,
+    ids: readonly string[],
+  ): Promise<ReadonlyMap<string, ChannelSummary>> {
+    const records = await this.channels.findByIds(workspaceId, ids);
+    return new Map(records.map((record) => [record.id, channelSummaryOf(record)]));
+  }
 }

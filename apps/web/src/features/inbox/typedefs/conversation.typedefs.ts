@@ -41,6 +41,7 @@ export interface InboxConversationFacts {
   readonly channel: string;
   readonly startedAt: string | null;
   readonly escalatedAt: string | null;
+  readonly waitingSince: string | null;
   readonly notified: InboxNotified | null;
   readonly runs: number | null;
   readonly handledBy: string | null;
@@ -56,6 +57,9 @@ export interface InboxConversation {
   readonly name: string;
   readonly initials: string;
   readonly provider: InboxProvider;
+  readonly channelId: string | null;
+  readonly channelName: string | null;
+  readonly agentId: string;
   readonly agentName: string;
   readonly agentVersion: number;
   readonly replyState: InboxReplyState;
@@ -63,6 +67,7 @@ export interface InboxConversation {
   readonly assigneeName: string | null;
   readonly preview: string;
   readonly minutesAgo: number;
+  readonly waitingMinutes: number | null;
   readonly messages: readonly InboxStoredMessage[];
   readonly guard: InboxGuard | null;
   readonly run: InboxRun | null;

@@ -67,12 +67,15 @@ describe('ConversationRunsService', () => {
     );
   };
 
-  const markWaiting = (conversation: NewConversation) =>
+  const markWaiting = (
+    conversation: NewConversation,
+    reason: WaitingReason = WaitingReason.Escalated,
+  ) =>
     inTenant(conversation, () =>
       testbed.runs.markWaiting(workspaceSystemCtx(conversation.workspaceId), {
         workspaceId: conversation.workspaceId,
         conversationId: conversation.id,
-        reason: WaitingReason.Escalated,
+        reason,
       }),
     );
 
@@ -252,13 +255,23 @@ describe('ConversationRunsService', () => {
     ]);
   });
 
-  it('stamps when the conversation was escalated', async () => {
+  it('stamps when the conversation started waiting and when it escalated', async () => {
     const conversation = await seedConversation(testbed);
     expect((await stateOf(conversation))?.lastEscalatedAt).toBeNull();
 
     await markWaiting(conversation);
 
+    expect((await stateOf(conversation))?.waitingSince).toEqual(testbed.clock.now());
     expect((await stateOf(conversation))?.lastEscalatedAt).toEqual(testbed.clock.now());
+  });
+
+  it('does not stamp an escalation when an agent pause sends the chat to the inbox', async () => {
+    const conversation = await seedConversation(testbed);
+
+    await markWaiting(conversation, WaitingReason.AgentPaused);
+
+    expect((await stateOf(conversation))?.waitingSince).toEqual(testbed.clock.now());
+    expect((await stateOf(conversation))?.lastEscalatedAt).toBeNull();
   });
 
   it('marks a simulation waiting without asking anyone', async () => {

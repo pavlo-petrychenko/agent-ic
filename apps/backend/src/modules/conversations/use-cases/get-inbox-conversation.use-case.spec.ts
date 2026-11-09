@@ -43,7 +43,10 @@ describe('GetInboxConversationUseCase', () => {
       authorUserId: userId,
     });
     await testbed.tenants.run(workspaceId, () =>
-      testbed.conversations.takeOver(workspaceId, conversation.id, userId),
+      testbed.conversations.takeOver(workspaceId, conversation.id, userId, {
+        state: conversation.state,
+        handledBy: conversation.handledBy ?? null,
+      }),
     );
     const publicId = testbed.ids.toPublic(IdPrefix.Conversation, conversation.id);
 

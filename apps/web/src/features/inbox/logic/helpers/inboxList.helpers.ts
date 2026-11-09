@@ -11,6 +11,7 @@ import type {
   InboxTranslate,
 } from '@/features/inbox/typedefs/common.typedefs';
 import type { InboxConversation } from '@/features/inbox/typedefs/conversation.typedefs';
+import type { InboxFilterOption } from '@/features/inbox/typedefs/filters.typedefs';
 import type {
   InboxEmptyState,
   InboxEmptyStateResolver,
@@ -18,6 +19,7 @@ import type {
   InboxRowStatusResolver,
   InboxTabItem,
 } from '@/features/inbox/typedefs/list.typedefs';
+import type { FilterOption } from '@/shared/ui/data/FilterBar/FilterPicker';
 import { EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { IconName } from '@/shared/ui/foundations/Icon';
 
@@ -100,5 +102,23 @@ export const inboxListItem = (
   selected: conversation.id === selectedId,
 });
 
-export const inboxEmptyState = (tab: InboxTab, t: InboxTranslate): InboxEmptyState =>
-  INBOX_EMPTY_STATES[tab](t);
+export const inboxFilterOptions = (
+  options: readonly InboxFilterOption[],
+): readonly FilterOption[] =>
+  options
+    .map((option) => ({ id: option.id, label: option.name, count: null }))
+    .sort((left, right) => left.label.localeCompare(right.label));
+
+export const inboxEmptyState = (
+  tab: InboxTab,
+  t: InboxTranslate,
+  filtered: boolean,
+): InboxEmptyState =>
+  filtered
+    ? {
+        title: t('empty.filtered.title'),
+        description: t('empty.filtered.description'),
+        icon: IconName.Search,
+        tone: EmptyStateTone.Neutral,
+      }
+    : INBOX_EMPTY_STATES[tab](t);

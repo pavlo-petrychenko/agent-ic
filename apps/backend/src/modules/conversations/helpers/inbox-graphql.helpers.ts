@@ -2,13 +2,26 @@ import {
   ChannelKind,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
+import { InboxQueue } from '@/modules/conversations/constants/inbox.constants';
 import { toGraphqlMessage } from '@/modules/conversations/helpers/simulation-graphql.helpers';
-import type { InboxConversationDetailParent } from '@/modules/conversations/typedefs/inbox-graphql.typedefs';
-import type { InboxDetail, InboxSummary } from '@/modules/conversations/typedefs/inbox.typedefs';
-import type { InboxConversationSummary } from '@/platform/graphql-server/generated/schema.generated';
+import type {
+  InboxConversationDetailParent,
+  InboxSummaryParent,
+} from '@/modules/conversations/typedefs/inbox-graphql.typedefs';
+import type {
+  InboxConversationsInput,
+  InboxCountsInput,
+  InboxDetail,
+  InboxSummary,
+} from '@/modules/conversations/typedefs/inbox.typedefs';
 import {
   ChannelConversationKind as GraphqlChannelConversationKind,
   ConversationState as GraphqlConversationState,
+  InboxQueue as GraphqlInboxQueue,
+} from '@/platform/graphql-server/generated/schema.generated';
+import type {
+  InboxConversationsInput as GraphqlInboxConversationsInput,
+  InboxCountsInput as GraphqlInboxCountsInput,
 } from '@/platform/graphql-server/generated/schema.generated';
 
 const GRAPHQL_CONVERSATION_STATE: Readonly<Record<ConversationState, GraphqlConversationState>> = {
@@ -24,13 +37,38 @@ const GRAPHQL_CHANNEL_KIND: Readonly<Record<ChannelKind, GraphqlChannelConversat
   [ChannelKind.Api]: GraphqlChannelConversationKind.Api,
 };
 
-export const toGraphqlInboxSummary = (summary: InboxSummary): InboxConversationSummary => ({
+const INBOX_QUEUE_FROM_GRAPHQL: Readonly<Record<GraphqlInboxQueue, InboxQueue>> = {
+  [GraphqlInboxQueue.NeedsYou]: InboxQueue.NeedsYou,
+  [GraphqlInboxQueue.Live]: InboxQueue.Live,
+  [GraphqlInboxQueue.Closed]: InboxQueue.Closed,
+};
+
+export const toInboxConversationsInput = (
+  input: GraphqlInboxConversationsInput,
+): InboxConversationsInput => ({
+  limit: input.limit,
+  after: input.after ?? null,
+  queue: INBOX_QUEUE_FROM_GRAPHQL[input.queue],
+  channelIds: input.channelIds ?? [],
+  agentIds: input.agentIds ?? [],
+  search: input.search ?? null,
+});
+
+export const toInboxCountsInput = (input: GraphqlInboxCountsInput | null): InboxCountsInput => ({
+  channelIds: input?.channelIds ?? [],
+  agentIds: input?.agentIds ?? [],
+  search: input?.search ?? null,
+});
+
+export const toGraphqlInboxSummary = (summary: InboxSummary): InboxSummaryParent => ({
   id: summary.id,
   state: GRAPHQL_CONVERSATION_STATE[summary.state],
   handledByMe: summary.handledByMe,
   handledByName: summary.handledByName,
   hasBeenHandled: summary.hasBeenHandled,
   channelKind: GRAPHQL_CHANNEL_KIND[summary.channelKind],
+  channelId: summary.channelId,
+  channelRef: summary.channelRef,
   agentId: summary.agentId,
   agentName: summary.agentName,
   agentVersion: summary.agentVersion,
@@ -40,6 +78,7 @@ export const toGraphqlInboxSummary = (summary: InboxSummary): InboxConversationS
   createdAt: summary.createdAt.toISOString(),
   lastMessageAt: summary.lastMessageAt.toISOString(),
   lastEscalatedAt: summary.lastEscalatedAt?.toISOString() ?? null,
+  waitingSince: summary.waitingSince?.toISOString() ?? null,
   closedAt: summary.closedAt?.toISOString() ?? null,
 });
 

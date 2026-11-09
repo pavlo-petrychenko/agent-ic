@@ -11,6 +11,7 @@ import { CreateAgentResolver } from '@/modules/agents/resolvers/create-agent.res
 import { DeleteAgentResolver } from '@/modules/agents/resolvers/delete-agent.resolver';
 import { DescribeAgentResolver } from '@/modules/agents/resolvers/describe-agent.resolver';
 import { DuplicateAgentResolver } from '@/modules/agents/resolvers/duplicate-agent.resolver';
+import { InboxFilterOptionsFieldsResolver } from '@/modules/agents/resolvers/inbox-filter-options-fields.resolver';
 import { ModelOptionsResolver } from '@/modules/agents/resolvers/model-options.resolver';
 import { PauseAgentResolver } from '@/modules/agents/resolvers/pause-agent.resolver';
 import { PublishAgentResolver } from '@/modules/agents/resolvers/publish-agent.resolver';
@@ -40,6 +41,7 @@ import { DescribeAgentUseCase } from '@/modules/agents/use-cases/describe-agent.
 import { DuplicateAgentUseCase } from '@/modules/agents/use-cases/duplicate-agent.use-case';
 import { GetAgentDraftUseCase } from '@/modules/agents/use-cases/get-agent-draft.use-case';
 import { GetAgentUseCase } from '@/modules/agents/use-cases/get-agent.use-case';
+import { GetInboxAgentOptionsUseCase } from '@/modules/agents/use-cases/get-inbox-agent-options.use-case';
 import { ListAgentTemplatesUseCase } from '@/modules/agents/use-cases/list-agent-templates.use-case';
 import { ListAgentVersionsUseCase } from '@/modules/agents/use-cases/list-agent-versions.use-case';
 import { ListAgentsUseCase } from '@/modules/agents/use-cases/list-agents.use-case';
@@ -94,6 +96,7 @@ export class AgentsModule extends defineModule({
     TestApiRequestUseCase,
     CountAgentsUseCase,
     CountDraftChangesUseCase,
+    GetInboxAgentOptionsUseCase,
   ],
   resolvers: [
     CreateAgentResolver,
@@ -104,6 +107,7 @@ export class AgentsModule extends defineModule({
     DeleteAgentResolver,
     AgentsResolver,
     AgentFieldsResolver,
+    InboxFilterOptionsFieldsResolver,
     SaveAgentDraftResolver,
     PublishAgentResolver,
     DuplicateAgentResolver,

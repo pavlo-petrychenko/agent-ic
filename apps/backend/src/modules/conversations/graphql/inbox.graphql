@@ -2,6 +2,20 @@ extend type Query {
   inboxConversations(input: InboxConversationsInput!): [InboxConversationSummary!]!
   inboxConversation(input: InboxConversationInput!): InboxConversationDetail!
   inboxNeedsYouCount: Int!
+  inboxCounts(input: InboxCountsInput): InboxCounts!
+  inboxFilterOptions: InboxFilterOptions!
+}
+
+enum InboxQueue {
+  needs_you
+  live
+  closed
+}
+
+type InboxCounts {
+  needsYou: Int!
+  live: Int!
+  closed: Int!
 }
 
 extend type Subscription {
@@ -19,6 +33,32 @@ type InboxActivityEvent {
 
 input InboxConversationsInput {
   limit: Int
+  after: InboxConversationsCursor
+  queue: InboxQueue!
+  channelIds: [ID!]
+  agentIds: [ID!]
+  search: String
+}
+
+input InboxCountsInput {
+  channelIds: [ID!]
+  agentIds: [ID!]
+  search: String
+}
+
+type InboxFilterOptions {
+  channels: [InboxFilterOption!]!
+  agents: [InboxFilterOption!]!
+}
+
+type InboxFilterOption {
+  id: ID!
+  name: String!
+}
+
+input InboxConversationsCursor {
+  lastMessageAt: String!
+  id: ID!
 }
 
 input InboxConversationInput {
@@ -32,6 +72,8 @@ type InboxConversationSummary {
   handledByName: String
   hasBeenHandled: Boolean!
   channelKind: ChannelConversationKind!
+  channelId: ID
+  channelName: String
   agentId: ID!
   agentName: String!
   agentVersion: Int!
@@ -41,6 +83,7 @@ type InboxConversationSummary {
   createdAt: String!
   lastMessageAt: String!
   lastEscalatedAt: String
+  waitingSince: String
   closedAt: String
 }
 

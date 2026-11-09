@@ -6,6 +6,9 @@ import type {
   InboxRowStatus,
   InboxTabItem,
 } from '@/features/inbox/typedefs/list.typedefs';
+import type { FilterPickerProps } from '@/shared/ui/data/FilterBar/FilterPicker';
+
+export type InboxFilterProps = Omit<FilterPickerProps, 'className'>;
 
 export interface InboxListProps {
   readonly title: string;
@@ -17,14 +20,19 @@ export interface InboxListProps {
   readonly searchLabel: string;
   readonly searchPlaceholder: string;
   readonly searchClearLabel: string;
-  readonly channelFilterLabel: string;
-  readonly agentFilterLabel: string;
+  readonly channelFilter: InboxFilterProps;
+  readonly agentFilter: InboxFilterProps;
   readonly items: readonly InboxListItem[];
   readonly empty: InboxEmptyState;
   readonly loading: boolean;
   readonly loadingLabel: string;
+  readonly hasMore: boolean;
+  readonly loadingMore: boolean;
+  readonly loadMoreLabel: string;
+  readonly loadingMoreLabel: string;
   readonly loadError: InboxLoadError | null;
   readonly onSelect: (id: string) => void;
+  readonly onLoadMore: () => void;
 }
 
 export interface RowStatusProps {

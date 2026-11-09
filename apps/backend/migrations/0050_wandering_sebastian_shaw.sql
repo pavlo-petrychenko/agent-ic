@@ -1,0 +1,2 @@
+CREATE INDEX "conversations_inbox_idx" ON "conversations"."conversations" USING btree ("workspace_id","last_message_at" DESC NULLS LAST,"id" DESC NULLS LAST) WHERE "conversations"."conversations"."mode" = 'live';--> statement-breakpoint
+CREATE INDEX "conversations_inbox_state_idx" ON "conversations"."conversations" USING btree ("workspace_id","state") WHERE "conversations"."conversations"."mode" = 'live';

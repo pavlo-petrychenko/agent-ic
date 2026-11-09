@@ -81,9 +81,17 @@ $avatar-column: 32px;
   flex: 1;
   min-height: 0;
   margin: 0;
-  padding: var(--space-4) 0 0;
+  padding: var(--space-14) 0 0;
   overflow-y: auto;
   list-style: none;
+}
+
+.loadMore {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: center;
+  padding: var(--space-12) var(--space-16);
+  border-top: var(--border-width) solid var(--color-line-row);
 }
 
 .row {

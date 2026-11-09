@@ -7,7 +7,13 @@
   },
   "filters": {
     "channel": "Канал",
-    "agent": "Агент"
+    "agent": "Агент",
+    "channels": "Канали",
+    "agents": "Агенти",
+    "clearChannel": "Очистити фільтр каналу",
+    "clearAgent": "Очистити фільтр агента",
+    "searchAgents": "Пошук агентів",
+    "clearAgentSearch": "Очистити пошук агентів"
   },
   "search": {
     "label": "Пошук розмов",
@@ -19,6 +25,8 @@
   "daysAgo": "{{count}} дн",
   "now": "зараз",
   "loading": "Завантаження розмов",
+  "loadingMore": "Завантаження наступних розмов",
+  "loadMore": "Завантажити більше розмов",
   "loadError": "Не вдалося завантажити розмови",
   "retry": "Спробувати ще раз",
   "thread": {
@@ -78,8 +86,14 @@
   },
   "banner": {
     "mine": "Ви ведете цей чат. Агент призупинений, доки ви не повернете чат йому.",
-    "waiting": "Очікує на людину вже {{count}} хв. Агент призупинений; ніхто ще не взяв цей чат.",
-    "other": "{{name}} веде цей чат з {{time}}. Ви можете читати; відповідає вона, доки не поверне чат."
+    "waiting": "Очікує на людину вже {{duration}}. Агент призупинений; ніхто ще не взяв цей чат.",
+    "other": "{{name}} веде цей чат з {{time}}. Ви можете читати; відповідає вона, доки не поверне чат.",
+    "duration": {
+      "minutes": "{{minutes}} хв",
+      "hours": "{{hours}} год",
+      "hoursMinutes": "{{hours}} год {{minutes}} хв",
+      "days": "{{days}} дн"
+    }
   },
   "footer": {
     "replyAs": "Відповідаєте як {{name}} · надсилається в {{channel}}",
@@ -114,6 +128,10 @@
       "title": "Немає закритих чатів",
       "description": "Чати, які ви закриєте, з'являться тут."
     },
+    "filtered": {
+      "title": "Немає відповідних чатів",
+      "description": "Спробуйте інший пошук або очистіть фільтри."
+    },
     "detailTitle": "Усе опрацьовано",
     "detailDescription": "Коли guard або крок ескалації передає чат людині, він з'являється тут, і ви отримуєте сповіщення."
   },
@@ -126,9 +144,6 @@
     "needsHuman": "needs_human: true",
     "reason": "reason: \"{{reason}}\"",
     "pathInRun": "Шлях у запуску",
-    "openInLangfuse": "Відкрити в Langfuse",
-    "openRunInLangfuse": "Відкрити запуск у Langfuse",
-    "openSessionInLangfuse": "Відкрити сесію в Langfuse",
     "conversation": "Розмова",
     "agent": "Агент",
     "channel": "Канал",
@@ -137,6 +152,7 @@
     "theApiCaller": "Виклик API",
     "started": "Почато",
     "escalated": "Ескальовано",
+    "waitingSince": "Очікує з",
     "notified": "Сповіщено",
     "allOperators": "Усі оператори",
     "handledBy": "Обробляє",

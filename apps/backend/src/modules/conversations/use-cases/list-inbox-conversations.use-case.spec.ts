@@ -1,5 +1,6 @@
 import { IdPrefix, WorkspaceRole } from '@agent-ic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { InboxQueue } from '@/modules/conversations/constants/inbox.constants';
 import { MessageAuthor } from '@/modules/conversations/constants/message.constants';
 import { ListInboxConversationsUseCase } from '@/modules/conversations/use-cases/list-inbox-conversations.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
@@ -16,8 +17,18 @@ import type { ConversationsTestbed } from '@test/support/typedefs/conversations-
 describe('ListInboxConversationsUseCase', () => {
   let testbed: ConversationsTestbed;
 
-  const list = (ctx: ReturnType<typeof workspaceCtx>, limit: number | null = null) =>
-    testbed.module.get(ListInboxConversationsUseCase).execute(ctx, { limit });
+  const list = (
+    ctx: ReturnType<typeof workspaceCtx>,
+    limit: number | null = null,
+    queue: InboxQueue = InboxQueue.NeedsYou,
+  ) =>
+    testbed.module.get(ListInboxConversationsUseCase).execute(ctx, {
+      limit,
+      queue,
+      channelIds: [],
+      agentIds: [],
+      search: null,
+    });
 
   beforeAll(async () => {
     testbed = await createConversationsTestbed();
@@ -35,7 +46,10 @@ describe('ListInboxConversationsUseCase', () => {
     const handled = await seedConversation(testbed, workspaceId);
     await seedMessage(testbed, handled, { text: 'Handled message' });
     await testbed.tenants.run(workspaceId, () =>
-      testbed.conversations.takeOver(workspaceId, handled.id, userId),
+      testbed.conversations.takeOver(workspaceId, handled.id, userId, {
+        state: handled.state,
+        handledBy: handled.handledBy ?? null,
+      }),
     );
 
     const waiting = await seedConversation(testbed, workspaceId);
@@ -76,7 +90,11 @@ describe('ListInboxConversationsUseCase', () => {
     const first = await seedConversation(testbed, workspaceId);
     const second = await seedConversation(testbed, workspaceId);
 
-    const summaries = await list(workspaceCtx(userId, workspaceId, WorkspaceRole.Owner), 1);
+    const summaries = await list(
+      workspaceCtx(userId, workspaceId, WorkspaceRole.Owner),
+      1,
+      InboxQueue.Live,
+    );
 
     expect(summaries).toHaveLength(1);
     expect([

@@ -4,8 +4,8 @@ import type {
   InboxListProps,
   RowStatusProps,
 } from '@/features/inbox/view/InboxList/InboxList.typedefs';
-import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
-import { FilterChip } from '@/shared/ui/actions/FilterChip';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
+import { FilterPicker } from '@/shared/ui/data/FilterBar/FilterPicker';
 import { Avatar, AvatarSize } from '@/shared/ui/display/Avatar';
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { EmptyState, EmptyStateTone } from '@/shared/ui/display/EmptyState';
@@ -32,14 +32,19 @@ export function InboxList({
   searchLabel,
   searchPlaceholder,
   searchClearLabel,
-  channelFilterLabel,
-  agentFilterLabel,
+  channelFilter,
+  agentFilter,
   items,
   empty,
   loading,
   loadingLabel,
+  hasMore,
+  loadingMore,
+  loadMoreLabel,
+  loadingMoreLabel,
   loadError,
   onSelect,
+  onLoadMore,
 }: InboxListProps) {
   return (
     <section className={styles.root} aria-label={title}>
@@ -61,22 +66,8 @@ export function InboxList({
           ))}
         </div>
         <div className={styles.filters}>
-          <FilterChip
-            label={channelFilterLabel}
-            value={null}
-            applied={false}
-            clearLabel={channelFilterLabel}
-            onOpen={() => undefined}
-            onClear={() => undefined}
-          />
-          <FilterChip
-            label={agentFilterLabel}
-            value={null}
-            applied={false}
-            clearLabel={agentFilterLabel}
-            onOpen={() => undefined}
-            onClear={() => undefined}
-          />
+          <FilterPicker {...channelFilter} />
+          <FilterPicker {...agentFilter} />
         </div>
         <SearchInput
           value={search}
@@ -138,6 +129,18 @@ export function InboxList({
           ))}
         </ul>
       )}
+      {items.length > 0 && hasMore ? (
+        <div className={styles.loadMore}>
+          <Button
+            size={ButtonSize.Sm}
+            variant={ButtonVariant.Secondary}
+            disabled={loadingMore}
+            onClick={onLoadMore}
+          >
+            {loadingMore ? loadingMoreLabel : loadMoreLabel}
+          </Button>
+        </div>
+      ) : null}
     </section>
   );
 }

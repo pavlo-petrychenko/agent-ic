@@ -7,7 +7,13 @@
   },
   "filters": {
     "channel": "Channel",
-    "agent": "Agent"
+    "agent": "Agent",
+    "channels": "Channels",
+    "agents": "Agents",
+    "clearChannel": "Clear channel filter",
+    "clearAgent": "Clear agent filter",
+    "searchAgents": "Search agents",
+    "clearAgentSearch": "Clear agent search"
   },
   "search": {
     "label": "Search conversations",
@@ -19,6 +25,8 @@
   "daysAgo": "{{count}} d",
   "now": "now",
   "loading": "Loading conversations",
+  "loadingMore": "Loading more conversations",
+  "loadMore": "Load more conversations",
   "loadError": "Could not load conversations",
   "retry": "Retry",
   "thread": {
@@ -78,8 +86,14 @@
   },
   "banner": {
     "mine": "You're handling this chat. The agent stays paused until you hand it back.",
-    "waiting": "Waiting for a person for {{count}} min. The agent is paused; nobody has taken this chat yet.",
-    "other": "{{name}} is handling this chat since {{time}}. You can read along; replies are hers until she hands it back."
+    "waiting": "Waiting for a person for {{duration}}. The agent is paused; nobody has taken this chat yet.",
+    "other": "{{name}} is handling this chat since {{time}}. You can read along; replies are hers until she hands it back.",
+    "duration": {
+      "minutes": "{{minutes}} min",
+      "hours": "{{hours}} h",
+      "hoursMinutes": "{{hours}} h {{minutes}} min",
+      "days": "{{days}} d"
+    }
   },
   "footer": {
     "replyAs": "Reply as {{name}} · sent to {{channel}}",
@@ -114,6 +128,10 @@
       "title": "No closed chats",
       "description": "Chats you close show up here."
     },
+    "filtered": {
+      "title": "No matching chats",
+      "description": "Try another search or clear the filters."
+    },
     "detailTitle": "All caught up",
     "detailDescription": "When a guard or an escalation step hands a chat to a person, it appears here and you get an alert."
   },
@@ -126,9 +144,6 @@
     "needsHuman": "needs_human: true",
     "reason": "reason: \"{{reason}}\"",
     "pathInRun": "Path in this run",
-    "openInLangfuse": "Open in Langfuse",
-    "openRunInLangfuse": "Open run in Langfuse",
-    "openSessionInLangfuse": "Open session in Langfuse",
     "conversation": "Conversation",
     "agent": "Agent",
     "channel": "Channel",
@@ -137,6 +152,7 @@
     "theApiCaller": "The API caller",
     "started": "Started",
     "escalated": "Escalated",
+    "waitingSince": "Waiting since",
     "notified": "Notified",
     "allOperators": "All operators",
     "handledBy": "Handled by",

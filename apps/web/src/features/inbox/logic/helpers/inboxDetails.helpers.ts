@@ -108,7 +108,6 @@ const runView = (conversation: InboxConversation, t: InboxTranslate): InboxRunVi
   }
   return {
     title: t('details.pathInRun'),
-    linkLabel: t('details.openInLangfuse'),
     steps: run.steps.map((step) => ({
       id: step.id,
       icon: step.icon,
@@ -158,9 +157,9 @@ const waitingRows = (
   push(rows, replyTargetRow(facts, t));
   push(
     rows,
-    facts.escalatedAt === null
+    facts.waitingSince === null
       ? null
-      : detailRow('escalated', t('details.escalated'), facts.escalatedAt),
+      : detailRow('waiting-since', t('details.waitingSince'), facts.waitingSince),
   );
   push(
     rows,
@@ -277,15 +276,6 @@ const visibleGuard = (conversation: InboxConversation): boolean =>
 const visibleRun = (conversation: InboxConversation): boolean =>
   conversation.replyState === InboxReplyState.Mine;
 
-const sessionLinkLabel = (conversation: InboxConversation, t: InboxTranslate): string | null => {
-  if (visibleRun(conversation) && conversation.run !== null) {
-    return null;
-  }
-  return visibleGuard(conversation) && conversation.guard !== null
-    ? t('details.openRunInLangfuse')
-    : t('details.openSessionInLangfuse');
-};
-
 export const inboxDetails = (
   conversation: InboxConversation,
   providerLabels: InboxProviderLabels,
@@ -299,5 +289,4 @@ export const inboxDetails = (
     title: t('details.conversation'),
     rows: INBOX_DETAIL_ROWS[conversation.replyState](conversation, providerLabels, t),
   },
-  sessionLinkLabel: sessionLinkLabel(conversation, t),
 });

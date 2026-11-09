@@ -12,7 +12,6 @@ export interface InboxGuardView {
 
 export interface InboxRunView {
   readonly title: string;
-  readonly linkLabel: string;
   readonly steps: readonly InboxRunStep[];
   readonly footer: string;
 }
@@ -35,5 +34,4 @@ export interface InboxDetailsView {
   readonly guard: InboxGuardView | null;
   readonly run: InboxRunView | null;
   readonly conversation: InboxConversationDetailsView;
-  readonly sessionLinkLabel: string | null;
 }

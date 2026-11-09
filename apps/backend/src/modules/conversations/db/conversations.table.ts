@@ -53,6 +53,7 @@ export const conversations = conversationsSchema
       lastMessageAt: timestamp('last_message_at', { withTimezone: true }).notNull(),
       lastCustomerMessageAt: timestamp('last_customer_message_at', { withTimezone: true }),
       lastEscalatedAt: timestamp('last_escalated_at', { withTimezone: true }),
+      waitingSince: timestamp('waiting_since', { withTimezone: true }),
       closedAt: timestamp('closed_at', { withTimezone: true }),
       closeReason: closeReasonEnum('close_reason'),
       createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
@@ -78,6 +79,12 @@ export const conversations = conversationsSchema
       index('conversations_simulation_version_id_idx')
         .on(table.simulationVersionId)
         .where(isNotNull(table.simulationVersionId)),
+      index('conversations_inbox_idx')
+        .on(table.workspaceId, table.lastMessageAt.desc(), table.id.desc())
+        .where(sql`${table.mode} = ${sql.raw(toSqlLiteral(ConversationMode.Live))}`),
+      index('conversations_inbox_state_idx')
+        .on(table.workspaceId, table.state)
+        .where(sql`${table.mode} = ${sql.raw(toSqlLiteral(ConversationMode.Live))}`),
       index('conversations_schedule_candidates_idx')
         .on(table.workspaceId, table.agentId, table.lastCustomerMessageAt)
         .where(

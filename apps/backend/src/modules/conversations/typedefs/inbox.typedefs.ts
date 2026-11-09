@@ -2,6 +2,7 @@ import type {
   ChannelKind,
   ConversationState,
 } from '@/modules/conversations/constants/conversation.constants';
+import type { InboxQueue } from '@/modules/conversations/constants/inbox.constants';
 import type { MessageView } from '@/modules/conversations/typedefs/simulation.typedefs';
 
 export interface InboxSummary {
@@ -11,6 +12,8 @@ export interface InboxSummary {
   readonly handledByName: string | null;
   readonly hasBeenHandled: boolean;
   readonly channelKind: ChannelKind;
+  readonly channelId: string | null;
+  readonly channelRef: string | null;
   readonly agentId: string;
   readonly agentName: string;
   readonly agentVersion: number;
@@ -20,6 +23,7 @@ export interface InboxSummary {
   readonly createdAt: Date;
   readonly lastMessageAt: Date;
   readonly lastEscalatedAt: Date | null;
+  readonly waitingSince: Date | null;
   readonly closedAt: Date | null;
 }
 
@@ -28,8 +32,38 @@ export interface InboxDetail {
   readonly messages: readonly MessageView[];
 }
 
-export interface InboxConversationsInput {
+export interface InboxConversationsCursor {
+  readonly lastMessageAt: string;
+  readonly id: string;
+}
+
+export interface InboxFilter {
+  readonly channelIds: readonly string[];
+  readonly agentIds: readonly string[];
+  readonly search: string | null;
+}
+
+export interface InboxListFilter extends InboxFilter {
+  readonly states: readonly ConversationState[];
+}
+
+export interface InboxConversationsInput extends InboxFilter {
   readonly limit: number | null;
+  readonly after?: InboxConversationsCursor | null;
+  readonly queue: InboxQueue;
+}
+
+export type InboxCountsInput = InboxFilter;
+
+export interface InboxFilterOptions {
+  readonly channelRefs: readonly string[];
+  readonly agentRefs: readonly string[];
+}
+
+export interface InboxCounts {
+  readonly needsYou: number;
+  readonly live: number;
+  readonly closed: number;
 }
 
 export interface InboxConversationInput {

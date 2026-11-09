@@ -39,11 +39,17 @@ describe('GetInboxNeedsYouCountUseCase', () => {
     );
     const mine = await seedConversation(testbed, workspaceId);
     await testbed.tenants.run(workspaceId, () =>
-      testbed.conversations.takeOver(workspaceId, mine.id, userId),
+      testbed.conversations.takeOver(workspaceId, mine.id, userId, {
+        state: mine.state,
+        handledBy: mine.handledBy ?? null,
+      }),
     );
     const someoneElse = await seedConversation(testbed, workspaceId);
     await testbed.tenants.run(workspaceId, () =>
-      testbed.conversations.takeOver(workspaceId, someoneElse.id, otherId),
+      testbed.conversations.takeOver(workspaceId, someoneElse.id, otherId, {
+        state: someoneElse.state,
+        handledBy: someoneElse.handledBy ?? null,
+      }),
     );
     await seedConversation(testbed, workspaceId);
 

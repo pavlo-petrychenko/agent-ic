@@ -6,6 +6,7 @@ import {
 } from '@/modules/conversations/constants/conversation.constants';
 import { MessageSystemEvent } from '@/modules/conversations/constants/message.constants';
 import { ConversationClosedError } from '@/modules/conversations/errors/conversation-closed.error';
+import { ConversationTakenError } from '@/modules/conversations/errors/conversation-taken.error';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { ConversationTimelineService } from '@/modules/conversations/services/conversation-timeline.service';
 import { InboxActivityService } from '@/modules/conversations/services/inbox-activity.service';
@@ -35,16 +36,19 @@ export class ConversationTakeOverService {
     ctx: UseCaseCtx,
     access: WorkspaceAccess,
     conversationPublicId: string,
+    fromOperator: boolean,
   ): Promise<ConversationView> {
     return this.tenants.run(access.workspaceId, async () => {
       const conversation = await this.operated.requireOperable(ctx, access, conversationPublicId);
-      const takenOver = await this.conversations.takeOver(
-        access.workspaceId,
-        conversation.id,
-        access.userId,
-      );
+      const alreadyMine =
+        conversation.state === ConversationState.Handled &&
+        conversation.handledBy === access.userId;
+      if (!alreadyMine && conversation.state === ConversationState.Handled && !fromOperator) {
+        throw new ConversationTakenError(conversation.id);
+      }
+      const takenOver = await this.operated.takeOver(conversation, access.userId);
       await this.afterTakeOver(conversation, takenOver, access);
-      return this.views.conversationView(takenOver ?? conversation);
+      return this.views.conversationView(takenOver);
     });
   }
 
