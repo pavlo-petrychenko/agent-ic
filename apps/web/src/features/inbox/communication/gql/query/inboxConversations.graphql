@@ -1,5 +1,5 @@
-query InboxConversations($limit: Int) {
-  inboxConversations(input: { limit: $limit }) {
+query InboxConversations($limit: Int, $after: InboxConversationsCursor) {
+  inboxConversations(input: { limit: $limit, after: $after }) {
     id
     state
     handledByMe

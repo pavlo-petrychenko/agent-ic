@@ -30,8 +30,14 @@ export interface InboxDetail {
   readonly messages: readonly MessageView[];
 }
 
+export interface InboxConversationsCursor {
+  readonly lastMessageAt: string;
+  readonly id: string;
+}
+
 export interface InboxConversationsInput {
   readonly limit: number | null;
+  readonly after?: InboxConversationsCursor | null;
 }
 
 export interface InboxConversationInput {

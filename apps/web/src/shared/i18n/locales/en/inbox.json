@@ -25,6 +25,8 @@
   "daysAgo": "{{count}} d",
   "now": "now",
   "loading": "Loading conversations",
+  "loadingMore": "Loading more conversations",
+  "loadMore": "Load more conversations",
   "loadError": "Could not load conversations",
   "retry": "Retry",
   "thread": {

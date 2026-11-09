@@ -19,6 +19,12 @@ type InboxActivityEvent {
 
 input InboxConversationsInput {
   limit: Int
+  after: InboxConversationsCursor
+}
+
+input InboxConversationsCursor {
+  lastMessageAt: String!
+  id: ID!
 }
 
 input InboxConversationInput {

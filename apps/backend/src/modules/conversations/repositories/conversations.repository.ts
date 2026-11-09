@@ -68,7 +68,21 @@ export class ConversationsRepository {
     return conversation ?? null;
   }
 
-  listLive(workspaceId: string, limit: number): Promise<Conversation[]> {
+  listLive(
+    workspaceId: string,
+    limit: number,
+    after: { readonly lastMessageAt: Date; readonly id: string } | null,
+  ): Promise<Conversation[]> {
+    const cursor =
+      after === null
+        ? undefined
+        : or(
+            lt(conversations.lastMessageAt, after.lastMessageAt),
+            and(
+              eq(conversations.lastMessageAt, after.lastMessageAt),
+              lt(conversations.id, after.id),
+            ),
+          );
     return this.txHost.tx
       .select()
       .from(conversations)
@@ -76,6 +90,7 @@ export class ConversationsRepository {
         and(
           eq(conversations.workspaceId, workspaceId),
           eq(conversations.mode, ConversationMode.Live),
+          cursor,
         ),
       )
       .orderBy(desc(conversations.lastMessageAt), desc(conversations.id))

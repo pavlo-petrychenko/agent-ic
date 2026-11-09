@@ -4,7 +4,7 @@ import type {
   InboxListProps,
   RowStatusProps,
 } from '@/features/inbox/view/InboxList/InboxList.typedefs';
-import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
+import { Button, ButtonSize, ButtonVariant } from '@/shared/ui/actions/Button';
 import { FilterPicker } from '@/shared/ui/data/FilterBar/FilterPicker';
 import { Avatar, AvatarSize } from '@/shared/ui/display/Avatar';
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
@@ -38,8 +38,13 @@ export function InboxList({
   empty,
   loading,
   loadingLabel,
+  hasMore,
+  loadingMore,
+  loadMoreLabel,
+  loadingMoreLabel,
   loadError,
   onSelect,
+  onLoadMore,
 }: InboxListProps) {
   return (
     <section className={styles.root} aria-label={title}>
@@ -124,6 +129,18 @@ export function InboxList({
           ))}
         </ul>
       )}
+      {items.length > 0 && hasMore ? (
+        <div className={styles.loadMore}>
+          <Button
+            size={ButtonSize.Sm}
+            variant={ButtonVariant.Secondary}
+            disabled={loadingMore}
+            onClick={onLoadMore}
+          >
+            {loadingMore ? loadingMoreLabel : loadMoreLabel}
+          </Button>
+        </div>
+      ) : null}
     </section>
   );
 }
