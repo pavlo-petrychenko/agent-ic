@@ -1,3 +1,4 @@
+import { IdPrefix } from '@agent-ic/contracts';
 import type { TestingModule } from '@nestjs/testing';
 import { AgentsModule } from '@/modules/agents/agents.module';
 import { KnowledgeModule } from '@/modules/knowledge';
@@ -66,6 +67,20 @@ export const seedTemplateKnowledgeBase = async (
         .insert(newKnowledgeBase(knowledgeBaseId, workspaceId)),
     );
   return knowledgeBaseId;
+};
+
+export const listTemplateKnowledgeBases = async (
+  testingModule: TestingModule,
+  workspaceId: string,
+): Promise<readonly { id: string; name: string }[]> => {
+  const ids = testingModule.get(IdService);
+  const knowledgeBases = await testingModule
+    .get(TenantTransactionService)
+    .run(workspaceId, () => testingModule.get(KnowledgeBasesRepository).list(workspaceId));
+  return knowledgeBases.map((knowledgeBase) => ({
+    id: ids.toPublic(IdPrefix.KnowledgeBase, knowledgeBase.id),
+    name: knowledgeBase.name,
+  }));
 };
 
 export const listWorkspacePrompts = (

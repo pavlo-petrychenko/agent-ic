@@ -31,6 +31,7 @@ import { FlowReferenceChecksService } from '@/modules/agents/services/flow-refer
 import { SampleAgentService } from '@/modules/agents/services/sample-agent.service';
 import { ScheduleTriggerDirectoryService } from '@/modules/agents/services/schedule-trigger-directory.service';
 import { SimulatorTestsService } from '@/modules/agents/services/simulator-tests.service';
+import { TemplateKnowledgeBasesService } from '@/modules/agents/services/template-knowledge-bases.service';
 import { TemplatePromptsService } from '@/modules/agents/services/template-prompts.service';
 import { CompareAgentVersionsUseCase } from '@/modules/agents/use-cases/compare-agent-versions.use-case';
 import { CountAgentsUseCase } from '@/modules/agents/use-cases/count-agents.use-case';
@@ -75,6 +76,7 @@ export class AgentsModule extends defineModule({
     SimulatorTestsService,
     SampleAgentService,
     TemplatePromptsService,
+    TemplateKnowledgeBasesService,
     AgentTemplatesService,
     CreateAgentUseCase,
     CreateAgentFromTemplateUseCase,

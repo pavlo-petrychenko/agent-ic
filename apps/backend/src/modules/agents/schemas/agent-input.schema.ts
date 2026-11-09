@@ -2,12 +2,14 @@ import {
   AGENT_DESCRIPTION_MAX_LENGTH,
   AGENT_NAME_MAX_LENGTH,
   AGENT_VERSION_NOTE_MAX_LENGTH,
+  KNOWLEDGE_BASE_NAME_MAX_LENGTH,
 } from '@agent-ic/contracts';
-import { AgentTemplateKey, AgentTemplateKind } from '@agent-ic/flow';
+import { AgentTemplateKey, AgentTemplateKind, AgentTemplateKnowledgeRole } from '@agent-ic/flow';
 import { z } from 'zod';
 import { AgentField } from '@/modules/agents/constants/agent-input.constants';
 import { MAX_TEMPLATE_KNOWLEDGE_BASES } from '@/modules/agents/constants/agent-template.constants';
 import { DRAFT_INITIAL_REVISION, PauseMode } from '@/modules/agents/constants/agent.constants';
+import { mergeTemplateKnowledgeBases } from '@/modules/agents/helpers/agent-template.helpers';
 
 const agentNameSchema = z.string().trim().min(1).max(AGENT_NAME_MAX_LENGTH);
 const agentIdSchema = z.string().min(1);
@@ -99,12 +101,35 @@ export const listAgentTemplatesInputSchema = z.object({
     .transform((kind) => kind ?? null),
 });
 
+const templateKnowledgeBaseIdsSchema = z.array(z.string().min(1)).max(MAX_TEMPLATE_KNOWLEDGE_BASES);
+
 export const createAgentFromTemplateInputSchema = z.object({
   [AgentField.TemplateKey]: z.enum(AgentTemplateKey),
   [AgentField.Name]: agentNameSchema.nullish().transform((name) => name ?? null),
-  [AgentField.KnowledgeBaseIds]: z
-    .array(z.string().min(1))
-    .max(MAX_TEMPLATE_KNOWLEDGE_BASES)
+  [AgentField.KnowledgeBaseIds]: templateKnowledgeBaseIdsSchema
     .nullish()
     .transform((knowledgeBaseIds) => [...new Set(knowledgeBaseIds ?? [])]),
+  [AgentField.KnowledgeBases]: z
+    .array(
+      z.object({
+        [AgentField.Role]: z.enum(AgentTemplateKnowledgeRole),
+        [AgentField.Ids]: templateKnowledgeBaseIdsSchema,
+      }),
+    )
+    .max(MAX_TEMPLATE_KNOWLEDGE_BASES)
+    .nullish()
+    .transform((knowledgeBases) => mergeTemplateKnowledgeBases(knowledgeBases ?? [])),
+  [AgentField.NewKnowledgeBases]: z
+    .array(
+      z.object({
+        [AgentField.Role]: z
+          .enum(AgentTemplateKnowledgeRole)
+          .nullish()
+          .transform((role) => role ?? null),
+        [AgentField.Name]: z.string().trim().min(1).max(KNOWLEDGE_BASE_NAME_MAX_LENGTH),
+      }),
+    )
+    .max(MAX_TEMPLATE_KNOWLEDGE_BASES)
+    .nullish()
+    .transform((newKnowledgeBases) => newKnowledgeBases ?? []),
 });

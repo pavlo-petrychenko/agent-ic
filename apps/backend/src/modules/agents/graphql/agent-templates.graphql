@@ -9,6 +9,10 @@ extend type Mutation {
 enum AgentTemplateKey {
   cafe_support
   store_sales
+  faq_from_documents
+  lead_handling
+  appointment_booking
+  route_to_specialists
   faq_hand_off
   knowledge_answers
   menu_buttons
@@ -23,6 +27,7 @@ enum AgentTemplateKey {
 
 enum AgentTemplateKind {
   template
+  example
   snippet
 }
 
@@ -39,6 +44,20 @@ enum AgentTemplateLevel {
   advanced
 }
 
+enum AgentTemplateKnowledgeRole {
+  menu
+  booking
+  jobs
+  general
+  sales
+  support
+}
+
+type AgentTemplateKnowledgeRoleInfo {
+  role: AgentTemplateKnowledgeRole!
+  label: String!
+}
+
 type AgentTemplate {
   key: AgentTemplateKey!
   kind: AgentTemplateKind!
@@ -48,6 +67,7 @@ type AgentTemplate {
   description: String!
   highlights: [String!]!
   usesKnowledge: Boolean!
+  knowledgeRoles: [AgentTemplateKnowledgeRoleInfo!]!
   nodeTypes: [String!]!
 }
 
@@ -55,4 +75,16 @@ input CreateAgentFromTemplateInput {
   templateKey: AgentTemplateKey!
   name: String
   knowledgeBaseIds: [ID!]
+  knowledgeBases: [AgentTemplateKnowledgeInput!]
+  newKnowledgeBases: [NewTemplateKnowledgeBaseInput!]
+}
+
+input AgentTemplateKnowledgeInput {
+  role: AgentTemplateKnowledgeRole!
+  ids: [ID!]!
+}
+
+input NewTemplateKnowledgeBaseInput {
+  role: AgentTemplateKnowledgeRole
+  name: String!
 }

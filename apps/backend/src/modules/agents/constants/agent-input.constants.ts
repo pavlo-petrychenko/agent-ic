@@ -17,6 +17,10 @@ export enum AgentField {
   Variables = 'variables',
   TemplateKey = 'templateKey',
   KnowledgeBaseIds = 'knowledgeBaseIds',
+  KnowledgeBases = 'knowledgeBases',
+  NewKnowledgeBases = 'newKnowledgeBases',
+  Role = 'role',
+  Ids = 'ids',
   Kind = 'kind',
 }
 

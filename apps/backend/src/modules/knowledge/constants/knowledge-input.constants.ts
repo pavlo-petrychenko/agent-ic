@@ -62,3 +62,6 @@ export const KNOWLEDGE_FIELD_REASON: Readonly<Record<string, ErrorReason>> = {
   [KnowledgeField.Url]: ErrorReason.InvalidRequest,
   [KnowledgeField.ResourceKey]: ErrorReason.InvalidRequest,
 };
+
+export const FIRST_KNOWLEDGE_BASE_NAME_NUMBER = 2;
+export const NUMBERED_KNOWLEDGE_BASE_NAME_SEPARATOR = ' ';

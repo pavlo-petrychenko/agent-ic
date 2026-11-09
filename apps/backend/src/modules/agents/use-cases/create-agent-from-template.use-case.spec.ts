@@ -9,6 +9,7 @@ import {
 } from '@agent-ic/contracts';
 import {
   AgentTemplateKey,
+  AgentTemplateKnowledgeRole,
   NodeType,
   agentTemplate,
   agentTemplates,
@@ -21,6 +22,7 @@ import type { TestingModule } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { TEMPLATE_PROMPT_FOLDER_NAME } from '@/modules/agents/constants/agent-template.constants';
 import { AgentStatus } from '@/modules/agents/constants/agent.constants';
+import { AgentTemplateUnknownKnowledgeRoleError } from '@/modules/agents/errors/agent-template-unknown-knowledge-role.error';
 import { AgentTemplateWithoutKnowledgeError } from '@/modules/agents/errors/agent-template-without-knowledge.error';
 import { InvalidAgentInputError } from '@/modules/agents/errors/invalid-agent-input.error';
 import { TemplateKnowledgeBaseNotFoundError } from '@/modules/agents/errors/template-knowledge-base-not-found.error';
@@ -41,6 +43,7 @@ import { TEST_TIME_ZONE } from '@test/support/constants/workspace-testing.consta
 import {
   createAgentTemplatesTestingModule,
   findPromptFolder,
+  listTemplateKnowledgeBases,
   listWorkspacePrompts,
   seedTemplateKnowledgeBase,
 } from '@test/support/helpers/agent-templates-testing.helpers';
@@ -49,6 +52,15 @@ import { ensureWorkspaceRow } from '@test/support/helpers/parent-rows.helpers';
 
 const SECOND_NAME_SUFFIX = ' 2';
 const FIRST_VERSION_NUMBER = 1;
+
+const knowledgeByStep = (
+  flow: FlowDocument | undefined,
+): Readonly<Record<string, readonly string[]>> =>
+  Object.fromEntries(
+    (flow?.nodes ?? []).flatMap((node) =>
+      node.type === NodeType.Agent ? [[node.key, node.config.knowledgeBaseIds]] : [],
+    ),
+  );
 
 const knowledgeNodeIds = (flow: FlowDocument | undefined): (readonly string[])[] =>
   (flow?.nodes ?? []).flatMap((node) =>
@@ -80,6 +92,12 @@ describe('CreateAgentFromTemplateUseCase', () => {
     });
 
   const listPrompts = (workspaceId: string) => listWorkspacePrompts(testingModule, workspaceId);
+
+  const listKnowledgeBases = (workspaceId: string) =>
+    listTemplateKnowledgeBases(testingModule, workspaceId);
+
+  const idOfBase = (bases: readonly { id: string; name: string }[], name: string): string =>
+    bases.find((base) => base.name === name)?.id ?? '';
 
   beforeAll(async () => {
     testingModule = await createAgentTemplatesTestingModule();
@@ -135,6 +153,7 @@ describe('CreateAgentFromTemplateUseCase', () => {
       locale: Locale.Uk,
       promptRefs: {},
       knowledgeBaseIds: [],
+      knowledgeBases: {},
       timeZone: TEST_TIME_ZONE,
       models: { agent: '', completion: '' },
       nextId: () => ids.generate(),
@@ -277,6 +296,115 @@ describe('CreateAgentFromTemplateUseCase', () => {
     const attempt = createFromTemplate.execute(
       { ...agentsCtx(testingModule, workspaceId, WorkspaceRole.Builder), permissions },
       { templateKey: AgentTemplateKey.CafeSupport },
+    );
+
+    await expect(attempt).rejects.toBeInstanceOf(PermissionDeniedError);
+  });
+  it('creates one empty knowledge base per role and gives each agent its own', async () => {
+    const workspaceId = await newWorkspace();
+    await seedTemplateKnowledgeBase(testingModule, workspaceId);
+    const [taken] = await listKnowledgeBases(workspaceId);
+    const takenName = taken?.name ?? '';
+
+    const view = await createFromTemplate.execute(agentsCtx(testingModule, workspaceId), {
+      templateKey: AgentTemplateKey.CafeSupport,
+      newKnowledgeBases: [
+        { role: AgentTemplateKnowledgeRole.Menu, name: 'Kavarnia — menu' },
+        { role: AgentTemplateKnowledgeRole.Booking, name: 'Kavarnia — booking rules' },
+        { role: AgentTemplateKnowledgeRole.Jobs, name: 'Kavarnia — open positions' },
+        { role: AgentTemplateKnowledgeRole.General, name: takenName },
+      ],
+    });
+
+    const { draft } = await readStored(workspaceId, view.id);
+    const bases = await listKnowledgeBases(workspaceId);
+    expect(bases.map((base) => base.name).toSorted()).toEqual(
+      [
+        takenName,
+        `${takenName}${SECOND_NAME_SUFFIX}`,
+        'Kavarnia — booking rules',
+        'Kavarnia — menu',
+        'Kavarnia — open positions',
+      ].toSorted(),
+    );
+    expect(knowledgeByStep(draft?.flow)).toEqual({
+      menu: [idOfBase(bases, 'Kavarnia — menu')],
+      booking: [idOfBase(bases, 'Kavarnia — booking rules')],
+      jobs: [idOfBase(bases, 'Kavarnia — open positions')],
+      general: [idOfBase(bases, `${takenName}${SECOND_NAME_SUFFIX}`)],
+    });
+  });
+
+  it('attaches one new knowledge base without a role to every knowledge step', async () => {
+    const workspaceId = await newWorkspace();
+
+    const view = await createFromTemplate.execute(agentsCtx(testingModule, workspaceId), {
+      templateKey: AgentTemplateKey.FaqFromDocuments,
+      newKnowledgeBases: [{ name: 'Shop — documents' }],
+    });
+
+    const { draft } = await readStored(workspaceId, view.id);
+    const bases = await listKnowledgeBases(workspaceId);
+    expect(bases.map((base) => base.name)).toEqual(['Shop — documents']);
+    expect(knowledgeByStep(draft?.flow)).toEqual({
+      assistant: [idOfBase(bases, 'Shop — documents')],
+    });
+  });
+
+  it('gives a role its own existing knowledge base and the others the shared ones', async () => {
+    const workspaceId = await newWorkspace();
+    const sales = ids.toPublic(
+      IdPrefix.KnowledgeBase,
+      await seedTemplateKnowledgeBase(testingModule, workspaceId),
+    );
+
+    const view = await createFromTemplate.execute(agentsCtx(testingModule, workspaceId), {
+      templateKey: AgentTemplateKey.RouteToSpecialists,
+      knowledgeBases: [{ role: AgentTemplateKnowledgeRole.Sales, ids: [sales] }],
+      newKnowledgeBases: [{ name: 'Shared — documents' }],
+    });
+
+    const { draft } = await readStored(workspaceId, view.id);
+    const shared = idOfBase(await listKnowledgeBases(workspaceId), 'Shared — documents');
+    expect(knowledgeByStep(draft?.flow)).toEqual({
+      sales: [sales],
+      support: [shared],
+      general: [shared],
+    });
+  });
+
+  it('refuses a knowledge base role the template does not declare and writes nothing', async () => {
+    const workspaceId = await newWorkspace();
+
+    const attempt = createFromTemplate.execute(agentsCtx(testingModule, workspaceId), {
+      templateKey: AgentTemplateKey.RouteToSpecialists,
+      newKnowledgeBases: [{ role: AgentTemplateKnowledgeRole.Jobs, name: 'Jobs' }],
+    });
+
+    await expect(attempt).rejects.toBeInstanceOf(AgentTemplateUnknownKnowledgeRoleError);
+    expect(await listKnowledgeBases(workspaceId)).toEqual([]);
+  });
+
+  it('refuses a new knowledge base for a template that does not use knowledge', async () => {
+    const workspaceId = await newWorkspace();
+
+    const attempt = createFromTemplate.execute(agentsCtx(testingModule, workspaceId), {
+      templateKey: AgentTemplateKey.MenuButtons,
+      newKnowledgeBases: [{ name: 'Menu — documents' }],
+    });
+
+    await expect(attempt).rejects.toBeInstanceOf(AgentTemplateWithoutKnowledgeError);
+    expect(await listKnowledgeBases(workspaceId)).toEqual([]);
+  });
+
+  it('denies a new knowledge base to a role that cannot edit knowledge bases', async () => {
+    const workspaceId = await newWorkspace();
+    const permissions = new Set(permissionsForRole(WorkspaceRole.Builder));
+    permissions.delete(permissionKey(PermissionResource.KnowledgeBases, PermissionAction.Edit));
+
+    const attempt = createFromTemplate.execute(
+      { ...agentsCtx(testingModule, workspaceId, WorkspaceRole.Builder), permissions },
+      { templateKey: AgentTemplateKey.FaqFromDocuments, newKnowledgeBases: [{ name: 'Docs' }] },
     );
 
     await expect(attempt).rejects.toBeInstanceOf(PermissionDeniedError);

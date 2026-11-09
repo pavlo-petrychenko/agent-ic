@@ -1,4 +1,8 @@
-import { AgentsModule, FLOW_REFERENCE_CHECKER } from '@/modules/agents';
+import {
+  AgentsModule,
+  FLOW_REFERENCE_CHECKER,
+  TEMPLATE_KNOWLEDGE_BASE_WRITER,
+} from '@/modules/agents';
 import { WorkspacesRepository } from '@/modules/identity';
 import { GoogleDriveApiGateway } from '@/modules/knowledge/gateways/google-drive-api.gateway';
 import { GoogleDriveGateway } from '@/modules/knowledge/gateways/google-drive.gateway';
@@ -44,6 +48,7 @@ import { DocumentParserService } from '@/modules/knowledge/services/document-par
 import { DocumentSummaryService } from '@/modules/knowledge/services/document-summary.service';
 import { GoogleConnectionTokenService } from '@/modules/knowledge/services/google-connection-token.service';
 import { GoogleDocsContentService } from '@/modules/knowledge/services/google-docs-content.service';
+import { KnowledgeBaseCreatorService } from '@/modules/knowledge/services/knowledge-base-creator.service';
 import { KnowledgeBaseViewsService } from '@/modules/knowledge/services/knowledge-base-views.service';
 import { KnowledgeConnectionViewsService } from '@/modules/knowledge/services/knowledge-connection-views.service';
 import { KnowledgeDocumentIngestionService } from '@/modules/knowledge/services/knowledge-document-ingestion.service';
@@ -54,6 +59,7 @@ import { KnowledgeSearchService } from '@/modules/knowledge/services/knowledge-s
 import { KnowledgeSourceSyncService } from '@/modules/knowledge/services/knowledge-source-sync.service';
 import { KnowledgeSourceViewsService } from '@/modules/knowledge/services/knowledge-source-views.service';
 import { KnowledgeStatsService } from '@/modules/knowledge/services/knowledge-stats.service';
+import { KnowledgeTemplateWriter } from '@/modules/knowledge/services/knowledge-template-writer.service';
 import { KnowledgeToolsService } from '@/modules/knowledge/services/knowledge-tools.service';
 import { KnowledgeUploadTargetsService } from '@/modules/knowledge/services/knowledge-upload-targets.service';
 import { KnowledgeUsageService } from '@/modules/knowledge/services/knowledge-usage.service';
@@ -116,6 +122,12 @@ export class KnowledgeModule extends defineModule({
     KnowledgeSourceSyncService,
     KnowledgeToolsService,
     KnowledgeBaseViewsService,
+    KnowledgeBaseCreatorService,
+    KnowledgeTemplateWriter,
+    {
+      provide: TEMPLATE_KNOWLEDGE_BASE_WRITER,
+      useExisting: KnowledgeTemplateWriter,
+    },
     KnowledgeSourceViewsService,
     KnowledgeConnectionViewsService,
     KnowledgeStatsService,

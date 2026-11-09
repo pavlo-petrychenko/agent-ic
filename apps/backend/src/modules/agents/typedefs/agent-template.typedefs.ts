@@ -3,6 +3,8 @@ import type {
   AgentTemplateCategory,
   AgentTemplateKey,
   AgentTemplateKind,
+  AgentTemplateKnowledgeBases,
+  AgentTemplateKnowledgeRole,
   AgentTemplateLevel,
   NodeType,
 } from '@agent-ic/flow';
@@ -20,6 +22,31 @@ export interface TemplatePromptRequest {
   readonly prompts: readonly TemplatePromptDefinition[];
 }
 
+export interface TemplateKnowledgeBaseRequest {
+  readonly name: string;
+  readonly authorId: string;
+}
+
+export interface NewTemplateKnowledgeBase {
+  readonly role: AgentTemplateKnowledgeRole | null;
+  readonly name: string;
+}
+
+export interface CreatedTemplateKnowledgeBase {
+  readonly role: AgentTemplateKnowledgeRole | null;
+  readonly id: string;
+}
+
+export interface TemplateKnowledgeChoice {
+  readonly knowledgeBaseIds: readonly string[];
+  readonly knowledgeBases: AgentTemplateKnowledgeBases;
+}
+
+export interface NewTemplateKnowledgeBaseInput {
+  readonly role?: string | null;
+  readonly name: string;
+}
+
 export type TemplatePromptRefs = Readonly<Record<string, string>>;
 
 export interface AgentTemplateCreation {
@@ -29,6 +56,13 @@ export interface AgentTemplateCreation {
   readonly key: AgentTemplateKey;
   readonly name: string | null;
   readonly knowledgeBaseIds: readonly string[];
+  readonly knowledgeBases: AgentTemplateKnowledgeBases;
+  readonly newKnowledgeBases: readonly NewTemplateKnowledgeBase[];
+}
+
+export interface AgentTemplateKnowledgeRoleView {
+  readonly role: AgentTemplateKnowledgeRole;
+  readonly label: string;
 }
 
 export interface AgentTemplateView {
@@ -40,6 +74,7 @@ export interface AgentTemplateView {
   readonly description: string;
   readonly highlights: readonly string[];
   readonly usesKnowledge: boolean;
+  readonly knowledgeRoles: readonly AgentTemplateKnowledgeRoleView[];
   readonly nodeTypes: readonly NodeType[];
 }
 
@@ -51,4 +86,16 @@ export interface CreateAgentFromTemplateInput {
   readonly templateKey: string;
   readonly name?: string | null;
   readonly knowledgeBaseIds?: readonly string[] | null;
+  readonly knowledgeBases?: readonly AgentTemplateKnowledgeInput[] | null;
+  readonly newKnowledgeBases?: readonly NewTemplateKnowledgeBaseInput[] | null;
+}
+
+export interface AgentTemplateKnowledgeEntry {
+  readonly role: AgentTemplateKnowledgeRole;
+  readonly ids: readonly string[];
+}
+
+export interface AgentTemplateKnowledgeInput {
+  readonly role: string;
+  readonly ids: readonly string[];
 }

@@ -4,6 +4,13 @@ export type KnowledgeBase = typeof knowledgeBases.$inferSelect;
 
 export type NewKnowledgeBase = Omit<typeof knowledgeBases.$inferInsert, 'createdAt' | 'updatedAt'>;
 
+export interface KnowledgeBaseCreation {
+  readonly workspaceId: string;
+  readonly name: string;
+  readonly description: string | null;
+  readonly createdByUserId: string;
+}
+
 export type KnowledgeBaseChanges = Partial<Omit<NewKnowledgeBase, 'id' | 'workspaceId'>>;
 
 export interface KnowledgeBaseView {
