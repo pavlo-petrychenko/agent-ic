@@ -1,0 +1,58 @@
+extend type Query {
+  agentTemplates(kind: AgentTemplateKind): [AgentTemplate!]!
+}
+
+extend type Mutation {
+  createAgentFromTemplate(input: CreateAgentFromTemplateInput!): Agent!
+}
+
+enum AgentTemplateKey {
+  cafe_support
+  store_sales
+  faq_hand_off
+  knowledge_answers
+  menu_buttons
+  intent_router
+  lead_capture
+  follow_up_on_silence
+  scheduled_check_in
+  close_chat
+  guarded_reply
+  background_review
+}
+
+enum AgentTemplateKind {
+  template
+  snippet
+}
+
+enum AgentTemplateCategory {
+  support
+  sales
+  quality
+  follow_up
+}
+
+enum AgentTemplateLevel {
+  starter
+  intermediate
+  advanced
+}
+
+type AgentTemplate {
+  key: AgentTemplateKey!
+  kind: AgentTemplateKind!
+  category: AgentTemplateCategory!
+  level: AgentTemplateLevel!
+  name: String!
+  description: String!
+  highlights: [String!]!
+  usesKnowledge: Boolean!
+  nodeTypes: [String!]!
+}
+
+input CreateAgentFromTemplateInput {
+  templateKey: AgentTemplateKey!
+  name: String
+  knowledgeBaseIds: [ID!]
+}

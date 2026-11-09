@@ -4,7 +4,9 @@ import { AgentsRepository } from '@/modules/agents/repositories/agents.repositor
 import { AutoCloseVersionsRepository } from '@/modules/agents/repositories/auto-close-versions.repository';
 import { LiveScheduleTriggersRepository } from '@/modules/agents/repositories/live-schedule-triggers.repository';
 import { AgentFieldsResolver } from '@/modules/agents/resolvers/agent-fields.resolver';
+import { AgentTemplatesResolver } from '@/modules/agents/resolvers/agent-templates.resolver';
 import { AgentsResolver } from '@/modules/agents/resolvers/agents.resolver';
+import { CreateAgentFromTemplateResolver } from '@/modules/agents/resolvers/create-agent-from-template.resolver';
 import { CreateAgentResolver } from '@/modules/agents/resolvers/create-agent.resolver';
 import { DeleteAgentResolver } from '@/modules/agents/resolvers/delete-agent.resolver';
 import { DescribeAgentResolver } from '@/modules/agents/resolvers/describe-agent.resolver';
@@ -22,14 +24,17 @@ import { AgentDraftsService } from '@/modules/agents/services/agent-drafts.servi
 import { AgentFlowService } from '@/modules/agents/services/agent-flow.service';
 import { AgentPublishingService } from '@/modules/agents/services/agent-publishing.service';
 import { AgentRuntimeReader } from '@/modules/agents/services/agent-runtime-reader.service';
+import { AgentTemplatesService } from '@/modules/agents/services/agent-templates.service';
 import { AgentViewsService } from '@/modules/agents/services/agent-views.service';
 import { FlowReferenceChecksService } from '@/modules/agents/services/flow-reference-checks.service';
 import { SampleAgentService } from '@/modules/agents/services/sample-agent.service';
 import { ScheduleTriggerDirectoryService } from '@/modules/agents/services/schedule-trigger-directory.service';
 import { SimulatorTestsService } from '@/modules/agents/services/simulator-tests.service';
+import { TemplatePromptsService } from '@/modules/agents/services/template-prompts.service';
 import { CompareAgentVersionsUseCase } from '@/modules/agents/use-cases/compare-agent-versions.use-case';
 import { CountAgentsUseCase } from '@/modules/agents/use-cases/count-agents.use-case';
 import { CountDraftChangesUseCase } from '@/modules/agents/use-cases/count-draft-changes.use-case';
+import { CreateAgentFromTemplateUseCase } from '@/modules/agents/use-cases/create-agent-from-template.use-case';
 import { CreateAgentUseCase } from '@/modules/agents/use-cases/create-agent.use-case';
 import { DeleteAgentUseCase } from '@/modules/agents/use-cases/delete-agent.use-case';
 import { DescribeAgentUseCase } from '@/modules/agents/use-cases/describe-agent.use-case';
@@ -37,6 +42,7 @@ import { DuplicateAgentUseCase } from '@/modules/agents/use-cases/duplicate-agen
 import { GetAgentDraftUseCase } from '@/modules/agents/use-cases/get-agent-draft.use-case';
 import { GetAgentUseCase } from '@/modules/agents/use-cases/get-agent.use-case';
 import { GetInboxAgentOptionsUseCase } from '@/modules/agents/use-cases/get-inbox-agent-options.use-case';
+import { ListAgentTemplatesUseCase } from '@/modules/agents/use-cases/list-agent-templates.use-case';
 import { ListAgentVersionsUseCase } from '@/modules/agents/use-cases/list-agent-versions.use-case';
 import { ListAgentsUseCase } from '@/modules/agents/use-cases/list-agents.use-case';
 import { ListModelOptionsUseCase } from '@/modules/agents/use-cases/list-model-options.use-case';
@@ -66,7 +72,11 @@ export class AgentsModule extends defineModule({
     FlowReferenceChecksService,
     SimulatorTestsService,
     SampleAgentService,
+    TemplatePromptsService,
+    AgentTemplatesService,
     CreateAgentUseCase,
+    CreateAgentFromTemplateUseCase,
+    ListAgentTemplatesUseCase,
     RenameAgentUseCase,
     DescribeAgentUseCase,
     DeleteAgentUseCase,
@@ -90,6 +100,8 @@ export class AgentsModule extends defineModule({
   ],
   resolvers: [
     CreateAgentResolver,
+    CreateAgentFromTemplateResolver,
+    AgentTemplatesResolver,
     RenameAgentResolver,
     DescribeAgentResolver,
     DeleteAgentResolver,

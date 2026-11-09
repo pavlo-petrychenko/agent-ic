@@ -37,3 +37,5 @@ export const TEST_SCHEDULE_TIME = '10:00';
 export const TEST_SCHEDULE_TIME_ZONE = 'Europe/Kyiv';
 export const TEST_SCHEDULE_SILENT_HOURS = 24;
 export const TEST_SCHEDULE_MAX_CONVERSATIONS = 50;
+export const TEST_TEMPLATE_AGENT_NAME = 'Lviv café bot';
+export const TEST_UNKNOWN_KNOWLEDGE_BASE_ID = 'kbs_unknown';

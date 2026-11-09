@@ -3,8 +3,10 @@ import {
   AGENT_NAME_MAX_LENGTH,
   AGENT_VERSION_NOTE_MAX_LENGTH,
 } from '@agent-ic/contracts';
+import { AgentTemplateKey, AgentTemplateKind } from '@agent-ic/flow';
 import { z } from 'zod';
 import { AgentField } from '@/modules/agents/constants/agent-input.constants';
+import { MAX_TEMPLATE_KNOWLEDGE_BASES } from '@/modules/agents/constants/agent-template.constants';
 import { DRAFT_INITIAL_REVISION, PauseMode } from '@/modules/agents/constants/agent.constants';
 
 const agentNameSchema = z.string().trim().min(1).max(AGENT_NAME_MAX_LENGTH);
@@ -82,4 +84,21 @@ export const testApiRequestInputSchema = z.object({
     .record(z.string(), z.unknown())
     .nullish()
     .transform((variables) => variables ?? {}),
+});
+
+export const listAgentTemplatesInputSchema = z.object({
+  [AgentField.Kind]: z
+    .enum(AgentTemplateKind)
+    .nullish()
+    .transform((kind) => kind ?? null),
+});
+
+export const createAgentFromTemplateInputSchema = z.object({
+  [AgentField.TemplateKey]: z.enum(AgentTemplateKey),
+  [AgentField.Name]: agentNameSchema.nullish().transform((name) => name ?? null),
+  [AgentField.KnowledgeBaseIds]: z
+    .array(z.string().min(1))
+    .max(MAX_TEMPLATE_KNOWLEDGE_BASES)
+    .nullish()
+    .transform((knowledgeBaseIds) => [...new Set(knowledgeBaseIds ?? [])]),
 });

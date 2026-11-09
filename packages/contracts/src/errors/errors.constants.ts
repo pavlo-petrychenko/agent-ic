@@ -66,6 +66,7 @@ export enum ErrorReason {
   AgentVersionImmutable = 'AGENT_VERSION_IMMUTABLE',
   DraftConflict = 'DRAFT_CONFLICT',
   AgentFlowHasBlockingIssues = 'AGENT_FLOW_HAS_BLOCKING_ISSUES',
+  AgentTemplateWithoutKnowledge = 'AGENT_TEMPLATE_WITHOUT_KNOWLEDGE',
   PromptInUse = 'PROMPT_IN_USE',
   StoredFlowUnreadable = 'STORED_FLOW_UNREADABLE',
   AwayMessageRequired = 'AWAY_MESSAGE_REQUIRED',

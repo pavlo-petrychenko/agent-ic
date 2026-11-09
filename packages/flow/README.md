@@ -10,21 +10,22 @@ Must not hold: execution code that needs I/O, database or framework code, or UI 
 
 Each folder under `src/` is a topic, and inside it files sit in a folder per kind: `constants/`, `helpers/` (with their specs), `schemas/` and `typedefs/`, as in the backend modules. A folder appears only when it has files.
 
-| Folder        | What                                                                                                                                                     |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `document/`   | `flowDocumentSchema`, the inferred types (`FlowDocument`, `FlowNode`, a type per node, `FlowEdge`), `NodeType`, `PortName`, `nodePorts`, `renameNodeKey` |
-| `nodes/`      | one schema per node type and the enums of their configs                                                                                                  |
-| `references/` | the prompt source and model references; other records are public prefixed ids (D36), never secrets                                                       |
-| `outputs/`    | output fields of Agent and Completion steps, `outputToZod` for the `reply` tool (D91), `outputFieldTypes`                                                |
-| `conditions/` | router rules, the operator table per type, `evaluateCondition`, `pickRoute`                                                                              |
-| `templates/`  | `parseTemplate`, `templateReferences`, `renderTemplate`, `resolvePath`                                                                                   |
-| `scope/`      | `visibleVariables`, `createScopeLookup`: what a node may use, its type, if it can be missing; `triggerVariables`                                         |
-| `diff/`       | `diffFlows`: what changed between two flows, for comparing versions and the publish dialog                                                               |
-| `validation/` | `validateFlow`, `FlowIssueCode`, `hasBlockingIssues`                                                                                                     |
-| `versions/`   | `parseFlow`: reads a stored flow, upgrades a version 1 or 2 flow and refuses a schema version it does not know (D77)                                     |
-| `schedules/`  | `scheduleCron`, `nextTicks`, `latestTick`, `dueTick`, `isTooFrequent`: Schedule trigger ticks on wall-clock time in a time zone                          |
-| `settings/`   | flow settings: the default hand-off, what an unhandled step failure does, auto-close after inactivity                                                    |
-| `limits/`     | node, edge, rule, branch, output and template limits                                                                                                     |
+| Folder             | What                                                                                                                                                     |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `document/`        | `flowDocumentSchema`, the inferred types (`FlowDocument`, `FlowNode`, a type per node, `FlowEdge`), `NodeType`, `PortName`, `nodePorts`, `renameNodeKey` |
+| `nodes/`           | one schema per node type and the enums of their configs                                                                                                  |
+| `references/`      | the prompt source and model references; other records are public prefixed ids (D36), never secrets                                                       |
+| `outputs/`         | output fields of Agent and Completion steps, `outputToZod` for the `reply` tool (D91), `outputFieldTypes`                                                |
+| `conditions/`      | router rules, the operator table per type, `evaluateCondition`, `pickRoute`                                                                              |
+| `templates/`       | `parseTemplate`, `templateReferences`, `renderTemplate`, `resolvePath`                                                                                   |
+| `scope/`           | `visibleVariables`, `createScopeLookup`: what a node may use, its type, if it can be missing; `triggerVariables`                                         |
+| `diff/`            | `diffFlows`: what changed between two flows, for comparing versions and the publish dialog                                                               |
+| `validation/`      | `validateFlow`, `FlowIssueCode`, `hasBlockingIssues`                                                                                                     |
+| `versions/`        | `parseFlow`: reads a stored flow, upgrades a version 1 or 2 flow and refuses a schema version it does not know (D77)                                     |
+| `schedules/`       | `scheduleCron`, `nextTicks`, `latestTick`, `dueTick`, `isTooFrequent`: Schedule trigger ticks on wall-clock time in a time zone                          |
+| `settings/`        | flow settings: the default hand-off, what an unhandled step failure does, auto-close after inactivity                                                    |
+| `limits/`          | node, edge, rule, branch, output and template limits                                                                                                     |
+| `agent-templates/` | the agent template catalog: `agentTemplates`, `agentTemplatesOfKind`, `buildAgentTemplate`, `agentTemplateNodeTypes`, `agentTemplatesUsing`              |
 
 ## Use it
 
@@ -79,6 +80,19 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 - A missing `background` means the join waits for the branch.
 - `validateFlow` refuses a Send message step in any branch, an Escalation in a background branch (`ESCALATION_IN_BACKGROUND_BRANCH`), `background` on an edge that is not a `branches` edge (`BACKGROUND_OUTSIDE_BRANCHES`) and a Parallel step whose branches all run in the background (`NO_WAITED_BRANCH`). An Escalation in a waited branch is allowed: it ends the run, so its path never reaches the join.
 
+## Agent templates
+
+`agent-templates/` holds ready-made agents a user can start from. It is the one source of example flows for the builder's template gallery, the component guides, `db:seed` and the demo account. Everything is pure data in `en` and `uk`, so the web shows it without an API call and the backend creates an agent from a template by its key. It is a different topic from `templates/`, the `{{…}}` parser.
+
+- Each entry has a `kind` (`AgentTemplateKind`):
+  - `template`: a big, realistic agent that covers many scenarios. `cafe_support` (a café: menu and hours buttons, knowledge base answers, table bookings, hand-off, follow-ups on silence, auto-close) and `store_sales` (an online store: a Parallel step checks the message, loads recent orders and scores the lead in the background; a sales assistant answers from the knowledge base and creates leads; a weekday Schedule trigger checks in with quiet customers).
+  - `snippet`: a small flow that shows one or two node types, used as the per-node example of the component guides (`faq_hand_off`, `knowledge_answers`, `menu_buttons`, …).
+- `agentTemplates` lists every `AgentTemplate`: the templates first, then the snippets from `starter` to `advanced`. `agentTemplatesOfKind(kind)` lists one kind. An entry has `key` (`AgentTemplateKey`, snake_case and unique across kinds), `kind`, `category`, `level`, `name`, `description`, two or three `highlights`, `usesKnowledge` and the `prompts` it needs. `agentTemplate(key)` returns one. Each text is a `LocalizedText`, a string per `Locale`.
+- Each prompt has a `key` (`AgentTemplatePromptKey`), a `name` and a `text`. A key means the same prompt in every template and snippet that uses it. A prompt may declare variables (`{{today}}`, `{{recent_orders}}`); the step that uses it binds each one to a flow variable visible there (`today`, `orders.body`).
+- `buildAgentTemplate(key, { locale, promptRefs, knowledgeBaseIds, timeZone, models, nextId })` returns a `FlowDocument` with labels and messages in `locale`. Every node and edge id comes from `nextId`; node keys stay the same snake_case in every locale. `promptRefs` maps a prompt key to a library prompt id (`prm_…`); a key without one leaves the step's prompt `null`. `knowledgeBaseIds` go to the answering Agent steps of an entry with `usesKnowledge`. A Schedule trigger runs in `timeZone`. `models` names the platform model of Agent steps (`agent`) and Completion steps (`completion`).
+- With every prompt given, each entry validates with no issue at all. Nodes sit on a grid that reads top to bottom, a second trigger has its own columns, and no node overlaps another and no edge is drawn through a node or over another edge.
+- `agentTemplateNodeTypes(key)` lists the node types an entry uses, in palette order; `agentTemplatesUsing(nodeType)` lists the keys of every entry, of either kind, that uses a node type. The two templates together use every node type in the palette, and so do the snippets.
+
 ## Compare two flows
 
 `diffFlows(a, b)` returns a `FlowDiff`: what changed from `a` (the older flow) to `b`.
@@ -102,7 +116,7 @@ const text = parsed.ok ? renderTemplate('Your order {{event.order.id}}', resolve
 
 ## Tests
 
-`pnpm --filter @agent-ic/flow test` runs the specs next to each file. `test/support/fixtures/` holds the three example flows (FAQ with hand-off, scheduled follow-up, event notification) and small node builders for specs.
+`pnpm --filter @agent-ic/flow test` runs the specs next to each file. `test/support/fixtures/` holds the three example flows (FAQ with hand-off, scheduled follow-up, event notification), small node builders for specs and the options for building the agent templates (`agent-template.fixture.ts`). `test/support/helpers/flow-layout.helpers.ts` checks a template's layout: overlapping nodes, edges through a node and edges drawn over each other.
 
 ## Schedule ticks
 
