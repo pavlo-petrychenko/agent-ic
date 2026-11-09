@@ -1,4 +1,5 @@
 import type { PublishButtonProps } from '@/features/flow-builder/view/PublishButton/PublishButton.typedefs';
+import { TourAnchor, tourAnchor } from '@/features/onboarding';
 import { Button, ButtonSize } from '@/shared/ui/actions/Button';
 import { Tooltip } from '@/shared/ui/overlays/Tooltip';
 
@@ -9,7 +10,12 @@ export function PublishButton({
   onClick,
 }: PublishButtonProps) {
   const button = (
-    <Button size={ButtonSize.Sm} disabled={disabled || blockedReason !== null} onClick={onClick}>
+    <Button
+      {...tourAnchor(TourAnchor.BuilderPublish)}
+      size={ButtonSize.Sm}
+      disabled={disabled || blockedReason !== null}
+      onClick={onClick}
+    >
       {label}
     </Button>
   );

@@ -8,6 +8,7 @@ import enErrors from '@/shared/i18n/locales/en/errors.json';
 import enFlowBuilder from '@/shared/i18n/locales/en/flowBuilder.json';
 import enInbox from '@/shared/i18n/locales/en/inbox.json';
 import enKnowledge from '@/shared/i18n/locales/en/knowledge.json';
+import enOnboarding from '@/shared/i18n/locales/en/onboarding.json';
 import enPrompts from '@/shared/i18n/locales/en/prompts.json';
 import enSettings from '@/shared/i18n/locales/en/settings.json';
 import enTesting from '@/shared/i18n/locales/en/testing.json';
@@ -20,6 +21,7 @@ import ukErrors from '@/shared/i18n/locales/uk/errors.json';
 import ukFlowBuilder from '@/shared/i18n/locales/uk/flowBuilder.json';
 import ukInbox from '@/shared/i18n/locales/uk/inbox.json';
 import ukKnowledge from '@/shared/i18n/locales/uk/knowledge.json';
+import ukOnboarding from '@/shared/i18n/locales/uk/onboarding.json';
 import ukPrompts from '@/shared/i18n/locales/uk/prompts.json';
 import ukSettings from '@/shared/i18n/locales/uk/settings.json';
 import ukTesting from '@/shared/i18n/locales/uk/testing.json';
@@ -39,6 +41,7 @@ export const resources = {
     [Namespace.Prompts]: enPrompts,
     [Namespace.Knowledge]: enKnowledge,
     [Namespace.Testing]: enTesting,
+    [Namespace.Onboarding]: enOnboarding,
   },
   [Locale.Uk]: {
     [Namespace.Common]: ukCommon,
@@ -53,5 +56,6 @@ export const resources = {
     [Namespace.Prompts]: ukPrompts,
     [Namespace.Knowledge]: ukKnowledge,
     [Namespace.Testing]: ukTesting,
+    [Namespace.Onboarding]: ukOnboarding,
   },
 } as const;

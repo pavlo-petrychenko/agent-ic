@@ -1,4 +1,5 @@
 import { PermissionResource } from '@agent-ic/contracts';
+import { TourAnchor } from '@/features/onboarding';
 import type {
   NavEntry,
   NavGroupEntry,
@@ -108,6 +109,15 @@ export const NAV_GROUPS: readonly NavGroupEntry[] = [
   },
   { key: NavGroupKey.Footer, entries: [SETTINGS_NAV_ENTRY] },
 ];
+
+export const SECTION_TOUR_ANCHORS: Readonly<Partial<Record<WorkspaceSection, TourAnchor>>> = {
+  [WorkspaceSection.Agents]: TourAnchor.NavAgents,
+  [WorkspaceSection.Prompts]: TourAnchor.NavPrompts,
+  [WorkspaceSection.Knowledge]: TourAnchor.NavKnowledge,
+  [WorkspaceSection.Channels]: TourAnchor.NavChannels,
+  [WorkspaceSection.Inbox]: TourAnchor.NavInbox,
+  [WorkspaceSection.Testing]: TourAnchor.NavTesting,
+};
 
 export const SECTION_ICONS: Readonly<Record<PlaceholderSection, IconName>> = {
   [WorkspaceSection.Inbox]: IconName.Inbox,

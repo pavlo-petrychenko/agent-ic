@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { AGENTS_NAMESPACE } from '@/features/agents/constants/agentsI18n.constants';
 import type { AgentsEmptyProps } from '@/features/agents/view/AgentsEmpty/AgentsEmpty.typedefs';
 import { TemplateCard, TemplateCardSize } from '@/features/agents/view/TemplateCard';
+import { TourAnchor, tourAnchor } from '@/features/onboarding';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { Card } from '@/shared/ui/display/Card';
 import { EmptyState } from '@/shared/ui/display/EmptyState';
@@ -27,7 +28,11 @@ export function AgentsEmpty({
         actions={
           canCreate ? (
             <>
-              <Button icon={IconName.Sparkle} onClick={onBrowseTemplates}>
+              <Button
+                {...tourAnchor(TourAnchor.NewAgent)}
+                icon={IconName.Sparkle}
+                onClick={onBrowseTemplates}
+              >
                 {t('actions.startFromTemplate')}
               </Button>
               <Button

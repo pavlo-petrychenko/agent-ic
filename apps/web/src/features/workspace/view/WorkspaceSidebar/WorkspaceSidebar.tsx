@@ -16,6 +16,7 @@ export function WorkspaceSidebar({
   header,
   headerAction,
   groups,
+  footerExtra,
   user,
   footerAction,
 }: WorkspaceSidebarProps) {
@@ -33,6 +34,7 @@ export function WorkspaceSidebar({
         >
           {group.items.map((item) => (
             <NavItem
+              {...item.dataAttributes}
               key={item.section}
               to={WORKSPACE_SECTION_PATHS[item.section]}
               params={{ workspaceId }}
@@ -46,6 +48,7 @@ export function WorkspaceSidebar({
               {item.label}
             </NavItem>
           ))}
+          {group.key === NavGroupKey.Footer ? footerExtra : null}
         </NavGroup>
       ))}
       <div className={styles.footer}>

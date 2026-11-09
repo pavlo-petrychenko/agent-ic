@@ -30,6 +30,7 @@ import { AgentsEmpty } from '@/features/agents/view/AgentsEmpty';
 import { AgentsTable } from '@/features/agents/view/AgentsTable';
 import { SetupChecklist, SetupInviteAction } from '@/features/agents/view/SetupChecklist';
 import type { SetupInvite } from '@/features/agents/view/SetupChecklist';
+import { TourAnchor, tourAnchor } from '@/features/onboarding';
 import { copyText, formatUsageDay, useInviteLink, useUsageStatus } from '@/features/settings';
 import { useActiveWorkspace } from '@/features/workspace';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
@@ -162,7 +163,11 @@ export function AgentsPage({ workspaceId, templatesOpen, templateKey }: AgentsPa
                 />
               </div>
               {canCreate && (
-                <Button icon={IconName.Plus} onClick={() => void showGallery(null)}>
+                <Button
+                  {...tourAnchor(TourAnchor.NewAgent)}
+                  icon={IconName.Plus}
+                  onClick={() => void showGallery(null)}
+                >
                   {t('actions.newAgent')}
                 </Button>
               )}

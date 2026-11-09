@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { FLOW_BUILDER_NAMESPACE } from '@/features/flow-builder/constants/flowBuilderI18n.constants';
 import { NODE_PRESENTATION } from '@/features/flow-builder/constants/nodePresentation.constants';
 import type { StepPaletteProps } from '@/features/flow-builder/view/StepPalette/StepPalette.typedefs';
+import { TourAnchor, tourAnchor } from '@/features/onboarding';
 import { PaletteItem } from '@/shared/ui/flow/PaletteItem';
 import { SearchInput } from '@/shared/ui/inputs/SearchInput';
 import { Panel, PanelSide } from '@/shared/ui/layout/Panel';
@@ -14,6 +15,7 @@ export function StepPalette({ sections, query, onQueryChange, onAdd, onGuide }: 
 
   return (
     <Panel
+      {...tourAnchor(TourAnchor.BuilderPalette)}
       ariaLabel={t('palette.title')}
       side={PanelSide.Right}
       flush

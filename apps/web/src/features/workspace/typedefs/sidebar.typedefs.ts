@@ -3,6 +3,7 @@ import type {
   WorkspaceSection,
 } from '@/features/workspace/constants/navigation.constants';
 import type { IconName } from '@/shared/ui/foundations/Icon';
+import type { NavItemDataAttributes } from '@/shared/ui/navigation/NavItem';
 
 export interface SidebarItem {
   readonly section: WorkspaceSection;
@@ -10,6 +11,7 @@ export interface SidebarItem {
   readonly icon: IconName;
   readonly badgeCount: number | null;
   readonly badgeLabel: string | null;
+  readonly dataAttributes: NavItemDataAttributes;
 }
 
 export interface SidebarGroup {

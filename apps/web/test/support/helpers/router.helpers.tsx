@@ -7,10 +7,12 @@ import { I18nextProvider } from 'react-i18next';
 import { LocalizedToastProvider } from '@/app/providers/LocalizedToastProvider';
 import { routeTree } from '@/routeTree.gen';
 import { createI18n } from '@/shared/i18n/clients/i18n.client';
+import { skipProductTour } from '@test/support/helpers/productTour.helpers';
 
 interface RenderRouteOptions {
   locale?: Locale;
   mocks?: readonly MockLink.MockedResponse[];
+  productTour?: boolean;
 }
 
 export const createTestRouter = (path: string) => {
@@ -20,8 +22,11 @@ export const createTestRouter = (path: string) => {
 
 export const renderRoute = (
   path: string,
-  { locale = Locale.En, mocks = [] }: RenderRouteOptions = {},
+  { locale = Locale.En, mocks = [], productTour = false }: RenderRouteOptions = {},
 ) => {
+  if (!productTour) {
+    skipProductTour(mocks);
+  }
   const testRouter = createTestRouter(path);
   render(
     <I18nextProvider i18n={createI18n(locale)}>
