@@ -148,6 +148,27 @@ describe('Coachmark', () => {
     expect(screen.getByRole('button', { name: 'Outside' })).toHaveFocus();
   });
 
+  it('keeps focus where it is when the same step reappears', async () => {
+    render(<button type="button">Outside</button>);
+    const { props, rerender } = renderCoachmark();
+
+    rerender(<Coachmark {...props} open={false} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Outside' }));
+    rerender(<Coachmark {...props} open target={createTarget()} />);
+
+    expect(screen.getByRole('button', { name: 'Outside' })).toHaveFocus();
+  });
+
+  it('moves focus to the primary action again when the step changes', () => {
+    render(<button type="button">Outside</button>);
+    const { props, rerender } = renderCoachmark();
+
+    screen.getByRole('button', { name: 'Outside' }).focus();
+    rerender(<Coachmark {...props} title="Test your agent" />);
+
+    expect(screen.getByRole('button', { name: 'Next' })).toHaveFocus();
+  });
+
   it('centres the card and dims the page when there is no target', () => {
     renderCoachmark();
 
