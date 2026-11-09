@@ -1,0 +1,12 @@
+query BuilderVersions($agentId: ID!) {
+  agentVersions(agentId: $agentId) {
+    id
+    number
+    status
+    note
+    publishedAt
+    author {
+      name
+    }
+  }
+}

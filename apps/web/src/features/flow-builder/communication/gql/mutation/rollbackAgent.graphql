@@ -1,0 +1,21 @@
+mutation RollbackAgent($input: RollbackAgentInput!) {
+  rollbackAgent(input: $input) {
+    agent {
+      id
+      status
+      liveVersionNumber
+      draftNumber
+      draftBaseVersionNumber
+      hasUnpublishedChanges
+      draftChangeCount
+      versionCount
+    }
+    version {
+      id
+      number
+    }
+    draft {
+      revision
+    }
+  }
+}

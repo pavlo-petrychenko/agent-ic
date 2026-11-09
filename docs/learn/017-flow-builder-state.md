@@ -38,6 +38,8 @@ apply(next)
 
 **A conflict.** When the backend answers `DRAFT_CONFLICT`, the store goes to `conflict`. Edits, undo and redo keep it there, so autosave does not retry with the stale revision. Reload calls `load` with the fresh draft: it replaces the whole state and starts an empty history, so the local edits are dropped.
 
+**A roll back or a restore.** The Versions drawer sends the store's `revision` with `rollbackAgent` or `restoreAgentVersion`. Both replace the draft on the server, so the dialog is disabled until `saveState` is `idle`. On success the page refetches the draft and calls `load`, the same way as a conflict reload.
+
 **The canvas model.** `documentToCanvas(document, issues)` in [canvas.helpers.ts](../../apps/web/src/features/flow-builder/logic/helpers/canvas.helpers.ts) turns the flow into plain canvas nodes: id, key, label (or the key when the label is empty), position, an in port unless the node is a trigger, the out ports from `nodePorts`, and the node's issues. The canvas in `shared/ui` draws this model and never imports `@agent-ic/flow` (ADR 0020).
 
 ## Add one
