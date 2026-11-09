@@ -731,7 +731,8 @@ describe('InspectorPanel escalation', () => {
       within(recipients).getByRole('option', { name: 'Owners · 1 person' }),
     );
     expect(screen.getByRole('checkbox', { name: 'In the platform' })).toBeDisabled();
-    expect(screen.queryByRole('checkbox', { name: 'Telegram' })).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Telegram' })).not.toBeChecked();
+    await user.click(screen.getByRole('checkbox', { name: 'Telegram' }));
     await user.click(screen.getByRole('checkbox', { name: 'Email' }));
     await user.type(screen.getByRole('textbox', { name: 'Reason shown in the Inbox' }), 'Refund');
     await user.tab();
@@ -741,7 +742,7 @@ describe('InspectorPanel escalation', () => {
         reason: 'Refund',
         notify: {
           recipients: { kind: RecipientsKind.Role, role: 'owner' },
-          channels: [NotifyChannel.InPlatform, NotifyChannel.Email],
+          channels: [NotifyChannel.InPlatform, NotifyChannel.Telegram, NotifyChannel.Email],
         },
       },
     });

@@ -13,4 +13,7 @@ export type RecipientRole = WorkspaceRole.Owner | WorkspaceRole.Admin | Workspac
 
 export type RecipientValue = RecipientsKind.Operators | RecipientsKind.Users | RecipientRole;
 
-export type OfferedChannel = NotifyChannel.InPlatform | NotifyChannel.Email;
+export type OfferedChannel =
+  | NotifyChannel.InPlatform
+  | NotifyChannel.Email
+  | NotifyChannel.Telegram;
