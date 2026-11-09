@@ -310,6 +310,29 @@ export const intentRouterNode = (id: string, key: string, guardKey: string): Rou
   },
 });
 
+export const emptyFieldRouterNode = (
+  id: string,
+  key: string,
+  variable: string,
+  ruleId: string,
+): RouterNode => ({
+  id,
+  key,
+  label: key,
+  position: NODE_POSITION,
+  type: NodeType.Router,
+  config: {
+    rules: [
+      {
+        id: ruleId,
+        label: ruleId,
+        match: RuleMatch.All,
+        conditions: [{ variable, operator: ConditionOperator.IsEmpty, value: null }],
+      },
+    ],
+  },
+});
+
 export const endNode = (id: string, key: string): EscalationNode => ({
   id,
   key,

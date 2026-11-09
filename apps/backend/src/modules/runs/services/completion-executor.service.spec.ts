@@ -1,6 +1,7 @@
 import { ErrorReason } from '@agent-ic/contracts';
 import {
   ModelProviderKind,
+  OutputFieldType,
   PortName,
   PromptSourceKind,
   PromptVersionKind,
@@ -35,8 +36,11 @@ import {
   SECOND_STEP_KEY,
   TEST_AGENT_REPLY,
   TEST_COMPLETION_PROMPT,
+  TEST_DATE_FIELD,
   TEST_FOLLOW_UP,
+  TEST_INTENT_FIELD,
   TEST_LLM_API_KEY,
+  TEST_NO_DATE_RULE_ID,
   TEST_ORDER_INTENT,
   TEST_ORDER_RULE_ID,
   TEST_PROMPT_REF,
@@ -55,6 +59,7 @@ import {
   backgroundBranchEdge,
   branchEdge,
   completionNode,
+  emptyFieldRouterNode,
   finishedStep,
   flowEdge,
   intentRouterNode,
@@ -159,6 +164,55 @@ describe('CompletionExecutor', () => {
     });
     expect(pickRoute(router.config.rules, (path) => resolvePath(variables, path))).toBe(
       TEST_ORDER_RULE_ID,
+    );
+  });
+
+  it('asks a strict-schema model for every field and keeps an optional null field missing', async () => {
+    const node = completionNode(TEST_STEP_NODE_ID, TEST_STEP_NODE_KEY, {
+      prompt: libraryPromptSource(promptRef),
+      model: { provider: { kind: ModelProviderKind.Platform }, model: LlmModelId.Gpt6Luna },
+      output: [
+        ...guard.config.output,
+        { name: TEST_DATE_FIELD, type: OutputFieldType.String, description: '', required: false },
+      ],
+    });
+    const seeded = await seedExecutableRun(
+      testbed,
+      guardThenAgent(node),
+      [],
+      ConversationMode.Live,
+      workspaceId,
+    );
+    mock.json({ [TEST_INTENT_FIELD]: TEST_ORDER_INTENT, [TEST_DATE_FIELD]: null });
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    const { steps } = await stored(seeded);
+    const step = steps.find(({ nodeId }) => nodeId === TEST_STEP_NODE_ID);
+    const next = testbed.executor.executions.find(({ run }) => run.id === seeded.run.id);
+    const variables = next?.scope.variables ?? {};
+    const noDate = emptyFieldRouterNode(
+      TEST_OTHER_NODE_ID,
+      TEST_OTHER_NODE_KEY,
+      `${TEST_STEP_NODE_KEY}.${TEST_DATE_FIELD}`,
+      TEST_NO_DATE_RULE_ID,
+    );
+    expect(mock.body(0)).toMatchObject({
+      response_format: {
+        json_schema: {
+          schema: {
+            required: [TEST_INTENT_FIELD, TEST_DATE_FIELD],
+            properties: {
+              [TEST_DATE_FIELD]: { anyOf: [{ type: 'string' }, { type: 'null' }] },
+            },
+          },
+        },
+      },
+    });
+    expect(step).toMatchObject({ status: RunStepStatus.Succeeded, port: PortName.Next });
+    expect(step?.output).toEqual({ [TEST_INTENT_FIELD]: TEST_ORDER_INTENT });
+    expect(pickRoute(noDate.config.rules, (path) => resolvePath(variables, path))).toBe(
+      TEST_NO_DATE_RULE_ID,
     );
   });
 

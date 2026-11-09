@@ -19,6 +19,7 @@ import {
   agentProgress,
   agentRunState,
   checkOutput,
+  checkReply,
   continuedRunState,
   initialRunState,
   invalidReplyMessage,
@@ -186,7 +187,7 @@ export class AiSdkLlmGateway extends LlmGateway {
     if (result.finishReason === LLM_TOOL_CALLS_FINISH_REASON) {
       throw new LlmToolRoundsExceededError(run.model.id, request.maxToolRounds);
     }
-    const checked = checkOutput(result.text, request.output);
+    const checked = checkOutput(result.text, request.output, run.jsonSchema);
     if (checked.success) {
       return {
         output: checked.data,
@@ -242,7 +243,7 @@ export class AiSdkLlmGateway extends LlmGateway {
         track,
       );
     }
-    const checked = request.output.safeParse(replyCall.input);
+    const checked = checkReply(replyCall.input, request.output, run.jsonSchema);
     if (checked.success) {
       return {
         output: checked.data,

@@ -54,6 +54,8 @@ const SAMPLING_PARAMS = ['temperature', 'top_p', 'top_k'];
 
 const routeSchema = z.object({ intent: z.enum(['delivery', 'other']), confidence: z.number() });
 type Route = z.infer<typeof routeSchema>;
+const datedRouteSchema = routeSchema.extend({ date: z.string().optional() });
+const UNDATED = { ...DELIVERY, date: null };
 
 const completeRequest = (overrides: Partial<LlmCompleteRequest<Route>> = {}) => ({
   provider: { kind: LlmProviderKind.Platform } as const,
@@ -182,6 +184,44 @@ describe('AiSdkLlmGateway.complete', () => {
       reasoning_effort: 'low',
     });
     expect(JSON.stringify(body.messages)).toContain(LLM_JSON_OBJECT_INSTRUCTION);
+  });
+
+  it('asks a json-schema model for every key and reads a null optional field as missing', async () => {
+    mock.json(UNDATED);
+
+    const completion = await gateway.complete({
+      ...completeRequest({ model: LlmModelId.Gpt6Luna }),
+      output: datedRouteSchema,
+    });
+
+    expect(completion.output).toEqual(DELIVERY);
+    expect(mock.body(0)).toMatchObject({
+      response_format: {
+        json_schema: {
+          schema: {
+            required: ['intent', 'confidence', 'date'],
+            properties: {
+              intent: { type: 'string' },
+              date: { anyOf: [{ type: 'string' }, { type: 'null' }] },
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it('shows a json-object model its optional fields as optional and drops a null one', async () => {
+    mock.json(UNDATED);
+
+    const completion = await gateway.complete({
+      ...completeRequest({ model: LlmModelId.Glm53Flash }),
+      output: datedRouteSchema,
+    });
+
+    expect(completion.output).toEqual(DELIVERY);
+    expect(JSON.stringify(mock.body(0).messages)).toContain(
+      '\\"required\\":[\\"intent\\",\\"confidence\\"]',
+    );
   });
 
   it('sends the reasoning effort the catalog sets for the model', async () => {
@@ -321,6 +361,17 @@ describe('AiSdkLlmGateway.runAgent', () => {
     expect(mock.body(0)).toMatchObject({ reasoning_effort: 'low' });
     expect(mock.body(0)).not.toHaveProperty('response_format');
     expect(mock.body(1)).not.toHaveProperty('response_format');
+  });
+
+  it('reads a null optional field of a reply call as missing', async () => {
+    mock.reply(UNDATED);
+
+    const result = await gateway.runAgent({
+      ...agentRequest({ model: LlmModelId.MimoV26Flash }),
+      output: datedRouteSchema,
+    });
+
+    expect(result.output).toEqual(DELIVERY);
   });
 
   it('nudges a reply-tool model once when it ends in plain text', async () => {

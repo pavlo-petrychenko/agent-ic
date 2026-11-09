@@ -37,6 +37,10 @@ import {
   LlmProviderKind,
 } from '@/platform/llm/constants/llm-provider.constants';
 import { profileFor } from '@/platform/llm/helpers/llm-model-profile.helpers';
+import {
+  strictJsonSchema,
+  withoutOptionalNulls,
+} from '@/platform/llm/helpers/llm-strict-schema.helpers';
 import { jsonTextSchema } from '@/platform/llm/schemas/llm-output.schema';
 import type {
   LlmAgentProgress,
@@ -63,7 +67,7 @@ export const structuredOutput = (
   ...Output.text(),
   responseFormat: Promise.resolve(
     model.structuredOutput === LlmStructuredOutput.JsonSchema
-      ? { type: 'json', schema }
+      ? { type: 'json', schema: strictJsonSchema(schema) }
       : { type: 'json' },
   ),
 });
@@ -105,8 +109,14 @@ export const runCallSettings = ({ model, stepTimeoutMs, reasoning, telemetry }: 
   ...(reasoning === null ? {} : { reasoning }),
 });
 
-export const checkOutput = <T>(text: string, schema: z.ZodType<T>) =>
-  jsonTextSchema.pipe(schema).safeParse(text);
+export const checkOutput = <T>(text: string, schema: z.ZodType<T>, json: JSONSchema7) =>
+  jsonTextSchema
+    .transform((value) => withoutOptionalNulls(value, json))
+    .pipe(schema)
+    .safeParse(text);
+
+export const checkReply = <T>(input: unknown, schema: z.ZodType<T>, json: JSONSchema7) =>
+  schema.safeParse(withoutOptionalNulls(input, json));
 
 export const outputFeedbackMessage = (error: z.ZodError): UserModelMessage => ({
   role: LlmMessageRole.User,
