@@ -18,6 +18,7 @@ import type {
   InboxRowStatusResolver,
   InboxTabItem,
 } from '@/features/inbox/typedefs/list.typedefs';
+import type { FilterOption } from '@/shared/ui/data/FilterBar/FilterPicker';
 import { EmptyStateTone } from '@/shared/ui/display/EmptyState';
 import { IconName } from '@/shared/ui/foundations/Icon';
 
@@ -100,5 +101,52 @@ export const inboxListItem = (
   selected: conversation.id === selectedId,
 });
 
-export const inboxEmptyState = (tab: InboxTab, t: InboxTranslate): InboxEmptyState =>
-  INBOX_EMPTY_STATES[tab](t);
+export const inboxChannelOptions = (
+  conversations: readonly InboxConversation[],
+  providerLabels: InboxProviderLabels,
+): readonly FilterOption[] => {
+  const counts = new Map<string, { readonly label: string; count: number }>();
+  for (const conversation of conversations) {
+    if (conversation.channelId === null) {
+      continue;
+    }
+    const current = counts.get(conversation.channelId);
+    counts.set(conversation.channelId, {
+      label: conversation.channelName ?? providerLabels[conversation.provider],
+      count: (current?.count ?? 0) + 1,
+    });
+  }
+  return [...counts.entries()]
+    .map(([id, { label, count }]) => ({ id, label, count: String(count) }))
+    .sort((left, right) => left.label.localeCompare(right.label));
+};
+
+export const inboxAgentOptions = (
+  conversations: readonly InboxConversation[],
+): readonly FilterOption[] => {
+  const counts = new Map<string, { readonly label: string; count: number }>();
+  for (const conversation of conversations) {
+    const current = counts.get(conversation.agentId);
+    counts.set(conversation.agentId, {
+      label: conversation.agentName,
+      count: (current?.count ?? 0) + 1,
+    });
+  }
+  return [...counts.entries()]
+    .map(([id, { label, count }]) => ({ id, label, count: String(count) }))
+    .sort((left, right) => left.label.localeCompare(right.label));
+};
+
+export const inboxEmptyState = (
+  tab: InboxTab,
+  t: InboxTranslate,
+  filtered: boolean,
+): InboxEmptyState =>
+  filtered
+    ? {
+        title: t('empty.filtered.title'),
+        description: t('empty.filtered.description'),
+        icon: IconName.Search,
+        tone: EmptyStateTone.Neutral,
+      }
+    : INBOX_EMPTY_STATES[tab](t);
