@@ -193,7 +193,6 @@
       "duration": "{{value}} ms",
       "arguments": "Arguments",
       "result": "Result",
-      "truncated": "Shortened: only the start is stored.",
       "status": {
         "ok": "OK",
         "error": "Error"

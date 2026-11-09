@@ -24,9 +24,7 @@ query TestingRun($id: ID!) {
         name
         status
         input
-        inputTruncated
         output
-        outputTruncated
         error
         durationMs
       }

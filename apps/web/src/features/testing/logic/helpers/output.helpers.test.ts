@@ -266,9 +266,7 @@ const SEARCH_CALL = {
   name: 'search_menu',
   status: RunToolCallStatus.Ok,
   input: { query: 'vegan' },
-  inputTruncated: false,
   output: { found: true },
-  outputTruncated: false,
   error: null,
   durationMs: 1250,
 };
@@ -288,21 +286,17 @@ describe('toolCallsView', () => {
           failed: false,
           duration: '1,250',
           input: '{\n  "query": "vegan"\n}',
-          inputTruncated: false,
           output: '{\n  "found": true\n}',
-          outputTruncated: false,
           error: null,
         },
       ],
     });
   });
 
-  it('marks a failed call and keeps a shortened value as the stored text', () => {
+  it('marks a failed call and shows its error instead of a result', () => {
     const failed = {
       ...SEARCH_CALL,
       status: RunToolCallStatus.Error,
-      input: '{"query":"veg',
-      inputTruncated: true,
       output: null,
       error: 'The search is not available',
       durationMs: null,
@@ -313,8 +307,6 @@ describe('toolCallsView', () => {
         {
           failed: true,
           duration: null,
-          input: '{"query":"veg',
-          inputTruncated: true,
           output: null,
           error: 'The search is not available',
         },

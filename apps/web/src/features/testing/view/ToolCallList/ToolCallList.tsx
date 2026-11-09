@@ -33,9 +33,6 @@ function ToolCallItem({ call, number }: ToolCallItemProps) {
           <div className={styles.part}>
             <span className={styles.label}>{t('details.toolCall.arguments')}</span>
             <CodeBlock code={call.input} />
-            {call.inputTruncated && (
-              <span className={styles.hint}>{t('details.toolCall.truncated')}</span>
-            )}
           </div>
           {call.error !== null && (
             <Callout tone={CalloutTone.Err} icon={IconName.Alert}>
@@ -46,9 +43,6 @@ function ToolCallItem({ call, number }: ToolCallItemProps) {
             <div className={styles.part}>
               <span className={styles.label}>{t('details.toolCall.result')}</span>
               <CodeBlock code={call.output} />
-              {call.outputTruncated && (
-                <span className={styles.hint}>{t('details.toolCall.truncated')}</span>
-              )}
             </div>
           )}
         </div>

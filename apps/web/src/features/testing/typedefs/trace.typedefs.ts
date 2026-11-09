@@ -39,9 +39,7 @@ export interface RunToolCallView {
   name: string;
   status: RunToolCallStatus;
   input: unknown;
-  inputTruncated: boolean;
   output: unknown;
-  outputTruncated: boolean;
   error: string | null;
   durationMs: number | null;
 }
@@ -52,9 +50,7 @@ export interface ToolCallEntry {
   failed: boolean;
   duration: string | null;
   input: string;
-  inputTruncated: boolean;
   output: string | null;
-  outputTruncated: boolean;
   error: string | null;
 }
 

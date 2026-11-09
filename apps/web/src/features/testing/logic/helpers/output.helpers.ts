@@ -154,9 +154,6 @@ export const toStepView = (
     : toOutputView(step.output, locale, context);
 };
 
-const toolValueCode = (value: unknown, truncated: boolean): string =>
-  truncated && typeof value === 'string' ? value : JSON.stringify(value, null, JSON_INDENT);
-
 export const toToolCallEntry = (
   call: RunToolCallView,
   index: number,
@@ -169,10 +166,8 @@ export const toToolCallEntry = (
     failed,
     duration:
       call.durationMs === null ? null : new Intl.NumberFormat(locale).format(call.durationMs),
-    input: toolValueCode(call.input, call.inputTruncated),
-    inputTruncated: call.inputTruncated,
-    output: call.output === null ? null : toolValueCode(call.output, call.outputTruncated),
-    outputTruncated: call.outputTruncated,
+    input: JSON.stringify(call.input, null, JSON_INDENT),
+    output: call.output === null ? null : JSON.stringify(call.output, null, JSON_INDENT),
     error: call.error,
   };
 };

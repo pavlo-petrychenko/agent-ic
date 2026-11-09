@@ -102,9 +102,7 @@ type RunToolCall {
   name: String!
   status: RunToolCallStatus!
   input: JSON
-  inputTruncated: Boolean!
   output: JSON
-  outputTruncated: Boolean!
   error: String
   durationMs: Int
 }

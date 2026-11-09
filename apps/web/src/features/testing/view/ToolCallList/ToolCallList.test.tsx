@@ -10,9 +10,7 @@ const SEARCH = {
   failed: false,
   duration: '120',
   input: '{\n  "query": "vegan"\n}',
-  inputTruncated: false,
   output: '{\n  "found": true\n}',
-  outputTruncated: true,
   error: null,
 };
 
@@ -23,7 +21,6 @@ const BROKEN = {
   failed: true,
   duration: null,
   output: null,
-  outputTruncated: false,
   error: 'The search is not available',
 };
 
@@ -40,7 +37,7 @@ describe('ToolCallList', () => {
     }
   });
 
-  it('opens a call to show its arguments, result and a shortened note', async () => {
+  it('opens a call to show its arguments and result', async () => {
     renderWithProviders(<ToolCallList calls={[SEARCH]} />);
 
     await userEvent.click(screen.getByText('search_menu'));
@@ -48,7 +45,6 @@ describe('ToolCallList', () => {
     expect(screen.getByText('Arguments')).toBeVisible();
     expect(screen.getByText(/"query": "vegan"/)).toBeVisible();
     expect(screen.getByText(/"found": true/)).toBeVisible();
-    expect(screen.getByText('Shortened: only the start is stored.')).toBeVisible();
   });
 
   it('shows the error of a failed call instead of a result', async () => {
