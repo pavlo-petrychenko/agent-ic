@@ -9,6 +9,10 @@ export { ProfilePage } from '@/features/settings/containers/ProfilePage';
 export { NotificationsPage } from '@/features/settings/containers/NotificationsPage';
 export { useInviteLink } from '@/features/settings/communication/hooks/useInviteLink';
 export { copyText } from '@/features/settings/logic/helpers/clipboard.helpers';
+export {
+  NOTIFICATIONS_SEARCH_DEFAULTS,
+  notificationsSearchSchema,
+} from '@/features/settings/logic/schemas/notificationsSearch.schema';
 export { UsageLimitBanner } from '@/features/settings/containers/UsageLimitBanner';
 export { useUsageStatus } from '@/features/settings/communication/hooks/useUsageStatus';
 export { formatUsageDay } from '@/features/settings/logic/helpers/usage.helpers';

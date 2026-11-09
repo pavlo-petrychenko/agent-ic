@@ -714,7 +714,7 @@ The run is marked failed, and Agents shows "N runs failed today".
 - Triggered by any hand-off — an Escalation step, an Agent exit, or a failure set to hand off (and reminders); recipients come from the step or the flow hand-off settings.
 - **Per-person channel toggles:**
   - **In-platform:** Inbox badge + browser notification.
-  - **Email:** reason, last customer message, "Open in Inbox".
+  - **Email:** reason, last customer message, "Open in Inbox". A custom alert address is verified by email; until then alerts go to the account email.
   - **Telegram:** a shared alerts bot. The user links their Telegram with a 10-minute one-time code; the message has "Open in Inbox".
 - System emails: confirmation, reset, usage at 80/100%, Telegram token revoked.
 - Storage: [notifications.md](notifications.md) — settings, channels, notification and delivery tables.

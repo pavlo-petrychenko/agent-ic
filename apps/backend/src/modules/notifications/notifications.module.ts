@@ -4,6 +4,7 @@ import { EmailGateway } from '@/modules/notifications/gateways/email.gateway';
 import { createEmailGateway } from '@/modules/notifications/helpers/email-gateway.helpers';
 import { SendConfirmationEmailListener } from '@/modules/notifications/listeners/send-confirmation-email.listener';
 import { SendEmailChangeEmailListener } from '@/modules/notifications/listeners/send-email-change-email.listener';
+import { SendNotificationEmailVerificationListener } from '@/modules/notifications/listeners/send-notification-email-verification.listener';
 import { SendPasswordResetEmailListener } from '@/modules/notifications/listeners/send-password-reset-email.listener';
 import { ClearExpiredTelegramLinksProcessor } from '@/modules/notifications/processors/clear-expired-telegram-links.processor';
 import { NotificationDeliverySweepRepository } from '@/modules/notifications/repositories/notification-delivery-sweep.repository';
@@ -27,12 +28,15 @@ import { ListNotificationsUseCase } from '@/modules/notifications/use-cases/list
 import { MarkAllNotificationsReadUseCase } from '@/modules/notifications/use-cases/mark-all-notifications-read.use-case';
 import { MarkNotificationReadUseCase } from '@/modules/notifications/use-cases/mark-notification-read.use-case';
 import { MarkNotificationsReadUseCase } from '@/modules/notifications/use-cases/mark-notifications-read.use-case';
+import { ResendNotificationEmailVerificationUseCase } from '@/modules/notifications/use-cases/resend-notification-email-verification.use-case';
 import { SendConfirmationEmailUseCase } from '@/modules/notifications/use-cases/send-confirmation-email.use-case';
 import { SendEmailChangeEmailUseCase } from '@/modules/notifications/use-cases/send-email-change-email.use-case';
+import { SendNotificationEmailVerificationUseCase } from '@/modules/notifications/use-cases/send-notification-email-verification.use-case';
 import { SendPasswordResetEmailUseCase } from '@/modules/notifications/use-cases/send-password-reset-email.use-case';
 import { UnlinkTelegramNotificationUseCase } from '@/modules/notifications/use-cases/unlink-telegram-notification.use-case';
 import { UpdateNotificationChannelUseCase } from '@/modules/notifications/use-cases/update-notification-channel.use-case';
 import { UpdateNotificationEmailUseCase } from '@/modules/notifications/use-cases/update-notification-email.use-case';
+import { VerifyNotificationEmailUseCase } from '@/modules/notifications/use-cases/verify-notification-email.use-case';
 import { ConfigService } from '@/platform/config/services/config.service';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 import { TelegramModule } from '@/platform/telegram/telegram.module';
@@ -63,6 +67,9 @@ export class NotificationsModule extends defineModule({
     MarkNotificationReadUseCase,
     UpdateNotificationChannelUseCase,
     UpdateNotificationEmailUseCase,
+    ResendNotificationEmailVerificationUseCase,
+    SendNotificationEmailVerificationUseCase,
+    VerifyNotificationEmailUseCase,
     ClearExpiredTelegramLinksUseCase,
     CountUnreadNotificationsUseCase,
     CreateTelegramNotificationLinkUseCase,
@@ -79,6 +86,7 @@ export class NotificationsModule extends defineModule({
     SendConfirmationEmailListener,
     SendPasswordResetEmailListener,
     SendEmailChangeEmailListener,
+    SendNotificationEmailVerificationListener,
   ],
   processors: [ClearExpiredTelegramLinksProcessor],
   exports: [

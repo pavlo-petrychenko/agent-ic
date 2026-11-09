@@ -7,6 +7,7 @@ import { notificationChannels } from '@/modules/notifications/db/notification-ch
 import { notificationSettings } from '@/modules/notifications/db/notification-settings.table';
 import { telegramNotificationChannels } from '@/modules/notifications/db/telegram-notification-channels.table';
 import type {
+  EmailVerificationRecord,
   NewNotificationChannelRecord,
   NotificationChannelSettingRecord,
   NotificationChannelValue,
@@ -151,13 +152,106 @@ export class NotificationSettingsRepository {
         workspaceId,
         email,
         verifiedAt: null,
+        verificationTokenHash: null,
+        verificationExpiresAt: null,
         createdAt: now,
         updatedAt: now,
       })
       .onConflictDoUpdate({
         target: emailNotificationChannels.channelId,
-        set: { email, verifiedAt: null, updatedAt: now },
+        set: {
+          email,
+          verifiedAt: null,
+          verificationTokenHash: null,
+          verificationExpiresAt: null,
+          updatedAt: now,
+        },
       });
+  }
+
+  async setEmailVerificationToken(
+    workspaceId: string,
+    channelId: string,
+    tokenHash: string,
+    expiresAt: Date,
+  ): Promise<boolean> {
+    const updated = await this.txHost.tx
+      .update(emailNotificationChannels)
+      .set({
+        verificationTokenHash: tokenHash,
+        verificationExpiresAt: expiresAt,
+        updatedAt: this.clock.now(),
+      })
+      .where(
+        and(
+          eq(emailNotificationChannels.workspaceId, workspaceId),
+          eq(emailNotificationChannels.channelId, channelId),
+        ),
+      )
+      .returning({ channelId: emailNotificationChannels.channelId });
+    return updated.length > 0;
+  }
+
+  async findEmailVerification(
+    workspaceId: string,
+    userId: string,
+    tokenHash: string,
+  ): Promise<EmailVerificationRecord | null> {
+    const [row] = await this.txHost.tx
+      .select({
+        channelId: emailNotificationChannels.channelId,
+        email: emailNotificationChannels.email,
+        verificationExpiresAt: emailNotificationChannels.verificationExpiresAt,
+        verifiedAt: emailNotificationChannels.verifiedAt,
+      })
+      .from(emailNotificationChannels)
+      .innerJoin(
+        notificationChannels,
+        and(
+          eq(notificationChannels.workspaceId, workspaceId),
+          eq(notificationChannels.id, emailNotificationChannels.channelId),
+        ),
+      )
+      .innerJoin(
+        notificationSettings,
+        and(
+          eq(notificationSettings.workspaceId, workspaceId),
+          eq(notificationSettings.id, notificationChannels.settingsId),
+        ),
+      )
+      .where(
+        and(
+          eq(emailNotificationChannels.workspaceId, workspaceId),
+          eq(notificationSettings.userId, userId),
+          eq(emailNotificationChannels.verificationTokenHash, tokenHash),
+        ),
+      );
+    return row ?? null;
+  }
+
+  async markEmailVerified(
+    workspaceId: string,
+    channelId: string,
+    tokenHash: string,
+    verifiedAt: Date,
+  ): Promise<boolean> {
+    const updated = await this.txHost.tx
+      .update(emailNotificationChannels)
+      .set({
+        verifiedAt,
+        verificationTokenHash: null,
+        verificationExpiresAt: null,
+        updatedAt: this.clock.now(),
+      })
+      .where(
+        and(
+          eq(emailNotificationChannels.workspaceId, workspaceId),
+          eq(emailNotificationChannels.channelId, channelId),
+          eq(emailNotificationChannels.verificationTokenHash, tokenHash),
+        ),
+      )
+      .returning({ channelId: emailNotificationChannels.channelId });
+    return updated.length > 0;
   }
 
   async setTelegramLinkCode(

@@ -1,0 +1,3 @@
+ALTER TABLE "notifications"."email_notification_channels" ADD COLUMN "verification_token_hash" text;--> statement-breakpoint
+ALTER TABLE "notifications"."email_notification_channels" ADD COLUMN "verification_expires_at" timestamp with time zone;--> statement-breakpoint
+CREATE UNIQUE INDEX "email_notification_channels_verification_token_hash_key" ON "notifications"."email_notification_channels" USING btree ("verification_token_hash") WHERE "notifications"."email_notification_channels"."verification_token_hash" is not null;

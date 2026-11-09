@@ -3,6 +3,7 @@ import { SETTINGS_NAMESPACE } from '@/features/settings/constants/settingsI18n.c
 import type { NotificationsPageProps } from '@/features/settings/containers/NotificationsPage/NotificationsPage.typedefs';
 import { useNotificationsPage } from '@/features/settings/containers/NotificationsPage/useNotificationsPage';
 import { settingsHref } from '@/features/settings/logic/helpers/route.helpers';
+import { NotificationEmailField } from '@/features/settings/view/NotificationEmailField';
 import { NotificationPreferences } from '@/features/settings/view/NotificationPreferences';
 import { NotificationsCard } from '@/features/settings/view/NotificationsCard';
 import { TelegramLinkCard } from '@/features/settings/view/TelegramLinkCard';
@@ -10,9 +11,13 @@ import { TelegramLinkedFooter } from '@/features/settings/view/TelegramLinkedFoo
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
 import { Breadcrumb } from '@/shared/ui/navigation/Breadcrumb';
 
-export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
+export function NotificationsPage({
+  workspaceId,
+  verificationToken,
+  onVerificationHandled,
+}: NotificationsPageProps) {
   const { t } = useTranslation(SETTINGS_NAMESPACE);
-  const page = useNotificationsPage(workspaceId);
+  const page = useNotificationsPage(workspaceId, verificationToken, onVerificationHandled);
 
   return (
     <div className="flex flex-col gap-5 pb-8">
@@ -34,6 +39,7 @@ export function NotificationsPage({ workspaceId }: NotificationsPageProps) {
           footer={page.cardFooter}
         >
           <NotificationPreferences {...page.preferences} />
+          <NotificationEmailField {...page.emailField} />
           {page.telegramLinked ? (
             <TelegramLinkedFooter
               linkedOn={page.telegramLinkedOn}

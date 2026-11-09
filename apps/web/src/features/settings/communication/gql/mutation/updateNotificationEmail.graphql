@@ -1,0 +1,19 @@
+mutation UpdateNotificationEmail($input: UpdateNotificationEmailInput!) {
+  updateNotificationEmail(input: $input) {
+    platform {
+      enabled
+    }
+    email {
+      enabled
+      email
+      verifiedAt
+    }
+    telegram {
+      enabled
+      linked
+      username
+      botUsername
+      linkedAt
+    }
+  }
+}

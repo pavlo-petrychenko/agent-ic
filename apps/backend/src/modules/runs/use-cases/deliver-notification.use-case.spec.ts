@@ -135,7 +135,7 @@ describe('DeliverNotificationUseCase', () => {
     telegramChatId.mockResolvedValue(null);
     describeSettings.mockResolvedValue({
       platform: { enabled: true },
-      email: { enabled: true, email: 'alerts@example.com', verifiedAt: null },
+      email: { enabled: true, email: 'alerts@example.com', verifiedAt: NOW },
       telegram: {
         enabled: false,
         linked: false,
@@ -271,6 +271,29 @@ describe('DeliverNotificationUseCase', () => {
 
     expect(send).not.toHaveBeenCalled();
     expect(markDelivered).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the account email until the alert address is verified', async () => {
+    describeSettings.mockResolvedValue({
+      platform: { enabled: true },
+      email: { enabled: true, email: 'alerts@example.com', verifiedAt: null },
+      telegram: {
+        enabled: false,
+        linked: false,
+        username: null,
+        botUsername: null,
+        linkedAt: null,
+      },
+    });
+
+    await execute();
+
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        template: EmailTemplate.Escalation,
+        to: 'operator@example.com',
+      }),
+    );
   });
 
   it('fails the delivery without sending when email is disabled', async () => {

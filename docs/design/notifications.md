@@ -1,6 +1,6 @@
 # Notifications module
 
-**Status:** schema, settings API, recipient resolver, producer, read state, email delivery, browser notifications, Telegram alerts bot linking and Telegram alert delivery, reminders and fallback, November 2026. The `notifications` schema, the personal settings read/write API, the handoff recipient resolver, the escalation producer, the platform read state, the email delivery worker, in-app browser notifications, the Telegram alerts bot linking flow, Telegram alert delivery and the scheduled escalation reminders/fallback exist. There is no background push or in-app notification list yet.
+**Status:** schema, settings API, recipient resolver, producer, read state, email delivery, browser notifications, Telegram alerts bot linking and Telegram alert delivery, reminders and fallback, the in-app notification list, and verified alert emails, November 2026. The `notifications` schema, the personal settings read/write API, the handoff recipient resolver, the escalation producer, the platform read state, the email delivery worker, in-app browser notifications, the Telegram alerts bot linking flow, Telegram alert delivery, the scheduled escalation reminders/fallback and the in-app notification list exist. There is no background push.
 
 **Decisions:** D307 (notification storage), D85 (Resend), D167 (email gateway), D311 (Telegram alerts bot linking), D312 (Telegram alert delivery), D314 (reminders and fallback). Product requirements: `mvp-scope.md` §12.11, `communication.md` chain F.
 
@@ -31,9 +31,13 @@ The personal settings slice is built:
 
 - `notificationSettings` returns the effective settings for the signed-in user in the current workspace;
 - `updateNotificationChannel` toggles `platform`, `email` or `telegram`;
-- `updateNotificationEmail` stores an alert address.
+- `updateNotificationEmail` stores an alert address and sends a verification email.
+- `resendNotificationEmailVerification` sends a fresh verification email while the address is pending.
+- `verifyNotificationEmail` consumes the current token and marks the address verified.
 
 Reads return defaults without writing a row: platform and email on, Telegram off until it is linked. The first update creates the settings row and one channel row per channel.
+
+The alert email is verified before it receives alerts. A custom address stores a SHA-256 verification token hash and a 24-hour expiry on `email_notification_channels`; changing the address clears both `verified_at` and the open token. The verification email links back to Settings → Notifications with the token in the query string, and `verifyNotificationEmail` sets `verified_at` once. `resendNotificationEmailVerification` replaces the token while the address is pending. Until a custom address is verified, escalation emails fall back to the user's account email, which the auth confirmation flow already verified. A `null` alert address therefore means "use the account email" and needs no separate verification.
 
 Recipient resolution is built. `NotificationRecipientsService.recipientsFor(workspaceId, versionId, nodeId)` turns a handoff step into `{ userId, channels }[]`:
 
@@ -115,6 +119,8 @@ erDiagram
     uuid workspace_id FK
     text email "null = users.email"
     timestamptz verified_at
+    text verification_token_hash
+    timestamptz verification_expires_at
     timestamptz created_at
     timestamptz updated_at
   }
@@ -205,6 +211,7 @@ Every table has `workspace_id`, `ENABLE ROW LEVEL SECURITY`, `FORCE ROW LEVEL SE
 - composite FK `(workspace_id, channel_id) -> notification_channels(workspace_id, id)` cascade;
 - FK `workspace_id -> identity.workspaces(id)` cascade;
 - index `(workspace_id, channel_id)`;
+- Email: partial unique index on `verification_token_hash` where it is not null;
 - Telegram: partial unique index on `link_code_hash` where it is not null, and index `(workspace_id, chat_id)`.
 
 ### `notifications`
@@ -239,7 +246,7 @@ Every table has `workspace_id`, `ENABLE ROW LEVEL SECURITY`, `FORCE ROW LEVEL SE
 | run, conversation, agent, version | `run_steps.run_id` → `runs` → `conversations` |
 | who receives | `notifications.user_id` → `identity.users` |
 | greeting name and locale | `identity.users.name`, `identity.users.locale` |
-| email address | `email_notification_channels.email`, or `identity.users.email` when null |
+| email address | a verified `email_notification_channels.email`, or `identity.users.email` when null or still pending verification |
 | Telegram chat | `telegram_notification_channels.chat_id` |
 | last customer message | `notifications.last_customer_message_id` → `conversations.messages` |
 
