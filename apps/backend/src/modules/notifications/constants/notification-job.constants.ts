@@ -1,4 +1,5 @@
 export enum NotificationJobName {
+  ClearExpiredTelegramLinks = 'clear-expired-telegram-links',
   CreateEscalationNotifications = 'create-escalation-notifications',
   DeliverNotification = 'deliver-notification',
   SendConfirmationEmail = 'send-confirmation-email',

@@ -34,4 +34,5 @@ export const NOTIFICATION_CHANNEL_ENABLED_BY_DEFAULT: Readonly<
 
 export const TELEGRAM_ALERTS_WEBHOOK_PATH = '/webhooks/telegram-alerts';
 export const TELEGRAM_LINK_CODE_LENGTH = 6;
+export const TELEGRAM_LINK_CODE_MAX_ATTEMPTS = 5;
 export const TELEGRAM_LINK_CODE_TTL_MINUTES = 10;

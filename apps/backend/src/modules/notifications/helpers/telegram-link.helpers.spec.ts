@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  isTelegramLinkCodeConflict,
   telegramLinkCodeFromMessage,
   telegramLinkReply,
 } from '@/modules/notifications/helpers/telegram-link.helpers';
@@ -19,6 +20,28 @@ describe('telegramLinkCodeFromMessage', () => {
     expect(telegramLinkCodeFromMessage('hello')).toBeNull();
     expect(telegramLinkCodeFromMessage('48291')).toBeNull();
     expect(telegramLinkCodeFromMessage('4829130')).toBeNull();
+  });
+});
+
+describe('isTelegramLinkCodeConflict', () => {
+  it('accepts the link code hash unique violation', () => {
+    expect(
+      isTelegramLinkCodeConflict({
+        code: '23505',
+        constraint: 'telegram_notification_channels_link_code_hash_key',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects another unique violation', () => {
+    expect(isTelegramLinkCodeConflict({ code: '23505', constraint: 'other_key' })).toBe(false);
+    expect(isTelegramLinkCodeConflict({ code: '23505' })).toBe(false);
+  });
+
+  it('rejects other errors', () => {
+    expect(isTelegramLinkCodeConflict({ code: '23503' })).toBe(false);
+    expect(isTelegramLinkCodeConflict(new Error('boom'))).toBe(false);
+    expect(isTelegramLinkCodeConflict(null)).toBe(false);
   });
 });
 
