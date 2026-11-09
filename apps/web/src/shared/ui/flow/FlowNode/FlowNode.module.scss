@@ -1,5 +1,6 @@
 $width-full: 248px;
 $width-condition: 200px;
+$meta-lines: 3;
 $height-condition: 48px;
 $faded-opacity: 0.4;
 
@@ -76,9 +77,14 @@ $faded-opacity: 0.4;
 }
 
 .meta {
+  display: -webkit-box;
+  overflow: hidden;
   margin: 0;
   color: var(--color-mute);
   font: var(--type-caption);
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $meta-lines;
 }
 
 .chips {
