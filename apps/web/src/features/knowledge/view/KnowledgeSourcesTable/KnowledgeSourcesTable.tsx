@@ -42,7 +42,7 @@ export function KnowledgeSourcesTable({
     {
       id: 'source',
       header: t('sources.columns.source'),
-      width: 'minmax(0, 2fr)',
+      width: 'minmax(0, 1.5fr)',
       render: (row) => (
         <TableCellLead
           title={row.title}
@@ -58,13 +58,13 @@ export function KnowledgeSourcesTable({
     {
       id: 'type',
       header: t('sources.columns.type'),
-      width: '90px',
+      width: '124px',
       render: (row) => <TableCell tone={TableCellTone.Secondary}>{row.kindLabel}</TableCell>,
     },
     {
       id: 'sync',
       header: t('sources.columns.sync'),
-      width: 'minmax(0, 1fr)',
+      width: 'minmax(0, 1.5fr)',
       render: (row) => (
         <TableCell tone={TableCellTone.Secondary}>
           <span className={styles.stacked}>
