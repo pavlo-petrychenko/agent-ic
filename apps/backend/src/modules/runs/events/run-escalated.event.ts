@@ -13,5 +13,7 @@ export const runEscalatedEvent = defineDomainEvent({
     versionId: z.uuid(),
     nodeId: z.string().min(1),
     mode: z.enum(ConversationMode),
+    reminderAfterMinutes: z.int().positive().nullable().default(null),
+    fallbackAfterMinutes: z.int().positive().nullable().default(null),
   }),
 });

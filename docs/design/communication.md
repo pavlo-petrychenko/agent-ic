@@ -150,8 +150,8 @@ Notation: `→` sync call, `⇢` async (queue job or pub/sub event).
    - an outbox row "notify".
 2. ⇢ queue `outbound`: the message to the customer ("a person will reply soon").
 3. ⇢ queue `notify`: `runs.escalated` carries the handoff `runStepId`; alerts per recipient's settings → email provider / alerts bot. In-platform alerts → Postgres (notification) ⇢ pub/sub `ws:{id}:inbox` → browsers: "Needs you" badge.
-4. ⇢ queue `timers`: **delayed** jobs — a reminder in 5 min and a fallback in 30 min.
-5. Operator clicks **Take over**: browser → `api` mutation → Postgres conditional update (`waiting → handled_by me`; the update fails if someone else was faster) → cancel the delayed jobs ⇢ pub/sub → other operators see "taken by X".
+4. ⇢ queue `timers`: **delayed** jobs — a reminder in 5 min and a fallback in 30 min, using the handoff `runStepId` in deterministic job ids. A reminder creates `kind = reminder` notifications; the fallback is rendered from the run history and sent through the outbound path. Both are idempotent on the run step.
+5. Operator clicks **Take over**: browser → `api` mutation → Postgres conditional update (`waiting → handled_by me`; the update fails if someone else was faster) ⇢ pub/sub → other operators see "taken by X". The delayed jobs remain until their due time, but when they fire they find the conversation no longer `waiting` and do nothing.
 6. Operator **replies**: browser → `api` mutation → Postgres (message, author = operator) ⇢ queue `outbound` → `worker-runs` → Telegram or the business webhook. This is the same delivery path as the agent's messages, with the same rate limits and retries.
 7. Customer messages while the operator handles the chat: chain A, variation "handled_by", so they appear in the Inbox only.
 8. **Hand back:** browser → `api` mutation → Postgres (`agent_active`) ⇢ pub/sub. The next customer message starts a run (chain A).

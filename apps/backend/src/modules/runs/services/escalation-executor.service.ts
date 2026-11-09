@@ -4,6 +4,10 @@ import type { EscalationNode } from '@agent-ic/flow';
 import { Injectable } from '@nestjs/common';
 import { ConversationMode } from '@/modules/conversations';
 import { MembershipsRepository } from '@/modules/identity';
+import {
+  NO_HANDOFF_TIMING,
+  handoffTimingOf,
+} from '@/modules/runs/helpers/escalation-reminder.helpers';
 import { renderStepText, templateTexts } from '@/modules/runs/helpers/outbound-message.helpers';
 import { ConversationExitService } from '@/modules/runs/services/conversation-exit.service';
 import type { EscalationRecipients } from '@/modules/runs/typedefs/escalation.typedefs';
@@ -35,7 +39,16 @@ export class EscalationExecutor implements StepExecutor<EscalationNode> {
     const { config } = node;
     const { workspaceId } = run;
     const texts = templateTexts(config.customerMessage, scope.variables);
-    const exit = { ctx, run, runStepId: execution.stepId, nodeId: node.id, texts };
+    const timing =
+      config.mode === EscalationMode.Escalate ? handoffTimingOf(config) : NO_HANDOFF_TIMING;
+    const exit = {
+      ctx,
+      run,
+      runStepId: execution.stepId,
+      nodeId: node.id,
+      texts,
+      ...timing,
+    };
     if (config.mode === EscalationMode.End) {
       const messageIds = await this.exits.end(exit);
       return { port: null, output: { mode: config.mode, messageIds } };

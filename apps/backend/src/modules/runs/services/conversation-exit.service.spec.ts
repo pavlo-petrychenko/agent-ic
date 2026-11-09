@@ -7,6 +7,7 @@ import {
   outboundQueuedEvent,
 } from '@/modules/conversations';
 import { runEscalatedEvent } from '@/modules/runs/events/run-escalated.event';
+import { NO_HANDOFF_TIMING } from '@/modules/runs/helpers/escalation-reminder.helpers';
 import { ConversationExitService } from '@/modules/runs/services/conversation-exit.service';
 import { DomainEventsService } from '@/platform/domain-events/services/domain-events.service';
 import {
@@ -37,6 +38,7 @@ describe('ConversationExitService', () => {
       runStepId: stepId,
       nodeId: ESCALATION_NODE_ID,
       texts: [TEST_CUSTOMER_NOTICE],
+      ...NO_HANDOFF_TIMING,
     };
   };
 

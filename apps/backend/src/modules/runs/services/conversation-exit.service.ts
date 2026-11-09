@@ -20,7 +20,15 @@ export class ConversationExitService {
     return messageIds;
   }
 
-  async handOff({ ctx, run, runStepId, nodeId, texts }: ConversationExit): Promise<string[]> {
+  async handOff({
+    ctx,
+    run,
+    runStepId,
+    nodeId,
+    texts,
+    reminderAfterMinutes,
+    fallbackAfterMinutes,
+  }: ConversationExit): Promise<string[]> {
     const { workspaceId, conversationId } = run;
     const messageIds = await this.messages.send(ctx, run, nodeId, texts);
     const reason = WaitingReason.Escalated;
@@ -36,6 +44,8 @@ export class ConversationExitService {
           versionId: run.versionId,
           nodeId,
           mode: run.mode,
+          reminderAfterMinutes,
+          fallbackAfterMinutes,
         },
         RUN_EVENT_EMIT_OPTIONS[RunEventName.Escalated],
       );

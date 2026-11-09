@@ -5,7 +5,11 @@ import {
   OUTBOX_SWEEP_BATCH_SIZE,
   OutboxLogMessage,
 } from '@/platform/queues/constants/outbox.constants';
-import { outboxJobOptions, outboxSweepCutoff } from '@/platform/queues/helpers/outbox.helpers';
+import {
+  outboxJobOptions,
+  outboxSweepCutoff,
+  remainingDelayMs,
+} from '@/platform/queues/helpers/outbox.helpers';
 import { traceContextOf } from '@/platform/queues/helpers/queue-telemetry.helpers';
 import { OutboxRepository } from '@/platform/queues/repositories/outbox.repository';
 import { jobTraceContextSchema } from '@/platform/queues/schemas/job-envelope.schema';
@@ -39,10 +43,20 @@ export class OutboxSweeperService {
 
   private async send(message: OutboxMessage): Promise<void> {
     const parent = traceContextOf(jobTraceContextSchema.parse(message.envelope.traceContext));
+    const delayMs = message.envelope.delayMs;
     await context.with(parent, () =>
       this.queues
         .get(message.queue)
-        .add(message.name, message.envelope, outboxJobOptions(message.id)),
+        .add(
+          message.name,
+          message.envelope,
+          outboxJobOptions(
+            message.id,
+            delayMs === undefined
+              ? undefined
+              : remainingDelayMs(message.createdAt, delayMs, this.clock.now()),
+          ),
+        ),
     );
   }
 }

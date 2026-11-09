@@ -40,6 +40,7 @@ export interface JobEnvelope {
   readonly traceId: string;
   readonly traceContext: JobTraceContext;
   readonly initiatedBy: Actor;
+  readonly delayMs?: number;
 }
 
 export interface JobAttempt {
@@ -62,6 +63,7 @@ export interface EnqueueOptions {
 export interface JobEnqueueOptions extends Partial<EnqueueOptions> {
   readonly jobId?: string;
   readonly detachedTrace?: boolean;
+  readonly delayMs?: number;
 }
 
 export type TrackedJob = Pick<Job, 'name' | 'timestamp' | 'attemptsMade' | 'opts'>;

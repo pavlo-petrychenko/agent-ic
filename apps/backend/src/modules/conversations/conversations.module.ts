@@ -98,6 +98,7 @@ export class ConversationsModule extends defineModule({
     ConversationActivityService,
     ConversationHistoryService,
     ConversationRunsService,
+    InboxActivityService,
     IncomingMessagesService,
     ScheduleAudienceService,
     ConversationsRepository,

@@ -1,36 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConversationMode } from '@/modules/conversations';
-import type { Message, MessagesRepository } from '@/modules/conversations';
+import type { InboxActivityService } from '@/modules/conversations';
+import { NotificationChannel, NotificationKind } from '@/modules/notifications';
+import { EscalationTimerKind } from '@/modules/runs/constants/escalation-reminder.constants';
 import {
-  NotificationChannel,
-  NotificationDeliveryStatus,
-  NotificationKind,
-} from '@/modules/notifications';
-import type {
-  NotificationsRepository,
-  NotificationRecipientsService,
-} from '@/modules/notifications';
+  escalationFallbackJobId,
+  escalationReminderJobId,
+} from '@/modules/runs/helpers/escalation-reminder.helpers';
 import { deliverNotificationJob } from '@/modules/runs/jobs/deliver-notification.job';
+import { fireEscalationTimerJob } from '@/modules/runs/jobs/fire-escalation-timer.job';
+import { EscalationNotificationService } from '@/modules/runs/services/escalation-notification.service';
 import type { RunEscalatedPayload } from '@/modules/runs/typedefs/run-event.typedefs';
 import { CreateEscalationNotificationsUseCase } from '@/modules/runs/use-cases/create-escalation-notifications.use-case';
-import type { ClockService } from '@/platform/clock/services/clock.service';
 import { WorkspaceAccessDeniedError } from '@/platform/context/errors/workspace-access-denied.error';
 import type { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
-import type { IdService } from '@/platform/ids/services/id.service';
 import type { JobsService } from '@/platform/queues/services/jobs.service';
 import { workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 import { systemCtx } from '@test/support/fixtures/identity.fixture';
 
-const NOW = new Date('2026-11-06T12:00:00.000Z');
+const MINUTE_MS = 60_000;
 
 describe('CreateEscalationNotificationsUseCase', () => {
-  const run = vi.fn<(workspaceId: string, work: () => Promise<void>) => Promise<void>>();
-  const recipientsFor = vi.fn<NotificationRecipientsService['recipientsFor']>();
-  const insertIfAbsent = vi.fn<NotificationsRepository['insertIfAbsent']>();
-  const insertDeliveryIfAbsent = vi.fn<NotificationsRepository['insertDeliveryIfAbsent']>();
-  const findLatestCustomerMessage = vi.fn<MessagesRepository['findLatestCustomerMessage']>();
-  const now = vi.fn<ClockService['now']>();
-  const generate = vi.fn<IdService['generate']>();
+  const run = vi.fn<(workspaceId: string, work: () => Promise<unknown>) => Promise<unknown>>();
+  const create = vi.fn<EscalationNotificationService['create']>();
+  const conversationChanged = vi.fn<InboxActivityService['conversationChanged']>();
   const enqueue = vi.fn<JobsService['enqueue']>();
   let service: CreateEscalationNotificationsUseCase;
 
@@ -42,160 +35,85 @@ describe('CreateEscalationNotificationsUseCase', () => {
     versionId: 'version-1',
     nodeId: 'node-1',
     mode,
+    reminderAfterMinutes: 5,
+    fallbackAfterMinutes: 30,
   });
 
   beforeEach(() => {
     run.mockReset();
-    recipientsFor.mockReset();
-    insertIfAbsent.mockReset();
-    insertDeliveryIfAbsent.mockReset();
-    findLatestCustomerMessage.mockReset();
-    now.mockReset();
-    generate.mockReset();
+    create.mockReset();
+    conversationChanged.mockReset();
     enqueue.mockReset();
     run.mockImplementation((_workspaceId, work) => work());
-    now.mockReturnValue(NOW);
+    create.mockResolvedValue([
+      { notificationId: 'notification-1', channel: NotificationChannel.Email },
+    ]);
+    conversationChanged.mockResolvedValue(undefined);
     enqueue.mockResolvedValue(undefined);
-    let sequence = 0;
-    generate.mockImplementation(() => {
-      sequence += 1;
-      return `generated-${sequence}`;
-    });
     service = new CreateEscalationNotificationsUseCase(
       { run } as unknown as TenantTransactionService,
-      { recipientsFor } as unknown as NotificationRecipientsService,
-      { insertIfAbsent, insertDeliveryIfAbsent } as unknown as NotificationsRepository,
-      { findLatestCustomerMessage } as unknown as MessagesRepository,
-      { now } as unknown as ClockService,
-      { generate } as unknown as IdService,
+      { create } as unknown as EscalationNotificationService,
+      { conversationChanged } as unknown as InboxActivityService,
       { enqueue } as unknown as JobsService,
     );
   });
 
-  it('creates one notification per recipient and one delivery per channel', async () => {
-    recipientsFor.mockResolvedValue([
-      {
-        userId: 'user-1',
-        channels: [
-          NotificationChannel.Platform,
-          NotificationChannel.Email,
-          NotificationChannel.Telegram,
-        ],
-      },
-      { userId: 'user-2', channels: [NotificationChannel.Email] },
-    ]);
-    findLatestCustomerMessage.mockResolvedValue({ id: 'message-1' } as unknown as Message);
-    insertIfAbsent.mockImplementation(
-      async (notification) => `notification-${notification.userId}`,
-    );
-
+  it('creates the alerts and schedules the reminder and fallback jobs', async () => {
     await service.execute(workspaceSystemCtx('workspace-1'), payload());
 
     expect(run).toHaveBeenCalledWith('workspace-1', expect.any(Function));
-    expect(recipientsFor).toHaveBeenCalledWith('workspace-1', 'version-1', 'node-1');
-    expect(findLatestCustomerMessage).toHaveBeenCalledWith('workspace-1', 'conversation-1');
-    expect(insertIfAbsent).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        userId: 'user-1',
-        runStepId: 'step-1',
-        kind: NotificationKind.Escalation,
-        lastCustomerMessageId: 'message-1',
-      }),
+    expect(create).toHaveBeenCalledWith('workspace-1', {
+      runStepId: 'step-1',
+      conversationId: 'conversation-1',
+      versionId: 'version-1',
+      nodeId: 'node-1',
+      kind: NotificationKind.Escalation,
+    });
+    expect(conversationChanged).toHaveBeenCalledWith('workspace-1', 'conversation-1');
+    expect(enqueue).toHaveBeenCalledWith(
+      expect.anything(),
+      fireEscalationTimerJob,
+      { runStepId: 'step-1', kind: EscalationTimerKind.Reminder },
+      { jobId: escalationReminderJobId('step-1'), delayMs: 5 * MINUTE_MS },
     );
-    expect(insertIfAbsent).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        userId: 'user-2',
-        runStepId: 'step-1',
-        kind: NotificationKind.Escalation,
-        lastCustomerMessageId: 'message-1',
-      }),
+    expect(enqueue).toHaveBeenCalledWith(
+      expect.anything(),
+      fireEscalationTimerJob,
+      { runStepId: 'step-1', kind: EscalationTimerKind.Fallback },
+      { jobId: escalationFallbackJobId('step-1'), delayMs: 30 * MINUTE_MS },
     );
-    expect(insertDeliveryIfAbsent).toHaveBeenCalledTimes(4);
-    expect(insertDeliveryIfAbsent).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        notificationId: 'notification-user-1',
-        channel: NotificationChannel.Platform,
-        status: NotificationDeliveryStatus.Delivered,
-        sentAt: NOW,
-        attempts: 0,
-        nextAttemptAt: null,
-        lockedUntil: null,
-        lastError: null,
-      }),
-    );
-    expect(insertDeliveryIfAbsent).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        notificationId: 'notification-user-1',
-        channel: NotificationChannel.Email,
-        status: NotificationDeliveryStatus.Pending,
-        sentAt: null,
-        attempts: 0,
-        nextAttemptAt: NOW,
-        lockedUntil: null,
-        lastError: null,
-      }),
-    );
-    expect(insertDeliveryIfAbsent).toHaveBeenNthCalledWith(
-      3,
-      expect.objectContaining({
-        notificationId: 'notification-user-1',
-        channel: NotificationChannel.Telegram,
-        status: NotificationDeliveryStatus.Pending,
-        sentAt: null,
-        attempts: 0,
-        nextAttemptAt: NOW,
-        lockedUntil: null,
-        lastError: null,
-      }),
-    );
-    expect(insertDeliveryIfAbsent).toHaveBeenNthCalledWith(
-      4,
-      expect.objectContaining({
-        notificationId: 'notification-user-2',
-        channel: NotificationChannel.Email,
-        status: NotificationDeliveryStatus.Pending,
-        sentAt: null,
-        attempts: 0,
-        nextAttemptAt: NOW,
-        lockedUntil: null,
-        lastError: null,
-      }),
-    );
-    expect(enqueue).toHaveBeenCalledTimes(3);
     expect(enqueue).toHaveBeenCalledWith(expect.anything(), deliverNotificationJob, {
-      notificationId: 'notification-user-1',
+      notificationId: 'notification-1',
       channel: NotificationChannel.Email,
     });
-    expect(enqueue).toHaveBeenCalledWith(expect.anything(), deliverNotificationJob, {
-      notificationId: 'notification-user-1',
-      channel: NotificationChannel.Telegram,
+  });
+
+  it('schedules only the configured timer', async () => {
+    await service.execute(workspaceSystemCtx('workspace-1'), {
+      ...payload(),
+      reminderAfterMinutes: null,
     });
-    expect(enqueue).toHaveBeenCalledWith(expect.anything(), deliverNotificationJob, {
-      notificationId: 'notification-user-2',
-      channel: NotificationChannel.Email,
-    });
+
+    expect(enqueue).not.toHaveBeenCalledWith(
+      expect.anything(),
+      fireEscalationTimerJob,
+      { runStepId: 'step-1', kind: EscalationTimerKind.Reminder },
+      expect.anything(),
+    );
+    expect(enqueue).toHaveBeenCalledWith(
+      expect.anything(),
+      fireEscalationTimerJob,
+      { runStepId: 'step-1', kind: EscalationTimerKind.Fallback },
+      expect.anything(),
+    );
   });
 
   it('does nothing for a simulation handoff', async () => {
     await service.execute(workspaceSystemCtx('workspace-1'), payload(ConversationMode.Simulation));
 
     expect(run).not.toHaveBeenCalled();
-    expect(recipientsFor).not.toHaveBeenCalled();
-    expect(insertIfAbsent).not.toHaveBeenCalled();
-    expect(enqueue).not.toHaveBeenCalled();
-  });
-
-  it('does not read the last message when nobody should be notified', async () => {
-    recipientsFor.mockResolvedValue([]);
-
-    await service.execute(workspaceSystemCtx('workspace-1'), payload());
-
-    expect(findLatestCustomerMessage).not.toHaveBeenCalled();
-    expect(insertIfAbsent).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+    expect(conversationChanged).not.toHaveBeenCalled();
     expect(enqueue).not.toHaveBeenCalled();
   });
 

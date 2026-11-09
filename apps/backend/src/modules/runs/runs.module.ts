@@ -10,6 +10,7 @@ import { StartRunOnMessageListener } from '@/modules/runs/listeners/start-run-on
 import { DeliverNotificationProcessor } from '@/modules/runs/processors/deliver-notification.processor';
 import { ExecuteProactiveRunProcessor } from '@/modules/runs/processors/execute-proactive-run.processor';
 import { ExecuteRunProcessor } from '@/modules/runs/processors/execute-run.processor';
+import { FireEscalationTimerProcessor } from '@/modules/runs/processors/fire-escalation-timer.processor';
 import { FireInactivityTimerProcessor } from '@/modules/runs/processors/fire-inactivity-timer.processor';
 import { FireScheduleTickProcessor } from '@/modules/runs/processors/fire-schedule-tick.processor';
 import { SweepInactivityTimersProcessor } from '@/modules/runs/processors/sweep-inactivity-timers.processor';
@@ -32,6 +33,7 @@ import { ApiRequestExecutor } from '@/modules/runs/services/api-request-executor
 import { CompletionExecutor } from '@/modules/runs/services/completion-executor.service';
 import { ConversationExitService } from '@/modules/runs/services/conversation-exit.service';
 import { EscalationExecutor } from '@/modules/runs/services/escalation-executor.service';
+import { EscalationNotificationService } from '@/modules/runs/services/escalation-notification.service';
 import { InactivityFiringService } from '@/modules/runs/services/inactivity-firing.service';
 import { InactivityTimersService } from '@/modules/runs/services/inactivity-timers.service';
 import { InactivityTriggerExecutor } from '@/modules/runs/services/inactivity-trigger-executor.service';
@@ -56,6 +58,7 @@ import { ArmInactivityOnHandBackUseCase } from '@/modules/runs/use-cases/arm-ina
 import { CreateEscalationNotificationsUseCase } from '@/modules/runs/use-cases/create-escalation-notifications.use-case';
 import { DeliverNotificationUseCase } from '@/modules/runs/use-cases/deliver-notification.use-case';
 import { ExecuteRunUseCase } from '@/modules/runs/use-cases/execute-run.use-case';
+import { FireEscalationTimerUseCase } from '@/modules/runs/use-cases/fire-escalation-timer.use-case';
 import { FireInactivityTimerUseCase } from '@/modules/runs/use-cases/fire-inactivity-timer.use-case';
 import { FireScheduleTickUseCase } from '@/modules/runs/use-cases/fire-schedule-tick.use-case';
 import { GetRunTotalsUseCase } from '@/modules/runs/use-cases/get-run-totals.use-case';
@@ -99,6 +102,7 @@ export class RunsModule extends defineModule({
     RunCompletionService,
     MessageRunService,
     ConversationExitService,
+    EscalationNotificationService,
     SendMessageExecutor,
     EscalationExecutor,
     CompletionExecutor,
@@ -134,6 +138,7 @@ export class RunsModule extends defineModule({
     ArmInactivityOnHandBackUseCase,
     SweepInactivityTimersUseCase,
     SweepNotificationDeliveriesUseCase,
+    FireEscalationTimerUseCase,
     FireInactivityTimerUseCase,
     SimulateSilenceUseCase,
     ExecuteRunUseCase,
@@ -161,6 +166,7 @@ export class RunsModule extends defineModule({
     ExecuteProactiveRunProcessor,
     SweepInactivityTimersProcessor,
     FireInactivityTimerProcessor,
+    FireEscalationTimerProcessor,
     SweepScheduleTriggersProcessor,
     SweepNotificationDeliveriesProcessor,
     FireScheduleTickProcessor,

@@ -46,16 +46,20 @@ export class JobsService {
       traceId: ctx.traceId,
       traceContext: detached ? DETACHED_TRACE_CONTEXT : currentTraceContext(),
       initiatedBy: getOriginator(ctx),
+      ...(options?.delayMs === undefined ? {} : { delayMs: options.delayMs }),
     };
     const jobId = options?.jobId;
     if (options?.durable === true) {
       const id = jobId === undefined ? this.ids.generate() : z.uuid().parse(jobId);
-      await this.enqueueDurable(definition, envelope, id, detached);
+      await this.enqueueDurable(definition, envelope, id, detached, options.delayMs);
       return;
     }
     await this.afterCommit.schedule(() =>
       this.inTrace(detached, async () => {
-        await this.queues.get(definition.queue).add(definition.name, envelope, { jobId });
+        await this.queues.get(definition.queue).add(definition.name, envelope, {
+          jobId,
+          ...(options?.delayMs === undefined ? {} : { delay: options.delayMs }),
+        });
       }),
     );
   }
@@ -86,6 +90,7 @@ export class JobsService {
     envelope: JobEnvelope,
     id: string,
     detached: boolean,
+    delayMs?: number,
   ): Promise<void> {
     await this.outbox.insert({
       id,
@@ -96,7 +101,9 @@ export class JobsService {
     });
     await this.afterCommit.schedule(async () => {
       await this.inTrace(detached, () =>
-        this.queues.get(definition.queue).add(definition.name, envelope, outboxJobOptions(id)),
+        this.queues
+          .get(definition.queue)
+          .add(definition.name, envelope, outboxJobOptions(id, delayMs)),
       );
       await this.outbox.delete(id);
     });
