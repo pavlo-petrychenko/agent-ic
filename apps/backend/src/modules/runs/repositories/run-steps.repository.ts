@@ -49,6 +49,14 @@ export class RunStepsRepository {
     return finished.length > 0;
   }
 
+  async findById(workspaceId: string, id: string): Promise<RunStep | null> {
+    const [step] = await this.txHost.tx
+      .select()
+      .from(runSteps)
+      .where(and(eq(runSteps.workspaceId, workspaceId), eq(runSteps.id, id)));
+    return step ?? null;
+  }
+
   listByRun(workspaceId: string, runId: string): Promise<RunStep[]> {
     return this.txHost.tx
       .select()
