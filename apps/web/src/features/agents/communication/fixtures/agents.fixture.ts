@@ -2,6 +2,7 @@ import { ErrorCode, type ErrorReason } from '@agent-ic/contracts';
 import type { MockLink } from '@apollo/client/testing';
 import { GraphQLError } from 'graphql';
 import { CreateAgentDocument } from '@/features/agents/communication/gql/mutation/createAgent.generated';
+import { CreateAgentFromTemplateDocument } from '@/features/agents/communication/gql/mutation/createAgentFromTemplate.generated';
 import { DeleteAgentDocument } from '@/features/agents/communication/gql/mutation/deleteAgent.generated';
 import { DuplicateAgentDocument } from '@/features/agents/communication/gql/mutation/duplicateAgent.generated';
 import { PauseAgentDocument } from '@/features/agents/communication/gql/mutation/pauseAgent.generated';
@@ -10,8 +11,16 @@ import {
   AgentsDocument,
   type AgentsQuery,
 } from '@/features/agents/communication/gql/query/agents.generated';
+import {
+  TemplateKnowledgeBasesDocument,
+  type TemplateKnowledgeBasesQuery,
+} from '@/features/agents/communication/gql/query/templateKnowledgeBases.generated';
 import { AGENTS_PAGE_SIZE } from '@/features/agents/constants/agentList.constants';
-import { AgentStatus, type PauseMode } from '@/shared/api/generated/schema.generated';
+import {
+  AgentStatus,
+  type AgentTemplateKey,
+  type PauseMode,
+} from '@/shared/api/generated/schema.generated';
 
 type AgentFixture = AgentsQuery['agents']['edges'][number]['node'];
 
@@ -185,4 +194,69 @@ export const buildDuplicateAgentFailureMock = (
 ): MockLink.MockedResponse => ({
   request: { query: DuplicateAgentDocument, variables: { input: { id } } },
   error,
+});
+
+type TemplateKnowledgeBaseFixture = TemplateKnowledgeBasesQuery['knowledgeBases'][number];
+
+export const NEW_TEMPLATE_AGENT_ID = 'agt_from_template';
+
+export const CAFE_FAQ_KB: TemplateKnowledgeBaseFixture = {
+  id: 'kbs_cafe',
+  name: 'Café FAQ',
+  documentCount: 3,
+};
+
+export const PRICE_LIST_KB: TemplateKnowledgeBaseFixture = {
+  id: 'kbs_prices',
+  name: 'Price list',
+  documentCount: 0,
+};
+
+export const buildTemplateKnowledgeBasesMock = (
+  knowledgeBases: readonly TemplateKnowledgeBaseFixture[],
+): MockLink.MockedResponse => ({
+  request: { query: TemplateKnowledgeBasesDocument },
+  result: {
+    data: {
+      knowledgeBases: knowledgeBases.map((knowledgeBase) => ({
+        __typename: 'KnowledgeBase',
+        ...knowledgeBase,
+      })),
+    },
+  },
+});
+
+export const buildTemplateKnowledgeBasesFailureMock = (error: Error): MockLink.MockedResponse => ({
+  request: { query: TemplateKnowledgeBasesDocument },
+  error,
+});
+
+export const buildCreateAgentFromTemplateMock = (
+  templateKey: AgentTemplateKey,
+  name: string,
+  knowledgeBaseIds: readonly string[] = [],
+): MockLink.MockedResponse => ({
+  request: {
+    query: CreateAgentFromTemplateDocument,
+    variables: { input: { templateKey, name, knowledgeBaseIds } },
+  },
+  result: {
+    data: { createAgentFromTemplate: { __typename: 'Agent', id: NEW_TEMPLATE_AGENT_ID } },
+  },
+});
+
+export const buildCreateAgentFromTemplateReasonFailureMock = (
+  templateKey: AgentTemplateKey,
+  name: string,
+  reason: ErrorReason,
+): MockLink.MockedResponse => ({
+  request: {
+    query: CreateAgentFromTemplateDocument,
+    variables: { input: { templateKey, name, knowledgeBaseIds: [] } },
+  },
+  result: {
+    errors: [
+      new GraphQLError('rejected', { extensions: { code: ErrorCode.BadUserInput, reason } }),
+    ],
+  },
 });

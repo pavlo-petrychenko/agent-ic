@@ -5,14 +5,18 @@
   },
   "actions": {
     "newAgent": "New agent",
-    "blankFlow": "Blank flow"
+    "blankFlow": "Blank flow",
+    "startFromTemplate": "Start from a template"
   },
   "create": {
     "defaultName": "New agent"
   },
   "empty": {
     "title": "No assistants yet",
-    "description": "Build your first assistant as a flow: add steps, test it in the simulator and publish."
+    "description": "Pick a ready-made agent and make it yours, or build your own flow from scratch: add steps, test it in the simulator and publish.",
+    "templatesKicker": "Or start from a complete agent",
+    "templatesLabel": "Ready-made agents",
+    "useTemplate": "Use template"
   },
   "filters": {
     "label": "Filter agents",
@@ -124,6 +128,66 @@
       "title": "Usage limit",
       "meta": "100% of this month's limit · resets {{date}}",
       "action": "See usage"
+    }
+  },
+  "gallery": {
+    "title": "Start a new agent",
+    "description": "Pick a ready-made agent or a small example, or begin with an empty flow.",
+    "blank": {
+      "title": "Blank flow",
+      "description": "Start from an empty canvas and add the steps yourself."
+    },
+    "tabs": {
+      "label": "Gallery sections",
+      "templates": "Templates",
+      "snippets": "Small examples"
+    },
+    "intro": {
+      "templates": "Complete agents you can run as they are. Add your knowledge and channels, then publish.",
+      "snippets": "Small flows that each show one idea. Start from one, or learn the pattern and reuse it."
+    },
+    "categories": {
+      "label": "Category",
+      "all": "All",
+      "support": "Support",
+      "sales": "Sales",
+      "quality": "Quality",
+      "follow_up": "Follow-up"
+    },
+    "level": {
+      "starter": "Starter",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "usesKnowledge": "Uses knowledge",
+    "card": {
+      "preview": "Flow preview of {{name}}"
+    },
+    "detail": {
+      "description": "See what you get, name your agent and create it.",
+      "back": "Back",
+      "create": "Create agent",
+      "highlights": "What you get",
+      "steps": "Steps it uses",
+      "setup": "Set up your agent",
+      "nameLabel": "Agent name",
+      "nameHint": "You can rename it any time.",
+      "nameRequired": "Give the agent a name.",
+      "required": "(required)",
+      "draftNote": "The agent is created as a draft. Nothing goes live until you publish it."
+    },
+    "knowledge": {
+      "label": "Knowledge bases",
+      "optional": "optional",
+      "hint": "Choose what this agent answers from. You can also attach one later in the Agent step.",
+      "loading": "Loading knowledge bases…",
+      "loadError": "Could not load knowledge bases.",
+      "retry": "Try again",
+      "none": "You have no knowledge bases yet. You can attach one later in the Agent step.",
+      "open": "Open Knowledge",
+      "noSources": "No sources yet",
+      "sources_one": "{{count}} source",
+      "sources_other": "{{count}} sources"
     }
   }
 }

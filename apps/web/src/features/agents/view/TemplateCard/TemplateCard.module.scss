@@ -1,0 +1,122 @@
+$description-lines-featured: 3;
+$description-lines-compact: 2;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  box-sizing: border-box;
+  height: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-12);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: var(--type-body);
+  text-align: left;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.featured {
+  gap: var(--space-14);
+  padding: var(--space-14);
+}
+
+.pick {
+  appearance: none;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--color-edge);
+    box-shadow: var(--shadow-node);
+  }
+
+  &:active {
+    background: var(--color-bg);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: var(--space-10);
+  border-radius: var(--radius-8);
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.name {
+  min-width: 0;
+  color: var(--color-ink);
+  font: var(--type-title);
+}
+
+.featured .name {
+  font: var(--type-h3);
+}
+
+.description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  color: var(--color-mute);
+  font: var(--type-caption);
+  line-height: var(--leading-relaxed);
+}
+
+.compact .description {
+  -webkit-line-clamp: $description-lines-compact;
+}
+
+.featured .description {
+  -webkit-line-clamp: $description-lines-featured;
+  font: var(--type-body-small);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+  margin-top: auto;
+}
+
+.steps {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.more {
+  color: var(--color-mute);
+  font: var(--type-hint);
+}
+
+.action {
+  align-self: flex-start;
+}

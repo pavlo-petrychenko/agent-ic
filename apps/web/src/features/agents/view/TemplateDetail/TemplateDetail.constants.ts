@@ -1,0 +1,3 @@
+export const TEMPLATE_DETAIL_THUMBNAIL_HEIGHT = 280;
+export const TEMPLATE_DETAIL_HIGHLIGHTS_SUFFIX = '-highlights';
+export const TEMPLATE_DETAIL_STEPS_SUFFIX = '-steps';

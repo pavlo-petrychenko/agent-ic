@@ -9,5 +9,12 @@ export const Route = createFileRoute('/w/$workspaceId/agents/')({
 
 function AgentsIndexRoute() {
   const { workspaceId } = Route.useParams();
-  return <AgentsPage workspaceId={workspaceId} />;
+  const { templates, template } = Route.useSearch();
+  return (
+    <AgentsPage
+      workspaceId={workspaceId}
+      templatesOpen={templates !== null}
+      templateKey={template}
+    />
+  );
 }

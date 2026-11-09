@@ -1,23 +1,30 @@
 import { can, PermissionAction, PermissionResource } from '@agent-ic/contracts';
+import type { AgentTemplateKey } from '@agent-ic/flow';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAgents } from '@/features/agents/communication/hooks/useAgents';
 import { useCreateAgent } from '@/features/agents/communication/hooks/useCreateAgent';
 import {
+  AGENTS_PATH,
   BUILDER_PATH,
   SETTINGS_TEAM_PATH,
   SETTINGS_USAGE_PATH,
 } from '@/features/agents/constants/agentList.constants';
 import { AGENTS_NAMESPACE } from '@/features/agents/constants/agentsI18n.constants';
+import { TEMPLATES_SEARCH_OPEN } from '@/features/agents/constants/agentsSearch.constants';
 import type { AgentStatus } from '@/features/agents/constants/agentStatus.constants';
+import { GalleryTab } from '@/features/agents/constants/agentTemplate.constants';
 import type { AgentsPageProps } from '@/features/agents/containers/AgentsPage/AgentsPage.typedefs';
 import { useAgentRowMenu } from '@/features/agents/containers/AgentsPage/useAgentRowMenu';
 import { DeleteAgentDialog } from '@/features/agents/containers/DeleteAgentDialog';
 import { PauseAgentDialog } from '@/features/agents/containers/PauseAgentDialog';
+import { TemplateGalleryDialog } from '@/features/agents/containers/TemplateGalleryDialog';
 import { filterAgents, toStatuses } from '@/features/agents/logic/helpers/agentFilter.helpers';
 import { toTableStatus } from '@/features/agents/logic/helpers/agentList.helpers';
 import { agentStatusNote } from '@/features/agents/logic/helpers/agentStatus.helpers';
+import { cardsOfTab } from '@/features/agents/logic/helpers/agentTemplate.helpers';
+import { useAgentTemplates } from '@/features/agents/logic/hooks/useAgentTemplates';
 import type { AgentListItem, AgentRow } from '@/features/agents/typedefs/agent.typedefs';
 import { AgentsEmpty } from '@/features/agents/view/AgentsEmpty';
 import { AgentsTable } from '@/features/agents/view/AgentsTable';
@@ -35,7 +42,7 @@ import { SearchInput } from '@/shared/ui/inputs/SearchInput';
 import { PageHeader } from '@/shared/ui/layout/PageHeader';
 import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
-export function AgentsPage({ workspaceId }: AgentsPageProps) {
+export function AgentsPage({ workspaceId, templatesOpen, templateKey }: AgentsPageProps) {
   const { t } = useTranslation(AGENTS_NAMESPACE);
   const navigate = useNavigate();
   const router = useRouter();
@@ -58,12 +65,36 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
     }
   };
 
-  const onCreate = () =>
-    runGuarded(async () => {
-      const agentId = await createAgent(t('create.defaultName'));
-      if (agentId !== null) {
-        await navigate({ to: BUILDER_PATH, params: { workspaceId, agentId } });
-      }
+  const createBlankAgent = async () => {
+    const agentId = await createAgent(t('create.defaultName'));
+    if (agentId !== null) {
+      await navigate({ to: BUILDER_PATH, params: { workspaceId, agentId } });
+    }
+  };
+
+  const onCreate = () => runGuarded(createBlankAgent);
+
+  const canCreate =
+    active !== null &&
+    can(active.role, PermissionResource.Agents, PermissionAction.Edit) &&
+    can(active.role, PermissionResource.Prompts, PermissionAction.Edit);
+  const templates = useAgentTemplates(active?.timeZone ?? null);
+  const galleryOpen = canCreate && (templatesOpen || templateKey !== null);
+
+  const showGallery = (key: AgentTemplateKey | null) =>
+    navigate({
+      to: AGENTS_PATH,
+      params: { workspaceId },
+      search: { templates: TEMPLATES_SEARCH_OPEN, template: key },
+      replace: true,
+    });
+
+  const closeGallery = () =>
+    navigate({
+      to: AGENTS_PATH,
+      params: { workspaceId },
+      search: { templates: null, template: null },
+      replace: true,
     });
 
   const onClearFilters = () => {
@@ -130,9 +161,11 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
                   onClear={() => setQuery('')}
                 />
               </div>
-              <Button icon={IconName.Plus} loading={creating} onClick={() => void onCreate()}>
-                {t('actions.newAgent')}
-              </Button>
+              {canCreate && (
+                <Button icon={IconName.Plus} onClick={() => void showGallery(null)}>
+                  {t('actions.newAgent')}
+                </Button>
+              )}
             </>
           )
         }
@@ -140,11 +173,18 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
       <div className="flex flex-col gap-4 px-7">
         {isEmpty ? (
           <div className="grid grid-cols-1 items-start gap-5 default:grid-cols-[minmax(0,1fr)_var(--size-agents-setup-width)]">
-            <AgentsEmpty creating={creating} onCreate={() => void onCreate()} />
-            <SetupChecklist
+            <AgentsEmpty
               creating={creating}
+              canCreate={canCreate}
+              templates={cardsOfTab(templates, GalleryTab.Templates)}
+              onBrowseTemplates={() => void showGallery(null)}
+              onCreateBlank={() => void onCreate()}
+              onUseTemplate={(key) => void showGallery(key)}
+            />
+            <SetupChecklist
+              canStart={canCreate}
               invite={invite}
-              onStart={() => void onCreate()}
+              onStart={() => void showGallery(null)}
               onCopyInvite={onCopyInvite}
               onOpenTeam={() => void navigate(teamLocation)}
             />
@@ -197,6 +237,17 @@ export function AgentsPage({ workspaceId }: AgentsPageProps) {
           </div>
         )}
       </div>
+      {galleryOpen && (
+        <TemplateGalleryDialog
+          workspaceId={workspaceId}
+          templates={templates}
+          selectedKey={templateKey}
+          blankCreating={creating}
+          onSelect={(key) => void showGallery(key)}
+          onClose={() => void closeGallery()}
+          onCreateBlank={createBlankAgent}
+        />
+      )}
       {rowMenu.pauseRow !== null && (
         <PauseAgentDialog
           key={rowMenu.pauseRow.id}

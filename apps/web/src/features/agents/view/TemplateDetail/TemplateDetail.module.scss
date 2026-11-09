@@ -1,0 +1,119 @@
+$column-min-width: 280px;
+$knowledge-list-max-height: 220px;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-18);
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: var(--space-16);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, #{$column-min-width}), 1fr));
+  gap: var(--space-24);
+  align-items: start;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  min-width: 0;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.description {
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font: var(--type-lead);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--color-mute);
+  font: var(--type-overline);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+}
+
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-14);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.knowledge {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: var(--space-4);
+  color: var(--color-ink);
+  font: var(--type-body-small-strong);
+}
+
+.optional {
+  margin-left: var(--space-6);
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.knowledgeList {
+  max-height: $knowledge-list-max-height;
+  margin: 0;
+  padding: 0;
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-10);
+  background: var(--color-card);
+  list-style: none;
+  overflow-y: auto;
+}
+
+.knowledgeRow {
+  padding: var(--space-8) var(--space-12);
+  border-bottom: var(--border-width) solid var(--color-line-row);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}

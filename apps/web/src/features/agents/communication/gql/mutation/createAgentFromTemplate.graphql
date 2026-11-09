@@ -1,0 +1,5 @@
+mutation CreateAgentFromTemplate($input: CreateAgentFromTemplateInput!) {
+  createAgentFromTemplate(input: $input) {
+    id
+  }
+}
