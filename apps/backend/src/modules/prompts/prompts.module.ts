@@ -22,7 +22,6 @@ import { PromptImportService } from '@/modules/prompts/services/prompt-import.se
 import { PromptTemplateWriter } from '@/modules/prompts/services/prompt-template-writer.service';
 import { PromptUsageService } from '@/modules/prompts/services/prompt-usage.service';
 import { PromptViewsService } from '@/modules/prompts/services/prompt-views.service';
-import { SamplePromptService } from '@/modules/prompts/services/sample-prompt.service';
 import { CreatePromptFolderUseCase } from '@/modules/prompts/use-cases/create-prompt-folder.use-case';
 import { CreatePromptUseCase } from '@/modules/prompts/use-cases/create-prompt.use-case';
 import { DeletePromptFolderUseCase } from '@/modules/prompts/use-cases/delete-prompt-folder.use-case';
@@ -63,7 +62,6 @@ export class PromptsModule extends defineModule({
     PromptImportService,
     PromptUsageService,
     PromptViewsService,
-    SamplePromptService,
     CreatePromptFolderUseCase,
     CreatePromptUseCase,
     DeletePromptFolderUseCase,
@@ -97,5 +95,5 @@ export class PromptsModule extends defineModule({
     SavePromptVersionResolver,
     TestPromptResolver,
   ],
-  exports: [PromptFlowReader, SamplePromptService],
+  exports: [PromptFlowReader],
 }) {}
