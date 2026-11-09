@@ -235,7 +235,7 @@ shared/
 | `actions` | buttons, links, chips that act |
 | `inputs` | fields and form controls |
 | `navigation` | sidebar, rail, tabs, breadcrumbs, steppers |
-| `overlays` | dialog, drawer, menu, popover, toast, tooltip |
+| `overlays` | coachmark, dialog, drawer, menu, popover, toast, tooltip |
 | `display` | read-only content: cards, badges, callouts, skeletons |
 | `data` | tables, lists, filters, pagination |
 | `charts` | charts and their parts |
