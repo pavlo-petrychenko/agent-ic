@@ -56,10 +56,12 @@ import {
   TEST_RESPONSE_BODY,
   testApiRequestMock,
 } from '@/features/flow-builder/communication/fixtures/testApiRequest.fixture';
+import { ComponentGuideId } from '@/features/flow-builder/constants/guide.constants';
 import { NODE_TEMPLATES } from '@/features/flow-builder/constants/nodeTemplate.constants';
 import { SaveState } from '@/features/flow-builder/constants/saveState.constants';
 import { InspectorPanel } from '@/features/flow-builder/containers/InspectorPanel/InspectorPanel';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
+import { useGuideStore } from '@/features/flow-builder/storage/hooks/useGuideStore';
 import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
 const ORIGIN = { x: 0, y: 0 };
@@ -185,6 +187,19 @@ describe('InspectorPanel', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(node('route')).toMatchObject({ label: 'Refund check', key: 'route' });
+  });
+
+  it('opens the guide of the selected step from the header', async () => {
+    const user = userEvent.setup();
+    useGuideStore.getState().close();
+    open('route');
+
+    await user.click(screen.getByRole('button', { name: 'How it works' }));
+
+    expect(useGuideStore.getState()).toMatchObject({
+      open: true,
+      guideId: ComponentGuideId.Router,
+    });
   });
 
   it('closes by clearing the selection', async () => {

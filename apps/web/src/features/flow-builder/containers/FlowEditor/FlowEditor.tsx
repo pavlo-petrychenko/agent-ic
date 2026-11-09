@@ -36,6 +36,7 @@ import { useFlowIssues } from '@/features/flow-builder/logic/hooks/useFlowIssues
 import { usePaletteAgentExits } from '@/features/flow-builder/logic/hooks/usePaletteAgentExits';
 import { useWorkspaceTimeZone } from '@/features/flow-builder/logic/hooks/useWorkspaceTimeZone';
 import { useFlowBuilderStore } from '@/features/flow-builder/storage/hooks/useFlowBuilderStore';
+import { useGuideStore } from '@/features/flow-builder/storage/hooks/useGuideStore';
 import type { StepPlacement } from '@/features/flow-builder/typedefs/palette.typedefs';
 import { BlankFlowHint } from '@/features/flow-builder/view/BlankFlowHint';
 import { CanvasToolbar } from '@/features/flow-builder/view/CanvasToolbar';
@@ -43,6 +44,8 @@ import { StepNode } from '@/features/flow-builder/view/StepNode';
 import { useKnowledgeBases } from '@/features/knowledge';
 import { FlowCanvas } from '@/shared/ui/flow/FlowCanvas';
 import type { FlowCanvasLabels, FlowCanvasNode, FlowCanvasPort } from '@/shared/ui/flow/FlowCanvas';
+import { Breakpoint } from '@/shared/viewport/constants/viewport.constants';
+import { useBreakpoint } from '@/shared/viewport/hooks/useBreakpoint';
 
 export function FlowEditor({ workspaceId }: FlowEditorProps) {
   const { t } = useTranslation(FLOW_BUILDER_NAMESPACE);
@@ -53,6 +56,8 @@ export function FlowEditor({ workspaceId }: FlowEditorProps) {
   const timeZone = useWorkspaceTimeZone(workspaceId);
   const { knowledgeBases } = useKnowledgeBases();
   const { select, setViewport, setDensity, settingsOpen, setSettingsOpen } = useFlowBuilderStore();
+  const openGuide = useGuideStore((state) => state.openGuide);
+  const breakpoint = useBreakpoint();
   const [reveal, setReveal] = useState<readonly string[] | null>(null);
 
   const { models } = useModelOptions(
@@ -240,6 +245,8 @@ export function FlowEditor({ workspaceId }: FlowEditorProps) {
         onDensityChange={setDensity}
         settingsOpen={settingsOpen}
         onSettingsOpen={() => setSettingsOpen(true)}
+        onGuides={() => openGuide(null)}
+        compact={breakpoint === Breakpoint.Compact || breakpoint === Breakpoint.Unsupported}
       />
     </div>
   );

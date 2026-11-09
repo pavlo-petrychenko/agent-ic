@@ -35,14 +35,24 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+export const WithInfo: Story = {
+  args: { onInfo: noop, infoLabel: 'How Send message works' },
+};
 export const Dragging: Story = { args: { dragging: true } };
 export const Disabled: Story = { args: { disabled: true } };
 export const NotDraggable: Story = { args: { dragData: null } };
 export const Palette: Story = {
   render: (args) => (
     <>
-      <PaletteItem {...args} label="Agent" kind={NodeKind.Agent} dragData="agent" />
-      <PaletteItem {...args} />
+      <PaletteItem
+        {...args}
+        label="Agent"
+        kind={NodeKind.Agent}
+        dragData="agent"
+        onInfo={noop}
+        infoLabel="How Agent works"
+      />
+      <PaletteItem {...args} onInfo={noop} infoLabel="How Send message works" />
       <PaletteItem {...args} label="API request" kind={NodeKind.Api} dragData="api_request" />
       <PaletteItem
         {...args}

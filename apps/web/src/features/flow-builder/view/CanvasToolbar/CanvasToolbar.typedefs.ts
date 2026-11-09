@@ -5,4 +5,6 @@ export interface CanvasToolbarProps {
   onDensityChange: (density: Density) => void;
   settingsOpen: boolean;
   onSettingsOpen: () => void;
+  onGuides: () => void;
+  compact: boolean;
 }

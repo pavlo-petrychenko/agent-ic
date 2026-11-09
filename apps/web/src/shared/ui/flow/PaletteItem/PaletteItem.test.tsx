@@ -98,4 +98,46 @@ describe('PaletteItem', () => {
 
     expect(screen.getAllByRole('button')).toHaveLength(1);
   });
+
+  it('has no info button unless it is given one', () => {
+    render(<PaletteItem label={LABEL} kind={NodeKind.Send} onSelect={vi.fn<() => void>()} />);
+
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+  });
+
+  it('opens the info without inserting the step', async () => {
+    const onSelect = vi.fn<() => void>();
+    const onInfo = vi.fn<() => void>();
+    render(
+      <PaletteItem
+        label={LABEL}
+        kind={NodeKind.Send}
+        onSelect={onSelect}
+        onInfo={onInfo}
+        infoLabel="How Send message works"
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'How Send message works' }));
+
+    expect(onInfo).toHaveBeenCalledOnce();
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('reaches the info button with the keyboard right after the step', async () => {
+    render(
+      <PaletteItem
+        label={LABEL}
+        kind={NodeKind.Send}
+        onSelect={vi.fn<() => void>()}
+        onInfo={vi.fn<() => void>()}
+        infoLabel="How Send message works"
+      />,
+    );
+
+    await userEvent.tab();
+    await userEvent.tab();
+
+    expect(screen.getByRole('button', { name: 'How Send message works' })).toHaveFocus();
+  });
 });

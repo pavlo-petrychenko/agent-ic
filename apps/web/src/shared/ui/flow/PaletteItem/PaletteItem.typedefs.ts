@@ -7,6 +7,8 @@ export interface PaletteItemProps {
   kind: NodeKind;
   icon?: IconName | null;
   onSelect: () => void;
+  onInfo?: (() => void) | null;
+  infoLabel?: string | null;
   disabled?: boolean;
   dragData?: string | null;
   dragging?: boolean;

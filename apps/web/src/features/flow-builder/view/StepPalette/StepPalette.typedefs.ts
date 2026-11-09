@@ -6,4 +6,5 @@ export interface StepPaletteProps {
   query: string;
   onQueryChange: (query: string) => void;
   onAdd: (type: AddableNodeType) => void;
+  onGuide: (type: AddableNodeType) => void;
 }

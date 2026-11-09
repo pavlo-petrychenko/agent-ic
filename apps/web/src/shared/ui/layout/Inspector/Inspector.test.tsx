@@ -95,4 +95,20 @@ describe('Inspector', () => {
 
     expect(screen.getByRole('complementary').querySelectorAll('p')).toHaveLength(0);
   });
+
+  it('shows an action under the title when it is given one', () => {
+    render(
+      <Inspector
+        kind={{ label: 'Send', kind: NodeKind.Send }}
+        title="A"
+        headerAction={<button type="button">How it works</button>}
+        closeLabel="Close"
+        onClose={vi.fn<() => void>()}
+      >
+        {null}
+      </Inspector>,
+    );
+
+    expect(screen.getByRole('button', { name: 'How it works' })).toBeInTheDocument();
+  });
 });

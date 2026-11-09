@@ -13,6 +13,7 @@ export interface InspectorProps extends Omit<ComponentProps<'aside'>, 'title' | 
   title: string;
   subtitle?: string | null;
   heading?: ReactNode | null;
+  headerAction?: ReactNode | null;
   closeLabel: string;
   onClose: () => void;
   children: ReactNode;
