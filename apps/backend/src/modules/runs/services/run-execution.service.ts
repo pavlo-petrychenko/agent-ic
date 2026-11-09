@@ -73,6 +73,7 @@ import type { RunWalk, TriggerVariables } from '@/modules/runs/typedefs/run-exec
 import type { RunStep, RunStepResult, StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 import type { Run, RunEnd } from '@/modules/runs/typedefs/run.typedefs';
 import type { StepExecutor } from '@/modules/runs/typedefs/step-executor.typedefs';
+import type { RunToolCall } from '@/modules/runs/typedefs/tool-call.typedefs';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
@@ -423,6 +424,7 @@ export class RunExecutionService {
     branchKey: string,
     stepId: string,
   ): Promise<RunStepResult> {
+    let toolCalls: readonly RunToolCall[] | null = null;
     try {
       const { port, output } = await this.traces.span(
         node.key,
@@ -440,6 +442,9 @@ export class RunExecutionService {
               today: walk.today,
               prompts: walk.prompts,
             },
+            onToolCalls: (calls) => {
+              toolCalls = calls;
+            },
           }),
       );
       return {
@@ -447,6 +452,7 @@ export class RunExecutionService {
         output,
         port,
         error: null,
+        toolCalls,
         finishedAt: this.clock.now(),
       };
     } catch (error) {
@@ -468,6 +474,7 @@ export class RunExecutionService {
         output: null,
         port: errorPort ? PortName.Error : null,
         error: runFailureOf(error, node.id),
+        toolCalls,
         finishedAt: this.clock.now(),
       };
     }

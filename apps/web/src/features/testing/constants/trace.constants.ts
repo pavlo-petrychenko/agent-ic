@@ -31,6 +31,7 @@ export enum OutputViewKind {
   Escalation = 'escalation',
   AgentExit = 'agentExit',
   AutoClose = 'autoClose',
+  ToolCalls = 'toolCalls',
 }
 
 export const EXIT_VIEW_KINDS: ReadonlySet<OutputViewKind> = new Set([
@@ -78,6 +79,7 @@ export const STEP_STATUS_TONES: Readonly<Record<RunStepStatus, BadgeTone>> = {
 
 export enum StepSection {
   Input = 'input',
+  ToolCalls = 'toolCalls',
   Output = 'output',
   Error = 'error',
 }

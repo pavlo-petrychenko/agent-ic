@@ -14,6 +14,7 @@ import { runStepStatusEnum, runsSchema } from '@/modules/runs/db/runs.pg-schema'
 import { runs } from '@/modules/runs/db/runs.table';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 import type { RunFailure } from '@/modules/runs/typedefs/run.typedefs';
+import type { RunToolCall } from '@/modules/runs/typedefs/tool-call.typedefs';
 import {
   tenantIsolationPolicy,
   workspaceIdColumn,
@@ -37,6 +38,7 @@ export const runSteps = runsSchema
       output: jsonb('output').$type<StepData>(),
       port: text('port'),
       error: jsonb('error').$type<RunFailure>(),
+      toolCalls: jsonb('tool_calls').$type<readonly RunToolCall[]>(),
       startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
       finishedAt: timestamp('finished_at', { withTimezone: true }),
     },

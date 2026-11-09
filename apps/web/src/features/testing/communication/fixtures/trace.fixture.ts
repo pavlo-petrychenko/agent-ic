@@ -63,7 +63,7 @@ export const testingRunMock = (
                       : null,
                 },
               ]),
-        ].map((step) => ({ __typename: 'RunStep', input: STEP_INPUT, ...step })),
+        ].map((step) => ({ __typename: 'RunStep', input: STEP_INPUT, toolCalls: [], ...step })),
       },
     },
   },

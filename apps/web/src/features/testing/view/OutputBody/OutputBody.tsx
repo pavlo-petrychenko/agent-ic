@@ -15,6 +15,7 @@ import type {
   ExitDetailsProps,
   OutputBodyProps,
 } from '@/features/testing/view/OutputBody/OutputBody.typedefs';
+import { ToolCallList } from '@/features/testing/view/ToolCallList';
 import { Badge, BadgeTone } from '@/shared/ui/display/Badge';
 import { Callout, CalloutTone } from '@/shared/ui/display/Callout';
 import { CodeBlock } from '@/shared/ui/display/CodeBlock';
@@ -126,6 +127,9 @@ export function OutputBody({ view }: OutputBodyProps) {
         {view.message ?? t('details.stepFailed')}
       </Callout>
     );
+  }
+  if (view.kind === OutputViewKind.ToolCalls) {
+    return <ToolCallList calls={view.calls} />;
   }
   if (view.kind === OutputViewKind.AgentExit) {
     return agentExit(view);

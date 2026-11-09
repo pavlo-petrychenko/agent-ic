@@ -78,6 +78,7 @@ const step = (nodeId: string, status: RunStepStatus) => ({
   input: {},
   output: null,
   errorMessage: null,
+  toolCalls: [],
 });
 
 describe('layoutTrace', () => {

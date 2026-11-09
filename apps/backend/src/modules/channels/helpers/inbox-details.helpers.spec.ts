@@ -56,6 +56,7 @@ const step = (
   output,
   port,
   error: null,
+  toolCalls: null,
   startedAt: AT,
   finishedAt: END,
 });

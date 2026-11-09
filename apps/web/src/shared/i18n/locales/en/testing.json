@@ -140,6 +140,7 @@
     "back": "All steps of turn {{number}}",
     "input": "Input",
     "output": "Output",
+    "toolCalls": "Tool calls",
     "error": "Error",
     "stepStatus": {
       "running": "Running",
@@ -186,6 +187,16 @@
         "next": "Next customer message",
         "newChat": "Starts a new conversation",
         "silent": "None — closes silently"
+      }
+    },
+    "toolCall": {
+      "duration": "{{value}} ms",
+      "arguments": "Arguments",
+      "result": "Result",
+      "truncated": "Shortened: only the start is stored.",
+      "status": {
+        "ok": "OK",
+        "error": "Error"
       }
     }
   },

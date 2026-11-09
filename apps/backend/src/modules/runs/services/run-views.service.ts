@@ -40,6 +40,7 @@ export class RunViewsService {
       output: step.output,
       port: step.port,
       error: step.error,
+      toolCalls: step.toolCalls,
       startedAt: step.startedAt,
       finishedAt: step.finishedAt,
       durationMs: durationMs(step.startedAt, step.finishedAt),

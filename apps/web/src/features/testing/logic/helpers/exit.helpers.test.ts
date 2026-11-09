@@ -53,6 +53,7 @@ const stepWith = (output: unknown, status = RunStepStatus.Succeeded) => ({
   input: null,
   output,
   errorMessage: null,
+  toolCalls: [],
 });
 
 describe('traceExit', () => {

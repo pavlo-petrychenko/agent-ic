@@ -20,6 +20,16 @@ query TestingRun($id: ID!) {
       error {
         message
       }
+      toolCalls {
+        name
+        status
+        input
+        inputTruncated
+        output
+        outputTruncated
+        error
+        durationMs
+      }
     }
   }
 }

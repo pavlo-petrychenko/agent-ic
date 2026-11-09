@@ -16,6 +16,7 @@ import {
   LLM_REPLY_NUDGE,
   LLM_REPLY_TOOL_NAME,
   LlmMessageRole,
+  LlmToolCallStatus,
 } from '@/platform/llm/constants/llm-gateway.constants';
 import { LlmModelId, LlmPurpose } from '@/platform/llm/constants/llm-model.constants';
 import { LlmProviderKind } from '@/platform/llm/constants/llm-provider.constants';
@@ -75,6 +76,8 @@ const PRIMARY = LlmModelId.Ministral14b;
 const FALLBACK = LLM_CATALOG[PRIMARY].fallback;
 const LOOKUP_TOOL = 'lookup';
 const LOOKUP_INPUT = { day: 'sunday' };
+const LOOKUP_OUTPUT = { delivers: true };
+const LOOKUP_ERROR = 'The delivery calendar is down';
 const MAX_TOOL_ROUNDS = 4;
 const WEATHER = { intent: 'weather' };
 const TOOL_RESULT_ROLE = '"role":"tool"';
@@ -86,7 +89,7 @@ const timesSent = (messages: unknown, text: string): number =>
 const lookup = {
   description: 'Look up the delivery days',
   inputSchema: z.object({ day: z.string() }),
-  execute: vi.fn<(input: unknown) => Promise<unknown>>(async () => ({ delivers: true })),
+  execute: vi.fn<(input: unknown) => Promise<unknown>>(async () => LOOKUP_OUTPUT),
 };
 
 const agentRequest = (overrides: Partial<LlmAgentRequest<Route>> = {}) => ({
@@ -277,11 +280,50 @@ describe('AiSdkLlmGateway.runAgent', () => {
     expect(result).toMatchObject({
       output: DELIVERY,
       model: LlmModelId.Ministral14b,
-      toolCalls: [{ name: LOOKUP_TOOL, input: LOOKUP_INPUT }],
+      toolCalls: [
+        {
+          name: LOOKUP_TOOL,
+          input: LOOKUP_INPUT,
+          status: LlmToolCallStatus.Ok,
+          output: LOOKUP_OUTPUT,
+          error: null,
+          durationMs: expect.any(Number),
+        },
+      ],
     });
     expect(lookup.execute).toHaveBeenCalledOnce();
     expect(mock.toolNames(0)).toEqual([LOOKUP_TOOL]);
     expect(mock.body(0)).toMatchObject({ response_format: { type: 'json_schema' } });
+  });
+
+  it('records a tool that throws as a failed call with its message', async () => {
+    lookup.execute.mockRejectedValueOnce(new Error(LOOKUP_ERROR));
+    mock.toolCall(LOOKUP_TOOL, LOOKUP_INPUT).json(DELIVERY);
+
+    const result = await gateway.runAgent(agentRequest());
+
+    expect(result.toolCalls).toEqual([
+      {
+        name: LOOKUP_TOOL,
+        input: LOOKUP_INPUT,
+        status: LlmToolCallStatus.Error,
+        output: null,
+        error: LOOKUP_ERROR,
+        durationMs: expect.any(Number),
+      },
+    ]);
+  });
+
+  it('records a result the tool marks as failed as a failed call', async () => {
+    mock.toolCall(LOOKUP_TOOL, LOOKUP_INPUT).json(DELIVERY);
+
+    const result = await gateway.runAgent(
+      agentRequest({ tools: { [LOOKUP_TOOL]: { ...lookup, failed: () => true } } }),
+    );
+
+    expect(result.toolCalls).toMatchObject([
+      { status: LlmToolCallStatus.Error, output: LOOKUP_OUTPUT, error: null },
+    ]);
   });
 
   it('retries a final message that does not match the schema', async () => {
