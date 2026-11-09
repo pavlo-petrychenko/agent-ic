@@ -20,6 +20,8 @@ export interface BrowserNotificationContent {
 export interface BrowserNotificationAlert {
   readonly id: string;
   readonly conversationId: string;
+  readonly kind: 'escalation' | 'reminder';
+  readonly waitingMinutes: number;
   readonly customerName: string | null;
   readonly channelKind: string | null;
   readonly reason: string | null;

@@ -47,6 +47,8 @@ export interface MarkNotificationsReadInput {
 export interface NotificationAlertRecord {
   readonly id: string;
   readonly conversationId: string;
+  readonly kind: NotificationKind;
+  readonly waitingMinutes: number;
   readonly customerName: string | null;
   readonly channelKind: string | null;
   readonly reason: string | null;
@@ -56,6 +58,8 @@ export interface NotificationAlertRecord {
 export interface NotificationAlertView {
   readonly id: string;
   readonly conversationId: string;
+  readonly kind: NotificationKind;
+  readonly waitingMinutes: number;
   readonly customerName: string | null;
   readonly channelKind: string | null;
   readonly reason: string | null;

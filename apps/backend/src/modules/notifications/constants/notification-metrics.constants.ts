@@ -17,6 +17,7 @@ export enum EmailTemplate {
   PasswordReset = 'password_reset',
   EmailChange = 'email_change',
   Escalation = 'escalation',
+  Reminder = 'reminder',
   UsageThreshold = 'usage_threshold',
 }
 

@@ -41,6 +41,10 @@
     "title": "{{name}} потребує людини",
     "titleFallback": "Чат потребує людини",
     "bodyFallback": "Чат передали вам.",
+    "reminderTitle": "{{name}} чекає вже {{minutes}} хв",
+    "reminderTitleFallback": "Клієнт чекає вже {{minutes}} хв",
+    "reminderBody": "Досі чекає. Чат ще ніхто не взяв.",
+    "reminderSubtitle": "{{channel}} · очікує {{minutes}} хв",
     "subtitle": "{{channel}} · очікує {{time}}",
     "open": "Відкрити",
     "close": "Закрити сповіщення"

@@ -10,6 +10,7 @@ export interface DeliverNotificationInput {
 
 export interface DeliveryContent {
   readonly delivery: NotificationDeliveryRecord;
+  readonly kind: NotificationKind;
   readonly to: string;
   readonly customerName: string | null;
   readonly agentName: string | null;
@@ -22,6 +23,7 @@ export interface DeliveryContent {
   readonly link: string;
   readonly workspacePublicId: string;
   readonly conversationPublicId: string | null;
+  readonly waitingMinutes: number;
 }
 
 export interface SkippedDelivery {

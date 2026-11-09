@@ -27,10 +27,13 @@ export { renderEmail } from '@/modules/notifications/helpers/email-render.helper
 export {
   escalationEmailElement,
   escalationEmailSubject,
+  reminderEmailElement,
+  reminderEmailSubject,
 } from '@/modules/notifications/helpers/escalation-email.helpers';
 export {
   escalationTelegramReplyMarkup,
   escalationTelegramText,
+  reminderTelegramText,
 } from '@/modules/notifications/helpers/escalation-telegram.helpers';
 export { telegramTakeOverCallbackData } from '@/modules/notifications/helpers/telegram-alert-callback.helpers';
 export { NotificationsModule } from '@/modules/notifications/notifications.module';

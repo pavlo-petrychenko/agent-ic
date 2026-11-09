@@ -41,6 +41,10 @@
     "title": "{{name}} needs a person",
     "titleFallback": "A chat needs a person",
     "bodyFallback": "A chat was escalated to you.",
+    "reminderTitle": "{{name}} has been waiting {{minutes}} min",
+    "reminderTitleFallback": "A customer has been waiting {{minutes}} min",
+    "reminderBody": "Still waiting. No one has taken the chat yet.",
+    "reminderSubtitle": "{{channel}} · waiting {{minutes}} min",
     "subtitle": "{{channel}} · waiting {{time}}",
     "open": "Open",
     "close": "Close notification"

@@ -23,12 +23,7 @@ export function InboxBrowserNotifications({ enabled, onOpen }: InboxBrowserNotif
 
   return (
     <InboxNotificationCard
-      {...inboxNotificationCardText(
-        cardAlert.customerName,
-        cardAlert.channelKind,
-        minutesAgo(cardAlert.createdAt),
-        t,
-      )}
+      {...inboxNotificationCardText(cardAlert, minutesAgo(cardAlert.createdAt), t)}
       onOpen={() => {
         dismiss();
         onOpen(cardAlert.conversationId);

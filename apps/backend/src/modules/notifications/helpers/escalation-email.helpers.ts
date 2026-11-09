@@ -18,8 +18,10 @@ import {
   ESCALATION_CHANNEL_PLACEHOLDER,
   ESCALATION_CUSTOMER_PLACEHOLDER,
   ESCALATION_EMAIL_COPY,
+  ESCALATION_MINUTES_PLACEHOLDER,
   ESCALATION_WORKSPACE_PLACEHOLDER,
 } from '@/modules/notifications/constants/escalation-email.constants';
+import { REMINDER_EMAIL_COPY } from '@/modules/notifications/constants/reminder-email.constants';
 import type {
   EscalationEmailCopy,
   EscalationEmailProps,
@@ -31,12 +33,27 @@ const fill = (template: string, values: Readonly<Record<string, string>>): strin
     template,
   );
 
-const copyOf = (locale: Locale): EscalationEmailCopy => ESCALATION_EMAIL_COPY[locale];
+const escalationCopyOf = (locale: Locale): EscalationEmailCopy => ESCALATION_EMAIL_COPY[locale];
 
-const subjectOf = (copy: EscalationEmailCopy, customerName: string | null): string =>
-  fill(copy.subject, {
-    [ESCALATION_CUSTOMER_PLACEHOLDER]: customerName ?? copy.customerFallback,
-  });
+const reminderCopyOf = (locale: Locale): EscalationEmailCopy => REMINDER_EMAIL_COPY[locale];
+
+const copyValues = (
+  copy: EscalationEmailCopy,
+  customerName: string | null,
+  minutes: number,
+): Readonly<Record<string, string>> => ({
+  [ESCALATION_CUSTOMER_PLACEHOLDER]: customerName ?? copy.customerFallback,
+  [ESCALATION_MINUTES_PLACEHOLDER]: String(minutes),
+});
+
+const subjectOf = (
+  copy: EscalationEmailCopy,
+  customerName: string | null,
+  minutes: number,
+): string => fill(copy.subject, copyValues(copy, customerName, minutes));
+
+const titleOf = (copy: EscalationEmailCopy, customerName: string | null, minutes: number): string =>
+  fill(copy.title, copyValues(copy, customerName, minutes));
 
 const channelLabelOf = (copy: EscalationEmailCopy, channel: ChannelKind | null): string => {
   if (channel === ChannelKind.Telegram) {
@@ -49,18 +66,22 @@ const channelLabelOf = (copy: EscalationEmailCopy, channel: ChannelKind | null):
 };
 
 export const escalationEmailSubject = (locale: Locale, customerName: string | null): string =>
-  subjectOf(copyOf(locale), customerName);
+  subjectOf(escalationCopyOf(locale), customerName, 0);
+
+export const reminderEmailSubject = (
+  locale: Locale,
+  customerName: string | null,
+  waitingMinutes: number,
+): string => subjectOf(reminderCopyOf(locale), customerName, waitingMinutes);
 
 const paragraph = (children: ReactNode, style?: CSSProperties): ReactElement =>
   createElement('p', style === undefined ? null : { style }, children);
 
-const escalationElement = (
-  copy: EscalationEmailCopy,
-  props: EscalationEmailProps,
-): ReactElement => {
-  const title = subjectOf(copy, props.customerName);
+const alertElement = (copy: EscalationEmailCopy, props: EscalationEmailProps): ReactElement => {
+  const title = titleOf(copy, props.customerName, props.waitingMinutes);
   const agentName = props.agentName ?? copy.agentFallback;
   const body = fill(copy.body, {
+    ...copyValues(copy, props.customerName, props.waitingMinutes),
     [ESCALATION_AGENT_PLACEHOLDER]: agentName,
     [ESCALATION_CHANNEL_PLACEHOLDER]: channelLabelOf(copy, props.channelKind),
   });
@@ -106,4 +127,7 @@ const escalationElement = (
 };
 
 export const escalationEmailElement = (props: EscalationEmailProps): ReactElement =>
-  escalationElement(copyOf(props.locale), props);
+  alertElement(escalationCopyOf(props.locale), props);
+
+export const reminderEmailElement = (props: EscalationEmailProps): ReactElement =>
+  alertElement(reminderCopyOf(props.locale), props);

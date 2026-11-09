@@ -32,6 +32,8 @@ const NEEDS_PERSON_CONVERSATION_FILTER = sql`c.mode = 'live' and c.state = 'wait
 type LatestUnreadRow = Readonly<{
   id: string;
   conversation_id: string;
+  kind: string;
+  waiting_minutes: number | string;
   end_user_name: string | null;
   channel_kind: string | null;
   reason: string | null;
@@ -243,6 +245,11 @@ export class NotificationsRepository {
     const { rows } = await this.txHost.tx.execute<LatestUnreadRow>(sql`
       select n.id,
              r.conversation_id,
+             n.kind,
+             case
+               when c.last_escalated_at is null then 0
+               else greatest(1, round(extract(epoch from (n.created_at - c.last_escalated_at)) / 60))
+             end as waiting_minutes,
              c.end_user_name,
              c.channel_kind,
              coalesce(rs.output->>'reason', rs.output->>'outcome_reason', rs.error->>'message') as reason,
@@ -270,6 +277,11 @@ export class NotificationsRepository {
       : {
           id: row.id,
           conversationId: row.conversation_id,
+          kind:
+            row.kind === NotificationKind.Reminder
+              ? NotificationKind.Reminder
+              : NotificationKind.Escalation,
+          waitingMinutes: Number(row.waiting_minutes),
           customerName: row.end_user_name,
           channelKind: row.channel_kind,
           reason: row.reason,

@@ -47,12 +47,21 @@ export function useBrowserNotifications(
       return;
     }
     nativeShown.current.add(alert.id);
+    const reminder = alert.kind === 'reminder';
     showBrowserNotification({
-      title:
-        alert.customerName === null
+      title: reminder
+        ? alert.customerName === null
+          ? t('browser.reminderTitleFallback', { minutes: alert.waitingMinutes })
+          : t('browser.reminderTitle', {
+              name: alert.customerName,
+              minutes: alert.waitingMinutes,
+            })
+        : alert.customerName === null
           ? t('browser.titleFallback')
           : t('browser.title', { name: alert.customerName }),
-      body: alert.reason ?? t('browser.bodyFallback'),
+      body: reminder
+        ? (alert.reason ?? t('browser.reminderBody'))
+        : (alert.reason ?? t('browser.bodyFallback')),
       tag: alert.id,
       onClick: () => {
         setDismissed((current) => new Set(current).add(alert.id));
