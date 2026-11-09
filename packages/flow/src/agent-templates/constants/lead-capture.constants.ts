@@ -168,6 +168,7 @@ export const LEAD_CAPTURE_SNIPPET: AgentTemplateDefinition = {
     },
   ],
   usesKnowledge: false,
+  knowledgeRoles: [],
   prompts: [AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.LeadCollector]],
   draft,
 };

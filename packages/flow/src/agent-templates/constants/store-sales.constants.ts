@@ -362,7 +362,7 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
 
 export const STORE_SALES_TEMPLATE: AgentTemplateDefinition = {
   key: AgentTemplateKey.StoreSales,
-  kind: AgentTemplateKind.Template,
+  kind: AgentTemplateKind.Example,
   category: AgentTemplateCategory.Sales,
   level: AgentTemplateLevel.Advanced,
   name: { en: 'Online store sales assistant', uk: 'Асистент продажу інтернет-магазину' },
@@ -385,6 +385,7 @@ export const STORE_SALES_TEMPLATE: AgentTemplateDefinition = {
     },
   ],
   usesKnowledge: true,
+  knowledgeRoles: [],
   prompts: [
     AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.MessageTriage],
     AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.LeadScorer],

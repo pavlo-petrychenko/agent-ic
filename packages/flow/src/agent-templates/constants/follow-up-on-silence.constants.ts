@@ -168,6 +168,7 @@ export const FOLLOW_UP_ON_SILENCE_SNIPPET: AgentTemplateDefinition = {
     },
   ],
   usesKnowledge: false,
+  knowledgeRoles: [],
   prompts: [AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.SupportAssistant]],
   draft,
 };

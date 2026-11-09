@@ -3,6 +3,7 @@ import type {
   AgentTemplateCategory,
   AgentTemplateKey,
   AgentTemplateKind,
+  AgentTemplateKnowledgeRole,
   AgentTemplateLevel,
   AgentTemplatePromptKey,
 } from '@flow/agent-templates/constants/agent-template.constants';
@@ -23,6 +24,20 @@ export interface AgentTemplatePrompt {
   readonly text: LocalizedText;
 }
 
+export interface AgentTemplateKnowledgeRoleSpec {
+  readonly role: AgentTemplateKnowledgeRole;
+  readonly label: LocalizedText;
+}
+
+export type AgentTemplateKnowledgeBases = Readonly<
+  Partial<Record<AgentTemplateKnowledgeRole, readonly string[]>>
+>;
+
+export interface AgentTemplateNewKnowledgeBase {
+  readonly role: AgentTemplateKnowledgeRole | null;
+  readonly name: string;
+}
+
 export interface AgentTemplate {
   readonly key: AgentTemplateKey;
   readonly kind: AgentTemplateKind;
@@ -32,6 +47,7 @@ export interface AgentTemplate {
   readonly description: LocalizedText;
   readonly highlights: readonly LocalizedText[];
   readonly usesKnowledge: boolean;
+  readonly knowledgeRoles: readonly AgentTemplateKnowledgeRoleSpec[];
   readonly prompts: readonly AgentTemplatePrompt[];
 }
 
@@ -44,6 +60,7 @@ export interface AgentTemplateOptions {
   readonly locale: Locale;
   readonly promptRefs: Readonly<Record<string, string>>;
   readonly knowledgeBaseIds: readonly string[];
+  readonly knowledgeBases: AgentTemplateKnowledgeBases;
   readonly timeZone: string;
   readonly models: AgentTemplateModels;
   readonly nextId: () => string;
@@ -77,7 +94,7 @@ export interface AgentStepSpec {
   readonly prompt: AgentTemplatePromptKey;
   readonly output?: readonly OutputField[];
   readonly exits?: AgentExits;
-  readonly knowledge?: boolean;
+  readonly knowledge?: boolean | AgentTemplateKnowledgeRole;
   readonly bindings?: Readonly<Record<string, string>>;
 }
 

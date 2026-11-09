@@ -1,5 +1,6 @@
 import type { Locale } from '@agent-ic/contracts';
 import {
+  APOLOGY_MESSAGE,
   CUSTOMER_MESSAGE_LABEL,
   FALLBACK_MESSAGE,
   HAND_OFF_MESSAGE,
@@ -33,6 +34,7 @@ import type {
   ConditionValue,
   EscalationNode,
   FlowDocument,
+  FlowSettings,
   HandoffSettings,
   ModelRef,
   OutputField,
@@ -75,6 +77,7 @@ import {
   PromptSourceKind,
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
+import { UnhandledFailureAction } from '@flow/settings/constants/settings.constants';
 
 export const localize = (text: LocalizedText, locale: Locale): string => text[locale];
 
@@ -104,6 +107,17 @@ const promptSource = (
         pin: { kind: PromptVersionKind.Latest },
         bindings: { ...bindings },
       };
+};
+
+const knowledgeBaseIdsFor = (
+  options: AgentTemplateOptions,
+  knowledge: AgentStepSpec['knowledge'],
+): string[] => {
+  if (knowledge === undefined || knowledge === false) {
+    return [];
+  }
+  const own = knowledge === true ? [] : (options.knowledgeBases[knowledge] ?? []);
+  return [...(own.length > 0 ? own : options.knowledgeBaseIds)];
 };
 
 const platformModel = (model: string): ModelRef => ({
@@ -154,6 +168,15 @@ export const templateHandoffSettings = (
   fallbackMessage: localize(FALLBACK_MESSAGE, locale),
 });
 
+export const generalTemplateSettings = (locale: Locale): FlowSettings => ({
+  handoff: templateHandoffSettings(locale),
+  onUnhandledFailure: {
+    action: UnhandledFailureAction.Handoff,
+    customerMessage: localize(APOLOGY_MESSAGE, locale),
+  },
+  autoClose: null,
+});
+
 export const messageTrigger = (
   options: AgentTemplateOptions,
   at: AgentTemplateCell,
@@ -192,7 +215,7 @@ export const agentStep = (options: AgentTemplateOptions, spec: AgentStepSpec): A
     prompt: promptSource(options, spec.prompt, spec.bindings),
     model: platformModel(options.models.agent),
     reasoning: null,
-    knowledgeBaseIds: spec.knowledge === true ? [...options.knowledgeBaseIds] : [],
+    knowledgeBaseIds: knowledgeBaseIdsFor(options, spec.knowledge),
     retrievalMode: DEFAULT_RETRIEVAL_MODE,
     output: [...(spec.output ?? [])],
     retries: AGENT_DEFAULT_RETRIES,
@@ -326,7 +349,7 @@ export const handOff = (
   at: AgentTemplateCell,
   reason: string,
   channels: readonly NotifyChannel[] = AGENT_TEMPLATE_NOTIFY_CHANNELS,
-  customerMessage: string = localize(HAND_OFF_MESSAGE, options.locale),
+  customerMessage: string | null = localize(HAND_OFF_MESSAGE, options.locale),
 ): EscalationNode => ({
   ...place(key, label, at),
   type: NodeType.Escalation,
