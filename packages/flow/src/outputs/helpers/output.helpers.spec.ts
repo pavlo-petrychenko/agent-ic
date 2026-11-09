@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import { AgentExitKind } from '@flow/nodes/constants/step.constants';
 import {
   AGENT_MESSAGES_FIELD_NAME,
@@ -11,6 +12,7 @@ import {
   nodeOutputFields,
   outputFieldTypes,
   outputToZod,
+  withoutEmptyOutputs,
 } from '@flow/outputs/helpers/output.helpers';
 import {
   agent,
@@ -94,7 +96,8 @@ describe('outputToZod', () => {
 
   it('accepts a reply that fits the fields', () => {
     expect(
-      schema.safeParse({ needs_human: true, score: 3, intent: 'a', tags: ['x'] }).success,
+      schema.safeParse({ needs_human: true, reason: null, score: 3, intent: 'a', tags: ['x'] })
+        .success,
     ).toBe(true);
     expect(
       schema.safeParse({ needs_human: false, reason: 'ok', score: 1, intent: 'b', tags: [] })
@@ -112,10 +115,35 @@ describe('outputToZod', () => {
     );
   });
 
+  it('lists every field as required, so strict structured output accepts the schema', () => {
+    expect(z.toJSONSchema(schema).required).toEqual([
+      'needs_human',
+      'reason',
+      'score',
+      'intent',
+      'tags',
+    ]);
+  });
+
+  it('rejects a reply that leaves out an optional field instead of sending null', () => {
+    expect(schema.safeParse({ needs_human: true, score: 3, intent: 'a', tags: [] }).success).toBe(
+      false,
+    );
+  });
+
   it('carries the field description for the model', () => {
     const described = outputToZod([
       { name: 'reason', type: OutputFieldType.String, description: 'Why', required: true },
     ]);
     expect(described.shape['reason']?.description).toBe('Why');
+  });
+});
+
+describe('withoutEmptyOutputs', () => {
+  it('drops the optional fields the model left empty', () => {
+    expect(withoutEmptyOutputs({ intent: 'booking', booking_date: null, guests: 0 })).toEqual({
+      intent: 'booking',
+      guests: 0,
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { NodeType, nodeOutputFields, outputToZod } from '@agent-ic/flow';
+import { NodeType, nodeOutputFields, outputToZod, withoutEmptyOutputs } from '@agent-ic/flow';
 import type { AgentNode } from '@agent-ic/flow';
 import { Inject, Injectable } from '@nestjs/common';
 import { KnowledgeToolsService } from '@/modules/knowledge';
@@ -61,7 +61,8 @@ export class AgentExecutor implements StepExecutor<AgentNode> {
       maxToolRounds: AGENT_MAX_TOOL_ROUNDS,
       tags: { ...runTraceTags(run), ...stepPromptTags(id, scope.prompts) },
     };
-    const { output } = await this.answer(request, config.retries);
+    const answer = await this.answer(request, config.retries);
+    const output = withoutEmptyOutputs(answer.output);
     return { port: agentExitPort(node, output), output };
   }
 

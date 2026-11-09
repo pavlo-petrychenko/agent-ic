@@ -74,8 +74,13 @@ const fieldSchema = (field: OutputField): z.ZodType => {
 const describedField = (field: OutputField): z.ZodType => {
   const schema = fieldSchema(field);
   const described = field.description.length > 0 ? schema.describe(field.description) : schema;
-  return field.required ? described : described.optional();
+  return field.required ? described : described.nullable();
 };
 
 export const outputToZod = (fields: readonly OutputField[]): z.ZodObject =>
   z.object(Object.fromEntries(fields.map((field) => [field.name, describedField(field)])));
+
+export const withoutEmptyOutputs = (
+  output: Readonly<Record<string, unknown>>,
+): Readonly<Record<string, unknown>> =>
+  Object.fromEntries(Object.entries(output).filter(([, value]) => value !== null));
