@@ -48,6 +48,8 @@ secrets:
     enabled: false
   llm:
     enabled: false
+  google:
+    enabled: false
 
 extraEnv: []
 

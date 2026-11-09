@@ -485,6 +485,57 @@
         "required": ["name", "keys"]
       }
     },
+    "googleSecret": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "redirectUri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "keys": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "GOOGLE_CLIENT_ID",
+            "GOOGLE_CLIENT_SECRET",
+            "GOOGLE_PICKER_API_KEY",
+            "GOOGLE_PICKER_APP_ID"
+          ],
+          "properties": {
+            "GOOGLE_CLIENT_ID": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "GOOGLE_CLIENT_SECRET": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "GOOGLE_PICKER_API_KEY": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "GOOGLE_PICKER_APP_ID": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "if": {
+        "properties": {
+          "enabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": ["name", "redirectUri", "keys"]
+      }
+    },
     "langfuseSecret": {
       "type": "object",
       "additionalProperties": false,
@@ -854,6 +905,7 @@
         "email",
         "smtp",
         "llm",
+        "google",
         "langfuse"
       ],
       "properties": {
@@ -886,6 +938,9 @@
         },
         "llm": {
           "$ref": "#/definitions/llmSecret"
+        },
+        "google": {
+          "$ref": "#/definitions/googleSecret"
         },
         "langfuse": {
           "$ref": "#/definitions/langfuseSecret"

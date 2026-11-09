@@ -54,6 +54,14 @@ render smtp-tls \
   --set secrets.smtp.name=app-smtp \
   --set secrets.smtp.keys.SMTP_USER=user \
   --set secrets.smtp.keys.SMTP_PASSWORD=password
+render google \
+  --set secrets.google.enabled=true \
+  --set secrets.google.name=app-google \
+  --set secrets.google.redirectUri=https://app.example.test/oauth/google/callback \
+  --set secrets.google.keys.GOOGLE_CLIENT_ID=clientId \
+  --set secrets.google.keys.GOOGLE_CLIENT_SECRET=clientSecret \
+  --set secrets.google.keys.GOOGLE_PICKER_API_KEY=pickerApiKey \
+  --set secrets.google.keys.GOOGLE_PICKER_APP_ID=pickerAppId
 render langfuse \
   --set config.langfuse.mode=self-hosted \
   --set config.langfuse.host=http://langfuse-web.langfuse.svc.example.test:3000
@@ -322,6 +330,14 @@ expect_failure "unknown environment" \
 expect_failure "enabled optional secret without a name" \
   'missing propert' \
   --set secrets.llm.enabled=true
+expect_failure "enabled Google secret without a redirect URI" \
+  'redirectUri' \
+  --set secrets.google.enabled=true \
+  --set secrets.google.name=app-google \
+  --set secrets.google.keys.GOOGLE_CLIENT_ID=clientId \
+  --set secrets.google.keys.GOOGLE_CLIENT_SECRET=clientSecret \
+  --set secrets.google.keys.GOOGLE_PICKER_API_KEY=pickerApiKey \
+  --set secrets.google.keys.GOOGLE_PICKER_APP_ID=pickerAppId
 expect_failure "resend e-mail without the e-mail secret" \
   'needs secrets.email.enabled' \
   --set config.email.mode=resend
