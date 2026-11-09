@@ -133,6 +133,7 @@ Infrastructure used by two or more modules, with no business meaning. Same kinds
 | `module-roles` | `defineModule()`, `forRole()`, the `Role` enum |
 | `llm` | the LLM and embedding gateways, the curated model catalog (models, vendors, prices, defaults, fallbacks) |
 | `outbound-http` | `OutboundHttpGateway`: HTTP calls to addresses a customer chose, never to a private or reserved network |
+| `telegram` | `TelegramGateway`: the Telegram Bot API client and update parsing, shared by channel bots and notification alerts |
 | `admin` · `cache` · `clock` · `crypto` · `ids` · `rate-limit` · `redis` · `secrets` | one service each, plus their helpers |
 
 A library may force a second Nest module in one folder (`database-clients.module.ts` for `nestjs-cls`). That is the only allowed case.

@@ -1,9 +1,7 @@
 import { IdPrefix } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
-import { TELEGRAM_ALLOWED_UPDATES } from '@/modules/channels/constants/telegram.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { TelegramTokenInvalidError } from '@/modules/channels/errors/telegram-token-invalid.error';
-import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { isTelegramTokenInvalid } from '@/modules/channels/helpers/telegram-error.helpers';
 import { telegramWebhookUrl } from '@/modules/channels/helpers/telegram.helpers';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
@@ -11,7 +9,6 @@ import type { TelegramChannelIdentity } from '@/modules/channels/typedefs/channe
 import type { ChannelRecord } from '@/modules/channels/typedefs/channel.typedefs';
 import type {
   ConfigureTelegramTransportInput,
-  TelegramBot,
   TelegramConnectionCredentials,
   TelegramReconnectPreparation,
 } from '@/modules/channels/typedefs/telegram.typedefs';
@@ -19,6 +16,9 @@ import { TelegramTransport } from '@/platform/config/constants/telegram.constant
 import { ConfigService } from '@/platform/config/services/config.service';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
 import { IdService } from '@/platform/ids/services/id.service';
+import { TELEGRAM_ALLOWED_UPDATES } from '@/platform/telegram/constants/telegram.constants';
+import { TelegramGateway } from '@/platform/telegram/gateways/telegram.gateway';
+import type { TelegramBot } from '@/platform/telegram/typedefs/telegram.typedefs';
 
 @Injectable()
 export class TelegramChannelService {

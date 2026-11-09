@@ -4,13 +4,13 @@ import { CHANNEL_CONNECT_RATE_LIMIT } from '@/modules/channels/constants/channel
 import { ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelAlreadyConnectedError } from '@/modules/channels/errors/channel-already-connected.error';
 import { InvalidChannelInputError } from '@/modules/channels/errors/invalid-channel-input.error';
-import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { TelegramTokenInvalidError } from '@/modules/channels/errors/telegram-token-invalid.error';
 import { ConnectTelegramChannelUseCase } from '@/modules/channels/use-cases/connect-telegram.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
 import { RateLimitedError } from '@/platform/rate-limit/errors/rate-limited.error';
 import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.service';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
 import {
   TEST_TELEGRAM_BOT_NAME,
   TEST_TELEGRAM_BOT_USERNAME,

@@ -1,17 +1,15 @@
 import { Logger } from '@nestjs/common';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
-import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { TelegramPollerRepository } from '@/modules/channels/repositories/telegram-poller.repository';
 import { ChannelHealthService } from '@/modules/channels/services/channel-health.service';
 import { ChannelTokenService } from '@/modules/channels/services/channel-token.service';
 import { TelegramTokenHealthService } from '@/modules/channels/services/telegram-token-health.service';
-import type {
-  TelegramPollerChannel,
-  TelegramWebhookInfo,
-} from '@/modules/channels/typedefs/telegram.typedefs';
+import type { TelegramPollerChannel } from '@/modules/channels/typedefs/telegram.typedefs';
 import { TelegramTransport } from '@/platform/config/constants/telegram.constants';
 import { ConfigService } from '@/platform/config/services/config.service';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
+import { TelegramGateway } from '@/platform/telegram/gateways/telegram.gateway';
+import type { TelegramWebhookInfo } from '@/platform/telegram/typedefs/telegram.typedefs';
 
 const WEBHOOK_INFO: TelegramWebhookInfo = {
   url: 'https://local.agent-ic.pavlop.dev/webhooks/telegram/ws/chn',

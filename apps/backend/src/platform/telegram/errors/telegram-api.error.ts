@@ -1,6 +1,6 @@
-import { TELEGRAM_UPSTREAM } from '@/modules/channels/constants/telegram.constants';
 import { UpstreamError } from '@/platform/errors/errors/upstream.error';
 import { isRetryableUpstreamStatus } from '@/platform/errors/helpers/upstream.helpers';
+import { TELEGRAM_UPSTREAM } from '@/platform/telegram/constants/telegram.constants';
 
 export interface TelegramApiErrorOptions {
   readonly method: string;

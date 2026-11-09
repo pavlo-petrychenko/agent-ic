@@ -1,4 +1,4 @@
-import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
+import { TelegramGateway } from '@/platform/telegram/gateways/telegram.gateway';
 import type {
   AnswerTelegramCallbackQueryInput,
   GetTelegramUpdatesInput,
@@ -9,7 +9,7 @@ import type {
   TelegramBot,
   TelegramUpdate,
   TelegramWebhookInfo,
-} from '@/modules/channels/typedefs/telegram.typedefs';
+} from '@/platform/telegram/typedefs/telegram.typedefs';
 
 export class FakeTelegramGateway extends TelegramGateway {
   bot: TelegramBot = { id: '1', username: 'test_bot', firstName: 'Test Bot' };

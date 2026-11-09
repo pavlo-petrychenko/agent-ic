@@ -3,7 +3,6 @@ import {
   ChannelHealthLogMessage,
   TELEGRAM_HEALTH_CHECK_CONCURRENCY,
 } from '@/modules/channels/constants/channel-health.constants';
-import { TelegramGateway } from '@/modules/channels/gateways/telegram.gateway';
 import { isTelegramTokenInvalid } from '@/modules/channels/helpers/telegram-error.helpers';
 import { TelegramPollerRepository } from '@/modules/channels/repositories/telegram-poller.repository';
 import { ChannelHealthService } from '@/modules/channels/services/channel-health.service';
@@ -14,6 +13,7 @@ import type {
 } from '@/modules/channels/typedefs/telegram.typedefs';
 import { TelegramTransport } from '@/platform/config/constants/telegram.constants';
 import { ConfigService } from '@/platform/config/services/config.service';
+import { TelegramGateway } from '@/platform/telegram/gateways/telegram.gateway';
 
 @Injectable()
 export class TelegramTokenHealthService {

@@ -4,13 +4,13 @@ import { CHANNEL_REPLACE_TOKEN_RATE_LIMIT } from '@/modules/channels/constants/c
 import { ApiReplyMode, ChannelStatus } from '@/modules/channels/constants/channel.constants';
 import { ChannelNotFoundError } from '@/modules/channels/errors/channel-not-found.error';
 import { InvalidChannelInputError } from '@/modules/channels/errors/invalid-channel-input.error';
-import { TelegramApiError } from '@/modules/channels/errors/telegram-api.error';
 import { TelegramTokenInvalidError } from '@/modules/channels/errors/telegram-token-invalid.error';
 import { ReplaceTelegramTokenUseCase } from '@/modules/channels/use-cases/replace-telegram-token.use-case';
 import { PermissionDeniedError } from '@/platform/context/errors/permission-denied.error';
 import { SecureTokenService } from '@/platform/crypto/services/secure-token.service';
 import { RateLimitedError } from '@/platform/rate-limit/errors/rate-limited.error';
 import { RateLimitService } from '@/platform/rate-limit/services/rate-limit.service';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
 import {
   TEST_TELEGRAM_BOT_ID,
   TEST_TELEGRAM_BOT_NAME,
