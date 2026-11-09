@@ -267,7 +267,7 @@ export class AiSdkLlmGateway extends LlmGateway {
   }
 
   private async rounds<T, R>(
-    request: LlmCompleteRequest<T>,
+    request: LlmAgentRequest<T>,
     run: LlmModelRun,
     state: LlmRunState,
     track: LlmRunTracker,
@@ -276,7 +276,7 @@ export class AiSdkLlmGateway extends LlmGateway {
     let next = state;
     try {
       const result = await call((step) => {
-        next = track(afterStep(next, step));
+        next = track(afterStep(next, step, request.tools));
       });
       return { result, next };
     } finally {

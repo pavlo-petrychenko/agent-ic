@@ -7,7 +7,10 @@ import type {
   TelemetryOptions,
 } from 'ai';
 import type { z } from 'zod';
-import type { LlmMessageRole } from '@/platform/llm/constants/llm-gateway.constants';
+import type {
+  LlmMessageRole,
+  LlmToolCallStatus,
+} from '@/platform/llm/constants/llm-gateway.constants';
 import type { LlmPurpose } from '@/platform/llm/constants/llm-model.constants';
 import type { LlmModelProfile } from '@/platform/llm/typedefs/llm-model.typedefs';
 import type {
@@ -36,6 +39,7 @@ export interface LlmTool {
   readonly description: string;
   readonly inputSchema: z.ZodType;
   readonly execute: (input: unknown) => Promise<unknown>;
+  readonly failed?: (output: unknown) => boolean;
 }
 
 export type LlmTools = Readonly<Record<string, LlmTool>>;
@@ -56,6 +60,10 @@ export interface LlmAgentRequest<T> extends LlmCompleteRequest<T> {
 export interface LlmToolCall {
   readonly name: string;
   readonly input: unknown;
+  readonly status: LlmToolCallStatus;
+  readonly output: unknown;
+  readonly error: string | null;
+  readonly durationMs: number | null;
 }
 
 export interface LlmUsage {
@@ -96,9 +104,24 @@ export interface LlmRunState {
 
 export type LlmRunTracker = (state: LlmRunState) => LlmRunState;
 
+export interface LlmStepToolCall {
+  readonly toolCallId: string;
+  readonly toolName: string;
+  readonly input: unknown;
+}
+
+export interface LlmStepContentPart {
+  readonly type: string;
+  readonly toolCallId?: string;
+  readonly output?: unknown;
+  readonly error?: unknown;
+}
+
 export interface LlmStep {
   readonly response: { readonly messages: readonly ModelMessage[] };
-  readonly toolCalls: readonly { readonly toolName: string; readonly input: unknown }[];
+  readonly toolCalls: readonly LlmStepToolCall[];
+  readonly content: readonly LlmStepContentPart[];
+  readonly performance: { readonly toolExecutionMs: Readonly<Record<string, number>> };
   readonly usage: LanguageModelUsage;
 }
 

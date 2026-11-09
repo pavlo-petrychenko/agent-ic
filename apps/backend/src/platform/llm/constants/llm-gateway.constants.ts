@@ -6,6 +6,17 @@ export enum LlmMessageRole {
   Assistant = 'assistant',
 }
 
+export enum LlmToolCallStatus {
+  Ok = 'ok',
+  Error = 'error',
+}
+
+export enum LlmStepContentType {
+  ToolResult = 'tool-result',
+  ToolError = 'tool-error',
+}
+
+export const LLM_TOOL_ERROR_UNKNOWN = 'The tool failed';
 export const LLM_OUTPUT_RETRIES = 1;
 export const LLM_REPLY_NUDGES = 1;
 export const LLM_COMPLETE_ROUNDS = LLM_OUTPUT_RETRIES + 1;

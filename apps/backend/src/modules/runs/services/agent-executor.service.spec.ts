@@ -17,6 +17,7 @@ import { ConversationMode, ConversationState, MessageAuthor } from '@/modules/co
 import { AGENT_EXITS_CONTRACT } from '@/modules/runs/constants/agent-exit.constants';
 import { AGENT_MAX_TOOL_ROUNDS } from '@/modules/runs/constants/llm-step.constants';
 import { RunStatus, RunStepStatus } from '@/modules/runs/constants/run.constants';
+import { RunToolCallStatus } from '@/modules/runs/constants/tool-call.constants';
 import { EnvVar } from '@/platform/config/constants/env.constants';
 import {
   LLM_OUTPUT_INVALID_FEEDBACK,
@@ -72,6 +73,8 @@ const send = sendListNode(SEND_NODE_ID, SEND_NODE_KEY, `${TEST_STEP_NODE_KEY}.me
 const answer = { messages: [TEST_AGENT_REPLY], [TEST_MOOD_FIELD]: TEST_MOOD };
 const invalidAnswer = { messages: [TEST_AGENT_REPLY] };
 const FEEDBACK_ROUNDS = 2;
+const MISSING_TOOL = 'search_menu';
+const MISSING_TOOL_INPUT = { query: 'vegan' };
 const HANDOFF_WHEN = 'The customer asks for a person.';
 const END_WHEN = 'The customer says goodbye.';
 const OUTCOME_REASON = 'The customer asked for a manager.';
@@ -178,6 +181,34 @@ describe('AgentExecutor', () => {
       output: answer,
     });
     expect(sent?.scope.variables).toMatchObject({ [TEST_STEP_NODE_KEY]: answer });
+  });
+
+  it('keeps the tool calls of the step next to its output, not in the flow variables', async () => {
+    const seeded = await seedExecutableRun(
+      testbed,
+      agentThenSend(),
+      [],
+      ConversationMode.Live,
+      workspaceId,
+    );
+    mock.toolCall(MISSING_TOOL, MISSING_TOOL_INPUT).json(answer);
+
+    expect(await execute(seeded)).toBe(RunStatus.Succeeded);
+
+    const sent = testbed.executor.executions.find(({ run }) => run.id === seeded.run.id);
+    expect(await stepOf(seeded, TEST_STEP_NODE_ID)).toMatchObject({
+      output: answer,
+      toolCalls: [
+        {
+          name: MISSING_TOOL,
+          status: RunToolCallStatus.Error,
+          input: MISSING_TOOL_INPUT,
+          output: null,
+          error: expect.stringContaining(MISSING_TOOL),
+        },
+      ],
+    });
+    expect(sent?.scope.variables[TEST_STEP_NODE_KEY]).toEqual(answer);
   });
 
   it('retries a failed answer and then succeeds', async () => {

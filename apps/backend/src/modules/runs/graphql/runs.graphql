@@ -87,8 +87,23 @@ type RunStep {
   output: JSON
   port: String
   error: RunFailure
+  toolCalls: [RunToolCall!]!
   startedAt: String!
   finishedAt: String
+  durationMs: Int
+}
+
+enum RunToolCallStatus {
+  ok
+  error
+}
+
+type RunToolCall {
+  name: String!
+  status: RunToolCallStatus!
+  input: JSON
+  output: JSON
+  error: String
   durationMs: Int
 }
 

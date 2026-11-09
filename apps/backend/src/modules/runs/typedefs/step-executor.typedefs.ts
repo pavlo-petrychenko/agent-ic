@@ -3,6 +3,7 @@ import type { Message } from '@/modules/conversations';
 import type { ResolvedPrompts } from '@/modules/prompts';
 import type { StepData } from '@/modules/runs/typedefs/run-step.typedefs';
 import type { Run } from '@/modules/runs/typedefs/run.typedefs';
+import type { RunToolCall } from '@/modules/runs/typedefs/tool-call.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
 
 export interface StepScope {
@@ -19,6 +20,7 @@ export interface StepExecution<TNode extends FlowNode> {
   readonly node: TNode;
   readonly branchKey: string;
   readonly scope: StepScope;
+  readonly onToolCalls?: (toolCalls: readonly RunToolCall[]) => void;
 }
 
 export interface StepOutcome {

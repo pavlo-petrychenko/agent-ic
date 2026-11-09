@@ -11,7 +11,10 @@ import {
   knowledgeToolInputSchema,
 } from '@/modules/knowledge/constants/knowledge-tool.constants';
 import { KnowledgeBaseNotFoundError } from '@/modules/knowledge/errors/knowledge-base-not-found.error';
-import { presentScopeId } from '@/modules/knowledge/helpers/knowledge-tool.helpers';
+import {
+  isKnowledgeToolFailure,
+  presentScopeId,
+} from '@/modules/knowledge/helpers/knowledge-tool.helpers';
 import { DocumentsRepository } from '@/modules/knowledge/repositories/documents.repository';
 import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowledge-bases.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
@@ -63,6 +66,7 @@ export class KnowledgeToolsService {
         inputSchema: knowledgeToolInputSchema,
         execute: async (input: unknown): Promise<unknown> =>
           this.execute(workspaceId, knowledgeBase.id, knowledgeBase.name, input),
+        failed: isKnowledgeToolFailure,
       };
     }
     return tools;

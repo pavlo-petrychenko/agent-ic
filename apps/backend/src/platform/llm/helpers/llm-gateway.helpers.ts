@@ -27,8 +27,11 @@ import {
   LLM_REPLY_TOOL_NAME,
   LLM_SDK_MAX_RETRIES,
   LLM_TIMEOUT_ERROR_NAME,
+  LLM_TOOL_ERROR_UNKNOWN,
   LLM_UPSTREAM,
   LlmMessageRole,
+  LlmStepContentType,
+  LlmToolCallStatus,
 } from '@/platform/llm/constants/llm-gateway.constants';
 import { LlmStructuredOutput } from '@/platform/llm/constants/llm-model.constants';
 import {
@@ -47,6 +50,7 @@ import type {
   LlmRunState,
   LlmRunTracker,
   LlmStep,
+  LlmToolCall,
   LlmTools,
   LlmUsage,
 } from '@/platform/llm/typedefs/llm-gateway.typedefs';
@@ -185,17 +189,48 @@ export const agentProgress = (maxToolRounds: number, state: LlmRunState): LlmAge
 
 export const untrackedRunState: LlmRunTracker = (state) => state;
 
-export const afterStep = (state: LlmRunState, step: LlmStep): LlmRunState => ({
+export const toolErrorText = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return typeof error === 'string' ? error : LLM_TOOL_ERROR_UNKNOWN;
+};
+
+export const stepToolCalls = (step: LlmStep, tools: LlmTools): LlmToolCall[] =>
+  step.toolCalls
+    .filter(({ toolName }) => toolName !== LLM_REPLY_TOOL_NAME)
+    .map(({ toolCallId, toolName, input }) => {
+      const parts = step.content.filter((part) => part.toolCallId === toolCallId);
+      const failure = parts.find(({ type }) => type === LlmStepContentType.ToolError);
+      const durationMs = step.performance.toolExecutionMs[toolCallId] ?? null;
+      if (failure !== undefined) {
+        return {
+          name: toolName,
+          input,
+          status: LlmToolCallStatus.Error,
+          output: null,
+          error: toolErrorText(failure.error),
+          durationMs,
+        };
+      }
+      const output = parts.find(({ type }) => type === LlmStepContentType.ToolResult)?.output;
+      const failed = output !== undefined && (tools[toolName]?.failed?.(output) ?? false);
+      return {
+        name: toolName,
+        input,
+        status: failed ? LlmToolCallStatus.Error : LlmToolCallStatus.Ok,
+        output: output ?? null,
+        error: null,
+        durationMs,
+      };
+    });
+
+export const afterStep = (state: LlmRunState, step: LlmStep, tools: LlmTools): LlmRunState => ({
   ...state,
   messages: [...state.messages, ...step.response.messages],
   roundsLeft: state.roundsLeft - 1,
   usage: addUsage(state.usage, step.usage),
-  toolCalls: [
-    ...state.toolCalls,
-    ...step.toolCalls
-      .filter(({ toolName }) => toolName !== LLM_REPLY_TOOL_NAME)
-      .map(({ toolName, input }) => ({ name: toolName, input })),
-  ],
+  toolCalls: [...state.toolCalls, ...stepToolCalls(step, tools)],
 });
 
 export const usageBetween = (before: LlmUsage, after: LlmUsage): LlmUsage => ({

@@ -26,10 +26,12 @@ import type {
   ExitRecipients,
   OutputView,
   RunStepView,
+  RunToolCallView,
   StepContext,
   StepSectionView,
+  ToolCallEntry,
 } from '@/features/testing/typedefs/trace.typedefs';
-import { RunStepStatus } from '@/shared/api/generated/schema.generated';
+import { RunStepStatus, RunToolCallStatus } from '@/shared/api/generated/schema.generated';
 
 const NO_STEP_CONTEXT: StepContext = { node: null, flow: null, texts: [] };
 
@@ -152,6 +154,35 @@ export const toStepView = (
     : toOutputView(step.output, locale, context);
 };
 
+export const toToolCallEntry = (
+  call: RunToolCallView,
+  index: number,
+  locale: string,
+): ToolCallEntry => {
+  const failed = call.status === RunToolCallStatus.Error;
+  return {
+    id: String(index),
+    name: call.name,
+    failed,
+    duration:
+      call.durationMs === null ? null : new Intl.NumberFormat(locale).format(call.durationMs),
+    input: JSON.stringify(call.input, null, JSON_INDENT),
+    output: call.output === null ? null : JSON.stringify(call.output, null, JSON_INDENT),
+    error: call.error,
+  };
+};
+
+export const toolCallsView = (
+  calls: readonly RunToolCallView[],
+  locale: string,
+): OutputView | null =>
+  calls.length === 0
+    ? null
+    : {
+        kind: OutputViewKind.ToolCalls,
+        calls: calls.map((call, index) => toToolCallEntry(call, index, locale)),
+      };
+
 export const inspectStep = (
   step: RunStepView,
   locale: string,
@@ -160,6 +191,7 @@ export const inspectStep = (
   const failed = step.status === RunStepStatus.Failed;
   const views = {
     [StepSection.Input]: toOutputView(step.input, locale, NO_STEP_CONTEXT),
+    [StepSection.ToolCalls]: toolCallsView(step.toolCalls, locale),
     [StepSection.Output]: failed ? null : toOutputView(step.output, locale, context),
     [StepSection.Error]: failed ? { kind: OutputViewKind.Error, message: step.errorMessage } : null,
   } satisfies Record<StepSection, OutputView | null>;

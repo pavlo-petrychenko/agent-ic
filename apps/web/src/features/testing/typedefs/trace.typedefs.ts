@@ -14,7 +14,11 @@ import type {
   TraceExit,
   TurnOutcome,
 } from '@/features/testing/constants/trace.constants';
-import type { RunStatus, RunStepStatus } from '@/shared/api/generated/schema.generated';
+import type {
+  RunStatus,
+  RunStepStatus,
+  RunToolCallStatus,
+} from '@/shared/api/generated/schema.generated';
 import type { NodeKind } from '@/shared/ui/display/NodeTile';
 import type { RunNodeState } from '@/shared/ui/flow/RunNode';
 import type { IconName } from '@/shared/ui/foundations/Icon';
@@ -28,6 +32,26 @@ export interface RunStepView {
   input: unknown;
   output: unknown;
   errorMessage: string | null;
+  toolCalls: readonly RunToolCallView[];
+}
+
+export interface RunToolCallView {
+  name: string;
+  status: RunToolCallStatus;
+  input: unknown;
+  output: unknown;
+  error: string | null;
+  durationMs: number | null;
+}
+
+export interface ToolCallEntry {
+  id: string;
+  name: string;
+  failed: boolean;
+  duration: string | null;
+  input: string;
+  output: string | null;
+  error: string | null;
 }
 
 export interface RunTotalsView {
@@ -107,7 +131,8 @@ export type OutputView =
   | { kind: OutputViewKind.Error; message: string | null }
   | EscalationView
   | AgentExitView
-  | { kind: OutputViewKind.AutoClose; after: string | null };
+  | { kind: OutputViewKind.AutoClose; after: string | null }
+  | { kind: OutputViewKind.ToolCalls; calls: readonly ToolCallEntry[] };
 
 export type ExitRecipients =
   | { kind: RecipientsKind.Operators }

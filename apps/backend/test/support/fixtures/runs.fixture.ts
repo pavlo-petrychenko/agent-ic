@@ -511,6 +511,7 @@ export const finishedStep = (
   output: status === RunStepStatus.Succeeded ? { answer: node.key } : null,
   port,
   error: null,
+  toolCalls: null,
   startedAt: RUNS_TEST_START,
   finishedAt: RUNS_TEST_START,
 });

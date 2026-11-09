@@ -22,11 +22,12 @@ import {
   formatSeconds,
   inspectStep,
   toOutputView,
+  toolCallsView,
   toStepView,
   withHandBack,
 } from '@/features/testing/logic/helpers/output.helpers';
 import type { EscalationView, StepContext } from '@/features/testing/typedefs/trace.typedefs';
-import { RunStepStatus } from '@/shared/api/generated/schema.generated';
+import { RunStepStatus, RunToolCallStatus } from '@/shared/api/generated/schema.generated';
 
 const step = {
   id: 'step_1',
@@ -35,6 +36,7 @@ const step = {
   input: { message: { text: 'Hi' } },
   output: { ok: true },
   errorMessage: null,
+  toolCalls: [],
 };
 
 const NOTHING: StepContext = { node: null, flow: null, texts: [] };
@@ -242,6 +244,14 @@ describe('inspectStep', () => {
     ]);
   });
 
+  it('shows the tool calls of a step between its input and its output', () => {
+    expect(
+      inspectStep({ ...step, toolCalls: [SEARCH_CALL] }, 'en', at(AGENT)).map(
+        ({ section }) => section,
+      ),
+    ).toEqual([StepSection.Input, StepSection.ToolCalls, StepSection.Output]);
+  });
+
   it('shows the error of a failed step instead of its output', () => {
     const failed = { ...step, status: RunStepStatus.Failed, errorMessage: 'Timed out' };
 
@@ -249,6 +259,59 @@ describe('inspectStep', () => {
       StepSection.Input,
       StepSection.Error,
     ]);
+  });
+});
+
+const SEARCH_CALL = {
+  name: 'search_menu',
+  status: RunToolCallStatus.Ok,
+  input: { query: 'vegan' },
+  output: { found: true },
+  error: null,
+  durationMs: 1250,
+};
+
+describe('toolCallsView', () => {
+  it('shows nothing for a step without tool calls', () => {
+    expect(toolCallsView([], 'en')).toBeNull();
+  });
+
+  it('formats the arguments and the result as JSON and the duration for the locale', () => {
+    expect(toolCallsView([SEARCH_CALL], 'en')).toEqual({
+      kind: OutputViewKind.ToolCalls,
+      calls: [
+        {
+          id: '0',
+          name: 'search_menu',
+          failed: false,
+          duration: '1,250',
+          input: '{\n  "query": "vegan"\n}',
+          output: '{\n  "found": true\n}',
+          error: null,
+        },
+      ],
+    });
+  });
+
+  it('marks a failed call and shows its error instead of a result', () => {
+    const failed = {
+      ...SEARCH_CALL,
+      status: RunToolCallStatus.Error,
+      output: null,
+      error: 'The search is not available',
+      durationMs: null,
+    };
+
+    expect(toolCallsView([failed], 'en')).toMatchObject({
+      calls: [
+        {
+          failed: true,
+          duration: null,
+          output: null,
+          error: 'The search is not available',
+        },
+      ],
+    });
   });
 });
 
