@@ -70,6 +70,7 @@ export class ConversationsRepository {
 
   listLive(
     workspaceId: string,
+    states: readonly ConversationState[],
     limit: number,
     after: { readonly lastMessageAt: Date; readonly id: string } | null,
   ): Promise<Conversation[]> {
@@ -90,11 +91,25 @@ export class ConversationsRepository {
         and(
           eq(conversations.workspaceId, workspaceId),
           eq(conversations.mode, ConversationMode.Live),
+          inArray(conversations.state, [...states]),
           cursor,
         ),
       )
       .orderBy(desc(conversations.lastMessageAt), desc(conversations.id))
       .limit(limit);
+  }
+
+  countByState(workspaceId: string): Promise<Array<{ state: ConversationState; total: number }>> {
+    return this.txHost.tx
+      .select({ state: conversations.state, total: count() })
+      .from(conversations)
+      .where(
+        and(
+          eq(conversations.workspaceId, workspaceId),
+          eq(conversations.mode, ConversationMode.Live),
+        ),
+      )
+      .groupBy(conversations.state);
   }
 
   async countNeedsYou(workspaceId: string): Promise<number> {

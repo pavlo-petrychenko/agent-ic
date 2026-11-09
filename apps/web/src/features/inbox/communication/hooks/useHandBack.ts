@@ -10,7 +10,11 @@ export function useHandBack() {
     async (conversationId: string) => {
       await handBackConversation({
         variables: { input: { conversationId } },
-        refetchQueries: [{ query: InboxNeedsYouCountDocument }, 'InboxConversations'],
+        refetchQueries: [
+          { query: InboxNeedsYouCountDocument },
+          'InboxConversations',
+          'InboxCounts',
+        ],
         awaitRefetchQueries: true,
       });
     },

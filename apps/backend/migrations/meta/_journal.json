@@ -351,6 +351,13 @@
       "when": 1794135602822,
       "tag": "0049_notification_email_verification",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1794237501326,
+      "tag": "0050_wandering_sebastian_shaw",
+      "breakpoints": true
     }
   ]
 }

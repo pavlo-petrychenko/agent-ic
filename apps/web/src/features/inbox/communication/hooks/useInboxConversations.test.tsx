@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { InboxConversationsDocument } from '@/features/inbox/communication/gql/query/inboxConversations.generated';
 import { useInboxConversations } from '@/features/inbox/communication/hooks/useInboxConversations';
 import { INBOX_CONVERSATIONS_PAGE_SIZE } from '@/features/inbox/constants/inbox.constants';
+import { InboxQueue } from '@/shared/api/generated/schema.generated';
 
 const summary = (index: number) => ({
   __typename: 'InboxConversationSummary' as const,
@@ -37,8 +38,8 @@ if (last === undefined) {
 }
 const secondPage = [summary(INBOX_CONVERSATIONS_PAGE_SIZE)];
 
-function Harness() {
-  const { summaries, loadMore, loadingMore, hasMore } = useInboxConversations();
+function Harness({ queue }: { readonly queue: InboxQueue }) {
+  const { summaries, loadMore, loadingMore, hasMore } = useInboxConversations(queue);
   return (
     <div>
       <span>{summaries.length}</span>
@@ -58,7 +59,7 @@ describe('useInboxConversations', () => {
           {
             request: {
               query: InboxConversationsDocument,
-              variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null },
+              variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null, queue: 'needs_you' },
             },
             result: { data: { inboxConversations: firstPage } },
           },
@@ -68,13 +69,14 @@ describe('useInboxConversations', () => {
               variables: {
                 limit: INBOX_CONVERSATIONS_PAGE_SIZE,
                 after: { lastMessageAt: last.lastMessageAt, id: last.id },
+                queue: 'needs_you',
               },
             },
             result: { data: { inboxConversations: secondPage } },
           },
         ]}
       >
-        <Harness />
+        <Harness queue={InboxQueue.NeedsYou} />
       </MockedProvider>,
     );
 
@@ -87,5 +89,70 @@ describe('useInboxConversations', () => {
       expect(screen.getByText(String(INBOX_CONVERSATIONS_PAGE_SIZE + 1))).toBeInTheDocument(),
     );
     expect(screen.getByText('done')).toBeInTheDocument();
+  });
+
+  it('drops the older pages when the queue changes', async () => {
+    const view = render(
+      <MockedProvider
+        mocks={[
+          {
+            request: {
+              query: InboxConversationsDocument,
+              variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null, queue: 'needs_you' },
+            },
+            result: { data: { inboxConversations: firstPage } },
+            maxUsageCount: Number.POSITIVE_INFINITY,
+          },
+          {
+            request: {
+              query: InboxConversationsDocument,
+              variables: {
+                limit: INBOX_CONVERSATIONS_PAGE_SIZE,
+                after: { lastMessageAt: last.lastMessageAt, id: last.id },
+                queue: 'needs_you',
+              },
+            },
+            result: { data: { inboxConversations: secondPage } },
+            maxUsageCount: Number.POSITIVE_INFINITY,
+          },
+          {
+            request: {
+              query: InboxConversationsDocument,
+              variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null, queue: 'live' },
+            },
+            result: { data: { inboxConversations: [summary(99)] } },
+            maxUsageCount: Number.POSITIVE_INFINITY,
+          },
+        ]}
+      >
+        <Harness queue={InboxQueue.NeedsYou} />
+      </MockedProvider>,
+    );
+
+    await screen.findByText(String(INBOX_CONVERSATIONS_PAGE_SIZE));
+    await userEvent.click(screen.getByRole('button', { name: 'load' }));
+    await waitFor(() =>
+      expect(screen.getByText(String(INBOX_CONVERSATIONS_PAGE_SIZE + 1))).toBeInTheDocument(),
+    );
+
+    view.rerender(
+      <MockedProvider
+        mocks={[
+          {
+            request: {
+              query: InboxConversationsDocument,
+              variables: { limit: INBOX_CONVERSATIONS_PAGE_SIZE, after: null, queue: 'live' },
+            },
+            result: { data: { inboxConversations: [summary(99)] } },
+            maxUsageCount: Number.POSITIVE_INFINITY,
+          },
+        ]}
+      >
+        <Harness queue={InboxQueue.Live} />
+      </MockedProvider>,
+    );
+
+    expect(await screen.findByText('1')).toBeInTheDocument();
+    expect(screen.queryByText(String(INBOX_CONVERSATIONS_PAGE_SIZE + 1))).not.toBeInTheDocument();
   });
 });

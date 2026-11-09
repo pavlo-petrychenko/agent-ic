@@ -2,6 +2,7 @@ query InboxConversation($id: ID!) {
   inboxConversation(input: { id: $id }) {
     summary {
       id
+      state
     }
     details {
       guard {
