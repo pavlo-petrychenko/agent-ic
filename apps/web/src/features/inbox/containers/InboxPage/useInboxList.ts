@@ -7,6 +7,7 @@ import { INBOX_NAMESPACE } from '@/features/inbox/constants/inboxI18n.constants'
 import type { InboxListResult } from '@/features/inbox/containers/InboxPage/InboxPage.typedefs';
 import {
   countConversationsByTab,
+  inboxTabOf,
   matchesInboxFilters,
   visibleConversations,
 } from '@/features/inbox/logic/helpers/inbox.helpers';
@@ -99,7 +100,7 @@ export function useInboxList(
   };
 
   const onTabChange = (tab: InboxTab) => {
-    setActiveTab(tab);
+    setSelectedTab(tab);
     selectFirstMatching(channelIds, agentIds, tab, search);
   };
   const onChannelIdsChange = (ids: string[]) => {
@@ -109,11 +110,6 @@ export function useInboxList(
   const onAgentIdsChange = (ids: string[]) => {
     setAgentIds(ids);
     selectFirstMatching(channelIds, ids, activeTab, search);
-    setSelectedTab(tab);
-    const current = conversations.find((conversation) => conversation.id === effectiveSelectedId);
-    if (current === undefined || inboxTabOf(current) !== tab) {
-      selectConversation(firstConversationId(conversations, tab));
-    }
   };
 
   return {
