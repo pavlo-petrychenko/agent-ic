@@ -13,3 +13,5 @@ export type { ChangeText, PublishDiff } from '@/features/flow-builder/typedefs/p
 export { toFlowIssues } from '@/features/flow-builder/communication/helpers/draft.helpers';
 export { useBlockingIssueTexts } from '@/features/flow-builder/logic/hooks/useBlockingIssueTexts';
 export type { IssueText } from '@/features/flow-builder/typedefs/issueText.typedefs';
+export { toFlowThumbnail } from '@/features/flow-builder/logic/helpers/flowThumbnail.helpers';
+export type { FlowThumbnailGraph } from '@/features/flow-builder/typedefs/flowThumbnail.typedefs';

@@ -1,0 +1,107 @@
+$kinds:
+  trig, agent, compl, router, par, wait, send, api, kb, tool, var, esc, gen, neutral, info, ok,
+  warn, err;
+$edge-width: 1.4px;
+$card-width: 1px;
+$ring-width: 2px;
+$dimmed-opacity: 0.55;
+$story-narrow-width: 200px;
+$story-wide-width: 640px;
+
+.root {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+  overflow: visible;
+  color: var(--color-ink);
+}
+
+.fixedHeight {
+  width: 100%;
+}
+
+.edge {
+  fill: none;
+  stroke: var(--color-edge);
+  stroke-width: $edge-width;
+  stroke-linecap: round;
+  transition: opacity var(--duration-base) var(--ease-standard);
+}
+
+.arrow {
+  fill: var(--color-edge);
+}
+
+.node {
+  --tile-bg: var(--color-soft);
+  --tile-fg: var(--color-ink);
+
+  transition: opacity var(--duration-base) var(--ease-standard);
+}
+
+@each $kind in $kinds {
+  .#{$kind} {
+    --tile-bg: var(--hue-#{$kind}-bg);
+    --tile-fg: var(--hue-#{$kind}-fg);
+  }
+}
+
+.accent {
+  --tile-bg: var(--color-accent);
+  --tile-fg: var(--color-on-accent);
+}
+
+.dimmed {
+  opacity: $dimmed-opacity;
+}
+
+.card {
+  fill: var(--color-card);
+  stroke: var(--color-line-node);
+  stroke-width: $card-width;
+}
+
+.badge {
+  fill: var(--tile-bg);
+}
+
+.icon {
+  color: var(--tile-fg);
+}
+
+.label {
+  dominant-baseline: central;
+  fill: var(--color-ink);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.ring {
+  fill: var(--color-accent-glow);
+  stroke: var(--color-accent);
+  stroke-width: $ring-width;
+}
+
+.storyNarrow {
+  width: $story-narrow-width;
+}
+
+.storyWide {
+  max-width: $story-wide-width;
+}
+
+.storyCard {
+  padding: var(--space-16);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-12);
+  background: var(--color-card);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edge,
+  .node {
+    transition: none;
+  }
+}
