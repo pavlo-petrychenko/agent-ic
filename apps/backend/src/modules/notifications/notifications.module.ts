@@ -7,10 +7,13 @@ import { SendPasswordResetEmailListener } from '@/modules/notifications/listener
 import { NotificationSettingsRepository } from '@/modules/notifications/repositories/notification-settings.repository';
 import { NotificationsRepository } from '@/modules/notifications/repositories/notifications.repository';
 import { NotificationSettingsResolver } from '@/modules/notifications/resolvers/notification-settings.resolver';
+import { NotificationResolver } from '@/modules/notifications/resolvers/notification.resolver';
 import { NotificationMetricsService } from '@/modules/notifications/services/notification-metrics.service';
 import { NotificationRecipientsService } from '@/modules/notifications/services/notification-recipients.service';
 import { NotificationSettingsService } from '@/modules/notifications/services/notification-settings.service';
+import { CountUnreadNotificationsUseCase } from '@/modules/notifications/use-cases/count-unread-notifications.use-case';
 import { GetNotificationSettingsUseCase } from '@/modules/notifications/use-cases/get-notification-settings.use-case';
+import { MarkNotificationsReadUseCase } from '@/modules/notifications/use-cases/mark-notifications-read.use-case';
 import { SendConfirmationEmailUseCase } from '@/modules/notifications/use-cases/send-confirmation-email.use-case';
 import { SendEmailChangeEmailUseCase } from '@/modules/notifications/use-cases/send-email-change-email.use-case';
 import { SendPasswordResetEmailUseCase } from '@/modules/notifications/use-cases/send-password-reset-email.use-case';
@@ -37,11 +40,13 @@ export class NotificationsModule extends defineModule({
     GetNotificationSettingsUseCase,
     UpdateNotificationChannelUseCase,
     UpdateNotificationEmailUseCase,
+    CountUnreadNotificationsUseCase,
+    MarkNotificationsReadUseCase,
     SendConfirmationEmailUseCase,
     SendPasswordResetEmailUseCase,
     SendEmailChangeEmailUseCase,
   ],
-  resolvers: [NotificationSettingsResolver],
+  resolvers: [NotificationSettingsResolver, NotificationResolver],
   listeners: [
     SendConfirmationEmailListener,
     SendPasswordResetEmailListener,
