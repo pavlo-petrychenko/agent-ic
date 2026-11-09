@@ -1,3 +1,4 @@
+import { AgentsModule } from '@/modules/agents';
 import { EmailGateway } from '@/modules/notifications/gateways/email.gateway';
 import { createEmailGateway } from '@/modules/notifications/helpers/email-gateway.helpers';
 import { SendConfirmationEmailListener } from '@/modules/notifications/listeners/send-confirmation-email.listener';
@@ -6,6 +7,7 @@ import { SendPasswordResetEmailListener } from '@/modules/notifications/listener
 import { NotificationSettingsRepository } from '@/modules/notifications/repositories/notification-settings.repository';
 import { NotificationSettingsResolver } from '@/modules/notifications/resolvers/notification-settings.resolver';
 import { NotificationMetricsService } from '@/modules/notifications/services/notification-metrics.service';
+import { NotificationRecipientsService } from '@/modules/notifications/services/notification-recipients.service';
 import { NotificationSettingsService } from '@/modules/notifications/services/notification-settings.service';
 import { GetNotificationSettingsUseCase } from '@/modules/notifications/use-cases/get-notification-settings.use-case';
 import { SendConfirmationEmailUseCase } from '@/modules/notifications/use-cases/send-confirmation-email.use-case';
@@ -18,6 +20,7 @@ import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpe
 
 export class NotificationsModule extends defineModule({
   global: true,
+  imports: [AgentsModule],
   providers: [
     {
       provide: EmailGateway,
@@ -28,6 +31,7 @@ export class NotificationsModule extends defineModule({
     NotificationMetricsService,
     NotificationSettingsRepository,
     NotificationSettingsService,
+    NotificationRecipientsService,
     GetNotificationSettingsUseCase,
     UpdateNotificationChannelUseCase,
     UpdateNotificationEmailUseCase,

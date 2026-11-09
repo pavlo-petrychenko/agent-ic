@@ -335,6 +335,7 @@ export const sendMessageNode = (): SendMessageNode => ({
 
 export const escalateNode = (
   recipients: EscalationRecipients = { kind: RecipientsKind.Operators },
+  channels: readonly NotifyChannel[] = [NotifyChannel.InPlatform],
 ): EscalationNode => ({
   id: ESCALATION_NODE_ID,
   key: ESCALATION_NODE_KEY,
@@ -347,7 +348,7 @@ export const escalateNode = (
     reason: TEST_ESCALATION_REASON,
     notify: {
       recipients,
-      channels: [NotifyChannel.InPlatform],
+      channels: [...channels],
     },
     reminderAfterMinutes: null,
     fallbackAfterMinutes: null,
