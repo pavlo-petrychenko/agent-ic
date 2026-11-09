@@ -13,6 +13,7 @@ import { ExecuteRunProcessor } from '@/modules/runs/processors/execute-run.proce
 import { FireInactivityTimerProcessor } from '@/modules/runs/processors/fire-inactivity-timer.processor';
 import { FireScheduleTickProcessor } from '@/modules/runs/processors/fire-schedule-tick.processor';
 import { SweepInactivityTimersProcessor } from '@/modules/runs/processors/sweep-inactivity-timers.processor';
+import { SweepNotificationDeliveriesProcessor } from '@/modules/runs/processors/sweep-notification-deliveries.processor';
 import { SweepScheduleTriggersProcessor } from '@/modules/runs/processors/sweep-schedule-triggers.processor';
 import { InactivitySweepRepository } from '@/modules/runs/repositories/inactivity-sweep.repository';
 import { InactivityTimersRepository } from '@/modules/runs/repositories/inactivity-timers.repository';
@@ -67,6 +68,7 @@ import { SimulateSilenceUseCase } from '@/modules/runs/use-cases/simulate-silenc
 import { StartRunOnMessageUseCase } from '@/modules/runs/use-cases/start-run-on-message.use-case';
 import { SubscribeToRunStepsUseCase } from '@/modules/runs/use-cases/subscribe-to-run-steps.use-case';
 import { SweepInactivityTimersUseCase } from '@/modules/runs/use-cases/sweep-inactivity-timers.use-case';
+import { SweepNotificationDeliveriesUseCase } from '@/modules/runs/use-cases/sweep-notification-deliveries.use-case';
 import { SweepScheduleTriggersUseCase } from '@/modules/runs/use-cases/sweep-schedule-triggers.use-case';
 import { CacheModule } from '@/platform/cache/cache.module';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
@@ -131,6 +133,7 @@ export class RunsModule extends defineModule({
     DeliverNotificationUseCase,
     ArmInactivityOnHandBackUseCase,
     SweepInactivityTimersUseCase,
+    SweepNotificationDeliveriesUseCase,
     FireInactivityTimerUseCase,
     SimulateSilenceUseCase,
     ExecuteRunUseCase,
@@ -159,6 +162,7 @@ export class RunsModule extends defineModule({
     SweepInactivityTimersProcessor,
     FireInactivityTimerProcessor,
     SweepScheduleTriggersProcessor,
+    SweepNotificationDeliveriesProcessor,
     FireScheduleTickProcessor,
     DeliverNotificationProcessor,
   ],

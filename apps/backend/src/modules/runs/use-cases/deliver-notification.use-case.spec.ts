@@ -25,6 +25,7 @@ import { ConfigService } from '@/platform/config/services/config.service';
 import type { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import type { IdService } from '@/platform/ids/services/id.service';
 import { TelegramParseMode } from '@/platform/telegram/constants/telegram.constants';
+import { TelegramApiError } from '@/platform/telegram/errors/telegram-api.error';
 import { FakeTelegramGateway } from '@/platform/telegram/gateways/telegram.fake';
 import { workspaceSystemCtx } from '@test/support/fixtures/conversation.fixture';
 
@@ -48,6 +49,10 @@ const pendingDelivery: NotificationDeliveryRecord = {
   status: NotificationDeliveryStatus.Pending,
   sentAt: null,
   readAt: null,
+  attempts: 0,
+  nextAttemptAt: NOW,
+  lockedUntil: null,
+  lastError: null,
   createdAt: NOW,
   updatedAt: NOW,
 };
@@ -58,10 +63,22 @@ const pendingTelegramDelivery: NotificationDeliveryRecord = {
   channel: NotificationChannel.Telegram,
 };
 
+const claimedDelivery: NotificationDeliveryRecord = {
+  ...pendingDelivery,
+  attempts: 1,
+  lockedUntil: new Date(NOW.getTime() + 60_000),
+};
+
+const claimedTelegramDelivery: NotificationDeliveryRecord = {
+  ...pendingTelegramDelivery,
+  attempts: 1,
+  lockedUntil: new Date(NOW.getTime() + 60_000),
+};
+
 describe('DeliverNotificationUseCase', () => {
   const run = vi.fn<(workspaceId: string, work: () => Promise<unknown>) => Promise<unknown>>();
   const findNotification = vi.fn<NotificationsRepository['findById']>();
-  const findDelivery = vi.fn<NotificationsRepository['findDelivery']>();
+  const claimDelivery = vi.fn<NotificationsRepository['claimDelivery']>();
   const markDelivered = vi.fn<NotificationsRepository['markDeliveryDelivered']>();
   const markFailed = vi.fn<NotificationsRepository['markDeliveryFailed']>();
   const describeSettings = vi.fn<NotificationSettingsService['describe']>();
@@ -83,7 +100,7 @@ describe('DeliverNotificationUseCase', () => {
   beforeEach(() => {
     run.mockReset();
     findNotification.mockReset();
-    findDelivery.mockReset();
+    claimDelivery.mockReset();
     markDelivered.mockReset();
     markFailed.mockReset();
     describeSettings.mockReset();
@@ -106,7 +123,7 @@ describe('DeliverNotificationUseCase', () => {
       prefix === IdPrefix.Workspace ? 'ws_public' : 'cnv_public',
     );
     findNotification.mockResolvedValue(notification);
-    findDelivery.mockResolvedValue(pendingDelivery);
+    claimDelivery.mockResolvedValue(claimedDelivery);
     telegramChatId.mockResolvedValue(null);
     describeSettings.mockResolvedValue({
       platform: { enabled: true },
@@ -159,7 +176,7 @@ describe('DeliverNotificationUseCase', () => {
       { run } as unknown as TenantTransactionService,
       {
         findById: findNotification,
-        findDelivery,
+        claimDelivery,
         markDeliveryDelivered: markDelivered,
         markDeliveryFailed: markFailed,
       } as unknown as NotificationsRepository,
@@ -211,15 +228,19 @@ describe('DeliverNotificationUseCase', () => {
         html: expect.stringContaining('https://app.test/w/ws_public/inbox?conversation=cnv_public'),
       }),
     );
+    expect(claimDelivery).toHaveBeenCalledWith(
+      'workspace-1',
+      'notification-1',
+      NotificationChannel.Email,
+      NOW,
+      new Date(NOW.getTime() + 60_000),
+    );
     expect(markDelivered).toHaveBeenCalledWith('workspace-1', 'delivery-1', NOW);
     expect(markFailed).not.toHaveBeenCalled();
   });
 
-  it('does not send an already delivered notification', async () => {
-    findDelivery.mockResolvedValue({
-      ...pendingDelivery,
-      status: NotificationDeliveryStatus.Delivered,
-    });
+  it('does not send an already delivered or locked notification', async () => {
+    claimDelivery.mockResolvedValue(null);
 
     await execute();
 
@@ -243,21 +264,39 @@ describe('DeliverNotificationUseCase', () => {
     await execute();
 
     expect(send).not.toHaveBeenCalled();
-    expect(markFailed).toHaveBeenCalledWith('workspace-1', 'delivery-1');
+    expect(markFailed).toHaveBeenCalledWith('workspace-1', 'delivery-1', {
+      nextAttemptAt: null,
+      lastError: null,
+    });
   });
 
-  it('marks the delivery failed and rethrows when the provider fails', async () => {
+  it('marks the delivery failed with the next retry when the provider fails', async () => {
     const error = new Error('smtp down');
     send.mockRejectedValue(error);
 
     await expect(execute()).rejects.toBe(error);
 
-    expect(markFailed).toHaveBeenCalledWith('workspace-1', 'delivery-1');
+    expect(markFailed).toHaveBeenCalledWith('workspace-1', 'delivery-1', {
+      nextAttemptAt: new Date(NOW.getTime() + 30_000),
+      lastError: 'smtp down',
+    });
     expect(markDelivered).not.toHaveBeenCalled();
   });
 
+  it('does not retry after the last attempt', async () => {
+    claimDelivery.mockResolvedValue({ ...claimedDelivery, attempts: 5 });
+    send.mockRejectedValue(new Error('smtp down'));
+
+    await expect(execute()).rejects.toThrow('smtp down');
+
+    expect(markFailed).toHaveBeenCalledWith('workspace-1', 'delivery-1', {
+      nextAttemptAt: null,
+      lastError: 'smtp down',
+    });
+  });
+
   it('sends the escalation alert to the linked Telegram chat', async () => {
-    findDelivery.mockResolvedValue(pendingTelegramDelivery);
+    claimDelivery.mockResolvedValue(claimedTelegramDelivery);
     telegramChatId.mockResolvedValue('42');
 
     await execute(NotificationChannel.Telegram);
@@ -294,25 +333,53 @@ describe('DeliverNotificationUseCase', () => {
   });
 
   it('fails the Telegram delivery without sending when the chat is not linked', async () => {
-    findDelivery.mockResolvedValue(pendingTelegramDelivery);
+    claimDelivery.mockResolvedValue(claimedTelegramDelivery);
     telegramChatId.mockResolvedValue(null);
 
     await execute(NotificationChannel.Telegram);
 
     expect(telegram.sendMessageCalls).toHaveLength(0);
-    expect(markFailed).toHaveBeenCalledWith('workspace-1', 'delivery-2');
+    expect(markFailed).toHaveBeenCalledWith('workspace-1', 'delivery-2', {
+      nextAttemptAt: null,
+      lastError: null,
+    });
     expect(markDelivered).not.toHaveBeenCalled();
   });
 
   it('marks the Telegram delivery failed and rethrows when the provider fails', async () => {
     const error = new Error('telegram down');
-    findDelivery.mockResolvedValue(pendingTelegramDelivery);
+    claimDelivery.mockResolvedValue(claimedTelegramDelivery);
     telegramChatId.mockResolvedValue('42');
     telegram.failNext(error);
 
     await expect(execute(NotificationChannel.Telegram)).rejects.toBe(error);
 
-    expect(markFailed).toHaveBeenCalledWith('workspace-1', 'delivery-2');
+    expect(markFailed).toHaveBeenCalledWith('workspace-1', 'delivery-2', {
+      nextAttemptAt: new Date(NOW.getTime() + 30_000),
+      lastError: 'telegram down',
+    });
     expect(markDelivered).not.toHaveBeenCalled();
+  });
+
+  it('honours the Telegram retry_after value', async () => {
+    const error = new TelegramApiError({
+      method: 'sendMessage',
+      status: 429,
+      errorCode: 429,
+      retryAfterSeconds: 7,
+    });
+    claimDelivery.mockResolvedValue({
+      ...claimedTelegramDelivery,
+      attempts: 2,
+    });
+    telegramChatId.mockResolvedValue('42');
+    telegram.failNext(error);
+
+    await expect(execute(NotificationChannel.Telegram)).rejects.toBe(error);
+
+    expect(markFailed).toHaveBeenCalledWith('workspace-1', 'delivery-2', {
+      nextAttemptAt: new Date(NOW.getTime() + 7_000),
+      lastError: 'An upstream service failed.',
+    });
   });
 });

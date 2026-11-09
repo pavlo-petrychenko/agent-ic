@@ -120,6 +120,10 @@ describe('CreateEscalationNotificationsUseCase', () => {
         channel: NotificationChannel.Platform,
         status: NotificationDeliveryStatus.Delivered,
         sentAt: NOW,
+        attempts: 0,
+        nextAttemptAt: null,
+        lockedUntil: null,
+        lastError: null,
       }),
     );
     expect(insertDeliveryIfAbsent).toHaveBeenNthCalledWith(
@@ -129,6 +133,10 @@ describe('CreateEscalationNotificationsUseCase', () => {
         channel: NotificationChannel.Email,
         status: NotificationDeliveryStatus.Pending,
         sentAt: null,
+        attempts: 0,
+        nextAttemptAt: NOW,
+        lockedUntil: null,
+        lastError: null,
       }),
     );
     expect(insertDeliveryIfAbsent).toHaveBeenNthCalledWith(
@@ -138,6 +146,10 @@ describe('CreateEscalationNotificationsUseCase', () => {
         channel: NotificationChannel.Telegram,
         status: NotificationDeliveryStatus.Pending,
         sentAt: null,
+        attempts: 0,
+        nextAttemptAt: NOW,
+        lockedUntil: null,
+        lastError: null,
       }),
     );
     expect(insertDeliveryIfAbsent).toHaveBeenNthCalledWith(
@@ -147,6 +159,10 @@ describe('CreateEscalationNotificationsUseCase', () => {
         channel: NotificationChannel.Email,
         status: NotificationDeliveryStatus.Pending,
         sentAt: null,
+        attempts: 0,
+        nextAttemptAt: NOW,
+        lockedUntil: null,
+        lastError: null,
       }),
     );
     expect(enqueue).toHaveBeenCalledTimes(3);
