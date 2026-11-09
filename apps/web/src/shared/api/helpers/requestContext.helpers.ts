@@ -1,8 +1,11 @@
+import { DEFAULT_LOCALE } from '@agent-ic/contracts';
+import type { Locale } from '@agent-ic/contracts';
 import type { RequestContextState } from '@/shared/api/typedefs/requestContext.typedefs';
 
 const state: RequestContextState = {
   accessToken: null,
   workspaceId: null,
+  locale: DEFAULT_LOCALE,
 };
 
 const workspaceListeners = new Set<() => void>();
@@ -26,6 +29,10 @@ export const getRequestContext = (): Readonly<RequestContextState> => state;
 
 export const setAccessToken = (accessToken: string | null): void => {
   state.accessToken = accessToken;
+};
+
+export const setRequestLocale = (locale: Locale): void => {
+  state.locale = locale;
 };
 
 export const setWorkspaceId = (workspaceId: string | null): void => {

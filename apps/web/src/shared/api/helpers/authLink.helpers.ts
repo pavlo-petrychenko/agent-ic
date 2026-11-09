@@ -4,8 +4,8 @@ import { getRequestContext } from '@/shared/api/helpers/requestContext.helpers';
 
 export const createAuthLink = (): SetContextLink =>
   new SetContextLink((previous) => {
-    const { accessToken, workspaceId } = getRequestContext();
-    const headers: Record<string, string> = {};
+    const { accessToken, workspaceId, locale } = getRequestContext();
+    const headers: Record<string, string> = { [RequestHeader.AcceptLanguage]: locale };
     if (accessToken !== null) {
       headers[RequestHeader.Authorization] = `${BEARER_SCHEME} ${accessToken}`;
     }

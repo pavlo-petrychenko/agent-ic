@@ -8,6 +8,7 @@ import { loadRuntimeConfig } from '@/shared/config/helpers/runtimeConfig.helpers
 import { createI18n } from '@/shared/i18n/clients/i18n.client';
 import { resolveInitialLocale } from '@/shared/i18n/helpers/locale.helpers';
 import { readStoredLocale } from '@/shared/i18n/helpers/localeStorage.helpers';
+import { bindRequestLocale } from '@/shared/i18n/helpers/requestLocale.helpers';
 
 export async function bootstrap(): Promise<void> {
   const container = document.getElementById(ROOT_ELEMENT_ID);
@@ -16,6 +17,7 @@ export async function bootstrap(): Promise<void> {
   }
   const root = createRoot(container);
   const i18n = createI18n(resolveInitialLocale(readStoredLocale(), navigator.languages));
+  bindRequestLocale(i18n);
 
   try {
     const [config] = await Promise.all([loadRuntimeConfig(), getSessionClient().refresh()]);

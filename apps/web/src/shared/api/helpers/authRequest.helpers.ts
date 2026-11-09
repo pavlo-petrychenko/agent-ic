@@ -6,12 +6,16 @@ import {
 } from '@/shared/api/constants/authApi.constants';
 import { JSON_CONTENT_TYPE, RequestHeader } from '@/shared/api/constants/request.constants';
 import { toAppError, toAppErrorFromProblem } from '@/shared/api/helpers/appError.helpers';
+import { getRequestContext } from '@/shared/api/helpers/requestContext.helpers';
 
 const send = async (endpoint: AuthEndpoint, body: object): Promise<Response> => {
   try {
     return await fetch(`${AUTH_API_PATH}${endpoint}`, {
       ...AUTH_REQUEST_INIT,
-      headers: { [RequestHeader.ContentType]: JSON_CONTENT_TYPE },
+      headers: {
+        [RequestHeader.ContentType]: JSON_CONTENT_TYPE,
+        [RequestHeader.AcceptLanguage]: getRequestContext().locale,
+      },
       body: JSON.stringify(body),
     });
   } catch (error) {
