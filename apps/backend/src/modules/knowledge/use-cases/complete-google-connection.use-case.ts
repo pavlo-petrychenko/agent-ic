@@ -1,6 +1,8 @@
-import { PermissionAction, PermissionResource } from '@agent-ic/contracts';
+import { ErrorReason, PermissionAction, PermissionResource } from '@agent-ic/contracts';
 import { Injectable } from '@nestjs/common';
 import { googleOAuthStateEntry } from '@/modules/knowledge/constants/google-oauth-cache.constants';
+import { GOOGLE_OAUTH_DRIVE_SCOPE } from '@/modules/knowledge/constants/google-oauth.constants';
+import { GOOGLE_RECONNECT_REQUIRED_MESSAGE } from '@/modules/knowledge/constants/knowledge-error.constants';
 import {
   KnowledgeConnectionProvider,
   KnowledgeConnectionStatus,
@@ -62,6 +64,7 @@ export class CompleteGoogleConnectionUseCase {
       throw GoogleOAuthFailedError.missingRefreshToken();
     }
     const account = await this.gateway.userInfo(tokens.accessToken);
+    const hasDriveScope = tokens.scopes.includes(GOOGLE_OAUTH_DRIVE_SCOPE);
     const connection = await this.tenants.run(workspaceId, () =>
       this.connections.upsert({
         id: this.ids.generate(),
@@ -71,7 +74,11 @@ export class CompleteGoogleConnectionUseCase {
         accountSubject: account.subject,
         sealedRefreshToken: this.secrets.seal(refreshToken),
         scopes: [...tokens.scopes],
-        status: KnowledgeConnectionStatus.Active,
+        status: hasDriveScope
+          ? KnowledgeConnectionStatus.Active
+          : KnowledgeConnectionStatus.Revoked,
+        lastErrorCode: hasDriveScope ? null : ErrorReason.GoogleReconnectRequired,
+        lastErrorMessage: hasDriveScope ? null : GOOGLE_RECONNECT_REQUIRED_MESSAGE,
         createdByUserId: userId,
       }),
     );

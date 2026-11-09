@@ -18,6 +18,7 @@ import type {
 } from '@/platform/llm/typedefs/embedding-gateway.typedefs';
 import { JOB_ATTEMPTS } from '@/platform/queues/constants/queue.constants';
 import {
+  TEST_CHUNK_CONTENT,
   TEST_EMBEDDING_VECTOR,
   TEST_SECTION_PATH,
 } from '@test/support/constants/knowledge-testing.constants';
@@ -92,7 +93,10 @@ describe('KnowledgeDocumentReindexService', () => {
       sectionId,
     );
     await testbed.tenants.run(workspaceId, async () => {
-      await sections.update(workspaceId, sectionId, { generation: 1 });
+      await sections.update(workspaceId, sectionId, {
+        generation: 1,
+        content: TEST_CHUNK_CONTENT,
+      });
       await chunks.update(workspaceId, chunkId, { generation: 1 });
       await documents.update(workspaceId, documentId, {
         title: 'Handbook',
@@ -127,6 +131,7 @@ describe('KnowledgeDocumentReindexService', () => {
       summary: NEW_SUMMARY,
     });
     expect(stored.sections).toHaveLength(1);
+    expect(stored.sections[0]?.content).toBe(TEST_CHUNK_CONTENT);
     expect(stored.chunks).toHaveLength(1);
     expect(stored.chunks[0]?.indexText).toContain(NEW_SUMMARY);
     expect(stored.chunks[0]?.indexText).toContain(TEST_SECTION_PATH);

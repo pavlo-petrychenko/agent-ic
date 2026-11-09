@@ -1,7 +1,8 @@
 import { ErrorReason, IdPrefix } from '@agent-ic/contracts';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { googleOAuthStateEntry } from '@/modules/knowledge/constants/google-oauth-cache.constants';
 import { GOOGLE_OAUTH_STATE_TTL_SECONDS } from '@/modules/knowledge/constants/google-oauth.constants';
+import { GOOGLE_RECONNECT_REQUIRED_MESSAGE } from '@/modules/knowledge/constants/knowledge-error.constants';
 import { KnowledgeConnectionStatus } from '@/modules/knowledge/constants/knowledge.constants';
 import { GoogleOAuthFailedError } from '@/modules/knowledge/errors/google-oauth-failed.error';
 import { GoogleOAuthStateInvalidError } from '@/modules/knowledge/errors/google-oauth-state-invalid.error';
@@ -60,6 +61,14 @@ describe('Google connection use cases', () => {
 
   afterAll(async () => {
     await testbed.module.close();
+  });
+
+  beforeEach(() => {
+    gateway.setTokens({
+      refreshToken: TEST_GOOGLE_REFRESH_TOKEN,
+      scopes: TEST_GOOGLE_SCOPE.split(' '),
+    });
+    gateway.clearFailure();
   });
 
   const startFlow = async (workspaceId: string) => {
@@ -144,6 +153,29 @@ describe('Google connection use cases', () => {
       connections.findById(workspaceId, connectionId),
     );
     expect(stored?.status).toBe(KnowledgeConnectionStatus.Active);
+  });
+
+  it('stores the connection as revoked when the Drive scope was not granted', async () => {
+    const workspaceId = ids.generate();
+    gateway.setTokens({ scopes: ['openid', 'email'] });
+    const { authorization } = await startFlow(workspaceId);
+
+    const view = await complete.execute(knowledgeCtx(workspaceId), {
+      state: authorization.state,
+      code: 'code-value',
+    });
+
+    expect(view).toMatchObject({
+      status: KnowledgeConnectionStatus.Revoked,
+      scopes: ['openid', 'email'],
+      lastErrorCode: ErrorReason.GoogleReconnectRequired,
+      lastErrorMessage: GOOGLE_RECONNECT_REQUIRED_MESSAGE,
+    });
+    const connectionId = ids.fromPublic(IdPrefix.KnowledgeConnection, view.id);
+    const stored = await tenants.run(workspaceId, () =>
+      connections.findById(workspaceId, connectionId),
+    );
+    expect(stored?.status).toBe(KnowledgeConnectionStatus.Revoked);
   });
 
   it('rejects a state that belongs to another workspace', async () => {

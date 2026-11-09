@@ -1,4 +1,7 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { ErrorReason } from '@agent-ic/contracts';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { GOOGLE_RECONNECT_REQUIRED_MESSAGE } from '@/modules/knowledge/constants/knowledge-error.constants';
+import { KnowledgeConnectionStatus } from '@/modules/knowledge/constants/knowledge.constants';
 import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import { GoogleOAuthGateway } from '@/modules/knowledge/gateways/google-oauth.gateway';
 import { ConnectionsRepository } from '@/modules/knowledge/repositories/connections.repository';
@@ -37,6 +40,10 @@ describe('CreateGooglePickerSessionUseCase', () => {
     await testbed.module.close();
   });
 
+  afterEach(() => {
+    oauth.clearFailure();
+  });
+
   it('creates a Picker session from a connected account', async () => {
     const workspaceId = testbed.ids.generate();
     const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
@@ -72,5 +79,41 @@ describe('CreateGooglePickerSessionUseCase', () => {
         publicKnowledgeConnectionId(testbed, connectionId),
       ),
     ).rejects.toBeInstanceOf(GoogleReconnectRequiredError);
+
+    const stored = await testbed.tenants.run(workspaceId, () =>
+      connections.findById(workspaceId, connectionId),
+    );
+    expect(stored).toMatchObject({
+      status: KnowledgeConnectionStatus.Revoked,
+      lastErrorCode: ErrorReason.GoogleReconnectRequired,
+      lastErrorMessage: GOOGLE_RECONNECT_REQUIRED_MESSAGE,
+    });
+  });
+
+  it('persists a revoked connection when the refresh token is rejected', async () => {
+    const workspaceId = testbed.ids.generate();
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    await testbed.tenants.run(workspaceId, () =>
+      connections.update(workspaceId, connectionId, {
+        sealedRefreshToken: secrets.seal(TEST_GOOGLE_REFRESH_TOKEN),
+      }),
+    );
+    oauth.failWith(new GoogleReconnectRequiredError());
+
+    await expect(
+      session.execute(
+        knowledgeCtx(workspaceId),
+        publicKnowledgeConnectionId(testbed, connectionId),
+      ),
+    ).rejects.toBeInstanceOf(GoogleReconnectRequiredError);
+
+    const stored = await testbed.tenants.run(workspaceId, () =>
+      connections.findById(workspaceId, connectionId),
+    );
+    expect(stored).toMatchObject({
+      status: KnowledgeConnectionStatus.Revoked,
+      lastErrorCode: ErrorReason.GoogleReconnectRequired,
+      lastErrorMessage: GOOGLE_RECONNECT_REQUIRED_MESSAGE,
+    });
   });
 });

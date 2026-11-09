@@ -180,7 +180,7 @@ The alternatives and why they are not in the MVP:
 3. Google redirects to a public web route, `/oauth/google/callback`.
 4. The web route forwards `code` and `state` to `completeGoogleConnection`.
 5. The backend consumes the state, exchanges the code with the client secret and PKCE verifier, reads the account email and subject, and seals the refresh token with `SecretBoxService`.
-6. The connection is stored as `active`. Reconnecting the same Google account updates the existing row and clears its error.
+6. The connection is stored as `active` when the exchange granted `drive.file`; without that scope it is stored as `revoked` with `GOOGLE_RECONNECT_REQUIRED` so the page offers Reconnect. Reconnecting the same Google account updates the existing row and clears its error when the scope is granted.
 
 The API callback is deliberately a web route plus a GraphQL mutation: the token exchange stays server-side, and the API does not need a REST controller for a non-cookie redirect.
 
@@ -204,9 +204,9 @@ Configuration uses `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_OAUTH_
 - Export uses `files.export` with `text/markdown`. Google caps an export at 10 MB; a larger document fails with a reason.
 - When Drive returns `404`, `410` or `trashed: true` for an already indexed document, the document is marked stale and kept: its status stays `indexed`, its chunks and objects stay, and the source stays `ready` with a warning. The warning says that the document will not be updated and that the last indexed copy is still searchable. A document with no local indexed copy is a normal document error.
 - A stale document is checked again on every sync. If Drive returns it again, the stale marker is cleared; it is skipped when unchanged, or reindexed when its version or content changed.
-- A transient network error, a 429 or a 5xx never marks anything stale or removes anything (wipe protection). A `403` remains an access error, not a stale marker.
-- A `401` from Drive or a `400 invalid_grant` from the token endpoint marks the connection `revoked`, sets the source to `error` with `GOOGLE_RECONNECT_REQUIRED`, and asks the user to reconnect. A generic `403` remains a document access failure, not a revoked connection. Reconnecting clears the connection error; the source shows Retry and continues after the user retries.
-- `429` and `5xx` are retried with exponential backoff by the job and surface as `UPSTREAM_FAILED`, not as a failed sign-in. Drive quota errors are treated as upstream errors.
+- A transient network error, a 429, a Drive quota 403 or a 5xx never marks anything stale or removes anything (wipe protection). A non-quota `403` remains an access error, not a stale marker.
+- A `401` from Drive or a `400 invalid_grant` from the token endpoint marks the connection `revoked`, sets the source to `error` with `GOOGLE_RECONNECT_REQUIRED`, and asks the user to reconnect. A non-quota `403` remains a document access failure, not a revoked connection. Reconnecting clears the connection error; the source shows Retry and continues after the user retries.
+- `429`, Drive quota `403`s and `5xx` are retried with exponential backoff by the job and surface as `UPSTREAM_FAILED`, not as a failed sign-in.
 - Schedules are evaluated in the workspace timezone. The source stores the next run time and the schedule fields; the scheduler is a per-source BullMQ job scheduler.
 
 **What the user sees.** The connection row shows the Google account email and whether it is active. A revoked connection shows “Reconnect” in the Add source dialog and as a persistent banner on the knowledge page. Each Google source shows the document count, chunk count, last sync and next sync. Opening a source shows its documents with their status and generated summary, plus Sync now for a ready Google source, and the rename, retry and delete actions. A Google source with more than one document offers “Remove document” on each document: removing the link keeps the document and its index while another source uses it, and otherwise marks it `removed`, deletes its chunks and objects, and enqueues cleanup. The last document cannot be removed; the user deletes the source instead. Sync now is also available from the source row actions menu. A failed document shows the full localized reason in the document list, and the source row shows a short reason so the table is useful at a glance. A stale document shows a warning badge and a message that it will not be updated while its last indexed copy stays searchable; the source row shows the stale count and the drawer shows a warning callout. A source whose Google account needs reconnecting shows Reconnect in its drawer instead of Retry; after reconnecting, the source shows Retry. Retry is offered only for failures that a retry can change; stale documents are refreshed with Sync now or the schedule.
@@ -377,7 +377,7 @@ If the worker crashes before the flip, the new generation is orphaned. The next 
 - Status changes are published to the `knowledge-source-status` channel after commit. The web client refetches the source or document list.
 - One sync per source at a time. A manual sync while the source is `indexing` fails with `KNOWLEDGE_SOURCE_BUSY`; the UI disables the button. A manual sync of a referencing source waits while any owner of its documents has an active run.
 - BullMQ retries transient failures five times with exponential backoff. A parse error, unsupported type or scanned PDF is a `GiveUp` for that document; the run records it and continues with the other documents.
-- A source-level Google auth failure stops the run and keeps every existing document in place.
+- A source-level Google auth failure stops the run and keeps every existing document in place. Documents that the run did not reach are marked `error` with the same reason, so Retry selects the remaining set instead of only the document that failed first.
 - `sync_runs` is retained for 90 days and cleaned by a scheduled job.
 
 ### 5.9 Transactions and long-running work
