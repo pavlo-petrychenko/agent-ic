@@ -39,9 +39,11 @@ import {
   USAGE_TEST_PERIOD,
   USAGE_TEST_START,
 } from '@test/support/constants/usage-testing.constants';
+import { FakeKnowledgeChunksReader } from '@test/support/fakes/fake-knowledge-chunks-reader.fake';
 import { ManualClock } from '@test/support/fakes/manual-clock.fake';
 import { uniqueEmail } from '@test/support/fixtures/identity.fixture';
 import { createPlatformTestingModule } from '@test/support/helpers/database-testing.helpers';
+import { KnowledgeChunksNeighboursModule } from '@test/support/modules/knowledge-chunks-neighbours.module';
 import { LlmNeighboursModule } from '@test/support/modules/llm-neighbours.module';
 import { UsageNeighboursModule } from '@test/support/modules/usage-neighbours.module';
 import type {
@@ -64,6 +66,7 @@ export const createUsageTestbed = async (
       QueuesModule.forRole(ROLE),
       DomainEventsModule.forRole(ROLE),
       UsageNeighboursModule.forRole(ROLE),
+      KnowledgeChunksNeighboursModule.forRole(ROLE),
       UsageModule.forRole(ROLE),
     ],
     [
@@ -75,6 +78,7 @@ export const createUsageTestbed = async (
   return {
     module,
     clock,
+    chunks: module.get(FakeKnowledgeChunksReader),
     emails,
     tenants: module.get(TenantTransactionService),
     ids: module.get(IdService),

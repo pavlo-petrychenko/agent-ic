@@ -53,6 +53,7 @@ import { KnowledgeFlowReferenceChecker } from '@/modules/knowledge/services/know
 import { KnowledgeSearchService } from '@/modules/knowledge/services/knowledge-search.service';
 import { KnowledgeSourceSyncService } from '@/modules/knowledge/services/knowledge-source-sync.service';
 import { KnowledgeSourceViewsService } from '@/modules/knowledge/services/knowledge-source-views.service';
+import { KnowledgeStatsService } from '@/modules/knowledge/services/knowledge-stats.service';
 import { KnowledgeToolsService } from '@/modules/knowledge/services/knowledge-tools.service';
 import { KnowledgeUploadTargetsService } from '@/modules/knowledge/services/knowledge-upload-targets.service';
 import { KnowledgeUsageService } from '@/modules/knowledge/services/knowledge-usage.service';
@@ -86,6 +87,7 @@ import { SyncKnowledgeSourceUseCase } from '@/modules/knowledge/use-cases/sync-k
 import { UpdateDocumentSummaryUseCase } from '@/modules/knowledge/use-cases/update-document-summary.use-case';
 import { UpdateKnowledgeBaseToolUseCase } from '@/modules/knowledge/use-cases/update-knowledge-base-tool.use-case';
 import { UpdateKnowledgeSourceScheduleUseCase } from '@/modules/knowledge/use-cases/update-knowledge-source-schedule.use-case';
+import { KnowledgeChunksReader } from '@/modules/usage';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
 
 export class KnowledgeModule extends defineModule({
@@ -116,8 +118,10 @@ export class KnowledgeModule extends defineModule({
     KnowledgeBaseViewsService,
     KnowledgeSourceViewsService,
     KnowledgeConnectionViewsService,
+    KnowledgeStatsService,
     KnowledgeUsageService,
     KnowledgeFlowReferenceChecker,
+    { provide: KnowledgeChunksReader, useExisting: KnowledgeStatsService },
     {
       provide: FLOW_REFERENCE_CHECKER,
       useExisting: KnowledgeFlowReferenceChecker,

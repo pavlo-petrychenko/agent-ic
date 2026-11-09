@@ -8,7 +8,9 @@ import { KnowledgeBasesRepository } from '@/modules/knowledge/repositories/knowl
 import { SectionsRepository } from '@/modules/knowledge/repositories/sections.repository';
 import { SourceDocumentsRepository } from '@/modules/knowledge/repositories/source-documents.repository';
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
+import type { NewChunk } from '@/modules/knowledge/typedefs/chunk.typedefs';
 import type { NewDocument } from '@/modules/knowledge/typedefs/document.typedefs';
+import type { NewSection } from '@/modules/knowledge/typedefs/section.typedefs';
 import { CacheModule } from '@/platform/cache/cache.module';
 import { ClockService } from '@/platform/clock/services/clock.service';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
@@ -175,12 +177,13 @@ export const seedKnowledgeSection = async (
   workspaceId: string,
   knowledgeBaseId: string,
   documentId: string,
+  overrides: Partial<NewSection> = {},
 ): Promise<string> => {
   const sectionId = testbed.ids.generate();
   await testbed.tenants.run(workspaceId, () =>
     testbed.module
       .get(SectionsRepository)
-      .insert(newSection(sectionId, workspaceId, knowledgeBaseId, documentId)),
+      .insert({ ...newSection(sectionId, workspaceId, knowledgeBaseId, documentId), ...overrides }),
   );
   return sectionId;
 };
@@ -191,12 +194,14 @@ export const seedKnowledgeChunk = async (
   knowledgeBaseId: string,
   documentId: string,
   sectionId: string,
+  overrides: Partial<NewChunk> = {},
 ): Promise<string> => {
   const chunkId = testbed.ids.generate();
   await testbed.tenants.run(workspaceId, () =>
-    testbed.module
-      .get(ChunksRepository)
-      .insert(newChunk(chunkId, workspaceId, knowledgeBaseId, documentId, sectionId)),
+    testbed.module.get(ChunksRepository).insert({
+      ...newChunk(chunkId, workspaceId, knowledgeBaseId, documentId, sectionId),
+      ...overrides,
+    }),
   );
   return chunkId;
 };

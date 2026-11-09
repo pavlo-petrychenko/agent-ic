@@ -53,6 +53,15 @@ describe('GetWorkspaceUsageUseCase', () => {
     });
   });
 
+  it('reports the active chunks the knowledge module provides', async () => {
+    const { workspaceId } = await seedOwnedWorkspace(testbed);
+    testbed.chunks.setWorkspaceChunks(workspaceId, 7);
+
+    const usage = await getWorkspaceUsage.execute(ctxFor(workspaceId));
+
+    expect(usage.chunks).toEqual({ used: 7, limit: TEST_CHUNKS_LIMIT });
+  });
+
   it('shows zero before anything is used and the limits of the workspace', async () => {
     const { workspaceId } = await seedOwnedWorkspace(testbed);
     await setWorkspaceLimits(testbed, workspaceId, { creditsLimit: 50_000, chunksLimit: 9 });

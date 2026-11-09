@@ -3,11 +3,13 @@ import type { TestingModule } from '@nestjs/testing';
 import type { FakeEmailGateway } from '@/modules/notifications/gateways/email.fake';
 import type { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 import type { IdService } from '@/platform/ids/services/id.service';
+import type { FakeKnowledgeChunksReader } from '@test/support/fakes/fake-knowledge-chunks-reader.fake';
 import type { ManualClock } from '@test/support/fakes/manual-clock.fake';
 
 export interface UsageTestbed {
   readonly module: TestingModule;
   readonly clock: ManualClock;
+  readonly chunks: FakeKnowledgeChunksReader;
   readonly emails: FakeEmailGateway;
   readonly tenants: TenantTransactionService;
   readonly ids: IdService;
