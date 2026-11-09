@@ -25,10 +25,11 @@ export class CreateAgentFromTemplateUseCase {
       PermissionAction.Edit,
     );
     authorize(ctx, PermissionResource.Prompts, PermissionAction.Edit);
-    const { templateKey, name, knowledgeBaseIds } = parseAgentInput(
-      createAgentFromTemplateInputSchema,
-      input,
-    );
+    const { templateKey, name, knowledgeBaseIds, knowledgeBases, newKnowledgeBases } =
+      parseAgentInput(createAgentFromTemplateInputSchema, input);
+    if (newKnowledgeBases.length > 0) {
+      authorize(ctx, PermissionResource.KnowledgeBases, PermissionAction.Edit);
+    }
     return this.tenantTransactions.run(workspaceId, async () => {
       const agent = await this.templates.create({
         workspaceId,
@@ -37,6 +38,8 @@ export class CreateAgentFromTemplateUseCase {
         key: templateKey,
         name,
         knowledgeBaseIds,
+        knowledgeBases,
+        newKnowledgeBases,
       });
       return this.views.agentView(workspaceId, agent);
     });

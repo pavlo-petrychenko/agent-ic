@@ -7,7 +7,7 @@ import type {
 
 export interface TemplateGalleryProps {
   tab: GalleryTab;
-  tabCounts: Readonly<Record<GalleryTab, number>>;
+  tabCounts: Readonly<Record<GalleryTab, number | null>>;
   category: CategoryFilter;
   categories: readonly AgentTemplateCategory[];
   cards: readonly AgentTemplateCard[];

@@ -3,9 +3,13 @@ import type {
   AgentTemplateKey,
   AgentTemplateKind,
   AgentTemplateLevel,
+  AgentTemplateNewKnowledgeBase,
   NodeType,
 } from '@agent-ic/flow';
-import type { CATEGORY_FILTER_ALL } from '@/features/agents/constants/agentTemplate.constants';
+import type {
+  CATEGORY_FILTER_ALL,
+  TemplateKnowledgeMode,
+} from '@/features/agents/constants/agentTemplate.constants';
 import type { FlowThumbnailGraph } from '@/features/flow-builder';
 import type { NodeKind } from '@/shared/ui/display/NodeTile';
 import type { IconName } from '@/shared/ui/foundations/Icon';
@@ -49,6 +53,7 @@ export interface CreateFromTemplateInput {
   readonly templateKey: AgentTemplateKey;
   readonly name: string;
   readonly knowledgeBaseIds: readonly string[];
+  readonly newKnowledgeBases: readonly AgentTemplateNewKnowledgeBase[];
 }
 
 export interface UseCreateAgentFromTemplateResult {
@@ -58,13 +63,16 @@ export interface UseCreateAgentFromTemplateResult {
 
 export interface TemplateSetup {
   readonly name: string;
+  readonly knowledgeMode: TemplateKnowledgeMode;
   readonly knowledgeBaseIds: readonly string[];
   readonly setName: (name: string) => void;
+  readonly setKnowledgeMode: (mode: TemplateKnowledgeMode) => void;
   readonly setKnowledgeBaseIds: (ids: readonly string[]) => void;
 }
 
 export interface TemplateSetupDraft {
   readonly templateKey: AgentTemplateKey;
   readonly name: string | null;
+  readonly knowledgeMode: TemplateKnowledgeMode;
   readonly knowledgeBaseIds: readonly string[];
 }

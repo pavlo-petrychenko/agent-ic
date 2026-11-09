@@ -1,3 +1,4 @@
+import { agentTemplateNewKnowledgeBases } from '@agent-ic/flow';
 import type { AgentTemplateKey } from '@agent-ic/flow';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -11,12 +12,14 @@ import {
   GalleryTab,
   KIND_GALLERY_TAB,
   TEMPLATE_KNOWLEDGE_PATH,
+  TemplateKnowledgeMode,
 } from '@/features/agents/constants/agentTemplate.constants';
 import type { TemplateGalleryDialogProps } from '@/features/agents/containers/TemplateGalleryDialog/TemplateGalleryDialog.typedefs';
 import {
   cardsOfTab,
   filterByCategory,
   findCard,
+  galleryTabCounts,
   isTemplateNameValid,
   snippetCategories,
   tabOfCard,
@@ -28,9 +31,11 @@ import { TemplateDetail } from '@/features/agents/view/TemplateDetail';
 import { TemplateGallery } from '@/features/agents/view/TemplateGallery';
 import { toAppError } from '@/shared/api/helpers/appError.helpers';
 import { useErrorMessage } from '@/shared/i18n/hooks/useErrorMessage';
+import { useLocale } from '@/shared/i18n/hooks/useLocale';
 import { Button, ButtonVariant } from '@/shared/ui/actions/Button';
 import { IconName } from '@/shared/ui/foundations/Icon';
 import { Dialog, DialogSize } from '@/shared/ui/overlays/Dialog';
+import { ToastTone, useToast } from '@/shared/ui/overlays/Toast';
 
 export function TemplateGalleryDialog({
   workspaceId,
@@ -45,6 +50,8 @@ export function TemplateGalleryDialog({
   const navigate = useNavigate();
   const router = useRouter();
   const errorMessage = useErrorMessage();
+  const { locale } = useLocale();
+  const { showToast } = useToast();
   const { createFromTemplate, creating } = useCreateAgentFromTemplate();
   const selected = findCard(templates, selectedKey);
   const [tab, setTab] = useState<GalleryTab>(tabOfCard(selected) ?? GalleryTab.Templates);
@@ -57,10 +64,12 @@ export function TemplateGalleryDialog({
   const nameValid = isTemplateNameValid(setup.name);
   const snippets = cardsOfTab(templates, GalleryTab.Snippets);
   const visible =
-    tab === GalleryTab.Snippets
-      ? filterByCategory(snippets, category)
-      : cardsOfTab(templates, GalleryTab.Templates);
+    tab === GalleryTab.Snippets ? filterByCategory(snippets, category) : cardsOfTab(templates, tab);
   const knowledgeLocation = { to: TEMPLATE_KNOWLEDGE_PATH, params: { workspaceId } };
+  const newKnowledgeBases =
+    selected === null ? [] : agentTemplateNewKnowledgeBases(selected.key, setup.name, locale);
+  const createsKnowledge =
+    newKnowledgeBases.length > 0 && setup.knowledgeMode === TemplateKnowledgeMode.CreateNew;
 
   const guarded = async (action: () => Promise<void>) => {
     setError(null);
@@ -94,12 +103,25 @@ export function TemplateGalleryDialog({
       const agentId = await createFromTemplate({
         templateKey: selected.key,
         name: setup.name.trim(),
-        knowledgeBaseIds: selected.usesKnowledge
-          ? setup.knowledgeBaseIds.filter((id) => available.has(id))
-          : [],
+        knowledgeBaseIds:
+          selected.usesKnowledge && !createsKnowledge
+            ? setup.knowledgeBaseIds.filter((id) => available.has(id))
+            : [],
+        newKnowledgeBases: createsKnowledge ? newKnowledgeBases : [],
       });
-      if (agentId !== null) {
-        await navigate({ to: BUILDER_PATH, params: { workspaceId, agentId } });
+      if (agentId === null) {
+        return;
+      }
+      await navigate({ to: BUILDER_PATH, params: { workspaceId, agentId } });
+      if (createsKnowledge) {
+        showToast({
+          message: t('gallery.knowledge.created', { count: newKnowledgeBases.length }),
+          tone: ToastTone.Ok,
+          action: {
+            label: t('gallery.knowledge.upload'),
+            onClick: () => void navigate(knowledgeLocation),
+          },
+        });
       }
     });
   };
@@ -144,10 +166,7 @@ export function TemplateGalleryDialog({
       {selected === null ? (
         <TemplateGallery
           tab={tab}
-          tabCounts={{
-            [GalleryTab.Templates]: cardsOfTab(templates, GalleryTab.Templates).length,
-            [GalleryTab.Snippets]: snippets.length,
-          }}
+          tabCounts={galleryTabCounts(templates)}
           category={category}
           categories={snippetCategories(snippets)}
           cards={visible}
@@ -167,6 +186,8 @@ export function TemplateGalleryDialog({
           knowledge={
             selected.usesKnowledge
               ? {
+                  mode: setup.knowledgeMode,
+                  newNames: newKnowledgeBases.map((knowledgeBase) => knowledgeBase.name),
                   knowledgeBases: knowledge.knowledgeBases,
                   selectedIds: setup.knowledgeBaseIds,
                   loading: knowledge.loading,
@@ -177,6 +198,7 @@ export function TemplateGalleryDialog({
           }
           disabled={busy}
           onNameChange={setup.setName}
+          onKnowledgeModeChange={setup.setKnowledgeMode}
           onToggleKnowledgeBase={onToggleKnowledgeBase}
           onRetryKnowledge={() => void knowledge.retry()}
           onOpenKnowledge={() => void navigate(knowledgeLocation)}

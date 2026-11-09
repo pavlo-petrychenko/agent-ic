@@ -21,7 +21,12 @@ const renderGallery = (props: Partial<TemplateGalleryProps> = {}) => {
   renderWithProviders(
     <TemplateGallery
       tab={GalleryTab.Snippets}
-      tabCounts={{ [GalleryTab.Templates]: 2, [GalleryTab.Snippets]: 3 }}
+      tabCounts={{
+        [GalleryTab.Templates]: 4,
+        [GalleryTab.Examples]: 2,
+        [GalleryTab.Snippets]: 3,
+        [GalleryTab.Blank]: null,
+      }}
       category={CATEGORY_FILTER_ALL}
       categories={[AgentTemplateCategory.Support, AgentTemplateCategory.Quality]}
       cards={[
@@ -41,7 +46,12 @@ describe('TemplateGallery', () => {
   it('shows the counts on the tabs and switches between them', async () => {
     const { onTabChange } = renderGallery();
 
-    expect(screen.getByRole('tab', { name: /Small examples/ })).toHaveTextContent('3');
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+      'Templates 4',
+      'Big examples 2',
+      'Small examples 3',
+      'Blank',
+    ]);
     await userEvent.click(screen.getByRole('tab', { name: /Templates/ }));
 
     expect(onTabChange).toHaveBeenCalledWith(GalleryTab.Templates);
@@ -75,14 +85,18 @@ describe('TemplateGallery', () => {
     expect(onSelect).toHaveBeenCalledWith(AgentTemplateKey.GuardedReply);
   });
 
-  it('starts a blank flow', async () => {
-    const { onCreateBlank } = renderGallery();
+  it('starts a blank flow from the blank section', async () => {
+    const { onCreateBlank } = renderGallery({ tab: GalleryTab.Blank });
+
+    expect(
+      screen.queryByRole('button', { name: templateCardOf(AgentTemplateKey.MenuButtons).name }),
+    ).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /Blank flow/ }));
     expect(onCreateBlank).toHaveBeenCalledTimes(1);
   });
 
   it('disables the blank flow while it is being created', () => {
-    renderGallery({ blankCreating: true });
+    renderGallery({ tab: GalleryTab.Blank, blankCreating: true });
 
     expect(screen.getByRole('button', { name: /Blank flow/ })).toBeDisabled();
   });

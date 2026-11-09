@@ -51,6 +51,8 @@ export class SampleAgentService {
           key,
           name: null,
           knowledgeBaseIds: [],
+          knowledgeBases: {},
+          newKnowledgeBases: [],
         });
         await this.publishing.publish(workspaceId, agent.id, {
           authorId,

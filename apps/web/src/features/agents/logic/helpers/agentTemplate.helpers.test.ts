@@ -14,6 +14,7 @@ import {
   cardsOfTab,
   filterByCategory,
   findCard,
+  galleryTabCounts,
   isTemplateNameValid,
   snippetCategories,
   tabOfCard,
@@ -60,16 +61,33 @@ describe('toTemplateCards', () => {
 });
 
 describe('tabs and categories', () => {
-  it('splits the cards into the two tabs by kind', () => {
+  it('splits the cards into the templates, big examples and small examples tabs by kind', () => {
     const templates = cardsOfTab(cards, GalleryTab.Templates);
+    const examples = cardsOfTab(cards, GalleryTab.Examples);
     const snippets = cardsOfTab(cards, GalleryTab.Snippets);
 
     expect(templates.map((card) => card.key)).toEqual([
+      AgentTemplateKey.FaqFromDocuments,
+      AgentTemplateKey.LeadHandling,
+      AgentTemplateKey.AppointmentBooking,
+      AgentTemplateKey.RouteToSpecialists,
+    ]);
+    expect(examples.map((card) => card.key)).toEqual([
       AgentTemplateKey.CafeSupport,
       AgentTemplateKey.StoreSales,
     ]);
     expect(snippets.every((card) => card.kind === AgentTemplateKind.Snippet)).toBe(true);
-    expect(templates.length + snippets.length).toBe(cards.length);
+    expect(cardsOfTab(cards, GalleryTab.Blank)).toEqual([]);
+    expect(templates.length + examples.length + snippets.length).toBe(cards.length);
+  });
+
+  it('counts the cards of each tab and gives the blank tab no count', () => {
+    expect(galleryTabCounts(cards)).toEqual({
+      [GalleryTab.Templates]: 4,
+      [GalleryTab.Examples]: 2,
+      [GalleryTab.Snippets]: cards.length - 6,
+      [GalleryTab.Blank]: null,
+    });
   });
 
   it('lists the categories that have examples, in a fixed order', () => {
@@ -100,7 +118,8 @@ describe('tabs and categories', () => {
   it('finds a card and the tab that holds it', () => {
     expect(findCard(cards, AgentTemplateKey.StoreSales)?.key).toBe(AgentTemplateKey.StoreSales);
     expect(findCard(cards, null)).toBeNull();
-    expect(tabOfCard(findCard(cards, AgentTemplateKey.StoreSales))).toBe(GalleryTab.Templates);
+    expect(tabOfCard(findCard(cards, AgentTemplateKey.StoreSales))).toBe(GalleryTab.Examples);
+    expect(tabOfCard(findCard(cards, AgentTemplateKey.LeadHandling))).toBe(GalleryTab.Templates);
     expect(tabOfCard(findCard(cards, AgentTemplateKey.CloseChat))).toBe(GalleryTab.Snippets);
     expect(tabOfCard(null)).toBeNull();
   });

@@ -161,6 +161,7 @@ export const MENU_BUTTONS_SNIPPET: AgentTemplateDefinition = {
     },
   ],
   usesKnowledge: false,
+  knowledgeRoles: [],
   prompts: [AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.MenuAssistant]],
   draft,
 };

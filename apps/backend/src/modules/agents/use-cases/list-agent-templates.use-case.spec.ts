@@ -13,7 +13,13 @@ import { TEST_EDITOR_ID } from '@test/support/constants/agents-testing.constants
 import { workspaceCtx } from '@test/support/fixtures/workspace.fixture';
 
 const WORKSPACE_ID = '01960000-0000-7000-8000-0000000a91e7';
-const TEMPLATE_KEYS = [AgentTemplateKey.CafeSupport, AgentTemplateKey.StoreSales];
+const TEMPLATE_KEYS = [
+  AgentTemplateKey.FaqFromDocuments,
+  AgentTemplateKey.LeadHandling,
+  AgentTemplateKey.AppointmentBooking,
+  AgentTemplateKey.RouteToSpecialists,
+];
+const EXAMPLE_KEYS = [AgentTemplateKey.CafeSupport, AgentTemplateKey.StoreSales];
 
 const builderCtx = (locale: Locale = Locale.En) => ({
   ...workspaceCtx(TEST_EDITOR_ID, WORKSPACE_ID, WorkspaceRole.Builder),
@@ -23,10 +29,16 @@ const builderCtx = (locale: Locale = Locale.En) => ({
 describe('ListAgentTemplatesUseCase', () => {
   const listTemplates = new ListAgentTemplatesUseCase();
 
-  it('lists the two big templates for the template kind', () => {
+  it('lists the general templates for the template kind', () => {
     const listed = listTemplates.execute(builderCtx(), { kind: AgentTemplateKind.Template });
 
     expect(listed.map((template) => template.key)).toEqual(TEMPLATE_KEYS);
+  });
+
+  it('lists the two big examples for the example kind', () => {
+    const listed = listTemplates.execute(builderCtx(), { kind: AgentTemplateKind.Example });
+
+    expect(listed.map((template) => template.key)).toEqual(EXAMPLE_KEYS);
   });
 
   it('lists every entry in catalog order when no kind is given', () => {
@@ -42,7 +54,7 @@ describe('ListAgentTemplatesUseCase', () => {
 
   it('gives the texts in the request locale and the node types', () => {
     const [cafe] = listTemplates.execute(builderCtx(Locale.Uk), {
-      kind: AgentTemplateKind.Template,
+      kind: AgentTemplateKind.Example,
     });
 
     const expected = agentTemplate(AgentTemplateKey.CafeSupport);
@@ -55,6 +67,10 @@ describe('ListAgentTemplatesUseCase', () => {
       description: expected.description.uk,
       highlights: expected.highlights.map((highlight) => highlight.uk),
       usesKnowledge: true,
+      knowledgeRoles: expected.knowledgeRoles.map((spec) => ({
+        role: spec.role,
+        label: spec.label.uk,
+      })),
       nodeTypes: agentTemplateNodeTypes(AgentTemplateKey.CafeSupport),
     });
   });

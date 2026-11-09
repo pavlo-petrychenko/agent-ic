@@ -51,3 +51,8 @@ export const TALK_TO_PERSON_BUTTON: LocalizedText = {
 };
 
 export const TALK_TO_PERSON_RULE_LABEL: LocalizedText = { en: 'Person', uk: 'Людина' };
+
+export const KNOWLEDGE_BASE_DOCUMENTS_LABEL: LocalizedText = {
+  en: 'Documents',
+  uk: 'Документи',
+};

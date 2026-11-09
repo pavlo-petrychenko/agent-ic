@@ -228,6 +228,7 @@ describe('agents list', () => {
 
     await user.click(await screen.findByRole('button', { name: 'New agent' }));
     const gallery = await screen.findByRole('dialog', { name: 'Start a new agent' });
+    await user.click(within(gallery).getByRole('tab', { name: /Blank/ }));
     await user.click(within(gallery).getByRole('button', { name: /Blank flow/ }));
 
     expect(await screen.findByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument();

@@ -132,7 +132,7 @@
   },
   "gallery": {
     "title": "Start a new agent",
-    "description": "Pick a ready-made agent or a small example, or begin with an empty flow.",
+    "description": "Pick a template or an example, or begin with an empty flow.",
     "blank": {
       "title": "Blank flow",
       "description": "Start from an empty canvas and add the steps yourself."
@@ -140,11 +140,15 @@
     "tabs": {
       "label": "Gallery sections",
       "templates": "Templates",
-      "snippets": "Small examples"
+      "examples": "Big examples",
+      "snippets": "Small examples",
+      "blank": "Blank"
     },
     "intro": {
-      "templates": "Complete agents you can run as they are. Add your knowledge and channels, then publish.",
-      "snippets": "Small flows that each show one idea. Start from one, or learn the pattern and reuse it."
+      "templates": "Small agents that fit any business. Pick one, name it, upload your files to its knowledge base and tune the prompts.",
+      "examples": "Complete agents for a café and an online store. Run them as they are, or see how many steps and agents work together.",
+      "snippets": "Small flows that each show one idea. Start from one, or learn the pattern and reuse it.",
+      "blank": "Start from an empty canvas when you already know the flow you want."
     },
     "categories": {
       "label": "Category",
@@ -178,8 +182,6 @@
     },
     "knowledge": {
       "label": "Knowledge bases",
-      "optional": "optional",
-      "hint": "Choose what this agent answers from. You can also attach one later in the Agent step.",
       "loading": "Loading knowledge bases…",
       "loadError": "Could not load knowledge bases.",
       "retry": "Try again",
@@ -187,7 +189,20 @@
       "open": "Open Knowledge",
       "noSources": "No sources yet",
       "sources_one": "{{count}} source",
-      "sources_other": "{{count}} sources"
+      "sources_other": "{{count}} sources",
+      "createNew": {
+        "title_one": "Create a new knowledge base",
+        "title_other": "Create {{count}} new knowledge bases",
+        "description_one": "It starts empty. Upload your files to it after you create the agent.",
+        "description_other": "One for each agent. They start empty: upload your files after you create the agent."
+      },
+      "useExisting": {
+        "title": "Use existing knowledge bases",
+        "description": "Every agent answers from the bases you choose. You can change this later in each Agent step."
+      },
+      "created_one": "An empty knowledge base was created. Upload your files so the agent can answer from them.",
+      "created_other": "{{count}} empty knowledge bases were created. Upload your files so the agents can answer from them.",
+      "upload": "Upload files"
     }
   }
 }

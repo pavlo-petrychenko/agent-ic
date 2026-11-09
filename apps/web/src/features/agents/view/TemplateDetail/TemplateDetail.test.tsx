@@ -2,6 +2,7 @@ import { AgentTemplateKey } from '@agent-ic/flow';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { TemplateKnowledgeMode } from '@/features/agents/constants/agentTemplate.constants';
 import { TemplateDetail } from '@/features/agents/view/TemplateDetail/TemplateDetail';
 import type {
   TemplateDetailKnowledge,
@@ -12,7 +13,11 @@ import { renderWithProviders } from '@test/support/helpers/render.helpers';
 
 const KNOWLEDGE_HREF = '/w/ws_1/knowledge';
 
+const NEW_NAMES = ['Kavarnia — menu', 'Kavarnia — booking rules'];
+
 const knowledgeOf = (change: Partial<TemplateDetailKnowledge> = {}): TemplateDetailKnowledge => ({
+  mode: TemplateKnowledgeMode.UseExisting,
+  newNames: NEW_NAMES,
   knowledgeBases: [
     { id: 'kbs_1', name: 'Café FAQ', documentCount: 3 },
     { id: 'kbs_2', name: 'Price list', documentCount: 0 },
@@ -27,6 +32,7 @@ const knowledgeOf = (change: Partial<TemplateDetailKnowledge> = {}): TemplateDet
 const renderDetail = (props: Partial<TemplateDetailProps> = {}) => {
   const handlers = {
     onNameChange: vi.fn<(name: string) => void>(),
+    onKnowledgeModeChange: vi.fn<(mode: TemplateKnowledgeMode) => void>(),
     onToggleKnowledgeBase: vi.fn<(id: string) => void>(),
     onRetryKnowledge: vi.fn<() => void>(),
     onOpenKnowledge: vi.fn<() => void>(),
@@ -103,6 +109,30 @@ describe('TemplateDetail', () => {
     await userEvent.click(screen.getByRole('checkbox', { name: /Café FAQ/ }));
 
     expect(onToggleKnowledgeBase).toHaveBeenCalledWith('kbs_1');
+  });
+
+  it('shows the names of the new knowledge bases when creating new ones', () => {
+    renderDetail({ knowledge: knowledgeOf({ mode: TemplateKnowledgeMode.CreateNew }) });
+
+    expect(screen.getByRole('radio', { name: 'Create 2 new knowledge bases' })).toBeChecked();
+    for (const newName of NEW_NAMES) {
+      expect(screen.getByText(newName)).toBeInTheDocument();
+    }
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  });
+
+  it('switches between creating new knowledge bases and using existing ones', async () => {
+    const { onKnowledgeModeChange } = renderDetail({
+      knowledge: knowledgeOf({
+        mode: TemplateKnowledgeMode.CreateNew,
+        newNames: ['Shop — documents'],
+      }),
+    });
+
+    expect(screen.getByRole('radio', { name: 'Create a new knowledge base' })).toBeChecked();
+    await userEvent.click(screen.getByRole('radio', { name: 'Use existing knowledge bases' }));
+
+    expect(onKnowledgeModeChange).toHaveBeenCalledWith(TemplateKnowledgeMode.UseExisting);
   });
 
   it('leaves the knowledge section out for a template that does not use knowledge', () => {

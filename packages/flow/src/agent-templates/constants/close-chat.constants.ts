@@ -117,6 +117,7 @@ export const CLOSE_CHAT_SNIPPET: AgentTemplateDefinition = {
     },
   ],
   usesKnowledge: false,
+  knowledgeRoles: [],
   prompts: [AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.ClosingAssistant]],
   draft,
 };

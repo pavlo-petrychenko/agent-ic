@@ -2,9 +2,13 @@ import { AGENT_NAME_MAX_LENGTH } from '@agent-ic/contracts';
 import { useEffect, useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AGENTS_NAMESPACE } from '@/features/agents/constants/agentsI18n.constants';
-import { TEMPLATE_LEVEL_TONE } from '@/features/agents/constants/agentTemplate.constants';
+import {
+  TEMPLATE_LEVEL_TONE,
+  TemplateKnowledgeMode,
+} from '@/features/agents/constants/agentTemplate.constants';
 import {
   TEMPLATE_DETAIL_HIGHLIGHTS_SUFFIX,
+  TEMPLATE_DETAIL_KNOWLEDGE_MODE_SUFFIX,
   TEMPLATE_DETAIL_STEPS_SUFFIX,
   TEMPLATE_DETAIL_THUMBNAIL_HEIGHT,
 } from '@/features/agents/view/TemplateDetail/TemplateDetail.constants';
@@ -19,6 +23,7 @@ import { FlowThumbnail, FlowThumbnailSize } from '@/shared/ui/flow/FlowThumbnail
 import { Checkbox } from '@/shared/ui/inputs/Checkbox';
 import { Field } from '@/shared/ui/inputs/Field';
 import { Input } from '@/shared/ui/inputs/Input';
+import { OptionCard } from '@/shared/ui/inputs/OptionCard';
 import styles from '@/features/agents/view/TemplateDetail/TemplateDetail.module.scss';
 
 export function TemplateDetail({
@@ -28,6 +33,7 @@ export function TemplateDetail({
   knowledge,
   disabled,
   onNameChange,
+  onKnowledgeModeChange,
   onToggleKnowledgeBase,
   onRetryKnowledge,
   onOpenKnowledge,
@@ -38,6 +44,7 @@ export function TemplateDetail({
   const nameRef = useRef<HTMLInputElement>(null);
   const highlightsId = `${id}${TEMPLATE_DETAIL_HIGHLIGHTS_SUFFIX}`;
   const stepsId = `${id}${TEMPLATE_DETAIL_STEPS_SUFFIX}`;
+  const knowledgeModeName = `${id}${TEMPLATE_DETAIL_KNOWLEDGE_MODE_SUFFIX}`;
 
   useEffect(() => {
     nameRef.current?.focus({ preventScroll: true });
@@ -118,67 +125,94 @@ export function TemplateDetail({
           </Field>
           {knowledge !== null && (
             <fieldset className={styles.knowledge} disabled={disabled}>
-              <legend className={styles.legend}>
-                {t('gallery.knowledge.label')}
-                <span className={styles.optional}>{t('gallery.knowledge.optional')}</span>
-              </legend>
-              {knowledge.knowledgeBases.length > 0 && (
-                <p className={styles.hint}>{t('gallery.knowledge.hint')}</p>
-              )}
-              {knowledge.failed ? (
-                <Callout
-                  tone={CalloutTone.Err}
-                  action={
-                    <Button
-                      variant={ButtonVariant.Ghost}
-                      size={ButtonSize.Sm}
-                      onClick={onRetryKnowledge}
-                    >
-                      {t('gallery.knowledge.retry')}
-                    </Button>
-                  }
-                >
-                  {t('gallery.knowledge.loadError')}
-                </Callout>
-              ) : knowledge.loading ? (
-                <p className={styles.hint}>{t('gallery.knowledge.loading')}</p>
-              ) : knowledge.knowledgeBases.length === 0 ? (
-                <Callout
-                  tone={CalloutTone.Neutral}
-                  action={
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      size={ButtonSize.Sm}
-                      href={knowledge.knowledgeHref}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        onOpenKnowledge();
-                      }}
-                    >
-                      {t('gallery.knowledge.open')}
-                    </Button>
-                  }
-                >
-                  {t('gallery.knowledge.none')}
-                </Callout>
-              ) : (
-                <ul className={styles.knowledgeList}>
-                  {knowledge.knowledgeBases.map((knowledgeBase) => (
-                    <li key={knowledgeBase.id} className={styles.knowledgeRow}>
-                      <Checkbox
-                        checked={knowledge.selectedIds.includes(knowledgeBase.id)}
-                        label={knowledgeBase.name}
-                        description={
-                          knowledgeBase.documentCount === 0
-                            ? t('gallery.knowledge.noSources')
-                            : t('gallery.knowledge.sources', { count: knowledgeBase.documentCount })
-                        }
-                        onCheckedChange={() => onToggleKnowledgeBase(knowledgeBase.id)}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <legend className={styles.legend}>{t('gallery.knowledge.label')}</legend>
+              <OptionCard
+                name={knowledgeModeName}
+                value={TemplateKnowledgeMode.CreateNew}
+                checked={knowledge.mode === TemplateKnowledgeMode.CreateNew}
+                onSelect={() => onKnowledgeModeChange(TemplateKnowledgeMode.CreateNew)}
+                title={t('gallery.knowledge.createNew.title', {
+                  count: knowledge.newNames.length,
+                })}
+                description={t('gallery.knowledge.createNew.description', {
+                  count: knowledge.newNames.length,
+                })}
+              >
+                {knowledge.mode === TemplateKnowledgeMode.CreateNew ? (
+                  <ul className={styles.newNames}>
+                    {knowledge.newNames.map((newName) => (
+                      <li key={newName}>
+                        <Tag kind={TagKind.Kb}>{newName}</Tag>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </OptionCard>
+              <OptionCard
+                name={knowledgeModeName}
+                value={TemplateKnowledgeMode.UseExisting}
+                checked={knowledge.mode === TemplateKnowledgeMode.UseExisting}
+                onSelect={() => onKnowledgeModeChange(TemplateKnowledgeMode.UseExisting)}
+                title={t('gallery.knowledge.useExisting.title')}
+                description={t('gallery.knowledge.useExisting.description')}
+              >
+                {knowledge.mode !== TemplateKnowledgeMode.UseExisting ? null : knowledge.failed ? (
+                  <Callout
+                    tone={CalloutTone.Err}
+                    action={
+                      <Button
+                        variant={ButtonVariant.Ghost}
+                        size={ButtonSize.Sm}
+                        onClick={onRetryKnowledge}
+                      >
+                        {t('gallery.knowledge.retry')}
+                      </Button>
+                    }
+                  >
+                    {t('gallery.knowledge.loadError')}
+                  </Callout>
+                ) : knowledge.loading ? (
+                  <p className={styles.hint}>{t('gallery.knowledge.loading')}</p>
+                ) : knowledge.knowledgeBases.length === 0 ? (
+                  <Callout
+                    tone={CalloutTone.Neutral}
+                    action={
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        size={ButtonSize.Sm}
+                        href={knowledge.knowledgeHref}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          onOpenKnowledge();
+                        }}
+                      >
+                        {t('gallery.knowledge.open')}
+                      </Button>
+                    }
+                  >
+                    {t('gallery.knowledge.none')}
+                  </Callout>
+                ) : (
+                  <ul className={styles.knowledgeList}>
+                    {knowledge.knowledgeBases.map((knowledgeBase) => (
+                      <li key={knowledgeBase.id} className={styles.knowledgeRow}>
+                        <Checkbox
+                          checked={knowledge.selectedIds.includes(knowledgeBase.id)}
+                          label={knowledgeBase.name}
+                          description={
+                            knowledgeBase.documentCount === 0
+                              ? t('gallery.knowledge.noSources')
+                              : t('gallery.knowledge.sources', {
+                                  count: knowledgeBase.documentCount,
+                                })
+                          }
+                          onCheckedChange={() => onToggleKnowledgeBase(knowledgeBase.id)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </OptionCard>
             </fieldset>
           )}
           <Callout tone={CalloutTone.Info}>{t('gallery.detail.draftNote')}</Callout>

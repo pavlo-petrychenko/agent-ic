@@ -35,6 +35,7 @@ export const templateOptions = (
     agentTemplate(key).prompts.map((prompt) => [prompt.key, templatePromptRef(prompt.key)]),
   ),
   knowledgeBaseIds,
+  knowledgeBases: {},
   timeZone: TEMPLATE_TIME_ZONE,
   models: { agent: TEMPLATE_AGENT_MODEL, completion: TEMPLATE_COMPLETION_MODEL },
   nextId: sequentialIds(),

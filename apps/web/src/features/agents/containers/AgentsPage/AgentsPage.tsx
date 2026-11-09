@@ -181,7 +181,7 @@ export function AgentsPage({ workspaceId, templatesOpen, templateKey }: AgentsPa
             <AgentsEmpty
               creating={creating}
               canCreate={canCreate}
-              templates={cardsOfTab(templates, GalleryTab.Templates)}
+              templates={cardsOfTab(templates, GalleryTab.Examples)}
               onBrowseTemplates={() => void showGallery(null)}
               onCreateBlank={() => void onCreate()}
               onUseTemplate={(key) => void showGallery(key)}

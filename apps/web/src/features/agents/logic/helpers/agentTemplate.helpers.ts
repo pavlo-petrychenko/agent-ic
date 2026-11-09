@@ -15,7 +15,7 @@ import {
   TEMPLATE_PREVIEW_ID_PREFIX,
   TEMPLATE_PREVIEW_MODELS,
 } from '@/features/agents/constants/agentTemplate.constants';
-import type { GalleryTab } from '@/features/agents/constants/agentTemplate.constants';
+import { GalleryTab } from '@/features/agents/constants/agentTemplate.constants';
 import type {
   AgentTemplateCard,
   AgentTemplateStep,
@@ -33,6 +33,7 @@ const buildPreviewFlow = (
     locale,
     promptRefs: {},
     knowledgeBaseIds: [],
+    knowledgeBases: {},
     timeZone,
     models: TEMPLATE_PREVIEW_MODELS,
     nextId: () => {
@@ -68,6 +69,15 @@ export const cardsOfTab = (
   cards: readonly AgentTemplateCard[],
   tab: GalleryTab,
 ): AgentTemplateCard[] => cards.filter((card) => card.kind === GALLERY_TAB_KIND[tab]);
+
+export const galleryTabCounts = (
+  cards: readonly AgentTemplateCard[],
+): Readonly<Record<GalleryTab, number | null>> => ({
+  [GalleryTab.Templates]: cardsOfTab(cards, GalleryTab.Templates).length,
+  [GalleryTab.Examples]: cardsOfTab(cards, GalleryTab.Examples).length,
+  [GalleryTab.Snippets]: cardsOfTab(cards, GalleryTab.Snippets).length,
+  [GalleryTab.Blank]: null,
+});
 
 export const snippetCategories = (cards: readonly AgentTemplateCard[]): AgentTemplateCategory[] => {
   const present = new Set(cards.map((card) => card.category));

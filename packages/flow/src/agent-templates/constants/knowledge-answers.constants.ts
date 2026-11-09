@@ -96,6 +96,7 @@ export const KNOWLEDGE_ANSWERS_SNIPPET: AgentTemplateDefinition = {
     },
   ],
   usesKnowledge: true,
+  knowledgeRoles: [],
   prompts: [AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.KnowledgeAssistant]],
   draft,
 };

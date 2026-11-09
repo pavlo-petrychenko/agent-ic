@@ -92,6 +92,7 @@ export const FAQ_HAND_OFF_SNIPPET: AgentTemplateDefinition = {
     },
   ],
   usesKnowledge: false,
+  knowledgeRoles: [],
   prompts: [AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.SupportAssistant]],
   draft,
 };

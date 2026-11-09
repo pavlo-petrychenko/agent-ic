@@ -59,6 +59,7 @@
     "STORED_FLOW_UNREADABLE": "This version of the flow cannot be read. Contact support.",
     "AGENT_FLOW_HAS_BLOCKING_ISSUES": "Fix the flow errors before publishing.",
     "AGENT_TEMPLATE_WITHOUT_KNOWLEDGE": "This template does not use knowledge bases. Create the agent without them.",
+    "AGENT_TEMPLATE_UNKNOWN_KNOWLEDGE_ROLE": "This template has no agent for one of the chosen knowledge base roles.",
     "PROMPT_IN_USE": "Pick another prompt in the steps that use it before deleting this one.",
     "AWAY_MESSAGE_REQUIRED": "Write the away message the customer will receive.",
     "AWAY_MESSAGE_TOO_LONG": "The away message is too long.",

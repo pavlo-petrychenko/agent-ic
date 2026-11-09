@@ -4,6 +4,10 @@ import { NotifyChannel } from '@flow/nodes/constants/step.constants';
 export enum AgentTemplateKey {
   CafeSupport = 'cafe_support',
   StoreSales = 'store_sales',
+  FaqFromDocuments = 'faq_from_documents',
+  LeadHandling = 'lead_handling',
+  AppointmentBooking = 'appointment_booking',
+  RouteToSpecialists = 'route_to_specialists',
   FaqHandOff = 'faq_hand_off',
   KnowledgeAnswers = 'knowledge_answers',
   MenuButtons = 'menu_buttons',
@@ -18,6 +22,7 @@ export enum AgentTemplateKey {
 
 export enum AgentTemplateKind {
   Template = 'template',
+  Example = 'example',
   Snippet = 'snippet',
 }
 
@@ -43,14 +48,35 @@ export enum AgentTemplatePromptKey {
   ReplyGuard = 'reply_guard',
   ConversationReviewer = 'conversation_reviewer',
   ClosingAssistant = 'closing_assistant',
-  CafeAssistant = 'cafe_assistant',
+  CafeClassifier = 'cafe_classifier',
+  CafeMenu = 'cafe_menu',
+  CafeBooking = 'cafe_booking',
+  CafeJobs = 'cafe_jobs',
+  CafeGeneral = 'cafe_general',
   MessageTriage = 'message_triage',
   LeadScorer = 'lead_scorer',
   SalesAssistant = 'sales_assistant',
+  DocumentsAssistant = 'documents_assistant',
+  LeadQualifier = 'lead_qualifier',
+  AppointmentAssistant = 'appointment_assistant',
+  RequestClassifier = 'request_classifier',
+  SalesSpecialist = 'sales_specialist',
+  SupportSpecialist = 'support_specialist',
+  GeneralSpecialist = 'general_specialist',
+}
+
+export enum AgentTemplateKnowledgeRole {
+  Menu = 'menu',
+  Booking = 'booking',
+  Jobs = 'jobs',
+  General = 'general',
+  Sales = 'sales',
+  Support = 'support',
 }
 
 export const AGENT_TEMPLATE_KIND_ORDER: readonly AgentTemplateKind[] = [
   AgentTemplateKind.Template,
+  AgentTemplateKind.Example,
   AgentTemplateKind.Snippet,
 ];
 
@@ -74,6 +100,7 @@ export const AGENT_TEMPLATE_NODE_TYPE_ORDER: readonly NodeType[] = [
   NodeType.Escalation,
 ];
 
+export const AGENT_TEMPLATE_KNOWLEDGE_BASE_NAME_SEPARATOR = ' — ';
 export const AGENT_TEMPLATE_COLUMN_WIDTH = 300;
 export const AGENT_TEMPLATE_ROW_HEIGHT = 170;
 export const AGENT_TEMPLATE_ECHO_URL = 'https://postman-echo.com/post';

@@ -126,6 +126,7 @@ export const SCHEDULED_CHECK_IN_SNIPPET: AgentTemplateDefinition = {
     },
   ],
   usesKnowledge: false,
+  knowledgeRoles: [],
   prompts: [AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.SupportAssistant]],
   draft,
 };

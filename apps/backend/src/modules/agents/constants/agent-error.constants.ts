@@ -13,5 +13,7 @@ export const INVALID_AGENT_INPUT_MESSAGE = 'Some agent fields are not valid.';
 export const API_REQUEST_STEP_NOT_FOUND_MESSAGE = 'The draft has no API request step with this id.';
 export const AGENT_TEMPLATE_WITHOUT_KNOWLEDGE_MESSAGE =
   'This agent template does not use knowledge bases.';
+export const AGENT_TEMPLATE_UNKNOWN_KNOWLEDGE_ROLE_MESSAGE =
+  'This agent template has no such knowledge base role.';
 export const TEMPLATE_KNOWLEDGE_BASE_NOT_FOUND_MESSAGE =
   'A knowledge base given for the agent template does not exist.';

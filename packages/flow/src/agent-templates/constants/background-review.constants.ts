@@ -138,6 +138,7 @@ export const BACKGROUND_REVIEW_SNIPPET: AgentTemplateDefinition = {
     },
   ],
   usesKnowledge: false,
+  knowledgeRoles: [],
   prompts: [
     AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.SupportAssistant],
     AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.ConversationReviewer],

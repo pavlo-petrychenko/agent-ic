@@ -29,7 +29,10 @@ import {
   PromptSourceKind,
   PromptVersionKind,
 } from '@flow/references/constants/reference.constants';
-import { NO_FLOW_SETTINGS } from '@flow/settings/constants/settings.constants';
+import {
+  NO_FLOW_SETTINGS,
+  UnhandledFailureAction,
+} from '@flow/settings/constants/settings.constants';
 import { FlowIssueCode, FlowIssueSeverity } from '@flow/validation/constants/issue.constants';
 import { hasBlockingIssues, validateFlow } from '@flow/validation/helpers/validation.helpers';
 import { exampleFlows, faqWithHandOffFlow } from '@test/support/fixtures/example-flow.fixture';
@@ -548,6 +551,22 @@ describe('background branches', () => {
         nodeId: 'n_stop',
       }),
     );
+  });
+
+  it('does not warn about an AI step failure that the flow settings hand off', () => {
+    const flow = withStep(agent('more'));
+    const handedOff: FlowDocument = {
+      ...flow,
+      settings: {
+        ...flow.settings,
+        onUnhandledFailure: {
+          action: UnhandledFailureAction.Handoff,
+          customerMessage: 'Sorry, a person will reply soon.',
+        },
+      },
+    };
+
+    expect(codes(handedOff)).not.toContain(FlowIssueCode.NoErrorPath);
   });
 
   it('does not warn about a failure nothing handles in the steps of a background branch', () => {

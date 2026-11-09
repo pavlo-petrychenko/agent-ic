@@ -36,7 +36,7 @@ describe('buildGuideExample', () => {
     expect(highlighted.length).toBeLessThan(example?.graph.nodes.length ?? 0);
   });
 
-  it('lists the big templates that use the step', () => {
+  it('lists the templates and big examples that use the step', () => {
     const example = buildGuideExample(NodeType.Parallel, Locale.En);
 
     expect(example?.alsoIn).toEqual([

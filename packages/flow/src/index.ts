@@ -65,6 +65,7 @@ export {
   AgentTemplateCategory,
   AgentTemplateKey,
   AgentTemplateKind,
+  AgentTemplateKnowledgeRole,
   AgentTemplateLevel,
   AgentTemplatePromptKey,
 } from '@flow/agent-templates/constants/agent-template.constants';
@@ -72,13 +73,17 @@ export {
   agentTemplate,
   agentTemplateNodeTypes,
   agentTemplates,
+  agentTemplateNewKnowledgeBases,
   agentTemplatesOfKind,
   agentTemplatesUsing,
   buildAgentTemplate,
 } from '@flow/agent-templates/helpers/agent-template.helpers';
 export type {
   AgentTemplate,
+  AgentTemplateKnowledgeBases,
+  AgentTemplateKnowledgeRoleSpec,
   AgentTemplateModels,
+  AgentTemplateNewKnowledgeBase,
   AgentTemplateOptions,
   AgentTemplatePrompt,
   LocalizedText,

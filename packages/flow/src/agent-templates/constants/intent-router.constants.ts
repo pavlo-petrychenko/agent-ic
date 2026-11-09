@@ -159,6 +159,7 @@ export const INTENT_ROUTER_SNIPPET: AgentTemplateDefinition = {
     },
   ],
   usesKnowledge: false,
+  knowledgeRoles: [],
   prompts: [
     AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.IntentClassifier],
     AGENT_TEMPLATE_PROMPTS[AgentTemplatePromptKey.SupportAssistant],
