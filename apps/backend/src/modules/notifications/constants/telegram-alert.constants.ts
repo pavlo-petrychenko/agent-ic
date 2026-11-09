@@ -1,6 +1,20 @@
+import { Locale } from '@agent-ic/contracts';
+
 export const TELEGRAM_ALERTS_POLL_IDLE_MS = 1_000;
 export const TELEGRAM_LINK_SWEEP_INTERVAL_SECONDS = 60;
 export const TELEGRAM_ALERT_LAST_MESSAGE_MAX_LENGTH = 500;
+export const TELEGRAM_ALERT_TAKE_OVER_COPY: Readonly<
+  Record<Locale, { readonly started: string; readonly invalid: string }>
+> = {
+  [Locale.En]: {
+    started: 'Taking over…',
+    invalid: 'This button is no longer active.',
+  },
+  [Locale.Uk]: {
+    started: 'Беру чат…',
+    invalid: 'Ця кнопка вже неактивна.',
+  },
+};
 export const TELEGRAM_ALERTS_LINK_INSTRUCTIONS =
   'Open Settings → Notifications in agent-ic, press Link Telegram, and send the code here.';
 export const TELEGRAM_ALERTS_LINK_CONFIRMED =

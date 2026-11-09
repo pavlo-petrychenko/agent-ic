@@ -1,6 +1,9 @@
 import { ChannelKind, Locale } from '@agent-ic/contracts';
 import { describe, expect, it } from 'vitest';
-import { escalationTelegramText } from '@/modules/notifications/helpers/escalation-telegram.helpers';
+import {
+  escalationTelegramReplyMarkup,
+  escalationTelegramText,
+} from '@/modules/notifications/helpers/escalation-telegram.helpers';
 
 const props = {
   locale: Locale.En,
@@ -54,6 +57,36 @@ describe('escalationTelegramText', () => {
 
     expect(text).toContain('Чат потребує людини');
     expect(text).toContain('<b>Причина:</b> Customer asks to be called back');
+  });
+
+  it('builds the inbox and take-over buttons', () => {
+    expect(
+      escalationTelegramReplyMarkup(Locale.En, {
+        inboxUrl: 'https://app.test/w/ws_public/inbox?conversation=cnv_public',
+        takeOverCallbackData: 'to:ws_public:cnv_public',
+      }),
+    ).toEqual({
+      inline_keyboard: [
+        [
+          {
+            text: 'Open in Inbox',
+            url: 'https://app.test/w/ws_public/inbox?conversation=cnv_public',
+          },
+          { text: 'Take over', callback_data: 'to:ws_public:cnv_public' },
+        ],
+      ],
+    });
+  });
+
+  it('omits the take-over button without a conversation', () => {
+    expect(
+      escalationTelegramReplyMarkup(Locale.En, {
+        inboxUrl: 'https://app.test/w/ws_public/inbox',
+        takeOverCallbackData: null,
+      }),
+    ).toEqual({
+      inline_keyboard: [[{ text: 'Open in Inbox', url: 'https://app.test/w/ws_public/inbox' }]],
+    });
   });
 
   it('truncates a long customer message', () => {

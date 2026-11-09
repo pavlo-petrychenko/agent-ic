@@ -1,4 +1,5 @@
 import { AgentsModule } from '@/modules/agents';
+import { TelegramAlertTakeOverListener } from '@/modules/conversations/listeners/telegram-alert-take-over.listener';
 import { CloseInactiveConversationsProcessor } from '@/modules/conversations/processors/close-inactive-conversations.processor';
 import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { MessagesRepository } from '@/modules/conversations/repositories/messages.repository';
@@ -16,6 +17,7 @@ import { ConversationActivityService } from '@/modules/conversations/services/co
 import { ConversationHistoryService } from '@/modules/conversations/services/conversation-history.service';
 import { ConversationMetricsService } from '@/modules/conversations/services/conversation-metrics.service';
 import { ConversationRunsService } from '@/modules/conversations/services/conversation-runs.service';
+import { ConversationTakeOverService } from '@/modules/conversations/services/conversation-take-over.service';
 import { ConversationTimelineService } from '@/modules/conversations/services/conversation-timeline.service';
 import { InboxActivityService } from '@/modules/conversations/services/inbox-activity.service';
 import { InboxConversationsService } from '@/modules/conversations/services/inbox-conversations.service';
@@ -37,13 +39,15 @@ import { SendSimulatorMessageUseCase } from '@/modules/conversations/use-cases/s
 import { StartSimulationUseCase } from '@/modules/conversations/use-cases/start-simulation.use-case';
 import { SubscribeToConversationActivityUseCase } from '@/modules/conversations/use-cases/subscribe-to-conversation-activity.use-case';
 import { SubscribeToInboxActivityUseCase } from '@/modules/conversations/use-cases/subscribe-to-inbox-activity.use-case';
+import { TakeOverFromTelegramUseCase } from '@/modules/conversations/use-cases/take-over-from-telegram.use-case';
 import { TakeOverUseCase } from '@/modules/conversations/use-cases/take-over.use-case';
 import { IdentityModule } from '@/modules/identity';
 import { UsageModule } from '@/modules/usage';
 import { defineModule } from '@/platform/module-roles/helpers/module-roles.helpers';
+import { TelegramModule } from '@/platform/telegram/telegram.module';
 
 export class ConversationsModule extends defineModule({
-  imports: [AgentsModule, IdentityModule, UsageModule],
+  imports: [AgentsModule, IdentityModule, UsageModule, TelegramModule],
   providers: [
     ConversationsRepository,
     MessagesRepository,
@@ -52,6 +56,7 @@ export class ConversationsModule extends defineModule({
     ConversationActivityService,
     ConversationHistoryService,
     ConversationRunsService,
+    ConversationTakeOverService,
     ConversationTimelineService,
     ConversationMetricsService,
     IncomingMessagesService,
@@ -70,6 +75,7 @@ export class ConversationsModule extends defineModule({
     SendSimulatorMessageUseCase,
     ReplyAsOperatorUseCase,
     TakeOverUseCase,
+    TakeOverFromTelegramUseCase,
     HandBackUseCase,
     CloseConversationUseCase,
     CloseInactiveConversationsUseCase,
@@ -87,6 +93,7 @@ export class ConversationsModule extends defineModule({
     CloseConversationResolver,
   ],
   processors: [CloseInactiveConversationsProcessor],
+  listeners: [TelegramAlertTakeOverListener],
   exports: [
     ConversationActivityService,
     ConversationHistoryService,

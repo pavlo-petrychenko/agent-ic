@@ -6,6 +6,10 @@ import type {
   EscalationTelegramCopy,
   EscalationTelegramProps,
 } from '@/modules/notifications/typedefs/escalation-telegram.typedefs';
+import type {
+  TelegramInlineKeyboardButton,
+  TelegramReplyMarkup,
+} from '@/platform/telegram/typedefs/telegram.typedefs';
 
 const copyOf = (locale: Locale): EscalationTelegramCopy => ESCALATION_TELEGRAM_COPY[locale];
 
@@ -29,6 +33,23 @@ const lastMessageOf = (copy: EscalationTelegramCopy, lastMessage: string | null)
   return lastMessage.length <= TELEGRAM_ALERT_LAST_MESSAGE_MAX_LENGTH
     ? lastMessage
     : `${lastMessage.slice(0, TELEGRAM_ALERT_LAST_MESSAGE_MAX_LENGTH)}…`;
+};
+
+export interface EscalationTelegramButtons {
+  readonly inboxUrl: string;
+  readonly takeOverCallbackData: string | null;
+}
+
+export const escalationTelegramReplyMarkup = (
+  locale: Locale,
+  buttons: EscalationTelegramButtons,
+): TelegramReplyMarkup => {
+  const copy = copyOf(locale);
+  const row: TelegramInlineKeyboardButton[] = [{ text: copy.openInInbox, url: buttons.inboxUrl }];
+  if (buttons.takeOverCallbackData !== null) {
+    row.push({ text: copy.takeOver, callback_data: buttons.takeOverCallbackData });
+  }
+  return { inline_keyboard: [row] };
 };
 
 export const escalationTelegramText = (props: EscalationTelegramProps): string => {

@@ -14,6 +14,8 @@ export interface EscalationTelegramCopy {
   readonly reasonLabel: string;
   readonly emptyReason: string;
   readonly emptyMessage: string;
+  readonly openInInbox: string;
+  readonly takeOver: string;
   readonly customerFallback: string;
   readonly agentFallback: string;
   readonly channelTelegram: string;

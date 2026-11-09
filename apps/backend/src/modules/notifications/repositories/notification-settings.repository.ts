@@ -240,6 +240,44 @@ export class NotificationSettingsRepository {
     return row ?? null;
   }
 
+  async findTelegramLinkByChat(
+    workspaceId: string,
+    chatId: string,
+  ): Promise<TelegramLinkRecord | null> {
+    const [row] = await this.txHost.tx
+      .select({
+        workspaceId: telegramNotificationChannels.workspaceId,
+        channelId: telegramNotificationChannels.channelId,
+        settingsId: notificationChannels.settingsId,
+        userId: notificationSettings.userId,
+        chatId: telegramNotificationChannels.chatId,
+        linkCodeExpiresAt: telegramNotificationChannels.linkCodeExpiresAt,
+      })
+      .from(telegramNotificationChannels)
+      .innerJoin(
+        notificationChannels,
+        and(
+          eq(notificationChannels.workspaceId, workspaceId),
+          eq(notificationChannels.id, telegramNotificationChannels.channelId),
+        ),
+      )
+      .innerJoin(
+        notificationSettings,
+        and(
+          eq(notificationSettings.workspaceId, workspaceId),
+          eq(notificationSettings.id, notificationChannels.settingsId),
+        ),
+      )
+      .where(
+        and(
+          eq(telegramNotificationChannels.workspaceId, workspaceId),
+          eq(telegramNotificationChannels.chatId, chatId),
+          eq(notificationChannels.channel, NotificationChannel.Telegram),
+        ),
+      );
+    return row ?? null;
+  }
+
   async linkTelegramChat(
     workspaceId: string,
     channelId: string,

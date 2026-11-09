@@ -1,55 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import {
-  ConversationMode,
-  ConversationState,
-} from '@/modules/conversations/constants/conversation.constants';
-import { MessageSystemEvent } from '@/modules/conversations/constants/message.constants';
 import { parseConversationInput } from '@/modules/conversations/helpers/conversation-input.helpers';
 import { authorizeOperator } from '@/modules/conversations/helpers/operator.helpers';
-import { ConversationsRepository } from '@/modules/conversations/repositories/conversations.repository';
 import { operatorConversationSchema } from '@/modules/conversations/schemas/simulation.schema';
-import { ConversationTimelineService } from '@/modules/conversations/services/conversation-timeline.service';
-import { InboxActivityService } from '@/modules/conversations/services/inbox-activity.service';
-import { OperatorConversationsService } from '@/modules/conversations/services/operator-conversations.service';
-import { SimulationsService } from '@/modules/conversations/services/simulations.service';
+import { ConversationTakeOverService } from '@/modules/conversations/services/conversation-take-over.service';
 import type {
   ConversationView,
   OperatorConversationInput,
 } from '@/modules/conversations/typedefs/simulation.typedefs';
 import type { UseCaseCtx } from '@/platform/context/typedefs/use-case-ctx.typedefs';
-import { TenantTransactionService } from '@/platform/database/services/tenant-transaction.service';
 
 @Injectable()
 export class TakeOverUseCase {
-  constructor(
-    private readonly tenants: TenantTransactionService,
-    private readonly operated: OperatorConversationsService,
-    private readonly conversations: ConversationsRepository,
-    private readonly inboxActivity: InboxActivityService,
-    private readonly timeline: ConversationTimelineService,
-    private readonly views: SimulationsService,
-  ) {}
+  constructor(private readonly takeOvers: ConversationTakeOverService) {}
 
   async execute(ctx: UseCaseCtx, input: OperatorConversationInput): Promise<ConversationView> {
     const access = authorizeOperator(ctx);
     const { conversationId } = parseConversationInput(operatorConversationSchema, input);
-    return this.tenants.run(access.workspaceId, async () => {
-      const conversation = await this.operated.requireOperable(ctx, access, conversationId);
-      const takenOver = await this.conversations.takeOver(
-        access.workspaceId,
-        conversation.id,
-        access.userId,
-      );
-      if (takenOver !== null && conversation.mode === ConversationMode.Live) {
-        if (
-          conversation.state !== ConversationState.Handled ||
-          conversation.handledBy !== access.userId
-        ) {
-          await this.timeline.record(conversation, MessageSystemEvent.TookOver, access.userId);
-        }
-        await this.inboxActivity.conversationChanged(access.workspaceId, conversation.id);
-      }
-      return this.views.conversationView(takenOver ?? conversation);
-    });
+    return this.takeOvers.takeOver(ctx, access, conversationId);
   }
 }
