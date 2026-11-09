@@ -176,6 +176,11 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | replace 
 {{- if $secrets.llm.enabled }}
 {{- include "agent-ic.secretKeysEnv" (dict "secret" $secrets.llm "optional" true) }}
 {{- end }}
+{{- if $secrets.google.enabled }}
+- name: GOOGLE_OAUTH_REDIRECT_URI
+  value: {{ $secrets.google.redirectUri | quote }}
+{{- include "agent-ic.secretKeysEnv" (dict "secret" $secrets.google) }}
+{{- end }}
 {{- if ne $langfuse.mode "off" }}
 - name: LANGFUSE_HOST
   value: {{ $langfuse.host | quote }}
