@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { KNOWLEDGE_CHUNKS_UNTRACKED, NO_USAGE } from '@/modules/usage/constants/usage.constants';
+import { NO_USAGE } from '@/modules/usage/constants/usage.constants';
 import { creditLimitReached } from '@/modules/usage/helpers/usage-limits.helpers';
 import { UsageCountersRepository } from '@/modules/usage/repositories/usage-counters.repository';
+import { KnowledgeChunksService } from '@/modules/usage/services/knowledge-chunks.service';
 import { UsageLimitsReader } from '@/modules/usage/services/usage-limits-reader.service';
 import { UsagePeriodService } from '@/modules/usage/services/usage-period.service';
 import type { UsageStatus, WorkspaceUsage } from '@/modules/usage/typedefs/usage.typedefs';
@@ -12,6 +13,7 @@ export class UsageViewsService {
     private readonly counters: UsageCountersRepository,
     private readonly limits: UsageLimitsReader,
     private readonly periods: UsagePeriodService,
+    private readonly chunks: KnowledgeChunksService,
   ) {}
 
   async workspaceUsage(workspaceId: string): Promise<WorkspaceUsage> {
@@ -23,7 +25,7 @@ export class UsageViewsService {
       periodEnd: period.end,
       credits: { used: counter?.credits ?? NO_USAGE, limit: limits.credits },
       conversations: { used: counter?.conversations ?? NO_USAGE, limit: limits.conversations },
-      chunks: { used: KNOWLEDGE_CHUNKS_UNTRACKED, limit: limits.chunks },
+      chunks: { used: await this.chunks.workspaceChunks(workspaceId), limit: limits.chunks },
     };
   }
 

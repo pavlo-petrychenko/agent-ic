@@ -4,6 +4,7 @@ import { and, count, countDistinct, eq, gt, isNull, sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { chunks } from '@/modules/knowledge/db/chunks.table';
 import { documents } from '@/modules/knowledge/db/documents.table';
+import { knowledgeBases } from '@/modules/knowledge/db/knowledge-bases.table';
 import { sourceDocuments } from '@/modules/knowledge/db/source-documents.table';
 import type {
   KnowledgeCounts,
@@ -57,6 +58,33 @@ export class KnowledgeStatsRepository {
 
   knowledgeBaseCounts(workspaceId: string, knowledgeBaseId: string): Promise<KnowledgeCounts> {
     return this.counts(workspaceId, eq(documents.kbId, knowledgeBaseId));
+  }
+
+  async workspaceChunkCount(workspaceId: string): Promise<number> {
+    const [row] = await this.txHost.tx
+      .select({ chunkCount: count(chunks.id) })
+      .from(chunks)
+      .innerJoin(
+        documents,
+        and(eq(documents.workspaceId, chunks.workspaceId), eq(documents.id, chunks.documentId)),
+      )
+      .innerJoin(
+        knowledgeBases,
+        and(
+          eq(knowledgeBases.workspaceId, documents.workspaceId),
+          eq(knowledgeBases.id, documents.kbId),
+        ),
+      )
+      .where(
+        and(
+          eq(chunks.workspaceId, workspaceId),
+          eq(chunks.generation, documents.activeGeneration),
+          gt(documents.activeGeneration, 0),
+          isNull(documents.deletedAt),
+          isNull(knowledgeBases.deletedAt),
+        ),
+      );
+    return row?.chunkCount ?? 0;
   }
 
   private async counts(workspaceId: string, condition: SQL): Promise<KnowledgeCounts> {
