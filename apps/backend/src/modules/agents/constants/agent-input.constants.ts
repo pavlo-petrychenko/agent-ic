@@ -15,6 +15,9 @@ export enum AgentField {
   AwayMessage = 'awayMessage',
   NodeId = 'nodeId',
   Variables = 'variables',
+  TemplateKey = 'templateKey',
+  KnowledgeBaseIds = 'knowledgeBaseIds',
+  Kind = 'kind',
 }
 
 export enum AgentGraphqlArgument {
@@ -25,6 +28,7 @@ export enum AgentGraphqlArgument {
   ToId = 'toId',
   First = 'first',
   After = 'after',
+  Kind = 'kind',
 }
 
 export const AGENT_FIELD_PATH_SEPARATOR = '.';
