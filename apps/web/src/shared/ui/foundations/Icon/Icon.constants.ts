@@ -6,6 +6,7 @@ export enum IconName {
   Api = 'api',
   ArrowDown = 'arrow-down',
   ArrowUp = 'arrow-up',
+  Bell = 'bell',
   Bolt = 'bolt',
   Box = 'box',
   Cal = 'cal',
@@ -92,6 +93,12 @@ export const ICON_SHAPES: Readonly<Record<IconName, readonly IconShape[]>> = {
   ],
   [IconName.ArrowDown]: [{ kind: IconShapeKind.Path, d: 'M8 3v10M4 9l4 4 4-4' }],
   [IconName.ArrowUp]: [{ kind: IconShapeKind.Path, d: 'M8 13V3M4 7l4-4 4 4' }],
+  [IconName.Bell]: [
+    {
+      kind: IconShapeKind.Path,
+      d: 'M4 6.5a4 4 0 0 1 8 0c0 2.8 1.2 4 1.2 4H2.8S4 9.3 4 6.5zM6.5 13a1.5 1.5 0 0 0 3 0',
+    },
+  ],
   [IconName.Bolt]: [{ kind: IconShapeKind.Path, d: 'M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z' }],
   [IconName.Box]: [
     { kind: IconShapeKind.Path, d: 'M2.5 5L8 2l5.5 3v6L8 14l-5.5-3zM2.5 5L8 8l5.5-3M8 8v6' },

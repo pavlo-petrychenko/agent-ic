@@ -14,13 +14,17 @@ export function WorkspaceSidebar({
   workspaceId,
   navLabel,
   header,
+  headerAction,
   groups,
   user,
   footerAction,
 }: WorkspaceSidebarProps) {
   return (
     <nav aria-label={navLabel} className={styles.root}>
-      <div className={styles.header}>{header}</div>
+      <div className={styles.header}>
+        <div className={styles.headerMain}>{header}</div>
+        {headerAction}
+      </div>
       {groups.map((group) => (
         <NavGroup
           key={group.key}

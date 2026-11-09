@@ -5,6 +5,11 @@ import type {
 import type { notificationDeliveries } from '@/modules/notifications/db/notification-deliveries.table';
 import type { notifications } from '@/modules/notifications/db/notifications.table';
 import type { NotificationChannelValue } from '@/modules/notifications/typedefs/notification-settings.typedefs';
+import type {
+  ConnectionArgs,
+  Edge,
+  PageInfo,
+} from '@/platform/graphql-server/typedefs/relay.typedefs';
 
 export type NotificationRecord = typeof notifications.$inferSelect;
 
@@ -42,6 +47,40 @@ export interface NotificationDeliverySweepRow {
 
 export interface MarkNotificationsReadInput {
   readonly conversationId: string;
+}
+
+export interface MarkNotificationReadInput {
+  readonly notificationId: string;
+}
+
+export interface ListNotificationsInput extends ConnectionArgs {
+  readonly unreadOnly?: boolean | null;
+}
+
+export interface NotificationListQuery {
+  readonly afterId: string | null;
+  readonly limit: number;
+  readonly unreadOnly: boolean;
+}
+
+export interface NotificationListItemRecord {
+  readonly id: string;
+  readonly conversationId: string;
+  readonly kind: NotificationKind;
+  readonly waitingMinutes: number;
+  readonly customerName: string | null;
+  readonly channelKind: string | null;
+  readonly reason: string | null;
+  readonly createdAt: Date;
+  readonly read: boolean;
+  readonly readAt: Date | null;
+}
+
+export type NotificationListItemView = NotificationListItemRecord;
+
+export interface NotificationsPage {
+  readonly edges: readonly Edge<NotificationListItemView>[];
+  readonly pageInfo: PageInfo;
 }
 
 export interface NotificationAlertRecord {

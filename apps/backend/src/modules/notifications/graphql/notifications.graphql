@@ -1,5 +1,6 @@
 extend type Query {
   notificationSettings: NotificationSettings!
+  notifications(first: Int, after: String, unreadOnly: Boolean): NotificationConnection!
   unreadNotificationCount: Int!
   latestUnreadNotification: NotificationAlert
 }
@@ -9,6 +10,8 @@ extend type Mutation {
   updateNotificationEmail(input: UpdateNotificationEmailInput!): NotificationSettings!
   createTelegramNotificationLink: TelegramNotificationLink!
   unlinkTelegramNotification: NotificationSettings!
+  markNotificationRead(input: MarkNotificationReadInput!): Int!
+  markAllNotificationsRead: Int!
   markNotificationsRead(input: MarkNotificationsReadInput!): Int!
 }
 
@@ -57,6 +60,10 @@ input UpdateNotificationEmailInput {
   email: String!
 }
 
+input MarkNotificationReadInput {
+  notificationId: ID!
+}
+
 input MarkNotificationsReadInput {
   conversationId: ID!
 }
@@ -64,6 +71,29 @@ input MarkNotificationsReadInput {
 enum NotificationKind {
   escalation
   reminder
+}
+
+type Notification {
+  id: ID!
+  conversationId: ID!
+  kind: NotificationKind!
+  waitingMinutes: Int!
+  customerName: String
+  channelKind: String
+  reason: String
+  createdAt: String!
+  read: Boolean!
+  readAt: String
+}
+
+type NotificationEdge {
+  cursor: String!
+  node: Notification!
+}
+
+type NotificationConnection {
+  edges: [NotificationEdge!]!
+  pageInfo: PageInfo!
 }
 
 type NotificationAlert {

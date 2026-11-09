@@ -1,0 +1,115 @@
+$popover-width: 360px;
+$row-min-height: 54px;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  width: $popover-width;
+  max-width: calc(100vw - 2 * var(--space-16));
+  max-height: 420px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-10) var(--space-6);
+  border-bottom: var(--border-width) solid var(--color-line);
+}
+
+.title {
+  color: var(--color-ink);
+  font: var(--type-title);
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-10);
+}
+
+.empty {
+  padding: var(--space-16);
+  text-align: center;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: var(--space-4);
+  list-style: none;
+  overflow-y: auto;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+  width: 100%;
+  min-height: $row-min-height;
+  padding: var(--space-8);
+  border: 0;
+  border-radius: var(--radius-8);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-soft);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+}
+
+.read {
+  opacity: 0.72;
+}
+
+.dot {
+  flex-shrink: 0;
+  width: var(--size-dot-md);
+  height: var(--size-dot-md);
+  margin-top: var(--space-5);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+.dotRead {
+  background: transparent;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.rowTitle {
+  overflow: hidden;
+  color: var(--color-ink);
+  font: var(--type-body-small-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowSubtitle {
+  overflow: hidden;
+  color: var(--color-mute);
+  font: var(--type-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  color: var(--color-mute);
+  font: var(--type-hint);
+}

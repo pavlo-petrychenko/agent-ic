@@ -13,7 +13,13 @@
 .header {
   display: flex;
   align-items: center;
+  gap: var(--space-8);
   min-height: var(--size-control-lg);
+}
+
+.headerMain {
+  flex: 1;
+  min-width: 0;
 }
 
 .pushDown {

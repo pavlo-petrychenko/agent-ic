@@ -2,7 +2,11 @@ import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useApplyAccountLocale, useLogOut } from '@/features/auth';
-import { InboxBrowserNotifications, useInboxNeedsYouCount } from '@/features/inbox';
+import {
+  InboxBrowserNotifications,
+  NotificationBell,
+  useInboxNeedsYouCount,
+} from '@/features/inbox';
 import { useWorkspaceShell } from '@/features/workspace/communication/hooks/useWorkspaceShell';
 import { NavGroupKey, WorkspaceSection } from '@/features/workspace/constants/navigation.constants';
 import { WorkspaceNavForm } from '@/features/workspace/constants/navigationForm.constants';
@@ -51,6 +55,9 @@ export function WorkspaceNavigation({
   );
   const notifications = (
     <InboxBrowserNotifications enabled={inboxEnabled} onOpen={openInboxConversation} />
+  );
+  const notificationBell = (
+    <NotificationBell enabled={inboxEnabled} onOpenConversation={openInboxConversation} />
   );
   const groups =
     active === null
@@ -131,6 +138,7 @@ export function WorkspaceNavigation({
           footerItems={groups
             .filter((group) => group.key === NavGroupKey.Footer)
             .flatMap((group) => group.items.map(toRailItem))}
+          account={notificationBell}
         />
         {notifications}
       </>
@@ -143,6 +151,7 @@ export function WorkspaceNavigation({
         workspaceId={workspaceId}
         navLabel={t('nav.label')}
         header={switcher}
+        headerAction={notificationBell}
         groups={groups}
         user={
           data === null
