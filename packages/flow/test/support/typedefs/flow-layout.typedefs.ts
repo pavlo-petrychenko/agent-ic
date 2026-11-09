@@ -34,3 +34,15 @@ export interface LayoutEdgeOverlap {
   readonly first: string;
   readonly second: string;
 }
+
+export interface LayoutTerminal {
+  readonly nodeId: string;
+  readonly exit: string;
+  readonly box: LayoutBox;
+}
+
+export interface LayoutTerminalHit {
+  readonly nodeId: string;
+  readonly exit: string;
+  readonly hitId: string;
+}

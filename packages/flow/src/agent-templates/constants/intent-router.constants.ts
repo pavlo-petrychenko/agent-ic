@@ -2,6 +2,7 @@ import { AGENT_TEMPLATE_PROMPTS } from '@flow/agent-templates/constants/agent-te
 import {
   HAND_OFF_LABEL,
   SEND_ANSWER_LABEL,
+  TALK_TO_PERSON_RULE_LABEL,
 } from '@flow/agent-templates/constants/agent-template-texts.constants';
 import {
   AGENT_TEMPLATE_HAND_OFF_KEY,
@@ -60,7 +61,7 @@ const draft = (options: AgentTemplateOptions) => {
       messageTrigger(options, [0, 0]),
       completionStep(options, {
         key: CLASSIFY_KEY,
-        label: t({ en: 'What does the customer want?', uk: 'Чого хоче клієнт?' }),
+        label: t({ en: 'What do they want?', uk: 'Чого хоче клієнт?' }),
         at: [0, 1],
         prompt: AgentTemplatePromptKey.IntentClassifier,
         output: [
@@ -81,14 +82,14 @@ const draft = (options: AgentTemplateOptions) => {
         [
           templateRule(
             HOURS_KEY,
-            t({ en: 'Opening hours', uk: 'Години роботи' }),
+            t({ en: 'Hours', uk: 'Години' }),
             INTENT_VARIABLE,
             ConditionOperator.Eq,
             Intent.OpeningHours,
           ),
           templateRule(
             Intent.TalkToPerson,
-            t({ en: 'Talk to a person', uk: 'Поговорити з людиною' }),
+            t(TALK_TO_PERSON_RULE_LABEL),
             INTENT_VARIABLE,
             ConditionOperator.Eq,
             Intent.TalkToPerson,

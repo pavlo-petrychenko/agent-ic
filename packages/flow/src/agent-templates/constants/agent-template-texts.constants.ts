@@ -49,3 +49,5 @@ export const TALK_TO_PERSON_BUTTON: LocalizedText = {
   en: 'Talk to a person',
   uk: 'Поговорити з людиною',
 };
+
+export const TALK_TO_PERSON_RULE_LABEL: LocalizedText = { en: 'Person', uk: 'Людина' };

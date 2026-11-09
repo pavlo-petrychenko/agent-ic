@@ -2,6 +2,7 @@ import { AGENT_TEMPLATE_PROMPTS } from '@flow/agent-templates/constants/agent-te
 import {
   HAND_OFF_LABEL,
   SEND_ANSWER_LABEL,
+  TALK_TO_PERSON_RULE_LABEL,
 } from '@flow/agent-templates/constants/agent-template-texts.constants';
 import {
   AGENT_TEMPLATE_HAND_OFF_KEY,
@@ -43,6 +44,7 @@ const MESSAGE_TEXT = 'message.text';
 const HOURS_BUTTON: LocalizedText = { en: 'Opening hours', uk: 'Години роботи' };
 const DELIVERY_BUTTON: LocalizedText = { en: 'Delivery', uk: 'Доставка' };
 const PERSON_BUTTON: LocalizedText = { en: 'Talk to a person', uk: 'Поговорити з людиною' };
+const HOURS_RULE_LABEL: LocalizedText = { en: 'Hours', uk: 'Години' };
 const MENU_BUTTONS: readonly LocalizedText[] = [HOURS_BUTTON, DELIVERY_BUTTON, PERSON_BUTTON];
 
 const HOURS_TEXT: LocalizedText = {
@@ -68,7 +70,7 @@ const draft = (options: AgentTemplateOptions) => {
         [
           templateRule(
             HOURS_KEY,
-            t(HOURS_BUTTON),
+            t(HOURS_RULE_LABEL),
             MESSAGE_TEXT,
             ConditionOperator.Eq,
             t(HOURS_BUTTON),
@@ -82,7 +84,7 @@ const draft = (options: AgentTemplateOptions) => {
           ),
           templateRule(
             PERSON_RULE,
-            t(PERSON_BUTTON),
+            t(TALK_TO_PERSON_RULE_LABEL),
             MESSAGE_TEXT,
             ConditionOperator.Eq,
             t(PERSON_BUTTON),

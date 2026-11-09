@@ -5,6 +5,7 @@ import {
   HAND_OFF_LABEL,
   SEND_ANSWER_LABEL,
   TALK_TO_PERSON_BUTTON,
+  TALK_TO_PERSON_RULE_LABEL,
 } from '@flow/agent-templates/constants/agent-template-texts.constants';
 import {
   AGENT_TEMPLATE_ALL_NOTIFY_CHANNELS,
@@ -101,6 +102,7 @@ const BOOKING_BODY = `{"name": "{{user.name}}", "date": "${value(DATE_FIELD)}", 
 
 const MENU_BUTTON: LocalizedText = { en: 'Menu', uk: 'Меню' };
 const HOURS_BUTTON: LocalizedText = { en: 'Opening hours', uk: 'Години роботи' };
+const HOURS_RULE_LABEL: LocalizedText = { en: 'Hours', uk: 'Години' };
 const MENU_BUTTONS: readonly LocalizedText[] = [MENU_BUTTON, HOURS_BUTTON, TALK_TO_PERSON_BUTTON];
 const AFTER_BOOKING_BUTTONS: readonly LocalizedText[] = [MENU_BUTTON, TALK_TO_PERSON_BUTTON];
 
@@ -134,14 +136,14 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
           ),
           templateRule(
             HOURS_KEY,
-            t(HOURS_BUTTON),
+            t(HOURS_RULE_LABEL),
             MESSAGE_TEXT,
             ConditionOperator.Eq,
             t(HOURS_BUTTON),
           ),
           templateRule(
             PERSON_RULE,
-            t(TALK_TO_PERSON_BUTTON),
+            t(TALK_TO_PERSON_RULE_LABEL),
             MESSAGE_TEXT,
             ConditionOperator.Eq,
             t(TALK_TO_PERSON_BUTTON),
@@ -151,14 +153,14 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
       sendText(
         MENU_KEY,
         t({ en: 'Send the menu', uk: 'Надіслати меню' }),
-        [-1.5, 2],
+        [-1.9, 2],
         t(MENU_TEXT),
         menuButtons,
       ),
       sendText(
         HOURS_KEY,
         t({ en: 'Send the opening hours', uk: 'Надіслати години роботи' }),
-        [-0.8, 3],
+        [-1, 3],
         t(HOURS_TEXT),
         menuButtons,
       ),
@@ -256,18 +258,18 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
       handOff(
         options,
         ASSISTANT_FAILED_KEY,
-        t({ en: 'Hand off: assistant failed', uk: 'Передати: асистент не відповів' }),
-        [1.92, 3],
+        t({ en: 'Hand off: assistant failed', uk: 'Передати: збій асистента' }),
+        [1.92, 3.3],
         t(ASSISTANT_FAILED_REASON),
         AGENT_TEMPLATE_ALL_NOTIFY_CHANNELS,
       ),
       sendMessages(
         GOODBYE_KEY,
         t({ en: 'Say goodbye', uk: 'Попрощатися' }),
-        [2.8, 3],
+        [3.42, 3],
         ASSISTANT_KEY,
       ),
-      endChat(CLOSE_CHAT_KEY, t({ en: 'End the chat', uk: 'Завершити чат' }), [2.8, 4], null),
+      endChat(CLOSE_CHAT_KEY, t({ en: 'End the chat', uk: 'Завершити чат' }), [3.42, 4], null),
       apiRequestStep(
         SAVE_BOOKING_KEY,
         t({ en: 'Save the booking', uk: 'Зберегти бронювання' }),
@@ -288,7 +290,7 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
       handOff(
         options,
         BOOKING_FAILED_KEY,
-        t({ en: 'Hand off: booking not saved', uk: 'Передати: бронювання не збережено' }),
+        t({ en: 'Hand off: booking not saved', uk: 'Передати: збій бронювання' }),
         [0.3, 5],
         t({
           en: `Booking could not be saved: ${value(GUESTS_FIELD)} guests on ${value(DATE_FIELD)} at ${value(TIME_FIELD)}, phone ${value(PHONE_FIELD)}. Please confirm it with the guest.`,
@@ -303,7 +305,7 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
       inactivityTrigger(
         AGENT_TEMPLATE_INACTIVITY_KEY,
         t({ en: 'Guest went quiet', uk: 'Гість замовк' }),
-        [4.5, 0],
+        [5.1, 0],
         {
           silence: { amount: SILENCE_HOURS, unit: InactivityUnit.Hours },
           activity: InactivityActivity.Customer,
@@ -318,7 +320,7 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
       routerStep(
         FOLLOW_UP_KEY,
         t({ en: 'Which follow-up?', uk: 'Яке нагадування?' }),
-        [4.5, 1],
+        [5.1, 1],
         [
           templateRule(
             FIRST_RULE,
@@ -332,7 +334,7 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
       sendText(
         STILL_THERE_KEY,
         t({ en: 'Ask if they are still there', uk: 'Запитати, чи гість ще тут' }),
-        [4, 2],
+        [4.6, 2],
         t({
           en: 'Are you still there? Tap a button below or just write your question, and I will gladly help.',
           uk: 'Ви ще тут? Натисніть кнопку нижче або просто напишіть питання, і я радо допоможу.',
@@ -341,8 +343,8 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
       ),
       sendText(
         LAST_REMINDER_KEY,
-        t({ en: 'Send a last reminder', uk: 'Надіслати останнє нагадування' }),
-        [5, 2],
+        t({ en: 'Send a last reminder', uk: 'Останнє нагадування' }),
+        [5.6, 2],
         t({
           en: 'Just a friendly reminder: if you would like to book a table or ask about the menu, we are here.',
           uk: 'Просто дружнє нагадування: якщо захочете забронювати столик чи запитати про меню, ми поруч.',
@@ -351,7 +353,7 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
       endChat(
         CLOSE_AFTER_SILENCE_KEY,
         t({ en: 'Close the quiet chat', uk: 'Закрити тихий чат' }),
-        [5, 3],
+        [5.6, 3],
         t({
           en: 'I am closing this chat for now. Write any time to start a new one. See you at Kavarnia!',
           uk: 'Поки що я закриваю цей чат. Пишіть будь-коли, щоб почати новий. Чекаємо на вас у Kavarnia!',

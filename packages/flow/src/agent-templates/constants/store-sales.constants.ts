@@ -174,7 +174,7 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
       handOff(
         options,
         CHECK_FAILED_KEY,
-        t({ en: 'Hand off: check failed', uk: 'Передати: перевірка не вдалася' }),
+        t({ en: 'Hand off: check failed', uk: 'Передати: збій перевірки' }),
         [-1.36, 3],
         t({
           en: 'The message could not be checked automatically. Please reply to the customer.',
@@ -183,7 +183,7 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
       ),
       apiRequestStep(
         ORDERS_KEY,
-        t({ en: 'Load recent orders', uk: 'Завантажити останні замовлення' }),
+        t({ en: 'Load recent orders', uk: 'Завантажити замовлення' }),
         [-0.6, 2],
         {
           method: HttpMethod.Get,
@@ -255,8 +255,8 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
       handOff(
         options,
         SALES_FAILED_KEY,
-        t({ en: 'Hand off: assistant failed', uk: 'Передати: асистент не відповів' }),
-        [1, 5],
+        t({ en: 'Hand off: assistant failed', uk: 'Передати: збій асистента' }),
+        [2.35, 5],
         t(ASSISTANT_FAILED_REASON),
       ),
       routerStep(
@@ -294,7 +294,7 @@ const draft = (options: AgentTemplateOptions): AgentTemplateDraft => {
       handOff(
         options,
         LEAD_FAILED_KEY,
-        t({ en: 'Hand off: lead not saved', uk: 'Передати: заявку не збережено' }),
+        t({ en: 'Hand off: lead not saved', uk: 'Передати: збій заявки' }),
         [-0.85, 7],
         t({
           en: `A lead could not be saved: ${value(SALES_KEY, PRODUCT_FIELD)}, phone ${value(SALES_KEY, PHONE_FIELD)}. Please call the customer back.`,

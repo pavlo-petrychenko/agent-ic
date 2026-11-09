@@ -49,7 +49,7 @@ const draft = (options: AgentTemplateOptions) => {
       messageTrigger(options, [0, 0]),
       parallelStep(
         TOGETHER_KEY,
-        t({ en: 'Check and draft together', uk: 'Перевірити й написати разом' }),
+        t({ en: 'Check and draft together', uk: 'Перевірити й написати' }),
         [0, 1],
       ),
       completionStep(options, {
@@ -82,7 +82,7 @@ const draft = (options: AgentTemplateOptions) => {
       handOff(
         options,
         GUARD_FAILED_KEY,
-        t({ en: 'Hand off if the check fails', uk: 'Передати, якщо перевірка не вдалася' }),
+        t({ en: 'Hand off if the check fails', uk: 'Передати: збій перевірки' }),
         [-1.5, 3],
         t({
           en: 'The safety check failed, so a person should answer.',
@@ -92,7 +92,7 @@ const draft = (options: AgentTemplateOptions) => {
       handOff(
         options,
         DRAFT_FAILED_KEY,
-        t({ en: 'Hand off if the draft fails', uk: 'Передати, якщо відповідь не вдалася' }),
+        t({ en: 'Hand off if the draft fails', uk: 'Передати: збій відповіді' }),
         [1.5, 3],
         t({
           en: 'The assistant could not draft a reply.',

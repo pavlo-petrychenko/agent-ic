@@ -97,7 +97,7 @@ const draft = (options: AgentTemplateOptions) => {
       ),
       sendMessages(
         ASK_KEY,
-        t({ en: 'Reply and ask for the phone', uk: 'Відповісти й попросити номер' }),
+        t({ en: 'Reply and ask for the phone', uk: 'Попросити номер телефону' }),
         [-1.5, 3],
         LEAD_KEY,
       ),
