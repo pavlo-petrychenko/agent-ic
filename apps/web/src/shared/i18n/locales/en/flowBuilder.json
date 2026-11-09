@@ -811,5 +811,41 @@
       "onHint": "1 hour to 30 days, counted from the customer’s last message. Closes silently, with no message. The next customer message starts a new conversation.",
       "offHint": "Conversations stay open until an agent or a person ends them."
     }
+  },
+  "versions": {
+    "open": "Versions",
+    "title": "Version history",
+    "label": "Published versions",
+    "number": "v{{number}}",
+    "live": "Live",
+    "close": "Close",
+    "cancel": "Cancel",
+    "compare": "Compare",
+    "loading": "Loading the versions",
+    "loadError": "The versions couldn’t be loaded.",
+    "empty": {
+      "title": "No published versions yet",
+      "description": "Publish the draft to start the history. You can roll back to any published version later."
+    },
+    "replacesDraft_one": "Your draft has {{count}} unpublished change. It’ll be replaced.",
+    "replacesDraft_other": "Your draft has {{count}} unpublished changes. They’ll be replaced.",
+    "rollback": {
+      "action": "Roll back",
+      "title": "Roll back to v{{number}}?",
+      "submit": "Roll back to v{{number}}",
+      "intro": "The flow of v{{number}} goes live right away for new conversations.",
+      "introNext": "The flow of v{{number}} goes live right away as v{{next}} for new conversations. Conversations that are mid-run finish on v{{live}}.",
+      "note": "Release note",
+      "defaultNote": "Rolled back to version {{number}}",
+      "success": "Rolled back. v{{version}} is live"
+    },
+    "restore": {
+      "action": "Restore to draft",
+      "title": "Restore v{{number}} to the draft?",
+      "submit": "Restore v{{number}}",
+      "intro": "We copy v{{number}} into the draft so you can edit it. Nothing changes for customers until you publish.",
+      "introLive": "We copy v{{number}} into the draft so you can edit it. Customers stay on v{{live}} until you publish.",
+      "success": "v{{number}} is in the draft"
+    }
   }
 }
