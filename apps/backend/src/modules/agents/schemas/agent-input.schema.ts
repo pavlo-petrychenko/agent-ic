@@ -71,6 +71,12 @@ export const restoreAgentVersionInputSchema = z.object({
   [AgentField.Revision]: z.int().min(DRAFT_INITIAL_REVISION),
 });
 
+export const rollbackAgentInputSchema = z.object({
+  [AgentField.VersionId]: agentIdSchema,
+  [AgentField.Revision]: z.int().min(DRAFT_INITIAL_REVISION),
+  [AgentField.Note]: versionNoteSchema,
+});
+
 export const agentVersionDiffInputSchema = z.object({
   [AgentField.AgentId]: agentIdSchema,
   [AgentField.FromId]: agentIdSchema,

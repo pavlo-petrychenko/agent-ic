@@ -14,12 +14,14 @@ import type {
   AgentConnectionParent,
   AgentParent,
   PublishAgentPayloadParent,
+  RollbackAgentPayloadParent,
 } from '@/modules/agents/typedefs/agent-graphql.typedefs';
 import type {
   AgentDraftView,
   AgentVersionView,
   PublishPreview as DomainPublishPreview,
   PublishedAgent,
+  RolledBackAgent,
 } from '@/modules/agents/typedefs/agent-version.typedefs';
 import type {
   AgentView,
@@ -129,6 +131,14 @@ export const toGraphqlAgentDraft = (draft: AgentDraftView): AgentDraft => ({
 export const toGraphqlPublishedAgent = (published: PublishedAgent): PublishAgentPayloadParent => ({
   agent: toGraphqlAgent(published.agent),
   version: toGraphqlAgentVersion(published.version),
+});
+
+export const toGraphqlRolledBackAgent = (
+  rolledBack: RolledBackAgent,
+): RollbackAgentPayloadParent => ({
+  agent: toGraphqlAgent(rolledBack.agent),
+  version: toGraphqlAgentVersion(rolledBack.version),
+  draft: toGraphqlAgentDraft(rolledBack.draft),
 });
 
 export const toPauseAgentInput = (input: GraphqlPauseAgentInput): PauseAgentInput => ({

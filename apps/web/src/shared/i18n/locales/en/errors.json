@@ -54,6 +54,7 @@
     "AGENT_NOT_FOUND": "This agent does not exist.",
     "AGENT_VERSION_NOT_FOUND": "This agent version does not exist.",
     "AGENT_VERSION_IMMUTABLE": "A published version cannot be changed.",
+    "AGENT_VERSION_ALREADY_LIVE": "This version is already live.",
     "DRAFT_CONFLICT": "Someone else saved this draft. Reload to continue.",
     "STORED_FLOW_UNREADABLE": "This version of the flow cannot be read. Contact support.",
     "AGENT_FLOW_HAS_BLOCKING_ISSUES": "Fix the flow errors before publishing.",

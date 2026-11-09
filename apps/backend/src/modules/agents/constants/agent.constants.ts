@@ -34,6 +34,9 @@ export enum AgentVersionAggregate {
 
 export const NO_PUBLISHED_VERSIONS = 0;
 
+export const ROLLBACK_NOTE_PREFIX = 'Rolled back to version ';
+export const ROLLBACK_NOTE_UNNUMBERED = 'Rolled back to an earlier version';
+
 export const FLOW_NODES_FIELD = 'nodes';
 
 export const AUTO_CLOSE_MINUTES_PATH = '{settings,autoClose,afterMinutes}';

@@ -123,6 +123,16 @@ export interface RestoreAgentVersionInput {
   readonly revision: number;
 }
 
+export interface RollbackAgentInput {
+  readonly versionId: string;
+  readonly revision: number;
+  readonly note?: string | null;
+}
+
+export interface RolledBackAgent extends PublishedAgent {
+  readonly draft: AgentDraftView;
+}
+
 export interface AgentVersionDiffInput {
   readonly agentId: string;
   readonly fromId: string;

@@ -3,6 +3,7 @@ import type {
   AgentConnection,
   AgentEdge,
   PublishAgentPayload,
+  RollbackAgentPayload,
 } from '@/platform/graphql-server/generated/schema.generated';
 import type { GraphqlParent } from '@/platform/graphql-server/typedefs/graphql-loader.typedefs';
 
@@ -17,5 +18,9 @@ export interface AgentConnectionParent extends Omit<AgentConnection, 'edges'> {
 }
 
 export interface PublishAgentPayloadParent extends Omit<PublishAgentPayload, 'agent'> {
+  readonly agent: AgentParent;
+}
+
+export interface RollbackAgentPayloadParent extends Omit<RollbackAgentPayload, 'agent'> {
   readonly agent: AgentParent;
 }

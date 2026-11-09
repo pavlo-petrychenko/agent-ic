@@ -416,6 +416,7 @@ Each use case lists the main path, then variations and errors, and the screens i
    - The new version goes live immediately. Runs already in progress finish on the old version.
 5. **Versions** (`Testing-Versions`): history with notes; compare.
 6. **Restore** an old version: it is copied into the draft (replacing unpublished changes) and must be published again → `Testing-Versions-Restore`.
+7. **Roll back** makes an old version live in one step, as a new version number; it replaces unpublished changes in the draft.
 
 ### UC-7 · Manage prompts
 *Screen: `Prompts`*
