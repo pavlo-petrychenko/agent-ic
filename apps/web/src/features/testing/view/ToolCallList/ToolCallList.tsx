@@ -19,7 +19,9 @@ function ToolCallItem({ call, number }: ToolCallItemProps) {
         <summary className={styles.summary}>
           <Icon name={IconName.ChevronRight} className={styles.chevron} />
           <span className={styles.number}>{number}</span>
-          <span className={styles.name}>{call.name}</span>
+          <span className={styles.name} title={call.name}>
+            {call.name}
+          </span>
           {call.duration !== null && (
             <span className={styles.duration}>
               {t('details.toolCall.duration', { value: call.duration })}
