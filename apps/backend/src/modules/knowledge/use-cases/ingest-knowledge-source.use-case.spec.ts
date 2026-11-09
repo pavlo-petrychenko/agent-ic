@@ -803,6 +803,148 @@ describe('IngestKnowledgeSourceUseCase', () => {
     });
   });
 
+  it('fails every unprocessed document when a multi-document sync aborts and can retry them', async () => {
+    const workspaceId = testbed.ids.generate();
+    const knowledgeBaseId = await seedKnowledgeBase(testbed, workspaceId);
+    const connectionId = await seedKnowledgeConnection(testbed, workspaceId);
+    await testbed.tenants.run(workspaceId, () =>
+      connections.update(workspaceId, connectionId, {
+        sealedRefreshToken: secrets.seal(TEST_GOOGLE_REFRESH_TOKEN),
+      }),
+    );
+    const sourceId = await seedKnowledgeSource(testbed, workspaceId, knowledgeBaseId, {
+      kind: KnowledgeSourceKind.GoogleDocs,
+      connectionId,
+    });
+    const files = [
+      {
+        id: 'google-doc-1',
+        name: 'Refund policy',
+        markdown: '# Refund policy\n\nRefunds are processed within five days.\n',
+      },
+      {
+        id: 'google-doc-2',
+        name: 'Pricing',
+        markdown: '# Pricing\n\nOur prices are listed in the catalogue.\n',
+      },
+      {
+        id: 'google-doc-3',
+        name: 'Delivery',
+        markdown: '# Delivery\n\nOrders arrive within three working days.\n',
+      },
+    ];
+    const documentIds: string[] = [];
+    for (const file of files) {
+      const documentId = await seedKnowledgeDocument(
+        testbed,
+        workspaceId,
+        knowledgeBaseId,
+        sourceId,
+      );
+      await testbed.tenants.run(workspaceId, () =>
+        documents.update(workspaceId, documentId, {
+          externalId: file.id,
+          title: file.name,
+          mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+        }),
+      );
+      drive.addFile(
+        {
+          id: file.id,
+          name: file.name,
+          mimeType: TEST_GOOGLE_DOC_MIME_TYPE,
+          webViewLink: TEST_GOOGLE_DOC_URL,
+          modifiedTime: TEST_GOOGLE_DOC_MODIFIED_AT,
+          version: TEST_GOOGLE_DOC_VERSION,
+          trashed: false,
+        },
+        file.markdown,
+      );
+      documentIds.push(documentId);
+    }
+    const syncRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(syncRunId, workspaceId, sourceId)),
+    );
+    oauth.failWith(new GoogleReconnectRequiredError());
+
+    await expect(
+      ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId }),
+    ).rejects.toBeInstanceOf(GoogleReconnectRequiredError);
+
+    const failedDocuments = await testbed.tenants.run(workspaceId, async () => {
+      const stored = [];
+      for (const documentId of documentIds) {
+        stored.push(await documents.findById(workspaceId, documentId));
+      }
+      return stored;
+    });
+    const failedSource = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    const failedRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, syncRunId),
+    );
+
+    expect(failedDocuments).toEqual(
+      documentIds.map(() =>
+        expect.objectContaining({
+          status: KnowledgeDocumentStatus.Error,
+          errorCode: 'GOOGLE_RECONNECT_REQUIRED',
+        }),
+      ),
+    );
+    expect(failedSource).toMatchObject({
+      status: KnowledgeSourceStatus.Error,
+      lastErrorCode: 'GOOGLE_RECONNECT_REQUIRED',
+    });
+    expect(failedRun).toMatchObject({
+      status: KnowledgeSyncStatus.Failed,
+      documentsTotal: 3,
+      documentsFailed: 3,
+    });
+
+    oauth.clearFailure();
+    await testbed.tenants.run(workspaceId, () =>
+      connections.update(workspaceId, connectionId, {
+        status: KnowledgeConnectionStatus.Active,
+        lastErrorCode: null,
+        lastErrorMessage: null,
+      }),
+    );
+    const retryRunId = testbed.ids.generate();
+    await testbed.tenants.run(workspaceId, () =>
+      syncRuns.insert(newSyncRun(retryRunId, workspaceId, sourceId)),
+    );
+
+    await ingest.execute(workspaceSystemCtx(workspaceId), { sourceId, syncRunId: retryRunId });
+
+    const retriedDocuments = await testbed.tenants.run(workspaceId, async () => {
+      const stored = [];
+      for (const documentId of documentIds) {
+        stored.push(await documents.findById(workspaceId, documentId));
+      }
+      return stored;
+    });
+    const retriedSource = await testbed.tenants.run(workspaceId, () =>
+      sources.findById(workspaceId, sourceId),
+    );
+    const retriedRun = await testbed.tenants.run(workspaceId, () =>
+      syncRuns.findById(workspaceId, retryRunId),
+    );
+
+    expect(retriedDocuments).toEqual(
+      documentIds.map(() => expect.objectContaining({ status: KnowledgeDocumentStatus.Indexed })),
+    );
+    expect(retriedSource?.status).toBe(KnowledgeSourceStatus.Ready);
+    expect(retriedRun).toMatchObject({
+      status: KnowledgeSyncStatus.Succeeded,
+      documentsTotal: 3,
+      documentsIndexed: 3,
+      documentsFailed: 0,
+    });
+  });
+
   it('keeps the document searchable when the summary call fails', async () => {
     llm.fail = true;
     const workspaceId = testbed.ids.generate();

@@ -11,6 +11,7 @@ import {
 } from '@/modules/knowledge/errors/google-drive.error';
 import { GoogleReconnectRequiredError } from '@/modules/knowledge/errors/google-reconnect-required.error';
 import { GoogleDriveApiGateway } from '@/modules/knowledge/gateways/google-drive-api.gateway';
+import { UpstreamError } from '@/platform/errors/errors/upstream.error';
 import { HttpHeader } from '@/platform/http/constants/http-header.constants';
 import { FakeOutboundHttpGateway } from '@/platform/outbound-http/gateways/outbound-http.fake';
 import {
@@ -107,6 +108,24 @@ describe('GoogleDriveApiGateway', () => {
     await expect(
       gateway.file(TEST_GOOGLE_ACCESS_TOKEN, TEST_GOOGLE_DOC_ID, null),
     ).rejects.toBeInstanceOf(GoogleDriveFileUnavailableError);
+  });
+
+  it('reports a forbidden quota error as retryable upstream failure', async () => {
+    const http = new FakeOutboundHttpGateway().respond(
+      HttpStatus.FORBIDDEN,
+      JSON.stringify({
+        error: {
+          code: HttpStatus.FORBIDDEN,
+          message: 'Rate limit exceeded',
+          errors: [{ reason: 'rateLimitExceeded' }],
+        },
+      }),
+    );
+    const gateway = new GoogleDriveApiGateway(http);
+    const attempt = gateway.file(TEST_GOOGLE_ACCESS_TOKEN, TEST_GOOGLE_DOC_ID, null);
+
+    await expect(attempt).rejects.toBeInstanceOf(UpstreamError);
+    await expect(attempt).rejects.toMatchObject({ retryable: true });
   });
 
   it('reports the Google export size limit as a large document', async () => {

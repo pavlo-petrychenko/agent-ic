@@ -86,6 +86,7 @@ export class KnowledgeDocumentReindexService {
         level: section.level,
         path: section.path,
         heading: section.heading,
+        content: section.content,
         tokenCount: section.tokenCount,
         contentHash: section.contentHash,
       };

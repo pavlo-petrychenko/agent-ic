@@ -66,8 +66,8 @@ export class ConnectionsRepository {
             sealedRefreshToken: connection.sealedRefreshToken,
             scopes: connection.scopes,
             status: connection.status,
-            lastErrorCode: null,
-            lastErrorMessage: null,
+            lastErrorCode: connection.lastErrorCode ?? null,
+            lastErrorMessage: connection.lastErrorMessage ?? null,
             updatedAt: now,
           },
         })

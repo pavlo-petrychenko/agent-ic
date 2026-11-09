@@ -23,6 +23,7 @@ import { SourceDocumentsRepository } from '@/modules/knowledge/repositories/sour
 import { SourcesRepository } from '@/modules/knowledge/repositories/sources.repository';
 import { SyncRunsRepository } from '@/modules/knowledge/repositories/sync-runs.repository';
 import { KnowledgeDocumentIngestionService } from '@/modules/knowledge/services/knowledge-document-ingestion.service';
+import type { Document } from '@/modules/knowledge/typedefs/document.typedefs';
 import type { SourceIngestionStart } from '@/modules/knowledge/typedefs/knowledge-ingestion.typedefs';
 import type {
   IngestKnowledgeSourceJobData,
@@ -71,9 +72,11 @@ export class IngestKnowledgeSourceUseCase {
     let skipped = 0;
     let stale = 0;
     let failed = 0;
+    let failedDocumentIndex = -1;
+    let failedDocumentCounted = false;
     let failure: KnowledgeFailure | null = null;
     try {
-      for (const document of started.documents) {
+      for (const [index, document] of started.documents.entries()) {
         try {
           const result = await this.ingestion.ingest({
             workspaceId,
@@ -94,6 +97,9 @@ export class IngestKnowledgeSourceUseCase {
           failure = knowledgeFailure(error);
           const documentFailure = isDocumentFailure(error);
           const connectionFailure = isConnectionFailure(error);
+          if (connectionFailure || !documentFailure) {
+            failedDocumentIndex = index;
+          }
           if (documentFailure || connectionFailure || this.isFinalAttempt(ctx)) {
             await this.markDocument(
               workspaceId,
@@ -104,6 +110,7 @@ export class IngestKnowledgeSourceUseCase {
           }
           if (connectionFailure) {
             failed += 1;
+            failedDocumentCounted = true;
             if (started.connection !== null) {
               await this.markConnectionRevoked(workspaceId, started.connection.id, failure);
             }
@@ -112,6 +119,7 @@ export class IngestKnowledgeSourceUseCase {
           if (!documentFailure) {
             if (this.isFinalAttempt(ctx)) {
               failed += 1;
+              failedDocumentCounted = true;
             }
             throw error;
           }
@@ -150,9 +158,31 @@ export class IngestKnowledgeSourceUseCase {
     } catch (error) {
       const thrownFailure = knowledgeFailure(error);
       if (this.shouldFinishOnFailure(ctx, error)) {
+        if (failedDocumentIndex >= 0) {
+          const failedDocument = started.documents[failedDocumentIndex];
+          if (!failedDocumentCounted && failedDocument !== undefined) {
+            await this.markDocument(
+              workspaceId,
+              failedDocument.id,
+              KnowledgeDocumentStatus.Error,
+              thrownFailure,
+            );
+            failed += 1;
+          }
+          failed += await this.failUnprocessedDocuments(
+            workspaceId,
+            started.documents,
+            failedDocumentIndex,
+            thrownFailure,
+          );
+        }
+        const runStatus =
+          failed > 0 && failed < started.documents.length
+            ? KnowledgeSyncStatus.Partial
+            : KnowledgeSyncStatus.Failed;
         const finishedAt = this.clock.now();
         await this.finish(workspaceId, started.knowledgeBase.id, sourceId, started.syncRunId, {
-          status: KnowledgeSyncStatus.Failed,
+          status: runStatus,
           sourceStatus: KnowledgeSourceStatus.Error,
           finishedAt,
           documentIds: started.documents.map((document) => document.id),
@@ -168,6 +198,26 @@ export class IngestKnowledgeSourceUseCase {
       }
       throw error;
     }
+  }
+
+  private async failUnprocessedDocuments(
+    workspaceId: string,
+    documents: readonly Document[],
+    failedDocumentIndex: number,
+    failure: KnowledgeFailure,
+  ): Promise<number> {
+    let marked = 0;
+    for (const document of documents.slice(failedDocumentIndex + 1)) {
+      if (
+        document.status !== KnowledgeDocumentStatus.Pending &&
+        document.status !== KnowledgeDocumentStatus.Indexing
+      ) {
+        continue;
+      }
+      await this.markDocument(workspaceId, document.id, KnowledgeDocumentStatus.Error, failure);
+      marked += 1;
+    }
+    return marked;
   }
 
   private async start(
