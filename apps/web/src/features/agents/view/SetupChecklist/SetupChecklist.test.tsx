@@ -22,7 +22,7 @@ const renderChecklist = (props: Partial<SetupChecklistProps> = {}) => {
   const onOpenTeam = vi.fn<() => void>();
   renderWithProviders(
     <SetupChecklist
-      creating={false}
+      canStart
       invite={null}
       onStart={vi.fn<() => void>()}
       onCopyInvite={onCopyInvite}
@@ -57,6 +57,22 @@ describe('SetupChecklist', () => {
 
     expect(onOpenTeam).toHaveBeenCalledTimes(1);
     expect(onCopyInvite).not.toHaveBeenCalled();
+  });
+
+  it('starts the first agent from its step', async () => {
+    const onStart = vi.fn<() => void>();
+    renderChecklist({ onStart });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Start' }));
+
+    expect(onStart).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the start button out for a member who cannot create agents', () => {
+    renderChecklist({ canStart: false });
+
+    expect(screen.getByText('Build your first assistant')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Start' })).not.toBeInTheDocument();
   });
 
   it('hides the invite step from a member who cannot invite', () => {

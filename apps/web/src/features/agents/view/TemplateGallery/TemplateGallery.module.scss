@@ -1,0 +1,111 @@
+$featured-min-width: 300px;
+$compact-min-width: 210px;
+$panel-min-height: 520px;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.blank {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--space-12) var(--space-14);
+  border: var(--border-width-dash) dashed var(--color-line-dash);
+  border-radius: var(--radius-12);
+  background: transparent;
+  color: var(--color-ink-secondary);
+  font: var(--type-body);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast),
+    border-color var(--duration-fast);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-edge);
+    background: var(--color-soft);
+    color: var(--color-ink);
+  }
+
+  &:active:not(:disabled) {
+    border-color: var(--color-edge);
+    background: var(--color-chip);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+  }
+
+  &:disabled {
+    opacity: var(--opacity-disabled);
+    cursor: not-allowed;
+  }
+}
+
+.blankText {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.blankTitle {
+  color: var(--color-ink);
+  font: var(--type-title);
+}
+
+.blankDescription {
+  color: var(--color-mute);
+  font: var(--type-caption);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  min-height: $panel-min-height;
+}
+
+.intro {
+  margin: 0;
+  color: var(--color-mute);
+  font: var(--type-body-small);
+}
+
+.filters {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.featured {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, #{$featured-min-width}), 1fr));
+  gap: var(--space-16);
+}
+
+.compact {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, #{$compact-min-width}), 1fr));
+}
+
+.item {
+  display: flex;
+  min-width: 0;
+}
+
+.item > * {
+  flex: 1 1 auto;
+}

@@ -7,7 +7,7 @@ export interface SetupInvite {
 }
 
 export interface SetupChecklistProps {
-  creating: boolean;
+  canStart: boolean;
   invite: SetupInvite | null;
   onStart: () => void;
   onCopyInvite: () => void;

@@ -14,7 +14,7 @@ import { RowList, type RowListRow } from '@/shared/ui/display/RowList';
 import { IconName } from '@/shared/ui/foundations/Icon';
 
 export function SetupChecklist({
-  creating,
+  canStart,
   invite,
   onStart,
   onCopyInvite,
@@ -32,11 +32,11 @@ export function SetupChecklist({
       id: SetupStep.Agent,
       name: t('setup.agent'),
       leading: <NodeTile kind={NodeKind.Agent} size={TileSize.Sm} icon={IconName.Agent} />,
-      meta: (
-        <Button size={ButtonSize.Sm} loading={creating} onClick={onStart}>
+      meta: canStart ? (
+        <Button size={ButtonSize.Sm} onClick={onStart}>
           {t('setup.start')}
         </Button>
-      ),
+      ) : null,
     },
   ];
   if (invite !== null) {

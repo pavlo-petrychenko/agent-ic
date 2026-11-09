@@ -205,22 +205,18 @@ describe('agents list', () => {
     expect(await screen.findByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument();
   });
 
-  it('starts the first agent from the checklist', async () => {
+  it('opens the template gallery from the checklist', async () => {
     const user = userEvent.setup();
     renderRoute(agentsPath, {
-      mocks: [
-        buildWorkspaceShellMock([DEMO_WORKSPACE]),
-        buildAgentsMock([]),
-        buildCreateAgentMock('New agent'),
-      ],
+      mocks: [buildWorkspaceShellMock([DEMO_WORKSPACE]), buildAgentsMock([])],
     });
 
     await user.click(await screen.findByRole('button', { name: 'Start' }));
 
-    expect(await screen.findByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: 'Start a new agent' })).toBeInTheDocument();
   });
 
-  it('creates another agent from the header', async () => {
+  it('opens the gallery from the header and starts a blank flow', async () => {
     const user = userEvent.setup();
     renderRoute(agentsPath, {
       mocks: [
@@ -231,6 +227,8 @@ describe('agents list', () => {
     });
 
     await user.click(await screen.findByRole('button', { name: 'New agent' }));
+    const gallery = await screen.findByRole('dialog', { name: 'Start a new agent' });
+    await user.click(within(gallery).getByRole('button', { name: /Blank flow/ }));
 
     expect(await screen.findByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument();
   });
